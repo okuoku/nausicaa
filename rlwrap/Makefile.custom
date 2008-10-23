@@ -1,0 +1,32 @@
+# Makefile.custom --
+#
+# This makefile is loaded by "Makefile".  Its purpose is to hold user
+# customisable variables.
+
+#page
+## ------------------------------------------------------------
+## Wrapper installation directories.
+## ------------------------------------------------------------
+
+prefix		= $(HOME)
+bindir		= $(prefix)/bin
+datadir		= $(prefix)/share
+pkgdatadir	= $(datadir)/ikarus
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Ikarus installation directories.
+## ------------------------------------------------------------
+
+IKARUS_PREFIX		= /usr/local
+IKARUS_BINDIR		= ${IKARUS_PREFIX}/bin
+IKARUS_LIBDIR		= ${IKARUS_PREFIX}/lib
+IKARUS_PKGLIBDIR	= ${IKARUS_LIBDIR}/ikarus
+
+
+### end of file
+# Local Variables:
+# mode: makefile
+# End:

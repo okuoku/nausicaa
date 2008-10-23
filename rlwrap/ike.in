@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# Ikarus Scheme GNU Readline wrapper.
+
+## ------------------------------------------------------------
+## Configuration variables.
+
+IKARUS_BINDIR='@IKARUS_BINDIR@'
+IKARUS_PROGRAM="${IKARUS_BINDIR}/ikarus"
+
+RLWRAP_PROGRAM=$(type -p rlwrap)
+RLWRAP_DATADIR='@pkgdatadir@'
+
+## ------------------------------------------------------------
+## Data variables.
+
+# Do NOT include '\!' and '?' in this string.
+BREAK_CHARS="\"#'(),;\`\\|[]{}"
+
+## ------------------------------------------------------------
+## Check programs existence.
+
+if ! test -x "${RLWRAP_PROGRAM}" ; then
+    echo "ike error: cannot find program 'rlwrap'" >&2
+    exit 2
+fi
+
+if ! test -x "${IKARUS_PROGRAM}" ; then
+    echo "ike error: cannot find program 'ikarus'" >&2
+    exit 2
+fi
+
+## ------------------------------------------------------------
+## Run.
+
+exec "${RLWRAP_PROGRAM}"                                \
+    --ansi-colour-aware                                 \
+    --break-chars=${BREAK_CHARS}                        \
+    --complete-filenames                                \
+    --multi-line                                        \
+    --prompt-colour='1;31'                              \
+    --quote-characters='"'                              \
+    --remember                                          \
+    --file "${RLWRAP_DATADIR}/r6rs_identifiers"         \
+    --file "${RLWRAP_DATADIR}/ikarus_completions"       \
+    --file "${RLWRAP_DATADIR}/ffi_completions"          \
+    --file "${RLWRAP_DATADIR}/streams_completions"      \
+    "${IKARUS_PROGRAM}" "$@"
+
+### end of file
