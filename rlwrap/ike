@@ -33,18 +33,19 @@ fi
 ## ------------------------------------------------------------
 ## Run.
 
-exec "${RLWRAP_PROGRAM}"                                \
-    --ansi-colour-aware                                 \
-    --break-chars=${BREAK_CHARS}                        \
-    --complete-filenames                                \
-    --multi-line                                        \
-    --prompt-colour='1;31'                              \
-    --quote-characters='"'                              \
-    --remember                                          \
-    --file "${RLWRAP_DATADIR}/r6rs_identifiers"         \
-    --file "${RLWRAP_DATADIR}/ikarus_completions"       \
-    --file "${RLWRAP_DATADIR}/ffi_completions"          \
-    --file "${RLWRAP_DATADIR}/streams_completions"      \
+exec "${RLWRAP_PROGRAM}"                                        \
+    --ansi-colour-aware                                         \
+    --break-chars=${BREAK_CHARS}                                \
+    --complete-filenames                                        \
+    --multi-line                                                \
+    --prompt-colour='1;31'                                      \
+    --quote-characters='"'                                      \
+    --remember                                                  \
+    --file "${RLWRAP_DATADIR}/r6rs_identifiers"                 \
+    --file "${RLWRAP_DATADIR}/ikarus_completions"               \
+    --file "${RLWRAP_DATADIR}/ffi_completions"                  \
+    --file "${RLWRAP_DATADIR}/srfi_list_completions"            \
+    --file "${RLWRAP_DATADIR}/srfi_streams_completions"         \
     "${IKARUS_PROGRAM}" "$@"
 
 ### end of file
