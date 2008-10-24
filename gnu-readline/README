@@ -18,9 +18,9 @@ Topics
 
 This directory holds  a set of files to be  used to wrap the
 Ikarus  Scheme  executable  with  the GNU  Readline  wrapper
-Rlwrap.  The original version of the files was posted to the
-Ikarus  Scheme mailing  list <ikarus-users@googlegroups.com>
-by Tizio Caio.
+Rlwrap by Hans  Lub.  The original version of  the files was
+posted    to     the    Ikarus    Scheme     mailing    list
+<ikarus-users@googlegroups.com>.
 
   The package is composed  by the Bourne shell script "ike",
 which spawns  "rlwrap", and a set of  completion files.  The
@@ -81,7 +81,7 @@ B. Resources
 
 Rlwrap can be found here:
 
-	<http://utopia.knoware.nl/~hlub/uck/rlwrap/>
+	  <http://utopia.knoware.nl/~hlub/rlwrap/>
 
 
 ### end of file

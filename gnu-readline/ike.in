@@ -48,6 +48,7 @@ exec "${RLWRAP_PROGRAM}"                                        \
     --ansi-colour-aware                                         \
     --break-chars=${BREAK_CHARS}                                \
     --complete-filenames                                        \
+    --history-no-dupes=2                                        \
     --multi-line                                                \
     --prompt-colour='1;31'                                      \
     --quote-characters='"'                                      \
