@@ -1,0 +1,126 @@
+# Makefile.end --
+#
+# Library of rules.
+
+#page
+## ------------------------------------------------------------
+## Slackware support.
+## ------------------------------------------------------------
+
+slack_NAME		= $(PACKAGE)
+slack_VERSION		= $(VERSION)
+slack_ARCH		= noarch
+slack_REBUILD_VERSION	= 1mm
+
+slack_PACKAGE_NAME	= $(slack_NAME)-$(slack_VERSION)-$(slack_ARCH)-$(slack_REBUILD_VERSION).tgz
+
+## ------------------------------------------------------------
+
+slack_MAKEPKG		= /sbin/makepkg
+slack_INSTALLPKG	= /sbin/installpkg
+slack_REMOVEPKG		= /sbin/removepkg
+slack_UPGRADEPKG	= /sbin/upgradepkg --verbose --reinstall
+
+slack_SED		= $(SED) \
+	-e "s|@PACKAGE@|$(PACKAGE)|g"	\
+	-e "s|@VERSION@|$(VERSION)|g"
+
+## ------------------------------------------------------------
+
+.PHONY: slackware-clean
+
+slackware-clean:
+	$(SUDO) $(RM) $(slack_BUILDDIR)
+
+## ------------------------------------------------------------
+
+slack_BUILDDIR		= $(TMPDIR)/$(PKG_ID)
+
+# Try  to  read from  the  system  the  name of  an  already
+# installed package.  It is used to upgrade.
+slack_INSTALLED_PACKAGE	:= \
+	$(firstword $(notdir $(wildcard /var/log/packages/$(slack_NAME)-*)))
+
+.PHONY: slackware slackware-install slackware-upgrade
+
+slackware: slackware-clean
+	$(MAKE) install DESTDIR=$(slack_BUILDDIR)
+	$(INSTALL_DIR) $(slack_BUILDDIR)/install
+	$(slack_SED) \
+		< meta/slackware/slack-desc.in \
+		> $(slack_BUILDDIR)/install/slack-desc
+	cd $(slack_BUILDDIR); \
+	$(SUDO) $(slack_MAKEPKG) --chown y $(slack_PACKAGE_NAME)
+
+slackware-install:
+	cd $(slack_BUILDDIR); \
+	$(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
+
+slackware-upgrade:
+	cd $(slack_BUILDDIR); \
+	$(SUDO) $(slack_UPGRADEPKG) $(slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
+
+## ------------------------------------------------------------
+## The following  is for Slackware  packages installed under
+## the selected '$(prefix)'.
+
+local_slack_BUILDDIR	= $(slack_BUILDDIR)/$(prefix)
+
+# Try  to  read from  the  system  the  name of  an  already
+# installed package.  It is used to upgrade.
+local_slack_INSTALLED_PACKAGE	:= \
+	$(firstword $(notdir $(wildcard $(prefix)/var/log/packages/$(slack_NAME)-*)))
+
+# Adding  "/sbin"  allows  the  Slackware  scripts  to  find
+# themselves.
+local_slack_ENV		= PATH=/sbin:$(PATH) ROOT=$(prefix)
+
+.PHONY: slackware slackware-install slackware-upgrade
+
+local-slackware: slackware-clean
+	$(MAKE) install DESTDIR=$(slack_BUILDDIR)
+	$(INSTALL_DIR) $(local_slack_BUILDDIR)/install
+	$(slack_SED) \
+		< meta/slackware/slack-desc.in \
+		> $(local_slack_BUILDDIR)/install/slack-desc
+	cd $(local_slack_BUILDDIR); \
+	$(local_slack_ENV) $(SUDO) $(slack_MAKEPKG) --chown y $(slack_PACKAGE_NAME)
+
+local-slackware-install:
+	cd $(local_slack_BUILDDIR); \
+	$(local_slack_ENV) $(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
+
+local-slackware-upgrade:
+	cd $(local_slack_BUILDDIR); \
+	$(local_slack_ENV) $(SUDO) $(slack_UPGRADEPKG) \
+		$(local_slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
+
+## ------------------------------------------------------------
+
+.PHONY: abi abu
+
+abi: local-slackware local-slackware-install
+abu: local-slackware local-slackware-upgrade
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## End.
+## ------------------------------------------------------------
+
+.PHONY: echo-variable echo-list-variable
+
+echo-variable:
+	@echo $($(VARIABLE))
+
+echo-list-variable:
+	@$(foreach f,$($(VARIABLE)),echo $(f);)
+
+
+
+### end of file
+# Local Variables:
+# mode: makefile
+# fill-column: 60
+# End:

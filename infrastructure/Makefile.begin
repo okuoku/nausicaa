@@ -1,0 +1,20 @@
+# Makefile.begin --
+#
+# Library of rules.
+
+
+#page
+## ------------------------------------------------------------
+## Global variables.
+## ------------------------------------------------------------
+
+ifeq ($(strip TMPDIR),)
+TMPDIR		= /tmp
+endif
+
+
+### end of file
+# Local Variables:
+# mode: makefile
+# fill-column: 60
+# End:

@@ -33,10 +33,10 @@ endif
 
 SED		= sed
 SED_FLAGS	= \
-	-e "s|@IKARUS_PREFIX@|$(IKARUS_PREFIX)|g"	\
-	-e "s|@IKARUS_BINDIR@|$(IKARUS_BINDIR)|g"	\
-	-e "s|@IKARUS_LIBDIR@|$(IKARUS_LIBDIR)|g"	\
-	-e "s|@IKARUS_PKGLIBDIR@|$(IKARUS_PKGLIBDIR)|g"	\
+	-e "s|@IKARUS_PREFIX@|$(ikarus_PREFIX)|g"	\
+	-e "s|@IKARUS_BINDIR@|$(ikarus_BINDIR)|g"	\
+	-e "s|@IKARUS_LIBDIR@|$(ikarus_LIBDIR)|g"	\
+	-e "s|@IKARUS_PKGLIBDIR@|$(ikarus_PKGLIBDIR)|g"	\
 	-e "s|@prefix@|$(prefix)|g"			\
 	-e "s|@bindir@|$(bindir)|g"			\
 	-e "s|@datadir@|$(datadir)|g"			\
@@ -60,7 +60,7 @@ RM		= rm --force --recursive --verbose --
 RMDIR		= rmdir --parents --ignore-fail-on-non-empty --
 MKDIR		= mkdir --parents --verbose
 
-SORT		= sort
+SORT		= sort --unique
 
 ## ------------------------------------------------------------
 
@@ -79,7 +79,7 @@ COMPFILE	= $(builddir)/.ikarus_completions
 
 all: builddir
 	$(SED) $(SED_FLAGS) < ike.in > $(builddir)/ike
-	cat $(COMPLETIONS) | sort >$(COMPFILE)
+	cat $(COMPLETIONS) | $(SORT) >$(COMPFILE)
 
 clean:
 	-$(RM) $(builddir)

@@ -40,10 +40,10 @@ pkgdatadir	= $(prefix)
 ## Ikarus installation directories.
 ## ------------------------------------------------------------
 
-IKARUS_PREFIX		= /usr/local
-IKARUS_BINDIR		= ${IKARUS_PREFIX}/bin
-IKARUS_LIBDIR		= ${IKARUS_PREFIX}/lib
-IKARUS_PKGLIBDIR	= ${IKARUS_LIBDIR}/ikarus
+ikarus_PREFIX		= /usr/local
+ikarus_BINDIR		= ${ikarus_PREFIX}/bin
+ikarus_LIBDIR		= ${ikarus_PREFIX}/lib
+ikarus_PKGLIBDIR	= ${ikarus_LIBDIR}/ikarus
 
 
 ### end of file
