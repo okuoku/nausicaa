@@ -11,7 +11,14 @@
 # The list  of completion  modules to include.   Each string
 # must be the prefix of a '*_completions' file in the source
 # directory.
-MODULES		= ikarus ffi srfi_streams srfi_list
+MODULES		= ikarus ffi				\
+				srfi_cond_expand	\
+				srfi_list		\
+				srfi_string_ports	\
+				srfi_receive		\
+				srfi_records		\
+				srfi_let_values		\
+				srfi_streams
 
 ## ------------------------------------------------------------
 
