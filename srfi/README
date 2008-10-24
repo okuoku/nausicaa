@@ -1,0 +1,84 @@
+
+			Ikarus SRFI
+			===========
+
+
+Topics
+------
+
+  1. Overview
+  2. License
+  3. Install
+  A. Bug reports
+  B. Resources
+
+
+1. Overview
+-----------
+
+This  directory holds  implementations of  the  SRFI (Scheme
+Request for  Implementation).  The  files are a  checkout of
+the development  version at Launchpad  (see Resources), with
+the  only  change  being  the nomalisation  of  the  library
+identifiers.
+
+  The current checkout is: revision 55.
+
+
+2. License
+----------
+
+Each file has its own copyright notice at the top.  Refer to
+it.
+
+
+3. Install
+----------
+
+The following rules are available in the "Makefile":
+
+  all -		build the "ike" script from the
+		template "ike.in";
+
+  clean -	remove the "ike" script;
+
+  install -	install the directories, the script and
+		the completion files;
+
+  uninstall -	uinstall the script, the completion files
+		and the installation directories.
+
+  To test what a rule will do use the "-n" option; example:
+
+    $ make install -n
+
+  The "Makefile" supports the "DESTDIR" environment variable
+to install the fils under a temporary location; example:
+
+    $ make install DESTDIR=/tmp/marco/ikarus-wrapper
+
+
+A. Bug reports
+--------------
+
+Bug reports about the SRFI code should be reported using the
+Launchpad  interface.  Bug  reports about  this installation
+infrastructure   are  welcome:   Send  them   by   email  to
+<marcomaggi@gna.org>.
+
+
+B. Resources
+------------
+
+Scheme  Requests For  Implementation (SRFI)  for R6RS/Ikarus
+can be found at:
+
+<https://code.launchpad.net/~ikarus-srfi-team/ikarus-libraries/srfi>
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

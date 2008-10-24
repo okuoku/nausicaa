@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Ikarus Scheme GNU Readline wrapper.
+# Ikarus Scheme GNU Readline wrapper using Rlwrap.
 
 ## ------------------------------------------------------------
 ## Configuration variables.
