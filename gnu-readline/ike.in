@@ -11,6 +11,9 @@ IKARUS_PROGRAM="${IKARUS_BINDIR}/ikarus"
 RLWRAP_PROGRAM=$(type -p rlwrap)
 RLWRAP_DATADIR='@pkgdatadir@'
 
+COMPLETIONS_FILE=${RLWRAP_DATADIR}/.ikarus_completions
+COMPLETIONS_OPTION=--file=${COMPLETIONS_FILE}
+
 ## ------------------------------------------------------------
 ## Data variables.
 
@@ -18,16 +21,24 @@ RLWRAP_DATADIR='@pkgdatadir@'
 BREAK_CHARS="\"#'(),;\`\\|[]{}"
 
 ## ------------------------------------------------------------
-## Check programs existence.
+## Check programs and data files existence.
 
-if ! test -x "${RLWRAP_PROGRAM}" ; then
-    echo "ike error: cannot find program 'rlwrap'" >&2
+function error () {
+    local MESSAGE=${1:?"missing message argument to function '${FUNCNAME}'"}
+    printf 'ike error: %s\n' "${MESSAGE}" >&2
     exit 2
-fi
+}
+function warning () {
+    local MESSAGE=${1:?"missing message argument to function '${FUNCNAME}'"}
+    printf 'ike warning: %s\n' "${MESSAGE}" >&2
+}
 
-if ! test -x "${IKARUS_PROGRAM}" ; then
-    echo "ike error: cannot find program 'ikarus'" >&2
-    exit 2
+test -x "${RLWRAP_PROGRAM}" || error "cannot find program 'rlwrap'"
+test -x "${IKARUS_PROGRAM}" || error "cannot find program 'ikarus'"
+
+if ! test -f "${COMPLETIONS_FILE}" ; then
+    warning "cannot find completions file '${COMPLETIONS_FILE}'"
+    COMPLETIONS_OPTION=
 fi
 
 ## ------------------------------------------------------------
@@ -41,11 +52,7 @@ exec "${RLWRAP_PROGRAM}"                                        \
     --prompt-colour='1;31'                                      \
     --quote-characters='"'                                      \
     --remember                                                  \
-    --file "${RLWRAP_DATADIR}/r6rs_identifiers"                 \
-    --file "${RLWRAP_DATADIR}/ikarus_completions"               \
-    --file "${RLWRAP_DATADIR}/ffi_completions"                  \
-    --file "${RLWRAP_DATADIR}/srfi_list_completions"            \
-    --file "${RLWRAP_DATADIR}/srfi_streams_completions"         \
+    ${COMPLETIONS_OPTION}                                       \
     "${IKARUS_PROGRAM}" "$@"
 
 ### end of file

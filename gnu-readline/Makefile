@@ -4,6 +4,16 @@
 
 #page
 ## ------------------------------------------------------------
+## Global variables.
+## ------------------------------------------------------------
+
+srcdir		= $(PWD)
+builddir	= "$(PWD)/=build"
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
 ## Customisation.
 ## ------------------------------------------------------------
 
@@ -22,8 +32,15 @@ endif
 ## ------------------------------------------------------------
 
 SED		= sed
-SED_FLAGS	= -e "s|@IKARUS_BINDIR@|$(IKARUS_BINDIR)|g" \
-		  -e "s|@pkgdatadir@|$(pkgdatadir)|g"
+SED_FLAGS	= \
+	-e "s|@IKARUS_PREFIX@|$(IKARUS_PREFIX)|g"	\
+	-e "s|@IKARUS_BINDIR@|$(IKARUS_BINDIR)|g"	\
+	-e "s|@IKARUS_LIBDIR@|$(IKARUS_LIBDIR)|g"	\
+	-e "s|@IKARUS_PKGLIBDIR@|$(IKARUS_PKGLIBDIR)|g"	\
+	-e "s|@prefix@|$(prefix)|g"			\
+	-e "s|@bindir@|$(bindir)|g"			\
+	-e "s|@datadir@|$(datadir)|g"			\
+	-e "s|@pkgdatadir@|$(pkgdatadir)|g"
 
 ## ------------------------------------------------------------
 
@@ -39,8 +56,11 @@ INSTALL_DATA		= $(INSTALL) -m $(INSTALL_DATA_MODE)
 
 ## ------------------------------------------------------------
 
-RM		= rm --force --verbose --
+RM		= rm --force --recursive --verbose --
 RMDIR		= rmdir --parents --ignore-fail-on-non-empty --
+MKDIR		= mkdir --parents --verbose
+
+SORT		= sort
 
 ## ------------------------------------------------------------
 
@@ -49,40 +69,47 @@ RMDIR		= rmdir --parents --ignore-fail-on-non-empty --
 ## Rules.
 ## ------------------------------------------------------------
 
-SCRIPTS		= ike
-COMPLETIONS	= $(wildcard *_completions *_identifiers)
+COMPLETIONS	= r6rs_identifiers \
+		  $(wildcard $(foreach m,$(MODULES),$(m)_completions))
+
+SCRIPT		= $(builddir)/ike
+COMPFILE	= $(builddir)/.ikarus_completions
 
 .PHONY: all clean install install-bin install-dat
 
-all:
-	$(SED) $(SED_FLAGS) < ike.in > ike
+all: builddir
+	$(SED) $(SED_FLAGS) < ike.in > $(builddir)/ike
+	cat $(COMPLETIONS) | sort >$(COMPFILE)
 
 clean:
-	-$(RM) ike
+	-$(RM) $(builddir)
+
+builddir:
+	-@test -d $(builddir) || $(MKDIR) $(builddir)
 
 ## ------------------------------------------------------------
 
 install: install-bin install-data
 
 install-bin:
-	$(INSTALL_DIR) $(DESTDIR)$(bindir)
-	$(INSTALL_BIN) $(SCRIPTS) $(DESTDIR)$(bindir)
+	test -d $(DESTDIR)$(bindir) || $(INSTALL_DIR) $(DESTDIR)$(bindir)
+	$(INSTALL_BIN) $(SCRIPT) $(DESTDIR)$(bindir)
 
 install-data:
-	$(INSTALL_DIR) $(DESTDIR)$(pkgdatadir)
-	$(INSTALL_DATA) $(COMPLETIONS) $(DESTDIR)$(pkgdatadir)
+	test -d $(DESTDIR)$(pkgdatadir) || $(INSTALL_DIR) $(DESTDIR)$(pkgdatadir)
+	$(INSTALL_DATA) $(COMPFILE) $(DESTDIR)$(pkgdatadir)
 
 ## ------------------------------------------------------------
 
 uninstall: uninstall-bin uninstall-data
 
 uninstall-bin:
-	-$(RM) $(addprefix $(bindir)/,$(SCRIPTS))
-	-$(RMDIR) $(bindir)
+	-$(RM) $(addprefix $(DESTDIR)$(bindir)/,$(notdir $(SCRIPT)))
+	-$(RMDIR) $(DESTDIR)$(bindir)
 
 uninstall-data:
-	-$(RM) $(addprefix $(pkgdatadir)/,$(COMPLETIONS))
-	-$(RMDIR) $(pkgdatadir)
+	-$(RM) $(addprefix $(DESTDIR)$(pkgdatadir)/,$(notdir $(COMPFILE)))
+	-$(RMDIR) $(DESTDIR)$(pkgdatadir)
 
 ## ------------------------------------------------------------
 

@@ -1,7 +1,19 @@
 # Makefile.custom --
 #
-# This makefile is loaded by "Makefile".  Its purpose is to hold user
-# customisable variables.
+# This makefile is loaded  by "Makefile".  Its purpose is to
+# hold user customisable variables.
+
+#page
+## ------------------------------------------------------------
+## Data.
+## ------------------------------------------------------------
+
+# The list  of completion  modules to include.   Each string
+# must be the prefix of a '*_completions' file in the source
+# directory.
+MODULES		= ikarus ffi srfi_streams srfi_list
+
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -11,7 +23,8 @@
 prefix		= $(HOME)
 bindir		= $(prefix)/bin
 datadir		= $(prefix)/share
-pkgdatadir	= $(datadir)/ikarus
+#pkgdatadir	= $(datadir)/ikarus
+pkgdatadir	= $(prefix)
 
 ## ------------------------------------------------------------
 
@@ -29,4 +42,5 @@ IKARUS_PKGLIBDIR	= ${IKARUS_LIBDIR}/ikarus
 ### end of file
 # Local Variables:
 # mode: makefile
+# fill-column: 60
 # End:
