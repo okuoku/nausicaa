@@ -18,16 +18,14 @@ endif
 ## ------------------------------------------------------------
 ## Binary package name variables.
 
-# The package name will be:
-#
-# $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
-#
-# 'package_BUILD_VERSION'     should    be     defined    in
+# The variable 'package_BUILD_VERSION' should be defined in
 # "Makefile.custom".
 
 package_NAME		= $(PACKAGE)
 package_VERSION		= $(VERSION)
 package_ARCH		= noarch
+
+package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
 
 ## ------------------------------------------------------------
 
@@ -36,8 +34,12 @@ package_ARCH		= noarch
 ## Common programs.
 ## ------------------------------------------------------------
 
+IKARUS		= ikarus
+SCHEME_SCRIPT	= scheme-script
+
 SED		= sed
 SUDO		= sudo
+SORT		= sort
 
 ## ------------------------------------------------------------
 

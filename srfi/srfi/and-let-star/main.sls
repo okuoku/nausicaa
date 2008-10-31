@@ -1,5 +1,5 @@
 #!r6rs
-(library (srfi and-let*)  
+(library (srfi and-let-star)
   (export 
     and-let*)
   (import 

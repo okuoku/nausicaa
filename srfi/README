@@ -17,10 +17,10 @@ Topics
 -----------
 
 This  directory holds  implementations of  the  SRFI (Scheme
-Request for  Implementation).  The  files are a  checkout of
-the development  version at Launchpad  (see Resources), with
-the  only  change  being  the nomalisation  of  the  library
-identifiers.
+Request for Implementation) adapted to R6RS and Ikarus.  The
+files are a checkout of the development version at Launchpad
+(see   Resources),   with   the   only  change   being   the
+normalisation of the library identifiers and file names.
 
   The current checkout is: revision 55.
 
@@ -35,27 +35,37 @@ it.
 3. Install
 ----------
 
-The following rules are available in the "Makefile":
+The  installation  infrastructure   supports  only  the  GNU
+environment,  which means  GNU Make  and the  common command
+line tools  (mv, cp, mkdir,  ...).  The following  rules are
+available in the "Makefile":
 
-  all -		build the "ike" script from the
-		template "ike.in";
+  all		compile all the installable Scheme files to
+		the Ikarus FASL format;
 
-  clean -	remove the "ike" script;
+  clean		remove the FASL files;
 
-  install -	install the directories, the script and
-		the completion files;
+  install	install  the directories,  the  source files
+		and the FASL files;
 
-  uninstall -	uinstall the script, the completion files
-		and the installation directories.
+  uninstall	uinstall the  source and FASL  files, remove
+		empty directories;
+
+notice  that  to  correctly  uninstall  you  have  to  avoid
+cleaning the source directory with "make clean".
 
   To test what a rule will do use the "-n" option; example:
 
     $ make install -n
 
   The "Makefile" supports the "DESTDIR" environment variable
-to install the fils under a temporary location; example:
+to install the files under a temporary location; example:
 
     $ make install DESTDIR=/tmp/marco/ikarus-wrapper
+
+  The   "Makefile"  supports  the   packages  infrastructure
+described  in the  Nausicaa documentation.   Refer to  it to
+build binary distribution archives and Slackware packages.
 
 
 A. Bug reports
@@ -73,7 +83,9 @@ B. Resources
 Scheme  Requests For  Implementation (SRFI)  for R6RS/Ikarus
 can be found at:
 
-<https://code.launchpad.net/~ikarus-srfi-team/ikarus-libraries/srfi>
+       <https://code.launchpad.net/ikarus-libraries/>
+
+porting and maintaining is by Derick Eddington.
 
 
 ### end of file

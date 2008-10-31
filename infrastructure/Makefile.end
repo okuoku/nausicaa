@@ -13,7 +13,8 @@ bindist_ARCH		= noarch
 
 # This is  the file name  of the Bindist  package.  Notice
 # that there is no directory part.
-bindist_PACKAGE_NAME	= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION).tar.bz2
+bindist_PACKAGE_EXT	= .tar.bz2
+bindist_PACKAGE_NAME	= $(package_PREFIX)$(bindist_PACKAGE_EXT)
 
 # This  is the  root directory  of the  build  directory for
 # bindist packages.
@@ -86,7 +87,9 @@ local-bindist: bindist-clean
 
 # This is  the file name  of the Slackware  package.  Notice
 # that there is no directory part.
-slack_PACKAGE_NAME	= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION).tgz
+slack_PACKAGE_NAME	= $(package_PREFIX).tgz
+
+slack_PACKAGE_PREFIX	= $(package_PREFIX)
 
 # This  is the  root directory  of the  build  directory for
 # Slackware packages.
@@ -144,7 +147,7 @@ slack_INSTALLED_PACKAGE	:= \
 
 ## ------------------------------------------------------------
 
-.PHONY: slackware slackware-install slackware-upgrade
+.PHONY: slackware slackware-install slackware-remove slackware-upgrade
 
 slackware: slackware-clean
 	$(MAKE) install DESTDIR=$(slack_BUILDDIR)
@@ -158,6 +161,10 @@ slackware: slackware-clean
 slackware-install:
 	cd $(TMPDIR); \
 	$(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
+
+slackware-remove:
+	cd $(TMPDIR); \
+	$(SUDO) $(slack_REMOVEPKG) $(slack_PACKAGE_PREFIX)
 
 slackware-upgrade:
 	cd $(TMPDIR); \
@@ -217,6 +224,9 @@ local-slackware-install:
 	cd $(TMPDIR); \
 	$(local_slack_ENV) $(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
 
+local-slackware-remove:
+	$(local_slack_ENV) $(SUDO) $(slack_REMOVEPKG) $(slack_PACKAGE_PREFIX)
+
 local-slackware-upgrade:
 	cd $(TMPDIR); \
 	$(local_slack_ENV) $(SUDO) $(slack_UPGRADEPKG) \
@@ -224,12 +234,10 @@ local-slackware-upgrade:
 
 ## ------------------------------------------------------------
 
-# If you are not Marco Maggi: ignore the following.
-
 .PHONY: abi abu
 
-abi: local-slackware local-slackware-install
-abu: local-slackware local-slackware-upgrade
+abi: all local-slackware local-slackware-install clean
+abu: all local-slackware local-slackware-upgrade clean
 
 ## ------------------------------------------------------------
 
