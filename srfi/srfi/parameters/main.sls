@@ -1,7 +1,7 @@
 ;;; Fall-back library incase the host Scheme system does not provide SRFI-39 parameters.
 
 #!r6rs
-(library (xitomatl srfi parameters)
+(library (srfi parameters)
   (export
     make-parameter 
     parameterize)

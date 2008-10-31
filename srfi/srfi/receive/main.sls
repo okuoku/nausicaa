@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi receive)
+(library (srfi receive)
   (export receive)
   (import (rnrs))
   

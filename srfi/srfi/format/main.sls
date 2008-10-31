@@ -35,14 +35,14 @@
 ; The implementation below requires SRFI-6 (Basic string ports), 
 ; and SRFI-38 (External Representation for Data With Shared Structure). 
  
-(library (xitomatl srfi format)
+(library (srfi format)
   (export 
     format)
   (import
     (rnrs)
-    (xitomatl srfi format compat)
-    (xitomatl srfi string-ports)
-    (xitomatl srfi sharing))
+    (srfi format compat)
+    (srfi string-ports)
+    (srfi sharing))
     
   (define (format arg0 . arg*)
     

@@ -12,7 +12,7 @@ IKARUS USAGE
 |#
 
 (import (rnrs (6))
-        (xitomatl srfi format))
+        (srfi format))
         
 (define pa
  '(define (print-ascii-chart . radix+port)  

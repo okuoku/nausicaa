@@ -1,6 +1,6 @@
 ;; SRFI-19: Time Data Types and Procedures.
 ;;
-;; Modified by Derick Eddington to be included into the (xitomatl srfi time) R6RS library.
+;; Modified by Derick Eddington to be included into the (srfi time) R6RS library.
 ;; TODO: For implementations which have threads, 
 ;;       the thread timing stuff can probably be made to work.
 ;; 
@@ -171,7 +171,7 @@
          (error caller (cdr p) value)
          (error caller (cdr p))))]
     [else
-     (error caller "(library (xitomatl srfi time)) internal error: unsupported error type" type)]))
+     (error caller "(library (srfi time)) internal error: unsupported error type" type)]))
 
 
 ;; A table of leap seconds

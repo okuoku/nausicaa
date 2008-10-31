@@ -15,12 +15,29 @@ ikarus_PKGLIBDIR	= ${ikarus_LIBDIR}/ikarus
 
 ## ------------------------------------------------------------
 
+#page
+## ------------------------------------------------------------
+## Miscellaneous directories.
+## ------------------------------------------------------------
+
+srcdir			= .
+builddir		= "./=build"
+
 prefix			= $(ikarus_PREFIX)
 bindir			= $(ikarus_BINDIR)
 libdir			= $(ikarus_LIBDIR)
 pkglibdir		= $(ikarus_PKGLIBDIR)
 
 ## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Package building interface.
+## ------------------------------------------------------------
+
+# You can  replace this with your own  suffix.  '1mm' stands
+# for: build 1 by Marco Maggi (see the initials).
+package_BUILD_VERSION	= 1mm
 
 
 ### end of file

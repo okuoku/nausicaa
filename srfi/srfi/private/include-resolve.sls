@@ -1,10 +1,10 @@
 #!r6rs
-(library (xitomatl srfi private include-resolve)
+(library (srfi private include-resolve)
   (export 
     include/resolve)
   (import 
     (rnrs) 
-    (for (xitomatl srfi private include-resolve compat) expand))
+    (for (srfi private include-resolve compat) expand))
   
   (define-syntax include/resolve
     (lambda (stx)

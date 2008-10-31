@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi strings)
+(library (srfi strings)
   (export
     string-map string-map!
     string-fold       string-unfold
@@ -53,16 +53,16 @@
                    string-upcase string-downcase string-titlecase string-hash)
     (except (rnrs mutable-strings) string-fill!)
     (rnrs r5rs)
-    (prefix (xitomatl srfi error-reporting) ER:)
-    (xitomatl srfi receive)
-    (xitomatl srfi char-set)
-    (xitomatl srfi parameters)
-    (xitomatl srfi private let-opt)
-    (xitomatl srfi private include-resolve))
+    (prefix (srfi error-reporting) ER:)
+    (srfi receive)
+    (srfi char-set)
+    (srfi parameters)
+    (srfi private let-opt)
+    (srfi private include-resolve))
   
   (define (error . args)
     (parameterize ([ER:error-who 
-                    "(library (xitomatl srfi strings))"])
+                    "(library (srfi strings))"])
       (apply ER:error args)))
   
   (define-syntax check-arg
@@ -77,5 +77,5 @@
   (define (char-cased? c)
     (char-upper-case? (char-upcase c)))
   
-  (include/resolve ("xitomatl" "srfi" "strings") "srfi-13.scm")
+  (include/resolve ("srfi" "strings") "srfi-13.scm")
 )

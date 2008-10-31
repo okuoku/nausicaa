@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi let-values)
+(library (srfi let-values)
   (export 
     let-values
     let*-values)

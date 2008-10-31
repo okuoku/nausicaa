@@ -33,7 +33,7 @@
 
 ;;; Made into an R6RS library by Derick Eddington.
 
-(library (xitomatl srfi private let-opt)
+(library (srfi private let-opt)
   (export
     let-optionals* :optional)
   (import

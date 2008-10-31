@@ -1,4 +1,4 @@
-(library (xitomatl srfi format compat)
+(library (srfi format compat)
   (export
     pretty-print
     ascii-tab)

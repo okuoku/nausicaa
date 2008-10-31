@@ -1,4 +1,4 @@
-(library (xitomatl srfi lists compat)
+(library (srfi lists compat)
   (export 
     last-pair make-list)
   (import 

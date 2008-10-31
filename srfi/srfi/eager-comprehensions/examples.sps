@@ -31,8 +31,8 @@
 (import
   (except (rnrs) error)
   (rnrs mutable-strings)
-  (xitomatl srfi eager-comprehensions)
-  (xitomatl srfi error-reporting))
+  (srfi eager-comprehensions)
+  (srfi error-reporting))
 
 (define (my-open-output-file filename)
   (open-file-output-port filename 

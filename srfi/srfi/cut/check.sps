@@ -22,11 +22,11 @@
 (import
   (except (rnrs) error)
   (rnrs eval)
-  (xitomatl srfi error-reporting)
-  (xitomatl srfi parameters))
+  (srfi error-reporting)
+  (srfi parameters))
 
 (define (check expr)
-  (if (not (eq? (eval expr (environment '(rnrs) '(xitomatl srfi cut)))
+  (if (not (eq? (eval expr (environment '(rnrs) '(srfi cut)))
                 #t))
       (parameterize ([error-who 'check])
         (error "check failed" expr))))

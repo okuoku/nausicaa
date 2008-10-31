@@ -1,4 +1,4 @@
-(library (xitomatl srfi parameters)
+(library (srfi parameters)
   (export 
     make-parameter 
     parameterize)

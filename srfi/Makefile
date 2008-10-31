@@ -7,7 +7,7 @@
 ## Global, package specific, variables.
 ## ------------------------------------------------------------
 
-PACKAGE			= mykarus-srfi
+PACKAGE			= nausicaa-srfi
 VERSION			= 0.1d0
 PKG_DIR			= $(PACKAGE)/$(VERSION)
 PKG_ID			= $(PACKAGE)-$(VERSION)
@@ -28,11 +28,8 @@ include ../infrastructure/Makefile.begin
 
 #page
 ## ------------------------------------------------------------
-## Programs.
+## Programs for this package.
 ## ------------------------------------------------------------
-
-SED		= sed
-SUDO		= sudo
 
 FIND		= find
 FIND_DIRS	= $(FIND) srfi -type d
@@ -43,23 +40,6 @@ FIND_FILES	= $(FIND) srfi -type f \
 
 ## ------------------------------------------------------------
 
-INSTALL			= install
-
-INSTALL_DIR_MODE	= 0755
-INSTALL_BIN_MODE	= 0555
-INSTALL_DATA_MODE	= 0444
-
-INSTALL_DIR		= $(INSTALL) -m $(INSTALL_DIR_MODE) -d
-INSTALL_BIN		= $(INSTALL) -m $(INSTALL_BIN_MODE)
-INSTALL_DATA		= $(INSTALL) -m $(INSTALL_DATA_MODE)
-
-## ------------------------------------------------------------
-
-RM		= rm --force --recursive --verbose --
-RMDIR		= rmdir --parents --ignore-fail-on-non-empty --
-MKDIR		= mkdir --parents --verbose
-
-## ------------------------------------------------------------
 #page
 ## ------------------------------------------------------------
 ## Installation.

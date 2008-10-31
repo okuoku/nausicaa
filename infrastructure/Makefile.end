@@ -4,15 +4,93 @@
 
 #page
 ## ------------------------------------------------------------
-## Slackware support.
+## Binary distribution: common variables.
 ## ------------------------------------------------------------
 
-slack_NAME		= $(PACKAGE)
-slack_VERSION		= $(VERSION)
-slack_ARCH		= noarch
-slack_REBUILD_VERSION	= 1mm
+bindist_NAME		= $(PACKAGE)
+bindist_VERSION		= $(VERSION)
+bindist_ARCH		= noarch
 
-slack_PACKAGE_NAME	= $(slack_NAME)-$(slack_VERSION)-$(slack_ARCH)-$(slack_REBUILD_VERSION).tgz
+# This is  the file name  of the Bindist  package.  Notice
+# that there is no directory part.
+bindist_PACKAGE_NAME	= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION).tar.bz2
+
+# This  is the  root directory  of the  build  directory for
+# bindist packages.
+bindist_top_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
+
+# The flags to hand to "tar" when building the package.
+bindist_TAR_FLAGS	= --create --bzip2 --verbose
+
+## ------------------------------------------------------------
+
+.PHONY: bindist-clean
+
+bindist-clean:
+	-test -f $(bindist_PACKAGE)       && $(RM) $(bindist_PACKAGE)
+	-test -f $(local_bindist_PACKAGE) && $(RM) $(local_bindist_PACKAGE)
+	$(SUDO) $(RM) $(bindist_top_BUILDDIR)
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Binary distribution: standard package build.
+## ------------------------------------------------------------
+
+# This is the top build directory that will be used to build
+# the package.
+bindist_BUILDDIR	= $(bindist_top_BUILDDIR)
+
+# This is the full pathname of the produced package.
+bindist_PACKAGE		= $(TMPDIR)/$(bindist_PACKAGE_NAME)
+
+## ------------------------------------------------------------
+
+.PHONY: bindist
+
+bindist: bindist-clean
+	$(MAKE) install DESTDIR=$(bindist_BUILDDIR)
+	cd $(bindist_BUILDDIR); \
+	$(TAR) $(bindist_TAR_FLAGS) --file=$(bindist_PACKAGE) .
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Binary distribution: local package build.
+## ------------------------------------------------------------
+
+# This is the top build directory that will be used to build
+# the package.
+local_bindist_BUILDDIR	= $(bindist_top_BUILDDIR)
+
+# This is the full pathname of the produced package.
+local_bindist_PACKAGE	= $(TMPDIR)/$(bindist_PACKAGE_NAME)
+
+## ------------------------------------------------------------
+
+.PHONY: local-bindist
+
+local-bindist: bindist-clean
+	$(MAKE) install DESTDIR=$(local_bindist_BUILDDIR)
+	cd $(local_bindist_BUILDDIR)/$(prefix); \
+	$(TAR) $(bindist_TAR_FLAGS) --file=$(local_bindist_PACKAGE) .
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Slackware packages: common variables.
+## ------------------------------------------------------------
+
+# This is  the file name  of the Slackware  package.  Notice
+# that there is no directory part.
+slack_PACKAGE_NAME	= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION).tgz
+
+# This  is the  root directory  of the  build  directory for
+# Slackware packages.
+slack_top_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
 
 ## ------------------------------------------------------------
 
@@ -21,6 +99,9 @@ slack_INSTALLPKG	= /sbin/installpkg
 slack_REMOVEPKG		= /sbin/removepkg
 slack_UPGRADEPKG	= /sbin/upgradepkg --verbose --reinstall
 
+# This is to process  the "slack-desc.in" file which must be
+# in the "meta/slackware" subdirectory of the package source
+# tree.
 slack_SED		= $(SED) \
 	-e "s|@PACKAGE@|$(PACKAGE)|g"	\
 	-e "s|@VERSION@|$(VERSION)|g"
@@ -30,16 +111,38 @@ slack_SED		= $(SED) \
 .PHONY: slackware-clean
 
 slackware-clean:
-	$(SUDO) $(RM) $(slack_BUILDDIR)
+	-test -f $(slack_PACKAGE)       && $(RM) $(slack_PACKAGE)
+	-test -f $(local_slack_PACKAGE) && $(RM) $(local_slack_PACKAGE)
+	$(SUDO) $(RM) $(slack_top_BUILDDIR)
 
 ## ------------------------------------------------------------
 
-slack_BUILDDIR		= $(TMPDIR)/$(PKG_ID)
+#page
+## ------------------------------------------------------------
+## Slackware packages: standard package build.
+## ------------------------------------------------------------
+
+# A   *standard*  Slackware  package   is  one   that  holds
+# directories with pathnames  relative to the root directory
+# "/"  and  that is  registered  in  the standard  Slackware
+# registry: "/var/log/packages".
+
+# This is the top build directory that will be used to build
+# the package.
+slack_BUILDDIR		= $(slack_top_BUILDDIR)
+
+# This is the full pathname of the produced package.
+slack_PACKAGE		= $(TMPDIR)/$(slack_PACKAGE_NAME)
+
+# This is the pathname of the Slackware packages registry.
+pslack_REGISTRY		= /var/log/packages
 
 # Try  to  read from  the  system  the  name of  an  already
 # installed package.  It is used to upgrade.
 slack_INSTALLED_PACKAGE	:= \
-	$(firstword $(notdir $(wildcard /var/log/packages/$(slack_NAME)-*)))
+	$(firstword $(notdir $(wildcard $(slack_REGISTRY)/$(package_NAME)-*)))
+
+## ------------------------------------------------------------
 
 .PHONY: slackware slackware-install slackware-upgrade
 
@@ -50,32 +153,56 @@ slackware: slackware-clean
 		< meta/slackware/slack-desc.in \
 		> $(slack_BUILDDIR)/install/slack-desc
 	cd $(slack_BUILDDIR); \
-	$(SUDO) $(slack_MAKEPKG) --chown y $(slack_PACKAGE_NAME)
+	$(SUDO) $(slack_MAKEPKG) --chown y $(slack_PACKAGE)
 
 slackware-install:
-	cd $(slack_BUILDDIR); \
+	cd $(TMPDIR); \
 	$(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
 
 slackware-upgrade:
-	cd $(slack_BUILDDIR); \
+	cd $(TMPDIR); \
 	$(SUDO) $(slack_UPGRADEPKG) $(slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
 
 ## ------------------------------------------------------------
-## The following  is for Slackware  packages installed under
-## the selected '$(prefix)'.
 
-local_slack_BUILDDIR	= $(slack_BUILDDIR)/$(prefix)
+#page
+## ------------------------------------------------------------
+## Slackware packages: local package build.
+## ------------------------------------------------------------
+
+# A *local* Slackware package  is one that holds directories
+# with  pathnames   relative  to  the   installation  prefix
+# directory "$(prefix)" (for  example "/usr/local") and that
+# is   registered    in   a   local    Slackware   registry:
+#
+#   "$(prefix)/var/log/packages"
+#
+# for example: "/usr/local/var/log/packages".
+
+# This is the top build directory that will be used to build
+# the package.
+local_slack_BUILDDIR	= $(slack_top_BUILDDIR)/$(prefix)
+
+# This is the full pathname of the produced package.
+local_slack_PACKAGE	= $(TMPDIR)/$(slack_PACKAGE_NAME)
+
+# This is the pathname of the Slackware packages registry.
+local_slack_REGISTRY	= $(prefix)/var/log/packages
 
 # Try  to  read from  the  system  the  name of  an  already
 # installed package.  It is used to upgrade.
 local_slack_INSTALLED_PACKAGE	:= \
-	$(firstword $(notdir $(wildcard $(prefix)/var/log/packages/$(slack_NAME)-*)))
+	$(firstword $(notdir $(wildcard $(local_slack_REGISTRY)/$(package_NAME)-*)))
 
-# Adding  "/sbin"  allows  the  Slackware  scripts  to  find
-# themselves.
+# Adding "/sbin" to the  'PATH' allows the Slackware scripts
+# to  find  themselves.  Adding  "ROOT"  to the  environment
+# signals to the Slackware scripts that they have to use the
+# local registry.
 local_slack_ENV		= PATH=/sbin:$(PATH) ROOT=$(prefix)
 
-.PHONY: slackware slackware-install slackware-upgrade
+## ------------------------------------------------------------
+
+.PHONY: local-slackware local-slackware-install local-slackware-upgrade
 
 local-slackware: slackware-clean
 	$(MAKE) install DESTDIR=$(slack_BUILDDIR)
@@ -84,18 +211,20 @@ local-slackware: slackware-clean
 		< meta/slackware/slack-desc.in \
 		> $(local_slack_BUILDDIR)/install/slack-desc
 	cd $(local_slack_BUILDDIR); \
-	$(local_slack_ENV) $(SUDO) $(slack_MAKEPKG) --chown y $(slack_PACKAGE_NAME)
+	$(local_slack_ENV) $(SUDO) $(slack_MAKEPKG) --chown y $(local_slack_PACKAGE)
 
 local-slackware-install:
-	cd $(local_slack_BUILDDIR); \
+	cd $(TMPDIR); \
 	$(local_slack_ENV) $(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
 
 local-slackware-upgrade:
-	cd $(local_slack_BUILDDIR); \
+	cd $(TMPDIR); \
 	$(local_slack_ENV) $(SUDO) $(slack_UPGRADEPKG) \
 		$(local_slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
 
 ## ------------------------------------------------------------
+
+# If you are not Marco Maggi: ignore the following.
 
 .PHONY: abi abu
 
@@ -111,9 +240,18 @@ abu: local-slackware local-slackware-upgrade
 
 .PHONY: echo-variable echo-list-variable
 
+# Use this to echo a variable to stdout; example:
+# 
+#	$ make echo-variable VARIABLE=slack_PACKAGE_NAME
+#
 echo-variable:
 	@echo $($(VARIABLE))
 
+# Use this to  echo a variable to stdout  interpreting it as
+# list of strings; example:
+# 
+#	$ make echo-list-variable VARIABLE=FILES
+#
 echo-list-variable:
 	@$(foreach f,$($(VARIABLE)),echo $(f);)
 

@@ -2,7 +2,7 @@
 (import
   (rnrs base) ; no R6RS records
   (only (rnrs io simple) display write newline)
-  (xitomatl srfi records))
+  (srfi records))
 
 (define-record-type thing
   (make-thing x)

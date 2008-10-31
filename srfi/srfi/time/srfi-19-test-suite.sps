@@ -3,8 +3,8 @@
 (import
   (rnrs)
   (rnrs mutable-pairs)
-  (xitomatl srfi time)
-  (xitomatl srfi format))
+  (srfi time)
+  (srfi format))
 
 (define (printf fmt-str . args)
   (display (apply format fmt-str args)))

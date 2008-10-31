@@ -5,9 +5,9 @@
 (import (rnrs) 
         (rnrs r5rs)
         (rename (only (rnrs) write) (write pretty-print))
-        (xitomatl srfi random)
-        (xitomatl srfi eager-comprehensions)
-        (xitomatl srfi compare))
+        (srfi random)
+        (srfi eager-comprehensions)
+        (srfi compare))
 
 ; Copyright (c) 2005 Sebastian Egner and Jens Axel S{\o}gaard.
 ; 

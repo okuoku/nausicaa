@@ -1,5 +1,5 @@
 #!r6rs
-(import (rnrs) (xitomatl srfi random))
+(import (rnrs) (srfi random))
 
 (do ((i 0 (+ i 1)))
   ((= i 10) 'done)

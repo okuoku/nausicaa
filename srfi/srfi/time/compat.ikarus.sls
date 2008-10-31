@@ -1,4 +1,4 @@
-(library (xitomatl srfi time compat)
+(library (srfi time compat)
   (export
     format
     host:time-resolution

@@ -1,5 +1,5 @@
 #!r6rs
-(import (rnrs) (xitomatl srfi rec))
+(import (rnrs) (srfi rec))
 
 (display 
  ((rec (F N) 

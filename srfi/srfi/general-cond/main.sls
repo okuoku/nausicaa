@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi general-cond)
+(library (srfi general-cond)
   (export
     (rename (general-cond cond)))
   (import

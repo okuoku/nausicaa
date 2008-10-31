@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi time)
+(library (srfi time)
   (export
     time make-time time? time-type time-nanosecond time-second
     date make-date date? date-nanosecond date-second date-minute 
@@ -34,9 +34,9 @@
     (rnrs)
     (rnrs r5rs)
     (rnrs mutable-strings)
-    (xitomatl srfi time compat)
-    (xitomatl srfi string-ports)
-    (xitomatl srfi private include-resolve))
+    (srfi time compat)
+    (srfi string-ports)
+    (srfi private include-resolve))
   
   (define read-line
     (case-lambda
@@ -47,6 +47,6 @@
   
   (define eof (eof-object))
   
-  (include/resolve ("xitomatl" "srfi" "time") "srfi-19.scm")
+  (include/resolve ("srfi" "time") "srfi-19.scm")
 )
 

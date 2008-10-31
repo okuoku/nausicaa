@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi string-ports)
+(library (srfi string-ports)
   (export
     open-input-string
     open-output-string
@@ -7,7 +7,7 @@
   (import
     (rnrs base)
     (only (rnrs io ports) open-string-input-port)
-    (xitomatl srfi string-ports compat))
+    (srfi string-ports compat))
   
   (define (open-input-string str)
     (open-string-input-port str))

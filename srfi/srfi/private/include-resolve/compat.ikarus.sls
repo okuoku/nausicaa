@@ -1,4 +1,4 @@
-(library (xitomatl srfi private include-resolve compat)
+(library (srfi private include-resolve compat)
   (export
     search-paths)
   (import

@@ -1,7 +1,7 @@
 #!r6rs
 ; By Derick Eddington
 
-(library (xitomatl srfi records)
+(library (srfi records)
   (export 
     (rename (srfi:define-record-type define-record-type)))
   (import 

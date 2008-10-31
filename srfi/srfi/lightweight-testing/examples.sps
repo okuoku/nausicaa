@@ -45,7 +45,7 @@
 (import 
   (rnrs)
   (rnrs r5rs)
-  (xitomatl srfi lightweight-testing))
+  (srfi lightweight-testing))
 
 ; -- simple test --
 

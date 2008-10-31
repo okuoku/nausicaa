@@ -20,7 +20,7 @@
 ; Ikarus porting begun by Abdulaziz Ghuloum, 
 ; and continued by Derick Eddington.
 
-(library (xitomatl srfi lists)
+(library (srfi lists)
   (export
     ;;; Exported:
     xcons tree-copy make-list list-tabulate cons* list-copy 
@@ -58,7 +58,7 @@
   (import 
     (except (rnrs) map member assoc)
     (rnrs mutable-pairs)
-    (xitomatl srfi lists compat))
+    (srfi lists compat))
 
 ;;; 
 ;;; In principle, the following R4RS list- and pair-processing procedures

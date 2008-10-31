@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi compare)
+(library (srfi compare)
   (export  </<=? </<? <=/<=? <=/<? <=? <? =?
            >/>=? >/>? >=/>=? >=/>? >=? >?
            boolean-compare chain<=? chain<? chain=? chain>=? chain>?
@@ -17,15 +17,15 @@
   
   (import (except (rnrs) error)
           (rnrs r5rs)    ; for modulo
-          (xitomatl srfi random)  ; for random-integer
-          (xitomatl srfi parameters)
-          (prefix (xitomatl srfi error-reporting) ER:)
-          (xitomatl srfi private include-resolve))
+          (srfi random)  ; for random-integer
+          (srfi parameters)
+          (prefix (srfi error-reporting) ER:)
+          (srfi private include-resolve))
   
   (define (error . args)
     (parameterize ([ER:error-who 
-                    "(library (xitomatl srfi compare))"])
+                    "(library (srfi compare))"])
       (apply ER:error args)))
   
-  (include/resolve ("xitomatl" "srfi" "compare") "compare.ss")  
+  (include/resolve ("srfi" "compare") "compare.ss")  
   )

@@ -2,7 +2,7 @@
 ;;;       This library is a last resort fall-back because the R6RS
 ;;;       implementation should supply this functionality.
 
-(library (xitomatl srfi sharing)
+(library (srfi sharing)
   (export
     write-with-shared-structure
     (rename (write-with-shared-structure write/ss))

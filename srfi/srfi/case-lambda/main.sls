@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi case-lambda)
+(library (srfi case-lambda)
   (export 
     case-lambda)
   (import 

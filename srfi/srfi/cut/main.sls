@@ -1,7 +1,7 @@
 #!r6rs
-(library (xitomatl srfi cut)
+(library (srfi cut)
   (export cut cute)
-  (import (rnrs) (xitomatl srfi private include-resolve))
+  (import (rnrs) (srfi private include-resolve))
   
-  (include/resolve ("xitomatl" "srfi" "cut") "cut.scm")  
+  (include/resolve ("srfi" "cut") "cut.scm")  
 )

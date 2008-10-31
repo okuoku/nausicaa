@@ -1,4 +1,4 @@
-(library (xitomatl srfi string-ports compat)
+(library (srfi string-ports compat)
   (export
     open-output-string get-output-string)
   (import

@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi private macro-utils)
+(library (srfi private macro-utils)
   (export
     duplicate-id
     unique-ids?

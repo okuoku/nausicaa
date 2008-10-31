@@ -2,8 +2,8 @@
 (import
   (rnrs)
   (rnrs mutable-pairs)
-  (xitomatl srfi format)
-  (xitomatl srfi lightweight-testing))
+  (srfi format)
+  (srfi lightweight-testing))
 
 #;(define (format-lots n f fmt-str . args)
   (let loop ([i 0] [r #f])

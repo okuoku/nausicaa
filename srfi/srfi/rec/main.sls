@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi rec)
+(library (srfi rec)
   (export rec)
   (import (rnrs))
   

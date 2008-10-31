@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi and-let*)  
+(library (srfi and-let*)  
   (export 
     and-let*)
   (import 

@@ -1,5 +1,5 @@
 #!r6rs
-(library (xitomatl srfi eager-comprehensions)
+(library (srfi eager-comprehensions)
   (export
     do-ec list-ec append-ec string-ec string-append-ec vector-ec 
     vector-of-length-ec sum-ec product-ec min-ec max-ec any?-ec 
@@ -11,14 +11,14 @@
   (import
     (except (rnrs) error)
     (rnrs r5rs)
-    (xitomatl srfi parameters)
-    (prefix (xitomatl srfi error-reporting) ER:)
-    (xitomatl srfi private include-resolve))
+    (srfi parameters)
+    (prefix (srfi error-reporting) ER:)
+    (srfi private include-resolve))
   
   (define (error . args)
     (parameterize ([ER:error-who 
-                    "(library (xitomatl srfi eager-comprehensions))"])
+                    "(library (srfi eager-comprehensions))"])
       (apply ER:error args)))
   
-  (include/resolve ("xitomatl" "srfi" "eager-comprehensions") "ec.scm")  
+  (include/resolve ("srfi" "eager-comprehensions") "ec.scm")  
 )

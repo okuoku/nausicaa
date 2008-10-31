@@ -1,4 +1,4 @@
-(library (xitomatl srfi sharing)
+(library (srfi sharing)
   (export
     write-with-shared-structure
     (rename (write-with-shared-structure write/ss))

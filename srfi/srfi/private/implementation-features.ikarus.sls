@@ -1,4 +1,4 @@
-(library (xitomatl srfi private implementation-features)
+(library (srfi private implementation-features)
   (export
     implementation-features)
   (import

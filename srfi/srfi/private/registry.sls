@@ -1,17 +1,17 @@
 #!r6rs
-(library (xitomatl srfi private registry)
+(library (srfi private registry)
   (export
     available-features)
   (import 
     (rnrs)
-    (xitomatl srfi private implementation-features))
+    (srfi private implementation-features))
   
   (define srfi-features
     (map 
      (lambda (x)
-       (list `(xitomatl srfi ,(car x)) 
+       (list `(srfi ,(car x)) 
              (string->symbol (string-append "srfi-" (number->string (cadr x))))))
-     ;  xitomatl name     SRFI code number
+     ;  name     SRFI code number
      '([cond-expand             0]
        [lists                   1]
        [and-let*                2]
