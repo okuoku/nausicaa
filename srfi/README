@@ -36,9 +36,9 @@ it.
 ----------
 
 The  installation  infrastructure   supports  only  the  GNU
-environment,  which means  GNU Make  and the  common command
-line tools  (mv, cp, mkdir,  ...).  The following  rules are
-available in the "Makefile":
+environment, which  means GNU Make, GNU Bash  and the common
+command  line tools  (mv,  cp, mkdir,  ...).  The  following
+rules are available in the "Makefile":
 
   all		compile all the installable Scheme files to
 		the Ikarus FASL format;
