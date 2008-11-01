@@ -1,39 +1,60 @@
-;;; -*- Mode: Scheme -*-
+;;Extensible Looping Macros, version 8
+;;
+;;This code  is written by Taylor  R. Campbell and  placed in the
+;;Public Domain.  All warranties are disclaimed.
+;;
+;;This is a variation on Alex Shinn's looping macros described in
+;;message-id: <1157562097.001179.11470@i42g2000cwa.googlegroups.com>
+;;
+;;It has diverged substantially  from the original macros, and is
+;;now documented at:
+;;
+;;  <http://mumble.net/~campbell/scheme/foof-loop.txt>.
+;;
+;;This file depends on syn-param.scm, also by Taylor R. Campbell,
+;;and  SRFI  11  (let-values).   Ideally, the  implementation  of
+;;let-values  should gracefully  handle  single-value clauses  to
+;;elide superfluous uses of CALL-WITH-VALUES.
 
-;;;; Extensible Looping Macros, version 8
 
-;;; This code is written by Taylor R. Campbell and placed in the Public
-;;; Domain.  All warranties are disclaimed.
+;;page
+;; ------------------------------------------------------------
+;; Setup.
+;; ------------------------------------------------------------
 
-;;; This is a variation on Alex Shinn's looping macros described in
-;;; message-id <1157562097.001179.11470@i42g2000cwa.googlegroups.com>.
-;;; It has diverged substantially from the original macros, and is now
-;;; documented at <http://mumble.net/~campbell/scheme/foof-loop.txt>.
-;;;
-;;; This file depends on syn-param.scm, also by Taylor R. Campbell, and
-;;; SRFI 11 (LET-VALUES).  Ideally, the implementation of LET-VALUES
-;;; should gracefully handle single-value clauses to elide superfluous
-;;; uses of CALL-WITH-VALUES.
+#!r6rs
+
+(library (foof-loop)
+	 (export loop)
+	 (import (rnrs)
+		 (srfi let-values))
+
+;; ------------------------------------------------------------
+
+;;page
+;; ------------------------------------------------------------
+;; Code.
+;; ------------------------------------------------------------
 
 (define-syntax loop
   (syntax-rules ()
-    ((LOOP ((loop-clause0 loop-clause1 ...) ...)
-       body
-       ...)
-     (LOOP ANONYMOUS-LOOP ((loop-clause0 loop-clause1 ...) ...)
-       body
-       ...
-       (ANONYMOUS-LOOP)))
+    ((loop ((loop-clause0 loop-clause1 ...) ...)
+	   body
+	   ...)
+     (loop ANONYMOUS-LOOP ((loop-clause0 loop-clause1 ...) ...)
+	   body
+	   ...
+	   (ANONYMOUS-LOOP)))
 
-    ((LOOP name ((loop-clause0 loop-clause1 ...) ...) body ...)
-     (%LOOP START name ((loop-clause0 loop-clause1 ...) ...) (body ...)))))
+    ((loop name ((loop-clause0 loop-clause1 ...) ...) body ...)
+     (%loop START name ((loop-clause0 loop-clause1 ...) ...) (body ...)))))
 
-;;; We must be very careful about where to add laziness annotations.
-;;; In particular, we don't want to wrap only the loop's body, because
-;;; if we did that, the outer bindings produced by the iterators would
-;;; be evaluate eagerly, which is too soon.  So instead, we wrap the
-;;; whole thing in a LAZY, and then wrap every call to the loop as
-;;; well.
+;;; We  must  be  very   careful  about  where  to  add  laziness
+;;; annotations.  In  particular, we don't want to  wrap only the
+;;; loop's  body, because  if  we did  that,  the outer  bindings
+;;; produced by the iterators would be evaluate eagerly, which is
+;;; too soon.  So instead, we wrap the whole thing in a LAZY, and
+;;; then wrap every call to the loop as well.
 
 (define-syntax lazy-loop
   (syntax-rules (=>)
@@ -46,9 +67,10 @@
                               (LAZY (EAGER-LOOP . arguments))))))
                body0 body1 ...))))))
 
-;;; Use this definition of SYNTACTIC-ERROR if your favourite Scheme
-;;; doesn't have one already.  Note that this is distinct from a
-;;; SYNTAX-ERROR procedure, since it must signal a compile-time error.
+;;; Use  this  definition of  SYNTACTIC-ERROR  if your  favourite
+;;; Scheme doesn't have one  already.  Note that this is distinct
+;;; from  a  SYNTAX-ERROR  procedure,  since  it  must  signal  a
+;;; compile-time error.
 
 (define-syntax syntactic-error (syntax-rules ()))
 
@@ -58,64 +80,70 @@
   (syntax-rules ()
     ((LOOP-CLAUSE-ERROR (macro (variable ...) arguments message))
      (SYNTACTIC-ERROR message (FOR variable ... (macro . arguments))))))
-
+
+;; ------------------------------------------------------------
+
+;;page
 ;;;; The Guts of LOOP
 
 (define-syntax %loop
   (syntax-rules (=> FOR WITH LET LET-VALUES WHILE UNTIL
                     START GO PARSE-FOR CONTINUE FINISH SIMPLIFY-BODY)
 
-    ((%LOOP START name loop-clauses body)
-     (%LOOP GO name (() () () () () () () ()) loop-clauses body))
+    ((%loop START name loop-clauses body)
+     (%loop GO name (() () () () () () () ()) loop-clauses body))
 
     ;; Simple case of a single variable, for clarity.
-    ((%LOOP GO name state
+    ((%loop GO name state
             ((FOR variable (looper argument ...))
              . loop-clauses)
             body)
      (looper (variable) (argument ...)
-             %LOOP CONTINUE name state loop-clauses body))
+             %loop CONTINUE name state loop-clauses body))
 
     ;; FOR handler with tail patterns.  Unfortunately, tail patterns are non-
     ;; standard...
     ;; 
-    ;; ((%LOOP GO name state
+    ;; ((%loop GO name state
     ;;         ((FOR variable0 variable1 ... (looper argument ...))
     ;;          . loop-clauses)
     ;;         body)
     ;;  (looper (variable0 variable1 ...)
     ;;          (argument ...)
-    ;;          %LOOP CONTINUE name state loop-clauses body))
-
+    ;;          %loop CONTINUE name state loop-clauses body))
+
+;; ------------------------------------------------------------
+
+;;page
 ;;;;; FOR Clauses: Dealing with Iterators
 
-    ((%LOOP GO name state
+    ((%loop GO name state
             ((FOR variable0 variable1 variable2 ...) . loop-clauses)
             body)
-     (%LOOP PARSE-FOR (variable0 variable1 variable2 ...)
+     (%loop PARSE-FOR (variable0 variable1 variable2 ...)
             ()
             (FOR variable0 variable1 variable2 ...)   ;Copy for error message.
             name state loop-clauses body))
 
-    ((%LOOP PARSE-FOR ((looper argument ...))
+    ((%loop PARSE-FOR ((looper argument ...))
             variables
             original-clause name state loop-clauses body)
      (looper variables (argument ...)
-             %LOOP CONTINUE name state loop-clauses body))
+             %loop CONTINUE name state loop-clauses body))
 
-    ((%LOOP PARSE-FOR (next-variable more0 more1 ...)
+    ((%loop PARSE-FOR (next-variable more0 more1 ...)
             (variable ...)
             original-clause name state loop-clauses body)
-     (%LOOP PARSE-FOR (more0 more1 ...)
+     (%loop PARSE-FOR (more0 more1 ...)
             (variable ... next-variable)
             original-clause name state loop-clauses body))
 
-    ((%LOOP PARSE-FOR (non-list)
+    ((%loop PARSE-FOR (non-list)
             variables
             original-clause name state loop-clauses body)
      (SYNTACTIC-ERROR "Malformed FOR clause in LOOP:" original-clause))
 
-    ((%LOOP ((outer-bvl outer-producer) ...)
+    ((%loop ((outer-bvl outer-producer) ...)
             ((loop-variable loop-initializer loop-stepper) ...)
             ((entry-bvl entry-producer) ...)
             (termination-condition ...)
@@ -133,7 +161,7 @@
              final-bindings)
             loop-clauses
             body)
-     (%LOOP GO name
+     (%loop GO name
             (;; Preserve the order of loop variables, so that the user
              ;; can put hers first and still use positional arguments.
              (loop-variables ...
@@ -147,51 +175,53 @@
              ((final-bvl final-producer) ... . final-bindings))
             loop-clauses
             body))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;;; User-Directed Clauses
 
-    ((%LOOP GO name state
+    ((%loop GO name state
             ((WITH variable initializer) . loop-clauses)
             body)
-     (%LOOP GO name state
+     (%loop GO name state
             ((WITH variable initializer variable) . loop-clauses)
             body))
 
-    ((%LOOP GO name
+    ((%loop GO name
             ((loop-variable ...) . more-state)
             ((WITH variable initializer stepper) . loop-clauses)
             body)
-     (%LOOP GO name
+     (%loop GO name
             ;; Preserve ordering of the user's loop variables.
             ((loop-variable ... (variable initializer stepper))
              . more-state)
             loop-clauses
             body))
 
-    ((%LOOP GO name state ((LET variable expression) . loop-clauses) body)
-     (%LOOP GO name state ((LET-VALUES (variable) expression) . loop-clauses)
+    ((%loop GO name state ((LET variable expression) . loop-clauses) body)
+     (%loop GO name state ((let-values (variable) expression) . loop-clauses)
             body))
 
-    ((%LOOP GO name (loop-variables (user-binding ...) . more-state)
-            ((LET-VALUES user-bvl user-producer) . loop-clauses)
+    ((%loop GO name (loop-variables (user-binding ...) . more-state)
+            ((let-values user-bvl user-producer) . loop-clauses)
             body)
-     (%LOOP GO name (loop-variables
+     (%loop GO name (loop-variables
                      ;; Preserve order of the user's termination conditions.
                      (user-binding ... (user-bvl user-producer))
                      . more-state)
             loop-clauses
             body))
 
-    ((%LOOP GO name state ((WHILE condition) . loop-clauses) body)
-     (%LOOP GO name state ((UNTIL (NOT condition)) . loop-clauses) body))
+    ((%loop GO name state ((WHILE condition) . loop-clauses) body)
+     (%loop GO name state ((UNTIL (NOT condition)) . loop-clauses) body))
 
-    ((%LOOP GO name (loop-variables
+    ((%loop GO name (loop-variables
                      user-bindings
                      (user-termination-condition ...)
                      . more-state)
             ((UNTIL user-termination-condition*) . loop-clauses)
             body)
-     (%LOOP GO name
+     (%loop GO name
             (loop-variables
              user-bindings
              (user-termination-condition ... user-termination-condition*)
@@ -203,25 +233,28 @@
     ;; others, because there is no keyword, so these would shadow any
     ;; clauses with keywords.
 
-    ((%LOOP GO name state ((variable initializer) . loop-clauses) body)
-     (%LOOP GO name state ((WITH variable initializer) . loop-clauses) body))
+    ((%loop GO name state ((variable initializer) . loop-clauses) body)
+     (%loop GO name state ((WITH variable initializer) . loop-clauses) body))
 
-    ((%LOOP GO name state ((variable initializer stepper) . loop-clauses) body)
-     (%LOOP GO name state ((WITH variable initializer stepper) . loop-clauses)
+    ((%loop GO name state ((variable initializer stepper) . loop-clauses) body)
+     (%loop GO name state ((WITH variable initializer stepper) . loop-clauses)
             body))
 
-    ((%LOOP GO name state (clause . loop-clauses) body)
+    ((%loop GO name state (clause . loop-clauses) body)
      (SYNTACTIC-ERROR "Malformed LOOP clause:" clause))
-
+
+;; ------------------------------------------------------------
+
+;;page
 ;;;;; Finishing -- Generating Output
 
-    ((%LOOP GO name state () (=> result-form . body))
-     (%LOOP FINISH name state result-form body))
+    ((%loop GO name state () (=> result-form . body))
+     (%loop FINISH name state result-form body))
 
-    ((%LOOP GO name state () body)
-     (%LOOP FINISH name state (IF #F #F) body))
+    ((%loop GO name state () body)
+     (%loop FINISH name state (IF #F #F) body))
 
-    ((%LOOP FINISH name
+    ((%loop FINISH name
             (((loop-variable loop-initializer loop-stepper) ...)
              user-bindings
              user-termination-conditions
@@ -232,12 +265,12 @@
              final-bindings)
             result-form
             body)
-     (LET-VALUES outer-bindings
-       (DEFINE (LOOP-PROCEDURE loop-variable ...)
-         (LET-VALUES entry-bindings
-           (%LOOP SIMPLIFY-BODY
+     (let-values outer-bindings
+       (define (LOOP-PROCEDURE loop-variable ...)
+         (let-values entry-bindings
+           (%loop SIMPLIFY-BODY
                   termination-conditions
-                  (LET-VALUES final-bindings
+                  (let-values final-bindings
                     (WITH-EXTENDED-PARAMETER-OPERATORS
                         ((name
                           (LOOP-PROCEDURE (loop-variable . loop-stepper)
@@ -252,25 +285,28 @@
                                         ...)))
                     . body))))
        (LOOP-PROCEDURE loop-initializer ...)))
-
+
+;; ------------------------------------------------------------
+
+;;page
 ;;;;;; Simplifying the Body
 
     ;; No iterator- or user-introduced termination conditions at all.
     ;; No test or closure needed.
-    ((%LOOP SIMPLIFY-BODY
+    ((%loop SIMPLIFY-BODY
             ()
             final-form
             body-bindings
             user-bindings
             ()
             body-form)
-     (LET-VALUES body-bindings
-       (LET-VALUES user-bindings
+     (let-values body-bindings
+       (let-values user-bindings
          body-form)))
 
     ;; Iterator-introduced termination conditions only.  One test and
     ;; no closure needed.
-    ((%LOOP SIMPLIFY-BODY
+    ((%loop SIMPLIFY-BODY
             (termination-condition ...)
             final-form
             body-bindings
@@ -279,13 +315,13 @@
             body-form)
      (IF (OR termination-condition ...)
          final-form
-         (LET-VALUES body-bindings
-           (LET-VALUES user-bindings
+         (let-values body-bindings
+           (let-values user-bindings
              body-form))))
 
     ;; The closure is needed here because the body bindings shouldn't
     ;; be visible in the final form.
-    ((%LOOP SIMPLIFY-BODY
+    ((%loop SIMPLIFY-BODY
             ()
             final-form
             body-bindings
@@ -293,13 +329,13 @@
             (user-termination-condition ...)
             body-form)
      (LET ((FINISH (LAMBDA () final-form)))
-       (LET-VALUES body-bindings
-         (LET-VALUES user-bindings
+       (let-values body-bindings
+         (let-values user-bindings
            (IF (OR user-termination-condition ...)
                (FINISH)
                body-form)))))
 
-    ((%LOOP SIMPLIFY-BODY
+    ((%loop SIMPLIFY-BODY
             (termination-condition ...)
             final-form
             body-bindings
@@ -309,12 +345,15 @@
      (LET ((FINISH (LAMBDA () final-form)))
        (IF (OR termination-condition ...)
            (FINISH)
-           (LET-VALUES body-bindings
-             (LET-VALUES user-bindings
+           (let-values body-bindings
+             (let-values user-bindings
                (IF (OR user-termination-condition ...)
                    (FINISH)
                    body-form))))))))
-
+
+;; ------------------------------------------------------------
+
+;;page
 ;;;; Accumulators
 
 ;;; Accumulators have the following syntax:
@@ -368,7 +407,10 @@
                      variables arguments
                      "Malformed LISTING-REVERSE clause in LOOP:")
                     next . rest))))
-
+
+;; ------------------------------------------------------------
+
+;;page
 ;;; This is non-reentrant but produces precisely one garbage cons cell.
 
 (define-syntax listing!
@@ -413,7 +455,9 @@
                 first-expression
                 error-context
                 next . rest))))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;;; List Appending Accumulators
 
 (define-syntax appending
@@ -463,7 +507,9 @@
   (if (pair? list)
       (append-reverse (cdr list) (cons (car list) tail))
       tail))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;;; Numerical Accumulators
 
 (define-syntax summing
@@ -529,7 +575,9 @@
                               (chooser DATUM EXTREME)
                               (OR DATUM EXTREME))))
                     error-context next . rest))))
-
+;; ------------------------------------------------------------
+
+;;page
 (define-syntax %accumulating
   (syntax-rules ()
 
@@ -574,7 +622,9 @@
            ()                           ;Body bindings
            final-bindings
            . rest))))
-
+;; ------------------------------------------------------------
+
+;;page
 (define-syntax %%accumulating
   (syntax-rules (IF =>)
     ((%%ACCUMULATING (generator)        ;No conditional
@@ -622,7 +672,9 @@
     ((%%ACCUMULATING arguments parameters outer-bindings final-bindings
                      error-context next . rest)
      (LOOP-CLAUSE-ERROR error-context))))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;; List Iteration
 
 ;;; (FOR <elt> [<pair>] (IN-LIST <list> [<successor>]))
@@ -659,12 +711,14 @@
     ((IN-LIST variables arguments next . rest)
      (LOOP-CLAUSE-ERROR (IN-LIST variables arguments
                                  "Malformed IN-LIST clause in LOOP:")))))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;;; Parallel List Iteration
 
 (define-syntax in-lists
   (syntax-rules ()
-    ((IN-LISTS (elements-variable pairs-variable)
+    ((in-lists (elements-variable pairs-variable)
                (lists-expression tail-expression)
                next . rest)
      (next (((LISTS) lists-expression))   ;Outer bindings
@@ -676,17 +730,17 @@
            ()                             ;Final bindings
            . rest))
 
-    ((IN-LISTS (elements-variable pairs-variable) (lists) next . rest)
-     (IN-LISTS (elements-variable pairs-variable) (lists '()) next . rest))
+    ((in-lists (elements-variable pairs-variable) (lists) next . rest)
+     (in-lists (elements-variable pairs-variable) (lists '()) next . rest))
 
-    ((IN-LISTS (elements-variable) (lists tail) next . rest)
-     (IN-LISTS (elements-variable PAIRS) (lists tail) next . rest))
+    ((in-lists (elements-variable) (lists tail) next . rest)
+     (in-lists (elements-variable PAIRS) (lists tail) next . rest))
 
-    ((IN-LISTS (elements-variable) (lists) next . rest)
-     (IN-LISTS (elements-variable PAIRS) (lists '()) next . rest))
+    ((in-lists (elements-variable) (lists) next . rest)
+     (in-lists (elements-variable PAIRS) (lists '()) next . rest))
 
-    ((IN-LISTS variables arguments next . rest)
-     (LOOP-CLAUSE-ERROR (IN-LISTS variables arguments
+    ((in-lists variables arguments next . rest)
+     (LOOP-CLAUSE-ERROR (in-lists variables arguments
                                   "Malformed IN-LISTS clause in LOOP:")))))
 
 (define (%cars&cdrs lists cars-tail cdrs-tail)
@@ -697,7 +751,10 @@
     (if (pair? list)
         (proceed)
         (values #t #f #f))))
-
+
+;; ------------------------------------------------------------
+
+;;page
 ;;;; Vector and String Iteration
 
 ;;; (FOR <elt> [<index>] (IN-VECTOR <vector> [<start> [<end>]]))
@@ -747,7 +804,9 @@
                   variables (string-expression start/end ...)
                   "Malformed IN-STRING-REVERSE clause in LOOP:")
                  next . rest))))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;;; Random-Access Sequence Generalization
 
 (define-syntax %in-vector
@@ -812,7 +871,9 @@
     ((%IN-VECTOR iteration-parameters modified-variables modified-arguments
                  error-context next . rest)
      (LOOP-CLAUSE-ERROR error-context))))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;; Input
 
 ;;; (FOR <item> (IN-PORT <input-port> [<reader> [<eof?>]]))
@@ -878,7 +939,9 @@
     ((IN-FILE variables arguments next . rest)
      (LOOP-CLAUSE-ERROR (IN-FILE variables arguments
                                  "Malformed IN-FILE clause in LOOP:")))))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;; Iterating Up through Numbers
 
 (define-syntax up-from
@@ -929,7 +992,9 @@
     ((UP-FROM variables arguments next . rest)
      (LOOP-CLAUSE-ERROR (UP-FROM variables arguments
                                  "Malformed UP-FROM clause in LOOP:")))))
-
+;; ------------------------------------------------------------
+
+;;page
 ;;;; Iterating Down through Numbers
 
 (define-syntax down-from
@@ -981,3 +1046,15 @@
     ((DOWN-FROM variables arguments next . rest)
      (LOOP-CLAUSE-ERROR (DOWN-FROM variables arguments
                                    "Malformed DOWN-FROM clause in LOOP:")))))
+
+
+;; ------------------------------------------------------------
+
+;;page
+;; ------------------------------------------------------------
+;; Done.
+;; ------------------------------------------------------------
+
+)
+
+;;; end of file

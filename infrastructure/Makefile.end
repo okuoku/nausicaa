@@ -114,8 +114,8 @@ slack_SED		= $(SED) \
 .PHONY: slackware-clean
 
 slackware-clean:
-	-test -f $(slack_PACKAGE)       && $(RM) $(slack_PACKAGE)
-	-test -f $(local_slack_PACKAGE) && $(RM) $(local_slack_PACKAGE)
+	-test -f $(slack_PACKAGE)       && $(SUDO) $(RM) $(slack_PACKAGE)
+	-test -f $(local_slack_PACKAGE) && $(SUDO) $(RM) $(local_slack_PACKAGE)
 	$(SUDO) $(RM) $(slack_top_BUILDDIR)
 
 ## ------------------------------------------------------------
@@ -138,7 +138,7 @@ slack_BUILDDIR		= $(slack_top_BUILDDIR)
 slack_PACKAGE		= $(TMPDIR)/$(slack_PACKAGE_NAME)
 
 # This is the pathname of the Slackware packages registry.
-pslack_REGISTRY		= /var/log/packages
+slack_REGISTRY		= /var/log/packages
 
 # Try  to  read from  the  system  the  name of  an  already
 # installed package.  It is used to upgrade.
@@ -211,11 +211,11 @@ local_slack_ENV		= PATH=/sbin:$(PATH) ROOT=$(prefix)
 
 .PHONY: local-slackware local-slackware-install local-slackware-upgrade
 
-local-slackware: slackware-clean
+local-slackware: slackware-clean slackware-aux
 	$(MAKE) install DESTDIR=$(slack_BUILDDIR)
 	$(INSTALL_DIR) $(local_slack_BUILDDIR)/install
-	$(slack_SED) \
-		< meta/slackware/slack-desc.in \
+	$(slack_SED)						\
+		< meta/slackware/slack-desc.in			\
 		> $(local_slack_BUILDDIR)/install/slack-desc
 	cd $(local_slack_BUILDDIR); \
 	$(local_slack_ENV) $(SUDO) $(slack_MAKEPKG) --chown y $(local_slack_PACKAGE)

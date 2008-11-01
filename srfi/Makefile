@@ -53,14 +53,11 @@ REVERSED_DIRECTORIES	:= $(shell ls -1d $(DIRECTORIES) | $(SORT) --reverse)
 FILES			:= $(shell $(FIND_FILES))
 FASL_FILES		:= $(shell $(FIND_FASL))
 
-.PHONY: all clean install uninstall
+.PHONY: all compile compile-clean clean install uninstall
 
 all:
-	IKARUS_LIBRARY_PATH=$(srcdir)/srfi \
-	$(IKARUS) --compile-dependencies compile-all.ikarus.sps
 
-clean:
-	-$(RM) $(FASL_FILES)
+clean: compile-clean
 
 install:
 	$(INSTALL_DIR) $(foreach d,$(DIRECTORIES),$(DESTDIR)$(pkglibdir)/$(d))
@@ -73,6 +70,15 @@ uninstall:
 	-@$(RM) $(addprefix $(DESTDIR)$(pkglibdir)/,$(FILES))
 	-@$(RM) $(addprefix $(DESTDIR)$(pkglibdir)/,$(FASL_FILES))
 	-@$(RMDIR) $(addprefix $(DESTDIR)$(pkglibdir)/,$(REVERSED_DIRECTORIES))
+
+## ------------------------------------------------------------
+
+compile:
+	IKARUS_LIBRARY_PATH=$(srcdir)/srfi \
+	$(IKARUS) --compile-dependencies srfi/compile-all.sls
+
+compile-clean:
+	-$(RM) $(FASL_FILES)
 
 ## ------------------------------------------------------------
 
