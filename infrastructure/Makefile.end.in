@@ -4,42 +4,33 @@
 
 #page
 ## ------------------------------------------------------------
-## Documentation.
+## Tests.
 ## ------------------------------------------------------------
 
-doc_SRCDIR		= $(srcdir)/doc
-doc_BUILDDIR		= $(srcdir)/"=build"
+nau_test_SRCDIR		= $(srcdir)/tests
+nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sls)
 
-doc_SOURCES		= $(wildcard $(doc_SRCDIR)/*.texi)
-doc_TARGETS		= $(foreach f,$(doc_SOURCES:.texi=.info),\
-			  $(addprefix $(doc_BUILDDIR)/,$(notdir $(f))))
+nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries
+nau_test_RUN		= $(nau_test_ENV) $(SCHEME_SCRIPT)
 
-doc_INSTLST		= $(doc_TARGETS)
-doc_INSTDIR		= $(infodir)
+.PHONY: tests test check
 
-.PHONY: doc doc-clean doc-install
+tests test check:
+	$(foreach f,$(nau_test_FILES),$(nau_test_RUN) $(f);)
 
-doc: doc-builddir $(doc_TARGETS)
+## ------------------------------------------------------------
 
+#page
+## ------------------------------------------------------------
+## Documentation: general rules.
+## ------------------------------------------------------------
+
+.PHONY: doc doc-clean doc-install doc-uninstall
+
+doc:
 doc-clean:
-	-$(RM) $(doc_TARGETS)
-
-doc-builddir:
-	-@test -d $(doc_BUILDDIR) || $(MKDIR) $(doc_BUILDDIR)
-
-$(doc_TARGETS): $(doc_BUILDDIR)/%.info : $(doc_SRCDIR)/%.texi $(doc_BUILDDIR)/version.texiinc
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $(@) $(<)
-
-$(doc_BUILDDIR)/version.texiinc: Makefile
-	printf '@macro version{}\n%s\n@end macro' $(package_VERSION) >$(@)
-
 doc-install:
-	$(INSTALL_DIR) $(DESTDIR)$(doc_INSTDIR)
-	$(INSTALL_DATA) $(doc_INSTLST) $(DESTDIR)$(doc_INSTDIR)
-
 doc-uninstall:
-	-@$(RM) $(addprefix $(DESTDIR)$(doc_INSTDIR)/,$(foreach f,$(doc_INSTLST),$(notdir $(f))))
-	-@$(RMDIR) $(DESTDIR)$(doc_INSTDIR)
 
 ## ------------------------------------------------------------
 
@@ -47,6 +38,54 @@ all:		doc
 clean:		doc-clean
 install:	doc-install
 uninstall:	doc-uninstall
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Documentation: texinfo format.
+## ------------------------------------------------------------
+
+doc_texinfo_SRCDIR	= $(srcdir)/doc
+doc_texinfo_BUILDDIR	= $(builddir)/doc-texinfo.d
+
+doc_texinfo_SOURCES	= $(wildcard $(doc_texinfo_SRCDIR)/*.texi)
+doc_texinfo_TARGETS	= $(foreach f,$(doc_texinfo_SOURCES:.texi=.info),\
+			  $(addprefix $(doc_texinfo_BUILDDIR)/,$(notdir $(f))))
+
+doc_texinfo_INSTLST	= $(doc_texinfo_TARGETS)
+doc_texinfo_INSTDIR	= $(pkginfodir)
+
+.PHONY: doc-texinfo doc-texinfo-clean doc-texinfo-install
+
+doc-texinfo: doc-texinfo-builddir $(doc_texinfo_TARGETS)
+
+doc-texinfo-clean:
+	-$(RM) $(doc_texinfo_TARGETS)
+
+doc-texinfo-builddir:
+	-@test -d $(doc_texinfo_BUILDDIR) || $(MKDIR) $(doc_texinfo_BUILDDIR)
+
+$(doc_texinfo_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi $(doc_texinfo_BUILDDIR)/version.texiinc
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $(@) $(<)
+
+$(doc_texinfo_BUILDDIR)/version.texiinc: Makefile
+	printf '@macro version{}\n%s\n@end macro' $(PACKAGE_VERSION) >$(@)
+
+doc-texinfo-install:
+	$(INSTALL_DIR) $(DESTDIR)$(doc_texinfo_INSTDIR)
+	$(INSTALL_DATA) $(doc_texinfo_INSTLST) $(DESTDIR)$(doc_texinfo_INSTDIR)
+
+doc-texinfo-uninstall:
+	-@$(RM) $(addprefix $(DESTDIR)$(doc_texinfo_INSTDIR)/,$(foreach f,$(doc_texinfo_INSTLST),$(notdir $(f))))
+	-@$(RMDIR) $(DESTDIR)$(doc_texinfo_INSTDIR)
+
+## ------------------------------------------------------------
+
+doc:		doc-texinfo
+doc-clean:	doc-texinfo-clean
+doc-install:	doc-texinfo-install
+doc-uninstall:	doc-texinfo-uninstall
 
 ## ------------------------------------------------------------
 

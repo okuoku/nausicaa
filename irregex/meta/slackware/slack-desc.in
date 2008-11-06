@@ -1,12 +1,12 @@
-         |-----handy-ruler-----------------------------------------------|
-@PACKAGE@: @PACKAGE@ @VERSION@
-@PACKAGE@:
-@PACKAGE@: A fully portable and efficient R[456]RS implementation of
-@PACKAGE@: regular expressions, supporting both POSIX syntax with various
-@PACKAGE@: (irregular) PCRE extensions, as well as SCSH's SRE syntax. DFA
-@PACKAGE@: matching is used when possible, otherwise a closure-compiled
-@PACKAGE@: NFA approach is used. The library makes no assumptions about
-@PACKAGE@: the encoding of strings or range of characters and can thus be
-@PACKAGE@: used in Unicode-aware Scheme implementations.
-@PACKAGE@:
-@PACKAGE@: Original code by Alex Shinn (http://synthcode.com/).
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: A fully portable and efficient R[456]RS implementation of
+@PACKAGE_NAME@: regular expressions, supporting both POSIX syntax with various
+@PACKAGE_NAME@: (irregular) PCRE extensions, as well as SCSH's SRE syntax.
+@PACKAGE_NAME@: 
+@PACKAGE_NAME@: @PACKAGE_NAME@ is a repackaging of the original distribution
+@PACKAGE_NAME@: to make it fit the Nausicaa standards.
+@PACKAGE_NAME@: 
+@PACKAGE_NAME@: Original code by Alex Shinn (http://synthcode.com/).
+@PACKAGE_NAME@:

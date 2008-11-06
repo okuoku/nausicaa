@@ -28,7 +28,7 @@
                     "(library (srfi lightweight-testing))"])
       (apply ER:error args)))
   
-  (include/resolve ("srfi" "lightweight-testing") "check.scm")
+  (include/resolve ("srfi" "lightweight-testing") "check.sls")
   
   (set! check:write pretty-print/no-trailing-newline)  
 )
