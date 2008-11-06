@@ -1,0 +1,138 @@
+# Makefile.begin --
+#
+# Common variables and rules.
+
+#page
+## ------------------------------------------------------------
+## Global variables and default values.
+## ------------------------------------------------------------
+
+PACKAGE_NAME		= @PACKAGE_NAME@
+PACKAGE_VERSION		= @PACKAGE_VERSION@
+PKG_ID			= @PKG_ID@
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Directories.
+## ------------------------------------------------------------
+
+ifeq ($(strip TMPDIR),)
+TMPDIR		= /tmp
+endif
+
+## ------------------------------------------------------------
+
+builddir	= .
+srcdir		= @srcdir@
+
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+
+bindir		= @bindir@
+datarootdir	= @datarootdir@
+datadir		= @datadir@
+docdir		= @datarootdir@/doc
+includedir	= @includedir@
+infodir		= @infodir@
+libdir		= @libdir@
+libexecdir	= @libexecdir@
+localstatedir	= @localstatedir@
+mandir		= @mandir@
+sbindir		= @sbindir@
+sharedstatedir	= @sharedstatedir@
+sysconfdir	= @sysconfdir@
+
+PKG_DIR		= @PKG_DIR@
+pkgdatadir	= @pkgdatadir@
+pkgdocdir	= @pkgdocdir@
+pkgexampledir	= @pkgexampledir@
+pkginfodir	= @pkginfodir@
+pkghtmldir	= @pkghtmldir@
+pkgincludedir	= @pkgincludedir@
+pkglibdir	= @pkglibdir@
+pkglibexecdir	= @pkglibexecdir@
+pkgsysconfdir	= @pkgsysconfdir@
+
+ikarus_PKGLIBDIR	= $(libdir)/ikarus
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Binary package distribtion building variables.
+## ------------------------------------------------------------
+
+# The variable 'package_BUILD_VERSION'  should be defined in
+# "Makefile.custom".  If  not we set a default  that does no
+# harm.
+ifeq ($(strip package_BUILD_VERSION),)
+package_BUILD_VERSION	= 1mm
+endif
+
+package_NAME		= $(PACKAGE_NAME)
+package_VERSION		= $(VERSION_VERSION)
+package_ARCH		= noarch
+
+package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Common programs.
+## ------------------------------------------------------------
+
+BASH_PROGRAM	= @BASH_PROGRAM@
+SHELL		= @SHELL@
+@SET_MAKE@
+
+BZIP		= @BZIP@
+CAT		= @CAT@
+CP		= @CP@ --force --verbose --preserve=mode --
+FIND		= @FIND@
+GREP		= @GREP@
+GAWK		= @GAWK@
+GZIP		= @GZIP@
+M4		= @M4@
+MAKEINFO	= @MAKEINFO@
+MKDIR		= @MKDIR@ --parents --verbose
+MV		= @MV@ --verbose --
+RM		= @RM@ --force --recursive --verbose --
+RM_FILE		= @RM@ --force --verbose --
+RM_SILENT	= @RM@ --force --recursive --
+RMDIR		= @RMDIR@ --parents --ignore-fail-on-non-empty --
+SED		= @SED@
+SORT		= @SORT@
+SUDO		= @SUDO@
+SYMLINK		= @SYMLINK@ --symbolic
+TAR		= @TAR@
+
+## ------------------------------------------------------------
+
+INSTALL			= @INSTALL@
+INSTALL_DIR_MODE	?= 0755
+INSTALL_BIN_MODE	?= 0555
+INSTALL_DATA_MODE	?= 0444
+INSTALL_LIB_MODE	?= 0444
+
+INSTALL_DIR		= $(INSTALL) -m $(INSTALL_DIR_MODE) -d
+INSTALL_BIN		= $(INSTALL) -m $(INSTALL_BIN_MODE)
+INSTALL_DATA		= $(INSTALL) -m $(INSTALL_DATA_MODE)
+
+## ------------------------------------------------------------
+
+IKARUS		= @IKARUS@
+SCHEME_SCRIPT	= @SCHEME_SCRIPT@
+
+MAKEINFO_FLAGS	= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
+
+## ------------------------------------------------------------
+
+
+### end of file
+# Local Variables:
+# mode: makefile
+# fill-column: 60
+# End:

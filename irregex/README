@@ -31,7 +31,7 @@ chunked streams of strings.
 
   This Nausicaa subdirectory holds version 0.7.1 (downloaded
 on  Thu  Nov  6,   2008)  repackaged  to  fit  the  Nausicaa
-standards.
+standards.  It requires the Nausicaa/SRFI.
 
 
 2. License

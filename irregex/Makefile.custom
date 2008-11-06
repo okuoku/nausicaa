@@ -3,43 +3,6 @@
 # This makefile is loaded  by "Makefile".  Its purpose is to
 # hold user customisable variables.
 
-#page
-## ------------------------------------------------------------
-## Installation directories.
-## ------------------------------------------------------------
-
-ikarus_PREFIX		= /usr/local
-ikarus_BINDIR		= ${ikarus_PREFIX}/bin
-ikarus_LIBDIR		= ${ikarus_PREFIX}/lib
-ikarus_PKGLIBDIR	= ${ikarus_LIBDIR}/ikarus
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Miscellaneous directories.
-## ------------------------------------------------------------
-
-srcdir			= .
-builddir		= "./=build"
-
-prefix			= $(ikarus_PREFIX)
-bindir			= $(ikarus_BINDIR)
-libdir			= $(ikarus_LIBDIR)
-infodir			= $(ikarus_PREFIX)/info
-pkglibdir		= $(ikarus_PKGLIBDIR)
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Package building interface.
-## ------------------------------------------------------------
-
-# You can  replace this with your own  suffix.  '1mm' stands
-# for: build 1 by Marco Maggi (see the initials).
-package_BUILD_VERSION	= 1mm
-
 
 ### end of file
 # Local Variables:
