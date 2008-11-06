@@ -1,0 +1,133 @@
+
+			  Irregex
+			  =======
+
+
+Topics
+------
+
+  1. Overview
+  2. License
+  3. Install
+  A. Bug reports
+  B. Resources
+
+
+1. Overview
+-----------
+
+Irregex  by Alex  Shinn is  a fully  portable  and efficient
+R[456]RS  implementation of regular  expressions, supporting
+both POSIX syntax  with various (irregular) PCRE extensions,
+as  well as  SCSH's  SRE syntax,  with  various aliases  for
+commonly used patterns.  DFA matching is used when possible,
+otherwise a closure-compiled NFA approach is used.
+
+  The  library makes  no assumptions  about the  encoding of
+strings  or range  of characters  and  can thus  be used  in
+Unicode-aware  Scheme   implementations.   Matching  may  be
+performed over standard  Scheme strings, or over arbitrarily
+chunked streams of strings.
+
+  This Nausicaa subdirectory holds version 0.7.1 (downloaded
+on  Thu  Nov  6,   2008)  repackaged  to  fit  the  Nausicaa
+standards.
+
+
+2. License
+----------
+
+Copyright (c) 2005-2008 Alex Shinn All rights reserved.
+
+Redistribution and  use in source and binary  forms, with or
+without  modification,  are   permitted  provided  that  the
+following conditions are met:
+
+1.  Redistributions of  source  code must  retain the  above
+   copyright  notice,  this   list  of  conditions  and  the
+   following disclaimer.
+
+2. Redistributions  in binary form must  reproduce the above
+   copyright  notice,  this   list  of  conditions  and  the
+   following  disclaimer in  the documentation  and/or other
+   materials provided with the distribution.
+
+3. The  name of  the author  may not be  used to  endorse or
+   promote  products  derived  from  this  software  without
+   specific prior written permission.
+
+THIS SOFTWARE  IS PROVIDED BY  THE AUTHOR ``AS IS''  AND ANY
+EXPRESS  OR IMPLIED WARRANTIES,  INCLUDING, BUT  NOT LIMITED
+TO,  THE IMPLIED WARRANTIES  OF MERCHANTABILITY  AND FITNESS
+FOR A PARTICULAR PURPOSE  ARE DISCLAIMED.  IN NO EVENT SHALL
+THE AUTHOR  BE LIABLE FOR ANY  DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS  OF USE,  DATA, OR  PROFITS; OR  BUSINESS INTERRUPTION)
+HOWEVER CAUSED  AND ON ANY  THEORY OF LIABILITY,  WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE)  ARISING  IN ANY  WAY  OUT  OF  THE USE  OF  THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+3. Install
+----------
+
+The  installation  infrastructure   supports  only  the  GNU
+environment, which  means GNU Make, GNU Bash  and the common
+command  line tools  (mv,  cp, mkdir,  ...).  The  following
+rules are available in the "Makefile":
+
+  all		compile all the installable Scheme files to
+		the Ikarus FASL format;
+
+  clean		remove the FASL files;
+
+  install	install  the directories,  the  source files
+		and the FASL files;
+
+  uninstall	uinstall the  source and FASL  files, remove
+		empty directories;
+
+notice  that  to  correctly  uninstall  you  have  to  avoid
+cleaning the source directory with "make clean".
+
+  To test what a rule will do use the "-n" option; example:
+
+    $ make install -n
+
+  The "Makefile" supports the "DESTDIR" environment variable
+to install the files under a temporary location; example:
+
+    $ make install DESTDIR=/tmp/marco/ikarus-wrapper
+
+  The   "Makefile"  supports  the   packages  infrastructure
+described  in the  Nausicaa documentation.   Refer to  it to
+build binary distribution archives and Slackware packages.
+
+
+A. Bug reports
+--------------
+
+Bug reports about Irregex should be reported to the original
+Irregex author:  Alex Shinn.  You should try  to contact him
+through <http://synthcode.com/>.
+
+  Bug  reports about  this  installation infrastructure  are
+welcome: Send them by email to <marcomaggi@gna.org>.
+
+
+B. Resources
+------------
+
+The original release of Irregex should be available at:
+
+		  <http://synthcode.com/>
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:
