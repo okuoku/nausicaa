@@ -4,6 +4,54 @@
 
 #page
 ## ------------------------------------------------------------
+## Documentation.
+## ------------------------------------------------------------
+
+doc_SRCDIR		= $(srcdir)/doc
+doc_BUILDDIR		= $(srcdir)/"=build"
+
+doc_SOURCES		= $(wildcard $(doc_SRCDIR)/*.texi)
+doc_TARGETS		= $(foreach f,$(doc_SOURCES:.texi=.info),\
+			  $(addprefix $(doc_BUILDDIR)/,$(notdir $(f))))
+
+doc_INSTLST		= $(doc_TARGETS)
+doc_INSTDIR		= $(infodir)
+
+.PHONY: doc doc-clean doc-install
+
+doc: doc-builddir $(doc_TARGETS)
+
+doc-clean:
+	-$(RM) $(doc_TARGETS)
+
+doc-builddir:
+	-@test -d $(doc_BUILDDIR) || $(MKDIR) $(doc_BUILDDIR)
+
+$(doc_TARGETS): $(doc_BUILDDIR)/%.info : $(doc_SRCDIR)/%.texi $(doc_BUILDDIR)/version.texiinc
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $(@) $(<)
+
+$(doc_BUILDDIR)/version.texiinc: Makefile
+	printf '@macro version{}\n%s\n@end macro' $(package_VERSION) >$(@)
+
+doc-install:
+	$(INSTALL_DIR) $(DESTDIR)$(doc_INSTDIR)
+	$(INSTALL_DATA) $(doc_INSTLST) $(DESTDIR)$(doc_INSTDIR)
+
+doc-uninstall:
+	-@$(RM) $(addprefix $(DESTDIR)$(doc_INSTDIR)/,$(foreach f,$(doc_INSTLST),$(notdir $(f))))
+	-@$(RMDIR) $(DESTDIR)$(doc_INSTDIR)
+
+## ------------------------------------------------------------
+
+all:		doc
+clean:		doc-clean
+install:	doc-install
+uninstall:	doc-uninstall
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
 ## Binary distribution: common variables.
 ## ------------------------------------------------------------
 
