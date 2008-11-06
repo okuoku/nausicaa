@@ -41,6 +41,9 @@ SED		= sed
 SUDO		= sudo
 SORT		= sort
 
+MAKEINFO	= makeinfo
+MAKEINFO_FLAGS	= --no-split -I$(doc_SRCDIR) -I$(doc_BUILDDIR)
+
 ## ------------------------------------------------------------
 
 CP		= cp --force --verbose --preserve=mode --

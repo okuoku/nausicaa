@@ -1,0 +1,538 @@
+\input texinfo.tex
+@c %**start of header
+@setfilename nausicaa-irregex.info
+@settitle Nausicaa/Irregex
+@c %**end of header
+
+@c page
+@c ------------------------------------------------------------
+@c Macros.
+@c ------------------------------------------------------------
+
+@include version.texiinc
+
+@macro irregexversion{}
+0.7.1
+@end macro
+
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c License macros.
+@c ------------------------------------------------------------
+
+@macro gnu{}
+@acronym{GNU}
+@end macro
+
+@macro gpl{}
+@acronym{GPL}
+@end macro
+
+@macro fdl{}
+@acronym{FDL}
+@end macro
+
+@macro bsd{}
+@acronym{BSD}
+@end macro
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Miscellaneous acronyms.
+@c ------------------------------------------------------------
+
+@macro ansi{}
+@acronym{ANSI}
+@end macro
+
+@macro api{}
+@acronym{API}
+@end macro
+
+@macro ascii{}
+@acronym{ASCII}
+@end macro
+
+@macro cpu{}
+@acronym{CPU}
+@end macro
+
+@macro ieee{}
+@acronym{IEEE}
+@end macro
+
+@macro iso{}
+@acronym{ISO}
+@end macro
+
+@macro ram{}
+@acronym{RAM}
+@end macro
+
+@macro posix{}
+@acronym{POSIX}
+@end macro
+
+@c Remember that @url is already used by Texinfo.
+@macro urla{}
+@acronym{URL}
+@end macro
+
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Software related macros.
+@c ------------------------------------------------------------
+
+@macro gmp{}
+@acronym{GMP}
+@end macro
+
+@macro gcc{}
+@acronym{GCC}
+@end macro
+
+@macro glibc{}
+@gnu{} C Library
+@end macro
+
+@macro pcre{}
+@acronym{PCRE}
+@end macro
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Network related acronyms.
+@c ------------------------------------------------------------
+
+@macro tcp{}
+@acronym{TCP}
+@end macro
+
+@macro udp{}
+@acronym{UDP}
+@end macro
+
+@macro icmp{}
+@acronym{ICMP}
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro http{}
+@acronym{HTTP}
+@end macro
+
+@macro https{}
+@acronym{HTTP}
+@end macro
+
+@macro ftp{}
+@acronym{FTP}
+@end macro
+
+@macro smtp{}
+@acronym{SMTP}
+@end macro
+
+@macro snmp{}
+@acronym{SNMP}
+@end macro
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Arguments macros.
+@c ------------------------------------------------------------
+
+@macro vari{ARG}
+@var{\ARG\1}
+@end macro
+
+@macro varii{ARG}
+@var{\ARG\2}
+@end macro
+
+@macro variii{ARG}
+@var{\ARG\3}
+@end macro
+
+@macro variv{ARG}
+@var{\ARG\4}
+@end macro
+
+@macro varn{ARG}
+@var{\ARG\n}
+@end macro
+
+@macro vark{ARG}
+@var{\ARG\k}
+@end macro
+
+@macro varj{ARG}
+@var{\ARG\j}
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro meta{ARG}
+<\ARG\>
+@end macro
+
+@macro metai{ARG}
+@meta{\ARG\1}
+@end macro
+
+@macro metaii{ARG}
+@meta{\ARG\2}
+@end macro
+
+@macro metaiii{ARG}
+@meta{\ARG\3}
+@end macro
+
+@macro metaiv{ARG}
+@meta{\ARG\4}
+@end macro
+
+@macro metan{ARG}
+@meta{\ARG\n}
+@end macro
+
+@macro metak{ARG}
+@meta{\ARG\k}
+@end macro
+
+@macro metaj{ARG}
+@meta{\ARG\j}
+@end macro
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c C language macros.
+@c ------------------------------------------------------------
+
+@macro cfunc{NAME}
+@code{\NAME\()}
+@end macro
+
+@macro null{}
+@code{NULL}
+@end macro
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Scheme language macros.
+@c ------------------------------------------------------------
+
+@macro clos{}
+@acronym{CLOS}
+@end macro
+
+@macro library{NAME}
+@code{(\NAME\)}
+@end macro
+
+@macro module{NAME}
+@code{\NAME\}
+@end macro
+
+@macro repl{}
+@acronym{REPL}
+@end macro
+
+@macro rnrs{VERSION}
+@acronym{R\VERSION\RS}
+@end macro
+
+@macro srfi{}
+@acronym{SRFI}
+@end macro
+
+@ignore
+Separating the @srfi{}  macro from the number with a  '--' rather than a
+'-' makes the expansion look ugly in menu entries under the Info reader.
+IMHO this should not happen, but  it does; so we live with this, because
+the main purpose of this document is to provide an Info version.
+@end ignore
+@macro ansrfi{NUM}
+@srfi{}-\NUM\
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro func{NAME}
+@code{@sc{\NAME\}}
+@end macro
+
+@macro nil{}
+@code{()}
+@end macro
+
+@macro true{}
+@code{#t}
+@end macro
+
+@macro false{}
+@code{#f}
+@end macro
+
+@macro keyword{NAME}
+@code{#:\NAME\}
+@end macro
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Macros for references to external documents.
+@c ------------------------------------------------------------
+
+@macro glibcref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,libc}
+@end macro
+
+@macro rsixref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,r6rs}
+@end macro
+
+@macro rfiveref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,r5rs}
+@end macro
+
+@macro ikarusref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,ikarus}
+@end macro
+
+@macro bibref{TAG}
+@code{[\TAG\]}
+@end macro
+
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Values.
+@c ------------------------------------------------------------
+
+@set TITLE                      Irregex for Ikarus Scheme
+
+@c To be used as @value{PACKAGE} whenever we need to include the full
+@c name of this package.
+@set PACKAGE                    Nausicaa/Irregex
+
+@c To be used as @value{PACKAGE} whenever we need to include the
+@c nickname of the project: the name that is used to compose the
+@c distribution tarball or the web address.
+@set PACKAGE_NICKNAME           nausicaa-irregex
+
+@c To be used as @value{AUTHOR} whenever we need to include the list of
+@c authors of this document.
+@set AUTHOR                     Marco Maggi
+
+@c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
+@c email of the *single* author of this document.
+@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+
+@c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
+@c list of copyright years.
+@set COPYRIGHT_YEARS            2005--2008
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Copyright notice.
+@c ------------------------------------------------------------
+
+@copying
+@noindent
+This document describes version @version{} of @value{PACKAGE}, a
+repackaging of Irregex by Alex Shinn designed to fit into the Nausicaa
+infrastructure.  It embeds Irregex version @irregexversion{}.
+
+Irregex is a fully portable and efficient @acronym{R[456]RS}
+implementation of regular expressions, supporting both @posix{} syntax
+with various (irregular) @pcre{} extensions, as well as SCSH's
+@acronym{SRE} syntax, with various aliases for commonly used patterns.
+@acronym{DFA} matching is used when possible, otherwise a
+closure--compiled @acronym{NFA} approach is used.
+
+The package is distributed under a @bsd{} style license and can be
+downloaded from:
+
+@center @url{http://synthcode.com/}
+
+@noindent
+Copyright @copyright{} @value{COPYRIGHT_YEARS} by Alex Shinn.  See the
+``Package License'' appendix for copying conditions.
+
+This document is derived from the original Irregex documentation, which
+was reformatted in Texinfo and adapted to the Nausicaa repackaging by
+@value{AUTHOR} @value{AUTHOR_EMAIL}.
+@end copying
+
+@c ------------------------------------------------------------
+
+@c page
+@c ------------------------------------------------------------
+@c Headers.
+@c ------------------------------------------------------------
+
+@titlepage
+@title @value{TITLE}
+@subtitle Revision @version{}
+@author Alex Shinn
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c ------------------------------------------------------------
+
+@ifinfo
+@dircategory Development
+@direntry
+* nausicaa-irregex: (nausicaa-irregex). Regular expressions
+                                        for Ikarus Scheme.
+@end direntry
+@end ifinfo
+
+@c ------------------------------------------------------------
+
+@ignore
+@syncodeindex tp cp
+@syncodeindex vr cp
+@syncodeindex fn cp
+@end ignore
+
+@c ------------------------------------------------------------
+
+@c page
+@ifnottex
+@node Top
+@top @value{TITLE}
+
+@insertcopying
+     
+@menu
+* overview::                    Overview of the package. 
+
+Appendices
+
+* Package License::             Package License.
+* references::                  Bibliography and references.
+
+Indexes
+
+* concept index::               An entry for each concept. 
+* function index::              An entry for each function. 
+* variable index::              An entry for each variable. 
+* type index::                  An entry for each type. 
+@end menu
+@end ifnottex
+
+@c ------------------------------------------------------------
+
+@c page
+@node overview
+@chapter Overview of the package
+
+
+@noindent
+@insertcopying
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node Package License
+@appendix Package License
+
+
+Copyright @copyright{} 2005--2008 Alex Shinn All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+@itemize
+@item
+Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+
+@item
+Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the
+distribution.
+
+@item
+The name of the author may not be used to endorse or promote products
+derived from this software without specific prior written permission.
+
+@end itemize
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node references
+@appendix Bibliography and references
+
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node concept index
+@appendix An entry for each concept
+     
+@printindex cp
+     
+@node function index
+@appendix An entry for each function. 
+
+@printindex fn
+
+@node variable index
+@appendix An entry for each variable. 
+
+@printindex vr
+
+@node type index
+@appendix An entry for each type. 
+
+@printindex tp
+
+@contents
+@bye
+
+@c end of file

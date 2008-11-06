@@ -1,18 +1,18 @@
 # Makefile --
 #
-# Makefile for SRFI under Ikarus.
+# Makefile for Irregex under Ikarus.
 
 #page
 ## ------------------------------------------------------------
 ## Global, package specific, variables.
 ## ------------------------------------------------------------
 
-PACKAGE			= nausicaa-srfi
+PACKAGE			= nausicaa-irregex
 VERSION			= 0.1d0
 PKG_DIR			= $(PACKAGE)/$(VERSION)
 PKG_ID			= $(PACKAGE)-$(VERSION)
 
-IDENTIFIER		= srfi
+IDENTIFIER		= irregex
 
 ## ------------------------------------------------------------
 
@@ -38,9 +38,6 @@ FIND_DIRS	= cd libraries ; $(FIND) . -type d
 FIND_FILES	= cd libraries ; $(FIND) . -type f	\
 			-and -name '*.sls'		\
 			-and -print
-FIND_FASL	= cd libraries ; $(FIND) . -type f	\
-			-and -name '*.ikarus-fasl'	\
-			-and -print
 
 ## ------------------------------------------------------------
 
@@ -52,9 +49,8 @@ FIND_FASL	= cd libraries ; $(FIND) . -type f	\
 DIRECTORIES		:= $(sort $(shell $(FIND_DIRS)))
 REVERSED_DIRECTORIES	:= $(shell cd libraries; ls -1d $(DIRECTORIES) | $(SORT) --reverse)
 FILES			:= $(shell $(FIND_FILES))
-FASL_FILES		:= $(shell $(FIND_FASL))
 
-.PHONY: all compile compile-clean clean install uninstall
+.PHONY: all clean install uninstall
 
 all:
 
@@ -64,22 +60,10 @@ install:
 	$(INSTALL_DIR) $(foreach d,$(DIRECTORIES),$(DESTDIR)$(pkglibdir)/$(d))
 	cd libraries; $(foreach f,$(FILES),\
 		$(INSTALL_DATA) $(f) $(DESTDIR)$(pkglibdir)/$(dir $(f));)
-	cd libraries; $(foreach f,$(FASL_FILES),\
-		$(INSTALL_DATA) $(f) $(DESTDIR)$(pkglibdir)/$(dir $(f));)
 
 uninstall:
 	-@$(RM) $(addprefix $(DESTDIR)$(pkglibdir)/,$(FILES))
-	-@$(RM) $(addprefix $(DESTDIR)$(pkglibdir)/,$(FASL_FILES))
 	-@$(RMDIR) $(addprefix $(DESTDIR)$(pkglibdir)/,$(REVERSED_DIRECTORIES))
-
-## ------------------------------------------------------------
-
-compile:
-	cd libraries ; IKARUS_LIBRARY_PATH=$(PWD)/$(IDENTIFIER) \
-	$(IKARUS) --compile-dependencies $(IDENTIFIER)/compile-all.sls
-
-compile-clean:
-	-cd libraries; $(RM) $(FASL_FILES)
 
 ## ------------------------------------------------------------
 
