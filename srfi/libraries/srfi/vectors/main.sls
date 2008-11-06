@@ -61,5 +61,5 @@
                  (parameterize ([ER:error-who callee])
                    (ER:error "erroneous value" v)))))])))
     
-  (include/resolve ("srfi" "vectors") "vector-lib.scm")
+  (include/resolve ("srfi" "vectors") "vector-lib.sls")
 )
