@@ -32,12 +32,11 @@ include ../infrastructure/Makefile.begin
 ## ------------------------------------------------------------
 
 FIND		= find
-FIND_DIRS	= $(FIND) srfi -type d
-FIND_FILES	= $(FIND) srfi -type f			\
-			-and -not -name '*.sps'		\
-			-and -not -name '*~'		\
+FIND_DIRS	= cd libraries ; $(FIND) . -type d
+FIND_FILES	= cd libraries ; $(FIND) . -type f	\
+			-and -name '*.sls'		\
 			-and -print
-FIND_FASL	= $(FIND) srfi -type f			\
+FIND_FASL	= cd libraries ; $(FIND) . -type f	\
 			-and -name '*.ikarus-fasl'	\
 			-and -print
 
@@ -49,7 +48,7 @@ FIND_FASL	= $(FIND) srfi -type f			\
 ## ------------------------------------------------------------
 
 DIRECTORIES		:= $(sort $(shell $(FIND_DIRS)))
-REVERSED_DIRECTORIES	:= $(shell ls -1d $(DIRECTORIES) | $(SORT) --reverse)
+REVERSED_DIRECTORIES	:= $(shell cd libraries; ls -1d $(DIRECTORIES) | $(SORT) --reverse)
 FILES			:= $(shell $(FIND_FILES))
 FASL_FILES		:= $(shell $(FIND_FASL))
 
@@ -61,9 +60,9 @@ clean: compile-clean
 
 install:
 	$(INSTALL_DIR) $(foreach d,$(DIRECTORIES),$(DESTDIR)$(pkglibdir)/$(d))
-	$(foreach f,$(FILES),\
+	cd libraries; $(foreach f,$(FILES),\
 		$(INSTALL_DATA) $(f) $(DESTDIR)$(pkglibdir)/$(dir $(f));)
-	$(foreach f,$(FASL_FILES),\
+	cd libraries; $(foreach f,$(FASL_FILES),\
 		$(INSTALL_DATA) $(f) $(DESTDIR)$(pkglibdir)/$(dir $(f));)
 
 uninstall:
@@ -74,11 +73,11 @@ uninstall:
 ## ------------------------------------------------------------
 
 compile:
-	IKARUS_LIBRARY_PATH=$(srcdir)/srfi \
+	cd libraries ; IKARUS_LIBRARY_PATH=$(PWD)/srfi \
 	$(IKARUS) --compile-dependencies srfi/compile-all.sls
 
 compile-clean:
-	-$(RM) $(FASL_FILES)
+	-cd libraries; $(RM) $(FASL_FILES)
 
 ## ------------------------------------------------------------
 

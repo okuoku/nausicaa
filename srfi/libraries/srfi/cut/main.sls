@@ -3,5 +3,5 @@
   (export cut cute)
   (import (rnrs) (srfi private include-resolve))
   
-  (include/resolve ("srfi" "cut") "cut.scm")  
+  (include/resolve ("srfi" "cut") "cut.sls")  
 )

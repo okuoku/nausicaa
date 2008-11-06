@@ -63,5 +63,5 @@
              (parameterize ([ER:error-who caller])
                (ER:error "check-arg failed" val)))])))
   
-  (include/resolve ("srfi" "char-set") "srfi-14.scm")
+  (include/resolve ("srfi" "char-set") "srfi-14.sls")
 )

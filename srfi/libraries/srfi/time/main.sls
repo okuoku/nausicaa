@@ -47,6 +47,6 @@
   
   (define eof (eof-object))
   
-  (include/resolve ("srfi" "time") "srfi-19.scm")
+  (include/resolve ("srfi" "time") "srfi-19.sls")
 )
 

@@ -27,5 +27,5 @@
                     "(library (srfi compare))"])
       (apply ER:error args)))
   
-  (include/resolve ("srfi" "compare") "compare.ss")  
+  (include/resolve ("srfi" "compare") "compare.sls")
   )

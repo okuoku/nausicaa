@@ -20,5 +20,5 @@
                     "(library (srfi eager-comprehensions))"])
       (apply ER:error args)))
   
-  (include/resolve ("srfi" "eager-comprehensions") "ec.scm")  
+  (include/resolve ("srfi" "eager-comprehensions") "ec.sls")  
 )

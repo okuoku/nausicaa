@@ -25,5 +25,5 @@
                     "(library (srfi random))"])
       (apply ER:error args)))
   
-   (include/resolve ("srfi" "random") "random.ss")
+   (include/resolve ("srfi" "random") "random.sls")
   )

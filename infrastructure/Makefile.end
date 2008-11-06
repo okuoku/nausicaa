@@ -111,12 +111,18 @@ slack_SED		= $(SED) \
 
 ## ------------------------------------------------------------
 
-.PHONY: slackware-clean
+.PHONY: slackware-clean slackware-aux slackware-clean-buildir slackware-clean-package
 
-slackware-clean:
+slackware-clean: slackware-clean-buildir slackware-clean-package
+
+slackware-clean-buildir:
+	-$(SUDO) $(RM) $(slack_top_BUILDDIR)
+
+slackware-clean-package:
 	-test -f $(slack_PACKAGE)       && $(SUDO) $(RM) $(slack_PACKAGE)
 	-test -f $(local_slack_PACKAGE) && $(SUDO) $(RM) $(local_slack_PACKAGE)
-	$(SUDO) $(RM) $(slack_top_BUILDDIR)
+
+slackware-aux:
 
 ## ------------------------------------------------------------
 

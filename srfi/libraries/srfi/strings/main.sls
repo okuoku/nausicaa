@@ -77,5 +77,5 @@
   (define (char-cased? c)
     (char-upper-case? (char-upcase c)))
   
-  (include/resolve ("srfi" "strings") "srfi-13.scm")
+  (include/resolve ("srfi" "strings") "srfi-13.sls")
 )
