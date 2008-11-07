@@ -44,12 +44,12 @@
 	  string? make-string string-length string-ref string-set! 
 	  string string-append list->string
 					; Low-level routines:
-	  make-kmp-restart-vector string-kmp-partial-search kmp-step
-	  string-parse-start+end
-	  string-parse-final-start+end
-	  let-string-start+end
-	  check-substring-spec
-	  substring-spec-ok?
+;; 	  make-kmp-restart-vector string-kmp-partial-search kmp-step
+;; 	  string-parse-start+end
+;; 	  string-parse-final-start+end
+;; 	  let-string-start+end
+;; 	  check-substring-spec
+;; 	  substring-spec-ok?
 
 	  ;;These should be all the exports from (srfi string-ports).
 	  open-input-string

@@ -1,0 +1,14 @@
+# Makefile --
+#
+# Makefile for Uriel libraries.
+
+IDENTIFIER		= ice-9
+
+include Makefile.begin
+
+include Makefile.end
+
+### end of file
+# Local Variables:
+# fill-column: 60
+# End:
