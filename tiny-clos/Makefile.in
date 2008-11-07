@@ -2,7 +2,7 @@
 #
 # Makefile for Uriel libraries.
 
-IDENTIFIER		= uriel
+IDENTIFIER		= tiny-clos
 
 include Makefile.begin
 
