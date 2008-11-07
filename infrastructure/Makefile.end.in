@@ -4,6 +4,110 @@
 
 #page
 ## ------------------------------------------------------------
+## Compiling and installing source files.
+## ------------------------------------------------------------
+
+sls_FASL_EXTENSION	= .ikarus-fasl
+
+# Find the list of directories under "libraries".
+sls_FIND_DIRS		= cd $(sls_SRCDIR) ; $(FIND) . -type d
+
+# Find the reversed list of directories under "libraries".
+sls_FIND_DIRS_REV	= cd $(sls_SRCDIR); \
+		ls -1d $(DIRECTORIES) | $(SORT) --reverse
+
+# Find  all  the source  files.   Only  the  .sls files  are
+# considered for compilation and installation.
+sls_FIND_FILES		= cd $(sls_SRCDIR) ; $(FIND) . -type f	\
+			-and -name '*.sls'		\
+			-and -print
+
+# Find all the currently existent FASL files.
+sls_FIND_FASL_SRCDIR	= cd $(sls_SRCDIR) ; $(FIND) . -type f	\
+			-and -name "*$(sls_FASL_EXTENSION)"	\
+			-and -print
+sls_FIND_FASL_BUILDDIR	= cd $(sls_BUILDDIR) ; $(FIND) . -type f	\
+			-and -name "*$(sls_FASL_EXTENSION)"		\
+			-and -print
+
+sls_COMPILE_SCRIPT	= $(IDENTIFIER)/compile-all.sls
+sls_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_SRCDIR)
+sls_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
+sls_COMPILE_RUN		= $(sls_COMPILE_ENV) $(sls_COMPILE_COMMAND) $(sls_COMPILE_SCRIPT)
+
+## ------------------------------------------------------------
+
+sls_SRCDIR		= $(srcdir)/libraries
+sls_BUILDDIR		= $(builddir)/fasl.d
+
+# We sort  the list of  directories so that  when installing
+# them  we can create  the parents  first (useless  with the
+# "install"  program from GNU  Coreutils, but  we do  it the
+# same).
+sls_DIRECTORIES			= $(sort $(shell $(sls_FIND_DIRS)))
+
+# The reversed  list of  directories allows us  to uninstall
+# the children first: the children directories have a longer
+# pathname.
+sls_REVERSED_DIRECTORIES	= $(shell $(sls_FIND_DIRS_REV))
+
+sls_SOURCES			= $(shell $(sls_FIND_FILES))
+sls_FASL_FILES			= $(shell $(sls_FIND_FASL_SRCDIR))
+sls_TARGETS			= $(shell $(sls_FIND_FASL_BUILDDIR))
+
+sls_INSTLST			= $(sls_TARGETS) $(sls_SOURCES)
+sls_INSTDIR			= $(ikarus_PKGLIBDIR)
+
+.PHONY: sls-all sls-clean sls-install sls-uninstall
+
+## Notice  that,  by default,  GNU  tar  preserves the  file
+## modification times  so the FASL times will  be newer than
+## the  corresponding  .sls   times.
+##
+## When these files are  installed loading will work fine if
+## we give  the appropriate preserve flags  to the "install"
+## program.
+sls-all: $(sls_BUILDDIR)
+	cd $(sls_SRCDIR) ; test -f $(sls_COMPILE_SCRIPT) && $(sls_COMPILE_RUN)
+	$(sls_FIND_FASL_SRCDIR) | \
+	$(TAR) --create  --file=- --files-from=- | \
+	$(TAR) --directory=$(PWD)/$(sls_BUILDDIR) --extract --verbose --file=-
+	$(MAKE) sls-clean-fasl
+
+$(sls_BUILDDIR):
+	test -d $(sls_BUILDDIR) || $(MKDIR) $(sls_BUILDDIR)
+
+sls-clean: sls-clean-fasl
+	-cd $(sls_BUILDDIR); $(RM) *
+
+sls-clean-fasl:
+	-cd $(sls_SRCDIR); $(RM) $(sls_FASL_FILES)
+
+sls-install:
+	$(INSTALL_DIR) $(foreach d,$(sls_DIRECTORIES),$(DESTDIR)$(sls_INSTDIR)/$(d))
+	cd $(sls_SRCDIR); $(foreach f,$(sls_SOURCES),\
+		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
+	cd $(sls_BUILDDIR); $(foreach f,$(sls_TARGETS),\
+		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
+
+sls-uninstall:
+	-@$(RM) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(FILES))
+	-@$(RM) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(FASL_FILES))
+	-@$(RMDIR) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(REVERSED_DIRECTORIES))
+
+## ------------------------------------------------------------
+
+compile:		sls-all
+compile-clean:		sls-clean
+all:			sls-all
+clean:			sls-clean
+install:		sls-install
+uninstall:		sls-uninstall
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
 ## Tests.
 ## ------------------------------------------------------------
 
@@ -22,29 +126,12 @@ tests test check:
 
 #page
 ## ------------------------------------------------------------
-## Documentation: general rules.
-## ------------------------------------------------------------
-
-.PHONY: doc doc-clean doc-install doc-uninstall
-
-doc:
-doc-clean:
-doc-install:
-doc-uninstall:
-
-## ------------------------------------------------------------
-
-all:		doc
-clean:		doc-clean
-install:	doc-install
-uninstall:	doc-uninstall
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
 ## Documentation: texinfo format.
 ## ------------------------------------------------------------
+
+# If  is allright  if the  package has  no  documentation in
+# Texinfo format.   The rules below will take  care of doing
+# nothing if no .texi files are found.
 
 doc_texinfo_SRCDIR	= $(srcdir)/doc
 doc_texinfo_BUILDDIR	= $(builddir)/doc-texinfo.d
@@ -58,7 +145,7 @@ doc_texinfo_INSTDIR	= $(pkginfodir)
 
 .PHONY: doc-texinfo doc-texinfo-clean doc-texinfo-install
 
-doc-texinfo: doc-texinfo-builddir $(doc_texinfo_TARGETS)
+doc-texinfo: $(doc_texinfo_TARGETS)
 
 doc-texinfo-clean:
 	-$(RM) $(doc_texinfo_TARGETS)
@@ -66,19 +153,24 @@ doc-texinfo-clean:
 doc-texinfo-builddir:
 	-@test -d $(doc_texinfo_BUILDDIR) || $(MKDIR) $(doc_texinfo_BUILDDIR)
 
-$(doc_texinfo_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi $(doc_texinfo_BUILDDIR)/version.texiinc
+$(doc_texinfo_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi \
+		$(doc_texinfo_BUILDDIR)/version.texiinc doc-texinfo-builddir
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $(@) $(<)
 
 $(doc_texinfo_BUILDDIR)/version.texiinc: Makefile
 	printf '@macro version{}\n%s\n@end macro' $(PACKAGE_VERSION) >$(@)
 
 doc-texinfo-install:
+ifneq ($(strip $(wildcard $(doc_texinfo_INSTLST))),)
 	$(INSTALL_DIR) $(DESTDIR)$(doc_texinfo_INSTDIR)
 	$(INSTALL_DATA) $(doc_texinfo_INSTLST) $(DESTDIR)$(doc_texinfo_INSTDIR)
+endif
 
 doc-texinfo-uninstall:
+ifneq ($(strip $(wildcard $(doc_texinfo_INSTLST))),)
 	-@$(RM) $(addprefix $(DESTDIR)$(doc_texinfo_INSTDIR)/,$(foreach f,$(doc_texinfo_INSTLST),$(notdir $(f))))
 	-@$(RMDIR) $(DESTDIR)$(doc_texinfo_INSTDIR)
+endif
 
 ## ------------------------------------------------------------
 
@@ -94,144 +186,90 @@ doc-uninstall:	doc-texinfo-uninstall
 ## Binary distribution: common variables.
 ## ------------------------------------------------------------
 
-bindist_NAME		= $(PACKAGE)
-bindist_VERSION		= $(VERSION)
-bindist_ARCH		= noarch
+bindist_PACKAGE_EXTENSION	= .tar.bz2
 
-# This is  the file name  of the Bindist  package.  Notice
-# that there is no directory part.
-bindist_PACKAGE_EXT	= .tar.bz2
-bindist_PACKAGE_NAME	= $(package_PREFIX)$(bindist_PACKAGE_EXT)
+# This is the file  name of the binary distribution tarball.
+# Notice that there is no directory part.
+bindist_PACKAGE_NAME	= $(package_PREFIX)$(bindist_PACKAGE_EXTENSION)
 
-# This  is the  root directory  of the  build  directory for
-# bindist packages.
-bindist_top_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
+# This is  the root directory for  temporary installation of
+# files
+bindist_PACKAGE_TOP_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
 
-# The flags to hand to "tar" when building the package.
-bindist_TAR_FLAGS	= --create --bzip2 --verbose
+# This is where the produced tarball will be finally stored.
+bindist_BUILDDIR		= $(PWD)/$(builddir)/bindist.d
 
-## ------------------------------------------------------------
+bindist_TARBALL_PATHNAME	= $(bindist_BUILDDIR)/$(bindist_PACKAGE_NAME)
 
-.PHONY: bindist-clean
-
-bindist-clean:
-	-test -f $(bindist_PACKAGE)       && $(RM) $(bindist_PACKAGE)
-	-test -f $(local_bindist_PACKAGE) && $(RM) $(local_bindist_PACKAGE)
-	$(SUDO) $(RM) $(bindist_top_BUILDDIR)
+# The flags to hand to "tar" when building the tarball.
+bindist_TAR_FLAGS		= --create --bzip2 --verbose
 
 ## ------------------------------------------------------------
 
-#page
-## ------------------------------------------------------------
-## Binary distribution: standard package build.
-## ------------------------------------------------------------
+.PHONY: bindist bindist-clean bindist-builddir
+.PHONY: bindist-clean-top-builddir bindist-clean-builddir
 
-# This is the top build directory that will be used to build
-# the package.
-bindist_BUILDDIR	= $(bindist_top_BUILDDIR)
+bindist: bindist-clean bindist-builddir
+	$(MAKE) install DESTDIR=$(bindist_PACKAGE_TOP_BUILDDIR)
+	cd $(bindist_PACKAGE_TOP_BUILDDIR); \
+	$(TAR) $(bindist_TAR_FLAGS) --file=$(bindist_TARBALL_PATHNAME) .
+	$(MAKE) bindist-clean-top-builddir
 
-# This is the full pathname of the produced package.
-bindist_PACKAGE		= $(TMPDIR)/$(bindist_PACKAGE_NAME)
+bindist-builddir:
+	test -d $(bindist_BUILDDIR) || $(MKDIR) $(bindist_BUILDDIR)
 
-## ------------------------------------------------------------
+bindist-clean: bindist-clean-top-builddir bindist-clean-builddir
 
-.PHONY: bindist
+bindist-clean-top-builddir:
+	-$(RM) $(bindist_PACKAGE_TOP_BUILDDIR)
 
-bindist: bindist-clean
-	$(MAKE) install DESTDIR=$(bindist_BUILDDIR)
-	cd $(bindist_BUILDDIR); \
-	$(TAR) $(bindist_TAR_FLAGS) --file=$(bindist_PACKAGE) .
+bindist-clean-builddir:
+	-$(RM) $(bindist_BUILDDIR)
 
 ## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
-## Binary distribution: local package build.
-## ------------------------------------------------------------
-
-# This is the top build directory that will be used to build
-# the package.
-local_bindist_BUILDDIR	= $(bindist_top_BUILDDIR)
-
-# This is the full pathname of the produced package.
-local_bindist_PACKAGE	= $(TMPDIR)/$(bindist_PACKAGE_NAME)
-
-## ------------------------------------------------------------
-
-.PHONY: local-bindist
-
-local-bindist: bindist-clean
-	$(MAKE) install DESTDIR=$(local_bindist_BUILDDIR)
-	cd $(local_bindist_BUILDDIR)/$(prefix); \
-	$(TAR) $(bindist_TAR_FLAGS) --file=$(local_bindist_PACKAGE) .
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Slackware packages: common variables.
+## Slackware packaging: common variables.
 ## ------------------------------------------------------------
 
 # This is  the file name  of the Slackware  package.  Notice
 # that there is no directory part.
 slack_PACKAGE_NAME	= $(package_PREFIX).tgz
 
+# This  is the  package prefix,  it  is used  to remove  the
+# package.
 slack_PACKAGE_PREFIX	= $(package_PREFIX)
 
-# This  is the  root directory  of the  build  directory for
-# Slackware packages.
-slack_top_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
+# This is  the root directory for  temporary installation of
+# files
+slack_PACKAGE_TOP_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
 
-## ------------------------------------------------------------
+# This  is the  root directory  for building  packages.  The
+# rules for standard packages will set it to:
+#
+#   $(slack_PACKAGE_TOP_BUILDDIR)
+#
+# the rules for local packages will set it to:
+#
+#   $(slack_PACKAGE_TOP_BUILDDIR)/$(prefix)
+#
+slack_PACKAGE_BUILDDIR	?=
 
-slack_MAKEPKG		= /sbin/makepkg
-slack_INSTALLPKG	= /sbin/installpkg
-slack_REMOVEPKG		= /sbin/removepkg
-slack_UPGRADEPKG	= /sbin/upgradepkg --verbose --reinstall
+# This is where the produced package will be finally stored.
+slack_BUILDDIR		= $(PWD)/$(builddir)/slackware.d
 
-# This is to process  the "slack-desc.in" file which must be
-# in the "meta/slackware" subdirectory of the package source
-# tree.
-slack_SED		= $(SED) \
-	-e "s|@PACKAGE@|$(PACKAGE)|g"	\
-	-e "s|@VERSION@|$(VERSION)|g"
-
-## ------------------------------------------------------------
-
-.PHONY: slackware-clean slackware-aux slackware-clean-buildir slackware-clean-package
-
-slackware-clean: slackware-clean-buildir slackware-clean-package
-
-slackware-clean-buildir:
-	-$(SUDO) $(RM) $(slack_top_BUILDDIR)
-
-slackware-clean-package:
-	-test -f $(slack_PACKAGE)       && $(SUDO) $(RM) $(slack_PACKAGE)
-	-test -f $(local_slack_PACKAGE) && $(SUDO) $(RM) $(local_slack_PACKAGE)
-
-slackware-aux:
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Slackware packages: standard package build.
-## ------------------------------------------------------------
-
-# A   *standard*  Slackware  package   is  one   that  holds
-# directories with pathnames  relative to the root directory
-# "/"  and  that is  registered  in  the standard  Slackware
-# registry: "/var/log/packages".
-
-# This is the top build directory that will be used to build
-# the package.
-slack_BUILDDIR		= $(slack_top_BUILDDIR)
-
-# This is the full pathname of the produced package.
-slack_PACKAGE		= $(TMPDIR)/$(slack_PACKAGE_NAME)
-
-# This is the pathname of the Slackware packages registry.
-slack_REGISTRY		= /var/log/packages
+# This is  the pathname of the  Slackware packages registry.
+# The standard package rules will set it to:
+#
+#   $(slack_REGISTRY_DIR)
+#
+# while the local package rules will set it to:
+#
+#   $(prefix)$(slack_REGISTRY_DIR)
+#
+slack_REGISTRY		?= 
+slack_REGISTRY_DIR	= /var/log/packages
 
 # Try  to  read from  the  system  the  name of  an  already
 # installed package.  It is used to upgrade.
@@ -240,97 +278,161 @@ slack_INSTALLED_PACKAGE	:= \
 
 ## ------------------------------------------------------------
 
-.PHONY: slackware slackware-install slackware-remove slackware-upgrade
+# This is the environment for the Slackware package handling
+# tools.
+slack_ENV		?=
 
-slackware: slackware-clean
-	$(MAKE) install DESTDIR=$(slack_BUILDDIR)
-	$(INSTALL_DIR) $(slack_BUILDDIR)/install
-	$(slack_SED) \
-		< meta/slackware/slack-desc.in \
-		> $(slack_BUILDDIR)/install/slack-desc
-	cd $(slack_BUILDDIR); \
-	$(SUDO) $(slack_MAKEPKG) --chown y $(slack_PACKAGE)
+slack_MAKEPKG_PROGRAM	= /sbin/makepkg
+slack_MAKEPKG_FLAGS	?= --chown y
+slack_MAKEPKG		= $(slack_ENV) $(slack_MAKEPKG_PROGRAM) $(slack_MAKEPKG_FLAGS)
 
-slackware-install:
-	cd $(TMPDIR); \
-	$(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
+slack_INSTALLPKG_PROGRAM= /sbin/installpkg
+slack_INSTALLPKG_FLAGS	?=
+slack_INSTALLPKG	= $(slack_ENV) $(slack_INSTALLPKG_PROGRAM) $(slack_INSTALLPKG_FLAGS)
 
-slackware-remove:
-	cd $(TMPDIR); \
-	$(SUDO) $(slack_REMOVEPKG) $(slack_PACKAGE_PREFIX)
+slack_REMOVEPKG_PROGRAM	= /sbin/removepkg
+slack_REMOVEPKG_FLAGS	?=
+slack_REMOVEPKG		= $(slack_ENV) $(slack_REMOVEPKG_PROGRAM) $(slack_REMOVEPKG_FLAGS)
 
-slackware-upgrade:
-	cd $(TMPDIR); \
-	$(SUDO) $(slack_UPGRADEPKG) $(slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
+slack_UPGRADEPKG_PROGRAM= /sbin/upgradepkg
+slack_UPGRADEPKG_FLAGS	?= --verbose --reinstall
+slack_UPGRADEPKG	= $(slack_ENV) $(slack_UPGRADEPKG_PROGRAM) $(slack_UPGRADEPKG_FLAGS)
 
 ## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
-## Slackware packages: local package build.
+## Slackware packaging: private building rules.
 ## ------------------------------------------------------------
 
-# A *local* Slackware package  is one that holds directories
-# with  pathnames   relative  to  the   installation  prefix
-# directory "$(prefix)" (for  example "/usr/local") and that
-# is   registered    in   a   local    Slackware   registry:
+# The following rules are meant  to be invoked only by other
+# rules.
 #
-#   "$(prefix)/var/log/packages"
-#
-# for example: "/usr/local/var/log/packages".
+# Notice  that,  by  default,  GNU tar  preserves  the  file
+# modification times  so the FASL  times will be  newer than
+# the corresponding .sls times in the Slackware package.
 
-# This is the top build directory that will be used to build
-# the package.
-local_slack_BUILDDIR	= $(slack_top_BUILDDIR)/$(prefix)
+.PHONY: private-slackware        private-slackware-install
+.PHONY: private-slackware-remove private-slackware-upgrade
 
-# This is the full pathname of the produced package.
-local_slack_PACKAGE	= $(TMPDIR)/$(slack_PACKAGE_NAME)
+private-slackware: slackware-clean slackware-builddir
+	$(MAKE) install DESTDIR=$(slack_PACKAGE_TOP_BUILDDIR)
+	$(INSTALL_DIR) $(slack_PACKAGE_BUILDDIR)/install
+	$(INSTALL_DATA) $(builddir)/meta.d/slackware/slack-desc $(slack_PACKAGE_BUILDDIR)/install
+	$(MAKE) slackware-aux
+	cd $(slack_PACKAGE_BUILDDIR); \
+	$(slack_MAKEPKG) $(slack_PACKAGE_NAME); \
+	$(MV) $(slack_PACKAGE_NAME) $(slack_BUILDDIR)
 
-# This is the pathname of the Slackware packages registry.
-local_slack_REGISTRY	= $(prefix)/var/log/packages
+private-slackware-install:
+	cd $(slack_BUILDDIR); \
+	$(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
 
-# Try  to  read from  the  system  the  name of  an  already
-# installed package.  It is used to upgrade.
-local_slack_INSTALLED_PACKAGE	:= \
-	$(firstword $(notdir $(wildcard $(local_slack_REGISTRY)/$(package_NAME)-*)))
+private-slackware-remove:
+	$(slack_REMOVEPKG) $(slack_PACKAGE_PREFIX)
 
-# Adding "/sbin" to the  'PATH' allows the Slackware scripts
-# to  find  themselves.  Adding  "ROOT"  to the  environment
-# signals to the Slackware scripts that they have to use the
-# local registry.
-local_slack_ENV		= PATH=/sbin:$(PATH) ROOT=$(prefix)
+private-slackware-upgrade:
+	cd $(slack_BUILDDIR); \
+	$(slack_UPGRADEPKG) $(slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
 
 ## ------------------------------------------------------------
 
-.PHONY: local-slackware local-slackware-install local-slackware-upgrade
+#page
+## ------------------------------------------------------------
+## Slackware packaging: auxiliary rules.
+## ------------------------------------------------------------
 
-local-slackware: slackware-clean slackware-aux
-	$(MAKE) install DESTDIR=$(slack_BUILDDIR)
-	$(INSTALL_DIR) $(local_slack_BUILDDIR)/install
-	$(slack_SED)						\
-		< meta/slackware/slack-desc.in			\
-		> $(local_slack_BUILDDIR)/install/slack-desc
-	cd $(local_slack_BUILDDIR); \
-	$(local_slack_ENV) $(SUDO) $(slack_MAKEPKG) --chown y $(local_slack_PACKAGE)
+.PHONY: slackware-builddir slackware-aux
+
+slackware-builddir:
+	test -d $(slack_BUILDDIR) || $(MKDIR) $(slack_BUILDDIR)
+
+# This is for auxiliary rules: it is freely available to the
+# user.  It  will be  invoked just before  running "makepkg"
+# (see the 'slackware' rule).
+slackware-aux:
+
+## ------------------------------------------------------------
+
+.PHONY: slackware-clean slackware-clean-top-builddir slackware-clean-builddir
+
+slackware-clean: slackware-clean-top-builddir slackware-clean-builddir
+
+slackware-clean-top-builddir:
+	-$(RM) $(slack_PACKAGE_TOP_BUILDDIR)
+
+slackware-clean-builddir:
+	-$(RM) $(slack_BUILDDIR)
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Slackware packaging: standard package build.
+## ------------------------------------------------------------
+
+standard_SLACKWARE_ENV	= \
+	PATH=/sbin:$(PATH)					\
+	slack_PACKAGE_BUILDDIR=$(slack_PACKAGE_TOP_BUILDDIR)	\
+	slack_REGISTRY=$(slack_REGISTRY_DIR)
+
+## ------------------------------------------------------------
+
+.PHONY: slackware        slackware-install
+.PHONY: slackware-remove slackware-upgrade
+
+slackware:
+	$(MAKE) private-slackware		$(standard_SLACKWARE_ENV)
+	$(MAKE) slackware-clean-top-builddir	$(standard_SLACKWARE_ENV)
+
+slackware-install:
+	$(MAKE) private-slackware-install	$(standard_SLACKWARE_ENV)
+
+slackware-remove:
+	$(MAKE) private-slackware-remove	$(standard_SLACKWARE_ENV)
+
+slackware-upgrade:
+	$(MAKE) private-slackware-upgrade	$(standard_SLACKWARE_ENV)
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Slackware packaging: local package build.
+## ------------------------------------------------------------
+
+local_SLACKWARE_ENV	= \
+	PATH=/sbin:$(PATH)						\
+	slack_PACKAGE_BUILDDIR=$(slack_PACKAGE_TOP_BUILDDIR)/$(prefix)	\
+	slack_REGISTRY=$(prefix)$(slack_REGISTRY_DIR)			\
+	slack_ENV=ROOT=$(prefix)
+
+## ------------------------------------------------------------
+
+.PHONY: local-slackware        local-slackware-install
+.PHONY: local-slackware-remove local-slackware-upgrade
+
+local-slackware:
+	$(MAKE) private-slackware		$(local_SLACKWARE_ENV)
+	$(MAKE) slackware-clean-top-builddir	$(local_SLACKWARE_ENV)
 
 local-slackware-install:
-	cd $(TMPDIR); \
-	$(local_slack_ENV) $(SUDO) $(slack_INSTALLPKG) $(slack_PACKAGE_NAME)
+	$(MAKE) private-slackware-install	$(local_SLACKWARE_ENV)
 
 local-slackware-remove:
-	$(local_slack_ENV) $(SUDO) $(slack_REMOVEPKG) $(slack_PACKAGE_PREFIX)
+	$(MAKE) private-slackware-remove	$(local_SLACKWARE_ENV)
 
 local-slackware-upgrade:
-	cd $(TMPDIR); \
-	$(local_slack_ENV) $(SUDO) $(slack_UPGRADEPKG) \
-		$(local_slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
+	$(MAKE) private-slackware-upgrade	$(local_SLACKWARE_ENV)
 
 ## ------------------------------------------------------------
 
 .PHONY: abi abu
 
-abi: all local-slackware local-slackware-install clean
-abu: all local-slackware local-slackware-upgrade clean
+abi:
+	$(SUDO) $(MAKE) all local-slackware local-slackware-install
+abu:
+	$(SUDO) $(MAKE) all local-slackware local-slackware-upgrade
 
 ## ------------------------------------------------------------
 

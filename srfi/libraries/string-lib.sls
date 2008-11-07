@@ -1,6 +1,9 @@
-#!r6rs
-(library (srfi strings)
+;; string-lib.sls --
+;;
+
+(library (string-lib)
 	 (export
+	  ;;These should be all the exports from (srfi strings).
 	  string-map string-map!
 	  string-fold       string-unfold
 	  string-fold-right string-unfold-right 
@@ -46,35 +49,13 @@
 	  string-parse-final-start+end
 	  let-string-start+end
 	  check-substring-spec
-	  substring-spec-ok?)
-	 (import
-	  (except (rnrs) error string-copy string-for-each string->list
-		  string-upcase string-downcase string-titlecase string-hash)
-	  (except (rnrs mutable-strings) string-fill!)
-	  (rnrs r5rs)
-	  (prefix (srfi error-reporting) ER:)
-	  (srfi receive)
-	  (srfi char-set)
-	  (srfi parameters)
-	  (srfi private let-opt)
-	  (srfi private include-resolve))
-  
-	 (define (error . args)
-	   (parameterize ([ER:error-who 
-			   "(library (srfi strings))"])
-	     (apply ER:error args)))
-  
-	 (define-syntax check-arg
-	   (lambda (stx)
-	     (syntax-case stx ()
-	       [(_ pred val caller)
-		(and (identifier? #'val) (identifier? #'caller))
-		#'(unless (pred val)
-		    (parameterize ([ER:error-who 'caller])
-		      (ER:error "check-arg failed" val)))])))
-  
-	 (define (char-cased? c)
-	   (char-upper-case? (char-upcase c)))
-  
-	 (include/resolve ("srfi" "strings") "srfi-13.sls")
-	 )
+	  substring-spec-ok?
+
+	  ;;These should be all the exports from (srfi string-ports).
+	  open-input-string
+	  open-output-string
+	  get-output-string)
+	 (import (srfi strings)
+		 (srfi string-ports)))
+
+;;; end of file
