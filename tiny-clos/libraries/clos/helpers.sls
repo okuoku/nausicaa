@@ -23,23 +23,61 @@
 
 (library (clos helpers)
 
-  (export position
-          get-arg)
+  (export unmangle-class-name
+          print-unreadable-object
+          print-object-with-slots
+          initialize-direct-slots)
   
   (import (rnrs)
-          (srfi lists))
+          (clos introspection)
+          (clos slot-access)
+          (clos private compat))
 
-  (define (position obj lst)
-    (list-index (lambda (elt) (eq? elt obj)) lst))
+  (define (unmangle-class-name class-name)
+    (let ((str (symbol->string class-name)))
+      (if (and (>= (string-length str) 3)
+               (char=? (string-ref str 0) #\<)
+               (char=? (string-ref str (- (string-length str) 1)) #\>))
+          (string->symbol (substring str 1  (- (string-length str) 1)))
+          class-name)))
   
-  (define (get-arg key lst . def)
-    (let ((probe (member key lst)))
-      (if (or (not probe)
-              (not (pair? (cdr probe))))
-          (if (pair? def)
-              (car def)
-              (error 'get-arg
-                     "mandatory keyword argument ~a missing in ~a" key lst))
-          (cadr probe))))
+  (define (print-unreadable-object* port type? addr? obj thunk)
+    (display "#<" port)
+    (when type? 
+      (write (unmangle-class-name 
+                 (or (class-definition-name (class-of obj)) 'unknown))
+               port)
+      (display " " port))
+    (thunk)
+    (when addr?
+      (display "{" port)
+      (write (pointer-value obj) port)
+      (display "}" port))
+    (display ">" port))
+
+  (define-syntax print-unreadable-object
+    (syntax-rules ()
+      ((print-unreadable-object (?port ?type? ?addr? ?obj) ?body ...)
+       (print-unreadable-object* ?port 
+                                 ?type? 
+                                 ?addr? 
+                                 ?obj 
+                                 (lambda () ?body ... 'ignored)))))
+
+  (define (print-object-with-slots obj port)
+    (print-unreadable-object (port #t #t obj)
+      (let loop ((slots (class-slots (class-of obj))))
+        (when (not (null? slots))
+          (write (caar slots) port)
+          (display ": " port)
+          (write (slot-ref obj (caar slots)) port)
+          (display " " port)
+          (loop (cdr slots))))))
+
+  (define (initialize-direct-slots obj cls init-args)
+    (let loop ((slots (class-direct-slots cls)))
+      (when (not (null? slots))
+        (slot-set! obj (caar slots) (get-arg (caar slots) init-args))
+        (loop (cdr slots)))))
   
   ) ;; library (clos helpers)

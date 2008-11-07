@@ -29,8 +29,8 @@
   
   (import (rnrs)
           (clos private allocation)
-          (clos slot-access)
-          (clos helpers))
+          (clos private compat)
+          (clos slot-access))
   
   (define (class-initialize class-inst init-args
                             compute-precedence-list
@@ -46,6 +46,9 @@
                           slot
                           (list slot)))
                     (get-arg 'direct-slots init-args)))
+    (slot-set! class-inst
+               'definition-name
+               (get-arg 'definition-name init-args #f))
     (slot-set! class-inst
                'precedence-list
                (compute-precedence-list class-inst))
@@ -86,6 +89,8 @@
     (slot-set! generic-inst 
                'methods
                '())
+    (set-entity-print-name! generic-inst
+                            (get-arg 'definition-name init-args #f))
     (set-instance-proc! generic-inst
                         (lambda args
                           (error 'generic
@@ -95,6 +100,9 @@
     (slot-set! meth-inst
                'specializers
                (get-arg 'specializers init-args))
+    (slot-set! meth-inst
+               'qualifier
+               (get-arg 'qualifier init-args 'primary))
     (slot-set! meth-inst
                'procedure
                (get-arg 'procedure init-args)))

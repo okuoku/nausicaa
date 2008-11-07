@@ -33,50 +33,68 @@
           compute-apply-generic
           compute-methods
           compute-method-more-specific?
-          compute-apply-methods)
+          compute-apply-methods
+          print-object)
 
   (import (rnrs)
           (clos bootstrap standard-classes)
+          (clos private allocation)
           (clos introspection)
           (clos std-protocols make)
           (clos std-protocols allocate-instance)
           (clos std-protocols initialize)
           (clos std-protocols class-initialization)
           (clos std-protocols add-method)
-          (clos std-protocols generic-invocation))
+          (clos std-protocols generic-invocation)
+          (clos std-protocols print-object))
 
   (define make
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'make))
   
   (define initialize                    
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'initialize))
   
   (define allocate-instance             
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'allocate-instance))
   
   (define compute-getter-and-setter     
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'compute-getter-and-setter))
   
   (define compute-precedence-list       
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'compute-precedence-list))
   
   (define compute-slots                 
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'compute-slots))
   
   (define add-method
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'add-method))
   
   (define compute-apply-generic         
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'compute-apply-generic))
   
   (define compute-methods               
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'compute-methods))
   
   (define compute-method-more-specific? 
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'compute-method-more-specific?))
   
   (define compute-apply-methods         
-    (bootstrap-make <generic>))
+    (bootstrap-make <generic>
+      'definition-name 'compute-apply-methods))
+
+  (define print-object 
+    (bootstrap-make <generic>
+      'definition-name 'print-object))
 
   (define bootstrap-add-method 
     (begin
@@ -99,32 +117,33 @@
   (bootstrap-add-method make
     (bootstrap-make <method>
       'specializers (list <class>)
-      'procedure    (lambda (call-next-method class . init-args)
+      'procedure    (lambda (%generic %next-methods class . init-args)
                       (class-make class init-args 
                                   allocate-instance initialize))))
 
   (bootstrap-add-method allocate-instance
     (bootstrap-make <method>
       'specializers (list <class>)
-      'procedure    (lambda (call-next-method class)
+      'procedure    (lambda (%generic %next-methods class)
                       (class-allocate-instance class))))
 
   (bootstrap-add-method allocate-instance 
     (bootstrap-make <method>
       'specializers (list <entity-class>)
-      'procedure    (lambda (call-next-method entity-class)
+      'procedure    (lambda (%generic %next-methods entity-class)
                       (entity-class-allocate-instance entity-class))))
 
   (bootstrap-add-method initialize 
     (bootstrap-make <method>
       'specializers (list <object>)
-      'procedure    (lambda (call-next-method object init-args) object)))
+      'procedure    (lambda (%generic %next-methods object init-args) object)))
 
   (bootstrap-add-method initialize
     (bootstrap-make <method>
       'specializers (list <class>)
-      'procedure    (lambda (call-next-method class-inst init-args)
-                      (call-next-method)
+      'procedure    (lambda (%generic %next-methods class-inst init-args)
+                      ;; call-next-method, the hard way ...
+                      ((car %next-methods) %generic (cdr %next-methods) class-inst init-args)
                       (class-initialize class-inst init-args
                                         compute-precedence-list
                                         compute-slots
@@ -133,63 +152,73 @@
   (bootstrap-add-method initialize
     (bootstrap-make <method>
       'specializers (list <generic>)
-      'procedure    (lambda (call-next-method generic-inst init-args)
-                      (call-next-method)
+      'procedure    (lambda (%generic %next-methods generic-inst init-args)
+                      ;; call-next-method, the hard way ...
+                      ((car %next-methods) %generic (cdr %next-methods) generic-inst init-args)
                       (generic-initialize generic-inst init-args))))
 
   (bootstrap-add-method initialize 
     (bootstrap-make <method>
       'specializers (list <method>)
-      'procedure    (lambda (call-next-method method-inst init-args)
-                      (call-next-method)
+      'procedure    (lambda (%generic %next-methods method-inst init-args)
+                      ;; call-next-method, the hard way ...
+                      ((car %next-methods) %generic (cdr %next-methods) method-inst init-args)
                       (method-initialize method-inst init-args))))
 
   (bootstrap-add-method compute-precedence-list
     (bootstrap-make <method>
       'specializers (list <class>)
-      'procedure    (lambda (call-next-method class)
+      'procedure    (lambda (%generic %next-methods class)
                       (class-compute-precedence-list class))))
 
   (bootstrap-add-method compute-slots 
     (bootstrap-make <method>
       'specializers (list <class>)
-      'procedure    (lambda (call-next-method class)
+      'procedure    (lambda (%generic %next-methods class)
                       (class-compute-slots class))))
 
   (bootstrap-add-method compute-getter-and-setter
     (bootstrap-make <method>
       'specializers (list <class>)
-      'procedure    (lambda (call-next-method class slot allocator)
+      'procedure    (lambda (%generic %next-methods class slot allocator)
                       (class-compute-getter-and-setter class slot allocator))))
 
   (bootstrap-add-method add-method
     (bootstrap-make <method>
       'specializers (list <generic>)
-      'procedure    (lambda (call-next-method entity method)
+      'procedure    (lambda (%generic %next-methods entity method)
                       (generic-add-method entity method compute-apply-generic))))
 
   (bootstrap-add-method compute-apply-generic
     (bootstrap-make <method>
       'specializers (list <generic>)
-      'procedure    (lambda (call-next-method generic)
+      'procedure    (lambda (%generic %next-methods generic)
                       (generic-compute-apply-generic generic))))
 
   (bootstrap-add-method compute-methods
     (bootstrap-make <method>
       'specializers (list <generic>)
-      'procedure    (lambda (call-next-method generic)
-                      (generic-compute-methods generic))))
+      'procedure    (lambda (%generic %next-methods generic args)
+                      (generic-compute-methods generic args))))
 
   (bootstrap-add-method compute-method-more-specific?
     (bootstrap-make <method>
       'specializers (list <generic>)
-      'procedure    (lambda (call-next-method generic)
-                      (generic-compute-method-more-specific? generic))))
+      'procedure    (lambda (%generic %next-methods generic args)
+                      (generic-compute-method-more-specific? generic args))))
 
   (bootstrap-add-method compute-apply-methods
     (bootstrap-make <method>
       'specializers (list <generic>)
-      'procedure    (lambda (call-next-method generic)
-                      (generic-compute-apply-methods generic))))
+      'procedure    (lambda (%generic %next-methods generic methods)
+                      (generic-compute-apply-methods generic methods))))
+
+  (bootstrap-add-method print-object
+    (bootstrap-make <method>
+      'specializers (list <object>)
+      'procedure    (lambda (%generic %next-methods object port)
+                      (object-print-object object port))))
+
+  (set-instance-printer! print-object)
 
   ) ;; library (clos bootstrap generic-functions)

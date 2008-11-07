@@ -287,6 +287,10 @@ the main purpose of this document is to provide an Info version.
 @code{#:\NAME\}
 @end macro
 
+@macro class{NAME}
+@code{<\NAME\>}
+@end macro
+
 @c ------------------------------------------------------------
 
 @c page
@@ -361,7 +365,8 @@ Xerox Park.  The package embeds the code found at:
 @center @url{http://launchpad.net/r6rs-clos}
 
 @noindent
-which is modified by Christian Sloma and Abdulaziz Ghuloum.
+which is modified by Christian Sloma and Abdulaziz Ghuloum.  See the
+section ``Package License'' for the copying conditions.
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -370,9 +375,10 @@ Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_E
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the @gnu{} Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with
-Invariant Section being ``@gnu{} Free Documentation License'', no
-Front--Cover Texts, and no Back--Cover Texts.  A copy of the license is
-included in the section entitled ``@gnu{} Free Documentation License''.
+Invariant Sections being ``@gnu{} Free Documentation License'' and
+``Package License'', no Front--Cover Texts, and no Back--Cover Texts.  A
+copy of the license is included in the section entitled ``@gnu{} Free
+Documentation License''.
 @end quotation
 @end copying
 
@@ -420,9 +426,16 @@ included in the section entitled ``@gnu{} Free Documentation License''.
      
 @menu
 * overview::                    Overview of the package. 
+* types::                       Predefined class types.
+* define::                      Defining stuff.
+* generic::                     Available generic functions.
+* slot::                        Slot access.
+* inspect::                     Class and object inspection.
+* utils::                       Utility functions.
 
 Appendices
 
+* Package License::             Package License.
 * Documentation License::       GNU Free Documentation License.
 * references::                  Bibliography and references.
 
@@ -443,7 +456,468 @@ Indexes
 
 
 @noindent
-This ...
+@rnrs{6}--@clos{} is a port of Tiny--@clos{} to the latest (6th)
+revision of the language standard for Scheme.  It uses the library
+system that is new in @rnrs{6} to structure the code based on
+functionality (bootstrap of core classes and generic functions, actual
+implementation of the standard protocols, class layout, slot access
+@dots{}).
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node types
+@chapter Predefined class types
+
+
+@deftp Class <top>
+The base class for all the classes.
+@end deftp
+
+
+@deftp Class <class>
+The base class for all the class objects representing a class.
+@end deftp
+
+
+@deftp Class <object>
+The base class for all the class objects representing an instances.
+@end deftp
+
+
+@deftp Class <procedure-class>
+Who knows?
+@end deftp
+
+
+@deftp Class <entity-class>
+Who knows?
+@end deftp
+
+
+@deftp Class <generic>
+The class of generic functions.
+@end deftp
+
+
+@deftp Class <method>
+The class of methods.
+@end deftp
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node define
+@chapter Defining new class types
+
+
+The following syntaxes are available in the @library{clos user} library.
+
+
+@deffn Syntax define-class @var{name} @var{list-of-supers} . @var{list-of-slot-defs}
+Build and return a new class object, derived from @class{class}.
+
+@var{name} is the public name of the class, which should be an
+identifier enclosed in angular parentheses.
+
+@var{list-of-supers} is the list of superclasses of @var{name}.  It can
+be the empty string, which means that the base class of @var{name} is
+@class{object}.
+
+@var{list-of-slot-defs} is the list of slot definitions, which can be a
+list of symbols representing the names of the slots.
+@end deffn
+
+
+@deffn Syntax define-generic @var{name}
+Define a new generic function: a collection of methods.
+@end deffn
+
+
+@deffn Syntax define-method @var{name} @var{args} . @var{body-forms}
+Add a new method to the generic function @var{name}.  A method is the
+ensemble of a signature for arguments and an ordinary function.
+
+@var{args} is the list of argument specifications, each of which can be:
+
+@table @code
+@item arg-name
+a symbol specifying the name of the argument, the class defaults to
+@class{object};
+
+@item (arg-name arg-class)
+a list of two elements, the first being the name of the argument and the
+second being its class.
+@end table
+
+@var{body-forms} are the forms in the body of the method's function.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node generic
+@chapter Available generic functions
+
+
+All the following generic functions will accept new specialised methods.
+
+
+@deffn {Generic Function} make @var{class-object} . @var{slot-values}
+Build and return a new instance of @var{class-object} and initialises
+the slots from @var{slot-values}.
+@end deffn
+
+
+@deffn {Generic Function} initialize @var{object} @var{init-args}
+Initialise an already built @var{object} instance using the arbitrary
+@var{init-args} value.
+@end deffn
+
+
+@deffn {Generic Function} allocate-instance @var{class-object}
+Build and return a new instance object of class @var{class-object}.
+@end deffn
+
+
+@deffn {Generic Function} compute-getter-and-setter @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} compute-precedence-list @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} compute-slots @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} add-method @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} compute-apply-generic @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} compute-methods @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} compute-method-more-specific? @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} compute-apply-methods @var{class-object}
+
+@end deffn
+
+
+@deffn {Generic Function} print-object @var{object} @var{port}
+Print a string representation of @var{object} to @var{port}.
+
+A utility function that does this is @func{print-object-with-slots}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node slot
+@chapter Slot access
+
+
+@defun {slot-set!} @var{object} @var{slot-name} @var{new-value}
+Store @var{new-value} in @var{slot-name} for @var{object}.
+
+@var{object} should be an object.
+
+@var{slot-name} must be the symbol representing the name of a slot in
+@var{object}.
+@end defun
+
+
+@deffn slot-ref @var{object} @var{slot-name}
+Retrieve and return the current value of @var{slot-name} in
+@var{object}.
+
+@var{object} should be an object.
+
+@var{slot-name} must be the symbol representing the name of a slot in
+@var{object}.
+@end deffn
+
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node inspect
+@chapter Class and object inspection
+
+
+@menu
+* inspect class::               Inspecting class objects.
+* inspect instance::            Inspecting class instances.
+* inspect generic::             Inspecting generic functions.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node inspect class
+@section Inspecting class objects
+
+
+The definitions below show usage examples that refer to the following
+top--level program incipit:
+
+@example
+(import (clos core)
+        (clos user)
+        (srfi lightweight-testing))
+
+(define-class <one> ()
+  a b c)
+
+(define-class <two> ()
+  d e f)
+
+(define-class <three> (<one> <two>)
+  g h i)
+@end example
+
+
+@defun class-of @var{object}
+Return the class object of @var{object}.  This function can be applied
+to any object.  Examples:
+
+@example
+(check
+  (class-of <one>)
+  => <class>)
+
+(check
+  (class-of (make <one> 'a 1 'b 2 'c 3))
+  => <one>)
+@end example
+@end defun
+
+
+@defun class-definition-name @var{class-object}
+Return the public name of @var{class-object}.
+
+@example
+(check
+  (class-definition-name <one>)
+  => '<one>)
+
+(check (class-definition-name (class-of <one>))
+       => '<class>)
+@end example
+@end defun
+
+
+@defun class-direct-supers @var{class-object}
+Return the list of class objects that are the superclasses of
+@var{class-object}.  Examples:
+
+@example
+(check
+  (map class-definition-name (class-direct-supers <one>))
+  => '(<object>))
+
+(check
+  (map class-definition-name (class-direct-supers <three>))
+  => '(<one> <two>))
+
+(check
+  (class-direct-supers <three>)
+  => (list <one> <two>))
+@end example
+@end defun
+
+   
+@defun class-slots @var{class-object}
+Return a list of slot specifications for @var{class-object},
+@strong{including} the slots of the superclasses.  Examples:
+
+@example
+(check
+  (class-slots <one>)
+  => '((a) (b) (c)))
+
+(check
+  (class-slots <three>)
+  => '((g) (h) (i)
+       (a) (b) (c)
+       (d) (e) (f)))
+@end example
+@end defun
+
+
+@defun class-direct-slots @var{class-object}
+Return a list of slot specifications for @var{class-object},
+@strong{excluding} the slots of the superclasses.  Examples:
+
+@example
+(check
+  (class-direct-slots <one>)
+  => '((a) (b) (c)))
+
+(check
+  (class-direct-slots <three>)
+  => '((g) (h) (i)))
+@end example
+@end defun
+
+   
+@defun class-precedence-list @var{class-object}
+Return the ordered list of class objects that is used to match
+@var{class-object} to the type of generic functions arguments.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node inspect instance
+@section Inspecting class instances
+
+
+The @func{class-of} function can be applied to instances, too.
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node inspect generic
+@section Inspecting generic functions
+
+
+The definitions below show usage examples that refer to the following
+top--level program incipit:
+
+@example
+(import (clos core)
+        (clos user)
+        (srfi lightweight-testing))
+
+(define-class <one> ()
+  a b c)
+
+(define-class <two> ()
+  d e f)
+
+(define-class <three> (<one> <two>)
+  g h i)
+@end example
+
+
+@defun generic-methods
+
+@end defun
+
+   
+@defun method-specializers
+
+@end defun
+   
+
+@defun method-procedure
+
+@end defun
+   
+
+@defun method-qualifier
+
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node utils
+@chapter Utility functions
+
+
+@defun initialize-direct-slots @var{object} @var{class-object} @var{init-args}
+Initialise the slots of @var{object} whose class is @var{class-object}
+using @var{init-args}.  This function can be used to provide a base
+implementation of the generic function @func{initialize}.
+
+@var{init-args} must be a list of interspersed symbols and values, with
+the symbols being the slot names of @var{object} .
+
+Example:
+
+@example
+(define-class <colour>
+  red green blue)
+
+(define-method initialize 'after ((o <colour>) init-args)
+  (initialize-direct-slots o <colour> init-args))
+
+(define o (make <colour>
+            'red        123
+            'green      80
+            'blue       200))
+@end example
+@end defun
+
+
+@defun print-object-with-slots @var{object} @var{port}
+Print a string representation of @var{object} to @var{port}.  This
+function can be used to provide a base implementation of the generic
+function @func{print-object}.
+
+Example:
+
+@example
+(define-class <colour>
+  red green blue)
+
+(define-method print-object ((o <colour>) port)
+  (print-object-with-slots o port))
+@end example
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node Package License
+@appendix Package License
+
+
+Copyright @copyright{} 1992 Xerox Corporation.  All Rights Reserved.@*
+Copyright @copyright{} 2007 Christian Sloma.
+
+Use, reproduction, and preparation of derivative works are permitted.
+Any copy of this software or of any derivative work must include the
+above copyright notice of Xerox Corporation, this paragraph and the one
+after it.  Any distribution of this software or derivative works must
+comply with all applicable United States export control laws.
+
+This software is made available AS IS, and XEROX CORPORATION DISCLAIMS
+ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+NEGLIGENCE) OR STRICT LIABILITY, EVEN IF XEROX CORPORATION IS ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGES.
 
 
 @c ------------------------------------------------------------

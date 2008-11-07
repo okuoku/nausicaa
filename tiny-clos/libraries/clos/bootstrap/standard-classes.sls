@@ -30,6 +30,17 @@
           <entity-class>
           <generic>
           <method>
+          <pair>
+          <null>
+          <symbol>
+          <boolean>
+          <procedure>
+          <number>
+          <vector>
+          <char>
+          <string>
+          <input-port>
+          <output-port>
           bootstrap-make)
 
   (import (rnrs)
@@ -61,7 +72,9 @@
         (let ((class (class-of inst)))
           (cond
             ((or (eq? class <class>)
-                 (eq? class <entity-class>))
+                 (eq? class <procedure-class>)
+                 (eq? class <entity-class>)
+                 (eq? class <primitive-class>))
              (class-initialize inst init-args
                                class-compute-precedence-list
                                class-compute-slots
@@ -78,16 +91,19 @@
     (begin 
 
       (bootstrap-initialize <top>
-        (list 'direct-supers (list)
-              'direct-slots  (list)))
+        (list 'definition-name '<top>
+              'direct-supers   (list)
+              'direct-slots    (list)))
 
       (bootstrap-initialize <object>
-        (list 'direct-supers (list <top>)
-              'direct-slots  (list)))
+        (list 'definition-name '<object>
+              'direct-supers   (list <top>)
+              'direct-slots    (list)))
 
       (bootstrap-initialize <class>
-        (list 'direct-supers (list <object>)
-              'direct-slots  core-class-slot-names))
+        (list 'definition-name '<class>
+              'direct-supers   (list <object>)
+              'direct-slots    core-class-slot-names))
 
       (lambda (class)
         (let ((class-of-class (class-of class)))
@@ -107,23 +123,69 @@
 
   (define <procedure-class>
     (bootstrap-make <class>
-      'direct-supers (list <class>)
-      'direct-slots  (list)))
+      'definition-name '<procedure-class>
+      'direct-supers   (list <class>)
+      'direct-slots    (list)))
 
   (define <entity-class>
     (bootstrap-make <class>
-      'direct-supers (list <procedure-class>)
-      'direct-slots  (list)))
+      'definition-name '<entity-class>
+      'direct-supers   (list <procedure-class>)
+      'direct-slots    (list)))
 
   (define <generic>
     (bootstrap-make <entity-class>
-      'direct-supers (list <object>)
-      'direct-slots  (list 'methods)))
+      'definition-name '<generic>
+      'direct-supers   (list <object>)
+      'direct-slots    (list 'methods)))
 
   (define <method>
     (bootstrap-make <class>
-      'direct-supers (list <object>)
-      'direct-slots  (list 'specializers 
-                           'procedure)))
+      'definition-name '<method>
+      'direct-supers   (list <object>)
+      'direct-slots    (list 'specializers
+                             'qualifier
+                             'procedure)))
+
+  (define <primitive-class>
+    (bootstrap-make <class>
+      'definition-name '<primitive-class>
+      'direct-supers   (list <class>)
+      'direct-slots    (list)))
+
+  (define (make-primitive-class name . class)
+    (bootstrap-make (if (null? class) <primitive-class> (car class))
+      'definition-name name
+      'direct-supers   (list <top>)
+      'direct-slots    (list)))
+
+  (define <pair>        (make-primitive-class '<pair>))
+  (define <null>        (make-primitive-class '<null>))
+  (define <symbol>      (make-primitive-class '<symbol>))
+  (define <boolean>     (make-primitive-class '<boolean>))
+  (define <procedure>   (make-primitive-class '<procedure> <procedure-class>))
+  (define <number>      (make-primitive-class '<number>))
+  (define <vector>      (make-primitive-class '<vector>))
+  (define <char>        (make-primitive-class '<char>))
+  (define <string>      (make-primitive-class '<string>))
+  (define <input-port>  (make-primitive-class '<input-port>))
+  (define <output-port> (make-primitive-class '<output-port>))
+  
+  (define (primitive-class-of x)
+    (cond 
+      ((pair? x)        <pair>)         ;If all Schemes were IEEE 
+      ((null? x)        <null>)         ;compliant, the order of
+      ((boolean? x)     <boolean>)      ;these wouldn't matter?
+      ((symbol? x)      <symbol>)
+      ((procedure? x)   <procedure>)
+      ((number? x)      <number>)
+      ((vector? x)      <vector>)
+      ((char? x)        <char>)
+      ((string? x)      <string>)
+      ((input-port? x)  <input-port>)
+      ((output-port? x) <output-port>)
+      (else             <top>)))
+
+  (set-primitive-class-of! primitive-class-of)
 
   ) ;; library (clos bootstrap standard-classes)

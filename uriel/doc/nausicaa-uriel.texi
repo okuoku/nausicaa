@@ -419,6 +419,7 @@ entitled ``@gnu{} Free Documentation License''.
      
 @menu
 * overview::                    Overview of the package. 
+* io::                          Input/output library.
 
 Appendices
 
@@ -443,7 +444,41 @@ Indexes
 
 
 @noindent
-This ...
+@value{PACKAGE} is a collection of libraries for Ikarus Scheme.
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node io
+@chapter Input/output library
+
+
+To load the library:
+
+@example
+(import (uriel io))
+@end example
+
+
+@deffn Syntax with-output-to-string @var{form} ...
+A wrapper for @func{call-with-string-output-port} that puts all the
+@var{form} arguments in the thunk.  Example:
+
+@example
+(with-output-to-string
+  (display 123))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(call-with-string-output-port
+  (lambda ()
+    (display 123)))
+@end example
+@end deffn
 
 
 @c ------------------------------------------------------------
