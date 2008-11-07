@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: CLOS, an acronym for Common Lisp Object System, is a standard
+@PACKAGE_NAME@: set of extensions to the Common Lisp language to help people
+@PACKAGE_NAME@: do object-oriented programming in Lisp.
+@PACKAGE_NAME@: 
+@PACKAGE_NAME@: Tiny CLOS is a Scheme version of CLOS written in 1992 by
+@PACKAGE_NAME@: Gregor Kiczales at Xerox Park.  It differs from CLOS
+@PACKAGE_NAME@: syntactically, but the basic approach to OOP is the same as
+@PACKAGE_NAME@: in CLOS.
+@PACKAGE_NAME@:
