@@ -12,6 +12,22 @@ PACKAGE_VERSION		= @PACKAGE_VERSION@
 PKG_ID			= @PKG_ID@
 
 ## ------------------------------------------------------------
+## Binary package distribtion building variables.
+
+# The variable 'package_BUILD_VERSION'  should be defined in
+# "Makefile.custom".  If  not we set a default  that does no
+# harm.
+ifeq ($(strip $(package_BUILD_VERSION)),)
+package_BUILD_VERSION	= 1mm
+endif
+
+package_NAME		= $(PACKAGE_NAME)
+package_VERSION		= $(PACKAGE_VERSION)
+package_ARCH		= noarch
+
+package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
+
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -24,58 +40,47 @@ endif
 
 ## ------------------------------------------------------------
 
-builddir	= .
-srcdir		= @srcdir@
+# The  other modules  will assume  that this  is  a relative
+# directory  pathname, and  the full  pathname can  be built
+# with: '$(PWD)/$(srcdir)'.
+srcdir			= ..
 
-prefix		= @prefix@
-exec_prefix	= @exec_prefix@
+# The  other modules  will assume  that this  is  a relative
+# directory  pathname, and  the full  pathname can  be built
+# with: '$(PWD)/$(builddir)'.
+builddir		= .
 
-bindir		= @bindir@
-datarootdir	= @datarootdir@
-datadir		= @datadir@
-docdir		= @datarootdir@/doc
-includedir	= @includedir@
-infodir		= @infodir@
-libdir		= @libdir@
-libexecdir	= @libexecdir@
-localstatedir	= @localstatedir@
-mandir		= @mandir@
-sbindir		= @sbindir@
-sharedstatedir	= @sharedstatedir@
-sysconfdir	= @sysconfdir@
+## ------------------------------------------------------------
 
-PKG_DIR		= @PKG_DIR@
-pkgdatadir	= @pkgdatadir@
-pkgdocdir	= @pkgdocdir@
-pkgexampledir	= @pkgexampledir@
-pkginfodir	= @pkginfodir@
-pkghtmldir	= @pkghtmldir@
-pkgincludedir	= @pkgincludedir@
-pkglibdir	= @pkglibdir@
-pkglibexecdir	= @pkglibexecdir@
-pkgsysconfdir	= @pkgsysconfdir@
+prefix			= @prefix@
+exec_prefix		= @exec_prefix@
+
+bindir			= @bindir@
+datarootdir		= @datarootdir@
+datadir			= @datadir@
+docdir			= @datarootdir@/doc
+includedir		= @includedir@
+infodir			= @infodir@
+libdir			= @libdir@
+libexecdir		= @libexecdir@
+localstatedir		= @localstatedir@
+mandir			= @mandir@
+sbindir			= @sbindir@
+sharedstatedir		= @sharedstatedir@
+sysconfdir		= @sysconfdir@
+
+PKG_DIR			= @PKG_DIR@
+pkgdatadir		= @pkgdatadir@
+pkgdocdir		= @pkgdocdir@
+pkgexampledir		= @pkgexampledir@
+pkginfodir		= @pkginfodir@
+pkghtmldir		= @pkghtmldir@
+pkgincludedir		= @pkgincludedir@
+pkglibdir		= @pkglibdir@
+pkglibexecdir		= @pkglibexecdir@
+pkgsysconfdir		= @pkgsysconfdir@
 
 ikarus_PKGLIBDIR	= $(libdir)/ikarus
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Binary package distribtion building variables.
-## ------------------------------------------------------------
-
-# The variable 'package_BUILD_VERSION'  should be defined in
-# "Makefile.custom".  If  not we set a default  that does no
-# harm.
-ifeq ($(strip package_BUILD_VERSION),)
-package_BUILD_VERSION	= 1mm
-endif
-
-package_NAME		= $(PACKAGE_NAME)
-package_VERSION		= $(VERSION_VERSION)
-package_ARCH		= noarch
-
-package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
 
 ## ------------------------------------------------------------
 
@@ -117,9 +122,15 @@ INSTALL_BIN_MODE	?= 0555
 INSTALL_DATA_MODE	?= 0444
 INSTALL_LIB_MODE	?= 0444
 
-INSTALL_DIR		= $(INSTALL) -m $(INSTALL_DIR_MODE) -d
-INSTALL_BIN		= $(INSTALL) -m $(INSTALL_BIN_MODE)
-INSTALL_DATA		= $(INSTALL) -m $(INSTALL_DATA_MODE)
+# Notice   that  the   "install-sh"  script,   from   the  X
+# Consortium, that comes with GNU Autoconf packages does not
+# support the '-p'  and '--preserve-timestamps' options that
+# GNU install  supports, and  this will cause  problems when
+# installing both the .sls  and fasl files.  Let's hope that
+# everybody has GNU install. :)
+INSTALL_DIR		= $(INSTALL) -p -m $(INSTALL_DIR_MODE) -d
+INSTALL_BIN		= $(INSTALL) -p -m $(INSTALL_BIN_MODE)
+INSTALL_DATA		= $(INSTALL) -p -m $(INSTALL_DATA_MODE)
 
 ## ------------------------------------------------------------
 
@@ -127,6 +138,40 @@ IKARUS		= @IKARUS@
 SCHEME_SCRIPT	= @SCHEME_SCRIPT@
 
 MAKEINFO_FLAGS	= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Master phony rules.
+## ------------------------------------------------------------
+
+.PHONY: all clean realclean install uninstall
+.PHONY: doc doc-clean doc-install doc-uninstall
+.PHONY: compile compile-clean
+
+all:
+clean:
+realclean:
+install:
+uninstall:
+
+## ------------------------------------------------------------
+
+doc:
+doc-clean:
+doc-install:
+doc-uninstall:
+
+all:		doc
+clean:		doc-clean
+install:	doc-install
+uninstall:	doc-uninstall
+
+## ------------------------------------------------------------
+
+compile:
+compile-clean:
 
 ## ------------------------------------------------------------
 
