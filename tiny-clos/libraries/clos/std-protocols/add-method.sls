@@ -27,23 +27,29 @@
   
   (import (rnrs)
           (clos private allocation)
+          (clos private method-cache)
+          (clos std-protocols generic-invocation)
           (clos slot-access)
           (clos introspection)
-          (srfi lists))
+          (clos private compat))
   
   (define (generic-add-method generic method
                               compute-apply-generic)
     (slot-set! generic
                'methods
                (merge-new-method method (slot-ref generic 'methods)))
+    (if (generic-invocation-generic? generic)
+        (invalidate-method-caches!))
     (set-instance-proc! generic (compute-apply-generic generic)))
   
   (define (merge-new-method new-method methods)
     (cons new-method
           (filter (lambda (method)
-                    (not (every eq?
-                                (method-specializers new-method)
-                                (method-specializers method))))
+                    (not (and (every eq?
+                                     (method-specializers new-method)
+                                     (method-specializers method))
+                              (eq? (method-qualifier new-method)
+                                   (method-qualifier method)))))
                   methods)))
  
   ) ;; library (clos std-protocols add-method)

@@ -30,7 +30,7 @@
   (import (rnrs)
           (clos private allocation)
           (clos private core-class-layout)
-          (clos helpers))
+          (clos private compat))
 
   (define <class> #f)
 
@@ -42,14 +42,14 @@
       (if (eq? class <class>) ;; break loop -- assumes <class> does not change
           (instance-ref inst (position slot-name core-class-slot-names))
           (let ((slot-info (get-slot-info class slot-name)))
-            ((list-ref slot-info 1) inst)))))
+            ((cadr slot-info) inst)))))
   
   (define (slot-set! inst slot-name val)
     (let ((class (instance-class inst)))
       (if (eq? class <class>) ;; break loop -- assumes <class> does not change
           (instance-set! inst (position slot-name core-class-slot-names) val)
           (let ((slot-info (get-slot-info class slot-name)))
-            ((list-ref slot-info 2) inst val)))))
+            ((caddr slot-info) inst val)))))
   
   (define (get-slot-info class slot-name)
     (let ((getters-and-setters (slot-ref class 'getters-and-setters)))

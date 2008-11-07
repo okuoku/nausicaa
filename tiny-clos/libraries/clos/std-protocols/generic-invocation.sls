@@ -24,14 +24,16 @@
 (library (clos std-protocols generic-invocation)
   
   (export register-generic-invocation-generics!
+          generic-invocation-generic?
           generic-compute-apply-generic
           generic-compute-apply-methods
           generic-compute-methods
           generic-compute-method-more-specific?)
            
   (import (rnrs)
+          (clos private method-cache)
           (clos introspection)
-          (srfi lists))
+          (clos private compat))
 
   (define compute-apply-generic #f)
   (define compute-apply-methods #f)
@@ -60,44 +62,66 @@
         (eq? obj compute-method-more-specific?)))
   
   (define (generic-compute-apply-generic generic)
-    (lambda args
-      (if (and (generic-invocation-generic? generic)
-               (generic-invocation-generic? (car args)))
-          (apply (method-procedure (last (generic-methods generic))) 
-                 (cons #f args))
-          (let* ((apply-methods (compute-apply-methods generic))
-                 (methods       (compute-methods generic)))
-            (apply-methods (methods args) args)))))
+    (let ((fallback (and (generic-invocation-generic? generic)
+                         (method-procedure (last (generic-methods generic)))))
+          (dispatch (make-cached-dispatch generic
+                     (lambda (args)
+                      (let ((methods (compute-methods generic args)))
+                        (compute-apply-methods generic methods))))))
+      (case-lambda
+  	((a)
+         (if (and fallback (generic-invocation-generic? a))
+             (fallback generic '() a)
+             (let ((args (list a)))
+               ((dispatch args) args))))
+        ((a b)
+         (if (and fallback (generic-invocation-generic? a))
+             (fallback generic '() a b)
+             (let ((args (list a b)))
+               ((dispatch args) args))))
+        ((a b c)
+         (if (and fallback (generic-invocation-generic? a))
+             (fallback generic '() a b c)
+             (let ((args (list a b c)))
+               ((dispatch args) args))))
+        ((a b c d)
+         (if (and fallback (generic-invocation-generic? a))
+             (fallback generic '() a b c d)
+             (let ((args (list a b c d)))
+               ((dispatch args) args))))
+      	(args
+         (if (and fallback (generic-invocation-generic? (car args)))
+             (apply fallback generic '() args)
+             ((dispatch args) args))))))
   
-  (define (generic-compute-methods generic)
-    (lambda (args)
-      (let ((applicable
-             (filter (lambda (method)
-                       (every applicable?
-                              (method-specializers method)
+  (define (generic-compute-methods generic args)
+    (let ((applicable
+           (filter (lambda (method)
+                     (every-2 applicable? 
+                              (method-specializers method) 
                               args))
-                     (generic-methods generic))))
-        (list-sort (lambda (m1 m2)
-                     ((compute-method-more-specific? generic)
-                      m1
-                      m2
-                      args))
-                   applicable))))
+                   (generic-methods generic)))
+          (method-more-specific?
+           (compute-method-more-specific? generic args)))
+      (list-sort method-more-specific? applicable)))
   
-  (define (generic-compute-method-more-specific? generic)
-    (lambda (m1 m2 args)
+  (define (generic-compute-method-more-specific? generic args)
+    (lambda (m1 m2) 
       (let loop ((specls1 (method-specializers m1))
                  (specls2 (method-specializers m2))
                  (args args))
         (cond ((and (null? specls1) (null? specls2))
-               (error
-                "Two methods are equally specific."))
+               (if (not (eq? (method-qualifier m1)
+                             (method-qualifier m2)))
+                   #f 
+                   (error 'compute-method-more-specific?
+                          "Two methods are equally specific.")))
               ((or  (null? specls1) (null? specls2))
-               (error
-                "Two methods have a different number of specializers."))
+               (error 'compute-method-more-specific?
+                      "Two methods have a different number of specializers."))
               ((null? args)
-               (error
-                "Fewer arguments than specializers."))
+               (error 'compute-method-more-specific?
+                      "Fewer arguments than specializers."))
               (else
                (let ((c1  (car specls1))
                      (c2  (car specls2))
@@ -108,23 +132,117 @@
                            (cdr args))
                      (more-specific? c1 c2 arg))))))))
   
-  (define (generic-compute-apply-methods generic)
-    (lambda (methods args)
-      (letrec ((one-step
-                (lambda (tail)
-                  (lambda ()
-                    (if (null? tail)
-                        (error "No applicable methods/next methods.")
-                        (apply (method-procedure (car tail))
-                               (cons (one-step (cdr tail)) args)))))))
-        ((one-step methods)))))
+  (define (generic-compute-apply-methods generic methods)
+    (let-values (((arround-methods
+                   before-methods
+                   primary-methods
+                   after-methods)
+                  (sort-methods-by-qualifier methods)))
+      (cond
+        ((null? primary-methods)
+         (compute-apply-no-primary-methods generic))
+        ((and (null? arround-methods)
+              (null? before-methods)
+              (null? after-methods))
+         (compute-apply-primary-methods generic
+                                        primary-methods))
+        (else
+         (compute-apply-arround-methods generic
+                                        arround-methods
+                                        before-methods
+                                        primary-methods
+                                        after-methods)))))
   
-  (define applicable?
-    (lambda (c arg)
-      (memq c (class-precedence-list (class-of arg)))))
+  (define (sort-methods-by-qualifier methods)
+    (let loop ((methods         methods)
+               (arround-methods '())
+               (before-methods  '())
+               (primary-methods '())
+               (after-methods   '()))
+      (if (null? methods)
+          (values (reverse arround-methods)
+                  (reverse before-methods)
+                  (reverse primary-methods)
+                  ;; after-methods are applied 
+                  ;; in reverse order
+                  after-methods)
+          (case (method-qualifier (car methods))
+            ((arround)
+             (loop (cdr methods)
+                   (cons (car methods) arround-methods)
+                   before-methods
+                   primary-methods
+                   after-methods))
+            ((before)
+             (loop (cdr methods)
+                   arround-methods
+                   (cons (car methods) before-methods)
+                   primary-methods
+                   after-methods))
+            ((primary)
+             (loop (cdr methods)
+                   arround-methods
+                   before-methods
+                   (cons (car methods) primary-methods)
+                   after-methods))
+            ((after)
+             (loop (cdr methods)
+                   arround-methods
+                   before-methods
+                   primary-methods
+                   (cons (car methods) after-methods)))
+            (else
+             (error 'apply
+                    "wrong method-qualifier"
+                    (car methods)))))))
   
-  (define more-specific?
-    (lambda (c1 c2 arg)
-      (memq c2 (memq c1 (class-precedence-list (class-of arg))))))
+  (define (compute-apply-no-primary-methods generic)
+    (lambda (args)
+      (error 'apply "No applicable methods." generic args)))
+  
+  (define (compute-apply-primary-methods generic 
+                                         primary-methods)
+    (let ((procs (map method-procedure primary-methods)))
+      (lambda (args)
+        (apply-nested-procs generic procs args))))
+  
+  (define (compute-apply-arround-methods generic
+                                         arround-methods
+                                         before-methods
+                                         primary-methods
+                                         after-methods)
+    (let* ((arround-procs (map method-procedure arround-methods))
+           (before-procs  (map method-procedure before-methods))
+           (primary-procs (map method-procedure primary-methods))
+           (after-procs   (map method-procedure after-methods))
+           (inner-proc    (lambda (generic empty-list . args)
+                            (apply-before/after-procs generic 
+                                                      before-procs 
+                                                      args)
+                            (let ((result (apply-nested-procs generic 
+                                                              primary-procs 
+                                                              args)))
+                              (apply-before/after-procs generic 
+                                                        after-procs 
+                                                        args)
+                              result)))
+           (procs         (append arround-procs (list inner-proc))))
+      (lambda (args)
+        (apply-nested-procs generic procs args))))
+  
+  (define (apply-nested-procs generic procs args)
+    (apply (car procs) generic (cdr procs) args))
+  
+  (define (apply-before/after-procs generic procs args)
+    (if (not (null? procs))
+        (begin
+          (apply (car procs) generic '() args)
+          (apply-before/after-procs generic (cdr procs) args))))
+ 
+  (define (applicable? c arg)
+    (memq c (class-precedence-list (class-of arg))))
+  
+  (define (more-specific? c1 c2 arg)
+    (memq c2 (memq c1 (class-precedence-list (class-of arg)))))
   
   ) ;; library (clos std-protocols generic-invocation)

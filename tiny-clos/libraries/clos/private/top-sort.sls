@@ -37,7 +37,7 @@
           build-constraints)
 
   (import (rnrs)
-          (srfi lists))
+          (clos private compat))
   
   (define top-sort
     (lambda (elements constraints tie-breaker)

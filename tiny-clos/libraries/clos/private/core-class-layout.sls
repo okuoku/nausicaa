@@ -59,6 +59,9 @@
       ;; getter and setter functions for the slots of this class
       ;; searchable by slot-name
       getters-and-setters ;; ((slot-name getter-fn setter-fn) ...)
+
+      ;; name of the class
+      definition-name     ;; symbol or #f
       
       )) ;; core-class-slot-names
   

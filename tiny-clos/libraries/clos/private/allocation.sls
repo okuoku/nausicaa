@@ -30,30 +30,45 @@
           set-instance-class-to-self!
           set-instance-proc!
           instance-ref
-          instance-set!)
+          instance-set!
+          set-entity-print-name!
+          set-instance-printer!)
   
   (import (rnrs))
   
   (define-record-type instance-record
     (opaque #t)
+    (sealed #t)
     (fields (mutable class) slots (mutable iproc)))
   
   (define *entity-table* (make-eq-hashtable))
   
   (define (really-allocate-instance class field-count)
     (make-instance-record class (make-vector field-count) #f))
-  
+
   (define (really-allocate-entity-instance class field-count)
     (let* ((inst (really-allocate-instance class field-count))
-           (proc (lambda args
-                   (apply (instance-record-iproc inst) args))))
+           (proc (case-lambda 
+                   (()
+                    ((instance-record-iproc inst)))
+                   ((a)
+                    ((instance-record-iproc inst) a))
+                   ((a b)
+                    ((instance-record-iproc inst) a b))
+                   ((a b c)
+                    ((instance-record-iproc inst) a b c))
+                   ((a b c d)
+                    ((instance-record-iproc inst) a b c d))
+                   (args
+                    (apply (instance-record-iproc inst) args)))))
       (hashtable-set! *entity-table* proc inst)
       (values proc)))
   
   (define (get-instance-record obj)
     (if (instance-record? obj)
         obj
-        (hashtable-ref *entity-table* obj #f)))
+        (and (procedure? obj)
+             (hashtable-ref *entity-table* obj #f))))
   
   (define (instance? obj)
     (if (get-instance-record obj) #t #f))
@@ -72,5 +87,11 @@
   
   (define (instance-set! inst idx val)
     (vector-set! (instance-record-slots (get-instance-record inst)) idx val))
+
+  (define (set-entity-print-name! proc symbol)
+    'ignore)
+
+  (define (set-instance-printer! proc)
+    'ignore)
   
   ) ;; library (clos private allocation)

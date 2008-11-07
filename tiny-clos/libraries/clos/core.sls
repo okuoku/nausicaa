@@ -48,6 +48,7 @@
    compute-methods
    compute-method-more-specific?
    compute-apply-methods
+   print-object
    
    ;; slot access
    
@@ -56,19 +57,24 @@
    
    ;; introspection
    
-   *primitive-class-of-hook*
    class-of
    class-direct-supers
    class-direct-slots
    class-precedence-list
    class-slots
+   class-definition-name
    generic-methods
    method-specializers
    method-procedure
+   method-qualifier
    
    ;; helpers
    
    get-arg
+   unmangle-class-name
+   print-unreadable-object
+   print-object-with-slots
+   initialize-direct-slots
    
    ) ;; export
   
@@ -76,6 +82,7 @@
           (clos bootstrap generic-functions)
           (clos slot-access)
           (clos introspection)
+          (clos private compat)
           (clos helpers))
   
   ) ;; library (clos core) 

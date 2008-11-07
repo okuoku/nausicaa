@@ -23,28 +23,31 @@
 
 (library (clos introspection)
 
-  (export *primitive-class-of-hook*
+  (export set-primitive-class-of!
           class-of
           class-direct-supers
           class-direct-slots
           class-precedence-list
           class-slots
+          class-definition-name
           generic-methods
           method-specializers
+          method-qualifier
           method-procedure)
   
   (import (rnrs)
           (clos private allocation)
-          (clos slot-access)
-          (srfi parameters))
+          (clos slot-access))
+
+  (define primitive-class-of #f)
   
-  (define *primitive-class-of-hook*
-    (make-parameter #f procedure?))
+  (define (set-primitive-class-of! proc)
+    (set! primitive-class-of proc))
   
   (define (class-of obj)
     (if (instance? obj)    
         (instance-class obj)
-        ((*primitive-class-of-hook*) obj)))
+        (primitive-class-of obj)))
   
   (define (class-direct-supers class)
     (slot-ref class 'direct-supers))
@@ -57,6 +60,9 @@
   
   (define (class-slots class)
     (slot-ref class 'slots))
+
+  (define (class-definition-name class)
+    (slot-ref class 'definition-name))
   
   (define (generic-methods generic)
     (slot-ref generic 'methods))
@@ -64,6 +70,9 @@
   (define (method-specializers method)
     (slot-ref method 'specializers))
   
+  (define (method-qualifier method)
+    (slot-ref method 'qualifier))
+
   (define (method-procedure method)
     (slot-ref method 'procedure))
   

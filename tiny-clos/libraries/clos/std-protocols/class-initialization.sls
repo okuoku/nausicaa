@@ -30,7 +30,7 @@
   (import (rnrs)
           (clos introspection)
           (clos private top-sort)
-          (srfi lists))
+          (clos private compat))
   
   (define (class-compute-precedence-list class)
     (compute-standard-precedence-list class class-direct-supers))
