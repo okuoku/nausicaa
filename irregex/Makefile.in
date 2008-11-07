@@ -9,62 +9,7 @@
 
 IDENTIFIER		= irregex
 
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Modules.
-## ------------------------------------------------------------
-
--include ../Makefile.custom
-
 include Makefile.begin
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Programs for this package.
-## ------------------------------------------------------------
-
-FIND		= find
-FIND_DIRS	= cd libraries ; $(FIND) . -type d
-FIND_FILES	= cd libraries ; $(FIND) . -type f	\
-			-and -name '*.sls'		\
-			-and -print
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Installation.
-## ------------------------------------------------------------
-
-DIRECTORIES		= $(sort $(shell $(FIND_DIRS)))
-REVERSED_DIRECTORIES	= $(shell cd libraries; ls -1d $(DIRECTORIES) | $(SORT) --reverse)
-FILES			= $(shell $(FIND_FILES))
-
-.PHONY: all clean install uninstall
-
-all:
-
-clean: compile-clean
-
-install:
-	$(INSTALL_DIR) $(foreach d,$(DIRECTORIES),$(DESTDIR)$(pkglibdir)/$(d))
-	cd libraries; $(foreach f,$(FILES),\
-		$(INSTALL_DATA) $(f) $(DESTDIR)$(pkglibdir)/$(dir $(f));)
-
-uninstall:
-	-@$(RM) $(addprefix $(DESTDIR)$(pkglibdir)/,$(FILES))
-	-@$(RMDIR) $(addprefix $(DESTDIR)$(pkglibdir)/,$(REVERSED_DIRECTORIES))
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Done.
-## ------------------------------------------------------------
 
 include Makefile.end
 

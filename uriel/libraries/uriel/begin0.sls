@@ -8,7 +8,7 @@
 ;;	Defines  BEGIN0, a  K  combinator defined  in Appendix  A
 ;;	``Formal semantics'' of the R6RS document.
 ;; 
-;; Copyright (c) 2008 Marco Maggi
+;; Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;; 
 ;; This program is free  software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -25,11 +25,11 @@
 ;; <http://www.gnu.org/licenses/>.
 ;; 
 
-(library (begin0)
+(library (uriel begin0)
   (export begin0)
-  (import rnrs)
+  (import (rnrs))
 
-  (defint-syntax begin0
+  (define-syntax begin0
     (syntax-rules ()
       [(_ ?expr1 ?expr2 ...)
        (call-with-values

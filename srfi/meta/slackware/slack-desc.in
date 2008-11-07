@@ -1,12 +1,12 @@
-         |-----handy-ruler-----------------------------------------------|
-@PACKAGE@: @PACKAGE@ @VERSION@
-@PACKAGE@:
-@PACKAGE@: A collection of SRFI implementations for Ikarus Scheme.
-@PACKAGE@:
-@PACKAGE@:
-@PACKAGE@: 
-@PACKAGE@:
-@PACKAGE@:
-@PACKAGE@:
-@PACKAGE@:
-@PACKAGE@:
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: A collection of SRFI implementations for Ikarus Scheme. The
+@PACKAGE_NAME@: original source code was ported to R6RS Scheme and Ikarus by
+@PACKAGE_NAME@: Derick Eddington and is available at:
+@PACKAGE_NAME@: 
+@PACKAGE_NAME@: http::/code.launchpad.net/ikarus-libraries
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:

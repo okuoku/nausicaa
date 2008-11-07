@@ -30,7 +30,7 @@ sls_FIND_FASL_BUILDDIR	= cd $(sls_BUILDDIR) ; $(FIND) . -type f	\
 			-and -name "*$(sls_FASL_EXTENSION)"		\
 			-and -print
 
-sls_COMPILE_SCRIPT	= $(IDENTIFIER)/compile-all.sls
+sls_COMPILE_SCRIPT	= compile-all.sps
 sls_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_SRCDIR)
 sls_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
 sls_COMPILE_RUN		= $(sls_COMPILE_ENV) $(sls_COMPILE_COMMAND) $(sls_COMPILE_SCRIPT)
@@ -153,12 +153,10 @@ doc-texinfo-clean:
 doc-texinfo-builddir:
 	-@test -d $(doc_texinfo_BUILDDIR) || $(MKDIR) $(doc_texinfo_BUILDDIR)
 
-$(doc_texinfo_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi \
-		$(doc_texinfo_BUILDDIR)/version.texiinc doc-texinfo-builddir
+$(doc_texinfo_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi
+	$(MAKE) doc-texinfo-builddir
+	printf '@macro version{}\n%s\n@end macro' $(PACKAGE_VERSION) >$(doc_texinfo_BUILDDIR)/version.texiinc
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $(@) $(<)
-
-$(doc_texinfo_BUILDDIR)/version.texiinc: Makefile
-	printf '@macro version{}\n%s\n@end macro' $(PACKAGE_VERSION) >$(@)
 
 doc-texinfo-install:
 ifneq ($(strip $(wildcard $(doc_texinfo_INSTLST))),)
