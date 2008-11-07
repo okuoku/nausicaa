@@ -2,6 +2,7 @@
 ;;
 
 (import
+  (only (clos user))
   (only (clos core))
   (only (clos introspection))
   (only (clos helpers))
