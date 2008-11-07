@@ -487,7 +487,8 @@ loads the @library{srfi lists} library and exports all its exports;
 loads the @library{srfi vectors} library and exports all its exports;
 
 @item string-lib
-loads the @library{srfi strings} library and exports all its exports.
+loads the @library{srfi strings} and @library{srfi string-ports}
+libraries and exports all its exports.
 @end table
 
 
