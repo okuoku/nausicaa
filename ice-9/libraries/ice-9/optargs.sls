@@ -1,63 +1,62 @@
-;;;; optargs.scm -- support for optional arguments
-;;;;
-;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006 Free Software Foundation, Inc.
-;;;;
-;;;; This library is free software; you can redistribute it and/or
-;;;; modify it under the terms of the GNU Lesser General Public
-;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
-;;;; 
-;;;; This library is distributed in the hope that it will be useful,
-;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;;;; Lesser General Public License for more details.
-;;;; 
-;;;; You should have received a copy of the GNU Lesser General Public
-;;;; License along with this library; if not, write to the Free Software
-;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-;;;;
-;;;; Contributed by Maciej Stachowiak <mstachow@alum.mit.edu>
-
-;; Assimilated into Nausicaa for Ikarus Scheme: Fri Nov  7, 2008.
+;; optargs.scm -- support for optional arguments
+;;
+;; Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006 Free Software Foundation, Inc.
 ;; Copyright (C) 2008 Marco Maggi <marcomaggi@gna.org>
+;;
+;; Contributed by Maciej Stachowiak <mstachow@alum.mit.edu>
+;; Assimilated into Nausicaa for Ikarus Scheme by Marco Maggi
+;;
+;; This library is free  software; you can redistribute it and/or
+;; modify it  under the  terms of the  GNU Lesser  General Public
+;; License as  published by the Free  Software Foundation; either
+;; version  2.1 of  the License,  or (at  your option)  any later
+;; version.
+;; 
+;; This  library is  distributed  in  the hope  that  it will  be
+;; useful,  but WITHOUT  ANY WARRANTY;  without even  the implied
+;; warranty  of  MERCHANTABILITY  or  FITNESS  FOR  A  PARTICULAR
+;; PURPOSE.  See  the GNU Lesser General Public  License for more
+;; details.
+;; 
+;; You  should have  received a  copy of  the GNU  Lesser General
+;; Public License along  with this library; if not,  write to the
+;; Free  Software  Foundation, Inc.,  51  Franklin Street,  Fifth
+;; Floor, Boston, MA 02110-1301 USA
+;;
 
-
-
-
-;;; Commentary:
-
-;;; {Optional Arguments}
-;;;
-;;; The C interface for creating Guile procedures has a very handy
-;;; "optional argument" feature. This module attempts to provide
-;;; similar functionality for procedures defined in Scheme with
-;;; a convenient and attractive syntax.
-;;;
-;;; exported macros are:
-;;;   let-optional
-;;;   let-optional*
-;;;   let-keywords
-;;;   let-keywords*
-;;;   lambda*
-;;;   define*
-;;;   define*-public
-;;;   defmacro*
-;;;   defmacro*-public
-;;;
-;;;
-;;; Summary of the lambda* extended parameter list syntax (brackets
-;;; are used to indicate grouping only):
-;;;
-;;; ext-param-list ::= [identifier]* [#:optional [ext-var-decl]+]?
-;;;   [#:key [ext-var-decl]+ [#:allow-other-keys]?]?
-;;;   [[#:rest identifier]|[. identifier]]?
-;;;
-;;; ext-var-decl ::= identifier | ( identifier expression )
-;;;
-;;; The characters `*', `+' and `?' are not to be taken literally; they
-;;; mean respectively, zero or more occurences, one or more occurences,
-;;; and one or zero occurences.
-;;;
+;;page
+;; Optional Arguments
+;;
+;; The  C interface  for creating  Guile procedures  has  a very
+;; handy  "optional argument" feature.  This module  attempts to
+;; provide  similar  functionality  for  procedures  defined  in
+;; Scheme with a convenient and attractive syntax.
+;;
+;; exported macros are:
+;;   let-optional
+;;   let-optional*
+;;   let-keywords
+;;   let-keywords*
+;;   lambda*
+;;   define*
+;;   define*-public
+;;   defmacro*
+;;   defmacro*-public
+;;
+;;
+;; Summary  of   the  lambda*  extended   parameter  list  syntax
+;; (brackets are used to indicate grouping only):
+;;
+;; ext-param-list ::= [identifier]* [#:optional [ext-var-decl]+]?
+;;   [#:key [ext-var-decl]+ [#:allow-other-keys]?]?
+;;   [[#:rest identifier]|[. identifier]]?
+;;
+;; ext-var-decl ::= identifier | ( identifier expression )
+;;
+;; The characters `*', `+' and `?' are not to be taken literally;
+;; they mean  respectively, zero or more occurences,  one or more
+;; occurences, and one or zero occurences.
+;;
 
 ;;page
 ;; ------------------------------------------------------------
@@ -65,10 +64,8 @@
 ;; ------------------------------------------------------------
 
 (library (ice-9 optargs)
-	 (export let-optional
-		  let-optional*
-		  let-keywords
-		  let-keywords*
+	 (export let-optional let-optional*
+		 let-keywords let-keywords*
 ;; 		  define* lambda*
 ;; 		  define*-public
 ;; 		  defmacro*
@@ -87,72 +84,99 @@
 ;; let-optional* rest-arg (binding ...) . body
 ;;   macros used to bind optional arguments
 ;;
-;; These two macros give you an optional argument interface that is
-;; very "Schemey" and introduces no fancy syntax. They are compatible
-;; with the scsh macros of the same name, but are slightly
-;; extended. Each of binding may be of one of the forms <var> or
-;; (<var> <default-value>). rest-arg should be the rest-argument of
-;; the procedures these are used from. The items in rest-arg are
-;; sequentially bound to the variable namess are given. When rest-arg
-;; runs out, the remaining vars are bound either to the default values
-;; or to `#f' if no default value was specified. rest-arg remains
-;; bound to whatever may have been left of rest-arg.
+;;These two  macros give you an optional  argument interface that
+;;is  very "Schemey" and  introduces no  fancy syntax.   They are
+;;compatible  with the  scsh macros  of  the same  name, but  are
+;;slightly extended.
+;;
+;;Each of  BINDING may  be of  one of the  forms <var>  or (<var>
+;;<default-value>).  REST-ARG should  be the rest-argument of the
+;;procedures  these are  used from.   The items  in  REST-ARG are
+;;sequentially bound to the  given variable names.  When REST-ARG
+;;runs out,  the remaining vars  are bound either to  the default
+;;values or to `#f' if  no default value was specified.  REST-ARG
+;;remains bound to whatever may have been left of REST-ARG.
 ;;
 
-(defmacro let-optional (REST-ARG BINDINGS . BODY)
-  (let-optional-template REST-ARG BINDINGS BODY 'let))
+;; (defmacro let-optional (REST-ARG BINDINGS . BODY)
+;;   (let-optional-template REST-ARG BINDINGS BODY 'let))
+(define-syntax let-optional
+  (syntax-rules ()
+    [(_ ?rest-arg ?bindings ?form ...)
+     (let-optional-template ?rest-arg ?bindings
+			    (quote ?form ...) (quote let))]))
 
-(defmacro let-optional* (REST-ARG BINDINGS . BODY)
-  (let-optional-template REST-ARG BINDINGS BODY 'let*))
-
+;; (defmacro let-optional* (REST-ARG BINDINGS . BODY)
+;;   (let-optional-template REST-ARG BINDINGS BODY 'let*))
+(define-syntax let-optional*
+  (syntax-rules ()
+    [(_ ?rest-arg ?bindings ?form ...)
+     (let-optional-template ?rest-arg ?bindings
+			    (quote ?form ...) (quote let*))]))
 
 
 ;; let-keywords rest-arg allow-other-keys? (binding ...) . body
 ;; let-keywords* rest-arg allow-other-keys? (binding ...) . body
 ;;   macros used to bind keyword arguments
 ;;
-;; These macros pick out keyword arguments from rest-arg, but do not
-;; modify it. This is consistent at least with Common Lisp, which
-;; duplicates keyword args in the rest arg. More explanation of what
-;; keyword arguments in a lambda list look like can be found below in
-;; the documentation for lambda*.  Bindings can have the same form as
-;; for let-optional. If allow-other-keys? is false, an error will be
-;; thrown if anything that looks like a keyword argument but does not
-;; match a known keyword parameter will result in an error.
+;;These macros  pick out keyword arguments from  REST-ARG, but do
+;;not modify  it. This is  consistent at least with  Common Lisp,
+;;which duplicates keyword args in the rest arg. More explanation
+;;of what  keyword arguments  in a LAMBDA  list look like  can be
+;;found  below in  the documentation  for LAMBDA*.
+;;
+;;Bindings  can  have  the  same  form as  for  LET-OPTIONAL.  If
+;;ALLOW-OTHER-KEYS? is false, an error will be thrown if anything
+;;that looks like  a keyword argument but does  not match a known
+;;keyword parameter will result in an error.
 ;;
 
+;; (defmacro let-keywords (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
+;;   (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let))
+(define-syntax let-keywords
+  (syntax-rules ()
+    [(_ ?rest-arg ?allow-other-keys ?bindings ?form ...)
+     (let-keywords-template ?rest-arg ?allow-other-keys ?bindings
+			    (quote ?form ...) (quote let))]))
 
-(defmacro let-keywords (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
-  (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let))
+;; (defmacro let-keywords* (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
+;;   (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let*))
+(define-syntax let-keywords*
+  (syntax-rules ()
+    [(_ ?rest-arg ?allow-other-keys ?bindings ?form ...)
+     (let-keywords-template ?rest-arg ?allow-other-keys ?bindings
+			    (quote ?form ...) (quote let*))]))
 
-(defmacro let-keywords* (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
-  (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let*))
+;; ------------------------------------------------------------
 
+;;page
+;; ------------------------------------------------------------
+;; Utility procedures for implementing the various let-forms.
+;; ------------------------------------------------------------
 
-;; some utility procedures for implementing the various let-forms.
-
+;;Return a LET or LET* form
 (define (let-o-k-template REST-ARG BINDINGS BODY let-type proc)
   (let ((bindings (map (lambda (x)
 			 (if (list? x)
 			     x
-			     (list x #f)))
-		       BINDINGS)))
+			   (list x #f)))
+		    BINDINGS)))
     `(,let-type ,(map proc bindings) ,@BODY)))
 
 (define (let-optional-template REST-ARG BINDINGS BODY let-type)
-    (if (null? BINDINGS)
-	`(let () ,@BODY)
-	(let-o-k-template REST-ARG BINDINGS BODY let-type
-			  (lambda (optional)
-			    `(,(car optional)
-			      (cond
-			       ((not (null? ,REST-ARG))
-				(let ((result (car ,REST-ARG)))
-				  ,(list 'set! REST-ARG
-					 `(cdr ,REST-ARG))
-				  result))
-			       (else
-				,(cadr optional))))))))
+  (if (null? BINDINGS)
+      `(let () ,@BODY)
+    (let-o-k-template REST-ARG BINDINGS BODY let-type
+		      (lambda (optional)
+			`(,(car optional)
+			  (cond
+			   ((not (null? ,REST-ARG))
+			    (let ((result (car ,REST-ARG)))
+			      ,(list 'set! REST-ARG
+				     `(cdr ,REST-ARG))
+			      result))
+			   (else
+			    ,(cadr optional))))))))
 
 (define (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY let-type)
     (if (null? BINDINGS)
@@ -167,7 +191,7 @@
 				 ,(cadr key)))))))
 	  `(let* ((ra->kbl ,rest-arg->keyword-binding-list)
 		  (,kb-list-gensym (ra->kbl ,REST-ARG ',(map
-							 (lambda (x) (symbol->keyword (if (pair? x) (car x) x)))
+							 (lambda (x) (if (pair? x) (car x) x))
 							 BINDINGS)
 					    ,ALLOW-OTHER-KEYS?)))
 	     ,(let-o-k-template REST-ARG BINDINGS BODY let-type bindfilter)))))
@@ -176,29 +200,37 @@
 (define (rest-arg->keyword-binding-list rest-arg keywords allow-other-keys?)
   (if (null? rest-arg)
       '()
-      (let loop ((first (car rest-arg))
-		 (rest (cdr rest-arg))
-		 (accum '()))
-	(let ((next (lambda (a)
-		      (if (null? (cdr rest))
-			  a
-			  (loop (cadr rest) (cddr rest) a)))))
-	  (if (keyword? first)
-	      (cond
-	       ((memq first keywords)
-		(if (null? rest)
-		    (error "Keyword argument has no value.")
-		    (next (cons (cons (keyword->symbol first)
-				      (car rest)) accum))))
-	       ((not allow-other-keys?)
-		(error "Unknown keyword in arguments."))
-	       (else (if (null? rest)
-			 accum
-			 (next accum))))
+    (let loop ((first (car rest-arg))
+	       (rest (cdr rest-arg))
+	       (accum '()))
+      (let ((next (lambda (a)
+		    (if (null? (cdr rest))
+			a
+		      (loop (cadr rest) (cddr rest) a)))))
+	(if (symbol? first)
+	    (cond
+	     ((memq first keywords)
 	      (if (null? rest)
-		  accum
-		  (loop (car rest) (cdr rest) accum)))))))
+		  (error "Keyword argument has no value.")
+		(next (cons (cons first (car rest)) accum))))
+	     ((not allow-other-keys?)
+	      (error "Unknown keyword in arguments."))
+	     (else (if (null? rest)
+		       accum
+		     (next accum))))
+	  (if (null? rest)
+	      accum
+	    (loop (car rest) (cdr rest) accum)))))))
 
+)
+#!eof
+
+;; ------------------------------------------------------------
+
+;;page
+;; ------------------------------------------------------------
+;; High level macros.
+;; ------------------------------------------------------------
 
 ;; lambda* args . body
 ;;   lambda extended for optional and keyword arguments
@@ -370,8 +402,6 @@
 		  (parse-keys before #f cont)))))))
 
   (parse-rest arglist cont))
-
-
 
 ;; define* args . body
 ;; define*-public args . body

@@ -34,7 +34,7 @@ package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_B
 ## Directories.
 ## ------------------------------------------------------------
 
-ifeq ($(strip TMPDIR),)
+ifeq ($(strip $(TMPDIR)),)
 TMPDIR		= /tmp
 endif
 
@@ -146,7 +146,7 @@ MAKEINFO_FLAGS	= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
 ## Master phony rules.
 ## ------------------------------------------------------------
 
-.PHONY: all clean realclean install uninstall
+.PHONY: all clean realclean install uninstall clean-builddir
 .PHONY: doc doc-clean doc-install doc-uninstall
 .PHONY: compile compile-clean
 
@@ -155,6 +155,9 @@ clean:
 realclean:
 install:
 uninstall:
+
+clean-builddir:
+	-$(RM) $(builddir)/*
 
 ## ------------------------------------------------------------
 

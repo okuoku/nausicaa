@@ -112,7 +112,7 @@
 
 ;;; q-empty-check q
 ;;;  Throw a q-empty exception if Q is empty.
-(define (q-empty-check q) (if (q-empty? q) (error "queue is empty" q)))
+(define (q-empty-check q) (if (q-empty? q) (raise 'queue-is-empty)))
 
 ;;; q-front q
 ;;;  Return the first element of Q.

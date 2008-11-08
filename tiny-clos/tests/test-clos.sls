@@ -90,9 +90,9 @@
 
 ;; ------------------------------------------------------------
 
-;; (check
-;;  (class-precedence-list <one>)
-;;  => (list <object>))
+(check
+ (class-precedence-list <one>)
+ => (list <object>))
 
 ;; (check
 ;;  (class-precedence-list <three>)
