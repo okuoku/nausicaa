@@ -4,10 +4,8 @@
 
 #page
 ## ------------------------------------------------------------
-## Compiling and installing source files.
+## Installing source files.
 ## ------------------------------------------------------------
-
-sls_FASL_EXTENSION	= .ikarus-fasl
 
 # Find the list of directories under "libraries".
 sls_FIND_DIRS		= cd $(sls_SRCDIR) ; $(FIND) . -type d
@@ -21,19 +19,6 @@ sls_FIND_DIRS_REV	= cd $(sls_SRCDIR); \
 sls_FIND_FILES		= cd $(sls_SRCDIR) ; $(FIND) . -type f	\
 			-and -name '*.sls'		\
 			-and -print
-
-# Find all the currently existent FASL files.
-sls_FIND_FASL_SRCDIR	= cd $(sls_SRCDIR) ; $(FIND) . -type f	\
-			-and -name "*$(sls_FASL_EXTENSION)"	\
-			-and -print
-sls_FIND_FASL_BUILDDIR	= cd $(sls_BUILDDIR) ; $(FIND) . -type f	\
-			-and -name "*$(sls_FASL_EXTENSION)"		\
-			-and -print
-
-sls_COMPILE_SCRIPT	= compile-all.sps
-sls_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_SRCDIR)
-sls_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
-sls_COMPILE_RUN		= $(sls_COMPILE_ENV) $(sls_COMPILE_COMMAND) $(sls_COMPILE_SCRIPT)
 
 ## ------------------------------------------------------------
 
@@ -52,13 +37,55 @@ sls_DIRECTORIES			= $(sort $(shell $(sls_FIND_DIRS)))
 sls_REVERSED_DIRECTORIES	= $(shell $(sls_FIND_DIRS_REV))
 
 sls_SOURCES			= $(shell $(sls_FIND_FILES))
+sls_INSTLST			= $(sls_SOURCES)
+sls_INSTDIR			= $(ikarus_PKGLIBDIR)
+
+.PHONY: sls-install sls-uninstall
+
+sls-install:
+	$(INSTALL_DIR) $(foreach d,$(sls_DIRECTORIES),$(DESTDIR)$(sls_INSTDIR)/$(d))
+	cd $(sls_SRCDIR); $(foreach f,$(sls_SOURCES),\
+		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
+
+sls-uninstall:
+	-@$(RM) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(FILES))
+	-@$(RMDIR) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(REVERSED_DIRECTORIES))
+
+## ------------------------------------------------------------
+
+install:		sls-install
+uninstall:		sls-uninstall
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Test compiling of source files.
+## ------------------------------------------------------------
+
+sls_FASL_EXTENSION	= .ikarus-fasl
+
+# Find all the currently existent FASL files.
+sls_FIND_FASL_SRCDIR	= \
+	cd $(sls_SRCDIR) ; \
+	$(FIND) . -type f -and -name "*$(sls_FASL_EXTENSION)" -and -print
+sls_FIND_FASL_BUILDDIR	= \
+	cd $(sls_BUILDDIR) ; \
+	$(FIND) . -type f -and -name "*$(sls_FASL_EXTENSION)" -and -print
+
+sls_COMPILE_SCRIPT	= compile-all.sps
+sls_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_SRCDIR)
+sls_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
+sls_COMPILE_RUN		= $(sls_COMPILE_ENV) $(sls_COMPILE_COMMAND) $(sls_COMPILE_SCRIPT)
+
+## ------------------------------------------------------------
+
 sls_FASL_FILES			= $(shell $(sls_FIND_FASL_SRCDIR))
 sls_TARGETS			= $(shell $(sls_FIND_FASL_BUILDDIR))
 
-sls_INSTLST			= $(sls_TARGETS) $(sls_SOURCES)
-sls_INSTDIR			= $(ikarus_PKGLIBDIR)
+## ------------------------------------------------------------
 
-.PHONY: sls-all sls-clean sls-install sls-uninstall
+.PHONY: compile compile-clean compile-clean-fasl
 
 ## Notice  that,  by default,  GNU  tar  preserves the  file
 ## modification times  so the FASL times will  be newer than
@@ -67,7 +94,7 @@ sls_INSTDIR			= $(ikarus_PKGLIBDIR)
 ## When these files are  installed loading will work fine if
 ## we give  the appropriate preserve flags  to the "install"
 ## program.
-sls-all: $(sls_BUILDDIR)
+compile: $(sls_BUILDDIR)
 	cd $(sls_SRCDIR) ; test -f $(sls_COMPILE_SCRIPT) && $(sls_COMPILE_RUN)
 	$(sls_FIND_FASL_SRCDIR) | \
 	$(TAR) --create  --file=- --files-from=- | \
@@ -77,32 +104,23 @@ sls-all: $(sls_BUILDDIR)
 $(sls_BUILDDIR):
 	test -d $(sls_BUILDDIR) || $(MKDIR) $(sls_BUILDDIR)
 
-sls-clean: sls-clean-fasl
+compile-clean: compile-clean-fasl
 	-cd $(sls_BUILDDIR); $(RM) *
 
-sls-clean-fasl:
+compile-clean-fasl:
 	-cd $(sls_SRCDIR); $(RM) $(sls_FASL_FILES)
 
-sls-install:
-	$(INSTALL_DIR) $(foreach d,$(sls_DIRECTORIES),$(DESTDIR)$(sls_INSTDIR)/$(d))
-	cd $(sls_SRCDIR); $(foreach f,$(sls_SOURCES),\
-		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
-	cd $(sls_BUILDDIR); $(foreach f,$(sls_TARGETS),\
-		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
+# compile-install:
+# 	cd $(sls_BUILDDIR); $(foreach f,$(sls_TARGETS),\
+# 		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
 
-sls-uninstall:
-	-@$(RM) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(FILES))
-	-@$(RM) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(FASL_FILES))
-	-@$(RMDIR) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(REVERSED_DIRECTORIES))
+# compile-uninstall:
+# 	cd $(sls_BUILDDIR); $(foreach f,$(sls_TARGETS),\
+# 		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
 
 ## ------------------------------------------------------------
 
-compile:		sls-all
-compile-clean:		sls-clean
-all:			sls-all
-clean:			sls-clean
-install:		sls-install
-uninstall:		sls-uninstall
+clean:		compile-clean
 
 ## ------------------------------------------------------------
 
@@ -428,9 +446,11 @@ local-slackware-upgrade:
 .PHONY: abi abu
 
 abi:
-	$(SUDO) $(MAKE) all local-slackware local-slackware-install
+	$(MAKE) all
+	$(SUDO) $(MAKE) local-slackware local-slackware-install
 abu:
-	$(SUDO) $(MAKE) all local-slackware local-slackware-upgrade
+	$(MAKE) all
+	$(SUDO) $(MAKE) local-slackware local-slackware-upgrade
 
 ## ------------------------------------------------------------
 
