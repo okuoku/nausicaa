@@ -135,10 +135,15 @@ nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sls)
 nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries
 nau_test_RUN		= $(nau_test_ENV) $(SCHEME_SCRIPT)
 
-.PHONY: tests test check
+nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(FILE).sls)
+
+.PHONY: tests test check test-file
 
 tests test check:
 	$(foreach f,$(nau_test_FILES),$(nau_test_RUN) $(f);)
+
+test-file:
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_test_RUN) $(f);)
 
 ## ------------------------------------------------------------
 

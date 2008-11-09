@@ -100,11 +100,53 @@
 
 ;; (defmacro let-optional (REST-ARG BINDINGS . BODY)
 ;;   (let-optional-template REST-ARG BINDINGS BODY 'let))
+;; (define-syntax let-optional
+;;   (syntax-rules ()
+;;     [(_ ?rest-arg ?bindings ?form ...)
+;;      (let-optional-template ?rest-arg ?bindings
+;; 			    (quote ?form ...) (quote let))]))
+
+;; (unless (null? rest-arg)
+;;   (set! a (car rest-arg))
+;;   (set! rest-arg (cdr rest-arg))
+;;   (unless (null? rest-arg)
+;;     (set! b (car rest-arg))
+;;     (set! rest-arg (cdr rest-arg))))
+
+
+;; (define-syntax let-optional
+;;   (lambda (incoming)
+;;     (syntax-case incoming ()
+;;       ((_ () ?bindings ?form ...)
+;;        (syntax (let ?bindings ?form ...)))
+;;       ((_ ?rest-arg ((?name ?default-value) ...) ?form ...)
+;;        (let ((names	(reverse (syntax->datum (?name ...)))))
+;; 	 (let loop ((names	names)
+;; 		    (setter	`((unless (null? ?rest-arg)
+;; 				    (set! ,(car names) (car ?rest-arg))))))
+;; 	   (if (null? names)
+;; 	       (begin
+;; 		 (display setter)(newline)
+;; 		 (syntax (let ((?name ?default-value) ...)
+;; ;			 (display setter)(newline)
+;; 			 ?form ...))
+;; 		 )
+;; 	     (loop (cdr names)
+;; 		   (cons `(unless (null? ?rest-arg)
+;; 			    (set! ,(car names) (car ?rest-arg))
+;; 			    (set! ?rest-arg (cdr ?rest-arg)))
+;; 			 setter)))))))))
+
+
 (define-syntax let-optional
-  (syntax-rules ()
-    [(_ ?rest-arg ?bindings ?form ...)
-     (let-optional-template ?rest-arg ?bindings
-			    (quote ?form ...) (quote let))]))
+  (lambda (incoming)
+    (syntax-case incoming ()
+      ((_ () ?bindings ?form ...)
+       (syntax (let ?bindings ?form ...)))
+;;       ((_ ?rest-arg ?bindings ?form ...)
+;;        (syntax ))
+      )))
+
 
 ;; (defmacro let-optional* (REST-ARG BINDINGS . BODY)
 ;;   (let-optional-template REST-ARG BINDINGS BODY 'let*))
