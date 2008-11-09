@@ -1,11 +1,10 @@
 ;; 
 ;; Test suite for optional arg processing.
 ;; 
+;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
 ;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> June 2001
 ;; Marco Maggi <marcomaggi@gna.org> Sat Nov  8, 2008
 ;;
-;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
-;; 
 ;; This program is free  software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by  the Free Software Foundation;  either version 2,
@@ -51,10 +50,39 @@
 ;; Let-optional.
 ;; ------------------------------------------------------------
 
-(let-optional '(1 2 3) ((a 'one)
-			(b 'two)
-			(c 'three))
-  a)
+(check
+ (let ((rest-arg '()))
+   (let-optional () ((a 'one)
+		     (b 'two)
+		     (c 'three))
+     (list a b c)))
+ => '(one two three))
+
+(check
+ (let ((rest-arg (1)))
+   (let-optional rest-arg ((a 'one)
+			   (b 'two)
+			   (c 'three))
+     (list a b c)))
+ => '(1 2 3))
+
+(check
+ (let ((rest-arg (1 2)))
+   (let-optional rest-arg ((a 'one)
+			   (b 'two)
+			   (c 'three))
+     (list a b c)))
+ => '(1 2 3))
+
+(check
+ (let ((rest-arg (1 2 3)))
+   (let-optional rest-arg ((a 'one)
+			   (b 'two)
+			   (c 'three))
+     (list a b c)))
+ => '(1 2 3))
+
+(check-report)
 
 #!eof
 

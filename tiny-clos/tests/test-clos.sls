@@ -66,6 +66,9 @@
 (check (class-direct-supers <three>)
        => (list <one> <two>))
 
+(check (class-direct-supers <class>)
+       => (list <object>))
+
 ;; ------------------------------------------------------------
 
 (check
@@ -90,9 +93,27 @@
 
 ;; ------------------------------------------------------------
 
-(check
- (class-precedence-list <one>)
- => (list <object>))
+;; (add-method print-object 'before
+;; 	    (make <method>
+;; 	      'specializers (list <one>)
+;; 	      'procedure (lambda (%generic %next-methods object port)
+;; 			   (display 23 port))))
+
+;; (print-object (make <one> 'a 1 'b 2 'c 3))
+
+(let* ((o (car (class-direct-supers <class>)))
+       (printer (struct-printer o)))
+  (display (struct-name o))(newline)
+  (display (eq? print-object printer))(newline)
+  (printer o (current-output-port) (lambda (v)
+ 				     #t)))
+  
+;(display (car (class-direct-supers <one>)))
+;(print-object-with-slots <one> (current-output-port))
+
+;; (check
+;;  (class-precedence-list <one>)
+;;  => (list <object>))
 
 ;; (check
 ;;  (class-precedence-list <three>)
