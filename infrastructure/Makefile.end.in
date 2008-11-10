@@ -132,7 +132,7 @@ clean:		compile-clean
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sls)
 
-nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries
+nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
 nau_test_RUN		= $(nau_test_ENV) $(SCHEME_SCRIPT)
 
 nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(FILE).sls)
