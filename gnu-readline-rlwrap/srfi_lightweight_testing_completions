@@ -1,0 +1,7 @@
+check
+check
+check-ec
+check-report
+check-set-mode!
+check-reset!
+check-passed?
