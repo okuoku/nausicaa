@@ -45,27 +45,18 @@
 (define-syntax define-macro
   (lambda (macro-definition-stx)
     (syntax-case macro-definition-stx ()
-      ((_ (?name . ?args) ?form ...)
+      ((_ (?name . ?args) ?form0 ?form ...)
        (syntax
-	(define-macro ?name (lambda ?args ?form ...))))
+	(define-macro ?name (lambda ?args ?form0 ?form ...))))
       ((_ ?name ?func)
        (syntax
 	(define-syntax ?name
 	  (lambda (macro-use-stx)
 	    (syntax-case macro-use-stx ()
-	      ((??kwd . ??rest)
+	      ((??kwd ??arg (... ...))
 	       (datum->syntax
 		(syntax ??kwd)
-		(apply ??func (syntax->datum (syntax ??rest)))))))))))))
-
-;;Notice that:
-;;
-;;  (datum->syntax (syntax ?kwd) (apply ?func (cdr (syntax->datum x))))
-;;
-;;is equivalent to:
-;;
-;;  (datum->syntax (syntax ?kwd) (apply ?func (syntax->datum (syntax rest))))
-;;
+		(apply ?func (syntax->datum (syntax (??arg (... ...)))))))))))))))
 
 (define-syntax defmacro
   (syntax-rules ()
