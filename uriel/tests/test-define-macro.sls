@@ -34,7 +34,9 @@
 (import (ikarus)
 	(srfi lightweight-testing)
 	(uriel define-macro)
-	(srfi receive))
+	(macros-test)
+	(for (macro-helpers-for-expand-time) expand)
+	)
 
 (check-set-mode! 'report-failed)
 
@@ -42,8 +44,16 @@
 
 ;;page
 ;; ------------------------------------------------------------
-;; Tests.
+;; Tests for DEFINE-MACRO.
 ;; ------------------------------------------------------------
+
+;;With no arguments.
+(check
+ (let ()
+   (define-macro (proof)
+     `(list 1 2 3))
+   (proof))
+ => '(1 2 3))
 
 (check
  (let ()
@@ -71,6 +81,128 @@
   (check
    (false-if-exception (raise 'slap))
    => #f))
+
+(check
+ (let ()
+   (define-macro (proof . args)
+     `(,(car args) ,(+ 1 (cadr args)) ,(caddr args)))
+   (proof list 123 'three))
+ => '(124 three))
+
+(check
+ (let ()
+   (define-macro (proof a . args)
+     `(,a ,(+ 1 (car args)) ,(cadr args)))
+   (proof list 123 'three))
+ => '(124 three))
+
+(check
+ (let ()
+   (define-macro (proof a . args)
+     (begin
+       `(,a ,(+ 1 (car args)) ,(cadr args))))
+   (proof list 123 'three))
+ => '(124 three))
+
+;; ------------------------------------------------------------
+;; Using functions in the body of the macro.
+
+(check
+ (let ()
+   (define-macro (proof a . args)
+     (define (slurp arg)
+       arg)
+     (slurp
+       `(,a ,(+ 1 (car args)) ,(cadr args))))
+   (proof list 123 'three))
+ => '(124 three))
+
+;;This will cause a compile time error because SLURP is available
+;;at runtime, not at macro expansion time.
+;; (check
+;;  (let ()
+;;    (define (slurp arg)
+;;      arg)
+;;    (define-macro (proof a . args)
+;;      (slurp1
+;;       `(,a ,(+ 1 (car args)) ,(cadr args))))
+;;    (proof list 123 'three))
+;;  => 'error)
+
+;;This makes use of a helper function from (macro-helpers-for-expand-time)
+(check
+ (let ()
+   (define-macro (proof a . args)
+     (gasp
+       `(,a ,(+ 1 (car args)) ,(cadr args))))
+   (proof list 123 'three))
+ => '(124 three))
+
+
+;; ------------------------------------------------------------
+
+;;page
+;; ------------------------------------------------------------
+;; Tests for DEFMACRO.
+;; ------------------------------------------------------------
+
+(check
+ (let ()
+   (defmacro proof (a b c)
+     `(list ,a ,b ,c))
+   (proof 'one 'two 'three))
+ => '(one two three))
+
+(check
+ (let ()
+   (defmacro proof (a b c)
+     `(,a ,(+ 1 b) ,c))
+   (proof list 123 'three))
+ => '(124 three))
+
+(let ()
+  (defmacro false-if-exception (expr)
+    `(guard (exc (else #f))
+	    ,expr))
+
+  (check
+   (false-if-exception (list 1 2 3))
+   => '(1 2 3))
+
+  (check
+   (false-if-exception (raise 'slap))
+   => #f))
+
+(check
+ (let ()
+   (defmacro proof args
+     `(,(car args) ,(+ 1 (cadr args)) ,(caddr args)))
+   (proof list 123 'three))
+ => '(124 three))
+
+(check
+ (let ()
+   (defmacro proof (a . args)
+     `(,a ,(+ 1 (car args)) ,(cadr args)))
+   (proof list 123 'three))
+ => '(124 three))
+
+;; ------------------------------------------------------------
+
+;;page
+;; ------------------------------------------------------------
+;; Tests for macros from (macros-test).
+;; ------------------------------------------------------------
+
+(check
+ (let ()
+   (the-macro-1 'one 'two 'three))
+ => '(one two three))
+
+(check
+ (let ()
+   (the-macro-2 'one 'two 'three))
+ => '(one two three))
 
 ;; ------------------------------------------------------------
 
