@@ -1,6 +1,6 @@
 ;; 
 ;; Part of: Uriel libraries for Ikarus
-;; Contents: Common Lisp style macros
+;; Contents: test macros
 ;; Date: Sun Nov  9, 2008
 ;; 
 ;; Abstract
@@ -31,9 +31,10 @@
 ;; Setup.
 ;; ------------------------------------------------------------
 
-(library (uriel define-macro)
-	 (export define-macro defmacro)
-	 (import (rnrs))
+(library (macros-test)
+	 (export the-macro-1 the-macro-2)
+	 (import (rnrs)
+		 (uriel define-macro))
 
 ;; ------------------------------------------------------------
 
@@ -42,35 +43,12 @@
 ;; Code.
 ;; ------------------------------------------------------------
 
-(define-syntax define-macro
-  (lambda (macro-definition-stx)
-    (syntax-case macro-definition-stx ()
-      ((_ (?name . ?args) ?form ...)
-       (syntax
-	(define-macro ?name (lambda ?args ?form ...))))
-      ((_ ?name ?func)
-       (syntax
-	(define-syntax ?name
-	  (lambda (macro-use-stx)
-	    (syntax-case macro-use-stx ()
-	      ((??kwd . ??rest)
-	       (datum->syntax
-		(syntax ??kwd)
-		(apply ??func (syntax->datum (syntax ??rest)))))))))))))
+(define-macro (the-macro-1 a b c)
+  `(list ,a ,b ,c))
 
-;;Notice that:
-;;
-;;  (datum->syntax (syntax ?kwd) (apply ?func (cdr (syntax->datum x))))
-;;
-;;is equivalent to:
-;;
-;;  (datum->syntax (syntax ?kwd) (apply ?func (syntax->datum (syntax rest))))
-;;
+(defmacro the-macro-2 (a b c)
+  `(list ,a ,b ,c))
 
-(define-syntax defmacro
-  (syntax-rules ()
-    ((_ ?name ?args ?form ...)
-     (define-macro ?name (lambda ?args ?form ...)))))
 
 ;; ------------------------------------------------------------
 
@@ -80,5 +58,6 @@
 ;; ------------------------------------------------------------
 
 ) ;; end of library form
+
 
 ;;; end of file
