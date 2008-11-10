@@ -14,15 +14,64 @@ builddir	= "$(PWD)/=build"
 
 #page
 ## ------------------------------------------------------------
-## Customisation.
+## Data.
 ## ------------------------------------------------------------
 
-# Customise this file for the installation directories.
-include Makefile.custom
+# The list  of completion  modules to include.   Each string
+# must be the prefix of a '*_completions' file in the source
+# directory.
+MODULES		= ikarus ffi					\
+				srfi_and_let_star		\
+				srfi_args_fold			\
+				srfi_case_lambda		\
+				srfi_cond_expand		\
+				srfi_eager_comp			\
+				srfi_error_reporting		\
+				srfi_general_cond		\
+				srfi_let_values 		\
+				srfi_lightweight_testing	\
+				srfi_list			\
+				srfi_parameters			\
+				srfi_random			\
+				srfi_rec			\
+				srfi_receive			\
+				srfi_records			\
+				srfi_specialize_procedures	\
+				srfi_streams			\
+				srfi_string_ports		\
+				srfi_strings			\
+				srfi_time			\
+				srfi_vector
+
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Wrapper installation directories.
+## ------------------------------------------------------------
+
+prefix		= $(HOME)
+bindir		= $(prefix)/bin
+datadir		= $(prefix)/share
+#pkgdatadir	= $(datadir)/ikarus
+pkgdatadir	= $(prefix)
 
 ifeq ($(strip $(prefix)),)
-HOME	= ~
+prefix		= ~
 endif
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Ikarus installation directories.
+## ------------------------------------------------------------
+
+ikarus_PREFIX		= /usr/local
+ikarus_BINDIR		= ${ikarus_PREFIX}/bin
+ikarus_LIBDIR		= ${ikarus_PREFIX}/lib
+ikarus_PKGLIBDIR	= ${ikarus_LIBDIR}/ikarus
 
 ## ------------------------------------------------------------
 
