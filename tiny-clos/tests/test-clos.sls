@@ -17,18 +17,6 @@
 
 ;;page
 ;; ------------------------------------------------------------
-;; Interaction with built in stuff.
-;; ------------------------------------------------------------
-
-;; (check
-;;  (class-of 123)
-;;  => <entity-class>)
-
-
-;; ------------------------------------------------------------
-
-;;page
-;; ------------------------------------------------------------
 ;; Class definition tests and class object inspection.
 ;; ------------------------------------------------------------
 
@@ -93,31 +81,13 @@
 
 ;; ------------------------------------------------------------
 
-;; (add-method print-object 'before
-;; 	    (make <method>
-;; 	      'specializers (list <one>)
-;; 	      'procedure (lambda (%generic %next-methods object port)
-;; 			   (display 23 port))))
+(check
+ (class-precedence-list <one>)
+ => (list <one> <object> <top>))
 
-;; (print-object (make <one> 'a 1 'b 2 'c 3))
-
-(let* ((o (car (class-direct-supers <class>)))
-       (printer (struct-printer o)))
-  (display (struct-name o))(newline)
-  (display (eq? print-object printer))(newline)
-  (printer o (current-output-port) (lambda (v)
- 				     #t)))
-  
-;(display (car (class-direct-supers <one>)))
-;(print-object-with-slots <one> (current-output-port))
-
-;; (check
-;;  (class-precedence-list <one>)
-;;  => (list <object>))
-
-;; (check
-;;  (class-precedence-list <three>)
-;;  => (list <three> (<one> <two>) <object>))
+(check
+ (class-precedence-list <three>)
+ => (list <three> <one> <two> <object> <top>))
 
 ;; ------------------------------------------------------------
 
@@ -134,12 +104,13 @@
  (class-definition-name (class-of (make <one> 'a 1 'b 2 'c 3)))
  => '<one>)
 
-;; ------------------------------------------------------------
+(define-method initialize ((o <one>) initargs)
+  (initialize-direct-slots o (class-of o) initargs))
 
-
-;; (check (let ((o (colour 1 2 3)))
-;; 	 #t)
-;;        => #t)
+(check
+ (let ((o (make <one> 'a 1 'b 2 'c 3)))
+   (slot-ref o 'b))
+ => 2)
 
 ;; ------------------------------------------------------------
 
