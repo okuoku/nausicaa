@@ -183,6 +183,18 @@
        (:class :d :e :f :a :b :c :class-definition-name :class-precedence-list :slots)
        (:class :g :h :i :d :e :f :a :b :c :class-definition-name :class-precedence-list :slots)))
 
+(check
+    (let* ((<one>	(make-class () (:a :b :c)))
+	   (<two>	(make-class (<one>) (:d :e :f)))
+	   (<three>	(make-class (<two>) (:g :h :i))))
+
+      (list (list-of-instance-slots <one>)
+	    (list-of-instance-slots <two>)
+	    (list-of-instance-slots <three>)))
+  => '((:a :b :c)
+       (:d :e :f :a :b :c)
+       (:g :h :i :d :e :f :a :b :c)))
+
 ;;; ------------------------------------------------------------
 
 ;;;page
@@ -277,6 +289,36 @@
     (check (alpha c) => '(3 . (2 . 1)))
     )
   #t)
+
+;;; ------------------------------------------------------------
+
+;;;page
+;;; ------------------------------------------------------------
+;;; Entity classes.
+;;; ------------------------------------------------------------
+
+(let ()
+  (define-generic alpha o)
+
+  (define-method alpha ((o <fixnum>))	'<fixnum>)
+  (define-method alpha ((o <flonum>))	'<flonum>)
+  (define-method alpha ((o <integer>))	'<integer>)
+  (define-method alpha ((o <real>))	'<real>)
+  (define-method alpha ((o <complex>))	'<complex>)
+  (define-method alpha ((o <number>))	'<number>)
+
+  (check (class-definition-name (class-of 12)) => '<fixnum>)
+  (check (class-definition-name (class-of 1.2)) => '<rational>)
+  (check (class-definition-name (class-of (expt 12 12))) => '<integer>)
+  (check (class-definition-name (class-of 1.2+3.4i)) => '<complex>)
+
+  ;;;Here remember  that we  are using the  methods above,  we ar
+  ;;;*not* applying CLASS-OF.
+  (check (alpha 12) => '<fixnum>)
+  (check (alpha (expt 12 12)) => '<integer>)
+  (check (alpha 2/3) => '<real>)
+  (check (alpha 1.2+3.4i) => '<complex>)
+  )
 
 ;;; ------------------------------------------------------------
 
