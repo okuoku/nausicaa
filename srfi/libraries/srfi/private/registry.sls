@@ -40,8 +40,9 @@
   
   (define available-features
     (apply append
-           '(r6rs)
+           '(R6RS r6rs)
            implementation-features
+	   OS-features
            srfi-features))
   
 )
