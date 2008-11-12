@@ -34,16 +34,34 @@
 ;;; ------------------------------------------------------------
 
 (library (scmobj)
-    (export define-class make-class make <class>
-	    class-of subclass?
-	    class-definition-name class-precedence-list
-	    slot-ref slot-set! list-of-slots
-	    make-generic-function
-	    define-generic define-method
-	    call-next-method scmobj:the-next-method-func
-	    next-method? scmobj:the-next-method-pred)
+  (export
+      ;;Built in classes.
+      <class> <entity-class>
+
+    <circular-list> <dotted-list> <proper-list> <list> <pair>
+    <vector> <hashtable> <record>
+    <input-port> <output-port> <port>
+    <condition> <bytevector>
+    <fixnum> <flonum> <integer> <integer-valued>
+    <rational> <rational-valued> <real> <real-valued>
+    <complex> <number>
+
+    ;; Constructors.
+    define-class define-generic define-method
+    make-class make make-generic-function
+
+    ;;Class inspection.
+    class-of subclass?
+    class-definition-name class-precedence-list
+    list-of-instance-slots list-of-slots
+
+    ;;Slot accessors.
+    slot-ref slot-set! 
+
+    ;;Next method interface.
+    call-next-method next-method?
+    scmobj:the-next-method-func scmobj:the-next-method-pred)
     (import (rnrs)
-	    (only (ikarus) printf pretty-print)
 	    (rnrs mutable-pairs (6))
 	    (except (srfi lists) delete-duplicates cons)
 	    (srfi parameters))
@@ -136,13 +154,99 @@
 (define (list-of-slots object)
   (cons ':class (slot-ref object ':slots)))
 
-;;   (if (eq? object <class>)
-;;       (slot-ref object ':slots)
-;;     (filter (lambda (name)
-;; 	      (not (memq name
-;; 			 '(:class-definition-name
-;; 			   :class-precedence-list :slots))))
-;; 	    (slot-ref object ':slots))))
+(define (list-of-instance-slots object)
+  (filter
+      (lambda (c)
+	(not (memq c '(:class
+		       :class-definition-name
+		       :class-precedence-list
+		       :slots))))
+    (slot-ref object ':slots)))
+
+;;; ------------------------------------------------------------
+
+;;;page
+;;; ------------------------------------------------------------
+;;; Built in classes.
+;;; ------------------------------------------------------------
+
+;;;The  official definition  of class  is: an  alist  whose first
+;;;dotted pair has the symbol ":class" as key.
+(define <class>
+  (let ((c '((:class . #f)
+	     (:class-definition-name . <class>)
+	     (:class-precedence-list . ())
+	     (:slots . (:class-definition-name
+			:class-precedence-list
+			:slots)))))
+    (set-cdr! (car c) c)
+    c))
+
+(define <entity-class>
+  (let ((c (alist-copy <class>)))
+    (slot-set! c ':class-definition-name '<entity-class>)
+    (slot-set! c ':class-precedence-list <class>)
+    c))
+
+;;; ------------------------------------------------------------
+
+(define-syntax define-entity-class
+  (syntax-rules ()
+    ((_ ?name)
+     (define-entity-class ?name (<entity-class> <class>)))
+    ((_ ?name (?class ...))
+     (define ?name
+       (list (cons ':class <entity-class>)
+	     '(:class-definition-name . ?name)
+	     (cons ':class-precedence-list
+		   (list ?class ... <entity-class> <class>))
+	     '(:slots . (:class-definition-name
+			 :class-precedence-list
+			 :slots)))))))
+
+(define-entity-class <pair>)
+(define-entity-class <list>		(<pair>))
+(define-entity-class <circular-list>	(<list> <pair>))
+(define-entity-class <dotted-list>	(<list> <pair>))
+(define-entity-class <proper-list>	(<list> <pair>))
+(define-entity-class <vector>)
+(define-entity-class <hashtable>)
+
+;;There exist TEXTUAL-PORT? and BINARY-PORT? but these attributes
+;;are not mutually exclusive with input and output port.  So they
+;;cannot  be  made classes  without  adding  a  predicate in  the
+;;definition of the  entity class, and then using  it in CLASS-OF
+;;and SUBCLASS?.
+(define-entity-class <port>)
+(define-entity-class <input-port>	(<port>))
+(define-entity-class <output-port>	(<port>))
+
+(define-entity-class <record>)
+(define-entity-class <condition>	(<record>))
+(define-entity-class <bytevector>)
+
+(define-entity-class <number>)
+(define-entity-class <complex>		(<number>))
+(define-entity-class <real-valued>	(<complex> <number>))
+(define-entity-class <real>
+  (<real-valued> <complex> <number>))
+(define-entity-class <rational-valued>
+  (<real> <real-valued> <complex> <number>))
+(define-entity-class <flonum>
+  (<real> <real-valued> <complex> <number>))
+(define-entity-class <rational>
+  (<rational-valued> <real> <real-valued> <complex> <number>))
+(define-entity-class <integer-valued>
+  (<rational> <rational-valued> <real> <real-valued> <complex> <number>))
+(define-entity-class <integer>
+  (<integer-valued> <rational> <rational-valued> <real> <real-valued> <complex> <number>))
+(define-entity-class <fixnum>
+  (<integer> <integer-valued> <rational> <rational-valued> <real> <real-valued> <complex> <number>))
+
+;;;Other possible classes that require more library loading:
+;;;
+;;;	<stream>	stream?
+;;;
 
 ;;; ------------------------------------------------------------
 
@@ -150,16 +254,6 @@
 ;;; ------------------------------------------------------------
 ;;; Class and instance constructors.
 ;;; ------------------------------------------------------------
-
-;;;The  official definition  of class  is: an  alist  whose first
-;;;dotted pair has the symbol ":class" as key.
-(define <class>
-  (let ((c '((:class . look-at-the-end-of-the-file-for-the-initialisation-of-this-slot)
-	     (:class-definition-name . <class>)
-	     (:class-precedence-list . ())
-	     (:slots . (:class-definition-name :class-precedence-list :slots)))))
-    (set-cdr! (car c) c)
-    c))
 
 (define (make class . slot-values)
   (let ((instance (cons (cons ':class class)
@@ -222,11 +316,41 @@
 	(else #f)))
 
 (define (class-of value)
-  (if (and (pair? value)
-	   (pair? (car value))
-	   (eq? ':class (caar value)))
-      (cdar value)
-    #t))
+  (cond
+   ((and (pair? value)
+	 (pair? (car value))
+	 (eq? ':class (caar value)))
+    (cdar value))
+
+   ;;Order does matter here!!!
+   ((fixnum?	value)		<fixnum>)
+   ((integer?	value)		<integer>)
+   ((integer-valued? value)	<integer-valued>)
+   ((rational?	value)		<rational>)
+   ((rational-valued? value)	<rational-valued>)
+   ((flonum?	value)		<flonum>)
+   ((real?	value)		<real>)
+   ((real-valued? value)	<real-valued>)
+   ((complex?	value)		<complex>)
+   ((number?	value)		<number>)
+
+   ((vector?	value)		<vector>)
+   ((hashtable? value)		<hashtable>)
+     
+   ((input-port? value)		<input-port>)
+   ((output-port? value)	<output-port>)
+   ((port? value)		<port>)
+
+   ((condition? value)		<condition>)
+   ((record? value)		<record>)
+   ((bytevector? value)		<bytevector>)
+
+   ((circular-list value)	<circular-list>)
+   ((dotted-list? value)	<dotted-list>)
+   ((proper-list? value)	<proper-list>)
+   ((list? value)		<list>)
+   ((pair? value)		<pair>)
+   (else			#t)))
 
 
 ;;; ------------------------------------------------------------
