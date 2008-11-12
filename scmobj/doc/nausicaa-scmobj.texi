@@ -432,6 +432,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 @menu
 * overview::                    Overview of the package. 
 * class::                       Classes.
+* make::                        Making classes.
 * instance::                    Instances.
 * slot::                        Accessing slots.
 * classification::              ScmObj and Scheme.
@@ -512,6 +513,178 @@ There is no reason to hide that class values are in truth alists.
 @deftp {Class} <class>
 The base class of all the @value{PACKAGE} classes.
 @end deftp
+
+
+@deftp {Class} <entity-class> (<class>)
+The base class for entity classes.  An entity class represents a Scheme
+built in object type.
+@end deftp
+
+
+@menu
+* class list::                  List types.
+* class compound::              Non-list compound data types.
+* class numeric::               Numeric data types.
+* class port::                  Port types.
+* class misc::                  Miscellaneous types.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node class list
+@section List types
+
+
+@deftp {Class} <pair> (<entity-class> <class>)
+Class for values that satisfy @func{pair?}.
+@end deftp
+
+
+@deftp {Class} <list> (<pair> <entity-class> <class>)
+Class for values that satisfy @func{list?}.
+@end deftp
+
+
+@deftp {Class} <circular-list> (<list> <pair> <entity-class> <class>)
+Class for values that satisfy @func{circular-list?}.
+@end deftp
+
+
+@deftp {Class} <dotted-list> (<list> <pair> <entity-class> <class>)
+Class for values that satisfy @func{dotted-list?}.
+@end deftp
+
+
+@deftp {Class} <proper-list> (<list> <pair> <entity-class> <class>)
+Class for values that satisfy @func{proper-list?}.
+@end deftp
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node class compound
+@section Non--list compound data types
+
+
+@deftp {Class} <vector> (<entity-class> <class>)
+Class for values that satisfy @func{vector?}.
+@end deftp
+
+
+@deftp {Class} <bytevector> (<entity-class> <class>)
+Class for values that satisfy @func{bytevector?}.
+@end deftp
+
+
+@deftp {Class} <hashtable> (<entity-class> <class>)
+Class for values that satisfy @func{hashtable?}.
+@end deftp
+
+
+@deftp {Class} <record> (<entity-class> <class>)
+Class for values that satisfy @func{record?}.
+@end deftp
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node class numeric
+@section Numeric data types
+
+
+@deftp {Class} <number> (<entity-class> <class>)
+Class for values that satisfy @func{number?}.
+@end deftp
+
+
+@deftp {Class} <complex> (<number> <entity-class> <class>)
+Class for values that satisfy @func{complex?}.
+@end deftp
+
+
+@deftp {Class} <real-valued> (<complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{real-valued?}.
+@end deftp
+
+
+@deftp {Class} <real> (<real-valued> <complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{real?}.
+@end deftp
+
+
+@deftp {Class} <rational> (<real> <real-valued> <complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp {Class} <rational-valued> (<rational> <real> <real-valued> <complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp {Class} <integer-valued> (<rational-valued> <rational> <real> <real-valued> <complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp {Class} <integer> (<integer-valued> <rational-valued> <rational> <real> <real-valued> <complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp {Class} <fixnum> (<integer> <integer-valued> <rational> <rational-valued> <real> <real-valued> <complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{fixnum?}.
+@end deftp
+
+
+@deftp {Class} <flonum> (<real> <real-valued> <complex> <number> <entity-class> <class>)
+Class for values that satisfy @func{flonum?}.
+@end deftp
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node class port
+@section Port types
+
+
+@deftp {Class} <port> (<entity-class> <class>)
+Class for values that satisfy @func{port?}.
+@end deftp
+
+
+@deftp {Class} <input-port> (<port> <entity-class> <class>)
+Class for values that satisfy @func{input-port?}.
+@end deftp
+
+
+@deftp {Class} <output-port> (<port> <entity-class> <class>)
+Class for values that satisfy @func{output-port?}.
+@end deftp
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node class misc
+@section Miscellaneous types
+
+
+@deftp {Class} <condition> (<entity-class> <class>)
+Class for values that satisfy @func{condition?}.
+@end deftp
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node make
+@chapter Making classes
 
 
 @deffn Syntax make-class @var{list-of-superclasses} @var{list-of-slots}
