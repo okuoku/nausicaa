@@ -1577,6 +1577,34 @@ That's all there is to it!
 @appendix Bibliography and references
 
 
+ScmObj is very similar to the default protocol in @clos{}, the Common
+Lisp Object System.  Thus, reading up on @clos{} will help in learning
+and using ScmObj.
+
+The major difference between ScmObj and @clos{} is that ScmObj has no
+metaobject protocol.  A minor difference is that the ScmObj primitives
+are more Schemely: they don't have the class vs. name indirection
+present in @clos{}, nor do they have slot or class options.
+
+The following are some books that describe @clos{}:
+
+@noindent
+Guy L Steele, Jr, @emph{Common Lisp: The Language}, 2nd ed, Digital
+Press, 1990.  Chap 28.  A bit on the terse side.
+
+@noindent
+Sonya E Keene, @emph{Object--oriented Programming in Common Lisp: A
+Programmer's Guide to @clos{}}, Addison-Wesley, 1989.  Tutorial--like,
+with examples.
+
+Andreas Paepcke, ed, @emph{Object-oriented Programming: The @clos{}
+Perspective}, @acronym{MIT} Press, 1993.  Chap 1, by Linda G DeMichiel,
+contains a brief introduction.
+
+Patrick H Winston and Berthold K P Horn, @emph{Lisp}, 3rd ed,
+Addison--Wesley, 1993.  Chaps 14, 21 and 22.  Very brief introduction,
+but enough for our purposes.
+
 
 @c ------------------------------------------------------------
 
