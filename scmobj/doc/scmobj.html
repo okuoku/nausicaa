@@ -1,0 +1,932 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<!--
+
+Generated from scmobj.tex by tex2page, v 2003-08-16
+(running on MzScheme 205, unix), 
+(c) Dorai Sitaram, 
+http://www.ccs.neu.edu/~dorai/tex2page/tex2page-doc.html
+
+-->
+
+<title>
+ScmObj: An Object System for Scheme
+</title>
+<link rel="stylesheet" type="text/css" href="scmobj_files/scmobj-Z-S.css" title="default">
+<link rel="stylesheet" type="text/css" href="scmobj_files/scmobj-Z-S.css" title="default">
+<meta name="robots" content="index,follow">
+</head><body>
+<p>
+</p>
+<p>
+</p>
+<p>
+</p>
+<p>
+</p>
+<p>
+</p>
+<p>
+
+</p>
+<p>
+</p>
+<h1 class="title" align="center"><br><br>ScmObj: An Object System for Scheme</h1>
+<p>
+</p>
+<div align="center">&nbsp;<a href="http://www.ccs.neu.edu/%7Edorai">Dorai Sitaram</a>&nbsp;</div>
+<p>
+</p>
+<p><br></p>
+<p><br></p>
+<p></p>
+<p>
+</p>
+<a name="node_sec_1"></a>
+<h1>1&nbsp;&nbsp;Introduction</h1>
+<p></p>
+<p>
+<a href="http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.tar.gz">ScmObj</a>
+is an object system for Scheme that provides</p>
+<p>
+</p>
+<ul><li><p>classes with multiple inheritance;</p>
+<p>
+</p>
+</li><li><p>generic procedures;</p>
+<p>
+</p>
+</li><li><p>methods that can specialize on one or more arguments
+(``multimethods'');</p>
+<p>
+</p>
+</li><li><p><code class="scheme"><span class="keyword">:before</span></code>, <code class="scheme"><span class="keyword">:after</span></code>, and <code class="scheme"><span class="keyword">:around</span></code> auxiliary
+methods in addition to primary methods;</p>
+<p>
+</p>
+</li><li><p><code class="scheme"><span class="variable">call-next-method</span></code> and <code class="scheme"><span class="variable">next-method?</span></code> in
+primary and <code class="scheme"><span class="keyword">:around</span></code> methods; and</p>
+<p>
+</p>
+</li><li><p>standard method combination a la the default protocol in
+CLOS.
+</p>
+</li></ul><p></p>
+<p>
+</p>
+<a name="node_sec_2"></a>
+<h1>2&nbsp;&nbsp;Classes</h1>
+<p></p>
+<p>
+ScmObj lets you define a new class with the <code class="scheme"><span class="keyword">make-class</span></code>
+macro.  <code class="scheme"><span class="keyword">make-class</span></code> takes two subexpressions: (1) a
+list of <i>direct superclasses</i> and (2) a list of
+<i>slots</i>.  Eg,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">human-c</span>
+  (<span class="keyword">make-class</span> ()
+    (<span class="selfeval">:name</span> <span class="selfeval">:favorite-drink</span>)))
+</pre><p></p>
+<p>
+This defines <code class="scheme"><span class="variable">human-c</span></code>, the class of humans, with no
+direct superclasses, and with two slots, <code class="scheme"><span class="selfeval">:name</span></code> and
+<code class="scheme"><span class="selfeval">:favorite-drink</span></code>. (In this document, for
+pedagogic purposes only, we'll use the convention whereby
+variables that bind to classes are suffixed <code class="scheme"><span class="variable">-c</span></code> and
+slot names are prefixed <code class="scheme"><span class="selfeval">:</span></code>.  You can name classes and
+slots any way like.)</p>
+<p>
+</p>
+<a name="node_sec_3"></a>
+<h1>3&nbsp;&nbsp;Instances</h1>
+<p></p>
+<p>
+An instance of a class is defined with the
+<code class="scheme"><span class="variable">make-instance</span></code> procedure.  <code class="scheme"><span class="variable">make-instance</span></code> takes
+a class argument followed optionally by additional arguments
+that are in twosomes, where the first element of a twosome
+names a slot in the class, and the second element specifies
+the value we want that slot to have in the current instance.
+Eg,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">Telemakhos</span>
+  (<span class="variable">make-instance</span> <span class="variable">human-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"Telemakhos"</span>
+    <span class="keyword">'</span><span class="selfeval">:favorite-drink</span>
+      (<span class="variable">string-append</span>
+        <span class="selfeval">"warm"</span> <span class="selfeval">" "</span> <span class="selfeval">"milk"</span>)))
+</pre><p></p>
+<p>
+Telemakhos is a particular human, an instance of
+<code class="scheme"><span class="variable">human-c</span></code>.  His name is <code class="scheme"><span class="selfeval">"Telemakhos"</span></code>, and his
+favorite drink is <code class="scheme"><span class="selfeval">"warm milk"</span></code>.</p>
+<p>
+Both the class and the slots of an instance can be read.
+Only the slots can be mutated.</p>
+<p>
+</p>
+<a name="node_sec_3.1"></a>
+<h2>3.1&nbsp;&nbsp; Accessing Slots</h2>
+<p></p>
+<p>
+The slots of a class instance can be read using the
+procedure <code class="scheme"><span class="variable">slot-value</span></code>.  Eg,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">slot-value</span> <span class="variable">Telemakhos</span> <span class="keyword">'</span><span class="selfeval">:name</span>)
+<img src="scmobj_files/scmobj-Z-G-1.gif" alt="[scmobj-Z-G-1.gif]" border="0"> <span class="selfeval">"Telemakhos"</span>
+</pre><p></p>
+<p>
+which is the <code class="scheme"><span class="selfeval">:name</span></code> slot of Telemakhos.
+Similarly,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">slot-value</span> <span class="variable">Telemakhos</span>
+  <span class="keyword">'</span><span class="selfeval">:favorite-drink</span>)
+<img src="scmobj_files/scmobj-Z-G-2.gif" alt="[scmobj-Z-G-2.gif]" border="0"> <span class="selfeval">"warm milk"</span>
+</pre><p></p>
+<p>
+The slots of a class instance can be written using the
+procedure <code class="scheme"><span class="variable">set-slot-value</span></code>.  Eg,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">set-slot-value</span> <span class="variable">Telemakhos</span>
+  <span class="keyword">'</span><span class="selfeval">:favorite-drink</span> <span class="selfeval">"tequila"</span>)
+</pre><p></p>
+<p>
+sets the <code class="scheme"><span class="selfeval">:favorite-drink</span></code> slot of Telemakhos to
+<code class="scheme"><span class="selfeval">"tequila"</span></code>.  Henceforth, whenever you access this slot,
+you will find <code class="scheme"><span class="selfeval">"tequila"</span></code>, not <code class="scheme"><span class="selfeval">"warm milk"</span></code>, ie,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">slot-value</span> <span class="variable">Telemakhos</span>
+  <span class="keyword">'</span><span class="selfeval">:favorite-drink</span>)
+<img src="scmobj_files/scmobj-Z-G-3.gif" alt="[scmobj-Z-G-3.gif]" border="0"> <span class="selfeval">"tequila"</span>
+</pre><p></p>
+<p>
+The class instance Telemakhos maintains its identity through
+slot mutation.  It's still the same object.  Only its
+<code class="scheme"><span class="selfeval">:favorite-drink</span></code> has changed.  The <code class="scheme"><span class="selfeval">:name</span></code> slot
+isn't sacred either  --  it's settable too. You can say</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">set-slot-value</span> <span class="variable">Telemakhos</span>
+  <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"Telemachus"</span>)
+</pre><p></p>
+<p>
+and Telemakhos remains the same, albeit with a new name.</p>
+<p>
+</p>
+<a name="node_sec_3.2"></a>
+<h2>3.2&nbsp;&nbsp; <code class="scheme"><span class="variable">class-of</span></code></h2>
+<p></p>
+<p>
+You can find the class of an instance using the predicate
+<code class="scheme"><span class="variable">class-of</span></code>.  Eg,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">class-of</span> <span class="variable">Telemakhos</span>)
+</pre><p></p>
+<p>
+returns the value of <code class="scheme"><span class="variable">human-c</span></code> (something that is
+<code class="scheme"><span class="variable">eq?</span></code> to <code class="scheme"><span class="variable">human-c</span></code>), because Telemakhos is an
+instance of the class <code class="scheme"><span class="variable">human-c</span></code>.</p>
+<p>
+Don't try to print the class value, unless your Scheme
+supports the finite printing of circular structures!
+Classes can be notoriously circular
+(sec&nbsp;<a href="#%_sec_7.1">7.1</a>).</p>
+<p>
+</p>
+<a name="node_sec_4"></a>
+<h1>4&nbsp;&nbsp;Inheritance</h1>
+<p></p>
+<p>
+You can define <i>subclasses</i> of classes.  Eg,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">schemer-c</span>
+  (<span class="keyword">make-class</span> (<span class="variable">human-c</span>)
+    (<span class="selfeval">:favorite-dialect</span>)))
+</pre><p></p>
+<p>
+defines a new <code class="scheme"><span class="variable">schemer-c</span></code> class that is a subclass of the
+<code class="scheme"><span class="variable">human-c</span></code> class.  <code class="scheme"><span class="variable">human-c</span></code> class is thus a
+<i>superclass</i> of <code class="scheme"><span class="variable">schemer-c</span></code>.</p>
+<p>
+Instances of <code class="scheme"><span class="variable">schemer-c</span></code> have not only the slot
+<code class="scheme"><span class="selfeval">:favorite-dialect</span></code>, but inherit all the slots of
+<code class="scheme"><span class="variable">human-c</span></code>.  Thus, they have the <code class="scheme"><span class="selfeval">:name</span></code> and
+<code class="scheme"><span class="selfeval">:favorite-drink</span></code> slots, even though the call to
+<code class="scheme"><span class="keyword">make-class</span></code> above doesn't mention these slots.  Eg,
+with</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">Odysseus</span>
+  (<span class="variable">make-instance</span> <span class="variable">schemer-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"Odysseus"</span>))
+</pre><p></p>
+<p>
+we find that</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">slot-value</span> <span class="variable">Odysseus</span> <span class="keyword">'</span><span class="selfeval">:name</span>)
+<img src="scmobj_files/scmobj-Z-G-4.gif" alt="[scmobj-Z-G-4.gif]" border="0"> <span class="selfeval">"Odysseus"</span>
+</pre><p></p>
+<p>
+The following slots exist, but haven't been initialized:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">slot-value</span> <span class="variable">Odysseus</span> <span class="keyword">'</span><span class="selfeval">:favorite-drink</span>)
+<img src="scmobj_files/scmobj-Z-G-5.gif" alt="[scmobj-Z-G-5.gif]" border="0"> <span class="selfeval">:uninitialized</span>
+(<span class="variable">slot-value</span> <span class="variable">Odysseus</span>
+  <span class="keyword">'</span><span class="selfeval">:favorite-dialect</span>)
+<img src="scmobj_files/scmobj-Z-G-6.gif" alt="[scmobj-Z-G-6.gif]" border="0"> <span class="selfeval">:uninitialized</span>
+</pre><p></p>
+<p>
+Neither <code class="scheme"><span class="variable">human-c</span></code> nor <code class="scheme"><span class="variable">schemer-c</span></code> have a slot called
+<code class="scheme"><span class="selfeval">:favorite-island</span></code>.  So:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">slot-value</span> <span class="variable">Odysseus</span>
+  <span class="keyword">'</span><span class="selfeval">:favorite-dialect</span>)
+<i>=ERROR<img src="scmobj_files/scmobj-Z-G-7.gif" alt="[scmobj-Z-G-7.gif]" border="0"></i>
+<span class="variable">slot</span> <span class="selfeval">:favorite-dialect</span> <span class="variable">not</span> <span class="variable">found</span>
+</pre><p></p>
+<p>
+<code class="scheme">(<span class="variable">class-of</span> <span class="variable">Odysseus</span>)</code> returns the value of <code class="scheme"><span class="variable">schemer-c</span></code>.
+Note, however, that Odysseus is an instance of both
+<code class="scheme"><span class="variable">schemer-c</span></code> and <code class="scheme"><span class="variable">human-c</span></code>.  <code class="scheme"><span class="variable">class-of</span></code> returns the
+<i>most specific</i> class of which its argument is an
+instance.</p>
+<p>
+You can determine if a class is a subclass of another using
+the predicate <code class="scheme"><span class="variable">subclass?</span></code>.  Eg,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">subclass?</span> <span class="variable">schemer-c</span> <span class="variable">human-c</span>)
+<img src="scmobj_files/scmobj-Z-G-8.gif" alt="[scmobj-Z-G-8.gif]" border="0"> <span class="selfeval">#t</span>
+</pre><p></p>
+<p>
+thus confirming that Schemers are indeed human.
+On the other hand,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">subclass?</span> <span class="variable">human-c</span> <span class="variable">schemer-c</span>)
+<img src="scmobj_files/scmobj-Z-G-9.gif" alt="[scmobj-Z-G-9.gif]" border="0"> <span class="selfeval">#f</span>
+</pre><p></p>
+<p>
+for alas, not all humans are Schemers.</p>
+<p>
+</p>
+<a name="node_sec_5"></a>
+<h1>5&nbsp;&nbsp;Multiple Inheritance</h1>
+<p></p>
+<p>
+Subclasses can inherit from more than one class.  Let's
+define the class of Common Lisp programmers:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">lisper-c</span>
+  (<span class="keyword">make-class</span> (<span class="variable">human-c</span>)
+    (<span class="selfeval">:favorite-loop-construct</span>)))
+</pre><p></p>
+<p>
+We can now define a class <code class="scheme"><span class="variable">eclectic-lisper-c</span></code> for humans that
+program in both Scheme and Common Lisp:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">eclectic-lisper-c</span>
+  (<span class="keyword">make-class</span> (<span class="variable">schemer-c</span> <span class="variable">lisper-c</span>)
+    (<span class="selfeval">:favorite-other-language</span>)))
+</pre><p></p>
+<p>
+<code class="scheme"><span class="variable">eclectic-lisper-c</span></code> is a subclass of both <code class="scheme"><span class="variable">schemer-c</span></code>
+and <code class="scheme"><span class="variable">lisper-c</span></code>, and will inherit slots from both.  Thus an
+eclectic Lisper will have the following five slots:</p>
+<p>
+<code class="scheme"><span class="selfeval">:name</span></code> and <code class="scheme"><span class="selfeval">:favorite-drink</span></code>, inherited from <code class="scheme"><span class="variable">human-c</span></code>;</p>
+<p>
+<code class="scheme"><span class="selfeval">:favorite-dialect</span></code>, inherited from <code class="scheme"><span class="variable">schemer-c</span></code>;</p>
+<p>
+<code class="scheme"><span class="selfeval">:favorite-loop-construct</span></code>, inherited from <code class="scheme"><span class="variable">lisper-c</span></code>; and</p>
+<p>
+<code class="scheme"><span class="selfeval">:favorite-other-language</span></code>, directly from <code class="scheme"><span class="variable">eclectic-lisper-c</span></code>.</p>
+<p>
+</p>
+<a name="node_sec_6"></a>
+<h1>6&nbsp;&nbsp;Sample Classes and Instances</h1>
+<p></p>
+<p>
+We now define some sample classes and instances that we
+will use later on in this document:</p>
+<p>
+</p>
+<a name="node_sec_6.1"></a>
+<h2>6.1&nbsp;&nbsp; Sample Classes</h2>
+<p></p>
+<p>
+Let's define some classes of food.  <code class="scheme"><span class="variable">food-c</span></code> is a class
+that contains slots called <code class="scheme"><span class="selfeval">:name</span></code> and <code class="scheme"><span class="selfeval">:wholesomeness</span></code>.
+The value of the <code class="scheme"><span class="selfeval">:wholesomeness</span></code> slot is typically a real
+number between 0 and 1 stating how good the food is for you.</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">food-c</span>
+  (<span class="keyword">make-class</span> ()
+    (<span class="selfeval">:name</span> <span class="selfeval">:wholesomeness</span>)))
+</pre><p></p>
+<p>
+Beverages and snacks are food:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">beverage-c</span>
+  (<span class="keyword">make-class</span> (<span class="variable">food-c</span>) ()))
+
+(<span class="keyword">define</span> <span class="variable">snack-c</span>
+  (<span class="keyword">make-class</span> (<span class="variable">food-c</span>) ()))
+</pre><p></p>
+<p>
+</p>
+<a name="node_sec_6.2"></a>
+<h2>6.2&nbsp;&nbsp; Sample Instances</h2>
+<p></p>
+<p>
+Here are some instances of people, using the classes
+<code class="scheme"><span class="variable">schemer-c</span></code>, <code class="scheme"><span class="variable">lisper-c</span></code> and <code class="scheme"><span class="variable">eclectic-lisper-c</span></code>
+(sec&nbsp;<a href="#node_sec_4">4</a>, sec&nbsp;<a href="#node_sec_5">5</a>):</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">Diomedes</span>
+  (<span class="variable">make-instance</span> <span class="variable">schemer-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"Diomedes"</span>))
+
+(<span class="keyword">define</span> <span class="variable">Nestor</span>
+  (<span class="variable">make-instance</span> <span class="variable">lisper-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"Nestor"</span>))
+
+(<span class="keyword">define</span> <span class="variable">Menelaos</span>
+  (<span class="variable">make-instance</span> <span class="variable">lisper-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"Menelaos"</span>))
+
+(<span class="keyword">define</span> <span class="variable">Penelope</span>
+  (<span class="variable">make-instance</span> <span class="variable">eclectic-lisper-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"Penelope"</span>))
+</pre><p></p>
+<p>
+We already have Telemakhos, an instance of <code class="scheme"><span class="variable">human-c</span></code>, and
+Odysseus, an instance of <code class="scheme"><span class="variable">schemer-c</span></code>.</p>
+<p>
+Here are some foods, using <code class="scheme"><span class="variable">beverage-c</span></code> and <code class="scheme"><span class="variable">snack-c</span></code>
+(sec&nbsp;<a href="#node_sec_6.1">6.1</a>):</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">beer</span>
+  (<span class="variable">make-instance</span> <span class="variable">beverage-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"beer"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">.2</span>))
+
+(<span class="keyword">define</span> <span class="variable">coke</span>
+  (<span class="variable">make-instance</span> <span class="variable">beverage-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"coke"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">.4</span>))
+
+(<span class="keyword">define</span> <span class="variable">milk</span>
+  (<span class="variable">make-instance</span> <span class="variable">beverage-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"milk"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">1</span>))
+
+(<span class="keyword">define</span> <span class="variable">candy</span>
+  (<span class="variable">make-instance</span> <span class="variable">snack-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"candy"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">.1</span>))
+
+(<span class="keyword">define</span> <span class="variable">french-fries</span>
+  (<span class="variable">make-instance</span> <span class="variable">snack-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"french fries"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">.4</span>))
+
+(<span class="keyword">define</span> <span class="variable">carrots</span>
+  (<span class="variable">make-instance</span> <span class="variable">snack-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"carrots"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">1</span>))
+</pre><p></p>
+<p>
+</p>
+<a name="node_sec_7"></a>
+<h1>7&nbsp;&nbsp;ScmObj and Scheme</h1>
+<p></p>
+<p>
+We will now explain the object classification.  First, some
+informal notation: We will use the term <i>ScmObj class</i>
+for a class created using ScmObj, typically using
+<code class="scheme"><span class="keyword">make-class</span></code>.  We will use <i>ScmObj class instance</i> for
+class instances created using ScmObj, typically by calling
+<code class="scheme"><span class="variable">make-instance</span></code> on a ScmObj class.  We will use <i>ScmObj
+object</i> to describe both ScmObj classes and ScmObj class
+instances.</p>
+<p>
+We will use <i>pre-ScmObj object</i> to describe the objects
+that you had in Scheme <i>before</i> loading ScmObj.  We will
+use <i>Scheme object</i> to describe any object you can think
+of in Scheme, before or after loading ScmObj.</p>
+<p>
+Thus: Scheme objects include both pre-ScmObj and ScmObj
+objects, and ScmObj objects include both ScmObj classes and
+instances of ScmObj classes.</p>
+<p>
+We are now ready to describe where ScmObj classes stand in
+relation to ScmObj class instances, and where ScmObj objects
+stand in relation to pre-ScmObj objects.</p>
+<p>
+</p>
+<a name="node_sec_7.1"></a>
+<h2>7.1&nbsp;&nbsp;Classes Are Class Instances Too</h2>
+<p></p>
+<p>
+From the discussion thus far, it would appear that there are
+<i>two</i> kinds of ScmObj objects:</p>
+<p>
+</p>
+<ul><li><p>a ScmObj class that specifies how its instances look like;
+<i>and</i></p>
+<p>
+</p>
+</li><li><p>a ScmObj class instance, a particular representative of a
+ScmObj class.
+</p>
+</li></ul><p></p>
+<p>
+Actually, this distinction is blurrable.  All ScmObj classes
+are themselves instances of a distinguished ScmObj class
+called <code class="scheme"><span class="variable">standard-class</span></code>.  <code class="scheme"><span class="variable">standard-class</span></code> is
+no exception  --  it is an instance of itself.</p>
+<p>
+In other words, all ScmObj objects  --  both classes and
+instances  --  are instances of instances of [sic]
+<code class="scheme"><span class="variable">standard-class</span></code>.  To use CLOS terminology,
+<code class="scheme"><span class="variable">standard-class</span></code> is a <i>metaclass</i> of (ie, ``class
+of class of'') all ScmObj objects.</p>
+<p>
+Thus, when you invoke <code class="scheme"><span class="keyword">make-class</span></code>, you are actually
+invoking <code class="scheme"><span class="variable">make-instance</span></code> on <code class="scheme"><span class="variable">standard-class</span></code>.
+However, the <code class="scheme"><span class="keyword">make-class</span></code> macro is still convenient,
+because it does some extra bookkeeping that appropriately
+fills all the slots of the created <code class="scheme"><span class="variable">standard-class</span></code>
+instance.</p>
+<p>
+</p>
+<a name="node_sec_7.2"></a>
+<h2>7.2&nbsp;&nbsp;Scheme Objects Are Class Instances Too</h2>
+<p></p>
+<p>
+The previous section described the ScmObj objects: some of
+them are ScmObj classes; all of them are ScmObj class
+instances.</p>
+<p>
+But what about the objects of Scheme itself, the ones it had
+prior to loading ScmObj, viz, objects like booleans,
+numbers, characters, procedures, pairs, strings, and vectors?
+Are they instances of any class?</p>
+<p>
+Yes they are.  All the objects of Scheme, whether ScmObj or
+pre-ScmObj, are considered to be instances of the
+distinguished class <code class="scheme"><span class="selfeval">#t</span></code> (the boolean), the only class
+that is not a ScmObj object.  <code class="scheme"><span class="selfeval">#t</span></code> is implicitly a
+superclass of every class, and as such is the <i>least</i>
+specific class.</p>
+<p>
+Clearly, <code class="scheme"><span class="selfeval">#t</span></code> too is an instance of <code class="scheme"><span class="selfeval">#t</span></code>.  Thus it
+follows that <code class="scheme"><span class="selfeval">#t</span></code> is a metaclass of all Scheme objects.</p>
+<p>
+Note that pre-ScmObj objects can claim only <code class="scheme"><span class="selfeval">#t</span></code> as their
+class.  ScmObj objects, on the other hand, can claim at least
+one non-<code class="scheme"><span class="selfeval">#t</span></code> class as their class (in addition to <code class="scheme"><span class="selfeval">#t</span></code>).
+We can exploit this to operationally distinguish between
+ScmObj and pre-ScmObj objects  --  simply call <code class="scheme"><span class="variable">class-of</span></code> on
+the object.  A pre-ScmObj object returns <code class="scheme"><span class="selfeval">#t</span></code>, while a
+ScmObj object returns some non-<code class="scheme"><span class="selfeval">#t</span></code> class.  (Recall that
+<code class="scheme"><span class="variable">class-of</span></code> returns the most specific class: if the object
+has any non-<code class="scheme"><span class="selfeval">#t</span></code> class at all, then <code class="scheme"><span class="selfeval">#t</span></code>, being less
+specific, won't be the class that is returned.)</p>
+<p>
+At the metaclass level, note that pre-ScmObj objects can only
+claim <code class="scheme"><span class="selfeval">#t</span></code> as their metaclass, whereas ScmObj objects can
+claim both <code class="scheme"><span class="selfeval">#t</span></code> and <code class="scheme"><span class="variable">standard-class</span></code> as their
+metaclass.</p>
+<p>
+ScmObj has no metaclass other than <code class="scheme"><span class="selfeval">#t</span></code> and
+<code class="scheme"><span class="variable">standard-class</span></code>.  (In CLOS, other metaclasses
+can be posited.  The CLOS analog of <code class="scheme"><span class="keyword">make-class</span></code> takes
+an optional <code class="scheme"><span class="selfeval">:metaclass</span></code> argument, which specifies what
+the metaclass of the class instances should be.  Typically,
+these metaclasses are defined as subclasses of
+<code class="scheme"><span class="variable">standard-class</span></code>.)</p>
+<p>
+</p>
+<a name="node_sec_8"></a>
+<h1>8&nbsp;&nbsp;Generic Procedures and Methods</h1>
+<p></p>
+<p>
+<i>Generic procedures</i> are procedures that can be
+specialized to the classes of their arguments.  Each
+specialization of a generic procedure is called a
+<i>method</i>.  When applying a generic procedure to a set of
+arguments, the most specific method vis-a-vis the arguments'
+classes is chosen.</p>
+<p>
+Let's first declare a generic procedure using the
+macro <code class="scheme"><span class="keyword">make-generic-procedure</span></code>:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">ingests</span>
+  (<span class="keyword">make-generic-procedure</span> <span class="variable">person</span> <span class="variable">food</span>))
+</pre><p></p>
+<p>
+This defines a procedure called <code class="scheme"><span class="variable">ingests</span></code> that
+<i>requires</i> two arguments.  Presumably it describes the
+fact of person ingesting food. (We are forced here
+to use the Latinate ``ingests'' rather than the Saxon
+``eats'', because we will subsequently distinguish between
+eating (solids) and drinking (liquids).)</p>
+<p>
+We now describe how to add methods to the generic procedure
+<code class="scheme"><span class="variable">ingests</span></code>, and how to use it.</p>
+<p>
+</p>
+<a name="node_sec_8.1"></a>
+<h2>8.1&nbsp;&nbsp;Methods</h2>
+<p></p>
+<p>
+We are now ready to define methods describing the eating and
+drinking habits of the people introduced in sec&nbsp;<a href="#node_sec_6.2">6.2</a>.  To do this, we use the macro <code class="scheme"><span class="keyword">defmethod</span></code> to
+add methods to the generic procedure <code class="scheme"><span class="variable">ingests</span></code>
+(sec&nbsp;<a href="#node_sec_8">8</a>). (The
+statements made about Schemers' and Lispers' eating and
+drinking propensities are not based on hard fact.  They are
+mere examples used for elucidation.)</p>
+<p>
+Schemers will drink something only if it's at least .5
+wholesome: (These examples require the <code class="scheme"><span class="variable">format</span></code>
+feature.)</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">ingests</span>
+  ((<span class="variable">p</span> <span class="variable">schemer-c</span>) (<span class="variable">f</span> <span class="variable">beverage-c</span>))
+  (<span class="keyword">if</span> (<span class="variable">&gt;=</span> (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:wholesomeness</span>)
+          <span class="selfeval">.5</span>)
+    (<span class="variable">format</span> <span class="selfeval">#t</span> <span class="selfeval">"~a sips some ~a.~%"</span>
+      (<span class="variable">slot-value</span> <span class="variable">p</span> <span class="keyword">'</span><span class="selfeval">:name</span>)
+      (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:name</span>))))
+</pre><p></p>
+<p>
+The first subexpression of <code class="scheme"><span class="keyword">defmethod</span></code> is the generic
+procedure.  In this case, it is <code class="scheme"><span class="variable">ingests</span></code>.</p>
+<p>
+The second subexpression is a lambda-list of arguments to
+the method.  This lambda-list starts off with the
+<i>required</i> arguments, where each argument is specified
+as a two-element list: the parameter followed by its class.
+The number of required arguments is the same as the number
+of arguments specified by <code class="scheme"><span class="keyword">make-generic-procedure</span></code> for the
+generic procedure.  The rest of the lambda-list may contain
+additional arguments, including a ``rest'' argument.  In the
+case above, the required arguments are <code class="scheme"><span class="variable">p</span></code> of class
+<code class="scheme"><span class="variable">schemer-c</span></code> and <code class="scheme"><span class="variable">f</span></code> of class <code class="scheme"><span class="variable">beverage-c</span></code>.  There are
+no additional arguments.</p>
+<p>
+After the second subexpression, we have the method body.</p>
+<p>
+Proceeding with other methods for <code class="scheme"><span class="variable">ingests</span></code>: no snack
+is too lowly for a Schemer:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">ingests</span>
+  ((<span class="variable">p</span> <span class="variable">schemer-c</span>) (<span class="variable">f</span> <span class="variable">snack-c</span>))
+  (<span class="variable">format</span> <span class="selfeval">#t</span> <span class="selfeval">"~a wolfs down some ~a.~%"</span>
+    (<span class="variable">slot-value</span> <span class="variable">p</span> <span class="keyword">'</span><span class="selfeval">:name</span>)
+    (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:name</span>)))
+</pre><p></p>
+<p>
+Lispers are open to any drink:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">ingests</span>
+  ((<span class="variable">p</span> <span class="variable">lisper-c</span>) (<span class="variable">f</span> <span class="variable">beverage-c</span>))
+  (<span class="variable">format</span> <span class="selfeval">#t</span> <span class="selfeval">"~a guzzles some ~a.~%"</span>
+    (<span class="variable">slot-value</span> <span class="variable">p</span> <span class="keyword">'</span><span class="selfeval">:name</span>)
+    (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:name</span>)))
+</pre><p></p>
+<p>
+Lispers won't eat anything that isn't at least .5 wholesome:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">ingests</span>
+  ((<span class="variable">p</span> <span class="variable">lisper-c</span>) (<span class="variable">f</span> <span class="variable">snack-c</span>))
+  (<span class="keyword">if</span> (<span class="variable">&gt;=</span> (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:wholesomeness</span>)
+          <span class="selfeval">.5</span>)
+    (<span class="variable">format</span> <span class="selfeval">#t</span> <span class="selfeval">"~a pecks at some ~a.~%"</span>
+      (<span class="variable">slot-value</span> <span class="variable">p</span> <span class="keyword">'</span><span class="selfeval">:name</span>)
+      (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:name</span>))))
+</pre><p></p>
+<p>
+The default method: humans eat and drink anything:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">ingests</span>
+  ((<span class="variable">p</span> <span class="variable">human-c</span>) (<span class="variable">f</span> <span class="variable">food-c</span>))
+  (<span class="variable">format</span> <span class="selfeval">#t</span> <span class="selfeval">"~a consumes ~a.~%"</span>
+    (<span class="variable">slot-value</span> <span class="variable">p</span> <span class="keyword">'</span><span class="selfeval">:name</span>)
+    (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:name</span>)))
+</pre><p></p>
+<p>
+Note that ScmObj methods can specialize on more than one
+argument class.  In other words, ScmObj methods, like CLOS
+methods, are <i>multimethods</i>.</p>
+<p>
+</p>
+<a name="node_sec_8.2"></a>
+<h2>8.2&nbsp;&nbsp;Calling Generic Procedures</h2>
+<p></p>
+<p>
+We can now offer Telemakhos, Odysseus, Diomedes, Nestor,
+Menelaos, and Penelope some beer, coke, milk, candy, french
+fries, and carrots.  We call the generic procedure
+<code class="scheme"><span class="variable">ingests</span></code>, and let it dispatch the appropriate method
+based on the class of the <code class="scheme"><span class="variable">person</span></code> and the <code class="scheme"><span class="variable">food</span></code>
+arguments:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">for-each</span>
+  (<span class="keyword">lambda</span> (<span class="variable">person</span>)
+    (<span class="variable">for-each</span>
+      (<span class="keyword">lambda</span> (<span class="variable">food</span>)
+        (<span class="variable">eat</span> <span class="variable">person</span> <span class="variable">food</span>))
+      (<span class="variable">list</span> <span class="variable">beer</span> <span class="variable">coke</span> <span class="variable">milk</span> <span class="variable">candy</span>
+        <span class="variable">french-fries</span> <span class="variable">carrots</span>)))
+  (<span class="variable">list</span> <span class="variable">Telemakhos</span> <span class="variable">Odysseus</span> <span class="variable">Diomedes</span>
+    <span class="variable">Nestor</span> <span class="variable">Menelaos</span> <span class="variable">Penelope</span>))
+</pre><p></p>
+<p>
+You will find that, as expected,</p>
+<p>
+</p>
+<ul><li><p>Telemakhos consumes everything in sight;</p>
+<p>
+</p>
+</li><li><p>the Schemers Odysseus and Diomedes wolf down candy,
+french fries and carrots but sip only milk; and</p>
+<p>
+</p>
+</li><li><p>the Lispers Nestor and Menelaos guzzle beer, coke and
+milk but eat only carrots.
+</p>
+</li></ul><p></p>
+<p>
+But how does the eclectic Lisper Penelope, who is both
+Schemer and Lisper, fare?  We'll find that for the purposes
+of nourishment, Penelope sits down with the Schemers.  She
+too wolfs down candy, french fries and carrots but sips only
+milk, eschewing the more Lispy delights of beer and coke.
+This is because the class <code class="scheme"><span class="variable">eclectic-lisper-c</span></code> lists
+<code class="scheme"><span class="variable">schemer-c</span></code> before <code class="scheme"><span class="variable">lisper-c</span></code> in its superclass list.</p>
+<p>
+</p>
+<a name="node_sec_9"></a>
+<h1>9&nbsp;&nbsp;<code class="scheme"><span class="keyword">:before</span></code> and <code class="scheme"><span class="keyword">:after</span></code> Methods</h1>
+<p></p>
+<p>
+The methods described thus far are <i>primary</i> methods.
+You can add <i>auxiliary</i> methods that perform set-up
+actions <i>before</i> or clean-up actions <i>after</i> the
+primary method.  Such methods are called <code class="scheme"><span class="keyword">:before</span></code> and
+<code class="scheme"><span class="keyword">:after</span></code> methods respectively.</p>
+<p>
+Eg, let's say that Schemers wear a napkin before ingesting
+anything, while Lispers always put away the plate after
+ingesting anything.  Thus,</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">ingests</span> <span class="keyword">:before</span>
+  ((<span class="variable">p</span> <span class="variable">schemer-c</span>) (<span class="variable">f</span> <span class="variable">food-c</span>))
+  (<span class="variable">format</span> <span class="selfeval">#t</span> <span class="selfeval">"~a puts on a napkin.~%"</span>
+    (<span class="variable">slot-value</span> <span class="variable">p</span> <span class="keyword">'</span><span class="selfeval">:name</span>)))
+
+(<span class="keyword">defmethod</span> <span class="variable">ingests</span> <span class="keyword">:after</span>
+  ((<span class="variable">p</span> <span class="variable">lisper-c</span>) (<span class="variable">f</span> <span class="variable">food-c</span>))
+  (<span class="variable">format</span> <span class="selfeval">#t</span> <span class="selfeval">"~a puts away the plate.~%"</span>
+    (<span class="variable">slot-value</span> <span class="variable">p</span> <span class="keyword">'</span><span class="selfeval">:name</span>)))
+</pre><p></p>
+<p>
+Note that these methods use a <i>qualifier</i>  -- 
+<code class="scheme"><span class="keyword">:before</span></code> or <code class="scheme"><span class="keyword">:after</span></code>  --  as the second
+subexpression of <code class="scheme"><span class="keyword">defmethod</span></code>.  Primary methods could
+use the <code class="scheme"><span class="keyword">:primary</span></code> qualifier, but it's optional.</p>
+<p>
+Now feed our people some more carrots and observe their
+table manners:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">for-each</span>
+  (<span class="keyword">lambda</span> (<span class="variable">person</span>)
+    (<span class="variable">ingests</span> <span class="variable">person</span> <span class="variable">carrots</span>))
+  (<span class="variable">list</span> <span class="variable">Telemakhos</span> <span class="variable">Odysseus</span> <span class="variable">Diomedes</span>
+    <span class="variable">Nestor</span> <span class="variable">Menelaos</span> <span class="variable">Penelope</span>))
+</pre><p></p>
+<p>
+You'll find that</p>
+<p>
+</p>
+<ul><li><p>Telemakhos doesn't bother with any niceties;</p>
+<p>
+</p>
+</li><li><p>the Schemers Odysseus and Diomedes put on a napkin before
+eating but don't care to put away the plate; and</p>
+<p>
+</p>
+</li><li><p>the Lispers Nestor and Menelaos forget the napkin but
+remember to put away the plate.
+</p>
+</li></ul><p></p>
+<p>
+Once again, how about eclectic Lisper Penelope?  This time,
+we find that she takes the best from both her heritages.
+She puts on a napkin <i>and</i> puts away the plate.</p>
+<p>
+If several <code class="scheme"><span class="keyword">:before</span></code> and <code class="scheme"><span class="keyword">:after</span></code> methods are specified,
+ScmObj executes all of them, the <code class="scheme"><span class="keyword">:before</span></code> methods in
+most-specific-first order, and the <code class="scheme"><span class="keyword">:after</span></code> methods in
+most-specific-last order.  This is in keeping with CLOS's
+<code class="scheme"><span class="variable">standard</span></code> method combination.</p>
+<p>
+</p>
+<a name="node_sec_10"></a>
+<h1>10&nbsp;&nbsp;<code class="scheme"><span class="keyword">:around</span></code> Methods</h1>
+<p></p>
+<p>
+There is one other kind of auxiliary method, the
+<code class="scheme"><span class="keyword">:around</span></code> method.  The most specific <code class="scheme"><span class="keyword">:around</span></code>
+method is executed in lieu of the primary method.  If this
+method invokes <code class="scheme"><span class="variable">call-next-method</span></code>, then the next most
+specific <code class="scheme"><span class="keyword">:around</span></code> method, or if there isn't any, the
+most specific primary method is invoked.  Primary methods
+can also invoke <code class="scheme"><span class="variable">call-next-method</span></code>  --  this causes the
+next most specific primary method to kick in.</p>
+<p>
+The predicate <code class="scheme"><span class="variable">next-method?</span></code> can be used in both
+<code class="scheme"><span class="keyword">:around</span></code> and primary methods to ascertain that there
+is a next method that can be called using
+<code class="scheme"><span class="variable">call-next-method</span></code>.</p>
+<p>
+Eg, let's define a generic procedure for whether a person
+<i>likes</i> a food item:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">likes</span>
+  (<span class="keyword">make-generic-procedure</span> <span class="variable">person</span> <span class="variable">food</span>))
+</pre><p></p>
+<p>
+Based on our previous procedure for <code class="scheme"><span class="variable">ingests</span></code>, it's
+easy to write the methods for <code class="scheme"><span class="variable">likes</span></code>.  Remember that
+in general, people like all food, while Schemers like all
+snacks, but only drinks that are at least .5 wholesome.  The
+primary methods for these ``facts'' are, in analogy with
+those for <code class="scheme"><span class="variable">ingests</span></code>:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">likes</span> ((<span class="variable">p</span> <span class="variable">human-c</span>)
+                  (<span class="variable">f</span> <span class="variable">food-c</span>))
+  <span class="selfeval">#t</span>)
+
+(<span class="keyword">defmethod</span> <span class="variable">likes</span> ((<span class="variable">p</span> <span class="variable">schemer-c</span>)
+                  (<span class="variable">f</span> <span class="variable">snack-c</span>))
+  <span class="selfeval">#t</span>)
+
+(<span class="keyword">defmethod</span> <span class="variable">likes</span> ((<span class="variable">p</span> <span class="variable">schemer-c</span>)
+                  (<span class="variable">f</span> <span class="variable">beverage-c</span>))
+  (<span class="variable">&gt;=</span> (<span class="variable">slot-value</span> <span class="variable">f</span> <span class="keyword">'</span><span class="selfeval">:wholesomeness</span>)
+      <span class="selfeval">.5</span>))
+</pre><p></p>
+<p>
+Let's define subclasses of <code class="scheme"><span class="variable">beverage-c</span></code> and <code class="scheme"><span class="variable">snack-c</span></code>
+for <i>aged</i> versions of these classes:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">aged-mixin</span>
+  (<span class="keyword">make-class</span> () ()))
+(<span class="keyword">define</span> <span class="variable">aged-beverage-c</span>
+  (<span class="keyword">make-class</span> (<span class="variable">aged-mixin</span> <span class="variable">beverage-c</span>)))
+(<span class="keyword">define</span> <span class="variable">aged-snack-c</span>
+  (<span class="keyword">make-class</span> (<span class="variable">aged-mixin</span> <span class="variable">snack-c</span>)))
+</pre><p></p>
+<p>
+And now for some instances of old drinks and eats:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">define</span> <span class="variable">lutefisk</span>
+  (<span class="variable">make-instance</span> <span class="variable">aged-snack-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"lutefisk"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">.3</span>))
+
+(<span class="keyword">define</span> <span class="variable">champagne</span>
+  (<span class="variable">make-instance</span> <span class="variable">aged-beverage-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"champagne"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">.6</span>))
+
+(<span class="keyword">define</span> <span class="variable">toddy</span>
+  (<span class="variable">make-instance</span> <span class="variable">aged-beverage-c</span>
+    <span class="keyword">'</span><span class="selfeval">:name</span> <span class="selfeval">"toddy"</span>
+    <span class="keyword">'</span><span class="selfeval">:wholesomeness</span> <span class="selfeval">.2</span>))
+</pre><p></p>
+<p>
+We can now specialize the <code class="scheme"><span class="variable">likes</span></code> methods to
+accommodate these new classes of food.  Schemers don't like
+aged snacks at all.  In the case of aged drinks, they
+overturn their usual judgment about drinks.  Schemers have
+no use for an old drink that offers them the same level of
+wholesomeness that they like in fresh drinks.  What they
+crave is precisely the <i>un</i>wholesomeness of the old
+drink.  This state of affairs can be described with just two
+<code class="scheme"><span class="keyword">:around</span></code> methods:</p>
+<p>
+</p>
+<pre class="scheme">(<span class="keyword">defmethod</span> <span class="variable">likes</span> <span class="keyword">:around</span>
+  ((<span class="variable">p</span> <span class="variable">schemer-c</span>) (<span class="variable">f</span> <span class="variable">aged-snack-c</span>))
+  <span class="selfeval">#f</span>)
+
+(<span class="keyword">defmethod</span> <span class="variable">likes</span> <span class="keyword">:around</span>
+  ((<span class="variable">p</span> <span class="variable">schemer-c</span>) (<span class="variable">f</span> <span class="variable">aged-beverage-c</span>))
+  (<span class="variable">not</span> (<span class="variable">call-next-method</span>)))
+</pre><p></p>
+<p>
+Note the use of the qualifier <code class="scheme"><span class="keyword">:around</span></code>.</p>
+<p>
+Now let's try out an aged snack lutefisk, and two aged
+drinks, the wholesome champagne and the unwholesome toddy,
+on Schemer Odysseus.</p>
+<p>
+</p>
+<pre class="scheme">(<span class="variable">list</span>
+  (<span class="variable">likes</span> <span class="variable">Odysseus</span> <span class="variable">lutefisk</span>)
+  (<span class="variable">likes</span> <span class="variable">Odysseus</span> <span class="variable">champagne</span>)
+  (<span class="variable">likes</span> <span class="variable">Odysseus</span> <span class="variable">toddy</span>))
+<img src="scmobj_files/scmobj-Z-G-10.gif" alt="[scmobj-Z-G-10.gif]" border="0"> (<span class="selfeval">#f</span> <span class="selfeval">#f</span> <span class="selfeval">#t</span>)
+</pre><p></p>
+<p>
+indicating that Odysseus hates lutefisk and champagne, but
+loves toddy.  De gustibus non est disputandum.</p>
+<p>
+</p>
+<a name="node_sec_11"></a>
+<h1>11&nbsp;&nbsp; References</h1>
+<p></p>
+<p>
+ScmObj is very similar to the default protocol in CLOS, the
+Common Lisp Object System.  Thus, reading up on CLOS will
+help in learning and using ScmObj.</p>
+<p>
+The major difference between ScmObj and CLOS is that ScmObj
+has no metaobject protocol.  A minor difference is that the
+ScmObj primitives are more Schemely: they don't have the
+class v. name indirection present in CLOS, nor do they have
+slot or class options.</p>
+<p>
+The following are some books that describe CLOS:</p>
+<p>
+</p>
+<table>
+
+<tbody><tr><td valign="top" align="right"><a name="node_bib_1"></a>[1]&nbsp;&nbsp;</td><td valign="top">
+Guy L Steele, Jr, <i>Common Lisp: The Language</i>, 2nd ed,
+Digital Press, 1990.  Chap 28.  A bit on the terse side.<p>
+</p>
+</td></tr>
+<tr><td valign="top" align="right"><a name="node_bib_2"></a>[2]&nbsp;&nbsp;</td><td valign="top">
+Sonya E Keene, <i>Object-oriented Programming in Common Lisp:
+A Programmer's Guide to CLOS</i>, Addison-Wesley, 1989.
+Tutorial-like, with examples.<p>
+</p>
+</td></tr>
+<tr><td valign="top" align="right"><a name="node_bib_3"></a>[3]&nbsp;&nbsp;</td><td valign="top">
+Andreas Paepcke, ed, <i>Object-oriented Programming: The CLOS
+Perspective</i>, MIT Press, 1993.  Chap 1, by Linda
+G DeMichiel, contains a brief introduction.<p>
+</p>
+</td></tr>
+<tr><td valign="top" align="right"><a name="node_bib_4"></a>[4]&nbsp;&nbsp;</td><td valign="top">
+Patrick H Winston and Berthold K P Horn, <i>Lisp</i>, 3rd
+ed, Addison-Wesley, 1993.  Chaps 14, 21 and 22.  Very
+brief introduction, but enough for our purposes.<p>
+</p></td></tr></tbody></table>
+<p></p>
+<p>
+</p>
+<div class="colophon" align="right">
+<i>Last modified: Thursday, August 21st, 2003 US/Eastern<br>
+HTML conversion by <a href="http://www.ccs.neu.edu/%7Edorai/tex2page/tex2page-doc.html">TeX2page 2003-08-16</a></i>
+</div>
+<hints id="hah_hints"></hints></body></html>
