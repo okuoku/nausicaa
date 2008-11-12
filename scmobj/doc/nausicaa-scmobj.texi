@@ -541,7 +541,7 @@ applied to them will return the symbol @code{:uninitialized}.
 @end deffn
 
 
-@deffn Syntax define-class @var{name} @var{list-of-superclasses} @var{list-of-slots}
+@deffn Syntax define-class @var{name} @var{list-of-superclasses} . @var{list-of-slots}
 A wrapper for @func{make-class} that defines a new variable named
 @var{name} and assignes the new class to it.  The class definition name
 of the class is initialised to @var{name}.
@@ -869,11 +869,11 @@ is chosen.
 
 
 Let's first declare a generic procedure using the macro
-@func{make-generic-procedure}:
+@func{make-generic-function}:
 
 @example
 (define ingests
-  (make-generic-procedure person food))
+  (make-generic-function person food))
 @end example
 
 This defines a procedure called ingests that requires two arguments.
@@ -905,7 +905,7 @@ The second subexpression is a lambda--list of arguments to the method.
 This lambda--list starts off with the required arguments, where each
 argument is specified as a two--element list: the parameter followed by
 its class.  The number of required arguments is the same as the number
-of arguments specified by @func{make-generic-procedure} for the generic
+of arguments specified by @func{make-generic-function} for the generic
 procedure.  The rest of the lambda--list may contain additional
 arguments, including a ``rest'' argument.  In the case above, the
 required arguments are @var{p} of class @class{schemer} and @var{f} of
