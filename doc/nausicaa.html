@@ -318,6 +318,23 @@ To be invoked as:
         </blockquote></div>
 
 <!--  -->
+<h5 class="subsubheading">Example layout</h5>
+
+<pre class="example">     ./usr/
+     ./usr/local/
+     ./usr/local/lib/
+     ./usr/local/lib/ikarus/
+     ./usr/local/lib/ikarus/scmobj/
+     ./usr/local/lib/ikarus/scmobj/main.sls.ikarus-fasl
+     ./usr/local/lib/ikarus/scmobj/main.sls
+     ./usr/local/share/
+     ./usr/local/share/doc/
+     ./usr/local/share/doc/nausicaa-scmobj/
+     ./usr/local/share/doc/nausicaa-scmobj/0.1d0/
+     ./usr/local/share/doc/nausicaa-scmobj/0.1d0/info/
+     ./usr/local/share/doc/nausicaa-scmobj/0.1d0/info/nausicaa-scmobj.info
+</pre>
+<!--  -->
 <!-- page -->
 <div class="node">
 <p><hr>
@@ -328,6 +345,375 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#package">package</a>
 </div>
 
 <h3 class="section">3.2 Building Slackware packages</h3>
+
+<p>Support for Slackware packages allows the construction of both standard
+and &ldquo;local&rdquo; packages.  Let's take the <code>nausicaa-scmobj</code> project
+as example; let's imagine that inspecting the package variables yields
+this:
+
+<pre class="example">     $ cd scmobj
+     $ make echo-variable VARIABLE=PACKAGE_NAME
+     nausicaa-scmobj
+     
+     $ make echo-variable VARIABLE=PACKAGE_VERSION
+     0.1d0
+     
+     $ make echo-variable VARIABLE=package_BUILD_VERSION
+     1mm
+     
+     $ make echo-variable VARIABLE=package_ARCH
+     i686
+     
+     $ make echo-variable VARIABLE=TMPDIR
+     /tmp/marco
+</pre>
+   <ul class="menu">
+<li><a accesskey="1" href="#slackware-common">slackware common</a>:             Common variables and rules. 
+<li><a accesskey="2" href="#slackware-standard">slackware standard</a>:           Building standard Slackware packages. 
+<li><a accesskey="3" href="#slackware-local">slackware local</a>:              Building local Slackware packages. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="slackware-common"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#slackware-standard">slackware standard</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#slackware">slackware</a>
+
+</div>
+
+<h4 class="subsection">3.2.1 Common variables and rules</h4>
+
+<p>This section documents variables and rules that can are used both when
+building standard packages and local packages.
+
+<h5 class="subsubheading">Makefile variables</h5>
+
+<div class="defun">
+&mdash; Variable: <b>slack_PACKAGE_NAME</b><var><a name="index-slack_005fPACKAGE_005fNAME-12"></a></var><br>
+<blockquote><p>This is the file name of the Slackware package.  Notice that there is no
+directory part.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=slack_PACKAGE_NAME
+          nausicaa-scmobj-0.1d0-i686-1mm.tgz
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>slack_PACKAGE_PREFIX</b><var><a name="index-slack_005fPACKAGE_005fPREFIX-13"></a></var><br>
+<blockquote><p>This is the package prefix, it is used to remove the package.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=slack_PACKAGE_PREFIX
+          nausicaa-scmobj-0.1d0-i686-1mm
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>slack_PACKAGE_TOP_BUILDDIR</b><var><a name="index-slack_005fPACKAGE_005fTOP_005fBUILDDIR-14"></a></var><br>
+<blockquote><p>This is the root directory for temporary installation of files.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=slack_PACKAGE_TOP_BUILDDIR
+          /tmp/marco/nausicaa-scmobj-0.1d0
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>slack_PACKAGE_BUILDDIR</b><var><a name="index-slack_005fPACKAGE_005fBUILDDIR-15"></a></var><br>
+<blockquote><p>This is the root directory for building packages.  The rules for
+standard packages will set it to:
+
+     <pre class="example">          $(slack_PACKAGE_TOP_BUILDDIR)
+     </pre>
+        <p class="noindent">the rules for local packages will set it to:
+
+     <pre class="example">          $(slack_PACKAGE_TOP_BUILDDIR)/$(prefix)
+     </pre>
+        <p>It is set to the empty string, and it will be set by the rules by
+invoking <code>$(MAKE)</code> recursively. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>slack_BUILDDIR</b><var><a name="index-slack_005fBUILDDIR-16"></a></var><br>
+<blockquote><p>This is where the produced package will be finally stored.
+
+        <p>Example (from the build directory of the author):
+
+     <pre class="example">          $ make echo-variable VARIABLE=slack_BUILDDIR
+          /home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./slackware.d
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>slack_REGISTRY</b><var><a name="index-slack_005fREGISTRY-17"></a></var><br>
+&mdash; Variable: <b>slack_REGISTRY_DIR</b><var><a name="index-slack_005fREGISTRY_005fDIR-18"></a></var><br>
+<blockquote><p>These are used to select the pathname of the Slackware packages
+registry.  The standard package rules will set <var>slack_REGISTRY</var> to:
+
+     <pre class="example">          $(slack_REGISTRY_DIR)
+     </pre>
+        <p class="noindent">while the local package rules will set it to:
+
+     <pre class="example">          $(prefix)$(slack_REGISTRY_DIR)
+     </pre>
+        <p>Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=slack_REGISTRY_DIR
+          /var/log/packages
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>slack_INSTALLED_PACKAGE</b><var><a name="index-slack_005fINSTALLED_005fPACKAGE-19"></a></var><br>
+<blockquote><p>The definition of this variable tries to read from the system the name
+of an already installed package.  It is used to upgrade.
+
+        <p>This variable Example (after having installed the package):
+
+     <pre class="example">          $ make echo-variable VARIABLE=slack_INSTALLED_PACKAGE
+          nausicaa-scmobj-0.1d0-i686-1mm
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Makefile rules</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-builddir</b><var><a name="index-slackware_002dbuilddir-20"></a></var><br>
+<blockquote><p>If the directory <code>$(slack_BUILDDIR)</code> does not exist: create it.  To
+be invoked as:
+
+     <pre class="example">          $ make slackware-builddir
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-top-builddir</b><var><a name="index-slackware_002dtop_002dbuilddir-21"></a></var><br>
+<blockquote><p>If the directory <code>$(slack_PACKAGE_TOP_BUILDDIR)</code> does not exist:
+create it.  To be invoked as:
+
+     <pre class="example">          $ make slackware-top-builddir
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-aux</b><var><a name="index-slackware_002daux-22"></a></var><br>
+<blockquote><p>This is for auxiliary stuff: it is freely available to the user.  It
+will be invoked after having installed the files in the temporary
+location, and just before running <samp><span class="command">makepkg</span></samp> (see the
+<code>slackware</code> and <code>local-slackware</code> rules).
+
+        <p>It is not meant to be invoked explicitly. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-clean</b><var><a name="index-slackware_002dclean-23"></a></var><br>
+<blockquote><p>Equivalent to invoke both the <code>slackware-clean-top-builddir</code> and
+<code>slackware-clean-builddir</code> rules.  To be invoked as:
+
+     <pre class="example">          $ make slackware-clean
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-clean-top-builddir</b><var><a name="index-slackware_002dclean_002dtop_002dbuilddir-24"></a></var><br>
+<blockquote><p>Remove the <code>$(slack_PACKAGE_TOP_BUILDDIR)</code> directory and all its
+contents.  To be invoked as:
+
+     <pre class="example">          $ make slackware-clean-top-builddir
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-clean-builddir</b><var><a name="index-slackware_002dclean_002dbuilddir-25"></a></var><br>
+<blockquote><p>Remove the <code>$(slack_BUILDDIR)</code> directory and all its contents.  To
+be invoked as:
+
+     <pre class="example">          $ make slackware-clean-builddir
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="slackware-standard"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#slackware-local">slackware local</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#slackware-common">slackware common</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#slackware">slackware</a>
+
+</div>
+
+<h4 class="subsection">3.2.2 Building standard Slackware packages</h4>
+
+<p>A standard Slackware package is a normal Slackware package: a tarball
+with <code>.tgz</code> extension; with the pathnames relative to the root
+directory; registered in the <samp><span class="file">/var/log/packages</span></samp> registry.
+
+<h5 class="subsubheading">Makefile variables</h5>
+
+<div class="defun">
+&mdash; Variable: <b>slackware_STANDARD_ENV</b><var><a name="index-slackware_005fSTANDARD_005fENV-26"></a></var><br>
+<blockquote><p>The system environment with which the Slackware package management
+scripts will be run.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-list-variable VARIABLE=slackware_STANDARD_ENV
+          PATH=/sbin:...
+          slack_PACKAGE_BUILDDIR=/tmp/marco/nausicaa-scmobj-0.1d0
+          slack_REGISTRY=/var/log/packages
+     </pre>
+        <p class="noindent">we see that <samp><span class="file">/sbin</span></samp> has been added to the <samp><span class="env">PATH</span></samp> variable: this
+is because the Slackware management scripts need to find each other. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Makefile rules</h5>
+
+<p>For all the following rules: root privileges are needed to build a
+standard package; so we may want to use a tool like <samp><span class="command">sudo</span></samp> to
+run <samp><span class="command">make</span></samp>.  In the following we will assume that this is the
+case.
+
+   <p>Always remember that the <samp><span class="option">-n</span></samp> option of <acronym>GNU</acronym> Make allows us to
+see the commands that a rule will execute, without actually executing
+them.  Example:
+
+<pre class="example">     $ make local-slackware-upgrade -n
+</pre>
+   <div class="defun">
+&mdash; Makefile Rule: <b>slackware</b><var><a name="index-slackware-27"></a></var><br>
+<blockquote><p>Build the package and place it into the build directory.  To be invoked
+as:
+
+     <pre class="example">          $ sudo make slackware
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-install</b><var><a name="index-slackware_002dinstall-28"></a></var><br>
+<blockquote><p>Install the previously built package.  To be invoked as:
+
+     <pre class="example">          $ sudo make slackware-install
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-remove</b><var><a name="index-slackware_002dremove-29"></a></var><br>
+<blockquote><p>Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+     <pre class="example">          $ sudo make slackware-remove
+     </pre>
+        <p>See the <code>slack_INSTALLED_PACKAGE</code> variable for the name of the
+package that will be removed. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>slackware-upgrade</b><var><a name="index-slackware_002dupgrade-30"></a></var><br>
+<blockquote><p>Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+     <pre class="example">          $ sudo make slackware-upgrade
+     </pre>
+        <p>See the <code>slack_INSTALLED_PACKAGE</code> variable for the name of the
+package that will be removed. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="slackware-local"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#slackware-standard">slackware standard</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#slackware">slackware</a>
+
+</div>
+
+<h4 class="subsection">3.2.3 Building local Slackware packages</h4>
+
+<p>A local Slackware package is: a tarball with <code>.tgz</code> extension; with
+the pathnames relative to the selected installation prefix (for example
+<samp><span class="file">/usr/local</span></samp>); registered in the <samp><span class="file">$(prefix)/var/log/packages</span></samp>
+registry, where <code>$(prefix)</code> is the selected installation prefix.
+
+<h5 class="subsubheading">Makefile variables</h5>
+
+<div class="defun">
+&mdash; Variable: <b>slackware_LOCAL_ENV</b><var><a name="index-slackware_005fLOCAL_005fENV-31"></a></var><br>
+<blockquote><p>The system environment with which the Slackware package management
+scripts will be run.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-list-variable VARIABLE=slackware_LOCAL_ENV
+          PATH=/sbin:...
+          slack_PACKAGE_BUILDDIR=/tmp/marco/nausicaa-scmobj-0.1d0//usr/local
+          slack_REGISTRY=/usr/local/var/log/packages
+          slack_ENV=ROOT=/usr/local
+     </pre>
+        <p class="noindent">we see that <samp><span class="file">/sbin</span></samp> has been added to the <samp><span class="env">PATH</span></samp> variable: this
+is because the Slackware management scripts need to find each other. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Makefile rules</h5>
+
+<p>For all the following rules: root privileges may be needed to build a
+local package; so we may want to use a tool like <samp><span class="command">sudo</span></samp> to run
+<samp><span class="command">make</span></samp>.  In the following we will assume that this is the case.
+
+   <p>Always remember that the <samp><span class="option">-n</span></samp> option of <acronym>GNU</acronym> Make allows us to
+see the commands that a rule will execute, without actually executing
+them.  Example:
+
+<pre class="example">     $ make local-slackware-upgrade -n
+</pre>
+   <div class="defun">
+&mdash; Makefile Rule: <b>local-slackware</b><var><a name="index-local_002dslackware-32"></a></var><br>
+<blockquote><p>Build the package and place it into the build directory.  To be invoked
+as:
+
+     <pre class="example">          $ sudo make local-slackware
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>local-slackware-install</b><var><a name="index-local_002dslackware_002dinstall-33"></a></var><br>
+<blockquote><p>Install the previously built package.  To be invoked as:
+
+     <pre class="example">          $ sudo make local-slackware-install
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>local-slackware-remove</b><var><a name="index-local_002dslackware_002dremove-34"></a></var><br>
+<blockquote><p>Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+     <pre class="example">          $ sudo make local-slackware-remove
+     </pre>
+        <p>See the <code>slack_INSTALLED_PACKAGE</code> variable for the name of the
+package that will be removed. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>local-slackware-upgrade</b><var><a name="index-local_002dslackware_002dupgrade-35"></a></var><br>
+<blockquote><p>Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+     <pre class="example">          $ sudo make local-slackware-upgrade
+     </pre>
+        <p>See the <code>slack_INSTALLED_PACKAGE</code> variable for the name of the
+package that will be removed. 
+</p></blockquote></div>
 
 <!--  -->
 <!-- page -->
@@ -342,7 +728,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <h2 class="appendix">Appendix A GNU Free Documentation License</h2>
 
-<p><a name="index-FDL_002c-GNU-Free-Documentation-License-12"></a><div align="center">Version 1.1, March 2000</div>
+<p><a name="index-FDL_002c-GNU-Free-Documentation-License-36"></a><div align="center">Version 1.1, March 2000</div>
 
 <pre class="display">     Copyright &copy; 2000 Free Software Foundation, Inc.
      59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
@@ -731,7 +1117,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <h2 class="appendix">Appendix C An entry for each concept</h2>
 
 <ul class="index-cp" compact>
-<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-12">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
+<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-36">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
 </ul><div class="node">
 <p><hr>
 <a name="function-index"></a>
@@ -752,6 +1138,20 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <li><a href="#index-bindist_002dclean_002dbuilddir-11"><code>bindist-clean-builddir</code></a>: <a href="#bindist">bindist</a></li>
 <li><a href="#index-bindist_002dclean_002dtop_002dbuilddir-10"><code>bindist-clean-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
 <li><a href="#index-bindist_002dtop_002dbuilddir-8"><code>bindist-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-local_002dslackware-32"><code>local-slackware</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-local_002dslackware_002dinstall-33"><code>local-slackware-install</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-local_002dslackware_002dremove-34"><code>local-slackware-remove</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-local_002dslackware_002dupgrade-35"><code>local-slackware-upgrade</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-slackware-27"><code>slackware</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-slackware_002daux-22"><code>slackware-aux</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dbuilddir-20"><code>slackware-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dclean-23"><code>slackware-clean</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dclean_002dbuilddir-25"><code>slackware-clean-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dclean_002dtop_002dbuilddir-24"><code>slackware-clean-top-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dinstall-28"><code>slackware-install</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-slackware_002dremove-29"><code>slackware-remove</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-slackware_002dtop_002dbuilddir-21"><code>slackware-top-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dupgrade-30"><code>slackware-upgrade</code></a>: <a href="#slackware-standard">slackware standard</a></li>
    </ul><div class="node">
 <p><hr>
 <a name="variable-index"></a>
@@ -771,6 +1171,16 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <li><a href="#index-bindist_005fPACKAGE_005fTOP_005fBUILDDIR-3"><code>bindist_PACKAGE_TOP_BUILDDIR</code></a>: <a href="#bindist">bindist</a></li>
 <li><a href="#index-bindist_005fTARBALL_005fPATHNAME-5"><code>bindist_TARBALL_PATHNAME</code></a>: <a href="#bindist">bindist</a></li>
 <li><a href="#index-COMPRESSOR-1"><code>COMPRESSOR</code></a>: <a href="#vars-misc">vars misc</a></li>
+<li><a href="#index-slack_005fBUILDDIR-16"><code>slack_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fINSTALLED_005fPACKAGE-19"><code>slack_INSTALLED_PACKAGE</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fBUILDDIR-15"><code>slack_PACKAGE_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fNAME-12"><code>slack_PACKAGE_NAME</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fPREFIX-13"><code>slack_PACKAGE_PREFIX</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fTOP_005fBUILDDIR-14"><code>slack_PACKAGE_TOP_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fREGISTRY-17"><code>slack_REGISTRY</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fREGISTRY_005fDIR-18"><code>slack_REGISTRY_DIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_005fLOCAL_005fENV-31"><code>slackware_LOCAL_ENV</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-slackware_005fSTANDARD_005fENV-26"><code>slackware_STANDARD_ENV</code></a>: <a href="#slackware-standard">slackware standard</a></li>
    </ul><div class="node">
 <p><hr>
 <a name="type-index"></a>
@@ -798,6 +1208,11 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <ul>
 <li><a href="#bindist">3.1 Building plain binary packages</a>
 <li><a href="#slackware">3.2 Building Slackware packages</a>
+<ul>
+<li><a href="#slackware-common">3.2.1 Common variables and rules</a>
+<li><a href="#slackware-standard">3.2.2 Building standard Slackware packages</a>
+<li><a href="#slackware-local">3.2.3 Building local Slackware packages</a>
+</li></ul>
 </li></ul>
 <li><a name="toc_Documentation-License" href="#Documentation-License">Appendix A GNU Free Documentation License</a>
 <ul>

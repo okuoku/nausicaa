@@ -675,10 +675,445 @@ $ make bindist-clean-builddir
 
 @c ------------------------------------------------------------
 
+@subsubheading Example layout
+
+
+@example
+./usr/
+./usr/local/
+./usr/local/lib/
+./usr/local/lib/ikarus/
+./usr/local/lib/ikarus/scmobj/
+./usr/local/lib/ikarus/scmobj/main.sls.ikarus-fasl
+./usr/local/lib/ikarus/scmobj/main.sls
+./usr/local/share/
+./usr/local/share/doc/
+./usr/local/share/doc/nausicaa-scmobj/
+./usr/local/share/doc/nausicaa-scmobj/0.1d0/
+./usr/local/share/doc/nausicaa-scmobj/0.1d0/info/
+./usr/local/share/doc/nausicaa-scmobj/0.1d0/info/nausicaa-scmobj.info
+@end example
+
+
+@c ------------------------------------------------------------
+
 @c page
 @node slackware
 @section Building Slackware packages
 
+
+Support for Slackware packages allows the construction of both standard
+and ``local'' packages.  Let's take the @code{nausicaa-scmobj} project
+as example; let's imagine that inspecting the package variables yields
+this:
+
+@example
+$ cd scmobj
+$ make echo-variable VARIABLE=PACKAGE_NAME
+nausicaa-scmobj
+
+$ make echo-variable VARIABLE=PACKAGE_VERSION
+0.1d0
+
+$ make echo-variable VARIABLE=package_BUILD_VERSION
+1mm
+
+$ make echo-variable VARIABLE=package_ARCH
+i686
+
+$ make echo-variable VARIABLE=TMPDIR
+/tmp/marco
+@end example
+
+
+@menu
+* slackware common::            Common variables and rules.
+* slackware standard::          Building standard Slackware packages.
+* slackware local::             Building local Slackware packages.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node slackware common
+@subsection Common variables and rules
+
+
+This section documents variables and rules that can are used both when
+building standard packages and local packages.
+
+
+@subsubheading Makefile variables
+
+
+@defvar slack_PACKAGE_NAME
+This is the file name of the Slackware package.  Notice that there is no
+directory part.
+
+Example:
+
+@example
+$ make echo-variable VARIABLE=slack_PACKAGE_NAME
+nausicaa-scmobj-0.1d0-i686-1mm.tgz
+@end example
+@end defvar
+
+
+@defvar slack_PACKAGE_PREFIX
+This is the package prefix, it is used to remove the package.
+
+Example:
+
+@example
+$ make echo-variable VARIABLE=slack_PACKAGE_PREFIX
+nausicaa-scmobj-0.1d0-i686-1mm
+@end example
+@end defvar
+
+
+@defvar slack_PACKAGE_TOP_BUILDDIR
+This is the root directory for temporary installation of files.
+
+Example:
+
+@example
+$ make echo-variable VARIABLE=slack_PACKAGE_TOP_BUILDDIR
+/tmp/marco/nausicaa-scmobj-0.1d0
+@end example
+@end defvar
+
+
+@defvar slack_PACKAGE_BUILDDIR
+This is the root directory for building packages.  The rules for
+standard packages will set it to:
+
+@example
+$(slack_PACKAGE_TOP_BUILDDIR)
+@end example
+
+@noindent
+the rules for local packages will set it to:
+
+@example
+$(slack_PACKAGE_TOP_BUILDDIR)/$(prefix)
+@end example
+
+It is set to the empty string, and it will be set by the rules by
+invoking @code{$(MAKE)} recursively.
+@end defvar
+
+
+@defvar slack_BUILDDIR
+This is where the produced package will be finally stored.
+
+Example (from the build directory of the author):
+
+@example
+$ make echo-variable VARIABLE=slack_BUILDDIR
+/home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./slackware.d
+@end example
+@end defvar
+
+
+@defvar slack_REGISTRY
+@defvarx slack_REGISTRY_DIR
+These are used to select the pathname of the Slackware packages
+registry.  The standard package rules will set @var{slack_REGISTRY} to:
+
+@example
+$(slack_REGISTRY_DIR)
+@end example
+
+@noindent
+while the local package rules will set it to:
+
+@example
+$(prefix)$(slack_REGISTRY_DIR)
+@end example
+
+Example:
+
+@example
+$ make echo-variable VARIABLE=slack_REGISTRY_DIR
+/var/log/packages
+@end example
+@end defvar
+
+
+@defvar slack_INSTALLED_PACKAGE
+The definition of this variable tries to read from the system the name
+of an already installed package.  It is used to upgrade.
+
+This variable Example (after having installed the package):
+
+@example
+$ make echo-variable VARIABLE=slack_INSTALLED_PACKAGE
+nausicaa-scmobj-0.1d0-i686-1mm
+@end example
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Makefile rules
+
+
+@deffn {Makefile Rule} slackware-builddir
+If the directory @code{$(slack_BUILDDIR)} does not exist: create it.  To
+be invoked as:
+
+@example
+$ make slackware-builddir
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-top-builddir
+If the directory @code{$(slack_PACKAGE_TOP_BUILDDIR)} does not exist:
+create it.  To be invoked as:
+
+@example
+$ make slackware-top-builddir
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-aux
+This is for auxiliary stuff: it is freely available to the user.  It
+will be invoked after having installed the files in the temporary
+location, and just before running @command{makepkg} (see the
+@code{slackware} and @code{local-slackware} rules).
+
+It is not meant to be invoked explicitly.
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-clean
+Equivalent to invoke both the @code{slackware-clean-top-builddir} and
+@code{slackware-clean-builddir} rules.  To be invoked as:
+
+@example
+$ make slackware-clean
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-clean-top-builddir
+Remove the @code{$(slack_PACKAGE_TOP_BUILDDIR)} directory and all its
+contents.  To be invoked as:
+
+@example
+$ make slackware-clean-top-builddir
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-clean-builddir
+Remove the @code{$(slack_BUILDDIR)} directory and all its contents.  To
+be invoked as:
+
+@example
+$ make slackware-clean-builddir
+@end example
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node slackware standard
+@subsection Building standard Slackware packages
+
+
+A standard Slackware package is a normal Slackware package: a tarball
+with @code{.tgz} extension; with the pathnames relative to the root
+directory; registered in the @file{/var/log/packages} registry.
+
+
+@subsubheading Makefile variables
+
+
+@defvar slackware_STANDARD_ENV
+The system environment with which the Slackware package management
+scripts will be run.
+
+Example:
+
+@example
+$ make echo-list-variable VARIABLE=slackware_STANDARD_ENV
+PATH=/sbin:...
+slack_PACKAGE_BUILDDIR=/tmp/marco/nausicaa-scmobj-0.1d0
+slack_REGISTRY=/var/log/packages
+@end example
+
+@noindent
+we see that @file{/sbin} has been added to the @env{PATH} variable: this
+is because the Slackware management scripts need to find each other.
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Makefile rules
+
+
+For all the following rules: root privileges are needed to build a
+standard package; so we may want to use a tool like @command{sudo} to
+run @command{make}.  In the following we will assume that this is the
+case.
+
+Always remember that the @option{-n} option of @gnu{} Make allows us to
+see the commands that a rule will execute, without actually executing
+them.  Example:
+
+@example
+$ make local-slackware-upgrade -n
+@end example
+
+
+@deffn {Makefile Rule} slackware
+Build the package and place it into the build directory.  To be invoked
+as:
+
+@example
+$ sudo make slackware
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-install
+Install the previously built package.  To be invoked as:
+
+@example
+$ sudo make slackware-install
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-remove
+Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+@example
+$ sudo make slackware-remove
+@end example
+
+See the @code{slack_INSTALLED_PACKAGE} variable for the name of the
+package that will be removed.
+@end deffn
+
+
+@deffn {Makefile Rule} slackware-upgrade
+Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+@example
+$ sudo make slackware-upgrade
+@end example
+
+See the @code{slack_INSTALLED_PACKAGE} variable for the name of the
+package that will be removed.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node slackware local
+@subsection Building local Slackware packages
+
+
+A local Slackware package is: a tarball with @code{.tgz} extension; with
+the pathnames relative to the selected installation prefix (for example
+@file{/usr/local}); registered in the @file{$(prefix)/var/log/packages}
+registry, where @code{$(prefix)} is the selected installation prefix.
+
+
+@subsubheading Makefile variables
+
+
+@defvar slackware_LOCAL_ENV
+The system environment with which the Slackware package management
+scripts will be run.
+
+Example:
+
+@example
+$ make echo-list-variable VARIABLE=slackware_LOCAL_ENV
+PATH=/sbin:...
+slack_PACKAGE_BUILDDIR=/tmp/marco/nausicaa-scmobj-0.1d0//usr/local
+slack_REGISTRY=/usr/local/var/log/packages
+slack_ENV=ROOT=/usr/local
+@end example
+
+@noindent
+we see that @file{/sbin} has been added to the @env{PATH} variable: this
+is because the Slackware management scripts need to find each other.
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Makefile rules
+
+
+For all the following rules: root privileges may be needed to build a
+local package; so we may want to use a tool like @command{sudo} to run
+@command{make}.  In the following we will assume that this is the case.
+
+Always remember that the @option{-n} option of @gnu{} Make allows us to
+see the commands that a rule will execute, without actually executing
+them.  Example:
+
+@example
+$ make local-slackware-upgrade -n
+@end example
+
+
+@deffn {Makefile Rule} local-slackware
+Build the package and place it into the build directory.  To be invoked
+as:
+
+@example
+$ sudo make local-slackware
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} local-slackware-install
+Install the previously built package.  To be invoked as:
+
+@example
+$ sudo make local-slackware-install
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} local-slackware-remove
+Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+@example
+$ sudo make local-slackware-remove
+@end example
+
+See the @code{slack_INSTALLED_PACKAGE} variable for the name of the
+package that will be removed.
+@end deffn
+
+
+@deffn {Makefile Rule} local-slackware-upgrade
+Try to upgrade an already installed package with the previously built
+package.  To be invoked as:
+
+@example
+$ sudo make local-slackware-upgrade
+@end example
+
+See the @code{slack_INSTALLED_PACKAGE} variable for the name of the
+package that will be removed.
+@end deffn
 
 
 @c ------------------------------------------------------------

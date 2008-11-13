@@ -223,11 +223,319 @@ Makefile rules
 
           $ make bindist-clean-builddir
 
+Example layout
+..............
+
+     ./usr/
+     ./usr/local/
+     ./usr/local/lib/
+     ./usr/local/lib/ikarus/
+     ./usr/local/lib/ikarus/scmobj/
+     ./usr/local/lib/ikarus/scmobj/main.sls.ikarus-fasl
+     ./usr/local/lib/ikarus/scmobj/main.sls
+     ./usr/local/share/
+     ./usr/local/share/doc/
+     ./usr/local/share/doc/nausicaa-scmobj/
+     ./usr/local/share/doc/nausicaa-scmobj/0.1d0/
+     ./usr/local/share/doc/nausicaa-scmobj/0.1d0/info/
+     ./usr/local/share/doc/nausicaa-scmobj/0.1d0/info/nausicaa-scmobj.info
+
 
 File: nausicaa.info,  Node: slackware,  Prev: bindist,  Up: package
 
 3.2 Building Slackware packages
 ===============================
+
+Support for Slackware packages allows the construction of both standard
+and "local" packages.  Let's take the `nausicaa-scmobj' project as
+example; let's imagine that inspecting the package variables yields
+this:
+
+     $ cd scmobj
+     $ make echo-variable VARIABLE=PACKAGE_NAME
+     nausicaa-scmobj
+
+     $ make echo-variable VARIABLE=PACKAGE_VERSION
+     0.1d0
+
+     $ make echo-variable VARIABLE=package_BUILD_VERSION
+     1mm
+
+     $ make echo-variable VARIABLE=package_ARCH
+     i686
+
+     $ make echo-variable VARIABLE=TMPDIR
+     /tmp/marco
+
+* Menu:
+
+* slackware common::            Common variables and rules.
+* slackware standard::          Building standard Slackware packages.
+* slackware local::             Building local Slackware packages.
+
+
+File: nausicaa.info,  Node: slackware common,  Next: slackware standard,  Up: slackware
+
+3.2.1 Common variables and rules
+--------------------------------
+
+This section documents variables and rules that can are used both when
+building standard packages and local packages.
+
+Makefile variables
+..................
+
+ -- Variable: slack_PACKAGE_NAME
+     This is the file name of the Slackware package.  Notice that there
+     is no directory part.
+
+     Example:
+
+          $ make echo-variable VARIABLE=slack_PACKAGE_NAME
+          nausicaa-scmobj-0.1d0-i686-1mm.tgz
+
+ -- Variable: slack_PACKAGE_PREFIX
+     This is the package prefix, it is used to remove the package.
+
+     Example:
+
+          $ make echo-variable VARIABLE=slack_PACKAGE_PREFIX
+          nausicaa-scmobj-0.1d0-i686-1mm
+
+ -- Variable: slack_PACKAGE_TOP_BUILDDIR
+     This is the root directory for temporary installation of files.
+
+     Example:
+
+          $ make echo-variable VARIABLE=slack_PACKAGE_TOP_BUILDDIR
+          /tmp/marco/nausicaa-scmobj-0.1d0
+
+ -- Variable: slack_PACKAGE_BUILDDIR
+     This is the root directory for building packages.  The rules for
+     standard packages will set it to:
+
+          $(slack_PACKAGE_TOP_BUILDDIR)
+
+     the rules for local packages will set it to:
+
+          $(slack_PACKAGE_TOP_BUILDDIR)/$(prefix)
+
+     It is set to the empty string, and it will be set by the rules by
+     invoking `$(MAKE)' recursively.
+
+ -- Variable: slack_BUILDDIR
+     This is where the produced package will be finally stored.
+
+     Example (from the build directory of the author):
+
+          $ make echo-variable VARIABLE=slack_BUILDDIR
+          /home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./slackware.d
+
+ -- Variable: slack_REGISTRY
+ -- Variable: slack_REGISTRY_DIR
+     These are used to select the pathname of the Slackware packages
+     registry.  The standard package rules will set SLACK_REGISTRY to:
+
+          $(slack_REGISTRY_DIR)
+
+     while the local package rules will set it to:
+
+          $(prefix)$(slack_REGISTRY_DIR)
+
+     Example:
+
+          $ make echo-variable VARIABLE=slack_REGISTRY_DIR
+          /var/log/packages
+
+ -- Variable: slack_INSTALLED_PACKAGE
+     The definition of this variable tries to read from the system the
+     name of an already installed package.  It is used to upgrade.
+
+     This variable Example (after having installed the package):
+
+          $ make echo-variable VARIABLE=slack_INSTALLED_PACKAGE
+          nausicaa-scmobj-0.1d0-i686-1mm
+
+Makefile rules
+..............
+
+ -- Makefile Rule: slackware-builddir
+     If the directory `$(slack_BUILDDIR)' does not exist: create it.  To
+     be invoked as:
+
+          $ make slackware-builddir
+
+ -- Makefile Rule: slackware-top-builddir
+     If the directory `$(slack_PACKAGE_TOP_BUILDDIR)' does not exist:
+     create it.  To be invoked as:
+
+          $ make slackware-top-builddir
+
+ -- Makefile Rule: slackware-aux
+     This is for auxiliary stuff: it is freely available to the user.
+     It will be invoked after having installed the files in the
+     temporary location, and just before running `makepkg' (see the
+     `slackware' and `local-slackware' rules).
+
+     It is not meant to be invoked explicitly.
+
+ -- Makefile Rule: slackware-clean
+     Equivalent to invoke both the `slackware-clean-top-builddir' and
+     `slackware-clean-builddir' rules.  To be invoked as:
+
+          $ make slackware-clean
+
+ -- Makefile Rule: slackware-clean-top-builddir
+     Remove the `$(slack_PACKAGE_TOP_BUILDDIR)' directory and all its
+     contents.  To be invoked as:
+
+          $ make slackware-clean-top-builddir
+
+ -- Makefile Rule: slackware-clean-builddir
+     Remove the `$(slack_BUILDDIR)' directory and all its contents.  To
+     be invoked as:
+
+          $ make slackware-clean-builddir
+
+
+File: nausicaa.info,  Node: slackware standard,  Next: slackware local,  Prev: slackware common,  Up: slackware
+
+3.2.2 Building standard Slackware packages
+------------------------------------------
+
+A standard Slackware package is a normal Slackware package: a tarball
+with `.tgz' extension; with the pathnames relative to the root
+directory; registered in the `/var/log/packages' registry.
+
+Makefile variables
+..................
+
+ -- Variable: slackware_STANDARD_ENV
+     The system environment with which the Slackware package management
+     scripts will be run.
+
+     Example:
+
+          $ make echo-list-variable VARIABLE=slackware_STANDARD_ENV
+          PATH=/sbin:...
+          slack_PACKAGE_BUILDDIR=/tmp/marco/nausicaa-scmobj-0.1d0
+          slack_REGISTRY=/var/log/packages
+
+     we see that `/sbin' has been added to the `PATH' variable: this is
+     because the Slackware management scripts need to find each other.
+
+Makefile rules
+..............
+
+For all the following rules: root privileges are needed to build a
+standard package; so we may want to use a tool like `sudo' to run
+`make'.  In the following we will assume that this is the case.
+
+   Always remember that the `-n' option of GNU Make allows us to see
+the commands that a rule will execute, without actually executing them.
+Example:
+
+     $ make local-slackware-upgrade -n
+
+ -- Makefile Rule: slackware
+     Build the package and place it into the build directory.  To be
+     invoked as:
+
+          $ sudo make slackware
+
+ -- Makefile Rule: slackware-install
+     Install the previously built package.  To be invoked as:
+
+          $ sudo make slackware-install
+
+ -- Makefile Rule: slackware-remove
+     Try to upgrade an already installed package with the previously
+     built package.  To be invoked as:
+
+          $ sudo make slackware-remove
+
+     See the `slack_INSTALLED_PACKAGE' variable for the name of the
+     package that will be removed.
+
+ -- Makefile Rule: slackware-upgrade
+     Try to upgrade an already installed package with the previously
+     built package.  To be invoked as:
+
+          $ sudo make slackware-upgrade
+
+     See the `slack_INSTALLED_PACKAGE' variable for the name of the
+     package that will be removed.
+
+
+File: nausicaa.info,  Node: slackware local,  Prev: slackware standard,  Up: slackware
+
+3.2.3 Building local Slackware packages
+---------------------------------------
+
+A local Slackware package is: a tarball with `.tgz' extension; with the
+pathnames relative to the selected installation prefix (for example
+`/usr/local'); registered in the `$(prefix)/var/log/packages' registry,
+where `$(prefix)' is the selected installation prefix.
+
+Makefile variables
+..................
+
+ -- Variable: slackware_LOCAL_ENV
+     The system environment with which the Slackware package management
+     scripts will be run.
+
+     Example:
+
+          $ make echo-list-variable VARIABLE=slackware_LOCAL_ENV
+          PATH=/sbin:...
+          slack_PACKAGE_BUILDDIR=/tmp/marco/nausicaa-scmobj-0.1d0//usr/local
+          slack_REGISTRY=/usr/local/var/log/packages
+          slack_ENV=ROOT=/usr/local
+
+     we see that `/sbin' has been added to the `PATH' variable: this is
+     because the Slackware management scripts need to find each other.
+
+Makefile rules
+..............
+
+For all the following rules: root privileges may be needed to build a
+local package; so we may want to use a tool like `sudo' to run `make'.
+In the following we will assume that this is the case.
+
+   Always remember that the `-n' option of GNU Make allows us to see
+the commands that a rule will execute, without actually executing them.
+Example:
+
+     $ make local-slackware-upgrade -n
+
+ -- Makefile Rule: local-slackware
+     Build the package and place it into the build directory.  To be
+     invoked as:
+
+          $ sudo make local-slackware
+
+ -- Makefile Rule: local-slackware-install
+     Install the previously built package.  To be invoked as:
+
+          $ sudo make local-slackware-install
+
+ -- Makefile Rule: local-slackware-remove
+     Try to upgrade an already installed package with the previously
+     built package.  To be invoked as:
+
+          $ sudo make local-slackware-remove
+
+     See the `slack_INSTALLED_PACKAGE' variable for the name of the
+     package that will be removed.
+
+ -- Makefile Rule: local-slackware-upgrade
+     Try to upgrade an already installed package with the previously
+     built package.  To be invoked as:
+
+          $ sudo make local-slackware-upgrade
+
+     See the `slack_INSTALLED_PACKAGE' variable for the name of the
+     package that will be removed.
 
 
 File: nausicaa.info,  Node: Documentation License,  Next: references,  Prev: package,  Up: Top
@@ -641,12 +949,26 @@ Appendix D An entry for each function.
  [index ]
 * Menu:
 
-* bindist:                               bindist.              (line 65)
-* bindist-builddir:                      bindist.              (line 71)
-* bindist-clean:                         bindist.              (line 83)
-* bindist-clean-builddir:                bindist.              (line 95)
-* bindist-clean-top-builddir:            bindist.              (line 89)
-* bindist-top-builddir:                  bindist.              (line 77)
+* bindist:                               bindist.             (line  65)
+* bindist-builddir:                      bindist.             (line  71)
+* bindist-clean:                         bindist.             (line  83)
+* bindist-clean-builddir:                bindist.             (line  95)
+* bindist-clean-top-builddir:            bindist.             (line  89)
+* bindist-top-builddir:                  bindist.             (line  77)
+* local-slackware:                       slackware local.     (line  43)
+* local-slackware-install:               slackware local.     (line  49)
+* local-slackware-remove:                slackware local.     (line  54)
+* local-slackware-upgrade:               slackware local.     (line  63)
+* slackware:                             slackware standard.  (line  41)
+* slackware-aux:                         slackware common.    (line  99)
+* slackware-builddir:                    slackware common.    (line  87)
+* slackware-clean:                       slackware common.    (line 107)
+* slackware-clean-builddir:              slackware common.    (line 119)
+* slackware-clean-top-builddir:          slackware common.    (line 113)
+* slackware-install:                     slackware standard.  (line  47)
+* slackware-remove:                      slackware standard.  (line  52)
+* slackware-top-builddir:                slackware common.    (line  93)
+* slackware-upgrade:                     slackware standard.  (line  61)
 
 
 File: nausicaa.info,  Node: variable index,  Next: type index,  Prev: function index,  Up: Top
@@ -662,6 +984,16 @@ Appendix E An entry for each variable.
 * bindist_PACKAGE_TOP_BUILDDIR:          bindist.              (line 38)
 * bindist_TARBALL_PATHNAME:              bindist.              (line 54)
 * COMPRESSOR:                            vars misc.            (line  7)
+* slack_BUILDDIR:                        slackware common.     (line 51)
+* slack_INSTALLED_PACKAGE:               slackware common.     (line 75)
+* slack_PACKAGE_BUILDDIR:                slackware common.     (line 38)
+* slack_PACKAGE_NAME:                    slackware common.     (line 13)
+* slack_PACKAGE_PREFIX:                  slackware common.     (line 22)
+* slack_PACKAGE_TOP_BUILDDIR:            slackware common.     (line 30)
+* slack_REGISTRY:                        slackware common.     (line 59)
+* slack_REGISTRY_DIR:                    slackware common.     (line 60)
+* slackware_LOCAL_ENV:                   slackware local.      (line 15)
+* slackware_STANDARD_ENV:                slackware standard.   (line 14)
 
 
 File: nausicaa.info,  Node: type index,  Prev: variable index,  Up: Top
@@ -680,12 +1012,15 @@ Node: vars2337
 Node: vars misc2579
 Node: package3029
 Node: bindist4015
-Node: slackware6846
-Node: Documentation License6982
-Node: references26887
-Node: concept index27070
-Node: function index27337
-Node: variable index27977
-Node: type index28541
+Node: slackware7371
+Node: slackware common8263
+Node: slackware standard12051
+Node: slackware local14273
+Node: Documentation License16637
+Node: references36542
+Node: concept index36725
+Node: function index36992
+Node: variable index38654
+Node: type index39948
 
 End Tag Table

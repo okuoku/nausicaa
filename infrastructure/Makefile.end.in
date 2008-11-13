@@ -296,7 +296,7 @@ slack_PACKAGE_NAME	= $(package_PREFIX).tgz
 slack_PACKAGE_PREFIX	= $(package_PREFIX)
 
 # This is  the root directory for  temporary installation of
-# files
+# files.
 slack_PACKAGE_TOP_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
 
 # This  is the  root directory  for building  packages.  The
@@ -327,7 +327,7 @@ slack_REGISTRY_DIR	= /var/log/packages
 
 # Try  to  read from  the  system  the  name of  an  already
 # installed package.  It is used to upgrade.
-slack_INSTALLED_PACKAGE	:= \
+slack_INSTALLED_PACKAGE	= \
 	$(firstword $(notdir $(wildcard $(slack_REGISTRY)/$(package_NAME)-*)))
 
 ## ------------------------------------------------------------
@@ -399,7 +399,10 @@ private-slackware-upgrade:
 .PHONY: slackware-builddir slackware-aux
 
 slackware-builddir:
-	test -d $(slack_BUILDDIR) || $(MKDIR) $(slack_BUILDDIR)
+	-test -d $(slack_BUILDDIR) || $(MKDIR) $(slack_BUILDDIR)
+
+slackware-top-builddir:
+	-test -d $(slack_PACKAGE_TOP_BUILDDIR) || $(MKDIR) $(slack_PACKAGE_TOP_BUILDDIR)
 
 # This is for auxiliary rules: it is freely available to the
 # user.  It  will be  invoked just before  running "makepkg"
@@ -425,7 +428,7 @@ slackware-clean-builddir:
 ## Slackware packaging: standard package build.
 ## ------------------------------------------------------------
 
-standard_SLACKWARE_ENV	= \
+slackware_STANDARD_ENV	= \
 	PATH=/sbin:$(PATH)					\
 	slack_PACKAGE_BUILDDIR=$(slack_PACKAGE_TOP_BUILDDIR)	\
 	slack_REGISTRY=$(slack_REGISTRY_DIR)
@@ -436,17 +439,17 @@ standard_SLACKWARE_ENV	= \
 .PHONY: slackware-remove slackware-upgrade
 
 slackware:
-	$(MAKE) private-slackware		$(standard_SLACKWARE_ENV)
-	$(MAKE) slackware-clean-top-builddir	$(standard_SLACKWARE_ENV)
+	$(MAKE) private-slackware		$(slackware_STANDARD_ENV)
+	$(MAKE) slackware-clean-top-builddir	$(slackware_STANDARD_ENV)
 
 slackware-install:
-	$(MAKE) private-slackware-install	$(standard_SLACKWARE_ENV)
+	$(MAKE) private-slackware-install	$(slackware_STANDARD_ENV)
 
 slackware-remove:
-	$(MAKE) private-slackware-remove	$(standard_SLACKWARE_ENV)
+	$(MAKE) private-slackware-remove	$(slackware_STANDARD_ENV)
 
 slackware-upgrade:
-	$(MAKE) private-slackware-upgrade	$(standard_SLACKWARE_ENV)
+	$(MAKE) private-slackware-upgrade	$(slackware_STANDARD_ENV)
 
 ## ------------------------------------------------------------
 
@@ -455,7 +458,7 @@ slackware-upgrade:
 ## Slackware packaging: local package build.
 ## ------------------------------------------------------------
 
-local_SLACKWARE_ENV	= \
+slackware_LOCAL_ENV	= \
 	PATH=/sbin:$(PATH)						\
 	slack_PACKAGE_BUILDDIR=$(slack_PACKAGE_TOP_BUILDDIR)/$(prefix)	\
 	slack_REGISTRY=$(prefix)$(slack_REGISTRY_DIR)			\
@@ -467,17 +470,17 @@ local_SLACKWARE_ENV	= \
 .PHONY: local-slackware-remove local-slackware-upgrade
 
 local-slackware:
-	$(MAKE) private-slackware		$(local_SLACKWARE_ENV)
-	$(MAKE) slackware-clean-top-builddir	$(local_SLACKWARE_ENV)
+	$(MAKE) private-slackware		$(slackware_LOCAL_ENV)
+	$(MAKE) slackware-clean-top-builddir	$(slackware_LOCAL_ENV)
 
 local-slackware-install:
-	$(MAKE) private-slackware-install	$(local_SLACKWARE_ENV)
+	$(MAKE) private-slackware-install	$(slackware_LOCAL_ENV)
 
 local-slackware-remove:
-	$(MAKE) private-slackware-remove	$(local_SLACKWARE_ENV)
+	$(MAKE) private-slackware-remove	$(slackware_LOCAL_ENV)
 
 local-slackware-upgrade:
-	$(MAKE) private-slackware-upgrade	$(local_SLACKWARE_ENV)
+	$(MAKE) private-slackware-upgrade	$(slackware_LOCAL_ENV)
 
 ## ------------------------------------------------------------
 
