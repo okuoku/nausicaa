@@ -46,26 +46,24 @@ The files in this directory are in the public domain.
 3. Install
 ----------
 
-This  installation  infrastructure  supports  only  the  GNU
-system; which  means GNU Make,  GNU Bash and the  common GNU
-command  line tools  (cp,  mv, mkdir,  ...).  The  following
-rules are available in the "Makefile":
+The following rules are available:
 
   all		build  the "ike"  script  from the  template
-		"ike.in";
+		"ike.in"; build the completions file;
 
-  clean		remove the "ike" script;
+  clean		remove the "ike" script and the completions
+                file;
 
   install	install the script and the completion file;
 
-  uninstall	uinstall the script and the completion file.
+  uninstall	uninstall the script and the completion file.
 
   To test what a rule will do use the "-n" option; example:
 
     $ make install -n
 
   The "Makefile" supports the "DESTDIR" environment variable
-to install the fils under a temporary location; example:
+to install the files under a temporary location; example:
 
     $ make install DESTDIR=/tmp/marco/ikarus-wrapper
 
