@@ -5,10 +5,17 @@
 ;;;
 ;;;Abstract
 ;;;
+;;;	This  is a port  to R6RS  and Ikarus  of ScmObj  by Dorai
+;;;	Sitaram.  The original code is available at:
 ;;;
+;;;	 <http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html>
 ;;;
-;;;Copyright (c) 1996 Dorai Sitaram
+;;;	(last checked  Thu Nov 13, 2008).  The  original code has
+;;;	been  a  little overhauled  to  make  it  work with  R6RS
+;;;	libraries.
+;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 1996 Dorai Sitaram
 ;;;
 ;;;This is  free software; you can redistribute  it and/or modify
 ;;;it under the terms of the GNU Lesser General Public License as
@@ -61,10 +68,10 @@
     ;;Next method interface.
     call-next-method next-method?
     scmobj:the-next-method-func scmobj:the-next-method-pred)
-    (import (rnrs)
-	    (rnrs mutable-pairs (6))
-	    (except (srfi lists) delete-duplicates cons)
-	    (srfi parameters))
+  (import (rnrs)
+	  (rnrs mutable-pairs (6))
+	  (except (srfi lists) delete-duplicates cons)
+	  (srfi parameters))
 
 ;;; ------------------------------------------------------------
 

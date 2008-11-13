@@ -21,14 +21,15 @@ This  is a  distribution  of Scheme  language libraries  for
 Ikarus Scheme.
 
 
-1.1 About Nausicaa
-------------------
+1.1 About 'Nausicaa'
+--------------------
 
 If  you  are  wondering   why  this  distribution  is  named
 Nausicaa,  read the  manga "Nausicaa  of the  Valley  of the
-Wind" by Master Hayao Miyazaki, or watch the movie.  You may
-also  find interesting what  the crazy  guys of  the OpenSky
-projects are trying to do:
+Wind" by Master Hayao Miyazaki, or watch the movie.
+
+  You may also  find interesting what the crazy  guys of the
+OpenSky project are trying to do:
 
        <http://www.petworks.co.jp/~hachiya/opensky/>
 
@@ -39,8 +40,8 @@ projects are trying to do:
 Each package in this distribution has its own license notice
 and copyright  assignment.  You must look  in the individual
 directories for  the COPYING  file, and occasionally  at the
-top  of each  file there  is a  specific license  notice and
-copyright assignment.
+top of each  file, where there is a  specific license notice
+and copyright assignment.
 
 
 3. Installation
@@ -49,7 +50,7 @@ copyright assignment.
 The Nausicaa  installation infrastructure supports  only GNU
 systems.   This  means  Unix   like  systems  in  which  the
 following common tools and packages are installed: GNU Bash,
-GNU Make, GNU coreutils, GNU tar, Gzip.
+GNU Make, GNU coreutils, GNU tar, Gzip, Bzip2.
 
   There are 2 sources of informations about the installation
 of  a Nausicaa  package: the  individual,  package specific,
@@ -88,22 +89,23 @@ different ways to form expressions.
 gives  a defining  description of  the  programming language
 Scheme.  The report is the work of many people in the course
 of many  years.  Revision 6  was edited by  Michael Sperber,
-R. Kent Dybvig, Matthew Flatt, Anton Van Straaten.
+R. Kent Dybvig, Matthew Flatt and Anton Van Straaten.
 
-  Ikarus  Scheme  is   the  creation  of  Abdulaziz  Ghuloum
-(<http://www.cs.indiana.edu/~aghuloum/>).
+  Ikarus is  an R6RS compliant implementation  of the Scheme
+programming  language.   It  is  the creation  of  Abdulaziz
+Ghuloum (<http://www.cs.indiana.edu/~aghuloum/>).
 
   Several libraries depend upon  the port to R6RS and Ikarus
-Scheme  of the  Scheme Requests  For  Implementation (SRFI).
-The  original  SRFI  code  is  the  work  of  many  authors,
-reference of which you can find the at the top of the source
-code  files;  the port  to  Ikarus  is  the work  of  Derick
-Eddington (<https://launchpad.net/~derick-eddington>).
+of  the  Scheme  Requests  For Implementation  (SRFI).   The
+original SRFI code is the work of many authors, reference of
+which you can find the at  the top of the source code files;
+the  port  to  Ikarus   is  the  work  of  Derick  Eddington
+(<https://launchpad.net/~derick-eddington>).
 
   The Nausicaa  distribution and installation infrastructure
 is the  creation of Marco  Maggi (<marcomaggi@gna.org>).  If
-this work exists  is because of the GNU  Software tools that
-he uses all the time.
+this work  exists, it is  because of the GNU  Software tools
+that he uses all the time.
 
   For other  credits notes  look in the  individual, package
 specific, REAME files.

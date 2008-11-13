@@ -29,6 +29,19 @@ package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_B
 
 ## ------------------------------------------------------------
 
+# Compressor to be used when creating a tarball; it is used
+# by the binary distribution rules.  Supported values:
+#
+#   bzip2		selects the Bzip2 compressor
+#   gzip		selects the Gzip compressor
+#
+# if a different value is set, the compressor will default
+# to 'gzip'.
+# 
+COMPRESSOR		= bzip2
+
+## ------------------------------------------------------------
+
 #page
 ## ------------------------------------------------------------
 ## Directories.

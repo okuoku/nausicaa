@@ -79,6 +79,8 @@ all:
 
 tag:
 	echo $(lastword $(shell $(GIT) tag)) >tag
+	printf '@macro version{}\n%s\n@end macro' $(TAG) \
+		>doc/version.texiinc
 
 builddir:
 	-@test -d $(builddir) || $(MKDIR) $(builddir)
