@@ -235,6 +235,10 @@
 @c Scheme language macros.
 @c ------------------------------------------------------------
 
+@macro fasl{}
+@acronym{FASL}
+@end macro
+
 @macro clos{}
 @acronym{CLOS}
 @end macro
@@ -424,7 +428,9 @@ entitled ``@gnu{} Free Documentation License''.
      
 @menu
 * overview::                    Overview of the package. 
+* config::                      Configuration.
 * vars::                        Variables.
+* rules::                       Rules.
 * package::                     Building packages.
 
 Appendices
@@ -449,7 +455,93 @@ Indexes
 
 
 @noindent
-This ...
+@value{PACKAGE} is a distribution of Scheme language libraries for
+Ikarus Scheme.  This document describes the project building and
+installation infrastructure, use by almost all the projects in the
+distribution.
+
+Only pure Scheme projects are accepted into Nausicaa; no C language code
+is compiled or used.  Access to foreign shared library is written with
+the Foreign Function Interface provided by Ikarus.
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node config
+@chapter Configuration
+
+
+The configuration of a project for building, installing and binary
+package creation is managed with @gnu{} Autoconf.  Each project
+subdirectory has a @command{configure} script that must be run to
+initialise the infrastructure.
+
+Let's take the @code{scmobj} project as example; we should do this:
+
+@example
+$ tar --extract --bzip2 \
+   --file=nausicaa--devel--0.1--patch-1-src.tar.bz2
+
+$ cd nausicaa--devel--0.1--patch-1
+$ cd scmobj
+$ mkdir "=build"
+$ cd "=build"
+$ ../configure
+@end example
+
+@noindent
+then we are ready to apply the @command{make} program to the
+@file{Makefile}.
+
+
+@menu
+* config options::              Options for @command{configure}.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node config options
+@section Options for @command{configure}
+
+
+For the full list of available configuration options, we should try the
+command:
+
+@example
+$ ../configure --help
+@end example
+
+@noindent
+what follows is a list of common options.
+
+
+@table @code
+@item --prefix=@var{value}
+Select the directory to be used as installation prefix; all the files
+installed by a project will end under this directory; it defaults to
+@file{/usr/local}.
+
+@item --enable-fasl
+@itemx --disable-fasl
+Enable or disable the compilation and installation of @fasl{} files;
+these are the precompiled version of the installed libraries.  It
+defaults to: yes, build and install the compiled files.
+
+At present (Thu Nov 13, 2008) only libraries can be compiled by Ikarus.
+
+@item --enable-sls
+@itemx --disable-sls
+Enable or disable the installation of source files.  It defaults to:
+yes, install the source files.
+
+@item --enable-doc
+@itemx --disable-doc
+Enable or disable the compilation and installation of source files.  It
+defaults to: yes, build and install the documentation files.
+@end table
 
 
 @c ------------------------------------------------------------
@@ -459,11 +551,15 @@ This ...
 @chapter Variables
 
 
-This chapter documents the variable in the @file{Makefile}
+This chapter documents the variables in the @file{Makefile}
 infrastructure.
 
 
 @menu
+* vars config::                 Configuration variables.
+* vars project::                Project related variables.
+* vars package::                Binary package variables.
+* vars directories::            Directory variables.
 * vars misc::                   Miscellaneous variables.
 @end menu
 
@@ -471,11 +567,38 @@ infrastructure.
 @c ------------------------------------------------------------
 
 @c page
-@node vars misc
-@section Miscellaneous variables
+@node vars config
+@section Configuration variables
 
 
-@defvar COMPRESSOR
+@defvar nausicaa_ENABLE_SLS
+Enable or disable the installation of source files; valid values are
+@code{yes} and @code{no}.  The default is @code{yes}.
+
+It is set by the @command{configure} options @option{--enable-sls} and
+@option{--disable-sls}.
+@end defvar
+
+
+@defvar nausicaa_ENABLE_FASL
+Enable or disable compilation and installation of @fasl{} files; valid
+values are @code{yes} and @code{no}.  The default is @code{yes}.
+
+It is set by the @command{configure} options @option{--enable-fasl} and
+@option{--disable-fasl}.
+@end defvar
+
+
+@defvar nausicaa_ENABLE_DOC
+Enable or disable compilation and installation of documentation files;
+valid values are @code{yes} and @code{no}.  The default is @code{yes}.
+
+It is set by the @command{configure} options @option{--enable-doc} and
+@option{--disable-doc}.
+@end defvar
+
+
+@defvar nausicaa_COMPRESSOR
 Select the compressor to be used when creating a tarball; it is used by
 the binary distribution rules.
 
@@ -490,8 +613,796 @@ selects the Gzip compressor;
 @end table
 
 @noindent
-if a different value is set, the compressor will default to @code{gzip}.
+if a different value is set, the compressor will default to
+@code{gzip}.  The default value is @code{gzip}.
 @end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars project
+@section Project related variables
+
+
+@defvar PACKAGE_NAME
+The name of the project; it is used to compose the name of binary
+distribution packages.
+
+It is set by the @command{configure} script.
+@end defvar
+
+
+@defvar PACKAGE_VERSION
+The version specification of the project; it is used to compose the name
+of binary distribution packages.
+
+It is set by the @command{configure} script.
+@end defvar
+
+
+@defvar PKG_ID
+An identifier composed using the package name and version.
+
+It is set by the @command{configure} script, and its value should be:
+
+@example
+$(PACKAGE_NAME)-$(PACKAGE_VERSION)
+@end example
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars package
+@section Binary package variables
+
+
+@defvr {Customisable Variable} package_BUILD_VERSION
+A special version specification to tag binary distribution packages.  It
+should be used to give a version to the package file.
+
+It defaults to @code{1nau}, which means ``Nausicaa build version 1''.
+@end defvr
+
+
+@defvr {Customisable Variable} package_ARCH
+Architecture specification to be used to tag binary distribution
+packages.  It should be used to identify the architecture for which a
+package file was built.
+
+It must be set to a meaningful value, like @code{i486} or @code{i686}.
+It defaults to @code{noarch}, which means that the package holds only
+architecture independent files (like source and documentation files).
+@end defvr
+
+
+@defvar package_NAME
+@defvarx package_VERSION
+These are aliases for @code{PACKAGE_NAME} and @code{PACKAGE_VERSION},
+and are used to compose the name of binary distribution files.
+@end defvar
+
+
+@defvar package_PREFIX
+The file name of binary distribution packages, without extension.  It
+is set to:
+
+@example
+$(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
+@end example
+
+As a usage example, Slackware packages have name:
+
+@example
+$(package_PREFIX).tgz
+@end example
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars directories
+@section Directory variables
+
+
+@defvar srcdir
+The pathname of the top source directory of a Nausicaa project.
+
+The rules of the @file{Makefile} will assume that this is a relative
+directory pathname, and the full pathname can be built with:
+@code{$(PWD)/$(srcdir)}.
+
+It is set by the @command{configure} script.
+@end defvar
+
+
+@defvar builddir
+The pathname of the top build directory of a Nausicaa project.  It is
+meant to be the directory from which we have invoked the
+@command{configure} script.
+
+The rules of the @file{Makefile} will assume that this is a relative
+directory pathname, and the full pathname can be built with:
+@code{$(PWD)/$(builddir)}.
+
+It is set by the @command{configure} script.
+@end defvar
+
+
+@menu
+* vars directories common::    Common installation directories.
+* vars directories custom::    Custom installation directories.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars directories common
+@subsection Common installation directories
+
+
+These are the standard @gnu{} Autoconf variables used to install files
+on the system.  All of them are set by the @command{configure} script.
+
+
+@defvar prefix
+The root of the installation directories.
+@end defvar
+
+
+@defvar exec_prefix
+The installation prefix for architecture--dependent files.
+@end defvar
+
+
+@defvar bindir
+The directories for installing executables that users run.
+@end defvar
+
+
+@defvar datarootdir
+The root of the directory tree for read--only architecture--independent
+data files.
+@end defvar
+
+
+@defvar datadir
+The directory for installing idiosyncratic read--only
+architecture--independent data.
+@end defvar
+
+
+@defvar docdir
+The directory for installing documentation files (other than Info and
+man).
+@end defvar
+
+
+@defvar includedir
+The directory for installing C header files.
+@end defvar
+
+
+@defvar infodir
+The directory for installing documentation in Info format.
+@end defvar
+
+
+@defvar libdir
+The directory for installing object code libraries.
+@end defvar
+
+
+@defvar libexecdir
+The directory for installing executables that other programs run.
+@end defvar
+
+
+@defvar localstatedir
+The directory for installing locale--dependent but
+architecture--independent data, such as message catalogs.  This
+directory usually has a subdirectory per locale.
+@end defvar
+
+
+@defvar mandir
+The top--level directory for installing documentation in man format.
+@end defvar
+
+
+@defvar sbindir
+The directory for installing executables that system administrators run.
+@end defvar
+
+
+@defvar sharedstatedir
+The directory for installing modifiable architecture--independent data.
+@end defvar
+
+
+@defvar sysconfdir
+The directory for installing read--only single--machine data.
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars directories custom
+@subsection Custom installation directories
+
+
+These are the custom variables used to install files on the system.
+With the exception of @code{ikarus_PKGLIBDIR}, all of them are set by
+the @command{configure} script.
+
+
+@defvar PKG_DIR
+A project specific directory name that is used to compose other
+directory pathnames.  It is set to:
+
+@example
+$(PACKAGE_NAME)/$(PACKAGE_VERSION)
+@end example
+@end defvar
+
+
+@defvar pkgdatadir
+Project specific directory for data files.
+@end defvar
+
+
+@defvar pkgdocdir
+Project specific directory for documentation files.
+@end defvar
+
+@defvar pkgexampledir
+Project specific directory for example files.
+@end defvar
+
+@defvar pkginfodir
+Project specific directory for documentation files in Info format.
+@end defvar
+
+@defvar pkghtmldir
+Project specific directory for documentation files in @acronym{HTML}
+format.
+@end defvar
+
+@defvar pkgincludedir
+Project specific directory for C language header files.
+@end defvar
+
+@defvar pkglibdir
+Project specific directory for library files.
+@end defvar
+
+@defvar pkglibexecdir
+Project specific directory for executable files.
+@end defvar
+
+
+@defvar pkgsysconfdir
+Project specific directory for system configuration files.
+@end defvar
+
+
+@defvar ikarus_PKGLIBDIR
+This should be the system directory in which Ikarus libraries are
+installed.  It is set to:
+
+@example
+$(libdir)/ikarus
+@end example
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars misc
+@section Miscellaneous variables
+
+
+@defvar TMPDIR
+System environment variable that selects the root directory for
+temporary fils.  It is used to build binary distribution packages.  If
+not set or set to the empty string: it defaults to @file{/tmp}.
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules
+@chapter Rules
+
+
+@menu
+* rules main::                  Main rules.
+* rules doc::                   Documentation related rules.
+* rules sls::                   Handling source files.
+* rules fasl::                  Handling precompiled files.
+* rules texinfo::               Documentation in Texinfo format.
+* rules inspect::               Inspecting variables.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules main
+@section Main rules
+
+
+@subsubheading Making
+
+
+@deffn {Makefile Rule} all
+Build everything that the project was configured to build.  To be
+invoked as:
+
+@example
+$ make all
+@end example
+
+This is the first rule in the @file{Makefile}, so it can be invoked also
+by running @command{make} without rule arguments.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Cleaning
+
+
+@deffn {Makefile Rule} clean
+Remove all the files that were built with the @code{all} rule.  To be invoked
+as:
+
+@example
+$ make clean
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} realclean
+Remove all the files that were built with the @code{all} rule.  To be
+invoked as:
+
+@example
+$ make realclean
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} clean-builddir
+Remove everything in the build directory and its subdirectories:
+@strong{use with care!!!}  To be invoked in a safe place as:
+
+@example
+$ make clean-builddir
+@end example
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Installation
+
+
+For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+@command{sudo} to run @command{make}.  In the following we will assume
+that this is the case.
+
+
+@deffn {Makefile Rule} install
+Install on the system all the files that the project was configured to
+install.  To be invoked as:
+
+@example
+$ sudo make install
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} uninstall
+Uninstall from the system all the files that the project was configured
+to install.  To be invoked as:
+
+@example
+$ sudo make uninstall
+@end example
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules doc
+@section Documentation related rules
+
+
+Compilation, installation and uninstallation are enabled or disabled
+with configuration options and variables; see the relevant sections.
+
+
+@subsubheading Making and cleaning
+
+
+@deffn {Makefile Rule} doc
+Build all the documentation that the project was configured to build.
+To be invoked as:
+
+@example
+$ make doc
+@end example
+
+This rule is invoked by @code{all}.
+@end deffn
+
+
+@deffn {Makefile Rule} doc-clean
+Remove all the files that were built by the @code{doc} rule.  To be
+invoked as:
+
+@example
+$ make doc-clean
+@end example
+
+This rule is invoked by @code{clean}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Installation
+
+
+For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+@command{sudo} to run @command{make}.  In the following we will assume
+that this is the case.
+
+
+@deffn {Makefile Rule} doc-install
+Install all the documentation that the project was configured to build.
+To be invoked as:
+
+@example
+$ sudo make doc-install
+@end example
+
+This rule is invoked by @code{install}.
+@end deffn
+
+
+@deffn {Makefile Rule} doc-uninstall
+Uninstall all the documentation that the project was configured to
+build.  To be invoked as:
+
+@example
+$ sudo make doc-uninstall
+@end example
+
+This rule is invoked by @code{uninstall}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules sls
+@section Handling source files
+
+
+@subsubheading Installation
+
+
+For all the following rules:
+
+@itemize
+@item
+installation and uninstallation are enabled or disabled with
+configuration options and variables; see the relevant sections;
+
+@item
+root privileges may be needed to install and uninstall files on the
+system; so we may want to use a tool like @command{sudo} to run
+@command{make}; in the following we will assume that this is the case.
+@end itemize
+
+
+@deffn {Makefile Rule} sls-install
+Install the Scheme source files.  All the files with extension
+@code{.sls} in the @file{libraries} subdirectory of the project are
+installed on the system.  To be invoked as:
+
+@example
+$ sudo make sls-install
+@end example
+
+This rule is invoked by @code{install}.
+@end deffn
+
+
+@deffn {Makefile Rule} sls-uninstall
+Uninstall the Scheme source files.  To be invoked as:
+
+@example
+$ sudo make sls-uninstall
+@end example
+
+This rule is invoked by @code{uninstall}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules fasl
+@section Handling precompiled files
+
+
+Compilation, installation and uninstallation are enabled or disabled
+with configuration options and variables; see the relevant sections.
+
+Producing precompiled library files is a multistep process:
+
+@enumerate
+@item
+the library files are built by running the command:
+
+@example
+ikarus --compile-dependencies compile-all.sps
+@end example
+
+@noindent
+with a system environment that allows Ikarus to find the relevant
+libraries; this way the @fasl{} files are created in the source
+directory of the project;
+
+@item
+the @fasl{} files are moved from the source directory into a
+subdirectory of the build directory, preserving the directory structure.
+@end enumerate
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Making and cleaning
+
+
+@deffn {Makefile Rule} fasl
+@deffnx {Makefile Rule} compile
+Compile the library files.  To be invoked as:
+
+@example
+$ make fasl
+@end example
+
+This rule is invoked by @code{all}.
+@end deffn
+
+
+@deffn {Makefile Rule} fasl-clean
+@deffnx {Makefile Rule} compile-clean
+Remove all the compiled files.  To be invoked as:
+
+@example
+$ make fasl-clean
+@end example
+
+This rule is invoked by @code{clean}.
+@end deffn
+
+
+@deffn {Makefile Rule} fasl-clean-fasl-in-srcdir
+Remove all the compiled files that, for some reason, may have been left
+in the source directory.  To be invoked as:
+
+@example
+$ make fasl-clean-fasl-in-srcdir
+@end example
+
+This rule is invoked by @code{fasl-clean}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Installation
+
+
+For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+@command{sudo} to run @command{make}; in the following we will assume
+that this is the case.
+
+
+@deffn {Makefile Rule} fasl-install
+Install the precompiled library files.  To be invoked as:
+
+@example
+$ sudo make fasl-install
+@end example
+
+This rule is invoked by @code{install}.
+@end deffn
+
+
+@deffn {Makefile Rule} fasl-uninstall
+Uninstall the precompiled files.  To be invoked as:
+
+@example
+$ sudo make fasl-uninstall
+@end example
+
+This rule is invoked by @code{uninstall}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules texinfo
+@section Documentation in Texinfo format
+
+
+Texinfo is the standard documentation format for Nausicaa projects.  By
+default only the Info documentation is built and installed.
+Compilation, installation and uninstallation are enabled or disabled
+with configuration options and variables; see the relevant sections.
+
+
+@subsubheading Making and cleaning
+
+
+@deffn {Makefile Rule} doc-texinfo
+Build the Texinfo documentation that the project was configured to
+build.  To be invoked as:
+
+@example
+$ make doc-texinfo
+@end example
+
+This rule is invoked by @code{doc}.
+@end deffn
+
+
+@deffn {Makefile Rule} doc-texinfo-clean
+Remove all the files that were built by the @code{doc-texinfo} rule.  To
+be invoked as:
+
+@example
+$ make doc-texinfo-clean
+@end example
+
+This rule is invoked by @code{doc-clean}.
+@end deffn
+
+
+@deffn {Makefile Rule} doc-texinfo-builddir
+If the build directory for Texinfo documentation does not exist: create
+it.  To be invoked as:
+
+@example
+$ make doc-texinfo-builddir
+@end example
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Installation
+
+
+For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+@command{sudo} to run @command{make}.  In the following we will assume
+that this is the case.
+
+
+@deffn {Makefile Rule} doc-texinfo-install
+Install all the Texinfo documentation that the project was configured to
+build.  To be invoked as:
+
+@example
+$ sudo make doc-texinfo-install
+@end example
+
+This rule is invoked by @code{doc-install}.
+@end deffn
+
+
+@deffn {Makefile Rule} doc-texinfo-uninstall
+Uninstall all the documentation that the project was configured to
+build.  To be invoked as:
+
+@example
+$ sudo make doc-texinfo-uninstall
+@end example
+
+This rule is invoked by @code{doc-uninstall}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Variables
+
+
+@defvar doc_texinfo_SRCDIR
+The pathname of the source directory for Texinfo files.
+@end defvar
+
+
+@defvar doc_texinfo_BUILDDIR
+The pathname of the build directory for Texinfo documentation.
+@end defvar
+
+
+@defvar doc_texinfo_SOURCES
+The list of Texinfo source files.
+@end defvar
+
+
+@defvar doc_texinfo_TARGETS
+The list of Texinfo target files.  These are the files that will be
+built by the @code{doc-texinfo} rule.
+@end defvar
+
+
+@defvar doc_texinfo_CLEANFILES
+The list of Texinfo files that will be remove by the
+@code{doc-texinfo-clean} rule.
+@end defvar
+
+
+@defvar doc_texinfo_INSTLST
+The list of files that will be installed on the system by the
+@code{doc-texinfo-install} rule.
+@end defvar
+
+
+@defvar doc_texinfo_INSTDIR
+The target directory for installation of Info files.
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules inspect
+@section Inspecting variables
+
+
+The value of @file{Makefile} variables can be inspected from the command
+line with the following rules.
+
+
+@deffn {Makefile Rule} echo-variable
+Echo a variable to stdout.  Example:
+ 
+@example
+$ make echo-variable VARIABLE=slack_PACKAGE_NAME
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} 
+Echo a variable to stdout, interpreting it as list of strings.  Each
+string is echoed on its own line.  Example:
+ 
+@example
+$ make echo-list-variable VARIABLE=sls_INSTLST
+@end example
+@end deffn
 
 
 @c ------------------------------------------------------------
