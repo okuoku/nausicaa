@@ -539,8 +539,19 @@ yes, install the source files.
 
 @item --enable-doc
 @itemx --disable-doc
-Enable or disable the compilation and installation of source files.  It
-defaults to: yes, build and install the documentation files.
+Enable or disable the compilation and installation of documentation
+files.  It defaults to: yes, build and install the documentation.
+
+@item --enable-doc-info
+@itemx --disable-doc-info
+Enable or disable the compilation and installation of Info documentation
+files.  It defaults to: yes, build and install the Info documentation.
+
+@item --enable-doc-html
+@itemx --disable-doc-html
+Enable or disable the compilation and installation of @acronym{HTML}
+documentation files.  It defaults to: no, @strong{do not} build and
+install the @acronym{HTML} documentation.
 @end table
 
 
