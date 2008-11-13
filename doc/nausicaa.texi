@@ -9,9 +9,7 @@
 @c Macros.
 @c ------------------------------------------------------------
 
-@macro version{}
-0.1d0
-@end macro
+@include version.texiinc
 
 
 @c ------------------------------------------------------------
@@ -426,6 +424,8 @@ entitled ``@gnu{} Free Documentation License''.
      
 @menu
 * overview::                    Overview of the package. 
+* vars::                        Variables.
+* package::                     Building packages.
 
 Appendices
 
@@ -450,6 +450,235 @@ Indexes
 
 @noindent
 This ...
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars
+@chapter Variables
+
+
+This chapter documents the variable in the @file{Makefile}
+infrastructure.
+
+
+@menu
+* vars misc::                   Miscellaneous variables.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node vars misc
+@section Miscellaneous variables
+
+
+@defvar COMPRESSOR
+Select the compressor to be used when creating a tarball; it is used by
+the binary distribution rules.
+
+Supported values:
+
+@table @code
+@item bzip2
+selects the Bzip2 compressor;
+
+@item gzip
+selects the Gzip compressor;
+@end table
+
+@noindent
+if a different value is set, the compressor will default to @code{gzip}.
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node package
+@chapter Building packages
+
+
+@value{PACKAGE} has limited support for building binary packages.  All
+the Nausicaa projects that declare, in their @file{README} file, to
+support the Nausicaa infrastructure, support building packages as
+described in this chapter.
+
+The idea is to install the files in a temporary location, and then to
+use the native packaging tools to build a binary package.  The binary
+package file is moved to (or directly created into) a subdirectory of
+the project build directory.
+
+@quotation
+@strong{It is of paramount importance that we set the @env{TMPDIR}
+environment variable to a good value, before attempting to use the rules
+described in this chapter.  If @var{TMPDIR} is set to an empty string,
+the @file{Makefile} will set it to @file{/tmp}.}
+@end quotation
+
+
+@menu
+* bindist::                     Building plain binary packages.
+* slackware::                   Building Slackware packages.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node bindist
+@section Building plain binary packages
+
+
+Let's take the @code{nausicaa-scmobj} project as example; let's imagine
+that inspecting the package variables yields this:
+
+@example
+$ cd scmobj
+$ make echo-variable VARIABLE=PACKAGE_NAME
+nausicaa-scmobj
+
+$ make echo-variable VARIABLE=PACKAGE_VERSION
+0.1d0
+
+$ make echo-variable VARIABLE=package_BUILD_VERSION
+1mm
+
+$ make echo-variable VARIABLE=package_ARCH
+i686
+
+$ make echo-variable VARIABLE=TMPDIR
+/tmp/marco
+@end example
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Makefile variables
+
+
+@defvar bindist_PACKAGE_NAME
+This is the file name of the binary distribution tarball.  Notice that
+there is no directory part.
+
+Example:
+
+@example
+$ make echo-variable VARIABLE=bindist_PACKAGE_NAME
+nausicaa-scmobj-0.1d0-i686-1mm.tar.bz2
+@end example
+@end defvar
+
+
+@defvar bindist_PACKAGE_TOP_BUILDDIR
+This is the root directory for temporary installation of files.
+
+Example:
+
+@example
+$ make echo-variable VARIABLE=bindist_PACKAGE_TOP_BUILDDIR
+/tmp/marco/nausicaa-scmobj-0.1d0
+@end example
+@end defvar
+
+
+@defvar bindist_BUILDDIR
+This is where the produced tarball will be finally stored.
+
+Example (from the build directory of the author):
+
+@example
+$ make echo-variable VARIABLE=bindist_PACKAGE_TOP_BUILDDIR
+/home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./bindist.d
+@end example
+@end defvar
+
+
+@defvar bindist_TARBALL_PATHNAME
+This is the full pathname of the tarball.
+
+Example:
+
+@example
+$ make echo-variable VARIABLE=bindist_TARBALL_PATHNAME
+/home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./bindist.d/nausicaa-scmobj-0.1d0-i686-1mm.tar.bz2
+@end example
+@end defvar
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Makefile rules
+
+
+@deffn {Makefile Rule} bindist
+Build the binary distribution tarball and place it in the build
+directory.  To be invoked as:
+
+@example
+$ make bindist
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} bindist-builddir
+If the @code{$(bindist_BUILDDIR)} directory does not exist: create it.
+To be invoked as:
+
+@example
+$ make bindist-builddir
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} bindist-top-builddir
+If the @code{$(bindist_PACKAGE_TOP_BUILDDIR)} directory does not exist:
+create it.  To be invoked as:
+
+@example
+$ make bindist-top-builddir
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} bindist-clean
+Equivalent to invoke both the @code{bindist-clean-top-builddir} and
+@code{bindist-clean-builddir} rules.  To be invoked as:
+
+@example
+$ make bindist-clean
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} bindist-clean-top-builddir
+Remove the @code{$(bindist_PACKAGE_TOP_BUILDDIR)} directory and all its
+contents.  To be invoked as:
+
+@example
+$ make bindist-clean-top-builddir
+@end example
+@end deffn
+
+
+@deffn {Makefile Rule} bindist-clean-builddir
+Remove the @code{$(bindist_BUILDDIR)} directory and all its contents.
+To be invoked as:
+
+@example
+$ make bindist-clean-builddir
+@end example
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node slackware
+@section Building Slackware packages
+
 
 
 @c ------------------------------------------------------------

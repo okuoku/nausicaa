@@ -7,7 +7,7 @@
 <link title="Top" rel="top" href="#Top">
 <link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
 <!--
-This document describes version 0.1d0 of Nausicaa, a
+This document describes version nausicaa--devel--0.1 of Nausicaa, a
 distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
@@ -45,7 +45,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#dir">(dir)</a>
 
 <h2 class="unnumbered">Nausicaa</h2>
 
-<p class="noindent">This document describes version 0.1d0 of Nausicaa, a
+<p class="noindent">This document describes version nausicaa&ndash;devel&ndash;0.1 of Nausicaa, a
 distribution of Scheme language libraries for Ikarus Scheme.
 
 <p class="noindent">Copyright &copy; 2008 by Marco Maggi <a href="mailto:marcomaggi@gna.org">marcomaggi@gna.org</a>
@@ -61,25 +61,27 @@ entitled &ldquo;<acronym>GNU</acronym> Free Documentation License&rdquo;.
 </blockquote>
 
 <ul class="menu">
-<li><a accesskey="1" href="#overview">overview</a>:                     Overview of the package.
+<li><a accesskey="1" href="#overview">overview</a>:                     Overview of the package. 
+<li><a accesskey="2" href="#vars">vars</a>:                         Variables. 
+<li><a accesskey="3" href="#package">package</a>:                      Building packages.
 
 </li></ul>
 <p>Appendices
 
 </p>
 <ul class="menu">
-<li><a accesskey="2" href="#Documentation-License">Documentation License</a>:        GNU Free Documentation License. 
-<li><a accesskey="3" href="#references">references</a>:                   Bibliography and references.
+<li><a accesskey="4" href="#Documentation-License">Documentation License</a>:        GNU Free Documentation License. 
+<li><a accesskey="5" href="#references">references</a>:                   Bibliography and references.
 
 </li></ul>
 <p>Indexes
 
 </p>
 <ul class="menu">
-<li><a accesskey="4" href="#concept-index">concept index</a>:                An entry for each concept. 
-<li><a accesskey="5" href="#function-index">function index</a>:               An entry for each function. 
-<li><a accesskey="6" href="#variable-index">variable index</a>:               An entry for each variable. 
-<li><a accesskey="7" href="#type-index">type index</a>:                   An entry for each type. 
+<li><a accesskey="6" href="#concept-index">concept index</a>:                An entry for each concept. 
+<li><a accesskey="7" href="#function-index">function index</a>:               An entry for each function. 
+<li><a accesskey="8" href="#variable-index">variable index</a>:               An entry for each variable. 
+<li><a accesskey="9" href="#type-index">type index</a>:                   An entry for each type. 
 </ul>
 
 <!--  -->
@@ -87,7 +89,7 @@ entitled &ldquo;<acronym>GNU</acronym> Free Documentation License&rdquo;.
 <div class="node">
 <p><hr>
 <a name="overview"></a>
-Next:&nbsp;<a rel="next" accesskey="n" href="#Documentation-License">Documentation License</a>,
+Next:&nbsp;<a rel="next" accesskey="n" href="#vars">vars</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="#Top">Top</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
@@ -101,16 +103,246 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <!-- page -->
 <div class="node">
 <p><hr>
+<a name="vars"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#package">package</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#overview">overview</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">2 Variables</h2>
+
+<p>This chapter documents the variable in the <samp><span class="file">Makefile</span></samp>
+infrastructure.
+
+<ul class="menu">
+<li><a accesskey="1" href="#vars-misc">vars misc</a>:                    Miscellaneous variables. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-misc"></a>
+Up:&nbsp;<a rel="up" accesskey="u" href="#vars">vars</a>
+
+</div>
+
+<h3 class="section">2.1 Miscellaneous variables</h3>
+
+<div class="defun">
+&mdash; Variable: <b>COMPRESSOR</b><var><a name="index-COMPRESSOR-1"></a></var><br>
+<blockquote><p>Select the compressor to be used when creating a tarball; it is used by
+the binary distribution rules.
+
+        <p>Supported values:
+
+          <dl>
+<dt><code>bzip2</code><dd>selects the Bzip2 compressor;
+
+          <br><dt><code>gzip</code><dd>selects the Gzip compressor;
+</dl>
+
+     <p class="noindent">if a different value is set, the compressor will default to <code>gzip</code>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="package"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Documentation-License">Documentation License</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars">vars</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">3 Building packages</h2>
+
+<p>Nausicaa has limited support for building binary packages.  All
+the Nausicaa projects that declare, in their <samp><span class="file">README</span></samp> file, to
+support the Nausicaa infrastructure, support building packages as
+described in this chapter.
+
+   <p>The idea is to install the files in a temporary location, and then to
+use the native packaging tools to build a binary package.  The binary
+package file is moved to (or directly created into) a subdirectory of
+the project build directory.
+
+   <blockquote>
+<strong>It is of paramount importance that we set the <samp></strong><span class="env">TMPDIR</span><strong></samp>
+environment variable to a good value, before attempting to use the rules
+described in this chapter.  If </strong><var>TMPDIR</var><strong> is set to an empty string,
+the <samp></strong><span class="file">Makefile</span><strong></samp> will set it to <samp></strong><span class="file">/tmp</span><strong></samp>.</strong>
+</blockquote>
+
+<ul class="menu">
+<li><a accesskey="1" href="#bindist">bindist</a>:                      Building plain binary packages. 
+<li><a accesskey="2" href="#slackware">slackware</a>:                    Building Slackware packages. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="bindist"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#slackware">slackware</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#package">package</a>
+
+</div>
+
+<h3 class="section">3.1 Building plain binary packages</h3>
+
+<p>Let's take the <code>nausicaa-scmobj</code> project as example; let's imagine
+that inspecting the package variables yields this:
+
+<pre class="example">     $ cd scmobj
+     $ make echo-variable VARIABLE=PACKAGE_NAME
+     nausicaa-scmobj
+     
+     $ make echo-variable VARIABLE=PACKAGE_VERSION
+     0.1d0
+     
+     $ make echo-variable VARIABLE=package_BUILD_VERSION
+     1mm
+     
+     $ make echo-variable VARIABLE=package_ARCH
+     i686
+     
+     $ make echo-variable VARIABLE=TMPDIR
+     /tmp/marco
+</pre>
+   <!--  -->
+<h5 class="subsubheading">Makefile variables</h5>
+
+<div class="defun">
+&mdash; Variable: <b>bindist_PACKAGE_NAME</b><var><a name="index-bindist_005fPACKAGE_005fNAME-2"></a></var><br>
+<blockquote><p>This is the file name of the binary distribution tarball.  Notice that
+there is no directory part.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=bindist_PACKAGE_NAME
+          nausicaa-scmobj-0.1d0-i686-1mm.tar.bz2
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>bindist_PACKAGE_TOP_BUILDDIR</b><var><a name="index-bindist_005fPACKAGE_005fTOP_005fBUILDDIR-3"></a></var><br>
+<blockquote><p>This is the root directory for temporary installation of files.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=bindist_PACKAGE_TOP_BUILDDIR
+          /tmp/marco/nausicaa-scmobj-0.1d0
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>bindist_BUILDDIR</b><var><a name="index-bindist_005fBUILDDIR-4"></a></var><br>
+<blockquote><p>This is where the produced tarball will be finally stored.
+
+        <p>Example (from the build directory of the author):
+
+     <pre class="example">          $ make echo-variable VARIABLE=bindist_PACKAGE_TOP_BUILDDIR
+          /home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./bindist.d
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>bindist_TARBALL_PATHNAME</b><var><a name="index-bindist_005fTARBALL_005fPATHNAME-5"></a></var><br>
+<blockquote><p>This is the full pathname of the tarball.
+
+        <p>Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=bindist_TARBALL_PATHNAME
+          /home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./bindist.d/nausicaa-scmobj-0.1d0-i686-1mm.tar.bz2
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Makefile rules</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>bindist</b><var><a name="index-bindist-6"></a></var><br>
+<blockquote><p>Build the binary distribution tarball and place it in the build
+directory.  To be invoked as:
+
+     <pre class="example">          $ make bindist
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>bindist-builddir</b><var><a name="index-bindist_002dbuilddir-7"></a></var><br>
+<blockquote><p>If the <code>$(bindist_BUILDDIR)</code> directory does not exist: create it. 
+To be invoked as:
+
+     <pre class="example">          $ make bindist-builddir
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>bindist-top-builddir</b><var><a name="index-bindist_002dtop_002dbuilddir-8"></a></var><br>
+<blockquote><p>If the <code>$(bindist_PACKAGE_TOP_BUILDDIR)</code> directory does not exist:
+create it.  To be invoked as:
+
+     <pre class="example">          $ make bindist-top-builddir
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>bindist-clean</b><var><a name="index-bindist_002dclean-9"></a></var><br>
+<blockquote><p>Equivalent to invoke both the <code>bindist-clean-top-builddir</code> and
+<code>bindist-clean-builddir</code> rules.  To be invoked as:
+
+     <pre class="example">          $ make bindist-clean
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>bindist-clean-top-builddir</b><var><a name="index-bindist_002dclean_002dtop_002dbuilddir-10"></a></var><br>
+<blockquote><p>Remove the <code>$(bindist_PACKAGE_TOP_BUILDDIR)</code> directory and all its
+contents.  To be invoked as:
+
+     <pre class="example">          $ make bindist-clean-top-builddir
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>bindist-clean-builddir</b><var><a name="index-bindist_002dclean_002dbuilddir-11"></a></var><br>
+<blockquote><p>Remove the <code>$(bindist_BUILDDIR)</code> directory and all its contents. 
+To be invoked as:
+
+     <pre class="example">          $ make bindist-clean-builddir
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="slackware"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#bindist">bindist</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#package">package</a>
+
+</div>
+
+<h3 class="section">3.2 Building Slackware packages</h3>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
 <a name="Documentation-License"></a>
 Next:&nbsp;<a rel="next" accesskey="n" href="#references">references</a>,
-Previous:&nbsp;<a rel="previous" accesskey="p" href="#overview">overview</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#package">package</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 </div>
 
 <h2 class="appendix">Appendix A GNU Free Documentation License</h2>
 
-<p><a name="index-FDL_002c-GNU-Free-Documentation-License-1"></a><div align="center">Version 1.1, March 2000</div>
+<p><a name="index-FDL_002c-GNU-Free-Documentation-License-12"></a><div align="center">Version 1.1, March 2000</div>
 
 <pre class="display">     Copyright &copy; 2000 Free Software Foundation, Inc.
      59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
@@ -499,7 +731,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <h2 class="appendix">Appendix C An entry for each concept</h2>
 
 <ul class="index-cp" compact>
-<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-1">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
+<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-12">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
 </ul><div class="node">
 <p><hr>
 <a name="function-index"></a>
@@ -514,6 +746,12 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 
 <ul class="index-fn" compact>
+<li><a href="#index-bindist-6"><code>bindist</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dbuilddir-7"><code>bindist-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dclean-9"><code>bindist-clean</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dclean_002dbuilddir-11"><code>bindist-clean-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dclean_002dtop_002dbuilddir-10"><code>bindist-clean-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dtop_002dbuilddir-8"><code>bindist-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
    </ul><div class="node">
 <p><hr>
 <a name="variable-index"></a>
@@ -528,6 +766,11 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 
 <ul class="index-vr" compact>
+<li><a href="#index-bindist_005fBUILDDIR-4"><code>bindist_BUILDDIR</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_005fPACKAGE_005fNAME-2"><code>bindist_PACKAGE_NAME</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_005fPACKAGE_005fTOP_005fBUILDDIR-3"><code>bindist_PACKAGE_TOP_BUILDDIR</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_005fTARBALL_005fPATHNAME-5"><code>bindist_TARBALL_PATHNAME</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-COMPRESSOR-1"><code>COMPRESSOR</code></a>: <a href="#vars-misc">vars misc</a></li>
    </ul><div class="node">
 <p><hr>
 <a name="type-index"></a>
@@ -547,6 +790,15 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <ul>
 <li><a name="toc_Top" href="#Top">Nausicaa</a>
 <li><a name="toc_overview" href="#overview">1 Overview of the package</a>
+<li><a name="toc_vars" href="#vars">2 Variables</a>
+<ul>
+<li><a href="#vars-misc">2.1 Miscellaneous variables</a>
+</li></ul>
+<li><a name="toc_package" href="#package">3 Building packages</a>
+<ul>
+<li><a href="#bindist">3.1 Building plain binary packages</a>
+<li><a href="#slackware">3.2 Building Slackware packages</a>
+</li></ul>
 <li><a name="toc_Documentation-License" href="#Documentation-License">Appendix A GNU Free Documentation License</a>
 <ul>
 <ul>

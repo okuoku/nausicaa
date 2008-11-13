@@ -1,8 +1,8 @@
 This is nausicaa.info, produced by makeinfo version 4.8 from
 nausicaa.texi.
 
-This document describes version 0.1d0 of Nausicaa, a distribution of
-Scheme language libraries for Ikarus Scheme.
+This document describes version nausicaa-devel-0.1 of Nausicaa, a
+distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
 
@@ -26,8 +26,8 @@ File: nausicaa.info,  Node: Top,  Next: overview,  Up: (dir)
 Nausicaa
 ********
 
-This document describes version 0.1d0 of Nausicaa, a distribution of
-Scheme language libraries for Ikarus Scheme.
+This document describes version nausicaa-devel-0.1 of Nausicaa, a
+distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
 
@@ -42,6 +42,8 @@ Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
 * Menu:
 
 * overview::                    Overview of the package.
+* vars::                        Variables.
+* package::                     Building packages.
 
 Appendices
 
@@ -56,7 +58,7 @@ Indexes
 * type index::                  An entry for each type.
 
 
-File: nausicaa.info,  Node: overview,  Next: Documentation License,  Prev: Top,  Up: Top
+File: nausicaa.info,  Node: overview,  Next: vars,  Prev: Top,  Up: Top
 
 1 Overview of the package
 *************************
@@ -64,7 +66,171 @@ File: nausicaa.info,  Node: overview,  Next: Documentation License,  Prev: Top, 
 This ...
 
 
-File: nausicaa.info,  Node: Documentation License,  Next: references,  Prev: overview,  Up: Top
+File: nausicaa.info,  Node: vars,  Next: package,  Prev: overview,  Up: Top
+
+2 Variables
+***********
+
+This chapter documents the variable in the `Makefile' infrastructure.
+
+* Menu:
+
+* vars misc::                   Miscellaneous variables.
+
+
+File: nausicaa.info,  Node: vars misc,  Up: vars
+
+2.1 Miscellaneous variables
+===========================
+
+ -- Variable: COMPRESSOR
+     Select the compressor to be used when creating a tarball; it is
+     used by the binary distribution rules.
+
+     Supported values:
+
+    `bzip2'
+          selects the Bzip2 compressor;
+
+    `gzip'
+          selects the Gzip compressor;
+
+     if a different value is set, the compressor will default to `gzip'.
+
+
+File: nausicaa.info,  Node: package,  Next: Documentation License,  Prev: vars,  Up: Top
+
+3 Building packages
+*******************
+
+Nausicaa has limited support for building binary packages.  All the
+Nausicaa projects that declare, in their `README' file, to support the
+Nausicaa infrastructure, support building packages as described in this
+chapter.
+
+   The idea is to install the files in a temporary location, and then to
+use the native packaging tools to build a binary package.  The binary
+package file is moved to (or directly created into) a subdirectory of
+the project build directory.
+
+     *It is of paramount importance that we set the `TMPDIR'
+     environment variable to a good value, before attempting to use the
+     rules described in this chapter.  If TMPDIR is set to an empty
+     string, the `Makefile' will set it to `/tmp'.*
+
+* Menu:
+
+* bindist::                     Building plain binary packages.
+* slackware::                   Building Slackware packages.
+
+
+File: nausicaa.info,  Node: bindist,  Next: slackware,  Up: package
+
+3.1 Building plain binary packages
+==================================
+
+Let's take the `nausicaa-scmobj' project as example; let's imagine that
+inspecting the package variables yields this:
+
+     $ cd scmobj
+     $ make echo-variable VARIABLE=PACKAGE_NAME
+     nausicaa-scmobj
+
+     $ make echo-variable VARIABLE=PACKAGE_VERSION
+     0.1d0
+
+     $ make echo-variable VARIABLE=package_BUILD_VERSION
+     1mm
+
+     $ make echo-variable VARIABLE=package_ARCH
+     i686
+
+     $ make echo-variable VARIABLE=TMPDIR
+     /tmp/marco
+
+Makefile variables
+..................
+
+ -- Variable: bindist_PACKAGE_NAME
+     This is the file name of the binary distribution tarball.  Notice
+     that there is no directory part.
+
+     Example:
+
+          $ make echo-variable VARIABLE=bindist_PACKAGE_NAME
+          nausicaa-scmobj-0.1d0-i686-1mm.tar.bz2
+
+ -- Variable: bindist_PACKAGE_TOP_BUILDDIR
+     This is the root directory for temporary installation of files.
+
+     Example:
+
+          $ make echo-variable VARIABLE=bindist_PACKAGE_TOP_BUILDDIR
+          /tmp/marco/nausicaa-scmobj-0.1d0
+
+ -- Variable: bindist_BUILDDIR
+     This is where the produced tarball will be finally stored.
+
+     Example (from the build directory of the author):
+
+          $ make echo-variable VARIABLE=bindist_PACKAGE_TOP_BUILDDIR
+          /home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./bindist.d
+
+ -- Variable: bindist_TARBALL_PATHNAME
+     This is the full pathname of the tarball.
+
+     Example:
+
+          $ make echo-variable VARIABLE=bindist_TARBALL_PATHNAME
+          /home/marco/src/devel/ikarus/nausicaa/scmobj/=build/./bindist.d/nausicaa-scmobj-0.1d0-i686-1mm.tar.bz2
+
+Makefile rules
+..............
+
+ -- Makefile Rule: bindist
+     Build the binary distribution tarball and place it in the build
+     directory.  To be invoked as:
+
+          $ make bindist
+
+ -- Makefile Rule: bindist-builddir
+     If the `$(bindist_BUILDDIR)' directory does not exist: create it.
+     To be invoked as:
+
+          $ make bindist-builddir
+
+ -- Makefile Rule: bindist-top-builddir
+     If the `$(bindist_PACKAGE_TOP_BUILDDIR)' directory does not exist:
+     create it.  To be invoked as:
+
+          $ make bindist-top-builddir
+
+ -- Makefile Rule: bindist-clean
+     Equivalent to invoke both the `bindist-clean-top-builddir' and
+     `bindist-clean-builddir' rules.  To be invoked as:
+
+          $ make bindist-clean
+
+ -- Makefile Rule: bindist-clean-top-builddir
+     Remove the `$(bindist_PACKAGE_TOP_BUILDDIR)' directory and all its
+     contents.  To be invoked as:
+
+          $ make bindist-clean-top-builddir
+
+ -- Makefile Rule: bindist-clean-builddir
+     Remove the `$(bindist_BUILDDIR)' directory and all its contents.
+     To be invoked as:
+
+          $ make bindist-clean-builddir
+
+
+File: nausicaa.info,  Node: slackware,  Prev: bindist,  Up: package
+
+3.2 Building Slackware packages
+===============================
+
+
+File: nausicaa.info,  Node: Documentation License,  Next: references,  Prev: package,  Up: Top
 
 Appendix A GNU Free Documentation License
 *****************************************
@@ -474,6 +640,14 @@ Appendix D An entry for each function.
 
  [index ]
 * Menu:
+
+* bindist:                               bindist.              (line 65)
+* bindist-builddir:                      bindist.              (line 71)
+* bindist-clean:                         bindist.              (line 83)
+* bindist-clean-builddir:                bindist.              (line 95)
+* bindist-clean-top-builddir:            bindist.              (line 89)
+* bindist-top-builddir:                  bindist.              (line 77)
+
 
 File: nausicaa.info,  Node: variable index,  Next: type index,  Prev: function index,  Up: Top
 
@@ -482,6 +656,13 @@ Appendix E An entry for each variable.
 
  [index ]
 * Menu:
+
+* bindist_BUILDDIR:                      bindist.              (line 46)
+* bindist_PACKAGE_NAME:                  bindist.              (line 29)
+* bindist_PACKAGE_TOP_BUILDDIR:          bindist.              (line 38)
+* bindist_TARBALL_PATHNAME:              bindist.              (line 54)
+* COMPRESSOR:                            vars misc.            (line  7)
+
 
 File: nausicaa.info,  Node: type index,  Prev: variable index,  Up: Top
 
@@ -493,13 +674,18 @@ Appendix F An entry for each type.
 
 
 Tag Table:
-Node: Top902
-Node: overview2079
-Node: Documentation License2234
-Node: references22140
-Node: concept index22323
-Node: function index22590
-Node: variable index22790
-Node: type index22987
+Node: Top915
+Node: overview2199
+Node: vars2337
+Node: vars misc2579
+Node: package3029
+Node: bindist4015
+Node: slackware6846
+Node: Documentation License6982
+Node: references26887
+Node: concept index27070
+Node: function index27337
+Node: variable index27977
+Node: type index28541
 
 End Tag Table

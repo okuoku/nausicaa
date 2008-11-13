@@ -23,7 +23,6 @@ sls_FIND_FILES		= cd $(sls_SRCDIR) ; $(FIND) . -type f	\
 ## ------------------------------------------------------------
 
 sls_SRCDIR		= $(srcdir)/libraries
-sls_BUILDDIR		= $(builddir)/fasl.d
 
 # We sort  the list of  directories so that  when installing
 # them  we can create  the parents  first (useless  with the
@@ -60,67 +59,88 @@ uninstall:		sls-uninstall
 
 #page
 ## ------------------------------------------------------------
-## Test compiling of source files.
+## Compiling of source files.
 ## ------------------------------------------------------------
 
-sls_FASL_EXTENSION	= .ikarus-fasl
+fasl_SRCDIR		= $(sls_SRCDIR)
+fasl_BUILDDIR		= $(builddir)/fasl.d
 
-# Find all the currently existent FASL files.
-sls_FIND_FASL_SRCDIR	= \
-	cd $(sls_SRCDIR) ; \
-	$(FIND) . -type f -and -name "*$(sls_FASL_EXTENSION)" -and -print
-sls_FIND_FASL_BUILDDIR	= \
-	cd $(sls_BUILDDIR) ; \
-	$(FIND) . -type f -and -name "*$(sls_FASL_EXTENSION)" -and -print
-
-sls_COMPILE_SCRIPT	= compile-all.sps
-sls_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_SRCDIR)
-sls_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
-sls_COMPILE_RUN		= $(sls_COMPILE_ENV) $(sls_COMPILE_COMMAND) $(sls_COMPILE_SCRIPT)
+fasl_FASL_EXTENSION	= .ikarus-fasl
 
 ## ------------------------------------------------------------
 
-sls_FASL_FILES			= $(shell $(sls_FIND_FASL_SRCDIR))
-sls_TARGETS			= $(shell $(sls_FIND_FASL_BUILDDIR))
+# Find the FASL files that currently exists in the source
+# directory.
+fasl_FIND_FASL_SRCDIR	= \
+	cd $(fasl_SRCDIR) ; \
+	$(FIND) . -type f -and -name "*$(fasl_FASL_EXTENSION)" -and -print
+
+# Find the FASL files that currently exists in the build
+# directory.
+fasl_FIND_FASL_BUILDDIR	= \
+	cd $(fasl_BUILDDIR) ; \
+	$(FIND) . -type f -and -name "*$(fasl_FASL_EXTENSION)" -and -print
+
+fasl_COMPILE_SCRIPT	= compile-all.sps
+fasl_COMPILE_ENV	= IKARUS_LIBRARY_PATH=$(fasl_SRCDIR)
+fasl_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
+fasl_COMPILE_RUN	= $(fasl_COMPILE_ENV) $(fasl_COMPILE_COMMAND) $(fasl_COMPILE_SCRIPT)
 
 ## ------------------------------------------------------------
 
-.PHONY: compile compile-clean compile-clean-fasl
+fasl_FASL_FILES		= $(shell $(fasl_FIND_FASL_SRCDIR))
+fasl_TARGETS		= $(shell $(fasl_FIND_FASL_BUILDDIR))
+
+fasl_INSTLST		= $(fasl_TARGETS)
+fasl_INSTDIR		= $(ikarus_PKGLIBDIR)
+
+## ------------------------------------------------------------
+
+.PHONY: fasl fasl-clean fasl-clean-fasl-in-srcdir
 
 ## Notice  that,  by default,  GNU  tar  preserves the  file
 ## modification times  so the FASL times will  be newer than
-## the  corresponding  .sls   times.
+## the corresponding .sls times.
 ##
-## When these files are  installed loading will work fine if
+## When these files are installed: loading will work fine if
 ## we give  the appropriate preserve flags  to the "install"
 ## program.
-compile: $(sls_BUILDDIR)
-	cd $(sls_SRCDIR) ; test -f $(sls_COMPILE_SCRIPT) && $(sls_COMPILE_RUN)
-	$(sls_FIND_FASL_SRCDIR) | \
+fasl: $(fasl_BUILDDIR)
+	cd $(fasl_SRCDIR) ; test -f $(fasl_COMPILE_SCRIPT) && $(fasl_COMPILE_RUN)
+	$(fasl_FIND_FASL_SRCDIR) | \
 	$(TAR) --create  --file=- --files-from=- | \
-	$(TAR) --directory=$(PWD)/$(sls_BUILDDIR) --extract --verbose --file=-
-	$(MAKE) sls-clean-fasl
+	$(TAR) --directory=$(PWD)/$(fasl_BUILDDIR) --extract --verbose --file=-
+	$(MAKE) fasl-clean-fasl-in-srcdir
 
-$(sls_BUILDDIR):
-	test -d $(sls_BUILDDIR) || $(MKDIR) $(sls_BUILDDIR)
+$(fasl_BUILDDIR):
+	-@test -d $(fasl_BUILDDIR) || $(MKDIR) $(fasl_BUILDDIR)
 
-compile-clean: compile-clean-fasl
-	-cd $(sls_BUILDDIR); $(RM) *
+fasl-clean: fasl-clean-fasl-in-srcdir
+	$(RM) $(fasl_BUILDDIR)/*
 
-compile-clean-fasl:
-	-cd $(sls_SRCDIR); $(RM) $(sls_FASL_FILES)
+fasl-clean-fasl-in-srcdir:
+	-cd $(fasl_SRCDIR); $(RM) $(fasl_FASL_FILES)
 
-# compile-install:
-# 	cd $(sls_BUILDDIR); $(foreach f,$(sls_TARGETS),\
-# 		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
+fasl-install:
+	cd $(fasl_BUILDDIR); $(foreach f,$(fasl_TARGETS),\
+		$(INSTALL_DATA) $(f) $(DESTDIR)$(fasl_INSTDIR)/$(dir $(f));)
 
-# compile-uninstall:
-# 	cd $(sls_BUILDDIR); $(foreach f,$(sls_TARGETS),\
-# 		$(INSTALL_DATA) $(f) $(DESTDIR)$(sls_INSTDIR)/$(dir $(f));)
+fasl-uninstall:
+	cd $(fasl_BUILDDIR); $(foreach f,$(fasl_TARGETS),\
+		$(INSTALL_DATA) $(f) $(DESTDIR)$(fasl_INSTDIR)/$(dir $(f));)
 
 ## ------------------------------------------------------------
 
-clean:		compile-clean
+.PHONY: compile compile-clean
+
+compile:	fasl
+compile-clean:	fasl-clean
+
+all:		fasl
+clean:		fasl-clean
+
+install:	fasl-install
+uninstall:	fasl-uninstall
 
 ## ------------------------------------------------------------
 
@@ -132,6 +152,8 @@ clean:		compile-clean
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sls)
 
+# We DO  NOT include the  fasl build directory in  the path.
+# This is on purpose.
 nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
 nau_test_RUN		= $(nau_test_ENV) $(SCHEME_SCRIPT)
 
@@ -207,7 +229,13 @@ doc-uninstall:	doc-texinfo-uninstall
 ## Binary distribution: common variables.
 ## ------------------------------------------------------------
 
+ifeq ($(strip $(COMPRESSOR)),bzip2)
 bindist_PACKAGE_EXTENSION	= .tar.bz2
+bindist_TAR_COMPRESS_FLAG	= --bzip2
+else
+bindist_PACKAGE_EXTENSION	= .tar.gz
+bindist_TAR_COMPRESS_FLAG	= --gzip
+endif
 
 # This is the file  name of the binary distribution tarball.
 # Notice that there is no directory part.
@@ -220,14 +248,15 @@ bindist_PACKAGE_TOP_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
 # This is where the produced tarball will be finally stored.
 bindist_BUILDDIR		= $(PWD)/$(builddir)/bindist.d
 
+# This is the full pathname of the tarball.
 bindist_TARBALL_PATHNAME	= $(bindist_BUILDDIR)/$(bindist_PACKAGE_NAME)
 
 # The flags to hand to "tar" when building the tarball.
-bindist_TAR_FLAGS		= --create --bzip2 --verbose
+bindist_TAR_FLAGS		= --create $(bindist_TAR_COMPRESS_FLAG) --verbose
 
 ## ------------------------------------------------------------
 
-.PHONY: bindist bindist-clean bindist-builddir
+.PHONY: bindist bindist-clean bindist-builddir bindist-top-builddir
 .PHONY: bindist-clean-top-builddir bindist-clean-builddir
 
 bindist: bindist-clean bindist-builddir
@@ -236,13 +265,17 @@ bindist: bindist-clean bindist-builddir
 	$(TAR) $(bindist_TAR_FLAGS) --file=$(bindist_TARBALL_PATHNAME) .
 	$(MAKE) bindist-clean-top-builddir
 
-bindist-builddir:
-	test -d $(bindist_BUILDDIR) || $(MKDIR) $(bindist_BUILDDIR)
 
 bindist-clean: bindist-clean-top-builddir bindist-clean-builddir
 
+bindist-top-builddir:
+	test -d $(bindist_PACKAGE_TOP_BUILDDIR) || $(MKDIR) $(bindist_PACKAGE_TOP_BUILDDIR)
+
 bindist-clean-top-builddir:
 	-$(RM) $(bindist_PACKAGE_TOP_BUILDDIR)
+
+bindist-builddir:
+	test -d $(bindist_BUILDDIR) || $(MKDIR) $(bindist_BUILDDIR)
 
 bindist-clean-builddir:
 	-$(RM) $(bindist_BUILDDIR)
