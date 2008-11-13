@@ -25,8 +25,9 @@ Ikarus Scheme.
 --------------------
 
 If  you  are  wondering   why  this  distribution  is  named
-Nausicaa,  read the  manga "Nausicaa  of the  Valley  of the
-Wind" by Master Hayao Miyazaki, or watch the movie.
+Nausicaa, you  may enjoy reading the manga  "Nausicaa of the
+Valley of the  Wind" by Master Hayao Miyazaki,  or watch its
+movie.
 
   You may also  find interesting what the crazy  guys of the
 OpenSky project are trying to do:
@@ -37,7 +38,7 @@ OpenSky project are trying to do:
 2. License
 ----------
 
-Each package in this distribution has its own license notice
+Each project in this distribution has its own license notice
 and copyright  assignment.  You must look  in the individual
 directories for  the COPYING  file, and occasionally  at the
 top of each  file, where there is a  specific license notice
@@ -53,13 +54,14 @@ following common tools and packages are installed: GNU Bash,
 GNU Make, GNU coreutils, GNU tar, Gzip, Bzip2.
 
   There are 2 sources of informations about the installation
-of  a Nausicaa  package: the  individual,  package specific,
+of  a Nausicaa  project: the  individual,  project specific,
 README files; the  Nausicaa overall documentation in Texinfo
 format, which is available in the "doc" subdirectory.
 
   For you  own safety, take this advice:  never, ever, drive
-build and installation of packages from the source directory
-of a package; always create a subdirectory and move into it:
+building  and  installation  of  packages  from  the  source
+directory  of a  project; always  create a  subdirectory and
+move into it:
 
    $ cd <source-directory-of-package>
    $ mkdir "=build"
@@ -67,13 +69,13 @@ of a package; always create a subdirectory and move into it:
 
 then, usually, you should do:
 
-   $ ../configure [options]
+   $ ../configure
    $ make
    $ make test
    $ make install
 
-there is basic support for package creation, for example for
-Slackware; read the Nausicaa documentation for details.
+  There is  basic support for package  creation, for example
+for Slackware; read the Nausicaa documentation for details.
 
 
 A. Credits
@@ -107,14 +109,14 @@ is the  creation of Marco  Maggi (<marcomaggi@gna.org>).  If
 this work  exists, it is  because of the GNU  Software tools
 that he uses all the time.
 
-  For other  credits notes  look in the  individual, package
+  For other  credits notes  look in the  individual, project
 specific, REAME files.
   
 
 B. Bug reports
 --------------
 
-See  the instructions in  the individual,  package specific,
+See  the instructions in  the individual,  project specific,
 README  files.   Bugs  regarding the  Nausicaa  installation
 infrastructure    should    be     sent    by    email    to
 <marcomaggi@gna.org>.
