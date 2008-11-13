@@ -45,6 +45,14 @@ nausicaa_ENABLE_FASL	= @nausicaa_ENABLE_FASL@
 # installed.
 nausicaa_ENABLE_DOC	= @nausicaa_ENABLE_DOC@
 
+# If set to 'yes' Info documentation files will be produced
+# and installed.
+nausicaa_ENABLE_INFO_DOC= @nausicaa_ENABLE_INFO_DOC@
+
+# If set to 'yes' HTML documentation files will be produced
+# and installed.
+nausicaa_ENABLE_HTML_DOC= @nausicaa_ENABLE_HTML_DOC@
+
 # Compressor to be used when creating a tarball; it is used
 # by the binary distribution rules.  Supported values:
 #
@@ -166,7 +174,9 @@ INSTALL_DATA		= $(INSTALL) -p -m $(INSTALL_DATA_MODE)
 
 ## ------------------------------------------------------------
 
-MAKEINFO_FLAGS	= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
+MAKEINFO_FLAGS		= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
+MAKEINFO_INFO_FLAGS	= $(MAKEINFO_FLAGS)
+MAKEINFO_HTML_FLAGS	= $(MAKEINFO_FLAGS) --html
 
 ## ------------------------------------------------------------
 
