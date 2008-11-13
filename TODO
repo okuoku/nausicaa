@@ -3,8 +3,27 @@
 			  ====================
 
 
+Ice-9
+-----
+
+* Write the tests.
+* Finish porting for FORMAT.
+* Review documentation for FORMAT.
 
 
+Uriel
+-----
+
+* Write the README.
+* Write the documentation.
+
+
+ScmObj
+------
+
+* Finish implementation (hash table for generic functions).
+* Add more tests.
+* Finish the documentation (replace all the original material).
 
 
 ### end of file

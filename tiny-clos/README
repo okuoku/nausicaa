@@ -65,16 +65,14 @@ to install the files under a temporary location; example:
 
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
-build binary distribution archives and Slackware packages.
+build binary distribution archives.
 
 
 A. Bug reports
 --------------
 
-Bug  reports about  the  Tiny-CLOS code  should be  reported
-using  the  Launchpad  interface.   Bug reports  about  this
-installation infrastructure are  welcome: Send them by email
-to <marcomaggi@gna.org>.
+Bug   reports   are  welcome:   Send   them   by  email   to
+<marcomaggi@gna.org>.
 
 
 B. Resources
