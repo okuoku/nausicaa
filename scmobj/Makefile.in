@@ -6,6 +6,8 @@ IDENTIFIER		= scmobj
 
 include Makefile.begin
 
+HAS_IKARUS_LIB_LIST	= @HAS_IKARUS_LIB_LIST@
+
 include Makefile.end
 
 ### end of file
