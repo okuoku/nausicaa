@@ -915,6 +915,20 @@ not set or set to the empty string: it defaults to @file{/tmp}.
 @end defvar
 
 
+@defvar DESTDIR
+A directory to be prepended to all the installation pathnames.  It
+allows installation into a temporary location.  Example:
+
+@example
+$ make install DESTDIR=/tmp/marco/nausicaa-scmobj
+@end example
+
+@noindent
+install all the directories and files under the directory
+@file{/tmp/marco/nausicaa-scmobj}.
+@end defvar
+
+
 @c ------------------------------------------------------------
 
 @c page

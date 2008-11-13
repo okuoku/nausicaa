@@ -21,14 +21,30 @@
 ;; (i.e. ripped off) Scheme48's `stream' package,
 ;; modulo stream-empty? -> stream-null? renaming.
 
-(define-module (ice-9 streams)
-  :export (make-stream
-	   stream-car stream-cdr stream-null?
-	   list->stream vector->stream port->stream
-	   stream->list stream->reversed-list
-	   stream->list&length stream->reversed-list&length
-	   stream->vector
-	   stream-fold stream-for-each stream-map))
+(library (ice-9 streams)
+    (export make-stream
+      stream-car stream-cdr stream-null?
+      list->stream vector->stream port->stream
+      stream->list stream->reversed-list
+      stream->list&length stream->reversed-list&length
+      stream->vector
+      stream-fold stream-for-each stream-map)
+  (import (rnrs)
+	  (rnrs r5rs (6))
+	  (srfi lists))
+
+;; or-map f l
+;;
+;; Apply f to successive elements of l until exhaustion or while f returns #f.
+;; If returning early, return the return value of f.
+;;
+(define (or-map f lst)
+  (let loop ((result #f)
+	     (l lst))
+    (or result
+	(and (not (null? l))
+	     (loop (f (car l)) (cdr l))))))
+
 
 ;; Use:
 ;;
@@ -213,5 +229,7 @@ as its arguments."
                    (or (eof-object? o)
                        (cons o p))))
                port))
+
+) ;; end of library form
 
 ;;; streams.scm ends here
