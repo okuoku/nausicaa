@@ -62,26 +62,28 @@ entitled &ldquo;<acronym>GNU</acronym> Free Documentation License&rdquo;.
 
 <ul class="menu">
 <li><a accesskey="1" href="#overview">overview</a>:                     Overview of the package. 
-<li><a accesskey="2" href="#vars">vars</a>:                         Variables. 
-<li><a accesskey="3" href="#package">package</a>:                      Building packages.
+<li><a accesskey="2" href="#config">config</a>:                       Configuration. 
+<li><a accesskey="3" href="#vars">vars</a>:                         Variables. 
+<li><a accesskey="4" href="#rules">rules</a>:                        Rules. 
+<li><a accesskey="5" href="#package">package</a>:                      Building packages.
 
 </li></ul>
 <p>Appendices
 
 </p>
 <ul class="menu">
-<li><a accesskey="4" href="#Documentation-License">Documentation License</a>:        GNU Free Documentation License. 
-<li><a accesskey="5" href="#references">references</a>:                   Bibliography and references.
+<li><a accesskey="6" href="#Documentation-License">Documentation License</a>:        GNU Free Documentation License. 
+<li><a accesskey="7" href="#references">references</a>:                   Bibliography and references.
 
 </li></ul>
 <p>Indexes
 
 </p>
 <ul class="menu">
-<li><a accesskey="6" href="#concept-index">concept index</a>:                An entry for each concept. 
-<li><a accesskey="7" href="#function-index">function index</a>:               An entry for each function. 
-<li><a accesskey="8" href="#variable-index">variable index</a>:               An entry for each variable. 
-<li><a accesskey="9" href="#type-index">type index</a>:                   An entry for each type. 
+<li><a accesskey="8" href="#concept-index">concept index</a>:                An entry for each concept. 
+<li><a accesskey="9" href="#function-index">function index</a>:               An entry for each function. 
+<li><a href="#variable-index">variable index</a>:               An entry for each variable. 
+<li><a href="#type-index">type index</a>:                   An entry for each type. 
 </ul>
 
 <!--  -->
@@ -89,7 +91,7 @@ entitled &ldquo;<acronym>GNU</acronym> Free Documentation License&rdquo;.
 <div class="node">
 <p><hr>
 <a name="overview"></a>
-Next:&nbsp;<a rel="next" accesskey="n" href="#vars">vars</a>,
+Next:&nbsp;<a rel="next" accesskey="n" href="#config">config</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="#Top">Top</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
@@ -97,41 +99,152 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <h2 class="chapter">1 Overview of the package</h2>
 
-<p class="noindent">This ...
+<p class="noindent">Nausicaa is a distribution of Scheme language libraries for
+Ikarus Scheme.  This document describes the project building and
+installation infrastructure, use by almost all the projects in the
+distribution.
+
+   <p>Only pure Scheme projects are accepted into Nausicaa; no C language code
+is compiled or used.  Access to foreign shared library is written with
+the Foreign Function Interface provided by Ikarus.
 
 <!--  -->
 <!-- page -->
 <div class="node">
 <p><hr>
-<a name="vars"></a>
-Next:&nbsp;<a rel="next" accesskey="n" href="#package">package</a>,
+<a name="config"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#vars">vars</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="#overview">overview</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 </div>
 
-<h2 class="chapter">2 Variables</h2>
+<h2 class="chapter">2 Configuration</h2>
 
-<p>This chapter documents the variable in the <samp><span class="file">Makefile</span></samp>
-infrastructure.
+<p>The configuration of a project for building, installing and binary
+package creation is managed with <acronym>GNU</acronym> Autoconf.  Each project
+subdirectory has a <samp><span class="command">configure</span></samp> script that must be run to
+initialise the infrastructure.
+
+   <p>Let's take the <code>scmobj</code> project as example; we should do this:
+
+<pre class="example">     $ tar --extract --bzip2 \
+        --file=nausicaa--devel--0.1--patch-1-src.tar.bz2
+     
+     $ cd nausicaa--devel--0.1--patch-1
+     $ cd scmobj
+     $ mkdir "=build"
+     $ cd "=build"
+     $ ../configure
+</pre>
+   <p class="noindent">then we are ready to apply the <samp><span class="command">make</span></samp> program to the
+<samp><span class="file">Makefile</span></samp>.
 
 <ul class="menu">
-<li><a accesskey="1" href="#vars-misc">vars misc</a>:                    Miscellaneous variables. 
+<li><a accesskey="1" href="#config-options">config options</a>:               Options for <samp><span class="command">configure</span></samp>. 
 </ul>
 
 <!--  -->
 <!-- page -->
 <div class="node">
 <p><hr>
-<a name="vars-misc"></a>
+<a name="config-options"></a>
+Up:&nbsp;<a rel="up" accesskey="u" href="#config">config</a>
+
+</div>
+
+<h3 class="section">2.1 Options for <samp><span class="command">configure</span></samp></h3>
+
+<p>For the full list of available configuration options, we should try the
+command:
+
+<pre class="example">     $ ../configure --help
+</pre>
+   <p class="noindent">what follows is a list of common options.
+
+     <dl>
+<dt><code>--prefix=</code><var>value</var><dd>Select the directory to be used as installation prefix; all the files
+installed by a project will end under this directory; it defaults to
+<samp><span class="file">/usr/local</span></samp>.
+
+     <br><dt><code>--enable-fasl</code><dt><code>--disable-fasl</code><dd>Enable or disable the compilation and installation of <acronym>FASL</acronym> files;
+these are the precompiled version of the installed libraries.  It
+defaults to: yes, build and install the compiled files.
+
+     <p>At present (Thu Nov 13, 2008) only libraries can be compiled by Ikarus.
+
+     <br><dt><code>--enable-sls</code><dt><code>--disable-sls</code><dd>Enable or disable the installation of source files.  It defaults to:
+yes, install the source files.
+
+     <br><dt><code>--enable-doc</code><dt><code>--disable-doc</code><dd>Enable or disable the compilation and installation of source files.  It
+defaults to: yes, build and install the documentation files. 
+</dl>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#rules">rules</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#config">config</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">3 Variables</h2>
+
+<p>This chapter documents the variables in the <samp><span class="file">Makefile</span></samp>
+infrastructure.
+
+<ul class="menu">
+<li><a accesskey="1" href="#vars-config">vars config</a>:                  Configuration variables. 
+<li><a accesskey="2" href="#vars-project">vars project</a>:                 Project related variables. 
+<li><a accesskey="3" href="#vars-package">vars package</a>:                 Binary package variables. 
+<li><a accesskey="4" href="#vars-directories">vars directories</a>:             Directory variables. 
+<li><a accesskey="5" href="#vars-misc">vars misc</a>:                    Miscellaneous variables. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-config"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#vars-project">vars project</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="#vars">vars</a>
 
 </div>
 
-<h3 class="section">2.1 Miscellaneous variables</h3>
+<h3 class="section">3.1 Configuration variables</h3>
 
 <div class="defun">
-&mdash; Variable: <b>COMPRESSOR</b><var><a name="index-COMPRESSOR-1"></a></var><br>
+&mdash; Variable: <b>nausicaa_ENABLE_SLS</b><var><a name="index-nausicaa_005fENABLE_005fSLS-1"></a></var><br>
+<blockquote><p>Enable or disable the installation of source files; valid values are
+<code>yes</code> and <code>no</code>.  The default is <code>yes</code>.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> options <samp><span class="option">--enable-sls</span></samp> and
+<samp><span class="option">--disable-sls</span></samp>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>nausicaa_ENABLE_FASL</b><var><a name="index-nausicaa_005fENABLE_005fFASL-2"></a></var><br>
+<blockquote><p>Enable or disable compilation and installation of <acronym>FASL</acronym> files; valid
+values are <code>yes</code> and <code>no</code>.  The default is <code>yes</code>.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> options <samp><span class="option">--enable-fasl</span></samp> and
+<samp><span class="option">--disable-fasl</span></samp>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>nausicaa_ENABLE_DOC</b><var><a name="index-nausicaa_005fENABLE_005fDOC-3"></a></var><br>
+<blockquote><p>Enable or disable compilation and installation of documentation files;
+valid values are <code>yes</code> and <code>no</code>.  The default is <code>yes</code>.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> options <samp><span class="option">--enable-doc</span></samp> and
+<samp><span class="option">--disable-doc</span></samp>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>nausicaa_COMPRESSOR</b><var><a name="index-nausicaa_005fCOMPRESSOR-4"></a></var><br>
 <blockquote><p>Select the compressor to be used when creating a tarball; it is used by
 the binary distribution rules.
 
@@ -143,8 +256,791 @@ the binary distribution rules.
           <br><dt><code>gzip</code><dd>selects the Gzip compressor;
 </dl>
 
-     <p class="noindent">if a different value is set, the compressor will default to <code>gzip</code>. 
+     <p class="noindent">if a different value is set, the compressor will default to
+<code>gzip</code>.  The default value is <code>gzip</code>. 
 </p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-project"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#vars-package">vars package</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars-config">vars config</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#vars">vars</a>
+
+</div>
+
+<h3 class="section">3.2 Project related variables</h3>
+
+<div class="defun">
+&mdash; Variable: <b>PACKAGE_NAME</b><var><a name="index-PACKAGE_005fNAME-5"></a></var><br>
+<blockquote><p>The name of the project; it is used to compose the name of binary
+distribution packages.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> script. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>PACKAGE_VERSION</b><var><a name="index-PACKAGE_005fVERSION-6"></a></var><br>
+<blockquote><p>The version specification of the project; it is used to compose the name
+of binary distribution packages.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> script. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>PKG_ID</b><var><a name="index-PKG_005fID-7"></a></var><br>
+<blockquote><p>An identifier composed using the package name and version.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> script, and its value should be:
+
+     <pre class="example">          $(PACKAGE_NAME)-$(PACKAGE_VERSION)
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-package"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#vars-directories">vars directories</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars-project">vars project</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#vars">vars</a>
+
+</div>
+
+<h3 class="section">3.3 Binary package variables</h3>
+
+<div class="defun">
+&mdash; Customisable Variable: <b>package_BUILD_VERSION</b><var><a name="index-package_005fBUILD_005fVERSION-8"></a></var><br>
+<blockquote><p>A special version specification to tag binary distribution packages.  It
+should be used to give a version to the package file.
+
+        <p>It defaults to <code>1nau</code>, which means &ldquo;Nausicaa build version 1&rdquo;. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Customisable Variable: <b>package_ARCH</b><var><a name="index-package_005fARCH-9"></a></var><br>
+<blockquote><p>Architecture specification to be used to tag binary distribution
+packages.  It should be used to identify the architecture for which a
+package file was built.
+
+        <p>It must be set to a meaningful value, like <code>i486</code> or <code>i686</code>. 
+It defaults to <code>noarch</code>, which means that the package holds only
+architecture independent files (like source and documentation files). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>package_NAME</b><var><a name="index-package_005fNAME-10"></a></var><br>
+&mdash; Variable: <b>package_VERSION</b><var><a name="index-package_005fVERSION-11"></a></var><br>
+<blockquote><p>These are aliases for <code>PACKAGE_NAME</code> and <code>PACKAGE_VERSION</code>,
+and are used to compose the name of binary distribution files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>package_PREFIX</b><var><a name="index-package_005fPREFIX-12"></a></var><br>
+<blockquote><p>The file name of binary distribution packages, without extension.  It
+is set to:
+
+     <pre class="example">          $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
+     </pre>
+        <p>As a usage example, Slackware packages have name:
+
+     <pre class="example">          $(package_PREFIX).tgz
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-directories"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#vars-misc">vars misc</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars-package">vars package</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#vars">vars</a>
+
+</div>
+
+<h3 class="section">3.4 Directory variables</h3>
+
+<div class="defun">
+&mdash; Variable: <b>srcdir</b><var><a name="index-srcdir-13"></a></var><br>
+<blockquote><p>The pathname of the top source directory of a Nausicaa project.
+
+        <p>The rules of the <samp><span class="file">Makefile</span></samp> will assume that this is a relative
+directory pathname, and the full pathname can be built with:
+<code>$(PWD)/$(srcdir)</code>.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> script. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>builddir</b><var><a name="index-builddir-14"></a></var><br>
+<blockquote><p>The pathname of the top build directory of a Nausicaa project.  It is
+meant to be the directory from which we have invoked the
+<samp><span class="command">configure</span></samp> script.
+
+        <p>The rules of the <samp><span class="file">Makefile</span></samp> will assume that this is a relative
+directory pathname, and the full pathname can be built with:
+<code>$(PWD)/$(builddir)</code>.
+
+        <p>It is set by the <samp><span class="command">configure</span></samp> script. 
+</p></blockquote></div>
+
+<ul class="menu">
+<li><a accesskey="1" href="#vars-directories-common">vars directories common</a>:     Common installation directories. 
+<li><a accesskey="2" href="#vars-directories-custom">vars directories custom</a>:     Custom installation directories. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-directories-common"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#vars-directories-custom">vars directories custom</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#vars-directories">vars directories</a>
+
+</div>
+
+<h4 class="subsection">3.4.1 Common installation directories</h4>
+
+<p>These are the standard <acronym>GNU</acronym> Autoconf variables used to install files
+on the system.  All of them are set by the <samp><span class="command">configure</span></samp> script.
+
+<div class="defun">
+&mdash; Variable: <b>prefix</b><var><a name="index-prefix-15"></a></var><br>
+<blockquote><p>The root of the installation directories. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>exec_prefix</b><var><a name="index-exec_005fprefix-16"></a></var><br>
+<blockquote><p>The installation prefix for architecture&ndash;dependent files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>bindir</b><var><a name="index-bindir-17"></a></var><br>
+<blockquote><p>The directories for installing executables that users run. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>datarootdir</b><var><a name="index-datarootdir-18"></a></var><br>
+<blockquote><p>The root of the directory tree for read&ndash;only architecture&ndash;independent
+data files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>datadir</b><var><a name="index-datadir-19"></a></var><br>
+<blockquote><p>The directory for installing idiosyncratic read&ndash;only
+architecture&ndash;independent data. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>docdir</b><var><a name="index-docdir-20"></a></var><br>
+<blockquote><p>The directory for installing documentation files (other than Info and
+man). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>includedir</b><var><a name="index-includedir-21"></a></var><br>
+<blockquote><p>The directory for installing C header files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>infodir</b><var><a name="index-infodir-22"></a></var><br>
+<blockquote><p>The directory for installing documentation in Info format. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>libdir</b><var><a name="index-libdir-23"></a></var><br>
+<blockquote><p>The directory for installing object code libraries. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>libexecdir</b><var><a name="index-libexecdir-24"></a></var><br>
+<blockquote><p>The directory for installing executables that other programs run. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>localstatedir</b><var><a name="index-localstatedir-25"></a></var><br>
+<blockquote><p>The directory for installing locale&ndash;dependent but
+architecture&ndash;independent data, such as message catalogs.  This
+directory usually has a subdirectory per locale. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>mandir</b><var><a name="index-mandir-26"></a></var><br>
+<blockquote><p>The top&ndash;level directory for installing documentation in man format. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>sbindir</b><var><a name="index-sbindir-27"></a></var><br>
+<blockquote><p>The directory for installing executables that system administrators run. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>sharedstatedir</b><var><a name="index-sharedstatedir-28"></a></var><br>
+<blockquote><p>The directory for installing modifiable architecture&ndash;independent data. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>sysconfdir</b><var><a name="index-sysconfdir-29"></a></var><br>
+<blockquote><p>The directory for installing read&ndash;only single&ndash;machine data. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-directories-custom"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars-directories-common">vars directories common</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#vars-directories">vars directories</a>
+
+</div>
+
+<h4 class="subsection">3.4.2 Custom installation directories</h4>
+
+<p>These are the custom variables used to install files on the system. 
+With the exception of <code>ikarus_PKGLIBDIR</code>, all of them are set by
+the <samp><span class="command">configure</span></samp> script.
+
+<div class="defun">
+&mdash; Variable: <b>PKG_DIR</b><var><a name="index-PKG_005fDIR-30"></a></var><br>
+<blockquote><p>A project specific directory name that is used to compose other
+directory pathnames.  It is set to:
+
+     <pre class="example">          $(PACKAGE_NAME)/$(PACKAGE_VERSION)
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkgdatadir</b><var><a name="index-pkgdatadir-31"></a></var><br>
+<blockquote><p>Project specific directory for data files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkgdocdir</b><var><a name="index-pkgdocdir-32"></a></var><br>
+<blockquote><p>Project specific directory for documentation files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkgexampledir</b><var><a name="index-pkgexampledir-33"></a></var><br>
+<blockquote><p>Project specific directory for example files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkginfodir</b><var><a name="index-pkginfodir-34"></a></var><br>
+<blockquote><p>Project specific directory for documentation files in Info format. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkghtmldir</b><var><a name="index-pkghtmldir-35"></a></var><br>
+<blockquote><p>Project specific directory for documentation files in <acronym>HTML</acronym>
+format. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkgincludedir</b><var><a name="index-pkgincludedir-36"></a></var><br>
+<blockquote><p>Project specific directory for C language header files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkglibdir</b><var><a name="index-pkglibdir-37"></a></var><br>
+<blockquote><p>Project specific directory for library files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkglibexecdir</b><var><a name="index-pkglibexecdir-38"></a></var><br>
+<blockquote><p>Project specific directory for executable files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>pkgsysconfdir</b><var><a name="index-pkgsysconfdir-39"></a></var><br>
+<blockquote><p>Project specific directory for system configuration files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>ikarus_PKGLIBDIR</b><var><a name="index-ikarus_005fPKGLIBDIR-40"></a></var><br>
+<blockquote><p>This should be the system directory in which Ikarus libraries are
+installed.  It is set to:
+
+     <pre class="example">          $(libdir)/ikarus
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="vars-misc"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars-directories">vars directories</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#vars">vars</a>
+
+</div>
+
+<h3 class="section">3.5 Miscellaneous variables</h3>
+
+<div class="defun">
+&mdash; Variable: <b>TMPDIR</b><var><a name="index-TMPDIR-41"></a></var><br>
+<blockquote><p>System environment variable that selects the root directory for
+temporary fils.  It is used to build binary distribution packages.  If
+not set or set to the empty string: it defaults to <samp><span class="file">/tmp</span></samp>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="rules"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#package">package</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars">vars</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">4 Rules</h2>
+
+<ul class="menu">
+<li><a accesskey="1" href="#rules-main">rules main</a>:                   Main rules. 
+<li><a accesskey="2" href="#rules-doc">rules doc</a>:                    Documentation related rules. 
+<li><a accesskey="3" href="#rules-sls">rules sls</a>:                    Handling source files. 
+<li><a accesskey="4" href="#rules-fasl">rules fasl</a>:                   Handling precompiled files. 
+<li><a accesskey="5" href="#rules-texinfo">rules texinfo</a>:                Documentation in Texinfo format. 
+<li><a accesskey="6" href="#rules-inspect">rules inspect</a>:                Inspecting variables. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="rules-main"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#rules-doc">rules doc</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#rules">rules</a>
+
+</div>
+
+<h3 class="section">4.1 Main rules</h3>
+
+<h5 class="subsubheading">Making</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>all</b><var><a name="index-all-42"></a></var><br>
+<blockquote><p>Build everything that the project was configured to build.  To be
+invoked as:
+
+     <pre class="example">          $ make all
+     </pre>
+        <p>This is the first rule in the <samp><span class="file">Makefile</span></samp>, so it can be invoked also
+by running <samp><span class="command">make</span></samp> without rule arguments. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Cleaning</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>clean</b><var><a name="index-clean-43"></a></var><br>
+<blockquote><p>Remove all the files that were built with the <code>all</code> rule.  To be invoked
+as:
+
+     <pre class="example">          $ make clean
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>realclean</b><var><a name="index-realclean-44"></a></var><br>
+<blockquote><p>Remove all the files that were built with the <code>all</code> rule.  To be
+invoked as:
+
+     <pre class="example">          $ make realclean
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>clean-builddir</b><var><a name="index-clean_002dbuilddir-45"></a></var><br>
+<blockquote><p>Remove everything in the build directory and its subdirectories:
+<strong>use with care!!!</strong>  To be invoked in a safe place as:
+
+     <pre class="example">          $ make clean-builddir
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Installation</h5>
+
+<p>For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+<samp><span class="command">sudo</span></samp> to run <samp><span class="command">make</span></samp>.  In the following we will assume
+that this is the case.
+
+<div class="defun">
+&mdash; Makefile Rule: <b>install</b><var><a name="index-install-46"></a></var><br>
+<blockquote><p>Install on the system all the files that the project was configured to
+install.  To be invoked as:
+
+     <pre class="example">          $ sudo make install
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>uninstall</b><var><a name="index-uninstall-47"></a></var><br>
+<blockquote><p>Uninstall from the system all the files that the project was configured
+to install.  To be invoked as:
+
+     <pre class="example">          $ sudo make uninstall
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="rules-doc"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#rules-sls">rules sls</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#rules-main">rules main</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#rules">rules</a>
+
+</div>
+
+<h3 class="section">4.2 Documentation related rules</h3>
+
+<p>Compilation, installation and uninstallation are enabled or disabled
+with configuration options and variables; see the relevant sections.
+
+<h5 class="subsubheading">Making and cleaning</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc</b><var><a name="index-doc-48"></a></var><br>
+<blockquote><p>Build all the documentation that the project was configured to build. 
+To be invoked as:
+
+     <pre class="example">          $ make doc
+     </pre>
+        <p>This rule is invoked by <code>all</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-clean</b><var><a name="index-doc_002dclean-49"></a></var><br>
+<blockquote><p>Remove all the files that were built by the <code>doc</code> rule.  To be
+invoked as:
+
+     <pre class="example">          $ make doc-clean
+     </pre>
+        <p>This rule is invoked by <code>clean</code>. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Installation</h5>
+
+<p>For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+<samp><span class="command">sudo</span></samp> to run <samp><span class="command">make</span></samp>.  In the following we will assume
+that this is the case.
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-install</b><var><a name="index-doc_002dinstall-50"></a></var><br>
+<blockquote><p>Install all the documentation that the project was configured to build. 
+To be invoked as:
+
+     <pre class="example">          $ sudo make doc-install
+     </pre>
+        <p>This rule is invoked by <code>install</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-uninstall</b><var><a name="index-doc_002duninstall-51"></a></var><br>
+<blockquote><p>Uninstall all the documentation that the project was configured to
+build.  To be invoked as:
+
+     <pre class="example">          $ sudo make doc-uninstall
+     </pre>
+        <p>This rule is invoked by <code>uninstall</code>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="rules-sls"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#rules-fasl">rules fasl</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#rules-doc">rules doc</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#rules">rules</a>
+
+</div>
+
+<h3 class="section">4.3 Handling source files</h3>
+
+<h5 class="subsubheading">Installation</h5>
+
+<p>For all the following rules:
+
+     <ul>
+<li>installation and uninstallation are enabled or disabled with
+configuration options and variables; see the relevant sections;
+
+     <li>root privileges may be needed to install and uninstall files on the
+system; so we may want to use a tool like <samp><span class="command">sudo</span></samp> to run
+<samp><span class="command">make</span></samp>; in the following we will assume that this is the case. 
+</ul>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>sls-install</b><var><a name="index-sls_002dinstall-52"></a></var><br>
+<blockquote><p>Install the Scheme source files.  All the files with extension
+<code>.sls</code> in the <samp><span class="file">libraries</span></samp> subdirectory of the project are
+installed on the system.  To be invoked as:
+
+     <pre class="example">          $ sudo make sls-install
+     </pre>
+        <p>This rule is invoked by <code>install</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>sls-uninstall</b><var><a name="index-sls_002duninstall-53"></a></var><br>
+<blockquote><p>Uninstall the Scheme source files.  To be invoked as:
+
+     <pre class="example">          $ sudo make sls-uninstall
+     </pre>
+        <p>This rule is invoked by <code>uninstall</code>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="rules-fasl"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#rules-texinfo">rules texinfo</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#rules-sls">rules sls</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#rules">rules</a>
+
+</div>
+
+<h3 class="section">4.4 Handling precompiled files</h3>
+
+<p>Compilation, installation and uninstallation are enabled or disabled
+with configuration options and variables; see the relevant sections.
+
+   <p>Producing precompiled library files is a multistep process:
+
+     <ol type=1 start=1>
+<li>the library files are built by running the command:
+
+     <pre class="example">          ikarus --compile-dependencies compile-all.sps
+     </pre>
+     <p class="noindent">with a system environment that allows Ikarus to find the relevant
+libraries; this way the <acronym>FASL</acronym> files are created in the source
+directory of the project;
+
+     <li>the <acronym>FASL</acronym> files are moved from the source directory into a
+subdirectory of the build directory, preserving the directory structure.
+        </ol>
+
+<!--  -->
+<h5 class="subsubheading">Making and cleaning</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>fasl</b><var><a name="index-fasl-54"></a></var><br>
+&mdash; Makefile Rule: <b>compile</b><var><a name="index-compile-55"></a></var><br>
+<blockquote><p>Compile the library files.  To be invoked as:
+
+     <pre class="example">          $ make fasl
+     </pre>
+        <p>This rule is invoked by <code>all</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>fasl-clean</b><var><a name="index-fasl_002dclean-56"></a></var><br>
+&mdash; Makefile Rule: <b>compile-clean</b><var><a name="index-compile_002dclean-57"></a></var><br>
+<blockquote><p>Remove all the compiled files.  To be invoked as:
+
+     <pre class="example">          $ make fasl-clean
+     </pre>
+        <p>This rule is invoked by <code>clean</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>fasl-clean-fasl-in-srcdir</b><var><a name="index-fasl_002dclean_002dfasl_002din_002dsrcdir-58"></a></var><br>
+<blockquote><p>Remove all the compiled files that, for some reason, may have been left
+in the source directory.  To be invoked as:
+
+     <pre class="example">          $ make fasl-clean-fasl-in-srcdir
+     </pre>
+        <p>This rule is invoked by <code>fasl-clean</code>. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Installation</h5>
+
+<p>For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+<samp><span class="command">sudo</span></samp> to run <samp><span class="command">make</span></samp>; in the following we will assume
+that this is the case.
+
+<div class="defun">
+&mdash; Makefile Rule: <b>fasl-install</b><var><a name="index-fasl_002dinstall-59"></a></var><br>
+<blockquote><p>Install the precompiled library files.  To be invoked as:
+
+     <pre class="example">          $ sudo make fasl-install
+     </pre>
+        <p>This rule is invoked by <code>install</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>fasl-uninstall</b><var><a name="index-fasl_002duninstall-60"></a></var><br>
+<blockquote><p>Uninstall the precompiled files.  To be invoked as:
+
+     <pre class="example">          $ sudo make fasl-uninstall
+     </pre>
+        <p>This rule is invoked by <code>uninstall</code>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="rules-texinfo"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#rules-inspect">rules inspect</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#rules-fasl">rules fasl</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#rules">rules</a>
+
+</div>
+
+<h3 class="section">4.5 Documentation in Texinfo format</h3>
+
+<p>Texinfo is the standard documentation format for Nausicaa projects.  By
+default only the Info documentation is built and installed. 
+Compilation, installation and uninstallation are enabled or disabled
+with configuration options and variables; see the relevant sections.
+
+<h5 class="subsubheading">Making and cleaning</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-texinfo</b><var><a name="index-doc_002dtexinfo-61"></a></var><br>
+<blockquote><p>Build the Texinfo documentation that the project was configured to
+build.  To be invoked as:
+
+     <pre class="example">          $ make doc-texinfo
+     </pre>
+        <p>This rule is invoked by <code>doc</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-texinfo-clean</b><var><a name="index-doc_002dtexinfo_002dclean-62"></a></var><br>
+<blockquote><p>Remove all the files that were built by the <code>doc-texinfo</code> rule.  To
+be invoked as:
+
+     <pre class="example">          $ make doc-texinfo-clean
+     </pre>
+        <p>This rule is invoked by <code>doc-clean</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-texinfo-builddir</b><var><a name="index-doc_002dtexinfo_002dbuilddir-63"></a></var><br>
+<blockquote><p>If the build directory for Texinfo documentation does not exist: create
+it.  To be invoked as:
+
+     <pre class="example">          $ make doc-texinfo-builddir
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Installation</h5>
+
+<p>For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+<samp><span class="command">sudo</span></samp> to run <samp><span class="command">make</span></samp>.  In the following we will assume
+that this is the case.
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-texinfo-install</b><var><a name="index-doc_002dtexinfo_002dinstall-64"></a></var><br>
+<blockquote><p>Install all the Texinfo documentation that the project was configured to
+build.  To be invoked as:
+
+     <pre class="example">          $ sudo make doc-texinfo-install
+     </pre>
+        <p>This rule is invoked by <code>doc-install</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>doc-texinfo-uninstall</b><var><a name="index-doc_002dtexinfo_002duninstall-65"></a></var><br>
+<blockquote><p>Uninstall all the documentation that the project was configured to
+build.  To be invoked as:
+
+     <pre class="example">          $ sudo make doc-texinfo-uninstall
+     </pre>
+        <p>This rule is invoked by <code>doc-uninstall</code>. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Variables</h5>
+
+<div class="defun">
+&mdash; Variable: <b>doc_texinfo_SRCDIR</b><var><a name="index-doc_005ftexinfo_005fSRCDIR-66"></a></var><br>
+<blockquote><p>The pathname of the source directory for Texinfo files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>doc_texinfo_BUILDDIR</b><var><a name="index-doc_005ftexinfo_005fBUILDDIR-67"></a></var><br>
+<blockquote><p>The pathname of the build directory for Texinfo documentation. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>doc_texinfo_SOURCES</b><var><a name="index-doc_005ftexinfo_005fSOURCES-68"></a></var><br>
+<blockquote><p>The list of Texinfo source files. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>doc_texinfo_TARGETS</b><var><a name="index-doc_005ftexinfo_005fTARGETS-69"></a></var><br>
+<blockquote><p>The list of Texinfo target files.  These are the files that will be
+built by the <code>doc-texinfo</code> rule. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>doc_texinfo_CLEANFILES</b><var><a name="index-doc_005ftexinfo_005fCLEANFILES-70"></a></var><br>
+<blockquote><p>The list of Texinfo files that will be remove by the
+<code>doc-texinfo-clean</code> rule. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>doc_texinfo_INSTLST</b><var><a name="index-doc_005ftexinfo_005fINSTLST-71"></a></var><br>
+<blockquote><p>The list of files that will be installed on the system by the
+<code>doc-texinfo-install</code> rule. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>doc_texinfo_INSTDIR</b><var><a name="index-doc_005ftexinfo_005fINSTDIR-72"></a></var><br>
+<blockquote><p>The target directory for installation of Info files. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="rules-inspect"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#rules-texinfo">rules texinfo</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#rules">rules</a>
+
+</div>
+
+<h3 class="section">4.6 Inspecting variables</h3>
+
+<p>The value of <samp><span class="file">Makefile</span></samp> variables can be inspected from the command
+line with the following rules.
+
+<div class="defun">
+&mdash; Makefile Rule: <b>echo-variable</b><var><a name="index-echo_002dvariable-73"></a></var><br>
+<blockquote><p>Echo a variable to stdout.  Example:
+
+     <pre class="example">          $ make echo-variable VARIABLE=slack_PACKAGE_NAME
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <var><a name="index--74"></a></var><br>
+<blockquote><p>Echo a variable to stdout, interpreting it as list of strings.  Each
+string is echoed on its own line.  Example:
+
+     <pre class="example">          $ make echo-list-variable VARIABLE=sls_INSTLST
+     </pre>
+        </blockquote></div>
 
 <!--  -->
 <!-- page -->
@@ -152,12 +1048,12 @@ the binary distribution rules.
 <p><hr>
 <a name="package"></a>
 Next:&nbsp;<a rel="next" accesskey="n" href="#Documentation-License">Documentation License</a>,
-Previous:&nbsp;<a rel="previous" accesskey="p" href="#vars">vars</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#rules">rules</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 </div>
 
-<h2 class="chapter">3 Building packages</h2>
+<h2 class="chapter">5 Building packages</h2>
 
 <p>Nausicaa has limited support for building binary packages.  All
 the Nausicaa projects that declare, in their <samp><span class="file">README</span></samp> file, to
@@ -191,7 +1087,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#package">package</a>
 
 </div>
 
-<h3 class="section">3.1 Building plain binary packages</h3>
+<h3 class="section">5.1 Building plain binary packages</h3>
 
 <p>Let's take the <code>nausicaa-scmobj</code> project as example; let's imagine
 that inspecting the package variables yields this:
@@ -216,7 +1112,7 @@ that inspecting the package variables yields this:
 <h5 class="subsubheading">Makefile variables</h5>
 
 <div class="defun">
-&mdash; Variable: <b>bindist_PACKAGE_NAME</b><var><a name="index-bindist_005fPACKAGE_005fNAME-2"></a></var><br>
+&mdash; Variable: <b>bindist_PACKAGE_NAME</b><var><a name="index-bindist_005fPACKAGE_005fNAME-75"></a></var><br>
 <blockquote><p>This is the file name of the binary distribution tarball.  Notice that
 there is no directory part.
 
@@ -228,7 +1124,7 @@ there is no directory part.
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>bindist_PACKAGE_TOP_BUILDDIR</b><var><a name="index-bindist_005fPACKAGE_005fTOP_005fBUILDDIR-3"></a></var><br>
+&mdash; Variable: <b>bindist_PACKAGE_TOP_BUILDDIR</b><var><a name="index-bindist_005fPACKAGE_005fTOP_005fBUILDDIR-76"></a></var><br>
 <blockquote><p>This is the root directory for temporary installation of files.
 
         <p>Example:
@@ -239,7 +1135,7 @@ there is no directory part.
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>bindist_BUILDDIR</b><var><a name="index-bindist_005fBUILDDIR-4"></a></var><br>
+&mdash; Variable: <b>bindist_BUILDDIR</b><var><a name="index-bindist_005fBUILDDIR-77"></a></var><br>
 <blockquote><p>This is where the produced tarball will be finally stored.
 
         <p>Example (from the build directory of the author):
@@ -250,7 +1146,7 @@ there is no directory part.
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>bindist_TARBALL_PATHNAME</b><var><a name="index-bindist_005fTARBALL_005fPATHNAME-5"></a></var><br>
+&mdash; Variable: <b>bindist_TARBALL_PATHNAME</b><var><a name="index-bindist_005fTARBALL_005fPATHNAME-78"></a></var><br>
 <blockquote><p>This is the full pathname of the tarball.
 
         <p>Example:
@@ -264,7 +1160,7 @@ there is no directory part.
 <h5 class="subsubheading">Makefile rules</h5>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>bindist</b><var><a name="index-bindist-6"></a></var><br>
+&mdash; Makefile Rule: <b>bindist</b><var><a name="index-bindist-79"></a></var><br>
 <blockquote><p>Build the binary distribution tarball and place it in the build
 directory.  To be invoked as:
 
@@ -273,7 +1169,7 @@ directory.  To be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>bindist-builddir</b><var><a name="index-bindist_002dbuilddir-7"></a></var><br>
+&mdash; Makefile Rule: <b>bindist-builddir</b><var><a name="index-bindist_002dbuilddir-80"></a></var><br>
 <blockquote><p>If the <code>$(bindist_BUILDDIR)</code> directory does not exist: create it. 
 To be invoked as:
 
@@ -282,7 +1178,7 @@ To be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>bindist-top-builddir</b><var><a name="index-bindist_002dtop_002dbuilddir-8"></a></var><br>
+&mdash; Makefile Rule: <b>bindist-top-builddir</b><var><a name="index-bindist_002dtop_002dbuilddir-81"></a></var><br>
 <blockquote><p>If the <code>$(bindist_PACKAGE_TOP_BUILDDIR)</code> directory does not exist:
 create it.  To be invoked as:
 
@@ -291,7 +1187,7 @@ create it.  To be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>bindist-clean</b><var><a name="index-bindist_002dclean-9"></a></var><br>
+&mdash; Makefile Rule: <b>bindist-clean</b><var><a name="index-bindist_002dclean-82"></a></var><br>
 <blockquote><p>Equivalent to invoke both the <code>bindist-clean-top-builddir</code> and
 <code>bindist-clean-builddir</code> rules.  To be invoked as:
 
@@ -300,7 +1196,7 @@ create it.  To be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>bindist-clean-top-builddir</b><var><a name="index-bindist_002dclean_002dtop_002dbuilddir-10"></a></var><br>
+&mdash; Makefile Rule: <b>bindist-clean-top-builddir</b><var><a name="index-bindist_002dclean_002dtop_002dbuilddir-83"></a></var><br>
 <blockquote><p>Remove the <code>$(bindist_PACKAGE_TOP_BUILDDIR)</code> directory and all its
 contents.  To be invoked as:
 
@@ -309,7 +1205,7 @@ contents.  To be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>bindist-clean-builddir</b><var><a name="index-bindist_002dclean_002dbuilddir-11"></a></var><br>
+&mdash; Makefile Rule: <b>bindist-clean-builddir</b><var><a name="index-bindist_002dclean_002dbuilddir-84"></a></var><br>
 <blockquote><p>Remove the <code>$(bindist_BUILDDIR)</code> directory and all its contents. 
 To be invoked as:
 
@@ -344,7 +1240,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#package">package</a>
 
 </div>
 
-<h3 class="section">3.2 Building Slackware packages</h3>
+<h3 class="section">5.2 Building Slackware packages</h3>
 
 <p>Support for Slackware packages allows the construction of both standard
 and &ldquo;local&rdquo; packages.  Let's take the <code>nausicaa-scmobj</code> project
@@ -383,7 +1279,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#slackware">slackware</a>
 
 </div>
 
-<h4 class="subsection">3.2.1 Common variables and rules</h4>
+<h4 class="subsection">5.2.1 Common variables and rules</h4>
 
 <p>This section documents variables and rules that can are used both when
 building standard packages and local packages.
@@ -391,7 +1287,7 @@ building standard packages and local packages.
 <h5 class="subsubheading">Makefile variables</h5>
 
 <div class="defun">
-&mdash; Variable: <b>slack_PACKAGE_NAME</b><var><a name="index-slack_005fPACKAGE_005fNAME-12"></a></var><br>
+&mdash; Variable: <b>slack_PACKAGE_NAME</b><var><a name="index-slack_005fPACKAGE_005fNAME-85"></a></var><br>
 <blockquote><p>This is the file name of the Slackware package.  Notice that there is no
 directory part.
 
@@ -403,7 +1299,7 @@ directory part.
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>slack_PACKAGE_PREFIX</b><var><a name="index-slack_005fPACKAGE_005fPREFIX-13"></a></var><br>
+&mdash; Variable: <b>slack_PACKAGE_PREFIX</b><var><a name="index-slack_005fPACKAGE_005fPREFIX-86"></a></var><br>
 <blockquote><p>This is the package prefix, it is used to remove the package.
 
         <p>Example:
@@ -414,7 +1310,7 @@ directory part.
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>slack_PACKAGE_TOP_BUILDDIR</b><var><a name="index-slack_005fPACKAGE_005fTOP_005fBUILDDIR-14"></a></var><br>
+&mdash; Variable: <b>slack_PACKAGE_TOP_BUILDDIR</b><var><a name="index-slack_005fPACKAGE_005fTOP_005fBUILDDIR-87"></a></var><br>
 <blockquote><p>This is the root directory for temporary installation of files.
 
         <p>Example:
@@ -425,7 +1321,7 @@ directory part.
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>slack_PACKAGE_BUILDDIR</b><var><a name="index-slack_005fPACKAGE_005fBUILDDIR-15"></a></var><br>
+&mdash; Variable: <b>slack_PACKAGE_BUILDDIR</b><var><a name="index-slack_005fPACKAGE_005fBUILDDIR-88"></a></var><br>
 <blockquote><p>This is the root directory for building packages.  The rules for
 standard packages will set it to:
 
@@ -440,7 +1336,7 @@ invoking <code>$(MAKE)</code> recursively.
 </p></blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>slack_BUILDDIR</b><var><a name="index-slack_005fBUILDDIR-16"></a></var><br>
+&mdash; Variable: <b>slack_BUILDDIR</b><var><a name="index-slack_005fBUILDDIR-89"></a></var><br>
 <blockquote><p>This is where the produced package will be finally stored.
 
         <p>Example (from the build directory of the author):
@@ -451,8 +1347,8 @@ invoking <code>$(MAKE)</code> recursively.
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>slack_REGISTRY</b><var><a name="index-slack_005fREGISTRY-17"></a></var><br>
-&mdash; Variable: <b>slack_REGISTRY_DIR</b><var><a name="index-slack_005fREGISTRY_005fDIR-18"></a></var><br>
+&mdash; Variable: <b>slack_REGISTRY</b><var><a name="index-slack_005fREGISTRY-90"></a></var><br>
+&mdash; Variable: <b>slack_REGISTRY_DIR</b><var><a name="index-slack_005fREGISTRY_005fDIR-91"></a></var><br>
 <blockquote><p>These are used to select the pathname of the Slackware packages
 registry.  The standard package rules will set <var>slack_REGISTRY</var> to:
 
@@ -470,7 +1366,7 @@ registry.  The standard package rules will set <var>slack_REGISTRY</var> to:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Variable: <b>slack_INSTALLED_PACKAGE</b><var><a name="index-slack_005fINSTALLED_005fPACKAGE-19"></a></var><br>
+&mdash; Variable: <b>slack_INSTALLED_PACKAGE</b><var><a name="index-slack_005fINSTALLED_005fPACKAGE-92"></a></var><br>
 <blockquote><p>The definition of this variable tries to read from the system the name
 of an already installed package.  It is used to upgrade.
 
@@ -485,7 +1381,7 @@ of an already installed package.  It is used to upgrade.
 <h5 class="subsubheading">Makefile rules</h5>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-builddir</b><var><a name="index-slackware_002dbuilddir-20"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-builddir</b><var><a name="index-slackware_002dbuilddir-93"></a></var><br>
 <blockquote><p>If the directory <code>$(slack_BUILDDIR)</code> does not exist: create it.  To
 be invoked as:
 
@@ -494,7 +1390,7 @@ be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-top-builddir</b><var><a name="index-slackware_002dtop_002dbuilddir-21"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-top-builddir</b><var><a name="index-slackware_002dtop_002dbuilddir-94"></a></var><br>
 <blockquote><p>If the directory <code>$(slack_PACKAGE_TOP_BUILDDIR)</code> does not exist:
 create it.  To be invoked as:
 
@@ -503,7 +1399,7 @@ create it.  To be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-aux</b><var><a name="index-slackware_002daux-22"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-aux</b><var><a name="index-slackware_002daux-95"></a></var><br>
 <blockquote><p>This is for auxiliary stuff: it is freely available to the user.  It
 will be invoked after having installed the files in the temporary
 location, and just before running <samp><span class="command">makepkg</span></samp> (see the
@@ -513,7 +1409,7 @@ location, and just before running <samp><span class="command">makepkg</span></sa
 </p></blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-clean</b><var><a name="index-slackware_002dclean-23"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-clean</b><var><a name="index-slackware_002dclean-96"></a></var><br>
 <blockquote><p>Equivalent to invoke both the <code>slackware-clean-top-builddir</code> and
 <code>slackware-clean-builddir</code> rules.  To be invoked as:
 
@@ -522,7 +1418,7 @@ location, and just before running <samp><span class="command">makepkg</span></sa
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-clean-top-builddir</b><var><a name="index-slackware_002dclean_002dtop_002dbuilddir-24"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-clean-top-builddir</b><var><a name="index-slackware_002dclean_002dtop_002dbuilddir-97"></a></var><br>
 <blockquote><p>Remove the <code>$(slack_PACKAGE_TOP_BUILDDIR)</code> directory and all its
 contents.  To be invoked as:
 
@@ -531,7 +1427,7 @@ contents.  To be invoked as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-clean-builddir</b><var><a name="index-slackware_002dclean_002dbuilddir-25"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-clean-builddir</b><var><a name="index-slackware_002dclean_002dbuilddir-98"></a></var><br>
 <blockquote><p>Remove the <code>$(slack_BUILDDIR)</code> directory and all its contents.  To
 be invoked as:
 
@@ -550,7 +1446,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#slackware">slackware</a>
 
 </div>
 
-<h4 class="subsection">3.2.2 Building standard Slackware packages</h4>
+<h4 class="subsection">5.2.2 Building standard Slackware packages</h4>
 
 <p>A standard Slackware package is a normal Slackware package: a tarball
 with <code>.tgz</code> extension; with the pathnames relative to the root
@@ -559,7 +1455,7 @@ directory; registered in the <samp><span class="file">/var/log/packages</span></
 <h5 class="subsubheading">Makefile variables</h5>
 
 <div class="defun">
-&mdash; Variable: <b>slackware_STANDARD_ENV</b><var><a name="index-slackware_005fSTANDARD_005fENV-26"></a></var><br>
+&mdash; Variable: <b>slackware_STANDARD_ENV</b><var><a name="index-slackware_005fSTANDARD_005fENV-99"></a></var><br>
 <blockquote><p>The system environment with which the Slackware package management
 scripts will be run.
 
@@ -589,7 +1485,7 @@ them.  Example:
 <pre class="example">     $ make local-slackware-upgrade -n
 </pre>
    <div class="defun">
-&mdash; Makefile Rule: <b>slackware</b><var><a name="index-slackware-27"></a></var><br>
+&mdash; Makefile Rule: <b>slackware</b><var><a name="index-slackware-100"></a></var><br>
 <blockquote><p>Build the package and place it into the build directory.  To be invoked
 as:
 
@@ -598,7 +1494,7 @@ as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-install</b><var><a name="index-slackware_002dinstall-28"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-install</b><var><a name="index-slackware_002dinstall-101"></a></var><br>
 <blockquote><p>Install the previously built package.  To be invoked as:
 
      <pre class="example">          $ sudo make slackware-install
@@ -606,7 +1502,7 @@ as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-remove</b><var><a name="index-slackware_002dremove-29"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-remove</b><var><a name="index-slackware_002dremove-102"></a></var><br>
 <blockquote><p>Try to upgrade an already installed package with the previously built
 package.  To be invoked as:
 
@@ -617,7 +1513,7 @@ package that will be removed.
 </p></blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>slackware-upgrade</b><var><a name="index-slackware_002dupgrade-30"></a></var><br>
+&mdash; Makefile Rule: <b>slackware-upgrade</b><var><a name="index-slackware_002dupgrade-103"></a></var><br>
 <blockquote><p>Try to upgrade an already installed package with the previously built
 package.  To be invoked as:
 
@@ -637,7 +1533,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#slackware">slackware</a>
 
 </div>
 
-<h4 class="subsection">3.2.3 Building local Slackware packages</h4>
+<h4 class="subsection">5.2.3 Building local Slackware packages</h4>
 
 <p>A local Slackware package is: a tarball with <code>.tgz</code> extension; with
 the pathnames relative to the selected installation prefix (for example
@@ -647,7 +1543,7 @@ registry, where <code>$(prefix)</code> is the selected installation prefix.
 <h5 class="subsubheading">Makefile variables</h5>
 
 <div class="defun">
-&mdash; Variable: <b>slackware_LOCAL_ENV</b><var><a name="index-slackware_005fLOCAL_005fENV-31"></a></var><br>
+&mdash; Variable: <b>slackware_LOCAL_ENV</b><var><a name="index-slackware_005fLOCAL_005fENV-104"></a></var><br>
 <blockquote><p>The system environment with which the Slackware package management
 scripts will be run.
 
@@ -677,7 +1573,7 @@ them.  Example:
 <pre class="example">     $ make local-slackware-upgrade -n
 </pre>
    <div class="defun">
-&mdash; Makefile Rule: <b>local-slackware</b><var><a name="index-local_002dslackware-32"></a></var><br>
+&mdash; Makefile Rule: <b>local-slackware</b><var><a name="index-local_002dslackware-105"></a></var><br>
 <blockquote><p>Build the package and place it into the build directory.  To be invoked
 as:
 
@@ -686,7 +1582,7 @@ as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>local-slackware-install</b><var><a name="index-local_002dslackware_002dinstall-33"></a></var><br>
+&mdash; Makefile Rule: <b>local-slackware-install</b><var><a name="index-local_002dslackware_002dinstall-106"></a></var><br>
 <blockquote><p>Install the previously built package.  To be invoked as:
 
      <pre class="example">          $ sudo make local-slackware-install
@@ -694,7 +1590,7 @@ as:
         </blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>local-slackware-remove</b><var><a name="index-local_002dslackware_002dremove-34"></a></var><br>
+&mdash; Makefile Rule: <b>local-slackware-remove</b><var><a name="index-local_002dslackware_002dremove-107"></a></var><br>
 <blockquote><p>Try to upgrade an already installed package with the previously built
 package.  To be invoked as:
 
@@ -705,7 +1601,7 @@ package that will be removed.
 </p></blockquote></div>
 
 <div class="defun">
-&mdash; Makefile Rule: <b>local-slackware-upgrade</b><var><a name="index-local_002dslackware_002dupgrade-35"></a></var><br>
+&mdash; Makefile Rule: <b>local-slackware-upgrade</b><var><a name="index-local_002dslackware_002dupgrade-108"></a></var><br>
 <blockquote><p>Try to upgrade an already installed package with the previously built
 package.  To be invoked as:
 
@@ -728,7 +1624,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <h2 class="appendix">Appendix A GNU Free Documentation License</h2>
 
-<p><a name="index-FDL_002c-GNU-Free-Documentation-License-36"></a><div align="center">Version 1.1, March 2000</div>
+<p><a name="index-FDL_002c-GNU-Free-Documentation-License-109"></a><div align="center">Version 1.1, March 2000</div>
 
 <pre class="display">     Copyright &copy; 2000 Free Software Foundation, Inc.
      59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
@@ -1117,7 +2013,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <h2 class="appendix">Appendix C An entry for each concept</h2>
 
 <ul class="index-cp" compact>
-<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-36">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
+<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-109">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
 </ul><div class="node">
 <p><hr>
 <a name="function-index"></a>
@@ -1132,26 +2028,52 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 
 <ul class="index-fn" compact>
-<li><a href="#index-bindist-6"><code>bindist</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_002dbuilddir-7"><code>bindist-builddir</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_002dclean-9"><code>bindist-clean</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_002dclean_002dbuilddir-11"><code>bindist-clean-builddir</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_002dclean_002dtop_002dbuilddir-10"><code>bindist-clean-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_002dtop_002dbuilddir-8"><code>bindist-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-local_002dslackware-32"><code>local-slackware</code></a>: <a href="#slackware-local">slackware local</a></li>
-<li><a href="#index-local_002dslackware_002dinstall-33"><code>local-slackware-install</code></a>: <a href="#slackware-local">slackware local</a></li>
-<li><a href="#index-local_002dslackware_002dremove-34"><code>local-slackware-remove</code></a>: <a href="#slackware-local">slackware local</a></li>
-<li><a href="#index-local_002dslackware_002dupgrade-35"><code>local-slackware-upgrade</code></a>: <a href="#slackware-local">slackware local</a></li>
-<li><a href="#index-slackware-27"><code>slackware</code></a>: <a href="#slackware-standard">slackware standard</a></li>
-<li><a href="#index-slackware_002daux-22"><code>slackware-aux</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slackware_002dbuilddir-20"><code>slackware-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slackware_002dclean-23"><code>slackware-clean</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slackware_002dclean_002dbuilddir-25"><code>slackware-clean-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slackware_002dclean_002dtop_002dbuilddir-24"><code>slackware-clean-top-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slackware_002dinstall-28"><code>slackware-install</code></a>: <a href="#slackware-standard">slackware standard</a></li>
-<li><a href="#index-slackware_002dremove-29"><code>slackware-remove</code></a>: <a href="#slackware-standard">slackware standard</a></li>
-<li><a href="#index-slackware_002dtop_002dbuilddir-21"><code>slackware-top-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slackware_002dupgrade-30"><code>slackware-upgrade</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index--74"></a>: <a href="#rules-inspect">rules inspect</a></li>
+<li><a href="#index-all-42"><code>all</code></a>: <a href="#rules-main">rules main</a></li>
+<li><a href="#index-bindist-79"><code>bindist</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dbuilddir-80"><code>bindist-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dclean-82"><code>bindist-clean</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dclean_002dbuilddir-84"><code>bindist-clean-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dclean_002dtop_002dbuilddir-83"><code>bindist-clean-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_002dtop_002dbuilddir-81"><code>bindist-top-builddir</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-clean-43"><code>clean</code></a>: <a href="#rules-main">rules main</a></li>
+<li><a href="#index-clean_002dbuilddir-45"><code>clean-builddir</code></a>: <a href="#rules-main">rules main</a></li>
+<li><a href="#index-compile-55"><code>compile</code></a>: <a href="#rules-fasl">rules fasl</a></li>
+<li><a href="#index-compile_002dclean-57"><code>compile-clean</code></a>: <a href="#rules-fasl">rules fasl</a></li>
+<li><a href="#index-doc-48"><code>doc</code></a>: <a href="#rules-doc">rules doc</a></li>
+<li><a href="#index-doc_002dclean-49"><code>doc-clean</code></a>: <a href="#rules-doc">rules doc</a></li>
+<li><a href="#index-doc_002dinstall-50"><code>doc-install</code></a>: <a href="#rules-doc">rules doc</a></li>
+<li><a href="#index-doc_002dtexinfo-61"><code>doc-texinfo</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_002dtexinfo_002dbuilddir-63"><code>doc-texinfo-builddir</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_002dtexinfo_002dclean-62"><code>doc-texinfo-clean</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_002dtexinfo_002dinstall-64"><code>doc-texinfo-install</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_002dtexinfo_002duninstall-65"><code>doc-texinfo-uninstall</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_002duninstall-51"><code>doc-uninstall</code></a>: <a href="#rules-doc">rules doc</a></li>
+<li><a href="#index-echo_002dvariable-73"><code>echo-variable</code></a>: <a href="#rules-inspect">rules inspect</a></li>
+<li><a href="#index-fasl-54"><code>fasl</code></a>: <a href="#rules-fasl">rules fasl</a></li>
+<li><a href="#index-fasl_002dclean-56"><code>fasl-clean</code></a>: <a href="#rules-fasl">rules fasl</a></li>
+<li><a href="#index-fasl_002dclean_002dfasl_002din_002dsrcdir-58"><code>fasl-clean-fasl-in-srcdir</code></a>: <a href="#rules-fasl">rules fasl</a></li>
+<li><a href="#index-fasl_002dinstall-59"><code>fasl-install</code></a>: <a href="#rules-fasl">rules fasl</a></li>
+<li><a href="#index-fasl_002duninstall-60"><code>fasl-uninstall</code></a>: <a href="#rules-fasl">rules fasl</a></li>
+<li><a href="#index-install-46"><code>install</code></a>: <a href="#rules-main">rules main</a></li>
+<li><a href="#index-local_002dslackware-105"><code>local-slackware</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-local_002dslackware_002dinstall-106"><code>local-slackware-install</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-local_002dslackware_002dremove-107"><code>local-slackware-remove</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-local_002dslackware_002dupgrade-108"><code>local-slackware-upgrade</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-realclean-44"><code>realclean</code></a>: <a href="#rules-main">rules main</a></li>
+<li><a href="#index-slackware-100"><code>slackware</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-slackware_002daux-95"><code>slackware-aux</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dbuilddir-93"><code>slackware-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dclean-96"><code>slackware-clean</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dclean_002dbuilddir-98"><code>slackware-clean-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dclean_002dtop_002dbuilddir-97"><code>slackware-clean-top-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dinstall-101"><code>slackware-install</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-slackware_002dremove-102"><code>slackware-remove</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-slackware_002dtop_002dbuilddir-94"><code>slackware-top-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_002dupgrade-103"><code>slackware-upgrade</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-sls_002dinstall-52"><code>sls-install</code></a>: <a href="#rules-sls">rules sls</a></li>
+<li><a href="#index-sls_002duninstall-53"><code>sls-uninstall</code></a>: <a href="#rules-sls">rules sls</a></li>
+<li><a href="#index-uninstall-47"><code>uninstall</code></a>: <a href="#rules-main">rules main</a></li>
    </ul><div class="node">
 <p><hr>
 <a name="variable-index"></a>
@@ -1166,21 +2088,68 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 
 <ul class="index-vr" compact>
-<li><a href="#index-bindist_005fBUILDDIR-4"><code>bindist_BUILDDIR</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_005fPACKAGE_005fNAME-2"><code>bindist_PACKAGE_NAME</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_005fPACKAGE_005fTOP_005fBUILDDIR-3"><code>bindist_PACKAGE_TOP_BUILDDIR</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-bindist_005fTARBALL_005fPATHNAME-5"><code>bindist_TARBALL_PATHNAME</code></a>: <a href="#bindist">bindist</a></li>
-<li><a href="#index-COMPRESSOR-1"><code>COMPRESSOR</code></a>: <a href="#vars-misc">vars misc</a></li>
-<li><a href="#index-slack_005fBUILDDIR-16"><code>slack_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slack_005fINSTALLED_005fPACKAGE-19"><code>slack_INSTALLED_PACKAGE</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slack_005fPACKAGE_005fBUILDDIR-15"><code>slack_PACKAGE_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slack_005fPACKAGE_005fNAME-12"><code>slack_PACKAGE_NAME</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slack_005fPACKAGE_005fPREFIX-13"><code>slack_PACKAGE_PREFIX</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slack_005fPACKAGE_005fTOP_005fBUILDDIR-14"><code>slack_PACKAGE_TOP_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slack_005fREGISTRY-17"><code>slack_REGISTRY</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slack_005fREGISTRY_005fDIR-18"><code>slack_REGISTRY_DIR</code></a>: <a href="#slackware-common">slackware common</a></li>
-<li><a href="#index-slackware_005fLOCAL_005fENV-31"><code>slackware_LOCAL_ENV</code></a>: <a href="#slackware-local">slackware local</a></li>
-<li><a href="#index-slackware_005fSTANDARD_005fENV-26"><code>slackware_STANDARD_ENV</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-bindir-17"><code>bindir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-bindist_005fBUILDDIR-77"><code>bindist_BUILDDIR</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_005fPACKAGE_005fNAME-75"><code>bindist_PACKAGE_NAME</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_005fPACKAGE_005fTOP_005fBUILDDIR-76"><code>bindist_PACKAGE_TOP_BUILDDIR</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-bindist_005fTARBALL_005fPATHNAME-78"><code>bindist_TARBALL_PATHNAME</code></a>: <a href="#bindist">bindist</a></li>
+<li><a href="#index-builddir-14"><code>builddir</code></a>: <a href="#vars-directories">vars directories</a></li>
+<li><a href="#index-datadir-19"><code>datadir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-datarootdir-18"><code>datarootdir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-doc_005ftexinfo_005fBUILDDIR-67"><code>doc_texinfo_BUILDDIR</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_005ftexinfo_005fCLEANFILES-70"><code>doc_texinfo_CLEANFILES</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_005ftexinfo_005fINSTDIR-72"><code>doc_texinfo_INSTDIR</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_005ftexinfo_005fINSTLST-71"><code>doc_texinfo_INSTLST</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_005ftexinfo_005fSOURCES-68"><code>doc_texinfo_SOURCES</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_005ftexinfo_005fSRCDIR-66"><code>doc_texinfo_SRCDIR</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-doc_005ftexinfo_005fTARGETS-69"><code>doc_texinfo_TARGETS</code></a>: <a href="#rules-texinfo">rules texinfo</a></li>
+<li><a href="#index-docdir-20"><code>docdir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-exec_005fprefix-16"><code>exec_prefix</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-ikarus_005fPKGLIBDIR-40"><code>ikarus_PKGLIBDIR</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-includedir-21"><code>includedir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-infodir-22"><code>infodir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-libdir-23"><code>libdir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-libexecdir-24"><code>libexecdir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-localstatedir-25"><code>localstatedir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-mandir-26"><code>mandir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-nausicaa_005fCOMPRESSOR-4"><code>nausicaa_COMPRESSOR</code></a>: <a href="#vars-config">vars config</a></li>
+<li><a href="#index-nausicaa_005fENABLE_005fDOC-3"><code>nausicaa_ENABLE_DOC</code></a>: <a href="#vars-config">vars config</a></li>
+<li><a href="#index-nausicaa_005fENABLE_005fFASL-2"><code>nausicaa_ENABLE_FASL</code></a>: <a href="#vars-config">vars config</a></li>
+<li><a href="#index-nausicaa_005fENABLE_005fSLS-1"><code>nausicaa_ENABLE_SLS</code></a>: <a href="#vars-config">vars config</a></li>
+<li><a href="#index-package_005fARCH-9"><code>package_ARCH</code></a>: <a href="#vars-package">vars package</a></li>
+<li><a href="#index-package_005fBUILD_005fVERSION-8"><code>package_BUILD_VERSION</code></a>: <a href="#vars-package">vars package</a></li>
+<li><a href="#index-package_005fNAME-10"><code>package_NAME</code></a>: <a href="#vars-package">vars package</a></li>
+<li><a href="#index-PACKAGE_005fNAME-5"><code>PACKAGE_NAME</code></a>: <a href="#vars-project">vars project</a></li>
+<li><a href="#index-package_005fPREFIX-12"><code>package_PREFIX</code></a>: <a href="#vars-package">vars package</a></li>
+<li><a href="#index-package_005fVERSION-11"><code>package_VERSION</code></a>: <a href="#vars-package">vars package</a></li>
+<li><a href="#index-PACKAGE_005fVERSION-6"><code>PACKAGE_VERSION</code></a>: <a href="#vars-project">vars project</a></li>
+<li><a href="#index-PKG_005fDIR-30"><code>PKG_DIR</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-PKG_005fID-7"><code>PKG_ID</code></a>: <a href="#vars-project">vars project</a></li>
+<li><a href="#index-pkgdatadir-31"><code>pkgdatadir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkgdocdir-32"><code>pkgdocdir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkgexampledir-33"><code>pkgexampledir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkghtmldir-35"><code>pkghtmldir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkgincludedir-36"><code>pkgincludedir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkginfodir-34"><code>pkginfodir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkglibdir-37"><code>pkglibdir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkglibexecdir-38"><code>pkglibexecdir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-pkgsysconfdir-39"><code>pkgsysconfdir</code></a>: <a href="#vars-directories-custom">vars directories custom</a></li>
+<li><a href="#index-prefix-15"><code>prefix</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-sbindir-27"><code>sbindir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-sharedstatedir-28"><code>sharedstatedir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-slack_005fBUILDDIR-89"><code>slack_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fINSTALLED_005fPACKAGE-92"><code>slack_INSTALLED_PACKAGE</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fBUILDDIR-88"><code>slack_PACKAGE_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fNAME-85"><code>slack_PACKAGE_NAME</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fPREFIX-86"><code>slack_PACKAGE_PREFIX</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fPACKAGE_005fTOP_005fBUILDDIR-87"><code>slack_PACKAGE_TOP_BUILDDIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fREGISTRY-90"><code>slack_REGISTRY</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slack_005fREGISTRY_005fDIR-91"><code>slack_REGISTRY_DIR</code></a>: <a href="#slackware-common">slackware common</a></li>
+<li><a href="#index-slackware_005fLOCAL_005fENV-104"><code>slackware_LOCAL_ENV</code></a>: <a href="#slackware-local">slackware local</a></li>
+<li><a href="#index-slackware_005fSTANDARD_005fENV-99"><code>slackware_STANDARD_ENV</code></a>: <a href="#slackware-standard">slackware standard</a></li>
+<li><a href="#index-srcdir-13"><code>srcdir</code></a>: <a href="#vars-directories">vars directories</a></li>
+<li><a href="#index-sysconfdir-29"><code>sysconfdir</code></a>: <a href="#vars-directories-common">vars directories common</a></li>
+<li><a href="#index-TMPDIR-41"><code>TMPDIR</code></a>: <a href="#vars-misc">vars misc</a></li>
    </ul><div class="node">
 <p><hr>
 <a name="type-index"></a>
@@ -1200,18 +2169,39 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <ul>
 <li><a name="toc_Top" href="#Top">Nausicaa</a>
 <li><a name="toc_overview" href="#overview">1 Overview of the package</a>
-<li><a name="toc_vars" href="#vars">2 Variables</a>
+<li><a name="toc_config" href="#config">2 Configuration</a>
 <ul>
-<li><a href="#vars-misc">2.1 Miscellaneous variables</a>
+<li><a href="#config-options">2.1 Options for <samp><span class="command">configure</span></samp></a>
 </li></ul>
-<li><a name="toc_package" href="#package">3 Building packages</a>
+<li><a name="toc_vars" href="#vars">3 Variables</a>
 <ul>
-<li><a href="#bindist">3.1 Building plain binary packages</a>
-<li><a href="#slackware">3.2 Building Slackware packages</a>
+<li><a href="#vars-config">3.1 Configuration variables</a>
+<li><a href="#vars-project">3.2 Project related variables</a>
+<li><a href="#vars-package">3.3 Binary package variables</a>
+<li><a href="#vars-directories">3.4 Directory variables</a>
 <ul>
-<li><a href="#slackware-common">3.2.1 Common variables and rules</a>
-<li><a href="#slackware-standard">3.2.2 Building standard Slackware packages</a>
-<li><a href="#slackware-local">3.2.3 Building local Slackware packages</a>
+<li><a href="#vars-directories-common">3.4.1 Common installation directories</a>
+<li><a href="#vars-directories-custom">3.4.2 Custom installation directories</a>
+</li></ul>
+<li><a href="#vars-misc">3.5 Miscellaneous variables</a>
+</li></ul>
+<li><a name="toc_rules" href="#rules">4 Rules</a>
+<ul>
+<li><a href="#rules-main">4.1 Main rules</a>
+<li><a href="#rules-doc">4.2 Documentation related rules</a>
+<li><a href="#rules-sls">4.3 Handling source files</a>
+<li><a href="#rules-fasl">4.4 Handling precompiled files</a>
+<li><a href="#rules-texinfo">4.5 Documentation in Texinfo format</a>
+<li><a href="#rules-inspect">4.6 Inspecting variables</a>
+</li></ul>
+<li><a name="toc_package" href="#package">5 Building packages</a>
+<ul>
+<li><a href="#bindist">5.1 Building plain binary packages</a>
+<li><a href="#slackware">5.2 Building Slackware packages</a>
+<ul>
+<li><a href="#slackware-common">5.2.1 Common variables and rules</a>
+<li><a href="#slackware-standard">5.2.2 Building standard Slackware packages</a>
+<li><a href="#slackware-local">5.2.3 Building local Slackware packages</a>
 </li></ul>
 </li></ul>
 <li><a name="toc_Documentation-License" href="#Documentation-License">Appendix A GNU Free Documentation License</a>

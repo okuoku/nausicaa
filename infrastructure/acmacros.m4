@@ -26,6 +26,62 @@ AC_CANONICAL_TARGET
 
 #page
 ## ------------------------------------------------------------
+## Options.
+## ------------------------------------------------------------
+
+AC_MSG_CHECKING([whether compiled files will be built and installed])
+
+AC_ARG_ENABLE([fasl],
+    AC_HELP_STRING([--disable-fasl],
+        [enable/disable installation of compiled libraries]),[
+if test "$enableval" = yes ; then
+  nausicaa_ENABLE_FASL=yes
+else
+  nausicaa_ENABLE_FASL=no
+fi
+],[nausicaa_ENABLE_FASL=yes])
+
+AC_MSG_RESULT([$nausicaa_ENABLE_FASL])
+AC_SUBST([nausicaa_ENABLE_FASL])
+
+## ------------------------------------------------------------
+
+AC_MSG_CHECKING([whether source files will be installed])
+
+AC_ARG_ENABLE([sls],
+    AC_HELP_STRING([--disable-sls],
+        [enable/disable installation of source files libraries]),[
+if test "$enableval" = yes ; then
+  nausicaa_ENABLE_SLS=yes
+else
+  nausicaa_ENABLE_SLS=no
+fi
+],[nausicaa_ENABLE_SLS=yes])
+
+AC_MSG_RESULT([$nausicaa_ENABLE_SLS])
+AC_SUBST([nausicaa_ENABLE_SLS])
+
+## ------------------------------------------------------------
+
+AC_MSG_CHECKING([whether documentation files will be installed])
+
+AC_ARG_ENABLE([doc],
+    AC_HELP_STRING([--disable-doc],
+        [enable/disable installation of documentation files]),[
+if test "$enableval" = yes ; then
+  nausicaa_ENABLE_DOC=yes
+else
+  nausicaa_ENABLE_DOC=no
+fi
+],[nausicaa_ENABLE_DOC=yes])
+
+AC_MSG_RESULT([$nausicaa_ENABLE_DOC])
+AC_SUBST([nausicaa_ENABLE_DOC])
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
 ## Common directories.
 ## ------------------------------------------------------------
 

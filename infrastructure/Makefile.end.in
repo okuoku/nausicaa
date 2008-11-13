@@ -41,6 +41,8 @@ sls_INSTDIR			= $(ikarus_PKGLIBDIR)
 
 .PHONY: sls-install sls-uninstall
 
+ifeq ($(strip $(nausicaa_ENABLE_SLS)),yes)
+
 sls-install:
 	$(INSTALL_DIR) $(foreach d,$(sls_DIRECTORIES),$(DESTDIR)$(sls_INSTDIR)/$(d))
 	cd $(sls_SRCDIR); $(foreach f,$(sls_SOURCES),\
@@ -49,6 +51,10 @@ sls-install:
 sls-uninstall:
 	-@$(RM) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(FILES))
 	-@$(RMDIR) $(addprefix $(DESTDIR)$(sls_INSTDIR)/,$(REVERSED_DIRECTORIES))
+
+else
+sls-install sls-uninstall:
+endif
 
 ## ------------------------------------------------------------
 
@@ -92,11 +98,14 @@ fasl_FASL_FILES		= $(shell $(fasl_FIND_FASL_SRCDIR))
 fasl_TARGETS		= $(shell $(fasl_FIND_FASL_BUILDDIR))
 
 fasl_INSTLST		= $(fasl_TARGETS)
-fasl_INSTDIR		= $(ikarus_PKGLIBDIR)
+fasl_INSTDIR		= $(sls_INSTDIR)
 
 ## ------------------------------------------------------------
 
 .PHONY: fasl fasl-clean fasl-clean-fasl-in-srcdir
+.PHONY: fasl-install fasl-uninstall
+
+ifeq ($(strip $(nausicaa_ENABLE_FASL)),yes)
 
 ## Notice  that,  by default,  GNU  tar  preserves the  file
 ## modification times  so the FASL times will  be newer than
@@ -122,12 +131,19 @@ fasl-clean-fasl-in-srcdir:
 	-cd $(fasl_SRCDIR); $(RM) $(fasl_FASL_FILES)
 
 fasl-install:
+	$(INSTALL_DIR) $(foreach d,$(sls_DIRECTORIES),$(DESTDIR)$(fasl_INSTDIR)/$(d))
 	cd $(fasl_BUILDDIR); $(foreach f,$(fasl_TARGETS),\
 		$(INSTALL_DATA) $(f) $(DESTDIR)$(fasl_INSTDIR)/$(dir $(f));)
 
 fasl-uninstall:
 	cd $(fasl_BUILDDIR); $(foreach f,$(fasl_TARGETS),\
 		$(INSTALL_DATA) $(f) $(DESTDIR)$(fasl_INSTDIR)/$(dir $(f));)
+	-@$(RMDIR) $(addprefix $(DESTDIR)$(fasl_INSTDIR)/,$(REVERSED_DIRECTORIES))
+
+else
+fasl fasl-clean fasl-clean-fasl-in-srcdir:
+fasl-install fasl-uninstall:
+endif
 
 ## ------------------------------------------------------------
 
@@ -171,10 +187,10 @@ test-file:
 
 #page
 ## ------------------------------------------------------------
-## Documentation: texinfo format.
+## Documentation: Texinfo format.
 ## ------------------------------------------------------------
 
-# If  is allright  if the  package has  no  documentation in
+# It  is allright  if the  package has  no  documentation in
 # Texinfo format.   The rules below will take  care of doing
 # nothing if no .texi files are found.
 
@@ -185,15 +201,20 @@ doc_texinfo_SOURCES	= $(wildcard $(doc_texinfo_SRCDIR)/*.texi)
 doc_texinfo_TARGETS	= $(foreach f,$(doc_texinfo_SOURCES:.texi=.info),\
 			  $(addprefix $(doc_texinfo_BUILDDIR)/,$(notdir $(f))))
 
+doc_texinfo_CLEANFILES	= $(doc_texinfo_TARGETS)
+
 doc_texinfo_INSTLST	= $(doc_texinfo_TARGETS)
 doc_texinfo_INSTDIR	= $(pkginfodir)
 
-.PHONY: doc-texinfo doc-texinfo-clean doc-texinfo-install
+.PHONY: doc-texinfo doc-texinfo-clean doc-texinfo-builddir
+.PHONY: doc-texinfo-install doc-texinfo-uninstall
+
+ifeq ($(strip $(nausicaa_ENABLE_DOC)),yes)
 
 doc-texinfo: $(doc_texinfo_TARGETS)
 
 doc-texinfo-clean:
-	-$(RM) $(doc_texinfo_TARGETS)
+	-$(RM) $(doc_texinfo_CLEANFILES)
 
 doc-texinfo-builddir:
 	-@test -d $(doc_texinfo_BUILDDIR) || $(MKDIR) $(doc_texinfo_BUILDDIR)
@@ -215,6 +236,11 @@ ifneq ($(strip $(wildcard $(doc_texinfo_INSTLST))),)
 	-@$(RMDIR) $(DESTDIR)$(doc_texinfo_INSTDIR)
 endif
 
+else
+doc-texinfo doc-texinfo-clean doc-texinfo-builddir:
+doc-texinfo-install doc-texinfo-uninstall:
+endif
+
 ## ------------------------------------------------------------
 
 doc:		doc-texinfo
@@ -229,7 +255,7 @@ doc-uninstall:	doc-texinfo-uninstall
 ## Binary distribution: common variables.
 ## ------------------------------------------------------------
 
-ifeq ($(strip $(COMPRESSOR)),bzip2)
+ifeq ($(strip $(nausicaa_COMPRESSOR)),bzip2)
 bindist_PACKAGE_EXTENSION	= .tar.bz2
 bindist_TAR_COMPRESS_FLAG	= --bzip2
 else

@@ -18,16 +18,32 @@ PKG_ID			= @PKG_ID@
 # "Makefile.custom".  If  not we set a default  that does no
 # harm.
 ifeq ($(strip $(package_BUILD_VERSION)),)
-package_BUILD_VERSION	= 1mm
+package_BUILD_VERSION	= 1nau
 endif
 
 package_NAME		= $(PACKAGE_NAME)
 package_VERSION		= $(PACKAGE_VERSION)
 package_ARCH		= noarch
 
-package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
+package_PREFIX		= \
+$(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
 
 ## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Configuration variables.
+## ------------------------------------------------------------
+
+# If set to 'yes' source files will be installed.
+nausicaa_ENABLE_SLS	= @nausicaa_ENABLE_SLS@
+
+# If set to 'yes' fasl files will be produced and installed.
+nausicaa_ENABLE_FASL	= @nausicaa_ENABLE_FASL@
+
+# If set to 'yes' documentation files will be produced and
+# installed.
+nausicaa_ENABLE_DOC	= @nausicaa_ENABLE_DOC@
 
 # Compressor to be used when creating a tarball; it is used
 # by the binary distribution rules.  Supported values:
@@ -38,7 +54,7 @@ package_PREFIX		= $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_B
 # if a different value is set, the compressor will default
 # to 'gzip'.
 # 
-COMPRESSOR		= bzip2
+nausicaa_COMPRESSOR	?= gzip
 
 ## ------------------------------------------------------------
 
@@ -56,12 +72,12 @@ endif
 # The  other modules  will assume  that this  is  a relative
 # directory  pathname, and  the full  pathname can  be built
 # with: '$(PWD)/$(srcdir)'.
-srcdir			= ..
+srcdir			= @srcdir@
 
 # The  other modules  will assume  that this  is  a relative
 # directory  pathname, and  the full  pathname can  be built
 # with: '$(PWD)/$(builddir)'.
-builddir		= .
+builddir		= @builddir@
 
 ## ------------------------------------------------------------
 
@@ -127,6 +143,9 @@ SUDO		= @SUDO@
 SYMLINK		= @SYMLINK@ --symbolic
 TAR		= @TAR@
 
+IKARUS		= @IKARUS@
+SCHEME_SCRIPT	= @SCHEME_SCRIPT@
+
 ## ------------------------------------------------------------
 
 INSTALL			= @INSTALL@
@@ -147,9 +166,6 @@ INSTALL_DATA		= $(INSTALL) -p -m $(INSTALL_DATA_MODE)
 
 ## ------------------------------------------------------------
 
-IKARUS		= @IKARUS@
-SCHEME_SCRIPT	= @SCHEME_SCRIPT@
-
 MAKEINFO_FLAGS	= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
 
 ## ------------------------------------------------------------
@@ -165,12 +181,14 @@ MAKEINFO_FLAGS	= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
 
 all:
 clean:
-realclean:
+realclean:	clean
 install:
 uninstall:
 
 clean-builddir:
-	-$(RM) $(builddir)/*
+	-@printf '*** The build directory is: %s\n' $(builddir)
+	-@read -p '*** Are you sure to clean it? (yes/no) ' ANSWER; \
+	test "$${ANSWER}" = yes && $(RM) $(builddir)/*
 
 ## ------------------------------------------------------------
 
