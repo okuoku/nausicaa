@@ -1,16 +1,47 @@
-# @configure_input@
-#
-# Library file for the "configure.ac".  This file should be
-# loaded  by  "configure.ac"  by  putting the  following  in
-# "aclocal.m4":
-#
-#       m4_include(../infrastructure/configure.nau)
-#
+# 
+# Part of: Nausicaa
+# Contents: autoconf macros
+# Date: Thu Nov 13, 2008
+# 
+# Abstract
+# 
+# 
+# 
+# Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+# 
+# This  program  is free  software:  you  can redistribute  it
+# and/or modify it  under the terms of the  GNU General Public
+# License as published by the Free Software Foundation, either
+# version  3 of  the License,  or (at  your option)  any later
+# version.
+# 
+# This  program is  distributed in  the hope  that it  will be
+# useful, but  WITHOUT ANY WARRANTY; without  even the implied
+# warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
+# PURPOSE.   See  the  GNU  General Public  License  for  more
+# details.
+# 
+# You should  have received a  copy of the GNU  General Public
+# License   along   with    this   program.    If   not,   see
+# <http://www.gnu.org/licenses/>.
+# 
+
+#page
+## ------------------------------------------------------------
+## Begin of NAUSICAA_BEGIN.
+## ------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_BEGIN],[
+
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
 ## Setup.
 ## ------------------------------------------------------------
+
+AC_PREREQ(2.60)
+AC_CONFIG_AUX_DIR([../infrastructure])
 
 # Notice that this one defines '_GNU_SOURCE' and others.
 AC_USE_SYSTEM_EXTENSIONS
@@ -143,67 +174,105 @@ AC_PROG_MAKE_SET
 
 ## ------------------------------------------------------------
 
-AC_DEFUN([DS_P_MAKE_PROGRAM_DEFUN],[
-AC_DEFUN([DS_PROGRAM_$1],[AC_PATH_PROG([$1],[$2],[:])
-AC_ARG_VAR([$1],[$3])])])
+AC_PATH_PROG([BASH_PROGRAM],[bash],[:])
+AC_ARG_VAR([BASH_PROGRAM],[the GNU bash shell])
+
+AC_PATH_PROG([BZIP],[bzip2],[:])
+AC_ARG_VAR([BZIP],[the bzip2 compressor program])
+
+AC_PATH_PROG([CAT],[cat],[:])
+AC_ARG_VAR([CAT],[the GNU cat program])
+
+AC_PATH_PROG([CP],[cp],[:])
+AC_ARG_VAR([CP],[copies files])
+
+AC_PATH_PROG([DATE],[date],[:])
+AC_ARG_VAR([DATE],[a program that prints the current date])
+
+AC_PATH_PROG([FIND],[find],[:])
+AC_ARG_VAR([FIND],[the GNU find program])
+
+AC_PATH_PROG([GAWK],[gawk],[:])
+AC_ARG_VAR([GAWK],[the GNU awk program])
+
+AC_PATH_PROG([GREP],[grep],[:])
+AC_ARG_VAR([GREP],[the GNU grep program])
+
+AC_PATH_PROG([GZIP],[gzip],[:])
+AC_ARG_VAR([GZIP],[the gzip compressor program])
+
+AC_PATH_PROG([M4],[m4],[:])
+AC_ARG_VAR([M4],[the GNU m4 preprocessor])
+
+AC_PATH_PROG([MAKEINFO],[makeinfo],[:])
+AC_ARG_VAR([MAKEINFO],[builds docs from Texinfo source])
+
+AC_PATH_PROG([MKDIR],[mkdir],[:])
+AC_ARG_VAR([MKDIR],[creates directories recursively])
+
+AC_PATH_PROG([MV],[mv],[:])
+AC_ARG_VAR([MV],[move files around])
+
+AC_PATH_PROG([RM],[rm],[:])
+AC_ARG_VAR([RM],[deletes files and directories recursively])
+
+AC_PATH_PROG([RMDIR],[rmdir],[:])
+AC_ARG_VAR([RMDIR],[deletes empty directories])
+
+AC_PATH_PROG([SED],[sed],[:])
+AC_ARG_VAR([SED],[the GNU sed program])
+
+AC_PATH_PROG([SORT],[sort],[:])
+AC_ARG_VAR([SORT],[the GNU sort program])
+
+AC_PATH_PROG([SUDO],[sudo],[:])
+AC_ARG_VAR([SUDO],[the sudo superuser executor])
+
+AC_PATH_PROG([SYMLINK],[ln],[:])
+AC_ARG_VAR([SYMLINK],[program used create symbolic links])
+
+AC_PATH_PROG([TAR],[tar],[:])
+AC_ARG_VAR([TAR],[the GNU tar program])
 
 ## ------------------------------------------------------------
 
-DS_P_MAKE_PROGRAM_DEFUN([BASH_PROGRAM],[bash],[the GNU bash shell])
-DS_P_MAKE_PROGRAM_DEFUN([BZIP],[bzip2],[the bzip2 compressor program])
-DS_P_MAKE_PROGRAM_DEFUN([CAT],[cat],[the GNU cat program])
-DS_P_MAKE_PROGRAM_DEFUN([CP],[cp],[copies files])
-DS_P_MAKE_PROGRAM_DEFUN([DATE],[date],[a program that prints the current date])
-DS_P_MAKE_PROGRAM_DEFUN([FIND],[find],[the GNU find program])
-DS_P_MAKE_PROGRAM_DEFUN([GAWK],[gawk],[the GNU awk program])
-DS_P_MAKE_PROGRAM_DEFUN([GREP],[grep],[the GNU grep program])
-DS_P_MAKE_PROGRAM_DEFUN([GZIP],[gzip],[the gzip compressor program])
-DS_P_MAKE_PROGRAM_DEFUN([M4],[m4],[the GNU m4 preprocessor])
-DS_P_MAKE_PROGRAM_DEFUN([MAKEINFO],[makeinfo],[builds docs from Texinfo source])
-DS_P_MAKE_PROGRAM_DEFUN([MKDIR],[mkdir],[creates directories recursively])
-DS_P_MAKE_PROGRAM_DEFUN([MV],[mv],[move files around])
-DS_P_MAKE_PROGRAM_DEFUN([RM],[rm],[deletes files and directories recursively])
-DS_P_MAKE_PROGRAM_DEFUN([RMDIR],[rmdir],[deletes empty directories])
-DS_P_MAKE_PROGRAM_DEFUN([SED],[sed],[the GNU sed program])
-DS_P_MAKE_PROGRAM_DEFUN([SORT],[sort],[the GNU sort program])
-DS_P_MAKE_PROGRAM_DEFUN([SUDO],[sudo],[the sudo superuser executor])
-DS_P_MAKE_PROGRAM_DEFUN([SYMLINK],[ln],[program used create symbolic links])
-DS_P_MAKE_PROGRAM_DEFUN([TAR],[tar],[the GNU tar program])
+AC_PATH_PROG([IKARUS],[ikarus],[:])
+AC_ARG_VAR([IKARUS],[the Ikarus Scheme executable])
 
-DS_P_MAKE_PROGRAM_DEFUN([IKARUS],[ikarus],[the Ikarus Scheme executable])
-DS_P_MAKE_PROGRAM_DEFUN([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
-
-## ------------------------------------------------------------
-
-DS_PROGRAM_BASH_PROGRAM
-DS_PROGRAM_BZIP
-DS_PROGRAM_CAT
-DS_PROGRAM_CP
-DS_PROGRAM_DATE
-DS_PROGRAM_FIND
-DS_PROGRAM_GAWK
-DS_PROGRAM_GREP
-DS_PROGRAM_GZIP
-DS_PROGRAM_M4
-DS_PROGRAM_MAKEINFO
-DS_PROGRAM_MKDIR
-DS_PROGRAM_MV
-DS_PROGRAM_RM
-DS_PROGRAM_RMDIR
-DS_PROGRAM_SED
-DS_PROGRAM_SORT
-DS_PROGRAM_SUDO
-DS_PROGRAM_SYMLINK
-DS_PROGRAM_TAR
-
-DS_PROGRAM_IKARUS
-DS_PROGRAM_SCHEME_SCRIPT
+AC_PATH_PROG([SCHEME_SCRIPT],[scheme-script],[:])
+AC_ARG_VAR([SCHEME_SCRIPT],[the scheme-script executable])
 
 ## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
-## Macros.
+## End of NAUSICAA_BEGIN.
+## ------------------------------------------------------------
+
+]) 
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Done.
+## ------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_END],[
+
+AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
+AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
+AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+
+])
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Other macros.
 ## ------------------------------------------------------------
 
 # Synopsis:
@@ -289,20 +358,7 @@ fi
 AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
 ])
 
-IKARUS_CHECK_LIBRARY([LIST],[(srfi lists)])
-
 ## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Done.
-## ------------------------------------------------------------
-
-AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
-AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
-AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
 
 
 ### end of file
