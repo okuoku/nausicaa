@@ -80,6 +80,40 @@ AC_SUBST([nausicaa_ENABLE_DOC])
 
 ## ------------------------------------------------------------
 
+AC_MSG_CHECKING([whether documentation in Info format will be installed])
+
+AC_ARG_ENABLE([doc-info],
+    AC_HELP_STRING([--disable-doc-info],
+        [enable/disable installation of Info documentation files]),[
+if test "$enableval" = yes ; then
+  nausicaa_ENABLE_INFO_DOC=yes
+else
+  nausicaa_ENABLE_INFO_DOC=no
+fi
+],[nausicaa_ENABLE_INFO_DOC=yes])
+
+AC_MSG_RESULT([$nausicaa_ENABLE_INFO_DOC])
+AC_SUBST([nausicaa_ENABLE_INFO_DOC])
+
+## ------------------------------------------------------------
+
+AC_MSG_CHECKING([whether documentation in HTML format will be installed])
+
+AC_ARG_ENABLE([doc-html],
+    AC_HELP_STRING([--enable-doc-html],
+        [enable/disable installation of HTML documentation files]),[
+if test "$enableval" = yes ; then
+  nausicaa_ENABLE_HTML_DOC=yes
+else
+  nausicaa_ENABLE_HTML_DOC=no
+fi
+],[nausicaa_ENABLE_HTML_DOC=no])
+
+AC_MSG_RESULT([$nausicaa_ENABLE_HTML_DOC])
+AC_SUBST([nausicaa_ENABLE_HTML_DOC])
+
+## ------------------------------------------------------------
+
 #page
 ## ------------------------------------------------------------
 ## Common directories.

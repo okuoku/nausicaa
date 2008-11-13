@@ -198,50 +198,99 @@ doc_texinfo_SRCDIR	= $(srcdir)/doc
 doc_texinfo_BUILDDIR	= $(builddir)/doc-texinfo.d
 
 doc_texinfo_SOURCES	= $(wildcard $(doc_texinfo_SRCDIR)/*.texi)
-doc_texinfo_TARGETS	= $(foreach f,$(doc_texinfo_SOURCES:.texi=.info),\
+doc_texinfo_info_TARGETS= $(foreach f,$(doc_texinfo_SOURCES:.texi=.info),\
+			  $(addprefix $(doc_texinfo_BUILDDIR)/,$(notdir $(f))))
+doc_texinfo_html_TARGETS= $(foreach f,$(doc_texinfo_SOURCES:.texi=.html),\
 			  $(addprefix $(doc_texinfo_BUILDDIR)/,$(notdir $(f))))
 
+doc_texinfo_TARGETS	= $(doc_texinfo_info_TARGETS) $(doc_texinfo_html_TARGETS)
 doc_texinfo_CLEANFILES	= $(doc_texinfo_TARGETS)
 
-doc_texinfo_INSTLST	= $(doc_texinfo_TARGETS)
-doc_texinfo_INSTDIR	= $(pkginfodir)
+doc_texinfo_info_INSTLST= $(doc_texinfo_info_TARGETS)
+doc_texinfo_info_INSTDIR= $(infodir)
+
+doc_texinfo_html_INSTLST= $(doc_texinfo_html_TARGETS)
+doc_texinfo_html_INSTDIR= $(pkghtmldir)
+
+## ------------------------------------------------------------
 
 .PHONY: doc-texinfo doc-texinfo-clean doc-texinfo-builddir
-.PHONY: doc-texinfo-install doc-texinfo-uninstall
+.PHONY: doc-texinfo-install doc-texinfo-uninstall doc-texinfo-version
+
+.PHONY: doc-texinfo-info doc-texinfo-info-install doc-texinfo-info-uninstall
+.PHONY: doc-texinfo-html doc-texinfo-html-install doc-texinfo-html-uninstall
 
 ifeq ($(strip $(nausicaa_ENABLE_DOC)),yes)
 
-doc-texinfo: $(doc_texinfo_TARGETS)
-
-doc-texinfo-clean:
-	-$(RM) $(doc_texinfo_CLEANFILES)
+doc-texinfo:		doc-texinfo-info          doc-texinfo-html
+doc-texinfo-install:	doc-texinfo-info-install  doc-texinfo-html-install
+doc-texinfo-uninstall:	doc-texinfo-info-uinstall doc-texinfo-html-uinstall
 
 doc-texinfo-builddir:
 	-@test -d $(doc_texinfo_BUILDDIR) || $(MKDIR) $(doc_texinfo_BUILDDIR)
 
-$(doc_texinfo_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi
-	$(MAKE) doc-texinfo-builddir
-	printf '@macro version{}\n%s\n@end macro' $(PACKAGE_VERSION) >$(doc_texinfo_BUILDDIR)/version.texiinc
-	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $(@) $(<)
+doc-texinfo-clean:
+	-$(RM) $(doc_texinfo_CLEANFILES)
 
-doc-texinfo-install:
-ifneq ($(strip $(wildcard $(doc_texinfo_INSTLST))),)
-	$(INSTALL_DIR) $(DESTDIR)$(doc_texinfo_INSTDIR)
-	$(INSTALL_DATA) $(doc_texinfo_INSTLST) $(DESTDIR)$(doc_texinfo_INSTDIR)
+doc-texinfo-version: $(doc_texinfo_BUILDDIR)/version.texiinc
+
+$(doc_texinfo_BUILDDIR)/version.texiinc:
+	printf '@macro version{}\n%s\n@end macro' $(PACKAGE_VERSION) >$(@)
+
+## ------------------------------------------------------------
+## Info format.
+
+ifeq ($(strip $(nausicaa_ENABLE_INFO_DOC)),yes)
+
+doc-texinfo-info: doc-texinfo-builddir doc-texinfo-version $(doc_texinfo_info_TARGETS)
+
+$(doc_texinfo_info_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi
+	$(MAKEINFO) $(MAKEINFO_INFO_FLAGS) -o $(@) $(<)
+
+doc-texinfo-info-install:
+ifneq ($(strip $(wildcard $(doc_texinfo_info_INSTLST))),)
+	$(INSTALL_DIR) $(DESTDIR)$(doc_texinfo_info_INSTDIR)
+	$(INSTALL_DATA) $(doc_texinfo_info_INSTLST) $(DESTDIR)$(doc_texinfo_info_INSTDIR)
 endif
 
-doc-texinfo-uninstall:
-ifneq ($(strip $(wildcard $(doc_texinfo_INSTLST))),)
-	-@$(RM) $(addprefix $(DESTDIR)$(doc_texinfo_INSTDIR)/,$(foreach f,$(doc_texinfo_INSTLST),$(notdir $(f))))
-	-@$(RMDIR) $(DESTDIR)$(doc_texinfo_INSTDIR)
+doc-texinfo-info-uninstall:
+ifneq ($(strip $(wildcard $(doc_texinfo_info_INSTLST))),)
+	-@$(RM) $(addprefix $(DESTDIR)$(doc_texinfo_info_INSTDIR)/,$(foreach f,$(doc_texinfo_info_INSTLST),$(notdir $(f))))
+	-@$(RMDIR) $(DESTDIR)$(doc_texinfo_info_INSTDIR)
 endif
+
+endif		# nausicaa_ENABLE_INFO_DOC == yes
+
+## ------------------------------------------------------------
+## HTML format.
+
+ifeq ($(strip $(nausicaa_ENABLE_HTML_DOC)),yes)
+
+doc-texinfo-html: doc-texinfo-builddir doc-texinfo-version $(doc_texinfo_html_TARGETS)
+
+$(doc_texinfo_html_TARGETS): $(doc_texinfo_BUILDDIR)/%.html : $(doc_texinfo_SRCDIR)/%.texi
+	$(MAKEINFO) $(MAKEINFO_HTML_FLAGS) -o $(@) $(<)
+
+doc-texinfo-html-install:
+ifneq ($(strip $(wildcard $(doc_texinfo_html_INSTLST))),)
+	$(INSTALL_DIR) $(DESTDIR)$(doc_texinfo_html_INSTDIR)
+	$(INSTALL_DATA) $(doc_texinfo_html_INSTLST) $(DESTDIR)$(doc_texinfo_html_INSTDIR)
+endif
+
+doc-texinfo-html-uninstall:
+ifneq ($(strip $(wildcard $(doc_texinfo_html_INSTLST))),)
+	-@$(RM) $(addprefix $(DESTDIR)$(doc_texinfo_html_INSTDIR)/,$(foreach f,$(doc_texinfo_html_INSTLST),$(notdir $(f))))
+	-@$(RMDIR) $(DESTDIR)$(doc_texinfo_html_INSTDIR)
+endif
+
+endif		# nausicaa_ENABLE_HTML_DOC == yes
+
+## ------------------------------------------------------------
 
 else
 doc-texinfo doc-texinfo-clean doc-texinfo-builddir:
 doc-texinfo-install doc-texinfo-uninstall:
-endif
-
-## ------------------------------------------------------------
+endif		# nausicaa_ENABLE_DOC == yes
 
 doc:		doc-texinfo
 doc-clean:	doc-texinfo-clean

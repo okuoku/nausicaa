@@ -2,6 +2,7 @@
 ;;
 
 (import
+  (only (uriel define-macro))
   (only (uriel io))
   (only (uriel begin0)))
 
