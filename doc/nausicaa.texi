@@ -598,6 +598,26 @@ It is set by the @command{configure} options @option{--enable-doc} and
 @end defvar
 
 
+@defvar nausicaa_ENABLE_INFO_DOC
+Enable or disable compilation and installation of Info documentation
+files; valid values are @code{yes} and @code{no}.  The default is
+@code{yes}.
+
+It is set by the @command{configure} options @option{--enable-doc-info}
+and @option{--disable-doc-info}.
+@end defvar
+
+
+@defvar nausicaa_ENABLE_HTML_DOC
+Enable or disable compilation and installation of @acronym{HTML}
+documentation files; valid values are @code{yes} and @code{no}.  The
+default is @code{no}.
+
+It is set by the @command{configure} options @option{--enable-doc-html}
+and @option{--disable-doc-html}.
+@end defvar
+
+
 @defvar nausicaa_COMPRESSOR
 Select the compressor to be used when creating a tarball; it is used by
 the binary distribution rules.

@@ -31,12 +31,12 @@
 
   (define-syntax begin0
     (syntax-rules ()
-      [(_ ?expr1 ?expr2 ...)
+      ((_ ?expr0 ?expr ...)
        (call-with-values
-	   (lambda () ?expr1)
+	   (lambda () ?expr0)
 	 (lambda x
-	   ?expr2 ...
-	   (apply values x)))])))
+	   ?expr ...
+	   (apply values x)))))))
 
 
 ;;; end of file

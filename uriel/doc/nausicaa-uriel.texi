@@ -420,6 +420,7 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package. 
 * io::                          Input/output library.
+* begin0::                      The K combinator.
 
 Appendices
 
@@ -478,6 +479,40 @@ is equivalent to:
   (lambda ()
     (display 123)))
 @end example
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node begin0
+@chapter The K combinator
+
+
+@noindent
+To load the library:
+
+@example
+(import (uriel begin0))
+@end example
+
+
+@deffn Syntax begin0 @var{form} . @var{forms}
+Evaluate all the forms like the standard @func{begin}, but return the
+value of the first form.
+
+@example
+(define-syntax begin0
+    (syntax-rules ()
+      ((_ ?expr0 ?expr ...)
+       (call-with-values
+           (lambda () ?expr0)
+         (lambda x
+           ?expr ...
+           (apply values x))))))
+@end example
+
+This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
 @end deffn
 
 
