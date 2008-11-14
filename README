@@ -63,7 +63,7 @@ building  and  installation  of  packages  from  the  source
 directory  of a  project; always  create a  subdirectory and
 move into it:
 
-   $ cd <source-directory-of-package>
+   $ cd <source-directory-of-project>
    $ mkdir "=build"
    $ cd "=build"
 
@@ -73,6 +73,17 @@ then, usually, you should do:
    $ make
    $ make test
    $ make install
+
+  Notice that:
+
+* by  default library  files  are precompiled  and only  the
+  resulting  FASL  files are  installed  on  the system;  to
+  change this use the '--enable-sls' configuration option;
+
+* by default only documentation  in Info format is built and
+  installed,  documentation  in HTML  format  is pruned;  to
+  change  this  use  the  '--enable-doc-html'  configuration
+  option.
 
   There is  basic support for package  creation, for example
 for Slackware; read the Nausicaa documentation for details.

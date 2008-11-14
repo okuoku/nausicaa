@@ -73,24 +73,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 3. Install
 ----------
 
-The  installation  infrastructure   supports  only  the  GNU
-environment, which  means GNU Make, GNU Bash  and the common
-command  line tools  (mv,  cp, mkdir,  ...).  The  following
-rules are available in the "Makefile":
+Basically we should do:
 
-  all		compile all the installable Scheme files to
-		the Ikarus FASL format;
-
-  clean		remove the FASL files;
-
-  install	install  the directories,  the  source files
-		and the FASL files;
-
-  uninstall	uinstall the  source and FASL  files, remove
-		empty directories;
-
-notice  that  to  correctly  uninstall  you  have  to  avoid
-cleaning the source directory with "make clean".
+   $ cd irregx
+   $ mkdir "=build"
+   $ cd "=build"
+   $ ../configure
+   $ make
+   $ make test
+   $ make install
 
   To test what a rule will do use the "-n" option; example:
 

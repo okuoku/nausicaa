@@ -64,7 +64,7 @@ AC_MSG_CHECKING([whether compiled files will be built and installed])
 
 AC_ARG_ENABLE([fasl],
     AC_HELP_STRING([--disable-fasl],
-        [enable/disable installation of compiled libraries]),[
+        [disable installation of precompiled libraries (default: enabled)]),[
 if test "$enableval" = yes ; then
   nausicaa_ENABLE_FASL=yes
 else
@@ -80,14 +80,14 @@ AC_SUBST([nausicaa_ENABLE_FASL])
 AC_MSG_CHECKING([whether source files will be installed])
 
 AC_ARG_ENABLE([sls],
-    AC_HELP_STRING([--disable-sls],
-        [enable/disable installation of source files libraries]),[
+    AC_HELP_STRING([--enable-sls],
+        [enable installation of source files (default: disabled)]),[
 if test "$enableval" = yes ; then
   nausicaa_ENABLE_SLS=yes
 else
   nausicaa_ENABLE_SLS=no
 fi
-],[nausicaa_ENABLE_SLS=yes])
+],[nausicaa_ENABLE_SLS=no])
 
 AC_MSG_RESULT([$nausicaa_ENABLE_SLS])
 AC_SUBST([nausicaa_ENABLE_SLS])
@@ -98,7 +98,7 @@ AC_MSG_CHECKING([whether documentation files will be installed])
 
 AC_ARG_ENABLE([doc],
     AC_HELP_STRING([--disable-doc],
-        [enable/disable installation of documentation files]),[
+        [disable installation of documentation files (default: enabled)]),[
 if test "$enableval" = yes ; then
   nausicaa_ENABLE_DOC=yes
 else
@@ -115,7 +115,7 @@ AC_MSG_CHECKING([whether documentation in Info format will be installed])
 
 AC_ARG_ENABLE([doc-info],
     AC_HELP_STRING([--disable-doc-info],
-        [enable/disable installation of Info documentation files]),[
+        [disable installation of Info documentation (default: enabled)]),[
 if test "$enableval" = yes ; then
   nausicaa_ENABLE_INFO_DOC=yes
 else
@@ -132,7 +132,7 @@ AC_MSG_CHECKING([whether documentation in HTML format will be installed])
 
 AC_ARG_ENABLE([doc-html],
     AC_HELP_STRING([--enable-doc-html],
-        [enable/disable installation of HTML documentation files]),[
+        [enable installation of HTML documentation (default: disabled)]),[
 if test "$enableval" = yes ; then
   nausicaa_ENABLE_HTML_DOC=yes
 else
