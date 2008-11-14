@@ -70,14 +70,14 @@
     scmobj:the-next-method-func scmobj:the-next-method-pred)
   (import (rnrs)
 	  (rnrs mutable-pairs (6))
-	  (except (srfi lists) delete-duplicates cons)
+	  (except (srfi lists))
 	  (srfi parameters))
 
 ;;; ------------------------------------------------------------
 
 ;;;page
 ;;; ------------------------------------------------------------
-;;; Helper functions.
+;;; Helper functions and syntaxes.
 ;;; ------------------------------------------------------------
 
 (define mapcan
@@ -89,33 +89,18 @@
 	(append! (apply f (car l) (map car ll))
 		 (loop (cdr l) (map cdr ll)))))))
 
-(define delete-duplicates
-  (lambda (l)
-    ;if l contains multiple copies of any elt,
-    ;then all but the last copy are discarded
-    (let loop ((l l))
-      (if (pair? l)
-          (let ((d (loop (cdr l))))
-            (if (memv (car l) d)
-                (begin (set-car! l (car d))
-                       (set-cdr! l (cdr d))))))
-      l)))
+(define-syntax position
+  (syntax-rules ()
+    ((_ ?element ?list)
+     (list-index
+	 (lambda (elm)
+	   (eq? ?element elm))
+       ?list))))
 
-(define (nconc . list-of-lists)
-  (concatenate list-of-lists))
-
-(define (position element the-list)
-  (list-index (lambda (elm) (eq? element elm)) the-list))
-
-(define (sort! the-list <)
-  (list-sort < the-list))
-
-;; (define (some pred the-list)
-;;   (let loop ((value (car the-list))
-;; 	     (ell   (cdr the-list)))
-;;     (or value (if (null? ell)
-;; 		  #f
-;; 		(some (car ell) (cdr ell))))))
+(define-syntax sort
+  (syntax-rules ()
+    ((_ ?list ?less-pred)
+     (list-sort ?less-pred ?list))))
 
 ;;;This is the K combinator.
 (define-syntax begin0
@@ -156,7 +141,7 @@
   (slot-ref class ':class-definition-name))
 
 (define (class-precedence-list class)
-  (cons class (slot-ref class ':class-precedence-list)))
+  (slot-ref class ':class-precedence-list))
 
 (define (list-of-slots object)
   (cons ':class (slot-ref object ':slots)))
@@ -164,8 +149,7 @@
 (define (list-of-instance-slots object)
   (filter
       (lambda (c)
-	(not (memq c '(:class
-		       :class-definition-name
+	(not (memq c '(:class-definition-name
 		       :class-precedence-list
 		       :slots))))
     (slot-ref object ':slots)))
@@ -179,6 +163,11 @@
 
 ;;;The  official definition  of class  is: an  alist  whose first
 ;;;dotted pair has the symbol ":class" as key.
+;;;
+;;;Notice that ":class" is NOT included in the list of slots.
+;;;
+;;;Notice  that the  class itself  is  not inclued  in the  class
+;;;precedence list.
 (define <class>
   (let ((c '((:class . #f)
 	     (:class-definition-name . <class>)
@@ -201,12 +190,12 @@
   (syntax-rules ()
     ((_ ?name)
      (define-entity-class ?name (<entity-class> <class>)))
-    ((_ ?name (?class ...))
+    ((_ ?name (?superclass ...))
      (define ?name
        (list (cons ':class <entity-class>)
 	     '(:class-definition-name . ?name)
-	     (cons ':class-precedence-list
-		   (list ?class ... <entity-class> <class>))
+	     (list ':class-precedence-list .
+		   (list ?superclass ... <entity-class> <class>))
 	     '(:slots . (:class-definition-name
 			 :class-precedence-list
 			 :slots)))))))
@@ -244,7 +233,7 @@
 (define-entity-class <rational>
   (<rational-valued> <real> <real-valued> <complex> <number>))
 (define-entity-class <integer-valued>
-  (<rational> <rational-valued> <real> <real-valued> <complex> <number>))
+  (<rational-valued> <real> <real-valued> <complex> <number>))
 (define-entity-class <integer>
   (<integer-valued> <rational> <rational-valued> <real> <real-valued> <complex> <number>))
 (define-entity-class <fixnum>
@@ -262,20 +251,44 @@
 ;;; Class and instance constructors.
 ;;; ------------------------------------------------------------
 
-(define (make class . slot-values)
-  (let ((instance (cons (cons ':class class)
-			(map (lambda (x)
-			       (cons x ':uninitialized))
-			  (slot-ref class ':slots)))))
-    (let loop ((slot-values slot-values))
-      (if (null? slot-values)
-	  instance
-	(begin
-	  (slot-set! instance (car slot-values) (cadr slot-values))
-	  (loop (cddr slot-values)))))))
+;;;This is a "standard" make function, in style with CLOS.
+;;;
+(define (make class . init-args)
+  (let ((instance (allocate-instance class)))
+    (initialise instance init-args)
+    instance))
+
+;;;Build a new alist initialising all the slots, but ":class", to
+;;;":uninitialized".   The  ":class" pair  has  to  be the  first
+;;;element in the alist.
+;;;
+;;;The  form of  this  function is  one  of the  reasons why  the
+;;;":class" slot is not in the list of slots.
+;;;
+(define (allocate-instance class)
+  (cons (cons ':class class)
+	(map (lambda (x)
+	       (cons x ':uninitialized))
+	  (slot-ref class ':slots))))
+
+;;;Interpret SLOT-VALUES as list of alternate symbols and values,
+;;;where the symbols are slot names.
+;;;
+;;;We are not asserting  (as we should) that: "(car slot-values)"
+;;;is not  ":class"; SLOT-VALUES has an even  number of elements.
+;;;Because of this errors with unclear message may happen.
+;;;
+(define (initialise instance slot-values)
+  (unless (null? slot-values)
+    (slot-set! instance (car slot-values) (cadr slot-values))
+    (initialise instance (cddr slot-values))))
 
 ;;;It is  possible for a class  to add no new  slots: this allows
 ;;;subclassing for the only purpose of method dispatching.
+;;;
+;;;Notice that the class precedence list does not include the new
+;;;class itself.
+;;;
 (define-syntax make-class
   (syntax-rules ()
     ((make-class () (?slot ...))
@@ -283,21 +296,60 @@
     ((make-class (?superclass ...) (?slot ...))
      (let ((superclasses (list ?superclass ...)))
        (make <class>
-         ':class-precedence-list
-	 (delete-duplicates
-	  (mapcan
-	   (lambda (s)
-	     (cons s
-		   (append (slot-ref s ':class-precedence-list) '())))
-	   superclasses))
-         ':slots
-	 (delete-duplicates
-	  (nconc '(?slot ...)
-		 (mapcan
-		  (lambda (s)
-		    (append (slot-ref s ':slots) '()))
-		  superclasses))))))))
+         ':class-precedence-list (build-class-precedence-list superclasses)
+         ':slots (build-slot-list '(?slot ...) superclasses))))))
 
+;;;Example: let's say that the super classes are:
+;;;
+;;;	(<a0>
+;;;	 <b0>
+;;;	 <c0>)
+;;;
+;;;we take the list of their superclasses:
+;;;
+;;;	((<a0> <a1> <a2>)
+;;;	 (<b0> <b1>)
+;;;	 (<c0> <c1> <c2>))
+;;;
+;;;and compose them to have:
+;;;
+;;;	(<a0> <b0> <c0>  <a1> <b1> <c1>  <a2> <c2>)
+;;;
+;;;at the end we remove the duplicates.
+;;;
+;;;Remember  that a  list of  superclasses for  a class  does not
+;;;include the class itself.
+(define (build-class-precedence-list superclasses)
+  (delete-duplicates
+   (mapcan
+    (lambda (s)
+      (cons s
+	    (append (slot-ref s ':class-precedence-list) '())))
+    superclasses)
+   eq?))
+
+;;;Put all the slot names into a single list.
+;;;
+;;;The  form  of this  function  is one  of  the  reasons why  the
+;;;":class" slot is not in the list of slots.
+;;;
+(define (build-slot-list direct-slots superclasses)
+  (delete-duplicates
+   (append direct-slots
+	   (concatenate
+	    (map (lambda (s)
+		   ;;FIXME This was in the original code:
+		   ;;
+		   ;;(append (slot-ref s ':slots) '())
+		   ;;
+		   ;;I  cannot  figure  out  why:  the  value  of
+		   ;;":slots" is always a proper list.
+		   (slot-ref s ':slots))
+	      superclasses)))
+   eq?))
+
+;;;Define a binding for a class, giving it a name.
+;;;
 (define-syntax define-class
   (syntax-rules ()
     ((_ ?name ?superclasses (?slot ...))
@@ -401,11 +453,11 @@
 	     (the-applicable-methods '()))
     (if (null? methods)
         (map cdr
-          (sort! the-applicable-methods
-		 (lambda (signature.function-1 signature.function-2)
-		   (more-specific-method signature.function-1
-					 signature.function-2
-					 signature))))
+          (sort the-applicable-methods
+		(lambda (signature.function-1 signature.function-2)
+		  (more-specific-method signature.function-1
+					signature.function-2
+					signature))))
       (loop (cdr methods)
 	    (let ((signature.function (car methods)))
 	      (if (every subclass? signature (car signature.function))

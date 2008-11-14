@@ -7,7 +7,7 @@
 <link title="Top" rel="top" href="#Top">
 <link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
 <!--
-This document describes version nausicaa--devel--0.1--patch-1 of Nausicaa, a
+This document describes version nausicaa--devel--0.1--patch-2 of Nausicaa, a
 distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
@@ -45,7 +45,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#dir">(dir)</a>
 
 <h2 class="unnumbered">Nausicaa</h2>
 
-<p class="noindent">This document describes version nausicaa&ndash;devel&ndash;0.1&ndash;patch-1 of Nausicaa, a
+<p class="noindent">This document describes version nausicaa&ndash;devel&ndash;0.1&ndash;patch-2 of Nausicaa, a
 distribution of Scheme language libraries for Ikarus Scheme.
 
 <p class="noindent">Copyright &copy; 2008 by Marco Maggi <a href="mailto:marcomaggi@gna.org">marcomaggi@gna.org</a>
@@ -1231,6 +1231,7 @@ the <samp></strong><span class="file">Makefile</span><strong></samp> will set it
 <ul class="menu">
 <li><a accesskey="1" href="#bindist">bindist</a>:                      Building plain binary packages. 
 <li><a accesskey="2" href="#slackware">slackware</a>:                    Building Slackware packages. 
+<li><a accesskey="3" href="#redhat">redhat</a>:                       Building RedHat packages. 
 </ul>
 
 <!--  -->
@@ -1391,6 +1392,7 @@ To be invoked as:
 <div class="node">
 <p><hr>
 <a name="slackware"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#redhat">redhat</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="#bindist">bindist</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="#package">package</a>
 
@@ -1771,6 +1773,52 @@ package that will be removed.
 <!-- page -->
 <div class="node">
 <p><hr>
+<a name="redhat"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#slackware">slackware</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#package">package</a>
+
+</div>
+
+<h3 class="section">5.3 Building RedHat packages</h3>
+
+<p>Remember that to obtain a list of the files in a package file (that is:
+an uninstalled package) we have to do:
+
+<pre class="example">     $ rpm --query --list --package nausicaa-scmobj-0.1d0-1nau.rpm
+</pre>
+   <!--  -->
+<h5 class="subsubheading">Makefile rules</h5>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>redhat</b><var><a name="index-redhat-126"></a></var><br>
+<blockquote><p>Build a package.  To be invoked as:
+
+     <pre class="example">          $ make redhat
+     </pre>
+        <blockquote>
+<em>Note:</em> It seems that <samp><span class="command">rpmbuild</span></samp> insists in putting the
+created package file under the <samp><span class="file">/usr/src/rpm/RPMS</span></samp> directory; there
+is no way to persuade it to do otherwise.  So we may need superuser
+privileges to invoke the <code>redhat</code> rule.  Furthermore, if we have
+mounted the <samp><span class="file">/usr</span></samp> file system with ready&ndash;only permissions (shame
+on us!!!) we will have to remount it read&ndash;write before invoking the
+rule. 
+</blockquote>
+        </p></blockquote></div>
+
+<div class="defun">
+&mdash; Makefile Rule: <b>redhat-clean</b><var><a name="index-redhat_002dclean-127"></a></var><br>
+<blockquote><p>Remove the <code>$(redhat_PACKAGE_TOP_BUILDDIR)</code> and all its contents. 
+To be invoked as:
+
+     <pre class="example">          $ make redhat-clean
+     </pre>
+        </blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
 <a name="Documentation-License"></a>
 Next:&nbsp;<a rel="next" accesskey="n" href="#references">references</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="#package">package</a>,
@@ -1780,7 +1828,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <h2 class="appendix">Appendix A GNU Free Documentation License</h2>
 
-<p><a name="index-FDL_002c-GNU-Free-Documentation-License-126"></a><div align="center">Version 1.1, March 2000</div>
+<p><a name="index-FDL_002c-GNU-Free-Documentation-License-128"></a><div align="center">Version 1.1, March 2000</div>
 
 <pre class="display">     Copyright &copy; 2000 Free Software Foundation, Inc.
      59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
@@ -2169,7 +2217,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <h2 class="appendix">Appendix C An entry for each concept</h2>
 
 <ul class="index-cp" compact>
-<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-126">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
+<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-128">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
 </ul><div class="node">
 <p><hr>
 <a name="function-index"></a>
@@ -2224,6 +2272,8 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <li><a href="#index-local_002dslackware_002dremove-124"><code>local-slackware-remove</code></a>: <a href="#slackware-local">slackware local</a></li>
 <li><a href="#index-local_002dslackware_002dupgrade-125"><code>local-slackware-upgrade</code></a>: <a href="#slackware-local">slackware local</a></li>
 <li><a href="#index-realclean-47"><code>realclean</code></a>: <a href="#rules-main">rules main</a></li>
+<li><a href="#index-redhat-126"><code>redhat</code></a>: <a href="#redhat">redhat</a></li>
+<li><a href="#index-redhat_002dclean-127"><code>redhat-clean</code></a>: <a href="#redhat">redhat</a></li>
 <li><a href="#index-slackware-117"><code>slackware</code></a>: <a href="#slackware-standard">slackware standard</a></li>
 <li><a href="#index-slackware_002daux-112"><code>slackware-aux</code></a>: <a href="#slackware-common">slackware common</a></li>
 <li><a href="#index-slackware_002dbuilddir-110"><code>slackware-builddir</code></a>: <a href="#slackware-common">slackware common</a></li>
@@ -2380,6 +2430,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <li><a href="#slackware-standard">5.2.2 Building standard Slackware packages</a>
 <li><a href="#slackware-local">5.2.3 Building local Slackware packages</a>
 </li></ul>
+<li><a href="#redhat">5.3 Building RedHat packages</a>
 </li></ul>
 <li><a name="toc_Documentation-License" href="#Documentation-License">Appendix A GNU Free Documentation License</a>
 <ul>

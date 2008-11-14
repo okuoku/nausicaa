@@ -1,7 +1,7 @@
 This is nausicaa.info, produced by makeinfo version 4.8 from
 nausicaa.texi.
 
-This document describes version nausicaa-devel-0.1-patch-1 of Nausicaa,
+This document describes version nausicaa-devel-0.1-patch-2 of Nausicaa,
 a distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
@@ -26,7 +26,7 @@ File: nausicaa.info,  Node: Top,  Next: overview,  Up: (dir)
 Nausicaa
 ********
 
-This document describes version nausicaa-devel-0.1-patch-1 of Nausicaa,
+This document describes version nausicaa-devel-0.1-patch-2 of Nausicaa,
 a distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
@@ -918,6 +918,7 @@ the project build directory.
 
 * bindist::                     Building plain binary packages.
 * slackware::                   Building Slackware packages.
+* redhat::                      Building RedHat packages.
 
 
 File: nausicaa.info,  Node: bindist,  Next: slackware,  Up: package
@@ -1037,7 +1038,7 @@ Example layout
      ./usr/local/share/doc/nausicaa-scmobj/0.1d0/info/nausicaa-scmobj.info
 
 
-File: nausicaa.info,  Node: slackware,  Prev: bindist,  Up: package
+File: nausicaa.info,  Node: slackware,  Next: redhat,  Prev: bindist,  Up: package
 
 5.2 Building Slackware packages
 ===============================
@@ -1332,6 +1333,39 @@ Example:
 
      See the `slack_INSTALLED_PACKAGE' variable for the name of the
      package that will be removed.
+
+
+File: nausicaa.info,  Node: redhat,  Prev: slackware,  Up: package
+
+5.3 Building RedHat packages
+============================
+
+Remember that to obtain a list of the files in a package file (that is:
+an uninstalled package) we have to do:
+
+     $ rpm --query --list --package nausicaa-scmobj-0.1d0-1nau.rpm
+
+Makefile rules
+..............
+
+ -- Makefile Rule: redhat
+     Build a package.  To be invoked as:
+
+          $ make redhat
+
+          _Note:_ It seems that `rpmbuild' insists in putting the
+          created package file under the `/usr/src/rpm/RPMS' directory;
+          there is no way to persuade it to do otherwise.  So we may
+          need superuser privileges to invoke the `redhat' rule.
+          Furthermore, if we have mounted the `/usr' file system with
+          ready-only permissions (shame on us!!!) we will have to
+          remount it read-write before invoking the rule.
+
+ -- Makefile Rule: redhat-clean
+     Remove the `$(redhat_PACKAGE_TOP_BUILDDIR)' and all its contents.
+     To be invoked as:
+
+          $ make redhat-clean
 
 
 File: nausicaa.info,  Node: Documentation License,  Next: references,  Prev: package,  Up: Top
@@ -1785,6 +1819,8 @@ Appendix D An entry for each function.
 * local-slackware-remove:                slackware local.     (line  54)
 * local-slackware-upgrade:               slackware local.     (line  63)
 * realclean:                             rules main.          (line  28)
+* redhat:                                redhat.              (line  15)
+* redhat-clean:                          redhat.              (line  28)
 * slackware:                             slackware standard.  (line  41)
 * slackware-aux:                         slackware common.    (line  99)
 * slackware-builddir:                    slackware common.    (line  87)
@@ -1940,16 +1976,17 @@ Node: rules texinfo22208
 Node: rules test25942
 Node: rules inspect27177
 Node: package27740
-Node: bindist28727
-Node: slackware32083
-Node: slackware common32975
-Node: slackware standard36763
-Node: slackware local38985
-Node: Documentation License41349
-Node: references61254
-Node: concept index61437
-Node: function index61704
-Node: variable index65994
-Node: type index72946
+Node: bindist28785
+Node: slackware32141
+Node: slackware common33048
+Node: slackware standard36836
+Node: slackware local39058
+Node: redhat41422
+Node: Documentation License42480
+Node: references62385
+Node: concept index62568
+Node: function index62835
+Node: variable index67271
+Node: type index74223
 
 End Tag Table

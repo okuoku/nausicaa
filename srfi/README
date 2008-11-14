@@ -18,11 +18,11 @@ Topics
 -----------
 
 This  directory holds  implementations of  the  SRFI (Scheme
-Request for Implementation) adapted to R6RS and Ikarus.  The
-files are a checkout of the development version at Launchpad
-(see  Resources) by  Derick Eddington.   To  assimilated the
-libraries into Nausicaa,  library identifiers and file names
-have been normalised.
+Requests  for Implementation)  adapted to  R6RS  and Ikarus.
+The  files are  a  checkout of  the  development version  at
+Launchpad   (see  Resources)   by   Derick  Eddington.    To
+assimilated the libraries into Nausicaa, library identifiers
+and file names have been normalised.
 
   The current checkout is: revision 57.
 

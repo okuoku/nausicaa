@@ -1,0 +1,11 @@
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
+Release: @package_BUILD_VERSION@
+Summary: Guile libraries for Ikarus
+Group: Development/Languages
+License: LGPL
+
+%description
+A port of some Guile module to Ikarus Scheme.
+
+%files
