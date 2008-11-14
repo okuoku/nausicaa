@@ -1,8 +1,8 @@
 This is nausicaa.info, produced by makeinfo version 4.8 from
 nausicaa.texi.
 
-This document describes version nausicaa-devel-0.1 of Nausicaa, a
-distribution of Scheme language libraries for Ikarus Scheme.
+This document describes version nausicaa-devel-0.1-patch-1 of Nausicaa,
+a distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
 
@@ -26,8 +26,8 @@ File: nausicaa.info,  Node: Top,  Next: overview,  Up: (dir)
 Nausicaa
 ********
 
-This document describes version nausicaa-devel-0.1 of Nausicaa, a
-distribution of Scheme language libraries for Ikarus Scheme.
+This document describes version nausicaa-devel-0.1-patch-1 of Nausicaa,
+a distribution of Scheme language libraries for Ikarus Scheme.
 
 Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
 
@@ -1914,38 +1914,38 @@ Appendix F An entry for each type.
 
 
 Tag Table:
-Node: Top915
-Node: overview2285
-Node: overview conventions2876
-Node: config4094
-Node: config options4831
-Node: vars6342
-Node: vars config6808
-Node: vars project8628
-Node: vars package9345
-Node: vars directories10681
-Node: vars directories common11653
-Node: vars directories custom13509
-Node: vars misc14969
-Node: rules15650
-Node: rules main16143
-Node: rules doc17603
-Node: rules sls18973
-Node: rules fasl19973
-Node: rules texinfo22005
-Node: rules test25739
-Node: rules inspect26974
-Node: package27537
-Node: bindist28524
-Node: slackware31880
-Node: slackware common32772
-Node: slackware standard36560
-Node: slackware local38782
-Node: Documentation License41146
-Node: references61051
-Node: concept index61234
-Node: function index61501
-Node: variable index65791
-Node: type index72743
+Node: Top923
+Node: overview2301
+Node: overview conventions2892
+Node: config4110
+Node: config options4847
+Node: vars6358
+Node: vars config6824
+Node: vars project8644
+Node: vars package9361
+Node: vars directories10697
+Node: vars directories common11669
+Node: vars directories custom13525
+Node: vars misc14985
+Node: rules15666
+Node: rules main16159
+Node: rules doc17619
+Node: rules sls18989
+Node: rules fasl19989
+Node: rules texinfo22021
+Node: rules test25755
+Node: rules inspect26990
+Node: package27553
+Node: bindist28540
+Node: slackware31896
+Node: slackware common32788
+Node: slackware standard36576
+Node: slackware local38798
+Node: Documentation License41162
+Node: references61067
+Node: concept index61250
+Node: function index61517
+Node: variable index65807
+Node: type index72759
 
 End Tag Table
