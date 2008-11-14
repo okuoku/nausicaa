@@ -1,0 +1,2026 @@
+<html lang="en">
+<head>
+<title>ScmObj for Ikarus Scheme</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="ScmObj for Ikarus Scheme">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="top" href="#Top">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This document describes version 0.1d0 of Nausicaa/ScmObj, a
+repackaging of ScmObj, a CLOS--like object system for Scheme
+implemented by Dorai Sitaram.  It offers a programming environment, with
+simple and multiple inheritance and generic functions, but with
+*no* meta--object protocol (MOP).
+
+The original code is available from:
+
+        `http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html'
+
+
+(last checked Thu Nov 13, 2008).  The original code has been a little
+overhauled to make it work with R6RS libraries.
+
+The package is distributed under the terms of the GNU Lesser General
+Public License (LGPL) and is:
+
+Copyright (C) 1996 by Dorai Sitaram
+
+Copyright (C) 2008 by Marco Maggi <marcomaggi@gna.org>
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with Invariant Sections being ``GNU Free Documentation
+     License'' and ``GNU Lesser General Public License'', no
+     Front--Cover Texts, and no Back--Cover Texts.  A copy of the
+     license is included in the section entitled ``GNU Free
+     Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<h1 class="settitle">ScmObj for Ikarus Scheme</h1>
+<div class="node">
+<p><hr>
+<a name="Top"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#overview">overview</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#dir">(dir)</a>
+
+</div>
+
+<h2 class="unnumbered">ScmObj for Ikarus Scheme</h2>
+
+<p class="noindent">This document describes version 0.1d0 of Nausicaa/ScmObj, a
+repackaging of ScmObj, a <acronym>CLOS</acronym>&ndash;like object system for Scheme
+implemented by Dorai Sitaram.  It offers a programming environment, with
+simple and multiple inheritance and generic functions, but with
+<strong>no</strong> meta&ndash;object protocol (<acronym>MOP</acronym>).
+
+   <p>The original code is available from:
+
+<div align="center"><a href="http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html">http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html</a></div>
+
+<p class="noindent">(last checked Thu Nov 13, 2008).  The original code has been a little
+overhauled to make it work with <acronym>R6RS</acronym> libraries.
+
+   <p>The package is distributed under the terms of the <acronym>GNU</acronym> Lesser General
+Public License (<acronym>LGPL</acronym>) and is:
+
+<p class="noindent">Copyright &copy; 1996 by Dorai Sitaram<br>
+Copyright &copy; 2008 by Marco Maggi <a href="mailto:marcomaggi@gna.org">marcomaggi@gna.org</a>
+
+   <blockquote>
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the <acronym>GNU</acronym> Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with
+Invariant Sections being &ldquo;<acronym>GNU</acronym> Free Documentation License&rdquo; and
+&ldquo;<acronym>GNU</acronym> Lesser General Public License&rdquo;, no Front&ndash;Cover Texts, and no
+Back&ndash;Cover Texts.  A copy of the license is included in the section
+entitled &ldquo;<acronym>GNU</acronym> Free Documentation License&rdquo;. 
+</blockquote>
+
+<ul class="menu">
+<li><a accesskey="1" href="#overview">overview</a>:                     Overview of the package. 
+<li><a accesskey="2" href="#class">class</a>:                        Classes. 
+<li><a accesskey="3" href="#make">make</a>:                         Making classes. 
+<li><a accesskey="4" href="#inspect">inspect</a>:                      Inspecting classes and instances. 
+<li><a accesskey="5" href="#instance">instance</a>:                     Instances. 
+<li><a accesskey="6" href="#slot">slot</a>:                         Accessing slots. 
+<li><a accesskey="7" href="#classification">classification</a>:               ScmObj and Scheme. 
+<li><a accesskey="8" href="#generic">generic</a>:                      Generic procedures and methods.
+
+</li></ul>
+<p>Appendices
+
+</p>
+<ul class="menu">
+<li><a accesskey="9" href="#Package-License">Package License</a>:              GNU Lesser General Public License. 
+<li><a href="#Documentation-License">Documentation License</a>:        GNU Free Documentation License. 
+<li><a href="#references">references</a>:                   Bibliography and references.
+
+</li></ul>
+<p>Indexes
+
+</p>
+<ul class="menu">
+<li><a href="#concept-index">concept index</a>:                An entry for each concept. 
+<li><a href="#function-index">function index</a>:               An entry for each function. 
+<li><a href="#variable-index">variable index</a>:               An entry for each variable. 
+<li><a href="#type-index">type index</a>:                   An entry for each type. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="overview"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#class">class</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Top">Top</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">1 Overview of the package</h2>
+
+<p class="noindent">Nausicaa/ScmObj is an object system for Scheme that provides
+
+     <ul>
+<li>classes with multiple inheritance;
+
+     <li>generic procedures;
+
+     <li>methods that can specialize on one or more arguments (&ldquo;multimethods&rdquo;);
+
+     <li><code>:before</code>, <code>:after</code>, and <code>:around</code> auxiliary methods in
+addition to primary methods;
+
+     <li><span class="sc">call-next-method</span> and <span class="sc">next-method?</span> in primary and
+<code>:around</code> methods;
+
+     <li>standard method combination a la the default protocol in <acronym>CLOS</acronym>. 
+</ul>
+
+   <blockquote>
+This document is a Texinfo reformatting of the original documentation by
+Marco Maggi.  The repackaged code has been ported to <acronym>R6RS</acronym> Scheme
+and tested under Ikarus Scheme.
+
+        <p>The author and maintainer of the repackaging and the changes is Marco
+Maggi <a href="mailto:marcomaggi@gna.org">marcomaggi@gna.org</a>.
+
+        <p>Also some identifiers in the public interface have been changed to make
+them more similar to the <acronym>CLOS</acronym> conventions.  For example: the base
+class is called <code>&lt;class&gt;</code> rather than the original
+<code>standard-class</code>; the syntax used to add methods is
+<span class="sc">define-method</span> rather than the original <span class="sc">defmethod</span>. 
+</blockquote>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="class"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#make">make</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#overview">overview</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">2 Classes</h2>
+
+<div class="defun">
+&mdash; Class: <b>&lt;class&gt;</b><var><a name="index-g_t_003cclass_003e-1"></a></var><br>
+<blockquote><p>The base class of all the Nausicaa/ScmObj classes. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;entity-class&gt;</b> (<var>&lt;class&gt;</var>)<var><a name="index-g_t_003centity_002dclass_003e-2"></a></var><br>
+<blockquote><p>The base class for entity classes.  An entity class represents a Scheme
+built in object type. 
+</p></blockquote></div>
+
+<ul class="menu">
+<li><a accesskey="1" href="#class-chart">class chart</a>:                  A chart for predefined classes
+<li><a accesskey="2" href="#class-list">class list</a>:                   List types. 
+<li><a accesskey="3" href="#class-compound">class compound</a>:               Non-list compound data types. 
+<li><a accesskey="4" href="#class-numeric">class numeric</a>:                Numeric data types. 
+<li><a accesskey="5" href="#class-port">class port</a>:                   Port types. 
+<li><a accesskey="6" href="#class-misc">class misc</a>:                   Miscellaneous types. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="class-chart"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#class-list">class list</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#class">class</a>
+
+</div>
+
+<h3 class="section">2.1 A chart for predefined classes</h3>
+
+<pre class="example">     &lt;class&gt;
+        |
+        |                             -&gt; &lt;output-port&gt;
+        |                            |
+        |               --&gt; &lt;port&gt; --+-&gt; &lt;input-port&gt;
+        |              |
+        |              +--&gt; &lt;record&gt; --&gt; &lt;condition&gt;
+        v              |
+     &lt;entity-class&gt; ---+-------+-------+-----------+
+        |              |       |       |           |
+        v              v       v       v           v
+     &lt;number&gt;        &lt;pair&gt; &lt;vector&gt; &lt;bytevector&gt; &lt;hashtable&gt;
+        |              |
+        v              v
+     &lt;complex&gt;       &lt;list&gt; ----------+------------
+        |              |              |            |
+        v              v              v            v
+     &lt;real-valued&gt;   &lt;proper-list&gt; &lt;dotted-list&gt; &lt;circular-list&gt;
+        |
+        v
+     &lt;real&gt; ------&gt; &lt;flonum&gt;
+        |
+        v
+     &lt;rational-valued&gt;
+        |         |
+        v         v
+     &lt;rational&gt; &lt;integer-valued&gt;
+        |         |
+        v         |
+     &lt;integer&gt; &lt;--
+        |
+        v
+     &lt;fixnum&gt;
+</pre>
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="class-list"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#class-compound">class compound</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#class-chart">class chart</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#class">class</a>
+
+</div>
+
+<h3 class="section">2.2 List types</h3>
+
+<div class="defun">
+&mdash; Class: <b>&lt;pair&gt;</b><var><a name="index-g_t_003cpair_003e-3"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">pair?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;list&gt;</b><var><a name="index-g_t_003clist_003e-4"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">list?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;circular-list&gt;</b><var><a name="index-g_t_003ccircular_002dlist_003e-5"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">circular-list?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;dotted-list&gt;</b><var><a name="index-g_t_003cdotted_002dlist_003e-6"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">dotted-list?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;proper-list&gt;</b><var><a name="index-g_t_003cproper_002dlist_003e-7"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">proper-list?</span>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="class-compound"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#class-numeric">class numeric</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#class-list">class list</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#class">class</a>
+
+</div>
+
+<h3 class="section">2.3 Non&ndash;list compound data types</h3>
+
+<div class="defun">
+&mdash; Class: <b>&lt;vector&gt;</b><var><a name="index-g_t_003cvector_003e-8"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">vector?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;bytevector&gt;</b><var><a name="index-g_t_003cbytevector_003e-9"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">bytevector?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;hashtable&gt;</b><var><a name="index-g_t_003chashtable_003e-10"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">hashtable?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;record&gt;</b><var><a name="index-g_t_003crecord_003e-11"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">record?</span>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="class-numeric"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#class-port">class port</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#class-compound">class compound</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#class">class</a>
+
+</div>
+
+<h3 class="section">2.4 Numeric data types</h3>
+
+<div class="defun">
+&mdash; Class: <b>&lt;number&gt;</b><var><a name="index-g_t_003cnumber_003e-12"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">number?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;complex&gt;</b><var><a name="index-g_t_003ccomplex_003e-13"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">complex?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;real-valued&gt;</b><var><a name="index-g_t_003creal_002dvalued_003e-14"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">real-valued?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;real&gt;</b><var><a name="index-g_t_003creal_003e-15"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">real?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;rational&gt;</b><var><a name="index-g_t_003crational_003e-16"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">integer?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;rational-valued&gt;</b><var><a name="index-g_t_003crational_002dvalued_003e-17"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">integer?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;integer-valued&gt;</b><var><a name="index-g_t_003cinteger_002dvalued_003e-18"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">integer?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;integer&gt;</b><var><a name="index-g_t_003cinteger_003e-19"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">integer?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;fixnum&gt;</b><var><a name="index-g_t_003cfixnum_003e-20"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">fixnum?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;flonum&gt;</b><var><a name="index-g_t_003cflonum_003e-21"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">flonum?</span>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="class-port"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#class-misc">class misc</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#class-numeric">class numeric</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#class">class</a>
+
+</div>
+
+<h3 class="section">2.5 Port types</h3>
+
+<div class="defun">
+&mdash; Class: <b>&lt;port&gt;</b><var><a name="index-g_t_003cport_003e-22"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">port?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;input-port&gt;</b><var><a name="index-g_t_003cinput_002dport_003e-23"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">input-port?</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Class: <b>&lt;output-port&gt;</b><var><a name="index-g_t_003coutput_002dport_003e-24"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">output-port?</span>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="class-misc"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#class-port">class port</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#class">class</a>
+
+</div>
+
+<h3 class="section">2.6 Miscellaneous types</h3>
+
+<div class="defun">
+&mdash; Class: <b>&lt;condition&gt;</b><var><a name="index-g_t_003ccondition_003e-25"></a></var><br>
+<blockquote><p>Class for values that satisfy <span class="sc">condition?</span>. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="make"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#inspect">inspect</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#class">class</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">3 Making classes</h2>
+
+<div class="defun">
+&mdash; Syntax: <b>make-class</b><var> list-of-superclasses list-of-slots<a name="index-make_002dclass-26"></a></var><br>
+<blockquote><p>Build and return a new class value.
+
+        <p><var>list-of-superclasses</var> is the list of superclasses of the new
+class; acceptable values are:
+
+          <ul>
+<li>the empty list, in which case <code>&lt;class&gt;</code> is added by default;
+
+          <li>a list containing only the <code>&lt;class&gt;</code> value;
+
+          <li>a list of previously defined base classes. 
+</ul>
+
+        <p><var>list-of-slots</var> must be a list of symbols representing the slot
+names.  By convention their names should start with a colon character,
+<code>:</code>.
+
+        <p>Notice that classes instantiated with <span class="sc">make-class</span> will have no
+class definition name.  The <span class="sc">class-definition-name</span> function
+applied to them will return the symbol <code>:uninitialized</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Syntax: <b>define-class</b><var> name list-of-superclasses . list-of-slots<a name="index-define_002dclass-27"></a></var><br>
+<blockquote><p>A wrapper for <span class="sc">make-class</span> that defines a new variable named
+<var>name</var> and assignes the new class to it.  The class definition name
+of the class is initialised to <var>name</var>. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Examples</h5>
+
+<p>Definition of a class with no superclasses and 3 slots named: <code>:a</code>,
+<code>:b</code> and <code>:c</code>:
+
+<pre class="example">     (define &lt;one&gt;
+       (make-class () (:a :b :c))
+</pre>
+   <p class="noindent">the same with explicit selection of the base <code>&lt;class&gt;</code>:
+
+<pre class="example">     (define &lt;one&gt;
+       (make-class (&lt;class&gt;) (:a :b :c))
+</pre>
+   <p>Simple inheritance:
+
+<pre class="example">     (let* ((&lt;one&gt;   (make-class ()      (:a :b :c)))
+            (&lt;two&gt;   (make-class (&lt;one&gt;) (:d :e :f)))
+            (&lt;three&gt; (make-class (&lt;two&gt;) (:g :h :i))))
+       ---)
+</pre>
+   <p class="noindent">and multiple inheritance:
+
+<pre class="example">     (let* ((&lt;one&gt;   (make-class ()            (:a :b :c)))
+            (&lt;two&gt;   (make-class (&lt;one&gt;)       (:d :e :f)))
+            (&lt;three&gt; (make-class (&lt;two&gt; &lt;one&gt;) (:g :h :i))))
+       ---)
+</pre>
+   <p>Defining classes using <span class="sc">define-class</span>:
+
+<pre class="example">     (define-class &lt;one&gt; ()
+       :a :b :c)
+     
+     (define-class &lt;two&gt; (&lt;one&gt;)
+       :d :e :f)
+     
+     (define-class &lt;three&gt; (&lt;two&gt;)
+       :g :h :i)
+</pre>
+   <!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="inspect"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#instance">instance</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#make">make</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">4 Inspecting classes and instances</h2>
+
+<div class="defun">
+&mdash; Function: <b>class-definition-name</b><var> object<a name="index-class_002ddefinition_002dname-28"></a></var><br>
+<blockquote><p>Return the class definition name for <var>object</var>.
+
+        <p>Note that the definition name is set only for classes instantiated with
+<span class="sc">define-class</span>, for classes instantiated with <span class="sc">make-class</span> the
+return value is <code>:uninitialized</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>class-precedence-list</b><var> object<a name="index-class_002dprecedence_002dlist-29"></a></var><br>
+<blockquote><p>Return a list of classes representing the class precendence list, used
+for method dispatching.
+
+        <p>Note that <var>class-object</var> itself is <strong>not</strong> part of the class
+precedence list. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>list-of-slots</b><var> object<a name="index-list_002dof_002dslots-30"></a></var><br>
+<blockquote><p>Return a list of symbols representing the slot names of
+<var>class-object</var>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>list-of-instance-slots</b><var> object<a name="index-list_002dof_002dinstance_002dslots-31"></a></var><br>
+<blockquote><p>Return a list of symbols representing the slot names, excluding the
+slots that are part of the Nausicaa/ScmObj infrastructure.
+
+        <p>This is the list of slots that was given to <span class="sc">make-class</span> or
+<span class="sc">define-class</span>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>subclass?</b><var> object-1 object-2<a name="index-subclass_003f-32"></a></var><br>
+<blockquote><p>Return true if <var>object-1</var> is a subclass of <var>object-2</var>; <code>#f</code>
+otherwise.
+
+        <p>The table of conditions follows:
+
+        <p><table summary="">  (cond ((eq? c1 c2) #t)
+	((eq? c1 #t) #f)
+	((eq? c2 #t) #t)
+	((memq c2 (slot-ref c1 ':class-precedence-list)) #t)
+	(else #f)))
+
+        <br></td></tr></table>
+
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>class-of</b><var> object<a name="index-class_002dof-33"></a></var><br>
+<blockquote><p>Return the class of <var>object</var>.  This function can be applied to both
+class object and instance objects. 
+</p></blockquote></div>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="instance"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#slot">slot</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#inspect">inspect</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">5 Instances</h2>
+
+<p>An instance of a class is defined with the <span class="sc">make</span>
+procedure.
+
+<div class="defun">
+&mdash; Function: <b>make</b><var> class-object . init-slots<a name="index-make-34"></a></var><br>
+<blockquote><p>Take a class argument followed optionally by additional arguments that
+are in twosomes, where the first element of a twosome names a slot in
+the class, and the second element specifies the value we want that slot
+to have in the current instance.
+
+        <p>Both the class and the slots of an instance can be read.  Only the slots
+can be mutated. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Examples</h5>
+
+<p>Instantiate a class with 3 slots:
+
+<pre class="example">     (let* ((&lt;one&gt; (make-class () (:a :b :c)))
+            (o     (make &lt;one&gt;
+                      ':a 1 ':b 2 ':c 3)))
+       ---)
+</pre>
+   <p>Instantiate a class with superclasses, initialising all the slots:
+
+<pre class="example">     (let* ((&lt;one&gt;   (make-class () (:a :b :c)))
+            (&lt;two&gt;   (make-class (&lt;one&gt;) (:d :e :f)))
+            (&lt;three&gt; (make-class (&lt;two&gt;) (:g :h :i)))
+            (o       (make &lt;three&gt;
+                        ':a 1 ':b 2 ':c 3
+                        ':d 4 ':e 5 ':f 6
+                        ':g 7 ':h 8 ':i 9)))
+       ---)
+</pre>
+   <!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="slot"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#classification">classification</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#instance">instance</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">6 Accessing slots</h2>
+
+<div class="defun">
+&mdash; Function: <b>slot-ref</b><var> object slot-name<a name="index-slot_002dref-35"></a></var><br>
+<blockquote><p>Return the value of <var>slot-name</var> in <var>object</var>.
+
+        <p><var>slot-name</var> must be a symbol.  It is an error if <var>object</var> has no
+slot named <var>slot-name</var>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>slot-set!</b><var> object slot-name new-value<a name="index-slot_002dset_0021-36"></a></var><br>
+<blockquote><p>Overwrite the value of <var>slot-name</var> in <var>object</var> with
+<var>new-value</var>.
+
+        <p><var>slot-name</var> must be a symbol.  It is an error if <var>object</var> has no
+slot named <var>slot-name</var>. 
+</p></blockquote></div>
+
+<!--  -->
+<h5 class="subsubheading">Examples</h5>
+
+<pre class="example">     (let* ((&lt;one&gt;  (make-class () (:a :b :c)))
+            (o      (make &lt;one&gt;
+                      ':a 1 ':b 2 ':c 3)))
+     
+       (slot-set! o ':b 123)
+     
+       (list (slot-ref o ':b)
+             (slot-ref o ':a)
+             (slot-ref o ':c)))
+     =&gt; '(123 1 3)
+</pre>
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="classification"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#generic">generic</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#slot">slot</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">7 ScmObj and Scheme</h2>
+
+<p>We will now explain the object classification.  First, some informal
+notation:
+
+     <ul>
+<li>ScmObj class
+is a class created using ScmObj, typically using <span class="sc">make-class</span>;
+
+     <li>ScmObj class instance
+is a class instance created using ScmObj, typically by calling
+<span class="sc">make</span> on a ScmObj class;
+
+     <li>ScmObj object
+is an ScmObj class or an ScmObj class instances;
+
+     <li>pre&ndash;ScmObj object
+are objects that we had in Scheme before loading ScmObj;
+
+     <li>Scheme object
+is any object we can think of in Scheme, before or after loading ScmObj. 
+</ul>
+
+   <p>Thus Scheme objects include both pre&ndash;ScmObj and ScmObj objects, and
+ScmObj objects include both ScmObj classes and instances of ScmObj
+classes.
+
+   <p>We are now ready to describe where ScmObj classes stand in relation to
+ScmObj class instances, and where ScmObj objects stand in relation to
+pre&ndash;ScmObj objects.
+
+<!--  -->
+<h3 class="section">7.1 Classes Are Class Instances Too</h3>
+
+<p>From the discussion thus far, it would appear that there are two kinds
+of ScmObj objects:
+
+     <ul>
+<li>a ScmObj class that specifies how its instances look like;
+
+     <li>a ScmObj class instance, a particular representative of a ScmObj class. 
+</ul>
+
+   <p>Actually, this distinction is blurrable.  All ScmObj classes are
+themselves instances of a distinguished ScmObj class called
+<code>&lt;class&gt;</code>.  <code>&lt;class&gt;</code> is no exception: it is an instance of
+itself.
+
+   <p>In other words, all ScmObj objects (both classes and instances) are
+instances of instances of <code>&lt;class&gt;</code>.  To use <acronym>CLOS</acronym> terminology,
+<code>&lt;class&gt;</code> is a metaclass of (i.e. &ldquo;class of class of&rdquo;) all ScmObj
+objects.
+
+   <p>Thus, when we invoke <span class="sc">make-class</span>,fwe are actually invoking
+<span class="sc">make</span> on <code>&lt;class&gt;</code>.  However, the <span class="sc">make-class</span> macro is
+still convenient, because it does some extra bookkeeping that
+appropriately fills all the slots of the created <code>&lt;class&gt;</code> instance.
+
+<!--  -->
+<h3 class="section">7.2 Scheme Objects Are Class Instances Too</h3>
+
+<p>The previous section described the ScmObj objects: some of them are
+ScmObj classes; all of them are ScmObj class instances.
+
+   <p>But what about the objects of Scheme itself, the ones it had prior to
+loading ScmObj, viz, objects like booleans, numbers, characters,
+procedures, pairs, strings, and vectors?  Are they instances of any
+class?
+
+   <p>Yes they are.  All the objects of Scheme, whether ScmObj or pre&ndash;ScmObj,
+are considered to be instances of the distinguished class <code>#t</code> (the
+boolean), the only class that is not a ScmObj object.  <code>#t</code> is
+implicitly a superclass of every class, and as such is the least
+specific class.
+
+   <p>Clearly, <code>#t</code> too is an instance of <code>#t</code>.  Thus it follows that
+<code>#t</code> is a metaclass of all Scheme objects.
+
+   <p>Note that pre&ndash;ScmObj objects can claim only <code>#t</code> as their class. 
+ScmObj objects, on the other hand, can claim at least one non&ndash;<code>#t</code>
+class as their class (in addition to <code>#t</code>).  We can exploit this to
+operationally distinguish between ScmObj and pre&ndash;ScmObj objects: simply
+call <span class="sc">class-of</span> on the object.  A pre&ndash;ScmObj object returns
+<code>#t</code>, while a ScmObj object returns some non&ndash;<code>#t</code> class.
+
+   <blockquote>
+Recall that <span class="sc">class-of</span> returns the most specific class: if the
+object has any non&ndash;<code>#t</code> class at all, then <code>#t</code>, being less
+specific, won't be the class that is returned. 
+</blockquote>
+
+   <p>At the metaclass level, note that pre&ndash;ScmObj objects can only claim
+<code>#t</code> as their metaclass, whereas ScmObj objects can claim both
+<code>#t</code> and <code>&lt;class&gt;</code> as their metaclass.
+
+   <p>ScmObj has no metaclass other than <code>#t</code> and <code>&lt;class&gt;</code>.
+
+   <blockquote>
+In <acronym>CLOS</acronym>, other metaclasses can be posited.  The <acronym>CLOS</acronym> analog of
+<span class="sc">make-class</span> takes an optional <code>:metaclass</code> argument, which
+specifies what the metaclass of the class instances should be. 
+Typically, these metaclasses are defined as subclasses of
+<code>standard-class</code>. 
+</blockquote>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="generic"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Package-License">Package License</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#classification">classification</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">8 Generic procedures and methods</h2>
+
+<p>Generic procedures are procedures that can be specialized to the classes
+of their arguments.  Each specialization of a generic procedure is
+called a method.  When applying a generic procedure to a set of
+arguments, the most specific method vis&ndash;a&ndash;vis the arguments' classes
+is chosen.
+
+<ul class="menu">
+<li><a accesskey="1" href="#generic-methods">generic methods</a>:              Methods. 
+<li><a accesskey="2" href="#generic-calling">generic calling</a>:              Calling generic procedures. 
+</ul>
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="generic-methods"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#generic-calling">generic calling</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#generic">generic</a>
+
+</div>
+
+<h3 class="section">8.1 Methods</h3>
+
+<p>Let's first declare a generic procedure using the macro
+<span class="sc">make-generic-function</span>:
+
+<pre class="example">     (define ingests
+       (make-generic-function person food))
+</pre>
+   <p>This defines a procedure called ingests that requires two arguments. 
+Presumably it describes the fact of person ingesting food.  (We are
+forced here to use the Latinate &ldquo;ingests&rdquo; rather than the Saxon
+&ldquo;eats&rdquo;, because we will subsequently distinguish between eating
+(solids) and drinking (liquids).)
+
+   <p>We are now ready to define methods describing the eating and drinking
+habits of the people.  To do this, we use the macro <span class="sc">define-method</span>
+to add methods to the generic procedure <span class="sc">ingests</span> define before.
+
+   <p>Schemers will drink something only if it's at least .5 wholesome: (These
+examples require the format feature.)
+
+<pre class="example">     (define-method ingests ((p &lt;schemer&gt;) (f &lt;beverage&gt;))
+       (if (&gt;= (slot-ref f ':wholesomeness)
+               .5)
+         (format #t "~a sips some ~a.~%"
+           (slot-ref p ':name)
+           (slot-ref f ':name))))
+</pre>
+   <p>The first subexpression of <span class="sc">define-method</span> is the generic
+procedure.  In this case, it is <span class="sc">ingests</span>.
+
+   <p>The second subexpression is a lambda&ndash;list of arguments to the method. 
+This lambda&ndash;list starts off with the required arguments, where each
+argument is specified as a two&ndash;element list: the parameter followed by
+its class.  The number of required arguments is the same as the number
+of arguments specified by <span class="sc">make-generic-function</span> for the generic
+procedure.  The rest of the lambda&ndash;list may contain additional
+arguments, including a &ldquo;rest&rdquo; argument.  In the case above, the
+required arguments are <var>p</var> of class <code>&lt;schemer&gt;</code> and <var>f</var> of
+class <code>&lt;beverage&gt;</code>.  There are no additional arguments.
+
+   <p>After the second subexpression, we have the method body.
+
+   <p>Proceeding with other methods for ingests: no snack is too lowly for a
+Schemer:
+
+<pre class="example">     (define-method ingests ((p &lt;schemer&gt;) (f &lt;snack&gt;))
+       (format #t "~a wolfs down some ~a.~%"
+         (slot-ref p ':name)
+         (slot-ref f ':name)))
+</pre>
+   <p>Lispers are open to any drink:
+
+<pre class="example">     (define-method ingests ((p &lt;lisper&gt;) (f &lt;beverage&gt;))
+       (format #t "~a guzzles some ~a.~%"
+         (slot-ref p ':name)
+         (slot-ref f ':name)))
+</pre>
+   <p>Lispers won't eat anything that isn't at least .5 wholesome:
+
+<pre class="example">     (define-method ingests ((p &lt;lisper&gt;) (f &lt;snack&gt;))
+       (if (&gt;= (slot-ref f ':wholesomeness)
+               .5)
+         (format #t "~a pecks at some ~a.~%"
+           (slot-ref p ':name)
+           (slot-ref f ':name))))
+</pre>
+   <p>The default method: humans eat and drink anything:
+
+<pre class="example">     (define-method ingests ((p &lt;human&gt;) (f &lt;food&gt;))
+       (format #t "~a consumes ~a.~%"
+         (slot-ref p ':name)
+         (slot-ref f ':name)))
+</pre>
+   <p>Note that ScmObj methods can specialize on more than one argument class. 
+In other words, ScmObj methods, like <acronym>CLOS</acronym> methods, are multimethods.
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="generic-calling"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#generic-methods">generic methods</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#generic">generic</a>
+
+</div>
+
+<h3 class="section">8.2 Calling generic procedures</h3>
+
+<p>We can now offer Telemakhos, Odysseus, Diomedes, Nestor, Menelaos, and
+Penelope some beer, coke, milk, candy, french fries, and carrots. We
+call the generic procedure ingests, and let it dispatch the appropriate
+method based on the class of the person and the food arguments:
+
+<pre class="example">     (for-each
+       (lambda (person)
+         (for-each
+           (lambda (food)
+             (eat person food))
+           (list beer coke milk candy
+             french-fries carrots)))
+       (list Telemakhos Odysseus Diomedes
+         Nestor Menelaos Penelope))
+</pre>
+   <p>You will find that, as expected,
+
+   <p>*
+
+   <p>Telemakhos consumes everything in sight;
+
+   <p>*
+
+   <p>the Schemers Odysseus and Diomedes wolf down candy, french fries and carrots but sip only milk; and
+
+   <p>*
+
+   <p>the Lispers Nestor and Menelaos guzzle beer, coke and milk but eat only carrots.
+
+   <p>But how does the eclectic Lisper Penelope, who is both Schemer and
+Lisper, fare? We'll find that for the purposes of nourishment, Penelope
+sits down with the Schemers. She too wolfs down candy, french fries and
+carrots but sips only milk, eschewing the more Lispy delights of beer
+and coke. This is because the class eclectic-lisper-c lists &lt;schemer&gt;
+before lisper-c in its superclass list.
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="Package-License"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Documentation-License">Documentation License</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#generic">generic</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="appendix">Appendix A GNU LESSER GENERAL PUBLIC LICENSE</h2>
+
+<p><a name="index-LGPL_002c-Lesser-General-Public-License-37"></a><div align="center">Version 2.1, February 1999</div>
+
+<pre class="display">     Copyright &copy; 1991, 1999 Free Software Foundation, Inc.
+     59 Temple Place &ndash; Suite 330, Boston, MA 02111-1307, USA
+     
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+     
+     [This is the first released version of the Lesser GPL.  It also counts
+     as the successor of the GNU Library Public License, version 2, hence the
+     version number 2.1.]
+</pre>
+<h4 class="appendixsubsec">A.0.1 Preamble</h4>
+
+<p>The licenses for most software are designed to take away your
+freedom to share and change it.  By contrast, the GNU General Public
+Licenses are intended to guarantee your freedom to share and change
+free software&mdash;to make sure the software is free for all its users.
+
+   <p>This license, the Lesser General Public License, applies to some
+specially designated software&mdash;typically libraries&mdash;of the Free
+Software Foundation and other authors who decide to use it.  You can use
+it too, but we suggest you first think carefully about whether this
+license or the ordinary General Public License is the better strategy to
+use in any particular case, based on the explanations below.
+
+   <p>When we speak of free software, we are referring to freedom of use,
+not price.  Our General Public Licenses are designed to make sure that
+you have the freedom to distribute copies of free software (and charge
+for this service if you wish); that you receive source code or can get
+it if you want it; that you can change the software and use pieces of it
+in new free programs; and that you are informed that you can do these
+things.
+
+   <p>To protect your rights, we need to make restrictions that forbid
+distributors to deny you these rights or to ask you to surrender these
+rights.  These restrictions translate to certain responsibilities for
+you if you distribute copies of the library or if you modify it.
+
+   <p>For example, if you distribute copies of the library, whether gratis
+or for a fee, you must give the recipients all the rights that we gave
+you.  You must make sure that they, too, receive or can get the source
+code.  If you link other code with the library, you must provide
+complete object files to the recipients, so that they can relink them
+with the library after making changes to the library and recompiling
+it.  And you must show them these terms so they know their rights.
+
+   <p>We protect your rights with a two-step method: (1) we copyright the
+library, and (2) we offer you this license, which gives you legal
+permission to copy, distribute and/or modify the library.
+
+   <p>To protect each distributor, we want to make it very clear that
+there is no warranty for the free library.  Also, if the library is
+modified by someone else and passed on, the recipients should know
+that what they have is not the original version, so that the original
+author's reputation will not be affected by problems that might be
+introduced by others.
+
+   <p>Finally, software patents pose a constant threat to the existence of
+any free program.  We wish to make sure that a company cannot
+effectively restrict the users of a free program by obtaining a
+restrictive license from a patent holder.  Therefore, we insist that
+any patent license obtained for a version of the library must be
+consistent with the full freedom of use specified in this license.
+
+   <p>Most GNU software, including some libraries, is covered by the
+ordinary GNU General Public License.  This license, the GNU Lesser
+General Public License, applies to certain designated libraries, and
+is quite different from the ordinary General Public License.  We use
+this license for certain libraries in order to permit linking those
+libraries into non-free programs.
+
+   <p>When a program is linked with a library, whether statically or using
+a shared library, the combination of the two is legally speaking a
+combined work, a derivative of the original library.  The ordinary
+General Public License therefore permits such linking only if the
+entire combination fits its criteria of freedom.  The Lesser General
+Public License permits more lax criteria for linking other code with
+the library.
+
+   <p>We call this license the <dfn>Lesser</dfn> General Public License because it
+does <em>Less</em> to protect the user's freedom than the ordinary General
+Public License.  It also provides other free software developers Less
+of an advantage over competing non-free programs.  These disadvantages
+are the reason we use the ordinary General Public License for many
+libraries.  However, the Lesser license provides advantages in certain
+special circumstances.
+
+   <p>For example, on rare occasions, there may be a special need to
+encourage the widest possible use of a certain library, so that it becomes
+a de-facto standard.  To achieve this, non-free programs must be
+allowed to use the library.  A more frequent case is that a free
+library does the same job as widely used non-free libraries.  In this
+case, there is little to gain by limiting the free library to free
+software only, so we use the Lesser General Public License.
+
+   <p>In other cases, permission to use a particular library in non-free
+programs enables a greater number of people to use a large body of
+free software.  For example, permission to use the GNU C Library in
+non-free programs enables many more people to use the whole GNU
+operating system, as well as its variant, the GNU/Linux operating
+system.
+
+   <p>Although the Lesser General Public License is Less protective of the
+users' freedom, it does ensure that the user of a program that is
+linked with the Library has the freedom and the wherewithal to run
+that program using a modified version of the Library.
+
+   <p>The precise terms and conditions for copying, distribution and
+modification follow.  Pay close attention to the difference between a
+&ldquo;work based on the library&rdquo; and a &ldquo;work that uses the library&rdquo;.  The
+former contains code derived from the library, whereas the latter must
+be combined with the library in order to run.
+
+     <ol type=1 start=0>
+<li>This License Agreement applies to any software library or other program
+which contains a notice placed by the copyright holder or other
+authorized party saying it may be distributed under the terms of this
+Lesser General Public License (also called &ldquo;this License&rdquo;).  Each
+licensee is addressed as &ldquo;you&rdquo;.
+
+     <p>A &ldquo;library&rdquo; means a collection of software functions and/or data
+prepared so as to be conveniently linked with application programs
+(which use some of those functions and data) to form executables.
+
+     <p>The &ldquo;Library&rdquo;, below, refers to any such software library or work
+which has been distributed under these terms.  A &ldquo;work based on the
+Library&rdquo; means either the Library or any derivative work under
+copyright law: that is to say, a work containing the Library or a
+portion of it, either verbatim or with modifications and/or translated
+straightforwardly into another language.  (Hereinafter, translation is
+included without limitation in the term &ldquo;modification&rdquo;.)
+
+     <p>&ldquo;Source code&rdquo; for a work means the preferred form of the work for
+making modifications to it.  For a library, complete source code means
+all the source code for all modules it contains, plus any associated
+interface definition files, plus the scripts used to control compilation
+and installation of the library.
+
+     <p>Activities other than copying, distribution and modification are not
+covered by this License; they are outside its scope.  The act of
+running a program using the Library is not restricted, and output from
+such a program is covered only if its contents constitute a work based
+on the Library (independent of the use of the Library in a tool for
+writing it).  Whether that is true depends on what the Library does
+and what the program that uses the Library does.
+
+     <li>You may copy and distribute verbatim copies of the Library's
+complete source code as you receive it, in any medium, provided that
+you conspicuously and appropriately publish on each copy an
+appropriate copyright notice and disclaimer of warranty; keep intact
+all the notices that refer to this License and to the absence of any
+warranty; and distribute a copy of this License along with the
+Library.
+
+     <p>You may charge a fee for the physical act of transferring a copy,
+and you may at your option offer warranty protection in exchange for a
+fee.
+
+     <li>You may modify your copy or copies of the Library or any portion
+of it, thus forming a work based on the Library, and copy and
+distribute such modifications or work under the terms of Section 1
+above, provided that you also meet all of these conditions:
+
+          <ol type=a start=1>
+<li>The modified work must itself be a software library.
+
+          <li>You must cause the files modified to carry prominent notices
+stating that you changed the files and the date of any change.
+
+          <li>You must cause the whole of the work to be licensed at no
+charge to all third parties under the terms of this License.
+
+          <li>If a facility in the modified Library refers to a function or a
+table of data to be supplied by an application program that uses
+the facility, other than as an argument passed when the facility
+is invoked, then you must make a good faith effort to ensure that,
+in the event an application does not supply such function or
+table, the facility still operates, and performs whatever part of
+its purpose remains meaningful.
+
+          <p>(For example, a function in a library to compute square roots has
+a purpose that is entirely well-defined independent of the
+application.  Therefore, Subsection 2d requires that any
+application-supplied function or table used by this function must
+be optional: if the application does not supply it, the square
+root function must still compute square roots.)
+          </ol>
+
+     <p>These requirements apply to the modified work as a whole.  If
+identifiable sections of that work are not derived from the Library,
+and can be reasonably considered independent and separate works in
+themselves, then this License, and its terms, do not apply to those
+sections when you distribute them as separate works.  But when you
+distribute the same sections as part of a whole which is a work based
+on the Library, the distribution of the whole must be on the terms of
+this License, whose permissions for other licensees extend to the
+entire whole, and thus to each and every part regardless of who wrote
+it.
+
+     <p>Thus, it is not the intent of this section to claim rights or contest
+your rights to work written entirely by you; rather, the intent is to
+exercise the right to control the distribution of derivative or
+collective works based on the Library.
+
+     <p>In addition, mere aggregation of another work not based on the Library
+with the Library (or with a work based on the Library) on a volume of
+a storage or distribution medium does not bring the other work under
+the scope of this License.
+
+     <li>You may opt to apply the terms of the ordinary GNU General Public
+License instead of this License to a given copy of the Library.  To do
+this, you must alter all the notices that refer to this License, so
+that they refer to the ordinary GNU General Public License, version 2,
+instead of to this License.  (If a newer version than version 2 of the
+ordinary GNU General Public License has appeared, then you can specify
+that version instead if you wish.)  Do not make any other change in
+these notices.
+
+     <p>Once this change is made in a given copy, it is irreversible for
+that copy, so the ordinary GNU General Public License applies to all
+subsequent copies and derivative works made from that copy.
+
+     <p>This option is useful when you wish to copy part of the code of
+the Library into a program that is not a library.
+
+     <li>You may copy and distribute the Library (or a portion or
+derivative of it, under Section 2) in object code or executable form
+under the terms of Sections 1 and 2 above provided that you accompany
+it with the complete corresponding machine-readable source code, which
+must be distributed under the terms of Sections 1 and 2 above on a
+medium customarily used for software interchange.
+
+     <p>If distribution of object code is made by offering access to copy
+from a designated place, then offering equivalent access to copy the
+source code from the same place satisfies the requirement to
+distribute the source code, even though third parties are not
+compelled to copy the source along with the object code.
+
+     <li>A program that contains no derivative of any portion of the
+Library, but is designed to work with the Library by being compiled or
+linked with it, is called a &ldquo;work that uses the Library&rdquo;.  Such a
+work, in isolation, is not a derivative work of the Library, and
+therefore falls outside the scope of this License.
+
+     <p>However, linking a &ldquo;work that uses the Library&rdquo; with the Library
+creates an executable that is a derivative of the Library (because it
+contains portions of the Library), rather than a &ldquo;work that uses the
+library&rdquo;.  The executable is therefore covered by this License. 
+Section 6 states terms for distribution of such executables.
+
+     <p>When a &ldquo;work that uses the Library&rdquo; uses material from a header file
+that is part of the Library, the object code for the work may be a
+derivative work of the Library even though the source code is not. 
+Whether this is true is especially significant if the work can be
+linked without the Library, or if the work is itself a library.  The
+threshold for this to be true is not precisely defined by law.
+
+     <p>If such an object file uses only numerical parameters, data
+structure layouts and accessors, and small macros and small inline
+functions (ten lines or less in length), then the use of the object
+file is unrestricted, regardless of whether it is legally a derivative
+work.  (Executables containing this object code plus portions of the
+Library will still fall under Section 6.)
+
+     <p>Otherwise, if the work is a derivative of the Library, you may
+distribute the object code for the work under the terms of Section 6. 
+Any executables containing that work also fall under Section 6,
+whether or not they are linked directly with the Library itself.
+
+     <li>As an exception to the Sections above, you may also combine or
+link a &ldquo;work that uses the Library&rdquo; with the Library to produce a
+work containing portions of the Library, and distribute that work
+under terms of your choice, provided that the terms permit
+modification of the work for the customer's own use and reverse
+engineering for debugging such modifications.
+
+     <p>You must give prominent notice with each copy of the work that the
+Library is used in it and that the Library and its use are covered by
+this License.  You must supply a copy of this License.  If the work
+during execution displays copyright notices, you must include the
+copyright notice for the Library among them, as well as a reference
+directing the user to the copy of this License.  Also, you must do one
+of these things:
+
+          <ol type=a start=1>
+<li>Accompany the work with the complete corresponding
+machine-readable source code for the Library including whatever
+changes were used in the work (which must be distributed under
+Sections 1 and 2 above); and, if the work is an executable linked
+with the Library, with the complete machine-readable &ldquo;work that
+uses the Library&rdquo;, as object code and/or source code, so that the
+user can modify the Library and then relink to produce a modified
+executable containing the modified Library.  (It is understood
+that the user who changes the contents of definitions files in the
+Library will not necessarily be able to recompile the application
+to use the modified definitions.)
+
+          <li>Use a suitable shared library mechanism for linking with the Library.  A
+suitable mechanism is one that (1) uses at run time a copy of the
+library already present on the user's computer system, rather than
+copying library functions into the executable, and (2) will operate
+properly with a modified version of the library, if the user installs
+one, as long as the modified version is interface-compatible with the
+version that the work was made with.
+
+          <li>Accompany the work with a written offer, valid for at
+least three years, to give the same user the materials
+specified in Subsection 6a, above, for a charge no more
+than the cost of performing this distribution.
+
+          <li>If distribution of the work is made by offering access to copy
+from a designated place, offer equivalent access to copy the above
+specified materials from the same place.
+
+          <li>Verify that the user has already received a copy of these
+materials or that you have already sent this user a copy.
+          </ol>
+
+     <p>For an executable, the required form of the &ldquo;work that uses the
+Library&rdquo; must include any data and utility programs needed for
+reproducing the executable from it.  However, as a special exception,
+the materials to be distributed need not include anything that is
+normally distributed (in either source or binary form) with the major
+components (compiler, kernel, and so on) of the operating system on
+which the executable runs, unless that component itself accompanies the
+executable.
+
+     <p>It may happen that this requirement contradicts the license
+restrictions of other proprietary libraries that do not normally
+accompany the operating system.  Such a contradiction means you cannot
+use both them and the Library together in an executable that you
+distribute.
+
+     <li>You may place library facilities that are a work based on the
+Library side-by-side in a single library together with other library
+facilities not covered by this License, and distribute such a combined
+library, provided that the separate distribution of the work based on
+the Library and of the other library facilities is otherwise
+permitted, and provided that you do these two things:
+
+          <ol type=a start=1>
+<li>Accompany the combined library with a copy of the same work
+based on the Library, uncombined with any other library
+facilities.  This must be distributed under the terms of the
+Sections above.
+
+          <li>Give prominent notice with the combined library of the fact
+that part of it is a work based on the Library, and explaining
+where to find the accompanying uncombined form of the same work.
+          </ol>
+
+     <li>You may not copy, modify, sublicense, link with, or distribute
+the Library except as expressly provided under this License.  Any
+attempt otherwise to copy, modify, sublicense, link with, or
+distribute the Library is void, and will automatically terminate your
+rights under this License.  However, parties who have received copies,
+or rights, from you under this License will not have their licenses
+terminated so long as such parties remain in full compliance.
+
+     <li>You are not required to accept this License, since you have not
+signed it.  However, nothing else grants you permission to modify or
+distribute the Library or its derivative works.  These actions are
+prohibited by law if you do not accept this License.  Therefore, by
+modifying or distributing the Library (or any work based on the
+Library), you indicate your acceptance of this License to do so, and
+all its terms and conditions for copying, distributing or modifying
+the Library or works based on it.
+
+     <li>Each time you redistribute the Library (or any work based on the
+Library), the recipient automatically receives a license from the
+original licensor to copy, distribute, link with or modify the Library
+subject to these terms and conditions.  You may not impose any further
+restrictions on the recipients' exercise of the rights granted herein. 
+You are not responsible for enforcing compliance by third parties with
+this License.
+
+     <li>If, as a consequence of a court judgment or allegation of patent
+infringement or for any other reason (not limited to patent issues),
+conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot
+distribute so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you
+may not distribute the Library at all.  For example, if a patent
+license would not permit royalty-free redistribution of the Library by
+all those who receive copies directly or indirectly through you, then
+the only way you could satisfy both it and this License would be to
+refrain entirely from distribution of the Library.
+
+     <p>If any portion of this section is held invalid or unenforceable under any
+particular circumstance, the balance of the section is intended to apply,
+and the section as a whole is intended to apply in other circumstances.
+
+     <p>It is not the purpose of this section to induce you to infringe any
+patents or other property right claims or to contest validity of any
+such claims; this section has the sole purpose of protecting the
+integrity of the free software distribution system which is
+implemented by public license practices.  Many people have made
+generous contributions to the wide range of software distributed
+through that system in reliance on consistent application of that
+system; it is up to the author/donor to decide if he or she is willing
+to distribute software through any other system and a licensee cannot
+impose that choice.
+
+     <p>This section is intended to make thoroughly clear what is believed to
+be a consequence of the rest of this License.
+
+     <li>If the distribution and/or use of the Library is restricted in
+certain countries either by patents or by copyrighted interfaces, the
+original copyright holder who places the Library under this License may add
+an explicit geographical distribution limitation excluding those countries,
+so that distribution is permitted only in or among countries not thus
+excluded.  In such case, this License incorporates the limitation as if
+written in the body of this License.
+
+     <li>The Free Software Foundation may publish revised and/or new
+versions of the Lesser General Public License from time to time. 
+Such new versions will be similar in spirit to the present version,
+but may differ in detail to address new problems or concerns.
+
+     <p>Each version is given a distinguishing version number.  If the Library
+specifies a version number of this License which applies to it and
+&ldquo;any later version&rdquo;, you have the option of following the terms and
+conditions either of that version or of any later version published by
+the Free Software Foundation.  If the Library does not specify a
+license version number, you may choose any version ever published by
+the Free Software Foundation.
+
+     <li>If you wish to incorporate parts of the Library into other free
+programs whose distribution conditions are incompatible with these,
+write to the author to ask for permission.  For software which is
+copyrighted by the Free Software Foundation, write to the Free
+Software Foundation; we sometimes make exceptions for this.  Our
+decision will be guided by the two goals of preserving the free status
+of all derivatives of our free software and of promoting the sharing
+and reuse of software generally.
+
+     <li>BECAUSE THE LIBRARY IS LICENSED FREE OF CHARGE, THERE IS NO
+WARRANTY FOR THE LIBRARY, TO THE EXTENT PERMITTED BY APPLICABLE LAW. 
+EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR
+OTHER PARTIES PROVIDE THE LIBRARY &ldquo;AS IS&rdquo; WITHOUT WARRANTY OF ANY
+KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
+LIBRARY IS WITH YOU.  SHOULD THE LIBRARY PROVE DEFECTIVE, YOU ASSUME
+THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+     <li>IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY
+AND/OR REDISTRIBUTE THE LIBRARY AS PERMITTED ABOVE, BE LIABLE TO YOU
+FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE
+LIBRARY (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
+RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
+FAILURE OF THE LIBRARY TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
+SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGES.
+        </ol>
+
+<h4 class="appendixsubsec">A.0.2 How to Apply These Terms to Your New Libraries</h4>
+
+<p>If you develop a new library, and you want it to be of the greatest
+possible use to the public, we recommend making it free software that
+everyone can redistribute and change.  You can do so by permitting
+redistribution under these terms (or, alternatively, under the terms of the
+ordinary General Public License).
+
+   <p>To apply these terms, attach the following notices to the library.  It is
+safest to attach them to the start of each source file to most effectively
+convey the exclusion of warranty; and each file should have at least the
+&ldquo;copyright&rdquo; line and a pointer to where the full notice is found.
+
+<pre class="smallexample">     <var>one line to give the library's name and an idea of what it does.</var>
+     Copyright (C) <var>year</var>  <var>name of author</var>
+     
+     This library is free software; you can redistribute it and/or modify it
+     under the terms of the GNU Lesser General Public License as published by
+     the Free Software Foundation; either version 2.1 of the License, or (at
+     your option) any later version.
+     
+     This library is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Lesser General Public License for more details.
+     
+     You should have received a copy of the GNU Lesser General Public
+     License along with this library; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
+     USA.
+</pre>
+   <p>Also add information on how to contact you by electronic and paper mail.
+
+   <p>You should also get your employer (if you work as a programmer) or your
+school, if any, to sign a &ldquo;copyright disclaimer&rdquo; for the library, if
+necessary.  Here is a sample; alter the names:
+
+<pre class="smallexample">     Yoyodyne, Inc., hereby disclaims all copyright interest in the library
+     `Frob' (a library for tweaking knobs) written by James Random Hacker.
+     
+     <var>signature of Ty Coon</var>, 1 April 1990
+     Ty Coon, President of Vice
+</pre>
+   <p>That's all there is to it!
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="Documentation-License"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#references">references</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Package-License">Package License</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="appendix">Appendix B GNU Free Documentation License</h2>
+
+<p><a name="index-FDL_002c-GNU-Free-Documentation-License-38"></a><div align="center">Version 1.1, March 2000</div>
+
+<pre class="display">     Copyright &copy; 2000 Free Software Foundation, Inc.
+     59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
+     
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+</pre>
+     <ol type=1 start=0>
+<li>PREAMBLE
+
+     <p>The purpose of this License is to make a manual, textbook, or other
+written document <dfn>free</dfn> in the sense of freedom: to assure everyone
+the effective freedom to copy and redistribute it, with or without
+modifying it, either commercially or noncommercially.  Secondarily,
+this License preserves for the author and publisher a way to get
+credit for their work, while not being considered responsible for
+modifications made by others.
+
+     <p>This License is a kind of &ldquo;copyleft&rdquo;, which means that derivative
+works of the document must themselves be free in the same sense.  It
+complements the GNU General Public License, which is a copyleft
+license designed for free software.
+
+     <p>We have designed this License in order to use it for manuals for free
+software, because free software needs free documentation: a free
+program should come with manuals providing the same freedoms that the
+software does.  But this License is not limited to software manuals;
+it can be used for any textual work, regardless of subject matter or
+whether it is published as a printed book.  We recommend this License
+principally for works whose purpose is instruction or reference.
+
+     <li>APPLICABILITY AND DEFINITIONS
+
+     <p>This License applies to any manual or other work that contains a
+notice placed by the copyright holder saying it can be distributed
+under the terms of this License.  The &ldquo;Document&rdquo;, below, refers to any
+such manual or work.  Any member of the public is a licensee, and is
+addressed as &ldquo;you&rdquo;.
+
+     <p>A &ldquo;Modified Version&rdquo; of the Document means any work containing the
+Document or a portion of it, either copied verbatim, or with
+modifications and/or translated into another language.
+
+     <p>A &ldquo;Secondary Section&rdquo; is a named appendix or a front-matter section of
+the Document that deals exclusively with the relationship of the
+publishers or authors of the Document to the Document's overall subject
+(or to related matters) and contains nothing that could fall directly
+within that overall subject.  (For example, if the Document is in part a
+textbook of mathematics, a Secondary Section may not explain any
+mathematics.)  The relationship could be a matter of historical
+connection with the subject or with related matters, or of legal,
+commercial, philosophical, ethical or political position regarding
+them.
+
+     <p>The &ldquo;Invariant Sections&rdquo; are certain Secondary Sections whose titles
+are designated, as being those of Invariant Sections, in the notice
+that says that the Document is released under this License.
+
+     <p>The &ldquo;Cover Texts&rdquo; are certain short passages of text that are listed,
+as Front-Cover Texts or Back-Cover Texts, in the notice that says that
+the Document is released under this License.
+
+     <p>A &ldquo;Transparent&rdquo; copy of the Document means a machine-readable copy,
+represented in a format whose specification is available to the
+general public, whose contents can be viewed and edited directly and
+straightforwardly with generic text editors or (for images composed of
+pixels) generic paint programs or (for drawings) some widely available
+drawing editor, and that is suitable for input to text formatters or
+for automatic translation to a variety of formats suitable for input
+to text formatters.  A copy made in an otherwise Transparent file
+format whose markup has been designed to thwart or discourage
+subsequent modification by readers is not Transparent.  A copy that is
+not &ldquo;Transparent&rdquo; is called &ldquo;Opaque&rdquo;.
+
+     <p>Examples of suitable formats for Transparent copies include plain
+<span class="sc">ascii</span> without markup, Texinfo input format, LaTeX input format,
+<acronym>SGML</acronym> or <acronym>XML</acronym> using a publicly available
+<acronym>DTD</acronym>, and standard-conforming simple <acronym>HTML</acronym> designed
+for human modification.  Opaque formats include PostScript,
+<acronym>PDF</acronym>, proprietary formats that can be read and edited only by
+proprietary word processors, <acronym>SGML</acronym> or <acronym>XML</acronym> for which
+the <acronym>DTD</acronym> and/or processing tools are not generally available,
+and the machine-generated <acronym>HTML</acronym> produced by some word
+processors for output purposes only.
+
+     <p>The &ldquo;Title Page&rdquo; means, for a printed book, the title page itself,
+plus such following pages as are needed to hold, legibly, the material
+this License requires to appear in the title page.  For works in
+formats which do not have any title page as such, &ldquo;Title Page&rdquo; means
+the text near the most prominent appearance of the work's title,
+preceding the beginning of the body of the text.
+
+     <li>VERBATIM COPYING
+
+     <p>You may copy and distribute the Document in any medium, either
+commercially or noncommercially, provided that this License, the
+copyright notices, and the license notice saying this License applies
+to the Document are reproduced in all copies, and that you add no other
+conditions whatsoever to those of this License.  You may not use
+technical measures to obstruct or control the reading or further
+copying of the copies you make or distribute.  However, you may accept
+compensation in exchange for copies.  If you distribute a large enough
+number of copies you must also follow the conditions in section 3.
+
+     <p>You may also lend copies, under the same conditions stated above, and
+you may publicly display copies.
+
+     <li>COPYING IN QUANTITY
+
+     <p>If you publish printed copies of the Document numbering more than 100,
+and the Document's license notice requires Cover Texts, you must enclose
+the copies in covers that carry, clearly and legibly, all these Cover
+Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on
+the back cover.  Both covers must also clearly and legibly identify
+you as the publisher of these copies.  The front cover must present
+the full title with all words of the title equally prominent and
+visible.  You may add other material on the covers in addition. 
+Copying with changes limited to the covers, as long as they preserve
+the title of the Document and satisfy these conditions, can be treated
+as verbatim copying in other respects.
+
+     <p>If the required texts for either cover are too voluminous to fit
+legibly, you should put the first ones listed (as many as fit
+reasonably) on the actual cover, and continue the rest onto adjacent
+pages.
+
+     <p>If you publish or distribute Opaque copies of the Document numbering
+more than 100, you must either include a machine-readable Transparent
+copy along with each Opaque copy, or state in or with each Opaque copy
+a publicly-accessible computer-network location containing a complete
+Transparent copy of the Document, free of added material, which the
+general network-using public has access to download anonymously at no
+charge using public-standard network protocols.  If you use the latter
+option, you must take reasonably prudent steps, when you begin
+distribution of Opaque copies in quantity, to ensure that this
+Transparent copy will remain thus accessible at the stated location
+until at least one year after the last time you distribute an Opaque
+copy (directly or through your agents or retailers) of that edition to
+the public.
+
+     <p>It is requested, but not required, that you contact the authors of the
+Document well before redistributing any large number of copies, to give
+them a chance to provide you with an updated version of the Document.
+
+     <li>MODIFICATIONS
+
+     <p>You may copy and distribute a Modified Version of the Document under
+the conditions of sections 2 and 3 above, provided that you release
+the Modified Version under precisely this License, with the Modified
+Version filling the role of the Document, thus licensing distribution
+and modification of the Modified Version to whoever possesses a copy
+of it.  In addition, you must do these things in the Modified Version:
+
+          <ol type=A start=1>
+<li>Use in the Title Page (and on the covers, if any) a title distinct
+from that of the Document, and from those of previous versions
+(which should, if there were any, be listed in the History section
+of the Document).  You may use the same title as a previous version
+if the original publisher of that version gives permission.
+
+          <li>List on the Title Page, as authors, one or more persons or entities
+responsible for authorship of the modifications in the Modified
+Version, together with at least five of the principal authors of the
+Document (all of its principal authors, if it has less than five).
+
+          <li>State on the Title page the name of the publisher of the
+Modified Version, as the publisher.
+
+          <li>Preserve all the copyright notices of the Document.
+
+          <li>Add an appropriate copyright notice for your modifications
+adjacent to the other copyright notices.
+
+          <li>Include, immediately after the copyright notices, a license notice
+giving the public permission to use the Modified Version under the
+terms of this License, in the form shown in the Addendum below.
+
+          <li>Preserve in that license notice the full lists of Invariant Sections
+and required Cover Texts given in the Document's license notice.
+
+          <li>Include an unaltered copy of this License.
+
+          <li>Preserve the section entitled &ldquo;History&rdquo;, and its title, and add to
+it an item stating at least the title, year, new authors, and
+publisher of the Modified Version as given on the Title Page.  If
+there is no section entitled &ldquo;History&rdquo; in the Document, create one
+stating the title, year, authors, and publisher of the Document as
+given on its Title Page, then add an item describing the Modified
+Version as stated in the previous sentence.
+
+          <li>Preserve the network location, if any, given in the Document for
+public access to a Transparent copy of the Document, and likewise
+the network locations given in the Document for previous versions
+it was based on.  These may be placed in the &ldquo;History&rdquo; section. 
+You may omit a network location for a work that was published at
+least four years before the Document itself, or if the original
+publisher of the version it refers to gives permission.
+
+          <li>In any section entitled &ldquo;Acknowledgments&rdquo; or &ldquo;Dedications&rdquo;,
+preserve the section's title, and preserve in the section all the
+substance and tone of each of the contributor acknowledgments
+and/or dedications given therein.
+
+          <li>Preserve all the Invariant Sections of the Document,
+unaltered in their text and in their titles.  Section numbers
+or the equivalent are not considered part of the section titles.
+
+          <li>Delete any section entitled &ldquo;Endorsements&rdquo;.  Such a section
+may not be included in the Modified Version.
+
+          <li>Do not retitle any existing section as &ldquo;Endorsements&rdquo;
+or to conflict in title with any Invariant Section.
+          </ol>
+
+     <p>If the Modified Version includes new front-matter sections or
+appendices that qualify as Secondary Sections and contain no material
+copied from the Document, you may at your option designate some or all
+of these sections as invariant.  To do this, add their titles to the
+list of Invariant Sections in the Modified Version's license notice. 
+These titles must be distinct from any other section titles.
+
+     <p>You may add a section entitled &ldquo;Endorsements&rdquo;, provided it contains
+nothing but endorsements of your Modified Version by various
+parties&mdash;for example, statements of peer review or that the text has
+been approved by an organization as the authoritative definition of a
+standard.
+
+     <p>You may add a passage of up to five words as a Front-Cover Text, and a
+passage of up to 25 words as a Back-Cover Text, to the end of the list
+of Cover Texts in the Modified Version.  Only one passage of
+Front-Cover Text and one of Back-Cover Text may be added by (or
+through arrangements made by) any one entity.  If the Document already
+includes a cover text for the same cover, previously added by you or
+by arrangement made by the same entity you are acting on behalf of,
+you may not add another; but you may replace the old one, on explicit
+permission from the previous publisher that added the old one.
+
+     <p>The author(s) and publisher(s) of the Document do not by this License
+give permission to use their names for publicity for or to assert or
+imply endorsement of any Modified Version.
+
+     <li>COMBINING DOCUMENTS
+
+     <p>You may combine the Document with other documents released under this
+License, under the terms defined in section 4 above for modified
+versions, provided that you include in the combination all of the
+Invariant Sections of all of the original documents, unmodified, and
+list them all as Invariant Sections of your combined work in its
+license notice.
+
+     <p>The combined work need only contain one copy of this License, and
+multiple identical Invariant Sections may be replaced with a single
+copy.  If there are multiple Invariant Sections with the same name but
+different contents, make the title of each such section unique by
+adding at the end of it, in parentheses, the name of the original
+author or publisher of that section if known, or else a unique number. 
+Make the same adjustment to the section titles in the list of
+Invariant Sections in the license notice of the combined work.
+
+     <p>In the combination, you must combine any sections entitled &ldquo;History&rdquo;
+in the various original documents, forming one section entitled
+&ldquo;History&rdquo;; likewise combine any sections entitled &ldquo;Acknowledgments&rdquo;,
+and any sections entitled &ldquo;Dedications&rdquo;.  You must delete all sections
+entitled &ldquo;Endorsements.&rdquo;
+
+     <li>COLLECTIONS OF DOCUMENTS
+
+     <p>You may make a collection consisting of the Document and other documents
+released under this License, and replace the individual copies of this
+License in the various documents with a single copy that is included in
+the collection, provided that you follow the rules of this License for
+verbatim copying of each of the documents in all other respects.
+
+     <p>You may extract a single document from such a collection, and distribute
+it individually under this License, provided you insert a copy of this
+License into the extracted document, and follow this License in all
+other respects regarding verbatim copying of that document.
+
+     <li>AGGREGATION WITH INDEPENDENT WORKS
+
+     <p>A compilation of the Document or its derivatives with other separate
+and independent documents or works, in or on a volume of a storage or
+distribution medium, does not as a whole count as a Modified Version
+of the Document, provided no compilation copyright is claimed for the
+compilation.  Such a compilation is called an &ldquo;aggregate&rdquo;, and this
+License does not apply to the other self-contained works thus compiled
+with the Document, on account of their being thus compiled, if they
+are not themselves derivative works of the Document.
+
+     <p>If the Cover Text requirement of section 3 is applicable to these
+copies of the Document, then if the Document is less than one quarter
+of the entire aggregate, the Document's Cover Texts may be placed on
+covers that surround only the Document within the aggregate. 
+Otherwise they must appear on covers around the whole aggregate.
+
+     <li>TRANSLATION
+
+     <p>Translation is considered a kind of modification, so you may
+distribute translations of the Document under the terms of section 4. 
+Replacing Invariant Sections with translations requires special
+permission from their copyright holders, but you may include
+translations of some or all Invariant Sections in addition to the
+original versions of these Invariant Sections.  You may include a
+translation of this License provided that you also include the
+original English version of this License.  In case of a disagreement
+between the translation and the original English version of this
+License, the original English version will prevail.
+
+     <li>TERMINATION
+
+     <p>You may not copy, modify, sublicense, or distribute the Document except
+as expressly provided for under this License.  Any other attempt to
+copy, modify, sublicense or distribute the Document is void, and will
+automatically terminate your rights under this License.  However,
+parties who have received copies, or rights, from you under this
+License will not have their licenses terminated so long as such
+parties remain in full compliance.
+
+     <li>FUTURE REVISIONS OF THIS LICENSE
+
+     <p>The Free Software Foundation may publish new, revised versions
+of the GNU Free Documentation License from time to time.  Such new
+versions will be similar in spirit to the present version, but may
+differ in detail to address new problems or concerns.  See
+<a href="http://www.gnu.org/copyleft/">http://www.gnu.org/copyleft/</a>.
+
+     <p>Each version of the License is given a distinguishing version number. 
+If the Document specifies that a particular numbered version of this
+License &ldquo;or any later version&rdquo; applies to it, you have the option of
+following the terms and conditions either of that specified version or
+of any later version that has been published (not as a draft) by the
+Free Software Foundation.  If the Document does not specify a version
+number of this License, you may choose any version ever published (not
+as a draft) by the Free Software Foundation.
+        </ol>
+
+<h4 class="appendixsubsec">B.0.1 ADDENDUM: How to use this License for your documents</h4>
+
+<p>To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and
+license notices just after the title page:
+
+<pre class="smallexample">       Copyright (C)  <var>year</var>  <var>your name</var>.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.1
+       or any later version published by the Free Software Foundation;
+       with the Invariant Sections being <var>list their titles</var>, with the
+       Front-Cover Texts being <var>list</var>, and with the Back-Cover Texts being <var>list</var>.
+       A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+</pre>
+   <p>If you have no Invariant Sections, write &ldquo;with no Invariant Sections&rdquo;
+instead of saying which ones are invariant.  If you have no
+Front-Cover Texts, write &ldquo;no Front-Cover Texts&rdquo; instead of
+&ldquo;Front-Cover Texts being <var>list</var>&rdquo;; likewise for Back-Cover Texts.
+
+   <p>If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License,
+to permit their use in free software.
+
+<!-- Local Variables: -->
+<!-- ispell-local-pdict: "ispell-dict" -->
+<!-- End: -->
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="references"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#concept-index">concept index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Documentation-License">Documentation License</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="appendix">Appendix C Bibliography and references</h2>
+
+<p>ScmObj is very similar to the default protocol in <acronym>CLOS</acronym>, the Common
+Lisp Object System.  Thus, reading up on <acronym>CLOS</acronym> will help in learning
+and using ScmObj.
+
+   <p>The major difference between ScmObj and <acronym>CLOS</acronym> is that ScmObj has no
+metaobject protocol.  A minor difference is that the ScmObj primitives
+are more Schemely: they don't have the class vs. name indirection
+present in <acronym>CLOS</acronym>, nor do they have slot or class options.
+
+   <p>The following are some books that describe <acronym>CLOS</acronym>:
+
+<p class="noindent">Guy L Steele, Jr, <em>Common Lisp: The Language</em>, 2nd ed, Digital
+Press, 1990.  Chap 28.  A bit on the terse side.
+
+<p class="noindent">Sonya E Keene, <em>Object&ndash;oriented Programming in Common Lisp: A
+Programmer's Guide to <acronym>CLOS</acronym></em>, Addison-Wesley, 1989.  Tutorial&ndash;like,
+with examples.
+
+   <p>Andreas Paepcke, ed, <em>Object-oriented Programming: The <acronym>CLOS</acronym>
+Perspective</em>, <acronym>MIT</acronym> Press, 1993.  Chap 1, by Linda G DeMichiel,
+contains a brief introduction.
+
+   <p>Patrick H Winston and Berthold K P Horn, <em>Lisp</em>, 3rd ed,
+Addison&ndash;Wesley, 1993.  Chaps 14, 21 and 22.  Very brief introduction,
+but enough for our purposes.
+
+<!--  -->
+<!-- page -->
+<div class="node">
+<p><hr>
+<a name="concept-index"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#function-index">function index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#references">references</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="appendix">Appendix D An entry for each concept</h2>
+
+<ul class="index-cp" compact>
+<li><a href="#index-FDL_002c-GNU-Free-Documentation-License-38">FDL, GNU Free Documentation License</a>: <a href="#Documentation-License">Documentation License</a></li>
+<li><a href="#index-LGPL_002c-Lesser-General-Public-License-37">LGPL, Lesser General Public License</a>: <a href="#Package-License">Package License</a></li>
+</ul><div class="node">
+<p><hr>
+<a name="function-index"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#variable-index">variable index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#concept-index">concept index</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="appendix">Appendix E An entry for each function.</h2>
+
+
+
+<ul class="index-fn" compact>
+<li><a href="#index-class_002ddefinition_002dname-28"><code>class-definition-name</code></a>: <a href="#inspect">inspect</a></li>
+<li><a href="#index-class_002dof-33"><code>class-of</code></a>: <a href="#inspect">inspect</a></li>
+<li><a href="#index-class_002dprecedence_002dlist-29"><code>class-precedence-list</code></a>: <a href="#inspect">inspect</a></li>
+<li><a href="#index-define_002dclass-27"><code>define-class</code></a>: <a href="#make">make</a></li>
+<li><a href="#index-list_002dof_002dinstance_002dslots-31"><code>list-of-instance-slots</code></a>: <a href="#inspect">inspect</a></li>
+<li><a href="#index-list_002dof_002dslots-30"><code>list-of-slots</code></a>: <a href="#inspect">inspect</a></li>
+<li><a href="#index-make-34"><code>make</code></a>: <a href="#instance">instance</a></li>
+<li><a href="#index-make_002dclass-26"><code>make-class</code></a>: <a href="#make">make</a></li>
+<li><a href="#index-slot_002dref-35"><code>slot-ref</code></a>: <a href="#slot">slot</a></li>
+<li><a href="#index-slot_002dset_0021-36"><code>slot-set!</code></a>: <a href="#slot">slot</a></li>
+<li><a href="#index-subclass_003f-32"><code>subclass?</code></a>: <a href="#inspect">inspect</a></li>
+   </ul><div class="node">
+<p><hr>
+<a name="variable-index"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#type-index">type index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#function-index">function index</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="appendix">Appendix F An entry for each variable.</h2>
+
+
+
+<ul class="index-vr" compact>
+   </ul><div class="node">
+<p><hr>
+<a name="type-index"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#variable-index">variable index</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="appendix">Appendix G An entry for each type.</h2>
+
+
+
+<ul class="index-tp" compact>
+<li><a href="#index-g_t_003cbytevector_003e-9"><code>&lt;bytevector&gt;</code></a>: <a href="#class-compound">class compound</a></li>
+<li><a href="#index-g_t_003ccircular_002dlist_003e-5"><code>&lt;circular-list&gt;</code></a>: <a href="#class-list">class list</a></li>
+<li><a href="#index-g_t_003cclass_003e-1"><code>&lt;class&gt;</code></a>: <a href="#class">class</a></li>
+<li><a href="#index-g_t_003ccomplex_003e-13"><code>&lt;complex&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003ccondition_003e-25"><code>&lt;condition&gt;</code></a>: <a href="#class-misc">class misc</a></li>
+<li><a href="#index-g_t_003cdotted_002dlist_003e-6"><code>&lt;dotted-list&gt;</code></a>: <a href="#class-list">class list</a></li>
+<li><a href="#index-g_t_003centity_002dclass_003e-2"><code>&lt;entity-class&gt;</code></a>: <a href="#class">class</a></li>
+<li><a href="#index-g_t_003cfixnum_003e-20"><code>&lt;fixnum&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003cflonum_003e-21"><code>&lt;flonum&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003chashtable_003e-10"><code>&lt;hashtable&gt;</code></a>: <a href="#class-compound">class compound</a></li>
+<li><a href="#index-g_t_003cinput_002dport_003e-23"><code>&lt;input-port&gt;</code></a>: <a href="#class-port">class port</a></li>
+<li><a href="#index-g_t_003cinteger_002dvalued_003e-18"><code>&lt;integer-valued&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003cinteger_003e-19"><code>&lt;integer&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003clist_003e-4"><code>&lt;list&gt;</code></a>: <a href="#class-list">class list</a></li>
+<li><a href="#index-g_t_003cnumber_003e-12"><code>&lt;number&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003coutput_002dport_003e-24"><code>&lt;output-port&gt;</code></a>: <a href="#class-port">class port</a></li>
+<li><a href="#index-g_t_003cpair_003e-3"><code>&lt;pair&gt;</code></a>: <a href="#class-list">class list</a></li>
+<li><a href="#index-g_t_003cport_003e-22"><code>&lt;port&gt;</code></a>: <a href="#class-port">class port</a></li>
+<li><a href="#index-g_t_003cproper_002dlist_003e-7"><code>&lt;proper-list&gt;</code></a>: <a href="#class-list">class list</a></li>
+<li><a href="#index-g_t_003crational_002dvalued_003e-17"><code>&lt;rational-valued&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003crational_003e-16"><code>&lt;rational&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003creal_002dvalued_003e-14"><code>&lt;real-valued&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003creal_003e-15"><code>&lt;real&gt;</code></a>: <a href="#class-numeric">class numeric</a></li>
+<li><a href="#index-g_t_003crecord_003e-11"><code>&lt;record&gt;</code></a>: <a href="#class-compound">class compound</a></li>
+<li><a href="#index-g_t_003cvector_003e-8"><code>&lt;vector&gt;</code></a>: <a href="#class-compound">class compound</a></li>
+   </ul>
+<div class="contents">
+<h2>Table of Contents</h2>
+<ul>
+<li><a name="toc_Top" href="#Top">ScmObj for Ikarus Scheme</a>
+<li><a name="toc_overview" href="#overview">1 Overview of the package</a>
+<li><a name="toc_class" href="#class">2 Classes</a>
+<ul>
+<li><a href="#class-chart">2.1 A chart for predefined classes</a>
+<li><a href="#class-list">2.2 List types</a>
+<li><a href="#class-compound">2.3 Non&ndash;list compound data types</a>
+<li><a href="#class-numeric">2.4 Numeric data types</a>
+<li><a href="#class-port">2.5 Port types</a>
+<li><a href="#class-misc">2.6 Miscellaneous types</a>
+</li></ul>
+<li><a name="toc_make" href="#make">3 Making classes</a>
+<li><a name="toc_inspect" href="#inspect">4 Inspecting classes and instances</a>
+<li><a name="toc_instance" href="#instance">5 Instances</a>
+<li><a name="toc_slot" href="#slot">6 Accessing slots</a>
+<li><a name="toc_classification" href="#classification">7 ScmObj and Scheme</a>
+<ul>
+<li><a href="#classification">7.1 Classes Are Class Instances Too</a>
+<li><a href="#classification">7.2 Scheme Objects Are Class Instances Too</a>
+</li></ul>
+<li><a name="toc_generic" href="#generic">8 Generic procedures and methods</a>
+<ul>
+<li><a href="#generic-methods">8.1 Methods</a>
+<li><a href="#generic-calling">8.2 Calling generic procedures</a>
+</li></ul>
+<li><a name="toc_Package-License" href="#Package-License">Appendix A GNU LESSER GENERAL PUBLIC LICENSE</a>
+<ul>
+<ul>
+<li><a href="#Package-License">A.0.1 Preamble</a>
+<li><a href="#Package-License">A.0.2 How to Apply These Terms to Your New Libraries</a>
+</li></ul>
+</li></ul>
+<li><a name="toc_Documentation-License" href="#Documentation-License">Appendix B GNU Free Documentation License</a>
+<ul>
+<ul>
+<li><a href="#Documentation-License">B.0.1 ADDENDUM: How to use this License for your documents</a>
+</li></ul>
+</li></ul>
+<li><a name="toc_references" href="#references">Appendix C Bibliography and references</a>
+<li><a name="toc_concept-index" href="#concept-index">Appendix D An entry for each concept</a>
+<li><a name="toc_function-index" href="#function-index">Appendix E An entry for each function.</a>
+<li><a name="toc_variable-index" href="#variable-index">Appendix F An entry for each variable.</a>
+<li><a name="toc_type-index" href="#type-index">Appendix G An entry for each type.</a>
+</li></ul>
+</div>
+
+</body></html>
+

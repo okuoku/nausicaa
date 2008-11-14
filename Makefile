@@ -34,6 +34,16 @@
 TAG			= $(shell cat tag)
 PKG_ID			= $(TAG)
 
+PROJECTS	= \
+			srfi		\
+			ice-9		\
+			irregex		\
+			scmobj		\
+			tiny-clos	\
+			uriel
+
+BUILDDIR	= "=builddir"
+
 ## ------------------------------------------------------------
 
 #page
@@ -92,26 +102,35 @@ builddir:
 ## Global tests.
 ## ------------------------------------------------------------
 
-test_BUILDDIR	= "=builddir"
-test_PROJECTS	= \
-			srfi		\
-			ice-9		\
-			irregex		\
-			scmobj		\
-			tiny-clos	\
-			uriel
-
 .PHONY: test
 
 test:
-	$(foreach p,$(test_PROJECTS),\
-	cd $(p);						\
-	test -d $(test_BUILDDIR) || $(MKDIR) $(test_BUILDDIR);	\
-	cd $(test_BUILDDIR);					\
-	sh ../prepare.sh;					\
-	make all test;						\
+	$(foreach p,$(PROJECTS),\
+	cd $(p);					\
+	test -d $(BUILDDIR) || $(MKDIR) $(BUILDDIR);	\
+	cd $(BUILDDIR);					\
+	sh ../prepare.sh;				\
+	make all test;					\
 	cd ../..;)
 
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Global documentation.
+## ------------------------------------------------------------
+
+.PHONY: doc
+
+doc:
+	$(foreach p,$(PROJECTS),\
+	cd $(p);					\
+	test -d $(BUILDDIR) || $(MKDIR) $(BUILDDIR);	\
+	cd $(BUILDDIR);					\
+	make doc nausicaa_ENABLE_HTML_DOC=yes;		\
+	cp -v doc-texinfo.d/*.{info,html} ../doc;	\
+	cd ../..;)
 
 ## ------------------------------------------------------------
 
