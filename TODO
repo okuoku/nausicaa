@@ -3,6 +3,11 @@
 			  ====================
 
 
+* Why I cannot install only the FASL files?
+
+
+## ------------------------------------------------------------
+
 Ice-9
 -----
 
@@ -23,6 +28,21 @@ ScmObj
 * Finish implementation (hash table for generic functions).
 * Add more tests.
 * Finish the documentation (replace all the original material).
+* There should be one class for each 
+
+
+Tiny-CLOS
+---------
+
+* Solve the problem of files without copyright notice.
+* Write the documentation.
+* Add more tests.
+
+
+SRFI
+----
+
+* Solve the problem of files without copyright notice.
 
 
 ### end of file

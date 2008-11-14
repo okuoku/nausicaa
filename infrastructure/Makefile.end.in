@@ -608,9 +608,11 @@ redhat_INSTALLED_PACKAGE	=
 redhat_ENV		?=
 
 redhat_CORE_PROGRAM	= @redhat_CORE_PROGRAM@
-redhat_BUILD_PROGRAM	= @redhat_BUILD_PROGRAM@
 
-redhat_BUILD		= $(redhat_BUILD_PROGRAM) -v -bb
+redhat_BUILD_PROGRAM	= @redhat_BUILD_PROGRAM@
+redhat_BUILD_FLAGS	= -v --buildroot $(redhat_PACKAGE_BUILDDIR) -bb
+redhat_BUILD		= $(redhat_ENV) $(redhat_BUILD_PROGRAM) $(redhat_BUILD_FLAGS)
+
 
 redhat_SPEC_FILE	= $(PKG_ID).spec
 redhat_GENERIC_SPEC	= meta.d/redhat/spec-file
@@ -622,13 +624,17 @@ redhat_SPECIFIC_SPEC	= meta.d/redhat/$(redhat_SPEC_FILE)
 
 redhat: bindist redhat-clean
 	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)
-	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)/BUILD/$(package_ARCH)
+	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)/BUILD
 	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)/SPECS
+	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)/RPMS/i386
+	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)/RPMS/$(package_ARCH)
 	$(CP) $(redhat_GENERIC_SPEC) $(redhat_SPECIFIC_SPEC)
-	$(bindist_LIST) | $(SED) -e 's/^\.//' -e 's%^/$$%%' >> $(redhat_SPECIFIC_SPEC)
+	$(bindist_LIST) | \
+	$(SED) -e 's%^\./%/%' -e '\%^/$$%d' \
+		>> $(redhat_SPECIFIC_SPEC)
 	$(INSTALL_DATA) $(redhat_SPECIFIC_SPEC) $(redhat_PACKAGE_TOP_BUILDDIR)/SPECS
 	$(MAKE) install DESTDIR=$(redhat_PACKAGE_BUILDDIR)
-	cd $(redhat_PACKAGE_TOP_BUILDDIR); $(redhat_BUILD) SPECS/$(redhat_SPEC_FILE)
+	cd $(redhat_PACKAGE_TOP_BUILDDIR)/SPECS; $(redhat_BUILD) $(redhat_SPEC_FILE)
 
 redhat-clean:
 	-$(RM) $(redhat_PACKAGE_BUILDDIR)

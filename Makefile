@@ -89,6 +89,34 @@ builddir:
 
 #page
 ## ------------------------------------------------------------
+## Global tests.
+## ------------------------------------------------------------
+
+test_BUILDDIR	= "=builddir"
+test_PROJECTS	= \
+			srfi		\
+			ice-9		\
+			irregex		\
+			scmobj		\
+			tiny-clos	\
+			uriel
+
+.PHONY: test
+
+test:
+	$(foreach p,$(test_PROJECTS),\
+	cd $(p);						\
+	test -d $(test_BUILDDIR) || $(MKDIR) $(test_BUILDDIR);	\
+	cd $(test_BUILDDIR);					\
+	sh ../prepare.sh;					\
+	make all test;						\
+	cd ../..;)
+
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
 ## Source distribution.
 ## ------------------------------------------------------------
 
