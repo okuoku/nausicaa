@@ -41,6 +41,8 @@ builddir	= .
 ## Programs.
 ## ------------------------------------------------------------
 
+RM			= rm --force --recursive --
+
 MAKEINFO		= makeinfo
 MAKEINFO_INFO_FLAGS	= --no-split
 MAKEINFO_HTML_FLAGS	= --no-split --html
@@ -53,11 +55,14 @@ MAKEINFO_HTML_FLAGS	= --no-split --html
 ## Main rules.
 ## ------------------------------------------------------------
 
-.PHONY: all doc
+.PHONY: all doc clean
 
 all: doc
 
 doc:
+
+clean:
+	-$(RM) nausicaa.info nausicaa.html
 
 ## ------------------------------------------------------------
 
