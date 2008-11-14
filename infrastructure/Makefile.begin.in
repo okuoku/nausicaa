@@ -23,7 +23,12 @@ endif
 
 package_NAME		= $(PACKAGE_NAME)
 package_VERSION		= $(PACKAGE_VERSION)
+
+package_ARCH		= \
+	$(firstword $(subst -, ,$(shell ../../infrastructure/config.guess)))
+ifeq ($(strip $(package_ARCH)),)
 package_ARCH		= noarch
+endif
 
 package_PREFIX		= \
 $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)

@@ -173,7 +173,7 @@ what follows is a list of common options.
 `--enable-sls'
 `--disable-sls'
      Enable or disable the installation of source files.  It defaults
-     to: no, *do not* install the source files.
+     to: yes, install the source files.
 
 `--enable-doc'
 `--disable-doc'
@@ -216,7 +216,7 @@ File: nausicaa.info,  Node: vars config,  Next: vars project,  Up: vars
 
  -- Variable: nausicaa_ENABLE_SLS
      Enable or disable the installation of source files; valid values
-     are `yes' and `no'.  The default is `no'.
+     are `yes' and `no'.  The default is `yes'.
 
      It is set by the `configure' options `--enable-sls' and
      `--disable-sls'.
@@ -308,10 +308,14 @@ File: nausicaa.info,  Node: vars package,  Next: vars directories,  Prev: vars p
      packages.  It should be used to identify the architecture for
      which a package file was built.
 
-     It must be set to a meaningful value, like `i486' or `i686'.  It
-     defaults to `noarch', which means that the package holds only
-     architecture independent files (like source and documentation
-     files).
+     It must be set to a meaningful value, like `i486' or `i686'.  The
+     default value is computed with the following GNU Make expression:
+
+          $(firstword $(subst -, ,$(shell ../../infrastructure/config.guess)))
+
+     if it expands to the empty strings, it falls back to `noarch',
+     which means that the package holds only architecture independent
+     files (like source and documentation files).
 
  -- Variable: package_NAME
  -- Variable: package_VERSION
@@ -1856,10 +1860,10 @@ Appendix E An entry for each variable.
 * nausicaa_ENABLE_SLS:                   vars config.         (line   7)
 * package_ARCH:                          vars package.        (line  13)
 * package_BUILD_VERSION:                 vars package.        (line   7)
-* package_NAME:                          vars package.        (line  23)
+* package_NAME:                          vars package.        (line  27)
 * PACKAGE_NAME:                          vars project.        (line   7)
-* package_PREFIX:                        vars package.        (line  28)
-* package_VERSION:                       vars package.        (line  24)
+* package_PREFIX:                        vars package.        (line  32)
+* package_VERSION:                       vars package.        (line  28)
 * PACKAGE_VERSION:                       vars project.        (line  13)
 * PKG_DIR:                               vars directories custom.
                                                               (line  11)
@@ -1919,33 +1923,33 @@ Node: overview2301
 Node: overview conventions2892
 Node: config4110
 Node: config options4847
-Node: vars6358
-Node: vars config6824
-Node: vars project8644
-Node: vars package9361
-Node: vars directories10697
-Node: vars directories common11669
-Node: vars directories custom13525
-Node: vars misc14985
-Node: rules15666
-Node: rules main16159
-Node: rules doc17619
-Node: rules sls18989
-Node: rules fasl19989
-Node: rules texinfo22021
-Node: rules test25755
-Node: rules inspect26990
-Node: package27553
-Node: bindist28540
-Node: slackware31896
-Node: slackware common32788
-Node: slackware standard36576
-Node: slackware local38798
-Node: Documentation License41162
-Node: references61067
-Node: concept index61250
-Node: function index61517
-Node: variable index65807
-Node: type index72759
+Node: vars6350
+Node: vars config6816
+Node: vars project8637
+Node: vars package9354
+Node: vars directories10884
+Node: vars directories common11856
+Node: vars directories custom13712
+Node: vars misc15172
+Node: rules15853
+Node: rules main16346
+Node: rules doc17806
+Node: rules sls19176
+Node: rules fasl20176
+Node: rules texinfo22208
+Node: rules test25942
+Node: rules inspect27177
+Node: package27740
+Node: bindist28727
+Node: slackware32083
+Node: slackware common32975
+Node: slackware standard36763
+Node: slackware local38985
+Node: Documentation License41349
+Node: references61254
+Node: concept index61437
+Node: function index61704
+Node: variable index65994
+Node: type index72946
 
 End Tag Table

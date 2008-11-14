@@ -581,8 +581,8 @@ At present (Thu Nov 13, 2008) only libraries can be compiled by Ikarus.
 
 @item --enable-sls
 @itemx --disable-sls
-Enable or disable the installation of source files.  It defaults to: no,
-@strong{do not} install the source files.
+Enable or disable the installation of source files.  It defaults to:
+yes, install the source files.
 
 @item --enable-doc
 @itemx --disable-doc
@@ -631,7 +631,7 @@ infrastructure.
 
 @defvar nausicaa_ENABLE_SLS
 Enable or disable the installation of source files; valid values are
-@code{yes} and @code{no}.  The default is @code{no}.
+@code{yes} and @code{no}.  The default is @code{yes}.
 
 It is set by the @command{configure} options @option{--enable-sls} and
 @option{--disable-sls}.
@@ -751,8 +751,16 @@ packages.  It should be used to identify the architecture for which a
 package file was built.
 
 It must be set to a meaningful value, like @code{i486} or @code{i686}.
-It defaults to @code{noarch}, which means that the package holds only
-architecture independent files (like source and documentation files).
+The default value is computed with the following @gnu{} Make expression:
+
+@example
+$(firstword $(subst -, ,$(shell ../../infrastructure/config.guess)))
+@end example
+
+@noindent
+if it expands to the empty strings, it falls back to @code{noarch},
+which means that the package holds only architecture independent files
+(like source and documentation files).
 @end defvr
 
 
