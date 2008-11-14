@@ -101,7 +101,7 @@
        (<three>	(make-class (<two>) (:g :h :i))))
   (check
       (map class-definition-name (class-precedence-list <three>))
-    => '(:uninitialized :uninitialized :uninitialized <class>)))
+    => '(:uninitialized :uninitialized <class>)))
 
 ;;; ------------------------------------------------------------
 
@@ -149,7 +149,7 @@
 
   (check
       (map class-definition-name (class-precedence-list <three>))
-    => '(<three> <two> <one> <class>)))
+    => '(<two> <one> <class>)))
 
 ;;; ------------------------------------------------------------
 

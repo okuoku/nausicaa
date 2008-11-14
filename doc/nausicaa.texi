@@ -1607,6 +1607,7 @@ the @file{Makefile} will set it to @file{/tmp}.}
 @menu
 * bindist::                     Building plain binary packages.
 * slackware::                   Building Slackware packages.
+* redhat::                      Building RedHat packages.
 @end menu
 
 
@@ -2198,6 +2199,55 @@ $ sudo make local-slackware-upgrade
 
 See the @code{slack_INSTALLED_PACKAGE} variable for the name of the
 package that will be removed.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node redhat
+@section Building RedHat packages
+
+
+Remember that to obtain a list of the files in a package file (that is:
+an uninstalled package) we have to do:
+
+@example
+$ rpm --query --list --package nausicaa-scmobj-0.1d0-1nau.rpm
+@end example
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Makefile rules
+
+
+@deffn {Makefile Rule} redhat
+Build a package.  To be invoked as:
+
+@example
+$ make redhat
+@end example
+
+@quotation
+@emph{Note:} It seems that @command{rpmbuild} insists in putting the
+created package file under the @file{/usr/src/rpm/RPMS} directory; there
+is no way to persuade it to do otherwise.  So we may need superuser
+privileges to invoke the @code{redhat} rule.  Furthermore, if we have
+mounted the @file{/usr} file system with ready--only permissions (shame
+on us!!!) we will have to remount it read--write before invoking the
+rule.
+@end quotation
+@end deffn
+
+
+@deffn {Makefile Rule} redhat-clean
+Remove the @code{$(redhat_PACKAGE_TOP_BUILDDIR)} and all its contents.
+To be invoked as:
+
+@example
+$ make redhat-clean
+@end example
 @end deffn
 
 

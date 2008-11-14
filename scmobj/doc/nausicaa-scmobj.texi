@@ -441,6 +441,7 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package. 
 * class::                       Classes.
 * make::                        Making classes.
+* inspect::                     Inspecting classes and instances.
 * instance::                    Instances.
 * slot::                        Accessing slots.
 * classification::              ScmObj and Scheme.
@@ -516,9 +517,6 @@ class is called @class{class} rather than the original
 @chapter Classes
 
 
-There is no reason to hide that class values are in truth alists.
-
-
 @deftp {Class} <class>
 The base class of all the @value{PACKAGE} classes.
 @end deftp
@@ -531,6 +529,7 @@ built in object type.
 
 
 @menu
+* class chart::                 A chart for predefined classes
 * class list::                  List types.
 * class compound::              Non-list compound data types.
 * class numeric::               Numeric data types.
@@ -542,31 +541,74 @@ built in object type.
 @c ------------------------------------------------------------
 
 @c page
+@node class chart
+@section A chart for predefined classes
+
+
+@example
+<class>
+   |
+   |                             -> <output-port>
+   |                            |
+   |               --> <port> --+-> <input-port>
+   |              |
+   |              +--> <record> --> <condition>
+   v              |
+<entity-class> ---+-------+-------+-----------+
+   |              |       |       |           |
+   v              v       v       v           v
+<number>        <pair> <vector> <bytevector> <hashtable>
+   |              |                           
+   v              v
+<complex>       <list> ----------+------------
+   |              |              |            |
+   v              v              v            v
+<real-valued>   <proper-list> <dotted-list> <circular-list>
+   |
+   v
+<real> ------> <flonum>
+   |
+   v
+<rational-valued>      
+   |         |
+   v         v
+<rational> <integer-valued>
+   |         |
+   v         |
+<integer> <--
+   |
+   v
+<fixnum>
+@end example
+
+@c ------------------------------------------------------------
+
+@c page
 @node class list
 @section List types
 
 
-@deftp {Class} <pair> (<entity-class> <class>)
+@deftp {Class} <pair>
 Class for values that satisfy @func{pair?}.
 @end deftp
 
 
-@deftp {Class} <list> (<pair> <entity-class> <class>)
+@deftp {Class} <list>
 Class for values that satisfy @func{list?}.
 @end deftp
 
 
-@deftp {Class} <circular-list> (<list> <pair> <entity-class> <class>)
+@deftp {Class} <circular-list>
 Class for values that satisfy @func{circular-list?}.
 @end deftp
 
 
-@deftp {Class} <dotted-list> (<list> <pair> <entity-class> <class>)
+@deftp {Class} <dotted-list>
 Class for values that satisfy @func{dotted-list?}.
 @end deftp
 
 
-@deftp {Class} <proper-list> (<list> <pair> <entity-class> <class>)
+@deftp {Class} <proper-list>
 Class for values that satisfy @func{proper-list?}.
 @end deftp
 
@@ -578,22 +620,22 @@ Class for values that satisfy @func{proper-list?}.
 @section Non--list compound data types
 
 
-@deftp {Class} <vector> (<entity-class> <class>)
+@deftp {Class} <vector>
 Class for values that satisfy @func{vector?}.
 @end deftp
 
 
-@deftp {Class} <bytevector> (<entity-class> <class>)
+@deftp {Class} <bytevector>
 Class for values that satisfy @func{bytevector?}.
 @end deftp
 
 
-@deftp {Class} <hashtable> (<entity-class> <class>)
+@deftp {Class} <hashtable>
 Class for values that satisfy @func{hashtable?}.
 @end deftp
 
 
-@deftp {Class} <record> (<entity-class> <class>)
+@deftp {Class} <record>
 Class for values that satisfy @func{record?}.
 @end deftp
 
@@ -605,52 +647,52 @@ Class for values that satisfy @func{record?}.
 @section Numeric data types
 
 
-@deftp {Class} <number> (<entity-class> <class>)
+@deftp {Class} <number>
 Class for values that satisfy @func{number?}.
 @end deftp
 
 
-@deftp {Class} <complex> (<number> <entity-class> <class>)
+@deftp {Class} <complex>
 Class for values that satisfy @func{complex?}.
 @end deftp
 
 
-@deftp {Class} <real-valued> (<complex> <number> <entity-class> <class>)
+@deftp {Class} <real-valued>
 Class for values that satisfy @func{real-valued?}.
 @end deftp
 
 
-@deftp {Class} <real> (<real-valued> <complex> <number> <entity-class> <class>)
+@deftp {Class} <real>
 Class for values that satisfy @func{real?}.
 @end deftp
 
 
-@deftp {Class} <rational> (<real> <real-valued> <complex> <number> <entity-class> <class>)
+@deftp {Class} <rational>
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp {Class} <rational-valued> (<rational> <real> <real-valued> <complex> <number> <entity-class> <class>)
+@deftp {Class} <rational-valued>
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp {Class} <integer-valued> (<rational-valued> <rational> <real> <real-valued> <complex> <number> <entity-class> <class>)
+@deftp {Class} <integer-valued>
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp {Class} <integer> (<integer-valued> <rational-valued> <rational> <real> <real-valued> <complex> <number> <entity-class> <class>)
+@deftp {Class} <integer>
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp {Class} <fixnum> (<integer> <integer-valued> <rational> <rational-valued> <real> <real-valued> <complex> <number> <entity-class> <class>)
+@deftp {Class} <fixnum>
 Class for values that satisfy @func{fixnum?}.
 @end deftp
 
 
-@deftp {Class} <flonum> (<real> <real-valued> <complex> <number> <entity-class> <class>)
+@deftp {Class} <flonum>
 Class for values that satisfy @func{flonum?}.
 @end deftp
 
@@ -662,17 +704,17 @@ Class for values that satisfy @func{flonum?}.
 @section Port types
 
 
-@deftp {Class} <port> (<entity-class> <class>)
+@deftp {Class} <port>
 Class for values that satisfy @func{port?}.
 @end deftp
 
 
-@deftp {Class} <input-port> (<port> <entity-class> <class>)
+@deftp {Class} <input-port>
 Class for values that satisfy @func{input-port?}.
 @end deftp
 
 
-@deftp {Class} <output-port> (<port> <entity-class> <class>)
+@deftp {Class} <output-port>
 Class for values that satisfy @func{output-port?}.
 @end deftp
 
@@ -684,7 +726,7 @@ Class for values that satisfy @func{output-port?}.
 @section Miscellaneous types
 
 
-@deftp {Class} <condition> (<entity-class> <class>)
+@deftp {Class} <condition>
 Class for values that satisfy @func{condition?}.
 @end deftp
 
@@ -728,39 +770,6 @@ A wrapper for @func{make-class} that defines a new variable named
 @var{name} and assignes the new class to it.  The class definition name
 of the class is initialised to @var{name}.
 @end deffn
-
-
-@defun class-definition-name @var{class-object}
-Return the class definition name for @var{class-object}.  It is set only
-for classes instantiated with @func{define-class}, for classes
-instantiated with @func{make-class} the return value is
-@code{:uninitialized}.
-@end defun
-
-
-@defun class-precedence-list @var{class-object}
-Return a list of classes representing the class precendence list for
-@var{class-object} used to dispatch methods.  The first element of the
-list if @var{class-object} itself.
-@end defun
-
-
-@defun list-of-slots @var{class-object}
-Return a list of symbols representing the slot names of
-@var{class-object}.
-@end defun
-
-
-@defun subclass? @var{class-object-1} @var{class-object-2}
-Return true if @var{class-object-1} is a subclass of
-@var{class-object-2}; @false{} otherwise.
-@end defun
-
-
-@defun class-of @var{object}
-Return the class of @var{object}.  This function can be applied to both
-class object and instance objects.
-@end defun
 
 
 @c ------------------------------------------------------------
@@ -815,6 +824,70 @@ Defining classes using @func{define-class}:
 (define-class <three> (<two>)
   :g :h :i)
 @end example
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node inspect
+@chapter Inspecting classes and instances
+
+
+@defun class-definition-name @var{object}
+Return the class definition name for @var{object}.
+
+Note that the definition name is set only for classes instantiated with
+@func{define-class}, for classes instantiated with @func{make-class} the
+return value is @code{:uninitialized}.
+@end defun
+
+
+@defun class-precedence-list @var{object}
+Return a list of classes representing the class precendence list, used
+for method dispatching.
+
+Note that @var{class-object} itself is @strong{not} part of the class
+precedence list.
+@end defun
+
+
+@defun list-of-slots @var{object}
+Return a list of symbols representing the slot names of
+@var{class-object}.
+@end defun
+
+
+@defun list-of-instance-slots @var{object}
+Return a list of symbols representing the slot names, excluding the
+slots that are part of the @value{PACKAGE} infrastructure.
+
+This is the list of slots that was given to @func{make-class} or
+@func{define-class}.
+@end defun
+
+
+@defun subclass? @var{object-1} @var{object-2}
+Return true if @var{object-1} is a subclass of @var{object-2}; @false{}
+otherwise.
+
+The table of conditions follows:
+
+@multitable
+  (cond ((eq? c1 c2) #t)
+	((eq? c1 #t) #f)
+	((eq? c2 #t) #t)
+	((memq c2 (slot-ref c1 ':class-precedence-list)) #t)
+	(else #f)))
+
+@end multitable
+
+@end defun
+
+
+@defun class-of @var{object}
+Return the class of @var{object}.  This function can be applied to both
+class object and instance objects.
+@end defun
 
 
 @c ------------------------------------------------------------

@@ -1,0 +1,12 @@
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
+Release: @package_BUILD_VERSION@
+Summary: CLOS for Ikarus
+Group: Development/Languages
+License: LGPL
+
+%description
+Nausicaa/Tiny-CLOS is a repackaging of Tiny-CLOS, an object system
+developed at Xerox Parc by Gregor Kiczales.
+
+%files
