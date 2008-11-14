@@ -9,8 +9,9 @@ Topics
   1. Overview
   2. License
   3. Install
-  A. Bug reports
-  B. Resources
+  A. Credits
+  B. Bug reports
+  C. Resources
 
 
 1. Overview
@@ -28,6 +29,7 @@ The code depends on the (srfi lists) library.
 2. License
 ----------
 
+Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 Copyright (c) 1996 Dorai Sitaram.
 
 This is free software; you can redistribute it and/or modify
@@ -52,6 +54,7 @@ Boston, MA 02111-1307 USA.
 
 Basically you should do:
 
+   $ cd scmobj
    $ mkdir "=build"
    $ cd "=build"
    $ ../configure
@@ -73,7 +76,14 @@ described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives and Slackware packages.
 
 
-A. Bug reports
+A. Credits
+----------
+
+ScmObj was  originally written  by Dorai Sitaram.   The code
+has been ported to Ikarus, and swirled, by Marco Maggi.
+
+
+B. Bug reports
 --------------
 
 It  seems  that  the  original  author  has  abandoned  this
@@ -81,7 +91,7 @@ project,  so  bug  reports   should  be  sent  by  email  to
 <marcomaggi@gna.org>.
 
 
-B. Resources
+C. Resources
 ------------
 
 The original version of the code can be found here:

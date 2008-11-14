@@ -9,8 +9,9 @@ Topics
   1. Overview
   2. License
   3. Install
-  A. Bug reports
-  B. Resources
+  A. Credits
+  B. Bug reports
+  C. Resources
 
 
 1. Overview
@@ -49,7 +50,10 @@ IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 Basically you should do:
 
-   $ ./configure
+   $ cd tiny-clos
+   $ mkdir "=build"
+   $ cd "=build"
+   $ ../configure
    $ make
    $ make test
    $ make install
@@ -68,21 +72,28 @@ described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
 
 
-A. Bug reports
+A. Credits
+----------
+
+Tiny-CLOS was developed at Xerox Parc by Gregor Kiczales.
+
+  The code was adapter  to R6RS/Ikarus by by Christian Sloma
+and Abdulaziz Ghuloum.
+
+
+B. Bug reports
 --------------
 
 Bug   reports   are  welcome:   Send   them   by  email   to
 <marcomaggi@gna.org>.
 
 
-B. Resources
+C. Resources
 ------------
 
 The package embeds the code found at:
 
 	      <http://launchpad.net/r6rs-clos>
-
-which is modified by  Christian Sloma and Abdulaziz Ghuloum.
 
 
 ### end of file

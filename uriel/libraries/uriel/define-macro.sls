@@ -32,8 +32,8 @@
 ;; ------------------------------------------------------------
 
 (library (uriel define-macro)
-	 (export define-macro defmacro)
-	 (import (rnrs))
+    (export define-macro defmacro)
+  (import (rnrs))
 
 ;; ------------------------------------------------------------
 

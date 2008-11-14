@@ -73,6 +73,48 @@ infrastructure, use by almost all the projects in the distribution.
 code is compiled or used.  Access to foreign shared library is written
 with the Foreign Function Interface provided by Ikarus.
 
+* Menu:
+
+* overview conventions::        Conventions.
+
+
+File: nausicaa.info,  Node: overview conventions,  Up: overview
+
+1.1 Conventions
+===============
+
+This guide tries to stick to the following naming conventions:
+
+_file name_
+_directory name_
+     it is the last component of the file or directory identifier; the
+     name of the file in `/bin/bash' is `bash', while the name of the
+     directory in `/usr/local' is `local';
+
+_file pathname_
+_directory pathname_
+     it is a file or directory identifier that includes a name and a
+     directory part; `/bin/bash' is a file pathname and `/usr/local' is
+     a directory pathname;
+
+_file basename_
+_directory basename_
+     it is a file or directory name with the extension stripped
+     (including the dot); the basename of the file in `/etc/lilo.conf'
+     is `lilo', while the basename of the directory in `/etc/rc.d' is
+     `rc';
+
+_file rootname_
+_directory rootname_
+     it is a file or directory pathname with the extension stripped
+     (including the dot); the rootname of the file in `/etc/lilo.conf'
+     is `/etc/lilo', while the rootname of the directory in `/etc/rc.d'
+     is `/etc/rc';
+
+_path_
+     it is a list of directory pathnames to look into when searching
+     for a file or directory name.
+
 
 File: nausicaa.info,  Node: config,  Next: vars,  Prev: overview,  Up: Top
 
@@ -131,13 +173,24 @@ what follows is a list of common options.
 `--enable-sls'
 `--disable-sls'
      Enable or disable the installation of source files.  It defaults
-     to: yes, install the source files.
+     to: no, *do not* install the source files.
 
 `--enable-doc'
 `--disable-doc'
-     Enable or disable the compilation and installation of source
-     files.  It defaults to: yes, build and install the documentation
-     files.
+     Enable or disable the compilation and installation of documentation
+     files.  It defaults to: yes, build and install the documentation.
+
+`--enable-doc-info'
+`--disable-doc-info'
+     Enable or disable the compilation and installation of Info
+     documentation files.  It defaults to: yes, build and install the
+     Info documentation.
+
+`--enable-doc-html'
+`--disable-doc-html'
+     Enable or disable the compilation and installation of HTML
+     documentation files.  It defaults to: no, *do not* build and
+     install the HTML documentation.
 
 
 File: nausicaa.info,  Node: vars,  Next: rules,  Prev: config,  Up: Top
@@ -163,7 +216,7 @@ File: nausicaa.info,  Node: vars config,  Next: vars project,  Up: vars
 
  -- Variable: nausicaa_ENABLE_SLS
      Enable or disable the installation of source files; valid values
-     are `yes' and `no'.  The default is `yes'.
+     are `yes' and `no'.  The default is `no'.
 
      It is set by the `configure' options `--enable-sls' and
      `--disable-sls'.
@@ -181,6 +234,22 @@ File: nausicaa.info,  Node: vars config,  Next: vars project,  Up: vars
 
      It is set by the `configure' options `--enable-doc' and
      `--disable-doc'.
+
+ -- Variable: nausicaa_ENABLE_INFO_DOC
+     Enable or disable compilation and installation of Info
+     documentation files; valid values are `yes' and `no'.  The default
+     is `yes'.
+
+     It is set by the `configure' options `--enable-doc-info' and
+     `--disable-doc-info'.
+
+ -- Variable: nausicaa_ENABLE_HTML_DOC
+     Enable or disable compilation and installation of HTML
+     documentation files; valid values are `yes' and `no'.  The default
+     is `no'.
+
+     It is set by the `configure' options `--enable-doc-html' and
+     `--disable-doc-html'.
 
  -- Variable: nausicaa_COMPRESSOR
      Select the compressor to be used when creating a tarball; it is
@@ -411,6 +480,15 @@ File: nausicaa.info,  Node: vars misc,  Prev: vars directories,  Up: vars
      temporary fils.  It is used to build binary distribution packages.
      If not set or set to the empty string: it defaults to `/tmp'.
 
+ -- Variable: DESTDIR
+     A directory to be prepended to all the installation pathnames.  It
+     allows installation into a temporary location.  Example:
+
+          $ make install DESTDIR=/tmp/marco/nausicaa-scmobj
+
+     install all the directories and files under the directory
+     `/tmp/marco/nausicaa-scmobj'.
+
 
 File: nausicaa.info,  Node: rules,  Next: package,  Prev: vars,  Up: Top
 
@@ -424,6 +502,7 @@ File: nausicaa.info,  Node: rules,  Next: package,  Prev: vars,  Up: Top
 * rules sls::                   Handling source files.
 * rules fasl::                  Handling precompiled files.
 * rules texinfo::               Documentation in Texinfo format.
+* rules test::                  Testing libraries.
 * rules inspect::               Inspecting variables.
 
 
@@ -644,7 +723,7 @@ case.
      This rule is invoked by `uninstall'.
 
 
-File: nausicaa.info,  Node: rules texinfo,  Next: rules inspect,  Prev: rules fasl,  Up: rules
+File: nausicaa.info,  Node: rules texinfo,  Next: rules test,  Prev: rules fasl,  Up: rules
 
 4.5 Documentation in Texinfo format
 ===================================
@@ -658,12 +737,19 @@ Making and cleaning
 ...................
 
  -- Makefile Rule: doc-texinfo
-     Build the Texinfo documentation that the project was configured to
-     build.  To be invoked as:
+ -- Makefile Rule: doc-texinfo-info
+ -- Makefile Rule: doc-texinfo-html
+     `doc-texinfo' builds the Texinfo documentation that the project was
+     configured to build.  `doc-texinfo-info' and `doc-texinfo-html'
+     build Info and HTML documentation, according to the configuration.
+     To be invoked as:
 
           $ make doc-texinfo
+          $ make doc-texinfo-info
+          $ make doc-texinfo-html
 
-     This rule is invoked by `doc'.
+     `doc-texinfo' is invoked by `doc'.  `doc-texinfo-info' and
+     `doc-texinfo-html' are invoked by `doc-texinfo'.
 
  -- Makefile Rule: doc-texinfo-clean
      Remove all the files that were built by the `doc-texinfo' rule.  To
@@ -688,20 +774,32 @@ and uninstall files on the system; so we may want to use a tool like
 case.
 
  -- Makefile Rule: doc-texinfo-install
+ -- Makefile Rule: doc-texinfo-info-install
+ -- Makefile Rule: doc-texinfo-html-install
      Install all the Texinfo documentation that the project was
      configured to build.  To be invoked as:
 
           $ sudo make doc-texinfo-install
+          $ sudo make doc-texinfo-info-install
+          $ sudo make doc-texinfo-html-install
 
-     This rule is invoked by `doc-install'.
+     `doc-texinfo-install' is invoked by `doc-install'.
+     `doc-texinfo-info-install' and `doc-texinfo-html-install' are
+     invoked by `doc-texinfo-install'.
 
  -- Makefile Rule: doc-texinfo-uninstall
+ -- Makefile Rule: doc-texinfo-info-uninstall
+ -- Makefile Rule: doc-texinfo-html-uninstall
      Uninstall all the documentation that the project was configured to
      build.  To be invoked as:
 
           $ sudo make doc-texinfo-uninstall
+          $ sudo make doc-texinfo-info-uinstall
+          $ sudo make doc-texinfo-html-uinstall
 
-     This rule is invoked by `doc-uninstall'.
+     `doc-texinfo-uinstall' is invoked by `doc-uinstall'.
+     `doc-texinfo-info-uinstall' and `doc-texinfo-html-uinstall' are
+     invoked by `doc-texinfo-uinstall'.
 
 Variables
 .........
@@ -716,6 +814,8 @@ Variables
      The list of Texinfo source files.
 
  -- Variable: doc_texinfo_TARGETS
+ -- Variable: doc_texinfo_info_TARGETS
+ -- Variable: doc_texinfo_html_TARGETS
      The list of Texinfo target files.  These are the files that will be
      built by the `doc-texinfo' rule.
 
@@ -723,17 +823,56 @@ Variables
      The list of Texinfo files that will be remove by the
      `doc-texinfo-clean' rule.
 
- -- Variable: doc_texinfo_INSTLST
-     The list of files that will be installed on the system by the
+ -- Variable: doc_texinfo_info_INSTLST
+ -- Variable: doc_texinfo_html_INSTLST
+     The lists of files that will be installed on the system by the
      `doc-texinfo-install' rule.
 
- -- Variable: doc_texinfo_INSTDIR
-     The target directory for installation of Info files.
+ -- Variable: doc_texinfo_info_INSTDIR
+ -- Variable: doc_texinfo_html_INSTDIR
+     The target directories for installation of Info and HTML files.
 
 
-File: nausicaa.info,  Node: rules inspect,  Prev: rules texinfo,  Up: rules
+File: nausicaa.info,  Node: rules test,  Next: rules inspect,  Prev: rules texinfo,  Up: rules
 
-4.6 Inspecting variables
+4.6 Testing libraries
+=====================
+
+Test files are supposet to be top-level programs under the `tests'
+subdirectory of each project.
+
+   There should be one test file for each library, and its name must be
+`test-<library>.sls' where `<library>' is the library file basename.
+So the library with pathname `library/uriel/begin0.sls' must have a
+test file with pathname `tests/test-begin0.sls'.
+
+ -- Makefile Rule: test
+ -- Makefile Rule: tests
+ -- Makefile Rule: check
+     Run all the test files using `scheme-script' as Ikarus interface
+     and setting the Ikarus library path to:
+
+          IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
+
+     notice that this will pick up libraries source files but not the
+     associated FASL files.
+
+ -- Makefile Rule: test-file
+     Like `test' but runs a single test file.  To select a test file we
+     set the `FILE' variable on the command line of `make' to the
+     library file basename.
+
+     Example: to run the test with pathname `tests/test-begin0.sls' we
+     do:
+
+          $ make test-file FILE=begin0
+
+     If no test file matches the selection: nothing happens.
+
+
+File: nausicaa.info,  Node: rules inspect,  Prev: rules test,  Up: rules
+
+4.7 Inspecting variables
 ========================
 
 The value of `Makefile' variables can be inspected from the command
@@ -1610,6 +1749,7 @@ Appendix D An entry for each function.
 * bindist-clean-builddir:                bindist.             (line  95)
 * bindist-clean-top-builddir:            bindist.             (line  89)
 * bindist-top-builddir:                  bindist.             (line  77)
+* check:                                 rules test.          (line  17)
 * clean:                                 rules main.          (line  22)
 * clean-builddir:                        rules main.          (line  34)
 * compile:                               rules fasl.          (line  28)
@@ -1618,10 +1758,16 @@ Appendix D An entry for each function.
 * doc-clean:                             rules doc.           (line  21)
 * doc-install:                           rules doc.           (line  37)
 * doc-texinfo:                           rules texinfo.       (line  15)
-* doc-texinfo-builddir:                  rules texinfo.       (line  31)
-* doc-texinfo-clean:                     rules texinfo.       (line  23)
-* doc-texinfo-install:                   rules texinfo.       (line  45)
-* doc-texinfo-uninstall:                 rules texinfo.       (line  53)
+* doc-texinfo-builddir:                  rules texinfo.       (line  38)
+* doc-texinfo-clean:                     rules texinfo.       (line  30)
+* doc-texinfo-html:                      rules texinfo.       (line  17)
+* doc-texinfo-html-install:              rules texinfo.       (line  54)
+* doc-texinfo-html-uninstall:            rules texinfo.       (line  68)
+* doc-texinfo-info:                      rules texinfo.       (line  16)
+* doc-texinfo-info-install:              rules texinfo.       (line  53)
+* doc-texinfo-info-uninstall:            rules texinfo.       (line  67)
+* doc-texinfo-install:                   rules texinfo.       (line  52)
+* doc-texinfo-uninstall:                 rules texinfo.       (line  66)
 * doc-uninstall:                         rules doc.           (line  45)
 * echo-variable:                         rules inspect.       (line  10)
 * fasl:                                  rules fasl.          (line  27)
@@ -1647,6 +1793,9 @@ Appendix D An entry for each function.
 * slackware-upgrade:                     slackware standard.  (line  61)
 * sls-install:                           rules sls.           (line  19)
 * sls-uninstall:                         rules sls.           (line  28)
+* test:                                  rules test.          (line  15)
+* test-file:                             rules test.          (line  26)
+* tests:                                 rules test.          (line  16)
 * uninstall:                             rules main.          (line  54)
 
 
@@ -1659,93 +1808,100 @@ Appendix E An entry for each variable.
 * Menu:
 
 * bindir:                                vars directories common.
-                                                               (line 16)
-* bindist_BUILDDIR:                      bindist.              (line 46)
-* bindist_PACKAGE_NAME:                  bindist.              (line 29)
-* bindist_PACKAGE_TOP_BUILDDIR:          bindist.              (line 38)
-* bindist_TARBALL_PATHNAME:              bindist.              (line 54)
-* builddir:                              vars directories.     (line 16)
+                                                              (line  16)
+* bindist_BUILDDIR:                      bindist.             (line  46)
+* bindist_PACKAGE_NAME:                  bindist.             (line  29)
+* bindist_PACKAGE_TOP_BUILDDIR:          bindist.             (line  38)
+* bindist_TARBALL_PATHNAME:              bindist.             (line  54)
+* builddir:                              vars directories.    (line  16)
 * datadir:                               vars directories common.
-                                                               (line 23)
+                                                              (line  23)
 * datarootdir:                           vars directories common.
-                                                               (line 19)
-* doc_texinfo_BUILDDIR:                  rules texinfo.        (line 67)
-* doc_texinfo_CLEANFILES:                rules texinfo.        (line 77)
-* doc_texinfo_INSTDIR:                   rules texinfo.        (line 85)
-* doc_texinfo_INSTLST:                   rules texinfo.        (line 81)
-* doc_texinfo_SOURCES:                   rules texinfo.        (line 70)
-* doc_texinfo_SRCDIR:                    rules texinfo.        (line 64)
-* doc_texinfo_TARGETS:                   rules texinfo.        (line 73)
+                                                              (line  19)
+* DESTDIR:                               vars misc.           (line  12)
+* doc_texinfo_BUILDDIR:                  rules texinfo.       (line  86)
+* doc_texinfo_CLEANFILES:                rules texinfo.       (line  98)
+* doc_texinfo_html_INSTDIR:              rules texinfo.       (line 108)
+* doc_texinfo_html_INSTLST:              rules texinfo.       (line 103)
+* doc_texinfo_html_TARGETS:              rules texinfo.       (line  94)
+* doc_texinfo_info_INSTDIR:              rules texinfo.       (line 107)
+* doc_texinfo_info_INSTLST:              rules texinfo.       (line 102)
+* doc_texinfo_info_TARGETS:              rules texinfo.       (line  93)
+* doc_texinfo_SOURCES:                   rules texinfo.       (line  89)
+* doc_texinfo_SRCDIR:                    rules texinfo.       (line  83)
+* doc_texinfo_TARGETS:                   rules texinfo.       (line  92)
 * docdir:                                vars directories common.
-                                                               (line 27)
+                                                              (line  27)
 * exec_prefix:                           vars directories common.
-                                                               (line 13)
+                                                              (line  13)
 * ikarus_PKGLIBDIR:                      vars directories custom.
-                                                               (line 44)
+                                                              (line  44)
 * includedir:                            vars directories common.
-                                                               (line 31)
+                                                              (line  31)
 * infodir:                               vars directories common.
-                                                               (line 34)
+                                                              (line  34)
 * libdir:                                vars directories common.
-                                                               (line 37)
+                                                              (line  37)
 * libexecdir:                            vars directories common.
-                                                               (line 40)
+                                                              (line  40)
 * localstatedir:                         vars directories common.
-                                                               (line 43)
+                                                              (line  43)
 * mandir:                                vars directories common.
-                                                               (line 48)
-* nausicaa_COMPRESSOR:                   vars config.          (line 28)
-* nausicaa_ENABLE_DOC:                   vars config.          (line 21)
-* nausicaa_ENABLE_FASL:                  vars config.          (line 14)
-* nausicaa_ENABLE_SLS:                   vars config.          (line  7)
-* package_ARCH:                          vars package.         (line 13)
-* package_BUILD_VERSION:                 vars package.         (line  7)
-* package_NAME:                          vars package.         (line 23)
-* PACKAGE_NAME:                          vars project.         (line  7)
-* package_PREFIX:                        vars package.         (line 28)
-* package_VERSION:                       vars package.         (line 24)
-* PACKAGE_VERSION:                       vars project.         (line 13)
+                                                              (line  48)
+* nausicaa_COMPRESSOR:                   vars config.         (line  44)
+* nausicaa_ENABLE_DOC:                   vars config.         (line  21)
+* nausicaa_ENABLE_FASL:                  vars config.         (line  14)
+* nausicaa_ENABLE_HTML_DOC:              vars config.         (line  36)
+* nausicaa_ENABLE_INFO_DOC:              vars config.         (line  28)
+* nausicaa_ENABLE_SLS:                   vars config.         (line   7)
+* package_ARCH:                          vars package.        (line  13)
+* package_BUILD_VERSION:                 vars package.        (line   7)
+* package_NAME:                          vars package.        (line  23)
+* PACKAGE_NAME:                          vars project.        (line   7)
+* package_PREFIX:                        vars package.        (line  28)
+* package_VERSION:                       vars package.        (line  24)
+* PACKAGE_VERSION:                       vars project.        (line  13)
 * PKG_DIR:                               vars directories custom.
-                                                               (line 11)
-* PKG_ID:                                vars project.         (line 19)
+                                                              (line  11)
+* PKG_ID:                                vars project.        (line  19)
 * pkgdatadir:                            vars directories custom.
-                                                               (line 17)
+                                                              (line  17)
 * pkgdocdir:                             vars directories custom.
-                                                               (line 20)
+                                                              (line  20)
 * pkgexampledir:                         vars directories custom.
-                                                               (line 23)
+                                                              (line  23)
 * pkghtmldir:                            vars directories custom.
-                                                               (line 29)
+                                                              (line  29)
 * pkgincludedir:                         vars directories custom.
-                                                               (line 32)
+                                                              (line  32)
 * pkginfodir:                            vars directories custom.
-                                                               (line 26)
+                                                              (line  26)
 * pkglibdir:                             vars directories custom.
-                                                               (line 35)
+                                                              (line  35)
 * pkglibexecdir:                         vars directories custom.
-                                                               (line 38)
+                                                              (line  38)
 * pkgsysconfdir:                         vars directories custom.
-                                                               (line 41)
+                                                              (line  41)
 * prefix:                                vars directories common.
-                                                               (line 10)
+                                                              (line  10)
 * sbindir:                               vars directories common.
-                                                               (line 51)
+                                                              (line  51)
 * sharedstatedir:                        vars directories common.
-                                                               (line 55)
-* slack_BUILDDIR:                        slackware common.     (line 51)
-* slack_INSTALLED_PACKAGE:               slackware common.     (line 75)
-* slack_PACKAGE_BUILDDIR:                slackware common.     (line 38)
-* slack_PACKAGE_NAME:                    slackware common.     (line 13)
-* slack_PACKAGE_PREFIX:                  slackware common.     (line 22)
-* slack_PACKAGE_TOP_BUILDDIR:            slackware common.     (line 30)
-* slack_REGISTRY:                        slackware common.     (line 59)
-* slack_REGISTRY_DIR:                    slackware common.     (line 60)
-* slackware_LOCAL_ENV:                   slackware local.      (line 15)
-* slackware_STANDARD_ENV:                slackware standard.   (line 14)
-* srcdir:                                vars directories.     (line  7)
+                                                              (line  55)
+* slack_BUILDDIR:                        slackware common.    (line  51)
+* slack_INSTALLED_PACKAGE:               slackware common.    (line  75)
+* slack_PACKAGE_BUILDDIR:                slackware common.    (line  38)
+* slack_PACKAGE_NAME:                    slackware common.    (line  13)
+* slack_PACKAGE_PREFIX:                  slackware common.    (line  22)
+* slack_PACKAGE_TOP_BUILDDIR:            slackware common.    (line  30)
+* slack_REGISTRY:                        slackware common.    (line  59)
+* slack_REGISTRY_DIR:                    slackware common.    (line  60)
+* slackware_LOCAL_ENV:                   slackware local.     (line  15)
+* slackware_STANDARD_ENV:                slackware standard.  (line  14)
+* srcdir:                                vars directories.    (line   7)
 * sysconfdir:                            vars directories common.
-                                                               (line 59)
-* TMPDIR:                                vars misc.            (line  7)
+                                                              (line  59)
+* TMPDIR:                                vars misc.           (line   7)
 
 
 File: nausicaa.info,  Node: type index,  Prev: variable index,  Up: Top
@@ -1760,34 +1916,36 @@ Appendix F An entry for each type.
 Tag Table:
 Node: Top915
 Node: overview2285
-Node: config2821
-Node: config options3558
-Node: vars4655
-Node: vars config5121
-Node: vars project6381
-Node: vars package7098
-Node: vars directories8434
-Node: vars directories common9406
-Node: vars directories custom11262
-Node: vars misc12722
-Node: rules13086
-Node: rules main13528
-Node: rules doc14988
-Node: rules sls16358
-Node: rules fasl17358
-Node: rules texinfo19390
-Node: rules inspect21984
-Node: package22550
-Node: bindist23537
-Node: slackware26893
-Node: slackware common27785
-Node: slackware standard31573
-Node: slackware local33795
-Node: Documentation License36159
-Node: references56064
-Node: concept index56247
-Node: function index56514
-Node: variable index60074
-Node: type index66515
+Node: overview conventions2876
+Node: config4094
+Node: config options4831
+Node: vars6342
+Node: vars config6808
+Node: vars project8628
+Node: vars package9345
+Node: vars directories10681
+Node: vars directories common11653
+Node: vars directories custom13509
+Node: vars misc14969
+Node: rules15650
+Node: rules main16143
+Node: rules doc17603
+Node: rules sls18973
+Node: rules fasl19973
+Node: rules texinfo22005
+Node: rules test25739
+Node: rules inspect26974
+Node: package27537
+Node: bindist28524
+Node: slackware31880
+Node: slackware common32772
+Node: slackware standard36560
+Node: slackware local38782
+Node: Documentation License41146
+Node: references61051
+Node: concept index61234
+Node: function index61501
+Node: variable index65791
+Node: type index72743
 
 End Tag Table

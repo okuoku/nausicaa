@@ -465,6 +465,53 @@ is compiled or used.  Access to foreign shared library is written with
 the Foreign Function Interface provided by Ikarus.
 
 
+@menu
+* overview conventions::        Conventions.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node overview conventions
+@section Conventions
+
+
+This guide tries to stick to the following naming conventions:
+
+@table @emph
+@item file name
+@itemx directory name
+it is the last component of the file or directory identifier; the name
+of the file in @file{/bin/bash} is @code{bash}, while the name of the
+directory in @file{/usr/local} is @code{local};
+
+@item file pathname
+@itemx directory pathname
+it is a file or directory identifier that includes a name and a
+directory part; @file{/bin/bash} is a file pathname and
+@file{/usr/local} is a directory pathname;
+
+@item file basename
+@itemx directory basename
+it is a file or directory name with the extension stripped (including
+the dot); the basename of the file in @file{/etc/lilo.conf} is
+@code{lilo}, while the basename of the directory in @file{/etc/rc.d} is
+@code{rc};
+
+@item file rootname
+@itemx directory rootname
+it is a file or directory pathname with the extension stripped
+(including the dot); the rootname of the file in @file{/etc/lilo.conf}
+is @code{/etc/lilo}, while the rootname of the directory in
+@file{/etc/rc.d} is @code{/etc/rc};
+
+@item path
+it is a list of directory pathnames to look into when searching for a
+file or directory name.
+@end table
+
+
 @c ------------------------------------------------------------
 
 @c page
@@ -534,8 +581,8 @@ At present (Thu Nov 13, 2008) only libraries can be compiled by Ikarus.
 
 @item --enable-sls
 @itemx --disable-sls
-Enable or disable the installation of source files.  It defaults to:
-yes, install the source files.
+Enable or disable the installation of source files.  It defaults to: no,
+@strong{do not} install the source files.
 
 @item --enable-doc
 @itemx --disable-doc
@@ -584,7 +631,7 @@ infrastructure.
 
 @defvar nausicaa_ENABLE_SLS
 Enable or disable the installation of source files; valid values are
-@code{yes} and @code{no}.  The default is @code{yes}.
+@code{yes} and @code{no}.  The default is @code{no}.
 
 It is set by the @command{configure} options @option{--enable-sls} and
 @option{--disable-sls}.
@@ -973,6 +1020,7 @@ install all the directories and files under the directory
 * rules sls::                   Handling source files.
 * rules fasl::                  Handling precompiled files.
 * rules texinfo::               Documentation in Texinfo format.
+* rules test::                  Testing libraries.
 * rules inspect::               Inspecting variables.
 @end menu
 
@@ -1309,14 +1357,21 @@ with configuration options and variables; see the relevant sections.
 
 
 @deffn {Makefile Rule} doc-texinfo
-Build the Texinfo documentation that the project was configured to
-build.  To be invoked as:
+@deffnx {Makefile Rule} doc-texinfo-info
+@deffnx {Makefile Rule} doc-texinfo-html
+@code{doc-texinfo} builds the Texinfo documentation that the project was
+configured to build.  @code{doc-texinfo-info} and
+@code{doc-texinfo-html} build Info and @acronym{HTML} documentation,
+according to the configuration.  To be invoked as:
 
 @example
 $ make doc-texinfo
+$ make doc-texinfo-info
+$ make doc-texinfo-html
 @end example
 
-This rule is invoked by @code{doc}.
+@code{doc-texinfo} is invoked by @code{doc}.  @code{doc-texinfo-info}
+and @code{doc-texinfo-html} are invoked by @code{doc-texinfo}.
 @end deffn
 
 
@@ -1354,26 +1409,38 @@ that this is the case.
 
 
 @deffn {Makefile Rule} doc-texinfo-install
+@deffnx {Makefile Rule} doc-texinfo-info-install
+@deffnx {Makefile Rule} doc-texinfo-html-install
 Install all the Texinfo documentation that the project was configured to
 build.  To be invoked as:
 
 @example
 $ sudo make doc-texinfo-install
+$ sudo make doc-texinfo-info-install
+$ sudo make doc-texinfo-html-install
 @end example
 
-This rule is invoked by @code{doc-install}.
+@code{doc-texinfo-install} is invoked by @code{doc-install}.
+@code{doc-texinfo-info-install} and @code{doc-texinfo-html-install} are
+invoked by @code{doc-texinfo-install}.
 @end deffn
 
 
 @deffn {Makefile Rule} doc-texinfo-uninstall
+@deffnx {Makefile Rule} doc-texinfo-info-uninstall
+@deffnx {Makefile Rule} doc-texinfo-html-uninstall
 Uninstall all the documentation that the project was configured to
 build.  To be invoked as:
 
 @example
 $ sudo make doc-texinfo-uninstall
+$ sudo make doc-texinfo-info-uinstall
+$ sudo make doc-texinfo-html-uinstall
 @end example
 
-This rule is invoked by @code{doc-uninstall}.
+@code{doc-texinfo-uinstall} is invoked by @code{doc-uinstall}.
+@code{doc-texinfo-info-uinstall} and @code{doc-texinfo-html-uinstall}
+are invoked by @code{doc-texinfo-uinstall}.
 @end deffn
 
 
@@ -1398,6 +1465,8 @@ The list of Texinfo source files.
 
 
 @defvar doc_texinfo_TARGETS
+@defvarx doc_texinfo_info_TARGETS
+@defvarx doc_texinfo_html_TARGETS
 The list of Texinfo target files.  These are the files that will be
 built by the @code{doc-texinfo} rule.
 @end defvar
@@ -1409,15 +1478,67 @@ The list of Texinfo files that will be remove by the
 @end defvar
 
 
-@defvar doc_texinfo_INSTLST
-The list of files that will be installed on the system by the
+@defvar doc_texinfo_info_INSTLST
+@defvarx doc_texinfo_html_INSTLST
+The lists of files that will be installed on the system by the
 @code{doc-texinfo-install} rule.
 @end defvar
 
 
-@defvar doc_texinfo_INSTDIR
-The target directory for installation of Info files.
+@defvar doc_texinfo_info_INSTDIR
+@defvarx doc_texinfo_html_INSTDIR
+The target directories for installation of Info and @acronym{HTML}
+files.
 @end defvar
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node rules test
+@section Testing libraries
+
+
+@noindent
+Test files are supposet to be top--level programs under the @file{tests}
+subdirectory of each project.
+
+There should be one test file for each library, and its name must be
+@code{test-<library>.sls} where @code{<library>} is the library file
+basename.  So the library with pathname @file{library/uriel/begin0.sls}
+must have a test file with pathname @file{tests/test-begin0.sls}.
+
+
+@deffn {Makefile Rule} test
+@deffnx {Makefile Rule} tests
+@deffnx {Makefile Rule} check
+Run all the test files using @command{scheme-script} as Ikarus interface
+and setting the Ikarus library path to:
+
+@example
+IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
+@end example
+
+@noindent
+notice that this will pick up libraries source files but not the
+associated @fasl{} files.
+@end deffn
+
+
+@deffn {Makefile Rule} test-file
+Like @code{test} but runs a single test file.  To select a test file we
+set the @code{FILE} variable on the command line of @command{make} to
+the library file basename.
+
+Example: to run the test with pathname @file{tests/test-begin0.sls} we
+do:
+
+@example
+$ make test-file FILE=begin0
+@end example
+
+If no test file matches the selection: nothing happens.
+@end deffn
 
 
 @c ------------------------------------------------------------
