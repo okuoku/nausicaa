@@ -329,6 +329,10 @@ bindist_TARBALL_PATHNAME	= $(bindist_BUILDDIR)/$(bindist_PACKAGE_NAME)
 # The flags to hand to "tar" when building the tarball.
 bindist_TAR_FLAGS		= --create $(bindist_TAR_COMPRESS_FLAG) --verbose
 
+# By executing this command we get a list of the files in
+# the bindist tarball.
+bindist_LIST	= $(TAR) --list $(bindist_TAR_COMPRESS_FLAG) --file=$(bindist_TARBALL_PATHNAME)
+
 ## ------------------------------------------------------------
 
 .PHONY: bindist bindist-clean bindist-builddir bindist-top-builddir
@@ -411,19 +415,19 @@ slack_INSTALLED_PACKAGE	= \
 # tools.
 slack_ENV		?=
 
-slack_MAKEPKG_PROGRAM	= /sbin/makepkg
+slack_MAKEPKG_PROGRAM	= @slack_MAKEPKG_PROGRAM@
 slack_MAKEPKG_FLAGS	?= --chown y
 slack_MAKEPKG		= $(slack_ENV) $(slack_MAKEPKG_PROGRAM) $(slack_MAKEPKG_FLAGS)
 
-slack_INSTALLPKG_PROGRAM= /sbin/installpkg
+slack_INSTALLPKG_PROGRAM= @slack_INSTALLPKG_PROGRAM@
 slack_INSTALLPKG_FLAGS	?=
 slack_INSTALLPKG	= $(slack_ENV) $(slack_INSTALLPKG_PROGRAM) $(slack_INSTALLPKG_FLAGS)
 
-slack_REMOVEPKG_PROGRAM	= /sbin/removepkg
+slack_REMOVEPKG_PROGRAM	= @slack_REMOVEPKG_PROGRAM@
 slack_REMOVEPKG_FLAGS	?=
 slack_REMOVEPKG		= $(slack_ENV) $(slack_REMOVEPKG_PROGRAM) $(slack_REMOVEPKG_FLAGS)
 
-slack_UPGRADEPKG_PROGRAM= /sbin/upgradepkg
+slack_UPGRADEPKG_PROGRAM= @slack_UPGRADEPKG_PROGRAM@
 slack_UPGRADEPKG_FLAGS	?= --verbose --reinstall
 slack_UPGRADEPKG	= $(slack_ENV) $(slack_UPGRADEPKG_PROGRAM) $(slack_UPGRADEPKG_FLAGS)
 
@@ -567,6 +571,68 @@ abi:
 abu:
 	$(MAKE) all
 	$(SUDO) $(MAKE) local-slackware local-slackware-upgrade
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## RedHat packaging: common variables.
+## ------------------------------------------------------------
+
+# This is the file name  of the RedHat package.  Notice that
+# there is no directory part.
+redhat_PACKAGE_NAME	= $(package_PREFIX).rpm
+
+# This  is the  package prefix,  it  is used  to remove  the
+# package.
+redhat_PACKAGE_PREFIX	= $(package_PREFIX)
+
+# This is  the root directory for  temporary installation of
+# files.
+redhat_PACKAGE_TOP_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
+
+# This is the root directory for building packages.
+redhat_PACKAGE_BUILDDIR	?= $(redhat_PACKAGE_TOP_BUILDDIR)/BUILD
+
+# This is where the produced package will be finally stored.
+redhat_BUILDDIR		= $(PWD)/$(builddir)/redhat.d
+
+# Try  to  read from  the  system  the  name of  an  already
+# installed package.  It is used to upgrade.
+redhat_INSTALLED_PACKAGE	=
+
+## ------------------------------------------------------------
+
+# This is the environment for the RedHat package handling
+# tools.
+redhat_ENV		?=
+
+redhat_CORE_PROGRAM	= @redhat_CORE_PROGRAM@
+redhat_BUILD_PROGRAM	= @redhat_BUILD_PROGRAM@
+
+redhat_BUILD		= $(redhat_BUILD_PROGRAM) -v -bb
+
+redhat_SPEC_FILE	= $(PKG_ID).spec
+redhat_GENERIC_SPEC	= meta.d/redhat/spec-file
+redhat_SPECIFIC_SPEC	= meta.d/redhat/$(redhat_SPEC_FILE)
+
+## ------------------------------------------------------------
+
+.PHONY: redhat
+
+redhat: bindist redhat-clean
+	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)
+	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)/BUILD/$(package_ARCH)
+	$(INSTALL_DIR) $(redhat_PACKAGE_TOP_BUILDDIR)/SPECS
+	$(CP) $(redhat_GENERIC_SPEC) $(redhat_SPECIFIC_SPEC)
+	$(bindist_LIST) | $(SED) -e 's/^\.//' -e 's%^/$$%%' >> $(redhat_SPECIFIC_SPEC)
+	$(INSTALL_DATA) $(redhat_SPECIFIC_SPEC) $(redhat_PACKAGE_TOP_BUILDDIR)/SPECS
+	$(MAKE) install DESTDIR=$(redhat_PACKAGE_BUILDDIR)
+	cd $(redhat_PACKAGE_TOP_BUILDDIR); $(redhat_BUILD) SPECS/$(redhat_SPEC_FILE)
+
+redhat-clean:
+	-$(RM) $(redhat_PACKAGE_BUILDDIR)
+
 
 ## ------------------------------------------------------------
 
