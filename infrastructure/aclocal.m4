@@ -44,14 +44,14 @@ AC_PREREQ(2.60)
 AC_CONFIG_AUX_DIR([../infrastructure])
 
 # Notice that this one defines '_GNU_SOURCE' and others.
-AC_USE_SYSTEM_EXTENSIONS
+# AC_USE_SYSTEM_EXTENSIONS
 
-AC_SYS_INTERPRETER
-AC_SYS_LARGEFILE
-AC_SYS_LONG_FILE_NAMES
-AC_CANONICAL_BUILD
-AC_CANONICAL_HOST
-AC_CANONICAL_TARGET
+# AC_SYS_INTERPRETER
+# AC_SYS_LARGEFILE
+# AC_SYS_LONG_FILE_NAMES
+# AC_CANONICAL_BUILD
+# AC_CANONICAL_HOST
+# AC_CANONICAL_TARGET
 
 ## ------------------------------------------------------------
 
@@ -81,13 +81,13 @@ AC_MSG_CHECKING([whether source files will be installed])
 
 AC_ARG_ENABLE([sls],
     AC_HELP_STRING([--enable-sls],
-        [enable installation of source files (default: disabled)]),[
+        [enable installation of source files (default: enabled)]),[
 if test "$enableval" = yes ; then
   nausicaa_ENABLE_SLS=yes
 else
   nausicaa_ENABLE_SLS=no
 fi
-],[nausicaa_ENABLE_SLS=no])
+],[nausicaa_ENABLE_SLS=yes])
 
 AC_MSG_RESULT([$nausicaa_ENABLE_SLS])
 AC_SUBST([nausicaa_ENABLE_SLS])

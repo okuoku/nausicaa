@@ -76,10 +76,6 @@ then, usually, you should do:
 
   Notice that:
 
-* by  default library  files  are precompiled  and only  the
-  resulting  FASL  files are  installed  on  the system;  to
-  change this use the '--enable-sls' configuration option;
-
 * by default only documentation  in Info format is built and
   installed,  documentation  in HTML  format  is pruned;  to
   change  this  use  the  '--enable-doc-html'  configuration
