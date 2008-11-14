@@ -236,11 +236,52 @@ AC_ARG_VAR([TAR],[the GNU tar program])
 
 ## ------------------------------------------------------------
 
+#page
+## ------------------------------------------------------------
+## Ikarus programs.
+## ------------------------------------------------------------
+
 AC_PATH_PROG([IKARUS],[ikarus],[:])
 AC_ARG_VAR([IKARUS],[the Ikarus Scheme executable])
 
 AC_PATH_PROG([SCHEME_SCRIPT],[scheme-script],[:])
 AC_ARG_VAR([SCHEME_SCRIPT],[the scheme-script executable])
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Packaging tools.
+## ------------------------------------------------------------
+
+## Find Slackware package management tools.
+
+nausicaa_PATH=${PATH}
+PATH=/sbin:${PATH}
+
+AC_PATH_PROG([slack_MAKEPKG_PROGRAM],[makepkg],[:])
+AC_ARG_VAR([slack_MAKEPKG_PROGRAM],[the Slackware package maker])
+
+AC_PATH_PROG([slack_INSTALLPKG_PROGRAM],[installpkg],[:])
+AC_ARG_VAR([slack_INSTALLPKG_PROGRAM],[the Slackware package installer])
+
+AC_PATH_PROG([slack_REMOVEPKG_PROGRAM],[removepkg],[:])
+AC_ARG_VAR([slack_REMOVEPKG_PROGRAM],[the Slackware package remover])
+
+AC_PATH_PROG([slack_UPGRADEPKG_PROGRAM],[upgradepkg],[:])
+AC_ARG_VAR([slack_UPGRADEPKG_PROGRAM],[the Slackware package upgrader])
+
+PATH=${nausicaa_PATH}
+
+## ------------------------------------------------------------
+## Find RedHat package management tools.
+
+AC_PATH_PROG([redhat_BUILD_PROGRAM],[rpmbuild],[:])
+AC_ARG_VAR([redhat_BUILD_PROGRAM],[the RedHat package maker])
+
+AC_PATH_PROG([redhat_CORE_PROGRAM],[rpm],[:])
+AC_ARG_VAR([redhat_CORE_PROGRAM],[the RedHat package manager])
+
 
 ## ------------------------------------------------------------
 
@@ -261,6 +302,8 @@ AC_ARG_VAR([SCHEME_SCRIPT],[the scheme-script executable])
 AC_DEFUN([NAUSICAA_END],[
 
 AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
+AC_CONFIG_FILES([meta.d/redhat/spec-file:meta/redhat/spec-file.in])
+
 AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
 AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
 AC_CONFIG_FILES([Makefile])
