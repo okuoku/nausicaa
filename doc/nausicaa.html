@@ -213,8 +213,8 @@ defaults to: yes, build and install the compiled files.
 
      <p>At present (Thu Nov 13, 2008) only libraries can be compiled by Ikarus.
 
-     <br><dt><code>--enable-sls</code><dt><code>--disable-sls</code><dd>Enable or disable the installation of source files.  It defaults to: no,
-<strong>do not</strong> install the source files.
+     <br><dt><code>--enable-sls</code><dt><code>--disable-sls</code><dd>Enable or disable the installation of source files.  It defaults to:
+yes, install the source files.
 
      <br><dt><code>--enable-doc</code><dt><code>--disable-doc</code><dd>Enable or disable the compilation and installation of documentation
 files.  It defaults to: yes, build and install the documentation.
@@ -266,7 +266,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#vars">vars</a>
 <div class="defun">
 &mdash; Variable: <b>nausicaa_ENABLE_SLS</b><var><a name="index-nausicaa_005fENABLE_005fSLS-1"></a></var><br>
 <blockquote><p>Enable or disable the installation of source files; valid values are
-<code>yes</code> and <code>no</code>.  The default is <code>no</code>.
+<code>yes</code> and <code>no</code>.  The default is <code>yes</code>.
 
         <p>It is set by the <samp><span class="command">configure</span></samp> options <samp><span class="option">--enable-sls</span></samp> and
 <samp><span class="option">--disable-sls</span></samp>. 
@@ -394,8 +394,13 @@ packages.  It should be used to identify the architecture for which a
 package file was built.
 
         <p>It must be set to a meaningful value, like <code>i486</code> or <code>i686</code>. 
-It defaults to <code>noarch</code>, which means that the package holds only
-architecture independent files (like source and documentation files). 
+The default value is computed with the following <acronym>GNU</acronym> Make expression:
+
+     <pre class="example">          $(firstword $(subst -, ,$(shell ../../infrastructure/config.guess)))
+     </pre>
+        <p class="noindent">if it expands to the empty strings, it falls back to <code>noarch</code>,
+which means that the package holds only architecture independent files
+(like source and documentation files). 
 </p></blockquote></div>
 
 <div class="defun">
