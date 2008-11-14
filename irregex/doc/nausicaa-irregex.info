@@ -1,0 +1,555 @@
+This is doc-texinfo.d/nausicaa-irregex.info, produced by makeinfo
+version 4.8 from ../doc/nausicaa-irregex.texi.
+
+This document describes version 0.1d0 of Nausicaa/IrRegex, a
+repackaging of IrRegex by Alex Shinn designed to fit into the Nausicaa
+infrastructure.  It embeds IrRegex version 0.7.1.
+
+   IrRegex is a fully portable and efficient R[456]RS implementation of
+regular expressions, supporting both POSIX syntax with various
+(irregular) PCRE extensions, as well as SCSH's SRE syntax, with various
+aliases for commonly used patterns.  DFA matching is used when
+possible, otherwise a closure-compiled NFA approach is used.
+
+   The package is distributed under a BSD style license and can be
+downloaded from:
+
+                        `http://synthcode.com/'
+
+Copyright (C) 2005-2008 by Alex Shinn.  See the "Package License"
+appendix for copying conditions.
+
+   This document is derived from the original IrRegex documentation,
+which was reformatted in Texinfo and adapted to the Nausicaa
+repackaging by Marco Maggi <marcomaggi@gna.org>.
+
+INFO-DIR-SECTION Development
+START-INFO-DIR-ENTRY
+* nausicaa-irregex: (nausicaa-irregex). Regular expressions
+                                        for Ikarus Scheme.
+END-INFO-DIR-ENTRY
+
+
+File: nausicaa-irregex.info,  Node: Top,  Next: overview,  Up: (dir)
+
+IrRegex for Ikarus Scheme
+*************************
+
+This document describes version 0.1d0 of Nausicaa/IrRegex, a
+repackaging of IrRegex by Alex Shinn designed to fit into the Nausicaa
+infrastructure.  It embeds IrRegex version 0.7.1.
+
+   IrRegex is a fully portable and efficient R[456]RS implementation of
+regular expressions, supporting both POSIX syntax with various
+(irregular) PCRE extensions, as well as SCSH's SRE syntax, with various
+aliases for commonly used patterns.  DFA matching is used when
+possible, otherwise a closure-compiled NFA approach is used.
+
+   The package is distributed under a BSD style license and can be
+downloaded from:
+
+                        `http://synthcode.com/'
+
+Copyright (C) 2005-2008 by Alex Shinn.  See the "Package License"
+appendix for copying conditions.
+
+   This document is derived from the original IrRegex documentation,
+which was reformatted in Texinfo and adapted to the Nausicaa
+repackaging by Marco Maggi <marcomaggi@gna.org>.
+
+* Menu:
+
+* overview::                    Overview of the package.
+* compile::                     Compiling regular expressions.
+* match::                       Match objects.
+* replace::                     Replacing substrings.
+* chunk::                       Chunked string matching.
+* misc::                        Miscellaneous functions.
+* syntax::                      Supported regular expressions
+                                syntax.
+
+Appendices
+
+* Package License::             Package License.
+* references::                  Bibliography and references.
+
+Indexes
+
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
+
+
+File: nausicaa-irregex.info,  Node: overview,  Next: compile,  Prev: Top,  Up: Top
+
+1 Overview of the package
+*************************
+
+     At this moment there was a loud ring at the bell, and I could hear
+     Mrs. Hudson, our landlady, raising her voice in a wail of
+     expostulation and dismay.
+
+     "By heaven, Holmes," I said, half rising, "I believe that they are
+     really after us."
+
+     "No, it's not quite so bad as that.  It is the unofficial
+     force---the Baker Street irregulars."
+
+IrRegex by Alex Shinn is a fully portable and efficient R456RS
+implementation of regular expressions, supporting both POSIX syntax
+with various (irregular) PCRE extensions, as well as SCSH's SRE syntax,
+with various aliases for commonly used patterns.  DFA matching is used
+when possible, otherwise a closure-compiled NFA approach is used.
+
+   The library makes no assumptions about the encoding of strings or
+range of characters and can thus be used in Unicode-aware Scheme
+implementations.  Matching may be performed over standard Scheme
+strings, or over arbitrarily chunked streams of strings.
+
+   Nausicaa/IrRegex wraps IrRegex version 0.7.1 repackaged to fit the
+Nausicaa standards.  To import it we can to:
+
+     (import (irregex))
+
+and it requires the Nausicaa SRFI to be installed.
+
+
+File: nausicaa-irregex.info,  Node: compile,  Next: match,  Prev: overview,  Up: Top
+
+2 Compiling regular expressions
+*******************************
+
+ -- Function: irregex? OBJ
+     Return `#t' if, and only if, OBJ is a compiled regular expression.
+
+ -- Function: irregex POSIX-STRING-OR-SRE [OPTIONS ...]
+ -- Function: string->irregex POSIX-STRING [OPTIONS ...]
+ -- Function: sre->irregex SRE [OPTIONS ...]
+     Compile a regular expression from either a POSIX-style regular
+     expression string (with most PCRE extensions) or an SCSH-style
+     SRE.  Return an object representing the compiled regular
+     expression.
+
+     There is no `(rx ...)' syntax to specify the regular expression, we
+     just use normal Scheme lists.  Technically a string by itself
+     could be considered a valid SRE, so if we want to just match a
+     literal string we should use something like:
+
+          (irregex `(: ,str))
+
+     or use the explicit:
+
+          (string->irregex str)
+
+     The OPTIONS are a list of any of the following symbols, which must
+     be quoted:
+
+    `i'
+    `case-insensitive'
+          match case-insensitively;
+
+    `m'
+    `multi-line'
+          treat string as multiple lines (effects `^' and `$');
+
+    `s'
+
+    `single-line'
+          treat string as a single line (`.' can match newline);
+
+    `utf8'
+          UTF-8 mode, assumes strings are byte-strings;
+
+    `fast'
+          try to optimize the regular expression;
+
+    `small'
+          try to compile a smaller regular expression.
+
+          _Note:_ The `fast' and `small' options may not actually make
+          the compiled expression any faster or smaller at the moment.
+
+
+File: nausicaa-irregex.info,  Node: match,  Next: replace,  Prev: compile,  Up: Top
+
+3 Match objects
+***************
+
+ -- Function: irregex-search IRX STR [START END]
+     Search for any instance of the pattern IRX (a POSIX string, SRE
+     sexp, or pre-compiled regular expression) in STR, optionally
+     between the given range.  If a match is found, return a match
+     object, otherwise `#f'.
+
+     Match objects can be used to query the selected substring or its
+     submatches using the `IRREGEX-MATCH-*' procedures below.
+
+     Examples:
+
+          (irregex-search "[a-z]+" "123abc456")
+          => ... ; match object
+
+          (irregex-search "[a-z]+" "123456")
+          => #f
+
+          (irregex-search "foobar" "abcFOOBARdef")
+          => #f
+
+          (irregex-search (string->irregex "foobar" 'case-insensitive)
+                          "abcFOOBARdef")
+          => ... ; match object
+
+ -- Function: irregex-match IRX STR
+     Like `IRREGEX-SEARCH', but performs an anchored match against the
+     beginning and end of the string, without searching.
+
+     Examples:
+
+          (irregex-match '(w/nocase "foobar") "abcFOOBARdef")
+          => #f
+
+          (irregex-match '(w/nocase "foobar") "FOOBAR")
+          => ... ; match object
+
+ -- Function: irregex-match-data? MATCH-OBJ
+     Return `#t' if, and only if, the object is a successful match
+     result from `IRREGEX-SEARCH' or `IRREGEX-MATCH'.
+
+ -- Function: irregex-match-substring MATCH-OBJ [INDEX-OR-NAME]
+ -- Function: irregex-match-start-index MATCH-OBJ [INDEX-OR-NAME]
+ -- Function: irregex-match-end-index MATCH-OBJ [INDEX-OR-NAME]
+     Fetch the matched substring (or its start or end offset) at the
+     given submatch index, or named submatch.
+
+     The entire match is index 0, the first 1, etc.  The default is
+     index 0.
+
+     Examples:
+
+          (irregex-match-substring
+             (irregex-search "ciao" "hello ciao salut")
+             0)
+          => "ciao"
+
+
+File: nausicaa-irregex.info,  Node: replace,  Next: chunk,  Prev: match,  Up: Top
+
+4 Replacing substrings
+**********************
+
+ -- Function: irregex-replace IRX STR [REPLACEMENTS ...]
+ -- Function: irregex-replace/all IRX STR [REPLACEMENTS ...]
+     Match a pattern in a string, and replaces it with a (possibly
+     empty) list of substitutions.
+
+     Each REPLACEMENT can be either a string literal, a numeric index,
+     a symbol (as a named submatch), or a procedure which takes one
+     argument (the match object) and returns a string.
+
+     Examples:
+
+          (irregex-replace "[aeiou]" "hello world" "*") => "h*llo world"
+
+          (irregex-replace/all "[aeiou]" "hello world" "*") => "h*ll* w*rld"
+
+
+File: nausicaa-irregex.info,  Node: chunk,  Next: misc,  Prev: replace,  Up: Top
+
+5 Chunked string matching
+*************************
+
+It's often desirable to perform regular expression matching over
+sequences of characters not represented as a single string.  The most
+obvious example is a text-buffer data structure, but we may also want
+to match over lists or trees of strings (i.e. ropes), over only certain
+ranges within a string, over an input port, etc.
+
+   With existing regular expression libraries, the only way to
+accomplish this is by converting the abstract sequence into a freshly
+allocated string. This can be expensive, or even impossible if the
+object is a text-buffer opened onto a 500MB file.
+
+   IrRegex provides a chunked string API specifically for this purpose.
+
+ -- Function: make-irregex-chunker GET-NEXT GET-STRING [GET-START
+          GET-END GET-NEXT GET-SUBSTRING GET-SUBCHUNK]
+     Define a chunking API.
+
+    `(GET-NEXT chunk)'
+          Return the next chunk, or `#f' if there are no more chunks.
+
+    `(GET-STRING chunk)'
+          A string source for the chunk.
+
+    `(GET-START chunk)'
+          The start index of the result of GET-STRING (defaults to
+          always 0).
+
+    `(GET-END chunk)'
+          The end (exclusive) of the string (defaults to string-length
+          of the source string).
+
+    `(GET-SUBSTRING CNK1 I CNK2 J)'
+          A substring for the range between the chunk CNK1 starting at
+          index I and ending at CNK2 at index J.
+
+    `(GET-SUBCHUNK CNK1 I CNK2 J)'
+          As above but returns a new chunked data type instead of a
+          string (optional).
+
+     There are two important constraints on the GET-NEXT procedure.  It
+     must return an `EQ?' identical object when called multiple times on
+     the same chunk, and it must not return a chunk with an empty string
+     (start == end).  This second constraint is for performance
+     reasons, we push the work of possibly filtering empty chunks to
+     the chunker since there are many chunk types for which empty
+     strings aren't possible, and this work is thus not needed.  Note
+     that the initial chunk passed to match on is allowed to be empty.
+
+     GET-SUBSTRING is provided for possible performance improvements,
+     without it a default is used.
+
+     GET-SUBCHUNK is optional, without it we may not use
+     `IRREGEX-MATCH-SUBCHUNK'.
+
+ -- Function: irregex-match-subchunk MATCH-OBJ [INDEX-OR-NAME]
+     Generate a chunked data-type for the given match item, of the same
+     type as the underlying chunk type (see Chunked String Matching
+     below). This is only available if the chunk type specifies the
+     `GET-SUBCHUNK' API, otherwise an error is raised.
+
+ -- Function: irregex-search/chunked IRX CHUNKER CHUNK
+ -- Function: irregex-match/chunked IRX CHUNKER CHUNK
+     These return normal match-data objects.
+
+     Example: To match against a simple, flat list of strings use:
+
+          (define (rope->string rope1 start rope2 end)
+            (if (eq? rope1 rope2)
+                (substring (car rope1) start end)
+                (let loop ((rope (cdr rope1))
+                           (res (list (substring (car rope1) start))))
+                   (if (eq? rope rope2)
+                       (string-concatenate-reverse      ; from SRFI-13
+                        (cons (substring (car rope) 0 end) res))
+                       (loop (cdr rope) (cons (car rope) res))))))
+
+          (define rope-chunker
+            (make-irregex-chunker (lambda (x) (and (pair? (cdr x)) (cdr x)))
+                                  car
+                                  (lambda (x) 0)
+                                  (lambda (x) (string-length (car x)))
+                                  rope->string))
+
+          (irregex-search/chunked <pat> rope-chunker <list-of-strings>)
+
+     Here we are just using the default start, end and substring
+     behaviors, so the above chunker could simply be defined as:
+
+          (define rope-chunker
+            (make-irregex-chunker (lambda (x) (and (pair? (cdr x)) (cdr x))) car))
+
+
+File: nausicaa-irregex.info,  Node: misc,  Next: syntax,  Prev: chunk,  Up: Top
+
+6 Miscellaneous functions
+*************************
+
+ -- Function: irregex-fold IRX KONS KNIL STR [FINISH START END]
+     This follows the API for `REGEXP-FOLD' from SCSH.
+
+ -- Function: irregex-quote STR
+     Return a new string with any special regular expression characters
+     escaped, to match the original string literally in POSIX regular
+     expressions.
+
+ -- Function: irregex-opt LIST-OF-STRINGS
+     Return an optimized POSIX string matching any of the literal
+     strings in the list, like Emacs' `REGEXP-OPT'.  Note this
+     optimization doesn't help when `IRREGEX' is able to build a DFA.
+
+ -- Function: sre->string SRE
+     Convert an SRE to a POSIX-style regular expression string, if
+     possible.
+
+
+File: nausicaa-irregex.info,  Node: syntax,  Next: Package License,  Prev: misc,  Up: Top
+
+7 Supported regular expressions syntax
+**************************************
+
+Supported PCRE syntax
+.....................
+
+Since the PCRE syntax is so overwhelming complex, it's easier to just
+list what we *don't* support for now.  Refer to the PCRE documentation
+for details.
+
+   Unicode character classes (`\P') are not supported, but will be in
+an upcoming release.  `\C' named characters are not supported.
+
+   Callbacks, subroutine patterns and recursive patterns are not
+supported. `(*FOO)' patterns are not supported and may never be.
+
+   `\G' and `\K' are not supported.
+
+   Octal character escapes are not supported because they are ambiguous
+with back-references, just use hex character escapes.
+
+   Other than that everything should work, including named submatches,
+zero-width assertions, conditional patterns, etc.
+
+   In addition, `\<' and `\>' act as beginning-of-word and end-of-word
+marks, respectively, as in Emacs regular expressions.
+
+Extended SRE Syntax
+...................
+
+The following extensions to standard SRE syntax are provided:
+
+     (?? <sre> ...)                 ; shy (non-greedy) patterns
+     (*? <sre> ...)
+     (**? <from> <to> <sre> ...)    ; +? isn't valid so use this
+     (backref <n>)
+     (look-ahead <sre> ...)         ; or Emacsish looking-at
+     (look-behind <sre> ...)        ; or Emacsish looking-back
+     (neg-look-ahead <sre> ...)     ; or not- prefix
+     (neg-look-behind <sre> ...)
+     (atomic <sre> ...)             ; for (?>...) independent patterns
+     (if <test> <pass> [<fail>])    ; conditional patterns
+     (submatch-named <name> <sre> ...)
+     newline                        ; general newline pattern
+     nwb                            ; non-word-boundary
+     commit                         ; disable backtracking beyond this (i.e. cut)
+
+   The following utility regular expressions are also provided for
+common patterns:
+
+     integer                        ; an integer
+     real                           ; a real number (including scientific)
+     string                         ; a "quoted" string
+     ipv4-address                   ; a numeric decimal ipv4 address
+     ipv6-address                   ; a numeric hexadecimal ipv6 address
+     domain                         ; a domain name
+     email                          ; an email address
+     http-url                       ; a URL beginning with https?://
+
+   More common patterns are planned.
+
+
+File: nausicaa-irregex.info,  Node: Package License,  Next: references,  Prev: syntax,  Up: Top
+
+Appendix A Package License
+**************************
+
+Copyright (C) 2005-2008 Alex Shinn.  All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the
+     distribution.
+
+  3. The name of the author may not be used to endorse or promote
+     products derived from this software without specific prior written
+     permission.
+
+
+   THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+
+File: nausicaa-irregex.info,  Node: references,  Next: concept index,  Prev: Package License,  Up: Top
+
+Appendix B Bibliography and references
+**************************************
+
+
+File: nausicaa-irregex.info,  Node: concept index,  Next: function index,  Prev: references,  Up: Top
+
+Appendix C An entry for each concept
+************************************
+
+ [index ]
+* Menu:
+
+File: nausicaa-irregex.info,  Node: function index,  Next: variable index,  Prev: concept index,  Up: Top
+
+Appendix D An entry for each function.
+**************************************
+
+ [index ]
+* Menu:
+
+* irregex:                               compile.              (line 10)
+* irregex-fold:                          misc.                 (line  7)
+* irregex-match:                         match.                (line 31)
+* irregex-match-data?:                   match.                (line 43)
+* irregex-match-end-index:               match.                (line 49)
+* irregex-match-start-index:             match.                (line 48)
+* irregex-match-subchunk:                chunk.                (line 61)
+* irregex-match-substring:               match.                (line 47)
+* irregex-match/chunked:                 chunk.                (line 68)
+* irregex-opt:                           misc.                 (line 15)
+* irregex-quote:                         misc.                 (line 10)
+* irregex-replace:                       replace.              (line  7)
+* irregex-replace/all:                   replace.              (line  8)
+* irregex-search:                        match.                (line  7)
+* irregex-search/chunked:                chunk.                (line 67)
+* irregex?:                              compile.              (line  7)
+* make-irregex-chunker:                  chunk.                (line 21)
+* sre->irregex:                          compile.              (line 12)
+* sre->string:                           misc.                 (line 20)
+* string->irregex:                       compile.              (line 11)
+
+
+File: nausicaa-irregex.info,  Node: variable index,  Next: type index,  Prev: function index,  Up: Top
+
+Appendix E An entry for each variable.
+**************************************
+
+ [index ]
+* Menu:
+
+File: nausicaa-irregex.info,  Node: type index,  Prev: variable index,  Up: Top
+
+Appendix F An entry for each type.
+**********************************
+
+ [index ]
+* Menu:
+
+
+Tag Table:
+Node: Top1232
+Node: overview3101
+Node: compile4401
+Node: match6059
+Node: replace8018
+Node: chunk8734
+Node: misc12802
+Node: syntax13606
+Node: Package License16129
+Node: references17713
+Node: concept index17898
+Node: function index18098
+Node: variable index19768
+Node: type index19973
+
+End Tag Table

@@ -119,10 +119,14 @@
 ;;; Access to slots.
 ;;; ------------------------------------------------------------
 
-(define (get-slot caller object slot-name)
-  (or (assq slot-name object)
-      (assertion-violation caller
-       "trying to access nonexistent slot" slot-name)))
+;;;Slot access should be as  fast as possible, for this reason we
+;;;make this a syntax (it gets expanded in the function).
+(define-syntax get-slot
+  (syntax-rules ()
+    ((_ caller object slot-name)
+     (or (assq slot-name object)
+	 (assertion-violation caller
+	   "trying to access nonexistent slot" slot-name)))))
 
 (define (slot-ref object slot-name)
   (cdr (get-slot 'slot-ref object slot-name)))
@@ -274,9 +278,10 @@
 ;;;Interpret SLOT-VALUES as list of alternate symbols and values,
 ;;;where the symbols are slot names.
 ;;;
-;;;We are not asserting  (as we should) that: "(car slot-values)"
-;;;is not  ":class"; SLOT-VALUES has an even  number of elements.
-;;;Because of this errors with unclear message may happen.
+;;;We  are   not  asserting  (as  we  should)   that:  (1)  "(car
+;;;slot-values)"  is not  ":class"; (2)  SLOT-VALUES has  an even
+;;;number  of  elements.  Because  of  this  errors with  unclear
+;;;message may happen.
 ;;;
 (define (initialise instance slot-values)
   (unless (null? slot-values)
@@ -322,9 +327,8 @@
 (define (build-class-precedence-list superclasses)
   (delete-duplicates
    (mapcan
-    (lambda (s)
-      (cons s
-	    (append (slot-ref s ':class-precedence-list) '())))
+    (lambda (super)
+      (cons super (slot-ref super ':class-precedence-list)))
     superclasses)
    eq?))
 
@@ -384,8 +388,8 @@
    ;;Order does matter here!!!
    ((fixnum?	value)		<fixnum>)
    ((integer?	value)		<integer>)
-   ((integer-valued? value)	<integer-valued>)
    ((rational?	value)		<rational>)
+   ((integer-valued? value)	<integer-valued>)
    ((rational-valued? value)	<rational-valued>)
    ((flonum?	value)		<flonum>)
    ((real?	value)		<real>)

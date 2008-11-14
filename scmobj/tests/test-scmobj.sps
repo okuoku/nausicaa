@@ -324,6 +324,44 @@
 
 ;;;page
 ;;; ------------------------------------------------------------
+;;; Multiple inheritance.
+;;; ------------------------------------------------------------
+
+(let ()
+  (define-class <a> () ':a)
+  (define-class <b> () ':b)
+  (define-class <c> () ':c)
+  (define-class <d> () ':d)
+  (define-class <e> () ':e)
+
+  (define-class <pp> (<a> <b>))
+  (define-class <qq> (<c> <d>))
+  (define-class <rr> (<pp> <e> <qq>))
+
+  (define i (make <pp>
+	      ':a 1 ':b 2))
+
+  (define j (make <qq>
+	      ':c 3 ':d 4))
+
+  (define k (make <rr>
+	      ':a 10 ':b 20
+	      ':c 30 ':d 40))
+
+  (check
+      (list (slot-ref i 'a)
+	    (slot-ref j 'd)
+	    (slot-ref k 'd))
+    => '(1 4 40))
+
+  (check
+      (map class-definition-name (class-precedence-list <rr>))
+    => '(<pp> <e> <qq> <a> <c> <b> <d>)))
+
+;;; ------------------------------------------------------------
+
+;;;page
+;;; ------------------------------------------------------------
 ;;; Done.
 ;;; ------------------------------------------------------------
 
