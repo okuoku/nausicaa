@@ -1512,9 +1512,9 @@ Test files are supposet to be top--level programs under the @file{tests}
 subdirectory of each project.
 
 There should be one test file for each library, and its name must be
-@code{test-<library>.sls} where @code{<library>} is the library file
+@code{test-<library>.sps} where @code{<library>} is the library file
 basename.  So the library with pathname @file{library/uriel/begin0.sls}
-must have a test file with pathname @file{tests/test-begin0.sls}.
+must have a test file with pathname @file{tests/test-begin0.sps}.
 
 
 @deffn {Makefile Rule} test
@@ -1538,7 +1538,7 @@ Like @code{test} but runs a single test file.  To select a test file we
 set the @code{FILE} variable on the command line of @command{make} to
 the library file basename.
 
-Example: to run the test with pathname @file{tests/test-begin0.sls} we
+Example: to run the test with pathname @file{tests/test-begin0.sps} we
 do:
 
 @example

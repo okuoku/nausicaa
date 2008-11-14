@@ -166,14 +166,14 @@ uninstall:	fasl-uninstall
 ## ------------------------------------------------------------
 
 nau_test_SRCDIR		= $(srcdir)/tests
-nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sls)
+nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 
 # We DO  NOT include the  fasl build directory in  the path.
 # This is on purpose.
 nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
 nau_test_RUN		= $(nau_test_ENV) $(SCHEME_SCRIPT)
 
-nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(FILE).sls)
+nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(FILE).sps)
 
 .PHONY: tests test check test-file
 
