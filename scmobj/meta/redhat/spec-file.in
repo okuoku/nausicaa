@@ -1,0 +1,13 @@
+## RPM Spec file for ScmObj.
+
+Name: ScmObj
+Version: 0.1d0
+Release: 1
+Summary: an object oriented programming library
+Group: Development/Languages
+License: LGPL
+
+%description
+A library for Ikarus.
+
+%files
