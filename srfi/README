@@ -9,8 +9,9 @@ Topics
   1. Overview
   2. License
   3. Install
-  A. Bug reports
-  B. Resources
+  A. Credits
+  B. Bug reports
+  C. Resources
 
 
 1. Overview
@@ -19,9 +20,9 @@ Topics
 This  directory holds  implementations of  the  SRFI (Scheme
 Request for Implementation) adapted to R6RS and Ikarus.  The
 files are a checkout of the development version at Launchpad
-(see Resources)  by Derick  Eddington, with the  only change
-being the normalisation of  the library identifiers and file
-names.
+(see  Resources) by  Derick Eddington.   To  assimilated the
+libraries into Nausicaa,  library identifiers and file names
+have been normalised.
 
   The current checkout is: revision 57.
 
@@ -38,6 +39,7 @@ it.
 
 Basically we should do:
 
+  $ cd srfi
   $ mkdir "=build"
   $ cd "=build"
   $ ../configure
@@ -59,7 +61,18 @@ described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
 
 
-A. Bug reports
+A. Credits
+----------
+
+The  original  SRFI  code  is  the  work  of  many  authors,
+reference of which you can find the at the top of the source
+code files.
+
+  The  port  to  Ikarus  is  the work  of  Derick  Eddington
+(<https://launchpad.net/~derick-eddington>).
+
+
+B. Bug reports
 --------------
 
 Bug reports about the SRFI code should be reported to Derick
@@ -69,16 +82,18 @@ Eddington using the Launchpad interface.
 welcome: Send them by email to <marcomaggi@gna.org>.
 
 
-B. Resources
+C. Resources
 ------------
 
-Scheme  Requests For  Implementation (SRFI)  for R6RS/Ikarus
-can be found at:
+The original SRFI documents are available at:
+
+		 <http://srfi.schemers.org>
+
+  The  development version  of SRFI  for R6RS/Ikarus  can be
+found at:
 
 <https://code.launchpad.net/~ikarus-libraries-team/ikarus-libraries/srfi>
        <http://code.launchpad.net/ikarus-libraries/>
-
-porting and maintaining is by Derick Eddington.
 
 
 ### end of file

@@ -71,7 +71,9 @@ build binary distribution archives.
 A. Credits
 ----------
 
-The stuff was written by Marco Maggi.
+The  stuff was  mainly written  by Marco  Maggi.   Some code
+comes  from  discussions  on  the  Ikarus  mailing  list  or
+examples in the R6RS original documents.
 
 
 B. Bug reports

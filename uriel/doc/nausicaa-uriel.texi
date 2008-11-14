@@ -421,6 +421,8 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package. 
 * io::                          Input/output library.
 * begin0::                      The K combinator.
+* object-property::             Object properties.
+* define-macro::                Common Lisp style macros.
 
 Appendices
 
@@ -514,6 +516,101 @@ value of the first form.
 
 This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
 @end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node object-property
+@chapter Object properties
+
+
+An object property is a convenient interface to an @func{eq?} hashtable;
+we can use it to hold properties of values.  To load the library:
+
+@example
+(import (uriel object-property))
+@end example
+
+An object property is a function that can be called with one or two
+arguments.  When called with two arguments: the first is an object and
+the second is its property value; they are stored in the hashtable.
+When called with one argument: the hashtable is queried using the
+argument as key, and the value is returned.
+
+
+@defun make-object-property
+Build and return a new object property.  The table is parameterised with
+@code{object-property-initial-capacity} and
+@code{object-property-default-value}.
+@end defun
+
+
+@deffn Parameter object-property-initial-capacity
+An integer representing the initial size of the hashtable.  The default
+value is 100.
+@end deffn
+
+
+@deffn Parameter object-property-default-value
+The value to return if the property is queried for an object that was
+not registered before.  The default value is @false{}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Examples
+
+The following will evaluate successfully:
+
+@example
+(import (rnrs)
+        (uriel object-property)
+        (srfi lightweight-testing)
+        (srfi parameters))
+
+(check-set-mode! 'report-failed)
+
+(check
+    (let ((prop (make-object-property))
+          (a (vector 1 2 3))
+          (b (vector 4 5 6))
+          (c (vector 7 8 9)))
+      (prop a 1)
+      (prop b 2)
+      (list (prop a) (prop b) (prop c)))
+  => '(1 2 #f))
+
+(check
+    (let ((prop (parameterize ((object-property-initial-capacity 10)
+                               (object-property-default-value 'quack))
+                  (make-object-property)))
+          (a (vector 1 2 3))
+          (b (vector 4 5 6))
+          (c (vector 7 8 9)))
+      (prop a 1)
+      (prop b 2)
+      (list (prop a) (prop b) (prop c)))
+  => '(1 2 quack))
+
+(check-report)
+@end example
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node define-macro
+@chapter Common Lisp style macros
+
+
+@deffn Syntax define-macro (@var{name} . @var{args}) @var{form0} @var{form} ...
+@deffnx Syntax define-macro @var{name} @var{func}
+@deffnx Syntax defmacro @var{name} @var{args} @var{form0} @var{form} ...
+Stuff
+@end deffn
+
 
 
 @c ------------------------------------------------------------
