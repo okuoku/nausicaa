@@ -165,14 +165,14 @@
 ;;; Built in classes.
 ;;; ------------------------------------------------------------
 
-;;;The  official definition  of class  is: an  alist  whose first
-;;;dotted pair has the symbol ":class" as key.
-;;;
-;;;Notice that ":class" is NOT included in the list of slots.
-;;;
-;;;Notice  that the  class itself  is  not inclued  in the  class
-;;;precedence list.
 (define <class>
+  ;;The  official definition of  class is:  an alist  whose first
+  ;;dotted pair has the symbol ":class" as key.
+  ;;
+  ;;Notice that ":class" is NOT included in the list of slots.
+  ;;
+  ;;Notice  that the  class itself  is not  inclued in  the class
+  ;;precedence list.
   (let ((c '((:class . #f)
 	     (:class-definition-name . <class>)
 	     (:class-precedence-list . ())

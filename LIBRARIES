@@ -1,0 +1,16 @@
+
+		      List of libraries to look at
+		      ============================
+
+
+* libarchive
+* libdownload	http://code.phraktured.net/?p=libdownload.git;a=summary
+
+
+### end of file
+# Local Variables:
+# mode: text
+# coding: iso-latin-1-unix
+# fill-column: 72
+# paragraph-start: "*"
+# End:

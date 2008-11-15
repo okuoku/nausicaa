@@ -1,154 +1,180 @@
-# 
-# Part of: Nausicaa
-# Contents: autoconf macros
-# Date: Thu Nov 13, 2008
-# 
-# Abstract
-# 
-# 
-# 
-# Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
-# 
-# This  program  is free  software:  you  can redistribute  it
-# and/or modify it  under the terms of the  GNU General Public
-# License as published by the Free Software Foundation, either
-# version  3 of  the License,  or (at  your option)  any later
-# version.
-# 
-# This  program is  distributed in  the hope  that it  will be
-# useful, but  WITHOUT ANY WARRANTY; without  even the implied
-# warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-# PURPOSE.   See  the  GNU  General Public  License  for  more
-# details.
-# 
-# You should  have received a  copy of the GNU  General Public
-# License   along   with    this   program.    If   not,   see
-# <http://www.gnu.org/licenses/>.
-# 
+dnl 
+dnl Part of: Nausicaa
+dnl Contents: autoconf macros
+dnl Date: Thu Nov 13, 2008
+dnl 
+dnl Abstract
+dnl 
+dnl    This is  a library of GNU Autoconf  macros to be used  by all the
+dnl    Nausicaa  "configure.ac" templates.   It  is enough  to create  a
+dnl    symbolic link from the project directory to this file.
+dnl 
+dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+dnl 
+dnl This program is free software: you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free  Software Foundation, either  version 3 of the  License, or
+dnl (at your option) any later version.
+dnl 
+dnl This program is distributed in the  hope that it will be useful, but
+dnl WITHOUT  ANY   WARRANTY;  without  even  the   implied  warranty  of
+dnl MERCHANTABILITY or  FITNESS FOR A  PARTICULAR PURPOSE.  See  the GNU
+dnl General Public License for more details.
+dnl 
+dnl You should  have received a copy  of the GNU  General Public License
+dnl along      with      this       program.       If      not,      see
+dnl <http://www.gnu.org/licenses/>.
+dnl 
 
-#page
-## ------------------------------------------------------------
-## Begin of NAUSICAA_BEGIN.
-## ------------------------------------------------------------
+dnl page
+dnl --------------------------------------------------------------------
+dnl Helper macros.
+dnl --------------------------------------------------------------------
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_ENABLE_OPTION(<1 variable>,<2 identifier>,<3 default>,
+dnl                          <4 checking-description>,
+dnl                          <5 option-description>)
+dnl
+dnl Description:
+dnl   
+dnl   Define an enable/disable command line option for "configure".  The
+dnl   side effect is an output variable that is meant to be set to "yes"
+dnl   or "no".
+dnl
+dnl Usage example:
+dnl
+dnl	NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
+dnl	  [whether compiled files will be built and installed],
+dnl	  [disable installation of precompiled libraries])
+dnl
+AC_DEFUN([NAUSICAA_ENABLE_OPTION],[
+AC_MSG_CHECKING([$4])
+AC_ARG_ENABLE([$2],AC_HELP_STRING([--disable-$2],[$5 (default: $3)]),[
+if test "$enableval" = yes ; then
+  $1=yes
+else
+  $1=no
+fi
+],[$1=$3])
+AC_MSG_RESULT([$[]$1])
+AC_SUBST([$1])
+])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_PROGRAM(<1 variable>,<2 program-name>,<3 description>)
+dnl
+dnl Description:
+dnl
+dnl   Find the full pathname of a program.  The side effect is an output
+dnl   variable.
+dnl
+dnl Usage example:
+dnl
+dnl   NAUSICAA_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
+dnl   
+AC_DEFUN([NAUSICAA_PROGRAM],[
+AC_PATH_PROG([$1],[$2],[:])
+AC_ARG_VAR([$1],[$3])
+])
+
+dnl Synopsis:
+dnl
+dnl	NAUSICAA_WITH_TMPFILE(<1 with-temp-file-chunk>,<2 after-chunk>)
+dnl
+dnl Description:
+dnl
+dnl	Execute a slab of code that uses a temporary file.
+dnl
+dnl	  The chunk in <with-temp-file-chunk> can use the temporary file
+dnl	whose full pathname is  in the variable "nausicaa_TMPFILE".
+dnl
+dnl	  The  chunk  in  <after-chunk>  will  be  evaluated  after  the
+dnl	temporary file has been removed, so it can safely report errors.
+dnl
+AC_DEFUN([NAUSICAA_WITH_TMPFILE],[
+
+dnl Create  a   temporary  file  and   store  its  full   pathname  into
+dnl "nausicaa_TMPFILE".  This chunk of code comes from the documentation
+dnl of GNU Autoconf (so blame them, not me!).
+dnl
+dnl   Create  a  temporary  directory  "$nausicaa_TMPDIR"  in  "$TMPDIR"
+dnl (default "/tmp").  Use "mktemp"  if possible; otherwise fall back on
+dnl "mkdir", with $RANDOM to make collisions less likely.
+: ${TMPDIR=/tmp}
+{
+    nausicaa_TMPDIR=`
+    (umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null
+    ` &&
+    test -n "${nausicaa_TMPDIR}" && test -d "${nausicaa_TMPDIR}"
+} || {
+    nausicaa_TMPDIR=${TMPDIR}/foo$$-$RANDOM
+    (umask 077 && mkdir "${nausicaa_TMPDIR}")
+} || exit $?
+
+nausicaa_TMPFILE=${nausicaa_TMPDIR}/temporary
+
+dnl --------------------------------------------------------------------
+dnl Chunk with temporary file usage.
+
+$1
+
+rm -fr "${nausicaa_TMPDIR}"
+
+dnl --------------------------------------------------------------------
+dnl Chunk after temporary file usage.
+
+$2
+
+])
+
+dnl --------------------------------------------------------------------
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Begin of NAUSICAA_BEGIN.
+dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAUSICAA_BEGIN],[
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Setup.
-## ------------------------------------------------------------
 
 AC_PREREQ(2.60)
 AC_CONFIG_AUX_DIR([../infrastructure])
 
-# Notice that this one defines '_GNU_SOURCE' and others.
-# AC_USE_SYSTEM_EXTENSIONS
+dnl --------------------------------------------------------------------
 
-# AC_SYS_INTERPRETER
-# AC_SYS_LARGEFILE
-# AC_SYS_LONG_FILE_NAMES
-# AC_CANONICAL_BUILD
-# AC_CANONICAL_HOST
-# AC_CANONICAL_TARGET
+dnl page
+dnl --------------------------------------------------------------------
+dnl Options.
+dnl --------------------------------------------------------------------
 
-## ------------------------------------------------------------
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
+  [whether compiled files will be built and installed],
+  [disable installation of precompiled libraries])
 
-#page
-## ------------------------------------------------------------
-## Options.
-## ------------------------------------------------------------
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
+  [whether source files will be installed],
+  [enable installation of source files])
 
-AC_MSG_CHECKING([whether compiled files will be built and installed])
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_DOC],[doc],[yes],
+  [whether documentation files will be installed],
+  [disable installation of documentation files])
 
-AC_ARG_ENABLE([fasl],
-    AC_HELP_STRING([--disable-fasl],
-        [disable installation of precompiled libraries (default: enabled)]),[
-if test "$enableval" = yes ; then
-  nausicaa_ENABLE_FASL=yes
-else
-  nausicaa_ENABLE_FASL=no
-fi
-],[nausicaa_ENABLE_FASL=yes])
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_INFO_DOC],[doc-info],[yes],
+  [whether documentation in Info format will be installed],
+  [disable installation of Info documentation])
 
-AC_MSG_RESULT([$nausicaa_ENABLE_FASL])
-AC_SUBST([nausicaa_ENABLE_FASL])
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_HTML_DOC],[doc-html],[yes],
+  [whether documentation in HTML format will be installed],
+  [disable installation of HTML documentation])
 
-## ------------------------------------------------------------
+dnl --------------------------------------------------------------------
 
-AC_MSG_CHECKING([whether source files will be installed])
-
-AC_ARG_ENABLE([sls],
-    AC_HELP_STRING([--enable-sls],
-        [enable installation of source files (default: enabled)]),[
-if test "$enableval" = yes ; then
-  nausicaa_ENABLE_SLS=yes
-else
-  nausicaa_ENABLE_SLS=no
-fi
-],[nausicaa_ENABLE_SLS=yes])
-
-AC_MSG_RESULT([$nausicaa_ENABLE_SLS])
-AC_SUBST([nausicaa_ENABLE_SLS])
-
-## ------------------------------------------------------------
-
-AC_MSG_CHECKING([whether documentation files will be installed])
-
-AC_ARG_ENABLE([doc],
-    AC_HELP_STRING([--disable-doc],
-        [disable installation of documentation files (default: enabled)]),[
-if test "$enableval" = yes ; then
-  nausicaa_ENABLE_DOC=yes
-else
-  nausicaa_ENABLE_DOC=no
-fi
-],[nausicaa_ENABLE_DOC=yes])
-
-AC_MSG_RESULT([$nausicaa_ENABLE_DOC])
-AC_SUBST([nausicaa_ENABLE_DOC])
-
-## ------------------------------------------------------------
-
-AC_MSG_CHECKING([whether documentation in Info format will be installed])
-
-AC_ARG_ENABLE([doc-info],
-    AC_HELP_STRING([--disable-doc-info],
-        [disable installation of Info documentation (default: enabled)]),[
-if test "$enableval" = yes ; then
-  nausicaa_ENABLE_INFO_DOC=yes
-else
-  nausicaa_ENABLE_INFO_DOC=no
-fi
-],[nausicaa_ENABLE_INFO_DOC=yes])
-
-AC_MSG_RESULT([$nausicaa_ENABLE_INFO_DOC])
-AC_SUBST([nausicaa_ENABLE_INFO_DOC])
-
-## ------------------------------------------------------------
-
-AC_MSG_CHECKING([whether documentation in HTML format will be installed])
-
-AC_ARG_ENABLE([doc-html],
-    AC_HELP_STRING([--enable-doc-html],
-        [enable installation of HTML documentation (default: disabled)]),[
-if test "$enableval" = yes ; then
-  nausicaa_ENABLE_HTML_DOC=yes
-else
-  nausicaa_ENABLE_HTML_DOC=no
-fi
-],[nausicaa_ENABLE_HTML_DOC=no])
-
-AC_MSG_RESULT([$nausicaa_ENABLE_HTML_DOC])
-AC_SUBST([nausicaa_ENABLE_HTML_DOC])
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Common directories.
-## ------------------------------------------------------------
+dnl page
+dnl --------------------------------------------------------------------
+dnl Common directories.
+dnl --------------------------------------------------------------------
 
 AC_SUBST([PKG_ID],[\${PACKAGE_NAME}-\${PACKAGE_VERSION}])
 AC_SUBST([PKG_DIR],[\${PACKAGE_NAME}/\${PACKAGE_VERSION}])
@@ -162,142 +188,80 @@ AC_SUBST([pkglibdir],[\${libdir}/\${PKG_DIR}])
 AC_SUBST([pkglibexecdir],[\${libexecdir}/\${PKG_DIR}])
 AC_SUBST([pkgsysconfdir],[\${sysconfdir}/\${PKG_DIR}])
 
-## ------------------------------------------------------------
+dnl --------------------------------------------------------------------
 
-#page
-## ------------------------------------------------------------
-## Common programs.
-## ------------------------------------------------------------
+dnl page
+dnl --------------------------------------------------------------------
+dnl Programs.
+dnl --------------------------------------------------------------------
 
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-## ------------------------------------------------------------
+NAUSICAA_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
+NAUSICAA_PROGRAM([BZIP],[bzip2],[the bzip2 compressor program])
+NAUSICAA_PROGRAM([CAT],[cat],[the GNU cat program])
+NAUSICAA_PROGRAM([CP],[cp],[copies files])
+NAUSICAA_PROGRAM([DATE],[date],[a program that prints the current date])
+NAUSICAA_PROGRAM([FIND],[find],[the GNU find program])
+NAUSICAA_PROGRAM([GAWK],[gawk],[the GNU awk program])
+NAUSICAA_PROGRAM([GREP],[grep],[the GNU grep program])
+NAUSICAA_PROGRAM([GZIP],[gzip],[the gzip compressor program])
+NAUSICAA_PROGRAM([M4],[m4],[the GNU m4 preprocessor])
+NAUSICAA_PROGRAM([MAKEINFO],[makeinfo],[builds docs from Texinfo source])
+NAUSICAA_PROGRAM([MKDIR],[mkdir],[creates directories recursively])
+NAUSICAA_PROGRAM([MV],[mv],[move files around])
+NAUSICAA_PROGRAM([RM],[rm],[deletes files and directories recursively])
+NAUSICAA_PROGRAM([RMDIR],[rmdir],[deletes empty directories])
+NAUSICAA_PROGRAM([SED],[sed],[the GNU sed program])
+NAUSICAA_PROGRAM([SORT],[sort],[the GNU sort program])
+NAUSICAA_PROGRAM([SUDO],[sudo],[the sudo superuser executor])
+NAUSICAA_PROGRAM([SYMLINK],[ln],[program used create symbolic links])
+NAUSICAA_PROGRAM([TAR],[tar],[the GNU tar program])
 
-AC_PATH_PROG([BASH_PROGRAM],[bash],[:])
-AC_ARG_VAR([BASH_PROGRAM],[the GNU bash shell])
+NAUSICAA_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
+NAUSICAA_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
 
-AC_PATH_PROG([BZIP],[bzip2],[:])
-AC_ARG_VAR([BZIP],[the bzip2 compressor program])
+dnl --------------------------------------------------------------------
 
-AC_PATH_PROG([CAT],[cat],[:])
-AC_ARG_VAR([CAT],[the GNU cat program])
+dnl page
+dnl --------------------------------------------------------------------
+dnl Packaging tools.
+dnl --------------------------------------------------------------------
 
-AC_PATH_PROG([CP],[cp],[:])
-AC_ARG_VAR([CP],[copies files])
-
-AC_PATH_PROG([DATE],[date],[:])
-AC_ARG_VAR([DATE],[a program that prints the current date])
-
-AC_PATH_PROG([FIND],[find],[:])
-AC_ARG_VAR([FIND],[the GNU find program])
-
-AC_PATH_PROG([GAWK],[gawk],[:])
-AC_ARG_VAR([GAWK],[the GNU awk program])
-
-AC_PATH_PROG([GREP],[grep],[:])
-AC_ARG_VAR([GREP],[the GNU grep program])
-
-AC_PATH_PROG([GZIP],[gzip],[:])
-AC_ARG_VAR([GZIP],[the gzip compressor program])
-
-AC_PATH_PROG([M4],[m4],[:])
-AC_ARG_VAR([M4],[the GNU m4 preprocessor])
-
-AC_PATH_PROG([MAKEINFO],[makeinfo],[:])
-AC_ARG_VAR([MAKEINFO],[builds docs from Texinfo source])
-
-AC_PATH_PROG([MKDIR],[mkdir],[:])
-AC_ARG_VAR([MKDIR],[creates directories recursively])
-
-AC_PATH_PROG([MV],[mv],[:])
-AC_ARG_VAR([MV],[move files around])
-
-AC_PATH_PROG([RM],[rm],[:])
-AC_ARG_VAR([RM],[deletes files and directories recursively])
-
-AC_PATH_PROG([RMDIR],[rmdir],[:])
-AC_ARG_VAR([RMDIR],[deletes empty directories])
-
-AC_PATH_PROG([SED],[sed],[:])
-AC_ARG_VAR([SED],[the GNU sed program])
-
-AC_PATH_PROG([SORT],[sort],[:])
-AC_ARG_VAR([SORT],[the GNU sort program])
-
-AC_PATH_PROG([SUDO],[sudo],[:])
-AC_ARG_VAR([SUDO],[the sudo superuser executor])
-
-AC_PATH_PROG([SYMLINK],[ln],[:])
-AC_ARG_VAR([SYMLINK],[program used create symbolic links])
-
-AC_PATH_PROG([TAR],[tar],[:])
-AC_ARG_VAR([TAR],[the GNU tar program])
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Ikarus programs.
-## ------------------------------------------------------------
-
-AC_PATH_PROG([IKARUS],[ikarus],[:])
-AC_ARG_VAR([IKARUS],[the Ikarus Scheme executable])
-
-AC_PATH_PROG([SCHEME_SCRIPT],[scheme-script],[:])
-AC_ARG_VAR([SCHEME_SCRIPT],[the scheme-script executable])
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Packaging tools.
-## ------------------------------------------------------------
-
-## Find Slackware package management tools.
+dnl Find Slackware package management tools.
 
 nausicaa_PATH=${PATH}
 PATH=/sbin:${PATH}
 
-AC_PATH_PROG([slack_MAKEPKG_PROGRAM],[makepkg],[:])
-AC_ARG_VAR([slack_MAKEPKG_PROGRAM],[the Slackware package maker])
-
-AC_PATH_PROG([slack_INSTALLPKG_PROGRAM],[installpkg],[:])
-AC_ARG_VAR([slack_INSTALLPKG_PROGRAM],[the Slackware package installer])
-
-AC_PATH_PROG([slack_REMOVEPKG_PROGRAM],[removepkg],[:])
-AC_ARG_VAR([slack_REMOVEPKG_PROGRAM],[the Slackware package remover])
-
-AC_PATH_PROG([slack_UPGRADEPKG_PROGRAM],[upgradepkg],[:])
-AC_ARG_VAR([slack_UPGRADEPKG_PROGRAM],[the Slackware package upgrader])
+NAUSICAA_PROGRAM([slack_MAKEPKG_PROGRAM],[makepkg],[the Slackware package maker])
+NAUSICAA_PROGRAM([slack_INSTALLPKG_PROGRAM],[installpkg],[the Slackware package installer])
+NAUSICAA_PROGRAM([slack_REMOVEPKG_PROGRAM],[removepkg],[the Slackware package remover])
+NAUSICAA_PROGRAM([slack_UPGRADEPKG_PROGRAM],[upgradepkg],[the Slackware package upgrader])
 
 PATH=${nausicaa_PATH}
 
-## ------------------------------------------------------------
-## Find RedHat package management tools.
+dnl --------------------------------------------------------------------
+dnl Find RedHat package management tools.
 
-AC_PATH_PROG([redhat_BUILD_PROGRAM],[rpmbuild],[:])
-AC_ARG_VAR([redhat_BUILD_PROGRAM],[the RedHat package maker])
+NAUSICAA_PROGRAM([redhat_BUILD_PROGRAM],[rpmbuild],[the RedHat package maker])
+NAUSICAA_PROGRAM([redhat_CORE_PROGRAM],[rpm],[the RedHat package manager])
 
-AC_PATH_PROG([redhat_CORE_PROGRAM],[rpm],[:])
-AC_ARG_VAR([redhat_CORE_PROGRAM],[the RedHat package manager])
+dnl --------------------------------------------------------------------
 
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## End of NAUSICAA_BEGIN.
-## ------------------------------------------------------------
+dnl page
+dnl --------------------------------------------------------------------
+dnl End of NAUSICAA_BEGIN.
+dnl --------------------------------------------------------------------
 
 ]) 
 
-## ------------------------------------------------------------
+dnl --------------------------------------------------------------------
 
-#page
-## ------------------------------------------------------------
-## Done.
-## ------------------------------------------------------------
+dnl page
+dnl --------------------------------------------------------------------
+dnl Done.
+dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAUSICAA_END],[
 
@@ -311,63 +275,48 @@ AC_OUTPUT
 
 ])
 
-## ------------------------------------------------------------
+dnl --------------------------------------------------------------------
 
-#page
-## ------------------------------------------------------------
-## Other macros.
-## ------------------------------------------------------------
+dnl page
+dnl --------------------------------------------------------------------
+dnl Other macros.
+dnl --------------------------------------------------------------------
 
-# Synopsis:
-#
-#   IKARUS_CHECK_LIBRARY(<NAME>, [IMPORT-SPEC],
-#                        [ACTION-IF-FOUND],
-#                        [ACTION-IF-NOT-FOUND])
-#
-# Description:
-#
-#   Check the availability of the Ikarus library IMPORT-SPEC.
-#   If found set the output variable 'HAS_IKARUS_LIB_<NAME>'
-#   to 'yes', else set that variable to 'no'.
-#
-#   ACTION-IF-FOUND is executed if the library is found.
-#
-#   ACTION-IF-FOUND is executed if the library is not found.
-#
-# Prerequisites
-#
-#   The  variable 'IKARUS'  must  hold the  pathname of  the
-#   'ikarus' executable.
-#
-# Example:
-#
-#   To test if '(list-lib)' is available:
-#
-#       IKARUS_CHECK_LIBRARY([LIST],[(list-lib)])
-#
-#   if it is: the output variable 'HAS_IKARUS_LIB_LIST' is
-#   set to 'yes'.
-#   
+dnl Synopsis:
+dnl
+dnl   IKARUS_CHECK_LIBRARY(<NAME>, [IMPORT-SPEC],
+dnl                        [ACTION-IF-FOUND],
+dnl                        [ACTION-IF-NOT-FOUND])
+dnl
+dnl Description:
+dnl
+dnl   Check  the availability  of  the Ikarus  library IMPORT-SPEC.   If
+dnl   found  set the output  variable 'HAS_IKARUS_LIB_<NAME>'  to 'yes',
+dnl   else set that variable to 'no'.
+dnl
+dnl   ACTION-IF-FOUND is executed if the library is found.
+dnl
+dnl   ACTION-IF-FOUND is executed if the library is not found.
+dnl
+dnl Prerequisites
+dnl
+dnl   The  variable 'IKARUS'  must  hold the  pathname  of the  'ikarus'
+dnl   executable.
+dnl
+dnl Example:
+dnl
+dnl   To test if '(list-lib)' is available:
+dnl
+dnl       IKARUS_CHECK_LIBRARY([LIST],[(list-lib)])
+dnl
+dnl   if  it is:  the output  variable 'HAS_IKARUS_LIB_LIST'  is  set to
+dnl   'yes'.
+dnl   
 AC_DEFUN([IKARUS_CHECK_LIBRARY],[
 AC_MSG_CHECKING([availability of Ikarus library $2])
 
-# This comes from the documentation of GNU Autoconf.
-#
-# Create a temporary directory "$nausicaa_TMPDIR" in "$TMPDIR"
-# (default "/tmp").  Use mktemp if possible; otherwise fall
-# back on mkdir, with $RANDOM to make collisions less likely.
-: ${TMPDIR=/tmp}
-{
-    nausicaa_TMPDIR=`
-    (umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null
-    ` &&
-    test -n "$nausicaa_TMPDIR" && test -d "$nausicaa_TMPDIR"
-} || {
-    nausicaa_TMPDIR=$TMPDIR/foo$$-$RANDOM
-    (umask 077 && mkdir "$nausicaa_TMPDIR")
-} || exit $?
-
-nausicaa_TMPFILE=${nausicaa_TMPDIR}/find-lib.sls
+NAUSICAA_WITH_TMPFILE([
+dnl Chunk with with temporary file pathname in "${nausicaa_TMPFILE}".
 
 nausicaa_ANSWER=`echo '(import (ikarus))
 
@@ -385,15 +334,16 @@ nausicaa_ANSWER=`echo '(import (ikarus))
 ' >"${nausicaa_TMPFILE}"
 
 "${IKARUS}" --r6rs-script "${nausicaa_TMPFILE}" '$2'`
-rm -fr "${nausicaa_TMPDIR}"
+],[
+dnl Chunk after remporary file removal.
 
 AC_MSG_RESULT([${nausicaa_ANSWER}])
 if test "${nausicaa_ANSWER}" = yes ; then
-# Action if found.
+dnl Action if found.
 :
 $3
 else
-# Action if not found.
+dnl Action if not found.
 :
 $4
 fi
@@ -401,10 +351,9 @@ fi
 AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
 ])
 
-## ------------------------------------------------------------
+])
+
+dnl --------------------------------------------------------------------
 
 
-### end of file
-# Local Variables:
-# mode: sh
-# End:
+dnl end of file
