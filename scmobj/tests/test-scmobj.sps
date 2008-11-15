@@ -65,6 +65,7 @@
 	    (slot-ref o ':c)))
   => '(2 1 123))
 
+
 ;;; ------------------------------------------------------------
 
 ;;;page
@@ -107,12 +108,9 @@
 
 (check
     (let ()
-      (define-class <one> ()
-	:a :b :c)
-      (define-class <two> (<one>)
-	:d :e :f)
-      (define-class <three> (<two>)
-	:g :h :i)
+      (define-class <one> () (:a :b :c))
+      (define-class <two> (<one>) (:d :e :f))
+      (define-class <three> (<two>) (:g :h :i))
 
       (define o (make <three>
 		  ':a 1 ':b 2 ':c 3
@@ -120,17 +118,15 @@
 		  ':g 7 ':h 8 ':i 9))
       (list (slot-ref o ':b)
 	    (slot-ref o ':d)
-	    (slot-ref o ':i)))
+	    (slot-ref o ':i))
+      )
   => '(2 4 9))
 
 (check
     (let ()
-      (define-class <one> ()
-	:a :b :c)
-      (define-class <two> (<one>)
-	:d :e :f)
-      (define-class <three> (<two>)
-	:g :h :i)
+      (define-class <one> () (:a :b :c))
+      (define-class <two> (<one>) (:d :e :f))
+      (define-class <three> (<two>) (:g :h :i))
 
       (list (subclass? <one> <class>)
 	    (subclass? <two> <one>)
@@ -140,12 +136,9 @@
   => '(#t #t #t #t #f))
 
 (let ()
-  (define-class <one> ()
-    :a :b :c)
-  (define-class <two> (<one>)
-    :d :e :f)
-  (define-class <three> (<two>)
-    :g :h :i)
+  (define-class <one> () (:a :b :c))
+  (define-class <two> (<one>) (:d :e :f))
+  (define-class <three> (<two>) (:g :h :i))
 
   (check
       (map class-definition-name (class-precedence-list <three>))
@@ -188,9 +181,9 @@
 	   (<two>	(make-class (<one>) (:d :e :f)))
 	   (<three>	(make-class (<two>) (:g :h :i))))
 
-      (list (list-of-instance-slots <one>)
-	    (list-of-instance-slots <two>)
-	    (list-of-instance-slots <three>)))
+      (list (list-of-slots <one>)
+	    (list-of-slots <two>)
+	    (list-of-slots <three>)))
   => '((:a :b :c)
        (:d :e :f :a :b :c)
        (:g :h :i :d :e :f :a :b :c)))
@@ -203,12 +196,9 @@
 ;;; ------------------------------------------------------------
 
 (let ()
-  (define-class <one> ()
-    :a :b :c)
-  (define-class <two> (<one>)
-    :d :e :f)
-  (define-class <three> (<two>)
-    :g :h :i)
+  (define-class <one> () (:a :b :c))
+  (define-class <two> (<one>) (:d :e :f))
+  (define-class <three> (<two>) (:g :h :i))
 
   (define-generic alpha o)
 
@@ -233,10 +223,8 @@
 
 ;;;This tests overwriting an existing method function.
 (let ()
-  (define-class <one> ()
-    :a :b :c)
-  (define-class <two> (<one>)
-    :d :e :f)
+  (define-class <one> () (:a :b :c))
+  (define-class <two> (<one>) (:d :e :f))
 
   (define-generic alpha o)
 
@@ -258,12 +246,9 @@
 ;;; ------------------------------------------------------------
 
 (let ()
-  (define-class <one> ()
-    :a :b :c)
-  (define-class <two> (<one>)
-    :d :e :f)
-  (define-class <three> (<two>)
-    :g :h :i)
+  (define-class <one> () (:a :b :c))
+  (define-class <two> (<one>) (:d :e :f))
+  (define-class <three> (<two>) (:g :h :i))
 
   (define-generic alpha o)
 
@@ -328,11 +313,11 @@
 ;;; ------------------------------------------------------------
 
 (let ()
-  (define-class <a> () ':a)
-  (define-class <b> () ':b)
-  (define-class <c> () ':c)
-  (define-class <d> () ':d)
-  (define-class <e> () ':e)
+  (define-class <a> () (:a))
+  (define-class <b> () (:b))
+  (define-class <c> () (:c))
+  (define-class <d> () (:d))
+  (define-class <e> () (:e))
 
   (define-class <pp> (<a> <b>))
   (define-class <qq> (<c> <d>))
