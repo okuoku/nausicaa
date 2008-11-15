@@ -58,9 +58,8 @@
     make-class make make-generic-function
 
     ;;Class inspection.
-    class-of subclass?
-    class-definition-name class-precedence-list
-    list-of-instance-slots list-of-slots
+    class-of subclass? class-definition-name class-precedence-list
+    list-of-slots
 
     ;;Slot accessors.
     slot-ref slot-set! 
@@ -148,15 +147,7 @@
   (slot-ref class ':class-precedence-list))
 
 (define (list-of-slots object)
-  (cons ':class (slot-ref object ':slots)))
-
-(define (list-of-instance-slots object)
-  (filter
-      (lambda (c)
-	(not (memq c '(:class-definition-name
-		       :class-precedence-list
-		       :slots))))
-    (slot-ref object ':slots)))
+  (slot-ref object ':slots))
 
 ;;; ------------------------------------------------------------
 
@@ -166,13 +157,6 @@
 ;;; ------------------------------------------------------------
 
 (define <class>
-  ;;The  official definition of  class is:  an alist  whose first
-  ;;dotted pair has the symbol ":class" as key.
-  ;;
-  ;;Notice that ":class" is NOT included in the list of slots.
-  ;;
-  ;;Notice  that the  class itself  is not  inclued in  the class
-  ;;precedence list.
   (let ((c '((:class . #f)
 	     (:class-definition-name . <class>)
 	     (:class-precedence-list . ())
@@ -183,32 +167,30 @@
     c))
 
 (define <entity-class>
-  (let ((c (alist-copy <class>)))
-    (slot-set! c ':class-definition-name '<entity-class>)
-    (slot-set! c ':class-precedence-list <class>)
-    c))
+  `((:class . ,<class>)
+    (:class-definition-name . <entity-class>)
+    (:class-precedence-list . (,<class>))
+    (:slots . ())))
 
 ;;; ------------------------------------------------------------
 
 (define-syntax define-entity-class
   (syntax-rules ()
     ((_ ?name)
-     (define-entity-class ?name (<entity-class> <class>)))
-    ((_ ?name (?superclass ...))
+     (define-entity-class ?name <entity-class>))
+    ((_ ?name ?superclass)
      (define ?name
-       (list (cons ':class <entity-class>)
-	     '(:class-definition-name . ?name)
-	     (list ':class-precedence-list .
-		   (list ?superclass ... <entity-class> <class>))
-	     '(:slots . (:class-definition-name
-			 :class-precedence-list
-			 :slots)))))))
+       `((:class . <entity-class>)
+	 (:class-definition-name . ?name)
+	 (:class-precedence-list . (?superclass
+				    ,@(cdr (assq ':class-precedence-list ?superclass))))
+	 (:slots . ()))))))
 
 (define-entity-class <pair>)
-(define-entity-class <list>		(<pair>))
-(define-entity-class <circular-list>	(<list> <pair>))
-(define-entity-class <dotted-list>	(<list> <pair>))
-(define-entity-class <proper-list>	(<list> <pair>))
+(define-entity-class <list>		<pair>)
+(define-entity-class <circular-list>	<list>)
+(define-entity-class <dotted-list>	<list>)
+(define-entity-class <proper-list>	<list>)
 (define-entity-class <vector>)
 (define-entity-class <hashtable>)
 
@@ -218,30 +200,23 @@
 ;;definition of the  entity class, and then using  it in CLASS-OF
 ;;and SUBCLASS?.
 (define-entity-class <port>)
-(define-entity-class <input-port>	(<port>))
-(define-entity-class <output-port>	(<port>))
+(define-entity-class <input-port>	<port>)
+(define-entity-class <output-port>	<port>)
 
 (define-entity-class <record>)
-(define-entity-class <condition>	(<record>))
+(define-entity-class <condition>	<record>)
 (define-entity-class <bytevector>)
 
 (define-entity-class <number>)
-(define-entity-class <complex>		(<number>))
-(define-entity-class <real-valued>	(<complex> <number>))
-(define-entity-class <real>
-  (<real-valued> <complex> <number>))
-(define-entity-class <rational-valued>
-  (<real> <real-valued> <complex> <number>))
-(define-entity-class <flonum>
-  (<real> <real-valued> <complex> <number>))
-(define-entity-class <rational>
-  (<rational-valued> <real> <real-valued> <complex> <number>))
-(define-entity-class <integer-valued>
-  (<rational-valued> <real> <real-valued> <complex> <number>))
-(define-entity-class <integer>
-  (<integer-valued> <rational> <rational-valued> <real> <real-valued> <complex> <number>))
-(define-entity-class <fixnum>
-  (<integer> <integer-valued> <rational> <rational-valued> <real> <real-valued> <complex> <number>))
+(define-entity-class <complex>		<number>)
+(define-entity-class <real-valued>	<complex>)
+(define-entity-class <real>		<real-valued>)
+(define-entity-class <rational-valued>	<real>)
+(define-entity-class <flonum>		<real>)
+(define-entity-class <rational>		<rational-valued>)
+(define-entity-class <integer-valued>	<rational-valued>)
+(define-entity-class <integer>		<integer-valued>)
+(define-entity-class <fixnum>		<integer>)
 
 ;;;Other possible classes that require more library loading:
 ;;;
@@ -342,12 +317,6 @@
    (append direct-slots
 	   (concatenate
 	    (map (lambda (s)
-		   ;;FIXME This was in the original code:
-		   ;;
-		   ;;(append (slot-ref s ':slots) '())
-		   ;;
-		   ;;I  cannot  figure  out  why:  the  value  of
-		   ;;":slots" is always a proper list.
 		   (slot-ref s ':slots))
 	      superclasses)))
    eq?))
@@ -356,8 +325,6 @@
 ;;;
 (define-syntax define-class
   (syntax-rules ()
-    ((_ ?name ?superclasses (?slot ...))
-     (define-class ?name ?superclasses ?slot ...))
     ((_ ?name ?superclasses ?slot ...)
      (define ?name
        (let ((c (make-class ?superclasses (?slot ...))))
@@ -514,7 +481,7 @@
 ;;;This is an alist that will hold all the generic functions ever
 ;;;created.  The  keys are  the interface procedures,  the values
 ;;;are the <generic> objects.
-(define *generic-procedures* '())
+(define *generic-procedures* (make-eq-hashtable))
 
 ;;;Helper function that adds a signature/func pointed list to the
 ;;;appropriate alist  of methods (the  METHOD-TABLE argument).  A
@@ -644,14 +611,12 @@
 ;;; ------------------------------------------------------------
 
 ;;;Helper  function  that adds  a  new  generic  function to  the
-;;;*GENERIC-PROCEDURES* alist.  This  function is not expanded in
-;;;the MAKE-GENERIC-FUNCTION  (as it was in  the original ScmObj
+;;;*GENERIC-PROCEDURES* table.  This  function is not expanded in
+;;;the MAKE-GENERIC-FUNCTION  (as it  was in the  original ScmObj
 ;;;code) because  doing so would modify a  variable exported from
 ;;;this library (and this is forbidden by R6RS).
 (define (register-new-generic-function interface-procedure generic-object)
-  (set! *generic-procedures*
-	(alist-cons interface-procedure generic-object
-		    *generic-procedures*)))
+  (hashtable-set! *generic-procedures* interface-procedure generic-object))
 
 (define-syntax make-generic-function
   (syntax-rules ()
@@ -734,8 +699,7 @@
 
 (define (add-method-to-generic-function
 	 slot-name generic-function method-signature method-func)
-  ((slot-ref (cdr (assq generic-function *generic-procedures*))
-	     slot-name)
+  ((slot-ref (hashtable-ref *generic-procedures* generic-function) slot-name)
    method-signature method-func))
 
 ;;; ------------------------------------------------------------
