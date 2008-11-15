@@ -470,44 +470,104 @@ Indexes
 
 
 @noindent
-@value{PACKAGE} is an object system for Scheme that provides
+@value{PACKAGE} is an object system for Scheme that provides: simple and
+multiple inheritance, generic functions, multimethods.  It resembles
+@clos{} (the Common Lisp Object System), but it does not implement a
+meta object protocol.
 
-@itemize
-@item
-classes with multiple inheritance;
+The library is a repackaging of ScmObj by Dorai Sitaram, ported to
+@rnrs{6} and Ikarus, and overhauled to make it: simple to understand,
+fully documented, with @api{} compatible with the core @api{} in
+Tiny--@clos{}.
 
-@item
-generic procedures;
 
-@item
-methods that can specialize on one or more arguments (``multimethods'');
+@menu
+* overview model::              Classes and instances.
+@end menu
 
-@item
-@code{:before}, @code{:after}, and @code{:around} auxiliary methods in
-addition to primary methods;
 
-@item
-@func{call-next-method} and @func{next-method?} in primary and
-@code{:around} methods;
+@c ------------------------------------------------------------
 
-@item
-standard method combination a la the default protocol in @clos{}.
-@end itemize
+@c page
+@node overview model
+@section Classes and instances
 
-@quotation
-This document is a Texinfo reformatting of the original documentation by
-@value{AUTHOR}.  The repackaged code has been ported to @rnrs{6} Scheme
-and tested under Ikarus Scheme.
 
-The author and maintainer of the repackaging and the changes is Marco
-Maggi @email{marcomaggi@@gna.org}.
+@value{PACKAGE} objects, that is classes and instances, are association
+lists: proper lists of pairs whose cars are symbols and whose cdrs can
+be any value: by convention the symbols must have name starting with a
+colon @code{:}.  In this document: each pair is called slot; the symbol
+is called slot name; the value is called slot value.
 
-Also some identifiers in the public interface have been changed to make
-them more similar to the @clos{} conventions.  For example: the base
-class is called @class{class} rather than the original
-@code{standard-class}; the syntax used to add methods is
-@func{define-method} rather than the original @func{defmethod}.
-@end quotation
+A class object is an alist whose first slot's name is @code{:class}, and
+the other slot names are:
+
+@example
+:class-definition-name
+:class-precedence-list
+:slots
+@end example
+
+An instance object is an alist whose first slot's name is @code{:class},
+and the other slot names are configured by the user.
+
+
+@deffn Slot :class
+It must be the first slot for both class and instance objects.  For a
+class object: the value must be the predefined @class{class} object.
+For an instance object: the value must be the class of the instance.
+@end deffn
+
+
+@deffn Slot :class-definition-name
+A class object's slot whose value is the ``public name'' of the class.
+By convention it must be a symbol whose name is enclosed in angular
+parentheses.  It is useful to print debug messages.
+@end deffn
+
+
+@deffn Slot :class-precedence-list
+A class object's slot whose value is a list representing the hierarchy
+of superclasses for the instance objects of the class.  It is used for
+dispatching of multimethods.
+
+Notice that the value of this slot does @strong{not} hold the class
+object itself.
+@end deffn
+
+
+@deffn Slot :slots
+A class object's slot whose value is the list of slot names for the
+instances of the class.  For the predefined @class{class} object, the
+list is:
+
+@example
+(:class-definition-name :class-precedence-list :slots)
+@end example
+
+Notice that the symbol @code{:class} is @strong{not} included.
+@end deffn
+
+
+As an example, pretty printing the layout of an imaginary @class{apple}
+class object by showing the class definition names could yield:
+
+@example
+((:class . <class>)
+ (:class-definition-name . <apple>)
+ (:class-precedence-list . (<fruit> <biologic>))
+ (:slots . (:variety :colour :quality)))
+@end example
+
+@noindent
+and its instance could look like:
+
+@example
+((:class . <apple>)
+ (:variety . renetta)
+ (:colour . green)
+ (:quality . high))
+@end example
 
 
 @c ------------------------------------------------------------
@@ -853,16 +913,7 @@ precedence list.
 
 @defun list-of-slots @var{object}
 Return a list of symbols representing the slot names of
-@var{class-object}.
-@end defun
-
-
-@defun list-of-instance-slots @var{object}
-Return a list of symbols representing the slot names, excluding the
-slots that are part of the @value{PACKAGE} infrastructure.
-
-This is the list of slots that was given to @func{make-class} or
-@func{define-class}.
+@var{class-object}.  The symbol @code{:class} is excluded.
 @end defun
 
 
@@ -880,7 +931,6 @@ The table of conditions follows:
 	(else #f)))
 
 @end multitable
-
 @end defun
 
 
