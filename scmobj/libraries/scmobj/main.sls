@@ -46,9 +46,8 @@
       <class> <entity-class>
 
     <circular-list> <dotted-list> <proper-list> <list> <pair>
-    <vector> <hashtable> <record>
-    <input-port> <output-port> <port>
-    <condition> <bytevector>
+    <vector> <bytevector> <hashtable> <record> <condition>
+    <binary-port> <textual-port> <input-port> <output-port> <port>
     <fixnum> <flonum> <integer> <integer-valued>
     <rational> <rational-valued> <real> <real-valued>
     <complex> <number>
@@ -58,8 +57,9 @@
     make-class make make-generic-function
 
     ;;Class inspection.
-    class-of subclass? class-definition-name class-precedence-list
-    list-of-slots
+    class-of
+    class-definition-name class-precedence-list class-slots
+    class? instance? is-a? subclass?
 
     ;;Slot accessors.
     slot-ref slot-set! 
@@ -69,6 +69,7 @@
     scmobj:the-next-method-func scmobj:the-next-method-pred)
   (import (rnrs)
 	  (rnrs mutable-pairs (6))
+	  (only (ikarus) pretty-print printf)
 	  (except (srfi lists))
 	  (srfi parameters))
 
@@ -76,7 +77,7 @@
 
 ;;;page
 ;;; ------------------------------------------------------------
-;;; Helper functions and syntaxes.
+;;; Helper functions and syntaxes: generic routines.
 ;;; ------------------------------------------------------------
 
 (define mapcan
@@ -115,6 +116,40 @@
 
 ;;;page
 ;;; ------------------------------------------------------------
+;;; Helper functions and syntaxes: class instantiation.
+;;; ------------------------------------------------------------
+
+;;;Given a list  of superclasses for class <x>,  build and return
+;;;the class  precedence list for  <x> to be used  in multimethod
+;;;dispatching.
+;;;
+(define (build-class-precedence-list . superclasses)
+  (if (null? superclasses)
+      #f
+    (delete-duplicates
+     (concatenate
+      (map
+	  (lambda (super)
+	    (cons super (class-precedence-list super)))
+	superclasses))
+     eq?)))
+
+;;;Given the list of direct slot names for class <x> and its list
+;;;of superclasses:  build and  return the class  precedence list
+;;;for <x> to be used in multimethod dispatching.
+;;;
+(define (build-slot-list direct-slots . superclasses)
+  (delete-duplicates
+   (concatenate (cons direct-slots
+		      (map (lambda (s)
+			     (slot-ref s ':slots))
+			superclasses)))
+   eq?))
+
+;;; ------------------------------------------------------------
+
+;;;page
+;;; ------------------------------------------------------------
 ;;; Access to slots.
 ;;; ------------------------------------------------------------
 
@@ -144,10 +179,86 @@
   (slot-ref class ':class-definition-name))
 
 (define (class-precedence-list class)
-  (slot-ref class ':class-precedence-list))
+  (or (slot-ref class ':class-precedence-list) '()))
 
-(define (list-of-slots object)
-  (slot-ref object ':slots))
+(define (class-slots object)
+  (or (slot-ref object ':slots) '()))
+
+(define (instance? value)
+  (and (proper-list? value)
+       (pair? (car value))
+       (eq? ':class (caar value))
+       (class? (cdar value))))
+
+(define (class? value)
+  (and (proper-list? value)
+       (= 4 (length value))
+       (first-class-slot?  (car value))
+       (second-class-slot? (cadr value))
+       (third-class-slot?  (caddr value))
+       (fourth-class-slot? (cadddr value))))
+
+(define (is-a? object class)
+  (let ((full-class-list (let ((c (class-of object)))
+			   (cons c (class-precedence-list c)))))
+    (and (memq class full-class-list)
+	 (if (memq <entity-class> full-class-list)
+	     #t
+	   ;;Check that all the slots are here.
+	   (let ((object-slots (cdr (map car object))))
+	     (every
+		 (lambda (slot-name)
+		   (let ((r (memq slot-name object-slots)))
+		     r))
+	       (class-slots class))))
+	 ;;Make sure that it returns #t not a generic true.
+	 #t)))
+
+;;; ------------------------------------------------------------
+
+;;;It has to be:
+;;;
+;;;   (:class . class-object)
+;;;
+(define (first-class-slot? value)
+  (and (pair? value)
+       (eq? ':class (car value))
+       (eq? <class> (cdr value))))
+
+;;;It has to be:
+;;;
+;;;   (:class-definition-name . symbol)
+;;;
+(define (second-class-slot? value)
+  (and (pair? value)
+       (eq? ':class-definition-name (car value))
+       (symbol? (cdr value))))
+
+;;; It has to be:
+;;; 
+;;;   (:class-precedence-list . #f)
+;;;   (:class-precedence-list . (... classes ...))
+;;;
+(define (third-class-slot? value)
+  (and (pair? value)
+       (eq? ':class-precedence-list (car value))
+       (let ((v (cdr value)))
+	 (or (not v)
+	     (and (proper-list? v)
+		  (every class? v))))))
+       
+;;;It has to be:
+;;;
+;;;   (:pairs . #f)
+;;;   (:pairs . (... symbols ...))
+;;;
+(define (fourth-class-slot? value)
+  (and (pair? value)
+       (eq? ':slots (car value))
+       (let ((v (cdr value)))
+	 (or (not v)
+	     (and (proper-list? v)
+		  (every symbol? v))))))
 
 ;;; ------------------------------------------------------------
 
@@ -157,34 +268,31 @@
 ;;; ------------------------------------------------------------
 
 (define <class>
-  (let ((c '((:class . #f)
-	     (:class-definition-name . <class>)
-	     (:class-precedence-list . ())
-	     (:slots . (:class-definition-name
-			:class-precedence-list
-			:slots)))))
-    (set-cdr! (car c) c)
-    c))
+  '#0=((:class . #0#)
+       (:class-definition-name . <class>)
+       (:class-precedence-list . #f)
+       (:slots . (:class-definition-name :class-precedence-list :slots))))
 
 (define <entity-class>
   `((:class . ,<class>)
     (:class-definition-name . <entity-class>)
-    (:class-precedence-list . (,<class>))
-    (:slots . ())))
+    (:class-precedence-list . #f)
+    (:slots . #f)))
 
 ;;; ------------------------------------------------------------
 
 (define-syntax define-entity-class
   (syntax-rules ()
     ((_ ?name)
-     (define-entity-class ?name <entity-class>))
-    ((_ ?name ?superclass)
+     (define-entity-class ?name ()))
+    ((_ ?name (?superclass ...))
      (define ?name
-       `((:class . <entity-class>)
+       `((:class . ,<entity-class>)
 	 (:class-definition-name . ?name)
-	 (:class-precedence-list . (?superclass
-				    ,@(cdr (assq ':class-precedence-list ?superclass))))
-	 (:slots . ()))))))
+	 (:class-precedence-list . ,(build-class-precedence-list ?superclass ...))
+	 (:slots . ()))))
+    ((_ ?name ?superclass)
+     (define-entity-class ?name (?superclass)))))
 
 (define-entity-class <pair>)
 (define-entity-class <list>		<pair>)
@@ -194,14 +302,11 @@
 (define-entity-class <vector>)
 (define-entity-class <hashtable>)
 
-;;There exist TEXTUAL-PORT? and BINARY-PORT? but these attributes
-;;are not mutually exclusive with input and output port.  So they
-;;cannot  be  made classes  without  adding  a  predicate in  the
-;;definition of the  entity class, and then using  it in CLASS-OF
-;;and SUBCLASS?.
 (define-entity-class <port>)
 (define-entity-class <input-port>	<port>)
 (define-entity-class <output-port>	<port>)
+(define-entity-class <binary-port>	<port>)
+(define-entity-class <textual-port>	<port>)
 
 (define-entity-class <record>)
 (define-entity-class <condition>	<record>)
@@ -248,7 +353,7 @@
   (cons (cons ':class class)
 	(map (lambda (x)
 	       (cons x ':uninitialized))
-	  (slot-ref class ':slots))))
+	  (class-slots class))))
 
 ;;;Interpret SLOT-VALUES as list of alternate symbols and values,
 ;;;where the symbols are slot names.
@@ -271,65 +376,31 @@
 ;;;
 (define-syntax make-class
   (syntax-rules ()
-    ((make-class () (?slot ...))
-     (make-class (<class>) (?slot ...)))
+    ((make-class ())
+     (make-class () ()))
     ((make-class (?superclass ...) (?slot ...))
-     (let ((superclasses (list ?superclass ...)))
-       (make <class>
-         ':class-precedence-list (build-class-precedence-list superclasses)
-         ':slots (build-slot-list '(?slot ...) superclasses))))))
-
-;;;Example: let's say that the super classes are:
-;;;
-;;;	(<a0>
-;;;	 <b0>
-;;;	 <c0>)
-;;;
-;;;we take the list of their superclasses:
-;;;
-;;;	((<a0> <a1> <a2>)
-;;;	 (<b0> <b1>)
-;;;	 (<c0> <c1> <c2>))
-;;;
-;;;and compose them to have:
-;;;
-;;;	(<a0> <b0> <c0>  <a1> <b1> <c1>  <a2> <c2>)
-;;;
-;;;at the end we remove the duplicates.
-;;;
-;;;Remember  that a  list of  superclasses for  a class  does not
-;;;include the class itself.
-(define (build-class-precedence-list superclasses)
-  (delete-duplicates
-   (mapcan
-    (lambda (super)
-      (cons super (slot-ref super ':class-precedence-list)))
-    superclasses)
-   eq?))
-
-;;;Put all the slot names into a single list.
-;;;
-;;;The  form  of this  function  is one  of  the  reasons why  the
-;;;":class" slot is not in the list of slots.
-;;;
-(define (build-slot-list direct-slots superclasses)
-  (delete-duplicates
-   (append direct-slots
-	   (concatenate
-	    (map (lambda (s)
-		   (slot-ref s ':slots))
-	      superclasses)))
-   eq?))
+     `((:class . ,<class>)
+       (:class-definition-name . :uninitialized)
+       (:class-precedence-list
+	. ,(build-class-precedence-list ?superclass ...))
+       (:slots
+	. ,(build-slot-list '(?slot ...) ?superclass ...))))))
 
 ;;;Define a binding for a class, giving it a name.
 ;;;
 (define-syntax define-class
   (syntax-rules ()
-    ((_ ?name ?superclasses ?slot ...)
+    ((_ ?name (?superclass ...))
+     (define-class ?name (?superclass ...) ()))
+    ((_ ?name (?superclass ...) (?slot ...))
      (define ?name
-       (let ((c (make-class ?superclasses (?slot ...))))
-	 (slot-set! c ':class-definition-name (quote ?name))
-	 c)))))
+       `((:class . ,<class>)
+	 (:class-definition-name . ?name)
+	 (:class-precedence-list
+	  . ,(build-class-precedence-list ?superclass ...))
+	 (:slots
+	  . ,(build-slot-list '(?slot ...) ?superclass ...)))))))
+
 
 ;;; ------------------------------------------------------------
 
@@ -342,7 +413,7 @@
   (cond ((eq? c1 c2) #t)
 	((eq? c1 #t) #f)
 	((eq? c2 #t) #t)
-	((memq c2 (slot-ref c1 ':class-precedence-list)) #t)
+	((memq c2 (class-precedence-list c1)) #t)
 	(else #f)))
 
 (define (class-of value)
@@ -369,6 +440,8 @@
      
    ((input-port? value)		<input-port>)
    ((output-port? value)	<output-port>)
+   ((binary-port? value)	<binary-port>)
+   ((textual-port? value)	<textual-port>)
    ((port? value)		<port>)
 
    ((condition? value)		<condition>)
@@ -472,11 +545,11 @@
 ;;;to a list of arguments.
 ;;;
 (define-class <generic> ()
-  :interface-procedure
-  :add-primary-method
-  :add-before-method
-  :add-after-method
-  :add-around-method)
+  (:interface-procedure
+   :add-primary-method
+   :add-before-method
+   :add-after-method
+   :add-around-method))
 
 ;;;This is an alist that will hold all the generic functions ever
 ;;;created.  The  keys are  the interface procedures,  the values
@@ -699,7 +772,7 @@
 
 (define (add-method-to-generic-function
 	 slot-name generic-function method-signature method-func)
-  ((slot-ref (hashtable-ref *generic-procedures* generic-function) slot-name)
+  ((slot-ref (hashtable-ref *generic-procedures* generic-function #f) slot-name)
    method-signature method-func))
 
 ;;; ------------------------------------------------------------
