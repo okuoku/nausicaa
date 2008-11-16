@@ -608,9 +608,13 @@ built in object type.
 @example
 <class>
    |
-   |                             -> <output-port>
+   |                             -> <input-port>
    |                            |
-   |               --> <port> --+-> <input-port>
+   |                            +-> <output-port>
+   |                            |
+   |                            +-> <binary-port>
+   |                            |
+   |               --> <port> --+-> <textual-port>
    |              |
    |              +--> <record> --> <condition>
    v              |
@@ -764,6 +768,9 @@ Class for values that satisfy @func{flonum?}.
 @section Port types
 
 
+The following classes for input/output ports are predefined.
+
+
 @deftp {Class} <port>
 Class for values that satisfy @func{port?}.
 @end deftp
@@ -777,6 +784,25 @@ Class for values that satisfy @func{input-port?}.
 @deftp {Class} <output-port>
 Class for values that satisfy @func{output-port?}.
 @end deftp
+
+
+@deftp {Class} <textual-port>
+Class for values that satisfy @func{textual-port?}.
+@end deftp
+
+
+@deftp {Class} <binary-port>
+Class for values that satisfy @func{binary-port?}.
+@end deftp
+
+
+The binary/textual attributes are not mututally exclusive with the
+input/output attributes, so if we need it, we can use multiple
+inheritance:
+
+@example
+(define-class <binary-input-port> (<binary-port> <input-port>))
+@end example
 
 
 @c ------------------------------------------------------------
@@ -798,7 +824,7 @@ Class for values that satisfy @func{condition?}.
 @chapter Making classes
 
 
-@deffn Syntax make-class @var{list-of-superclasses} @var{list-of-slots}
+@deffn Syntax make-class @var{list-of-superclasses} @var{class-slots}
 Build and return a new class value.
 
 @var{list-of-superclasses} is the list of superclasses of the new
@@ -815,7 +841,7 @@ a list containing only the @class{class} value;
 a list of previously defined base classes.
 @end itemize
 
-@var{list-of-slots} must be a list of symbols representing the slot
+@var{class-slots} must be a list of symbols representing the slot
 names.  By convention their names should start with a colon character,
 @code{:}.
 
@@ -825,7 +851,7 @@ applied to them will return the symbol @code{:uninitialized}.
 @end deffn
 
 
-@deffn Syntax define-class @var{name} @var{list-of-superclasses} . @var{list-of-slots}
+@deffn Syntax define-class @var{name} @var{list-of-superclasses} . @var{class-slots}
 A wrapper for @func{make-class} that defines a new variable named
 @var{name} and assignes the new class to it.  The class definition name
 of the class is initialised to @var{name}.
@@ -911,7 +937,7 @@ precedence list.
 @end defun
 
 
-@defun list-of-slots @var{object}
+@defun class-slots @var{object}
 Return a list of symbols representing the slot names of
 @var{class-object}.  The symbol @code{:class} is excluded.
 @end defun
