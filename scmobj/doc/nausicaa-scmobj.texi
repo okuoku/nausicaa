@@ -373,8 +373,8 @@ The original code is available from:
 @center @url{http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html}
 
 @noindent
-(last checked Thu Nov 13, 2008).  The original code has been a little
-overhauled to make it work with @rnrs{6} libraries.
+(last checked Thu Nov 13, 2008).  The original code has been overhauled
+to make it work with @rnrs{6} libraries and Ikarus.
 
 The package is distributed under the terms of the @gnu{} Lesser General
 Public License (@lgpl{}) and is:
@@ -477,12 +477,13 @@ meta object protocol.
 
 The library is a repackaging of ScmObj by Dorai Sitaram, ported to
 @rnrs{6} and Ikarus, and overhauled to make it: simple to understand,
-fully documented, with @api{} compatible with the core @api{} in
-Tiny--@clos{}.
+fully documented, with @api{} compatible with the core @api{} in Gregor
+Kiczales's Tiny--@clos{}.
 
 
 @menu
 * overview model::              Classes and instances.
+* overview example::            Objects layout examples.
 @end menu
 
 
@@ -495,9 +496,11 @@ Tiny--@clos{}.
 
 @value{PACKAGE} objects, that is classes and instances, are association
 lists: proper lists of pairs whose cars are symbols and whose cdrs can
-be any value: by convention the symbols must have name starting with a
-colon @code{:}.  In this document: each pair is called slot; the symbol
-is called slot name; the value is called slot value.
+be any value.
+
+In this document: each pair is called slot; the symbol is called slot
+name; the value is called slot value.  By convention the symbols must
+have name starting with a colon @code{:}.
 
 A class object is an alist whose first slot's name is @code{:class}, and
 the other slot names are:
@@ -513,9 +516,13 @@ and the other slot names are configured by the user.
 
 
 @deffn Slot :class
-It must be the first slot for both class and instance objects.  For a
-class object: the value must be the predefined @class{class} object.
+It must be the first slot for both class and instance objects.
+
 For an instance object: the value must be the class of the instance.
+
+For a class object: the value must be the predefined @class{class}
+object, or a class object that has @class{class} in its class precedence
+list.  So a class object is a special case of instance object.
 @end deffn
 
 
@@ -528,8 +535,9 @@ parentheses.  It is useful to print debug messages.
 
 @deffn Slot :class-precedence-list
 A class object's slot whose value is a list representing the hierarchy
-of superclasses for the instance objects of the class.  It is used for
-dispatching of multimethods.
+of superclasses for the instance objects of the class, or @false{} if
+the class has no precedence list.  It is used for dispatching of
+multimethods.
 
 Notice that the value of this slot does @strong{not} hold the class
 object itself.
@@ -538,8 +546,8 @@ object itself.
 
 @deffn Slot :slots
 A class object's slot whose value is the list of slot names for the
-instances of the class.  For the predefined @class{class} object, the
-list is:
+instances of the class, or @false{} if instances have no slots.  For the
+predefined @class{class} object, the list is:
 
 @example
 (:class-definition-name :class-precedence-list :slots)
@@ -549,24 +557,144 @@ Notice that the symbol @code{:class} is @strong{not} included.
 @end deffn
 
 
-As an example, pretty printing the layout of an imaginary @class{apple}
-class object by showing the class definition names could yield:
+@c ------------------------------------------------------------
+
+@c page
+@node overview example
+@section Objects layout examples
+
+
+In the following it is not always convenient to show the full layout; to
+highlight informations of interest it is better to omit the layout of
+class object nested into class objects.  When this is done the string
+@code{%apple%} is included in place of the layout of the class
+@class{apple}.
+
+Let's start with the layout of @class{class} itself:
 
 @example
-((:class . <class>)
- (:class-definition-name . <apple>)
- (:class-precedence-list . (<fruit> <biologic>))
- (:slots . (:variety :colour :quality)))
+#0=((:class . #0#)
+    (:class-definition-name . <class>)
+    (:class-precedence-list . #f)
+    (:slots . (:class-definition-name
+               :class-precedence-list
+               :slots)))
 @end example
 
 @noindent
-and its instance could look like:
+we see that the class of @class{class} is @class{class} itself.
+
+As an example of class hierarchy, let's define a class with no
+superclass and no slots:
 
 @example
-((:class . <apple>)
+(define-class <biologic>)
+@end example
+
+@noindent
+its layout is this:
+
+@example
+((:class . %class%)
+ (:class-definition-name . <biologic>)
+ (:class-precedence-list . #f)
+ (:slots . #f))
+@end example
+
+@noindent
+now we derive a class from it, still without slots:
+
+@example
+(define-class <fruit> (<biologic>))
+@end example
+
+@noindent
+and the layout of the subclass is:
+
+@example
+((:class . %class%)
+ (:class-definition-name . <fruit>)
+ (:class-precedence-list . (%biologic%))
+ (:slots . #f))
+@end example
+
+@noindent
+finally we subclass again adding slots:
+
+@example
+(define-class <apple> (<fruit>)
+  (:variety :colour :quality))
+@end example
+
+@noindent
+and the layout is:
+
+@example
+((:class . %class%
+ (:class-definition-name . <apple>)
+ (:class-precedence-list . (%fruit% %biologic%))
+ (:slots . (:variety :colour :quality)))
+@end example
+
+We have a usable class, so we instantiate it:
+
+@example
+(define o (make <apple>
+            ':variety 'renetta
+            ':colour  'green
+            ':quality 'high))
+@end example
+
+@noindent
+and the layout of the instance is:
+
+@example
+((:class . %apple%)
  (:variety . renetta)
  (:colour . green)
  (:quality . high))
+@end example
+
+We may want to add a price:
+
+@example
+(define-class <price> () (:tag))
+
+(define-class <priced-apple> (<apple> <price>))
+@end example
+
+@noindent
+and the layout of the class with multiple inheritance is:
+
+@example
+((:class . %class%)
+ (:class-definition-name . <priced-apple>)
+ (:class-precedence-list . (%apple%
+                            %fruit%
+                            %biologic%
+                            %price%))
+ (:slots (:variety :colour :quality :tag)))
+@end example
+
+The instance of a priced apple:
+
+@example
+(define p (make <priced-apple>
+            ':variety 'renetta
+            ':colour  'green
+            ':quality 'high
+            ':tag 100))
+@end example
+
+@noindent
+has layout:
+
+@example
+((:class . %priced-apple%)
+ (:variety . renetta)
+ (:colour . green)
+ (:quality . high)
+ (:tag . 100))
 @end example
 
 
