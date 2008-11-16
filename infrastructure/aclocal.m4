@@ -33,9 +33,9 @@ dnl --------------------------------------------------------------------
 
 dnl Synopsis:
 dnl
-dnl   NAUSICAA_ENABLE_OPTION(<1 variable>,<2 identifier>,<3 default>,
-dnl                          <4 checking-description>,
-dnl                          <5 option-description>)
+dnl   DS_ENABLE_OPTION(<1 variable>,<2 identifier>,<3 default>,
+dnl                    <4 checking-description>,
+dnl                    <5 option-description>)
 dnl
 dnl Description:
 dnl   
@@ -45,13 +45,13 @@ dnl   or "no".
 dnl
 dnl Usage example:
 dnl
-dnl	NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
+dnl	DS_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
 dnl	  [whether compiled files will be built and installed],
 dnl	  [disable installation of precompiled libraries])
 dnl
-AC_DEFUN([NAUSICAA_ENABLE_OPTION],[
+AC_DEFUN([DS_ENABLE_OPTION],[
 AC_MSG_CHECKING([$4])
-AC_ARG_ENABLE([$2],AC_HELP_STRING([--disable-$2],[$5 (default: $3)]),[
+AC_ARG_ENABLE([$2],AC_HELP_STRING([--enable-$2],[$5 (default: $3)]),[
 if test "$enableval" = yes ; then
   $1=yes
 else
@@ -64,7 +64,7 @@ AC_SUBST([$1])
 
 dnl Synopsis:
 dnl
-dnl   NAUSICAA_PROGRAM(<1 variable>,<2 program-name>,<3 description>)
+dnl   DS_PROGRAM(<1 variable>,<2 program-name>,<3 description>)
 dnl
 dnl Description:
 dnl
@@ -73,55 +73,53 @@ dnl   variable.
 dnl
 dnl Usage example:
 dnl
-dnl   NAUSICAA_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
+dnl   DS_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
 dnl   
-AC_DEFUN([NAUSICAA_PROGRAM],[
+AC_DEFUN([DS_PROGRAM],[
 AC_PATH_PROG([$1],[$2],[:])
 AC_ARG_VAR([$1],[$3])
 ])
 
 dnl Synopsis:
 dnl
-dnl	NAUSICAA_WITH_TMPFILE(<1 with-temp-file-chunk>,<2 after-chunk>)
+dnl   DS_WITH_TMPFILE(<1 with-temp-file-chunk>,<2 after-chunk>)
 dnl
 dnl Description:
 dnl
-dnl	Execute a slab of code that uses a temporary file.
+dnl   Execute a chunk of code that  uses a temporary file.  The chunk in
+dnl   <with-temp-file-chunk>  can  use  the  temporary file  whose  full
+dnl   pathname is  "${ds_TMPFILE}".  The chunk in  <after-chunk> will be
+dnl   evaluated after  the temporary  file has been  removed, so  it can
+dnl   safely report errors and terminate the script.
 dnl
-dnl	  The chunk in <with-temp-file-chunk> can use the temporary file
-dnl	whose full pathname is  in the variable "nausicaa_TMPFILE".
+dnl     The  code  that  creates  the  temporary  file  comes  from  the
+dnl   documentation of GNU Autoconf (so blame them, not me!); it makes a
+dnl   temporary  directory under "$TMPDIR"  (which defaults  to "/tmp").
+dnl   Use  "mktemp" if possible;  otherwise fall  back on  "mkdir", with
+dnl   "$RANDOM" to make collisions less likely.
 dnl
-dnl	  The  chunk  in  <after-chunk>  will  be  evaluated  after  the
-dnl	temporary file has been removed, so it can safely report errors.
-dnl
-AC_DEFUN([NAUSICAA_WITH_TMPFILE],[
+AC_DEFUN([DS_WITH_TMPFILE],[
 
-dnl Create  a   temporary  file  and   store  its  full   pathname  into
-dnl "nausicaa_TMPFILE".  This chunk of code comes from the documentation
-dnl of GNU Autoconf (so blame them, not me!).
-dnl
-dnl   Create  a  temporary  directory  "$nausicaa_TMPDIR"  in  "$TMPDIR"
-dnl (default "/tmp").  Use "mktemp"  if possible; otherwise fall back on
-dnl "mkdir", with $RANDOM to make collisions less likely.
+dnl This initialises TMPDIR to "/tmp" if not already set to something.
 : ${TMPDIR=/tmp}
 {
-    nausicaa_TMPDIR=`
+    ds_TMPDIR=`
     (umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null
     ` &&
-    test -n "${nausicaa_TMPDIR}" && test -d "${nausicaa_TMPDIR}"
+    test -n "${ds_TMPDIR}" && test -d "${ds_TMPDIR}"
 } || {
-    nausicaa_TMPDIR=${TMPDIR}/foo$$-$RANDOM
-    (umask 077 && mkdir "${nausicaa_TMPDIR}")
+    ds_TMPDIR=${TMPDIR}/foo$$-$RANDOM
+    (umask 077 && mkdir "${ds_TMPDIR}")
 } || exit $?
 
-nausicaa_TMPFILE=${nausicaa_TMPDIR}/temporary
+ds_TMPFILE=${ds_TMPDIR}/temporary.txt
 
 dnl --------------------------------------------------------------------
 dnl Chunk with temporary file usage.
 
 $1
 
-rm -fr "${nausicaa_TMPDIR}"
+rm -fr "${ds_TMPDIR}"
 
 dnl --------------------------------------------------------------------
 dnl Chunk after temporary file usage.
@@ -134,48 +132,54 @@ dnl --------------------------------------------------------------------
 
 dnl page
 dnl --------------------------------------------------------------------
-dnl Begin of NAUSICAA_BEGIN.
+dnl Common blocks.
 dnl --------------------------------------------------------------------
 
-AC_DEFUN([NAUSICAA_BEGIN],[
+dnl Synopsis:
+dnl
+dnl   DS_COMMON_PROGRAMS()
+dnl
+dnl Description:
+dnl
+dnl   Initialises  a  set  of  variables  to  the  pathnames  of  common
+dnl   programs.   Even  if  not  all  these programs  are  used  in  the
+dnl   Makefile, it does not hurt to check for them.
+dnl
+AC_DEFUN([DS_COMMON_PROGRAMS],[
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+DS_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
+DS_PROGRAM([BZIP],[bzip2],[the bzip2 compressor program])
+DS_PROGRAM([CAT],[cat],[the GNU cat program])
+DS_PROGRAM([CP],[cp],[copies files])
+DS_PROGRAM([DATE],[date],[a program that prints the current date])
+DS_PROGRAM([FIND],[find],[the GNU find program])
+DS_PROGRAM([GAWK],[gawk],[the GNU awk program])
+DS_PROGRAM([GREP],[grep],[the GNU grep program])
+DS_PROGRAM([GZIP],[gzip],[the gzip compressor program])
+DS_PROGRAM([M4],[m4],[the GNU m4 preprocessor])
+DS_PROGRAM([MAKEINFO],[makeinfo],[builds docs from Texinfo source])
+DS_PROGRAM([MKDIR],[mkdir],[creates directories recursively])
+DS_PROGRAM([MV],[mv],[move files around])
+DS_PROGRAM([RM],[rm],[deletes files and directories recursively])
+DS_PROGRAM([RMDIR],[rmdir],[deletes empty directories])
+DS_PROGRAM([SED],[sed],[the GNU sed program])
+DS_PROGRAM([SORT],[sort],[the GNU sort program])
+DS_PROGRAM([SUDO],[sudo],[the sudo superuser executor])
+DS_PROGRAM([SYMLINK],[ln],[program used create symbolic links])
+DS_PROGRAM([TAR],[tar],[the GNU tar program])
+])
 
-AC_PREREQ(2.60)
-AC_CONFIG_AUX_DIR([../infrastructure])
-
-dnl --------------------------------------------------------------------
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Options.
-dnl --------------------------------------------------------------------
-
-NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
-  [whether compiled files will be built and installed],
-  [disable installation of precompiled libraries])
-
-NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
-  [whether source files will be installed],
-  [enable installation of source files])
-
-NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_DOC],[doc],[yes],
-  [whether documentation files will be installed],
-  [disable installation of documentation files])
-
-NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_INFO_DOC],[doc-info],[yes],
-  [whether documentation in Info format will be installed],
-  [disable installation of Info documentation])
-
-NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_HTML_DOC],[doc-html],[yes],
-  [whether documentation in HTML format will be installed],
-  [disable installation of HTML documentation])
-
-dnl --------------------------------------------------------------------
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Common directories.
-dnl --------------------------------------------------------------------
-
+dnl Synopsis:
+dnl
+dnl   DS_COMMON_DIRECTORIES()
+dnl
+dnl Description:
+dnl
+dnl   Initialises a bunch  of variables representing useful installation
+dnl   pathnames.
+dnl
+AC_DEFUN([DS_COMMON_DIRECTORIES],[
 AC_SUBST([PKG_ID],[\${PACKAGE_NAME}-\${PACKAGE_VERSION}])
 AC_SUBST([PKG_DIR],[\${PACKAGE_NAME}/\${PACKAGE_VERSION}])
 AC_SUBST([pkgdatadir],[\${datadir}/\${PKG_DIR}])
@@ -187,106 +191,166 @@ AC_SUBST([pkgincludedir],[\${includedir}/\${PKG_DIR}])
 AC_SUBST([pkglibdir],[\${libdir}/\${PKG_DIR}])
 AC_SUBST([pkglibexecdir],[\${libexecdir}/\${PKG_DIR}])
 AC_SUBST([pkgsysconfdir],[\${sysconfdir}/\${PKG_DIR}])
+])
 
-dnl --------------------------------------------------------------------
+dnl Synopsis:
+dnl
+dnl   DS_SLACKWARE_TOOLS()
+dnl
+dnl Description:
+dnl
+dnl   Find Slackware package management tools.
+dnl
+AC_DEFUN([DS_SLACKWARE_TOOLS],[
 
-dnl page
-dnl --------------------------------------------------------------------
-dnl Programs.
-dnl --------------------------------------------------------------------
+DS_ENABLE_OPTION(ds_slackware_USE_LOCAL_TOOLS,slackware-local-tools,no,
+		 [whether Slackware tools under installation prefix will be used],
+                 [use Slackware tools under installation prefix])
 
-AC_PROG_INSTALL
-AC_PROG_MAKE_SET
 
-NAUSICAA_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
-NAUSICAA_PROGRAM([BZIP],[bzip2],[the bzip2 compressor program])
-NAUSICAA_PROGRAM([CAT],[cat],[the GNU cat program])
-NAUSICAA_PROGRAM([CP],[cp],[copies files])
-NAUSICAA_PROGRAM([DATE],[date],[a program that prints the current date])
-NAUSICAA_PROGRAM([FIND],[find],[the GNU find program])
-NAUSICAA_PROGRAM([GAWK],[gawk],[the GNU awk program])
-NAUSICAA_PROGRAM([GREP],[grep],[the GNU grep program])
-NAUSICAA_PROGRAM([GZIP],[gzip],[the gzip compressor program])
-NAUSICAA_PROGRAM([M4],[m4],[the GNU m4 preprocessor])
-NAUSICAA_PROGRAM([MAKEINFO],[makeinfo],[builds docs from Texinfo source])
-NAUSICAA_PROGRAM([MKDIR],[mkdir],[creates directories recursively])
-NAUSICAA_PROGRAM([MV],[mv],[move files around])
-NAUSICAA_PROGRAM([RM],[rm],[deletes files and directories recursively])
-NAUSICAA_PROGRAM([RMDIR],[rmdir],[deletes empty directories])
-NAUSICAA_PROGRAM([SED],[sed],[the GNU sed program])
-NAUSICAA_PROGRAM([SORT],[sort],[the GNU sort program])
-NAUSICAA_PROGRAM([SUDO],[sudo],[the sudo superuser executor])
-NAUSICAA_PROGRAM([SYMLINK],[ln],[program used create symbolic links])
-NAUSICAA_PROGRAM([TAR],[tar],[the GNU tar program])
+ds_PATH=${PATH}
+if test "${ds_slackware_USE_LOCAL_TOOLS}" = yes ; then
+  PATH=${prefix}/sbin:${PATH}
+else
+  PATH=/sbin:${PATH}
+fi
 
-NAUSICAA_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
-NAUSICAA_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
+DS_PROGRAM([slack_MAKEPKG_PROGRAM],[makepkg],[the Slackware package maker])
+DS_PROGRAM([slack_INSTALLPKG_PROGRAM],[installpkg],[the Slackware package installer])
+DS_PROGRAM([slack_REMOVEPKG_PROGRAM],[removepkg],[the Slackware package remover])
+DS_PROGRAM([slack_UPGRADEPKG_PROGRAM],[upgradepkg],[the Slackware package upgrader])
 
-dnl --------------------------------------------------------------------
+PATH=${ds_PATH}
+])
 
-dnl page
-dnl --------------------------------------------------------------------
-dnl Packaging tools.
-dnl --------------------------------------------------------------------
+dnl Synopsis:
+dnl
+dnl   DS_REDHAT_TOOLS()
+dnl
+dnl Description:
+dnl
+dnl   Find RedHat package management tools.
+dnl
+AC_DEFUN([DS_REDHAT_TOOLS],[
+DS_PROGRAM([redhat_BUILD_PROGRAM],[rpmbuild],[the RedHat package maker])
+DS_PROGRAM([redhat_CORE_PROGRAM],[rpm],[the RedHat package manager])
+])
 
-dnl Find Slackware package management tools.
-
-nausicaa_PATH=${PATH}
-PATH=/sbin:${PATH}
-
-NAUSICAA_PROGRAM([slack_MAKEPKG_PROGRAM],[makepkg],[the Slackware package maker])
-NAUSICAA_PROGRAM([slack_INSTALLPKG_PROGRAM],[installpkg],[the Slackware package installer])
-NAUSICAA_PROGRAM([slack_REMOVEPKG_PROGRAM],[removepkg],[the Slackware package remover])
-NAUSICAA_PROGRAM([slack_UPGRADEPKG_PROGRAM],[upgradepkg],[the Slackware package upgrader])
-
-PATH=${nausicaa_PATH}
-
-dnl --------------------------------------------------------------------
-dnl Find RedHat package management tools.
-
-NAUSICAA_PROGRAM([redhat_BUILD_PROGRAM],[rpmbuild],[the RedHat package maker])
-NAUSICAA_PROGRAM([redhat_CORE_PROGRAM],[rpm],[the RedHat package manager])
-
-dnl --------------------------------------------------------------------
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl End of NAUSICAA_BEGIN.
-dnl --------------------------------------------------------------------
-
-]) 
-
-dnl --------------------------------------------------------------------
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Done.
-dnl --------------------------------------------------------------------
-
-AC_DEFUN([NAUSICAA_END],[
-
-AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
-AC_CONFIG_FILES([meta.d/redhat/spec-file:meta/redhat/spec-file.in])
-
-AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
-AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
-
+dnl Synopsis:
+dnl
+dnl   DS_PACMAN_TOOLS()
+dnl
+dnl Description:
+dnl
+dnl   Find Pacman package management tools.
+dnl
+AC_DEFUN([DS_PACMAN_TOOLS],[
+DS_PROGRAM([pacman_PROGRAM],[pacman],[the Pacman package manager])
 ])
 
 dnl --------------------------------------------------------------------
 
 dnl page
 dnl --------------------------------------------------------------------
-dnl Other macros.
+dnl Nausicaa specific blocks.
 dnl --------------------------------------------------------------------
 
 dnl Synopsis:
 dnl
-dnl   IKARUS_CHECK_LIBRARY(<NAME>, [IMPORT-SPEC],
-dnl                        [ACTION-IF-FOUND],
-dnl                        [ACTION-IF-NOT-FOUND])
+dnl   NAUSICAA_BEGIN()
+dnl   ... your directives ...
+dnl   NAUSICAA_END()
+dnl
+dnl Description
+AC_DEFUN([NAUSICAA_BEGIN],[
+AC_PREREQ(2.60)
+AC_CONFIG_AUX_DIR([../infrastructure])
+AC_CONFIG_SRCDIR([libraries/compile-all.sps])
+NAUSICAA_OPTIONS()
+DS_COMMON_PROGRAMS()
+DS_COMMON_DIRECTORIES()
+DS_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
+DS_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
+DS_SLACKWARE_TOOLS()
+DS_REDHAT_TOOLS()
+DS_PACMAN_TOOLS()
+]) 
+AC_DEFUN([NAUSICAA_END],[
+AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
+AC_CONFIG_FILES([meta.d/redhat/spec-file:meta/redhat/spec-file.in])
+AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
+AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_OPTIONS()
+dnl
+dnl Description:
+dnl
+dnl   Define the "configure" command  line option for the Nausicaa build
+dnl   infrastructure.
+dnl
+AC_DEFUN([NAUSICAA_OPTIONS],[
+DS_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
+  [whether compiled files will be built and installed],
+  [enable installation of precompiled libraries])
+DS_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
+  [whether source files will be installed],
+  [enable installation of source files])
+DS_ENABLE_OPTION([nausicaa_ENABLE_DOC],[doc],[yes],
+  [whether documentation files will be installed],
+  [enable installation of documentation files])
+DS_ENABLE_OPTION([nausicaa_ENABLE_INFO_DOC],[doc-info],[yes],
+  [whether documentation in Info format will be installed],
+  [enable installation of Info documentation])
+DS_ENABLE_OPTION([nausicaa_ENABLE_HTML_DOC],[doc-html],[yes],
+  [whether documentation in HTML format will be installed],
+  [enable installation of HTML documentation])
+])
+
+dnl --------------------------------------------------------------------
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Ikarus Scheme.
+dnl --------------------------------------------------------------------
+
+dnl Synopsis:
+dnl
+dnl   DS_WITH_OUTPUT_FROM_IKARUS_SCRIPT(<1 script>,
+dnl                                     <2 command line>,<3 code>)
+dnl
+dnl Description:
+dnl
+dnl   Evaluate an Ikarus <script> by  storing it in a temporary file and
+dnl   invoking  "${IKARUS}  --r6rs-script"  with  <command  line>,  then
+dnl   evaluate <code>.  The script is expected to output a line of text,
+dnl   which will be stored in "${ds_ANSWER}", so that <code> can examine
+dnl   it.
+dnl
+dnl     The script must have no quotes.
+dnl
+AC_DEFUN([DS_WITH_OUTPUT_FROM_IKARUS_SCRIPT],[
+DS_WITH_TMPFILE([
+dnl Chunk with with temporary file pathname in "${ds_TMPFILE}".
+
+ds_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+
+"${IKARUS}" --r6rs-script "${ds_TMPFILE}" $2`
+],[
+dnl Chunk that can read the output in "${ds_ANSWER}".
+$3
+])
+])
+
+dnl Synopsis:
+dnl
+dnl   DS_IKARUS_CHECK_LIBRARY(<NAME>, [IMPORT-SPEC],
+dnl                           [ACTION-IF-FOUND],
+dnl                           [ACTION-IF-NOT-FOUND])
 dnl
 dnl Description:
 dnl
@@ -312,13 +376,10 @@ dnl
 dnl   if  it is:  the output  variable 'HAS_IKARUS_LIB_LIST'  is  set to
 dnl   'yes'.
 dnl   
-AC_DEFUN([IKARUS_CHECK_LIBRARY],[
+AC_DEFUN([DS_IKARUS_CHECK_LIBRARY],[
 AC_MSG_CHECKING([availability of Ikarus library $2])
 
-NAUSICAA_WITH_TMPFILE([
-dnl Chunk with with temporary file pathname in "${nausicaa_TMPFILE}".
-
-nausicaa_ANSWER=`echo '(import (ikarus))
+DS_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (ikarus))
 
 (let ((lib-name (read (open-string-input-port
                         (cadr (command-line))))))
@@ -331,14 +392,10 @@ nausicaa_ANSWER=`echo '(import (ikarus))
   (display "yes\n")
   (exit))
 
-' >"${nausicaa_TMPFILE}"
+],['$2'],
 
-"${IKARUS}" --r6rs-script "${nausicaa_TMPFILE}" '$2'`
-],[
-dnl Chunk after remporary file removal.
-
-AC_MSG_RESULT([${nausicaa_ANSWER}])
-if test "${nausicaa_ANSWER}" = yes ; then
+AC_MSG_RESULT([${ds_ANSWER}])
+if test "${ds_ANSWER}" = yes ; then
 dnl Action if found.
 :
 $3
@@ -348,12 +405,15 @@ dnl Action if not found.
 $4
 fi
 
-AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
+AC_SUBST([HAS_IKARUS_LIB_$1],[$ds_ANSWER])
+)
 ])
 
-])
 
 dnl --------------------------------------------------------------------
 
 
 dnl end of file
+dnl Local Variables:
+dnl mode: autoconf
+dnl End:

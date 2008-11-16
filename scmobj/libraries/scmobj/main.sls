@@ -175,20 +175,33 @@
 ;;; Class inspection functions.
 ;;; ------------------------------------------------------------
 
-(define (class-definition-name class)
-  (slot-ref class ':class-definition-name))
+(define (class-definition-name class-object)
+  (slot-ref class-object ':class-definition-name))
 
-(define (class-precedence-list class)
-  (or (slot-ref class ':class-precedence-list) '()))
+(define (class-precedence-list class-object)
+  (or (slot-ref class-object ':class-precedence-list) '()))
 
-(define (class-slots object)
-  (or (slot-ref object ':slots) '()))
+(define (class-slots class-object)
+  (or (slot-ref class-object ':slots) '()))
+
+;;; ------------------------------------------------------------
+
+(define (instance-classes instance)
+  (let ((c (class-of instance)))
+    (cons c (class-precedence-list c))))
+
+;;; ------------------------------------------------------------
 
 (define (instance? value)
   (and (proper-list? value)
        (pair? (car value))
        (eq? ':class (caar value))
        (class? (cdar value))))
+
+(define (class?/light value)
+  (and (pair? (car value))
+       (eq? ':class (caar value))
+       (eq? <class> (cdar value))))
 
 (define (class? value)
   (and (proper-list? value)
@@ -198,9 +211,11 @@
        (third-class-slot?  (caddr value))
        (fourth-class-slot? (cadddr value))))
 
+(define (is-a?/light object class)
+  (memq class (instance-classes object)))
+
 (define (is-a? object class)
-  (let ((full-class-list (let ((c (class-of object)))
-			   (cons c (class-precedence-list c)))))
+  (let ((full-class-list (instance-classes object)))
     (and (memq class full-class-list)
 	 (if (memq <entity-class> full-class-list)
 	     #t
@@ -394,6 +409,8 @@
      (define-class ?name (?superclass ...) ()))
     ((_ ?name (?superclass ...) (?slot ...))
      (define ?name
+       ;;This is  the same as  MAKE-CLASS, but we also  store the
+       ;;class definition name in its slot.
        `((:class . ,<class>)
 	 (:class-definition-name . ?name)
 	 (:class-precedence-list
