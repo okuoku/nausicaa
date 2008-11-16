@@ -80,15 +80,6 @@
 ;;; Helper functions and syntaxes: generic routines.
 ;;; ------------------------------------------------------------
 
-(define mapcan
-  (lambda (f l . ll)
-    ;;Maps f columnwise across the l's, returning
-    ;;the spliced list of the result.
-    (let loop ((l l) (ll ll))
-      (if (null? l) '()
-	(append! (apply f (car l) (map car ll))
-		 (loop (cdr l) (map cdr ll)))))))
-
 (define-syntax position
   (syntax-rules ()
     ((_ ?element ?list)
@@ -139,12 +130,15 @@
 ;;;for <x> to be used in multimethod dispatching.
 ;;;
 (define (build-slot-list direct-slots . superclasses)
-  (delete-duplicates
-   (concatenate (cons direct-slots
-		      (map (lambda (s)
-			     (slot-ref s ':slots))
-			superclasses)))
-   eq?))
+  (let ((ell (delete-duplicates
+	      (concatenate (cons direct-slots
+				 (map (lambda (s)
+					(class-slots s))
+				   superclasses)))
+	      eq?)))
+    (if (null? ell)
+	#f
+      ell)))
 
 ;;; ------------------------------------------------------------
 
@@ -391,6 +385,8 @@
 ;;;
 (define-syntax make-class
   (syntax-rules ()
+    ((_)
+     (make-class () ()))
     ((make-class ())
      (make-class () ()))
     ((make-class (?superclass ...) (?slot ...))
@@ -405,6 +401,8 @@
 ;;;
 (define-syntax define-class
   (syntax-rules ()
+    ((_ ?name)
+     (define-class ?name () ()))
     ((_ ?name (?superclass ...))
      (define-class ?name (?superclass ...) ()))
     ((_ ?name (?superclass ...) (?slot ...))
@@ -417,7 +415,6 @@
 	  . ,(build-class-precedence-list ?superclass ...))
 	 (:slots
 	  . ,(build-slot-list '(?slot ...) ?superclass ...)))))))
-
 
 ;;; ------------------------------------------------------------
 
@@ -500,7 +497,7 @@
 	  (let ((c (car signature)))
 	    (let ((cpl (if (eq? c #t)
 			   '()
-			 (slot-ref c ':class-precedence-list))))
+			 (class-precedence-list c))))
 	      (let ((i1 (position class1 cpl))
 		    (i2 (position class2 cpl)))
 		(if (and i1 i2)

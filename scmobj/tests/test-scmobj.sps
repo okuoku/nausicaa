@@ -574,9 +574,6 @@
 ;;; Generic functions.
 ;;; ------------------------------------------------------------
 
-(check-report)
-#!eof
-
 (let ()
   (define-class <one> () (:a :b :c))
   (define-class <two> (<one>) (:d :e :f))
@@ -620,6 +617,7 @@
     (check (alpha o) => 2))
   )
 
+
 ;;; ------------------------------------------------------------
 
 ;;;page
@@ -657,6 +655,7 @@
     )
   #t)
 
+
 ;;; ------------------------------------------------------------
 
 ;;;page
@@ -686,14 +685,20 @@
 	      ':c 30 ':d 40))
 
   (check
-      (list (slot-ref i 'a)
-	    (slot-ref j 'd)
-	    (slot-ref k 'd))
-    => '(1 4 40))
+      (slot-ref i ':a)
+    => 1)
+  (check
+      (slot-ref j ':d)
+    => 4)
+  (check
+      (slot-ref k ':d)
+  => 40)
 
   (check
       (map class-definition-name (class-precedence-list <rr>))
-    => '(<pp> <e> <qq> <a> <c> <b> <d>)))
+    => '(<pp> <a> <b> <e> <qq> <c> <d>))
+
+  )
 
 ;;; ------------------------------------------------------------
 
@@ -717,8 +722,8 @@
   (check (class-definition-name (class-of (expt 12 12))) => '<integer>)
   (check (class-definition-name (class-of 1.2+3.4i)) => '<complex>)
 
-  ;;;Here remember  that we  are using the  methods above,  we ar
-  ;;;*not* applying CLASS-OF.
+  ;;Here remember  that we  are using the  methods above,  we are
+  ;;*not* applying CLASS-OF.
   (check (alpha 12) => '<fixnum>)
   (check (alpha (expt 12 12)) => '<integer>)
   (check (alpha 2/3) => '<real>)
