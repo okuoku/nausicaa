@@ -101,6 +101,7 @@ bindir			= @bindir@
 datarootdir		= @datarootdir@
 datadir			= @datadir@
 docdir			= @datarootdir@/doc
+htmldir			= @htmldir@
 includedir		= @includedir@
 infodir			= @infodir@
 libdir			= @libdir@
