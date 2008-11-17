@@ -570,7 +570,7 @@ doc-texinfo-clean:
 doc-texinfo-version: $(doc_texinfo_BUILDDIR)/version.texiinc
 
 $(doc_texinfo_BUILDDIR)/version.texiinc:
-	echo '@macro version{}\n$(PACKAGE_VERSION)\n@end macro' >$(@)
+	echo -e '@macro version{}\n$(PACKAGE_VERSION)\n@end macro' >$(@)
 
 doc:		doc-texinfo
 doc-clean:	doc-texinfo-clean
@@ -673,7 +673,7 @@ bindist_LIST	= $(TAR) --list $(bindist_TAR_COMPRESS_FLAG) --file=$(bindist_TARBA
 .PHONY: bindist bindist-clean bindist-builddir bindist-top-builddir
 .PHONY: bindist-clean-top-builddir bindist-clean-builddir
 
-bindist: bindist-clean bindist-builddir
+bindist: bindist-clean bindist-builddir uninstall-script
 	$(MAKE) install DESTDIR=$(bindist_PACKAGE_TOP_BUILDDIR)
 	$(MAKE) uninstall-script-install DESTDIR=$(bindist_PACKAGE_TOP_BUILDDIR)
 	cd $(bindist_PACKAGE_TOP_BUILDDIR); \
