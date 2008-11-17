@@ -278,8 +278,8 @@ DS_PACMAN_TOOLS()
 AC_DEFUN([NAUSICAA_END],[
 AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
 AC_CONFIG_FILES([meta.d/redhat/spec-file:meta/redhat/spec-file.in])
-AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
-AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
+dnl AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
+dnl AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 ])

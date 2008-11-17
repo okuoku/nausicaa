@@ -235,7 +235,7 @@ doc-texinfo-clean:
 doc-texinfo-version: $(doc_texinfo_BUILDDIR)/version.texiinc
 
 $(doc_texinfo_BUILDDIR)/version.texiinc:
-	printf '@macro version{}\n%s\n@end macro' $(PACKAGE_VERSION) >$(@)
+	echo -e '@macro version{}\n$(PACKAGE_VERSION)\n@end macro' >$(@)
 
 ## ------------------------------------------------------------
 ## Info format.
