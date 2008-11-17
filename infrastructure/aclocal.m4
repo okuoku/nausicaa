@@ -203,13 +203,12 @@ dnl   Find Slackware package management tools.
 dnl
 AC_DEFUN([DS_SLACKWARE_TOOLS],[
 
-DS_ENABLE_OPTION(ds_slackware_USE_LOCAL_TOOLS,slackware-local-tools,no,
+DS_ENABLE_OPTION(ds_slackware_USE_PREFIX_TOOLS,slackware-prefix-tools,no,
 		 [whether Slackware tools under installation prefix will be used],
                  [use Slackware tools under installation prefix])
 
-
 ds_PATH=${PATH}
-if test "${ds_slackware_USE_LOCAL_TOOLS}" = yes ; then
+if test "${ds_slackware_USE_PREFIX_TOOLS}" = yes ; then
   PATH=${prefix}/sbin:${PATH}
 else
   PATH=/sbin:${PATH}
@@ -266,6 +265,7 @@ AC_DEFUN([NAUSICAA_BEGIN],[
 AC_PREREQ(2.60)
 AC_CONFIG_AUX_DIR([../infrastructure])
 AC_CONFIG_SRCDIR([libraries/compile-all.sps])
+DS_OPTIONS()
 NAUSICAA_OPTIONS()
 DS_COMMON_PROGRAMS()
 DS_COMMON_DIRECTORIES()
@@ -286,6 +286,27 @@ AC_OUTPUT
 
 dnl Synopsis:
 dnl
+dnl   DS_OPTIONS()
+dnl
+dnl Description:
+dnl
+dnl   Define the "configure" command  line option for the Nausicaa build
+dnl   infrastructure.
+dnl
+AC_DEFUN([DS_OPTIONS],[
+DS_ENABLE_OPTION([ds_config_ENABLE_DOC],[doc],[yes],
+  [whether documentation files will be installed],
+  [enable installation of documentation files])
+DS_ENABLE_OPTION([ds_config_ENABLE_DOC_INFO],[doc-info],[yes],
+  [whether documentation in Info format will be installed],
+  [enable installation of Info documentation])
+DS_ENABLE_OPTION([ds_config_ENABLE_DOC_HTML],[doc-html],[yes],
+  [whether documentation in HTML format will be installed],
+  [enable installation of HTML documentation])
+])
+
+dnl Synopsis:
+dnl
 dnl   NAUSICAA_OPTIONS()
 dnl
 dnl Description:
@@ -300,15 +321,6 @@ DS_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
 DS_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
   [whether source files will be installed],
   [enable installation of source files])
-DS_ENABLE_OPTION([nausicaa_ENABLE_DOC],[doc],[yes],
-  [whether documentation files will be installed],
-  [enable installation of documentation files])
-DS_ENABLE_OPTION([nausicaa_ENABLE_INFO_DOC],[doc-info],[yes],
-  [whether documentation in Info format will be installed],
-  [enable installation of Info documentation])
-DS_ENABLE_OPTION([nausicaa_ENABLE_HTML_DOC],[doc-html],[yes],
-  [whether documentation in HTML format will be installed],
-  [enable installation of HTML documentation])
 ])
 
 dnl --------------------------------------------------------------------

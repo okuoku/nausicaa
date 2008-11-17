@@ -64,26 +64,26 @@
             ':tag 100))
 
 
-(printf "\nthis is <class>\n")
-(pretty-print <class>)
+;; (printf "\nthis is <class>\n")
+;; (pretty-print <class>)
 
-(printf "\nthis is <biologic>\n")
-(pretty-print <biologic>)
+;; (printf "\nthis is <biologic>\n")
+;; (pretty-print <biologic>)
 
-(printf "\nthis is <fruit>\n")
-(pretty-print <fruit>)
+;; (printf "\nthis is <fruit>\n")
+;; (pretty-print <fruit>)
 
-(printf "\nthis is <apple>\n")
-(pretty-print <apple>)
+;; (printf "\nthis is <apple>\n")
+;; (pretty-print <apple>)
 
-(printf "\nthis is o\n")
-(pretty-print o)
+;; (printf "\nthis is o\n")
+;; (pretty-print o)
 
-(printf "\nthis is <priced-apple>\n")
-(pretty-print <priced-apple>)
+;; (printf "\nthis is <priced-apple>\n")
+;; (pretty-print <priced-apple>)
 
-(printf "\nthis is p\n")
-(pretty-print p)
+;; (printf "\nthis is p\n")
+;; (pretty-print p)
 
 
 ;;; ------------------------------------------------------------
