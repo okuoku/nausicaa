@@ -710,7 +710,7 @@ The base class of all the @value{PACKAGE} classes.
 @end deftp
 
 
-@deftp {Class} <entity-class> (<class>)
+@deftp {Class} <entity-class>
 The base class for entity classes.  An entity class represents a Scheme
 built in object type.
 @end deftp
