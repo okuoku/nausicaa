@@ -300,7 +300,7 @@ DS_ENABLE_OPTION([ds_config_ENABLE_DOC],[doc],[yes],
 DS_ENABLE_OPTION([ds_config_ENABLE_DOC_INFO],[doc-info],[yes],
   [whether documentation in Info format will be installed],
   [enable installation of Info documentation])
-DS_ENABLE_OPTION([ds_config_ENABLE_DOC_HTML],[doc-html],[yes],
+DS_ENABLE_OPTION([ds_config_ENABLE_DOC_HTML],[doc-html],[no],
   [whether documentation in HTML format will be installed],
   [enable installation of HTML documentation])
 ])
