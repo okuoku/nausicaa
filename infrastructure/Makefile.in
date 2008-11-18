@@ -201,6 +201,7 @@ ikarus_PKGLIBDIR	= $(libdir)/ikarus
 BASH_PROGRAM	= @BASH_PROGRAM@
 SHELL		= @SHELL@
 @SET_MAKE@
+MAKE_SILENT	= $(MAKE) --silent
 
 BZIP		= @BZIP@
 CAT		= @CAT@
@@ -319,14 +320,34 @@ uninstall_script_TARGET		= $(uninstall_script_BUILDDIR)/uninstall.sh
 uninstall_script_INSTLST	= $(uninstall_script_TARGET)
 uninstall_script_INSTDIR	= $(pkglibexecdir)
 
-.PHONY: uninstall-script echo-uninstall-script uninstall-script-run
+.PHONY: uninstall-script uninstall-script-clean uninstall-script-builddir
 .PHONY: uninstall-script-install uninstall-script-uninstall
+.PHONY: uninstall-script-run
 
-uninstall-script:
-	$(info uninstall script: building ...)
-	@test -d $(uninstall_script_BUILDDIR) || $(MKDIR) $(uninstall_script_BUILDDIR)
-	@$(MAKE) --silent echo-uninstall-script >$(uninstall_script_TARGET)
-	$(info uninstall script: done.)
+# The uninstall  script is NOT registered  into the "layout_DIRECTORIES"
+# and "layout_FILES" variables: this way we  can append it to the end of
+# the script.
+
+uninstall-script: uninstall-script-builddir
+	@{								\
+	  echo -e '#!/bin/sh\n#\n# Executing this script will remove the package:\n#\n#\t$(PKG_ID)\n#\n# *** WARNING ***\n#\n# Do not run  this script if you use a  package management\n# system,  like the  one of  Slackware Linux.  Rely  on it\n# for package removal.  This script is only for emergency.\n\nset -e\n';			\
+	  echo -e '$(RM_FILE) \\';					\
+	  $(foreach f,$(sort $(layout_FILES)),echo -e '\t$(f) \\';)	\
+	  echo -e '\n$(RMDIR) \\';					\
+	  echo $(layout_DIRECTORIES)				| \
+		$(SPLIT_LIST_TO_ROWS)				| \
+		$(SORT_REVERSE_UNIQUE)				| \
+		{ while read; do echo -e "\\t$${REPLY} \\" ; done; };	\
+	  echo -e '\n$(RM_FILE) $(DESTDIR)$(uninstall_script_INSTDIR)/uninstall.sh';\
+	  echo '$(RMDIR) $(DESTDIR)$(pkglibexecdir)';			\
+	  echo -e '\n### end of file';					\
+	} >$(uninstall_script_TARGET)
+
+uninstall-script-builddir:
+	-@test -d $(uninstall_script_BUILDDIR) || $(MKDIR) $(uninstall_script_BUILDDIR)
+
+uninstall-script-clean:
+	-$(RM) $(uninstall_script_TARGET)
 
 uninstall-script-install:
 	$(INSTALL_DIR) $(DESTDIR)$(uninstall_script_INSTDIR)
@@ -339,18 +360,12 @@ uninstall-script-uninstall:
 uninstall-script-run:
 	$(SHELL) $(uninstall_script_TARGET)
 
-echo-uninstall-script:
-	@echo -e '#!/bin/sh\n#\n# Executing this script will remove the package:\n#\n#\t$(PKG_ID)\n#\n# *** WARNING ***\n#\n# Do not run  this script if you use a  package management\n# system,  like the  one of  Slackware Linux.  Rely  on it\n# for package removal.  This script is only for emergency.\n\nset -e\n'
-	@echo -e '$(RM_FILE) \\'
-	@$(foreach f,$(sort $(layout_FILES)),echo -e '\t$(f) \\';)
-	@echo -e '\n$(RMDIR) \\'
-	@echo $(layout_DIRECTORIES)			| \
-	$(SPLIT_LIST_TO_ROWS)				| \
-	$(SORT_REVERSE_UNIQUE)				| \
-	{ while read; do echo -e "\\t$${REPLY} \\" ; done; }
-	@echo -e '\n$(RM_FILE) $(DESTDIR)$(uninstall_script_INSTDIR)/uninstall.sh'
-	@echo '$(RMDIR) $(DESTDIR)$(pkglibexecdir)'
-	@echo -e '\n### end of file'
+## ------------------------------------------------------------
+
+all:		uninstall-script
+clean:		uninstall-script-clean
+install:	uninstall-script-install
+uninstall:	uninstall-script-uninstall
 
 ## ------------------------------------------------------------
 
@@ -359,153 +374,101 @@ echo-uninstall-script:
 ## Library source files.
 ## ------------------------------------------------------------
 
+sls_SRCDIR	= $(srcdir)/libraries
+sls_BUILDDIR	= $(builddir)/fasl.d
+sls_INSTDIR	= $(ikarus_PKGLIBDIR)
+
+fasl_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.sps
+fasl_COMPILE_ENV	= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR)
+fasl_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
+fasl_COMPILE_RUN	= $(fasl_COMPILE_ENV) $(fasl_COMPILE_COMMAND) $(fasl_COMPILE_SCRIPT)
+
+## ------------------------------------------------------------
+
+.PHONY: sls-debug
+.PHONY: fasl fasl-clean fasl-builddir fasl-install
+.PHONY: sls-install fasl-install
+
+fasl-builddir: $(sls_BUILDDIR)
+
+fasl-clean:
+	$(RM) $(sls_BUILDDIR)/*
+
+$(sls_BUILDDIR):
+	-@test -d $(sls_BUILDDIR) || $(MKDIR) $(sls_BUILDDIR)
+
+sls-install fasl-install:
+
+## Notice  that, by  default, GNU  tar preserves  the  file modification
+## times so  the FASL  times will be  newer than the  corresponding .sls
+## times.  When these files are  installed: loading will work fine if we
+## give the appropriate preserve flags to the "install" program.
+ifeq ($(strip $(nausicaa_ENABLE_FASL)),yes)
+fasl: fasl-builddir
+	( cd $(sls_SRCDIR);				\
+	  $(FIND) . -name '*.sls' -and -print		| \
+	  $(TAR) --create --files-from=- --file=-; )	| \
+	$(TAR) --directory=$(sls_BUILDDIR) --extract --file=-
+	test -f $(fasl_COMPILE_SCRIPT) && $(fasl_COMPILE_RUN)
+else
+fasl:
+endif
+
+## ------------------------------------------------------------
+
 # Synopsis:
 #
 #   $(eval $(call nausicaa-library,<PREFIX>,<SRCDIR>,<INSTDIR>))
 #
 define nausicaa-library
-$(1)_SRCDIR		= $(2)
-$(1)_SOURCES		= $$(wildcard $$($(1)_SRCDIR)/*.sls)
-$(1)_TARGETS		= $$($(1)_SOURCES)
-$(1)_INSTLST		= $$($(1)_TARGETS)
-$(1)_INSTDIR		= $(3)
+sls_$(1)_SRCDIR		= $$(sls_SRCDIR)/$(2)
+sls_$(1)_BUILDDIR	= $$(sls_BUILDDIR)/$(2)
+sls_$(1)_SOURCES	= $$(wildcard $$(sls_$(1)_SRCDIR)/*.sls)
+sls_$(1)_TARGETS	= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.ikarus-fasl)
 
-$$(eval $$(call ds-module-install-data,$(1),nausicaa_ENABLE_SLS))
+sls_$(1)_INSTLST	= $$(sls_$(1)_SOURCES)
+sls_$(1)_INSTDIR	= $(3)
+fasl_$(1)_INSTLST	= $$(sls_$(1)_TARGETS)
+fasl_$(1)_INSTDIR	= $(3)
 
-sls-install:	$(1)-install
+$$(eval $$(call ds-module-install-data,sls_$(1),nausicaa_ENABLE_SLS))
+$$(eval $$(call ds-module-install-data,fasl_$(1),nausicaa_ENABLE_FASL))
+
+.PHONY: sls_$(1)-debug
+
+sls_$(1)-debug:
+	@echo '$(1),$(2),$(3)'
+
+sls-install:	sls_$(1)-install
+fasl-install:	fasl_$(1)-install
+sls-debug:	sls_$(1)-debug
 endef
 
-## ------------------------------------------------------------
-
-sls_SRCDIR	= $(srcdir)/libraries
-
-.PHONY: sls-install
-
-sls-install:
-
 # The Makefile  function "nausicaa-library" needs to be  called once for
-# each source directory under "$(sls_SRCDIR)".
+# each  source   directory  under  "$(sls_SRCDIR)".    For  each  source
+# directory under "$(sls_SRCDIR)" there  will be a build directory under
+# "$(sls_BUILDDIR)".
 #
-# The 1st  argument of the call  must be a unique  prefix identifier for
-# both Makefile variables and Makefile rules: the identifier is built by
-# converting all the '-' to '_' in the name of the source directory, and
-# by prepending "fasl_".
+# The 1st  argument of  the call  must be a  unique identifier  for both
+# Makefile  variables and  Makefile rules:  the identifier  is  built by
+# converting all the '-' to '_' in the name of the source directory.
 #
 # The 2nd argument is the pathname of the source directory.
 #
 # The  3rd argument is  the pathname  of the  install directory  for the
 # source files in the source directory.
 #
+# *WARNING*  Leave  the  function  call  written  as  a  single  line!!!
+# Splitting it introduces white spaces that break things.
+# 
 $(foreach dir,$(shell $(FIND) $(sls_SRCDIR) -type d),\
-$(eval $(call nausicaa-library,sls_$(subst -,_,$(notdir $(dir))),$(dir),\
-$$(ikarus_PKGLIBDIR)$(subst $(sls_SRCDIR),,$(dir)))))
+$(eval $(call nausicaa-library,$(subst -,_,$(notdir $(dir))),$(subst $(sls_SRCDIR),,$(dir)),$(sls_INSTDIR)$(subst $(sls_SRCDIR),,$(dir)))))
 
 ## ------------------------------------------------------------ 
 
-install:	sls-install
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Library precompiled files: compilation rules.
-## ------------------------------------------------------------
-
-fasl_EXTENSION		= .ikarus-fasl
-fasl_SRCDIR		= $(srcdir)/libraries
-fasl_BUILDDIR		= $(builddir)/fasl.d
-fasl_INSTDIR		= $(ikarus_PKGLIBDIR)
-
-fasl_COMPILE_SCRIPT	= compile-all.sps
-fasl_COMPILE_ENV	= IKARUS_LIBRARY_PATH=$(fasl_BUILDDIR)
-fasl_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
-fasl_COMPILE_RUN	= $(fasl_COMPILE_ENV) $(fasl_COMPILE_COMMAND) $(fasl_COMPILE_SCRIPT)
-
-## ------------------------------------------------------------
-
-.PHONY: fasl fasl-clean fasl-builddir
-
-fasl-builddir: $(fasl_BUILDDIR)
-
-$(fasl_BUILDDIR):
-	-@test -d $(fasl_BUILDDIR) || $(MKDIR) $(fasl_BUILDDIR)
-
-ifeq ($(strip $(nausicaa_ENABLE_FASL)),yes)
-
-## Notice  that,  by default,  GNU  tar  preserves the  file
-## modification times  so the FASL times will  be newer than
-## the corresponding .sls times.
-##
-## When these files are installed: loading will work fine if
-## we give  the appropriate preserve flags  to the "install"
-## program.
-fasl: fasl-builddir
-	(cd $(fasl_SRCDIR); $(TAR) --create --file=- .) | \
-	$(TAR) --directory=$(fasl_BUILDDIR) --extract --file=-
-	cd $(fasl_BUILDDIR) ; test -f $(fasl_COMPILE_SCRIPT) && $(fasl_COMPILE_RUN)
-
-fasl-clean:
-	$(RM) $(fasl_BUILDDIR)/*
-
-else
-fasl fasl-clean:
-endif
-
-## ------------------------------------------------------------
-
-all:	fasl
-clean:	fasl-clean
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Library precompiled files: install rules.
-## ------------------------------------------------------------
-
-.PHONY: fasl-install
-
-# Synopsis:
-#
-#   $(eval $(call nausicaa-library,<PREFIX>,<SRCDIR>,<INSTDIR>))
-#
-define nausicaa-precompiled-library
-$(1)_BUILDDIR		= $(2)
-$(1)_TARGETS		= $$(wildcard $$($(1)_BUILDDIR)/*$(fasl_EXTENSION))
-$(1)_INSTLST		= $$($(1)_TARGETS)
-$(1)_INSTDIR		= $(3)
-
-$$(eval $$(call ds-module-install-data,$(1),nausicaa_ENABLE_FASL))
-
-fasl-install:	$(1)-install
-endef
-
-## ------------------------------------------------------------
-
-.PHONY: fasl-install
-
-fasl-install:
-
-# The  Makefile  function  "nausicaa-precompiled-library"  needs  to  be
-# called once for each build directory under "$(fasl_BUILDDIR)".
-#
-# The 1st  argument of the call  must be a unique  prefix identifier for
-# both Makefile variables and Makefile rules: the identifier is built by
-# converting all the '-' to '_'  in the name of the build directory, and
-# by prepending "fasl_".
-#
-# The 2nd argument is the pathname of the build directory.
-#
-# The  3rd argument is  the pathname  of the  install directory  for the
-# precompiled files in the build directory.
-#
-$(foreach dir,$(shell $(FIND) $(fasl_BUILDDIR) -type d),\
-$(eval $(call nausicaa-precompiled-library,fasl_$(subst -,_,$(notdir $(dir))),$(dir),\
-$$(fasl_INSTDIR)$(subst $(fasl_BUILDDIR),,$(dir)))))
-
-## ------------------------------------------------------------
-
-install:	fasl-install
+all:		fasl
+clean:		fasl-clean
+install:	sls-install fasl-install
 
 ## ------------------------------------------------------------
 

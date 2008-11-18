@@ -1,20 +1,15 @@
-;;; run ikarus --compile-dependencies compile-all.ikarus.sps
-;;; after you put the folder in your ikarus 
-;;; libraries location.
+;;; compile-all.sps --
+;;;
 
 (import
-  (only (list-lib))
-  (only (string-lib))
-  (only (vector-lib))
-
   (only (srfi cond-expand))
-;;;  (only (srfi lists))
+  (only (srfi lists))
   (only (srfi and-let-star))
-;;;  (only (srfi string-ports))
+  (only (srfi string-ports))
   (only (srfi receive))
   (only (srfi records))
   (only (srfi let-values))
-;;;  (only (srfi strings))
+  (only (srfi strings))
   (only (srfi char-set))
   (only (srfi case-lambda))
   (only (srfi time))
@@ -27,8 +22,14 @@
   (only (srfi parameters))
   (only (srfi streams))
   (only (srfi eager-comprehensions))
-;;;  (only (srfi vectors))
+  (only (srfi vectors))
   (only (srfi format))
   (only (srfi general-cond))
   (only (srfi compare))
-  (only (srfi lightweight-testing)))
+  (only (srfi lightweight-testing))
+
+  (only (list-lib))
+  (only (string-lib))
+  (only (vector-lib)))
+
+;;; end of file
