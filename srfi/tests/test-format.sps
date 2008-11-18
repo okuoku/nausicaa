@@ -34,6 +34,8 @@
   (srfi format)
   (srfi lightweight-testing))
 
+(check-set-mode! 'report-failed)
+
 #;(define (format-lots n f fmt-str . args)
   (let loop ([i 0] [r #f])
     (if (= i n)
