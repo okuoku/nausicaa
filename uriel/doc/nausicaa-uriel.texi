@@ -294,19 +294,19 @@ the main purpose of this document is to provide an Info version.
 @c Macros for references to external documents.
 @c ------------------------------------------------------------
 
-@macro glibcref{NODE, TITLE}
+@macro glibcref{NODE,TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,libc}
 @end macro
 
-@macro rsixref{NODE, TITLE}
+@macro rsixref{NODE,TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,r6rs}
 @end macro
 
-@macro rfiveref{NODE, TITLE}
+@macro rfiveref{NODE,TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,r5rs}
 @end macro
 
-@macro ikarusref{NODE, TITLE}
+@macro ikarusref{NODE,TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
@@ -419,10 +419,11 @@ entitled ``@gnu{} Free Documentation License''.
      
 @menu
 * overview::                    Overview of the package. 
+* lang::                        Language extensions.
 * io::                          Input/output library.
-* begin0::                      The K combinator.
 * object-property::             Object properties.
 * define-macro::                Common Lisp style macros.
+* ffi::                         Foreign functions interface.
 
 Appendices
 
@@ -487,16 +488,27 @@ is equivalent to:
 @c ------------------------------------------------------------
 
 @c page
-@node begin0
-@chapter The K combinator
+@node lang
+@chapter The K combinator.
 
 
 @noindent
 To load the library:
 
 @example
-(import (uriel begin0))
+(import (uriel lang))
 @end example
+
+@menu
+* lang simple::                 Simple language extensions.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node lang simple
+@section Simple language extensions
 
 
 @deffn Syntax begin0 @var{form} . @var{forms}
@@ -605,12 +617,189 @@ The following will evaluate successfully:
 @chapter Common Lisp style macros
 
 
+To load the library:
+
+@example
+(import (uriel define-macro))
+@end example
+
+
 @deffn Syntax define-macro (@var{name} . @var{args}) @var{form0} @var{form} ...
 @deffnx Syntax define-macro @var{name} @var{func}
 @deffnx Syntax defmacro @var{name} @var{args} @var{form0} @var{form} ...
 Stuff
 @end deffn
 
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi
+@chapter Foreign functions interface
+
+
+The @library{uriel ffi} library wraps the Ikarus' foreign function
+interface functions to provide automation and some features.  To load
+the library:
+
+@example
+(import (uriel ffi))
+@end example
+
+
+@menu
+* ffi load::                    Dynamic loading of libraries.
+* ffi memory::                  Allocating memory.
+* ffi string::                  String functions.
+* ffi call::                    Functions interface.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi load
+@section Dynamic loading of libraries
+
+
+For details on the built in Ikarus' functions @ikarusref{ikaruslib
+foreign dl,Accessing foreign objects from Scheme}
+
+
+@defun dlopen
+@defunx dlopen @var{library-name}
+@defunx dlopen @var{library-name} @var{lazy?} @var{global?}
+A wrapper for the Ikarus' @func{dlopen} that, in case of error, raises
+an exception.  @var{library-name} can be both a string or a symbol.
+
+The arguments are like the ones of the Ikarus' function.
+@end defun
+
+
+@defun dlclose @var{library}
+A wrapper for the Ikarus' @func{dlclose} that, in case of error, raises
+an exception.
+@end defun
+
+
+@defun dlsym @var{library} @var{funcname}
+A wrapper for the Ikarus' @func{dlsym} that, in case of error, raises an
+exception.  @var{funcname} can be both a string or a symbol.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi memory
+@section Allocating memory
+
+
+Uriel defines a guardian for allocated memory blocks.  It can be used
+freely to register pointers to blocks of memory that must be released
+with the Ikarus' @func{free} function.
+
+
+@defun block-guardian @var{pointer}
+@defunx block-guardian
+The block guardian interface function.
+@end defun
+
+
+@defun malloc @var{size}
+A wrapper for the built in Ikarus' @func{malloc} that:
+
+@itemize
+@item
+if the allocation is successful, registers the pointer into the Uriel's
+block guardian;
+
+@item
+if the allocation fails, raises an error.
+@end itemize
+@end defun
+
+
+@defun uriel-cleanup
+Release all the memory blocks that were registered in the Uriel's block
+guardian and that have been garbage collected.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi string
+@section String functions
+
+
+@defun strlen @var{pointer}
+Return the number of characters in the C string referenced by
+@var{pointer}.
+@end defun
+
+
+@defun string->cstring @var{string}
+Build a new C string representing the Scheme @var{string}.  The
+conversion is performed using @func{string->utf8}.
+@end defun
+
+
+@defun cstring->string @var{cstring}
+Build a new Scheme string representing the @var{cstring}.  The
+conversion is performed using a @code{s8} bytevector.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi call
+@section Functions interface
+
+
+For details on the built in Ikarus' functions @ikarusref{ikaruslib
+foreign call out,Calling out to foreign procedures}
+
+
+@deffn Syntax make-c-callout @var{retval} (@var{arg0} @var{arg} ...)
+A wrapper for Ikarus' @func{make-c-callout}.  It is a syntax so that we
+do not have to quote the arguments.
+
+Works like the built in function, but caches internally the interface
+functions so that, whenever a signature is requested more than once, the
+same function is returned.
+
+Example with @cfunc{strerror}:
+
+@example
+(define self (dlopen))
+
+(check
+    (let* ((g (make-c-callout pointer (signed-int)))
+           (strerror (g (dlsym self 'strerror))))
+      (cstring->string (strerror 0)))
+  => "Success")
+@end example
+
+@noindent
+and the following shows the caching:
+
+@example
+(check
+    (let ((f (make-c-callout signed-int (pointer)))
+          (g (make-c-callout signed-int (pointer))))
+      (eq? f g))
+  => #t)
+
+(check
+    (let ((f (make-c-callout signed-int (pointer)))
+          (g (make-c-callout signed-int (signed-int))))
+      (eq? f g))
+  => #f)
+@end example
+@end deffn
 
 
 @c ------------------------------------------------------------
