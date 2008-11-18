@@ -31,8 +31,10 @@
 (import 
   (rnrs)
   (rnrs eval)
-  (srfi and-let*)
+  (srfi and-let-star)
   (srfi lightweight-testing))
+
+(check-set-mode! 'report-failed)
 
 (define-syntax expect
   (syntax-rules ()
@@ -44,7 +46,7 @@
     [(_ expr)
      (check 
        (guard (ex [#t (syntax-violation? ex)])  
-         (eval 'expr (environment '(rnrs) '(srfi and-let*))))
+         (eval 'expr (environment '(rnrs) '(srfi and-let-star))))
        => #t)]))
 
 ;;; Taken straight from the reference implementation tests
