@@ -5,6 +5,7 @@
   (only (uriel define-macro))
   (only (uriel io))
   (only (uriel object-property))
-  (only (uriel begin0)))
+  (only (uriel lang))
+  (only (uriel ffi)))
 
 ;;; end of file
