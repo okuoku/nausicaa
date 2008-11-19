@@ -590,9 +590,15 @@ prints @code{1} and @code{2}, then returns @code{retval}.
 @end deffn
 
 
-@deffn Syntax ensure @var{test} (by @var{forms}) [(else-by @var{forms})] (else @var{forms})
-Evaluates branches until @var{test} evaluates to true. If the first
-evaluation of @var{test} gives true: no @var{forms} are evaluated. Example:
+@deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
+@deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
+Evaluate branches until @var{test} evaluates to true.  If the first
+evaluation of @var{test} gives true: no @var{form}s are evaluated.  If
+neither the @code{by} nor the @code{else-by} forms succeed in making
+@var{test} true: the @code{else} clause is evaluated, so we can detect
+the condition.
+
+Example:
 
 @example
 (define i 3)
