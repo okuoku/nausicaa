@@ -1,14 +1,1 @@
-# Makefile --
-#
-# Makefile for Uriel libraries.
-
-IDENTIFIER		= tiny-clos
-
-include Makefile.begin
-
-include Makefile.end
-
-### end of file
-# Local Variables:
-# fill-column: 60
-# End:
+../infrastructure/Makefile.in

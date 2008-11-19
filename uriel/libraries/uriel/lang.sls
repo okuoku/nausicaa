@@ -30,14 +30,13 @@
 
 (library (uriel lang)
   (export
-      begin0
+    begin0 dolist
 
-    with-compensations let-compensations let-compensations*
+    with-compensations with-compensations/on-error
     compensate run-compensations
 
     with-deferred-exception-handler defer-exceptions
-    run-deferred-exception-handlers
-    )
+    run-deferred-exceptions-handler)
   (import (rnrs)
     (srfi parameters))
 
@@ -59,6 +58,32 @@
 	 ?expr ...
 	 (apply values x))))))
 
+;;;Example:
+;;;
+;;;	(dotimes (i 0 5)
+;;;	  (do-something i))
+;;;
+(define-syntax dotimes
+  (syntax-rules ()
+    ((_ (?var ?beg ?end) ?body ...)
+     (do ((?var ?beg (+ 1 ?var)))
+	 ((>= ?var ?end))
+       ?body ...))))
+
+;;;Example:
+;;;
+;;;	(dolist (item the-list)
+;;;	  (do-something item))
+;;;
+(define-syntax dolist
+  (syntax-rules ()
+    ((_ (?var ?list) ?form0 ?form ...)
+     (dolist (?var ?list #f) ?form0 ?form ...))
+    ((_ (?var ?list ?result) ?form0 ?form ...)
+     (do ((the-list ?list (cdr the-list))
+	  (?varname (car the-list) (car the-list)))
+	 (?result)
+       ?form0 ?form ...))))
 
 ;;; --------------------------------------------------------------------
 
@@ -73,12 +98,14 @@
 (define deferred-exceptions-handler
   (make-parameter #f))
 
-(define (run-deferred-exception-handlers)
+(define (run-deferred-exceptions-handler)
   (when (deferred-exceptions)
     (for-each
 	(lambda (exc)
-	  ((deferred-exceptions-handler) exc))
-      (deferred-exceptions))))
+	  (guard (exc (else #f))
+	    ((deferred-exceptions-handler) exc)))
+      (deferred-exceptions))
+    (deferred-exceptions '())))
 
 (define-syntax defer-exceptions
   (syntax-rules ()
@@ -98,7 +125,7 @@
 	   (lambda () #f)
 	   (lambda () ?form0 ?form ...)
 	   (lambda ()
-	     (run-deferred-exception-handlers)))))))
+	     (run-deferred-exceptions-handler)))))))
 
 ;;; --------------------------------------------------------------------
 
@@ -116,10 +143,10 @@
 	(lambda (closure)
 	  (defer-exceptions
 	    (closure)))
-      (compensations)))
-  (compensations '()))
+      (compensations))
+    (compensations '())))
 
-(define-syntax with-compensations
+(define-syntax with-compensations/on-error
   (syntax-rules ()
     ((_ ?form0 ?form ...)
      (parameterize ((compensations '()))
@@ -129,23 +156,14 @@
 	     (raise exc))
 	 (lambda () ?form0 ?form ...))))))
 
-(define-syntax let-compensations*
+(define-syntax with-compensations
   (syntax-rules ()
-    ((_ ?bindings ?form0 ?form ...)
-     (with-compensations
-       (let* ?bindings
-	 (begin0
-	     (begin ?form0 ?form ...)
-	   (run-compensations)))))))
-
-(define-syntax let-compensations
-  (syntax-rules ()
-    ((_ ?bindings ?form0 ?form ...)
-     (with-compensations
-       (let ?bindings
-	 (begin0
-	     (begin ?form0 ?form ...)
-	   (run-compensations)))))))
+    ((_ ?form0 ?form ...)
+     (parameterize ((compensations '()))
+       (dynamic-wind
+	   (lambda () #f)
+	   (lambda () ?form0 ?form ...)
+	   (lambda () (run-compensations)))))))
 
 (define-syntax compensate
   (syntax-rules (begin with)
