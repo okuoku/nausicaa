@@ -106,22 +106,9 @@
 
 (define-syntax ensure
   (syntax-rules (by else else-by !ensure-else-clauses)
-
-    ;;Specially handle the simple case of missing ELSE-BY clauses.
     ((_ ?condition
 	(by ?by-form0 ?by-form ...)
-	(else ?else-form0 ?else-form ...))
-     (begin
-       (unless ?condition
-	 ?by-form0 ?by-form ...
-	 (unless ?condition
-	   ?else-form0 ?else-form ...))
-       #f))
-    
-    ;;Here is where we want to get.
-    ((_ ?condition
-	(by ?by-form0 ?by-form ...)
-	(!ensure-else-clauses (else-by ?else-by-form0 ?else-by-form ...) ...)
+	(else-by ?else-by-form0 ?else-by-form ...) ...
 	(else ?else-form0 ?else-form ...))
      (loop-upon-list
 	 (loop (list (lambda () ?by-form0 ?by-form ...)
@@ -129,28 +116,7 @@
 		     ...
 		     (lambda () ?else-form0 ?else-form ...)))
 	 (break-when ?condition)
-       (loop)))
-
-    ((_ ?condition
-	(by ?by-form0 ?by-form ...)
-	(!ensure-else-clauses ?clause ...)
-	(else-by ?else-by-form0 ?else-by-form ...) ?form0 ?form ...)
-     (ensure ?condition
-	 (by ?by-form0 ?by-form ...)
-       (!ensure-else-clauses ?clause ...
-		      (else-by ?else-by-form ...))
-       ?form ...))
-
-    ;;First match for the general case.
-    ((_ ?condition
-	(by ?by-form0 ?by-form ...)
-	(else-by ?else-by-form0 ?else-by-form ...)
-	?form0 ?form ...)
-     (ensure ?condition
-	 (by ?by-form0 ?by-form ...)
-       (!ensure-else-clauses
-	(else-by ?else-by-form0 ?else-by-form ...))
-       ?form0 ?form ...))))
+       (loop)))))
 
 ;;; --------------------------------------------------------------------
 
