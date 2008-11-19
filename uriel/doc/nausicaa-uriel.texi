@@ -1063,6 +1063,12 @@ Build and return a new object property.  The table is parameterised with
 @end defun
 
 
+@deffn Syntax with-true-property (@var{prop} @var{object}) @var{form0} @var{form} ...
+Temporarily save the value of @var{object} in @var{prop} and set it to
+@true{}, the evaluate the @var{form}s and restore the original value.
+@end deffn
+
+
 @deffn Parameter object-property-initial-capacity
 An integer representing the initial size of the hashtable.  The default
 value is 100.
