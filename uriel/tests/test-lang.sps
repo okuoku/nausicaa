@@ -35,7 +35,8 @@
 (import (rnrs)
 ;;  (only (ikarus) printf pretty-print)
   (srfi lightweight-testing)
-  (uriel lang))
+  (uriel lang)
+  (uriel test))
 
 (check-set-mode! 'report-failed)
 
@@ -43,7 +44,7 @@
 
 
 ;;; --------------------------------------------------------------------
-;;; Code.
+;;; Tests for: BEGIN0.
 ;;; --------------------------------------------------------------------
 
 (check
@@ -63,6 +64,76 @@
   => '(1 2))
 
 ;;; --------------------------------------------------------------------
+
+
+;;; --------------------------------------------------------------------
+;;; Tests for iterators.
+;;; --------------------------------------------------------------------
+
+(check
+    (with-result
+     (dotimes (i 3)
+       1		     ;; shooting the breeze
+       2		     ;; shooting the breeze
+       (add-result i)))
+  => '(#f (0 1 2)))
+
+(check
+    (with-result
+     (dotimes (i 3 (+ 2 4))
+       1		     ;; shooting the breeze
+       2		     ;; shooting the breeze
+       (add-result i)))
+  => '(6 (0 1 2)))
+
+;; ------------------------------------------------------------
+
+(check
+    (with-result
+     (dolist (i '(1 2 3) (+ 2 4))
+       1		     ;; shooting the breeze
+       2		     ;; shooting the breeze
+       (add-result i)))
+  => '(6 (1 2 3)))
+
+(check
+    (with-result
+     (dolist (i '(1 2 3))
+       1		     ;; shooting the breeze
+       2		     ;; shooting the breeze
+       (add-result i)))
+  => '(#f (1 2 3)))
+
+;; ------------------------------------------------------------
+
+(check
+    (with-result
+     (loop-upon-list (item '(1 2 3 4))
+	 (break-when #f)
+       (+ 1 2)	; shooting the breeze
+       (+ 3 4)	; shooting the breeze
+       (add-result item)))
+  => '(#f (1 2 3 4)))
+
+(check
+    (with-result
+     (loop-upon-list (item '(1 2 3 4) (+ 2 4))
+	 (break-when #f)
+       (+ 1 2)	; shooting the breeze
+       (+ 3 4)	; shooting the breeze
+       (add-result item)))
+  => '(6 (1 2 3 4)))
+
+(check
+    (with-result
+     (loop-upon-list (item '(1 2 3 4))
+	 (break-when (= item 3))
+       (+ 1 2)	; shooting the breeze
+       (+ 3 4)	; shooting the breeze
+       (add-result item)))
+  => '(#f (1 2)))
+
+; ------------------------------------------------------------
 
 
 ;;; --------------------------------------------------------------------
