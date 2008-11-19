@@ -17,68 +17,66 @@
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 1996 Dorai Sitaram
 ;;;
-;;;This is  free software; you can redistribute  it and/or modify
-;;;it under the terms of the GNU Lesser General Public License as
-;;;published by the Free  Software Foundation; either version 2.1
-;;;of the License, or (at your option) any later version.
+;;;This is free software; you can redistribute it and/or modify it under
+;;;the terms  of the GNU Lesser  General Public License  as published by
+;;;the Free Software  Foundation; either version 2.1 of  the License, or
+;;;(at your option) any later version.
 ;;;
-;;;This  library is  distributed  in  the hope  that  it will  be
-;;;useful,  but WITHOUT  ANY WARRANTY;  without even  the implied
-;;;warranty  of  MERCHANTABILITY  or  FITNESS  FOR  A  PARTICULAR
-;;;PURPOSE.  See  the GNU Lesser General Public  License for more
-;;;details.
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Lesser General Public License for more details.
 ;;;
-;;;You  should have  received a  copy of  the GNU  Lesser General
-;;;Public License along  with this library; if not,  write to the
-;;;Free Software  Foundation, Inc.,  59 Temple Place,  Suite 330,
-;;;Boston, MA 02111-1307 USA.
+;;;You  should have received  a copy  of the  GNU Lesser  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation, Inc.,  59 Temple Place, Suite 330,  Boston, MA 02111-1307
+;;;USA.
 ;;;
 
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Setup.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (library (scmobj)
   (export
       ;;Built in classes.
       <class> <entity-class>
 
-    <circular-list> <dotted-list> <proper-list> <list> <pair>
-    <vector> <bytevector> <hashtable> <record> <condition>
-    <binary-port> <textual-port> <input-port> <output-port> <port>
-    <fixnum> <flonum> <integer> <integer-valued>
-    <rational> <rational-valued> <real> <real-valued>
-    <complex> <number>
+      <circular-list> <dotted-list> <proper-list> <list> <pair>
+      <vector> <bytevector> <hashtable> <record> <condition>
+      <binary-port> <textual-port> <input-port> <output-port> <port>
+      <fixnum> <flonum> <integer> <integer-valued>
+      <rational> <rational-valued> <real> <real-valued>
+      <complex> <number>
 
-    ;; Constructors.
-    define-class define-generic define-method
-    make-class make make-generic-function
+      ;; Constructors.
+      define-class define-generic define-method
+      make-class make make-generic-function
 
-    ;;Class inspection.
-    class-of
-    class-definition-name class-precedence-list class-slots
-    class? instance? is-a? subclass?
+      ;;Class inspection.
+      class-of
+      class-definition-name class-precedence-list class-slots
+      class? instance? is-a? subclass?
 
-    ;;Slot accessors.
-    slot-ref slot-set! 
+      ;;Slot accessors.
+      slot-ref slot-set! 
 
-    ;;Next method interface.
-    call-next-method next-method?
-    scmobj:the-next-method-func scmobj:the-next-method-pred)
+      ;;Next method interface.
+      call-next-method next-method?)
   (import (rnrs)
-	  (rnrs mutable-pairs (6))
-	  (only (ikarus) pretty-print printf)
-	  (except (srfi lists))
-	  (srfi parameters))
+    (rnrs mutable-pairs (6))
+    (only (ikarus) pretty-print printf)
+    (except (srfi lists))
+    (srfi parameters))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Helper functions and syntaxes: generic routines.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define-syntax position
   (syntax-rules ()
@@ -103,16 +101,15 @@
 	 ?expr2 ...
 	 (apply values x)))]))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Helper functions and syntaxes: class instantiation.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;Given a list  of superclasses for class <x>,  build and return
-;;;the class  precedence list for  <x> to be used  in multimethod
-;;;dispatching.
+;;;Given  a list of  superclasses for  class <x>,  build and  return the
+;;;class precedence list for <x> to be used in multimethod dispatching.
 ;;;
 (define (build-class-precedence-list . superclasses)
   (if (null? superclasses)
@@ -125,9 +122,9 @@
 	superclasses))
      eq?)))
 
-;;;Given the list of direct slot names for class <x> and its list
-;;;of superclasses:  build and  return the class  precedence list
-;;;for <x> to be used in multimethod dispatching.
+;;;Given the  list of direct  slot names for  class <x> and its  list of
+;;;superclasses: build and  return the class precedence list  for <x> to
+;;;be used in multimethod dispatching.
 ;;;
 (define (build-slot-list direct-slots . superclasses)
   (let ((ell (delete-duplicates
@@ -140,21 +137,21 @@
 	#f
       ell)))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Access to slots.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;Slot access should be as  fast as possible, for this reason we
-;;;make this a syntax (it gets expanded in the function).
+;;;Slot access  should be as fast  as possible, for this  reason we make
+;;;this a syntax (it gets expanded in the function).
 (define-syntax get-slot
   (syntax-rules ()
-    ((_ caller object slot-name)
-     (or (assq slot-name object)
-	 (assertion-violation caller
-	   "trying to access nonexistent slot" slot-name)))))
+    ((_ ?caller ?object ?slot-name)
+     (or (assq ?slot-name ?object)
+	 (assertion-violation ?caller
+	   "trying to access nonexistent slot" ?slot-name)))))
 
 (define (slot-ref object slot-name)
   (cdr (get-slot 'slot-ref object slot-name)))
@@ -162,12 +159,13 @@
 (define (slot-set! object slot-name value)
   (set-cdr! (get-slot 'slot-set! object slot-name) value))
 
-;;; ------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
+
+
+;;; --------------------------------------------------------------------
 ;;; Class inspection functions.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define (class-definition-name class-object)
   (slot-ref class-object ':class-definition-name))
@@ -178,13 +176,13 @@
 (define (class-slots class-object)
   (or (slot-ref class-object ':slots) '()))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define (instance-classes instance)
   (let ((c (class-of instance)))
     (cons c (class-precedence-list c))))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define (instance? value)
   (and (proper-list? value)
@@ -223,7 +221,7 @@
 	 ;;Make sure that it returns #t not a generic true.
 	 #t)))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 ;;;It has to be:
 ;;;
@@ -269,12 +267,12 @@
 	     (and (proper-list? v)
 		  (every symbol? v))))))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Built in classes.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define <class>
   '#0=((:class . #0#)
@@ -288,7 +286,7 @@
     (:class-precedence-list . #f)
     (:slots . #f)))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define-syntax define-entity-class
   (syntax-rules ()
@@ -337,12 +335,12 @@
 ;;;	<stream>	stream?
 ;;;
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Class and instance constructors.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 ;;;This is a "standard" make function, in style with CLOS.
 ;;;
@@ -351,12 +349,12 @@
     (initialise instance init-args)
     instance))
 
-;;;Build a new alist initialising all the slots, but ":class", to
-;;;":uninitialized".   The  ":class" pair  has  to  be the  first
-;;;element in the alist.
+;;;Build  a new  alist  initialising  all the  slots,  but ":class",  to
+;;;":uninitialized".  The ":class"  pair has to be the  first element in
+;;;the alist.
 ;;;
-;;;The  form of  this  function is  one  of the  reasons why  the
-;;;":class" slot is not in the list of slots.
+;;;The form of this function is one of the reasons why the ":class" slot
+;;;is not in the list of slots.
 ;;;
 (define (allocate-instance class)
   (cons (cons ':class class)
@@ -364,32 +362,31 @@
 	       (cons x ':uninitialized))
 	  (class-slots class))))
 
-;;;Interpret SLOT-VALUES as list of alternate symbols and values,
-;;;where the symbols are slot names.
+;;;Interpret SLOT-VALUES as list  of alternate symbols and values, where
+;;;the symbols are slot names.
 ;;;
-;;;We  are   not  asserting  (as  we  should)   that:  (1)  "(car
-;;;slot-values)"  is not  ":class"; (2)  SLOT-VALUES has  an even
-;;;number  of  elements.  Because  of  this  errors with  unclear
-;;;message may happen.
+;;;We are not asserting (as  we should) that: (1) "(car slot-values)" is
+;;;not  ":class";  (2)  SLOT-VALUES  has  an even  number  of  elements.
+;;;Because of this errors with unclear message may happen.
 ;;;
 (define (initialise instance slot-values)
   (unless (null? slot-values)
     (slot-set! instance (car slot-values) (cadr slot-values))
     (initialise instance (cddr slot-values))))
 
-;;;It is  possible for a class  to add no new  slots: this allows
+;;;It  is  possible  for a  class  to  add  no  new slots:  this  allows
 ;;;subclassing for the only purpose of method dispatching.
 ;;;
-;;;Notice that the class precedence list does not include the new
-;;;class itself.
+;;;Notice that the class precedence  list does not include the new class
+;;;itself.
 ;;;
 (define-syntax make-class
   (syntax-rules ()
     ((_)
      (make-class () ()))
-    ((make-class ())
+    ((_ ())
      (make-class () ()))
-    ((make-class (?superclass ...) (?slot ...))
+    ((_ (?superclass ...) (?slot ...))
      `((:class . ,<class>)
        (:class-definition-name . :uninitialized)
        (:class-precedence-list
@@ -416,12 +413,12 @@
 	 (:slots
 	  . ,(build-slot-list '(?slot ...) ?superclass ...)))))))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Class inspection.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define (subclass? c1 c2)
   (cond ((eq? c1 c2) #t)
@@ -470,12 +467,12 @@
    (else			#t)))
 
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Methods dispatching.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define (more-specific-method
 	 signature.function-1 signature.function-2 signature)
@@ -522,12 +519,12 @@
 		  (cons signature.function the-applicable-methods)
 		the-applicable-methods))))))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Next method implementation.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define-syntax call-next-method
   (syntax-rules ()
@@ -544,19 +541,19 @@
 (define scmobj:the-next-method-func (make-parameter #f))
 (define scmobj:the-next-method-pred (make-parameter #f))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Generic functions.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;A  'generic function'  is  basically a  couple  of values:  an
-;;;interface procedure and an object of class <generic>.
+;;;A 'generic  function' is basically  a couple of values:  an interface
+;;;procedure and an object of class <generic>.
 ;;;
-;;;The interface procedure  is stored in the :interface-procedure
-;;;slot of the  object and is used to  apply the generic function
-;;;to a list of arguments.
+;;;The interface procedure is stored in the :interface-procedure slot of
+;;;the object  and is used  to apply the  generic function to a  list of
+;;;arguments.
 ;;;
 (define-class <generic> ()
   (:interface-procedure
@@ -565,15 +562,14 @@
    :add-after-method
    :add-around-method))
 
-;;;This is an alist that will hold all the generic functions ever
-;;;created.  The  keys are  the interface procedures,  the values
-;;;are the <generic> objects.
+;;;This  is an  alist  that will  hold  all the  generic functions  ever
+;;;created.  The keys  are the interface procedures, the  values are the
+;;;<generic> objects.
 (define *generic-procedures* (make-eq-hashtable))
 
-;;;Helper function that adds a signature/func pointed list to the
-;;;appropriate alist  of methods (the  METHOD-TABLE argument).  A
-;;;new  method is  added only  if  no method  with the  signature
-;;;already exists.
+;;;Helper  function  that adds  a  signature/func  pointed  list to  the
+;;;appropriate  alist of  methods  (the METHOD-TABLE  argument).  A  new
+;;;method is added only if no method with the signature already exists.
 (define (add-method-to-method-table
 	 method-table method-signature method-func)
   (unless (any
@@ -590,8 +586,8 @@
 	  (alist-cons method-signature method-func method-table)))
   method-table)
 
-;;;Helper syntax  for the definition  of the closure that  adds a
-;;;method to the appropriate method table.
+;;;Helper syntax for the definition of the closure that adds a method to
+;;;the appropriate method table.
 (define-syntax method-adder
   (syntax-rules ()
     ((_ ?method-table)
@@ -655,18 +651,16 @@
 				    (cdr ?method-table)))))))
 		     (cond
 
-		      ;;We  enter here  only  if a  primary
-		      ;;method has been  called and, in its
-		      ;;body, a call to CALL-NEXT-METHOD if
-		      ;;performed.
+		      ;;We enter here only  if a primary method has been
+		      ;;called   and,   in   its   body,   a   call   to
+		      ;;CALL-NEXT-METHOD if performed.
 		      (primary-method-called
 		       (apply-function
 			(consume-method applicable-primary-methods)))
 
-		      ;;If around  methods exists: we apply
-		      ;;them rather  than the primary ones.
-		      ;;It  is   expected  that  an  around
-		      ;;method invokes CALL-NEXT-METHOD.
+		      ;;If around  methods exists: we  apply them rather
+		      ;;than the  primary ones.  It is  expected that an
+		      ;;around method invokes CALL-NEXT-METHOD.
 		      ((not (null? applicable-around-methods))
 		       (apply-function
 			(consume-method applicable-around-methods)))
@@ -677,9 +671,8 @@
 			   'next-method-func
 			 "no method defined for these argument classes"))
 
-		      ;;Apply the methods: before, primary,
-		      ;;after.  Return  the return value of
-		      ;;the primary.
+		      ;;Apply  the   methods:  before,  primary,  after.
+		      ;;Return the return value of the primary.
 		      (else (set! primary-method-called #t)
 			    (for-each
 				apply-function
@@ -695,7 +688,7 @@
 	       (next-method-func))
 	     )))))))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 ;;;Helper  function  that adds  a  new  generic  function to  the
 ;;;*GENERIC-PROCEDURES* table.  This  function is not expanded in
@@ -720,24 +713,24 @@
     ((_ ?name ?arg ...)
      (define ?name (make-generic-function ?arg ...)))))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Methods.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;What follows is the  documentation of the DEFINE-METHOD syntax
-;;;below.  The pattern matching has tree phases:
+;;;What follows is the  documentation of the DEFINE-METHOD syntax below.
+;;;The pattern matching has tree phases:
 ;;;
-;;;1..the  method  is recognised  as  primary,  before, after  or
-;;;   around, and two accumulator lists are initialised to nil;
+;;;1. the method is recognised  as primary, before, after or around, and
+;;;   two accumulator lists are initialised to nil;
 ;;;
-;;;2..the  method arguments are  accumulated in  a list  of "with
-;;;   class" and a list of "without class";
+;;;2. the method arguments are accumulated in a list of "with class" and
+;;;   a list of "without class";
 ;;;
-;;;3..the method  is added to  the appropriate collection  in the
-;;;   generic function.
+;;;3. the method  is added to the appropriate  collection in the generic
+;;;   function.
 ;;;
 ;;;The ?QUALIFIER pattern variable is one of the literals:
 ;;;
@@ -745,38 +738,37 @@
 ;;;
 ;;;it defaults to ":primary".
 ;;;
-;;;The  ?SARGS  pattern  variable   is  a  list  accumulator  for
-;;;specialising arguments.   A specialising argument  is a method
-;;;argument for which a class was specified.
+;;;The ?SARGS  pattern variable is  a list accumulator  for specialising
+;;;arguments.  A specialising argument is  a method argument for which a
+;;;class was specified.
 ;;;
-;;;The  ?NSARGS  pattern  variable  is  a  list  accumulator  for
-;;;non-specialising arguments.  A  non-specialising argument is a
-;;;method argument for which a class was NOT specified.
+;;;The   ?NSARGS   pattern   variable   is  a   list   accumulator   for
+;;;non-specialising arguments.  A  non-specialising argument is a method
+;;;argument for which a class was NOT specified.
 ;;;
-;;;The ?REST  pattern variable  is used to  hold the name  of the
-;;;rest argument.
+;;;The  ?REST pattern  variable is  used to  hold the  name of  the rest
+;;;argument.
 ;;;
-;;;The  ?ARG  pattern  variable   is  the  next  argument  to  be
-;;;accumulated somewhere.
+;;;The  ?ARG pattern  variable is  the next  argument to  be accumulated
+;;;somewhere.
 ;;;
-;;;The ?SA  pattern variable  is a specialising  argument already
+;;;The  ?SA   pattern  variable  is  a   specialising  argument  already
 ;;;accumulated.
 ;;;
-;;;The  ?NSA  pattern  variable  is a  non-specialising  argument
-;;;already accumulated.
+;;;The  ?NSA pattern  variable  is a  non-specialising argument  already
+;;;accumulated.
 ;;;
 ;;;Example:
 ;;;
 ;;;  (define-method swirl-vector ((vec <vector>) idx . args)
 ;;;	---)
 ;;;
-;;;here VEC is a specialising  argument of class <vector>, IDX is
-;;;a  non-specialising argument,  ARGS is  the name  of  the rest
-;;;argument.
+;;;here  VEC is  a specialising  argument of  class <vector>,  IDX  is a
+;;;non-specialising argument, ARGS is the name of the rest argument.
 ;;;
-;;;A 'signature'  is a list of  classes: given a  list of generic
-;;;function  call  arguments,  the  arguments  must  match  these
-;;;classes for the method to be applicable.  Example:
+;;;A 'signature' is a list of  classes: given a list of generic function
+;;;call arguments, the arguments must match these classes for the method
+;;;to be applicable.  Example:
 ;;;
 ;;;  (define-method twist-vector ((vec <vector>) (idx <int>))
 ;;;     ---)
@@ -789,7 +781,7 @@
   ((slot-ref (hashtable-ref *generic-procedures* generic-function #f) slot-name)
    method-signature method-func))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define-syntax define-method
   (syntax-rules (:primary :before :after :around)
@@ -800,28 +792,27 @@
        ()  ;;non-specialising args
        . ?body))
 
-    ;;Matches the form when the next argument to be processed has
-    ;;a class.
+    ;;Matches  the form when  the next  argument to  be processed  has a
+    ;;class.
     ((_ 2 ?generic-function ?qualifier
 	((?arg ?class) . ?args) (?sa ...) () . ?body)
      (define-method 2 ?generic-function ?qualifier
        ?args (?sa ... (?arg ?class)) ()  . ?body))
 
-    ;;Matches the form when the next argument to be processed has
-    ;;no class.
+    ;;Matches the  form when  the next argument  to be processed  has no
+    ;;class.
     ((_ 2 ?generic-function ?qualifier
 	(?arg . ?args) ?sargs (?nsa ...) . ?body)
      (define-method 2 ?generic-function ?qualifier
        ?args ?sargs (?nsa ... ?arg)  . ?body))
 
-    ;;Matches  the   form  when  all  the   arguments  have  been
-    ;;processed.
+    ;;Matches the form when all the arguments have been processed.
     ((_ 2 ?generic-function ?qualifier () ?sargs ?nsargs . ?body)
      (define-method 3 ?generic-function ?qualifier
        ?sargs ?nsargs . ?body))
 
-    ;;Matches the form when all the arguments have been processed
-    ;;and only the rest argument is there.
+    ;;Matches the  form when all  the arguments have been  processed and
+    ;;only the rest argument is there.
     ((_ 2 ?generic-function ?qualifier ?rest ?sargs (?nsa ...) . ?body)
      (define-method 3 ?generic-function ?qualifier
        ?sargs (?nsa ... . ?rest) . ?body))
@@ -861,12 +852,12 @@
     ((_ ?generic-function ?args . ?body)
      (define-method 1 ?generic-function :primary ?args . ?body))))
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Done.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 ) ;; end of library form
 
