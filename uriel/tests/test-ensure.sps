@@ -55,172 +55,149 @@
 	    (add-result 1)
 	    (add-result 2))
 	 (else
-	  (add-result 3)
-	  (set! flag #t)))))
+	  (add-result 3)))))
   => '(#f (1 2 3)))
 
-(check-report)
-#!eof
-
 (check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result))
-	   (set! flag 1))
-	(else
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result))))
-      result))
-  => '(2 1))
-
-;; ------------------------------------------------------------
-
-(check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result)))
-	(else-by
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result)))
-	(else
-	 (set! result (cons 5 result))
-	 (set! result (cons 6 result))
-	 (set! flag 1)))
-      result))
-  => '(6 5 4 3 2 1))
-
-(check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result)))
-	(else-by
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result))
-	 (set! flag 1))
-	(else
-	 (set! result (cons 5 result))
-	 (set! result (cons 6 result))))
-      result))
-  => '(4 3 2 1))
-
-(check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result))
-	   (set! flag 1))
-	(else-by
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result)))
-	(else
-	 (set! result (cons 5 result))
-	 (set! result (cons 6 result))))
-      result))
-  => '(2 1))
-
-;; ------------------------------------------------------------
-
-(check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result)))
-	(else-by
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result)))
-	(else-by
-	 (set! result (cons 5 result))
-	 (set! result (cons 6 result)))
-	(else
-	 (set! result (cons 7 result))
-	 (set! result (cons 8 result))
-	 (set! flag 1)))
-      result))
-  => '(8 7 6 5 4 3 2 1))
-
-(check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result)))
-	(else-by
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result)))
-	(else-by
-	 (set! result (cons 5 result))
-	 (set! result (cons 6 result))
-	 (set! flag 1))
-	(else
-	 (set! result (cons 7 result))
-	 (set! result (cons 8 result))))
-      result))
-  => '(6 5 4 3 2 1))
-
-(check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result)))
-	(else-by
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result))
-	 (set! flag 1))
-	(else-by
-	 (set! result (cons 5 result))
-	 (set! result (cons 6 result)))
-	(else
-	 (set! result (cons 7 result))
-	 (set! result (cons 8 result))))
-      result))
-  => '(4 3 2 1))
-
-(check
-  (lambda ()
-    (let ((result	'())
-	  (flag		0))
-      (ensure (= flag 1)
-	  (by
-	   (set! result (cons 1 result))
-	   (set! result (cons 2 result))
-	   (set! flag 1))
-	(else-by
-	 (set! result (cons 3 result))
-	 (set! result (cons 4 result)))
-	(else-by
-	 (set! result (cons 5 result))
-	 (set! result (cons 6 result)))
-	(else
-	 (set! result (cons 7 result))
-	 (set! result (cons 8 result))))
-      result))
-  => '(2 1))
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2)
+	    (set! flag 1))
+	 (else
+	  (add-result 3)
+	  (add-result 4)))))
+  => '(#f (1 2)))
 
 ;;; --------------------------------------------------------------------
 
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2))
+	 (else-by
+	  (add-result 3)
+	  (add-result 4))
+	 (else
+	  (add-result 5)
+	  (add-result 6)
+	  (set! flag 1)))))
+  => '(#f (1 2 3 4 5 6)))
+
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2))
+	 (else-by
+	  (add-result 3)
+	  (add-result 4)
+	  (set! flag 1))
+	 (else
+	  (add-result 5)
+	  (add-result 6)))))
+  => '(#f (1 2 3 4)))
+
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2)
+	    (set! flag 1))
+	 (else-by
+	  (add-result 3)
+	  (add-result 4))
+	 (else
+	  (add-result 5)
+	  (add-result 6)))))
+  => '(#f (1 2)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2))
+	 (else-by
+	  (add-result 3)
+	  (add-result 4))
+	 (else-by
+	  (add-result 5)
+	  (add-result 6))
+	 (else
+	  (add-result 7)
+	  (add-result 8)
+	  (set! flag 1)))))
+  => '(#f (1 2 3 4 5 6 7 8)))
+
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2))
+	 (else-by
+	  (add-result 3)
+	  (add-result 4))
+	 (else-by
+	  (add-result 5)
+	  (add-result 6)
+	  (set! flag 1))
+	 (else
+	  (add-result 7)
+	  (add-result 8)))))
+  => '(#f (1 2 3 4 5 6)))
+
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2))
+	 (else-by
+	  (add-result 3)
+	  (add-result 4)
+	  (set! flag 1))
+	 (else-by
+	  (add-result 5)
+	  (add-result 6))
+	 (else
+	  (add-result 7)
+	  (add-result 8)))))
+  => '(#f (1 2 3 4)))
+
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2)
+	    (set! flag 1))
+	 (else-by
+	  (add-result 3)
+	  (add-result 4))
+	 (else-by
+	  (add-result 5)
+	  (add-result 6))
+	 (else
+	  (add-result 7)
+	  (add-result 8)))))
+  => '(#f (1 2)))
 
 ;;; --------------------------------------------------------------------
 
