@@ -30,13 +30,13 @@
 
 (library (uriel lang)
   (export
-    begin0 dolist
+    begin0 dolist dotimes loop-upon-list ensure
 
     with-compensations with-compensations/on-error
     compensate run-compensations
 
-    with-deferred-exception-handler defer-exceptions
-    run-deferred-exceptions-handler)
+    with-deferred-exception-handler
+    defer-exceptions run-deferred-exceptions-handler)
   (import (rnrs)
     (srfi parameters))
 
@@ -58,31 +58,98 @@
 	 ?expr ...
 	 (apply values x))))))
 
-;;;Example:
-;;;
-;;;	(dotimes (i 0 5)
-;;;	  (do-something i))
-;;;
 (define-syntax dotimes
   (syntax-rules ()
-    ((_ (?var ?beg ?end) ?body ...)
-     (do ((?var ?beg (+ 1 ?var)))
-	 ((>= ?var ?end))
-       ?body ...))))
+    ((_ (?varname ?exclusive-count) ?form0 ?form ...)
+     (dotimes (?varname ?exclusive-count #f) ?form0 ?form ...))
+    ((_ (?varname ?exclusive-count ?result) ?form0 ?form ...)
+     (do ((?varname 0 (+ 1 ?varname)))
+	 ((>= ?varname ?exclusive-count)
+	  ?result)
+       ?form0 ?form ...))))
 
-;;;Example:
-;;;
-;;;	(dolist (item the-list)
-;;;	  (do-something item))
-;;;
 (define-syntax dolist
   (syntax-rules ()
-    ((_ (?var ?list) ?form0 ?form ...)
-     (dolist (?var ?list #f) ?form0 ?form ...))
-    ((_ (?var ?list ?result) ?form0 ?form ...)
-     (do ((the-list ?list (cdr the-list))
-	  (?varname (car the-list) (car the-list)))
-	 (?result)
+    ((_ (?varname ?list) ?form0 ?form ...)
+     (dolist (?varname ?list #f) ?form0 ?form ...))
+    ((_ (?varname ?list ?result) ?form0 ?form ...)
+     (let ((ell ?list))
+       (let loop ((?varname (car ell))
+		  (the-list (cdr ell)))
+	 ?form0 ?form ...
+	 (if (null? the-list)
+	     ?result
+	   (loop (car the-list) (cdr the-list))))))))
+
+(define-syntax loop-upon-list
+  (syntax-rules (break-when)
+    ((_ (?varname ?list) (break-when ?condition) ?form0 ?form ...)
+     (loop-upon-list (?varname ?list #f) (break-when ?condition) ?form0 ?form ...))
+    ((_ (?varname ?list ?result) (break-when ?condition) ?form0 ?form ...)
+     (let ((exit (lambda () ?result)))
+       (let loop ((ell (cdr ?list))
+		  (?varname (car ?list)))
+	 (if ?condition
+	     (exit)
+	   (begin
+	     ?form0 ?form ...
+	     (if (null? ell)
+		 (exit)
+	       (loop (cdr ell) (car ell))))))))))
+
+;;; --------------------------------------------------------------------
+
+
+;;; --------------------------------------------------------------------
+;;; Ensuring a result.
+;;; --------------------------------------------------------------------
+
+(define-syntax ensure
+  (syntax-rules (by else else-by !ensure-else-clauses)
+
+    ;;Specially handle the simple case of missing ELSE-BY clauses.
+    ((_ ?condition
+	(by ?by-form0 ?by-form ...)
+	(else ?else-form0 ?else-form ...))
+     (begin
+       (unless ?condition
+	 ?by-form0 ?by-form ...
+	 (unless ?condition
+	   ?else-form0 ?else-form ...))
+       #f))
+    
+    ;;Here is where we want to get.
+    ((_ ?condition
+	(by ?by-form0 ?by-form ...)
+	(!ensure-else-clauses (else-by ?else-by-form0 ?else-by-form ...) ...)
+	(else ?else-form0 ?else-form ...))
+     (loop-upon-list
+	 (loop (list (lambda () ?by-form0 ?by-form ...)
+		     (lambda () ?else-by-form0 ?else-by-form ...)
+		     ...
+		     (lambda () ?else-form0 ?else-form ...)))
+	 (break-when ?condition)
+       (loop)))
+
+    ((_ ?condition
+	(by ?by-form0 ?by-form ...)
+	(!ensure-else-clauses ?clause ...)
+	(else-by ?else-by-form0 ?else-by-form ...) ?form0 ?form ...)
+     (ensure ?condition
+	 (by ?by-form0 ?by-form ...)
+       (!ensure-else-clauses ?clause ...
+		      (else-by ?else-by-form ...))
+       ?form ...))
+
+    ;;First match for the general case.
+    ((_ ?condition
+	(by ?by-form0 ?by-form ...)
+	(else-by ?else-by-form0 ?else-by-form ...)
+	?form0 ?form ...)
+     (ensure ?condition
+	 (by ?by-form0 ?by-form ...)
+       (!ensure-else-clauses
+	(else-by ?else-by-form0 ?else-by-form ...))
        ?form0 ?form ...))))
 
 ;;; --------------------------------------------------------------------

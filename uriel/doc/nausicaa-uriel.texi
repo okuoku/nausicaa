@@ -534,6 +534,84 @@ This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
 @end deffn
 
 
+@deffn Syntax dotimes (@var{varname} @var{exclusive-count}) @var{form} ...
+@deffnx Syntax dotimes (@var{varname} @var{exclusive-count} @var{result}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to an
+integer from zero inclusive to @var{exclusive-count}.  Return
+@var{result}, or @false{} if @var{result} is not given.
+
+Example:
+
+@example
+(dotimes (i 1 100)
+  (display i)
+  (newline))
+@end example
+
+@noindent
+prints the integers in the range @code{[1, 99]}.
+@end deffn
+
+
+@deffn Syntax dolist (@var{varname} @var{list}) @var{form} ...
+@deffnx Syntax dolist (@var{varname} @var{list} @var{result}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to the
+elements from @var{list}.  Return @var{result}, or @false{} if
+@var{result} is not given.
+
+Example:
+
+@example
+(dolist (elm '(1 2 3))
+  (display elm)
+  (newline))
+@end example
+@end deffn
+
+
+@deffn Syntax loop-upon-list (@var{varname} @var{list}) (break-when @var{test}) @var{form} ...
+@deffnx Syntax loop-upon-list (@var{varname} @var{list} @var{result}) (break-when @var{test}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to the
+elements from @var{list}.  Return @var{result}, or @false{} if
+@var{result} is not given.  The loop is broken if @var{test} evaluates
+to true.
+
+Example:
+
+@example
+(loop-upon-list (i (1 2 3 4) 'retval)
+    (break-when (= i 3))
+  (display i)
+  (newline))
+@end example
+
+@noindent
+prints @code{1} and @code{2}, then returns @code{retval}.
+@end deffn
+
+
+@deffn Syntax ensure @var{test} (by @var{forms}) [(else-by @var{forms})] (else @var{forms})
+Evaluates branches until @var{test} evaluates to true. If the first
+evaluation of @var{test} gives true: no @var{forms} are evaluated. Example:
+
+@example
+(define i 3)
+(ensure (= i 5)
+    (by
+      (set! i 0)
+  (else-by
+    (set! i 1))
+  (else-by
+    (set! i 2))
+  (else
+    (set! i 3))))
+@end example
+
+@noindent
+all the branches are evaluated.
+@end deffn
+
+
 @c ------------------------------------------------------------
 
 @c page
