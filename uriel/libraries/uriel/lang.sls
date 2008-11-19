@@ -29,8 +29,17 @@
 ;;; --------------------------------------------------------------------
 
 (library (uriel lang)
-  (export begin0)
-  (import (rnrs))
+  (export
+      begin0
+
+    with-compensations let-compensations let-compensations*
+    compensate run-compensations
+
+    with-deferred-exception-handler defer-exceptions
+    run-deferred-exception-handlers
+    )
+  (import (rnrs)
+    (srfi parameters))
 
 ;;; --------------------------------------------------------------------
 
@@ -39,8 +48,8 @@
 ;;; Simple sintaxes.
 ;;; --------------------------------------------------------------------
 
-;;;Defines  BEGIN0,  a  K  combinator  defined in  Appendix  A  ``Formal
-;;;semantics'' of the R6RS document.
+;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
+;;;``Formal semantics''.
 (define-syntax begin0
   (syntax-rules ()
     ((_ ?expr0 ?expr ...)
@@ -50,7 +59,109 @@
 	 ?expr ...
 	 (apply values x))))))
 
+
 ;;; --------------------------------------------------------------------
+
+
+;;; --------------------------------------------------------------------
+;;; Deferred exceptions.
+;;; --------------------------------------------------------------------
+
+(define deferred-exceptions
+  (make-parameter #f))
+
+(define deferred-exceptions-handler
+  (make-parameter #f))
+
+(define (run-deferred-exception-handlers)
+  (when (deferred-exceptions)
+    (for-each
+	(lambda (exc)
+	  ((deferred-exceptions-handler) exc))
+      (deferred-exceptions))))
+
+(define-syntax defer-exceptions
+  (syntax-rules ()
+    ((_ ?form0 ?form ...)
+     (guard (exc (else
+		  (when (deferred-exceptions)
+		    (deferred-exceptions
+		      (cons exc (deferred-exceptions))))))
+       ?form0 ?form ...))))
+
+(define-syntax with-deferred-exception-handler
+  (syntax-rules ()
+    ((_ ?handler ?form0 ?form ...)
+     (parameterize ((deferred-exceptions '())
+		    (deferred-exceptions-handler ?handler))
+       (dynamic-wind
+	   (lambda () #f)
+	   (lambda () ?form0 ?form ...)
+	   (lambda ()
+	     (run-deferred-exception-handlers)))))))
+
+;;; --------------------------------------------------------------------
+
+
+;;; --------------------------------------------------------------------
+;;; Compensations.
+;;; --------------------------------------------------------------------
+
+(define compensations
+  (make-parameter #f))
+
+(define (run-compensations)
+  (when (compensations)
+    (for-each
+	(lambda (closure)
+	  (defer-exceptions
+	    (closure)))
+      (compensations)))
+  (compensations '()))
+
+(define-syntax with-compensations
+  (syntax-rules ()
+    ((_ ?form0 ?form ...)
+     (parameterize ((compensations '()))
+       (with-exception-handler 
+	   (lambda (exc)
+	     (run-compensations)
+	     (raise exc))
+	 (lambda () ?form0 ?form ...))))))
+
+(define-syntax let-compensations*
+  (syntax-rules ()
+    ((_ ?bindings ?form0 ?form ...)
+     (with-compensations
+       (let* ?bindings
+	 (begin0
+	     (begin ?form0 ?form ...)
+	   (run-compensations)))))))
+
+(define-syntax let-compensations
+  (syntax-rules ()
+    ((_ ?bindings ?form0 ?form ...)
+     (with-compensations
+       (let ?bindings
+	 (begin0
+	     (begin ?form0 ?form ...)
+	   (run-compensations)))))))
+
+(define-syntax compensate
+  (syntax-rules (begin with)
+    ((_ (begin ?alloc0 ?alloc ...) (with ?release0 ?release ...))
+     (begin0
+	 (begin ?alloc0 ?alloc ...)
+       (compensations (cons (lambda () ?release0 ?release ...)
+			    (compensations)))))
+
+    ((_ (begin ?alloc0 ?alloc ...) ?allocn ?form ...)
+     (compensate (begin ?alloc0 ?alloc ... ?allocn) ?form ...))
+
+    ((_ ?alloc ?form ...)
+     (compensate (begin ?alloc) ?form ...))))
+
+;; ------------------------------------------------------------
 
 
 ;;; --------------------------------------------------------------------
