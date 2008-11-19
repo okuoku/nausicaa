@@ -420,6 +420,7 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package. 
 * lang::                        Language extensions.
+* combinators::                 Combinators.
 * io::                          Input/output library.
 * object-property::             Object properties.
 * define-macro::                Common Lisp style macros.
@@ -489,11 +490,12 @@ is equivalent to:
 
 @c page
 @node lang
-@chapter The K combinator.
+@chapter Language extensions
 
 
 @noindent
-To load the library:
+The @library{uriel lang} library extends the Scheme language with new
+constructs.  To load the library:
 
 @example
 (import (uriel lang))
@@ -501,6 +503,8 @@ To load the library:
 
 @menu
 * lang simple::                 Simple language extensions.
+* lang compensations::          Compensation stacks.
+* lang deferred exceptions::    Deferred exceptions.
 @end menu
 
 
@@ -517,16 +521,461 @@ value of the first form.
 
 @example
 (define-syntax begin0
-    (syntax-rules ()
-      ((_ ?expr0 ?expr ...)
-       (call-with-values
-           (lambda () ?expr0)
-         (lambda x
-           ?expr ...
-           (apply values x))))))
+  (syntax-rules ()
+    ((_ ?expr0 ?expr ...)
+     (call-with-values
+         (lambda () ?expr0)
+       (lambda x
+         ?expr ...
+         (apply values x))))))
 @end example
 
 This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node lang compensations
+@section Compensation stacks
+
+
+@menu
+* lang compensations usage::    Basic compensations usage.
+* lang compensations api::      Compensations @api{}.
+@end menu
+
+
+@noindent
+This section describes a form that implements compensation stacks:
+syntactic sugar that allows us to write code that allocates a resource
+near the code that releases it in case of error.
+
+@quotation
+Compensation stacks are described in: @emph{Finding and Preventing
+Run-Time Error Handling Mistakes}, by Westley Weimer, George C. Necula,
+2004.  In Proceedings of the @acronym{ACM} Conference on
+Object--Oriented Programming, Systems, Languages, and Applications.
+@end quotation
+
+@c ------------------------------------------------------------
+
+@c page
+@node lang compensations usage
+@subsection Basic compensations usage
+
+
+@noindent
+A ``compensation'' is a chunk of code that undoes a resource allocation
+performed in another chunk, example:
+
+@example
+(define port
+  (open-file-input-port "/tmp/proof.1"))
+@end example
+
+@noindent
+must be ''compensated'' by:
+
+@example
+(close-port port)
+@end example
+
+Compensation forms are embedded in a closure and pushed on a stack, so
+that, in case of error, it is possible to evaluate them in
+allocation--reversed order.
+
+A form that makes use of a compensation stack looks like this:
+
+@example
+(with-compensations
+    (compensate
+        ALLOC-FORMS-1
+      (with FREE-FORMS-1)) 
+    (compensate
+        ALLOC-FORMS-2
+      (with FREE-FORMS-2)) 
+  BODY-FORMS)
+@end example
+
+@noindent
+both @func{with-compensations} and @func{compensate} are syntaxes.  If
+no error occurs the order of evluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+@end example
+
+@noindent
+the @code{FREE-FORMS} are @strong{not} evaluated.  If an error occurs in
+@code{BODY-FORMS}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+this behaviour is useful in initialisation functions like @clos{}
+object makers, for example:
+
+@example
+(compensate
+    (slot-set! object 'slot-name (alloc-resource))
+  (with
+    (free-resource (slot-ref object 'slot-name))))
+@end example
+
+A form that allocates resources at the beginning and frees them at the
+end looks like this:
+
+@example
+(let-compensations
+    ((a (compensate
+             ALLOC-FORMS-1
+           (with FREE-FORMS-1)))
+     (b (compensate
+             ALLOC-FORMS-2
+           (with FREE-FORMS-2))))
+  BODY-FORMS)
+@end example
+
+@noindent
+in which the return value of the @func{alloc-forms} is bound to
+local symbols.  The evaluation order is always:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+despite errors in @code{BODY-FORMS}.
+
+Notice that, with both @func{with-compensations} and
+@func{let-compensations}, if an error occurs while evaluating
+@code{ALLOC-FORMS}: all the compensation closures pushed so far are
+invoked in reverse order.
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node lang compensations api
+@subsection Compensations @api{}
+
+
+@deffn Syntax compensate @var{alloc-form} @dots{} (with @var{free-form} @dots{})
+Evaluate all the @var{alloc-form} and, if no error occurs, push a
+closure holding the @var{comp-form}s on the current compensations stack.
+Return the return value of the last @var{alloc-form}.
+@end deffn
+
+
+@deffn Syntax with-compensations @var{form} @dots{}
+Initialise a new local compensations stack, then evaluate all the
+@var{form}s.  Return the return value of the last @var{form}.  If an
+exception is raised by a @var{form}: @func{run-compensations} is
+invoked.
+@end deffn
+
+
+@deffn Syntax let-compensations @var{bindings} . @var{forms}
+@deffnx Syntax let-compensations* @var{bindings} . @var{forms}
+Like @func{let} and @func{let*}, but the @var{bindings} can contain
+@func{compensate} forms as values.
+
+After the @var{forms} have been evaluated the compensations pushed by
+@var{bindings} are evaluated in reverse order.  This happens despite
+errors in @var{forms}.
+
+The return value is the return value of the last form in @var{forms}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node lang deferred exceptions
+@section Deferred exceptions
+
+
+@menu
+* lang deferred exceptions usage::      Usage examples.
+* lang deferred exceptions api::        Programming interface.
+@end menu
+
+
+@noindent
+When a non--continuable exception is raised: the stack unwinds and some
+mechanism is needed to release allocated resources that cannot be simply
+garbage collected.  Some mechanism requires asynchronous evaluation of
+cleanup code (guardians, for example), other mechanisms require
+synchronous evaluation of cleanup code (@ref{lang compensations}, for
+example).
+
+With synchronous cleanup code: what happens if the cleanup code itself
+raises an exception?  If this @emph{second level} exception is left
+going: it replaces the original one (@emph{first level}), that is lost:
+
+@example
+(import (rnrs))
+
+(with-exception-handler
+    (lambda (e)
+      (raise 'second))
+  (lambda ()
+    (raise 'first)))
+@end example
+
+@noindent
+outputs:
+
+@example
+Unhandled exception:
+ Non-condition object: second
+@end example
+
+@noindent
+@code{first} is never reported.  We rarely want this.
+
+This section describes a form that can be used to save informations
+about second level exceptions, for the case in which it is fine to try
+to go on reporting the first level error.  With this form: second level
+exceptions can be reported later to the user or logged to a file or
+whatever.
+
+This mechanism is automatically used by compensation stacks, which are
+the reference use case (@ref{lang compensations}).
+
+@c ------------------------------------------------------------
+
+@c page
+@node lang deferred exceptions usage
+@subsection Usage examples
+
+
+@noindent
+A form that uses deferred exceptions looks like this:
+
+@example
+(with-deferred-exceptions
+  (lambda ()
+    (body))
+  (lambda (exception)
+    (first-level-exceptions-handler))
+  (lambda (exception)
+    (second-level-exceptions-handler)))
+@end example
+
+@noindent
+the first two arguments to @func{with-deferred-exceptions} (thunk and
+handler) become the arguments to an invocation to the built in
+@func{with-exception-handler}, the code is a functional equivalent of:
+
+@example
+(with-exception-handler
+    (lambda (exception)
+      (first-level-exceptions-handler))
+  (lambda ()
+    (body)))
+@end example
+
+A call to the @func{defer-exceptions} macro can appear any number of
+times in the body; the form:
+
+@example
+(defer-exceptions
+  (another-body))
+@end example
+
+@noindent
+expands to a @func{catch} invocation that wraps its body:
+
+@example
+(catch #t
+    (lambda ()
+      (another-body))
+  (lambda (key . args)
+    ...))
+@end example
+
+@noindent
+and whose error handler enqueues exception's informations in a list
+handled by a fluid.
+
+After the evaluation of the body and, if triggered, of the first level
+exception handler: the second level handler is invoked for each of the
+second level exceptions in the list. The arguments to the second level
+handler are:
+
+@table @code
+@item key
+the exception key;
+
+@item procname
+the procedure name argument of @func{scm-error} or the string
+@func{<unknown procedure>} if @code{(throw key)} was used;
+
+@item message
+the formatted error message built from arguments to @func{scm-error}
+or the string @code{undescribed error} if @code{(throw key)} was used;
+
+@item other-args
+the additional argument of @func{scm-error} or @false{} if
+@code{(throw key)} was used;
+
+@item stack
+the return value of @func{make-stack} evaluated in the expansion of
+@func{defer-exceptions}.
+@end table
+
+The first level exception handler is itself automatically wrapped by
+@func{defer-exceptions}.
+
+
+An alternative syntax is:
+
+@example
+(with-deferred-exceptions
+    (this-form)
+    (that-form)
+  (exception-handler (key . args)
+    (first-level-exceptions-handler))
+  (deferred-exception-handler (key procname message other-args stack)
+    (second-level-exceptions-handler)))
+@end example
+
+@noindent
+which is transformed into:
+
+@example
+(with-deferred-exceptions
+  (lambda ()
+    (this-form)
+    (that-form))
+  (lambda (key . args)
+    (first-level-exceptions-handler))
+  (lambda (key procname message other-args stack)
+    (second-level-exceptions-handler)))
+@end example
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node lang deferred exceptions api
+@subsection Programming interface
+
+
+@deffn Syntax with-deferred-exceptions @var{thunk} @var{handler} @var{deferred-handler}
+@deffnx Syntax with-deferred-exceptions @var{form} @dots{} (exception-handler @var{args} @var{form} @dots{}) (deferred-exception-handler @var{args} @var{form} @dots{})
+Initialise the usage of a deferred exceptions list using a fluid, then
+evaluates @var{thunk} using @var{thunk} and @var{handler} as arguments
+to the Guile built in @func{catch}.
+
+Exceptions in @var{thunk} and @var{handler} collected by
+@func{defer-exceptions} are handed to @var{deferred-handler}.
+
+The return value of the form is the return value of @var{thunk}.
+@end deffn
+
+
+@deffn Syntax defer-exceptions @var{form} @dots{}
+Wrap all the @var{form}s in a @func{catch} invocation; the exception
+handler registers exceptions informations in the current list of
+deferred exceptiones managed by @func{with-deferred-exceptions}.
+@end deffn
+
+
+@defun run-deferred-exceptions-handler @var{deferred-exception-handler}
+Hand each exception in the list to @var{deferred-exception-handler},
+then set the list to null. @var{deferred-exception-handler} must be a
+procedure with the same signature of the @func{catch} exception
+handler.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node combinators
+@chapter Combinators
+
+
+To load the library:
+
+@example
+(import (uriel combinators))
+@end example
+
+
+@deffn Syntax K @var{form} . @var{forms}
+Evaluate all the forms like the standard @func{begin}, but return the
+value of the first form.
+
+@example
+(define-syntax K
+  (syntax-rules ()
+    ((_ ?expr0 ?expr ...)
+     (call-with-values
+         (lambda () ?expr0)
+       (lambda x
+         ?expr ...
+         (apply values x))))))
+@end example
+
+This is the same as the @func{begin0} syntax.
+@end deffn
+
+
+@deffn Syntax Y @var{func}
+Build a recursive function with no name.
+
+@example
+(define-syntax Y
+  (syntax-rules ()
+    ((_ ?func)
+     (let ((F ?func))
+       ((lambda (f)
+          (F (lambda (. args)
+               (apply (f f) args))))
+        (lambda (f)
+          (F (lambda (. args)
+               (apply (f f) args)))))))))
+@end example
+
+The combinator has to called like this:
+
+@example
+((Y (lambda (f)
+      (lambda (. args)
+        (do-something-with-args args)
+        (if (condition) (f args))))
+    arg1 arg2 ...))
+@end example
+@end deffn
+
+
+@deffn Syntax S @var{x} @var{y} @var{z}
+The S combinator:
+
+@example
+(define-syntax S
+  (syntax-rules ()
+    ((_ ?x ?y ?z)
+     (let ((Z ?z))
+       (?x Z (?y Z))))))
+@end example
 @end deffn
 
 
