@@ -33,7 +33,7 @@
 ;;; --------------------------------------------------------------------
 
 (library (uriel test)
-  (export catch-exception with-result add-result)
+  (export catch-exception with-result add-result get-result)
   (import (rnrs)
     (srfi parameters))
 
@@ -56,6 +56,9 @@
 
 (define (add-result value)
   (result (cons value (result))))
+
+(define (get-result)
+  (result))
 
 (define-syntax catch-exception
   (syntax-rules ()
