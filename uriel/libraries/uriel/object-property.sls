@@ -27,23 +27,22 @@
 ;;;
 
 
-;;;page
+
 ;;; ------------------------------------------------------------
 ;;; Setup.
 ;;; ------------------------------------------------------------
 
 (library (uriel object-property)
-    (export object-property-initial-capacity
-      object-property-default-value
-      make-object-property)
+  (export
+    object-property-initial-capacity
+    object-property-default-value
+    make-object-property with-true-property)
   (import (rnrs)
-	  (only (ikarus) make-parameter parameterize)
-;;;	  (srfi parameters)
-	  )
+	  (srfi parameters))
 
 ;;; ------------------------------------------------------------
 
-;;;page
+
 ;;; ------------------------------------------------------------
 ;;; Code.
 ;;; ------------------------------------------------------------
@@ -67,9 +66,18 @@
      ((object value)
       (hashtable-set! table object value)))))
 
+(define-syntax with-true-property
+  (syntax-rules ()
+    ((_ (?prop ?object) ?form0 ?form ...)
+     (let ((saved (?prop ?object)))
+       (dynamic-wind
+	   (lambda () (?prop ?object #t))
+	   (lambda () ?form0 ?form ...)
+	   (lambda () (?prop ?object saved)))))))
+
 ;;; ------------------------------------------------------------
 
-;;;page
+
 ;;; ------------------------------------------------------------
 ;;; Done.
 ;;; ------------------------------------------------------------
