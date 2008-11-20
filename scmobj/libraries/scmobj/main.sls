@@ -2,6 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
+;;;Time-stamp: <2008-11-20 10:13:16 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,7 +34,6 @@
 ;;;USA.
 ;;;
 
-
 
 ;;; --------------------------------------------------------------------
 ;;; Setup.
@@ -61,7 +61,7 @@
       class? instance? is-a? subclass?
 
       ;;Slot accessors.
-      slot-ref slot-set! 
+      slot-ref slot-set!
 
       ;;Next method interface.
       call-next-method next-method?)
@@ -242,7 +242,7 @@
        (symbol? (cdr value))))
 
 ;;; It has to be:
-;;; 
+;;;
 ;;;   (:class-precedence-list . #f)
 ;;;   (:class-precedence-list . (... classes ...))
 ;;;
@@ -253,7 +253,7 @@
 	 (or (not v)
 	     (and (proper-list? v)
 		  (every class? v))))))
-       
+
 ;;;It has to be:
 ;;;
 ;;;   (:pairs . #f)
@@ -448,7 +448,7 @@
 
    ((vector?	value)		<vector>)
    ((hashtable? value)		<hashtable>)
-     
+
    ((input-port? value)		<input-port>)
    ((output-port? value)	<output-port>)
    ((binary-port? value)	<binary-port>)
