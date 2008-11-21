@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/ScmObj
 ;;;Contents: tests for helper functions
 ;;;Date: Thu Nov 20, 2008
-;;;Time-stamp: <2008-11-20 10:29:20 marco>
+;;;Time-stamp: <2008-11-21 12:19:39 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +31,7 @@
 ;;; --------------------------------------------------------------------
 
 (import (rnrs)
-  (only (ikarus) printf pretty-print)
+;;  (only (ikarus) printf pretty-print)
   (srfi lightweight-testing)
   (scmobj)
   (scmobj utils))
@@ -46,7 +46,7 @@
 ;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <alpha> () (:a :b :c))
+  (define-class <alpha> () :a :b :c)
   (define o (make <alpha>
 	      ':a '(1 2 3)
 	      ':b '(4 5 6)
@@ -69,7 +69,7 @@
     => '(7 8 9 40)))
 
 (let ()
-  (define-class <alpha> () (:a :b :c))
+  (define-class <alpha> () :a :b :c)
   (define o (make <alpha>
 	      ':a '(1 2 3)
 	      ':b '(4 5 6)
@@ -104,7 +104,7 @@
 ;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <alpha> () (:a :b :c))
+  (define-class <alpha> () :a :b :c)
   (define A (make <alpha>
 	      ':a 1 ':b 2 ':c 3))
   (define B (make <alpha>
