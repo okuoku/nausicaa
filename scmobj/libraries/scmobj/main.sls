@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-21 13:23:42 marco>
+;;;Time-stamp: <2008-11-21 18:25:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -86,7 +86,6 @@
     ((_ ?list ?less-pred)
      (list-sort ?less-pred ?list))))
 
-;;;This is the K combinator.
 (define-syntax begin0
   (syntax-rules ()
     [(_ ?expr1 ?expr2 ...)
@@ -129,9 +128,7 @@
       ell)))
 
 
-;;; --------------------------------------------------------------------
-;;; Access to slots.
-;;; --------------------------------------------------------------------
+;;;; Access to slots.
 
 ;;Slot access  should be as  fast as possible,  for this reason  we make
 ;;this a syntax (it gets expanded in the function).
@@ -148,13 +145,8 @@
 (define (slot-set! object slot-name value)
   (set-cdr! (get-slot 'slot-set! object slot-name) value))
 
-
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Class inspection functions.
-;;; --------------------------------------------------------------------
+;;;; Class inspection functions.
 
 (define (class-definition-name class-object)
   (slot-ref class-object ':class-definition-name))
@@ -274,12 +266,8 @@
 	     (and (proper-list? v)
 		  (every symbol? v))))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Built in classes.
-;;; --------------------------------------------------------------------
+;;;; Built in classes.
 
 (define <class>
   '#0=((:class . #0#)
@@ -347,12 +335,8 @@
 ;;	<stream>	stream?
 ;;
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Class and instance constructors.
-;;; --------------------------------------------------------------------
+;;;; Class and instance constructors.
 
 ;;This is a "standard" make function, in style with CLOS.
 ;;
@@ -423,12 +407,8 @@
 	  . ,(build-slot-list '(?slot-spec ...) ?superclass ...))
 	 (:direct-slots . (?slot-spec ...)))))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Class inspection.
-;;; --------------------------------------------------------------------
+;;;; Class inspection.
 
 (define (subclass? c1 c2)
   (cond ((eq? c1 c2) #t)
@@ -476,12 +456,8 @@
    ((pair? value)		<pair>)
    (else			#t)))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Methods dispatching.
-;;; --------------------------------------------------------------------
+;;;; Methods dispatching.
 
 (define (more-specific-method
 	 signature.function-1 signature.function-2 signature)
@@ -528,12 +504,8 @@
 		  (cons signature.function the-applicable-methods)
 		the-applicable-methods))))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Next method implementation.
-;;; --------------------------------------------------------------------
+;;;; Next method implementation.
 
 (define-syntax call-next-method
   (syntax-rules ()
@@ -550,12 +522,8 @@
 (define scmobj:the-next-method-func (make-parameter #f))
 (define scmobj:the-next-method-pred (make-parameter #f))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Generic functions.
-;;; --------------------------------------------------------------------
+;;;; Generic functions.
 
 ;;A 'generic  function' is  basically a couple  of values:  an interface
 ;;procedure and an object of class <generic>.
@@ -720,12 +688,8 @@
     ((_ ?name ?arg ...)
      (define ?name (make-generic-function ?arg ...)))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Methods.
-;;; --------------------------------------------------------------------
+;;;; Methods.
 
 ;;What follows  is the documentation of the  DEFINE-METHOD syntax below.
 ;;The pattern matching has tree phases:
@@ -857,12 +821,8 @@
     ((_ ?generic-function ?args . ?body)
      (define-method 1 ?generic-function :primary ?args . ?body))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Done.
-;;; --------------------------------------------------------------------
+;;;; Done.
 
 ) ;; end of library form
 
