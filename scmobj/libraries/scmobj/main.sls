@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-21 18:25:30 marco>
+;;;Time-stamp: <2008-11-22 00:03:43 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -67,7 +67,7 @@
   (import (rnrs)
     (rnrs mutable-pairs (6))
 ;;    (only (ikarus) pretty-print printf)
-    (except (srfi lists))
+    (srfi lists)
     (srfi parameters))
 
 
@@ -103,7 +103,7 @@
 ;;
 (define (build-class-precedence-list . superclasses)
   (if (null? superclasses)
-      #f
+      superclasses
     (delete-duplicates
      (concatenate
       (map
@@ -117,15 +117,14 @@
 ;;used in multimethod dispatching.
 ;;
 (define (build-slot-list direct-slots . superclasses)
-  (let ((ell (delete-duplicates
-	      (concatenate (cons direct-slots
-				 (map (lambda (s)
-					(class-slots s))
-				   superclasses)))
-	      eq?)))
-    (if (null? ell)
-	#f
-      ell)))
+  (if (null? superclasses)
+      direct-slots
+    (delete-duplicates
+     (concatenate (cons direct-slots
+			(map (lambda (s)
+			       (class-slots s))
+			  superclasses)))
+     eq?)))
 
 
 ;;;; Access to slots.
@@ -152,21 +151,17 @@
   (slot-ref class-object ':class-definition-name))
 
 (define (class-precedence-list class-object)
-  (or (slot-ref class-object ':class-precedence-list) '()))
+  (slot-ref class-object ':class-precedence-list))
 
 (define (class-slots class-object)
-  (or (slot-ref class-object ':slots) '()))
+  (slot-ref class-object ':slots))
 
 (define (class-direct-slots class-object)
-  (or (slot-ref class-object ':direct-slots) '()))
-
-;;; --------------------------------------------------------------------
+  (slot-ref class-object ':direct-slots))
 
 (define (instance-classes instance)
   (let ((c (class-of instance)))
     (cons c (class-precedence-list c))))
-
-;;; --------------------------------------------------------------------
 
 (define (instance? value)
   (and (proper-list? value)
@@ -228,43 +223,36 @@
 
 ;; It has to be:
 ;;
-;;   (:class-precedence-list . #f)
 ;;   (:class-precedence-list . (... classes ...))
 ;;
 (define (third-class-slot? value)
   (and (pair? value)
        (eq? ':class-precedence-list (car value))
        (let ((v (cdr value)))
-	 (or (not v)
-	     (and (proper-list? v)
-		  (every class? v))))))
+	 (and (proper-list? v)
+	      (every class? v)))))
 
 ;;It has to be:
 ;;
-;;   (:slots . #f)
 ;;   (:slots . (... symbols ...))
 ;;
 (define (fourth-class-slot? value)
   (and (pair? value)
        (eq? ':slots (car value))
        (let ((v (cdr value)))
-	 (or (not v)
-	     (and (proper-list? v)
-		  (every symbol? v))))))
+	 (and (proper-list? v)
+	      (every symbol? v)))))
 
 ;;It has to be:
 ;;
-;;   (:direct-slots . #f)
-;;   (:direct-slots . ())
 ;;   (:direct-slots . (... symbols ...))
 ;;
 (define (fifth-class-slot? value)
   (and (pair? value)
        (eq? ':direct-slots (car value))
        (let ((v (cdr value)))
-	 (or (not v)
-	     (and (proper-list? v)
-		  (every symbol? v))))))
+	 (and (proper-list? v)
+	      (every symbol? v)))))
 
 
 ;;;; Built in classes.
@@ -272,7 +260,7 @@
 (define <class>
   '#0=((:class . #0#)
        (:class-definition-name . <class>)
-       (:class-precedence-list . #f)
+       (:class-precedence-list . ())
        (:slots . (:class-definition-name
 		  :class-precedence-list :slots :direct-slots))
        (:direct-slots . (:class-definition-name
@@ -281,9 +269,9 @@
 (define <entity-class>
   `((:class . ,<class>)
     (:class-definition-name . <entity-class>)
-    (:class-precedence-list . #f)
-    (:slots . #f)
-    (:direct-slots . #f)))
+    (:class-precedence-list . ())
+    (:slots . ())
+    (:direct-slots . ())))
 
 ;;; --------------------------------------------------------------------
 
@@ -296,8 +284,8 @@
        `((:class . ,<entity-class>)
 	 (:class-definition-name . ?name)
 	 (:class-precedence-list . ,(build-class-precedence-list ?superclass ...))
-	 (:slots . #f)
-	 (:direct-slots . #f))))
+	 (:slots . ())
+	 (:direct-slots . ()))))
     ((_ ?name ?superclass)
      (define-entity-class ?name (?superclass)))))
 
