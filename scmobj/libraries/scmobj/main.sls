@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-20 10:13:16 marco>
+;;;Time-stamp: <2008-11-21 13:23:42 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,48 +35,43 @@
 ;;;
 
 
-;;; --------------------------------------------------------------------
-;;; Setup.
-;;; --------------------------------------------------------------------
+;;;; Setup.
 
 (library (scmobj)
   (export
-      ;;Built in classes.
-      <class> <entity-class>
+    ;;Built in classes.
+    <class> <entity-class>
 
-      <circular-list> <dotted-list> <proper-list> <list> <pair>
-      <vector> <bytevector> <hashtable> <record> <condition>
-      <binary-port> <textual-port> <input-port> <output-port> <port>
-      <fixnum> <flonum> <integer> <integer-valued>
-      <rational> <rational-valued> <real> <real-valued>
-      <complex> <number>
+    <circular-list> <dotted-list> <proper-list> <list> <pair>
+    <vector> <bytevector> <hashtable> <record> <condition>
+    <binary-port> <textual-port> <input-port> <output-port> <port>
+    <fixnum> <flonum> <integer> <integer-valued>
+    <rational> <rational-valued> <real> <real-valued>
+    <complex> <number>
 
-      ;; Constructors.
-      define-class define-generic define-method
-      make-class make make-generic-function
+    ;; Constructors.
+    define-class define-generic define-method
+    make-class make make-generic-function
 
-      ;;Class inspection.
-      class-of
-      class-definition-name class-precedence-list class-slots
-      class? instance? is-a? subclass?
+    ;;Class inspection.
+    class-of
+    class-definition-name class-precedence-list
+    class-slots class-direct-slots
+    class? instance? is-a? subclass?
 
-      ;;Slot accessors.
-      slot-ref slot-set!
+    ;;Slot accessors.
+    slot-ref slot-set!
 
-      ;;Next method interface.
-      call-next-method next-method?)
+    ;;Next method interface.
+    call-next-method next-method?)
   (import (rnrs)
     (rnrs mutable-pairs (6))
-    (only (ikarus) pretty-print printf)
+;;    (only (ikarus) pretty-print printf)
     (except (srfi lists))
     (srfi parameters))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Helper functions and syntaxes: generic routines.
-;;; --------------------------------------------------------------------
+;;;; Helper functions and syntaxes: generic routines.
 
 (define-syntax position
   (syntax-rules ()
@@ -101,16 +96,12 @@
 	 ?expr2 ...
 	 (apply values x)))]))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Helper functions and syntaxes: class instantiation.
-;;; --------------------------------------------------------------------
+;;;; Helper functions and syntaxes: class instantiation.
 
-;;;Given  a list of  superclasses for  class <x>,  build and  return the
-;;;class precedence list for <x> to be used in multimethod dispatching.
-;;;
+;;Given a list of superclasses for class <x>, build and return the class
+;;precedence list for <x> to be used in multimethod dispatching.
+;;
 (define (build-class-precedence-list . superclasses)
   (if (null? superclasses)
       #f
@@ -122,10 +113,10 @@
 	superclasses))
      eq?)))
 
-;;;Given the  list of direct  slot names for  class <x> and its  list of
-;;;superclasses: build and  return the class precedence list  for <x> to
-;;;be used in multimethod dispatching.
-;;;
+;;Given the  list of  direct slot names  for class  <x> and its  list of
+;;superclasses: build and return the class precedence list for <x> to be
+;;used in multimethod dispatching.
+;;
 (define (build-slot-list direct-slots . superclasses)
   (let ((ell (delete-duplicates
 	      (concatenate (cons direct-slots
@@ -137,15 +128,13 @@
 	#f
       ell)))
 
-;;; --------------------------------------------------------------------
-
 
 ;;; --------------------------------------------------------------------
 ;;; Access to slots.
 ;;; --------------------------------------------------------------------
 
-;;;Slot access  should be as fast  as possible, for this  reason we make
-;;;this a syntax (it gets expanded in the function).
+;;Slot access  should be as  fast as possible,  for this reason  we make
+;;this a syntax (it gets expanded in the function).
 (define-syntax get-slot
   (syntax-rules ()
     ((_ ?caller ?object ?slot-name)
@@ -176,6 +165,9 @@
 (define (class-slots class-object)
   (or (slot-ref class-object ':slots) '()))
 
+(define (class-direct-slots class-object)
+  (or (slot-ref class-object ':direct-slots) '()))
+
 ;;; --------------------------------------------------------------------
 
 (define (instance-classes instance)
@@ -197,11 +189,12 @@
 
 (define (class? value)
   (and (proper-list? value)
-       (= 4 (length value))
+       (= 5 (length value))
        (first-class-slot?  (car value))
        (second-class-slot? (cadr value))
        (third-class-slot?  (caddr value))
-       (fourth-class-slot? (cadddr value))))
+       (fourth-class-slot? (cadddr value))
+       (fifth-class-slot? (cadddr (cdr value)))))
 
 (define (is-a?/light object class)
   (memq class (instance-classes object)))
@@ -223,29 +216,29 @@
 
 ;;; --------------------------------------------------------------------
 
-;;;It has to be:
-;;;
-;;;   (:class . class-object)
-;;;
+;;It has to be:
+;;
+;;   (:class . class-object)
+;;
 (define (first-class-slot? value)
   (and (pair? value)
        (eq? ':class (car value))
        (eq? <class> (cdr value))))
 
-;;;It has to be:
-;;;
-;;;   (:class-definition-name . symbol)
-;;;
+;;It has to be:
+;;
+;;   (:class-definition-name . symbol)
+;;
 (define (second-class-slot? value)
   (and (pair? value)
        (eq? ':class-definition-name (car value))
        (symbol? (cdr value))))
 
-;;; It has to be:
-;;;
-;;;   (:class-precedence-list . #f)
-;;;   (:class-precedence-list . (... classes ...))
-;;;
+;; It has to be:
+;;
+;;   (:class-precedence-list . #f)
+;;   (:class-precedence-list . (... classes ...))
+;;
 (define (third-class-slot? value)
   (and (pair? value)
        (eq? ':class-precedence-list (car value))
@@ -254,14 +247,28 @@
 	     (and (proper-list? v)
 		  (every class? v))))))
 
-;;;It has to be:
-;;;
-;;;   (:pairs . #f)
-;;;   (:pairs . (... symbols ...))
-;;;
+;;It has to be:
+;;
+;;   (:slots . #f)
+;;   (:slots . (... symbols ...))
+;;
 (define (fourth-class-slot? value)
   (and (pair? value)
        (eq? ':slots (car value))
+       (let ((v (cdr value)))
+	 (or (not v)
+	     (and (proper-list? v)
+		  (every symbol? v))))))
+
+;;It has to be:
+;;
+;;   (:direct-slots . #f)
+;;   (:direct-slots . ())
+;;   (:direct-slots . (... symbols ...))
+;;
+(define (fifth-class-slot? value)
+  (and (pair? value)
+       (eq? ':direct-slots (car value))
        (let ((v (cdr value)))
 	 (or (not v)
 	     (and (proper-list? v)
@@ -278,13 +285,17 @@
   '#0=((:class . #0#)
        (:class-definition-name . <class>)
        (:class-precedence-list . #f)
-       (:slots . (:class-definition-name :class-precedence-list :slots))))
+       (:slots . (:class-definition-name
+		  :class-precedence-list :slots :direct-slots))
+       (:direct-slots . (:class-definition-name
+			 :class-precedence-list :slots :direct-slots))))
 
 (define <entity-class>
   `((:class . ,<class>)
     (:class-definition-name . <entity-class>)
     (:class-precedence-list . #f)
-    (:slots . #f)))
+    (:slots . #f)
+    (:direct-slots . #f)))
 
 ;;; --------------------------------------------------------------------
 
@@ -297,7 +308,8 @@
        `((:class . ,<entity-class>)
 	 (:class-definition-name . ?name)
 	 (:class-precedence-list . ,(build-class-precedence-list ?superclass ...))
-	 (:slots . ()))))
+	 (:slots . #f)
+	 (:direct-slots . #f))))
     ((_ ?name ?superclass)
      (define-entity-class ?name (?superclass)))))
 
@@ -330,10 +342,10 @@
 (define-entity-class <integer>		<integer-valued>)
 (define-entity-class <fixnum>		<integer>)
 
-;;;Other possible classes that require more library loading:
-;;;
-;;;	<stream>	stream?
-;;;
+;;Other possible classes that require more library loading:
+;;
+;;	<stream>	stream?
+;;
 
 ;;; --------------------------------------------------------------------
 
@@ -342,67 +354,64 @@
 ;;; Class and instance constructors.
 ;;; --------------------------------------------------------------------
 
-;;;This is a "standard" make function, in style with CLOS.
-;;;
+;;This is a "standard" make function, in style with CLOS.
+;;
 (define (make class . init-args)
   (let ((instance (allocate-instance class)))
     (initialise instance init-args)
     instance))
 
-;;;Build  a new  alist  initialising  all the  slots,  but ":class",  to
-;;;":uninitialized".  The ":class"  pair has to be the  first element in
-;;;the alist.
-;;;
-;;;The form of this function is one of the reasons why the ":class" slot
-;;;is not in the list of slots.
-;;;
+;;Build  a  new alist  initialising  all  the  slots, but  ":class",  to
+;;":uninitialized".  The  ":class" pair has  to be the first  element in
+;;the alist.
+;;
+;;The form of this function is  one of the reasons why the ":class" slot
+;;is not in the list of slots.
+;;
 (define (allocate-instance class)
   (cons (cons ':class class)
 	(map (lambda (x)
 	       (cons x ':uninitialized))
 	  (class-slots class))))
 
-;;;Interpret SLOT-VALUES as list  of alternate symbols and values, where
-;;;the symbols are slot names.
-;;;
-;;;We are not asserting (as  we should) that: (1) "(car slot-values)" is
-;;;not  ":class";  (2)  SLOT-VALUES  has  an even  number  of  elements.
-;;;Because of this errors with unclear message may happen.
-;;;
+;;Interpret SLOT-VALUES  as list of alternate symbols  and values, where
+;;the symbols are slot names.
+;;
+;;We are not  asserting (as we should) that:  (1) "(car slot-values)" is
+;;not ":class"; (2) SLOT-VALUES has an even number of elements.  Because
+;;of this errors with unclear message may happen.
+;;
 (define (initialise instance slot-values)
   (unless (null? slot-values)
     (slot-set! instance (car slot-values) (cadr slot-values))
     (initialise instance (cddr slot-values))))
 
-;;;It  is  possible  for a  class  to  add  no  new slots:  this  allows
-;;;subclassing for the only purpose of method dispatching.
-;;;
-;;;Notice that the class precedence  list does not include the new class
-;;;itself.
-;;;
+;;It  is  possible  for  a  class  to add  no  new  slots:  this  allows
+;;subclassing for the only purpose of method dispatching.
+;;
+;;Notice that the  class precedence list does not  include the new class
+;;itself.
+;;
 (define-syntax make-class
   (syntax-rules ()
     ((_)
-     (make-class () ()))
-    ((_ ())
-     (make-class () ()))
-    ((_ (?superclass ...) (?slot ...))
+     (make-class ()))
+    ((_ (?superclass ...) ?slot-spec ...)
      `((:class . ,<class>)
        (:class-definition-name . :uninitialized)
        (:class-precedence-list
 	. ,(build-class-precedence-list ?superclass ...))
        (:slots
-	. ,(build-slot-list '(?slot ...) ?superclass ...))))))
+	. ,(build-slot-list '(?slot-spec ...) ?superclass ...))
+       (:direct-slots . (?slot-spec ...))))))
 
-;;;Define a binding for a class, giving it a name.
-;;;
+;;Define a binding for a class, giving it a name.
+;;
 (define-syntax define-class
   (syntax-rules ()
     ((_ ?name)
-     (define-class ?name () ()))
-    ((_ ?name (?superclass ...))
-     (define-class ?name (?superclass ...) ()))
-    ((_ ?name (?superclass ...) (?slot ...))
+     (define-class ?name ()))
+    ((_ ?name (?superclass ...) ?slot-spec ...)
      (define ?name
        ;;This is  the same as  MAKE-CLASS, but we also  store the
        ;;class definition name in its slot.
@@ -411,7 +420,8 @@
 	 (:class-precedence-list
 	  . ,(build-class-precedence-list ?superclass ...))
 	 (:slots
-	  . ,(build-slot-list '(?slot ...) ?superclass ...)))))))
+	  . ,(build-slot-list '(?slot-spec ...) ?superclass ...))
+	 (:direct-slots . (?slot-spec ...)))))))
 
 ;;; --------------------------------------------------------------------
 
@@ -465,7 +475,6 @@
    ((list? value)		<list>)
    ((pair? value)		<pair>)
    (else			#t)))
-
 
 ;;; --------------------------------------------------------------------
 
@@ -548,46 +557,45 @@
 ;;; Generic functions.
 ;;; --------------------------------------------------------------------
 
-;;;A 'generic  function' is basically  a couple of values:  an interface
-;;;procedure and an object of class <generic>.
-;;;
-;;;The interface procedure is stored in the :interface-procedure slot of
-;;;the object  and is used  to apply the  generic function to a  list of
-;;;arguments.
-;;;
+;;A 'generic  function' is  basically a couple  of values:  an interface
+;;procedure and an object of class <generic>.
+;;
+;;The interface procedure is  stored in the :interface-procedure slot of
+;;the object  and is  used to apply  the generic  function to a  list of
+;;arguments.
+;;
 (define-class <generic> ()
-  (:interface-procedure
-   :add-primary-method
-   :add-before-method
-   :add-after-method
-   :add-around-method))
+  :interface-procedure
+  :add-primary-method
+  :add-before-method
+  :add-after-method
+  :add-around-method)
 
-;;;This  is an  alist  that will  hold  all the  generic functions  ever
-;;;created.  The keys  are the interface procedures, the  values are the
-;;;<generic> objects.
+;;This  is  an alist  that  will hold  all  the  generic functions  ever
+;;created.  The  keys are the  interface procedures, the values  are the
+;;<generic> objects.
 (define *generic-procedures* (make-eq-hashtable))
 
-;;;Helper  function  that adds  a  signature/func  pointed  list to  the
-;;;appropriate  alist of  methods  (the METHOD-TABLE  argument).  A  new
-;;;method is added only if no method with the signature already exists.
+;;Helper  function  that  adds  a  signature/func pointed  list  to  the
+;;appropriate  alist  of methods  (the  METHOD-TABLE  argument).  A  new
+;;method is added only if no method with the signature already exists.
 (define (add-method-to-method-table
 	 method-table method-signature method-func)
-  (unless (any
-	      (lambda (signature.function)
-		;;If a method  with the signature already exists,
-		;;overwrite its function with the new one.
-		(and (every eq? method-signature
-			    (car signature.function))
-		     (begin
-		       (set-cdr! signature.function method-func)
-		       #t)))
+  (unless (any (lambda (signature.function)
+		 ;;If  a  method  with  the  signature  already  exists,
+		 ;;overwrite its function with the new one.
+		 (and (every eq? method-signature
+			     (car signature.function))
+		      (begin
+			(set-cdr! signature.function method-func)
+			#t)))
 	    method-table)
     (set! method-table
 	  (alist-cons method-signature method-func method-table)))
   method-table)
 
-;;;Helper syntax for the definition of the closure that adds a method to
-;;;the appropriate method table.
+;;Helper syntax for the definition of  the closure that adds a method to
+;;the appropriate method table.
 (define-syntax method-adder
   (syntax-rules ()
     ((_ ?method-table)
@@ -685,16 +693,15 @@
 				applicable-after-methods))))))))
 	     (parameterize ((scmobj:the-next-method-func next-method-func)
 			    (scmobj:the-next-method-pred next-method-pred))
-	       (next-method-func))
-	     )))))))
+	       (next-method-func)))))))))
 
 ;;; --------------------------------------------------------------------
 
-;;;Helper  function  that adds  a  new  generic  function to  the
-;;;*GENERIC-PROCEDURES* table.  This  function is not expanded in
-;;;the MAKE-GENERIC-FUNCTION  (as it  was in the  original ScmObj
-;;;code) because  doing so would modify a  variable exported from
-;;;this library (and this is forbidden by R6RS).
+;;Helper   function  that   adds   a  new   generic   function  to   the
+;;*GENERIC-PROCEDURES*  table.  This  function  is not  expanded in  the
+;;MAKE-GENERIC-FUNCTION (as it was  in the original ScmObj code) because
+;;doing so would modify a  variable exported from this library (and this
+;;is forbidden by R6RS or Ikarus).
 (define (register-new-generic-function interface-procedure generic-object)
   (hashtable-set! *generic-procedures* interface-procedure generic-object))
 
@@ -720,61 +727,61 @@
 ;;; Methods.
 ;;; --------------------------------------------------------------------
 
-;;;What follows is the  documentation of the DEFINE-METHOD syntax below.
-;;;The pattern matching has tree phases:
-;;;
-;;;1. the method is recognised  as primary, before, after or around, and
-;;;   two accumulator lists are initialised to nil;
-;;;
-;;;2. the method arguments are accumulated in a list of "with class" and
-;;;   a list of "without class";
-;;;
-;;;3. the method  is added to the appropriate  collection in the generic
-;;;   function.
-;;;
-;;;The ?QUALIFIER pattern variable is one of the literals:
-;;;
-;;;	:primary :before :after :around
-;;;
-;;;it defaults to ":primary".
-;;;
-;;;The ?SARGS  pattern variable is  a list accumulator  for specialising
-;;;arguments.  A specialising argument is  a method argument for which a
-;;;class was specified.
-;;;
-;;;The   ?NSARGS   pattern   variable   is  a   list   accumulator   for
-;;;non-specialising arguments.  A  non-specialising argument is a method
-;;;argument for which a class was NOT specified.
-;;;
-;;;The  ?REST pattern  variable is  used to  hold the  name of  the rest
-;;;argument.
-;;;
-;;;The  ?ARG pattern  variable is  the next  argument to  be accumulated
-;;;somewhere.
-;;;
-;;;The  ?SA   pattern  variable  is  a   specialising  argument  already
-;;;accumulated.
-;;;
-;;;The  ?NSA pattern  variable  is a  non-specialising argument  already
-;;;accumulated.
-;;;
-;;;Example:
-;;;
-;;;  (define-method swirl-vector ((vec <vector>) idx . args)
-;;;	---)
-;;;
-;;;here  VEC is  a specialising  argument of  class <vector>,  IDX  is a
-;;;non-specialising argument, ARGS is the name of the rest argument.
-;;;
-;;;A 'signature' is a list of  classes: given a list of generic function
-;;;call arguments, the arguments must match these classes for the method
-;;;to be applicable.  Example:
-;;;
-;;;  (define-method twist-vector ((vec <vector>) (idx <int>))
-;;;     ---)
-;;;
-;;;the signature is: "(list <vector> <int>)".
-;;;
+;;What follows  is the documentation of the  DEFINE-METHOD syntax below.
+;;The pattern matching has tree phases:
+;;
+;;1. the method  is recognised as primary, before,  after or around, and
+;;two accumulator lists are initialised to nil;
+;;
+;;2. the method arguments are accumulated  in a list of "with class" and
+;;a list of "without class";
+;;
+;;3. the  method is added to  the appropriate collection  in the generic
+;;function.
+;;
+;;The ?QUALIFIER pattern variable is one of the literals:
+;;
+;;	:primary :before :after :around
+;;
+;;it defaults to ":primary".
+;;
+;;The  ?SARGS pattern variable  is a  list accumulator  for specialising
+;;arguments.  A specialising  argument is a method argument  for which a
+;;class was specified.
+;;
+;;The   ?NSARGS   pattern   variable   is   a   list   accumulator   for
+;;non-specialising arguments.   A non-specialising argument  is a method
+;;argument for which a class was NOT specified.
+;;
+;;The  ?REST pattern  variable is  used  to hold  the name  of the  rest
+;;argument.
+;;
+;;The  ?ARG pattern  variable is  the  next argument  to be  accumulated
+;;somewhere.
+;;
+;;The  ?SA   pattern  variable   is  a  specialising   argument  already
+;;accumulated.
+;;
+;;The  ?NSA  pattern variable  is  a  non-specialising argument  already
+;;accumulated.
+;;
+;;Example:
+;;
+;;  (define-method swirl-vector ((vec <vector>) idx . args)
+;;	---)
+;;
+;;here  VEC is  a  specialising argument  of  class <vector>,  IDX is  a
+;;non-specialising argument, ARGS is the name of the rest argument.
+;;
+;;A 'signature' is  a list of classes: given a  list of generic function
+;;call arguments, the arguments must  match these classes for the method
+;;to be applicable.  Example:
+;;
+;;  (define-method twist-vector ((vec <vector>) (idx <int>))
+;;     ---)
+;;
+;;the signature is: "(list <vector> <int>)".
+;;
 
 (define (add-method-to-generic-function
 	 slot-name generic-function method-signature method-func)
@@ -794,15 +801,13 @@
 
     ;;Matches  the form when  the next  argument to  be processed  has a
     ;;class.
-    ((_ 2 ?generic-function ?qualifier
-	((?arg ?class) . ?args) (?sa ...) () . ?body)
+    ((_ 2 ?generic-function ?qualifier ((?arg ?class) . ?args) (?sa ...) ?nsargs . ?body)
      (define-method 2 ?generic-function ?qualifier
-       ?args (?sa ... (?arg ?class)) ()  . ?body))
+       ?args (?sa ... (?arg ?class)) ?nsargs . ?body))
 
     ;;Matches the  form when  the next argument  to be processed  has no
     ;;class.
-    ((_ 2 ?generic-function ?qualifier
-	(?arg . ?args) ?sargs (?nsa ...) . ?body)
+    ((_ 2 ?generic-function ?qualifier (?arg . ?args) ?sargs (?nsa ...) . ?body)
      (define-method 2 ?generic-function ?qualifier
        ?args ?sargs (?nsa ... ?arg)  . ?body))
 

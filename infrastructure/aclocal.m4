@@ -1,30 +1,30 @@
-dnl 
+dnl
 dnl Part of: Nausicaa
 dnl Contents: autoconf macros
 dnl Date: Thu Nov 13, 2008
-dnl 
+dnl
 dnl Abstract
-dnl 
+dnl
 dnl    This is  a library of GNU Autoconf  macros to be used  by all the
 dnl    Nausicaa  "configure.ac" templates.   It  is enough  to create  a
 dnl    symbolic link from the project directory to this file.
-dnl 
+dnl
 dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
-dnl 
+dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
 dnl the Free  Software Foundation, either  version 3 of the  License, or
 dnl (at your option) any later version.
-dnl 
+dnl
 dnl This program is distributed in the  hope that it will be useful, but
 dnl WITHOUT  ANY   WARRANTY;  without  even  the   implied  warranty  of
 dnl MERCHANTABILITY or  FITNESS FOR A  PARTICULAR PURPOSE.  See  the GNU
 dnl General Public License for more details.
-dnl 
+dnl
 dnl You should  have received a copy  of the GNU  General Public License
 dnl along      with      this       program.       If      not,      see
 dnl <http://www.gnu.org/licenses/>.
-dnl 
+dnl
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -38,7 +38,7 @@ dnl                    <4 checking-description>,
 dnl                    <5 option-description>)
 dnl
 dnl Description:
-dnl   
+dnl
 dnl   Define an enable/disable command line option for "configure".  The
 dnl   side effect is an output variable that is meant to be set to "yes"
 dnl   or "no".
@@ -74,7 +74,7 @@ dnl
 dnl Usage example:
 dnl
 dnl   DS_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
-dnl   
+dnl
 AC_DEFUN([DS_PROGRAM],[
 AC_PATH_PROG([$1],[$2],[:])
 AC_ARG_VAR([$1],[$3])
@@ -271,10 +271,11 @@ DS_COMMON_PROGRAMS()
 DS_COMMON_DIRECTORIES()
 DS_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
 DS_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
+DS_PROGRAM([YPSILON],[ypsilon],[another R6RS Scheme])
 DS_SLACKWARE_TOOLS()
 DS_REDHAT_TOOLS()
 DS_PACMAN_TOOLS()
-]) 
+])
 AC_DEFUN([NAUSICAA_END],[
 AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
 AC_CONFIG_FILES([meta.d/redhat/spec-file:meta/redhat/spec-file.in])
@@ -387,7 +388,7 @@ dnl       IKARUS_CHECK_LIBRARY([LIST],[(list-lib)])
 dnl
 dnl   if  it is:  the output  variable 'HAS_IKARUS_LIB_LIST'  is  set to
 dnl   'yes'.
-dnl   
+dnl
 AC_DEFUN([DS_IKARUS_CHECK_LIBRARY],[
 AC_MSG_CHECKING([availability of Ikarus library $2])
 
