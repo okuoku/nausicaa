@@ -48,7 +48,7 @@ PACKAGE_NAME		= @PACKAGE_NAME@
 PACKAGE_VERSION		= @PACKAGE_VERSION@
 PKG_ID			= @PKG_ID@
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -75,10 +75,10 @@ ds_config_ENABLE_DOC_HTML	= @ds_config_ENABLE_DOC_HTML@
 #
 # if a different value is set, the compressor will default
 # to 'gzip'.
-# 
+#
 ds_config_COMPRESSOR		?= gzip
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -91,7 +91,7 @@ nausicaa_ENABLE_SLS	= @nausicaa_ENABLE_SLS@
 # If set to 'yes' fasl files will be produced and installed.
 nausicaa_ENABLE_FASL	= @nausicaa_ENABLE_FASL@
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -102,7 +102,7 @@ ifeq ($(strip $(package_BUILD_VERSION)),)
 package_BUILD_VERSION	= 1nau
 endif
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -128,7 +128,7 @@ endif
 package_PREFIX		= \
 $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -182,7 +182,7 @@ pkglibdir		= @pkglibdir@
 pkglibexecdir		= @pkglibexecdir@
 pkgsysconfdir		= @pkgsysconfdir@
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -191,7 +191,7 @@ pkgsysconfdir		= @pkgsysconfdir@
 
 ikarus_PKGLIBDIR	= $(libdir)/ikarus
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -242,7 +242,7 @@ MAKEINFO_FLAGS		= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
 MAKEINFO_INFO_FLAGS	= $(MAKEINFO_FLAGS)
 MAKEINFO_HTML_FLAGS	= $(MAKEINFO_FLAGS) --html
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -251,6 +251,7 @@ MAKEINFO_HTML_FLAGS	= $(MAKEINFO_FLAGS) --html
 
 IKARUS			= @IKARUS@
 SCHEME_SCRIPT		= @SCHEME_SCRIPT@
+YPSILON			= @YPSILON@
 
 SORT_UNIQUE		= $(SORT) --unique
 SORT_REVERSE		= $(SORT) --reverse
@@ -258,7 +259,7 @@ SORT_REVERSE_UNIQUE	= $(SORT) --reverse --unique
 
 SPLIT_LIST_TO_ROWS	= $(SED) -e 's/ /\n/g'
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -308,7 +309,7 @@ all:		doc
 clean:		doc-clean
 install:	doc-install
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -404,7 +405,7 @@ sls-install fasl-install:
 ## times.  When these files are  installed: loading will work fine if we
 ## give the appropriate preserve flags to the "install" program.
 ifeq ($(strip $(nausicaa_ENABLE_FASL)),yes)
-fasl: fasl-builddir
+fasl: fasl-builddir fasl-clean
 	( cd $(sls_SRCDIR);				\
 	  $(FIND) . -name '*.sls' -and -print		| \
 	  $(TAR) --create --files-from=- --file=-; )	| \
@@ -460,11 +461,11 @@ endef
 #
 # *WARNING*  Leave  the  function  call  written  as  a  single  line!!!
 # Splitting it introduces white spaces that break things.
-# 
+#
 $(foreach dir,$(shell $(FIND) $(sls_SRCDIR) -type d),\
 $(eval $(call nausicaa-library,$(subst -,_,$(notdir $(dir))),$(subst $(sls_SRCDIR),,$(dir)),$(sls_INSTDIR)$(subst $(sls_SRCDIR),,$(dir)))))
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 all:		fasl
 clean:		fasl-clean
@@ -495,8 +496,27 @@ tests test check:
 test-file:
 	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_test_RUN) $(f);)
 
+## ------------------------------------------------------------
 
-## ------------------------------------------------------------ 
+nau_ytest_SRCDIR	= $(srcdir)/tests
+nau_ytest_FILES		= $(wildcard $(nau_ytest_SRCDIR)/test-*.sps)
+
+# We DO  NOT include the  fasl build directory in  the path.
+# This is on purpose.
+nau_ytest_ENV		= YPSILON_SITELIB=$(ikarus_PKGLIBDIR):$(srcdir)/libraries:$(srcdir)/tests
+nau_ytest_RUN		= $(nau_ytest_ENV) $(YPSILON) --r6rs
+
+nau_ytest_SELECTED_FILES	= $(wildcard $(nau_ytest_SRCDIR)/test-$(FILE).sps)
+
+.PHONY: ytests ytest ycheck ytest-file
+
+ytests ytest ycheck:
+	$(foreach f,$(nau_ytest_FILES),$(nau_ytest_RUN) $(f);)
+
+ytest-file:
+	$(foreach f,$(nau_ytest_SELECTED_FILES),$(nau_ytest_RUN) $(f);)
+
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -537,7 +557,7 @@ doc:		doc-texinfo
 doc-clean:	doc-texinfo-clean
 doc-install:	doc-texinfo-install
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -565,7 +585,7 @@ endif		# ds_config_ENABLE_INFO_DOC == yes
 
 $(eval $(call ds-module-install-data,doc_texinfo_info,ds_config_ENABLE_DOC_INFO))
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -593,7 +613,7 @@ endif		# ds_config_ENABLE_HTML_DOC == yes
 
 $(eval $(call ds-module-install-data,doc_texinfo_html,ds_config_ENABLE_DOC_HTML))
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -655,7 +675,7 @@ bindist-builddir:
 bindist-clean-builddir:
 	-$(RM) $(bindist_BUILDDIR)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -697,7 +717,7 @@ slack_BUILDDIR		= $(PWD)/$(builddir)/slackware.d
 #
 #   $(prefix)$(slack_REGISTRY_DIR)
 #
-slack_REGISTRY		?= 
+slack_REGISTRY		?=
 slack_REGISTRY_DIR	= /var/log/packages
 
 # Try  to  read from  the  system  the  name of  an  already
@@ -725,7 +745,7 @@ slack_UPGRADEPKG_PROGRAM= @slack_UPGRADEPKG_PROGRAM@
 slack_UPGRADEPKG_FLAGS	?= --verbose --reinstall
 slack_UPGRADEPKG	= $(slack_ENV) $(slack_SUDO) $(slack_UPGRADEPKG_PROGRAM) $(slack_UPGRADEPKG_FLAGS)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -762,7 +782,7 @@ private-slackware-upgrade:
 	cd $(slack_BUILDDIR); \
 	$(slack_UPGRADEPKG) $(slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -794,7 +814,7 @@ slackware-clean-top-builddir:
 slackware-clean-builddir:
 	-$(slack_SUDO) $(RM) $(slack_BUILDDIR)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -824,7 +844,7 @@ slackware-remove:
 slackware-upgrade:
 	$(MAKE) private-slackware-upgrade	$(slackware_STANDARD_ENV)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -867,7 +887,7 @@ abu:
 	$(MAKE) local-slackware local-slackware-upgrade slack_SUDO=$(SUDO)
 
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 
 #page
@@ -935,7 +955,7 @@ redhat: bindist redhat-clean
 redhat-clean:
 	-$(RM) $(redhat_PACKAGE_BUILDDIR)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -945,7 +965,7 @@ redhat-clean:
 .PHONY: echo-variable echo-list-variable
 
 # Use this to echo a variable to stdout; example:
-# 
+#
 #	$ make echo-variable VARIABLE=slack_PACKAGE_NAME
 #
 echo-variable:
@@ -953,13 +973,13 @@ echo-variable:
 
 # Use this to  echo a variable to stdout  interpreting it as
 # list of strings; example:
-# 
+#
 #	$ make echo-list-variable VARIABLE=FILES
 #
 echo-list-variable:
 	@$(foreach f,$($(VARIABLE)),echo $(f);)
 
-## ------------------------------------------------------------ 
+## ------------------------------------------------------------
 
 
 

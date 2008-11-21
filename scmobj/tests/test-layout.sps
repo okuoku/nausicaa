@@ -27,29 +27,29 @@
 ;;;
 
 
-;;;page
+
 ;;; ------------------------------------------------------------
 ;;; Setup.
 ;;; ------------------------------------------------------------
 
 (import (rnrs)
-        (only (ikarus) printf pretty-print)
-        (srfi lightweight-testing)
-	(scmobj))
+;;  (only (ikarus) printf pretty-print)
+  (srfi lightweight-testing)
+  (scmobj))
 
 (check-set-mode! 'report-failed)
 
 ;;; ------------------------------------------------------------
 
-;;;page
+
 ;;; ------------------------------------------------------------
 ;;; Code.
 ;;; ------------------------------------------------------------
 
 (define-class <biologic>)
 (define-class <fruit> (<biologic>))
-(define-class <apple> (<fruit>) (:variety :colour :quality))
-(define-class <price> () (:tag))
+(define-class <apple> (<fruit>) :variety :colour :quality)
+(define-class <price> () :tag)
 (define-class <priced-apple> (<apple> <price>))
 
 (define o (make <apple>
@@ -88,7 +88,7 @@
 
 ;;; ------------------------------------------------------------
 
-;;;page
+
 ;;; ------------------------------------------------------------
 ;;; Done.
 ;;; ------------------------------------------------------------

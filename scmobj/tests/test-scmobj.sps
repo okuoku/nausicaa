@@ -2,6 +2,7 @@
 ;;;Part of: ScmObj
 ;;;Contents: tests for ScmObj
 ;;;Date: Tue Nov 11, 2008
+;;;Time-stamp: <2008-11-21 13:24:43 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -9,43 +10,40 @@
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;This  program  is free  software:  you  can redistribute  it
-;;;and/or modify it  under the terms of the  GNU General Public
-;;;License as published by the Free Software Foundation, either
-;;;version  3 of  the License,  or (at  your option)  any later
-;;;version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Setup.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (import (rnrs)
-	(only (ikarus) printf pretty-print)
-	(srfi lightweight-testing)
-	(srfi lists)
-	(scmobj))
+;;  (only (ikarus) printf pretty-print)
+  (srfi lists)
+  (srfi lightweight-testing)
+  (scmobj))
 
 (check-set-mode! 'report-failed)
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Clas inspection: basic predefined classes.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (check
     (class-of <class>)
@@ -61,7 +59,7 @@
 
 (check
     (class-slots <class>)
-  => '(:class-definition-name :class-precedence-list :slots))
+  => '(:class-definition-name :class-precedence-list :slots :direct-slots))
 
 (check
     (class? <class>)
@@ -75,7 +73,7 @@
     (is-a? <class> <class>)
   => #t)
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (check
     (class-of <entity-class>)
@@ -105,50 +103,50 @@
     (is-a? <entity-class> <class>)
   => #t)
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Class inspection: predefined entity classes.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-<circular-list>
-<dotted-list>
-<proper-list>
-<list>
-<pair>
-<vector>
-<bytevector>
-<hashtable>
-<record>
-<condition>
-<binary-port>
-<textual-port>
-<input-port>
-<output-port>
-<port>
-<fixnum>
-<flonum>
-<integer>
-<integer-valued>
-<rational>
-<rational-valued>
-<real>
-<real-valued>
-<complex>
-<number>
+;; <circular-list>
+;; <dotted-list>
+;; <proper-list>
+;; <list>
+;; <pair>
+;; <vector>
+;; <bytevector>
+;; <hashtable>
+;; <record>
+;; <condition>
+;; <binary-port>
+;; <textual-port>
+;; <input-port>
+;; <output-port>
+;; <port>
+;; <fixnum>
+;; <flonum>
+;; <integer>
+;; <integer-valued>
+;; <rational>
+;; <rational-valued>
+;; <real>
+;; <real-valued>
+;; <complex>
+;; <number>
 
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Class inspection: custom classes with simple inheritance.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-(let* ((<one> (make-class () (:a :b :c)))
-       (<two> (make-class (<one>) (:d :e :f)))
-       (<three> (make-class (<two>) (:g :h :i))))
+(let* ((<one> (make-class () :a :b :c))
+       (<two> (make-class (<one>) :d :e :f))
+       (<three> (make-class (<two>) :g :h :i)))
 
   (check
       (class? <one>)
@@ -221,12 +219,12 @@
     => #t)
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <one> () (:a :b :c))
-  (define-class <two> (<one>) (:d :e :f))
-  (define-class <three> (<two>) (:g :h :i))
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
 
   (check
       (class? <one>)
@@ -299,19 +297,19 @@
     => #t)
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Class inspection: custom classes with multiple inheritance.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <a> () (:a))
-  (define-class <b> () (:b))
-  (define-class <c> () (:c))
-  (define-class <d> () (:d))
-  (define-class <e> () (:e))
+  (define-class <a> () :a)
+  (define-class <b> () :b)
+  (define-class <c> () :c)
+  (define-class <d> () :d)
+  (define-class <e> () :e)
 
   (define-class <pp> (<a> <b>))
   (define-class <qq> (<c> <d>))
@@ -362,18 +360,18 @@
     => #t)
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <a> () (:a))
-  (define-class <b> () (:b))
-  (define-class <c> () (:c))
-  (define-class <d> () (:d))
-  (define-class <e> () (:e))
+  (define-class <a> () :a)
+  (define-class <b> () :b)
+  (define-class <c> () :c)
+  (define-class <d> () :d)
+  (define-class <e> () :e)
 
-  (define-class <pp> (<a> <b>) (:pp))
-  (define-class <qq> (<c> <d>) (:qq))
-  (define-class <rr> (<pp> <e> <qq>) (:rr))
+  (define-class <pp> (<a> <b>) :pp)
+  (define-class <qq> (<c> <d>) :qq)
+  (define-class <rr> (<pp> <e> <qq>) :rr)
 
   (check
       (every class? (list <pp> <qq> <rr>))
@@ -421,14 +419,14 @@
 
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Class instantiation: slot access.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-(let* ((<one>	(make-class () (:a :b :c)))
+(let* ((<one>	(make-class () :a :b :c))
        (o	(make <one>
 		  ':a 1 ':b 2 ':c 3)))
   (check
@@ -445,11 +443,11 @@
     => '(2 1 3))
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
   (define-class <one> ()
-    (:a :b :c))
+    :a :b :c)
   (define o (make <one>
 	      ':a 1 ':b 2 ':c 3))
   (check
@@ -466,16 +464,16 @@
     => '(2 1 3))
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Class instantiation: simple inheritance.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-(let* ((<one>	(make-class () (:a :b :c)))
-       (<two>	(make-class (<one>) (:d :e :f)))
-       (<three>	(make-class (<two>) (:g :h :i)))
+(let* ((<one>	(make-class () :a :b :c))
+       (<two>	(make-class (<one>) :d :e :f))
+       (<three>	(make-class (<two>) :g :h :i))
        (o	(make <three>
 		  ':a 1 ':b 2 ':c 3
 		  ':d 4 ':e 5 ':f 6
@@ -526,13 +524,13 @@
 
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (check
     (let ()
-      (define-class <one> () (:a :b :c))
-      (define-class <two> (<one>) (:d :e :f))
-      (define-class <three> (<two>) (:g :h :i))
+      (define-class <one> () :a :b :c)
+      (define-class <two> (<one>) :d :e :f)
+      (define-class <three> (<two>) :g :h :i)
 
       (define o (make <three>
 		  ':a 1 ':b 2 ':c 3
@@ -546,9 +544,9 @@
 
 (check
     (let ()
-      (define-class <one> () (:a :b :c))
-      (define-class <two> (<one>) (:d :e :f))
-      (define-class <three> (<two>) (:g :h :i))
+      (define-class <one> () :a :b :c)
+      (define-class <two> (<one>) :d :e :f)
+      (define-class <three> (<two>) :g :h :i)
 
       (list (subclass? <one> <class>)
 	    (subclass? <two> <one>)
@@ -558,26 +556,26 @@
   => '(#f #t #t #t #f))
 
 (let ()
-  (define-class <one> () (:a :b :c))
-  (define-class <two> (<one>) (:d :e :f))
-  (define-class <three> (<two>) (:g :h :i))
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
 
   (check
       (map class-definition-name (class-precedence-list <three>))
     => '(<two> <one>)))
 
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Generic functions.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <one> () (:a :b :c))
-  (define-class <two> (<one>) (:d :e :f))
-  (define-class <three> (<two>) (:g :h :i))
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
 
   (define-generic alpha o)
 
@@ -598,12 +596,12 @@
     (check (alpha c) => 3))
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 ;;;This tests overwriting an existing method function.
 (let ()
-  (define-class <one> () (:a :b :c))
-  (define-class <two> (<one>) (:d :e :f))
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
 
   (define-generic alpha o)
 
@@ -618,17 +616,17 @@
   )
 
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Next method.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <one> () (:a :b :c))
-  (define-class <two> (<one>) (:d :e :f))
-  (define-class <three> (<two>) (:g :h :i))
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
 
   (define-generic alpha o)
 
@@ -656,19 +654,19 @@
   #t)
 
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Multiple inheritance.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
-  (define-class <a> () (:a))
-  (define-class <b> () (:b))
-  (define-class <c> () (:c))
-  (define-class <d> () (:d))
-  (define-class <e> () (:e))
+  (define-class <a> () :a)
+  (define-class <b> () :b)
+  (define-class <c> () :c)
+  (define-class <d> () :d)
+  (define-class <e> () :e)
 
   (define-class <pp> (<a> <b>))
   (define-class <qq> (<c> <d>))
@@ -700,12 +698,12 @@
 
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Generic functions: predefined entity classes.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (let ()
   (define-generic alpha o)
@@ -730,13 +728,13 @@
   (check (alpha 1.2+3.4i) => '<complex>)
   )
 
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 
-;;;page
-;;; ------------------------------------------------------------
+
+;;; --------------------------------------------------------------------
 ;;; Done.
-;;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (check-report)
 
