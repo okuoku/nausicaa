@@ -73,6 +73,11 @@ ikarus_BINDIR		= ${ikarus_PREFIX}/bin
 ikarus_LIBDIR		= ${ikarus_PREFIX}/lib
 ikarus_PKGLIBDIR	= ${ikarus_LIBDIR}/ikarus
 
+ypsilon_PREFIX		= /usr/local
+ypsilon_BINDIR		= ${ypsilon_PREFIX}/bin
+ypsilon_LIBDIR		= ${ypsilon_PREFIX}/lib
+ypsilon_PKGLIBDIR	= ${ypsilon_LIBDIR}/ypsilon
+
 ## ------------------------------------------------------------
 
 #page
@@ -81,11 +86,21 @@ ikarus_PKGLIBDIR	= ${ikarus_LIBDIR}/ikarus
 ## ------------------------------------------------------------
 
 SED		= sed
-SED_FLAGS	= \
+IKARUS_SED_FLAGS	= \
 	-e "s|@IKARUS_PREFIX@|$(ikarus_PREFIX)|g"	\
 	-e "s|@IKARUS_BINDIR@|$(ikarus_BINDIR)|g"	\
 	-e "s|@IKARUS_LIBDIR@|$(ikarus_LIBDIR)|g"	\
 	-e "s|@IKARUS_PKGLIBDIR@|$(ikarus_PKGLIBDIR)|g"	\
+	-e "s|@prefix@|$(prefix)|g"			\
+	-e "s|@bindir@|$(bindir)|g"			\
+	-e "s|@datadir@|$(datadir)|g"			\
+	-e "s|@pkgdatadir@|$(pkgdatadir)|g"
+
+YPSILON_SED_FLAGS	= \
+	-e "s|@YPSILON_PREFIX@|$(ypsilon_PREFIX)|g"	\
+	-e "s|@YPSILON_BINDIR@|$(ypsilon_BINDIR)|g"	\
+	-e "s|@YPSILON_LIBDIR@|$(ypsilon_LIBDIR)|g"	\
+	-e "s|@YPSILON_PKGLIBDIR@|$(ypsilon_PKGLIBDIR)|g"\
 	-e "s|@prefix@|$(prefix)|g"			\
 	-e "s|@bindir@|$(bindir)|g"			\
 	-e "s|@datadir@|$(datadir)|g"			\
@@ -121,14 +136,18 @@ SORT		= sort --unique
 COMPLETIONS	= r6rs_identifiers \
 		  $(wildcard $(foreach m,$(MODULES),$(m)_completions))
 
-SCRIPT		= $(builddir)/ike
-COMPFILE	= $(builddir)/.ikarus_completions
+SCRIPTS		= $(builddir)/ike $(builddir)/ype
+ikarus_COMPFILE	= $(builddir)/.ikarus_completions
+ypsilon_COMPFILE= $(builddir)/.ypsilon_completions
+COMPFILES	= $(ikarus_COMPFILE) $(ypsilon_COMPFILE)
 
 .PHONY: all clean install install-bin install-dat
 
 all: builddir
-	$(SED) $(SED_FLAGS) < ike.in > $(builddir)/ike
-	cat $(COMPLETIONS) | $(SORT) >$(COMPFILE)
+	$(SED) $(IKARUS_SED_FLAGS)  < ike.in > $(builddir)/ike
+	$(SED) $(YPSILON_SED_FLAGS) < ype.in > $(builddir)/ype
+	cat $(COMPLETIONS) | $(SORT) >$(ikarus_COMPFILE)
+	cat $(COMPLETIONS) | $(SORT) >$(ypsilon_COMPFILE)
 
 clean:
 	-$(RM) $(builddir)
@@ -142,22 +161,22 @@ install: install-bin install-data
 
 install-bin:
 	test -d $(DESTDIR)$(bindir) || $(INSTALL_DIR) $(DESTDIR)$(bindir)
-	$(INSTALL_BIN) $(SCRIPT) $(DESTDIR)$(bindir)
+	$(INSTALL_BIN) $(SCRIPTS) $(DESTDIR)$(bindir)
 
 install-data:
 	test -d $(DESTDIR)$(pkgdatadir) || $(INSTALL_DIR) $(DESTDIR)$(pkgdatadir)
-	$(INSTALL_DATA) $(COMPFILE) $(DESTDIR)$(pkgdatadir)
+	$(INSTALL_DATA) $(COMPFILES) $(DESTDIR)$(pkgdatadir)
 
 ## ------------------------------------------------------------
 
 uninstall: uninstall-bin uninstall-data
 
 uninstall-bin:
-	-$(RM) $(addprefix $(DESTDIR)$(bindir)/,$(notdir $(SCRIPT)))
+	-$(RM) $(addprefix $(DESTDIR)$(bindir)/,$(notdir $(SCRIPTS)))
 	-$(RMDIR) $(DESTDIR)$(bindir)
 
 uninstall-data:
-	-$(RM) $(addprefix $(DESTDIR)$(pkgdatadir)/,$(notdir $(COMPFILE)))
+	-$(RM) $(addprefix $(DESTDIR)$(pkgdatadir)/,$(notdir $(COMPFILES)))
 	-$(RMDIR) $(DESTDIR)$(pkgdatadir)
 
 ## ------------------------------------------------------------
