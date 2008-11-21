@@ -2,26 +2,26 @@
 ;;; Part of: Uriel libraries
 ;;; Contents: Scheme language extensions
 ;;; Date: Mon Nov  3, 2008
-;;; 
+;;;
 ;;; Abstract
-;;; 
-;;; 
+;;;
+;;;
 ;;; Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
-;;; 
+;;;
 ;;; This program is free  software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License as
 ;;; published by the Free Software Foundation, either version 3 of
 ;;; the License, or (at your option) any later version.
-;;; 
+;;;
 ;;; This  program is  distributed  in  the hope  that  it will  be
 ;;; useful,  but WITHOUT  ANY WARRANTY;  without even  the implied
 ;;; warranty  of  MERCHANTABILITY  or  FITNESS  FOR  A  PARTICULAR
 ;;; PURPOSE.  See the GNU General Public License for more details.
-;;; 
+;;;
 ;;; You  should have  received a  copy of  the GNU  General Public
 ;;; License    along   with   this    program.    If    not,   see
 ;;; <http://www.gnu.org/licenses/>.
-;;; 
+;;;
 
 
 ;;; --------------------------------------------------------------------
@@ -31,6 +31,7 @@
 (library (uriel lang)
   (export
     begin0 dolist dotimes loop-upon-list ensure
+    define-as-syntax
 
     with-compensations with-compensations/on-error
     compensate run-compensations
@@ -111,6 +112,15 @@
 	 (break-when ?condition)
        (loop)))))
 
+;;Define a macro with the function-like form.
+(define-syntax define-as-syntax
+  (syntax-rules ()
+    ((_ (?name ?arg ...) ?form0 ?form ...)
+     (define-syntax ?name
+       (syntax-rules ()
+	 ((?name ?arg ...)
+	  ?form0 ?form ...))))))
+
 ;;; --------------------------------------------------------------------
 
 
@@ -176,7 +186,7 @@
   (syntax-rules ()
     ((_ ?form0 ?form ...)
      (parameterize ((compensations '()))
-       (with-exception-handler 
+       (with-exception-handler
 	   (lambda (exc)
 	     (run-compensations)
 	     (raise exc))

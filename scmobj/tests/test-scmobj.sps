@@ -2,7 +2,7 @@
 ;;;Part of: ScmObj
 ;;;Contents: tests for ScmObj
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-21 13:24:43 marco>
+;;;Time-stamp: <2008-11-21 21:22:01 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,9 +26,7 @@
 
 
 
-;;; --------------------------------------------------------------------
-;;; Setup.
-;;; --------------------------------------------------------------------
+;;;; Setup.
 
 (import (rnrs)
 ;;  (only (ikarus) printf pretty-print)
@@ -38,12 +36,8 @@
 
 (check-set-mode! 'report-failed)
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Clas inspection: basic predefined classes.
-;;; --------------------------------------------------------------------
+;;;; Clas inspection: basic predefined classes.
 
 (check
     (class-of <class>)
@@ -59,6 +53,10 @@
 
 (check
     (class-slots <class>)
+  => '(:class-definition-name :class-precedence-list :slots :direct-slots))
+
+(check
+    (class-direct-slots <class>)
   => '(:class-definition-name :class-precedence-list :slots :direct-slots))
 
 (check
@@ -92,6 +90,10 @@
   => '())
 
 (check
+    (class-direct-slots <entity-class>)
+  => '())
+
+(check
     (class? <entity-class>)
   => #t)
 
@@ -102,8 +104,6 @@
 (check
     (is-a? <entity-class> <class>)
   => #t)
-
-;;; --------------------------------------------------------------------
 
 
 ;;; --------------------------------------------------------------------
@@ -207,6 +207,16 @@
   (check
       (class-slots <three>)
     => '(:g :h :i :d :e :f :a :b :c))
+
+  (check
+      (class-direct-slots <one>)
+    => '(:a :b :c))
+  (check
+      (class-direct-slots <two>)
+    => '(:d :e :f))
+  (check
+      (class-direct-slots <three>)
+    => '(:g :h :i))
 
   (check
       (is-a? <one> <class>)
