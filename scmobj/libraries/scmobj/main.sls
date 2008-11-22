@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-22 00:03:43 marco>
+;;;Time-stamp: <2008-11-22 09:36:35 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -80,11 +80,6 @@
 	 (lambda (elm)
 	   (eq? ?element elm))
        ?list))))
-
-(define-syntax sort
-  (syntax-rules ()
-    ((_ ?list ?less-pred)
-     (list-sort ?less-pred ?list))))
 
 (define-syntax begin0
   (syntax-rules ()
@@ -447,12 +442,11 @@
 
 ;;;; Methods dispatching.
 
-(define (more-specific-method
-	 signature.function-1 signature.function-2 signature)
-  (let loop ((signature1 (car signature.function-1))
-	     (signature2 (car signature.function-2))
-	     (signature signature))
-    (if (null? signature)
+(define (more-specific-method method1 method2 call-signature)
+  (let loop ((signature1 (car method1))
+	     (signature2 (car method2))
+	     (call-signature call-signature))
+    (if (null? call-signature)
 	(assertion-violation
 	    'more-specific-method
 	  "unknown error comparing methods")
@@ -460,11 +454,11 @@
 	    (class2 (car signature2)))
 	(cond
 	 ((eq? class1 class2)
-	  (loop (cdr signature1) (cdr signature2) (cdr signature)))
+	  (loop (cdr signature1) (cdr signature2) (cdr call-signature)))
 	 ((subclass? class1 class2) #t)
 	 ((subclass? class2 class1) #f)
 	 (else
-	  (let ((c (car signature)))
+	  (let ((c (car call-signature)))
 	    (let ((cpl (if (eq? c #t)
 			   '()
 			 (class-precedence-list c))))
@@ -476,21 +470,15 @@
 		      'more-specific-method
 		    "unknown error comparing methods")))))))))))
 
-(define (compute-applicable-methods signature method-table)
-  (let loop ((methods method-table)
-	     (the-applicable-methods '()))
-    (if (null? methods)
-        (map cdr
-          (sort the-applicable-methods
-		(lambda (signature.function-1 signature.function-2)
-		  (more-specific-method signature.function-1
-					signature.function-2
-					signature))))
-      (loop (cdr methods)
-	    (let ((signature.function (car methods)))
-	      (if (every subclass? signature (car signature.function))
-		  (cons signature.function the-applicable-methods)
-		the-applicable-methods))))))
+(define (compute-applicable-methods call-signature method-table)
+  (map cdr
+    (list-sort
+     (lambda (method1 method2)
+       (more-specific-method method1 method2 call-signature))
+     (filter
+	 (lambda (method)
+	   (every subclass? call-signature (car method)))
+       method-table))))
 
 
 ;;;; Next method implementation.
