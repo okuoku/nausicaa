@@ -2,6 +2,7 @@
 ;;
 
 (import
-  (only (scmobj)))
+  (only (scmobj))
+  (only (scmobj utils)))
 
 ;;; end of file
