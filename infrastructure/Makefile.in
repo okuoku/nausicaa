@@ -186,15 +186,6 @@ pkgsysconfdir		= @pkgsysconfdir@
 
 #page
 ## ------------------------------------------------------------
-## Nausicaa directories.
-## ------------------------------------------------------------
-
-ikarus_PKGLIBDIR	= $(libdir)/ikarus
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
 ## Common programs.
 ## ------------------------------------------------------------
 
@@ -375,12 +366,12 @@ uninstall:	uninstall-script-uninstall
 ## Library source files.
 ## ------------------------------------------------------------
 
-sls_SRCDIR	= $(srcdir)/libraries
-sls_BUILDDIR	= $(builddir)/fasl.d
-sls_INSTDIR	= $(ikarus_PKGLIBDIR)
+sls_SRCDIR		= $(srcdir)/libraries
+sls_BUILDDIR		= $(builddir)/fasl.d
+sls_INSTDIR		= $(pkglibdir)
 
 fasl_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.sps
-fasl_COMPILE_ENV	= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR)
+fasl_COMPILE_ENV	= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
 fasl_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
 fasl_COMPILE_RUN	= $(fasl_COMPILE_ENV) $(fasl_COMPILE_COMMAND) $(fasl_COMPILE_SCRIPT)
 
@@ -479,11 +470,11 @@ install:	sls-install fasl-install
 ## ------------------------------------------------------------
 
 ifeq ($(strip $(NAU_USE_YPSILON)),yes)
-nau_ytest_ENV		= YPSILON_SITELIB=$(ikarus_PKGLIBDIR):$(srcdir)/libraries:$(srcdir)/tests
+nau_ytest_ENV		= YPSILON_SITELIB=$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
 nau_test_PROGRAM	= $(YPSILON) --r6rs
 else
 nau_test_PROGRAM	= $(SCHEME_SCRIPT)
-nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
+nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
 endif
 
 nau_test_SRCDIR		= $(srcdir)/tests
@@ -884,16 +875,12 @@ abu:
 
 #page
 ## ------------------------------------------------------------
-## RedHat packaging: common variables.
+## RedHat packaging.
 ## ------------------------------------------------------------
 
 # This is the file name  of the RedHat package.  Notice that
 # there is no directory part.
 redhat_PACKAGE_NAME	= $(package_PREFIX).rpm
-
-# This  is the  package prefix,  it  is used  to remove  the
-# package.
-redhat_PACKAGE_PREFIX	= $(package_PREFIX)
 
 # This is  the root directory for  temporary installation of
 # files.
@@ -904,10 +891,6 @@ redhat_PACKAGE_BUILDDIR	?= $(redhat_PACKAGE_TOP_BUILDDIR)/BUILD
 
 # This is where the produced package will be finally stored.
 redhat_BUILDDIR		= $(PWD)/$(builddir)/redhat.d
-
-# Try  to  read from  the  system  the  name of  an  already
-# installed package.  It is used to upgrade.
-redhat_INSTALLED_PACKAGE	=
 
 ## ------------------------------------------------------------
 
@@ -946,6 +929,75 @@ redhat: bindist redhat-clean
 
 redhat-clean:
 	-$(RM) $(redhat_PACKAGE_BUILDDIR)
+
+## ------------------------------------------------------------
+
+#page
+## ------------------------------------------------------------
+## Pacman packaging.
+## ------------------------------------------------------------
+
+# This is the file name of  the Pacman package.  Notice that there is no
+# directory part.
+pacman_PACKAGE_NAME	= $(package_PREFIX).rpm
+
+# This is the package prefix, it is used to remove the package.
+pacman_PACKAGE_PREFIX	= $(package_PREFIX)
+
+# This is the root directory for temporary installation of files.
+pacman_PACKAGE_TOP_BUILDDIR	= $(TMPDIR)/$(PKG_ID)
+
+# This is the root directory for building packages.
+pacman_PACKAGE_BUILDDIR	?= $(pacman_PACKAGE_TOP_BUILDDIR)/BUILD
+
+# This is where the produced package will be finally stored.
+pacman_BUILDDIR		= $(PWD)/$(builddir)/pacman.d
+
+# Try  to  read from  the  system  the  name of  an  already
+# installed package.  It is used to upgrade.
+pacman_INSTALLED_PACKAGE	=
+
+## ------------------------------------------------------------
+
+# This is the environment for the Pacman package handling
+# tools.
+pacman_ENV		?=
+
+pacman_PROGRAM		= @pacman_PROGRAM@
+
+pacman_BUILD_FLAGS	= -v --buildroot $(pacman_PACKAGE_BUILDDIR) -bb
+pacman_BUILD		= $(pacman_ENV) $(pacman_BUILD_PROGRAM) $(pacman_BUILD_FLAGS)
+
+pacman_SPEC_FILE	= $(PKG_ID).spec
+pacman_GENERIC_SPEC	= meta.d/pacman/spec-file
+pacman_SPECIFIC_SPEC	= meta.d/pacman/$(pacman_SPEC_FILE)
+
+## ------------------------------------------------------------
+
+# .PHONY: pacman
+
+# pacman: bindist pacman-clean
+# 	$(INSTALL_DIR) $(pacman_PACKAGE_TOP_BUILDDIR)
+# 	$(INSTALL_DIR) $(pacman_PACKAGE_TOP_BUILDDIR)/BUILD
+# 	$(INSTALL_DIR) $(pacman_PACKAGE_TOP_BUILDDIR)/SPECS
+# 	$(INSTALL_DIR) $(pacman_PACKAGE_TOP_BUILDDIR)/RPMS/i386
+# 	$(INSTALL_DIR) $(pacman_PACKAGE_TOP_BUILDDIR)/RPMS/$(package_ARCH)
+# 	$(CP) $(pacman_GENERIC_SPEC) $(pacman_SPECIFIC_SPEC)
+# 	$(bindist_LIST) | \
+# 	$(SED) -e 's%^\./%/%' -e '\%^/$$%d' \
+# 		>> $(pacman_SPECIFIC_SPEC)
+# 	$(INSTALL_DATA) $(pacman_SPECIFIC_SPEC) $(pacman_PACKAGE_TOP_BUILDDIR)/SPECS
+# 	$(MAKE) install DESTDIR=$(pacman_PACKAGE_BUILDDIR)
+# 	cd $(pacman_PACKAGE_TOP_BUILDDIR)/SPECS; $(pacman_BUILD) $(pacman_SPEC_FILE)
+
+# pacman-clean:
+# 	-$(RM) $(pacman_PACKAGE_BUILDDIR)
+
+## ------------------------------------------------------------
+
+
+
+
 
 ## ------------------------------------------------------------
 

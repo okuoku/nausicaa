@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-22 09:36:35 marco>
+;;;Time-stamp: <2008-11-22 18:27:53 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -391,7 +391,7 @@
 	 (:direct-slots . (?slot-spec ...)))))))
 
 
-;;;; Class inspection.
+;;;; class inspection
 
 (define (subclass? c1 c2)
   (cond ((eq? c1 c2) #t)
@@ -440,35 +440,26 @@
    (else			#t)))
 
 
-;;;; Methods dispatching.
+;;;; methods dispatching
 
 (define (more-specific-method method1 method2 call-signature)
   (let loop ((signature1 (car method1))
 	     (signature2 (car method2))
 	     (call-signature call-signature))
-    (if (null? call-signature)
-	(assertion-violation
-	    'more-specific-method
-	  "unknown error comparing methods")
-      (let ((class1 (car signature1))
-	    (class2 (car signature2)))
-	(cond
-	 ((eq? class1 class2)
-	  (loop (cdr signature1) (cdr signature2) (cdr call-signature)))
-	 ((subclass? class1 class2) #t)
-	 ((subclass? class2 class1) #f)
-	 (else
-	  (let ((c (car call-signature)))
-	    (let ((cpl (if (eq? c #t)
-			   '()
-			 (class-precedence-list c))))
-	      (let ((i1 (position class1 cpl))
-		    (i2 (position class2 cpl)))
-		(if (and i1 i2)
-		    (< i1 i2)
-		  (assertion-violation
-		      'more-specific-method
-		    "unknown error comparing methods")))))))))))
+    (let ((class1 (car signature1))
+	  (class2 (car signature2)))
+      (cond
+       ((eq? class1 class2)
+	(loop (cdr signature1) (cdr signature2) (cdr call-signature)))
+       ((subclass? class1 class2) #t)
+       ((subclass? class2 class1) #f)
+       (else
+	(let* ((c (car call-signature))
+	       (cpl (if (eq? c #t)
+			'()
+		      (cons c (slot-ref c ':class-precedence-list)))))
+	  (< (position class1 cpl)
+	     (position class2 cpl))))))))
 
 (define (compute-applicable-methods call-signature method-table)
   (map cdr

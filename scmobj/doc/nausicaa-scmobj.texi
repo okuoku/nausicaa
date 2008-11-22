@@ -436,9 +436,9 @@ entitled ``@gnu{} Free Documentation License''.
 @top @value{TITLE}
 
 @insertcopying
-     
+
 @menu
-* overview::                    Overview of the package. 
+* overview::                    Overview of the package.
 * class::                       Classes.
 * make::                        Making classes.
 * inspect::                     Inspecting classes and instances.
@@ -455,10 +455,10 @@ Appendices
 
 Indexes
 
-* concept index::               An entry for each concept. 
-* function index::              An entry for each function. 
-* variable index::              An entry for each variable. 
-* type index::                  An entry for each type. 
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
 @end menu
 @end ifnottex
 
@@ -478,7 +478,7 @@ meta object protocol.
 The library is a repackaging of ScmObj by Dorai Sitaram, ported to
 @rnrs{6} and Ikarus, and overhauled to make it: simple to understand,
 fully documented, with @api{} compatible with the core @api{} in Gregor
-Kiczales's Tiny--@clos{}.
+Kiczales's Tiny--@clos{} (at least not much different).
 
 
 @menu
@@ -567,7 +567,7 @@ Notice that the symbol @code{:class} is @strong{not} included.
 In the following it is not always convenient to show the full layout; to
 highlight informations of interest it is better to omit the layout of
 class object nested into class objects.  When this is done the string
-@code{%apple%} is included in place of the layout of the class
+@code{%apple} is included in place of the layout of the class
 @class{apple}.
 
 Let's start with the layout of @class{class} itself:
@@ -595,7 +595,7 @@ superclass and no slots:
 its layout is this:
 
 @example
-((:class . %class%)
+((:class . %class)
  (:class-definition-name . <biologic>)
  (:class-precedence-list . #f)
  (:slots . #f))
@@ -612,9 +612,9 @@ now we derive a class from it, still without slots:
 and the layout of the subclass is:
 
 @example
-((:class . %class%)
+((:class . %class)
  (:class-definition-name . <fruit>)
- (:class-precedence-list . (%biologic%))
+ (:class-precedence-list . (%biologic))
  (:slots . #f))
 @end example
 
@@ -630,9 +630,9 @@ finally we subclass again adding slots:
 and the layout is:
 
 @example
-((:class . %class%
+((:class . %class)
  (:class-definition-name . <apple>)
- (:class-precedence-list . (%fruit% %biologic%))
+ (:class-precedence-list . (%fruit %biologic))
  (:slots . (:variety :colour :quality)))
 @end example
 
@@ -649,7 +649,7 @@ We have a usable class, so we instantiate it:
 and the layout of the instance is:
 
 @example
-((:class . %apple%)
+((:class . %apple)
  (:variety . renetta)
  (:colour . green)
  (:quality . high))
@@ -667,12 +667,12 @@ We may want to add a price:
 and the layout of the class with multiple inheritance is:
 
 @example
-((:class . %class%)
+((:class . %class)
  (:class-definition-name . <priced-apple>)
- (:class-precedence-list . (%apple%
-                            %fruit%
-                            %biologic%
-                            %price%))
+ (:class-precedence-list . (%apple
+                            %fruit
+                            %biologic
+                            %price))
  (:slots (:variety :colour :quality :tag)))
 @end example
 
@@ -690,7 +690,7 @@ The instance of a priced apple:
 has layout:
 
 @example
-((:class . %priced-apple%)
+((:class . %priced-apple)
  (:variety . renetta)
  (:colour . green)
  (:quality . high)
@@ -750,7 +750,7 @@ built in object type.
    |              |       |       |           |
    v              v       v       v           v
 <number>        <pair> <vector> <bytevector> <hashtable>
-   |              |                           
+   |              |
    v              v
 <complex>       <list> ----------+------------
    |              |              |            |
@@ -761,7 +761,7 @@ built in object type.
 <real> ------> <flonum>
    |
    v
-<rational-valued>      
+<rational-valued>
    |         |
    v         v
 <rational> <integer-valued>
@@ -1315,12 +1315,163 @@ arguments, the most specific method vis--a--vis the arguments' classes
 is chosen.
 
 @menu
+* generic dispatching::         How dispatching works.
 * generic methods::             Methods.
 * generic calling::             Calling generic procedures.
 @end menu
 
 
 @c ------------------------------------------------------------
+
+@c page
+@node generic dispatching
+@section How dispatching works
+
+
+In the following examples the string @code{%apple} is written in place
+of the value bound to the symbol @class{apple}.
+
+
+@subsubheading Simple inheritance
+
+
+Let's examine this example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<one>))
+(define-class <c> (<two>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -> <one> -> <two> -> <c>
+@end example
+
+@noindent
+and the class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: the method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature; so:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Multiple inheritance
+
+
+Let's examine this example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<top>))
+(define-class <c> (<two> <one>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -+-> <one> -+-> <c>
+       |          |
+        -> <two> -
+@end example
+
+@noindent
+and given the order in which the classes where given to
+@func{define-class}, the class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: the method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature; so:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+Another multiple inheritance example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<top>))
+(define-class <three> (<two>))
+(define-class <c> (<three> <one>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -+-------> <one> ------+-> <c>
+       |                     |
+        -> <two> -> <three> -
+@end example
+
+@noindent
+and given the order in which the classes where given to
+@func{define-class}, the class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %three %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: the method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature; so:
+
+@example
+(doit (make <c>)) => 'two
+@end example
 
 @c page
 @node generic methods
@@ -2477,21 +2628,21 @@ but enough for our purposes.
 @c page
 @node concept index
 @appendix An entry for each concept
-     
+
 @printindex cp
-     
+
 @node function index
-@appendix An entry for each function. 
+@appendix An entry for each function.
 
 @printindex fn
 
 @node variable index
-@appendix An entry for each variable. 
+@appendix An entry for each variable.
 
 @printindex vr
 
 @node type index
-@appendix An entry for each type. 
+@appendix An entry for each type.
 
 @printindex tp
 
