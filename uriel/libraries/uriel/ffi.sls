@@ -2,6 +2,7 @@
 ;;;Part of: Uriel libraries for Ikarus
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
+;;;Time-stamp: <2008-11-22 07:40:57 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -9,32 +10,26 @@
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;This  program  is free  software:  you  can redistribute  it
-;;;and/or modify it  under the terms of the  GNU General Public
-;;;License as published by the Free Software Foundation, either
-;;;version  3 of  the License,  or (at  your option)  any later
-;;;version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
-
 
 
-;;; --------------------------------------------------------------------
-;;; Setup.
-;;; --------------------------------------------------------------------
+;;;; Setup.
 
 (library (uriel ffi)
   (export
-      uriel-cleanup malloc block-guardian
+    uriel-cleanup malloc block-guardian
     make-c-callout
     dlopen dlsym dlclose
     strlen string->cstring cstring->string)
@@ -42,12 +37,8 @@
     (only (ikarus) make-guardian)
     (prefix (ikarus foreign) ike:))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Dynamic loading.
-;;; --------------------------------------------------------------------
+;;;; Dynamic loading.
 
 (define dlopen
   (case-lambda
@@ -56,32 +47,28 @@
       (or l (error 'dlopen (ike:dlerror)))))
    ((libname)
     (let ((l (ike:dlopen (if (symbol? libname)
-			 (symbol->string libname)
-		       libname))))
+			     (symbol->string libname)
+			   libname))))
       (or l (error 'dlopen (ike:dlerror)))))
    ((libname lazy? global?)
     (let ((l (ike:dlopen (if (symbol? libname)
-			 (symbol->string libname)
-		       libname)
-		     lazy? global?)))
+			     (symbol->string libname)
+			   libname)
+			 lazy? global?)))
       (or l (error 'dlopen (ike:dlerror)))))))
 
 (define (dlsym library funcname)
   (let ((f (ike:dlsym library (if (symbol? funcname)
-				     (symbol->string funcname)
-				   funcname))))
+				  (symbol->string funcname)
+				funcname))))
     (or f (error 'dlsym (ike:dlerror) (cons library funcname)))))
 
 (define (dlclose library)
   (unless (dlclose library)
     (error 'dlclose (ike:dlerror) library)))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Memory allocation.
-;;; --------------------------------------------------------------------
+;;;; Memory allocation.
 
 (define block-guardian (make-guardian))
 
@@ -97,12 +84,9 @@
     (block-guardian p)
     p))
 
-;;; --------------------------------------------------------------------
 
 
-;;; --------------------------------------------------------------------
-;;; C wrappers.
-;;; --------------------------------------------------------------------
+;;;; C wrappers.
 
 (define (signature-hash signature)
   (abs (apply +
@@ -123,12 +107,8 @@
     ((_ ?retval (?arg-type0 ?arg-type ...))
      (make-c-callout-maybe '(?retval (?arg-type0 ?arg-type ...))))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; String functions.
-;;; --------------------------------------------------------------------
+;;;; String functions.
 
 (define (strlen p)
   (let loop ((i 0))
@@ -154,12 +134,7 @@
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (ike:pointer-ref-c-signed-char p i)))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Done.
-;;; --------------------------------------------------------------------
 
 ) ;; end of library form
 
