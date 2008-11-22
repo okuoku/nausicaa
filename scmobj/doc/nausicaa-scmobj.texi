@@ -1328,6 +1328,9 @@ is chosen.
 @section How dispatching works
 
 
+Here we show with some examples what we have to expect from the
+multimethod dispatching of @value{PACKAGE}.
+
 In the following examples the string @code{%apple} is written in place
 of the value bound to the symbol @class{apple}.
 
@@ -1472,6 +1475,37 @@ in the signature; so:
 @example
 (doit (make <c>)) => 'two
 @end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Other examples
+
+Let's look at this:
+
+@example
+(define-class <top> ())
+(define-class <c>   (<top>))
+(define-class <one> (<c>))
+
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+
+(doit (make <c>))
+@end example
+
+@noindent
+this will result in a ``no method defined for these argument classes''
+error because a value of class @class{c} is @strong{not} a value of
+class @class{one}.  For a method to be applicable: the class from the
+signature of the method has to be in in the class list of the argument,
+not vice versa.  That is:
+
+@example
+(subclass? <c> <one>)
+@end example
+
+@noindent
+must evaluate to true.
 
 @c page
 @node generic methods
