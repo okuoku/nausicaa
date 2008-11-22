@@ -4,6 +4,8 @@
 
 
 * Why I cannot install only the FASL files?
+* Add support for pacman.
+* Split into multiple git projects?
 
 
 ## ------------------------------------------------------------
@@ -20,15 +22,14 @@ Uriel
 -----
 
 * Write the documentation for define-macro.
+* Scan the old gee base.
 
 
 ScmObj
 ------
 
-* Finish implementation (hash table for generic functions).
 * Add more tests.
 * Finish the documentation (replace all the original material).
-* There should be one class for each 
 
 
 Tiny-CLOS
@@ -42,7 +43,14 @@ Tiny-CLOS
 SRFI
 ----
 
-* Solve the problem of files without copyright notice.
+* Solve the problem of "(import (srfi srfi-1))".
+* Import files for Ypsilon.
+
+
+IrRegex
+-------
+
+* Add documentation for the regexps.
 
 
 ### end of file

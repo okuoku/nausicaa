@@ -1,52 +1,48 @@
 ;;;
-;;; Part of: Uriel libraries
-;;; Contents: Scheme language extensions
-;;; Date: Mon Nov  3, 2008
+;;;Part of: Uriel libraries
+;;;Contents: Scheme language extensions
+;;;Date: Mon Nov  3, 2008
+;;;Time-stamp: <2008-11-22 07:41:52 marco>
 ;;;
-;;; Abstract
+;;;Abstract
 ;;;
 ;;;
-;;; Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;; This program is free  software: you can redistribute it and/or
-;;; modify it under the terms of the GNU General Public License as
-;;; published by the Free Software Foundation, either version 3 of
-;;; the License, or (at your option) any later version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;; This  program is  distributed  in  the hope  that  it will  be
-;;; useful,  but WITHOUT  ANY WARRANTY;  without even  the implied
-;;; warranty  of  MERCHANTABILITY  or  FITNESS  FOR  A  PARTICULAR
-;;; PURPOSE.  See the GNU General Public License for more details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;; You  should have  received a  copy of  the GNU  General Public
-;;; License    along   with   this    program.    If    not,   see
-;;; <http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
 
-;;; --------------------------------------------------------------------
-;;; Setup.
-;;; --------------------------------------------------------------------
+;;;; Setup.
 
 (library (uriel lang)
   (export
     begin0 dolist dotimes loop-upon-list ensure
-    define-as-syntax
 
     with-compensations with-compensations/on-error
     compensate run-compensations
 
     with-deferred-exception-handler
-    defer-exceptions run-deferred-exceptions-handler)
+    defer-exceptions run-deferred-exceptions-handler
+
+    with-output-to-string)
   (import (rnrs)
     (srfi parameters))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Simple sintaxes.
-;;; --------------------------------------------------------------------
+;;;; Simple sintaxes.
+
 
 ;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
 ;;;``Formal semantics''.
@@ -113,20 +109,16 @@
        (loop)))))
 
 ;;Define a macro with the function-like form.
-(define-syntax define-as-syntax
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((?name ?arg ...)
-	  ?form0 ?form ...))))))
-
-;;; --------------------------------------------------------------------
+;; (define-syntax define-as-syntax
+;;   (syntax-rules ()
+;;     ((_ (?name ?arg ...) ?form0 ?form ...)
+;;      (define-syntax ?name
+;;        (syntax-rules ()
+;; 	 ((?name ?arg ...)
+;; 	  ?form0 ?form ...))))))
 
 
-;;; --------------------------------------------------------------------
-;;; Deferred exceptions.
-;;; --------------------------------------------------------------------
+;;;; Deferred exceptions.
 
 (define deferred-exceptions
   (make-parameter #f))
@@ -163,12 +155,8 @@
 	   (lambda ()
 	     (run-deferred-exceptions-handler)))))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Compensations.
-;;; --------------------------------------------------------------------
+;;;; Compensations.
 
 (define compensations
   (make-parameter #f))
@@ -215,12 +203,17 @@
     ((_ ?alloc ?form ...)
      (compensate (begin ?alloc) ?form ...))))
 
-;; ------------------------------------------------------------
+
+;;;; Input/output.
+
+(define-syntax with-output-to-string
+  (syntax-rules ()
+    [(_ ?form ...)
+     (call-with-string-output-port
+	 (lambda () ?form ...))]))
+
 
 
-;;; --------------------------------------------------------------------
-;;; Done.
-;;; --------------------------------------------------------------------
 
 ) ;; end of library form
 

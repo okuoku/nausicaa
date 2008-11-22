@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: Uriel libraries for Ikarus Scheme
-;;;Contents: tests for object property
-;;;Date: Fri Nov 14, 2008
+;;;Part of: Uriel libraries for Ikarus
+;;;Contents: tests for ffi library
+;;;Date: Tue Nov 18, 2008
 ;;;
 ;;;Abstract
 ;;;
@@ -24,50 +24,43 @@
 ;;;
 
 
-;;; setup
+;;;; setup
 
 (import (rnrs)
-  (srfi parameters)
-  (uriel test)
-  (uriel object-property))
+  (only (ikarus) printf pretty-print)
+  (uriel ffi)
+  (uriel test))
 
 (check-set-mode! 'report-failed)
 
 
-;;;; code
+;;; code
+
+(define self (dlopen))
 
 (check
-    (let ((prop (make-object-property))
-	  (a (vector 1 2 3))
-	  (b (vector 4 5 6))
-	  (c (vector 7 8 9)))
-      (prop a 1)
-      (prop b 2)
-      (list (prop a) (prop b) (prop c)))
-  => '(1 2 #f))
+    (let* ((f (make-c-callout signed-int (pointer)))
+	   (strlen (f (dlsym self 'strlen)))
+	   (g (make-c-callout pointer (signed-int)))
+	   (strerror (g (dlsym self 'strerror))))
+      (cstring->string (strerror 0)))
+  => "Success")
 
 (check
-    (let ((prop (parameterize ((object-property-initial-capacity 10)
-			       (object-property-default-value 'quack))
-		  (make-object-property)))
-	  (a (vector 1 2 3))
-	  (b (vector 4 5 6))
-	  (c (vector 7 8 9)))
-      (prop a 1)
-      (prop b 2)
-      (list (prop a) (prop b) (prop c)))
-  => '(1 2 quack))
-
-(check
-    (let ((prop (make-object-property)))
-      (prop 'alpha 123)
-      (with-true-property (prop 'alpha)
-	(prop 'alpha)))
+    (let ((f (make-c-callout signed-int (pointer)))
+	  (g (make-c-callout signed-int (pointer))))
+      (eq? f g))
   => #t)
+
+(check
+    (let ((f (make-c-callout signed-int (pointer)))
+	  (g (make-c-callout signed-int (signed-int))))
+      (eq? f g))
+  => #f)
+
 
 
 ;;;; done
-
 
 (check-report)
 

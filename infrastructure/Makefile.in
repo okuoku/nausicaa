@@ -478,43 +478,35 @@ install:	sls-install fasl-install
 ## Testing.
 ## ------------------------------------------------------------
 
+ifeq ($(strip $(NAU_USE_YPSILON)),yes)
+nau_ytest_ENV		= YPSILON_SITELIB=$(ikarus_PKGLIBDIR):$(srcdir)/libraries:$(srcdir)/tests
+nau_test_PROGRAM	= $(YPSILON) --r6rs
+else
+nau_test_PROGRAM	= $(SCHEME_SCRIPT)
+nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
+endif
+
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 
-# We DO  NOT include the  fasl build directory in  the path.
-# This is on purpose.
-nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
-nau_test_RUN		= $(nau_test_ENV) $(SCHEME_SCRIPT)
+# We DO  NOT include the fasl build  directory in the path.   This is on
+# purpose.
+nau_test_ENV		+= NAME=$(NAME)
+nau_test_RUN		= $(nau_test_ENV) $(nau_test_PROGRAM)
 
 nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(FILE).sps)
 
-.PHONY: tests test check test-file
+.PHONY: tests test check ytests ytest ycheck
 
 tests test check:
+ifeq ($(strip $(FILE)),)
 	$(foreach f,$(nau_test_FILES),$(nau_test_RUN) $(f);)
-
-test-file:
+else
 	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_test_RUN) $(f);)
-
-## ------------------------------------------------------------
-
-nau_ytest_SRCDIR	= $(srcdir)/tests
-nau_ytest_FILES		= $(wildcard $(nau_ytest_SRCDIR)/test-*.sps)
-
-# We DO  NOT include the  fasl build directory in  the path.
-# This is on purpose.
-nau_ytest_ENV		= YPSILON_SITELIB=$(ikarus_PKGLIBDIR):$(srcdir)/libraries:$(srcdir)/tests
-nau_ytest_RUN		= $(nau_ytest_ENV) $(YPSILON) --r6rs
-
-nau_ytest_SELECTED_FILES	= $(wildcard $(nau_ytest_SRCDIR)/test-$(FILE).sps)
-
-.PHONY: ytests ytest ycheck ytest-file
+endif
 
 ytests ytest ycheck:
-	$(foreach f,$(nau_ytest_FILES),$(nau_ytest_RUN) $(f);)
-
-ytest-file:
-	$(foreach f,$(nau_ytest_SELECTED_FILES),$(nau_ytest_RUN) $(f);)
+	$(MAKE) test NAU_USE_YPSILON=yes
 
 ## ------------------------------------------------------------
 
