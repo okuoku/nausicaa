@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-22 08:17:28 marco>
+;;;Time-stamp: <2008-11-22 17:29:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -37,11 +37,11 @@
   (import (rnrs)
     (srfi parameters)
     (srfi lightweight-testing)
-    (irregex)
+    (only (string-lib) string-suffix? string-prefix?)
     (only (ikarus) getenv))
 
 
-;;; code
+;;;; code
 
 (define result
   (make-parameter #f))
@@ -76,9 +76,10 @@
 
 (define (check-activation)
   (and (testname)
-       (let ((rex (getenv "NAME")))
-	 (when (< 0 (string-length rex))
-	   (irregex-match rex (testname))))))
+       (let ((sel (getenv "NAME")))
+	 (when (< 0 (string-length sel))
+	   (or (string-prefix? sel (testname))
+	       (string-suffix? sel (testname)))))))
 
 (define-syntax check-it
   (syntax-rules (=>)
@@ -99,8 +100,7 @@
     ))
 
 
-
-;;; Done.
+;;;; done
 
 
 ) ;; end of library form

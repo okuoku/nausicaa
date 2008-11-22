@@ -80,6 +80,18 @@ then, usually, you should do:
 
   Notice that:
 
+* both the  library source files (.sls)  and the precompiled
+  files  (.ikarus-fasl)  are   installed  in  the  directory
+  selected by the  "pkglibdir" Makefile variable; by default
+  this  variable is set  to "$(libdir)/scheme",  which means
+  that without touching the configuration the files will end
+  up in:
+
+     /usr/local/lib/scheme
+
+  be  sure to  update  your IKARUS_LIBRARY_PATH  environment
+  variable;
+
 * by default only documentation  in Info format is built and
   installed,  documentation  in HTML  format  is pruned;  to
   change  this  use  the  '--enable-doc-html'  configuration
@@ -122,7 +134,7 @@ that he uses all the time.
 
   For other  credits notes  look in the  individual, project
 specific, REAME files.
-  
+
 
 B. Bug reports
 --------------
