@@ -470,8 +470,8 @@ install:	sls-install fasl-install
 ## ------------------------------------------------------------
 
 ifeq ($(strip $(NAU_USE_YPSILON)),yes)
-nau_ytest_ENV		= YPSILON_SITELIB=$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
-nau_test_PROGRAM	= $(YPSILON) --r6rs
+nau_test_ENV		= YPSILON_SITELIB=$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
+nau_test_PROGRAM	= $(YPSILON) --r6rs --warning
 else
 nau_test_PROGRAM	= $(SCHEME_SCRIPT)
 nau_test_ENV		= IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
