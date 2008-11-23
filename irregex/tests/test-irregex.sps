@@ -1,90 +1,98 @@
-;; test-irregex.sls --
+;;; test-irregex.sls --
 ;;
 
-;;page
-;; ------------------------------------------------------------
-;; Setup.
-;; ------------------------------------------------------------
+
+;;;; setup
 
 (import (ikarus)
-	(irregex)
-	(srfi lightweight-testing))
+  (irregex)
+  (uriel test))
 
-(printf "test file: ~a~%" (car (command-line)))
 (check-set-mode! 'report-failed)
+;;;(check-set-mode! 'report)
 
-(define-syntax check-for-true
-  (syntax-rules ()
-    [(_ ?form)
-     (check (if ?form #t #f) => #t)]))
 
-(define-syntax check-for-false
-  (syntax-rules ()
-    [(_ ?form)
-     (check (if ?form #t #f) => #f)]))
+
+;;;; tests
 
-;; ------------------------------------------------------------
+(let ((rex "[a-z]+"))
+  (check-for-true (irregex-search rex "123abc456"))
+  (check (irregex-search rex "123456") => #f))
 
-;;page
-;; ------------------------------------------------------------
-;; Tests.
-;; ------------------------------------------------------------
+(let ((rex "foobar"))
+  (check-for-true (irregex-search rex "abcfoobardef"))
+  (check (irregex-search rex "abcFOOBARdef") => #f))
 
-(check-for-true (irregex-search "[a-z]+" "123abc456"))
+(let ((rex (string->irregex "[a-z]+")))
+  (check-for-true (irregex-search rex "123abc456"))
+  (check (irregex-search rex "123456") => #f))
 
-(check-for-false (irregex-search "[a-z]+" "123456"))
+(let ((rex (string->irregex "foobar" 'case-insensitive)))
+  (check-for-true (irregex-search rex "abcfoobardef"))
+  (check-for-true (irregex-search rex "abcFOOBARdef")))
 
-(check-for-false (irregex-search "foobar" "abcFOOBARdef"))
+(let ((rex '(w/nocase "foobar")))
+  (check-for-true (irregex-search rex "abcFOOBARdef"))
+  (check-for-true (irregex-search rex "foobar"))
+  (check-for-true (irregex-search rex "FOOBAR")))
 
-(check-for-true (irregex-search (string->irregex "foobar" 'case-insensitive)
-				"abcFOOBARdef"))
+;;IRREGEX-MATCH performs a  search anchored to the beginning  and end of
+;;the string.
+(let ((rex '(w/nocase "foobar")))
+  (check (irregex-match rex "abcFOOBARdef") => #f)
+  (check-for-true (irregex-match rex "foobar"))
+  (check-for-true (irregex-match rex "FOOBAR")))
 
-;; ------------------------------------------------------------
+(let ((match (irregex-search "ciao" "hello ciao salut")))
+  (check (irregex-match-substring match) => "ciao")
+  (check (irregex-match-substring match 0) => "ciao")
+  (check (irregex-match-substring match 1) => #f))
 
-(check-for-false (irregex-match '(w/nocase "foobar") "abcFOOBARdef"))
-(check-for-true (irregex-match '(w/nocase "foobar") "FOOBAR"))
+;;Grouping parentheses.
+(let ((match (irregex-search "c(i(a(o)))"
+			     "hello ciao salut")))
+  (check (irregex-match-substring match) => "ciao")
+  (check (irregex-match-substring match 0) => "ciao")
+  (check (irregex-match-substring match 1) => "iao")
+  (check (irregex-match-substring match 2) => "ao")
+  (check (irregex-match-substring match 3) => "o"))
 
-;; ------------------------------------------------------------
+;;Non-grouping parentheses.
+(let ((match (irregex-search "c(i(?:a(o)))"
+			     "hello ciao salut")))
+  (check (irregex-match-substring match) => "ciao")
+  (check (irregex-match-substring match 0) => "ciao")
+  (check (irregex-match-substring match 1) => "iao")
+  (check (irregex-match-substring match 2) => "o"))
 
-(check
- (irregex-match-substring (irregex-search "ciao" "hello ciao salut")
-			  0)
- => "ciao")
+;;Submatch.
+;; (let ((match (irregex-search '("ciao"
+;; 			       (submatch "iao")
+;; 			       (submatch "ao")
+;; 			       (submatch "o")
+;; 			       (submatch "a"))
+;; 			     "hello ciao salut")))
+;;   (check 'this (irregex-match-substring match) => "ciao")
+;;   (check (irregex-match-substring match 1) => "iao")
+;;   (check (irregex-match-substring match 2) => "ao")
+;;   (check (irregex-match-substring match 3) => "o")
+;;   (check (irregex-match-substring match 4) => "a"))
 
-(check
- (irregex-match-substring (irregex-search "ciao[0-9]"
-					  "hello ciao0 salut ciao1, ciao2")
-			  0)
- => "ciao0")
+;;Named submatch.
+;; (let ((match (irregex-search '("ciao"
+;; 			       (submatch-named "first" "iao")
+;; 			       (submatch-named "second" "ao")
+;; 			       (submatch-named "third" "o"))
+;; 			     "hello ciao salut")))
+;;   (write match)
+;;   (check 'this (irregex-match-substring match) => "ciao")
+;;   (check (irregex-match-substring match "iao") => "iao")
+;;   (check (irregex-match-substring match "second") => "ao")
+;;   (check (irregex-match-substring match "third") => "o"))
 
-(pretty-print (irregex-match-substring
-	       (irregex-search '(w/nocase "[0-9]")
-			       "123456") 0))
-#!eof
-(check
- (irregex-match-substring (irregex-search '("[0-9]+" (submatch-named ciao "34"))
-					  "123456,9")
-			  0)
- => "ciao1")
 
-(check
- (irregex-match-substring (irregex-search "ciao[0-9]"
-					  "hello ciao0 salut ciao1, ciao2")
-			  1)
- => "ciao1")
-
-(check
- (irregex-match-substring (irregex-search "ciao[0-9]"
-					  "hello ciao0 salut ciao1, ciao2")
-			  2)
- => "ciao2")
-
-;; ------------------------------------------------------------
-
-;;page
-;; ------------------------------------------------------------
-;; Done.
-;; ------------------------------------------------------------
+
+;;;; done
 
 (check-report)
 

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-22 17:29:15 marco>
+;;;Time-stamp: <2008-11-23 08:50:43 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,6 +32,7 @@
   (export
     with-result add-result get-result
     catch-exception false-if-exception
+    check-for-true
     (rename (check-it check)) check-report check-ec check-set-mode!
     testname parameterize)
   (import (rnrs)
@@ -72,14 +73,23 @@
        ?form0 ?form ...))))
 
 (define testname
-  (make-parameter #t))
+  (make-parameter #f
+    (lambda (value)
+      (unless (or (not value) (string? value) (symbol? value))
+	(assertion-violation 'testname
+	  "expected #f or string as parameter value" value))
+      (if (symbol? value)
+	  (symbol->string value)
+	value))))
+
+(define selected-test (getenv "NAME"))
 
 (define (check-activation)
-  (and (testname)
-       (let ((sel (getenv "NAME")))
-	 (when (< 0 (string-length sel))
-	   (or (string-prefix? sel (testname))
-	       (string-suffix? sel (testname)))))))
+  (or (= 0 (string-length selected-test))
+      (if (testname)
+	  (or (string-prefix? selected-test (testname))
+	      (string-suffix? selected-test (testname)))
+	#f)))
 
 (define-syntax check-it
   (syntax-rules (=>)
@@ -98,6 +108,11 @@
        (when (check-activation)
 	 (check ?expr (=> ?equal) ?expected-result))))
     ))
+
+(define-syntax check-for-true
+  (syntax-rules ()
+    ((_ ?form)
+     (check-it (and ?form #t) => #t))))
 
 
 ;;;; done
