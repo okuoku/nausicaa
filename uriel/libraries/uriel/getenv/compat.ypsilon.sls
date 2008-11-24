@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: cleanup functions
+;;;Part of: Uriel libraries for R6RS Scheme
+;;;Contents: interface to POSIX getenv, Ypsilon compatibility layer
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 09:20:21 marco>
+;;;Time-stamp: <2008-11-24 09:18:33 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,33 +24,9 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-
-;;;; setup
-
-(library (uriel cleanup)
-  (export
-    uriel-cleanup uriel-register-cleanup-function)
-  (import (rnrs))
-
-
-;;;; code
-
-(define cleanup-functions '())
-
-(define (uriel-register-cleanup-function func)
-  (set! cleanup-functions (cons func cleanup-functions)))
-
-(define (uriel-cleanup)
-  (for-each
-      (lambda (func)
-	(func))
-    cleanup-functions))
-
-
-
-;;;; done
-
-)
+(library (uriel getenv compat)
+  (export getenv)
+  (import (rnrs)
+    (core)))
 
 ;;; end of file

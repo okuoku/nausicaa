@@ -61,38 +61,38 @@
 (check
     (with-result
      (dotimes (i 3)
-       1		     ;; shooting the breeze
-       2		     ;; shooting the breeze
+       1	; shooting the breeze
+       2	; shooting the breeze
        (add-result i)))
   => '(#f (0 1 2)))
 
 (check
     (with-result
      (dotimes (i 3 (+ 2 4))
-       1		     ;; shooting the breeze
-       2		     ;; shooting the breeze
+       1	; shooting the breeze
+       2	; shooting the breeze
        (add-result i)))
   => '(6 (0 1 2)))
 
-;; ------------------------------------------------------------
+; ------------------------------------------------------------
 
 (check
     (with-result
      (dolist (i '(1 2 3) (+ 2 4))
-       1		     ;; shooting the breeze
-       2		     ;; shooting the breeze
+       1	; shooting the breeze
+       2	; shooting the breeze
        (add-result i)))
   => '(6 (1 2 3)))
 
 (check
     (with-result
      (dolist (i '(1 2 3))
-       1		     ;; shooting the breeze
-       2		     ;; shooting the breeze
+       1	; shooting the breeze
+       2	; shooting the breeze
        (add-result i)))
   => '(#f (1 2 3)))
 
-;; ------------------------------------------------------------
+; ------------------------------------------------------------
 
 (check
     (with-result

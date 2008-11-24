@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-24 06:58:19 marco>
+;;;Time-stamp: <2008-11-24 11:08:10 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -34,12 +34,12 @@
     catch-exception false-if-exception
     check-for-true
     (rename (check-it check)) check-report check-ec check-set-mode!
-    testname parameterize)
+    testname)
   (import (rnrs)
     (srfi parameters)
     (srfi lightweight-testing)
     (only (string-lib) string-suffix? string-prefix?)
-    (only (uriel posix) getenv))
+    (uriel getenv))
 
 
 ;;;; code
@@ -52,13 +52,13 @@
     ((_ ?form0 ?form ...)
      (parameterize ((result '()))
        (list (begin ?form0 ?form ...)
-	     (reverse (result)))))))
+	     (get-result))))))
 
 (define (add-result value)
   (result (cons value (result))))
 
 (define (get-result)
-  (result))
+  (reverse (result)))
 
 (define-syntax catch-exception
   (syntax-rules ()
@@ -72,6 +72,12 @@
      (guard (exc (else #f))
        ?form0 ?form ...))))
 
+(define-syntax check-for-true
+  (syntax-rules ()
+    ((_ ?form)
+     (check-it (and ?form #t) => #t))))
+
+
 (define testname
   (make-parameter #f
     (lambda (value)
@@ -82,7 +88,7 @@
 	  (symbol->string value)
 	value))))
 
-(define selected-test (getenv "NAME"))
+(define selected-test (getenv "name"))
 
 (define (check-activation)
   (or (= 0 (string-length selected-test))
@@ -108,11 +114,6 @@
        (when (check-activation)
 	 (check ?expr (=> ?equal) ?expected-result))))
     ))
-
-(define-syntax check-for-true
-  (syntax-rules ()
-    ((_ ?form)
-     (check-it (and ?form #t) => #t))))
 
 
 ;;;; done

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-11-24 06:52:28 marco>
+;;;Time-stamp: <2008-11-24 10:01:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,12 +28,12 @@
 
 (library (uriel lang)
   (export
-    begin0 dolist dotimes loop-upon-list ensure
+    begin0 dolist dotimes loop-upon-list ensure void-value
 
     with-compensations with-compensations/on-error
     compensate run-compensations
 
-    with-deferred-exception-handler
+    with-deferred-exceptions-handler
     defer-exceptions run-deferred-exceptions-handler
 
     with-output-to-string)
@@ -93,19 +93,27 @@
 		 (exit)
 	       (loop (cdr ell) (car ell))))))))))
 
+(define (void-value)
+  (let ((a #f))
+    (set! a 1)))
+
 (define-syntax ensure
   (syntax-rules (by else else-by !ensure-else-clauses)
     ((_ ?condition
 	(by ?by-form0 ?by-form ...)
 	(else-by ?else-by-form0 ?else-by-form ...) ...
 	(else ?else-form0 ?else-form ...))
-     (loop-upon-list
-	 (loop (list (lambda () ?by-form0 ?by-form ...)
-		     (lambda () ?else-by-form0 ?else-by-form ...)
-		     ...
-		     (lambda () ?else-form0 ?else-form ...)))
-	 (break-when ?condition)
-       (loop)))))
+     (let ((retval #f))
+       (loop-upon-list
+	   (loop (list (lambda () ?by-form0 ?by-form ...)
+		       (lambda () ?else-by-form0 ?else-by-form ...)
+		       ...
+		       (lambda () ?else-form0 ?else-form ...))
+		 (if (equal? (void-value) retval)
+		     #f
+		   retval))
+	   (break-when ?condition)
+	 (set! retval (loop)))))))
 
 ;;Define a macro with the function-like form.
 ;; (define-syntax define-as-syntax
@@ -143,7 +151,7 @@
 		      (cons exc (deferred-exceptions))))))
        ?form0 ?form ...))))
 
-(define-syntax with-deferred-exception-handler
+(define-syntax with-deferred-exceptions-handler
   (syntax-rules ()
     ((_ ?handler ?form0 ?form ...)
      (parameterize ((deferred-exceptions '())
@@ -213,6 +221,7 @@
 
 
 
+;;;; done
 
 )
 

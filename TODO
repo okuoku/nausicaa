@@ -6,6 +6,9 @@
 * Why I cannot install only the FASL files?
 * Add support for pacman.
 * Split into multiple git projects?
+* Rewrite   the   Scheme   library   tests  for   Autoconf   using   the
+  "scheme-script" executable,  so that, in  some way, it is  possible to
+  run them with both Ikarus and Ypsilon.
 
 
 ## ------------------------------------------------------------

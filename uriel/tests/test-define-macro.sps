@@ -26,7 +26,7 @@
 
 ;;;; setup
 
-(import (ikarus)
+(import (rnrs)
   (uriel printing)
   (uriel define-macro)
   (uriel test)

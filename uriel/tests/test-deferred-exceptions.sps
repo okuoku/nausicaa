@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for deferred exceptions
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-24 07:14:50 marco>
+;;;Time-stamp: <2008-11-24 10:58:51 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +31,8 @@
 (import (rnrs)
   (uriel printing)
   (uriel test)
-  (uriel lang))
+  (uriel lang)
+  (srfi parameters))
 
 (check-set-mode! 'report-failed)
 
@@ -43,7 +44,7 @@
 (parameterize ((testname "this"))
   (check
       (with-result
-       (with-deferred-exception-handler
+       (with-deferred-exceptions-handler
 	   (lambda (exc)
 	     (add-result -4))
 	 (add-result 1)
@@ -54,7 +55,7 @@
 ;;;No error.  With DEFER-EXCEPTIONS.
 (check
     (with-result
-     (with-deferred-exception-handler
+     (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result -4))
        (add-result 1)
@@ -68,7 +69,7 @@
 ;;;No error.  With nested exception handler.
 (check
     (with-result
-     (with-deferred-exception-handler
+     (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result -2))
        (with-exception-handler
@@ -85,7 +86,7 @@
 ;;;Simple raise.
 (check
     (with-result
-     (with-deferred-exception-handler
+     (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result -2))
        (guard (exc (else exc))
@@ -106,7 +107,7 @@
 ;;Deferred exception in the body.
 (check
     (with-result
-     (with-deferred-exception-handler
+     (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result -2)
 	   (add-result exc))
@@ -122,7 +123,7 @@
 ;;More deferred exceptions in the body.
 (check
     (with-result
-     (with-deferred-exception-handler
+     (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result exc))
        (add-result 1)
@@ -148,7 +149,7 @@
      (guard (exc (else
 		  (add-result -3)
 		  exc))
-       (with-deferred-exception-handler
+       (with-deferred-exceptions-handler
 	   (lambda (exc)
 	     (add-result -2)
 	     (add-result exc))
@@ -169,7 +170,7 @@
      (guard (exc (else
 		  (add-result -9)
 		  exc))
-       (with-deferred-exception-handler
+       (with-deferred-exceptions-handler
 	   (lambda (exc)
 	     (add-result -8)
 	     (add-result exc))
