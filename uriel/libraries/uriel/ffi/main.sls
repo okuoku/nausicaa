@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Uriel libraries for Ikarus
+;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-24 17:59:34 marco>
+;;;Time-stamp: <2008-11-24 20:24:33 marco>
 ;;;
 ;;;Abstract
 ;;;
