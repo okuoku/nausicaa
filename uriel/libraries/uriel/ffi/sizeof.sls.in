@@ -1,0 +1,72 @@
+;;;
+;;;Part of: Uriel libraries for R6RS Scheme
+;;;Contents: size of platform C language types
+;;;Date: Mon Nov 24, 2008
+;;;Time-stamp: <2008-11-24 21:24:43 marco>
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(library (uriel ffi sizeof)
+  (export
+    sizeof-short-int sizeof-int sizeof-long sizeof-pointer
+    sizeof-long-long
+
+    valueof-char-max	valueof-char-min
+    valueof-schar-max	valueof-schar-min	valueof-uchar-max
+    valueof-shrt-max	valueof-shrt-min	valueof-ushrt-max
+    valueof-int-max	valueof-int-min		valueof-uint-max
+    valueof-long-max	valueof-long-min
+;;;    valueof-ulong-max
+;;;    valueof-long-long-max valueof-long-long-min valueof-ulong-long-max
+    valueof-wchar-max	valueof-ssize-max
+    words-bigendian)
+  (import (rnrs))
+
+  (define sizeof-short-int @SIZEOF_SHORT_INT@)
+  (define sizeof-int @SIZEOF_INT@)
+  (define sizeof-long @SIZEOF_LONG@)
+  (define sizeof-long-long @SIZEOF_LLONG@)
+  (define sizeof-pointer @SIZEOF_POINTER@)
+
+  (define valueof-char-max @VALUEOF_CHAR_MAX@)
+  (define valueof-char-min @VALUEOF_CHAR_MIN@)
+  (define valueof-schar-max @VALUEOF_SCHAR_MAX@)
+  (define valueof-schar-min @VALUEOF_SCHAR_MIN@)
+  (define valueof-uchar-max @VALUEOF_UCHAR_MAX@)
+  (define valueof-shrt-max @VALUEOF_SHRT_MAX@)
+  (define valueof-shrt-min @VALUEOF_SHRT_MIN@)
+  (define valueof-ushrt-max @VALUEOF_USHRT_MAX@)
+  (define valueof-int-max @VALUEOF_INT_MAX@)
+  (define valueof-int-min @VALUEOF_INT_MIN@)
+  (define valueof-uint-max @VALUEOF_UINT_MAX@)
+  (define valueof-long-max @VALUEOF_LONG_MAX@)
+  (define valueof-long-min @VALUEOF_LONG_MIN@)
+;;;  (define valueof-ulong-max @VALUEOF_ULONG_MAX@)
+;;;   (define valueof-long-long-max @VALUEOF_LLONG_MAX@)
+;;;   (define valueof-long-long-min @VALUEOF_LLONG_MIN@)
+;;;   (define valueof-ulong-long-max @VALUEOF_ULLONG_MAX@)
+  (define valueof-wchar-max @VALUEOF_WCHAR_MAX@)
+  (define valueof-ssize-max @VALUEOF_SSIZE_MAX@)
+
+  (define words-bigendian (= 1 @WORDS_BIGENDIAN@))
+  )
+
+;;; end of file

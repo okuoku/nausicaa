@@ -1486,6 +1486,7 @@ libraries.
 * ffi load::                    Dynamic loading of libraries.
 * ffi memory::                  Basic memory allocation.
 * ffi guarded malloc::          Guarded memory allocation.
+* ffi sizeof::                  Sizes and limits.
 * ffi string::                  String functions.
 * ffi call::                    Functions interface.
 @end menu
@@ -1627,6 +1628,53 @@ is released by invoking @func{uriel-cleanup}.
 
 
 @c ------------------------------------------------------------
+
+@c page
+@node ffi sizeof
+@section Sizes and limits
+
+
+A set of variables is provided to allow interface libraries to be aware
+of C language type sizes and limits.  To load the library:
+
+@example
+(import (uriel ffi sizeof))
+@end example
+
+
+@defvar sizeof-short-int
+@defvarx sizeof-int
+@defvarx sizeof-long
+@defvarx sizeof-long-long
+@defvarx sizeof-pointer
+The number of bytes in the specified type.
+@end defvar
+
+
+@defvar valueof-char-max
+@defvarx valueof-char-min
+@defvarx valueof-schar-max
+@defvarx valueof-schar-min
+@defvarx valueof-uchar-max
+@defvarx valueof-shrt-max
+@defvarx valueof-shrt-min
+@defvarx valueof-ushrt-max
+@defvarx valueof-int-max
+@defvarx valueof-int-min
+@defvarx valueof-uint-max
+@defvarx valueof-long-max
+@defvarx valueof-long-min
+@defvarx valueof-wchar-max
+@defvarx valueof-ssize-max
+The value of the specified constant.  For example: the value of
+@code{valueof-int-max} is the C language constant @code{INT_MAX}.
+@end defvar
+
+
+@defvar words-bigendian
+Bound to @true{} if the platform is big endian, @false{} otherwise.
+@end defvar
+
 
 @c page
 @node ffi string
