@@ -1,7 +1,8 @@
 ;;;
 ;;;Part of: Uriel libraries
-;;;Contents: tests for ffi library
-;;;Date: Tue Nov 18, 2008
+;;;Contents: cleanup functions
+;;;Date: Mon Nov 24, 2008
+;;;Time-stamp: <2008-11-24 08:17:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -23,45 +24,33 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 
 ;;;; setup
 
-(import (rnrs)
-  (uriel printing)
-  (uriel ffi)
-  (uriel test))
-
-(check-set-mode! 'report-failed)
+(library (uriel cleanup)
+  (export
+    uriel-cleanup)
+  (import (rnrs))
 
 
-;;; code
+;;;; code
 
-(define self (dlopen))
+(define cleanup-functions '())
 
-(check
-    (let* ((f (make-c-callout signed-int (pointer)))
-	   (strlen (f (dlsym self 'strlen)))
-	   (g (make-c-callout pointer (signed-int)))
-	   (strerror (g (dlsym self 'strerror))))
-      (cstring->string (strerror 0)))
-  => "Success")
+(define (uriel-register-cleanup-function func)
+  (set! cleanup-functions (cons func cleanup-functions)))
 
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-	  (g (make-c-callout signed-int (pointer))))
-      (eq? f g))
-  => #t)
-
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-	  (g (make-c-callout signed-int (signed-int))))
-      (eq? f g))
-  => #f)
+(define (uriel-cleanup)
+  (for-each
+      (lambda (func)
+	(func))
+    cleanup-functions))
 
 
 
 ;;;; done
 
-(check-report)
+)
 
 ;;; end of file
