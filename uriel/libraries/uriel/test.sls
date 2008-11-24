@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-23 08:50:43 marco>
+;;;Time-stamp: <2008-11-24 06:58:19 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -39,7 +39,7 @@
     (srfi parameters)
     (srfi lightweight-testing)
     (only (string-lib) string-suffix? string-prefix?)
-    (only (ikarus) getenv))
+    (only (uriel posix) getenv))
 
 
 ;;;; code

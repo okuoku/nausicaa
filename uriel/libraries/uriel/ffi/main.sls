@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for Ikarus
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-22 07:40:57 marco>
+;;;Time-stamp: <2008-11-24 08:19:07 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,11 +29,16 @@
 
 (library (uriel ffi)
   (export
-    uriel-cleanup malloc block-guardian
+    uriel-cleanup
+
+    malloc block-guardian
+
     make-c-callout
     dlopen dlsym dlclose
     strlen string->cstring cstring->string)
   (import (rnrs)
+    (uriel cleanup)
+    (uriel ffi compat)
     (only (ikarus) make-guardian)
     (prefix (ikarus foreign) ike:))
 
@@ -72,7 +77,7 @@
 
 (define block-guardian (make-guardian))
 
-(define (uriel-cleanup)
+(define (block-cleanup)
   (do ((p (block-guardian) (block-guardian)))
       ((p))
     (ike:free p)))
@@ -136,6 +141,8 @@
 
 
 
-) ;; end of library form
+(uriel-register-cleanup-function block-cleanup)
+
+)
 
 ;;; end of file

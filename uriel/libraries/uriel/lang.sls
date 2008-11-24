@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-11-22 07:41:52 marco>
+;;;Time-stamp: <2008-11-24 06:52:28 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,7 +24,7 @@
 ;;;
 
 
-;;;; Setup.
+;;;; setup
 
 (library (uriel lang)
   (export
@@ -41,8 +41,7 @@
     (srfi parameters))
 
 
-;;;; Simple sintaxes.
-
+;;;; simple sintaxes
 
 ;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
 ;;;``Formal semantics''.
@@ -118,7 +117,7 @@
 ;; 	  ?form0 ?form ...))))))
 
 
-;;;; Deferred exceptions.
+;;;; deferred exceptions
 
 (define deferred-exceptions
   (make-parameter #f))
@@ -156,7 +155,7 @@
 	     (run-deferred-exceptions-handler)))))))
 
 
-;;;; Compensations.
+;;;; compensations
 
 (define compensations
   (make-parameter #f))
@@ -204,7 +203,7 @@
      (compensate (begin ?alloc) ?form ...))))
 
 
-;;;; Input/output.
+;;;; input/output
 
 (define-syntax with-output-to-string
   (syntax-rules ()
@@ -215,6 +214,6 @@
 
 
 
-) ;; end of library form
+)
 
 ;;; end of file
