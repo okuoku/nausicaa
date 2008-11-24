@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for Ikarus
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-24 08:19:07 marco>
+;;;Time-stamp: <2008-11-24 09:20:39 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -80,10 +80,10 @@
 (define (block-cleanup)
   (do ((p (block-guardian) (block-guardian)))
       ((p))
-    (ike:free p)))
+    (primitive-free p)))
 
 (define (malloc size)
-  (let ((p (ike:malloc size)))
+  (let ((p (primitive-malloc size)))
     (unless p
       (error "memory allocation error"))
     (block-guardian p)

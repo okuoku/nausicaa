@@ -482,15 +482,15 @@ nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 
 # We DO  NOT include the fasl build  directory in the path.   This is on
 # purpose.
-nau_test_ENV		+= NAME=$(NAME)
+nau_test_ENV		+= name=$(name)
 nau_test_RUN		= $(nau_test_ENV) $(nau_test_PROGRAM)
 
-nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(FILE).sps)
+nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(file).sps)
 
 .PHONY: tests test check ytests ytest ycheck
 
 tests test check:
-ifeq ($(strip $(FILE)),)
+ifeq ($(strip $(file)),)
 	$(foreach f,$(nau_test_FILES),$(nau_test_RUN) $(f);)
 else
 	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_test_RUN) $(f);)

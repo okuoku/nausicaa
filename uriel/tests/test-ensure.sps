@@ -54,6 +54,18 @@
        (ensure (= flag 1)
 	   (by
 	    (add-result 1)
+	    (add-result 2))
+	 (else
+	  (add-result 3)
+	  123))))
+  => '(123 (1 2 3)))
+
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
 	    (add-result 2)
 	    (set! flag 1))
 	 (else
@@ -61,7 +73,19 @@
 	  (add-result 4)))))
   => '(#f (1 2)))
 
-
+(check
+    (with-result
+     (let ((flag 0))
+       (ensure (= flag 1)
+	   (by
+	    (add-result 1)
+	    (add-result 2)
+	    (set! flag 1)
+	    123)
+	 (else
+	  (add-result 3)
+	  (add-result 4)))))
+  => '(123 (1 2)))
 
 (check
     (with-result

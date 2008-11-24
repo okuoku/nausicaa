@@ -55,12 +55,17 @@ and copyright assignment.
 The Nausicaa  installation infrastructure supports  only GNU
 systems.   This  means  Unix   like  systems  in  which  the
 following common tools and packages are installed: GNU Bash,
-GNU Make, GNU coreutils, GNU tar, Gzip, Bzip2.
+GNU Make, GNU coreutils, GNU Find, GNU tar, Gzip, Bzip2.
 
   There are 2 sources of informations about the installation
 of  a Nausicaa  project: the  individual,  project specific,
 README files; the  Nausicaa overall documentation in Texinfo
 format, which is available in the "doc" subdirectory.
+
+  To  use  the  Nausicaa  libraries  you  must  install  the
+packages of the SRFI and Uriel projects, because most of the
+projects  depend  on  them.   For some  projects  the  Uriel
+package is required only to run the test suite.
 
   For you  own safety, take this advice:  never, ever, drive
 building  and  installation  of  packages  from  the  source
@@ -89,8 +94,7 @@ then, usually, you should do:
 
      /usr/local/lib/scheme
 
-  be  sure to  update  your IKARUS_LIBRARY_PATH  environment
-  variable;
+  be sure to update your search path environment variable;
 
 * by default only documentation  in Info format is built and
   installed,  documentation  in HTML  format  is pruned;  to

@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
 @setfilename nausicaa-uriel.info
-@settitle Uriel libraries for Ikarus Scheme
+@settitle Uriel libraries for R6RS Scheme
 @c %**end of header
 
 @c page
@@ -322,7 +322,7 @@ the main purpose of this document is to provide an Info version.
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Uriel libraries for Ikarus Scheme
+@set TITLE                      Uriel libraries for R6RS Scheme
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -355,7 +355,7 @@ the main purpose of this document is to provide an Info version.
 @copying
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
-collection of libraries for Ikarus Scheme.
+collection of libraries for @rnrs{6} Scheme.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}).
@@ -396,7 +396,7 @@ entitled ``@gnu{} Free Documentation License''.
 @dircategory Development
 @direntry
 * nausicaa-uriel: (nausicaa-uriel).     Uriel libraries for
-                                        Ikarus Scheme.
+                                        @rnrs{6} Scheme.
 @end direntry
 @end ifinfo
 
@@ -416,15 +416,18 @@ entitled ``@gnu{} Free Documentation License''.
 @top @value{TITLE}
 
 @insertcopying
-     
+
 @menu
-* overview::                    Overview of the package. 
+* overview::                    Overview of the package.
 * lang::                        Language extensions.
 * combinators::                 Combinators.
-* io::                          Input/output library.
 * object-property::             Object properties.
 * define-macro::                Common Lisp style macros.
+* test::                        Writing test suites.
+* printing::                    Printing.
+* getenv::                      System environment variables.
 * ffi::                         Foreign functions interface.
+* posix::                       @posix{} facilities.
 
 Appendices
 
@@ -434,10 +437,10 @@ Appendices
 
 Indexes
 
-* concept index::               An entry for each concept. 
-* function index::              An entry for each function. 
-* variable index::              An entry for each variable. 
-* type index::                  An entry for each type. 
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
 @end menu
 @end ifnottex
 
@@ -449,41 +452,7 @@ Indexes
 
 
 @noindent
-@value{PACKAGE} is a collection of libraries for Ikarus Scheme.
-
-
-@c ------------------------------------------------------------
-
-@c page
-@node io
-@chapter Input/output library
-
-
-To load the library:
-
-@example
-(import (uriel io))
-@end example
-
-
-@deffn Syntax with-output-to-string @var{form} ...
-A wrapper for @func{call-with-string-output-port} that puts all the
-@var{form} arguments in the thunk.  Example:
-
-@example
-(with-output-to-string
-  (display 123))
-@end example
-
-@noindent
-is equivalent to:
-
-@example
-(call-with-string-output-port
-  (lambda ()
-    (display 123)))
-@end example
-@end deffn
+@value{PACKAGE} is a collection of libraries for @rnrs{6} Scheme.
 
 
 @c ------------------------------------------------------------
@@ -494,8 +463,8 @@ is equivalent to:
 
 
 @noindent
-The @library{uriel lang} library extends the Scheme language with new
-constructs.  To load the library:
+Syntaxes and functions are provided to extend tha Scheme language.  To
+load the library:
 
 @example
 (import (uriel lang))
@@ -505,6 +474,7 @@ constructs.  To load the library:
 * lang simple::                 Simple language extensions.
 * lang compensations::          Compensation stacks.
 * lang deferred exceptions::    Deferred exceptions.
+* lang io::                     Input/output procedures.
 @end menu
 
 
@@ -515,18 +485,31 @@ constructs.  To load the library:
 @section Simple language extensions
 
 
-@deffn Syntax begin0 @var{form} . @var{forms}
-Evaluate all the forms like the standard @func{begin}, but return the
-value of the first form.
+@defun void-value
+Return the void value: the value that the implementation uses for forms
+that do not return a meaningful value.  This function is defined as:
+
+@example
+(define (void-value)
+  (let ((a #f))
+    (set! a 1)))
+@end example
+@end defun
+
+
+@deffn Syntax begin0 @var{form0} @var{form} ...
+Evaluate all the @var{form}s like the standard @func{begin}, but return
+the value of @var{form0}.  The implementation comes from the @rnrs{6}
+original document, Appendix A ``Formal semantics''.
 
 @example
 (define-syntax begin0
   (syntax-rules ()
-    ((_ ?expr0 ?expr ...)
+    ((_ ?form0 ?form ...)
      (call-with-values
-         (lambda () ?expr0)
+         (lambda () ?form0)
        (lambda x
-         ?expr ...
+         ?form ...
          (apply values x))))))
 @end example
 
@@ -543,13 +526,13 @@ integer from zero inclusive to @var{exclusive-count}.  Return
 Example:
 
 @example
-(dotimes (i 1 100)
+(dotimes (i 100)
   (display i)
   (newline))
 @end example
 
 @noindent
-prints the integers in the range @code{[1, 99]}.
+prints the integers in the range @code{[0, 99]}.
 @end deffn
 
 
@@ -566,6 +549,9 @@ Example:
   (display elm)
   (newline))
 @end example
+
+@noindent
+prints 1, 2, 3.
 @end deffn
 
 
@@ -579,7 +565,7 @@ to true.
 Example:
 
 @example
-(loop-upon-list (i (1 2 3 4) 'retval)
+(loop-upon-list (i '(1 2 3 4) 'retval)
     (break-when (= i 3))
   (display i)
   (newline))
@@ -592,29 +578,59 @@ prints @code{1} and @code{2}, then returns @code{retval}.
 
 @deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
 @deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
-Evaluate branches until @var{test} evaluates to true.  If the first
-evaluation of @var{test} gives true: no @var{form}s are evaluated.  If
-neither the @code{by} nor the @code{else-by} forms succeed in making
-@var{test} true: the @code{else} clause is evaluated, so we can detect
-the condition.
+Evaluate the @var{form}s in the @code{by} and @code{else-by} clauses, in
+sequence, until @var{test} evaluates to true.  If the first evaluation
+of @var{test} gives true: no @var{form}s are evaluated.  If neither the
+@code{by} nor the @code{else-by} forms succeed in making @var{test}
+true: the @var{form}s in the @code{else} clause are evaluated.
 
-Example:
+Return the value of the last @var{form} in the clause that made
+@var{test} true, or the value in the last @var{form} in the @code{else}
+clause, or @false{} if the first evaluation of @var{test} was true and
+no @var{form}s were evaluated.
+
+Examples:
 
 @example
-(define i 3)
-(ensure (= i 5)
-    (by
-      (set! i 0)
-  (else-by
-    (set! i 1))
-  (else-by
-    (set! i 2))
-  (else
-    (set! i 3))))
-@end example
+(let ((i #f))
+  (ensure (= i 1)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+=> 123
 
-@noindent
-all the branches are evaluated.
+(let ((i #f))
+  (ensure (= i 2)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+=> 456
+
+(let ((i #f))
+  (ensure (= i 3)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+=> 789
+@end example
 @end deffn
 
 
@@ -689,10 +705,10 @@ A form that makes use of a compensation stack looks like this:
 (with-compensations
     (compensate
         ALLOC-FORMS-1
-      (with FREE-FORMS-1)) 
+      (with FREE-FORMS-1))
     (compensate
         ALLOC-FORMS-2
-      (with FREE-FORMS-2)) 
+      (with FREE-FORMS-2))
   BODY-FORMS)
 @end example
 
@@ -757,8 +773,9 @@ FREE-FORMS-2
 FREE-FORMS-1
 @end example
 
-So @func{with-exceptions} tries to evaluate all the free forms, despite
-errors.  Of course if an error occurs in the middle of a set of forms:
+So @func{with-compensations} tries to evaluate all the free forms,
+despite errors.  Of course if an error occurs in the middle of a set of
+forms:
 
 @example
 (first-form)   ;evaluated
@@ -770,17 +787,17 @@ errors.  Of course if an error occurs in the middle of a set of forms:
 the forms before the error are evaluated, while the forms after the
 error are not.
 
-A variant of @func{with-exceptions} exists that evaluates the
+A variant of @func{with-compensations} exists to evaluate the
 compensation forms only in case of error:
 
 @example
 (with-compensations/on-error
     (compensate
         ALLOC-FORMS-1
-      (with FREE-FORMS-1)) 
+      (with FREE-FORMS-1))
     (compensate
         ALLOC-FORMS-2
-      (with FREE-FORMS-2)) 
+      (with FREE-FORMS-2))
   BODY-FORMS)
 @end example
 
@@ -794,7 +811,7 @@ BODY-FORMS
 @end example
 
 @noindent
-while if an error occurs the evaluation is similar to the cases of
+while if an error occurs the evaluation is equal to the cases of
 @func{with-compensations}.  The ``on error'' variant is useful in
 constructors and initialisation functions, where we want to run the
 compensations only if an error occurs; if no error is raised, we just
@@ -904,7 +921,7 @@ the reference use case (@ref{lang compensations}).
 A form that uses deferred exceptions looks like this:
 
 @example
-(with-deferred-exceptions
+(with-deferred-exceptions-handler
     (lambda (exc)
       (handle-the-exception exc))
   (before-do-something)
@@ -945,7 +962,7 @@ discarded.
 @end deffn
 
 
-@deffn Syntax with-deferred-exception-handler @var{handler} @var{form} ...
+@deffn Syntax with-deferred-exceptions-handler @var{handler} @var{form} ...
 Setup a deferred exception handler dynamic environment, in which
 @var{handler} is the exceptions handler, for the evaluation of the
 @var{form}s.  All the @var{form}s are evaluated as in the body of a
@@ -962,6 +979,31 @@ silently ignored.
 
 
 @c ------------------------------------------------------------
+
+@c page
+@node lang io
+@section Input/output procedures
+
+
+@deffn Syntax with-output-to-string @var{form} ...
+A wrapper for @func{call-with-string-output-port} that puts all the
+@var{form} arguments in the thunk.  Example:
+
+@example
+(with-output-to-string
+  (display 123))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(call-with-string-output-port
+  (lambda ()
+    (display 123)))
+@end example
+@end deffn
+
 
 @c page
 @node combinators
@@ -1042,30 +1084,33 @@ The S combinator:
 @chapter Object properties
 
 
-An object property is a convenient interface to an @func{eq?} hashtable;
-we can use it to hold properties of values.  To load the library:
-
-@example
-(import (uriel object-property))
-@end example
-
+An object property is a convenient interface to an @func{eq?} hashtable.
 An object property is a function that can be called with one or two
 arguments.  When called with two arguments: the first is an object and
 the second is its property value; they are stored in the hashtable.
 When called with one argument: the hashtable is queried using the
 argument as key, and the value is returned.
 
+@quotation
+The idea of  object properties implemented in this library comes from
+Guile, the @gnu{} Ubiquitous Interface Language for Extensions.
+@end quotation
+
+To load the library:
+
+@example
+(import (uriel object-property))
+@end example
+
 
 @defun make-object-property
-Build and return a new object property.  The table is parameterised with
-@code{object-property-initial-capacity} and
-@code{object-property-default-value}.
+Build and return a new object property.
 @end defun
 
 
 @deffn Syntax with-true-property (@var{prop} @var{object}) @var{form0} @var{form} ...
 Temporarily save the value of @var{object} in @var{prop} and set it to
-@true{}, the evaluate the @var{form}s and restore the original value.
+@true{}, then evaluate the @var{form}s and restore the original value.
 @end deffn
 
 
@@ -1089,9 +1134,9 @@ The following will evaluate successfully:
 
 @example
 (import (rnrs)
-        (uriel object-property)
-        (srfi lightweight-testing)
-        (srfi parameters))
+  (uriel object-property)
+  (uriel test)
+  (srfi parameters))
 
 (check-set-mode! 'report-failed)
 
@@ -1138,9 +1183,191 @@ To load the library:
 @deffn Syntax define-macro (@var{name} . @var{args}) @var{form0} @var{form} ...
 @deffnx Syntax define-macro @var{name} @var{func}
 @deffnx Syntax defmacro @var{name} @var{args} @var{form0} @var{form} ...
-Stuff
+Define a Common Lisp style macro.  The @var{form}s are evaluated as in
+the evaluation of a function; the return value must be a list that will
+be evaluated as a form in the dynamic environment of the caller.
 @end deffn
 
+
+@subsubheading Examples
+
+The following will evaluate successfully:
+
+@example
+(import (rnrs)
+  (uriel define-macro)
+  (uriel test))
+
+(check-set-mode! 'report-failed)
+
+(check
+    (let ()
+      (define-macro (proof)
+        `(list 1 2 3))
+      (proof))
+  => '(1 2 3))
+
+(check
+    (let ()
+      (define-macro (proof a b c)
+        `(list ,a ,b ,c))
+      (proof 'one 'two 'three))
+  => '(one two three))
+
+(check-report)
+@end example
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node test
+@chapter Writing test suites
+
+
+This chapter documents a wrapper for the @library{srfi
+lightweight-testing} library that adds the ability to select tests with
+appropriate values of environment variables.
+
+To load the library:
+
+@example
+(import (uriel test))
+@end example
+
+@noindent
+all the bindings from @library{srfi lightweight-testing} are exported by
+@library{uriel test}; @func{check} is redefined as described below.
+
+
+@deffn Syntax with-result @var{form0} @var{form} ...
+Evaluate all the @var{form}s, as in @func{begin}, in a dynamic
+environment in which an implicit result variable is defined.  The
+implicit variable is handled as a list.
+
+Return a list whose first value is the return value of the last
+@var{form} and whose second value is the value of the implicit variable.
+@end deffn
+
+
+@defun add-result @var{value}
+Append @var{value} to the list in the implicit variable defined by
+@func{with-result}.
+@end defun
+
+
+@defun get-result
+Return the current value of the implicit variable defined by
+@func{with-result}.
+@end defun
+
+
+@deffn catch-exception @var{form0} @var{form} ...
+Evaluate all the @var{form}s as in @func{begin}.  If an exception is
+raised: catch it and return its value.
+@end deffn
+
+
+@deffn false-if-exception @var{form0} @var{form} ...
+Evaluate all the @var{form}s as in @func{begin}.  If an exception is
+raised: return @false{}.
+@end deffn
+
+
+@deffn Syntax check-for-true @var{expr}
+Evaluate @var{expr} in a @func{check} syntax, expecting a non--false
+value as result.
+@end deffn
+
+
+@deffn check @var{expr} => @var{expected}
+@deffnx check @var{expr} (=> @var{equal}) @var{expected}
+@deffnx check @var{name} @var{expr} (=> @var{equal}) @var{expected}
+@deffnx check @var{name} @var{expr} => @var{expected}
+A wrapper for @func{check} from @library{srfi lightweight-testing} that
+does, basically, the same thing.
+
+When @var{name} is given or the parameter @code{testname} is set to a
+non--false value: the value must be a string or symbol that is
+interpreted as the ``name'' of this test.  If the environment variable
+@env{name} is set to the empty string, nothing special happens: the test
+is evaluated as usual.  If the environment variable @env{name} is set to
+a non--empty string: the test name is checked against @env{name} and if
+the test is evaluated only if there is a match; otherwise it is skipped.
+
+The test name and the value of @env{name} do match if the value of
+@env{name} is the prefix or suffix of the test name, according to the
+@func{string-prefix?} and @func{string-suffix?} functions from
+@library{srfi strings}.
+@end deffn
+
+
+@deffn Parameter testname
+Holds the currently selected name for a @func{check} test.  Must be set
+to @false{}, a string or a symbol.  In the case of the symbol: the name
+of the symbol is interpreted as name of the test.
+
+The parameter can be used to give the same name to a set of @func{check}
+forms.
+
+@quotation
+@strong{Note} The @library{uriel test} library does @strong{not} export
+@func{parameterize} from @library{srfi parameters}.
+@end quotation
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node printing
+@chapter Printing
+
+
+This chapter describes an interface to the @func{pretty-print} and
+@func{format} procedures.  It is meant to provide basic printing
+facilities for debugging and test suites.  To load the library:
+
+@example
+(import (uriel printing))
+@end example
+
+
+@defun print @var{port} @var{template} @var{value} ...
+Format the string @var{template} using the optional @var{value}s, using
+implementation specific facilities, and return the result.  If
+@var{port} is true: it must be an output port, and the result will be
+written to it with @func{display}.
+@end defun
+
+
+@defun pretty-print @var{value}
+Prints to the current output port the best representation possible of
+@var{value}.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node getenv
+@chapter System environment variables
+
+
+This chapter describes an interface to the @cfunc{getenv} system
+function used to retrieve the current value of system environment
+variables.  It is meant to provide basic access to the environment for
+debugging and test suites.  To load the library:
+
+@example
+(import (uriel getenv))
+@end example
+
+
+@defun getenv @var{varname}
+Return the current value of the environment variable @var{varname}, as a
+string.  @var{varname} must be a string.
+@end defun
 
 
 @c ------------------------------------------------------------
@@ -1150,9 +1377,8 @@ Stuff
 @chapter Foreign functions interface
 
 
-The @library{uriel ffi} library wraps the Ikarus' foreign function
-interface functions to provide automation and some features.  To load
-the library:
+The @library{uriel ffi} library wraps the foreign functions interface
+libraries from Ikarus and Ypsilon.  To load the library:
 
 @example
 (import (uriel ffi))
@@ -1311,6 +1537,26 @@ and the following shows the caching:
   => #f)
 @end example
 @end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node posix
+@chapter @posix{} facilities
+
+
+This chapter describes an interface to the @posix{} system functions
+offered by the underlying platform.  Basically this library makes use of
+the foreign functions interface defined by @library{uriel ffi}, and
+occasionally makes use of the implementation specific facilities.
+
+To load the library:
+
+@example
+(import (uriel posix))
+@end example
+
 
 
 @c ------------------------------------------------------------
@@ -2451,21 +2697,21 @@ to permit their use in free software.
 @c page
 @node concept index
 @appendix An entry for each concept
-     
+
 @printindex cp
-     
+
 @node function index
-@appendix An entry for each function. 
+@appendix An entry for each function.
 
 @printindex fn
 
 @node variable index
-@appendix An entry for each variable. 
+@appendix An entry for each variable.
 
 @printindex vr
 
 @node type index
-@appendix An entry for each type. 
+@appendix An entry for each type.
 
 @printindex tp
 
