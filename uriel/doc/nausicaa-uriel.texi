@@ -426,7 +426,9 @@ entitled ``@gnu{} Free Documentation License''.
 * test::                        Writing test suites.
 * printing::                    Printing.
 * getenv::                      System environment variables.
+* cleanup::                     Cleanup of asynchronous resources.
 * ffi::                         Foreign functions interface.
+* libc::                        Standard C library facilities.
 * posix::                       @posix{} facilities.
 
 Appendices
@@ -1336,8 +1338,20 @@ facilities for debugging and test suites.  To load the library:
 @defun print @var{port} @var{template} @var{value} ...
 Format the string @var{template} using the optional @var{value}s, using
 implementation specific facilities, and return the result.  If
-@var{port} is true: it must be an output port, and the result will be
-written to it with @func{display}.
+@var{port} is true:
+
+@itemize
+@item
+if it is an output port: the result is written into it with
+@func{display};
+
+@item
+if it is @true{}: the result is written into the current output-port
+with @func{display};
+
+@item
+else an assertion violation is raised.
+@end itemize
 @end defun
 
 
@@ -1373,6 +1387,84 @@ string.  @var{varname} must be a string.
 @c ------------------------------------------------------------
 
 @c page
+@node cleanup
+@chapter Cleanup of asynchronous resources
+
+
+On Scheme implementations that provide guardians (like Ikarus) there is
+the need to invoke the guardian function, every now and then, to release
+guarded resources that were garbage collected.  For example: if the
+program makes use of an event loop, we can enqueue a periodic, batch,
+event that invokes a cleanup function.
+
+We may have code like this:
+
+@example
+(define block-guardian (make-guardian))
+
+(define (block-cleanup)
+  (do ((p (block-guardian) (block-guardian)))
+      ((p))
+    (primitive-free p)))
+@end example
+
+@noindent
+and allocate memory with:
+
+@example
+(define (guarded-malloc size)
+  (let ((p (primitive-malloc size)))
+    (unless p
+      (error 'guarded-malloc "memory allocation error"))
+    (block-guardian p)
+    p))
+@end example
+
+@noindent
+whenever the values returned by @func{guarded-malloc} are garbage
+collected: they will be made available as return values from the
+guardian function, so we can invoke @func{block-cleanup} to free them.
+Of course, with code like this, we need a guardian for each type of
+resource, or, to be more precise, a guardian for each destructor
+(@func{primitive-free} in the example).
+
+To make it simpler to invoke all the cleanup functions, @value{PACKAGE}
+provides an interface to reagister them and invoke them in sequence.  To
+load the library:
+
+@example
+(import (uriel cleanup))
+@end example
+
+
+@defun uriel-register-cleanup-function @var{thunk}
+Register @var{thunk} in the internal list of cleanup functions.
+@end defun
+
+
+@defun uriel-forget-cleanup-function @var{thunk}
+Remove @var{thunk} from the internal list of cleanup functions.
+@end defun
+
+
+@defun uriel-cleanup
+Invoke all the functions registered in the internal list of cleanup
+functions.  Every function is invoked with no arguments.
+@end defun
+
+
+@quotation
+@emph{Note:} This library implements no event loop.  The only way to
+invoke a cleanup thunk only once is to register it, invoke
+@func{uriel-cleanup}, then remove it.  This is usually not what we want
+to do to handle such a simple case: we should use a proper event loop,
+instead.
+@end quotation
+
+
+@c ------------------------------------------------------------
+
+@c page
 @node ffi
 @chapter Foreign functions interface
 
@@ -1384,10 +1476,16 @@ the running Scheme implementation.  To load the library:
 (import (uriel ffi))
 @end example
 
+@noindent
+only basic functions are made available by this library.  Other
+functions are in the @library{uriel libc} and @library{uriel posix}
+libraries.
+
 
 @menu
 * ffi load::                    Dynamic loading of libraries.
-* ffi memory::                  Allocating memory.
+* ffi memory::                  Basic memory allocation.
+* ffi guarded malloc::          Guarded memory allocation.
 * ffi string::                  String functions.
 * ffi call::                    Functions interface.
 @end menu
@@ -1430,37 +1528,101 @@ exception.  @var{funcname} can be both a string or a symbol.
 
 @c page
 @node ffi memory
-@section Allocating memory
+@section Basic memory allocation
 
 
-Uriel defines a guardian for allocated memory blocks.  It can be used
-freely to register pointers to blocks of memory that must be released
-with the Ikarus' @func{free} function.
-
-
-@defun block-guardian @var{pointer}
-@defunx block-guardian
-The block guardian interface function.
+@defun primitive-malloc @var{number-of-bytes}
+An interface to the system @cfunc{malloc} function.  Allocate a block of
+memory and return a pointer to it (an object representing a pointer
+according to the Scheme implementation), or @false{} if an error occurs.
 @end defun
 
 
-@defun malloc @var{size}
-A wrapper for the built in Ikarus' @func{malloc} that:
+@defun primitive-free @var{pointer}
+An interface to the system @cfunc{free} function.  Release a block of
+memory referenced by @var{pointer} (an object representing a pointer
+according to the Scheme implementation).
+@end defun
+
+
+@defun malloc @var{number-of-bytes}
+A wrapper for @func{primitive-malloc} that raises an
+@code{&out-of-memory} condition in case of error.
+@end defun
+
+
+@deftp Condition {&out-of-memory}
+Type of condition objects that represent a memory alloction error.
+@end deftp
+
+
+@deffn {Condition Constructor} make-ouf-of-memory-condition @var{number-of-bytes}
+@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
+@deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
+Functions to handle out of memory condition objects.
+@end deffn
+
+
+Care must be taken when managing memory with these low level functions:
+memory blocks will @strong{not} be garbage collected.  A method to
+release memory needed in a form is to use @func{dynamic-wind}:
+
+@example
+(let ((p #f))
+  (dynamic-wind
+    (lambda () (set! p (malloc 123)))
+    (lambda () (do-something-with p))
+    (lambda () (primitive-free p))))
+@end example
+
+@noindent
+another is to use a compensation:
+
+@example
+(with-compensations
+  (letrec ((p (compensate
+                  (malloc 123)
+                (with
+                  (primitive-free p)))))
+    (do-something-with p)))
+@end example
+
+Another method, if supported, is to use @func{guarded-malloc}, @ref{ffi
+guarded malloc,guarded-malloc}
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi guarded malloc
+@section Guarded memory allocation
+
+
+The functions described in this section are available only when the
+Scheme implementation provides guardians (Ikarus does).
+
+To load the library:
+
+@example
+(import (uriel ffi guarded-malloc))
+@end example
+
+
+@defun guarded-malloc @var{number-of-bytes}
+A wrapper for @func{primitive-malloc} that:
 
 @itemize
 @item
-if the allocation is successful, registers the pointer into the Uriel's
-block guardian;
+if the allocation is successful: registers the pointer into a guardian
+and returns it;
 
 @item
-if the allocation fails, raises an error.
+if the allocation fails, raises an @code{&out-of-memory} condition.
 @end itemize
-@end defun
 
-
-@defun uriel-cleanup
-Release all the memory blocks that were registered in the Uriel's block
-guardian and that have been garbage collected.
+A cleanup function for the guardian is registered in the state of the
+@library{uriel cleanup} library, so memory allocated with this function
+is released by invoking @func{uriel-cleanup}.
 @end defun
 
 
@@ -1555,6 +1717,25 @@ To load the library:
 
 @example
 (import (uriel posix))
+@end example
+
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node libc
+@chapter Standard C library facilities
+
+
+This chapter describes an interface to the C language standard library
+functions offered by the underlying platform.  This library makes use of
+the foreign functions interface defined by @library{uriel ffi}.
+
+To load the library:
+
+@example
+(import (uriel libc))
 @end example
 
 
