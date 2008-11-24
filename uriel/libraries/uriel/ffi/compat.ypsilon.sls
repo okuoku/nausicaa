@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: FFI compatibility layer for Ypsilon
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 08:17:05 marco>
+;;;Time-stamp: <2008-11-24 09:20:00 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,7 @@
 
 (library (uriel ffi compat)
   (export
-    malloc free)
+    (rename (malloc primitive-malloc) (free primitive-free)))
   (import (rnrs)
     (core)
     (ffi))
