@@ -34,29 +34,31 @@
 (check-set-mode! 'report-failed)
 
 
-;;; code
-
-(define self (dlopen))
+;;;; code
 
 (check
-    (let* ((f (make-c-callout signed-int (pointer)))
-	   (strlen (f (dlsym self 'strlen)))
-	   (g (make-c-callout pointer (signed-int)))
-	   (strerror (g (dlsym self 'strerror))))
-      (cstring->string (strerror 0)))
-  => "Success")
+    (cstring->string (string->cstring "ciao"))
+  => "ciao")
 
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-	  (g (make-c-callout signed-int (pointer))))
-      (eq? f g))
-  => #t)
+;; (check
+;;     (let* ((f (make-c-callout signed-int (pointer)))
+;; 	   (strlen (f (dlsym self 'strlen)))
+;; 	   (g (make-c-callout pointer (signed-int)))
+;; 	   (strerror (g (dlsym self 'strerror))))
+;;       (cstring->string (strerror 0)))
+;;   => "Success")
 
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-	  (g (make-c-callout signed-int (signed-int))))
-      (eq? f g))
-  => #f)
+;; (check
+;;     (let ((f (make-c-callout signed-int (pointer)))
+;; 	  (g (make-c-callout signed-int (pointer))))
+;;       (eq? f g))
+;;   => #t)
+
+;; (check
+;;     (let ((f (make-c-callout signed-int (pointer)))
+;; 	  (g (make-c-callout signed-int (signed-int))))
+;;       (eq? f g))
+;;   => #f)
 
 
 
