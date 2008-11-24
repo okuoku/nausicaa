@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for compensation stacks
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-24 07:14:39 marco>
+;;;Time-stamp: <2008-11-24 18:16:27 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -321,7 +321,7 @@
 (check
     (with-result
      (with-compensations
-       (letrec
+       (letrec*
 	   ((item1 (compensate
 		       123
 		     (with
@@ -332,9 +332,7 @@
 		      (add-result item1)))))
 	 (add-result 1)
 	 0)))
-  => '(0 (1 456 123)))
-
-
+  => '(0 (1 123 456)))
 
 (check
     (with-result

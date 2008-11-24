@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for Ikarus
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-24 12:53:58 marco>
+;;;Time-stamp: <2008-11-24 17:59:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,118 +29,59 @@
 
 (library (uriel ffi)
   (export
-    uriel-cleanup
 
-    malloc block-guardian
+    ;;interface functions
+    shared-object open-shared-object make-c-function define-c-function
 
-    make-c-callout
-    dlopen dlsym dlclose
+    ;;memory functions
+    malloc primitive-malloc primitive-free
+    make-out-of-memory-condition out-of-memory-condition?
+    out-of-memory-requested-number-of-bytes
+
+    ;;string functions
     strlen string->cstring cstring->string)
+
   (import (rnrs)
-    (uriel cleanup)
-    (uriel ffi compat)
-    (only (ikarus) make-guardian))
+    (uriel ffi compat))
+
 
 
-;;;; Dynamic loading.
+;;;; dynamic loading
 
-(define dlopen
-  (case-lambda
-   (()
-    (let ((l (ike:dlopen)))
-      (or l (error 'dlopen (ike:dlerror)))))
-   ((libname)
-    (let ((l (ike:dlopen (if (symbol? libname)
-			     (symbol->string libname)
-			   libname))))
-      (or l (error 'dlopen (ike:dlerror)))))
-   ((libname lazy? global?)
-    (let ((l (ike:dlopen (if (symbol? libname)
-			     (symbol->string libname)
-			   libname)
-			 lazy? global?)))
-      (or l (error 'dlopen (ike:dlerror)))))))
+(define (open-shared-object library-name)
+  (primitive-open-shared-object (if (symbol? library-name)
+				    (symbol->string library-name)
+				  library-name)))
 
-(define (dlsym library funcname)
-  (let ((f (ike:dlsym library (if (symbol? funcname)
-				  (symbol->string funcname)
-				funcname))))
-    (or f (error 'dlsym (ike:dlerror) (cons library funcname)))))
+(define-syntax make-c-function
+  (syntax-rules ()
+    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
+     (primitive-make-c-function
+      ?ret-type ?funcname (?arg-type0 ?arg-type ...)))))
 
-(define (dlclose library)
-  (unless (dlclose library)
-    (error 'dlclose (ike:dlerror) library)))
+(define-syntax define-c-function
+  (syntax-rules ()
+    ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
+     (define ?name
+       (make-c-function
+	?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
+
 
 
-;;;; Memory allocation.
+;;;; memory functions
 
-(define block-guardian (make-guardian))
-
-(define (block-cleanup)
-  (do ((p (block-guardian) (block-guardian)))
-      ((p))
-    (primitive-free p)))
+(define-condition-type &out-of-memory &error
+  make-out-of-memory-condition out-of-memory-condition?
+  (number-of-bytes out-of-memory-requested-number-of-bytes))
 
 (define (malloc size)
   (let ((p (primitive-malloc size)))
     (unless p
-      (error "memory allocation error"))
-    (block-guardian p)
+      (make-out-of-memory-condition size))
     p))
 
-
 
-;;;; C wrappers.
-
-(define (signature-hash signature)
-  (abs (apply +
-	      (symbol-hash (car signature))
-	      (map symbol-hash (cadr signature)))))
-
-(define *callout-table*
-  (make-hashtable signature-hash equal?))
-
-(define (make-c-callout-maybe spec)
-  (let ((f (hashtable-ref *callout-table* spec #f)))
-    (or f (let ((f (apply ike:make-c-callout spec)))
-	    (hashtable-set! *callout-table* spec f)
-	    f))))
-
-(define-syntax make-c-callout
-  (syntax-rules ()
-    ((_ ?retval (?arg-type0 ?arg-type ...))
-     (make-c-callout-maybe '(?retval (?arg-type0 ?arg-type ...))))))
-
-
-;;;; String functions.
-
-(define (strlen p)
-  (let loop ((i 0))
-    (if (= 0 (ike:pointer-ref-c-unsigned-char p i))
-	i
-      (loop (+ 1 i)))))
-
-(define (string->cstring s)
-  (let* ((len	(string-length s))
-	 (p	(malloc (+ 1 len)))
-	 (bv	(string->utf8 s)))
-    (ike:pointer-set-c-char! p len 0)
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 p)
-      (ike:pointer-set-c-char! p i (bytevector-s8-ref bv i)))))
-
-(define (cstring->string p)
-  (let* ((len	(strlen p))
-	 (bv	(make-bytevector len)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (utf8->string bv))
-      (bytevector-s8-set! bv i (ike:pointer-ref-c-signed-char p i)))))
-
-
-
-(uriel-register-cleanup-function block-cleanup)
+;;;; done
 
 )
 

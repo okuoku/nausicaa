@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: printing functions
+;;;Part of: Uriel libraries for R6RS Scheme
+;;;Contents: guarded memory allocation
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 18:36:19 marco>
+;;;Time-stamp: <2008-11-24 16:54:36 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,32 +28,35 @@
 
 ;;;; setup
 
-(library (uriel printing)
+(library (uriel ffi guarded-malloc)
   (export
-    print pretty-print)
+    guarded-malloc)
   (import (rnrs)
-    (uriel printing compat))
+    (uriel ffi)
+    (uriel cleanup)
+    (only (ikarus) make-guardian))
 
 
 ;;;; code
 
-(define (print port template . args)
-  (let ((formatted-string (apply format template args)))
-    (when port
-      (display formatted-string
-	       (cond
-		((output-port? port)
-		 port)
-		((equal? port #t)
-		 (current-output-port))
-		(else
-		 (assertion-violation
-		     'print
-		   "expected #t or an output port" port)))))
-    formatted-string))
+(define block-guardian (make-guardian))
+
+(define (block-cleanup)
+  (do ((p (block-guardian) (block-guardian)))
+      ((p))
+    (primitive-free p)))
+
+(define (guarded-malloc size)
+  (let ((p (primitive-malloc size)))
+    (unless p
+      (error 'guarded-malloc "memory allocation error"))
+    (block-guardian p)
+    p))
 
 
 ;;;; done
+
+(uriel-register-cleanup-function block-cleanup)
 
 )
 

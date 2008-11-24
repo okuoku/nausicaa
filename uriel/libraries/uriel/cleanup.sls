@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: cleanup functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 09:20:21 marco>
+;;;Time-stamp: <2008-11-24 16:33:47 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,22 +30,27 @@
 
 (library (uriel cleanup)
   (export
-    uriel-cleanup uriel-register-cleanup-function)
+    uriel-cleanup
+    uriel-register-cleanup-function
+    uriel-forget-cleanup-function)
   (import (rnrs))
 
 
 ;;;; code
 
-(define cleanup-functions '())
+(define cleanup-thunks '())
 
-(define (uriel-register-cleanup-function func)
-  (set! cleanup-functions (cons func cleanup-functions)))
+(define (uriel-register-cleanup-function thunk)
+  (set! cleanup-thunks (cons thunk cleanup-thunks)))
+
+(define (uriel-forget-cleanup-function thunk)
+  (set! cleanup-thunks (remove thunk cleanup-thunks)))
 
 (define (uriel-cleanup)
   (for-each
-      (lambda (func)
-	(func))
-    cleanup-functions))
+      (lambda (thunk)
+	(thunk))
+    cleanup-thunks))
 
 
 
