@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Uriel libraries for Ikarus
+;;;Part of: Uriel libraries
 ;;;Contents: tests for Common Lisp style macros
 ;;;Date: Sun Nov  9, 2008
 ;;;
@@ -27,6 +27,7 @@
 ;;;; setup
 
 (import (ikarus)
+  (uriel printing)
   (uriel define-macro)
   (uriel test)
   (macros-test)

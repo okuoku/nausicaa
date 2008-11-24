@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Uriel libraries for Ikarus Scheme
+;;;Part of: Uriel libraries
 ;;;Contents: tests for object property
 ;;;Date: Fri Nov 14, 2008
 ;;;
@@ -27,6 +27,7 @@
 ;;; setup
 
 (import (rnrs)
+  (uriel printing)
   (srfi parameters)
   (uriel test)
   (uriel object-property))

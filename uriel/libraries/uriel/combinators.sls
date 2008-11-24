@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: combinators
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-22 07:38:30 marco>
+;;;Time-stamp: <2008-11-24 06:51:45 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,7 +26,7 @@
 
 
 
-;;;; Setup.
+;;;; setup
 
 (library (uriel combinators)
   (export
@@ -35,7 +35,7 @@
     (uriel lang))
 
 
-;;;; Code.
+;;;; code
 
 ;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
 ;;;``Formal semantics''.

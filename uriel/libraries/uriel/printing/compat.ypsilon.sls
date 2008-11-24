@@ -1,7 +1,8 @@
 ;;;
 ;;;Part of: Uriel libraries
-;;;Contents: tests for ffi library
-;;;Date: Tue Nov 18, 2008
+;;;Contents: printing functions for Ypsilon
+;;;Date: Mon Nov 24, 2008
+;;;Time-stamp: <2008-11-24 07:18:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -23,45 +24,26 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 
 ;;;; setup
 
-(import (rnrs)
-  (uriel printing)
-  (uriel ffi)
-  (uriel test))
+(library (uriel printing compat)
+  (export
+    pretty-print format)
+  (import (rnrs)
+    (only (core) format pretty-print))
 
-(check-set-mode! 'report-failed)
+;;; --------------------------------------------------------------------
 
 
-;;; code
+;;;; code
 
-(define self (dlopen))
-
-(check
-    (let* ((f (make-c-callout signed-int (pointer)))
-	   (strlen (f (dlsym self 'strlen)))
-	   (g (make-c-callout pointer (signed-int)))
-	   (strerror (g (dlsym self 'strerror))))
-      (cstring->string (strerror 0)))
-  => "Success")
-
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-	  (g (make-c-callout signed-int (pointer))))
-      (eq? f g))
-  => #t)
-
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-	  (g (make-c-callout signed-int (signed-int))))
-      (eq? f g))
-  => #f)
 
 
 
 ;;;; done
 
-(check-report)
+)
 
 ;;; end of file

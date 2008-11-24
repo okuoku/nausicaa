@@ -28,7 +28,7 @@
 ;;;; setup
 
 (import (rnrs)
-;;  (only (ikarus) printf pretty-print)
+  (uriel printing)
   (uriel lang)
   (uriel test))
 
