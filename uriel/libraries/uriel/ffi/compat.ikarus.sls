@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 09:19:49 marco>
+;;;Time-stamp: <2008-11-24 12:53:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,8 @@
 
 (library (uriel ffi compat)
   (export
-    (rename (malloc primitive-malloc) (free primitive-free)))
+    (rename (malloc primitive-malloc) (free primitive-free))
+    )
   (import (rnrs)
     (ikarus foreign))
 

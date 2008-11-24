@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for Ikarus
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-24 09:20:39 marco>
+;;;Time-stamp: <2008-11-24 12:53:58 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -39,8 +39,7 @@
   (import (rnrs)
     (uriel cleanup)
     (uriel ffi compat)
-    (only (ikarus) make-guardian)
-    (prefix (ikarus foreign) ike:))
+    (only (ikarus) make-guardian))
 
 
 ;;;; Dynamic loading.

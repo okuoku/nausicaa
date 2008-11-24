@@ -1377,8 +1377,8 @@ string.  @var{varname} must be a string.
 @chapter Foreign functions interface
 
 
-The @library{uriel ffi} library wraps the foreign functions interface
-libraries from Ikarus and Ypsilon.  To load the library:
+This chapter describes a wrapper of the foreign functions interface from
+the running Scheme implementation.  To load the library:
 
 @example
 (import (uriel ffi))
