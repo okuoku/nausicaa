@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename template.info
-@settitle Template
+@setfilename nausicaa-mp.info
+@settitle Nausicaa/Mp
 @c %**end of header
 
 @c page
@@ -93,6 +93,18 @@
 
 @macro gmp{}
 @acronym{GMP}
+@end macro
+
+@macro mpfr{}
+@acronym{MPFR}
+@end macro
+
+@macro mpfi{}
+@acronym{MPFI}
+@end macro
+
+@macro mpc{}
+@acronym{MPC}
 @end macro
 
 @macro gcc{}
@@ -330,16 +342,16 @@ the main purpose of this document is to provide an Info version.
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      This Package
+@set TITLE                      Nausicaa/MP
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    ThisPackage
+@set PACKAGE                    Nausicaa/MP
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           this-package
+@set PACKAGE_NICKNAME           nausicaa-mp
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -362,7 +374,18 @@ the main purpose of this document is to provide an Info version.
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, ...
+This document describes version @version{} of @value{PACKAGE}, a set of
+Scheme libraries implementing an interface to the @gmp{}, @mpfr{},
+@mpfi{} and @mpc{} libraries for multiple precision integers and
+floating-point numbers.  It is based on the @library{uriel ffi} library.
+
+@gmp{} stands for GNU Multiple Precision arithmetic library.
+
+@mpfr{} stands for Multiple Precision Floating--Point Reliable library.
+
+@mpfi{} stands for Multiple Precision Floating--Point Interval library.
+
+@mpc{} stands for Multiple Precision Complex library.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -404,8 +427,8 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-template: (nausicaa-template). Template library
-                                          for @rnrs{6} Scheme.
+* nausicaa-mp: (nausicaa-mp).
+                        Nausicaa/Mp library for @rnrs{6} Scheme.
 @end direntry
 @end ifinfo
 
@@ -452,7 +475,7 @@ Indexes
 
 
 @noindent
-This ...
+
 
 
 @c ------------------------------------------------------------
