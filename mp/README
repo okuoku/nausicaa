@@ -35,11 +35,11 @@ this paragraph, it had tested this project with MPFR version
   MPFI stands for Multiple Precision Floating-Point Interval
 library.  The  last time  the maintainer bothered  to update
 this paragraph, it had tested this project with MPFI version
-1.3.4.
+1.3.4RC3.
 
   MPC  stands for Multiple  Precision Complex  library.  The
 last time the maintainer  bothered to update this paragraph,
-it had tested this project with MPC version 0.4.6.
+it had tested this project with MPC version 0.5.1.
 
 
 2. License
@@ -67,15 +67,69 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
+This  package  requires  a  lot of  libraries.   Follow  the
+instructions.   Notice that  it is  possible to  disable the
+usage  of foreign  libraries, by  selecting  the appropriate
+options for the "configure" script.
+
 
 4.1 Install precedences
 -----------------------
 
 To  install  this  package  we  need to  install  first  the
-Nausicaa/SRFI and Nausicaa/Uriel packages.
+Nausicaa/SRFI  and   Nausicaa/Uriel  packages.   Follow  the
+instructions in their README files.
 
 
-4.2 Install Nausicaa/MP
+4.2 Install GMP
+---------------
+
+It should be the usual:
+
+  $ ./configure
+  $ make
+  $ make check
+  $ make install
+
+
+4.3 Install MPFR
+----------------
+
+It should be the usual:
+
+  $ ./configure
+  $ make
+  $ make check
+  $ make install
+
+
+4.4 Install MPFI
+----------------
+
+The MPFI  library comes  with no rules  to install  a shared
+library, but we need it.  So this is what I do:
+
+  $ ./configure
+  $ make all CFLAGS='-O3 -march=i686 -mtune=i686 -fPIC'
+  $ gcc -shared -o src/libmpfi.so src/*.o -lmpfr -lgmp
+  $ make install
+  $ install -m 0644 src/libmpfi.so /usr/local/lib
+
+you may have to customise something.
+
+
+4.5 Install MPC
+---------------
+
+It should be the usual:
+
+  $ ./configure
+  $ make
+  $ make check
+  $ make install
+
+
+4.6 Install Nausicaa/MP
 -----------------------
 
 Basically we should do:
@@ -107,6 +161,25 @@ A. Credits
 
 The stuff was written by Marco Maggi.
 
+  GMP  is  Copyright  1991,  1996,  1999,  2000,  2007  Free
+Software Foundation, Inc.  GMP's authors are too may to list
+here: read the AUTHORS file in the GMP distribution.
+
+  MPFR's main authors  are Guillaume Hanrot, Paul Zimmermann
+and Vincent  with a lot of contributions.  MPFR is Copyright
+2000, 2001,  2002, 2003, 2004,  2005, 2006, 2007,  2008 Free
+Software Foundation,  Inc.  Contributed by  the Arenaire and
+Cacao projects, INRIA.
+
+  MPFI's author  is Nathalie  Revol.  MPFI is  Copyright (C)
+2002,  Spaces  team,   INRIA  Lorraine  and  LORIA,  France,
+Arenaire team, INRIA Rhone-Alpes  and LIP, ENS Lyon, France,
+and Lab.   ANO, University  of Sciences and  Technologies of
+Lille, France.
+
+  MPC's authors are Andreas  Enge, Philippe Théveny and Paul
+Zimmermann.
+
 
 B. Bug reports
 --------------
@@ -120,19 +193,21 @@ C. Resources
 
 The GMP library can be found at:
 
-		   <http://www.gmp.org/>
+		    <http://gmplib.org/>
 
 the MPFR library can be found at:
 
 		   <http://www.mpfr.org/>
+	  <http://gforge.inria.fr/projects/mpfr/>
 
 the MPFI library can be found at:
 
-		   <http://www.mpfi.org/>
+	  <http://gforge.inria.fr/projects/mpfi/>
+  <http://perso.ens-lyon.fr/nathalie.revol/software.html>
 
 the MPC library can be found at:
 
-		   <http://www.mpc.org/>
+	    <http://www.multiprecision.org/mpc/>
 
 
 ### end of file

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP libraries for R6RS Scheme
 ;;;Contents: size of libraries' C language types
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-11-25 18:17:22 marco>
+;;;Time-stamp: <2008-11-25 22:14:12 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,13 +26,14 @@
 
 (library (mp sizeof)
   (export
-    sizeof-gmp sizeof-mpfr sizeof-mpfi sizeof-mpc)
+    sizeof-mpz sizeof-mpf sizeof-mpfr sizeof-mpfi sizeof-mpc)
   (import (rnrs))
 
-  (define sizeof-gmp	@SIZEOF_GMP@)
-  (define sizeof-mpfr	@SIZEOF_MPFR@)
-  (define sizeof-mpfi	@SIZEOF_MPFI@)
-  (define sizeof-mpc	@SIZEOF_MPC@)
+  (define sizeof-mpz	12)
+  (define sizeof-mpf	16)
+  (define sizeof-mpfr	16)
+  (define sizeof-mpfi	32)
+  (define sizeof-mpc	32)
   )
 
 ;;; end of file

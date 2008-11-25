@@ -2,7 +2,7 @@
 ;;
 
 (import
-  (only (template)
+  (only (template))
   )
 
 ;;; end of file

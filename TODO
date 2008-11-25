@@ -9,7 +9,9 @@
 * Rewrite   the   Scheme   library   tests  for   Autoconf   using   the
   "scheme-script" executable,  so that, in  some way, it is  possible to
   run them with both Ikarus and Ypsilon.
-
+* Document somewhere that ypsilon requires the --compatible flag.
+* Add the slackware scripts for Ikarus and Ypsilon.
+* Review the infrastructure documentation.
 
 ## ------------------------------------------------------------
 
@@ -24,6 +26,7 @@ Ice-9
 Uriel
 -----
 
+* Fix the string conversion functions for ypsilon.
 * Add make-callback to the ffi.
 * Scan the old gee base.
 
