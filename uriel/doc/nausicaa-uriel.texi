@@ -1532,6 +1532,21 @@ exception.  @var{funcname} can be both a string or a symbol.
 @section Basic memory allocation
 
 
+@menu
+* ffi memory primitive::        Primitive functions.
+* ffi memory condition::        Out of memory errors.
+* ffi memory cache::            Caching memory blocks.
+* ffi memory compensate::       Compensations.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi memory primitive
+@subsection Primitive functions
+
+
 @defun primitive-malloc @var{number-of-bytes}
 An interface to the system @cfunc{malloc} function.  Allocate a block of
 memory and return a pointer to it (an object representing a pointer
@@ -1548,20 +1563,12 @@ according to the Scheme implementation).
 
 @defun malloc @var{number-of-bytes}
 A wrapper for @func{primitive-malloc} that raises an
-@code{&out-of-memory} condition in case of error.
+@code{&out-of-memory} condition in case of error.  Blocks of memory
+allocated with this function can be freed with @func{primitive-free}.
 @end defun
 
 
-@deftp Condition {&out-of-memory}
-Type of condition objects that represent a memory alloction error.
-@end deftp
-
-
-@deffn {Condition Constructor} make-ouf-of-memory-condition @var{number-of-bytes}
-@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
-@deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
-Functions to handle out of memory condition objects.
-@end deffn
+@subsubheading Examples
 
 
 Care must be taken when managing memory with these low level functions:
@@ -1595,12 +1602,194 @@ guarded malloc,guarded-malloc}
 @c ------------------------------------------------------------
 
 @c page
+@node ffi memory condition
+@subsection Out of memory errors
+
+
+@deftp Condition {&out-of-memory}
+Type of condition objects that represent a memory alloction error.
+@end deftp
+
+
+@deffn {Condition Constructor} make-ouf-of-memory-condition @var{number-of-bytes}
+@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
+@deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
+Functions to handle out of memory condition objects.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi memory cache
+@subsection Caching memory blocks
+
+
+@defun make-block-cache @var{number-of-bytes} @var{max-depth}
+Build and return a new memory blocks cache, for blocks of
+@var{number-of-bytes}, that at maximum will cache @var{max-depth}
+blocks.  The return value is an interface function with the following
+protocol:
+
+@table @emph
+@item when the function is invoked with zero arguments
+it retrieves a block from the set of cached blocks; if the set is empty:
+a new block is allocated with @func{malloc};
+
+@item when the function is invoked with 1 argument
+if the argument is the symbol @code{purge}: @func{primitive-free} is
+applied to all the blocks in the cache and the cache is reset to empty;
+
+else the argument must be a pointer previously returned by this
+interface function: if the number of blocks in the cache is less than
+@var{max-depth}, the pointer is stored in the cache, else
+@func{primitive-free} is applied to it.
+@end table
+@end defun
+
+
+@defun small-blocks-cache
+@defunx small-blocks-cache @var{pointer}
+@defunx small-blocks-cache purge
+Interface function for a cache of memory blocks of size 32, 10 blocks
+deep.  This cache is meant to be used for temporary storage space of
+output values from foreign functions.  The size of 32 should be enough
+to hold all the output values of C language standard types.
+
+For example, the @gnu{} Libgcrypt library has a constructor with this
+prototype:
+
+@example
+gcry_error_t gcry_cipher_open (gcry_cipher_hd_t * hd,
+                               int algo, int mode,
+                               unsigned int flag);
+@end example
+
+@noindent
+where @code{gcry_cipher_hd_t} is a @code{typedef} for an opaque pointer
+(we can think of it as @code{void *}); the @var{hd} argument must
+reference a pointer sized location in which the function will store a
+pointer to a newly allocated data structure; this location is required
+only for the construction of a new object, so a Scheme interface could
+do (unsafe code):
+
+@example
+(let ((hd #f)
+      (hdp (small-blocks-cache)))
+  (gcry_cipher_open hdp algo mode flag)
+  (set! hd (pointer-ref-c-pointer hdp 0))
+  (small-blocks-cache hdp)
+  hd)
+@end example
+@end defun
+
+
+@defun make-caching-object-factory @var{init-func} @var{final-func} @var{number-of-bytes} @var{max-depth}
+Build and return a new caching object factory.  It is a wrapper for
+@func{make-block-cache}, to which the @var{number-of-bytes} and
+@var{max-depth} arguments are handed untouched.  The return value is an
+interface function with the following protocol:
+
+@table @emph
+@item when the function is invoked with zero arguments
+it retrieves a block from the cache and applies @var{init-func} to it; a
+pointer to the block is returned;
+
+@item when the function is invoked with 1 argument
+if the argument is the symbol @code{purge}: the same symbol is handed to
+the block cache, causing the cache to be purged of allocated blocks;
+
+else the argument must be a pointer previously returned by this
+interface function: @func{final-func} is applied to it, then it is
+handed to the underlying block cache interface function.
+@end table
+
+For example, the @acronym{MPFR} library (Multiple Precision
+Floating--Point Reliable Library) requires us to allocate structures of
+type @code{mpfr_t}, then to use an initialiser and a finaliser with the
+following prototypes:
+
+@example
+void mpfr_init (mpfr_ptr p);
+void mpfr_clear (mpfr_ptr p);
+@end example
+
+@noindent
+@code{mpfr_t} values are real numbers with special representation, so we
+may need a lot of them to carry on computations; a Scheme interface
+could initialise itself like this:
+
+@example
+(define sizeof-mpfr 64) ;this must be determined exactly
+
+(define mpfr-lib (open-shared-object "libmpfr.so"))
+(shared-object mpfr-lib)
+
+(define-c-function mpfr_init  (void mpfr_init (pointer)))
+(define-c-function mpfr_clear (void mpfr_clear (pointer)))
+
+(define mpfr
+  (make-caching-object-factory mpfr_init mpfr_clear
+                               sizeof-mpfr 100))
+
+(define (compensate-mpfr)
+  (letrec ((p (compensate (mpfr)
+                (with (mpfr p)))))
+    p))
+@end example
+
+@noindent
+and then:
+
+@example
+(with-compensations
+  (letrec
+      ((a (compensate-mpfr))
+       (b (compensate-mpfr)))
+    (do-something-with a b)))
+@end example
+
+@noindent
+at the end of the world, if we feel like it, we can do:
+
+@example
+(mpfr 'purge)
+@end example
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi memory compensate
+@subsection Compensations
+
+
+@defun compensate-malloc @var{number-of-bytes}
+@defunx compensate-malloc/small
+@func{compensate-malloc} allocates a block of memory with @func{malloc}
+and returns a pointer to it.  The appropriate invocation to
+@func{primitive-free} is added to the dynamic environment of the current
+compensations stack.
+
+@func{compensate-malloc/small} acquires a small block of memory from
+@func{small-blocks-cache} and returns a pointer to it.  The appropriate
+invocation to @func{small-blocks-cache}, to release the block, is added
+to the dynamic environment of the current compensations stack.
+
+@ref{lang compensations}, for details on compensation stacks.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@c page
 @node ffi guarded malloc
 @section Guarded memory allocation
 
 
-The functions described in this section are available only when the
-Scheme implementation provides guardians (Ikarus does).
+The functions described in this section are usable only when the Scheme
+implementation provides guardians (Ikarus does).
 
 To load the library:
 
@@ -1609,7 +1798,7 @@ To load the library:
 @end example
 
 
-@defun guarded-malloc @var{number-of-bytes}
+@defun malloc/guarded @var{number-of-bytes}
 A wrapper for @func{primitive-malloc} that:
 
 @itemize
@@ -1623,7 +1812,8 @@ if the allocation fails, raises an @code{&out-of-memory} condition.
 
 A cleanup function for the guardian is registered in the state of the
 @library{uriel cleanup} library, so memory allocated with this function
-is released by invoking @func{uriel-cleanup}.
+is released by invoking @func{uriel-cleanup}.  @strong{Do not} free this
+memory with @func{primitive-free} or any other free function.
 @end defun
 
 

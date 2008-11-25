@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: guarded memory allocation
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 16:54:36 marco>
+;;;Time-stamp: <2008-11-25 06:20:29 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,7 @@
 
 (library (uriel ffi guarded-malloc)
   (export
-    guarded-malloc)
+    malloc/guarded)
   (import (rnrs)
     (uriel ffi)
     (uriel cleanup)
@@ -46,10 +46,10 @@
       ((p))
     (primitive-free p)))
 
-(define (guarded-malloc size)
+(define (malloc/guarded size)
   (let ((p (primitive-malloc size)))
     (unless p
-      (error 'guarded-malloc "memory allocation error"))
+      (error 'malloc/guarded "memory allocation error"))
     (block-guardian p)
     p))
 
