@@ -33,6 +33,7 @@ ScmObj
 
 * Add more tests.
 * Finish the documentation (replace all the original material).
+* Fix dispatching to methods with untyped args.
 
 
 Tiny-CLOS
@@ -47,13 +48,14 @@ SRFI
 ----
 
 * Solve the problem of "(import (srfi srfi-1))".
-* Import files for Ypsilon.
 
 
 IrRegex
 -------
 
 * Add documentation for the regexps.
+* Fix the problem of "|---|"  symbols that are not recognised by Ypsilon
+  with the --r6rs option.
 
 
 ### end of file

@@ -9,9 +9,10 @@
   (srfi parameters))
 
 (define mpfr-lib
-  (open-shared-object "libmpfr.so"))
+  (open-shared-object 'libmpfr.so))
 
-(parameterize ((shared-object mpfr-lib))
+;;(parameterize ((shared-object mpfr-lib))
+(with-shared-object mpfr-lib
 
   (define MPFR_RNDN 0)
   (define sizeof-mpfr 256)
@@ -66,14 +67,15 @@
 
       (mpfr-set-d o 123.456 MPFR_RNDN)
       (print #t "string rep: ~a~%" (mpfr->string o))))
-
+)
   (with-compensations
     (letrec
 	((o (compensate-mpfr)))
       (mpfr-set-d o -123.456 MPFR_RNDN)
       (print #t "string rep: ~a~%" (mpfr->string o))))
 
-  (mpfr 'purge))
+  (mpfr 'purge)
+  ;)
 
 
 ;;; end of file

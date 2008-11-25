@@ -1484,11 +1484,12 @@ libraries.
 
 @menu
 * ffi load::                    Dynamic loading of libraries.
+* ffi call::                    Functions interface.
 * ffi memory::                  Basic memory allocation.
 * ffi guarded malloc::          Guarded memory allocation.
 * ffi sizeof::                  Sizes and limits.
+* ffi accessors::               Low level access to memory.
 * ffi string::                  String functions.
-* ffi call::                    Functions interface.
 @end menu
 
 
@@ -1499,30 +1500,276 @@ libraries.
 @section Dynamic loading of libraries
 
 
-For details on the built in Ikarus' functions @ikarusref{ikaruslib
-foreign dl,Accessing foreign objects from Scheme}
+@deffn Parameter shared-object
+Holds the identifier of the ``current'' shared object in which
+@func{make-c-function} will look for symbols.  Identifiers are produced
+with @func{open-shared-object}.
+
+The initial value selects the current process, which means that all the
+C standard library symbols are available without changing the
+parameter's value.
+@end deffn
 
 
-@defun dlopen
-@defunx dlopen @var{library-name}
-@defunx dlopen @var{library-name} @var{lazy?} @var{global?}
-A wrapper for the Ikarus' @func{dlopen} that, in case of error, raises
-an exception.  @var{library-name} can be both a string or a symbol.
+@defun open-shared-object @var{library-name}
+Open a new shared object and return its identifier.  The return value is
+meant to be stored in the @code{shared-object} parameter while creating
+interface functions for it.
 
-The arguments are like the ones of the Ikarus' function.
+@var{library-name} must be a string or symbol representing the file name
+(without directory part) that must be opened.
 @end defun
 
 
-@defun dlclose @var{library}
-A wrapper for the Ikarus' @func{dlclose} that, in case of error, raises
-an exception.
-@end defun
+@defvar self-shared-object
+Bound to the value that identifies the current process.  It is the
+initial value of @code{shared-object}
+@end defvar
 
 
-@defun dlsym @var{library} @var{funcname}
-A wrapper for the Ikarus' @func{dlsym} that, in case of error, raises an
-exception.  @var{funcname} can be both a string or a symbol.
-@end defun
+@deffn Syntax with-shared-object @var{library-id} @var{form0} @var{form} ...
+Evaluate the @var{form}s as in @func{begin}, with @code{shared-object}
+set to @var{library-id}.  Bindings created by the @var{form}s are
+defined in the dynamic environment that encloses the
+@func{with-shared-object} form.
+
+@var{library-id} must be the return value of @func{open-shared-object}
+or the value bound to @code{self-shared-object}.
+
+Notice that this is an @strong{unsafe} way of setting the value of
+@code{shared-object}: if an exception is raised by the @var{form}s, the
+parameter will be left set to @var{library-id}.  It is your option to
+avoid the usage of this form.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Examples
+
+
+Access @file{libmpfr.so} on a Unix like system; notice that the bindings
+defined in a @func{parameterize} form are local to that form:
+
+@example
+(define mpfr-lib (open-shared-object 'libmpfr.so))
+
+(parameterize ((shared-object mpfr-lib))
+
+  (define-c-function mpfr_init
+    (void mpfr_init (pointer)))
+
+  (define-c-function mpfr_clear
+    (void mpfr_clear (pointer)))
+
+  (define-c-function mpfr_get_str
+    (void mpfr_get_str (pointer pointer int size_t pointer int)))
+
+  (define-c-function mpfr-set-d
+    (int mpfr_set_d (pointer double int)))
+
+  ---)
+@end example
+
+The same but with bindings defined at top--level, using the unsafe
+@func{with-shared-object} syntax:
+
+@example
+(define mpfr-lib (open-shared-object 'libmpfr.so))
+
+(with-shared-object mpfr-lib
+
+  (define-c-function mpfr_init
+    (void mpfr_init (pointer)))
+
+  (define-c-function mpfr_clear
+    (void mpfr_clear (pointer)))
+
+  (define-c-function mpfr_get_str
+    (void mpfr_get_str (pointer pointer int size_t pointer int)))
+
+  (define-c-function mpfr-set-d
+    (int mpfr_set_d (pointer double int)))
+
+  ---)
+@end example
+
+The same with bindings defined at top--level, using the safe
+@func{parameterize} syntax:
+
+@example
+(define mpfr-lib (open-shared-object 'libmpfr.so))
+
+(define mpfr_init    #f)
+(define mpfr_clear   #f)
+(define mpfr_get_str #f)
+(define mpfr-set-d   #f)
+
+(parameterize ((shared-object mpfr-lib))
+
+  (set! mpfr_init
+    (make-c-function void mpfr_init (pointer)))
+
+  (set! mpfr_clear
+    (make-c-function void mpfr_clear (pointer)))
+
+  (set! mpfr_get_str
+    (make-c-function void mpfr_get_str
+                     (pointer pointer int size_t pointer int)))
+
+  (set! mpfr-set-d
+    (make-c-function int mpfr_set_d (pointer double int))))
+@end example
+
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi call
+@section Functions interface
+
+
+@menu
+* ffi call types::              Interface to C language types.
+* ffi call out::                Calling foreign functions.
+* ffi call in::                 Calling Scheme functions.
+@end menu
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi call types
+@subsection Interface to C language types
+
+
+The following symbols are accepted as C language type identifiers, but
+not all Scheme implementation support all of them.
+
+Remember that C strings (@ascii{} coded and zero terminated) must be
+created from Scheme strings with @func{string->cstring}, and handed to
+the foreign functions as pointers.
+
+@table @code
+@item char
+@itemx schar
+@itemx signed-char
+signed character;
+
+@item uchar
+@itemx unsigned-char
+unsigned character;
+
+@item int
+@itemx signed-int
+@itemx ssize_t
+signed fixnum;
+
+@item uint
+@itemx unsigned
+@itemx unsigned-int
+@itemx size_t
+unsigned fixnum;
+
+@item long
+signed integer;
+
+@item ulong unsigned-long
+unsigned integer;
+
+@item float
+single precision flonum;
+
+@item double
+double precision flonum;
+
+@item pointer
+@itemx void*
+@itemx char*
+pointer to a block of memory;
+
+@item callback
+pointer to a callback function;
+
+@item void
+no value.
+@end table
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi call out
+@subsection Calling foreign functions
+
+
+@deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+Build and return a new Scheme interface function for a C language
+foreign function in the current shared object.
+
+@func{make-c-function} returns the interface function,
+@func{define-c-function} is a wrapper that also defines a binding for
+the local environment.
+
+Arguments description follows:
+
+@table @var
+@item pub-name
+a symbol to which @func{define-c-function} binds the interface function;
+
+@item ret-type
+a simbol representing the type of the return value of the foreign
+function;
+
+@item pri-name
+a simbol representing the name of the foreign function exported by the
+current shared object;
+
+@item arg-type0
+@itemx arg-type
+@itemx ...
+simboll representing the type of the arguments of the foreign function;
+there must be at least one, which can be @code{void} if the foreign
+function takes no arguments.
+@end table
+
+Variadic function are @strong{not} supported (sorry).
+@end deffn
+
+
+Miscellaneous examples from the C standard library and the @posix{}
+interface:
+
+@example
+(define-c-function fopen
+  (pointer fopen (pointer pointer)))
+
+(define-c-function fwrite
+  (size_t fwrite (pointer size_t size_t pointer)))
+
+(define-c-function fread
+  (size_t fread (pointer size_t size_t pointer)))
+
+(define-c-function open
+  (int open (pointer int)))
+
+(define-c-function write
+  (ssize_t write (int pointer size_t)))
+
+(define-c-function read
+  (ssize_t read (int pointer size_t)))
+@end example
+
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi call in
+@subsection Calling Scheme functions
+
+
 
 
 @c ------------------------------------------------------------
@@ -1875,6 +2122,237 @@ respectively.
 @end defvar
 
 
+@c ------------------------------------------------------------
+
+@c page
+@node ffi accessors
+@section Low level access to memory
+
+
+The @api{} described in this section is equal to the one provided by
+Ikarus Scheme.
+
+
+@menu
+* ffi accessors pokers::        Poking values.
+* ffi accessors peekers::       Peeking values.
+@end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi accessors pokers
+@subsection Poking values
+
+
+@noindent
+With all the following functions: the @var{pointer} argument must be a
+valid pointer; the @var{offset} and @var{value} arguments must be exact
+integers.  When adding an offset to a pointer: all the following
+functions @strong{do not} scale the offset to the size of the poked
+value.  Pointer arithmetics is performed with byte offsets.
+
+
+@macro poker{BYTENUM,BITNUM}
+Set to @var{value} the \BYTENUM\ of memory located at @var{offset} from
+@var{pointer}.  Only the \BITNUM\ lowermost bits of @var{value} are used
+in the operation and the remaining bits are ignored.
+@end macro
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Poking exact integers
+
+
+@deffn Procedure pointer-set-c-char! @var{pointer} @var{offset} @var{value}
+@poker{single byte,8}
+@end deffn
+
+
+@deffn Procedure pointer-set-c-short! @var{pointer} @var{offset} @var{value}
+@poker{two bytes,16}
+@end deffn
+
+
+@deffn Procedure pointer-set-c-int! @var{pointer} @var{offset} @var{value}
+@poker{four bytes,32}
+@end deffn
+
+
+@deffn Procedure pointer-set-c-long! @var{pointer} @var{offset} @var{value}
+On 64-bit systems: @poker{eight bytes,64}
+
+On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Poking floating point numbers
+
+
+@deffn Procedure pointer-set-c-float! @var{pointer} @var{offset} @var{flonum}
+Convert the Scheme floating point number @var{flonum} (represented in
+Ikarus as an @ieee{} 754 double precision floating point number) to a
+float (an @ieee{} 754 single precision floating point number) and store
+the result in the four bytes at @var{offset} from @var{pointer}.
+@end deffn
+
+
+@deffn Procedure pointer-set-c-double! @var{pointer} @var{offset} @var{flonum}
+Store the double precision @ieee{} 754 floating point value of the
+Scheme @var{flonum} in the eight bytes at @var{offset} from
+@var{pointer}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Poking pointers
+
+
+@deffn Procedure pointer-set-c-pointer! @var{pointer} @var{offset} @var{value}
+On 64-bit systems: set the eight bytes at @var{offset} from
+@var{pointer} to the 64-bit pointer @var{value}.
+
+On 32-bit systems: set the four bytes at @var{offset} from @var{poiner}
+to the 32-bit pointer @var{value}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi accessors peekers
+@subsection Peeking values
+
+
+@noindent
+With all the following functions: the @var{pointer} argument must be a
+valid pointer; the @var{offset} argument must be an exact integer.  When
+adding an offset to a pointer: all the following functions @strong{do
+not} scale the offset to the size of the poked value.  Pointer
+arithmetics is performed with byte offsets.
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Peeking exact integers
+
+
+@deffn Procedure pointer-ref-c-signed-char @var{pointer} @var{offset}
+Peek the single byte located at @var{offset} from @var{pointer} and
+return an exact integer representing the sign--extended integer value of
+that byte. The resulting value is in the inclusive range @code{[-128,
+127]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-char @var{pointer} @var{offset}
+Peek the single byte located at @var{offset} from @var{pointer} and
+return an exact integer representing the unsigned integer value of that
+byte.  The resulting value is in the inclusive range @code{[0, 255]}.
+@end deffn
+
+
+The following example shows the difference between the two functions
+above:
+
+@example
+> (let ([p (malloc 3)])
+    (pointer-set-c-char! p 0 #b01111111)
+    (pointer-set-c-char! p 1 #b10000000)
+    (pointer-set-c-char! p 2 #b11111111)
+    (let ([result
+           (list (pointer-ref-c-signed-char p 0)
+                 (pointer-ref-c-signed-char p 1)
+                 (pointer-ref-c-signed-char p 2)
+                 (pointer-ref-c-unsigned-char p 0)
+                 (pointer-ref-c-unsigned-char p 1)
+                 (pointer-ref-c-unsigned-char p 2))])
+      (free p)
+      result))
+(127 -128 -1 127 128 255)
+@end example
+
+
+@deffn Procedure pointer-ref-c-signed-short @var{pointer} @var{offset}
+Peek two bytes at @var{offset} from @var{pointer} and return an exact
+integer representing the sign--extended integer value of the sequence.
+The resulting value is in the inclusive range @code{[-32768, 32767]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-short @var{pointer} @var{offset}
+Peek two bytes at @var{offset} from @var{pointer} and return an exact
+integer representing the unsigned integer value of the sequence.  The
+resulting value is in the inclusive range @code{[0, 65535]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-signed-int @var{pointer} @var{offset}
+Peek four bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[-2^31, 2^31-1]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-int @var{pointer} @var{offset}
+Peek four bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[0, 2^32-1]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-signed-long @var{pointer} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
+and return an integer in the inclusive range @code{[-2^63, 2^63-1]}.
+
+On 32-bit systems, perform the same task as
+@func{pointer-ref-c-signed-int}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-long @var{pointer} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
+and return an integer in the inclusive range @code{[0, 2^64-1]}.
+
+On 32-bit systems: perform the same task as
+@func{pointer-ref-c-unsigned-int}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Peeking floating point numbers
+
+
+@deffn Procedure pointer-ref-c-float @var{pointer} @var{offset}
+Return the four--byte float (represented as @ieee{} 754 single precision
+floating point number) stored at @var{offset} from @var{pointer}.  The
+value is extended to an @ieee{} 754 double precision floating point
+number that Ikarus uses to represent inexact numbers.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-double @var{pointer} @var{offset}
+Return the eight--byte float (represented as @ieee{} 754 double
+precision floating point number) stored at @var{offset} from
+@var{pointer}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Peeking pointers
+
+
+@deffn Procedure pointer-ref-c-pointer @var{pointer} @var{offset}
+Return the pointer stored at @var{offset} from @var{pointer}.  The size
+of the pointer (also the number of bytes loaded) depends on the
+architecture: it is 4 bytes on 32-bit systems and 8 bytes on 64-bit
+systems.
+@end deffn
+
+@c ------------------------------------------------------------
+
 @c page
 @node ffi string
 @section String functions
@@ -1896,56 +2374,6 @@ conversion is performed using @func{string->utf8}.
 Build a new Scheme string representing the @var{cstring}.  The
 conversion is performed using a @code{s8} bytevector.
 @end defun
-
-
-@c ------------------------------------------------------------
-
-@c page
-@node ffi call
-@section Functions interface
-
-
-For details on the built in Ikarus' functions @ikarusref{ikaruslib
-foreign call out,Calling out to foreign procedures}
-
-
-@deffn Syntax make-c-callout @var{retval} (@var{arg0} @var{arg} ...)
-A wrapper for Ikarus' @func{make-c-callout}.  It is a syntax so that we
-do not have to quote the arguments.
-
-Works like the built in function, but caches internally the interface
-functions so that, whenever a signature is requested more than once, the
-same function is returned.
-
-Example with @cfunc{strerror}:
-
-@example
-(define self (dlopen))
-
-(check
-    (let* ((g (make-c-callout pointer (signed-int)))
-           (strerror (g (dlsym self 'strerror))))
-      (cstring->string (strerror 0)))
-  => "Success")
-@end example
-
-@noindent
-and the following shows the caching:
-
-@example
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-          (g (make-c-callout signed-int (pointer))))
-      (eq? f g))
-  => #t)
-
-(check
-    (let ((f (make-c-callout signed-int (pointer)))
-          (g (make-c-callout signed-int (signed-int))))
-      (eq? f g))
-  => #f)
-@end example
-@end deffn
 
 
 @c ------------------------------------------------------------

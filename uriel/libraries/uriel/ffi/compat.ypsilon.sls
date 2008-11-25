@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-25 14:06:56 marco>
+;;;Time-stamp: <2008-11-25 16:35:09 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -39,7 +39,7 @@
   (export
 
     ;;shared object loading
-    shared-object primitive-open-shared-object
+    shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
     primitive-make-c-function
@@ -72,8 +72,10 @@
 
 ;;;; dynamic loading
 
+(define self-shared-object (load-shared-object ""))
+
 (define shared-object
-  (make-parameter (load-shared-object "")))
+  (make-parameter self-shared-object))
 
 (define (primitive-open-shared-object library-name)
   ;;This raises an exception automatically.
