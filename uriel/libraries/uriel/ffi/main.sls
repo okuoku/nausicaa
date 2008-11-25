@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-25 16:35:48 marco>
+;;;Time-stamp: <2008-11-25 17:33:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -62,7 +62,7 @@
 
   (import (rnrs)
     (uriel lang)
-    (uriel printing)
+;;;    (uriel printing)
     (uriel ffi compat))
 
 
@@ -107,7 +107,9 @@
 (define (malloc size)
   (let ((p (primitive-malloc size)))
     (unless p
-      (make-out-of-memory-condition size))
+      (raise (make-who-condition 'malloc)
+	     (make-message-condition "out of memory")
+	     (make-out-of-memory-condition size)))
     p))
 
 

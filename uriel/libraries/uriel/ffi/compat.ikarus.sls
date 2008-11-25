@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-25 16:34:41 marco>
+;;;Time-stamp: <2008-11-25 16:49:43 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -57,7 +57,7 @@
     pointer-set-c-float!		pointer-set-c-double!
     pointer-set-c-pointer!)
   (import (rnrs)
-    (uriel printing)
+;;;    (uriel printing)
     (srfi parameters)
     (ikarus foreign))
 
