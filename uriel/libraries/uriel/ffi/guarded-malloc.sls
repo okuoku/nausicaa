@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: guarded memory allocation
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-25 06:20:29 marco>
+;;;Time-stamp: <2008-11-25 17:04:29 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -43,13 +43,11 @@
 
 (define (block-cleanup)
   (do ((p (block-guardian) (block-guardian)))
-      ((p))
+      ((not p))
     (primitive-free p)))
 
 (define (malloc/guarded size)
-  (let ((p (primitive-malloc size)))
-    (unless p
-      (error 'malloc/guarded "memory allocation error"))
+  (let ((p (malloc size)))
     (block-guardian p)
     p))
 

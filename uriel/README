@@ -75,6 +75,13 @@ The  stuff was  mainly written  by Marco  Maggi.   Some code
 comes  from  discussions  on  the  Ikarus  mailing  list  or
 examples in the R6RS original documents.
 
+  The file "libraries/uriel/ffi/compat.ypsilon.sls" contains
+a rewriting of the  "ffi.scm" library in the distribution of
+Ypsilon Scheme.  The original  code is by Yoshikatsu Fujita,
+and is distributed under a BSD-like license.  See the top of
+the  file   for  the  full  copyright   notice  and  copying
+conditions.
+
 
 B. Bug reports
 --------------

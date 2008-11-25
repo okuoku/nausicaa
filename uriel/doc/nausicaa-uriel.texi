@@ -326,7 +326,7 @@ the main purpose of this document is to provide an Info version.
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    Nausicaa/Uriel
+@set PACKAGE                    Uriel
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
@@ -465,7 +465,7 @@ Indexes
 
 
 @noindent
-Syntaxes and functions are provided to extend tha Scheme language.  To
+Syntaxes and functions are provided to extend the Scheme language.  To
 load the library:
 
 @example
@@ -1404,7 +1404,7 @@ We may have code like this:
 
 (define (block-cleanup)
   (do ((p (block-guardian) (block-guardian)))
-      ((p))
+      ((not p))
     (primitive-free p)))
 @end example
 
@@ -1412,24 +1412,23 @@ We may have code like this:
 and allocate memory with:
 
 @example
-(define (guarded-malloc size)
-  (let ((p (primitive-malloc size)))
-    (unless p
-      (error 'guarded-malloc "memory allocation error"))
+(define (malloc/guarded size)
+  (let ((p (malloc size)))
     (block-guardian p)
     p))
 @end example
 
 @noindent
-whenever the values returned by @func{guarded-malloc} are garbage
+whenever the values returned by @func{malloc/guarded} are garbage
 collected: they will be made available as return values from the
 guardian function, so we can invoke @func{block-cleanup} to free them.
+
 Of course, with code like this, we need a guardian for each type of
 resource, or, to be more precise, a guardian for each destructor
 (@func{primitive-free} in the example).
 
 To make it simpler to invoke all the cleanup functions, @value{PACKAGE}
-provides an interface to reagister them and invoke them in sequence.  To
+provides an interface to register them and invoke them in sequence.  To
 load the library:
 
 @example
@@ -1477,19 +1476,20 @@ the running Scheme implementation.  To load the library:
 @end example
 
 @noindent
-only basic functions are made available by this library.  Other
-functions are in the @library{uriel libc} and @library{uriel posix}
-libraries.
+only functions needed to build an interface to a foreign C language
+shared object are made available by this library; other functions (to do
+actual operations) are in the @library{uriel libc} and @library{uriel
+posix} libraries.
 
 
 @menu
 * ffi load::                    Dynamic loading of libraries.
-* ffi call::                    Functions interface.
+* ffi call::                    Interface functions.
 * ffi memory::                  Basic memory allocation.
 * ffi guarded malloc::          Guarded memory allocation.
 * ffi sizeof::                  Sizes and limits.
 * ffi accessors::               Low level access to memory.
-* ffi string::                  String functions.
+* ffi string::                  Basic string functions.
 @end menu
 
 
@@ -1517,7 +1517,22 @@ meant to be stored in the @code{shared-object} parameter while creating
 interface functions for it.
 
 @var{library-name} must be a string or symbol representing the file name
-(without directory part) that must be opened.
+or pathname to be opened.  Examples:
+
+@example
+(define mpfr-lib
+  (open-shared-object 'libmpfr.so))
+(define mpfi-lib
+  (open-shared-object '/usr/local/lib/libmpfi.so))
+@end example
+
+In the case of a name (wihtout directory part) the search path for
+shared objects is implemenation dependent.
+
+@quotation
+@emph{Unix:} We can find documentation about the search path of shared
+objects in the manual page of @cfunc{dlopen}.
+@end quotation
 @end defun
 
 
@@ -1548,8 +1563,8 @@ avoid the usage of this form.
 @subsubheading Examples
 
 
-Access @file{libmpfr.so} on a Unix like system; notice that the bindings
-defined in a @func{parameterize} form are local to that form:
+Access to @file{libmpfr.so} on a Unix like system; notice that the
+bindings defined in a @func{parameterize} form are local to that form:
 
 @example
 (define mpfr-lib (open-shared-object 'libmpfr.so))
@@ -1565,7 +1580,7 @@ defined in a @func{parameterize} form are local to that form:
   (define-c-function mpfr_get_str
     (void mpfr_get_str (pointer pointer int size_t pointer int)))
 
-  (define-c-function mpfr-set-d
+  (define-c-function mpfr_set_d
     (int mpfr_set_d (pointer double int)))
 
   ---)
@@ -1588,7 +1603,7 @@ The same but with bindings defined at top--level, using the unsafe
   (define-c-function mpfr_get_str
     (void mpfr_get_str (pointer pointer int size_t pointer int)))
 
-  (define-c-function mpfr-set-d
+  (define-c-function mpfr_set_d
     (int mpfr_set_d (pointer double int)))
 
   ---)
@@ -1603,7 +1618,7 @@ The same with bindings defined at top--level, using the safe
 (define mpfr_init    #f)
 (define mpfr_clear   #f)
 (define mpfr_get_str #f)
-(define mpfr-set-d   #f)
+(define mpfr_set_d   #f)
 
 (parameterize ((shared-object mpfr-lib))
 
@@ -1617,7 +1632,7 @@ The same with bindings defined at top--level, using the safe
     (make-c-function void mpfr_get_str
                      (pointer pointer int size_t pointer int)))
 
-  (set! mpfr-set-d
+  (set! mpfr_set_d
     (make-c-function int mpfr_set_d (pointer double int))))
 @end example
 
@@ -1644,7 +1659,10 @@ The same with bindings defined at top--level, using the safe
 
 
 The following symbols are accepted as C language type identifiers, but
-not all Scheme implementation support all of them.
+not all Scheme implementations support them all: we will have to find
+out by trial and error.  We should be safe using: @code{int},
+@code{pointer} and @code{double}, which are enough for a lot of foreign
+shared objects.
 
 Remember that C strings (@ascii{} coded and zero terminated) must be
 created from Scheme strings with @func{string->cstring}, and handed to
@@ -1719,17 +1737,17 @@ Arguments description follows:
 a symbol to which @func{define-c-function} binds the interface function;
 
 @item ret-type
-a simbol representing the type of the return value of the foreign
+a symbol representing the type of the return value of the foreign
 function;
 
 @item pri-name
-a simbol representing the name of the foreign function exported by the
+a symbol representing the name of the foreign function exported by the
 current shared object;
 
 @item arg-type0
 @itemx arg-type
 @itemx ...
-simboll representing the type of the arguments of the foreign function;
+symbols representing the type of the arguments of the foreign function;
 there must be at least one, which can be @code{void} if the foreign
 function takes no arguments.
 @end table
@@ -1795,16 +1813,18 @@ interface:
 
 
 @defun primitive-malloc @var{number-of-bytes}
-An interface to the system @cfunc{malloc} function.  Allocate a block of
-memory and return a pointer to it (an object representing a pointer
-according to the Scheme implementation), or @false{} if an error occurs.
+An interface to the system @cfunc{malloc} function (or something that,
+in some way, allocates memory).  Allocate a block of memory and return a
+pointer to it (an object referencing the memory block according to the
+Scheme implementation), or @false{} if an error occurs.
 @end defun
 
 
 @defun primitive-free @var{pointer}
-An interface to the system @cfunc{free} function.  Release a block of
-memory referenced by @var{pointer} (an object representing a pointer
-according to the Scheme implementation).
+An interface to the system @cfunc{free} function (or something that, in
+some way, releases memory allocated by @func{primitive-malloc}).
+Release a block of memory referenced by @var{pointer} (an object
+referencing the memory block according to the Scheme implementation).
 @end defun
 
 
@@ -1819,8 +1839,9 @@ allocated with this function can be freed with @func{primitive-free}.
 
 
 Care must be taken when managing memory with these low level functions:
-memory blocks will @strong{not} be garbage collected.  A method to
-release memory needed in a form is to use @func{dynamic-wind}:
+we have to assume that memory blocks will @strong{not} be garbage
+collected.  A method to release memory needed in a form is to use
+@func{dynamic-wind}:
 
 @example
 (let ((p #f))
@@ -1842,7 +1863,8 @@ another is to use a compensation:
     (do-something-with p)))
 @end example
 
-Another method, if supported, is to use @func{guarded-malloc}, @ref{ffi
+@noindent
+another method, if supported, is to use @func{malloc/guarded}, @ref{ffi
 guarded malloc,guarded-malloc}
 
 
@@ -1854,7 +1876,7 @@ guarded malloc,guarded-malloc}
 
 
 @deftp Condition {&out-of-memory}
-Type of condition objects that represent a memory alloction error.
+Type of condition objects that represent a memory allocation error.
 @end deftp
 
 
@@ -1863,6 +1885,19 @@ Type of condition objects that represent a memory alloction error.
 @deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
 Functions to handle out of memory condition objects.
 @end deffn
+
+
+Example:
+
+@example
+(define (malloc size)
+  (let ((p (primitive-malloc size)))
+    (unless p
+      (raise (make-who-condition 'malloc)
+             (make-message-condition "out of memory")
+             (make-out-of-memory-condition size)))
+    p))
+@end example
 
 
 @c ------------------------------------------------------------
@@ -2386,7 +2421,7 @@ conversion is performed using a @code{s8} bytevector.
 This chapter describes an interface to the @posix{} system functions
 offered by the underlying platform.  Basically this library makes use of
 the foreign functions interface defined by @library{uriel ffi}, and
-occasionally makes use of the implementation specific facilities.
+occasionally makes use of the Scheme implementation specific facilities.
 
 To load the library:
 

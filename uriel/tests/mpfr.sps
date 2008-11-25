@@ -11,7 +11,6 @@
 (define mpfr-lib
   (open-shared-object 'libmpfr.so))
 
-;;(parameterize ((shared-object mpfr-lib))
 (with-shared-object mpfr-lib
 
   (define MPFR_RNDN 0)
