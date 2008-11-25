@@ -2,26 +2,26 @@
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
 ;;;; 	Copyright (C) 2001, 2003, 2004, 2006 Free Software Foundation, Inc.
-;;;; 
-;;;; This program is free software; you can redistribute it and/or modify
-;;;; it under the terms of the GNU General Public License as published by
-;;;; the Free Software Foundation; either version 2, or (at your option)
-;;;; any later version.
-;;;; 
-;;;; This program is distributed in the hope that it will be useful,
-;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;;; GNU General Public License for more details.
-;;;; 
-;;;; You should have received a copy of the GNU General Public License
-;;;; along with this software; see the file COPYING.  If not, write to
-;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;;;; Boston, MA 02110-1301 USA
+;;;;
+;;;; This  program is  free  software; you  can  redistribute it  and/or
+;;;; modify  it under the  terms of  the GNU  General Public  License as
+;;;; published by the Free Software Foundation; either version 2, or (at
+;;;; your option) any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful, but
+;;;; WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
+;;;; MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
+;;;; General Public License for more details.
+;;;;
+;;;; You should have  received a copy of the  GNU General Public License
+;;;; along with this  software; see the file COPYING.   If not, write to
+;;;; the  Free  Software Foundation,  Inc.,  51  Franklin Street,  Fifth
+;;;; Floor, Boston, MA 02110-1301 USA
 
-(define-module (test-format)
-  #:use-module (test-suite lib)
-  #:use-module (ice-9 format))
+(import (rnrs)
+  (ice-9 format))
 
+#!eof
 
 ;;; FORMAT Basic Output
 
@@ -82,7 +82,7 @@
 
   (pass-if "1.5"
     (string=? "1.5" (format #f "~f" 1.5)))
-  
+
   ;; in guile prior to 1.6.9 and 1.8.1, leading zeros were incorrectly
   ;; stripped, moving the decimal point and giving "25.0" here
   (pass-if "string 02.5"

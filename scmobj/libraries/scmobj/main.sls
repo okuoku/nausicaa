@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-23 10:10:36 marco>
+;;;Time-stamp: <2008-11-25 20:50:12 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -252,25 +252,25 @@
 
 ;;;; Built in classes.
 
-;; (define <class>
-;;   '#0=((:class . #0#)
-;;        (:class-definition-name . <class>)
-;;        (:class-precedence-list . ())
-;;        (:slots . (:class-definition-name
-;; 		  :class-precedence-list :slots :direct-slots))
-;;        (:direct-slots . (:class-definition-name
-;; 			 :class-precedence-list :slots :direct-slots))))
 (define <class>
-  (let ((layout
-	 '((:class . #f)
-	   (:class-definition-name . <class>)
-	   (:class-precedence-list . ())
-	   (:slots . (:class-definition-name
-		      :class-precedence-list :slots :direct-slots))
-	   (:direct-slots . (:class-definition-name
-			     :class-precedence-list :slots :direct-slots)))))
-    (set-cdr! (car layout) layout)
-    layout))
+  '#0=((:class . #0#)
+       (:class-definition-name . <class>)
+       (:class-precedence-list . ())
+       (:slots . (:class-definition-name
+		  :class-precedence-list :slots :direct-slots))
+       (:direct-slots . (:class-definition-name
+			 :class-precedence-list :slots :direct-slots))))
+;; (define <class>
+;;   (let ((layout
+;; 	 '((:class . #f)
+;; 	   (:class-definition-name . <class>)
+;; 	   (:class-precedence-list . ())
+;; 	   (:slots . (:class-definition-name
+;; 		      :class-precedence-list :slots :direct-slots))
+;; 	   (:direct-slots . (:class-definition-name
+;; 			     :class-precedence-list :slots :direct-slots)))))
+;;     (set-cdr! (car layout) layout)
+;;     layout))
 
 (define <entity-class>
   `((:class . ,<class>)

@@ -56,22 +56,22 @@
 ;;;Opened the LIBRARY form enclosing all the code.
 ;;;
 (library (irregex)
-	 (export irregex string->irregex sre->irregex irregex?
-		 irregex-search irregex-match irregex-match-data?
-		 irregex-match-substring irregex-match-start-index
-		 irregex-match-end-index irregex-match-subchunk
-		 irregex-replace irregex-replace/all irregex-fold
-		 make-irregex-chunker irregex-search/chunked
-		 irregex-match/chunked
+  (export irregex string->irregex sre->irregex irregex?
+	  irregex-search irregex-match irregex-match-data?
+	  irregex-match-substring irregex-match-start-index
+	  irregex-match-end-index irregex-match-subchunk
+	  irregex-replace irregex-replace/all irregex-fold
+	  make-irregex-chunker irregex-search/chunked
+	  irregex-match/chunked
 
-		 ;;The  following  are  from  the  original  file
-		 ;;"irregex-utils.scm".
-		 irregex-quote irregex-opt sre->string)
-	 (import (except (rnrs) filter remove find string-scan-char)
-		 (rnrs r5rs (6))
-		 (rnrs mutable-pairs (6))
-		 (rnrs mutable-strings (6))
-		 (only (srfi strings) string-join))
+	  ;;The  following  are  from  the  original  file
+	  ;;"irregex-utils.scm".
+	  irregex-quote irregex-opt sre->string)
+  (import (except (rnrs) filter remove find)
+    (rnrs r5rs (6))
+    (rnrs mutable-pairs (6))
+    (rnrs mutable-strings (6))
+    (only (srfi strings) string-join))
 
 (define irregex-tag '*irregex-tag*)
 
@@ -2084,7 +2084,7 @@
                                   ~case-insensitive?
                                   ~utf8?))))
                  (and next (lp (cdar ls) (new-state-number next) flags next))))
-              ((/ - & ~) 
+              ((/ - & ~)
                (let ((ranges (sre->cset (car ls)
                                         (flag-set? flags ~case-insensitive?))))
                  (case (length ranges)
@@ -2262,7 +2262,7 @@
       (lambda (node)
         (cons (cadr node)
               (map (lambda (x) (cons (car x) (renumber (cdr x))))
-                   (cddr node)))) 
+                   (cddr node))))
       dfa))))
 
 ;; Extract all distinct characters or ranges and the potential states

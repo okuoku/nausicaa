@@ -385,7 +385,7 @@ dnl Example:
 dnl
 dnl   To test if '(list-lib)' is available:
 dnl
-dnl       IKARUS_CHECK_LIBRARY([LIST],[(list-lib)])
+dnl       DS_IKARUS_CHECK_LIBRARY([LIST],[(list-lib)])
 dnl
 dnl   if  it is:  the output  variable 'HAS_IKARUS_LIB_LIST'  is  set to
 dnl   'yes'.
@@ -431,6 +431,16 @@ dnl --------------------------------------------------------------------
 dnl System inspection.
 dnl --------------------------------------------------------------------
 
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_SYSTEM_SETUP()
+dnl
+dnl Description:
+dnl
+dnl   Setup what is needed to  inspect the system.  Useful (but probably
+dnl   not  mandatory) when  we need  to use  the C  compiler  to inspect
+dnl   system facilities; not needed in the other cases.
+dnl
 AC_DEFUN([NAUSICAA_SYSTEM_SETUP],[
 # Notice that this one defines '_GNU_SOURCE' and others.
 AC_USE_SYSTEM_EXTENSIONS
@@ -443,18 +453,49 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 ])
 
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_C_LANGUAGE()
+dnl
+dnl Description:
+dnl
+dnl   Setup the C language environment.   Useful when we need to use the
+dnl   C compiler to inspect system and libraries facilities.
+dnl
 AC_DEFUN([NAUSICAA_C_LANGUAGE],[
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_HEADER_STDC
 ])
 
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_VALUEOF_TEST(<EXPR>)
+dnl
+dnl Description:
+dnl
+dnl   A wrapper for "AC_COMPUTE_INT" that acquires the value of a C
+dnl   language constant, which must be an integer.  Set an output
+dnl   variable with the result.
+dnl
+dnl   It is meant to be a subroutine for "NAUSICAA_SIZEOF".
+dnl
 AC_DEFUN([NAUSICAA_VALUEOF_TEST],[
-AC_COMPUTE_INT([VALUEOF_$1],[$1],[#include <limits.h>
+AC_COMPUTE_INT([VALUEOF_$1],[$1],[AC_INCLUDES_DEFAULT
+#include <limits.h>
 #include <stdint.h>])
 AC_SUBST([VALUEOF_$1])
 ])
 
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_SIZEOF()
+dnl
+dnl Description:
+dnl
+dnl   Perform  a  series of  tests  to  determine characteristic  system
+dnl   constants.
+dnl
 AC_DEFUN([NAUSICAA_SIZEOF],[
 AC_COMPUTE_INT([SIZEOF_SHORT_INT],[sizeof(short int)])
 AC_SUBST(SIZEOF_SHORT_INT)

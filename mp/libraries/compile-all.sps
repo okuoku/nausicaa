@@ -2,7 +2,8 @@
 ;;
 
 (import
-  (only (template)
+  (only (mp sizeof))
+  (only (mp gmp))
   )
 
 ;;; end of file

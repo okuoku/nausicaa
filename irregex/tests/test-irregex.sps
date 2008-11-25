@@ -4,7 +4,7 @@
 
 ;;;; setup
 
-(import (ikarus)
+(import (rnrs)
   (irregex)
   (uriel test))
 
