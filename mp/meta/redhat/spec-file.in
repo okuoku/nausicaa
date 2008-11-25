@@ -1,0 +1,11 @@
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
+Release: @package_BUILD_VERSION@
+Summary: a collection of libraries for Ikarus
+Group: Development/Languages
+License: LGPL
+
+%description
+A collection of Scheme libraries.
+
+%files
