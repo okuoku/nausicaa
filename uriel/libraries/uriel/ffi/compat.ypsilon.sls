@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-25 16:35:09 marco>
+;;;Time-stamp: <2008-11-25 16:49:52 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -64,7 +64,7 @@
     pointer-set-c-float!		pointer-set-c-double!
     pointer-set-c-pointer!)
   (import (core)
-    (uriel printing)
+;;;    (uriel printing)
     (srfi receive)
     (srfi parameters)
     (uriel ffi sizeof))

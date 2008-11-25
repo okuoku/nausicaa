@@ -24,7 +24,7 @@ Ice-9
 Uriel
 -----
 
-* Write the documentation for define-macro.
+* Add make-callback to the ffi.
 * Scan the old gee base.
 
 
