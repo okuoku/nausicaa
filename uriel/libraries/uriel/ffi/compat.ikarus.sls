@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 18:52:18 marco>
+;;;Time-stamp: <2008-11-25 14:06:07 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,9 +30,32 @@
 
 (library (uriel ffi compat)
   (export
-    shared-object primitive-open-shared-object primitive-make-c-function
+
+    ;;loading shared objects
+    shared-object primitive-open-shared-object
+
+    ;;interface functions
+    primitive-make-c-function
+
+    ;;basic memory allocation
     (rename (malloc primitive-malloc) (free primitive-free))
-    strlen string->cstring cstring->string)
+
+    ;;basic string conversion
+    strlen string->cstring cstring->string
+
+    ;;peekers
+    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
+    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
+    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
+    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-pointer
+
+    ;;pokers
+    pointer-set-c-char!			pointer-set-c-short!
+    pointer-set-c-int!			pointer-set-c-long!
+    pointer-set-c-float!		pointer-set-c-double!
+    pointer-set-c-pointer!)
   (import (rnrs)
     (uriel printing)
     (srfi parameters)

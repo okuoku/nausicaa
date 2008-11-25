@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-25 11:22:00 marco>
+;;;Time-stamp: <2008-11-25 14:06:56 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -37,35 +37,37 @@
 
 (library (uriel ffi compat)
   (export
-    shared-object primitive-open-shared-object primitive-make-c-function
+
+    ;;shared object loading
+    shared-object primitive-open-shared-object
+
+    ;;interface functions
+    primitive-make-c-function
+
+    ;;basic memory allocation
     primitive-malloc primitive-free
-    strlen string->cstring cstring->string)
+
+    ;;basic string conversion
+    strlen string->cstring cstring->string
+
+    ;;peekers
+    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
+    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
+    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
+    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-pointer
+
+    ;;pokers
+    pointer-set-c-char!			pointer-set-c-short!
+    pointer-set-c-int!			pointer-set-c-long!
+    pointer-set-c-float!		pointer-set-c-double!
+    pointer-set-c-pointer!)
   (import (core)
+    (uriel printing)
     (srfi receive)
     (srfi parameters)
     (uriel ffi sizeof))
-
-  (define on-windows
-    (and (string-contains (architecture-feature 'operating-system) "windows")
-	 #t))
-  (define on-darwin
-    (and (string-contains (architecture-feature 'operating-system) "darwin")
-	 #t))
-  (define on-linux
-    (and (string-contains (architecture-feature 'operating-system) "linux")
-	 #t))
-  (define on-freebsd
-    (and (string-contains (architecture-feature 'operating-system) "freebsd")
-	 #t))
-  (define on-posix
-    (not on-windows))
-
-  (define on-x64
-    (and (string-contains (architecture-feature 'machine-hardware) "x86_64")
-	 #t))
-  (define on-ia32
-    (not on-x64))
-
 
 
 ;;;; dynamic loading
@@ -87,65 +89,45 @@
 (define (assert-bool value)
   (if (boolean? value)
       (if value 1 0)
-    (assertion-violation name (format "expected #t or #f, but got ~r, as argument ~s" i n))))
+    (assertion-violation 'assert-bool
+      "expected #t or #f as function argument" value)))
 
-(define assert-int
-  (lambda (name n i)
-    (cond ((and (integer? i) (exact? i)) i)
-	  (else
-	   (assertion-violation name (format "expected exact integer, but got ~r, as argument ~s" i n))))))
+(define (assert-int value)
+  (if (and (integer? value)
+	   (exact? value))
+      value
+    (assertion-violation 'assert-int
+      "expected exact integer as function argument" value)))
 
-(define assert-float
-  (lambda (name n f)
-    (cond ((flonum? f) (flonum->float f))
-	  (else
-	   (assertion-violation name (format "expected flonum, but got ~r, as argument ~s" f n))))))
+(define (assert-float value)
+  (if (flonum? value)
+      (flonum->float value)
+    (assertion-violation 'assert-float
+      "expected flonum as function argument" value)))
 
-(define assert-double
-  (lambda (name n f)
-    (cond ((flonum? f) f)
-	  (else
-	   (assertion-violation name (format "expected flonum, but got ~r, as argument ~s" f n))))))
+(define (assert-double value)
+  (if (flonum? value)
+      value
+    (assertion-violation 'assert-double
+      "expected flonum as function argument" value)))
 
-(define assert-string
-  (lambda (name n s)
-    (cond ((string? s) s)
-	  (else
-	   (assertion-violation name (format "expected string, but got ~r, as argument ~s" s n))))))
+(define (assert-string value)
+  (if (string? value)
+      value
+    (assertion-violation 'assert-string
+      "expected string as function argument" value)))
 
-(define assert-bytevector
-  (lambda (name n b)
-    (cond ((bytevector? b) b)
-	  (else
-	   (assertion-violation name (format "expected bytevector, but got ~r, as argument ~s" b n))))))
+(define (assert-bytevector value)
+  (if (bytevector? value)
+      value
+    (assertion-violation 'assert-bytevector
+      "expected bytevector as function argument" value)))
 
-(define assert-closure
-  (lambda (name n p)
-    (cond ((procedure? p) p)
-	  (else
-	   (assertion-violation name (format "expected procedure, but got ~r, as argument ~s" p n))))))
-
-(define assert-int-vector
-  (lambda (name n vect)
-    (or (vector? vect)
-	(assertion-violation name (format "expected vector, but got ~r, as argument ~s" vect n)))
-    (let ((lst (vector->list vect)))
-      (for-each (lambda (i)
-		  (or (and (integer? i) (exact? i))
-		      (assertion-violation name (format "expected list of exact integer, but got ~r, as argument ~s" vect n))))
-	lst)
-      lst)))
-
-(define assert-string-vector
-  (lambda (name n vect)
-    (or (vector? vect)
-	(assertion-violation name (format "expected vector, but got ~r, as argument ~s" vect n)))
-    (let ((lst (vector->list vect)))
-      (for-each (lambda (s)
-		  (or (string? s)
-		      (assertion-violation name (format "expected vector of string, but got ~r, as argument ~s" vect n))))
-	lst)
-      lst)))
+(define (assert-closure value)
+  (if (procedure? value)
+      value
+    (assertion-violation 'assert-closure
+      "expected procedure as function argument" value)))
 
 (define (assert-char* value)
   (string->utf8-n-nul (assert-string value)))
@@ -168,28 +150,6 @@
 (define string->utf8-n-nul
   (lambda (s)
     (string->utf8 (string-append s "\x0;"))))
-
-(define make-binary-array-of-int
-  (lambda argv
-    (let ((step (architecture-feature 'alignof:int))
-	  (proc (case (architecture-feature 'sizeof:int)
-		  ((4) bytevector-s32-native-set!)
-		  ((8) bytevector-s64-native-set!)
-		  (else
-		   (syntax-violation 'make-binary-array-of-int "byte size of int not defined")))))
-      (let ((bv (make-bytevector (* step (length argv)))))
-	(let loop ((offset 0) (arg argv))
-	  (cond ((null? arg) bv)
-		(else
-		 (let ((value (car arg)))
-		   (proc bv offset value)
-		   (loop (+ offset step) (cdr arg))))))))))
-
-(define make-binary-array-of-char*
-  (lambda (ref . argv)
-    (apply vector
-	   ref
-	   (map (lambda (value) (string->utf8-n-nul value)) argv))))
 
 
 
@@ -214,6 +174,8 @@
      'int)
     ((double)
      'double)
+    ((float)
+     'float)
     ((pointer void* char*)
      'void*)
     ((void)
@@ -221,10 +183,11 @@
     (else (error 'make-c-function
 	    "unknown C language type identifier" type))))
 
+
 
 ;;;; interface functions
 
-(define (make-c-callout ret-type funcname args)
+(define (make-c-function ret-type funcname args)
   (define (select-cast-and-stub ret-type)
     (let ((identity (lambda (x) x)))
       (case ret-type
@@ -245,13 +208,13 @@
 	   "unknown C language type identifier used for return value" ret-type)))))
 
   (define (select-argument-mapper arg-type)
-    (case arg-type
+    (case (external->internal arg-type)
       ((int)
        assert-int)
       ((bool)
        assert-bool)
       ((void*)
-       assert-int)
+       assert-bytevector)
       ((float)
        assert-float)
       ((double)
@@ -273,39 +236,86 @@
 ;;       ((_ name n [c-callback int __stdcall (args ...)] var)
 
   (receive (cast-func stub-func)
-      (select-cast-and-stub ret-value)
+      (select-cast-and-stub (external->internal ret-type))
     (let ((f (lookup-shared-object (shared-object) funcname)))
       (unless f
 	(error 'make-c-callout
 	  "function not available in shared object" funcname))
-      (lambda (args ...)
-	(cast-func (apply stub-func f (map select-argument-mapper args))))))))
+      (let* ((mappers (map select-argument-mapper args)))
+	(lambda args
+	  (unless (= (length args) (length mappers))
+	    (assertion-violation funcname
+	      (format "wrong number of arguments, expected ~a" (length mappers))
+	      args))
+	  (cast-func (apply stub-func f
+			    (map (lambda (m a)
+				   (m a)) mappers args))))))))
+
+
+(define-syntax primitive-make-c-function
+  (syntax-rules ()
+    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
+     (make-c-function '?ret-type '?funcname '(?arg-type0 ?arg-type ...)))))
 
 
 
 ;;;; memory allocation
 
-(define platform-malloc
-  (primitive-make-c-function pointer malloc (size_t)))
+;;Whenever an  interface function returns  a pointer: Ypsilon  wraps the
+;;block of memory into a bytevector.   So when we feed a block of memory
+;;to an interface function: we have to build a bytevector.
 
 (define (primitive-malloc number-of-bytes)
-  (let ((p (platform-malloc number-of-bytes)))
-    (if (= 0 p)
-	#f
-      p)))
+  (make-bytevector number-of-bytes))
 
-(define primitive-free
-  (primitive-make-c-function void free (pointer)))
+(define (primitive-free p)
+  #f)
 
-;;  (c-function (shared-object) libc-name void free (char*)))
+
+;;;; pokers and peekers
+
+(define pointer-ref-c-signed-char	bytevector-s8-ref)
+(define pointer-ref-c-unsigned-char	bytevector-u8-ref)
+(define pointer-ref-c-signed-short	bytevector-s16-native-ref)
+(define pointer-ref-c-unsigned-short	bytevector-u16-native-ref)
+(define pointer-ref-c-signed-int	bytevector-s32-native-ref)
+(define pointer-ref-c-unsigned-int	bytevector-u32-native-ref)
+(define pointer-ref-c-signed-long	(when on-32-bits-system
+					  bytevector-s32-native-ref
+					  bytevector-s64-native-ref))
+(define pointer-ref-c-unsigned-long	(when on-32-bits-system
+					  bytevector-u32-native-ref
+					  bytevector-u64-native-ref))
+(define pointer-ref-c-float		bytevector-s32-native-ref)
+(define pointer-ref-c-double		bytevector-s64-native-ref)
+(define pointer-ref-c-pointer
+  (cond ((= 4 sizeof-pointer)		bytevector-u32-native-ref)
+	((= 8 sizeof-pointer)		bytevector-u64-native-ref)
+	(else
+	 (assertion-violation 'pointer-ref-c-pointer
+	   "cannot determine size of pointers for peeker function"))))
+
+(define pointer-set-c-char!		bytevector-s8-set!)
+(define pointer-set-c-short!		bytevector-s16-native-set!)
+(define pointer-set-c-int!		bytevector-s32-native-set!)
+(define pointer-set-c-long!		(when on-32-bits-system
+					  bytevector-s32-native-set!
+					  bytevector-s64-native-set!))
+(define pointer-set-c-float!		bytevector-s32-native-set!)
+(define pointer-set-c-double!		bytevector-s64-native-set!)
+(define pointer-set-c-pointer!
+  (cond ((= 4 sizeof-pointer)		bytevector-u32-native-set!)
+	((= 8 sizeof-pointer)		bytevector-u64-native-set!)
+	(else
+	 (assertion-violation 'pointer-set-c-pointer
+	   "cannot determine size of pointers for peeker function"))))
+
 
 
 ;;;; string functions
 
 (define strlen
   (primitive-make-c-function int strlen (pointer)))
-
-;;  (c-function (shared-object) libc-name int __stdcall strlen (char*)))
 
 (define (cstring->string cstr)
   (let ((str (bytevector->string cstr (make-transcoder (utf-8-codec)))))

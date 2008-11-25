@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-25 09:44:00 marco>
+;;;Time-stamp: <2008-11-25 14:07:32 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -43,7 +43,21 @@
     out-of-memory-requested-number-of-bytes
 
     ;;string functions
-    strlen string->cstring cstring->string)
+    strlen string->cstring cstring->string
+
+    ;;peekers
+    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
+    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
+    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
+    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-pointer
+
+    ;;pokers
+    pointer-set-c-char!			pointer-set-c-short!
+    pointer-set-c-int!			pointer-set-c-long!
+    pointer-set-c-float!		pointer-set-c-double!
+    pointer-set-c-pointer!)
 
   (import (rnrs)
     (uriel lang)
@@ -135,7 +149,6 @@
      (()
       (let ((pointer (block-cache)))
 	(init-func pointer)
-	(print #t "acquired ~s~%" pointer)
 	pointer))
      ((pointer)
       (case pointer
