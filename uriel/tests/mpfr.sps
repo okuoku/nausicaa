@@ -6,7 +6,6 @@
   (uriel ffi sizeof)
   (uriel printing)
   (uriel lang)
-;  (only (ikarus foreign) pointer-ref-c-signed-long)
   (srfi parameters))
 
 (define mpfr-lib
@@ -36,9 +35,6 @@
     (letrec ((p (compensate (mpfr)
 		  (with (mpfr p)))))
       p))
-
-  (define (pointer-ref-c-signed-long pointer offset)
-    (bytevector-s32-native-ref pointer offset))
 
   (define (mpfr->string o)
     (letrec
