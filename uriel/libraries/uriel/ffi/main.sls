@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-24 20:24:33 marco>
+;;;Time-stamp: <2008-11-25 09:44:00 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,13 +35,19 @@
 
     ;;memory functions
     malloc primitive-malloc primitive-free
-    make-out-of-memory-condition out-of-memory-condition?
+    make-block-cache small-blocks-cache make-caching-object-factory
+    compensate-malloc compensate-malloc/small
+
+    ;;out of memory condition
+    &out-of-memory make-out-of-memory-condition out-of-memory-condition?
     out-of-memory-requested-number-of-bytes
 
     ;;string functions
     strlen string->cstring cstring->string)
 
   (import (rnrs)
+    (uriel lang)
+    (uriel printing)
     (uriel ffi compat))
 
 
@@ -68,7 +74,7 @@
 
 
 
-;;;; memory functions
+;;;; basic memory functions
 
 (define-condition-type &out-of-memory &error
   make-out-of-memory-condition out-of-memory-condition?
@@ -79,6 +85,88 @@
     (unless p
       (make-out-of-memory-condition size))
     p))
+
+
+
+;;;; caching
+
+(define (make-block-cache block-size max-cached-block-number)
+  (unless (and (fixnum? block-size)
+	       (< 0 block-size))
+    (assertion-violation 'make-block-cache
+      "expected strictly positive fixnum as size of cached memory blocks"
+      block-size))
+  (unless (and (fixnum? max-cached-block-number)
+	       (< 0 max-cached-block-number))
+    (assertion-violation 'make-block-cache
+      "expected strictly positive fixnum as max number of cached memory blocks"
+      max-cached-block-number))
+  (let ((list-of-cached-blocks '())
+	(number-of-cached-blocks 0))
+    (case-lambda
+     (()
+      (if (null? list-of-cached-blocks)
+	  (malloc block-size)
+	(let ((pointer (car list-of-cached-blocks)))
+	  (set! list-of-cached-blocks (cdr list-of-cached-blocks))
+	  (set! number-of-cached-blocks (- number-of-cached-blocks 1))
+	  pointer)))
+     ((pointer)
+      (case pointer
+	((purge)
+	 (map primitive-free list-of-cached-blocks)
+	 (set! list-of-cached-blocks '())
+	 (set! number-of-cached-blocks 0))
+	((list)
+	 list-of-cached-blocks)
+	(else
+	 (if (< number-of-cached-blocks max-cached-block-number)
+	     (begin
+	       (set! list-of-cached-blocks (cons pointer list-of-cached-blocks))
+	       (set! number-of-cached-blocks (+ 1 number-of-cached-blocks)))
+	   (primitive-free pointer))))))))
+
+(define small-blocks-cache (make-block-cache 32 10))
+
+(define (make-caching-object-factory init-func final-func
+				     block-size max-cached-block-number)
+  (let ((block-cache (make-block-cache block-size max-cached-block-number)))
+    (case-lambda
+     (()
+      (let ((pointer (block-cache)))
+	(init-func pointer)
+	(print #t "acquired ~s~%" pointer)
+	pointer))
+     ((pointer)
+      (case pointer
+	((purge)
+	 ;;Notice that  here we have ALREADY applied  the final function
+	 ;;to all the stuff in the cache.
+	 (block-cache 'purge))
+	(else
+	 (final-func pointer)
+	 (block-cache pointer)))))))
+
+
+
+;;;; compensations
+
+(define (compensate-malloc number-of-bytes)
+  (letrec
+      ((p (compensate
+	      (malloc number-of-bytes)
+	    (with
+	     (primitive-free p)))))
+    p))
+
+(define (compensate-malloc/small)
+  (letrec
+      ((p (compensate
+	      (small-blocks-cache)
+	    (with
+	     (small-blocks-cache p)))))
+    p))
+
 
 
 ;;;; done

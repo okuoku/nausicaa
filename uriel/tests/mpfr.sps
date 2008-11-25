@@ -6,27 +6,39 @@
   (uriel ffi sizeof)
   (uriel printing)
   (uriel lang)
-  (srfi parameters)
-  (only (ikarus foreign) pointer-ref-c-signed-long))
+;  (only (ikarus foreign) pointer-ref-c-signed-long)
+  (srfi parameters))
 
 (define mpfr-lib
   (open-shared-object "libmpfr.so"))
 
 (parameterize ((shared-object mpfr-lib))
 
-  (define-c-function mpfr-init
+  (define MPFR_RNDN 0)
+  (define sizeof-mpfr 256)
+
+  (define-c-function mpfr_init
     (void mpfr_init (pointer)))
 
-  (define-c-function mpfr-final
+  (define-c-function mpfr_clear
     (void mpfr_clear (pointer)))
 
-  (define-c-function mpfr-get-str
+  (define-c-function mpfr_get_str
     (void mpfr_get_str (pointer pointer int size_t pointer int)))
 
   (define-c-function mpfr-set-d
     (int mpfr_set_d (pointer double int)))
 
-  (define MPFR_RNDN 0)
+  (define mpfr (make-caching-object-factory mpfr_init mpfr_clear
+					    sizeof-mpfr 10))
+
+  (define (compensate-mpfr)
+    (letrec ((p (compensate (mpfr)
+		  (with (mpfr p)))))
+      p))
+
+  (define (pointer-ref-c-signed-long pointer offset)
+    (bytevector-s32-native-ref pointer offset))
 
   (define (mpfr->string o)
     (letrec
@@ -34,12 +46,13 @@
 		  (malloc 1024)
 		(with
 		 (primitive-free str))))
-	 (l (compensate
-		(malloc sizeof-long)
-	      (with (primitive-free l)))))
-      (mpfr-get-str str l 10 0 o MPFR_RNDN)
+	 (l (compensate-malloc/small)))
+      (mpfr_get_str str l 10 0 o MPFR_RNDN)
       (let* ((s (cstring->string str))
-	     (x (pointer-ref-c-signed-long l 0))
+	     (x (let ((x (pointer-ref-c-signed-long l 0)))
+		  (if (char=? #\- (string-ref s 0))
+		      (+ 1 x)
+		    x)))
 	     (i (substring s 0 x))
 	     (f (substring s x (strlen str))))
 	(print #f "~a.~a" i f))))
@@ -47,16 +60,24 @@
   (with-compensations
     (letrec
 	((o (compensate
-		(malloc 256)
+		(malloc sizeof-mpfr)
 	      (with
 	       (primitive-free o)))))
       (compensate
-	  (mpfr-init o)
+	  (mpfr_init o)
 	(with
-	 (mpfr-final o)))
+	 (mpfr_clear o)))
 
       (mpfr-set-d o 123.456 MPFR_RNDN)
-      (print #t "string rep: ~a~%" (mpfr->string o)))))
+      (print #t "string rep: ~a~%" (mpfr->string o))))
+
+  (with-compensations
+    (letrec
+	((o (compensate-mpfr)))
+      (mpfr-set-d o -123.456 MPFR_RNDN)
+      (print #t "string rep: ~a~%" (mpfr->string o))))
+
+  (mpfr 'purge))
 
 
 ;;; end of file
