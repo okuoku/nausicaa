@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-25 14:06:07 marco>
+;;;Time-stamp: <2008-11-25 16:34:41 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,7 +32,7 @@
   (export
 
     ;;loading shared objects
-    shared-object primitive-open-shared-object
+    shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
     primitive-make-c-function
@@ -64,8 +64,10 @@
 
 ;;;; dynamic loading and interface functions
 
+(define self-shared-object (dlopen))
+
 (define shared-object
-  (make-parameter (dlopen)))
+  (make-parameter self-shared-object))
 
 (define (primitive-open-shared-object library-name)
   (let ((l (dlopen library-name)))
@@ -74,11 +76,11 @@
 
 (define (external->internal type)
   (case type
-    ((char signed-char)
+    ((char schar signed-char)
      'signed-char)
     ((uchar unsigned-char)
      'unsigned-char)
-    ((int signed-int ssize-t)
+    ((int signed-int ssize_t)
      'signed-int)
     ((uint unsigned unsigned-int size_t)
      'unsigned-int)
@@ -90,7 +92,7 @@
      'float)
     ((double)
      'double)
-    ((pointer void* char*)
+    ((pointer void* char* callback)
      'pointer)
     ((void)
      'void)

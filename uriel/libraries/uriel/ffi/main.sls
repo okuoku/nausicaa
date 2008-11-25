@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-25 14:07:32 marco>
+;;;Time-stamp: <2008-11-25 16:35:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +31,8 @@
   (export
 
     ;;interface functions
-    shared-object open-shared-object make-c-function define-c-function
+    shared-object open-shared-object self-shared-object with-shared-object
+    make-c-function define-c-function
 
     ;;memory functions
     malloc primitive-malloc primitive-free
@@ -72,6 +73,15 @@
   (primitive-open-shared-object (if (symbol? library-name)
 				    (symbol->string library-name)
 				  library-name)))
+
+(define-syntax with-shared-object
+  (syntax-rules ()
+    ((_ ?library-id ?form0 ?form ...)
+     (begin
+       (define saved-shared-object (shared-object))
+       (shared-object ?library-id)
+       ?form0 ?form ...
+       (shared-object saved-shared-object)))))
 
 (define-syntax make-c-function
   (syntax-rules ()
