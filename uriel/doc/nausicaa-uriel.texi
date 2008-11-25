@@ -1863,6 +1863,15 @@ The value of the specified constant.  For example: the value of
 
 @defvar words-bigendian
 Bound to @true{} if the platform is big endian, @false{} otherwise.
+Notice that this information is also available with the @rnrs{6}
+function @func{native-endianness}.
+@end defvar
+
+
+@defvar on-32-bits-system
+@defvarx on-64-bits-system
+Bound to @true{} if the platform has words of 32 or 64 bits
+respectively.
 @end defvar
 
 

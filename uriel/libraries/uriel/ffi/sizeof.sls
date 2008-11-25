@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 21:24:43 marco>
+;;;Time-stamp: <2008-11-25 13:59:02 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -37,7 +37,7 @@
 ;;;    valueof-ulong-max
 ;;;    valueof-long-long-max valueof-long-long-min valueof-ulong-long-max
     valueof-wchar-max	valueof-ssize-max
-    words-bigendian)
+    words-bigendian	on-64-bits-system	on-32-bits-system)
   (import (rnrs))
 
   (define sizeof-short-int 2)
@@ -67,6 +67,9 @@
   (define valueof-ssize-max 2147483647)
 
   (define words-bigendian (= 1 0))
+
+  (define on-32-bits-system (= sizeof-int 4))
+  (define on-64-bits-system (= sizeof-int 8))
   )
 
 ;;; end of file
