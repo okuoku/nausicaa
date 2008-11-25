@@ -1,6 +1,6 @@
 
-	      Template library for R6RS Scheme
-	      ================================
+	    Nausicaa/MP library for R6RS Scheme
+	    ===================================
 
 
 Topics
@@ -11,12 +11,35 @@ Topics
   4. Install
   A. Credits
   B. Bug reports
+  C. Resources
 
 
 1. Introduction
 ---------------
 
-This is a Scheme library.
+Nausicaa/MP  is a  set of  Scheme libraries  implementing an
+interface  to the  GMP,  MPFR, MPFI  and  MPC libraries  for
+multiple precision integers  and floating-point numbers.  It
+is based on the "(uriel ffi)" library.
+
+  GMP stands for  GNU Multiple Precision arithmetic library.
+The  last  time  the  maintainer  bothered  to  update  this
+paragraph,  it  had tested  this  project  with GMP  version
+4.2.4.
+
+  MPFR stands for Multiple Precision Floating-Point Reliable
+library.  The  last time  the maintainer bothered  to update
+this paragraph, it had tested this project with MPFR version
+2.3.1.
+
+  MPFI stands for Multiple Precision Floating-Point Interval
+library.  The  last time  the maintainer bothered  to update
+this paragraph, it had tested this project with MPFI version
+1.3.4.
+
+  MPC  stands for Multiple  Precision Complex  library.  The
+last time the maintainer  bothered to update this paragraph,
+it had tested this project with MPC version 0.4.6.
 
 
 2. License
@@ -44,9 +67,20 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
+
+4.1 Install precedences
+-----------------------
+
+To  install  this  package  we  need to  install  first  the
+Nausicaa/SRFI and Nausicaa/Uriel packages.
+
+
+4.2 Install Nausicaa/MP
+-----------------------
+
 Basically we should do:
 
-   $ cd template
+   $ cd mp
    $ mkdir "=build"
    $ cd "=build"
    $ ../configure
@@ -61,7 +95,7 @@ Basically we should do:
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/nausicaa-template
+    $ make install DESTDIR=/tmp/marco/nausicaa-mp
 
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
@@ -80,6 +114,25 @@ B. Bug reports
 Bug    reports    are     appreciated,    send    them    to
 <marcomaggi@gna.org>.
 
+
+C. Resources
+------------
+
+The GMP library can be found at:
+
+		   <http://www.gmp.org/>
+
+the MPFR library can be found at:
+
+		   <http://www.mpfr.org/>
+
+the MPFI library can be found at:
+
+		   <http://www.mpfi.org/>
+
+the MPC library can be found at:
+
+		   <http://www.mpc.org/>
 
 
 ### end of file
