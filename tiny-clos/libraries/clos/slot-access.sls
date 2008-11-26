@@ -41,8 +41,8 @@
     (let ((class (instance-class inst)))
       (if (eq? class <class>) ;; break loop -- assumes <class> does not change
           (instance-ref inst (position slot-name core-class-slot-names))
-	(let ((slot-info (get-slot-info class slot-name)))
-	  ((cadr slot-info) inst)))))
+          (let ((slot-info (get-slot-info class slot-name)))
+            ((cadr slot-info) inst)))))
   
   (define (slot-set! inst slot-name val)
     (let ((class (instance-class inst)))
