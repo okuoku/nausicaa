@@ -1155,21 +1155,57 @@ it is initialised to the class of this object;
 a vector with one element for each direct slot of this object;
 
 @item iproc
-the instance proc: used for objects of class @class{entity-class},
-unused for all the other classes;
-
-the entity classes are generic functions and methods, and this procedure
-is the function that gets invoked when the generic or the method is
-applied to arguments.
+the instance's procedure: used for objects of class
+@class{entity-class}, unused for all the other classes.
 @end table
 @end deftp
 
 
+@defvar *entity-table*
+A table of function/record couples.  The function is created by
+@func{really-allocate-entity-instance}, the record is of type
+@code{instance-record}.
+
+Couples are stored in the table by
+@func{really-allocate-entity-instance}.  This function creates a
+function associated to the record: it invokes the instance's procedure
+from the @code{iproc} slot of the instance, applying it to whatever
+arguments are handed.
+@end defvar
+
+
 @defun really-allocate-instance @var{class} @var{field-count}
-Instantiate a record of type @code{instance-record}.  The vector of
-slots will have @var{field-count} elements, initialised to an
+Instantiate a record of type @code{instance-record} and return it.  The
+vector of slots will have @var{field-count} elements, initialised to an
 unspecified value (it means: empty).  The @code{iproc} is set to
 @false{}.
+@end defun
+
+
+@defun really-allocate-entity-instance @var{class} @var{field-count}
+Allocate an instance of @class{entity-class}.  An entity interface
+function and the object are stored in the internal table of entities.
+The instance function is returned.
+@end defun
+
+
+@defun get-instance-record @var{obj}
+If @var{obj} is an @code{instance-record} record: @var{obj} is returned.
+If @var{obj} is a function used as key in @code{*entity-table*}: the
+associated value (which is then entity @code{instance-record} record) is
+returned.  Else return @false{}.
+@end defun
+
+
+@defun instance? @var{obj}
+Return @true{} if @var{obj} is an @code{instance-record} record or a
+function used as key in @code{*entity-table*}; return @false{}
+otherwise.
+@end defun
+
+
+@defun
+
 @end defun
 
 
