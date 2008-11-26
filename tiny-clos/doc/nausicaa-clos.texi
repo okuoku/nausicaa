@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename nausicaa-tiny-clos.info
-@settitle Tiny CLOS for Ikarus Scheme
+@setfilename nausicaa-clos.info
+@settitle Tiny-CLOS for R6RS Scheme
 @c %**end of header
 
 @c page
@@ -11,8 +11,6 @@
 
 @include version.texiinc
 
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -34,8 +32,6 @@
 @macro bsd{}
 @acronym{BSD}
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -80,8 +76,6 @@
 @end macro
 
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c Software related macros.
@@ -98,8 +92,6 @@
 @macro glibc{}
 @gnu{} C Library
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -139,8 +131,6 @@
 @macro snmp{}
 @acronym{SNMP}
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -209,8 +199,6 @@
 @meta{\ARG\j}
 @end macro
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c C language macros.
@@ -224,7 +212,6 @@
 @code{NULL}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -291,8 +278,6 @@ the main purpose of this document is to provide an Info version.
 @code{<\NAME\>}
 @end macro
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c Macros for references to external documents.
@@ -319,23 +304,22 @@ the main purpose of this document is to provide an Info version.
 @end macro
 
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Tiny CLOS for Ikarus Scheme
+@set TITLE                      Tiny CLOS for @rnrs{6} Scheme
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    Nausicaa/Tiny @clos{}
+@set PACKAGE                    Nausicaa/@clos{}
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           nausicaa-tiny-clos
+@set PACKAGE_NICKNAME           nausicaa-clos
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -349,7 +333,6 @@ the main purpose of this document is to provide an Info version.
 @c list of copyright years.
 @set COPYRIGHT_YEARS            2008
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -359,7 +342,7 @@ the main purpose of this document is to provide an Info version.
 @copying
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
-packaging of Tiny @clos{} originally developed by Gregor Kiczales at
+repackaging of Tiny--@clos{} originally developed by Gregor Kiczales at
 Xerox Park.  The package embeds the code found at:
 
 @center @url{http://launchpad.net/r6rs-clos}
@@ -382,7 +365,7 @@ Documentation License''.
 @end quotation
 @end copying
 
-@c ------------------------------------------------------------
+
 
 @c page
 @c ------------------------------------------------------------
@@ -403,7 +386,7 @@ Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-tiny-clos: (nausicaa-tiny-clos). Tiny CLOS for Ikarus Scheme.
+* nausicaa-clos: (nausicaa-clos).       @clos{} for @rnrs{6} Scheme.
 @end direntry
 @end ifinfo
 
@@ -423,9 +406,9 @@ Documentation License''.
 @top @value{TITLE}
 
 @insertcopying
-     
+
 @menu
-* overview::                    Overview of the package. 
+* overview::                    Overview of the package.
 * types::                       Predefined class types.
 * define::                      Defining stuff.
 * generic::                     Available generic functions.
@@ -435,20 +418,20 @@ Documentation License''.
 
 Appendices
 
+* examples::                    Usage examples.
 * Package License::             Package License.
 * Documentation License::       GNU Free Documentation License.
 * references::                  Bibliography and references.
 
 Indexes
 
-* concept index::               An entry for each concept. 
-* function index::              An entry for each function. 
-* variable index::              An entry for each variable. 
-* type index::                  An entry for each type. 
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
 @end menu
 @end ifnottex
 
-@c ------------------------------------------------------------
 
 @c page
 @node overview
@@ -456,6 +439,14 @@ Indexes
 
 
 @noindent
+@clos{}, an acronym for Common Lisp Object System, is a standard set of
+extensions to the Common Lisp language to help people do object--oriented
+programming in Lisp.
+
+Tiny--@clos{} is a Scheme version of @clos{} written in 1992 by Gregor
+Kiczales at Xerox Park.  It differs from @clos{} syntactically, but the
+basic approach to @acronym{OOP} is the same as in @clos{}.
+
 @rnrs{6}--@clos{} is a port of Tiny--@clos{} to the latest (6th)
 revision of the language standard for Scheme.  It uses the library
 system that is new in @rnrs{6} to structure the code based on
@@ -463,8 +454,9 @@ functionality (bootstrap of core classes and generic functions, actual
 implementation of the standard protocols, class layout, slot access
 @dots{}).
 
+@value{PACKAGE} is a repackaging of @rnrs{6}--@clos{}.
 
-@c ------------------------------------------------------------
+
 
 @c page
 @node types
@@ -482,7 +474,7 @@ The base class for all the class objects representing a class.
 
 
 @deftp Class <object>
-The base class for all the class objects representing an instances.
+The base class for all the class objects representing an instance.
 @end deftp
 
 
@@ -517,10 +509,11 @@ The following syntaxes are available in the @library{clos user} library.
 
 
 @deffn Syntax define-class @var{name} @var{list-of-supers} . @var{list-of-slot-defs}
-Build and return a new class object, derived from @class{class}.
+Build a new class object and bind it to @var{name}.  The new class is
+derived from @class{class}.
 
-@var{name} is the public name of the class, which should be an
-identifier enclosed in angular parentheses.
+@var{name} is also the public name of the class, and it should be an
+identifier enclosed in angular parentheses (example: @class{colour}).
 
 @var{list-of-supers} is the list of superclasses of @var{name}.  It can
 be the empty string, which means that the base class of @var{name} is
@@ -540,17 +533,9 @@ Define a new generic function: a collection of methods.
 Add a new method to the generic function @var{name}.  A method is the
 ensemble of a signature for arguments and an ordinary function.
 
-@var{args} is the list of argument specifications, each of which can be:
-
-@table @code
-@item arg-name
-a symbol specifying the name of the argument, the class defaults to
-@class{object};
-
-@item (arg-name arg-class)
-a list of two elements, the first being the name of the argument and the
-second being its class.
-@end table
+@var{args} is the list of argument specifications, each of which is a
+list of two symbols: the argument formal name and the argument type
+class.
 
 @var{body-forms} are the forms in the body of the method's function.
 @end deffn
@@ -647,7 +632,7 @@ Store @var{new-value} in @var{slot-name} for @var{object}.
 @end defun
 
 
-@deffn slot-ref @var{object} @var{slot-name}
+@defun slot-ref @var{object} @var{slot-name}
 Retrieve and return the current value of @var{slot-name} in
 @var{object}.
 
@@ -655,7 +640,7 @@ Retrieve and return the current value of @var{slot-name} in
 
 @var{slot-name} must be the symbol representing the name of a slot in
 @var{object}.
-@end deffn
+@end defun
 
 
 
@@ -748,7 +733,7 @@ Return the list of class objects that are the superclasses of
 @end example
 @end defun
 
-   
+
 @defun class-slots @var{class-object}
 Return a list of slot specifications for @var{class-object},
 @strong{including} the slots of the superclasses.  Examples:
@@ -782,7 +767,7 @@ Return a list of slot specifications for @var{class-object},
 @end example
 @end defun
 
-   
+
 @defun class-precedence-list @var{class-object}
 Return the ordered list of class objects that is used to match
 @var{class-object} to the type of generic functions arguments.
@@ -829,16 +814,16 @@ top--level program incipit:
 
 @end defun
 
-   
+
 @defun method-specializers
 
 @end defun
-   
+
 
 @defun method-procedure
 
 @end defun
-   
+
 
 @defun method-qualifier
 
@@ -897,12 +882,82 @@ Example:
 @c ------------------------------------------------------------
 
 @c page
+@node examples
+@appendix Usage examples
+
+
+@menu
+* examples basics::             Basic examples.
+@end menu
+
+
+@c page
+@node examples basics
+@appendixsec Basic examples
+
+
+To use @clos{} as programming facility means doing something like this:
+
+@example
+(import (rnrs)
+  (clos core)
+  (clos user)
+  (srfi lightweight-testing))
+
+;;; define ensembles of values
+
+(define-class <one> ()
+   a)
+
+(define-class <two> ()
+   b)
+
+;;; define specialised functions
+
+(define-generic doit)
+
+(define-method doit ((o <top>))
+  (cons o 123))
+
+(define-method doit ((o <one>))
+  (cons o 456))
+
+(define-method doit ((o <two>))
+  (cons o 789))
+
+;;; use them
+
+(let ((o 'ciao))
+  (check
+      (doit o)
+    => '(ciao . 123))
+
+(let ((o (make <one>)))
+  (check
+      (doit o)
+    => (cons o 456)))
+
+(let ((o (make <two>)))
+  (check
+      (doit o)
+    => (cons o 789)))
+@end example
+
+@noindent
+that is: to tag ensembles of values so that the correct function can be
+selected for them.  In a couple of words: multimethod dispatching.
+
+
+@c ------------------------------------------------------------
+
+@c page
 @node Package License
 @appendix Package License
 
 
+Copyright @copyright{} 2008 Abdulaziz Ghuloum
+Copyright @copyright{} 2007, 2008 Christian Sloma.
 Copyright @copyright{} 1992 Xerox Corporation.  All Rights Reserved.@*
-Copyright @copyright{} 2007 Christian Sloma.
 
 Use, reproduction, and preparation of derivative works are permitted.
 Any copy of this software or of any derivative work must include the
@@ -1335,21 +1390,21 @@ to permit their use in free software.
 @c page
 @node concept index
 @appendix An entry for each concept
-     
+
 @printindex cp
-     
+
 @node function index
-@appendix An entry for each function. 
+@appendix An entry for each function.
 
 @printindex fn
 
 @node variable index
-@appendix An entry for each variable. 
+@appendix An entry for each variable.
 
 @printindex vr
 
 @node type index
-@appendix An entry for each type. 
+@appendix An entry for each type.
 
 @printindex tp
 

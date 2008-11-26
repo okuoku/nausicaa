@@ -19,7 +19,8 @@
                 make-parameter))
 
   (define (pointer-value value)
-    (equal-hash value))
+    (string-hash
+     (call-with-string-output-port (lambda () (display value)))))
 
   (define (position obj lst)
     (let loop ((lst lst) (idx 0) (obj obj))

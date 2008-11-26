@@ -54,6 +54,6 @@ exec "${rlwrap_PROGRAM}"                                        \
     --quote-characters='"'                                      \
     --remember                                                  \
     ${COMPLETIONS_OPTION}                                       \
-    "${ypsilon_PROGRAM}" "$@"
+    "${ypsilon_PROGRAM}" --compatible "$@"
 
 ### end of file
