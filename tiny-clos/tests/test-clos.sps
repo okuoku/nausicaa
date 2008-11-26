@@ -30,109 +30,201 @@
 (import (rnrs)
   (clos core)
   (clos user)
-  (srfi lightweight-testing))
+  (srfi parameters)
+  (uriel test))
 
 (check-set-mode! 'report-failed)
 
 
+;;;; basics example
+
+(parameterize ((testname 'basics))
+  (define-class <one> ()
+    a)
+
+  (define-class <two> ()
+    b)
+
+  (define-generic doit)
+
+  (define-method doit ((o <top>))
+    (cons o 123))
+
+  (define-method doit ((o <one>))
+    (cons o 456))
+
+  (define-method doit ((o <two>))
+    (cons o 789))
+
+  (let ((o 'ciao))
+    (check
+	(doit o)
+      => (cons o 123)))
+
+  (let ((o (make <one>)))
+    (check
+	(doit o)
+      => (cons o 456)))
+
+  (let ((o (make <two>)))
+    (check
+	(doit o)
+      => (cons o 789)))
+
+  )
+
+
+
 ;;;; class definition tests and class object inspection
 
-(define-class <one> ()
-  a b c)
+(parameterize ((testname 'class-definition))
+  (define-class <one> ()
+    a b c)
 
-(define-class <two> ()
-  d e f)
+  (define-class <two> ()
+    d e f)
 
-(define-class <three> (<one> <two>)
-  g h i)
+  (define-class <three> (<one> <two>)
+    g h i)
 
-(check
-    (class-of <one>)
-  => <class>)
+  (check
+      (class-of <one>)
+    => <class>)
 
-;; ------------------------------------------------------------
+;;; ------------------------------------------------------------
 
-(check (class-definition-name <one>)
-  => '<one>)
+  (check (class-definition-name <one>)
+    => '<one>)
 
-(check (class-definition-name (class-of <one>))
-  => '<class>)
+  (check (class-definition-name (class-of <one>))
+    => '<class>)
 
-;; ------------------------------------------------------------
+;;; ------------------------------------------------------------
 
-(check (map class-definition-name (class-direct-supers <one>))
-  => '(<object>))
+  (check (map class-definition-name (class-direct-supers <one>))
+    => '(<object>))
 
-(check (map class-definition-name (class-direct-supers <three>))
-  => '(<one> <two>))
+  (check (map class-definition-name (class-direct-supers <three>))
+    => '(<one> <two>))
 
-(check (class-direct-supers <three>)
-  => (list <one> <two>))
+  (check (class-direct-supers <three>)
+    => (list <one> <two>))
 
-(check (class-direct-supers <class>)
-  => (list <object>))
+  (check (class-direct-supers <class>)
+    => (list <object>))
 
-;; ------------------------------------------------------------
+;;; ------------------------------------------------------------
 
-(check
-    (class-direct-slots <one>)
-  => '((a) (b) (c)))
+  (check
+      (class-direct-slots <one>)
+    => '((a) (b) (c)))
 
-(check
-    (class-direct-slots <three>)
-  => '((g) (h) (i)))
+  (check
+      (class-direct-slots <three>)
+    => '((g) (h) (i)))
 
-;; ------------------------------------------------------------
+  ;; ------------------------------------------------------------
 
-(check
-    (class-slots <one>)
-  => '((a) (b) (c)))
+  (check
+      (class-slots <one>)
+    => '((a) (b) (c)))
 
-(check
-    (class-slots <three>)
-  => '((g) (h) (i)
-       (a) (b) (c)
-       (d) (e) (f)))
+  (check
+      (class-slots <three>)
+    => '((g) (h) (i)
+	 (a) (b) (c)
+	 (d) (e) (f)))
 
-;; ------------------------------------------------------------
+;;; ------------------------------------------------------------
 
-(check
-    (class-precedence-list <one>)
-  => (list <one> <object> <top>))
+  (check
+      (class-precedence-list <one>)
+    => (list <one> <object> <top>))
 
-(check
-    (class-precedence-list <three>)
-  => (list <three> <one> <two> <object> <top>))
+  (check
+      (class-precedence-list <three>)
+    => (list <three> <one> <two> <object> <top>))
+
+  )
+
 
 
 ;;;; class instantiation tests and instance inspection
 
-(check
-    (class-of (make <one> 'a 1 'b 2 'c 3))
-  => <one>)
+(parameterize ((testname 'class-instantiation))
 
-(check
-    (class-definition-name (class-of (make <one> 'a 1 'b 2 'c 3)))
-  => '<one>)
+  (define-class <one> ()
+    a b c)
 
-(define-method initialize ((o <one>) initargs)
-  (initialize-direct-slots o (class-of o) initargs))
+  (define-class <two> ()
+    d e f)
 
-(check
-    (let ((o (make <one> 'a 1 'b 2 'c 3)))
-      (slot-ref o 'b))
-  => 2)
+  (define-class <three> (<one> <two>)
+    g h i)
+
+  (check
+      (class-of (make <one> 'a 1 'b 2 'c 3))
+    => <one>)
+
+  (check
+      (class-definition-name (class-of (make <one> 'a 1 'b 2 'c 3)))
+    => '<one>)
+
+  (define-method initialize ((o <one>) initargs)
+    (initialize-direct-slots o (class-of o) initargs))
+
+  (check
+      (let ((o (make <one> 'a 1 'b 2 'c 3)))
+	(slot-ref o 'b))
+    => 2)
+
+  )
 
 
 ;;;; generic function tests
 
-(define-generic my-slots)
+(parameterize ((testname 'generics))
 
-(define-method my-slots ((o <one>))
-  (list (slot-ref o 'a)
-	(slot-ref o 'b)
-	(slot-ref o 'c)))
+  (define-class <one> ()
+    a b c)
 
+  (define-class <two> ()
+    d e f)
+
+  (define-class <three> (<one> <two>)
+    g h i)
+
+
+  (define-generic my-slots)
+
+  (define-method my-slots ((o <one>))
+    (list (slot-ref o 'a)
+	  (slot-ref o 'b)
+	  (slot-ref o 'c)))
+
+
+  )
+
+
+
+;;;; default mop functions
+
+(parameterize ((testname 'default-mop))
+
+  (define-class <one> ()
+    a b c)
+
+  (define-class <two> ()
+    d e f)
+
+  (define-class <three> (<one> <two>)
+    g h i)
+
+  (check
+      (compute-slots <one>)
+    => '((a) (b) (c)))
+
+  )
 
 
 ;;;; done

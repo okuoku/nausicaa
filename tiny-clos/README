@@ -1,6 +1,6 @@
 
-		     Nausicaa/Tiny-CLOS
-		     ==================
+		       Nausicaa/CLOS
+		       =============
 
 
 Topics
@@ -17,13 +17,30 @@ Topics
 1. Overview
 -----------
 
-Nausicaa/Tiny-CLOS is  a repackaging of  Tiny-CLOS developed
-at Xerox Parc by Gregor Kiczales.
+CLOS,  an  acronym  for  Common  Lisp Object  System,  is  a
+standard set  of extensions to  the Common Lisp  language to
+help people do object--oriented programming in Lisp.
+
+Tiny--CLOS is  a Scheme version  of CLOS written in  1992 by
+Gregor  Kiczales  at  Xerox  Park.   It  differs  from  CLOS
+syntactically, but the basic approach  to OOP is the same as
+in CLOS.
+
+R6RS--CLOS  is a  port  of Tiny--CLOS  to  the latest  (6th)
+revision of  the language standard for Scheme.   It uses the
+library system  that is  new in R6RS  to structure  the code
+based  on  functionality  (bootstrap  of  core  classes  and
+generic  functions, actual  implementation  of the  standard
+protocols, class layout, slot access ...).
+
+Nausicaa/CLOS is a repackaging of R6RS--CLOS.
 
 
 2. License
 ----------
 
+Copyright (c) 2008 Abdulaziz Ghuloum
+Copyright (c) 2007, 2008 Christian Sloma
 Copyright (c) 1992 Xerox Corporation.  All Rights Reserved.
 
 Use, reproduction,  and preparation of  derivative works are
@@ -77,8 +94,10 @@ A. Credits
 
 Tiny-CLOS was developed at Xerox Parc by Gregor Kiczales.
 
-  The code was adapter  to R6RS/Ikarus by by Christian Sloma
+  The code has been ported to R6RS/Ikarus by Christian Sloma
 and Abdulaziz Ghuloum.
+
+  Some eventual fixes are by Marco Maggi.
 
 
 B. Bug reports
