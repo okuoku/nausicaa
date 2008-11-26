@@ -1,6 +1,6 @@
 
 (library (clos private compat)
-  
+
   (export every
           every-2
           append-map
@@ -11,18 +11,19 @@
           pointer-value)
 
   (import (rnrs)
-          (only (srfi lists) 
+          (only (srfi lists)
                 every
                 append-map
                 last)
           (only (srfi parameters)
-                make-parameter)
-          (only (ikarus) 
-                pointer-value))
+                make-parameter))
+
+  (define (pointer-value value)
+    (equal-hash value))
 
   (define (position obj lst)
     (let loop ((lst lst) (idx 0) (obj obj))
-      (cond 
+      (cond
         ((null? lst)
          #f)
         ((eq? (car lst) obj)
