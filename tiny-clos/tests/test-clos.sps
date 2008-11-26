@@ -30,6 +30,7 @@
 (import (rnrs)
   (clos core)
   (clos user)
+  (clos introspection)
   (srfi parameters)
   (uriel test))
 
@@ -87,9 +88,19 @@
   (define-class <three> (<one> <two>)
     g h i)
 
+;;; --------------------------------------------------------------------
+
   (check
       (class-of <one>)
     => <class>)
+
+  (check
+      (class-of <class>)
+    => <class>)
+
+;;   (check
+;;       (class-of 123)
+;;     => <top>)
 
 ;;; ------------------------------------------------------------
 
@@ -202,6 +213,11 @@
 	  (slot-ref o 'b)
 	  (slot-ref o 'c)))
 
+;;; --------------------------------------------------------------------
+
+;;   (check
+;;       (class-of <generic>)
+;;     => '())
 
   )
 
