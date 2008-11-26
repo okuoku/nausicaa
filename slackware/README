@@ -1,0 +1,100 @@
+
+			Slackware Build Scripts
+			=======================
+
+
+Topics
+------
+
+1. Introduction
+2. Details about Ikarus
+3. Details about Ypsilon
+
+
+1. Introduction
+---------------
+
+This directory  holds a collection  of build scripts to  package various
+Scheme  implementations for Slackware  GNU+Linux.  These  are unofficial
+scripts, by no  means related to Slackware or  other Linux distributions
+developers.
+
+  Each script is meant  to be run with the GNU Bash  shell, from the top
+source directory  of the Scheme implementation's  project.  For example,
+with Ikarus we should do:
+
+   $ cd ikarus-0.0.4
+   $ bash /path/to/ikarus.sh 0.0.4 1mm
+
+where  the first  argument (0.0.4)  must be  the version  number  of the
+implementation,  and  the  second  argument  (1mm) must  be  the  "build
+revision": the string "1mm" means "build 1 by Marco Maggi".
+
+  If everything goes well, the result of running a script is a Slackware
+package  placed  in  the  current  directory (that  is  the  top  source
+directory of the Scheme implementation project).
+
+  At the top of each script, a several variables are set with the idiom:
+
+   : ${prefix:=/usr/local}
+
+these  values  can be  configured  by  presetting  the variable  in  the
+environment;  for  example, to  configure  the  installation prefix  for
+Ikarus:
+
+   $ cd ikarus-0.0.4
+   $ (prefix=/usr \
+      bash /path/to/ikarus.sh 0.0.4 1mm)
+
+it is not possible to set values to the empty string, but it is possible
+to set the to a single white space, for example:
+
+   $ (prefix=/usr \
+      CONFIG_OPTION=' ' \
+      bash /path/to/ikarus.sh 0.0.4 1mm)
+
+which sometimes will  do what we need.  It is  mandatory to provide good
+values for the TMPDIR and SUDO variables:
+
+* TMPDIR must be  the full pathname of the directory  in which the files
+  will be temporarily installed; it  will default to "/tmp"; the scripts
+  will take care of removing the temporary files and directories;
+
+* SUDO must  be the  name of  the executable that  allows us  to acquire
+  superuser privileges and run a command: it is needed because Slackware
+  packages are meant to be built  with "root" as the preferred owner and
+  group of everything; it will default to "/usr/bin/sudo".
+
+  Always remember that  we have access to the source  of the scripts, so
+we can customise them at will.
+
+
+2. Details about Ikarus
+-----------------------
+
+Ikarus Scheme is  built with the interface to  Libffi activated.  Libffi
+allows Ikarus to  offer a foreign functions interface,  we will probably
+want it.  Details on linking with Libffi are in the Ikarus User's Guide.
+To  disable  linking  with  Libffi  we can  preset  the  "CONFIG_OPTION"
+variable to a single white space.
+
+  If we are interested in  precompiling our own libraries for Ikarus, we
+need to  precompile the libraries  that are installed with  Ikarus, too.
+For this  reason the script  creates a "compile-all.sps"  Scheme program
+and runs it to do the precompilation.  The program precompiles most, but
+not all the libraries: we may need to customise it.
+
+
+3. Details about Ypsilon
+------------------------
+
+The only  thing to notice is  that currently (checkout 285,  Wed Nov 26,
+2008) there is no "configure" script.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 72
+# paragraph-start: "*"
+# End:
