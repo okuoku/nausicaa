@@ -2164,16 +2164,72 @@ respectively.
 @section Low level access to memory
 
 
-The @api{} described in this section is equal to the one provided by
-Ikarus Scheme.  Some implementation may require for the offset into a
-memory block to be aligned to a multiple of the data size to be peeked
-or poked.
+The @api{} described in this section is almost equal to the one provided
+by Ikarus Scheme.  With all the functions the following notices about
+arguments have to be considered.
+
+@table @var
+@item block
+It must be a value that the underlying Scheme implementation uses to
+represent allocated memory blocks.  It may be a fixnum, a bignum, a
+special pointer value or a common Scheme value, we do not know.
+
+@item value
+It must be an exact integer compatible with the target data type.
+
+@item offset
+It must be an exact integer, a fixnum, representing the offset of a byte
+into an allocated block of memory.
+
+Some Scheme implementations may require this value to be consistent with
+the alignment of the target data type on the underlying platform; for
+example with 32 bits integers, the offset may be required to be in the
+sequence 0, 4, 8, @dots{}
+
+@item pointer
+It must be a value that the underlying Scheme implementation uses to
+represent pointer values, @strong{not} to reference a block of allocated
+memory.  @ref{ffi accessors pointers}, for the functions we need to
+handle such values.
+@end table
+
+When adding an offset to a pointer: all the following functions
+@strong{do not} scale the offset to the size of the poked or peeked
+value.  Pointer arithmetics is performed with byte offsets.
 
 
 @menu
+* ffi accessors pointers::      Special pointer functions.
 * ffi accessors pokers::        Poking values.
 * ffi accessors peekers::       Peeking values.
 @end menu
+
+
+@c ------------------------------------------------------------
+
+@c page
+@node ffi accessors pointers
+@subsection Special pointer functions
+
+
+@deffn Procedure pointer->integer @var{pointer}
+Convert the value of @var{pointer} to an exact integer value.  The
+result may be a fixnum or a bignum depending on the pointer.
+@end deffn
+
+
+@deffn Procedure integer->pointer @var{exact-integer}
+Convert @var{exact-integer} to a pointer value.  The lower 32 bits (or
+64 bits on 64-bit systems) of the argument are significant in computing
+the pointer value.  It is guaranteed that @code{(integer->pointer
+(pointer->integer p))} points to the same address as @var{p}.
+@end deffn
+
+
+@deffn Procedure pointer? @var{x}
+Return @true{} if the value of @var{x} is a pointer, return @false{}
+otherwise.
+@end deffn
 
 
 @c ------------------------------------------------------------
@@ -2183,17 +2239,9 @@ or poked.
 @subsection Poking values
 
 
-@noindent
-With all the following functions: the @var{pointer} argument must be a
-valid pointer; the @var{offset} and @var{value} arguments must be exact
-integers.  When adding an offset to a pointer: all the following
-functions @strong{do not} scale the offset to the size of the poked
-value.  Pointer arithmetics is performed with byte offsets.
-
-
 @macro poker{BYTENUM,BITNUM}
 Set to @var{value} the \BYTENUM\ of memory located at @var{offset} from
-@var{pointer}.  Only the \BITNUM\ lowermost bits of @var{value} are used
+@var{block}.  Only the \BITNUM\ lowermost bits of @var{value} are used
 in the operation and the remaining bits are ignored.
 @end macro
 
@@ -2203,22 +2251,22 @@ in the operation and the remaining bits are ignored.
 @subsubheading Poking exact integers
 
 
-@deffn Procedure pointer-set-c-char! @var{pointer} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-char! @var{block} @var{offset} @var{value}
 @poker{single byte,8}
 @end deffn
 
 
-@deffn Procedure pointer-set-c-short! @var{pointer} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-short! @var{block} @var{offset} @var{value}
 @poker{two bytes,16}
 @end deffn
 
 
-@deffn Procedure pointer-set-c-int! @var{pointer} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-int! @var{block} @var{offset} @var{value}
 @poker{four bytes,32}
 @end deffn
 
 
-@deffn Procedure pointer-set-c-long! @var{pointer} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-long! @var{block} @var{offset} @var{value}
 On 64-bit systems: @poker{eight bytes,64}
 
 On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
@@ -2230,18 +2278,18 @@ On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
 @subsubheading Poking floating point numbers
 
 
-@deffn Procedure pointer-set-c-float! @var{pointer} @var{offset} @var{flonum}
+@deffn Procedure pointer-set-c-float! @var{block} @var{offset} @var{flonum}
 Convert the Scheme floating point number @var{flonum} (represented in
 Ikarus as an @ieee{} 754 double precision floating point number) to a
 float (an @ieee{} 754 single precision floating point number) and store
-the result in the four bytes at @var{offset} from @var{pointer}.
+the result in the four bytes at @var{offset} from @var{block}.
 @end deffn
 
 
-@deffn Procedure pointer-set-c-double! @var{pointer} @var{offset} @var{flonum}
+@deffn Procedure pointer-set-c-double! @var{block} @var{offset} @var{flonum}
 Store the double precision @ieee{} 754 floating point value of the
 Scheme @var{flonum} in the eight bytes at @var{offset} from
-@var{pointer}.
+@var{block}.
 @end deffn
 
 
@@ -2250,13 +2298,17 @@ Scheme @var{flonum} in the eight bytes at @var{offset} from
 @subsubheading Poking pointers
 
 
-@deffn Procedure pointer-set-c-pointer! @var{pointer} @var{offset} @var{value}
-On 64-bit systems: set the eight bytes at @var{offset} from
-@var{pointer} to the 64-bit pointer @var{value}.
+@deffn Procedure pointer-set-c-pointer! @var{block} @var{offset} @var{pointer}
+On 64-bit systems: set the eight bytes at @var{offset} from @var{block}
+to the 64-bit pointer @var{pointer}.
 
-On 32-bit systems: set the four bytes at @var{offset} from @var{poiner}
-to the 32-bit pointer @var{value}.
+On 32-bit systems: set the four bytes at @var{offset} from @var{block}
+to the 32-bit pointer @var{pointer}.
+
+We have to assume that we can convert an exact integer to a pointer
+value using @func{integer->pointer}.
 @end deffn
+
 
 @c ------------------------------------------------------------
 
@@ -2265,29 +2317,19 @@ to the 32-bit pointer @var{value}.
 @subsection Peeking values
 
 
-@noindent
-With all the following functions: the @var{pointer} argument must be a
-valid pointer; the @var{offset} argument must be an exact integer.  When
-adding an offset to a pointer: all the following functions @strong{do
-not} scale the offset to the size of the poked value.  Pointer
-arithmetics is performed with byte offsets.
-
-
-@c ------------------------------------------------------------
-
 @subsubheading Peeking exact integers
 
 
-@deffn Procedure pointer-ref-c-signed-char @var{pointer} @var{offset}
-Peek the single byte located at @var{offset} from @var{pointer} and
+@deffn Procedure pointer-ref-c-signed-char @var{block} @var{offset}
+Peek the single byte located at @var{offset} from @var{block} and
 return an exact integer representing the sign--extended integer value of
 that byte. The resulting value is in the inclusive range @code{[-128,
 127]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-char @var{pointer} @var{offset}
-Peek the single byte located at @var{offset} from @var{pointer} and
+@deffn Procedure pointer-ref-c-unsigned-char @var{block} @var{offset}
+Peek the single byte located at @var{offset} from @var{block} and
 return an exact integer representing the unsigned integer value of that
 byte.  The resulting value is in the inclusive range @code{[0, 255]}.
 @end deffn
@@ -2314,34 +2356,34 @@ above:
 @end example
 
 
-@deffn Procedure pointer-ref-c-signed-short @var{pointer} @var{offset}
-Peek two bytes at @var{offset} from @var{pointer} and return an exact
+@deffn Procedure pointer-ref-c-signed-short @var{block} @var{offset}
+Peek two bytes at @var{offset} from @var{block} and return an exact
 integer representing the sign--extended integer value of the sequence.
 The resulting value is in the inclusive range @code{[-32768, 32767]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-short @var{pointer} @var{offset}
-Peek two bytes at @var{offset} from @var{pointer} and return an exact
+@deffn Procedure pointer-ref-c-unsigned-short @var{block} @var{offset}
+Peek two bytes at @var{offset} from @var{block} and return an exact
 integer representing the unsigned integer value of the sequence.  The
 resulting value is in the inclusive range @code{[0, 65535]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-signed-int @var{pointer} @var{offset}
-Peek four bytes at @var{offset} from @var{pointer} and return an exact
+@deffn Procedure pointer-ref-c-signed-int @var{block} @var{offset}
+Peek four bytes at @var{offset} from @var{block} and return an exact
 integer in the inclusive range @code{[-2^31, 2^31-1]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-int @var{pointer} @var{offset}
-Peek four bytes at @var{offset} from @var{pointer} and return an exact
+@deffn Procedure pointer-ref-c-unsigned-int @var{block} @var{offset}
+Peek four bytes at @var{offset} from @var{block} and return an exact
 integer in the inclusive range @code{[0, 2^32-1]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-signed-long @var{pointer} @var{offset}
-On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
+@deffn Procedure pointer-ref-c-signed-long @var{block} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{block}
 and return an integer in the inclusive range @code{[-2^63, 2^63-1]}.
 
 On 32-bit systems, perform the same task as
@@ -2349,8 +2391,8 @@ On 32-bit systems, perform the same task as
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-long @var{pointer} @var{offset}
-On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
+@deffn Procedure pointer-ref-c-unsigned-long @var{block} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{block}
 and return an integer in the inclusive range @code{[0, 2^64-1]}.
 
 On 32-bit systems: perform the same task as
@@ -2362,18 +2404,18 @@ On 32-bit systems: perform the same task as
 @subsubheading Peeking floating point numbers
 
 
-@deffn Procedure pointer-ref-c-float @var{pointer} @var{offset}
+@deffn Procedure pointer-ref-c-float @var{block} @var{offset}
 Return the four--byte float (represented as @ieee{} 754 single precision
-floating point number) stored at @var{offset} from @var{pointer}.  The
+floating point number) stored at @var{offset} from @var{block}.  The
 value is extended to an @ieee{} 754 double precision floating point
 number that Ikarus uses to represent inexact numbers.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-double @var{pointer} @var{offset}
+@deffn Procedure pointer-ref-c-double @var{block} @var{offset}
 Return the eight--byte float (represented as @ieee{} 754 double
 precision floating point number) stored at @var{offset} from
-@var{pointer}.
+@var{block}.
 @end deffn
 
 @c ------------------------------------------------------------
@@ -2381,12 +2423,16 @@ precision floating point number) stored at @var{offset} from
 @subsubheading Peeking pointers
 
 
-@deffn Procedure pointer-ref-c-pointer @var{pointer} @var{offset}
-Return the pointer stored at @var{offset} from @var{pointer}.  The size
-of the pointer (also the number of bytes loaded) depends on the
-architecture: it is 4 bytes on 32-bit systems and 8 bytes on 64-bit
-systems.
+@deffn Procedure pointer-ref-c-pointer @var{block} @var{offset}
+Return the a value representing the pointer stored at @var{offset} from
+@var{block}.  The size of the pointer (also the number of bytes loaded)
+depends on the architecture: it is 4 bytes on 32-bit systems and 8 bytes
+on 64-bit systems.
+
+We have to assume that the returned value can be converted to an exact
+integer with @func{pointer->integer}.
 @end deffn
+
 
 @c ------------------------------------------------------------
 
