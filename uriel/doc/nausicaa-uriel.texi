@@ -2165,7 +2165,9 @@ respectively.
 
 
 The @api{} described in this section is equal to the one provided by
-Ikarus Scheme.
+Ikarus Scheme.  Some implementation may require for the offset into a
+memory block to be aligned to a multiple of the data size to be peeked
+or poked.
 
 
 @menu

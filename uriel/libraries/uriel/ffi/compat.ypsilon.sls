@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-25 16:49:52 marco>
+;;;Time-stamp: <2008-11-26 10:26:51 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -62,7 +62,10 @@
     pointer-set-c-char!			pointer-set-c-short!
     pointer-set-c-int!			pointer-set-c-long!
     pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-pointer!)
+    pointer-set-c-pointer!
+
+    ;;pointers
+    integer->pointer pointer->integer pointer?)
   (import (core)
 ;;;    (uriel printing)
     (srfi receive)
@@ -172,13 +175,15 @@
 ;;;
 (define (external->internal type)
   (case type
-    ((int signed-int uint unsigned unsigned-int size_t ssize_t)
+    ((int signed-int ssize_t uint unsigned unsigned-int size_t)
      'int)
     ((double)
      'double)
     ((float)
      'float)
     ((pointer void* char*)
+     'void*)
+    ((callback)
      'void*)
     ((void)
      'void)
@@ -225,17 +230,11 @@
        assert-bytevector)
       ((char*)
        assert-char*)
+      ((callback)
+       assert-closure)
       (else
        (assertion-violation 'make-c-callout
 	 "unknown C language type identifier used for function argument" arg-type))))
-
-;;       ((_ name n [c-callback void (args ...)] var)
-;;        (make-callback 0 (c-callback-arguments args ...) (assert-closure 'name n var)))
-;;       ((_ name n [c-callback int (args ...)] var)
-;;        (make-callback 0 (c-callback-arguments args ...) (assert-closure 'name n var)))
-;;       ((_ name n [c-callback void __stdcall (args ...)] var)
-;;        (make-callback 1 (c-callback-arguments args ...) (assert-closure 'name n var)))
-;;       ((_ name n [c-callback int __stdcall (args ...)] var)
 
   (receive (cast-func stub-func)
       (select-cast-and-stub (external->internal ret-type))
@@ -288,8 +287,8 @@
 (define pointer-ref-c-unsigned-long	(when on-32-bits-system
 					  bytevector-u32-native-ref
 					  bytevector-u64-native-ref))
-(define pointer-ref-c-float		bytevector-s32-native-ref)
-(define pointer-ref-c-double		bytevector-s64-native-ref)
+(define pointer-ref-c-float		bytevector-ieee-single-native-ref)
+(define pointer-ref-c-double		bytevector-ieee-double-native-ref)
 (define pointer-ref-c-pointer
   (cond ((= 4 sizeof-pointer)		bytevector-u32-native-ref)
 	((= 8 sizeof-pointer)		bytevector-u64-native-ref)
@@ -297,20 +296,33 @@
 	 (assertion-violation 'pointer-ref-c-pointer
 	   "cannot determine size of pointers for peeker function"))))
 
-(define pointer-set-c-char!		bytevector-s8-set!)
-(define pointer-set-c-short!		bytevector-s16-native-set!)
-(define pointer-set-c-int!		bytevector-s32-native-set!)
+(define pointer-set-c-char!		bytevector-u8-set!)
+(define pointer-set-c-short!		bytevector-u16-native-set!)
+(define pointer-set-c-int!		bytevector-u32-native-set!)
 (define pointer-set-c-long!		(when on-32-bits-system
-					  bytevector-s32-native-set!
-					  bytevector-s64-native-set!))
-(define pointer-set-c-float!		bytevector-s32-native-set!)
-(define pointer-set-c-double!		bytevector-s64-native-set!)
+					  bytevector-u32-native-set!
+					  bytevector-u64-native-set!))
+(define pointer-set-c-float!		bytevector-ieee-single-native-set!)
+(define pointer-set-c-double!		bytevector-ieee-double-native-set!)
 (define pointer-set-c-pointer!
   (cond ((= 4 sizeof-pointer)		bytevector-u32-native-set!)
 	((= 8 sizeof-pointer)		bytevector-u64-native-set!)
 	(else
 	 (assertion-violation 'pointer-set-c-pointer
 	   "cannot determine size of pointers for peeker function"))))
+
+
+
+;;;; pointers
+
+(define (integer->pointer x)
+  x)
+
+(define (pointer->integer x)
+  x)
+
+(define (pointer? x)
+  (fixnum? x))
 
 
 

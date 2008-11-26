@@ -10,7 +10,6 @@
   "scheme-script" executable,  so that, in  some way, it is  possible to
   run them with both Ikarus and Ypsilon.
 * Document somewhere that ypsilon requires the --compatible flag.
-* Add the slackware scripts for Ikarus and Ypsilon.
 * Review the infrastructure documentation.
 
 ## ------------------------------------------------------------
