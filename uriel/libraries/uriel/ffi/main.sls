@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-25 17:33:48 marco>
+;;;Time-stamp: <2008-11-26 10:27:57 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -58,7 +58,10 @@
     pointer-set-c-char!			pointer-set-c-short!
     pointer-set-c-int!			pointer-set-c-long!
     pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-pointer!)
+    pointer-set-c-pointer!
+
+    ;;pointers
+    integer->pointer pointer->integer pointer?)
 
   (import (rnrs)
     (uriel lang)
