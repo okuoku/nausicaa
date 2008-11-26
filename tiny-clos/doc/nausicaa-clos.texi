@@ -419,6 +419,7 @@ Documentation License''.
 Appendices
 
 * examples::                    Usage examples.
+* internals::                   Implementation details.
 * Package License::             Package License.
 * Documentation License::       GNU Free Documentation License.
 * references::                  Bibliography and references.
@@ -669,9 +670,10 @@ The definitions below show usage examples that refer to the following
 top--level program incipit:
 
 @example
-(import (clos core)
-        (clos user)
-        (srfi lightweight-testing))
+(import (rnrs)
+  (clos core)
+  (clos user)
+  (srfi lightweight-testing))
 
 (define-class <one> ()
   a b c)
@@ -948,7 +950,229 @@ that is: to tag ensembles of values so that the correct function can be
 selected for them.  In a couple of words: multimethod dispatching.
 
 
-@c ------------------------------------------------------------
+@c page
+@node internals
+@appendix Implementation details
+
+
+This appendix documents the implementation details of the libraries in
+the @rnrs{6} compliant sources.  The purpose of this appendix is to
+provide some momentum in the comprehension of the code base.  Several
+functions and variables described in this appendix are @strong{not}
+exported by the libraries.
+
+
+@menu
+* internals jargon::            Jargon.
+* internals allocation::        Built in allocation.
+@end menu
+
+
+@c page
+@node internals jargon
+@appendixsec Jargon
+
+
+It is really difficult to express the concepts of programming with
+@clos{} with no circular definitions.  What follows fails to do it: the
+following definitions do have circular dependency relations.
+
+
+@subsubheading Type
+@cindex Definition of type
+
+A type is the set of values for which it makes sense to define a
+predicate to distinguish them from other values.  For example, when
+programming a solution to a problem, it makes sense to define the
+predicate @func{number?} to distinguish numbers from non--numbers:
+numbers are a type of value.
+
+
+@subsubheading Built in value
+@cindex Definition of built in value
+
+Everything that can be used as argument to a function in a Scheme
+program is a built in value.  These are the booleans @true{} and
+@false{}, the numbers, the symbols, the closures, the vectors, the
+bytevectors, etc.
+
+
+@subsubheading Object
+@cindex Definition of object
+
+An object is an ensemble of values to which @clos{} assigns a special
+interpretation.  The ensemble is represented by a single built in value.
+Every ensemble that @clos{} allocates and initialises, possibly using
+user provided functions, is an object.  Each object has a class that
+is explicitly selected at allocation time.
+
+Objects can hold data for various purposes, both for @clos{} itself
+and for user's usage.
+
+All the objects are of class @class{top} and @strong{also} of some
+subclass of @class{top}.
+
+
+@subsubheading Primitive value
+@cindex Definition of primitive value
+
+Every built in value that is not interpreted by @clos{} as
+representative of an object is a primitive value.
+
+@clos{} formally assigns a ``primitive class'' to each of the primitive
+values, but @clos{} neither allocates nor initialises primitive values.
+All the primitive values are formally of class @class{top}, and may be of
+some primitive subclass of @class{top}.  That is: the class @class{top}
+and its primitive subclasses describe how to dispatch methods for built
+in values.
+
+A primitive value is of a specified primitive class if it satisfies a
+predicate.  For example: all the values that satisfy @func{number?} are
+formally of primitive class @class{number}; all the values that satisfy
+@func{vector?} are formally of primitive class @class{vector}.
+
+
+@subsubheading Class
+@cindex Definition of class
+
+An object that describes how to allocate, initialise and dispatch
+methods for a type of object, or that describes how to dispatch
+methods for a type of primitive values is a class.
+
+
+@subsubheading Instance
+@cindex Definition of instance
+
+An object whose purpose is to hold an ensemble of values for user's
+usage is an instance.  An instance is itself a piece of data, a value,
+it does not describe a type of values.
+
+Instances are allocated and initialised by @clos{}, they ``are of
+class'' @class{top} and also they ``are of'' some subclass of
+@class{top}.  Not being classes, their class is not a meta class.
+
+
+@subsubheading Meta class
+@cindex Definition of meta class
+
+A class that describes how to allocate, initialise and dispatch methods
+for a type of class is a meta class.  All the meta classes are of class
+@class{class} and have the following class hierarchy:
+
+@example
+<top> -> <class> -> ---
+@end example
+
+@noindent
+@class{class} itself is of class @class{class}.  Examples of class
+hierarchies for meta classes:
+
+@noindent
+examples:
+
+@example
+<top> -> <class>
+<top> -> <class> -> <primitive-class>
+<top> -> <class> -> <procedure-class>
+<top> -> <class> -> <procedure-class> -> <entity-class>
+@end example
+
+
+@subsubheading Primitive class
+@cindex Definition of primitive class
+
+A class is a primitive class if it is formally assigned to a type of
+primitive values, with the purpose of describing how to dispatch methods
+for them.  Examples of primitive classes are @class{number} and
+@class{vector}.
+
+All the primitive classes are of meta class @class{primitive-class}, and
+they have the following class hiearchy:
+
+@example
+<top> -> ---
+@end example
+
+@noindent
+the class hierarchy of the meta class @class{primitive-class} is:
+
+@example
+<top> -> <class> -> <primitive-class>
+@end example
+
+Examples of primitive class:
+
+@example
+<top> -> <number>
+<top> -> <vector>
+@end example
+
+@noindent
+we can say that:
+
+@itemize
+@item
+@class{number} being an object, the class of @class{number} is
+@class{primitive-class};
+
+@item
+@class{number} being a class, the meta class of @class{number} is
+@class{primitive-class};
+
+@item
+the superclass of @class{number} is @class{top};
+
+@item
+the numbers (which are primitive values) are of class @class{number}.
+@end itemize
+
+
+@subsubheading Entity class object
+@cindex Definition of entity class object
+
+It is the meta class of both generic functions.  Every class with entity
+class as meta has an object procedure, which is the function that gets
+invoked when we apply a generic function to some arguments.
+
+
+@c page
+@node internals allocation
+@appendixsec Built in allocation
+
+
+This section describes the built in allocation of classes and instances.
+
+
+@deftp {Record Type} instance-record
+Record descriptor whose instances are used for both built in class
+object and instance object allocations.  Slots description:
+
+@table @code
+@item class
+it is initialised to the class of this object;
+
+@item slots
+a vector with one element for each direct slot of this object;
+
+@item iproc
+the instance proc: used for objects of class @class{entity-class},
+unused for all the other classes;
+
+the entity classes are generic functions and methods, and this procedure
+is the function that gets invoked when the generic or the method is
+applied to arguments.
+@end table
+@end deftp
+
+
+@defun really-allocate-instance @var{class} @var{field-count}
+Instantiate a record of type @code{instance-record}.  The vector of
+slots will have @var{field-count} elements, initialised to an
+unspecified value (it means: empty).  The @code{iproc} is set to
+@false{}.
+@end defun
+
+
 
 @c page
 @node Package License
