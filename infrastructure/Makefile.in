@@ -193,6 +193,7 @@ BASH_PROGRAM	= @BASH_PROGRAM@
 SHELL		= @SHELL@
 @SET_MAKE@
 MAKE_SILENT	= $(MAKE) --silent
+MAKE_NODIR	= $(MAKE) --no-print-directory
 
 BZIP		= @BZIP@
 CAT		= @CAT@
@@ -497,7 +498,7 @@ else
 endif
 
 ytests ytest ycheck:
-	$(MAKE) test NAU_USE_YPSILON=yes
+	@$(MAKE_NODIR) test NAU_USE_YPSILON=yes
 
 ## ------------------------------------------------------------
 
