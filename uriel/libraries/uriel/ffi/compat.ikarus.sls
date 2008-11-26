@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-25 16:49:43 marco>
+;;;Time-stamp: <2008-11-26 10:24:23 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -55,24 +55,18 @@
     pointer-set-c-char!			pointer-set-c-short!
     pointer-set-c-int!			pointer-set-c-long!
     pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-pointer!)
+    pointer-set-c-pointer!
+
+    ;;pointers
+    pointer? pointer->integer integer->pointer)
   (import (rnrs)
 ;;;    (uriel printing)
     (srfi parameters)
     (ikarus foreign))
 
+
 
-;;;; dynamic loading and interface functions
-
-(define self-shared-object (dlopen))
-
-(define shared-object
-  (make-parameter self-shared-object))
-
-(define (primitive-open-shared-object library-name)
-  (let ((l (dlopen library-name)))
-    (or l (error 'primitive-open-symbol-table
-	    (dlerror) library-name))))
+;;;;  values normalisation: Uriel -> Ikarus
 
 (define (external->internal type)
   (case type
@@ -98,6 +92,20 @@
      'void)
     (else (error 'make-c-function
 	    "unknown C language type identifier" type))))
+
+
+
+;;;; dynamic loading and interface functions
+
+(define self-shared-object (dlopen))
+
+(define shared-object
+  (make-parameter self-shared-object))
+
+(define (primitive-open-shared-object library-name)
+  (let ((l (dlopen library-name)))
+    (or l (error 'primitive-open-symbol-table
+	    (dlerror) library-name))))
 
 (define make-c-callout-maybe
   (letrec ((signature-hash
