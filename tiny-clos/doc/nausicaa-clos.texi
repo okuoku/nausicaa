@@ -409,7 +409,7 @@ Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* types::                       Predefined class types.
+* class::                       Classes.
 * define::                      Defining stuff.
 * generic::                     Available generic functions.
 * slot::                        Slot access.
@@ -430,7 +430,32 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Overview of the package
+
+* jargon::                      Jargon.
+
+Class and object inspection
+
+* inspect class::               Inspecting class objects.
+* inspect instance::            Inspecting class instances.
+* inspect generic::             Inspecting generic functions.
+
+Usage examples
+
+* examples basics::             Basic examples.
+
+Implementation details
+
+* internals allocation::        Built in allocation.
+* internals slot access::       Accessing slots.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 
@@ -458,24 +483,262 @@ implementation of the standard protocols, class layout, slot access
 @value{PACKAGE} is a repackaging of @rnrs{6}--@clos{}.
 
 
+@menu
+* jargon::                      Jargon.
+@end menu
+
 
 @c page
-@node types
-@chapter Predefined class types
+@node jargon
+@section Jargon
+
+
+It is difficult to express the concepts of programming with @clos{} with
+no circular definitions.  What follows fails to do it.
+
+
+@subsubheading Type
+@cindex Definition of type
+
+A type is the set of values for which it makes sense to define a
+predicate to distinguish them from other values.  For example, when
+programming a solution to a problem, it makes sense to define the
+predicate @func{number?} to distinguish numbers from non--numbers:
+numbers are a type of value.
+
+
+@subsubheading Built in value
+@cindex Definition of built in value
+
+Everything that can be used as argument to a function in a Scheme
+program is a built in value.  These are the booleans @true{} and
+@false{}, the numbers, the symbols, the closures, the vectors, the
+bytevectors, etc.  Syntaxes and libraries are not built in values.
+
+
+@subsubheading Object
+@cindex Definition of object
+
+An object is an ensemble of built in values to which @clos{} assigns a
+special meaning.  Each object is represented by a single built in value.
+All the objects belong to a type: there exists a predicate to
+distinguish objects from non--objects.  Subsets of all the objects may
+form a type.
+
+Single built in values are constructed by the Scheme implementation, but
+objects (that is: ensembles of built in values) are allocated and
+initialised by @clos{}, possibly using user provided functions.
+
+Example: vectors are constructed by the Scheme implementation and each
+element is set to default values; if @clos{} @emph{allocates} a vector,
+it requests to the Scheme implementation the construction of a vector of
+specified size; if @clos{} @emph{initialises} a vector, it stores
+meaningful values in the vector.
+
+Objects can hold data for various purposes, both for @clos{} itself and
+for user's usage.
+
+
+@subsubheading Primitive value
+@cindex Definition of primitive value
+
+Every built in value that is not interpreted by @clos{} as
+representative of an object, is a primitive value.  Primitive values are
+in the non--objects type.  @clos{} neither allocates nor initialises
+primitive values.
+
+@clos{} formally assigns a @emph{primitive type} to each primitive
+value, using predicates in the Scheme implementation.  For example: all
+the values that satisfy @func{number?} are formally of primitive type
+@emph{number}; all the values that satisfy @func{vector?} are formally
+of primitive type @emph{vector}.
+
+
+@subsubheading Class object or simply class
+@cindex Definition of class object
+
+An object is a class if @clos{} makes use of it to:
+
+@itemize
+@item
+describe how to allocate, initialise and dispatch methods for a type of
+objects;
+
+@item
+describe how to dispatch methods for a type of primitive values.
+@end itemize
+
+Classes have symbols as public names; the name of such symbols must
+begin with a @code{<} character and end with a @code{>} character
+(angular parentheses).
+
+A value for which the class @class{a} describes method dispatching, and
+possibly allocation and initialisation, ``is of class @class{a}''.
+
+Classes are organised in a hierarchy (a directed acyclic graph), so that
+every built in value may belong to more than one class: it belongs to a
+class and to all the class's ancestors, if any.
+
+All the built in values are of class @class{top}, all the objects are of
+class @class{object}, all the classes are of class @class{class}.
+
+
+@subsubheading Superclass object or simply superclass
+@cindex Definition of superclass object
+
+If the class @class{a} is an ancestor of the class @class{b}, then:
+@class{a} is a superclass of @class{b}.  If @class{a} is a superclass of
+@class{b} and in the acyclic graph of dependencies it is linked directly
+to it, then: @class{a} is a @emph{direct} superclass of @class{b}.
+
+If @class{a} is a superclass of @class{b}, we can say that ``@class{b}
+is a @class{a}''.
+
+
+@subsubheading Subclass object or simply subclass
+@cindex Definition of subclass object
+
+If @class{a} is a superclass of @class{b}, then: @class{b} is a
+subclass of @class{a}.
+
+
+@subsubheading Instance object or simply instance
+@cindex Definition of instance object
+
+All the objects are instances.  Primitive values are not instances.  We
+use the word instance, instead of object, when we want to highlight the
+relation between an object and its class.
+
+
+@subsubheading Meta class object or simply meta class
+@cindex Definition of meta class object
+
+Being an object, each class is an instance of a class.  A class that
+describes how to allocate, initialise and dispatch methods for a type of
+class is a meta class.  All the meta classes are of class @class{class}
+and have the following class hierarchy:
+
+@example
+<top> -> <class> -> ---
+@end example
+
+@noindent
+@class{class} itself is an instance of @class{class}.  Examples of class
+hierarchies for meta classes:
+
+@noindent
+examples:
+
+@example
+<top> -> <class>
+<top> -> <class> -> <primitive-class>
+<top> -> <class> -> <procedure-class>
+<top> -> <class> -> <procedure-class> -> <entity-class>
+@end example
+
+
+@subsubheading Primitive class object or simply primitive class
+@cindex Definition of primitive class object
+
+A class is a primitive class if it is formally assigned to a type of
+primitive values, with the purpose of describing how to dispatch methods
+for them.  Examples of primitive classes are @class{number} and
+@class{vector}.
+
+All the primitive classes are instances of @class{primitive-class}
+(which is a meta class), and they have the following class hiearchy:
+
+@example
+<top> -> ---
+@end example
+
+@noindent
+the class hierarchy of the meta class @class{primitive-class} is:
+
+@example
+<top> -> <class> -> <primitive-class>
+@end example
+
+Examples of primitive class:
+
+@example
+<top> -> <number>
+<top> -> <vector>
+@end example
+
+@noindent
+we can say that:
+
+@itemize
+@item
+@class{number} being an object, the class of @class{number} is
+@class{primitive-class};
+
+@item
+@class{number} being a class, the meta class of @class{number} is
+@class{primitive-class};
+
+@item
+the superclass of @class{number} is @class{top};
+
+@item
+the numbers (which are primitive values) are of class @class{number}.
+@end itemize
+
+
+@subsubheading Entity class object or simply entity class
+@cindex Definition of entity class object
+
+It is the meta class of generic functions.
+
+
+@c page
+@node class
+@chapter Classes
+
+
+@menu
+* class predefined::            Catalogue of predefined classes.
+@end menu
+
+
+@c page
+@node class predefined
+@section Catalogue of predefined classes
+
+
+@menu
+* class top::                   Universal base classes.
+* class meta::                  Meta classes.
+* class generic::               Generic functions and methods.
+* class primitive::             Primitive classes.
+@end menu
+
+
+@c page
+@node class top
+@subsection Universal base classes
 
 
 @deftp Class <top>
-The base class for all the classes.
-@end deftp
-
-
-@deftp Class <class>
-The base class for all the class objects representing a class.
+The base class for all the built in values.  This is actually the base
+class for all the instance objects, and formally it this is the base
+class for all the primitive values.
 @end deftp
 
 
 @deftp Class <object>
-The base class for all the class objects representing an instance.
+The base class for all the instance objects.
+@end deftp
+
+
+@c page
+@node class meta
+@subsection Meta classes
+
+
+@deftp Class <class>
+The base class for all the meta class objects.
 @end deftp
 
 
@@ -485,8 +748,18 @@ Who knows?
 
 
 @deftp Class <entity-class>
-Who knows?
+The base class for all the entity meta classes.
 @end deftp
+
+
+@deftp <primitive-class>
+The meta class of all the primitive classes.
+@end deftp
+
+
+@c page
+@node class generic
+@subsection Generic functions and methods
 
 
 @deftp Class <generic>
@@ -499,7 +772,111 @@ The class of methods.
 @end deftp
 
 
-@c ------------------------------------------------------------
+@c page
+@node class primitive
+@subsection Primitive classes
+
+
+@menu
+* class primitive lists::       List related classes.
+* class primitive compound::    Non--list compound data.
+* class primitive numbers::     Numeric primitive values.
+* class primitive ports::       Port primitive values.
+* class primitive values::      Other primitive values.
+@end menu
+
+
+@c page
+@node class primitive lists
+@subsubsection List related classes
+
+
+@deftp <pair>
+The primitive class for pairs.  Primitive values ``are of'' this class
+if they satisfy the predicate @func{pair?}.
+@end deftp
+
+
+@deftp <null>
+The primitive class for empty lists.  Primitive values ``are of'' this
+class if they satisfy the predicate @func{null?}.
+@end deftp
+
+
+@c page
+@node class primitive compound
+@subsubsection Non--list compound data
+
+
+@deftp <vector>
+The primitive class for vectors.  Primitive values ``are of'' this class
+if they satisfy the predicate @func{vector?}.
+@end deftp
+
+
+@deftp <string>
+The primitive class for strings.  Primitive values ``are of'' this class
+if they satisfy the predicate @func{string?}.
+@end deftp
+
+
+@c page
+@node class primitive numbers
+@subsubsection Numeric primitive values
+
+
+@deftp <number>
+The primitive class for numbers.  Primitive values ``are of'' this class
+if they satisfy the predicate @func{number?}.
+@end deftp
+
+
+@c page
+@node class primitive ports
+@subsubsection Port primitive values
+
+
+@deftp <input-port>
+The primitive class for input ports.  Primitive values ``are of'' this
+class if they satisfy the predicate @func{input-port?}.
+@end deftp
+
+
+@deftp <output-port>
+The primitive class for output ports.  Primitive values ``are of'' this
+class if they satisfy the predicate @func{output-port?}.
+@end deftp
+
+
+@c page
+@node class primitive values
+@subsubsection Other primitive values
+
+
+@deftp <symbol>
+The primitive class for symbols.  Primitive values ``are of'' this class
+if they satisfy the predicate @func{symbol?}.
+@end deftp
+
+
+@deftp <boolean>
+The primitive class for booleans.  Primitive values ``are of'' this
+class if they satisfy the predicate @func{boolean?}, only @true{} and
+@false{} will do.
+@end deftp
+
+
+@deftp <procedure>
+The primitive class for procedures.  Primitive values ``are of'' this
+class if they satisfy the predicate @func{procedure?}.
+@end deftp
+
+
+@deftp <char>
+The primitive class for characters.  Primitive values ``are of'' this
+class if they satisfy the predicate @func{char?}.
+@end deftp
+
 
 @c page
 @node define
@@ -963,176 +1340,9 @@ exported by the libraries.
 
 
 @menu
-* internals jargon::            Jargon.
 * internals allocation::        Built in allocation.
+* internals slot access::       Accessing slots.
 @end menu
-
-
-@c page
-@node internals jargon
-@appendixsec Jargon
-
-
-It is really difficult to express the concepts of programming with
-@clos{} with no circular definitions.  What follows fails to do it: the
-following definitions do have circular dependency relations.
-
-
-@subsubheading Type
-@cindex Definition of type
-
-A type is the set of values for which it makes sense to define a
-predicate to distinguish them from other values.  For example, when
-programming a solution to a problem, it makes sense to define the
-predicate @func{number?} to distinguish numbers from non--numbers:
-numbers are a type of value.
-
-
-@subsubheading Built in value
-@cindex Definition of built in value
-
-Everything that can be used as argument to a function in a Scheme
-program is a built in value.  These are the booleans @true{} and
-@false{}, the numbers, the symbols, the closures, the vectors, the
-bytevectors, etc.
-
-
-@subsubheading Object
-@cindex Definition of object
-
-An object is an ensemble of values to which @clos{} assigns a special
-interpretation.  The ensemble is represented by a single built in value.
-Every ensemble that @clos{} allocates and initialises, possibly using
-user provided functions, is an object.  Each object has a class that
-is explicitly selected at allocation time.
-
-Objects can hold data for various purposes, both for @clos{} itself
-and for user's usage.
-
-All the objects are of class @class{top} and @strong{also} of some
-subclass of @class{top}.
-
-
-@subsubheading Primitive value
-@cindex Definition of primitive value
-
-Every built in value that is not interpreted by @clos{} as
-representative of an object is a primitive value.
-
-@clos{} formally assigns a ``primitive class'' to each of the primitive
-values, but @clos{} neither allocates nor initialises primitive values.
-All the primitive values are formally of class @class{top}, and may be of
-some primitive subclass of @class{top}.  That is: the class @class{top}
-and its primitive subclasses describe how to dispatch methods for built
-in values.
-
-A primitive value is of a specified primitive class if it satisfies a
-predicate.  For example: all the values that satisfy @func{number?} are
-formally of primitive class @class{number}; all the values that satisfy
-@func{vector?} are formally of primitive class @class{vector}.
-
-
-@subsubheading Class
-@cindex Definition of class
-
-An object that describes how to allocate, initialise and dispatch
-methods for a type of object, or that describes how to dispatch
-methods for a type of primitive values is a class.
-
-
-@subsubheading Instance
-@cindex Definition of instance
-
-An object whose purpose is to hold an ensemble of values for user's
-usage is an instance.  An instance is itself a piece of data, a value,
-it does not describe a type of values.
-
-Instances are allocated and initialised by @clos{}, they ``are of
-class'' @class{top} and also they ``are of'' some subclass of
-@class{top}.  Not being classes, their class is not a meta class.
-
-
-@subsubheading Meta class
-@cindex Definition of meta class
-
-A class that describes how to allocate, initialise and dispatch methods
-for a type of class is a meta class.  All the meta classes are of class
-@class{class} and have the following class hierarchy:
-
-@example
-<top> -> <class> -> ---
-@end example
-
-@noindent
-@class{class} itself is of class @class{class}.  Examples of class
-hierarchies for meta classes:
-
-@noindent
-examples:
-
-@example
-<top> -> <class>
-<top> -> <class> -> <primitive-class>
-<top> -> <class> -> <procedure-class>
-<top> -> <class> -> <procedure-class> -> <entity-class>
-@end example
-
-
-@subsubheading Primitive class
-@cindex Definition of primitive class
-
-A class is a primitive class if it is formally assigned to a type of
-primitive values, with the purpose of describing how to dispatch methods
-for them.  Examples of primitive classes are @class{number} and
-@class{vector}.
-
-All the primitive classes are of meta class @class{primitive-class}, and
-they have the following class hiearchy:
-
-@example
-<top> -> ---
-@end example
-
-@noindent
-the class hierarchy of the meta class @class{primitive-class} is:
-
-@example
-<top> -> <class> -> <primitive-class>
-@end example
-
-Examples of primitive class:
-
-@example
-<top> -> <number>
-<top> -> <vector>
-@end example
-
-@noindent
-we can say that:
-
-@itemize
-@item
-@class{number} being an object, the class of @class{number} is
-@class{primitive-class};
-
-@item
-@class{number} being a class, the meta class of @class{number} is
-@class{primitive-class};
-
-@item
-the superclass of @class{number} is @class{top};
-
-@item
-the numbers (which are primitive values) are of class @class{number}.
-@end itemize
-
-
-@subsubheading Entity class object
-@cindex Definition of entity class object
-
-It is the meta class of both generic functions.  Every class with entity
-class as meta has an object procedure, which is the function that gets
-invoked when we apply a generic function to some arguments.
 
 
 @c page
@@ -1140,12 +1350,12 @@ invoked when we apply a generic function to some arguments.
 @appendixsec Built in allocation
 
 
-This section describes the built in allocation of classes and instances.
+This section describes the default allocation of classes and instances.
 
 
 @deftp {Record Type} instance-record
 Record descriptor whose instances are used for both built in class
-object and instance object allocations.  Slots description:
+object and instance object allocations.  Fields description:
 
 @table @code
 @item class
@@ -1162,15 +1372,15 @@ the instance's procedure: used for objects of class
 
 
 @defvar *entity-table*
-A table of function/record couples.  The function is created by
-@func{really-allocate-entity-instance}, the record is of type
-@code{instance-record}.
+A table of closure/record couples.  Both the closure and the record are
+created and stored here by @func{really-allocate-entity-instance}.  This
+table is queried by @func{get-instance-record}.
 
-Couples are stored in the table by
-@func{really-allocate-entity-instance}.  This function creates a
-function associated to the record: it invokes the instance's procedure
-from the @code{iproc} slot of the instance, applying it to whatever
-arguments are handed.
+The record is of type @code{instance-record} and represents an entity
+class.  When the closure is applied to arguments: it gets the value of
+the @code{iproc} field in the record and applies it to the arguments.
+
+In this document: the closure will be named @emph{entity closure}.
 @end defvar
 
 
@@ -1183,31 +1393,223 @@ unspecified value (it means: empty).  The @code{iproc} is set to
 
 
 @defun really-allocate-entity-instance @var{class} @var{field-count}
-Allocate an instance of @class{entity-class}.  An entity interface
-function and the object are stored in the internal table of entities.
-The instance function is returned.
+Allocate an instance of @class{entity-class} and return its entity
+closure.  See the description of @code{*entity-table*} for details.
 @end defun
 
 
 @defun get-instance-record @var{obj}
-If @var{obj} is an @code{instance-record} record: @var{obj} is returned.
-If @var{obj} is a function used as key in @code{*entity-table*}: the
-associated value (which is then entity @code{instance-record} record) is
-returned.  Else return @false{}.
+@var{obj} must be a record of type @code{instance-record} or an entity
+closure.  If @var{obj} is a record: @var{obj} itself is returned.  If
+@var{obj} is an entity closure: the associated record is returned.
+Otherwise @false{} is returned.
 @end defun
 
 
 @defun instance? @var{obj}
-Return @true{} if @var{obj} is an @code{instance-record} record or a
-function used as key in @code{*entity-table*}; return @false{}
-otherwise.
+Return @true{} if @var{obj} is an @code{instance-record} record or an
+entity closure, return @false{} otherwise.
 @end defun
 
 
-@defun
-
+@defun instance-class @var{obj}
+@var{obj} must be a record of type @code{instance-record} or an entity
+closure.  This function returns value of the @code{class} field in the
+record or entity record.
 @end defun
 
+
+@defun set-instance-class-to-self! @var{inst}
+@var{inst} must be a record of type @code{instance-record}.  Set to
+@var{inst} the value of the @code{class} field in @var{inst}.  It is
+used in the bootstrap process to initialise @class{class}.
+@end defun
+
+
+@defun set-instance-proc! @var{inst} @var{proc}
+@var{inst} must be a record of type @code{instance-record} or an entity
+closure.  Set to @var{proc} the value of the @code{iproc} field in the
+instance record associated to @var{inst}.
+@end defun
+
+
+@defun instance-ref @var{inst} @var{idx}
+@defunx instance-set! @var{inst} @var{idx} @var{val}
+@var{inst} must be a record of type @code{instance-record} or an entity
+closure.  @var{idx} must be a valid index for the vector in the field
+@code{slots} of the instance record.
+
+These functions are the slot getter and setter for the instances for
+which the instance record associated to @var{inst} is a class.
+@end defun
+
+
+@defun set-entity-print-name! @var{proc} @var{symbol}
+Undocumented.
+@end defun
+
+
+@defun set-instance-printer! @var{proc}
+Undocumented.
+@end defun
+
+
+@c page
+@node internals slot access
+@appendixsec Accessing slots
+
+
+@defvar core-class-slot-names
+The list of slot names for the built in classes.  The @code{slots} field
+of the @code{instance-record} records is a vector with an element for
+each of the following symbols.
+
+@table @code
+@item direct-supers
+List of direct super classes for this class.  The format of the list
+must be:
+
+@example
+(class ...)
+@end example
+
+@item direct-slots
+List of direct slots for this class.  The format of the list must be:
+
+@example
+((slot-name slot-option ...) ...)
+@end example
+
+@item precedence-list
+List of this class and all superclasses in the order in which they are
+searched for methods.  The format of the list must be:
+
+@example
+(class ...)
+@end example
+
+@item slots
+List of slots (both direct slots and slots of superclasses).  The format
+of the list must be:
+
+@example
+((slot-name slot-option ...) ...)
+@end example
+
+@item number-of-fields
+How many fields must be allocated for instances of this class.  An exact
+positive integer.
+
+@item field-initializers
+List of initializers for the fields.  The format of the list must be:
+
+@example
+(initializer-fn ...)
+@end example
+
+Each initialiser is a closure with a slot identifier in its
+environement; given an @code{instance-record} as argument, it
+initialises to some value.
+
+@item getters-and-setters
+Association list of getter and setter functions for the slots of this
+class, searchable by @code{slot-name}.  Each element in the list is a
+slot access descriptor.  The format of the alist must be:
+
+@example
+((slot-name getter-fn setter-fn) ...)
+@end example
+
+Each getter and setter is a closure with a slot identifier in its
+environement; given an @code{instance-record} as argument: the getter
+returns the value of the slot, the setter stores a new value in the
+slot.
+
+@item definition-name
+The name of the class.  It must be a symbol or @false{}.
+@end table
+
+The order does matter: the position of a symbol in the list is used to
+compute the index of the slot in the vector.  Example using functions
+described in @ref{internals allocation}:
+
+@example
+(let* ((inst      ...)  ; a record of type 'instance-record'
+       (slot-name ...)  ; a symbol from 'core-class-slot-names'
+       (idx       (position slot-name core-class-slot-names)))
+  (instance-ref inst idx)
+  (instance-set! inst idx ---))
+@end example
+@end defvar
+
+
+@defvar core-class-slot-count
+The number of elements in @code{core-class-slot-names}.
+@end defvar
+
+
+@defun get-slot-info @var{class} @var{slot-name}
+@var{class} must be a record of type @code{instance-record}, used to
+represent a class; this means that the slots in its @code{slots} field
+are the ones in the description of by @code{core-class-slot-names}.
+@var{slot-name} must be one of the symbols in the slot access
+descriptors of @var{class}.
+
+Retrieve the @code{getters-and-setters} slot value from @var{class},
+then the slot access descriptor having @var{slot-name} as key.  Return
+the slot access descriptor with format:
+
+@example
+(@var{slot-name} getter-fn setter-fn)
+@end example
+
+This function accesses the @code{getters-and-setters} slot using
+@func{slot-ref}.
+@end defun
+
+
+@defun slot-ref @var{inst} @var{slot-name}
+This is the public @api{} function exported by @library{clos slot-access}.
+
+@var{inst} must be an instance object.  @var{slot-name} must be a symbol
+identifying a slot.
+
+Retrieve the class of @var{inst} using @func{instance-class}, then,
+using @func{get-slot-info}, retrieve the slot access descriptor list:
+
+@example
+(slot-name getter-fn setter-fn)
+@end example
+
+@noindent
+finally apply @code{getter-fn} to @var{inst}.
+@end defun
+
+
+@defun slot-set! @var{inst} @var{slot-name} @var{new-value}
+This is the public @api{} function exported by @library{clos slot-access}.
+
+@var{inst} must be an instance object.  @var{slot-name} must be a symbol
+identifying a slot.
+
+Retrieve the class of @var{inst} using @func{instance-class}, then,
+using @func{get-slot-info}, retrieve the slot access descriptor list:
+
+@example
+(slot-name getter-fn setter-fn)
+@end example
+
+@noindent
+finally apply @code{setter-fn} to @var{inst} and @var{new-value}.
+@end defun
+
+
+@quotation
+@emph{Note} The use of @func{instance-class} to retrieve the class of
+@var{inst} in @func{slot-ref} and @func{slot-set!} establishes that
+@var{inst} has to be a record of type @code{instance-record} or an
+entity closure.
+@end quotation
 
 
 @c page
