@@ -1,37 +1,41 @@
+;;; Copyright (c) 2007 Christian Sloma (port to R6RS).
+;;; Copyright (c) 1992 Xerox Corporation.  All Rights Reserved.
+;;;
+;;; Use,   reproduction,  and  preparation   of  derivative   works  are
+;;; permitted.  Any copy of this software or of any derivative work must
+;;; include  the  above  copyright  notice of  Xerox  Corporation,  this
+;;; paragraph and the  one after it.  Any distribution  of this software
+;;; or derivative  works must comply  with all applicable  United States
+;;; export control laws.
+;;;
+;;; This  software  is  made  available  AS IS,  and  XEROX  CORPORATION
+;;; DISCLAIMS  ALL  WARRANTIES, EXPRESS  OR  IMPLIED, INCLUDING  WITHOUT
+;;; LIMITATION THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+;;; A  PARTICULAR  PURPOSE,  AND  NOTWITHSTANDING  ANY  OTHER  PROVISION
+;;; CONTAINED  HEREIN,  ANY LIABILITY  FOR  DAMAGES  RESULTING FROM  THE
+;;; SOFTWARE  OR ITS  USE IS  EXPRESSLY DISCLAIMED,  WHETHER  ARISING IN
+;;; CONTRACT, TORT  (INCLUDING NEGLIGENCE) OR STRICT  LIABILITY, EVEN IF
+;;; XEROX CORPORATION IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
 (library (clos user)
 
-  (export 
+  (export
+    ;; classes
+    <top> <object>
 
-   ;; classes
+    ;; procedures
+    slot-ref slot-set!
 
-   <top>
-   <object>
+    get-arg print-object-with-slots initialize-direct-slots
 
-   ;; procedures
+    ;; base level generics
+    make initialize print-object
 
-   slot-ref
-   slot-set!
-
-   get-arg
-   print-object-with-slots
-   initialize-direct-slots
-
-   ;; base level generics
-   
-   make
-   initialize
-   print-object
-
-   ;; syntax
-
-   define-class
-   define-generic
-   define-method   
-
-   )
+    ;; syntax
+    define-class define-generic define-method)
 
   (import (rnrs)
-          (clos core))
+    (clos core))
 
   (define-syntax define-class
     (syntax-rules ()
@@ -41,18 +45,18 @@
        (define ?name
          (make <class>
            'definition-name '?name
-           'direct-supers   (list ?super ...) 
+           'direct-supers   (list ?super ...)
            'direct-slots    '(?slot-def ...))))))
 
-  (define-syntax define-generic 
+  (define-syntax define-generic
     (syntax-rules ()
       ((define-generic ?name)
        (define ?name
          (make <generic>
            'definition-name '?name)))))
 
-  (define-syntax define-method 
-    (lambda (x) 
+  (define-syntax define-method
+    (lambda (x)
       (define (analyse args)
         (let loop ((args args) (qargs '()) (types '()))
           (syntax-case args ()
@@ -68,31 +72,31 @@
                                (() #''())
                                (_  #'?rest))))
               #`(add-method #,generic
-                  (make <method> 
-                    'specializers (list #,@types)
-                    'qualifier    '#,qualifier
-                    'procedure
-                    (lambda (%generic %next-methods #,@qargs ?arg ... . ?rest) 
-                      (let ((#,call-next-method
-                             (lambda ()
-                               (if (null? %next-methods)
-                                   (apply error 
-                                          'apply 
-			  	          "no next method" 
-                                          %generic 
-                                          #,@qargs ?arg ... #,rest-args)
-                                   (apply (car %next-methods)
-                                          %generic
-                                          (cdr %next-methods)
-                                          #,@qargs ?arg ... #,rest-args))))
-                            (next-method?
-                             (not (null? %next-methods)))) 
-                        . #,body))))))))
+			    (make <method>
+			      'specializers (list #,@types)
+			      'qualifier    '#,qualifier
+			      'procedure
+			      (lambda (%generic %next-methods #,@qargs ?arg ... . ?rest)
+				(let ((#,call-next-method
+				       (lambda ()
+					 (if (null? %next-methods)
+					     (apply error
+						    'apply
+						    "no next method"
+						    %generic
+						    #,@qargs ?arg ... #,rest-args)
+					   (apply (car %next-methods)
+						  %generic
+						  (cdr %next-methods)
+						  #,@qargs ?arg ... #,rest-args))))
+				      (next-method?
+				       (not (null? %next-methods))))
+				  . #,body))))))))
       (syntax-case x (quote)
         ((?kw '?qualifier ?generic ?args . ?body)
          (call-with-values
-           (lambda () 
-             (analyse #'?args))
+	     (lambda ()
+	       (analyse #'?args))
            (lambda (qargs types tail)
              (build #'?kw #'?qualifier #'?generic qargs types tail #'?body))))
         ((?kw ?generic '?qualifier ?args . ?body)
@@ -101,3 +105,4 @@
          #'(?kw 'primary ?generic ?args . ?body)))))
 
   ) ;; library (clos user)
+
