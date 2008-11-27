@@ -2,7 +2,6 @@
 ;;
 
 (import
-  (only (mp sizeof))
   (only (mp gmp))
   )
 

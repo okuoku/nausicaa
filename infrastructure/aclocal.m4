@@ -470,21 +470,45 @@ AC_HEADER_STDC
 
 dnl Synopsis:
 dnl
-dnl   NAUSICAA_VALUEOF_TEST(<EXPR>)
+dnl   NAUSICAA_VALUEOF_TEST(<SUFFIX>,<EXPR>,<DEFAULT>)
 dnl
 dnl Description:
 dnl
 dnl   A wrapper for "AC_COMPUTE_INT" that acquires the value of a C
-dnl   language constant, which must be an integer.  Set an output
-dnl   variable with the result.
+dnl   language expression, which must be an integer.  It is typically
+dnl   used to acquire the value of a constant like "INT_MAX".
 dnl
-dnl   It is meant to be a subroutine for "NAUSICAA_SIZEOF".
+dnl   The output variable "VALUEOF_<SUFFIX>" is set to the result.
+dnl   If the test fails: the value of the output variable will be
+dnl   "<DEFAULT>".
 dnl
 AC_DEFUN([NAUSICAA_VALUEOF_TEST],[
-AC_COMPUTE_INT([VALUEOF_$1],[$1],[AC_INCLUDES_DEFAULT
+AC_MSG_CHECKING([the value of '$2'])
+AC_COMPUTE_INT([VALUEOF_$1],[$2],[AC_INCLUDES_DEFAULT
 #include <limits.h>
-#include <stdint.h>])
+#include <stdint.h>],[VALUEOF_$1=$3])
 AC_SUBST([VALUEOF_$1])
+AC_MSG_RESULT([${VALUEOF_$1}])
+])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_SIZEOF_TEST(<SUFFIX>,<TYPEDEF>,<DEFAULT>)
+dnl
+dnl Description:
+dnl
+dnl   A wrapper for "AC_COMPUTE_INT" that acquires the size of a C
+dnl   language type.  The output variable "SIZEOF_<SUFFIX>" will be
+dnl   set to the result.  If the test fails the value of the output
+dnl   variable will be "<DEFAULT>".
+dnl
+AC_DEFUN([NAUSICAA_SIZEOF_TEST],[
+AC_MSG_CHECKING([the sizeof of '$2'])
+AC_COMPUTE_INT([SIZEOF_$1],[sizeof($2)],[AC_INCLUDES_DEFAULT
+#include <limits.h>
+#include <stdint.h>],[SIZEOF_$1=$3])
+AC_SUBST([SIZEOF_$1])
+AC_MSG_RESULT([${SIZEOF_$1}])
 ])
 
 dnl Synopsis:
@@ -497,39 +521,73 @@ dnl   Perform  a  series of  tests  to  determine characteristic  system
 dnl   constants.
 dnl
 AC_DEFUN([NAUSICAA_SIZEOF],[
-AC_COMPUTE_INT([SIZEOF_SHORT_INT],[sizeof(short int)])
-AC_SUBST(SIZEOF_SHORT_INT)
-AC_COMPUTE_INT([SIZEOF_INT],[sizeof(int)])
-AC_SUBST(SIZEOF_INT)
-AC_COMPUTE_INT([SIZEOF_LONG],[sizeof(long)])
-AC_SUBST(SIZEOF_LONG)
-AC_COMPUTE_INT([SIZEOF_LLONG],[sizeof(long long)],,[SIZEOF_LLONG=0])
-AC_SUBST(SIZEOF_LLONG)
-AC_COMPUTE_INT([SIZEOF_POINTER],[sizeof(void *)])
-AC_SUBST(SIZEOF_POINTER)
+NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int],[#f])
+NAUSICAA_SIZEOF_TEST([INT],[int],[#f])
+NAUSICAA_SIZEOF_TEST([LONG],[long],[#f])
+NAUSICAA_SIZEOF_TEST([LLONG],[long long],[#f])
+NAUSICAA_SIZEOF_TEST([POINTER],[void *],[#f])
 
-NAUSICAA_VALUEOF_TEST([CHAR_MAX])
-NAUSICAA_VALUEOF_TEST([CHAR_MIN])
-NAUSICAA_VALUEOF_TEST([SCHAR_MAX])
-NAUSICAA_VALUEOF_TEST([SCHAR_MIN])
-NAUSICAA_VALUEOF_TEST([UCHAR_MAX])
-NAUSICAA_VALUEOF_TEST([SHRT_MAX])
-NAUSICAA_VALUEOF_TEST([SHRT_MIN])
-NAUSICAA_VALUEOF_TEST([USHRT_MAX])
-NAUSICAA_VALUEOF_TEST([INT_MAX])
-NAUSICAA_VALUEOF_TEST([INT_MIN])
-NAUSICAA_VALUEOF_TEST([UINT_MAX])
-NAUSICAA_VALUEOF_TEST([LONG_MAX])
-NAUSICAA_VALUEOF_TEST([LONG_MIN])
-dnl NAUSICAA_VALUEOF_TEST([ULONG_MAX])
-dnl NAUSICAA_VALUEOF_TEST([LLONG_MAX])
-dnl NAUSICAA_VALUEOF_TEST([LLONG_MIN])
-NAUSICAA_VALUEOF_TEST([ULLONG_MAX])
-NAUSICAA_VALUEOF_TEST([WCHAR_MAX])
-NAUSICAA_VALUEOF_TEST([SSIZE_MAX])
+NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([CHAR_MIN],[CHAR_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([SCHAR_MAX],[SCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SCHAR_MIN],[SCHAR_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([UCHAR_MAX],[UCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SHRT_MAX],[SHRT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SHRT_MIN],[SHRT_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([USHRT_MAX],[USHRT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([INT_MIN],[INT_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([UINT_MAX],[UINT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LONG_MAX],[LONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LONG_MIN],[LONG_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([ULONG_MAX],[ULONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LLONG_MAX],[LLONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LLONG_MIN],[LLONG_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([ULLONG_MAX],[ULLONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX],[#f])
 
 AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,1)],[AC_SUBST(WORDS_BIGENDIAN,0)])
 ])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_INTTYPE_TEST(<SUFFIX>,<TYPEDEF>)
+dnl
+dnl Description:
+dnl
+dnl   Determines the equivalent integer type of the C language type
+dnl   "<TYPEDEF>" among the set: "short int", "int", "long",
+dnl   "long long".
+dnl
+dnl   The search is performed by comparing the value of the variable
+dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_INT",
+dnl   "SIZEOF_SHORT_INT", "SIZEOF_LONG", "SIZEOF_LLONG".
+dnl
+dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
+dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.  The other
+dnl   variables are defined by "NAUSICAA_SIZEOF".
+dnl
+dnl   The output variable "TYPEOF_<SUFFIX>" is set to the result.
+dnl
+AC_DEFUN([NAUSICAA_INTTYPE_TEST],[
+AC_REQUIRE([NAUSICAA_SIZEOF])
+AC_MSG_CHECKING([equivalent integer type of '$2'])
+if test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
+   TYPEOF_$1=int
+elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_INT}" ; then
+   TYPEOF_$1='short int'
+elif test "${SIZEOF_$1}" = "${SIZEOF_LONG}" ; then
+   TYPEOF_$1=long
+elif test "${SIZEOF_$1}" = "${SIZEOF_LLONG}" ; then
+   TYPEOF_$1='long long'
+else
+   AC_MSG_FAILURE([cannot equivalent integer type of '$2'],[2])
+fi
+AC_SUBST([TYPEOF_$1])
+AC_MSG_RESULT([${TYPEOF_$1}])
+])
+
 
 dnl end of file
 dnl Local Variables:
