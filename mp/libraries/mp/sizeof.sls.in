@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP libraries for R6RS Scheme
 ;;;Contents: size of libraries' C language types
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-11-25 22:14:12 marco>
+;;;Time-stamp: <2008-11-27 18:14:09 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,14 +26,52 @@
 
 (library (mp sizeof)
   (export
-    sizeof-mpz sizeof-mpf sizeof-mpfr sizeof-mpfi sizeof-mpc)
+
+    ;; Typedefs.
+    mp_exp_t mp_exp_t* mp_size_t mp_limb_t gmp_randalg_t
+    gmp_randstate_t
+    mpz_srcptr mpz_ptr mpf_srcptr mpf_ptr mpq_srcptr mpq_ptr
+
+    ;; Sizeofs.
+    sizeof-mp-size sizeof-mp-exp sizeof-mp-limb
+    sizeof-mpz sizeof-mpf sizeof-mpfr sizeof-mpfi sizeof-mpc
+    sizeof-gmp-randstate
+
+    ;; Constants.
+    GMP_RAND_ALG_DEFAULT GMP_RAND_ALG_LC
+
+    )
   (import (rnrs))
 
-  (define sizeof-mpz	@SIZEOF_MPZ_T@)
-  (define sizeof-mpf	@SIZEOF_MPF_T@)
-  (define sizeof-mpfr	@SIZEOF_MPFR_T@)
-  (define sizeof-mpfi	@SIZEOF_MPFI_T@)
-  (define sizeof-mpc	@SIZEOF_MPC_T@)
+  (define mp_exp_t		(quote @TYPEOF_MP_EXP_T@))
+  (define mp_size_t		(quote @TYPEOF_MP_SIZE_T@))
+  (define mp_limb_t		(quote @TYPEOF_MP_LIMB_T@))
+  (define gmp_randalg_t		(quote @TYPEOF_GMP_RANDALG_T@))
+
+  (define mp_exp_t*		'pointer)
+  (define mpz_srcptr		'pointer)
+  (define mpz_ptr		'pointer)
+  (define mpf_srcptr		'pointer)
+  (define mpf_ptr		'pointer)
+  (define mpq_srcptr		'pointer)
+  (define mpq_ptr		'pointer)
+  (define gmp_randstate_t	'pointer)
+
+  (define sizeof-mp-limb	@SIZEOF_MP_LIMB_T@)
+  (define sizeof-mp-size	@SIZEOF_MP_SIZE_T@)
+  (define sizeof-mp-exp		@SIZEOF_MP_EXP_T@)
+  (define sizeof-gmp-randalg	@SIZEOF_GMP_RANDALG_T@)
+
+  (define sizeof-mpz		@SIZEOF_MPZ_T@)
+  (define sizeof-mpq		@SIZEOF_MPQ_T@)
+  (define sizeof-mpf		@SIZEOF_MPF_T@)
+  (define sizeof-mpfr		@SIZEOF_MPFR_T@)
+  (define sizeof-mpfi		@SIZEOF_MPFI_T@)
+  (define sizeof-mpc		@SIZEOF_MPC_T@)
+  (define sizeof-gmp-randstate	@SIZEOF_GMP_RANDSTATE_T@)
+
+  (define GMP_RAND_ALG_DEFAULT	@VALUEOF_GMP_RAND_ALG_DEFAULT@)
+  (define GMP_RAND_ALG_LC	@VALUEOF_GMP_RAND_ALG_LC@)
   )
 
 ;;; end of file
