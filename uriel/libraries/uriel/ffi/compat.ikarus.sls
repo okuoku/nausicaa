@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-26 10:24:23 marco>
+;;;Time-stamp: <2008-11-28 17:03:11 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -60,7 +60,6 @@
     ;;pointers
     pointer? pointer->integer integer->pointer)
   (import (rnrs)
-;;;    (uriel printing)
     (srfi parameters)
     (ikarus foreign))
 
@@ -86,7 +85,7 @@
      'float)
     ((double)
      'double)
-    ((pointer void* char* callback)
+    ((pointer void* char* callback FILE*)
      'pointer)
     ((void)
      'void)
@@ -122,22 +121,18 @@
 		(hashtable-set! callout-table spec f)
 		f))))))
 
-(define (make-c-function funcname spec)
+(define (primitive-make-c-function ret-type funcname arg-types)
   (let ((f (dlsym (shared-object) (symbol->string funcname))))
     (unless f
       (error 'make-c-function (dlerror) funcname))
-    ((make-c-callout-maybe spec) f)))
+    ((make-c-callout-maybe (cons ret-type arg-types)) f)))
 
-(define-syntax primitive-make-c-function
-  (syntax-rules ()
-    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-     (make-c-function '?funcname '(?ret-type ?arg-type0 ?arg-type ...)))))
 
 
 ;;;; string functions
 
 (define strlen
-  (primitive-make-c-function unsigned strlen (pointer)))
+  (primitive-make-c-function 'unsigned 'strlen '(pointer)))
 
 ;; (define (strlen p)
 ;;   (let loop ((i 0))

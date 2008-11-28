@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MPFR
 ;;;Contents: tests for the MPF numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-11-27 18:24:54 marco>
+;;;Time-stamp: <2008-11-28 16:32:32 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -36,12 +36,13 @@
   (uriel ffi)
   (uriel printing)
   (uriel test)
-  (mp gmp)
+  (mp mpf)
   (mp sizeof))
 
 (check-set-mode! 'report-failed)
 
-;;; --------------------------------------------------------------------
+
+;;;; basic run
 
 (define mpf
   (make-caching-object-factory mpf_init mpf_clear
