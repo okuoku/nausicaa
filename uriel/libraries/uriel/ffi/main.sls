@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-26 10:27:57 marco>
+;;;Time-stamp: <2008-11-28 17:14:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,8 +31,10 @@
   (export
 
     ;;interface functions
-    shared-object open-shared-object self-shared-object with-shared-object
+    shared-object open-shared-object self-shared-object
     make-c-function define-c-function
+
+    primitive-make-c-function
 
     ;;memory functions
     malloc primitive-malloc primitive-free
@@ -65,8 +67,9 @@
 
   (import (rnrs)
     (uriel lang)
-;;;    (uriel printing)
-    (uriel ffi compat))
+    (uriel printing)
+    (uriel ffi compat)
+    (uriel define-macro))
 
 
 
@@ -77,20 +80,41 @@
 				    (symbol->string library-name)
 				  library-name)))
 
-(define-syntax with-shared-object
-  (syntax-rules ()
-    ((_ ?library-id ?form0 ?form ...)
-     (begin
-       (define saved-shared-object (shared-object))
-       (shared-object ?library-id)
-       ?form0 ?form ...
-       (shared-object saved-shared-object)))))
+
+
+;;;; function interface
 
 (define-syntax make-c-function
-  (syntax-rules ()
-    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-     (primitive-make-c-function
-      ?ret-type ?funcname (?arg-type0 ?arg-type ...)))))
+  (lambda (use-stx)
+    (define list-of-types
+      '(void
+	char schar signed-char uchar unsigned-char
+	int signed-int ssize_t uint unsigned unsigned-int size_t
+	long ulong unsigned-long float double
+	pointer void* char* FILE* callback))
+    (define (quote-if-predefined-type arg)
+      (if (memq arg list-of-types)
+	  `(quote ,arg)
+	arg))
+
+    (syntax-case use-stx ()
+      ((use ?ret-type ?funcname (?arg-type0 ?arg-type ...))
+       (with-syntax ((ret	(quote-if-predefined-type
+				 (syntax->datum (syntax ?ret-type))))
+		     (args	(cons 'list
+				      (map quote-if-predefined-type
+					(syntax->datum (syntax (?arg-type0 ?arg-type ...)))))))
+
+	 (syntax
+	  (primitive-make-c-function ret '?funcname args))
+
+;;; This is for debugging.
+;; 	 (syntax
+;; 	  (begin
+;;  	    (print #t "~s ~s ~s~%" ret '?funcname args)
+;; 	    (primitive-make-c-function ret '?funcname args)))
+
+	 )))))
 
 (define-syntax define-c-function
   (syntax-rules ()

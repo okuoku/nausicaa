@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-26 10:26:51 marco>
+;;;Time-stamp: <2008-11-28 16:36:05 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -177,24 +177,26 @@
   (case type
     ((int signed-int ssize_t uint unsigned unsigned-int size_t)
      'int)
+    ((long signed-long ulong unsigned-long)
+     'int)
     ((double)
      'double)
     ((float)
      'float)
-    ((pointer void* char*)
+    ((pointer void* char* FILE*)
      'void*)
     ((callback)
      'void*)
     ((void)
      'void)
-    (else (error 'make-c-function
+    (else (assertion-violation 'make-c-function
 	    "unknown C language type identifier" type))))
 
 
 
 ;;;; interface functions
 
-(define (make-c-function ret-type funcname args)
+(define (primitive-make-c-function ret-type funcname arg-types)
   (define (select-cast-and-stub ret-type)
     (let ((identity (lambda (x) x)))
       (case ret-type
@@ -232,6 +234,8 @@
        assert-char*)
       ((callback)
        assert-closure)
+      ((void)
+       (lambda (x) x))
       (else
        (assertion-violation 'make-c-callout
 	 "unknown C language type identifier used for function argument" arg-type))))
@@ -242,7 +246,7 @@
       (unless f
 	(error 'make-c-callout
 	  "function not available in shared object" funcname))
-      (let* ((mappers (map select-argument-mapper args)))
+      (let* ((mappers (map select-argument-mapper arg-types)))
 	(lambda args
 	  (unless (= (length args) (length mappers))
 	    (assertion-violation funcname
@@ -251,12 +255,6 @@
 	  (cast-func (apply stub-func f
 			    (map (lambda (m a)
 				   (m a)) mappers args))))))))
-
-
-(define-syntax primitive-make-c-function
-  (syntax-rules ()
-    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-     (make-c-function '?ret-type '?funcname '(?arg-type0 ?arg-type ...)))))
 
 
 
@@ -329,7 +327,7 @@
 ;;;; string functions
 
 (define strlen
-  (primitive-make-c-function int strlen (pointer)))
+  (primitive-make-c-function 'int 'strlen '(pointer)))
 
 (define (cstring->string cstr)
   (let ((str (bytevector->string cstr (make-transcoder (utf-8-codec)))))

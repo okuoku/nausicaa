@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPF functions
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-11-28 16:30:29 marco>
+;;;Time-stamp: <2008-11-28 16:33:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -15,15 +15,13 @@
 ;;;the Free Software Foundation, either version 3 of the License, or (at
 ;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
 (library (mp mpf)
@@ -169,7 +167,7 @@
     (double __gmpf_get_d (mpf_srcptr)))
 
   (define-c-function mpf_get_d_2exp
-    (double __gmpf_get_d_2exp (long * mpf_srcptr)))
+    (double __gmpf_get_d_2exp (long mpf_srcptr)))
 
   (define-c-function mpf_get_default_prec
     (ulong __gmpf_get_default_prec (void)))
