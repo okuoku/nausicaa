@@ -7,6 +7,8 @@ explore the facilities  of R6RS Scheme implementation.  This
 project is not meant to  be "installed": there is nothing to
 install.
 
+  Being proofs, several of them may fail!
+
 
 ### end of file
 # Local Variables:
