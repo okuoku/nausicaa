@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-28 17:03:11 marco>
+;;;Time-stamp: <2008-11-29 21:09:16 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -117,7 +117,10 @@
     (lambda (spec)
       (let* ((signature (map external->internal spec))
 	     (f (hashtable-ref callout-table signature #f)))
-	(or f (let ((f (make-c-callout (car signature) (cdr signature))))
+	(or f (let* ((f (make-c-callout (car signature)
+					(if (equal? '(void) (cdr signature))
+					    '()
+					  (cdr signature)))))
 		(hashtable-set! callout-table spec f)
 		f))))))
 
