@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-28 16:36:05 marco>
+;;;Time-stamp: <2008-11-29 21:46:50 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -247,14 +247,50 @@
 	(error 'make-c-callout
 	  "function not available in shared object" funcname))
       (let* ((mappers (map select-argument-mapper arg-types)))
-	(lambda args
-	  (unless (= (length args) (length mappers))
-	    (assertion-violation funcname
-	      (format "wrong number of arguments, expected ~a" (length mappers))
-	      args))
-	  (cast-func (apply stub-func f
-			    (map (lambda (m a)
-				   (m a)) mappers args))))))))
+	(case (length mappers)
+	  ((0)
+	   (lambda ()
+	     (cast-func (stub-func f))))
+	  ((1)
+	   (let ((mapper (car mappers)))
+	     (lambda (arg)
+	       (cast-func (stub-func f (mapper arg))))))
+	  ((2)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers)))
+	     (lambda (arg1 arg2)
+	       (cast-func (stub-func f
+				     (mapper1 arg1)
+				     (mapper2 arg2))))))
+	  ((3)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3)
+	       (cast-func (stub-func f
+				     (mapper1 arg1)
+				     (mapper2 arg2)
+				     (mapper3 arg3))))))
+	  ((4)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers))
+		 (mapper4 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3 arg4)
+	       (cast-func (stub-func f
+				     (mapper1 arg1)
+				     (mapper2 arg2)
+				     (mapper3 arg3)
+				     (mapper4 arg4))))))
+	  (else
+	   (lambda args
+	     (unless (= (length args) (length mappers))
+	       (assertion-violation funcname
+		 (format "wrong number of arguments, expected ~a" (length mappers))
+		 args))
+	     (cast-func (apply stub-func f
+			       (map (lambda (m a)
+				      (m a)) mappers args))))))))))
 
 
 
