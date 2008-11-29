@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPF functions
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-11-28 16:33:20 marco>
+;;;Time-stamp: <2008-11-29 14:05:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -102,9 +102,13 @@
 
   (define-c-function mpf_abs
     (void __gmpf_abs (mpf_ptr mpf_srcptr)))
+;;   (define mpf_abs
+;;     (primitive-make-c-function 'void '__gmpf_abs (list mpf_ptr mpf_srcptr)))
 
   (define-c-function mpf_add
     (void __gmpf_add (mpf_ptr mpf_srcptr mpf_srcptr)))
+;;   (define mpf_add
+;;     (make-c-function void __gmpf_add (mpf_ptr mpf_srcptr mpf_srcptr)))
 
   (define-c-function mpf_add_ui
     (void __gmpf_add_ui (mpf_ptr mpf_srcptr ulong)))

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MPFR
 ;;;Contents: tests for the MPF numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-11-28 16:32:32 marco>
+;;;Time-stamp: <2008-11-29 13:44:42 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -40,6 +40,7 @@
   (mp sizeof))
 
 (check-set-mode! 'report-failed)
+
 
 
 ;;;; basic run
