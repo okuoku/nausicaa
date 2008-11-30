@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-30 13:06:37 marco>
+;;;Time-stamp: <2008-11-30 18:17:42 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -42,7 +42,7 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function
+    primitive-make-c-function primitive-make-c-function/with-errno
 
     ;;basic memory allocation
     primitive-malloc primitive-free
@@ -221,7 +221,14 @@
 ;;the C  strings as  memory blocks: "char  *" pointers are  treated like
 ;;"void *" pointers.
 ;;
-
+;;
+;;Accessing "errno"
+;;-----------------
+;;
+;;It is done with  SHARED-OBJECT-C-ERRNO.  Calling this function returns
+;;the  value of  the "errno"  variable  just after  the last  call to  a
+;;foreign interface.
+;;
 
 
 ;;;; dynamic loading
@@ -347,64 +354,66 @@
 
 ;;;; interface functions
 
-(define (primitive-make-c-function ret-type funcname arg-types)
-  (define (select-cast-and-stub ret-type)
-    (let ((identity (lambda (x) x)))
-      (case ret-type
-	((void)
-	 (values identity stdcall-shared-object->void))
-	((int)
-	 (values identity stdcall-shared-object->int))
-	((double)
-	 (values identity stdcall-shared-object->double))
-	((char* void*)
-	 (values identity stdcall-shared-object->intptr))
-	((bool)
-	 (values int->bool stdcall-shared-object->int))
+(define (select-cast-and-stub ret-type)
+  (let ((identity (lambda (x) x)))
+    (case ret-type
+      ((void)
+       (values identity stdcall-shared-object->void))
+      ((int)
+       (values identity stdcall-shared-object->int))
+      ((double)
+       (values identity stdcall-shared-object->double))
+      ((char* void*)
+       (values identity stdcall-shared-object->intptr))
+      ((bool)
+       (values int->bool stdcall-shared-object->int))
 ;;;For compatibility purposes we do not use this stub, but rather we use
 ;;;the   one    for   "void   *".
 ;;;
 ;;;     ((char*)
 ;;;      (values char*->string stdcall-shared-object->char*))
-	(else
-	 (assertion-violation 'make-c-callout
-	   "unknown C language type identifier used for return value" ret-type)))))
-
-  (define (select-argument-mapper arg-type)
-    (case (external->internal arg-type)
-      ((int)
-       assert-int)
-      ((bool)
-       assert-bool)
-      ((void*)
-       assert-bytevector)
-      ((float)
-       assert-float)
-      ((double)
-       assert-double)
-      ((byte*)
-       assert-bytevector)
-      ((char*)
-       assert-char*)
-      ((callback)
-       assert-closure)
-      ((void)
-       (lambda (x) x))
       (else
        (assertion-violation 'make-c-callout
-	 "unknown C language type identifier used for function argument" arg-type))))
+	 "unknown C language type identifier used for return value" ret-type)))))
 
+(define (select-argument-mapper arg-type)
+  (case (external->internal arg-type)
+    ((int)
+     assert-int)
+    ((bool)
+     assert-bool)
+    ((void*)
+     assert-bytevector)
+    ((float)
+     assert-float)
+    ((double)
+     assert-double)
+    ((byte*)
+     assert-bytevector)
+    ((char*)
+     assert-char*)
+    ((callback)
+     assert-closure)
+    ((void)
+     (lambda (x) x))
+    (else
+     (assertion-violation 'make-c-callout
+       "unknown C language type identifier used for function argument" arg-type))))
+
+(define (primitive-make-c-function ret-type funcname arg-types)
   (receive (cast-func stub-func)
       (select-cast-and-stub (external->internal ret-type))
     (let ((f (lookup-shared-object (shared-object) funcname)))
       (unless f
 	(error 'make-c-callout
 	  "function not available in shared object" funcname))
+      (when (equal? '(void) arg-types)
+	(set! arg-types '()))
       (let* ((mappers (map select-argument-mapper arg-types)))
 	(case (length mappers)
 	  ((0)
 	   (lambda ()
-	     (cast-func (stub-func f))))
+	     (cast-func (stub-func f 0))))
 	  ((1)
 	   (let ((mapper (car mappers)))
 	     (lambda (arg)
@@ -446,6 +455,67 @@
 			       (map (lambda (m a)
 				      (m a)) mappers args))))))))))
 
+(define (primitive-make-c-function/with-errno ret-type funcname arg-types)
+  (receive (cast-func stub-func)
+      (select-cast-and-stub (external->internal ret-type))
+    (let ((f (lookup-shared-object (shared-object) funcname)))
+      (unless f
+	(error 'make-c-callout
+	  "function not available in shared object" funcname))
+      (when (equal? '(void) arg-types)
+	(set! arg-types '()))
+      (let* ((mappers (map select-argument-mapper arg-types)))
+	(case (length mappers)
+	  ((0)
+	   (lambda ()
+	     (values (cast-func (stub-func f 0))
+		     (shared-object-c-errno))))
+	  ((1)
+	   (let ((mapper (car mappers)))
+	     (lambda (arg)
+	       (values (cast-func (stub-func f (mapper arg)))
+		       (shared-object-c-errno)))))
+	  ((2)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers)))
+	     (lambda (arg1 arg2)
+	       (values (cast-func (stub-func f
+					     (mapper1 arg1)
+					     (mapper2 arg2)))
+		       (shared-object-c-errno)))))
+	  ((3)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3)
+	       (values (cast-func (stub-func f
+					     (mapper1 arg1)
+					     (mapper2 arg2)
+					     (mapper3 arg3)))
+		       (shared-object-c-errno)))))
+	  ((4)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers))
+		 (mapper4 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3 arg4)
+	       (values (cast-func (stub-func f
+					     (mapper1 arg1)
+					     (mapper2 arg2)
+					     (mapper3 arg3)
+					     (mapper4 arg4)))
+		       (shared-object-c-errno)))))
+	  (else
+	   (lambda args
+	     (unless (= (length args) (length mappers))
+	       (assertion-violation funcname
+		 (format "wrong number of arguments, expected ~a" (length mappers))
+		 args))
+	     (values (cast-func (apply stub-func f
+				       (map (lambda (m a)
+					      (m a)) mappers args)))
+		     (shared-object-c-errno)))))))))
+
 
 
 ;;;; memory allocation
@@ -455,7 +525,7 @@
 ;;to an interface function: we have to build a bytevector.
 
 (define (primitive-malloc number-of-bytes)
-  (make-bytevector number-of-bytes))
+  (make-bytevector number-of-bytes 0))
 
 (define (primitive-free p)
   #f)
@@ -516,12 +586,21 @@
 
 ;;;; string functions
 
-(define strlen
-  (primitive-make-c-function 'int 'strlen '(pointer)))
+;;With the  conventions established for compatibility: the  cstring is a
+;;bytevector.
+(define (strlen string)
+  (do ((i 0 (+ 1 i)))
+      ((= 0 (bytevector-u8-ref string i))
+       i)
+    #f))
 
 (define (cstring->string cstr)
-  (let ((str (bytevector->string cstr (make-transcoder (utf-8-codec)))))
-    (substring str 0 (- (string-length str) 1))))
+  ;;We  have to  use  STRLEN here  because  it is  possible for  foreign
+  ;;functions to place a zero-terminated  string in a larget buffer.  We
+  ;;have to cut the right portion.
+  (let ((len (strlen cstr))
+	(str (bytevector->string cstr (make-transcoder (utf-8-codec)))))
+    (substring str 0 len )))
 
 (define (string->cstring str)
   (string->utf8 (string-append str "\x0;")))

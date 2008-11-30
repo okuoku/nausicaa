@@ -422,7 +422,7 @@ entitled ``@gnu{} Free Documentation License''.
 * lang::                        Language extensions.
 * test::                        Writing test suites.
 * ffi::                         Foreign functions interface.
-* libc::                        Standard C library facilities.
+* libc::                        @gnu{} C library facilities.
 * posix::                       @posix{} facilities.
 
 Appendices
@@ -541,6 +541,7 @@ for the independent libraries see the corresponding sections.
 * lang compensations::          Compensation stacks.
 * lang deferred exceptions::    Deferred exceptions.
 * lang io::                     Input/output procedures.
+* lang misc::                   Miscellaneous functions.
 
 Independent libraries
 
@@ -1124,6 +1125,19 @@ is equivalent to:
     (display 123)))
 @end example
 @end deffn
+
+
+@c page
+@node lang misc
+@section Miscellaneous functions
+
+
+@defun {symbol->string/maybe} @var{obj}
+If @var{obj} is a symbol: convert it to string and return the result;
+else if it is a string, return it.  If it is neither a string nor a
+symbol: raise an assertion violation.
+@end defun
+
 
 
 @c page
@@ -1821,9 +1835,14 @@ No value.
 
 
 @defun primitive-c-function @var{ret-type} @var{export-name} @var{arg-types}
+@defunx primitive-c-function/with-errno @var{ret-type} @var{export-name} @var{arg-types}
 Build and return a new Scheme interface function for a C language
 foreign function in the current shared object.  The current shared
 object is referenced by the value of the @code{shared-object} parameter.
+
+The @code{/with-errno} variant returns two values: the return value from
+the foreign function and the value of the @code{errno} variable just
+after the call to the foreign function.
 
 @table @var
 @item ret-type
@@ -1875,10 +1894,15 @@ As an example, the main deflate functions from Zlib can be defined with:
 
 
 @deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax make-c-function/with-errno @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
 @deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+@deffnx Syntax define-c-function/with-errno @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
 These are wrappers for @func{primitive-make-c-function} that allows us
 to avoid quoting of arguments.  @func{define-c-function} is itself a
 wrapper for @func{make-c-function}.
+
+The @code{/with-errno} variants are wrappers for
+@func{primitive-c-function/with-errno}.
 
 As an example, the main deflate functions from Zlib can be defined with:
 
@@ -2654,15 +2678,87 @@ for the independent libraries see the corresponding sections.
 
 
 @menu
+* posix environment::           Environment variables.
+* posix working directory::     The working directory.
+
 Independent libraries
 
-* posix getenv::                System environment variables.
+* posix getenv::                Getting environment variables.
 @end menu
 
 
 @c page
+@node posix environment
+@section Environment variables
+
+
+For all the following functions: memory allocation for string conversion
+is handled internally with @func{malloc}.
+
+@ref{libc environment} for other functions.
+
+
+@defun getenv @var{varname}
+Return the current value of the environment variable @var{varname}, as a
+string.  @var{varname} must be a string or symbol.  If the variable is
+not set: the return value if @false{}.  If the variable is set to the
+empty string: the return value is the empty string.
+@end defun
+
+
+@defun setenv @var{varname} @var{value} @var{replace}
+Set a new value for the environment variable @var{varname}.
+@var{varname} and @var{value} must be strings or symbols.  If the
+environment already contains @var{varname}, then @var{replace} controls
+the action: if true the value is replaced, if @false{} it is left alone.
+@end defun
+
+
+@c @defun unsetenv @var{varname}
+@c Remove the entry for @var{varname} from the environment.  @var{varname}
+@c must be a string or symbol.
+@c @end defun
+
+
+@c page
+@node posix working directory
+@section The working directory
+
+
+@defun getcwd
+@defunx pwd
+@func{getcwd} and @func{pwd} return a string representing the current
+working directory.  If an error occurs reading the current directory
+(because of access permissions): an exception is raised.
+@end defun
+
+
+@defun getcwd/with-errno
+@func{getcwd/with-errno} returns 2 values: if success, a string
+representing the current working directory and zero; if an error
+occurred, @false{} and an exact integer representing the value of
+@code{errno} just after the call to the system @cfunc{getcwd} function.
+@end defun
+
+
+@defun chdir @var{pathname}
+Change the current directory to the selected @var{pathname}, which must
+be a string or symbol.  If an error occurs changing directory (because
+of access permissions): an exception is raised.
+@end defun
+
+
+@defun chdir/with-errno
+Change the current directory to the selected @var{pathname}, which must
+be a string or symbol.  If an error occurs changing directory (because
+of access permissions): the value of @code{errno} just after the call is
+returned, otherwise the return value is zero.
+@end defun
+
+
+@c page
 @node posix getenv
-@section System environment variables
+@section Getting environment variables
 
 
 This chapter describes an interface to the @cfunc{getenv} system
@@ -2677,28 +2773,47 @@ debugging and test suites.  To load the library:
 
 @defun getenv @var{varname}
 Return the current value of the environment variable @var{varname}, as a
-string.  @var{varname} must be a string.
+string.  @var{varname} must be a string.  If the variable is not set:
+the return value if @false{}.  If the variable is set to the empty
+string: the return value is the empty string.
 @end defun
 
 
 @c page
 @node libc
-@chapter Standard C library facilities
+@chapter @gnu{} C library facilities
 
 
-This chapter describes an interface to the C language standard library
-functions offered by the underlying platform.  This library makes use of
-the foreign functions interface defined by @library{uriel ffi}.
+This chapter describes an interface to the @gnu{} C language library
+functions.  This library makes use of the foreign functions interface
+defined by @library{uriel ffi}.
 
 To load the library:
 
 @example
-(import (uriel libc))
+(import (uriel glibc))
 @end example
 
+@noindent
+@ref{posix} for a lot of other functions.
+
+@menu
+* libc environment::            Environment functions.
+@end menu
 
 
 @c ------------------------------------------------------------
+
+@c page
+@node libc environment
+@section Environment functions
+
+
+@defun clearenv
+Unset all the variables in the environment.  Useful cleanup for security
+purposes.
+@end defun
+
 
 @c page
 @node Package License

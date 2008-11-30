@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-29 21:09:16 marco>
+;;;Time-stamp: <2008-11-30 17:52:01 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,7 +35,7 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function
+    primitive-make-c-function primitive-make-c-function/with-errno
 
     ;;basic memory allocation
     (rename (malloc primitive-malloc) (free primitive-free))
@@ -129,6 +129,11 @@
     (unless f
       (error 'make-c-function (dlerror) funcname))
     ((make-c-callout-maybe (cons ret-type arg-types)) f)))
+
+(define (primitive-make-c-function/with-errno ret-type funcname arg-types)
+  (let ((f (primitive-make-c-function ret-type funcname arg-types)))
+    (lambda args
+      (values (apply f args) (errno)))))
 
 
 
