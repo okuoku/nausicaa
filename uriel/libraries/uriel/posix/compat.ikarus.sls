@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: interface to POSIX functions for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 08:09:16 marco>
+;;;Time-stamp: <2008-11-30 15:57:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,23 +24,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-
-;;;; setup
-
 (library (uriel posix compat)
   (export
-    getenv)
+    (rename (getenv getenv-stub)))
   (import (rnrs)
-    (only (ikarus) getenv))
-
-
-;;;; code
-
-
-
-;;;; done
-
-)
+    (only (ikarus) getenv)))
 
 ;;; end of file

@@ -12,6 +12,8 @@
   (only (uriel posix))
   (only (uriel printing))
   (only (uriel test))
+  (only (uriel posix))
+  (only (uriel glibc))
   )
 
 ;;; end of file

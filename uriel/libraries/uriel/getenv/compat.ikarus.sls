@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: interface to POSIX getenv, Ikarus compatibility layer
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 09:18:12 marco>
+;;;Time-stamp: <2008-11-30 15:41:56 marco>
 ;;;
 ;;;Abstract
 ;;;

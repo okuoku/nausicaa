@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-29 21:15:16 marco>
+;;;Time-stamp: <2008-11-30 17:49:12 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,8 +32,9 @@
 
     ;;interface functions
     shared-object open-shared-object self-shared-object
-    make-c-function define-c-function
-    primitive-make-c-function
+    primitive-make-c-function primitive-make-c-function/with-errno
+    make-c-function make-c-function/with-errno
+    define-c-function define-c-function/with-errno
 
     ;;memory functions
     malloc primitive-malloc primitive-free
@@ -86,7 +87,6 @@
 
 (define-syntax make-c-function
   (lambda (use-stx)
-
     (define list-of-types
       '(void
 	char schar signed-char uchar unsigned-char
@@ -109,11 +109,42 @@
 	 (syntax
 	  (primitive-make-c-function ret '?funcname args)))))))
 
+(define-syntax make-c-function/with-errno
+  (lambda (use-stx)
+    (define list-of-types
+      '(void
+	char schar signed-char uchar unsigned-char
+	int signed-int ssize_t uint unsigned unsigned-int size_t
+	long ulong unsigned-long float double
+	pointer void* char* FILE* callback))
+
+    (define (quote-if-predefined-type arg-stx)
+      (if (memq (syntax->datum arg-stx) list-of-types)
+	  (list (syntax quote) arg-stx)
+	arg-stx))
+
+    (syntax-case use-stx ()
+      ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
+       (with-syntax
+	   ((ret	(quote-if-predefined-type (syntax ?ret-type)))
+	    (args	(cons (syntax list)
+			      (map quote-if-predefined-type
+				(syntax (?arg-type0 ?arg-type ...))))))
+	 (syntax
+	  (primitive-make-c-function/with-errno ret '?funcname args)))))))
+
 (define-syntax define-c-function
   (syntax-rules ()
     ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
      (define ?name
        (make-c-function
+	?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
+
+(define-syntax define-c-function/with-errno
+  (syntax-rules ()
+    ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
+     (define ?name
+       (make-c-function/with-errno
 	?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
 
 

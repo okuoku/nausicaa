@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-11-30 07:26:01 marco>
+;;;Time-stamp: <2008-11-30 16:14:13 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,15 +28,22 @@
 
 (library (uriel lang)
   (export
+    ;;simple syntaxes
     begin0 dolist dotimes loop-upon-list ensure
 
+    ;;compensations
     with-compensations with-compensations/on-error
     compensate run-compensations
 
+    ;;deferred exceptions
     with-deferred-exceptions-handler
     defer-exceptions run-deferred-exceptions-handler
 
-    with-output-to-string)
+    ;;input/output
+    with-output-to-string
+
+    ;;miscellaneous
+    symbol->string/maybe)
   (import (rnrs)
     (uriel void)
     (srfi parameters))
@@ -215,6 +222,19 @@
     [(_ ?form ...)
      (call-with-string-output-port
 	 (lambda () ?form ...))]))
+
+
+
+;;;; miscellaneous
+
+(define (symbol->string/maybe thing)
+  (if (symbol? thing)
+      (symbol->string thing)
+    (begin
+      (unless (string? thing)
+	(assertion-violation 'symbol->string/maybe
+	  "expected symbol or string" thing))
+      thing)))
 
 
 
