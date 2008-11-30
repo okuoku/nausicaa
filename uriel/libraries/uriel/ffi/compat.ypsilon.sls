@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-30 10:19:30 marco>
+;;;Time-stamp: <2008-11-30 13:06:37 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -112,7 +112,7 @@
 ;;If LOAD-SHARED-OBJECT is called with  an empty string as argument: the
 ;;return value references  the current process.  With this  value we can
 ;;access symbols exported by the  current program and the libraries that
-;;have been already  loaded (this may be platform  specific, look up the
+;;have been already loaded (this may be platform specific, check out the
 ;;documentation  of your  operative system).   For example:  the symbols
 ;;from the standard C libray, like "fwrite", can be accessed this way.
 ;;

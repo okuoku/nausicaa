@@ -1687,11 +1687,13 @@ expressions support).
 @deffn Parameter shared-object
 Holds a value referencing the ``current'' shared object: the shared
 object in which @func{primitive-make-c-function} will look for symbols.
-Identifiers are produced with @func{open-shared-object}.
+Shared objects references are produced with @func{open-shared-object}.
 
-The initial value selects the current process, which means that all the
-C standard library symbols are available without changing the
-parameter's value.
+The initial value selects the current process; with this value we can
+access symbols exported by the current program and the libraries that
+have been already loaded (this may be platform specific, check out the
+documentation of your operative system).  For example: the symbols from
+the standard C libray, like @cfunc{fwrite}, can be accessed this way.
 @end deffn
 
 
@@ -1705,9 +1707,14 @@ or pathname to be opened.  Examples:
 
 @example
 (define mpfr-lib
-  (open-shared-object 'libmpfr.so))
+  (let ((l (open-shared-object 'libmpfr.so)))
+    (shared-object l)
+    l))
+
 (define mpfi-lib
-  (open-shared-object '/usr/local/lib/libmpfi.so))
+  (let ((l (open-shared-object '/usr/local/lib/libmpfi.so)))
+    (shared-object l)
+    l))
 @end example
 
 In the case of a name (wihtout directory part) the search path for
@@ -1748,7 +1755,12 @@ The following symbols are accepted as C language type identifiers, but
 not all Scheme implementations support them all: we will have to find
 out by trial and error.  We should be safe using: @code{int},
 @code{pointer} and @code{double}, which are enough for a lot of foreign
-shared objects.
+libraries.
+
+@quotation
+@emph{Ikarus:} the Ikarus Scheme implementation supports all these
+types.
+@end quotation
 
 Remember that C strings (@ascii{} coded and zero terminated) must be
 created from Scheme strings with @func{string->cstring}, and handed to
@@ -1758,45 +1770,46 @@ the foreign functions as pointers.
 @item char
 @itemx schar
 @itemx signed-char
-signed character;
+Signed character.
 
 @item uchar
 @itemx unsigned-char
-unsigned character;
+Unsigned character.
 
 @item int
 @itemx signed-int
 @itemx ssize_t
-signed fixnum;
+Signed fixnum.
 
 @item uint
 @itemx unsigned
 @itemx unsigned-int
 @itemx size_t
-unsigned fixnum;
+Unsigned fixnum.
 
 @item long
-signed integer;
+Signed integer.
 
 @item ulong unsigned-long
-unsigned integer;
+Unsigned integer.
 
 @item float
-single precision flonum;
+Single precision flonum.
 
 @item double
-double precision flonum;
+Double precision flonum.
 
 @item pointer
 @itemx void*
 @itemx char*
-pointer to a block of memory;
+@itemx FILE*
+Pointer to a block of memory.
 
 @item callback
-pointer to a callback function;
+Pointer to a callback function.
 
 @item void
-no value.
+No value.
 @end table
 
 
@@ -1807,38 +1820,103 @@ no value.
 @subsection Calling foreign functions
 
 
-@deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
-@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+@defun primitive-c-function @var{ret-type} @var{export-name} @var{arg-types}
 Build and return a new Scheme interface function for a C language
-foreign function in the current shared object.
-
-@func{make-c-function} returns the interface function,
-@func{define-c-function} is a wrapper that also defines a binding for
-the local environment.
-
-Arguments description follows:
+foreign function in the current shared object.  The current shared
+object is referenced by the value of the @code{shared-object} parameter.
 
 @table @var
-@item pub-name
-a symbol to which @func{define-c-function} binds the interface function;
-
 @item ret-type
-a symbol representing the type of the return value of the foreign
-function;
+A symbol among the ones that select a C language type.  It is the type
+of value returned by the foreign function.
 
 @item pri-name
-a symbol representing the name of the foreign function exported by the
-current shared object;
+A Scheme symbol representing the name of the symbol exported by the
+shared object.  Beware that sometimes the exported symbols are different
+from the ones we write in C language code to call a function.
 
-@item arg-type0
-@itemx arg-type
-@itemx ...
-symbols representing the type of the arguments of the foreign function;
-there must be at least one, which can be @code{void} if the foreign
-function takes no arguments.
+@item arg-types
+A list of symbols among the ones that select a C language type.  It is
+the list of types for the arguments required by the foreign function.
+If the foreign function accepts no arguments: this list must be @code{(void)}.
 @end table
 
-Variadic function are @strong{not} supported (sorry).
+@quotation
+@emph{Unix:} One way to discover the names of symbols exported by a
+shared object, is to apply the @command{strings} command to the shared
+object.  For example, to discover the names of deflate functions in
+Zlib:
+
+@example
+$ strings /usr/lib/libz.so | grep deflate
+deflateInit_
+deflate
+deflateEnd
+...
+@end example
+@end quotation
+
+Variadic functions, like @cfunc{fprintf}, are @strong{not} supported
+(sorry).
+
+As an example, the main deflate functions from Zlib can be defined with:
+
+@example
+(define deflateInit
+  (primitive-make-c-function 'int 'deflateInit_ '(pointer int)))
+
+(define deflate
+  (primitive-make-c-function 'int 'deflate '(pointer int)))
+
+(define deflateEnd
+  (primitive-make-c-function 'int 'deflateEnd '(pointer)))
+@end example
+@end defun
+
+
+@deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+These are wrappers for @func{primitive-make-c-function} that allows us
+to avoid quoting of arguments.  @func{define-c-function} is itself a
+wrapper for @func{make-c-function}.
+
+As an example, the main deflate functions from Zlib can be defined with:
+
+@example
+(define zstream 'pointer)
+
+(define deflateInit
+  (make-c-function int deflateInit_ (zstream int)))
+
+(define deflate
+  (make-c-function int deflate (zstream int)))
+
+(define deflateEnd
+  (make-c-function int deflateEnd (zstream)))
+@end example
+
+@noindent
+or with:
+
+@example
+(define zstream 'pointer)
+
+(define-c-function deflateInit
+  (int deflateInit_ (zstream int)))
+
+(define-c-function deflate
+  (int deflate (zstream int)))
+
+(define-c-function deflateEnd
+  (int deflateEnd (zstream)))
+@end example
+
+@noindent
+and notice that: in the expansion of the macros, the predefined types
+(like @code{int}) will be quoted, while the custom types (like
+@code{zstream}) will be left unquoted and so they will correctly
+reference bindings (in the example @code{zstream} evaluates to
+@code{pointer}).
 @end deffn
 
 
