@@ -1587,6 +1587,7 @@ posix} libraries.
 * ffi memory::                  Basic memory allocation.
 * ffi guarded malloc::          Guarded memory allocation.
 * ffi sizeof::                  Sizes and limits.
+* ffi errno::                   Error constants.
 * ffi accessors::               Low level access to memory.
 * ffi string::                  Basic string functions.
 * ffi headers::                 Inspecting foreign header files.
@@ -2345,7 +2346,92 @@ respectively.
 @end defvar
 
 
-@c ------------------------------------------------------------
+@c page
+@node ffi errno
+@section Error constants
+
+
+The @library{uriel ffi errno} exports one binding for each @code{errno}
+constant, and two conversion functions.  Not all the constants may be
+defined on your platform, if a symbol is not defined its value is
+@false{}.  To import the library:
+
+@example
+(import (uriel ffi errno))
+@end example
+
+
+@defun errno->integer @var{symbol}
+@defunx errno->integer/or-error @var{symbol}
+Attempt the conversion from an @code{errno} symbol to the corresponding
+integer value.  Return an integer or @false{} if the symbol is not
+defined on the underlying platform.
+
+The @code{or-error} variant raises an assertion violation if
+@var{symbol} is not an @code{errno} symbol.
+@end defun
+
+
+@defun integer->errno @var{number}
+Attempt the conversion from an integer to the corresponding @code{errno}
+symbol.  Return a symbol or @false{} if @var{number} is not the value of
+an @code{errno} constant.
+
+The @code{or-error} variant raises an assertion violation if
+@var{number} is not an @code{errno} value.
+@end defun
+
+
+@value{PACKAGE} attempts to define the following symbols (in
+row--then--column alphabetical order):
+
+@example
+E2BIG               EACCES              EADDRINUSE
+EADDRNOTAVAIL       EADV                EAFNOSUPPORT
+EAGAIN              EALREADY            EBADE
+EBADF               EBADFD              EBADMSG
+EBADR               EBADRQC             EBADSLT
+EBFONT              EBUSY               ECANCELED
+ECHILD              ECHRNG              ECOMM
+ECONNABORTED        ECONNREFUSED        ECONNRESET
+EDEADLK             EDEADLOCK           EDESTADDRREQ
+EDOM                EDOTDOT             EDQUOT
+EEXIST              EFAULT              EFBIG
+EHOSTDOWN           EHOSTUNREACH        EIDRM
+EILSEQ              EINPROGRESS         EINTR
+EINVAL              EIO                 EISCONN
+EISDIR              EISNAM              EKEYEXPIRED
+EKEYREJECTED        EKEYREVOKED         EL2HLT
+EL2NSYNC            EL3HLT              EL3RST
+ELIBACC             ELIBBAD             ELIBEXEC
+ELIBMAX             ELIBSCN             ELNRNG
+ELOOP               EMEDIUMTYPE         EMFILE
+EMLINK              EMSGSIZE            EMULTIHOP
+ENAMETOOLONG        ENAVAIL             ENETDOWN
+ENETRESET           ENETUNREACH         ENFILE
+ENOANO              ENOBUFS             ENOCSI
+ENODATA             ENODEV              ENOENT
+ENOEXEC             ENOKEY              ENOLCK
+ENOLINK             ENOMEDIUM           ENOMEM
+ENOMSG              ENONET              ENOPKG
+ENOPROTOOPT         ENOSPC              ENOSR
+ENOSTR              ENOSYS              ENOTBLK
+ENOTCONN            ENOTDIR             ENOTEMPTY
+ENOTNAM             ENOTRECOVERABLE     ENOTSOCK
+ENOTTY              ENOTUNIQ            ENXIO
+EOPNOTSUPP          EOVERFLOW           EOWNERDEAD
+EPERM               EPFNOSUPPORT        EPIPE
+EPROTO              EPROTONOSUPPORT     EPROTOTYPE
+ERANGE              EREMCHG             EREMOTE
+EREMOTEIO           ERESTART            EROFS
+ESHUTDOWN           ESOCKTNOSUPPORT     ESPIPE
+ESRCH               ESRMNT              ESTALE
+ESTRPIPE            ETIME               ETIMEDOUT
+ETOOMANYREFS        ETXTBSY             EUCLEAN
+EUNATCH             EUSERS              EWOULDBLOCK
+EXDEV               EXFULL
+@end example
+
 
 @c page
 @node ffi accessors
@@ -2733,7 +2819,7 @@ working directory.  If an error occurs reading the current directory
 @end defun
 
 
-@defun getcwd/with-errno
+@deftypefun {} primitive-getcwd/with-errno
 @func{getcwd/with-errno} returns 2 values: if success, a string
 representing the current working directory and zero; if an error
 occurred, @false{} and an exact integer representing the value of
