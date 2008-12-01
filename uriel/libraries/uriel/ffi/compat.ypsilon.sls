@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-30 18:17:42 marco>
+;;;Time-stamp: <2008-12-01 11:47:10 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -69,7 +69,8 @@
   (import (core)
     (srfi receive)
     (srfi parameters)
-    (uriel ffi sizeof))
+    (uriel ffi sizeof)
+    (uriel ffi out-of-memory))
 
 
 
@@ -520,15 +521,29 @@
 
 ;;;; memory allocation
 
-;;Whenever an  interface function returns  a pointer: Ypsilon  wraps the
-;;block of memory into a bytevector.   So when we feed a block of memory
-;;to an interface function: we have to build a bytevector.
+(define primitive-malloc
+  (primitive-make-c-function 'void* 'malloc '(size_t)))
 
-(define (primitive-malloc number-of-bytes)
-  (make-bytevector number-of-bytes 0))
+(define primitive-free
+  (primitive-make-c-function 'void 'free '(void*)))
 
-(define (primitive-free p)
-  #f)
+;; (define (primitive-malloc number-of-bytes)
+;;   (make-bytevector number-of-bytes 0))
+
+;; (define (primitive-free p)
+;;   #f)
+
+;;This  is required  by the  string functions  below.  This  function is
+;;duplicated in "(uriel ffi)".
+(define (malloc size)
+  (let ((p (primitive-malloc size)))
+    (unless p
+      (raise (make-who-condition 'malloc)
+	     (make-message-condition "out of memory")
+	     (make-out-of-memory-condition size)))
+    p))
+
+
 
 
 ;;;; pokers and peekers
@@ -586,24 +601,41 @@
 
 ;;;; string functions
 
-;;With the  conventions established for compatibility: the  cstring is a
-;;bytevector.
-(define (strlen string)
-  (do ((i 0 (+ 1 i)))
-      ((= 0 (bytevector-u8-ref string i))
-       i)
-    #f))
+(define primitive-strlen
+  (primitive-make-c-function 'size_t 'strlen '(char*)))
+
+(define (strlen cstr)
+  (if (bytevector? cstr)
+      (do ((i 0 (+ 1 i)))
+	  ((= 0 (bytevector-u8-ref cstr i))
+	   i)
+	#f)
+    (primitive-strlen cstr)))
 
 (define (cstring->string cstr)
-  ;;We  have to  use  STRLEN here  because  it is  possible for  foreign
-  ;;functions to place a zero-terminated  string in a larget buffer.  We
-  ;;have to cut the right portion.
-  (let ((len (strlen cstr))
-	(str (bytevector->string cstr (make-transcoder (utf-8-codec)))))
-    (substring str 0 len )))
+  (let ((len (strlen cstr)))
+    (if (bytevector? cstr)
+	;;We  have  to use  STRLEN  and  SUBSTRING  here because  it  is
+	;;possible  for  foreign functions  to  place a  zero-terminated
+	;;string in a larger buffer.  We have to cut the correct slice.
+	(substring
+	 (bytevector->string cstr (make-transcoder (utf-8-codec)))
+	 0 len)
+      (let* ((bv (make-bytevector len)))
+	(do ((i 0 (+ 1 i)))
+	    ((= i len)
+	     (utf8->string bv))
+	  (bytevector-s8-set! bv i (pointer-ref-c-signed-char cstr i)))))))
 
-(define (string->cstring str)
-  (string->utf8 (string-append str "\x0;")))
+(define (string->cstring s)
+  (let* ((len	(string-length s))
+	 (p	(malloc (+ 1 len)))
+	 (bv	(string->utf8 s)))
+    (pointer-set-c-char! p len 0)
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 p)
+      (pointer-set-c-char! p i (bytevector-s8-ref bv i)))))
 
 
 

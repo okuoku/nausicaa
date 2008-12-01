@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: interface to POSIX functions for Ypsilon
-;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-01 10:17:16 marco>
+;;;Part of: Uriel libraries for R6RS Scheme
+;;;Contents: out of memory condition
+;;;Date: Mon Dec  1, 2008
+;;;Time-stamp: <2008-12-01 10:29:52 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,11 +24,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel posix compat)
+(library (uriel ffi out-of-memory)
   (export
-    (rename (getenv primitive-getenv)))
-  (import (rnrs)
-    (core)))
+    &out-of-memory make-out-of-memory-condition out-of-memory-condition?
+    out-of-memory-requested-number-of-bytes)
+  (import (rnrs))
 
+  (define-condition-type &out-of-memory &error
+    make-out-of-memory-condition out-of-memory-condition?
+    (number-of-bytes out-of-memory-requested-number-of-bytes)))
 
 ;;; end of file

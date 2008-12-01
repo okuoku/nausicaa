@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-30 17:49:12 marco>
+;;;Time-stamp: <2008-12-01 10:30:13 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -67,10 +67,9 @@
 
   (import (rnrs)
     (uriel lang)
-    (uriel define-macro)
     (uriel printing)
     (uriel ffi compat)
-    (uriel define-macro))
+    (uriel ffi out-of-memory))
 
 
 
@@ -150,10 +149,6 @@
 
 
 ;;;; basic memory functions
-
-(define-condition-type &out-of-memory &error
-  make-out-of-memory-condition out-of-memory-condition?
-  (number-of-bytes out-of-memory-requested-number-of-bytes))
 
 (define (malloc size)
   (let ((p (primitive-malloc size)))

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for the GNU C library interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-11-30 17:32:14 marco>
+;;;Time-stamp: <2008-12-01 07:48:49 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -47,7 +47,7 @@
       (setenv 'CIAO 'pasta 1)
       (clearenv)
       (getenv 'CIAO))
-  => "")
+  => #f)
 
 
 

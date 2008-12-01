@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-27 17:08:16 marco>
+;;;Time-stamp: <2008-11-27 17:09:18 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -65,10 +65,9 @@
   (define valueof-wchar-max 2147483647)
   (define valueof-ssize-max 2147483647)
 
-  (define words-bigendian (= 1 0))
-
   (define on-32-bits-system (= sizeof-int 4))
   (define on-64-bits-system (= sizeof-int 8))
-  )
+
+  (define words-bigendian (= 1 0)))
 
 ;;; end of file

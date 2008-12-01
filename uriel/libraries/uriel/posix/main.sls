@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: interface to POSIX functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-30 18:12:35 marco>
+;;;Time-stamp: <2008-12-01 10:16:56 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,12 +35,16 @@
     getenv setenv
 
     ;;working directory
-    getcwd pwd chdir
+    getcwd primitive-getcwd pwd
+    chdir primitive-chdir
+
     )
   (import (rnrs)
     (uriel lang)
     (uriel ffi)
+    (uriel ffi errno)
     (uriel posix compat)
+    (uriel printing)
     (srfi receive))
 
 
@@ -52,7 +56,7 @@
 
 ;;;; environment variables
 
-(define-c-function setenv-stub
+(define-c-function primitive-setenv
   (int setenv (char* char* int)))
 
 (define (setenv varname newvalue replace)
@@ -66,14 +70,15 @@
 		    (string->cstring (symbol->string/maybe newvalue))
 		  (with
 		   (primitive-free value)))))
-      (setenv-stub name value (if replace 1 0)))))
+      (primitive-setenv name value (if replace 1 0)))))
 
 (define (getenv varname)
-  ;;Currently the supported Scheme implementations providing GETENV-STUB
-  ;;automatically return a Scheme string.
+  ;;Currently    the   supported   Scheme    implementations   providing
+  ;;PRIMITIVE-GETENV automatically return a Scheme string.
   ;;
-  ;;GETENV-STUB is supposed to return #f is the variable is not set.
-  (getenv-stub (symbol->string/maybe varname)))
+  ;;PRIMITIVE-GETENV is  supposed to  return #f is  the variable  is not
+  ;;set.
+  (primitive-getenv (symbol->string/maybe varname)))
 
 ;;;To use  "unsetenv()" the  memory block must  be persistent  (read the
 ;;;documentation of the  GNU C library).  This is not  a good thing with
@@ -96,25 +101,28 @@
 
 ;;;;working directory
 
-(define-c-function/with-errno getcwd-stub
+(define-c-function/with-errno primitive-getcwd
   (char* getcwd (char* size_t)))
 
 (define (getcwd)
-  (with-compensations
-    (letrec*
-	((buflen 4096) ; enough? or is there a limit of 1024?
-	 (buffer (compensate
-		     (malloc 4096)
-		   (with
-		    (primitive-free buffer)))))
-      (receive (cstr errno)
-	  (getcwd-stub buffer buflen)
-	(values (cstring->string buffer)
-		errno)))))
+  (let loop ((buflen 1024))
+    (with-compensations
+      (letrec*
+	  ((buffer (compensate
+		       (malloc buflen)
+		     (with
+		      (primitive-free buffer)))))
+	(receive (cstr errno)
+	    (primitive-getcwd buffer buflen)
+	  (if (and (= 0 (pointer->integer cstr))
+		   (or (= EINVAL errno)
+		       (= ERANGE errno)))
+	      (loop (* 2 buflen))
+	    (values (cstring->string buffer) errno)))))))
 
 (define pwd getcwd)
 
-(define-c-function/with-errno chdir-stub
+(define-c-function/with-errno primitive-chdir
   (int chdir (char*)))
 
 (define (chdir directory-pathname)
@@ -125,7 +133,7 @@
 		      (symbol->string/maybe directory-pathname))
 		   (with
 		    (primitive-free buffer)))))
-      (chdir-stub buffer))))
+      (primitive-chdir buffer))))
 
 
 

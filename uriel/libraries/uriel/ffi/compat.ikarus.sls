@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-30 17:52:01 marco>
+;;;Time-stamp: <2008-12-01 10:23:50 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -140,13 +140,7 @@
 ;;;; string functions
 
 (define strlen
-  (primitive-make-c-function 'unsigned 'strlen '(pointer)))
-
-;; (define (strlen p)
-;;   (let loop ((i 0))
-;;     (if (= 0 (pointer-ref-c-unsigned-char p i))
-;; 	i
-;;       (loop (+ 1 i)))))
+  (primitive-make-c-function 'size_t 'strlen '(pointer)))
 
 (define (string->cstring s)
   (let* ((len	(string-length s))
