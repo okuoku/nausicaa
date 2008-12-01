@@ -7,8 +7,10 @@ AC_CONFIG_SRCDIR([libraries/compile-all.sps])
 NAUSICAA_BEGIN()
 NAUSICAA_SYSTEM_SETUP()
 NAUSICAA_C_LANGUAGE()
+NAUSICAA_C_ERRNO()
 NAUSICAA_SIZEOF()
 AC_CONFIG_FILES([../libraries/uriel/ffi/sizeof.sls:libraries/uriel/ffi/sizeof.sls.in])
+AC_CONFIG_FILES([../libraries/uriel/ffi/errno.sls:libraries/uriel/ffi/errno.sls.in])
 NAUSICAA_END()
 
 
