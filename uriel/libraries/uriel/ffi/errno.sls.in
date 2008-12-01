@@ -1,0 +1,367 @@
+;;;
+;;;Part of: Uriel libraries for R6RS Scheme
+;;;Contents: values of the errno constants
+;;;Date: Mon Dec  1, 2008
+;;;Time-stamp: <2008-12-01 06:51:19 marco>
+;;;
+;;;Abstract
+;;;
+;;;	Exports  one   binding  for  each  "errno"   constant,  and  two
+;;;	conversion functions.   Not all the constants may  be defined on
+;;;	your platform, if a symbol is not defined its value is #f.
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(library (uriel ffi errno)
+  (export
+    errno->integer	errno->integer/or-error
+    integer->errno	integer->errno/or-error
+    E2BIG		EACCES		EADDRINUSE
+    EADDRNOTAVAIL	EADV		EAFNOSUPPORT
+    EAGAIN		EALREADY	EBADE
+    EBADF		EBADFD		EBADMSG
+    EBADR		EBADRQC		EBADSLT
+    EBFONT		EBUSY		ECANCELED
+    ECHILD		ECHRNG		ECOMM
+    ECONNABORTED	ECONNREFUSED	ECONNRESET
+    EDEADLK		EDEADLOCK	EDESTADDRREQ
+    EDOM		EDOTDOT		EDQUOT
+    EEXIST		EFAULT		EFBIG
+    EHOSTDOWN		EHOSTUNREACH	EIDRM
+    EILSEQ		EINPROGRESS	EINTR
+    EINVAL		EIO		EISCONN
+    EISDIR		EISNAM		EKEYEXPIRED
+    EKEYREJECTED	EKEYREVOKED	EL2HLT
+    EL2NSYNC		EL3HLT		EL3RST
+    ELIBACC		ELIBBAD		ELIBEXEC
+    ELIBMAX		ELIBSCN		ELNRNG
+    ELOOP		EMEDIUMTYPE	EMFILE
+    EMLINK		EMSGSIZE	EMULTIHOP
+    ENAMETOOLONG	ENAVAIL		ENETDOWN
+    ENETRESET		ENETUNREACH	ENFILE
+    ENOANO		ENOBUFS		ENOCSI
+    ENODATA		ENODEV		ENOENT
+    ENOEXEC		ENOKEY		ENOLCK
+    ENOLINK		ENOMEDIUM	ENOMEM
+    ENOMSG		ENONET		ENOPKG
+    ENOPROTOOPT		ENOSPC		ENOSR
+    ENOSTR		ENOSYS		ENOTBLK
+    ENOTCONN		ENOTDIR		ENOTEMPTY
+    ENOTNAM		ENOTRECOVERABLE	ENOTSOCK
+    ENOTTY		ENOTUNIQ	ENXIO
+    EOPNOTSUPP		EOVERFLOW	EOWNERDEAD
+    EPERM		EPFNOSUPPORT	EPIPE
+    EPROTO		EPROTONOSUPPORT	EPROTOTYPE
+    ERANGE		EREMCHG		EREMOTE
+    EREMOTEIO		ERESTART	EROFS
+    ESHUTDOWN		ESOCKTNOSUPPORT	ESPIPE
+    ESRCH		ESRMNT		ESTALE
+    ESTRPIPE		ETIME		ETIMEDOUT
+    ETOOMANYREFS	ETXTBSY		EUCLEAN
+    EUNATCH		EUSERS		EWOULDBLOCK
+    EXDEV		EXFULL)
+  (import (rnrs))
+
+  (define E2BIG			@VALUEOF_E2BIG@)
+  (define EACCES		@VALUEOF_EACCES@)
+  (define EADDRINUSE		@VALUEOF_EADDRINUSE@)
+  (define EADDRNOTAVAIL		@VALUEOF_EADDRNOTAVAIL@)
+  (define EADV			@VALUEOF_EADV@)
+  (define EAFNOSUPPORT		@VALUEOF_EAFNOSUPPORT@)
+  (define EAGAIN		@VALUEOF_EAGAIN@)
+  (define EALREADY		@VALUEOF_EALREADY@)
+  (define EBADE			@VALUEOF_EBADE@)
+  (define EBADF			@VALUEOF_EBADF@)
+  (define EBADFD		@VALUEOF_EBADFD@)
+  (define EBADMSG		@VALUEOF_EBADMSG@)
+  (define EBADR			@VALUEOF_EBADR@)
+  (define EBADRQC		@VALUEOF_EBADRQC@)
+  (define EBADSLT		@VALUEOF_EBADSLT@)
+  (define EBFONT		@VALUEOF_EBFONT@)
+  (define EBUSY			@VALUEOF_EBUSY@)
+  (define ECANCELED		@VALUEOF_ECANCELED@)
+  (define ECHILD		@VALUEOF_ECHILD@)
+  (define ECHRNG		@VALUEOF_ECHRNG@)
+  (define ECOMM			@VALUEOF_ECOMM@)
+  (define ECONNABORTED		@VALUEOF_ECONNABORTED@)
+  (define ECONNREFUSED		@VALUEOF_ECONNREFUSED@)
+  (define ECONNRESET		@VALUEOF_ECONNRESET@)
+  (define EDEADLK		@VALUEOF_EDEADLK@)
+  (define EDEADLOCK		@VALUEOF_EDEADLOCK@)
+  (define EDESTADDRREQ		@VALUEOF_EDESTADDRREQ@)
+  (define EDOM			@VALUEOF_EDOM@)
+  (define EDOTDOT		@VALUEOF_EDOTDOT@)
+  (define EDQUOT		@VALUEOF_EDQUOT@)
+  (define EEXIST		@VALUEOF_EEXIST@)
+  (define EFAULT		@VALUEOF_EFAULT@)
+  (define EFBIG			@VALUEOF_EFBIG@)
+  (define EHOSTDOWN		@VALUEOF_EHOSTDOWN@)
+  (define EHOSTUNREACH		@VALUEOF_EHOSTUNREACH@)
+  (define EIDRM			@VALUEOF_EIDRM@)
+  (define EILSEQ		@VALUEOF_EILSEQ@)
+  (define EINPROGRESS		@VALUEOF_EINPROGRESS@)
+  (define EINTR			@VALUEOF_EINTR@)
+  (define EINVAL		@VALUEOF_EINVAL@)
+  (define EIO			@VALUEOF_EIO@)
+  (define EISCONN		@VALUEOF_EISCONN@)
+  (define EISDIR		@VALUEOF_EISDIR@)
+  (define EISNAM		@VALUEOF_EISNAM@)
+  (define EKEYEXPIRED		@VALUEOF_EKEYEXPIRED@)
+  (define EKEYREJECTED		@VALUEOF_EKEYREJECTED@)
+  (define EKEYREVOKED		@VALUEOF_EKEYREVOKED@)
+  (define EL2HLT		@VALUEOF_EL2HLT@)
+  (define EL2NSYNC		@VALUEOF_EL2NSYNC@)
+  (define EL3HLT		@VALUEOF_EL3HLT@)
+  (define EL3RST		@VALUEOF_EL3RST@)
+  (define ELIBACC		@VALUEOF_ELIBACC@)
+  (define ELIBBAD		@VALUEOF_ELIBBAD@)
+  (define ELIBEXEC		@VALUEOF_ELIBEXEC@)
+  (define ELIBMAX		@VALUEOF_ELIBMAX@)
+  (define ELIBSCN		@VALUEOF_ELIBSCN@)
+  (define ELNRNG		@VALUEOF_ELNRNG@)
+  (define ELOOP			@VALUEOF_ELOOP@)
+  (define EMEDIUMTYPE		@VALUEOF_EMEDIUMTYPE@)
+  (define EMFILE		@VALUEOF_EMFILE@)
+  (define EMLINK		@VALUEOF_EMLINK@)
+  (define EMSGSIZE		@VALUEOF_EMSGSIZE@)
+  (define EMULTIHOP		@VALUEOF_EMULTIHOP@)
+  (define ENAMETOOLONG		@VALUEOF_ENAMETOOLONG@)
+  (define ENAVAIL		@VALUEOF_ENAVAIL@)
+  (define ENETDOWN		@VALUEOF_ENETDOWN@)
+  (define ENETRESET		@VALUEOF_ENETRESET@)
+  (define ENETUNREACH		@VALUEOF_ENETUNREACH@)
+  (define ENFILE		@VALUEOF_ENFILE@)
+  (define ENOANO		@VALUEOF_ENOANO@)
+  (define ENOBUFS		@VALUEOF_ENOBUFS@)
+  (define ENOCSI		@VALUEOF_ENOCSI@)
+  (define ENODATA		@VALUEOF_ENODATA@)
+  (define ENODEV		@VALUEOF_ENODEV@)
+  (define ENOENT		@VALUEOF_ENOENT@)
+  (define ENOEXEC		@VALUEOF_ENOEXEC@)
+  (define ENOKEY		@VALUEOF_ENOKEY@)
+  (define ENOLCK		@VALUEOF_ENOLCK@)
+  (define ENOLINK		@VALUEOF_ENOLINK@)
+  (define ENOMEDIUM		@VALUEOF_ENOMEDIUM@)
+  (define ENOMEM		@VALUEOF_ENOMEM@)
+  (define ENOMSG		@VALUEOF_ENOMSG@)
+  (define ENONET		@VALUEOF_ENONET@)
+  (define ENOPKG		@VALUEOF_ENOPKG@)
+  (define ENOPROTOOPT		@VALUEOF_ENOPROTOOPT@)
+  (define ENOSPC		@VALUEOF_ENOSPC@)
+  (define ENOSR			@VALUEOF_ENOSR@)
+  (define ENOSTR		@VALUEOF_ENOSTR@)
+  (define ENOSYS		@VALUEOF_ENOSYS@)
+  (define ENOTBLK		@VALUEOF_ENOTBLK@)
+  (define ENOTCONN		@VALUEOF_ENOTCONN@)
+  (define ENOTDIR		@VALUEOF_ENOTDIR@)
+  (define ENOTEMPTY		@VALUEOF_ENOTEMPTY@)
+  (define ENOTNAM		@VALUEOF_ENOTNAM@)
+  (define ENOTRECOVERABLE	@VALUEOF_ENOTRECOVERABLE@)
+  (define ENOTSOCK		@VALUEOF_ENOTSOCK@)
+  (define ENOTTY		@VALUEOF_ENOTTY@)
+  (define ENOTUNIQ		@VALUEOF_ENOTUNIQ@)
+  (define ENXIO			@VALUEOF_ENXIO@)
+  (define EOPNOTSUPP		@VALUEOF_EOPNOTSUPP@)
+  (define EOVERFLOW		@VALUEOF_EOVERFLOW@)
+  (define EOWNERDEAD		@VALUEOF_EOWNERDEAD@)
+  (define EPERM			@VALUEOF_EPERM@)
+  (define EPFNOSUPPORT		@VALUEOF_EPFNOSUPPORT@)
+  (define EPIPE			@VALUEOF_EPIPE@)
+  (define EPROTO		@VALUEOF_EPROTO@)
+  (define EPROTONOSUPPORT	@VALUEOF_EPROTONOSUPPORT@)
+  (define EPROTOTYPE		@VALUEOF_EPROTOTYPE@)
+  (define ERANGE		@VALUEOF_ERANGE@)
+  (define EREMCHG		@VALUEOF_EREMCHG@)
+  (define EREMOTE		@VALUEOF_EREMOTE@)
+  (define EREMOTEIO		@VALUEOF_EREMOTEIO@)
+  (define ERESTART		@VALUEOF_ERESTART@)
+  (define EROFS			@VALUEOF_EROFS@)
+  (define ESHUTDOWN		@VALUEOF_ESHUTDOWN@)
+  (define ESOCKTNOSUPPORT	@VALUEOF_ESOCKTNOSUPPORT@)
+  (define ESPIPE		@VALUEOF_ESPIPE@)
+  (define ESRCH			@VALUEOF_ESRCH@)
+  (define ESRMNT		@VALUEOF_ESRMNT@)
+  (define ESTALE		@VALUEOF_ESTALE@)
+  (define ESTRPIPE		@VALUEOF_ESTRPIPE@)
+  (define ETIME			@VALUEOF_ETIME@)
+  (define ETIMEDOUT		@VALUEOF_ETIMEDOUT@)
+  (define ETOOMANYREFS		@VALUEOF_ETOOMANYREFS@)
+  (define ETXTBSY		@VALUEOF_ETXTBSY@)
+  (define EUCLEAN		@VALUEOF_EUCLEAN@)
+  (define EUNATCH		@VALUEOF_EUNATCH@)
+  (define EUSERS		@VALUEOF_EUSERS@)
+  (define EWOULDBLOCK		@VALUEOF_EWOULDBLOCK@)
+  (define EXDEV			@VALUEOF_EXDEV@)
+  (define EXFULL		@VALUEOF_EXFULL@)
+
+  (define errno-alist
+    '((E2BIG		. @VALUEOF_E2BIG@)
+      (EACCES		. @VALUEOF_EACCES@)
+      (EADDRINUSE	. @VALUEOF_EADDRINUSE@)
+      (EADDRNOTAVAIL	. @VALUEOF_EADDRNOTAVAIL@)
+      (EADV		. @VALUEOF_EADV@)
+      (EAFNOSUPPORT	. @VALUEOF_EAFNOSUPPORT@)
+      (EAGAIN		. @VALUEOF_EAGAIN@)
+      (EALREADY		. @VALUEOF_EALREADY@)
+      (EBADE		. @VALUEOF_EBADE@)
+      (EBADF		. @VALUEOF_EBADF@)
+      (EBADFD		. @VALUEOF_EBADFD@)
+      (EBADMSG		. @VALUEOF_EBADMSG@)
+      (EBADR		. @VALUEOF_EBADR@)
+      (EBADRQC		. @VALUEOF_EBADRQC@)
+      (EBADSLT		. @VALUEOF_EBADSLT@)
+      (EBFONT		. @VALUEOF_EBFONT@)
+      (EBUSY		. @VALUEOF_EBUSY@)
+      (ECANCELED	. @VALUEOF_ECANCELED@)
+      (ECHILD		. @VALUEOF_ECHILD@)
+      (ECHRNG		. @VALUEOF_ECHRNG@)
+      (ECOMM		. @VALUEOF_ECOMM@)
+      (ECONNABORTED	. @VALUEOF_ECONNABORTED@)
+      (ECONNREFUSED	. @VALUEOF_ECONNREFUSED@)
+      (ECONNRESET	. @VALUEOF_ECONNRESET@)
+      (EDEADLK		. @VALUEOF_EDEADLK@)
+      (EDEADLOCK	. @VALUEOF_EDEADLOCK@)
+      (EDESTADDRREQ	. @VALUEOF_EDESTADDRREQ@)
+      (EDOM		. @VALUEOF_EDOM@)
+      (EDOTDOT		. @VALUEOF_EDOTDOT@)
+      (EDQUOT		. @VALUEOF_EDQUOT@)
+      (EEXIST		. @VALUEOF_EEXIST@)
+      (EFAULT		. @VALUEOF_EFAULT@)
+      (EFBIG		. @VALUEOF_EFBIG@)
+      (EHOSTDOWN	. @VALUEOF_EHOSTDOWN@)
+      (EHOSTUNREACH	. @VALUEOF_EHOSTUNREACH@)
+      (EIDRM		. @VALUEOF_EIDRM@)
+      (EILSEQ		. @VALUEOF_EILSEQ@)
+      (EINPROGRESS	. @VALUEOF_EINPROGRESS@)
+      (EINTR		. @VALUEOF_EINTR@)
+      (EINVAL		. @VALUEOF_EINVAL@)
+      (EIO		. @VALUEOF_EIO@)
+      (EISCONN		. @VALUEOF_EISCONN@)
+      (EISDIR		. @VALUEOF_EISDIR@)
+      (EISNAM		. @VALUEOF_EISNAM@)
+      (EKEYEXPIRED	. @VALUEOF_EKEYEXPIRED@)
+      (EKEYREJECTED	. @VALUEOF_EKEYREJECTED@)
+      (EKEYREVOKED	. @VALUEOF_EKEYREVOKED@)
+      (EL2HLT		. @VALUEOF_EL2HLT@)
+      (EL2NSYNC		. @VALUEOF_EL2NSYNC@)
+      (EL3HLT		. @VALUEOF_EL3HLT@)
+      (EL3RST		. @VALUEOF_EL3RST@)
+      (ELIBACC		. @VALUEOF_ELIBACC@)
+      (ELIBBAD		. @VALUEOF_ELIBBAD@)
+      (ELIBEXEC		. @VALUEOF_ELIBEXEC@)
+      (ELIBMAX		. @VALUEOF_ELIBMAX@)
+      (ELIBSCN		. @VALUEOF_ELIBSCN@)
+      (ELNRNG		. @VALUEOF_ELNRNG@)
+      (ELOOP		. @VALUEOF_ELOOP@)
+      (EMEDIUMTYPE	. @VALUEOF_EMEDIUMTYPE@)
+      (EMFILE		. @VALUEOF_EMFILE@)
+      (EMLINK		. @VALUEOF_EMLINK@)
+      (EMSGSIZE		. @VALUEOF_EMSGSIZE@)
+      (EMULTIHOP	. @VALUEOF_EMULTIHOP@)
+      (ENAMETOOLONG	. @VALUEOF_ENAMETOOLONG@)
+      (ENAVAIL		. @VALUEOF_ENAVAIL@)
+      (ENETDOWN		. @VALUEOF_ENETDOWN@)
+      (ENETRESET	. @VALUEOF_ENETRESET@)
+      (ENETUNREACH	. @VALUEOF_ENETUNREACH@)
+      (ENFILE		. @VALUEOF_ENFILE@)
+      (ENOANO		. @VALUEOF_ENOANO@)
+      (ENOBUFS		. @VALUEOF_ENOBUFS@)
+      (ENOCSI		. @VALUEOF_ENOCSI@)
+      (ENODATA		. @VALUEOF_ENODATA@)
+      (ENODEV		. @VALUEOF_ENODEV@)
+      (ENOENT		. @VALUEOF_ENOENT@)
+      (ENOEXEC		. @VALUEOF_ENOEXEC@)
+      (ENOKEY		. @VALUEOF_ENOKEY@)
+      (ENOLCK		. @VALUEOF_ENOLCK@)
+      (ENOLINK		. @VALUEOF_ENOLINK@)
+      (ENOMEDIUM	. @VALUEOF_ENOMEDIUM@)
+      (ENOMEM		. @VALUEOF_ENOMEM@)
+      (ENOMSG		. @VALUEOF_ENOMSG@)
+      (ENONET		. @VALUEOF_ENONET@)
+      (ENOPKG		. @VALUEOF_ENOPKG@)
+      (ENOPROTOOPT	. @VALUEOF_ENOPROTOOPT@)
+      (ENOSPC		. @VALUEOF_ENOSPC@)
+      (ENOSR		. @VALUEOF_ENOSR@)
+      (ENOSTR		. @VALUEOF_ENOSTR@)
+      (ENOSYS		. @VALUEOF_ENOSYS@)
+      (ENOTBLK		. @VALUEOF_ENOTBLK@)
+      (ENOTCONN		. @VALUEOF_ENOTCONN@)
+      (ENOTDIR		. @VALUEOF_ENOTDIR@)
+      (ENOTEMPTY	. @VALUEOF_ENOTEMPTY@)
+      (ENOTNAM		. @VALUEOF_ENOTNAM@)
+      (ENOTRECOVERABLE	. @VALUEOF_ENOTRECOVERABLE@)
+      (ENOTSOCK		. @VALUEOF_ENOTSOCK@)
+      (ENOTTY		. @VALUEOF_ENOTTY@)
+      (ENOTUNIQ		. @VALUEOF_ENOTUNIQ@)
+      (ENXIO		. @VALUEOF_ENXIO@)
+      (EOPNOTSUPP	. @VALUEOF_EOPNOTSUPP@)
+      (EOVERFLOW	. @VALUEOF_EOVERFLOW@)
+      (EOWNERDEAD	. @VALUEOF_EOWNERDEAD@)
+      (EPERM		. @VALUEOF_EPERM@)
+      (EPFNOSUPPORT	. @VALUEOF_EPFNOSUPPORT@)
+      (EPIPE		. @VALUEOF_EPIPE@)
+      (EPROTO		. @VALUEOF_EPROTO@)
+      (EPROTONOSUPPORT	. @VALUEOF_EPROTONOSUPPORT@)
+      (EPROTOTYPE	. @VALUEOF_EPROTOTYPE@)
+      (ERANGE		. @VALUEOF_ERANGE@)
+      (EREMCHG		. @VALUEOF_EREMCHG@)
+      (EREMOTE		. @VALUEOF_EREMOTE@)
+      (EREMOTEIO	. @VALUEOF_EREMOTEIO@)
+      (ERESTART		. @VALUEOF_ERESTART@)
+      (EROFS		. @VALUEOF_EROFS@)
+      (ESHUTDOWN	. @VALUEOF_ESHUTDOWN@)
+      (ESOCKTNOSUPPORT	. @VALUEOF_ESOCKTNOSUPPORT@)
+      (ESPIPE		. @VALUEOF_ESPIPE@)
+      (ESRCH		. @VALUEOF_ESRCH@)
+      (ESRMNT		. @VALUEOF_ESRMNT@)
+      (ESTALE		. @VALUEOF_ESTALE@)
+      (ESTRPIPE		. @VALUEOF_ESTRPIPE@)
+      (ETIME		. @VALUEOF_ETIME@)
+      (ETIMEDOUT	. @VALUEOF_ETIMEDOUT@)
+      (ETOOMANYREFS	. @VALUEOF_ETOOMANYREFS@)
+      (ETXTBSY		. @VALUEOF_ETXTBSY@)
+      (EUCLEAN		. @VALUEOF_EUCLEAN@)
+      (EUNATCH		. @VALUEOF_EUNATCH@)
+      (EUSERS		. @VALUEOF_EUSERS@)
+      (EWOULDBLOCK	. @VALUEOF_EWOULDBLOCK@)
+      (EXDEV		. @VALUEOF_EXDEV@)
+      (EXFULL		. @VALUEOF_EXFULL@)))
+
+  (define (errno->integer symbol)
+    (assq symbol errno-alist))
+
+  (define (errno->integer/or-error symbol)
+    (let ((value (assq symbol errno-alist)))
+      (or value (assertion-violation 'errno->integer/or-error
+		  "expected errno symbol" symbol))))
+
+  (define (integer->errno num)
+    (let ((pair (find (lambda (pair)
+			(= num (cdr pair)))
+		      errno-alist)))
+      (and pair (car pair))))
+
+  (define (integer->errno/or-error num)
+    (let ((pair (find (lambda (pair)
+			(= num (cdr pair)))
+		      errno-alist)))
+      (if pair
+	  (car pair)
+	(assertion-violation 'integer->errno/or-error
+	  "expected value of errno constant" num)))))
+
+;;; end of file
