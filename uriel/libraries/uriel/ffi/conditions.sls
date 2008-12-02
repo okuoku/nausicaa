@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: out of memory condition
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-01 10:29:52 marco>
+;;;Time-stamp: <2008-12-02 20:19:38 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,14 +24,21 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel ffi out-of-memory)
+(library (uriel ffi conditions)
   (export
+
     &out-of-memory make-out-of-memory-condition out-of-memory-condition?
-    out-of-memory-requested-number-of-bytes)
+    out-of-memory-requested-number-of-bytes
+
+    &errno make-errno-condition errno-condition? errno-code)
   (import (rnrs))
 
   (define-condition-type &out-of-memory &error
     make-out-of-memory-condition out-of-memory-condition?
-    (number-of-bytes out-of-memory-requested-number-of-bytes)))
+    (number-of-bytes out-of-memory-requested-number-of-bytes))
+
+  (define-condition-type &errno &error
+    make-errno-condition errno-condition?
+    (code errno-code)))
 
 ;;; end of file

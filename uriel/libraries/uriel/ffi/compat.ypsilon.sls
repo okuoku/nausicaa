@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-02 18:24:49 marco>
+;;;Time-stamp: <2008-12-02 20:35:50 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -65,12 +65,12 @@
     pointer-set-c-pointer!
 
     ;;basic string conversion
-    strlen string->cstring cstring->string)
+    strlen string->cstring cstring->string strerror)
   (import (core)
     (srfi receive)
     (srfi parameters)
     (uriel ffi sizeof)
-    (uriel ffi out-of-memory))
+    (uriel ffi conditions))
 
 
 
@@ -369,8 +369,18 @@
 
 ;;;; pokers and peekers
 
-(define pointer-ref-c-signed-char	bytevector-s8-ref)
-(define pointer-ref-c-unsigned-char	bytevector-u8-ref)
+(define (pointer-ref-c-signed-char pointer position)
+  (bytevector-s8-ref
+   (make-bytevector-mapping (pointer-value pointer)
+			    (+ 1 position))
+   position))
+
+(define (pointer-ref-c-unsigned-char pointer position)
+  (bytevector-u8-ref
+   (make-bytevector-mapping (pointer-value pointer)
+			    (+ 1 position))
+   position))
+
 (define pointer-ref-c-signed-short	bytevector-s16-native-ref)
 (define pointer-ref-c-unsigned-short	bytevector-u16-native-ref)
 (define pointer-ref-c-signed-int	bytevector-s32-native-ref)
@@ -390,7 +400,11 @@
 	 (assertion-violation 'pointer-ref-c-pointer
 	   "cannot determine size of pointers for peeker function"))))
 
-(define pointer-set-c-char!		bytevector-u8-set!)
+(define (pointer-set-c-char! pointer position value)
+  (bytevector-u8-set! (make-bytevector-mapping (pointer-value pointer)
+					       (+ 1 position))
+		      position value))
+
 (define pointer-set-c-short!		bytevector-u16-native-set!)
 (define pointer-set-c-int!		bytevector-u32-native-set!)
 (define pointer-set-c-long!		(when on-32-bits-system
@@ -412,27 +426,30 @@
 (define strlen
   (primitive-make-c-function 'size_t 'strlen '(char*)))
 
+(define primitive-strerror
+  (primitive-make-c-function 'char* 'strerror '(int)))
+
 (define (cstring->string pointer)
   (let* ((len	(strlen pointer))
-	 (bv	(make-bytevector len))
-;;;FIXME
-	 (bptr	(make-bytevector-mapping (pointer-value pointer) len)))
+	 (bv	(make-bytevector len)))
     (do ((i 0 (+ 1 i)))
 	((= i len)
 	 (utf8->string bv))
-      (bytevector-s8-set! bv i (pointer-ref-c-signed-char bptr i)))))
+      (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
 
 (define (string->cstring s)
   (let* ((len		(string-length s))
 	 (alloc-len	(+ 1 len))
 	 (pointer	(malloc alloc-len))
-	 (bptr		(make-bytevector-mapping (pointer-value pointer) alloc-len))
 	 (bv		(string->utf8 s)))
-    (pointer-set-c-char! bptr len 0)
+    (pointer-set-c-char! pointer len 0)
     (do ((i 0 (+ 1 i)))
 	((= i len)
 	 pointer)
-      (pointer-set-c-char! bptr i (bytevector-s8-ref bv i)))))
+      (pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
+
+(define (strerror code)
+  (cstring->string (primitive-strerror code)))
 
 
 

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for the POSIX interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-02 18:20:26 marco>
+;;;Time-stamp: <2008-12-02 20:44:50 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -36,7 +36,10 @@
   (uriel test)
   (uriel posix)
   (uriel glibc)
-  (srfi receive))
+  (uriel ffi)
+  (uriel ffi errno)
+  (srfi receive)
+  (srfi parameters))
 
 (check-set-mode! 'report-failed)
 
@@ -76,27 +79,38 @@
 
 ;;;; working directory
 
-(check
-    (let ((dirname '/))
-      (chdir dirname))
-  => 0)
+(parameterize ((testname 'chdir))
+  (check
+      (let ((dirname '/))
+	(chdir dirname))
+    => 0)
 
-(check
-    (let ((dirname '/usr/local/bin))
-      (chdir dirname))
-  => 0)
+  (check
+      (let ((dirname '/usr/local/bin))
+	(chdir dirname))
+    => 0)
 
-(check
-    (let ((dirname '/usr/local/bin))
-      (chdir dirname)
-      (getcwd))
-  => "/usr/local/bin")
+  (check
+      (let ((dirname '/srappy/dappy/doo))
+	(guard (exc (else
+		     (list (errno-condition? exc)
+			   (integer->errno (errno-code exc))
+			   (condition-who exc))))
+	  (chdir dirname)))
+    => '(#t ENOENT chdir)))
 
-(check
-    (let ((dirname '/bin))
-      (chdir dirname)
-      (pwd))
-  => "/bin")
+(parameterize ((testname 'getcwd))
+  (check
+      (let ((dirname '/usr/local/bin))
+	(chdir dirname)
+	(getcwd))
+    => "/usr/local/bin")
+
+  (check
+      (let ((dirname '/bin))
+	(chdir dirname)
+	(pwd))
+    => "/bin"))
 
 
 
