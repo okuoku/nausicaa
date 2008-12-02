@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-01 11:47:10 marco>
+;;;Time-stamp: <2008-12-02 18:24:49 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -47,8 +47,8 @@
     ;;basic memory allocation
     primitive-malloc primitive-free
 
-    ;;basic string conversion
-    strlen string->cstring cstring->string
+    ;;pointers
+    integer->pointer pointer->integer pointer?
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -64,172 +64,14 @@
     pointer-set-c-float!		pointer-set-c-double!
     pointer-set-c-pointer!
 
-    ;;pointers
-    integer->pointer pointer->integer pointer?)
+    ;;basic string conversion
+    strlen string->cstring cstring->string)
   (import (core)
     (srfi receive)
     (srfi parameters)
     (uriel ffi sizeof)
     (uriel ffi out-of-memory))
 
-
-
-;;;; documentation
-
-;;Disclaimer
-;;----------
-;;
-;;What follows  is an unofficial documentation of  the foreign functions
-;;interface implemented by Ypsilon Scheme.  Currently (Sun Nov 30, 2008)
-;;the interface  is fully  undocumented, so this  documentation reflects
-;;the current understanding of it by Uriel's maintainer.
-;;
-;;The low  level procedures described  below are available  in Ypsilon's
-;;core library; the high level procedures are in the "(ffi)" library.
-;;
-;;
-;;Loading shared objects
-;;----------------------
-;;
-;;It is done with the LOAD-SHARED-OBJECT procedure: it accepts as single
-;;argument a string selecting the shared object file; it returns a value
-;;referencing the loaded shared object.
-;;
-;;The string can  be the name of  a library's file or a  pathname of the
-;;same,  absolute  or relative.   On  Unix  like  systems the  following
-;;examples will work:
-;;
-;;  (import (rnrs)
-;;    (ffi))
-;;  (define zlib   (load-shared-object "libz.so")
-;;  (define bzlib2 (load-shared-object "/usr/lib/libbz2.so")
-;;
-;;and assuming the current working directory is "/usr":
-;;
-;;  (import (rnrs)
-;;    (ffi))
-;;  (define gtk (load-shared-object "./lib/libgtk.so")
-;;
-;;If LOAD-SHARED-OBJECT is called with  an empty string as argument: the
-;;return value references  the current process.  With this  value we can
-;;access symbols exported by the  current program and the libraries that
-;;have been already loaded (this may be platform specific, check out the
-;;documentation  of your  operative system).   For example:  the symbols
-;;from the standard C libray, like "fwrite", can be accessed this way.
-;;
-;;
-;;Retrieving pointers to exported symbols
-;;---------------------------------------
-;;
-;;It  is done  with the  LOOKUP-SHARED-OBJECT procedure:  it  accepts as
-;;first argument the value  referencing an already loaded shared object,
-;;and as second  argument a symbol or string representing  the name of a
-;;function exported by the shared object; it returns a value referencing
-;;the exported function.
-;;
-;;On Unix like systems the following example will work:
-;;
-;;  (import (rnrs)
-;;    (ffi))
-;;  (define zlib (load-shared-object "libz.so")
-;;  (define deflateInit_f (lookup-shared-object zlib 'deflateInit_))
-;;  (define deflate_f     (lookup-shared-object zlib 'deflate))
-;;  (define deflateEnd_f  (lookup-shared-object zlib 'deflateEnd))
-;;
-;;as we see: we have to care about the true name of the exported symbols
-;;(when  coding  in  the  C  language:  we call  the  init  function  as
-;;"deflateInit", but the actual exported symbol is "deflateInit_").
-;;
-;;Another  example for  Unix  like  systems: to  access  the C  standard
-;;"fwrite" we do:
-;;
-;;  (import (rnrs)
-;;    (ffi))
-;;  (define self (load-shared-object "")
-;;  (define fwrite_f (lookup-shared-object self "fwrite"))
-;;
-;;
-;;Calling foreign functions
-;;-------------------------
-;;
-;;It is done by calling a  stub procedure, provided by Ypsilon, which is
-;;specialised  to return  a type  of value.   All the  functions  in the
-;;example above return  a C language "int" value, so,  for them, we have
-;;to use the stub procedure STDCALL-SHARED-OBJECT->INT.
-;;
-;;Currently (Ypsilon checkout 285) the available stub procedures are:
-;;
-;;stdcall-shared-object->void
-;;stdcall-shared-object->int
-;;stdcall-shared-object->double
-;;stdcall-shared-object->intptr
-;;stdcall-shared-object->char*
-;;
-;;the "intptr"  one is to  be used for  foreign functions that  return a
-;;pointer different from "char *".
-;;
-;;Knowing that the C language prototype of "deflateInit()" is:
-;;
-;;  int deflateInit (z_streamp strm, int level);
-;;
-;;in which "z_streamp"  is a pointer to structure,  to call the function
-;;we can define a wrapper like this:
-;;
-;;  (import (rnrs)
-;;    (ffi))
-;;  (define zlib (load-shared-object "libz.so")
-;;  (define deflateInit_f (lookup-shared-object zlib 'deflateInit_))
-;;
-;;  (define (deflateInit zstream level)
-;;    (stdcall-shared-object->int deflateInit_f zstream level))
-;;
-;;Ypsilon automatically  figures out  how to push  the arguments  on the
-;;stack.
-;;
-;;* The "zstream" argument must be a Scheme bytevector: Ypsilon extracts
-;;  a pointer to  the first byte of  its data area and pushes  it on the
-;;  stack.
-;;
-;;* The  "level" argument must be  an exact integer (in  the "int" range
-;;  allowed by  the underlying platform): Ypsilon takes  the integer and
-;;  pushes it on the stack.
-;;
-;;* The return  value of  the  foreign  function is  an "int":  the stub
-;;  function  STDCALL-SHARED-OBJECT->INT builds  a Scheme  integer value
-;;  out of it, and returns it.
-;;
-;;
-;;Handling values conversion
-;;--------------------------
-;;
-;;Arguments and  return values  are all proper  Scheme built  in values.
-;;Ypsilon  does the  conversion  between Scheme  values  and C  language
-;;values  automatically.   We  have  to  understand  the  rules  of  the
-;;conversion.
-;;
-;;Values of types "int" and "double" are converted to exact integers and
-;;double precision flonums.
-;;
-;;Pointers of  all types but "char  *" and the  referenced memory blocks
-;;are  converted to  bytevectors.  We  do  not need  to allocate  memory
-;;blocks by  accessing the standard  "malloc()" function: we  just build
-;;byte vector using MAKE-BYTEVECTOR, and use it as argument to functions
-;;requiring a "void *" pointer, or other pointers but "char *".
-;;
-;;Pointers  of  type "char  *"  and  the  referenced memory  blocks  are
-;;converted  to  UTF8 coded  strings,  whose  last  byte is  zero.   For
-;;compatibility purposes,  the Uriel libraries avoid this  and treat all
-;;the C  strings as  memory blocks: "char  *" pointers are  treated like
-;;"void *" pointers.
-;;
-;;
-;;Accessing "errno"
-;;-----------------
-;;
-;;It is done with  SHARED-OBJECT-C-ERRNO.  Calling this function returns
-;;the  value of  the "errno"  variable  just after  the last  call to  a
-;;foreign interface.
-;;
 
 
 ;;;; dynamic loading
@@ -239,9 +81,8 @@
 (define shared-object
   (make-parameter self-shared-object))
 
-(define (primitive-open-shared-object library-name)
-  ;;This raises an exception automatically.
-  (load-shared-object library-name))
+;;In case of error this raises an exception automatically.
+(define primitive-open-shared-object load-shared-object)
 
 
 
@@ -249,12 +90,6 @@
 
 ;;;The following mapping functions  are normalisators from Scheme values
 ;;;to values usable by the C language interface functions.
-
-(define (assert-bool value)
-  (if (boolean? value)
-      (if value 1 0)
-    (assertion-violation 'assert-bool
-      "expected #t or #f as function argument" value)))
 
 (define (assert-int value)
   (if (and (integer? value)
@@ -287,34 +122,17 @@
     (assertion-violation 'assert-bytevector
       "expected bytevector as function argument" value)))
 
+(define (assert-pointer p)
+  (if (pointer? p)
+      (pointer-value p)
+    (assertion-violation 'assert-pointer
+      "expected pointer as function argument" p)))
+
 (define (assert-closure value)
   (if (procedure? value)
       value
     (assertion-violation 'assert-closure
       "expected procedure as function argument" value)))
-
-(define (assert-char* value)
-  (string->utf8-n-nul (assert-string value)))
-
-
-
-;;;; value normalisation: c language -> scheme
-
-;;;The  following  mapping   functions  are  normalisators  from  values
-;;;returned by the C language interface functions to Scheme values.
-
-(define int->bool
-  (lambda (val)
-    (not (= val 0))))
-
-(define char*->string
-  (lambda (val)
-    (and val (bytevector->string val (make-transcoder (utf-8-codec))))))
-
-(define string->utf8-n-nul
-  (lambda (s)
-    (string->utf8 (string-append s "\x0;"))))
-
 
 
 ;;;; values normalisation: Uriel -> Ypsilon
@@ -334,9 +152,11 @@
 ;;;
 (define (external->internal type)
   (case type
-    ((int signed-int ssize_t uint unsigned unsigned-int size_t)
-     'int)
-    ((long signed-long ulong unsigned-long)
+    ((void)
+     'void)
+    ((int
+      signed-int ssize_t uint unsigned unsigned-int size_t
+      long signed-long ulong unsigned-long)
      'int)
     ((double)
      'double)
@@ -346,10 +166,31 @@
      'void*)
     ((callback)
      'void*)
-    ((void)
-     'void)
-    (else (assertion-violation 'make-c-function
-	    "unknown C language type identifier" type))))
+    (else
+     (assertion-violation 'make-c-function
+       "unknown C language type identifier" type))))
+
+
+
+;;;; pointers
+
+(define-record-type pointer
+  (fields (immutable value)))
+
+(define (integer->pointer value)
+  (unless (integer? value)
+    (assertion-violation 'integer->pointer
+      "expected integer value" value))
+  (make-pointer value))
+
+(define (pointer->integer pointer)
+  (unless (pointer? pointer)
+    (assertion-violation 'pointer->integer
+      "expected pointer value" pointer))
+  (pointer-value pointer))
+
+(define (null-pointer? pointer)
+  (= 0 (pointer->integer pointer)))
 
 
 
@@ -362,41 +203,28 @@
        (values identity stdcall-shared-object->void))
       ((int)
        (values identity stdcall-shared-object->int))
-      ((double)
+      ((double) ; float is not supported as return type
        (values identity stdcall-shared-object->double))
-      ((char* void*)
-       (values identity stdcall-shared-object->intptr))
-      ((bool)
-       (values int->bool stdcall-shared-object->int))
-;;;For compatibility purposes we do not use this stub, but rather we use
-;;;the   one    for   "void   *".
-;;;
-;;;     ((char*)
-;;;      (values char*->string stdcall-shared-object->char*))
+      ((void*)
+       (values integer->pointer stdcall-shared-object->intptr))
       (else
        (assertion-violation 'make-c-callout
 	 "unknown C language type identifier used for return value" ret-type)))))
 
 (define (select-argument-mapper arg-type)
   (case (external->internal arg-type)
+    ((void)
+     (lambda (x) x))
     ((int)
      assert-int)
-    ((bool)
-     assert-bool)
-    ((void*)
-     assert-bytevector)
     ((float)
      assert-float)
     ((double)
      assert-double)
-    ((byte*)
-     assert-bytevector)
-    ((char*)
-     assert-char*)
     ((callback)
      assert-closure)
-    ((void)
-     (lambda (x) x))
+    ((void*)
+     assert-pointer)
     (else
      (assertion-violation 'make-c-callout
        "unknown C language type identifier used for function argument" arg-type))))
@@ -527,22 +355,15 @@
 (define primitive-free
   (primitive-make-c-function 'void 'free '(void*)))
 
-;; (define (primitive-malloc number-of-bytes)
-;;   (make-bytevector number-of-bytes 0))
-
-;; (define (primitive-free p)
-;;   #f)
-
 ;;This  is required  by the  string functions  below.  This  function is
 ;;duplicated in "(uriel ffi)".
 (define (malloc size)
   (let ((p (primitive-malloc size)))
-    (unless p
-      (raise (make-who-condition 'malloc)
-	     (make-message-condition "out of memory")
-	     (make-out-of-memory-condition size)))
+    (when (null-pointer? p)
+      (raise (condition (make-who-condition 'malloc)
+			(make-message-condition "out of memory")
+			(make-out-of-memory-condition size))))
     p))
-
 
 
 
@@ -586,56 +407,32 @@
 
 
 
-;;;; pointers
-
-(define (integer->pointer x)
-  x)
-
-(define (pointer->integer x)
-  x)
-
-(define (pointer? x)
-  (fixnum? x))
-
-
-
 ;;;; string functions
 
-(define primitive-strlen
+(define strlen
   (primitive-make-c-function 'size_t 'strlen '(char*)))
 
-(define (strlen cstr)
-  (if (bytevector? cstr)
-      (do ((i 0 (+ 1 i)))
-	  ((= 0 (bytevector-u8-ref cstr i))
-	   i)
-	#f)
-    (primitive-strlen cstr)))
-
-(define (cstring->string cstr)
-  (let ((len (strlen cstr)))
-    (if (bytevector? cstr)
-	;;We  have  to use  STRLEN  and  SUBSTRING  here because  it  is
-	;;possible  for  foreign functions  to  place a  zero-terminated
-	;;string in a larger buffer.  We have to cut the correct slice.
-	(substring
-	 (bytevector->string cstr (make-transcoder (utf-8-codec)))
-	 0 len)
-      (let* ((bv (make-bytevector len)))
-	(do ((i 0 (+ 1 i)))
-	    ((= i len)
-	     (utf8->string bv))
-	  (bytevector-s8-set! bv i (pointer-ref-c-signed-char cstr i)))))))
-
-(define (string->cstring s)
-  (let* ((len	(string-length s))
-	 (p	(malloc (+ 1 len)))
-	 (bv	(string->utf8 s)))
-    (pointer-set-c-char! p len 0)
+(define (cstring->string pointer)
+  (let* ((len	(strlen pointer))
+	 (bv	(make-bytevector len))
+;;;FIXME
+	 (bptr	(make-bytevector-mapping (pointer-value pointer) len)))
     (do ((i 0 (+ 1 i)))
 	((= i len)
-	 p)
-      (pointer-set-c-char! p i (bytevector-s8-ref bv i)))))
+	 (utf8->string bv))
+      (bytevector-s8-set! bv i (pointer-ref-c-signed-char bptr i)))))
+
+(define (string->cstring s)
+  (let* ((len		(string-length s))
+	 (alloc-len	(+ 1 len))
+	 (pointer	(malloc alloc-len))
+	 (bptr		(make-bytevector-mapping (pointer-value pointer) alloc-len))
+	 (bv		(string->utf8 s)))
+    (pointer-set-c-char! bptr len 0)
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 pointer)
+      (pointer-set-c-char! bptr i (bytevector-s8-ref bv i)))))
 
 
 

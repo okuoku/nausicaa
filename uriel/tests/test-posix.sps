@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for the POSIX interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-01 06:56:56 marco>
+;;;Time-stamp: <2008-12-02 18:20:26 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -78,32 +78,24 @@
 
 (check
     (let ((dirname '/))
-      (receive (result errno)
-	  (chdir dirname)
-	result))
+      (chdir dirname))
   => 0)
 
 (check
     (let ((dirname '/usr/local/bin))
-      (receive (result errno)
-	  (chdir dirname)
-	result))
+      (chdir dirname))
   => 0)
 
 (check
     (let ((dirname '/usr/local/bin))
       (chdir dirname)
-      (receive (result errno)
-	  (getcwd)
-	result))
+      (getcwd))
   => "/usr/local/bin")
 
 (check
     (let ((dirname '/bin))
       (chdir dirname)
-      (receive (result errno)
-	  (pwd)
-	result))
+      (pwd))
   => "/bin")
 
 
