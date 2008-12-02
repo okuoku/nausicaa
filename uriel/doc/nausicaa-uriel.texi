@@ -451,6 +451,7 @@ Language extensions
 * lang compensations::          Compensation stacks.
 * lang deferred exceptions::    Deferred exceptions.
 * lang io::                     Input/output procedures.
+* lang misc::                   Miscellaneous functions.
 
 Independent libraries
 
@@ -474,13 +475,17 @@ Deferred exceptions
 
 Foreign functions interface
 
+* ffi example::                 Basic interface to Zlib.
 * ffi load::                    Dynamic loading of libraries.
 * ffi call::                    Interface functions.
 * ffi memory::                  Basic memory allocation.
 * ffi guarded malloc::          Guarded memory allocation.
 * ffi sizeof::                  Sizes and limits.
+* ffi errno::                   Error constants.
 * ffi accessors::               Low level access to memory.
 * ffi string::                  Basic string functions.
+* ffi headers::                 Inspecting foreign header files.
+* ffi conditions::              Condition types.
 
 Functions interface
 
@@ -491,7 +496,6 @@ Functions interface
 Basic memory allocation
 
 * ffi memory primitive::        Primitive functions.
-* ffi memory condition::        Out of memory errors.
 * ffi memory cache::            Caching memory blocks.
 * ffi memory compensate::       Compensations.
 
@@ -503,7 +507,16 @@ Low level access to memory
 
 @posix{} facilities
 
-* posix getenv::                System environment variables.
+* posix environment::           Environment variables.
+* posix working directory::     The working directory.
+
+Independent libraries
+
+* posix getenv::                Getting environment variables.
+
+@gnu{} C library facilities
+
+* libc environment::            Environment functions.
 
 @end detailmenu
 @end menu
@@ -1605,6 +1618,7 @@ posix} libraries.
 * ffi accessors::               Low level access to memory.
 * ffi string::                  Basic string functions.
 * ffi headers::                 Inspecting foreign header files.
+* ffi conditions::              Condition types.
 @end menu
 
 
@@ -2017,7 +2031,6 @@ interface:
 
 @menu
 * ffi memory primitive::        Primitive functions.
-* ffi memory condition::        Out of memory errors.
 * ffi memory cache::            Caching memory blocks.
 * ffi memory compensate::       Compensations.
 @end menu
@@ -2084,38 +2097,6 @@ another is to use a compensation:
 @noindent
 another method, if supported, is to use @func{malloc/guarded}, @ref{ffi
 guarded malloc,guarded-malloc}
-
-
-@c ------------------------------------------------------------
-
-@c page
-@node ffi memory condition
-@subsection Out of memory errors
-
-
-@deftp Condition {&out-of-memory}
-Type of condition objects that represent a memory allocation error.
-@end deftp
-
-
-@deffn {Condition Constructor} make-ouf-of-memory-condition @var{number-of-bytes}
-@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
-@deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
-Functions to handle out of memory condition objects.
-@end deffn
-
-
-Example:
-
-@example
-(define (malloc size)
-  (let ((p (primitive-malloc size)))
-    (unless p
-      (raise (condition (make-who-condition 'malloc)
-                        (make-message-condition "out of memory")
-                        (make-out-of-memory-condition size))))
-    p))
-@end example
 
 
 @c ------------------------------------------------------------
@@ -2395,6 +2376,9 @@ the library:
 (import (rnrs)
   (uriel ffi errno))
 @end example
+
+To convert an @code{errno} code into the corresponding error message see
+the @cfunc{strerror} function.  @ref{ffi string,strerror}
 
 
 @defun errno->integer @var{symbol}
@@ -2735,6 +2719,11 @@ conversion is performed using a @code{s8} bytevector.
 @end defun
 
 
+@defun strerror @var{errno-code}
+Return the string message coresponding to the @code{errno-code}.
+@end defun
+
+
 @c ------------------------------------------------------------
 
 @c page
@@ -2744,6 +2733,67 @@ conversion is performed using a @code{s8} bytevector.
 
 
 
+
+@c page
+@node ffi conditions
+@section Condition types
+
+
+@subsubheading Out of memory errors
+
+
+@deftp Condition {&out-of-memory}
+Type of condition objects that represent a memory allocation error.
+@end deftp
+
+
+@deffn {Condition Constructor} make-out-of-memory-condition @var{number-of-bytes}
+@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
+@deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
+Functions to handle out of memory condition objects.
+@end deffn
+
+
+Example:
+
+@example
+(define (malloc size)
+  (let ((p (primitive-malloc size)))
+    (unless p
+      (raise (condition (make-who-condition 'malloc)
+                        (make-message-condition "out of memory")
+                        (make-out-of-memory-condition size))))
+    p))
+@end example
+
+
+@subsubheading Foreign system errors
+
+
+@deftp Condition {&errno}
+Type of condition objects that represent an error in a foreign function
+signaled with the @code{errno} variable.
+@end deftp
+
+
+@deffn {Condition Constructor} make-errno-condition @var{errno-code}
+@deffnx {Condition Predicate} errno-condition? @var{object}
+@deffnx {Field Accessor} errno-code @var{object}
+Functions to handle foreign system error condition objects.
+@end deffn
+
+
+Fake example:
+
+@example
+(let ((errno ---))
+  (raise (condition (make-who-condition 'read)
+                    (make-message-condition (strerror errno))
+                    (make-errno-condition errno))))
+@end example
+
+
+@c ------------------------------------------------------------
 
 @c page
 @node posix

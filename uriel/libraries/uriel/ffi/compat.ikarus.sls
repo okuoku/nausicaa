@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-01 10:23:50 marco>
+;;;Time-stamp: <2008-12-02 20:36:09 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -58,10 +58,12 @@
     pointer-set-c-pointer!
 
     ;;pointers
-    pointer? pointer->integer integer->pointer)
+    pointer? pointer->integer integer->pointer strerror)
   (import (rnrs)
     (srfi parameters)
-    (ikarus foreign))
+    (only (ikarus) strerror)
+    (ikarus foreign)
+    (uriel ffi conditions))
 
 
 

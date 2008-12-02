@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: interface to POSIX functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-02 18:24:08 marco>
+;;;Time-stamp: <2008-12-02 20:42:51 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -123,7 +123,9 @@
 	      (loop (* 2 buflen))
 	    (begin
 	      (when (= 0 (pointer->integer cstr))
-		(raise 'error))
+		(raise (condition (make-who-condition 'getcwd)
+				  (make-message-condition (strerror errno))
+				  (make-errno-condition errno))))
 	      (cstring->string buffer))))))))
 
 (define pwd getcwd)
@@ -139,7 +141,9 @@
       (receive (result errno)
 	  (primitive-chdir buffer)
 	(unless (= 0 result)
-	  (raise 'error))
+	  (raise (condition (make-who-condition 'chdir)
+			    (make-message-condition (strerror errno))
+			    (make-errno-condition errno))))
 	result))))
 
 

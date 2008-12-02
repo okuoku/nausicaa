@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-02 16:42:34 marco>
+;;;Time-stamp: <2008-12-02 20:36:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -41,12 +41,13 @@
     make-block-cache small-blocks-cache make-caching-object-factory
     compensate-malloc compensate-malloc/small
 
-    ;;out of memory condition
+    ;;conditions
     &out-of-memory make-out-of-memory-condition out-of-memory-condition?
     out-of-memory-requested-number-of-bytes
+    &errno make-errno-condition errno-condition? errno-code
 
     ;;string functions
-    strlen string->cstring cstring->string
+    strlen string->cstring cstring->string strerror
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -69,7 +70,7 @@
     (uriel lang)
     (uriel printing)
     (uriel ffi compat)
-    (uriel ffi out-of-memory))
+    (uriel ffi conditions))
 
 
 
