@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: interface to POSIX functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-01 10:16:56 marco>
+;;;Time-stamp: <2008-12-02 18:24:08 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -104,6 +104,9 @@
 (define-c-function/with-errno primitive-getcwd
   (char* getcwd (char* size_t)))
 
+(define-c-function/with-errno primitive-chdir
+  (int chdir (char*)))
+
 (define (getcwd)
   (let loop ((buflen 1024))
     (with-compensations
@@ -118,12 +121,12 @@
 		   (or (= EINVAL errno)
 		       (= ERANGE errno)))
 	      (loop (* 2 buflen))
-	    (values (cstring->string buffer) errno)))))))
+	    (begin
+	      (when (= 0 (pointer->integer cstr))
+		(raise 'error))
+	      (cstring->string buffer))))))))
 
 (define pwd getcwd)
-
-(define-c-function/with-errno primitive-chdir
-  (int chdir (char*)))
 
 (define (chdir directory-pathname)
   (with-compensations
@@ -133,7 +136,11 @@
 		      (symbol->string/maybe directory-pathname))
 		   (with
 		    (primitive-free buffer)))))
-      (primitive-chdir buffer))))
+      (receive (result errno)
+	  (primitive-chdir buffer)
+	(unless (= 0 result)
+	  (raise 'error))
+	result))))
 
 
 
