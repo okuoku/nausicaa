@@ -12,5 +12,7 @@ autom4te*
 *.gz
 *.bz2
 *.info
+*.info.gz
 *.html
+*.html.gz
 configure
