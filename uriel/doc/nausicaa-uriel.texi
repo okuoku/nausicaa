@@ -12,7 +12,7 @@
 @include version.texiinc
 
 
-@c ------------------------------------------------------------
+
 
 @c page
 @c ------------------------------------------------------------
@@ -35,7 +35,6 @@
 @acronym{BSD}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -80,7 +79,6 @@
 @end macro
 
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -99,7 +97,6 @@
 @gnu{} C Library
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -140,7 +137,6 @@
 @acronym{SNMP}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -209,7 +205,6 @@
 @meta{\ARG\j}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -287,7 +282,6 @@ the main purpose of this document is to provide an Info version.
 @code{#:\NAME\}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -349,7 +343,6 @@ the main purpose of this document is to provide an Info version.
 @c list of copyright years.
 @set COPYRIGHT_YEARS            2008
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -378,7 +371,6 @@ entitled ``@gnu{} Free Documentation License''.
 @end quotation
 @end copying
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -412,7 +404,6 @@ entitled ``@gnu{} Free Documentation License''.
 @syncodeindex fn cp
 @end ignore
 
-@c ------------------------------------------------------------
 
 @c page
 @ifnottex
@@ -495,15 +486,21 @@ Functions interface
 
 Basic memory allocation
 
+* ffi memory pointers::         Pointer objects.
 * ffi memory primitive::        Primitive functions.
 * ffi memory cache::            Caching memory blocks.
+* ffi memory objects::          Caching object factories.
 * ffi memory compensate::       Compensations.
 
 Low level access to memory
 
-* ffi accessors pointers::      Special pointer functions.
 * ffi accessors pokers::        Poking values.
 * ffi accessors peekers::       Peeking values.
+
+Condition types
+
+* ffi conditions nomem::        Out of memory errors.
+* ffi conditions errno::        Foreign system function errors.
 
 @posix{} facilities
 
@@ -523,7 +520,6 @@ Independent libraries
 
 @end ifnottex
 
-@c ------------------------------------------------------------
 
 @c page
 @node overview
@@ -534,7 +530,6 @@ Independent libraries
 @value{PACKAGE} is a collection of libraries for @rnrs{6} Scheme.
 
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang
@@ -573,7 +568,6 @@ Independent libraries
 @end menu
 
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang simple
@@ -717,7 +711,6 @@ Examples:
 @end deffn
 
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang compensations
@@ -742,7 +735,6 @@ Run-Time Error Handling Mistakes}, by Westley Weimer, George C. Necula,
 Object--Oriented Programming, Systems, Languages, and Applications.
 @end quotation
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang compensations usage
@@ -901,8 +893,6 @@ compensations only if an error occurs; if no error is raised, we just
 want the constructor to return.
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node lang compensations api
 @subsection Compensations @api{}
@@ -937,8 +927,6 @@ a @func{defer-exceptions}, so exceptions raised are handled as described
 in @ref{lang deferred exceptions}.
 @end defun
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node lang deferred exceptions
@@ -993,8 +981,6 @@ whatever.
 This mechanism is automatically used by compensation stacks, which are
 the reference use case (@ref{lang compensations}).
 
-@c ------------------------------------------------------------
-
 @c page
 @node lang deferred exceptions usage
 @subsection Usage examples
@@ -1025,8 +1011,6 @@ the exception value.
 Any number of @func{defer-exceptions} can be put in the same
 @func{with-deferred-exceptions}.
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node lang deferred exceptions api
@@ -1622,8 +1606,6 @@ posix} libraries.
 @end menu
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi example
 @section Basic interface to Zlib
@@ -1787,8 +1769,6 @@ initial value of @code{shared-object}
 * ffi call in::                 Calling Scheme functions.
 @end menu
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi call types
 @subsection Interface to C language types
@@ -1861,8 +1841,6 @@ Pointer to a callback function.
 No value.
 @end table
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi call out
@@ -2013,8 +1991,6 @@ interface:
 
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi call in
 @subsection Calling Scheme functions
@@ -2022,21 +1998,49 @@ interface:
 
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi memory
 @section Basic memory allocation
 
 
 @menu
+* ffi memory pointers::         Pointer objects.
 * ffi memory primitive::        Primitive functions.
 * ffi memory cache::            Caching memory blocks.
+* ffi memory objects::          Caching object factories.
 * ffi memory compensate::       Compensations.
 @end menu
 
 
-@c ------------------------------------------------------------
+@c page
+@node ffi memory pointers
+@subsection Pointer objects
+
+
+@deffn Procedure pointer? @var{x}
+Return @true{} if the value of @var{x} is a value that the Scheme
+implementation uses to represent memory blocks, return @false{}
+otherwise.
+@end deffn
+
+
+@defun pointer-null? @var{pointer}
+Return @true{} if @var{pointer} represents a null pointer, @false{}
+otherwise.
+@end defun
+
+
+@deffn Procedure pointer->integer @var{pointer}
+Convert to an exact integer a value that the Scheme implementation uses
+to represent memory blocks.
+@end deffn
+
+
+@deffn Procedure integer->pointer @var{exact-integer}
+Convert to a value that the Scheme implementation uses to represent
+memory blocks an exact integer.
+@end deffn
+
 
 @c page
 @node ffi memory primitive
@@ -2098,8 +2102,6 @@ another is to use a compensation:
 another method, if supported, is to use @func{malloc/guarded}, @ref{ffi
 guarded malloc,guarded-malloc}
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi memory cache
@@ -2163,6 +2165,73 @@ do (unsafe code, not handling errors):
   hd)
 @end example
 @end defun
+
+
+@defun page-blocks-cache
+@defunx page-blocks-cache @var{pointer}
+@defunx page-blocks-cache purge
+Interface function for a cache of memory blocks of size 4096, 10 blocks
+deep.
+@end defun
+
+
+@subsubheading Allocating memory blocks
+
+
+@deftp {Record Type} memory-block-record
+Type of record used to represent miscellaneous size memory blocks.  It
+has two fields: a pointer value referencing an allocated memory block
+(@ref{ffi memory pointers}); the number of bytes in the allocated memory
+block.
+@end deftp
+
+
+@deffn {Record Maker} make-memory-block-record @var{pointer} @var{number-of-bytes}
+@deffnx {Predicate} memory-block-record? @var{object}
+@deffnx {Field Getter} memory-block-pointer @var{object}
+@deffnx {Field Getter} memory-block-size @var{object}
+Functions to handle records of type @code{memory-block-record}.
+@end deffn
+
+
+@defun memory-block @var{block-or-size}
+Interface function to memory blocks allocation and releasing.  When
+@var{block-or-size} is a record of type @code{memory-block-record}: the
+function releases the allocated block; else @var{block-or-size} must be
+an unsigned exact integer representing the number of bytes to be
+allocated for a new block.
+
+Allocation and releasing of memory blocks is done:
+
+@itemize
+@item
+relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block;
+
+@item
+relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block;
+
+@item
+relying on @func{malloc} and @func{primitive-free} in all the other cases.
+@end itemize
+
+When allocating: the returned value is a record of type
+@code{memory-block-record}.
+
+To use this allocator, consider the compensation wrapper
+@func{compensate-malloc/block}, @ref{ffi memory
+compensate,compensate-malloc/block}
+
+Use of this allocator is suggested whenever we temporarily need a memory
+block, for example to hold a C string to be used as argument for a
+foreign function.  @ref{ffi string,string->cstring/compensated}
+@end defun
+
+
+@c page
+@node ffi memory objects
+@subsection Caching object factories
 
 
 @defun make-caching-object-factory @var{init-func} @var{final-func} @var{number-of-bytes} @var{max-depth}
@@ -2241,8 +2310,6 @@ at the end of the world, if we feel like it, we can do:
 @end defun
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi memory compensate
 @subsection Compensations
@@ -2252,20 +2319,36 @@ at the end of the world, if we feel like it, we can do:
 
 
 @defun compensate-malloc @var{number-of-bytes}
-@defunx compensate-malloc/small
-@func{compensate-malloc} allocates a block of memory with @func{malloc}
-and returns a pointer to it.  The appropriate invocation to
-@func{primitive-free} is added to the dynamic environment of the current
-compensations stack.
-
-@func{compensate-malloc/small} acquires a small block of memory from
-@func{small-blocks-cache} and returns a pointer to it.  The appropriate
-invocation to @func{small-blocks-cache}, to release the block, is added
-to the dynamic environment of the current compensations stack.
+Allocate a block of memory with @func{malloc} and return a pointer to
+it.  The appropriate invocation to @func{primitive-free}, to free the
+block, is added to the dynamic environment of the current compensations
+stack.
 @end defun
 
 
-@c ------------------------------------------------------------
+@defun compensate-malloc/small
+Acquire a small block of memory from @func{small-blocks-cache} and
+return a pointer to it.  The appropriate invocation to
+@func{small-blocks-cache}, to release the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@defun compensate-malloc/page
+Acquire a page of memory from @func{page-blocks-cache} and return a
+pointer to it.  The appropriate invocation to @func{page-blocks-cache},
+to release the block, is added to the dynamic environment of the current
+compensations stack.
+@end defun
+
+
+@defun compensate-malloc/block @var{number-of-bytes}
+Acquire a block of memory with @func{memory-block} and return a pointer
+to it (@strong{not} a @code{memory-block-record}).  The appropriate
+invocation to @func{memory-block}, to release the block, is added to the
+dynamic environment of the current compensations stack.
+@end defun
+
 
 @c page
 @node ffi guarded malloc
@@ -2301,8 +2384,6 @@ function is released by invoking @func{uriel-cleanup}.  @strong{Do not}
 free this memory with @func{primitive-free} or any other free function.
 @end defun
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi sizeof
@@ -2367,10 +2448,10 @@ respectively.
 
 
 The @library{uriel ffi errno} library exports one binding for each
-@code{errno} constant, and two conversion functions.  It may be that not
-all the constants are defined on our platform, if a symbol is not
-defined the value of the corresponding variable is @false{}.  To import
-the library:
+@code{errno} numeric code, and a set of functions to convert between
+numeric values and symbolic values.  It may be that not all the
+constants are defined on our platform, if a symbol is not defined the
+value of the corresponding variable is @false{}.  To import the library:
 
 @example
 (import (rnrs)
@@ -2381,24 +2462,25 @@ To convert an @code{errno} code into the corresponding error message see
 the @cfunc{strerror} function.  @ref{ffi string,strerror}
 
 
-@defun errno->integer @var{symbol}
-@defunx errno->integer/or-error @var{symbol}
-Attempt the conversion from an @code{errno} symbol to the corresponding
-integer value.  Return an integer or @false{} if the symbol is not
-defined on the underlying platform.
+@defun symbol->errno @var{symbol}
+@defunx symbol->errno/or-error @var{symbol}
+Attempt the conversion from an @code{errno} symbolic value to the
+corresponding numeric value.  Return an integer or @false{} if the
+symbol is not defined on the underlying platform.
 
 The @code{or-error} variant raises an assertion violation if
-@var{symbol} is not an @code{errno} symbol.
+@var{symbol} is not an @code{errno} symbolic value.
 @end defun
 
 
-@defun integer->errno @var{number}
-Attempt the conversion from an integer to the corresponding @code{errno}
-symbol.  Return a symbol or @false{} if @var{number} is not the value of
-an @code{errno} constant.
+@defun errno->symbol @var{number}
+@defunx errno->symbol/or-error @var{number}
+Attempt the conversion from an @code{errno} numeric value to the
+corresponding symbolic value.  Return a symbol or @false{} if
+@var{number} is not an @code{errno} numeric value.
 
 The @code{or-error} variant raises an assertion violation if
-@var{number} is not an @code{errno} value.
+@var{number} is not an @code{errno} numerc value.
 @end defun
 
 
@@ -2481,39 +2563,10 @@ value.  Pointer arithmetics is performed with byte offsets.
 
 
 @menu
-* ffi accessors pointers::      Special pointer functions.
 * ffi accessors pokers::        Poking values.
 * ffi accessors peekers::       Peeking values.
 @end menu
 
-
-@c ------------------------------------------------------------
-
-@c page
-@node ffi accessors pointers
-@subsection Special pointer functions
-
-
-@deffn Procedure pointer->integer @var{pointer}
-Convert to an exact integer a value that the Scheme implementation uses
-to represent memory blocks.
-@end deffn
-
-
-@deffn Procedure integer->pointer @var{exact-integer}
-Convert to a value that the Scheme implementation uses to represent
-memory blocks an exact integer.
-@end deffn
-
-
-@deffn Procedure pointer? @var{x}
-Return @true{} if the value of @var{x} is a value that the Scheme
-implementation uses to represent memory blocks, return @false{}
-otherwise.
-@end deffn
-
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi accessors pokers
@@ -2590,8 +2643,6 @@ We have to assume that we can convert an exact integer to a pointer
 value using @func{integer->pointer}.
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi accessors peekers
@@ -2694,8 +2745,6 @@ integer with @func{pointer->integer}.
 @end deffn
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi string
 @section String functions
@@ -2707,9 +2756,30 @@ Return the number of characters in the C string referenced by
 @end defun
 
 
+@defun strerror @var{errno-numeric-value}
+Return the string message coresponding to the
+@code{errno-numeric-value}.
+@end defun
+
+
 @defun string->cstring @var{string}
-Build a new C string representing the Scheme @var{string}.  The
-conversion is performed using @func{string->utf8}.
+@defunx string->cstring/compensated @var{string}
+@defunx string-or-symbol->cstring @var{string}
+@defunx string-or-symbol->cstring/compensated @var{string}
+@func{string->cstring} builds a new C string representing the Scheme
+@var{string} and returns a pointer value referencing it; memory is
+allocated using @func{malloc}.  The conversion is performed using
+@func{string->utf8}.
+
+@func{string-or-symbol->cstring} is like @func{string->cstring} but
+accepts also symbols as arguments, converting them to string internally.
+
+@func{string->cstring/compensated} is like @func{string->cstring} but
+allocates the memory block using @func{compensate-malloc/block}.
+
+@func{string-or-symbol->cstring/compensated} is like
+@func{string-or-symbol->cstring} but allocates the memory block using
+@func{compensate-malloc/block}.
 @end defun
 
 
@@ -2718,13 +2788,6 @@ Build a new Scheme string representing the @var{cstring}.  The
 conversion is performed using a @code{s8} bytevector.
 @end defun
 
-
-@defun strerror @var{errno-code}
-Return the string message coresponding to the @code{errno-code}.
-@end defun
-
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi headers
@@ -2739,7 +2802,15 @@ Return the string message coresponding to the @code{errno-code}.
 @section Condition types
 
 
-@subsubheading Out of memory errors
+@menu
+* ffi conditions nomem::        Out of memory errors.
+* ffi conditions errno::        Foreign system function errors.
+@end menu
+
+
+@c page
+@node ffi conditions nomem
+@subsection Out of memory errors
 
 
 @deftp Condition {&out-of-memory}
@@ -2749,7 +2820,7 @@ Type of condition objects that represent a memory allocation error.
 
 @deffn {Condition Constructor} make-out-of-memory-condition @var{number-of-bytes}
 @deffnx {Condition Predicate} out-of-memory-condition? @var{object}
-@deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
+@deffnx {Field Getter} out-of-memory-requested-number-of-bytes @var{object}
 Functions to handle out of memory condition objects.
 @end deffn
 
@@ -2759,7 +2830,7 @@ Example:
 @example
 (define (malloc size)
   (let ((p (primitive-malloc size)))
-    (unless p
+    (when (pointer-null? p)
       (raise (condition (make-who-condition 'malloc)
                         (make-message-condition "out of memory")
                         (make-out-of-memory-condition size))))
@@ -2767,7 +2838,28 @@ Example:
 @end example
 
 
-@subsubheading Foreign system errors
+@defun raise-out-of-memory @var{who} @var{number-of-bytes}
+Raise a non--continuable exception representing a memory allocation
+failure.  The following form:
+
+@example
+(raise-out-of-memory 'malloc 4096)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(raise (condition (make-who-condition 'malloc)
+                  (make-message-condition "out of memory")
+                  (make-out-of-memory-condition 4096)))
+@end example
+@end defun
+
+
+@c page
+@node ffi conditions errno
+@subsection Foreign system function errors
 
 
 @deftp Condition {&errno}
@@ -2776,9 +2868,10 @@ signaled with the @code{errno} variable.
 @end deftp
 
 
-@deffn {Condition Constructor} make-errno-condition @var{errno-code}
+@deffn {Condition Constructor} make-errno-condition @var{errno-numeric-value}
 @deffnx {Condition Predicate} errno-condition? @var{object}
-@deffnx {Field Accessor} errno-code @var{object}
+@deffnx {Field Getter} errno-numeric-value @var{object}
+@deffnx {Field Getter} errno-symbolic-value @var{object}
 Functions to handle foreign system error condition objects.
 @end deffn
 
@@ -2793,7 +2886,28 @@ Fake example:
 @end example
 
 
-@c ------------------------------------------------------------
+@defun raise-errno-error @var{who} @var{errno-numeric-value} @var{irritants}
+Raise a non--continuable exception representing a foreign function
+system error signaled through the @code{errno} variable.  The following
+form:
+
+@example
+(let ((errno ---)
+      (pathname ---))
+  (raise-errno-error 'write errno pathname))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(raise
+  (condition (make-who-condition 'write)
+             (make-message-condition (strerror errno))
+             (make-errno-condition errno)
+             (make-irritants-condition pathname)))
+@end example
+@end defun
 
 @c page
 @node posix
@@ -2943,8 +3057,6 @@ the foreign function's own documentation to have all the details.
 * libc environment::            Environment functions.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node libc environment
@@ -4080,15 +4192,11 @@ free software license, such as the GNU General Public License,
 to permit their use in free software.
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node references
 @appendix Bibliography and references
 
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node concept index

@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-02 20:35:50 marco>
+;;;Time-stamp: <2008-12-03 07:49:50 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -48,7 +48,7 @@
     primitive-malloc primitive-free
 
     ;;pointers
-    integer->pointer pointer->integer pointer?
+    pointer? integer->pointer pointer->integer pointer-null?
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -65,11 +65,15 @@
     pointer-set-c-pointer!
 
     ;;basic string conversion
-    strlen string->cstring cstring->string strerror)
+    strlen string->cstring cstring->string strerror
+
+    ;;conditions
+    raise-errno-error)
   (import (core)
     (srfi receive)
     (srfi parameters)
     (uriel ffi sizeof)
+    (uriel ffi errno)
     (uriel ffi conditions))
 
 
@@ -189,7 +193,7 @@
       "expected pointer value" pointer))
   (pointer-value pointer))
 
-(define (null-pointer? pointer)
+(define (pointer-null? pointer)
   (= 0 (pointer->integer pointer)))
 
 
@@ -359,10 +363,8 @@
 ;;duplicated in "(uriel ffi)".
 (define (malloc size)
   (let ((p (primitive-malloc size)))
-    (when (null-pointer? p)
-      (raise (condition (make-who-condition 'malloc)
-			(make-message-condition "out of memory")
-			(make-out-of-memory-condition size))))
+    (when (pointer-null? p)
+      (raise-out-of-memory 'malloc size))
     p))
 
 
@@ -450,6 +452,17 @@
 
 (define (strerror code)
   (cstring->string (primitive-strerror code)))
+
+
+
+;;;; conditions
+
+;;This is not in "conditions.sls" because it requires STRERROR.
+(define (raise-errno-error who errno irritants)
+  (raise (condition (make-who-condition who)
+		    (make-message-condition (strerror errno))
+		    (make-errno-condition errno)
+		    (make-irritants-condition irritants))))
 
 
 

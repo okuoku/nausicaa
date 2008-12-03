@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for the POSIX interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-02 20:44:50 marco>
+;;;Time-stamp: <2008-12-03 08:02:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -91,13 +91,15 @@
     => 0)
 
   (check
-      (let ((dirname '/srappy/dappy/doo))
+      (let ((dirname '/scrappy/dappy/doo))
 	(guard (exc (else
 		     (list (errno-condition? exc)
-			   (integer->errno (errno-code exc))
-			   (condition-who exc))))
+			   (condition-who exc)
+			   (errno-symbolic-value exc)
+;			   (condition-message exc)
+			   )))
 	  (chdir dirname)))
-    => '(#t ENOENT chdir)))
+    => '(#t chdir ENOENT)))
 
 (parameterize ((testname 'getcwd))
   (check

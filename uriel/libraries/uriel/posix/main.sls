@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: interface to POSIX functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-02 20:42:51 marco>
+;;;Time-stamp: <2008-12-03 10:06:47 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,7 +35,7 @@
     getenv setenv
 
     ;;working directory
-    getcwd primitive-getcwd pwd
+    getcwd primitive-getcwd (rename (getcwd pwd))
     chdir primitive-chdir
 
     )
@@ -62,14 +62,8 @@
 (define (setenv varname newvalue replace)
   (with-compensations
     (letrec
-	((name (compensate
-		   (string->cstring (symbol->string/maybe varname))
-		 (with
-		  (primitive-free name))))
-	 (value (compensate
-		    (string->cstring (symbol->string/maybe newvalue))
-		  (with
-		   (primitive-free value)))))
+	((name (string-or-symbol->cstring/compensated varname))
+	 (value (string-or-symbol->cstring/compensated newvalue)))
       (primitive-setenv name value (if replace 1 0)))))
 
 (define (getenv varname)
@@ -122,28 +116,18 @@
 		       (= ERANGE errno)))
 	      (loop (* 2 buflen))
 	    (begin
-	      (when (= 0 (pointer->integer cstr))
-		(raise (condition (make-who-condition 'getcwd)
-				  (make-message-condition (strerror errno))
-				  (make-errno-condition errno))))
+	      (when (pointer-null? cstr)
+		(raise-errno-error 'getcwd errno #f))
 	      (cstring->string buffer))))))))
-
-(define pwd getcwd)
 
 (define (chdir directory-pathname)
   (with-compensations
     (letrec
-	((buffer (compensate
-		     (string->cstring
-		      (symbol->string/maybe directory-pathname))
-		   (with
-		    (primitive-free buffer)))))
+	((buffer (string-or-symbol->cstring/compensated directory-pathname)))
       (receive (result errno)
 	  (primitive-chdir buffer)
 	(unless (= 0 result)
-	  (raise (condition (make-who-condition 'chdir)
-			    (make-message-condition (strerror errno))
-			    (make-errno-condition errno))))
+	  (raise-errno-error 'chdir errno directory-pathname))
 	result))))
 
 

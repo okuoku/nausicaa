@@ -1,12 +1,15 @@
 ;;;
 ;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: out of memory condition
+;;;Contents: condition types definitions
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-02 20:19:38 marco>
+;;;Time-stamp: <2008-12-03 07:50:10 marco>
 ;;;
 ;;;Abstract
 ;;;
+;;;	Condition type definitions.
 ;;;
+;;;	  The   function    RAISE-ERRNO-ERROR   is   defined    in   the
+;;;	"compat.*.sls" files because it requires the STRERROR interface.
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -27,11 +30,19 @@
 (library (uriel ffi conditions)
   (export
 
-    &out-of-memory make-out-of-memory-condition out-of-memory-condition?
+    ;;out of memory
+    &out-of-memory
+    make-out-of-memory-condition out-of-memory-condition?
     out-of-memory-requested-number-of-bytes
+    raise-out-of-memory
 
-    &errno make-errno-condition errno-condition? errno-code)
-  (import (rnrs))
+    ;;errno error
+    &errno
+    (rename (make-errno-condition* make-errno-condition))
+    errno-condition?
+    errno-numeric-value errno-symbolic-value)
+  (import (rnrs)
+    (uriel ffi errno))
 
   (define-condition-type &out-of-memory &error
     make-out-of-memory-condition out-of-memory-condition?
@@ -39,6 +50,16 @@
 
   (define-condition-type &errno &error
     make-errno-condition errno-condition?
-    (code errno-code)))
+    (numeric-value errno-numeric-value)
+    (symbolic-value errno-symbolic-value))
+
+  (define (make-errno-condition* errno-numeric-value)
+    (make-errno-condition errno-numeric-value
+			  (errno->symbol/or-error errno-numeric-value)))
+
+  (define (raise-out-of-memory who number-of-bytes)
+    (raise (condition (make-who-condition who)
+		      (make-message-condition "out of memory")
+		      (make-out-of-memory-condition number-of-bytes)))))
 
 ;;; end of file
