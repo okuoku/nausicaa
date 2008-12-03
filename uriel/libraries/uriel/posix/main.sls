@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: interface to POSIX functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-03 10:06:47 marco>
+;;;Time-stamp: <2008-12-03 10:44:41 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -104,11 +104,7 @@
 (define (getcwd)
   (let loop ((buflen 1024))
     (with-compensations
-      (letrec*
-	  ((buffer (compensate
-		       (malloc buflen)
-		     (with
-		      (primitive-free buffer)))))
+      (let ((buffer (compensate-malloc/block buflen)))
 	(receive (cstr errno)
 	    (primitive-getcwd buffer buflen)
 	  (if (and (= 0 (pointer->integer cstr))
