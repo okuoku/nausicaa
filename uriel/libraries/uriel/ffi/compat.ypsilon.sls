@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-03 07:49:50 marco>
+;;;Time-stamp: <2008-12-03 14:37:01 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -55,14 +55,15 @@
     pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
     pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
     pointer-ref-c-float			pointer-ref-c-double
     pointer-ref-c-pointer
 
     ;;pokers
     pointer-set-c-char!			pointer-set-c-short!
     pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-pointer!
+    pointer-set-c-long-long!		pointer-set-c-float!
+    pointer-set-c-double!		pointer-set-c-pointer!
 
     ;;basic string conversion
     strlen string->cstring cstring->string strerror
@@ -194,7 +195,7 @@
   (pointer-value pointer))
 
 (define (pointer-null? pointer)
-  (= 0 (pointer->integer pointer)))
+  (= 0 (pointer-value pointer)))
 
 
 
@@ -383,40 +384,137 @@
 			    (+ 1 position))
    position))
 
-(define pointer-ref-c-signed-short	bytevector-s16-native-ref)
-(define pointer-ref-c-unsigned-short	bytevector-u16-native-ref)
-(define pointer-ref-c-signed-int	bytevector-s32-native-ref)
-(define pointer-ref-c-unsigned-int	bytevector-u32-native-ref)
-(define pointer-ref-c-signed-long	(when on-32-bits-system
-					  bytevector-s32-native-ref
-					  bytevector-s64-native-ref))
-(define pointer-ref-c-unsigned-long	(when on-32-bits-system
-					  bytevector-u32-native-ref
-					  bytevector-u64-native-ref))
-(define pointer-ref-c-float		bytevector-ieee-single-native-ref)
-(define pointer-ref-c-double		bytevector-ieee-double-native-ref)
-(define pointer-ref-c-pointer
-  (cond ((= 4 sizeof-pointer)		bytevector-u32-native-ref)
-	((= 8 sizeof-pointer)		bytevector-u64-native-ref)
+;;; --------------------------------------------------------------------
+
+(define (pointer-ref-c-signed-short pointer position)
+  (bytevector-s16-ref (make-bytevector-mapping (pointer-value pointer)
+					       (+ 2 position))
+		      position (native-endianness)))
+
+(define (pointer-ref-c-unsigned-short pointer position)
+  (bytevector-u16-ref (make-bytevector-mapping (pointer-value pointer)
+					       (+ 2 position))
+		      position (native-endianness)))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-ref-c-signed-int pointer position)
+  (bytevector-s32-ref (make-bytevector-mapping (pointer-value pointer)
+					       (+ 4 position))
+		      position (native-endianness)))
+
+(define (pointer-ref-c-unsigned-int pointer position)
+  (bytevector-u32-ref (make-bytevector-mapping (pointer-value pointer)
+					       (+ 4 position))
+		      position (native-endianness)))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-ref-c-signed-long pointer position)
+  (if on-32-bits-system
+      (bytevector-s32-ref (make-bytevector-mapping (pointer-value pointer)
+						   (+ 4 position))
+			  position (native-endianness))
+    (bytevector-s64-ref (make-bytevector-mapping (pointer-value pointer)
+						 (+ 8 position))
+			position (native-endianness))))
+
+(define (pointer-ref-c-unsigned-long pointer position)
+  (if on-32-bits-system
+      (bytevector-u32-ref (make-bytevector-mapping (pointer-value pointer)
+						   (+ 4 position))
+			  position (native-endianness))
+    (bytevector-u64-ref (make-bytevector-mapping (pointer-value pointer)
+						 (+ 8 position))
+			position (native-endianness))))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-ref-c-signed-long-long pointer position)
+  (bytevector-s64-ref (make-bytevector-mapping (pointer-value pointer)
+					       (+ 8 position))
+		      position (native-endianness)))
+
+(define (pointer-ref-c-unsigned-long-long pointer position)
+  (bytevector-u64-ref (make-bytevector-mapping (pointer-value pointer)
+					       (+ 8 position))
+		      position (native-endianness)))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-ref-c-float pointer position)
+  (bytevector-ieee-single-ref (make-bytevector-mapping (pointer-value pointer)
+						       (+ 4 position))
+			      position (native-endianness)))
+
+(define (pointer-ref-c-double pointer position)
+  (bytevector-ieee-double-ref (make-bytevector-mapping (pointer-value pointer)
+						       (+ 8 position))
+			      position (native-endianness)))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-ref-c-pointer pointer position)
+  (cond ((= 4 sizeof-pointer)
+	 (make-pointer (pointer-ref-c-unsigned-int pointer position)))
+	((= 8 sizeof-pointer)
+	 (make-pointer (pointer-ref-c-unsigned-long-long pointer position)))
 	(else
 	 (assertion-violation 'pointer-ref-c-pointer
 	   "cannot determine size of pointers for peeker function"))))
+
+;;; --------------------------------------------------------------------
 
 (define (pointer-set-c-char! pointer position value)
   (bytevector-u8-set! (make-bytevector-mapping (pointer-value pointer)
 					       (+ 1 position))
 		      position value))
 
-(define pointer-set-c-short!		bytevector-u16-native-set!)
-(define pointer-set-c-int!		bytevector-u32-native-set!)
-(define pointer-set-c-long!		(when on-32-bits-system
-					  bytevector-u32-native-set!
-					  bytevector-u64-native-set!))
-(define pointer-set-c-float!		bytevector-ieee-single-native-set!)
-(define pointer-set-c-double!		bytevector-ieee-double-native-set!)
-(define pointer-set-c-pointer!
-  (cond ((= 4 sizeof-pointer)		bytevector-u32-native-set!)
-	((= 8 sizeof-pointer)		bytevector-u64-native-set!)
+(define (pointer-set-c-short! pointer position value)
+  (bytevector-u16-set! (make-bytevector-mapping (pointer-value pointer)
+						(+ 4 position))
+		       position value (native-endianness)))
+
+(define (pointer-set-c-int! pointer position value)
+  (bytevector-s32-set! (make-bytevector-mapping (pointer-value pointer)
+						(+ 4 position))
+		       position value (native-endianness)))
+
+(define (pointer-set-c-long! pointer position value)
+  (if on-32-bits-system
+      (bytevector-s32-set! (make-bytevector-mapping (pointer-value pointer)
+						    (+ 4 position))
+			   position value (native-endianness))
+    (bytevector-s64-set! (make-bytevector-mapping (pointer-value pointer)
+						  (+ 8 position))
+			 position value (native-endianness))))
+
+(define (pointer-set-c-long-long! pointer position value)
+  (bytevector-s64-set! (make-bytevector-mapping (pointer-value pointer)
+						(+ 8 position))
+		       position value (native-endianness)))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-set-c-float! pointer position value)
+  (bytevector-ieee-single-set!
+   (make-bytevector-mapping (pointer-value pointer)
+			    (+ 4 position))
+   position value (native-endianness)))
+
+(define (pointer-set-c-double! pointer position value)
+  (bytevector-ieee-double-set!
+   (make-bytevector-mapping (pointer-value pointer)
+			    (+ 8 position))
+   position value (native-endianness)))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-set-c-pointer! pointer position the-pointer)
+  (cond ((= 4 sizeof-pointer)
+	 (pointer-set-c-int! pointer position (pointer-value the-pointer)))
+	((= 8 sizeof-pointer)
+	 (pointer-set-c-long-long! pointer position (pointer-value the-pointer)))
 	(else
 	 (assertion-violation 'pointer-set-c-pointer
 	   "cannot determine size of pointers for peeker function"))))

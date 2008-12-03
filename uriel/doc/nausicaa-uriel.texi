@@ -505,10 +505,6 @@ Condition types
 * ffi conditions nomem::        Out of memory errors.
 * ffi conditions errno::        Foreign system function errors.
 
-@gnu{} C library facilities
-
-* libc environment::            Environment functions.
-
 @end detailmenu
 @end menu
 

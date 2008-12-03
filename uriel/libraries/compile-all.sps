@@ -8,7 +8,6 @@
   (only (uriel ffi sizeof))
   (only (uriel ffi))
   (only (uriel getenv))
-  (only (uriel glibc))
   (only (uriel lang))
   (only (uriel object-property))
   (only (uriel printing))

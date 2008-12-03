@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-03 10:06:02 marco>
+;;;Time-stamp: <2008-12-03 14:39:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -69,14 +69,15 @@
     pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
     pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
     pointer-ref-c-float			pointer-ref-c-double
     pointer-ref-c-pointer
 
     ;;pokers
     pointer-set-c-char!			pointer-set-c-short!
     pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-pointer!
+    pointer-set-c-long-long!		pointer-set-c-float!
+    pointer-set-c-double!		pointer-set-c-pointer!
 
     ;;pointers
     pointer? integer->pointer pointer->integer pointer-null?)
