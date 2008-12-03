@@ -2,11 +2,11 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-11-26 10:27:57 marco>
+;;;Time-stamp: <2008-12-03 10:06:02 marco>
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	This is the core of the "(uriel ffi)" library.
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -31,20 +31,38 @@
   (export
 
     ;;interface functions
-    shared-object open-shared-object self-shared-object with-shared-object
-    make-c-function define-c-function
+    shared-object open-shared-object self-shared-object
+    primitive-make-c-function primitive-make-c-function/with-errno
+    make-c-function make-c-function/with-errno
+    define-c-function define-c-function/with-errno
 
     ;;memory functions
-    malloc primitive-malloc primitive-free
-    make-block-cache small-blocks-cache make-caching-object-factory
-    compensate-malloc compensate-malloc/small
+    primitive-malloc primitive-free malloc
+    make-block-cache make-caching-object-factory
+    small-blocks-cache page-blocks-cache
+    compensate-malloc compensate-malloc/small compensate-malloc/page
 
-    ;;out of memory condition
+    ;;memory blocks
+    make-memory-block-record memory-block-record?
+    memory-block-pointer memory-block-size
+    memory-block compensate-malloc/block
+
+    ;;conditions: out of memory
     &out-of-memory make-out-of-memory-condition out-of-memory-condition?
     out-of-memory-requested-number-of-bytes
+    raise-out-of-memory
+
+    ;;conditions: errno error
+    &errno make-errno-condition errno-condition?
+    errno-numeric-value errno-symbolic-value
+    raise-errno-error
 
     ;;string functions
-    strlen string->cstring cstring->string
+    strlen cstring->string strerror
+    string->cstring
+    string->cstring/compensated
+    string-or-symbol->cstring
+    string-or-symbol->cstring/compensated
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -61,12 +79,13 @@
     pointer-set-c-pointer!
 
     ;;pointers
-    integer->pointer pointer->integer pointer?)
+    pointer? integer->pointer pointer->integer pointer-null?)
 
   (import (rnrs)
     (uriel lang)
-;;;    (uriel printing)
-    (uriel ffi compat))
+    (uriel printing)
+    (uriel ffi compat)
+    (uriel ffi conditions))
 
 
 
@@ -77,20 +96,57 @@
 				    (symbol->string library-name)
 				  library-name)))
 
-(define-syntax with-shared-object
-  (syntax-rules ()
-    ((_ ?library-id ?form0 ?form ...)
-     (begin
-       (define saved-shared-object (shared-object))
-       (shared-object ?library-id)
-       ?form0 ?form ...
-       (shared-object saved-shared-object)))))
+
+
+;;;; function interface
 
 (define-syntax make-c-function
-  (syntax-rules ()
-    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-     (primitive-make-c-function
-      ?ret-type ?funcname (?arg-type0 ?arg-type ...)))))
+  (lambda (use-stx)
+    (define list-of-types
+      '(void
+	char schar signed-char uchar unsigned-char
+	int signed-int ssize_t uint unsigned unsigned-int size_t
+	long ulong unsigned-long float double
+	pointer void* char* FILE* callback))
+
+    (define (quote-if-predefined-type arg-stx)
+      (if (memq (syntax->datum arg-stx) list-of-types)
+	  (list (syntax quote) arg-stx)
+	arg-stx))
+
+    (syntax-case use-stx ()
+      ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
+       (with-syntax
+	   ((ret	(quote-if-predefined-type (syntax ?ret-type)))
+	    (args	(cons (syntax list)
+			      (map quote-if-predefined-type
+				(syntax (?arg-type0 ?arg-type ...))))))
+	 (syntax
+	  (primitive-make-c-function ret '?funcname args)))))))
+
+(define-syntax make-c-function/with-errno
+  (lambda (use-stx)
+    (define list-of-types
+      '(void
+	char schar signed-char uchar unsigned-char
+	int signed-int ssize_t uint unsigned unsigned-int size_t
+	long ulong unsigned-long float double
+	pointer void* char* FILE* callback))
+
+    (define (quote-if-predefined-type arg-stx)
+      (if (memq (syntax->datum arg-stx) list-of-types)
+	  (list (syntax quote) arg-stx)
+	arg-stx))
+
+    (syntax-case use-stx ()
+      ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
+       (with-syntax
+	   ((ret	(quote-if-predefined-type (syntax ?ret-type)))
+	    (args	(cons (syntax list)
+			      (map quote-if-predefined-type
+				(syntax (?arg-type0 ?arg-type ...))))))
+	 (syntax
+	  (primitive-make-c-function/with-errno ret '?funcname args)))))))
 
 (define-syntax define-c-function
   (syntax-rules ()
@@ -99,20 +155,21 @@
        (make-c-function
 	?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
 
+(define-syntax define-c-function/with-errno
+  (syntax-rules ()
+    ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
+     (define ?name
+       (make-c-function/with-errno
+	?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
+
 
 
 ;;;; basic memory functions
 
-(define-condition-type &out-of-memory &error
-  make-out-of-memory-condition out-of-memory-condition?
-  (number-of-bytes out-of-memory-requested-number-of-bytes))
-
 (define (malloc size)
   (let ((p (primitive-malloc size)))
-    (unless p
-      (raise (make-who-condition 'malloc)
-	     (make-message-condition "out of memory")
-	     (make-out-of-memory-condition size)))
+    (when (pointer-null? p)
+      (raise-out-of-memory 'malloc size))
     p))
 
 
@@ -155,7 +212,11 @@
 	       (set! number-of-cached-blocks (+ 1 number-of-cached-blocks)))
 	   (primitive-free pointer))))))))
 
-(define small-blocks-cache (make-block-cache 32 10))
+(define small-blocks-size 32)
+(define small-blocks-cache (make-block-cache small-blocks-size 10))
+
+(define page-blocks-size 4096)
+(define page-blocks-cache (make-block-cache page-blocks-size 10))
 
 (define (make-caching-object-factory init-func final-func
 				     block-size max-cached-block-number)
@@ -177,6 +238,34 @@
 
 
 
+;;;; special allocators
+
+(define-record-type memory-block-record
+  (fields (immutable pointer memory-block-pointer)
+	  (immutable size memory-block-size)))
+
+
+(define (memory-block block-or-size)
+  (if (memory-block-record? block-or-size)
+      (let ((size	(memory-block-size block-or-size))
+	    (pointer	(memory-block-pointer block-or-size)))
+	(cond
+	 ((<= block-or-size small-blocks-size)
+	  (small-blocks-cache pointer))
+	 ((<= block-or-size page-blocks-size)
+	  (page-blocks-cache pointer))
+	 (else
+	  (primitive-free pointer))))
+    (cond
+     ((<= block-or-size small-blocks-size)
+      (make-memory-block-record (small-blocks-cache) small-blocks-size))
+     ((<= block-or-size page-blocks-size)
+      (make-memory-block-record (page-blocks-cache) page-blocks-size))
+     (else
+      (make-memory-block-record (malloc block-or-size) block-or-size)))))
+
+
+
 ;;;; compensations
 
 (define (compensate-malloc number-of-bytes)
@@ -194,6 +283,43 @@
 	    (with
 	     (small-blocks-cache p)))))
     p))
+
+(define (compensate-malloc/page)
+  (letrec
+      ((p (compensate
+	      (page-blocks-cache)
+	    (with
+	     (page-blocks-cache p)))))
+    p))
+
+(define (compensate-malloc/block number-of-bytes)
+  (letrec
+      ((b (compensate
+	      (memory-block number-of-bytes)
+	    (with
+	     (memory-block b)))))
+    (memory-block-pointer b)))
+
+
+
+;;;; string functions
+
+(define (string->cstring/compensated s)
+  (let* ((len		(string-length s))
+	 (alloc-len	(+ 1 len))
+	 (pointer	(compensate-malloc/block alloc-len))
+	 (bv		(string->utf8 s)))
+    (pointer-set-c-char! pointer len 0)
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 pointer)
+      (pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
+
+(define (string-or-symbol->cstring/compensated s)
+  (string->cstring/compensated (symbol->string/maybe s)))
+
+(define (string-or-symbol->cstring s)
+  (string->cstring (symbol->string/maybe s)))
 
 
 

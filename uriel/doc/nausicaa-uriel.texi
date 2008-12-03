@@ -12,7 +12,7 @@
 @include version.texiinc
 
 
-@c ------------------------------------------------------------
+
 
 @c page
 @c ------------------------------------------------------------
@@ -35,7 +35,6 @@
 @acronym{BSD}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -80,7 +79,6 @@
 @end macro
 
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -99,7 +97,6 @@
 @gnu{} C Library
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -140,7 +137,6 @@
 @acronym{SNMP}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -209,7 +205,6 @@
 @meta{\ARG\j}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -287,7 +282,6 @@ the main purpose of this document is to provide an Info version.
 @code{#:\NAME\}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -308,6 +302,10 @@ the main purpose of this document is to provide an Info version.
 
 @macro ikarusref{NODE,TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
+@end macro
+
+@macro ypsilonref{NODE,TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,ypsilon}
 @end macro
 
 @macro bibref{TAG}
@@ -345,7 +343,6 @@ the main purpose of this document is to provide an Info version.
 @c list of copyright years.
 @set COPYRIGHT_YEARS            2008
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -374,7 +371,6 @@ entitled ``@gnu{} Free Documentation License''.
 @end quotation
 @end copying
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -408,7 +404,6 @@ entitled ``@gnu{} Free Documentation License''.
 @syncodeindex fn cp
 @end ignore
 
-@c ------------------------------------------------------------
 
 @c page
 @ifnottex
@@ -420,15 +415,9 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * lang::                        Language extensions.
-* combinators::                 Combinators.
-* object-property::             Object properties.
-* define-macro::                Common Lisp style macros.
 * test::                        Writing test suites.
-* printing::                    Printing.
-* getenv::                      System environment variables.
-* cleanup::                     Cleanup of asynchronous resources.
 * ffi::                         Foreign functions interface.
-* libc::                        Standard C library facilities.
+* libc::                        @gnu{} C library facilities.
 * posix::                       @posix{} facilities.
 
 Appendices
@@ -443,10 +432,94 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Language extensions
+
+* lang simple::                 Simple language extensions.
+* lang compensations::          Compensation stacks.
+* lang deferred exceptions::    Deferred exceptions.
+* lang io::                     Input/output procedures.
+* lang misc::                   Miscellaneous functions.
+
+Independent libraries
+
+* lang void::                   Void value.
+* lang equal-hash::             Equal hash function.
+* lang combinators::            Combinators.
+* lang object-property::        Object properties.
+* lang define-macro::           Common Lisp style macros.
+* lang printing::               Printing.
+* lang cleanup::                Cleanup of asynchronous resources.
+
+Compensation stacks
+
+* lang compensations usage::    Basic compensations usage.
+* lang compensations api::      Compensations @api{}.
+
+Deferred exceptions
+
+* lang deferred exceptions usage::      Usage examples.
+* lang deferred exceptions api::        Programming interface.
+
+Foreign functions interface
+
+* ffi example::                 Basic interface to Zlib.
+* ffi load::                    Dynamic loading of libraries.
+* ffi call::                    Interface functions.
+* ffi memory::                  Basic memory allocation.
+* ffi guarded malloc::          Guarded memory allocation.
+* ffi sizeof::                  Sizes and limits.
+* ffi errno::                   Error constants.
+* ffi accessors::               Low level access to memory.
+* ffi string::                  Basic string functions.
+* ffi headers::                 Inspecting foreign header files.
+* ffi conditions::              Condition types.
+
+Functions interface
+
+* ffi call types::              Interface to C language types.
+* ffi call out::                Calling foreign functions.
+* ffi call in::                 Calling Scheme functions.
+
+Basic memory allocation
+
+* ffi memory pointers::         Pointer objects.
+* ffi memory primitive::        Primitive functions.
+* ffi memory cache::            Caching memory blocks.
+* ffi memory objects::          Caching object factories.
+* ffi memory compensate::       Compensations.
+
+Low level access to memory
+
+* ffi accessors pokers::        Poking values.
+* ffi accessors peekers::       Peeking values.
+
+Condition types
+
+* ffi conditions nomem::        Out of memory errors.
+* ffi conditions errno::        Foreign system function errors.
+
+@posix{} facilities
+
+* posix environment::           Environment variables.
+* posix working directory::     The working directory.
+
+Independent libraries
+
+* posix getenv::                Getting environment variables.
+
+@gnu{} C library facilities
+
+* libc environment::            Environment functions.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
-@c ------------------------------------------------------------
 
 @c page
 @node overview
@@ -457,7 +530,6 @@ Indexes
 @value{PACKAGE} is a collection of libraries for @rnrs{6} Scheme.
 
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang
@@ -466,37 +538,40 @@ Indexes
 
 @noindent
 Syntaxes and functions are provided to extend the Scheme language.  To
-load the library:
+load the main library:
 
 @example
-(import (uriel lang))
+(import (rnrs)
+  (uriel lang))
 @end example
+
+@noindent
+for the independent libraries see the corresponding sections.
+
 
 @menu
 * lang simple::                 Simple language extensions.
 * lang compensations::          Compensation stacks.
 * lang deferred exceptions::    Deferred exceptions.
 * lang io::                     Input/output procedures.
+* lang misc::                   Miscellaneous functions.
+
+Independent libraries
+
+* lang void::                   Void value.
+* lang equal-hash::             Equal hash function.
+* lang combinators::            Combinators.
+* lang object-property::        Object properties.
+* lang define-macro::           Common Lisp style macros.
+* lang printing::               Printing.
+* lang cleanup::                Cleanup of asynchronous resources.
 @end menu
 
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang simple
 @section Simple language extensions
-
-
-@defun void-value
-Return the void value: the value that the implementation uses for forms
-that do not return a meaningful value.  This function is defined as:
-
-@example
-(define (void-value)
-  (let ((a #f))
-    (set! a 1)))
-@end example
-@end defun
 
 
 @deffn Syntax begin0 @var{form0} @var{form} ...
@@ -636,7 +711,6 @@ Examples:
 @end deffn
 
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang compensations
@@ -661,7 +735,6 @@ Run-Time Error Handling Mistakes}, by Westley Weimer, George C. Necula,
 Object--Oriented Programming, Systems, Languages, and Applications.
 @end quotation
 
-@c ------------------------------------------------------------
 
 @c page
 @node lang compensations usage
@@ -820,8 +893,6 @@ compensations only if an error occurs; if no error is raised, we just
 want the constructor to return.
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node lang compensations api
 @subsection Compensations @api{}
@@ -856,8 +927,6 @@ a @func{defer-exceptions}, so exceptions raised are handled as described
 in @ref{lang deferred exceptions}.
 @end defun
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node lang deferred exceptions
@@ -912,8 +981,6 @@ whatever.
 This mechanism is automatically used by compensation stacks, which are
 the reference use case (@ref{lang compensations}).
 
-@c ------------------------------------------------------------
-
 @c page
 @node lang deferred exceptions usage
 @subsection Usage examples
@@ -944,8 +1011,6 @@ the exception value.
 Any number of @func{defer-exceptions} can be put in the same
 @func{with-deferred-exceptions}.
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node lang deferred exceptions api
@@ -980,7 +1045,66 @@ silently ignored.
 @end defun
 
 
-@c ------------------------------------------------------------
+@c page
+@node lang void
+@section Void value
+
+
+Ikarus Scheme provides the @func{void} function which returns the value
+returned by forms that do not return a meaningful value, like
+@func{set!}.  Not all implementations offers it, for example Ypsilon up
+to revision 285 does not.
+
+The @library{uriel void} library attempts to provide a replacement.
+There is no guarantee that it will work with all the @rnrs{6} Scheme
+implementations.  To load the library:
+
+@example
+(import (rnrs)
+  (uriel void))
+@end example
+
+
+@defun void
+Return the void value.
+
+@example
+(define (void)
+  (let ((a #f))
+    (set! a 1)))
+@end example
+@end defun
+
+
+@c page
+@node lang equal-hash
+@section Equal hash function
+
+
+For some reason Ikarus up until revision 1694 does not implement the
+@func{equal-hash} function as specified by the @rnrs{6}.  This library
+offers a simple implementation.  To load it:
+
+@example
+(import (rnrs)
+  (uriel equal-hash))
+@end example
+
+
+@defun equal-hash @var{obj}
+Return an integer hash value for @var{obj}, based on its structure and
+current contents.  This hash function is suitable for use with
+@func{equal?} as equivalence function.
+
+@example
+(define (equal-hash obj)
+    (string-hash
+     (call-with-string-output-port
+         (lambda () (write obj)))))
+@end example
+@end defun
+
+
 
 @c page
 @node lang io
@@ -1008,14 +1132,28 @@ is equivalent to:
 
 
 @c page
-@node combinators
-@chapter Combinators
+@node lang misc
+@section Miscellaneous functions
+
+
+@defun {symbol->string/maybe} @var{obj}
+If @var{obj} is a symbol: convert it to string and return the result;
+else if it is a string, return it.  If it is neither a string nor a
+symbol: raise an assertion violation.
+@end defun
+
+
+
+@c page
+@node lang combinators
+@section Combinators
 
 
 To load the library:
 
 @example
-(import (uriel combinators))
+(import (rnrs)
+  (uriel combinators))
 @end example
 
 
@@ -1079,11 +1217,9 @@ The S combinator:
 @end deffn
 
 
-@c ------------------------------------------------------------
-
 @c page
-@node object-property
-@chapter Object properties
+@node lang object-property
+@section Object properties
 
 
 An object property is a convenient interface to an @func{eq?} hashtable.
@@ -1101,7 +1237,8 @@ Guile, the @gnu{} Ubiquitous Interface Language for Extensions.
 To load the library:
 
 @example
-(import (uriel object-property))
+(import (rnrs)
+  (uriel object-property))
 @end example
 
 
@@ -1168,17 +1305,16 @@ The following will evaluate successfully:
 @end example
 
 
-@c ------------------------------------------------------------
-
 @c page
-@node define-macro
-@chapter Common Lisp style macros
+@node lang define-macro
+@section Common Lisp style macros
 
 
 To load the library:
 
 @example
-(import (uriel define-macro))
+(import (rnrs)
+  (uriel define-macro))
 @end example
 
 
@@ -1220,7 +1356,122 @@ The following will evaluate successfully:
 @end example
 
 
-@c ------------------------------------------------------------
+@c page
+@node lang printing
+@section Printing
+
+
+This chapter describes an interface to the @func{pretty-print} and
+@func{format} procedures.  It is meant to provide basic printing
+facilities for debugging and test suites.  To load the library:
+
+@example
+(import (rnrs)
+  (uriel printing))
+@end example
+
+
+@defun print @var{port} @var{template} @var{value} ...
+Format the string @var{template} using the optional @var{value}s, using
+implementation specific facilities, and return the result.  If
+@var{port} is true:
+
+@itemize
+@item
+if it is an output port: the result is written into it with
+@func{display};
+
+@item
+if it is @true{}: the result is written into the current output-port
+with @func{display};
+
+@item
+else an assertion violation is raised.
+@end itemize
+@end defun
+
+
+@defun pretty-print @var{value}
+Prints to the current output port the best representation possible of
+@var{value}.
+@end defun
+
+
+@c page
+@node lang cleanup
+@section Cleanup of asynchronous resources
+
+
+On Scheme implementations that provide guardians (like Ikarus) there is
+the need to invoke the guardian function, every now and then, to release
+guarded resources that were garbage collected.  For example: if the
+program makes use of an event loop, we can enqueue a periodic, batch,
+event that invokes a cleanup function.
+
+We may have code like this:
+
+@example
+(define block-guardian (make-guardian))
+
+(define (block-cleanup)
+  (do ((p (block-guardian) (block-guardian)))
+      ((not p))
+    (primitive-free p)))
+@end example
+
+@noindent
+and allocate memory with:
+
+@example
+(define (malloc/guarded size)
+  (let ((p (malloc size)))
+    (block-guardian p)
+    p))
+@end example
+
+@noindent
+whenever the values returned by @func{malloc/guarded} are garbage
+collected: they will be made available as return values from the
+guardian function, so we can invoke @func{block-cleanup} to free them.
+
+Of course, with code like this, we need a guardian for each type of
+resource, or, to be more precise, a guardian for each destructor
+(@func{primitive-free} in the example).
+
+To make it simpler to invoke all the cleanup functions, @value{PACKAGE}
+provides an interface to register them and invoke them in sequence.  To
+load the library:
+
+@example
+(import (rnrs)
+  (uriel cleanup))
+@end example
+
+
+@defun uriel-register-cleanup-function @var{thunk}
+Register @var{thunk} in the internal list of cleanup functions.
+@end defun
+
+
+@defun uriel-forget-cleanup-function @var{thunk}
+Remove @var{thunk} from the internal list of cleanup functions.
+@end defun
+
+
+@defun uriel-cleanup
+Invoke all the functions registered in the internal list of cleanup
+functions.  Every function is invoked with no arguments.
+@end defun
+
+
+@quotation
+@emph{Note:} This library implements no event loop.  The only way to
+invoke a cleanup thunk only once is to register it, invoke
+@func{uriel-cleanup}, then remove it.  This is usually not what we want
+to do to handle such a simple case: we should use a proper event loop,
+instead.
+@end quotation
+
 
 @c page
 @node test
@@ -1234,7 +1485,8 @@ appropriate values of environment variables.
 To load the library:
 
 @example
-(import (uriel test))
+(import (rnrs)
+  (uriel test))
 @end example
 
 @noindent
@@ -1319,181 +1571,138 @@ forms.
 @end deffn
 
 
-@c ------------------------------------------------------------
-
-@c page
-@node printing
-@chapter Printing
-
-
-This chapter describes an interface to the @func{pretty-print} and
-@func{format} procedures.  It is meant to provide basic printing
-facilities for debugging and test suites.  To load the library:
-
-@example
-(import (uriel printing))
-@end example
-
-
-@defun print @var{port} @var{template} @var{value} ...
-Format the string @var{template} using the optional @var{value}s, using
-implementation specific facilities, and return the result.  If
-@var{port} is true:
-
-@itemize
-@item
-if it is an output port: the result is written into it with
-@func{display};
-
-@item
-if it is @true{}: the result is written into the current output-port
-with @func{display};
-
-@item
-else an assertion violation is raised.
-@end itemize
-@end defun
-
-
-@defun pretty-print @var{value}
-Prints to the current output port the best representation possible of
-@var{value}.
-@end defun
-
-
-@c ------------------------------------------------------------
-
-@c page
-@node getenv
-@chapter System environment variables
-
-
-This chapter describes an interface to the @cfunc{getenv} system
-function used to retrieve the current value of system environment
-variables.  It is meant to provide basic access to the environment for
-debugging and test suites.  To load the library:
-
-@example
-(import (uriel getenv))
-@end example
-
-
-@defun getenv @var{varname}
-Return the current value of the environment variable @var{varname}, as a
-string.  @var{varname} must be a string.
-@end defun
-
-
-@c ------------------------------------------------------------
-
-@c page
-@node cleanup
-@chapter Cleanup of asynchronous resources
-
-
-On Scheme implementations that provide guardians (like Ikarus) there is
-the need to invoke the guardian function, every now and then, to release
-guarded resources that were garbage collected.  For example: if the
-program makes use of an event loop, we can enqueue a periodic, batch,
-event that invokes a cleanup function.
-
-We may have code like this:
-
-@example
-(define block-guardian (make-guardian))
-
-(define (block-cleanup)
-  (do ((p (block-guardian) (block-guardian)))
-      ((not p))
-    (primitive-free p)))
-@end example
-
-@noindent
-and allocate memory with:
-
-@example
-(define (malloc/guarded size)
-  (let ((p (malloc size)))
-    (block-guardian p)
-    p))
-@end example
-
-@noindent
-whenever the values returned by @func{malloc/guarded} are garbage
-collected: they will be made available as return values from the
-guardian function, so we can invoke @func{block-cleanup} to free them.
-
-Of course, with code like this, we need a guardian for each type of
-resource, or, to be more precise, a guardian for each destructor
-(@func{primitive-free} in the example).
-
-To make it simpler to invoke all the cleanup functions, @value{PACKAGE}
-provides an interface to register them and invoke them in sequence.  To
-load the library:
-
-@example
-(import (uriel cleanup))
-@end example
-
-
-@defun uriel-register-cleanup-function @var{thunk}
-Register @var{thunk} in the internal list of cleanup functions.
-@end defun
-
-
-@defun uriel-forget-cleanup-function @var{thunk}
-Remove @var{thunk} from the internal list of cleanup functions.
-@end defun
-
-
-@defun uriel-cleanup
-Invoke all the functions registered in the internal list of cleanup
-functions.  Every function is invoked with no arguments.
-@end defun
-
-
-@quotation
-@emph{Note:} This library implements no event loop.  The only way to
-invoke a cleanup thunk only once is to register it, invoke
-@func{uriel-cleanup}, then remove it.  This is usually not what we want
-to do to handle such a simple case: we should use a proper event loop,
-instead.
-@end quotation
-
-
-@c ------------------------------------------------------------
-
 @c page
 @node ffi
 @chapter Foreign functions interface
 
 
 This chapter describes a wrapper of the foreign functions interface from
-the running Scheme implementation.  To load the library:
+the underlying Scheme implementation.  To load the library:
 
 @example
-(import (uriel ffi))
+(import (rnrs)
+  (uriel ffi))
 @end example
 
 @noindent
 only functions needed to build an interface to a foreign C language
 shared object are made available by this library; other functions (to do
-actual operations) are in the @library{uriel libc} and @library{uriel
+actual operations) are in the @library{uriel glibc} and @library{uriel
 posix} libraries.
 
 
 @menu
+* ffi example::                 Basic interface to Zlib.
 * ffi load::                    Dynamic loading of libraries.
 * ffi call::                    Interface functions.
 * ffi memory::                  Basic memory allocation.
 * ffi guarded malloc::          Guarded memory allocation.
 * ffi sizeof::                  Sizes and limits.
+* ffi errno::                   Error constants.
 * ffi accessors::               Low level access to memory.
 * ffi string::                  Basic string functions.
+* ffi headers::                 Inspecting foreign header files.
+* ffi conditions::              Condition types.
 @end menu
 
 
-@c ------------------------------------------------------------
+@c page
+@node ffi example
+@section Basic interface to Zlib
+
+
+Here is an incomplete example interface to the popular Zlib on Unix like
+systems, to make clear what we are talking about.  It is incomplete
+because it does not define the offsets of fields in the @code{z_stream}
+structure, which are needed to use it.  @ref{ffi headers} for a
+discussion about how to implement the missing bits.
+
+As we can see: writing a binding to a foreign library is basically a
+copy and paste from the C language header file, with some adjustment
+(most of which can be done in a text editor with appropriate regular
+expressions support).
+
+@example
+(library (zlib)
+  (export
+    deflateInit deflate deflateEnd
+    inflateInit inflate inflateEnd
+
+    Z_NO_FLUSH Z_PARTIAL_FLUSH Z_SYNC_FLUSH Z_FULL_FLUSH
+    Z_FINISH Z_BLOCK
+
+    Z_OK Z_STREAM_END Z_NEED_DICT Z_ERRNO Z_STREAM_ERROR
+    Z_DATA_ERROR Z_MEM_ERROR Z_BUF_ERROR Z_VERSION_ERROR
+
+    Z_NO_COMPRESSION Z_BEST_SPEED
+    Z_BEST_COMPRESSION Z_DEFAULT_COMPRESSION
+
+    Z_FILTERED Z_HUFFMAN_ONLY Z_RLE Z_FIXED Z_DEFAULT_STRATEGY
+
+    Z_NULL)
+  (import (rnrs)
+    (uriel ffi))
+
+  (define zlib
+    (let ((o (open-shared-object 'libz.so)))    ;load it
+      (shared-object o)                         ;make it current
+      o))
+
+;;; Type conversions.
+  (define z_streamp 'pointer)
+
+;;; Constants.
+  (define Z_NO_FLUSH            0)
+  (define Z_PARTIAL_FLUSH       1)
+  (define Z_SYNC_FLUSH          2)
+  (define Z_FULL_FLUSH          3)
+  (define Z_FINISH              4)
+  (define Z_BLOCK               5)
+
+  (define Z_OK                  0)
+  (define Z_STREAM_END          1)
+  (define Z_NEED_DICT           2)
+  (define Z_ERRNO               -1)
+  (define Z_STREAM_ERROR        -2)
+  (define Z_DATA_ERROR          -3)
+  (define Z_MEM_ERROR           -4)
+  (define Z_BUF_ERROR           -5)
+  (define Z_VERSION_ERROR       -6)
+
+  (define Z_NO_COMPRESSION      0)
+  (define Z_BEST_SPEED          1)
+  (define Z_BEST_COMPRESSION    9)
+  (define Z_DEFAULT_COMPRESSION -1)
+
+  (define Z_FILTERED            1)
+  (define Z_HUFFMAN_ONLY        2)
+  (define Z_RLE                 3)
+  (define Z_FIXED               4)
+  (define Z_DEFAULT_STRATEGY    0)
+
+  (define Z_NULL                0)
+
+;;; Deflating.
+  (define-c-function deflateInit
+    (int deflateInit_ (z_streamp int)))
+
+  (define-c-function deflate
+    (int deflate (z_streamp int)))
+
+  (define-c-function deflateEnd
+    (int deflateEnd (z_streamp)))
+
+;;; Inflating.
+  (define-c-function inflateInit
+    (int inflateInit_ (z_streamp)))
+
+  (define-c-function inflate
+    (int inflate (z_streamp int)))
+
+  (define-c-function inflateEnd
+    (int inflateEnd (z_streamp))))
+@end example
+
 
 @c page
 @node ffi load
@@ -1501,13 +1710,15 @@ posix} libraries.
 
 
 @deffn Parameter shared-object
-Holds the identifier of the ``current'' shared object in which
-@func{make-c-function} will look for symbols.  Identifiers are produced
-with @func{open-shared-object}.
+Holds a value referencing the ``current'' shared object: the shared
+object in which @func{primitive-make-c-function} will look for symbols.
+Shared objects references are produced with @func{open-shared-object}.
 
-The initial value selects the current process, which means that all the
-C standard library symbols are available without changing the
-parameter's value.
+The initial value selects the current process; with this value we can
+access symbols exported by the current program and the libraries that
+have been already loaded (this may be platform specific, check out the
+documentation of your operative system).  For example: the symbols from
+the standard C library, like @cfunc{fwrite}, can be accessed this way.
 @end deffn
 
 
@@ -1521,9 +1732,14 @@ or pathname to be opened.  Examples:
 
 @example
 (define mpfr-lib
-  (open-shared-object 'libmpfr.so))
+  (let ((l (open-shared-object 'libmpfr.so)))
+    (shared-object l)
+    l))
+
 (define mpfi-lib
-  (open-shared-object '/usr/local/lib/libmpfi.so))
+  (let ((l (open-shared-object '/usr/local/lib/libmpfi.so)))
+    (shared-object l)
+    l))
 @end example
 
 In the case of a name (wihtout directory part) the search path for
@@ -1542,104 +1758,6 @@ initial value of @code{shared-object}
 @end defvar
 
 
-@deffn Syntax with-shared-object @var{library-id} @var{form0} @var{form} ...
-Evaluate the @var{form}s as in @func{begin}, with @code{shared-object}
-set to @var{library-id}.  Bindings created by the @var{form}s are
-defined in the dynamic environment that encloses the
-@func{with-shared-object} form.
-
-@var{library-id} must be the return value of @func{open-shared-object}
-or the value bound to @code{self-shared-object}.
-
-Notice that this is an @strong{unsafe} way of setting the value of
-@code{shared-object}: if an exception is raised by the @var{form}s, the
-parameter will be left set to @var{library-id}.  It is your option to
-avoid the usage of this form.
-@end deffn
-
-
-@c ------------------------------------------------------------
-
-@subsubheading Examples
-
-
-Access to @file{libmpfr.so} on a Unix like system; notice that the
-bindings defined in a @func{parameterize} form are local to that form:
-
-@example
-(define mpfr-lib (open-shared-object 'libmpfr.so))
-
-(parameterize ((shared-object mpfr-lib))
-
-  (define-c-function mpfr_init
-    (void mpfr_init (pointer)))
-
-  (define-c-function mpfr_clear
-    (void mpfr_clear (pointer)))
-
-  (define-c-function mpfr_get_str
-    (void mpfr_get_str (pointer pointer int size_t pointer int)))
-
-  (define-c-function mpfr_set_d
-    (int mpfr_set_d (pointer double int)))
-
-  ---)
-@end example
-
-The same but with bindings defined at top--level, using the unsafe
-@func{with-shared-object} syntax:
-
-@example
-(define mpfr-lib (open-shared-object 'libmpfr.so))
-
-(with-shared-object mpfr-lib
-
-  (define-c-function mpfr_init
-    (void mpfr_init (pointer)))
-
-  (define-c-function mpfr_clear
-    (void mpfr_clear (pointer)))
-
-  (define-c-function mpfr_get_str
-    (void mpfr_get_str (pointer pointer int size_t pointer int)))
-
-  (define-c-function mpfr_set_d
-    (int mpfr_set_d (pointer double int)))
-
-  ---)
-@end example
-
-The same with bindings defined at top--level, using the safe
-@func{parameterize} syntax:
-
-@example
-(define mpfr-lib (open-shared-object 'libmpfr.so))
-
-(define mpfr_init    #f)
-(define mpfr_clear   #f)
-(define mpfr_get_str #f)
-(define mpfr_set_d   #f)
-
-(parameterize ((shared-object mpfr-lib))
-
-  (set! mpfr_init
-    (make-c-function void mpfr_init (pointer)))
-
-  (set! mpfr_clear
-    (make-c-function void mpfr_clear (pointer)))
-
-  (set! mpfr_get_str
-    (make-c-function void mpfr_get_str
-                     (pointer pointer int size_t pointer int)))
-
-  (set! mpfr_set_d
-    (make-c-function int mpfr_set_d (pointer double int))))
-@end example
-
-
-
-@c ------------------------------------------------------------
-
 @c page
 @node ffi call
 @section Functions interface
@@ -1651,8 +1769,6 @@ The same with bindings defined at top--level, using the safe
 * ffi call in::                 Calling Scheme functions.
 @end menu
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi call types
 @subsection Interface to C language types
@@ -1662,9 +1778,20 @@ The following symbols are accepted as C language type identifiers, but
 not all Scheme implementations support them all: we will have to find
 out by trial and error.  We should be safe using: @code{int},
 @code{pointer} and @code{double}, which are enough for a lot of foreign
-shared objects.
+libraries.
 
-Remember that C strings (@ascii{} coded and zero terminated) must be
+@quotation
+@emph{Ikarus:} The Ikarus Scheme implementation supports all these
+types.
+@end quotation
+
+@quotation
+@emph{Ypsilon:} The Ypsilon Scheme implementation @strong{does not}
+support all these types. @ypsilonref{ffi types,Handling of type
+conversions}.
+@end quotation
+
+Remember that C strings (zero terminated arrays of @code{char}) must be
 created from Scheme strings with @func{string->cstring}, and handed to
 the foreign functions as pointers.
 
@@ -1672,87 +1799,170 @@ the foreign functions as pointers.
 @item char
 @itemx schar
 @itemx signed-char
-signed character;
+Signed character.
 
 @item uchar
 @itemx unsigned-char
-unsigned character;
+Unsigned character.
 
 @item int
 @itemx signed-int
 @itemx ssize_t
-signed fixnum;
+Signed fixnum.
 
 @item uint
 @itemx unsigned
 @itemx unsigned-int
 @itemx size_t
-unsigned fixnum;
+Unsigned fixnum.
 
 @item long
-signed integer;
+Signed integer.
 
 @item ulong unsigned-long
-unsigned integer;
+Unsigned integer.
 
 @item float
-single precision flonum;
+Single precision flonum.
 
 @item double
-double precision flonum;
+Double precision flonum.
 
 @item pointer
 @itemx void*
 @itemx char*
-pointer to a block of memory;
+@itemx FILE*
+Pointer to a block of memory.
 
 @item callback
-pointer to a callback function;
+Pointer to a callback function.
 
 @item void
-no value.
+No value.
 @end table
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi call out
 @subsection Calling foreign functions
 
 
-@deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
-@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+@defun primitive-c-function @var{ret-type} @var{export-name} @var{arg-types}
+@defunx primitive-c-function/with-errno @var{ret-type} @var{export-name} @var{arg-types}
 Build and return a new Scheme interface function for a C language
-foreign function in the current shared object.
+foreign function in the current shared object.  The current shared
+object is referenced by the value of the @code{shared-object} parameter.
 
-@func{make-c-function} returns the interface function,
-@func{define-c-function} is a wrapper that also defines a binding for
-the local environment.
+The @code{/with-errno} variant returns two values: the return value from
+the foreign function and the value of the @code{errno} variable just
+after the call to the foreign function.
 
-Arguments description follows:
+@quotation
+@emph{Note:} Some @posix{} function returns an integer representing
+success or failure, and only when the returned value represents failure
+the @code{errno} value is meaningful.
+@end quotation
 
 @table @var
-@item pub-name
-a symbol to which @func{define-c-function} binds the interface function;
-
 @item ret-type
-a symbol representing the type of the return value of the foreign
-function;
+A symbol among the ones that select a C language type.  It is the type
+of value returned by the foreign function.
 
 @item pri-name
-a symbol representing the name of the foreign function exported by the
-current shared object;
+A Scheme symbol representing the name of the symbol exported by the
+shared object.  Beware that, sometimes, the exported symbols are
+different from the ones we write in C language code to call a function.
 
-@item arg-type0
-@itemx arg-type
-@itemx ...
-symbols representing the type of the arguments of the foreign function;
-there must be at least one, which can be @code{void} if the foreign
-function takes no arguments.
+@item arg-types
+A list of symbols among the ones that select a C language type.  It is
+the list of types for the arguments required by the foreign function.
+If the foreign function accepts no arguments: this list must be @code{(void)}.
 @end table
 
-Variadic function are @strong{not} supported (sorry).
+@quotation
+@emph{Unix:} One way to discover the names of symbols exported by a
+shared object, is to apply the @command{strings} command to the shared
+object.  For example, to discover the names of deflate functions in
+Zlib:
+
+@example
+$ strings /usr/lib/libz.so | grep deflate
+deflateInit_
+deflate
+deflateEnd
+...
+@end example
+@end quotation
+
+Variadic functions (like @cfunc{fprintf}) are @strong{not} supported
+(sorry).
+
+As an example, the main deflate functions from Zlib can be defined with:
+
+@example
+(define deflateInit
+  (primitive-make-c-function
+     'int 'deflateInit_ '(pointer int)))
+
+(define deflate
+  (primitive-make-c-function
+     'int 'deflate '(pointer int)))
+
+(define deflateEnd
+  (primitive-make-c-function
+     'int 'deflateEnd '(pointer)))
+@end example
+@end defun
+
+
+@deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax make-c-function/with-errno @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+@deffnx Syntax define-c-function/with-errno @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+These are wrappers for @func{primitive-make-c-function} that allow us to
+avoid quoting of arguments.  @func{define-c-function} is itself a
+wrapper for @func{make-c-function}.
+
+The @code{/with-errno} variants are wrappers for
+@func{primitive-c-function/with-errno}.
+
+As an example, the main deflate functions from Zlib can be defined with:
+
+@example
+(define zstream 'pointer)
+
+(define deflateInit
+  (make-c-function int deflateInit_ (zstream int)))
+
+(define deflate
+  (make-c-function int deflate (zstream int)))
+
+(define deflateEnd
+  (make-c-function int deflateEnd (zstream)))
+@end example
+
+@noindent
+or with:
+
+@example
+(define zstream 'pointer)
+
+(define-c-function deflateInit
+  (int deflateInit_ (zstream int)))
+
+(define-c-function deflate
+  (int deflate (zstream int)))
+
+(define-c-function deflateEnd
+  (int deflateEnd (zstream)))
+@end example
+
+@noindent
+and notice that: in the expansion of the macros, the predefined types
+(like @code{int}) will be quoted, while the custom types (like
+@code{zstream}) will be left unquoted and so they will correctly
+reference bindings (in the example @code{zstream} evaluates to
+@code{pointer}).
 @end deffn
 
 
@@ -1781,8 +1991,6 @@ interface:
 
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi call in
 @subsection Calling Scheme functions
@@ -1790,22 +1998,49 @@ interface:
 
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi memory
 @section Basic memory allocation
 
 
 @menu
+* ffi memory pointers::         Pointer objects.
 * ffi memory primitive::        Primitive functions.
-* ffi memory condition::        Out of memory errors.
 * ffi memory cache::            Caching memory blocks.
+* ffi memory objects::          Caching object factories.
 * ffi memory compensate::       Compensations.
 @end menu
 
 
-@c ------------------------------------------------------------
+@c page
+@node ffi memory pointers
+@subsection Pointer objects
+
+
+@deffn Procedure pointer? @var{x}
+Return @true{} if the value of @var{x} is a value that the Scheme
+implementation uses to represent memory blocks, return @false{}
+otherwise.
+@end deffn
+
+
+@defun pointer-null? @var{pointer}
+Return @true{} if @var{pointer} represents a null pointer, @false{}
+otherwise.
+@end defun
+
+
+@deffn Procedure pointer->integer @var{pointer}
+Convert to an exact integer a value that the Scheme implementation uses
+to represent memory blocks.
+@end deffn
+
+
+@deffn Procedure integer->pointer @var{exact-integer}
+Convert to a value that the Scheme implementation uses to represent
+memory blocks an exact integer.
+@end deffn
+
 
 @c page
 @node ffi memory primitive
@@ -1868,40 +2103,6 @@ another method, if supported, is to use @func{malloc/guarded}, @ref{ffi
 guarded malloc,guarded-malloc}
 
 
-@c ------------------------------------------------------------
-
-@c page
-@node ffi memory condition
-@subsection Out of memory errors
-
-
-@deftp Condition {&out-of-memory}
-Type of condition objects that represent a memory allocation error.
-@end deftp
-
-
-@deffn {Condition Constructor} make-ouf-of-memory-condition @var{number-of-bytes}
-@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
-@deffnx {Field Accessor} out-of-memory-requested-number-of-bytes @var{object}
-Functions to handle out of memory condition objects.
-@end deffn
-
-
-Example:
-
-@example
-(define (malloc size)
-  (let ((p (primitive-malloc size)))
-    (unless p
-      (raise (make-who-condition 'malloc)
-             (make-message-condition "out of memory")
-             (make-out-of-memory-condition size)))
-    p))
-@end example
-
-
-@c ------------------------------------------------------------
-
 @c page
 @node ffi memory cache
 @subsection Caching memory blocks
@@ -1953,7 +2154,7 @@ where @code{gcry_cipher_hd_t} is a @code{typedef} for an opaque pointer
 reference a pointer sized location in which the function will store a
 pointer to a newly allocated data structure; this location is required
 only for the construction of a new object, so a Scheme interface could
-do (unsafe code):
+do (unsafe code, not handling errors):
 
 @example
 (let ((hd #f)
@@ -1964,6 +2165,73 @@ do (unsafe code):
   hd)
 @end example
 @end defun
+
+
+@defun page-blocks-cache
+@defunx page-blocks-cache @var{pointer}
+@defunx page-blocks-cache purge
+Interface function for a cache of memory blocks of size 4096, 10 blocks
+deep.
+@end defun
+
+
+@subsubheading Allocating memory blocks
+
+
+@deftp {Record Type} memory-block-record
+Type of record used to represent miscellaneous size memory blocks.  It
+has two fields: a pointer value referencing an allocated memory block
+(@ref{ffi memory pointers}); the number of bytes in the allocated memory
+block.
+@end deftp
+
+
+@deffn {Record Maker} make-memory-block-record @var{pointer} @var{number-of-bytes}
+@deffnx {Predicate} memory-block-record? @var{object}
+@deffnx {Field Getter} memory-block-pointer @var{object}
+@deffnx {Field Getter} memory-block-size @var{object}
+Functions to handle records of type @code{memory-block-record}.
+@end deffn
+
+
+@defun memory-block @var{block-or-size}
+Interface function to memory blocks allocation and releasing.  When
+@var{block-or-size} is a record of type @code{memory-block-record}: the
+function releases the allocated block; else @var{block-or-size} must be
+an unsigned exact integer representing the number of bytes to be
+allocated for a new block.
+
+Allocation and releasing of memory blocks is done:
+
+@itemize
+@item
+relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block;
+
+@item
+relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block;
+
+@item
+relying on @func{malloc} and @func{primitive-free} in all the other cases.
+@end itemize
+
+When allocating: the returned value is a record of type
+@code{memory-block-record}.
+
+To use this allocator, consider the compensation wrapper
+@func{compensate-malloc/block}, @ref{ffi memory
+compensate,compensate-malloc/block}
+
+Use of this allocator is suggested whenever we temporarily need a memory
+block, for example to hold a C string to be used as argument for a
+foreign function.  @ref{ffi string,string->cstring/compensated}
+@end defun
+
+
+@c page
+@node ffi memory objects
+@subsection Caching object factories
 
 
 @defun make-caching-object-factory @var{init-func} @var{final-func} @var{number-of-bytes} @var{max-depth}
@@ -2004,11 +2272,14 @@ could initialise itself like this:
 @example
 (define sizeof-mpfr 64) ;this must be determined exactly
 
-(define mpfr-lib (open-shared-object "libmpfr.so"))
-(shared-object mpfr-lib)
+(define mpfr-lib
+  (let ((o (open-shared-object "libmpfr.so")))
+    (shared-object o)
+    o))
 
-(define-c-function mpfr_init  (void mpfr_init (pointer)))
-(define-c-function mpfr_clear (void mpfr_clear (pointer)))
+(define mpfr_ptr 'pointer)
+(define-c-function mpfr_init  (void mpfr_init  (mpfr_ptr)))
+(define-c-function mpfr_clear (void mpfr_clear (mpfr_ptr)))
 
 (define mpfr
   (make-caching-object-factory mpfr_init mpfr_clear
@@ -2025,9 +2296,8 @@ and then:
 
 @example
 (with-compensations
-  (letrec
-      ((a (compensate-mpfr))
-       (b (compensate-mpfr)))
+  (let ((a (compensate-mpfr))
+        (b (compensate-mpfr)))
     (do-something-with a b)))
 @end example
 
@@ -2040,30 +2310,45 @@ at the end of the world, if we feel like it, we can do:
 @end defun
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node ffi memory compensate
 @subsection Compensations
 
 
+@ref{lang compensations} for details about compensations.
+
+
 @defun compensate-malloc @var{number-of-bytes}
-@defunx compensate-malloc/small
-@func{compensate-malloc} allocates a block of memory with @func{malloc}
-and returns a pointer to it.  The appropriate invocation to
-@func{primitive-free} is added to the dynamic environment of the current
-compensations stack.
-
-@func{compensate-malloc/small} acquires a small block of memory from
-@func{small-blocks-cache} and returns a pointer to it.  The appropriate
-invocation to @func{small-blocks-cache}, to release the block, is added
-to the dynamic environment of the current compensations stack.
-
-@ref{lang compensations}, for details on compensation stacks.
+Allocate a block of memory with @func{malloc} and return a pointer to
+it.  The appropriate invocation to @func{primitive-free}, to free the
+block, is added to the dynamic environment of the current compensations
+stack.
 @end defun
 
 
-@c ------------------------------------------------------------
+@defun compensate-malloc/small
+Acquire a small block of memory from @func{small-blocks-cache} and
+return a pointer to it.  The appropriate invocation to
+@func{small-blocks-cache}, to release the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@defun compensate-malloc/page
+Acquire a page of memory from @func{page-blocks-cache} and return a
+pointer to it.  The appropriate invocation to @func{page-blocks-cache},
+to release the block, is added to the dynamic environment of the current
+compensations stack.
+@end defun
+
+
+@defun compensate-malloc/block @var{number-of-bytes}
+Acquire a block of memory with @func{memory-block} and return a pointer
+to it (@strong{not} a @code{memory-block-record}).  The appropriate
+invocation to @func{memory-block}, to release the block, is added to the
+dynamic environment of the current compensations stack.
+@end defun
+
 
 @c page
 @node ffi guarded malloc
@@ -2071,12 +2356,13 @@ to the dynamic environment of the current compensations stack.
 
 
 The functions described in this section are usable only when the Scheme
-implementation provides guardians (Ikarus does).
+implementation provides guardians (Ikarus does, Ypsilon does not).
 
 To load the library:
 
 @example
-(import (uriel ffi guarded-malloc))
+(import (rnrs)
+  (uriel ffi guarded-malloc))
 @end example
 
 
@@ -2092,14 +2378,12 @@ and returns it;
 if the allocation fails, raises an @code{&out-of-memory} condition.
 @end itemize
 
-A cleanup function for the guardian is registered in the state of the
-@library{uriel cleanup} library, so memory allocated with this function
-is released by invoking @func{uriel-cleanup}.  @strong{Do not} free this
-memory with @func{primitive-free} or any other free function.
+The library registers a cleanup function for the guardian in the state
+of the @library{uriel cleanup} library, so memory allocated with this
+function is released by invoking @func{uriel-cleanup}.  @strong{Do not}
+free this memory with @func{primitive-free} or any other free function.
 @end defun
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi sizeof
@@ -2110,7 +2394,8 @@ A set of variables is provided to allow interface libraries to be aware
 of C language type sizes and limits.  To load the library:
 
 @example
-(import (uriel ffi sizeof))
+(import (rnrs)
+  (uriel ffi sizeof))
 @end example
 
 
@@ -2157,7 +2442,98 @@ respectively.
 @end defvar
 
 
-@c ------------------------------------------------------------
+@c page
+@node ffi errno
+@section Error constants
+
+
+The @library{uriel ffi errno} library exports one binding for each
+@code{errno} numeric code, and a set of functions to convert between
+numeric values and symbolic values.  It may be that not all the
+constants are defined on our platform, if a symbol is not defined the
+value of the corresponding variable is @false{}.  To import the library:
+
+@example
+(import (rnrs)
+  (uriel ffi errno))
+@end example
+
+To convert an @code{errno} code into the corresponding error message see
+the @cfunc{strerror} function.  @ref{ffi string,strerror}
+
+
+@defun symbol->errno @var{symbol}
+@defunx symbol->errno/or-error @var{symbol}
+Attempt the conversion from an @code{errno} symbolic value to the
+corresponding numeric value.  Return an integer or @false{} if the
+symbol is not defined on the underlying platform.
+
+The @code{or-error} variant raises an assertion violation if
+@var{symbol} is not an @code{errno} symbolic value.
+@end defun
+
+
+@defun errno->symbol @var{number}
+@defunx errno->symbol/or-error @var{number}
+Attempt the conversion from an @code{errno} numeric value to the
+corresponding symbolic value.  Return a symbol or @false{} if
+@var{number} is not an @code{errno} numeric value.
+
+The @code{or-error} variant raises an assertion violation if
+@var{number} is not an @code{errno} numerc value.
+@end defun
+
+
+@value{PACKAGE} attempts to define the following symbols (in
+row--then--column alphabetical order):
+
+@example
+E2BIG               EACCES              EADDRINUSE
+EADDRNOTAVAIL       EADV                EAFNOSUPPORT
+EAGAIN              EALREADY            EBADE
+EBADF               EBADFD              EBADMSG
+EBADR               EBADRQC             EBADSLT
+EBFONT              EBUSY               ECANCELED
+ECHILD              ECHRNG              ECOMM
+ECONNABORTED        ECONNREFUSED        ECONNRESET
+EDEADLK             EDEADLOCK           EDESTADDRREQ
+EDOM                EDOTDOT             EDQUOT
+EEXIST              EFAULT              EFBIG
+EHOSTDOWN           EHOSTUNREACH        EIDRM
+EILSEQ              EINPROGRESS         EINTR
+EINVAL              EIO                 EISCONN
+EISDIR              EISNAM              EKEYEXPIRED
+EKEYREJECTED        EKEYREVOKED         EL2HLT
+EL2NSYNC            EL3HLT              EL3RST
+ELIBACC             ELIBBAD             ELIBEXEC
+ELIBMAX             ELIBSCN             ELNRNG
+ELOOP               EMEDIUMTYPE         EMFILE
+EMLINK              EMSGSIZE            EMULTIHOP
+ENAMETOOLONG        ENAVAIL             ENETDOWN
+ENETRESET           ENETUNREACH         ENFILE
+ENOANO              ENOBUFS             ENOCSI
+ENODATA             ENODEV              ENOENT
+ENOEXEC             ENOKEY              ENOLCK
+ENOLINK             ENOMEDIUM           ENOMEM
+ENOMSG              ENONET              ENOPKG
+ENOPROTOOPT         ENOSPC              ENOSR
+ENOSTR              ENOSYS              ENOTBLK
+ENOTCONN            ENOTDIR             ENOTEMPTY
+ENOTNAM             ENOTRECOVERABLE     ENOTSOCK
+ENOTTY              ENOTUNIQ            ENXIO
+EOPNOTSUPP          EOVERFLOW           EOWNERDEAD
+EPERM               EPFNOSUPPORT        EPIPE
+EPROTO              EPROTONOSUPPORT     EPROTOTYPE
+ERANGE              EREMCHG             EREMOTE
+EREMOTEIO           ERESTART            EROFS
+ESHUTDOWN           ESOCKTNOSUPPORT     ESPIPE
+ESRCH               ESRMNT              ESTALE
+ESTRPIPE            ETIME               ETIMEDOUT
+ETOOMANYREFS        ETXTBSY             EUCLEAN
+EUNATCH             EUSERS              EWOULDBLOCK
+EXDEV               EXFULL
+@end example
+
 
 @c page
 @node ffi accessors
@@ -2169,10 +2545,9 @@ by Ikarus Scheme.  With all the functions the following notices about
 arguments have to be considered.
 
 @table @var
-@item block
+@item pointer
 It must be a value that the underlying Scheme implementation uses to
-represent allocated memory blocks.  It may be a fixnum, a bignum, a
-special pointer value or a common Scheme value, we do not know.
+represent allocated memory blocks.
 
 @item value
 It must be an exact integer compatible with the target data type.
@@ -2180,17 +2555,6 @@ It must be an exact integer compatible with the target data type.
 @item offset
 It must be an exact integer, a fixnum, representing the offset of a byte
 into an allocated block of memory.
-
-Some Scheme implementations may require this value to be consistent with
-the alignment of the target data type on the underlying platform; for
-example with 32 bits integers, the offset may be required to be in the
-sequence 0, 4, 8, @dots{}
-
-@item pointer
-It must be a value that the underlying Scheme implementation uses to
-represent pointer values, @strong{not} to reference a block of allocated
-memory.  @ref{ffi accessors pointers}, for the functions we need to
-handle such values.
 @end table
 
 When adding an offset to a pointer: all the following functions
@@ -2199,40 +2563,10 @@ value.  Pointer arithmetics is performed with byte offsets.
 
 
 @menu
-* ffi accessors pointers::      Special pointer functions.
 * ffi accessors pokers::        Poking values.
 * ffi accessors peekers::       Peeking values.
 @end menu
 
-
-@c ------------------------------------------------------------
-
-@c page
-@node ffi accessors pointers
-@subsection Special pointer functions
-
-
-@deffn Procedure pointer->integer @var{pointer}
-Convert the value of @var{pointer} to an exact integer value.  The
-result may be a fixnum or a bignum depending on the pointer.
-@end deffn
-
-
-@deffn Procedure integer->pointer @var{exact-integer}
-Convert @var{exact-integer} to a pointer value.  The lower 32 bits (or
-64 bits on 64-bit systems) of the argument are significant in computing
-the pointer value.  It is guaranteed that @code{(integer->pointer
-(pointer->integer p))} points to the same address as @var{p}.
-@end deffn
-
-
-@deffn Procedure pointer? @var{x}
-Return @true{} if the value of @var{x} is a pointer, return @false{}
-otherwise.
-@end deffn
-
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi accessors pokers
@@ -2241,7 +2575,7 @@ otherwise.
 
 @macro poker{BYTENUM,BITNUM}
 Set to @var{value} the \BYTENUM\ of memory located at @var{offset} from
-@var{block}.  Only the \BITNUM\ lowermost bits of @var{value} are used
+@var{pointer}.  Only the \BITNUM\ lowermost bits of @var{value} are used
 in the operation and the remaining bits are ignored.
 @end macro
 
@@ -2251,22 +2585,22 @@ in the operation and the remaining bits are ignored.
 @subsubheading Poking exact integers
 
 
-@deffn Procedure pointer-set-c-char! @var{block} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-char! @var{pointer} @var{offset} @var{value}
 @poker{single byte,8}
 @end deffn
 
 
-@deffn Procedure pointer-set-c-short! @var{block} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-short! @var{pointer} @var{offset} @var{value}
 @poker{two bytes,16}
 @end deffn
 
 
-@deffn Procedure pointer-set-c-int! @var{block} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-int! @var{pointer} @var{offset} @var{value}
 @poker{four bytes,32}
 @end deffn
 
 
-@deffn Procedure pointer-set-c-long! @var{block} @var{offset} @var{value}
+@deffn Procedure pointer-set-c-long! @var{pointer} @var{offset} @var{value}
 On 64-bit systems: @poker{eight bytes,64}
 
 On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
@@ -2278,18 +2612,18 @@ On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
 @subsubheading Poking floating point numbers
 
 
-@deffn Procedure pointer-set-c-float! @var{block} @var{offset} @var{flonum}
+@deffn Procedure pointer-set-c-float! @var{pointer} @var{offset} @var{flonum}
 Convert the Scheme floating point number @var{flonum} (represented in
 Ikarus as an @ieee{} 754 double precision floating point number) to a
 float (an @ieee{} 754 single precision floating point number) and store
-the result in the four bytes at @var{offset} from @var{block}.
+the result in the four bytes at @var{offset} from @var{pointer}.
 @end deffn
 
 
-@deffn Procedure pointer-set-c-double! @var{block} @var{offset} @var{flonum}
+@deffn Procedure pointer-set-c-double! @var{pointer} @var{offset} @var{flonum}
 Store the double precision @ieee{} 754 floating point value of the
 Scheme @var{flonum} in the eight bytes at @var{offset} from
-@var{block}.
+@var{pointer}.
 @end deffn
 
 
@@ -2298,19 +2632,17 @@ Scheme @var{flonum} in the eight bytes at @var{offset} from
 @subsubheading Poking pointers
 
 
-@deffn Procedure pointer-set-c-pointer! @var{block} @var{offset} @var{pointer}
-On 64-bit systems: set the eight bytes at @var{offset} from @var{block}
-to the 64-bit pointer @var{pointer}.
+@deffn Procedure pointer-set-c-pointer! @var{pointer} @var{offset} @var{pointer-value}
+On 64-bit systems: set the eight bytes at @var{offset} from
+@var{pointer} to the 64-bit pointer @var{pointer-value}.
 
-On 32-bit systems: set the four bytes at @var{offset} from @var{block}
-to the 32-bit pointer @var{pointer}.
+On 32-bit systems: set the four bytes at @var{offset} from @var{pointer}
+to the 32-bit pointer @var{pointer-value}.
 
 We have to assume that we can convert an exact integer to a pointer
 value using @func{integer->pointer}.
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi accessors peekers
@@ -2320,70 +2652,49 @@ value using @func{integer->pointer}.
 @subsubheading Peeking exact integers
 
 
-@deffn Procedure pointer-ref-c-signed-char @var{block} @var{offset}
-Peek the single byte located at @var{offset} from @var{block} and
+@deffn Procedure pointer-ref-c-signed-char @var{pointer} @var{offset}
+Peek the single byte located at @var{offset} from @var{pointer} and
 return an exact integer representing the sign--extended integer value of
-that byte. The resulting value is in the inclusive range @code{[-128,
+that byte. The returned value is in the inclusive range @code{[-128,
 127]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-char @var{block} @var{offset}
-Peek the single byte located at @var{offset} from @var{block} and
+@deffn Procedure pointer-ref-c-unsigned-char @var{pointer} @var{offset}
+Peek the single byte located at @var{offset} from @var{pointer} and
 return an exact integer representing the unsigned integer value of that
-byte.  The resulting value is in the inclusive range @code{[0, 255]}.
+byte.  The returned value is in the inclusive range @code{[0, 255]}.
 @end deffn
 
 
-The following example shows the difference between the two functions
-above:
-
-@example
-> (let ([p (malloc 3)])
-    (pointer-set-c-char! p 0 #b01111111)
-    (pointer-set-c-char! p 1 #b10000000)
-    (pointer-set-c-char! p 2 #b11111111)
-    (let ([result
-           (list (pointer-ref-c-signed-char p 0)
-                 (pointer-ref-c-signed-char p 1)
-                 (pointer-ref-c-signed-char p 2)
-                 (pointer-ref-c-unsigned-char p 0)
-                 (pointer-ref-c-unsigned-char p 1)
-                 (pointer-ref-c-unsigned-char p 2))])
-      (free p)
-      result))
-(127 -128 -1 127 128 255)
-@end example
-
-
-@deffn Procedure pointer-ref-c-signed-short @var{block} @var{offset}
-Peek two bytes at @var{offset} from @var{block} and return an exact
+@deffn Procedure pointer-ref-c-signed-short @var{pointer} @var{offset}
+Peek two bytes at @var{offset} from @var{pointer} and return an exact
 integer representing the sign--extended integer value of the sequence.
-The resulting value is in the inclusive range @code{[-32768, 32767]}.
+The returned value is in the inclusive range @code{[-32768, 32767]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-short @var{block} @var{offset}
-Peek two bytes at @var{offset} from @var{block} and return an exact
+@deffn Procedure pointer-ref-c-unsigned-short @var{pointer} @var{offset}
+Peek two bytes at @var{offset} from @var{pointer} and return an exact
 integer representing the unsigned integer value of the sequence.  The
 resulting value is in the inclusive range @code{[0, 65535]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-signed-int @var{block} @var{offset}
-Peek four bytes at @var{offset} from @var{block} and return an exact
+@deffn Procedure pointer-ref-c-signed-int @var{pointer} @var{offset}
+Peek four bytes at @var{offset} from @var{pointer} and return an exact
 integer in the inclusive range @code{[-2^31, 2^31-1]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-int @var{block} @var{offset}
-Peek four bytes at @var{offset} from @var{block} and return an exact
+@deffn Procedure pointer-ref-c-unsigned-int @var{pointer} @var{offset}
+Peek four bytes at @var{offset} from @var{pointer} and return an exact
 integer in the inclusive range @code{[0, 2^32-1]}.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-signed-long @var{block} @var{offset}
-On 64-bit systems: peek eight bytes at @var{offset} from @var{block}
+@deffn Procedure pointer-ref-c-signed-long @var{pointer} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
 and return an integer in the inclusive range @code{[-2^63, 2^63-1]}.
 
 On 32-bit systems, perform the same task as
@@ -2391,8 +2702,8 @@ On 32-bit systems, perform the same task as
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-unsigned-long @var{block} @var{offset}
-On 64-bit systems: peek eight bytes at @var{offset} from @var{block}
+@deffn Procedure pointer-ref-c-unsigned-long @var{pointer} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
 and return an integer in the inclusive range @code{[0, 2^64-1]}.
 
 On 32-bit systems: perform the same task as
@@ -2404,18 +2715,18 @@ On 32-bit systems: perform the same task as
 @subsubheading Peeking floating point numbers
 
 
-@deffn Procedure pointer-ref-c-float @var{block} @var{offset}
+@deffn Procedure pointer-ref-c-float @var{pointer} @var{offset}
 Return the four--byte float (represented as @ieee{} 754 single precision
-floating point number) stored at @var{offset} from @var{block}.  The
+floating point number) stored at @var{offset} from @var{pointer}.  The
 value is extended to an @ieee{} 754 double precision floating point
 number that Ikarus uses to represent inexact numbers.
 @end deffn
 
 
-@deffn Procedure pointer-ref-c-double @var{block} @var{offset}
+@deffn Procedure pointer-ref-c-double @var{pointer} @var{offset}
 Return the eight--byte float (represented as @ieee{} 754 double
 precision floating point number) stored at @var{offset} from
-@var{block}.
+@var{pointer}.
 @end deffn
 
 @c ------------------------------------------------------------
@@ -2423,9 +2734,9 @@ precision floating point number) stored at @var{offset} from
 @subsubheading Peeking pointers
 
 
-@deffn Procedure pointer-ref-c-pointer @var{block} @var{offset}
+@deffn Procedure pointer-ref-c-pointer @var{pointer} @var{offset}
 Return the a value representing the pointer stored at @var{offset} from
-@var{block}.  The size of the pointer (also the number of bytes loaded)
+@var{pointer}.  The size of the pointer (also the number of bytes loaded)
 depends on the architecture: it is 4 bytes on 32-bit systems and 8 bytes
 on 64-bit systems.
 
@@ -2433,8 +2744,6 @@ We have to assume that the returned value can be converted to an exact
 integer with @func{pointer->integer}.
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node ffi string
@@ -2447,9 +2756,30 @@ Return the number of characters in the C string referenced by
 @end defun
 
 
+@defun strerror @var{errno-numeric-value}
+Return the string message coresponding to the
+@code{errno-numeric-value}.
+@end defun
+
+
 @defun string->cstring @var{string}
-Build a new C string representing the Scheme @var{string}.  The
-conversion is performed using @func{string->utf8}.
+@defunx string->cstring/compensated @var{string}
+@defunx string-or-symbol->cstring @var{string}
+@defunx string-or-symbol->cstring/compensated @var{string}
+@func{string->cstring} builds a new C string representing the Scheme
+@var{string} and returns a pointer value referencing it; memory is
+allocated using @func{malloc}.  The conversion is performed using
+@func{string->utf8}.
+
+@func{string-or-symbol->cstring} is like @func{string->cstring} but
+accepts also symbols as arguments, converting them to string internally.
+
+@func{string->cstring/compensated} is like @func{string->cstring} but
+allocates the memory block using @func{compensate-malloc/block}.
+
+@func{string-or-symbol->cstring/compensated} is like
+@func{string-or-symbol->cstring} but allocates the memory block using
+@func{compensate-malloc/block}.
 @end defun
 
 
@@ -2459,7 +2789,125 @@ conversion is performed using a @code{s8} bytevector.
 @end defun
 
 
-@c ------------------------------------------------------------
+@c page
+@node ffi headers
+@section Inspecting foreign header files
+
+
+
+
+
+@c page
+@node ffi conditions
+@section Condition types
+
+
+@menu
+* ffi conditions nomem::        Out of memory errors.
+* ffi conditions errno::        Foreign system function errors.
+@end menu
+
+
+@c page
+@node ffi conditions nomem
+@subsection Out of memory errors
+
+
+@deftp Condition {&out-of-memory}
+Type of condition objects that represent a memory allocation error.
+@end deftp
+
+
+@deffn {Condition Constructor} make-out-of-memory-condition @var{number-of-bytes}
+@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
+@deffnx {Field Getter} out-of-memory-requested-number-of-bytes @var{object}
+Functions to handle out of memory condition objects.
+@end deffn
+
+
+Example:
+
+@example
+(define (malloc size)
+  (let ((p (primitive-malloc size)))
+    (when (pointer-null? p)
+      (raise (condition (make-who-condition 'malloc)
+                        (make-message-condition "out of memory")
+                        (make-out-of-memory-condition size))))
+    p))
+@end example
+
+
+@defun raise-out-of-memory @var{who} @var{number-of-bytes}
+Raise a non--continuable exception representing a memory allocation
+failure.  The following form:
+
+@example
+(raise-out-of-memory 'malloc 4096)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(raise (condition (make-who-condition 'malloc)
+                  (make-message-condition "out of memory")
+                  (make-out-of-memory-condition 4096)))
+@end example
+@end defun
+
+
+@c page
+@node ffi conditions errno
+@subsection Foreign system function errors
+
+
+@deftp Condition {&errno}
+Type of condition objects that represent an error in a foreign function
+signaled with the @code{errno} variable.
+@end deftp
+
+
+@deffn {Condition Constructor} make-errno-condition @var{errno-numeric-value}
+@deffnx {Condition Predicate} errno-condition? @var{object}
+@deffnx {Field Getter} errno-numeric-value @var{object}
+@deffnx {Field Getter} errno-symbolic-value @var{object}
+Functions to handle foreign system error condition objects.
+@end deffn
+
+
+Fake example:
+
+@example
+(let ((errno ---))
+  (raise (condition (make-who-condition 'read)
+                    (make-message-condition (strerror errno))
+                    (make-errno-condition errno))))
+@end example
+
+
+@defun raise-errno-error @var{who} @var{errno-numeric-value} @var{irritants}
+Raise a non--continuable exception representing a foreign function
+system error signaled through the @code{errno} variable.  The following
+form:
+
+@example
+(let ((errno ---)
+      (pathname ---))
+  (raise-errno-error 'write errno pathname))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(raise
+  (condition (make-who-condition 'write)
+             (make-message-condition (strerror errno))
+             (make-errno-condition errno)
+             (make-irritants-condition pathname)))
+@end example
+@end defun
 
 @c page
 @node posix
@@ -2471,34 +2919,155 @@ offered by the underlying platform.  Basically this library makes use of
 the foreign functions interface defined by @library{uriel ffi}, and
 occasionally makes use of the Scheme implementation specific facilities.
 
-To load the library:
+To load the main library:
 
 @example
-(import (uriel posix))
+(import (rnrs)
+  (uriel posix))
+@end example
+
+@noindent
+for the independent libraries see the corresponding sections.
+
+For all the functions only a brief description is given: we have to use
+the foreign function's own documentation to have all the details.
+
+@menu
+* posix environment::           Environment variables.
+* posix working directory::     The working directory.
+
+Independent libraries
+
+* posix getenv::                Getting environment variables.
+@end menu
+
+
+@c page
+@node posix environment
+@section Environment variables
+
+
+@ref{libc environment} for other functions.
+
+
+@defun getenv @var{varname}
+Return the current value of the environment variable @var{varname}, as a
+Scheme string.  @var{varname} must be a Scheme string or symbol.  If the
+variable is not set: the return value if @false{}.  If the variable is
+set to the empty string: the return value is the empty string.
+@end defun
+
+
+@defun setenv @var{varname} @var{value} @var{replace}
+Set a new value for the environment variable @var{varname}.
+@var{varname} and @var{value} must be Scheme strings or symbols.  If the
+environment already contains @var{varname}, then @var{replace} controls
+the action: if true the value is replaced, if @false{} it is left alone.
+@end defun
+
+
+@c @defun unsetenv @var{varname}
+@c Remove the entry for @var{varname} from the environment.  @var{varname}
+@c must be a string or symbol.
+@c @end defun
+
+
+@c page
+@node posix working directory
+@section The working directory
+
+
+@defun getcwd
+@defunx pwd
+@func{getcwd} and @func{pwd} return a Scheme string representing the
+current working directory.  If an error occurs reading the current
+directory (because of access permissions): an exception is raised.
+@end defun
+
+
+@defun primitive-getcwd
+Return 2 values: if successful, a C string representing the current
+working directory and zero; if an error occurred, @false{} and an exact
+integer representing the value of @code{errno} just after the call to
+the system @cfunc{getcwd} function.
+@end defun
+
+
+@defun chdir @var{pathname}
+Change the current directory to the selected @var{pathname}, which must
+be a Scheme string or symbol.  If an error occurs changing directory
+(because of access permissions): an exception is raised.
+@end defun
+
+
+@defun primitive-chdir @var{pathname}
+Change the current directory to the selected @var{pathname}, which must
+be a C string.  Return two values: the return value from the function,
+an exact integer, and the value of @code{errno} just after the call to
+the foreign function.
+@end defun
+
+
+@c page
+@node posix getenv
+@section Getting environment variables
+
+
+This chapter describes an interface to the @cfunc{getenv} system
+function used to retrieve the current value of system environment
+variables.  It is meant to provide basic access to the environment for
+debugging and test suites.  To load the library:
+
+@example
+(import (rnrs)
+  (uriel getenv))
 @end example
 
 
+@defun getenv @var{varname}
+Return the current value of the environment variable @var{varname}, as a
+string.  @var{varname} must be a string.  If the variable is not set:
+the return value if @false{}.  If the variable is set to the empty
+string: the return value is the empty string.
+@end defun
 
-@c ------------------------------------------------------------
 
 @c page
 @node libc
-@chapter Standard C library facilities
+@chapter @gnu{} C library facilities
 
 
-This chapter describes an interface to the C language standard library
-functions offered by the underlying platform.  This library makes use of
-the foreign functions interface defined by @library{uriel ffi}.
+This chapter describes an interface to the @gnu{} C language library
+functions.  This library makes use of the foreign functions interface
+defined by @library{uriel ffi}.
 
 To load the library:
 
 @example
-(import (uriel libc))
+(import (rnrs)
+  (uriel glibc))
 @end example
 
+For all the functions only a brief description is given: we have to use
+the foreign function's own documentation to have all the details.
+
+@ref{posix} for a lot of other functions.
+
+@menu
+* libc environment::            Environment functions.
+@end menu
 
 
-@c ------------------------------------------------------------
+@c page
+@node libc environment
+@section Environment functions
+
+
+@defun clearenv
+Unset all the variables in the environment.  Useful cleanup for security
+purposes.
+@end defun
+
 
 @c page
 @node Package License
@@ -3623,15 +4192,11 @@ free software license, such as the GNU General Public License,
 to permit their use in free software.
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node references
 @appendix Bibliography and references
 
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node concept index

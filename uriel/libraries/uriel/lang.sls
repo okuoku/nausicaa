@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-11-24 10:01:05 marco>
+;;;Time-stamp: <2008-11-30 16:14:13 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,16 +28,24 @@
 
 (library (uriel lang)
   (export
-    begin0 dolist dotimes loop-upon-list ensure void-value
+    ;;simple syntaxes
+    begin0 dolist dotimes loop-upon-list ensure
 
+    ;;compensations
     with-compensations with-compensations/on-error
     compensate run-compensations
 
+    ;;deferred exceptions
     with-deferred-exceptions-handler
     defer-exceptions run-deferred-exceptions-handler
 
-    with-output-to-string)
+    ;;input/output
+    with-output-to-string
+
+    ;;miscellaneous
+    symbol->string/maybe)
   (import (rnrs)
+    (uriel void)
     (srfi parameters))
 
 
@@ -93,10 +101,6 @@
 		 (exit)
 	       (loop (cdr ell) (car ell))))))))))
 
-(define (void-value)
-  (let ((a #f))
-    (set! a 1)))
-
 (define-syntax ensure
   (syntax-rules (by else else-by !ensure-else-clauses)
     ((_ ?condition
@@ -109,7 +113,7 @@
 		       (lambda () ?else-by-form0 ?else-by-form ...)
 		       ...
 		       (lambda () ?else-form0 ?else-form ...))
-		 (if (equal? (void-value) retval)
+		 (if (equal? (void) retval)
 		     #f
 		   retval))
 	   (break-when ?condition)
@@ -218,6 +222,19 @@
     [(_ ?form ...)
      (call-with-string-output-port
 	 (lambda () ?form ...))]))
+
+
+
+;;;; miscellaneous
+
+(define (symbol->string/maybe thing)
+  (if (symbol? thing)
+      (symbol->string thing)
+    (begin
+      (unless (string? thing)
+	(assertion-violation 'symbol->string/maybe
+	  "expected symbol or string" thing))
+      thing)))
 
 
 

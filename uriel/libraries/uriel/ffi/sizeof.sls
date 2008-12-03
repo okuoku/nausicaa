@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-25 13:59:02 marco>
+;;;Time-stamp: <2008-11-27 17:09:18 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,15 +29,14 @@
     sizeof-short-int sizeof-int sizeof-long sizeof-pointer
     sizeof-long-long
 
-    valueof-char-max	valueof-char-min
-    valueof-schar-max	valueof-schar-min	valueof-uchar-max
-    valueof-shrt-max	valueof-shrt-min	valueof-ushrt-max
-    valueof-int-max	valueof-int-min		valueof-uint-max
-    valueof-long-max	valueof-long-min
-;;;    valueof-ulong-max
-;;;    valueof-long-long-max valueof-long-long-min valueof-ulong-long-max
-    valueof-wchar-max	valueof-ssize-max
-    words-bigendian	on-64-bits-system	on-32-bits-system)
+    valueof-char-max		valueof-char-min
+    valueof-schar-max		valueof-schar-min	valueof-uchar-max
+    valueof-shrt-max		valueof-shrt-min	valueof-ushrt-max
+    valueof-int-max		valueof-int-min		valueof-uint-max
+    valueof-long-max		valueof-long-min	valueof-ulong-max
+    valueof-long-long-max	valueof-long-long-min	valueof-ulong-long-max
+    valueof-wchar-max		valueof-ssize-max
+    words-bigendian		on-64-bits-system	on-32-bits-system)
   (import (rnrs))
 
   (define sizeof-short-int 2)
@@ -59,17 +58,16 @@
   (define valueof-uint-max 4294967295)
   (define valueof-long-max 2147483647)
   (define valueof-long-min -2147483648)
-;;;  (define valueof-ulong-max @VALUEOF_ULONG_MAX@)
-;;;   (define valueof-long-long-max @VALUEOF_LLONG_MAX@)
-;;;   (define valueof-long-long-min @VALUEOF_LLONG_MIN@)
-;;;   (define valueof-ulong-long-max )
+  (define valueof-ulong-max 4294967295)
+  (define valueof-long-long-max #f)
+  (define valueof-long-long-min #f)
+  (define valueof-ulong-long-max #f)
   (define valueof-wchar-max 2147483647)
   (define valueof-ssize-max 2147483647)
 
-  (define words-bigendian (= 1 0))
-
   (define on-32-bits-system (= sizeof-int 4))
   (define on-64-bits-system (= sizeof-int 8))
-  )
+
+  (define words-bigendian (= 1 0)))
 
 ;;; end of file

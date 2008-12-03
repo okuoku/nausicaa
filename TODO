@@ -1,14 +1,13 @@
 
 			  List of things to do
-			  ====================
 
 
 * Why I cannot install only the FASL files?
-* Add support for pacman.
-* Split into multiple git projects?
-* Rewrite   the   Scheme   library   tests  for   Autoconf   using   the
-  "scheme-script" executable,  so that, in  some way, it is  possible to
-  run them with both Ikarus and Ypsilon.
+* Add support for pacman?
+* Add support for dpkg?
+* Rewrite  the Scheme library  tests for  Autoconf using  a configurable
+  script  rather than  "scheme-script",  so  that, in  some  way, it  is
+  possible to run them with both Ikarus and Ypsilon.
 * Document somewhere that ypsilon requires the --compatible flag.
 * Review the infrastructure documentation.
 
@@ -18,8 +17,9 @@ Ice-9
 -----
 
 * Write the tests.
-* Finish porting for FORMAT.
+* Finish porting for FORMAT (port position needed).
 * Review documentation for FORMAT.
+* Drop optargs and gather xitomatl keywords?
 
 
 Uriel
@@ -27,6 +27,8 @@ Uriel
 
 * Fix the string conversion functions for ypsilon.
 * Add make-callback to the ffi.
+* Document  the problems  with define-macro  regarding  environment from
+  which bindings are captured (put it in Ikarus guide?).
 * Scan the old gee base.
 
 
@@ -41,6 +43,7 @@ ScmObj
 Tiny-CLOS
 ---------
 
+* Update to the latest.
 * Solve the problem of files without copyright notice.
 * Write the documentation.
 * Add more tests.
@@ -50,6 +53,7 @@ SRFI
 ----
 
 * Solve the problem of "(import (srfi srfi-1))".
+* Wrap the ec in the "(loop-lib)".
 
 
 IrRegex
@@ -57,7 +61,7 @@ IrRegex
 
 * Add documentation for the regexps.
 * Fix the problem of "|---|"  symbols that are not recognised by Ypsilon
-  with the --r6rs option.
+  with the --r6rs option, but are with the --compatible option.
 
 
 ### end of file

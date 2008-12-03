@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: interface to POSIX getenv, Ikarus compatibility layer
-;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-30 15:41:56 marco>
+;;;Contents: interface to the GNU C library
+;;;Date: Sun Nov 30, 2008
+;;;Time-stamp: <2008-11-30 17:03:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,9 +24,33 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel getenv compat)
-  (export getenv)
+
+
+;;;; setup
+
+(library (uriel glibc)
+  (export
+
+    ;;environment variables
+    clearenv
+    )
   (import (rnrs)
-    (only (ikarus) getenv)))
+    (uriel lang)
+;;;    (uriel glibc compat)
+    (uriel ffi))
+
+
+;;;; environment variables
+
+;;Look for other functions in the "(uriel posix)" library!!!
+
+(define-c-function clearenv
+  (int clearenv (void)))
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

@@ -78,148 +78,148 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 65)
-		  (pointer-ref-c-signed-short p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 32768)
-		  (pointer-ref-c-signed-short p 100))))
-	(primitive-free p)
-	d)
-    => -32768)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-short! p 100 65)
+;; 		  (pointer-ref-c-signed-short p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 65)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-short! p 100 32768)
+;; 		  (pointer-ref-c-signed-short p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => -32768)
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 65)
-		  (pointer-ref-c-unsigned-short p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 32768)
-		  (pointer-ref-c-unsigned-short p 100))))
-	(primitive-free p)
-	d)
-    => 32768)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-short! p 100 65)
+;; 		  (pointer-ref-c-unsigned-short p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 65)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-short! p 100 32768)
+;; 		  (pointer-ref-c-unsigned-short p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 32768)
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 65)
-		  (pointer-ref-c-signed-int p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 (expt 2 31))
-		  (pointer-ref-c-signed-int p 100))))
-	(primitive-free p)
-	d)
-    => (- (expt 2 31)))
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-int! p 100 65)
+;; 		  (pointer-ref-c-signed-int p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 65)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-int! p 100 (expt 2 31))
+;; 		  (pointer-ref-c-signed-int p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => (- (expt 2 31)))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 65)
-		  (pointer-ref-c-unsigned-int p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 (expt 2 31))
-		  (pointer-ref-c-unsigned-int p 100))))
-	(primitive-free p)
-	d)
-    => (expt 2 31))
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-int! p 100 65)
+;; 		  (pointer-ref-c-unsigned-int p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 65)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-int! p 100 (expt 2 31))
+;; 		  (pointer-ref-c-unsigned-int p 100))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => (expt 2 31))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 65)
-		  (pointer-ref-c-signed-long p 64))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
-		  (pointer-ref-c-signed-long p 64))))
-	(primitive-free p)
-	d)
-    => (- (expt 2 (if on-64-bits-system 63 31))))
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-long! p 64 65)
+;; 		  (pointer-ref-c-signed-long p 64))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 65)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
+;; 		  (pointer-ref-c-signed-long p 64))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => (- (expt 2 (if on-64-bits-system 63 31))))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 65)
-		  (pointer-ref-c-unsigned-long p 64))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
-		  (pointer-ref-c-unsigned-long p 64))))
-	(primitive-free p)
-	d)
-    => (expt 2 (if on-64-bits-system 63 31)))
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-long! p 64 65)
+;; 		  (pointer-ref-c-unsigned-long p 64))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 65)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
+;; 		  (pointer-ref-c-unsigned-long p 64))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => (expt 2 (if on-64-bits-system 63 31)))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-float! p 64 4.5)
-		  (pointer-ref-c-float p 64))))
-	(primitive-free p)
-	d)
-    => 4.5)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-float! p 64 4.5)
+;; 		  (pointer-ref-c-float p 64))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 4.5)
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-double! p 64 4.5)
-		  (pointer-ref-c-double p 64))))
-	(primitive-free p)
-	d)
-    => 4.5)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-double! p 64 4.5)
+;; 		  (pointer-ref-c-double p 64))))
+;; 	(primitive-free p)
+;; 	d)
+;;     => 4.5)
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (primitive-malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-pointer! p 100 (integer->pointer 90))
-		  (pointer-ref-c-pointer p 100))))
-	(primitive-free p)
-	(pointer->integer d))
-    => 90)
+;;   (check
+;;       (let* ((p (primitive-malloc (expt 10 5)))
+;; 	     (d (begin
+;; 		  (pointer-set-c-pointer! p 100 (integer->pointer 90))
+;; 		  (pointer-ref-c-pointer p 100))))
+;; 	(primitive-free p)
+;; 	(pointer->integer d))
+;;     => 90)
 
   )
 
