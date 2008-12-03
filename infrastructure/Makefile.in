@@ -9,7 +9,7 @@
 
 # Synopsis:
 #
-#   $(eval $(call ds-module-install-data,<PREFIX>,<ENABLE_VAR>))
+#   $(eval $(call nau-module-install-data,<PREFIX>,<ENABLE_VAR>))
 #
 # Description:
 #
@@ -19,9 +19,9 @@
 #     The list of files to install must be in "$(<PREFIX>_INSTLST)" and
 #   the installation directory must be in "$(<PREFIX>_INSTDIR)".
 #
-define ds-module-install-data
+define nau-module-install-data
 
-.PHONY: $(1)-install
+.PHONY: $(1)-install $(1)-uninstall
 
 $(1)-install:
 ifeq ($$(strip $$($(2))),yes)
@@ -29,6 +29,15 @@ ifneq ($$(strip $$($(1)_INSTLST)),)
 	$$(INSTALL_DIR) $$(DESTDIR)$$($(1)_INSTDIR)
 	$$(foreach f,$$($(1)_INSTLST),\
 	$$(INSTALL_DATA) $$(f) $$(DESTDIR)$$($(1)_INSTDIR);)
+endif
+endif
+
+$(1)-uninstall:
+ifeq ($$(strip $$($(2))),yes)
+ifneq ($$(strip $$($(1)_INSTLST)),)
+	$$(foreach f,$$($(1)_INSTLST),\
+	$$(RM) $$(DESTDIR)$$($(1)_INSTDIR)/$$(notdir $$(f));)
+	$$(RMDIR) $$(DESTDIR)$$($(1)_INSTDIR)
 endif
 endif
 
@@ -57,15 +66,15 @@ PKG_ID			= @PKG_ID@
 
 # If set to 'yes' documentation files will be produced and
 # installed.
-ds_config_ENABLE_DOC		= @ds_config_ENABLE_DOC@
+nausicaa_ENABLE_DOC		= @ds_config_ENABLE_DOC@
 
 # If set to 'yes' Info documentation files will be produced
 # and installed.
-ds_config_ENABLE_DOC_INFO	= @ds_config_ENABLE_DOC_INFO@
+nausicaa_ENABLE_DOC_INFO	= @ds_config_ENABLE_DOC_INFO@
 
 # If set to 'yes' HTML documentation files will be produced
 # and installed.
-ds_config_ENABLE_DOC_HTML	= @ds_config_ENABLE_DOC_HTML@
+nausicaa_ENABLE_DOC_HTML	= @ds_config_ENABLE_DOC_HTML@
 
 # Compressor to be used when creating a tarball; it is used
 # by the binary distribution rules.  Supported values:
@@ -76,13 +85,8 @@ ds_config_ENABLE_DOC_HTML	= @ds_config_ENABLE_DOC_HTML@
 # if a different value is set, the compressor will default
 # to 'gzip'.
 #
-ds_config_COMPRESSOR		?= gzip
+nausicaa_COMPRESSOR		?= gzip
 
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Nausicaa configuration variables.
 ## ------------------------------------------------------------
 
 # If set to 'yes' source files will be installed.
@@ -99,7 +103,7 @@ nausicaa_ENABLE_FASL	= @nausicaa_ENABLE_FASL@
 ## ------------------------------------------------------------
 
 ifeq ($(strip $(package_BUILD_VERSION)),)
-package_BUILD_VERSION	= 1nau
+package_BUILD_VERSION	= @package_BUILD_VERSION@
 endif
 
 ## ------------------------------------------------------------
@@ -266,8 +270,9 @@ realclean:	clean
 
 clean-builddir:
 	-@printf '*** The build directory is: %s\n' $(builddir)
-	-@read -p '*** Are you sure to clean it? (yes/no) ' ANSWER; \
-	test "$${ANSWER}" = yes && $(RM) $(builddir)/*
+	-@test -d .git ||\
+	{ read -p '*** Are you sure to clean it? (yes/no) ' ANSWER; \
+	test "$${ANSWER}" = yes && $(RM) $(builddir)/*; }
 
 ## ------------------------------------------------------------
 
@@ -291,11 +296,12 @@ layout-files:
 
 ## ------------------------------------------------------------
 
-.PHONY: doc doc-clean doc-install
+.PHONY: doc doc-clean doc-install doc-uninstall
 
 doc:
 doc-clean:
 doc-install:
+doc-uninstall:
 
 all:		doc
 clean:		doc-clean
@@ -358,7 +364,6 @@ uninstall-script-run:
 all:		uninstall-script
 clean:		uninstall-script-clean
 install:	uninstall-script-install
-uninstall:	uninstall-script-uninstall
 
 ## ------------------------------------------------------------
 
@@ -390,7 +395,8 @@ fasl-clean:
 $(sls_BUILDDIR):
 	-@test -d $(sls_BUILDDIR) || $(MKDIR) $(sls_BUILDDIR)
 
-sls-install fasl-install:
+sls-install sls-uninstall:
+fasl-install fasl-uninstall:
 
 ## Notice  that, by  default, GNU  tar preserves  the  file modification
 ## times so  the FASL  times will be  newer than the  corresponding .sls
@@ -424,8 +430,8 @@ sls_$(1)_INSTDIR	= $(3)
 fasl_$(1)_INSTLST	= $$(sls_$(1)_TARGETS)
 fasl_$(1)_INSTDIR	= $(3)
 
-$$(eval $$(call ds-module-install-data,sls_$(1),nausicaa_ENABLE_SLS))
-$$(eval $$(call ds-module-install-data,fasl_$(1),nausicaa_ENABLE_FASL))
+$$(eval $$(call nau-module-install-data,sls_$(1),nausicaa_ENABLE_SLS))
+$$(eval $$(call nau-module-install-data,fasl_$(1),nausicaa_ENABLE_FASL))
 
 .PHONY: sls_$(1)-debug
 
@@ -433,7 +439,9 @@ sls_$(1)-debug:
 	@echo '$(1),$(2),$(3)'
 
 sls-install:	sls_$(1)-install
+sls-uninstall:	sls_$(1)-uninstall
 fasl-install:	fasl_$(1)-install
+fasl-uninstall:	fasl_$(1)-uninstall
 sls-debug:	sls_$(1)-debug
 endef
 
@@ -523,11 +531,12 @@ doc_texinfo_CLEANFILES	= $(doc_texinfo_TARGETS)
 .PHONY: doc-texinfo doc-texinfo-clean doc-texinfo-builddir
 .PHONY: doc-texinfo-install doc-texinfo-version
 
-ifeq ($(strip $(ds_config_ENABLE_DOC)),yes)
+ifeq ($(strip $(nausicaa_ENABLE_DOC)),yes)
 doc-texinfo:		doc-texinfo-info           doc-texinfo-html
 doc-texinfo-install:	doc_texinfo_info-install   doc_texinfo_html-install
+doc-texinfo-uninstall:	doc_texinfo_info-uninstall doc_texinfo_html-uninstall
 else
-doc-texinfo doc-texinfo-install:
+doc-texinfo doc-texinfo-install doc-texinfo-uninstall:
 endif
 
 doc-texinfo-builddir:
@@ -544,6 +553,7 @@ $(doc_texinfo_BUILDDIR)/version.texiinc:
 doc:		doc-texinfo
 doc-clean:	doc-texinfo-clean
 doc-install:	doc-texinfo-install
+doc-uninstall:	doc-texinfo-uninstall
 
 ## ------------------------------------------------------------
 
@@ -562,16 +572,16 @@ doc_texinfo_info_INSTDIR= $(infodir)
 
 .PHONY: doc-texinfo-info doc-texinfo-info-install
 
-ifeq ($(strip $(ds_config_ENABLE_DOC_INFO)),yes)
+ifeq ($(strip $(nausicaa_ENABLE_DOC_INFO)),yes)
 
 doc-texinfo-info: doc-texinfo-builddir doc-texinfo-version $(doc_texinfo_info_TARGETS)
 
 $(doc_texinfo_info_TARGETS): $(doc_texinfo_BUILDDIR)/%.info : $(doc_texinfo_SRCDIR)/%.texi
 	$(MAKEINFO) $(MAKEINFO_INFO_FLAGS) -o $(@) $(<)
 
-endif		# ds_config_ENABLE_INFO_DOC == yes
+endif		# nausicaa_ENABLE_INFO_DOC == yes
 
-$(eval $(call ds-module-install-data,doc_texinfo_info,ds_config_ENABLE_DOC_INFO))
+$(eval $(call nau-module-install-data,doc_texinfo_info,nausicaa_ENABLE_DOC_INFO))
 
 ## ------------------------------------------------------------
 
@@ -590,16 +600,16 @@ doc_texinfo_html_INSTDIR= $(pkghtmldir)
 
 .PHONY: doc-texinfo-html doc-texinfo-html-install
 
-ifeq ($(strip $(ds_config_ENABLE_DOC_HTML)),yes)
+ifeq ($(strip $(nausicaa_ENABLE_DOC_HTML)),yes)
 
 doc-texinfo-html: doc-texinfo-builddir doc-texinfo-version $(doc_texinfo_html_TARGETS)
 
 $(doc_texinfo_html_TARGETS): $(doc_texinfo_BUILDDIR)/%.html : $(doc_texinfo_SRCDIR)/%.texi
 	$(MAKEINFO) $(MAKEINFO_HTML_FLAGS) -o $(@) $(<)
 
-endif		# ds_config_ENABLE_HTML_DOC == yes
+endif		# nausicaa_ENABLE_HTML_DOC == yes
 
-$(eval $(call ds-module-install-data,doc_texinfo_html,ds_config_ENABLE_DOC_HTML))
+$(eval $(call nau-module-install-data,doc_texinfo_html,nausicaa_ENABLE_DOC_HTML))
 
 ## ------------------------------------------------------------
 

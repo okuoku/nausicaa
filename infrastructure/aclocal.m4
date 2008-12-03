@@ -64,6 +64,36 @@ AC_SUBST([$1])
 
 dnl Synopsis:
 dnl
+dnl   DS_WITH_OPTION(<1 variable>,<2 identifier>,<3 default>,
+dnl                    <4 checking-description>,
+dnl                    <5 option-description>)
+dnl
+dnl Description:
+dnl
+dnl   Define  a "with" command  line option  for "configure".   The side
+dnl   effect is an output variable that is meant to be set to the value.
+dnl
+dnl Usage example:
+dnl
+dnl	DS_WITH_OPTION([package_BUILD_VERSION],[build-version],[1nau],
+dnl	  [binary package build revision tag],
+dnl	  [select binary package build revision tag])
+dnl
+AC_DEFUN([DS_WITH_OPTION],[
+AC_MSG_CHECKING([$4])
+AC_ARG_WITH([$2],AC_HELP_STRING([--with-$2],[$5 (default: $3)]),[
+if test -n "$withval" ; then
+  $1=$withval
+else
+  $1=$withval
+fi
+],[$1=$3])
+AC_MSG_RESULT([$[]$1])
+AC_SUBST([$1])
+])
+
+dnl Synopsis:
+dnl
 dnl   DS_PROGRAM(<1 variable>,<2 program-name>,<3 description>)
 dnl
 dnl Description:
@@ -114,21 +144,18 @@ dnl This initialises TMPDIR to "/tmp" if not already set to something.
 
 ds_TMPFILE=${ds_TMPDIR}/temporary.txt
 
-dnl --------------------------------------------------------------------
 dnl Chunk with temporary file usage.
 
 $1
 
 rm -fr "${ds_TMPDIR}"
 
-dnl --------------------------------------------------------------------
 dnl Chunk after temporary file usage.
 
 $2
 
 ])
 
-dnl --------------------------------------------------------------------
 
 dnl page
 dnl --------------------------------------------------------------------
