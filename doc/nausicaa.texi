@@ -12,8 +12,6 @@
 @include version.texiinc
 
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c License macros.
@@ -34,8 +32,6 @@
 @macro bsd{}
 @acronym{BSD}
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -66,6 +62,10 @@
 @acronym{ISO}
 @end macro
 
+@macro ffi{}
+@acronym{FFI}
+@end macro
+
 @macro ram{}
 @acronym{RAM}
 @end macro
@@ -84,8 +84,6 @@
 @end macro
 
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c Software related macros.
@@ -102,8 +100,6 @@
 @macro glibc{}
 @gnu{} C Library
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -143,8 +139,6 @@
 @macro snmp{}
 @acronym{SNMP}
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -213,8 +207,6 @@
 @meta{\ARG\j}
 @end macro
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c C language macros.
@@ -227,8 +219,6 @@
 @macro null{}
 @code{NULL}
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -299,8 +289,6 @@ the main purpose of this document is to provide an Info version.
 @code{<\NAME\>}
 @end macro
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c Macros for references to external documents.
@@ -326,8 +314,6 @@ the main purpose of this document is to provide an Info version.
 @code{[\TAG\]}
 @end macro
 
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -357,7 +343,6 @@ the main purpose of this document is to provide an Info version.
 @c list of copyright years.
 @set COPYRIGHT_YEARS            2008
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -382,8 +367,6 @@ Back--Cover Texts.  A copy of the license is included in the section
 entitled ``@gnu{} Free Documentation License''.
 @end quotation
 @end copying
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -417,17 +400,15 @@ entitled ``@gnu{} Free Documentation License''.
 @syncodeindex fn cp
 @end ignore
 
-@c ------------------------------------------------------------
-
 @c page
 @ifnottex
 @node Top
 @top @value{TITLE}
 
 @insertcopying
-     
+
 @menu
-* overview::                    Overview of the package. 
+* overview::                    Overview of the package.
 * config::                      Configuration.
 * vars::                        Variables.
 * rules::                       Rules.
@@ -440,14 +421,12 @@ Appendices
 
 Indexes
 
-* concept index::               An entry for each concept. 
-* function index::              An entry for each function. 
-* variable index::              An entry for each variable. 
-* type index::                  An entry for each type. 
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
 @end menu
 @end ifnottex
-
-@c ------------------------------------------------------------
 
 @c page
 @node overview
@@ -456,21 +435,21 @@ Indexes
 
 @noindent
 @value{PACKAGE} is a distribution of Scheme language libraries for
-Ikarus Scheme.  This document describes the project building and
-installation infrastructure, use by almost all the projects in the
+@rnrs{6} Scheme, targeting specifically Ikarus and trying to provide
+support for Ypsilon.  This document describes the project building and
+installation infrastructure, used by almost all the projects in the
 distribution.
 
 Only pure Scheme projects are accepted into Nausicaa; no C language code
-is compiled or used.  Access to foreign shared library is written with
-the Foreign Function Interface provided by Ikarus.
+is compiled or used.  Access to foreign shared libraries is written with
+the Foreign Function Interface (@ffi{}) provided by the Scheme
+implementation.
 
 
 @menu
 * overview conventions::        Conventions.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node overview conventions
@@ -512,14 +491,12 @@ file or directory name.
 @end table
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node config
 @chapter Configuration
 
 
-The configuration of a project for building, installing and binary
+The configuration of a project for building, installation and binary
 package creation is managed with @gnu{} Autoconf.  Each project
 subdirectory has a @command{configure} script that must be run to
 initialise the infrastructure.
@@ -527,10 +504,8 @@ initialise the infrastructure.
 Let's take the @code{scmobj} project as example; we should do this:
 
 @example
-$ tar --extract --bzip2 \
-   --file=nausicaa--devel--0.1--patch-1-src.tar.bz2
-
-$ cd nausicaa--devel--0.1--patch-1
+$ tar --extract --bzip2 --file=nausicaa-0.1d2.tar.bz2
+$ cd nausicaa-0.1d2
 $ cd scmobj
 $ mkdir "=build"
 $ cd "=build"
@@ -546,8 +521,6 @@ then we are ready to apply the @command{make} program to the
 * config options::              Options for @command{configure}.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node config options
@@ -577,7 +550,7 @@ Enable or disable the compilation and installation of @fasl{} files;
 these are the precompiled version of the installed libraries.  It
 defaults to: yes, build and install the compiled files.
 
-At present (Thu Nov 13, 2008) only libraries can be compiled by Ikarus.
+At present (revision 1695) only libraries can be compiled by Ikarus.
 
 @item --enable-sls
 @itemx --disable-sls
@@ -602,8 +575,6 @@ install the @acronym{HTML} documentation.
 @end table
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node vars
 @chapter Variables
@@ -621,8 +592,6 @@ infrastructure.
 * vars misc::                   Miscellaneous variables.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node vars config
@@ -656,7 +625,7 @@ It is set by the @command{configure} options @option{--enable-doc} and
 @end defvar
 
 
-@defvar nausicaa_ENABLE_INFO_DOC
+@defvar nausicaa_ENABLE_DOC_INFO
 Enable or disable compilation and installation of Info documentation
 files; valid values are @code{yes} and @code{no}.  The default is
 @code{yes}.
@@ -666,7 +635,7 @@ and @option{--disable-doc-info}.
 @end defvar
 
 
-@defvar nausicaa_ENABLE_HTML_DOC
+@defvar nausicaa_ENABLE_DOC_HTML
 Enable or disable compilation and installation of @acronym{HTML}
 documentation files; valid values are @code{yes} and @code{no}.  The
 default is @code{no}.
@@ -695,8 +664,6 @@ if a different value is set, the compressor will default to
 @code{gzip}.  The default value is @code{gzip}.
 @end defvar
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node vars project
@@ -730,8 +697,6 @@ $(PACKAGE_NAME)-$(PACKAGE_VERSION)
 @end defvar
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node vars package
 @section Binary package variables
@@ -742,6 +707,12 @@ A special version specification to tag binary distribution packages.  It
 should be used to give a version to the package file.
 
 It defaults to @code{1nau}, which means ``Nausicaa build version 1''.
+The default can be overridden from the command line of @command{make},
+for example:
+
+@example
+$ make bindist package_BUILD_VERSION=1mm
+@end example
 @end defvr
 
 
@@ -761,6 +732,13 @@ $(firstword $(subst -, ,$(shell ../../infrastructure/config.guess)))
 if it expands to the empty strings, it falls back to @code{noarch},
 which means that the package holds only architecture independent files
 (like source and documentation files).
+
+The automatically computed value can be overridden from the command line
+of @command{make}, for example:
+
+@example
+$ make bindist package_ARCH=sparc
+@end example
 @end defvr
 
 
@@ -786,8 +764,6 @@ $(package_PREFIX).tgz
 @end example
 @end defvar
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node vars directories
@@ -823,8 +799,6 @@ It is set by the @command{configure} script.
 * vars directories custom::    Custom installation directories.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node vars directories common
@@ -915,8 +889,6 @@ The directory for installing read--only single--machine data.
 @end defvar
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node vars directories custom
 @subsection Custom installation directories
@@ -964,7 +936,14 @@ Project specific directory for C language header files.
 @end defvar
 
 @defvar pkglibdir
-Project specific directory for library files.
+Project specific directory for library files.  This is where the source
+and precompiled Scheme libraries end up.  It defaults to
+@code{$(libdir)/scheme} and can be overridden from the command line of
+@command{make}, for example:
+
+@example
+$ make bindist pkglibdir=/usr/local/lib/ikarus
+@end example
 @end defvar
 
 @defvar pkglibexecdir
@@ -977,18 +956,6 @@ Project specific directory for system configuration files.
 @end defvar
 
 
-@defvar ikarus_PKGLIBDIR
-This should be the system directory in which Ikarus libraries are
-installed.  It is set to:
-
-@example
-$(libdir)/ikarus
-@end example
-@end defvar
-
-
-@c ------------------------------------------------------------
-
 @c page
 @node vars misc
 @section Miscellaneous variables
@@ -996,7 +963,7 @@ $(libdir)/ikarus
 
 @defvar TMPDIR
 System environment variable that selects the root directory for
-temporary fils.  It is used to build binary distribution packages.  If
+temporary files.  It is used to build binary distribution packages.  If
 not set or set to the empty string: it defaults to @file{/tmp}.
 @end defvar
 
@@ -1015,8 +982,6 @@ install all the directories and files under the directory
 @end defvar
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node rules
 @chapter Rules
@@ -1024,6 +989,7 @@ install all the directories and files under the directory
 
 @menu
 * rules main::                  Main rules.
+* rules uninstall::             Uninstallation script.
 * rules doc::                   Documentation related rules.
 * rules sls::                   Handling source files.
 * rules fasl::                  Handling precompiled files.
@@ -1032,8 +998,6 @@ install all the directories and files under the directory
 * rules inspect::               Inspecting variables.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node rules main
@@ -1119,10 +1083,130 @@ to install.  To be invoked as:
 @example
 $ sudo make uninstall
 @end example
+
+The uninstallation is done by running an automatically generated
+uninstall script.  @ref{rules uninstall,uninstall-script-run}
+@end deffn
+
+
+@c page
+@node rules uninstall
+@section Uninstallation script
+
+
+@subsubheading Making and cleaning
+
+
+@deffn {Makefile Rule} uninstall-script
+Build the uninstall script.  To be invoked as:
+
+@example
+$ make uninstall-script
+@end example
+
+This rule is invoked by @code{all}.
+@end deffn
+
+
+@deffn {Makefile Rule} uninstall-script-clean
+Remove all the files created by @code{uninstall-script}.  To be invoked
+as:
+
+@example
+$ make uninstall-script-clean
+@end example
+
+This rule is invoked by @code{clean}.
+@end deffn
+
+
+@deffn {Makefile Rule} uninstall-script-builddir
+Create the build directory for the uninstall script.  To be invoked as:
+
+@example
+$ make uninstall-script-builddir
+@end example
+
+This rule is invoked by @code{uninstall-script}.
 @end deffn
 
 
 @c ------------------------------------------------------------
+
+@subsubheading Installation
+
+
+For all the following rules: root privileges may be needed to install
+and uninstall files on the system; so we may want to use a tool like
+@command{sudo} to run @command{make}.  In the following we will assume
+that this is the case.
+
+
+@deffn {Makefile Rule} uninstall-script-install
+Install the uninstall script.  To be invoked as:
+
+@example
+$ sudo make uninstall-script-install
+@end example
+
+This rule is invoked by @code{install}.
+@end deffn
+
+
+@deffn {Makefile Rule} uninstall-script-uninstall
+Uninstall the uninstall script.  To be invoked as:
+
+@example
+$ sudo make uninstall-script-uninstall
+@end example
+
+This rule is invoked by @code{uninstall}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Running
+
+
+@deffn {Makefile Rule} uninstall-script-run
+Run the uninstall script, uninstalling files.  To be invoked as:
+
+@example
+$ make uninstall-script-run
+@end example
+
+Root privileges may be needed to install and uninstall files on the
+system; so we may want to use a tool like @command{sudo} to run
+@command{make}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Variables
+
+
+@defvar uninstall_script_BUILDDIR
+The directory in which the uninstall script is built.  It defaults to
+@code{$(builddir)/uninstall.d}.
+@end defvar
+
+
+@defvar uninstall_script_TARGET
+The pathname of the uninstall script.  It defaults to:
+
+@example
+$(uninstall_script_BUILDDIR)/uninstall.sh
+@end example
+@end defvar
+
+
+@defvar uninstall_script_INSTDIR
+The installation directory for the uninstall script.  It defaults to
+@code{$(pkglibexecdir)}.
+@end defvar
+
 
 @c page
 @node rules doc
@@ -1130,7 +1214,8 @@ $ sudo make uninstall
 
 
 Compilation, installation and uninstallation are enabled or disabled
-with configuration options and variables; see the relevant sections.
+with configuration options and variables.  @ref{config options,
+enable-doc}  @ref{vars config,enable_doc}
 
 
 @subsubheading Making and cleaning
@@ -1190,12 +1275,8 @@ build.  To be invoked as:
 @example
 $ sudo make doc-uninstall
 @end example
-
-This rule is invoked by @code{uninstall}.
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node rules sls
@@ -1209,11 +1290,12 @@ For all the following rules:
 
 @itemize
 @item
-installation and uninstallation are enabled or disabled with
-configuration options and variables; see the relevant sections;
+Installation and uninstallation are enabled or disabled with
+configuration options and variables. @ref{config options, enable-sls}
+@ref{vars config, enable_sls}
 
 @item
-root privileges may be needed to install and uninstall files on the
+Root privileges may be needed to install and uninstall files on the
 system; so we may want to use a tool like @command{sudo} to run
 @command{make}; in the following we will assume that this is the case.
 @end itemize
@@ -1238,12 +1320,8 @@ Uninstall the Scheme source files.  To be invoked as:
 @example
 $ sudo make sls-uninstall
 @end example
-
-This rule is invoked by @code{uninstall}.
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node rules fasl
@@ -1251,26 +1329,26 @@ This rule is invoked by @code{uninstall}.
 
 
 Compilation, installation and uninstallation are enabled or disabled
-with configuration options and variables; see the relevant sections.
+with configuration options and variables.  @ref{config options,
+enable-fasl}  @ref{vars config, enable_fasl}
 
 Producing precompiled library files is a multistep process:
 
 @enumerate
 @item
+the source files are duplicated under the build directory, preserving
+the directory structure;
+
+@item
 the library files are built by running the command:
 
 @example
-ikarus --compile-dependencies compile-all.sps
+ikarus --compile-dependencies ../libraries/compile-all.sps
 @end example
 
 @noindent
 with a system environment that allows Ikarus to find the relevant
-libraries; this way the @fasl{} files are created in the source
-directory of the project;
-
-@item
-the @fasl{} files are moved from the source directory into a
-subdirectory of the build directory, preserving the directory structure.
+libraries.
 @end enumerate
 
 
@@ -1280,7 +1358,6 @@ subdirectory of the build directory, preserving the directory structure.
 
 
 @deffn {Makefile Rule} fasl
-@deffnx {Makefile Rule} compile
 Compile the library files.  To be invoked as:
 
 @example
@@ -1292,7 +1369,6 @@ This rule is invoked by @code{all}.
 
 
 @deffn {Makefile Rule} fasl-clean
-@deffnx {Makefile Rule} compile-clean
 Remove all the compiled files.  To be invoked as:
 
 @example
@@ -1300,18 +1376,6 @@ $ make fasl-clean
 @end example
 
 This rule is invoked by @code{clean}.
-@end deffn
-
-
-@deffn {Makefile Rule} fasl-clean-fasl-in-srcdir
-Remove all the compiled files that, for some reason, may have been left
-in the source directory.  To be invoked as:
-
-@example
-$ make fasl-clean-fasl-in-srcdir
-@end example
-
-This rule is invoked by @code{fasl-clean}.
 @end deffn
 
 
@@ -1343,12 +1407,8 @@ Uninstall the precompiled files.  To be invoked as:
 @example
 $ sudo make fasl-uninstall
 @end example
-
-This rule is invoked by @code{uninstall}.
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node rules texinfo
@@ -1358,7 +1418,8 @@ This rule is invoked by @code{uninstall}.
 Texinfo is the standard documentation format for Nausicaa projects.  By
 default only the Info documentation is built and installed.
 Compilation, installation and uninstallation are enabled or disabled
-with configuration options and variables; see the relevant sections.
+with configuration options and variables.  @ref{config options,enable-doc-info}
+@ref{vars config,enable_doc_info}
 
 
 @subsubheading Making and cleaning
@@ -1500,8 +1561,6 @@ files.
 @end defvar
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node rules test
 @section Testing libraries
@@ -1513,8 +1572,8 @@ subdirectory of each project.
 
 There should be one test file for each library, and its name must be
 @code{test-<library>.sps} where @code{<library>} is the library file
-basename.  So the library with pathname @file{library/uriel/begin0.sls}
-must have a test file with pathname @file{tests/test-begin0.sps}.
+name.  So the library with pathname @file{library/uriel/begin0.sls} must
+have a test file with pathname @file{tests/test-begin0.sps}.
 
 
 @deffn {Makefile Rule} test
@@ -1530,26 +1589,21 @@ IKARUS_LIBRARY_PATH=$(srcdir)/libraries:$(srcdir)/tests
 @noindent
 notice that this will pick up libraries source files but not the
 associated @fasl{} files.
-@end deffn
 
-
-@deffn {Makefile Rule} test-file
-Like @code{test} but runs a single test file.  To select a test file we
-set the @code{FILE} variable on the command line of @command{make} to
-the library file basename.
-
-Example: to run the test with pathname @file{tests/test-begin0.sps} we
-do:
+Setting the variable @code{file} selects a single test file.  For
+example:
 
 @example
-$ make test-file FILE=begin0
+$ make test file=posix
 @end example
 
-If no test file matches the selection: nothing happens.
+@noindent
+selects the test file @file{tests/test-posix.sps}.  When the tests are
+written using the @code{(uriel test)} Scheme library: the @code{name}
+variable selects a test name.  @ref{test,Writing test suites,Writing
+test suites,nausicaa-uriel}
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node rules inspect
@@ -1562,24 +1616,22 @@ line with the following rules.
 
 @deffn {Makefile Rule} echo-variable
 Echo a variable to stdout.  Example:
- 
+
 @example
 $ make echo-variable VARIABLE=slack_PACKAGE_NAME
 @end example
 @end deffn
 
 
-@deffn {Makefile Rule} 
+@deffn {Makefile Rule} echo-list-variable
 Echo a variable to stdout, interpreting it as list of strings.  Each
 string is echoed on its own line.  Example:
- 
+
 @example
 $ make echo-list-variable VARIABLE=sls_INSTLST
 @end example
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node package
@@ -1610,8 +1662,6 @@ the @file{Makefile} will set it to @file{/tmp}.}
 * redhat::                      Building RedHat packages.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node bindist
@@ -1781,8 +1831,6 @@ $ make bindist-clean-builddir
 @end example
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node slackware
 @section Building Slackware packages
@@ -1818,8 +1866,6 @@ $ make echo-variable VARIABLE=TMPDIR
 * slackware local::             Building local Slackware packages.
 @end menu
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node slackware common
@@ -2005,8 +2051,6 @@ $ make slackware-clean-builddir
 @end deffn
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node slackware standard
 @subsection Building standard Slackware packages
@@ -2102,8 +2146,6 @@ See the @code{slack_INSTALLED_PACKAGE} variable for the name of the
 package that will be removed.
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node slackware local
@@ -2202,8 +2244,6 @@ package that will be removed.
 @end deffn
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node redhat
 @section Building RedHat packages
@@ -2250,8 +2290,6 @@ $ make redhat-clean
 @end example
 @end deffn
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node Documentation License
@@ -2652,34 +2690,30 @@ recommend releasing these examples in parallel under your choice of
 free software license, such as the GNU General Public License,
 to permit their use in free software.
 
-@c ------------------------------------------------------------
-
 @c page
 @node references
 @appendix Bibliography and references
 
 
 
-@c ------------------------------------------------------------
-
 @c page
 @node concept index
 @appendix An entry for each concept
-     
+
 @printindex cp
-     
+
 @node function index
-@appendix An entry for each function. 
+@appendix An entry for each function.
 
 @printindex fn
 
 @node variable index
-@appendix An entry for each variable. 
+@appendix An entry for each variable.
 
 @printindex vr
 
 @node type index
-@appendix An entry for each type. 
+@appendix An entry for each type.
 
 @printindex tp
 
