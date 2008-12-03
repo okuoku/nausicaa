@@ -469,7 +469,7 @@ To load the main library:
 
 @example
 (import (rnrs)
-  (uriel posix))
+  (posix))
 @end example
 
 @noindent

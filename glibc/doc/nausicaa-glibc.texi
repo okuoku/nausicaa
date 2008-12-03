@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename template.info
-@settitle Template
+@setfilename nausicaa-glibc.info
+@settitle Glibc
 @c %**end of header
 
 @c page
@@ -318,6 +318,10 @@ the main purpose of this document is to provide an Info version.
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
+@macro posixref{NODE,TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-posix}
+@end macro
+
 @macro bibref{TAG}
 @code{[\TAG\]}
 @end macro
@@ -330,16 +334,16 @@ the main purpose of this document is to provide an Info version.
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      This Package
+@set TITLE                      Nausicaa/Glibc
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    ThisPackage
+@set PACKAGE                    Nausicaa/Glibc
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           this-package
+@set PACKAGE_NICKNAME           nausicaa-glibc
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -362,7 +366,9 @@ the main purpose of this document is to provide an Info version.
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, ...
+This document describes version @version{} of @value{PACKAGE}, a set of
+Scheme libraries implementing an interface to the @gnu{} C library
+facilities.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -404,8 +410,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-template: (nausicaa-template). Template library
-                                          for @rnrs{6} Scheme.
+* nausicaa-glibc: (nausicaa-glibc).     Glibc for @rnrs{6} Scheme.
 @end direntry
 @end ifinfo
 
@@ -428,6 +433,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* environment::                 Environment functions.
 
 Appendices
 
@@ -451,11 +457,35 @@ Indexes
 @chapter Overview of the package
 
 
-@noindent
-This ...
+This document describes an interface to the @gnu{} C language library
+functions.  This library makes use of the foreign functions interface
+defined by @library{uriel ffi}.
+
+To load the library:
+
+@example
+(import (rnrs)
+  (glibc))
+@end example
+
+For all the functions only a brief description is given: we have to use
+the foreign function's own documentation to have all the details.
+
+@posixref{Top} for a lot of other functions.
 
 
 @c ------------------------------------------------------------
+
+@c page
+@node environment
+@chapter Environment functions
+
+
+@defun clearenv
+Unset all the variables in the environment.  Useful cleanup for security
+purposes.
+@end defun
+
 
 @c page
 @node Package License

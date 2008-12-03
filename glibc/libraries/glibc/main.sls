@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: interface to the GNU C library
+;;;Part of: Nausicaa/Glibc
+;;;Contents: interface to the GNU C library for R6RS Scheme
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-11-30 17:03:05 marco>
+;;;Time-stamp: <2008-12-03 12:00:08 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +28,7 @@
 
 ;;;; setup
 
-(library (uriel glibc)
+(library (glibc)
   (export
 
     ;;environment variables
@@ -36,7 +36,6 @@
     )
   (import (rnrs)
     (uriel lang)
-;;;    (uriel glibc compat)
     (uriel ffi))
 
 

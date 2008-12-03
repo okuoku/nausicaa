@@ -422,7 +422,6 @@ entitled ``@gnu{} Free Documentation License''.
 * getenv::                      Getting environment variables.
 * test::                        Writing test suites.
 * ffi::                         Foreign functions interface.
-* libc::                        @gnu{} C library facilities.
 
 Appendices
 
@@ -1582,8 +1581,8 @@ the underlying Scheme implementation.  To load the library:
 @noindent
 only functions needed to build an interface to a foreign C language
 shared object are made available by this library; other functions (to do
-actual operations) are in the @library{uriel glibc} and @library{uriel
-posix} libraries.
+actual operations) are in the @library{glibc} and @library{posix}
+libraries.
 
 
 @menu
@@ -2926,43 +2925,6 @@ Return the current value of the environment variable @var{varname}, as a
 string.  @var{varname} must be a string.  If the variable is not set:
 the return value if @false{}.  If the variable is set to the empty
 string: the return value is the empty string.
-@end defun
-
-
-@c page
-@node libc
-@chapter @gnu{} C library facilities
-
-
-This chapter describes an interface to the @gnu{} C language library
-functions.  This library makes use of the foreign functions interface
-defined by @library{uriel ffi}.
-
-To load the library:
-
-@example
-(import (rnrs)
-  (uriel glibc))
-@end example
-
-For all the functions only a brief description is given: we have to use
-the foreign function's own documentation to have all the details.
-
-@posixref{Top} for a lot of other functions.
-
-@menu
-* libc environment::            Environment functions.
-@end menu
-
-
-@c page
-@node libc environment
-@section Environment functions
-
-
-@defun clearenv
-Unset all the variables in the environment.  Useful cleanup for security
-purposes.
 @end defun
 
 
