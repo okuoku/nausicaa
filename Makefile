@@ -35,13 +35,12 @@ PKG_ID			= nausicaa-$(shell cat tag)
 
 PROJECTS	= \
 			srfi		\
+			uriel		\
 			ice-9		\
 			irregex		\
 			scmobj		\
 			tiny-clos	\
-			uriel
-
-BUILDDIR	= "=builddir"
+			mp
 
 ## ------------------------------------------------------------
 
@@ -106,8 +105,8 @@ builddir:
 test:
 	$(foreach p,$(PROJECTS),\
 	cd $(p);					\
-	test -d $(BUILDDIR) || $(MKDIR) $(BUILDDIR);	\
-	cd $(BUILDDIR);					\
+	test -d $(builddir) || $(MKDIR) $(builddir);	\
+	cd $(builddir);					\
 	sh ../prepare.sh;				\
 	make all test;					\
 	cd ../..;)
@@ -120,15 +119,23 @@ test:
 ## Global documentation.
 ## ------------------------------------------------------------
 
-.PHONY: doc
+.PHONY: doc configure
 
 doc:
 	$(foreach p,$(PROJECTS),\
 	cd $(p);					\
-	test -d $(BUILDDIR) || $(MKDIR) $(BUILDDIR);	\
-	cd $(BUILDDIR);					\
-	make doc nausicaa_ENABLE_HTML_DOC=yes;		\
+	test -d $(builddir) || $(MKDIR) $(builddir);	\
+	cd $(builddir);					\
+	make doc nausicaa_ENABLE_DOC_HTML=yes;		\
 	cp -v doc-texinfo.d/*.{info,html} ../doc;	\
+	cd ../..;)
+
+configure:
+	$(foreach p,$(PROJECTS),\
+	cd $(p);					\
+	test -d $(builddir) || $(MKDIR) $(builddir);	\
+	cd $(builddir);					\
+	sh ../prepare.sh;				\
 	cd ../..;)
 
 ## ------------------------------------------------------------
