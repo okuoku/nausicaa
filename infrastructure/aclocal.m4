@@ -470,21 +470,50 @@ AC_HEADER_STDC
 
 dnl Synopsis:
 dnl
-dnl   NAUSICAA_VALUEOF_TEST(<EXPR>)
+dnl   NAUSICAA_VALUEOF_TEST(<1 SUFFIX>,<2 EXPR>,
+dnl                         <3 DEFAULT>,<4 HEADERS>)
 dnl
 dnl Description:
 dnl
 dnl   A wrapper for "AC_COMPUTE_INT" that acquires the value of a C
-dnl   language constant, which must be an integer.  Set an output
-dnl   variable with the result.
+dnl   language expression, which must be an integer.  It is typically
+dnl   used to acquire the value of a constant like "INT_MAX".
 dnl
-dnl   It is meant to be a subroutine for "NAUSICAA_SIZEOF".
+dnl   The output variable "VALUEOF_<SUFFIX>" is set to the result.
+dnl   If the test fails: the value of the output variable will be
+dnl   "<DEFAULT>".
+dnl
+dnl   If not empty: <HEADERS> must be a chunk of code including header
+dnl   files.
 dnl
 AC_DEFUN([NAUSICAA_VALUEOF_TEST],[
-AC_COMPUTE_INT([VALUEOF_$1],[$1],[AC_INCLUDES_DEFAULT
+AC_MSG_CHECKING([the value of '$2'])
+AC_COMPUTE_INT([VALUEOF_$1],[$2],[AC_INCLUDES_DEFAULT
 #include <limits.h>
-#include <stdint.h>])
+#include <stdint.h>
+$4],[VALUEOF_$1=$3])
 AC_SUBST([VALUEOF_$1])
+AC_MSG_RESULT([${VALUEOF_$1}])
+])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_SIZEOF_TEST(<SUFFIX>,<TYPEDEF>,<DEFAULT>)
+dnl
+dnl Description:
+dnl
+dnl   A wrapper for "AC_COMPUTE_INT" that acquires the size of a C
+dnl   language type.  The output variable "SIZEOF_<SUFFIX>" will be
+dnl   set to the result.  If the test fails the value of the output
+dnl   variable will be "<DEFAULT>".
+dnl
+AC_DEFUN([NAUSICAA_SIZEOF_TEST],[
+AC_MSG_CHECKING([the sizeof of '$2'])
+AC_COMPUTE_INT([SIZEOF_$1],[sizeof($2)],[AC_INCLUDES_DEFAULT
+#include <limits.h>
+#include <stdint.h>],[SIZEOF_$1=$3])
+AC_SUBST([SIZEOF_$1])
+AC_MSG_RESULT([${SIZEOF_$1}])
 ])
 
 dnl Synopsis:
@@ -497,38 +526,214 @@ dnl   Perform  a  series of  tests  to  determine characteristic  system
 dnl   constants.
 dnl
 AC_DEFUN([NAUSICAA_SIZEOF],[
-AC_COMPUTE_INT([SIZEOF_SHORT_INT],[sizeof(short int)])
-AC_SUBST(SIZEOF_SHORT_INT)
-AC_COMPUTE_INT([SIZEOF_INT],[sizeof(int)])
-AC_SUBST(SIZEOF_INT)
-AC_COMPUTE_INT([SIZEOF_LONG],[sizeof(long)])
-AC_SUBST(SIZEOF_LONG)
-AC_COMPUTE_INT([SIZEOF_LLONG],[sizeof(long long)],,[SIZEOF_LLONG=0])
-AC_SUBST(SIZEOF_LLONG)
-AC_COMPUTE_INT([SIZEOF_POINTER],[sizeof(void *)])
-AC_SUBST(SIZEOF_POINTER)
+NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int],[#f])
+NAUSICAA_SIZEOF_TEST([INT],[int],[#f])
+NAUSICAA_SIZEOF_TEST([LONG],[long],[#f])
+NAUSICAA_SIZEOF_TEST([LLONG],[long long],[#f])
+NAUSICAA_SIZEOF_TEST([POINTER],[void *],[#f])
 
-NAUSICAA_VALUEOF_TEST([CHAR_MAX])
-NAUSICAA_VALUEOF_TEST([CHAR_MIN])
-NAUSICAA_VALUEOF_TEST([SCHAR_MAX])
-NAUSICAA_VALUEOF_TEST([SCHAR_MIN])
-NAUSICAA_VALUEOF_TEST([UCHAR_MAX])
-NAUSICAA_VALUEOF_TEST([SHRT_MAX])
-NAUSICAA_VALUEOF_TEST([SHRT_MIN])
-NAUSICAA_VALUEOF_TEST([USHRT_MAX])
-NAUSICAA_VALUEOF_TEST([INT_MAX])
-NAUSICAA_VALUEOF_TEST([INT_MIN])
-NAUSICAA_VALUEOF_TEST([UINT_MAX])
-NAUSICAA_VALUEOF_TEST([LONG_MAX])
-NAUSICAA_VALUEOF_TEST([LONG_MIN])
-dnl NAUSICAA_VALUEOF_TEST([ULONG_MAX])
-dnl NAUSICAA_VALUEOF_TEST([LLONG_MAX])
-dnl NAUSICAA_VALUEOF_TEST([LLONG_MIN])
-NAUSICAA_VALUEOF_TEST([ULLONG_MAX])
-NAUSICAA_VALUEOF_TEST([WCHAR_MAX])
-NAUSICAA_VALUEOF_TEST([SSIZE_MAX])
+NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([CHAR_MIN],[CHAR_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([SCHAR_MAX],[SCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SCHAR_MIN],[SCHAR_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([UCHAR_MAX],[UCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SHRT_MAX],[SHRT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SHRT_MIN],[SHRT_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([USHRT_MAX],[USHRT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([INT_MIN],[INT_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([UINT_MAX],[UINT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LONG_MAX],[LONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LONG_MIN],[LONG_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([ULONG_MAX],[ULONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LLONG_MAX],[LLONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LLONG_MIN],[LLONG_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([ULLONG_MAX],[ULLONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX],[#f])
 
 AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,1)],[AC_SUBST(WORDS_BIGENDIAN,0)])
+])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_INTTYPE_TEST(<SUFFIX>,<TYPEDEF>)
+dnl
+dnl Description:
+dnl
+dnl   Determines the equivalent integer type of the C language type
+dnl   "<TYPEDEF>" among the set: "short int", "int", "long",
+dnl   "long long".
+dnl
+dnl   The search is performed by comparing the value of the variable
+dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_INT",
+dnl   "SIZEOF_SHORT_INT", "SIZEOF_LONG", "SIZEOF_LLONG".
+dnl
+dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
+dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.  The other
+dnl   variables are defined by "NAUSICAA_SIZEOF".
+dnl
+dnl   The output variable "TYPEOF_<SUFFIX>" is set to the result.
+dnl
+AC_DEFUN([NAUSICAA_INTTYPE_TEST],[
+AC_REQUIRE([NAUSICAA_SIZEOF])
+AC_MSG_CHECKING([equivalent integer type of '$2'])
+if test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
+   TYPEOF_$1=int
+elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_INT}" ; then
+   TYPEOF_$1='short int'
+elif test "${SIZEOF_$1}" = "${SIZEOF_LONG}" ; then
+   TYPEOF_$1=long
+elif test "${SIZEOF_$1}" = "${SIZEOF_LLONG}" ; then
+   TYPEOF_$1='long long'
+else
+   AC_MSG_FAILURE([cannot equivalent integer type of '$2'],[2])
+fi
+AC_SUBST([TYPEOF_$1])
+AC_MSG_RESULT([${TYPEOF_$1}])
+])
+
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_C_ERRNO()
+dnl
+dnl Description:
+dnl
+dnl   Determine the values of the "errno" constants.
+dnl
+AC_DEFUN([NAUSICAA_C_ERRNO],[
+NAUSICAA_VALUEOF_TEST([EPERM],[EPERM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOENT],[ENOENT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ESRCH],[ESRCH],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EINTR],[EINTR],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EIO],[EIO],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENXIO],[ENXIO],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([E2BIG],[E2BIG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOEXEC],[ENOEXEC],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBADF],[EBADF],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ECHILD],[ECHILD],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EAGAIN],[EAGAIN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOMEM],[ENOMEM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EACCES],[EACCES],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EFAULT],[EFAULT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTBLK],[ENOTBLK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBUSY],[EBUSY],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EEXIST],[EEXIST],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EXDEV],[EXDEV],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENODEV],[ENODEV],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTDIR],[ENOTDIR],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EISDIR],[EISDIR],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EINVAL],[EINVAL],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENFILE],[ENFILE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EMFILE],[EMFILE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTTY],[ENOTTY],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ETXTBSY],[ETXTBSY],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EFBIG],[EFBIG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOSPC],[ENOSPC],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ESPIPE],[ESPIPE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EROFS],[EROFS],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EMLINK],[EMLINK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EPIPE],[EPIPE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EDOM],[EDOM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ERANGE],[ERANGE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EDEADLK],[EDEADLK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENAMETOOLONG],[ENAMETOOLONG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOLCK],[ENOLCK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOSYS],[ENOSYS],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTEMPTY],[ENOTEMPTY],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ELOOP],[ELOOP],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EWOULDBLOCK],[EWOULDBLOCK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOMSG],[ENOMSG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EIDRM],[EIDRM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ECHRNG],[ECHRNG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EL2NSYNC],[EL2NSYNC],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EL3HLT],[EL3HLT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EL3RST],[EL3RST],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ELNRNG],[ELNRNG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EUNATCH],[EUNATCH],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOCSI],[ENOCSI],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EL2HLT],[EL2HLT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBADE],[EBADE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBADR],[EBADR],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EXFULL],[EXFULL],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOANO],[ENOANO],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBADRQC],[EBADRQC],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBADSLT],[EBADSLT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EDEADLOCK],[EDEADLOCK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBFONT],[EBFONT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOSTR],[ENOSTR],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENODATA],[ENODATA],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ETIME],[ETIME],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOSR],[ENOSR],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENONET],[ENONET],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOPKG],[ENOPKG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EREMOTE],[EREMOTE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOLINK],[ENOLINK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EADV],[EADV],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ESRMNT],[ESRMNT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ECOMM],[ECOMM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EPROTO],[EPROTO],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EMULTIHOP],[EMULTIHOP],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EDOTDOT],[EDOTDOT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBADMSG],[EBADMSG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EOVERFLOW],[EOVERFLOW],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTUNIQ],[ENOTUNIQ],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EBADFD],[EBADFD],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EREMCHG],[EREMCHG],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ELIBACC],[ELIBACC],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ELIBBAD],[ELIBBAD],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ELIBSCN],[ELIBSCN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ELIBMAX],[ELIBMAX],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ELIBEXEC],[ELIBEXEC],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EILSEQ],[EILSEQ],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ERESTART],[ERESTART],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ESTRPIPE],[ESTRPIPE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EUSERS],[EUSERS],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTSOCK],[ENOTSOCK],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EDESTADDRREQ],[EDESTADDRREQ],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EMSGSIZE],[EMSGSIZE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EPROTOTYPE],[EPROTOTYPE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOPROTOOPT],[ENOPROTOOPT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EPROTONOSUPPORT],[EPROTONOSUPPORT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ESOCKTNOSUPPORT],[ESOCKTNOSUPPORT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EOPNOTSUPP],[EOPNOTSUPP],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EPFNOSUPPORT],[EPFNOSUPPORT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EAFNOSUPPORT],[EAFNOSUPPORT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EADDRINUSE],[EADDRINUSE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EADDRNOTAVAIL],[EADDRNOTAVAIL],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENETDOWN],[ENETDOWN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENETUNREACH],[ENETUNREACH],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENETRESET],[ENETRESET],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ECONNABORTED],[ECONNABORTED],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ECONNRESET],[ECONNRESET],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOBUFS],[ENOBUFS],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EISCONN],[EISCONN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTCONN],[ENOTCONN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ESHUTDOWN],[ESHUTDOWN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ETOOMANYREFS],[ETOOMANYREFS],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ETIMEDOUT],[ETIMEDOUT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ECONNREFUSED],[ECONNREFUSED],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EHOSTDOWN],[EHOSTDOWN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EHOSTUNREACH],[EHOSTUNREACH],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EALREADY],[EALREADY],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EINPROGRESS],[EINPROGRESS],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ESTALE],[ESTALE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EUCLEAN],[EUCLEAN],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTNAM],[ENOTNAM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENAVAIL],[ENAVAIL],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EISNAM],[EISNAM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EREMOTEIO],[EREMOTEIO],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EDQUOT],[EDQUOT],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOMEDIUM],[ENOMEDIUM],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EMEDIUMTYPE],[EMEDIUMTYPE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ECANCELED],[ECANCELED],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOKEY],[ENOKEY],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EKEYEXPIRED],[EKEYEXPIRED],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EKEYREVOKED],[EKEYREVOKED],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EKEYREJECTED],[EKEYREJECTED],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EOWNERDEAD],[EOWNERDEAD],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([ENOTRECOVERABLE],[ENOTRECOVERABLE],[#f],[#include <errno.h>])
 ])
 
 dnl end of file

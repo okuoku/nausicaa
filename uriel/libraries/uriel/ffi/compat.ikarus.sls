@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-26 10:24:23 marco>
+;;;Time-stamp: <2008-12-03 07:55:08 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,13 +35,13 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function
+    primitive-make-c-function primitive-make-c-function/with-errno
 
     ;;basic memory allocation
     (rename (malloc primitive-malloc) (free primitive-free))
 
     ;;basic string conversion
-    strlen string->cstring cstring->string
+    strlen string->cstring cstring->string strerror
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -58,11 +58,23 @@
     pointer-set-c-pointer!
 
     ;;pointers
-    pointer? pointer->integer integer->pointer)
+    pointer? pointer->integer integer->pointer pointer-null?
+
+    ;;conditions
+    raise-errno-error)
   (import (rnrs)
-;;;    (uriel printing)
     (srfi parameters)
-    (ikarus foreign))
+    (only (ikarus) strerror)
+    (ikarus foreign)
+    (uriel ffi errno)
+    (uriel ffi conditions))
+
+
+
+;;;; pointers
+
+(define (pointer-null? pointer)
+  (= 0 (pointer->integer pointer)))
 
 
 
@@ -86,7 +98,7 @@
      'float)
     ((double)
      'double)
-    ((pointer void* char* callback)
+    ((pointer void* char* callback FILE*)
      'pointer)
     ((void)
      'void)
@@ -118,32 +130,30 @@
     (lambda (spec)
       (let* ((signature (map external->internal spec))
 	     (f (hashtable-ref callout-table signature #f)))
-	(or f (let ((f (make-c-callout (car signature) (cdr signature))))
+	(or f (let* ((f (make-c-callout (car signature)
+					(if (equal? '(void) (cdr signature))
+					    '()
+					  (cdr signature)))))
 		(hashtable-set! callout-table spec f)
 		f))))))
 
-(define (make-c-function funcname spec)
+(define (primitive-make-c-function ret-type funcname arg-types)
   (let ((f (dlsym (shared-object) (symbol->string funcname))))
     (unless f
       (error 'make-c-function (dlerror) funcname))
-    ((make-c-callout-maybe spec) f)))
+    ((make-c-callout-maybe (cons ret-type arg-types)) f)))
 
-(define-syntax primitive-make-c-function
-  (syntax-rules ()
-    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-     (make-c-function '?funcname '(?ret-type ?arg-type0 ?arg-type ...)))))
+(define (primitive-make-c-function/with-errno ret-type funcname arg-types)
+  (let ((f (primitive-make-c-function ret-type funcname arg-types)))
+    (lambda args
+      (values (apply f args) (errno)))))
+
 
 
 ;;;; string functions
 
 (define strlen
-  (primitive-make-c-function unsigned strlen (pointer)))
-
-;; (define (strlen p)
-;;   (let loop ((i 0))
-;;     (if (= 0 (pointer-ref-c-unsigned-char p i))
-;; 	i
-;;       (loop (+ 1 i)))))
+  (primitive-make-c-function 'size_t 'strlen '(pointer)))
 
 (define (string->cstring s)
   (let* ((len	(string-length s))
@@ -162,6 +172,18 @@
 	((= i len)
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
+
+
+
+;;;; conditions
+
+;;This is not in "conditions.sls" because it requires STRERROR.
+(define (raise-errno-error who errno irritants)
+  (raise (condition (make-who-condition who)
+		    (make-message-condition (strerror errno))
+		    (make-errno-condition errno)
+		    (make-irritants-condition irritants))))
+
 
 
 

@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-11-26 10:26:51 marco>
+;;;Time-stamp: <2008-12-03 07:49:50 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -42,13 +42,13 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function
+    primitive-make-c-function primitive-make-c-function/with-errno
 
     ;;basic memory allocation
     primitive-malloc primitive-free
 
-    ;;basic string conversion
-    strlen string->cstring cstring->string
+    ;;pointers
+    pointer? integer->pointer pointer->integer pointer-null?
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -64,13 +64,18 @@
     pointer-set-c-float!		pointer-set-c-double!
     pointer-set-c-pointer!
 
-    ;;pointers
-    integer->pointer pointer->integer pointer?)
+    ;;basic string conversion
+    strlen string->cstring cstring->string strerror
+
+    ;;conditions
+    raise-errno-error)
   (import (core)
-;;;    (uriel printing)
     (srfi receive)
     (srfi parameters)
-    (uriel ffi sizeof))
+    (uriel ffi sizeof)
+    (uriel ffi errno)
+    (uriel ffi conditions))
+
 
 
 ;;;; dynamic loading
@@ -80,9 +85,8 @@
 (define shared-object
   (make-parameter self-shared-object))
 
-(define (primitive-open-shared-object library-name)
-  ;;This raises an exception automatically.
-  (load-shared-object library-name))
+;;In case of error this raises an exception automatically.
+(define primitive-open-shared-object load-shared-object)
 
 
 
@@ -90,12 +94,6 @@
 
 ;;;The following mapping functions  are normalisators from Scheme values
 ;;;to values usable by the C language interface functions.
-
-(define (assert-bool value)
-  (if (boolean? value)
-      (if value 1 0)
-    (assertion-violation 'assert-bool
-      "expected #t or #f as function argument" value)))
 
 (define (assert-int value)
   (if (and (integer? value)
@@ -128,34 +126,17 @@
     (assertion-violation 'assert-bytevector
       "expected bytevector as function argument" value)))
 
+(define (assert-pointer p)
+  (if (pointer? p)
+      (pointer-value p)
+    (assertion-violation 'assert-pointer
+      "expected pointer as function argument" p)))
+
 (define (assert-closure value)
   (if (procedure? value)
       value
     (assertion-violation 'assert-closure
       "expected procedure as function argument" value)))
-
-(define (assert-char* value)
-  (string->utf8-n-nul (assert-string value)))
-
-
-
-;;;; value normalisation: c language -> scheme
-
-;;;The  following  mapping   functions  are  normalisators  from  values
-;;;returned by the C language interface functions to Scheme values.
-
-(define int->bool
-  (lambda (val)
-    (not (= val 0))))
-
-(define char*->string
-  (lambda (val)
-    (and val (bytevector->string val (make-transcoder (utf-8-codec))))))
-
-(define string->utf8-n-nul
-  (lambda (s)
-    (string->utf8 (string-append s "\x0;"))))
-
 
 
 ;;;; values normalisation: Uriel -> Ypsilon
@@ -175,108 +156,233 @@
 ;;;
 (define (external->internal type)
   (case type
-    ((int signed-int ssize_t uint unsigned unsigned-int size_t)
+    ((void)
+     'void)
+    ((int
+      signed-int ssize_t uint unsigned unsigned-int size_t
+      long signed-long ulong unsigned-long)
      'int)
     ((double)
      'double)
     ((float)
      'float)
-    ((pointer void* char*)
+    ((pointer void* char* FILE*)
      'void*)
     ((callback)
      'void*)
-    ((void)
-     'void)
-    (else (error 'make-c-function
-	    "unknown C language type identifier" type))))
+    (else
+     (assertion-violation 'make-c-function
+       "unknown C language type identifier" type))))
+
+
+
+;;;; pointers
+
+(define-record-type pointer
+  (fields (immutable value)))
+
+(define (integer->pointer value)
+  (unless (integer? value)
+    (assertion-violation 'integer->pointer
+      "expected integer value" value))
+  (make-pointer value))
+
+(define (pointer->integer pointer)
+  (unless (pointer? pointer)
+    (assertion-violation 'pointer->integer
+      "expected pointer value" pointer))
+  (pointer-value pointer))
+
+(define (pointer-null? pointer)
+  (= 0 (pointer->integer pointer)))
 
 
 
 ;;;; interface functions
 
-(define (make-c-function ret-type funcname args)
-  (define (select-cast-and-stub ret-type)
-    (let ((identity (lambda (x) x)))
-      (case ret-type
-	((void)
-	 (values identity stdcall-shared-object->void))
-	((int)
-	 (values identity stdcall-shared-object->int))
-	((double)
-	 (values identity stdcall-shared-object->double))
-	((void*)
-	 (values identity stdcall-shared-object->intptr))
-	((bool)
-	 (values int->bool stdcall-shared-object->int))
-	((char*)
-	 (values char*->string stdcall-shared-object->char*))
-	(else
-	 (assertion-violation 'make-c-callout
-	   "unknown C language type identifier used for return value" ret-type)))))
-
-  (define (select-argument-mapper arg-type)
-    (case (external->internal arg-type)
+(define (select-cast-and-stub ret-type)
+  (let ((identity (lambda (x) x)))
+    (case ret-type
+      ((void)
+       (values identity stdcall-shared-object->void))
       ((int)
-       assert-int)
-      ((bool)
-       assert-bool)
+       (values identity stdcall-shared-object->int))
+      ((double) ; float is not supported as return type
+       (values identity stdcall-shared-object->double))
       ((void*)
-       assert-bytevector)
-      ((float)
-       assert-float)
-      ((double)
-       assert-double)
-      ((byte*)
-       assert-bytevector)
-      ((char*)
-       assert-char*)
-      ((callback)
-       assert-closure)
+       (values integer->pointer stdcall-shared-object->intptr))
       (else
        (assertion-violation 'make-c-callout
-	 "unknown C language type identifier used for function argument" arg-type))))
+	 "unknown C language type identifier used for return value" ret-type)))))
 
+(define (select-argument-mapper arg-type)
+  (case (external->internal arg-type)
+    ((void)
+     (lambda (x) x))
+    ((int)
+     assert-int)
+    ((float)
+     assert-float)
+    ((double)
+     assert-double)
+    ((callback)
+     assert-closure)
+    ((void*)
+     assert-pointer)
+    (else
+     (assertion-violation 'make-c-callout
+       "unknown C language type identifier used for function argument" arg-type))))
+
+(define (primitive-make-c-function ret-type funcname arg-types)
   (receive (cast-func stub-func)
       (select-cast-and-stub (external->internal ret-type))
     (let ((f (lookup-shared-object (shared-object) funcname)))
       (unless f
 	(error 'make-c-callout
 	  "function not available in shared object" funcname))
-      (let* ((mappers (map select-argument-mapper args)))
-	(lambda args
-	  (unless (= (length args) (length mappers))
-	    (assertion-violation funcname
-	      (format "wrong number of arguments, expected ~a" (length mappers))
-	      args))
-	  (cast-func (apply stub-func f
-			    (map (lambda (m a)
-				   (m a)) mappers args))))))))
+      (when (equal? '(void) arg-types)
+	(set! arg-types '()))
+      (let* ((mappers (map select-argument-mapper arg-types)))
+	(case (length mappers)
+	  ((0)
+	   (lambda ()
+	     (cast-func (stub-func f 0))))
+	  ((1)
+	   (let ((mapper (car mappers)))
+	     (lambda (arg)
+	       (cast-func (stub-func f (mapper arg))))))
+	  ((2)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers)))
+	     (lambda (arg1 arg2)
+	       (cast-func (stub-func f
+				     (mapper1 arg1)
+				     (mapper2 arg2))))))
+	  ((3)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3)
+	       (cast-func (stub-func f
+				     (mapper1 arg1)
+				     (mapper2 arg2)
+				     (mapper3 arg3))))))
+	  ((4)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers))
+		 (mapper4 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3 arg4)
+	       (cast-func (stub-func f
+				     (mapper1 arg1)
+				     (mapper2 arg2)
+				     (mapper3 arg3)
+				     (mapper4 arg4))))))
+	  (else
+	   (lambda args
+	     (unless (= (length args) (length mappers))
+	       (assertion-violation funcname
+		 (format "wrong number of arguments, expected ~a" (length mappers))
+		 args))
+	     (cast-func (apply stub-func f
+			       (map (lambda (m a)
+				      (m a)) mappers args))))))))))
 
-
-(define-syntax primitive-make-c-function
-  (syntax-rules ()
-    ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-     (make-c-function '?ret-type '?funcname '(?arg-type0 ?arg-type ...)))))
+(define (primitive-make-c-function/with-errno ret-type funcname arg-types)
+  (receive (cast-func stub-func)
+      (select-cast-and-stub (external->internal ret-type))
+    (let ((f (lookup-shared-object (shared-object) funcname)))
+      (unless f
+	(error 'make-c-callout
+	  "function not available in shared object" funcname))
+      (when (equal? '(void) arg-types)
+	(set! arg-types '()))
+      (let* ((mappers (map select-argument-mapper arg-types)))
+	(case (length mappers)
+	  ((0)
+	   (lambda ()
+	     (values (cast-func (stub-func f 0))
+		     (shared-object-c-errno))))
+	  ((1)
+	   (let ((mapper (car mappers)))
+	     (lambda (arg)
+	       (values (cast-func (stub-func f (mapper arg)))
+		       (shared-object-c-errno)))))
+	  ((2)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers)))
+	     (lambda (arg1 arg2)
+	       (values (cast-func (stub-func f
+					     (mapper1 arg1)
+					     (mapper2 arg2)))
+		       (shared-object-c-errno)))))
+	  ((3)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3)
+	       (values (cast-func (stub-func f
+					     (mapper1 arg1)
+					     (mapper2 arg2)
+					     (mapper3 arg3)))
+		       (shared-object-c-errno)))))
+	  ((4)
+	   (let ((mapper1 (car mappers))
+		 (mapper2 (cadr mappers))
+		 (mapper3 (caddr mappers))
+		 (mapper4 (caddr mappers)))
+	     (lambda (arg1 arg2 arg3 arg4)
+	       (values (cast-func (stub-func f
+					     (mapper1 arg1)
+					     (mapper2 arg2)
+					     (mapper3 arg3)
+					     (mapper4 arg4)))
+		       (shared-object-c-errno)))))
+	  (else
+	   (lambda args
+	     (unless (= (length args) (length mappers))
+	       (assertion-violation funcname
+		 (format "wrong number of arguments, expected ~a" (length mappers))
+		 args))
+	     (values (cast-func (apply stub-func f
+				       (map (lambda (m a)
+					      (m a)) mappers args)))
+		     (shared-object-c-errno)))))))))
 
 
 
 ;;;; memory allocation
 
-;;Whenever an  interface function returns  a pointer: Ypsilon  wraps the
-;;block of memory into a bytevector.   So when we feed a block of memory
-;;to an interface function: we have to build a bytevector.
+(define primitive-malloc
+  (primitive-make-c-function 'void* 'malloc '(size_t)))
 
-(define (primitive-malloc number-of-bytes)
-  (make-bytevector number-of-bytes))
+(define primitive-free
+  (primitive-make-c-function 'void 'free '(void*)))
 
-(define (primitive-free p)
-  #f)
+;;This  is required  by the  string functions  below.  This  function is
+;;duplicated in "(uriel ffi)".
+(define (malloc size)
+  (let ((p (primitive-malloc size)))
+    (when (pointer-null? p)
+      (raise-out-of-memory 'malloc size))
+    p))
+
 
 
 ;;;; pokers and peekers
 
-(define pointer-ref-c-signed-char	bytevector-s8-ref)
-(define pointer-ref-c-unsigned-char	bytevector-u8-ref)
+(define (pointer-ref-c-signed-char pointer position)
+  (bytevector-s8-ref
+   (make-bytevector-mapping (pointer-value pointer)
+			    (+ 1 position))
+   position))
+
+(define (pointer-ref-c-unsigned-char pointer position)
+  (bytevector-u8-ref
+   (make-bytevector-mapping (pointer-value pointer)
+			    (+ 1 position))
+   position))
+
 (define pointer-ref-c-signed-short	bytevector-s16-native-ref)
 (define pointer-ref-c-unsigned-short	bytevector-u16-native-ref)
 (define pointer-ref-c-signed-int	bytevector-s32-native-ref)
@@ -296,7 +402,11 @@
 	 (assertion-violation 'pointer-ref-c-pointer
 	   "cannot determine size of pointers for peeker function"))))
 
-(define pointer-set-c-char!		bytevector-u8-set!)
+(define (pointer-set-c-char! pointer position value)
+  (bytevector-u8-set! (make-bytevector-mapping (pointer-value pointer)
+					       (+ 1 position))
+		      position value))
+
 (define pointer-set-c-short!		bytevector-u16-native-set!)
 (define pointer-set-c-int!		bytevector-u32-native-set!)
 (define pointer-set-c-long!		(when on-32-bits-system
@@ -313,30 +423,46 @@
 
 
 
-;;;; pointers
-
-(define (integer->pointer x)
-  x)
-
-(define (pointer->integer x)
-  x)
-
-(define (pointer? x)
-  (fixnum? x))
-
-
-
 ;;;; string functions
 
 (define strlen
-  (primitive-make-c-function int strlen (pointer)))
+  (primitive-make-c-function 'size_t 'strlen '(char*)))
 
-(define (cstring->string cstr)
-  (let ((str (bytevector->string cstr (make-transcoder (utf-8-codec)))))
-    (substring str 0 (- (string-length str) 1))))
+(define primitive-strerror
+  (primitive-make-c-function 'char* 'strerror '(int)))
 
-(define (string->cstring str)
-  (string->utf8 (string-append str "\x0;")))
+(define (cstring->string pointer)
+  (let* ((len	(strlen pointer))
+	 (bv	(make-bytevector len)))
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 (utf8->string bv))
+      (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
+
+(define (string->cstring s)
+  (let* ((len		(string-length s))
+	 (alloc-len	(+ 1 len))
+	 (pointer	(malloc alloc-len))
+	 (bv		(string->utf8 s)))
+    (pointer-set-c-char! pointer len 0)
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 pointer)
+      (pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
+
+(define (strerror code)
+  (cstring->string (primitive-strerror code)))
+
+
+
+;;;; conditions
+
+;;This is not in "conditions.sls" because it requires STRERROR.
+(define (raise-errno-error who errno irritants)
+  (raise (condition (make-who-condition who)
+		    (make-message-condition (strerror errno))
+		    (make-errno-condition errno)
+		    (make-irritants-condition irritants))))
 
 
 

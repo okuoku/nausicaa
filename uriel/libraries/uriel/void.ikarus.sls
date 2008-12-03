@@ -1,14 +1,20 @@
 ;;;
 ;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: interface to POSIX getenv, Ikarus compatibility layer
-;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-30 15:41:56 marco>
+;;;Contents: VOID compatibility for Ikarus
+;;;Date: Sun Nov 30, 2008
+;;;Time-stamp: <2008-11-30 07:33:36 marco>
 ;;;
 ;;;Abstract
 ;;;
+;;;	Ikarus Scheme provides the VOID function which returns the value
+;;;	returned by  forms that do  not return a meaningful  value, like
+;;;	SET!.  Not all implementations offers it, for example Ypsilon up
+;;;	to revision 285 does not.
 ;;;
+;;;       The "(uriel void)" library  attempts to provide a replacement.
+;;;     The library in this files is the compatibility layer for Ikarus.
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (C) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,9 +30,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel getenv compat)
-  (export getenv)
-  (import (rnrs)
-    (only (ikarus) getenv)))
+(library (uriel void)
+  (export void)
+  (import (only (ikarus) void)))
 
 ;;; end of file

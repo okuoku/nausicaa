@@ -1,12 +1,13 @@
 ;;;
 ;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: interface to POSIX getenv, Ikarus compatibility layer
-;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-30 15:41:56 marco>
+;;;Contents: EQUAL-HASH implementation
+;;;Date: Sun Nov 30, 2008
+;;;Time-stamp: <2008-11-30 07:17:09 marco>
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	Implementation   of   the   EQUAL-HASH   function   for   Scheme
+;;;	implementations that do not provide it (Ikarus).
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -24,9 +25,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel getenv compat)
-  (export getenv)
-  (import (rnrs)
-    (only (ikarus) getenv)))
+(library (uriel equal-hash)
+  (export equal-hash)
+  (import (rnrs))
+
+  (define (equal-hash obj)
+    (string-hash
+     (call-with-string-output-port
+	 (lambda () (write obj))))))
 
 ;;; end of file
