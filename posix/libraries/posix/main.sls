@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: interface to POSIX functions
+;;;Part of: Nausicaa/POSIX
+;;;Contents: interface to POSIX functions for R6RS Scheme
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-03 10:44:41 marco>
+;;;Time-stamp: <2008-12-03 11:50:42 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +28,7 @@
 
 ;;;; setup
 
-(library (uriel posix)
+(library (posix)
   (export
 
     ;;environment variables
@@ -40,11 +40,10 @@
 
     )
   (import (rnrs)
+    (posix compat)
     (uriel lang)
     (uriel ffi)
     (uriel ffi errno)
-    (uriel posix compat)
-    (uriel printing)
     (srfi receive))
 
 

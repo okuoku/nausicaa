@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: interface to POSIX functions for Ypsilon
+;;;Part of: Nausicaa/
+;;;Contents: interface to POSIX functions for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-01 10:17:16 marco>
+;;;Time-stamp: <2008-12-03 11:50:27 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,11 +24,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel posix compat)
+(library (posix compat)
   (export
     (rename (getenv primitive-getenv)))
   (import (rnrs)
-    (core)))
-
+    (only (ikarus) getenv)))
 
 ;;; end of file
