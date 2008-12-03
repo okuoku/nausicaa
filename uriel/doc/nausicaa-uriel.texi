@@ -2597,6 +2597,11 @@ On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
 @end deffn
 
 
+@deffn Procedure pointer-set-c-long-long! @var{pointer} @var{offset} @var{value}
+@poker{eight bytes,64}
+@end deffn
+
+
 @c ------------------------------------------------------------
 
 @subsubheading Poking floating point numbers
@@ -2698,6 +2703,17 @@ and return an integer in the inclusive range @code{[0, 2^64-1]}.
 
 On 32-bit systems: perform the same task as
 @func{pointer-ref-c-unsigned-int}.
+@end deffn
+
+@deffn Procedure pointer-ref-c-signed-long-long @var{pointer} @var{offset}
+Peek eight bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[-2^63, 2^63-1]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-long-long @var{pointer} @var{offset}
+Peek eight bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[0, 2^63-1]}.
 @end deffn
 
 @c ------------------------------------------------------------
