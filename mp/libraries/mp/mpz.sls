@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPZ functions
 ;;;Date: Fri Nov 28, 2008
-;;;Time-stamp: <2008-11-28 16:27:48 marco>
+;;;Time-stamp: <2008-12-03 09:08:10 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,6 +30,7 @@
 
 (library (mp mpz)
   (export
+;;;This is not always defined.
 ;;;    mpz_abs
     mpz_add
     mpz_add_ui
@@ -110,19 +111,16 @@
     mpz_invert
     mpz_ior
     mpz_jacobi
-    mpz_kronecker
     mpz_kronecker_si
     mpz_kronecker_ui
     mpz_si_kronecker
     mpz_ui_kronecker
     mpz_lcm
     mpz_lcm_ui
-    mpz_legendre
     mpz_lucnum_ui
     mpz_lucnum2_ui
     mpz_millerrabin
     mpz_mod
-    mpz_mod_ui
     mpz_mul
     mpz_mul_2exp
     mpz_mul_si
@@ -179,7 +177,11 @@
     mpz_urandomb
     mpz_urandomm
     mpz_xor
-    mpz_eor)
+
+    (rename (mpz_jacobi mpz_kronecker))
+    (rename (mpz_jacobi mpz_legendre))
+    (rename (mpz_fdiv_r_ui mpz_mod_ui))
+    (rename (mpz_xor mpz_eor)))
   (import (rnrs)
     (uriel printing)
     (uriel ffi)
@@ -438,8 +440,6 @@
 (define-c-function mpz_jacobi
   (int __gmpz_jacobi (mpz_srcptr mpz_srcptr)))
 
-(define mpz_kronecker mpz_jacobi)
-
 (define-c-function mpz_kronecker_si
   (int __gmpz_kronecker_si (mpz_srcptr long)))
 
@@ -458,8 +458,6 @@
 (define-c-function mpz_lcm_ui
   (void __gmpz_lcm_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define mpz_legendre mpz_jacobi)
-
 (define-c-function mpz_lucnum_ui
   (void __gmpz_lucnum_ui (mpz_ptr ulong)))
 
@@ -471,8 +469,6 @@
 
 (define-c-function mpz_mod
   (void __gmpz_mod (mpz_ptr mpz_srcptr mpz_srcptr)))
-
-(define mpz_mod_ui mpz_fdiv_r_ui)
 
 (define-c-function mpz_mul
   (void __gmpz_mul (mpz_ptr mpz_srcptr mpz_srcptr)))
@@ -642,7 +638,6 @@
 (define-c-function mpz_xor
   (void __gmpz_xor (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define mpz_eor mpz_xor)
 
 
 ;;;; done
