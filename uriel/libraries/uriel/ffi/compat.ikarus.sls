@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-03 07:55:08 marco>
+;;;Time-stamp: <2008-12-03 14:38:36 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -48,14 +48,15 @@
     pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
     pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
     pointer-ref-c-float			pointer-ref-c-double
     pointer-ref-c-pointer
 
     ;;pokers
     pointer-set-c-char!			pointer-set-c-short!
     pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-pointer!
+    pointer-set-c-long-long!		pointer-set-c-float!
+    pointer-set-c-double!		pointer-set-c-pointer!
 
     ;;pointers
     pointer? pointer->integer integer->pointer pointer-null?
@@ -75,6 +76,9 @@
 
 (define (pointer-null? pointer)
   (= 0 (pointer->integer pointer)))
+
+;;;FIXME: temporary until the bug is fixed
+(define pointer-set-c-long-long! #f)
 
 
 

@@ -1,9 +1,9 @@
 
-			  Nausicaa
-			  ========
+                          Nausicaa
+                          ========
 
-	     Your library will be assimilated,
-		 syntax errors are futile.
+             Your library will be assimilated,
+                 syntax errors are futile.
 
 
 
@@ -154,11 +154,11 @@ C. Resources
 
 The R6RS documents are available at:
 
-		   <http://www.r6rs.org>
+                   <http://www.r6rs.org>
 
 the SRFI documents are available at:
 
-		<http://srfi.schemers.org/>
+                <http://srfi.schemers.org/>
 
 Ikarus Scheme can be downloaded from:
 
@@ -166,15 +166,15 @@ Ikarus Scheme can be downloaded from:
 
 or:
 
-	       <http://launchpad.net/ikarus>
+               <http://launchpad.net/ikarus>
 
 the GNU Software tools can be downloaded from:
 
-		    <http://www.gnu.org>
+                    <http://www.gnu.org>
 
 the latest revision of Nausicaa can be downloaded from:
 
-		    <http://github.com>
+                    <http://github.com>
 
 
 ### end of file
