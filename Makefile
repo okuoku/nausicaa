@@ -1,38 +1,37 @@
-# 
+#
 # Part of: Nausicaa
 # Contents: maintainer rules
 # Date: Thu Nov 13, 2008
-# 
+#
 # Abstract
-# 
+#
 #	This  file  defines rules  for  maintaining the  Nausicaa
 #	distribution.   It is NOT  meant to  be used  by ordinary
 #	users of the packages.
-# 
+#
 # Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
-# 
+#
 # This program  is free software: you can  redistribute it and/or
 # modify it under the terms  of the GNU General Public License as
 # published by the Free  Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY;  without even the implied warranty of
 # MERCHANTABILITY or  FITNESS FOR A PARTICULAR  PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You  should have  received a  copy  of the  GNU General  Public
 # License    along   with    this   program.     If    not,   see
 # <http://www.gnu.org/licenses/>.
-# 
+#
 
 #page
 ## ------------------------------------------------------------
 ## Global variables.
 ## ------------------------------------------------------------
 
-TAG			= $(shell cat tag)
-PKG_ID			= $(TAG)
+PKG_ID			= nausicaa-$(shell cat tag)
 
 PROJECTS	= \
 			srfi		\
@@ -89,7 +88,7 @@ all:
 
 tag:
 	echo $(lastword $(shell $(GIT) tag)) >tag
-	printf '@macro version{}\n%s\n@end macro' $(TAG) \
+	printf '@macro version{}\n%s\n@end macro' $(shell cat tag) \
 		>doc/version.texiinc
 
 builddir:
