@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-02 20:36:09 marco>
+;;;Time-stamp: <2008-12-03 07:55:08 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -41,7 +41,7 @@
     (rename (malloc primitive-malloc) (free primitive-free))
 
     ;;basic string conversion
-    strlen string->cstring cstring->string
+    strlen string->cstring cstring->string strerror
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -58,12 +58,23 @@
     pointer-set-c-pointer!
 
     ;;pointers
-    pointer? pointer->integer integer->pointer strerror)
+    pointer? pointer->integer integer->pointer pointer-null?
+
+    ;;conditions
+    raise-errno-error)
   (import (rnrs)
     (srfi parameters)
     (only (ikarus) strerror)
     (ikarus foreign)
+    (uriel ffi errno)
     (uriel ffi conditions))
+
+
+
+;;;; pointers
+
+(define (pointer-null? pointer)
+  (= 0 (pointer->integer pointer)))
 
 
 
@@ -161,6 +172,18 @@
 	((= i len)
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
+
+
+
+;;;; conditions
+
+;;This is not in "conditions.sls" because it requires STRERROR.
+(define (raise-errno-error who errno irritants)
+  (raise (condition (make-who-condition who)
+		    (make-message-condition (strerror errno))
+		    (make-errno-condition errno)
+		    (make-irritants-condition irritants))))
+
 
 
 

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: values of the errno constants
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-01 06:51:19 marco>
+;;;Time-stamp: <2008-12-03 07:27:50 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,8 +28,8 @@
 
 (library (uriel ffi errno)
   (export
-    errno->integer	errno->integer/or-error
-    integer->errno	integer->errno/or-error
+    errno->symbol	errno->symbol/or-error
+    symbol->errno	symbol->errno/or-error
     E2BIG		EACCES		EADDRINUSE
     EADDRNOTAVAIL	EADV		EAFNOSUPPORT
     EAGAIN		EALREADY	EBADE
@@ -74,7 +74,8 @@
     ETOOMANYREFS	ETXTBSY		EUCLEAN
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL)
-  (import (rnrs))
+  (import (rnrs)
+    (srfi lists))
 
   (define E2BIG			@VALUEOF_E2BIG@)
   (define EACCES		@VALUEOF_EACCES@)
@@ -341,27 +342,37 @@
       (EXDEV		. @VALUEOF_EXDEV@)
       (EXFULL		. @VALUEOF_EXFULL@)))
 
-  (define (errno->integer symbol)
+  (define errno-vector
+    (let ((ev (make-vector (+ 1 (fold (lambda (pair max)
+					(if (< max (cdr pair))
+					    (cdr pair)
+					  max))
+				      0 errno-alist))
+			      #f)))
+      (for-each
+	  (lambda (pair)
+	    (vector-set! ev (cdr pair) (car pair)))
+	errno-alist)
+      ev))
+
+  (define (symbol->errno symbol)
     (assq symbol errno-alist))
 
-  (define (errno->integer/or-error symbol)
-    (let ((value (assq symbol errno-alist)))
-      (or value (assertion-violation 'errno->integer/or-error
-		  "expected errno symbol" symbol))))
+  (define (symbol->errno/or-error errno-symbol)
+    (let ((errno-code (symbol->errno errno-symbol)))
+      (or errno-code
+	  (assertion-violation 'symbol->errno/or-error
+	    "expected symbolic errno value" errno-symbol))))
 
-  (define (integer->errno num)
-    (let ((pair (find (lambda (pair)
-			(= num (cdr pair)))
-		      errno-alist)))
-      (and pair (car pair))))
+  (define (errno->symbol errno-code)
+    (and (< errno-code (vector-length errno-vector))
+	 (vector-ref errno-vector errno-code)))
 
-  (define (integer->errno/or-error num)
-    (let ((pair (find (lambda (pair)
-			(= num (cdr pair)))
-		      errno-alist)))
-      (if pair
-	  (car pair)
-	(assertion-violation 'integer->errno/or-error
-	  "expected value of errno constant" num)))))
+  (define (errno->symbol/or-error errno-code)
+    (let ((errno-symbol (errno->symbol errno-code)))
+      (or errno-symbol
+	  (assertion-violation 'errno->symbol/or-error
+	    "expected numeric errno value" errno-code)))))
+
 
 ;;; end of file
