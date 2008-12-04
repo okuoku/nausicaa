@@ -509,6 +509,7 @@ other libraries have extended functions.
 * streams seeking::             Stream positioning.
 * streams unlocked::            Unlocked stream operations.
 * streams extended::            Extended stream operations.
+* streams lines::               Reading lines.
 @end menu
 
 
@@ -714,8 +715,8 @@ function call and the value of @var{errno} just after the call.
 @defun feof @var{stream}
 @defunx primitive-feof @var{stream}
 @func{feof} returns @true{} if the end--of--file indicator of
-@var{stream} is set.  If an error occurs @func{feof} raises an
-exception.
+@var{stream} is set, otherwise @false{}.  If an error occurs @func{feof}
+raises an exception.
 
 @func{primitive-feof} returns 2 values: the return value of the foreign
 function call and the value of @code{errno} just after the call.
@@ -889,25 +890,76 @@ narrow characters.
 @end defun
 
 
-@subsubheading Reading lines
-
-
-@defun getline @var{pointer-pointer} @var{pointer-count} @var{stream}
-@defunx getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
-@func{getline} reads a characters from @var{stream} until a newline is
-found, then stores the characters including the newline and a
-terminating zero in a supplied buffer.
-
-A pointer to the buffer must be referenced by @var{pointer-pointer}.
-AThe block must have at least a number of bytes
-@end defun
-
-
 @subsubheading Miscellaneous
 
 
 @defun fpurge @var{stream}
 Discard the contents of the buffer.
+@end defun
+
+
+@c page
+@node streams lines
+@section Reading lines
+
+
+The following functions are defined in the @library{glibc
+streams-extended} library.
+
+
+@defun getline @var{stream}
+@defunx getdelim @var{stream} @var{delimiter}
+@func{getline} reads characters from @var{stream} until a newline is
+found, then returns a string holding those characters and a terminating
+newline.
+
+If end--of--file is encountered before the newline, but some characters
+where read: the acquired characters are stored in a string
+@strong{without} terminating newline, and the string is returned.
+
+If end--of--file is encountered before the newline, and no characters
+where read: an empty string is returned.
+
+If an error occurs while reading: an exception is raised.
+
+@func{getdelim} is like @func{getline} but reads characters until
+@var{delimiter} is found.  @var{delimiter} must be a Scheme character
+with an integer representation in the range @code{[0, 255]}.
+@end defun
+
+
+@defun primitive-getline @var{pointer-pointer} @var{pointer-count} @var{stream}
+@defunx primitive-getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
+Interfaces to the foreign functions @cfunc{getline} and
+@cfunc{getdelim}.  Read the original documentation for details.
+
+@example
+(let* ((pathname the-pathname))
+        (with-compensations
+          (letrec ((S (compensate
+                          (fopen pathname "w+")
+                        (with (fclose S))))
+                   (*pointer (compensate-malloc/small))
+                   (*count   (compensate-malloc/small))
+                   (lines    '()))
+            (let loop ()
+              (receive (result errno)
+                  (primitive-getline *pointer *count S)
+                (cond ((ferror S)
+                       (primitive-free (pointer-ref-c-pointer *pointer 0))
+                       (raise-errno-error 'reading-line errno S))
+                      ((= -1 result)
+                       (primitive-free (pointer-ref-c-pointer *pointer 0))
+                       (reverse lines))
+                      (else
+                       (let ((p (pointer-ref-c-pointer *pointer 0)))
+                         (set! lines (cons (cstring->string/len p result) lines))
+                         (if (feof S)
+                             (begin
+                               (primitive-free p)
+                               (reverse lines))
+                           (loop))))))))))
+@end example
 @end defun
 
 

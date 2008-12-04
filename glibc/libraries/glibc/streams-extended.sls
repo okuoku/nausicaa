@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: extended stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 13:55:02 marco>
+;;;Time-stamp: <2008-12-04 18:20:12 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,7 +33,8 @@
   (import (rnrs)
     (uriel lang)
     (uriel ffi)
-    (srfi receive))
+    (srfi receive)
+    (glibc streams))
 
   (define libc
     (begin
@@ -73,47 +74,50 @@
   (define-c-function/with-errno primitive-getdelim
     (ssize_t getdelim (void* void* int FILE*)))
 
-  (define (getline S count-guess)
+  (define (getline stream)
     (with-compensations
-      (let ((pp	(compensate-malloc/small))
-	    (pc	(compensate-malloc/small))
-	    (p	(malloc count-guess)))
-	(pointer-set-c-pointer!	pp 0 p)
-	(pointer-set-c-int!	pc 0 count-guess)
+      (let* ((*pointer	(compensate-malloc/small))
+	     (*count	(compensate-malloc/small))
+	     (getp	(lambda ()
+			  (pointer-ref-c-pointer *pointer 0))))
 	(receive (result errno)
-	    (primitive-getline pp pc S)
-	  (when (= -1 result)
-	    (primitive-free p)
-	    (raise-errno-error 'getline errno S count-guess))
-	  (let ((q (pointer-ref-c-pointer pp 0))
-;;;		(n (pointer-ref-c-signed-int pc 0))
-		)
-	    (begin0
-		(cstring->string/len q result)
-	      (primitive-free q)))))))
+	    (primitive-getline *pointer *count stream)
+	  (cond ((ferror stream)
+		 (primitive-free (getp))
+		 (raise-errno-error 'getline errno stream))
+		((= -1 result)
+		 (primitive-free (getp))
+		 "")
+		(else
+		 (let ((p (getp)))
+		   (begin0
+		       (cstring->string/len p result)
+		     (primitive-free p)))))))))
 
-  (define (getdelim S delimiter count-guess)
-    (with-compensations
-      (let ((de (char->integer delimiter)))
-	(when (< 255 de)
-	  (assertion-violation 'getdelim
-	    "expected delimiter with scalar value in range [0, 255]"
-	    delimiter))
-	(let ((pp	(compensate-malloc/small))
-	      (pc	(compensate-malloc/small))
-	      (p	(malloc count-guess)))
-	  (pointer-set-c-pointer!	pp 0 p)
-	  (pointer-set-c-int!	pc 0 count-guess)
+  (define (getdelim stream delimiter)
+    (let ((delimiter (char->integer delimiter)))
+      (when (< 255 delimiter)
+	(assertion-violation 'getdelim
+	  "expected delimiter with scalar value in range [0, 255]"
+	  delimiter))
+      (with-compensations
+	(let* ((*pointer	(compensate-malloc/small))
+	       (*count		(compensate-malloc/small))
+	       (getp		(lambda ()
+				  (pointer-ref-c-pointer *pointer 0))))
 	  (receive (result errno)
-	      (primitive-getdelim pp pc de S)
-	    (when (= -1 result)
-	      (primitive-free p)
-	      (raise-errno-error 'getline errno S count-guess))
-	    (let ((q (pointer-ref-c-pointer pp 0))
-		  (n (pointer-ref-c-signed-int pc 0)))
-	      (begin0
-		  (cstring->string/len q result)
-		(primitive-free q))))))))
+	      (primitive-getdelim *pointer *count delimiter stream)
+	    (cond ((ferror stream)
+		   (primitive-free (getp))
+		   (raise-errno-error 'getline errno stream))
+		  ((= -1 result)
+		   (primitive-free (getp))
+		   "")
+		  (else
+		   (let ((p (getp)))
+		     (begin0
+			 (cstring->string/len p result)
+		       (primitive-free p))))))))))
 
   (define-c-function fpurge
     (void __fpurge (FILE*))))

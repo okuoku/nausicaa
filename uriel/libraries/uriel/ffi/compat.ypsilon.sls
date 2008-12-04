@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-04 17:42:47 marco>
+;;;Time-stamp: <2008-12-04 18:28:45 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -550,6 +550,16 @@
 (define primitive-strerror
   (primitive-make-c-function 'char* 'strerror '(int)))
 
+(define (string->cstring s)
+  (let* ((len		(string-length s))
+	 (pointer	(malloc (+ 1 len)))
+	 (bv		(string->utf8 s)))
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 (pointer-set-c-char! pointer i 0);set to zero the last byte
+	 pointer)
+      (pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
+
 (define (cstring->string pointer)
   (let* ((len	(strlen pointer))
 	 (bv	(make-bytevector len)))
@@ -564,16 +574,6 @@
 	((= i len)
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
-
-(define (string->cstring s)
-  (let* ((len		(string-length s))
-	 (pointer	(malloc (+ 1 len)))
-	 (bv		(string->utf8 s)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (pointer-set-c-char! pointer i 0);set to zero the last byte
-	 pointer)
-      (pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
 
 (define (strerror code)
   (cstring->string (primitive-strerror code)))
