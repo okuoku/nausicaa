@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-03 14:37:01 marco>
+;;;Time-stamp: <2008-12-04 14:18:54 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -66,7 +66,9 @@
     pointer-set-c-double!		pointer-set-c-pointer!
 
     ;;basic string conversion
-    strlen string->cstring cstring->string strerror
+    strlen strerror
+    string->cstring
+    cstring->string cstring->string/len
 
     ;;conditions
     raise-errno-error)
@@ -272,7 +274,7 @@
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers))
 		 (mapper3 (caddr mappers))
-		 (mapper4 (caddr mappers)))
+		 (mapper4 (cadddr mappers)))
 	     (lambda (arg1 arg2 arg3 arg4)
 	       (cast-func (stub-func f
 				     (mapper1 arg1)
@@ -331,7 +333,7 @@
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers))
 		 (mapper3 (caddr mappers))
-		 (mapper4 (caddr mappers)))
+		 (mapper4 (cadddr mappers)))
 	     (lambda (arg1 arg2 arg3 arg4)
 	       (values (cast-func (stub-func f
 					     (mapper1 arg1)
@@ -512,9 +514,15 @@
 
 (define (pointer-set-c-pointer! pointer position the-pointer)
   (cond ((= 4 sizeof-pointer)
-	 (pointer-set-c-int! pointer position (pointer-value the-pointer)))
+	 (bytevector-u32-set! (make-bytevector-mapping (pointer-value pointer)
+						       (+ 4 position))
+			      position (pointer-value the-pointer)
+			      (native-endianness)))
 	((= 8 sizeof-pointer)
-	 (pointer-set-c-long-long! pointer position (pointer-value the-pointer)))
+	 (bytevector-u64-set! (make-bytevector-mapping (pointer-value pointer)
+						       (+ 8 position))
+			      position (pointer-value the-pointer)
+			      (native-endianness)))
 	(else
 	 (assertion-violation 'pointer-set-c-pointer
 	   "cannot determine size of pointers for peeker function"))))
@@ -537,12 +545,18 @@
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
 
+(define (cstring->string/len pointer len)
+  (let* ((bv	(make-bytevector len)))
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 (utf8->string bv))
+      (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
+
 (define (string->cstring s)
   (let* ((len		(string-length s))
 	 (alloc-len	(+ 1 len))
 	 (pointer	(malloc alloc-len))
 	 (bv		(string->utf8 s)))
-    (pointer-set-c-char! pointer len 0)
     (do ((i 0 (+ 1 i)))
 	((= i len)
 	 pointer)

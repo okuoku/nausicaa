@@ -2790,8 +2790,12 @@ allocates the memory block using @func{compensate-malloc/block}.
 
 
 @defun cstring->string @var{cstring}
+@defunx cstring->string/len @var{cstring} @var{number-of-bytes}
 Build a new Scheme string representing the @var{cstring}.  The
 conversion is performed using a @code{s8} bytevector.
+
+For @func{cstring->string/len} only @var{number-of-bytes} bytes are
+taken from the C string.
 @end defun
 
 

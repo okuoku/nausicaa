@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-03 14:39:15 marco>
+;;;Time-stamp: <2008-12-04 13:43:23 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -58,9 +58,8 @@
     raise-errno-error
 
     ;;string functions
-    strlen cstring->string strerror
-    string->cstring
-    string->cstring/compensated
+    strlen cstring->string cstring->string/len strerror
+    string->cstring string->cstring/compensated
     string-or-symbol->cstring
     string-or-symbol->cstring/compensated
 

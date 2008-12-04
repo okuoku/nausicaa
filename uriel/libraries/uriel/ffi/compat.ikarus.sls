@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-03 14:38:36 marco>
+;;;Time-stamp: <2008-12-04 13:49:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -42,6 +42,7 @@
 
     ;;basic string conversion
     strlen string->cstring cstring->string strerror
+    cstring->string/len
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -176,6 +177,15 @@
 	((= i len)
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
+
+(define (cstring->string/len p len)
+  (let* ((bv	(make-bytevector len)))
+    (do ((i 0 (+ 1 i)))
+	((= i len)
+	 (pointer-set-c-char! p i 0)
+	 (utf8->string bv))
+      (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
+
 
 
 
