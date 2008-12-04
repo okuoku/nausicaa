@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-04 17:13:14 marco>
+;;;Time-stamp: <2008-12-04 17:42:57 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -170,7 +170,7 @@
       (raise-out-of-memory 'malloc number-of-bytes)))
 
 (define primitive-calloc
-  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t))))
+  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t size_t))))
     (lambda (count element-size)
       (let ((p (calloc count element-size)))
 	(if (pointer-null? p) #f p)))))

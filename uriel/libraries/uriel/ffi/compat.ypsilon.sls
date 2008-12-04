@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-04 17:12:35 marco>
+;;;Time-stamp: <2008-12-04 17:42:47 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -372,7 +372,7 @@
       (raise-out-of-memory 'malloc number-of-bytes)))
 
 (define primitive-calloc
-  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t))))
+  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t size_t))))
     (lambda (count element-size)
       (let ((p (calloc count element-size)))
 	(if (pointer-null? p)
