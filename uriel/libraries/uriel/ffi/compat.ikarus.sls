@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-04 13:49:48 marco>
+;;;Time-stamp: <2008-12-04 17:13:14 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -38,7 +38,9 @@
     primitive-make-c-function primitive-make-c-function/with-errno
 
     ;;basic memory allocation
-    (rename (malloc primitive-malloc) (free primitive-free))
+    primitive-free
+    malloc primitive-malloc
+    calloc primitive-calloc
 
     ;;basic string conversion
     strlen string->cstring cstring->string strerror
@@ -66,8 +68,11 @@
     raise-errno-error)
   (import (rnrs)
     (srfi parameters)
-    (only (ikarus) strerror)
-    (ikarus foreign)
+    (only (ikarus)
+  	  strerror)
+    (rename (ikarus foreign)
+ 	    (free primitive-free)
+ 	    (malloc primitive-malloc))
     (uriel ffi errno)
     (uriel ffi conditions))
 
@@ -155,6 +160,27 @@
 
 
 
+;;;; memory functions
+
+;;PRIMITIVE-MALLOC    and   PRIMITIVE-FREE    are   provided    by   the
+;;implementation.
+
+(define (malloc number-of-bytes)
+  (or (primitive-malloc number-of-bytes)
+      (raise-out-of-memory 'malloc number-of-bytes)))
+
+(define primitive-calloc
+  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t))))
+    (lambda (count element-size)
+      (let ((p (calloc count element-size)))
+	(if (pointer-null? p) #f p)))))
+
+(define (calloc count element-size)
+  (or (primitive-calloc count element-size)
+      (raise-out-of-memory 'calloc (list count element-size))))
+
+
+
 ;;;; string functions
 
 (define strlen
@@ -182,7 +208,6 @@
   (let* ((bv	(make-bytevector len)))
     (do ((i 0 (+ 1 i)))
 	((= i len)
-	 (pointer-set-c-char! p i 0)
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
 

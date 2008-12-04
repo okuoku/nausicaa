@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: guarded memory allocation
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-25 17:04:29 marco>
+;;;Time-stamp: <2008-12-04 17:30:52 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,38 +24,31 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-
-;;;; setup
-
 (library (uriel ffi guarded-malloc)
   (export
-    malloc/guarded)
+    malloc/guarded calloc/guarded)
   (import (rnrs)
     (uriel ffi)
     (uriel cleanup)
     (only (ikarus) make-guardian))
 
-
-;;;; code
+  (define block-guardian (make-guardian))
 
-(define block-guardian (make-guardian))
+  (define (block-cleanup)
+    (do ((p (block-guardian) (block-guardian)))
+	((not p))
+      (primitive-free p)))
 
-(define (block-cleanup)
-  (do ((p (block-guardian) (block-guardian)))
-      ((not p))
-    (primitive-free p)))
+  (define (malloc/guarded size)
+    (let ((p (malloc size)))
+      (block-guardian p)
+      p))
 
-(define (malloc/guarded size)
-  (let ((p (malloc size)))
-    (block-guardian p)
-    p))
+  (define (calloc/guarded count element-size)
+    (let ((p (calloc count element-size)))
+      (block-guardian p)
+      p))
 
-
-;;;; done
-
-(uriel-register-cleanup-function block-cleanup)
-
-)
+  (uriel-register-cleanup-function block-cleanup))
 
 ;;; end of file

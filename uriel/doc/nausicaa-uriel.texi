@@ -1590,6 +1590,7 @@ libraries.
 * ffi sizeof::                  Sizes and limits.
 * ffi errno::                   Error constants.
 * ffi accessors::               Low level access to memory.
+* ffi memop::                   Basic memory operations.
 * ffi string::                  Basic string functions.
 * ffi headers::                 Inspecting foreign header files.
 * ffi conditions::              Condition types.
@@ -2037,24 +2038,44 @@ memory blocks an exact integer.
 @subsection Primitive functions
 
 
+With the following functions: when naming a ``pointer'' value we mean an
+object referencing a memory block according to the Scheme
+implementation, which can be handled with the functions described in
+@ref{ffi memory pointers}.
+
 @defun primitive-malloc @var{number-of-bytes}
-An interface to the system @cfunc{malloc} function (or something that,
-in some way, allocates memory).  Allocate a block of memory and return a
-pointer to it (an object referencing the memory block according to the
-Scheme implementation), or @false{} if an error occurs.
+An interface to the system @cfunc{malloc} function.  Allocate a block of
+memory and return a pointer to it or @false{} if an error occurs.
+@end defun
+
+
+@defun primitive-calloc @var{count} @var{element-size}
+An interface to the system @cfunc{calloc} function.  Allocate a block of
+memory and return a pointer to it, or @false{} if an error occurs.
+
+The block is big enough to hold @var{count} objects each
+@var{element-size} wide.  Bytes in the block are reset to zero.
 @end defun
 
 
 @defun primitive-free @var{pointer}
-An interface to the system @cfunc{free} function (or something that, in
-some way, releases memory allocated by @func{primitive-malloc}).
-Release a block of memory referenced by @var{pointer} (an object
-referencing the memory block according to the Scheme implementation).
+An interface to the system @cfunc{free} function.  Release the block of
+memory referenced by @var{pointer}.
 @end defun
+
+
+@subsubheading Exceptions raising functions
 
 
 @defun malloc @var{number-of-bytes}
 A wrapper for @func{primitive-malloc} that raises an
+@code{&out-of-memory} condition in case of error.  Blocks of memory
+allocated with this function can be freed with @func{primitive-free}.
+@end defun
+
+
+@defun calloc @var{count} @var{element-size}
+A wrapper for @func{primitive-calloc} that raises an
 @code{&out-of-memory} condition in case of error.  Blocks of memory
 allocated with this function can be freed with @func{primitive-free}.
 @end defun
@@ -2107,7 +2128,7 @@ protocol:
 @table @emph
 @item when the function is invoked with zero arguments
 it retrieves a block from the set of cached blocks; if the set is empty:
-a new block is allocated with @func{malloc};
+a new block is allocated with @func{calloc};
 
 @item when the function is invoked with 1 argument
 if the argument is the symbol @code{purge}: @func{primitive-free} is
@@ -2128,6 +2149,10 @@ Interface function for a cache of memory blocks of size 32, 10 blocks
 deep.  This cache is meant to be used for temporary storage space of
 output values from foreign functions.  The size of 32 should be enough
 to hold all the output values of C language standard types.
+
+Blocks are allocated with @func{calloc} and reset to zero with
+@func{memset} when released, so they are guaranteed to be set to zero
+when acquired.
 
 For example, the @gnu{} Libgcrypt library has a constructor with this
 prototype:
@@ -2203,7 +2228,7 @@ relying on @func{page-blocks-cache} if the number of bytes is less than
 or equal to the size of a page block;
 
 @item
-relying on @func{malloc} and @func{primitive-free} in all the other cases.
+relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @end itemize
 
 When allocating: the returned value is a record of type
@@ -2316,6 +2341,14 @@ stack.
 @end defun
 
 
+@defun compensate-calloc @var{count} @var{element-size}
+Allocate a block of memory with @func{calloc} and return a pointer to
+it.  The appropriate invocation to @func{primitive-free}, to free the
+block, is added to the dynamic environment of the current compensations
+stack.
+@end defun
+
+
 @defun compensate-malloc/small
 Acquire a small block of memory from @func{small-blocks-cache} and
 return a pointer to it.  The appropriate invocation to
@@ -2372,6 +2405,11 @@ The library registers a cleanup function for the guardian in the state
 of the @library{uriel cleanup} library, so memory allocated with this
 function is released by invoking @func{uriel-cleanup}.  @strong{Do not}
 free this memory with @func{primitive-free} or any other free function.
+@end defun
+
+
+@defun calloc/guarded @var{count} @var{element-size}
+Like @func{malloc/guarded} but makes use of @func{calloc}.
 @end defun
 
 
@@ -2749,6 +2787,31 @@ on 64-bit systems.
 We have to assume that the returned value can be converted to an exact
 integer with @func{pointer->integer}.
 @end deffn
+
+
+@c page
+@node ffi memop
+@section Basic memory operations
+
+
+@defun memcpy @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
+An interface to the @cfunc{memcpy} system function.  Copy
+@var{number-of-bytes} bytes from @var{source-pointer} to
+@var{dest-pointer}.
+@end defun
+
+
+@defun memmove @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
+An interface to the @cfunc{memmove} system function.  Like @func{memcpy}
+but allows the blocks to be overlapped.
+@end defun
+
+
+@defun memset @var{pointer} @var{value} @var{number-of-bytes}
+An interface to the @cfunc{memset} system function.  Set to @var{value}
+the first @var{number-of-bytes} bytes starting from @var{pointer}.
+@end defun
+
 
 
 @c page

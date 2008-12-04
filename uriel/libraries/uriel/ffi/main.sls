@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-04 13:43:23 marco>
+;;;Time-stamp: <2008-12-04 17:25:40 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -37,10 +37,14 @@
     define-c-function define-c-function/with-errno
 
     ;;memory functions
-    primitive-malloc primitive-free malloc
+    primitive-free
+    primitive-malloc malloc
+    primitive-calloc calloc
     make-block-cache make-caching-object-factory
     small-blocks-cache page-blocks-cache
-    compensate-malloc compensate-malloc/small compensate-malloc/page
+    compensate-malloc compensate-calloc
+    compensate-malloc/small compensate-malloc/page
+    memset memmove memcpy
 
     ;;memory blocks
     make-memory-block-record memory-block-record?
@@ -164,13 +168,16 @@
 
 
 
-;;;; basic memory functions
+;;;; memory functions
 
-(define (malloc size)
-  (let ((p (primitive-malloc size)))
-    (when (pointer-null? p)
-      (raise-out-of-memory 'malloc size))
-    p))
+(define-c-function memset
+  (void* memset (void* int size_t)))
+
+(define-c-function memmove
+  (void* memmove (void* void* size_t)))
+
+(define-c-function memcpy
+  (void* memcpy (void* void* size_t)))
 
 
 
@@ -192,7 +199,7 @@
     (case-lambda
      (()
       (if (null? list-of-cached-blocks)
-	  (malloc block-size)
+	  (calloc 1 block-size)
 	(let ((pointer (car list-of-cached-blocks)))
 	  (set! list-of-cached-blocks (cdr list-of-cached-blocks))
 	  (set! number-of-cached-blocks (- number-of-cached-blocks 1))
@@ -212,12 +219,6 @@
 	       (set! number-of-cached-blocks (+ 1 number-of-cached-blocks)))
 	   (primitive-free pointer))))))))
 
-(define small-blocks-size 32)
-(define small-blocks-cache (make-block-cache small-blocks-size 10))
-
-(define page-blocks-size 4096)
-(define page-blocks-cache (make-block-cache page-blocks-size 10))
-
 (define (make-caching-object-factory init-func final-func
 				     block-size max-cached-block-number)
   (let ((block-cache (make-block-cache block-size max-cached-block-number)))
@@ -235,6 +236,15 @@
 	(else
 	 (final-func pointer)
 	 (block-cache pointer)))))))
+
+(define small-blocks-size 32)
+(define small-blocks-cache (make-caching-object-factory
+			    (lambda (x) x)
+			    (lambda (p) (memset p 0 small-blocks-size))
+			    small-blocks-size 10))
+
+(define page-blocks-size 4096)
+(define page-blocks-cache (make-block-cache page-blocks-size 10))
 
 
 
@@ -272,6 +282,14 @@
   (letrec
       ((p (compensate
 	      (malloc number-of-bytes)
+	    (with
+	     (primitive-free p)))))
+    p))
+
+(define (compensate-calloc count element-size)
+  (letrec
+      ((p (compensate
+	      (calloc count element-size)
 	    (with
 	     (primitive-free p)))))
     p))

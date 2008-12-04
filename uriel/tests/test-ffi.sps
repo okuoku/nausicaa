@@ -243,7 +243,23 @@
 
   (check
       (strlen (string->cstring ""))
-    => 0))
+    => 0)
+
+  (check
+      (cstring->string/len (string->cstring "ciao, hello") 4)
+    => "ciao")
+
+  (check
+      (cstring->string/len (string->cstring "ciao, hello") 1)
+    => "c")
+
+  (check
+      (cstring->string/len (string->cstring "ciao, hello") 0)
+    => "")
+
+  (check
+      (cstring->string/len (string->cstring "ciao, hello") 11)
+    => "ciao, hello"))
 
 
 ;;;; done

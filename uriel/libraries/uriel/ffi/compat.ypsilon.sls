@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-04 14:18:54 marco>
+;;;Time-stamp: <2008-12-04 17:12:35 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -45,7 +45,9 @@
     primitive-make-c-function primitive-make-c-function/with-errno
 
     ;;basic memory allocation
-    primitive-malloc primitive-free
+    primitive-free
+    malloc primitive-malloc
+    calloc primitive-calloc
 
     ;;pointers
     pointer? integer->pointer pointer->integer pointer-null?
@@ -356,19 +358,30 @@
 
 ;;;; memory allocation
 
-(define primitive-malloc
-  (primitive-make-c-function 'void* 'malloc '(size_t)))
-
 (define primitive-free
   (primitive-make-c-function 'void 'free '(void*)))
 
-;;This  is required  by the  string functions  below.  This  function is
-;;duplicated in "(uriel ffi)".
-(define (malloc size)
-  (let ((p (primitive-malloc size)))
-    (when (pointer-null? p)
-      (raise-out-of-memory 'malloc size))
-    p))
+(define primitive-malloc
+  (let ((malloc (primitive-make-c-function 'void* 'malloc '(size_t))))
+    (lambda (number-of-bytes)
+      (let ((p (malloc number-of-bytes)))
+	(if (pointer-null? p) #f p)))))
+
+(define (malloc number-of-bytes)
+  (or (primitive-malloc number-of-bytes)
+      (raise-out-of-memory 'malloc number-of-bytes)))
+
+(define primitive-calloc
+  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t))))
+    (lambda (count element-size)
+      (let ((p (calloc count element-size)))
+	(if (pointer-null? p)
+	    #f
+	  p)))))
+
+(define (calloc count element-size)
+  (or (primitive-calloc count element-size)
+      (raise-out-of-memory 'calloc (list count element-size))))
 
 
 
@@ -554,11 +567,11 @@
 
 (define (string->cstring s)
   (let* ((len		(string-length s))
-	 (alloc-len	(+ 1 len))
-	 (pointer	(malloc alloc-len))
+	 (pointer	(malloc (+ 1 len)))
 	 (bv		(string->utf8 s)))
     (do ((i 0 (+ 1 i)))
 	((= i len)
+	 (pointer-set-c-char! pointer i 0);set to zero the last byte
 	 pointer)
       (pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
 
