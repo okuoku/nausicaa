@@ -103,7 +103,7 @@ nausicaa_ENABLE_FASL	?= @nausicaa_ENABLE_FASL@
 ## ------------------------------------------------------------
 
 ifeq ($(strip $(package_BUILD_VERSION)),)
-package_BUILD_VERSION	= @package_BUILD_VERSION@
+package_BUILD_VERSION	= 1nau
 endif
 
 ## ------------------------------------------------------------
