@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for the GNU C library interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-01 07:48:49 marco>
+;;;Time-stamp: <2008-12-04 11:51:09 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -34,8 +34,8 @@
 (import (rnrs)
   (uriel printing)
   (uriel test)
-  (uriel posix)
-  (uriel glibc))
+  (posix)
+  (glibc environment))
 
 (check-set-mode! 'report-failed)
 

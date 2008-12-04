@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: extended stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 11:16:37 marco>
+;;;Time-stamp: <2008-12-04 13:55:02 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,10 +26,14 @@
 
 (library (glibc streams-extended)
   (export
-    freadable fwritable freading fwriting
-    fwide)
+    freadable fwritable freading fwriting fwide
+    getline primitive-getline
+    getdelim primitive-getdelim
+    fpurge)
   (import (rnrs)
-    (uriel ffi))
+    (uriel lang)
+    (uriel ffi)
+    (srfi receive))
 
   (define libc
     (begin
@@ -63,14 +67,55 @@
   (define-c-function fwide
     (int fwide (FILE* int)))
 
-  (define-c-function getline
-    (ssize_t getline (void* size_t FILE*)))
+  (define-c-function/with-errno primitive-getline
+    (ssize_t getline (void* void* FILE*)))
 
-  (define-c-function getdelim
-    (ssize_t getdelim (void* size_t int FILE*)))
+  (define-c-function/with-errno primitive-getdelim
+    (ssize_t getdelim (void* void* int FILE*)))
+
+  (define (getline S count-guess)
+    (with-compensations
+      (let ((pp	(compensate-malloc/small))
+	    (pc	(compensate-malloc/small))
+	    (p	(malloc count-guess)))
+	(pointer-set-c-pointer!	pp 0 p)
+	(pointer-set-c-int!	pc 0 count-guess)
+	(receive (result errno)
+	    (primitive-getline pp pc S)
+	  (when (= -1 result)
+	    (primitive-free p)
+	    (raise-errno-error 'getline errno S count-guess))
+	  (let ((q (pointer-ref-c-pointer pp 0))
+;;;		(n (pointer-ref-c-signed-int pc 0))
+		)
+	    (begin0
+		(cstring->string/len q result)
+	      (primitive-free q)))))))
+
+  (define (getdelim S delimiter count-guess)
+    (with-compensations
+      (let ((de (char->integer delimiter)))
+	(when (< 255 de)
+	  (assertion-violation 'getdelim
+	    "expected delimiter with scalar value in range [0, 255]"
+	    delimiter))
+	(let ((pp	(compensate-malloc/small))
+	      (pc	(compensate-malloc/small))
+	      (p	(malloc count-guess)))
+	  (pointer-set-c-pointer!	pp 0 p)
+	  (pointer-set-c-int!	pc 0 count-guess)
+	  (receive (result errno)
+	      (primitive-getdelim pp pc de S)
+	    (when (= -1 result)
+	      (primitive-free p)
+	      (raise-errno-error 'getline errno S count-guess))
+	    (let ((q (pointer-ref-c-pointer pp 0))
+		  (n (pointer-ref-c-signed-int pc 0)))
+	      (begin0
+		  (cstring->string/len q result)
+		(primitive-free q))))))))
 
   (define-c-function fpurge
-    (void __fpurge (FILE*)))
-  )
+    (void __fpurge (FILE*))))
 
 ;;; end of file

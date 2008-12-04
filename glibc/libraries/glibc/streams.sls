@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 11:05:18 marco>
+;;;Time-stamp: <2008-12-04 14:16:48 marco>
 ;;;
 ;;;Abstract
 ;;;
