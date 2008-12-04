@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Nausicaa/Glibc
-;;;Contents: interface to the GNU C library for R6RS Scheme
+;;;Contents: environment functions
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-03 12:00:08 marco>
+;;;Time-stamp: <2008-12-04 11:35:21 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,32 +24,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-
-;;;; setup
-
-(library (glibc)
+(library (glibc environment)
   (export
-
-    ;;environment variables
-    clearenv
-    )
+    clearenv)
   (import (rnrs)
-    (uriel lang)
     (uriel ffi))
 
-
-;;;; environment variables
-
-;;Look for other functions in the "(uriel posix)" library!!!
-
-(define-c-function clearenv
-  (int clearenv (void)))
-
-
-
-;;;; done
-
-)
+  ;;Look for other functions in the "(uriel posix)" library!!!
+  (define-c-function clearenv
+    (int clearenv (void))))
 
 ;;; end of file

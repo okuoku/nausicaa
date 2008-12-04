@@ -434,6 +434,7 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * environment::                 Environment functions.
+* streams::                     Stream functions.
 
 Appendices
 
@@ -461,13 +462,6 @@ This document describes an interface to the @gnu{} C language library
 functions.  This library makes use of the foreign functions interface
 defined by @library{uriel ffi}.
 
-To load the library:
-
-@example
-(import (rnrs)
-  (glibc))
-@end example
-
 For all the functions only a brief description is given: we have to use
 the foreign function's own documentation to have all the details.
 
@@ -481,9 +475,439 @@ the foreign function's own documentation to have all the details.
 @chapter Environment functions
 
 
+The following functions are in the @library{glibc environment} library.
+
+
 @defun clearenv
 Unset all the variables in the environment.  Useful cleanup for security
 purposes.
+@end defun
+
+
+@c page
+@node streams
+@chapter Stream functions
+
+
+To load the main library:
+
+@example
+(import (rnrs)
+  (glibc streams))
+@end example
+
+@noindent
+other libraries have extended functions.
+
+@menu
+* streams constants::           Constants.
+* streams errors::              Detecting errors on streams.
+* streams open and close::      Opening and closing.
+* streams writing::             Writing to streams.
+* streams reading::             Reading from streams.
+* streams unreading::           Unreading to streams.
+* streams seeking::             Stream positioning.
+* streams unlocked::            Unlocked stream operations.
+* streams extended::            Extended stream operations.
+@end menu
+
+
+@c page
+@node streams constants
+@section Constants
+
+
+The following bindings are exported by @library{glibc streams} and
+@library{glibc sizeof}.
+
+
+@defvar valueof-eof
+The value of @code{EOF}.  @glibcref{EOF and Errors,EOF}
+@end defvar
+
+
+@defvar valueof-seek-set
+@defvarx valueof-seek-cur
+@defvarx valueof-seek-end
+The values of @code{SEEK_SET}, @code{SEEK_CUR} and @code{SEEK_END}.
+@glibcref{File Positioning,SEEK_SET}
+@end defvar
+
+
+@c page
+@node streams errors
+@section Detecting errors on streams
+
+
+@defun ferror @var{stream}
+@defunx primitive-ferror @var{stream}
+@func{ferror} returns @true{} if the error indicator of @var{stream} is
+set, @false{} otherwise.
+
+@func{primitive-ferror} returns 2 values: the result of the foreign
+function call and the value of @code{errno} just after the call.
+@end defun
+
+
+@defun clearerr @var{stream}
+Clear the error and end--of--file indicators for @var{stream}.
+@end defun
+
+
+@c page
+@node streams open and close
+@section Opening and closing
+
+
+@defun fopen @var{pathname} @var{mode}
+@defunx primitive-fopen @var{c-pathname} @var{c-mode}
+Open with the given mode a file selected by pathname.
+
+@var{pathname} and @var{mode} must be Scheme strings or symbols.
+@var{c-pathname} and @var{c-mode} must be C strings.
+
+If successful @func{fopen} returns a pointer to the stream, otherwise it
+raises an exception.  @func{primitive-fopen} returns 2 values: the
+result of the foreign function call and the value of @var{errno} just
+after the call.
+@end defun
+
+
+@defun fclose @var{stream}
+@defunx primitive-fclose @var{stream}
+Close the previously opened @var{stream}.
+
+If an error occurs @func{fclose} raises an exception.
+@func{primitive-fclose} returns 2 values: the result of the foreign
+function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@defun fcloseall
+@defunx primitive-fcloseall
+Close all the open streams of the process.
+
+If an error occurs @func{fcloseall} raises an exception.
+@func{primitive-fcloseall} returns 2 values: the result of the foreign
+function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@c page
+@node streams writing
+@section Writing to streams
+
+
+@defun fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@defunx primitive-fwrite @var{pointer} @var{size} @var{count} @var{stream}
+Write up to @var{count} elements of @var{size} from the block of memory
+referenced by @var{pointer} to @var{stream}.
+
+If successful @func{fwrite} returns @var{count}, otherwise an error is
+raised.  @func{primitive-fwrite} returns 2 values: the result of the
+foreign function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@defun fputc @var{char} @var{stream}
+@defunx primitive-fputc @var{c-char} @var{stream}
+Write a character to @var{stream}.
+
+@var{char} must be a Scheme character with scalar value in the range
+@code{[0, 255]}; the scalar value is computed with @func{char->integer}.
+
+@var{c-char} must be an exact integer.
+
+If successful @func{fputc} returns the scalar representing @var{char},
+otherwise an error is raised.  @func{primitive-fputc} returns 2 values:
+the result of the foreign function call and the value of @var{errno}
+just after the call.
+@end defun
+
+
+@defun fputs @var{string} @var{stream}
+@defunx primitive-fputs @var{cstring} @var{stream}
+Write a string to @var{stream}.  @var{string} must be a Scheme string or
+symbol.  @var{cstring} must be a C string.
+
+If successful @func{fputs} returns the scalar representing @var{char},
+otherwise an error is raised.  @func{primitive-fputs} returns 2 values:
+the result of the foreign function call and the value of @var{errno}
+just after the call.
+@end defun
+
+
+@defun fflush @var{stream}
+@defunx primitive-fflush @var{stream}
+Flush the contents of the buffer to the underlying device.
+
+If an error occurs @func{fflush} raises an exception.
+@func{primitive-fflush} returns 2 values: the result of the foreign
+function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@c page
+@node streams reading
+@section Reading from streams
+
+
+@defun fread @var{pointer} @var{size} @var{count} @var{stream}
+@defunx primitive-fread @var{pointer} @var{size} @var{count} @var{stream}
+Read up to @var{count} elements of @var{size} from @var{stream} and
+store them in the block of memory referenced by @var{pointer}.
+
+If successful @func{fread} returns the number of objects actually read
+(which may be less than @var{count}), otherwise an error is raised.
+@func{primitive-fread} returns 2 values: the result of the foreign
+function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@defun fgetc @var{stream}
+@defunx primitive-fgetc @var{stream}
+Read a single character from @var{stream}.
+
+If successful @func{fgetc} returns a Scheme character, otherwise an
+error is raised.  @func{primitive-fgetc} returns 2 values: the result of
+the foreign function call and the value of @var{errno} just after the
+call.
+@end defun
+
+
+@defun fgets @var{pointer} @var{count} @var{stream}
+@defunx primitive-fgets @var{pointer} @var{count} @var{stream}
+Read a line from @var{stream} and store it in the buffer of @var{count}
+bytes referenced by @var{pointer}.
+
+If successful @func{fgets} returns @var{pointer}, otherwise an error is
+raised.  @func{primitive-fgets} returns 2 values: the result of the
+foreign function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@c page
+@node streams unreading
+@section Unreading to streams
+
+
+@defun ungetc @var{char} @var{stream}
+@defunx primitive-ungetc @var{c-char} @var{stream}
+Unread a character to @var{stream}.
+
+@var{char} must be a Scheme character with scalar value in the range
+@code{[0, 255]}; the scalar value is computed with @func{char->integer}.
+
+@var{c-char} must be an exact integer.
+
+If an error occurs @func{ungetc} raises an exception.
+@func{primitive-ungetc} returns 2 values: the result of the foreign
+function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@c page
+@node streams seeking
+@section Stream positioning
+
+
+@defun feof @var{stream}
+@defunx primitive-feof @var{stream}
+@func{feof} returns @true{} if the end--of--file indicator of
+@var{stream} is set.  If an error occurs @func{feof} raises an
+exception.
+
+@func{primitive-feof} returns 2 values: the return value of the foreign
+function call and the value of @code{errno} just after the call.
+@end defun
+
+
+@defun fseek @var{stream} @var{offset} @var{whence}
+@defunx primitive-fseek @var{stream} @var{offset} @var{whence}
+Change the file position of @var{stream} to @var{offset} from
+@var{whence}.
+
+If an error occurs @func{fseek} raises an exception.
+@func{primitive-fseek} returns 2 values: the result of the foreign
+function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@defun ftell @var{stream}
+@defunx primitive-ftell @var{stream}
+@func{ftell} returns the current file position of @var{stream}.  If an
+error occurs @func{ftell} raises an exception.
+
+@func{primitive-ftell} returns 2 values: the return value of the foreign
+function call and the value of @code{errno} just after the call.
+@end defun
+
+
+@defun rewind @var{stream}
+@defunx primitive-rewind @var{stream}
+Change the file position of @var{stream} to the beginning of the file.
+
+If an error occurs @func{rewind} raises an exception.
+@func{primitive-rewind} returns 2 values: the result of the foreign
+function call and the value of @var{errno} just after the call.
+@end defun
+
+
+@c page
+@node streams unlocked
+@section Unlocked stream operations
+
+
+All the following functions are like the corresponding
+non--@code{_unlocked} variants, but they do not implicitly lock the
+stream.  They are in an independent library:
+
+@example
+(import (rnrs)
+  (glibc streams-unlocked))
+@end example
+
+
+@subsubheading Errors
+
+
+@defun ferror_unlocked @var{stream}
+@defunx primitive-ferror_unlocked @var{stream}
+Like @func{ferror} and @func{primitive-ferror}.
+@end defun
+
+
+@defun clearerr_unlocked @var{stream}
+Like @func{clearerr}.
+@end defun
+
+
+@subsubheading Writing
+
+
+@defun fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@defunx primitive-fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+Like @func{fwrite} and @func{primitive-fwrite}.
+@end defun
+
+
+@defun fputc_unlocked @var{char} @var{stream}
+@defunx primitive-fputc_unlocked @var{c-char} @var{stream}
+Like @func{fputc} and @func{primitive-fputc}.
+@end defun
+
+
+@defun fputs_unlocked @var{string} @var{stream}
+@defunx primitive-fputs_unlocked @var{cstring} @var{stream}
+Like @func{fputs} and @func{primitive-fputs}.
+@end defun
+
+
+@defun fflush_unlocked @var{stream}
+@defunx primitive-fflush_unlocked @var{stream}
+Like @func{fflush} and @func{primitive-fflush}.
+@end defun
+
+
+@subsubheading Reading
+
+
+@defun fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@defunx primitive-fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+Like @func{fread} and @func{primitive-fread}.
+@end defun
+
+
+@defun fgetc_unlocked @var{stream}
+@defunx primitive-fgetc_unlocked @var{stream}
+Like @func{fgetc} and @func{primitive-fgetc}.
+@end defun
+
+
+@defun fgets_unlocked @var{pointer} @var{count} @var{stream}
+@defunx primitive-fgets_unlocked @var{pointer} @var{count} @var{stream}
+Like @func{fgets} and @func{primitive-fgetc}.
+@end defun
+
+
+@subsubheading Seeking
+
+
+@defun feof_unlocked @var{stream}
+@defunx primitive-feof_unlocked @var{stream}
+Like @func{feof} and @func{primitive-feof}.
+@end defun
+
+
+@c page
+@node streams extended
+@section Extended stream operations
+
+
+The following functions are defined in the @library{glibc
+streams-extended} library.
+
+
+@subsubheading Inspection
+
+
+@defun freadable @var{stream}
+Return @true{} if @var{stream} was opened for reading, otherwise return
+@false{}.
+@end defun
+
+
+@defun fwritable @var{stream}
+Return @true{} if @var{stream} was opened for writing, otherwise return
+@false{}.
+@end defun
+
+
+@defun freading @var{stream}
+Return @true{} if @var{stream} was last read from, otherwise return
+@false{}.
+@end defun
+
+
+@defun fwriting @var{stream}
+Return @true{} if @var{stream} was last written to, otherwise return
+@false{}.
+@end defun
+
+
+@defun fwide @var{stream} @var{mode}
+Set or query the orientation of @var{stream}.  @var{mode} must be an
+exact integer.
+
+If @var{mode} is zero and the return value is positive: @var{stream} is
+oriented for wide characters.  If @var{mode} is zero and the return
+value is negative: @var{stream} is oriented for narrow characters.
+
+If @var{mode} is positive: @var{stream} is configured for wide
+characters.  If @var{mode} is negative: @var{stream} is configured for
+narrow characters.
+@end defun
+
+
+@subsubheading Reading lines
+
+
+@defun getline @var{pointer-pointer} @var{pointer-count} @var{stream}
+@defunx getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
+@func{getline} reads a characters from @var{stream} until a newline is
+found, then stores the characters including the newline and a
+terminating zero in a supplied buffer.
+
+A pointer to the buffer must be referenced by @var{pointer-pointer}.
+AThe block must have at least a number of bytes
+@end defun
+
+
+@subsubheading Miscellaneous
+
+
+@defun fpurge @var{stream}
+Discard the contents of the buffer.
 @end defun
 
 

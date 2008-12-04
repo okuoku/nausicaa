@@ -9,7 +9,11 @@ DS_IKARUS_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 NAUSICAA_SYSTEM_SETUP()
 NAUSICAA_C_LANGUAGE()
 NAUSICAA_SIZEOF()
-dnl AC_CONFIG_FILES([../libraries/uriel/ffi/sizeof.sls:libraries/uriel/ffi/sizeof.sls.in])
+NAUSICAA_VALUEOF_TEST([EOF],[EOF],[#f],[#include <stdio.h>])
+NAUSICAA_VALUEOF_TEST([SEEK_SET],[SEEK_SET],[#f],[#include <stdio.h>])
+NAUSICAA_VALUEOF_TEST([SEEK_CUR],[SEEK_CUR],[#f],[#include <stdio.h>])
+NAUSICAA_VALUEOF_TEST([SEEK_END],[SEEK_END],[#f],[#include <stdio.h>])
+AC_CONFIG_FILES([../libraries/glibc/sizeof.sls:libraries/glibc/sizeof.sls.in])
 NAUSICAA_END()
 
 

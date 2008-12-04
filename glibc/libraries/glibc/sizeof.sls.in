@@ -1,0 +1,40 @@
+;;;
+;;;Part of: Glibc libraries for R6RS Scheme
+;;;Contents: size of Glibc definitions
+;;;Date: Thu Dec  4, 2008
+;;;Time-stamp: <2008-12-04 07:24:34 marco>
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(library (glibc sizeof)
+  (export
+    valueof-eof
+    valueof-seek-set valueof-seek-cur valueof-seek-end
+    )
+  (import (rnrs))
+
+  (define valueof-eof		@VALUEOF_EOF@)
+  (define valueof-seek-set	@VALUEOF_SEEK_SET@)
+  (define valueof-seek-cur	@VALUEOF_SEEK_CUR@)
+  (define valueof-seek-end	@VALUEOF_SEEK_END@)
+  )
+
+;;; end of file
