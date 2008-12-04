@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: test for streams
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 18:31:03 marco>
+;;;Time-stamp: <2008-12-04 21:22:37 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -82,8 +82,6 @@ Ses ailes de geant l'empechent de marcher.
 
 ;;;; getting lines
 
-(write the-pathname)(newline)
-
 (parameterize ((testname 'getline))
 
   (check
@@ -130,19 +128,23 @@ Ses ailes de geant l'empechent de marcher.
 		   (*count	(compensate-malloc/small))
 		   (getp	(lambda ()
 				  (pointer-ref-c-pointer *pointer 0)))
+		   (free	(lambda ()
+				  (let ((p (getp)))
+				    (unless (pointer-null? p)
+				      (primitive-free p)))))
 		   (lines	'()))
 
 	    (fwrite (s->c the-string) 1
-		    (string-length the-string-newline) S)
+		    (string-length the-string) S)
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
 	      (receive (result errno)
 		  (primitive-getline *pointer *count S)
 		(cond ((ferror S)
-		       (primitive-free (getp))
+		       (free)
 		       (raise-errno-error 'reading-line errno S))
 		      ((= -1 result)
-		       (primitive-free (getp))
+		       (free)
 		       (reverse lines))
 		      (else
 		       (set! lines
@@ -167,7 +169,8 @@ Ses ailes de geant l'empechent de marcher.
 		   (lines	'()))
 
 	    (fwrite (s->c the-string-newline) 1
-		    (string-length the-string-newline) S)
+		    (string-length the-string-newline)
+		    S)
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
 	      (receive (result errno)
@@ -242,7 +245,7 @@ Ses ailes de geant l'empechent de marcher.
 		   (lines	'()))
 
 	    (fwrite (s->c the-string) 1
-		    (string-length the-string-newline) S)
+		    (string-length the-string) S)
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
 	      (receive (result errno)

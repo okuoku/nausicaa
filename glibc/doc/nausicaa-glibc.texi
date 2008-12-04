@@ -933,32 +933,40 @@ with an integer representation in the range @code{[0, 255]}.
 Interfaces to the foreign functions @cfunc{getline} and
 @cfunc{getdelim}.  Read the original documentation for details.
 
+As a usage example, the following code reads one line at a time from a
+file and accumulates them in the @code{lines} variables:
+
 @example
 (let* ((pathname the-pathname))
-        (with-compensations
-          (letrec ((S (compensate
-                          (fopen pathname "w+")
-                        (with (fclose S))))
-                   (*pointer (compensate-malloc/small))
-                   (*count   (compensate-malloc/small))
-                   (lines    '()))
-            (let loop ()
-              (receive (result errno)
-                  (primitive-getline *pointer *count S)
-                (cond ((ferror S)
-                       (primitive-free (pointer-ref-c-pointer *pointer 0))
-                       (raise-errno-error 'reading-line errno S))
-                      ((= -1 result)
-                       (primitive-free (pointer-ref-c-pointer *pointer 0))
-                       (reverse lines))
-                      (else
-                       (let ((p (pointer-ref-c-pointer *pointer 0)))
-                         (set! lines (cons (cstring->string/len p result) lines))
-                         (if (feof S)
-                             (begin
-                               (primitive-free p)
-                               (reverse lines))
-                           (loop))))))))))
+  (with-compensations
+    (letrec ((S (compensate
+                    (fopen pathname "w+")
+                  (with (fclose S))))
+             (*pointer    (compensate-malloc/small))
+             (*count      (compensate-malloc/small))
+             (getp        (lambda ()
+                            (pointer-ref-c-pointer *pointer 0)))
+             (free        (lambda ()
+                            (let ((p (getp)))
+                              (unless (pointer-null? p)
+                                (primitive-free p)))))
+             (lines       '()))
+      (let loop ()
+        (receive (result errno)
+            (primitive-getline *pointer *count S)
+          (cond ((ferror S)
+                 (free)
+                 (raise-errno-error 'reading-line errno S))
+;;; here EOF was found, return the result
+                ((= -1 result)
+                 (free)
+                 (reverse lines))
+;;; accumulate the result
+                (else
+                 (set! lines
+                       (cons (cstring->string/len (getp) result)
+                             lines))
+                 (loop))))))))
 @end example
 @end defun
 

@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: extended stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 18:20:12 marco>
+;;;Time-stamp: <2008-12-04 21:24:40 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -79,14 +79,18 @@
       (let* ((*pointer	(compensate-malloc/small))
 	     (*count	(compensate-malloc/small))
 	     (getp	(lambda ()
-			  (pointer-ref-c-pointer *pointer 0))))
+			  (pointer-ref-c-pointer *pointer 0)))
+	     (free	(lambda ()
+			  (let ((p (getp)))
+			    (unless (pointer-null? p)
+			      (primitive-free p))))))
 	(receive (result errno)
 	    (primitive-getline *pointer *count stream)
 	  (cond ((ferror stream)
-		 (primitive-free (getp))
+		 (free)
 		 (raise-errno-error 'getline errno stream))
 		((= -1 result)
-		 (primitive-free (getp))
+		 (free)
 		 "")
 		(else
 		 (let ((p (getp)))
@@ -104,14 +108,18 @@
 	(let* ((*pointer	(compensate-malloc/small))
 	       (*count		(compensate-malloc/small))
 	       (getp		(lambda ()
-				  (pointer-ref-c-pointer *pointer 0))))
+				  (pointer-ref-c-pointer *pointer 0)))
+	       (free		(lambda ()
+				  (let ((p (getp)))
+				    (unless (pointer-null? p)
+				      (primitive-free p))))))
 	  (receive (result errno)
 	      (primitive-getdelim *pointer *count delimiter stream)
 	    (cond ((ferror stream)
-		   (primitive-free (getp))
+		   (free)
 		   (raise-errno-error 'getline errno stream))
 		  ((= -1 result)
-		   (primitive-free (getp))
+		   (free)
 		   "")
 		  (else
 		   (let ((p (getp)))
