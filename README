@@ -67,7 +67,7 @@ packages of the SRFI and Uriel projects, because most of the
 projects  depend  on  them.   For some  projects  the  Uriel
 package is required only to run the test suite.
 
-  For you  own safety, take this advice:  never, ever, drive
+  For your own safety,  take this advice: never, ever, drive
 building  and  installation  of  packages  from  the  source
 directory  of a  project; always  create a  subdirectory and
 move into it:
