@@ -9,7 +9,6 @@
   script  rather than  "scheme-script",  so  that, in  some  way, it  is
   possible to run them with both Ikarus and Ypsilon.
 * Document somewhere that ypsilon requires the --compatible flag.
-* Review the infrastructure documentation.
 
 ## ------------------------------------------------------------
 
@@ -25,7 +24,6 @@ Ice-9
 Uriel
 -----
 
-* Fix the string conversion functions for ypsilon.
 * Add make-callback to the ffi.
 * Document  the problems  with define-macro  regarding  environment from
   which bindings are captured (put it in Ikarus guide?).
@@ -62,6 +60,19 @@ IrRegex
 * Add documentation for the regexps.
 * Fix the problem of "|---|"  symbols that are not recognised by Ypsilon
   with the --r6rs option, but are with the --compatible option.
+
+
+POSIX
+-----
+
+* Add the scatter/gather interface.
+
+
+Glibc
+-----
+
+* Add the mmap interface.
+* Find a way to add the select interface.
 
 
 ### end of file
