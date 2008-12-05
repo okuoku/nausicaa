@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-04 18:28:45 marco>
+;;;Time-stamp: <2008-12-05 11:02:51 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -307,12 +307,12 @@
 	  ((0)
 	   (lambda ()
 	     (values (cast-func (stub-func f 0))
-		     (shared-object-c-errno))))
+		     (shared-object-errno))))
 	  ((1)
 	   (let ((mapper (car mappers)))
 	     (lambda (arg)
 	       (values (cast-func (stub-func f (mapper arg)))
-		       (shared-object-c-errno)))))
+		       (shared-object-errno)))))
 	  ((2)
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers)))
@@ -320,7 +320,7 @@
 	       (values (cast-func (stub-func f
 					     (mapper1 arg1)
 					     (mapper2 arg2)))
-		       (shared-object-c-errno)))))
+		       (shared-object-errno)))))
 	  ((3)
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers))
@@ -330,7 +330,7 @@
 					     (mapper1 arg1)
 					     (mapper2 arg2)
 					     (mapper3 arg3)))
-		       (shared-object-c-errno)))))
+		       (shared-object-errno)))))
 	  ((4)
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers))
@@ -342,7 +342,7 @@
 					     (mapper2 arg2)
 					     (mapper3 arg3)
 					     (mapper4 arg4)))
-		       (shared-object-c-errno)))))
+		       (shared-object-errno)))))
 	  (else
 	   (lambda args
 	     (unless (= (length args) (length mappers))
@@ -352,7 +352,7 @@
 	     (values (cast-func (apply stub-func f
 				       (map (lambda (m a)
 					      (m a)) mappers args)))
-		     (shared-object-c-errno)))))))))
+		     (shared-object-errno)))))))))
 
 
 

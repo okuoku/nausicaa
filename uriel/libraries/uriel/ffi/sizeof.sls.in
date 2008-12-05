@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-27 17:09:18 marco>
+;;;Time-stamp: <2008-12-05 07:03:17 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,8 +26,8 @@
 
 (library (uriel ffi sizeof)
   (export
-    sizeof-short-int sizeof-int sizeof-long sizeof-pointer
-    sizeof-long-long
+    sizeof-short-int sizeof-int sizeof-long sizeof-long-long
+    sizeof-pointer
 
     valueof-char-max		valueof-char-min
     valueof-schar-max		valueof-schar-min	valueof-uchar-max
@@ -39,31 +39,31 @@
     words-bigendian		on-64-bits-system	on-32-bits-system)
   (import (rnrs))
 
-  (define sizeof-short-int @SIZEOF_SHORT_INT@)
-  (define sizeof-int @SIZEOF_INT@)
-  (define sizeof-long @SIZEOF_LONG@)
-  (define sizeof-long-long @SIZEOF_LLONG@)
-  (define sizeof-pointer @SIZEOF_POINTER@)
+  (define sizeof-short-int		@SIZEOF_SHORT_INT@)
+  (define sizeof-int			@SIZEOF_INT@)
+  (define sizeof-long			@SIZEOF_LONG@)
+  (define sizeof-long-long		@SIZEOF_LLONG@)
+  (define sizeof-pointer		@SIZEOF_POINTER@)
 
-  (define valueof-char-max @VALUEOF_CHAR_MAX@)
-  (define valueof-char-min @VALUEOF_CHAR_MIN@)
-  (define valueof-schar-max @VALUEOF_SCHAR_MAX@)
-  (define valueof-schar-min @VALUEOF_SCHAR_MIN@)
-  (define valueof-uchar-max @VALUEOF_UCHAR_MAX@)
-  (define valueof-shrt-max @VALUEOF_SHRT_MAX@)
-  (define valueof-shrt-min @VALUEOF_SHRT_MIN@)
-  (define valueof-ushrt-max @VALUEOF_USHRT_MAX@)
-  (define valueof-int-max @VALUEOF_INT_MAX@)
-  (define valueof-int-min @VALUEOF_INT_MIN@)
-  (define valueof-uint-max @VALUEOF_UINT_MAX@)
-  (define valueof-long-max @VALUEOF_LONG_MAX@)
-  (define valueof-long-min @VALUEOF_LONG_MIN@)
-  (define valueof-ulong-max @VALUEOF_ULONG_MAX@)
-  (define valueof-long-long-max @VALUEOF_LLONG_MAX@)
-  (define valueof-long-long-min @VALUEOF_LLONG_MIN@)
-  (define valueof-ulong-long-max @VALUEOF_ULLONG_MAX@)
-  (define valueof-wchar-max @VALUEOF_WCHAR_MAX@)
-  (define valueof-ssize-max @VALUEOF_SSIZE_MAX@)
+  (define valueof-char-max		@VALUEOF_CHAR_MAX@)
+  (define valueof-char-min		@VALUEOF_CHAR_MIN@)
+  (define valueof-schar-max		@VALUEOF_SCHAR_MAX@)
+  (define valueof-schar-min		@VALUEOF_SCHAR_MIN@)
+  (define valueof-uchar-max		@VALUEOF_UCHAR_MAX@)
+  (define valueof-shrt-max		@VALUEOF_SHRT_MAX@)
+  (define valueof-shrt-min		@VALUEOF_SHRT_MIN@)
+  (define valueof-ushrt-max		@VALUEOF_USHRT_MAX@)
+  (define valueof-int-max		@VALUEOF_INT_MAX@)
+  (define valueof-int-min		@VALUEOF_INT_MIN@)
+  (define valueof-uint-max		@VALUEOF_UINT_MAX@)
+  (define valueof-long-max		@VALUEOF_LONG_MAX@)
+  (define valueof-long-min		@VALUEOF_LONG_MIN@)
+  (define valueof-ulong-max		@VALUEOF_ULONG_MAX@)
+  (define valueof-long-long-max		@VALUEOF_LLONG_MAX@)
+  (define valueof-long-long-min		@VALUEOF_LLONG_MIN@)
+  (define valueof-ulong-long-max	@VALUEOF_ULLONG_MAX@)
+  (define valueof-wchar-max		@VALUEOF_WCHAR_MAX@)
+  (define valueof-ssize-max		@VALUEOF_SSIZE_MAX@)
 
   (define on-32-bits-system (= sizeof-int 4))
   (define on-64-bits-system (= sizeof-int 8))

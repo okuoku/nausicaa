@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: tests for graph notation
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-01 07:44:03 marco>
+;;;Time-stamp: <2008-12-05 11:14:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -42,21 +42,21 @@
 
 (check
     '#0=(1 . #0#)
-  => (let ((v '(1 . #f)))
-       (set-cdr! v v)
-       v))
+    => (let ((v '(1 . #f)))
+	 (set-cdr! v v)
+	 v))
 
 (check
     '#0=(1 #0#)
-  => (let ((v '(1 #f)))
-       (set-car! (cdr v) v)
-       v))
+    => (let ((v '(1 #f)))
+	 (set-car! (cdr v) v)
+	 v))
 
 (check
     '#0=(1 2 3 #0#)
-  => (let ((v '(1 2 3 #f)))
-       (set-car! (cdddr v) v)
-       v))
+    => (let ((v '(1 2 3 #f)))
+	 (set-car! (cdddr v) v)
+	 v))
 
 (check
     '#0=(#1=(10 #8# 12)
@@ -69,34 +69,34 @@
 	    #8=(80 81 82)
 	    #9=(90 91 #7#)
 	    )
-  => (let ((v '((10 11 12)
-		(20 21 22)
-		(30 31 32)
-		(40 41 42)
-		(50 51 52)
-		(60 61 62)
-		(70 71 72)
-		(80 81 82)
-		(90 91 92))))
+    => (let ((v '((10 11 12)
+		  (20 21 22)
+		  (30 31 32)
+		  (40 41 42)
+		  (50 51 52)
+		  (60 61 62)
+		  (70 71 72)
+		  (80 81 82)
+		  (90 91 92))))
 
-       ;;#1
-       (set-car! (cdr (first v)) (eighth v))
-       ;;#3
-       (let ((l (third v)))
-	 (set-car! l (fifth v))
-	 (set-car! (cdr l) (fourth v))
-	 (set-car! (cddr l) (third v)))
-       ;;#4
-       (set-car! (cdr (fourth v)) (ninth v))
-       ;;#5
-       (set-car! (fifth v) (second v))
-       ;;#7
-       (let ((l (seventh v)))
-	 (set-car! l (first v))
-	 (set-car! (cddr l) (second v)))
-       ;;#9
-       (set-car! (cddr (ninth v)) (seventh v))
-       v))
+	 ;;#1
+	 (set-car! (cdr (first v)) (eighth v))
+	 ;;#3
+	 (let ((l (third v)))
+	   (set-car! l (fifth v))
+	   (set-car! (cdr l) (fourth v))
+	   (set-car! (cddr l) (third v)))
+	 ;;#4
+	 (set-car! (cdr (fourth v)) (ninth v))
+	 ;;#5
+	 (set-car! (fifth v) (second v))
+	 ;;#7
+	 (let ((l (seventh v)))
+	   (set-car! l (first v))
+	   (set-car! (cddr l) (second v)))
+	 ;;#9
+	 (set-car! (cddr (ninth v)) (seventh v))
+	 v))
 
 
 
