@@ -808,6 +808,32 @@ NAUSICAA_VALUEOF_TEST([EOWNERDEAD],[EOWNERDEAD],[#f],[#include <errno.h>])
 NAUSICAA_VALUEOF_TEST([ENOTRECOVERABLE],[ENOTRECOVERABLE],[#f],[#include <errno.h>])
 ])
 
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_OFFSETOF_TEST(<1 SUFFIX>,<2 STRUCT>,
+dnl                          <3 FIELD>,<4 HEADERS>)
+dnl
+dnl Description:
+dnl
+dnl   A wrapper for "AC_COMPUTE_INT" that acquires the offset of a
+dnl   field in a C data structure.   <STRUCT> is the type of the struct,
+dnl   <FIELD> is the name of the field.
+dnl
+dnl   The output variable "OFFSETOF_<SUFFIX>" is set to the result.
+dnl
+dnl   If not empty: <HEADERS> must be a chunk of code including header
+dnl   files.
+dnl
+AC_DEFUN([NAUSICAA_OFFSETOF_TEST],[
+AC_MSG_CHECKING([the offset of field '$3' in '$2'])
+AC_COMPUTE_INT([OFFSETOF_$1],[offsetof($2,$3)],[AC_INCLUDES_DEFAULT
+$4
+],[OFFSETOF_$1='#f'])
+AC_SUBST([OFFSETOF_$1])
+AC_MSG_RESULT([${OFFSETOF_$1}])
+])
+
+
 dnl end of file
 dnl Local Variables:
 dnl mode: autoconf
