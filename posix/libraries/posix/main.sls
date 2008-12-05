@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to POSIX functions for R6RS Scheme
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-03 11:50:42 marco>
+;;;Time-stamp: <2008-12-05 09:19:12 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -45,12 +45,6 @@
     (uriel ffi)
     (uriel ffi errno)
     (srfi receive))
-
-
-
-;;;; helpers
-
-
 
 
 ;;;; environment variables

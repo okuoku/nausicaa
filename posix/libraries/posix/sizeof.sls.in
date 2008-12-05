@@ -1,0 +1,101 @@
+;;;
+;;;Part of: Nausicaa/POSIX
+;;;Contents: size of definitions
+;;;Date: Fri Dec  5, 2008
+;;;Time-stamp: <2008-12-05 14:09:28 marco>
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(library (posix sizeof)
+  (export
+    mode_t		off_t
+
+    sizeof-struct-flock
+
+    O_ACCMODE		O_CREAT		O_EXCL
+    O_EXEC		O_EXLOCK	O_IGNORE_CTTY
+    O_NOCTTY		O_NOLINK	O_NONBLOCK
+    O_NOTRANS		O_RDONLY	O_RDWR
+    O_READ		O_SHLOCK	O_TRUNC
+    O_WRITE		O_WRONLY	O_APPEND
+    O_NDELAY
+
+    F_DUPFD		F_GETFD		F_GETFL
+    F_GETLK		F_GETOWN	F_SETFD
+    F_SETFL		F_SETLKW	F_SETLK
+    F_SETOWN
+
+    FD_CLOEXEC
+
+    F_RDLCK		F_WRLCK		F_UNLCK
+    )
+  (import (rnrs))
+
+  (define mode_t		(quote @TYPEOF_MODE_T@))
+  (define off_t			(quote @TYPEOF_OFF_T@))
+
+  (define sizeof-struct-flock	@SIZEOF_STRUCT_FLOCK@)
+
+  (define O_ACCMODE		@VALUEOF_O_ACCMODE@)
+  (define O_APPEND		@VALUEOF_O_APPEND@)
+  (define O_ASYNC		@VALUEOF_O_ASYNC@)
+  (define O_CREAT		@VALUEOF_O_CREAT@)
+  (define O_EXCL		@VALUEOF_O_EXCL@)
+  (define O_EXEC		@VALUEOF_O_EXEC@)
+  (define O_EXLOCK		@VALUEOF_O_EXLOCK@)
+  (define O_FSYNC		@VALUEOF_O_FSYNC@)
+  (define O_IGNORE_CTTY		@VALUEOF_O_IGNORE_CTTY@)
+  (define O_NDELAY		@VALUEOF_O_NDELAY@)
+  (define O_NOATIME		@VALUEOF_O_NOATIME@)
+  (define O_NOCTTY		@VALUEOF_O_NOCTTY@)
+  (define O_NOLINK		@VALUEOF_O_NOLINK@)
+  (define O_NONBLOCK		@VALUEOF_O_NONBLOCK@)
+  (define O_NOTRANS		@VALUEOF_O_NOTRANS@)
+  (define O_RDONLY		@VALUEOF_O_RDONLY@)
+  (define O_RDWR		@VALUEOF_O_RDWR@)
+  (define O_READ		@VALUEOF_O_READ@)
+  (define O_SHLOCK		@VALUEOF_O_SHLOCK@)
+  (define O_SYNC		@VALUEOF_O_SYNC@)
+  (define O_TRUNC		@VALUEOF_O_TRUNC@)
+  (define O_WRITE		@VALUEOF_O_WRITE@)
+  (define O_WRONLY		@VALUEOF_O_WRONLY@)
+
+  (define F_DUPFD		@VALUEOF_F_DUPFD@)
+  (define F_GETFD		@VALUEOF_F_GETFD@)
+  (define F_GETFL		@VALUEOF_F_GETFL@)
+  (define F_GETLK		@VALUEOF_F_GETLK@)
+  (define F_GETOWN		@VALUEOF_F_GETOWN@)
+  (define F_SETFD		@VALUEOF_F_SETFD@)
+  (define F_SETFL		@VALUEOF_F_SETFL@)
+  (define F_SETLKW		@VALUEOF_F_SETLKW@)
+  (define F_SETLK		@VALUEOF_F_SETLK@)
+  (define F_SETOWN		@VALUEOF_F_SETOWN@)
+
+  (define FD_CLOEXEC		@VALUEOF_FD_CLOEXEC@)
+
+  (define F_RDLCK		@VALUEOF_F_RDLCK@)
+  (define F_WRLCK		@VALUEOF_F_WRLCK@)
+  (define F_UNLCK		@VALUEOF_F_UNLCK@)
+
+
+  )
+
+;;; end of file

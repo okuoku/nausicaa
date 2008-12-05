@@ -436,6 +436,7 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * posix environment::           Environment variables.
 * posix working directory::     The working directory.
+* fd::                          File descriptors.
 
 Appendices
 
@@ -545,6 +546,555 @@ be a C string.  Return two values: the return value from the function,
 an exact integer, and the value of @code{errno} just after the call to
 the foreign function.
 @end defun
+
+
+@c page
+@node fd
+@chapter File descriptors
+
+
+File descriptor arguments and return values are handled at the Scheme
+level as exact integers.
+
+
+@menu
+* fd constants::                Variables holding constant values.
+* fd open close::               Opening and closing.
+* fd read write::               Reading and writing.
+* fd seek::                     Setting the file position.
+* fd sync::                     Synchronisation.
+* fd control::                  Control operations.
+* fd dup::                      Duplicating file descriptors.
+* fd lock::                     File locks.
+@end menu
+
+
+@c page
+@node fd constants
+@section Variables holding constant values
+
+
+@menu
+* fd constants status::         File status flags.
+* fd constants control::        File control flags.
+* fd constants seek::           File positions.
+* fd constants lock::           Locking.
+@end menu
+
+
+@c page
+@node fd constants status
+@subsection File status flags
+
+
+Read the original documentation @glibcref{File Status Flags}  If a value
+is not defined on the underlying platform: the corresponding variable is
+set to @false{}.
+
+
+@defvar O_RDONLY
+@defvarx O_WRONLY
+@defvarx O_RDWR
+File access modes to be used with @func{open}.
+@end defvar
+
+
+@defvar O_EXEC
+@defvarx O_READ
+@defvarx O_WRITE
+These are @gnu{} only values.  @code{O_EXEC} is used with @func{open} to
+open a file for execution.  @code{O_READ} and @code{O_WRITE} are like
+@code{O_RDONLY} and @code{O_WRONLY}.
+@end defvar
+
+
+@defvar O_ACCMODE
+To be used with @func{fcntl} to query the open access mode of file
+descriptors.
+@end defvar
+
+
+@defvar O_CREAT
+@defvarx O_EXCL
+@defvarx O_APPEND
+@defvarx O_NONBLOCK
+@defvarx O_NOCTTY
+Open--time flags to be used with @func{open}.
+@end defvar
+
+
+@defvar O_NDELAY
+@acronym{BSD} only alias for @code{O_NONBLOCK}.
+@end defvar
+
+
+@defvar O_IGNORE_CTTY
+@defvarx O_NOLINK
+@defvarx O_NOTRANS
+@gnu{} only file name translation flags to be used with @func{open}.
+@end defvar
+
+
+@defvar O_TRUNC
+Open--time action flags to be used with @func{open}.
+@end defvar
+
+
+@defvar O_SHLOCK
+@defvarx O_EXLOCK
+@acronym{BSD} only flags to be used with @func{open}.
+@end defvar
+
+
+@defvar O_ASYNC
+@defvarx O_FSYNC
+@defvarx O_SYNC
+@acronym{BSD} only flags to be used with @func{open}.
+@end defvar
+
+
+@defvar O_NOATIME
+@gnu{} only flag to be used with @func{open}.
+@end defvar
+
+
+@c page
+@node fd constants control
+@subsection File control flags
+
+
+The following variables hold constants to be used as @var{operation}
+argument in calls to @func{fcntl}.
+
+
+@defvar F_GETFL
+@defvarx F_SETFL
+Set/get the status of a file.
+@end defvar
+
+
+@defvar F_DUPFD
+Duplicate the file descriptor.
+@end defvar
+
+
+@defvar F_GETFD
+@defvarx F_SETFD
+Set/get the status of a file descriptor.
+@end defvar
+
+
+@defvar F_SETLK
+@defvarx F_GETLK
+@defvarx F_SETLKW
+Set/get a file lock.  @code{F_SETLKW} sets a file lock, but waits for
+completion.
+@end defvar
+
+
+@defvar F_GETOWN
+@defvarx F_SETOWN
+Set/get process to receive @code{SIGIO} signals.
+@end defvar
+
+
+@defvar FD_CLOEXEC
+State that the file descriptor has to be closed if an @cfunc{exec} is
+performed.
+@end defvar
+
+
+@c page
+@node fd constants seek
+@subsection File positions
+
+
+Notice that the following values are exported also by the @library{glibc
+sizeof} library, under the name of @code{valueof-seek-set},
+@code{valueof-seek-cur}, @code{valueof-seek-end}.
+
+
+@defvar SEEK_SET
+@defvarx SEEK_CUR
+@defvarx SEEK_END
+File positions for the @var{whence} argument to @func{lseek}.
+@end defvar
+
+
+@c page
+@node fd constants lock
+@subsection Locking
+
+
+@defvar F_RDLCK
+@defvarx F_WRLCK
+@defvarx F_UNLCK
+Flags for file descriptor locking.
+@end defvar
+
+
+@c page
+@node fd open close
+@section Opening and closing
+
+
+@glibcref{Opening and Closing Files,Opening and Closing Files}
+
+
+@defun open @var{pathname} @var{open-mode} @var{permissions}
+@defunx primitive-open @var{c-pathname} @var{open-mode} @var{permissions}
+Open with @var{open-mode} the file selected by @var{pathname}.  If the
+file is created, it is created with @var{permissions}.
+
+@var{pathname} must be a Scheme string or symbol.  @var{c-pathname} must
+be a C string.  @var{open-mode} and @var{permissions} must be exact
+integers.
+
+If successful @func{open} returns a file descriptor, otherwise it raises
+an exception.  @func{primitive-open} returns 2 values: the return value
+of the foreign function call and the value of @code{errno} just after
+the call.
+
+If @func{open} fails with @code{errno} set to @code{EINTR}: it loops
+retrying the operation.
+
+The @var{open-mode} argument can be built by selecting one of the
+constants @code{O_RDWR}, @code{O_RDONLY} and @code{O_WRONLY} and
+optionally composing it, by means of @func{bitwise-ior}, with some of
+the other constants like @code{O_TRUNC}, @code{O_EXCL},
+@code{O_NONBLOCK}.
+
+The @var{permissions} argument is best given as an octal exact integer.
+Here are examples of the most common values, where: @code{r} stands for
+readable, @code{w} for writable, @code{x} for executable:
+
+@multitable {#o755} {user perms} {group perms} {other perms}
+@headitem mode @tab user perms @tab group perms @tab other perms
+@item @code{#o640}
+@tab @code{rw-}
+@tab @code{r--}
+@tab @code{---}
+@item @code{#o400}
+@tab @code{r--}
+@tab @code{---}
+@tab @code{---}
+@item @code{#o644}
+@tab @code{rw-}
+@tab @code{r--}
+@tab @code{r--}
+@item @code{#o755}
+@tab @code{rwx}
+@tab @code{r-x}
+@tab @code{r-x}
+@end multitable
+
+Example:
+
+@example
+(open "/tmp/marco/name.ext"
+      (bitwise-ior O_CREAT O_EXCL O_WRONLY)
+      #o640)
+@end example
+@end defun
+
+
+@defun close @var{fd}
+@defunx primitive-close @var{fd}
+Close the file descriptor @var{fd}.
+
+If an error occurs @func{close} raises an exception.
+@func{primitive-close} returns 2 values: the return value of the foreign
+function call and the value of @code{errno} just after the call.
+
+If @func{close} fails with @code{errno} set to @code{EINTR}: it loops
+retrying the operation.
+@end defun
+
+
+@c page
+@node fd read write
+@section Reading and writing
+
+
+@glibcref{I/O Primitives,Input and Output Primitives}
+
+
+The functions @func{read} and @func{write} defined below have the same
+names of the @func{read} and @func{write} defined by @rnrs{6}.  So when
+importing @library{posix fd} we have to make use of some augmented
+import specification.  For example the following avoids importing the
+@rnrs{6} procedures:
+
+@example
+(import (except (rnrs) read write)
+  (posix fd))
+@end example
+
+@noindent
+and the following prefixes with @code{posix:} all the functions from
+@library{posix fd}:
+
+@example
+(import (rnrs)
+  (prefix (posix fd) posix:))
+@end example
+
+@glibcref{I/O Primitives,Input and Output Primitives}
+
+
+@subsubheading Reading
+
+
+@defun read @var{fd} @var{pointer} @var{buffer-size}
+@defunx primitive-read @var{fd} @var{pointer} @var{buffer-size}
+Read at most @var{buffer-size} bytes from @var{fd}, starting at the
+current file position, and store them in the buffer referenced by
+@var{pointer}.  The file position is advanced.
+
+If successful @func{read} returns the number of bytes read, otherwise it
+raises an exception.  @func{primitive-read} returns 2 values: the return
+value of the foreign function call and the value of @code{errno} just
+after the call.
+
+If @func{read} fails with @code{errno} set to @code{EINTR}: it loops
+retrying the operation.
+@end defun
+
+
+@defun pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@defunx primitive-pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+Read at most @var{buffer-size} bytes from @var{fd}, starting at
+@var{offset} from the start of the file, and store them in the buffer
+referenced by @var{pointer}.  The file position is left untouched.
+
+If successful @func{pread} returns the number of bytes read, otherwise
+it raises an exception.  @func{primitive-pread} returns 2 values: the
+return value of the foreign function call and the value of @code{errno}
+just after the call.
+
+If @func{pread} fails with @code{errno} set to @code{EINTR}: it loops
+retrying the operation.
+@end defun
+
+
+@subsubheading Writing
+
+
+@defun write @var{fd} @var{pointer} @var{buffer-size}
+@defunx primitive-write @var{fd} @var{pointer} @var{buffer-size}
+Write to @var{fd}, starting at the current file position, at most
+@var{buffer-size} bytes from the buffer referenced by @var{pointer}.
+The file position is advanced.
+
+If successful @func{write} returns the number of bytes actually written,
+otherwise it raises an exception.  @func{primitive-write} returns 2
+values: the return value of the foreign function call and the value of
+@code{errno} just after the call.
+
+If @func{write} fails with @code{errno} set to @code{EINTR}: it loops
+retrying the operation.
+@end defun
+
+
+@defun pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@defunx primitive-pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+Write to @var{fd}, starting at @var{offset} from the start of the file,
+at most @var{buffer-size} bytes from the buffer referenced by
+@var{pointer}.  The file position is left untouched.
+
+If successful @func{pwrite} returns the number of bytes write, otherwise
+it raises an exception.  @func{primitive-pwrite} returns 2 values: the
+return value of the foreign function call and the value of @code{errno}
+just after the call.
+
+If @func{pwrite} fails with @code{errno} set to @code{EINTR}: it loops
+retrying the operation.
+@end defun
+
+
+@c page
+@node fd seek
+@section Setting the file position
+
+
+@glibcref{File Position Primitive,Setting the File Position of a Descriptor}
+
+
+@defun lseek @var{fd} @var{offset} @var{whence}
+@defunx primitive-lseek @var{fd} @var{offset} @var{whence}
+Move the file position of @var{fd} at @var{offset} from the position
+selected with @var{whence}, which must the value of a variable among
+@code{SEEK_SET}, @code{SEEK_CUR}, @code{SEEK_END}.
+
+If successful @func{lseek} returns the number of bytes from the
+beginning of the file to the selected file position, otherwise it raises
+an exception.  @func{primitive-lseek} returns 2 values: the return value
+of the foreign function call and the value of @code{errno} just after
+the call.
+
+@quotation
+It seems that @cfunc{lseek} cannot be interrupted by @code{EINTR}.
+@end quotation
+@end defun
+
+
+We can use the return value to acquire the current file position with:
+
+@example
+(lseek fd 0 SEEK_CUR)
+@end example
+
+@noindent
+which will leave the file position unchanged.  We can determine the file
+size with:
+
+@example
+(define (file-size-from-descriptor fd)
+  (let ((current-position (lseek fd 0 SEEK_CUR))
+        (file-size        (lseek fd 0 SEEK_END)))
+    (lseek fd current-position SEEK_SET)
+    file-size))
+@end example
+
+
+@c page
+@node fd sync
+@section Synchronisation
+
+
+@glibcref{Synchronizing I/O,Synchronizing I/O}
+
+
+@defun sync
+@defunx primitive-sync
+Synchronise data for all the file descriptors with the underlying
+devices.  Does not return until the operation is terminated.
+
+If an error occurs @func{sync} raises an exception.
+@func{primitive-sync} returns 2 values: the return value of the foreign
+function call and the value of @code{errno} just after the call.
+@end defun
+
+
+@defun fsync @var{fd}
+@defunx primitive-fsync @var{fd}
+Synchronise data for @var{fd} with the underlying device.
+
+If an error occurs @func{fsync} raises an exception.
+@func{primitive-fsync} returns 2 values: the return value of the foreign
+function call and the value of @code{errno} just after the call.
+@end defun
+
+
+@defun fdatasync @var{fd}
+@defunx primitive-fdatasync @var{fd}
+Flushes the output buffer of @var{fd} to the underlying device.  This
+function does not synchronise the meta data (like the access time).
+
+If an error occurs @func{fdatasync} raises an exception.
+@func{primitive-fdatasync} returns 2 values: the return value of the
+foreign function call and the value of @code{errno} just after the call.
+@end defun
+
+
+
+@c page
+@node fd control
+@section Control operations
+
+
+@glibcref{Control Operations,Control Operations on Files}
+
+
+@defun fcntl @var{fd} @var{operation} @var{arg}
+@defunx primitive-fcntl @var{fd} @var{operation} @var{arg}
+Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
+and @var{arg} must be exact integers.  @ref{fd constants control} for
+the list of the supported operations.
+
+@func{fcntl} assumes that if the return value is @code{-1} an error
+occurred, so it raises an exception.  @func{primitive-fcntl} returns 2
+values: the return value of the foreign function call and the value of
+@code{errno} just after the call.
+@end defun
+
+
+@glibcref{IOCTLs, I/O Control Operations}
+
+
+@defun ioctl @var{fd} @var{operation} @var{arg}
+@defunx primitive-ioctl @var{fd} @var{operation} @var{arg}
+Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
+and @var{arg} must be exact integers.  @ref{fd constants control} for
+the list of the supported operations.
+
+@func{ioctl} assumes that if the return value is @code{-1} an error
+occurred, so it raises an exception.  @func{primitive-ioctl} returns 2
+values: the return value of the foreign function call and the value of
+@code{errno} just after the call.
+@end defun
+
+
+@c page
+@node fd dup
+@section Duplicating file descriptors
+
+
+@glibcref{Duplicating Descriptors,Duplicating Descriptors}
+
+
+@defun dup @var{fd}
+@defunx primitive-dup @var{fd}
+Duplicate @var{fd}.
+
+If successful @func{dup} returns the new file descriptor, otherwise it
+raises an exception.  @func{primitive-dup} returns 2 values: the return
+value of the foreign function call and the value of @code{errno} just
+after the call.
+@end defun
+
+
+@defun dup2 @var{old-fd} @var{new-fd}
+@defunx primitive-dup @var{old-fd} @var{new-fd}
+Copies @var{old-fd} to @var{new-fd}.
+
+If successful @func{dup} returns the new file descriptor, otherwise it
+raises an exception.  @func{primitive-dup} returns 2 values: the return
+value of the foreign function call and the value of @code{errno} just
+after the call.
+@end defun
+
+
+@c page
+@node fd lock
+@section File locks
+
+
+@glibcref{File Locks,File Locks}
+
+
+Locking is performed by @func{fcntl} with the @code{F_GETLK},
+@code{F_SETLK} and @code{F_SETLKW} operations.  For locking the third
+argument to @func{fcntl} must be a pointer to a structure of type
+@code{struct flock}.
+
+
+@defvar sizeof-struct-flock
+The number of bytes required to hold a structure of type @code{struct
+flock}.
+@end defvar
+
+
+@example
+(define p (malloc sizeof-struct-flock))
+
+(fcntl fd F_SETLK p)
+
+--- ;; do something
+
+(fcntl fd F_UNLCK p)
+@end example
+
 
 
 @c page
