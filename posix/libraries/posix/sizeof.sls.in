@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: size of definitions
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-05 14:09:28 marco>
+;;;Time-stamp: <2008-12-05 16:55:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,7 +26,9 @@
 
 (library (posix sizeof)
   (export
-    mode_t		off_t
+    mode_t		pointer-set-c-mode_t!	pointer-c-ref-mode_t
+    off_t		pointer-set-c-off_t!	pointer-c-ref-off_t
+    pid_t		pointer-set-c-pid_t!	pointer-c-ref-pid_t
 
     sizeof-struct-flock
 
@@ -47,54 +49,63 @@
 
     F_RDLCK		F_WRLCK		F_UNLCK
     )
-  (import (rnrs))
+  (import (rnrs)
+    (uriel ffi))
 
-  (define mode_t		(quote @TYPEOF_MODE_T@))
-  (define off_t			(quote @TYPEOF_OFF_T@))
+  (define mode_t			(quote @TYPEOF_MODE_T@))
+  (define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
+  (define pointer-ref-c-mode_t		@GETTEROF_MODE_T@)
 
-  (define sizeof-struct-flock	@SIZEOF_STRUCT_FLOCK@)
+  (define pid_t				(quote @TYPEOF_PID_T@))
+  (define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
+  (define pointer-ref-c-pid_t		@GETTEROF_PID_T@)
 
-  (define O_ACCMODE		@VALUEOF_O_ACCMODE@)
-  (define O_APPEND		@VALUEOF_O_APPEND@)
-  (define O_ASYNC		@VALUEOF_O_ASYNC@)
-  (define O_CREAT		@VALUEOF_O_CREAT@)
-  (define O_EXCL		@VALUEOF_O_EXCL@)
-  (define O_EXEC		@VALUEOF_O_EXEC@)
-  (define O_EXLOCK		@VALUEOF_O_EXLOCK@)
-  (define O_FSYNC		@VALUEOF_O_FSYNC@)
-  (define O_IGNORE_CTTY		@VALUEOF_O_IGNORE_CTTY@)
-  (define O_NDELAY		@VALUEOF_O_NDELAY@)
-  (define O_NOATIME		@VALUEOF_O_NOATIME@)
-  (define O_NOCTTY		@VALUEOF_O_NOCTTY@)
-  (define O_NOLINK		@VALUEOF_O_NOLINK@)
-  (define O_NONBLOCK		@VALUEOF_O_NONBLOCK@)
-  (define O_NOTRANS		@VALUEOF_O_NOTRANS@)
-  (define O_RDONLY		@VALUEOF_O_RDONLY@)
-  (define O_RDWR		@VALUEOF_O_RDWR@)
-  (define O_READ		@VALUEOF_O_READ@)
-  (define O_SHLOCK		@VALUEOF_O_SHLOCK@)
-  (define O_SYNC		@VALUEOF_O_SYNC@)
-  (define O_TRUNC		@VALUEOF_O_TRUNC@)
-  (define O_WRITE		@VALUEOF_O_WRITE@)
-  (define O_WRONLY		@VALUEOF_O_WRONLY@)
+  (define off_t				(quote @TYPEOF_OFF_T@))
+  (define pointer-set-c-off_t!		@SETTEROF_OFF_T@)
+  (define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
 
-  (define F_DUPFD		@VALUEOF_F_DUPFD@)
-  (define F_GETFD		@VALUEOF_F_GETFD@)
-  (define F_GETFL		@VALUEOF_F_GETFL@)
-  (define F_GETLK		@VALUEOF_F_GETLK@)
-  (define F_GETOWN		@VALUEOF_F_GETOWN@)
-  (define F_SETFD		@VALUEOF_F_SETFD@)
-  (define F_SETFL		@VALUEOF_F_SETFL@)
-  (define F_SETLKW		@VALUEOF_F_SETLKW@)
-  (define F_SETLK		@VALUEOF_F_SETLK@)
-  (define F_SETOWN		@VALUEOF_F_SETOWN@)
+  (define sizeof-struct-flock		@SIZEOF_STRUCT_FLOCK@)
 
-  (define FD_CLOEXEC		@VALUEOF_FD_CLOEXEC@)
+  (define O_ACCMODE			@VALUEOF_O_ACCMODE@)
+  (define O_APPEND			@VALUEOF_O_APPEND@)
+  (define O_ASYNC			@VALUEOF_O_ASYNC@)
+  (define O_CREAT			@VALUEOF_O_CREAT@)
+  (define O_EXCL			@VALUEOF_O_EXCL@)
+  (define O_EXEC			@VALUEOF_O_EXEC@)
+  (define O_EXLOCK			@VALUEOF_O_EXLOCK@)
+  (define O_FSYNC			@VALUEOF_O_FSYNC@)
+  (define O_IGNORE_CTTY			@VALUEOF_O_IGNORE_CTTY@)
+  (define O_NDELAY			@VALUEOF_O_NDELAY@)
+  (define O_NOATIME			@VALUEOF_O_NOATIME@)
+  (define O_NOCTTY			@VALUEOF_O_NOCTTY@)
+  (define O_NOLINK			@VALUEOF_O_NOLINK@)
+  (define O_NONBLOCK			@VALUEOF_O_NONBLOCK@)
+  (define O_NOTRANS			@VALUEOF_O_NOTRANS@)
+  (define O_RDONLY			@VALUEOF_O_RDONLY@)
+  (define O_RDWR			@VALUEOF_O_RDWR@)
+  (define O_READ			@VALUEOF_O_READ@)
+  (define O_SHLOCK			@VALUEOF_O_SHLOCK@)
+  (define O_SYNC			@VALUEOF_O_SYNC@)
+  (define O_TRUNC			@VALUEOF_O_TRUNC@)
+  (define O_WRITE			@VALUEOF_O_WRITE@)
+  (define O_WRONLY			@VALUEOF_O_WRONLY@)
 
-  (define F_RDLCK		@VALUEOF_F_RDLCK@)
-  (define F_WRLCK		@VALUEOF_F_WRLCK@)
-  (define F_UNLCK		@VALUEOF_F_UNLCK@)
+  (define F_DUPFD			@VALUEOF_F_DUPFD@)
+  (define F_GETFD			@VALUEOF_F_GETFD@)
+  (define F_GETFL			@VALUEOF_F_GETFL@)
+  (define F_GETLK			@VALUEOF_F_GETLK@)
+  (define F_GETOWN			@VALUEOF_F_GETOWN@)
+  (define F_SETFD			@VALUEOF_F_SETFD@)
+  (define F_SETFL			@VALUEOF_F_SETFL@)
+  (define F_SETLKW			@VALUEOF_F_SETLKW@)
+  (define F_SETLK			@VALUEOF_F_SETLK@)
+  (define F_SETOWN			@VALUEOF_F_SETOWN@)
 
+  (define FD_CLOEXEC			@VALUEOF_FD_CLOEXEC@)
+
+  (define F_RDLCK			@VALUEOF_F_RDLCK@)
+  (define F_WRLCK			@VALUEOF_F_WRLCK@)
+  (define F_UNLCK			@VALUEOF_F_UNLCK@)
 
   )
 

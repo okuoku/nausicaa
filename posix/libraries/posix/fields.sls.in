@@ -1,0 +1,86 @@
+;;;
+;;;Part of: Nausicaa/POSIX
+;;;Contents: offsets of fields
+;;;Date: Fri Dec  5, 2008
+;;;Time-stamp: <2008-12-05 17:57:39 marco>
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(library (posix fields)
+  (export
+    )
+  (import (rnrs)
+    (uriel ffi))
+
+
+
+;;;; file descriptor locking
+
+(define-syntax define-c-struct-accessors
+  (syntax-rules ()
+    ((_ ?setter ?getter ?offset ?type-setter ?type-getter)
+     (begin
+       (define (?setter struct-pointer value)
+	 (?type-setter struct-pointer ?offset value))
+       (define (?getter struct)
+	 (?type-getter struct-pointer ?offset))))))
+
+(define-c-struct-accessors
+  struct-flock-l_type-set!
+  struct-flock-l_type-ref
+  @OFFSETOF_STRUCT_FLOCK_L_TYPE@
+  @SETTEROF_STRUCT_FLOCK_L_TYPE@
+  @GETTEROF_STRUCT_FLOCK_L_TYPE@)
+
+(define-c-struct-accessors
+  struct-flock-l_whence-set!
+  struct-flock-l_whence-ref
+  @OFFSETOF_STRUCT_FLOCK_L_WHENCE@
+  @SETTEROF_STRUCT_FLOCK_L_WHENCE@
+  @GETTEROF_STRUCT_FLOCK_L_WHENCE@)
+
+(define-c-struct-accessors
+  struct-flock-l_start-set!
+  struct-flock-l_start-ref
+  @OFFSETOF_STRUCT_FLOCK_L_START@
+  @SETTEROF_STRUCT_FLOCK_L_START@
+  @GETTEROF_STRUCT_FLOCK_L_START@)
+
+(define-c-struct-accessors
+  struct-flock-l_len-set!
+  struct-flock-l_len-ref
+  @OFFSETOF_STRUCT_FLOCK_L_LEN@
+  @SETTEROF_STRUCT_FLOCK_L_LEN@
+  @GETTEROF_STRUCT_FLOCK_L_LEN@)
+
+(define-c-struct-accessors
+  struct-flock-l_pid-set!
+  struct-flock-l_pid-ref
+  @OFFSETOF_STRUCT_FLOCK_L_PID@
+  @SETTEROF_STRUCT_FLOCK_L_PID@
+  @GETTEROF_STRUCT_FLOCK_L_PID@)
+
+
+;;;; done
+
+)
+
+;;; end of file
