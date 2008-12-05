@@ -50,7 +50,10 @@ Floor, Boston, MA 02110-1301 USA
 4. Install
 ----------
 
-Basically we should do:
+Be  sure  to  have  installed the  Nausicaa/SRFI  and  Uriel
+libraries first.
+
+  Basically we should do:
 
    $ cd ice-9
    $ mkdir "=build"

@@ -52,7 +52,10 @@ Boston, MA 02111-1307 USA.
 3. Install
 ----------
 
-Basically you should do:
+Be  sure  to  have  installed the  Nausicaa/SRFI  and  Uriel
+libraries first.
+
+  Basically you should do:
 
    $ cd scmobj
    $ mkdir "=build"

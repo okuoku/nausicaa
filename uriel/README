@@ -44,7 +44,9 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
-Basically we should do:
+Be sure to have installed the Nausicaa/SRFI libraries first.
+
+  Basically we should do:
 
    $ cd uriel
    $ mkdir "=build"

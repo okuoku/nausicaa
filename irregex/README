@@ -73,7 +73,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 3. Install
 ----------
 
-Basically we should do:
+Be  sure  to  have  installed the  Nausicaa/SRFI  and  Uriel
+libraries first.
+
+  Basically we should do:
 
    $ cd irregx
    $ mkdir "=build"
