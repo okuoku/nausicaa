@@ -525,7 +525,7 @@ AC_MSG_RESULT([${VALUEOF_$1}])
 
 dnl Synopsis:
 dnl
-dnl   NAUSICAA_SIZEOF_TEST(<SUFFIX>,<TYPEDEF>,<DEFAULT>)
+dnl   NAUSICAA_SIZEOF_TEST(<SUFFIX>,<TYPEDEF>,<DEFAULT>,<HEADERS>)
 dnl
 dnl Description:
 dnl
@@ -534,11 +534,15 @@ dnl   language type.  The output variable "SIZEOF_<SUFFIX>" will be
 dnl   set to the result.  If the test fails the value of the output
 dnl   variable will be "<DEFAULT>".
 dnl
+dnl   If not empty: <HEADERS> must be a chunk of code including header
+dnl   files.
+dnl
 AC_DEFUN([NAUSICAA_SIZEOF_TEST],[
 AC_MSG_CHECKING([the sizeof of '$2'])
 AC_COMPUTE_INT([SIZEOF_$1],[sizeof($2)],[AC_INCLUDES_DEFAULT
 #include <limits.h>
-#include <stdint.h>],[SIZEOF_$1=$3])
+#include <stdint.h>
+$4],[SIZEOF_$1=$3])
 AC_SUBST([SIZEOF_$1])
 AC_MSG_RESULT([${SIZEOF_$1}])
 ])
@@ -554,9 +558,13 @@ dnl   constants.
 dnl
 AC_DEFUN([NAUSICAA_SIZEOF],[
 NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int],[#f])
+NAUSICAA_SIZEOF_TEST([SHORT_UINT],[unsigned short int],[#f])
 NAUSICAA_SIZEOF_TEST([INT],[int],[#f])
+NAUSICAA_SIZEOF_TEST([UINT],[unsigned int],[#f])
 NAUSICAA_SIZEOF_TEST([LONG],[long],[#f])
+NAUSICAA_SIZEOF_TEST([ULONG],[unsigned long],[#f])
 NAUSICAA_SIZEOF_TEST([LLONG],[long long],[#f])
+NAUSICAA_SIZEOF_TEST([ULLONG],[unsigned long long],[#f])
 NAUSICAA_SIZEOF_TEST([POINTER],[void *],[#f])
 
 NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX],[#f])
@@ -606,20 +614,57 @@ AC_DEFUN([NAUSICAA_INTTYPE_TEST],[
 AC_REQUIRE([NAUSICAA_SIZEOF])
 AC_MSG_CHECKING([equivalent integer type of '$2'])
 if test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
-   TYPEOF_$1=int
+   TYPEOF_$1=signed-int
 elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_INT}" ; then
-   TYPEOF_$1='short int'
+   TYPEOF_$1=signed-short
 elif test "${SIZEOF_$1}" = "${SIZEOF_LONG}" ; then
-   TYPEOF_$1=long
+   TYPEOF_$1=signed-long
 elif test "${SIZEOF_$1}" = "${SIZEOF_LLONG}" ; then
-   TYPEOF_$1='long long'
+   TYPEOF_$1=signed-long-long
 else
-   AC_MSG_FAILURE([cannot equivalent integer type of '$2'],[2])
+   AC_MSG_FAILURE([cannot determine equivalent integer type of '$2'],[2])
 fi
 AC_SUBST([TYPEOF_$1])
 AC_MSG_RESULT([${TYPEOF_$1}])
 ])
 
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_UINTTYPE_TEST(<SUFFIX>,<TYPEDEF>)
+dnl
+dnl Description:
+dnl
+dnl   Determines the equivalent unsigned  integer type of the C language
+dnl   type "<TYPEDEF>"  among the  set: "unsigned short  int", "unsigned
+dnl   int", "unsigned long", "unsigned long long".
+dnl
+dnl   The search is performed by comparing the value of the variable
+dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_UINT",
+dnl   "SIZEOF_SHORT_UINT", "SIZEOF_ULONG", "SIZEOF_ULLONG".
+dnl
+dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
+dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.  The other
+dnl   variables are defined by "NAUSICAA_SIZEOF".
+dnl
+dnl   The output variable "TYPEOF_<SUFFIX>" is set to the result.
+dnl
+AC_DEFUN([NAUSICAA_UINTTYPE_TEST],[
+AC_REQUIRE([NAUSICAA_SIZEOF])
+AC_MSG_CHECKING([equivalent unsigned integer type of '$2'])
+if test "${SIZEOF_$1}" = "${SIZEOF_UINT}" ; then
+   TYPEOF_$1=unsigned-int
+elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_UINT}" ; then
+   TYPEOF_$1=unsigned-short
+elif test "${SIZEOF_$1}" = "${SIZEOF_ULONG}" ; then
+   TYPEOF_$1=unsigned-long
+elif test "${SIZEOF_$1}" = "${SIZEOF_ULLONG}" ; then
+   TYPEOF_$1=unsigned-long-long
+else
+   AC_MSG_FAILURE([cannot determine equivalent unsigned integer type of '$2'],[2])
+fi
+AC_SUBST([TYPEOF_$1])
+AC_MSG_RESULT([${TYPEOF_$1}])
+])
 
 dnl Synopsis:
 dnl
