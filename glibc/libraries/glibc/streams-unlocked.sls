@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: interface to unlocked stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 11:07:17 marco>
+;;;Time-stamp: <2008-12-05 11:33:40 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -38,7 +38,9 @@
     fgetc_unlocked		primitive-fgetc_unlocked
     fgets_unlocked		primitive-fgets_unlocked
 
-    feof_unlocked		primitive-feof_unlocked)
+    feof_unlocked		primitive-feof_unlocked
+
+    fileno_unlocked		primitive-fileno_unlocked)
   (import (rnrs)
     (srfi receive)
     (uriel lang)
@@ -159,6 +161,20 @@
       (primitive-feof_unlocked stream)
     (when (ferror_unlocked stream)
       (raise-errno-error 'feof_unlocked errno stream))
+    result))
+
+
+
+;;;; streams and file descriptors
+
+(define-c-function/with-errno primitive-fileno_unlocked
+  (int fileno_unlocked (FILE*)))
+
+(define (fileno_unlocked stream)
+  (receive (result errno)
+      (primitive-fileno_unlocked stream)
+    (when (pointer-null? result)
+      (raise-errno-error 'fileno_unlocked errno stream))
     result))
 
 
