@@ -455,7 +455,7 @@ dnl --------------------------------------------------------------------
 
 dnl page
 dnl --------------------------------------------------------------------
-dnl System inspection.
+dnl C language system setup.
 dnl --------------------------------------------------------------------
 
 dnl Synopsis:
@@ -495,6 +495,12 @@ AC_PROG_CC_C99
 AC_HEADER_STDC
 ])
 
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language basic tests.
+dnl --------------------------------------------------------------------
+
 dnl Synopsis:
 dnl
 dnl   NAUSICAA_VALUEOF_TEST(<1 SUFFIX>,<2 EXPR>,
@@ -525,7 +531,8 @@ AC_MSG_RESULT([${VALUEOF_$1}])
 
 dnl Synopsis:
 dnl
-dnl   NAUSICAA_SIZEOF_TEST(<SUFFIX>,<TYPEDEF>,<DEFAULT>,<HEADERS>)
+dnl   NAUSICAA_SIZEOF_TEST(<1 SUFFIX>,<2 TYPEDEF>,
+dnl                        <3 DEFAULT>,<4 HEADERS>)
 dnl
 dnl Description:
 dnl
@@ -538,7 +545,7 @@ dnl   If not empty: <HEADERS> must be a chunk of code including header
 dnl   files.
 dnl
 AC_DEFUN([NAUSICAA_SIZEOF_TEST],[
-AC_MSG_CHECKING([the sizeof of '$2'])
+AC_MSG_CHECKING([the size of '$2'])
 AC_COMPUTE_INT([SIZEOF_$1],[sizeof($2)],[AC_INCLUDES_DEFAULT
 #include <limits.h>
 #include <stdint.h>
@@ -549,46 +556,70 @@ AC_MSG_RESULT([${SIZEOF_$1}])
 
 dnl Synopsis:
 dnl
-dnl   NAUSICAA_SIZEOF()
+dnl   NAUSICAA_OFFSETOF_TEST(<1 SUFFIX>,<2 STRUCT>,
+dnl                          <3 FIELD>,<4 HEADERS>)
 dnl
 dnl Description:
 dnl
-dnl   Perform  a  series of  tests  to  determine characteristic  system
-dnl   constants.
+dnl   A wrapper for "AC_COMPUTE_INT" that acquires the offset of a
+dnl   field in a C data structure.   <STRUCT> is the type of the struct,
+dnl   <FIELD> is the name of the field.
 dnl
-AC_DEFUN([NAUSICAA_SIZEOF],[
-NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int],[#f])
-NAUSICAA_SIZEOF_TEST([SHORT_UINT],[unsigned short int],[#f])
-NAUSICAA_SIZEOF_TEST([INT],[int],[#f])
-NAUSICAA_SIZEOF_TEST([UINT],[unsigned int],[#f])
-NAUSICAA_SIZEOF_TEST([LONG],[long],[#f])
-NAUSICAA_SIZEOF_TEST([ULONG],[unsigned long],[#f])
-NAUSICAA_SIZEOF_TEST([LLONG],[long long],[#f])
-NAUSICAA_SIZEOF_TEST([ULLONG],[unsigned long long],[#f])
-NAUSICAA_SIZEOF_TEST([POINTER],[void *],[#f])
-
-NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([CHAR_MIN],[CHAR_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([SCHAR_MAX],[SCHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SCHAR_MIN],[SCHAR_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([UCHAR_MAX],[UCHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SHRT_MAX],[SHRT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SHRT_MIN],[SHRT_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([USHRT_MAX],[USHRT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([INT_MIN],[INT_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([UINT_MAX],[UINT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LONG_MAX],[LONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LONG_MIN],[LONG_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([ULONG_MAX],[ULONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LLONG_MAX],[LLONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LLONG_MIN],[LLONG_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([ULLONG_MAX],[ULLONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX],[#f])
-
-AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,1)],[AC_SUBST(WORDS_BIGENDIAN,0)])
+dnl   The output variable "OFFSETOF_<SUFFIX>" is set to the result.
+dnl
+dnl   If not empty: <HEADERS> must be a chunk of code including header
+dnl   files.
+dnl
+AC_DEFUN([NAUSICAA_OFFSETOF_TEST],[
+AC_MSG_CHECKING([the offset of field '$3' in '$2'])
+AC_COMPUTE_INT([OFFSETOF_$1],[offsetof($2,$3)],[AC_INCLUDES_DEFAULT
+$4
+],[OFFSETOF_$1='#f'])
+AC_SUBST([OFFSETOF_$1])
+AC_MSG_RESULT([${OFFSETOF_$1}])
 ])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_SIZEOF_FIELD_TEST(<1 SUFFIX>, <2 STRUCT>,
+dnl                              <3 FIELD>,  <4 DEFAULT>,
+dnl                              <5 HEADERS>)
+dnl
+dnl Description:
+dnl
+dnl   Acquires the  size of  the field of  a C language  structure type.
+dnl   The output  variable "SIZEOF_<SUFFIX>" will be set  to the result.
+dnl   If  the  test fails  the  value of  the  output  variable will  be
+dnl   "<DEFAULT>".
+dnl
+dnl   <STRUCT> must be  the type of the structure,  usable in a variable
+dnl   declaration.  <FIELD> must be the name of the field.
+dnl
+dnl   If not empty: <HEADERS> must be a chunk of code including header
+dnl   files.
+dnl
+AC_DEFUN([NAUSICAA_SIZEOF_FIELD_TEST],[
+AC_MSG_CHECKING([the size of field '$3' in struct '$2'])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT
+#include <stdio.h>
+#include <stdlib.h>
+$5
+],[
+$2 s;
+FILE *f = fopen ("conftest.val", "w");
+fprintf(f, "%d", sizeof(s.$3));
+return ferror (f) || fclose (f) != 0;
+])],[SIZEOF_$1=`cat conftest.val`],[SIZEOF_$1=$4])
+rm -f conftest.val
+AC_SUBST([SIZEOF_$1])
+AC_MSG_RESULT([${SIZEOF_$1}])
+])
+
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language type conversion.
+dnl --------------------------------------------------------------------
 
 dnl Synopsis:
 dnl
@@ -602,13 +633,14 @@ dnl   "long long".
 dnl
 dnl   The search is performed by comparing the value of the variable
 dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_INT",
-dnl   "SIZEOF_SHORT_INT", "SIZEOF_LONG", "SIZEOF_LLONG".
+dnl   "SIZEOF_SHORT_INT",   "SIZEOF_LONG",  "SIZEOF_LLONG"   defined  by
+dnl   "NAUSICAA_SIZEOF".
 dnl
 dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
-dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.  The other
-dnl   variables are defined by "NAUSICAA_SIZEOF".
+dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.
 dnl
-dnl   The output variable "TYPEOF_<SUFFIX>" is set to the result.
+dnl   The output variable "TYPEOF_<SUFFIX>" is set to a result among:
+dnl   "signed-int", "signed-short", "signed-long", "signed-long-long".
 dnl
 AC_DEFUN([NAUSICAA_INTTYPE_TEST],[
 AC_REQUIRE([NAUSICAA_SIZEOF])
@@ -640,13 +672,15 @@ dnl   int", "unsigned long", "unsigned long long".
 dnl
 dnl   The search is performed by comparing the value of the variable
 dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_UINT",
-dnl   "SIZEOF_SHORT_UINT", "SIZEOF_ULONG", "SIZEOF_ULLONG".
+dnl   "SIZEOF_SHORT_UINT", "SIZEOF_ULONG", "SIZEOF_ULLONG" defined by
+dnl   "NAUSICAA_SIZEOF".
 dnl
 dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
-dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.  The other
-dnl   variables are defined by "NAUSICAA_SIZEOF".
+dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.
 dnl
-dnl   The output variable "TYPEOF_<SUFFIX>" is set to the result.
+dnl   The output variable "TYPEOF_<SUFFIX>"  is set to the result among:
+dnl   "unsigned-int",         "unsigned-short",         "unsigned-long",
+dnl   "unsigned-long-long".
 dnl
 AC_DEFUN([NAUSICAA_UINTTYPE_TEST],[
 AC_REQUIRE([NAUSICAA_SIZEOF])
@@ -664,6 +698,234 @@ else
 fi
 AC_SUBST([TYPEOF_$1])
 AC_MSG_RESULT([${TYPEOF_$1}])
+])
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_FLOATTYPE_TEST(<SUFFIX>,<TYPEDEF>)
+dnl
+dnl Description:
+dnl
+dnl   Determines  the equivalent  floating point  number type  of  the C
+dnl   language type "<TYPEDEF>" among the set: "float", "double".
+dnl
+dnl   The search is performed by comparing the value of the variable
+dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_FLOAT",
+dnl   "SIZEOF_DOUBLE", defined by "NAUSICAA_SIZEOF".
+dnl
+dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
+dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.
+dnl
+dnl   The output variable "TYPEOF_<SUFFIX>" is set to a result among:
+dnl   "float", "double".
+dnl
+AC_DEFUN([NAUSICAA_FLOATTYPE_TEST],[
+AC_REQUIRE([NAUSICAA_SIZEOF])
+AC_MSG_CHECKING([equivalent floating point type of '$2'])
+if test "${SIZEOF_$1}" = "${SIZEOF_FLOAT}" ; then
+   TYPEOF_$1=float
+elif test "${SIZEOF_$1}" = "${SIZEOF_DOUBLE}" ; then
+   TYPEOF_$1=double
+else
+   AC_MSG_FAILURE([cannot determine equivalent floating point type of '$2'],[2])
+fi
+AC_SUBST([TYPEOF_$1])
+AC_MSG_RESULT([${TYPEOF_$1}])
+])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language types accessors.
+dnl --------------------------------------------------------------------
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_ACCESSORS_TEST(<SUFFIX>,<TYPEDEF>)
+dnl
+dnl Description:
+dnl
+dnl   Determines the couple of accessors to be used for the C language
+dnl   type "<TYPEDEF>".
+dnl
+dnl   The search is performed by comparing the value of the variable
+dnl   "TYPEOF_<SUFFIX>" with the values: "signed-int", "unsigned-int",
+dnl   "signed-short", "unsigned-short", "signed-long", "unsigned-long",
+dnl   "signed-long-long", "unsigned-long-long".
+dnl
+dnl   The output variable "SETTEROF_<SUFFIX>" is set to the name of the setter;
+dnl   the output variable "GETTEROF_<SUFFIX>" is  set to the name of the
+dnl   getter.
+dnl
+AC_DEFUN([NAUSICAA_ACCESSORS_TEST],[
+AC_MSG_CHECKING([accessors for type '$2'])
+case "${TYPEOF_$1}" in
+  signed-int)
+    SETTEROF_$1=pointer-set-c-int!
+    GETTEROF_$1=pointer-ref-c-signed-int
+    ;;
+  unsigned-int)
+    SETTEROF_$1=pointer-set-c-int!
+    GETTEROF_$1=pointer-ref-c-unsigned-int
+    ;;
+  signed-short)
+    SETTEROF_$1=pointer-set-c-short!
+    GETTEROF_$1=pointer-ref-c-signed-short
+    ;;
+  unsigned-short)
+    SETTEROF_$1=pointer-set-c-short!
+    GETTEROF_$1=pointer-ref-c-unsigned-short
+    ;;
+  signed-long)
+    SETTEROF_$1=pointer-set-c-long!
+    GETTEROF_$1=pointer-ref-c-signed-long
+    ;;
+  unsigned-long)
+    SETTEROF_$1=pointer-set-c-long!
+    GETTEROF_$1=pointer-ref-c-unsigned-long
+    ;;
+  signed-long-long)
+    SETTEROF_$1=pointer-set-c-long-long!
+    GETTEROF_$1=pointer-ref-c-signed-long-long
+    ;;
+  unsigned-long-long)
+    SETTEROF_$1=pointer-set-c-long-long!
+    GETTEROF_$1=pointer-ref-c-unsigned-long-long
+    ;;
+  float)
+    SETTEROF_$1=pointer-set-c-float!
+    GETTEROF_$1=pointer-ref-c-float
+    ;;
+  double)
+    SETTEROF_$1=pointer-set-c-double!
+    GETTEROF_$1=pointer-ref-c-double
+    ;;
+  pointer)
+    SETTEROF_$1=pointer-set-c-pointer!
+    GETTEROF_$1=pointer-ref-c-pointer
+    ;;
+  *)
+    AC_MSG_FAILURE([cannot determine accessors for '${TYPEOF_$1}'],[2])
+    ;;
+esac
+AC_SUBST([SETTEROF_$1])
+AC_SUBST([GETTEROF_$1])
+AC_MSG_RESULT([${SETTEROF_$1} ${GETTEROF_$1}])
+])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language type full inspection.
+dnl --------------------------------------------------------------------
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_INSPECT_TYPEDEF(<1 SUFFIX>,     <2 TYPEDEF>,
+dnl                            <3 TYPE_GUESS>, <4 HEADERS>)
+dnl
+dnl Description:
+dnl
+dnl   Perform a full inspection for a C language type definition.
+dnl
+AC_DEFUN([NAUSICAA_INSPECT_TYPE],[
+NAUSICAA_SIZEOF_TEST([$1],[$2],['#f'],[$4])
+case $3 in
+  int)
+    NAUSICAA_INTTYPE_TEST([$1],[$2])
+    ;;
+  uint)
+    NAUSICAA_UINTTYPE_TEST([$1],[$2])
+    ;;
+  float)
+    NAUSICAA_FLOATTYPE_TEST([$1],[$2])
+    ;;
+  pointer)
+    TYPEOF_$1=pointer
+AC_SUBST([TYPEOF_$1])
+    ;;
+esac
+NAUSICAA_ACCESSORS_TEST([$1],[$2])
+])
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_INSPECT_FIELD_TYPEDEF(<1 SUFFIX>,
+dnl                                  <2 STRUCT>,     <3 FIELD>,
+dnl                                  <4 TYPE_GUESS>, <5 HEADERS>)
+dnl
+dnl Description:
+dnl
+dnl   Perform  a full  inspection for  a  C language  struct field  type
+dnl   definition.
+dnl
+AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE],[
+NAUSICAA_OFFSETOF_TEST([$1],[$2],[$3],[$5])
+NAUSICAA_SIZEOF_FIELD_TEST([$1],[$2],[$3],['#f'],[$5])
+case $4 in
+  int)
+    NAUSICAA_INTTYPE_TEST([$1],[$2.$3])
+    ;;
+  uint)
+    NAUSICAA_UINTTYPE_TEST([$1],[$2.$3])
+    ;;
+  float)
+    NAUSICAA_FLOATTYPE_TEST([$1],[$2.$3])
+    ;;
+  pointer)
+    TYPEOF_$1=pointer
+AC_SUBST([TYPEOF_$1])
+    ;;
+esac
+NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])
+])
+
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Common sets of C language tests.
+dnl --------------------------------------------------------------------
+
+dnl Synopsis:
+dnl
+dnl   NAUSICAA_SIZEOF()
+dnl
+dnl Description:
+dnl
+dnl   Perform  a  series of  tests  to  determine characteristic  system
+dnl   constants.
+dnl
+AC_DEFUN([NAUSICAA_SIZEOF],[
+NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int],[#f])
+NAUSICAA_SIZEOF_TEST([SHORT_UINT],[unsigned short int],[#f])
+NAUSICAA_SIZEOF_TEST([INT],[int],[#f])
+NAUSICAA_SIZEOF_TEST([UINT],[unsigned int],[#f])
+NAUSICAA_SIZEOF_TEST([LONG],[long],[#f])
+NAUSICAA_SIZEOF_TEST([ULONG],[unsigned long],[#f])
+NAUSICAA_SIZEOF_TEST([LLONG],[long long],[#f])
+NAUSICAA_SIZEOF_TEST([ULLONG],[unsigned long long],[#f])
+NAUSICAA_SIZEOF_TEST([FLOAT],[float],[#f])
+NAUSICAA_SIZEOF_TEST([DOUBLE],[double],[#f])
+NAUSICAA_SIZEOF_TEST([POINTER],[void *],[#f])
+
+NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([CHAR_MIN],[CHAR_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([SCHAR_MAX],[SCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SCHAR_MIN],[SCHAR_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([UCHAR_MAX],[UCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SHRT_MAX],[SHRT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SHRT_MIN],[SHRT_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([USHRT_MAX],[USHRT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([INT_MIN],[INT_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([UINT_MAX],[UINT_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LONG_MAX],[LONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LONG_MIN],[LONG_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([ULONG_MAX],[ULONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LLONG_MAX],[LLONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([LLONG_MIN],[LLONG_MIN],[#f])
+NAUSICAA_VALUEOF_TEST([ULLONG_MAX],[ULLONG_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX],[#f])
+NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX],[#f])
+
+AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,1)],[AC_SUBST(WORDS_BIGENDIAN,0)])
 ])
 
 dnl Synopsis:
@@ -806,31 +1068,6 @@ NAUSICAA_VALUEOF_TEST([EKEYREVOKED],[EKEYREVOKED],[#f],[#include <errno.h>])
 NAUSICAA_VALUEOF_TEST([EKEYREJECTED],[EKEYREJECTED],[#f],[#include <errno.h>])
 NAUSICAA_VALUEOF_TEST([EOWNERDEAD],[EOWNERDEAD],[#f],[#include <errno.h>])
 NAUSICAA_VALUEOF_TEST([ENOTRECOVERABLE],[ENOTRECOVERABLE],[#f],[#include <errno.h>])
-])
-
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_OFFSETOF_TEST(<1 SUFFIX>,<2 STRUCT>,
-dnl                          <3 FIELD>,<4 HEADERS>)
-dnl
-dnl Description:
-dnl
-dnl   A wrapper for "AC_COMPUTE_INT" that acquires the offset of a
-dnl   field in a C data structure.   <STRUCT> is the type of the struct,
-dnl   <FIELD> is the name of the field.
-dnl
-dnl   The output variable "OFFSETOF_<SUFFIX>" is set to the result.
-dnl
-dnl   If not empty: <HEADERS> must be a chunk of code including header
-dnl   files.
-dnl
-AC_DEFUN([NAUSICAA_OFFSETOF_TEST],[
-AC_MSG_CHECKING([the offset of field '$3' in '$2'])
-AC_COMPUTE_INT([OFFSETOF_$1],[offsetof($2,$3)],[AC_INCLUDES_DEFAULT
-$4
-],[OFFSETOF_$1='#f'])
-AC_SUBST([OFFSETOF_$1])
-AC_MSG_RESULT([${OFFSETOF_$1}])
 ])
 
 
