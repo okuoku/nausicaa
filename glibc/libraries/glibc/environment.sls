@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: environment functions
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-04 11:35:21 marco>
+;;;Time-stamp: <2008-12-05 11:18:13 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,7 @@
   (import (rnrs)
     (uriel ffi))
 
-  ;;Look for other functions in the "(uriel posix)" library!!!
+  ;;Look for other functions in the "(posix)" library!!!
   (define-c-function clearenv
     (int clearenv (void))))
 

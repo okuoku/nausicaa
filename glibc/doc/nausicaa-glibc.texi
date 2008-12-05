@@ -507,6 +507,7 @@ other libraries have extended functions.
 * streams reading::             Reading from streams.
 * streams unreading::           Unreading to streams.
 * streams seeking::             Stream positioning.
+* streams fd::                  Streams and file descriptors.
 * streams unlocked::            Unlocked stream operations.
 * streams extended::            Extended stream operations.
 * streams lines::               Reading lines.
@@ -755,6 +756,37 @@ function call and the value of @var{errno} just after the call.
 
 
 @c page
+@node streams fd
+@section Streams and file descriptors
+
+
+@defun fdopen @var{fd} @var{open-mode}
+@defunx primitive-fdopen @var{fd} @var{c-open-mode}
+Build and return a new stream wrapping file descriptor @var{fd}.
+
+@var{open-mode} must be a Scheme string or symbol representing the open
+mode of @var{fd}; it can have the same values accepted by @func{fopen}.
+@var{c-open-mode} must be a C string with the same purpose.
+
+If successful @func{fdopen} returns a pointer to the new stream,
+otherwise an exception is raised.  @func{primitive-fdopen} returns 2
+values: the return value from the foreign function and the value of
+@code{errno} just after the foreign function call.
+@end defun
+
+
+@defun fileno @var{stream}
+@defunx primitive-fileno @var{stream}
+Return the file descriptor wrapped by @var{stream}, an exact integer.
+
+If successful @func{fileno} returns the file descriptor, otherwise an
+exception is raised.  @func{primitive-fileno} returns 2 values: the
+return value from the foreign function and the value of @code{errno}
+just after the foreign function call.
+@end defun
+
+
+@c page
 @node streams unlocked
 @section Unlocked stream operations
 
@@ -837,6 +869,15 @@ Like @func{fgets} and @func{primitive-fgetc}.
 @defun feof_unlocked @var{stream}
 @defunx primitive-feof_unlocked @var{stream}
 Like @func{feof} and @func{primitive-feof}.
+@end defun
+
+
+@subsubheading Streams an file descriptors
+
+
+@defun fileno_unlocked @var{stream}
+@defunx primitive-fileno_unlocked @var{stream}
+Like @func{fileno} and @func{primitive-fileno}.
 @end defun
 
 

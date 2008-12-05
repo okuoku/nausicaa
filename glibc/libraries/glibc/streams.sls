@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 16:12:44 marco>
+;;;Time-stamp: <2008-12-05 11:00:16 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -46,6 +46,9 @@
     fseek		primitive-fseek
     ftell		primitive-ftell
     rewind		primitive-rewind
+
+    fdopen		primitive-fdopen
+    fileno		primitive-fileno
 
     valueof-eof		valueof-seek-set
     valueof-seek-cur	valueof-seek-end)
@@ -213,7 +216,6 @@
     result))
 
 
-
 
 ;;;; seeking
 
@@ -255,6 +257,33 @@
       (primitive-rewind stream)
     (when (ferror stream)
       (raise-errno-error 'rewind errno stream))
+    result))
+
+
+
+;;;; streams and file descriptors
+
+(define-c-function/with-errno primitive-fdopen
+  (FILE* fdopen (int char*)))
+
+(define-c-function/with-errno primitive-fileno
+  (int fileno (FILE*)))
+
+
+(define (fdopen fd open-mode)
+  (receive (result errno)
+      (with-compensations
+	(let ((mode	(s->c open-mode)))
+	  (primitive-fdopen fd mode)))
+    (when (pointer-null? result)
+      (raise-errno-error 'fdopen errno (list fd open-mode)))
+    result))
+
+(define (fileno stream)
+  (receive (result errno)
+      (primitive-fileno stream)
+    (when (pointer-null? result)
+      (raise-errno-error 'fileno errno stream))
     result))
 
 
