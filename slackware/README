@@ -6,9 +6,9 @@
 Topics
 ------
 
-1. Introduction
-2. Details about Ikarus
-3. Details about Ypsilon
+  1. Introduction
+  2. Details about Ikarus
+  3. Details about Ypsilon
 
 
 1. Introduction
@@ -34,7 +34,7 @@ revision": the string "1mm" means "build 1 by Marco Maggi".
 package  placed  in  the  current  directory (that  is  the  top  source
 directory of the Scheme implementation project).
 
-  At the top of each script, a several variables are set with the idiom:
+  At the top of each script, several variables are set with the idiom:
 
    : ${prefix:=/usr/local}
 
@@ -47,7 +47,7 @@ Ikarus:
       bash /path/to/ikarus.sh 0.0.4 1mm)
 
 it is not possible to set values to the empty string, but it is possible
-to set the to a single white space, for example:
+to set them to a single white space, for example:
 
    $ (prefix=/usr \
       CONFIG_OPTION=' ' \
