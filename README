@@ -63,9 +63,14 @@ README files; the  Nausicaa overall documentation in Texinfo
 format, which is available in the "doc" subdirectory.
 
   To  use  the  Nausicaa  libraries  you  must  install  the
-packages of the SRFI and Uriel projects, because most of the
-projects  depend  on  them.   For some  projects  the  Uriel
-package is required only to run the test suite.
+packages  of the Nausicaa/SRFI  and Uriel  projects, because
+most of the projects depend  on them.  For some projects the
+Uriel  package  is required  only  to  run  the test  suite.
+
+  Notice  that  Nausicaa will  not  work  with the  Xitomatl
+distribution of  SRFI libraries, because  they are installed
+with exprot specification "(xitomatl srfi ---)" which is not
+used as import specification by Nausicaa's libraries.
 
   For your own safety,  take this advice: never, ever, drive
 building  and  installation  of  packages  from  the  source
@@ -83,6 +88,24 @@ then, usually, you should do:
    $ make test
    $ make install
 
+  If you have downloaded  the distribution directly from the
+GitHub repository: there should  be no "configure" script in
+the top directories of each project.  You can create them by
+running "autoconf" in the  top directory of each project, so
+the installation process becomes:
+
+   $ cd <source-directory-of-project>
+   $ autoconf
+   $ mkdir "=build"
+   $ cd "=build"
+   $ ../configure
+   $ make
+   $ make test
+   $ make install
+
+GNU  Autoconf  can be  downloaded  from  the  GNU site  (see
+resources).
+
   Notice that:
 
 * both the  library source files (.sls)  and the precompiled
@@ -95,6 +118,26 @@ then, usually, you should do:
      /usr/local/lib/scheme
 
   be sure to update your search path environment variable;
+
+* currently,  among  the  supported Scheme  implementations,
+  only Ikarus  Scheme can optionally  use precompiled Scheme
+  files;  enabling precompilation  when  using other  Scheme
+  implementations will not work;
+
+* by default  the libraries  are NOT precompiled;  to enable
+  precompilation you must  use the "--enable-fasl" option to
+  the "configure" script;
+
+* when  precompiling a  library for  Ikarus Scheme  with the
+  command:
+
+    $ ikarus --compile-dependencies
+
+  Ikarus  traverses  the graph  of  libraries attmepting  to
+  precompile all  the uncompiled ones; this  means that also
+  libraries that are installed  along with Ikarus have to be
+  precompiled; the  Ikarus distribution does  not precompile
+  libraries, you will have to do it by hand;
 
 * by default only documentation  in Info format is built and
   installed,  documentation  in HTML  format  is pruned;  to
