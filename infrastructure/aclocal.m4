@@ -457,7 +457,7 @@ dnl 1 variable-suffix
 dnl 2 type-definition
 dnl 3 type-guess
 AC_DEFUN([NAUSICAA_BASE_TYPE_TEST],[
-if test "$3" = signed-integer ; then
+if   test "$3" = signed-integer ; then
     NAUSICAA_INTTYPE_TEST([$1],[$2])
 elif test "$3" = unsigned-integer ; then
     NAUSICAA_UINTTYPE_TEST([$1],[$2])
@@ -466,6 +466,8 @@ elif test "$3" = float ; then
 elif test "$3" = pointer ; then
     TYPEOF_$1=pointer
 AC_SUBST([TYPEOF_$1])
+else
+    AC_MSG_WARN([cannot determine base type of '$2' from guess '$3'])
 fi])
 
 dnl 1 variable-suffix
@@ -475,7 +477,7 @@ AC_REQUIRE([NAUSICAA_SIZEOF])
 NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
 AC_CACHE_CHECK([equivalent integer type of '$2'],
   [nausicaa_cv_typeof_$1],
-  [if test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
+  [if   test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
      nausicaa_cv_typeof_$1=signed-int
    elif test "${SIZEOF_$1}" = "${SIZEOF_CHAR}" ; then
      nausicaa_cv_typeof_$1=signed-char
@@ -500,7 +502,7 @@ AC_REQUIRE([NAUSICAA_SIZEOF])
 NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
 AC_CACHE_CHECK([equivalent unsigned integer type of '$2'],
   [nausicaa_cv_typeof_$1],
-  [if test "${SIZEOF_$1}" = "${SIZEOF_UINT}" ; then
+  [if   test "${SIZEOF_$1}" = "${SIZEOF_UINT}" ; then
      nausicaa_cv_typeof_$1=unsigned-int
    elif test "${SIZEOF_$1}" = "${SIZEOF_CHAR}" ; then
      nausicaa_cv_typeof_$1=unsigned-char
@@ -525,7 +527,7 @@ AC_REQUIRE([NAUSICAA_SIZEOF])
 NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
 AC_CACHE_CHECK([equivalent floating point type of '$2'],
   [nausicaa_cv_typeof_$1],
-  [if test "${SIZEOF_$1}" = "${SIZEOF_FLOAT}" ; then
+  [if   test "${SIZEOF_$1}" = "${SIZEOF_FLOAT}" ; then
      nausicaa_cv_typeof_$1=float
    elif test "${SIZEOF_$1}" = "${SIZEOF_DOUBLE}" ; then
      nausicaa_cv_typeof_$1=double
