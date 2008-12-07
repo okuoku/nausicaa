@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: size of definitions
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-05 16:55:20 marco>
+;;;Time-stamp: <2008-12-07 18:37:49 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,9 +26,9 @@
 
 (library (posix sizeof)
   (export
-    mode_t		pointer-set-c-mode_t!	pointer-c-ref-mode_t
-    off_t		pointer-set-c-off_t!	pointer-c-ref-off_t
-    pid_t		pointer-set-c-pid_t!	pointer-c-ref-pid_t
+    mode_t		pointer-set-c-mode_t!	pointer-ref-c-mode_t
+    off_t		pointer-set-c-off_t!	pointer-ref-c-off_t
+    pid_t		pointer-set-c-pid_t!	pointer-ref-c-pid_t
 
     sizeof-struct-flock
 
@@ -48,6 +48,8 @@
     FD_CLOEXEC
 
     F_RDLCK		F_WRLCK		F_UNLCK
+
+    SEEK_SET		SEEK_CUR	SEEK_END
     )
   (import (rnrs)
     (uriel ffi))
@@ -107,6 +109,9 @@
   (define F_WRLCK			@VALUEOF_F_WRLCK@)
   (define F_UNLCK			@VALUEOF_F_UNLCK@)
 
+  (define SEEK_SET			@VALUEOF_SEEK_SET@)
+  (define SEEK_CUR			@VALUEOF_SEEK_CUR@)
+  (define SEEK_END			@VALUEOF_SEEK_END@)
   )
 
 ;;; end of file

@@ -574,6 +574,10 @@ level as exact integers.
 @section Variables holding constant values
 
 
+All the constants described here are exported by the library
+@library{posix sizeof}.
+
+
 @menu
 * fd constants status::         File status flags.
 * fd constants control::        File control flags.

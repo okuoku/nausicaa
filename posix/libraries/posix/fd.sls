@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to the file descriptor libraries
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-05 13:51:29 marco>
+;;;Time-stamp: <2008-12-07 18:50:02 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -67,14 +67,14 @@
 ;;into a function.
 (define-syntax temp-failure-retry-minus-one
   (syntax-rules ()
-    ((_ funcname doit-thunk irritants)
+    ((_ ?funcname (?primitive ?arg ...) ?irritants)
      (let loop ()
        (receive (result errno)
-	   (doit-thunk)
+	   (?primitive ?arg ...)
 	 (when (= -1 result)
 	   (when (= EINTR errno)
 	     (loop))
-	   (raise-errno-error (quote funcname) errno irritants))
+	   (raise-errno-error (quote ?funcname) errno ?irritants))
 	 result)))))
 
 (define-syntax call-for-minus-one
@@ -83,7 +83,7 @@
      (receive (result errno)
 	 (?funcname ?arg ...)
        (unless (= -1 result)
-	 (raise-errno-error '?funcname errno (list ?arg ...)))
+	 (raise-errno-error (quote ?funcname) errno (list ?arg ...)))
        result))))
 
 
@@ -103,54 +103,50 @@
     (let ((pathname (s->c pathname)))
       (temp-failure-retry-minus-one
        'open
-       (lambda ()
-	 (primitive-open pathname open-mode permissions))
+       (primitive-open pathname open-mode permissions)
        (list pathname open-mode permissions)))))
 
 (define (close fd)
   (temp-failure-retry-minus-one
    'close
-   (lambda ()
-     (primitive-close fd))
+   (primitive-close fd)
    fd))
 
 
 
 ;;;; reading and writing
 
-(define-c-function primitive-read
+(define-c-function/with-errno primitive-read
   (ssize_t read (int void* size_t)))
 
-(define-c-function primitive-pread
+(define-c-function/with-errno primitive-pread
   (ssize_t pread (int void* size_t off_t)))
 
-(define-c-function primitive-write
+(define-c-function/with-errno primitive-write
   (ssize_t write (int void* size_t)))
 
-(define-c-function primitive-pwrite
+(define-c-function/with-errno primitive-pwrite
   (ssize_t pwrite (int void* size_t off_t)))
 
 (define-syntax do-read-or-write
   (syntax-rules ()
-    ((_ funcname primitive fd pointer number-of-bytes)
+    ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes)
      (temp-failure-retry-minus-one
-      funcname
-      (lambda ()
-	(primitive fd pointer number-of-bytes))
-      fd))))
+      ?funcname
+      (?primitive ?fd ?pointer ?number-of-bytes)
+      ?fd))))
 
-(define (do-pread-or-pwrite funcname primitive fd pointer number-of-bytes offset)
+(define (do-pread-or-pwrite ?funcname ?primitive ?fd ?pointer ?number-of-bytes ?offset)
   (temp-failure-retry-minus-one
-   funcname
-   (lambda ()
-     (primitive fd pointer number-of-bytes offset))
-   fd))
+   ?funcname
+   (?primitive ?fd ?pointer ?number-of-bytes ?offset)
+   ?fd))
 
 (define (read fd pointer number-of-bytes)
   (do-read-or-write 'read primitive-read fd pointer number-of-bytes))
 
 (define (write fd pointer number-of-bytes)
-  (do-read-or-write 'read primitive-read fd pointer number-of-bytes))
+  (do-read-or-write 'write primitive-write fd pointer number-of-bytes))
 
 (define (pread fd pointer number-of-bytes offset)
   (do-pread-or-pwrite 'pread primitive-pread fd pointer number-of-bytes offset))
@@ -171,8 +167,7 @@
   ;;harm to use the macro.
   (temp-failure-retry-minus-one
    'lseek
-   (lambda ()
-     (primitive-lseek fd offset whence))
+   (primitive-lseek fd offset whence)
    fd))
 
 
