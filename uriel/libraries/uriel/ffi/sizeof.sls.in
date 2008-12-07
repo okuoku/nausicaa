@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-05 07:03:17 marco>
+;;;Time-stamp: <2008-12-07 13:52:52 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,8 +26,13 @@
 
 (library (uriel ffi sizeof)
   (export
-    sizeof-short-int sizeof-int sizeof-long sizeof-long-long
-    sizeof-pointer
+    sizeof-signed-char		sizeof-unsigned-char
+    sizeof-signed-short		sizeof-unsigned-short
+    sizeof-signed-integer	sizeof-unsigned-integer
+    sizeof-signed-long		sizeof-unsigned-long
+    sizeof-signed-long-long	sizeof-unsigned-long-long
+    sizeof-float		sizeof-double
+    sizeof-long-double		sizeof-pointer
 
     valueof-char-max		valueof-char-min
     valueof-schar-max		valueof-schar-min	valueof-uchar-max
@@ -39,10 +44,19 @@
     words-bigendian		on-64-bits-system	on-32-bits-system)
   (import (rnrs))
 
-  (define sizeof-short-int		@SIZEOF_SHORT_INT@)
-  (define sizeof-int			@SIZEOF_INT@)
-  (define sizeof-long			@SIZEOF_LONG@)
-  (define sizeof-long-long		@SIZEOF_LLONG@)
+  (define sizeof-signed-char		@SIZEOF_CHAR@)
+  (define sizeof-unsigned-char		@SIZEOF_CHAR@)
+  (define sizeof-signed-short		@SIZEOF_SHORT_INT@)
+  (define sizeof-unsigned-short		@SIZEOF_SHORT_INT@)
+  (define sizeof-signed-integer		@SIZEOF_INT@)
+  (define sizeof-unsigned-integer	@SIZEOF_INT@)
+  (define sizeof-signed-long		@SIZEOF_LONG@)
+  (define sizeof-unsigned-long		@SIZEOF_LONG@)
+  (define sizeof-signed-long-long	@SIZEOF_LLONG@)
+  (define sizeof-unsigned-long-long	@SIZEOF_LLONG@)
+  (define sizeof-float			@SIZEOF_FLOAT@)
+  (define sizeof-double			@SIZEOF_DOUBLE@)
+  (define sizeof-long-double		@SIZEOF_LONG_DOUBLE@)
   (define sizeof-pointer		@SIZEOF_POINTER@)
 
   (define valueof-char-max		@VALUEOF_CHAR_MAX@)
@@ -65,9 +79,9 @@
   (define valueof-wchar-max		@VALUEOF_WCHAR_MAX@)
   (define valueof-ssize-max		@VALUEOF_SSIZE_MAX@)
 
-  (define on-32-bits-system (= sizeof-int 4))
-  (define on-64-bits-system (= sizeof-int 8))
+  (define on-32-bits-system (= sizeof-signed-integer 4))
+  (define on-64-bits-system (= sizeof-signed-integer 8))
 
-  (define words-bigendian (= 1 @WORDS_BIGENDIAN@)))
+  (define words-bigendian		@WORDS_BIGENDIAN@))
 
 ;;; end of file

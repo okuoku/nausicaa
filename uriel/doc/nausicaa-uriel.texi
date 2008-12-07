@@ -2427,10 +2427,19 @@ of C language type sizes and limits.  To load the library:
 @end example
 
 
-@defvar sizeof-short-int
-@defvarx sizeof-int
-@defvarx sizeof-long
-@defvarx sizeof-long-long
+@defvar sizeof-signed-char
+@defvarx sizeof-unsigned-char
+@defvarx sizeof-signed-short
+@defvarx sizeof-unsigned-short
+@defvarx sizeof-signed-integer
+@defvarx sizeof-unsigned-integer
+@defvarx sizeof-signed-long
+@defvarx sizeof-unsigned-long
+@defvarx sizeof-signed-long-long
+@defvarx sizeof-unsigned-long-long
+@defvarx sizeof-float
+@defvarx sizeof-double
+@defvarx sizeof-long-double
 @defvarx sizeof-pointer
 The number of bytes in the specified type.
 @end defvar
