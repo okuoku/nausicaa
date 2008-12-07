@@ -1071,14 +1071,22 @@ Return the void value.
 @section Equal hash function
 
 
-For some reason Ikarus up until revision 1694 does not implement the
-@func{equal-hash} function as specified by the @rnrs{6}.  This library
+For some reason Ikarus up until revision 1700 does not implement the
+@func{equal-hash} function as specified by @rnrs{6}.  This library
 offers a simple implementation.  To load it:
 
 @example
 (import (rnrs)
   (uriel equal-hash))
 @end example
+
+@noindent
+we can load it in non--Ikarus programs and libraries, too, because the
+library has a generic implementation that exports the @func{equal-hash}
+of the underlying Scheme.
+
+@c This library is imported by @library{uriel lang}, too, which in turn
+@c exports @func{equal-hash}.
 
 
 @defun equal-hash @var{obj}

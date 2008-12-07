@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-04 17:42:57 marco>
+;;;Time-stamp: <2008-12-07 18:13:27 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -82,9 +82,6 @@
 
 (define (pointer-null? pointer)
   (= 0 (pointer->integer pointer)))
-
-;;;FIXME: temporary until the bug is fixed
-(define pointer-set-c-long-long! #f)
 
 
 

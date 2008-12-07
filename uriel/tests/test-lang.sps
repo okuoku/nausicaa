@@ -122,6 +122,14 @@
   => '(#f (1 2)))
 
 
+;;;; equal-hash
+
+;; (check
+;;     (integer? (equal-hash '#(1 2 3)))
+;;   => #t)
+
+
+
 ;;;; done
 
 (check-report)
