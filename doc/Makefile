@@ -1,30 +1,30 @@
-# 
+#
 # Part of: Nausicaa
 # Contents: documentation rules
 # Date: Thu Nov 13, 2008
-# 
+#
 # Abstract
-# 
-# 
-# 
+#
+#
+#
 # Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
-# 
+#
 # This  program  is free  software:  you  can redistribute  it
 # and/or modify it  under the terms of the  GNU General Public
 # License as published by the Free Software Foundation, either
 # version  3 of  the License,  or (at  your option)  any later
 # version.
-# 
+#
 # This  program is  distributed in  the hope  that it  will be
 # useful, but  WITHOUT ANY WARRANTY; without  even the implied
 # warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
 # PURPOSE.   See  the  GNU  General Public  License  for  more
 # details.
-# 
+#
 # You should  have received a  copy of the GNU  General Public
 # License   along   with    this   program.    If   not,   see
 # <http://www.gnu.org/licenses/>.
-# 
+#
 
 #page
 ## ------------------------------------------------------------
@@ -55,7 +55,7 @@ MAKEINFO_HTML_FLAGS	= --no-split --html
 ## Main rules.
 ## ------------------------------------------------------------
 
-.PHONY: all doc clean
+.PHONY: all doc clean private-install
 
 all: doc
 
@@ -63,6 +63,9 @@ doc:
 
 clean:
 	-$(RM) nausicaa.info nausicaa.html
+
+private-install:
+	install -m 0444 nausicaa.info ~/info
 
 ## ------------------------------------------------------------
 

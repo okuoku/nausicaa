@@ -5,9 +5,13 @@ dnl Date: Thu Nov 13, 2008
 dnl
 dnl Abstract
 dnl
-dnl    This is  a library of GNU Autoconf  macros to be used  by all the
-dnl    Nausicaa  "configure.ac" templates.   It  is enough  to create  a
-dnl    symbolic link from the project directory to this file.
+dnl   This is  a library of GNU Autoconf  macros to be used  by all the
+dnl   Nausicaa "configure.ac" templates.  To use this file it is enough
+dnl   o create a symbolic link from the project directory to this file.
+dnl
+dnl     Full  documentation  for the  macros  in  this  file is  in  the
+dnl   Nausicaa general documentation, under the "doc" directory of the
+dnl   top source tree.
 dnl
 dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 dnl
@@ -31,129 +35,67 @@ dnl --------------------------------------------------------------------
 dnl Helper macros.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
-dnl
-dnl   DS_ENABLE_OPTION(<1 variable>,<2 identifier>,<3 default>,
-dnl                    <4 checking-description>,
-dnl                    <5 option-description>)
-dnl
-dnl Description:
-dnl
-dnl   Define an enable/disable command line option for "configure".  The
-dnl   side effect is an output variable that is meant to be set to "yes"
-dnl   or "no".
-dnl
-dnl Usage example:
-dnl
-dnl	DS_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
-dnl	  [whether compiled files will be built and installed],
-dnl	  [disable installation of precompiled libraries])
-dnl
-AC_DEFUN([DS_ENABLE_OPTION],[
-AC_MSG_CHECKING([$4])
-AC_ARG_ENABLE([$2],AC_HELP_STRING([--enable-$2],[$5 (default: $3)]),[
-if test "$enableval" = yes ; then
-  $1=yes
-else
-  $1=no
-fi
-],[$1=$3])
+dnl 1 VARIABLE
+dnl 2 IDENTIFIER
+dnl 3 DEFAULT
+dnl 4 CHECKING-DESCRIPTION
+dnl 5 OPTION-DESCRIPTION
+AC_DEFUN([NAUSICAA_ENABLE_OPTION],[AC_MSG_CHECKING([$4])
+AC_ARG_ENABLE([$2],
+   AC_HELP_STRING([--enable-$2],[$5 (default: $3)]),
+   [if test "$enableval" = yes ; then $1=yes ; else $1=no ; fi],
+   [$1=$3])
 AC_MSG_RESULT([$[]$1])
 AC_SUBST([$1])
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_WITH_OPTION(<1 variable>,<2 identifier>,<3 default>,
-dnl                    <4 checking-description>,
-dnl                    <5 option-description>)
-dnl
-dnl Description:
-dnl
-dnl   Define  a "with" command  line option  for "configure".   The side
-dnl   effect is an output variable that is meant to be set to the value.
-dnl
-dnl Usage example:
-dnl
-dnl	DS_WITH_OPTION([package_BUILD_VERSION],[build-version],[1nau],
-dnl	  [binary package build revision tag],
-dnl	  [select binary package build revision tag])
-dnl
-AC_DEFUN([DS_WITH_OPTION],[
-AC_MSG_CHECKING([$4])
-AC_ARG_WITH([$2],AC_HELP_STRING([--with-$2],[$5 (default: $3)]),[
-if test -n "$withval" ; then
-  $1=$withval
-else
-  $1=$withval
-fi
-],[$1=$3])
+dnl 1 VARIABLE
+dnl 2 IDENTIFIER
+dnl 3 DEFAULT
+dnl 4 CHECKING-DESCRIPTION
+dnl 5 OPTION-DESCRIPTION
+AC_DEFUN([NAUSICAA_WITH_OPTION],[AC_MSG_CHECKING([$4])
+AC_ARG_WITH([$2],
+   AC_HELP_STRING([--with-$2],[$5 (default: $3)]),
+   [if test -n "$withval" ; then $1=$withval ; else $1=$withval ; fi],
+   [$1=$3])
 AC_MSG_RESULT([$[]$1])
 AC_SUBST([$1])
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_PROGRAM(<1 variable>,<2 program-name>,<3 description>)
-dnl
-dnl Description:
-dnl
-dnl   Find the full pathname of a program.  The side effect is an output
-dnl   variable.
-dnl
-dnl Usage example:
-dnl
-dnl   DS_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
-dnl
-AC_DEFUN([DS_PROGRAM],[
+dnl 1 VARIABLE
+dnl 2 PROGRAM_NAME
+dnl 3 PROGRAM_DESCRIPTION
+AC_DEFUN([NAUSICAA_PROGRAM],[
 AC_PATH_PROG([$1],[$2],[:])
 AC_ARG_VAR([$1],[$3])
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_WITH_TMPFILE(<1 with-temp-file-chunk>,<2 after-chunk>)
-dnl
-dnl Description:
-dnl
-dnl   Execute a chunk of code that  uses a temporary file.  The chunk in
-dnl   <with-temp-file-chunk>  can  use  the  temporary file  whose  full
-dnl   pathname is  "${ds_TMPFILE}".  The chunk in  <after-chunk> will be
-dnl   evaluated after  the temporary  file has been  removed, so  it can
-dnl   safely report errors and terminate the script.
-dnl
-dnl     The  code  that  creates  the  temporary  file  comes  from  the
-dnl   documentation of GNU Autoconf (so blame them, not me!); it makes a
-dnl   temporary  directory under "$TMPDIR"  (which defaults  to "/tmp").
-dnl   Use  "mktemp" if possible;  otherwise fall  back on  "mkdir", with
-dnl   "$RANDOM" to make collisions less likely.
-dnl
-AC_DEFUN([DS_WITH_TMPFILE],[
-
-dnl This initialises TMPDIR to "/tmp" if not already set to something.
-: ${TMPDIR=/tmp}
+dnl 1 WITH_TEMP_FILE_CHUNK
+dnl 2 AFTER_CHUNK
+AC_DEFUN([NAUSICAA_WITH_TMPFILE],[: ${TMPDIR=/tmp}
 {
-    ds_TMPDIR=`
+    nausicaa_private_TMPDIR=`
     (umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null
     ` &&
-    test -n "${ds_TMPDIR}" && test -d "${ds_TMPDIR}"
+    test -n "${nausicaa_private_TMPDIR}" && test -d "${nausicaa_private_TMPDIR}"
 } || {
-    ds_TMPDIR=${TMPDIR}/foo$$-$RANDOM
-    (umask 077 && mkdir "${ds_TMPDIR}")
+    nausicaa_private_TMPDIR=${TMPDIR}/foo$$-$RANDOM
+    (umask 077 && mkdir "${nausicaa_private_TMPDIR}")
 } || exit $?
-
-ds_TMPFILE=${ds_TMPDIR}/temporary.txt
-
+nausicaa_TMPFILE=${nausicaa_private_TMPDIR}/temporary.txt
 dnl Chunk with temporary file usage.
-
 $1
-
-rm -fr "${ds_TMPDIR}"
-
+rm -fr "${nausicaa_private_TMPDIR}"
 dnl Chunk after temporary file usage.
-
 $2
+])
 
+dnl 1 variable_suffix
+dnl 2 default_value
+AC_DEFUN([NAUSICAA_DEFAULT_VALUE],[
+nausicaa_default_$1=$3
+test -z "$nausicaa_default_$1" && nausicaa_default_$1='#f'
 ])
 
 
@@ -162,51 +104,40 @@ dnl --------------------------------------------------------------------
 dnl Common blocks.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
-dnl
-dnl   DS_COMMON_PROGRAMS()
-dnl
-dnl Description:
-dnl
-dnl   Initialises  a  set  of  variables  to  the  pathnames  of  common
-dnl   programs.   Even  if  not  all  these programs  are  used  in  the
-dnl   Makefile, it does not hurt to check for them.
-dnl
-AC_DEFUN([DS_COMMON_PROGRAMS],[
+AC_DEFUN([NAUSICAA_COMMON_PROGRAMS],[
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-DS_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
-DS_PROGRAM([BZIP],[bzip2],[the bzip2 compressor program])
-DS_PROGRAM([CAT],[cat],[the GNU cat program])
-DS_PROGRAM([CP],[cp],[copies files])
-DS_PROGRAM([DATE],[date],[a program that prints the current date])
-DS_PROGRAM([FIND],[find],[the GNU find program])
-DS_PROGRAM([GAWK],[gawk],[the GNU awk program])
-DS_PROGRAM([GREP],[grep],[the GNU grep program])
-DS_PROGRAM([GZIP],[gzip],[the gzip compressor program])
-DS_PROGRAM([M4],[m4],[the GNU m4 preprocessor])
-DS_PROGRAM([MAKEINFO],[makeinfo],[builds docs from Texinfo source])
-DS_PROGRAM([MKDIR],[mkdir],[creates directories recursively])
-DS_PROGRAM([MV],[mv],[move files around])
-DS_PROGRAM([RM],[rm],[deletes files and directories recursively])
-DS_PROGRAM([RMDIR],[rmdir],[deletes empty directories])
-DS_PROGRAM([SED],[sed],[the GNU sed program])
-DS_PROGRAM([SORT],[sort],[the GNU sort program])
-DS_PROGRAM([SUDO],[sudo],[the sudo superuser executor])
-DS_PROGRAM([SYMLINK],[ln],[program used create symbolic links])
-DS_PROGRAM([TAR],[tar],[the GNU tar program])
+NAUSICAA_PROGRAM([BASH_PROGRAM],[bash],[the GNU bash shell])
+NAUSICAA_PROGRAM([BZIP],[bzip2],[the bzip2 compressor program])
+NAUSICAA_PROGRAM([CAT],[cat],[the GNU cat program])
+NAUSICAA_PROGRAM([CP],[cp],[copies files])
+NAUSICAA_PROGRAM([DATE],[date],[a program that prints the current date])
+NAUSICAA_PROGRAM([FIND],[find],[the GNU find program])
+NAUSICAA_PROGRAM([GAWK],[gawk],[the GNU awk program])
+NAUSICAA_PROGRAM([GREP],[grep],[the GNU grep program])
+NAUSICAA_PROGRAM([GZIP],[gzip],[the gzip compressor program])
+NAUSICAA_PROGRAM([M4],[m4],[the GNU m4 preprocessor])
+NAUSICAA_PROGRAM([MAKEINFO],[makeinfo],[builds docs from Texinfo source])
+NAUSICAA_PROGRAM([MKDIR],[mkdir],[creates directories recursively])
+NAUSICAA_PROGRAM([MV],[mv],[move files around])
+NAUSICAA_PROGRAM([RM],[rm],[deletes files and directories recursively])
+NAUSICAA_PROGRAM([RMDIR],[rmdir],[deletes empty directories])
+NAUSICAA_PROGRAM([SED],[sed],[the GNU sed program])
+NAUSICAA_PROGRAM([SORT],[sort],[the GNU sort program])
+NAUSICAA_PROGRAM([SUDO],[sudo],[the sudo superuser executor])
+NAUSICAA_PROGRAM([SYMLINK],[ln],[program used create symbolic links])
+NAUSICAA_PROGRAM([TAR],[tar],[the GNU tar program])
+AC_CACHE_SAVE
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_COMMON_DIRECTORIES()
-dnl
-dnl Description:
-dnl
-dnl   Initialises a bunch  of variables representing useful installation
-dnl   pathnames.
-dnl
-AC_DEFUN([DS_COMMON_DIRECTORIES],[
+AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],[
+NAUSICAA_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
+NAUSICAA_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
+NAUSICAA_PROGRAM([YPSILON],[ypsilon],[another R6RS Scheme])
+AC_CACHE_SAVE
+])
+
+AC_DEFUN([NAUSICAA_COMMON_DIRECTORIES],[
 AC_SUBST([PKG_ID],[\${PACKAGE_NAME}-\${PACKAGE_VERSION}])
 AC_SUBST([PKG_DIR],[\${PACKAGE_NAME}/\${PACKAGE_VERSION}])
 AC_SUBST([pkgdatadir],[\${datadir}/\${PKG_DIR}])
@@ -221,253 +152,170 @@ AC_SUBST([pkglibexecdir],[\${libexecdir}/\${PKG_DIR}])
 AC_SUBST([pkgsysconfdir],[\${sysconfdir}/\${PKG_DIR}])
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_SLACKWARE_TOOLS()
-dnl
-dnl Description:
-dnl
-dnl   Find Slackware package management tools.
-dnl
-AC_DEFUN([DS_SLACKWARE_TOOLS],[
-
-DS_ENABLE_OPTION(ds_slackware_USE_PREFIX_TOOLS,slackware-prefix-tools,no,
-		 [whether Slackware tools under installation prefix will be used],
-                 [use Slackware tools under installation prefix])
-
-ds_PATH=${PATH}
+AC_DEFUN([NAUSICAA_SLACKWARE_TOOLS],[
+NAUSICAA_ENABLE_OPTION([ds_slackware_USE_PREFIX_TOOLS],
+   [slackware-prefix-tools],[no],
+   [whether Slackware tools under installation prefix will be used],
+   [use Slackware tools under installation prefix])
+nausicaa_private_PATH=${PATH}
 if test "${ds_slackware_USE_PREFIX_TOOLS}" = yes ; then
   PATH=${prefix}/sbin:${PATH}
 else
   PATH=/sbin:${PATH}
 fi
-
-DS_PROGRAM([slack_MAKEPKG_PROGRAM],[makepkg],[the Slackware package maker])
-DS_PROGRAM([slack_INSTALLPKG_PROGRAM],[installpkg],[the Slackware package installer])
-DS_PROGRAM([slack_REMOVEPKG_PROGRAM],[removepkg],[the Slackware package remover])
-DS_PROGRAM([slack_UPGRADEPKG_PROGRAM],[upgradepkg],[the Slackware package upgrader])
-
-PATH=${ds_PATH}
+NAUSICAA_PROGRAM([slack_MAKEPKG_PROGRAM],[makepkg],[the Slackware package maker])
+NAUSICAA_PROGRAM([slack_INSTALLPKG_PROGRAM],[installpkg],[the Slackware package installer])
+NAUSICAA_PROGRAM([slack_REMOVEPKG_PROGRAM],[removepkg],[the Slackware package remover])
+NAUSICAA_PROGRAM([slack_UPGRADEPKG_PROGRAM],[upgradepkg],[the Slackware package upgrader])
+PATH=${nausicaa_private_PATH}
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_REDHAT_TOOLS()
-dnl
-dnl Description:
-dnl
-dnl   Find RedHat package management tools.
-dnl
-AC_DEFUN([DS_REDHAT_TOOLS],[
-DS_PROGRAM([redhat_BUILD_PROGRAM],[rpmbuild],[the RedHat package maker])
-DS_PROGRAM([redhat_CORE_PROGRAM],[rpm],[the RedHat package manager])
+AC_DEFUN([NAUSICAA_REDHAT_TOOLS],[
+NAUSICAA_PROGRAM([redhat_BUILD_PROGRAM],[rpmbuild],[the RedHat package maker])
+NAUSICAA_PROGRAM([redhat_CORE_PROGRAM],[rpm],[the RedHat package manager])
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_PACMAN_TOOLS()
-dnl
-dnl Description:
-dnl
-dnl   Find Pacman package management tools.
-dnl
-AC_DEFUN([DS_PACMAN_TOOLS],[
-DS_PROGRAM([pacman_PROGRAM],[pacman],[the Pacman package manager])
+AC_DEFUN([NAUSICAA_PACMAN_TOOLS],[
+NAUSICAA_PROGRAM([pacman_PROGRAM],[pacman],[the Pacman package manager])
 ])
 
-dnl --------------------------------------------------------------------
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Nausicaa specific blocks.
-dnl --------------------------------------------------------------------
-
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_BEGIN()
-dnl   ... your directives ...
-dnl   NAUSICAA_END()
-dnl
-dnl Description
-AC_DEFUN([NAUSICAA_BEGIN],[
-AC_PREREQ(2.60)
-AC_CONFIG_AUX_DIR([../infrastructure])
-AC_CONFIG_SRCDIR([libraries/compile-all.sps])
-DS_OPTIONS()
-NAUSICAA_OPTIONS()
-DS_COMMON_PROGRAMS()
-DS_COMMON_DIRECTORIES()
-DS_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
-DS_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
-DS_PROGRAM([YPSILON],[ypsilon],[another R6RS Scheme])
-DS_SLACKWARE_TOOLS()
-DS_REDHAT_TOOLS()
-DS_PACMAN_TOOLS()
-])
-AC_DEFUN([NAUSICAA_END],[
-AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
-AC_CONFIG_FILES([meta.d/redhat/spec-file:meta/redhat/spec-file.in])
-dnl AC_CONFIG_FILES([Makefile.begin:${srcdir}/infrastructure/Makefile.begin.in])
-dnl AC_CONFIG_FILES([Makefile.end:${srcdir}/infrastructure/Makefile.end.in])
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
-])
-
-dnl Synopsis:
-dnl
-dnl   DS_OPTIONS()
-dnl
-dnl Description:
-dnl
-dnl   Define the "configure" command  line option for the Nausicaa build
-dnl   infrastructure.
-dnl
-AC_DEFUN([DS_OPTIONS],[
-DS_ENABLE_OPTION([ds_config_ENABLE_DOC],[doc],[yes],
+AC_DEFUN([NAUSICAA_OPTIONS],[
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_DOC],[doc],[yes],
   [whether documentation files will be installed],
   [enable installation of documentation files])
-DS_ENABLE_OPTION([ds_config_ENABLE_DOC_INFO],[doc-info],[yes],
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_DOC_INFO],[doc-info],[yes],
   [whether documentation in Info format will be installed],
   [enable installation of Info documentation])
-DS_ENABLE_OPTION([ds_config_ENABLE_DOC_HTML],[doc-html],[no],
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_DOC_HTML],[doc-html],[no],
   [whether documentation in HTML format will be installed],
   [enable installation of HTML documentation])
-])
-
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_OPTIONS()
-dnl
-dnl Description:
-dnl
-dnl   Define the "configure" command  line option for the Nausicaa build
-dnl   infrastructure.
-dnl
-AC_DEFUN([NAUSICAA_OPTIONS],[
-DS_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[yes],
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[no],
   [whether compiled files will be built and installed],
   [enable installation of precompiled libraries])
-DS_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
   [whether source files will be installed],
   [enable installation of source files])
 ])
 
+dnl page
 dnl --------------------------------------------------------------------
+dnl Main macros.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_BEGIN],[
+AC_PREREQ(2.60)
+AC_CONFIG_AUX_DIR([../infrastructure])
+AC_CONFIG_SRCDIR([libraries/compile-all.sps])
+NAUSICAA_OPTIONS()
+NAUSICAA_COMMON_PROGRAMS()
+NAUSICAA_SCHEME_PROGRAMS()
+NAUSICAA_COMMON_DIRECTORIES()
+NAUSICAA_SLACKWARE_TOOLS()
+NAUSICAA_REDHAT_TOOLS()
+NAUSICAA_PACMAN_TOOLS()
+AC_CACHE_SAVE
+])
+
+AC_DEFUN([NAUSICAA_END],[
+dnl Notice that AC_OUTPUT automatically calls AC_CACHE_SAVE.
+AC_CONFIG_FILES([meta.d/slackware/slack-desc:meta/slackware/slack-desc.in])
+AC_CONFIG_FILES([meta.d/redhat/spec-file:meta/redhat/spec-file.in])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+])
+
 
 dnl page
 dnl --------------------------------------------------------------------
 dnl Macros for Ikarus Scheme.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
-dnl
-dnl   DS_WITH_OUTPUT_FROM_IKARUS_SCRIPT(<1 script>,
-dnl                                     <2 command line>,<3 code>)
-dnl
-dnl Description:
-dnl
-dnl   Evaluate an Ikarus <script> by  storing it in a temporary file and
-dnl   invoking  "${IKARUS}  --r6rs-script"  with  <command  line>,  then
-dnl   evaluate <code>.  The script is expected to output a line of text,
-dnl   which will be stored in "${ds_ANSWER}", so that <code> can examine
-dnl   it.
-dnl
-dnl     The script must have no quotes.
-dnl
-AC_DEFUN([DS_WITH_OUTPUT_FROM_IKARUS_SCRIPT],[
-DS_WITH_TMPFILE([
-dnl Chunk with with temporary file pathname in "${ds_TMPFILE}".
-
-ds_ANSWER=`echo '$1' >"${ds_TMPFILE}"
-
-"${IKARUS}" --r6rs-script "${ds_TMPFILE}" $2`
-],[
-dnl Chunk that can read the output in "${ds_ANSWER}".
-$3
-])
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_IKARUS_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT],[
+NAUSICAA_WITH_TMPFILE([
+nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
+"${IKARUS}" --r6rs-script "${nausicaa_TMPFILE}" $2`
+],[$3])
 ])
 
-dnl Synopsis:
-dnl
-dnl   DS_IKARUS_CHECK_LIBRARY(<NAME>, [IMPORT-SPEC],
-dnl                           [ACTION-IF-FOUND],
-dnl                           [ACTION-IF-NOT-FOUND])
-dnl
-dnl Description:
-dnl
-dnl   Check  the availability  of  the Ikarus  library IMPORT-SPEC.   If
-dnl   found  set the output  variable 'HAS_IKARUS_LIB_<NAME>'  to 'yes',
-dnl   else set that variable to 'no'.
-dnl
-dnl   ACTION-IF-FOUND is executed if the library is found.
-dnl
-dnl   ACTION-IF-FOUND is executed if the library is not found.
-dnl
-dnl Prerequisites
-dnl
-dnl   The  variable 'IKARUS'  must  hold the  pathname  of the  'ikarus'
-dnl   executable.
-dnl
-dnl Example:
-dnl
-dnl   To test if '(list-lib)' is available:
-dnl
-dnl       DS_IKARUS_CHECK_LIBRARY([LIST],[(list-lib)])
-dnl
-dnl   if  it is:  the output  variable 'HAS_IKARUS_LIB_LIST'  is  set to
-dnl   'yes'.
-dnl
-AC_DEFUN([DS_IKARUS_CHECK_LIBRARY],[
-AC_MSG_CHECKING([availability of Ikarus library $2])
-
-DS_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (ikarus))
-
-(let ((lib-name (read (open-string-input-port
-                        (cadr (command-line))))))
-  (with-exception-handler
-    (lambda (ex)
-      (display "no\n")
-      (exit 1))
-    (lambda ()
-      (environment lib-name)))
-  (display "yes\n")
-  (exit))
-
-],['$2'],
-
-AC_MSG_RESULT([${ds_ANSWER}])
-if test "${ds_ANSWER}" = yes ; then
-dnl Action if found.
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_IKARUS_CHECK_LIBRARY],[AC_MSG_CHECKING([availability of Ikarus library $2])
+NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (rnrs) (rnrs eval (6)))
+(with-exception-handler
+  (lambda (ex)
+    (display "no\n")
+    (exit))
+  (lambda ()
+    (environment (quote $2))
+    (display "yes\n")))
+],,[AC_MSG_RESULT([$nausicaa_ANSWER])
+AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
+if test "$nausicaa_ANSWER" = yes ; then
+dnl action if found
 :
 $3
 else
-dnl Action if not found.
-:
+dnl action if not found
+AC_MSG_WARN([Ikarus Scheme could not find library])
 $4
 fi
-
-AC_SUBST([HAS_IKARUS_LIB_$1],[$ds_ANSWER])
-)
+])
 ])
 
-
+dnl page
 dnl --------------------------------------------------------------------
+dnl Macros for Ypsilon Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_YPSILON_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT],[
+NAUSICAA_WITH_TMPFILE([
+nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
+"${YPSILON}" --r6rs "${nausicaa_TMPFILE}" $2`
+],[$3])
+])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],[AC_MSG_CHECKING([availability of Ypsilon library $2])
+NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
+(with-exception-handler
+  (lambda (ex)
+    (display "no\n")
+    (exit))
+  (lambda ()
+    (environment (quote $2))
+    (display "yes\n")))
+],[--compatible],[AC_MSG_RESULT([$nausicaa_ANSWER])
+AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
+if test "$nausicaa_ANSWER" = yes ; then
+dnl action if found.
+:
+$3
+else
+dnl action if not found.
+:
+AC_MSG_WARN([Ypsilon Scheme could not find library '$2'])
+$4
+fi
+])
+])
+
 
 dnl page
 dnl --------------------------------------------------------------------
 dnl C language system setup.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_SYSTEM_SETUP()
-dnl
-dnl Description:
-dnl
-dnl   Setup what is needed to  inspect the system.  Useful (but probably
-dnl   not  mandatory) when  we need  to use  the C  compiler  to inspect
-dnl   system facilities; not needed in the other cases.
-dnl
 AC_DEFUN([NAUSICAA_SYSTEM_SETUP],[
 # Notice that this one defines '_GNU_SOURCE' and others.
 AC_USE_SYSTEM_EXTENSIONS
@@ -480,19 +328,16 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 ])
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_C_LANGUAGE()
-dnl
-dnl Description:
-dnl
-dnl   Setup the C language environment.   Useful when we need to use the
-dnl   C compiler to inspect system and libraries facilities.
-dnl
 AC_DEFUN([NAUSICAA_C_LANGUAGE],[
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_HEADER_STDC
+AC_CHECK_HEADERS([errno.h])
+AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([inttypes.h])
+AC_CHECK_HEADERS([limits.h])
+AC_CHECK_HEADERS([stdint.h])
+AC_CHECK_HEADERS([unistd.h])
 ])
 
 
@@ -501,234 +346,193 @@ dnl --------------------------------------------------------------------
 dnl C language basic tests.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_VALUEOF_TEST(<1 SUFFIX>,<2 EXPR>,
-dnl                         <3 DEFAULT>,<4 HEADERS>)
-dnl
-dnl Description:
-dnl
-dnl   A wrapper for "AC_COMPUTE_INT" that acquires the value of a C
-dnl   language expression, which must be an integer.  It is typically
-dnl   used to acquire the value of a constant like "INT_MAX".
-dnl
-dnl   The output variable "VALUEOF_<SUFFIX>" is set to the result.
-dnl   If the test fails: the value of the output variable will be
-dnl   "<DEFAULT>".
-dnl
-dnl   If not empty: <HEADERS> must be a chunk of code including header
-dnl   files.
-dnl
+m4_define([NAUSICAA_INCLUDES_DEFAULT],[AC_INCLUDES_DEFAULT
+#ifdef HAVE_ERRNO_H
+#  include <errno.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#  include <limits.h>
+#endif
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+$1
+])
+
+dnl 1 output-variable-suffix
+dnl 2 the-expression
+dnl 3 optional-default-value
+dnl 4 optional headers
 AC_DEFUN([NAUSICAA_VALUEOF_TEST],[
-AC_MSG_CHECKING([the value of '$2'])
-AC_COMPUTE_INT([VALUEOF_$1],[$2],[AC_INCLUDES_DEFAULT
-#include <limits.h>
-#include <stdint.h>
-$4],[VALUEOF_$1=$3])
+NAUSICAA_DEFAULT_VALUE([valueof_$1],[$3])
+AC_CACHE_CHECK([the value of '$2'],
+   [nausicaa_cv_valueof_$1],
+   [AC_COMPUTE_INT([nausicaa_cv_valueof_$1],
+       [$2],
+       [NAUSICAA_INCLUDES_DEFAULT([$4])],
+       [nausicaa_cv_valueof_$1="$nausicaa_default_valueof_$1"])])
+VALUEOF_$1="$nausicaa_cv_valueof_$1"
 AC_SUBST([VALUEOF_$1])
-AC_MSG_RESULT([${VALUEOF_$1}])
 ])
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_SIZEOF_TEST(<1 SUFFIX>,<2 TYPEDEF>,
-dnl                        <3 DEFAULT>,<4 HEADERS>)
-dnl
-dnl Description:
-dnl
-dnl   A wrapper for "AC_COMPUTE_INT" that acquires the size of a C
-dnl   language type.  The output variable "SIZEOF_<SUFFIX>" will be
-dnl   set to the result.  If the test fails the value of the output
-dnl   variable will be "<DEFAULT>".
-dnl
-dnl   If not empty: <HEADERS> must be a chunk of code including header
-dnl   files.
-dnl
+dnl 1 output-variable-suffix
+dnl 2 the-typedef
+dnl 3 optional-default-value
+dnl 4 optional headers
 AC_DEFUN([NAUSICAA_SIZEOF_TEST],[
-AC_MSG_CHECKING([the size of '$2'])
-AC_COMPUTE_INT([SIZEOF_$1],[sizeof($2)],[AC_INCLUDES_DEFAULT
-#include <limits.h>
-#include <stdint.h>
-$4],[SIZEOF_$1=$3])
+NAUSICAA_DEFAULT_VALUE([sizeof_$1],[$3])
+AC_CACHE_CHECK([the size of '$2'],
+  [nausicaa_cv_sizeof_$1],
+  [AC_COMPUTE_INT([nausicaa_cv_sizeof_$1],
+      [sizeof($2)],
+      [NAUSICAA_INCLUDES_DEFAULT([$4])],
+      [nausicaa_cv_valueof_$1="$nausicaa_default_valueof_$1"])])
+SIZEOF_$1="$nausicaa_cv_sizeof_$1"
 AC_SUBST([SIZEOF_$1])
-AC_MSG_RESULT([${SIZEOF_$1}])
 ])
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_OFFSETOF_TEST(<1 SUFFIX>,<2 STRUCT>,
-dnl                          <3 FIELD>,<4 HEADERS>)
-dnl
-dnl Description:
-dnl
-dnl   A wrapper for "AC_COMPUTE_INT" that acquires the offset of a
-dnl   field in a C data structure.   <STRUCT> is the type of the struct,
-dnl   <FIELD> is the name of the field.
-dnl
-dnl   The output variable "OFFSETOF_<SUFFIX>" is set to the result.
-dnl
-dnl   If not empty: <HEADERS> must be a chunk of code including header
-dnl   files.
-dnl
-AC_DEFUN([NAUSICAA_OFFSETOF_TEST],[
-AC_MSG_CHECKING([the offset of field '$3' in '$2'])
-AC_COMPUTE_INT([OFFSETOF_$1],[offsetof($2,$3)],[AC_INCLUDES_DEFAULT
-$4
-],[OFFSETOF_$1='#f'])
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 struct-field-name
+dnl 4 optional-headers
+AC_DEFUN([NAUSICAA_OFFSETOF_FIELD_TEST],[
+NAUSICAA_DEFAULT_VALUE([sizeof_$1],[#f])
+AC_CACHE_CHECK([the offset of field '$3' in '$2'],
+   [nausicaa_cv_offsetof_$1],
+   [AC_COMPUTE_INT([nausicaa_cv_offsetof_$1],
+       [offsetof($2,$3)],
+       [NAUSICAA_INCLUDES_DEFAULT([$4])],
+       [nausicaa_cv_offsetof_$1="$nausicaa_default_offsetof_$1"])])
+OFFSETOF_$1="$nausicaa_cv_offsetof_$1"
 AC_SUBST([OFFSETOF_$1])
-AC_MSG_RESULT([${OFFSETOF_$1}])
 ])
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_SIZEOF_FIELD_TEST(<1 SUFFIX>, <2 STRUCT>,
-dnl                              <3 FIELD>,  <4 DEFAULT>,
-dnl                              <5 HEADERS>)
-dnl
-dnl Description:
-dnl
-dnl   Acquires the  size of  the field of  a C language  structure type.
-dnl   The output  variable "SIZEOF_<SUFFIX>" will be set  to the result.
-dnl   If  the  test fails  the  value of  the  output  variable will  be
-dnl   "<DEFAULT>".
-dnl
-dnl   <STRUCT> must be  the type of the structure,  usable in a variable
-dnl   declaration.  <FIELD> must be the name of the field.
-dnl
-dnl   If not empty: <HEADERS> must be a chunk of code including header
-dnl   files.
-dnl
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 struct-field-name
+dnl 4 default-value
+dnl 5 optional-headers
 AC_DEFUN([NAUSICAA_SIZEOF_FIELD_TEST],[
-AC_MSG_CHECKING([the size of field '$3' in struct '$2'])
-AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT
-#include <stdio.h>
-#include <stdlib.h>
-$5
-],[
+NAUSICAA_DEFAULT_VALUE([sizeof_field_$1],[#f])
+AC_CACHE_CHECK([the size of field '$3' in struct '$2'],
+   [nausicaa_cv_sizeof_field_$1],
+   [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$5])],[
 $2 s;
 FILE *f = fopen ("conftest.val", "w");
 fprintf(f, "%d", sizeof(s.$3));
 return ferror (f) || fclose (f) != 0;
-])],[SIZEOF_$1=`cat conftest.val`],[SIZEOF_$1=$4])
-rm -f conftest.val
+])],
+   [nausicaa_cv_sizeof_field_$1=`cat conftest.val`],
+   [nausicaa_cv_sizeof_field_$1="$nausicaa_default_sizeof_field_$1"])
+   rm -f conftest.val])
+SIZEOF_$1="$nausicaa_cv_sizeof_field_$1"
 AC_SUBST([SIZEOF_$1])
-AC_MSG_RESULT([${SIZEOF_$1}])
 ])
 
 
 dnl page
 dnl --------------------------------------------------------------------
-dnl C language type conversion.
+dnl C language type inference from size.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
+dnl *** WARNING ***
 dnl
-dnl   NAUSICAA_INTTYPE_TEST(<SUFFIX>,<TYPEDEF>)
-dnl
-dnl Description:
-dnl
-dnl   Determines the equivalent integer type of the C language type
-dnl   "<TYPEDEF>" among the set: "short int", "int", "long",
-dnl   "long long".
-dnl
-dnl   The search is performed by comparing the value of the variable
-dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_INT",
-dnl   "SIZEOF_SHORT_INT",   "SIZEOF_LONG",  "SIZEOF_LLONG"   defined  by
-dnl   "NAUSICAA_SIZEOF".
-dnl
-dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
-dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.
-dnl
-dnl   The output variable "TYPEOF_<SUFFIX>" is set to a result among:
-dnl   "signed-int", "signed-short", "signed-long", "signed-long-long".
-dnl
+dnl Remember that the parentheses have special meaning for m4, so we
+dnl cannot use them in the shell 'case' construct.  This is why we use
+dnl all these 'if' statements.
+
+dnl 1 variable-suffix
+dnl 2 type-definition
+dnl 3 type-guess
+AC_DEFUN([NAUSICAA_BASE_TYPE_TEST],[
+if test "$3" = signed-integer ; then
+    NAUSICAA_INTTYPE_TEST([$1],[$2])
+elif test "$3" = unsigned-integer ; then
+    NAUSICAA_UINTTYPE_TEST([$1],[$2])
+elif test "$3" = float ; then
+    NAUSICAA_FLOATTYPE_TEST([$1],[$2])
+elif test "$3" = pointer ; then
+    TYPEOF_$1=pointer
+AC_SUBST([TYPEOF_$1])
+fi])
+
+dnl 1 variable-suffix
+dnl 2 type-definition
 AC_DEFUN([NAUSICAA_INTTYPE_TEST],[
 AC_REQUIRE([NAUSICAA_SIZEOF])
-AC_MSG_CHECKING([equivalent integer type of '$2'])
-if test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
-   TYPEOF_$1=signed-int
-elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_INT}" ; then
-   TYPEOF_$1=signed-short
-elif test "${SIZEOF_$1}" = "${SIZEOF_LONG}" ; then
-   TYPEOF_$1=signed-long
-elif test "${SIZEOF_$1}" = "${SIZEOF_LLONG}" ; then
-   TYPEOF_$1=signed-long-long
-else
-   AC_MSG_FAILURE([cannot determine equivalent integer type of '$2'],[2])
-fi
+NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+AC_CACHE_CHECK([equivalent integer type of '$2'],
+  [nausicaa_cv_typeof_$1],
+  [if test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
+     nausicaa_cv_typeof_$1=signed-int
+   elif test "${SIZEOF_$1}" = "${SIZEOF_CHAR}" ; then
+     nausicaa_cv_typeof_$1=signed-char
+   elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_INT}" ; then
+     nausicaa_cv_typeof_$1=signed-short
+   elif test "${SIZEOF_$1}" = "${SIZEOF_LONG}" ; then
+     nausicaa_cv_typeof_$1=signed-long
+   elif test "${SIZEOF_$1}" = "${SIZEOF_LLONG}" ; then
+     nausicaa_cv_typeof_$1=signed-long-long
+   else
+     AC_MSG_WARN([cannot determine signed integer type of '$2'])
+     nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
+   fi])
+TYPEOF_$1="$nausicaa_cv_typeof_$1"
 AC_SUBST([TYPEOF_$1])
-AC_MSG_RESULT([${TYPEOF_$1}])
 ])
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_UINTTYPE_TEST(<SUFFIX>,<TYPEDEF>)
-dnl
-dnl Description:
-dnl
-dnl   Determines the equivalent unsigned  integer type of the C language
-dnl   type "<TYPEDEF>"  among the  set: "unsigned short  int", "unsigned
-dnl   int", "unsigned long", "unsigned long long".
-dnl
-dnl   The search is performed by comparing the value of the variable
-dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_UINT",
-dnl   "SIZEOF_SHORT_UINT", "SIZEOF_ULONG", "SIZEOF_ULLONG" defined by
-dnl   "NAUSICAA_SIZEOF".
-dnl
-dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
-dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.
-dnl
-dnl   The output variable "TYPEOF_<SUFFIX>"  is set to the result among:
-dnl   "unsigned-int",         "unsigned-short",         "unsigned-long",
-dnl   "unsigned-long-long".
-dnl
+dnl 1 variable-suffix
+dnl 2 type-definition
 AC_DEFUN([NAUSICAA_UINTTYPE_TEST],[
 AC_REQUIRE([NAUSICAA_SIZEOF])
-AC_MSG_CHECKING([equivalent unsigned integer type of '$2'])
-if test "${SIZEOF_$1}" = "${SIZEOF_UINT}" ; then
-   TYPEOF_$1=unsigned-int
-elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_UINT}" ; then
-   TYPEOF_$1=unsigned-short
-elif test "${SIZEOF_$1}" = "${SIZEOF_ULONG}" ; then
-   TYPEOF_$1=unsigned-long
-elif test "${SIZEOF_$1}" = "${SIZEOF_ULLONG}" ; then
-   TYPEOF_$1=unsigned-long-long
-else
-   AC_MSG_FAILURE([cannot determine equivalent unsigned integer type of '$2'],[2])
-fi
+NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+AC_CACHE_CHECK([equivalent unsigned integer type of '$2'],
+  [nausicaa_cv_typeof_$1],
+  [if test "${SIZEOF_$1}" = "${SIZEOF_UINT}" ; then
+     nausicaa_cv_typeof_$1=unsigned-int
+   elif test "${SIZEOF_$1}" = "${SIZEOF_CHAR}" ; then
+     nausicaa_cv_typeof_$1=unsigned-char
+   elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_UINT}" ; then
+     nausicaa_cv_typeof_$1=unsigned-short
+   elif test "${SIZEOF_$1}" = "${SIZEOF_ULONG}" ; then
+     nausicaa_cv_typeof_$1=unsigned-long
+   elif test "${SIZEOF_$1}" = "${SIZEOF_ULLONG}" ; then
+     nausicaa_cv_typeof_$1=unsigned-long-long
+   else
+     AC_MSG_WARN([cannot determine unsigned integer type of '$2'])
+     nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
+   fi])
+TYPEOF_$1="$nausicaa_cv_typeof_$1"
 AC_SUBST([TYPEOF_$1])
-AC_MSG_RESULT([${TYPEOF_$1}])
 ])
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_FLOATTYPE_TEST(<SUFFIX>,<TYPEDEF>)
-dnl
-dnl Description:
-dnl
-dnl   Determines  the equivalent  floating point  number type  of  the C
-dnl   language type "<TYPEDEF>" among the set: "float", "double".
-dnl
-dnl   The search is performed by comparing the value of the variable
-dnl   "SIZEOF_<SUFFIX>" with the values of the variables "SIZEOF_FLOAT",
-dnl   "SIZEOF_DOUBLE", defined by "NAUSICAA_SIZEOF".
-dnl
-dnl   The variable "SIZEOF_<SUFFIX>" should have been set in precedence
-dnl   using "NAUSICAA_SIZEOF_TEST" or an equivalent macro.
-dnl
-dnl   The output variable "TYPEOF_<SUFFIX>" is set to a result among:
-dnl   "float", "double".
-dnl
+
+dnl 1 variable-suffix
+dnl 2 type-definition
 AC_DEFUN([NAUSICAA_FLOATTYPE_TEST],[
 AC_REQUIRE([NAUSICAA_SIZEOF])
-AC_MSG_CHECKING([equivalent floating point type of '$2'])
-if test "${SIZEOF_$1}" = "${SIZEOF_FLOAT}" ; then
-   TYPEOF_$1=float
-elif test "${SIZEOF_$1}" = "${SIZEOF_DOUBLE}" ; then
-   TYPEOF_$1=double
-else
-   AC_MSG_FAILURE([cannot determine equivalent floating point type of '$2'],[2])
-fi
-AC_SUBST([TYPEOF_$1])
+NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+AC_CACHE_CHECK([equivalent floating point type of '$2'],
+  [nausicaa_cv_typeof_$1],
+  [if test "${SIZEOF_$1}" = "${SIZEOF_FLOAT}" ; then
+     nausicaa_cv_typeof_$1=float
+   elif test "${SIZEOF_$1}" = "${SIZEOF_DOUBLE}" ; then
+     nausicaa_cv_typeof_$1=double
+   elif test "${SIZEOF_$1}" = "${SIZEOF_LONG_DOUBLE}" ; then
+     nausicaa_cv_typeof_$1=long-double
+   else
+     AC_MSG_WARN([cannot determine floating point type of '$2'])
+     nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
+   fi])
+TYPEOF_$1="$nausicaa_cv_typeof_$1"
 AC_MSG_RESULT([${TYPEOF_$1}])
 ])
 
@@ -737,78 +541,95 @@ dnl --------------------------------------------------------------------
 dnl C language types accessors.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
+dnl *** WARNING ***
 dnl
-dnl   NAUSICAA_ACCESSORS_TEST(<SUFFIX>,<TYPEDEF>)
-dnl
-dnl Description:
-dnl
-dnl   Determines the couple of accessors to be used for the C language
-dnl   type "<TYPEDEF>".
-dnl
-dnl   The search is performed by comparing the value of the variable
-dnl   "TYPEOF_<SUFFIX>" with the values: "signed-int", "unsigned-int",
-dnl   "signed-short", "unsigned-short", "signed-long", "unsigned-long",
-dnl   "signed-long-long", "unsigned-long-long".
-dnl
-dnl   The output variable "SETTEROF_<SUFFIX>" is set to the name of the setter;
-dnl   the output variable "GETTEROF_<SUFFIX>" is  set to the name of the
-dnl   getter.
-dnl
+dnl Remember that the parentheses have special meaning for m4, so we
+dnl cannot use them in the shell 'case' construct.  This is why we use
+dnl all these 'if' statements.
+
 AC_DEFUN([NAUSICAA_ACCESSORS_TEST],[
-AC_MSG_CHECKING([accessors for type '$2'])
-case "${TYPEOF_$1}" in
-  signed-int)
-    SETTEROF_$1=pointer-set-c-int!
-    GETTEROF_$1=pointer-ref-c-signed-int
-    ;;
-  unsigned-int)
-    SETTEROF_$1=pointer-set-c-int!
-    GETTEROF_$1=pointer-ref-c-unsigned-int
-    ;;
-  signed-short)
-    SETTEROF_$1=pointer-set-c-short!
-    GETTEROF_$1=pointer-ref-c-signed-short
-    ;;
-  unsigned-short)
-    SETTEROF_$1=pointer-set-c-short!
-    GETTEROF_$1=pointer-ref-c-unsigned-short
-    ;;
-  signed-long)
-    SETTEROF_$1=pointer-set-c-long!
-    GETTEROF_$1=pointer-ref-c-signed-long
-    ;;
-  unsigned-long)
-    SETTEROF_$1=pointer-set-c-long!
-    GETTEROF_$1=pointer-ref-c-unsigned-long
-    ;;
-  signed-long-long)
-    SETTEROF_$1=pointer-set-c-long-long!
-    GETTEROF_$1=pointer-ref-c-signed-long-long
-    ;;
-  unsigned-long-long)
-    SETTEROF_$1=pointer-set-c-long-long!
-    GETTEROF_$1=pointer-ref-c-unsigned-long-long
-    ;;
-  float)
-    SETTEROF_$1=pointer-set-c-float!
-    GETTEROF_$1=pointer-ref-c-float
-    ;;
-  double)
-    SETTEROF_$1=pointer-set-c-double!
-    GETTEROF_$1=pointer-ref-c-double
-    ;;
-  pointer)
-    SETTEROF_$1=pointer-set-c-pointer!
-    GETTEROF_$1=pointer-ref-c-pointer
-    ;;
-  *)
-    AC_MSG_FAILURE([cannot determine accessors for '${TYPEOF_$1}'],[2])
-    ;;
-esac
-AC_SUBST([SETTEROF_$1])
+NAUSICAA_GETTER_TEST([$1],[$2])
+NAUSICAA_SETTER_TEST([$1],[$2])
+])
+
+AC_DEFUN([NAUSICAA_GETTER_TEST],[
+NAUSICAA_DEFAULT_VALUE([getterof_$1],[#f])
+AC_CACHE_CHECK([getter for type '$2'],
+  [nausicaa_cv_getterof_$1],
+  [if   test "${TYPEOF_$1}" = signed-char ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-signed-char"
+   elif test "${TYPEOF_$1}" = unsigned-char ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-char"
+   elif test "${TYPEOF_$1}" = signed-int ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-signed-int"
+   elif test "${TYPEOF_$1}" = unsigned-int ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-int"
+   elif test "${TYPEOF_$1}" = signed-short ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-signed-short"
+   elif test "${TYPEOF_$1}" = unsigned-short ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-short"
+   elif test "${TYPEOF_$1}" = signed-long ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-signed-long"
+   elif test "${TYPEOF_$1}" = unsigned-long ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-long"
+   elif test "${TYPEOF_$1}" = signed-long-long ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-signed-long-long"
+   elif test "${TYPEOF_$1}" = unsigned-long-long ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-long-long"
+   elif test "${TYPEOF_$1}" = float ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-float"
+   elif test "${TYPEOF_$1}" = double ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-double"
+   elif test "${TYPEOF_$1}" = long-double ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-long-double"
+   elif test "${TYPEOF_$1}" = pointer ; then
+     nausicaa_cv_getterof_$1="pointer-ref-c-pointer"
+   else
+     AC_MSG_WARN([cannot determine getter for '$2' from '$TYPEOF_$1'])
+     nausicaa_cv_getterof_$1="$nausicaa_default_getterof_$1"
+   fi])
+GETTEROF_$1="$nausicaa_cv_getterof_$1"
 AC_SUBST([GETTEROF_$1])
-AC_MSG_RESULT([${SETTEROF_$1} ${GETTEROF_$1}])
+])
+
+AC_DEFUN([NAUSICAA_SETTER_TEST],[
+NAUSICAA_DEFAULT_VALUE([setterof_$1],[#f])
+AC_CACHE_CHECK([setter for type '$2'],
+  [nausicaa_cv_setterof_$1],
+  [if   test "${TYPEOF_$1}" = signed-char       ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-char!"
+   elif test "${TYPEOF_$1}" = unsigned-char     ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-char!"
+   elif test "${TYPEOF_$1}" = signed-int        ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-int!"
+   elif test "${TYPEOF_$1}" = unsigned-int      ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-int!"
+   elif test "${TYPEOF_$1}" = signed-short      ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-short!"
+   elif test "${TYPEOF_$1}" = unsigned-short    ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-short!"
+   elif test "${TYPEOF_$1}" = signed-long       ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-long!"
+   elif test "${TYPEOF_$1}" = unsigned-long     ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-long!"
+   elif test "${TYPEOF_$1}" = signed-long-long  ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-long-long!"
+   elif test "${TYPEOF_$1}" = unsigned-long-long; then
+     nausicaa_cv_setterof_$1="pointer-set-c-long-long!"
+   elif test "${TYPEOF_$1}" = float             ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-float!"
+   elif test "${TYPEOF_$1}" = double            ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-double!"
+   elif test "${TYPEOF_$1}" = long-double       ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-long-double!"
+   elif test "${TYPEOF_$1}" = pointer           ; then
+     nausicaa_cv_setterof_$1="pointer-set-c-pointer!"
+   else
+     AC_MSG_WARN([cannot determine setter for '${TYPEOF_$1}'],[2])
+     nausicaa_cv_setterof_$1="$nausicaa_default_setterof_$1"
+   fi])
+SETTEROF_$1="$nausicaa_cv_setterof_$1"
+AC_SUBST([SETTEROF_$1])
 ])
 
 dnl page
@@ -816,64 +637,27 @@ dnl --------------------------------------------------------------------
 dnl C language type full inspection.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_INSPECT_TYPEDEF(<1 SUFFIX>,     <2 TYPEDEF>,
-dnl                            <3 TYPE_GUESS>, <4 HEADERS>)
-dnl
-dnl Description:
-dnl
-dnl   Perform a full inspection for a C language type definition.
-dnl
+dnl 1 variable-suffix
+dnl 2 typedef
+dnl 3 type-guess
+dnl 4 default-value
+dnl 5 optional-headers
 AC_DEFUN([NAUSICAA_INSPECT_TYPE],[
-NAUSICAA_SIZEOF_TEST([$1],[$2],['#f'],[$4])
-case $3 in
-  int)
-    NAUSICAA_INTTYPE_TEST([$1],[$2])
-    ;;
-  uint)
-    NAUSICAA_UINTTYPE_TEST([$1],[$2])
-    ;;
-  float)
-    NAUSICAA_FLOATTYPE_TEST([$1],[$2])
-    ;;
-  pointer)
-    TYPEOF_$1=pointer
-AC_SUBST([TYPEOF_$1])
-    ;;
-esac
+NAUSICAA_SIZEOF_TEST([$1],[$2],[$4],[$5])
+NAUSICAA_BASE_TYPE_TEST([$1],[$2],[$3])
 NAUSICAA_ACCESSORS_TEST([$1],[$2])
 ])
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_INSPECT_FIELD_TYPEDEF(<1 SUFFIX>,
-dnl                                  <2 STRUCT>,     <3 FIELD>,
-dnl                                  <4 TYPE_GUESS>, <5 HEADERS>)
-dnl
-dnl Description:
-dnl
-dnl   Perform  a full  inspection for  a  C language  struct field  type
-dnl   definition.
-dnl
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 field-name
+dnl 4 type-guess
+dnl 5 default-value
+dnl 6 optional-headers
 AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE],[
-NAUSICAA_OFFSETOF_TEST([$1],[$2],[$3],[$5])
-NAUSICAA_SIZEOF_FIELD_TEST([$1],[$2],[$3],['#f'],[$5])
-case $4 in
-  int)
-    NAUSICAA_INTTYPE_TEST([$1],[$2.$3])
-    ;;
-  uint)
-    NAUSICAA_UINTTYPE_TEST([$1],[$2.$3])
-    ;;
-  float)
-    NAUSICAA_FLOATTYPE_TEST([$1],[$2.$3])
-    ;;
-  pointer)
-    TYPEOF_$1=pointer
-AC_SUBST([TYPEOF_$1])
-    ;;
-esac
+NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$6])
+NAUSICAA_SIZEOF_FIELD_TEST([$1],[$2],[$3],[$5],[$6])
+NAUSICAA_BASE_TYPE_TEST([$1],[$2.$3],[$4])
 NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])
 ])
 
@@ -883,191 +667,181 @@ dnl --------------------------------------------------------------------
 dnl Common sets of C language tests.
 dnl --------------------------------------------------------------------
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_SIZEOF()
-dnl
-dnl Description:
-dnl
-dnl   Perform  a  series of  tests  to  determine characteristic  system
-dnl   constants.
-dnl
 AC_DEFUN([NAUSICAA_SIZEOF],[
-NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int],[#f])
-NAUSICAA_SIZEOF_TEST([SHORT_UINT],[unsigned short int],[#f])
-NAUSICAA_SIZEOF_TEST([INT],[int],[#f])
-NAUSICAA_SIZEOF_TEST([UINT],[unsigned int],[#f])
-NAUSICAA_SIZEOF_TEST([LONG],[long],[#f])
-NAUSICAA_SIZEOF_TEST([ULONG],[unsigned long],[#f])
-NAUSICAA_SIZEOF_TEST([LLONG],[long long],[#f])
-NAUSICAA_SIZEOF_TEST([ULLONG],[unsigned long long],[#f])
-NAUSICAA_SIZEOF_TEST([FLOAT],[float],[#f])
-NAUSICAA_SIZEOF_TEST([DOUBLE],[double],[#f])
-NAUSICAA_SIZEOF_TEST([POINTER],[void *],[#f])
-
-NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([CHAR_MIN],[CHAR_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([SCHAR_MAX],[SCHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SCHAR_MIN],[SCHAR_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([UCHAR_MAX],[UCHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SHRT_MAX],[SHRT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SHRT_MIN],[SHRT_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([USHRT_MAX],[USHRT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([INT_MIN],[INT_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([UINT_MAX],[UINT_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LONG_MAX],[LONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LONG_MIN],[LONG_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([ULONG_MAX],[ULONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LLONG_MAX],[LLONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([LLONG_MIN],[LLONG_MIN],[#f])
-NAUSICAA_VALUEOF_TEST([ULLONG_MAX],[ULLONG_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX],[#f])
-NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX],[#f])
-
-AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,1)],[AC_SUBST(WORDS_BIGENDIAN,0)])
+NAUSICAA_SIZEOF_TEST([CHAR],[char])
+NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int])
+NAUSICAA_SIZEOF_TEST([SHORT_UINT],[unsigned short int])
+NAUSICAA_SIZEOF_TEST([INT],[int])
+NAUSICAA_SIZEOF_TEST([UINT],[unsigned int])
+NAUSICAA_SIZEOF_TEST([LONG],[long])
+NAUSICAA_SIZEOF_TEST([ULONG],[unsigned long])
+NAUSICAA_SIZEOF_TEST([LLONG],[long long])
+NAUSICAA_SIZEOF_TEST([ULLONG],[unsigned long long])
+NAUSICAA_SIZEOF_TEST([FLOAT],[float])
+NAUSICAA_SIZEOF_TEST([DOUBLE],[double])
+NAUSICAA_SIZEOF_TEST([LONG_DOUBLE],[long double])
+NAUSICAA_SIZEOF_TEST([POINTER],[void *])
+AC_CACHE_SAVE
 ])
 
-dnl Synopsis:
-dnl
-dnl   NAUSICAA_C_ERRNO()
-dnl
-dnl Description:
-dnl
-dnl   Determine the values of the "errno" constants.
-dnl
+AC_DEFUN([NAUSICAA_C_TYPES_LIMITS],[
+NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX])
+NAUSICAA_VALUEOF_TEST([CHAR_MIN],[CHAR_MIN])
+NAUSICAA_VALUEOF_TEST([SCHAR_MAX],[SCHAR_MAX])
+NAUSICAA_VALUEOF_TEST([SCHAR_MIN],[SCHAR_MIN])
+NAUSICAA_VALUEOF_TEST([UCHAR_MAX],[UCHAR_MAX])
+NAUSICAA_VALUEOF_TEST([SHRT_MAX],[SHRT_MAX])
+NAUSICAA_VALUEOF_TEST([SHRT_MIN],[SHRT_MIN])
+NAUSICAA_VALUEOF_TEST([USHRT_MAX],[USHRT_MAX])
+NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX])
+NAUSICAA_VALUEOF_TEST([INT_MIN],[INT_MIN])
+NAUSICAA_VALUEOF_TEST([UINT_MAX],[UINT_MAX])
+NAUSICAA_VALUEOF_TEST([LONG_MAX],[LONG_MAX])
+NAUSICAA_VALUEOF_TEST([LONG_MIN],[LONG_MIN])
+NAUSICAA_VALUEOF_TEST([ULONG_MAX],[ULONG_MAX])
+NAUSICAA_VALUEOF_TEST([LLONG_MAX],[LLONG_MAX])
+NAUSICAA_VALUEOF_TEST([LLONG_MIN],[LLONG_MIN])
+NAUSICAA_VALUEOF_TEST([ULLONG_MAX],[ULLONG_MAX])
+NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX])
+NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX])
+
+AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,[#t])],[AC_SUBST(WORDS_BIGENDIAN,[#f])])
+AC_CACHE_SAVE
+])
+
 AC_DEFUN([NAUSICAA_C_ERRNO],[
-NAUSICAA_VALUEOF_TEST([EPERM],[EPERM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOENT],[ENOENT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ESRCH],[ESRCH],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EINTR],[EINTR],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EIO],[EIO],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENXIO],[ENXIO],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([E2BIG],[E2BIG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOEXEC],[ENOEXEC],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBADF],[EBADF],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ECHILD],[ECHILD],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EAGAIN],[EAGAIN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOMEM],[ENOMEM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EACCES],[EACCES],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EFAULT],[EFAULT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTBLK],[ENOTBLK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBUSY],[EBUSY],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EEXIST],[EEXIST],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EXDEV],[EXDEV],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENODEV],[ENODEV],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTDIR],[ENOTDIR],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EISDIR],[EISDIR],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EINVAL],[EINVAL],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENFILE],[ENFILE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EMFILE],[EMFILE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTTY],[ENOTTY],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ETXTBSY],[ETXTBSY],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EFBIG],[EFBIG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOSPC],[ENOSPC],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ESPIPE],[ESPIPE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EROFS],[EROFS],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EMLINK],[EMLINK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EPIPE],[EPIPE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EDOM],[EDOM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ERANGE],[ERANGE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EDEADLK],[EDEADLK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENAMETOOLONG],[ENAMETOOLONG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOLCK],[ENOLCK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOSYS],[ENOSYS],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTEMPTY],[ENOTEMPTY],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ELOOP],[ELOOP],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EWOULDBLOCK],[EWOULDBLOCK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOMSG],[ENOMSG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EIDRM],[EIDRM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ECHRNG],[ECHRNG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EL2NSYNC],[EL2NSYNC],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EL3HLT],[EL3HLT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EL3RST],[EL3RST],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ELNRNG],[ELNRNG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EUNATCH],[EUNATCH],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOCSI],[ENOCSI],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EL2HLT],[EL2HLT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBADE],[EBADE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBADR],[EBADR],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EXFULL],[EXFULL],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOANO],[ENOANO],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBADRQC],[EBADRQC],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBADSLT],[EBADSLT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EDEADLOCK],[EDEADLOCK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBFONT],[EBFONT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOSTR],[ENOSTR],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENODATA],[ENODATA],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ETIME],[ETIME],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOSR],[ENOSR],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENONET],[ENONET],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOPKG],[ENOPKG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EREMOTE],[EREMOTE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOLINK],[ENOLINK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EADV],[EADV],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ESRMNT],[ESRMNT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ECOMM],[ECOMM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EPROTO],[EPROTO],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EMULTIHOP],[EMULTIHOP],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EDOTDOT],[EDOTDOT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBADMSG],[EBADMSG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EOVERFLOW],[EOVERFLOW],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTUNIQ],[ENOTUNIQ],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EBADFD],[EBADFD],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EREMCHG],[EREMCHG],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ELIBACC],[ELIBACC],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ELIBBAD],[ELIBBAD],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ELIBSCN],[ELIBSCN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ELIBMAX],[ELIBMAX],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ELIBEXEC],[ELIBEXEC],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EILSEQ],[EILSEQ],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ERESTART],[ERESTART],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ESTRPIPE],[ESTRPIPE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EUSERS],[EUSERS],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTSOCK],[ENOTSOCK],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EDESTADDRREQ],[EDESTADDRREQ],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EMSGSIZE],[EMSGSIZE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EPROTOTYPE],[EPROTOTYPE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOPROTOOPT],[ENOPROTOOPT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EPROTONOSUPPORT],[EPROTONOSUPPORT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ESOCKTNOSUPPORT],[ESOCKTNOSUPPORT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EOPNOTSUPP],[EOPNOTSUPP],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EPFNOSUPPORT],[EPFNOSUPPORT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EAFNOSUPPORT],[EAFNOSUPPORT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EADDRINUSE],[EADDRINUSE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EADDRNOTAVAIL],[EADDRNOTAVAIL],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENETDOWN],[ENETDOWN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENETUNREACH],[ENETUNREACH],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENETRESET],[ENETRESET],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ECONNABORTED],[ECONNABORTED],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ECONNRESET],[ECONNRESET],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOBUFS],[ENOBUFS],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EISCONN],[EISCONN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTCONN],[ENOTCONN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ESHUTDOWN],[ESHUTDOWN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ETOOMANYREFS],[ETOOMANYREFS],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ETIMEDOUT],[ETIMEDOUT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ECONNREFUSED],[ECONNREFUSED],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EHOSTDOWN],[EHOSTDOWN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EHOSTUNREACH],[EHOSTUNREACH],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EALREADY],[EALREADY],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EINPROGRESS],[EINPROGRESS],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ESTALE],[ESTALE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EUCLEAN],[EUCLEAN],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTNAM],[ENOTNAM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENAVAIL],[ENAVAIL],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EISNAM],[EISNAM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EREMOTEIO],[EREMOTEIO],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EDQUOT],[EDQUOT],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOMEDIUM],[ENOMEDIUM],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EMEDIUMTYPE],[EMEDIUMTYPE],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ECANCELED],[ECANCELED],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOKEY],[ENOKEY],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EKEYEXPIRED],[EKEYEXPIRED],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EKEYREVOKED],[EKEYREVOKED],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EKEYREJECTED],[EKEYREJECTED],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([EOWNERDEAD],[EOWNERDEAD],[#f],[#include <errno.h>])
-NAUSICAA_VALUEOF_TEST([ENOTRECOVERABLE],[ENOTRECOVERABLE],[#f],[#include <errno.h>])
+NAUSICAA_VALUEOF_TEST([EPERM],[EPERM])
+NAUSICAA_VALUEOF_TEST([ENOENT],[ENOENT])
+NAUSICAA_VALUEOF_TEST([ESRCH],[ESRCH])
+NAUSICAA_VALUEOF_TEST([EINTR],[EINTR])
+NAUSICAA_VALUEOF_TEST([EIO],[EIO])
+NAUSICAA_VALUEOF_TEST([ENXIO],[ENXIO])
+NAUSICAA_VALUEOF_TEST([E2BIG],[E2BIG])
+NAUSICAA_VALUEOF_TEST([ENOEXEC],[ENOEXEC])
+NAUSICAA_VALUEOF_TEST([EBADF],[EBADF])
+NAUSICAA_VALUEOF_TEST([ECHILD],[ECHILD])
+NAUSICAA_VALUEOF_TEST([EAGAIN],[EAGAIN])
+NAUSICAA_VALUEOF_TEST([ENOMEM],[ENOMEM])
+NAUSICAA_VALUEOF_TEST([EACCES],[EACCES])
+NAUSICAA_VALUEOF_TEST([EFAULT],[EFAULT])
+NAUSICAA_VALUEOF_TEST([ENOTBLK],[ENOTBLK])
+NAUSICAA_VALUEOF_TEST([EBUSY],[EBUSY])
+NAUSICAA_VALUEOF_TEST([EEXIST],[EEXIST])
+NAUSICAA_VALUEOF_TEST([EXDEV],[EXDEV])
+NAUSICAA_VALUEOF_TEST([ENODEV],[ENODEV])
+NAUSICAA_VALUEOF_TEST([ENOTDIR],[ENOTDIR])
+NAUSICAA_VALUEOF_TEST([EISDIR],[EISDIR])
+NAUSICAA_VALUEOF_TEST([EINVAL],[EINVAL])
+NAUSICAA_VALUEOF_TEST([ENFILE],[ENFILE])
+NAUSICAA_VALUEOF_TEST([EMFILE],[EMFILE])
+NAUSICAA_VALUEOF_TEST([ENOTTY],[ENOTTY])
+NAUSICAA_VALUEOF_TEST([ETXTBSY],[ETXTBSY])
+NAUSICAA_VALUEOF_TEST([EFBIG],[EFBIG])
+NAUSICAA_VALUEOF_TEST([ENOSPC],[ENOSPC])
+NAUSICAA_VALUEOF_TEST([ESPIPE],[ESPIPE])
+NAUSICAA_VALUEOF_TEST([EROFS],[EROFS])
+NAUSICAA_VALUEOF_TEST([EMLINK],[EMLINK])
+NAUSICAA_VALUEOF_TEST([EPIPE],[EPIPE])
+NAUSICAA_VALUEOF_TEST([EDOM],[EDOM])
+NAUSICAA_VALUEOF_TEST([ERANGE],[ERANGE])
+NAUSICAA_VALUEOF_TEST([EDEADLK],[EDEADLK])
+NAUSICAA_VALUEOF_TEST([ENAMETOOLONG],[ENAMETOOLONG])
+NAUSICAA_VALUEOF_TEST([ENOLCK],[ENOLCK])
+NAUSICAA_VALUEOF_TEST([ENOSYS],[ENOSYS])
+NAUSICAA_VALUEOF_TEST([ENOTEMPTY],[ENOTEMPTY])
+NAUSICAA_VALUEOF_TEST([ELOOP],[ELOOP])
+NAUSICAA_VALUEOF_TEST([EWOULDBLOCK],[EWOULDBLOCK])
+NAUSICAA_VALUEOF_TEST([ENOMSG],[ENOMSG])
+NAUSICAA_VALUEOF_TEST([EIDRM],[EIDRM])
+NAUSICAA_VALUEOF_TEST([ECHRNG],[ECHRNG])
+NAUSICAA_VALUEOF_TEST([EL2NSYNC],[EL2NSYNC])
+NAUSICAA_VALUEOF_TEST([EL3HLT],[EL3HLT])
+NAUSICAA_VALUEOF_TEST([EL3RST],[EL3RST])
+NAUSICAA_VALUEOF_TEST([ELNRNG],[ELNRNG])
+NAUSICAA_VALUEOF_TEST([EUNATCH],[EUNATCH])
+NAUSICAA_VALUEOF_TEST([ENOCSI],[ENOCSI])
+NAUSICAA_VALUEOF_TEST([EL2HLT],[EL2HLT])
+NAUSICAA_VALUEOF_TEST([EBADE],[EBADE])
+NAUSICAA_VALUEOF_TEST([EBADR],[EBADR])
+NAUSICAA_VALUEOF_TEST([EXFULL],[EXFULL])
+NAUSICAA_VALUEOF_TEST([ENOANO],[ENOANO])
+NAUSICAA_VALUEOF_TEST([EBADRQC],[EBADRQC])
+NAUSICAA_VALUEOF_TEST([EBADSLT],[EBADSLT])
+NAUSICAA_VALUEOF_TEST([EDEADLOCK],[EDEADLOCK])
+NAUSICAA_VALUEOF_TEST([EBFONT],[EBFONT])
+NAUSICAA_VALUEOF_TEST([ENOSTR],[ENOSTR])
+NAUSICAA_VALUEOF_TEST([ENODATA],[ENODATA])
+NAUSICAA_VALUEOF_TEST([ETIME],[ETIME])
+NAUSICAA_VALUEOF_TEST([ENOSR],[ENOSR])
+NAUSICAA_VALUEOF_TEST([ENONET],[ENONET])
+NAUSICAA_VALUEOF_TEST([ENOPKG],[ENOPKG])
+NAUSICAA_VALUEOF_TEST([EREMOTE],[EREMOTE])
+NAUSICAA_VALUEOF_TEST([ENOLINK],[ENOLINK])
+NAUSICAA_VALUEOF_TEST([EADV],[EADV])
+NAUSICAA_VALUEOF_TEST([ESRMNT],[ESRMNT])
+NAUSICAA_VALUEOF_TEST([ECOMM],[ECOMM])
+NAUSICAA_VALUEOF_TEST([EPROTO],[EPROTO])
+NAUSICAA_VALUEOF_TEST([EMULTIHOP],[EMULTIHOP])
+NAUSICAA_VALUEOF_TEST([EDOTDOT],[EDOTDOT])
+NAUSICAA_VALUEOF_TEST([EBADMSG],[EBADMSG])
+NAUSICAA_VALUEOF_TEST([EOVERFLOW],[EOVERFLOW])
+NAUSICAA_VALUEOF_TEST([ENOTUNIQ],[ENOTUNIQ])
+NAUSICAA_VALUEOF_TEST([EBADFD],[EBADFD])
+NAUSICAA_VALUEOF_TEST([EREMCHG],[EREMCHG])
+NAUSICAA_VALUEOF_TEST([ELIBACC],[ELIBACC])
+NAUSICAA_VALUEOF_TEST([ELIBBAD],[ELIBBAD])
+NAUSICAA_VALUEOF_TEST([ELIBSCN],[ELIBSCN])
+NAUSICAA_VALUEOF_TEST([ELIBMAX],[ELIBMAX])
+NAUSICAA_VALUEOF_TEST([ELIBEXEC],[ELIBEXEC])
+NAUSICAA_VALUEOF_TEST([EILSEQ],[EILSEQ])
+NAUSICAA_VALUEOF_TEST([ERESTART],[ERESTART])
+NAUSICAA_VALUEOF_TEST([ESTRPIPE],[ESTRPIPE])
+NAUSICAA_VALUEOF_TEST([EUSERS],[EUSERS])
+NAUSICAA_VALUEOF_TEST([ENOTSOCK],[ENOTSOCK])
+NAUSICAA_VALUEOF_TEST([EDESTADDRREQ],[EDESTADDRREQ])
+NAUSICAA_VALUEOF_TEST([EMSGSIZE],[EMSGSIZE])
+NAUSICAA_VALUEOF_TEST([EPROTOTYPE],[EPROTOTYPE])
+NAUSICAA_VALUEOF_TEST([ENOPROTOOPT],[ENOPROTOOPT])
+NAUSICAA_VALUEOF_TEST([EPROTONOSUPPORT],[EPROTONOSUPPORT])
+NAUSICAA_VALUEOF_TEST([ESOCKTNOSUPPORT],[ESOCKTNOSUPPORT])
+NAUSICAA_VALUEOF_TEST([EOPNOTSUPP],[EOPNOTSUPP])
+NAUSICAA_VALUEOF_TEST([EPFNOSUPPORT],[EPFNOSUPPORT])
+NAUSICAA_VALUEOF_TEST([EAFNOSUPPORT],[EAFNOSUPPORT])
+NAUSICAA_VALUEOF_TEST([EADDRINUSE],[EADDRINUSE])
+NAUSICAA_VALUEOF_TEST([EADDRNOTAVAIL],[EADDRNOTAVAIL])
+NAUSICAA_VALUEOF_TEST([ENETDOWN],[ENETDOWN])
+NAUSICAA_VALUEOF_TEST([ENETUNREACH],[ENETUNREACH])
+NAUSICAA_VALUEOF_TEST([ENETRESET],[ENETRESET])
+NAUSICAA_VALUEOF_TEST([ECONNABORTED],[ECONNABORTED])
+NAUSICAA_VALUEOF_TEST([ECONNRESET],[ECONNRESET])
+NAUSICAA_VALUEOF_TEST([ENOBUFS],[ENOBUFS])
+NAUSICAA_VALUEOF_TEST([EISCONN],[EISCONN])
+NAUSICAA_VALUEOF_TEST([ENOTCONN],[ENOTCONN])
+NAUSICAA_VALUEOF_TEST([ESHUTDOWN],[ESHUTDOWN])
+NAUSICAA_VALUEOF_TEST([ETOOMANYREFS],[ETOOMANYREFS])
+NAUSICAA_VALUEOF_TEST([ETIMEDOUT],[ETIMEDOUT])
+NAUSICAA_VALUEOF_TEST([ECONNREFUSED],[ECONNREFUSED])
+NAUSICAA_VALUEOF_TEST([EHOSTDOWN],[EHOSTDOWN])
+NAUSICAA_VALUEOF_TEST([EHOSTUNREACH],[EHOSTUNREACH])
+NAUSICAA_VALUEOF_TEST([EALREADY],[EALREADY])
+NAUSICAA_VALUEOF_TEST([EINPROGRESS],[EINPROGRESS])
+NAUSICAA_VALUEOF_TEST([ESTALE],[ESTALE])
+NAUSICAA_VALUEOF_TEST([EUCLEAN],[EUCLEAN])
+NAUSICAA_VALUEOF_TEST([ENOTNAM],[ENOTNAM])
+NAUSICAA_VALUEOF_TEST([ENAVAIL],[ENAVAIL])
+NAUSICAA_VALUEOF_TEST([EISNAM],[EISNAM])
+NAUSICAA_VALUEOF_TEST([EREMOTEIO],[EREMOTEIO])
+NAUSICAA_VALUEOF_TEST([EDQUOT],[EDQUOT])
+NAUSICAA_VALUEOF_TEST([ENOMEDIUM],[ENOMEDIUM])
+NAUSICAA_VALUEOF_TEST([EMEDIUMTYPE],[EMEDIUMTYPE])
+NAUSICAA_VALUEOF_TEST([ECANCELED],[ECANCELED])
+NAUSICAA_VALUEOF_TEST([ENOKEY],[ENOKEY])
+NAUSICAA_VALUEOF_TEST([EKEYEXPIRED],[EKEYEXPIRED])
+NAUSICAA_VALUEOF_TEST([EKEYREVOKED],[EKEYREVOKED])
+NAUSICAA_VALUEOF_TEST([EKEYREJECTED],[EKEYREJECTED])
+NAUSICAA_VALUEOF_TEST([EOWNERDEAD],[EOWNERDEAD])
+NAUSICAA_VALUEOF_TEST([ENOTRECOVERABLE],[ENOTRECOVERABLE])
+AC_CACHE_SAVE
 ])
 
 

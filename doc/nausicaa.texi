@@ -12,6 +12,11 @@
 @include version.texiinc
 
 
+@macro configure
+@command{configure}
+@end macro
+
+
 @c page
 @c ------------------------------------------------------------
 @c License macros.
@@ -310,6 +315,10 @@ the main purpose of this document is to provide an Info version.
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
+@macro autoconfref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,autoconf}
+@end macro
+
 @macro bibref{TAG}
 @code{[\TAG\]}
 @end macro
@@ -409,7 +418,17 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* config::                      Configuration.
+
+The configure script
+
+* conf::                        Configuration.
+* conf helpers::                Helper macros.
+* conf common::                 Common script blocks.
+* conf scheme::                 Macros for Scheme language.
+* conf clang::                  Macros for C language.
+
+The Makefile
+
 * vars::                        Variables.
 * rules::                       Rules.
 * package::                     Building packages.
@@ -492,7 +511,7 @@ file or directory name.
 
 
 @c page
-@node config
+@node conf
 @chapter Configuration
 
 
@@ -518,12 +537,12 @@ then we are ready to apply the @command{make} program to the
 
 
 @menu
-* config options::              Options for @command{configure}.
+* conf options::                Options for @command{configure}.
 @end menu
 
 
 @c page
-@node config options
+@node conf options
 @section Options for @command{configure}
 
 
@@ -548,7 +567,7 @@ installed by a project will end under this directory; it defaults to
 @itemx --disable-fasl
 Enable or disable the compilation and installation of @fasl{} files;
 these are the precompiled version of the installed libraries.  It
-defaults to: yes, build and install the compiled files.
+defaults to: no, do not precompile files.
 
 At present (revision 1695) only libraries can be compiled by Ikarus.
 
@@ -573,6 +592,1092 @@ Enable or disable the compilation and installation of @acronym{HTML}
 documentation files.  It defaults to: no, @strong{do not} build and
 install the @acronym{HTML} documentation.
 @end table
+
+
+@c page
+@node conf helpers
+@chapter Helper macros
+
+
+@menu
+* conf helpers options::        Command line options.
+* conf helpers programs::       Finding programs.
+* conf helpers tmpfile::        Temporary files.
+@end menu
+
+
+@c page
+@node conf helpers options
+@section Command line options
+
+
+@deffn {Autoconf Macro} NAUSICAA_ENABLE_OPTION (@var{variable}, @var{identifier}, @var{default}, @var{checking-description}, @var{option-description})
+Define an enable/disable command line option for @configure{}.  Set
+@var{variable} to @code{yes} if the enable option is used, to @code{no}
+if the disable option is used.
+
+@var{variable} is an output variable, it is used as argument for
+@code{AC_SUBST}.
+
+@var{identifier} is the key used to define the options, which will be
+@code{--enable-@var{identifier}} and @code{--disable-@var{identifier}}.
+
+@var{default} is the default value for @var{variable} if neither the
+enable nor the disable options are used.  It must be @code{yes} or
+@code{no}.
+
+@var{checking-description} is a description of the feature that is shown
+as log message when @configure{} is executed.  It will show as:
+
+@example
+checking @var{checking-description} ... yes
+@end example
+
+@var{option-description} is the description of the feature that is shown
+when @configure{} is executed with the @code{--help} option.
+
+Usage example:
+
+@example
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[no],
+   [whether compiled files will be built and installed],
+   [enable installation of precompiled libraries])
+@end example
+
+@noindent
+this defines the options @option{--enable-fasl} and
+@option{--disable-fasl}, that can be used to configure the output
+variable @code{nausicaa_ENABLE_FASL}.  The default is @code{no}.  The
+checking message will show as:
+
+@example
+checking whether compiled files will be built and installed ... no
+@end example
+
+@noindent
+and the help screen will include the lines:
+
+@example
+--disable-fasl   enable installation of precompiled libraries
+                (default: yes)
+@end example
+
+When the default is @code{yes}: it is better to write
+@var{option-description} as a description of the disable option, because
+that is what the user does to change the default.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_WITH_OPTION (@var{variable}, @var{identifier}, @var{default}, @var{checking-description}, @var{option-description})
+Define a @code{--with-} command line option for @configure{}.  Set
+@var{variable} to the argument given to the option.
+
+@var{variable} is an output variable, it is used as argument for
+@code{AC_SUBST}.
+
+@var{identifier} is the key used to define the option, which will be
+@code{--with-@var{identifier}}.
+
+@var{default} is the default value for @var{variable} if the option is
+not used.
+
+@var{checking-description} is a description of the feature that is shown
+as log message when @configure{} is executed.  It will show as:
+
+@example
+checking @var{checking-description} ... @var{default}
+@end example
+
+@var{option-description} is the description of the feature that is shown
+when @configure{} is executed with the @code{--help} option.
+
+Usage example:
+
+@example
+NAUSICAA_WITH_OPTION([package_BUILD_VERSION],[build-version],[1nau],
+   [binary package build revision tag],
+   [select binary package build revision tag])
+@end example
+
+@noindent
+this defines the options @option{--with-build-version}, that can be used
+to configure the output variable @code{package_BUILD_VERSION}.  The
+default is @code{1nau}.  The checking message will show as:
+
+@example
+checking binary package build revision tag ... 1nau
+@end example
+
+@noindent
+and the help screen will include the lines:
+
+@example
+--with-build-version    select binary package build revision tag
+                        (default: 1nau)
+@end example
+@end deffn
+
+
+@c page
+@node conf helpers programs
+@section Finding programs
+
+
+@deffn {Autoconf Macro} NAUSICAA_PROGRAM (@var{variable}, @var{program-name}, @var{description})
+Find the full pathname of a program and store it into the output
+@var{variable}.  If the program is not found: the output variable is set
+to @code{:}, which with a Bourne like shell is the no--operation
+command: it does nothing and exits with code 0.
+
+Usage example to find the Scheme executables:
+
+@example
+NAUSICAA_PROGRAM([IKARUS],
+   [ikarus],
+   [the Ikarus Scheme executable])
+NAUSICAA_PROGRAM([SCHEME_SCRIPT],
+   [scheme-script],
+   [the scheme-script executable])
+NAUSICAA_PROGRAM([YPSILON],
+   [ypsilon],
+   [another R6RS Scheme])
+@end example
+@end deffn
+
+
+@c page
+@node conf helpers tmpfile
+@section Temporary files
+
+
+@deffn {Autoconf Macro} NAUSICAA_WITH_TMPFILE (@var{with_temp_file_chunk}, @var{after_chunk})
+Execute a chunk of code that uses a temporary file.
+
+The chunk in @var{with_temp_file_chunk} can use the temporary file whose
+full pathname is stored in the variable @code{nausicaa_TMPFILE}.
+
+The chunk in @var{after_chunk} will be evaluated after the temporary
+file has been removed, so it can safely report errors and terminate the
+script.
+
+The code that creates the temporary files makes use of the @env{TMPDIR}
+variable, which will default to @file{/tmp} if not set.
+@end deffn
+
+
+@c page
+@node conf common
+@chapter Common script blocks
+
+
+A minimal @file{configure.ac} template should look like this:
+
+@example
+AC_INIT([nausicaa-posix],[0.1d0])
+AC_PREREQ(2.60)
+AC_CONFIG_SRCDIR([libraries/compile-all.sps])
+NAUSICAA_BEGIN()
+dnl project specific options
+NAUSICAA_END()
+@end example
+
+
+@menu
+* conf common main::            Main macros.
+* conf common options::         Configuration options.
+* conf common programs::        Programs and directories.
+@end menu
+
+
+@c page
+@node conf common main
+@section Main macros
+
+
+@deffn {Autoconf Macro} NAUSICAA_BEGIN
+The starting macro for Nausicaa configuration.  It includes all the
+common blocks.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_END
+The starting macro for Nausicaa configuration.  Defines the common
+output files.
+@end deffn
+
+
+@c page
+@node conf common options
+@section Configuration options
+
+
+@deffn {Autoconf Macro} NAUSICAA_OPTIONS
+Define the @configure{} command line option for the Nausicaa build
+infrastructure.  These are options that control the building of the
+documentation, and the installation of source and precompiled Scheme
+files.
+@end deffn
+
+
+@c page
+@node conf common programs
+@section Programs and directories
+
+
+@deffn {Autoconf Macro} NAUSICAA_COMMON_PROGRAMS
+Initialises a set of variables to the pathnames of common Unix programs.
+Even if not all these programs are used in the Makefile, it does not
+hurt to check for them.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_SCHEME_PROGRAMS
+Initialises a set of variables to the pathnames of Scheme executables.
+This macros finds the Ikarus and Ypsilon programs.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_COMMON_DIRECTORIES
+Initialises a bunch of variables representing useful installation
+pathnames.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_SLACKWARE_TOOLS
+Find Slackware package management tools.  By default the Slackware tools
+are installed in:
+
+@example
+/sbin/makepkg
+/sbin/installpkg
+/sbin/removepkg
+/sbin/upgradepkg
+@end example
+
+This block defines the option @option{--enable-slackware-prefix-tools},
+which, if enabled, allows using a customised version of the Slackware
+tools under the @code{$(prefix)/sbin} directory.  For example if
+@code{prefix} is set to @file{/usr/local} and the option is enabled,
+this macro will try to find:
+
+@example
+/usr/local/sbin/makepkg
+/usr/local/sbin/installpkg
+/usr/local/sbin/removepkg
+/usr/local/sbin/upgradepkg
+@end example
+
+The following output variables are set to the result of the search:
+
+@example
+slack_MAKEPKG_PROGRAM
+slack_INSTALLPKG_PROGRAM
+slack_REMOVEPKG_PROGRAM
+slack_UPGRADEPKG_PROGRAM
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_REDHAT_TOOLS
+Find RedHat package management tools.  The RedHat tools should be
+installed in:
+
+@example
+/bin/rpm
+/usr/bin/rpmbuild
+@end example
+
+The following output variables are set to the result of the search:
+
+@example
+redhat_BUILD_PROGRAM
+redhat_CORE_PROGRAM
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_PACMAN_TOOLS
+Find Pacman package management tool, the program @command{pacman}.  The
+following output variable is set to the result of the search:
+
+@example
+pacman_PROGRAM
+@end example
+@end deffn
+
+
+@c page
+@node conf scheme
+@chapter Macros for Scheme language
+
+
+@menu
+* conf scheme ikarus::          Running Ikarus Scheme.
+* conf scheme ypsilon::         Running Ypsilon Scheme.
+@end menu
+
+
+@c page
+@node conf scheme ikarus
+@section Running Ikarus Scheme
+
+
+@deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
+Evaluate @var{scheme_code} with Ikarus by storing it in a temporary file
+and invoking "@code{$@{IKARUS@} --r6rs-script} with additional command
+line @var{options}.  Then, after the temporary file has been removed,
+evaluate @var{shell_chunk}.
+
+The script is expected to print a line of text on its standard output,
+which will be stored in the shell variable @code{nausicaa_ANSWER}, so
+that @var{shell_chunk} can examine it.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_IKARUS_CHECK_LIBRARY (@var{name}, @var{import_spec}, @var{action_if_found}, @var{action_if_not_found})
+Attempt to find a Scheme library loadable by Ikarus.
+
+If the library is found the output variable
+@code{HAS_IKARUS_LIB_@var{name}} is set to @code{yes}, otherwise it is
+set to @code{no}.
+
+The optional @var{action_if_found} is executed if the library was found.
+The optional @var{action_if_not_found} is executed if the library was
+not found.
+@end deffn
+
+
+As an example, here is the implementation of the macro above:
+
+@example
+AC_DEFUN([NAUSICAA_IKARUS_CHECK_LIBRARY],[
+AC_MSG_CHECKING([availability of Ikarus library $2])
+NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (rnrs) (rnrs eval (6)))
+(with-exception-handler
+  (lambda (ex)
+    (display "no\n")
+    (exit))
+  (lambda ()
+    (environment (quote $2))
+    (display "yes\n")))
+],,[if test "$nausicaa_ANSWER" = yes ; then
+: dnl action if found.
+$3
+else
+: dnl action if not found.
+$4
+fi
+AC_MSG_RESULT([$nausicaa_ANSWER])
+AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
+])
+])
+@end example
+
+@noindent
+and here is how we verify if @library{uriel ffi} is installed:
+
+@example
+NAUSICAA_IKARUS_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
+@end example
+
+
+@c page
+@node conf scheme ypsilon
+@section Running Ypsilon Scheme
+
+
+@deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
+Evaluate @var{scheme_code} with Ypsilon by storing it in a temporary file
+and invoking "@code{$@{YPSILON@} --r6rs-script} with additional command
+line @var{options}.  Then, after the temporary file has been removed,
+evaluate @var{shell_chunk}.
+
+The script is expected to print a line of text on its standard output,
+which will be stored in the shell variable @code{nausicaa_ANSWER}, so
+that @var{shell_chunk} can examine it.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_YPSILON_CHECK_LIBRARY (@var{name}, @var{import_spec}, @var{action_if_found}, @var{action_if_not_found})
+Attempt to find a Scheme library loadable by Ypsilon.
+
+If the library is found the output variable
+@code{HAS_YPSILON_LIB_@var{name}} is set to @code{yes}, otherwise it is
+set to @code{no}.
+
+The optional @var{action_if_found} is executed if the library was found.
+The optional @var{action_if_not_found} is executed if the library was
+not found.
+@end deffn
+
+
+As an example, here is the implementation of the macro above:
+
+@example
+AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],[
+AC_MSG_CHECKING([availability of Ypsilon library $2])
+NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
+(with-exception-handler
+  (lambda (ex)
+    (display "no\n")
+    (exit))
+  (lambda ()
+    (environment (quote $2))
+    (display "yes\n")))
+],[--compatible],[if test "$nausicaa_ANSWER" = yes ; then
+: dnl action if found.
+$3
+else
+: dnl action if not found.
+$4
+fi
+AC_MSG_RESULT([$nausicaa_ANSWER])
+AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
+])
+])
+@end example
+
+@noindent
+and here is how we verify if @library{uriel ffi} is installed:
+
+@example
+NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
+@end example
+
+
+
+@c page
+@node conf clang
+@chapter Macros for C language
+
+
+@menu
+* conf clang setup::            Setting up the C language environment.
+* conf clang basics::           Basic tests.
+* conf clang common::           Common groups of tests.
+@end menu
+
+
+@c page
+@node conf clang setup
+@section Setting up the C language environment
+
+
+@deffn {Autoconf Macro} NAUSICAA_SYSTEM_SETUP
+Setup what is needed to inspect the system.  Useful (but probably not
+mandatory) when we need to use the C compiler to inspect system
+facilities; not needed in the other cases.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_LANGUAGE
+Setup the C language environment.  Mandtory when we need to use the C
+compiler to inspect system and libraries facilities.
+@end deffn
+
+
+@c page
+@node conf clang basics
+@section Basic tests
+
+
+@menu
+* conf clang basics includes::  Including header files.
+* conf clang basics valueof::   Determining the value of expressions.
+* conf clang basics sizeof::    Determining the size of data types.
+* conf clang basics typeof::    Determining the basic type of data types.
+* conf clang basics offsetof::  Determining the offset of fields in data
+                                structures.
+* conf clang basics access::    Determining the accessors of data types.
+* conf clang basics inspect::   Full inspection of data types.
+@end menu
+
+
+@c page
+@node conf clang basics includes
+@subsection Including header files
+
+
+@defvar NAUSICAA_INCLUDES_DEFAULT (@var{headers})
+Expands to the specification of C language headers inclusion.  Its value
+is:
+
+@example
+AC_INCLUDES_DEFAULT
+#ifdef HAVE_ERRNO_H
+#  include <errno.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#  include <limits.h>
+#endif
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+@end example
+
+@noindent
+and additionally the optional @var{headers} are included.
+@code{AC_INCLUDES_DEFAULT} is defined by Autoconf, @autoconfref{Default
+Includes,Default Includes}
+@end defvar
+
+
+@c page
+@node conf clang basics valueof
+@subsection Determining the value of expressions
+
+
+It is often needed to know the value of a C language expression.  The
+following acquires the value of @code{INT_MAX} (defined in
+@file{limits.h}) and assigns it to the output variable
+@code{VALUEOF_INT_MAX}:
+
+@example
+NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX])
+@end example
+
+@noindent
+while the following acquires the offset of the field @code{l_start} in
+the structure @code{struct flock} (defined in @file{fcntl.h}):
+
+@example
+NAUSICAA_VALUEOF_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [offsetof(struct flock,l_start)])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_VALUEOF_TEST (@var{suffix}, @var{expr}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @code{AC_COMPUTE_INT} that acquires the
+value of a C language expression, which must be an integer.
+
+The output variable @code{VALUEOF_<@var{suffix}>} is set to the result.
+If the test fails: the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @code{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+
+
+@c page
+@node conf clang basics sizeof
+@subsection Determining the size of data types
+
+
+It is often needed to know the size of a C language data type.  The
+following determines the size in bytes of @code{unsigned int} and
+assigns it to the output variable @code{SIZEOF_UINT}:
+
+@example
+NAUSICAA_SIZEOF_TEST([UINT],[unsigned int])
+@end example
+
+@noindent
+the following determines the size of the field @code{l_start} in the
+structure @code{struct flock} (defined in @file{fcntl.h}) and stores it
+in the output variable @code{SIZEOF_STRUCT_FLOCK_L_START}:
+
+@example
+NAUSICAA_SIZEOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [struct flock],
+   [l_start])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @code{AC_COMPUTE_INT} that acquires the
+size of a C language type.
+
+The output variable @code{SIZEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @code{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF_FIELD_TEST (@var{suffix}, @var{struct}, @var{field}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @code{AC_COMPUTE_INT} that acquires the
+size of the field of a C language structure type.
+
+The output variable @code{SIZEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+@var{struct} must be the type of the structure, usable in a variable
+declaration.  @var{field} must be the name of the field.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @code{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+@c page
+@node conf clang basics typeof
+@subsection Determining the basic type of data types
+
+
+It is often needed to know the basic type of a derived or custom C
+language data type.  The following determines the type of @code{ssize_t}
+(knowing that it is an unsigned integer) and assigns it to the output
+variable @code{TYPEOF_SSIZE_T}:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[ssize_t])
+NAUSICAA_INTTYPE_TEST([SIZE_T],[ssize_t])
+@end example
+
+@noindent
+the following determines the type of @code{size_t} (knowing that it is a
+signed integer) and assigns it to the output variable
+@code{TYPEOF_SIZE_T}:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
+NAUSICAA_UINTTYPE_TEST([SIZE_T],[size_t])
+@end example
+
+@noindent
+and the following does the same as the above:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
+NAUSICAA_BASE_TYPE_TEST([SIZE_T],[size_t],[signed-integer])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_BASE_TYPE_TEST (@var{suffix}, @var{typedef}, @var{type-guess})
+Determine the equivalent basic type of the C language type
+@var{typedef}.  This is a wrapper for the macros described below, to
+which the @var{suffix} and @var{typedef} arguments are handed unchanged.
+
+@var{type-guess} selects which macro to use: @code{signed-integer}
+selects @code{NAUSICAA_INTTYPE_TEST}; @code{unsigned-integer} selects
+@code{NAUSICAA_UINTTYPE_TEST}; @code{float} selects
+@code{NAUSICAA_FLOATTYPE_TEST}.
+
+@code{pointer} is a special value of @var{type-guess} that selects no
+macro but sets the output variable @code{TYPEOF_<@var{suffix}>} to
+@code{pointer}.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INTTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic integer type of the C language type
+@var{typedef} among the set:
+
+@example
+char
+short int
+int
+long
+long long
+@end example
+
+The output variable @code{TYPEOF_<@var{suffix}>} is set to a result
+among: @code{signed-char}, @code{signed-int}, @code{signed-short},
+@code{signed-long}, @code{signed-long-long}.  If the test fails: the
+output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@code{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_CHAR
+SIZEOF_INT
+SIZEOF_SHORT_INT
+SIZEOF_LONG
+SIZEOF_LLONG
+@end example
+
+@noindent
+defined by the macro @code{NAUSICAA_SIZEOF}.
+@code{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @code{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_UINTTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic unsigned integer type of the C language
+type @var{typedef} among the set:
+
+@example
+unsigned char
+unsigned short int
+unsigned int
+unsigned long
+unsigned long long
+@end example
+
+The output variable @code{TYPEOF_<@var{suffix}>} is set to a result
+among: @code{unsigned-char}, @code{unsigned-int}, @code{unsigned-short},
+@code{unsigned-long}, @code{unsigned-long-long}.  If the test fails: the
+output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@code{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_CHAR
+SIZEOF_UINT
+SIZEOF_SHORT_UINT
+SIZEOF_ULONG
+SIZEOF_ULLONG
+@end example
+
+@noindent
+defined by the macro @code{NAUSICAA_SIZEOF}.
+@code{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @code{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_FLOATTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic floating point type of the C language
+type @var{typedef} among the set:
+
+@example
+float
+double
+long double
+@end example
+
+The output variable @code{TYPEOF_<@var{suffix}>} is set to a result
+among: @code{float}, @code{double}, @code{long-double}.  If the test
+fails: the output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@code{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_FLOAT
+SIZEOF_DOUBLE
+SIZEOF_LONG_DOUBLE
+@end example
+
+@noindent
+defined by the macro @code{NAUSICAA_SIZEOF}.
+@code{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @code{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+
+
+@c page
+@node conf clang basics offsetof
+@subsection Determining the offset of fields in data structures
+
+
+It is often needed to know the offset of a field in a C language data
+structure.  If we know a pointer to the first byte of a data strucuture
+and the offset of one of its fields, we can compute the pointer to the
+first byte of the fields by adding the two.
+
+The following determines the offset of the field @code{l_start} in the
+structure @code{struct flock} (defined in @file{fcntl.h}) and stores it
+in the output variable @code{OFFSETOF_STRUCT_FLOCK_L_START}:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [struct flock],
+   [l_start])
+@end example
+
+@noindent
+the following does the same for the @code{l_whence} field and stores it
+in the output variable @code{OFFSETOF_STRUCT_FLOCK_L_WHENCE}:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_WHENCE],
+   [struct flock],
+   [l_whence])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_OFFSETOF_FIELD_TEST (@var{suffix}, @var{struct}, @var{field}, @var{headers})
+A wrapper for the Autoconf macro @code{AC_COMPUTE_INT} that acquires the
+offset of a field in a C data structure.
+
+@var{struct} is the type of the structure, @var{field} is the name of
+the field.
+
+The output variable @code{OFFSETOF_<@var{SUFFIX}>} is set to the result.
+If the test fails the value of the output variable will be @false{}.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @code{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+@c page
+@node conf clang basics access
+@subsection Determining the accessors of data types
+
+
+@deffn {Autoconf Macro} NAUSICAA_ACCESSORS_TEST (@var{suffix}, @var{typedef})
+Expands to:
+
+@example
+NAUSICAA_GETTER_TEST(@var{suffix},@var{typedef})
+NAUSICAA_SETTER_TEST(@var{suffix},@var{typedef})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_GETTER_TEST (@var{suffix}, @var{typedef})
+Determines the getter to be used for the C language type @var{typedef}.
+
+The output variable @code{GETTEROF_<@var{suffix}>} is set to the name of
+the getter, which will be one among:
+
+@example
+pointer-ref-c-signed-char
+pointer-ref-c-unsigned-char
+pointer-ref-c-signed-int
+pointer-ref-c-unsigned-int
+pointer-ref-c-signed-short
+pointer-ref-c-unsigned-short
+pointer-ref-c-signed-long
+pointer-ref-c-unsigned-long
+pointer-ref-c-signed-long-long
+pointer-ref-c-unsigned-long-long
+pointer-ref-c-float
+pointer-ref-c-double
+pointer-ref-c-long-double
+pointer-ref-c-pointer
+@end example
+
+@noindent
+if the test fails: the output variable will be set to @false{}.
+
+The search is performed by comparing the value of the variable
+@code{TYPEOF_<@var{suffix}>} with the values:
+
+@example
+signed-char             unsigned-char
+signed-short            unsigned-short
+signed-int              unsigned-int
+signed-long             unsigned-long
+signed-long-long        unsigned-long-long
+float                   double
+long-double             pointer
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_SETTER_TEST (@var{suffix}, @var{typedef})
+Determines the setter to be used for the C language type @var{typedef}.
+
+The output variable @code{SETTEROF_<@var{suffix}>} is set to the name of
+the setter, which will be one among:
+
+@example
+pointer-set-c-char
+pointer-set-c-int
+pointer-set-c-short
+pointer-set-c-long
+pointer-set-c-long-long
+pointer-set-c-float
+pointer-set-c-double
+pointer-set-c-long-double
+pointer-set-c-pointer
+@end example
+
+@noindent
+if the test fails: the output variable will be set to @false{}.
+
+The search is performed by comparing the value of the variable
+@code{TYPEOF_<@var{suffix}>} with the values:
+
+@example
+signed-char             unsigned-char
+signed-short            unsigned-short
+signed-int              unsigned-int
+signed-long             unsigned-long
+signed-long-long        unsigned-long-long
+float                   double
+long-double             pointer
+@end example
+@end deffn
+
+
+@c page
+@node conf clang basics inspect
+@subsection Full inspection of data types
+
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_TYPE (@var{suffix}, @var{typedef}, @var{default}, @var{type-guess}, @var{headers})
+Perform a full inspection for a C language type definition.  This macro
+is a wrapper for other more basic macros, and it expands to:
+
+@example
+NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_BASE_TYPE_TEST(@var{suffix},@var{typedef},@var{type-guess})
+NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{typedef})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{default}, @var{type-guess}, @var{headers})
+Perform a full inspection for a C language field structure type
+definition.  This macro is a wrapper for other more basic macros, and it
+expands to:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST(@var{suffix},@var{struct-typedef},@var{field-name},@var{headers})
+NAUSICAA_SIZEOF_FIELD_TEST(@var{suffix},@var{struct-typedef},@var{field-name},@var{default},@var{headers})
+NAUSICAA_BASE_TYPE_TEST(@var{suffix},@var{struct-typedef}.@var{field-name},@var{type-guess})
+NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{struct-typedef}.@var{field-name})
+@end example
+@end deffn
+
+
+
+@c page
+@node conf clang common
+@section Common groups of tests
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF
+Perform tests to determine the size (the number of bytes) of the common
+C language types.  The following output variables are defined:
+
+@multitable {SIZEOF_SHORT_UINT} {unsigned long long}
+@headitem Variable @tab C type
+@item SIZEOF_SHORT_INT
+@tab short int
+@item SIZEOF_SHORT_UINT
+@tab unsigned short int
+@item SIZEOF_INT
+@tab int
+@item SIZEOF_UINT
+@tab unsigned int
+@item SIZEOF_LONG
+@tab long
+@item SIZEOF_ULONG
+@tab unsigned long
+@item SIZEOF_LLONG
+@tab long long
+@item SIZEOF_ULLONG
+@tab unsigned long long
+@item SIZEOF_FLOAT
+@tab float
+@item SIZEOF_DOUBLE
+@tab double
+@item SIZEOF_POINTER
+@tab void *
+@end multitable
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_TYPES_LIMITS
+Perform tests to determine the value of limits for the common C language
+types.  The following output variables are defined:
+
+@multitable {VALUEOF_ULLONG_MAX} {Original C expression}
+@headitem Variable @tab Original C expression
+@item VALUEOF_CHAR_MAX
+@tab CHAR_MAX
+@item VALUEOF_CHAR_MIN
+@tab CHAR_MIN
+@item VALUEOF_SCHAR_MAX
+@tab SCHAR_MAX
+@item VALUEOF_SCHAR_MIN
+@tab SCHAR_MIN
+@item VALUEOF_UCHAR_MAX
+@tab UCHAR_MAX
+@item VALUEOF_SHRT_MAX
+@tab SHRT_MAX
+@item VALUEOF_SHRT_MIN
+@tab SHRT_MIN
+@item VALUEOF_USHRT_MAX
+@tab USHRT_MAX
+@item VALUEOF_INT_MAX
+@tab INT_MAX
+@item VALUEOF_INT_MIN
+@tab INT_MIN
+@item VALUEOF_UINT_MAX
+@tab UINT_MAX
+@item VALUEOF_LONG_MAX
+@tab LONG_MAX
+@item VALUEOF_LONG_MIN
+@tab LONG_MIN
+@item VALUEOF_ULONG_MAX
+@tab ULONG_MAX
+@item VALUEOF_LLONG_MAX
+@tab LLONG_MAX
+@item VALUEOF_LLONG_MIN
+@tab LLONG_MIN
+@item VALUEOF_ULLONG_MAX
+@tab ULLONG_MAX
+@item VALUEOF_WCHAR_MAX
+@tab WCHAR_MAX
+@item VALUEOF_SSIZE_MAX
+@tab SSIZE_MAX
+@end multitable
+
+Additionally the output variable @code{WORDS_BIGENDIAN} is set to
+@true{} if the underlying platform is big endian, to @false{} otherwise.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_ERRNO
+Perform tests to determine the value of all the known @code{errno}
+predefined values.  The following output variables are defined:
+
+@example
+EPERM           ENOENT          ESRCH           EINTR
+EIO             ENXIO           E2BIG           ENOEXEC
+EBADF           ECHILD          EAGAIN          ENOMEM
+EACCES          EFAULT          ENOTBLK         EBUSY
+EEXIST          EXDEV           ENODEV          ENOTDIR
+EISDIR          EINVAL          ENFILE          EMFILE
+ENOTTY          ETXTBSY         EFBIG           ENOSPC
+ESPIPE          EROFS           EMLINK          EPIPE
+EDOM            ERANGE          EDEADLK         ENAMETOOLONG
+ENOLCK          ENOSYS          ENOTEMPTY       ELOOP
+EWOULDBLOCK     ENOMSG          EIDRM           ECHRNG
+EL2NSYNC        EL3HLT          EL3RST          ELNRNG
+EUNATCH         ENOCSI          EL2HLT          EBADE
+EBADR           EXFULL          ENOANO          EBADRQC
+EBADSLT         EDEADLOCK       EBFONT          ENOSTR
+ENODATA         ETIME           ENOSR           ENONET
+ENOPKG          EREMOTE         ENOLINK         EADV
+ESRMNT          ECOMM           EPROTO          EMULTIHOP
+EDOTDOT         EBADMSG         EOVERFLOW       ENOTUNIQ
+EBADFD          EREMCHG         ELIBACC         ELIBBAD
+ELIBSCN         ELIBMAX         ELIBEXEC        EILSEQ
+ERESTART        ESTRPIPE        EUSERS          ENOTSOCK
+EDESTADDRREQ    EMSGSIZE        EPROTOTYPE      ENOPROTOOPT
+EPROTONOSUPPORT ESOCKTNOSUPPORT EOPNOTSUPP      EPFNOSUPPORT
+EAFNOSUPPORT    EADDRINUSE      EADDRNOTAVAIL   ENETDOWN
+ENETUNREACH     ENETRESET       ECONNABORTED    ECONNRESET
+ENOBUFS         EISCONN         ENOTCONN        ESHUTDOWN
+ETOOMANYREFS    ETIMEDOUT       ECONNREFUSED    EHOSTDOWN
+EHOSTUNREACH    EALREADY        EINPROGRESS     ESTALE
+EUCLEAN         ENOTNAM         ENAVAIL         EISNAM
+EREMOTEIO       EDQUOT          ENOMEDIUM       EMEDIUMTYPE
+ECANCELED       ENOKEY          EKEYEXPIRED     EKEYREVOKED
+EKEYREJECTED    EOWNERDEAD      ENOTRECOVERABLE
+@end example
+@end deffn
 
 
 @c page
@@ -609,7 +1714,7 @@ It is set by the @command{configure} options @option{--enable-sls} and
 
 @defvar nausicaa_ENABLE_FASL
 Enable or disable compilation and installation of @fasl{} files; valid
-values are @code{yes} and @code{no}.  The default is @code{yes}.
+values are @code{yes} and @code{no}.  The default is @code{no}.
 
 It is set by the @command{configure} options @option{--enable-fasl} and
 @option{--disable-fasl}.
@@ -1214,7 +2319,7 @@ The installation directory for the uninstall script.  It defaults to
 
 
 Compilation, installation and uninstallation are enabled or disabled
-with configuration options and variables.  @ref{config options,
+with configuration options and variables.  @ref{conf options,
 enable-doc}  @ref{vars config,enable_doc}
 
 
@@ -1291,7 +2396,7 @@ For all the following rules:
 @itemize
 @item
 Installation and uninstallation are enabled or disabled with
-configuration options and variables. @ref{config options, enable-sls}
+configuration options and variables. @ref{conf options, enable-sls}
 @ref{vars config, enable_sls}
 
 @item
@@ -1329,7 +2434,7 @@ $ sudo make sls-uninstall
 
 
 Compilation, installation and uninstallation are enabled or disabled
-with configuration options and variables.  @ref{config options,
+with configuration options and variables.  @ref{conf options,
 enable-fasl}  @ref{vars config, enable_fasl}
 
 Producing precompiled library files is a multistep process:
@@ -1418,8 +2523,8 @@ $ sudo make fasl-uninstall
 Texinfo is the standard documentation format for Nausicaa projects.  By
 default only the Info documentation is built and installed.
 Compilation, installation and uninstallation are enabled or disabled
-with configuration options and variables.  @ref{config options,enable-doc-info}
-@ref{vars config,enable_doc_info}
+with configuration options and variables.  @ref{conf
+options,enable-doc-info} @ref{vars config,enable_doc_info}
 
 
 @subsubheading Making and cleaning

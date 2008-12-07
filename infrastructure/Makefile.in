@@ -66,15 +66,15 @@ PKG_ID			= @PKG_ID@
 
 # If set to 'yes' documentation files will be produced and
 # installed.
-nausicaa_ENABLE_DOC		?= @ds_config_ENABLE_DOC@
+nausicaa_ENABLE_DOC		?= @nausicaa_ENABLE_DOC@
 
 # If set to 'yes' Info documentation files will be produced
 # and installed.
-nausicaa_ENABLE_DOC_INFO	?= @ds_config_ENABLE_DOC_INFO@
+nausicaa_ENABLE_DOC_INFO	?= @nausicaa_ENABLE_DOC_INFO@
 
 # If set to 'yes' HTML documentation files will be produced
 # and installed.
-nausicaa_ENABLE_DOC_HTML	?= @ds_config_ENABLE_DOC_HTML@
+nausicaa_ENABLE_DOC_HTML	?= @nausicaa_ENABLE_DOC_HTML@
 
 # Compressor to be used when creating a tarball; it is used
 # by the binary distribution rules.  Supported values:

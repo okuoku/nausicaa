@@ -20,6 +20,6 @@ set -x
         autoconf
     fi)
 
-../configure "$@"
+../configure --enable-fasl "$@"
 
 ### end of file
