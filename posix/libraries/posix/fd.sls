@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to the file descriptor libraries
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-07 18:50:02 marco>
+;;;Time-stamp: <2008-12-07 20:22:23 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -46,6 +46,9 @@
 
     fcntl		primitive-fcntl
     ioctl		primitive-ioctl
+
+    dup			primitive-dup
+    dup2		primitive-dup2
     )
   (import (except (rnrs) read write)
     (srfi receive)
@@ -81,11 +84,10 @@
   (syntax-rules ()
     ((_ ?funcname ?primitive ?arg ...)
      (receive (result errno)
-	 (?funcname ?arg ...)
-       (unless (= -1 result)
+	 (?primitive ?arg ...)
+       (when (= -1 result)
 	 (raise-errno-error (quote ?funcname) errno (list ?arg ...)))
        result))))
-
 
 
 
@@ -220,7 +222,7 @@
   (int dup (int)))
 
 (define-c-function/with-errno primitive-dup2
-  (int dup (int int)))
+  (int dup2 (int int)))
 
 (define (dup fd)
   (call-for-minus-one dup primitive-dup fd))

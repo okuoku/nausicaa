@@ -1020,6 +1020,14 @@ the list of the supported operations.
 occurred, so it raises an exception.  @func{primitive-fcntl} returns 2
 values: the return value of the foreign function call and the value of
 @code{errno} just after the call.
+
+Notice that if @var{arg} has to be a pointer (like when requesting a
+lock on the file), we have to use @func{pointer->integer} to convert the
+pointer value to an integer.  Example:
+
+@example
+(fcntl fd F_SETLK (pointer->integer lock-struct))
+@end example
 @end defun
 
 

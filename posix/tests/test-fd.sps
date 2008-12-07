@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: test for file descriptors library
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-07 18:54:37 marco>
+;;;Time-stamp: <2008-12-07 20:28:02 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -39,7 +39,8 @@
   (srfi parameters)
   (only (string-lib) string-join)
   (posix fd)
-  (posix sizeof))
+  (posix sizeof)
+  (posix fields))
 
 (check-set-mode! 'report-failed)
 
@@ -68,8 +69,25 @@ Ses ailes de geant l'empechent de marcher.")
 	       (buflen2		buflen)
 	       (bufptr2		(compensate-malloc/block buflen2)))
 	  (write fd bufptr buflen)
+;;;	  (print #t "file desc ~s\n" fd)
+	  (fdatasync fd)
 	  (lseek fd 0 SEEK_SET)
 	  (read fd bufptr2 buflen2)
+	  (close fd)
+	  (cstring->string/len bufptr2 buflen2)))
+    => the-string)
+
+  (check
+      (with-compensations
+	(let* ((pathname the-pathname)
+	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (bufptr		(s->c the-string))
+	       (buflen		(strlen bufptr))
+	       (buflen2		buflen)
+	       (bufptr2		(compensate-malloc/block buflen2)))
+	  (pwrite fd bufptr buflen 0)
+	  (fsync fd)
+	  (pread fd bufptr2 buflen2 0)
 	  (close fd)
 	  (cstring->string/len bufptr2 buflen2)))
     => the-string)
@@ -94,8 +112,83 @@ Ses ailes de geant l'empechent de marcher.")
 	  (cstring->string/len bufptr2 (- buflen2 len))))
     => "Qui hante la tempete e se rit de l'archer;
 Exile sul le sol au milieu des huees,
-Ses ailes de geant l'empechent de marcher."))
+Ses ailes de geant l'empechent de marcher.")
 
+  )
+
+
+;;;; duplication
+
+(parameterize ((testname 'dup))
+
+  (check
+      (with-compensations
+	(let* ((pathname the-pathname)
+	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (bufptr		(s->c the-string))
+	       (buflen		(strlen bufptr))
+	       (buflen2		buflen)
+	       (bufptr2		(compensate-malloc/block buflen2)))
+	  (write fd bufptr buflen)
+  	  (let ((fd2	(dup fd)))
+ 	    (close fd)
+ 	    (lseek fd2 0 SEEK_SET)
+ 	    (read fd2 bufptr2 buflen2)
+ 	    (close fd2))
+	  (cstring->string/len bufptr2 buflen2)))
+    => the-string)
+
+  (check
+      (with-compensations
+	(let* ((pathname the-pathname)
+	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (bufptr		(s->c the-string))
+	       (buflen		(strlen bufptr))
+	       (buflen2		buflen)
+	       (bufptr2		(compensate-malloc/block buflen2)))
+	  (write fd bufptr buflen)
+  	  (let ((fd2	123))
+	    (dup2 fd fd2)
+ 	    (close fd)
+ 	    (lseek fd2 0 SEEK_SET)
+ 	    (read fd2 bufptr2 buflen2)
+ 	    (close fd2))
+	  (cstring->string/len bufptr2 buflen2)))
+    => the-string)
+
+#f)
+
+
+;;;; file locking
+
+(parameterize ((testname 'lock))
+
+  (check
+      (with-compensations
+	(let* ((pathname the-pathname)
+	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (bufptr		(s->c the-string))
+	       (buflen		(strlen bufptr))
+	       (buflen2		buflen)
+	       (bufptr2		(compensate-malloc/block buflen2)))
+	  (write fd bufptr buflen)
+	  (lseek fd 0 SEEK_SET)
+	  (let ((lock	(compensate-malloc/block sizeof-struct-flock)))
+	    (struct-flock-l_type-set! lock F_WRLCK)
+	    (struct-flock-l_whence-set! lock SEEK_SET)
+	    (struct-flock-l_start-set! lock 0)
+	    (struct-flock-l_len-set! lock 10)
+	    (fcntl fd F_SETLK (pointer->integer lock))
+	    (read fd bufptr2 buflen2)
+	    (fcntl fd F_GETLK (pointer->integer lock))
+;; 	    (display (list (struct-flock-l_type-ref lock)
+;; 			   (struct-flock-l_start-ref lock)))(newline)
+	    (fcntl fd F_UNLCK (pointer->integer lock))
+	    (close fd))
+	  (cstring->string/len bufptr2 buflen2)))
+    => the-string)
+
+#f)
 
 
 ;;;; done
