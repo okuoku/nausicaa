@@ -94,8 +94,11 @@ $2
 dnl 1 variable_suffix
 dnl 2 default_value
 AC_DEFUN([NAUSICAA_DEFAULT_VALUE],[
-nausicaa_default_$1=$3
-test -z "$nausicaa_default_$1" && nausicaa_default_$1='#f'
+if test -z "$2" ; then
+  nausicaa_default_$1="#f"
+else
+  nausicaa_default_$1="$2"
+fi
 ])
 
 
@@ -395,7 +398,7 @@ AC_CACHE_CHECK([the size of '$2'],
   [AC_COMPUTE_INT([nausicaa_cv_sizeof_$1],
       [sizeof($2)],
       [NAUSICAA_INCLUDES_DEFAULT([$4])],
-      [nausicaa_cv_valueof_$1="$nausicaa_default_valueof_$1"])])
+      [nausicaa_cv_sizeof_$1="$nausicaa_default_sizeof_$1"])])
 SIZEOF_$1="$nausicaa_cv_sizeof_$1"
 AC_SUBST([SIZEOF_$1])
 ])
