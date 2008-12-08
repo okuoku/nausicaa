@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: offsets of fields
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-05 17:57:39 marco>
+;;;Time-stamp: <2008-12-08 09:27:21 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,6 +26,11 @@
 
 (library (posix fields)
   (export
+    struct-flock-l_type-set!		struct-flock-l_type-ref
+    struct-flock-l_whence-set!		struct-flock-l_whence-ref
+    struct-flock-l_start-set!		struct-flock-l_start-ref
+    struct-flock-l_len-set!		struct-flock-l_len-ref
+    struct-flock-l_pid-set!		struct-flock-l_pid-ref
     )
   (import (rnrs)
     (uriel ffi))
@@ -33,15 +38,6 @@
 
 
 ;;;; file descriptor locking
-
-(define-syntax define-c-struct-accessors
-  (syntax-rules ()
-    ((_ ?setter ?getter ?offset ?type-setter ?type-getter)
-     (begin
-       (define (?setter struct-pointer value)
-	 (?type-setter struct-pointer ?offset value))
-       (define (?getter struct)
-	 (?type-getter struct-pointer ?offset))))))
 
 (define-c-struct-accessors
   struct-flock-l_type-set!

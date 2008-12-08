@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: test for file descriptors library
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-07 20:28:02 marco>
+;;;Time-stamp: <2008-12-08 09:31:14 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -63,7 +63,7 @@ Ses ailes de geant l'empechent de marcher.")
   (check
       (with-compensations
 	(let* ((pathname the-pathname)
-	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (fd		(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
 	       (bufptr		(s->c the-string))
 	       (buflen		(strlen bufptr))
 	       (buflen2		buflen)
@@ -80,7 +80,7 @@ Ses ailes de geant l'empechent de marcher.")
   (check
       (with-compensations
 	(let* ((pathname the-pathname)
-	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (fd		(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
 	       (bufptr		(s->c the-string))
 	       (buflen		(strlen bufptr))
 	       (buflen2		buflen)
@@ -97,7 +97,7 @@ Ses ailes de geant l'empechent de marcher.")
 	(let* ((pathname the-pathname)
 	       (fd		(letrec
 				    ((fd (compensate
-					     (open pathname (bitwise-ior O_RDWR) #o600)
+					     (open pathname (bitwise-ior O_CREAT O_RDWR) #o600)
 					   (with (close fd)))))
 				  fd))
 	       (bufptr		(s->c the-string))
@@ -124,7 +124,7 @@ Ses ailes de geant l'empechent de marcher.")
   (check
       (with-compensations
 	(let* ((pathname the-pathname)
-	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (fd		(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
 	       (bufptr		(s->c the-string))
 	       (buflen		(strlen bufptr))
 	       (buflen2		buflen)
@@ -141,7 +141,7 @@ Ses ailes de geant l'empechent de marcher.")
   (check
       (with-compensations
 	(let* ((pathname the-pathname)
-	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (fd		(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
 	       (bufptr		(s->c the-string))
 	       (buflen		(strlen bufptr))
 	       (buflen2		buflen)
@@ -166,7 +166,7 @@ Ses ailes de geant l'empechent de marcher.")
   (check
       (with-compensations
 	(let* ((pathname the-pathname)
-	       (fd		(open pathname (bitwise-ior O_RDWR) #o600))
+	       (fd		(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
 	       (bufptr		(s->c the-string))
 	       (buflen		(strlen bufptr))
 	       (buflen2		buflen)

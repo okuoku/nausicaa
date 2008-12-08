@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to the file descriptor libraries
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-07 20:22:23 marco>
+;;;Time-stamp: <2008-12-08 09:29:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -102,15 +102,15 @@
 
 (define (open pathname open-mode permissions)
   (with-compensations
-    (let ((pathname (s->c pathname)))
+    (let ((c-pathname (s->c pathname)))
       (temp-failure-retry-minus-one
-       'open
-       (primitive-open pathname open-mode permissions)
+       open
+       (primitive-open c-pathname open-mode permissions)
        (list pathname open-mode permissions)))))
 
 (define (close fd)
   (temp-failure-retry-minus-one
-   'close
+   close
    (primitive-close fd)
    fd))
 
@@ -168,7 +168,7 @@
   ;;It seems  that EINTR  cannot happen with  "lseek()", but it  does no
   ;;harm to use the macro.
   (temp-failure-retry-minus-one
-   'lseek
+   lseek
    (primitive-lseek fd offset whence)
    fd))
 
