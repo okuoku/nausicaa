@@ -2041,6 +2041,29 @@ memory blocks an exact integer.
 @end deffn
 
 
+@defun pointer-diff @var{pointer-1} @var{pointer-2}
+Return the difference between the pointers.  It is implemented as:
+
+@example
+(define (pointer-diff pointer-1 pointer-2)
+  (- (pointer->integer pointer-1)
+     (pointer->integer pointer-2)))
+@end example
+@end defun
+
+
+@defun pointer-add @var{pointer} @var{offset}
+Add an offset to a pointer and return the resulting pointer.  It is
+implemented as:
+
+@example
+(define (pointer-add pointer offset)
+  (integer->pointer (+ (pointer->integer pointer)
+		       offset)))
+@end example
+@end defun
+
+
 @c page
 @node ffi memory primitive
 @subsection Primitive functions

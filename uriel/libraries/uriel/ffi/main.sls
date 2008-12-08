@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-04 17:25:40 marco>
+;;;Time-stamp: <2008-12-07 09:22:19 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -83,7 +83,11 @@
     pointer-set-c-double!		pointer-set-c-pointer!
 
     ;;pointers
-    pointer? integer->pointer pointer->integer pointer-null?)
+    pointer? integer->pointer pointer->integer pointer-null?
+    pointer-diff pointer-add
+
+    ;;foreign struct accessors
+    define-c-struct-accessors)
 
   (import (rnrs)
     (uriel lang)
@@ -169,6 +173,14 @@
 
 
 ;;;; memory functions
+
+(define (pointer-diff pointer-1 pointer-2)
+  (- (pointer->integer pointer-1)
+     (pointer->integer pointer-2)))
+
+(define (pointer-add pointer offset)
+  (integer->pointer (+ (pointer->integer pointer)
+		       offset)))
 
 (define-c-function memset
   (void* memset (void* int size_t)))
@@ -338,6 +350,24 @@
 
 (define (string-or-symbol->cstring s)
   (string->cstring (symbol->string/maybe s)))
+
+
+
+;;;; foreign structures accessors
+
+(define-syntax define-c-struct-accessors
+  (syntax-rules ()
+    ((_ ?setter-name ?getter-name ?field-offset ?foreign-type-setter ?foreign-type-getter)
+     (begin
+       (define-syntax ?setter-name
+	 (syntax-rules ()
+	   ((_ struct-pointer value)
+	    (?foreign-type-setter struct-pointer ?field-offset value))))
+       (define-syntax ?getter-name
+	 (syntax-rules ()
+	   ((_ struct-pointer)
+	    (?foreign-type-getter struct-pointer ?field-offset))))))))
+
 
 
 
