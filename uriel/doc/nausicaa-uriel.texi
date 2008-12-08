@@ -1600,6 +1600,7 @@ libraries.
 * ffi accessors::               Low level access to memory.
 * ffi memop::                   Basic memory operations.
 * ffi string::                  Basic string functions.
+* ffi bytevectors::             Basic bytevector functions.
 * ffi headers::                 Inspecting foreign header files.
 * ffi conditions::              Condition types.
 @end menu
@@ -2027,6 +2028,12 @@ otherwise.
 Return @true{} if @var{pointer} represents a null pointer, @false{}
 otherwise.
 @end defun
+
+
+@defvar pointer-null
+Holds a null pointer: if @func{pointer->integer} is applied to it the
+result is 0.
+@end defvar
 
 
 @deffn Procedure pointer->integer @var{pointer}
@@ -2900,6 +2907,95 @@ conversion is performed using a @code{s8} bytevector.
 For @func{cstring->string/len} only @var{number-of-bytes} bytes are
 taken from the C string.
 @end defun
+
+
+@c page
+@node ffi bytevectors
+@section Basic bytevector functions
+
+
+Remember that we can compare two bytevectors with @func{bytevector=?},
+but to compare raw blocks of memory we can use the @func{memcpy}
+interface function.  @ref{ffi memop} for other memory functions.
+
+In the implementation of the following functions:
+
+@itemize
+@item
+when copying from a bytevector to a memory block, bytes are peeked with
+@func{bytevector-u8-ref} and poked with @func{pointer-set-c-char!};
+
+@item
+when copying from a memory block to a bytevector bytes are peeked with
+@func{pointer-ref-c-unsigned-char} and poked with
+@func{bytevector-u8-set!}.
+@end itemize
+
+
+@defun bytevector->pointer @var{bvector} @var{malloc}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return the pointer.
+
+If @var{number-of-bytes} is given: that number of bytes is taken as size
+of the memory block, and only that number of bytes are copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: that number of
+bytes is taken as size of the memory block, and only that number of
+bytes are copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun bytevector->memory-block @var{bvector} @var{malloc}
+@defunx bytevector->memory-block @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->memory-block @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return a @code{memory-block-record}.
+
+If @var{number-of-bytes} is given: that number of bytes is taken as size
+of the memory block, and only that number of bytes are copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: that number of
+bytes is taken as size of the memory block, and only that number of
+bytes are copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun pointer->bytevector @var{pointer} @var{number-of-bytes}
+@defunx pointer->bytevector @var{pointer} @var{number-of-bytes} @var{offset}
+Build a bytevector of length @var{number-of-bytes} and copy into it the
+bytes from the block of memory referenced by @var{pointer}.  If
+@var{offset} is given: start to read bytes at @var{offset} from
+@var{pointer}.
+@end defun
+
+
+@defun memory-block->bytevector @var{memory-block}
+@defunx memory-block->bytevector @var{memory-block} @var{number-of-bytes}
+@defunx memory-block->bytevector @var{memory-block} @var{number-of-bytes} @var{offset}
+Duplicate a @code{memory-block-record} into a bytevector.
+
+If @var{number-of-bytes} is given: that number of bytes is taken as size
+of the bytevector, and only that number of bytes are copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: that number of
+bytes is taken as size of the bytevector, and only that number of bytes
+are copied starting at @var{offset} from the beginning of the block.
+@end defun
+
 
 
 @c page

@@ -262,6 +262,77 @@
     => "ciao, hello"))
 
 
+;;;; bytevector functions
+
+(parameterize ((testname	'bytevector))
+  (with-compensations
+    (let ((bv #vu8(0 1 2 3 4 5 6 7 8 9)))
+      (check
+	  (pointer->bytevector
+	   (bytevector->pointer bv compensate-malloc/block)
+	   10)
+	=> bv)
+
+      (check
+	  (pointer->bytevector
+	   (bytevector->pointer bv compensate-malloc/block)
+	   5)
+	=> #vu8(0 1 2 3 4))
+
+      (check
+	  (pointer->bytevector
+	   (bytevector->pointer bv compensate-malloc/block)
+	   5
+	   3)
+	=> #vu8(3 4 5 6 7))
+
+      (check
+	  (pointer->bytevector
+	   (bytevector->pointer bv compensate-malloc/block 8)
+	   8)
+	=> #vu8(0 1 2 3 4 5 6 7))
+
+      (check
+	  (pointer->bytevector
+	   (bytevector->pointer bv compensate-malloc/block 5 2)
+	   5)
+	=> #vu8(2 3 4 5 6))
+
+;;; --------------------------------------------------------------------
+
+      (check
+	  (memory-block->bytevector
+	   (bytevector->memory-block bv compensate-malloc/block)
+	   10)
+	=> bv)
+
+      (check
+	  (memory-block->bytevector
+	   (bytevector->memory-block bv compensate-malloc/block)
+	   5)
+	=> #vu8(0 1 2 3 4))
+
+      (check
+	  (memory-block->bytevector
+	   (bytevector->memory-block bv compensate-malloc/block)
+	   5
+	   3)
+	=> #vu8(3 4 5 6 7))
+
+      (check
+	  (memory-block->bytevector
+	   (bytevector->memory-block bv compensate-malloc/block 8)
+	   8)
+	=> #vu8(0 1 2 3 4 5 6 7))
+
+      (check
+	  (memory-block->bytevector
+	   (bytevector->memory-block bv compensate-malloc/block 5 2)
+	   5)
+	=> #vu8(2 3 4 5 6)))))
+
+
+
 ;;;; done
 
 (check-report)

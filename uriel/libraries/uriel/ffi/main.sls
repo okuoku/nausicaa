@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-07 09:22:19 marco>
+;;;Time-stamp: <2008-12-08 17:26:23 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -85,6 +85,10 @@
     ;;pointers
     pointer? integer->pointer pointer->integer pointer-null?
     pointer-diff pointer-add
+
+    ;;bytevector functions
+    bytevector->pointer bytevector->memory-block
+    pointer->bytevector memory-block->bytevector
 
     ;;foreign struct accessors
     define-c-struct-accessors)
@@ -181,6 +185,9 @@
 (define (pointer-add pointer offset)
   (integer->pointer (+ (pointer->integer pointer)
 		       offset)))
+
+(define pointer-null
+  (integer->pointer 0))
 
 (define-c-function memset
   (void* memset (void* int size_t)))
@@ -350,6 +357,56 @@
 
 (define (string-or-symbol->cstring s)
   (string->cstring (symbol->string/maybe s)))
+
+
+
+;;;; bytevector functions
+
+(define bytevector->pointer
+  (case-lambda
+   ((bv malloc)
+    (bytevector->pointer bv malloc (bytevector-length bv) 0))
+   ((bv malloc number-of-bytes)
+    (bytevector->pointer bv malloc number-of-bytes 0))
+   ((bv malloc number-of-bytes offset)
+    (let* ((p	(malloc number-of-bytes)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i number-of-bytes)
+	   p)
+	(pointer-set-c-char! p i (bytevector-u8-ref bv (+ i offset))))))))
+
+(define bytevector->memory-block
+  (case-lambda
+   ((bv malloc)
+    (bytevector->memory-block bv malloc (bytevector-length bv) 0))
+   ((bv malloc number-of-bytes)
+    (bytevector->memory-block bv malloc number-of-bytes 0))
+   ((bv malloc number-of-bytes offset)
+    (make-memory-block-record
+     (bytevector->pointer bv malloc number-of-bytes offset)
+     number-of-bytes))))
+
+;;; --------------------------------------------------------------------
+
+(define pointer->bytevector
+  (case-lambda
+   ((pointer number-of-bytes)
+    (pointer->bytevector pointer number-of-bytes 0))
+   ((pointer number-of-bytes offset)
+    (let* ((bv (make-bytevector number-of-bytes)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i number-of-bytes)
+	   bv)
+	(bytevector-u8-set! bv i (pointer-ref-c-unsigned-char pointer (+ i offset))))))))
+
+(define memory-block->bytevector
+  (case-lambda
+   ((mb)
+    (memory-block->bytevector mb (memory-block-size mb) 0))
+   ((mb number-of-bytes)
+    (memory-block->bytevector mb number-of-bytes 0))
+   ((mb number-of-bytes offset)
+    (pointer->bytevector (memory-block-pointer mb) number-of-bytes offset))))
 
 
 
