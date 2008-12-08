@@ -1,0 +1,133 @@
+;;;
+;;;Part of: Nausicaa/Zlib
+;;;Contents: offsets of fields
+;;;Date: Sun Dec  7, 2008
+;;;Time-stamp: <2008-12-08 13:34:40 marco>
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(library (zlib fields)
+  (export
+    zstream-next_in-set!	zstream-next_in-ref
+    zstream-avail_in-set!	zstream-avail_in-ref
+    zstream-total_in-set!	zstream-total_in-ref
+
+    zstream-next_out-set!	zstream-next_out-ref
+    zstream-avail_out-set!	zstream-avail_out-ref
+    zstream-total_out-set!	zstream-total_out-ref
+
+    zstream-msg-set!		zstream-msg-ref
+    zstream-data_type-set!	zstream-data_type-ref
+    zstream-adler-set!		zstream-adler-ref
+
+    zstream-zalloc-set!		zstream-zalloc-ref
+    zstream-zfree-set!		zstream-zfree-ref
+    zstream-opaque-set!		zstream-opaque-ref
+    )
+  (import (rnrs)
+    (uriel ffi))
+
+(define-c-struct-accessors
+  zstream-next_in-set!
+  zstream-next_in-ref
+  @OFFSETOF_ZSTREAM_NEXT_IN@
+  @SETTEROF_ZSTREAM_NEXT_IN@
+  @GETTEROF_ZSTREAM_NEXT_IN@)
+
+(define-c-struct-accessors
+  zstream-avail_in-set!
+  zstream-avail_in-ref
+  @OFFSETOF_ZSTREAM_AVAIL_IN@
+  @SETTEROF_ZSTREAM_AVAIL_IN@
+  @GETTEROF_ZSTREAM_AVAIL_IN@)
+
+(define-c-struct-accessors
+  zstream-total_in-set!
+  zstream-total_in-ref
+  @OFFSETOF_ZSTREAM_TOTAL_IN@
+  @SETTEROF_ZSTREAM_TOTAL_IN@
+  @GETTEROF_ZSTREAM_TOTAL_IN@)
+
+(define-c-struct-accessors
+  zstream-next_out-set!
+  zstream-next_out-ref
+  @OFFSETOF_ZSTREAM_NEXT_OUT@
+  @SETTEROF_ZSTREAM_NEXT_OUT@
+  @GETTEROF_ZSTREAM_NEXT_OUT@)
+
+(define-c-struct-accessors
+  zstream-avail_out-set!
+  zstream-avail_out-ref
+  @OFFSETOF_ZSTREAM_AVAIL_OUT@
+  @SETTEROF_ZSTREAM_AVAIL_OUT@
+  @GETTEROF_ZSTREAM_AVAIL_OUT@)
+
+(define-c-struct-accessors
+  zstream-total_out-set!
+  zstream-total_out-ref
+  @OFFSETOF_ZSTREAM_TOTAL_OUT@
+  @SETTEROF_ZSTREAM_TOTAL_OUT@
+  @GETTEROF_ZSTREAM_TOTAL_OUT@)
+
+(define-c-struct-accessors
+  zstream-msg-set!
+  zstream-msg-ref
+  @OFFSETOF_ZSTREAM_MSG@
+  @SETTEROF_ZSTREAM_MSG@
+  @GETTEROF_ZSTREAM_MSG@)
+
+(define-c-struct-accessors
+  zstream-data_type-set!
+  zstream-data_type-ref
+  @OFFSETOF_ZSTREAM_DATA_TYPE@
+  @SETTEROF_ZSTREAM_DATA_TYPE@
+  @GETTEROF_ZSTREAM_DATA_TYPE@)
+
+(define-c-struct-accessors
+  zstream-adler-set!
+  zstream-adler-ref
+  @OFFSETOF_ZSTREAM_ADLER@
+  @SETTEROF_ZSTREAM_ADLER@
+  @GETTEROF_ZSTREAM_ADLER@)
+
+(define-c-struct-accessors
+  zstream-zalloc-set!
+  zstream-zalloc-ref
+  @OFFSETOF_ZSTREAM_ZALLOC@
+  @SETTEROF_ZSTREAM_ZALLOC@
+  @GETTEROF_ZSTREAM_ZALLOC@)
+
+(define-c-struct-accessors
+  zstream-zfree-set!
+  zstream-zfree-ref
+  @OFFSETOF_ZSTREAM_ZFREE@
+  @SETTEROF_ZSTREAM_ZFREE@
+  @GETTEROF_ZSTREAM_ZFREE@)
+
+(define-c-struct-accessors
+  zstream-opaque-set!
+  zstream-opaque-ref
+  @OFFSETOF_ZSTREAM_OPAQUE@
+  @SETTEROF_ZSTREAM_OPAQUE@
+  @GETTEROF_ZSTREAM_OPAQUE@)
+)
+
+;;; end of file
