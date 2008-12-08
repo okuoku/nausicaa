@@ -97,6 +97,12 @@ nausicaa_ENABLE_FASL	?= @nausicaa_ENABLE_FASL@
 
 ## ------------------------------------------------------------
 
+nausicaa_ENABLE_IKARUS	= @nausicaa_ENABLE_IKARUS@
+nausicaa_ENABLE_YPSILON	= @nausicaa_ENABLE_YPSILON@
+nausicaa_ENABLE_LARCENY	= @nausicaa_ENABLE_LARCENY@
+
+## ------------------------------------------------------------
+
 #page
 ## ------------------------------------------------------------
 ## Nausicaa pre-configuration of binary package variables.
@@ -245,9 +251,11 @@ MAKEINFO_HTML_FLAGS	= $(MAKEINFO_FLAGS) --html
 ## Nausicaa programs.
 ## ------------------------------------------------------------
 
-IKARUS			= @IKARUS@
 SCHEME_SCRIPT		= @SCHEME_SCRIPT@
+
+IKARUS			= @IKARUS@
 YPSILON			= @YPSILON@
+LARCENY			= @LARCENY@
 
 SORT_UNIQUE		= $(SORT) --unique
 SORT_REVERSE		= $(SORT) --reverse
@@ -482,35 +490,78 @@ ifdef LIBPATH
 THE_LIBPATH		= $(LIBPATH):
 endif
 
-ifeq ($(strip $(NAU_USE_YPSILON)),yes)
-nau_test_ENV		= YPSILON_SITELIB=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
-nau_test_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
-else
-nau_test_PROGRAM	= $(SCHEME_SCRIPT)
-nau_test_ENV		= IKARUS_LIBRARY_PATH=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
-endif
+# We DO  NOT include  the fasl build  directory in the  libraries search
+# path.  This is on purpose.
+
+nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
+nau_itest_ENV		+= $(nau_test_ENV)
+nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
+
+nau_ytest_ENV		= YPSILON_SITELIB=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
+nau_ytest_ENV		+= $(nau_test_ENV)
+nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
+nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_ytest_PROGRAM)
+
+nau_ltest_ENV		= $(nau_test_ENV)
+nau_ltest_OPTIONS	= -path $(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(pkglibdir)
+nau_ltest_PROGRAM	= $(LARCENY) -r6rs $(nau_ltest_OPTIONS) -program
+nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_ltest_PROGRAM)
+
+## ------------------------------------------------------------
 
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
-
-# We DO  NOT include the fasl build  directory in the path.   This is on
-# purpose.
-nau_test_ENV		+= name=$(name)
-nau_test_RUN		= $(nau_test_ENV) $(nau_test_PROGRAM)
-
 nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(file).sps)
 
-.PHONY: tests test check ytests ytest ycheck
+.PHONY: tests test check
 
 tests test check:
+
+## ------------------------------------------------------------
+
+.PHONY: itests itest icheck
+
+itests itest icheck:
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_test_RUN) $(f);)
+	$(foreach f,$(nau_test_FILES),$(nau_itest_RUN) $(f);)
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_test_RUN) $(f);)
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_itest_RUN) $(f);)
 endif
 
+tests test check: itest
+endif
+
+## ------------------------------------------------------------
+
+.PHONY: ytests ytest ycheck
+
 ytests ytest ycheck:
-	@$(MAKE_NODIR) test NAU_USE_YPSILON=yes
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+ifeq ($(strip $(file)),)
+	$(foreach f,$(nau_test_FILES),$(nau_ytest_RUN) $(f);)
+else
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ytest_RUN) $(f);)
+endif
+
+tests test check: ytest
+endif
+
+## ------------------------------------------------------------
+
+.PHONY: ltests ltest lcheck
+
+ltests ltest lcheck:
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+ifeq ($(strip $(file)),)
+	$(foreach f,$(nau_test_FILES),$(nau_ltest_RUN) $(f);)
+else
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ltest_RUN) $(f);)
+endif
+
+tests test check: ltest
+endif
 
 ## ------------------------------------------------------------
 

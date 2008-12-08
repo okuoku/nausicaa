@@ -20,6 +20,11 @@ set -x
         autoconf
     fi)
 
-../configure --enable-fasl "$@"
+../configure \
+    --enable-fasl \
+    --enable-ypsilon \
+    "$@"
+
+##    --enable-larceny
 
 ### end of file

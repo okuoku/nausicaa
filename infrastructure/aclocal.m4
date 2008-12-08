@@ -134,9 +134,16 @@ AC_CACHE_SAVE
 ])
 
 AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],[
-NAUSICAA_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
-NAUSICAA_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the scheme-script executable])
+if test "$nausicaa_ENABLE_IKARUS" = yes ; then
+  NAUSICAA_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
+  NAUSICAA_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the Ikarus scheme-script executable])
+fi
+if test "$nausicaa_ENABLE_YPSILON" = yes ; then
 NAUSICAA_PROGRAM([YPSILON],[ypsilon],[another R6RS Scheme])
+fi
+if test "$nausicaa_ENABLE_LARCENY" = yes ; then
+NAUSICAA_PROGRAM([LARCENY],[larceny],[another R6RS Scheme])
+fi
 AC_CACHE_SAVE
 ])
 
@@ -183,6 +190,16 @@ NAUSICAA_PROGRAM([pacman_PROGRAM],[pacman],[the Pacman package manager])
 ])
 
 AC_DEFUN([NAUSICAA_OPTIONS],[
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_IKARUS],[ikarus],[yes],
+  [whether usage of Ikarus Scheme is enabled],
+  [disable usage of Ikarus Scheme])
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[no],
+  [whether usage of Ypsilon Scheme is enabled],
+  [disable usage of Ypsilon Scheme])
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_LARCENY],[larceny],[no],
+  [whether usage of Larceny Scheme is enabled],
+  [disable usage of Larceny Scheme])
+
 NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_DOC],[doc],[yes],
   [whether documentation files will be installed],
   [enable installation of documentation files])
