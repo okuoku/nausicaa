@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-07 18:13:27 marco>
+;;;Time-stamp: <2008-12-08 17:45:14 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -68,8 +68,6 @@
     raise-errno-error)
   (import (rnrs)
     (srfi parameters)
-    (only (ikarus)
-  	  strerror)
     (rename (ikarus foreign)
  	    (free primitive-free)
  	    (malloc primitive-malloc))
@@ -180,6 +178,9 @@
 
 ;;;; string functions
 
+(define primitive-strerror
+  (primitive-make-c-function 'char* 'strerror '(int)))
+
 (define strlen
   (primitive-make-c-function 'size_t 'strlen '(pointer)))
 
@@ -208,6 +209,8 @@
 	 (utf8->string bv))
       (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
 
+(define (strerror code)
+  (cstring->string (primitive-strerror code)))
 
 
 
