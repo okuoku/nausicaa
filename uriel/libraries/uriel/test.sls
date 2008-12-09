@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-24 11:08:10 marco>
+;;;Time-stamp: <2008-12-09 07:38:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -91,7 +91,8 @@
 (define selected-test (getenv "name"))
 
 (define (check-activation)
-  (or (= 0 (string-length selected-test))
+  (or (not selected-test)
+      (= 0 (string-length selected-test))
       (if (testname)
 	  (or (string-prefix? selected-test (testname))
 	      (string-suffix? selected-test (testname)))
