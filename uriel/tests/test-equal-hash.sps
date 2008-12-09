@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: test for equal-hash implementation
 ;;;Date: Mon Dec  8, 2008
-;;;Time-stamp: <2008-12-08 10:53:54 marco>
+;;;Time-stamp: <2008-12-09 17:00:16 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,8 +24,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (except (rnrs) equal-hash)
-  (uriel equal-hash)
+(import (r6rs)
   (uriel printing)
   (uriel test))
 

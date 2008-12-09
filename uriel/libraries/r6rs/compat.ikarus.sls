@@ -1,14 +1,12 @@
 ;;;
-;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: EQUAL-HASH export
-;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-07 18:02:10 marco>
+;;;Part of: Uriel libraries
+;;;Contents: stub library to make Ikarus R6RS compliant
+;;;Date: Tue Dec  9, 2008
+;;;Time-stamp: <2008-12-09 17:00:52 marco>
 ;;;
 ;;;Abstract
 ;;;
-;;;	This file is loaded  by all the supported Scheme implementations
-;;;	with the  single exception of  Ikarus Scheme, which  at revision
-;;;	1700 has no EQUAL-HASH implementation.
+;;;
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -26,8 +24,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel equal-hash)
-  (export equal-hash)
-  (import (rnrs)))
+(library (r6rs compat)
+  (export
+    equal-hash)
+  (import (except (rnrs) equal-hash))
+  (define (equal-hash obj)
+    (string-hash
+     (call-with-string-output-port
+ 	 (lambda (port) (write obj port))))))
 
 ;;; end of file

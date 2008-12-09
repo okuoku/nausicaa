@@ -418,6 +418,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* r6rs::                        On being compliant.
 * lang::                        Language extensions.
 * getenv::                      Getting environment variables.
 * test::                        Writing test suites.
@@ -450,7 +451,6 @@ Language extensions
 Independent libraries
 
 * lang void::                   Void value.
-* lang equal-hash::             Equal hash function.
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
@@ -520,6 +520,24 @@ Condition types
 @value{PACKAGE} is a collection of libraries for @rnrs{6} Scheme.
 
 
+@c page
+@node r6rs
+@chapter On being compliant
+
+
+Not all Scheme implmentations that assert to be @rnrs{6} compliant are
+in facts so.  As an attempt to solve this problem, Uriel installs the
+@library{r6rs} library which is meant to be loaded with:
+
+@example
+(import (r6rs))
+@end example
+
+@noindent
+as a substitute of @library{rnrs}.  Not all problems can be solved by
+this library, but it is an attempt to allow @rnrs{6} programs and
+libraries to just work.
+
 
 @c page
 @node lang
@@ -549,7 +567,6 @@ for the independent libraries see the corresponding sections.
 Independent libraries
 
 * lang void::                   Void value.
-* lang equal-hash::             Equal hash function.
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
@@ -1064,44 +1081,6 @@ Return the void value.
     (set! a 1)))
 @end example
 @end defun
-
-
-@c page
-@node lang equal-hash
-@section Equal hash function
-
-
-For some reason Ikarus up until revision 1700 does not implement the
-@func{equal-hash} function as specified by @rnrs{6}.  This library
-offers a simple implementation.  To load it:
-
-@example
-(import (rnrs)
-  (uriel equal-hash))
-@end example
-
-@noindent
-we can load it in non--Ikarus programs and libraries, too, because the
-library has a generic implementation that exports the @func{equal-hash}
-of the underlying Scheme.
-
-@c This library is imported by @library{uriel lang}, too, which in turn
-@c exports @func{equal-hash}.
-
-
-@defun equal-hash @var{obj}
-Return an integer hash value for @var{obj}, based on its structure and
-current contents.  This hash function is suitable for use with
-@func{equal?} as equivalence function.
-
-@example
-(define (equal-hash obj)
-    (string-hash
-     (call-with-string-output-port
-         (lambda () (write obj)))))
-@end example
-@end defun
-
 
 
 @c page
