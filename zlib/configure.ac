@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/Zlib
 dnl Contents: configuration template
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-08 13:48:48 marco>
+dnl Time-stamp: <2008-12-09 16:14:39 marco>
 dnl
 dnl Abstract
 dnl
@@ -56,20 +56,24 @@ NAUSICAA_INSPECT_FIELD_TYPE([$1],[z_stream],[$2],[$3],,[#include <zlib.h>])
 ])
 
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_NEXT_IN],[next_in],[pointer])
-NAU_ZLIB_STREAM_FIELD([ZSTREAM_AVAIL_IN],[avail_in],[unsigned-integer])
-NAU_ZLIB_STREAM_FIELD([ZSTREAM_TOTAL_IN],[total_in],[unsigned-integer])
+NAU_ZLIB_STREAM_FIELD([ZSTREAM_AVAIL_IN],[avail_in],[unsigned-int])
+NAU_ZLIB_STREAM_FIELD([ZSTREAM_TOTAL_IN],[total_in],[unsigned-int])
 
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_NEXT_OUT],[next_out],[pointer])
-NAU_ZLIB_STREAM_FIELD([ZSTREAM_AVAIL_OUT],[avail_out],[unsigned-integer])
-NAU_ZLIB_STREAM_FIELD([ZSTREAM_TOTAL_OUT],[total_out],[unsigned-integer])
+NAU_ZLIB_STREAM_FIELD([ZSTREAM_AVAIL_OUT],[avail_out],[unsigned-int])
+NAU_ZLIB_STREAM_FIELD([ZSTREAM_TOTAL_OUT],[total_out],[unsigned-int])
 
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_MSG],[msg],[pointer])
-NAU_ZLIB_STREAM_FIELD([ZSTREAM_DATA_TYPE],[data_type],[signed-integer])
-NAU_ZLIB_STREAM_FIELD([ZSTREAM_ADLER],[adler],[signed-integer])
+NAU_ZLIB_STREAM_FIELD([ZSTREAM_DATA_TYPE],[data_type],[signed-int])
+NAU_ZLIB_STREAM_FIELD([ZSTREAM_ADLER],[adler],[signed-int])
 
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_ZALLOC],[zalloc],[pointer])
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_ZFREE],[zfree],[pointer])
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_OPAQUE],[opaque],[pointer])
+
+NAUSICAA_INSPECT_TYPE([ZLIB_UINT],[uInt],[unsigned-int],,[#include <zlib.h>])
+NAUSICAA_INSPECT_TYPE([ZLIB_ULONG],[uLong],[unsigned-int],,[#include <zlib.h>])
+NAUSICAA_INSPECT_TYPE([Z_OFF_T],[z_off_t],[unsigned-int],,[#include <zlib.h>])
 
 
 dnl page

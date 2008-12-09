@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Zlib
 ;;;Contents: size of libraries' C language types
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-08 13:48:57 marco>
+;;;Time-stamp: <2008-12-09 16:15:11 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,6 +27,7 @@
 (library (zlib sizeof)
   (export
     sizeof-zstream
+    uInt		uLong			z_off_t
 
     ZLIB_VERNUM
 
@@ -53,6 +54,10 @@
 
   ;; constants
   (define sizeof-zstream		@SIZEOF_ZSTREAM@)
+
+  (define uInt				(quote @TYPEOF_ZLIB_UINT@))
+  (define uLong				(quote @TYPEOF_ZLIB_ULONG@))
+  (define z_off_t			(quote @TYPEOF_Z_OFF_T@))
 
   (define ZLIB_VERNUM			@VALUEOF_ZLIB_VERNUM@)
 
