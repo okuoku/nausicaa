@@ -474,9 +474,9 @@ dnl 1 variable-suffix
 dnl 2 type-definition
 dnl 3 type-guess
 AC_DEFUN([NAUSICAA_BASE_TYPE_TEST],[
-if   test "$3" = signed-integer ; then
+if   test "$3" = signed-int ; then
     NAUSICAA_INTTYPE_TEST([$1],[$2])
-elif test "$3" = unsigned-integer ; then
+elif test "$3" = unsigned-int ; then
     NAUSICAA_UINTTYPE_TEST([$1],[$2])
 elif test "$3" = float ; then
     NAUSICAA_FLOATTYPE_TEST([$1],[$2])
@@ -622,9 +622,9 @@ AC_CACHE_CHECK([setter for type '$2'],
      nausicaa_cv_setterof_$1="pointer-set-c-char!"
    elif test "${TYPEOF_$1}" = unsigned-char     ; then
      nausicaa_cv_setterof_$1="pointer-set-c-char!"
-   elif test "${TYPEOF_$1}" = signed-int        ; then
+   elif test "${TYPEOF_$1}" = signed-int    ; then
      nausicaa_cv_setterof_$1="pointer-set-c-int!"
-   elif test "${TYPEOF_$1}" = unsigned-int      ; then
+   elif test "${TYPEOF_$1}" = unsigned-int  ; then
      nausicaa_cv_setterof_$1="pointer-set-c-int!"
    elif test "${TYPEOF_$1}" = signed-short      ; then
      nausicaa_cv_setterof_$1="pointer-set-c-short!"

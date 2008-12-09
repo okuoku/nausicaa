@@ -1257,7 +1257,7 @@ and the following does the same as the above:
 
 @example
 NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
-NAUSICAA_BASE_TYPE_TEST([SIZE_T],[size_t],[signed-integer])
+NAUSICAA_BASE_TYPE_TEST([SIZE_T],[size_t],[signed-int])
 @end example
 
 
@@ -1266,8 +1266,8 @@ Determine the equivalent basic type of the C language type
 @var{typedef}.  This is a wrapper for the macros described below, to
 which the @var{suffix} and @var{typedef} arguments are handed unchanged.
 
-@var{type-guess} selects which macro to use: @code{signed-integer}
-selects @code{NAUSICAA_INTTYPE_TEST}; @code{unsigned-integer} selects
+@var{type-guess} selects which macro to use: @code{signed-int} selects
+@code{NAUSICAA_INTTYPE_TEST}; @code{unsigned-int} selects
 @code{NAUSICAA_UINTTYPE_TEST}; @code{float} selects
 @code{NAUSICAA_FLOATTYPE_TEST}.
 
