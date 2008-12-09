@@ -1523,7 +1523,7 @@ long-double             pointer
 
 
 
-@deffn {Autoconf Macro} NAUSICAA_INSPECT_TYPE (@var{suffix}, @var{typedef}, @var{default}, @var{type-guess}, @var{headers})
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_TYPE (@var{suffix}, @var{typedef}, @var{type-guess}, @var{default}, @var{headers})
 Perform a full inspection for a C language type definition.  This macro
 is a wrapper for other more basic macros, and it expands to:
 
@@ -1535,7 +1535,7 @@ NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{typedef})
 @end deffn
 
 
-@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{default}, @var{type-guess}, @var{headers})
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{type-guess}, @var{default}, @var{headers})
 Perform a full inspection for a C language field structure type
 definition.  This macro is a wrapper for other more basic macros, and it
 expands to:
