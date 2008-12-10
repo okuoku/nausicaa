@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-05 11:02:51 marco>
+;;;Time-stamp: <2008-12-10 09:49:26 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -76,7 +76,8 @@
     raise-errno-error)
   (import (core)
     (srfi receive)
-    (srfi parameters)
+;;; These are in (core).
+;;;    (srfi parameters)
     (uriel ffi sizeof)
     (uriel ffi errno)
     (uriel ffi conditions))
