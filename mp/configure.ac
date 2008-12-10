@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/IrRegex
 dnl Contents: configuration template file
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-07 18:24:10 marco>
+dnl Time-stamp: <2008-12-10 13:44:36 marco>
 dnl
 dnl Abstract
 dnl
@@ -54,31 +54,88 @@ AC_DEFUN([NAU_GMP_SIZEOF_TEST],
 AC_DEFUN([NAU_GMP_VALUEOF_TEST],
    [NAUSICAA_VALUEOF_TEST([$1],[$2],,[#include <gmp.h>])])
 
+AC_DEFUN([NAU_GMP_INSPECT_TYPE],
+   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],,[#include <gmp.h>])])
+
 dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_MPFR_SIZEOF_TEST],
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],,[#include <gmp.h>
+#include <mpfr.h>])])
+
+AC_DEFUN([NAU_MPFR_VALUEOF_TEST],
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],,[#include <gmp.h>
+#include <mpfr.h>])])
+
+AC_DEFUN([NAU_MPFR_INSPECT_TYPE],
+   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],,[#include <gmp.h>
+#include <mpfr.h>])])
+
+AC_DEFUN([NAU_MPFR_INSPECT_FIELD_TYPE],
+   [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[#include <gmp.h>
+#include <mpfr.h>])])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_MPFI_SIZEOF_TEST],
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],,[#include <gmp.h>
+#include <mpfr.h>
+#include <mpfi.h>])])
+
+AC_DEFUN([NAU_MPFI_VALUEOF_TEST],
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],,[#include <gmp.h>
+#include <mpfr.h>
+#include <mpfi.h>])])
+
+AC_DEFUN([NAU_MPFI_OFFSETOF_FIELD_TEST],
+   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <gmp.h>
+#include <mpfr.h>
+#include <mpfi.h>])])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_MPC_SIZEOF_TEST],
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],,[#include <gmp.h>
+#include <mpfr.h>
+#include <mpc.h>])])
+
+AC_DEFUN([NAU_MPC_VALUEOF_TEST],
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],,[#include <gmp.h>
+#include <mpfr.h>
+#include <mpc.h>])])
+
+AC_DEFUN([NAU_MPC_INSPECT_TYPE],
+   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],,[#include <gmp.h>
+#include <mpfr.h>
+#include <mpc.h>])])
+
+AC_DEFUN([NAU_MPC_OFFSETOF_FIELD_TEST],
+   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <gmp.h>
+#include <mpfr.h>
+#include <mpc.h>])])
+
 
 dnl page
 dnl --------------------------------------------------------------------
 dnl Checking GMP.
 dnl --------------------------------------------------------------------
 
+dnl The use of GMP is mandatory, we cannot disable it.
+
 AC_CHECK_LIB([gmp],[__gmpz_init],,
   [AC_MSG_FAILURE([missing GMP library],[2])])
-AC_CHECK_HEADER([gmp.h],,
+AC_CHECK_HEADERS([gmp.h],,
   [AC_MSG_FAILURE([missing gmp.h header],[2])])
 
-NAU_GMP_SIZEOF_TEST([MP_EXP_T],[mp_exp_t])
-NAU_GMP_SIZEOF_TEST([MP_SIZE_T],[mp_size_t])
-NAU_GMP_SIZEOF_TEST([MP_LIMB_T],[mp_limb_t])
+NAU_GMP_INSPECT_TYPE([GMP_RANDALG_T],[gmp_randalg_t],[signed-int])
+NAU_GMP_INSPECT_TYPE([MP_EXP_T],[mp_exp_t],[signed-int])
+NAU_GMP_INSPECT_TYPE([MP_LIMB_T],[mp_limb_t],[signed-int])
+NAU_GMP_INSPECT_TYPE([MP_SIZE_T],[mp_size_t],[signed-int])
+
+NAU_GMP_SIZEOF_TEST([GMP_RANDSTATE_T],[gmp_randstate_t])
+NAU_GMP_SIZEOF_TEST([MPF_T],[mpf_t])
 NAU_GMP_SIZEOF_TEST([MPQ_T],[mpq_t])
 NAU_GMP_SIZEOF_TEST([MPZ_T],[mpz_t])
-NAU_GMP_SIZEOF_TEST([MPF_T],[mpf_t])
-NAU_GMP_SIZEOF_TEST([GMP_RANDALG_T],[gmp_randalg_t])
-NAU_GMP_SIZEOF_TEST([GMP_RANDSTATE_T],[gmp_randstate_t])
-
-NAUSICAA_INTTYPE_TEST([MP_EXP_T],[mp_exp_t])
-NAUSICAA_INTTYPE_TEST([MP_SIZE_T],[mp_size_t])
-NAUSICAA_INTTYPE_TEST([MP_LIMB_T],[mp_limb_t])
-NAUSICAA_INTTYPE_TEST([GMP_RANDALG_T],[gmp_randalg_t])
 
 NAU_GMP_VALUEOF_TEST([GMP_RAND_ALG_DEFAULT],[GMP_RAND_ALG_DEFAULT])
 NAU_GMP_VALUEOF_TEST([GMP_RAND_ALG_LC],[GMP_RAND_ALG_LC])
@@ -97,45 +154,98 @@ NAUSICAA_ENABLE_OPTION([nau_ENABLE_MPFR],[mpfr],[yes],
 if test "${nau_ENABLE_MPFR}" = yes ; then
 
 AC_CHECK_LIB([mpfr],[mpfr_init],,[AC_MSG_FAILURE([missing or unusable MPFR library],[2])])
-AC_CHECK_HEADER([mpfr.h],,[AC_MSG_FAILURE([missing mpfr.h header],[2])])
+AC_CHECK_HEADERS([mpfr.h],,[AC_MSG_FAILURE([missing mpfr.h header],[2])])
 
-AC_COMPUTE_INT([SIZEOF_MPFR_T],[sizeof(mpfr_t)],[#include <mpfr.h>])
-AC_SUBST(SIZEOF_MPFR_T)
+NAU_MPFR_SIZEOF_TEST([MPFR_T],[mpfr_t])
+NAU_MPFR_INSPECT_TYPE([MP_RND_T],[mp_rnd_t],[signed-int])
+NAU_MPFR_INSPECT_TYPE([MP_PREC_T],[mp_prec_t],[unsigned-int])
+NAU_MPFR_INSPECT_TYPE([MPFR_PREC_T],[mpfr_prec_t],[unsigned-int])
+NAU_MPFR_INSPECT_TYPE([MPFR_SIGN_T],[mpfr_sign_t],[signed-int])
+NAU_MPFR_INSPECT_TYPE([MPFR_RND_T],[mpfr_rnd_t],[signed-int])
+
+NAU_MPFR_INSPECT_TYPE([INTMAX_T],[intmax_t],[signed-int])
+NAU_MPFR_INSPECT_TYPE([UINTMAX_T],[uintmax_t],[unsigned-int])
+
+NAU_MPFR_INSPECT_FIELD_TYPE([MPFR_STRUCT_PREC],[__mpfr_struct],[_mpfr_prec],[unsigned-int])
+NAU_MPFR_INSPECT_FIELD_TYPE([MPFR_STRUCT_SIGN],[__mpfr_struct],[_mpfr_sign],[signed-int])
+NAU_MPFR_INSPECT_FIELD_TYPE([MPFR_STRUCT_EXP],[__mpfr_struct],[_mpfr_exp],[signed-int])
+NAU_MPFR_INSPECT_FIELD_TYPE([MPFR_STRUCT_D],[__mpfr_struct],[_mpfr_d],[pointer])
+
+NAU_MPFR_VALUEOF_TEST([GMP_RNDD],[GMP_RNDD])
+NAU_MPFR_VALUEOF_TEST([GMP_RNDN],[GMP_RNDN])
+NAU_MPFR_VALUEOF_TEST([GMP_RNDU],[GMP_RNDU])
+NAU_MPFR_VALUEOF_TEST([GMP_RNDZ],[GMP_RNDZ])
+NAU_MPFR_VALUEOF_TEST([MPFR_PREC_MAX],[MPFR_PREC_MAX])
+NAU_MPFR_VALUEOF_TEST([MPFR_PREC_MIN],[MPFR_PREC_MIN])
+NAU_MPFR_VALUEOF_TEST([MPFR_VERSION],[MPFR_VERSION])
+NAU_MPFR_VALUEOF_TEST([MPFR_EMAX_DEFAULT],[MPFR_EMAX_DEFAULT])
+NAU_MPFR_VALUEOF_TEST([MPFR_EMIN_DEFAULT],[MPFR_EMIN_DEFAULT])
+
 
 fi
 
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Checking MPFI.
 dnl --------------------------------------------------------------------
 
 NAUSICAA_ENABLE_OPTION([nau_ENABLE_MPFI],[mpfi],[yes],
         [whether the MPFI interface will be used],
         [disable MPFI interface])
 
-if test "${nau_ENABLE_MPFI}" = yes -a "${nau_ENABLE_MPFR}" = yes ; then
+if test "${nau_ENABLE_MPFI}" = yes ; then
+  if test "${nau_ENABLE_MPFR}" = yes ; then
 
-AC_CHECK_HEADER([mpfi.h],,[AC_MSG_FAILURE([missing mpfr.h header],[2])])
+AC_CHECK_HEADERS([mpfi.h],,[AC_MSG_FAILURE([missing mpfr.h header],[2])])
 AC_CHECK_LIB([mpfi],[mpfi_init],,[AC_MSG_FAILURE([missing or unusable MPFI library],[2])])
 
-AC_COMPUTE_INT([SIZEOF_MPFI_T],[sizeof(mpfi_t)],[#include <mpfi.h>])
-AC_SUBST(SIZEOF_MPFI_T)
+NAU_MPFI_SIZEOF_TEST([MPFI_T],[mpfi_t])
 
+NAU_MPFI_OFFSETOF_FIELD_TEST([MPFI_STRUCT_LEFT],[__mpfi_struct],[left])
+NAU_MPFI_OFFSETOF_FIELD_TEST([MPFI_STRUCT_RIGHT],[__mpfi_struct],[right])
+
+NAU_MPFI_VALUEOF_TEST([MPFI_FLAGS_BOTH_ENDPOINTS_EXACT],[MPFI_FLAGS_BOTH_ENDPOINTS_EXACT])
+NAU_MPFI_VALUEOF_TEST([MPFI_FLAGS_LEFT_ENDPOINT_INEXACT],[MPFI_FLAGS_LEFT_ENDPOINT_INEXACT])
+NAU_MPFI_VALUEOF_TEST([MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT],[MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT])
+NAU_MPFI_VALUEOF_TEST([MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT],[MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT])
+
+  else
+    AC_MSG_FAILURE([to enable MPFI support MPFR support must be enabled, too],[2])
+  fi
 fi
 
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Checking MPC.
 dnl --------------------------------------------------------------------
 
 NAUSICAA_ENABLE_OPTION([nau_ENABLE_MPC],[mpc],[yes],
         [whether the MPC interface will be used],
         [disable MPC interface])
 
-if test "${nau_ENABLE_MPC}" = yes -a "${nau_ENABLE_MPFR}" = yes ; then
+if test "${nau_ENABLE_MPC}" = yes ; then
+  if test "${nau_ENABLE_MPFR}" = yes ; then
 
 AC_CHECK_LIB([mpc],[mpc_init],,[AC_MSG_FAILURE([missing or unusable MPC library],[2])])
-AC_CHECK_HEADER([mpc.h],,[AC_MSG_FAILURE([missing mpc.h header],[2])])
+AC_CHECK_HEADERS([mpc.h],,[AC_MSG_FAILURE([missing mpc.h header],[2])])
 
-AC_COMPUTE_INT([SIZEOF_MPC_T],[sizeof(mpc_t)],[#include <mpc.h>])
-AC_SUBST(SIZEOF_MPC_T)
+NAU_MPC_SIZEOF_TEST([MPC_T],[mpc_t])
+NAU_MPC_OFFSETOF_FIELD_TEST([MPC_STRUCT_RE],[__mpc_struct],[re])
+NAU_MPC_OFFSETOF_FIELD_TEST([MPC_STRUCT_IM],[__mpc_struct],[im])
 
+NAU_MPC_INSPECT_TYPE([MPC_RND_T],[mpc_rnd_t],[signed-int])
+
+  else
+    AC_MSG_FAILURE([to enable MPC support MPFR support must be enabled, too],[2])
+  fi
 fi
 
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Done.
 dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../libraries/mp/sizeof.sls:libraries/mp/sizeof.sls.in])

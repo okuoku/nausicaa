@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MPFR
 ;;;Contents: tests for the MPF numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-11-29 13:44:42 marco>
+;;;Time-stamp: <2008-12-10 11:20:49 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -47,7 +47,7 @@
 
 (define mpf
   (make-caching-object-factory mpf_init mpf_clear
-			       sizeof-mpf 10))
+			       sizeof-mpf_t 10))
 
 (define (compensate-mpf)
   (letrec ((p (compensate (mpf)

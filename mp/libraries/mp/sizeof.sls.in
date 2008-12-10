@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP libraries for R6RS Scheme
 ;;;Contents: size of libraries' C language types
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-12-03 10:57:38 marco>
+;;;Time-stamp: <2008-12-10 13:50:07 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,51 +27,210 @@
 (library (mp sizeof)
   (export
 
-    ;; Typedefs.
-    mp_exp_t mp_exp_t* mp_size_t mp_limb_t gmp_randalg_t
-    gmp_randstate_t
-    mpz_srcptr mpz_ptr mpf_srcptr mpf_ptr mpq_srcptr mpq_ptr
+    ;; type aliases
+    intmax_t
+    uintmax_t
 
-    ;; Sizeofs.
-    sizeof-mp-size sizeof-mp-exp sizeof-mp-limb
-    sizeof-mpz sizeof-mpf sizeof-mpfr sizeof-mpfi sizeof-mpc
-    sizeof-gmp-randstate
+    gmp_randalg_t
+    gmp_randstate_t
+    mp_exp_t
+    mp_limb_t
+    mp_prec_t
+    mp_rnd_t
+    mp_size_t
+    mpc_rnd_t
+    mpfr_prec_t
+    mpfr_rnd_t
+    mpfr_sign_t
+
+    mp_exp_t*
+    mp_prec_t*
+    mpc_ptr
+    mpc_srcptr
+    mpc_t
+    mpf_ptr
+    mpf_srcptr
+    mpf_t
+    mpfi_ptr
+    mpfi_srcptr
+    mpfi_t
+    mpfr_ptr
+    mpfr_srcptr
+    mpfr_t
+    mpq_ptr
+    mpq_srcptr
+    mpz_ptr
+    mpz_srcptr
+
+    ;; size of types
+    sizeof-gmp_randalg_t
+    sizeof-gmp_randstate_t
+    sizeof-mp_exp_t
+    sizeof-mp_limb_t
+    sizeof-mp_size_t
+    sizeof-mpc_t
+    sizeof-mpf_t
+    sizeof-mpfi_t
+    sizeof-mpfr_prec_t
+    sizeof-mpfr_rnd_t
+    sizeof-mpfr_sign_t
+    sizeof-mpfr_t
+    sizeof-mpq_t
+    sizeof-mpz_t
 
     ;; Constants.
-    GMP_RAND_ALG_DEFAULT GMP_RAND_ALG_LC
+    GMP_RAND_ALG_DEFAULT
+    GMP_RAND_ALG_LC
+    GMP_RNDD
+    GMP_RNDN
+    GMP_RNDU
+    GMP_RNDZ
+    MPFI_FLAGS_BOTH_ENDPOINTS_EXACT
+    MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT
+    MPFI_FLAGS_LEFT_ENDPOINT_INEXACT
+    MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT
+    MPFR_EMAX_DEFAULT
+    MPFR_EMIN_DEFAULT
+    MPFR_PREC_MAX
+    MPFR_PREC_MIN
+    MPFR_VERSION
 
-    )
-  (import (rnrs))
+    ;; accessors
+    struct-mpfr-prec-set!		struct-mpfr-prec-ref
+    struct-mpfr-sign-set!		struct-mpfr-sign-ref
+    struct-mpfr-exp-set!		struct-mpfr-exp-ref
+    struct-mpfr-d-set!			struct-mpfr-d-ref
 
-  (define mp_exp_t		(quote @TYPEOF_MP_EXP_T@))
-  (define mp_size_t		(quote @TYPEOF_MP_SIZE_T@))
-  (define mp_limb_t		(quote @TYPEOF_MP_LIMB_T@))
-  (define gmp_randalg_t		(quote @TYPEOF_GMP_RANDALG_T@))
+    struct-mpfi-left-ref		struct-mpfi-right-ref
+    struct-mpc-re-ref			struct-mpc-im-ref)
+  (import (rnrs)
+    (uriel ffi)
+    (uriel ffi sizeof))
 
-  (define mp_exp_t*		'pointer)
-  (define mpz_srcptr		'pointer)
-  (define mpz_ptr		'pointer)
-  (define mpf_srcptr		'pointer)
-  (define mpf_ptr		'pointer)
-  (define mpq_srcptr		'pointer)
-  (define mpq_ptr		'pointer)
-  (define gmp_randstate_t	'pointer)
+  ;; type aliases
+  (define intmax_t			(quote @TYPEOF_INTMAX_T@))
+  (define uintmax_t			(quote @TYPEOF_UINTMAX_T@))
 
-  (define sizeof-mp-limb	@SIZEOF_MP_LIMB_T@)
-  (define sizeof-mp-size	@SIZEOF_MP_SIZE_T@)
-  (define sizeof-mp-exp		@SIZEOF_MP_EXP_T@)
-  (define sizeof-gmp-randalg	@SIZEOF_GMP_RANDALG_T@)
+  (define gmp_randalg_t			(quote @TYPEOF_GMP_RANDALG_T@))
+  (define mp_exp_t			(quote @TYPEOF_MP_EXP_T@))
+  (define mp_limb_t			(quote @TYPEOF_MP_LIMB_T@))
+  (define mp_prec_t			(quote @TYPEOF_MP_PREC_T@))
+  (define mp_rnd_t			(quote @TYPEOF_MP_RND_T@))
+  (define mp_size_t			(quote @TYPEOF_MP_SIZE_T@))
+  (define mpc_rnd_t			(quote @TYPEOF_MP_RND_T@))
+  (define mpfr_prec_t			(quote @TYPEOF_MPFR_PREC_T@))
+  (define mpfr_rnd_t			(quote @TYPEOF_MPFR_RND_T@))
+  (define mpfr_sign_t			(quote @TYPEOF_MPFR_SIGN_T@))
 
-  (define sizeof-mpz		@SIZEOF_MPZ_T@)
-  (define sizeof-mpq		@SIZEOF_MPQ_T@)
-  (define sizeof-mpf		@SIZEOF_MPF_T@)
-  (define sizeof-mpfr		@SIZEOF_MPFR_T@)
-  (define sizeof-mpfi		@SIZEOF_MPFI_T@)
-  (define sizeof-mpc		@SIZEOF_MPC_T@)
-  (define sizeof-gmp-randstate	@SIZEOF_GMP_RANDSTATE_T@)
+  (define gmp_randstate_t		'pointer)
+  (define mp_exp_t*			'pointer)
+  (define mp_prec_t*			'pointer)
+  (define mpc_t				'pointer)
+  (define mpc_ptr			'pointer)
+  (define mpc_srcptr			'pointer)
+  (define mpf_t				'pointer)
+  (define mpf_ptr			'pointer)
+  (define mpf_srcptr			'pointer)
+  (define mpfi_t			'pointer)
+  (define mpfi_ptr			'pointer)
+  (define mpfi_srcptr			'pointer)
+  (define mpfr_t			'pointer)
+  (define mpfr_ptr			'pointer)
+  (define mpfr_srcptr			'pointer)
+  (define mpq_t				'pointer)
+  (define mpq_ptr			'pointer)
+  (define mpq_srcptr			'pointer)
+  (define mpz_t				'pointer)
+  (define mpz_ptr			'pointer)
+  (define mpz_srcptr			'pointer)
 
-  (define GMP_RAND_ALG_DEFAULT	@VALUEOF_GMP_RAND_ALG_DEFAULT@)
-  (define GMP_RAND_ALG_LC	@VALUEOF_GMP_RAND_ALG_LC@)
+  ;; size of types
+  (define sizeof-gmp_randalg_t		@SIZEOF_GMP_RANDALG_T@)
+  (define sizeof-gmp_randstate_t	@SIZEOF_GMP_RANDSTATE_T@)
+  (define sizeof-mp_exp_t		@SIZEOF_MP_EXP_T@)
+  (define sizeof-mp_limb_t		@SIZEOF_MP_LIMB_T@)
+  (define sizeof-mp_prec_t		@SIZEOF_MP_PREC_T@)
+  (define sizeof-mp_rnd_t		@SIZEOF_MP_RND_T@)
+  (define sizeof-mp_size_t		@SIZEOF_MP_SIZE_T@)
+  (define sizeof-mpc_t			@SIZEOF_MPC_T@)
+  (define sizeof-mpc_rnd_t		@SIZEOF_MPC_RND_T@)
+  (define sizeof-mpf_t			@SIZEOF_MPF_T@)
+  (define sizeof-mpfi_t			@SIZEOF_MPFI_T@)
+  (define sizeof-mpfr_prec_t		@SIZEOF_MPFR_PREC_T@)
+  (define sizeof-mpfr_rnd_t		@SIZEOF_MPFR_RND_T@)
+  (define sizeof-mpfr_sign_t		@SIZEOF_MPFR_SIGN_T@)
+  (define sizeof-mpfr_t			@SIZEOF_MPFR_T@)
+  (define sizeof-mpq_t			@SIZEOF_MPQ_T@)
+  (define sizeof-mpz_t			@SIZEOF_MPZ_T@)
+
+  ;; constants
+  (define GMP_RAND_ALG_DEFAULT		@VALUEOF_GMP_RAND_ALG_DEFAULT@)
+  (define GMP_RAND_ALG_LC		@VALUEOF_GMP_RAND_ALG_LC@)
+  (define GMP_RNDD			@VALUEOF_GMP_RNDD@)
+  (define GMP_RNDN			@VALUEOF_GMP_RNDN@)
+  (define GMP_RNDU			@VALUEOF_GMP_RNDU@)
+  (define GMP_RNDZ			@VALUEOF_GMP_RNDZ@)
+  (define MPFI_FLAGS_BOTH_ENDPOINTS_EXACT	@VALUEOF_MPFI_FLAGS_BOTH_ENDPOINTS_EXACT@)
+  (define MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT	@VALUEOF_MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT@)
+  (define MPFI_FLAGS_LEFT_ENDPOINT_INEXACT	@VALUEOF_MPFI_FLAGS_LEFT_ENDPOINT_INEXACT@)
+  (define MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT	@VALUEOF_MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT@)
+  (define MPFR_EMAX_DEFAULT		@VALUEOF_MPFR_EMAX_DEFAULT@)
+  (define MPFR_EMIN_DEFAULT		@VALUEOF_MPFR_EMIN_DEFAULT@)
+  (define MPFR_PREC_MAX			@VALUEOF_MPFR_PREC_MAX@)
+  (define MPFR_PREC_MIN			@VALUEOF_MPFR_PREC_MIN@)
+  (define MPFR_VERSION			@VALUEOF_MPFR_VERSION@)
+
+  ;; structure accessors
+
+  (define-c-struct-accessors
+    struct-mpfr-prec-set!
+    struct-mpfr-prec-ref
+    @OFFSETOF_MPFR_STRUCT_PREC@
+    @SETTEROF_MPFR_STRUCT_PREC@
+    @GETTEROF_MPFR_STRUCT_PREC@)
+
+  (define-c-struct-accessors
+    struct-mpfr-sign-set!
+    struct-mpfr-sign-ref
+    @OFFSETOF_MPFR_STRUCT_SIGN@
+    @SETTEROF_MPFR_STRUCT_SIGN@
+    @GETTEROF_MPFR_STRUCT_SIGN@)
+
+  (define-c-struct-accessors
+    struct-mpfr-exp-set!
+    struct-mpfr-exp-ref
+    @OFFSETOF_MPFR_STRUCT_EXP@
+    @SETTEROF_MPFR_STRUCT_EXP@
+    @GETTEROF_MPFR_STRUCT_EXP@)
+
+  (define-c-struct-accessors
+    struct-mpfr-d-set!
+    struct-mpfr-d-ref
+    @OFFSETOF_MPFR_STRUCT_D@
+    @SETTEROF_MPFR_STRUCT_D@
+    @GETTEROF_MPFR_STRUCT_D@)
+
+  (define-syntax struct-mpfi-left-ref
+    (syntax-rules ()
+      ((_ ?struct-pointer)
+       (pointer-add ?struct-pointer @OFFSETOF_MPFI_STRUCT_LEFT@))))
+
+  (define-syntax struct-mpfi-right-ref
+    (syntax-rules ()
+      ((_ ?struct-pointer)
+       (pointer-add ?struct-pointer @OFFSETOF_MPFI_STRUCT_RIGHT@))))
+
+  (define-syntax struct-mpc-re-ref
+    (syntax-rules ()
+      ((_ ?struct-pointer)
+       (pointer-add ?struct-pointer @OFFSETOF_MPC_STRUCT_RE@))))
+
+  (define-syntax struct-mpc-im-ref
+    (syntax-rules ()
+      ((_ ?struct-pointer)
+       (pointer-add ?struct-pointer @OFFSETOF_MPC_STRUCT_IM@))))
+
+
   )
 
 ;;; end of file
