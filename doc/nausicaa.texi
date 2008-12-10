@@ -1266,10 +1266,18 @@ Determine the equivalent basic type of the C language type
 @var{typedef}.  This is a wrapper for the macros described below, to
 which the @var{suffix} and @var{typedef} arguments are handed unchanged.
 
-@var{type-guess} selects which macro to use: @code{signed-int} selects
-@code{NAUSICAA_INTTYPE_TEST}; @code{unsigned-int} selects
-@code{NAUSICAA_UINTTYPE_TEST}; @code{float} selects
-@code{NAUSICAA_FLOATTYPE_TEST}.
+@var{type-guess} selects which macro to use:
+
+@table @code
+@item signed-int
+selects @code{NAUSICAA_INTTYPE_TEST};
+
+@item unsigned-int
+selects @code{NAUSICAA_UINTTYPE_TEST};
+
+@item float
+selects @code{NAUSICAA_FLOATTYPE_TEST}.
+@end table
 
 @code{pointer} is a special value of @var{type-guess} that selects no
 macro but sets the output variable @code{TYPEOF_<@var{suffix}>} to
@@ -1290,9 +1298,17 @@ long long
 @end example
 
 The output variable @code{TYPEOF_<@var{suffix}>} is set to a result
-among: @code{signed-char}, @code{signed-int}, @code{signed-short},
-@code{signed-long}, @code{signed-long-long}.  If the test fails: the
-output variable is set to @false{}.
+among:
+
+@example
+signed-char
+signed-int
+signed-short
+signed-long
+signed-long-long
+@end example
+
+If the test fails: the output variable is set to @false{}.
 
 The search is performed by comparing the value of the variable
 @code{SIZEOF_<@var{suffix}>} with the values of the variables:
@@ -1325,9 +1341,17 @@ unsigned long long
 @end example
 
 The output variable @code{TYPEOF_<@var{suffix}>} is set to a result
-among: @code{unsigned-char}, @code{unsigned-int}, @code{unsigned-short},
-@code{unsigned-long}, @code{unsigned-long-long}.  If the test fails: the
-output variable is set to @false{}.
+among:
+
+@example
+unsigned-char
+unsigned-int
+unsigned-short
+unsigned-long
+unsigned-long-long
+@end example
+
+If the test fails: the output variable is set to @false{}.
 
 The search is performed by comparing the value of the variable
 @code{SIZEOF_<@var{suffix}>} with the values of the variables:
@@ -1358,8 +1382,15 @@ long double
 @end example
 
 The output variable @code{TYPEOF_<@var{suffix}>} is set to a result
-among: @code{float}, @code{double}, @code{long-double}.  If the test
-fails: the output variable is set to @false{}.
+among:
+
+@example
+float
+double
+long-double
+@end example
+
+If the test fails: the output variable is set to @false{}.
 
 The search is performed by comparing the value of the variable
 @code{SIZEOF_<@var{suffix}>} with the values of the variables:
@@ -1384,9 +1415,9 @@ macro @code{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
 
 
 It is often needed to know the offset of a field in a C language data
-structure.  If we know a pointer to the first byte of a data strucuture
-and the offset of one of its fields, we can compute the pointer to the
-first byte of the fields by adding the two.
+structure.  From a pointer to the first byte of a data structure and the
+offset of one of its fields, we can compute the pointer to the first
+byte of the fields by adding the two.
 
 The following determines the offset of the field @code{l_start} in the
 structure @code{struct flock} (defined in @file{fcntl.h}) and stores it
