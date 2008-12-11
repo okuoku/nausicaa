@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-08 17:26:23 marco>
+;;;Time-stamp: <2008-12-11 14:27:27 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -84,7 +84,7 @@
 
     ;;pointers
     pointer? integer->pointer pointer->integer pointer-null?
-    pointer-diff pointer-add
+    pointer-diff pointer-add pointer-null
 
     ;;bytevector functions
     bytevector->pointer bytevector->memory-block

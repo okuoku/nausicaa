@@ -330,10 +330,9 @@ the main purpose of this document is to provide an Info version.
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
-@macro bibref{TAG}
-@code{[\TAG\]}
+@macro urielref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-uriel}
 @end macro
-
 
 @c ------------------------------------------------------------
 
@@ -346,7 +345,7 @@ the main purpose of this document is to provide an Info version.
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    Nausicaa/MP
+@set PACKAGE                    @acronym{MP}
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
@@ -377,7 +376,7 @@ the main purpose of this document is to provide an Info version.
 This document describes version @version{} of @value{PACKAGE}, a set of
 Scheme libraries implementing an interface to the @gmp{}, @mpfr{},
 @mpfi{} and @mpc{} libraries for multiple precision integers and
-floating-point numbers.  It is based on the @library{uriel ffi} library.
+floating-point numbers.
 
 @gmp{} stands for GNU Multiple Precision arithmetic library.
 
@@ -451,6 +450,9 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* constants::                   Constant values.
+* accessors::                   Accessing foreign structures.
+* gmp::                         Multiple precision integers.
 
 Appendices
 
@@ -474,11 +476,367 @@ Indexes
 @chapter Overview of the package
 
 
+@value{PACKAGE} implements a binding to various multiple precision
+numbers libraries for the @rnrs{6} Scheme implementations supported by
+Nausicaa.  The bindings make use of the foreign functions interfaces
+adapted by the @library{uriel ffi} Scheme library.
+
+The bindings attempt to be one--to--one mappings between foreign and
+Scheme functions.  So the original documentation of the foreign
+libraries applies to the bindings, too.
+
+This document gives only a brief description of some functions, and
+focuses on providing some usage example to get a feeling about how to
+manage resources allocation in a Scheme program.
+
+See the relevant chapters for instructions on loading @value{PACKAGE}
+libraries.
+
+
+@c page
+@node constants
+@chapter Constant values
+
+
+The following bindings are exported by the @library{mp sizeof} library.
+
+
+@defvar sizeof-gmp_randalg_t
+@defvarx sizeof-gmp_randstate_t
+@defvarx sizeof-mp_exp_t
+@defvarx sizeof-mp_limb_t
+@defvarx sizeof-mp_prec_t
+@defvarx sizeof-mp_rnd_t
+@defvarx sizeof-mp_size_t
+@defvarx sizeof-mpc_t
+@defvarx sizeof-mpc_rnd_t
+@defvarx sizeof-mpf_t
+@defvarx sizeof-mpfi_t
+@defvarx sizeof-mpfr_prec_t
+@defvarx sizeof-mpfr_rnd_t
+@defvarx sizeof-mpfr_sign_t
+@defvarx sizeof-mpfr_t
+@defvarx sizeof-mpq_t
+@defvarx sizeof-mpz_t
+These variables hold the number of bytes required to hold in memory the
+named foreign data type.
+
+For example @code{sizeof-mpc_rnd_t} is the number of bytes required to
+hold the @code{mpc_rnd_t} type definition of the @mpc{} library.
+
+Of special importance are:
+
+@example
+sizeof-mpz_t
+sizeof-mpq_t
+sizeof-mpf_t
+sizeof-mpfr_t
+sizeof-mpfi_t
+sizeof-mpc_t
+@end example
+
 @noindent
+which are the sizes of the data structures that represent multiple
+precision numbers.
+@end defvar
+
+
+@defvar GMP_RAND_ALG_DEFAULT
+@defvarx GMP_RAND_ALG_LC
+@defvarx GMP_RNDD
+@defvarx GMP_RNDN
+@defvarx GMP_RNDU
+@defvarx GMP_RNDZ
+@defvarx MPFI_FLAGS_BOTH_ENDPOINTS_EXACT
+@defvarx MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT
+@defvarx MPFI_FLAGS_LEFT_ENDPOINT_INEXACT
+@defvarx MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT
+@defvarx MPFR_EMAX_DEFAULT
+@defvarx MPFR_EMIN_DEFAULT
+@defvarx MPFR_PREC_MAX
+@defvarx MPFR_PREC_MIN
+@defvarx MPFR_VERSION
+These variables hold various constants required by the foreign
+libraries.  Of special importance are the rounding modes for @mpfr{}:
+
+@example
+GMP_RNDN
+GMP_RNDD
+GMP_RNDU
+GMP_RNDZ
+@end example
+
+@noindent
+and the rounding modes for @mpc{}:
+
+@example
+MPC_RNDNN       MPC_RNDZN       MPC_RNDUN       MPC_RNDDN
+MPC_RNDNZ       MPC_RNDZZ       MPC_RNDUZ       MPC_RNDDZ
+MPC_RNDNU       MPC_RNDZU       MPC_RNDUU       MPC_RNDDU
+MPC_RNDND       MPC_RNDZD       MPC_RNDUD       MPC_RNDDD
+@end example
+@end defvar
 
 
 
-@c ------------------------------------------------------------
+
+@c page
+@node accessors
+@chapter Accessing foreign structures
+
+
+The following syntaxes allow us to access fields of the multiple
+precision numbers data structures, they are exported by @library{mp
+sizeof} library.  Notice that for normal usage we are @strong{not} meant
+to use these accessors.
+
+
+@deffn Syntax struct-mpfr-prec-set! @var{struct-pointer} @var{value}
+@deffnx Syntax struct-mpfr-prec-ref @var{struct-pointer}
+Accessors for the @code{_mpfr_prec} field of @code{mpfr_t}.
+@end deffn
+
+@deffn Syntax struct-mpfr-sign-set! @var{struct-pointer} @var{value}
+@deffnx Syntax struct-mpfr-sign-ref @var{struct-pointer}
+Accessors for the @code{_mpfr_sign} field of @code{mpfr_t}.
+@end deffn
+
+
+@deffn Syntax struct-mpfr-exp-set! @var{struct-pointer} @var{value}
+@deffnx Syntax struct-mpfr-exp-ref @var{struct-pointer}
+Accessors for the @code{_mpfr_exp} field of @code{mpfr_t}.
+@end deffn
+
+
+@deffn Syntax struct-mpfr-d-set! @var{struct-pointer} @var{value}
+@deffnx Syntax struct-mpfr-d-ref @var{struct-pointer}
+Accessors for the @code{_mpfr_d} field of @code{mpfr_t}.
+@end deffn
+
+
+@deffn Syntax struct-mpfi-left-ref @var{struct-pointer}
+@deffnx Syntax struct-mpfi-right-ref @var{struct-pointer}
+Return a pointer referencing the @code{left} or @code{right} fields in a
+@code{mpfi_t} structure.  These fields are structures of type
+@code{mpfr_t}.
+@end deffn
+
+
+@deffn Syntax struct-mpc-re-ref @var{struct-pointer}
+@deffnx Syntax struct-mpc-im-ref @var{struct-pointer}
+Return a pointer referencing the @code{re} or @code{im} fields in a
+@code{mpc_t} structure.  These fields are structures of type
+@code{mpfr_t}.
+@end deffn
+
+
+@c page
+@node gmp
+@chapter Multiple precision integers
+
+
+The @gmp{} library implements multiple precision integers, rational
+numbers and basic floating point numbers.
+
+@menu
+* gmp mpz::                     Multiple precision integers.
+@end menu
+
+
+@c page
+@node gmp mpz
+@section Multiple precision integers
+
+
+To use @code{mpz_t} numbers we basically have to do:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpz)
+  (mp sizeof))
+
+(let ((a (malloc sizeof-mpz_t))
+      (b (malloc sizeof-mpz_t))
+      (c (malloc sizeof-mpz_t)))
+  (mpz_init a)
+  (mpz_init b)
+  (mpz_init c)
+
+  (mpz_set_si a 10)
+  (mpz_set_si b 5)
+  (mpz_add c a b)
+
+  (mpz_clear a)
+  (mpz_clear b)
+  (primitive-free a)
+  (primitive-free b)
+  c)
+@end example
+
+More advanced memory handling and usage examples are in the following
+sections.
+
+@menu
+* gmp mpz compensation::        Compensating memory allocation.
+* gmp mpz factory::             Object factory.
+* gmp mpz string::              Conversion to string.
+@end menu
+
+
+@c page
+@node gmp mpz compensation
+@subsection Compensating memory allocation
+
+
+The @library{uriel lang} library exports the compensation stacks @api{}
+as a mean to automatically release synchronous resources, even in case
+of raised exceptions.  @urielref{lang compensations,Compensation stacks}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpz)
+  (mp sizeof))
+@end example
+
+To allocate a @code{mpz_t} number with a compensation we can use the
+following function:
+
+@example
+(define (compensated-mpz)
+  (letrec ((p (compensate
+                   (malloc sizeof-mpz_t)
+                (with
+                 (mpz_clear p)
+                 (priitive-free p)))))
+    (mpz_init p)
+    p))
+@end example
+
+@noindent
+now to add two numbers we can use a compensated allocation and
+initialisation for the two operands:
+
+@example
+(let ((c (malloc sizeof-mpz_t)))
+  (mpz_init c)
+  (with-compensations
+    (let ((a (compensated-mpz))
+          (b (compensated-mpz)))
+      (mpz_set_si a 10)
+      (mpz_set_si b 5)
+      (mpz_add c a b)
+      c)))
+@end example
+
+
+@c page
+@node gmp mpz factory
+@subsection Object factory
+
+
+The @library{uriel lang} library exports the object factory @api{} as a
+mean to automatically allocate, initialise, finalise and release
+synchronous resources, even in case of raised exceptions.
+@urielref{ffi memory objects,Caching object factories}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpz)
+  (mp sizeof))
+@end example
+
+We can define an object factory for @code{mpz_t} numbers with:
+
+@example
+(define mpz-factory
+  (make-caching-object-factory mpz_init mpz_clear
+			       sizeof-mpz_t 10))
+@end example
+
+@noindent
+and we can use it with compensations with:
+
+@example
+(define (mpz)
+  (letrec ((p (compensate
+                  (mpz-factory)
+                (with
+                 (mpz-factory p)))))
+    p))
+@end example
+
+@noindent
+now to add two numbers we can do:
+
+@example
+(with-compensations
+   (let ((c (mpz))
+         (a (mpz))
+         (b (mpz)))
+     (mpz_set_si a 10)
+     (mpz_set_si b 5)
+     (mpz_add c a b)
+
+     (do-something-with c)))
+@end example
+
+
+@c page
+@node gmp mpz string
+@subsection Conversion to string
+
+
+After having computed a result, we will probably desire to see it.  The
+easiest way is to convert the @code{mpz_t} number to a string.  Let's
+start the program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpz)
+  (mp sizeof))
+@end example
+
+The following function does a basic conversion from an @code{mpz_t} to a
+string:
+
+@example
+(define (mpz->string o)
+  (let ((str (mpz_get_str pointer-null 10 o)))
+    (begin0
+        (cstring->string str)
+      (primitive-free str))))
+@end example
+
+@noindent
+where using @code{pointer-null} as first argument to @func{mpz_get_str}
+will make it allocate memory using the @gmp{} allocation functions
+(which defaults to the standard C language functions).
+
+The same with compensations:
+
+@example
+(define (mpz->string o)
+  (with-compensations
+    (letrec
+        ((str (compensate
+                  (mpz_get_str pointer-null 10 o)
+                (with
+                 (primitive-free str)))))
+      (cstring->string str))))
+@end example
+
+
 
 @c page
 @node Package License

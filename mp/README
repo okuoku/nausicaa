@@ -142,6 +142,16 @@ Basically we should do:
    $ make test
    $ make install
 
+it is  possible to disable the  usage of a  library with the
+following configuration options:
+
+--disable-mpfr	disables MPFR
+--disable-mpfi	disables MPFI
+--disable-mpc	disables MPC
+
+it is  not possible  to disable GMP.   MPFR is  required for
+both MPFI and MPC.
+
   To test what a rule will do use the "-n" option; example:
 
     $ make install -n
