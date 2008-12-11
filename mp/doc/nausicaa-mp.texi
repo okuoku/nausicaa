@@ -453,6 +453,9 @@ entitled ``@gnu{} Free Documentation License''.
 * constants::                   Constant values.
 * accessors::                   Accessing foreign structures.
 * gmp::                         Multiple precision integers.
+* mpfr::                        Multiple precision reliable floats.
+* mpfi::                        Multiple precision interval numbers.
+* mpc::                         Multiple precision complex numbers.
 
 Appendices
 
@@ -640,6 +643,8 @@ numbers and basic floating point numbers.
 
 @menu
 * gmp mpz::                     Multiple precision integers.
+* gmp mpq::                     Multiple precision rationals.
+* gmp mpf::                     Multiple precision floats.
 @end menu
 
 
@@ -648,6 +653,7 @@ numbers and basic floating point numbers.
 @section Multiple precision integers
 
 
+The integer numbers @api{} is exported by the @library{mp mpz} library.
 To use @code{mpz_t} numbers we basically have to do:
 
 @example
@@ -759,11 +765,11 @@ We can define an object factory for @code{mpz_t} numbers with:
 @example
 (define mpz-factory
   (make-caching-object-factory mpz_init mpz_clear
-			       sizeof-mpz_t 10))
+                               sizeof-mpz_t 10))
 @end example
 
 @noindent
-and we can use it with compensations with:
+and we can use it with compensations:
 
 @example
 (define (mpz)
@@ -836,6 +842,973 @@ The same with compensations:
       (cstring->string str))))
 @end example
 
+
+@c page
+@node gmp mpq
+@section Multiple precision rationals
+
+
+The rational numbers @api{} is exported by the @library{mp mpq} library.
+To use @code{mpq_t} numbers we basically have to do:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpq)
+  (mp sizeof))
+
+(let ((a (malloc sizeof-mpq_t))
+      (b (malloc sizeof-mpq_t))
+      (c (malloc sizeof-mpq_t)))
+  (mpq_init a)
+  (mpq_init b)
+  (mpq_init c)
+
+  (mpq_set_si a 6 10)
+  (mpq_set_si b 6 5)
+  (mpq_add c a b)
+
+  (mpq_clear a)
+  (mpq_clear b)
+  (primitive-free a)
+  (primitive-free b)
+  c)
+@end example
+
+@noindent
+where the first argument to @func{mpq_set_si} is the numerator, the
+second the denominator.
+
+More advanced memory handling and usage examples are in the following
+sections.
+
+@menu
+* gmp mpq compensation::        Compensating memory allocation.
+* gmp mpq factory::             Object factory.
+* gmp mpq string::              Conversion to string.
+@end menu
+
+
+@c page
+@node gmp mpq compensation
+@subsection Compensating memory allocation
+
+
+The @library{uriel lang} library exports the compensation stacks @api{}
+as a mean to automatically release synchronous resources, even in case
+of raised exceptions.  @urielref{lang compensations,Compensation stacks}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpq)
+  (mp sizeof))
+@end example
+
+To allocate a @code{mpq_t} number with a compensation we can use the
+following function:
+
+@example
+(define (compensated-mpq)
+  (letrec ((p (compensate
+                   (malloc sizeof-mpq_t)
+                (with
+                 (mpq_clear p)
+                 (priitive-free p)))))
+    (mpq_init p)
+    p))
+@end example
+
+@noindent
+now to add two numbers we can use a compensated allocation and
+initialisation for the two operands:
+
+@example
+(let ((c (malloc sizeof-mpq_t)))
+  (mpq_init c)
+  (with-compensations
+    (let ((a (compensated-mpq))
+          (b (compensated-mpq)))
+      (mpq_set_si a 6 10)
+      (mpq_set_si b 6 5)
+      (mpq_add c a b)
+      c)))
+@end example
+
+
+@c page
+@node gmp mpq factory
+@subsection Object factory
+
+
+The @library{uriel lang} library exports the object factory @api{} as a
+mean to automatically allocate, initialise, finalise and release
+synchronous resources, even in case of raised exceptions.
+@urielref{ffi memory objects,Caching object factories}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpq)
+  (mp sizeof))
+@end example
+
+We can define an object factory for @code{mpq_t} numbers with:
+
+@example
+(define mpq-factory
+  (make-caching-object-factory mpq_init mpq_clear
+                               sizeof-mpq_t 10))
+@end example
+
+@noindent
+and we can use it with compensations:
+
+@example
+(define (mpq)
+  (letrec ((p (compensate
+                  (mpq-factory)
+                (with
+                 (mpq-factory p)))))
+    p))
+@end example
+
+@noindent
+now to add two numbers we can do:
+
+@example
+(with-compensations
+   (let ((c (mpq))
+         (a (mpq))
+         (b (mpq)))
+     (mpq_set_si a 6 10)
+     (mpq_set_si b 6 5)
+     (mpq_add c a b)
+
+     (do-something-with c)))
+@end example
+
+
+@c page
+@node gmp mpq string
+@subsection Conversion to string
+
+
+After having computed a result, we will probably desire to see it.  The
+easiest way is to convert the @code{mpq_t} number to a string.  Let's
+start the program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpq)
+  (mp sizeof))
+@end example
+
+The following function does a basic conversion from an @code{mpq_t} to a
+string:
+
+@example
+(define (mpq->string o)
+  (let ((str (mpq_get_str pointer-null 10 o)))
+    (begin0
+        (cstring->string str)
+      (primitive-free str))))
+@end example
+
+@noindent
+where using @code{pointer-null} as first argument to @func{mpq_get_str}
+will make it allocate memory using the @gmp{} allocation functions
+(which defaults to the standard C language functions).
+
+The same with compensations:
+
+@example
+(define (mpq->string o)
+  (with-compensations
+    (letrec
+        ((str (compensate
+                  (mpq_get_str pointer-null 10 o)
+                (with
+                 (primitive-free str)))))
+      (cstring->string str))))
+@end example
+
+
+@c page
+@node gmp mpf
+@section Multiple precision floats
+
+
+The floating point numbers @api{} is exported by the @library{mp mpf}
+library.  To use @code{mpf_t} numbers we basically have to do:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpf)
+  (mp sizeof))
+
+(let ((a (malloc sizeof-mpf_t))
+      (b (malloc sizeof-mpf_t))
+      (c (malloc sizeof-mpf_t)))
+  (mpf_init a)
+  (mpf_init b)
+  (mpf_init c)
+
+  (mpf_set_si a 10)
+  (mpf_set_si b 5)
+  (mpf_add c a b)
+
+  (mpf_clear a)
+  (mpf_clear b)
+  (primitive-free a)
+  (primitive-free b)
+  c)
+@end example
+
+More advanced memory handling and usage examples are in the following
+sections.
+
+@menu
+* gmp mpf compensation::        Compensating memory allocation.
+* gmp mpf factory::             Object factory.
+* gmp mpf string::              Conversion to string.
+@end menu
+
+
+@c page
+@node gmp mpf compensation
+@subsection Compensating memory allocation
+
+
+The @library{uriel lang} library exports the compensation stacks @api{}
+as a mean to automatically release synchronous resources, even in case
+of raised exceptions.  @urielref{lang compensations,Compensation stacks}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpf)
+  (mp sizeof))
+@end example
+
+To allocate a @code{mpf_t} number with a compensation we can use the
+following function:
+
+@example
+(define (compensated-mpf)
+  (letrec ((p (compensate
+                   (malloc sizeof-mpf_t)
+                (with
+                 (mpf_clear p)
+                 (priitive-free p)))))
+    (mpf_init p)
+    p))
+@end example
+
+@noindent
+now to add two numbers we can use a compensated allocation and
+initialisation for the two operands:
+
+@example
+(let ((c (malloc sizeof-mpf_t)))
+  (mpf_init c)
+  (with-compensations
+    (let ((a (compensated-mpf))
+          (b (compensated-mpf)))
+      (mpf_set_si a 10)
+      (mpf_set_si b 5)
+      (mpf_add c a b)
+      c)))
+@end example
+
+
+@c page
+@node gmp mpf factory
+@subsection Object factory
+
+
+The @library{uriel lang} library exports the object factory @api{} as a
+mean to automatically allocate, initialise, finalise and release
+synchronous resources, even in case of raised exceptions.
+@urielref{ffi memory objects,Caching object factories}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpf)
+  (mp sizeof))
+@end example
+
+We can define an object factory for @code{mpf_t} numbers with:
+
+@example
+(define mpf-factory
+  (make-caching-object-factory mpf_init mpf_clear
+                               sizeof-mpf_t 10))
+@end example
+
+@noindent
+and we can use it with compensations:
+
+@example
+(define (mpf)
+  (letrec ((p (compensate
+                  (mpf-factory)
+                (with
+                 (mpf-factory p)))))
+    p))
+@end example
+
+@noindent
+now to add two numbers we can do:
+
+@example
+(with-compensations
+   (let ((c (mpf))
+         (a (mpf))
+         (b (mpf)))
+     (mpf_set_si a 10)
+     (mpf_set_si b 5)
+     (mpf_add c a b)
+
+     (do-something-with c)))
+@end example
+
+
+@c page
+@node gmp mpf string
+@subsection Conversion to string
+
+
+After having computed a result, we will probably desire to see it.  The
+easiest way is to convert the @code{mpf_t} number to a string.  Let's
+start the program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (srfi format)
+  (mp mpf)
+  (mp sizeof))
+@end example
+
+The following function does a basic conversion from an @code{mpf_t} to a
+string:
+
+@example
+(define (mpf->string o)
+  (with-compensations
+    (letrec*
+        ((l (compensate-malloc/small))
+         (str (compensate
+                  (mpf_get_str pointer-null l 10 0 o)
+                (with
+                 (primitive-free str))))
+         (s (cstring->string str))
+         (x (let ((x (pointer-ref-c-signed-long l 0)))
+              (if (char=? #\- (string-ref s 0))
+                  (+ 1 x)
+                x)))
+         (i (substring s 0 x))
+         (f (substring s x (strlen str))))
+      (format "~a.~a" i f))))
+@end example
+
+@noindent
+where using @code{pointer-null} as first argument to @func{mpf_get_str}
+will make it allocate memory using the @gmp{} allocation functions
+(which defaults to the standard C language functions).
+
+
+@c page
+@node mpfr
+@chapter Multiple precision reliable floats
+
+
+The reliable floating point numbers @api{} is exported by the
+@library{mp mpfr} library.  To use @code{mpfr_t} numbers we basically
+have to do:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpfr)
+  (mp sizeof))
+
+  (let ((a (malloc sizeof-mpfr_t))
+        (b (malloc sizeof-mpfr_t))
+        (c (malloc sizeof-mpfr_t)))
+    (mpfr_init a)
+    (mpfr_init b)
+    (mpfr_init c)
+
+    (mpfr_set_d  a 10.4 GMP_RNDN)
+    (mpfr_set_si b  5   GMP_RNDN)
+    (mpfr_add c  a  b   GMP_RNDN)
+
+    (mpfr_clear a)
+    (mpfr_clear b)
+    (primitive-free a)
+    (primitive-free b)
+    c)
+@end example
+
+More advanced memory handling and usage examples are in the following
+sections.
+
+@menu
+* mpfr compensation::           Compensating memory allocation.
+* mpfr factory::                Object factory.
+* mpfr string::                 Conversion to string.
+@end menu
+
+
+@c page
+@node mpfr compensation
+@section Compensating memory allocation
+
+
+The @library{uriel lang} library exports the compensation stacks @api{}
+as a mean to automatically release synchronous resources, even in case
+of raised exceptions.  @urielref{lang compensations,Compensation stacks}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpfr)
+  (mp sizeof))
+@end example
+
+To allocate a @code{mpfr_t} number with a compensation we can use the
+following function:
+
+@example
+(define (compensated-mpfr)
+  (letrec ((p (compensate
+                   (malloc sizeof-mpfr_t)
+                (with
+                 (mpfr_clear p)
+                 (priitive-free p)))))
+    (mpfr_init p)
+    p))
+@end example
+
+@noindent
+now to add two numbers we can use a compensated allocation and
+initialisation for the two operands:
+
+@example
+(let ((c (malloc sizeof-mpfr_t)))
+  (mpfr_init c)
+  (with-compensations
+    (let ((a (compensated-mpfr))
+          (b (compensated-mpfr)))
+      (mpfr_set_si a 10)
+      (mpfr_set_si b 5)
+      (mpfr_add c a b)
+      c)))
+@end example
+
+
+@c page
+@node mpfr factory
+@section Object factory
+
+
+The @library{uriel lang} library exports the object factory @api{} as a
+mean to automatically allocate, initialise, finalise and release
+synchronous resources, even in case of raised exceptions.
+@urielref{ffi memory objects,Caching object factories}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpfr)
+  (mp sizeof))
+@end example
+
+We can define an object factory for @code{mpfr_t} numbers with:
+
+@example
+(define mpfr-factory
+  (make-caching-object-factory mpfr_init mpfr_clear
+                               sizeof-mpfr_t 10))
+@end example
+
+@noindent
+and we can use it with compensations:
+
+@example
+(define (mpfr)
+  (letrec ((p (compensate
+                  (mpfr-factory)
+                (with
+                 (mpfr-factory p)))))
+    p))
+@end example
+
+@noindent
+now to add two numbers we can do:
+
+@example
+(with-compensations
+   (let ((c (mpfr))
+         (a (mpfr))
+         (b (mpfr)))
+     (mpfr_set_si a 10)
+     (mpfr_set_si b 5)
+     (mpfr_add c a b)
+
+     (do-something-with c)))
+@end example
+
+
+@c page
+@node mpfr string
+@section Conversion to string
+
+
+After having computed a result, we will probably desire to see it.  The
+easiest way is to convert the @code{mpfr_t} number to a string.  Let's
+start the program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (srfi format)
+  (mp mpfr)
+  (mp sizeof))
+@end example
+
+The following function does a basic conversion from an @code{mpfr_t} to a
+string:
+
+@example
+(define (mpfr->string o)
+  (with-compensations
+    (letrec*
+        ((l (compensate-malloc/small))
+         (str (compensate
+                  (mpfr_get_str pointer-null l 10 0 o GMP_RNDN)
+                (with
+                 (primitive-free str))))
+         (s (cstring->string str))
+         (x (let ((x (pointer-ref-c-signed-long l 0)))
+              (if (char=? #\- (string-ref s 0))
+                  (+ 1 x)
+                x)))
+         (i (substring s 0 x))
+         (f (substring s x (strlen str))))
+      (format "~a.~a" i f))))
+@end example
+
+@noindent
+where using @code{pointer-null} as first argument to @func{mpfr_get_str}
+will make it allocate memory using the @gmp{} allocation functions
+(which defaults to the standard C language functions).
+
+
+
+@c page
+@node mpfi
+@chapter Multiple precision interval numbers
+
+
+The interval floating point numbers @api{} is exported by the
+@library{mp mpfi} library.  To use @code{mpfi_t} numbers we basically
+have to do:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpfi)
+  (mp sizeof))
+
+  (let ((a (malloc sizeof-mpfi_t))
+        (b (malloc sizeof-mpfi_t))
+        (c (malloc sizeof-mpfi_t)))
+    (mpfi_init a)
+    (mpfi_init b)
+    (mpfi_init c)
+
+    (mpfi_set_d  a 10.4)
+    (mpfi_set_si b  5)
+    (mpfi_add c  a  b)
+
+    (mpfi_clear a)
+    (mpfi_clear b)
+    (primitive-free a)
+    (primitive-free b)
+    c)
+@end example
+
+More advanced memory handling and usage examples are in the following
+sections.
+
+@menu
+* mpfi compensation::           Compensating memory allocation.
+* mpfi factory::                Object factory.
+* mpfi string::                 Conversion to string.
+@end menu
+
+
+@c page
+@node mpfi compensation
+@section Compensating memory allocation
+
+
+The @library{uriel lang} library exports the compensation stacks @api{}
+as a mean to automatically release synchronous resources, even in case
+of raised exceptions.  @urielref{lang compensations,Compensation stacks}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpfi)
+  (mp sizeof))
+@end example
+
+To allocate a @code{mpfi_t} number with a compensation we can use the
+following function:
+
+@example
+(define (compensated-mpfi)
+  (letrec ((p (compensate
+                   (malloc sizeof-mpfi_t)
+                (with
+                 (mpfi_clear p)
+                 (priitive-free p)))))
+    (mpfi_init p)
+    p))
+@end example
+
+@noindent
+now to add two numbers we can use a compensated allocation and
+initialisation for the two operands:
+
+@example
+(let ((c (malloc sizeof-mpfi_t)))
+  (mpfi_init c)
+  (with-compensations
+    (let ((a (compensated-mpfi))
+          (b (compensated-mpfi)))
+      (mpfi_set_si a 10)
+      (mpfi_set_si b 5)
+      (mpfi_add c a b)
+      c)))
+@end example
+
+
+@c page
+@node mpfi factory
+@section Object factory
+
+
+The @library{uriel lang} library exports the object factory @api{} as a
+mean to automatically allocate, initialise, finalise and release
+synchronous resources, even in case of raised exceptions.
+@urielref{ffi memory objects,Caching object factories}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpfi)
+  (mp sizeof))
+@end example
+
+We can define an object factory for @code{mpfi_t} numbers with:
+
+@example
+(define mpfi-factory
+  (make-caching-object-factory mpfi_init mpfi_clear
+                               sizeof-mpfi_t 10))
+@end example
+
+@noindent
+and we can use it with compensations:
+
+@example
+(define (mpfi)
+  (letrec ((p (compensate
+                  (mpfi-factory)
+                (with
+                 (mpfi-factory p)))))
+    p))
+@end example
+
+@noindent
+now to add two numbers we can do:
+
+@example
+(with-compensations
+   (let ((c (mpfi))
+         (a (mpfi))
+         (b (mpfi)))
+     (mpfi_set_si a 10)
+     (mpfi_set_si b 5)
+     (mpfi_add c a b)
+
+     (do-something-with c)))
+@end example
+
+
+@c page
+@node mpfi string
+@section Conversion to string
+
+
+After having computed a result, we will probably desire to see it.  The
+easiest way is to convert the @code{mpfi_t} number to a string.  Let's
+start the program with:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpfi)
+  (mp sizeof))
+@end example
+
+We have to notice that @mpfi{} does not export a function to convert an
+@code{mpfi_t} number to a string, but we can access directly the left
+and right limits of the interval as @code{mpfr_t} numbers.  So let's say
+that we have defined a @func{mpfr->string} function (@ref{mpfr string}
+for an example).
+
+The following functions do a basic conversion from an @code{mpfi_t} to a
+string:
+
+@example
+(define (mpfi->string-interval o)
+  (format "[~a, ~a]"
+    (mpfr->string (struct-mpfi-left-ref o))
+    (mpfr->string (struct-mpfi-right-ref o))))
+
+(define (mpfi->string o)
+  (let ((fr (malloc sizeof-mpfr_t)))
+    (mpfr_init fr)
+    (mpfi_get_fr fr o)
+    (begin0
+        (mpfr->string o)
+      (mpfr_clear fr))))
+@end example
+
+@noindent
+where the second one just prints the number representing the middle of
+the interval.
+
+
+@c page
+@node mpc
+@chapter Multiple precision complex numbers
+
+
+The complex floating point numbers @api{} is exported by the @library{mp
+mpc} library.  To use @code{mpc_t} numbers we basically have to do:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpc)
+  (mp sizeof))
+
+  (let ((a (malloc sizeof-mpc_t))
+        (b (malloc sizeof-mpc_t))
+        (c (malloc sizeof-mpc_t)))
+    (mpc_init a)
+    (mpc_init b)
+    (mpc_init c)
+
+    (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
+    (mpc_set_si_si b  5   1.2 MPC_RNDNN)
+    (mpc_add c a b MPC_RNDNN)
+
+    (mpc_clear a)
+    (mpc_clear b)
+    (primitive-free a)
+    (primitive-free b)
+    c)
+@end example
+
+More advanced memory handling and usage examples are in the following
+sections.
+
+@menu
+* mpc compensation::           Compensating memory allocation.
+* mpc factory::                Object factory.
+* mpc string::                 Conversion to string.
+@end menu
+
+
+@c page
+@node mpc compensation
+@section Compensating memory allocation
+
+
+The @library{uriel lang} library exports the compensation stacks @api{}
+as a mean to automatically release synchronous resources, even in case
+of raised exceptions.  @urielref{lang compensations,Compensation stacks}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpc)
+  (mp sizeof))
+@end example
+
+To allocate a @code{mpc_t} number with a compensation we can use the
+following function:
+
+@example
+(define (compensated-mpc)
+  (letrec ((p (compensate
+                   (malloc sizeof-mpc_t)
+                (with
+                 (mpc_clear p)
+                 (priitive-free p)))))
+    (mpc_init p)
+    p))
+@end example
+
+@noindent
+now to add two numbers we can use a compensated allocation and
+initialisation for the two operands:
+
+@example
+(let ((c (malloc sizeof-mpc_t)))
+  (mpc_init c)
+  (with-compensations
+    (let ((a (compensated-mpc))
+          (b (compensated-mpc)))
+      (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
+      (mpc_set_si_si b  5   1.2 MPC_RNDNN)
+      (mpc_add c a b MPC_RNDNN)
+      c)))
+@end example
+
+
+@c page
+@node mpc factory
+@section Object factory
+
+
+The @library{uriel lang} library exports the object factory @api{} as a
+mean to automatically allocate, initialise, finalise and release
+synchronous resources, even in case of raised exceptions.
+@urielref{ffi memory objects,Caching object factories}
+
+So let's start a program with:
+
+@example
+(import (rnrs)
+  (uriel lang)
+  (uriel ffi)
+  (mp mpc)
+  (mp sizeof))
+@end example
+
+We can define an object factory for @code{mpc_t} numbers with:
+
+@example
+(define mpc-factory
+  (make-caching-object-factory mpc_init mpc_clear
+                               sizeof-mpc_t 10))
+@end example
+
+@noindent
+and we can use it with compensations:
+
+@example
+(define (mpc)
+  (letrec ((p (compensate
+                  (mpc-factory)
+                (with
+                 (mpc-factory p)))))
+    p))
+@end example
+
+@noindent
+now to add two numbers we can do:
+
+@example
+(with-compensations
+   (let ((c (mpc))
+         (a (mpc))
+         (b (mpc)))
+     (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
+     (mpc_set_si_si b  5   1.2 MPC_RNDNN)
+     (mpc_add c a b MPC_RNDNN)
+     (do-something-with c)))
+@end example
+
+
+@c page
+@node mpc string
+@section Conversion to string
+
+
+After having computed a result, we will probably desire to see it.  The
+easiest way is to convert the @code{mpc_t} number to a string.  Let's
+start the program with:
+
+@example
+(import (rnrs)
+  (uriel ffi)
+  (mp mpfr)
+  (mp mpc)
+  (mp sizeof))
+@end example
+
+We have to notice that @mpc{} does not export a function to convert an
+@code{mpc_t} number to a string, but we can access directly the real and
+imaginary parts of the complex as @code{mpfr_t} numbers.  So let's say
+that we have defined a @func{mpfr->string} function (@ref{mpfr string}
+for an example).
+
+The following function does a basic conversion from an @code{mpc_t} to a
+string:
+
+@example
+(define (mpc->string o)
+   (let ((im (mpfr->string (struct-mpc-im-ref o))))
+     (format "~a~a~ai"
+       (mpfr->string (struct-mpc-re-ref o))
+       (if (char=? #\- (string-ref im 0))
+          ""
+        #\+)
+       im)))
+@end example
 
 
 @c page

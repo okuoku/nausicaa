@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to MPC
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-10 13:50:49 marco>
+;;;Time-stamp: <2008-12-11 21:36:52 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -111,7 +111,10 @@
     MPC_RNDDN
     MPC_RNDDZ
     MPC_RNDDU
-    MPC_RNDDD)
+    MPC_RNDDD
+
+    MPC_RND_RE MPC_RND_IM MPC_INEX_POS MPC_INEX_NEG MPC_INEX
+    MPC_INEX_RE MPC_INEX_IM)
   (import (rnrs)
     (uriel lang)
     (uriel ffi)
@@ -157,6 +160,27 @@
 (define MPC_RNDDZ (RNDC GMP_RNDD GMP_RNDZ))
 (define MPC_RNDDU (RNDC GMP_RNDD GMP_RNDU))
 (define MPC_RNDDD (RNDC GMP_RNDD GMP_RNDD))
+
+(define (MPC_INEX_POS inex)
+  (cond ((< inex 0) 2)
+	((= inex 0) 0)
+	(else 1)))
+
+(define (MPC_INEX_NEG inex)
+  (cond ((= inex 2) -1)
+	((= inex 0) 0)
+	(else 1)))
+
+(define (MPC_INEX inex_re inex_im)
+  (bitwise-ior (MPC_INEX_POS inex_re)
+	       (bitwise-arithmetic-shift-left (MPC_INEX_POS inex_im) 2)))
+
+(define (MPC_INEX_RE inex)
+  (MPC_INEX_NEG (bitwise-and inex 3)))
+
+(define (MPC_INEX_IM inex)
+  (MPC_INEX_NEG (bitwise-arithmetic-shift-right inex 2)))
+
 
 
 ;;;; functions
@@ -223,10 +247,33 @@
   (int mpc_set_fr_fr (mpc_ptr mpfr_srcptr mpfr_srcptr mpc_rnd_t)))
 (define-c-function mpc_set_ui_fr
   (int mpc_set_ui_fr (mpc_ptr unsigned-long mpfr_srcptr mpc_rnd_t)))
-(define-c-function mpc_set_ui_ui
-  (int mpc_set_ui_ui (mpc_ptr unsigned-long unsigned-long mpc_rnd_t)))
-(define-c-function mpc_set_si_si
-  (int mpc_set_si_si (mpc_ptr long long mpc_rnd_t)))
+
+;;FIXME (Thu  Dec 11, 2008) For no  reason I can figure  out now, Ikarus
+;;fails if I use the MPC's own  functions: the real part is set, but the
+;;imaginary part  is left to zero.   Ypsilon works fine.   It seems that
+;;there is some  problem with the Ikarus FFI,  because the problem shows
+;;itself also when I access the functions with:
+;;
+;; (define lib (dlopen "libmpc.so"))
+;; (define f (make-c-callout 'signed-int
+;;		'(pointer unsigned-long unsigned-long signed-int)))
+;; (define g (f (dlsym lib "mpc_set_si_si")))
+;;
+;;I  have no will  to investicate  the problem  now, so  the replacement
+;;functions below are exported in place of the MPC's originals.
+;;
+;; (define-c-function mpc_set_ui_ui
+;;   (int mpc_set_ui_ui (mpc_ptr unsigned-long unsigned-long mpc_rnd_t)))
+;; (define-c-function mpc_set_si_si
+;;   (int mpc_set_si_si (mpc_ptr signed-long signed-long mpc_rnd_t)))
+(define (mpc_set_ui_ui cplx real-int imag-int round)
+  (MPC_INEX (mpfr_set_ui (struct-mpc-re-ref cplx) real-int (MPC_RND_RE round))
+	    (mpfr_set_ui (struct-mpc-im-ref cplx) imag-int (MPC_RND_IM round))))
+(define (mpc_set_si_si cplx real-int imag-int round)
+  (MPC_INEX (mpfr_set_si (struct-mpc-re-ref cplx) real-int (MPC_RND_RE round))
+	    (mpfr_set_si (struct-mpc-im-ref cplx) imag-int (MPC_RND_IM round))))
+
+
 (define-c-function mpc_real
   (int mpc_real (mpfr_ptr mpc_srcptr mpfr_rnd_t)))
 (define-c-function mpc_imag

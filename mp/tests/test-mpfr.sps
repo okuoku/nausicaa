@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPFR numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-10 11:20:29 marco>
+;;;Time-stamp: <2008-12-11 17:09:55 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,6 +33,7 @@
   (uriel ffi)
   (uriel printing)
   (uriel test)
+  (srfi format)
   (mp mpfr)
   (mp sizeof))
 
@@ -40,45 +41,118 @@
 
 
 
-;;;; basic run
+;;;; helpers
 
-(define mpfr
+(define (compensated-mpfr)
+  (letrec ((p (compensate
+		  (malloc sizeof-mpfr_t)
+		(with
+		 (mpfr_clear p)
+		 (primitive-free p)))))
+    (mpfr_init p)
+    p))
+
+(define mpfr-factory
   (make-caching-object-factory mpfr_init mpfr_clear
 			       sizeof-mpfr_t 10))
 
-(define (compensate-mpfr)
-  (letrec ((p (compensate (mpfr)
-		(with (mpfr p)))))
+(define (mpfr)
+  (letrec ((p (compensate
+		  (mpfr-factory)
+		(with
+		 (mpfr-factory p)))))
     p))
 
 (define (mpfr->string o)
-  (letrec
-      ((str (compensate
-		(malloc 1024)
-	      (with
-	       (primitive-free str))))
-       (l (compensate-malloc/small)))
-    (mpfr_get_str str l 10 0 o GMP_RNDN)
-    (let* ((s (cstring->string str))
-	   (x (let ((x (pointer-ref-c-signed-long l 0)))
-		(if (char=? #\- (string-ref s 0))
-		    (+ 1 x)
-		  x)))
-	   (i (substring s 0 x))
-	   (f (substring s x (strlen str))))
-      (print #f "~a.~a" i f))))
+  (with-compensations
+    (letrec*
+	((l (compensate-malloc/small))
+	 (str (compensate
+		  (mpfr_get_str pointer-null l 10 0 o GMP_RNDN)
+		(with
+		 (primitive-free str))))
+	 (s (cstring->string str))
+	 (x (let ((x (pointer-ref-c-signed-long l 0)))
+	      (if (char=? #\- (string-ref s 0))
+		  (+ 1 x)
+		x)))
+	 (i (substring s 0 x))
+	 (f (substring s x (strlen str))))
+      (format "~a.~a" i f))))
 
-(with-compensations
-  (letrec
-      ((o (compensate-mpfr)))
-    (mpfr_set_d o -123.456 GMP_RNDN)
-    (print #t "string rep: ~a~%" (mpfr->string o))))
+
+
+;;;; basic tests, explicit allocation
+
+(check
+    (let ((result
+	   (let ((a (malloc sizeof-mpfr_t))
+		 (b (malloc sizeof-mpfr_t))
+		 (c (malloc sizeof-mpfr_t)))
+	     (mpfr_init a)
+	     (mpfr_init b)
+	     (mpfr_init c)
+
+	     (mpfr_set_d a 10.4 GMP_RNDN)
+	     (mpfr_set_si b 5 GMP_RNDN)
+	     (mpfr_add c a b GMP_RNDN)
+
+	     (mpfr_clear a)
+	     (mpfr_clear b)
+	     (primitive-free a)
+	     (primitive-free b)
+	     c)
+	   ))
+      (begin0
+	  (substring (mpfr->string result) 0 5)
+	(primitive-free result)))
+  => "15.40")
+
+
+
+;;;; basic tests, compensated allocation
+
+(check
+    (let ((result
+	   (let ((c (malloc sizeof-mpfr_t)))
+	     (mpfr_init c)
+	     (with-compensations
+	       (let ((a (compensated-mpfr))
+		     (b (compensated-mpfr)))
+		 (mpfr_set_d a 10.4 GMP_RNDN)
+		 (mpfr_set_si b 5 GMP_RNDN)
+		 (mpfr_add c a b GMP_RNDN)
+		 c)))
+	   ))
+      (begin0
+	  (substring (mpfr->string result) 0 5)
+	(primitive-free result)))
+  => "15.40")
+
+
+
+;;;; basic tests, factory usage
+
+(check
+    (with-compensations
+      (let ((result
+	     (let ((c (mpfr)))
+	       (with-compensations
+		 (let ((a (mpfr))
+		       (b (mpfr)))
+		   (mpfr_set_d a 10.4 GMP_RNDN)
+		   (mpfr_set_si b 5 GMP_RNDN)
+		   (mpfr_add c a b GMP_RNDN)
+		   c)))
+	     ))
+	(substring (mpfr->string result) 0 5)))
+  => "15.40")
 
 
 
 ;;;; done
 
-(mpfr 'purge)
+(mpfr-factory 'purge)
 
 (check-report)
 

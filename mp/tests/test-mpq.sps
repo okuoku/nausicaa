@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Nausicaa/MP
-;;;Contents: tests for the MPZ numbers
+;;;Contents: tests for the MPQ numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-11 16:41:09 marco>
+;;;Time-stamp: <2008-12-11 21:42:24 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,7 +33,7 @@
   (uriel ffi)
   (uriel printing)
   (uriel test)
-  (mp mpz)
+  (mp mpq)
   (mp sizeof))
 
 (check-set-mode! 'report-failed)
@@ -42,37 +42,37 @@
 
 ;;;; helpers
 
-(define (compensated-mpz)
+(define (compensated-mpq)
   (letrec ((p (compensate
-		  (malloc sizeof-mpz_t)
+		  (malloc sizeof-mpq_t)
 		(with
-		 (mpz_clear p)
+		 (mpq_clear p)
 		 (primitive-free p)))))
-    (mpz_init p)
+    (mpq_init p)
     p))
 
-(define mpz-factory
-  (make-caching-object-factory mpz_init mpz_clear
-			       sizeof-mpz_t 10))
+(define mpq-factory
+  (make-caching-object-factory mpq_init mpq_clear
+			       sizeof-mpq_t 10))
 
-(define (mpz)
+(define (mpq)
   (letrec ((p (compensate
-		  (mpz-factory)
+		  (mpq-factory)
 		(with
-		 (mpz-factory p)))))
+		 (mpq-factory p)))))
     p))
 
-;; (define (mpz->string o)
-;;   (let ((str (mpz_get_str pointer-null 10 o)))
+;; (define (mpq->string o)
+;;   (let ((str (mpq_get_str pointer-null 10 o)))
 ;;     (begin0
 ;; 	(cstring->string str)
 ;;       (primitive-free str))))
 
-(define (mpz->string o)
+(define (mpq->string o)
   (with-compensations
     (letrec
 	((str (compensate
-		  (mpz_get_str pointer-null 10 o)
+		  (mpq_get_str pointer-null 10 o)
 		(with
 		 (primitive-free str)))))
       (cstring->string str))))
@@ -83,74 +83,74 @@
 
 (check
     (let ((result
-	   (let ((a (malloc sizeof-mpz_t))
-		 (b (malloc sizeof-mpz_t))
-		 (c (malloc sizeof-mpz_t)))
-	     (mpz_init a)
-	     (mpz_init b)
-	     (mpz_init c)
+	   (let ((a (malloc sizeof-mpq_t))
+		 (b (malloc sizeof-mpq_t))
+		 (c (malloc sizeof-mpq_t)))
+	     (mpq_init a)
+	     (mpq_init b)
+	     (mpq_init c)
 
-	     (mpz_set_si a 10)
-	     (mpz_set_si b 5)
-	     (mpz_add c a b)
+	     (mpq_set_si a 6 10)
+	     (mpq_set_si b 6 5)
+	     (mpq_add c a b)
 
-	     (mpz_clear a)
-	     (mpz_clear b)
+	     (mpq_clear a)
+	     (mpq_clear b)
 	     (primitive-free a)
 	     (primitive-free b)
 	     c)
 	   ))
       (begin0
-	  (substring (mpz->string result) 0 2)
+	  (substring (mpq->string result) 0 5)
 	(primitive-free result)))
-  => "15")
+  => "18/10")
 
 
 
 ;;;; basic tests, compensated allocation
 
-(check
-    (let ((result
-	   (let ((c (malloc sizeof-mpz_t)))
-	     (mpz_init c)
-	     (with-compensations
-	       (let ((a (compensated-mpz))
-		     (b (compensated-mpz)))
-		 (mpz_set_si a 10)
-		 (mpz_set_si b 5)
-		 (mpz_add c a b)
-		 c)))
-	   ))
-      (begin0
-	  (substring (mpz->string result) 0 2)
-	(primitive-free result)))
-  => "15")
+;; (check
+;;     (let ((result
+;; 	   (let ((c (malloc sizeof-mpq_t)))
+;; 	     (mpq_init c)
+;; 	     (with-compensations
+;; 	       (let ((a (compensated-mpq))
+;; 		     (b (compensated-mpq)))
+;; 		 (mpq_set_si a 6 10)
+;; 		 (mpq_set_si b 6 5)
+;; 		 (mpq_add c a b)
+;; 		 c)))
+;; 	   ))
+;;       (begin0
+;; 	  (substring (mpq->string result) 0 5)
+;; 	(primitive-free result)))
+;;   => "18/10")
 
 
 
 ;;;; basic tests, factory usage
 
-(check
-    (with-compensations
-      (let ((result
-	     (let ((c (mpz)))
-	       (with-compensations
-		 (let ((a (mpz))
-		       (b (mpz)))
-		   (mpz_set_si a 10)
-		   (mpz_set_si b 5)
+;; (check
+;;     (with-compensations
+;;       (let ((result
+;; 	     (let ((c (mpq)))
+;; 	       (with-compensations
+;; 		 (let ((a (mpq))
+;; 		       (b (mpq)))
+;; 		   (mpq_set_si a 6 10)
+;; 		   (mpq_set_si b 6 5)
 
-		   (mpz_add c a b)
-		   c)))
-	     ))
-	(substring (mpz->string result) 0 2)))
-  => "15")
+;; 		   (mpq_add c a b)
+;; 		   c)))
+;; 	     ))
+;; 	(substring (mpq->string result) 0 5)))
+;;   => "18/10")
 
 
 
 ;;;; done
 
-(mpz-factory 'purge)
+(mpq-factory 'purge)
 
 (check-report)
 

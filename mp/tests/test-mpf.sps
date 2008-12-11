@@ -1,8 +1,8 @@
 ;;;
-;;;Part of: Nausicaa/MPFR
+;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPF numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-10 11:20:49 marco>
+;;;Time-stamp: <2008-12-11 17:03:07 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -10,21 +10,18 @@
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;This  program  is free  software:  you  can redistribute  it
-;;;and/or modify it  under the terms of the  GNU General Public
-;;;License as published by the Free Software Foundation, either
-;;;version  3 of  the License,  or (at  your option)  any later
-;;;version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
 
@@ -34,54 +31,128 @@
 (import (rnrs)
   (uriel lang)
   (uriel ffi)
-  (uriel printing)
   (uriel test)
   (mp mpf)
-  (mp sizeof))
+  (mp sizeof)
+  (srfi format))
 
 (check-set-mode! 'report-failed)
 
 
 
-;;;; basic run
+;;;; helpers
 
-(define mpf
+(define (compensated-mpf)
+  (letrec ((p (compensate
+		  (malloc sizeof-mpf_t)
+		(with
+		 (mpf_clear p)
+		 (primitive-free p)))))
+    (mpf_init p)
+    p))
+
+(define mpf-factory
   (make-caching-object-factory mpf_init mpf_clear
 			       sizeof-mpf_t 10))
 
-(define (compensate-mpf)
-  (letrec ((p (compensate (mpf)
-		(with (mpf p)))))
+(define (mpf)
+  (letrec ((p (compensate
+		  (mpf-factory)
+		(with
+		 (mpf-factory p)))))
     p))
 
 (define (mpf->string o)
-  (letrec
-      ((str (compensate
-		(malloc 1024)
-	      (with
-	       (primitive-free str))))
-       (l (compensate-malloc/small)))
-    (mpf_get_str str l 10 0 o)
-    (let* ((s (cstring->string str))
-	   (x (let ((x (pointer-ref-c-signed-long l 0)))
-		(if (char=? #\- (string-ref s 0))
-		    (+ 1 x)
-		  x)))
-	   (i (substring s 0 x))
-	   (f (substring s x (strlen str))))
-      (print #f "~a.~a" i f))))
+  (with-compensations
+    (letrec*
+	((l (compensate-malloc/small))
+	 (str (compensate
+		  (mpf_get_str pointer-null l 10 0 o)
+		(with
+		 (primitive-free str))))
+	 (s (cstring->string str))
+	 (x (let ((x (pointer-ref-c-signed-long l 0)))
+	      (if (char=? #\- (string-ref s 0))
+		  (+ 1 x)
+		x)))
+	 (i (substring s 0 x))
+	 (f (substring s x (strlen str))))
+      (format "~a.~a" i f))))
 
-(with-compensations
-  (letrec
-      ((o (compensate-mpf)))
-    (mpf_set_d o -123.456)
-    (print #t "string rep: ~a~%" (mpf->string o))))
+
+
+;;;; basic tests, explicit allocation
+
+(check
+    (let ((result
+	   (let ((a (malloc sizeof-mpf_t))
+		 (b (malloc sizeof-mpf_t))
+		 (c (malloc sizeof-mpf_t)))
+	     (mpf_init a)
+	     (mpf_init b)
+	     (mpf_init c)
+
+	     (mpf_set_d a 10.4)
+	     (mpf_set_si b 5)
+	     (mpf_add c a b)
+
+	     (mpf_clear a)
+	     (mpf_clear b)
+	     (primitive-free a)
+	     (primitive-free b)
+	     c)
+	   ))
+      (begin0
+	  (substring (mpf->string result) 0 5)
+	(primitive-free result)))
+  => "15.40")
+
+
+
+;;;; basic tests, compensated allocation
+
+(check
+    (let ((result
+	   (let ((c (malloc sizeof-mpf_t)))
+	     (mpf_init c)
+	     (with-compensations
+	       (let ((a (compensated-mpf))
+		     (b (compensated-mpf)))
+		 (mpf_set_d a 10.4)
+		 (mpf_set_si b 5)
+		 (mpf_add c a b)
+		 c)))
+	   ))
+      (begin0
+	  (substring (mpf->string result) 0 5)
+	(primitive-free result)))
+  => "15.40")
+
+
+
+;;;; basic tests, factory usage
+
+(check
+    (with-compensations
+      (let ((result
+	     (let ((c (mpf)))
+	       (with-compensations
+		 (let ((a (mpf))
+		       (b (mpf)))
+		   (mpf_set_d a 10.4)
+		   (mpf_set_si b 5)
+
+		   (mpf_add c a b)
+		   c)))
+	     ))
+	(substring (mpf->string result) 0 5)))
+  => "15.40")
 
 
 
 ;;;; done
 
-(mpf 'purge)
+(mpf-factory 'purge)
 
 (check-report)
 
