@@ -1796,9 +1796,11 @@ Signed fixnum.
 Unsigned fixnum.
 
 @item long
+@itemx signed-long
 Signed integer.
 
-@item ulong unsigned-long
+@item ulong
+@itemx unsigned-long
 Unsigned integer.
 
 @item float

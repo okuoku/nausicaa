@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-08 17:45:14 marco>
+;;;Time-stamp: <2008-12-11 18:19:47 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -95,7 +95,7 @@
      'signed-int)
     ((uint unsigned unsigned-int size_t)
      'unsigned-int)
-    ((long)
+    ((signed-long long)
      'signed-long)
     ((ulong unsigned-long)
      'unsigned-long)

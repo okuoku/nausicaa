@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-11 14:27:27 marco>
+;;;Time-stamp: <2008-12-11 18:24:01 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -118,7 +118,7 @@
       '(void
 	char schar signed-char uchar unsigned-char
 	int signed-int ssize_t uint unsigned unsigned-int size_t
-	long ulong unsigned-long float double
+	long signed-long ulong unsigned-long float double
 	pointer void* char* FILE* callback))
 
     (define (quote-if-predefined-type arg-stx)
@@ -142,7 +142,7 @@
       '(void
 	char schar signed-char uchar unsigned-char
 	int signed-int ssize_t uint unsigned unsigned-int size_t
-	long ulong unsigned-long float double
+	long signed-long ulong unsigned-long float double
 	pointer void* char* FILE* callback))
 
     (define (quote-if-predefined-type arg-stx)
