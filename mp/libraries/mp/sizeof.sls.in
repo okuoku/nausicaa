@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP libraries for R6RS Scheme
 ;;;Contents: size of libraries' C language types
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-12-10 13:50:07 marco>
+;;;Time-stamp: <2008-12-12 18:04:13 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -100,7 +100,7 @@
     struct-mpfr-sign-set!		struct-mpfr-sign-ref
     struct-mpfr-exp-set!		struct-mpfr-exp-ref
     struct-mpfr-d-set!			struct-mpfr-d-ref
-
+    struct-mpq-num-ref			struct-mpq-den-ref
     struct-mpfi-left-ref		struct-mpfi-right-ref
     struct-mpc-re-ref			struct-mpc-im-ref)
   (import (rnrs)
@@ -210,6 +210,16 @@
     @SETTEROF_MPFR_STRUCT_D@
     @GETTEROF_MPFR_STRUCT_D@)
 
+  (define-syntax struct-mpq-num-ref
+    (syntax-rules ()
+      ((_ ?struct-pointer)
+       (pointer-add ?struct-pointer @OFFSETOF_MPQ_STRUCT_NUM@))))
+
+  (define-syntax struct-mpq-den-ref
+    (syntax-rules ()
+      ((_ ?struct-pointer)
+       (pointer-add ?struct-pointer @OFFSETOF_MPQ_STRUCT_DEN@))))
+
   (define-syntax struct-mpfi-left-ref
     (syntax-rules ()
       ((_ ?struct-pointer)
@@ -228,9 +238,6 @@
   (define-syntax struct-mpc-im-ref
     (syntax-rules ()
       ((_ ?struct-pointer)
-       (pointer-add ?struct-pointer @OFFSETOF_MPC_STRUCT_IM@))))
-
-
-  )
+       (pointer-add ?struct-pointer @OFFSETOF_MPC_STRUCT_IM@)))))
 
 ;;; end of file

@@ -594,6 +594,13 @@ sizeof} library.  Notice that for normal usage we are @strong{not} meant
 to use these accessors.
 
 
+@deffn struct-mpq-num-ref @var{struct-pointer}
+@deffnx struct-mpq-den-ref @var{struct-pointer}
+Return a pointer referencing the numerator or denominator fields in a
+@code{mpq_t} number, which are @code{mpz_t} numbers.
+@end deffn
+
+
 @deffn Syntax struct-mpfr-prec-set! @var{struct-pointer} @var{value}
 @deffnx Syntax struct-mpfr-prec-ref @var{struct-pointer}
 Accessors for the @code{_mpfr_prec} field of @code{mpfr_t}.
@@ -865,6 +872,7 @@ To use @code{mpq_t} numbers we basically have to do:
   (mpq_init c)
 
   (mpq_set_si a 6 10)
+  (mpq_canonicalize a)
   (mpq_set_si b 6 5)
   (mpq_add c a b)
 
@@ -933,6 +941,7 @@ initialisation for the two operands:
     (let ((a (compensated-mpq))
           (b (compensated-mpq)))
       (mpq_set_si a 6 10)
+      (mpq_canonicalize a)
       (mpq_set_si b 6 5)
       (mpq_add c a b)
       c)))
@@ -988,6 +997,7 @@ now to add two numbers we can do:
          (a (mpq))
          (b (mpq)))
      (mpq_set_si a 6 10)
+     (mpq_canonicalize a)
      (mpq_set_si b 6 5)
      (mpq_add c a b)
 

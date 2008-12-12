@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to MPC
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-11 21:36:52 marco>
+;;;Time-stamp: <2008-12-12 18:11:49 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -259,7 +259,7 @@
 ;;		'(pointer unsigned-long unsigned-long signed-int)))
 ;; (define g (f (dlsym lib "mpc_set_si_si")))
 ;;
-;;I  have no will  to investicate  the problem  now, so  the replacement
+;;I  have no will  to investigate  the problem  now, so  the replacement
 ;;functions below are exported in place of the MPC's originals.
 ;;
 ;; (define-c-function mpc_set_ui_ui

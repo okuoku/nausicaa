@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPQ functions
 ;;;Date: Fri Nov 28, 2008
-;;;Time-stamp: <2008-11-28 16:29:44 marco>
+;;;Time-stamp: <2008-12-12 18:12:27 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -60,7 +60,8 @@
     mpq_swap)
   (import (rnrs)
     (uriel ffi)
-    (mp sizeof))
+    (mp sizeof)
+    (mp mpz))
 
   (define gmp-lib
     (let ((o (open-shared-object 'libgmp.so)))
@@ -145,14 +146,35 @@
   (define-c-function mpq_set_num
     (void __gmpq_set_num (mpq_ptr mpz_srcptr)))
 
-  (define-c-function mpq_set_si
-    (void __gmpq_set_si (mpq_ptr long ulong)))
+;;FIXME (Fri  Dec 12, 2008) For no  reason I can figure  out now, Ikarus
+;;fails if I use the MPQ's  own functions: the numerator is set, but the
+;;denominator is left to zero.  Ypsilon works fine.  It seems that there
+;;is some  problem with  the Ikarus  FFI.  See the  MPC interface  for a
+;;similar problem in setting the real and imaginary parts.
+;;
+;;I  have no will  to investigate  the problem  now, so  the replacement
+;;functions below  are exported  in place of  the MPQ's  originals.  The
+;;replacement implementation is different from  the one in GMP, maybe it
+;;will fail on 64 bits platforms, where special handling is required.
+;;
+;;   (define-c-function mpq_set_si
+;;     (void __gmpq_set_si (mpq_ptr long ulong)))
+;;
+;;   (define-c-function mpq_set_ui
+;;     (void __gmpq_set_ui (mpq_ptr ulong ulong)))
+(define (mpq_set_ui mpq num den)
+  (when (= 0 num) (set! den 1))
+  (mpz_set_ui (struct-mpq-num-ref mpq) num)
+  (mpz_set_ui (struct-mpq-den-ref mpq) den))
+(define (mpq_set_si mpq num den)
+  (when (= 0 num) (set! den 1))
+  (mpz_set_si (struct-mpq-num-ref mpq) num)
+  ;;Notice  that  the  GMP  specs  for 'mpq_t'  numbers  says  that  the
+  ;;denominator has to be positive, so we use the '_ui' setter here.
+  (mpz_set_ui (struct-mpq-den-ref mpq) den))
 
   (define-c-function mpq_set_str
     (int __gmpq_set_str (mpq_ptr char* int)))
-
-  (define-c-function mpq_set_ui
-    (void __gmpq_set_ui (mpq_ptr ulong ulong)))
 
   (define-c-function mpq_set_z
     (void __gmpq_set_z (mpq_ptr mpz_srcptr)))

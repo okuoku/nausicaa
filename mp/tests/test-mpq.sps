@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPQ numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-11 21:42:24 marco>
+;;;Time-stamp: <2008-12-12 17:58:19 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,6 +33,7 @@
   (uriel ffi)
   (uriel printing)
   (uriel test)
+  (srfi parameters)
   (mp mpq)
   (mp sizeof))
 
@@ -81,70 +82,80 @@
 
 ;;;; basic tests, explicit allocation
 
-(check
-    (let ((result
-	   (let ((a (malloc sizeof-mpq_t))
-		 (b (malloc sizeof-mpq_t))
-		 (c (malloc sizeof-mpq_t)))
-	     (mpq_init a)
-	     (mpq_init b)
-	     (mpq_init c)
+(parameterize ((testname 'alloc))
+  (check
+      (let ((result
+	     (let ((a (malloc sizeof-mpq_t))
+		   (b (malloc sizeof-mpq_t))
+		   (c (malloc sizeof-mpq_t)))
+	       (mpq_init a)
+	       (mpq_init b)
+	       (mpq_init c)
 
-	     (mpq_set_si a 6 10)
-	     (mpq_set_si b 6 5)
-	     (mpq_add c a b)
+	       (mpq_set_ui a 6 10)
+	       ;;(mpq_set_str a (string->cstring "6/10") 10)
+	       ;;(display (mpq->string a))(newline)
+	       (mpq_canonicalize a)
+	       ;;(display (mpq->string a))(newline)
+ 	       (mpq_set_si b 6 5)
+	       ;;(mpq_set_str b (string->cstring "6/5") 10)
+	       ;;(display (mpq->string b))(newline)
+ 	       (mpq_add c a b)
 
-	     (mpq_clear a)
-	     (mpq_clear b)
-	     (primitive-free a)
-	     (primitive-free b)
-	     c)
-	   ))
-      (begin0
-	  (substring (mpq->string result) 0 5)
-	(primitive-free result)))
-  => "18/10")
+	       (mpq_clear a)
+	       (mpq_clear b)
+	       (primitive-free a)
+	       (primitive-free b)
+	       c)
+	     ))
+	(begin0
+	    (mpq->string result)
+	  (primitive-free result)))
+    => "9/5"))
 
 
 
 ;;;; basic tests, compensated allocation
 
-;; (check
-;;     (let ((result
-;; 	   (let ((c (malloc sizeof-mpq_t)))
-;; 	     (mpq_init c)
-;; 	     (with-compensations
-;; 	       (let ((a (compensated-mpq))
-;; 		     (b (compensated-mpq)))
-;; 		 (mpq_set_si a 6 10)
-;; 		 (mpq_set_si b 6 5)
-;; 		 (mpq_add c a b)
-;; 		 c)))
-;; 	   ))
-;;       (begin0
-;; 	  (substring (mpq->string result) 0 5)
-;; 	(primitive-free result)))
-;;   => "18/10")
+(parameterize ((testname 'comp))
+  (check
+      (let ((result
+	     (let ((c (malloc sizeof-mpq_t)))
+	       (mpq_init c)
+	       (with-compensations
+		 (let ((a (compensated-mpq))
+		       (b (compensated-mpq)))
+		   (mpq_set_si a 6 10)
+		   (mpq_canonicalize a)
+		   (mpq_set_si b 6 5)
+		   (mpq_add c a b)
+		   c)))
+	     ))
+	(begin0
+	    (mpq->string result)
+	  (primitive-free result)))
+    => "9/5"))
 
 
 
 ;;;; basic tests, factory usage
 
-;; (check
-;;     (with-compensations
-;;       (let ((result
-;; 	     (let ((c (mpq)))
-;; 	       (with-compensations
-;; 		 (let ((a (mpq))
-;; 		       (b (mpq)))
-;; 		   (mpq_set_si a 6 10)
-;; 		   (mpq_set_si b 6 5)
-
-;; 		   (mpq_add c a b)
-;; 		   c)))
-;; 	     ))
-;; 	(substring (mpq->string result) 0 5)))
-;;   => "18/10")
+(parameterize ((testname 'factory))
+  (check
+      (with-compensations
+	(let ((result
+	       (let ((c (mpq)))
+		 (with-compensations
+		   (let ((a (mpq))
+			 (b (mpq)))
+		     (mpq_set_si a 6 10)
+		     (mpq_canonicalize a)
+		     (mpq_set_si b 6 5)
+		     (mpq_add c a b)
+		     c)))
+	       ))
+	  (mpq->string result)))
+    => "9/5"))
 
 
 

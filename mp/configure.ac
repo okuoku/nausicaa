@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/IrRegex
 dnl Contents: configuration template file
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-11 06:56:19 marco>
+dnl Time-stamp: <2008-12-12 17:57:40 marco>
 dnl
 dnl Abstract
 dnl
@@ -63,6 +63,9 @@ AC_DEFUN([NAU_GMP_VALUEOF_TEST],
 
 AC_DEFUN([NAU_GMP_INSPECT_TYPE],
    [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <gmp.h>])])
+
+AC_DEFUN([NAU_GMP_OFFSETOF_FIELD_TEST],
+   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <gmp.h>])])
 
 dnl --------------------------------------------------------------------
 
@@ -143,6 +146,9 @@ NAU_GMP_SIZEOF_TEST([GMP_RANDSTATE_T],[gmp_randstate_t])
 NAU_GMP_SIZEOF_TEST([MPF_T],[mpf_t])
 NAU_GMP_SIZEOF_TEST([MPQ_T],[mpq_t])
 NAU_GMP_SIZEOF_TEST([MPZ_T],[mpz_t])
+
+NAU_GMP_OFFSETOF_FIELD_TEST([MPQ_STRUCT_NUM],[__mpq_struct],[_mp_num])
+NAU_GMP_OFFSETOF_FIELD_TEST([MPQ_STRUCT_DEN],[__mpq_struct],[_mp_den])
 
 NAU_GMP_VALUEOF_TEST([GMP_RAND_ALG_DEFAULT],[GMP_RAND_ALG_DEFAULT])
 NAU_GMP_VALUEOF_TEST([GMP_RAND_ALG_LC],[GMP_RAND_ALG_LC])
