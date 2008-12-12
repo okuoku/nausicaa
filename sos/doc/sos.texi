@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename template.info
-@settitle Template
+@setfilename sos.info
+@settitle Nausicaa's Scheme Object System
 @c %**end of header
 
 @c page
@@ -11,8 +11,6 @@
 
 @include version.texiinc
 
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -35,7 +33,10 @@
 @acronym{BSD}
 @end macro
 
-@c ------------------------------------------------------------
+@macro sos{}
+@acronym{SOS}
+@end macro
+
 
 @c page
 @c ------------------------------------------------------------
@@ -84,7 +85,6 @@
 @end macro
 
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -103,7 +103,6 @@
 @gnu{} C Library
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -144,7 +143,6 @@
 @acronym{SNMP}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -212,8 +210,6 @@
 @macro metaj{ARG}
 @meta{\ARG\j}
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -295,7 +291,6 @@ the main purpose of this document is to provide an Info version.
 @code{<\NAME\>}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -323,23 +318,22 @@ the main purpose of this document is to provide an Info version.
 @end macro
 
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      This Package
+@set TITLE                      Nausicaa's Scheme Object System
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    ThisPackage
+@set PACKAGE                    @sos{}
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           this-package
+@set PACKAGE_NICKNAME           sos
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -353,7 +347,6 @@ the main purpose of this document is to provide an Info version.
 @c list of copyright years.
 @set COPYRIGHT_YEARS            2008
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -362,12 +355,9 @@ the main purpose of this document is to provide an Info version.
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, ...
-
-The package is distributed under the terms of the @gnu{} General Public
-License (@gpl{}) and can be downloaded from:
-
-@center @url{http://sites.google.com/site/mrcmgg/nausicaa}
+This document describes version @version{} of @value{PACKAGE}, a Scheme
+Object System implementing a somewhat--@acronym{CLOS}--like object
+system with metaobject protocol.
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -404,8 +394,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-template: (nausicaa-template). Template library
-                                          for @rnrs{6} Scheme.
+* nausicaa-sos: (nausicaa-sos). @rnrs{6} Scheme object system.
 @end direntry
 @end ifinfo
 
@@ -428,6 +417,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* records::                     Basic data structures.
 
 Appendices
 
@@ -451,11 +441,53 @@ Indexes
 @chapter Overview of the package
 
 
-@noindent
-This ...
+@value{PACKAGE} is a Scheme Object System with metaobject protocol.  It
+was written taking inspiration from ScmObj by Dorai Sitaram,
+@acronym{GOOPS} and Tiny--@acronym{CLOS} by Gregor Kiczales at Xerox
+Parc.
+
+Its @api{} is exported by the @library{sos} library, so to load it:
+
+@example
+(import (rnrs)
+  (sos))
+@end example
 
 
-@c ------------------------------------------------------------
+@c page
+@node records
+@chapter Basic data structures
+
+
+The basic data structures of @sos{} are Scheme records.
+
+
+@menu
+* records methods table::       Tables of methods.
+@end menu
+
+
+@c page
+@node records methods table
+@section Tables of methods
+
+
+@deftp Record methods-table-record
+Collects all the methods with a given number of arguments.  It is
+defined as:
+
+@example
+(define-record-type methods-table-record
+  (fields (mutable list-of-methods)
+          (mutable cache-of-method-applications)))
+@end example
+
+Methods are collected in a list because, whenever a call has to be
+served, we need to search the collection for the applicable ones.  The
+list has to be searched also when a new method is added, so that an old
+method with the same signature can be replaced.
+@end deftp
+
 
 @c page
 @node Package License

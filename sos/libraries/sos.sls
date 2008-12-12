@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/SOS
 ;;;Contents: object system for R6RS
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-12 07:53:32 marco>
+;;;Time-stamp: <2008-12-12 11:02:14 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -82,13 +82,13 @@
 	  (immutable init-form)
 	  (immutable init-thunk)))
 
-(define-record-type method-record
-  (fields (immutable signature)
-	  (immutable closure)))
+(define-record-type method
+  (fields (immutable signature method-signature)
+	  (immutable closure method-closure)))
 
-(define-record-type method-table-record
+(define-record-type methods-table
   (fields (mutable list-of-methods)
-	  (immutable cache-of-method-applications)))
+	  (mutable cache-of-applications)))
 
 (define-record-type generic-record
   (fields (immutable primary-method-table	primary-method-table)
@@ -99,28 +99,36 @@
 
 ;;;; method tables
 
-;;Helper  function  that  adds  a  signature/func pointed  list  to  the
-;;appropriate  alist  of methods  (the  METHOD-TABLE  argument).  A  new
-;;method is added only if no method with the signature already exists.
-(define (add-method-to-method-table
-	 method-table method-signature method-func)
-  (unless (any (lambda (signature.function)
-		 ;;If  a  method  with  the  signature  already  exists,
-		 ;;overwrite its function with the new one.
-		 (and (every eq? method-signature
-			     (car signature.function))
-		      (begin
-			(set-cdr! signature.function method-func)
-			#t)))
-	    method-table)
-    (set! method-table
-	  (alist-cons method-signature method-func method-table)))
-  method-table)
+(define (add-method-to-method-table method-table method)
+  (define-syntax register-method
+    (syntax-rules ()
+      ((_ ?method)
+       (method-table-list-of-methods
+	?method-table (cons ?method (method-table-list-of-mehtods ?method-table))))))
 
-(define (more-specific-method method1 method2 call-signature)
-  (let loop ((signature1 (car method1))
-	     (signature2 (car method2))
-	     (call-signature call-signature))
+  (define-syntax invalidate-cache-of-applications
+    (syntax-rules ()
+      ((_ ?method-table)
+       (method-table-cache-of-applications method-table #f))))
+
+  (define-syntax replace-method-closure
+    (syntax-rules ()
+      ((_ ?stored-method ?method)
+       (method-closure stored-method (method-closure method))
+       #t)))
+
+  (let ((signature (method-signature method)))
+    (unless (any (lambda (stored-method)
+		   (and (every eq? signature (method-signature stored-method))
+			(replace-method-closure stored-method method)))
+	      (method-table-list-of-methods method-table))
+      (register-method method)
+      (invalidate-cache-of-applications method-table))))
+
+(define (more-specific-method? method1 method2 call-signature)
+  (let loop ((signature1	(method-signature method1))
+	     (signature2	(method-signature method2))
+	     (call-signature	call-signature))
     (let ((class1 (car signature1))
 	  (class2 (car signature2)))
       (cond
@@ -129,22 +137,20 @@
        ((subclass? class1 class2) #t)
        ((subclass? class2 class1) #f)
        (else
-	(let* ((c (car call-signature))
-	       (cpl (if (eq? c #t)
+	(let* ((class (car call-signature))
+	       (cpl (if (eq? class <object>)
 			'()
-		      (cons c (slot-ref c ':class-precedence-list)))))
+		      (cons class (class-precedence-list class)))))
 	  (< (position class1 cpl)
 	     (position class2 cpl))))))))
 
 (define (compute-applicable-methods call-signature method-table)
-  (map cdr
-    (list-sort
-     (lambda (method1 method2)
-       (more-specific-method method1 method2 call-signature))
-     (filter
-	 (lambda (method)
-	   (every subclass? call-signature (car method)))
-       method-table))))
+  (list-sort (lambda (method1 method2)
+	       (more-specific-method? method1 method2 call-signature))
+	     (filter
+		 (lambda (method)
+		   (every subclass? call-signature (method-signature method)))
+	       (method-table-list-of-methods method-table))))
 
 
 ;;;; Next method implementation.
