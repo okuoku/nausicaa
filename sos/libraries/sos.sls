@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/SOS
 ;;;Contents: object system for R6RS
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-10 18:57:09 marco>
+;;;Time-stamp: <2008-12-12 07:53:32 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -86,6 +86,10 @@
   (fields (immutable signature)
 	  (immutable closure)))
 
+(define-record-type method-table-record
+  (fields (mutable list-of-methods)
+	  (immutable cache-of-method-applications)))
+
 (define-record-type generic-record
   (fields (immutable primary-method-table	primary-method-table)
 	  (immutable before-method-table	before-method-table)
@@ -93,7 +97,25 @@
 	  (immutable around-method-table	around-method-table)))
 
 
-;;;; methods dispatching
+;;;; method tables
+
+;;Helper  function  that  adds  a  signature/func pointed  list  to  the
+;;appropriate  alist  of methods  (the  METHOD-TABLE  argument).  A  new
+;;method is added only if no method with the signature already exists.
+(define (add-method-to-method-table
+	 method-table method-signature method-func)
+  (unless (any (lambda (signature.function)
+		 ;;If  a  method  with  the  signature  already  exists,
+		 ;;overwrite its function with the new one.
+		 (and (every eq? method-signature
+			     (car signature.function))
+		      (begin
+			(set-cdr! signature.function method-func)
+			#t)))
+	    method-table)
+    (set! method-table
+	  (alist-cons method-signature method-func method-table)))
+  method-table)
 
 (define (more-specific-method method1 method2 call-signature)
   (let loop ((signature1 (car method1))
