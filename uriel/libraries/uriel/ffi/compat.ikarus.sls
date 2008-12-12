@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-11 18:19:47 marco>
+;;;Time-stamp: <2008-12-12 17:50:10 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -66,8 +66,9 @@
 
     ;;conditions
     raise-errno-error)
-  (import (rnrs)
+  (import (r6rs)
     (srfi parameters)
+    (srfi format)
     (rename (ikarus foreign)
  	    (free primitive-free)
  	    (malloc primitive-malloc))
@@ -126,10 +127,9 @@
 
 (define make-c-callout-maybe
   (letrec ((signature-hash
-	    (lambda (signature)
-	      (abs (apply +
-			  (symbol-hash (car signature))
-			  (map symbol-hash (cdr signature))))))
+	    (lambda (obj)
+	      (let ((h (abs (apply + (map symbol-hash obj)))))
+		h)))
 	   (callout-table
 	    (make-hashtable signature-hash equal?)))
     (lambda (spec)
@@ -139,13 +139,13 @@
 					(if (equal? '(void) (cdr signature))
 					    '()
 					  (cdr signature)))))
-		(hashtable-set! callout-table spec f)
+		(hashtable-set! callout-table signature f)
 		f))))))
 
 (define (primitive-make-c-function ret-type funcname arg-types)
   (let ((f (dlsym (shared-object) (symbol->string funcname))))
     (unless f
-      (error 'make-c-function (dlerror) funcname))
+      (error 'primitive-make-c-function (dlerror) funcname))
     ((make-c-callout-maybe (cons ret-type arg-types)) f)))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
