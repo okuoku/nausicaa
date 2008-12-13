@@ -1,0 +1,45 @@
+;;;
+;;;Part of: Nausicaa/OSSP/sa interface for R6RS Scheme
+;;;Contents: size of libraries' C language types
+;;;Date: Sat Dec 13, 2008
+;;;Time-stamp: <2008-12-13 13:17:21 marco>
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+(library (ossp-sa sizeof)
+  (export
+
+    ;; type aliases
+
+    ;; size of types
+    sizeof-sa_t
+
+    ;; Constants.
+
+    ;; accessors
+    )
+  (import (rnrs)
+    (uriel ffi)
+    (uriel ffi sizeof))
+
+
+  )
+;;; end of file
