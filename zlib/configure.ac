@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/Zlib
 dnl Contents: configuration template
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-09 16:14:39 marco>
+dnl Time-stamp: <2008-12-13 08:27:07 marco>
 dnl
 dnl Abstract
 dnl
@@ -33,11 +33,8 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-zlib],[0.1d0])
-AC_PREREQ(2.60)
-AC_CONFIG_SRCDIR([libraries/compile-all.sps])
 NAUSICAA_BEGIN
-NAUSICAA_IKARUS_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE
 AC_CHECK_HEADERS([zlib.h],,[AC_MSG_FAILURE([cannot find libz library],[2])])

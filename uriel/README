@@ -84,6 +84,9 @@ and is distributed under a BSD-like license.  See the top of
 the  file   for  the  full  copyright   notice  and  copying
 conditions.
 
+  The file "libraries/uriel/queue.sls"  comes from the Guile
+distribution.
+
 
 B. Bug reports
 --------------

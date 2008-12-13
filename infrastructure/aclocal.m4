@@ -239,7 +239,7 @@ dnl --------------------------------------------------------------------
 AC_DEFUN([NAUSICAA_BEGIN],[
 AC_PREREQ(2.60)
 AC_CONFIG_AUX_DIR([../infrastructure])
-AC_CONFIG_SRCDIR([libraries/compile-all.sps])
+AC_CONFIG_SRCDIR([Makefile.in])
 NAUSICAA_ENABLE_TESTS
 NAUSICAA_OPTIONS
 NAUSICAA_COMMON_PROGRAMS
@@ -343,6 +343,24 @@ AC_MSG_WARN([Ypsilon Scheme could not find library '$2'])
 $4
 fi
 ])
+])
+
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Scheme.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_SCHEME_CHECK_LIBRARY],
+  [if test "$nausicaa_ENABLE_IKARUS" = yes ; then
+     NAUSICAA_IKARUS_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_YPSILON" = yes ; then
+     NAUSICAA_YPSILON_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+dnl    if test "$nausicaa_ENABLE_LARCENY" = yes ; then
+dnl      NAUSICAA_LARCENY_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+dnl    fi
 ])
 
 

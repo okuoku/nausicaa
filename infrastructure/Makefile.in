@@ -3,9 +3,9 @@
 
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Module install functions.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # Synopsis:
 #
@@ -46,23 +46,21 @@ layout_FILES		+= $$(foreach f,$$($(1)_INSTLST),$$(DESTDIR)$$($(1)_INSTDIR)/$$(no
 
 endef
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Global variables and default values.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 PACKAGE_NAME		= @PACKAGE_NAME@
 PACKAGE_VERSION		= @PACKAGE_VERSION@
 PKG_ID			= @PKG_ID@
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Configuration variables.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # If set to 'yes' documentation files will be produced and
 # installed.
@@ -87,7 +85,7 @@ nausicaa_ENABLE_DOC_HTML	?= @nausicaa_ENABLE_DOC_HTML@
 #
 nausicaa_COMPRESSOR		??= gzip
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # If set to 'yes' source files will be installed.
 nausicaa_ENABLE_SLS	?= @nausicaa_ENABLE_SLS@
@@ -95,29 +93,28 @@ nausicaa_ENABLE_SLS	?= @nausicaa_ENABLE_SLS@
 # If set to 'yes' fasl files will be produced and installed.
 nausicaa_ENABLE_FASL	?= @nausicaa_ENABLE_FASL@
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 nausicaa_ENABLE_IKARUS	= @nausicaa_ENABLE_IKARUS@
 nausicaa_ENABLE_YPSILON	= @nausicaa_ENABLE_YPSILON@
 nausicaa_ENABLE_LARCENY	= @nausicaa_ENABLE_LARCENY@
 
-## ------------------------------------------------------------
+
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Nausicaa pre-configuration of binary package variables.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 ifeq ($(strip $(package_BUILD_VERSION)),)
 package_BUILD_VERSION	= 1nau
 endif
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Binary package distribtion building variables.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # The variable 'package_BUILD_VERSION'  should be defined in
 # "Makefile.custom".  If  not we set a default  that does no
@@ -138,18 +135,17 @@ endif
 package_PREFIX		= \
 $(package_NAME)-$(package_VERSION)-$(package_ARCH)-$(package_BUILD_VERSION)
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Directories.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 ifeq ($(strip $(TMPDIR)),)
 TMPDIR		= /tmp
 endif
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # The  other modules  will assume  that this  is  a relative
 # directory  pathname, and  the full  pathname can  be built
@@ -161,7 +157,7 @@ srcdir			= @srcdir@
 # with: '$(PWD)/$(builddir)'.
 builddir		= @builddir@
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 prefix			= @prefix@
 exec_prefix		= @exec_prefix@
@@ -192,12 +188,11 @@ pkglibdir		= @pkglibdir@
 pkglibexecdir		= @pkglibexecdir@
 pkgsysconfdir		= @pkgsysconfdir@
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Common programs.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 BASH_PROGRAM	= @BASH_PROGRAM@
 SHELL		= @SHELL@
@@ -226,7 +221,7 @@ SUDO		= @SUDO@
 SYMLINK		= @SYMLINK@ --symbolic
 TAR		= @TAR@
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 INSTALL			= @INSTALL@
 INSTALL_DIR_MODE	?= 0755
@@ -238,18 +233,17 @@ INSTALL_DIR		= $(INSTALL) -p -m $(INSTALL_DIR_MODE) -d
 INSTALL_BIN		= $(INSTALL) -p -m $(INSTALL_BIN_MODE)
 INSTALL_DATA		= $(INSTALL) -p -m $(INSTALL_DATA_MODE)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 MAKEINFO_FLAGS		= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
 MAKEINFO_INFO_FLAGS	= $(MAKEINFO_FLAGS)
 MAKEINFO_HTML_FLAGS	= $(MAKEINFO_FLAGS) --html
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Nausicaa programs.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 SCHEME_SCRIPT		= @SCHEME_SCRIPT@
 
@@ -263,12 +257,11 @@ SORT_REVERSE_UNIQUE	= $(SORT) --reverse --unique
 
 SPLIT_LIST_TO_ROWS	= $(SED) -e 's/ /\n/g'
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Main phony rules.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: all clean realclean clean-builddir
 
@@ -282,14 +275,14 @@ clean-builddir:
 	{ read -p '*** Are you sure to clean it? (yes/no) ' ANSWER; \
 	test "$${ANSWER}" = yes && $(RM) $(builddir)/*; }
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: install uninstall
 
 install:
 uninstall: uninstall-script-run
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: layout layout-dirs layout-files
 
@@ -302,7 +295,7 @@ layout-dirs:
 layout-files:
 	@$(foreach f,$(sort $(layout_FILES)),echo $(f);)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: doc doc-clean doc-install doc-uninstall
 
@@ -315,12 +308,11 @@ all:		doc
 clean:		doc-clean
 install:	doc-install
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Uninstall script rules.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 uninstall_script_BUILDDIR	= $(builddir)/uninstall.d
 uninstall_script_TARGET		= $(uninstall_script_BUILDDIR)/uninstall.sh
@@ -367,29 +359,28 @@ uninstall-script-uninstall:
 uninstall-script-run:
 	$(SHELL) $(uninstall_script_TARGET)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 all:		uninstall-script
 clean:		uninstall-script-clean
 install:	uninstall-script-install
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Library source files.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 sls_SRCDIR		= $(srcdir)/libraries
 sls_BUILDDIR		= $(builddir)/fasl.d
 sls_INSTDIR		= $(pkglibdir)
 
-fasl_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.sps
-fasl_COMPILE_ENV	= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
-fasl_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
-fasl_COMPILE_RUN	= $(fasl_COMPILE_ENV) $(fasl_COMPILE_COMMAND) $(fasl_COMPILE_SCRIPT)
+fasl_ikarus_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ikarus.sps
+fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
+fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
+fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) $(fasl_ikarus_COMPILE_COMMAND) $(fasl_ikarus_COMPILE_SCRIPT)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: sls-debug
 .PHONY: fasl fasl-clean fasl-builddir fasl-install
@@ -416,12 +407,12 @@ fasl: fasl-builddir fasl-clean
 	  $(FIND) . -name '*.sls' -and -print		| \
 	  $(TAR) --create --files-from=- --file=-; )	| \
 	$(TAR) --directory=$(sls_BUILDDIR) --extract --file=-
-	test -f $(fasl_COMPILE_SCRIPT) && $(fasl_COMPILE_RUN)
+	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
 else
 fasl:
 endif
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # Synopsis:
 #
@@ -473,18 +464,17 @@ endef
 $(foreach dir,$(shell $(FIND) $(sls_SRCDIR) -type d),\
 $(eval $(call nausicaa-library,$(subst -,_,$(notdir $(dir))),$(subst $(sls_SRCDIR),,$(dir)),$(sls_INSTDIR)$(subst $(sls_SRCDIR),,$(dir)))))
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 all:		fasl
 clean:		fasl-clean
 install:	sls-install fasl-install
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Testing.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 ifdef LIBPATH
 THE_LIBPATH		= $(LIBPATH):
@@ -493,22 +483,7 @@ endif
 # We DO  NOT include  the fasl build  directory in the  libraries search
 # path.  This is on purpose.
 
-nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
-nau_itest_ENV		+= $(nau_test_ENV)
-nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
-nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
-
-nau_ytest_ENV		= YPSILON_SITELIB=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
-nau_ytest_ENV		+= $(nau_test_ENV)
-nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
-nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_ytest_PROGRAM)
-
-nau_ltest_ENV		= $(nau_test_ENV)
-nau_ltest_OPTIONS	= -path $(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(pkglibdir)
-nau_ltest_PROGRAM	= $(LARCENY) -r6rs $(nau_ltest_OPTIONS) -program
-nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_ltest_PROGRAM)
-
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
@@ -518,7 +493,12 @@ nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(file).sps)
 
 tests test check:
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
+
+nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
+nau_itest_ENV		+= $(nau_test_ENV)
+nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
 
 .PHONY: itests itest icheck
 
@@ -533,7 +513,12 @@ endif
 tests test check: itest
 endif
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
+
+nau_ytest_ENV		= YPSILON_SITELIB=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
+nau_ytest_ENV		+= $(nau_test_ENV)
+nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
+nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_ytest_PROGRAM)
 
 .PHONY: ytests ytest ycheck
 
@@ -548,7 +533,12 @@ endif
 tests test check: ytest
 endif
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
+
+nau_ltest_ENV		= $(nau_test_ENV)
+nau_ltest_OPTIONS	= -path $(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(pkglibdir)
+nau_ltest_PROGRAM	= $(LARCENY) -r6rs $(nau_ltest_OPTIONS) -program
+nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_ltest_PROGRAM)
 
 .PHONY: ltests ltest lcheck
 
@@ -563,12 +553,11 @@ endif
 tests test check: ltest
 endif
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Documentation: Texinfo format main rules.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 doc_texinfo_SRCDIR	= $(srcdir)/doc
 doc_texinfo_BUILDDIR	= $(builddir)/doc-texinfo.d
@@ -577,7 +566,7 @@ doc_texinfo_SOURCES	= $(wildcard $(doc_texinfo_SRCDIR)/*.texi)
 doc_texinfo_TARGETS	= $(doc_texinfo_info_TARGETS) $(doc_texinfo_html_TARGETS)
 doc_texinfo_CLEANFILES	= $(doc_texinfo_TARGETS)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: doc-texinfo doc-texinfo-clean doc-texinfo-builddir
 .PHONY: doc-texinfo-install doc-texinfo-version
@@ -606,12 +595,11 @@ doc-clean:	doc-texinfo-clean
 doc-install:	doc-texinfo-install
 doc-uninstall:	doc-texinfo-uninstall
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Documentation: Texinfo format Info rules.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 doc_texinfo_info_TARGETS= $(foreach f,$(doc_texinfo_SOURCES:.texi=.info),\
 			  $(addprefix $(doc_texinfo_BUILDDIR)/,$(notdir $(f))))
@@ -619,7 +607,7 @@ doc_texinfo_info_TARGETS= $(foreach f,$(doc_texinfo_SOURCES:.texi=.info),\
 doc_texinfo_info_INSTLST= $(doc_texinfo_info_TARGETS)
 doc_texinfo_info_INSTDIR= $(infodir)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: doc-texinfo-info doc-texinfo-info-install
 
@@ -634,12 +622,11 @@ endif		# nausicaa_ENABLE_INFO_DOC == yes
 
 $(eval $(call nau-module-install-data,doc_texinfo_info,nausicaa_ENABLE_DOC_INFO))
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Documentation: Texinfo format HTML rules.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 doc_texinfo_html_TARGETS= $(foreach f,$(doc_texinfo_SOURCES:.texi=.html),\
 			  $(addprefix $(doc_texinfo_BUILDDIR)/,$(notdir $(f))))
@@ -647,7 +634,7 @@ doc_texinfo_html_TARGETS= $(foreach f,$(doc_texinfo_SOURCES:.texi=.html),\
 doc_texinfo_html_INSTLST= $(doc_texinfo_html_TARGETS)
 doc_texinfo_html_INSTDIR= $(pkghtmldir)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: doc-texinfo-html doc-texinfo-html-install
 
@@ -662,12 +649,11 @@ endif		# nausicaa_ENABLE_HTML_DOC == yes
 
 $(eval $(call nau-module-install-data,doc_texinfo_html,nausicaa_ENABLE_DOC_HTML))
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Binary distribution.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 ifeq ($(strip $(nausicaa_COMPRESSOR)),bzip2)
 bindist_PACKAGE_EXTENSION	= .tar.bz2
@@ -698,7 +684,7 @@ bindist_TAR_FLAGS		= --create $(bindist_TAR_COMPRESS_FLAG) --verbose
 # the bindist tarball.
 bindist_LIST	= $(TAR) --list $(bindist_TAR_COMPRESS_FLAG) --file=$(bindist_TARBALL_PATHNAME)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: bindist bindist-clean bindist-builddir bindist-top-builddir
 .PHONY: bindist-clean-top-builddir bindist-clean-builddir
@@ -724,12 +710,11 @@ bindist-builddir:
 bindist-clean-builddir:
 	-$(RM) $(bindist_BUILDDIR)
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Slackware packaging: common variables.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # This is  the file name  of the Slackware  package.  Notice
 # that there is no directory part.
@@ -794,12 +779,11 @@ slack_UPGRADEPKG_PROGRAM= @slack_UPGRADEPKG_PROGRAM@
 slack_UPGRADEPKG_FLAGS	?= --verbose --reinstall
 slack_UPGRADEPKG	= $(slack_ENV) $(slack_SUDO) $(slack_UPGRADEPKG_PROGRAM) $(slack_UPGRADEPKG_FLAGS)
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Slackware packaging: private building rules.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # The following rules are meant  to be invoked only by other
 # rules.
@@ -831,12 +815,11 @@ private-slackware-upgrade:
 	cd $(slack_BUILDDIR); \
 	$(slack_UPGRADEPKG) $(slack_INSTALLED_PACKAGE)%$(slack_PACKAGE_NAME)
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Slackware packaging: auxiliary rules.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: slackware-builddir slackware-aux
 
@@ -851,7 +834,7 @@ slackware-top-builddir:
 # (see the 'slackware' rule).
 slackware-aux:
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: slackware-clean slackware-clean-top-builddir slackware-clean-builddir
 
@@ -863,19 +846,18 @@ slackware-clean-top-builddir:
 slackware-clean-builddir:
 	-$(slack_SUDO) $(RM) $(slack_BUILDDIR)
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Slackware packaging: standard package build.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 slackware_STANDARD_ENV	= \
 	PATH=/sbin:$(PATH)					\
 	slack_PACKAGE_BUILDDIR=$(slack_PACKAGE_TOP_BUILDDIR)	\
 	slack_REGISTRY=$(slack_REGISTRY_DIR)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: slackware        slackware-install
 .PHONY: slackware-remove slackware-upgrade
@@ -893,12 +875,11 @@ slackware-remove:
 slackware-upgrade:
 	$(MAKE) private-slackware-upgrade	$(slackware_STANDARD_ENV)
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Slackware packaging: local package build.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 slackware_LOCAL_ENV	= \
 	PATH=/sbin:$(PATH)						\
@@ -906,7 +887,7 @@ slackware_LOCAL_ENV	= \
 	slack_REGISTRY=$(prefix)$(slack_REGISTRY_DIR)			\
 	slack_ENV=ROOT=$(prefix)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: local-slackware        local-slackware-install
 .PHONY: local-slackware-remove local-slackware-upgrade
@@ -924,7 +905,7 @@ local-slackware-remove:
 local-slackware-upgrade:
 	$(MAKE) private-slackware-upgrade	$(slackware_LOCAL_ENV)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: abi abu
 
@@ -936,13 +917,12 @@ abu:
 	$(MAKE) local-slackware local-slackware-upgrade slack_SUDO=$(SUDO)
 
 
-## ------------------------------------------------------------
 
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## RedHat packaging.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # This is the file name  of the RedHat package.  Notice that
 # there is no directory part.
@@ -958,7 +938,7 @@ redhat_PACKAGE_BUILDDIR	?= $(redhat_PACKAGE_TOP_BUILDDIR)/BUILD
 # This is where the produced package will be finally stored.
 redhat_BUILDDIR		= $(PWD)/$(builddir)/redhat.d
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # This is the environment for the RedHat package handling
 # tools.
@@ -975,7 +955,7 @@ redhat_SPEC_FILE	= $(PKG_ID).spec
 redhat_GENERIC_SPEC	= meta.d/redhat/spec-file
 redhat_SPECIFIC_SPEC	= meta.d/redhat/$(redhat_SPEC_FILE)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: redhat
 
@@ -996,12 +976,11 @@ redhat: bindist redhat-clean
 redhat-clean:
 	-$(RM) $(redhat_PACKAGE_BUILDDIR)
 
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## Pacman packaging.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # This is the file name of  the Pacman package.  Notice that there is no
 # directory part.
@@ -1023,7 +1002,7 @@ pacman_BUILDDIR		= $(PWD)/$(builddir)/pacman.d
 # installed package.  It is used to upgrade.
 pacman_INSTALLED_PACKAGE	=
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # This is the environment for the Pacman package handling
 # tools.
@@ -1038,7 +1017,7 @@ pacman_SPEC_FILE	= $(PKG_ID).spec
 pacman_GENERIC_SPEC	= meta.d/pacman/spec-file
 pacman_SPECIFIC_SPEC	= meta.d/pacman/$(pacman_SPEC_FILE)
 
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 # .PHONY: pacman
 
@@ -1059,18 +1038,11 @@ pacman_SPECIFIC_SPEC	= meta.d/pacman/$(pacman_SPEC_FILE)
 # pacman-clean:
 # 	-$(RM) $(pacman_PACKAGE_BUILDDIR)
 
-## ------------------------------------------------------------
-
-
-
-
-
-## ------------------------------------------------------------
 
 #page
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 ## End of makefile.
-## ------------------------------------------------------------
+## ---------------------------------------------------------------------
 
 .PHONY: echo-variable echo-list-variable
 
@@ -1088,9 +1060,6 @@ echo-variable:
 #
 echo-list-variable:
 	@$(foreach f,$($(VARIABLE)),echo $(f);)
-
-## ------------------------------------------------------------
-
 
 
 ### end of file

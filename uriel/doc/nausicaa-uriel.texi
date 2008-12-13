@@ -572,8 +572,8 @@ Independent libraries
 * lang define-macro::           Common Lisp style macros.
 * lang printing::               Printing.
 * lang cleanup::                Cleanup of asynchronous resources.
+* lang queue::                  Simple queue.
 @end menu
-
 
 
 @c page
@@ -1448,6 +1448,123 @@ invoke a cleanup thunk only once is to register it, invoke
 to do to handle such a simple case: we should use a proper event loop,
 instead.
 @end quotation
+
+
+@c page
+@node lang queue
+@section Simple queue
+
+
+@noindent
+The functions in this section are imported by:
+
+@example
+(import (rnrs)
+  (uriel queue))
+@end example
+
+This module implements queues holding arbitrary scheme objects and
+designed for efficient first--in/first--out operations.
+
+@func{make-q} creates a queue, and objects are entered and removed with
+@func{enq!} and @func{deq!}.  @func{q-push!} and @func{q-pop!} can be
+used too, treating the front of the queue like a stack.
+
+
+@defun make-q
+Return a new queue.
+@end defun
+
+@defun q? @var{obj}
+Return @true{} if @var{obj} is a queue, or @false{} if not.
+
+Note that queues are not a distinct class of objects but are implemented
+with cons cells.  For that reason certain list structures can get
+@true{} from @func{q?}.
+@end defun
+
+
+@defun {enq!} @var{q} @var{obj}
+Add @var{obj} to the rear of @var{q}, and return @var{q}.
+@end defun
+
+
+@defun {deq!} @var{q}
+@defunx {q-pop!} @var{q}
+Remove and return the front element from @var{q}.  If @var{q} is empty,
+a @code{q-empty} exception is thrown.
+
+@func{deq!} and @func{q-pop!} are the same operation, the two names just
+let an application match @func{enq!} with @func{deq!}, or @func{q-push!}
+with @func{q-pop!}.
+@end defun
+
+
+@defun {q-push!} @var{q} @var{obj}
+Add @var{obj} to the front of @var{q}, and return @var{q}.
+@end defun
+
+
+@defun q-length @var{q}
+Return the number of elements in @var{q}.
+@end defun
+
+
+@defun {q-empty?} @var{q}
+Return true if @var{q} is empty.
+@end defun
+
+
+@defun q-empty-check @var{q}
+Throw a @code{q-empty} exception if @var{q} is empty.
+@end defun
+
+
+@defun q-front @var{q}
+Return the first element of @var{q} (without removing it).  If @var{q}
+is empty, a @code{q-empty} exception is thrown.
+@end defun
+
+
+@defun q-rear @var{q}
+Return the last element of @var{q} (without removing it).  If @var{q} is
+empty, a @code{q-empty} exception is thrown.
+@end defun
+
+
+@defun q-remove! @var{q} @var{obj}
+Remove all occurences of @var{obj} from @var{q}, and return @var{q}.
+@var{obj} is compared to queue elements using @code{eq?}.
+@end defun
+
+
+The @code{q-empty} exceptions described above are thrown just as
+@code{(raise 'q-empty)}, there's no message etc like an error throw.
+
+A queue is implemented as a cons cell, the @code{car} containing a list
+of queued elements, and the @code{cdr} being the last cell in that list
+(for ease of enqueuing).
+
+@example
+(@var{list} . @var{last-cell})
+@end example
+
+@noindent
+If the queue is empty, @var{list} is the empty list and @var{last-cell}
+is @false{}.
+
+An application can directly access the queue list if desired, for
+instance to search the elements or to insert at a specific point.
+
+@defun {sync-q!} @var{q}
+Recompute the @var{last-cell} field in @var{q}.
+
+All the operations above maintain @var{last-cell} as described, so
+normally there's no need for @func{sync-q!}.  But if an application
+modifies the queue @var{list} then it must either maintain
+@var{last-cell} similarly, or call @func{sync-q!} to recompute it.
+@end defun
+
 
 
 @c page

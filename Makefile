@@ -36,10 +36,12 @@ PKG_ID			= nausicaa-$(shell cat tag)
 PROJECTS	= \
 			srfi		\
 			uriel		\
-			ice-9		\
 			irregex		\
 			scmobj		\
-			tiny-clos	\
+			sos		\
+			posix		\
+			glibc		\
+			zlib		\
 			mp
 
 ## ------------------------------------------------------------

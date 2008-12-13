@@ -558,6 +558,11 @@ what follows is a list of common options.
 
 
 @table @code
+@item --enable-ikarus
+@itemx --enable-ypsilon
+@c @itemx --enable-larceny
+Enable the usage of a Scheme implementation.
+
 @item --prefix=@var{value}
 Select the directory to be used as installation prefix; all the files
 installed by a project will end under this directory; it defaults to
@@ -912,9 +917,22 @@ pacman_PROGRAM
 
 
 @menu
+* conf scheme generic::         Running Scheme tests.
 * conf scheme ikarus::          Running Ikarus Scheme.
 * conf scheme ypsilon::         Running Ypsilon Scheme.
+@c * conf scheme larceny::         Running Larceny Scheme.
 @end menu
+
+
+@c page
+@node conf scheme generic
+@section Running Scheme tests
+
+
+@deffn {Autoconf Macro} NAUSICAA_SCHEME_CHECK_LIBRARY (@var{name}, @var{import_spec}, @var{action_if_found}, @var{action_if_not_found})
+Attempt to find a Scheme library loadable by all the enabled Scheme
+implementations.
+@end deffn
 
 
 @c page
@@ -1044,6 +1062,69 @@ and here is how we verify if @library{uriel ffi} is installed:
 NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 @end example
 
+
+@c page
+@c @node conf scheme larceny
+@c @section Running Larceny Scheme
+
+
+@c @deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
+@c Evaluate @var{scheme_code} with Larceny by storing it in a temporary
+@c file and invoking "@code{$@{LARCENY@} -r6rs -program} with additional
+@c command line @var{options}.  Then, after the temporary file has been
+@c removed, evaluate @var{shell_chunk}.
+
+@c The script is expected to print a line of text on its standard output,
+@c which will be stored in the shell variable @code{nausicaa_ANSWER}, so
+@c that @var{shell_chunk} can examine it.
+@c @end deffn
+
+
+@c @deffn {Autoconf Macro} NAUSICAA_LARCENY_CHECK_LIBRARY (@var{name}, @var{import_spec}, @var{action_if_found}, @var{action_if_not_found})
+@c Attempt to find a Scheme library loadable by Larceny.
+
+@c If the library is found the output variable
+@c @code{HAS_LARCENY_LIB_@var{name}} is set to @code{yes}, otherwise it is
+@c set to @code{no}.
+
+@c The optional @var{action_if_found} is executed if the library was found.
+@c The optional @var{action_if_not_found} is executed if the library was
+@c not found.
+@c @end deffn
+
+
+@c As an example, here is the implementation of the macro above:
+
+@c @example
+@c AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],[
+@c AC_MSG_CHECKING([availability of Larceny library $2])
+@c NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
+@c (with-exception-handler
+@c   (lambda (ex)
+@c     (display "no\n")
+@c     (exit))
+@c   (lambda ()
+@c     (environment (quote $2))
+@c     (display "yes\n")))
+@c ],[--compatible],[if test "$nausicaa_ANSWER" = yes ; then
+@c : dnl action if found.
+@c $3
+@c else
+@c : dnl action if not found.
+@c $4
+@c fi
+@c AC_MSG_RESULT([$nausicaa_ANSWER])
+@c AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
+@c ])
+@c ])
+@c @end example
+
+@c @noindent
+@c and here is how we verify if @library{uriel ffi} is installed:
+
+@c @example
+@c NAUSICAA_LARCENY_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
+@c @end example
 
 
 @c page
@@ -1732,6 +1813,14 @@ infrastructure.
 @c page
 @node vars config
 @section Configuration variables
+
+
+@defvar nausicaa_ENABLE_IKARUS
+@defvarx nausicaa_ENABLE_YPSILON
+@c @defvarx nausicaa_ENABLE_LARCENY
+Enable/disable the usage of the named Scheme implementation.  If set to
+@code{yes}, the implementation is enabled.
+@end defvar
 
 
 @defvar nausicaa_ENABLE_SLS
