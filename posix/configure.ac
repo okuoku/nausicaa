@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/POSIX
 dnl Contents: configuration file template
 dnl Date: Fri Dec  5, 2008
-dnl Time-stamp: <2008-12-07 18:35:38 marco>
+dnl Time-stamp: <2008-12-13 07:44:50 marco>
 dnl
 dnl Abstract
 dnl
@@ -51,7 +51,16 @@ dnl Helpers.
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_POSIX_VALUEOF_TEST],
-   [NAUSICAA_VALUEOF_TEST([$1],[$1],,[#include <fcntl.h>])])
+   [NAUSICAA_VALUEOF_TEST([$1],[$1],[#f],[#include <fcntl.h>])])
+
+AC_DEFUN([NAU_POSIX_SIZEOF_TEST],
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <fcntl.h>])])
+
+AC_DEFUN([NAU_POSIX_INSPECT_TYPE],
+  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <fcntl.h>])])
+
+AC_DEFUN([NAU_POSIX_INSPECT_FIELD_TYPE],
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <fcntl.h>])])
 
 
 dnl page
@@ -59,16 +68,16 @@ dnl --------------------------------------------------------------------
 dnl Inspection: typedefs.
 dnl --------------------------------------------------------------------
 
-NAUSICAA_INSPECT_TYPE([MODE_T],[mode_t],[signed-integer])
-NAUSICAA_INSPECT_TYPE([PID_T],[pid_t],[signed-integer])
-NAUSICAA_INSPECT_TYPE([OFF_T],[off_t],[unsigned-integer])
+NAU_POSIX_INSPECT_TYPE([MODE_T],[mode_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([PID_T],[pid_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([OFF_T],[off_t],[unsigned-int])
 
-NAUSICAA_SIZEOF_TEST([STRUCT_FLOCK],[struct flock])
-NAUSICAA_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_TYPE],[struct flock],[l_type],[signed-integer])
-NAUSICAA_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_WHENCE],[struct flock],[l_whence],[signed-integer])
-NAUSICAA_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_START],[struct flock],[l_start],[signed-integer])
-NAUSICAA_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_LEN],[struct flock],[l_len],[signed-integer])
-NAUSICAA_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_PID],[struct flock],[l_pid],[signed-integer])
+NAU_POSIX_SIZEOF_TEST([STRUCT_FLOCK],[struct flock])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_TYPE],[struct flock],[l_type],[signed-int],,)
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_WHENCE],[struct flock],[l_whence],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_START],[struct flock],[l_start],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_LEN],[struct flock],[l_len],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_PID],[struct flock],[l_pid],[signed-int])
 
 AC_CACHE_SAVE
 
