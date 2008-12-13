@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to MPC
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-12 18:11:49 marco>
+;;;Time-stamp: <2008-12-13 13:35:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -247,33 +247,10 @@
   (int mpc_set_fr_fr (mpc_ptr mpfr_srcptr mpfr_srcptr mpc_rnd_t)))
 (define-c-function mpc_set_ui_fr
   (int mpc_set_ui_fr (mpc_ptr unsigned-long mpfr_srcptr mpc_rnd_t)))
-
-;;FIXME (Thu  Dec 11, 2008) For no  reason I can figure  out now, Ikarus
-;;fails if I use the MPC's own  functions: the real part is set, but the
-;;imaginary part  is left to zero.   Ypsilon works fine.   It seems that
-;;there is some  problem with the Ikarus FFI,  because the problem shows
-;;itself also when I access the functions with:
-;;
-;; (define lib (dlopen "libmpc.so"))
-;; (define f (make-c-callout 'signed-int
-;;		'(pointer unsigned-long unsigned-long signed-int)))
-;; (define g (f (dlsym lib "mpc_set_si_si")))
-;;
-;;I  have no will  to investigate  the problem  now, so  the replacement
-;;functions below are exported in place of the MPC's originals.
-;;
-;; (define-c-function mpc_set_ui_ui
-;;   (int mpc_set_ui_ui (mpc_ptr unsigned-long unsigned-long mpc_rnd_t)))
-;; (define-c-function mpc_set_si_si
-;;   (int mpc_set_si_si (mpc_ptr signed-long signed-long mpc_rnd_t)))
-(define (mpc_set_ui_ui cplx real-int imag-int round)
-  (MPC_INEX (mpfr_set_ui (struct-mpc-re-ref cplx) real-int (MPC_RND_RE round))
-	    (mpfr_set_ui (struct-mpc-im-ref cplx) imag-int (MPC_RND_IM round))))
-(define (mpc_set_si_si cplx real-int imag-int round)
-  (MPC_INEX (mpfr_set_si (struct-mpc-re-ref cplx) real-int (MPC_RND_RE round))
-	    (mpfr_set_si (struct-mpc-im-ref cplx) imag-int (MPC_RND_IM round))))
-
-
+(define-c-function mpc_set_ui_ui
+  (int mpc_set_ui_ui (mpc_ptr unsigned-long unsigned-long mpc_rnd_t)))
+(define-c-function mpc_set_si_si
+  (int mpc_set_si_si (mpc_ptr signed-long signed-long mpc_rnd_t)))
 (define-c-function mpc_real
   (int mpc_real (mpfr_ptr mpc_srcptr mpfr_rnd_t)))
 (define-c-function mpc_imag
