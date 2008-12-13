@@ -1,5 +1,6 @@
 ;; ikarus-ffi-01.sps -
 ;;
+;;Bug in Ikarus-1716 FFI.
 
 (import (ikarus)
   (ikarus foreign))
