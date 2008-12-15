@@ -326,6 +326,10 @@ the main purpose of this document is to provide an Info version.
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
+@macro urielref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-uriel}
+@end macro
+
 @macro bibref{TAG}
 @code{[\TAG\]}
 @end macro
@@ -441,6 +445,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* conditions::                  Condition types.
+* address::                     Handling addresses.
 
 Appendices
 
@@ -465,8 +471,139 @@ Indexes
 @chapter Overview of the package
 
 
+This is a Scheme library implementing an interface to @ossp{} @sa{}: an
+abstraction library for the Unix socket application programming
+interface, featuring stream and datagram oriented communication over
+Unix Domain and Internet Domain (@tcp{} and @udp{}) sockets.  It
+provides the following key features: address abstraction (local, IPv4,
+and IPv6), type abstraction, I/O timeouts, I/O stream buffering and
+convenience I/O functions.
+
+Almost all the functions exported by @ossp{} @sa{} have been interfaced,
+with the exclusion of the variadic ones, @cfunc{sa_writef} and
+@cfunc{sa_sendf}.  The interface has 2 levels:
+
+@enumerate
+@item
+The low level provides the primitive @sa{} functions as Scheme
+functions.  The names of the Scheme functions are equal to the names of
+the corresponding foreign functions.  The original documentation of
+@sa{} is relevant to the usage of these functions.  @ref{sa} the
+original documentation.
+
+@item
+The high level provides wrappers to allow: compensated allocation of
+resources; automatic raising of exceptions in case of errors; automatic
+conversion between Scheme strings and zero terminated C strings.  The
+high level functions have different semantics and are described by this
+document.
+@end enumerate
+
+The low level library is @library{ossp-sa foreign}, the high level is
+@library{ossp-sa} and auxiliary bindings are exported from
+@library{ossp-sa sizeof}.  To use @ossp{} @sa{} it is usually enough to
+do:
+
+@example
+(import (r6rs)
+  (uriel lang)
+  (uriel ffi)
+  (ossp-sa))
+@end example
+
 @noindent
-This ...
+the auxiliary bindings are needed only when using the low level library.
+@library{uriel lang} is needed to make use of the compensation stacks,
+and @library{uriel ffi} to handle low level memory allocation.
+
+
+@c page
+@node conditions
+@chapter Condition types
+
+
+Usually we do not have to use the bindings described here.  All the
+exceptions raised by the high level functions are non--continuable.
+
+
+@deftp Condition &sa-error
+Condition type raised by the high level functions.
+@end deftp
+
+
+@defun raise-sa-error @var{who} @var{retval}
+If @var{retval} equals @code{SA_ERR_MEM} raise an @code{&out-of-memory}
+condition.  @urielref{ffi conditions nomem,&out-of-memory}
+
+Else raise a condition with components of the following types:
+
+@table @code
+@item &who
+with value @var{who};
+
+@item &sa-error
+with @var{retval} as code returned by a @sa{} foreign function;
+
+@item &message
+describing @var{retval} with the string returned by @func{sa_error};
+
+@item &irritants
+holding the symbolic (human readable) representation of @var{retval}.
+@end table
+@end defun
+
+
+@defun sa-return-value->symbol @var{retval}
+Convert a numeric @sa{} return value into its symboli representation.
+Return the symbol.
+@end defun
+
+
+@c page
+@node address
+@chapter Handling addresses
+
+
+@menu
+* address init::                Construction and destruction.
+@end menu
+
+
+@c page
+@node address init
+@section Construction and destruction
+
+
+@defun make-sa-address
+@defunx make-sa-address/compensated
+@defunx destroy-sa-address @var{address}
+@func{make-sa-address} allocates and returns a new address object.  The
+object has to be finalised with @func{destroy-sa-address}.
+
+@func{make-sa-address/compensated} is like @func{make-sa-address} but
+registers an appropriate compensation closure in the dynamic environment
+of the current compensation stack.
+
+Example:
+
+@example
+(let ((address #f))
+  (dynamic-wind
+    (lambda () (set! address (make-sa-address)))
+    (lambda () ---)
+    (lambda () (destroy-sa-address address))))
+@end example
+
+@noindent
+and with compensations:
+
+@example
+(with-compensations
+  (let ((address (make-sa-address/compensated)))
+    ---))
+@end example
+@end defun
+
 
 
 
@@ -615,11 +752,23 @@ THE POSSIBILITY OF SUCH DAMAGE.
 @appendixsec Data types
 
 
+@cindex @code{SA_OK}
+@cindex @code{SA_ERR_ARG}
+@cindex @code{SA_ERR_USE}
+@cindex @code{SA_ERR_MEM}
+@cindex @code{SA_ERR_MTC}
+@cindex @code{SA_ERR_EOF}
+@cindex @code{SA_ERR_TMT}
+@cindex @code{SA_ERR_SYS}
+@cindex @code{SA_ERR_IMP}
+@cindex @code{SA_ERR_INT}
+
+
 @noindent
 @ossp{} @sa{} uses three data types in its @api{}.
 
 
-@deftp {Typedef} sa_rc_t (Return Code Type)
+@deftp {Return Code Type} sa_rc_t
 This is an exported enumerated integer type with the following possible
 values:
 
@@ -648,13 +797,13 @@ Internal Error
 @end deftp
 
 
-@deftp Typedef sa_addr_t (Socket Address Abstraction Type)
+@deftp {Socket Address Abstraction Type} sa_addr_t
 This is an opaque data type representing a socket address.  Only
 pointers to this abstract data type are used in the @api{}.
 @end deftp
 
 
-@deftp Typedef sa_t (Socket Abstraction Type)
+@deftp {Socket Abstraction Type} sa_t
 This is an opaque data type representing a socket.  Only pointers to
 this abstract data type are used in the @api{}.
 @end deftp
@@ -735,29 +884,44 @@ abstraction @code{sa_addr_t}.
 
 
 @deftypefun sa_rc_t sa_addr_u2a (sa_addr_t * @var{saa}, const char * @var{uri}, ...)
-Import an address into by converting from an @acronym{URI} specification
-to the corresponding address abstraction.
+Import an address by converting from an @acronym{URI} specification to
+the corresponding address abstraction.
 
-The supported syntax for @var{uri} is: @code{"unix:path"} for Unix
-Domain addresses and @code{"inet://addr:port[#protocol]"} for Internet
-Domain addresses.
+The supported syntax for @var{uri} is: @code{unix:@var{path}} for Unix
+Domain addresses and
+@code{inet://@var{addr}:@var{port}[#@var{protocol}]} for Internet Domain
+addresses.  Examples:
 
-In the @acronym{URI}, @var{path} can be an absolute or relative
-filesystem path to an existing or not--existing file.  @var{addr} can be
-an IPv4 address in dotted decimal notation (@code{"127.0.0.1"}), an IPv6
-address in colon--separated (optionally abbreviated) hexadecimal
-notation (@code{"::1"}) or a to--be--resolved hostname
-(@code{"localhost.example.com"}).
+@example
+sa_addr_u2a(saa,"inet://192.168.0.1:smtp");
+sa_addr_u2a(saa,"unix:/var/www/index.html");
+@end example
+
+@var{path} can be an absolute or relative filesystem path to an existing
+or not--existing file.
+
+@var{addr} can be:
+
+@itemize
+@item
+an IPv4 address in dotted decimal notation (@code{127.0.0.1});
+
+@item
+an IPv6 address in colon--separated (optionally abbreviated) hexadecimal
+notation (@code{::1});
+
+@item
+a to--be--resolved hostname (@code{localhost.example.com}).
+@end itemize
 
 @var{port} has to be either a decimal port in the range 1...65535 or a
-port name (@code{smtp}).  If @var{port} is specified as a name, it is
-resolved as a @tcp{} port by default.  To force resolving a
-@var{port} name via a particular protocol, @var{protocol} can be
-specified as either @code{tcp} or @code{udp}.
+port name (@code{smtp}).  If @code{port} is specified as a name, it is
+resolved as a @tcp{} port by default.
+
+To force resolving a @var{port} name via a particular protocol,
+@var{protocol} can be specified as either @code{tcp} or @code{udp}.
 
 The result is stored in @var{saa} on success.
-
-Example: @code{sa_addr_u2a(saa, "inet://192.168.0.1:smtp");}
 @end deftypefun
 
 

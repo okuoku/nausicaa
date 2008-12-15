@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: tests for address structure
 ;;;Date: Sun Dec 14, 2008
-;;;Time-stamp: <2008-12-14 10:22:24 marco>
+;;;Time-stamp: <2008-12-15 11:36:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -41,11 +41,20 @@
 
 ;;;; code
 
+(define the-path "unix:/tmp/proof")
+(define the-addr "inet://127.0.0.1:80")
+
 (check
     (with-compensations
-      (let ((addr*	(compensate-malloc/small)))
-	#f))
-  => #f)
+      (let ((address (make-sa-address/compensated the-path)))
+	(sa-address-ref address)))
+  => the-path)
+
+(check
+    (with-compensations
+      (let ((address (make-sa-address/compensated the-addr)))
+	(sa-address-ref address)))
+  => the-addr)
 
 
 ;;;; done

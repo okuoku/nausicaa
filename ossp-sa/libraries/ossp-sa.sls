@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Nausicaa/OSSP/sa
-;;;Contents: interface to OSSP/sa for R6RS Scheme
+;;;Contents: high level interface to OSSP/sa for R6RS Scheme
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-14 10:20:00 marco>
+;;;Time-stamp: <2008-12-15 11:33:55 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,95 +24,130 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
+;;; --------------------------------------------------------------------
+;;; Setup.
+;;; --------------------------------------------------------------------
+
 (library (ossp-sa)
   (export
+
+    ;; errors
+    sa-return-value->symbol raise-sa-error
+
+    ;; address
+    make-sa-address make-sa-address/compensated destroy-sa-address
+    sa-address-set! sa-address-ref
+
     )
-  (import (rnrs)
+  (import (r6rs)
+    (uriel lang)
     (uriel ffi)
     (uriel ffi sizeof)
+    (ossp-sa foreign)
     (ossp-sa sizeof))
 
-(define sa-lib
-  (let ((o (open-shared-object 'libsa.so)))
-    (shared-object o)
-    o))
+
+;;; --------------------------------------------------------------------
+;;; Address: creation and destruction.
+;;; --------------------------------------------------------------------
 
-(define-c-function sa_addr_create
-  (sa_rc_t sa_addr_create (sa_addr_t**)))
+(define make-sa-address
+  (case-lambda
+   (()
+    (with-compensations
+      (let* ((address*	(compensate-malloc/small))
+	     (e		(sa_addr_create address*)))
+	(unless (= SA_OK e)
+	  (raise-sa-error 'make-sa-address e))
+	(pointer-ref-c-pointer address* 0))))
+   ((uri)
+    (with-compensations
+      (let ((address	(make-sa-address)))
+	(guard (exc (else (raise exc)))
+	  (sa-address-set! address uri))
+	address)))))
 
-(define-c-function sa_addr_destroy
-  (sa_rc_t sa_addr_destroy (sa_addr_t*)))
+(define (destroy-sa-address address)
+  (let ((e (sa_addr_destroy address)))
+    (unless (= SA_OK e)
+      (raise-sa-error 'sa_addr_create e))))
 
-;;; address operations
-(define-c-function sa_addr_u2a
-  (sa_rc_t sa_addr_u2a (sa_addr_t* char*)))
-(define-c-function sa_addr_s2a
-  (sa_rc_t sa_addr_s2a (sa_addr_t* pointer int)))
-(define-c-function sa_addr_a2u
-  (sa_rc_t sa_addr_a2u (sa_addr_t* pointer)))
-(define-c-function sa_addr_a2s
-  (sa_rc_t sa_addr_a2s (sa_addr_t* pointer pointer)))
-(define-c-function sa_addr_match
-  (sa_rc_t sa_addr_match (sa_addr_t* sa_addr_t* int)))
+(define make-sa-address/compensated
+  (case-lambda
+   (()
+    (letrec ((address (compensate (make-sa-address)
+			(with (destroy-sa-address address)))))
+      address))
+   ((uri)
+    (letrec ((address (compensate (make-sa-address uri)
+			(with (destroy-sa-address address)))))
+      address))))
 
-;;; socket object operations
-(define-c-function sa_create
-  (sa_rc_t sa_create (sa_t**)))
-(define-c-function sa_destroy
-  (sa_rc_t sa_destroy (sa_t*)))
 
-;;; socket parameter operations
-(define-c-function sa_type
-  (sa_rc_t sa_type (sa_t* sa_type_t)))
-(define-c-function sa_timeout
-  (sa_rc_t sa_timeout (sa_t* sa_timeout_t long long)))
-(define-c-function sa_buffer
-  (sa_rc_t sa_buffer (sa_t* sa_buffer_t size_t)))
-(define-c-function sa_option
-  (sa_rc_t sa_option (sa_t* sa_option_t int)))
-(define-c-function sa_syscall
-  (sa_rc_t sa_syscall (sa_t* sa_syscall_t callback)))
+
+;;; --------------------------------------------------------------------
+;;; Address: operations.
+;;; --------------------------------------------------------------------
 
-;;; socket connection operations
-(define-c-function sa_bind
-  (sa_rc_t sa_bind (sa_t* sa_addr_t*)))
-(define-c-function sa_connect
-  (sa_rc_t sa_connect (sa_t* sa_addr_t*)))
-(define-c-function sa_listen
-  (sa_rc_t sa_listen (sa_t* int)))
-(define-c-function sa_accept
-  (sa_rc_t sa_accept (sa_t* sa_addr_t** sa_t**)))
-(define-c-function sa_getremote
-  (sa_rc_t sa_getremote (sa_t* sa_addr_t**)))
-(define-c-function sa_getlocal
-  (sa_rc_t sa_getlocal (sa_t* sa_addr_t**)))
-(define-c-function sa_getfd
-  (sa_rc_t sa_getfd (sa_t* pointer)))
-(define-c-function sa_shutdown
-  (sa_rc_t sa_shutdown (sa_t* char*)))
+(define (sa-address-set! address uri)
+  (with-compensations
+    (let* ((spec	(string-or-symbol->cstring/compensated uri))
+	   (e		(sa_addr_u2a address spec)))
+      (unless (= SA_OK e)
+	(destroy-sa-address address)
+	(raise-sa-error 'sa-address-set! e)))))
 
-;;; socket input/output operations (stream communication)
-(define-c-function sa_read
-  (sa_rc_t sa_read (sa_t* char* size_t pointer)))
-(define-c-function sa_readln
-  (sa_rc_t sa_readln (sa_t* char* size_t pointer)))
-(define-c-function sa_write
-  (sa_rc_t sa_write (sa_t* char* size_t pointer)))
-;; (define-c-function sa_writef
-;;   (sa_rc_t sa_writef (sa_t* char* ...)))
-(define-c-function sa_flush
-  (sa_rc_t sa_flush (sa_t*)))
+(define (sa-address-ref address)
+  (with-compensations
+    (let* ((spec*	(compensate-malloc/small))
+	   (e		(compensate
+			    (sa_addr_a2u address spec*)
+			  (with
+			   (primitive-free (pointer-ref-c-pointer spec* 0))))))
+      (cstring->string (pointer-ref-c-pointer spec* 0)))))
 
-;;; socket input/output operations (datagram communication)
-(define-c-function sa_recv
-  (sa_rc_t sa_recv (sa_t* sa_addr_t** char* size_t pointer)))
-(define-c-function sa_send
-  (sa_rc_t sa_send (sa_t* sa_addr_t* char* size_t pointer)))
-;; (define-c-function sa_sendf
-;;   (sa_rc_t sa_sendf (sa_t* sa_addr_t* char* ...)))
 
-;;; error handling operations
-(define-c-function sa_error
-  (char* sa_error (sa_rc_t))))
+
+;;; --------------------------------------------------------------------
+;;; Conditions.
+;;; --------------------------------------------------------------------
+
+(define-condition-type &sa-error &error
+  make-sa-condition sa-condition?
+  (code sa-error-code))
+
+(define (raise-sa-error who code)
+  (if (= SA_ERR_MEM code)
+      (raise-out-of-memory who #f)
+    (raise (condition (make-who-condition who)
+		      (make-message-condition (cstring->string (sa_error code)))
+		      (make-sa-condition (sa-return-value->symbol code))))))
+
+(define sa-return-values-alist
+  `((,SA_OK . SA_OK)
+    (,SA_ERR_ARG . SA_ERR_ARG)
+    (,SA_ERR_USE . SA_ERR_USE)
+    (,SA_ERR_MEM . SA_ERR_MEM)
+    (,SA_ERR_MTC . SA_ERR_MTC)
+    (,SA_ERR_EOF . SA_ERR_EOF)
+    (,SA_ERR_TMT . SA_ERR_TMT)
+    (,SA_ERR_SYS . SA_ERR_SYS)
+    (,SA_ERR_IMP . SA_ERR_IMP)
+    (,SA_ERR_INT . SA_ERR_INT)))
+
+(define (sa-return-value->symbol retval)
+  (let ((pair (assq retval sa-return-values-alist)))
+    (if pair
+	(cdr pair)
+      (assertion-violation 'sa-return-value->symbol
+	"unknown SA return value" retval))))
+
+
+;;; --------------------------------------------------------------------
+;;; Done.
+;;; --------------------------------------------------------------------
+
+)
 
 ;;; end of file
