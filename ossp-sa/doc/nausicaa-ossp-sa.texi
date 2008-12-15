@@ -510,13 +510,15 @@ do:
 (import (r6rs)
   (uriel lang)
   (uriel ffi)
-  (ossp-sa))
+  (ossp-sa)
+  (ossp-sa sizeof))
 @end example
 
 @noindent
-the auxiliary bindings are needed only when using the low level library.
-@library{uriel lang} is needed to make use of the compensation stacks,
-and @library{uriel ffi} to handle low level memory allocation.
+the auxiliary bindings are needed only when using both the high and the
+low level library.  @library{uriel lang} is needed to make use of the
+compensation stacks, and @library{uriel ffi} to handle low level memory
+allocation.
 
 
 @c page

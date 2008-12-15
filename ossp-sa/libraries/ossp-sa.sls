@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: high level interface to OSSP/sa for R6RS Scheme
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-15 18:14:56 marco>
+;;;Time-stamp: <2008-12-15 22:24:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -291,6 +291,10 @@
 	(raise-sa-error 'sa-readln e (list socket memory-block)))
       (pointer-ref-c-signed-int bufdone* 0))))
 
+(define (sa-read-string socket size)
+  (with-compensations
+    (sa-readln socket (compensate-malloc/block 256))))
+
 (define (sa-write socket memory-block)
   (with-compensations
     (let* ((bufdone*	(compensate-malloc/small))
@@ -301,6 +305,11 @@
       (unless (= SA_OK e)
 	(raise-sa-error 'sa-write e (list socket memory-block)))
       (pointer-ref-c-signed-int bufdone* 0))))
+
+(define (sa-write-string socket string)
+  (with-compensations
+    (sa-write socket (make-memory-block (string->cstring/compensated string)
+					(string-length string)))))
 
 (define (sa-flush socket)
   (let ((e (sa_flush socket)))

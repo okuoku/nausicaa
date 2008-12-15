@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: tests
 ;;;Date: Sun Dec 14, 2008
-;;;Time-stamp: <2008-12-15 15:52:14 marco>
+;;;Time-stamp: <2008-12-15 22:21:45 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -34,7 +34,8 @@
   (uriel lang)
   (uriel ffi)
   (ossp-sa)
-  (ossp-sa sizeof))
+  (ossp-sa sizeof)
+  (srfi receive))
 
 (check-set-mode! 'report-failed)
 
@@ -42,7 +43,7 @@
 ;;;; address
 
 (define the-path "unix:/tmp/proof")
-(define the-addr "inet://127.0.0.1:80")
+(define the-addr "inet://127.0.0.1:8080")
 
 (check
     (with-compensations
@@ -65,9 +66,30 @@
 
 ;;;; socket
 
+(define-c-function primitive-fork
+  (int fork (void)))
+
 (check
     (with-compensations
-      (let ((sock (make-sa-socket/compensated)))
+      (let ((server	(make-sa-socket/compensated))
+	    (client	(make-sa-socket/compensated))
+	    (address	(make-sa-address/compensated the-addr)))
+	(sa-type server SA_TYPE_STREAM)
+	(sa-type client SA_TYPE_STREAM)
+	(sa-option server SA_OPTION_REUSEADDR 1)
+	(sa-option client SA_OPTION_REUSEADDR 1)
+	(sa-bind server address)
+	(sa-listen server 1)
+	(let ((pid (primitive-fork)))
+	  (if (= 0 pid)
+	      (begin
+		;;the child
+		(sa-connect client address))
+	    (begin
+	      ;;the parent
+	      (receive (address socket)
+		  (sa-accept server)
+		(sa-write-string socket "hello\n")))))))
 	#f))
   => #f)
 
