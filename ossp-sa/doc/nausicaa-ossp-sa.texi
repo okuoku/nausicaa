@@ -447,6 +447,8 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * conditions::                  Condition types.
 * address::                     Handling addresses.
+* socket::                      Handling sockets.
+* misc::                        Miscellaneous bindings.
 
 Appendices
 
@@ -531,6 +533,12 @@ Condition type raised by the high level functions.
 @end deftp
 
 
+@defun sa-error @var{retval}
+Convert a return value from a @sa{} foreign function into a message as
+Scheme string.
+@end defun
+
+
 @defun raise-sa-error @var{who} @var{retval}
 If @var{retval} equals @code{SA_ERR_MEM} raise an @code{&out-of-memory}
 condition.  @urielref{ffi conditions nomem,&out-of-memory}
@@ -542,20 +550,15 @@ Else raise a condition with components of the following types:
 with value @var{who};
 
 @item &sa-error
-with @var{retval} as code returned by a @sa{} foreign function;
+the symbolic (human readable) representation of @var{retval}, which must
+be a return value from the @sa{} foreign functions;
 
 @item &message
 describing @var{retval} with the string returned by @func{sa_error};
 
 @item &irritants
-holding the symbolic (human readable) representation of @var{retval}.
+a single value or list of values that caused the exception.
 @end table
-@end defun
-
-
-@defun sa-return-value->symbol @var{retval}
-Convert a numeric @sa{} return value into its symboli representation.
-Return the symbol.
 @end defun
 
 
@@ -566,6 +569,7 @@ Return the symbol.
 
 @menu
 * address init::                Construction and destruction.
+* address access::              Setter and getter.
 @end menu
 
 
@@ -575,7 +579,9 @@ Return the symbol.
 
 
 @defun make-sa-address
+@defunx make-sa-address @var{address-spec}
 @defunx make-sa-address/compensated
+@defunx make-sa-address/compensated @var{address-spec}
 @defunx destroy-sa-address @var{address}
 @func{make-sa-address} allocates and returns a new address object.  The
 object has to be finalised with @func{destroy-sa-address}.
@@ -583,6 +589,9 @@ object has to be finalised with @func{destroy-sa-address}.
 @func{make-sa-address/compensated} is like @func{make-sa-address} but
 registers an appropriate compensation closure in the dynamic environment
 of the current compensation stack.
+
+If the @var{address-spec} is given, it is used to initialise the address
+as described for @func{sa-address-set!}.
 
 Example:
 
@@ -605,6 +614,153 @@ and with compensations:
 @end defun
 
 
+@c page
+@node address access
+@section Setter and getter
+
+
+@defun sa-address-set! @var{address} @var{specification}
+Register the @var{specification} into the @var{address}.
+@var{specification} must be a Scheme string or symbol, see
+@cfunc{sa_addr_u2a} for details.
+@end defun
+
+
+@defun sa-address-ref @var{address}
+Extract from @var{address} the specification and return it as Scheme
+string.  It is an error to attempt specification extraction from an
+uninitialised @var{address} object.
+@end defun
+
+
+@c page
+@node socket
+@chapter Handling sockets
+
+
+@menu
+* socket init::                 Constructor and destructor.
+@end menu
+
+
+@c page
+@node socket init
+@section Constructor and destructor
+
+
+@defun make-sa-socket
+@defunx make-sa-socket/compensated
+@defunx destroy-sa-socket @var{socket}
+@func{make-sa-socket} allocates and returns a new socket object.  The
+object has to be finalised with @func{destroy-sa-socket}.
+
+@func{make-sa-socket/compensated} is like @func{make-sa-socket} but
+registers an appropriate compensation closure in the dynamic environment
+of the current compensation stack.
+
+Example:
+
+@example
+(let ((socket #f))
+  (dynamic-wind
+    (lambda () (set! socket (make-sa-socket)))
+    (lambda () ---)
+    (lambda () (destroy-sa-socket socket))))
+@end example
+
+@noindent
+and with compensations:
+
+@example
+(with-compensations
+  (let ((socket (make-sa-socket/compensated)))
+    ---))
+@end example
+@end defun
+
+
+@c page
+@node misc
+@chapter Miscellaneous bindings
+
+
+@menu
+* misc constants::              Constants.
+* misc symbols::                Mapping values to symbols.
+@end menu
+
+
+@c page
+@node misc constants
+@section Constants
+
+
+The following bindings are exported by @library{ossp-sa sizeof}.
+
+
+@defvar SA_OK
+@defvarx SA_ERR_ARG
+@defvarx SA_ERR_USE
+@defvarx SA_ERR_MEM
+@defvarx SA_ERR_MTC
+@defvarx SA_ERR_EOF
+@defvarx SA_ERR_TMT
+@defvarx SA_ERR_SYS
+@defvarx SA_ERR_IMP
+@defvarx SA_ERR_INT
+Possible return values from the @sa{} foreign functions.
+@end defvar
+
+
+@defvar SA_TYPE_STREAM
+@defvarx SA_TYPE_DATAGRAM
+Socket types.
+@end defvar
+
+
+@defvar SA_OPTION_NAGLE
+@defvarx SA_OPTION_LINGER
+@defvarx SA_OPTION_REUSEADDR
+@defvarx SA_OPTION_REUSEPORT
+@defvarx SA_OPTION_NONBLOCK
+Socket options.
+@end defvar
+
+
+@defvar SA_BUFFER_READ
+@defvarx SA_BUFFER_WRITE
+Socket buffer options.
+@end defvar
+
+
+
+@c page
+@node misc symbols
+@section Mapping values to symbols
+
+
+The following bindings are exported by @library{ossp-sa sizeof}.
+
+
+@defun sa-return-value->symbol @var{retval}
+Convert a numeric @sa{} return value into its symbolic representation.
+@end defun
+
+
+@defun sa-socket-type->symbol @var{value}
+Convert a numeric @sa{} socket type value its symbolic representation.
+@end defun
+
+
+@defun sa-socket-option->symbol @var{value}
+Convert a numeric @sa{} socket option value its symbolic representation.
+@end defun
+
+
+@defun sa-buffer-option->symbol @var{value}
+Convert a numeric @sa{} socket buffer option value its symbolic
+representation.
+@end defun
 
 
 @c page
@@ -1051,7 +1207,7 @@ This @api{} part provides operations for the creation and
 destruction of socket abstraction @code{sa_t}.
 
 
-@deftypefun sa_rc_t sa_create sa_t ** @var{sa})
+@deftypefun sa_rc_t sa_create (sa_t ** @var{sa})
 Create a socket abstraction object.  The object is stored in @var{sa} on
 success.
 
@@ -1150,8 +1306,8 @@ the expected following argument(s) are dependent on the particular
 option.  Currently the following options are implemented (option
 arguments in parenthesis):
 
-@item @code
-@item SA_OPTION_NAGLE} (int @var{yesno})
+@table @code
+@item SA_OPTION_NAGLE (int @var{yesno})
 for enabling (@var{yesno}=1) or disabling (@var{yesno} == 0) Nagle's
 Algorithm (see RFC898 and @code{TCP_NODELAY} of setsockopt(2)).
 
@@ -1160,10 +1316,12 @@ for enabling (@var{amount} == @var{seconds} != 0) or disabling
 (@var{amount} == 0) lingering on close (see @code{SO_LINGER} of
 @code{setsockopt()}).
 
+@quotation
 Notice: using @var{seconds} > 0 results in a regular (maximum of
 @var{seconds} lasting) lingering on close while using @var{seconds} < 0
-results in the special case of a @tcp{} @acronym{RST} based
-connection termination on close.
+results in the special case of a @tcp{} @acronym{RST} based connection
+termination on close.
+@end quotation
 
 @item SA_OPTION_REUSEADDR (int @var{yesno})
 for enabling (@var{yesno} == 1) or disabling (@var{yesno} == 0) the
@@ -1178,6 +1336,7 @@ reusability of the port on binding via @code{sa_bind()} (see
 @item SA_OPTION_NONBLOCK (int @var{yesno})
 for enabling (@var{yesno} == 1) or disabling (@var{yesno} == 0)
 non--blocking I/O mode (see @code{O_NONBLOCK} of @code{fcntl()}).
+@end table
 
 Example: @code{sa_option(sa, SA_OPTION_NONBLOCK, 1);}
 @end deftypefun
@@ -1600,7 +1759,7 @@ application and is not required to be deallocated.
 @section References
 
 
-@appendixsubsec Standards
+@subsubheading Standards
 
 
 @noindent

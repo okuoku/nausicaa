@@ -318,6 +318,10 @@ the main purpose of this document is to provide an Info version.
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
+@macro urielref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-uriel}
+@end macro
+
 @macro bibref{TAG}
 @code{[\TAG\]}
 @end macro

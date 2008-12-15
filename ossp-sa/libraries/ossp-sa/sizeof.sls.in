@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/OSSP/sa interface for R6RS Scheme
 ;;;Contents: size of libraries' C language types
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-14 10:19:35 marco>
+;;;Time-stamp: <2008-12-15 16:12:41 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -71,7 +71,12 @@
     pointer-set-c-sa_rc_t!		pointer-ref-c-sa_rc_t
     pointer-set-c-sa_syscall_t!		pointer-ref-c-sa_syscall_t
     pointer-set-c-sa_timeout_t!		pointer-ref-c-sa_timeout_t
-    pointer-set-c-sa_type_t!		pointer-ref-c-sa_type_t)
+    pointer-set-c-sa_type_t!		pointer-ref-c-sa_type_t
+
+    ;; value->symbol mappers
+    sa-return-value->symbol		sa-socket-type->symbol
+    sa-socket-option->symbol		sa-buffer-option->symbol
+    sa-timeout-option->symbol)
   (import (rnrs)
     (uriel ffi)
     (uriel ffi sizeof))
@@ -140,7 +145,76 @@
   (define SA_OPTION_LINGER		@VALUEOF_SA_OPTION_LINGER@)
   (define SA_OPTION_REUSEADDR		@VALUEOF_SA_OPTION_REUSEADDR@)
   (define SA_OPTION_REUSEPORT		@VALUEOF_SA_OPTION_REUSEPORT@)
-  (define SA_OPTION_NONBLOCK		@VALUEOF_SA_OPTION_NONBLOCK@))
+  (define SA_OPTION_NONBLOCK		@VALUEOF_SA_OPTION_NONBLOCK@)
+
+  (define sa-return-values-alist
+    `((,SA_OK . SA_OK)
+      (,SA_ERR_ARG . SA_ERR_ARG)
+      (,SA_ERR_USE . SA_ERR_USE)
+      (,SA_ERR_MEM . SA_ERR_MEM)
+      (,SA_ERR_MTC . SA_ERR_MTC)
+      (,SA_ERR_EOF . SA_ERR_EOF)
+      (,SA_ERR_TMT . SA_ERR_TMT)
+      (,SA_ERR_SYS . SA_ERR_SYS)
+      (,SA_ERR_IMP . SA_ERR_IMP)
+      (,SA_ERR_INT . SA_ERR_INT)))
+
+  (define sa-socket-types-alist
+    `((,SA_TYPE_STREAM . SA_TYPE_STREAM)
+      (,SA_TYPE_DATAGRAM . SA_TYPE_DATAGRAM)))
+
+  (define sa-socket-options-alist
+    `((,SA_OPTION_NAGLE SA_OPTION_NAGLE)
+      (,SA_OPTION_LINGER SA_OPTION_LINGER)
+      (,SA_OPTION_REUSEADDR SA_OPTION_REUSEADDR)
+      (,SA_OPTION_REUSEPORT SA_OPTION_REUSEPORT)
+      (,SA_OPTION_NONBLOCK SA_OPTION_NONBLOCK)))
+
+  (define sa-buffer-options-alist
+    `((,SA_BUFFER_READ SA_BUFFER_READ)
+      (,SA_BUFFER_WRITE SA_BUFFER_WRITE)))
+
+  (define sa-timeout-options-alist
+    `((,SA_TIMEOUT_ALL . SA_TIMEOUT_ALL)
+      (,SA_TIMEOUT_ACCEPT . SA_TIMEOUT_ACCEPT)
+      (,SA_TIMEOUT_CONNECT . SA_TIMEOUT_CONNECT)
+      (,SA_TIMEOUT_READ . SA_TIMEOUT_READ)
+      (,SA_TIMEOUT_WRITE . SA_TIMEOUT_WRITE)))
+
+  (define (sa-return-value->symbol retval)
+    (let ((pair (assq retval sa-return-values-alist)))
+      (if pair
+	  (cdr pair)
+	(assertion-violation 'sa-return-value->symbol
+	  "unknown SA return value" retval))))
+
+  (define (sa-socket-type->symbol value)
+    (let ((pair (assq value sa-socket-types-alist)))
+      (if pair
+	  (cdr pair)
+	(assertion-violation 'sa-socket-type->symbol
+	  "unknown SA socket type" value))))
+
+  (define (sa-socket-option->symbol value)
+    (let ((pair (assq value sa-socket-options-alist)))
+      (if pair
+	  (cdr pair)
+	(assertion-violation 'sa-socket-option->symbol
+	  "unknown SA socket option type" value))))
+
+  (define (sa-timeout-option->symbol value)
+    (let ((pair (assq value sa-timeout-options-alist)))
+      (if pair
+	  (cdr pair)
+	(assertion-violation 'sa-timeout-option->symbol
+	  "unknown SA socket timeout option type" value))))
+
+  (define (sa-buffer-option->symbol value)
+    (let ((pair (assq value sa-buffer-options-alist)))
+      (if pair
+	  (cdr pair)
+	(assertion-violation 'sa-buffer-option->symbol
+	  "unknown SA socket buffer option type" value)))))
 
 
 ;;; end of file

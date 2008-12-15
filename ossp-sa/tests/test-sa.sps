@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Nausicaa/OSSP/sa
-;;;Contents: tests for address structure
+;;;Contents: tests
 ;;;Date: Sun Dec 14, 2008
-;;;Time-stamp: <2008-12-15 11:36:20 marco>
+;;;Time-stamp: <2008-12-15 15:52:14 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -39,10 +39,16 @@
 (check-set-mode! 'report-failed)
 
 
-;;;; code
+;;;; address
 
 (define the-path "unix:/tmp/proof")
 (define the-addr "inet://127.0.0.1:80")
+
+(check
+    (with-compensations
+      (let ((address (make-sa-address/compensated)))
+	#f))
+  => #f)
 
 (check
     (with-compensations
@@ -55,6 +61,18 @@
       (let ((address (make-sa-address/compensated the-addr)))
 	(sa-address-ref address)))
   => the-addr)
+
+
+;;;; socket
+
+(check
+    (with-compensations
+      (let ((sock (make-sa-socket/compensated)))
+	#f))
+  => #f)
+
+
+
 
 
 ;;;; done
