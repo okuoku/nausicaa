@@ -1780,6 +1780,24 @@ implemented as:
 @end defun
 
 
+@defun pointer=? @var{pointer0} @var{pointer} ...
+@defunx pointer<? @var{pointer0} @var{pointer} ...
+@defunx pointer>? @var{pointer0} @var{pointer} ...
+@defunx pointer<=? @var{pointer0} @var{pointer} ...
+@defunx pointer>=? @var{pointer0} @var{pointer} ...
+@defunx pointer<>? @var{pointer0} @var{pointer} ...
+All the arguments must be pointer values and are internally converted to
+integers.  Return @true{} if the integers satisfy the selected predicate
+(@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
+@false{}.  @func{pointer<>?} returns @true{} if all the pointers are
+different.
+
+With the single exception of @func{pointer<>?}: all the functions return
+@true{} when applied to a single argument.
+@end defun
+
+
+
 @c page
 @node memory blocks
 @section Memory blocks

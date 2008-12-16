@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-16 16:44:05 marco>
+;;;Time-stamp: <2008-12-16 21:09:19 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -38,7 +38,208 @@
 (check-set-mode! 'report-failed)
 
 
-;;;; memory allocation and accessors
+;;;; pointers
+
+(parameterize ((testname 'pointer))
+
+  (check
+      (pointer->integer (integer->pointer 123))
+    => 123)
+
+  (check
+      (pointer->integer (integer->pointer 0))
+    => 0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((i 123)
+	     (p (integer->pointer i)))
+	(pointer? p))
+    => #t)
+
+  (check
+      (pointer? 123)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer-null? pointer-null)
+    => #t)
+
+  (check
+      (pointer-null? (integer->pointer 0))
+    => #t)
+
+  (check
+      (pointer-null? (integer->pointer 123))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer-diff (integer->pointer 123) (integer->pointer 120))
+    => 3)
+
+  (check
+      (pointer-diff (integer->pointer 118) (integer->pointer 120))
+    => -2)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer-add (integer->pointer 100) 23)
+    (=> pointer=?) (integer->pointer 123))
+
+  (check
+      (pointer-add (integer->pointer 100) -23)
+    (=> pointer=?) (integer->pointer 77))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer=? (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer=? (integer->pointer 123)
+		 (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer=? (integer->pointer 123)
+		 (integer->pointer 123)
+		 (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer=? (integer->pointer 123)
+		 (integer->pointer 456)
+		 (integer->pointer 456))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer<? (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer<? (integer->pointer 123)
+		 (integer->pointer 123))
+    => #f)
+
+  (check
+      (pointer<? (integer->pointer 123)
+		 (integer->pointer 456)
+		 (integer->pointer 789))
+    => #t)
+
+  (check
+      (pointer<? (integer->pointer 123)
+		 (integer->pointer 456)
+		 (integer->pointer 1))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer>? (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer>? (integer->pointer 123)
+		 (integer->pointer 123))
+    => #f)
+
+  (check
+      (pointer>? (integer->pointer 789)
+		 (integer->pointer 456)
+		 (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer>? (integer->pointer 123)
+		 (integer->pointer 456)
+		 (integer->pointer 1))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer<=? (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer<=? (integer->pointer 123)
+		  (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer<=? (integer->pointer 123)
+		  (integer->pointer 456)
+		  (integer->pointer 789))
+    => #t)
+
+  (check
+      (pointer<=? (integer->pointer 123)
+		  (integer->pointer 456)
+		  (integer->pointer 1))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer>=? (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer>=? (integer->pointer 123)
+		  (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer>=? (integer->pointer 789)
+		  (integer->pointer 456)
+		  (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer>=? (integer->pointer 123)
+		  (integer->pointer 456)
+		  (integer->pointer 1))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (pointer<>? (integer->pointer 123))
+    => #f)
+
+  (check
+      (pointer<>? (integer->pointer 123)
+		  (integer->pointer 123))
+    => #f)
+
+  (check
+      (pointer<>? (integer->pointer 789)
+		  (integer->pointer 456)
+		  (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer<>? (integer->pointer 123)
+		  (integer->pointer 456)
+		  (integer->pointer 1))
+    => #t)
+
+  )
+
+;;; --------------------------------------------------------------------
+
+
+;;;; memory block accessors
 
 (parameterize ((testname 'memory))
 

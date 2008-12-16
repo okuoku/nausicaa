@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-16 17:24:10 marco>
+;;;Time-stamp: <2008-12-16 21:09:33 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -43,6 +43,10 @@
     pointer-null		pointer-null?
     integer->pointer		pointer->integer
     pointer-diff		pointer-add
+
+    pointer=?			pointer<>?
+    pointer<?			pointer>?
+    pointer<=?			pointer>=?
 
     ;;memory blocks
     make-memblock		memblock?
@@ -145,6 +149,24 @@
 
 (define (pointer-null? pointer)
   (= 0 (pointer->integer pointer)))
+
+(define (pointer=? pointer . args)
+  (apply = (map pointer->integer (cons pointer args))))
+
+(define (pointer<? pointer . args)
+  (apply < (map pointer->integer (cons pointer args))))
+
+(define (pointer>? pointer . args)
+  (apply > (map pointer->integer (cons pointer args))))
+
+(define (pointer<=? pointer . args)
+  (apply <= (map pointer->integer (cons pointer args))))
+
+(define (pointer>=? pointer . args)
+  (apply >= (map pointer->integer (cons pointer args))))
+
+(define (pointer<>? pointer . args)
+  (not (apply pointer=? pointer args)))
 
 
 
