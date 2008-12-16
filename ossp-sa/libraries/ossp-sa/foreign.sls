@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: low level interface to OSSP/sa for R6RS Scheme
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-15 11:29:38 marco>
+;;;Time-stamp: <2008-12-16 10:05:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -57,7 +57,7 @@
     sa_send
 ;;; sa_sendf
     sa_error)
-  (import (rnrs)
+  (import (r6rs)
     (uriel ffi)
     (uriel ffi sizeof)
     (ossp-sa sizeof))

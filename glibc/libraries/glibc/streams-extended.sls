@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: extended stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 21:24:40 marco>
+;;;Time-stamp: <2008-12-16 10:00:50 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,7 @@
     getline primitive-getline
     getdelim primitive-getdelim
     fpurge)
-  (import (rnrs)
+  (import (r6rs)
     (uriel lang)
     (uriel ffi)
     (srfi receive)

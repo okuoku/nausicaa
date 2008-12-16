@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/Zlib
 dnl Contents: configuration template
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-13 08:27:07 marco>
+dnl Time-stamp: <2008-12-16 10:25:02 marco>
 dnl
 dnl Abstract
 dnl
@@ -34,6 +34,7 @@ dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-zlib],[0.1d0])
 NAUSICAA_BEGIN
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
 NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE
@@ -128,7 +129,6 @@ dnl Done.
 dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../libraries/zlib/sizeof.sls:libraries/zlib/sizeof.sls.in])
-AC_CONFIG_FILES([../libraries/zlib/fields.sls:libraries/zlib/fields.sls.in])
 NAUSICAA_END
 
 

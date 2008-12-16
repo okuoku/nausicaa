@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/SOS
 ;;;Contents: object system for R6RS
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-12 11:02:14 marco>
+;;;Time-stamp: <2008-12-16 10:11:16 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -43,7 +43,7 @@
     class-slots
 
     )
-  (import (rnrs)
+  (import (r6rs)
     (srfi lists))
 
 

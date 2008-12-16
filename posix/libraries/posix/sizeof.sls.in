@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: size of definitions
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-07 18:37:49 marco>
+;;;Time-stamp: <2008-12-16 10:09:16 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,12 +26,16 @@
 
 (library (posix sizeof)
   (export
+
+    ;; types
     mode_t		pointer-set-c-mode_t!	pointer-ref-c-mode_t
     off_t		pointer-set-c-off_t!	pointer-ref-c-off_t
     pid_t		pointer-set-c-pid_t!	pointer-ref-c-pid_t
 
+    ;; sizes
     sizeof-struct-flock
 
+    ;; constants
     O_ACCMODE		O_CREAT		O_EXCL
     O_EXEC		O_EXLOCK	O_IGNORE_CTTY
     O_NOCTTY		O_NOLINK	O_NONBLOCK
@@ -50,6 +54,13 @@
     F_RDLCK		F_WRLCK		F_UNLCK
 
     SEEK_SET		SEEK_CUR	SEEK_END
+
+    ;;struct accessors
+    struct-flock-l_type-set!		struct-flock-l_type-ref
+    struct-flock-l_whence-set!		struct-flock-l_whence-ref
+    struct-flock-l_start-set!		struct-flock-l_start-ref
+    struct-flock-l_len-set!		struct-flock-l_len-ref
+    struct-flock-l_pid-set!		struct-flock-l_pid-ref
     )
   (import (rnrs)
     (uriel ffi))
@@ -112,6 +123,43 @@
   (define SEEK_SET			@VALUEOF_SEEK_SET@)
   (define SEEK_CUR			@VALUEOF_SEEK_CUR@)
   (define SEEK_END			@VALUEOF_SEEK_END@)
+
+
+  (define-c-struct-accessors
+    struct-flock-l_type-set!
+    struct-flock-l_type-ref
+    @OFFSETOF_STRUCT_FLOCK_L_TYPE@
+    @SETTEROF_STRUCT_FLOCK_L_TYPE@
+    @GETTEROF_STRUCT_FLOCK_L_TYPE@)
+
+  (define-c-struct-accessors
+    struct-flock-l_whence-set!
+    struct-flock-l_whence-ref
+    @OFFSETOF_STRUCT_FLOCK_L_WHENCE@
+    @SETTEROF_STRUCT_FLOCK_L_WHENCE@
+    @GETTEROF_STRUCT_FLOCK_L_WHENCE@)
+
+  (define-c-struct-accessors
+    struct-flock-l_start-set!
+    struct-flock-l_start-ref
+    @OFFSETOF_STRUCT_FLOCK_L_START@
+    @SETTEROF_STRUCT_FLOCK_L_START@
+    @GETTEROF_STRUCT_FLOCK_L_START@)
+
+  (define-c-struct-accessors
+    struct-flock-l_len-set!
+    struct-flock-l_len-ref
+    @OFFSETOF_STRUCT_FLOCK_L_LEN@
+    @SETTEROF_STRUCT_FLOCK_L_LEN@
+    @GETTEROF_STRUCT_FLOCK_L_LEN@)
+
+  (define-c-struct-accessors
+    struct-flock-l_pid-set!
+    struct-flock-l_pid-ref
+    @OFFSETOF_STRUCT_FLOCK_L_PID@
+    @SETTEROF_STRUCT_FLOCK_L_PID@
+    @GETTEROF_STRUCT_FLOCK_L_PID@)
+
   )
 
 ;;; end of file

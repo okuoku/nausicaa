@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: printing functions for Ypsilon
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 07:18:15 marco>
+;;;Time-stamp: <2008-12-16 10:14:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,26 +24,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-
-;;;; setup
-
 (library (uriel printing compat)
   (export
     pretty-print format)
   (import (rnrs)
-    (only (core) format pretty-print))
-
-;;; --------------------------------------------------------------------
-
-
-;;;; code
-
-
-
-
-;;;; done
-
-)
+    (only (core) format pretty-print)))
 
 ;;; end of file

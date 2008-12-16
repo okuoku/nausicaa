@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-07 13:52:52 marco>
+;;;Time-stamp: <2008-12-16 10:13:54 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -42,7 +42,7 @@
     valueof-long-long-max	valueof-long-long-min	valueof-ulong-long-max
     valueof-wchar-max		valueof-ssize-max
     words-bigendian		on-64-bits-system	on-32-bits-system)
-  (import (rnrs))
+  (import (r6rs))
 
   (define sizeof-signed-char		@SIZEOF_CHAR@)
   (define sizeof-unsigned-char		@SIZEOF_CHAR@)

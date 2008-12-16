@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: size of Glibc definitions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 07:24:34 marco>
+;;;Time-stamp: <2008-12-16 10:00:43 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,14 +27,12 @@
 (library (glibc sizeof)
   (export
     valueof-eof
-    valueof-seek-set valueof-seek-cur valueof-seek-end
-    )
-  (import (rnrs))
+    valueof-seek-set valueof-seek-cur valueof-seek-end)
+  (import (r6rs))
 
   (define valueof-eof		@VALUEOF_EOF@)
   (define valueof-seek-set	@VALUEOF_SEEK_SET@)
   (define valueof-seek-cur	@VALUEOF_SEEK_CUR@)
-  (define valueof-seek-end	@VALUEOF_SEEK_END@)
-  )
+  (define valueof-seek-end	@VALUEOF_SEEK_END@))
 
 ;;; end of file

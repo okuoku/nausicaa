@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: interface to POSIX getenv
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 09:17:11 marco>
+;;;Time-stamp: <2008-12-16 10:12:24 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,7 +26,7 @@
 
 (library (uriel getenv)
   (export getenv)
-  (import (rnrs)
+  (import (r6rs)
     (uriel getenv compat)))
 
 ;;; end of file

@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: interface to unlocked stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-05 11:33:40 marco>
+;;;Time-stamp: <2008-12-16 10:01:04 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -41,7 +41,7 @@
     feof_unlocked		primitive-feof_unlocked
 
     fileno_unlocked		primitive-fileno_unlocked)
-  (import (rnrs)
+  (import (r6rs)
     (srfi receive)
     (uriel lang)
     (rename (uriel ffi)

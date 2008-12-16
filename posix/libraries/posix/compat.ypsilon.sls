@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to POSIX functions for Ypsilon
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-03 11:49:12 marco>
+;;;Time-stamp: <2008-12-16 10:08:07 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,7 +27,7 @@
 (library (posix compat)
   (export
     (rename (getenv primitive-getenv)))
-  (import (rnrs)
+  (import (r6rs)
     (core)))
 
 

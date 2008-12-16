@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-05 11:00:16 marco>
+;;;Time-stamp: <2008-12-16 10:00:58 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -52,7 +52,7 @@
 
     valueof-eof		valueof-seek-set
     valueof-seek-cur	valueof-seek-end)
-  (import (rnrs)
+  (import (r6rs)
     (srfi receive)
     (rename (uriel ffi)
 	    (string-or-symbol->cstring/compensated s->c))

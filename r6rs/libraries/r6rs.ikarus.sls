@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: stub library to make Ikarus R6RS compliant
 ;;;Date: Tue Dec  9, 2008
-;;;Time-stamp: <2008-12-16 08:16:49 marco>
+;;;Time-stamp: <2008-12-16 10:20:54 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -293,8 +293,7 @@
     exit
     exp
     expt
-;;; this is an auxiliary syntax
-;;;    fields
+    fields
     file-exists?
     file-options
     filter
@@ -446,8 +445,7 @@
     identifier?
     if
     imag-part
-;;; this is an auxiliary syntax
-;;;    immutable
+    immutable
     implementation-restriction-violation?
     inexact
 ;;; this is in (rnrs r5rs (6))
@@ -542,8 +540,7 @@
     mod0
 ;;; this is in (rnrs r5rs (6))
 ;;;    modulo
-;;; this is an auxiliary syntax
-;;;    mutable
+    mutable
     nan?
     native-endianness
     native-eol-style
@@ -553,8 +550,7 @@
     no-infinities-violation?
     no-nans-violation?
     non-continuable-violation?
-;;; this is an auxiliary syntax
-;;;    nongenerative
+    nongenerative
     not
 ;;; this is in (rnrs r5rs (6))
 ;;;    null-environment
@@ -563,8 +559,7 @@
     number?
     numerator
     odd?
-;;; this is an auxiliary syntax
-;;;    opaque
+    opaque
     open-bytevector-input-port
     open-bytevector-output-port
     open-file-input-port
@@ -578,10 +573,8 @@
     output-port-buffer-mode
     output-port?
     pair?
-;;; this is an auxiliary syntax
-;;;    parent
-;;; this is an auxiliary syntax
-;;;    parent-rtd
+    parent
+    parent-rtd
     partition
     peek-char
     port-eof?
@@ -592,8 +585,7 @@
     port?
     positive?
     procedure?
-;;; this is an auxiliary syntax
-;;;    protocol
+    protocol
     put-bytevector
     put-char
     put-datum
@@ -642,8 +634,7 @@
     round
 ;;; this is in (rnrs r5rs (6))
 ;;;    scheme-report-environment
-;;; this is an auxiliary syntax
-;;;    sealed
+    sealed
     serious-condition?
     set!
 ;;; these are in (rnrs mutable-pairs (6))

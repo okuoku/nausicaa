@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: test for file descriptors library
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-08 09:31:14 marco>
+;;;Time-stamp: <2008-12-16 10:23:44 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +28,7 @@
 
 ;;;; setup
 
-(import (except (rnrs) read write)
+(import (except (r6rs) read write)
   (uriel lang)
   (uriel printing)
   (uriel test)
@@ -39,8 +39,7 @@
   (srfi parameters)
   (only (string-lib) string-join)
   (posix fd)
-  (posix sizeof)
-  (posix fields))
+  (posix sizeof))
 
 (check-set-mode! 'report-failed)
 

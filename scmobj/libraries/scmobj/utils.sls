@@ -34,7 +34,7 @@
     prepend-to-slot append-to-slot
     with-slots-set! with-slots-ref
     with-slots)
-  (import (rnrs)
+  (import (r6rs)
     (scmobj))
 
 ;;; --------------------------------------------------------------------

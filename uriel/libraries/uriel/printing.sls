@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: printing functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 18:36:19 marco>
+;;;Time-stamp: <2008-12-16 10:12:51 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +31,7 @@
 (library (uriel printing)
   (export
     print pretty-print)
-  (import (rnrs)
+  (import (r6rs)
     (uriel printing compat))
 
 

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPZ numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-11 16:41:09 marco>
+;;;Time-stamp: <2008-12-16 10:04:41 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +28,7 @@
 
 ;;;; setup
 
-(import (rnrs)
+(import (r6rs)
   (uriel lang)
   (uriel ffi)
   (uriel printing)

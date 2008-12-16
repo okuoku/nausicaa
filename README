@@ -21,8 +21,9 @@ Topics
 1. Introduction
 ---------------
 
-This  is a  distribution  of Scheme  language libraries  for
-Ikarus Scheme.
+This is a distribution of Scheme language libraries for R6RS
+Scheme  implementations.  Currently  it attempts  to support
+Ypsilon and Ikarus.
 
 
 1.1 About 'Nausicaa'
@@ -48,6 +49,11 @@ directories for  the COPYING  file, and occasionally  at the
 top of each  file, where there is a  specific license notice
 and copyright assignment.
 
+  Only Software Libre libraries are included.  Used licenses
+are the  GNU General Public License, the  GNU Lesser General
+Public License,  the BSD license, the BSD  like license, the
+GNU Free Documentation License.
+
 
 3. Installation
 ---------------
@@ -63,13 +69,13 @@ README files; the  Nausicaa overall documentation in Texinfo
 format, which is available in the "doc" subdirectory.
 
   To  use  the  Nausicaa  libraries  you  must  install  the
-packages  of the Nausicaa/SRFI  and Uriel  projects, because
-most of the projects depend  on them.  For some projects the
-Uriel  package  is required  only  to  run  the test  suite.
+packages    of   the   Nausicaa/R6RS,    Nausicaa/SRFI   and
+Nausicaa/Uriel  projects.   For   some  projects  the  Uriel
+package is required only to run the test suite.
 
   Notice  that  Nausicaa will  not  work  with the  Xitomatl
 distribution of  SRFI libraries, because  they are installed
-with exprot specification "(xitomatl srfi ---)" which is not
+with export specification "(xitomatl srfi ---)" which is not
 used as import specification by Nausicaa's libraries.
 
   For your own safety,  take this advice: never, ever, drive
@@ -109,15 +115,16 @@ resources).
   Notice that:
 
 * both the  library source files (.sls)  and the precompiled
-  files  (.ikarus-fasl)  are   installed  in  the  directory
-  selected by the  "pkglibdir" Makefile variable; by default
-  this  variable is set  to "$(libdir)/scheme",  which means
-  that without touching the configuration the files will end
-  up in:
+  files  (for  example .ikarus-fasl)  are  installed in  the
+  directory selected  by the "pkglibdir"  Makefile variable;
+  by  default this  variable is  set  to "$(libdir)/scheme",
+  which  means that without  touching the  configuration the
+  files will end up in:
 
      /usr/local/lib/scheme
 
-  be sure to update your search path environment variable;
+  be sure to update accordingly the libraries search path of
+  the Scheme implementation you are using;
 
 * currently,  among  the  supported Scheme  implementations,
   only Ikarus  Scheme can optionally  use precompiled Scheme
@@ -133,7 +140,7 @@ resources).
 
     $ ikarus --compile-dependencies
 
-  Ikarus  traverses  the graph  of  libraries attmepting  to
+  Ikarus  traverses  the graph  of  libraries attempting  to
   precompile all  the uncompiled ones; this  means that also
   libraries that are installed  along with Ikarus have to be
   precompiled; the  Ikarus distribution does  not precompile
@@ -163,16 +170,21 @@ Scheme.  The report is the work of many people in the course
 of many  years.  Revision 6  was edited by  Michael Sperber,
 R. Kent Dybvig, Matthew Flatt and Anton Van Straaten.
 
-  Ikarus is  an R6RS compliant implementation  of the Scheme
-programming  language.   It  is  the creation  of  Abdulaziz
-Ghuloum (<http://www.cs.indiana.edu/~aghuloum/>).
-
-  Several libraries depend upon  the port to R6RS and Ikarus
-of  the  Scheme  Requests  For Implementation  (SRFI).   The
-original SRFI code is the work of many authors, reference of
-which you can find the at  the top of the source code files;
-the  port  to  Ikarus   is  the  work  of  Derick  Eddington
+  Several  libraries depend  upon the  port to  R6RS  of the
+Scheme  Requests For  Implementation  (SRFI).  The  original
+SRFI code  is the work  of many authors, reference  of which
+you can  find the at the  top of the source  code files; the
+port   to   R6RS   is   the   work   of   Derick   Eddington
 (<https://launchpad.net/~derick-eddington>).
+
+  Ypsilon is an R6RS  compliant implementation of the Scheme
+programming  language.   It is  the  creation of  Yoshikatsu
+Fujita            at            LittleWing           Company
+(<http://www.littlewingpinball.com/contents/en/index.html>).
+
+  Ikarus is  an almost R6RS compliant  implementation of the
+Scheme  programming   language.   It  is   the  creation  of
+Abdulaziz Ghuloum (<http://www.cs.indiana.edu/~aghuloum/>).
 
   The Nausicaa  distribution and installation infrastructure
 is the  creation of Marco  Maggi (<marcomaggi@gna.org>).  If
@@ -202,6 +214,10 @@ The R6RS documents are available at:
 the SRFI documents are available at:
 
                 <http://srfi.schemers.org/>
+
+Ypsilon Scheme can be downloaded from:
+
+	    <http://code.google.com/p/ypsilon/>
 
 Ikarus Scheme can be downloaded from:
 

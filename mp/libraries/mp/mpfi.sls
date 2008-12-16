@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to MPFI numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-10 11:46:46 marco>
+;;;Time-stamp: <2008-12-16 10:03:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -187,7 +187,7 @@
     mpfi_reset_error
     mpfi_set_error
     mpfi_is_error)
-  (import (rnrs)
+  (import (r6rs)
     (uriel lang)
     (uriel ffi)
     (uriel ffi sizeof)

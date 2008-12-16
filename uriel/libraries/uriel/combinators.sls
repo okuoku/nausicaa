@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: combinators
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-24 06:51:45 marco>
+;;;Time-stamp: <2008-12-16 10:12:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +31,7 @@
 (library (uriel combinators)
   (export
       K Y S)
-  (import (rnrs)
+  (import (r6rs)
     (uriel lang))
 
 

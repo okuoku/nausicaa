@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: printing functions for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 07:17:11 marco>
+;;;Time-stamp: <2008-12-16 10:14:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,25 +24,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-
-;;;; setup
-
 (library (uriel printing compat)
   (export
     pretty-print format)
   (import (rnrs)
-    (only (ikarus) pretty-print format))
-
-;;; --------------------------------------------------------------------
-
-
-;;;; code
-
-
-
-;;;; done
-
-)
+    (only (ikarus) pretty-print format)))
 
 ;;; end of file

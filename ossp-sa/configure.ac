@@ -1,12 +1,50 @@
-# configure.ac --
-#
+dnl
+dnl Part of: Nausicaa/OSSP/sa
+dnl Contents: configuration template file
+dnl Date: Tue Dec 16, 2008
+dnl Time-stamp: <2008-12-16 10:07:13 marco>
+dnl
+dnl Abstract
+dnl
+dnl
+dnl
+dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+dnl
+dnl This  program  is free  software:  you  can redistribute  it
+dnl and/or modify it  under the terms of the  GNU General Public
+dnl License as published by the Free Software Foundation, either
+dnl version  3 of  the License,  or (at  your option)  any later
+dnl version.
+dnl
+dnl This  program is  distributed in  the hope  that it  will be
+dnl useful, but  WITHOUT ANY WARRANTY; without  even the implied
+dnl warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
+dnl PURPOSE.   See  the  GNU  General Public  License  for  more
+dnl details.
+dnl
+dnl You should  have received a  copy of the GNU  General Public
+dnl License   along   with    this   program.    If   not,   see
+dnl <http://www.gnu.org/licenses/>.
+dnl
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Setup.
+dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-ossp-sa],[0.1d0])
 NAUSICAA_BEGIN
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_r6rs],[(r6rs)])
 NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
+
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Custom macros.
+dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_SA_INSPECT_TYPE],
   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <sa.h>])])
@@ -16,6 +54,12 @@ AC_DEFUN([NAU_SA_VALUEOF_TEST],
 
 AC_DEFUN([NAU_SA_SIZEOF_TEST],
   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <sa.h>])])
+
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Inspection.
+dnl --------------------------------------------------------------------
 
 dnl Return types.
 NAU_SA_INSPECT_TYPE([SA_RC_T],[sa_rc_t],[signed-int])
@@ -67,6 +111,11 @@ NAU_SA_VALUEOF_TEST([SA_SYSCALL_READ],[SA_SYSCALL_READ])
 NAU_SA_VALUEOF_TEST([SA_SYSCALL_WRITE],[SA_SYSCALL_WRITE])
 NAU_SA_VALUEOF_TEST([SA_SYSCALL_RECVFROM],[SA_SYSCALL_RECVFROM])
 NAU_SA_VALUEOF_TEST([SA_SYSCALL_SENDTO],[SA_SYSCALL_SENDTO])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Done.
+dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../libraries/ossp-sa/sizeof.sls:libraries/ossp-sa/sizeof.sls.in])
 NAUSICAA_END

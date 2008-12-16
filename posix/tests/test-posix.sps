@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for the basic POSIX interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-05 11:19:49 marco>
+;;;Time-stamp: <2008-12-16 10:23:31 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +28,7 @@
 
 ;;;; setup
 
-(import (rnrs)
+(import (r6rs)
   (uriel printing)
   (uriel test)
   (uriel ffi)

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: test for streams
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-04 21:22:37 marco>
+;;;Time-stamp: <2008-12-16 10:04:59 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +28,7 @@
 
 ;;;; setup
 
-(import (rnrs)
+(import (r6rs)
   (uriel lang)
   (uriel printing)
   (uriel test)

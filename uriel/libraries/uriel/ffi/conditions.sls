@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: condition types definitions
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-03 07:50:10 marco>
+;;;Time-stamp: <2008-12-16 10:13:31 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -41,7 +41,7 @@
     (rename (make-errno-condition* make-errno-condition))
     errno-condition?
     errno-numeric-value errno-symbolic-value)
-  (import (rnrs)
+  (import (r6rs)
     (uriel ffi errno))
 
   (define-condition-type &out-of-memory &error

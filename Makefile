@@ -34,6 +34,7 @@
 PKG_ID			= nausicaa-$(shell cat tag)
 
 PROJECTS	= \
+			r6rs		\
 			srfi		\
 			uriel		\
 			irregex		\

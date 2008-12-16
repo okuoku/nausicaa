@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Zlib
 ;;;Contents: Zlib interface for R6RS Scheme
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-09 16:50:15 marco>
+;;;Time-stamp: <2008-12-16 10:16:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -120,13 +120,12 @@
     Z_DEFLATED
 
     Z_NULL)
-  (import (rnrs)
+  (import (r6rs)
     (srfi receive)
     (uriel lang)
     (uriel ffi)
     (uriel ffi sizeof)
-    (zlib sizeof)
-    (zlib fields))
+    (zlib sizeof))
 
 (define zlib
   (let ((o (open-shared-object 'libz.so)))

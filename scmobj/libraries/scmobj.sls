@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-12-09 21:07:56 marco>
+;;;Time-stamp: <2008-12-16 10:10:28 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -64,9 +64,8 @@
 
     ;;Next method interface.
     call-next-method next-method?)
-  (import (rnrs)
+  (import (r6rs)
     (rnrs mutable-pairs (6))
-;;    (only (ikarus) pretty-print printf)
     (srfi lists)
     (srfi parameters))
 

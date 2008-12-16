@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to MPC
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-13 13:35:05 marco>
+;;;Time-stamp: <2008-12-16 10:03:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -115,7 +115,7 @@
 
     MPC_RND_RE MPC_RND_IM MPC_INEX_POS MPC_INEX_NEG MPC_INEX
     MPC_INEX_RE MPC_INEX_IM)
-  (import (rnrs)
+  (import (r6rs)
     (uriel lang)
     (uriel ffi)
     (uriel ffi sizeof)

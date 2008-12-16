@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to POSIX functions for R6RS Scheme
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-05 09:19:12 marco>
+;;;Time-stamp: <2008-12-16 10:07:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -39,7 +39,7 @@
     chdir primitive-chdir
 
     )
-  (import (rnrs)
+  (import (r6rs)
     (posix compat)
     (uriel lang)
     (uriel ffi)

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to the MPFR library
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-10 11:19:27 marco>
+;;;Time-stamp: <2008-12-16 10:03:28 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -275,7 +275,7 @@
 ;;; mpfr_get_ld_2exp
 ;;; mpfr_set_ld
     )
-  (import (rnrs)
+  (import (r6rs)
     (uriel lang)
     (uriel ffi)
     (uriel ffi sizeof)

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: values of the errno constants
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-03 07:27:50 marco>
+;;;Time-stamp: <2008-12-16 10:13:38 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -74,7 +74,7 @@
     ETOOMANYREFS	ETXTBSY		EUCLEAN
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL)
-  (import (rnrs)
+  (import (r6rs)
     (srfi lists))
 
   (define E2BIG			@VALUEOF_E2BIG@)

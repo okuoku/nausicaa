@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: guarded memory allocation
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-04 17:30:52 marco>
+;;;Time-stamp: <2008-12-16 10:13:46 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,7 +27,7 @@
 (library (uriel ffi guarded-malloc)
   (export
     malloc/guarded calloc/guarded)
-  (import (rnrs)
+  (import (r6rs)
     (uriel ffi)
     (uriel cleanup)
     (only (ikarus) make-guardian))

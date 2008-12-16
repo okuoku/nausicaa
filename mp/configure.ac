@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/IrRegex
 dnl Contents: configuration template file
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-13 08:24:56 marco>
+dnl Time-stamp: <2008-12-16 10:02:59 marco>
 dnl
 dnl Abstract
 dnl
@@ -34,6 +34,7 @@ dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-mp],[0.1d0])
 NAUSICAA_BEGIN
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
 NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE

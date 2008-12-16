@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPF functions
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-11-29 21:41:37 marco>
+;;;Time-stamp: <2008-12-16 10:03:37 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -91,7 +91,7 @@
     mpf_urandomb
     mpf_set_default_prec
     mpf_get_default_prec)
-  (import (rnrs)
+  (import (r6rs)
     (uriel ffi)
     (mp sizeof))
 

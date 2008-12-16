@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-12-07 18:12:16 marco>
+;;;Time-stamp: <2008-12-16 10:12:39 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -43,13 +43,9 @@
     with-output-to-string
 
     ;;miscellaneous
-    symbol->string/maybe
-
-;;;    equal-hash
-    )
-  (import (rnrs)
+    symbol->string/maybe)
+  (import (r6rs)
     (uriel void)
-;;;    (uriel equal-hash)
     (srfi parameters))
 
 

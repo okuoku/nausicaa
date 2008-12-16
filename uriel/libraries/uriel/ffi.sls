@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-11 18:24:01 marco>
+;;;Time-stamp: <2008-12-16 10:12:18 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -93,7 +93,7 @@
     ;;foreign struct accessors
     define-c-struct-accessors)
 
-  (import (rnrs)
+  (import (r6rs)
     (uriel lang)
     (uriel printing)
     (uriel ffi compat)
@@ -114,18 +114,17 @@
 
 (define-syntax make-c-function
   (lambda (use-stx)
-    (define list-of-types
-      '(void
-	char schar signed-char uchar unsigned-char
-	int signed-int ssize_t uint unsigned unsigned-int size_t
-	long signed-long ulong unsigned-long float double
-	pointer void* char* FILE* callback))
-
+    ;;*WARNING* This function MUST be in  the body of the macro.  Do not
+    ;;factorise it out.
     (define (quote-if-predefined-type arg-stx)
-      (if (memq (syntax->datum arg-stx) list-of-types)
+      (if (memq (syntax->datum arg-stx)
+		'(void
+		  char schar signed-char uchar unsigned-char
+		  int signed-int ssize_t uint unsigned unsigned-int size_t
+		  long signed-long ulong unsigned-long float double
+		  pointer void* char* FILE* callback))
 	  (list (syntax quote) arg-stx)
 	arg-stx))
-
     (syntax-case use-stx ()
       ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
        (with-syntax
@@ -138,18 +137,17 @@
 
 (define-syntax make-c-function/with-errno
   (lambda (use-stx)
-    (define list-of-types
-      '(void
-	char schar signed-char uchar unsigned-char
-	int signed-int ssize_t uint unsigned unsigned-int size_t
-	long signed-long ulong unsigned-long float double
-	pointer void* char* FILE* callback))
-
+    ;;*WARNING* This function MUST be in  the body of the macro.  Do not
+    ;;factorise it out.
     (define (quote-if-predefined-type arg-stx)
-      (if (memq (syntax->datum arg-stx) list-of-types)
+      (if (memq (syntax->datum arg-stx)
+		'(void
+		  char schar signed-char uchar unsigned-char
+		  int signed-int ssize_t uint unsigned unsigned-int size_t
+		  long signed-long ulong unsigned-long float double
+		  pointer void* char* FILE* callback))
 	  (list (syntax quote) arg-stx)
 	arg-stx))
-
     (syntax-case use-stx ()
       ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
        (with-syntax

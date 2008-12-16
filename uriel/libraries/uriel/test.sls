@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-12-09 07:38:34 marco>
+;;;Time-stamp: <2008-12-16 10:13:04 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,7 +35,7 @@
     check-for-true
     (rename (check-it check)) check-report check-ec check-set-mode!
     testname)
-  (import (rnrs)
+  (import (r6rs)
     (srfi parameters)
     (srfi lightweight-testing)
     (only (string-lib) string-suffix? string-prefix?)

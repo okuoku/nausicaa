@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: cleanup functions
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-11-24 16:33:47 marco>
+;;;Time-stamp: <2008-12-16 10:12:00 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,7 +33,7 @@
     uriel-cleanup
     uriel-register-cleanup-function
     uriel-forget-cleanup-function)
-  (import (rnrs))
+  (import (r6rs))
 
 
 ;;;; code

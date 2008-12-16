@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: environment functions
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-05 11:18:13 marco>
+;;;Time-stamp: <2008-12-16 10:00:28 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,7 +27,7 @@
 (library (glibc environment)
   (export
     clearenv)
-  (import (rnrs)
+  (import (r6rs)
     (uriel ffi))
 
   ;;Look for other functions in the "(posix)" library!!!

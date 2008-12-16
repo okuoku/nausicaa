@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPQ functions
 ;;;Date: Fri Nov 28, 2008
-;;;Time-stamp: <2008-12-13 13:34:24 marco>
+;;;Time-stamp: <2008-12-16 10:03:43 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -58,7 +58,7 @@
     mpq_set_z
     mpq_sub
     mpq_swap)
-  (import (rnrs)
+  (import (r6rs)
     (uriel ffi)
     (mp sizeof)
     (mp mpz))

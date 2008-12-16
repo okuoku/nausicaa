@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/
 ;;;Contents: interface to POSIX functions for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-03 11:50:27 marco>
+;;;Time-stamp: <2008-12-16 10:07:57 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,7 +27,7 @@
 (library (posix compat)
   (export
     (rename (getenv primitive-getenv)))
-  (import (rnrs)
+  (import (r6rs)
     (only (ikarus) getenv)))
 
 ;;; end of file

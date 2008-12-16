@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPZ functions
 ;;;Date: Fri Nov 28, 2008
-;;;Time-stamp: <2008-12-03 09:08:10 marco>
+;;;Time-stamp: <2008-12-16 10:03:51 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -182,7 +182,7 @@
     (rename (mpz_jacobi mpz_legendre))
     (rename (mpz_fdiv_r_ui mpz_mod_ui))
     (rename (mpz_xor mpz_eor)))
-  (import (rnrs)
+  (import (r6rs)
     (uriel printing)
     (uriel ffi)
     (mp sizeof))

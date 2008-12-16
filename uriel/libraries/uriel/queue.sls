@@ -25,7 +25,7 @@
   (export
     sync-q! make-q q? q-empty? q-empty-check q-front q-rear
     q-remove! q-push! enq! q-pop! deq! q-length)
-  (import (rnrs)
+  (import (r6rs)
     (rnrs mutable-pairs (6))
     (list-lib))
 

@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/POSIX
 dnl Contents: configuration file template
 dnl Date: Fri Dec  5, 2008
-dnl Time-stamp: <2008-12-13 08:26:09 marco>
+dnl Time-stamp: <2008-12-16 10:09:48 marco>
 dnl
 dnl Abstract
 dnl
@@ -34,10 +34,9 @@ dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-posix],[0.1d0])
 NAUSICAA_BEGIN
-NAUSICAA_IKARUS_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-NAUSICAA_IKARUS_CHECK_LIBRARY([URIEL_LANG],[(uriel lang)])
-NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_LANG],[(uriel lang)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_LANG],[(uriel lang)])
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
@@ -143,7 +142,6 @@ dnl Done.
 dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../libraries/posix/sizeof.sls:libraries/posix/sizeof.sls.in])
-AC_CONFIG_FILES([../libraries/posix/fields.sls:libraries/posix/fields.sls.in])
 NAUSICAA_END
 
 

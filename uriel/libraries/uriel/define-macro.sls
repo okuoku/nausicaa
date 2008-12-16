@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for Ikarus
 ;;;Contents: Common Lisp style macros
 ;;;Date: Sun Nov  9, 2008
-;;;Time-stamp: <2008-11-24 06:51:57 marco>
+;;;Time-stamp: <2008-12-16 10:12:10 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,7 +29,7 @@
 
 (library (uriel define-macro)
   (export define-macro defmacro)
-  (import (rnrs))
+  (import (r6rs))
 
 
 ;;;; code

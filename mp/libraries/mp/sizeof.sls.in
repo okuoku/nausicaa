@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP libraries for R6RS Scheme
 ;;;Contents: size of libraries' C language types
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-12-12 18:04:13 marco>
+;;;Time-stamp: <2008-12-16 10:04:06 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -103,7 +103,7 @@
     struct-mpq-num-ref			struct-mpq-den-ref
     struct-mpfi-left-ref		struct-mpfi-right-ref
     struct-mpc-re-ref			struct-mpc-im-ref)
-  (import (rnrs)
+  (import (r6rs)
     (uriel ffi)
     (uriel ffi sizeof))
 

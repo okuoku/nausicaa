@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to the file descriptor libraries
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-08 09:29:48 marco>
+;;;Time-stamp: <2008-12-16 10:08:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -50,7 +50,7 @@
     dup			primitive-dup
     dup2		primitive-dup2
     )
-  (import (except (rnrs) read write)
+  (import (except (r6rs) read write)
     (srfi receive)
     (uriel lang)
     (rename (uriel ffi)

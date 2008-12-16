@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPFI numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-11 17:32:45 marco>
+;;;Time-stamp: <2008-12-16 10:04:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +28,7 @@
 
 ;;;; setup
 
-(import (rnrs)
+(import (r6rs)
   (uriel lang)
   (uriel ffi)
   (uriel test)
