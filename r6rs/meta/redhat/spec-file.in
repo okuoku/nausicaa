@@ -1,0 +1,11 @@
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
+Release: @package_BUILD_VERSION@
+Summary: more R6RS compliance for R6RS Scheme implementations
+Group: Development/Languages
+License: LGPL
+
+%description
+More R6RS compliance for R6RS Scheme implementations.
+
+%files

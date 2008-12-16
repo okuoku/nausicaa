@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: wrapper for (rnrs) that tries to be R6RS
 ;;;Date: Tue Dec  9, 2008
-;;;Time-stamp: <2008-12-09 17:08:36 marco>
+;;;Time-stamp: <2008-12-16 08:16:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -751,7 +751,6 @@
     write
     write-char
     zero?)
-  (import (except (rnrs) equal-hash)
-    (r6rs compat)))
+  (import (rnrs)))
 
 ;;; end of file
