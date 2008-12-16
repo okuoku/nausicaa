@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-12 17:50:10 marco>
+;;;Time-stamp: <2008-12-16 16:25:52 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,52 +35,9 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function primitive-make-c-function/with-errno
-
-    ;;basic memory allocation
-    primitive-free
-    malloc primitive-malloc
-    calloc primitive-calloc
-
-    ;;basic string conversion
-    strlen string->cstring cstring->string strerror
-    cstring->string/len
-
-    ;;peekers
-    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
-    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
-    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
-    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
-    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-    pointer-ref-c-float			pointer-ref-c-double
-    pointer-ref-c-pointer
-
-    ;;pokers
-    pointer-set-c-char!			pointer-set-c-short!
-    pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-long-long!		pointer-set-c-float!
-    pointer-set-c-double!		pointer-set-c-pointer!
-
-    ;;pointers
-    pointer? pointer->integer integer->pointer pointer-null?
-
-    ;;conditions
-    raise-errno-error)
-  (import (r6rs)
-    (srfi parameters)
-    (srfi format)
-    (rename (ikarus foreign)
- 	    (free primitive-free)
- 	    (malloc primitive-malloc))
-    (uriel ffi errno)
-    (uriel ffi conditions))
-
-
-
-;;;; pointers
-
-(define (pointer-null? pointer)
-  (= 0 (pointer->integer pointer)))
+    primitive-make-c-function primitive-make-c-function/with-errno)
+  (import (ikarus)
+    (ikarus foreign))
 
 
 
@@ -152,77 +109,6 @@
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
     (lambda args
       (values (apply f args) (errno)))))
-
-
-
-;;;; memory functions
-
-;;PRIMITIVE-MALLOC    and   PRIMITIVE-FREE    are   provided    by   the
-;;implementation.
-
-(define (malloc number-of-bytes)
-  (or (primitive-malloc number-of-bytes)
-      (raise-out-of-memory 'malloc number-of-bytes)))
-
-(define primitive-calloc
-  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t size_t))))
-    (lambda (count element-size)
-      (let ((p (calloc count element-size)))
-	(if (pointer-null? p) #f p)))))
-
-(define (calloc count element-size)
-  (or (primitive-calloc count element-size)
-      (raise-out-of-memory 'calloc (list count element-size))))
-
-
-
-;;;; string functions
-
-(define primitive-strerror
-  (primitive-make-c-function 'char* 'strerror '(int)))
-
-(define strlen
-  (primitive-make-c-function 'size_t 'strlen '(pointer)))
-
-(define (string->cstring s)
-  (let* ((len	(string-length s))
-	 (p	(malloc (+ 1 len)))
-	 (bv	(string->utf8 s)))
-    (pointer-set-c-char! p len 0)
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 p)
-      (pointer-set-c-char! p i (bytevector-s8-ref bv i)))))
-
-(define (cstring->string p)
-  (let* ((len	(strlen p))
-	 (bv	(make-bytevector len)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (utf8->string bv))
-      (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
-
-(define (cstring->string/len p len)
-  (let* ((bv	(make-bytevector len)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (utf8->string bv))
-      (bytevector-s8-set! bv i (pointer-ref-c-signed-char p i)))))
-
-(define (strerror code)
-  (cstring->string (primitive-strerror code)))
-
-
-
-;;;; conditions
-
-;;This is not in "conditions.sls" because it requires STRERROR.
-(define (raise-errno-error who errno irritants)
-  (raise (condition (make-who-condition who)
-		    (make-message-condition (strerror errno))
-		    (make-errno-condition errno)
-		    (make-irritants-condition irritants))))
-
 
 
 

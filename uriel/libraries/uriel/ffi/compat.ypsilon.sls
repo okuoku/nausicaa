@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-10 09:49:26 marco>
+;;;Time-stamp: <2008-12-16 13:24:49 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -42,46 +42,10 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function primitive-make-c-function/with-errno
-
-    ;;basic memory allocation
-    primitive-free
-    malloc primitive-malloc
-    calloc primitive-calloc
-
-    ;;pointers
-    pointer? integer->pointer pointer->integer pointer-null?
-
-    ;;peekers
-    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
-    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
-    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
-    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
-    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-    pointer-ref-c-float			pointer-ref-c-double
-    pointer-ref-c-pointer
-
-    ;;pokers
-    pointer-set-c-char!			pointer-set-c-short!
-    pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-long-long!		pointer-set-c-float!
-    pointer-set-c-double!		pointer-set-c-pointer!
-
-    ;;basic string conversion
-    strlen strerror
-    string->cstring
-    cstring->string cstring->string/len
-
-    ;;conditions
-    raise-errno-error)
+    primitive-make-c-function primitive-make-c-function/with-errno)
   (import (core)
     (srfi receive)
-;;; These are in (core).
-;;;    (srfi parameters)
-    (uriel ffi sizeof)
-    (uriel ffi errno)
-    (uriel ffi conditions))
-
+    (uriel ffi sizeof))
 
 
 ;;;; dynamic loading
@@ -179,28 +143,6 @@
     (else
      (assertion-violation 'make-c-function
        "unknown C language type identifier" type))))
-
-
-
-;;;; pointers
-
-(define-record-type pointer
-  (fields (immutable value)))
-
-(define (integer->pointer value)
-  (unless (integer? value)
-    (assertion-violation 'integer->pointer
-      "expected integer value" value))
-  (make-pointer value))
-
-(define (pointer->integer pointer)
-  (unless (pointer? pointer)
-    (assertion-violation 'pointer->integer
-      "expected pointer value" pointer))
-  (pointer-value pointer))
-
-(define (pointer-null? pointer)
-  (= 0 (pointer-value pointer)))
 
 
 
@@ -354,241 +296,6 @@
 				       (map (lambda (m a)
 					      (m a)) mappers args)))
 		     (shared-object-errno)))))))))
-
-
-
-;;;; memory allocation
-
-(define primitive-free
-  (primitive-make-c-function 'void 'free '(void*)))
-
-(define primitive-malloc
-  (let ((malloc (primitive-make-c-function 'void* 'malloc '(size_t))))
-    (lambda (number-of-bytes)
-      (let ((p (malloc number-of-bytes)))
-	(if (pointer-null? p) #f p)))))
-
-(define (malloc number-of-bytes)
-  (or (primitive-malloc number-of-bytes)
-      (raise-out-of-memory 'malloc number-of-bytes)))
-
-(define primitive-calloc
-  (let ((calloc (primitive-make-c-function 'void* 'calloc '(size_t size_t))))
-    (lambda (count element-size)
-      (let ((p (calloc count element-size)))
-	(if (pointer-null? p)
-	    #f
-	  p)))))
-
-(define (calloc count element-size)
-  (or (primitive-calloc count element-size)
-      (raise-out-of-memory 'calloc (list count element-size))))
-
-
-
-;;;; pokers and peekers
-
-(define (pointer-ref-c-signed-char pointer position)
-  (bytevector-s8-ref
-   (make-bytevector-mapping (pointer-value pointer)
-			    (+ 1 position))
-   position))
-
-(define (pointer-ref-c-unsigned-char pointer position)
-  (bytevector-u8-ref
-   (make-bytevector-mapping (pointer-value pointer)
-			    (+ 1 position))
-   position))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-ref-c-signed-short pointer position)
-  (bytevector-s16-ref (make-bytevector-mapping (pointer-value pointer)
-					       (+ 2 position))
-		      position (native-endianness)))
-
-(define (pointer-ref-c-unsigned-short pointer position)
-  (bytevector-u16-ref (make-bytevector-mapping (pointer-value pointer)
-					       (+ 2 position))
-		      position (native-endianness)))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-ref-c-signed-int pointer position)
-  (bytevector-s32-ref (make-bytevector-mapping (pointer-value pointer)
-					       (+ 4 position))
-		      position (native-endianness)))
-
-(define (pointer-ref-c-unsigned-int pointer position)
-  (bytevector-u32-ref (make-bytevector-mapping (pointer-value pointer)
-					       (+ 4 position))
-		      position (native-endianness)))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-ref-c-signed-long pointer position)
-  (if on-32-bits-system
-      (bytevector-s32-ref (make-bytevector-mapping (pointer-value pointer)
-						   (+ 4 position))
-			  position (native-endianness))
-    (bytevector-s64-ref (make-bytevector-mapping (pointer-value pointer)
-						 (+ 8 position))
-			position (native-endianness))))
-
-(define (pointer-ref-c-unsigned-long pointer position)
-  (if on-32-bits-system
-      (bytevector-u32-ref (make-bytevector-mapping (pointer-value pointer)
-						   (+ 4 position))
-			  position (native-endianness))
-    (bytevector-u64-ref (make-bytevector-mapping (pointer-value pointer)
-						 (+ 8 position))
-			position (native-endianness))))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-ref-c-signed-long-long pointer position)
-  (bytevector-s64-ref (make-bytevector-mapping (pointer-value pointer)
-					       (+ 8 position))
-		      position (native-endianness)))
-
-(define (pointer-ref-c-unsigned-long-long pointer position)
-  (bytevector-u64-ref (make-bytevector-mapping (pointer-value pointer)
-					       (+ 8 position))
-		      position (native-endianness)))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-ref-c-float pointer position)
-  (bytevector-ieee-single-ref (make-bytevector-mapping (pointer-value pointer)
-						       (+ 4 position))
-			      position (native-endianness)))
-
-(define (pointer-ref-c-double pointer position)
-  (bytevector-ieee-double-ref (make-bytevector-mapping (pointer-value pointer)
-						       (+ 8 position))
-			      position (native-endianness)))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-ref-c-pointer pointer position)
-  (cond ((= 4 sizeof-pointer)
-	 (make-pointer (pointer-ref-c-unsigned-int pointer position)))
-	((= 8 sizeof-pointer)
-	 (make-pointer (pointer-ref-c-unsigned-long-long pointer position)))
-	(else
-	 (assertion-violation 'pointer-ref-c-pointer
-	   "cannot determine size of pointers for peeker function"))))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-set-c-char! pointer position value)
-  (bytevector-u8-set! (make-bytevector-mapping (pointer-value pointer)
-					       (+ 1 position))
-		      position value))
-
-(define (pointer-set-c-short! pointer position value)
-  (bytevector-u16-set! (make-bytevector-mapping (pointer-value pointer)
-						(+ 4 position))
-		       position value (native-endianness)))
-
-(define (pointer-set-c-int! pointer position value)
-  (bytevector-s32-set! (make-bytevector-mapping (pointer-value pointer)
-						(+ 4 position))
-		       position value (native-endianness)))
-
-(define (pointer-set-c-long! pointer position value)
-  (if on-32-bits-system
-      (bytevector-s32-set! (make-bytevector-mapping (pointer-value pointer)
-						    (+ 4 position))
-			   position value (native-endianness))
-    (bytevector-s64-set! (make-bytevector-mapping (pointer-value pointer)
-						  (+ 8 position))
-			 position value (native-endianness))))
-
-(define (pointer-set-c-long-long! pointer position value)
-  (bytevector-s64-set! (make-bytevector-mapping (pointer-value pointer)
-						(+ 8 position))
-		       position value (native-endianness)))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-set-c-float! pointer position value)
-  (bytevector-ieee-single-set!
-   (make-bytevector-mapping (pointer-value pointer)
-			    (+ 4 position))
-   position value (native-endianness)))
-
-(define (pointer-set-c-double! pointer position value)
-  (bytevector-ieee-double-set!
-   (make-bytevector-mapping (pointer-value pointer)
-			    (+ 8 position))
-   position value (native-endianness)))
-
-;;; --------------------------------------------------------------------
-
-(define (pointer-set-c-pointer! pointer position the-pointer)
-  (cond ((= 4 sizeof-pointer)
-	 (bytevector-u32-set! (make-bytevector-mapping (pointer-value pointer)
-						       (+ 4 position))
-			      position (pointer-value the-pointer)
-			      (native-endianness)))
-	((= 8 sizeof-pointer)
-	 (bytevector-u64-set! (make-bytevector-mapping (pointer-value pointer)
-						       (+ 8 position))
-			      position (pointer-value the-pointer)
-			      (native-endianness)))
-	(else
-	 (assertion-violation 'pointer-set-c-pointer
-	   "cannot determine size of pointers for peeker function"))))
-
-
-
-;;;; string functions
-
-(define strlen
-  (primitive-make-c-function 'size_t 'strlen '(char*)))
-
-(define primitive-strerror
-  (primitive-make-c-function 'char* 'strerror '(int)))
-
-(define (string->cstring s)
-  (let* ((len		(string-length s))
-	 (pointer	(malloc (+ 1 len)))
-	 (bv		(string->utf8 s)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (pointer-set-c-char! pointer i 0);set to zero the last byte
-	 pointer)
-      (pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
-
-(define (cstring->string pointer)
-  (let* ((len	(strlen pointer))
-	 (bv	(make-bytevector len)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (utf8->string bv))
-      (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
-
-(define (cstring->string/len pointer len)
-  (let* ((bv	(make-bytevector len)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (utf8->string bv))
-      (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
-
-(define (strerror code)
-  (cstring->string (primitive-strerror code)))
-
-
-
-;;;; conditions
-
-;;This is not in "conditions.sls" because it requires STRERROR.
-(define (raise-errno-error who errno irritants)
-  (raise (condition (make-who-condition who)
-		    (make-message-condition (strerror errno))
-		    (make-errno-condition errno)
-		    (make-irritants-condition irritants))))
 
 
 
