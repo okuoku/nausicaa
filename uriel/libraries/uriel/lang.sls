@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-12-16 10:12:39 marco>
+;;;Time-stamp: <2008-12-17 11:22:07 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -38,9 +38,6 @@
     ;;deferred exceptions
     with-deferred-exceptions-handler
     defer-exceptions run-deferred-exceptions-handler
-
-    ;;input/output
-    with-output-to-string
 
     ;;miscellaneous
     symbol->string/maybe)
@@ -213,16 +210,6 @@
 
     ((_ ?alloc ?form ...)
      (compensate (begin ?alloc) ?form ...))))
-
-
-;;;; input/output
-
-(define-syntax with-output-to-string
-  (syntax-rules ()
-    [(_ ?form ...)
-     (call-with-string-output-port
-	 (lambda () ?form ...))]))
-
 
 
 ;;;; miscellaneous

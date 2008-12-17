@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: compatibility memory functions for Ikarus
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-16 16:46:33 marco>
+;;;Time-stamp: <2008-12-17 08:14:54 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +31,7 @@
 (library (uriel memory compat)
   (export
 
-    primitive-free			platform-malloc
+    platform-free			platform-malloc
     platform-calloc			platform-realloc
 
     memset				memmove
@@ -63,7 +63,7 @@
 
   (define self (dlopen ""))
 
-  (define primitive-free
+  (define platform-free
     ((make-c-callout 'void '(pointer))
      (dlsym self "free")))
 

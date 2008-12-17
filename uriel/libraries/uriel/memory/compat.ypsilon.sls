@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: compatibility memory functions for Ypsilon
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-16 16:59:56 marco>
+;;;Time-stamp: <2008-12-17 08:15:08 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +31,7 @@
 (library (uriel memory compat)
   (export
 
-    primitive-free			platform-malloc
+    platform-free			platform-malloc
     platform-calloc			platform-realloc
 
     memset				memmove
@@ -81,7 +81,7 @@
 
 (define self (load-shared-object ""))
 
-(define primitive-free
+(define platform-free
   (let ((f (lookup-shared-object self 'free)))
     (lambda (pointer)
       (stdcall-shared-object->void f (pointer->integer pointer)))))

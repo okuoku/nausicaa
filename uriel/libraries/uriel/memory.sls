@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-16 21:09:33 marco>
+;;;Time-stamp: <2008-12-17 13:53:26 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,12 +31,13 @@
 (library (uriel memory)
   (export
     ;;memory functions
-    primitive-free
-    primitive-malloc		malloc
-    primitive-calloc		calloc
-    primitive-realloc		realloc
-    memset			memmove
-    memcpy
+    platform-free	primitive-free		primitive-free-function
+    platform-malloc	primitive-malloc	primitive-malloc-function
+    platform-calloc	primitive-calloc	primitive-calloc-function
+    platform-realloc    primitive-realloc	primitive-realloc-function
+
+    malloc		realloc			calloc
+    memset		memmove			memcpy
 
     ;;pointers
     pointer?
@@ -53,10 +54,17 @@
     memblock-pointer		memblock-size
 
     ;;buffers
-    make-buffer			buffer?
-    buffer-used-size
-    (rename (memblock-pointer buffer-pointer))
-    (rename (memblock-size buffer-size))
+    make-buffer
+    (rename (memblock-pointer	buffer-pointer))
+    (rename (memblock-size	buffer-size))
+    buffer?				buffer-used?
+    buffer-full?			buffer-empty?
+    buffer-used-size			buffer-used-size-set!
+    buffer-free-size
+    buffer-pointer-to-free-bytes	buffer-incr-used-size
+    buffer-used-memblock		buffer-free-memblock
+    buffer-push-memblock		buffer-pop-memblock
+    buffer-push-bytevector		buffer-pop-bytevector
 
     ;;cached memory blocks
     make-block-cache		make-caching-object-factory
@@ -94,31 +102,67 @@
     ;;conditions
     &out-of-memory
     make-out-of-memory-condition	out-of-memory-condition?
-    out-of-memory-requested-number-of-bytes
-    raise-out-of-memory)
+    out-of-memory-number-of-bytes	raise-out-of-memory)
   (import (r6rs)
     (uriel lang)
-    (uriel memory compat))
+    (uriel memory compat)
+    (srfi format)
+    (srfi parameters))
 
 
 
 ;;;; memory allocation
 
+(define primitive-free-function
+  (make-parameter platform-free
+    (lambda (func)
+      (unless (procedure? func)
+	(assertion-violation 'primitive-free-function
+	  "expected function as parameter value" func))
+      func)))
+
+(define primitive-malloc-function
+  (make-parameter platform-malloc
+    (lambda (func)
+      (unless (procedure? func)
+	(assertion-violation 'primitive-malloc-function
+	  "expected function as parameter value" func))
+      func)))
+
+(define primitive-realloc-function
+  (make-parameter platform-realloc
+    (lambda (func)
+      (unless (procedure? func)
+	(assertion-violation 'primitive-realloc-function
+	  "expected function as parameter value" func))
+      func)))
+
+(define primitive-calloc-function
+  (make-parameter platform-calloc
+    (lambda (func)
+      (unless (procedure? func)
+	(assertion-violation 'primitive-calloc-function
+	  "expected function as parameter value" func))
+      func)))
+
+;;; --------------------------------------------------------------------
+
+(define (primitive-free pointer)
+  ((primitive-free-function) pointer))
+
 (define (primitive-malloc number-of-bytes)
-  (let ((p (platform-malloc number-of-bytes)))
+  (let ((p ((primitive-malloc-function) number-of-bytes)))
     (if (pointer-null? p) #f p)))
 
 (define (primitive-calloc count element-size)
-  (let ((p (platform-calloc count element-size)))
-    (if (pointer-null? p)
-	#f
-      p)))
+  (let ((p ((primitive-calloc-function) count element-size)))
+    (if (pointer-null? p) #f p)))
 
 (define (primitive-realloc pointer new-size)
-  (let ((p (platform-realloc pointer new-size)))
-    (if (pointer-null? p)
-	#f
-      p)))
+  (let ((p ((primitive-realloc-function) pointer new-size)))
+    (if (pointer-null? p) #f p)))
+
+;;; --------------------------------------------------------------------
 
 (define (malloc number-of-bytes)
   (or (primitive-malloc number-of-bytes)
@@ -126,11 +170,11 @@
 
 (define (realloc pointer new-size)
   (or (primitive-realloc pointer new-size)
-      (raise-out-of-memory 'realloc (list pointer new-size))))
+      (raise-out-of-memory 'realloc new-size)))
 
 (define (calloc count element-size)
   (or (primitive-calloc count element-size)
-      (raise-out-of-memory 'calloc (list count element-size))))
+      (raise-out-of-memory 'calloc (* count element-size))))
 
 
 
@@ -173,27 +217,85 @@
 ;;;; records
 
 (define-record-type memblock
-  (fields (mutable pointer)
-	  (mutable size)))
+  (fields (immutable pointer)
+	  (immutable size)))
 
 (define-record-type buffer
   (parent memblock)
   (fields (mutable used-size)))
 
-(define (memblock-reset mb)
-  (memblock-size	mb 0)
-  (memblock-pointer	mb pointer-null))
 
-(define (buffer-reset buffer)
-  (memblock-reset	buffer)
-  (buffer-used-size	buffer 0))
+(define (buffer-empty? buf)
+  (= 0 (buffer-used-size buf)))
 
-(define-syntax memblock-values
-  (syntax-rules ()
-    ((_ ?mb)
-     (values (memblock-size ?mb)
-	     (memblock-pointer ?mb)))))
+(define (buffer-full? buf)
+  (= (memblock-size    buf)
+     (buffer-used-size buf)))
 
+(define (buffer-used? buf)
+  (not (= 0 (buffer-used-size buf))))
+
+(define (buffer-free-size buf)
+  (- (memblock-size    buf)
+     (buffer-used-size buf)))
+
+(define (buffer-pointer-to-free-bytes buf)
+  (pointer-add (memblock-pointer buf)
+	       (buffer-used-size buf)))
+
+(define (buffer-used-memblock buf)
+  (make-memblock (memblock-pointer buf)
+		 (buffer-used-size buf)))
+
+(define (buffer-free-memblock buf)
+  (make-memblock (buffer-pointer-to-free-bytes buf)
+		 (buffer-free-size  buf)))
+
+(define (buffer-incr-used-size buf step)
+  (buffer-used-size-set! buf
+			 (+ step (buffer-used-size buf))))
+
+(define (buffer-push-memblock dst-buf src-mb)
+  (let ((push-len (memblock-size src-mb))
+	(free-len (buffer-free-size dst-buf)))
+    (when (> push-len free-len)
+      (assertion-violation 'buffer-push-block
+	(format
+	    "expected source memblock with size ~s <= to the free size ~s in destination buffer"
+	  push-len free-len)
+	(list dst-buf src-mb)))
+    (memcpy (buffer-pointer-to-free-bytes dst-buf)
+	    (memblock-pointer src-mb)
+	    push-len)
+    (buffer-incr-used-size dst-buf push-len)))
+
+(define (buffer-pop-memblock dst-mb src-buf)
+  (let* ((src-ptr	(memblock-pointer src-buf))
+	 (dst-ptr	(memblock-pointer dst-mb))
+	 (used-size	(buffer-used-size src-buf))
+	 (pop-len	(memblock-size    dst-mb))
+	 (shift-len	(- used-size pop-len)))
+    (when (> pop-len used-size)
+      (assertion-violation 'buffer-pop-block
+	(format
+	    "expected destination memblock with size ~s <= to the used size ~s in source buffer"
+	  pop-len used-size)
+	(list dst-mb src-buf)))
+    (memcpy  dst-ptr src-ptr pop-len)
+    (memmove src-ptr (pointer-add src-ptr pop-len) shift-len)
+    (buffer-incr-used-size src-buf (- pop-len))))
+
+(define (buffer-push-bytevector dst-buf src-bv)
+  #f)
+
+(define (buffer-pop-bytevector dst-bv src-buf)
+  #f)
+
+(define (buffer-push-buffer dst-buf src-buf)
+  #f)
+
+(define (buffer-pop-buffer dst-buf src-buf)
+  #f)
 
 
 ;;;; caching allocated memory blocks
@@ -274,15 +376,15 @@
 (define (memblocks-cache memblock-or-size)
   (cond
    ((memblock? memblock-or-size)
-    (let-values (((size pointer) (memblock-values memblock-or-size)))
+    (let ((size		(memblock-size memblock-or-size))
+	  (pointer	(memblock-pointer memblock-or-size)))
       (cond
        ((= size small-blocks-size)
 	(small-blocks-cache pointer))
        ((= size page-blocks-size)
 	(page-blocks-cache pointer))
        (else
-	(primitive-free pointer)))
-      (memblock-reset memblock-or-size)))
+	(primitive-free pointer)))))
    ((<= memblock-or-size small-blocks-size)
     (make-memblock (small-blocks-cache) small-blocks-size))
    ((<= memblock-or-size page-blocks-size)
@@ -293,15 +395,15 @@
 (define (buffers-cache buffer-or-size)
   (cond
    ((buffer? buffer-or-size)
-    (let-values (((size pointer) (memblock-values buffer-or-size)))
+    (let ((size		(memblock-size buffer-or-size))
+	  (pointer	(memblock-pointer buffer-or-size)))
       (case size
        ((sall-blocks-size)
 	(small-blocks-cache pointer))
        ((page-blocks-size)
 	(page-blocks-cache pointer))
        (else
-	(primitive-free pointer)))
-      (buffer-reset buffer-or-size)))
+	(primitive-free pointer)))))
    ((<= buffer-or-size small-blocks-size)
     (make-buffer (small-blocks-cache) small-blocks-size 0))
    ((<= buffer-or-size page-blocks-size)
@@ -426,7 +528,7 @@
 
 (define-condition-type &out-of-memory &error
   make-out-of-memory-condition out-of-memory-condition?
-  (number-of-bytes out-of-memory-requested-number-of-bytes))
+  (number-of-bytes out-of-memory-number-of-bytes))
 
 (define (raise-out-of-memory who number-of-bytes)
   (raise (condition (make-who-condition who)
