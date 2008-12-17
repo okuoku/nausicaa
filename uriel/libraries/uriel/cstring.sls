@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: functions for cstrings handling
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-16 16:33:30 marco>
+;;;Time-stamp: <2008-12-17 18:26:58 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,7 +32,7 @@
   (export
 
     ;;inspection
-    strlen strerror
+    strlen
 
     ;;conversion
     cstring->string		cstring->string/len
@@ -95,17 +95,6 @@
 
 (define (cstring->string pointer)
   (cstring->string/len pointer (strlen pointer)))
-
-
-
-;;;; miscellaneous functions
-
-(define-c-function primitive-strerror
-  (pointer strerror (int)))
-
-(define (strerror errno-value)
-  (cstring->string (primitive-strerror errno-value)))
-
 
 
 ;;;; done

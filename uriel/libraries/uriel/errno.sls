@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: values of the errno constants
+;;;Contents: access to the errno variable
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-16 16:39:27 marco>
+;;;Time-stamp: <2008-12-17 18:29:59 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,21 +27,22 @@
 ;;;
 
 
-;;; --------------------------------------------------------------------
-;;; Setup.
-;;; --------------------------------------------------------------------
+;;;; setup
 
-(library (uriel ffi errno)
+(library (uriel errno)
   (export
 
+    strerror
+
     ;; conversion
-    symbol->errno		errno->symbol
-    symbol->errno/or-error	errno->symbol/or-error
+    errno->symbol	errno->symbol/or-error
+    symbol->errno	symbol->errno/or-error
 
     ;; condition
+    &errno
     (rename (make-errno-condition* make-errno-condition))
-    &errno			errno-condition?
-    errno-numeric-value		errno-symbolic-value
+    errno-condition?
+    errno-numeric-value errno-symbolic-value
 
     ;; codes
     E2BIG		EACCES		EADDRINUSE
@@ -90,12 +91,12 @@
     EXDEV		EXFULL)
   (import (r6rs)
     (srfi lists)
-    (uriel cstring))
+    (uriel cstring)
+    (uriel ffi))
+
 
 
-;;; --------------------------------------------------------------------
-;;; Constants.
-;;; --------------------------------------------------------------------
+;;;; constants
 
 (define E2BIG		7)
 (define EACCES		13)
@@ -231,9 +232,7 @@
 
 
 
-;;; --------------------------------------------------------------------
-;;; Conversion.
-;;; --------------------------------------------------------------------
+;;;; alist
 
 (define errno-alist
   '((E2BIG		. 7)
@@ -368,6 +367,14 @@
     (EXDEV		. 18)
     (EXFULL		. 54)))
 
+
+;;;; functions
+
+(define-c-function primitive-strerror
+  (pointer strerror (int)))
+
+(define (strerror errno-value)
+  (cstring->string (primitive-strerror errno-value)))
 
 (define errno-vector
   (let ((ev (make-vector (+ 1 (fold (lambda (pair max)
@@ -402,14 +409,13 @@
 	  "expected numeric errno value" errno-code))))
 
 
-;;; --------------------------------------------------------------------
-;;; Conditions.
-;;; --------------------------------------------------------------------
+;;; condition
 
 (define-condition-type &errno &error
-  make-errno-condition errno-condition?
-  (numeric-value	errno-numeric-value)
-  (symbolic-value	errno-symbolic-value))
+  make-errno-condition
+  errno-condition?
+  (numeric-value  errno-numeric-value)
+  (symbolic-value errno-symbolic-value))
 
 (define (make-errno-condition* errno-numeric-value)
   (make-errno-condition errno-numeric-value
@@ -418,13 +424,11 @@
 (define (raise-errno-error who errno irritants)
   (raise (condition (make-who-condition who)
 		    (make-message-condition (strerror errno))
-		    (make-errno-condition* errno)
+		    (make-errno-condition errno)
 		    (make-irritants-condition irritants))))
 
 
-;;; --------------------------------------------------------------------
-;;; Done.
-;;; --------------------------------------------------------------------
+;;;; done
 
 )
 

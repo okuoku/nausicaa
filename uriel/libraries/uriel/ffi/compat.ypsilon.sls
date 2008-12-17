@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-16 13:24:49 marco>
+;;;Time-stamp: <2008-12-17 18:38:55 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -45,7 +45,8 @@
     primitive-make-c-function primitive-make-c-function/with-errno)
   (import (core)
     (srfi receive)
-    (uriel ffi sizeof))
+    (uriel ffi sizeof)
+    (uriel memory))
 
 
 ;;;; dynamic loading
@@ -98,7 +99,7 @@
 
 (define (assert-pointer p)
   (if (pointer? p)
-      (pointer-value p)
+      (pointer->integer p)
     (assertion-violation 'assert-pointer
       "expected pointer as function argument" p)))
 

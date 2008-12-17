@@ -32,6 +32,7 @@
   (uriel lang)
   (uriel ffi)
   (uriel ffi sizeof)
+  (uriel cstring)
   (uriel test))
 
 (check-set-mode! 'report-failed)

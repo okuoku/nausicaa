@@ -10,7 +10,7 @@ NAUSICAA_SIZEOF
 NAUSICAA_C_TYPES_LIMITS
 NAUSICAA_C_ERRNO
 AC_CONFIG_FILES([../libraries/uriel/ffi/sizeof.sls:libraries/uriel/ffi/sizeof.sls.in])
-AC_CONFIG_FILES([../libraries/uriel/ffi/errno.sls:libraries/uriel/ffi/errno.sls.in])
+AC_CONFIG_FILES([../libraries/uriel/errno.sls:libraries/uriel/errno.sls.in])
 NAUSICAA_END
 
 

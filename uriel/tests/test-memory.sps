@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 13:48:50 marco>
+;;;Time-stamp: <2008-12-17 17:19:27 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -491,33 +491,35 @@
     => (list len len 0 #t #t #f))
 
   (check
-      (let* ((p		(malloc len))
-	     (buf	(make-buffer p len 100))
-	     (mb	(buffer-used-memblock buf)))
-	(list (= 100 (memblock-size mb))
-	      (pointer=? (buffer-pointer buf)
-			 (memblock-pointer mb))))
+      (with-compensations
+	(let* ((p		(malloc/c len))
+	       (buf	(make-buffer p len 100))
+	       (mb	(buffer-used-memblock buf)))
+	  (list (= 100 (memblock-size mb))
+		(pointer=? (buffer-pointer buf)
+			   (memblock-pointer mb)))))
     => '(#t #t))
 
   (check
-      (let* ((p		(malloc len))
-	     (buf	(make-buffer p len 100))
-	     (mb	(buffer-free-memblock buf)))
-	(list (= (- len 100) (memblock-size mb))
-	      (pointer=? (pointer-add (buffer-pointer buf) 100)
-			 (memblock-pointer mb))))
+      (with-compensations
+	(let* ((p	(malloc/c len))
+	       (buf	(make-buffer p len 100))
+	       (mb	(buffer-free-memblock buf)))
+	  (list (= (- len 100) (memblock-size mb))
+		(pointer=? (pointer-add (buffer-pointer buf) 100)
+			   (memblock-pointer mb)))))
     => '(#t #t))
 
   (check
       (with-compensations
 	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
 	       (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
-	       (mb3	(make-memblock (malloc 10) 10))
+	       (mb3	(make-memblock (malloc/c 10) 10))
 	       (len	4096)
-	       (buf	(make-buffer (malloc len) len 0)))
-	  (buffer-push-memblock buf mb1)
-	  (buffer-push-memblock buf mb2)
-	  (buffer-pop-memblock mb3 buf)
+	       (buf	(make-buffer (malloc/c len) len 0)))
+	  (buffer-push-memblock! buf mb1)
+	  (buffer-push-memblock! buf mb2)
+	  (buffer-pop-memblock! mb3 buf)
 	  (memblock->bytevector mb3)))
     => #vu8(0 1 2 3 4 5 6 7 8 9))
 
@@ -525,17 +527,60 @@
       (with-compensations
 	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
 	       (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
-	       (mb3	(make-memblock (malloc 5) 5))
-	       (mb4	(make-memblock (malloc 5) 5))
+	       (mb3	(make-memblock (malloc/c 5) 5))
+	       (mb4	(make-memblock (malloc/c 5) 5))
 	       (len	4096)
-	       (buf	(make-buffer (malloc len) len 0)))
-	  (buffer-push-memblock buf mb1)
-	  (buffer-push-memblock buf mb2)
-	  (buffer-pop-memblock mb3 buf)
-	  (buffer-pop-memblock mb4 buf)
+	       (buf	(make-buffer (malloc/c len) len 0)))
+	  (buffer-push-memblock! buf mb1)
+	  (buffer-push-memblock! buf mb2)
+	  (buffer-pop-memblock! mb3 buf)
+	  (buffer-pop-memblock! mb4 buf)
 	  (list (memblock->bytevector mb3)
 		(memblock->bytevector mb4))))
     => '(#vu8(0 1 2 3 4) #vu8(5 6 7 8 9)))
+
+  (check
+      (with-compensations
+	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4 5 6 7 8 9) malloc/c))
+	       (mb2	(make-memblock (malloc/c 5) 5))
+	       (len	4096)
+	       (buf	(make-buffer (malloc/c len) len 0)))
+	  (buffer-push-memblock! buf mb1)
+	  (buffer-consume-bytes! buf 5)
+	  (buffer-pop-memblock! mb2 buf)
+	  (memblock->bytevector mb2)))
+    => #vu8(5 6 7 8 9))
+
+  (check
+      (with-compensations
+	(let* ((bv	#vu8(0 1 2 3 4 5 6 7 8 9))
+	       (len	4096)
+	       (buf	(make-buffer (malloc/c len) len 0)))
+	  (buffer-push-bytevector! buf bv)
+	  (memblock->bytevector (buffer-used-memblock buf))))
+    => #vu8(0 1 2 3 4 5 6 7 8 9))
+
+  (check
+      (with-compensations
+	(let* ((bv1	#vu8(0 1 2 3 4 5 6 7 8 9))
+	       (bv2	(make-bytevector 5))
+	       (len	4096)
+	       (buf	(make-buffer (malloc/c len) len 0)))
+	  (buffer-push-bytevector! buf bv1)
+	  (buffer-pop-bytevector! bv2 buf)
+	  bv2))
+    => #vu8(0 1 2 3 4))
+
+  (check
+      (with-compensations
+	(let* ((bv	#vu8(0 1 2 3 4 5 6 7 8 9))
+	       (len	4096)
+	       (src	(make-buffer (malloc/c len) len 0))
+	       (dst	(make-buffer (malloc/c 5) 5 0)))
+	  (buffer-push-bytevector! src bv)
+	  (buffer-push-buffer! dst src)
+	  (memblock->bytevector (buffer-used-memblock dst))))
+    => #vu8(0 1 2 3 4))
 
   )
 

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 13:53:26 marco>
+;;;Time-stamp: <2008-12-17 18:30:03 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -60,11 +60,13 @@
     buffer?				buffer-used?
     buffer-full?			buffer-empty?
     buffer-used-size			buffer-used-size-set!
-    buffer-free-size
-    buffer-pointer-to-free-bytes	buffer-incr-used-size
+    buffer-free-size			buffer-consume-bytes!
     buffer-used-memblock		buffer-free-memblock
-    buffer-push-memblock		buffer-pop-memblock
-    buffer-push-bytevector		buffer-pop-bytevector
+    buffer-pointer-to-free-bytes	buffer-incr-used-size!
+    buffer-push-memblock!		buffer-pop-memblock!
+    buffer-push-bytevector!		buffer-pop-bytevector!
+    buffer-push-buffer!
+    (rename (buffer-push-buffer! buffer-pop-buffer!))
 
     ;;cached memory blocks
     make-block-cache		make-caching-object-factory
@@ -251,51 +253,92 @@
   (make-memblock (buffer-pointer-to-free-bytes buf)
 		 (buffer-free-size  buf)))
 
-(define (buffer-incr-used-size buf step)
+(define (buffer-incr-used-size! buf step)
   (buffer-used-size-set! buf
 			 (+ step (buffer-used-size buf))))
 
-(define (buffer-push-memblock dst-buf src-mb)
-  (let ((push-len (memblock-size src-mb))
-	(free-len (buffer-free-size dst-buf)))
-    (when (> push-len free-len)
-      (assertion-violation 'buffer-push-block
+(define (buffer-consume-bytes! buf number-of-bytes)
+  (let ((used-size	(buffer-used-size buf))
+	(pointer	(memblock-pointer buf)))
+    (when (> number-of-bytes used-size)
+      (assertion-violation 'buffer-consume-bytes!
+	(format
+	    "expected buffer used size ~s <= to number of bytes to consume ~s"
+	  used-size number-of-bytes)
+	(list buf number-of-bytes)))
+    (memmove pointer
+	     (pointer-add pointer number-of-bytes)
+	     number-of-bytes)
+    (buffer-incr-used-size! buf (- number-of-bytes))))
+
+(define (buffer-push-memblock! buf mb)
+  (let ((copy-len	(memblock-size mb))
+	(avail-len	(buffer-free-size buf)))
+    (when (> copy-len avail-len)
+      (assertion-violation 'buffer-push-memblock!
 	(format
 	    "expected source memblock with size ~s <= to the free size ~s in destination buffer"
-	  push-len free-len)
-	(list dst-buf src-mb)))
-    (memcpy (buffer-pointer-to-free-bytes dst-buf)
-	    (memblock-pointer src-mb)
-	    push-len)
-    (buffer-incr-used-size dst-buf push-len)))
+	  copy-len avail-len)
+	(list buf mb)))
+    (memcpy (buffer-pointer-to-free-bytes buf)
+	    (memblock-pointer mb)
+	    copy-len)
+    (buffer-incr-used-size! buf copy-len)))
 
-(define (buffer-pop-memblock dst-mb src-buf)
-  (let* ((src-ptr	(memblock-pointer src-buf))
-	 (dst-ptr	(memblock-pointer dst-mb))
-	 (used-size	(buffer-used-size src-buf))
-	 (pop-len	(memblock-size    dst-mb))
-	 (shift-len	(- used-size pop-len)))
-    (when (> pop-len used-size)
-      (assertion-violation 'buffer-pop-block
+(define (buffer-pop-memblock! mb buf)
+  (let* ((src-ptr	(memblock-pointer buf))
+	 (dst-ptr	(memblock-pointer mb))
+	 (avail-size	(buffer-used-size buf))
+	 (copy-size	(memblock-size    mb)))
+    (when (> copy-size avail-size)
+      (assertion-violation 'buffer-pop-memblock!
 	(format
 	    "expected destination memblock with size ~s <= to the used size ~s in source buffer"
-	  pop-len used-size)
-	(list dst-mb src-buf)))
-    (memcpy  dst-ptr src-ptr pop-len)
-    (memmove src-ptr (pointer-add src-ptr pop-len) shift-len)
-    (buffer-incr-used-size src-buf (- pop-len))))
+	  copy-size avail-size)
+	(list mb buf)))
+    (memcpy dst-ptr src-ptr copy-size)
+    (buffer-consume-bytes! buf copy-size)))
 
-(define (buffer-push-bytevector dst-buf src-bv)
-  #f)
+(define (buffer-push-bytevector! buf bv)
+  (let ((copy-size	(bytevector-length bv))
+	(avail-size	(buffer-free-size  buf))
+	(p		(memblock-pointer  buf)))
+    (when (> copy-size avail-size)
+      (assertion-violation 'buffer-push-bytevector!
+	(format
+	    "expected source bytevector length ~s <= to the free size ~s in destination buffer"
+	  copy-size avail-size)
+	(list buf bv)))
+    (do ((i 0 (+ 1 i)))
+	((= i copy-size)
+	 (buffer-incr-used-size! buf copy-size))
+      (pointer-set-c-char! p i (bytevector-u8-ref bv i)))))
 
-(define (buffer-pop-bytevector dst-bv src-buf)
-  #f)
+(define (buffer-pop-bytevector! bv buf)
+  (let ((copy-size	(bytevector-length bv))
+	(avail-size	(buffer-used-size  buf))
+	(p		(memblock-pointer  buf)))
+    (when (> copy-size avail-size)
+      (assertion-violation 'buffer-pop-bytevector!
+	(format
+	    "expected destination bytevector length ~s <= to the free size ~s in source buffer"
+	  copy-size avail-size)
+	(list buf bv)))
+    (do ((i 0 (+ 1 i)))
+	((= i copy-size)
+	 (buffer-consume-bytes! buf copy-size))
+      (bytevector-u8-set! bv i (pointer-ref-c-unsigned-char p i)))))
 
-(define (buffer-push-buffer dst-buf src-buf)
-  #f)
+(define (buffer-push-buffer! dst src)
+  (let* ((used-size	(memblock-size src))
+	 (free-size	(buffer-free-size dst))
+	 (copy-size	(min free-size used-size)))
+    (memcpy (buffer-pointer-to-free-bytes dst)
+	    (memblock-pointer src)
+	    copy-size)
+    (buffer-consume-bytes!  src copy-size)
+    (buffer-incr-used-size! dst copy-size)))
 
-(define (buffer-pop-buffer dst-buf src-buf)
-  #f)
 
 
 ;;;; caching allocated memory blocks
@@ -376,7 +419,7 @@
 (define (memblocks-cache memblock-or-size)
   (cond
    ((memblock? memblock-or-size)
-    (let ((size		(memblock-size memblock-or-size))
+    (let ((size		(memblock-size    memblock-or-size))
 	  (pointer	(memblock-pointer memblock-or-size)))
       (cond
        ((= size small-blocks-size)
@@ -395,7 +438,7 @@
 (define (buffers-cache buffer-or-size)
   (cond
    ((buffer? buffer-or-size)
-    (let ((size		(memblock-size buffer-or-size))
+    (let ((size		(memblock-size    buffer-or-size))
 	  (pointer	(memblock-pointer buffer-or-size)))
       (case size
        ((sall-blocks-size)
@@ -431,6 +474,8 @@
 	     (primitive-free p)))))
     p))
 
+;;; --------------------------------------------------------------------
+
 (define (malloc-small/compensated)
   (letrec
       ((p (compensate
@@ -454,7 +499,7 @@
    ((<= small-blocks-size number-of-bytes)
     (malloc-page/compensated))
    (else
-    (malloc/compensated number-of-bytes))))
+    (calloc/compensated 1 number-of-bytes))))
 
 (define (malloc-memblock/compensated number-of-bytes)
   (letrec
@@ -527,7 +572,8 @@
 ;;;; conditions
 
 (define-condition-type &out-of-memory &error
-  make-out-of-memory-condition out-of-memory-condition?
+  make-out-of-memory-condition
+  out-of-memory-condition?
   (number-of-bytes out-of-memory-number-of-bytes))
 
 (define (raise-out-of-memory who number-of-bytes)
