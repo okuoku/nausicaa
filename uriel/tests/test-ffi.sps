@@ -37,43 +37,8 @@
 
 (check-set-mode! 'report-failed)
 
-
 
-;;;; string functions
-
-(parameterize ((testname 'string))
-
-  (check
-      (cstring->string (string->cstring "ciao"))
-    => "ciao")
-
-  (check
-      (cstring->string (string->cstring ""))
-    => "")
-
-  (check
-      (strlen (string->cstring "ciao"))
-    => 4)
-
-  (check
-      (strlen (string->cstring ""))
-    => 0)
-
-  (check
-      (cstring->string/len (string->cstring "ciao, hello") 4)
-    => "ciao")
-
-  (check
-      (cstring->string/len (string->cstring "ciao, hello") 1)
-    => "c")
-
-  (check
-      (cstring->string/len (string->cstring "ciao, hello") 0)
-    => "")
-
-  (check
-      (cstring->string/len (string->cstring "ciao, hello") 11)
-    => "ciao, hello"))
+;;;; code
 
 
 

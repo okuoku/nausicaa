@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 18:30:03 marco>
+;;;Time-stamp: <2008-12-17 21:01:39 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -38,6 +38,7 @@
 
     malloc		realloc			calloc
     memset		memmove			memcpy
+    memcmp
 
     ;;pointers
     pointer?

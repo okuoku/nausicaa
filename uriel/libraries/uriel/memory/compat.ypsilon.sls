@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: compatibility memory functions for Ypsilon
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 08:15:08 marco>
+;;;Time-stamp: <2008-12-17 21:05:46 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,7 +35,7 @@
     platform-calloc			platform-realloc
 
     memset				memmove
-    memcpy
+    memcpy				memcmp
 
     ;;pointers
     pointer?
@@ -132,6 +132,15 @@
 				      (pointer->integer dst)
 				      (pointer->integer src)
 				      number-of-bytes)))))
+
+(define memcmp
+  (let ((f (lookup-shared-object self 'memcmp)))
+    (lambda (a b number-of-bytes)
+      (integer->pointer
+       (stdcall-shared-object->int f
+				   (pointer->integer a)
+				   (pointer->integer b)
+				   number-of-bytes)))))
 
 
 

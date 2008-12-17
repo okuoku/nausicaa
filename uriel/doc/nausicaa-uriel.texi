@@ -512,6 +512,7 @@ Functions interface
 C language strings handling
 
 * cstring inspection::          Inspecting cstrings.
+* cstring operations::          Acting upon cstrings.
 * cstring conversion::          Converting to and from cstrings.
 
 C language system errors
@@ -2557,6 +2558,15 @@ the first @var{number-of-bytes} bytes starting from @var{pointer}.
 @end defun
 
 
+@defun memcmp @var{pointer1} @var{pointer2} @var{number-of-bytes}
+An interface to the @cfunc{memcmp} system function.  Compare
+@var{number-of-bytes} starting at @var{pointer1} and @var{pointer2} and
+return an integer having the same sign as the difference between the
+first different bytes from the blocks.  If the blocks are equal, the
+return value is zero.
+@end defun
+
+
 @c page
 @node memory peekers
 @section Peeking values
@@ -3337,13 +3347,14 @@ respectively.
 @chapter C language strings handling
 
 
-A @emph{cstring} is a block of memory holding a string of characters
+A @emph{C string} is a block of memory holding a string of characters
 terminated by a zero byte.  The functions described in this chapter are
 exported by the @library{uriel cstring} library.
 
 
 @menu
 * cstring inspection::          Inspecting cstrings.
+* cstring operations::          Acting upon cstrings.
 * cstring conversion::          Converting to and from cstrings.
 @end menu
 
@@ -3359,29 +3370,64 @@ Return the number of characters in the C string referenced by
 @end defun
 
 
+@defun strcmp @var{pointer1} @var{pointer2}
+@defunx strncmp @var{pointer1} @var{pointer2} @var{number-of-bytes}
+An interface to the @cfunc{strcmp} system function.  Compare
+@var{number-of-bytes} starting at @var{pointer1} and @var{pointer2} and
+return an integer having the same sign as the difference between the
+first different bytes from the blocks.  If the blocks are equal, the
+return value is zero.
+@end defun
+
+
+@c page
+@node cstring operations
+@section Acting upon cstrings
+
+
+@defun strdup @var{pointer}
+@defunx strdup @var{pointer} @var{malloc}
+Build a new C string copying the C string referenced by @var{pointer}
+and return a pointer to it.  The new string is allocated using the
+supplied @var{malloc} function, or @func{malloc} if no function is
+given.
+@end defun
+
+
+@defun strndup @var{pointer} @var{size}
+@defunx strndup @var{pointer} @var{size} @var{malloc}
+Build a new C string copying the first @var{size} bytes from the C
+string referenced by @var{pointer} and return a pointer to it.  The new
+string is allocated using the supplied @var{malloc} function, or
+@func{malloc} if no function is given.
+@end defun
+
+
+@defun memchr @var{pointer} @var{byte} @var{size}
+Finds the first occurrence of @var{byte} in the initial @var{size} bytes
+starting at @var{pointer}.  Return a pointer to the located byte or a
+null pointer if @var{uchar} was not found.
+@end defun
+
+
+
 @c page
 @node cstring conversion
 @section Converting to and from cstrings
 
 
-@defun string->cstring @var{string}
-@defunx string->cstring/compensated @var{string}
-@defunx string-or-symbol->cstring @var{string}
-@defunx string-or-symbol->cstring/compensated @var{string}
-@func{string->cstring} builds a new C string representing the Scheme
-@var{string} and returns a pointer value referencing it; memory is
-allocated using @func{malloc}.  The conversion is performed using
-@func{string->utf8}.
+@defun string->cstring @var{string-or-symbol}
+@defunx string->cstring @var{string-or-symbol} @var{malloc}
+@defunx string->cstring/c @var{string-or-symbol}
+Build a new C string representing the Scheme @var{string-or-symbol} and
+return a pointer value referencing it.
 
-@func{string-or-symbol->cstring} is like @func{string->cstring} but
-accepts also symbols as arguments, converting them to string internally.
+@func{string->cstring} allocates memory using supplied @var{malloc}
+function, or @func{malloc} otherwise.  The conversion is performed using
+@func{string->utf8}.  To use a compensated allocation: we can use
+@func{malloc/c} or @func{malloc-block/c} as @var{malloc} argument.
 
-@func{string->cstring/compensated} is like @func{string->cstring} but
-allocates the memory block using @func{compensate-malloc/block}.
-
-@func{string-or-symbol->cstring/compensated} is like
-@func{string-or-symbol->cstring} but allocates the memory block using
-@func{compensate-malloc/block}.
+@func{string->cstring/c} allocates memory using @func{malloc-block/c}.
 @end defun
 
 

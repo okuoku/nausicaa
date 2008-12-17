@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: compatibility memory functions for Ikarus
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 08:14:54 marco>
+;;;Time-stamp: <2008-12-17 21:05:06 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,7 +35,7 @@
     platform-calloc			platform-realloc
 
     memset				memmove
-    memcpy
+    memcpy				memcmp
 
     ;;pointers
     pointer?
@@ -89,6 +89,10 @@
 
   (define memcpy
     ((make-c-callout 'pointer '(pointer pointer signed-int))
-     (dlsym self "memcpy"))))
+     (dlsym self "memcpy")))
+
+  (define memcmp
+    ((make-c-callout 'signed-int '(pointer pointer signed-int))
+     (dlsym self "memcmp"))))
 
 ;;; end of file
