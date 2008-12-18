@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Zlib
 ;;;Contents: Zlib interface for R6RS Scheme
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-16 10:16:15 marco>
+;;;Time-stamp: <2008-12-18 21:40:14 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -123,8 +123,11 @@
   (import (r6rs)
     (srfi receive)
     (uriel lang)
+    (uriel memory)
     (uriel ffi)
     (uriel ffi sizeof)
+    (uriel cstring)
+    (uriel errno)
     (zlib sizeof))
 
 (define zlib
@@ -331,23 +334,23 @@
 
 (define (gzopen pathname mode)
   (with-compensations
-    (let ((pathname	(string-or-symbol->cstring/compensated pathname))
-	  (mode		(string-or-symbol->cstring/compensated mode)))
+    (let ((pathname	(string->cstring/c pathname))
+	  (mode		(string->cstring/c mode)))
       (primitive-gzopen pathname mode))))
 
 (define (gzdopen fd mode)
   (with-compensations
-    (let ((mode		(string-or-symbol->cstring/compensated mode)))
+    (let ((mode		(string->cstring/c mode)))
       (primitive-gzdopen fd mode))))
 
 (define (gzputs file string)
   (with-compensations
-    (let ((string	(string->cstring/compensated string)))
+    (let ((string	(string->cstring/c string)))
       (primitive-gzputs file string))))
 
 (define (gzerror file)
   (with-compensations
-    (let* ((*errcode	(compensate-malloc/small)))
+    (let* ((*errcode	(malloc-small/c)))
       (receive (cstr errno)
 	  (primitive-gzerror file *errcode)
 	(let ((errcode (pointer-ref-c-signed-int *errcode 0)))

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Zlib
 ;;;Contents: size of libraries' C language types
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-16 10:26:06 marco>
+;;;Time-stamp: <2008-12-18 21:41:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -67,6 +67,7 @@
     zstream-zfree-set!		zstream-zfree-ref
     zstream-opaque-set!		zstream-opaque-ref)
   (import (r6rs)
+    (uriel memory)
     (uriel ffi)
     (uriel ffi sizeof))
 

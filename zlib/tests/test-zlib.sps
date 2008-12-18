@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Zlib
 ;;;Contents: tests for zlib
 ;;;Date: Mon Dec  8, 2008
-;;;Time-stamp: <2008-12-09 12:18:37 marco>
+;;;Time-stamp: <2008-12-18 21:42:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,7 +32,10 @@
   (uriel printing)
   (uriel test)
   (uriel lang)
+  (uriel memory)
   (uriel ffi)
+  (uriel cstring)
+  (uriel errno)
   (zlib)
   (srfi random))
 
@@ -78,10 +81,10 @@ total_out:\t~s\n"
 (check
     (with-compensations
       (let* ((complen		(* 2 original-len))
-	     (compressed	(compensate-malloc/block complen))
+	     (compressed	(malloc-block/c complen))
 	     (outlen		(* 2 original-len))
-	     (output		(compensate-malloc/block outlen))
-	     (zstream		(compensate-malloc/block sizeof-zstream)))
+	     (output		(malloc-block/c outlen))
+	     (zstream		(malloc-block/c sizeof-zstream)))
 
 	(zstream-next_in-set!  zstream original-ptr)
 	(zstream-avail_in-set! zstream original-len)
@@ -127,11 +130,11 @@ total_out:\t~s\n"
 (check
     (with-compensations
       (let* ((complen		(* 2 original-len))
-	     (compressed	(compensate-malloc/block complen))
+	     (compressed	(malloc-block/c complen))
 	     (outlen		(* 2 original-len))
-	     (output		(compensate-malloc/block outlen))
-	     (zstream		(compensate-malloc/block sizeof-zstream))
-	     (dictionary	(string->cstring dictionary))
+	     (output		(malloc-block/c outlen))
+	     (zstream		(malloc-block/c sizeof-zstream))
+	     (dictionary	(string->cstring/c dictionary))
 	     (dictionary-len	(strlen dictionary)))
 
 	(zstream-next_in-set!  zstream original-ptr)
