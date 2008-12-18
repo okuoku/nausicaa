@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: access to the errno variable
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-17 18:29:59 marco>
+;;;Time-stamp: <2008-12-18 20:55:03 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -43,6 +43,8 @@
     (rename (make-errno-condition* make-errno-condition))
     errno-condition?
     errno-numeric-value errno-symbolic-value
+
+    raise-errno-error
 
     ;; codes
     E2BIG		EACCES		EADDRINUSE
@@ -424,7 +426,7 @@
 (define (raise-errno-error who errno irritants)
   (raise (condition (make-who-condition who)
 		    (make-message-condition (strerror errno))
-		    (make-errno-condition errno)
+		    (make-errno-condition* errno)
 		    (make-irritants-condition irritants))))
 
 

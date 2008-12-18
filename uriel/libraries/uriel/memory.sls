@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-18 18:06:48 marco>
+;;;Time-stamp: <2008-12-18 21:14:28 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -546,9 +546,9 @@
 
 (define (malloc-block/compensated number-of-bytes)
   (cond
-   ((<= small-blocks-size number-of-bytes)
+   ((<= number-of-bytes small-blocks-size)
     (malloc-small/compensated))
-   ((<= small-blocks-size number-of-bytes)
+   ((<= number-of-bytes small-blocks-size)
     (malloc-page/compensated))
    (else
     (calloc/compensated 1 number-of-bytes))))
