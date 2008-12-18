@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPQ numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-16 10:04:36 marco>
+;;;Time-stamp: <2008-12-18 21:32:58 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,8 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel ffi)
+  (uriel memory)
+  (uriel cstring)
   (uriel printing)
   (uriel test)
   (srfi parameters)

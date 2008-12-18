@@ -1225,7 +1225,7 @@ string:
 (define (mpf->string o)
   (with-compensations
     (letrec*
-        ((l (compensate-malloc/small))
+        ((l (malloc-small/c))
          (str (compensate
                   (mpf_get_str pointer-null l 10 0 o)
                 (with
@@ -1420,7 +1420,7 @@ string:
 (define (mpfr->string o)
   (with-compensations
     (letrec*
-        ((l (compensate-malloc/small))
+        ((l (malloc-small/c))
          (str (compensate
                   (mpfr_get_str pointer-null l 10 0 o GMP_RNDN)
                 (with

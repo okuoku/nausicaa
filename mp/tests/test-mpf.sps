@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPF numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-16 10:04:31 marco>
+;;;Time-stamp: <2008-12-18 21:34:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,8 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel ffi)
+  (uriel memory)
+  (uriel cstring)
   (uriel test)
   (mp mpf)
   (mp sizeof)
@@ -65,7 +66,7 @@
 (define (mpf->string o)
   (with-compensations
     (letrec*
-	((l (compensate-malloc/small))
+	((l (malloc-small/c))
 	 (str (compensate
 		  (mpf_get_str pointer-null l 10 0 o)
 		(with

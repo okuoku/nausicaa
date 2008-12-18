@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPC numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-16 10:04:17 marco>
+;;;Time-stamp: <2008-12-18 21:36:37 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,8 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel ffi)
+  (uriel memory)
+  (uriel cstring)
   (uriel test)
   (srfi format)
   (srfi parameters)
@@ -68,7 +69,7 @@
 (define (mpfr->string o)
   (with-compensations
     (letrec*
-	((l (compensate-malloc/small))
+	((l (malloc-small/c))
 	 (str (compensate
 		  (mpfr_get_str pointer-null l 10 0 o MPC_RNDNN)
 		(with
