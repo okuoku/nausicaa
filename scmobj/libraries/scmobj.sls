@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-12-16 10:10:28 marco>
+;;;Time-stamp: <2008-12-18 21:58:33 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -261,13 +261,13 @@
 ;; 			 :class-precedence-list :slots :direct-slots))))
 (define <class>
   (let ((layout
-	 '((:class . #f)
-	   (:class-definition-name . <class>)
-	   (:class-precedence-list . ())
-	   (:slots . (:class-definition-name
-		      :class-precedence-list :slots :direct-slots))
-	   (:direct-slots . (:class-definition-name
-			     :class-precedence-list :slots :direct-slots)))))
+	 (cons (cons ':class #f)
+	       '((:class-definition-name . <class>)
+		 (:class-precedence-list . ())
+		 (:slots . (:class-definition-name
+			    :class-precedence-list :slots :direct-slots))
+		 (:direct-slots . (:class-definition-name
+				   :class-precedence-list :slots :direct-slots))))))
     (set-cdr! (car layout) layout)
     layout))
 
