@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: high level interface to OSSP/sa for R6RS Scheme
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-15 22:24:34 marco>
+;;;Time-stamp: <2008-12-18 21:49:41 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -49,8 +49,10 @@
     sa-recv sa-send)
   (import (r6rs)
     (uriel lang)
+    (uriel memory)
     (uriel ffi)
     (uriel ffi sizeof)
+    (uriel cstring)
     (ossp-sa foreign)
     (ossp-sa sizeof)
     (srfi receive))
@@ -64,7 +66,7 @@
   (case-lambda
    (()
     (with-compensations
-      (let* ((address*	(compensate-malloc/small))
+      (let* ((address*	(malloc-small/c))
 	     (e		(sa_addr_create address*)))
 	(unless (= SA_OK e)
 	  (raise-sa-error 'make-sa-address e #f))
@@ -102,7 +104,7 @@
 
 (define (sa-address-set! address uri)
   (with-compensations
-    (let* ((spec	(string-or-symbol->cstring/compensated uri))
+    (let* ((spec	(string->cstring/c uri))
 	   (e		(sa_addr_u2a address spec)))
       (unless (= SA_OK e)
 	(destroy-sa-address address)
@@ -110,7 +112,7 @@
 
 (define (sa-address-ref address)
   (with-compensations
-    (let* ((spec*	(compensate-malloc/small)))
+    (let* ((spec*	(malloc-small/c)))
       (compensate
 	  (let ((e (sa_addr_a2u address spec*)))
 	    (unless (= SA_OK e)
@@ -127,7 +129,7 @@
 
 (define (make-sa-socket)
   (with-compensations
-    (let* ((socket*	(compensate-malloc/small))
+    (let* ((socket*	(malloc-small/c))
 	   (e		(sa_create socket*)))
       (unless (= SA_OK e)
 	(raise-sa-error 'make-sa-socket e))
@@ -195,8 +197,8 @@
 
 (define (sa-accept server-socket)
   (with-compensations
-    (let* ((client-address*	(compensate-malloc/small))
-	   (client-socket*	(compensate-malloc/small))
+    (let* ((client-address*	(malloc-small/c))
+	   (client-socket*	(malloc-small/c))
 	   (e			(sa_accept server-socket
 					   client-address*
 					   client-socket*)))
@@ -220,7 +222,7 @@
 
 (define (sa-getremote socket)
   (with-compensations
-    (let* ((address*	(compensate-malloc/small))
+    (let* ((address*	(malloc-small/c))
 	   (e		(sa_getremote socket address*)))
       (unless (= SA_OK e)
 	(raise-sa-error 'sa-getremote e socket))
@@ -235,7 +237,7 @@
 
 (define (sa-getlocal socket)
   (with-compensations
-    (let* ((address*	(compensate-malloc/small))
+    (let* ((address*	(malloc-small/c))
 	   (e		(sa_getlocal socket address*)))
       (unless (= SA_OK e)
 	(raise-sa-error 'sa-getlocal e socket))
@@ -250,7 +252,7 @@
 
 (define (sa-shutdown socket flags)
   (with-compensations
-    (let* ((cflags	(string-or-symbol->cstring/compensated flags))
+    (let* ((cflags	(string->cstring/c flags))
 	   (e		(sa_shutdown socket cflags)))
       (unless (= SA_OK e)
 	(raise-sa-error 'sa-shutdown e (list socket flags))))))
@@ -263,52 +265,52 @@
 
 (define (sa-getfd socket)
   (with-compensations
-    (let* ((fd*		(compensate-malloc/small))
+    (let* ((fd*		(malloc-small/c))
 	   (e		(sa_getfd socket fd*)))
       (unless (= SA_OK e)
 	(raise-sa-error 'sa-getfd e socket))
       (pointer-ref-c-pointer fd* 0))))
 
-(define (sa-read socket memory-block)
+(define (sa-read socket memblock)
   (with-compensations
-    (let* ((bufdone*	(compensate-malloc/small))
+    (let* ((bufdone*	(malloc-small/c))
 	   (e		(sa_read socket
-				 (memory-block-pointer memory-block)
-				 (memory-block-size memory-block)
+				 (memblock-pointer memblock)
+				 (memblock-size memblock)
 				 bufdone*)))
       (unless (= SA_OK e)
-	(raise-sa-error 'sa-read e (list socket memory-block)))
+	(raise-sa-error 'sa-read e (list socket memblock)))
       (pointer-ref-c-signed-int bufdone* 0))))
 
-(define (sa-readln socket memory-block)
+(define (sa-readln socket memblock)
   (with-compensations
-    (let* ((bufdone*	(compensate-malloc/small))
+    (let* ((bufdone*	(malloc-small/c))
 	   (e		(sa_readln socket
-				   (memory-block-pointer memory-block)
-				   (memory-block-size memory-block)
+				   (memblock-pointer memblock)
+				   (memblock-size memblock)
 				   bufdone*)))
       (unless (= SA_OK e)
-	(raise-sa-error 'sa-readln e (list socket memory-block)))
+	(raise-sa-error 'sa-readln e (list socket memblock)))
       (pointer-ref-c-signed-int bufdone* 0))))
 
 (define (sa-read-string socket size)
   (with-compensations
-    (sa-readln socket (compensate-malloc/block 256))))
+    (sa-readln socket (malloc-block/c 256))))
 
-(define (sa-write socket memory-block)
+(define (sa-write socket memblock)
   (with-compensations
-    (let* ((bufdone*	(compensate-malloc/small))
+    (let* ((bufdone*	(malloc-small/c))
 	   (e		(sa_write socket
-				  (memory-block-pointer memory-block)
-				  (memory-block-size memory-block)
+				  (memblock-pointer memblock)
+				  (memblock-size memblock)
 				  bufdone*)))
       (unless (= SA_OK e)
-	(raise-sa-error 'sa-write e (list socket memory-block)))
+	(raise-sa-error 'sa-write e (list socket memblock)))
       (pointer-ref-c-signed-int bufdone* 0))))
 
 (define (sa-write-string socket string)
   (with-compensations
-    (sa-write socket (make-memory-block (string->cstring/compensated string)
+    (sa-write socket (make-memblock (string->cstring/c string)
 					(string-length string)))))
 
 (define (sa-flush socket)
@@ -322,28 +324,28 @@
 ;;; Socket: datagram input/output.
 ;;; --------------------------------------------------------------------
 
-(define (sa-recv socket memory-block)
+(define (sa-recv socket memblock)
   (with-compensations
-    (let* ((bufdone*	(compensate-malloc/small))
-	   (address*	(compensate-malloc/small))
+    (let* ((bufdone*	(malloc-small/c))
+	   (address*	(malloc-small/c))
 	   (e		(sa_recv socket address*
-				 (memory-block-pointer memory-block)
-				 (memory-block-size    memory-block)
+				 (memblock-pointer memblock)
+				 (memblock-size    memblock)
 				 bufdone*)))
       (unless (= SA_OK e)
-	(raise-sa-error 'sa-recv e (list socket memory-block)))
+	(raise-sa-error 'sa-recv e (list socket memblock)))
       (values (pointer-ref-c-pointer    address* 0)
 	      (pointer-ref-c-signed-int bufdone* 0)))))
 
-(define (sa-send socket address memory-block)
+(define (sa-send socket address memblock)
   (with-compensations
-    (let* ((bufdone*	(compensate-malloc/small))
+    (let* ((bufdone*	(malloc-small/c))
 	   (e		(sa_send socket address
-				 (memory-block-pointer memory-block)
-				 (memory-block-size    memory-block)
+				 (memblock-pointer memblock)
+				 (memblock-size    memblock)
 				 bufdone*)))
       (unless (= SA_OK e)
-	(raise-sa-error 'sa-send e (list socket address memory-block)))
+	(raise-sa-error 'sa-send e (list socket address memblock)))
       (pointer-ref-c-signed-int bufdone* 0))))
 
 
