@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: extended stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-16 10:00:50 marco>
+;;;Time-stamp: <2008-12-18 21:26:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,7 +32,10 @@
     fpurge)
   (import (r6rs)
     (uriel lang)
+    (uriel memory)
     (uriel ffi)
+    (uriel cstring)
+    (uriel errno)
     (srfi receive)
     (glibc streams))
 
@@ -76,8 +79,8 @@
 
   (define (getline stream)
     (with-compensations
-      (let* ((*pointer	(compensate-malloc/small))
-	     (*count	(compensate-malloc/small))
+      (let* ((*pointer	(malloc-small/c))
+	     (*count	(malloc-small/c))
 	     (getp	(lambda ()
 			  (pointer-ref-c-pointer *pointer 0)))
 	     (free	(lambda ()
@@ -105,8 +108,8 @@
 	  "expected delimiter with scalar value in range [0, 255]"
 	  delimiter))
       (with-compensations
-	(let* ((*pointer	(compensate-malloc/small))
-	       (*count		(compensate-malloc/small))
+	(let* ((*pointer	(malloc-small/c))
+	       (*count		(malloc-small/c))
 	       (getp		(lambda ()
 				  (pointer-ref-c-pointer *pointer 0)))
 	       (free		(lambda ()

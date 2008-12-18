@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: test for streams
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-16 10:04:59 marco>
+;;;Time-stamp: <2008-12-18 21:28:33 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,8 +33,10 @@
   (uriel printing)
   (uriel test)
   (uriel getenv)
-  (rename (uriel ffi)
-	  (string-or-symbol->cstring/compensated s->c))
+  (uriel memory)
+  (uriel ffi)
+  (uriel cstring)
+  (uriel errno)
   (srfi receive)
   (srfi parameters)
   (only (string-lib) string-join)
@@ -70,7 +72,7 @@ Ses ailes de geant l'empechent de marcher.
       (let ((pathname the-pathname))
 	(with-compensations
 	  (let* ((S (fopen pathname "w+"))
-		 (p (s->c the-string))
+		 (p (string->cstring/c the-string))
 		 (len (strlen p)))
 	    (fwrite p 1 len S)
 	    (fread p len 1 S)
@@ -88,7 +90,7 @@ Ses ailes de geant l'empechent de marcher.
       (let ((pathname the-pathname))
 	(with-compensations
 	  (let* ((S	(fopen pathname "w+"))
-		 (p	(s->c the-string))
+		 (p	(string->cstring/c the-string))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
 	    (fseek S 0 valueof-seek-set)
@@ -105,7 +107,7 @@ Ses ailes de geant l'empechent de marcher.
       (let ((pathname the-pathname))
 	(with-compensations
 	  (let* ((S	(fopen pathname "w+"))
-		 (p	(s->c the-string-newline))
+		 (p	(string->cstring/c the-string-newline))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
 	    (fseek S 0 valueof-seek-set)
@@ -124,8 +126,8 @@ Ses ailes de geant l'empechent de marcher.
 	  (letrec ((S (compensate
 			  (fopen pathname "w+")
 			(with (fclose S))))
-		   (*pointer	(compensate-malloc/small))
-		   (*count	(compensate-malloc/small))
+		   (*pointer	(malloc-small/c))
+		   (*count	(malloc-small/c))
 		   (getp	(lambda ()
 				  (pointer-ref-c-pointer *pointer 0)))
 		   (free	(lambda ()
@@ -134,7 +136,7 @@ Ses ailes de geant l'empechent de marcher.
 				      (primitive-free p)))))
 		   (lines	'()))
 
-	    (fwrite (s->c the-string) 1
+	    (fwrite (string->cstring/c the-string) 1
 		    (string-length the-string) S)
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
@@ -162,13 +164,13 @@ Ses ailes de geant l'empechent de marcher.
 	  (letrec ((S (compensate
 			  (fopen pathname "w+")
 			(with (fclose S))))
-		   (*pointer	(compensate-malloc/small))
-		   (*count	(compensate-malloc/small))
+		   (*pointer	(malloc-small/c))
+		   (*count	(malloc-small/c))
 		   (getp	(lambda ()
 				  (pointer-ref-c-pointer *pointer 0)))
 		   (lines	'()))
 
-	    (fwrite (s->c the-string-newline) 1
+	    (fwrite (string->cstring/c the-string-newline) 1
 		    (string-length the-string-newline)
 		    S)
 	    (fseek S 0 valueof-seek-set)
@@ -202,7 +204,7 @@ Ses ailes de geant l'empechent de marcher.
       (let ((pathname the-pathname))
 	(with-compensations
 	  (let* ((S	(fopen pathname "w+"))
-		 (p	(s->c the-string))
+		 (p	(string->cstring/c the-string))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
 	    (fseek S 0 valueof-seek-set)
@@ -219,7 +221,7 @@ Ses ailes de geant l'empechent de marcher.
       (let ((pathname the-pathname))
 	(with-compensations
 	  (let* ((S	(fopen pathname "w+"))
-		 (p	(s->c the-string-newline))
+		 (p	(string->cstring/c the-string-newline))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
 	    (fseek S 0 valueof-seek-set)
@@ -238,13 +240,13 @@ Ses ailes de geant l'empechent de marcher.
 	  (letrec ((S (compensate
 			  (fopen pathname "w+")
 			(with (fclose S))))
-		   (*pointer	(compensate-malloc/small))
-		   (*count	(compensate-malloc/small))
+		   (*pointer	(malloc-small/c))
+		   (*count	(malloc-small/c))
 		   (getp	(lambda ()
 				  (pointer-ref-c-pointer *pointer 0)))
 		   (lines	'()))
 
-	    (fwrite (s->c the-string) 1
+	    (fwrite (string->cstring/c the-string) 1
 		    (string-length the-string) S)
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
@@ -273,13 +275,13 @@ Ses ailes de geant l'empechent de marcher.
 	  (letrec ((S (compensate
 			  (fopen pathname "w+")
 			(with (fclose S))))
-		   (*pointer	(compensate-malloc/small))
-		   (*count	(compensate-malloc/small))
+		   (*pointer	(malloc-small/c))
+		   (*count	(malloc-small/c))
 		   (getp	(lambda ()
 				  (pointer-ref-c-pointer *pointer 0)))
 		   (lines	'()))
 
-	    (fwrite (s->c the-string-newline) 1
+	    (fwrite (string->cstring/c the-string-newline) 1
 		    (string-length the-string-newline) S)
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()

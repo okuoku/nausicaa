@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-16 10:00:58 marco>
+;;;Time-stamp: <2008-12-18 21:25:39 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -54,9 +54,11 @@
     valueof-seek-cur	valueof-seek-end)
   (import (r6rs)
     (srfi receive)
-    (rename (uriel ffi)
-	    (string-or-symbol->cstring/compensated s->c))
     (uriel lang)
+    (uriel memory)
+    (uriel ffi)
+    (uriel cstring)
+    (uriel errno)
     (glibc sizeof))
 
 (define libc
@@ -92,8 +94,8 @@
 (define (fopen pathname mode)
   (receive (result errno)
       (with-compensations
-	(let ((pathname	(s->c pathname))
-	      (mode	(s->c mode)))
+	(let ((pathname	(string->cstring/c pathname))
+	      (mode	(string->cstring/c mode)))
 	  (primitive-fopen pathname mode)))
     (when (pointer-null? result)
       (raise-errno-error 'fopen errno (list pathname mode)))
@@ -150,7 +152,7 @@
 (define (fputs string stream)
   (receive (result errno)
       (with-compensations
-	(let ((cstring (s->c string)))
+	(let ((cstring (string->cstring/c string)))
 	  (primitive-fwrite cstring stream)))
     (when (= valueof-eof result)
       (raise-errno-error 'fputs errno (list string stream)))
@@ -273,7 +275,7 @@
 (define (fdopen fd open-mode)
   (receive (result errno)
       (with-compensations
-	(let ((mode	(s->c open-mode)))
+	(let ((mode	(string->cstring/c open-mode)))
 	  (primitive-fdopen fd mode)))
     (when (pointer-null? result)
       (raise-errno-error 'fdopen errno (list fd open-mode)))

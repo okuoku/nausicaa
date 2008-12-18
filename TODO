@@ -50,6 +50,7 @@ POSIX
 Glibc
 -----
 
+* Add the string functions.
 * Add the mmap interface.
 * Find a way to add the select interface.
 

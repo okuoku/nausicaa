@@ -2,7 +2,7 @@
 ;;;Part of: Glibc libraries for R6RS Scheme
 ;;;Contents: interface to unlocked stream functions
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-16 10:01:04 marco>
+;;;Time-stamp: <2008-12-18 21:27:07 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -44,8 +44,10 @@
   (import (r6rs)
     (srfi receive)
     (uriel lang)
-    (rename (uriel ffi)
-	    (string-or-symbol->cstring/compensated s->c))
+    (uriel memory)
+    (uriel ffi)
+    (uriel cstring)
+    (uriel errno)
     (glibc sizeof))
 
 (define libc
@@ -102,7 +104,7 @@
 (define (fputs_unlocked string stream)
   (receive (result errno)
       (with-compensations
-	(let ((cstring (s->c string)))
+	(let ((cstring (string->cstring/c string)))
 	  (primitive-fwrite_unlocked cstring stream)))
     (when (= valueof-eof result)
       (raise-errno-error 'fputs_unlocked errno (list string stream)))

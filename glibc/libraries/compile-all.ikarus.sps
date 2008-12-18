@@ -2,6 +2,7 @@
 ;;
 
 (import
+  (only (glibc cstring))
   (only (glibc environment))
   (only (glibc streams))
   (only (glibc streams-unlocked))
