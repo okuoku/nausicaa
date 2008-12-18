@@ -2,24 +2,12 @@
 			  List of things to do
 
 
-* Why I cannot install only the FASL files?
+* Why I cannot install only the FASL files under ikarus?
 * Add support for pacman?
 * Add support for dpkg?
-* Rewrite  the Scheme library  tests for  Autoconf using  a configurable
-  script  rather than  "scheme-script",  so  that, in  some  way, it  is
-  possible to run them with both Ikarus and Ypsilon.
 * Document somewhere that ypsilon requires the --compatible flag.
 
 ## ------------------------------------------------------------
-
-Ice-9
------
-
-* Write the tests.
-* Finish porting for FORMAT (port position needed).
-* Review documentation for FORMAT.
-* Drop optargs and gather xitomatl keywords?
-
 
 Uriel
 -----
@@ -36,15 +24,6 @@ ScmObj
 * Add more tests.
 * Finish the documentation (replace all the original material).
 * Fix dispatching to methods with untyped args.
-
-
-Tiny-CLOS
----------
-
-* Update to the latest.
-* Solve the problem of files without copyright notice.
-* Write the documentation.
-* Add more tests.
 
 
 SRFI
@@ -73,6 +52,12 @@ Glibc
 
 * Add the mmap interface.
 * Find a way to add the select interface.
+
+
+MP
+--
+
+Finished?
 
 
 ### end of file

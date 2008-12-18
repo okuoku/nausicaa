@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-12-16 10:13:04 marco>
+;;;Time-stamp: <2008-12-18 14:02:54 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -49,10 +49,9 @@
 
 (define-syntax with-result
   (syntax-rules ()
-    ((_ ?form0 ?form ...)
+    ((_ ?form ... ?last-form)
      (parameterize ((result '()))
-       (list (begin ?form0 ?form ...)
-	     (get-result))))))
+       ?form ... (list ?last-form (get-result))))))
 
 (define (add-result value)
   (result (cons value (result))))

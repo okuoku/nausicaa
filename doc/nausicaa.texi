@@ -1167,6 +1167,8 @@ compiler to inspect system and libraries facilities.
 * conf clang basics valueof::   Determining the value of expressions.
 * conf clang basics sizeof::    Determining the size of data types.
 * conf clang basics typeof::    Determining the basic type of data types.
+* conf clang basics alignof::   Determining the alignment of data types.
+* conf clang basics strideof::  Determining the array stride of data types.
 * conf clang basics offsetof::  Determining the offset of fields in data
                                 structures.
 * conf clang basics access::    Determining the accessors of data types.
@@ -1491,6 +1493,61 @@ macro @code{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
 
 
 @c page
+@node conf clang basics alignof
+@subsection Determining the alignment of data types
+
+
+It is sometimes needed to know the alignment of a C language data types.
+The following determines the alignment in bytes of @code{unsigned int}
+and assigns it to the output variable @code{ALIGNOF_UINT}:
+
+@example
+NAUSICAA_ALIGNOF_TEST([UINT],[unsigned int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_ALIGNOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Acquire the align of a C language type.
+
+The output variable @code{ALIGNOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @code{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+@c page
+@node conf clang basics strideof
+@subsection Determining the array stride of data types
+
+
+When accessing a block of memory as an array of values of a given data
+type, we must know the stride of the elements: the number of bytes
+between the first byte of an element and the first byte of the next.
+The following determines the stride in bytes of @code{unsigned int} and
+assigns it to the output variable @code{STRIDEOF_UINT}:
+
+@example
+NAUSICAA_STRIDEOF_TEST([UINT],[unsigned int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_STRIDEOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Acquire the stride of a C language type.
+
+The output variable @code{STRIDEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @code{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
 @node conf clang basics offsetof
 @subsection Determining the offset of fields in data structures
 
@@ -1641,6 +1698,8 @@ is a wrapper for other more basic macros, and it expands to:
 
 @example
 NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
 NAUSICAA_BASE_TYPE_TEST(@var{suffix},@var{typedef},@var{type-guess})
 NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{typedef})
 @end example

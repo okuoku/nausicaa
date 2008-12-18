@@ -453,13 +453,56 @@ AC_DEFUN([NAUSICAA_SIZEOF_TEST],
       SIZEOF_$1="$nausicaa_cv_sizeof_$1"],[#f])
    AC_SUBST([SIZEOF_$1])])
 
+dnl 1 output-variable-suffix
+dnl 2 the-typedef
+dnl 3 optional-default-value
+dnl 4 optional headers
+AC_DEFUN([NAUSICAA_ALIGNOF_TEST],
+  [NAUSICAA_OPTIONAL_TEST([ALIGNOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([alignof_$1],[$3])
+      AC_CACHE_CHECK([the alignment of '$2'],
+        [nausicaa_cv_alignof_$1],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$5])],
+           [#ifndef offsetof
+# define offsetof(type, member) ((char *) &((type *) 0)->member - (char *) 0)
+#endif
+            typedef struct { char x; $2 y; } ac__type_alignof_;
+            FILE *f = fopen ("conftest.val", "w");
+            fprintf(f, "%ld", (long int)offsetof(ac__type_alignof_,y));
+            return ferror (f) || fclose (f) != 0;])],
+           [nausicaa_cv_alignof_$1=`cat conftest.val`],
+           [nausicaa_cv_alignof_$1="$nausicaa_default_alignof_$1"])
+         rm -f conftest.val])
+      ALIGNOF_$1="$nausicaa_cv_alignof_$1"],[#f])
+   AC_SUBST([ALIGNOF_$1])])
+
+dnl 1 output-variable-suffix
+dnl 2 the-typedef
+dnl 3 optional-default-value
+dnl 4 optional headers
+AC_DEFUN([NAUSICAA_STRIDEOF_TEST],
+  [NAUSICAA_OPTIONAL_TEST([STRIDEOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([strideof_$1],[$3])
+      AC_CACHE_CHECK([the stride of '$2'],
+        [nausicaa_cv_strideof_$1],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$5])],
+           [$2 x[[3]];
+            FILE *f = fopen ("conftest.val", "w");
+            fprintf(f, "%ld", (long int)((unsigned char *)&(x[[2]])-(unsigned char *)&(x[[1]])));
+            return ferror (f) || fclose (f) != 0;])],
+           [nausicaa_cv_strideof_$1=`cat conftest.val`],
+           [nausicaa_cv_strideof_$1="$nausicaa_default_strideof_$1"])
+         rm -f conftest.val])
+      STRIDEOF_$1="$nausicaa_cv_strideof_$1"],[#f])
+   AC_SUBST([STRIDEOF_$1])])
+
 dnl 1 variable-suffix
 dnl 2 struct-typedef
 dnl 3 struct-field-name
 dnl 4 optional-headers
 AC_DEFUN([NAUSICAA_OFFSETOF_FIELD_TEST],
   [NAUSICAA_OPTIONAL_TEST([OFFSETOF_$1],
-     [NAUSICAA_DEFAULT_VALUE([sizeof_$1],[#f])
+     [NAUSICAA_DEFAULT_VALUE([offsetof_$1],[#f])
       AC_CACHE_CHECK([the offset of field '$3' in '$2'],
         [nausicaa_cv_offsetof_$1],
         [AC_COMPUTE_INT([nausicaa_cv_offsetof_$1],
@@ -701,6 +744,8 @@ dnl 4 default-value
 dnl 5 optional-headers
 AC_DEFUN([NAUSICAA_INSPECT_TYPE],[
 NAUSICAA_SIZEOF_TEST([$1],[$2],[$4],[$5])
+NAUSICAA_ALIGNOF_TEST([$1],[$2],[$4],[$5])
+NAUSICAA_STRIDEOF_TEST([$1],[$2],[$4],[$5])
 NAUSICAA_BASE_TYPE_TEST([$1],[$2],[$3])
 NAUSICAA_ACCESSORS_TEST([$1],[$2])
 ])
@@ -726,18 +771,57 @@ dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAUSICAA_SIZEOF],[
 NAUSICAA_SIZEOF_TEST([CHAR],[char])
+NAUSICAA_ALIGNOF_TEST([CHAR],[char])
+NAUSICAA_STRIDEOF_TEST([CHAR],[char])
+
 NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int])
+NAUSICAA_ALIGNOF_TEST([SHORT_INT],[short int])
+NAUSICAA_STRIDEOF_TEST([SHORT_INT],[short int])
+
 NAUSICAA_SIZEOF_TEST([SHORT_UINT],[unsigned short int])
+NAUSICAA_ALIGNOF_TEST([SHORT_UINT],[unsigned short int])
+NAUSICAA_STRIDEOF_TEST([SHORT_UINT],[unsigned short int])
+
 NAUSICAA_SIZEOF_TEST([INT],[int])
+NAUSICAA_ALIGNOF_TEST([INT],[int])
+NAUSICAA_STRIDEOF_TEST([INT],[int])
+
 NAUSICAA_SIZEOF_TEST([UINT],[unsigned int])
+NAUSICAA_ALIGNOF_TEST([UINT],[unsigned int])
+NAUSICAA_STRIDEOF_TEST([UINT],[unsigned int])
+
 NAUSICAA_SIZEOF_TEST([LONG],[long])
+NAUSICAA_ALIGNOF_TEST([LONG],[long])
+NAUSICAA_STRIDEOF_TEST([LONG],[long])
+
 NAUSICAA_SIZEOF_TEST([ULONG],[unsigned long])
+NAUSICAA_ALIGNOF_TEST([ULONG],[unsigned long])
+NAUSICAA_STRIDEOF_TEST([ULONG],[unsigned long])
+
 NAUSICAA_SIZEOF_TEST([LLONG],[long long])
+NAUSICAA_ALIGNOF_TEST([LLONG],[long long])
+NAUSICAA_STRIDEOF_TEST([LLONG],[long long])
+
 NAUSICAA_SIZEOF_TEST([ULLONG],[unsigned long long])
+NAUSICAA_ALIGNOF_TEST([ULLONG],[unsigned long long])
+NAUSICAA_STRIDEOF_TEST([ULLONG],[unsigned long long])
+
 NAUSICAA_SIZEOF_TEST([FLOAT],[float])
+NAUSICAA_ALIGNOF_TEST([FLOAT],[float])
+NAUSICAA_STRIDEOF_TEST([FLOAT],[float])
+
 NAUSICAA_SIZEOF_TEST([DOUBLE],[double])
+NAUSICAA_ALIGNOF_TEST([DOUBLE],[double])
+NAUSICAA_STRIDEOF_TEST([DOUBLE],[double])
+
 NAUSICAA_SIZEOF_TEST([LONG_DOUBLE],[long double])
+NAUSICAA_ALIGNOF_TEST([LONG_DOUBLE],[long double])
+NAUSICAA_STRIDEOF_TEST([LONG_DOUBLE],[long double])
+
 NAUSICAA_SIZEOF_TEST([POINTER],[void *])
+NAUSICAA_ALIGNOF_TEST([POINTER],[void *])
+NAUSICAA_STRIDEOF_TEST([POINTER],[void *])
+
 AC_CACHE_SAVE
 ])
 

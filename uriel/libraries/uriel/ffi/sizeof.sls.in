@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-16 10:13:54 marco>
+;;;Time-stamp: <2008-12-18 15:48:43 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,13 +26,29 @@
 
 (library (uriel ffi sizeof)
   (export
-    sizeof-signed-char		sizeof-unsigned-char
-    sizeof-signed-short		sizeof-unsigned-short
-    sizeof-signed-integer	sizeof-unsigned-integer
-    sizeof-signed-long		sizeof-unsigned-long
-    sizeof-signed-long-long	sizeof-unsigned-long-long
-    sizeof-float		sizeof-double
-    sizeof-long-double		sizeof-pointer
+    sizeof-char			sizeof-short
+    sizeof-int			sizeof-long
+    sizeof-long-long		sizeof-float
+    sizeof-double		sizeof-long-double
+    sizeof-pointer
+
+    alignof-char		alignof-short
+    alignof-int			alignof-long
+    alignof-long-long		alignof-float
+    alignof-double		alignof-long-double
+    alignof-pointer
+
+    strideof-char		strideof-short
+    strideof-int		strideof-long
+    strideof-long-long		strideof-float
+    strideof-double		strideof-long-double
+    strideof-pointer
+
+    sizeof-char-array		sizeof-short-array
+    sizeof-int-array		sizeof-long-array
+    sizeof-long-long-array	sizeof-float-array
+    sizeof-double-array		sizeof-long-double-array
+    sizeof-pointer-array
 
     valueof-char-max		valueof-char-min
     valueof-schar-max		valueof-schar-min	valueof-uchar-max
@@ -44,20 +60,72 @@
     words-bigendian		on-64-bits-system	on-32-bits-system)
   (import (r6rs))
 
-  (define sizeof-signed-char		@SIZEOF_CHAR@)
-  (define sizeof-unsigned-char		@SIZEOF_CHAR@)
-  (define sizeof-signed-short		@SIZEOF_SHORT_INT@)
-  (define sizeof-unsigned-short		@SIZEOF_SHORT_INT@)
-  (define sizeof-signed-integer		@SIZEOF_INT@)
-  (define sizeof-unsigned-integer	@SIZEOF_INT@)
-  (define sizeof-signed-long		@SIZEOF_LONG@)
-  (define sizeof-unsigned-long		@SIZEOF_LONG@)
-  (define sizeof-signed-long-long	@SIZEOF_LLONG@)
-  (define sizeof-unsigned-long-long	@SIZEOF_LLONG@)
+  (define sizeof-char			@SIZEOF_CHAR@)
+  (define sizeof-short			@SIZEOF_SHORT_INT@)
+  (define sizeof-int			@SIZEOF_INT@)
+  (define sizeof-long			@SIZEOF_LONG@)
+  (define sizeof-long-long		@SIZEOF_LLONG@)
   (define sizeof-float			@SIZEOF_FLOAT@)
   (define sizeof-double			@SIZEOF_DOUBLE@)
   (define sizeof-long-double		@SIZEOF_LONG_DOUBLE@)
   (define sizeof-pointer		@SIZEOF_POINTER@)
+
+  (define alignof-char			@ALIGNOF_CHAR@)
+  (define alignof-short			@ALIGNOF_SHORT_INT@)
+  (define alignof-int			@ALIGNOF_INT@)
+  (define alignof-long			@ALIGNOF_LONG@)
+  (define alignof-long-long		@ALIGNOF_LLONG@)
+  (define alignof-float			@ALIGNOF_FLOAT@)
+  (define alignof-double		@ALIGNOF_DOUBLE@)
+  (define alignof-long-double		@ALIGNOF_LONG_DOUBLE@)
+  (define alignof-pointer		@ALIGNOF_POINTER@)
+
+  (define strideof-char			@STRIDEOF_CHAR@)
+  (define strideof-short		@STRIDEOF_SHORT_INT@)
+  (define strideof-int			@STRIDEOF_INT@)
+  (define strideof-long			@STRIDEOF_LONG@)
+  (define strideof-long-long		@STRIDEOF_LLONG@)
+  (define strideof-float		@STRIDEOF_FLOAT@)
+  (define strideof-double		@STRIDEOF_DOUBLE@)
+  (define strideof-long-double		@STRIDEOF_LONG_DOUBLE@)
+  (define strideof-pointer		@STRIDEOF_POINTER@)
+
+  (define-syntax sizeof-char-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-char ?number-of-elements))))
+  (define-syntax sizeof-short-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-short ?number-of-elements))))
+  (define-syntax sizeof-int-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-int ?number-of-elements))))
+  (define-syntax sizeof-long-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-long ?number-of-elements))))
+  (define-syntax sizeof-long-long-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-long-long ?number-of-elements))))
+  (define-syntax sizeof-float-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-float ?number-of-elements))))
+  (define-syntax sizeof-double-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-double ?number-of-elements))))
+  (define-syntax sizeof-long-double-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-long-double ?number-of-elements))))
+  (define-syntax sizeof-pointer-array
+    (syntax-rules ()
+      ((_ ?number-of-elements)
+       (* strideof-pointer ?number-of-elements))))
 
   (define valueof-char-max		@VALUEOF_CHAR_MAX@)
   (define valueof-char-min		@VALUEOF_CHAR_MIN@)
@@ -79,8 +147,8 @@
   (define valueof-wchar-max		@VALUEOF_WCHAR_MAX@)
   (define valueof-ssize-max		@VALUEOF_SSIZE_MAX@)
 
-  (define on-32-bits-system (= sizeof-signed-integer 4))
-  (define on-64-bits-system (= sizeof-signed-integer 8))
+  (define on-32-bits-system		(= sizeof-int 4))
+  (define on-64-bits-system		(= sizeof-int 8))
 
   (define words-bigendian		@WORDS_BIGENDIAN@))
 

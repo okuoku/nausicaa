@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 17:19:27 marco>
+;;;Time-stamp: <2008-12-18 17:39:04 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,15 +33,15 @@
   (uriel test)
   (uriel memory)
   (uriel lang)
+  (uriel ffi sizeof)
   (srfi parameters)
   (srfi format))
 
 (check-set-mode! 'report-failed)
 
 
-;;;; pointers
 
-(parameterize ((testname 'pointer))
+(parameterize ((testname 'pointers))
 
   (check
       (pointer->integer (integer->pointer 123))
@@ -240,7 +240,6 @@
 ;;; --------------------------------------------------------------------
 
 
-;;;; allocation
 
 (parameterize ((testname 'alloc))
 
@@ -374,9 +373,8 @@
 
 
 
-;;;; bytevector functions
 
-(parameterize ((testname 'bytevector))
+(parameterize ((testname 'bytevectors))
   (with-compensations
     (let ((bv #vu8(0 1 2 3 4 5 6 7 8 9)))
       (check
@@ -445,7 +443,6 @@
 
 
 
-;;;; memblocks and buffers
 
 (parameterize ((testname 'buffers))
 
@@ -585,9 +582,96 @@
   )
 
 
-;;;; memory block accessors
 
-(parameterize ((testname 'accessors))
+(parameterize ((testname 'buffer-alloc))
+
+  (check
+      (with-compensations
+	(parameterize ((memory-buffer-pool
+			(make-buffer (malloc/c 4096) 4096 0)))
+	  (let ((p (buffer-malloc 1000)))
+	    (pointer-null? p))))
+    => #f)
+
+  (check
+      (with-compensations
+	(parameterize ((memory-buffer-pool
+			(make-buffer (malloc/c 4096) 4096 0)))
+	  (list (pointer-null? (buffer-malloc 1000))
+		(pointer-null? (buffer-malloc 1000))
+		(pointer-null? (buffer-malloc 1000))
+		(pointer-null? (buffer-malloc 1000))
+		(primitive-buffer-malloc 1000))))
+    => '(#f #f #f #f #f))
+
+  (check
+      (with-compensations
+	(parameterize ((memory-buffer-pool
+			(make-buffer (malloc/c 4096) 4096 0)))
+	  (guard (exc (else
+		       (list (out-of-memory-condition? exc)
+			     (out-of-memory-number-of-bytes exc))))
+	    (buffer-malloc 5000))))
+    => '(#t 5000))
+
+  )
+
+
+
+(parameterize ((testname 'refcount))
+
+  (check
+      (with-result
+
+       (define (logging-free pointer)
+	 (add-result 'freed)
+	 (platform-free pointer))
+
+       (parameterize ((primitive-free-function logging-free))
+	 (let ((p (malloc/refcount 4096)))
+	   (pointer-acquire p)
+	   (pointer-release p)
+	   #t)))
+    => '(#t (freed)))
+
+  (check
+      (with-result
+
+       (define (logging-free pointer)
+	 (add-result 'freed)
+	 (platform-free pointer))
+
+       (parameterize ((primitive-free-function logging-free))
+	 (let ((p (malloc/refcount 4096)))
+	   (pointer-acquire p)
+	   (pointer-acquire p)
+	   (pointer-release p)
+	   (pointer-release p)
+	   #t)))
+    => '(#t (freed)))
+
+  (check
+      (with-result
+
+       (define (logging-free pointer)
+	 (add-result 'freed)
+	 (platform-free pointer))
+
+       (parameterize ((primitive-free-function logging-free))
+	 (let ((p (malloc/refcount 4096)))
+	   (pointer-acquire p)
+	   (pointer-acquire p)
+	   (pointer-acquire p)
+	   (pointer-acquire p)
+	   (pointer-dismiss p)
+	   #t)))
+    => '(#t (freed)))
+
+  )
+
+
+
+(parameterize ((testname 'pokers))
 
   (check
       (let* ((p (primitive-malloc (expt 10 5)))
@@ -673,14 +757,14 @@
 	(primitive-free p)
 	d)
     => 65)
-;;   (check
-;;       (let* ((p (primitive-malloc (expt 10 5)))
-;; 	     (d (begin
-;; 		  (pointer-set-c-int! p 100 (expt 2 31))
-;; 		  (pointer-ref-c-signed-int p 100))))
-;; 	(primitive-free p)
-;; 	d)
-;;     => (- (expt 2 31)))
+  (check
+      (let* ((p (primitive-malloc (expt 10 5)))
+	     (d (begin
+		  (pointer-set-c-int! p 100 (expt 2 31))
+		  (pointer-ref-c-signed-int p 100))))
+	(primitive-free p)
+	d)
+    => (- (expt 2 31)))
 
 ;;; --------------------------------------------------------------------
 
@@ -692,14 +776,14 @@
 	(primitive-free p)
 	d)
     => 65)
-;;   (check
-;;       (let* ((p (primitive-malloc (expt 10 5)))
-;; 	     (d (begin
-;; 		  (pointer-set-c-int! p 100 (expt 2 31))
-;; 		  (pointer-ref-c-unsigned-int p 100))))
-;; 	(primitive-free p)
-;; 	d)
-;;     => (expt 2 31))
+  (check
+      (let* ((p (primitive-malloc (expt 10 5)))
+	     (d (begin
+		  (pointer-set-c-int! p 100 (expt 2 31))
+		  (pointer-ref-c-unsigned-int p 100))))
+	(primitive-free p)
+	d)
+    => (expt 2 31))
 
 ;;; --------------------------------------------------------------------
 
@@ -711,14 +795,14 @@
 	(primitive-free p)
 	d)
     => 65)
-;;   (check
-;;       (let* ((p (primitive-malloc (expt 10 5)))
-;; 	     (d (begin
-;; 		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
-;; 		  (pointer-ref-c-signed-long p 64))))
-;; 	(primitive-free p)
-;; 	d)
-;;     => (- (expt 2 (if on-64-bits-system 63 31))))
+  (check
+      (let* ((p (primitive-malloc (expt 10 5)))
+	     (d (begin
+		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
+		  (pointer-ref-c-signed-long p 64))))
+	(primitive-free p)
+	d)
+    => (- (expt 2 (if on-64-bits-system 63 31))))
 
 ;;; --------------------------------------------------------------------
 
@@ -730,14 +814,14 @@
 	(primitive-free p)
 	d)
     => 65)
-;;   (check
-;;       (let* ((p (primitive-malloc (expt 10 5)))
-;; 	     (d (begin
-;; 		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
-;; 		  (pointer-ref-c-unsigned-long p 64))))
-;; 	(primitive-free p)
-;; 	d)
-;;     => (expt 2 (if on-64-bits-system 63 31)))
+  (check
+      (let* ((p (primitive-malloc (expt 10 5)))
+	     (d (begin
+		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
+		  (pointer-ref-c-unsigned-long p 64))))
+	(primitive-free p)
+	d)
+    => (expt 2 (if on-64-bits-system 63 31)))
 
 ;;; --------------------------------------------------------------------
 

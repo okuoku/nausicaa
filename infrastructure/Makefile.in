@@ -495,26 +495,6 @@ tests test check:
 
 ## ---------------------------------------------------------------------
 
-nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
-nau_itest_ENV		+= $(nau_test_ENV)
-nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
-nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
-
-.PHONY: itests itest icheck
-
-itests itest icheck:
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
-ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_itest_RUN) $(f);)
-else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_itest_RUN) $(f);)
-endif
-
-tests test check: itest
-endif
-
-## ---------------------------------------------------------------------
-
 nau_ytest_ENV		= YPSILON_SITELIB=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
 nau_ytest_ENV		+= $(nau_test_ENV)
 nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
@@ -531,6 +511,26 @@ else
 endif
 
 tests test check: ytest
+endif
+
+## ---------------------------------------------------------------------
+
+nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
+nau_itest_ENV		+= $(nau_test_ENV)
+nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
+
+.PHONY: itests itest icheck
+
+itests itest icheck:
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+ifeq ($(strip $(file)),)
+	$(foreach f,$(nau_test_FILES),$(nau_itest_RUN) $(f);)
+else
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_itest_RUN) $(f);)
+endif
+
+tests test check: itest
 endif
 
 ## ---------------------------------------------------------------------

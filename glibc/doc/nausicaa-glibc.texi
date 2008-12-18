@@ -435,6 +435,7 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * environment::                 Environment functions.
 * streams::                     Stream functions.
+* cstrings::                    C language strings.
 
 Appendices
 
@@ -1010,6 +1011,35 @@ file and accumulates them in the @code{lines} variables:
                  (loop))))))))
 @end example
 @end defun
+
+
+@c page
+@node cstrings
+@chapter C language strings
+
+
+This chapter describes the @library{glibc cstring} library, which
+exports interfaces to functions that manipulate C strings.  This library
+is a complement for @library{uriel cstring}, which exports basic C
+string functions.
+
+
+@menu
+* cstrings search::             Searching.
+@end menu
+
+
+@c page
+@node cstrings search
+@section Searching
+
+
+@defun memchr @var{pointer} @var{byte} @var{size}
+Finds the first occurrence of @var{byte} in the initial @var{size} bytes
+starting at @var{pointer}.  Return a pointer to the located byte or a
+null pointer if @var{uchar} was not found.
+@end defun
+
 
 
 @c page

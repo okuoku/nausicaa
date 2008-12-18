@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: functions for cstrings handling
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 21:24:59 marco>
+;;;Time-stamp: <2008-12-18 07:59:58 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -34,9 +34,6 @@
     ;;inspection
     strlen
     strcmp			strncmp
-    memchr			memrchr
-    strchr			strrchr
-    strstr			memmem
 
     ;;operations
     strcpy			strncpy
@@ -62,24 +59,6 @@
 (define-c-function strncmp
   (int strncmp (char* char* size_t)))
 
-(define-c-function memchr
-  (char* memchr (char* int size_t)))
-
-(define-c-function memrchr
-  (char* memrchr (char* int size_t)))
-
-(define-c-function strchr
-  (char* strchr (char* int)))
-
-(define-c-function strrchr
-  (char* strchr (char* int)))
-
-(define-c-function strstr
-  (char* strstr (char* int)))
-
-(define-c-function memmem
-  (void* memmem (void* size_t void* size_t)))
-
 
 
 ;;;; operations
@@ -88,14 +67,14 @@
   (char* strcpy (char* char*)))
 
 (define-c-function strncpy
-  (char* strcpy (char* char* size_t)))
+  (char* strncpy (char* char* size_t)))
 
 (define strdup
   (case-lambda
    ((cstring)
     (strdup cstring malloc))
-   ((cstring malloc)
-    (strndup cstring (strlen cstring) malloc))))
+   ((cstring malloc-funk)
+    (strndup cstring (strlen cstring) malloc-funk))))
 
 (define strndup
   (case-lambda
@@ -103,7 +82,8 @@
     (strndup cstring size malloc))
    ((cstring size malloc)
     (let* ((p	(malloc (+ 1 size))))
-      (strncpy p cstring size)
+      (memcpy p cstring size)
+      (pointer-set-c-char! p size 0)
       p))))
 
 

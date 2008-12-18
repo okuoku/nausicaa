@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for the cstring library
 ;;;Date: Wed Dec 17, 2008
-;;;Time-stamp: <2008-12-17 20:49:33 marco>
+;;;Time-stamp: <2008-12-18 08:31:06 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -40,6 +40,79 @@
   (srfi parameters))
 
 (check-set-mode! 'report-failed)
+
+
+
+(parameterize ((testname 'inspection))
+
+  (check
+      (with-compensations
+	(strlen (string->cstring "ciao" malloc/c)))
+    => 4)
+
+  (check
+      (with-compensations
+	(strlen (string->cstring "" malloc/c)))
+    => 0)
+
+  (check
+      (with-compensations
+	(strlen (string->cstring "c" malloc/c)))
+    => 1)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(let ((a (string->cstring "ciao" malloc/c))
+	      (b (string->cstring "ciao" malloc/c)))
+	  (strcmp a b)))
+    => 0)
+
+  (check
+      (with-compensations
+	(let ((a (string->cstring "ciaoa" malloc/c))
+	      (b (string->cstring "ciao" malloc/c)))
+	  (< 0 (strcmp a b))))
+    => #t)
+
+  (check
+      (with-compensations
+	(let ((a (string->cstring "ciao" malloc/c))
+	      (b (string->cstring "ciaoa" malloc/c)))
+	  (> 0 (strcmp a b))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(let ((a (string->cstring "ciao" malloc/c))
+	      (b (string->cstring "ciao" malloc/c)))
+	  (strncmp a b 3)))
+    => 0)
+
+  (check
+      (with-compensations
+	(let ((a (string->cstring "ciaao" malloc/c))
+	      (b (string->cstring "ciauo" malloc/c)))
+	  (> 0 (strncmp a b 4))))
+    => #t)
+
+  (check
+      (with-compensations
+	(let ((a (string->cstring "ciauo" malloc/c))
+	      (b (string->cstring "ciaao" malloc/c)))
+	  (< 0 (strncmp a b 4))))
+    => #t)
+
+  (check
+      (with-compensations
+	(let ((a (string->cstring "ciauo" malloc/c))
+	      (b (string->cstring "ciaao" malloc/c)))
+	  (strncmp a b 3)))
+    => 0)
+  )
 
 
 
@@ -92,6 +165,40 @@
 
   )
 
+
+
+
+(parameterize ((testname 'operations))
+
+  (check
+      (with-compensations
+	(let* ((s (string->cstring "ciao" malloc/c))
+	       (p (malloc/c (+ 1 (strlen s)))))
+	  (strcpy p s)
+	  (cstring->string p)))
+    => "ciao")
+
+  (check
+      (with-compensations
+	(let* ((s (string->cstring "ciao hello" malloc/c))
+	       (p (malloc/c 5)))
+	  (strncpy p s 4)
+	  (cstring->string p)))
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(cstring->string (strdup (string->cstring "ciao" malloc/c) malloc/c)))
+    => "ciao")
+
+  (check
+      (with-compensations
+	(cstring->string (strndup (string->cstring "ciao hello" malloc/c) 4 malloc/c)))
+    => "ciao")
+
+)
 
 
 

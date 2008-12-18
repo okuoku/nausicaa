@@ -487,6 +487,8 @@ Low level memory handling
 * memory cache::                Caching memory blocks.
 * memory factory::              Caching object factories.
 * memory compensate::           Compensations.
+* memory buffer alloc::         Allocation in a buffer.
+* memory refcount::             Reference counting.
 * memory operations::           Operations.
 * memory peekers::              Peeking values.
 * memory pokers::               Pokers values.
@@ -1686,6 +1688,8 @@ other libraries are described in the relevant sections.
 * memory cache::                Caching memory blocks.
 * memory factory::              Caching object factories.
 * memory compensate::           Compensations.
+* memory buffer alloc::         Allocation in a buffer.
+* memory refcount::             Reference counting.
 * memory operations::           Operations.
 * memory peekers::              Peeking values.
 * memory pokers::               Pokers values.
@@ -2535,6 +2539,108 @@ environment of the current compensations stack.
 
 
 @c page
+@node memory buffer alloc
+@section Allocation in a buffer
+
+
+The @api{} described in this section allows us to allocate memory blocks
+contiguously from a preallocated memory block accessed through a
+@code{buffer} record.  Requested memory blocks are just marked as used
+in the status of a buffer.  When using this allocator there is no need
+to release individual blocks: releasing the buffer frees all of them.
+
+
+@deffn Parameter memory-buffer-pool
+Holds the buffer from which memory blocks must be allocated, or @false{}
+if buffer allocation is disabled.  The default value is @false{}.
+@end deffn
+
+
+@defun primitive-buffer-malloc @var{number-of-bytes}
+Allocates @var{number-of-bytes} in the current buffer pool and return a
+pointer to the first allocated byte, or @false{} if there is not enough
+room in the pool.
+
+Notice that this function has the correct interface to be used as value
+for the @func{primitive-malloc-function} parameter.
+@end defun
+
+
+@defun buffer-malloc @var{number-of-bytes}
+A wrapper for @func{primitive-buffer-malloc} the raises an exception if
+there is not enough room in the pool.
+@end defun
+
+
+Example:
+
+@example
+(with-compensations
+  (parameterize ((memory-buffer-pool
+                  (make-buffer (malloc/c 4096) 4096 0)))
+    (let ((p (buffer-malloc 10))
+          (q (buffer-malloc 20)))
+      ---)))
+@end example
+
+
+@c page
+@node memory refcount
+@section Reference counting
+
+
+Reference counting is implemented by allocating a block of memory with
+the requested size plus @code{strideof-long}.  The block will look like
+this:
+
+@example
+ strideof-long            data area
+|-------------|--------------------------------------|
+              ^
+              |
+pointer returned by MALLOC/REFCOUNT
+@end example
+
+@noindent
+the reference counter is handled as an @code{unsigned long} and it is
+located at a negative offset from the address we use to access data.
+
+
+@defun malloc/refcount @var{number-of-bytes}
+@defunx malloc/refcount @var{number-of-bytes} @var{malloc-func}
+@defunx malloc/rc @var{number-of-bytes}
+@defunx malloc/rc @var{number-of-bytes} @var{malloc-func}
+Allocate a block of memory wide enough to hold @var{number-of-bytes}
+using reference counting.  Return a pointer to the first byte in the
+data area of the allocated block.
+
+The reference counter is initially set to zero.
+
+Memory is allocated with the supplied @var{malloc-func}, or with
+@func{malloc} if @var{malloc-func} is not given.
+@end defun
+
+
+@defun pointer-acquire @var{pointer}
+Increment the reference counter of the memory block referenced by
+@var{pointer}.  The block must have been allocated with
+@func{malloc/rc}.
+@end defun
+
+
+@defun pointer-release @var{pointer}
+@defunx pointer-release @var{pointer} @var{free-func}
+Decrement the reference counter of the memory block referenced by
+@var{pointer}.  The block must have been allocated with
+@func{malloc/rc}.
+
+If the counter reaches zero: the block is freed using the supplied
+@var{free-func}, or @var{primitive-free} if @var{free-func} is not
+given.
+@end defun
+
+
+@c page
 @node memory operations
 @section Operations
 
@@ -2586,7 +2692,7 @@ It must be an exact integer compatible with the target data type.
 
 @item offset
 It must be an exact integer, a fixnum, representing the offset of a byte
-into an allocated block of memory.
+into an allocated block of memory.  It can be a negative offset.
 @end table
 
 When adding an offset to a pointer: all the following functions
@@ -2598,6 +2704,7 @@ Pointer arithmetics is performed with byte offsets.
 
 
 @deffn Procedure pointer-ref-c-signed-char @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-char @var{pointer} @var{offset}
 Peek the single byte located at @var{offset} from @var{pointer} and
 return an exact integer representing the sign--extended integer value of
 that byte. The returned value is in the inclusive range @code{[-128,
@@ -2606,6 +2713,7 @@ that byte. The returned value is in the inclusive range @code{[-128,
 
 
 @deffn Procedure pointer-ref-c-unsigned-char @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-char @var{pointer} @var{offset}
 Peek the single byte located at @var{offset} from @var{pointer} and
 return an exact integer representing the unsigned integer value of that
 byte.  The returned value is in the inclusive range @code{[0, 255]}.
@@ -2613,6 +2721,7 @@ byte.  The returned value is in the inclusive range @code{[0, 255]}.
 
 
 @deffn Procedure pointer-ref-c-signed-short @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-short @var{pointer} @var{offset}
 Peek two bytes at @var{offset} from @var{pointer} and return an exact
 integer representing the sign--extended integer value of the sequence.
 The returned value is in the inclusive range @code{[-32768, 32767]}.
@@ -2620,6 +2729,7 @@ The returned value is in the inclusive range @code{[-32768, 32767]}.
 
 
 @deffn Procedure pointer-ref-c-unsigned-short @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-short @var{pointer} @var{offset}
 Peek two bytes at @var{offset} from @var{pointer} and return an exact
 integer representing the unsigned integer value of the sequence.  The
 resulting value is in the inclusive range @code{[0, 65535]}.
@@ -2627,18 +2737,21 @@ resulting value is in the inclusive range @code{[0, 65535]}.
 
 
 @deffn Procedure pointer-ref-c-signed-int @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-int @var{pointer} @var{offset}
 Peek four bytes at @var{offset} from @var{pointer} and return an exact
 integer in the inclusive range @code{[-2^31, 2^31-1]}.
 @end deffn
 
 
 @deffn Procedure pointer-ref-c-unsigned-int @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-int @var{pointer} @var{offset}
 Peek four bytes at @var{offset} from @var{pointer} and return an exact
 integer in the inclusive range @code{[0, 2^32-1]}.
 @end deffn
 
 
 @deffn Procedure pointer-ref-c-signed-long @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-long @var{pointer} @var{offset}
 On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
 and return an integer in the inclusive range @code{[-2^63, 2^63-1]}.
 
@@ -2648,6 +2761,7 @@ On 32-bit systems, perform the same task as
 
 
 @deffn Procedure pointer-ref-c-unsigned-long @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-long @var{pointer} @var{offset}
 On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
 and return an integer in the inclusive range @code{[0, 2^64-1]}.
 
@@ -2655,13 +2769,16 @@ On 32-bit systems: perform the same task as
 @func{pointer-ref-c-unsigned-int}.
 @end deffn
 
+
 @deffn Procedure pointer-ref-c-signed-long-long @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-long-long @var{pointer} @var{offset}
 Peek eight bytes at @var{offset} from @var{pointer} and return an exact
 integer in the inclusive range @code{[-2^63, 2^63-1]}.
 @end deffn
 
 
 @deffn Procedure pointer-ref-c-unsigned-long-long @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-long-long @var{pointer} @var{offset}
 Peek eight bytes at @var{offset} from @var{pointer} and return an exact
 integer in the inclusive range @code{[0, 2^63-1]}.
 @end deffn
@@ -2672,6 +2789,7 @@ integer in the inclusive range @code{[0, 2^63-1]}.
 
 
 @deffn Procedure pointer-ref-c-float @var{pointer} @var{offset}
+@deffnx Procedure peek-float @var{pointer} @var{offset}
 Return the four--byte float (represented as @ieee{} 754 single precision
 floating point number) stored at @var{offset} from @var{pointer}.  The
 value is extended to an @ieee{} 754 double precision floating point
@@ -2680,6 +2798,7 @@ number that Ikarus uses to represent inexact numbers.
 
 
 @deffn Procedure pointer-ref-c-double @var{pointer} @var{offset}
+@deffnx Procedure peek-double @var{pointer} @var{offset}
 Return the eight--byte float (represented as @ieee{} 754 double
 precision floating point number) stored at @var{offset} from
 @var{pointer}.
@@ -2691,6 +2810,7 @@ precision floating point number) stored at @var{offset} from
 
 
 @deffn Procedure pointer-ref-c-pointer @var{pointer} @var{offset}
+@deffnx Procedure peek-pointer @var{pointer} @var{offset}
 Return the a value representing the pointer stored at @var{offset} from
 @var{pointer}.  The size of the pointer (also the number of bytes loaded)
 depends on the architecture: it is 4 bytes on 32-bit systems and 8 bytes
@@ -2699,8 +2819,6 @@ on 64-bit systems.
 We have to assume that the returned value can be converted to an exact
 integer with @func{pointer->integer}.
 @end deffn
-
-
 
 
 @c page
@@ -2722,7 +2840,7 @@ It must be an exact integer compatible with the target data type.
 
 @item offset
 It must be an exact integer, a fixnum, representing the offset of a byte
-into an allocated block of memory.
+into an allocated block of memory.  It can be a negative offset.
 @end table
 
 When adding an offset to a pointer: all the following functions
@@ -2743,21 +2861,25 @@ in the operation and the remaining bits are ignored.
 
 
 @deffn Procedure pointer-set-c-char! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-char! @var{pointer} @var{offset} @var{value}
 @poker{single byte,8}
 @end deffn
 
 
 @deffn Procedure pointer-set-c-short! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-short! @var{pointer} @var{offset} @var{value}
 @poker{two bytes,16}
 @end deffn
 
 
 @deffn Procedure pointer-set-c-int! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-int! @var{pointer} @var{offset} @var{value}
 @poker{four bytes,32}
 @end deffn
 
 
 @deffn Procedure pointer-set-c-long! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-long! @var{pointer} @var{offset} @var{value}
 On 64-bit systems: @poker{eight bytes,64}
 
 On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
@@ -2765,6 +2887,7 @@ On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
 
 
 @deffn Procedure pointer-set-c-long-long! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-long-long! @var{pointer} @var{offset} @var{value}
 @poker{eight bytes,64}
 @end deffn
 
@@ -2775,6 +2898,7 @@ On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
 
 
 @deffn Procedure pointer-set-c-float! @var{pointer} @var{offset} @var{flonum}
+@deffnx Procedure poke-float! @var{pointer} @var{offset} @var{flonum}
 Convert the Scheme floating point number @var{flonum} (represented in
 Ikarus as an @ieee{} 754 double precision floating point number) to a
 float (an @ieee{} 754 single precision floating point number) and store
@@ -2783,6 +2907,7 @@ the result in the four bytes at @var{offset} from @var{pointer}.
 
 
 @deffn Procedure pointer-set-c-double! @var{pointer} @var{offset} @var{flonum}
+@deffnx Procedure poke-double! @var{pointer} @var{offset} @var{flonum}
 Store the double precision @ieee{} 754 floating point value of the
 Scheme @var{flonum} in the eight bytes at @var{offset} from
 @var{pointer}.
@@ -2795,6 +2920,7 @@ Scheme @var{flonum} in the eight bytes at @var{offset} from
 
 
 @deffn Procedure pointer-set-c-pointer! @var{pointer} @var{offset} @var{pointer-value}
+@deffnx Procedure poke-pointer! @var{pointer} @var{offset} @var{pointer-value}
 On 64-bit systems: set the eight bytes at @var{offset} from
 @var{pointer} to the 64-bit pointer @var{pointer-value}.
 
@@ -3275,7 +3401,7 @@ interface:
 @section Sizes and limits
 
 
-A set of variables is provided to allow interface libraries to be aware
+A set of bindings is provided to allow interface libraries to be aware
 of C language type sizes and limits.  To load the library:
 
 @example
@@ -3284,22 +3410,57 @@ of C language type sizes and limits.  To load the library:
 @end example
 
 
-@defvar sizeof-signed-char
-@defvarx sizeof-unsigned-char
-@defvarx sizeof-signed-short
-@defvarx sizeof-unsigned-short
-@defvarx sizeof-signed-integer
-@defvarx sizeof-unsigned-integer
-@defvarx sizeof-signed-long
-@defvarx sizeof-unsigned-long
-@defvarx sizeof-signed-long-long
-@defvarx sizeof-unsigned-long-long
+@defvar sizeof-char
+@defvarx sizeof-short
+@defvarx sizeof-int
+@defvarx sizeof-long
+@defvarx sizeof-long-long
 @defvarx sizeof-float
 @defvarx sizeof-double
 @defvarx sizeof-long-double
 @defvarx sizeof-pointer
 The number of bytes in the specified type.
 @end defvar
+
+
+@defvar alignof-char
+@defvarx alignof-short
+@defvarx alignof-int
+@defvarx alignof-long
+@defvarx alignof-long-long
+@defvarx alignof-float
+@defvarx alignof-double
+@defvarx alignof-long-double
+@defvarx alignof-pointer
+The number of bytes of the alignment for the specified type.
+@end defvar
+
+
+@defvar strideof-char
+@defvarx strideof-short
+@defvarx strideof-int
+@defvarx strideof-long
+@defvarx strideof-long-long
+@defvarx strideof-float
+@defvarx strideof-double
+@defvarx strideof-long-double
+@defvarx strideof-pointer
+The number of bytes of the array stride for the specified type.
+@end defvar
+
+
+@deffn Syntax sizeof-char-array @var{number-of-elements}
+@deffnx Syntax sizeof-short-array @var{number-of-elements}
+@deffnx Syntax sizeof-int-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-long-array @var{number-of-elements}
+@deffnx Syntax sizeof-float-array @var{number-of-elements}
+@deffnx Syntax sizeof-double-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-double-array @var{number-of-elements}
+@deffnx Syntax sizeof-pointer-array @var{number-of-elements}
+Compute the number of bytes to allocate to hold an array of the
+specified type.
+@end deffn
 
 
 @defvar valueof-char-max
@@ -3401,14 +3562,6 @@ string referenced by @var{pointer} and return a pointer to it.  The new
 string is allocated using the supplied @var{malloc} function, or
 @func{malloc} if no function is given.
 @end defun
-
-
-@defun memchr @var{pointer} @var{byte} @var{size}
-Finds the first occurrence of @var{byte} in the initial @var{size} bytes
-starting at @var{pointer}.  Return a pointer to the located byte or a
-null pointer if @var{uchar} was not found.
-@end defun
-
 
 
 @c page

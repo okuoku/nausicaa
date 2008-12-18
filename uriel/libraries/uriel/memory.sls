@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 21:01:39 marco>
+;;;Time-stamp: <2008-12-18 17:40:06 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -84,23 +84,56 @@
     malloc-buffer/compensated	(rename (malloc-buffer/compensated malloc-buffer/c))
 
     ;;bytevector conversion functions
-    bytevector->pointer bytevector->memblock
-    pointer->bytevector memblock->bytevector
+    bytevector->pointer		pointer->bytevector
+    bytevector->memblock	memblock->bytevector
+
+
+    ;;buffer allocation
+    memory-buffer-pool
+    primitive-buffer-malloc	buffer-malloc
+
+    ;;reference counting
+    malloc/refcount		(rename (malloc/refcount malloc/rc))
+    pointer-acquire		pointer-release
+    pointer-dismiss
 
     ;;peekers
-    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
-    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
-    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
-    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
-    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-signed-char			pointer-ref-c-unsigned-char
+    pointer-ref-c-signed-short			pointer-ref-c-unsigned-short
+    pointer-ref-c-signed-int			pointer-ref-c-unsigned-int
+    pointer-ref-c-signed-long			pointer-ref-c-unsigned-long
+    pointer-ref-c-signed-long-long		pointer-ref-c-unsigned-long-long
+    pointer-ref-c-float				pointer-ref-c-double
     pointer-ref-c-pointer
 
+    (rename (pointer-ref-c-signed-char		peek-signed-char))
+    (rename (pointer-ref-c-unsigned-char	peek-unsigned-char))
+    (rename (pointer-ref-c-signed-short		peek-signed-short))
+    (rename (pointer-ref-c-unsigned-short	peek-unsigned-short))
+    (rename (pointer-ref-c-signed-int		peek-signed-int))
+    (rename (pointer-ref-c-unsigned-int		peek-unsigned-int))
+    (rename (pointer-ref-c-signed-long		peek-signed-long))
+    (rename (pointer-ref-c-unsigned-long	peek-unsigned-long))
+    (rename (pointer-ref-c-signed-long-long	peek-signed-long-long))
+    (rename (pointer-ref-c-unsigned-long-long	peek-unsigned-long-long))
+    (rename (pointer-ref-c-float		peek-float))
+    (rename (pointer-ref-c-double		peek-double))
+    (rename (pointer-ref-c-pointer		peek-pointer))
+
     ;;pokers
-    pointer-set-c-char!			pointer-set-c-short!
-    pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-long-long!		pointer-set-c-float!
-    pointer-set-c-double!		pointer-set-c-pointer!
+    pointer-set-c-char!				pointer-set-c-short!
+    pointer-set-c-int!				pointer-set-c-long!
+    pointer-set-c-long-long!			pointer-set-c-float!
+    pointer-set-c-double!			pointer-set-c-pointer!
+
+    (rename (pointer-set-c-char!		poke-char!))
+    (rename (pointer-set-c-short!		poke-short!))
+    (rename (pointer-set-c-int!			poke-int!))
+    (rename (pointer-set-c-long!		poke-long!))
+    (rename (pointer-set-c-long-long!		poke-long-long!))
+    (rename (pointer-set-c-float!		poke-float!))
+    (rename (pointer-set-c-double!		poke-double!))
+    (rename (pointer-set-c-pointer!		poke-pointer!))
 
     ;;conditions
     &out-of-memory
@@ -109,6 +142,7 @@
   (import (r6rs)
     (uriel lang)
     (uriel memory compat)
+    (uriel ffi sizeof)
     (srfi format)
     (srfi parameters))
 
@@ -517,6 +551,76 @@
 		 (with
 		  (buffers-cache buffer)))))
     buffer))
+
+
+
+;;;; allocation in buffers
+
+(define memory-buffer-pool
+  (make-parameter #f
+    (lambda (obj)
+      (unless (or (not obj) (buffer? obj))
+	(assertion-violation 'memory-buffer-pool
+	  "expected #f or memory buffer as parameter value" obj))
+      obj)))
+
+(define (primitive-buffer-malloc number-of-bytes)
+  (let ((buffer (memory-buffer-pool)))
+    (unless buffer
+      (assertion-violation 'buffer-malloc
+	"attempted buffer memory allocation but no buffer was selected"))
+  (if (< number-of-bytes (buffer-free-size buffer))
+      (begin0
+	  (buffer-pointer-to-free-bytes buffer)
+	(buffer-incr-used-size! buffer number-of-bytes))
+    #f)))
+
+(define (buffer-malloc number-of-bytes)
+  (or (primitive-buffer-malloc number-of-bytes)
+      (raise-out-of-memory 'buffer-malloc number-of-bytes)))
+
+
+
+;;;; reference counting
+
+(define malloc/refcount
+  (case-lambda
+   ((number-of-bytes)
+    (malloc/refcount number-of-bytes malloc))
+   ((number-of-bytes malloc-funk)
+    (let ((p (malloc-funk (+ strideof-long number-of-bytes))))
+      (pointer-set-c-long! p 0 0)
+      (pointer-add p strideof-long)))))
+
+(define-syntax refcount-set!
+  (syntax-rules ()
+    ((_ ?pointer ?value)
+     (pointer-set-c-long! ?pointer (- strideof-long) ?value))))
+
+(define-syntax refcount-ref
+  (syntax-rules ()
+    ((_ ?pointer)
+     (pointer-ref-c-unsigned-long ?pointer (- strideof-long)))))
+
+(define (pointer-acquire pointer)
+  (refcount-set! pointer (+ 1 (refcount-ref pointer))))
+
+(define pointer-release
+  (case-lambda
+   ((pointer)
+    (pointer-release pointer primitive-free))
+   ((pointer free-func)
+    (let ((rc (refcount-ref pointer)))
+      (if (= 1 rc)
+	  (primitive-free (pointer-add pointer (- strideof-long)))
+	(refcount-set! pointer (- rc 1)))))))
+
+(define pointer-dismiss
+  (case-lambda
+   ((pointer)
+    (pointer-dismiss pointer primitive-free))
+   ((pointer free-func)
+    (primitive-free (pointer-add pointer (- strideof-long))))))
 
 
 
