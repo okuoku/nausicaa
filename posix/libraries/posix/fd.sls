@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to the file descriptor libraries
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-16 10:08:15 marco>
+;;;Time-stamp: <2008-12-18 21:01:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -53,12 +53,14 @@
   (import (except (r6rs) read write)
     (srfi receive)
     (uriel lang)
-    (rename (uriel ffi)
-	    (string-or-symbol->cstring/compensated s->c))
+    (uriel memory)
+    (uriel cstring)
+    (uriel ffi)
     (uriel ffi sizeof)
-    (uriel ffi errno)
+    (uriel errno)
     (posix sizeof))
 
+  (define d (shared-object self-shared-object))
 
 
 ;;;; helpers
@@ -102,7 +104,7 @@
 
 (define (open pathname open-mode permissions)
   (with-compensations
-    (let ((c-pathname (s->c pathname)))
+    (let ((c-pathname (string->cstring/c pathname)))
       (temp-failure-retry-minus-one
        open
        (primitive-open c-pathname open-mode permissions)

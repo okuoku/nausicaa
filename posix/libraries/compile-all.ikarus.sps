@@ -2,8 +2,8 @@
 ;;
 
 (import
-  (only (posix))
-  (only (posix fd))
-  )
+  (only (posix environment))
+  (only (posix working-directory))
+  (only (posix fd)))
 
 ;;; end of file

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for the basic POSIX interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-16 10:23:31 marco>
+;;;Time-stamp: <2008-12-18 21:18:32 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,8 +32,9 @@
   (uriel printing)
   (uriel test)
   (uriel ffi)
-  (uriel ffi errno)
-  (posix)
+  (uriel errno)
+  (posix environment)
+  (posix working-directory)
   (srfi receive)
   (srfi parameters))
 

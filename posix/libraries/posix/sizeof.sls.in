@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: size of definitions
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-16 10:09:16 marco>
+;;;Time-stamp: <2008-12-18 20:50:06 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -63,6 +63,7 @@
     struct-flock-l_pid-set!		struct-flock-l_pid-ref
     )
   (import (rnrs)
+    (uriel memory)
     (uriel ffi))
 
   (define mode_t			(quote @TYPEOF_MODE_T@))

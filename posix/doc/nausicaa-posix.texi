@@ -466,28 +466,17 @@ offered by the underlying platform.  Basically this library makes use of
 the foreign functions interface defined by @library{uriel ffi}, and
 occasionally makes use of the Scheme implementation specific facilities.
 
-To load the main library:
-
-@example
-(import (rnrs)
-  (posix))
-@end example
-
-@noindent
-for the independent libraries see the corresponding sections.
-
 For all the functions only a brief description is given: we have to use
 the foreign function's own documentation to have all the details.
 
-
-@c ------------------------------------------------------------
 
 @c page
 @node posix environment
 @chapter Environment variables
 
 
-@naulibcref{environment} for other functions.
+The following bindings are exported by @library{posix environment}.
+@naulibcref{environment}
 
 
 @defun getenv @var{varname}
@@ -515,6 +504,9 @@ the action: if true the value is replaced, if @false{} it is left alone.
 @c page
 @node posix working directory
 @chapter The working directory
+
+
+The following bindings are exported by @library{posix working-directory}.
 
 
 @defun getcwd
@@ -554,7 +546,7 @@ the foreign function.
 
 
 File descriptor arguments and return values are handled at the Scheme
-level as exact integers.
+level as exact integers.  The main library is @library{posix fd}.
 
 
 @menu
