@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-18 17:40:06 marco>
+;;;Time-stamp: <2008-12-18 18:06:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -134,6 +134,23 @@
     (rename (pointer-set-c-float!		poke-float!))
     (rename (pointer-set-c-double!		poke-double!))
     (rename (pointer-set-c-pointer!		poke-pointer!))
+
+    ;;array peekers
+    (rename (pointer-ref-c-signed-char   peek-array-signed-char))
+    (rename (pointer-ref-c-unsigned-char peek-array-unsigned-char))
+    peek-array-signed-short		peek-array-unsigned-short
+    peek-array-signed-int		peek-array-unsigned-int
+    peek-array-signed-long		peek-array-unsigned-long
+    peek-array-signed-long-long		peek-array-unsigned-long-long
+    peek-array-float			peek-array-double
+    peek-array-pointer
+
+    ;;array pokers
+    (rename (pointer-set-c-char!	poke-array-char!))
+    poke-array-short!			poke-array-int!
+    poke-array-long!			poke-array-long-long!
+    poke-array-float!			poke-array-double!
+    poke-array-pointer!
 
     ;;conditions
     &out-of-memory
@@ -671,6 +688,63 @@
     (memblock->bytevector mb number-of-bytes 0))
    ((mb number-of-bytes offset)
     (pointer->bytevector (memblock-pointer mb) number-of-bytes offset))))
+
+
+
+;;;; array peekers
+
+(define (peek-array-signed-short pointer index)
+  (pointer-ref-c-signed-short pointer (* index strideof-short)))
+(define (peek-array-unsigned-short pointer index)
+  (pointer-ref-c-unsigned-short pointer (* index strideof-short)))
+
+(define (peek-array-signed-int pointer index)
+  (pointer-ref-c-signed-int pointer (* index strideof-int)))
+(define (peek-array-unsigned-int pointer index)
+  (pointer-ref-c-unsigned-int pointer (* index strideof-int)))
+
+(define (peek-array-signed-long pointer index)
+  (pointer-ref-c-signed-long pointer (* index strideof-long)))
+(define (peek-array-unsigned-long pointer index)
+  (pointer-ref-c-unsigned-long pointer (* index strideof-long)))
+
+(define (peek-array-signed-long-long pointer index)
+  (pointer-ref-c-signed-long-long pointer (* index strideof-long-long)))
+(define (peek-array-unsigned-long-long pointer index)
+  (pointer-ref-c-unsigned-long-long pointer (* index strideof-long-long)))
+
+(define (peek-array-float pointer index)
+  (pointer-ref-c-float pointer (* index strideof-float)))
+(define (peek-array-double pointer index)
+  (pointer-ref-c-double pointer (* index strideof-float)))
+
+(define (peek-array-pointer pointer index)
+  (pointer-ref-c-pointer pointer (* index strideof-float)))
+
+
+
+;;;; array pokers
+
+(define (poke-array-short! pointer index value)
+  (pointer-set-c-short! pointer (* index strideof-short) value))
+
+(define (poke-array-int! pointer index value)
+  (pointer-set-c-int! pointer (* index strideof-int) value))
+
+(define (poke-array-long! pointer index value)
+  (pointer-set-c-long! pointer (* index strideof-long) value))
+
+(define (poke-array-long-long! pointer index value)
+  (pointer-set-c-long-long! pointer (* index strideof-long-long) value))
+
+(define (poke-array-float! pointer index value)
+  (pointer-set-c-float! pointer (* index strideof-float) value))
+
+(define (poke-array-double! pointer index value)
+  (pointer-set-c-double! pointer (* index strideof-float) value))
+
+(define (poke-array-pointer! pointer index value)
+  (pointer-set-c-pointer! pointer (* index strideof-float) value))
 
 
 

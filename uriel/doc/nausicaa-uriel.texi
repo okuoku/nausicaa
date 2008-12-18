@@ -1693,6 +1693,8 @@ other libraries are described in the relevant sections.
 * memory operations::           Operations.
 * memory peekers::              Peeking values.
 * memory pokers::               Pokers values.
+* memory array peekers::        Peeking values into arrays.
+* memory array pokers::         Poking values into arrays.
 
 Independent libraries
 
@@ -2931,6 +2933,112 @@ We have to assume that we can convert an exact integer to a pointer
 value using @func{integer->pointer}.
 @end deffn
 
+
+@c page
+@node memory array peekers
+@section Peeking values into arrays
+
+
+The following functions make use of the pokers to access an array of
+basic C language data types.  The index is used to compute the position
+of the first byte taking into account the element stride of the data
+type.
+
+To allocate an array of a given type, we can compute the correct size
+using the @code{sizeof-*-array} bindings.  @ref{ffi sizeof,
+sizeof-char-array}
+
+
+@defun peek-array-signed-char @var{pointer} @var{index}
+@defunx peek-array-unsigned-char @var{pointer} @var{index}
+Peek a character integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-short @var{pointer} @var{index}
+@defunx peek-array-unsigned-short @var{pointer} @var{index}
+Peek a short integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-int @var{pointer} @var{index}
+@defunx peek-array-unsigned-int @var{pointer} @var{index}
+Peek an integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-long @var{pointer} @var{index}
+@defunx peek-array-unsigned-long @var{pointer} @var{index}
+Peek a long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-long-long @var{pointer} @var{index}
+@defunx peek-array-unsigned-long-long @var{pointer} @var{index}
+Peek a long long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-float @var{pointer} @var{index}
+@defunx peek-array-double @var{pointer} @var{index}
+Peek a floating pointer number at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-pointer @var{pointer} @var{index}
+Peek a pointer at @var{index} from @var{pointer}.
+@end defun
+
+
+@c page
+@node memory array pokers
+@section Poking values into arrays
+
+
+The following functions make use of the pokers to access an array of
+basic C language data types.  The index is used to compute the position
+of the first byte taking into account the element stride of the data
+type.
+
+To allocate an array of a given type, we can compute the correct size
+using the @code{sizeof-*-array} bindings.  @ref{ffi sizeof,
+sizeof-char-array}
+
+
+@defun poke-array-char! @var{pointer} @var{index} @var{value}
+Poke a character at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-short! @var{pointer} @var{index} @var{value}
+Poke a short integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-int! @var{pointer} @var{index} @var{value}
+Poke an integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-long! @var{pointer} @var{index} @var{value}
+Poke a long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-long-long! @var{pointer} @var{index} @var{value}
+Poke a long long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-float! @var{pointer} @var{index} @var{value}
+@defunx poke-array-double! @var{pointer} @var{index} @var{value}
+Poke a floating point number at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-pointer! @var{pointer} @var{index} @var{value}
+Poke a pointer at @var{index} from @var{pointer}.
+@end defun
 
 
 @c page

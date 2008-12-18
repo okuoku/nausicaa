@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-18 17:39:04 marco>
+;;;Time-stamp: <2008-12-18 18:11:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -856,6 +856,91 @@
 
   )
 
+
+
+
+(parameterize ((testname 'array))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-char-array 16))))
+	  (poke-array-char! a 5 65)
+	  (poke-array-char! a 6 66)
+	  (list (peek-array-signed-char a 5)
+		(peek-array-unsigned-char a 6))))
+    => '(65 66))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-int-array 16))))
+	  (poke-array-int! a 5 65)
+	  (poke-array-int! a 6 66)
+	  (list (peek-array-signed-int a 5)
+		(peek-array-unsigned-int a 6))))
+    => '(65 66))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-short-array 16))))
+	  (poke-array-short! a 5 65)
+	  (poke-array-short! a 6 66)
+	  (list (peek-array-signed-short a 5)
+		(peek-array-unsigned-short a 6))))
+    => '(65 66))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-long-array 16))))
+	  (poke-array-long! a 5 65)
+	  (poke-array-long! a 6 66)
+	  (list (peek-array-signed-long a 5)
+		(peek-array-unsigned-long a 6))))
+    => '(65 66))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-long-long-array 16))))
+	  (poke-array-long-long! a 5 65)
+	  (poke-array-long-long! a 6 66)
+	  (list (peek-array-signed-long-long a 5)
+		(peek-array-unsigned-long-long a 6))))
+    => '(65 66))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-float-array 16))))
+	  (poke-array-float! a 5 65.1)
+	  (poke-array-float! a 6 66.2)
+	  (cons (peek-array-float a 5)
+		(peek-array-float a 6))))
+    (=> (lambda (a b)
+	  (and (< (- (car a) (car b)) 0.1)
+	       (< (- (cdr a) (cdr b)) 0.1))))
+    '(65.1 . 66.2))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-double-array 16))))
+	  (poke-array-double! a 5 65.1)
+	  (poke-array-double! a 6 66.2)
+	  (cons (peek-array-double a 5)
+		(peek-array-double a 6))))
+    (=> (lambda (a b)
+	  (and (< (- (car a) (car b)) 0.1)
+	       (< (- (cdr a) (cdr b)) 0.1))))
+    '(65.1 . 66.2))
+
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-pointer-array 16))))
+	  (poke-array-pointer! a 5 (integer->pointer 65))
+	  (poke-array-pointer! a 6 (integer->pointer 66))
+	  (map pointer->integer
+	    (list (peek-array-pointer a 5)
+		  (peek-array-pointer a 6)))))
+    => '(65 66))
+
+  )
 
 
 ;;;; done
