@@ -1709,7 +1709,9 @@ collection.  To import the main library:
 @end example
 
 @noindent
-other libraries are described in the relevant sections.
+other libraries are described in the relevant sections.  The
+@library{uriel foreign} library also exports bindings from
+@library{uriel memory}.
 
 @menu
 * memory conditions::           Out of memory errors.
@@ -3130,9 +3132,11 @@ the underlying Scheme implementation.  To load the library:
 @noindent
 only functions needed to build an interface to a foreign C language
 shared object are made available by this library; other functions (to do
-actual operations) are in the @library{glibc} and @library{posix}
-libraries.
+actual operations) are in the @library{glibc ---} and @library{posix
+---} libraries.
 
+The @library{uriel foreign} library also exports bindings from
+@library{uriel ffi}.
 
 @menu
 * ffi example::                 Basic interface to Zlib.
@@ -3550,6 +3554,9 @@ of C language type sizes and limits.  To load the library:
   (uriel ffi sizeof))
 @end example
 
+The @library{uriel foreign} library also exports bindings from
+@library{uriel ffi sizeof}.
+
 
 @defvar sizeof-char
 @defvarx sizeof-short
@@ -3651,7 +3658,8 @@ respectively.
 
 A @emph{C string} is a block of memory holding a string of characters
 terminated by a zero byte.  The functions described in this chapter are
-exported by the @library{uriel cstring} library.
+exported by the @library{uriel cstring} library.  The @library{uriel
+foreign} library also exports bindings from @library{uriel cstring}.
 
 
 @menu
@@ -3741,7 +3749,8 @@ taken from the C string.
 
 
 The bindings described in this chapter are exported by the
-@library{uriel errno} library.
+@library{uriel errno} library.  The @library{uriel foreign} library also
+exports bindings from @library{uriel errno}.
 
 
 @menu

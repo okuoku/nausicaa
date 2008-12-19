@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: access to the errno variable
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-18 20:55:03 marco>
+;;;Time-stamp: <2008-12-19 07:21:09 marco>
 ;;;
 ;;;Abstract
 ;;;

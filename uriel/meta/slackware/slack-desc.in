@@ -1,10 +1,10 @@
               |-----handy-ruler-----------------------------------------------|
 @PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: A collection of libraries for Ikarus Scheme.
+@PACKAGE_NAME@: A collection of libraries for R6RS Scheme.
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: 
+@PACKAGE_NAME@:
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
