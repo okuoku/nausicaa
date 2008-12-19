@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: access to the errno variable
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-19 07:21:09 marco>
+;;;Time-stamp: <2008-12-19 10:01:23 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -423,11 +423,15 @@
   (make-errno-condition errno-numeric-value
 			(errno->symbol/or-error errno-numeric-value)))
 
-(define (raise-errno-error who errno irritants)
-  (raise (condition (make-who-condition who)
-		    (make-message-condition (strerror errno))
-		    (make-errno-condition* errno)
-		    (make-irritants-condition irritants))))
+(define raise-errno-error
+  (case-lambda
+   ((who errno)
+    (raise-errno-error who errno #f))
+   ((who errno irritants)
+    (raise (condition (make-who-condition who)
+		      (make-message-condition (strerror errno))
+		      (make-errno-condition* errno)
+		      (make-irritants-condition irritants))))))
 
 
 ;;;; done

@@ -4019,10 +4019,13 @@ condition from the numeric value only.
 @end defun
 
 
-@defun raise-errno-error @var{who} @var{errno-numeric-value} @var{irritants}
+@defun raise-errno-error @var{who} @var{errno-numeric-value}
+@defunx raise-errno-error @var{who} @var{errno-numeric-value} @var{irritants}
 Raise a non--continuable exception representing a foreign function
-system error signaled through the @code{errno} variable.  The following
-form:
+system error signaled through the @code{errno} variable.  If
+@var{irritants} is not given, it defaults to @false{}.
+
+The following form:
 
 @example
 (let ((errno ---)
