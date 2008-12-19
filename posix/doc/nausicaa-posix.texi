@@ -318,6 +318,10 @@ the main purpose of this document is to provide an Info version.
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
+@macro urielref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-uriel}
+@end macro
+
 @macro naulibcref{NODE, TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,nausicaa-glibc}
 @end macro
@@ -434,9 +438,10 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* posix environment::           Environment variables.
-* posix working directory::     The working directory.
+* environment::                 Environment variables.
+* working directory::           The working directory.
 * fd::                          File descriptors.
+* process::                     Processes.
 
 Appendices
 
@@ -450,7 +455,31 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+File descriptors
+
+* fd constants::                Variables holding constant values.
+* fd open close::               Opening and closing.
+* fd read write::               Reading and writing.
+* fd seek::                     Setting the file position.
+* fd sync::                     Synchronisation.
+* fd control::                  Control operations.
+* fd dup::                      Duplicating file descriptors.
+* fd lock::                     File locks.
+
+Variables holding constant values
+
+* fd constants status::         File status flags.
+* fd constants control::        File control flags.
+* fd constants seek::           File positions.
+* fd constants lock::           Locking.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c ------------------------------------------------------------
@@ -471,7 +500,7 @@ the foreign function's own documentation to have all the details.
 
 
 @c page
-@node posix environment
+@node environment
 @chapter Environment variables
 
 
@@ -502,7 +531,7 @@ the action: if true the value is replaced, if @false{} it is left alone.
 
 
 @c page
-@node posix working directory
+@node working directory
 @chapter The working directory
 
 
@@ -566,10 +595,6 @@ level as exact integers.  The main library is @library{posix fd}.
 @section Variables holding constant values
 
 
-All the constants described here are exported by the library
-@library{posix sizeof}.
-
-
 @menu
 * fd constants status::         File status flags.
 * fd constants control::        File control flags.
@@ -583,7 +608,10 @@ All the constants described here are exported by the library
 @subsection File status flags
 
 
-Read the original documentation @glibcref{File Status Flags}  If a value
+All the bindings described here are exported by the library
+@library{posix sizeof}.
+
+Read the original documentation @glibcref{File Status Flags} If a value
 is not defined on the underlying platform: the corresponding variable is
 set to @false{}.
 
@@ -659,8 +687,9 @@ Open--time action flags to be used with @func{open}.
 @subsection File control flags
 
 
-The following variables hold constants to be used as @var{operation}
-argument in calls to @func{fcntl}.
+All the bindings described here are exported by the library
+@library{posix sizeof}.  The following variables hold constants to be
+used as @var{operation} argument in calls to @func{fcntl}.
 
 
 @defvar F_GETFL
@@ -705,9 +734,11 @@ performed.
 @subsection File positions
 
 
-Notice that the following values are exported also by the @library{glibc
-sizeof} library, under the name of @code{valueof-seek-set},
-@code{valueof-seek-cur}, @code{valueof-seek-end}.
+All the bindings described here are exported by the library
+@library{posix sizeof}.  Notice that the following values are exported
+also by the @library{glibc sizeof} library, under the name of
+@code{valueof-seek-set}, @code{valueof-seek-cur},
+@code{valueof-seek-end}.
 
 
 @defvar SEEK_SET
@@ -720,6 +751,10 @@ File positions for the @var{whence} argument to @func{lseek}.
 @c page
 @node fd constants lock
 @subsection Locking
+
+
+All the bindings described here are exported by the library
+@library{posix sizeof}.
 
 
 @defvar F_RDLCK
@@ -822,7 +857,7 @@ import specification.  For example the following avoids importing the
 @rnrs{6} procedures:
 
 @example
-(import (except (rnrs) read write)
+(import (except (r6rs) read write)
   (posix fd))
 @end example
 
@@ -831,7 +866,7 @@ and the following prefixes with @code{posix:} all the functions from
 @library{posix fd}:
 
 @example
-(import (rnrs)
+(import (r6rs)
   (prefix (posix fd) posix:))
 @end example
 
@@ -929,7 +964,8 @@ of the foreign function call and the value of @code{errno} just after
 the call.
 
 @quotation
-It seems that @cfunc{lseek} cannot be interrupted by @code{EINTR}.
+@emph{Note:} It seems that @cfunc{lseek} cannot be interrupted by
+@code{EINTR}.
 @end quotation
 @end defun
 
@@ -946,10 +982,12 @@ size with:
 
 @example
 (define (file-size-from-descriptor fd)
-  (let ((current-position (lseek fd 0 SEEK_CUR))
-        (file-size        (lseek fd 0 SEEK_END)))
-    (lseek fd current-position SEEK_SET)
-    file-size))
+  (with-compensations
+    (letrec ((pos (compensate
+                      (lseek fd 0 SEEK_CUR)
+                    (with
+                     (lseek fd pos SEEK_SET)))))
+       (lseek fd 0 SEEK_END))))
 @end example
 
 
@@ -1099,6 +1137,225 @@ flock}.
 (fcntl fd F_UNLCK p)
 @end example
 
+
+@c page
+@node process
+@chapter Processes
+
+
+@menu
+* process id::                  Process identification.
+* process fork::                Creating a process.
+* process exec::                Executing a file.
+* process wait::                Process completion.
+@end menu
+
+
+@c page
+@node process id
+@section Process identification
+
+
+@glibcref{Process Identification,Process Identification}
+
+@quotation
+@emph{Note:} It seems that the following functions cannot fail.
+@end quotation
+
+
+@defun getpid
+Return the process id of the current process.
+@end defun
+
+
+@defun getppid
+Return the process id of the parent process.
+@end defun
+
+
+@c page
+@node process fork
+@section Creating a process
+
+
+@glibcref{Creating a Process,Creating a Process}
+
+@quotation
+@emph{Note:} Access to @cfunc{vfork} is not implemented because it is
+impossible to know what the Scheme implementation does.
+@end quotation
+
+
+@deffn Parameter primitive-fork-function
+Holds the function used by @func{fork} to fork a process.  It is
+initialised to @func{primitive-fork}.
+@end deffn
+
+
+@defun fork
+@defunx primitive-fork
+Create a new process by forking the current one.
+
+If successful @func{fork} returns zero in the child process and the
+child process' id in the parent process; else it raises an @code{&errno}
+condition.  @func{primitive-fork} returns 2 values: the return value of
+the foreign function call and the value of @code{errno} right after the
+call.
+
+@func{fork} forks the process by invoking the function which is the
+current vale of the @func{primitive-fork-function} parameter.  This
+allows us to test failing execution paths by setting the parameter to a
+procedure that returns error values.
+@end defun
+
+
+Example of usage of failing primitive fork function:
+
+@example
+(define (fake-fork)
+  (values -1 EINVAL))
+
+(parameterize ((primitive-fork-function fake-fork))
+   ---
+   (fork)
+   ---)
+@end example
+
+
+@c page
+@node process exec
+@section Executing a file
+
+
+@glibcref{Executing a File,Executing a File}
+
+
+@deffn Function execv @var{pathname} @var{args}
+@deffnx Function primitive-execv @var{pathname} @var{args}
+@deffnx Parameter primitive-execv-function
+@deffnx Function platform-execv @var{c-pathname} @var{argv}
+Execute the file selected by the Scheme string or symbol @var{pathname}
+using the list of Scheme strings or symbols @var{args} as command line
+arguments.  By convention the first value of @var{args} must be the name
+(with no directory path) of the executed process.
+
+If successful a new process is executed and these functions do not
+return.
+
+If an error occurs @func{execv} raises an @code{&errno} condition, while
+@func{primitive-execv} returns 2 values: the return value of the foreign
+function (which should be @code{-1}) and the value of @code{errno} right
+after the foreign function call.
+
+@func{execv} executes the process by invoking the function which is the
+current value of the @func{primitive-execv-function} parameter.  This
+allows us to test failing execution paths by setting the parameter to a
+procedure that returns error values.
+
+@func{platform-execv} is the wrapper for the foreign function
+@cfunc{execv}; it accepts a C string as @var{c-pathname} argument and a
+pointer to a null--terminated array of C strings as @var{argv} argument.
+@urielref{cstring argv,Converting arrays of cstrings}
+
+Usage example:
+
+@example
+(when (= 0 (fork))
+  (execv '/bin/ls '(ls "-l" /bin)))
+@end example
+
+@noindent
+notice that command line options like @code{-l} have to be strings, not
+symbols, to prevent the Scheme implementation to raise an error (because
+the first char @code{-} is reserved for numeric datums).  To test an
+error handling path:
+
+@example
+(parameterize ((primitive-execv-function
+                (lambda args (values -1 EINVAL))))
+   (guard (exc ---)
+     ---
+     (execv '/bin/ls '(ls))
+     ---))
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Function execve @var{pathname} @var{args} @var{envs}
+@deffnx Function primitive-execve @var{pathname} @var{args} @var{envs}
+@deffnx Parameter primitive-execve-function
+@deffnx Function platform-execve @var{c-pathname} @var{argv} @var{envv}
+Execute the file selected by the Scheme string or symbol @var{pathname}
+using the list of Scheme strings or symbols @var{args} as command line
+arguments.  By convention the first value of @var{args} must be the name
+(with no directory path) of the executed process.
+
+@var{envs} must be a list of Scheme strings or symbols used to set the
+process execution environment.
+
+If successful a new process is executed and these functions do not
+return.
+
+If an error occurs @func{execve} raises an @code{&errno} condition, while
+@func{primitive-execve} returns 2 values: the return value of the foreign
+function (which should be @code{-1}) and the value of @code{errno} right
+after the foreign function call.
+
+@func{execve} executes the process by invoking the function which is the
+current value of the @func{primitive-execve-function} parameter.  This
+allows us to test failing execution paths by setting the parameter to a
+procedure that returns error values.
+
+@func{platform-execve} is the wrapper for the foreign function
+@cfunc{execve}; it accepts a C string as @var{c-pathname} argument and
+pointers to null--terminated arrays of C strings as @var{argv} and
+@var{envv} arguments.  @urielref{cstring argv,Converting arrays of
+cstrings}
+
+Usage example:
+
+@example
+(when (= 0 (fork))
+  (execve '/usr/bin/du
+          '(du /bin/ls)
+          '("BLOCK_SIZE=human-readable")))
+@end example
+
+@noindent
+notice that command line options like @code{-l} have to be strings, not
+symbols, to prevent the Scheme implementation to raise an error (because
+the first char @code{-} is reserved for numeric datums).  To test an
+error handling path:
+
+@example
+(parameterize ((primitive-execve-function
+               (lambda args (values -1 EINVAL))))
+  (guard (exc ---)
+    (execve '/usr/bin/du
+            '(du /bin/ls)
+            '("BLOCK_SIZE=human-readable"))))
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Function execvp @var{pathname} @var{args}
+@deffnx Function primitive-execvp @var{pathname} @var{args}
+@deffnx Parameter primitive-execvp-function
+@deffnx Function platform-execvp @var{c-pathname} @var{argv}
+These functions are like the @func{execv} ones, except that
+@var{pathname} can be the name of a file that is searched in the current
+@env{PATH} search path.
+@end deffn
+
+
+@c page
+@node process wait
+@section Process completion
+
+
+@glibcref{Process Completion,Process Completion}
 
 
 @c page

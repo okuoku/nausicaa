@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: size of definitions
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-18 20:50:06 marco>
+;;;Time-stamp: <2008-12-19 09:31:44 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -23,6 +23,8 @@
 ;;;You should  have received  a copy of  the GNU General  Public License
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
+
+
 
 (library (posix sizeof)
   (export
@@ -66,6 +68,9 @@
     (uriel memory)
     (uriel ffi))
 
+
+;;;; type definitions
+
   (define mode_t			(quote @TYPEOF_MODE_T@))
   (define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
   (define pointer-ref-c-mode_t		@GETTEROF_MODE_T@)
@@ -79,6 +84,9 @@
   (define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
 
   (define sizeof-struct-flock		@SIZEOF_STRUCT_FLOCK@)
+
+
+;;;; constants
 
   (define O_ACCMODE			@VALUEOF_O_ACCMODE@)
   (define O_APPEND			@VALUEOF_O_APPEND@)
@@ -125,6 +133,8 @@
   (define SEEK_CUR			@VALUEOF_SEEK_CUR@)
   (define SEEK_END			@VALUEOF_SEEK_END@)
 
+
+;;;; struct accessors
 
   (define-c-struct-accessors
     struct-flock-l_type-set!
@@ -160,6 +170,9 @@
     @OFFSETOF_STRUCT_FLOCK_L_PID@
     @SETTEROF_STRUCT_FLOCK_L_PID@
     @GETTEROF_STRUCT_FLOCK_L_PID@)
+
+
+;;;; done
 
   )
 

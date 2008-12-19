@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Nausicaa/
-;;;Contents: interface to POSIX functions for Ikarus
+;;;Contents: Ikarus POSIX functions compatibility for environment
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-16 10:07:57 marco>
+;;;Time-stamp: <2008-12-19 07:48:49 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,7 +24,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (posix compat)
+(library (posix environment compat)
   (export
     (rename (getenv primitive-getenv)))
   (import (r6rs)
