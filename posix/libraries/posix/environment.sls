@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to POSIX functions for R6RS Scheme
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-18 21:18:03 marco>
+;;;Time-stamp: <2008-12-19 16:32:41 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,13 +28,9 @@
   (export
     getenv setenv)
   (import (r6rs)
-    (posix compat)
+    (posix environment compat)
     (uriel lang)
-    (uriel memory)
-    (uriel cstring)
-    (uriel ffi)
-    (uriel errno)
-    (srfi receive))
+    (uriel foreign))
 
   (define dummy
     (shared-object self-shared-object))

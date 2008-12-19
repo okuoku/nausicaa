@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: size of definitions
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-19 13:43:21 marco>
+;;;Time-stamp: <2008-12-19 16:51:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -58,6 +58,8 @@
     SEEK_SET		SEEK_CUR	SEEK_END
 
     WNOHANG		WUNTRACED	WCONTINUED
+
+    L_ctermid
 
     ;;struct accessors
     struct-flock-l_type-set!		struct-flock-l_type-ref
@@ -138,6 +140,8 @@
   (define WNOHANG			@VALUEOF_WNOHANG@)
   (define WUNTRACED			@VALUEOF_WUNTRACED@)
   (define WCONTINUED			@VALUEOF_WCONTINUED@)
+
+  (define L_ctermid			@VALUEOF_L_ctermid@)
 
 
 ;;;; struct accessors

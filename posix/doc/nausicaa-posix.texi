@@ -442,6 +442,7 @@ entitled ``@gnu{} Free Documentation License''.
 * working directory::           The working directory.
 * fd::                          File descriptors.
 * process::                     Processes.
+* job::                         Job control.
 
 Appendices
 
@@ -1416,6 +1417,193 @@ A wrapper for @cfunc{primitive-watipid} that tracks all the child
 processes in the group with id @var{gpid}.
 @end defun
 
+
+@c page
+@node job
+@chapter Job control
+
+
+@menu
+* job terminal::                Terminal identification.
+* job group::                   Process group functions.
+* job access::                  Terminal access.
+@end menu
+
+
+@c page
+@node job terminal
+@section Terminal identification
+
+
+@glibcref{Identifying the Terminal,Identifying the Controlling Terminal}
+
+
+@deffn Function ctermid
+@deffnx Function primitive-ctermid
+@deffnx Parameter primitive-ctermid-function
+@deffnx Function platform-ctermid @var{pointer}
+Return a string representing the pathname of the controlling terminal
+for this process.
+
+@var{pointer} can be null or a pointer to a buffer of @code{L_ctermid}
+bytes in which the foreign function will store the terminal file
+pathname as a C string.  @code{L_ctermid} is exported by @library{posix
+sizeof}.
+
+If successful @func{ctermid} and @func{primitive-ctermid} return a
+Scheme string, else they raise an @code{&errno} condition.
+@func{platform-ctermid} returns 2 values: the return value from the
+foreign function call and the value of @code{errno} right after the
+foreign call.
+
+@func{ctermid} does the job by invoking the current value of the
+@func{primitive-ctermid-function} parameter, which is initially set to
+@func{primitive-ctermid}.
+@end deffn
+
+
+@c page
+@node job group
+@section Process group functions
+
+
+@glibcref{Process Group Functions,Process Group Functions}
+
+
+@deffn Function setsid
+@deffnx Function primitive-setsid
+@deffnx Parameter primitive-setsid-function
+@deffnx Function platform-setsid
+Create a new session and return the new process group id.
+
+If successful @func{setsid} and @func{primitive-setsid} return an
+integer representing the group id, else they raise an @code{&errno}
+condition.  @func{platform-setsid} returns 2 values: the return value
+from the foreign function call and the value of @code{errno} right after
+the foreign call.
+
+@func{setsid} does the job by invoking the current value of the
+@func{primitive-setsid-function} parameter, which is initially set to
+@func{primitive-setsid}.
+@end deffn
+
+
+@deffn Function getsid @var{pid}
+@deffnx Function primitive-getsid @var{pid}
+@deffnx Parameter primitive-getsid-function
+@deffnx Function platform-getsid @var{pid}
+Return the group id of the session leader of the process with @var{pid}.
+
+If successful @func{getsid} and @func{primitive-getsid} return an
+integer representing the group id, else they raise an @code{&errno}
+condition.  @func{platform-getsid} returns 2 values: the return value
+from the foreign function call and the value of @code{errno} right after
+the foreign call.
+
+@func{getsid} does the job by invoking the current value of the
+@func{primitive-getsid-function} parameter, which is initially set to
+@func{primitive-getsid}.
+@end deffn
+
+
+@deffn Function getpgrp
+@deffnx Function primitive-getpgrp
+@deffnx Parameter primitive-getpgrp-function
+@deffnx Function platform-getpgrp
+Return the process group id of group to which the current process
+belongs.
+
+If successful @func{getpgrp} and @func{primitive-getpgrp} return an
+integer representing the group id, else they raise an @code{&errno}
+condition.  @func{platform-getpgrp} returns 2 values: the return value
+from the foreign function call and the value of @code{errno} right after
+the foreign call.
+
+@func{getpgrp} does the job by invoking the current value of the
+@func{primitive-getpgrp-function} parameter, which is initially set to
+@func{primitive-getpgrp}.
+@end deffn
+
+
+@deffn Function setpgid @var{pid} @var{pgid}
+@deffnx Function primitive-setpgid @var{pid} @var{pgid}
+@deffnx Parameter primitive-setpgid-function
+@deffnx Function platform-setpgid @var{pid} @var{pgid}
+Put the process @var{pid} in the group @var{pgid}.
+
+If an error occurs @func{setpgid} and @func{primitive-setpgid} raise an
+@code{&errno} condition.  @func{platform-setpgid} returns 2 values: the
+return value from the foreign function call and the value of
+@code{errno} right after the foreign call.
+
+@func{setpgid} does the job by invoking the current value of the
+@func{primitive-setpgid-function} parameter, which is initially set to
+@func{primitive-setpgid}.
+@end deffn
+
+
+@c page
+@node job access
+@section Terminal access
+
+
+@glibcref{Terminal Access Functions,Functions for Controlling Terminal
+Access}
+
+
+@deffn Function tcgetpgrp @var{fd}
+@deffnx Function primitive-tcgetpgrp @var{fd}
+@deffnx Parameter primitive-tcgetpgrp-function
+@deffnx Function platform-tcgetpgrp @var{fd}
+Return the process group id of the foreground process group associated
+with the terminal open on descriptor @var{fd}.
+
+If successful @func{tcgetpgrp} and @func{primitive-tcgetpgrp} return an
+integer representing the group id, else they raise an @code{&errno}
+condition.  @func{platform-tcgetpgrp} returns 2 values: the return value
+from the foreign function call and the value of @code{errno} right after
+the foreign call.
+
+@func{tcgetpgrp} does the job by invoking the current value of the
+@func{primitive-tcgetpgrp-function} parameter, which is initially set to
+@func{primitive-tcgetpgrp}.
+@end deffn
+
+
+@deffn Function tcsetpgrp @var{fd} @var{pgid}
+@deffnx Function primitive-tcsetpgrp @var{fd} @var{pgid}
+@deffnx Parameter primitive-tcsetpgrp-function
+@deffnx Function platform-tcsetpgrp @var{fd} @var{pgid}
+Set a terminal's foreground process group id.
+
+If an error occurs @func{tcsetpgrp} and @func{primitive-tcsetpgrp} raise
+an @code{&errno} condition.  @func{platform-tcsetpgrp} returns 2 values:
+the return value from the foreign function call and the value of
+@code{errno} right after the foreign call.
+
+@func{tcsetpgrp} does the job by invoking the current value of the
+@func{primitive-tcsetpgrp-function} parameter, which is initially set to
+@func{primitive-tcsetpgrp}.
+@end deffn
+
+
+@deffn Function tcgetsid @var{fd}
+@deffnx Function primitive-tcgetsid @var{fd}
+@deffnx Parameter primitive-tcgetsid-function
+@deffnx Function platform-tcgetsid @var{fd}
+Return the process group id of the session for which the open on
+descriptor @var{fd} is the controlling terminal.
+
+If successful @func{tcgetsid} and @func{primitive-tcgetsid} return an
+integer representing the group id, else they raise an @code{&errno}
+condition.  @func{platform-tcgetsid} returns 2 values: the return value
+from the foreign function call and the value of @code{errno} right after
+the foreign call.
+
+@func{tcgetsid} does the job by invoking the current value of the
+@func{primitive-tcgetsid-function} parameter, which is initially set to
+@func{primitive-tcgetsid}.
+@end deffn
 
 
 @c page

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to process related POSIX functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 13:46:48 marco>
+;;;Time-stamp: <2008-12-19 16:33:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -201,7 +201,6 @@
     (assertion-violation 'waitpid/group
       "expected strictly positive process group id" gpid))
   (primitive-waitpid (- gpid) options))
-
 
 
 

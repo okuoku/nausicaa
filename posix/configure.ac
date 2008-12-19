@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/POSIX
 dnl Contents: configuration file template
 dnl Date: Fri Dec  5, 2008
-dnl Time-stamp: <2008-12-19 13:41:59 marco>
+dnl Time-stamp: <2008-12-19 16:44:10 marco>
 dnl
 dnl Abstract
 dnl
@@ -137,6 +137,8 @@ NAU_POSIX_VALUEOF_TEST([F_WRLCK])
 NAU_POSIX_VALUEOF_TEST([WNOHANG])
 NAU_POSIX_VALUEOF_TEST([WUNTRACED])
 NAU_POSIX_VALUEOF_TEST([WCONTINUED])
+
+NAU_POSIX_VALUEOF_TEST([L_ctermid])
 
 AC_CACHE_SAVE
 

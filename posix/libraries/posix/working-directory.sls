@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to POSIX functions for R6RS Scheme
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-18 21:19:19 marco>
+;;;Time-stamp: <2008-12-19 16:33:31 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,13 +29,8 @@
     getcwd primitive-getcwd (rename (getcwd pwd))
     chdir primitive-chdir)
   (import (r6rs)
-    (posix compat)
     (uriel lang)
-    (uriel memory)
-    (uriel cstring)
-    (uriel ffi)
-    (uriel errno)
-    (srfi receive))
+    (uriel foreign))
 
   (define dummy
     (shared-object self-shared-object))

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to the file descriptor libraries
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-18 21:01:05 marco>
+;;;Time-stamp: <2008-12-19 16:33:00 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -51,16 +51,12 @@
     dup2		primitive-dup2
     )
   (import (except (r6rs) read write)
-    (srfi receive)
     (uriel lang)
-    (uriel memory)
-    (uriel cstring)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (uriel errno)
+    (uriel foreign)
     (posix sizeof))
 
-  (define d (shared-object self-shared-object))
+  (define dummy
+    (shared-object self-shared-object))
 
 
 ;;;; helpers
