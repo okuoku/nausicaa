@@ -796,10 +796,10 @@ slack_UPGRADEPKG	= $(slack_ENV) $(slack_SUDO) $(slack_UPGRADEPKG_PROGRAM) $(slac
 .PHONY: private-slackware-remove private-slackware-upgrade
 
 private-slackware: slackware-clean slackware-builddir
-	$(MAKE) install DESTDIR=$(slack_PACKAGE_TOP_BUILDDIR)
-	$(INSTALL_DIR) $(slack_PACKAGE_BUILDDIR)/install
-	$(INSTALL_DATA) $(builddir)/meta.d/slackware/slack-desc $(slack_PACKAGE_BUILDDIR)/install
-	$(MAKE) slackware-aux
+	$(slack_SUDO) $(MAKE) install DESTDIR=$(slack_PACKAGE_TOP_BUILDDIR)
+	$(slack_SUDO) $(INSTALL_DIR) $(slack_PACKAGE_BUILDDIR)/install
+	$(slack_SUDO) $(INSTALL_DATA) $(builddir)/meta.d/slackware/slack-desc $(slack_PACKAGE_BUILDDIR)/install
+	$(slack_SUDO) $(MAKE) slackware-aux
 	cd $(slack_PACKAGE_BUILDDIR); \
 	$(slack_MAKEPKG) $(slack_PACKAGE_NAME); \
 	$(slack_SUDO) $(MV) $(slack_PACKAGE_NAME) $(slack_BUILDDIR)

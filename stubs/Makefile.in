@@ -2,7 +2,7 @@
 ## Part of: Nausicaa/Stubs
 ## Contents: makefile
 ## Date: Fri Dec 19, 2008
-## Time-stamp: <2008-12-19 18:32:19 marco>
+## Time-stamp: <2008-12-19 20:45:04 marco>
 ##
 ## Abstract
 ##
@@ -426,10 +426,9 @@ vpath	%.$(OBJEXT)	$(builddir)
 
 .PHONY: nausicaa-posix-all nausicaa-posix-clean
 
-nausicaa-posix-all: objects-builddir libraries-builddir $(nausicaa_posix_LIBRARY)
 
-nausicaa-posix-clean:
-	-$(RM) $(nausicaa_posix_CLEANFILES)
+ifeq ($(strip $(nausicaa_ENABLE_POSIX)),yes)
+nausicaa-posix-all: objects-builddir libraries-builddir $(nausicaa_posix_LIBRARY)
 
 $(eval $(call nau-module-install-data,nausicaa_posix,nausicaa_ENABLE_POSIX))
 
@@ -442,6 +441,15 @@ $(nausicaa_posix_LIBRARY) : $(nausicaa_posix_OBJECTS)
 	$(CC_BUILD_LIBRARY) $(@) $(^)
 
 endif
+
+else
+nausicaa-posix-all:
+nausicaa-posix-install:
+nausicaa-posix-uninstall:
+endif
+
+nausicaa-posix-clean:
+	-$(RM) $(nausicaa_posix_CLEANFILES)
 
 all:		nausicaa-posix-all
 clean:		nausicaa-posix-clean
@@ -620,10 +628,10 @@ slack_UPGRADEPKG	= $(slack_ENV) $(slack_SUDO) $(slack_UPGRADEPKG_PROGRAM) $(slac
 .PHONY: private-slackware-remove private-slackware-upgrade
 
 private-slackware: slackware-clean slackware-builddir
-	$(MAKE) install DESTDIR=$(slack_PACKAGE_TOP_BUILDDIR)
-	$(INSTALL_DIR) $(slack_PACKAGE_BUILDDIR)/install
-	$(INSTALL_DATA) $(builddir)/meta.d/slackware/slack-desc $(slack_PACKAGE_BUILDDIR)/install
-	$(MAKE) slackware-aux
+	$(slack_SUDO) $(MAKE) install DESTDIR=$(slack_PACKAGE_TOP_BUILDDIR)
+	$(slack_SUDO) $(INSTALL_DIR) $(slack_PACKAGE_BUILDDIR)/install
+	$(slack_SUDO) $(INSTALL_DATA) $(builddir)/meta.d/slackware/slack-desc $(slack_PACKAGE_BUILDDIR)/install
+	$(slack_SUDO) $(MAKE) slackware-aux
 	cd $(slack_PACKAGE_BUILDDIR); \
 	$(slack_MAKEPKG) $(slack_PACKAGE_NAME); \
 	$(slack_SUDO) $(MV) $(slack_PACKAGE_NAME) $(slack_BUILDDIR)

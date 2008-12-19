@@ -1,6 +1,6 @@
 
-	      Template library for R6RS Scheme
-	      ================================
+		       Nausicaa/Stubs
+		       ==============
 
 
 Topics
@@ -16,7 +16,22 @@ Topics
 1. Introduction
 ---------------
 
-This is a Scheme library.
+This  is a  collection of  small C  language  libraries; its
+purpose  is  to  adapt  the  C  interface  to  some  foreign
+libraries'  features   to  be  usable  by   the  Scheme  FFI
+libraries.
+
+  Building  and installation  of  all the  libraries can  be
+enabled  or  disabled with  a  command  line  option to  the
+"configure"  script.    The  list  of   available  libraries
+follows.
+
+Library name:	libnausicaa-posix.so
+Enable option:	--enable-posix
+Disable option:	--disable-posix
+
+  Implements  an interface to  the preprocessor  macros that
+  allows inspection of the status returned by "waitpid()".
 
 
 2. License
@@ -44,17 +59,13 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
-Be  sure  to  have  installed the  Nausicaa/SRFI  and  Uriel
-libraries first.
+Basically we should do:
 
-  Basically we should do:
-
-   $ cd template
+   $ cd stubs
    $ mkdir "=build"
    $ cd "=build"
    $ ../configure
    $ make
-   $ make test
    $ make install
 
   To test what a rule will do use the "-n" option; example:
@@ -64,9 +75,9 @@ libraries first.
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/nausicaa-template
+    $ make install DESTDIR=/tmp/marco/nausicaa-stubs
 
-  The   "Makefile"  supports  the   packages  infrastructure
+  The "Makefile" mostly supports the packages infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
 

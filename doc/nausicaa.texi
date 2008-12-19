@@ -454,15 +454,14 @@ Indexes
 
 @noindent
 @value{PACKAGE} is a distribution of Scheme language libraries for
-@rnrs{6} Scheme, targeting specifically Ikarus and trying to provide
-support for Ypsilon.  This document describes the project building and
-installation infrastructure, used by almost all the projects in the
-distribution.
+@rnrs{6} Scheme, targeting Ypsilon and Ikarus.  This document describes
+the project building and installation infrastructure, which is used by
+almost all the projects in the distribution.
 
-Only pure Scheme projects are accepted into Nausicaa; no C language code
-is compiled or used.  Access to foreign shared libraries is written with
-the Foreign Function Interface (@ffi{}) provided by the Scheme
-implementation.
+Almost all the projects in Nausicaa are pure Scheme; the Stubs projects
+collects adapter C language libraries.  Access to foreign shared
+libraries is written with the Foreign Functions Interface (@ffi{})
+provided by the Scheme implementation.
 
 
 @menu
