@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS
 ;;;Contents: compound library for foreign functions interfaces
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 07:21:39 marco>
+;;;Time-stamp: <2008-12-19 11:15:06 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -209,6 +209,10 @@
     ;;conversion
     cstring->string		cstring->string/len
     string->cstring/c		string->cstring
+
+    ;; null-terminated arrays of cstrings
+    strings->argv		argv->strings
+    argv-length
 
 
 ;;;; (uriel errno)

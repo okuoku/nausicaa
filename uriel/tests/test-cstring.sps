@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for the cstring library
 ;;;Date: Wed Dec 17, 2008
-;;;Time-stamp: <2008-12-19 07:44:20 marco>
+;;;Time-stamp: <2008-12-19 11:14:31 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -197,6 +197,22 @@
     => "ciao")
 
 )
+
+
+
+(parameterize ((testname 'argv))
+
+  (check
+      (with-compensations
+	(argv->strings (strings->argv '("alpha" "beta" gamma))))
+    => '("alpha" "beta" "gamma"))
+
+  (check
+      (with-compensations
+	(argv-length (strings->argv '("alpha" "beta" gamma))))
+    => 3)
+
+  )
 
 
 

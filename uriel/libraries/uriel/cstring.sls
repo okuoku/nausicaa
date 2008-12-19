@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: functions for cstrings handling
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-18 07:59:58 marco>
+;;;Time-stamp: <2008-12-19 11:29:12 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -41,10 +41,15 @@
 
     ;;conversion
     cstring->string		cstring->string/len
-    string->cstring/c		string->cstring)
+    string->cstring/c		string->cstring
+
+    ;; null-terminated arrays of cstrings
+    strings->argv		argv->strings
+    argv-length)
   (import (r6rs)
     (uriel lang)
     (uriel ffi)
+    (uriel ffi sizeof)
     (uriel memory))
 
 
@@ -116,6 +121,41 @@
 
 (define (cstring->string pointer)
   (cstring->string/len pointer (strlen pointer)))
+
+
+;;;; null-terminated arrays of strings
+
+(define strings->argv
+  (case-lambda
+   ((args)
+    (strings->argv args malloc))
+   ((args malloc-func)
+    (let* ((args	(map
+			    (lambda (s)
+			      (string->cstring s malloc-func))
+			  args))
+	   (argc	(length args))
+	   (argv	(malloc-func (sizeof-pointer-array (+ 1 argc)))))
+      (do ((i 0 (+ 1 i))
+	   (c args (cdr c)))
+	  ((= i argc)
+	   (poke-array-pointer! argv argc pointer-null)
+	   argv)
+	(poke-array-pointer! argv i (car c)))))))
+
+(define (argv-length argv)
+  (do ((i 0 (+ 1 i)))
+      ((pointer-null? (peek-array-pointer argv i))
+       i)
+    #f))
+
+(define (argv->strings argv)
+  (let ((args	'()))
+    (do ((i 0 (+ 1 i)))
+	((pointer-null? (peek-array-pointer argv i))
+	 (reverse args))
+      (set! args (cons (cstring->string (peek-array-pointer argv i)) args)))))
+
 
 
 ;;;; done

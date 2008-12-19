@@ -3666,6 +3666,7 @@ foreign} library also exports bindings from @library{uriel cstring}.
 * cstring inspection::          Inspecting cstrings.
 * cstring operations::          Acting upon cstrings.
 * cstring conversion::          Converting to and from cstrings.
+* cstring argv::                Converting arrays of cstrings.
 @end menu
 
 
@@ -3741,6 +3742,52 @@ conversion is performed using a @code{s8} bytevector.
 For @func{cstring->string/len} only @var{number-of-bytes} bytes are
 taken from the C string.
 @end defun
+
+
+@c page
+@node cstring argv
+@section Converting arrays of cstrings
+
+
+A null--terminated array of C strings looks like this:
+
+@example
+                  -
+argv pointer ---> | pointer to string -----> C string 0
+                  -
+                  | pointer to string -----> C string 1
+                  -
+                  | pointer to string -----> C string 2
+                  -
+                  | pointer to string -----> C string 3
+                  -
+                  | null pointer
+                  -
+@end example
+
+
+@defun strings->argv @var{args}
+@defunx strings->argv @var{args} @var{malloc-func}
+Convert the list of Scheme strings and symbols in @var{args} into a
+null--terminated array of strings.  Return the pointer to the array.
+
+The array and the strings are allocated with the function
+@var{malloc-func}, or with @func{malloc} if @var{malloc-func} is not
+given.
+@end defun
+
+
+@defun argv-length @var{argv}
+Return the number of strings in the null--terminated array of strings
+referenced by the @var{argv} pointer.
+@end defun
+
+
+@defun argv->strings @var{argv}
+Convert the null--terminated array of strings referenced by the
+@var{argv} pointer to a list of Scheme strings.
+@end defun
+
 
 
 @c page
