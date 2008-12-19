@@ -17,6 +17,8 @@ Uriel
   which bindings are captured (put it in Ikarus guide?).
 * Scan the old gee base.
 
+* Consider removing the (uriel printing) library.
+
 
 ScmObj
 ------

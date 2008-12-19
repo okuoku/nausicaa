@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for the cstring library
 ;;;Date: Wed Dec 17, 2008
-;;;Time-stamp: <2008-12-18 08:31:06 marco>
+;;;Time-stamp: <2008-12-19 07:44:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,11 +33,9 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel printing)
   (uriel test)
   (uriel memory)
-  (uriel cstring)
-  (srfi parameters))
+  (uriel cstring))
 
 (check-set-mode! 'report-failed)
 

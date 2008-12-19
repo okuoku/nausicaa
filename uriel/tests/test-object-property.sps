@@ -26,9 +26,8 @@
 
 ;;; setup
 
-(import (rnrs)
-  (uriel printing)
-  (srfi parameters)
+(import (r6rs)
+  (uriel lang)
   (uriel test)
   (uriel object-property))
 

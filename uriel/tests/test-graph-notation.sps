@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: tests for graph notation
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-05 11:14:30 marco>
+;;;Time-stamp: <2008-12-19 07:44:57 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,7 +30,7 @@
 ;;;; setup
 
 (import (rnrs)
-  (uriel printing)
+  (uriel lang)
   (uriel test)
   (rnrs mutable-pairs (6))
   (list-lib))

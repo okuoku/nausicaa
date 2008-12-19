@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-12-17 11:22:07 marco>
+;;;Time-stamp: <2008-12-19 07:39:19 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -40,10 +40,22 @@
     defer-exceptions run-deferred-exceptions-handler
 
     ;;miscellaneous
-    symbol->string/maybe)
+    symbol->string/maybe
+
+    ;;bindings from (srfi receive)
+    receive
+
+    ;;bindings from (srfi parameters)
+    make-parameter		parameterize
+
+    ;;bindings from (srfi format)
+    format)
   (import (r6rs)
-    (uriel void)
-    (srfi parameters))
+    (uriel lang void)
+    (srfi receive)
+    (srfi parameters)
+    (srfi format))
+
 
 
 ;;;; simple sintaxes

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: test for file descriptors library
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-18 21:14:58 marco>
+;;;Time-stamp: <2008-12-19 07:22:49 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,12 +30,9 @@
 
 (import (except (r6rs) read write)
   (uriel lang)
-  (uriel printing)
+  (uriel foreign)
   (uriel test)
   (uriel getenv)
-  (uriel memory)
-  (uriel cstring)
-  (uriel ffi)
   (srfi receive)
   (srfi parameters)
   (only (string-lib) string-join)

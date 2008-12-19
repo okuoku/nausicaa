@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for compensation stacks
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-24 18:16:27 marco>
+;;;Time-stamp: <2008-12-19 07:43:52 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,12 +28,9 @@
 
 ;;;; setup
 
-(import (rnrs)
-  (srfi parameters)
-  (uriel printing)
+(import (r6rs)
   (uriel test)
-  (uriel lang)
-  (uriel define-macro))
+  (uriel lang))
 
 (check-set-mode! 'report-failed)
 

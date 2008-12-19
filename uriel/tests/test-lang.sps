@@ -27,8 +27,7 @@
 
 ;;;; setup
 
-(import (rnrs)
-  (uriel printing)
+(import (r6rs)
   (uriel lang)
   (uriel test))
 

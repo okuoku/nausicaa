@@ -27,7 +27,6 @@
 ;;;; setup
 
 (import (rnrs)
-  (uriel printing)
   (uriel define-macro)
   (uriel test)
   (macros-test)

@@ -1,8 +1,8 @@
 ;;;
 ;;;Part of: Uriel libraries for R6RS Scheme
-;;;Contents: VOID compatibility for Ikarus
+;;;Contents: implementation of VOID
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-11-30 07:33:36 marco>
+;;;Time-stamp: <2008-12-19 07:27:18 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -11,8 +11,9 @@
 ;;;	SET!.  Not all implementations offers it, for example Ypsilon up
 ;;;	to revision 285 does not.
 ;;;
-;;;       The "(uriel void)" library  attempts to provide a replacement.
-;;;     The library in this files is the compatibility layer for Ikarus.
+;;;       This library  attempts to provide a replacement.   There is no
+;;;     guarantee  that   it  will  work   with  all  the   R6RS  Scheme
+;;;     implementations.
 ;;;
 ;;;Copyright (C) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -30,8 +31,12 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel void)
+(library (uriel lang void)
   (export void)
-  (import (only (ikarus) void)))
+  (import (rnrs))
+
+  (define (void)
+    (let ((a #f))
+      (set! a 1))))
 
 ;;; end of file

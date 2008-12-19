@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for deferred exceptions
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-11-24 10:58:51 marco>
+;;;Time-stamp: <2008-12-19 07:44:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,10 +29,8 @@
 ;;;; setup
 
 (import (rnrs)
-  (uriel printing)
   (uriel test)
-  (uriel lang)
-  (srfi parameters))
+  (uriel lang))
 
 (check-set-mode! 'report-failed)
 

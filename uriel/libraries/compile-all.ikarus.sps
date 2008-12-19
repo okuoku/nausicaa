@@ -10,6 +10,7 @@
   (only (uriel ffi))
   (only (uriel errno))
   (only (uriel cstring))
+  (only (uriel foreign))
   (only (uriel getenv))
   (only (uriel object-property))
   (only (uriel printing))

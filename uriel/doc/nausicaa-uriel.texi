@@ -537,6 +537,32 @@ C language system errors
 @noindent
 @value{PACKAGE} is a collection of libraries for @rnrs{6} Scheme.
 
+The library @library{uriel lang} exports language extensions that are
+used by almost all the other @value{PACKAGE} libraries and, in general,
+by the libraries in the Nausicaa distribution.  It re--exports bindings
+from the following libraries:
+
+@example
+(srfi format)
+(srfi parameters)
+(srfi receive)
+@end example
+
+The library @library{uriel foreign} is a compound library that exports
+all the bindings from the following libraries:
+
+@example
+(uriel cstring)
+(uriel errno)
+(uriel ffi sizeof)
+(uriel ffi)
+(uriel memory)
+@end example
+
+@noindent
+and its usage is suggested whenever we write a Scheme library that
+interfaces with a foreign C language library.
+
 @menu
 * overview r6rs::               On being compliant.
 @end menu
@@ -577,6 +603,13 @@ load the main library:
 
 @noindent
 for the independent libraries see the corresponding sections.
+@library{uriel lang} re--exports bindings from the following libraries:
+
+@example
+(srfi format)
+(srfi parameters)
+(srfi receive)
+@end example
 
 
 @menu

@@ -27,8 +27,6 @@
 ;;;; setup
 
 (import (r6rs)
-  (srfi parameters)
-  (uriel printing)
   (uriel lang)
   (uriel ffi)
   (uriel ffi sizeof)

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-18 21:14:28 marco>
+;;;Time-stamp: <2008-12-19 07:40:01 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -159,9 +159,7 @@
   (import (r6rs)
     (uriel lang)
     (uriel memory compat)
-    (uriel ffi sizeof)
-    (srfi format)
-    (srfi parameters))
+    (uriel ffi sizeof))
 
 
 

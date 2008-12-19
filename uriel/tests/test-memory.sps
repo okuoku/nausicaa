@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: tests for low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-18 18:11:20 marco>
+;;;Time-stamp: <2008-12-19 07:45:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,13 +29,10 @@
 ;;;; setup
 
 (import (r6rs)
-  (uriel printing)
+  (uriel lang)
   (uriel test)
   (uriel memory)
-  (uriel lang)
-  (uriel ffi sizeof)
-  (srfi parameters)
-  (srfi format))
+  (uriel ffi sizeof))
 
 (check-set-mode! 'report-failed)
 
