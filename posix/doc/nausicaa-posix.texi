@@ -1355,7 +1355,67 @@ These functions are like the @func{execv} ones, except that
 @section Process completion
 
 
+@cindex @code{WNOHANG}
+@cindex @code{WUNTRACED}
+@cindex @code{WCONTINUED
+
+For the following functions: the @var{options} argument can be zero or a
+@func{bitwise-ior} of @code{WNOHANG}, @code{WUNTRACED} and
+@code{WCONTINUED} which are exported by @library{posix sizeof}.
+
 @glibcref{Process Completion,Process Completion}
+
+
+@defun primitive-waitpid @var{pid} @var{options}
+@defunx platform-waitpid @var{pid} @var{pointer} @var{options}
+Wait for a single process or a set of processes in a group.  For the
+full documentation we have to refer to the documentation of the foreign
+function @cfunc{waitpid}.
+
+@var{pointer} must reference an @code{int} sized location in which
+@func{platform-waitpid} will store the status of the tracked process.
+
+If successful @func{primitive-waitpid} returns 2 values: zero or the id
+of the tracked process, the status of the tracked process.  In case of
+error it raises an @code{&errno} condition.  If the foreign function
+returns an error with @code{errno} set to @code{EINTR}:
+@func{primitive-waitpid} loops replaying the foreign function call with
+the same arguments.
+
+@func{platform-waitpid} returns 2 values: the return value of the
+foreign function call and the value of @code{errno} right after the
+call.
+
+@quotation
+@emph{Note:} Unfortunately at present there is no way to analyse the
+status of the tracked process.
+@end quotation
+@end defun
+
+
+@defun waitpid @var{pid} @var{options}
+A wrapper for @cfunc{primitive-watipid} that tracks a specific child
+process.
+@end defun
+
+
+@defun waitpid/any @var{options}
+A wrapper for @func{primitive-watipid} that tracks all the child
+processes.
+@end defun
+
+
+@defun waitpid/any-my-group @var{options}
+A wrapper for @cfunc{primitive-watipid} that tracks all the child
+processes in the same group of the caller.
+@end defun
+
+
+@defun waitpid/group @var{gpid} @var{options}
+A wrapper for @cfunc{primitive-watipid} that tracks all the child
+processes in the group with id @var{gpid}.
+@end defun
+
 
 
 @c page

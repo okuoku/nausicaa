@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for the process related POSIX functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 12:11:08 marco>
+;;;Time-stamp: <2008-12-19 14:03:06 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -138,6 +138,21 @@
 
   )
 
+
+
+
+(parameterize ((testname 'wait))
+
+  (check
+      (let ((pid (fork)))
+	(if (= 0 pid)
+	    (execv '/bin/ls '(ls "-l" /bin/ls))
+	  (receive (result status)
+	      (waitpid pid 0)
+	    (= pid result))))
+    => #t)
+
+  )
 
 
 ;;;; done

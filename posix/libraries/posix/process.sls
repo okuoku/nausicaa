@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to process related POSIX functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 12:09:09 marco>
+;;;Time-stamp: <2008-12-19 13:46:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -42,6 +42,9 @@
     execve primitive-execve primitive-execve-function platform-execve
     execvp primitive-execvp primitive-execvp-function platform-execvp
 
+    ;; waiting
+    platform-waitpid primitive-waitpid
+    waitpid waitpid/any waitpid/any-my-group waitpid/group
     )
   (import (r6rs)
     (uriel lang)
@@ -160,6 +163,45 @@
       ((primitive-execvp-function) pathname args)
     (when (= -1 result)
       (raise-errno-error 'execvp errno (list pathname args)))))
+
+
+
+;;;; waiting
+
+(define-c-function/with-errno platform-waitpid
+  (pid_t waitpid (pid_t pointer int)))
+
+
+(define (primitive-waitpid pid options)
+  (with-compensations
+    (let ((status* (malloc-small/c)))
+      (let loop ()
+	(receive (result errno)
+	    (platform-waitpid pid status* options)
+	  (when (= -1 result)
+	    (when (= EINTR errno)
+	      (loop))
+	    (raise-errno-error 'waitpid errno pid))
+	  (values result (peek-signed-int status* 0)))))))
+
+(define (waitpid pid options)
+  (unless (< 0 pid)
+    (assertion-violation 'waitpid
+      "expected strictly positive process id" pid))
+  (primitive-waitpid pid options))
+
+(define (waitpid/any options)
+  (primitive-waitpid -1 options))
+
+(define (waitpid/any-my-group options)
+  (primitive-waitpid 0 options))
+
+(define (waitpid/group gpid options)
+  (unless (< 0 gpid)
+    (assertion-violation 'waitpid/group
+      "expected strictly positive process group id" gpid))
+  (primitive-waitpid (- gpid) options))
+
 
 
 
