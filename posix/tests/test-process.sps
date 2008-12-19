@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for the process related POSIX functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 14:03:06 marco>
+;;;Time-stamp: <2008-12-19 23:55:25 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,7 +33,8 @@
   (uriel test)
   (uriel errno)
   (uriel lang void)
-  (posix process))
+  (posix process)
+  (posix process stub))
 
 (check-set-mode! 'report-failed)
 
@@ -151,6 +152,18 @@
 	      (waitpid pid 0)
 	    (= pid result))))
     => #t)
+
+  (check
+      (let ((pid (fork)))
+	(if (= 0 pid)
+	    (execv '/bin/ls '(ls "-l" /bin/ls))
+	  (receive (result status)
+	      (waitpid pid 0)
+	    (let ((r (make-process-term-status status)))
+	      (WIFEXITED? r)))))
+    => #t)
+
+
 
   )
 

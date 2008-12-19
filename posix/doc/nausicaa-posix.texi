@@ -1386,11 +1386,6 @@ the same arguments.
 @func{platform-waitpid} returns 2 values: the return value of the
 foreign function call and the value of @code{errno} right after the
 call.
-
-@quotation
-@emph{Note:} Unfortunately at present there is no way to analyse the
-status of the tracked process.
-@end quotation
 @end defun
 
 
@@ -1415,6 +1410,66 @@ processes in the same group of the caller.
 @defun waitpid/group @var{gpid} @var{options}
 A wrapper for @cfunc{primitive-watipid} that tracks all the child
 processes in the group with id @var{gpid}.
+@end defun
+
+
+@subsubheading Inspecting the termination status
+
+
+Using the @acronym{FFI} of Scheme implementations there is no way to
+analyse the status value returned by the waitpid functions, but if we
+have installed the @posix{} Nausicaa/Stubs foreign library, we can
+import the @library{posix process stub} library to use the following
+bindings.
+
+
+@deftp {Record Type} process-term-status-record
+Holds a field for each property in the process termination status value.
+@end deftp
+
+
+@defun make-process-term-status @var{status}
+Build and return a @code{process-term-status-record} initialised with
+the bits in @var{status}, which must be the status return value of a
+waitpid function.
+@end defun
+
+
+@defun make-process-term-status-record @var{WIFEXITED} @var{WEXITSTATUS} @var{WIFSIGNALED} @var{WTERMSIG} @var{WCOREDUMP} @var{WIFSTOPPED} @var{WSTOPSIG}
+Build and return a @code{process-term-status-record} directly
+initialised with boolean values.  This can be used to construct a fake
+status record for testing purposes.
+@end defun
+
+
+@defun process-term-status? @var{obj}
+Return @true{} if @var{obj} is a @code{process-term-status-record}
+record.
+@end defun
+
+
+@defun WIFEXITED? @var{status-record}
+@defunx WEXITSTATUS? @var{status-record}
+@defunx WIFSIGNALED? @var{status-record}
+@defunx WTERMSIG? @var{status-record}
+@defunx WCOREDUMP? @var{status-record}
+@defunx WIFSTOPPED? @var{status-record}
+@defunx WSTOPSIG? @var{status-record}
+Return @true{} or @false{} if the property is set or unset in the status
+record.  @glibcref{Process Completion Status,Process Completion Status}
+@end defun
+
+
+@defun platform-WIFEXITED @var{status}
+@defunx platform-WEXITSTATUS @var{status}
+@defunx platform-WIFSIGNALED @var{status}
+@defunx platform-WTERMSIG @var{status}
+@defunx platform-WCOREDUMP @var{status}
+@defunx platform-WIFSTOPPED @var{status}
+@defunx platform-WSTOPSIG @var{status}
+These are wrappers for the macros that extract a value from the
+@var{status} integer returned by the waitpid functions.  They can be
+used to query the status without building a record.
 @end defun
 
 
