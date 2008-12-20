@@ -588,6 +588,7 @@ level as exact integers.  The main library is @library{posix fd}.
 * fd control::                  Control operations.
 * fd dup::                      Duplicating file descriptors.
 * fd lock::                     File locks.
+* fd pipe::                     Pipes and FIFOs.
 @end menu
 
 
@@ -1137,6 +1138,61 @@ flock}.
 
 (fcntl fd F_UNLCK p)
 @end example
+
+
+@c page
+@node fd pipe
+@section Pipes and FIFOs
+
+
+@deffn Function pipe
+@deffnx Function primitive-pipe
+@deffnx Parameter primitive-pipe-function
+@deffnx Function platform-pipe @var{pointer}
+Open a pipe: a pair of file descriptors linked together.
+@glibcref{Creating a Pipe,Creating a Pipe}
+
+If successful @func{pipe} and @func{primitive-pipe} return 2 values: the
+reading and writing file descriptors (again: the reading fd is the
+first).  Else they raise an @code{&errno} condition.
+
+@func{platform-pipe} is the wrapper for the @cfunc{pipe} foreign
+function; it accepts as arguments a pointer to an array of integers wide
+enough to hold 2 elements.  Upon successful return the array is filled
+with the reading and writing descriptors.  @func{platform-pipe} returns
+2 values: the return value from the foreign function call and the value
+of @code{errno} right after the call.
+
+@func{pipe} does its job by invoking the function which is the current
+value of the @func{primitive-pipe-function} parameter, which is
+initialised to @func{primitive-pipe}.
+@end deffn
+
+
+@deffn Function mkfifo @var{pathname} @var{mode}
+@deffnx Function primitive-mkfifo mkfifo @var{pathname} @var{mode}
+@deffnx Parameter primitive-mkfifo-function
+@deffnx Function platform-mkfifo @var{c-pathname} @var{mode}
+Open a named pipe: a special file that can be used for interprocess
+communication.  @glibcref{FIFO Special Files,FIFO Special Files}
+
+The Scheme string or symbol @var{pathname} and the C string
+@var{c-pathname} select the file pathname.  @var{mode} is a numeric
+access permissions mode like the one used by @func{open}.
+
+If successful @func{mkfifo} and @func{primitive-mkfifo} create the file,
+else they raise an @code{&errno} condition.
+
+@func{platform-mkfifo} is the wrapper for the @cfunc{mkfifo} foreign
+function; upon successful return the named pipe has been created.
+@func{platform-mkfifo} returns 2 values: the return value from the
+foreign function call and the value of @code{errno} right after the
+call.
+
+@func{mkfifo} does its job by invoking the function which is the current
+value of the @func{primitive-mkfifo-function} parameter, which is
+initialised to @func{primitive-mkfifo}.
+@end deffn
 
 
 @c page

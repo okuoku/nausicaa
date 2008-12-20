@@ -7,6 +7,7 @@
   (only (glibc streams))
   (only (glibc streams-unlocked))
   (only (glibc streams-extended))
+  (only (glibc streams-pipe))
   )
 
 ;;; end of file

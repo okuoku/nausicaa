@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to the file descriptor libraries
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-19 16:33:00 marco>
+;;;Time-stamp: <2008-12-20 08:52:10 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -49,7 +49,13 @@
 
     dup			primitive-dup
     dup2		primitive-dup2
-    )
+
+    pipe primitive-pipe-function primitive-pipe platform-pipe
+    mkfifo primitive-mkfifo-function primitive-mkfifo platform-mkfifo
+
+    make-custom-fd-input-port
+    make-custom-fd-output-port
+    make-custom-fd-input/ouput-port)
   (import (except (r6rs) read write)
     (uriel lang)
     (uriel foreign)
@@ -227,6 +233,120 @@
 
 (define (dup2 old new)
   (call-for-minus-one dup2 primitive-dup2 old new))
+
+
+
+;;;; making pipes
+
+(define-c-function/with-errno platform-pipe
+  (int pipe (pointer)))
+
+(define (primitive-pipe)
+  (with-compensations
+    (let ((p (malloc-block/c (sizeof-int-array 2))))
+      (receive (result errno)
+	  (platform-pipe p)
+	(if (= -1 result)
+	    (raise-errno-error 'primitive-pipe errno)
+	  (values (peek-array-signed-int p 0)
+		  (peek-array-signed-int p 1)))))))
+
+(define primitive-pipe-function
+  (make-parameter primitive-pipe
+    (lambda (func)
+      (if (procedure? func)
+	  func
+	(assertion-violation 'primitive-pipe-function
+	  "expected procedure as value for the PRIMITIVE-PIPE-FUNCTION parameter"
+	  func)))))
+
+(define (pipe)
+  ((primitive-pipe-function)))
+
+;;; --------------------------------------------------------------------
+
+(define-c-function/with-errno platform-mkfifo
+  (int mkfifo (char* mode_t)))
+
+(define (primitive-mkfifo pathname mode)
+  (with-compensations
+    (let ((c-pathname (string->cstring/c pathname)))
+      (receive (result errno)
+	  (platform-mkfifo c-pathname mode)
+	(if (= -1 result)
+	    (raise-errno-error 'primitive-mkfifo errno
+			       (list pathname mode))
+	  result)))))
+
+(define primitive-mkfifo-function
+  (make-parameter primitive-mkfifo
+    (lambda (func)
+      (if (procedure? func)
+	  func
+	(assertion-violation 'primitive-mkfifo-function
+	  "expected procedure as value for the PRIMITIVE-MKFIFO-FUNCTION parameter"
+	  func)))))
+
+(define (mkfifo pathname mode)
+  ((primitive-mkfifo-function) pathname mode))
+
+
+
+;;;; custom ports
+
+(define (make-custom-fd-input-port fd)
+  (make-custom-binary-input-port
+   "fd input port"
+   (lambda (bv start count)
+     (with-compensations
+       (let* ((p	(malloc-block/c count))
+	      (len	(read fd p count)))
+	 (do ((i 0 (+ 1 i)))
+	     ((= i len)
+	      len)
+	   (bytevector-u8-set! bv (+ start i) (peek-unsigned-char p i))))))
+   #f
+   #f
+   (lambda ()
+     (close fd))))
+
+(define (make-custom-fd-output-port fd)
+  (make-custom-binary-output-port
+   "fd output port"
+   (lambda (bv start count)
+     (with-compensations
+       (let* ((p	(malloc-block/c count)))
+	 (do ((i 0 (+ 1 i)))
+	     ((= i count)
+	      (write fd p count))
+	   (poke-char! p i (bytevector-u8-ref bv (+ start i)))))))
+   #f
+   #f
+   (lambda ()
+     (close fd))))
+
+(define (make-custom-fd-input/ouput-port fd)
+  (make-custom-binary-input-port
+   "fd input/output port"
+   (lambda (bv start count)
+     (with-compensations
+       (let* ((p	(malloc-block/c count))
+	      (len	(read fd p count)))
+	 (do ((i 0 (+ 1 i)))
+	     ((= i len)
+	      len)
+	   (bytevector-u8-set! bv (+ start i) (peek-unsigned-char p i))))))
+   (lambda (bv start count)
+     (with-compensations
+       (let* ((p	(malloc-block/c count)))
+	 (do ((i 0 (+ 1 i)))
+	     ((= i count)
+	      (write fd p count))
+	   (poke-char! p i (bytevector-u8-ref bv (+ start i)))))))
+   #f
+   #f
+   (lambda ()
+     (close fd))))
 
 
 

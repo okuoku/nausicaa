@@ -12,6 +12,7 @@
 Uriel
 -----
 
+* Write an asyncs library.
 * Add make-callback to the ffi.
 * Document  the problems  with define-macro  regarding  environment from
   which bindings are captured (put it in Ikarus guide?).
@@ -59,6 +60,7 @@ POSIX
 Glibc
 -----
 
+* Test and document the streams-pipe library.
 * Add the string functions.
 * Add the mmap interface.
 * Find a way to add the select interface.

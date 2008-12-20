@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: test for file descriptors library
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-19 07:22:49 marco>
+;;;Time-stamp: <2008-12-20 09:02:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -156,7 +156,6 @@ Ses ailes de geant l'empechent de marcher.")
 #f)
 
 
-;;;; file locking
 
 (parameterize ((testname 'lock))
 
@@ -178,14 +177,34 @@ Ses ailes de geant l'empechent de marcher.")
 	    (fcntl fd F_SETLK (pointer->integer lock))
 	    (read fd bufptr2 buflen2)
 	    (fcntl fd F_GETLK (pointer->integer lock))
-;; 	    (display (list (struct-flock-l_type-ref lock)
-;; 			   (struct-flock-l_start-ref lock)))(newline)
+;;; 	    (display (list (struct-flock-l_type-ref lock)
+;;; 			   (struct-flock-l_start-ref lock)))(newline)
 	    (fcntl fd F_UNLCK (pointer->integer lock))
 	    (close fd))
 	  (cstring->string/len bufptr2 buflen2)))
     => the-string)
 
-#f)
+  )
+
+
+
+(parameterize ((testname 'pipe))
+
+  (check
+    (let-values (((in ou)	(pipe)))
+      (let ((inp	(make-custom-fd-input-port  in))
+	    (oup	(make-custom-fd-output-port ou)))
+	(put-bytevector oup (string->utf8 "ciao"))
+(let* ((p (malloc 10))
+       (len (read in p 10)))
+  (cstring->string/len p len))
+;;(get-bytevector-some inp)
+;; 	(bytevector->string (get-u8 inp)
+;; 			    (make-transcoder utf-8-codec))
+	))
+    => "ciao")
+
+  )
 
 
 ;;;; done
