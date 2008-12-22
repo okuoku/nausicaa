@@ -12,8 +12,6 @@
 @include version.texiinc
 
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c License macros.
@@ -34,8 +32,6 @@
 @macro bsd{}
 @acronym{BSD}
 @end macro
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -84,8 +80,6 @@
 @end macro
 
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c Software related macros.
@@ -103,7 +97,6 @@
 @gnu{} C Library
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -144,7 +137,6 @@
 @acronym{SNMP}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -213,7 +205,6 @@
 @meta{\ARG\j}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -228,7 +219,6 @@
 @code{NULL}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -295,7 +285,6 @@ the main purpose of this document is to provide an Info version.
 @code{<\NAME\>}
 @end macro
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -322,19 +311,21 @@ the main purpose of this document is to provide an Info version.
 @ref{\NODE\,\TITLE\,\TITLE\,nausicaa-posix}
 @end macro
 
+@macro linuxref{NODE,TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-linux}
+@end macro
+
 @macro bibref{TAG}
 @code{[\TAG\]}
 @end macro
 
-
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Nausicaa/Glibc
+@set TITLE                      Glibc features for @rnrs{6} Scheme
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -357,7 +348,6 @@ the main purpose of this document is to provide an Info version.
 @c list of copyright years.
 @set COPYRIGHT_YEARS            2008
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -389,7 +379,6 @@ entitled ``@gnu{} Free Documentation License''.
 @end quotation
 @end copying
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -422,7 +411,6 @@ entitled ``@gnu{} Free Documentation License''.
 @syncodeindex fn cp
 @end ignore
 
-@c ------------------------------------------------------------
 
 @c page
 @ifnottex
@@ -434,6 +422,7 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * environment::                 Environment functions.
+* time::                        Date and time.
 * streams::                     Stream functions.
 * cstrings::                    C language strings.
 
@@ -452,7 +441,6 @@ Indexes
 @end menu
 @end ifnottex
 
-@c ------------------------------------------------------------
 
 @c page
 @node overview
@@ -466,10 +454,75 @@ defined by @library{uriel ffi}.
 For all the functions only a brief description is given: we have to use
 the foreign function's own documentation to have all the details.
 
-@posixref{Top} for a lot of other functions.
+For a lot of other features, we can use the Nausicaa/@posix{} project.
+@posixref{Top,Nausicaa/@posix{}}
+
+For features specific to the Linux kernel, we can use the Nausicaa/Linux
+project.  @linuxref{Top,Nausicaa/Linux}
 
 
-@c ------------------------------------------------------------
+@menu
+* overview iface::              Introduction to the interface.
+@end menu
+
+
+@c page
+@node overview iface
+@section Introduction to the interface
+
+
+When appropriate and unless otherwise specified, the interface adheres
+the following pattern for function @func{x}:
+
+@deffn Function x @var{arg} ...
+@deffnx Function primitive-x @var{arg} ...
+@deffnx Parameter primitive-x-function
+@deffnx Function platform-x @var{c-arg} ...
+This is an interface for the @cfunc{x} foreign function.
+
+@func{x} and @func{primitive-x} do something with the arguments, which
+are regular Scheme values.  If successful they return values
+representing the result; in case of error they raise an @code{&errno}
+condition.
+
+@func{x} does the job by applying to the arguments the current value of
+the @func{primitive-x-function} parameter, which must be a function.
+The parameter is initialised to @func{primitive-x}.
+
+@func{platform-x} is the wrapper for the foreign function.  It accepts C
+language level arguments (like C strings), and returns 2 values: the
+return value from the foreign function call and the value of
+@code{errno} right after the call.
+
+Notice that the value of @code{errno} is meaningful only if the return
+value from the foreign function call indicates an error.  @code{errno}
+may be non--zero even if the function call was successful.
+
+For the meaning of the C level arguments we have to read the foreign
+function's original documentation.
+@end deffn
+
+
+This interface gives us 3 choices:
+
+@enumerate
+@item
+To call directly the foreign function using the @func{platform-x}
+wrapper; in this case we are responsible to convert the Scheme arguments
+to the appropriate C language level values.
+
+@item
+To call the Scheme adapter @func{primitive-x}; this gives us: automatic
+conversion of arguments, exceptions in case of errors.
+
+@item
+To call the high level, parameterised, @func{x} interface; this gives us
+everything @func{primitive-x} does and additionally allows us to replace
+the primitive function with a version that returns controlled values, or
+raises an error, and/or logs the operation.  This feature can be used to
+test Scheme code execution paths that handle exceptions.
+@end enumerate
+
 
 @c page
 @node environment
@@ -478,11 +531,32 @@ the foreign function's own documentation to have all the details.
 
 The following functions are in the @library{glibc environment} library.
 
+@glibcref{Environment Access,Environment Access}
+
 
 @defun clearenv
 Unset all the variables in the environment.  Useful cleanup for security
 purposes.
 @end defun
+
+
+@c page
+@node time
+@chapter Date and time
+
+
+@menu
+* time calendar::               Simple calendar time.
+@end menu
+
+
+@c page
+@node time calendar
+@section Simple calendar time
+
+
+
+
 
 
 @c page
@@ -503,7 +577,7 @@ other libraries have extended functions.
 @menu
 * streams constants::           Constants.
 * streams errors::              Detecting errors on streams.
-* streams open and close::      Opening and closing.
+* streams open close::          Opening and closing.
 * streams writing::             Writing to streams.
 * streams reading::             Reading from streams.
 * streams unreading::           Unreading to streams.
@@ -533,7 +607,11 @@ The value of @code{EOF}.  @glibcref{EOF and Errors,EOF}
 @defvarx valueof-seek-cur
 @defvarx valueof-seek-end
 The values of @code{SEEK_SET}, @code{SEEK_CUR} and @code{SEEK_END}.
+
 @glibcref{File Positioning,SEEK_SET}
+
+Nausicaa/@posix{} also exports bindings for these constants.
+@posixref{fd constants seek,File positions}
 @end defvar
 
 
@@ -542,14 +620,19 @@ The values of @code{SEEK_SET}, @code{SEEK_CUR} and @code{SEEK_END}.
 @section Detecting errors on streams
 
 
-@defun ferror @var{stream}
-@defunx primitive-ferror @var{stream}
-@func{ferror} returns @true{} if the error indicator of @var{stream} is
-set, @false{} otherwise.
+@glibcref{EOF and Errors,End--Of--File and Errors}
 
-@func{primitive-ferror} returns 2 values: the result of the foreign
-function call and the value of @code{errno} just after the call.
-@end defun
+
+@deffn Function ferror @var{stream}
+@deffnx Function primitive-ferror @var{stream}
+@deffnx Parameter primitive-ferror-function
+@deffnx Function platform-ferror @var{stream}
+Return @true{} if the error indicator of @var{stream} is set, @false{}
+otherwise.
+
+@func{platform-error} returns a single value: the return value of the
+foreign function call.
+@end deffn
 
 
 @defun clearerr @var{stream}
@@ -558,42 +641,38 @@ Clear the error and end--of--file indicators for @var{stream}.
 
 
 @c page
-@node streams open and close
+@node streams open close
 @section Opening and closing
 
 
-@defun fopen @var{pathname} @var{mode}
-@defunx primitive-fopen @var{c-pathname} @var{c-mode}
-Open with the given mode a file selected by pathname.
+@deffn Function fopen @var{pathname} @var{mode}
+@deffnx Function primitive-fopen @var{pathname} @var{mode}
+@deffnx Parameter primitive-fopen-function
+@deffnx Function platform-fopen @var{pathname} @var{mode}
+Open with the given mode a file selected by pathname and return a
+pointer to the stream.  @var{pathname} and @var{mode} must be Scheme
+strings or symbols.
 
-@var{pathname} and @var{mode} must be Scheme strings or symbols.
-@var{c-pathname} and @var{c-mode} must be C strings.
-
-If successful @func{fopen} returns a pointer to the stream, otherwise it
-raises an exception.  @func{primitive-fopen} returns 2 values: the
-result of the foreign function call and the value of @var{errno} just
-after the call.
-@end defun
+@glibcref{Opening Streams,Opening Streams}
+@end deffn
 
 
-@defun fclose @var{stream}
-@defunx primitive-fclose @var{stream}
+@deffn Function fclose @var{stream}
+@deffnx Function primitive-fclose @var{stream}
+@deffnx Parameter primitive-fclose-function
+@deffnx Function platform-fclose @var{stream}
 Close the previously opened @var{stream}.
 
-If an error occurs @func{fclose} raises an exception.
-@func{primitive-fclose} returns 2 values: the result of the foreign
-function call and the value of @var{errno} just after the call.
-@end defun
+@glibcref{Closing Streams,Closing Streams}
+@end deffn
 
 
-@defun fcloseall
-@defunx primitive-fcloseall
+@deffn Function fcloseall
+@deffnx Function primitive-fcloseall
+@deffnx Parameter primitive-fcloseall-function
+@deffnx Function primitive-fcloseall
 Close all the open streams of the process.
-
-If an error occurs @func{fcloseall} raises an exception.
-@func{primitive-fcloseall} returns 2 values: the result of the foreign
-function call and the value of @var{errno} just after the call.
-@end defun
+@end deffn
 
 
 @c page
@@ -601,53 +680,47 @@ function call and the value of @var{errno} just after the call.
 @section Writing to streams
 
 
-@defun fwrite @var{pointer} @var{size} @var{count} @var{stream}
-@defunx primitive-fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@glibcref{Block Input/Output,Block Input/Output}
+
+
+@deffn Function fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function primitive-fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter primitive-fwrite-function
+@deffnx Function platform-fwrite @var{pointer} @var{size} @var{count} @var{stream}
 Write up to @var{count} elements of @var{size} from the block of memory
-referenced by @var{pointer} to @var{stream}.
-
-If successful @func{fwrite} returns @var{count}, otherwise an error is
-raised.  @func{primitive-fwrite} returns 2 values: the result of the
-foreign function call and the value of @var{errno} just after the call.
-@end defun
+referenced by @var{pointer} to @var{stream}.  If successful return
+@var{count}.
+@end deffn
 
 
-@defun fputc @var{char} @var{stream}
-@defunx primitive-fputc @var{c-char} @var{stream}
-Write a character to @var{stream}.
-
-@var{char} must be a Scheme character with scalar value in the range
-@code{[0, 255]}; the scalar value is computed with @func{char->integer}.
-
-@var{c-char} must be an exact integer.
-
-If successful @func{fputc} returns the scalar representing @var{char},
-otherwise an error is raised.  @func{primitive-fputc} returns 2 values:
-the result of the foreign function call and the value of @var{errno}
-just after the call.
-@end defun
+@deffn Function fputc @var{char} @var{stream}
+@deffnx Function primitive-fputc @var{char} @var{stream}
+@deffnx Parameter primitive-fputc-function
+@deffnx Function platform-fputc @var{char} @var{stream}
+Write a character to @var{stream}.  @var{char} must be a Scheme
+character with scalar value in the range @code{[0, 255]}; the scalar
+value is computed with @func{char->integer}.  If successful return the
+scalar representing @var{char}.
+@end deffn
 
 
-@defun fputs @var{string} @var{stream}
-@defunx primitive-fputs @var{cstring} @var{stream}
+@deffn Function fputs @var{string} @var{stream}
+@deffnx Function primitive-fputs @var{string} @var{stream}
+@deffnx Parameter primitive-fputs-function
+@deffnx Function platform-fputs @var{cstring} @var{stream}
 Write a string to @var{stream}.  @var{string} must be a Scheme string or
-symbol.  @var{cstring} must be a C string.
-
-If successful @func{fputs} returns the scalar representing @var{char},
-otherwise an error is raised.  @func{primitive-fputs} returns 2 values:
-the result of the foreign function call and the value of @var{errno}
-just after the call.
-@end defun
+symbol.  If successful return the scalar representing @var{char}.
+@end deffn
 
 
-@defun fflush @var{stream}
-@defunx primitive-fflush @var{stream}
+@deffn Function fflush @var{stream}
+@deffnx Function primitive-fflush @var{stream}
+@deffnx Parameter primitive-fflush-function
+@deffnx Function platform-fflush @var{stream}
 Flush the contents of the buffer to the underlying device.
 
-If an error occurs @func{fflush} raises an exception.
-@func{primitive-fflush} returns 2 values: the result of the foreign
-function call and the value of @var{errno} just after the call.
-@end defun
+@glibcref{Flushing Buffers,Flushing Buffers}
+@end deffn
 
 
 @c page
@@ -655,38 +728,35 @@ function call and the value of @var{errno} just after the call.
 @section Reading from streams
 
 
-@defun fread @var{pointer} @var{size} @var{count} @var{stream}
-@defunx primitive-fread @var{pointer} @var{size} @var{count} @var{stream}
+@glibcref{Block Input/Output,Block Input/Output}
+
+
+@deffn Function fread @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function primitive-fread @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter primitive-fread-function
+@deffnx Function platform-fread @var{pointer} @var{size} @var{count} @var{stream}
 Read up to @var{count} elements of @var{size} from @var{stream} and
-store them in the block of memory referenced by @var{pointer}.
-
-If successful @func{fread} returns the number of objects actually read
-(which may be less than @var{count}), otherwise an error is raised.
-@func{primitive-fread} returns 2 values: the result of the foreign
-function call and the value of @var{errno} just after the call.
-@end defun
+store them in the block of memory referenced by @var{pointer}.  Return
+the number of objects actually read (which may be less than
+@var{count}).
+@end deffn
 
 
-@defun fgetc @var{stream}
-@defunx primitive-fgetc @var{stream}
-Read a single character from @var{stream}.
-
-If successful @func{fgetc} returns a Scheme character, otherwise an
-error is raised.  @func{primitive-fgetc} returns 2 values: the result of
-the foreign function call and the value of @var{errno} just after the
-call.
-@end defun
+@deffn Function fgetc @var{stream}
+@deffnx Function primitive-fgetc @var{stream}
+@deffnx Parameter primitive-fgetc-function
+@deffnx Function platform-fgetc @var{stream}
+Read a single character from @var{stream}.  Return a Scheme character.
+@end deffn
 
 
-@defun fgets @var{pointer} @var{count} @var{stream}
-@defunx primitive-fgets @var{pointer} @var{count} @var{stream}
+@deffn Function fgets @var{pointer} @var{count} @var{stream}
+@deffnx Function primitive-fgets @var{pointer} @var{count} @var{stream}
+@deffnx Parameter primitive-fgets-function
+@deffnx Function platform-fgets @var{pointer} @var{count} @var{stream}
 Read a line from @var{stream} and store it in the buffer of @var{count}
-bytes referenced by @var{pointer}.
-
-If successful @func{fgets} returns @var{pointer}, otherwise an error is
-raised.  @func{primitive-fgets} returns 2 values: the result of the
-foreign function call and the value of @var{errno} just after the call.
-@end defun
+bytes referenced by @var{pointer}.  Return @var{pointer}.
+@end deffn
 
 
 @c page
@@ -694,19 +764,17 @@ foreign function call and the value of @var{errno} just after the call.
 @section Unreading to streams
 
 
-@defun ungetc @var{char} @var{stream}
-@defunx primitive-ungetc @var{c-char} @var{stream}
-Unread a character to @var{stream}.
+@glibcref{How Unread,Using @code{ungetc} To Do Unreading}
 
-@var{char} must be a Scheme character with scalar value in the range
-@code{[0, 255]}; the scalar value is computed with @func{char->integer}.
 
-@var{c-char} must be an exact integer.
-
-If an error occurs @func{ungetc} raises an exception.
-@func{primitive-ungetc} returns 2 values: the result of the foreign
-function call and the value of @var{errno} just after the call.
-@end defun
+@deffn Function ungetc @var{char} @var{stream}
+@deffnx Function primitive-ungetc @var{c-char} @var{stream}
+@deffnx Parameter primitive-ungetc-function
+@deffnx Function platform-ungetc @var{c-char} @var{stream}
+Unread a character to @var{stream}.  @var{char} must be a Scheme
+character with scalar value in the range @code{[0, 255]}; the scalar
+value is computed with @func{char->integer}.
+@end deffn
 
 
 @c page
@@ -714,46 +782,41 @@ function call and the value of @var{errno} just after the call.
 @section Stream positioning
 
 
-@defun feof @var{stream}
-@defunx primitive-feof @var{stream}
-@func{feof} returns @true{} if the end--of--file indicator of
-@var{stream} is set, otherwise @false{}.  If an error occurs @func{feof}
-raises an exception.
-
-@func{primitive-feof} returns 2 values: the return value of the foreign
-function call and the value of @code{errno} just after the call.
-@end defun
+@glibcref{File Positioning,File Positioning}
 
 
-@defun fseek @var{stream} @var{offset} @var{whence}
-@defunx primitive-fseek @var{stream} @var{offset} @var{whence}
+@deffn Function feof @var{stream}
+@deffnx Function primitive-feof @var{stream}
+@deffnx Parameter primitive-feof-function
+@deffnx Function platform-feof @var{stream}
+Return @true{} if the end--of--file indicator of @var{stream} is set,
+otherwise @false{}.
+@end deffn
+
+
+@deffn Function fseek @var{stream} @var{offset} @var{whence}
+@deffnx Function primitive-fseek @var{stream} @var{offset} @var{whence}
+@deffnx Parameter primitive-fseek-function
+@deffnx Function platform-fseek @var{stream} @var{offset} @var{whence}
 Change the file position of @var{stream} to @var{offset} from
 @var{whence}.
-
-If an error occurs @func{fseek} raises an exception.
-@func{primitive-fseek} returns 2 values: the result of the foreign
-function call and the value of @var{errno} just after the call.
-@end defun
+@end deffn
 
 
-@defun ftell @var{stream}
-@defunx primitive-ftell @var{stream}
-@func{ftell} returns the current file position of @var{stream}.  If an
-error occurs @func{ftell} raises an exception.
-
-@func{primitive-ftell} returns 2 values: the return value of the foreign
-function call and the value of @code{errno} just after the call.
-@end defun
+@deffn Function ftell @var{stream}
+@deffnx Function primitive-ftell @var{stream}
+@deffnx Parameter primitive-ftell-function
+@deffnx Function platform-ftell @var{stream}
+@func{ftell} returns the current file position of @var{stream}.
+@end deffn
 
 
-@defun rewind @var{stream}
-@defunx primitive-rewind @var{stream}
+@deffn Function rewind @var{stream}
+@deffnx Function primitive-rewind @var{stream}
+@deffnx Parameter primitive-rewind-function
+@deffnx Function platform-rewind @var{stream}
 Change the file position of @var{stream} to the beginning of the file.
-
-If an error occurs @func{rewind} raises an exception.
-@func{primitive-rewind} returns 2 values: the result of the foreign
-function call and the value of @var{errno} just after the call.
-@end defun
+@end deffn
 
 
 @c page
@@ -761,30 +824,26 @@ function call and the value of @var{errno} just after the call.
 @section Streams and file descriptors
 
 
-@defun fdopen @var{fd} @var{open-mode}
-@defunx primitive-fdopen @var{fd} @var{c-open-mode}
+@glibcref{Descriptors and Streams,Descriptors and Streams}
+
+
+@deffn Function fdopen @var{fd} @var{open-mode}
+@deffnx Function primitive-fdopen @var{fd} @var{open-mode}
+@deffnx Parameter primitive-fdopen-function
+@deffnx Function platform-fdopen @var{fd} @var{open-mode}
 Build and return a new stream wrapping file descriptor @var{fd}.
 
 @var{open-mode} must be a Scheme string or symbol representing the open
 mode of @var{fd}; it can have the same values accepted by @func{fopen}.
-@var{c-open-mode} must be a C string with the same purpose.
-
-If successful @func{fdopen} returns a pointer to the new stream,
-otherwise an exception is raised.  @func{primitive-fdopen} returns 2
-values: the return value from the foreign function and the value of
-@code{errno} just after the foreign function call.
-@end defun
+@end deffn
 
 
-@defun fileno @var{stream}
-@defunx primitive-fileno @var{stream}
+@deffn Function fileno @var{stream}
+@deffnx Function primitive-fileno @var{stream}
+@deffnx Parameter primitive-fileno-function
+@deffnx Function platform-fileno @var{stream}
 Return the file descriptor wrapped by @var{stream}, an exact integer.
-
-If successful @func{fileno} returns the file descriptor, otherwise an
-exception is raised.  @func{primitive-fileno} returns 2 values: the
-return value from the foreign function and the value of @code{errno}
-just after the foreign function call.
-@end defun
+@end deffn
 
 
 @c page
@@ -805,81 +864,101 @@ stream.  They are in an independent library:
 @subsubheading Errors
 
 
-@defun ferror_unlocked @var{stream}
-@defunx primitive-ferror_unlocked @var{stream}
+@deffn Function ferror_unlocked @var{stream}
+@deffnx Function primitive-ferror_unlocked @var{stream}
+@deffnx Parameter primitive-ferror_unlocked-function
+@deffnx Function platform-ferror_unlocked @var{stream}
 Like @func{ferror} and @func{primitive-ferror}.
-@end defun
+@end deffn
 
 
-@defun clearerr_unlocked @var{stream}
+@deffn clearerr_unlocked @var{stream}
 Like @func{clearerr}.
-@end defun
+@end deffn
 
 
 @subsubheading Writing
 
 
-@defun fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@defunx primitive-fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffn Function fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function primitive-fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter primitive-fwrite_unlocked-function
+@deffnx Function platform-fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 Like @func{fwrite} and @func{primitive-fwrite}.
-@end defun
+@end deffn
 
 
-@defun fputc_unlocked @var{char} @var{stream}
-@defunx primitive-fputc_unlocked @var{c-char} @var{stream}
+@deffn Function fputc_unlocked @var{char} @var{stream}
+@deffnx Function primitive-fputc_unlocked @var{c-char} @var{stream}
+@deffnx Parameter primitive-fputc_unlocked-function
+@deffnx Function platform-fputc_unlocked @var{c-char} @var{stream}
 Like @func{fputc} and @func{primitive-fputc}.
-@end defun
+@end deffn
 
 
-@defun fputs_unlocked @var{string} @var{stream}
-@defunx primitive-fputs_unlocked @var{cstring} @var{stream}
+@deffn Function fputs_unlocked @var{string} @var{stream}
+@deffnx Function primitive-fputs_unlocked @var{cstring} @var{stream}
+@deffnx Parameter primitive-fputs_unlocked-function
+@deffnx Function platform-fputs_unlocked @var{cstring} @var{stream}
 Like @func{fputs} and @func{primitive-fputs}.
-@end defun
+@end deffn
 
 
-@defun fflush_unlocked @var{stream}
-@defunx primitive-fflush_unlocked @var{stream}
+@deffn Function fflush_unlocked @var{stream}
+@deffnx Function primitive-fflush_unlocked @var{stream}
+@deffnx Parameter primitive-fflush_unlocked-function
+@deffnx Function platform-fflush_unlocked @var{stream}
 Like @func{fflush} and @func{primitive-fflush}.
-@end defun
+@end deffn
 
 
 @subsubheading Reading
 
 
-@defun fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@defunx primitive-fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffn Function fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function primitive-fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter primitive-fread_unlocked-function
+@deffnx Function platform-fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 Like @func{fread} and @func{primitive-fread}.
-@end defun
+@end deffn
 
 
-@defun fgetc_unlocked @var{stream}
-@defunx primitive-fgetc_unlocked @var{stream}
+@deffn Function fgetc_unlocked @var{stream}
+@deffnx Function primitive-fgetc_unlocked @var{stream}
+@deffnx Parameter primitive-fgetc_unlocked-function
+@deffnx Function platform-fgetc_unlocked @var{stream}
 Like @func{fgetc} and @func{primitive-fgetc}.
-@end defun
+@end deffn
 
 
-@defun fgets_unlocked @var{pointer} @var{count} @var{stream}
-@defunx primitive-fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffn Function fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffnx Function primitive-fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffnx Parameter primitive-fgets_unlocked-function
+@deffnx Function platform-fgets_unlocked @var{pointer} @var{count} @var{stream}
 Like @func{fgets} and @func{primitive-fgetc}.
-@end defun
+@end deffn
 
 
 @subsubheading Seeking
 
 
-@defun feof_unlocked @var{stream}
-@defunx primitive-feof_unlocked @var{stream}
+@deffn Function feof_unlocked @var{stream}
+@deffnx Function primitive-feof_unlocked @var{stream}
+@deffnx Parameter primitive-feof_unlocked-function
+@deffnx Function platform-feof_unlocked @var{stream}
 Like @func{feof} and @func{primitive-feof}.
-@end defun
+@end deffn
 
 
 @subsubheading Streams an file descriptors
 
 
-@defun fileno_unlocked @var{stream}
-@defunx primitive-fileno_unlocked @var{stream}
+@deffn Function fileno_unlocked @var{stream}
+@deffnx Function primitive-fileno_unlocked @var{stream}
+@deffnx Parameter primitive-fileno_unlocked-function
+@deffnx Function platform-fileno_unlocked @var{stream}
 Like @func{fileno} and @func{primitive-fileno}.
-@end defun
+@end deffn
 
 
 @c page
@@ -949,8 +1028,12 @@ The following functions are defined in the @library{glibc
 streams-extended} library.
 
 
-@defun getline @var{stream}
-@defunx getdelim @var{stream} @var{delimiter}
+@defun Function getline @var{stream}
+@defunx Function getdelim @var{stream} @var{delimiter}
+@defunx Function primitive-getline @var{stream}
+@defunx Function primitive-getdelim @var{stream} @var{delimiter}
+@defunx Parameter primitive-getline-function
+@defunx Parameter primitive-getdelim-function
 @func{getline} reads characters from @var{stream} until a newline is
 found, then returns a string holding those characters and a terminating
 newline.
@@ -970,8 +1053,8 @@ with an integer representation in the range @code{[0, 255]}.
 @end defun
 
 
-@defun primitive-getline @var{pointer-pointer} @var{pointer-count} @var{stream}
-@defunx primitive-getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
+@defun platform-getline @var{pointer-pointer} @var{pointer-count} @var{stream}
+@defunx platform-getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
 Interfaces to the foreign functions @cfunc{getline} and
 @cfunc{getdelim}.  Read the original documentation for details.
 
@@ -984,8 +1067,8 @@ file and accumulates them in the @code{lines} variables:
     (letrec ((S (compensate
                     (fopen pathname "w+")
                   (with (fclose S))))
-             (*pointer    (compensate-malloc/small))
-             (*count      (compensate-malloc/small))
+             (*pointer    (malloc-small/c))
+             (*count      (malloc-small/c))
              (getp        (lambda ()
                             (pointer-ref-c-pointer *pointer 0)))
              (free        (lambda ()

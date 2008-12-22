@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: size of definitions
 ;;;Date: Fri Dec  5, 2008
-;;;Time-stamp: <2008-12-19 16:51:34 marco>
+;;;Time-stamp: <2008-12-22 15:32:47 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,9 +33,12 @@
     mode_t		pointer-set-c-mode_t!	pointer-ref-c-mode_t
     off_t		pointer-set-c-off_t!	pointer-ref-c-off_t
     pid_t		pointer-set-c-pid_t!	pointer-ref-c-pid_t
+    clock_t		pointer-set-c-clock_t!	pointer-ref-c-clock_t
 
-    ;; sizes
-    sizeof-struct-flock
+    ;; structures
+    sizeof-struct-flock alignof-struct-flock strideof-struct-flock
+    sizeof-struct-timeval alignof-struct-timeval strideof-struct-timeval
+    sizeof-struct-timespec alignof-struct-timespec strideof-struct-timespec
 
     ;; constants
     O_ACCMODE		O_CREAT		O_EXCL
@@ -56,10 +59,8 @@
     F_RDLCK		F_WRLCK		F_UNLCK
 
     SEEK_SET		SEEK_CUR	SEEK_END
-
     WNOHANG		WUNTRACED	WCONTINUED
-
-    L_ctermid
+    L_ctermid		CLOCKS_PER_SEC
 
     ;;struct accessors
     struct-flock-l_type-set!		struct-flock-l_type-ref
@@ -67,119 +68,175 @@
     struct-flock-l_start-set!		struct-flock-l_start-ref
     struct-flock-l_len-set!		struct-flock-l_len-ref
     struct-flock-l_pid-set!		struct-flock-l_pid-ref
+
+    struct-timeval-tv_sec-set!		struct-timeval-tv_sec-ref
+    struct-timeval-tv_usec-set!		struct-timeval-tv_usec-ref
+    struct-timespec-tv_sec-set!		struct-timespec-tv_sec-ref
+    struct-timespec-tv_nsec-set!	struct-timespec-tv_nsec-ref
+
     )
   (import (rnrs)
     (uriel memory)
     (uriel ffi))
 
 
-;;;; type definitions
+;;;; basic type definitions
 
-  (define mode_t			(quote @TYPEOF_MODE_T@))
-  (define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
-  (define pointer-ref-c-mode_t		@GETTEROF_MODE_T@)
+(define mode_t				(quote @TYPEOF_MODE_T@))
+(define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
+(define pointer-ref-c-mode_t		@GETTEROF_MODE_T@)
 
-  (define pid_t				(quote @TYPEOF_PID_T@))
-  (define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
-  (define pointer-ref-c-pid_t		@GETTEROF_PID_T@)
+(define pid_t				(quote @TYPEOF_PID_T@))
+(define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
+(define pointer-ref-c-pid_t		@GETTEROF_PID_T@)
 
-  (define off_t				(quote @TYPEOF_OFF_T@))
-  (define pointer-set-c-off_t!		@SETTEROF_OFF_T@)
-  (define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
+(define off_t				(quote @TYPEOF_OFF_T@))
+(define pointer-set-c-off_t!		@SETTEROF_OFF_T@)
+(define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
 
-  (define sizeof-struct-flock		@SIZEOF_STRUCT_FLOCK@)
+(define clock_t				(quote @TYPEOF_CLOCK_T@))
+(define pointer-set-c-clock_t!		@SETTEROF_CLOCK_T@)
+(define pointer-ref-c-clock_t		@GETTEROF_CLOCK_T@)
+
+
+
+;;;; struct type definitions
+
+(define sizeof-struct-flock		@SIZEOF_STRUCT_FLOCK@)
+(define alignof-struct-flock		@ALIGNOF_STRUCT_FLOCK@)
+(define strideof-struct-flock		@STRIDEOF_STRUCT_FLOCK@)
+
+(define sizeof-struct-timeval		@SIZEOF_STRUCT_TIMEVAL@)
+(define alignof-struct-timeval		@ALIGNOF_STRUCT_TIMEVAL@)
+(define strideof-struct-timeval		@STRIDEOF_STRUCT_TIMEVAL@)
+
+(define sizeof-struct-timespec		@SIZEOF_STRUCT_TIMESPEC@)
+(define alignof-struct-timespec		@ALIGNOF_STRUCT_TIMESPEC@)
+(define strideof-struct-timespec	@STRIDEOF_STRUCT_TIMESPEC@)
+
 
 
 ;;;; constants
 
-  (define O_ACCMODE			@VALUEOF_O_ACCMODE@)
-  (define O_APPEND			@VALUEOF_O_APPEND@)
-  (define O_ASYNC			@VALUEOF_O_ASYNC@)
-  (define O_CREAT			@VALUEOF_O_CREAT@)
-  (define O_EXCL			@VALUEOF_O_EXCL@)
-  (define O_EXEC			@VALUEOF_O_EXEC@)
-  (define O_EXLOCK			@VALUEOF_O_EXLOCK@)
-  (define O_FSYNC			@VALUEOF_O_FSYNC@)
-  (define O_IGNORE_CTTY			@VALUEOF_O_IGNORE_CTTY@)
-  (define O_NDELAY			@VALUEOF_O_NDELAY@)
-  (define O_NOATIME			@VALUEOF_O_NOATIME@)
-  (define O_NOCTTY			@VALUEOF_O_NOCTTY@)
-  (define O_NOLINK			@VALUEOF_O_NOLINK@)
-  (define O_NONBLOCK			@VALUEOF_O_NONBLOCK@)
-  (define O_NOTRANS			@VALUEOF_O_NOTRANS@)
-  (define O_RDONLY			@VALUEOF_O_RDONLY@)
-  (define O_RDWR			@VALUEOF_O_RDWR@)
-  (define O_READ			@VALUEOF_O_READ@)
-  (define O_SHLOCK			@VALUEOF_O_SHLOCK@)
-  (define O_SYNC			@VALUEOF_O_SYNC@)
-  (define O_TRUNC			@VALUEOF_O_TRUNC@)
-  (define O_WRITE			@VALUEOF_O_WRITE@)
-  (define O_WRONLY			@VALUEOF_O_WRONLY@)
+(define O_ACCMODE		@VALUEOF_O_ACCMODE@)
+(define O_APPEND		@VALUEOF_O_APPEND@)
+(define O_ASYNC			@VALUEOF_O_ASYNC@)
+(define O_CREAT			@VALUEOF_O_CREAT@)
+(define O_EXCL			@VALUEOF_O_EXCL@)
+(define O_EXEC			@VALUEOF_O_EXEC@)
+(define O_EXLOCK		@VALUEOF_O_EXLOCK@)
+(define O_FSYNC			@VALUEOF_O_FSYNC@)
+(define O_IGNORE_CTTY		@VALUEOF_O_IGNORE_CTTY@)
+(define O_NDELAY		@VALUEOF_O_NDELAY@)
+(define O_NOATIME		@VALUEOF_O_NOATIME@)
+(define O_NOCTTY		@VALUEOF_O_NOCTTY@)
+(define O_NOLINK		@VALUEOF_O_NOLINK@)
+(define O_NONBLOCK		@VALUEOF_O_NONBLOCK@)
+(define O_NOTRANS		@VALUEOF_O_NOTRANS@)
+(define O_RDONLY		@VALUEOF_O_RDONLY@)
+(define O_RDWR			@VALUEOF_O_RDWR@)
+(define O_READ			@VALUEOF_O_READ@)
+(define O_SHLOCK		@VALUEOF_O_SHLOCK@)
+(define O_SYNC			@VALUEOF_O_SYNC@)
+(define O_TRUNC			@VALUEOF_O_TRUNC@)
+(define O_WRITE			@VALUEOF_O_WRITE@)
+(define O_WRONLY		@VALUEOF_O_WRONLY@)
 
-  (define F_DUPFD			@VALUEOF_F_DUPFD@)
-  (define F_GETFD			@VALUEOF_F_GETFD@)
-  (define F_GETFL			@VALUEOF_F_GETFL@)
-  (define F_GETLK			@VALUEOF_F_GETLK@)
-  (define F_GETOWN			@VALUEOF_F_GETOWN@)
-  (define F_SETFD			@VALUEOF_F_SETFD@)
-  (define F_SETFL			@VALUEOF_F_SETFL@)
-  (define F_SETLKW			@VALUEOF_F_SETLKW@)
-  (define F_SETLK			@VALUEOF_F_SETLK@)
-  (define F_SETOWN			@VALUEOF_F_SETOWN@)
+(define F_DUPFD			@VALUEOF_F_DUPFD@)
+(define F_GETFD			@VALUEOF_F_GETFD@)
+(define F_GETFL			@VALUEOF_F_GETFL@)
+(define F_GETLK			@VALUEOF_F_GETLK@)
+(define F_GETOWN		@VALUEOF_F_GETOWN@)
+(define F_SETFD			@VALUEOF_F_SETFD@)
+(define F_SETFL			@VALUEOF_F_SETFL@)
+(define F_SETLKW		@VALUEOF_F_SETLKW@)
+(define F_SETLK			@VALUEOF_F_SETLK@)
+(define F_SETOWN		@VALUEOF_F_SETOWN@)
 
-  (define FD_CLOEXEC			@VALUEOF_FD_CLOEXEC@)
+(define FD_CLOEXEC		@VALUEOF_FD_CLOEXEC@)
 
-  (define F_RDLCK			@VALUEOF_F_RDLCK@)
-  (define F_WRLCK			@VALUEOF_F_WRLCK@)
-  (define F_UNLCK			@VALUEOF_F_UNLCK@)
+(define F_RDLCK			@VALUEOF_F_RDLCK@)
+(define F_WRLCK			@VALUEOF_F_WRLCK@)
+(define F_UNLCK			@VALUEOF_F_UNLCK@)
 
-  (define SEEK_SET			@VALUEOF_SEEK_SET@)
-  (define SEEK_CUR			@VALUEOF_SEEK_CUR@)
-  (define SEEK_END			@VALUEOF_SEEK_END@)
+(define SEEK_SET		@VALUEOF_SEEK_SET@)
+(define SEEK_CUR		@VALUEOF_SEEK_CUR@)
+(define SEEK_END		@VALUEOF_SEEK_END@)
 
-  (define WNOHANG			@VALUEOF_WNOHANG@)
-  (define WUNTRACED			@VALUEOF_WUNTRACED@)
-  (define WCONTINUED			@VALUEOF_WCONTINUED@)
+(define WNOHANG			@VALUEOF_WNOHANG@)
+(define WUNTRACED		@VALUEOF_WUNTRACED@)
+(define WCONTINUED		@VALUEOF_WCONTINUED@)
 
-  (define L_ctermid			@VALUEOF_L_ctermid@)
+(define L_ctermid		@VALUEOF_L_ctermid@)
+
+(define CLOCKS_PER_SEC		@VALUEOF_CLOCKS_PER_SEC@)
+
 
 
 ;;;; struct accessors
 
-  (define-c-struct-accessors
-    struct-flock-l_type-set!
-    struct-flock-l_type-ref
-    @OFFSETOF_STRUCT_FLOCK_L_TYPE@
-    @SETTEROF_STRUCT_FLOCK_L_TYPE@
-    @GETTEROF_STRUCT_FLOCK_L_TYPE@)
+(define-c-struct-accessors
+  struct-flock-l_type-set!
+  struct-flock-l_type-ref
+  @OFFSETOF_STRUCT_FLOCK_L_TYPE@
+  @SETTEROF_STRUCT_FLOCK_L_TYPE@
+  @GETTEROF_STRUCT_FLOCK_L_TYPE@)
 
-  (define-c-struct-accessors
-    struct-flock-l_whence-set!
-    struct-flock-l_whence-ref
-    @OFFSETOF_STRUCT_FLOCK_L_WHENCE@
-    @SETTEROF_STRUCT_FLOCK_L_WHENCE@
-    @GETTEROF_STRUCT_FLOCK_L_WHENCE@)
+(define-c-struct-accessors
+  struct-flock-l_whence-set!
+  struct-flock-l_whence-ref
+  @OFFSETOF_STRUCT_FLOCK_L_WHENCE@
+  @SETTEROF_STRUCT_FLOCK_L_WHENCE@
+  @GETTEROF_STRUCT_FLOCK_L_WHENCE@)
 
-  (define-c-struct-accessors
-    struct-flock-l_start-set!
-    struct-flock-l_start-ref
-    @OFFSETOF_STRUCT_FLOCK_L_START@
-    @SETTEROF_STRUCT_FLOCK_L_START@
-    @GETTEROF_STRUCT_FLOCK_L_START@)
+(define-c-struct-accessors
+  struct-flock-l_start-set!
+  struct-flock-l_start-ref
+  @OFFSETOF_STRUCT_FLOCK_L_START@
+  @SETTEROF_STRUCT_FLOCK_L_START@
+  @GETTEROF_STRUCT_FLOCK_L_START@)
 
-  (define-c-struct-accessors
-    struct-flock-l_len-set!
-    struct-flock-l_len-ref
-    @OFFSETOF_STRUCT_FLOCK_L_LEN@
-    @SETTEROF_STRUCT_FLOCK_L_LEN@
-    @GETTEROF_STRUCT_FLOCK_L_LEN@)
+(define-c-struct-accessors
+  struct-flock-l_len-set!
+  struct-flock-l_len-ref
+  @OFFSETOF_STRUCT_FLOCK_L_LEN@
+  @SETTEROF_STRUCT_FLOCK_L_LEN@
+  @GETTEROF_STRUCT_FLOCK_L_LEN@)
 
-  (define-c-struct-accessors
-    struct-flock-l_pid-set!
-    struct-flock-l_pid-ref
-    @OFFSETOF_STRUCT_FLOCK_L_PID@
-    @SETTEROF_STRUCT_FLOCK_L_PID@
-    @GETTEROF_STRUCT_FLOCK_L_PID@)
+(define-c-struct-accessors
+  struct-flock-l_pid-set!
+  struct-flock-l_pid-ref
+  @OFFSETOF_STRUCT_FLOCK_L_PID@
+  @SETTEROF_STRUCT_FLOCK_L_PID@
+  @GETTEROF_STRUCT_FLOCK_L_PID@)
+
+(define-c-struct-accessors
+  struct-timeval-tv_sec-set!
+  struct-timeval-tv_sec-ref
+  @OFFSETOF_STRUCT_TIMEVAL_TV_SEC@
+  @SETTEROF_STRUCT_TIMEVAL_TV_SEC@
+  @GETTEROF_STRUCT_TIMEVAL_TV_SEC@)
+
+(define-c-struct-accessors
+  struct-timeval-tv_usec-set!
+  struct-timeval-tv_usec-ref
+  @OFFSETOF_STRUCT_TIMEVAL_TV_USEC@
+  @SETTEROF_STRUCT_TIMEVAL_TV_USEC@
+  @GETTEROF_STRUCT_TIMEVAL_TV_USEC@)
+
+(define-c-struct-accessors
+  struct-timespec-tv_sec-set!
+  struct-timespec-tv_sec-ref
+  @OFFSETOF_STRUCT_TIMESPEC_TV_SEC@
+  @SETTEROF_STRUCT_TIMESPEC_TV_SEC@
+  @GETTEROF_STRUCT_TIMESPEC_TV_SEC@)
+
+(define-c-struct-accessors
+  struct-timespec-tv_nsec-set!
+  struct-timespec-tv_nsec-ref
+  @OFFSETOF_STRUCT_TIMESPEC_TV_NSEC@
+  @SETTEROF_STRUCT_TIMESPEC_TV_NSEC@
+  @GETTEROF_STRUCT_TIMESPEC_TV_NSEC@)
 
 
 ;;;; done

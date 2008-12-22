@@ -1,6 +1,6 @@
 
-	       Glibc library for R6RS Scheme
-	       =============================
+		       Nausicaa/Linux
+		       ==============
 
 
 Topics
@@ -16,8 +16,9 @@ Topics
 1. Introduction
 ---------------
 
-This is  a Scheme library  implementing an interface  to the
-GNU C library facilities.
+This  is  a collection  of  R6RS  Scheme libraries  exposing
+features  of the  Linux  OS.   It is  a  complement for  the
+Nausicaa/POSIX and Nausicaa/Glibc projects.
 
 
 2. License
@@ -45,12 +46,13 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
-Be sure to  have installed the Nausicaa/R6RS, Nausicaa/SRFI,
-Nausicaa/Uriel and Nausicaa/POSIX libraries first.
+Be sure  to have installed  the Nausicaa/R6RS, Nausicaa/SRFI
+and Nausicaa/Uriel  libraries first.  We  will probably want
+the Nausicaa/POSIX libraries, too.
 
   Basically we should do:
 
-   $ cd glibc
+   $ cd linux
    $ mkdir "=build"
    $ cd "=build"
    $ ../configure
@@ -65,7 +67,7 @@ Nausicaa/Uriel and Nausicaa/POSIX libraries first.
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/nausicaa-glibc
+    $ make install DESTDIR=/tmp/marco/nausicaa-linux
 
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
@@ -83,7 +85,6 @@ B. Bug reports
 
 Bug    reports    are     appreciated,    send    them    to
 <mrc.mgg@gmail.com>.
-
 
 
 ### end of file

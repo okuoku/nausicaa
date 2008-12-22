@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: Glibc libraries for R6RS Scheme
-;;;Contents: size of Glibc definitions
-;;;Date: Thu Dec  4, 2008
+;;;Part of: Nausicaa/POSIX
+;;;Contents: tests for the POSIX time and date functions
+;;;Date: Mon Dec 22, 2008
 ;;;
 ;;;Abstract
 ;;;
@@ -23,43 +23,43 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 
 ;;;; setup
 
-(library (glibc sizeof)
-  (export
+(import (r6rs)
+  (uriel lang)
+  (uriel test)
+  (posix time)
+  (posix time stub))
 
-    ;; typedefs
-    time_t
-
-    ;; constants
-    valueof-eof
-    valueof-seek-set valueof-seek-cur valueof-seek-end
-
-    )
-  (import (r6rs)
-    (uriel foreign))
+(check-set-mode! 'report-failed)
 
 
 
-;;;; typedefs
 
-(define time_t			(quote @TYPEOF_TIME_T@))
+(parameterize ((testname 'clock))
 
+  (check
+      (flonum? (clock))
+    => #t)
 
-
-;;;; constants
+  (check
+      (receive (result tms)
+	  (times)
+	(list (flonum? result)
+	      (flonum? (struct-tms-tms_utime-ref tms))
+	      (flonum? (struct-tms-tms_stime-ref tms))
+	      (flonum? (struct-tms-tms_cutime-ref tms))
+	      (flonum? (struct-tms-tms_cstime-ref tms))))
+    => '(#t #t #t #t #t))
 
-(define valueof-eof		@VALUEOF_EOF@)
-(define valueof-seek-set	@VALUEOF_SEEK_SET@)
-(define valueof-seek-cur	@VALUEOF_SEEK_CUR@)
-(define valueof-seek-end	@VALUEOF_SEEK_END@)
-
+  )
 
 
 
 ;;;; done
 
-)
+(check-report)
 
 ;;; end of file

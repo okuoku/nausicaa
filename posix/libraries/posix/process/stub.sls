@@ -1,8 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: access to POSIX stub library
+;;;Contents: access to POSIX stub library for process functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 23:56:26 marco>
 ;;;
 ;;;Abstract
 ;;;

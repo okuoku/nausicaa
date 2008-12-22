@@ -763,6 +763,14 @@ NAUSICAA_BASE_TYPE_TEST([$1],[$2.$3],[$4])
 NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])
 ])
 
+dnl 1 variable-suffix
+dnl 2 typedef
+dnl 3 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_STRUCT_TYPE],[
+NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[$5])
+NAUSICAA_ALIGNOF_TEST([$1],[$2],[#f],[$5])
+NAUSICAA_STRIDEOF_TEST([$1],[$2],[#f],[$5])
+])
 
 dnl page
 dnl --------------------------------------------------------------------

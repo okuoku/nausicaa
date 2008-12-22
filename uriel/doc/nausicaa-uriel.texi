@@ -959,10 +959,10 @@ want the constructor to return.
 @subsection Compensations @api{}
 
 
-@deffn Syntax compensate @var{alloc-form} @dots{} (with @var{free-form} @dots{})
+@deffn Syntax compensate @var{alloc-form0} @var{alloc-form} @dots{} (with @var{release-form0} @var{release-form} @dots{})
 Evaluate all the @var{alloc-form}s and, if no error occurs, push a
-closure holding the @var{free-form}s on the current compensations stack.
-Return the return value of the last @var{alloc-form}.
+closure holding the @var{release-form}s on the current compensations
+stack.  Return the return value of the last @var{alloc-form}.
 @end deffn
 
 
@@ -987,6 +987,12 @@ last in/first out order.  The compensations are evaluated in the body of
 a @func{defer-exceptions}, so exceptions raised are handled as described
 in @ref{lang deferred exceptions}.
 @end defun
+
+
+@deffn Syntax push-compensation @var{release-form0} @var{release-form} ...
+Push a closure holding the @var{release-form}s on the current
+compensations stack.
+@end deffn
 
 
 @c page

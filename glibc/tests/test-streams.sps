@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: test for streams
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-18 21:28:33 marco>
+;;;Time-stamp: <2008-12-22 17:51:33 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,15 +30,9 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel printing)
-  (uriel test)
+  (uriel foreign)
   (uriel getenv)
-  (uriel memory)
-  (uriel ffi)
-  (uriel cstring)
-  (uriel errno)
-  (srfi receive)
-  (srfi parameters)
+  (uriel test)
   (only (string-lib) string-join)
   (glibc streams)
   (glibc streams-extended)
@@ -141,7 +135,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
 	      (receive (result errno)
-		  (primitive-getline *pointer *count S)
+		  (platform-getline *pointer *count S)
 		(cond ((ferror S)
 		       (free)
 		       (raise-errno-error 'reading-line errno S))
@@ -176,7 +170,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
 	      (receive (result errno)
-		  (primitive-getline *pointer *count S)
+		  (platform-getline *pointer *count S)
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))
@@ -251,7 +245,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
 	      (receive (result errno)
-		  (primitive-getdelim *pointer *count (char->integer #\newline) S)
+		  (platform-getdelim *pointer *count (char->integer #\newline) S)
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))
@@ -286,7 +280,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 valueof-seek-set)
 	    (let loop ()
 	      (receive (result errno)
-		  (primitive-getdelim *pointer *count (char->integer #\newline) S)
+		  (platform-getdelim *pointer *count (char->integer #\newline) S)
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))

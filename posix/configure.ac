@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/POSIX
 dnl Contents: configuration file template
 dnl Date: Fri Dec  5, 2008
-dnl Time-stamp: <2008-12-19 16:44:10 marco>
+dnl Time-stamp: <2008-12-22 15:55:09 marco>
 dnl
 dnl Abstract
 dnl
@@ -47,17 +47,26 @@ dnl --------------------------------------------------------------------
 dnl Helpers.
 dnl --------------------------------------------------------------------
 
+m4_define([NAU_POSIX_INCLUDES],[
+#include <fcntl.h>
+#include <time.h>
+#include <sys/times.h>
+])
+
 AC_DEFUN([NAU_POSIX_VALUEOF_TEST],
-   [NAUSICAA_VALUEOF_TEST([$1],[$1],[#f],[#include <fcntl.h>])])
+   [NAUSICAA_VALUEOF_TEST([$1],[$1],[#f],[NAU_POSIX_INCLUDES])])
 
 AC_DEFUN([NAU_POSIX_SIZEOF_TEST],
-   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <fcntl.h>])])
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_POSIX_INCLUDES])])
 
 AC_DEFUN([NAU_POSIX_INSPECT_TYPE],
-  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <fcntl.h>])])
+  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_POSIX_INCLUDES])])
 
 AC_DEFUN([NAU_POSIX_INSPECT_FIELD_TYPE],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <fcntl.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_POSIX_INCLUDES])])
+
+AC_DEFUN([NAU_POSIX_INSPECT_STRUCT_TYPE],
+   [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[NAU_POSIX_INCLUDES])])
 
 
 dnl page
@@ -68,13 +77,23 @@ dnl --------------------------------------------------------------------
 NAU_POSIX_INSPECT_TYPE([MODE_T],[mode_t],[signed-int])
 NAU_POSIX_INSPECT_TYPE([PID_T],[pid_t],[signed-int])
 NAU_POSIX_INSPECT_TYPE([OFF_T],[off_t],[unsigned-int])
+NAU_POSIX_INSPECT_TYPE([CLOCK_T],[clock_t],[signed-int])
 
-NAU_POSIX_SIZEOF_TEST([STRUCT_FLOCK],[struct flock])
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_FLOCK],[struct flock])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_TYPE],[struct flock],[l_type],[signed-int],,)
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_WHENCE],[struct flock],[l_whence],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_START],[struct flock],[l_start],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_LEN],[struct flock],[l_len],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_PID],[struct flock],[l_pid],[signed-int])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TIMEVAL],[struct timeval])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEVAL_TV_SEC],[struct timeval],[tv_sec],[signed-int],,)
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEVAL_TV_USEC],[struct timeval],[tv_usec],[signed-int],,)
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TIMESPEC],[struct timespec])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMESPEC_TV_SEC],[struct timespec],[tv_sec],[signed-int],,)
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMESPEC_TV_NSEC],[struct timespec],[tv_nsec],[signed-int],,)
+
 
 AC_CACHE_SAVE
 
@@ -139,6 +158,8 @@ NAU_POSIX_VALUEOF_TEST([WUNTRACED])
 NAU_POSIX_VALUEOF_TEST([WCONTINUED])
 
 NAU_POSIX_VALUEOF_TEST([L_ctermid])
+
+NAU_POSIX_VALUEOF_TEST([CLOCKS_PER_SEC])
 
 AC_CACHE_SAVE
 

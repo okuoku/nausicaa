@@ -2,11 +2,13 @@
    Part of: Nausicaa/Stubs
    Contents: POSIX stub
    Date: Fri Dec 19, 2008
-   Time-stamp: <2008-12-19 18:23:01 marco>
+   Time-stamp: <2008-12-22 16:11:11 marco>
 
    Abstract
 
-
+	Stub  functions for  the  POSIX API.   This file  is
+	meant to be compiled in  a C shared library and used
+	by the Nausicaa/POSIX Scheme library.
 
    Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 
@@ -36,7 +38,10 @@
 #  include <config.h>
 #endif
 
+#include <stdio.h>
 #include <sys/wait.h>
+#include <time.h>
+#include <sys/times.h>
 
 extern int nausicaa_posix_wifexited	(int status);
 extern int nausicaa_posix_wexitstatus	(int status);
@@ -46,10 +51,13 @@ extern int nausicaa_posix_wcoredump	(int status);
 extern int nausicaa_posix_wifstopped	(int status);
 extern int nausicaa_posix_wstopsig	(int status);
 
+extern double nausicaa_posix_clock	(void);
+extern double nausicaa_posix_times	(double * tms);
+
 
 
 /** ------------------------------------------------------------
- ** Code.
+ ** Process termination status returned by waitpid functions.
  ** ----------------------------------------------------------*/
 
 int
@@ -87,5 +95,30 @@ nausicaa_posix_wstopsig (int status)
 {
   return WSTOPSIG(status);
 }
+
+
+/** ------------------------------------------------------------
+ ** Time and date functions.
+ ** ----------------------------------------------------------*/
+
+double
+nausicaa_posix_clock (void)
+{
+  return (double)clock();
+}
+double
+nausicaa_posix_times (double * tms)
+{
+  struct tms	t;
+  clock_t	result;
+
+  result = times(&t);
+  tms[0] = t.tms_utime;
+  tms[1] = t.tms_stime;
+  tms[2] = t.tms_cutime;
+  tms[3] = t.tms_cstime;
+  return (double)result;
+}
+
 
 /* end of file */

@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: Glibc libraries for R6RS Scheme
-;;;Contents: size of Glibc definitions
-;;;Date: Thu Dec  4, 2008
+;;;Part of: Nausicaa/POSIX
+;;;Contents: interface to POSIX date and time functions
+;;;Date: Mon Dec 22, 2008
 ;;;
 ;;;Abstract
 ;;;
@@ -23,37 +23,26 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 
 ;;;; setup
 
-(library (glibc sizeof)
+(library (posix time)
   (export
-
-    ;; typedefs
-    time_t
-
-    ;; constants
-    valueof-eof
-    valueof-seek-set valueof-seek-cur valueof-seek-end
-
     )
   (import (r6rs)
-    (uriel foreign))
+    (uriel lang)
+    (uriel foreign)
+    (posix sizeof))
+
+  (define dummy
+    (shared-object self-shared-object))
 
 
 
-;;;; typedefs
-
-(define time_t			(quote @TYPEOF_TIME_T@))
+;;;; clock ticks and processor time
 
 
-
-;;;; constants
-
-(define valueof-eof		@VALUEOF_EOF@)
-(define valueof-seek-set	@VALUEOF_SEEK_SET@)
-(define valueof-seek-cur	@VALUEOF_SEEK_CUR@)
-(define valueof-seek-end	@VALUEOF_SEEK_END@)
 
 
 

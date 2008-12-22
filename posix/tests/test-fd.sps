@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: test for file descriptors library
 ;;;Date: Sun Dec  7, 2008
-;;;Time-stamp: <2008-12-20 09:02:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,12 +28,12 @@
 ;;;; setup
 
 (import (except (r6rs) read write)
+  (rnrs files (6))
+  (only (srfi strings) string-join)
   (uriel lang)
   (uriel foreign)
   (uriel test)
   (uriel getenv)
-  (srfi receive)
-  (srfi parameters)
   (only (string-lib) string-join)
   (posix fd)
   (posix sizeof))
@@ -190,19 +189,139 @@ Ses ailes de geant l'empechent de marcher.")
 
 (parameterize ((testname 'pipe))
 
+  ;; raw fd
   (check
-    (let-values (((in ou)	(pipe)))
-      (let ((inp	(make-custom-fd-input-port  in))
-	    (oup	(make-custom-fd-output-port ou)))
-	(put-bytevector oup (string->utf8 "ciao"))
-(let* ((p (malloc 10))
-       (len (read in p 10)))
-  (cstring->string/len p len))
-;;(get-bytevector-some inp)
-;; 	(bytevector->string (get-u8 inp)
-;; 			    (make-transcoder utf-8-codec))
-	))
-    => "ciao")
+      (with-compensations
+	(let-values (((in ou) (pipe)))
+	  (push-compensation (close in))
+	  (push-compensation (close ou))
+	  (let ((s	(string->cstring/c "ciao\n")))
+	    (write ou s (strlen s)))
+	  (let* ((p	(malloc 10))
+		 (len	(read in p 10)))
+	    (cstring->string/len p len))))
+    => "ciao\n")
+
+  ;; binary port
+  (check
+      (with-compensations
+	(let-values (((in ou)	(pipe)))
+	  (letrec ((inp	(compensate
+			    (fd->binary-input-port  in)
+			  (with
+			   (close-port inp))))
+		   (oup	(compensate
+			    (fd->binary-output-port ou)
+			  (with
+			   (close-port oup)))))
+	    (put-bytevector oup
+			    (string->bytevector "ciao\n"
+						(native-transcoder)))
+	    (flush-output-port oup)
+	    (bytevector->string (get-bytevector-n inp 5)
+				(native-transcoder)))))
+    => "ciao\n")
+
+  ;; pipe binary ports
+  (check
+      (with-compensations
+	(let-values (((inp oup)	(pipe-binary-ports)))
+	  (push-compensation (close-port inp))
+	  (push-compensation (close-port oup))
+	  (put-bytevector oup
+			  (string->bytevector "ciao\n"
+					      (native-transcoder)))
+	  (flush-output-port oup)
+	  (bytevector->string (get-bytevector-n inp 5)
+			      (native-transcoder))))
+    => "ciao\n")
+
+  ;; textual port
+  (check
+      (with-compensations
+	(let-values (((in ou)	(pipe)))
+	  (letrec ((inp	(compensate
+			    (fd->textual-input-port  in)
+			  (with
+			   (close-port inp))))
+		   (oup	(compensate
+			    (fd->textual-output-port ou)
+			  (with
+			   (close-port oup)))))
+	    (put-string oup "ciao\n")
+	    (flush-output-port oup)
+	    (get-string-n inp 5))))
+    => "ciao\n")
+
+  ;; textual port
+  (check
+      (with-compensations
+	(let-values (((inp oup)	(pipe-textual-ports)))
+	  (push-compensation (close-port inp))
+	  (push-compensation (close-port oup))
+	  (put-string oup "ciao\n")
+	  (flush-output-port oup)
+	  (get-string-n inp 5)))
+    => "ciao\n")
+
+  )
+
+
+
+(parameterize ((testname 'fifo))
+
+  (define pathname
+    (let ((p (string-join (list (getenv "TMPDIR") "fifo") "/")))
+      (when (file-exists? p)
+	(delete-file p))
+      p))
+
+  ;; binary port
+  (check
+      (with-compensations
+	  (compensate
+	      (mkfifo pathname #o600)
+	    (with
+	     (delete-file pathname)))
+	(let ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+	      (ou (open pathname O_WRONLY 0)))
+	  (letrec ((inp	(compensate
+			    (fd->binary-input-port  in)
+			  (with
+			   (close-port inp))))
+		   (oup	(compensate
+			    (fd->binary-output-port ou)
+			  (with
+			   (close-port oup)))))
+	    (put-bytevector oup
+			    (string->bytevector "ciao\n"
+						(native-transcoder)))
+	    (flush-output-port oup)
+	    (bytevector->string (get-bytevector-n inp 5)
+				(native-transcoder)))))
+    => "ciao\n")
+
+  ;; textual port
+  (check
+      (with-compensations
+	  (compensate
+	      (mkfifo pathname #o600)
+	    (with
+	     (delete-file pathname)))
+	(let ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+	      (ou (open pathname O_WRONLY 0)))
+	  (letrec ((inp	(compensate
+			    (fd->textual-input-port  in)
+			  (with
+			   (close-port inp))))
+		   (oup	(compensate
+			    (fd->textual-output-port ou)
+			  (with
+			   (close-port oup)))))
+	    (put-string oup "ciao\n")
+	    (flush-output-port oup)
+	    (get-string-n inp 5))))
+    => "ciao\n")
 
   )
 

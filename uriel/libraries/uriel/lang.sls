@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-12-19 07:39:19 marco>
+;;;Time-stamp: <2008-12-22 08:03:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -33,7 +33,7 @@
 
     ;;compensations
     with-compensations with-compensations/on-error
-    compensate run-compensations
+    compensate run-compensations push-compensation
 
     ;;deferred exceptions
     with-deferred-exceptions-handler
@@ -172,8 +172,8 @@
        (dynamic-wind
 	   (lambda () #f)
 	   (lambda () ?form0 ?form ...)
-	   (lambda ()
-	     (run-deferred-exceptions-handler)))))))
+	   (lambda () (run-deferred-exceptions-handler)))))))
+
 
 
 ;;;; compensations
@@ -198,7 +198,8 @@
 	   (lambda (exc)
 	     (run-compensations)
 	     (raise exc))
-	 (lambda () ?form0 ?form ...))))))
+	 (lambda ()
+	   ?form0 ?form ...))))))
 
 (define-syntax with-compensations
   (syntax-rules ()
@@ -209,13 +210,19 @@
 	   (lambda () ?form0 ?form ...)
 	   (lambda () (run-compensations)))))))
 
+(define-syntax push-compensation
+  (syntax-rules ()
+    ((_ ?release0 ?release ...)
+     (begin
+       (compensations (cons (lambda () ?release0 ?release ...)
+			    (compensations)))))))
+
 (define-syntax compensate
   (syntax-rules (begin with)
     ((_ (begin ?alloc0 ?alloc ...) (with ?release0 ?release ...))
      (begin0
 	 (begin ?alloc0 ?alloc ...)
-       (compensations (cons (lambda () ?release0 ?release ...)
-			    (compensations)))))
+       (push-compensation ?release0 ?release ...)))
 
     ((_ (begin ?alloc0 ?alloc ...) ?allocn ?form ...)
      (compensate (begin ?alloc0 ?alloc ... ?allocn) ?form ...))

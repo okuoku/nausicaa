@@ -51,7 +51,6 @@ POSIX
 * Add a library  with an interface to the  "waitid()" function described
   in the waitpid manual page (linux specific).
 * Node "File System Interface".
-* Node "Pipes and FIFOs".
 * Node "Signal Handling".
 * Node "Name Service Switch".
 * Node "Users and Groups".
