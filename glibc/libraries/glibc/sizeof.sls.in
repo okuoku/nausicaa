@@ -30,12 +30,33 @@
   (export
 
     ;; typedefs
-    time_t
+    time_t sizeof-time_t peek-time_t poke-time_t!
 
     ;; constants
-    valueof-eof
-    valueof-seek-set valueof-seek-cur valueof-seek-end
+    EOF
+    sizeof-struct-timezone alignof-struct-timezone strideof-struct-timezone
+    sizeof-struct-tm alignof-struct-tm strideof-struct-tm
+    sizeof-struct-ntptimeval alignof-struct-ntptimeval strideof-struct-ntptimeval
 
+    ;; struct accessors
+    struct-timezone-tz_minuteswest-set!	struct-timezone-tz_minuteswest-ref
+    struct-timezone-tz_dsttime-set!	struct-timezone-tz_dsttime-ref
+
+    struct-tm-tm_sec-set!		struct-tm-tm_sec-ref
+    struct-tm-tm_min-set!		struct-tm-tm_min-ref
+    struct-tm-tm_hour-set!		struct-tm-tm_hour-ref
+    struct-tm-tm_mday-set!		struct-tm-tm_mday-ref
+    struct-tm-tm_mon-set!		struct-tm-tm_mon-ref
+    struct-tm-tm_year-set!		struct-tm-tm_year-ref
+    struct-tm-tm_wday-set!		struct-tm-tm_wday-ref
+    struct-tm-tm_yday-set!		struct-tm-tm_yday-ref
+    struct-tm-tm_isdst-set!		struct-tm-tm_isdst-ref
+    struct-tm-tm_gmtoff-set!		struct-tm-tm_gmtoff-ref
+    struct-tm-tm_zone-set!		struct-tm-tm_zone-ref
+
+					struct-ntptimeval-time-ref
+    struct-ntptimeval-maxerror-set!	struct-ntptimeval-maxerror-ref
+    struct-ntptimeval-esterror-set!	struct-ntptimeval-esterror-ref
     )
   (import (r6rs)
     (uriel foreign))
@@ -44,17 +65,146 @@
 
 ;;;; typedefs
 
-(define time_t			(quote @TYPEOF_TIME_T@))
+(define time_t				(quote @TYPEOF_TIME_T@))
+(define sizeof-time_t			@SIZEOF_TIME_T@)
+(define peek-time_t			@GETTEROF_TIME_T@)
+(define poke-time_t!			@SETTEROF_TIME_T@)
 
 
 
 ;;;; constants
 
-(define valueof-eof		@VALUEOF_EOF@)
-(define valueof-seek-set	@VALUEOF_SEEK_SET@)
-(define valueof-seek-cur	@VALUEOF_SEEK_CUR@)
-(define valueof-seek-end	@VALUEOF_SEEK_END@)
+(define EOF			@VALUEOF_EOF@)
 
+
+
+
+;;;; access to structures
+
+(define sizeof-struct-timezone		@SIZEOF_STRUCT_TIMEZONE@)
+(define alignof-struct-timezone		@ALIGNOF_STRUCT_TIMEZONE@)
+(define strideof-struct-timezone	@STRIDEOF_STRUCT_TIMEZONE@)
+
+(define-c-struct-accessors
+  struct-timezone-tz_minuteswest-set!
+  struct-timezone-tz_minuteswest-ref
+  @OFFSETOF_STRUCT_TIMEZONE_TZ_MINUTESWEST@
+  @SETTEROF_STRUCT_TIMEZONE_TZ_MINUTESWEST@
+  @GETTEROF_STRUCT_TIMEZONE_TZ_MINUTESWEST@)
+
+(define-c-struct-accessors
+  struct-timezone-tz_dsttime-set!
+  struct-timezone-tz_dsttime-ref
+  @OFFSETOF_STRUCT_TIMEZONE_TZ_DSTTIME@
+  @SETTEROF_STRUCT_TIMEZONE_TZ_DSTTIME@
+  @GETTEROF_STRUCT_TIMEZONE_TZ_DSTTIME@)
+
+
+(define sizeof-struct-tm		@SIZEOF_STRUCT_TM@)
+(define alignof-struct-tm		@ALIGNOF_STRUCT_TM@)
+(define strideof-struct-tm		@STRIDEOF_STRUCT_TM@)
+
+(define-c-struct-accessors
+  struct-tm-tm_sec-set!
+  struct-tm-tm_sec-ref
+  @OFFSETOF_STRUCT_TM_TM_SEC@
+  @SETTEROF_STRUCT_TM_TM_SEC@
+  @GETTEROF_STRUCT_TM_TM_SEC@)
+
+(define-c-struct-accessors
+  struct-tm-tm_min-set!
+  struct-tm-tm_min-ref
+  @OFFSETOF_STRUCT_TM_TM_MIN@
+  @SETTEROF_STRUCT_TM_TM_MIN@
+  @GETTEROF_STRUCT_TM_TM_MIN@)
+
+(define-c-struct-accessors
+  struct-tm-tm_hour-set!
+  struct-tm-tm_hour-ref
+  @OFFSETOF_STRUCT_TM_TM_HOUR@
+  @SETTEROF_STRUCT_TM_TM_HOUR@
+  @GETTEROF_STRUCT_TM_TM_HOUR@)
+
+(define-c-struct-accessors
+  struct-tm-tm_mday-set!
+  struct-tm-tm_mday-ref
+  @OFFSETOF_STRUCT_TM_TM_MDAY@
+  @SETTEROF_STRUCT_TM_TM_MDAY@
+  @GETTEROF_STRUCT_TM_TM_MDAY@)
+
+(define-c-struct-accessors
+  struct-tm-tm_mon-set!
+  struct-tm-tm_mon-ref
+  @OFFSETOF_STRUCT_TM_TM_MON@
+  @SETTEROF_STRUCT_TM_TM_MON@
+  @GETTEROF_STRUCT_TM_TM_MON@)
+
+(define-c-struct-accessors
+  struct-tm-tm_year-set!
+  struct-tm-tm_year-ref
+  @OFFSETOF_STRUCT_TM_TM_YEAR@
+  @SETTEROF_STRUCT_TM_TM_YEAR@
+  @GETTEROF_STRUCT_TM_TM_YEAR@)
+
+(define-c-struct-accessors
+  struct-tm-tm_wday-set!
+  struct-tm-tm_wday-ref
+  @OFFSETOF_STRUCT_TM_TM_WDAY@
+  @SETTEROF_STRUCT_TM_TM_WDAY@
+  @GETTEROF_STRUCT_TM_TM_WDAY@)
+
+(define-c-struct-accessors
+  struct-tm-tm_yday-set!
+  struct-tm-tm_yday-ref
+  @OFFSETOF_STRUCT_TM_TM_YDAY@
+  @SETTEROF_STRUCT_TM_TM_YDAY@
+  @GETTEROF_STRUCT_TM_TM_YDAY@)
+
+(define-c-struct-accessors
+  struct-tm-tm_isdst-set!
+  struct-tm-tm_isdst-ref
+  @OFFSETOF_STRUCT_TM_TM_ISDST@
+  @SETTEROF_STRUCT_TM_TM_ISDST@
+  @GETTEROF_STRUCT_TM_TM_ISDST@)
+
+(define-c-struct-accessors
+  struct-tm-tm_gmtoff-set!
+  struct-tm-tm_gmtoff-ref
+  @OFFSETOF_STRUCT_TM_TM_GMTOFF@
+  @SETTEROF_STRUCT_TM_TM_GMTOFF@
+  @GETTEROF_STRUCT_TM_TM_GMTOFF@)
+
+(define-c-struct-accessors
+  struct-tm-tm_zone-set!
+  struct-tm-tm_zone-ref
+  @OFFSETOF_STRUCT_TM_TM_ZONE@
+  @SETTEROF_STRUCT_TM_TM_ZONE@
+  @GETTEROF_STRUCT_TM_TM_ZONE@)
+
+(define sizeof-struct-ntptimeval	@SIZEOF_STRUCT_NTPTIMEVAL@)
+(define alignof-struct-ntptimeval	@ALIGNOF_STRUCT_NTPTIMEVAL@)
+(define strideof-struct-ntptimeval	@STRIDEOF_STRUCT_NTPTIMEVAL@)
+
+(define-c-struct-accessors
+  struct-ntptimeval-time-set!
+  struct-ntptimeval-time-ref
+  @OFFSETOF_STRUCT_NTPTIMEVAL_TIME@
+  #f
+  @GETTEROF_STRUCT_NTPTIMEVAL_TIME@)
+
+(define-c-struct-accessors
+  struct-ntptimeval-maxerror-set!
+  struct-ntptimeval-maxerror-ref
+  @OFFSETOF_STRUCT_NTPTIMEVAL_MAXERROR@
+  @SETTEROF_STRUCT_NTPTIMEVAL_MAXERROR@
+  @GETTEROF_STRUCT_NTPTIMEVAL_MAXERROR@)
+
+(define-c-struct-accessors
+  struct-ntptimeval-esterror-set!
+  struct-ntptimeval-esterror-ref
+  @OFFSETOF_STRUCT_NTPTIMEVAL_ESTERROR@
+  @SETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@
+  @GETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@)
 
 
 

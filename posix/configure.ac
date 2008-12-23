@@ -2,7 +2,7 @@ dnl
 dnl Part of: Nausicaa/POSIX
 dnl Contents: configuration file template
 dnl Date: Fri Dec  5, 2008
-dnl Time-stamp: <2008-12-22 15:55:09 marco>
+dnl Time-stamp: <2008-12-23 08:19:23 marco>
 dnl
 dnl Abstract
 dnl
@@ -66,7 +66,7 @@ AC_DEFUN([NAU_POSIX_INSPECT_FIELD_TYPE],
   [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_POSIX_INCLUDES])])
 
 AC_DEFUN([NAU_POSIX_INSPECT_STRUCT_TYPE],
-   [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[NAU_POSIX_INCLUDES])])
+   [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[NAU_POSIX_INCLUDES])])
 
 
 dnl page

@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: test for streams
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-22 17:51:33 marco>
+;;;Time-stamp: <2008-12-23 08:30:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -34,6 +34,8 @@
   (uriel getenv)
   (uriel test)
   (only (string-lib) string-join)
+  (only (posix sizeof)
+	SEEK_SET SEEK_CUR SEEK_END)
   (glibc streams)
   (glibc streams-extended)
   (glibc streams-unlocked))
@@ -87,7 +89,7 @@ Ses ailes de geant l'empechent de marcher.
 		 (p	(string->cstring/c the-string))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (begin0
 		(list (getline S) (getline S)
 		      (getline S) (getline S))
@@ -104,7 +106,7 @@ Ses ailes de geant l'empechent de marcher.
 		 (p	(string->cstring/c the-string-newline))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (begin0
 		(list (getline S) (getline S)
 		      (getline S) (getline S))
@@ -132,7 +134,7 @@ Ses ailes de geant l'empechent de marcher.
 
 	    (fwrite (string->cstring/c the-string) 1
 		    (string-length the-string) S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
 		  (platform-getline *pointer *count S)
@@ -167,7 +169,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fwrite (string->cstring/c the-string-newline) 1
 		    (string-length the-string-newline)
 		    S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
 		  (platform-getline *pointer *count S)
@@ -201,7 +203,7 @@ Ses ailes de geant l'empechent de marcher.
 		 (p	(string->cstring/c the-string))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (begin0
 		(list (getdelim S #\newline) (getdelim S #\newline)
 		      (getdelim S #\newline) (getdelim S #\newline))
@@ -218,7 +220,7 @@ Ses ailes de geant l'empechent de marcher.
 		 (p	(string->cstring/c the-string-newline))
 		 (len	(strlen p)))
 	    (fwrite p 1 len S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (begin0
 		(list (getdelim S #\newline) (getdelim S #\newline)
 		      (getdelim S #\newline) (getdelim S #\newline))
@@ -242,7 +244,7 @@ Ses ailes de geant l'empechent de marcher.
 
 	    (fwrite (string->cstring/c the-string) 1
 		    (string-length the-string) S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
 		  (platform-getdelim *pointer *count (char->integer #\newline) S)
@@ -277,7 +279,7 @@ Ses ailes de geant l'empechent de marcher.
 
 	    (fwrite (string->cstring/c the-string-newline) 1
 		    (string-length the-string-newline) S)
-	    (fseek S 0 valueof-seek-set)
+	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
 		  (platform-getdelim *pointer *count (char->integer #\newline) S)

@@ -42,7 +42,7 @@ dnl 4 CHECKING-DESCRIPTION
 dnl 5 OPTION-DESCRIPTION
 AC_DEFUN([NAUSICAA_ENABLE_OPTION],[AC_MSG_CHECKING([$4])
 AC_ARG_ENABLE([$2],
-   AC_HELP_STRING([--enable-$2],[$5 (default: $3)]),
+   AC_HELP_STRING(--enable-$2,[$5 (default: $3)]),
    [if test "$enableval" = yes ; then $1=yes ; else $1=no ; fi],
    [$1=$3])
 AC_MSG_RESULT([$[]$1])
@@ -462,7 +462,7 @@ AC_DEFUN([NAUSICAA_ALIGNOF_TEST],
      [NAUSICAA_DEFAULT_VALUE([alignof_$1],[$3])
       AC_CACHE_CHECK([the alignment of '$2'],
         [nausicaa_cv_alignof_$1],
-        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$5])],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$4])],
            [#ifndef offsetof
 # define offsetof(type, member) ((char *) &((type *) 0)->member - (char *) 0)
 #endif
@@ -485,7 +485,7 @@ AC_DEFUN([NAUSICAA_STRIDEOF_TEST],
      [NAUSICAA_DEFAULT_VALUE([strideof_$1],[$3])
       AC_CACHE_CHECK([the stride of '$2'],
         [nausicaa_cv_strideof_$1],
-        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$5])],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$4])],
            [$2 x[[3]];
             FILE *f = fopen ("conftest.val", "w");
             fprintf(f, "%ld", (long int)((unsigned char *)&(x[[2]])-(unsigned char *)&(x[[1]])));
@@ -742,13 +742,12 @@ dnl 2 typedef
 dnl 3 type-guess
 dnl 4 default-value
 dnl 5 optional-headers
-AC_DEFUN([NAUSICAA_INSPECT_TYPE],[
-NAUSICAA_SIZEOF_TEST([$1],[$2],[$4],[$5])
-NAUSICAA_ALIGNOF_TEST([$1],[$2],[$4],[$5])
-NAUSICAA_STRIDEOF_TEST([$1],[$2],[$4],[$5])
-NAUSICAA_BASE_TYPE_TEST([$1],[$2],[$3])
-NAUSICAA_ACCESSORS_TEST([$1],[$2])
-])
+AC_DEFUN([NAUSICAA_INSPECT_TYPE],
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[$4],[$5])
+   NAUSICAA_ALIGNOF_TEST([$1],[$2],[$4],[$5])
+   NAUSICAA_STRIDEOF_TEST([$1],[$2],[$4],[$5])
+   NAUSICAA_BASE_TYPE_TEST([$1],[$2],[$3])
+   NAUSICAA_ACCESSORS_TEST([$1],[$2])])
 
 dnl 1 variable-suffix
 dnl 2 struct-typedef
@@ -756,21 +755,30 @@ dnl 3 field-name
 dnl 4 type-guess
 dnl 5 default-value
 dnl 6 optional-headers
-AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE],[
-NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$6])
-NAUSICAA_SIZEOF_FIELD_TEST([$1],[$2],[$3],[$5],[$6])
-NAUSICAA_BASE_TYPE_TEST([$1],[$2.$3],[$4])
-NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])
-])
+AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE],
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$6])
+   NAUSICAA_SIZEOF_FIELD_TEST([$1],[$2],[$3],[$5],[$6])
+   NAUSICAA_BASE_TYPE_TEST([$1],[$2.$3],[$4])
+   NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])])
 
 dnl 1 variable-suffix
 dnl 2 typedef
-dnl 3 optional-headers
-AC_DEFUN([NAUSICAA_INSPECT_STRUCT_TYPE],[
-NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[$5])
-NAUSICAA_ALIGNOF_TEST([$1],[$2],[#f],[$5])
-NAUSICAA_STRIDEOF_TEST([$1],[$2],[#f],[$5])
-])
+dnl 3 default-value
+dnl 4 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_STRUCT_TYPE],
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[$3],[$4])
+   NAUSICAA_ALIGNOF_TEST([$1],[$2],[$3],[$4])
+   NAUSICAA_STRIDEOF_TEST([$1],[$2],[$3],[$4])])
+
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 field-name
+dnl 4 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_FIELD_STRUCT_TYPE],
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$4])
+   TYPEOF_$1=pointer
+   AC_SUBST([TYPEOF_$1])
+   NAUSICAA_GETTER_TEST([$1],[$2.$3])])
 
 dnl page
 dnl --------------------------------------------------------------------

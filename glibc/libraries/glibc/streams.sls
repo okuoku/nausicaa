@@ -54,8 +54,7 @@
     fdopen primitive-fdopen primitive-fdopen-function platform-fdopen
     fileno primitive-fileno primitive-fileno-function platform-fileno
 
-    valueof-eof		valueof-seek-set
-    valueof-seek-cur	valueof-seek-end)
+    EOF)
   (import (r6rs)
     (uriel lang)
     (uriel foreign)
@@ -210,14 +209,14 @@
       (with-compensations
 	(let ((cstring (string->cstring/c string)))
 	  (platform-fwrite cstring stream)))
-    (when (= valueof-eof result)
+    (when (= EOF result)
       (raise-errno-error 'primitive-fputs errno (list string stream)))
     result))
 
 (define (primitive-fflush stream)
   (receive (result errno)
       (platform-fflush stream)
-    (when (= valueof-eof result)
+    (when (= EOF result)
       (raise-errno-error 'primitive-fputc errno stream))
     result))
 
@@ -298,7 +297,7 @@
 (define (primitive-fgetc char stream)
   (receive (result errno)
       (platform-fgetc stream)
-    (when (= valueof-eof result)
+    (when (= EOF result)
       (raise-errno-error 'primitive-fgetc errno stream))
     (integer->char result)))
 

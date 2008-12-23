@@ -1690,7 +1690,6 @@ long-double             pointer
 @subsection Full inspection of data types
 
 
-
 @deffn {Autoconf Macro} NAUSICAA_INSPECT_TYPE (@var{suffix}, @var{typedef}, @var{type-guess}, @var{default}, @var{headers})
 Perform a full inspection for a C language type definition.  This macro
 is a wrapper for other more basic macros, and it expands to:
@@ -1701,6 +1700,18 @@ NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
 NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
 NAUSICAA_BASE_TYPE_TEST(@var{suffix},@var{typedef},@var{type-guess})
 NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{typedef})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_STRUCT_TYPE (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Perform a full inspection for a C language structure type definition.
+This macro is a wrapper for other more basic macros, and it expands to:
+
+@example
+NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
 @end example
 @end deffn
 

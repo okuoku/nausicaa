@@ -121,14 +121,14 @@
       (with-compensations
 	(let ((cstring (string->cstring/c string)))
 	  (platform-fwrite_unlocked cstring stream)))
-    (when (= valueof-eof result)
+    (when (= EOF result)
       (raise-errno-error 'primitive-fputs_unlocked errno (list string stream)))
     result))
 
 (define (primitive-fflush_unlocked stream)
   (receive (result errno)
       (platform-fflush_unlocked stream)
-    (when (= valueof-eof result)
+    (when (= EOF result)
       (raise-errno-error 'primitive-fputc_unlocked errno stream))
     result))
 
@@ -209,7 +209,7 @@
 (define (primitive-fgetc_unlocked char stream)
   (receive (result errno)
       (platform-fgetc_unlocked stream)
-    (when (= valueof-eof result)
+    (when (= EOF result)
       (raise-errno-error 'primitive-fgetc_unlocked errno stream))
     (integer->char result)))
 

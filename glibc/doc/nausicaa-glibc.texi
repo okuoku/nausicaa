@@ -545,8 +545,14 @@ purposes.
 @chapter Date and time
 
 
+Unless otherwise specified the bindings described in this chapter are
+exported by the @library{glibc time} library.
+
+
 @menu
 * time calendar::               Simple calendar time.
+* time hires::                  High resolution calendar.
+* time broken::                 Broken--down time.
 @end menu
 
 
@@ -555,8 +561,186 @@ purposes.
 @section Simple calendar time
 
 
+@deffn Function time
+@deffnx Function primitive-time
+@deffnx Parameter primitive-time-function
+@deffnx Function platform-time @var{pointer}
+Return the current calendar time as an integer value.  It is the
+``epoch'', the number of seconds elapsed since 00:00:00 on January 1,
+1970, Coordinated Universal Time.
+@end deffn
 
 
+@deffn Function stime @var{calendar-time}
+@deffnx Function primitive-stime @var{calendar-time}
+@deffnx Parameter primitive-stime-function
+@deffnx Function platform-stime @var{pointer}
+Set the system clock using a calendar time specification.  Superuser
+privileges are needed to successfully call this function.
+@end deffn
+
+
+@c page
+@node time hires
+@section High resolution calendar
+
+
+The bindings required to use a @code{struct timeval} are exported by the
+@library{posix sizeof} library.
+
+
+@defvar sizeof-struct-timezone
+@defvarx alignof-struct-timezone
+@defvarx strideof-struct-timezone
+Size, alignment and array stride for the @code{struct timezone} type.
+These bindings are exported by @library{glibc sizeof}.
+@end defvar
+
+
+@deffn Syntax struct-timezone-tz_minuteswest-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timezone-tz_minuteswest-ref @var{pointer}
+@deffnx Syntax struct-timezone-tz_dsttime-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timezone-tz_dsttime-ref @var{pointer}
+Peekers and pokers for the fields of a @code{struct timezone}.  These
+bindings are exported by @library{glibc sizeof}.
+@end deffn
+
+
+@deffn Function gettimeofday @var{timeval} @var{timezone}
+@deffnx Function primitive-gettimeofday @var{timeval} @var{timezone}
+@deffnx Parameter primitive-gettimeofday-function
+@deffnx Function platform-gettimeofday @var{timeval} @var{timezone}
+Fill the @code{struct timeval} and @code{struct timezone} referenced by
+the @var{timeval} and @var{timezone} pointers with the current calendar
+time.
+@end deffn
+
+
+@deffn Function settimeofday @var{timeval} @var{timezone}
+@deffnx Function primitive-settimeofday @var{timeval} @var{timezone}
+@deffnx Parameter primitive-settimeofday-function
+@deffnx Function platform-settimeofday @var{timeval} @var{timezone}
+Set the system clock to the calendar time specified by the @code{struct
+timeval} and @code{struct timezone} referenced by the @var{timeval} and
+@var{timezone} pointers.
+
+Super user privileges are needed to successfully call this function.
+@end deffn
+
+
+@deffn Function adjtime @var{timeval-delta} @var{timeval-old-delta}
+@deffnx Function primitive-adjtime @var{timeval-delta} @var{timeval-old-delta}
+@deffnx Parameter primitive-adjtime-function
+@deffnx Function platform-adjtime @var{timeval-delta} @var{timeval-old-delta}
+Speed up or slow down the system clock in order to make a gradual
+adjustment.
+
+Super user privileges are needed to successfully call this function.
+@end deffn
+
+
+@c page
+@node time broken
+@section Broken--down time
+
+
+The broken--down time @api{} described here is not in the
+Nausicaa/@posix{} project because the @code{time_t} value is in general
+not fully specified (according to the @gnu{} C Library documentation),
+but it is in the @gnu{} C Library.
+
+
+@defvar sizeof-struct-tm
+@defvarx alignof-struct-tm
+@defvarx strideof-struct-tm
+Size, alignment and array stride for the @code{struct tm} type.
+
+These bindings are exported by the @library{glibc sizeof} library.
+@end defvar
+
+
+@deffn Syntax struct-tm-tm_sec-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_sec-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_min-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_min-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_hour-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_hour-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_mday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_mday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_mon-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_mon-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_year-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_year-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_wday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_wday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_yday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_yday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_isdst-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_isdst-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_gmtoff-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_gmtoff-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_zone-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_zone-ref @var{pointer}
+Peekers and pokers for the @code{struct tm} type.
+
+These bindings are exported by the @library{glibc sizeof} library.
+@end deffn
+
+
+@deffn Function localtime @var{time} @var{tm}
+@deffnx Function primitive-localtime @var{time} @var{tm}
+@deffnx Parameter primitive-localtime-function
+@deffnx Function platform-localtime @var{time} @var{tm}
+Despite the name, this is a wrapper for the @cfunc{localtime_r}
+function.  Fill the @code{struct tm} referenced by the @var{tm} pointer
+with broken down values from the calendar @var{time} (which can be the
+return value of @func{time}).
+
+For example, to get the current year:
+
+@example
+(define (gimme-year)
+  (with-compensations
+    (let ((*tm (malloc-block/c sizeof-struct-tm)))
+      (localtime (time) *tm)
+      (+ 1900 (struct-tm-tm_year-ref *tm)))))
+@end example
+@end deffn
+
+
+@deffn Function gmtime @var{time} @var{tm}
+@deffnx Function primitive-gmtime @var{time} @var{tm}
+@deffnx Parameter primitive-gmtime-function
+@deffnx Function platform-gmtime @var{time} @var{tm}
+Like @func{localtime} but converts the given time as Coordinated
+Universal Time (@acronym{UTC}).
+@end deffn
+
+
+@deffn Function timelocal @var{tm}
+@deffnx Function primitive-timelocal @var{tm}
+@deffnx Parameter primitive-timelocal-function
+@deffnx Function platform-timelocal @var{tm}
+Return a calendar time value from the @code{struct tm} referenced by the
+@code{tm} pointer.  It is the inverse of @func{localtime}.
+@end deffn
+
+
+@deffn Function mktime @var{tm}
+@deffnx Function primitive-mktime @var{tm}
+@deffnx Parameter primitive-mktime-function
+@deffnx Function platform-mktime @var{tm}
+Aliases for @func{timelocal}.
+@end deffn
+
+
+@deffn Function timegm @var{tm}
+@deffnx Function primitive-timegm @var{tm}
+@deffnx Parameter primitive-timegm-function
+@deffnx Function platform-timegm @var{tm}
+Return a calendar time value from the @code{struct tm} referenced by the
+@code{tm} pointer.  It is the inverse of @func{gmtime}.
+@end deffn
 
 
 @c page
@@ -595,23 +779,13 @@ other libraries have extended functions.
 
 
 The following bindings are exported by @library{glibc streams} and
-@library{glibc sizeof}.
+@library{glibc sizeof}.  Notice that the seek constants
+(@code{SEEK_SET}, @code{SEEK_CUR}, @code{SEEK_END}) are exported by
+@library{posix sieof}.
 
 
-@defvar valueof-eof
+@defvar EOF
 The value of @code{EOF}.  @glibcref{EOF and Errors,EOF}
-@end defvar
-
-
-@defvar valueof-seek-set
-@defvarx valueof-seek-cur
-@defvarx valueof-seek-end
-The values of @code{SEEK_SET}, @code{SEEK_CUR} and @code{SEEK_END}.
-
-@glibcref{File Positioning,SEEK_SET}
-
-Nausicaa/@posix{} also exports bindings for these constants.
-@posixref{fd constants seek,File positions}
 @end defvar
 
 
@@ -781,6 +955,9 @@ value is computed with @func{char->integer}.
 @node streams seeking
 @section Stream positioning
 
+
+Notice that the seek constants @code{SEEK_SET}, @code{SEEK_CUR} and
+@code{SEEK_END} are exported by the @library{posix sizeof} library.
 
 @glibcref{File Positioning,File Positioning}
 
