@@ -1,0 +1,197 @@
+;;;
+;;;Part of: Nausicaa/Uriparser
+;;;Contents: Uriparser definitions
+;;;Date: Tue Dec 23, 2008
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+;;;; setup
+
+(library (uriparser sizeof)
+  (export
+
+    ;; typedefs
+    UriBool UriBreakConversion
+
+    ;; error handling
+    symbol->uriparser-error		uriparser-error->symbol
+    symbol->uriparser-error/or-error	uriparser-error->symbol/or-error
+
+    ;; constants
+    URI_SUCCESS
+    URI_ERROR_ADDBASE_REL_BASE		URI_ERROR_MALLOC
+    URI_ERROR_NOT_IMPLEMENTED		URI_ERROR_NULL
+    URI_ERROR_OUTPUT_TOO_LARGE		URI_ERROR_RANGE_INVALID
+    URI_ERROR_REMOVEBASE_REL_BASE	URI_ERROR_REMOVEBASE_REL_SOURCE
+    URI_ERROR_SYNTAX			URI_ERROR_TOSTRING_TOO_LONG
+
+    URI_BR_TO_LF			URI_BR_TO_CRLF
+    URI_BR_TO_CR			URI_BR_TO_UNIX
+    URI_BR_TO_WINDOWS			URI_BR_TO_MAC
+    URI_BR_DONT_TOUCH
+
+    URI_NORMALIZED			URI_NORMALIZE_SCHEME
+    URI_NORMALIZE_USER_INFO		URI_NORMALIZE_HOST
+    URI_NORMALIZE_PATH			URI_NORMALIZE_QUERY
+    URI_NORMALIZE_FRAGMENT
+
+    ;; structures
+    sizeof-UriTextRangeA alignof-UriTextRangeA strideof-UriTextRangeA
+    sizeof-UriPathSegmentA alignof-UriPathSegmentA strideof-UriPathSegmentA
+    sizeof-UriHostDataA alignof-UriHostDataA strideof-UriHostDataA
+    sizeof-UriUriA alignof-UriUriA strideof-UriUriA
+    sizeof-UriParserStateA alignof-UriParserStateA strideof-UriParserStateA
+    sizeof-UriQueryListA alignof-UriQueryListA strideof-UriQueryListA
+
+    ;; struct accessors
+    UriParserStateA-uri-set!		UriParserStateA-uri-ref
+
+    )
+  (import (r6rs)
+    (uriel foreign)
+    (list-lib))
+
+
+
+;;;; typedefs
+
+(define UriBool			@TYPEOF_URI_BOOL@)
+(define UriBreakConversion	@TYPEOF_URI_BREAK_CONVERSION@)
+
+
+
+;;;; constants
+
+(define URI_SUCCESS				@VALUEOF_URI_SUCCESS@)
+(define URI_ERROR_SYNTAX			@VALUEOF_URI_ERROR_SYNTAX@)
+(define URI_ERROR_NULL				@VALUEOF_URI_ERROR_NULL@)
+(define URI_ERROR_MALLOC			@VALUEOF_URI_ERROR_MALLOC@)
+(define URI_ERROR_OUTPUT_TOO_LARGE		@VALUEOF_URI_ERROR_OUTPUT_TOO_LARGE@)
+(define URI_ERROR_NOT_IMPLEMENTED		@VALUEOF_URI_ERROR_NOT_IMPLEMENTED@)
+(define URI_ERROR_RANGE_INVALID			@VALUEOF_URI_ERROR_RANGE_INVALID@)
+(define URI_ERROR_TOSTRING_TOO_LONG		@VALUEOF_URI_ERROR_TOSTRING_TOO_LONG@)
+(define URI_ERROR_ADDBASE_REL_BASE		@VALUEOF_URI_ERROR_ADDBASE_REL_BASE@)
+(define URI_ERROR_REMOVEBASE_REL_BASE		@VALUEOF_URI_ERROR_REMOVEBASE_REL_BASE@)
+(define URI_ERROR_REMOVEBASE_REL_SOURCE		@VALUEOF_URI_ERROR_REMOVEBASE_REL_SOURCE@)
+
+(define URI_BR_TO_LF				@VALUEOF_URI_BR_TO_LF@)
+(define URI_BR_TO_CRLF				@VALUEOF_URI_BR_TO_CRLF@)
+(define URI_BR_TO_CR				@VALUEOF_URI_BR_TO_CR@)
+(define URI_BR_TO_UNIX				@VALUEOF_URI_BR_TO_UNIX@)
+(define URI_BR_TO_WINDOWS			@VALUEOF_URI_BR_TO_WINDOWS@)
+(define URI_BR_TO_MAC				@VALUEOF_URI_BR_TO_MAC@)
+(define URI_BR_DONT_TOUCH			@VALUEOF_URI_BR_DONT_TOUCH@)
+
+(define URI_NORMALIZED				@VALUEOF_URI_NORMALIZED@)
+(define URI_NORMALIZE_SCHEME			@VALUEOF_URI_NORMALIZE_SCHEME@)
+(define URI_NORMALIZE_USER_INFO			@VALUEOF_URI_NORMALIZE_USER_INFO@)
+(define URI_NORMALIZE_HOST			@VALUEOF_URI_NORMALIZE_HOST@)
+(define URI_NORMALIZE_PATH			@VALUEOF_URI_NORMALIZE_PATH@)
+(define URI_NORMALIZE_QUERY			@VALUEOF_URI_NORMALIZE_QUERY@)
+(define URI_NORMALIZE_FRAGMENT			@VALUEOF_URI_NORMALIZE_FRAGMENT@)
+
+(define error-alist
+  '((URI_SUCCESS				. @VALUEOF_URI_SUCCESS@)
+    (URI_ERROR_ADDBASE_REL_BASE			. @VALUEOF_URI_ERROR_ADDBASE_REL_BASE@)
+    (URI_ERROR_MALLOC				. @VALUEOF_URI_ERROR_MALLOC@)
+    (URI_ERROR_NOT_IMPLEMENTED			. @VALUEOF_URI_ERROR_NOT_IMPLEMENTED@)
+    (URI_ERROR_NULL				. @VALUEOF_URI_ERROR_NULL@)
+    (URI_ERROR_OUTPUT_TOO_LARGE			. @VALUEOF_URI_ERROR_OUTPUT_TOO_LARGE@)
+    (URI_ERROR_RANGE_INVALID			. @VALUEOF_URI_ERROR_RANGE_INVALID@)
+    (URI_ERROR_REMOVEBASE_REL_BASE		. @VALUEOF_URI_ERROR_REMOVEBASE_REL_BASE@)
+    (URI_ERROR_REMOVEBASE_REL_SOURCE		. @VALUEOF_URI_ERROR_REMOVEBASE_REL_SOURCE@)
+    (URI_ERROR_SYNTAX				. @VALUEOF_URI_ERROR_SYNTAX@)
+    (URI_ERROR_TOSTRING_TOO_LONG		. @VALUEOF_URI_ERROR_TOSTRING_TOO_LONG@)))
+
+(define error-vector
+  (let ((ev (make-vector (+ 1 (fold (lambda (pair max)
+				      (if (< max (cdr pair))
+					  (cdr pair)
+					max))
+				    0 error-alist))
+			 #f)))
+    (for-each
+	(lambda (pair)
+	  (vector-set! ev (cdr pair) (car pair)))
+      error-alist)
+    ev))
+
+(define (symbol->uriparser-error symbol)
+  (assq symbol error-alist))
+
+(define (symbol->uriparser-error/or-error error-symbol)
+  (let ((error-code (symbol->uriparser-error error-symbol)))
+    (or error-code
+	(assertion-violation 'symbol->uriparser-error/or-error
+	  "expected symbolic error value" error-symbol))))
+
+(define (uriparser-error->symbol error-code)
+  (and (< error-code (vector-length error-vector))
+       (vector-ref error-vector error-code)))
+
+(define (uriparser-error->symbol/or-error error-code)
+  (let ((error-symbol (uriparser-error->symbol error-code)))
+    (or error-symbol
+	(assertion-violation 'uriparser-error->symbol/or-error
+	  "expected numeric error value" error-code))))
+
+
+;;;; access to structures
+
+(define sizeof-UriTextRangeA		@SIZEOF_URI_TEXT_RANGE_A@)
+(define alignof-UriTextRangeA		@ALIGNOF_URI_TEXT_RANGE_A@)
+(define strideof-UriTextRangeA		@STRIDEOF_URI_TEXT_RANGE_A@)
+
+(define sizeof-UriPathSegmentA		@SIZEOF_URI_PATH_SEGMENT_A@)
+(define alignof-UriPathSegmentA		@ALIGNOF_URI_PATH_SEGMENT_A@)
+(define strideof-UriPathSegmentA	@STRIDEOF_URI_PATH_SEGMENT_A@)
+
+(define sizeof-UriHostDataA		@SIZEOF_URI_HOST_DATA_A@)
+(define alignof-UriHostDataA		@ALIGNOF_URI_HOST_DATA_A@)
+(define strideof-UriHostDataA		@STRIDEOF_URI_HOST_DATA_A@)
+
+(define sizeof-UriUriA			@SIZEOF_URI_URI_A@)
+(define alignof-UriUriA			@ALIGNOF_URI_URI_A@)
+(define strideof-UriUriA		@STRIDEOF_URI_URI_A@)
+
+(define sizeof-UriParserStateA		@SIZEOF_URI_PARSER_STATE_A@)
+(define alignof-UriParserStateA		@ALIGNOF_URI_PARSER_STATE_A@)
+(define strideof-UriParserStateA	@STRIDEOF_URI_PARSER_STATE_A@)
+
+(define sizeof-UriQueryListA		@SIZEOF_URI_QUERY_LIST_A@)
+(define alignof-UriQueryListA		@ALIGNOF_URI_QUERY_LIST_A@)
+(define strideof-UriQueryListA		@STRIDEOF_URI_QUERY_LIST_A@)
+
+(define-c-struct-accessors
+  UriParserStateA-uri-set!
+  UriParserStateA-uri-ref
+  @OFFSETOF_URI_PARSER_STATE_A_URI@
+  @SETTEROF_URI_PARSER_STATE_A_URI@
+  @GETTEROF_URI_PARSER_STATE_A_URI@)
+
+
+
+;;;; done
+
+)
+
+;;; end of file

@@ -1,6 +1,6 @@
 
-	      Template library for R6RS Scheme
-	      ================================
+		     Nausicaa/Uriparser
+		     ==================
 
 
 Topics
@@ -11,12 +11,18 @@ Topics
   4. Install
   A. Credits
   B. Bug reports
+  C. Resources
 
 
 1. Introduction
 ---------------
 
-This is a Scheme library.
+This is a Scheme  library for R6RS implementing an interface
+to  Uriparser:  a  C   language  library  for  parsing  URIs
+compliant with RFC 3986.
+
+  The last time the author bothered to update this paragraph,
+he had tested version 0.7.4 of Uriparser.
 
 
 2. License
@@ -49,7 +55,7 @@ and Nausicaa/Uriel libraries first.
 
   Basically we should do:
 
-   $ cd template
+   $ cd uriparser
    $ mkdir "=build"
    $ cd "=build"
    $ ../configure
@@ -64,7 +70,7 @@ and Nausicaa/Uriel libraries first.
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/nausicaa-template
+    $ make install DESTDIR=/tmp/marco/nausicaa-uriparser
 
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
@@ -74,7 +80,11 @@ build binary distribution archives.
 A. Credits
 ----------
 
-The stuff was written by Marco Maggi.
+Nausicaa/Uriparser was written by Marco Maggi.
+
+  Uriparser is Copyright (C) 2007, Weijia Song and Sebastian
+Pipping.  All  rights reserved.   It is distributed  under a
+BSD like license.
 
 
 B. Bug reports
@@ -82,6 +92,14 @@ B. Bug reports
 
 Bug    reports    are     appreciated,    send    them    to
 <mrc.mgg@gmail.com>.
+
+
+C. Resources
+------------
+
+Uriparser can be downloaded from:
+
+	    <http://uriparser.sourceforge.net/>
 
 
 

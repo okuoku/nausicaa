@@ -1,0 +1,11 @@
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
+Release: @package_BUILD_VERSION@
+Summary: Uriparser for R6RS Scheme
+Group: Development/Languages
+License: LGPL
+
+%description
+Uriparser for R6RS Scheme.
+
+%files
