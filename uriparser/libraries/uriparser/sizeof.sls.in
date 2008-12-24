@@ -35,23 +35,35 @@
     ;; error handling
     symbol->uriparser-error		uriparser-error->symbol
     symbol->uriparser-error/or-error	uriparser-error->symbol/or-error
+    uriparser-strerror
 
-    ;; constants
+    ;; constants: error codes
     URI_SUCCESS
-    URI_ERROR_ADDBASE_REL_BASE		URI_ERROR_MALLOC
-    URI_ERROR_NOT_IMPLEMENTED		URI_ERROR_NULL
-    URI_ERROR_OUTPUT_TOO_LARGE		URI_ERROR_RANGE_INVALID
-    URI_ERROR_REMOVEBASE_REL_BASE	URI_ERROR_REMOVEBASE_REL_SOURCE
-    URI_ERROR_SYNTAX			URI_ERROR_TOSTRING_TOO_LONG
+    URI_ERROR_ADDBASE_REL_BASE
+    URI_ERROR_MALLOC
+    URI_ERROR_NOT_IMPLEMENTED
+    URI_ERROR_NULL
+    URI_ERROR_OUTPUT_TOO_LARGE
+    URI_ERROR_RANGE_INVALID
+    URI_ERROR_REMOVEBASE_REL_BASE
+    URI_ERROR_REMOVEBASE_REL_SOURCE
+    URI_ERROR_SYNTAX
+    URI_ERROR_TOSTRING_TOO_LONG
 
-    URI_BR_TO_LF			URI_BR_TO_CRLF
-    URI_BR_TO_CR			URI_BR_TO_UNIX
-    URI_BR_TO_WINDOWS			URI_BR_TO_MAC
+    URI_BR_TO_LF
+    URI_BR_TO_CRLF
+    URI_BR_TO_CR
+    URI_BR_TO_UNIX
+    URI_BR_TO_WINDOWS
+    URI_BR_TO_MAC
     URI_BR_DONT_TOUCH
 
-    URI_NORMALIZED			URI_NORMALIZE_SCHEME
-    URI_NORMALIZE_USER_INFO		URI_NORMALIZE_HOST
-    URI_NORMALIZE_PATH			URI_NORMALIZE_QUERY
+    URI_NORMALIZED
+    URI_NORMALIZE_SCHEME
+    URI_NORMALIZE_USER_INFO
+    URI_NORMALIZE_HOST
+    URI_NORMALIZE_PATH
+    URI_NORMALIZE_QUERY
     URI_NORMALIZE_FRAGMENT
 
     ;; structures
@@ -67,6 +79,7 @@
 
     )
   (import (r6rs)
+    (uriel lang)
     (uriel foreign)
     (list-lib))
 
@@ -74,8 +87,8 @@
 
 ;;;; typedefs
 
-(define UriBool			@TYPEOF_URI_BOOL@)
-(define UriBreakConversion	@TYPEOF_URI_BREAK_CONVERSION@)
+(define UriBool			(quote @TYPEOF_URI_BOOL@))
+(define UriBreakConversion	(quote @TYPEOF_URI_BREAK_CONVERSION@))
 
 
 
@@ -122,6 +135,22 @@
     (URI_ERROR_SYNTAX				. @VALUEOF_URI_ERROR_SYNTAX@)
     (URI_ERROR_TOSTRING_TOO_LONG		. @VALUEOF_URI_ERROR_TOSTRING_TOO_LONG@)))
 
+(define error-messages
+  '((URI_SUCCESS				. "success")
+    (URI_ERROR_ADDBASE_REL_BASE			. "given base is not absolute")
+    (URI_ERROR_MALLOC				. "requested memory could not be allocated")
+    (URI_ERROR_NOT_IMPLEMENTED			. "the called function is not implemented yet")
+    (URI_ERROR_NULL				. "one of the params passed was NULL although it must not be")
+    (URI_ERROR_OUTPUT_TOO_LARGE			. "some output is to large for the receiving buffer")
+    (URI_ERROR_RANGE_INVALID			. "the parameters passed contained invalid ranges")
+    (URI_ERROR_REMOVEBASE_REL_BASE		. "given base is not absolute")
+    (URI_ERROR_REMOVEBASE_REL_SOURCE		. "given base is not absolute")
+    (URI_ERROR_SYNTAX				. "parsed text violates expected format")
+    (URI_ERROR_TOSTRING_TOO_LONG		. "some output is to large for the receiving buffer")))
+
+
+;;;; error codes conversion
+
 (define error-vector
   (let ((ev (make-vector (+ 1 (fold (lambda (pair max)
 				      (if (< max (cdr pair))
@@ -135,24 +164,28 @@
       error-alist)
     ev))
 
-(define (symbol->uriparser-error symbol)
-  (assq symbol error-alist))
+(define (symbol->uriparser-error symbolic-code)
+  (let ((pair (assq symbolic-code error-alist)))
+    (if pair (cdr pair) #f)))
 
-(define (symbol->uriparser-error/or-error error-symbol)
-  (let ((error-code (symbol->uriparser-error error-symbol)))
-    (or error-code
-	(assertion-violation 'symbol->uriparser-error/or-error
-	  "expected symbolic error value" error-symbol))))
+(define (symbol->uriparser-error/or-error symbolic-code)
+  (let ((pair (assq symbolic-code error-alist)))
+    (cdr (or pair
+	     (assertion-violation 'symbol->uriparser-error/or-error
+	       "expected symbolic error value" symbolic-code)))))
 
-(define (uriparser-error->symbol error-code)
-  (and (< error-code (vector-length error-vector))
-       (vector-ref error-vector error-code)))
+(define (uriparser-error->symbol numeric-code)
+  (and (< numeric-code (vector-length error-vector))
+       (vector-ref error-vector numeric-code)))
 
-(define (uriparser-error->symbol/or-error error-code)
-  (let ((error-symbol (uriparser-error->symbol error-code)))
+(define (uriparser-error->symbol/or-error numeric-code)
+  (let ((error-symbol (uriparser-error->symbol numeric-code)))
     (or error-symbol
 	(assertion-violation 'uriparser-error->symbol/or-error
-	  "expected numeric error value" error-code))))
+	  "expected numeric error value" numeric-code))))
+
+(define (uriparser-strerror symbolic-code)
+  (cdr (assq symbolic-code error-messages)))
 
 
 ;;;; access to structures

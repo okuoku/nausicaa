@@ -106,7 +106,7 @@
   (int uriToStringA (char* pointer int pointer)))
 
 (define-c-function uriNormalizeSyntaxMaskRequiredA
-  (unsigned-int uriNormalizeSyntaxMaskRequiredA (poiner)))
+  (unsigned-int uriNormalizeSyntaxMaskRequiredA (pointer)))
 
 (define-c-function uriNormalizeSyntaxExA
   (int uriNormalizeSyntaxExA (pointer unsigned-int)))

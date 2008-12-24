@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: access to the errno variable
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-19 10:01:23 marco>
+;;;Time-stamp: <2008-12-24 09:18:29 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -392,13 +392,14 @@
     ev))
 
 (define (symbol->errno symbol)
-  (assq symbol errno-alist))
+  (let ((pair (assq symbol errno-alist)))
+    (if pair (cdr pair) #f)))
 
-(define (symbol->errno/or-error errno-symbol)
-  (let ((errno-code (symbol->errno errno-symbol)))
-    (or errno-code
-	(assertion-violation 'symbol->errno/or-error
-	  "expected symbolic errno value" errno-symbol))))
+(define (symbol->errno/or-error symbol)
+  (let ((errno-code (assq symbol errno-alist)))
+    (cdr (or errno-code
+	     (assertion-violation 'symbol->errno/or-error
+	       "expected symbolic errno value" symbol)))))
 
 (define (errno->symbol errno-code)
   (and (< errno-code (vector-length errno-vector))

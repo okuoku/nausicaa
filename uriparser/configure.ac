@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-template],[0.1d0])
+AC_INIT([nausicaa-uriparser],[0.1d0])
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE

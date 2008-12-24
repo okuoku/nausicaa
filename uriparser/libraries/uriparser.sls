@@ -38,11 +38,8 @@
     raise-uriparser-error
 
     ;; basic parsing
-    uriParseUriA platform-uriParseUriA
-    (rename (platform-uriFreeUriMembersA uriFreeUriMembersA)) platform-uriFreeUriMembersA
 
     ;; recomposition
-    uriToStringCharsRequiredA platform-uriToStringCharsRequiredA
 
     )
   (import (r6rs)
@@ -61,50 +58,43 @@
   (numeric-value uriparser-numeric-value)
   (symbolic-value uriparser-symbolic-value))
 
-(define (make-uriparser-condition* uriparser-numeric-value)
-  (make-uriparser-condition uriparser-numeric-value
-			    (uriparser-error->symbol/or-error uriparser-numeric-value)))
+(define (make-uriparser-condition* numeric-value)
+  (make-uriparser-condition numeric-value
+			    (uriparser-error->symbol/or-error numeric-value)))
 
 (define raise-uriparser-error
   (case-lambda
-   ((who uriparser)
-    (raise-uriparser-error who uriparser #f))
-   ((who uriparser irritants)
+   ((who numeric-value)
+    (raise-uriparser-error who numeric-value #f))
+   ((who numeric-value irritants)
     (raise (condition (make-who-condition who)
-		      (make-message-condition (strerror uriparser))
-		      (make-uriparser-condition* uriparser)
+		      (make-message-condition (uriparser-strerror numeric-value))
+		      (make-uriparser-condition* numeric-value)
 		      (make-irritants-condition irritants))))))
-
 
 
 ;;;; basic parsing
 
 
-(define (uriParseUriA parser uri)
-  (with-compensations
-    (let* ((cstr	(string->cstring uri))
-	   (result	(platform-uriParseUriA parser cstr)))
-      (unless (= URI_SUCCESS result)
-	(raise-uriparser-error 'uriParseUriA result uri)))))
+;; (define (uriParseUriA parser uri)
+;;   (with-compensations
+;;     (let* ((cstr	(string->cstring uri))
+;; 	   (result	(platform-uriParseUriA parser cstr)))
+;;       (unless (= URI_SUCCESS result)
+;; 	(raise-uriparser-error 'uriParseUriA result uri)))))
 
 
 ;;;; recomposition
 
-(define-c-function platform-uriToStringCharsRequiredA
-  (int uriToStringCharsRequiredA (pointer pointer)))
+;; (define (uriToStringCharsRequiredA uri)
+;;   (with-compensations
+;;     (let ((*chars-required (malloc-small/c))
+;; 	  (result (platform-uriToStringCharsRequiredA uri *chars-required)))
+;;       (if (= URI_SUCCESS result)
+;; 	  (peek-signed-int *chars-required 0)
+;; 	(raise-uriparser-error 'uriToStringCharsRequiredA result)))))
 
-(define-c-function platform-uriToStringA
-  (int uriToStringA (char* pointer int pointer)))
-
-(define (uriToStringCharsRequiredA uri)
-  (with-compensations
-    (let ((*chars-required (malloc-small/c))
-	  (result (platform-uriToStringCharsRequiredA uri *chars-required)))
-      (if (= URI_SUCCESS result)
-	  (peek-signed-int *chars-required 0)
-	(raise-uriparser-error 'uriToStringCharsRequiredA result)))))
-
-(define (uriToStringA uri))
+;; (define (uriToStringA uri))
 
 
 

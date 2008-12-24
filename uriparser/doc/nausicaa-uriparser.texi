@@ -413,6 +413,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* condition::                   Error conditions.
+* stub::                        The low level interface.
 
 Appendices
 
@@ -440,9 +442,143 @@ This is a Scheme library for @rnrs{6} implementing an interface to
 Uriparser: a C language library for parsing @uri{}s compliant with
 @acronym{RFC} 3986.
 
+The interface is organised in 3 libraries:
+
+@table @library
+@item uriparser
+The high level interface, which should be enough to access all the
+features.  It offers automatic conversion between Scheme values and C
+language level values, automatic synchronous resource allocation and
+releasing, exception throwing in case of error.
+
+@item uriparser stub
+The low level interface to the foreign functions.  This is a
+one--to--one mapping between foreign functions and Scheme functions.  It
+may be needed to speed up processing.
+
+@item uriparser sizeof
+A collection of bindings for the Uriparser constants and data type
+definitions.  Mandatory when using @library{uriparser stub}.
+@end table
 
 
-@c ------------------------------------------------------------
+@c page
+@node condition
+@chapter Error conditions
+
+
+All the errors raised by the Uriparser foreign functions are converted
+by the high level interface into @code{&uriparser} conditions.  Bindings
+to build and handle this condition are exported to allow simulation of
+errors.
+
+
+@deftp Condition &uriparser
+The type of conditions used to signal Uriparser errors.
+@end deftp
+
+
+@defun make-uriparser-condition @var{numeric-value}
+Build and return a new @code{&uriparser} condition holding an Uriparser
+error code.
+@end defun
+
+
+@defun uriparser-condition? @var{condition}
+Return @true{} if @var{condition} is of type @code{&uriparser}.
+@end defun
+
+
+@defun uriparser-numeric-value @var{condition}
+@defunx uriparser-symbolic-value @var{condition}
+Return the numeric or symbolic error code in @var{condition}, which must
+be of type @code{&uriparser}.
+@end defun
+
+
+@defun raise-uriparser-error @var{who} @var{numeric-code}
+@defunx raise-uriparser-error @var{who} @var{numeric-code} @var{irritants}
+Build a composite non--continuable condition and raise it.  The
+composite condition has @code{&who}, @code{&message}, @code{&uriparser}
+and @code{&irritants} components.  @var{numeric-code} must be one of the
+exact integers returned by the Uriparser foreign functions.
+@end defun
+
+
+@defvar URI_SUCCESS
+@defvarx URI_ERROR_ADDBASE_REL_BASE
+@defvarx URI_ERROR_MALLOC
+@defvarx URI_ERROR_NOT_IMPLEMENTED
+@defvarx URI_ERROR_NULL
+@defvarx URI_ERROR_OUTPUT_TOO_LARGE
+@defvarx URI_ERROR_RANGE_INVALID
+@defvarx URI_ERROR_REMOVEBASE_REL_BASE
+@defvarx URI_ERROR_REMOVEBASE_REL_SOURCE
+@defvarx URI_ERROR_SYNTAX
+@defvarx URI_ERROR_TOSTRING_TOO_LONG
+Return codes from the Uriparser foreign functions.  These bindings are
+exported by @library{uriparser sizeof}.
+@end defvar
+
+
+@c page
+@node stub
+@chapter The low level interface
+
+
+@menu
+* stub errors::                 Low level handling of errors.
+@end menu
+
+
+@c page
+@node stub errors
+@section Low level handling of errors
+
+
+Unless otherwise specified, the following bindings are exported by
+@library{uriparser sizeof}.
+
+
+@defvar URI_SUCCESS
+@defvarx URI_ERROR_ADDBASE_REL_BASE
+@defvarx URI_ERROR_MALLOC
+@defvarx URI_ERROR_NOT_IMPLEMENTED
+@defvarx URI_ERROR_NULL
+@defvarx URI_ERROR_OUTPUT_TOO_LARGE
+@defvarx URI_ERROR_RANGE_INVALID
+@defvarx URI_ERROR_REMOVEBASE_REL_BASE
+@defvarx URI_ERROR_REMOVEBASE_REL_SOURCE
+@defvarx URI_ERROR_SYNTAX
+@defvarx URI_ERROR_TOSTRING_TOO_LONG
+Return codes from the Uriparser foreign functions.
+@end defvar
+
+
+@defun symbol->uriparser-error @var{symbolic-code}
+@defunx symbol->uriparser-error/or-error @var{symbolic-code}
+Convert a symbolic Uriparser error into a numeric Uriparser error.
+
+If @var{symbolic-code} is not a symbolic Uriparser error:
+@func{symbol->uriparser-error} returns @false{},
+@func{symbol->uriparser-error/or-error} raises an exception.
+@end defun
+
+
+@defun uriparser-error->symbol @var{numeric-code}
+@defunx uriparser-error->symbol/or-error @var{numeric-code}
+Convert a numeric Uriparser error into a symbolic Uriparser error.
+
+If @var{numeric-code} is not a numeric Uriparser error:
+@func{uriparser-error->symbol} returns @false{},
+@func{uriparser-error->symbol/or-error} raises an exception.
+@end defun
+
+
+@defun uriparser-strerror @var{symbolic-code}
+Return a string error message describing @var{symbolic-code}.
+@end defun
+
 
 @c page
 @node Package License
