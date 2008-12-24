@@ -2,7 +2,6 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
-;;;Time-stamp: <2008-12-16 13:26:05 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -40,7 +39,8 @@
     define-c-function			define-c-function/with-errno
 
     ;;foreign struct accessors
-    define-c-struct-accessors)
+    define-c-struct-accessors
+    define-c-struct-getter		define-c-struct-setter)
 
   (import (r6rs)
     (uriel ffi compat))
@@ -134,6 +134,22 @@
 	 (syntax-rules ()
 	   ((_ struct-pointer)
 	    (?foreign-type-getter struct-pointer ?field-offset))))))))
+
+(define-syntax define-c-struct-getter
+  (syntax-rules ()
+    ((_ ?getter-name ?field-offset ?foreign-type-getter)
+     (define-syntax ?getter-name
+       (syntax-rules ()
+	 ((_ struct-pointer)
+	  (?foreign-type-getter struct-pointer ?field-offset)))))))
+
+(define-syntax define-c-struct-setter
+  (syntax-rules ()
+    ((_ ?setter-name ?field-offset ?foreign-type-setter)
+     (define-syntax ?setter-name
+       (syntax-rules ()
+	 ((_ struct-pointer value)
+	  (?foreign-type-setter struct-pointer ?field-offset value)))))))
 
 
 

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS
 ;;;Contents: compound library for foreign functions interfaces
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 11:15:06 marco>
+;;;Time-stamp: <2008-12-24 17:04:49 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -157,6 +157,7 @@
 
     ;;foreign struct accessors
     define-c-struct-accessors
+    define-c-struct-getter		define-c-struct-setter
 
 
 ;;;; (uriel ffi sizeof)
