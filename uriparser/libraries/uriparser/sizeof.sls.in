@@ -77,6 +77,21 @@
     ;; struct accessors
     UriParserStateA-uri-set!		UriParserStateA-uri-ref
 
+					UriUriA-scheme-ref
+					UriUriA-userInfo-ref
+					UriUriA-hostText-ref
+					UriUriA-hostData-ref
+					UriUriA-portText-ref
+    UriUriA-pathHead-set!		UriUriA-pathHead-ref
+    UriUriA-pathTail-set!		UriUriA-pathTail-ref
+					UriUriA-query-ref
+					UriUriA-fragment-ref
+    UriUriA-absolutePath-set!		UriUriA-absolutePath-ref
+    UriUriA-owner-set!			UriUriA-owner-ref
+
+    UriTextRangeA-first-set!		UriTextRangeA-first-ref
+    UriTextRangeA-afterLast-set!	UriTextRangeA-afterLast-ref
+
     )
   (import (r6rs)
     (uriel lang)
@@ -220,6 +235,83 @@
   @OFFSETOF_URI_PARSER_STATE_A_URI@
   @SETTEROF_URI_PARSER_STATE_A_URI@
   @GETTEROF_URI_PARSER_STATE_A_URI@)
+
+(define-c-struct-getter
+  UriUriA-scheme-ref
+  @OFFSETOF_URI_URI_A_SCHEME@
+  @GETTEROF_URI_URI_A_SCHEME@)
+
+(define-c-struct-getter
+  UriUriA-userInfo-ref
+  @OFFSETOF_URI_URI_A_USER_INFO@
+  @GETTEROF_URI_URI_A_USER_INFO@)
+
+(define-c-struct-getter
+  UriUriA-hostText-ref
+  @OFFSETOF_URI_URI_A_HOST_TEXT@
+  @GETTEROF_URI_URI_A_HOST_TEXT@)
+
+(define-c-struct-getter
+  UriUriA-hostData-ref
+  @OFFSETOF_URI_URI_A_HOST_DATA@
+  @GETTEROF_URI_URI_A_HOST_DATA@)
+
+(define-c-struct-getter
+  UriUriA-portText-ref
+  @OFFSETOF_URI_URI_A_PORT_TEXT@
+  @GETTEROF_URI_URI_A_PORT_TEXT@)
+
+(define-c-struct-accessors
+  UriUriA-pathHead-set!
+  UriUriA-pathHead-ref
+  @OFFSETOF_URI_URI_A_PATH_HEAD@
+  @SETTEROF_URI_URI_A_PATH_HEAD@
+  @GETTEROF_URI_URI_A_PATH_HEAD@)
+
+(define-c-struct-accessors
+  UriUriA-pathTail-set!
+  UriUriA-pathTail-ref
+  @OFFSETOF_URI_URI_A_PATH_TAIL@
+  @SETTEROF_URI_URI_A_PATH_TAIL@
+  @GETTEROF_URI_URI_A_PATH_TAIL@)
+
+(define-c-struct-getter
+  UriUriA-query-ref
+  @OFFSETOF_URI_URI_A_QUERY@
+  @GETTEROF_URI_URI_A_QUERY@)
+
+(define-c-struct-getter
+  UriUriA-fragment-ref
+  @OFFSETOF_URI_URI_A_FRAGMENT@
+  @GETTEROF_URI_URI_A_FRAGMENT@)
+
+(define-c-struct-accessors
+  UriUriA-absolutePath-set!
+  UriUriA-absolutePath-ref
+  @OFFSETOF_URI_URI_A_ABSOLUTE_PATH@
+  @SETTEROF_URI_URI_A_ABSOLUTE_PATH@
+  @GETTEROF_URI_URI_A_ABSOLUTE_PATH@)
+
+(define-c-struct-accessors
+  UriUriA-owner-set!
+  UriUriA-owner-ref
+  @OFFSETOF_URI_URI_A_OWNER@
+  @SETTEROF_URI_URI_A_OWNER@
+  @GETTEROF_URI_URI_A_OWNER@)
+
+(define-c-struct-accessors
+  UriTextRangeA-first-set!
+  UriTextRangeA-first-ref
+  @OFFSETOF_URI_TEXT_RANGE_A_FIRST@
+  @SETTEROF_URI_TEXT_RANGE_A_FIRST@
+  @GETTEROF_URI_TEXT_RANGE_A_FIRST@)
+
+(define-c-struct-accessors
+  UriTextRangeA-afterLast-set!
+  UriTextRangeA-afterLast-ref
+  @OFFSETOF_URI_TEXT_RANGE_A_AFTER_LAST@
+  @SETTEROF_URI_TEXT_RANGE_A_AFTER_LAST@
+  @GETTEROF_URI_TEXT_RANGE_A_AFTER_LAST@)
 
 
 

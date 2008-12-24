@@ -38,8 +38,10 @@
     raise-uriparser-error
 
     ;; basic parsing
+    uri-parser
 
     ;; recomposition
+    uri->string
 
     )
   (import (r6rs)
@@ -68,20 +70,51 @@
     (raise-uriparser-error who numeric-value #f))
    ((who numeric-value irritants)
     (raise (condition (make-who-condition who)
-		      (make-message-condition (uriparser-strerror numeric-value))
+		      (make-message-condition
+		       (uriparser-strerror (uriparser-error->symbol/or-error numeric-value)))
 		      (make-uriparser-condition* numeric-value)
 		      (make-irritants-condition irritants))))))
 
 
 ;;;; basic parsing
 
+(define-syntax call-uriparser
+  (syntax-rules ()
+    ((_ ?func ?arg0 ?arg ...)
+     (let ((result (?func ?arg0 ?arg ...)))
+       (unless (= URI_SUCCESS result)
+	 (raise-uriparser-error (quote ?func) result))))))
 
-;; (define (uriParseUriA parser uri)
-;;   (with-compensations
-;;     (let* ((cstr	(string->cstring uri))
-;; 	   (result	(platform-uriParseUriA parser cstr)))
-;;       (unless (= URI_SUCCESS result)
-;; 	(raise-uriparser-error 'uriParseUriA result uri)))))
+(define (uri-parser uri uri-string)
+  (with-compensations
+    (let ((cstr		(string->cstring/c uri-string))
+	  (parser	(malloc-block/c sizeof-UriParserStateA)))
+      (UriParserStateA-uri-set! parser uri)
+      (call-uriparser uriParseUriA parser cstr)
+      uri)))
+
+;;       (let* ((*scheme	(UriUriA-scheme-ref uri))
+;; 	     (*beg	(UriTextRangeA-first-ref *scheme))
+;; 	     (*end	(UriTextRangeA-afterLast-ref *scheme)))
+;; (format #t "uri ~s beg ~s end ~s~%"
+;; 	(pointer->integer uri)
+;; 	(pointer->integer *beg)
+;; 	(pointer->integer *end))
+;; 	(cstring->string/len uri 3
+;; 			     ;(pointer-diff *end *beg)
+;; 			     )))))
+
+(define (uri->string uri)
+  (with-compensations
+    (let* ((*req	(malloc-small/c))
+	   (req		(let ((result	(uriToStringCharsRequiredA uri *req)))
+			  (unless (= URI_SUCCESS result)
+			    (raise-uriparser-error 'uri->string result))
+			  (+ 1 (peek-signed-int *req 0))))
+	   (cstr	(malloc-block/c 10000)))
+      (call-uriparser uriToStringA cstr uri req pointer-null)
+      (cstring->string cstr))))
+
 
 
 ;;;; recomposition

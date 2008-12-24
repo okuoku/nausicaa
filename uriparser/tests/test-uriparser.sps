@@ -38,19 +38,34 @@
 
 
 
+(parameterize ((testname 'condition))
+
+  (check
+      (guard (exc (else
+		   (list (uriparser-condition? exc)
+			 (condition-message exc)
+			 (uriparser-symbolic-value exc)
+			 (uriparser-numeric-value exc))))
+	(raise-uriparser-error 'woppa URI_ERROR_MALLOC))
+    => (list #t "requested memory could not be allocated"
+	     'URI_ERROR_MALLOC URI_ERROR_MALLOC))
+
+  )
+
+
+
 (define the-uri "file:///home/marco/share/sounds/giorgia/giorgia--gocce-di-memoria.flv")
+(define the-url "http://www.here.it/the/path/to/file.ext")
 
 (check
     (with-compensations
-      (let ((parser	(malloc-block/c sizeof-UriParserStateA))
-	    (uri	(malloc-block/c sizeof-UriUriA)))
-	(UriParserStateA-uri-set! parser uri)
-	(uriParseUriA parser the-uri)
-	(uriFreeUriMembersA uri)
-	(let ((req	(malloc-block/c (uriToStringCharsRequiredA uri))))
-
-	#t))
-  => #t)
+      (let ((uri	(compensate
+			    (malloc-block/c sizeof-UriUriA)
+			  (with
+			   (uriFreeUriMembersA uri)))))
+	(uri-parser uri the-uri)
+	(uri->string uri)))
+  => the-uri)
 
 
 ;;;; done
