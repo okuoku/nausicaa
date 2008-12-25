@@ -16,31 +16,33 @@ builddir	= "$(PWD)/=build"
 ## Data.
 ## ------------------------------------------------------------
 
-# The list  of completion  modules to include.   Each string
-# must be the prefix of a '*_completions' file in the source
-# directory.
-MODULES		= ikarus ffi					\
-				srfi_and_let_star		\
-				srfi_args_fold			\
-				srfi_case_lambda		\
-				srfi_cond_expand		\
-				srfi_eager_comp			\
-				srfi_error_reporting		\
-				srfi_general_cond		\
-				srfi_let_values 		\
-				srfi_lightweight_testing	\
-				srfi_list			\
-				srfi_parameters			\
-				srfi_random			\
-				srfi_rec			\
-				srfi_receive			\
-				srfi_records			\
-				srfi_specialize_procedures	\
-				srfi_streams			\
-				srfi_string_ports		\
-				srfi_strings			\
-				srfi_time			\
-				srfi_vector
+srfi_MODULES = \
+			srfi_and_let_star		\
+			srfi_args_fold			\
+			srfi_case_lambda		\
+			srfi_cond_expand		\
+			srfi_eager_comp			\
+			srfi_environment_variables	\
+			srfi_error_reporting		\
+			srfi_general_cond		\
+			srfi_let_values 		\
+			srfi_lightweight_testing	\
+			srfi_list			\
+			srfi_parameters			\
+			srfi_random			\
+			srfi_rec			\
+			srfi_receive			\
+			srfi_records			\
+			srfi_specialize_procedures	\
+			srfi_streams			\
+			srfi_string_ports		\
+			srfi_strings			\
+			srfi_time			\
+			srfi_vector
+
+ikarus_MODULES	= ikarus ikarus_ffi $(srfi_MODULES)
+ypsilon_MODULES	= $(srfi_MODULES)
+larceny_MODULES	= $(srfi_MODULES)
 
 
 #page
@@ -94,8 +96,12 @@ SORT		= sort --unique
 ## Rules.
 ## ------------------------------------------------------------
 
-COMPLETIONS	= r6rs_identifiers \
-		  $(wildcard $(foreach m,$(MODULES),$(m)_completions))
+ikarus_COMPLETIONS	= completions/r6rs_identifiers \
+  $(wildcard $(foreach m,$(ikarus_MODULES),completions/$(m)_completions))
+ypsilon_COMPLETIONS	= completions/r6rs_identifiers \
+  $(wildcard $(foreach m,$(ypsilon_MODULES),completions/$(m)_completions))
+larceny_COMPLETIONS	= completions/r6rs_identifiers \
+  $(wildcard $(foreach m,$(larceny_MODULES),completions/$(m)_completions))
 
 SCRIPTS		= $(builddir)/ike $(builddir)/ype $(builddir)/lay
 ikarus_COMPFILE	= $(builddir)/.ikarus_completions
@@ -106,12 +112,12 @@ COMPFILES	= $(ikarus_COMPFILE) $(ypsilon_COMPFILE) $(larceny_COMPFILE)
 .PHONY: all clean install install-bin install-dat
 
 all: builddir
-	$(SED) $(IKARUS_SED_FLAGS)  < ike.in > $(builddir)/ike
-	$(SED) $(YPSILON_SED_FLAGS) < ype.in > $(builddir)/ype
-	$(SED) $(LARCENY_SED_FLAGS) < lay.in > $(builddir)/lay
-	cat $(COMPLETIONS) | $(SORT) >$(ikarus_COMPFILE)
-	cat $(COMPLETIONS) | $(SORT) >$(ypsilon_COMPFILE)
-	cat $(COMPLETIONS) | $(SORT) >$(larceny_COMPFILE)
+	$(SED) $(IKARUS_SED_FLAGS)  < scripts/ike.in > $(builddir)/ike
+	$(SED) $(YPSILON_SED_FLAGS) < scripts/ype.in > $(builddir)/ype
+	$(SED) $(LARCENY_SED_FLAGS) < scripts/lay.in > $(builddir)/lay
+	cat $(ikarus_COMPLETIONS)  | $(SORT) >$(ikarus_COMPFILE)
+	cat $(ypsilon_COMPLETIONS) | $(SORT) >$(ypsilon_COMPFILE)
+	cat $(larceny_COMPLETIONS) | $(SORT) >$(larceny_COMPFILE)
 
 clean:
 	-$(RM) $(builddir)
