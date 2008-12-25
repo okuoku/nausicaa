@@ -34,9 +34,14 @@
 
   (define make-this-parameter
     (case-lambda
-     ((value proc)
-      (make-parameter 'unnamed value proc))
+     ((value validator)
+      (let ((the-parm (make-parameter 'unnamed (validator value))))
+	(case-lambda
+	 ((value)
+	  (the-parm (validator value)))
+	 (()
+	  (the-parm)))))
      ((value)
-      (make-parameter 'unnamed value (lambda (x) x))))))
+      (make-this-parameter value (lambda (x) x))))))
 
 ;;; end of file

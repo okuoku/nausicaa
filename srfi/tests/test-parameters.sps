@@ -74,6 +74,8 @@
 	(raise 'woppa))
       num)))
 
+;;; --------------------------------------------------------------------
+
 (check
     (alpha)
   => 123)
@@ -89,6 +91,8 @@
 	    (parameterize ((alpha 789))
 	      (alpha))))
   => '(456 789))
+
+;;; --------------------------------------------------------------------
 
 (check
     (beta)
@@ -112,6 +116,33 @@
 	(list (beta))))
   => 'woppa)
 
+;;; --------------------------------------------------------------------
+
+(define gamma
+  (make-parameter 0
+    (lambda (num)
+      (unless (number? num)
+	(raise 'woppa))
+      (case num
+	((0) 'zero)
+	((1) 'one)
+	((2) 'two)))))
+
+(check
+    (gamma)
+  => 'zero)
+
+(check
+    (begin
+      (gamma 1)
+      (gamma))
+  => 'one)
+
+(check
+    (begin
+      (gamma 2)
+      (gamma))
+  => 'two)
 
 
 ;;;; done

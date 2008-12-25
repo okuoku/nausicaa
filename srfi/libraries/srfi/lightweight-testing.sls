@@ -108,12 +108,13 @@
 
 (define check:mode
   (make-parameter 'off
-                  (lambda (v) (case v
-                                ((off)           0)
-                                ((summary)       1)
-                                ((report-failed) 10)
-                                ((report)        100)
-                                (else (error "unrecognized mode" v))))))
+    (lambda (v)
+      (case v
+	((off)           0)
+	((summary)       1)
+	((report-failed) 10)
+	((report)        100)
+	(else (error "unrecognized mode" v))))))
 
 (define (check-set-mode! mode)
   (check:mode mode))
