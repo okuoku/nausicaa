@@ -5,13 +5,10 @@
 ## ------------------------------------------------------------
 ## Configuration variables.
 
-ikarus_BINDIR='@IKARUS_BINDIR@'
-ikarus_PROGRAM="${ikarus_BINDIR}/ikarus"
-
+ikarus_PROGRAM=$(type -p ikarus)
 rlwrap_PROGRAM=$(type -p rlwrap)
-rlwrap_DATADIR='@pkgdatadir@'
 
-COMPLETIONS_FILE=${rlwrap_DATADIR}/.ikarus_completions
+COMPLETIONS_FILE=@pkgdatadir@/.ikarus_completions
 COMPLETIONS_OPTION=--file=${COMPLETIONS_FILE}
 
 ## ------------------------------------------------------------

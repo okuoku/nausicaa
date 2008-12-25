@@ -16,24 +16,25 @@ Topics
 1. Overview
 -----------
 
-This directory holds  a set of files to be  used to wrap the
-Ikarus  Scheme  executable  with  the GNU  Readline  wrapper
+This  directory holds  a set  of files  to be  used  to wrap
+various  Scheme executables  with the  GNU  Readline wrapper
 Rlwrap by  Hans Lub.   The original version  of some  of the
 files  was   posted  to  the  Ikarus   Scheme  mailing  list
 <ikarus-users@googlegroups.com>.
 
-  Additionally support for Ypsilon Scheme is present.
+  Supports Larceny, Ypsilon and Ikarus.
 
-  The package is composed  by the Bourne shell scripts "ike"
-(for Ikarus) and "ype" for (Ypsilon) and a set of completion
-files.  The scripts will spawn "rlwrap" with the appropriate
-configuration and executable.
+  The package is composed  by the Bourne shell scripts "lay"
+for Larceny, "ike"  for Ikarus, "ype" for Ypsilon  and a set
+of completion  files.  The scripts will  spawn "rlwrap" with
+the appropriate configuration and executable.
 
   The  scripts  are  meant  to  be installed  in  the  "bin"
 directory of the user's home, while the completion files are
 concatenated, sorted, filtered  for uniqueness and installed
 as:
 
+   .larceny_completions
    .ikarus_completions
    .ypsilon_completions
 
@@ -42,10 +43,10 @@ in the user's home directory.
   The installation  directories can be  changed by modifying
 the variables in the "Makefile".
 
-  The  "ike" and "ype"  scripts are  automatically generated
-from   the  templates   "ike.in"  and   "ype.in"   that  are
-preprocessed by the "Makefile".  The template themselves are
-meant to be customised at will.
+  The  "lay",  "ike"  and  "ype" scripts  are  automatically
+generated from the templates "lay.in", "ike.in" and "ype.in"
+that  are  preprocessed  by  the "Makefile".   The  template
+themselves are meant to be customised at will.
 
 
 2. License

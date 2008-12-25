@@ -1,14 +1,14 @@
 #!/bin/sh
 #
-# Ypsilon Scheme GNU Readline wrapper using Rlwrap.
+# Larceny Scheme GNU Readline wrapper using Rlwrap.
 
 ## ------------------------------------------------------------
 ## Configuration variables.
 
-ypsilon_PROGRAM=$(type -p ypsilon)
+larceny_PROGRAM=$(type -p larceny)
 rlwrap_PROGRAM=$(type -p rlwrap)
 
-COMPLETIONS_FILE=@pkgdatadir@/.ypsilon_completions
+COMPLETIONS_FILE=@pkgdatadir@/.larceny_completions
 COMPLETIONS_OPTION=--file=${COMPLETIONS_FILE}
 
 ## ------------------------------------------------------------
@@ -22,16 +22,16 @@ BREAK_CHARS="\"#'(),;\`\\|[]{}"
 
 function error () {
     local MESSAGE=${1:?"missing message argument to function '${FUNCNAME}'"}
-    printf 'ype error: %s\n' "${MESSAGE}" >&2
+    printf 'lay error: %s\n' "${MESSAGE}" >&2
     exit 2
 }
 function warning () {
     local MESSAGE=${1:?"missing message argument to function '${FUNCNAME}'"}
-    printf 'ype warning: %s\n' "${MESSAGE}" >&2
+    printf 'lay warning: %s\n' "${MESSAGE}" >&2
 }
 
 test -x "${rlwrap_PROGRAM}" || error "cannot find program 'rlwrap'"
-test -x "${ypsilon_PROGRAM}" || error "cannot find program 'ypsilon'"
+test -x "${larceny_PROGRAM}" || error "cannot find program 'larceny'"
 
 if ! test -f "${COMPLETIONS_FILE}" ; then
     warning "cannot find completions file '${COMPLETIONS_FILE}'"
@@ -51,6 +51,6 @@ exec "${rlwrap_PROGRAM}"                                        \
     --quote-characters='"'                                      \
     --remember                                                  \
     ${COMPLETIONS_OPTION}                                       \
-    "${ypsilon_PROGRAM}" --compatible "$@"
+    "${larceny_PROGRAM}" -err5rs "$@"
 
 ### end of file

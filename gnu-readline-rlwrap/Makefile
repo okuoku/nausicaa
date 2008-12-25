@@ -1,6 +1,7 @@
 # Makefile --
 #
-# Installation rules for GNU Readline wrapper around Ikarus Scheme.
+# Installation   rules   for   GNU   Readline  wrapper   around   Scheme
+# implementations.
 
 #page
 ## ------------------------------------------------------------
@@ -9,8 +10,6 @@
 
 srcdir		= $(PWD)
 builddir	= "$(PWD)/=build"
-
-## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -44,67 +43,29 @@ MODULES		= ikarus ffi					\
 				srfi_vector
 
 
-## ------------------------------------------------------------
-
 #page
 ## ------------------------------------------------------------
 ## Wrapper installation directories.
 ## ------------------------------------------------------------
 
 prefix		= $(HOME)
-bindir		= $(prefix)/bin
-datadir		= $(prefix)/share
-#pkgdatadir	= $(datadir)/ikarus
-pkgdatadir	= $(prefix)
 
 ifeq ($(strip $(prefix)),)
 prefix		= ~
 endif
 
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Ikarus installation directories.
-## ------------------------------------------------------------
-
-ikarus_PREFIX		= /usr/local
-ikarus_BINDIR		= ${ikarus_PREFIX}/bin
-ikarus_LIBDIR		= ${ikarus_PREFIX}/lib
-ikarus_PKGLIBDIR	= ${ikarus_LIBDIR}/ikarus
-
-ypsilon_PREFIX		= /usr/local
-ypsilon_BINDIR		= ${ypsilon_PREFIX}/bin
-ypsilon_LIBDIR		= ${ypsilon_PREFIX}/lib
-ypsilon_PKGLIBDIR	= ${ypsilon_LIBDIR}/ypsilon
-
-## ------------------------------------------------------------
+bindir		= $(prefix)/bin
+pkgdatadir	= $(prefix)
 
 #page
 ## ------------------------------------------------------------
 ## Programs.
 ## ------------------------------------------------------------
 
-SED		= sed
-IKARUS_SED_FLAGS	= \
-	-e "s|@IKARUS_PREFIX@|$(ikarus_PREFIX)|g"	\
-	-e "s|@IKARUS_BINDIR@|$(ikarus_BINDIR)|g"	\
-	-e "s|@IKARUS_LIBDIR@|$(ikarus_LIBDIR)|g"	\
-	-e "s|@IKARUS_PKGLIBDIR@|$(ikarus_PKGLIBDIR)|g"	\
-	-e "s|@prefix@|$(prefix)|g"			\
-	-e "s|@bindir@|$(bindir)|g"			\
-	-e "s|@datadir@|$(datadir)|g"			\
-	-e "s|@pkgdatadir@|$(pkgdatadir)|g"
-
-YPSILON_SED_FLAGS	= \
-	-e "s|@YPSILON_PREFIX@|$(ypsilon_PREFIX)|g"	\
-	-e "s|@YPSILON_BINDIR@|$(ypsilon_BINDIR)|g"	\
-	-e "s|@YPSILON_LIBDIR@|$(ypsilon_LIBDIR)|g"	\
-	-e "s|@YPSILON_PKGLIBDIR@|$(ypsilon_PKGLIBDIR)|g"\
-	-e "s|@prefix@|$(prefix)|g"			\
-	-e "s|@bindir@|$(bindir)|g"			\
-	-e "s|@datadir@|$(datadir)|g"			\
-	-e "s|@pkgdatadir@|$(pkgdatadir)|g"
+SED			= sed
+IKARUS_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
+YPSILON_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
+LARCENY_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 
 ## ------------------------------------------------------------
 
@@ -136,18 +97,21 @@ SORT		= sort --unique
 COMPLETIONS	= r6rs_identifiers \
 		  $(wildcard $(foreach m,$(MODULES),$(m)_completions))
 
-SCRIPTS		= $(builddir)/ike $(builddir)/ype
+SCRIPTS		= $(builddir)/ike $(builddir)/ype $(builddir)/lay
 ikarus_COMPFILE	= $(builddir)/.ikarus_completions
 ypsilon_COMPFILE= $(builddir)/.ypsilon_completions
-COMPFILES	= $(ikarus_COMPFILE) $(ypsilon_COMPFILE)
+larceny_COMPFILE= $(builddir)/.larceny_completions
+COMPFILES	= $(ikarus_COMPFILE) $(ypsilon_COMPFILE) $(larceny_COMPFILE)
 
 .PHONY: all clean install install-bin install-dat
 
 all: builddir
 	$(SED) $(IKARUS_SED_FLAGS)  < ike.in > $(builddir)/ike
 	$(SED) $(YPSILON_SED_FLAGS) < ype.in > $(builddir)/ype
+	$(SED) $(LARCENY_SED_FLAGS) < lay.in > $(builddir)/lay
 	cat $(COMPLETIONS) | $(SORT) >$(ikarus_COMPFILE)
 	cat $(COMPLETIONS) | $(SORT) >$(ypsilon_COMPFILE)
+	cat $(COMPLETIONS) | $(SORT) >$(larceny_COMPFILE)
 
 clean:
 	-$(RM) $(builddir)
