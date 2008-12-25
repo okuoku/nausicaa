@@ -5,7 +5,8 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	Order  does matter!!!  Libraries  that are  imported into  other
+;;;	libraries must be compiled first.
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -55,10 +56,10 @@
 		 "srfi/records.larceny.slfasl")
 (compile-library "srfi/let-values.sls"
 		 "srfi/let-values.larceny.slfasl")
-(compile-library "srfi/strings.sls"
-		 "srfi/strings.larceny.slfasl")
 (compile-library "srfi/char-set.sls"
 		 "srfi/char-set.larceny.slfasl")
+(compile-library "srfi/strings.sls"
+		 "srfi/strings.larceny.slfasl")
 (compile-library "srfi/case-lambda.sls"
 		 "srfi/case-lambda.larceny.slfasl")
 (compile-library "srfi/time.sls"
