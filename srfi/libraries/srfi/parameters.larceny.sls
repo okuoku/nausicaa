@@ -1,4 +1,4 @@
-;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -24,47 +24,19 @@
 ;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
-;;;
-;;;Fall-back  library incase  the host  Scheme system  does  not provide
-;;;SRFI-39 parameters.
 
-#!r6rs
 (library (srfi parameters)
   (export
-    make-parameter parameterize)
-  (import (rnrs))
+    (rename (make-this-parameter make-parameter))
+    parameterize)
+  (import (rnrs)
+    (primitives make-parameter parameterize))
 
-  (define make-parameter
+  (define make-this-parameter
     (case-lambda
-     [(val) (make-parameter val values)]
-     [(val guard)
-      (unless (procedure? guard)
-	(assertion-violation 'make-parameter "not a procedure" guard))
-      (let ([p (case-lambda
-		[() val]
-		[(x) (set! val (guard x))])])
-	(p val)
-	p)]))
-
-  (define-syntax parameterize
-;;; Derived from Ikarus's implementation of parameterize.
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ () b0 b ...)
-         #'(let () b0 b ...)]
-        [(_ ([p e] ...) b0 b ...)
-         (with-syntax ([(tp ...) (generate-temporaries #'(p ...))]
-                       [(te ...) (generate-temporaries #'(e ...))])
-           #'(let ([tp p] ...
-                   [te e] ...)
-               (let ([swap (lambda ()
-                             (let ([t (tp)])
-                               (tp te)
-                               (set! te t))
-                             ...)])
-                 (dynamic-wind
-		     swap
-		     (lambda () b0 b ...)
-		     swap))))]))))
+     ((value proc)
+      (make-parameter 'unnamed value proc))
+     ((value)
+      (make-parameter 'unnamed value (lambda (x) x))))))
 
 ;;; end of file

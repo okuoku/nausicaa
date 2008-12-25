@@ -24,47 +24,40 @@
 ;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
-;;;
-;;;Fall-back  library incase  the host  Scheme system  does  not provide
-;;;SRFI-39 parameters.
 
-#!r6rs
-(library (srfi parameters)
+(library (srfi time compat)
   (export
-    make-parameter parameterize)
-  (import (rnrs))
+    format
+    host:time-resolution
+    host:current-time
+    host:time-nanosecond
+    host:time-second
+    host:time-gmt-offset)
+  (import (r5rs)
+    (rnrs)
+    (larceny load)
+    (primitives r5rs:require current-utc-time timezone-offset)
+    (srfi format))
 
-  (define make-parameter
-    (case-lambda
-     [(val) (make-parameter val values)]
-     [(val guard)
-      (unless (procedure? guard)
-	(assertion-violation 'make-parameter "not a procedure" guard))
-      (let ([p (case-lambda
-		[() val]
-		[(x) (set! val (guard x))])])
-	(p val)
-	p)]))
+  (define-record-type time (fields secs usecs))
 
-  (define-syntax parameterize
-;;; Derived from Ikarus's implementation of parameterize.
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ () b0 b ...)
-         #'(let () b0 b ...)]
-        [(_ ([p e] ...) b0 b ...)
-         (with-syntax ([(tp ...) (generate-temporaries #'(p ...))]
-                       [(te ...) (generate-temporaries #'(e ...))])
-           #'(let ([tp p] ...
-                   [te e] ...)
-               (let ([swap (lambda ()
-                             (let ([t (tp)])
-                               (tp te)
-                               (set! te t))
-                             ...)])
-                 (dynamic-wind
-		     swap
-		     (lambda () b0 b ...)
-		     swap))))]))))
+  ;; Larceny uses gettimeofday() which gives microseconds,
+  ;; so our resolution is 1000 nanoseconds
+  (define host:time-resolution 1000)
+
+  (define (host:current-time)
+    (let-values ([(secs usecs) (current-utc-time)])
+      (make-time secs usecs)))
+
+  (define (host:time-nanosecond t)
+    (* (time-usecs t) 1000))
+
+  (define (host:time-second t)
+    (time-secs t))
+
+  (define (host:time-gmt-offset t)
+    (timezone-offset (time-secs t)))
+
+  (r5rs:require 'time))
 
 ;;; end of file

@@ -375,44 +375,73 @@ sls_SRCDIR		= $(srcdir)/libraries
 sls_BUILDDIR		= $(builddir)/fasl.d
 sls_INSTDIR		= $(pkglibdir)
 
-fasl_ikarus_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ikarus.sps
-fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
-fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
-fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) $(fasl_ikarus_COMPILE_COMMAND) $(fasl_ikarus_COMPILE_SCRIPT)
-
-## ---------------------------------------------------------------------
-
 .PHONY: sls-debug
-.PHONY: fasl fasl-clean fasl-builddir fasl-install
+.PHONY: fasl fasl-clean fasl-copy fasl-builddir fasl-install
 .PHONY: sls-install fasl-install
-
-fasl-builddir: $(sls_BUILDDIR)
-
-fasl-clean:
-	$(RM) $(sls_BUILDDIR)/*
-
-$(sls_BUILDDIR):
-	-@test -d $(sls_BUILDDIR) || $(MKDIR) $(sls_BUILDDIR)
-
-sls-install sls-uninstall:
-fasl-install fasl-uninstall:
 
 ## Notice  that, by  default, GNU  tar preserves  the  file modification
 ## times so  the FASL  times will be  newer than the  corresponding .sls
 ## times.  When these files are  installed: loading will work fine if we
 ## give the appropriate preserve flags to the "install" program.
-ifeq ($(strip $(nausicaa_ENABLE_FASL)),yes)
-fasl: fasl-builddir fasl-clean
-	( cd $(sls_SRCDIR);				\
-	  $(FIND) . -name '*.sls' -and -print		| \
-	  $(TAR) --create --files-from=- --file=-; )	| \
+fasl-copy:
+	( cd $(sls_SRCDIR);					\
+	  $(FIND) . -name '*.sls' -and -print		|	\
+	  $(TAR) --create --files-from=- --file=-; )	|	\
 	$(TAR) --directory=$(sls_BUILDDIR) --extract --file=-
-	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
+
+fasl-builddir:
+	-@test -d $(sls_BUILDDIR) || $(MKDIR) $(sls_BUILDDIR)
+
+fasl-clean:
+	$(RM) $(sls_BUILDDIR)/*
+
+sls-install sls-uninstall:
+fasl-install fasl-uninstall:
+
+ifeq ($(strip $(nausicaa_ENABLE_FASL)),yes)
+fasl: fasl-builddir fasl-clean fasl-copy
+
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+fasl: fasl-ikarus-compile
+endif
+
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+fasl: fasl-larceny-compile
+endif
+
 else
 fasl:
 endif
 
 ## ---------------------------------------------------------------------
+
+fasl_ikarus_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ikarus.sps
+fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
+fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
+fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) $(fasl_ikarus_COMPILE_COMMAND) $(fasl_ikarus_COMPILE_SCRIPT)
+
+.PHONY: ifasl fasl-ikarus-compile
+
+fasl-ikarus-compile:
+	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
+
+ifasl: fasl-copy fasl-ikarus-compile
+
+## ---------------------------------------------------------------------
+
+fasl_larceny_COMPILE_SCRIPT	= $(PWD)/$(sls_SRCDIR)/compile-all.larceny.sps
+fasl_larceny_COMPILE_ENV	= LARCENYLIBPATH=$(sls_BUILDDIR):$(LARCENYLIBPATH)
+fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
+fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) $(fasl_larceny_COMPILE_COMMAND) $(fasl_larceny_COMPILE_SCRIPT)
+
+.PHONY: lfasl fasl-larceny-compile
+
+fasl-larceny-compile:
+	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
+
+lfasl: fasl-copy fasl-larceny-compile
+
+## ------------------------------------------------------------
 
 # Synopsis:
 #
@@ -422,7 +451,13 @@ define nausicaa-library
 sls_$(1)_SRCDIR		= $$(sls_SRCDIR)/$(2)
 sls_$(1)_BUILDDIR	= $$(sls_BUILDDIR)/$(2)
 sls_$(1)_SOURCES	= $$(wildcard $$(sls_$(1)_SRCDIR)/*.sls)
-sls_$(1)_TARGETS	= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.ikarus-fasl)
+sls_$(1)_TARGETS	=
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+sls_$(1)_TARGETS	+= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.ikarus-fasl)
+endif
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+sls_$(1)_TARGETS	+= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.larceny.slfasl)
+endif
 
 sls_$(1)_INSTLST	= $$(sls_$(1)_SOURCES)
 sls_$(1)_INSTDIR	= $(3)
@@ -480,14 +515,12 @@ ifdef LIBPATH
 THE_LIBPATH		= $(LIBPATH):
 endif
 
-# We DO  NOT include  the fasl build  directory in the  libraries search
-# path.  This is on purpose.
-
 ## ---------------------------------------------------------------------
 
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(file).sps)
+nau_test_PATH		= $(THE_LIBPATH)$(sls_BUILDDIR):$(srcdir)/libraries:$(srcdir)/tests
 
 .PHONY: tests test check
 
@@ -495,7 +528,7 @@ tests test check:
 
 ## ---------------------------------------------------------------------
 
-nau_ytest_ENV		= YPSILON_SITELIB=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(YPSILON_SITELIB)
+nau_ytest_ENV		= YPSILON_SITELIB=$(nau_test_PATH):$(YPSILON_SITELIB)
 nau_ytest_ENV		+= $(nau_test_ENV)
 nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
 nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_ytest_PROGRAM)
@@ -515,7 +548,7 @@ endif
 
 ## ---------------------------------------------------------------------
 
-nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(IKARUS_LIBRARY_PATH)
+nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
 nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
 nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
@@ -535,9 +568,9 @@ endif
 
 ## ---------------------------------------------------------------------
 
-nau_ltest_ENV		= $(nau_test_ENV)
-nau_ltest_OPTIONS	= -path $(THE_LIBPATH)$(srcdir)/libraries:$(srcdir)/tests:$(pkglibdir)
-nau_ltest_PROGRAM	= $(LARCENY) -r6rs $(nau_ltest_OPTIONS) -program
+nau_ltest_ENV		= LARCENYLIBPATH=$(nau_test_PATH):$(LARCENYLIBPATH)
+nau_ltest_ENV		+= $(nau_test_ENV)
+nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
 nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_ltest_PROGRAM)
 
 .PHONY: ltests ltest lcheck

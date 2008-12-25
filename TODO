@@ -32,6 +32,7 @@ ScmObj
 SRFI
 ----
 
+* add documentation for CUT SRFI
 * Solve the problem of "(import (srfi srfi-1))".
 * Wrap the ec in the "(loop-lib)".
 

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Derick Eddington
+;;; Copyright (c) 2008 Marco Maggi
 ;;;
 ;;; Permission is  hereby granted, free of charge,  to any person
 ;;; obtaining   a   copy   of   this  software   and   associated
@@ -27,15 +27,9 @@
 ;;; OTHERWISE,  ARISING FROM, OUT  OF OR  IN CONNECTION  WITH THE
 ;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#!r6rs
 (library (srfi error-reporting)
-  (export error error-who)
-  (import 
-    (rename (rnrs base) (error rnrs:error))
-    (srfi parameters))
-  
-  (define error-who (make-parameter #f))
-  
-  (define (error . args)
-    (apply rnrs:error (error-who) args))
-)
+  (export error)
+  (import
+      (rnrs base (6))))
+
+;;; end of file

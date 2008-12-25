@@ -13,8 +13,8 @@ set -x
 ../configure \
     --enable-fasl \
     --enable-ypsilon \
+    --enable-larceny \
     "$@"
 
-##    --enable-larceny
 
 ### end of file

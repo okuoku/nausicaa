@@ -2,7 +2,6 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: test for equal-hash implementation
 ;;;Date: Mon Dec  8, 2008
-;;;Time-stamp: <2008-12-09 17:00:16 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,16 +23,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (r6rs)
-  (uriel printing)
-  (uriel test))
+(import (r6rs))
 
-(check-set-mode! 'report-failed)
+(define-syntax check
+  (syntax-rules (=>)
+    ((_ ?form => ?expected-result)
+     (let ((result ?form))
+       (if (equal? result ?expected-result)
+	   (begin
+	     (display "*** test success")
+	     (newline))
+	 (begin
+	   (display "*** test FAILURE")
+	   (newline)))))))
 
 (check
     (integer? (equal-hash '#(1 2 3)))
   => #t)
 
-(check-report)
 
 ;;; end of file

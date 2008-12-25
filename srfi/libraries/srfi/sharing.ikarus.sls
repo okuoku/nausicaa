@@ -24,47 +24,28 @@
 ;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
-;;;
-;;;Fall-back  library incase  the host  Scheme system  does  not provide
-;;;SRFI-39 parameters.
 
 #!r6rs
-(library (srfi parameters)
+(library (srfi sharing)
   (export
-    make-parameter parameterize)
-  (import (rnrs))
+    write-with-shared-structure
+    (rename (write-with-shared-structure write/ss))
+    read-with-shared-structure
+    (rename (read-with-shared-structure read/ss)))
+  (import (rnrs)
+    (only (ikarus) print-graph parameterize))
 
-  (define make-parameter
+  (define write-with-shared-structure
     (case-lambda
-     [(val) (make-parameter val values)]
-     [(val guard)
-      (unless (procedure? guard)
-	(assertion-violation 'make-parameter "not a procedure" guard))
-      (let ([p (case-lambda
-		[() val]
-		[(x) (set! val (guard x))])])
-	(p val)
-	p)]))
+     [(obj)
+      (write-with-shared-structure obj (current-output-port))]
+     [(obj port)
+      (parameterize ([print-graph #t])
+	(write obj port))]
+     [(obj port optarg)
+      (assertion-violation 'write-with-shared-structure
+	"this implementation does not support optarg")]))
 
-  (define-syntax parameterize
-;;; Derived from Ikarus's implementation of parameterize.
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ () b0 b ...)
-         #'(let () b0 b ...)]
-        [(_ ([p e] ...) b0 b ...)
-         (with-syntax ([(tp ...) (generate-temporaries #'(p ...))]
-                       [(te ...) (generate-temporaries #'(e ...))])
-           #'(let ([tp p] ...
-                   [te e] ...)
-               (let ([swap (lambda ()
-                             (let ([t (tp)])
-                               (tp te)
-                               (set! te t))
-                             ...)])
-                 (dynamic-wind
-		     swap
-		     (lambda () b0 b ...)
-		     swap))))]))))
+  (define read-with-shared-structure read))
 
 ;;; end of file

@@ -24,47 +24,25 @@
 ;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
-;;;
-;;;Fall-back  library incase  the host  Scheme system  does  not provide
-;;;SRFI-39 parameters.
 
-#!r6rs
-(library (srfi parameters)
+(library (srfi lightweight-testing compat)
   (export
-    make-parameter parameterize)
-  (import (rnrs))
+    pretty-print/no-trailing-newline)
+  (import (rnrs)
+    (primitives pretty-print))
 
-  (define make-parameter
+;;; check.scm says a pretty-print with  a trailing newline will make its
+;;; print-outs look bad, so:
+  (define pretty-print/no-trailing-newline
     (case-lambda
-     [(val) (make-parameter val values)]
-     [(val guard)
-      (unless (procedure? guard)
-	(assertion-violation 'make-parameter "not a procedure" guard))
-      (let ([p (case-lambda
-		[() val]
-		[(x) (set! val (guard x))])])
-	(p val)
-	p)]))
-
-  (define-syntax parameterize
-;;; Derived from Ikarus's implementation of parameterize.
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ () b0 b ...)
-         #'(let () b0 b ...)]
-        [(_ ([p e] ...) b0 b ...)
-         (with-syntax ([(tp ...) (generate-temporaries #'(p ...))]
-                       [(te ...) (generate-temporaries #'(e ...))])
-           #'(let ([tp p] ...
-                   [te e] ...)
-               (let ([swap (lambda ()
-                             (let ([t (tp)])
-                               (tp te)
-                               (set! te t))
-                             ...)])
-                 (dynamic-wind
-		     swap
-		     (lambda () b0 b ...)
-		     swap))))]))))
+     [(datum output-port)
+      (let* ([os (call-with-string-output-port (lambda (sop) (pretty-print datum sop)))]
+	     [os (if (and (positive? (string-length os))
+			  (char=? #\newline (string-ref os (- (string-length os) 1))))
+		     (substring os 0 (- (string-length os) 1))
+		   os)])
+	(display os output-port))]
+     [(datum)
+      (pretty-print/no-trailing-newline datum (current-output-port))])))
 
 ;;; end of file
