@@ -345,6 +345,50 @@ fi
 ])
 ])
 
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Larceny Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_LARCENY_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT],[
+NAUSICAA_WITH_TMPFILE([
+nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
+"${LARCENY}" -r6rs -program "${nausicaa_TMPFILE}" $2`
+],[$3])
+])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],[AC_MSG_CHECKING([availability of Larceny library $2])
+NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
+(with-exception-handler
+  (lambda (ex)
+    (display "no\n")
+    (exit))
+  (lambda ()
+    (environment (quote $2))
+    (display "yes\n")))
+],,[AC_MSG_RESULT([$nausicaa_ANSWER])
+AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
+if test "$nausicaa_ANSWER" = yes ; then
+dnl action if found.
+:
+$3
+else
+dnl action if not found.
+:
+AC_MSG_WARN([Larceny Scheme could not find library '$2'])
+$4
+fi
+])
+])
+
+
 
 dnl page
 dnl --------------------------------------------------------------------
