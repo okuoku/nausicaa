@@ -13,7 +13,6 @@
   (only (uriel foreign))
   (only (uriel getenv))
   (only (uriel object-property))
-  (only (uriel printing))
   (only (uriel test)))
 
 ;;; end of file

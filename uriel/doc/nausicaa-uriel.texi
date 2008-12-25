@@ -462,7 +462,6 @@ Independent libraries
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
-* lang printing::               Printing.
 * lang cleanup::                Cleanup of asynchronous resources.
 * lang queue::                  Simple queue.
 
@@ -492,6 +491,8 @@ Low level memory handling
 * memory operations::           Operations.
 * memory peekers::              Peeking values.
 * memory pokers::               Pokers values.
+* memory array peekers::        Peeking values into arrays.
+* memory array pokers::         Poking values into arrays.
 
 Independent libraries
 
@@ -516,6 +517,7 @@ C language strings handling
 * cstring inspection::          Inspecting cstrings.
 * cstring operations::          Acting upon cstrings.
 * cstring conversion::          Converting to and from cstrings.
+* cstring argv::                Converting arrays of cstrings.
 
 C language system errors
 
@@ -624,7 +626,6 @@ Independent libraries
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
-* lang printing::               Printing.
 * lang cleanup::                Cleanup of asynchronous resources.
 * lang queue::                  Simple queue.
 @end menu
@@ -1366,47 +1367,6 @@ The following will evaluate successfully:
 
 (check-report)
 @end example
-
-
-@c page
-@node lang printing
-@section Printing
-
-
-This chapter describes an interface to the @func{pretty-print} and
-@func{format} procedures.  It is meant to provide basic printing
-facilities for debugging and test suites.  To load the library:
-
-@example
-(import (r6rs)
-  (uriel printing))
-@end example
-
-
-@defun print @var{port} @var{template} @var{value} ...
-Format the string @var{template} using the optional @var{value}s, using
-implementation specific facilities, and return the result.  If
-@var{port} is true:
-
-@itemize
-@item
-if it is an output port: the result is written into it with
-@func{display};
-
-@item
-if it is @true{}: the result is written into the current output-port
-with @func{display};
-
-@item
-else an assertion violation is raised.
-@end itemize
-@end defun
-
-
-@defun pretty-print @var{value}
-Prints to the current output port the best representation possible of
-@var{value}.
-@end defun
 
 
 @c page
