@@ -942,7 +942,7 @@ local-slackware-upgrade:
 
 ## ---------------------------------------------------------------------
 
-.PHONY: abi abu
+.PHONY: abi abu bi bu
 
 abi:
 	$(MAKE) all
@@ -951,7 +951,10 @@ abu:
 	$(MAKE) all
 	$(MAKE) local-slackware local-slackware-upgrade slack_SUDO=$(SUDO)
 
-
+bi:
+	$(MAKE) local-slackware local-slackware-install slack_SUDO=$(SUDO)
+bu:
+	$(MAKE) local-slackware local-slackware-upgrade slack_SUDO=$(SUDO)
 
 
 #page

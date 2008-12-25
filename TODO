@@ -9,6 +9,14 @@
 
 ## ------------------------------------------------------------
 
+SRFI
+----
+
+* Install only the compiled files of the enabled implementations.
+* add documentation for CUT SRFI
+* Solve the problem of "(import (srfi srfi-1))".
+
+
 Uriel
 -----
 
@@ -27,14 +35,6 @@ ScmObj
 * Add more tests.
 * Finish the documentation (replace all the original material).
 * Fix dispatching to methods with untyped args.
-
-
-SRFI
-----
-
-* add documentation for CUT SRFI
-* Solve the problem of "(import (srfi srfi-1))".
-* Wrap the ec in the "(loop-lib)".
 
 
 IrRegex

@@ -4,13 +4,21 @@
 (import (rnrs)
   (larceny compiler))
 
+(compile-library "srfi/private/let-opt.sls"
+		 "srfi/private/let-opt.larceny.slfasl")
+(compile-library "srfi/private/implementation-features.larceny.sls"
+		 "srfi/private/implementation-features.larceny.slfasl")
+(compile-library "srfi/private/registry.sls"
+		 "srfi/private/registry.larceny.slfasl")
+
 (compile-library "srfi/and-let-star.sls"
 		 "srfi/and-let-star.larceny.slfasl")
 (compile-library "srfi/parameters.larceny.sls"
 		 "srfi/parameters.larceny.slfasl")
 (compile-library "srfi/error-reporting.sls"
 		 "srfi/error-reporting.larceny.slfasl")
-;;(compile-library "srfi/cond-expand.sls" "srfi/cond-expand.larceny.slfasl")
+(compile-library "srfi/cond-expand.sls"
+		 "srfi/cond-expand.larceny.slfasl")
 (compile-library "srfi/lists/compat.larceny.sls"
 		 "srfi/lists/compat.larceny.slfasl")
 (compile-library "srfi/lists.sls"
@@ -72,6 +80,5 @@
 		 "vector-lib.larceny.slfasl")
 (compile-library "loop-lib.sls"
 		 "loop-lib.larceny.slfasl")
-
 
 ; end of file

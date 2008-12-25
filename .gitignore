@@ -15,6 +15,7 @@ autom4te*
 *.info.gz
 *.html
 *.html.gz
+*.pdf
 configure
 sizeof.sls
 fields.sls
