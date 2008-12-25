@@ -2,7 +2,7 @@
 ;;;Part of: ScmObj
 ;;;Contents: tests for ScmObj
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-11-21 21:22:01 marco>
+;;;Time-stamp: <2008-12-25 20:41:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,10 +28,9 @@
 
 ;;;; Setup.
 
-(import (rnrs)
-;;  (only (ikarus) printf pretty-print)
-  (srfi lists)
-  (srfi lightweight-testing)
+(import (r6rs)
+  (list-lib)
+  (check-lib)
   (scmobj))
 
 (check-set-mode! 'report-failed)
