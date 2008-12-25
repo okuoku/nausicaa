@@ -28,6 +28,7 @@
 (library (srfi lists compat)
   (export
     last-pair make-list)
-  (import (primitives last-pair make-list)))
+  (import
+      (primitives last-pair make-list)))
 
 ;;; end of file

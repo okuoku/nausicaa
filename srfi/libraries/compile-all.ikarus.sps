@@ -14,7 +14,7 @@
   (only (srfi case-lambda))
   (only (srfi time))
   (only (srfi error-reporting))
-  (only (srfi cut)) 
+  (only (srfi cut))
   (only (srfi random))
   (only (srfi rec))
   (only (srfi args-fold))
@@ -29,6 +29,7 @@
   (only (srfi lightweight-testing))
 
   (only (list-lib))
+  (only (loop-lib))
   (only (string-lib))
   (only (vector-lib)))
 

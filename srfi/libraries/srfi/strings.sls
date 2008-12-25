@@ -357,9 +357,9 @@
 		  string-upcase string-downcase string-titlecase string-hash)
     (except (rnrs mutable-strings) string-fill!)
     (rnrs r5rs)
+    (srfi parameters)
     (srfi receive)
     (srfi char-set)
-    (srfi parameters)
     (srfi private let-opt))
 
   (define-syntax check-arg
@@ -370,6 +370,8 @@
 
   (define (char-cased? c)
     (char-upper-case? (char-upcase c)))
+
+
 
 
 ;;; Support for START/END substring specs

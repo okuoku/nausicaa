@@ -95,7 +95,7 @@
 (expect " 3.46e11" (format "~8,2F" 3.4567e11))
 
 (expect "#0=(a b c . #0#)"
-        (format "~w" (let ( (c '(a b c)) ) (set-cdr! (cddr c) c) c)))
+        (format "~w" (let ( (c (list 'a 'b 'c)) ) (set-cdr! (cddr c) c) c)))
 
 (expect "
 "

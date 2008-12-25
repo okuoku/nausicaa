@@ -430,7 +430,7 @@ ifasl: fasl-copy fasl-ikarus-compile
 ## ---------------------------------------------------------------------
 
 fasl_larceny_COMPILE_SCRIPT	= $(PWD)/$(sls_SRCDIR)/compile-all.larceny.sps
-fasl_larceny_COMPILE_ENV	= LARCENYLIBPATH=$(sls_BUILDDIR):$(LARCENYLIBPATH)
+fasl_larceny_COMPILE_ENV	= LARCENYLIBPATH=$(PWD)/$(sls_BUILDDIR):$(LARCENYLIBPATH)
 fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
 fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) $(fasl_larceny_COMPILE_COMMAND) $(fasl_larceny_COMPILE_SCRIPT)
 
@@ -520,7 +520,9 @@ endif
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(file).sps)
-nau_test_PATH		= $(THE_LIBPATH)$(sls_BUILDDIR):$(srcdir)/libraries:$(srcdir)/tests
+
+# Here we include the build directory but not the source directory.
+nau_test_PATH		= $(THE_LIBPATH)$(sls_BUILDDIR):$(srcdir)/tests
 
 .PHONY: tests test check
 

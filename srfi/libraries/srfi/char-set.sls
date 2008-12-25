@@ -196,8 +196,7 @@
     (rnrs r5rs)
     (srfi records)
     (srfi parameters)
-    (srfi private let-opt)
-    (srfi private include-resolve))
+    (srfi private let-opt))
 
   (define-syntax check-arg
     (syntax-rules ()

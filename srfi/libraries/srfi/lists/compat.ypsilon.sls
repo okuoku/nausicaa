@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2008 Derick Eddington
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -28,8 +28,7 @@
 (library (srfi lists compat)
   (export
     last-pair make-list)
-  (import
-    (rnrs)
+  (import (rnrs)
     (only (core) make-list))
 
   (define (last-pair x)
@@ -37,7 +36,7 @@
       (assertion-violation 'last-pair "not a pair" x))
     (let loop ([x x])
       (if (pair? (cdr x))
-        (loop (cdr x))
-        x)))
+	  (loop (cdr x))
+        x))))
 
-)
+;;; end of file
