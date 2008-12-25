@@ -1,20 +1,33 @@
 
 			  List of things to do
+			  ====================
 
+
+Stuff related to me, the Earth and the Universe in general
+----------------------------------------------------------
 
 * Why I cannot install only the FASL files under ikarus?
 * Add support for pacman?
 * Add support for dpkg?
 * Document somewhere that ypsilon requires the --compatible flag.
+* Review all the redhat spec files and update the license field.
 
-## ------------------------------------------------------------
 
 SRFI
 ----
 
+* Write a test file for each SRFI.
 * Install only the compiled files of the enabled implementations.
-* add documentation for CUT SRFI
-* Solve the problem of "(import (srfi srfi-1))".
+* Not all the SRFI authors  have written the implementation library, the
+  documentation should be updated accordingly.
+
+
+Rlwrap GNU Readline wrappers
+----------------------------
+
+* Add a script for Larceny.
+* Add an Ypsilon specific completions file.
+* Add a Larceny specific completions file.
 
 
 Uriel
@@ -25,8 +38,6 @@ Uriel
 * Document  the problems  with define-macro  regarding  environment from
   which bindings are captured (put it in Ikarus guide?).
 * Scan the old gee base.
-
-* Consider removing the (uriel printing) library.
 
 
 ScmObj

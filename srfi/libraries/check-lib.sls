@@ -1,4 +1,4 @@
-;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -25,11 +25,23 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-#!r6rs
-(library (srfi case-lambda)
+(library (check-lib)
   (export
-    case-lambda)
-  (import
-    (only (rnrs control) case-lambda)))
+    ;;these must be all the exports from the ec library
+    check
+    check-ec
+    check-report
+    check-set-mode!
+    check-reset!
+    check-passed?
+    ;;; All of (srfi eager-comprehensions):
+    do-ec list-ec append-ec string-ec string-append-ec vector-ec
+    vector-of-length-ec sum-ec product-ec min-ec max-ec any?-ec
+    every?-ec first-ec last-ec fold-ec fold3-ec
+    : :list :string :vector :integers :range :real-range :char-range
+    :port :dispatched :do :let :parallel :while :until
+    :-dispatch-ref :-dispatch-set! make-initial-:-dispatch
+    dispatch-union :generator-proc)
+  (import (srfi lightweight-testing)))
 
 ;;; end of file

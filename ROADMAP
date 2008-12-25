@@ -1,0 +1,32 @@
+
+		     Nausicaa's development roadmap
+		     ==============================
+
+
+0.1
+---
+
+* Finish the POSIX interface.
+* Finish the Glibc interface.
+* Finish the OSSP/sa interface.
+* Finish support for Larceny.
+
+
+0.2
+---
+
+* Optimise the interface to the Ypsilon FFI to cache interface LAMBDAs.
+* Add  an optional  FFI layer  that  raises better  errors whenever  the
+  argument to a foreign function has the wrong type.  Derive it from the
+  original Ypsilon asserts.
+* Import in Uriel some sort of contract library.
+* Put SOS in a working state.
+
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 72
+# paragraph-start: "*"
+# End:

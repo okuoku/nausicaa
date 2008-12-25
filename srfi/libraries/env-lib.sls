@@ -1,4 +1,4 @@
-;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -25,11 +25,10 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-#!r6rs
-(library (srfi case-lambda)
+(library (env-lib)
   (export
-    case-lambda)
-  (import
-    (only (rnrs control) case-lambda)))
+    ;;these must be all the exports from the env library
+    get-environment-variable get-environment-variables)
+  (import (srfi environment-variables)))
 
 ;;; end of file

@@ -1,17 +1,11 @@
 Name: @PACKAGE_NAME@
 Version: @PACKAGE_VERSION@
 Release: @package_BUILD_VERSION@
-Summary: Scheme Requests for Implementation for Ikarus
+Summary: Scheme Requests for Implementation for R6RS Scheme
 Group: Development/Languages
-License: LGPL
+License: GPL
 
 %description
-This  directory holds  implementations of  the  SRFI (Scheme
-Requests  for Implementation)  adapted to  R6RS  and Ikarus.
-The  files are  a  checkout of  the  development version  at
-Launchpad   (see  Resources)   by   Derick  Eddington.    To
-assimilated the libraries into Nausicaa, library identifiers
-and file names have been normalised.
-
+Scheme Requests for Implementation for R6RS Scheme
 
 %files

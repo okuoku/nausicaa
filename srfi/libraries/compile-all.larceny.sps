@@ -71,6 +71,8 @@
 		 "srfi/lightweight-testing/compat.larceny.slfasl")
 (compile-library "srfi/lightweight-testing.sls"
 		 "srfi/lightweight-testing.larceny.slfasl")
+(compile-library "srfi/environment-variables.larceny.sls"
+		 "srfi/environment-variables.larceny.slfasl")
 
 (compile-library "list-lib.sls"
 		 "list-lib.larceny.slfasl")
@@ -80,5 +82,9 @@
 		 "vector-lib.larceny.slfasl")
 (compile-library "loop-lib.sls"
 		 "loop-lib.larceny.slfasl")
+(compile-library "check-lib.sls"
+		 "check-lib.larceny.slfasl")
+(compile-library "env-lib.sls"
+		 "env-lib.larceny.slfasl")
 
 ; end of file

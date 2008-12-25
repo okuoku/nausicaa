@@ -1,4 +1,4 @@
-;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -26,10 +26,10 @@
 ;;;SOFTWARE.
 
 #!r6rs
-(library (srfi case-lambda)
+(library (srfi environment-variables)
   (export
-    case-lambda)
-  (import
-    (only (rnrs control) case-lambda)))
+    (rename (lookup-process-environment get-environment-variable)
+	    (process-environment->alist get-environment-variables)))
+  (import (core)))
 
 ;;; end of file

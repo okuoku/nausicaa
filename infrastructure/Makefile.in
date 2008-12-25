@@ -100,7 +100,6 @@ nausicaa_ENABLE_YPSILON	= @nausicaa_ENABLE_YPSILON@
 nausicaa_ENABLE_LARCENY	= @nausicaa_ENABLE_LARCENY@
 
 
-
 #page
 ## ---------------------------------------------------------------------
 ## Nausicaa pre-configuration of binary package variables.
@@ -452,10 +451,10 @@ sls_$(1)_SRCDIR		= $$(sls_SRCDIR)/$(2)
 sls_$(1)_BUILDDIR	= $$(sls_BUILDDIR)/$(2)
 sls_$(1)_SOURCES	= $$(wildcard $$(sls_$(1)_SRCDIR)/*.sls)
 sls_$(1)_TARGETS	=
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+ifeq ($$(strip $$(nausicaa_ENABLE_IKARUS)),yes)
 sls_$(1)_TARGETS	+= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.ikarus-fasl)
 endif
-ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+ifeq ($$(strip $$(nausicaa_ENABLE_LARCENY)),yes)
 sls_$(1)_TARGETS	+= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.larceny.slfasl)
 endif
 

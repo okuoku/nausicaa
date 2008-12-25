@@ -27,10 +27,13 @@
   (only (srfi general-cond))
   (only (srfi compare))
   (only (srfi lightweight-testing))
+  (only (srfi environment-variables))
 
+  (only (check-lib))
   (only (list-lib))
   (only (loop-lib))
   (only (string-lib))
-  (only (vector-lib)))
+  (only (vector-lib))
+  (only (env-lib)))
 
 ;;; end of file

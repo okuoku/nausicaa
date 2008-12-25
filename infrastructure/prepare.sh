@@ -12,6 +12,7 @@ set -x
 
 ../configure \
     --enable-fasl \
+    --enable-ikarus \
     --enable-ypsilon \
     --enable-larceny \
     "$@"
