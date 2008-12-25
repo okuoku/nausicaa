@@ -5,7 +5,8 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	Order  does matter!!!  Libraries  that are  imported into  other
+;;;	libraries must be compiled first.
 ;;;
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -23,39 +24,11 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (srfi cond-expand))
-  (only (srfi lists))
-  (only (srfi and-let-star))
-  (only (srfi string-ports))
-  (only (srfi receive))
-  (only (srfi records))
-  (only (srfi let-values))
-  (only (srfi strings))
-  (only (srfi char-set))
-  (only (srfi case-lambda))
-  (only (srfi time))
-  (only (srfi error-reporting))
-  (only (srfi cut))
-  (only (srfi random))
-  (only (srfi rec))
-  (only (srfi args-fold))
-  (only (srfi sharing))
-  (only (srfi parameters))
-  (only (srfi streams))
-  (only (srfi eager-comprehensions))
-  (only (srfi vectors))
-  (only (srfi format))
-  (only (srfi general-cond))
-  (only (srfi compare))
-  (only (srfi lightweight-testing))
-  (only (srfi environment-variables))
+(import (rnrs)
+  (larceny compiler))
 
-  (only (check-lib))
-  (only (list-lib))
-  (only (loop-lib))
-  (only (string-lib))
-  (only (vector-lib))
-  (only (env-lib)))
+(compile-library "template.sls"
+		 "template.larceny.slfasl")
+
 
 ;;; end of file
