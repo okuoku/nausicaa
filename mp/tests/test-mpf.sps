@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPF numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-18 21:34:15 marco>
+;;;Time-stamp: <2008-12-26 22:18:09 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,12 +30,10 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel memory)
-  (uriel cstring)
+  (uriel foreign)
   (uriel test)
   (mp mpf)
-  (mp sizeof)
-  (srfi format))
+  (mp sizeof))
 
 (check-set-mode! 'report-failed)
 

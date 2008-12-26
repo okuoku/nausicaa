@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, random integers functions
 ;;;Date: Fri Nov 28, 2008
-;;;Time-stamp: <2008-12-16 10:03:57 marco>
+;;;Time-stamp: <2008-12-26 22:16:35 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -37,8 +37,8 @@
     gmp_urandomb_ui
     gmp_urandomm_ui)
   (import (r6rs)
-    (uriel printing)
     (uriel ffi)
+    (uriel ffi sizeof)
     (mp sizeof))
 
   (define gmp-lib

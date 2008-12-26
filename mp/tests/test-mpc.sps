@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPC numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-18 21:36:37 marco>
+;;;Time-stamp: <2008-12-26 22:17:33 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,11 +30,8 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel memory)
-  (uriel cstring)
+  (uriel foreign)
   (uriel test)
-  (srfi format)
-  (srfi parameters)
   (mp mpfr)
   (mp mpc)
   (mp sizeof))

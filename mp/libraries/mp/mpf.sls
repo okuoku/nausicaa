@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPF functions
 ;;;Date: Tue Nov 25, 2008
-;;;Time-stamp: <2008-12-16 10:03:37 marco>
+;;;Time-stamp: <2008-12-26 22:16:18 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -93,6 +93,7 @@
     mpf_get_default_prec)
   (import (r6rs)
     (uriel ffi)
+    (uriel ffi sizeof)
     (mp sizeof))
 
   (define gmp-lib

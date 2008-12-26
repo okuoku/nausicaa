@@ -23,13 +23,16 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (mp mpz))
-  (only (mp mpq))
-  (only (mp mpf))
-  (only (mp random))
-  (only (mp mpfr))
-  (only (mp mpfi))
-  (only (mp mpc)))
+(import (rnrs)
+  (larceny compiler))
+
+(compile-library "mp/sizeof.sls"	"mp/sizeof.larceny.slfasl")
+(compile-library "mp/mpz.sls"		"mp/mpz.larceny.slfasl")
+(compile-library "mp/mpq.sls"		"mp/mpq.larceny.slfasl")
+(compile-library "mp/mpf.sls"		"mp/mpf.larceny.slfasl")
+(compile-library "mp/random.sls"	"mp/random.larceny.slfasl")
+(compile-library "mp/mpfr.sls"		"mp/mpfr.larceny.slfasl")
+(compile-library "mp/mpfi.sls"		"mp/mpfi.larceny.slfasl")
+(compile-library "mp/mpc.sls"		"mp/mpc.larceny.slfasl")
 
 ;;; end of file

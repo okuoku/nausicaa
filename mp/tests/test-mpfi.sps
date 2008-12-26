@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPFI numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-18 21:35:09 marco>
+;;;Time-stamp: <2008-12-26 22:17:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,10 +30,8 @@
 
 (import (r6rs)
   (uriel lang)
-  (uriel memory)
-  (uriel cstring)
+  (uriel foreign)
   (uriel test)
-  (srfi format)
   (mp mpfr)
   (mp mpfi)
   (mp sizeof))
