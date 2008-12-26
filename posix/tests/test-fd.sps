@@ -33,14 +33,14 @@
   (uriel lang)
   (uriel foreign)
   (uriel test)
-  (uriel getenv)
+  (env-lib)
   (only (string-lib) string-join)
   (posix fd)
   (posix sizeof))
 
 (check-set-mode! 'report-failed)
 
-(define TMPDIR (getenv "TMPDIR"))
+(define TMPDIR (get-environment-variable "TMPDIR"))
 
 (define the-pathname (string-join (list TMPDIR "name.ext") "/"))
 
@@ -271,7 +271,7 @@ Ses ailes de geant l'empechent de marcher.")
 (parameterize ((testname 'fifo))
 
   (define pathname
-    (let ((p (string-join (list (getenv "TMPDIR") "fifo") "/")))
+    (let ((p (string-join (list (get-environment-variable "TMPDIR") "fifo") "/")))
       (when (file-exists? p)
 	(delete-file p))
       p))

@@ -1,7 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: Ikarus POSIX functions compatibility for environment
-;;;Date: Mon Nov 24, 2008
+;;;Contents: Larceny POSIX functions compatibility for environment
+;;;Date: Fri Dec 26, 2008
 ;;;
 ;;;Abstract
 ;;;
@@ -26,6 +26,6 @@
 (library (posix environment compat)
   (export
     (rename (getenv primitive-getenv)))
-  (import (only (ikarus) getenv)))
+  (import (primitives getenv)))
 
 ;;; end of file

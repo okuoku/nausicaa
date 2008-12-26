@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: Ypsilon POSIX functions compatibility for environment
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-19 07:49:03 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -27,8 +26,6 @@
 (library (posix environment compat)
   (export
     (rename (getenv primitive-getenv)))
-  (import (r6rs)
-    (core)))
-
+  (import (only (core) getenv)))
 
 ;;; end of file

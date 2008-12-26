@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for the process related POSIX functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 23:55:25 marco>
+;;;Time-stamp: <2008-12-26 17:59:53 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -32,7 +32,6 @@
   (uriel lang)
   (uriel test)
   (uriel errno)
-  (uriel lang void)
   (posix process)
   (posix process stub))
 
@@ -85,14 +84,20 @@
 (parameterize ((testname 'exec))
 
   (check
-      (when (= 0 (fork))
-	(execv '/bin/ls '(ls "-l" /bin/ls)))
-    => (void))
+      (begin
+	(when (= 0 (fork))
+	  (execv '/bin/ls '(ls "-l" /bin/ls))
+	  (exit))
+	#t)
+    => #t)
 
   (check
-      (when (= 0 (fork))
-	(execv '/usr/bin/du '(du /bin/ls)))
-    => (void))
+      (begin
+	(when (= 0 (fork))
+	  (execv '/usr/bin/du '(du /bin/ls))
+	  (exit))
+	#t)
+    => #t)
 
   (check
       (parameterize ((primitive-execv-function
@@ -106,9 +111,12 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (when (= 0 (fork))
-	(execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable")))
-    => (void))
+      (begin
+	(when (= 0 (fork))
+	  (execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))
+	  (exit))
+	#t)
+    => #t)
 
   (check
       (parameterize ((primitive-execve-function
@@ -122,9 +130,12 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (when (= 0 (fork))
-	(execvp 'ls '(ls "-l" /bin/ls)))
-    => (void))
+      (begin
+	(when (= 0 (fork))
+	  (execvp 'ls '(ls "-l" /bin/ls))
+	  (exit))
+	#t)
+    => #t)
 
   (check
       (let ()
