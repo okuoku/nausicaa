@@ -27,8 +27,8 @@
 
 (library (srfi parameters)
   (export
-    (rename (make-this-parameter make-parameter))
-    parameterize)
+    (rename (make-this-parameter make-parameter)
+	    (parameterize-this parameterize)))
   (import (rnrs)
     (primitives make-parameter parameterize))
 
@@ -42,6 +42,12 @@
 	 (()
 	  (the-parm)))))
      ((value)
-      (make-this-parameter value (lambda (x) x))))))
+      (make-this-parameter value (lambda (x) x)))))
+
+  (define-syntax parameterize-this
+    (syntax-rules ()
+      ((_ ?bindings ?form0 ?form ...)
+       (parameterize ?bindings
+	 (letrec* () ?form0 ?form ...))))))
 
 ;;; end of file
