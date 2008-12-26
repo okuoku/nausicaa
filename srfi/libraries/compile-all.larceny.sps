@@ -27,87 +27,139 @@
 (import (rnrs)
   (larceny compiler))
 
+;;; --------------------------------------------------------------------
+
 (compile-library "srfi/private/let-opt.sls"
 		 "srfi/private/let-opt.larceny.slfasl")
+
 (compile-library "srfi/private/implementation-features.larceny.sls"
 		 "srfi/private/implementation-features.larceny.slfasl")
+
 (compile-library "srfi/private/registry.sls"
 		 "srfi/private/registry.larceny.slfasl")
 
+;;; --------------------------------------------------------------------
+
 (compile-library "srfi/and-let-star.sls"
 		 "srfi/and-let-star.larceny.slfasl")
+
 (compile-library "srfi/parameters.larceny.sls"
 		 "srfi/parameters.larceny.slfasl")
+
 (compile-library "srfi/error-reporting.sls"
 		 "srfi/error-reporting.larceny.slfasl")
+
 (compile-library "srfi/cond-expand.sls"
 		 "srfi/cond-expand.larceny.slfasl")
-(compile-library "srfi/lists/compat.larceny.sls"
-		 "srfi/lists/compat.larceny.slfasl")
-(compile-library "srfi/lists.sls"
- 		 "srfi/lists.larceny.slfasl")
-(compile-library "srfi/string-ports/compat.larceny.sls"
-		 "srfi/string-ports/compat.larceny.slfasl")
-(compile-library "srfi/string-ports.sls"
- 		 "srfi/string-ports.larceny.slfasl")
-(compile-library "srfi/receive.sls"
-		 "srfi/receive.larceny.slfasl")
-(compile-library "srfi/records.sls"
-		 "srfi/records.larceny.slfasl")
-(compile-library "srfi/let-values.sls"
-		 "srfi/let-values.larceny.slfasl")
-(compile-library "srfi/char-set.sls"
-		 "srfi/char-set.larceny.slfasl")
-(compile-library "srfi/strings.sls"
-		 "srfi/strings.larceny.slfasl")
-(compile-library "srfi/case-lambda.sls"
-		 "srfi/case-lambda.larceny.slfasl")
-(compile-library "srfi/time.sls"
-		 "srfi/time.larceny.slfasl")
-(compile-library "srfi/time/compat.larceny.sls"
-		 "srfi/time/compat.larceny.slfasl")
-(compile-library "srfi/cut.sls"
-		 "srfi/cut.larceny.slfasl")
-(compile-library "srfi/random.sls"
-		 "srfi/random.larceny.slfasl")
-(compile-library "srfi/rec.sls"
-		 "srfi/rec.larceny.slfasl")
-(compile-library "srfi/args-fold.sls"
-		 "srfi/args-fold.larceny.slfasl")
+
 (compile-library "srfi/sharing.sls"
 		 "srfi/sharing.larceny.slfasl")
-(compile-library "srfi/streams.sls"
-		 "srfi/streams.larceny.slfasl")
-(compile-library "srfi/eager-comprehensions.sls"
-		 "srfi/eager-comprehensions.larceny.slfasl")
-(compile-library "srfi/vectors.sls"
-		 "srfi/vectors.larceny.slfasl")
+
+(compile-library "srfi/lists/compat.larceny.sls"
+		 "srfi/lists/compat.larceny.slfasl")
+
+(compile-library "srfi/lists.sls"
+ 		 "srfi/lists.larceny.slfasl")
+
+(compile-library "srfi/string-ports/compat.larceny.sls"
+		 "srfi/string-ports/compat.larceny.slfasl")
+
+(compile-library "srfi/string-ports.sls"
+ 		 "srfi/string-ports.larceny.slfasl")
+
+(compile-library "srfi/receive.sls"
+		 "srfi/receive.larceny.slfasl")
+
+(compile-library "srfi/records.sls"
+		 "srfi/records.larceny.slfasl")
+
+(compile-library "srfi/let-values.sls"
+		 "srfi/let-values.larceny.slfasl")
+
+(compile-library "srfi/char-set.sls"
+		 "srfi/char-set.larceny.slfasl")
+
+(compile-library "srfi/strings.sls"
+		 "srfi/strings.larceny.slfasl")
+
 (compile-library "srfi/format/compat.larceny.sls"
 		 "srfi/format/compat.larceny.slfasl")
+
 (compile-library "srfi/format.sls"
 		 "srfi/format.larceny.slfasl")
+
+(compile-library "srfi/case-lambda.sls"
+		 "srfi/case-lambda.larceny.slfasl")
+
+(compile-library "srfi/time/compat.larceny.sls"
+		 "srfi/time/compat.larceny.slfasl")
+
+(compile-library "srfi/time.sls"
+		 "srfi/time.larceny.slfasl")
+
+(compile-library "srfi/cut.sls"
+		 "srfi/cut.larceny.slfasl")
+
+(compile-library "srfi/random.sls"
+		 "srfi/random.larceny.slfasl")
+
+(compile-library "srfi/rec.sls"
+		 "srfi/rec.larceny.slfasl")
+
+(compile-library "srfi/args-fold.sls"
+		 "srfi/args-fold.larceny.slfasl")
+
+(compile-library "srfi/streams.sls"
+		 "srfi/streams.larceny.slfasl")
+
+(compile-library "srfi/eager-comprehensions.sls"
+		 "srfi/eager-comprehensions.larceny.slfasl")
+
+(compile-library "srfi/vectors.sls"
+		 "srfi/vectors.larceny.slfasl")
+
 (compile-library "srfi/general-cond.sls"
 		 "srfi/general-cond.larceny.slfasl")
+
 (compile-library "srfi/compare.sls"
 		 "srfi/compare.larceny.slfasl")
+
 (compile-library "srfi/lightweight-testing/compat.larceny.sls"
 		 "srfi/lightweight-testing/compat.larceny.slfasl")
+
 (compile-library "srfi/lightweight-testing.sls"
 		 "srfi/lightweight-testing.larceny.slfasl")
+
 (compile-library "srfi/environment-variables.larceny.sls"
 		 "srfi/environment-variables.larceny.slfasl")
 
+;;; --------------------------------------------------------------------
+
 (compile-library "list-lib.sls"
 		 "list-lib.larceny.slfasl")
+
 (compile-library "string-lib.sls"
 		 "string-lib.larceny.slfasl")
+
 (compile-library "vector-lib.sls"
 		 "vector-lib.larceny.slfasl")
+
 (compile-library "loop-lib.sls"
 		 "loop-lib.larceny.slfasl")
+
 (compile-library "check-lib.sls"
 		 "check-lib.larceny.slfasl")
+
 (compile-library "env-lib.sls"
 		 "env-lib.larceny.slfasl")
+
+(compile-library "receive-lib.sls"
+		 "receive-lib.larceny.slfasl")
+
+(compile-library "parm-lib.sls"
+		 "parm-lib.larceny.slfasl")
+
+(compile-library "format-lib.sls"
+		 "format-lib.larceny.slfasl")
 
 ;;; end of file

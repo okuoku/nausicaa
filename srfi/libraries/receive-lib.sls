@@ -1,4 +1,4 @@
-;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -25,12 +25,9 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-(library (srfi format compat)
+(library (receive-lib)
   (export
-    pretty-print ascii-tab)
-  (import (rnrs base)
-    (primitives pretty-print))
-
-  (define ascii-tab #\tab))
+    receive)
+  (import (srfi receive)))
 
 ;;; end of file

@@ -881,6 +881,13 @@ Additionally the following libraries are installed:
 @item check-lib
 Imports @library{srfi lightweight-testing} and exports all its bindings.
 
+@item env-lib
+Imports @library{srfi environment-variables} and exports all its
+bindings.
+
+@item format-lib
+Imports @library{srfi format} and exports all its bindings.
+
 @item list-lib
 Imports @library{srfi lists} and exports all its bindings.
 
@@ -888,16 +895,18 @@ Imports @library{srfi lists} and exports all its bindings.
 Imports @library{srfi eager-comprehensions} and exports all its
 bindings.
 
+@item parm-lib
+Imports @library{srfi parameters} and exports all its bindings.
+
+@item receive-lib
+Imports @library{srfi receive} and exports all its bindings.
+
 @item string-lib
 Imports @library{srfi strings} and @library{srfi string-ports} and
 exports all its bindings.
 
 @item vector-lib
 Imports @library{srfi vectors} and exports all its bindings.
-
-@item env-lib
-Imports @library{srfi environment-variables} and exports all its
-bindings.
 @end table
 
 
