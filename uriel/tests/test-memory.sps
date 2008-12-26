@@ -245,14 +245,18 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (guard (exc (else exc))
+      (guard (exc (else
+		   (write (condition-who exc))(newline)
+		   (write (condition-message exc))(newline)
+		   exc))
 	(let ((p (malloc 4096)))
 	  (primitive-free p)
 	  #t))
     => #t)
 
   (check
-      (guard (exc (else exc))
+      (guard (exc (else
+		   exc))
 	(let* ((p (malloc 4096))
 	       (q (realloc p 8192)))
 	  (primitive-free q)
@@ -670,7 +674,7 @@
 (parameterize ((testname 'pokers))
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-char! p 100 65)
 		  (pointer-ref-c-signed-char p 100))))
@@ -678,7 +682,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-char! p 100 128)
 		  (pointer-ref-c-signed-char p 100))))
@@ -689,7 +693,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-char! p 100 65)
 		  (pointer-ref-c-unsigned-char p 100))))
@@ -697,7 +701,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-char! p 100 128)
 		  (pointer-ref-c-unsigned-char p 100))))
@@ -708,7 +712,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-short! p 100 65)
 		  (pointer-ref-c-signed-short p 100))))
@@ -716,7 +720,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-short! p 100 32768)
 		  (pointer-ref-c-signed-short p 100))))
@@ -727,7 +731,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-short! p 100 65)
 		  (pointer-ref-c-unsigned-short p 100))))
@@ -735,7 +739,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-short! p 100 32768)
 		  (pointer-ref-c-unsigned-short p 100))))
@@ -746,7 +750,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-int! p 100 65)
 		  (pointer-ref-c-signed-int p 100))))
@@ -754,7 +758,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-int! p 100 (expt 2 31))
 		  (pointer-ref-c-signed-int p 100))))
@@ -765,7 +769,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-int! p 100 65)
 		  (pointer-ref-c-unsigned-int p 100))))
@@ -773,7 +777,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-int! p 100 (expt 2 31))
 		  (pointer-ref-c-unsigned-int p 100))))
@@ -784,7 +788,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-long! p 64 65)
 		  (pointer-ref-c-signed-long p 64))))
@@ -792,7 +796,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
 		  (pointer-ref-c-signed-long p 64))))
@@ -803,7 +807,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-long! p 64 65)
 		  (pointer-ref-c-unsigned-long p 64))))
@@ -811,7 +815,7 @@
 	d)
     => 65)
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
 		  (pointer-ref-c-unsigned-long p 64))))
@@ -821,17 +825,17 @@
 
 ;;; --------------------------------------------------------------------
 
-;;   (check
-;;       (let* ((p (primitive-malloc (expt 10 5)))
-;; 	     (d (begin
-;; 		  (pointer-set-c-float! p 64 4.5)
-;; 		  (pointer-ref-c-float p 64))))
-;; 	(primitive-free p)
-;; 	d)
-;;     => 4.5)
+  (check
+      (let* ((p (malloc (expt 10 5)))
+	     (d (begin
+		  (pointer-set-c-float! p 64 4.5)
+		  (pointer-ref-c-float p 64))))
+	(primitive-free p)
+	d)
+    => 4.5)
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5)))
+      (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-double! p 64 4.5)
 		  (pointer-ref-c-double p 64))))
@@ -842,7 +846,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((p (primitive-malloc (expt 10 5))))
+      (let* ((p (malloc (expt 10 5))))
 	(begin0
 	    (begin
 	      (pointer-set-c-pointer! p 100 (integer->pointer 90))
@@ -901,29 +905,29 @@
 ;; 		(peek-array-unsigned-long-long a 6))))
 ;;     => '(65 66))
 
-;;   (check
-;;       (with-compensations
-;; 	(let ((a (malloc/c (sizeof-float-array 16))))
-;; 	  (poke-array-float! a 5 65.1)
-;; 	  (poke-array-float! a 6 66.2)
-;; 	  (cons (peek-array-float a 5)
-;; 		(peek-array-float a 6))))
-;;     (=> (lambda (a b)
-;; 	  (and (< (- (car a) (car b)) 0.1)
-;; 	       (< (- (cdr a) (cdr b)) 0.1))))
-;;     '(65.1 . 66.2))
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-float-array 16))))
+	  (poke-array-float! a 5 65.1)
+	  (poke-array-float! a 6 66.2)
+	  (cons (peek-array-float a 5)
+		(peek-array-float a 6))))
+    (=> (lambda (a b)
+	  (and (< (- (car a) (car b)) 0.1)
+	       (< (- (cdr a) (cdr b)) 0.1))))
+    '(65.1 . 66.2))
 
-;;   (check
-;;       (with-compensations
-;; 	(let ((a (malloc/c (sizeof-double-array 16))))
-;; 	  (poke-array-double! a 5 65.1)
-;; 	  (poke-array-double! a 6 66.2)
-;; 	  (cons (peek-array-double a 5)
-;; 		(peek-array-double a 6))))
-;;     (=> (lambda (a b)
-;; 	  (and (< (- (car a) (car b)) 0.1)
-;; 	       (< (- (cdr a) (cdr b)) 0.1))))
-;;     '(65.1 . 66.2))
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-double-array 16))))
+	  (poke-array-double! a 5 65.1)
+	  (poke-array-double! a 6 66.2)
+	  (cons (peek-array-double a 5)
+		(peek-array-double a 6))))
+    (=> (lambda (a b)
+	  (and (< (- (car a) (car b)) 0.1)
+	       (< (- (cdr a) (cdr b)) 0.1))))
+    '(65.1 . 66.2))
 
   (check
       (with-compensations

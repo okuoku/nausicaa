@@ -65,26 +65,35 @@
      %poke-long %poke-ulong %poke-pointer
 
      void*-double-set! void*-double-ref
+     void*-float-set! void*-float-ref
+
+     void*? void*-rt record-constructor void*->address
      )
     (uriel ffi sizeof))
 
 
 ;;;; pointers
 
-(define-record-type pointer
-  (fields (immutable value)))
+;; (define-record-type pointer
+;;   (fields (immutable value)))
 
 (define (integer->pointer value)
   (unless (integer? value)
     (assertion-violation 'integer->pointer
       "expected integer value" value))
-  (make-pointer value))
+;  (make-pointer value)
+  ((record-constructor void*-rt) value)
+  )
 
 (define (pointer->integer pointer)
   (unless (pointer? pointer)
     (assertion-violation 'pointer->integer
       "expected pointer value" pointer))
-  (pointer-value pointer))
+  (void*->address pointer)
+;  (pointer-value pointer)
+  )
+
+(define pointer? void*?)
 
 
 ;;;; foreign functions
@@ -94,101 +103,125 @@
     ((unsigned-long)	'ulong)
     ((unsigned-int)	'unsigned)))
 
+;; (define platform-free
+;;   (let ((f (foreign-procedure "free" (list larceny-pointer-integer) 'void)))
+;;     (lambda (pointer)
+;;       (f (pointer-value pointer)))))
+
 (define platform-free
-  (let ((f (foreign-procedure "free" (list larceny-pointer-integer) 'void)))
-    (lambda (pointer)
-      (f (pointer-value pointer)))))
+  (foreign-procedure "free" '(void*) 'void))
+
+;; (define platform-malloc
+;;   (let ((f (foreign-procedure "malloc" '(unsigned) larceny-pointer-integer)))
+;;     (lambda (size)
+;;       (make-pointer (f size)))))
 
 (define platform-malloc
-  (let ((f (foreign-procedure "malloc" '(unsigned) larceny-pointer-integer)))
-    (lambda (size)
-      (make-pointer (f size)))))
+  (foreign-procedure "malloc" '(unsigned) 'void*))
+
+;; (define platform-realloc
+;;   (let ((f (foreign-procedure "realloc"
+;; 			      (list larceny-pointer-integer 'unsigned)
+;; 			      larceny-pointer-integer)))
+;;     (lambda (pointer size)
+;;       (make-pointer (f (pointer-value pointer) size)))))
 
 (define platform-realloc
-  (let ((f (foreign-procedure "realloc"
-			      (list larceny-pointer-integer 'unsigned)
-			      larceny-pointer-integer)))
-    (lambda (pointer size)
-      (make-pointer (f (pointer-value pointer) size)))))
+  (foreign-procedure "realloc" '(void* unsigned) 'void*))
+
+;; (define platform-calloc
+;;   (let ((f (foreign-procedure "calloc" '(unsigned unsigned) larceny-pointer-integer)))
+;;     (lambda (count element-size)
+;;       (make-pointer (f count element-size)))))
 
 (define platform-calloc
-  (let ((f (foreign-procedure "calloc" '(unsigned unsigned) larceny-pointer-integer)))
-    (lambda (count element-size)
-      (make-pointer (f count element-size)))))
+  (foreign-procedure "calloc" '(unsigned unsigned) 'void*))
+
+;; (define memset
+;;   (let ((f (foreign-procedure "memset"
+;; 			      (list larceny-pointer-integer 'int 'unsigned)
+;; 			      larceny-pointer-integer)))
+;;     (lambda (pointer value number-of-bytes)
+;;       (make-pointer (f (pointer-value pointer) value number-of-bytes)))))
 
 (define memset
-  (let ((f (foreign-procedure "memset"
-			      (list larceny-pointer-integer 'int 'unsigned)
-			      larceny-pointer-integer)))
-    (lambda (pointer value number-of-bytes)
-      (make-pointer (f (pointer-value pointer) value number-of-bytes)))))
+  (foreign-procedure "memset" '(void* int unsigned) 'void*))
+
+;; (define memmove
+;;   (let ((f (foreign-procedure "memmove"
+;; 			      (list larceny-pointer-integer
+;; 				    larceny-pointer-integer
+;; 				    'unsigned)
+;; 			      larceny-pointer-integer)))
+;;     (lambda (dst src number-of-bytes)
+;;       (make-pointer (f (pointer-value dst)
+;; 		       (pointer-value src)
+;; 		       number-of-bytes)))))
 
 (define memmove
-  (let ((f (foreign-procedure "memmove"
-			      (list larceny-pointer-integer
-				    larceny-pointer-integer
-				    'unsigned)
-			      larceny-pointer-integer)))
-    (lambda (dst src number-of-bytes)
-      (make-pointer (f (pointer-value dst)
-		       (pointer-value src)
-		       number-of-bytes)))))
+  (foreign-procedure "memmove" '(void* void* unsigned) 'void*))
+
+;; (define memcpy
+;;   (let ((f (foreign-procedure "memcpy"
+;; 			      (list larceny-pointer-integer
+;; 				    larceny-pointer-integer
+;; 				    'unsigned)
+;; 			      larceny-pointer-integer)))
+;;     (lambda (dst src number-of-bytes)
+;;       (make-pointer (f (pointer-value dst)
+;; 		       (pointer-value src)
+;; 		       number-of-bytes)))))
 
 (define memcpy
-  (let ((f (foreign-procedure "memcpy"
-			      (list larceny-pointer-integer
-				    larceny-pointer-integer
-				    'unsigned)
-			      larceny-pointer-integer)))
-    (lambda (dst src number-of-bytes)
-      (make-pointer (f (pointer-value dst)
-		       (pointer-value src)
-		       number-of-bytes)))))
+  (foreign-procedure "memcpy" '(void* void* unsigned) 'void*))
+
+;; (define memcmp
+;;   (let ((f (foreign-procedure "memcmp"
+;; 			      (list larceny-pointer-integer
+;; 				    larceny-pointer-integer
+;; 				    'unsigned)
+;; 			      'int)))
+;;     (lambda (dst src number-of-bytes)
+;;       (f (pointer-value dst)
+;; 	 (pointer-value src)
+;; 	 number-of-bytes))))
 
 (define memcmp
-  (let ((f (foreign-procedure "memcmp"
-			      (list larceny-pointer-integer
-				    larceny-pointer-integer
-				    'unsigned)
-			      'int)))
-    (lambda (dst src number-of-bytes)
-      (f (pointer-value dst)
-	 (pointer-value src)
-	 number-of-bytes))))
+  (foreign-procedure "memcmp" '(void* void* unsigned) 'int))
 
 
 
 ;;;; peekers
 
 (define (pointer-ref-c-signed-char pointer position)
-  (%peek8 (+ position (pointer-value pointer))))
+  (%peek8 (+ position (pointer->integer pointer))))
 
 (define (pointer-ref-c-unsigned-char pointer position)
-  (%peek8u (+ position (pointer-value pointer))))
+  (%peek8u (+ position (pointer->integer pointer))))
 
 ;;; --------------------------------------------------------------------
 
 (define (pointer-ref-c-signed-short pointer position)
-  (%peek-short (+ position (pointer-value pointer))))
+  (%peek-short (+ position (pointer->integer pointer))))
 
 (define (pointer-ref-c-unsigned-short pointer position)
-  (%peek-ushort (+ position (pointer-value pointer))))
+  (%peek-ushort (+ position (pointer->integer pointer))))
 
 ;;; --------------------------------------------------------------------
 
 (define (pointer-ref-c-signed-int pointer position)
-  (%peek-int (+ position (pointer-value pointer))))
+  (%peek-int (+ position (pointer->integer pointer))))
 
 (define (pointer-ref-c-unsigned-int pointer position)
-  (%peek-unsigned (+ position (pointer-value pointer))))
+  (%peek-unsigned (+ position (pointer->integer pointer))))
 
 ;;; --------------------------------------------------------------------
 
 (define (pointer-ref-c-signed-long pointer position)
-  (%peek-long (+ position (pointer-value pointer))))
+  (%peek-long (+ position (pointer->integer pointer))))
 
 (define (pointer-ref-c-unsigned-long pointer position)
-  (%peek-ulong (+ position (pointer-value pointer))))
+  (%peek-ulong (+ position (pointer->integer pointer))))
 
 ;;; --------------------------------------------------------------------
 
@@ -202,17 +235,15 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (pointer-ref-c-float pointer position)
-  (error 'pointer-ref-c-float
-    "this primitive is not implemented"))
+(define pointer-ref-c-float void*-float-ref)
 
-(define (pointer-ref-c-double pointer position)
-  (void*-double-ref (pointer-value pointer) position))
+(define pointer-ref-c-double void*-double-ref)
 
 ;;; --------------------------------------------------------------------
 
 (define (pointer-ref-c-pointer pointer position)
-  (make-pointer (%peek-pointer (+ position (pointer-value pointer)))))
+  ((record-constructor void*-rt)
+   (%peek-pointer (+ position (pointer->integer pointer)))))
 
 
 
@@ -220,34 +251,31 @@
 
 (define (pointer-set-c-char! pointer position value)
   ((if (< value 0) %poke8 %poke8u)
-   (+ position (pointer-value pointer)) value))
+   (+ position (pointer->integer pointer)) value))
 
 (define (pointer-set-c-short! pointer position value)
   ((if (< value 0) %poke-short %poke-ushort)
-   (+ position (pointer-value pointer)) value))
+   (+ position (pointer->integer pointer)) value))
 
 (define (pointer-set-c-int! pointer position value)
   ((if (< value 0) %poke-int %poke-unsigned)
-   (+ position (pointer-value pointer)) value))
+   (+ position (pointer->integer pointer)) value))
 
 (define (pointer-set-c-long! pointer position value)
   ((if (< value 0) %poke-long %poke-ulong)
-   (+ position (pointer-value pointer)) value))
+   (+ position (pointer->integer pointer)) value))
 
 (define (pointer-set-c-long-long! pointer position value)
   (error 'pointer-set-c-long-long!
     "this primitive is not implemented"))
 
-(define (pointer-set-c-float! pointer position value)
-  (error 'pointer-set-c-float!
-    "this primitive is not implemented"))
+(define pointer-set-c-float! void*-float-set!)
 
-(define (pointer-set-c-double! pointer position value)
-  (void*-double-set! (pointer-value pointer) position value))
+(define pointer-set-c-double! void*-double-set!)
 
 (define (pointer-set-c-pointer! pointer position value)
-  (%poke-pointer (+ position (pointer-value pointer))
-		 (pointer-value value)))
+  (%poke-pointer (+ (void*->address pointer) position)
+		 (pointer->integer value)))
 
 
 

@@ -156,11 +156,7 @@
     ((_ ?form0 ?form ...)
      (guard (exc (else
 		  (let ((e (deferred-exceptions)))
-		    (and e (deferred-exceptions (cons exc e))))
-;; 		  (when (deferred-exceptions)
-;; 		    (deferred-exceptions
-;; 		      (cons exc (deferred-exceptions))))
-		  ))
+		    (and e (deferred-exceptions (cons exc e))))))
        ?form0 ?form ...))))
 
 (define-syntax with-deferred-exceptions-handler

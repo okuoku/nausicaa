@@ -25,7 +25,6 @@ SRFI
 Rlwrap GNU Readline wrappers
 ----------------------------
 
-* Add a script for Larceny.
 * Add an Ypsilon specific completions file.
 * Add a Larceny specific completions file.
 
@@ -33,6 +32,13 @@ Rlwrap GNU Readline wrappers
 Uriel
 -----
 
+* Request FOREIGN-PROCEDURE/WITH-ERRNO to  the Larceny people and update
+  PRIMITIVE-MAKE-C-FUNCTION/WITH-ERRNO accordingly.
+* Write the long-long peekers/pokers for Ypsilon and Larceny.
+* Add/request/whatever  long-long  (if  possible)  as  foreign  function
+  argument and return value.
+* Review the FFI documentation introduction.
+* Write the FFI documentation section about scanning C header files.
 * Write an asyncs library.
 * Add make-callback to the ffi.
 * Document  the problems  with define-macro  regarding  environment from
