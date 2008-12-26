@@ -50,7 +50,6 @@
     ;;bindings from (format-lib)
     format)
   (import (r6rs)
-    (uriel lang void)
     (receive-lib)
     (parm-lib)
     (format-lib))
@@ -97,9 +96,10 @@
     ((_ (?varname ?list) (break-when ?condition) ?form0 ?form ...)
      (loop-upon-list (?varname ?list #f) (break-when ?condition) ?form0 ?form ...))
     ((_ (?varname ?list ?result) (break-when ?condition) ?form0 ?form ...)
-     (let ((exit (lambda () ?result)))
-       (let loop ((ell (cdr ?list))
-		  (?varname (car ?list)))
+     (let ((exit	(lambda () #f ?result))
+	   (ell		?list))
+       (let loop ((ell		(cdr ell))
+		  (?varname	(car ell)))
 	 (if ?condition
 	     (exit)
 	   (begin
@@ -109,22 +109,20 @@
 	       (loop (cdr ell) (car ell))))))))))
 
 (define-syntax ensure
-  (syntax-rules (by else else-by !ensure-else-clauses)
+  (syntax-rules (by else else-by)
     ((_ ?condition
 	(by ?by-form0 ?by-form ...)
 	(else-by ?else-by-form0 ?else-by-form ...) ...
 	(else ?else-form0 ?else-form ...))
      (let ((retval #f))
        (loop-upon-list
-	   (loop (list (lambda () ?by-form0 ?by-form ...)
+	   (expr (list (lambda () ?by-form0 ?by-form ...)
 		       (lambda () ?else-by-form0 ?else-by-form ...)
 		       ...
 		       (lambda () ?else-form0 ?else-form ...))
-		 (if (equal? (void) retval)
-		     #f
-		   retval))
+		 retval)
 	   (break-when ?condition)
-	 (set! retval (loop)))))))
+	 (set! retval (expr)))))))
 
 ;;Define a macro with the function-like form.
 ;; (define-syntax define-as-syntax
@@ -157,9 +155,12 @@
   (syntax-rules ()
     ((_ ?form0 ?form ...)
      (guard (exc (else
-		  (when (deferred-exceptions)
-		    (deferred-exceptions
-		      (cons exc (deferred-exceptions))))))
+		  (let ((e (deferred-exceptions)))
+		    (and e (deferred-exceptions (cons exc e))))
+;; 		  (when (deferred-exceptions)
+;; 		    (deferred-exceptions
+;; 		      (cons exc (deferred-exceptions))))
+		  ))
        ?form0 ?form ...))))
 
 (define-syntax with-deferred-exceptions-handler

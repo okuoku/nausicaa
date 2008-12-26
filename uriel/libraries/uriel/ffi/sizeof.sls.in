@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: size of platform C language types
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-18 15:48:43 marco>
+;;;Time-stamp: <2008-12-26 16:51:17 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,6 +31,8 @@
     sizeof-long-long		sizeof-float
     sizeof-double		sizeof-long-double
     sizeof-pointer
+
+    pointer-integer
 
     alignof-char		alignof-short
     alignof-int			alignof-long
@@ -69,6 +71,8 @@
   (define sizeof-double			@SIZEOF_DOUBLE@)
   (define sizeof-long-double		@SIZEOF_LONG_DOUBLE@)
   (define sizeof-pointer		@SIZEOF_POINTER@)
+
+  (define pointer-integer		(quote @TYPEOF_POINTER_INTEGER@))
 
   (define alignof-char			@ALIGNOF_CHAR@)
   (define alignof-short			@ALIGNOF_SHORT_INT@)

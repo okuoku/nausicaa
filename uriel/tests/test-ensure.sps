@@ -44,8 +44,9 @@
 	    (add-result 1)
 	    (add-result 2))
 	 (else
-	  (add-result 3)))))
-  => '(#f (1 2 3)))
+	  (add-result 3)
+	  999))))
+  => '(999 (1 2 3)))
 
 (check
     (with-result
@@ -56,8 +57,8 @@
 	    (add-result 2))
 	 (else
 	  (add-result 3)
-	  123))))
-  => '(123 (1 2 3)))
+	  999))))
+  => '(999 (1 2 3)))
 
 (check
     (with-result
@@ -66,11 +67,12 @@
 	   (by
 	    (add-result 1)
 	    (add-result 2)
-	    (set! flag 1))
+	    (set! flag 1)
+	    999)
 	 (else
 	  (add-result 3)
 	  (add-result 4)))))
-  => '(#f (1 2)))
+  => '(999 (1 2)))
 
 (check
     (with-result
@@ -99,8 +101,9 @@
 	 (else
 	  (add-result 5)
 	  (add-result 6)
-	  (set! flag 1)))))
-  => '(#f (1 2 3 4 5 6)))
+	  (set! flag 1)
+	  999))))
+  => '(999 (1 2 3 4 5 6)))
 
 (check
     (with-result
@@ -112,11 +115,12 @@
 	 (else-by
 	  (add-result 3)
 	  (add-result 4)
-	  (set! flag 1))
+	  (set! flag 1)
+	  999)
 	 (else
 	  (add-result 5)
 	  (add-result 6)))))
-  => '(#f (1 2 3 4)))
+  => '(999 (1 2 3 4)))
 
 (check
     (with-result
@@ -125,16 +129,15 @@
 	   (by
 	    (add-result 1)
 	    (add-result 2)
-	    (set! flag 1))
+	    (set! flag 1)
+	    999)
 	 (else-by
 	  (add-result 3)
 	  (add-result 4))
 	 (else
 	  (add-result 5)
 	  (add-result 6)))))
-  => '(#f (1 2)))
-
-
+  => '(999 (1 2)))
 
 (check
     (with-result
@@ -152,8 +155,9 @@
 	 (else
 	  (add-result 7)
 	  (add-result 8)
-	  (set! flag 1)))))
-  => '(#f (1 2 3 4 5 6 7 8)))
+	  (set! flag 1)
+	  999))))
+  => '(999 (1 2 3 4 5 6 7 8)))
 
 (check
     (with-result
@@ -168,11 +172,12 @@
 	 (else-by
 	  (add-result 5)
 	  (add-result 6)
-	  (set! flag 1))
+	  (set! flag 1)
+	  999)
 	 (else
 	  (add-result 7)
 	  (add-result 8)))))
-  => '(#f (1 2 3 4 5 6)))
+  => '(999 (1 2 3 4 5 6)))
 
 (check
     (with-result
@@ -184,14 +189,15 @@
 	 (else-by
 	  (add-result 3)
 	  (add-result 4)
-	  (set! flag 1))
+	  (set! flag 1)
+	  999)
 	 (else-by
 	  (add-result 5)
 	  (add-result 6))
 	 (else
 	  (add-result 7)
 	  (add-result 8)))))
-  => '(#f (1 2 3 4)))
+  => '(999 (1 2 3 4)))
 
 (check
     (with-result
@@ -200,7 +206,8 @@
 	   (by
 	    (add-result 1)
 	    (add-result 2)
-	    (set! flag 1))
+	    (set! flag 1)
+	    999)
 	 (else-by
 	  (add-result 3)
 	  (add-result 4))
@@ -210,7 +217,7 @@
 	 (else
 	  (add-result 7)
 	  (add-result 8)))))
-  => '(#f (1 2)))
+  => '(999 (1 2)))
 
 
 ;;;; done

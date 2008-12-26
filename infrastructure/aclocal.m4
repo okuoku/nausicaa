@@ -882,6 +882,15 @@ NAUSICAA_SIZEOF_TEST([POINTER],[void *])
 NAUSICAA_ALIGNOF_TEST([POINTER],[void *])
 NAUSICAA_STRIDEOF_TEST([POINTER],[void *])
 
+if test "${SIZEOF_POINTER}" = "${SIZEOF_UINT}" ; then
+  TYPEOF_POINTER_INTEGER=unsigned-int
+elif test "${SIZEOF_POINTER}" = "${SIZEOF_ULONG}" ; then
+  TYPEOF_POINTER_INTEGER=unsigned-long
+else
+  AC_MSG_WARN([cannot determine the integer equivalent of a pointer])
+fi
+AC_SUBST([TYPEOF_POINTER_INTEGER])
+
 AC_CACHE_SAVE
 ])
 

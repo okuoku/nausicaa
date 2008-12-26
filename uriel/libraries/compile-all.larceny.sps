@@ -26,46 +26,43 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "uriel/lang/void.sls"
-		 "uriel/lang/void.larceny.slfasl")
-
 (compile-library "uriel/lang.sls"
 		 "uriel/lang.larceny.slfasl")
 
-;; (compile-library "uriel/combinators.sls"
-;; 		 "uriel/combinators.larceny.slfasl")
+(compile-library "uriel/combinators.sls"
+		 "uriel/combinators.larceny.slfasl")
 
-;; (compile-library "uriel/define-macro.sls"
-;; 		 "uriel/define-macro.larceny.slfasl")
+(compile-library "uriel/define-macro.sls"
+		 "uriel/define-macro.larceny.slfasl")
 
-;; (compile-library "uriel/memory/compat.larceny.sls"
-;; 		 "uriel/memory/compat.larceny.slfasl")
+(compile-library "uriel/ffi/sizeof.sls"
+		 "uriel/ffi/sizeof.larceny.slfasl")
 
-;; (compile-library "uriel/memory.sls"
-;; 		 "uriel/memory.larceny.slfasl")
+(compile-library "uriel/memory/compat.larceny.sls"
+		 "uriel/memory/compat.larceny.slfasl")
 
-;; (compile-library "uriel/ffi sizeof.sls"
-;; 		 "uriel/ffi sizeof.larceny.slfasl")
+(compile-library "uriel/memory.sls"
+		 "uriel/memory.larceny.slfasl")
 
-;; (compile-library "uriel/ffi.sls"
-;; 		 "uriel/ffi.larceny.slfasl")
+(compile-library "uriel/ffi/compat.larceny.sls"
+		 "uriel/ffi/compat.larceny.slfasl")
 
-;; (compile-library "uriel/ffi/compat.larceny.sls"
-;; 		 "uriel/ffi/compat.larceny.slfasl")
+(compile-library "uriel/ffi.sls"
+		 "uriel/ffi.larceny.slfasl")
 
-;; (compile-library "uriel/errno.sls"
-;; 		 "uriel/errno.larceny.slfasl")
+(compile-library "uriel/errno.sls"
+		 "uriel/errno.larceny.slfasl")
 
-;; (compile-library "uriel/cstring.sls"
-;; 		 "uriel/cstring.larceny.slfasl")
+(compile-library "uriel/cstring.sls"
+		 "uriel/cstring.larceny.slfasl")
 
-;; (compile-library "uriel/foreign.sls"
-;; 		 "uriel/foreign.larceny.slfasl")
+(compile-library "uriel/foreign.sls"
+		 "uriel/foreign.larceny.slfasl")
 
-;; (compile-library "uriel/object-property.sls"
-;; 		 "uriel/object-property.larceny.slfasl")
+(compile-library "uriel/object-property.sls"
+		 "uriel/object-property.larceny.slfasl")
 
-;; (compile-library "uriel/test.sls"
-;; 		 "uriel/test.larceny.slfasl")
+(compile-library "uriel/test.sls"
+		 "uriel/test.larceny.slfasl")
 
 ;;; end of file

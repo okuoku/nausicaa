@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-26 11:58:50 marco>
+;;;Time-stamp: <2008-12-26 15:41:45 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -195,7 +195,7 @@
 	(case (length mappers)
 	  ((0)
 	   (lambda ()
-	     (cast-func (stub-func f 0))))
+	     (cast-func (stub-func f))))
 	  ((1)
 	   (let ((mapper (car mappers)))
 	     (lambda (arg)

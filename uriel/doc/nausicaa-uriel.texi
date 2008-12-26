@@ -443,7 +443,6 @@ Language extensions
 
 Independent libraries
 
-* lang void::                   Void value.
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
@@ -607,7 +606,6 @@ for the independent libraries see the corresponding sections.
 
 Independent libraries
 
-* lang void::                   Void value.
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
@@ -1095,37 +1093,6 @@ Setup a deferred exception handler dynamic environment, in which
 Apply the current deferred exceptions handler to each deferred exception
 value in the current list.  If the handler raises an exception: it is
 silently ignored.
-@end defun
-
-
-@c page
-@node lang void
-@section Void value
-
-
-Ikarus Scheme provides the @func{void} function which returns the value
-returned by forms that do not return a meaningful value, like
-@func{set!}.  Not all implementations offers it, for example Ypsilon up
-to revision 285 does not.
-
-The @library{uriel void} library attempts to provide a replacement.
-There is no guarantee that it will work with all the @rnrs{6} Scheme
-implementations.  To load the library:
-
-@example
-(import (r6rs)
-  (uriel void))
-@end example
-
-
-@defun void
-Return the void value.
-
-@example
-(define (void)
-  (let ((a #f))
-    (set! a 1)))
-@end example
 @end defun
 
 
@@ -3507,6 +3474,15 @@ of C language type sizes and limits.  To load the library:
 
 The @library{uriel foreign} library also exports bindings from
 @library{uriel ffi sizeof}.
+
+
+@defvar pointer-integer
+Set to a symbol representing one of the unsigned integer types for
+callout arguments and return values.  It is meant to be the integer type
+that is equal in size to a pointer, so it can be used in place of the
+@code{pointer} type for Scheme implementation that do not have it (for
+example: Larceny checkout 5877).
+@end defvar
 
 
 @defvar sizeof-char

@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: functions for cstrings handling
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-19 11:29:12 marco>
 ;;;
 ;;;Abstract
 ;;;

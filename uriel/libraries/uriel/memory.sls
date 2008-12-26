@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-19 07:40:01 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -246,20 +245,33 @@
 (define (pointer-null? pointer)
   (= 0 (pointer->integer pointer)))
 
+;;;This  implementation works  with  Ikarus and  Ypsilon,  but not  with
+;;;Larceny-5877: "=" requires 2 arguments  and cannot be applied to just
+;;;one.
+;;
+;; (define (pointer=? pointer . args)
+;;   (apply = (map pointer->integer (cons pointer args))))
+;;
+;;;the following ugly alternative works.
 (define (pointer=? pointer . args)
-  (apply = (map pointer->integer (cons pointer args))))
+  (apply = (pointer->integer pointer)
+	 (map pointer->integer (cons pointer args))))
 
 (define (pointer<? pointer . args)
-  (apply < (map pointer->integer (cons pointer args))))
+  (apply < (- (pointer->integer pointer) 1)
+	 (map pointer->integer (cons pointer args))))
 
 (define (pointer>? pointer . args)
-  (apply > (map pointer->integer (cons pointer args))))
+  (apply > (+ 1 (pointer->integer pointer))
+	 (map pointer->integer (cons pointer args))))
 
 (define (pointer<=? pointer . args)
-  (apply <= (map pointer->integer (cons pointer args))))
+  (apply <= (pointer->integer pointer)
+	 (map pointer->integer (cons pointer args))))
 
 (define (pointer>=? pointer . args)
-  (apply >= (map pointer->integer (cons pointer args))))
+  (apply >= (pointer->integer pointer)
+	 (map pointer->integer (cons pointer args))))
 
 (define (pointer<>? pointer . args)
   (not (apply pointer=? pointer args)))

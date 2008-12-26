@@ -57,10 +57,14 @@
   (import (rnrs)
     (primitives
      foreign-procedure
+
      %peek8 %peek8u %peek-short %peek-ushort %peek-int %peek-unsigned
      %peek-long %peek-ulong %peek-pointer
+
      %poke8 %poke8u %poke-short %poke-ushort %poke-int %poke-unsigned
      %poke-long %poke-ulong %poke-pointer
+
+     void*-double-set! void*-double-ref
      )
     (uriel ffi sizeof))
 
@@ -85,49 +89,68 @@
 
 ;;;; foreign functions
 
-;;(define self (foreign-file ""))
+(define larceny-pointer-integer
+  (case pointer-integer
+    ((unsigned-long)	'ulong)
+    ((unsigned-int)	'unsigned)))
 
 (define platform-free
-  (let ((f (foreign-procedure "free" '(boxed) 'void)))
+  (let ((f (foreign-procedure "free" (list larceny-pointer-integer) 'void)))
     (lambda (pointer)
       (f (pointer-value pointer)))))
 
 (define platform-malloc
-  (let ((f (foreign-procedure "malloc" '(unsigned) 'boxed)))
+  (let ((f (foreign-procedure "malloc" '(unsigned) larceny-pointer-integer)))
     (lambda (size)
       (make-pointer (f size)))))
 
 (define platform-realloc
-  (let ((f (foreign-procedure "realloc" '(boxed unsigned) 'boxed)))
+  (let ((f (foreign-procedure "realloc"
+			      (list larceny-pointer-integer 'unsigned)
+			      larceny-pointer-integer)))
     (lambda (pointer size)
       (make-pointer (f (pointer-value pointer) size)))))
 
 (define platform-calloc
-  (let ((f (foreign-procedure "calloc" '(unsigned unsigned) 'boxed)))
+  (let ((f (foreign-procedure "calloc" '(unsigned unsigned) larceny-pointer-integer)))
     (lambda (count element-size)
       (make-pointer (f count element-size)))))
 
 (define memset
-  (let ((f (foreign-procedure "memset" '(boxed int unsigned) 'boxed)))
+  (let ((f (foreign-procedure "memset"
+			      (list larceny-pointer-integer 'int 'unsigned)
+			      larceny-pointer-integer)))
     (lambda (pointer value number-of-bytes)
       (make-pointer (f (pointer-value pointer) value number-of-bytes)))))
 
 (define memmove
-  (let ((f (foreign-procedure "memmove" '(boxed boxed unsigned) 'boxed)))
+  (let ((f (foreign-procedure "memmove"
+			      (list larceny-pointer-integer
+				    larceny-pointer-integer
+				    'unsigned)
+			      larceny-pointer-integer)))
     (lambda (dst src number-of-bytes)
       (make-pointer (f (pointer-value dst)
 		       (pointer-value src)
 		       number-of-bytes)))))
 
 (define memcpy
-  (let ((f (foreign-procedure "memcpy" '(boxed boxed unsigned) 'boxed)))
+  (let ((f (foreign-procedure "memcpy"
+			      (list larceny-pointer-integer
+				    larceny-pointer-integer
+				    'unsigned)
+			      larceny-pointer-integer)))
     (lambda (dst src number-of-bytes)
       (make-pointer (f (pointer-value dst)
 		       (pointer-value src)
 		       number-of-bytes)))))
 
 (define memcmp
-  (let ((f (foreign-procedure "memcmp" '(boxed boxed unsigned) 'boxed)))
+  (let ((f (foreign-procedure "memcmp"
+			      (list larceny-pointer-integer
+				    larceny-pointer-integer
+				    'unsigned)
+			      'int)))
     (lambda (dst src number-of-bytes)
       (f (pointer-value dst)
 	 (pointer-value src)
@@ -184,23 +207,24 @@
     "this primitive is not implemented"))
 
 (define (pointer-ref-c-double pointer position)
-  (error 'pointer-ref-c-double
-    "this primitive is not implemented"))
+  (void*-double-ref (pointer-value pointer) position))
 
 ;;; --------------------------------------------------------------------
 
 (define (pointer-ref-c-pointer pointer position)
-  (%peek-pointer (+ position (pointer-value pointer))))
+  (make-pointer (%peek-pointer (+ position (pointer-value pointer)))))
 
 
 
 ;;;; pokers
 
 (define (pointer-set-c-char! pointer position value)
-  (%poke8 (+ position (pointer-value pointer)) value))
+  ((if (< value 0) %poke8 %poke8u)
+   (+ position (pointer-value pointer)) value))
 
 (define (pointer-set-c-short! pointer position value)
-  (%poke8u (+ position (pointer-value pointer)) value))
+  ((if (< value 0) %poke-short %poke-ushort)
+   (+ position (pointer-value pointer)) value))
 
 (define (pointer-set-c-int! pointer position value)
   ((if (< value 0) %poke-int %poke-unsigned)
@@ -219,11 +243,11 @@
     "this primitive is not implemented"))
 
 (define (pointer-set-c-double! pointer position value)
-  (error 'pointer-set-c-double!
-    "this primitive is not implemented"))
+  (void*-double-set! (pointer-value pointer) position value))
 
 (define (pointer-set-c-pointer! pointer position value)
-  (%poke-pointer (+ position (pointer-value pointer)) value))
+  (%poke-pointer (+ position (pointer-value pointer))
+		 (pointer-value value)))
 
 
 
