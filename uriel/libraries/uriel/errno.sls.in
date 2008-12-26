@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: access to the errno variable
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-24 09:18:29 marco>
+;;;Time-stamp: <2008-12-26 11:57:54 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -92,7 +92,7 @@
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL)
   (import (r6rs)
-    (srfi lists)
+    (list-lib)
     (uriel cstring)
     (uriel ffi))
 

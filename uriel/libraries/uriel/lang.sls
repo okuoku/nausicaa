@@ -2,7 +2,6 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: Scheme language extensions
 ;;;Date: Mon Nov  3, 2008
-;;;Time-stamp: <2008-12-22 08:03:30 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,33 +28,32 @@
 (library (uriel lang)
   (export
     ;;simple syntaxes
-    begin0 dolist dotimes loop-upon-list ensure
-
-    ;;compensations
-    with-compensations with-compensations/on-error
-    compensate run-compensations push-compensation
+    begin0 dotimes dolist loop-upon-list ensure
 
     ;;deferred exceptions
     with-deferred-exceptions-handler
     defer-exceptions run-deferred-exceptions-handler
 
+    ;;compensations
+    with-compensations with-compensations/on-error
+    compensate run-compensations push-compensation
+
     ;;miscellaneous
     symbol->string/maybe
 
-    ;;bindings from (srfi receive)
+    ;;bindings from (receive-lib)
     receive
 
-    ;;bindings from (srfi parameters)
+    ;;bindings from (parm-lib)
     make-parameter		parameterize
 
-    ;;bindings from (srfi format)
+    ;;bindings from (format-lib)
     format)
   (import (r6rs)
     (uriel lang void)
-    (srfi receive)
-    (srfi parameters)
-    (srfi format))
-
+    (receive-lib)
+    (parm-lib)
+    (format-lib))
 
 
 ;;;; simple sintaxes

@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS Scheme
 ;;;Contents: access to the errno variable
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-24 09:17:46 marco>
+;;;Time-stamp: <2008-12-24 09:18:29 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -393,7 +393,6 @@
 
 (define (symbol->errno symbol)
   (let ((pair (assq symbol errno-alist)))
-(write pair)(newline)
     (if pair (cdr pair) #f)))
 
 (define (symbol->errno/or-error symbol)

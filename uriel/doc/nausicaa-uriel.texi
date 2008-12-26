@@ -12,9 +12,6 @@
 @include version.texiinc
 
 
-
-
-@c page
 @c ------------------------------------------------------------
 @c License macros.
 @c ------------------------------------------------------------
@@ -36,7 +33,6 @@
 @end macro
 
 
-@c page
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -79,8 +75,6 @@
 @end macro
 
 
-
-@c page
 @c ------------------------------------------------------------
 @c Software related macros.
 @c ------------------------------------------------------------
@@ -98,7 +92,6 @@
 @end macro
 
 
-@c page
 @c ------------------------------------------------------------
 @c Network related acronyms.
 @c ------------------------------------------------------------
@@ -138,7 +131,6 @@
 @end macro
 
 
-@c page
 @c ------------------------------------------------------------
 @c Arguments macros.
 @c ------------------------------------------------------------
@@ -206,7 +198,6 @@
 @end macro
 
 
-@c page
 @c ------------------------------------------------------------
 @c C language macros.
 @c ------------------------------------------------------------
@@ -219,9 +210,7 @@
 @code{NULL}
 @end macro
 
-@c ------------------------------------------------------------
 
-@c page
 @c ------------------------------------------------------------
 @c Scheme language macros.
 @c ------------------------------------------------------------
@@ -283,7 +272,6 @@ the main purpose of this document is to provide an Info version.
 @end macro
 
 
-@c page
 @c ------------------------------------------------------------
 @c Macros for references to external documents.
 @c ------------------------------------------------------------
@@ -317,8 +305,6 @@ the main purpose of this document is to provide an Info version.
 @end macro
 
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c Values.
@@ -328,7 +314,7 @@ the main purpose of this document is to provide an Info version.
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    Uriel
+@set PACKAGE                    Nausicaa/Uriel
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
@@ -419,7 +405,6 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * lang::                        Language extensions.
-* getenv::                      Getting environment variables.
 * test::                        Writing test suites.
 
 Foreign functions related libraries
@@ -4056,30 +4041,6 @@ is equivalent to:
              (make-errno-condition* errno)
              (make-irritants-condition pathname)))
 @end example
-@end defun
-
-
-@c page
-@node getenv
-@chapter Getting environment variables
-
-
-This chapter describes an interface to the @cfunc{getenv} system
-function used to retrieve the current value of system environment
-variables.  It is meant to provide basic access to the environment for
-debugging and test suites.  To load the library:
-
-@example
-(import (r6rs)
-  (uriel getenv))
-@end example
-
-
-@defun getenv @var{varname}
-Return the current value of the environment variable @var{varname}, as a
-string.  @var{varname} must be a string.  If the variable is not set:
-the return value if @false{}.  If the variable is set to the empty
-string: the return value is the empty string.
 @end defun
 
 

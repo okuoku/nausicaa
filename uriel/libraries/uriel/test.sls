@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-12-18 14:02:54 marco>
+;;;Time-stamp: <2008-12-26 12:03:02 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -36,10 +36,10 @@
     (rename (check-it check)) check-report check-ec check-set-mode!
     testname)
   (import (r6rs)
-    (srfi parameters)
-    (srfi lightweight-testing)
+    (parm-lib)
+    (check-lib)
     (only (string-lib) string-suffix? string-prefix?)
-    (uriel getenv))
+    (env-lib))
 
 
 ;;;; code
@@ -87,7 +87,7 @@
 	  (symbol->string value)
 	value))))
 
-(define selected-test (getenv "name"))
+(define selected-test (get-environment-variable "name"))
 
 (define (check-activation)
   (or (not selected-test)

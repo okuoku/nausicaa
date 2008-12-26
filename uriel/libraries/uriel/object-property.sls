@@ -2,7 +2,6 @@
 ;;;Part of: Uriel libraries for Ikarus Scheme
 ;;;Contents: object property library
 ;;;Date: Fri Nov 14, 2008
-;;;Time-stamp: <2008-12-16 10:12:45 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -34,7 +33,7 @@
     object-property-default-value
     make-object-property with-true-property)
   (import (r6rs)
-    (srfi parameters))
+    (parm-lib))
 
 
 ;;;; code
