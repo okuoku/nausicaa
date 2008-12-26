@@ -424,7 +424,10 @@ fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) $(fasl_ikarus_COMPILE_COMM
 fasl-ikarus-compile:
 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
 
-ifasl: fasl-copy fasl-ikarus-compile
+fasl-ikarus-clean:
+	$(FIND) $(sls_BUILDDIR) -name \*.ikarus-fasl -exec $(RM) \{\} \;
+
+ifasl: fasl-builddir fasl-copy fasl-ikarus-clean fasl-ikarus-compile
 
 ## ---------------------------------------------------------------------
 
@@ -438,7 +441,10 @@ fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) $(fasl_larceny_COMPILE_CO
 fasl-larceny-compile:
 	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
 
-lfasl: fasl-copy fasl-larceny-compile
+fasl-larceny-clean:
+	$(FIND) $(sls_BUILDDIR) -name \*.larceny.slfasl -exec $(RM) \{\} \;
+
+lfasl: fasl-builddir fasl-copy fasl-larceny-clean fasl-larceny-compile
 
 ## ------------------------------------------------------------
 

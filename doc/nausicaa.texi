@@ -16,8 +16,6 @@
 @command{configure}
 @end macro
 
-
-@c page
 @c ------------------------------------------------------------
 @c License macros.
 @c ------------------------------------------------------------
@@ -38,7 +36,6 @@
 @acronym{BSD}
 @end macro
 
-@c page
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -89,7 +86,6 @@
 @end macro
 
 
-@c page
 @c ------------------------------------------------------------
 @c Software related macros.
 @c ------------------------------------------------------------
@@ -106,7 +102,6 @@
 @gnu{} C Library
 @end macro
 
-@c page
 @c ------------------------------------------------------------
 @c Network related acronyms.
 @c ------------------------------------------------------------
@@ -145,7 +140,6 @@
 @acronym{SNMP}
 @end macro
 
-@c page
 @c ------------------------------------------------------------
 @c Arguments macros.
 @c ------------------------------------------------------------
@@ -212,7 +206,6 @@
 @meta{\ARG\j}
 @end macro
 
-@c page
 @c ------------------------------------------------------------
 @c C language macros.
 @c ------------------------------------------------------------
@@ -225,7 +218,6 @@
 @code{NULL}
 @end macro
 
-@c page
 @c ------------------------------------------------------------
 @c Scheme language macros.
 @c ------------------------------------------------------------
@@ -294,7 +286,6 @@ the main purpose of this document is to provide an Info version.
 @code{<\NAME\>}
 @end macro
 
-@c page
 @c ------------------------------------------------------------
 @c Macros for references to external documents.
 @c ------------------------------------------------------------
@@ -361,7 +352,7 @@ the main purpose of this document is to provide an Info version.
 @copying
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
-distribution of Scheme language libraries for Ikarus Scheme.
+distribution of Scheme language libraries for @rnrs{6} Scheme.
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -397,7 +388,7 @@ entitled ``@gnu{} Free Documentation License''.
 @dircategory Development
 @direntry
 * nausicaa: (nausicaa).         A distribution of libraries
-                                for Ikarus Scheme.
+                                for @rnrs{6} Scheme.
 @end direntry
 @end ifinfo
 
@@ -444,7 +435,95 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Overview of the package
+
+* overview conventions::        Conventions.
+
+Configuration
+
+* conf options::                Options for @command{configure}.
+
+Helper macros
+
+* conf helpers options::        Command line options.
+* conf helpers programs::       Finding programs.
+* conf helpers tmpfile::        Temporary files.
+
+Common script blocks
+
+* conf common main::            Main macros.
+* conf common options::         Configuration options.
+* conf common programs::        Programs and directories.
+
+Macros for Scheme language
+
+* conf scheme generic::         Running Scheme tests.
+* conf scheme ikarus::          Running Ikarus Scheme.
+* conf scheme ypsilon::         Running Ypsilon Scheme.
+* conf scheme larceny::         Running Larceny Scheme.
+
+Macros for C language
+
+* conf clang setup::            Setting up the C language environment.
+* conf clang basics::           Basic tests.
+* conf clang common::           Common groups of tests.
+
+Basic tests
+
+* conf clang basics includes::  Including header files.
+* conf clang basics valueof::   Determining the value of expressions.
+* conf clang basics sizeof::    Determining the size of data types.
+* conf clang basics typeof::    Determining the basic type of data types.
+* conf clang basics alignof::   Determining the alignment of data types.
+* conf clang basics strideof::  Determining the array stride of data types.
+* conf clang basics offsetof::  Determining the offset of fields in data
+                                structures.
+* conf clang basics access::    Determining the accessors of data types.
+* conf clang basics inspect::   Full inspection of data types.
+
+Variables
+
+* vars config::                 Configuration variables.
+* vars project::                Project related variables.
+* vars package::                Binary package variables.
+* vars directories::            Directory variables.
+* vars misc::                   Miscellaneous variables.
+
+Directory variables
+
+* vars directories common::    Common installation directories.
+* vars directories custom::    Custom installation directories.
+
+Rules
+
+* rules main::                  Main rules.
+* rules uninstall::             Uninstallation script.
+* rules doc::                   Documentation related rules.
+* rules sls::                   Handling source files.
+* rules fasl::                  Handling precompiled files.
+* rules texinfo::               Documentation in Texinfo format.
+* rules test::                  Testing libraries.
+* rules inspect::               Inspecting variables.
+
+Building packages
+
+* bindist::                     Building plain binary packages.
+* slackware::                   Building Slackware packages.
+* redhat::                      Building RedHat packages.
+
+Building Slackware packages
+
+* slackware common::            Common variables and rules.
+* slackware standard::          Building standard Slackware packages.
+* slackware local::             Building local Slackware packages.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -454,14 +533,14 @@ Indexes
 
 @noindent
 @value{PACKAGE} is a distribution of Scheme language libraries for
-@rnrs{6} Scheme, targeting Ypsilon and Ikarus.  This document describes
-the project building and installation infrastructure, which is used by
+@rnrs{6} Scheme, targeting Ypsilon, Larceny and Ikarus.  This document
+describes the building and installation infrastructure, which is used by
 almost all the projects in the distribution.
 
-Almost all the projects in Nausicaa are pure Scheme; the Stubs projects
-collects adapter C language libraries.  Access to foreign shared
-libraries is written with the Foreign Functions Interface (@ffi{})
-provided by the Scheme implementation.
+Almost all the projects in Nausicaa are pure Scheme; the exception is
+the Stubs project, which collects adapter C language libraries.  Access
+to foreign shared libraries is written with the Foreign Functions
+Interface (@ffi{}) provided by the Scheme implementation.
 
 
 @menu
@@ -557,9 +636,9 @@ what follows is a list of common options.
 
 
 @table @code
-@item --enable-ikarus
-@itemx --enable-ypsilon
-@c @itemx --enable-larceny
+@item --enable-ypsilon
+@itemx --enable-larceny
+@itemx --enable-ikarus
 Enable the usage of a Scheme implementation.
 
 @item --prefix=@var{value}
@@ -919,7 +998,7 @@ pacman_PROGRAM
 * conf scheme generic::         Running Scheme tests.
 * conf scheme ikarus::          Running Ikarus Scheme.
 * conf scheme ypsilon::         Running Ypsilon Scheme.
-@c * conf scheme larceny::         Running Larceny Scheme.
+* conf scheme larceny::         Running Larceny Scheme.
 @end menu
 
 
@@ -1063,67 +1142,67 @@ NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 
 
 @c page
-@c @node conf scheme larceny
-@c @section Running Larceny Scheme
+@node conf scheme larceny
+@section Running Larceny Scheme
 
 
-@c @deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
-@c Evaluate @var{scheme_code} with Larceny by storing it in a temporary
-@c file and invoking "@code{$@{LARCENY@} -r6rs -program} with additional
-@c command line @var{options}.  Then, after the temporary file has been
-@c removed, evaluate @var{shell_chunk}.
+@deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
+Evaluate @var{scheme_code} with Larceny by storing it in a temporary
+file and invoking "@code{$@{LARCENY@} -r6rs -program} with additional
+command line @var{options}.  Then, after the temporary file has been
+removed, evaluate @var{shell_chunk}.
 
-@c The script is expected to print a line of text on its standard output,
-@c which will be stored in the shell variable @code{nausicaa_ANSWER}, so
-@c that @var{shell_chunk} can examine it.
-@c @end deffn
-
-
-@c @deffn {Autoconf Macro} NAUSICAA_LARCENY_CHECK_LIBRARY (@var{name}, @var{import_spec}, @var{action_if_found}, @var{action_if_not_found})
-@c Attempt to find a Scheme library loadable by Larceny.
-
-@c If the library is found the output variable
-@c @code{HAS_LARCENY_LIB_@var{name}} is set to @code{yes}, otherwise it is
-@c set to @code{no}.
-
-@c The optional @var{action_if_found} is executed if the library was found.
-@c The optional @var{action_if_not_found} is executed if the library was
-@c not found.
-@c @end deffn
+The script is expected to print a line of text on its standard output,
+which will be stored in the shell variable @code{nausicaa_ANSWER}, so
+that @var{shell_chunk} can examine it.
+@end deffn
 
 
-@c As an example, here is the implementation of the macro above:
+@deffn {Autoconf Macro} NAUSICAA_LARCENY_CHECK_LIBRARY (@var{name}, @var{import_spec}, @var{action_if_found}, @var{action_if_not_found})
+Attempt to find a Scheme library loadable by Larceny.
 
-@c @example
-@c AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],[
-@c AC_MSG_CHECKING([availability of Larceny library $2])
-@c NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
-@c (with-exception-handler
-@c   (lambda (ex)
-@c     (display "no\n")
-@c     (exit))
-@c   (lambda ()
-@c     (environment (quote $2))
-@c     (display "yes\n")))
-@c ],[--compatible],[if test "$nausicaa_ANSWER" = yes ; then
-@c : dnl action if found.
-@c $3
-@c else
-@c : dnl action if not found.
-@c $4
-@c fi
-@c AC_MSG_RESULT([$nausicaa_ANSWER])
-@c AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
-@c ])
-@c ])
-@c @end example
+If the library is found the output variable
+@code{HAS_LARCENY_LIB_@var{name}} is set to @code{yes}, otherwise it is
+set to @code{no}.
 
-@c @noindent
-@c and here is how we verify if @library{uriel ffi} is installed:
+The optional @var{action_if_found} is executed if the library was found.
+The optional @var{action_if_not_found} is executed if the library was
+not found.
+@end deffn
 
-@c @example
-@c NAUSICAA_LARCENY_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-@c @end example
+
+As an example, here is the implementation of the macro above:
+
+@example
+AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],[
+AC_MSG_CHECKING([availability of Larceny library $2])
+NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
+(with-exception-handler
+  (lambda (ex)
+    (display "no\n")
+    (exit))
+  (lambda ()
+    (environment (quote $2))
+    (display "yes\n")))
+],,[if test "$nausicaa_ANSWER" = yes ; then
+: dnl action if found.
+$3
+else
+: dnl action if not found.
+$4
+fi
+AC_MSG_RESULT([$nausicaa_ANSWER])
+AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
+])
+])
+@end example
+
+@noindent
+and here is how we verify if @library{uriel ffi} is installed:
+
+@example
+NAUSICAA_LARCENY_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
+@end example
 
 
 @c page
