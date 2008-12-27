@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPZ numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-26 22:18:28 marco>
 ;;;
 ;;;Abstract
 ;;;

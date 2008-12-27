@@ -89,7 +89,9 @@
 
 (define (primitive-make-c-function ret-type funcname arg-types)
   (foreign-procedure (symbol->string/maybe funcname)
-		     (map external->internal arg-types)
+		     (if (equal? '(void) arg-types)
+			 '()
+		       (map external->internal arg-types))
 		     (external->internal ret-type)))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)

@@ -81,110 +81,39 @@
   (unless (integer? value)
     (assertion-violation 'integer->pointer
       "expected integer value" value))
-;  (make-pointer value)
-  ((record-constructor void*-rt) value)
-  )
+  ((record-constructor void*-rt) value))
 
 (define (pointer->integer pointer)
   (unless (pointer? pointer)
     (assertion-violation 'pointer->integer
       "expected pointer value" pointer))
-  (void*->address pointer)
-;  (pointer-value pointer)
-  )
+  (void*->address pointer))
 
 (define pointer? void*?)
 
 
 ;;;; foreign functions
 
-(define larceny-pointer-integer
-  (case pointer-integer
-    ((unsigned-long)	'ulong)
-    ((unsigned-int)	'unsigned)))
-
-;; (define platform-free
-;;   (let ((f (foreign-procedure "free" (list larceny-pointer-integer) 'void)))
-;;     (lambda (pointer)
-;;       (f (pointer-value pointer)))))
-
 (define platform-free
   (foreign-procedure "free" '(void*) 'void))
-
-;; (define platform-malloc
-;;   (let ((f (foreign-procedure "malloc" '(unsigned) larceny-pointer-integer)))
-;;     (lambda (size)
-;;       (make-pointer (f size)))))
 
 (define platform-malloc
   (foreign-procedure "malloc" '(unsigned) 'void*))
 
-;; (define platform-realloc
-;;   (let ((f (foreign-procedure "realloc"
-;; 			      (list larceny-pointer-integer 'unsigned)
-;; 			      larceny-pointer-integer)))
-;;     (lambda (pointer size)
-;;       (make-pointer (f (pointer-value pointer) size)))))
-
 (define platform-realloc
   (foreign-procedure "realloc" '(void* unsigned) 'void*))
-
-;; (define platform-calloc
-;;   (let ((f (foreign-procedure "calloc" '(unsigned unsigned) larceny-pointer-integer)))
-;;     (lambda (count element-size)
-;;       (make-pointer (f count element-size)))))
 
 (define platform-calloc
   (foreign-procedure "calloc" '(unsigned unsigned) 'void*))
 
-;; (define memset
-;;   (let ((f (foreign-procedure "memset"
-;; 			      (list larceny-pointer-integer 'int 'unsigned)
-;; 			      larceny-pointer-integer)))
-;;     (lambda (pointer value number-of-bytes)
-;;       (make-pointer (f (pointer-value pointer) value number-of-bytes)))))
-
 (define memset
   (foreign-procedure "memset" '(void* int unsigned) 'void*))
-
-;; (define memmove
-;;   (let ((f (foreign-procedure "memmove"
-;; 			      (list larceny-pointer-integer
-;; 				    larceny-pointer-integer
-;; 				    'unsigned)
-;; 			      larceny-pointer-integer)))
-;;     (lambda (dst src number-of-bytes)
-;;       (make-pointer (f (pointer-value dst)
-;; 		       (pointer-value src)
-;; 		       number-of-bytes)))))
 
 (define memmove
   (foreign-procedure "memmove" '(void* void* unsigned) 'void*))
 
-;; (define memcpy
-;;   (let ((f (foreign-procedure "memcpy"
-;; 			      (list larceny-pointer-integer
-;; 				    larceny-pointer-integer
-;; 				    'unsigned)
-;; 			      larceny-pointer-integer)))
-;;     (lambda (dst src number-of-bytes)
-;;       (make-pointer (f (pointer-value dst)
-;; 		       (pointer-value src)
-;; 		       number-of-bytes)))))
-
 (define memcpy
   (foreign-procedure "memcpy" '(void* void* unsigned) 'void*))
-
-;; (define memcmp
-;;   (let ((f (foreign-procedure "memcmp"
-;; 			      (list larceny-pointer-integer
-;; 				    larceny-pointer-integer
-;; 				    'unsigned)
-;; 			      'int)))
-;;     (lambda (dst src number-of-bytes)
-;;       (f (pointer-value dst)
-;; 	 (pointer-value src)
-;; 	 number-of-bytes))))
 
 (define memcmp
   (foreign-procedure "memcmp" '(void* void* unsigned) 'int))
