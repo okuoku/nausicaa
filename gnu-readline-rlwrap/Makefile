@@ -97,11 +97,11 @@ SORT		= sort --unique
 ## ------------------------------------------------------------
 
 ikarus_COMPLETIONS	= completions/r6rs_identifiers \
-  $(wildcard $(foreach m,$(ikarus_MODULES),completions/$(m)_completions))
+  $(foreach m,$(ikarus_MODULES),completions/$(m)_completions)
 ypsilon_COMPLETIONS	= completions/r6rs_identifiers \
-  $(wildcard $(foreach m,$(ypsilon_MODULES),completions/$(m)_completions))
+  $(foreach m,$(ypsilon_MODULES),completions/$(m)_completions)
 larceny_COMPLETIONS	= completions/r6rs_identifiers \
-  $(wildcard $(foreach m,$(larceny_MODULES),completions/$(m)_completions))
+  $(foreach m,$(larceny_MODULES),completions/$(m)_completions)
 
 SCRIPTS		= $(builddir)/ike $(builddir)/ype $(builddir)/lay
 ikarus_COMPFILE	= $(builddir)/.ikarus_completions
