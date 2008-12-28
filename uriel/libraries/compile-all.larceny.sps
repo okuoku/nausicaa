@@ -50,11 +50,11 @@
 (compile-library "uriel/ffi.sls"
 		 "uriel/ffi.larceny.slfasl")
 
-(compile-library "uriel/errno.sls"
-		 "uriel/errno.larceny.slfasl")
-
 (compile-library "uriel/cstring.sls"
 		 "uriel/cstring.larceny.slfasl")
+
+(compile-library "uriel/errno.sls"
+		 "uriel/errno.larceny.slfasl")
 
 (compile-library "uriel/foreign.sls"
 		 "uriel/foreign.larceny.slfasl")
