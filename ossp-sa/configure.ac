@@ -2,7 +2,6 @@ dnl
 dnl Part of: Nausicaa/OSSP/sa
 dnl Contents: configuration template file
 dnl Date: Tue Dec 16, 2008
-dnl Time-stamp: <2008-12-16 10:07:13 marco>
 dnl
 dnl Abstract
 dnl
@@ -34,7 +33,7 @@ dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-ossp-sa],[0.1d0])
 NAUSICAA_BEGIN
-NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_r6rs],[(r6rs)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
 NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE

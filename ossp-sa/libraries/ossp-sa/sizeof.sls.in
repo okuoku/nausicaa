@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/OSSP/sa interface for R6RS Scheme
 ;;;Contents: size of libraries' C language types
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-16 10:05:29 marco>
+;;;Time-stamp: <2008-12-27 16:10:18 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -78,8 +78,7 @@
     sa-socket-option->symbol		sa-buffer-option->symbol
     sa-timeout-option->symbol)
   (import (r6rs)
-    (uriel ffi)
-    (uriel ffi sizeof))
+    (uriel foreign))
 
   (define sa_rc_t			(quote @TYPEOF_SA_RC_T@))
   (define sizeof-sa_rc_t		@SIZEOF_SA_RC_T@)

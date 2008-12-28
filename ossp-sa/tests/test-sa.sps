@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: tests
 ;;;Date: Sun Dec 14, 2008
-;;;Time-stamp: <2008-12-15 22:21:45 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,72 +28,104 @@
 ;;;; setup
 
 (import (rnrs)
-  (uriel printing)
-  (uriel test)
   (uriel lang)
-  (uriel ffi)
+  (uriel foreign)
+  (uriel test)
   (ossp-sa)
-  (ossp-sa sizeof)
-  (srfi receive))
+  (ossp-sa sizeof))
 
 (check-set-mode! 'report-failed)
 
-
-;;;; address
+(format (current-error-port)
+  "~%*** WARNING *** Remember to turn off firewall rules for 127.0.0.1:8080!!!~%~%")
 
-(define the-path "unix:/tmp/proof")
-(define the-addr "inet://127.0.0.1:8080")
-
-(check
-    (with-compensations
-      (let ((address (make-sa-address/compensated)))
-	#f))
-  => #f)
-
-(check
-    (with-compensations
-      (let ((address (make-sa-address/compensated the-path)))
-	(sa-address-ref address)))
-  => the-path)
-
-(check
-    (with-compensations
-      (let ((address (make-sa-address/compensated the-addr)))
-	(sa-address-ref address)))
-  => the-addr)
+(define debugging #f)
+(define (debug . args)
+  (when debugging
+    (apply format (current-error-port) args)))
 
 
-;;;; socket
 
-(define-c-function primitive-fork
-  (int fork (void)))
+(parameterize ((testname 'adress))
 
-(check
-    (with-compensations
-      (let ((server	(make-sa-socket/compensated))
-	    (client	(make-sa-socket/compensated))
-	    (address	(make-sa-address/compensated the-addr)))
-	(sa-type server SA_TYPE_STREAM)
-	(sa-type client SA_TYPE_STREAM)
-	(sa-option server SA_OPTION_REUSEADDR 1)
-	(sa-option client SA_OPTION_REUSEADDR 1)
-	(sa-bind server address)
-	(sa-listen server 1)
-	(let ((pid (primitive-fork)))
-	  (if (= 0 pid)
-	      (begin
-		;;the child
-		(sa-connect client address))
-	    (begin
-	      ;;the parent
-	      (receive (address socket)
-		  (sa-accept server)
-		(sa-write-string socket "hello\n")))))))
-	#f))
-  => #f)
+  (define the-path "unix:/tmp/proof")
+  (define the-addr "inet://127.0.0.1:8080")
 
+  (check
+      (with-compensations
+	(let ((address (make-sa-address/compensated)))
+	  #f))
+    => #f)
 
+  (check
+      (with-compensations
+	(let ((address (make-sa-address/compensated the-path)))
+	  (sa-address-ref address)))
+    => the-path)
 
+  (check
+      (with-compensations
+	(let ((address (make-sa-address/compensated the-addr)))
+	  (sa-address-ref address)))
+    => the-addr)
+
+  )
+
+
+
+(parameterize ((testname 'socket))
+
+  (define d (shared-object self-shared-object))
+  (define-c-function primitive-fork
+    (int fork (void)))
+
+  (define the-addr "inet://127.0.0.1:8080")
+
+  (check
+      (with-result
+       (with-compensations
+	 (let ((server	(make-sa-socket/compensated))
+	       (client	(make-sa-socket/compensated))
+	       (address	(make-sa-address/compensated the-addr)))
+	   (sa-type server SA_TYPE_STREAM)
+	   (sa-type client SA_TYPE_STREAM)
+	   (sa-option server SA_OPTION_REUSEADDR 1)
+	   (sa-option client SA_OPTION_REUSEADDR 1)
+	   (sa-bind server address)
+	   (sa-listen server 5)
+	   (do ((i 0 (+ 1 i)))
+	       ((= i 10000))
+	     #f)
+	   (let ((pid (primitive-fork)))
+	     (debug "pid ~s~%" pid)
+	     (if (= 0 pid)
+		 (begin ;;the child
+		   (debug "child: start~%")
+		   (sa-connect client address)
+		   (debug "child: connected~%")
+		   (let ((got (sa-read-string client 1024)))
+		     (debug "child: writing string~%")
+		     (sa-write-string client got)
+		     (sa-flush client))
+		   (sa-shutdown client "rw")
+		   (debug "child: exit~%")
+		   (exit))
+	       (begin ;;the parent
+		 (debug "parent: start~%")
+		 (receive (address socket)
+		     (sa-accept server)
+		   (debug "parent: accepted connection~%")
+		   (sa-write-string socket "hello\n")
+		   (sa-flush socket)
+		   (debug "parent: written hello~%")
+		   (add-result (sa-read-string socket 1024))
+		   (debug "parent: read answer~%")
+		   (sa-shutdown socket "rw")
+		   (sa-shutdown server "rw")
+		   #t)))))))
+    => '(#t ("hello\n")))
+
+  )
 
 
 ;;;; done

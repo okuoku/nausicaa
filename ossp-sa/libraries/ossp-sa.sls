@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: high level interface to OSSP/sa for R6RS Scheme
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-18 21:49:41 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -36,17 +35,29 @@
     raise-sa-error sa-error
 
     ;; address
-    make-sa-address make-sa-address/compensated destroy-sa-address
-    sa-address-set! sa-address-ref
+    make-sa-address			make-sa-address/compensated
+    destroy-sa-address
+    sa-address-set!			sa-address-ref
+
+    (rename (make-sa-address/compensated make-sa-address/c))
 
     ;; socket
-    make-sa-socket make-sa-socket/compensated destroy-sa-socket
+    make-sa-socket			make-sa-socket/compensated
+    destroy-sa-socket
     sa-type sa-timeout sa-buffer sa-option
-    sa-bind sa-connect sa-listen sa-accept sa-accept/compensated
-    sa-getremote sa-getremote/compensated sa-getlocal
-    sa-getlocal/compensated sa-shutdown
-    sa-getfd sa-read sa-readln sa-write sa-flush
-    sa-recv sa-send)
+    sa-bind sa-connect sa-listen
+    sa-accept				sa-accept/compensated
+    sa-getremote			sa-getremote/compensated
+    sa-getlocal				sa-getlocal/compensated
+    sa-shutdown				sa-getfd
+    sa-read				sa-read-string
+    sa-write				sa-write-string
+    sa-flush				sa-readln
+    sa-recv				sa-send
+
+    (rename (make-sa-socket/compensated	make-sa-socket/c))
+    (rename (sa-accept/compensated	sa-accept/c))
+    (rename (sa-getlocal/compensated	sa-getlocal/c)))
   (import (r6rs)
     (uriel lang)
     (uriel memory)
@@ -208,17 +219,17 @@
 	      (pointer-ref-c-pointer client-socket*  0)))))
 
 (define (sa-accept/compensated server-socket)
-  (let ((client-address #f)
-	(client-socket #f))
+  (let ((client-addr #f)
+	(client-sock #f))
     (compensate
 	(receive (addr sock)
 	    (sa-accept server-socket)
-	  (set! client-address addr)
-	  (set! client-socket sock))
+	  (set! client-addr addr)
+	  (set! client-sock sock))
       (with
-       (destroy-sa-address client-address)
-       (destroy-sa-socket client-socket)))
-    (values client-address client-socket)))
+       (destroy-sa-address client-addr)
+       (destroy-sa-socket  client-sock)))
+    (values client-addr client-sock)))
 
 (define (sa-getremote socket)
   (with-compensations
@@ -295,7 +306,9 @@
 
 (define (sa-read-string socket size)
   (with-compensations
-    (sa-readln socket (malloc-block/c 256))))
+    (let* ((mb	(malloc-memblock/c size))
+	   (len	(sa-readln socket mb)))
+      (cstring->string/len (memblock-pointer mb) len))))
 
 (define (sa-write socket memblock)
   (with-compensations
@@ -311,7 +324,7 @@
 (define (sa-write-string socket string)
   (with-compensations
     (sa-write socket (make-memblock (string->cstring/c string)
-					(string-length string)))))
+				    (string-length string)))))
 
 (define (sa-flush socket)
   (let ((e (sa_flush socket)))
