@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/Glibc
 ;;;Contents: test for streams
 ;;;Date: Thu Dec  4, 2008
-;;;Time-stamp: <2008-12-23 08:30:34 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -31,7 +30,6 @@
 (import (r6rs)
   (uriel lang)
   (uriel foreign)
-  (uriel getenv)
   (uriel test)
   (only (string-lib) string-join)
   (only (posix sizeof)
@@ -42,7 +40,7 @@
 
 (check-set-mode! 'report-failed)
 
-(define TMPDIR (getenv "TMPDIR"))
+(define TMPDIR (get-environment-variable "TMPDIR"))
 
 (define the-pathname (string-join (list TMPDIR "name.ext") "/"))
 

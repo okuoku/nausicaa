@@ -11,13 +11,15 @@ Stuff related to me, the Earth and the Universe in general
 * Add support for dpkg?
 * Document somewhere that ypsilon requires the --compatible flag.
 * Review all the redhat spec files and update the license field.
+* Install  only  the  compiled  files  of  the  enabled  implementations
+  (already done?).
 
 
 SRFI
 ----
 
+* Remove case-lambda.
 * Write a test file for each SRFI.
-* Install only the compiled files of the enabled implementations.
 * Not all the SRFI authors  have written the implementation library, the
   documentation should be updated accordingly.
 
