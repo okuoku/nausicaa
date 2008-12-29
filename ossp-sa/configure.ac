@@ -34,7 +34,8 @@ dnl --------------------------------------------------------------------
 AC_INIT([nausicaa-ossp-sa],[0.1d0])
 NAUSICAA_BEGIN
 NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
-NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_LANG],[(uriel lang)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FOREIGN],[(uriel foreign)])
 NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF

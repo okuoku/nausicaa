@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/OSSP/sa
 ;;;Contents: low level interface to OSSP/sa for R6RS Scheme
 ;;;Date: Sat Dec 13, 2008
-;;;Time-stamp: <2008-12-16 10:05:20 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,7 +23,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (ossp-sa foreign)
+(library (ossp-sa stub)
   (export
     sa_addr_create
     sa_addr_destroy

@@ -60,13 +60,9 @@
     (rename (sa-getlocal/compensated	sa-getlocal/c)))
   (import (r6rs)
     (uriel lang)
-    (uriel memory)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (uriel cstring)
-    (ossp-sa foreign)
-    (ossp-sa sizeof)
-    (srfi receive))
+    (uriel foreign)
+    (ossp-sa stub)
+    (ossp-sa sizeof))
 
 
 ;;; --------------------------------------------------------------------

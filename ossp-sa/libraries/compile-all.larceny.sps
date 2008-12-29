@@ -23,7 +23,16 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (ossp-sa)))
+(import (rnrs)
+  (larceny compiler))
+
+(compile-library "ossp-sa/sizeof.sls"
+		 "ossp-sa/sizeof.larceny.slfasl")
+
+(compile-library "ossp-sa/stub.sls"
+		 "ossp-sa/stub.larceny.slfasl")
+
+(compile-library "ossp-sa.sls"
+		 "ossp-sa.larceny.slfasl")
 
 ;;; end of file
