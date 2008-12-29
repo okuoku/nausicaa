@@ -32,12 +32,6 @@
 (compile-library "srfi/private/let-opt.sls"
 		 "srfi/private/let-opt.larceny.slfasl")
 
-(compile-library "srfi/private/implementation-features.larceny.sls"
-		 "srfi/private/implementation-features.larceny.slfasl")
-
-(compile-library "srfi/private/registry.sls"
-		 "srfi/private/registry.larceny.slfasl")
-
 ;;; --------------------------------------------------------------------
 
 (compile-library "srfi/and-let-star.sls"
@@ -46,8 +40,17 @@
 (compile-library "srfi/parameters.larceny.sls"
 		 "srfi/parameters.larceny.slfasl")
 
+(compile-library "srfi/cond-expand/implementation-features.larceny.sls"
+		 "srfi/cond-expand/implementation-features.larceny.slfasl")
+
+(compile-library "srfi/cond-expand/registry.sls"
+		 "srfi/cond-expand/registry.larceny.slfasl")
+
 (compile-library "srfi/cond-expand.sls"
 		 "srfi/cond-expand.larceny.slfasl")
+
+(compile-library "srfi/receive.sls"
+		 "srfi/receive.larceny.slfasl")
 
 (compile-library "srfi/sharing.sls"
 		 "srfi/sharing.larceny.slfasl")
@@ -63,9 +66,6 @@
 
 (compile-library "srfi/string-ports.sls"
  		 "srfi/string-ports.larceny.slfasl")
-
-(compile-library "srfi/receive.sls"
-		 "srfi/receive.larceny.slfasl")
 
 (compile-library "srfi/records.sls"
 		 "srfi/records.larceny.slfasl")

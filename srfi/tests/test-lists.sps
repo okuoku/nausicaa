@@ -222,8 +222,180 @@
   => 45)
 
 (check
+    (fold cons '() numbers)
+  => '(9 8 7 6 5 4 3 2 1 0))
+
+(check
+    (fold cons '(4 5 6) '(3 2 1))
+  => '(1 2 3 4 5 6))
+
+(check
+    (fold (lambda (x count)
+	    (if (symbol? x)
+		(+ count 1)
+	      count))
+	  0
+	  '(a 1 b 2 c 3))
+  => 3)
+
+(check
+    (fold (lambda (s len)
+	    (max len (string-length s)))
+	  0
+	  '("ciao" "hello" "salut" "hola"))
+  => 5)
+
+(check
+    (fold cons* '()
+	  '(a b c)
+	  '(1 2 3 4 5))
+  => '(c 3 b 2 a 1))
+
+(check
+    (fold (lambda (a b c knil)
+	    (cons (list a b c)
+		  knil))
+	  '()
+	  '(1 2 3)
+	  '(10 20 30)
+	  '(100 200 300))
+  => '((3 30 300)
+       (2 20 200)
+       (1 10 100)))
+
+
+;;;; right folding
+
+(check
+    (fold-right cons '() '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (fold-right cons '() numbers)
+  => numbers)
+
+(check
+    (fold-right + 0 numbers)
+  => 45)
+
+(check
+    (fold-right cons '(4 5 6) '(1 2 3))
+  => '(1 2 3 4 5 6))
+
+(check
+    (fold-right (lambda (x count)
+		  (if (symbol? x)
+		      (+ count 1)
+		    count))
+		0
+		'(a 1 b 2 c 3))
+  => 3)
+
+(check
+    (fold-right (lambda (s len)
+		  (max len (string-length s)))
+		0
+		'("ciao" "hello" "salut" "hola"))
+  => 5)
+
+(check
+    (fold-right (lambda (x l)
+		  (if (even? x)
+		      (cons x l)
+		    l))
+		'()
+		'(0 1 2 3 4 5 6 7 8 9))
+  => '(0 2 4 6 8))
+
+(check
+    (fold-right cons* '()
+		'(a b c)
+		'(1 2 3))
+  => '(a 1 b 2 c 3))
+
+(check
+    (fold-right cons* '()
+		'(a)
+		'(1))
+  => '(a 1))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (srfi:fold-right cons '() '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (srfi:fold-right cons '() numbers)
+  => numbers)
+
+(check
+    (srfi:fold-right + 0 numbers)
+  => 45)
+
+(check
+    (srfi:fold-right cons '(4 5 6) '(1 2 3))
+  => '(1 2 3 4 5 6))
+
+(check
+    (srfi:fold-right (lambda (x count)
+		       (if (symbol? x)
+			   (+ count 1)
+			 count))
+		     0
+		     '(a 1 b 2 c 3))
+  => 3)
+
+(check
+    (srfi:fold-right (lambda (s len)
+		       (max len (string-length s)))
+		     0
+		     '("ciao" "hello" "salut" "hola"))
+  => 5)
+
+(check
+    (srfi:fold-right (lambda (x l)
+		       (if (even? x)
+			   (cons x l)
+			 l))
+		     '()
+		     '(0 1 2 3 4 5 6 7 8 9))
+  => '(0 2 4 6 8))
+
+(check
+    (srfi:fold-right cons* '()
+		     '(a)
+		     '(1))
+  => '(a 1))
+
+(check
+    (srfi:fold-right cons* '()
+		     '(a b c)
+		     '(1 2 3 4 5))
+  => '(a 1 b 2 c 3))
+
+(check
+    (fold-right (lambda (a b c knil)
+		  (cons (list a b c)
+			knil))
+		'()
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200 300))
+  => '((1 10 100)
+       (2 20 200)
+       (3 30 300)))
+
+
+;;;; reducing
+
+(check
     (reduce + 0 numbers)
   => 45)
+
+
+
+;;;; unfolding
 
 (check
     (unfold (lambda (x) (< 5 x))

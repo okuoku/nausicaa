@@ -338,16 +338,20 @@ documents are the work of many authors and are available at:
 @center @url{http://srfi.schemers.org/}
 
 @noindent
-the original source code was ported to @rnrs{6} Scheme by Derick
-Eddington and is available at:
+the original source code was ported to @rnrs{6} and Ikarus Scheme by
+Derick Eddington with contributions by Abdulaziz Ghuloum, and is
+available at:
 
 @center @url{http::/code.launchpad.net/ikarus-libraries}
 
+@noindent
+upon inclusion in Nausicaa the code was further modified by Marco Maggi.
 The code in this package is covered by the original @srfi{} license, see
 the copyright notices in the source files.
 
 This document was assembled by reformatting the original @srfi{}
-documents.  Each chapter includes the original copyright notice and
+documents, with changes and additions to make it fit the Nausicaa
+distribution.  Each chapter includes the original copyright notice and
 author citation: refer to those for copying conditions.
 
 @noindent
@@ -726,10 +730,8 @@ Environment variables
 
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
-packaging of @srfi{}s for @rnrs{6} Scheme.  The original code has been
-changed to fit the Nausicaa standards.
-
-All the libraries can be loaded with:
+packaging of @srfi{}s for @rnrs{6} Scheme.  All the libraries can be
+loaded with:
 
 @example
 (import (srfi @meta{name}))
@@ -742,10 +744,45 @@ where @meta{name} is the ``name'' of the @srfi{}, for example:
 (import (srfi and-let-star))
 @end example
 
+Usage notices:
+
+@itemize
+@item
+Additional stub libraries are installed, and they export @strong{almost}
+the same bindings of the original @srfi{}s.
+
+@item
+All the bindings documented by the original @srfi{}s are exported by the
+@library{srfi ---} libraries.  This will cause conflicts for some
+@srfi{}; for example @library{srfi lists} redefines @func{map} and some
+other functions.  These conflicts can be solved using the @rnrs{6}
+selective import features of the @func{library} form.
+
+@item
+The stub libraries resolve the conflicts by exporting the redefined
+functions with the @code{srfi:} prefix applied to the name.  Refer to
+the @srfi{} documentation chapters for the list of redefined bindings.
+
+@item
+Whenever a binding is defined by both the @rnrs{6} and an @srfi{}, the
+binding from the @rnrs{6} library is re-exported by the @srfi{} and stub
+library.  There will be no conflicts with those.
+@end itemize
+
+
 @menu
+* overview credits::            Credits and copying conditions.
 * overview srfi::               The @srfi{} libraries.
 * overview stub::               Stub libraries.
 @end menu
+
+
+@c page
+@node overview credits
+@section Credits and copying conditions
+
+
+@insertcopying
 
 
 @c page
@@ -855,8 +892,11 @@ Environment variables.
 @section Stub libraries
 
 
-Another way to import the @srfi{} libraries is to import the following
-stub libraries.
+Another way to import the @srfi{} bindings is to import the following
+stub libraries.  See the @srfi{} documentation chapters for differences
+between the bindings exported by the @library{srfi ---} libraries and
+the bindings exported by the stub libraries.
+
 
 @table @library
 @item features-lib
@@ -887,7 +927,7 @@ Imports @library{srfi receive} and exports all its bindings.
 
 @item string-lib
 Imports @library{srfi strings} and @library{srfi string-ports} and
-exports all its bindings.
+exports all their bindings.
 
 @item vector-lib
 Imports @library{srfi vectors} and exports all its bindings.
@@ -1667,6 +1707,7 @@ they should have their own @srfi{} specs.
 
 @menu
 * list spec intro::             Introduction.
+* list spec stub::              Stub library bindings.
 * list spec cons::              Constructors.
 * list spec pred::              Predicates.
 * list spec select::            Selectors.
@@ -1729,11 +1770,49 @@ defined to accept such an argument.
 
 
 @c page
+@node list spec stub
+@subsection Stub library bindings
+
+
+The bindings exported by @library{srfi lists} are re--exported by
+@library{list-lib} with the following changes:
+
+@enumerate
+@item
+The @func{map} function from the @srfi{} is renamed to @func{srfi:map}.
+
+@item
+The @func{fold-right} function from the @srfi{} is renamed to
+@func{srfi:fold-right}.
+@end enumerate
+
+
+Additionally the following bindings are defined.
+
+
+@defun tree-copy @var{ell}
+Copy the whole tree of the list @var{ell}, not only the spine (which is
+what @func{list-copy} does).
+@end defun
+
+
+@c page
 @node list spec cons
 @subsection Constructors
 
 
 @cindex List constructors
+
+
+@menu
+* list spec cons pair::         Pair constructors.
+* list spec cons list::         List constructors.
+@end menu
+
+
+@c page
+@node list spec cons pair
+@subsubsection Pair constructors
 
 
 @defun cons @var{a} @var{d}
@@ -1747,16 +1826,6 @@ different (in the sense of @func{eqv?}) from every existing object.
 (cons "a" '(b c))    => ("a" b c)
 (cons 'a 3)          => (a . 3)
 (cons '(a b) 'c)     => ((a b) . c)
-@end example
-@end defun
-
-
-@defun list @var{object} ...
-@rnrs{5} Return a newly allocated list of its arguments.
-
-@example
-(list 'a (+ 3 4) 'c) =>  (a 7 c)
-(list)               =>  ()
 @end example
 @end defun
 
@@ -1787,6 +1856,21 @@ the Schemes that provide it, and @func{cons*} in the other half.
 @example
 (cons* 1 2 3 4) => (1 2 3 . 4)
 (cons* 1) => 1
+@end example
+@end defun
+
+
+@c page
+@node list spec cons list
+@subsubsection List constructors
+
+
+@defun list @var{object} ...
+@rnrs{5} Return a newly allocated list of its arguments.
+
+@example
+(list 'a (+ 3 4) 'c) =>  (a 7 c)
+(list)               =>  ()
 @end example
 @end defun
 
@@ -1859,6 +1943,18 @@ the empty list.
 @cindex List predicates
 
 
+@menu
+* list spec pred kind::         Kinds of list.
+* list spec pred null::         Null predicates.
+* list spec pred pair::         Pair predicates.
+@end menu
+
+
+@c page
+@node list spec pred kind
+@subsubsection Kind of list
+
+
 The predicates @func{proper-list?}, @func{circular-list?}, and
 @func{dotted-list?} partition the entire universe of Scheme values.
 
@@ -1914,18 +2010,9 @@ length 0.
 @end defun
 
 
-@defun pair? @var{object}
-Return @true{} if object is a pair; otherwise @false{}.
-
-@example
-(pair? '(a . b)) =>  #t
-(pair? '(a b c)) =>  #t
-(pair? '())      =>  #f
-(pair? '#(a b))  =>  #f
-(pair? 7)        =>  #f
-(pair? 'a)       =>  #f
-@end example
-@end defun
+@c page
+@node list spec pred null
+@subsubsection Null predicates
 
 
 @defun null? @var{object}
@@ -1939,6 +2026,25 @@ if the argument is the empty list, and @false{} otherwise.  It is an
 error to pass this procedure a value which is not a proper or circular
 list.  This procedure is recommended as the termination condition for
 list--processing procedures that are not defined on dotted lists.
+@end defun
+
+
+@c page
+@node list spec pred pair
+@subsubsection Pair predicates
+
+
+@defun pair? @var{object}
+Return @true{} if object is a pair; otherwise @false{}.
+
+@example
+(pair? '(a . b)) =>  #t
+(pair? '(a b c)) =>  #t
+(pair? '())      =>  #f
+(pair? '#(a b))  =>  #f
+(pair? 7)        =>  #f
+(pair? 'a)       =>  #f
+@end example
 @end defun
 
 
@@ -2444,28 +2550,41 @@ procedure returns:
 that is, it obeys the (tail) recursion:
 
 @example
-(fold kons knil lis) = (fold kons (kons (car lis) knil) (cdr lis))
+(fold kons knil ell) = (fold kons (kons (car ell) knil)
+                             (cdr ell))
 (fold kons knil '()) = knil
 @end example
 
 Examples:
 
 @example
-(fold + 0 lis)			; Add up the elements of LIS.
+;; add the elements
+(fold + 0 '(1 2 3))
+=> 6
 
-(fold cons '() lis)		; Reverse LIS.
+;; reverse a list
+(fold cons '() '(1 2 3))
+=> (3 2 1)
 
-(fold cons tail rev-head)	; See APPEND-REVERSE.
+;; append in reverse order
+(fold cons '(4 5 6) '(3 2 1))
+=> (1 2 3 4 5 6)
 
-;; How many symbols in LIS?
-(fold (lambda (x count) (if (symbol? x) (+ count 1) count))
+;; how many symbols?
+(fold (lambda (x count)
+        (if (symbol? x)
+            (+ count 1)
+          count))
       0
-      lis)
+      '(a 1 b 2 c 3))
+=> 3
 
-;; Length of the longest string in LIS:
-(fold (lambda (s max-len) (max max-len (string-length s)))
+;; length of the longest string
+(fold (lambda (s len)
+        (max len (string-length s)))
       0
-      lis)
+      '("ciao" "hello" "salut" "hola"))
+=> 5
 @end example
 
 If @var{n} list arguments are provided, then the @var{kons} function
@@ -2474,7 +2593,21 @@ must take @var{n+1} parameters: one element from each list, and the
 operation terminates when the shortest list runs out of values:
 
 @example
-(fold cons* '() '(a b c) '(1 2 3 4 5)) => (c 3 b 2 a 1)
+(fold cons* '() '(a b c)
+                '(1 2 3 4 5))
+=> (c 3
+    b 2
+    a 1)
+
+(fold (lambda (a b c knil)
+        (cons (list a b c) knil))
+      '()
+      '(1 2 3)
+      '(10 20 30)
+      '(100 200 300))
+=> '((3 30 300)
+     (2 20 200)
+     (1 10 100))
 @end example
 
 At least one of the list arguments must be finite.
@@ -2494,26 +2627,47 @@ procedure returns:
 that is, it obeys the recursion:
 
 @example
-(fold-right kons knil lis) = (kons (car lis) (fold-right kons knil (cdr lis)))
+(fold-right kons knil ell) = (kons (car ell)
+                                   (fold-right kons knil (cdr ell)))
 (fold-right kons knil '()) = knil
 @end example
 
 Examples:
 
 @example
-(fold-right cons '() lis)		; Copy LIS.
+;; copy the list
+(fold-right cons '() '(1 2 3))
+=> (1 2 3)
 
-;; Filter the even numbers out of LIS.
-(fold-right (lambda (x l) (if (even? x) (cons x l) l)) '() lis))
+;; add elements
+(fold-right + 0 numbers)
+=> 45
+
+;; prepend elements
+(fold-right cons '(4 5 6) '(1 2 3))
+=> (1 2 3 4 5 6)
+
+;; filter the even numbers
+(fold-right (lambda (x l)
+              (if (even? x)
+                  (cons x l)
+                l))
+            '()
+            '(0 1 2 3 4 5 6 7 8 9))
+=> (0 2 4 6 8)
 @end example
 
 If @var{n} list arguments are provided, then the @var{kons} function
-must take @var{n+1} parameters: one element from each list, and the
+must take @var{n}+1 parameters: one element from each list, and the
 ``seed'' or fold state, which is initially @var{knil}.  The fold
 operation terminates when the shortest list runs out of values:
 
 @example
-(fold-right cons* '() '(a b c) '(1 2 3 4 5)) => (a 1 b 2 c 3)
+(fold-right cons*
+            '()
+            '(a b c)
+            '(1 2 3 4 5))
+=> (a 1 b 2 c 3)
 @end example
 
 At least one of the list arguments must be finite.

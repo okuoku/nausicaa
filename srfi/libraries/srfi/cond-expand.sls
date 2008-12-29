@@ -32,7 +32,7 @@
   (export
     cond-expand)
   (import (rnrs)
-    (for (srfi private registry) expand))
+    (for (srfi cond-expand registry) expand))
 
   (define-syntax cond-expand
     (lambda (stx)
