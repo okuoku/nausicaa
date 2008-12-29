@@ -40,33 +40,8 @@
 
 (import (r6rs)
   (rnrs eval (6))
+  (check-lib)
   (srfi and-let-star))
-
-(define testnum 0)
-
-(define-syntax check
-  (syntax-rules (=>)
-    ((_ ?form => ?expected-result)
-     (let ((result ?form)
-	   (expected-result ?expected-result))
-       (if (equal? result expected-result)
-	   (begin
-	     (display "test number ")
-	     (display testnum)
-	     (display " success")
-	     (newline))
-	 (begin
-	   (display "test number ")
-	   (display testnum)
-	   (display " FAILURE expected ")
-	   (display expected-result)
-	   (display " got ")
-	   (display result)
-	   (newline)
-	   (display "\t")
-	   (write (quote ?form))
-	   (newline)))
-       (set! testnum (+ 1 testnum))))))
 
 ;; Here we use  EVAL because a syntax violation  error cannot be catched
 ;; by GUARD, and so it causes the program termination.
@@ -81,9 +56,7 @@
 	   (eval '?form (environment '(rnrs) '(srfi and-let-star))))
        => #t))))
 
-(newline)
-(display "*** testing and-let-star ...")
-(newline)
+(check-set-mode! 'report-failed)
 
 
 ;;;; code
@@ -299,8 +272,6 @@
 
 ;;;; done
 
-(display "*** testing and-let-star end")
-(newline)
-(newline)
+(check-report)
 
 ;;; end of file

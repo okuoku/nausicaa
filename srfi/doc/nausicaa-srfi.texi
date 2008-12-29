@@ -412,11 +412,9 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 * string-ports::                Basic string ports.
 * receive::                     Binding to multiple values.
 * records::                     Defining record types.
-* let-values::                  Syntax for receiving multiple values.
 * strings::                     The string library.
 * case-lambda::                 Syntax for procedures of variable arity.
 * time::                        Time data types and procedures.
-* error-reporting::             Error reporting mechanism.
 * cut::                         Notation for specializing parameters
                                 without currying.
 * random::                      Sources of random bits.
@@ -449,9 +447,9 @@ Indexes
 Overview of the package
 
 * overview srfi::               The @srfi{} libraries.
-* overview more::               Other libraries.
+* overview stub::               Stub libraries.
 
-@ansrfi{0} feature based conditional expansion construct
+Feature based conditional expansion construct
 
 * cond-expand license::         Original license.
 * cond-expand abstract::        Abstract.
@@ -521,13 +519,6 @@ Defining record types
 * records rationale::           Rationale.
 * records spec::                Specification.
 
-Syntax for receiving multiple values
-
-* let-values license::          Original license.
-* let-values abstract::         Abstract.
-* let-values rationale::        Rationale.
-* let-values spec::             Specification.
-
 @ansrfi{13} string library
 
 * strings license::             Original license.
@@ -595,13 +586,6 @@ Specification
                                 Julian Day Converters.
 * time spec string::            Date to string/string to date
                                 converters.
-
-Error reporting mechanism
-
-* error-reporting license::     Original license.
-* error-reporting abstract::    Abstract.
-* error-reporting rationale::   Rationale.
-* error-reporting spec::        Specification.
 
 Notation for specializing parameters without currying
 
@@ -760,7 +744,7 @@ where @meta{name} is the ``name'' of the @srfi{}, for example:
 
 @menu
 * overview srfi::               The @srfi{} libraries.
-* overview more::               Other libraries.
+* overview stub::               Stub libraries.
 @end menu
 
 
@@ -795,10 +779,6 @@ Binding multiple values.
 @item @ansrfi{9}
 @itemx @library{srfi records}
 Record types definition.
-
-@item @ansrfi{11}
-@itemx @library{srfi let-values}
-Syntax for receiving multiple values.
 
 @item @ansrfi{13}
 @itemx @library{srfi strings}
@@ -871,13 +851,17 @@ Environment variables.
 
 
 @c page
-@node overview more
-@section Other libraries
+@node overview stub
+@section Stub libraries
 
 
-Additionally the following libraries are installed:
+Another way to import the @srfi{} libraries is to import the following
+stub libraries.
 
 @table @library
+@item features-lib
+Imports @library{srfi cond-expand} and exports all its bindings.
+
 @item check-lib
 Imports @library{srfi lightweight-testing} and exports all its bindings.
 
@@ -912,17 +896,18 @@ Imports @library{srfi vectors} and exports all its bindings.
 
 @c page
 @node cond-expand
-@chapter @ansrfi{0} feature based conditional expansion construct
+@chapter Feature based conditional expansion construct
 
 
-The @library{srfi cond-expand} library has been written by Marc Feeley
-as the reference implementation for @ansrfi{0}.
+@ansrfi{0} was written by Marc Feeley, the @value{PACKAGE}
+implementation was written by Derick Eddington.
 
 @menu
 * cond-expand license::         Original license.
 * cond-expand abstract::        Abstract.
 * cond-expand rationale::       Rationale.
 * cond-expand spec::            Specifications.
+* cond-expand features::        Feature identifiers.
 @end menu
 
 
@@ -931,7 +916,6 @@ as the reference implementation for @ansrfi{0}.
 @section Original license
 
 
-@noindent
 Copyright @copyright{} Marc Feeley 1999.  All Rights Reserved.
 
 This document and translations of it may be copied and furnished to
@@ -1134,6 +1118,65 @@ error will be signaled at macro--expansion time if this feature is not
 present.
 
 
+@c page
+@node cond-expand features
+@section Feature identifiers
+
+
+What follows is a list of features that can be queried using the
+@value{PACKAGE} implementation of this library.
+
+
+@table @code
+@item srfi-0
+@itemx srfi-1
+@itemx srfi-2
+@itemx srfi-6
+@itemx srfi-8
+@itemx srfi-9
+@itemx srfi-13
+@itemx srfi-14
+@itemx srfi-16
+@itemx srfi-19
+@itemx srfi-26
+@itemx srfi-27
+@itemx srfi-31
+@itemx srfi-37
+@itemx srfi-38
+@itemx srfi-39
+@itemx srfi-41
+@itemx srfi-42
+@itemx srfi-43
+@itemx srfi-48
+@itemx srfi-61
+@itemx srfi-67
+@itemx srfi-78
+@itemx (srfi cond-expand)
+@itemx (srfi lists)
+@itemx (srfi and-let*)
+@itemx (srfi string-ports)
+@itemx (srfi receive)
+@itemx (srfi records)
+@itemx (srfi strings)
+@itemx (srfi char-set)
+@itemx (srfi case-lambda)
+@itemx (srfi time)
+@itemx (srfi cut)
+@itemx (srfi random)
+@itemx (srfi rec)
+@itemx (srfi args-fold)
+@itemx (srfi sharing)
+@itemx (srfi parameters)
+@itemx (srfi streams)
+@itemx (srfi eager-comprehensions)
+@itemx (srfi vectors)
+@itemx (srfi format)
+@itemx (srfi general-cond)
+@itemx (srfi compare)
+@itemx (srfi lightweight-testing)
+One feature for each @srfi{}.
+@end table
+
 
 @c page
 @node list
@@ -1143,7 +1186,6 @@ present.
 @cindex @srfi{} list library
 
 
-@noindent
 The @library{srfi lists} library has been written by Olin Shivers
 @email{shivers@@ai.mit.edu} as the reference implementation for
 @ansrfi{1}etails.
@@ -1801,6 +1843,11 @@ The @var{start} and @var{step} parameters default to @code{0} and
 (iota 5) => (0 1 2 3 4)
 (iota 5 0 -0.1) => (0 -0.1 -0.2 -0.3 -0.4)
 @end example
+
+@quotation
+@strong{Nausicaa note:} When @var{count} is negative the return value is
+the empty list.
+@end quotation
 @end defun
 
 
@@ -1812,8 +1859,9 @@ The @var{start} and @var{step} parameters default to @code{0} and
 @cindex List predicates
 
 
-Note: the predicates @func{proper-list?}, @func{circular-list?}, and
+The predicates @func{proper-list?}, @func{circular-list?}, and
 @func{dotted-list?} partition the entire universe of Scheme values.
+
 
 @defun proper-list? @var{x}
 Return true if, and only if, @var{x} is a proper list: a finite,
@@ -1821,51 +1869,53 @@ nil--terminated list.  More carefully: The empty list is a proper list.
 A pair whose cdr is a proper list is also a proper list:
 
 @example
-<proper-list> ::= ()                            (Empty proper list)
-              |   (cons <x> <proper-list>)      (Proper-list pair)
+<proper-list> ::= ()                        (Empty proper list)
+              |   (cons <x> <proper-list>)  (Proper-list pair)
 @end example
 
 Note that this definition rules out circular lists.  This function is
-required to detect this case and return false.
-
-Nil--terminated lists are called ``proper'' lists by @rnrs{5} and Common
-Lisp.  The opposite of proper is improper.
+required to detect this case and return @false{}.  Nil--terminated lists
+are called ``proper'' lists by @rnrs{5} and Common Lisp.  The opposite
+of proper is improper.
 
 @rnrs{5} binds this function to the variable @func{list?}.
 
 @example
-(not (proper-list? x)) = (or (dotted-list? x) (circular-list? x))
+(not (proper-list? x)) = (or (dotted-list? x)
+                             (circular-list? x))
 @end example
 @end defun
 
 
 @defun circular-list? @var{x}
-True if @var{x} is a circular list.  A circular list is a value such
-that for every @code{n >= 0}, @code{cdrn(x)} is a pair.
+Return @true{} if @var{x} is a circular list.  A circular list is a
+value such that for every @code{n >= 0}, @code{cdrn(x)} is a pair.
 
 Terminology: The opposite of circular is finite.
 
 @example
-(not (circular-list? x)) = (or (proper-list? x) (dotted-list? x))
+(not (circular-list? x)) = (or (proper-list? x)
+                               (dotted-list? x))
 @end example
 @end defun
 
 
 @defun dotted-list? @var{x}
-True if @var{x} is a finite, non--nil--terminated list.  That is, there
-exists an @code{n >= 0} such that @code{cdrn(x)} is neither a pair nor
-@code{()}.  This includes non--pair, non--@code{()} values
+Return @true{} if @var{x} is a finite, non--nil--terminated list.  That
+is, there exists an @code{n >= 0} such that @code{cdrn(x)} is neither a
+pair nor @code{()}.  This includes non--pair, non--@code{()} values
 (e.g. symbols, numbers), which are considered to be dotted lists of
 length 0.
 
 @example
-(not (dotted-list? x)) = (or (proper-list? x) (circular-list? x))
+(not (dotted-list? x)) = (or (proper-list? x)
+                             (circular-list? x))
 @end example
 @end defun
 
 
 @defun pair? @var{object}
-@rnrs{5} Return @true{} if object is a pair; otherwise @false{}.
+Return @true{} if object is a pair; otherwise @false{}.
 
 @example
 (pair? '(a . b)) =>  #t
@@ -1879,18 +1929,16 @@ length 0.
 
 
 @defun null? @var{object}
-@rnrs{5} Return @true{}t if object is the empty list; otherwise
-@false{}.
+Return @true{} if object is the empty list; otherwise @false{}.
 @end defun
 
 
 @defun null-list? list
-@var{list} is a proper or circular list.  This procedure returns true if
-the argument is the empty list @code{()}, and @false{} otherwise.  It is
-an error to pass this procedure a value which is not a proper or
-circular list.  This procedure is recommended as the termination
-condition for list--processing procedures that are not defined on dotted
-lists.
+@var{list} is a proper or circular list.  This procedure returns @true{}
+if the argument is the empty list, and @false{} otherwise.  It is an
+error to pass this procedure a value which is not a proper or circular
+list.  This procedure is recommended as the termination condition for
+list--processing procedures that are not defined on dotted lists.
 @end defun
 
 
@@ -2182,8 +2230,8 @@ The length of a proper list is a non--negative integer @var{n} such that
 
 @defun append @var{list1} ...
 @defunx append! @var{list1} ...
-@rnrs{5} @func{append} returns a list consisting of the elements of
-@var{list1} followed by the elements of the other list parameters.
+@func{append} returns a list consisting of the elements of @var{list1}
+followed by the elements of the other list parameters.
 
 @example
 (append '(x) '(y))        =>  (x y)
@@ -2242,8 +2290,8 @@ list may be any value at all.
 
 @defun reverse @var{list}
 @defunx reverse! @var{list}
-@rnrs{5} @func{reverse} returns a newly allocated list consisting of the
-elements of @var{list} in reverse order.
+@func{reverse} returns a newly allocated list consisting of the elements
+of @var{list} in reverse order.
 
 @example
 (reverse '(a b c))              =>  (c b a)
@@ -2368,6 +2416,19 @@ At least one of the argument lists must be finite:
 
 
 @cindex List fold, unfold and map
+
+
+@menu
+* list spec fold fold::         Folding.
+* list spec fold reduce::       Reducing.
+* list spec fold unfold::       Unfolding.
+* list spec fold map::          Mapping.
+@end menu
+
+
+@c page
+@node list spec fold fold
+@subsubsection Folding
 
 
 @defun fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
@@ -2506,6 +2567,11 @@ At least one of the list arguments must be finite.
 @end defun
 
 
+@c page
+@node list spec fold reduce
+@subsubsection Reducing
+
+
 @defun reduce @var{f} @var{ridentity} @var{list}
 @func{reduce} is a variant of @func{fold}.  @var{ridentity} should be a
 ``right identity'' of the procedure @var{f}; that is, for any value
@@ -2571,69 +2637,82 @@ in other words, we compute @code{(fold-right f ridentity list)}.
 @end defun
 
 
-@defun unfold @var{p} @var{f} @var{g} @var{seed} [@var{tail-gen}]
-@func{unfold} is best described by its basic recursion:
+@c page
+@node list spec fold unfold
+@subsubsection Unfolding
+
+
+@defun unfold @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} [@var{tail-gen}]
+Generate a list from a starting value; return the result.  It is is the
+fundamental recursive list constructor, just as @func{fold-right} is the
+fundamental recursive list consumer.  It is best described by its basic
+recursion:
 
 @example
-(unfold p f g seed) =
-    (if (p seed)
+(unfold stop? map-to-elm seed-step seed tail-gen) =
+    (if (stop? seed)
         (tail-gen seed)
-      (cons (f seed)
-            (unfold p f g (g seed))))
+      (cons (map-to-elm seed)
+            (unfold stop? map-to-elm
+                    seed-step (seed-step seed)
+                    tail-gen)))
 @end example
+
+The arguments are:
 
 @table @var
-@item p
-Determines when to stop unfolding.
+@item stop?
+Determines when to stop: it is applied to the current seed value, and if
+the return value is @true{}: unfolding stops.  If it evaluates to
+@true{} at the first invocation: the return value of @func{unfold} is
+the return value of @var{tail-gen}.
 
-@item f
-Maps each seed value to the corresponding list element.
+@item map-to-elm
+Maps each seed value to the corresponding list element.  It is applied
+to the current seed value and must return the value to append to the
+result list.
 
-@item g
+@item seed-step
 Maps each seed value to next seed value.
 
-@item seed
-The ``state'' value for the unfold.
+@item first-seed
+The ``state'' value for the unfold.  It is the first seed value.
 
 @item tail-gen
-Creates the tail of the list; defaults to @code{(lambda (x) '())}.
+Applied to the seed value that caused @func{stop?} to return @true{},
+must return the tail of the result list.  Defaults to @code{(lambda (x)
+'())}.
 @end table
 
-In other words, we use @var{g} to generate a sequence of seed values:
+While @func{unfold} may seem a bit abstract to novice functional
+programmers, it can be used in a number of ways:
 
 @example
-seed, g(seed), g2(seed), g3(seed), ...
-@end example
-
-These seed values are mapped to list elements by @var{f}, producing the
-elements of the result list in a left--to--right order.  @var{p} says
-when to stop.
-
-@func{unfold} is the fundamental recursive list constructor, just as
-@func{fold-right} is the fundamental recursive list consumer.  While
-@func{unfold} may seem a bit abstract to novice functional programmers,
-it can be used in a number of ways:
-
-@example
-;; List of squares: 1^2 ... 10^2
-(unfold (lambda (x) (> x 10))
+;; List of squares: 1^2 ... 5^2
+(unfold (lambda (x) (> x 5))
         (lambda (x) (* x x))
-    lambda (x) (+ x 1))
-    1)
+        (lambda (x) (+ x 1))
+        1)
+=> (1 4 9 16 25)
 
-(unfold null-list? car cdr lis) ; Copy a proper list.
+;; Copy a proper list.
+(unfold null-list? car cdr '(1 2 3 4 5))
+=> (1 2 3 4 5)
 
 ;; Read current input port into a list of values.
 (unfold eof-object? values (lambda (x) (read)) (read))
 
 ;; Copy a possibly non-proper list:
-(unfold not-pair? car cdr lis values)
+(unfold not-pair? car cdr '(1 2 3 4 . 5) values)
+=> (1 2 3 4 . 5)
 
 ;; Append HEAD onto TAIL:
-(unfold null-list? car cdr head (lambda (x) tail))
+(unfold null-list? car cdr '(1 2 3) (lambda (x) '(4 5 6)))
+=> (1 2 3 4 5 6)
 @end example
 
-Interested functional programmers may enjoy noting that
+@quotation
+@emph{Note:} Interested functional programmers may enjoy noting that
 @func{fold-right} and @func{unfold} are in some sense inverses.  That
 is, given operations @var{knull?}, @var{kar}, @var{kdr}, @var{kons}, and
 @var{knil} satisfying:
@@ -2653,57 +2732,51 @@ then:
 and:
 
 @example
-(unfold knull? kar kdr (fold-right kons knil x)) = x.
+(unfold knull? kar kdr (fold-right kons knil x)) = x
 @end example
 
 This combinator sometimes is called an ``anamorphism''; when an explicit
 @var{tail-gen} procedure is supplied, it is called an ``apomorphism''.
+@end quotation
 @end defun
 
+@c ------------------------------------------------------------
 
-@defun unfold-right @var{p} @var{f} @var{g} @var{seed} [@var{tail}]
-@func{unfold-right} constructs a list with the following loop:
+@defun unfold-right @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} [@var{tail}]
+Generate a list from a starting value; return the result.  It is the
+fundamental iterative list constructor, just as @func{fold} is the
+fundamental iterative list consumer.  Construct a list with the
+following loop:
 
 @example
-(let lp ([seed seed]
-         [lis tail])
-  (if (p seed)
-      lis
-    (lp (g seed)
-        (cons (f seed) lis))))
+(let loop ((seed seed)
+           (ell  tail))
+  (if (stop? seed)
+      ell
+    (loop (seed-step seed)
+          (cons (map-to-elm seed) ell))))
 @end example
 
+Arguments are:
+
 @table @var
-@item p
-Determines when to stop unfolding.
+@item stop?
+Determine when to stop unfolding.
 
-@item f
-Maps each seed value to the corresponding list element.
+@item map-to-elm
+Map each seed value to the corresponding list element.
 
-@item g
-Maps each seed value to next seed value.
+@item seed-step
+Map each seed value to next seed value.
 
-@item seed
+@item first-seed
 The ``state'' value for the unfold.
 
 @item tail
 List terminator; defaults to @code{'()}.
 @end table
 
-In other words, we use @var{g} to generate a sequence of seed values:
-
-@example
-seed, g(seed), g2(seed), g3(seed), ...
-@end example
-
-@noindent
-these seed values are mapped to list elements by @var{f}, producing the
-elements of the result list in a right--to--left order.  @var{p} says
-when to stop.
-
-@func{unfold-right} is the fundamental iterative list constructor, just
-as @func{fold} is the fundamental iterative list consumer.  While
-@func{unfold-right} may seem a bit abstract to novice functional
+While @func{unfold-right} may seem a bit abstract to novice functional
 programmers, it can be used in a number of ways:
 
 @example
@@ -2711,21 +2784,25 @@ programmers, it can be used in a number of ways:
 (unfold-right zero?
               (lambda (x) (* x x))
               (lambda (x) (- x 1))
-              10)
+              5)
+=> (1 4 9 16 25)
 
 ;; Reverse a proper list.
-(unfold-right null-list? car cdr lis)
+(unfold-right null-list? car cdr '(1 2 3 4 5))
+=> (5 4 3 2 1)
 
 ;; Read current input port into a list of values.
 (unfold-right eof-object? values (lambda (x) (read)) (read))
 
-;; (append-reverse rev-head tail)
-(unfold-right null-list? car cdr rev-head tail)
+;; Equivalent to: (append-reverse rev-head tail)
+(unfold-right null-list? car cdr '(3 2 1) '(4 5 6))
+=> (1 2 3 4 5 6)
 @end example
 
-Interested functional programmers may enjoy noting that @func{fold} and
-@func{unfold-right} are in some sense inverses.  That is, given
-operations @var{knull?}, @var{kar}, @var{kdr}, @var{kons}, and
+@quotation
+@emph{Note:} Interested functional programmers may enjoy noting that
+@func{fold} and @func{unfold-right} are in some sense inverses.  That
+is, given operations @var{knull?}, @var{kar}, @var{kdr}, @var{kons}, and
 @var{knil} satisfying:
 
 @example
@@ -2748,15 +2825,21 @@ and:
 
 This combinator presumably has some pretentious mathematical name;
 interested readers are invited to communicate it to the author.
+@end quotation
 @end defun
 
 
+@c page
+@node list spec fold map
+@subsubsection Mapping
+
+
 @defun map @var{proc} @var{clist1} @var{clist2} ...
-@rnrs{5}+ @var{proc} is a procedure taking as many arguments as there
-are list arguments and returning a single value.  @func{map} applies
-@var{proc} element--wise to the elements of the lists and returns a list
-of the results, in order.  The dynamic order in which @var{proc} is
-applied to the elements of the lists is unspecified.
+@var{proc} is a procedure taking as many arguments as there are list
+arguments and returning a single value.  @func{map} applies @var{proc}
+element--wise to the elements of the lists and returns a list of the
+results, in order.  The dynamic order in which @var{proc} is applied to
+the elements of the lists is unspecified.
 
 @example
 (map cadr '((a b) (d e) (g h))) =>  (b e h)
@@ -2788,12 +2871,12 @@ At least one of the argument lists must be finite:
 
 
 @defun for-each @var{proc} @var{clist1} @var{clist2} ...
-@rnrs{5}+ The arguments to @func{for-each} are like the arguments to
-@func{map}, but @func{for-each} calls @var{proc} for its side effects
-rather than for its values.  Unlike @func{map}, @func{for-each} is
-guaranteed to call @var{proc} on the elements of the lists in order from
-the first element(s) to the last, and the value returned by
-@func{for-each} is unspecified.
+The arguments to @func{for-each} are like the arguments to @func{map},
+but @func{for-each} calls @var{proc} for its side effects rather than
+for its values.  Unlike @func{map}, @func{for-each} is guaranteed to
+call @var{proc} on the elements of the lists in order from the first
+element(s) to the last, and the value returned by @func{for-each} is
+unspecified.
 
 @example
 (let ([v (make-vector 5)])
@@ -4617,142 +4700,6 @@ Example:
   (kar k))                => 3
 @end example
 
-
-
-@c page
-@node let-values
-@chapter Syntax for receiving multiple values
-
-
-@cindex @srfi{} let-values
-
-
-The @library{srfi let-values} has been written by Lars T Hansen as
-reference implementation for @ansrfi{11}.
-
-
-@menu
-* let-values license::          Original license.
-* let-values abstract::         Abstract.
-* let-values rationale::        Rationale.
-* let-values spec::             Specification.
-@end menu
-
-
-@c page
-@node let-values license
-@section Let-Values document license
-
-
-Copyright @copyright{} 1999 Lars T Hansen.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-@c page
-@node let-values abstract
-@section Abstract
-
-
-This @srfi{} introduces syntactic forms @func{let-values} and
-@func{let*-values} that bind the values of expressions that return
-multiple values.
-
-
-@c page
-@node let-values rationale
-@section Rationale
-
-
-@func{let-values} and @func{let*-values} reduce the clutter of the
-@func{call-with-values} notation for receiving multiple values.
-
-
-@c page
-@node let-values spec
-@section Specification
-
-
-@cindex @srfi{} let-values @api{}
-
-
-@deffn Syntax let-values ((@var{formals} @var{expression}) ...) @var{body}
-Each @var{formals} should be a formal arguments list as for a
-@func{lambda} expression (cf section 4.1.4 of the @rnrs{5}).
-
-The @var{expression}s are evaluated in the current environment, the
-variables of the @var{formals} are bound to fresh locations, the return
-values of the @var{expression}s are stored in the variables, the
-@var{body} is evaluated in the extended environment, and the values of
-the last expression of @var{body} are returned.  The @var{body} is a
-@code{tail-body} (cf section 3.5 of the @rnrs{5}).
-
-The matching of each @var{formals} to values is as for the matching of
-@var{formals} to arguments in a @func{lambda} expression, and it is an
-error for an @var{expression} to return a number of values that does not
-match its corresponding @var{formals}.
-
-Examples:
-
-@example
-(let-values ([(a b . c) (values 1 2 3 4)])
-  (list a b c))
-=> (1 2 (3 4))
-
-(let ([a 'a]
-      [b 'b]
-      [x 'x]
-      [y 'y])
-  (let-values ([(a b) (values x y)]
-               [(x y) (values a b)])
-    (list a b x y)))
-=> (x y a b)
-@end example
-@end deffn
-
-
-@deffn Syntax {let*-values} ((@var{formals} @var{expression}) ...) @var{body}
-Each @var{formals} should be a formal arguments list as for a
-@func{lambda} expression (cf section 4.1.4 of the @rnrs{5}).
-
-@func{let*-values} is similar to @func{let-values}, but the bindings are
-performed sequentially from left to right, and the region of a binding
-indicated by @code{(formals expression)} is that part of the
-@func{let*-values} expression to the right of the binding.  Thus the
-second binding is done in an environment in which the first binding is
-visible, and so on.
-
-Example:
-
-@example
-(let ([a 'a]
-      [b 'b]
-      [x 'x]
-      [y 'y])
-  (let*-values ([(a b) (values x y)]
-                [(x y) (values a b)])
-    (list a b x y)))
-=> (x y x y)
-@end example
-@end deffn
 
 @c page
 @node strings
@@ -8043,173 +7990,6 @@ Krishnamurthi for his editing help.
 The @func{date->string} procedure uses a format string, based on @gnu{}
 C's @cfunc{date} procedure, as well as Scsh's @code{format-date}
 procedure.
-
-
-@c page
-@node error-reporting
-@chapter Error reporting mechanism
-
-
-@cindex @srfi{} error-reporting
-
-The @library{srfi error-reporting} library has been written by Stephan
-Houben as the reference implementation for @ansrfi{23}.
-
-@menu
-* error-reporting license::     Original license.
-* error-reporting abstract::    Abstract.
-* error-reporting rationale::   Rationale.
-* error-reporting spec::        Specification.
-@end menu
-
-
-@c page
-@node error-reporting license
-@section Original license
-
-
-Copyright @copyright{} 2001 Stephan Houben @email{stephanh@@win.tue.nl}.
-All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node error-reporting abstract
-@section Abstract
-
-
-A mechanism is proposed to allow Scheme code to report errors and abort
-execution.  The proposed mechanism is already implemented in several
-Scheme systems and can be implemented, albeit imperfectly, in any
-@rnrs{5} conforming Scheme.
-
-
-
-@c page
-@node error-reporting rationale
-@section Rationale
-
-
-@rnrs{5} Scheme requires certain operations to signal an error when they
-fail.  ``Signalling an error'' means that implementations must detect
-and report the error.  Moreover, @rnrs{5} encourages, but not requires,
-implementations to signal an error in many more circumstances.
-
-However, there is no direct way for the Scheme application programmer to
-report an error that occured in his or her own application.  This means
-that Scheme procedures created by applications or libraries are in this
-respect not on equal footing with procedures provided by the Scheme
-system.
-
-Many Scheme systems already provide a mechanism that allows application
-code to report an error.  At least the following implementations support
-such a mechanism: Bigloo, Guile, @acronym{MIT} Scheme, @acronym{PLT}
-Scheme, RScheme, Scsh, SCM, all implementations supported by Slib.  Of
-these implementations, the following have an error mechanism compatible
-with this @srfi{}: Guile, @acronym{MIT} Scheme, @acronym{PLT} Scheme,
-RScheme, Scsh.  The implementation in Slib has a different name than the
-one proposed in this @srfi{}.
-
-To summarise, many implementations already have the error reporting
-mechanism described in this @srfi{} and others are easily made
-compatible with this @srfi{}.  This shows that the proposed mechanism
-is considered useful and that it is easy to implement in most major
-implementations.
-
-
-@c page
-@node error-reporting spec
-@section Specification
-
-
-@defun error @var{reason} [@var{arg1} [@var{arg2} ...]])
-The argument @var{reason} should be a string.  The procedure error will
-signal an error, as described in @rnrs{5}, and it will report the
-message @var{reason} and the objects @var{arg1}, @var{arg2}, ...
-
-What exactly constitutes ``signalling'' and ``reporting'' is not
-prescribed, because of the large variation in Scheme systems.  So it is
-left to the implementor to do something reasonable.  To that end, a few
-examples of possible behaviour are given.
-
-@enumerate
-@item
-Display @var{reason} and @var{arg1}... on the screen and terminate the
-Scheme program.  This might be suitable for a Scheme system implemented
-as a batch compiler.
-
-@item
-Display @var{reason} and @var{arg1}... on the screen and go back to the
-read--evaluate--print loop.  This might be suitable for an interactive
-implementation.
-
-@item
-In the case of a multi--threaded system: terminate the current thread,
-but do not terminate the other threads.  Possibly make the arguments to
-error available to other threads in some way.  See the
-@func{thread-join!}  mechanism in @ansrfi{18} on how this could be done.
-
-@item
-Package @var{reason} and @var{arg1}... up into an error object and pass
-this error object to an exception handler.  The default exception
-handler then might do something as described in points 1 to 3.
-
-@item
-In the case of a Scheme system that runs completely unattended and that
-has no way to notify a human, the only reasonable course of action might
-be to do nothing at all.  However, this should be considered a last
-resort.  Clearly, if all implementors would choose this strategy, this
-@srfi{} would not be very useful.
-@end enumerate
-
-An implementation might report more information than just @var{reason}
-and @var{arg1}...  For instance, it might report the procedure name in
-which the error occured or even print a stack trace.  However, this will
-require additional support in the Scheme implementation.
-@end defun
-
-
-@c ------------------------------------------------------------
-
-@subsubheading Why error is a procedure
-
-
-@noindent
-It is conceivable to allow error to be a special form, such as a macro,
-rather than a procedure.  This might make providing information such as
-the source code location easier.  This possibility has been considered,
-but rejected, for two reasons.
-
-@enumerate
-@item
-Since error accepts a variable number of arguments, it could
-occasionally be useful to use apply to call error.  However, this is not
-possible if error was allowed to be a special form.
-
-@item
-Since error is currently a procedure in all Scheme implementations
-mentioned above, it doesn't seem all that worthwhile to allow it to be a
-special form.
-@end enumerate
-
 
 
 @c page

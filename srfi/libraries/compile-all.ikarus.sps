@@ -33,10 +33,8 @@
   (only (srfi cut))
   (only (srfi eager-comprehensions))
   (only (srfi environment-variables))
-  (only (srfi error-reporting))
   (only (srfi format))
   (only (srfi general-cond))
-  (only (srfi let-values))
   (only (srfi lightweight-testing))
   (only (srfi lists))
   (only (srfi parameters))
@@ -53,6 +51,7 @@
 
   (only (check-lib))
   (only (env-lib))
+  (only (features-lib))
   (only (format-lib))
   (only (list-lib))
   (only (loop-lib))

@@ -29,16 +29,15 @@
 
 #!r6rs
 (library (srfi cond-expand)
-  (export 
+  (export
     cond-expand)
-  (import
-    (rnrs)
+  (import (rnrs)
     (for (srfi private registry) expand))
-  
+
   (define-syntax cond-expand
     (lambda (stx)
       (syntax-case stx (and or not else)
-        [(_) 
+        [(_)
          (syntax-violation #f "Unfulfilled cond-expand" stx)]
         [(_ (else body ...))
          #'(begin body ...)]
@@ -69,6 +68,6 @@
         [(_ (feature-id body ...) more-clauses ...)
          (if (member (syntax->datum #'feature-id) available-features)
            #'(begin body ...)
-           #'(cond-expand more-clauses ...))])))
-  
-)
+           #'(cond-expand more-clauses ...))]))))
+
+;;; end of file

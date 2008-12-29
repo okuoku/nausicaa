@@ -26,8 +26,7 @@
 ;;;SOFTWARE.
 
 (library (srfi lists compat)
-  (export
-    last-pair make-list)
+  (export last-pair make-list)
   (import (rnrs)
     (only (core) make-list))
 

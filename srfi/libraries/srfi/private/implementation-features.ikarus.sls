@@ -27,8 +27,7 @@
 
 (library (srfi private implementation-features)
   (export
-    OS-features
-    implementation-features)
+    OS-features implementation-features)
   (import (ikarus))
 
   (define OS-features

@@ -46,9 +46,6 @@
 (compile-library "srfi/parameters.larceny.sls"
 		 "srfi/parameters.larceny.slfasl")
 
-(compile-library "srfi/error-reporting.sls"
-		 "srfi/error-reporting.larceny.slfasl")
-
 (compile-library "srfi/cond-expand.sls"
 		 "srfi/cond-expand.larceny.slfasl")
 
@@ -72,9 +69,6 @@
 
 (compile-library "srfi/records.sls"
 		 "srfi/records.larceny.slfasl")
-
-(compile-library "srfi/let-values.sls"
-		 "srfi/let-values.larceny.slfasl")
 
 (compile-library "srfi/char-set.sls"
 		 "srfi/char-set.larceny.slfasl")
@@ -135,31 +129,15 @@
 
 ;;; --------------------------------------------------------------------
 
-(compile-library "list-lib.sls"
-		 "list-lib.larceny.slfasl")
-
-(compile-library "string-lib.sls"
-		 "string-lib.larceny.slfasl")
-
-(compile-library "vector-lib.sls"
-		 "vector-lib.larceny.slfasl")
-
-(compile-library "loop-lib.sls"
-		 "loop-lib.larceny.slfasl")
-
-(compile-library "check-lib.sls"
-		 "check-lib.larceny.slfasl")
-
-(compile-library "env-lib.sls"
-		 "env-lib.larceny.slfasl")
-
-(compile-library "receive-lib.sls"
-		 "receive-lib.larceny.slfasl")
-
-(compile-library "parm-lib.sls"
-		 "parm-lib.larceny.slfasl")
-
-(compile-library "format-lib.sls"
-		 "format-lib.larceny.slfasl")
+(compile-library "check-lib.sls"	"check-lib.larceny.slfasl")
+(compile-library "env-lib.sls"		"env-lib.larceny.slfasl")
+(compile-library "features-lib.sls"	"features-lib.larceny.slfasl")
+(compile-library "format-lib.sls"	"format-lib.larceny.slfasl")
+(compile-library "list-lib.sls"		"list-lib.larceny.slfasl")
+(compile-library "loop-lib.sls"		"loop-lib.larceny.slfasl")
+(compile-library "parm-lib.sls"		"parm-lib.larceny.slfasl")
+(compile-library "receive-lib.sls"	"receive-lib.larceny.slfasl")
+(compile-library "string-lib.sls"	"string-lib.larceny.slfasl")
+(compile-library "vector-lib.sls"	"vector-lib.larceny.slfasl")
 
 ;;; end of file

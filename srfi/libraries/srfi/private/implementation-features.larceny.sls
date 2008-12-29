@@ -29,7 +29,7 @@
   (export
     OS-features
     implementation-features)
-  (import (rnrs base)
+  (import (rnrs)
     (primitives larceny:os))
 
   (define OS-features
