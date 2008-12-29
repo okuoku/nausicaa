@@ -44,10 +44,14 @@
     :port :dispatched :do :let :parallel :while :until
     :-dispatch-ref :-dispatch-set! make-initial-:-dispatch
     dispatch-union :generator-proc)
-  (import (rnrs)
+  (import (rename (rnrs)
+		  (display rnrs:display))
     (srfi lightweight-testing compat)
     (srfi parameters)
     (srfi eager-comprehensions))
+
+(define (display thing)
+  (rnrs:display thing (current-error-port)))
 
 
 ; <PLAINTEXT>
