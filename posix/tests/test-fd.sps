@@ -27,7 +27,9 @@
 
 ;;;; setup
 
-(import (except (r6rs) read write)
+(import (rename (r6rs)
+		(read rnrs:read)
+		(write rnrs:write))
   (rnrs files (6))
   (only (srfi strings) string-join)
   (uriel lang)
@@ -48,6 +50,11 @@
 Qui hante la tempete e se rit de l'archer;
 Exile sul le sol au milieu des huees,
 Ses ailes de geant l'empechent de marcher.")
+
+(define debugging #f)
+(define (debug . args)
+  (when debugging
+    (apply format (current-error-port) args)))
 
 
 
@@ -283,8 +290,11 @@ Ses ailes de geant l'empechent de marcher.")
 	      (mkfifo pathname #o600)
 	    (with
 	     (delete-file pathname)))
-	(let ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
-	      (ou (open pathname O_WRONLY 0)))
+	(debug "created fifo, now opening~%")
+	(let* ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+	       (ou (open pathname O_WRONLY 0)))
+	  (debug "opened writing port~%")
+	  (debug "making scheme port~%")
 	  (letrec ((inp	(compensate
 			    (fd->binary-input-port  in)
 			  (with
@@ -293,6 +303,7 @@ Ses ailes de geant l'empechent de marcher.")
 			    (fd->binary-output-port ou)
 			  (with
 			   (close-port oup)))))
+	    (debug "writing and reading~%")
 	    (put-bytevector oup
 			    (string->bytevector "ciao\n"
 						(native-transcoder)))
@@ -308,8 +319,8 @@ Ses ailes de geant l'empechent de marcher.")
 	      (mkfifo pathname #o600)
 	    (with
 	     (delete-file pathname)))
-	(let ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
-	      (ou (open pathname O_WRONLY 0)))
+	(let* ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+	       (ou (open pathname O_WRONLY 0)))
 	  (letrec ((inp	(compensate
 			    (fd->textual-input-port  in)
 			  (with

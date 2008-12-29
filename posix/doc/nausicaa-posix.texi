@@ -1318,30 +1318,30 @@ The Scheme string or symbol @var{pathname} selects the file pathname.
 @end deffn
 
 
-A meaningless example of FIFO usage:
+The following is a meaningless example of @acronym{FIFO} usage; we have
+to remember that the bindings forms in a @func{let} have no guaranteed
+evaluation order, so if we need to open the two ports in a specified
+order we have to use @func{let*}:
 
 @example
 (with-compensations
-  (let ((pathname "/tmp/fifo"))
     (compensate
         (mkfifo pathname #o600)
       (with
        (delete-file pathname)))
-    (let ((in (open pathname
-                    (bitwise-ior O_NONBLOCK O_RDONLY)
-                    0))
-          (ou (open pathname O_WRONLY 0)))
-      (letrec ((inp       (compensate
-                              (fd->textual-input-port  in)
-                            (with
-                             (close-port inp))))
-               (oup       (compensate
-                              (fd->textual-output-port ou)
-                            (with
-                             (close-port oup)))))
-        (put-string oup "ciao\n")
-        (flush-output-port oup)
-        (get-string-n inp 5)))))
+  (let* ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+         (ou (open pathname O_WRONLY 0)))
+    (letrec ((inp (compensate
+                      (fd->textual-input-port  in)
+                    (with
+                     (close-port inp))))
+             (oup (compensate
+                      (fd->textual-output-port ou)
+                    (with
+                     (close-port oup)))))
+      (put-string oup "ciao\n")
+      (flush-output-port oup)
+      (get-string-n inp 5))))
 @end example
 
 

@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for the basic POSIX interface
 ;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-19 07:24:21 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -29,33 +28,34 @@
 ;;;; setup
 
 (import (r6rs)
+  (uriel lang)
   (uriel test)
   (uriel foreign)
   (posix environment)
-  (posix working-directory)
-  (srfi receive)
-  (srfi parameters))
+  (posix working-directory))
 
 (check-set-mode! 'report-failed)
 
 
-;;;; environment variables
 
-(check
-    (let ()
-      (setenv 'CIAO 'pasta 1)
-      (getenv 'CIAO))
-  => "pasta")
+(parameterize ((testname 'env))
 
-(check
-    (let ()
-      (setenv 'SALUT 'pasta 1)
-      (setenv 'SALUT 'fusillo 0)
-      (getenv 'CIAO))
-  => "pasta")
+  (check
+      (let ()
+	(setenv 'CIAO 'pasta 1)
+	(getenv 'CIAO))
+    => "pasta")
+
+  (check
+      (let ()
+	(setenv 'SALUT 'pasta 1)
+	(setenv 'SALUT 'fusillo 0)
+	(getenv 'CIAO))
+    => "pasta")
+
+  )
 
 
-;;;; working directory
 
 (parameterize ((testname 'chdir))
   (check
@@ -68,16 +68,24 @@
 	(chdir dirname))
     => 0)
 
-  (check
-      (let ((dirname '/scrappy/dappy/doo))
-	(guard (exc (else
-		     (list (errno-condition? exc)
-			   (condition-who exc)
-			   (errno-symbolic-value exc)
-;			   (condition-message exc)
-			   )))
-	  (chdir dirname)))
-    => '(#t chdir ENOENT)))
+;;;This guard is needed because  Larceny-5880 does not support access to
+;;;errno values, so this test has to deal with a non-&errno condition.
+  (guard (exc (else #f))
+    (check
+	(let ((dirname '/scrappy/dappy/doo))
+	  (guard (exc (else
+		       #;(format #t "msg ~s ~s ~s ~s~%"
+			       (condition-message exc)
+			       (errno-condition? exc)
+			       (condition-who exc)
+			       (condition-irritants exc))
+		       (list (errno-condition? exc)
+			     (condition-who exc)
+			     (errno-symbolic-value exc)
+;;;			   (condition-message exc)
+			     )))
+	    (chdir dirname)))
+      => '(#t chdir ENOENT))))
 
 (parameterize ((testname 'getcwd))
   (check
