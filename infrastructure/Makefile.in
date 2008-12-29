@@ -414,6 +414,23 @@ endif
 
 ## ---------------------------------------------------------------------
 
+#fasl_ypsilon_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ypsilon.sps
+#fasl_ypsilon_COMPILE_ENV	= YPSILON_LIBRARY_PATH=$(sls_BUILDDIR):$(YPSILON_LIBRARY_PATH)
+#fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --compile-dependencies
+#fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV) $(fasl_ypsilon_COMPILE_COMMAND) $(fasl_ypsilon_COMPILE_SCRIPT)
+
+.PHONY: yfasl fasl-ypsilon-compile
+
+fasl-ypsilon-compile:
+#	test -f $(fasl_ypsilon_COMPILE_SCRIPT) && $(fasl_ypsilon_COMPILE_RUN)
+
+fasl-ypsilon-clean:
+#	$(FIND) $(sls_BUILDDIR) -name \*.ypsilon-fasl -exec $(RM) \{\} \;
+
+yfasl: fasl-builddir fasl-copy fasl-ypsilon-clean fasl-ypsilon-compile
+
+## ---------------------------------------------------------------------
+
 fasl_ikarus_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ikarus.sps
 fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
 fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies

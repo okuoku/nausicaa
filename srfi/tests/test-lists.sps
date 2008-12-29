@@ -161,7 +161,7 @@
   => #t)
 
 (check
-    (list= numbers numbers)
+    (list= = numbers numbers)
   => #t)
 
 (check
@@ -206,6 +206,10 @@
 ;;;; miscellaneous
 
 (check
+    (length '(1 2 3 4 5 6))
+  => 6)
+
+(check
     (length+ '(1 2 3 4 5 6))
   => 6)
 
@@ -230,6 +234,14 @@
   => '(1 2 3 4 5 6))
 
 (check
+    (fold cons '(4 5 6) '())
+  => '(4 5 6))
+
+(check
+    (fold cons '(4 5 6) '(3))
+  => '(3 4 5 6))
+
+(check
     (fold (lambda (x count)
 	    (if (symbol? x)
 		(+ count 1)
@@ -252,6 +264,12 @@
   => '(c 3 b 2 a 1))
 
 (check
+    (fold cons* '()
+	  '(a)
+	  '(1))
+  => '(a 1))
+
+(check
     (fold (lambda (a b c knil)
 	    (cons (list a b c)
 		  knil))
@@ -269,6 +287,14 @@
 (check
     (fold-right cons '() '(1 2 3))
   => '(1 2 3))
+
+(check
+    (fold-right cons '(1 2 3) '())
+  => '(1 2 3))
+
+(check
+    (fold-right cons '(1 2 3) '(9))
+  => '(9 1 2 3))
 
 (check
     (fold-right cons '() numbers)
@@ -364,15 +390,15 @@
 
 (check
     (srfi:fold-right cons* '()
-		     '(a)
-		     '(1))
-  => '(a 1))
-
-(check
-    (srfi:fold-right cons* '()
 		     '(a b c)
 		     '(1 2 3 4 5))
   => '(a 1 b 2 c 3))
+(write 'a)(newline)
+(check
+    (srfi:fold-right cons* '()
+		     '(a)
+		     '(1))
+  => '(a 1))
 
 (check
     (fold-right (lambda (a b c knil)

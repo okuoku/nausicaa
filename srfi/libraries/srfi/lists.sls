@@ -347,6 +347,11 @@
 
 ;;;; helpers
 
+;; *** NOTE ***
+;;
+;;The following helper functions and macros are duplicated and tested in
+;;the test file "test-list-helpers.sps".
+
 (define-syntax make-queue
   (syntax-rules ()
     ((_ ?elm)
@@ -354,46 +359,53 @@
 	    (pair	(cons v '())))
        (cons pair pair)))))
 
-(define (enqueue! q obj)
-  (let ((h (cons obj '())))
-    (set-cdr! (cdr q) h)
-    (set-cdr! q h))
-  q)
+(define-syntax enqueue!
+  (syntax-rules ()
+    ((_ ?q ?obj)
+     (let ((q ?q)
+	   (h (cons ?obj '())))
+       (set-cdr! (cdr q) h)
+       (set-cdr! q h)
+       q))))
 
 ;;; --------------------------------------------------------------------
 
+;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
+;;return null; else return the list of the cars.
 (define (%cars ells)
-  ;;To be invoked with a non-null ELLS.
   (let ((next	(car ells)))
     (if (null? next)
 	'()
-      (let loop ((ells	(cdr ells))
-		 (cars	(make-queue (car next))))
+      (let loop ((cars	(make-queue (car next)))
+		 (ells	(cdr ells)))
 	(if (null? ells)
 	    (car cars)
-	  (let ((next	(car ells)))
-	    (if (null? next)
-		'()
-	      (loop (cdr ells)
-		    (enqueue! cars (cdr next))))))))))
+	  (let ((next (car ells)))
+ 	    (if (null? next)
+ 		'()
+	      (loop (enqueue! cars (car next))
+		    (cdr ells)))))))))
 
+;;; ELLS must be a list of lists.   If one of the lists in ELLS is null:
+;;; return null; else return the list of cars of the lists in ELLS, with
+;;; KNIL appended as last element.
 (define (%cars+knil ells knil)
-  ;;To be invoked with a non-null ELLS.
-  (let ((next	(car ells)))
+  (let ((next (car ells)))
     (if (null? next)
 	'()
-      (let loop ((ells	(cdr ells))
-		 (cars	(make-queue (car next))))
+      (let loop ((cars	(make-queue (car next)))
+		 (ells	(cdr ells)))
 	(if (null? ells)
 	    (car (enqueue! cars knil))
-	  (let ((next	(car ells)))
+	  (let ((next (car ells)))
 	    (if (null? next)
 		'()
-	      (loop (cdr ells)
-		    (enqueue! cars (cdr next))))))))))
+	      (loop (enqueue! cars (car next))
+		    (cdr ells)))))))))
 
+;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
+;;return null; else return the list of the cdrs.
 (define (%cdrs ells)
-  ;;To be invoked with a non-null ELLS.
   (let ((next	(car ells)))
     (if (null? next)
 	'()
@@ -407,41 +419,45 @@
 	      (loop (cdr ells)
 		    (enqueue! cdrs (cdr next))))))))))
 
+;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
+;;return 2 null  values; else return 2 values: the list  of cars and the
+;;list of cdrs.
 (define (%cars/cdrs ells)
-  ;;To be invoked with a non-null ELLS.
-  (let ((next	(car ells)))
+  (let ((next (car ells)))
     (if (null? next)
 	(values '() '())
-      (let loop ((ells	(cdr ells))
-		 (cars	(make-queue (car next)))
-		 (cdrs	(make-queue (cdr next))))
+      (let loop ((cars	(make-queue (car next)))
+		 (cdrs	(make-queue (cdr next)))
+		 (ells	(cdr ells)))
 	(if (null? ells)
-	    (values (car cars))
+	    (values (car cars)
 		    (car cdrs))
-	  (let ((next	(car ells)))
+	  (let ((next (car ells)))
 	    (if (null? next)
 		(values '() '())
-	      (loop (cdr ells)
-		    (enqueue! cars (car next))
-		    (enqueue! cdrs (cdr next)))))))))
+	      (loop (enqueue! cars (car next))
+		    (enqueue! cdrs (cdr next))
+		    (cdr ells)))))))))
 
+;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
+;;return 2 null values; else return 2 values: the list of cars with KNIL
+;;appended, and the list of cdrs.
 (define (%cars+knil/cdrs ells knil)
-  ;;To be invoked with a non-null ELLS.
   (let ((next	(car ells)))
     (if (null? next)
 	(values '() '())
-      (let loop ((ells	(cdr ells))
-		 (cars	(make-queue (car next)))
-		 (cdrs	(make-queue (cdr next))))
+      (let loop ((cars	(make-queue (car next)))
+		 (cdrs	(make-queue (cdr next)))
+		 (ells	(cdr ells)))
 	(if (null? ells)
 	    (values (car (enqueue! cars knil))
 		    (car cdrs))
 	  (let ((next	(car ells)))
 	    (if (null? next)
 		(values '() '())
-	      (loop (cdr ells)
-		    (enqueue! cars (car next))
-		    (enqueue! cdrs (cdr next))))))))))
+	      (loop (enqueue! cars (car next))
+		    (enqueue! cdrs (cdr next))
+		    (cdr ells)))))))))
 
 
 
@@ -477,10 +493,12 @@
 
    ((kons knil ell1 . ells)
     (let loop ((ells (cons ell1 ells)))
-      (let ((cdrs (%cdrs ells)))
-	(if (null? cdrs)
-	    knil
-	  (apply kons (%cars+knil ells (loop cdrs)))))))))
+      (if (null? ells)
+	  knil
+	(let ((cdrs (%cdrs ells)))
+	  (if (null? cdrs)
+	      knil
+	    (apply kons (%cars+knil ells (loop cdrs))))))))))
 
 ;;; --------------------------------------------------------------------
 
