@@ -48,7 +48,6 @@
 	(records		. 9)
 	(strings		. 13)
 	(char-set		. 14)
-	(case-lambda		. 16)
 	(time			. 19)
 	(cut			. 26)
 	(random			. 27)

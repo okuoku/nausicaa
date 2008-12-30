@@ -22,6 +22,7 @@ SRFI
 * Write a test file for each SRFI.
 * Not all the SRFI authors  have written the implementation library, the
   documentation should be updated accordingly.
+* Add documentation for: format, compare.
 
 
 Rlwrap GNU Readline wrappers
