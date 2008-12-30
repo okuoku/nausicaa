@@ -25,60 +25,119 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
+
+
 #!r6rs
 (library (list-lib)
   ;;These should be all the exports from (srfi lists).
   (export
 
     ;; constructors
-    xcons cons*
-    make-list list-tabulate list-copy circular-list iota
+    cons xcons cons*
+    list make-list list-tabulate list-copy circular-list iota
 
     ;; predicats
-    proper-list? circular-list? dotted-list?
-    null? null-list?
-    pair? not-pair?
+    proper-list?	circular-list?		dotted-list?
+    null?		null-list?
+    pair?		not-pair?
     list=
 
-    ;; fold
-    unfold       fold       pair-fold       reduce
-    unfold-right fold-right pair-fold-right reduce-right
-    srfi:fold-right
+    ;; selectors
+    car			cdr			car+cdr
+    caar		cadr
+    cdar		cddr
+    caaar		caadr
+    cadar		caddr
+    cdaar		cdadr
+    cddar		cdddr
+    caaaar		caaadr
+    caadar		caaddr
+    cadaar		cadadr
+    caddar		cadddr
+    cdaaar		cdaadr
+    cdadar		cdaddr
+    cddaar		cddadr
+    cdddar		cddddr
+
+    list-ref
+    first		second			third
+    fourth		fifth			sixth
+    seventh		eighth			ninth
+    tenth
+
+    take		take-right		take!
+    drop		drop-right		drop-right!
+    split-at		split-at!
+    last		last-pair
 
     ;; misc
-    length+ length
-
-    first second third fourth fifth sixth seventh eighth ninth tenth
-    car+cdr
-    take       drop
-    take-right drop-right
-    take!      drop-right!
-    split-at   split-at!
-    last last-pair
-    zip unzip1 unzip2 unzip3 unzip4 unzip5
+    length		length+
+    append		append!
+    concatenate		concatenate!
+    reverse		reverse!
+    append-reverse	append-reverse!
+    zip
+    unzip1		unzip2			unzip3
+    unzip4		unzip5
     count
-    append! append-reverse append-reverse! concatenate concatenate!
-    append-map append-map! map! pair-for-each filter-map map-in-order
-    filter  partition  (rename (remove srfi:remove))
-    filter! partition! remove!
-    find find-tail any every list-index
-    take-while drop-while take-while!
-    span break span! break!
-    delete delete!
-    alist-cons alist-copy
-    delete-duplicates delete-duplicates!
-    alist-delete alist-delete!
-    reverse!
-    lset<= lset= lset-adjoin
-    lset-union  lset-intersection  lset-difference  lset-xor
-    lset-diff+intersection
-    lset-union! lset-intersection! lset-difference! lset-xor!
-    lset-diff+intersection!)
-  (import (rename (srfi lists)
-		  (fold-right srfi:fold-right))
-    (only (rnrs)
-	  pair? null? fold-right
-	  define let if cons car cdr))
+
+    ;; fold
+    fold		fold-right		srfi:fold-right
+    pair-fold		pair-fold-right
+    reduce		reduce-right
+    unfold		unfold-right
+
+    ;; map
+    map			for-each		srfi:map
+    append-map		append-map!
+    map!		map-in-order
+    pair-for-each	filter-map
+
+    ;; filtering
+    filter		filter!
+    partition		partition!
+    remove		remove!			srfi:remove
+
+    ;;searching
+    find		find-tail
+    take-while		take-while!
+    drop-while
+    span		span!
+    break		break!
+    any			every
+    list-index
+    member					srfi:member
+    memq		memv
+
+    ;; deletion
+    delete		delete!
+    delete-duplicates	delete-duplicates!
+
+    ;; alists
+    assoc					srfi:assoc
+    assq		assv
+    alist-cons		alist-copy
+    alist-delete	alist-delete!
+
+    ;; sets
+    lset<=			lset=
+    lset-adjoin
+    lset-union			lset-union!
+    lset-intersection		lset-intersection!
+    lset-difference		lset-difference!
+    lset-xor			lset-xor!
+    lset-diff+intersection	lset-diff+intersection!
+
+    ;; side effects
+    set-car!			set-cdr!)
+  (import (rnrs)
+    (rename (srfi lists)
+	    (assoc		srfi:assoc)
+	    (fold-right		srfi:fold-right)
+	    (map		srfi:map)
+	    (member		srfi:member)
+	    (remove		srfi:remove))
+    (rnrs mutable-pairs (6)))
 
   (define (tree-copy x)
     (let loop ((x x))

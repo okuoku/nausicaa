@@ -1711,9 +1711,8 @@ they should have their own @srfi{} specs.
 * list spec cons::              Constructors.
 * list spec pred::              Predicates.
 * list spec select::            Selectors.
-* list spec misc::              Miscellaneous: length, append,
-                                concatenate, reverse, zip and
-                                count.
+* list spec misc::              Length, append, concatenate,
+                                reverse, zip and count.
 * list spec fold::              Fold, unfold and map.
 * list spec filter::            Filtering and partitioning.
 * list spec search::            Searching.
@@ -1784,14 +1783,22 @@ The @func{map} function from the @srfi{} is renamed to @func{srfi:map}.
 @item
 The @func{fold-right} function from the @srfi{} is renamed to
 @func{srfi:fold-right}.
+
+@item
+The @func{remove} function from the @srfi{} is renamed to
+@func{srfi:remove}.
+
+@item
+The @func{member} function from the @srfi{} is renamed to
+@func{srfi:member}.
 @end enumerate
 
 
 Additionally the following bindings are defined.
 
 
-@defun tree-copy @var{ell}
-Copy the whole tree of the list @var{ell}, not only the spine (which is
+@defun tree-copy @var{list}
+Copy the whole tree of the list @var{list}, not only the spine (which is
 what @func{list-copy} does).
 @end defun
 
@@ -1816,8 +1823,8 @@ what @func{list-copy} does).
 
 
 @defun cons @var{a} @var{d}
-@rnrs{5} The primitive constructor.  Return a newly allocated pair whose
-car is @var{a} and whose cdr is @var{d}.  The pair is guaranteed to be
+The primitive constructor.  Return a newly allocated pair whose car is
+@var{a} and whose cdr is @var{d}.  The pair is guaranteed to be
 different (in the sense of @func{eqv?}) from every existing object.
 
 @example
@@ -1854,8 +1861,11 @@ This function is called @func{list*} in Common Lisp and about half of
 the Schemes that provide it, and @func{cons*} in the other half.
 
 @example
-(cons* 1 2 3 4) => (1 2 3 . 4)
-(cons* 1) => 1
+(cons* 1 2 3 4)
+=> (1 2 3 . 4)
+
+(cons* 1)
+=> 1
 @end example
 @end defun
 
@@ -1866,11 +1876,14 @@ the Schemes that provide it, and @func{cons*} in the other half.
 
 
 @defun list @var{object} ...
-@rnrs{5} Return a newly allocated list of its arguments.
+Return a newly allocated list of its arguments.
 
 @example
-(list 'a (+ 3 4) 'c) =>  (a 7 c)
-(list)               =>  ()
+(list 'a (+ 3 4) 'c)
+=> (a 7 c)
+
+(list)
+=> ()
 @end example
 @end defun
 
@@ -1881,7 +1894,11 @@ Return an @var{n}--element list, whose elements are all the value
 may be arbitrary values.
 
 @example
-(make-list 4 'c) => (c c c c)
+(make-list 4 'c)
+=> (c c c c)
+
+(make-list 0)
+=> ()
 @end example
 @end defun
 
@@ -1893,7 +1910,8 @@ made about the dynamic order in which @var{init-proc} is applied to
 these indices.
 
 @example
-(list-tabulate 4 values) => (0 1 2 3)
+(list-tabulate 4 values)
+=> (0 1 2 3)
 @end example
 @end defun
 
@@ -1924,8 +1942,11 @@ The @var{start} and @var{step} parameters default to @code{0} and
 @acronym{APL} primitive.
 
 @example
-(iota 5) => (0 1 2 3 4)
-(iota 5 0 -0.1) => (0 -0.1 -0.2 -0.3 -0.4)
+(iota 5)
+=> (0 1 2 3 4)
+
+(iota 5 0 -0.1)
+=> (0 -0.1 -0.2 -0.3 -0.4)
 @end example
 
 @quotation
@@ -1947,6 +1968,7 @@ the empty list.
 * list spec pred kind::         Kinds of list.
 * list spec pred null::         Null predicates.
 * list spec pred pair::         Pair predicates.
+* list spec pred cmp::          Comparison.
 @end menu
 
 
@@ -2020,12 +2042,13 @@ Return @true{} if object is the empty list; otherwise @false{}.
 @end defun
 
 
-@defun null-list? list
-@var{list} is a proper or circular list.  This procedure returns @true{}
-if the argument is the empty list, and @false{} otherwise.  It is an
-error to pass this procedure a value which is not a proper or circular
-list.  This procedure is recommended as the termination condition for
-list--processing procedures that are not defined on dotted lists.
+@defun null-list? @var{clist}
+@var{clist} is a proper or circular list.  This procedure returns
+@true{} if the argument is the empty list, and @false{} otherwise.  It
+is an error to pass this procedure a value which is not a proper or
+circular list.  This procedure is recommended as the termination
+condition for list--processing procedures that are not defined on dotted
+lists.
 @end defun
 
 
@@ -2056,26 +2079,46 @@ proper and dotted.
 @end defun
 
 
-@defun list= @var{elt=} @var{list1} ...
+@c page
+@node list spec pred cmp
+@subsubsection Comparison
+
+
+@defun list= @var{elm=?} @var{list1} ...
 Determines list equality, given an element--equality procedure
-@var{elt=}.  Proper list @var{AL} equals proper list @var{BL} if they
-are of the same length, and their corresponding elements are equal, as
-determined by @var{elt=}.  If the element--comparison procedure's first
-argument is from @var{listi}, then its second argument is from
-@var{listi+1}, i.e. it is always called as @code{(elt= a b)} for @var{a}
-an element of list @var{AL}, and @var{b} an element of list @var{BL}.
+@var{elm=?}.  Proper list @var{AL} equals proper list @var{BL} if:
+
+@enumerate
+@item
+they are of the same length;
+
+@item
+their corresponding elements are equal, according to @var{elm=?}.
+@end enumerate
+
+If the element--comparison procedure's first argument is from
+@var{listi}, then its second argument is from @var{listi+1}, i.e. it is
+always called as @code{(elm=? a b)} for @var{a} an element of list
+@var{AL}, and @var{b} an element of list @var{BL}.
 
 In the n--ary case, every @var{listi} is compared to @var{listi+1} (as
 opposed, for example, to comparing @var{list1} to every @var{listi}, for
-@code{i>1}).  If there are no list arguments at all, @func{list=} simply
-returns true.
+@code{i>1}).
+
+If there are no list arguments at all, @func{list=} simply returns
+@true{}.
 
 It is an error to apply @func{list=} to anything except proper lists.
 While implementations may choose to extend it to circular lists, note
 that it cannot reasonably be extended to dotted lists, as it provides no
 way to specify an equality procedure for comparing the list terminators.
 
-Note that the dynamic order in which the @var{elt=} procedure is applied
+@quotation
+@emph{Nausicaa note:} The @value{PACKAGE} implementation does
+@strong{not} support comparison of circular lists.
+@end quotation
+
+Note that the dynamic order in which the @var{elm=?} procedure is applied
 to pairs of elements is not specified.  For example, if @func{list=} is
 applied to three lists, @var{AL}, @var{BL}, and @var{CL}, it may first
 completely compare @var{AL} to @var{BL}, then compare @var{BL} to
@@ -2087,16 +2130,48 @@ The equality procedure must be consistent with @func{eq?}.  That is, it
 must be the case that:
 
 @example
-(eq? x y) => (elt= x y)
+(eq? x y) => (elm=? x y)
 @end example
 
 Note that this implies that two lists which are @func{eq?} are always
 @func{list=}, as well; implementations may exploit this fact to
 ``short--cut'' the element--by--element comparisons.
 
+Examples:
+
 @example
-(list= eq?) => #t       ; Trivial cases
-(list= eq? '(a)) => #t
+(list= eq?)
+=> #t
+
+(list= eq? '(a))
+=> #t
+
+(list= = '(1 2 3 4)
+         '(1 2 3 4))
+=> #t
+
+(list= = '(1 2 3 4)
+         '(1 9 3 4))
+=> #f
+
+(list= = '(1 2 3 4)
+         '(1 2 3 4)
+         '(1 2 3 4))
+=> #t
+
+(list= = '(1 2 3 4)
+         '(1 2 3 4 5)
+         '(1 2 3 4))
+=> #f
+
+(list= = '())
+=> #t
+
+(list= = '() '())
+=> #t
+
+(list= = '() '() '())
+=> #t
 @end example
 @end defun
 
@@ -2116,10 +2191,25 @@ their argument, respectively.  Note that it is an error to apply them to
 the empty list.
 
 @example
-(car '(a b c))     =>  a       | (cdr '(a b c))     =>  (b c)
-(car '((a) b c d)) =>  (a)     | (cdr '((a) b c d)) =>  (b c d)
-(car '(1 . 2))     =>  1       | (cdr '(1 . 2))     =>  2
-(car '())          =>  *error* | (cdr '())          =>  *error*
+(car '(a b c))
+=> a
+(cdr '(a b c))
+=> (b c)
+
+(car '((a) b c d))
+=> (a)
+(cdr '((a) b c d))
+=> (b c d)
+
+(car '(1 . 2))
+=> 1
+(cdr '(1 . 2))
+=> 2
+
+(car '())
+=> *error*
+(cdr '())
+=>  *error*
 @end example
 @end defun
 
@@ -2133,7 +2223,9 @@ the empty list.
 where for example @func{caddr} could be defined by:
 
 @example
-(define caddr (lambda (x) (car (cdr (cdr x)))))
+(define caddr
+  (lambda (x)
+    (car (cdr (cdr x)))))
 @end example
 
 Arbitrary compositions, up to four deep, are provided. There are
@@ -2147,7 +2239,8 @@ the car of @code{(drop clist i)}.  It is an error if @code{i >= n},
 where @var{n} is the length of clist.
 
 @example
-(list-ref '(a b c d) 2) => c
+(list-ref '(a b c d) 2)
+=> c
 @end example
 @end defun
 
@@ -2165,7 +2258,8 @@ where @var{n} is the length of clist.
 Synonyms for @func{car}, @func{cadr}, @func{caddr}, ...
 
 @example
-(third '(a b c d e)) => c
+(third '(a b c d e))
+=> c
 @end example
 @end defun
 
@@ -2174,7 +2268,8 @@ Synonyms for @func{car}, @func{cadr}, @func{caddr}, ...
 The fundamental pair deconstructor:
 
 @example
-(lambda (p) (values (car p) (cdr p)))
+(lambda (p)
+  (values (car p) (cdr p)))
 @end example
 
 This can, of course, be implemented more efficiently by a compiler.
@@ -2187,17 +2282,27 @@ This can, of course, be implemented more efficiently by a compiler.
 @func{drop} returns all but the first @var{i} elements of list @var{x}.
 
 @example
-(take '(a b c d e)  2) => (a b)
-(drop '(a b c d e)  2) => (c d e)
+(take '(a b c d e) 2)
+=> (a b)
+
+(drop '(a b c d e) 2)
+=> (c d e)
 @end example
 
 @var{x} may be any value: a proper, circular, or dotted list:
 
 @example
-(take '(1 2 3 . d) 2) => (1 2)
-(drop '(1 2 3 . d) 2) => (3 . d)
-(take '(1 2 3 . d) 3) => (1 2 3)
-(drop '(1 2 3 . d) 3) => d
+(take '(1 2 3 . d) 2)
+=> (1 2)
+
+(drop '(1 2 3 . d) 2)
+=> (3 . d)
+
+(take '(1 2 3 . d) 3)
+=> (1 2 3)
+
+(drop '(1 2 3 . d) 3)
+=> d
 @end example
 
 For a legal @var{i}, @func{take} and @func{drop} partition the list in a
@@ -2214,6 +2319,11 @@ operations on @var{x}; the returned value shares a common tail with
 If the argument is a list of non--zero length, @func{take} is guaranteed
 to return a freshly--allocated list, even in the case where the entire
 list is taken, e.g. @code{(take lis (length lis))}.
+
+@quotation
+@emph{Nausicaa note:} @func{drop} will return a list which is a portion
+of the argument, unless the return value is the empty list.
+@end quotation
 @end defun
 
 
@@ -2224,8 +2334,11 @@ list is taken, e.g. @code{(take lis (length lis))}.
 @var{flist}.
 
 @example
-(take-right '(a b c d e) 2) => (d e)
-(drop-right '(a b c d e) 2) => (a b c)
+(take-right '(a b c d e) 2)
+=> (d e)
+
+(drop-right '(a b c d e) 2)
+=> (a b c)
 @end example
 
 The returned list may share a common tail with the argument list.
@@ -2233,10 +2346,17 @@ The returned list may share a common tail with the argument list.
 @var{flist} may be any finite list, either proper or dotted:
 
 @example
-(take-right '(1 2 3 . d) 2) => (2 3 . d)
-(drop-right '(1 2 3 . d) 2) => (1)
-(take-right '(1 2 3 . d) 0) => d
-(drop-right '(1 2 3 . d) 0) => (1 2 3)
+(take-right '(1 2 3 . d) 2)
+=> (2 3 . d)
+
+(drop-right '(1 2 3 . d) 2)
+=> (1)
+
+(take-right '(1 2 3 . d) 0)
+=> d
+
+(drop-right '(1 2 3 . d) 0)
+=> (1 2 3)
 @end example
 
 For a legal @var{i}, @func{take-right} and @var{drop-right} partition
@@ -2255,7 +2375,7 @@ nothing is dropped, e.g. @code{(drop-right lis 0)}.
 @end defun
 
 
-@defun take! @var{x} @var{i}
+@defun take! @var{clist} @var{i}
 @defunx drop-right! @var{flist} @var{i}
 @func{take!} and @func{drop-right!} are linear--update variants of
 @func{take} and @func{drop-right}: the procedure is allowed, but not
@@ -2265,9 +2385,17 @@ If @var{x} is circular, @func{take!} may return a
 shorter--than--expected list:
 
 @example
-(take! (circular-list 1 3 5) 8) => (1 3)
-(take! (circular-list 1 3 5) 8) => (1 3 5 1 3 5 1 3)
+(take! (circular-list 1 3 5) 8)
+=> (1 3)
+
+(take! (circular-list 1 3 5) 8)
+=> (1 3 5 1 3 5 1 3)
 @end example
+
+@quotation
+@emph{Nausicaa note:} When applied to a circular list these functions go
+in infinite loop.
+@end quotation
 @end defun
 
 
@@ -2307,7 +2435,7 @@ finite list @var{pair}.
 
 @c page
 @node list spec misc
-@subsection Miscellaneous: length, append, concatenate, reverse, zip and count
+@subsection Length, append, concatenate, reverse, zip and count
 
 
 @cindex List length
@@ -2613,6 +2741,7 @@ operation terminates when the shortest list runs out of values:
 At least one of the list arguments must be finite.
 @end defun
 
+@c ------------------------------------------------------------
 
 @defun fold-right @var{kons} @var{knil} @var{clist1} @var{clist2} ...
 The fundamental list recursion operator.  First, consider the single
@@ -2662,17 +2791,31 @@ must take @var{n}+1 parameters: one element from each list, and the
 ``seed'' or fold state, which is initially @var{knil}.  The fold
 operation terminates when the shortest list runs out of values:
 
+At least one of the list arguments must be finite.
+
 @example
 (fold-right cons*
             '()
             '(a b c)
             '(1 2 3 4 5))
-=> (a 1 b 2 c 3)
-@end example
+=> (a 1
+    b 2
+    c 3)
 
-At least one of the list arguments must be finite.
+(fold-right (lambda (a b c knil)
+              (cons (list a b c)
+                    knil))
+            '()
+            '(1 2 3)
+            '(10 20 30)
+            '(100 200 300))
+=> ((1 10 100)
+    (2 20 200)
+    (3 30 300))
+@end example
 @end defun
 
+@c ------------------------------------------------------------
 
 @defun pair-fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
 Analogous to @func{fold}, but @var{kons} is applied to successive
@@ -2681,8 +2824,10 @@ sublists of the lists, rather than successive elements; that is,
 (tail) recursion:
 
 @example
-(pair-fold kons knil lis) = (let ((tail (cdr lis)))
-                              (pair-fold kons (kons lis knil) tail))
+(pair-fold kons knil ell) = (let ((tail (cdr ell)))
+                              (pair-fold kons
+                                         (kons ell knil)
+                                         tail))
 (pair-fold kons knil '()) = knil
 @end example
 
@@ -2690,16 +2835,28 @@ For finite lists, the @var{kons} function may reliably apply
 @func{set-cdr!} to the pairs it is given without altering the sequence
 of execution.
 
-Example:
+Examples:
 
 @example
-;;; Destructively reverse a list.
-(pair-fold (lambda (pair tail) (set-cdr! pair tail) pair) '() lis))
+(pair-fold (lambda (elm knil)
+             (cons (car elm) knil))
+           '(999)
+           '(1 2 3))
+=> (3 2 1 999)
+
+;;; destructively reverse a list
+(pair-fold (lambda (pair tail)
+             (set-cdr! pair tail)
+             pair)
+           '()
+           '(0 1 2 3 4 5))
+=> (5 4 3 2 1 0)
 @end example
 
 At least one of the list arguments must be finite.
 @end defun
 
+@c ------------------------------------------------------------
 
 @defun pair-fold-right @var{kons} @var{knil} @var{clist1} @var{clist2} ...
 Holds the same relationship with @func{fold-right} that @func{pair-fold}
@@ -2718,6 +2875,37 @@ Example:
 @end example
 
 At least one of the list arguments must be finite.
+
+Examples:
+
+@example
+(pair-fold-right (lambda (elm knil)
+                   (cons (car elm) knil))
+                 '(999)
+                 '(1 2 3))
+=> (1 2 3 999)
+
+(pair-fold-right (lambda (pair tail)
+                   (set-cdr! pair tail)
+                   pair)
+                 '()
+                 '(0 1 2 3 4 5))
+=> (0 1 2 3 4 5)
+
+(pair-fold-right (lambda (a b c knil)
+                   (cons (list (car a)
+                               (car b)
+                               (car c))
+                         knil))
+                 '(999)
+                 '(1 2 3)
+                 '(10 20 30)
+                 '(100 200 300))
+=> '((1 10 100)
+     (2 20 200)
+     (3 30 300)
+     999)
+@end example
 @end defun
 
 
@@ -2759,12 +2947,20 @@ In general, however, @func{fold} is useful in many contexts where
 definition: only one of the five folds uses a function with a right
 identity; the other four may not be performed with @func{reduce}).
 
-Note: @acronym{MIT} Scheme and Haskell flip @var{f}'s arguments order
-for their @func{reduce} and @func{fold} functions.
+@quotation
+@emph{Note:} @acronym{MIT} Scheme and Haskell flip @var{f}'s arguments
+order for their @func{reduce} and @func{fold} functions.
+@end quotation
+
+Examples:
 
 @example
-;; Take the max of a list of non-negative integers.
-(reduce max 0 nums) ; i.e., (apply max 0 nums)
+;; take the max of a list of non-negative integers
+(reduce max 0 '(1 2 3 4 5 6))
+=> 6
+
+(reduce + 0 '(0 1 2 3 4 5 6 7 8 9))
+=> 45
 @end example
 @end defun
 
@@ -2784,9 +2980,14 @@ for their @func{reduce} and @func{fold} functions.
 in other words, we compute @code{(fold-right f ridentity list)}.
 
 @example
-;; Append a bunch of lists together.
-;; I.e., (apply append list-of-lists)
-(reduce-right append '() list-of-lists)
+;; append a bunch of lists together
+(reduce-right append
+              '()
+              '((1 2 3)
+                (4 5)
+                (6 7 8 9)
+                (0)))
+=> (1 2 3 4 5 6 7 8 9 0)
 @end example
 @end defun
 

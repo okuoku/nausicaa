@@ -39,12 +39,30 @@
 ;;;; constructors
 
 (check
+    (cons* 1 2 3 4 '(5 6 7 8))
+  => '(1 2 3 4 5 6 7 8))
+
+;;; --------------------------------------------------------------------
+
+(check
     (xcons 1 2)
   => '(2 . 1))
+
+;;; --------------------------------------------------------------------
 
 (check
     (make-list 4 'c)
   => '(c c c c))
+
+(check
+    (make-list 0)
+  => '())
+
+(check
+    (make-list 0 #f)
+  => '())
+
+;;; --------------------------------------------------------------------
 
 (check
     (list-tabulate 4 (lambda (i)
@@ -55,12 +73,22 @@
        (3 . a)))
 
 (check
+    (list-tabulate 1 (lambda (i)
+		       (cons i 'a)))
+  => '((0 . a)))
+
+(check
+    (list-tabulate 0 (lambda (i)
+		       (cons i 'a)))
+  => '())
+
+;;; --------------------------------------------------------------------
+
+(check
     (list-copy numbers)
   => numbers)
 
-(check
-    (cons* 1 2 3 4 '(5 6 7 8))
-  => '(1 2 3 4 5 6 7 8))
+;;; --------------------------------------------------------------------
 
 (check
     (iota 5 10)
@@ -157,7 +185,92 @@
 ;;; --------------------------------------------------------------------
 
 (check
+    (null? '(1 2))
+  => #f)
+
+(check
+    (null? '(1 . 2))
+  => #f)
+
+(check
+    (null? '(1))
+  => #f)
+
+(check
+    (null? '())
+  => #t)
+
+(check
+    (null-list? '(1 2))
+  => #f)
+
+(check
+    (null-list? '(1 . 2))
+  => #f)
+
+(check
+    (null-list? '(1))
+  => #f)
+
+(check
+    (null-list? '())
+  => #t)
+
+(check
+    (null-list? (circular-list 1 2))
+  => #f)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (pair? '(1 2))
+  => #t)
+
+(check
     (pair? '(1 . 2))
+  => #t)
+
+(check
+    (pair? '(1))
+  => #t)
+
+(check
+    (pair? '())
+  => #f)
+
+(check
+    (pair? 1)
+  => #f)
+
+(check
+    (not-pair? '(1 2))
+  => #f)
+
+(check
+    (not-pair? '(1 . 2))
+  => #f)
+
+(check
+    (not-pair? '(1))
+  => #f)
+
+(check
+    (not-pair? '())
+  => #t)
+
+(check
+    (not-pair? 1)
+  => #t)
+
+
+;;;; comparison
+
+(check
+    (list= =)
+  => #t)
+
+(check
+    (list= = numbers)
   => #t)
 
 (check
@@ -165,31 +278,273 @@
   => #t)
 
 (check
+    (list= = numbers numbers numbers)
+  => #t)
+
+(check
+    (list= = numbers numbers numbers numbers)
+  => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (list= =
+	   '(1 2 3 4)
+	   '(1 9 3 4))
+  => #f)
+
+(check
+    (list= =
+	   '(1 2 3)
+	   '(9 2 3))
+  => #f)
+
+(check
+    (list= =
+	   '(1 2 3)
+	   '(9 2 3)
+	   '(9 2 3))
+  => #f)
+(check
+    (list= =
+	   '(9 2 3)
+	   '(1 2 3)
+	   '(9 2 3))
+  => #f)
+
+(check
+    (list= =
+	   '(9 2 3)
+	   '(9 2 3)
+	   '(1 2 3))
+  => #f)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (list= = '(1))
+  => #t)
+
+(check
+    (list= = '(1) '(1))
+  => #t)
+
+(check
+    (list= = '(1) '(1) '(1))
+  => #t)
+
+(check
+    (list= = '(1) '(1) '(1) '(1))
+  => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (list= = '(1) '(1 2))
+  => #f)
+
+(check
+    (list= = '(1 2) '(1))
+  => #f)
+
+(check
+    (list= = '(1 2) '(1) '(1))
+  => #f)
+
+(check
+    (list= = '(1) '(1 2) '(1))
+  => #f)
+
+(check
+    (list= = '(1) '(1) '(1 2))
+  => #f)
+
+(check
     (list= = numbers '(0 1 2 3 4))
   => #f)
 
+;;; --------------------------------------------------------------------
+
+(check
+    (list= = '())
+  => #t)
+
+(check
+    (list= = '() '())
+  => #t)
+
+(check
+    (list= = '() '() '())
+  => #t)
+
+(check
+    (list= = '() '() '() '())
+  => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (list= = '() numbers)
+  => #f)
+
+(check
+    (list= = numbers '())
+  => #f)
+
+(check
+    (list= = numbers '() '())
+  => #f)
+
+(check
+    (list= = '() numbers '())
+  => #f)
+
+(check
+    (list= = '() '() numbers)
+  => #f)
+
+
 
 ;;;; selectors
+
+(check (first numbers)	=> 0)
+(check (second numbers)	=> 1)
+(check (third numbers)  => 2)
+(check (fourth numbers)	=> 3)
+(check (fifth numbers)  => 4)
+(check (sixth numbers)	=> 5)
+(check (seventh numbers) => 6)
+(check (eighth numbers)	=> 7)
+(check (ninth numbers)	=> 8)
+(check (tenth numbers)	=> 9)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (list-ref numbers 0)
+  => 0)
+
+(check
+    (list-ref numbers 3)
+  => 3)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda () (car+cdr numbers))
+      list)
+  => (list (car numbers) (cdr numbers)))
+
+;;; --------------------------------------------------------------------
 
 (check
     (take numbers 5)
   => '(0 1 2 3 4))
 
 (check
-    (drop '(0 1 2 3 4 5 6 7 8 9) 5)
+    (take numbers 0)
+  => '())
+
+(check
+    (take '() 0)
+  => '())
+
+(check
+    (take numbers 10)
+  => numbers)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (drop numbers 5)
   => '(5 6 7 8 9))
 
 (check
-    (count even? numbers)
-  => 5)
+    (drop numbers 0)
+  => numbers)
+
+(check
+    (drop '() 0)
+  => '())
+
+(check
+    (drop numbers 10)
+  => '())
+
+;;; --------------------------------------------------------------------
 
 (check
     (take-right numbers 5)
   => '(5 6 7 8 9))
 
 (check
+    (take-right numbers 0)
+  => '())
+
+(check
+    (take-right '() 0)
+  => '())
+
+(check
+    (take-right numbers 10)
+  => numbers)
+
+;;; --------------------------------------------------------------------
+
+(check
     (drop-right numbers 5)
   => '(0 1 2 3 4))
+
+(check
+    (drop-right numbers 0)
+  => numbers)
+
+(check
+    (drop-right '() 0)
+  => '())
+
+(check
+    (drop-right numbers 10)
+  => '())
+
+;;; --------------------------------------------------------------------
+
+;; (check
+;;     (take! (circular-list 1 3 5) 8)
+;;   => '(1 3))
+
+;; (check
+;;     (take! (circular-list 1 3 5) 8)
+;;   => '(1 3 5 1 3 5 1 3))
+
+;; (check
+;;     (drop-right! (circular-list 1 3 5) 8)
+;;   => '(1 3))
+
+;; (check
+;;     (drop-right! (circular-list 1 3 5) 8)
+;;   => '(1 3 5 1 3 5 1 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (count even? numbers)
+  => 5)
+
+(check
+    (count even? '(1))
+  => 0)
+
+(check
+    (count even? '(2))
+  => 1)
+
+(check
+    (count even? '())
+  => 0)
+
+;;; --------------------------------------------------------------------
 
 (check
     (call-with-values
@@ -198,9 +553,37 @@
   => '((0 1 2 3 4)
        (5 6 7 8 9)))
 
+;;; --------------------------------------------------------------------
+
 (check
     (last numbers)
   => 9)
+
+(check
+    (last '(9))
+  => 9)
+
+;;; This raises an error.
+;;
+;; (check
+;;     (last '())
+;;   => '())
+
+;;; --------------------------------------------------------------------
+
+(check
+    (last-pair numbers)
+  => '(9))
+
+(check
+    (last-pair '(9))
+  => '(9))
+
+;;; The empty list is not a pair, so the following raises an error.
+;;
+;; (check
+;;     (last-pair '())
+;;   => '())
 
 
 ;;;; miscellaneous
@@ -210,12 +593,60 @@
   => 6)
 
 (check
+    (length '(1))
+  => 1)
+
+(check
+    (length '())
+  => 0)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (length+ '())
+  => 0)
+
+(check
+    (length+ '(1))
+  => 1)
+
+(check
     (length+ '(1 2 3 4 5 6))
   => 6)
 
 (check
     (length+ (circular-list 1 2 3 4 5 6))
   => #f)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (append '(x) '(y))
+  => '(x y))
+
+(check
+    (append '(a) '(b c d))
+  => '(a b c d))
+
+(check
+    (append '(a (b)) '((c)))
+  => '(a (b) (c)))
+
+(check
+    (append '(a b) '(c . d))
+  => '(a b c . d))
+
+(check
+    (append '() 'a)
+  => 'a)
+
+(check
+    (append '(x y))
+  => '(x y))
+
+(check
+    (append)
+  => '())
 
 
 
@@ -393,7 +824,7 @@
 		     '(a b c)
 		     '(1 2 3 4 5))
   => '(a 1 b 2 c 3))
-(write 'a)(newline)
+
 (check
     (srfi:fold-right cons* '()
 		     '(a)
@@ -413,12 +844,286 @@
        (3 30 300)))
 
 
+;;;; pair folding
+
+(check
+    (pair-fold (lambda (elm knil)
+		 (cons (car elm) knil))
+	       '(999)
+	       '(1 2 3))
+  => '(3 2 1 999))
+
+(check
+    (pair-fold (lambda (pair tail)
+		 (set-cdr! pair tail)
+		 pair)
+	       '()
+	       (list-copy numbers))
+  => (reverse numbers))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '(1 2 3)
+	       '(10 20 30)
+	       '(100 200 300))
+  => '((3 30 300)
+       (2 20 200)
+       (1 10 100)
+       999))
+
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '(1)
+	       '(10)
+	       '(100))
+  => '((1 10 100)
+       999))
+
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '(1)
+	       '(10 20 30)
+	       '(100 200 300))
+  => '((1 10 100)
+       999))
+
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '(1 2 3)
+	       '(10)
+	       '(100 200 300))
+  => '((1 10 100)
+       999))
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '(1 2 3)
+	       '(10 20 30)
+	       '(100))
+  => '((1 10 100)
+       999))
+
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '()
+	       '(10 20 30)
+	       '(100 200 300))
+  => '(999))
+
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '(1 2 3)
+	       '()
+	       '(100 200 300))
+  => '(999))
+
+(check
+    (pair-fold (lambda (a b c knil)
+		 (cons (list (car a)
+			     (car b)
+			     (car c))
+			     knil))
+	       '(999)
+	       '(1 2 3)
+	       '(10 20 30)
+	       '())
+  => '(999))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (pair-fold-right (lambda (elm knil)
+		       (cons (car elm) knil))
+		     '(999)
+		     '(1 2 3))
+  => '(1 2 3 999))
+
+(check
+    (pair-fold-right (lambda (pair tail)
+		       (set-cdr! pair tail)
+		       pair)
+		     '()
+		     (list-copy numbers))
+  => numbers)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '(1 2 3)
+		     '(10 20 30)
+		     '(100 200 300))
+  => '((1 10 100)
+       (2 20 200)
+       (3 30 300)
+       999))
+
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '(1)
+		     '(10)
+		     '(100))
+  => '((1 10 100)
+       999))
+
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '(1)
+		     '(10 20 30)
+		     '(100 200 300))
+  => '((1 10 100)
+       999))
+
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '(1 2 3)
+		     '(10)
+		     '(100 200 300))
+  => '((1 10 100)
+       999))
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '(1 2 3)
+		     '(10 20 30)
+		     '(100))
+  => '((1 10 100)
+       999))
+
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '()
+		     '(10 20 30)
+		     '(100 200 300))
+  => '(999))
+
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '(1 2 3)
+		     '()
+		     '(100 200 300))
+  => '(999))
+
+(check
+    (pair-fold-right (lambda (a b c knil)
+		       (cons (list (car a)
+				   (car b)
+				   (car c))
+			     knil))
+		     '(999)
+		     '(1 2 3)
+		     '(10 20 30)
+		     '())
+  => '(999))
+
+
+
 ;;;; reducing
 
 (check
     (reduce + 0 numbers)
   => 45)
 
+(check
+    (reduce + 0 '())
+  => 0)
+
+(check
+    (reduce max 0 '(1 2 3 4 5))
+  => 5)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (reduce-right + 0 numbers)
+  => 45)
+
+(check
+    (reduce-right + 0 '())
+  => 0)
+
+(check
+    (reduce-right max 0 '(1 2 3 4 5))
+  => 5)
+
+(check
+    (reduce-right append
+		  '()
+		  '((1 2 3)
+		    (4 5)
+		    (6 7 8 9)
+		    (0)))
+  => '(1 2 3 4 5 6 7 8 9 0))
 
 
 ;;;; unfolding
@@ -474,6 +1179,17 @@
 (check
     (unfold-right null-list? car cdr '(3 2 1) '(4 5 6))
   => '(1 2 3 4 5 6))
+
+
+;;;; mapping
+
+(check
+    (map - numbers)
+  => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+(check
+    (srfi:map - numbers)
+  => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
 
 
 ;;;; filtering

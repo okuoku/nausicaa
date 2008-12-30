@@ -10,12 +10,12 @@
 ;;;this copyright notice or hold me liable for its use.  Please send bug
 ;;;reports to <shivers@ai.mit.edu>.
 ;;;
-;;;This is a library of  list- and pair-processing functions. I wrote it
-;;;after carefully  considering the functions provided  by the libraries
-;;;found  in R4RS/R5RS  Scheme, MIT  Scheme, Gambit,  RScheme, MzScheme,
-;;;slib,  Common  Lisp, Bigloo,  guile,  T,  APL  and the  SML  standard
-;;;basis.  It is  a pretty  rich toolkit,  providing a  superset  of the
-;;;functionality found in any of the various Schemes I considered.
+;;;This is  a library of list-processing  and pair-processing functions.
+;;;I wrote it after carefully  considering the functions provided by the
+;;;libraries  found in  R4RS/R5RS Scheme,  MIT Scheme,  Gambit, RScheme,
+;;;MzScheme,  slib, Common  Lisp,  Bigloo,  guile, T,  APL  and the  SML
+;;;standard basis.  It is a pretty rich toolkit, providing a superset of
+;;;the functionality found in any of the various Schemes I considered.
 ;;;
 ;;;This   implementation   is   intended   as   a   portable   reference
 ;;;implementation  for SRFI-1.   See the  porting notes  below  for more
@@ -27,45 +27,112 @@
 #!r6rs
 (library (srfi lists)
   (export
-    xcons  make-list list-tabulate cons* list-copy
-    proper-list? circular-list? dotted-list? not-pair? null-list? list=
-    circular-list length+ length
-    iota
-    first second third fourth fifth sixth seventh eighth ninth tenth
-    car+cdr
-    take       drop
-    take-right drop-right
-    take!      drop-right!
-    split-at   split-at!
-    last last-pair
-    zip unzip1 unzip2 unzip3 unzip4 unzip5
+
+    ;; constructors
+    cons xcons cons*
+    list make-list list-tabulate list-copy circular-list iota
+
+    ;; predicats
+    proper-list?	circular-list?		dotted-list?
+    null?		null-list?
+    pair?		not-pair?
+    list=
+
+    ;; selectors
+    car			cdr			car+cdr
+    caar		cadr
+    cdar		cddr
+    caaar		caadr
+    cadar		caddr
+    cdaar		cdadr
+    cddar		cdddr
+    caaaar		caaadr
+    caadar		caaddr
+    cadaar		cadadr
+    caddar		cadddr
+    cdaaar		cdaadr
+    cdadar		cdaddr
+    cddaar		cddadr
+    cdddar		cddddr
+
+    list-ref
+    first		second			third
+    fourth		fifth			sixth
+    seventh		eighth			ninth
+    tenth
+
+    take		take-right		take!
+    drop		drop-right		drop-right!
+    split-at		split-at!
+    last		last-pair
+
+    ;; misc
+    length		length+
+    append		append!
+    concatenate		concatenate!
+    reverse		reverse!
+    append-reverse	append-reverse!
+    zip
+    unzip1		unzip2			unzip3
+    unzip4		unzip5
     count
-    append! append-reverse append-reverse! concatenate concatenate!
-    unfold       fold       pair-fold       reduce
-    unfold-right fold-right pair-fold-right reduce-right
-    append-map append-map! map! pair-for-each filter-map map-in-order
-    filter  partition  remove
-    filter! partition! remove!
-    find find-tail any every list-index
-    take-while drop-while take-while!
-    span break span! break!
-    delete delete!
-    alist-cons alist-copy
-    delete-duplicates delete-duplicates!
-    alist-delete alist-delete!
-    reverse!
-    lset<= lset= lset-adjoin
-    lset-union  lset-intersection  lset-difference  lset-xor
-    lset-diff+intersection
-    lset-union! lset-intersection! lset-difference! lset-xor!
-    lset-diff+intersection!)
+
+    ;; fold
+    fold		fold-right
+    pair-fold		pair-fold-right
+    reduce		reduce-right
+    unfold		unfold-right
+
+    ;; map
+    map			for-each
+    append-map		append-map!
+    map!		map-in-order
+    pair-for-each	filter-map
+
+    ;; filtering
+    filter		filter!
+    partition		partition!
+    remove		remove!
+
+    ;;searching
+    find		find-tail
+    take-while		take-while!
+    drop-while
+    span		span!
+    break		break!
+    any			every
+    list-index
+    member
+    memq		memv
+
+    ;; deletion
+    delete		delete!
+    delete-duplicates	delete-duplicates!
+
+    ;; alists
+    assoc
+    assq		assv
+    alist-cons		alist-copy
+    alist-delete	alist-delete!
+
+    ;; sets
+    lset<=			lset=
+    lset-adjoin
+    lset-union			lset-union!
+    lset-intersection		lset-intersection!
+    lset-difference		lset-difference!
+    lset-xor			lset-xor!
+    lset-diff+intersection	lset-diff+intersection!
+
+    ;; side effects
+    set-car!			set-cdr!)
   (import (rename (rnrs)
 		  (map		rnrs:map)
 		  (member	rnrs:member)
 		  (assoc	rnrs:assoc)
 		  (remove	rnrs:remove)
 		  (fold-right	rnrs:fold-right))
-    (rnrs mutable-pairs)
+    (rnrs mutable-pairs (6))
     (srfi lists compat)
     (srfi receive))
 
@@ -147,21 +214,33 @@
 	((null? l) #t)
 	(else (error 'null-list? "argument out of domain" l))))
 
-(define (list= = . lists)
-  (or (null? lists) ; special case
-      (let lp1 ((list-a (car lists)) (others (cdr lists)))
-	(or (null? others)
-	    (let ((list-b (car others))
-		  (others (cdr others)))
-	      (if (eq? list-a list-b) ; EQ? => LIST=
-		  (lp1 list-b others)
-		(let lp2 ((list-a list-a) (list-b list-b))
-		  (if (null-list? list-a)
-		      (and (null-list? list-b)
-			   (lp1 list-b others))
-		    (and (not (null-list? list-b))
-			 (= (car list-a) (car list-b))
-			 (lp2 (cdr list-a) (cdr list-b)))))))))))
+
+;;;; comparison
+
+(define list=
+  (case-lambda
+   ((elm=?)
+    #t)
+   ((elm=? ell)
+    #t)
+   ((elm=? ell1 ell2)
+    (let loop ((ell1 ell1)
+	       (ell2 ell2))
+      (cond
+       ((eq? ell1 ell2)
+	#t)
+       ((null-list? ell1)
+	(or (null-list? ell2)
+	    #f))
+       ((null-list? ell2)
+	#f)
+       ((elm=? (car ell1) (car ell2))
+	(loop (cdr ell1) (cdr ell2)))
+       (else
+	#f))))
+   ((elm=? . ells)
+    (and (list= elm=? (car ells) (cadr ells))
+	 (apply list= elm=? (cdr ells))))))
 
 
 ;;;; selectors
@@ -180,68 +259,80 @@
 (define (car+cdr pair)
   (values (car pair) (cdr pair)))
 
-(define (take lis k)
-  (let recur ((lis lis) (k k))
+;;; --------------------------------------------------------------------
+
+(define (take ell k)
+  (let loop ((ell ell)
+	     (k   k))
     (if (zero? k)
 	'()
-      (cons (car lis)
-	    (recur (cdr lis) (- k 1))))))
+      (cons (car ell)
+	    (loop (cdr ell) (- k 1))))))
 
-(define (drop lis k)
-  (let iter ((lis lis) (k k))
+(define (drop ell k)
+  (let loop ((ell ell)
+	     (k   k))
     (if (zero? k)
-	lis
-      (iter (cdr lis) (- k 1)))))
+	ell
+      (loop (cdr ell) (- k 1)))))
 
-(define (take! lis k)
+;;; --------------------------------------------------------------------
+
+(define (take-right ell k)
+  (let loop ((lag	ell)
+	     (lead	(drop ell k)))
+    (if (pair? lead)
+	(loop (cdr lag) (cdr lead))
+      lag)))
+
+(define (drop-right ell k)
+  (let loop ((lag	ell)
+	     (lead	(drop ell k)))
+    (if (pair? lead)
+	(cons (car lag)
+	      (loop (cdr lag) (cdr lead)))
+      '())))
+
+;;; --------------------------------------------------------------------
+
+(define (take! ell k)
   (if (zero? k)
       '()
     (begin
-      (set-cdr! (drop lis (- k 1)) '())
-      lis)))
+      (set-cdr! (drop ell (- k 1)) '())
+      ell)))
 
-(define (take-right lis k)
-  (let lp ((lag lis)
-	   (lead (drop lis k)))
-    (if (pair? lead)
-	(lp (cdr lag) (cdr lead))
-      lag)))
-
-(define (drop-right lis k)
-  (let recur ((lag lis)
-	      (lead (drop lis k)))
-    (if (pair? lead)
-	(cons (car lag) (recur (cdr lag) (cdr lead)))
-      '())))
-
-(define (drop-right! lis k)
+(define (drop-right! ell k)
   ;;In this  function, LEAD is actually  K+1 ahead of LAG.  This lets us
   ;;stop LAG one step early, in time to smash its cdr to ().
-  (let ((lead (drop lis k)))
+  (let ((lead (drop ell k)))
     (if (pair? lead)
-	(let lp ((lag lis)
-		 (lead (cdr lead))) ; Standard case
+	(let loop ((lag  ell)
+		   (lead (cdr lead))) ; Standard case
 	  (if (pair? lead)
-	      (lp (cdr lag) (cdr lead))
+	      (loop (cdr lag) (cdr lead))
 	    (begin (set-cdr! lag '())
-		   lis)))
+		   ell)))
       '()))) ; Special case dropping everything -- no cons to side-effect.
 
+;;; --------------------------------------------------------------------
+
 (define (split-at x k)
-  (let recur ((lis x) (k k))
-    (if (zero? k) (values '() lis)
-	(receive (prefix suffix) (recur (cdr lis) (- k 1))
-	  (values (cons (car lis) prefix) suffix)))))
+  (let loop ((ell x)
+	     (k   k))
+    (if (zero? k) (values '() ell)
+      (receive (prefix suffix) (loop (cdr ell) (- k 1))
+	(values (cons (car ell) prefix) suffix)))))
 
 (define (split-at! x k)
   (if (zero? k) (values '() x)
-      (let* ((prev (drop x (- k 1)))
-	     (suffix (cdr prev)))
-	(set-cdr! prev '())
-	(values x suffix))))
+    (let* ((prev   (drop x (- k 1)))
+	   (suffix (cdr prev)))
+      (set-cdr! prev '())
+      (values x suffix))))
 
-(define (last lis)
-  (car (last-pair lis)))
+(define (last ell)
+  (car (last-pair ell)))
 
 
 ;;;; fold/map internal utilities
@@ -351,6 +442,25 @@
 ;;
 ;;The following helper functions and macros are duplicated and tested in
 ;;the test file "test-list-helpers.sps".
+
+;;; --------------------------------------------------------------------
+
+;; The following macros  handle queue values: pairs whose  car is a list
+;; and  whose  cdr is  the  last  pair in  the  list.   They allow  fast
+;; insertion of elements at the end of the list.
+;;
+;;           -----------
+;;   queue  | car | cdr |
+;;           -----------
+;;             |     |
+;;         ----       ----------------
+;;        |                           |
+;;        v                           v
+;;       ---    ---    ---    ---    ---
+;; list | | |->| | |->| | |->| | |->| | |->()
+;;       ---    ---    ---    ---    ---
+;;       |      |      |      |      |
+;;       o      o      o      o      o
 
 (define-syntax make-queue
   (syntax-rules ()
@@ -502,46 +612,58 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (pair-fold-right f zero lis1 . ells)
+(define pair-fold
+  (case-lambda
+
+   ((f knil ell)
+    (let loop ((ell	ell)
+	       (return	knil))
+      (if (null-list? ell)
+	  return
+	(let ((tail (cdr ell)))
+	  (loop tail (f ell return))))))
+
+   ((f knil ell1 . ells)
+    (let loop ((ells	(cons ell1 ells))
+	       (return	knil))
+      (let ((tails (%cdrs ells)))
+	(if (null? tails)
+	    return
+	  (loop tails (apply f (append! ells (list return))))))))))
+
+(define (pair-fold-right f knil lis1 . ells)
   (if (pair? ells)
       (let loop ((ells (cons lis1 ells))) ; N-ary case
 	(let ((cdrs (%cdrs ells)))
-	  (if (null? cdrs) zero
+	  (if (null? cdrs) knil
 	    (apply f (append! ells (list (loop cdrs)))))))
     (let loop ((lis lis1)) ; Fast path
-      (if (null-list? lis) zero (f lis (loop (cdr lis)))))))
-
-(define (pair-fold f zero lis1 . ells)
-  (if (pair? ells)
-      (let lp ((ells (cons lis1 ells)) (ans zero)) ; N-ary case
-	(let ((tails (%cdrs ells)))
-	  (if (null? tails) ans
-	    (lp tails (apply f (append! ells (list ans)))))))
-    (let lp ((lis lis1) (ans zero))
-      (if (null-list? lis)
-	  ans
-	(let ((tail (cdr lis)))	     ; Grab the cdr now,
-	  (lp tail (f lis ans))))))) ; in case F SET-CDR!s LIS.
+      (if (null-list? lis) knil (f lis (loop (cdr lis)))))))
 
 ;;; --------------------------------------------------------------------
 
-(define (reduce f ridentity lis)
-  (if (null-list? lis) ridentity
-    (fold f (car lis) (cdr lis))))
+(define (reduce f ridentity ell)
+  (if (null-list? ell)
+      ridentity
+    (fold f (car ell) (cdr ell))))
 
-(define (reduce-right f ridentity lis)
-  (if (null-list? lis) ridentity
-    (let loop ((head (car lis)) (lis (cdr lis)))
-      (if (pair? lis)
-	  (f head (loop (car lis) (cdr lis)))
+(define (reduce-right f ridentity ell)
+  (if (null-list? ell)
+      ridentity
+    (let loop ((head	(car ell))
+	       (ell	(cdr ell)))
+      (if (pair? ell)
+	  (f head (loop (car ell) (cdr ell)))
 	head))))
 
 ;;; --------------------------------------------------------------------
 
 (define unfold-right
   (case-lambda
+
    ((stop? map-to-result seed-step seed)
     (unfold-right stop? map-to-result seed-step seed '()))
+
    ((stop? map-to-result seed-step seed tail)
     (let loop ((seed seed)
 	       (result tail))
@@ -552,12 +674,14 @@
 
 (define unfold
   (case-lambda
+
    ((stop? map-to-result seed-step seed)
     (let loop ((seed seed))
       (if (stop? seed)
 	  '()
  	(cons (map-to-result seed)
 	      (loop (seed-step seed))))))
+
    ((stop? map-to-result seed-step seed tail-gen)
     (let loop ((seed seed))
       (if (stop? seed)

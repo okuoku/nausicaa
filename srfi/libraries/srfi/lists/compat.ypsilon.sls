@@ -27,8 +27,7 @@
 
 (library (srfi lists compat)
   (export last-pair make-list)
-  (import (rnrs)
-    (only (core) make-list))
+  (import (core))
 
   (define (last-pair x)
     (unless (pair? x)
