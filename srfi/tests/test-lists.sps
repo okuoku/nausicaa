@@ -529,24 +529,6 @@
 ;;; --------------------------------------------------------------------
 
 (check
-    (count even? numbers)
-  => 5)
-
-(check
-    (count even? '(1))
-  => 0)
-
-(check
-    (count even? '(2))
-  => 1)
-
-(check
-    (count even? '())
-  => 0)
-
-;;; --------------------------------------------------------------------
-
-(check
     (call-with-values
 	(lambda () (split-at numbers 5))
       list)
@@ -641,12 +623,387 @@
   => 'a)
 
 (check
+    (append '(a) '())
+  => '(a))
+
+(check
     (append '(x y))
   => '(x y))
 
 (check
     (append)
   => '())
+
+;;; --------------------------------------------------------------------
+
+(check
+    (append!)
+  => '())
+
+(check
+    (append! '())
+  => '())
+
+(check
+    (append! '() '())
+  => '())
+
+(check
+    (append! '() '() '())
+  => '())
+
+(check
+    (append! '(y))
+  => '(y))
+
+(check
+    (append! '(x) '(y))
+  => '(x y))
+
+(check
+    (append! '(x) '(y) '(z))
+  => '(x y z))
+
+(check
+    (append! '(a) '(b c d))
+  => '(a b c d))
+
+(check
+    (append! '(a (b)) '((c)))
+  => '(a (b) (c)))
+
+(check
+    (append! '(a b) '(c . d))
+  => '(a b c . d))
+
+(check
+    (append! '() 'a)
+  => 'a)
+
+(check
+    (append! '(a) '())
+  => '(a))
+
+(check
+    (append! '(x y))
+  => '(x y))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (concatenate '())
+  => '())
+
+(check
+    (concatenate '(()))
+  => '())
+
+(check
+    (concatenate '(() ()))
+  => '())
+
+(check
+    (concatenate '(() () ()))
+  => '())
+
+(check
+    (concatenate '((x)))
+  => '(x))
+
+(check
+    (concatenate '((x) (y)))
+  => '(x y))
+
+(check
+    (concatenate '((x) (y) (z)))
+  => '(x y z))
+
+(check
+    (concatenate '((a)
+		   (b c d)))
+  => '(a b c d))
+
+(check
+    (concatenate '((a b)
+		   (c d)))
+  => '(a b c d))
+
+(check
+    (concatenate '((a b)
+		   (c d)
+		   (e f)))
+  => '(a b c d e f))
+
+(check
+    (concatenate '((a b c d e f g)
+		   (h i)
+		   (l m n o)))
+  => '(a b c d e f g h i l m n o))
+
+(check
+    (concatenate '((a (b)) ((c))))
+  => '(a (b) (c)))
+
+(check
+    (concatenate '((a b) (c . d)))
+  => '(a b c . d))
+
+(check
+    (concatenate '(() (a)))
+  => '(a))
+
+(check
+    (concatenate '((x y)))
+  => '(x y))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (concatenate! '())
+  => '())
+
+(check
+    (concatenate! '(()))
+  => '())
+
+(check
+    (concatenate! '(() ()))
+  => '())
+
+(check
+    (concatenate! '(() () ()))
+  => '())
+
+(check
+    (concatenate! '((x)))
+  => '(x))
+
+(check
+    (concatenate! '((x) (y)))
+  => '(x y))
+
+(check
+    (concatenate! '((x) (y) (z)))
+  => '(x y z))
+
+(check
+    (concatenate! '((a)
+		    (b c d)))
+  => '(a b c d))
+
+(check
+    (concatenate! '((a b)
+		    (c d)))
+  => '(a b c d))
+
+(check
+    (concatenate! '((a b)
+		    (c d)
+		    (e f)))
+  => '(a b c d e f))
+
+(check
+    (concatenate! '((a b c d e f g)
+		    (h i)
+		    (l m n o)))
+  => '(a b c d e f g h i l m n o))
+
+(check
+    (concatenate! '((a (b)) ((c))))
+  => '(a (b) (c)))
+
+(check
+    (concatenate! '((a b) (c . d)))
+  => '(a b c . d))
+
+(check
+    (concatenate! '(() (a)))
+  => '(a))
+
+(check
+    (concatenate! '((x y)))
+  => '(x y))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (append-reverse '() '())
+  => '())
+
+(check
+    (append-reverse '(x) '(y))
+  => '(x y))
+
+(check
+    (append-reverse '(1 2 3) '(4 5 6))
+  => '(3 2 1 4 5 6))
+
+(check
+    (append-reverse '(a) '(b c d))
+  => '(a b c d))
+
+(check
+    (append-reverse '(a (b)) '((c)))
+  => '((b) a (c)))
+
+(check
+    (append-reverse '(a) '())
+  => '(a))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (append-reverse! '() '())
+  => '())
+
+(check
+    (append-reverse! '(x) '(y))
+  => '(x y))
+
+(check
+    (append-reverse! '(1 2 3) '(4 5 6))
+  => '(3 2 1 4 5 6))
+
+(check
+    (append-reverse! '(a) '(b c d))
+  => '(a b c d))
+
+(check
+    (append-reverse! '(a (b)) '((c)))
+  => '((b) a (c)))
+
+(check
+    (append-reverse! '(a) '())
+  => '(a))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (zip '(one two three)
+	 '(1 2 3)
+	 '(odd even odd even odd even odd even))
+  => '((one 1 odd) (two 2 even) (three 3 odd)))
+
+(check
+    (zip '(1 2 3))
+  => '((1) (2) (3)))
+
+(check
+    (zip '(3 1 4 1)
+	 (circular-list #f #t))
+  => '((3 #f)
+       (1 #t)
+       (4 #f)
+       (1 #t)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (unzip1 '((1)))
+  => '(1))
+
+(check
+    (unzip1 '((1)
+	      (2)))
+  => '(1 2))
+
+(check
+    (unzip1 '((1)
+	      (2)
+	      (3)))
+  => '(1 2 3))
+
+(check
+    (unzip1 '((1 one)
+	      (2 two)
+	      (3 three)))
+  => '(1 2 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda ()
+	  (unzip2 '((1 one))))
+      list)
+  => '((1)
+       (one)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (unzip2 '((1 one)
+		    (2 two))))
+      list)
+  => '((1 2)
+       (one two)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (unzip2 '((1 one)
+		    (2 two)
+		    (3 three))))
+      list)
+  => '((1 2 3)
+       (one two three)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda ()
+	  (unzip3 '((1 10 100)
+		    (2 20 200)
+		    (3 30 300))))
+      list)
+  => '((1 2 3)
+       (10 20 30)
+       (100 200 300)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (unzip4 '((1 10 100 1000)
+		    (2 20 200 2000)
+		    (3 30 300 3000))))
+      list)
+  => '((1 2 3)
+       (10 20 30)
+       (100 200 300)
+       (1000 2000 3000)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (unzip5 '((1 10 100 1000 10000)
+		    (2 20 200 2000 20000)
+		    (3 30 300 3000 30000))))
+      list)
+  => '((1 2 3)
+       (10 20 30)
+       (100 200 300)
+       (1000 2000 3000)
+       (10000 20000 30000)))
+
+
+;;; --------------------------------------------------------------------
+
+(check
+    (count even? numbers)
+  => 5)
+
+(check
+    (count even? '(1))
+  => 0)
+
+(check
+    (count even? '(2))
+  => 1)
+
+(check
+    (count even? '())
+  => 0)
 
 
 
@@ -1187,9 +1544,81 @@
     (map - numbers)
   => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
 
+;;; --------------------------------------------------------------------
+
+(check
+    (srfi:map - '())
+  => '())
+
+(check
+    (srfi:map - '() '())
+  => '())
+
+(check
+    (srfi:map - '() '() '())
+  => '())
+
+(check
+    (srfi:map - '() '() '() '())
+  => '())
+
 (check
     (srfi:map - numbers)
   => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+(check
+    (srfi:map + '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (srfi:map + '(1 2 3) '(10 20 30))
+  => '(11 22 33))
+
+(check
+    (srfi:map + '(1 2 3) '(10 20 30) '(100 200 300))
+  => '(111 222 333))
+
+(check
+    (srfi:map +
+	      '(1 2 3)
+	      '(10 20)
+	      '(100 200 300))
+  => '(111 222))
+
+(check
+    (srfi:map +
+	      '(1 2)
+	      '(10 20 30)
+	      '(100 200 300))
+  => '(111 222))
+
+(check
+    (srfi:map +
+	      '(1 2 3)
+	      '(10 20 30)
+	      '(100 200))
+  => '(111 222))
+
+(check
+    (srfi:map +
+	      '()
+	      '(10 20 30)
+	      '(100 200 300))
+  => '())
+
+(check
+    (srfi:map +
+	      '(1 2 3)
+	      '()
+	      '(100 200 300))
+  => '())
+
+(check
+    (srfi:map +
+	      '(1 2 3)
+	      '(10 20 30)
+	      '())
+  => '())
 
 
 ;;;; filtering

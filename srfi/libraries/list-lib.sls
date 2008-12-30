@@ -88,7 +88,8 @@
     unfold		unfold-right
 
     ;; map
-    map			for-each		srfi:map
+    map						srfi:map
+    for-each					srfi:for-each
     append-map		append-map!
     map!		map-in-order
     pair-for-each	filter-map
@@ -134,6 +135,7 @@
     (rename (srfi lists)
 	    (assoc		srfi:assoc)
 	    (fold-right		srfi:fold-right)
+	    (for-each		srfi:for-each)
 	    (map		srfi:map)
 	    (member		srfi:member)
 	    (remove		srfi:remove))

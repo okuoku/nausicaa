@@ -1781,6 +1781,10 @@ The bindings exported by @library{srfi lists} are re--exported by
 The @func{map} function from the @srfi{} is renamed to @func{srfi:map}.
 
 @item
+The @func{for-each} function from the @srfi{} is renamed to
+@func{srfi:for-each}.
+
+@item
 The @func{fold-right} function from the @srfi{} is renamed to
 @func{srfi:fold-right}.
 
@@ -2591,8 +2595,12 @@ list comprised of the corresponding elements from the parameter lists.
 At least one of the argument lists must be finite:
 
 @example
-(zip '(3 1 4 1) (circular-list #f #t))
-  => ((3 #f) (1 #t) (4 #f) (1 #t))
+(zip '(3 1 4 1)
+     (circular-list #f #t))
+=> ((3 #f)
+    (1 #t)
+    (4 #f)
+    (1 #t))
 @end example
 @end defun
 
@@ -2615,8 +2623,8 @@ and so forth.
 
 @example
 (unzip2 '((1 one) (2 two) (3 three)))
-  => (1 2 3)
-     (one two three)
+=> (1 2 3)
+   (one two three)
 @end example
 @end defun
 
