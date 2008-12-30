@@ -28,7 +28,8 @@
 ;;;; setup
 
 (import (r6rs)
-  (check-lib))
+  (check-lib)
+  (rnrs mutable-pairs (6)))
 
 (check-set-mode! 'report-failed)
 

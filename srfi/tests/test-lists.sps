@@ -827,6 +827,32 @@
 ;;; --------------------------------------------------------------------
 
 (check
+    (reverse '())
+  => '())
+
+(check
+    (reverse '(1))
+  => '(1))
+
+(check
+    (reverse '(1 2 3))
+  => '(3 2 1))
+
+(check
+    (reverse! '())
+  => '())
+
+(check
+    (reverse! '(1))
+  => '(1))
+
+(check
+    (reverse! '(1 2 3))
+  => '(3 2 1))
+
+;;; --------------------------------------------------------------------
+
+(check
     (append-reverse '() '())
   => '())
 
@@ -1541,8 +1567,87 @@
 ;;;; mapping
 
 (check
+    (map - '())
+  => '())
+
+(check
+    (map - '() '())
+  => '())
+
+(check
+    (map - '() '() '())
+  => '())
+
+(check
     (map - numbers)
   => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+(check
+    (map +
+      '(1 2 3)
+      '(10 20 30))
+  => '(11 22 33))
+
+(check
+    (map +
+      '(1 2 3)
+      '(10 20 30)
+      '(100 200 300))
+  => '(111 222 333))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (let ((r 0))
+      (for-each
+	  (lambda (e)
+	    (set! r (+ e r)))
+	'())
+      r)
+  => 0)
+
+(check
+    (let ((r 0))
+      (for-each
+	  (lambda (e1 e2)
+	    (set! r (+ e1 e2 r)))
+	'() '())
+      r)
+  => 0)
+
+(check
+    (let ((r 0))
+      (for-each
+	  (lambda (e1 e2 e3)
+	    (set! r (+ e1 e2 e3 r)))
+	'() '() '())
+      r)
+  => 0)
+
+(check
+    (let ((r '(0 0)))
+      (for-each
+	  (lambda (e1 e2)
+	    (set! r (list (+ e1 (car r))
+			  (+ e2 (cadr r)))))
+      '(1 10 100)
+      '(2 20 200))
+      r)
+  => '(111 222))
+
+
+(check
+    (let ((r '(0 0 0)))
+      (for-each
+	  (lambda (e1 e2 e3)
+	    (set! r (list (+ e1 (car r))
+			  (+ e2 (cadr r))
+			  (+ e3 (caddr r)))))
+      '(1 10 100)
+      '(2 20 200)
+      '(3 30 300))
+      r)
+  => '(111 222 333))
 
 ;;; --------------------------------------------------------------------
 
@@ -1571,11 +1676,16 @@
   => '(1 2 3))
 
 (check
-    (srfi:map + '(1 2 3) '(10 20 30))
+    (srfi:map +
+	      '(1 2 3)
+	      '(10 20 30))
   => '(11 22 33))
 
 (check
-    (srfi:map + '(1 2 3) '(10 20 30) '(100 200 300))
+    (srfi:map +
+	      '(1 2 3)
+	      '(10 20 30)
+	      '(100 200 300))
   => '(111 222 333))
 
 (check
@@ -1620,8 +1730,630 @@
 	      '())
   => '())
 
+(check
+    (srfi:map +
+	      '(3 1 4 1)
+	      (circular-list 1 0))
+  => '(4 1 5 1))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (let ((r 0))
+      (srfi:for-each
+	  (lambda (e)
+	    (set! r (+ e r)))
+	'())
+      r)
+  => 0)
+
+(check
+    (let ((r 0))
+      (srfi:for-each
+	  (lambda (e1 e2)
+	    (set! r (+ e1 e2 r)))
+	'() '())
+      r)
+  => 0)
+
+(check
+    (let ((r 0))
+      (srfi:for-each
+	  (lambda (e1 e2 e3)
+	    (set! r (+ e1 e2 e3 r)))
+	'() '() '())
+      r)
+  => 0)
+
+(check
+    (let ((r '(0 0)))
+      (srfi:for-each
+	  (lambda (e1 e2)
+	    (set! r (list (+ e1 (car r))
+			  (+ e2 (cadr r)))))
+      '(1 10 100)
+      '(2 20 200))
+      r)
+  => '(111 222))
+
+
+(check
+    (let ((r '(0 0 0)))
+      (srfi:for-each
+	  (lambda (e1 e2 e3)
+	    (set! r (list (+ e1 (car r))
+			  (+ e2 (cadr r))
+			  (+ e3 (caddr r)))))
+      '(1 10 100)
+      '(2 20 200)
+      '(3 30 300))
+      r)
+  => '(111 222 333))
+
+(check
+    (let ((r '(0 0 0)))
+      (srfi:for-each
+	  (lambda (e1 e2 e3)
+	    (set! r (list (+ e1 (car r))
+			  (+ e2 (cadr r))
+			  (+ e3 (caddr r)))))
+      '(1 10 100)
+      '(2 20 200)
+      (circular-list 3 30 300))
+      r)
+  => '(111 222 333))
+
+;;; --------------------------------------------------------------------
+
+(define (f x)
+  (list x (- x)))
+
+(check
+    (append-map f '())
+  => '())
+
+(check
+    (append-map list '() '())
+  => '())
+
+(check
+    (append-map list '() '() '())
+  => '())
+
+(check
+    (append-map f '(1))
+  => '(1 -1))
+
+(check
+    (append-map list '(1) '(2))
+  => '(1 2))
+
+(check
+    (append-map list '(1) '(2) '(3))
+  => '(1 2 3))
+
+(check
+    (append-map f '(1 3 8))
+  => '(1 -1 3 -3 8 -8))
+
+(check
+    (append-map list
+		 '(1 2 3)
+		 '(10 20 30))
+  => '(1 10 2 20 3 30))
+
+(check
+    (append-map list
+		 '(1 2 3)
+		 '(10 20 30))
+  => '(1 10 2 20 3 30))
+
+(check
+    (append-map list
+		 '(1 2 3)
+		 '(10 20 30)
+		 '(100 200 300))
+  => '(1 10 100 2 20 200 3 30 300))
+
+(check
+    (append-map list
+		 '(1 2)
+		 '(10 20 30)
+		 '(100 200 300))
+  => '(1 10 100 2 20 200))
+
+(check
+    (append-map list
+		 '(1 2 3)
+		 '(10 20)
+		 '(100 200 300))
+  => '(1 10 100 2 20 200))
+
+(check
+    (append-map list
+		 '(1 2 3)
+		 '(10 20 30)
+		 '(100 200))
+  => '(1 10 100 2 20 200))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (append-map! f '())
+  => '())
+
+(check
+    (append-map! list '() '())
+  => '())
+
+(check
+    (append-map! list '() '() '())
+  => '())
+
+(check
+    (append-map! f '(1))
+  => '(1 -1))
+
+(check
+    (append-map! list '(1) '(2))
+  => '(1 2))
+
+(check
+    (append-map! list '(1) '(2) '(3))
+  => '(1 2 3))
+
+(check
+    (append-map! f '(1 3 8))
+  => '(1 -1 3 -3 8 -8))
+
+(check
+    (append-map! list
+		 '(1 2 3)
+		 '(10 20 30))
+  => '(1 10 2 20 3 30))
+
+(check
+    (append-map! list
+		 '(1 2 3)
+		 '(10 20 30))
+  => '(1 10 2 20 3 30))
+
+(check
+    (append-map! list
+		 '(1 2 3)
+		 '(10 20 30)
+		 '(100 200 300))
+  => '(1 10 100 2 20 200 3 30 300))
+
+(check
+    (append-map! list
+		 '(1 2)
+		 '(10 20 30)
+		 '(100 200 300))
+  => '(1 10 100 2 20 200))
+
+(check
+    (append-map! list
+		 '(1 2 3)
+		 '(10 20)
+		 '(100 200 300))
+  => '(1 10 100 2 20 200))
+
+(check
+    (append-map! list
+		 '(1 2 3)
+		 '(10 20 30)
+		 '(100 200))
+  => '(1 10 100 2 20 200))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x)
+	 (set! r (cons x r)))
+       '(1 2 3))
+      r)
+  => '((3)
+       (2 3)
+       (1 2 3)))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x)
+	 (set! r (cons x r)))
+       '())
+      r)
+  => '())
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '()
+       '()
+       '())
+      r)
+  => '())
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y)
+	 (set! r (cons (list x y)
+		       r)))
+       '()
+       '())
+      r)
+  => '())
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x)
+	 (set! r (cons x r)))
+       '(1))
+      r)
+  => '((1)))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x)
+	 (set! r (cons x r)))
+       '(1 2))
+      r)
+  => '((2)
+       (1 2)))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y)
+	 (set! r (cons (list x y)
+		       r)))
+       '(1 2 3)
+       '(10 20 30))
+      r)
+  => '(((3) (30))
+       ((2 3) (20 30))
+       ((1 2 3) (10 20 30))))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '(1 2 3)
+       '(10 20 30)
+       '(100 200 300))
+      r)
+  => '(((3) (30) (300))
+       ((2 3) (20 30) (200 300))
+       ((1 2 3) (10 20 30) (100 200 300))))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '(1 2)
+       '(10 20 30)
+       '(100 200 300))
+      r)
+  => '(((2) (20 30) (200 300))
+       ((1 2) (10 20 30) (100 200 300))))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '(1 2 3)
+       '(10 20)
+       '(100 200 300))
+      r)
+  => '(((2 3) (20) (200 300))
+       ((1 2 3) (10 20) (100 200 300))))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '(1 2 3)
+       '(10 20 30)
+       '(100 200))
+      r)
+  => '(((2 3) (20 30) (200))
+       ((1 2 3) (10 20 30) (100 200))))
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '()
+       '(10 20 30)
+       '(100 200 300))
+      r)
+  => '())
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '(1 2 3)
+       '()
+       '(100 200 300))
+      r)
+  => '())
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '(1 2 3)
+       '(10 20 30)
+       '())
+      r)
+  => '())
+
+(check
+    (let ((r '()))
+      (pair-for-each
+       (lambda (x y z)
+	 (set! r (cons (list x y z)
+		       r)))
+       '(1)
+       '(10)
+       '(100))
+      r)
+  => '(((1) (10) (100))))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (map! - '())
+  => '())
+
+(check
+    (map! - (list-copy numbers))
+  => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+(check
+    (map! + '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (map! - '() '())
+  => '())
+
+(check
+    (map! - '() '() '())
+  => '())
+
+(check
+    (map! - '() '() '() '())
+  => '())
+
+(check
+    (map! +
+	  '(1 2 3)
+	  '(10 20 30))
+  => '(11 22 33))
+
+(check
+    (map! +
+	  '(1 2 3)
+	  '(10 20 30)
+	  '(100 200 300))
+  => '(111 222 333))
+
+;;; Only the first list argument can be shorter!!!
+(check
+    (map! +
+	  '(1 2)
+	  '(10 20 30)
+	  '(100 200 300))
+  => '(111 222))
+
+(check
+    (map! +
+	  '()
+	  '(10 20 30)
+	  '(100 200 300))
+  => '())
+
+(check
+    (map! +
+	  '(3 1 4 1)
+	  (circular-list 1 0))
+  => '(4 1 5 1))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (filter-map
+     (lambda (x)
+       (and (number? x)
+	    (* x x)))
+     '(a 1 b 3 c 7))
+  => '(1 9 49))
+
+(check
+    (filter-map - '())
+  => '())
+
+(check
+    (filter-map - '() '())
+  => '())
+
+(check
+    (filter-map - '() '() '())
+  => '())
+
+(check
+    (filter-map - '() '() '() '())
+  => '())
+
+(check
+    (filter-map - numbers)
+  => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+(check
+    (filter-map + '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (filter-map +
+		'(1 2 3)
+		'(10 20 30))
+  => '(11 22 33))
+
+(check
+    (filter-map +
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200 300))
+  => '(111 222 333))
+
+(check
+    (filter-map +
+		'(1 2 3)
+		'(10 20)
+		'(100 200 300))
+  => '(111 222))
+
+(check
+    (filter-map +
+		'(1 2)
+		'(10 20 30)
+		'(100 200 300))
+  => '(111 222))
+
+(check
+    (filter-map +
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200))
+  => '(111 222))
+
+(check
+    (filter-map +
+		'()
+		'(10 20 30)
+		'(100 200 300))
+  => '())
+
+(check
+    (filter-map +
+		'(1 2 3)
+		'()
+		'(100 200 300))
+  => '())
+
+(check
+    (filter-map +
+		'(1 2 3)
+		'(10 20 30)
+		'())
+  => '())
+
+(check
+    (filter-map +
+		'(3 1 4 1)
+		(circular-list 1 0))
+  => '(4 1 5 1))
+
+
+
 
 ;;;; filtering
+
+(check
+    (filter even? '())
+  => '())
+
+(check
+    (filter even? '(1))
+  => '())
+
+(check
+    (filter even? '(2))
+  => '(2))
+
+(check
+    (filter even? numbers)
+  => '(0 2 4 6 8))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (filter! even? '())
+  => '())
+
+(check
+    (filter! even? '(1))
+  => '())
+
+(check
+    (filter! even? '(2))
+  => '(2))
+
+(check
+    (filter! even? (list-copy numbers))
+  => '(0 2 4 6 8))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition even? '()))
+      list)
+  => '(() ()))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition even? '(1)))
+      list)
+  => '(() (1)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition even? '(2)))
+      list)
+  => '((2) ()))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition even? '(1 3)))
+      list)
+  => '(() (1 3)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition even? '(2 4)))
+      list)
+  => '((2 4) ()))
 
 (check
     (call-with-values
@@ -1631,20 +2363,1204 @@
   => '((0 2 4 6 8)
        (1 3 5 7 9)))
 
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition! even? '()))
+      list)
+  => '(() ()))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition! even? '(1)))
+      list)
+  => '(() (1)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition! even? '(2)))
+      list)
+  => '((2) ()))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition! even? '(1 3)))
+      list)
+  => '(() (1 3)))
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition! even? '(2 4)))
+      list)
+  => '((2 4) ()))
+
+
+(check
+    (call-with-values
+	(lambda ()
+	  (partition! even? (list-copy numbers)))
+      list)
+  => '((0 2 4 6 8)
+       (1 3 5 7 9)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (remove 8 numbers)
+  => '(0 1 2 3 4 5 6 7 9))
+
+(check
+    (remove 8 '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (remove 8 '(1))
+  => '(1))
+
+(check
+    (remove 8 '())
+  => '())
+
+;;; --------------------------------------------------------------------
+
+(check
+    (srfi:remove even? '())
+  => '())
+
+(check
+    (srfi:remove even? '(1))
+  => '(1))
+
+(check
+    (srfi:remove even? '(2))
+  => '())
+
+(check
+    (srfi:remove even? numbers)
+  => '(1 3 5 7 9))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (remove! even? '())
+  => '())
+
+(check
+    (remove! even? '(1))
+  => '(1))
+
+(check
+    (remove! even? '(2))
+  => '())
+
 (check
     (remove! even? (list-copy numbers))
   => '(1 3 5 7 9))
 
 
-;;;REMOVE  is defined  by the  SRFI  but is  already in  R6RS.  The  two
-;;;definitions are different.  Here we test the SRFI one:
+
+;;;; finding
+
 (check
-    (srfi:remove even? numbers)
-  => '(1 3 5 7 9))
-;;and here we test the R6RS one:
+    (find even? '())
+  => #f)
+
 (check
-    (remove 8 numbers)
-  => '(0 1 2 3 4 5 6 7 9))
+    (find even? '(1))
+  => #f)
+
+(check
+    (find even? '(2))
+  => 2)
+
+(check
+    (find even? '(1 2 3))
+  => 2)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (find-tail even? '())
+  => #f)
+
+(check
+    (find-tail even? '(1))
+  => #f)
+
+(check
+    (find-tail even? '(2))
+  => '(2))
+
+(check
+    (find-tail even? '(1 2 3))
+  => '(2 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (take-while even? '())
+  => '())
+
+(check
+    (take-while even? '(1))
+  => '())
+
+(check
+    (take-while even? '(2))
+  => '(2))
+
+(check
+    (take-while even? '(2 4 6 1 3))
+  => '(2 4 6))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (take-while! even? '())
+  => '())
+
+(check
+    (take-while! even? '(1))
+  => '())
+
+(check
+    (take-while! even? '(2))
+  => '(2))
+
+(check
+    (take-while! even? '(2 4 6 1 3))
+  => '(2 4 6))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (drop-while even? '())
+  => '())
+
+(check
+    (drop-while even? '(1))
+  => '(1))
+
+(check
+    (drop-while even? '(2))
+  => '())
+
+(check
+    (drop-while even? '(2 4 6 1 3))
+  => '(1 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda () (span even? '()))
+      list)
+  => '(() ()))
+
+(check
+    (call-with-values
+	(lambda () (span even? '(1)))
+      list)
+  => '(() (1)))
+
+(check
+    (call-with-values
+	(lambda () (span even? '(2)))
+      list)
+  => '((2) ()))
+
+(check
+    (call-with-values
+	(lambda () (span even? '(2 4 6 1 3)))
+      list)
+  => '((2 4 6) (1 3)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda () (span! even? '()))
+      list)
+  => '(() ()))
+
+(check
+    (call-with-values
+	(lambda () (span! even? '(1)))
+      list)
+  => '(() (1)))
+
+(check
+    (call-with-values
+	(lambda () (span! even? '(2)))
+      list)
+  => '((2) ()))
+
+(check
+    (call-with-values
+	(lambda () (span! even? '(2 4 6 1 3)))
+      list)
+  => '((2 4 6) (1 3)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda () (break even? '()))
+      list)
+  => '(() ()))
+
+(check
+    (call-with-values
+	(lambda () (break even? '(1)))
+      list)
+  => '((1) ()))
+
+(check
+    (call-with-values
+	(lambda () (break even? '(2)))
+      list)
+  => '(() (2)))
+
+(check
+    (call-with-values
+	(lambda () (break even? '(1 3 2 4 6)))
+      list)
+  => '((1 3) (2 4 6)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (call-with-values
+	(lambda () (break! even? '()))
+      list)
+  => '(() ()))
+
+(check
+    (call-with-values
+	(lambda () (break! even? '(1)))
+      list)
+  => '((1) ()))
+
+(check
+    (call-with-values
+	(lambda () (break! even? '(2)))
+      list)
+  => '(() (2)))
+
+(check
+    (call-with-values
+	(lambda () (break! even? '(1 3 2 4 6)))
+      list)
+  => '((1 3) (2 4 6)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (any even? '())
+  => #f)
+
+(check
+    (any even? '(1))
+  => #f)
+
+(check
+    (and (any even? '(2))
+	 #t)
+  => #t)
+
+(check
+    (and (any even? '(1 2))
+	 #t)
+  => #t)
+
+(check
+    (and (any even? '(1 3 5 7 2))
+	 #t)
+  => #t)
+
+(check
+    (any (lambda args
+	   (integer? (apply + args)))
+      '() '())
+  => #f)
+
+(check
+    (any (lambda args
+	   (integer? (apply + args)))
+      '() '() '())
+  => #f)
+
+;;; The following are  false because when a list  is empty the predicate
+;;; is not applied at all and the return value is false.
+(check
+    (and (any (lambda args
+		(integer? (apply + args)))
+	   '(1) '() '())
+	 #t)
+  => #f)
+(check
+    (and (any (lambda args
+		(integer? (apply + args)))
+	   '() '(1) '())
+	 #t)
+  => #f)
+(check
+    (and (any (lambda args
+		(integer? (apply + args)))
+	   '() '() '(1))
+	 #t)
+  => #f)
+
+(check
+    (and (any (lambda args
+		(integer? (apply + args)))
+	   '(1) '(1.1) '(2))
+	 #t)
+  => #f)
+
+(check
+    (and (any (lambda args
+		(integer? (apply + args)))
+	   '(1) '(2) '(2))
+	 #t)
+  => #t)
+
+(check
+    (and (any (lambda args
+		(integer? (apply + args)))
+	   '(1 2)
+	   '(2 2.2)
+	   '(1.1 3))
+	 #t)
+  => #f)
+
+(check
+    (and (any (lambda args
+		(integer? (apply + args)))
+	   '(1 2)
+	   '(2 2)
+	   '(1.1 3))
+	 #t)
+  => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (every even? '())
+  => #t)
+
+(check
+    (every even? '(1))
+  => #f)
+
+(check
+    (and (every even? '(2))
+	 #t)
+  => #t)
+
+(check
+    (and (every even? '(1 2))
+	 #t)
+  => #f)
+
+(check
+    (and (every even? '(4 8 10 12))
+	 #t)
+  => #t)
+
+(check
+    (every (lambda args
+	   (integer? (apply + args)))
+      '() '())
+  => #t)
+
+(check
+    (every (lambda args
+	   (integer? (apply + args)))
+      '() '() '())
+  => #t)
+
+;;; The following are true because when a list is empty the predicate is
+;;; not applied at all and the return value is true.
+(check
+    (and (every (lambda args
+		(integer? (apply + args)))
+	   '(1) '() '())
+	 #t)
+  => #t)
+(check
+    (and (every (lambda args
+		(integer? (apply + args)))
+	   '() '(1) '())
+	 #t)
+  => #t)
+(check
+    (and (every (lambda args
+		(integer? (apply + args)))
+	   '() '() '(1))
+	 #t)
+  => #t)
+
+(check
+    (and (every (lambda args
+		(integer? (apply + args)))
+	   '(1) '(1.1) '(2))
+	 #t)
+  => #f)
+
+(check
+    (and (every (lambda args
+		(integer? (apply + args)))
+	   '(1) '(2) '(2))
+	 #t)
+  => #t)
+
+(check
+    (and (every (lambda args
+		(integer? (apply + args)))
+	   '(1 2)
+	   '(2 2.2)
+	   '(1 3))
+	 #t)
+  => #f)
+
+(check
+    (and (every (lambda args
+		(integer? (apply + args)))
+	   '(1 2)
+	   '(2 2)
+	   '(1 3))
+	 #t)
+  => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (list-index even? '())
+  => #f)
+
+(check
+    (list-index even? '() '())
+  => #f)
+
+(check
+    (list-index even? '() '() '())
+  => #f)
+
+(check
+    (list-index even? '(1))
+  => #f)
+
+(check
+    (list-index even? '(1 3 5))
+  => #f)
+
+(check
+    (list-index even? '(2))
+  => 0)
+
+(check
+    (list-index even? '(1 2 3 5))
+  => 1)
+
+(check
+    (list-index (lambda args
+		  (integer? (apply + args)))
+      '(1 2 3)
+      '(1 2 3))
+  => 0)
+
+(check
+    (list-index (lambda args
+		  (integer? (apply + args)))
+      '(1 2 3)
+      '(1.1 2 3))
+  => 1)
+
+(check
+    (list-index (lambda args
+		  (integer? (apply + args)))
+      '(1 2 3)
+      '(1 2 3)
+      '(1 2 3))
+  => 0)
+
+(check
+    (list-index (lambda args
+		  (integer? (apply + args)))
+      '(1 2 3)
+      '(1.1 2 3)
+      '(1 2 3))
+  => 1)
+
+(check
+    (list-index (lambda args
+		  (integer? (apply + args)))
+      '(1 2 3)
+      '(1 2 3)
+      '(1.1 2.1 3))
+  => 2)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (memq 'a '(a b c))
+  => '(a b c))
+
+(check
+    (memq 'b '(a b c))
+  => '(b c))
+
+(check
+    (memq 'a '(b c d))
+  => #f)
+
+(check
+    (memq (list 'a) '(b (a) c))
+  => #f)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (member '(a)
+	    '(b (a) c))
+  => '((a) c))
+
+(check
+    (srfi:member '(a)
+		 '(b (a) c))
+  => '((a) c))
+
+(check
+    (srfi:member '(a)
+		 '(b a c))
+  => #f)
+
+(check
+    (srfi:member '(a)
+		 '())
+  => #f)
+
+(check
+    (srfi:member 10
+		 '(1 2 3 11 4 5)
+		 (lambda (a b)
+		   (= (+ 1 a) b)))
+  => '(11 4 5))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (memv 101 '(100 101 102))
+  => '(101 102))
+
+
+;;;; deletion
+
+(check
+    (delete 8 '())
+  => '())
+
+(check
+    (delete 8 '(1))
+  => '(1))
+
+(check
+    (delete 8 '(8))
+  => '())
+
+(check
+    (delete 8 '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (delete 8 '(1 2 8 3 4 5 8 6 7 8))
+  => '(1 2 3 4 5 6 7))
+
+(check
+    (delete 8 '() =)
+  => '())
+
+(check
+    (delete 8 '(1) =)
+  => '(1))
+
+(check
+    (delete 8 '(8) =)
+  => '())
+
+(check
+    (delete 8 '(1 2 3) =)
+  => '(1 2 3))
+
+(check
+    (delete 8 '(1 2 8 3 4 5 8 6 7 8) =)
+  => '(1 2 3 4 5 6 7))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (delete! 8 '())
+  => '())
+
+(check
+    (delete! 8 '(1))
+  => '(1))
+
+(check
+    (delete! 8 '(8))
+  => '())
+
+(check
+    (delete! 8 '(1 2 3))
+  => '(1 2 3))
+
+(check
+    (delete! 8 '(1 2 8 3 4 5 8 6 7 8))
+  => '(1 2 3 4 5 6 7))
+
+
+(check
+    (delete! 8 '() =)
+  => '())
+
+(check
+    (delete! 8 '(1) =)
+  => '(1))
+
+(check
+    (delete! 8 '(8) =)
+  => '())
+
+(check
+    (delete! 8 '(1 2 3) =)
+  => '(1 2 3))
+
+(check
+    (delete! 8 '(1 2 8 3 4 5 8 6 7 8) =)
+  => '(1 2 3 4 5 6 7))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (delete-duplicates '())
+  => '())
+
+(check
+    (delete-duplicates '(1))
+  => '(1))
+
+(check
+    (delete-duplicates '(1 2))
+  => '(1 2))
+
+(check
+    (delete-duplicates '(1 1))
+  => '(1))
+
+(check
+    (delete-duplicates '(1 1 1))
+  => '(1))
+
+(check
+    (delete-duplicates '(1 2 3 2 4 5 4 6 1 7))
+  => '(1 2 3 4 5 6 7))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (delete-duplicates! '())
+  => '())
+
+(check
+    (delete-duplicates! '(1))
+  => '(1))
+
+(check
+    (delete-duplicates! '(1 2))
+  => '(1 2))
+
+(check
+    (delete-duplicates! '(1 1))
+  => '(1))
+
+(check
+    (delete-duplicates! '(1 1 1))
+  => '(1))
+
+(check
+    (delete-duplicates! '(1 2 3 2 4 5 4 6 1 7))
+  => '(1 2 3 4 5 6 7))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (delete-duplicates '() =)
+  => '())
+
+(check
+    (delete-duplicates '(1) =)
+  => '(1))
+
+(check
+    (delete-duplicates '(1 2) =)
+  => '(1 2))
+
+(check
+    (delete-duplicates '(1 1) =)
+  => '(1))
+
+(check
+    (delete-duplicates '(1 1 1) =)
+  => '(1))
+
+(check
+    (delete-duplicates '(1 2 3 2 4 5 4 6 1 7) =)
+  => '(1 2 3 4 5 6 7))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (delete-duplicates! '() =)
+  => '())
+
+(check
+    (delete-duplicates! '(1) =)
+  => '(1))
+
+(check
+    (delete-duplicates! '(1 2) =)
+  => '(1 2))
+
+(check
+    (delete-duplicates! '(1 1) =)
+  => '(1))
+
+(check
+    (delete-duplicates! '(1 1 1) =)
+  => '(1))
+
+(check
+    (delete-duplicates! '(1 2 3 2 4 5 4 6 1 7) =)
+  => '(1 2 3 4 5 6 7))
+
+
+;;;; alists
+
+(check
+    (assoc 'a
+	   '((a . 1)
+	     (b . 2)
+	     (c . 3)))
+  => '(a . 1))
+
+(check
+    (assoc 'b
+	   '((a . 1)
+	     (b . 2)
+	     (c . 3)))
+  => '(b . 2))
+
+(check
+    (assoc 'c
+	   '((a . 1)
+	     (b . 2)
+	     (c . 3)))
+  => '(c . 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (srfi:assoc 'c
+		'())
+  => #f)
+
+(check
+    (srfi:assoc 'd
+		'((a . 1)
+		  (b . 2)
+		  (c . 3)))
+  => #f)
+
+(check
+    (srfi:assoc 'a
+		'((a . 1)
+		  (b . 2)
+		  (c . 3)))
+  => '(a . 1))
+
+(check
+    (srfi:assoc 'b
+		'((a . 1)
+		  (b . 2)
+		  (c . 3)))
+  => '(b . 2))
+
+(check
+    (srfi:assoc 'c
+		'((a . 1)
+		  (b . 2)
+		  (c . 3)))
+  => '(c . 3))
+
+(check
+    (srfi:assoc 'a
+		'((a . 1)
+		  (b . 2)
+		  (c . 3))
+		eq?)
+  => '(a . 1))
+
+(check
+    (srfi:assoc 'b
+		'((a . 1)
+		  (b . 2)
+		  (c . 3))
+		eq?)
+  => '(b . 2))
+
+(check
+    (srfi:assoc 'c
+		'((a . 1)
+		  (b . 2)
+		  (c . 3))
+		eq?)
+  => '(c . 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (assq 'c
+	  '())
+  => #f)
+
+(check
+    (assq 'd
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => #f)
+
+(check
+    (assq 'a
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => '(a . 1))
+
+(check
+    (assq 'b
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => '(b . 2))
+
+(check
+    (assq 'c
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => '(c . 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (assv 'c
+	  '())
+  => #f)
+
+(check
+    (assv 'd
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => #f)
+
+(check
+    (assv 'a
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => '(a . 1))
+
+(check
+    (assv 'b
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => '(b . 2))
+
+(check
+    (assv 'c
+	  '((a . 1)
+	    (b . 2)
+	    (c . 3)))
+  => '(c . 3))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (alist-cons 'a 1
+		'((b . 2)
+		  (c . 3)))
+  => '((a . 1)
+       (b . 2)
+       (c . 3)))
+
+(check
+    (alist-cons 'a 1
+		'())
+  => '((a . 1)))
+
+(check
+    (alist-cons 'b 2
+		'((b . 2)
+		  (c . 3)))
+  => '((b . 2)
+       (b . 2)
+       (c . 3)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (alist-copy '((a . 1)
+		  (b . 2)
+		  (c . 3)))
+  => '((a . 1)
+       (b . 2)
+       (c . 3)))
+
+(check
+    (alist-copy '((a . 1)))
+  => '((a . 1)))
+
+(check
+    (alist-copy '())
+  => '())
+
+;;; --------------------------------------------------------------------
+
+(check
+    (alist-delete 'a
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3)))
+  => '((b . 2)
+       (c . 3)))
+
+(check
+    (alist-delete 'b
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3)))
+  => '((a . 1)
+       (c . 3)))
+
+(check
+    (alist-delete 'c
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3)))
+  => '((a . 1)
+       (b . 2)))
+
+(check
+    (alist-delete 'd
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3)))
+  => '((a . 1)
+       (b . 2)
+       (c . 3)))
+
+(check
+    (alist-delete 'a
+		  '((a . 1)
+		    (a . 2)
+		    (c . 3)))
+  => '((c . 3)))
+
+(check
+    (alist-delete 'a
+		  '())
+  => '())
+
+(check
+    (alist-delete 'a
+		  '((a . 1)))
+  => '())
+
+(check
+    (alist-delete 'a
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3))
+		  eq?)
+  => '((b . 2)
+       (c . 3)))
+
+(check
+    (alist-delete 'b
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3))
+		  eq?)
+  => '((a . 1)
+       (c . 3)))
+
+(check
+    (alist-delete 'c
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3))
+		  eq?)
+  => '((a . 1)
+       (b . 2)))
+
+(check
+    (alist-delete 'd
+		  '((a . 1)
+		    (b . 2)
+		    (c . 3))
+		  eq?)
+  => '((a . 1)
+       (b . 2)
+       (c . 3)))
+
+(check
+    (alist-delete 'a
+		  '((a . 1)
+		    (a . 2)
+		    (c . 3))
+		  eq?)
+  => '((c . 3)))
+
+(check
+    (alist-delete 'a
+		  '()
+		  eq?)
+  => '())
+
+(check
+    (alist-delete 'a
+		  '((a . 1))
+		  eq?)
+  => '())
+
+
+;;;; sets
+
+(check
+    (lset<= =)
+  => #t)
+
+(check
+    (lset<= = '())
+  => #t)
+
+(check
+    (lset<= = '() '())
+  => #t)
+
+(check
+    (lset<= = '() '() '())
+  => #t)
+
+(check
+    (lset<= =
+	    '(1)
+	    '(1))
+  => #t)
+
+(check
+    (lset<= =
+	    '(1)
+	    '(1)
+	    '(1))
+  => #t)
+
+(check
+    (lset<= =
+	    '(1)
+	    '(1 2)
+	    '(1 2 3))
+  => #t)
+
+(check
+    (lset<= =
+	    '(1)
+	    '(1 2)
+	    '(1 2))
+  => #t)
+
+(check
+    (lset<= =
+	    '(1)
+	    '(1 2)
+	    '(1))
+  => #f)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (lset= =)
+  => #t)
+
+(check
+    (lset= = '())
+  => #t)
+
+(check
+    (lset= = '() '())
+  => #t)
+
+(check
+    (lset= = '() '() '())
+  => #t)
+
+(check
+    (lset= =
+	    '(1)
+	    '(1))
+  => #t)
+
+(check
+    (lset= =
+	    '(1)
+	    '(1)
+	    '(1))
+  => #t)
+
+(check
+    (lset= =
+	    '(1)
+	    '(1 2)
+	    '(1 2 3))
+  => #f)
+
+(check
+    (lset= =
+	    '(1)
+	    '(1 2)
+	    '(1 2))
+  => #f)
+
+(check
+    (lset= =
+	    '(1)
+	    '(1 2)
+	    '(1))
+  => #f)
+
+;;; --------------------------------------------------------------------
+
+
 
 
 

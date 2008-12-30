@@ -26,7 +26,6 @@
 (import
   (only (srfi and-let-star))
   (only (srfi args-fold))
-  (only (srfi case-lambda))
   (only (srfi char-set))
   (only (srfi compare))
   (only (srfi cond-expand))

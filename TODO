@@ -18,7 +18,7 @@ Stuff related to me, the Earth and the Universe in general
 SRFI
 ----
 
-* Remove case-lambda.
+* Finish the tests for (srfi lists) set functions.
 * Write a test file for each SRFI.
 * Not all the SRFI authors  have written the implementation library, the
   documentation should be updated accordingly.
@@ -79,6 +79,7 @@ POSIX
 Glibc
 -----
 
+* Finish the time interface
 * Test and document the streams-pipe library.
 * Add the string functions.
 * Add the mmap interface.

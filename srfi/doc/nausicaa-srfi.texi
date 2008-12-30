@@ -1778,6 +1778,10 @@ The bindings exported by @library{srfi lists} are re--exported by
 
 @enumerate
 @item
+The @func{assoc} function from the @srfi{} is renamed to
+@func{srfi:assoc}.
+
+@item
 The @func{map} function from the @srfi{} is renamed to @func{srfi:map}.
 
 @item
@@ -3205,30 +3209,41 @@ results, in order.  The dynamic order in which @var{proc} is applied to
 the elements of the lists is unspecified.
 
 @example
-(map cadr '((a b) (d e) (g h))) =>  (b e h)
+(map cadr '((a b)
+            (d e)
+            (g h)))
+=>  (b e h)
 
-(map (lambda (n) (expt n n))
-     '(1 2 3 4 5))
-  =>  (1 4 27 256 3125)
+(map
+   (lambda (n)
+     (expt n n))
+  '(1 2 3 4 5))
+=> (1 4 27 256 3125)
 
-(map + '(1 2 3) '(4 5 6)) =>  (5 7 9)
+(map + '(1 2 3)
+       '(4 5 6))
+=> (5 7 9)
 
-(let ([count 0])
-  (map (lambda (ignored)
-         (set! count (+ count 1))
-         count)
-       '(a b)))
-  =>  (1 2) or (2 1)
+(let ((count 0))
+  (map
+      (lambda (ignored)
+        (set! count (+ count 1))
+        count)
+    '(a b)))
+=> (1 2) or (2 1)
 @end example
 
 This procedure is extended from its @rnrs{5} specification to allow the
 arguments to be of unequal length; it terminates when the shortest list
-runs out.
+runs out of elements.
 
-At least one of the argument lists must be finite:
+At least one of the list arguments must be a finite list:
 
 @example
-(map + '(3 1 4 1) (circular-list 1 0)) => (4 1 5 1)
+(map +
+     '(3 1 4 1)
+     (circular-list 1 0))
+=> (4 1 5 1)
 @end example
 @end defun
 
@@ -3242,18 +3257,20 @@ element(s) to the last, and the value returned by @func{for-each} is
 unspecified.
 
 @example
-(let ([v (make-vector 5)])
-  (for-each (lambda (i)
-              (vector-set! v i (* i i)))
-            '(0 1 2 3 4))
-  v)  =>  #(0 1 4 9 16)
+(let ((v (make-vector 5)))
+  (for-each
+       (lambda (i)
+         (vector-set! v i (* i i)))
+    '(0 1 2 3 4))
+  v)
+=> #(0 1 4 9 16)
 @end example
 
 This procedure is extended from its @rnrs{5} specification to allow the
 arguments to be of unequal length; it terminates when the shortest list
 runs out.
 
-At least one of the argument lists must be finite.
+At least one of the list arguments must be a finite list.
 @end defun
 
 
@@ -3272,6 +3289,10 @@ and:
 (apply append! (map f clist1 clist2 ...))
 @end example
 
+@noindent
+so it makes sense to use these functions only when the list returned by
+the map process is a list of lists.
+
 Map @var{f} over the elements of the lists, just as in the @func{map}
 function.  However, the results of the applications are appended
 together to make the final result.  @func{append-map} uses @func{append}
@@ -3283,11 +3304,19 @@ is not specified.
 Example:
 
 @example
-(append-map! (lambda (x) (list x (- x))) '(1 3 8))
-  => (1 -1 3 -3 8 -8)
+(append-map!
+    (lambda (x)
+      (list x (- x)))
+  '(1 3 8))
+=> (1 -1 3 -3 8 -8)
+
+(append-map! list
+             '(1 2 3)
+             '(10 20 30))
+=> (1 10 2 20 3 30)
 @end example
 
-At least one of the list arguments must be finite.
+At least one of the list arguments must be a finite list.
 @end defun
 
 
@@ -3322,13 +3351,18 @@ The @var{f} procedure may reliably apply @func{set-cdr!} to the pairs it
 is given without altering the sequence of execution.
 
 @example
-(pair-for-each (lambda (pair) (display pair) (newline)) '(a b c)) ==>
-    (a b c)
-    (b c)
-    (c)
+(pair-for-each
+    (lambda (pair)
+      (display pair)
+      (newline))
+  '(a b c))
+; prints
+;    (a b c)
+;    (b c)
+;    (c)
 @end example
 
-At least one of the list arguments must be finite.
+At least one of the list arguments must be a finite list.
 @end defun
 
 
@@ -3336,10 +3370,12 @@ At least one of the list arguments must be finite.
 Like @func{map}, but only true values are saved.
 
 @example
-(filter-map (lambda (x)
-              (and (number? x) (* x x)))
-            '(a 1 b 3 c 7))
-  => (1 9 49)
+(filter-map
+    (lambda (x)
+      (and (number? x)
+           (* x x)))
+  '(a 1 b 3 c 7))
+=> (1 9 49)
 @end example
 
 The dynamic order in which the various applications of @var{f} are made
@@ -3523,8 +3559,10 @@ However, in cases where this ambiguity can arise, you should use
 ambiguity:
 
 @example
-(cond [(find-tail pred lis) => (lambda (pair) ...)] ; Handle (CAR PAIR)
-      [else ...]) ; Search failed.
+(cond
+ ((find-tail pred lis)
+  => (lambda (pair) ...)) ; Handle (CAR PAIR)
+ (else ...)) ; Search failed.
 @end example
 @end defun
 
@@ -3716,11 +3754,10 @@ Examples:
 @defun member @var{x} @var{list} [@var{=}]
 @defunx memq @var{x} @var{list}
 @defunx memv @var{x} @var{list}
-@rnrs{5}+ These procedures return the first sublist of @var{list} whose
-car is @var{x}, where the sublists of list are the non--empty lists
-returned by @code{(drop list i)} for @var{i} less than the length of
-@var{list}.  If @var{x} does not occur in @var{list}, then @false{} is
-returned.
+These procedures return the first sublist of @var{list} whose car is
+@var{x}, where the sublists of list are the non--empty lists returned by
+@code{(drop list i)} for @var{i} less than the length of @var{list}.  If
+@var{x} does not occur in @var{list}, then @false{} is returned.
 
 @func{memq} uses @func{eq?} to compare @var{x} with the elements of
 @var{list}, while @var{memv} uses @func{eqv?}, and @func{member} uses
@@ -3869,8 +3906,8 @@ some other alternative should be employed.
 @defun assoc @var{key} @var{alist} [@var{=}]
 @defunx assq @var{key} @var{alist}
 @defunx assv @var{key} @var{alist}
-@rnrs{5}+ @var{alist} must be an association list: a list of pairs.
-These procedures find the first pair in @var{alist} whose car field is
+@var{alist} must be an association list: a list of pairs.  These
+procedures find the first pair in @var{alist} whose car field is
 @var{key}, and returns that pair.  If no pair in @var{alist} has
 @var{key} as its car, then @false{} is returned.
 
@@ -4012,6 +4049,8 @@ Examples:
 (lset<= eq?) => #t             ; Trivial cases
 (lset<= eq? '(a)) => #t
 @end example
+
+If invoked with all null lists, the return value is @true{}.
 @end defun
 
 

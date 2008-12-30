@@ -82,9 +82,6 @@
 (compile-library "srfi/format.sls"
 		 "srfi/format.larceny.slfasl")
 
-(compile-library "srfi/case-lambda.sls"
-		 "srfi/case-lambda.larceny.slfasl")
-
 (compile-library "srfi/time/compat.larceny.sls"
 		 "srfi/time/compat.larceny.slfasl")
 
