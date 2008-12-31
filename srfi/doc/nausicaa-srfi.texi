@@ -429,6 +429,7 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 * vector::                      Vectors library.
 * format::                      Intermediate format strings.
 * general-cond::                A more general @func{cond} clause.
+* compare::                     Comparison functions.
 * lightweight-testing::         Lightweight testing.
 * environment-variables::       Environment variables.
 
@@ -16956,6 +16957,437 @@ The @func{cond} @srfi{} function is renamed to both @func{srfi:cond} and
 
 
 @c page
+@node compare
+@chapter Comparison functions
+
+
+@cindex @srfi{} compare
+
+@ansrfi{67} has been written by Sebastian Egner
+@email{sebastian.egner@@philips.com} and Jens Axel Soegaard
+@email{jensaxel@@soegaard.net}.
+
+
+@menu
+* compare license::             Original license.
+* compare abstract::            Abstract and rationale.
+* compare intro::               Introduction.
+* compare conventions::         Terminology and conventions.
+* compare spec::                Specification.
+* compare references::          References.
+@end menu
+
+
+@c page
+@node compare license
+@section Original license
+
+
+Copyright @copyright{} 2005 Sebastian Egner and Jens Axel Soegaard.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node compare abstract
+@section Abstract and rationale
+
+
+This @srfi{} can be seen as an extension of the standard procedures
+@func{=}, @func{<}, @func{char<?} etc. of @rnrs{5}--- or even as a
+replacement.  The primary design aspect in this @srfi{} is the
+separation of representing a total order and using it.  For representing
+the order, we have chosen for truly 3--way comparisons.  For using it we
+provide an extensive set of operations, each of which accepts a
+procedure used for comparison.
+
+Since these compare procedures are often optional, comparing built--in
+types is as convenient as @rnrs{5}, sometimes more convenient: For
+example, testing if the integer index @var{i} lies in the integer range
+@code{@{0, ..., n - 1@}} can be written as @code{(<=/<? 0 i n)},
+implicitly invoking @func{default-compare}.
+
+As soon as new total orders are required, the infrastructure provided by
+this @srfi{} is far more convenient and often even more efficient than
+building each total order from scratch.
+
+Moreover, in case Scheme users and implementors find this mechanism
+useful and adopt it, the benefit of having a uniform interface to total
+orders to be used in data structures will manifest itself.  Most
+concretely, a new sorting procedure in the spirit of this @srfi{} would
+have the interface @code{(my-sort [ compare ] xs)}, using
+@func{default-compare} if the optional compare was not provided.  Then
+@func{my-sort} could be defined using the entire infrastructure of this
+@srfi{}: Efficient 2--way and 3--way branching, testing for chains and
+pairwise inequality, min/max, and general order statistics.
+
+
+@c page
+@node compare intro
+@section Introduction
+
+
+This @srfi{} defines a mechanism for comparing Scheme values with
+respect to a total order (aka linear order).  The mechanism provides:
+operations for:
+
+@enumerate
+@item
+comparing objects of the built-in types,
+
+@item
+using a total order in situations that arise in programs,
+
+@item
+facilitating the definition of a new total order.
+@end enumerate
+
+In the following, these aspects will briefly be illustrated.
+
+Traditionally, a total order is represented in Scheme by an order
+predicate, like @func{<} or @func{char<?}.  For the purpose of this
+@srfi{}, however, a total order is represented by a Scheme procedure
+comparing its two arguments and returning either -1, 0, or 1 depending
+on whether the first argument is considered smaller, equal, or greater
+than the second argument respectively.  Examples of such compare
+procedures include @code{(lambda (x y) (sign (- x y)))} for comparing
+real numbers, but also @code{(lambda (x y) 0)} comparing anything.
+
+The primary reason for using 3--valued compare procedures instead of
+(2--valued) order predicates is efficiency: When comparison is
+computationally expensive, it is wasteful if two predicates are
+evaluated where a single 3--valued comparison would suffice.
+
+But dealing directly with 3--valued comparisons in the application
+program is inconvenient and obscures intention: For testing x < y one
+would have to write @code{(eqv? (compare x y) -1)}.  For this reason, an
+operation @func{<?} is supplied which allows to phrase the same test as
+@func{(<?  compare x y)}.  This is an example of mapping the three
+possible outcomes of a comparison into the two boolean values @true{}
+and @false{}.  Since @func{<?}  takes the total order as an explicit
+parameter, a comfortably large arsenal of tests can be made available
+for each and every total order.  This deviates from the approach of
+@rnrs{5}, in which there are only five operations (@func{=}, @func{<},
+@func{>}, @func{<=}, @func{>=}) and for each total order (real/number,
+char, char-ci, string, string-ci) a complete set of these five operation
+is provided.
+
+But still, using @func{<?} would be inconvenient if the compare
+procedure would have to be supplied explicitly every time.  For this
+reason, the parameter @var{compare} is often made optional in this
+@srfi{}---and the procedure @func{default-compare} is used whenever no
+@var{compare} procedure is passed explicitly.  @func{default-compare}
+defines some resonable total order on the built--in types of @rnrs{5}.
+
+For the third aspect of this @srfi{}, defining compare procedures,
+special control structures (macros) are provided.  These control
+structures can be used in the definition of a (potentially recursive)
+compare procedure.  This is best explained by an extended example.
+
+
+@subsubheading Example
+
+Assume there is a type @code{length} representing physical length.  The
+type has an accessor procedure @func{meters} returning the length in
+meters (a real number).  A compare procedure for lengths can then be
+defined in terms of @func{real-compare} as:
+
+@example
+(define (length-compare length1 length2)
+  (real-compare (meters length1) (meters length2)))
+@end example
+
+Now,
+
+@example
+(<? length-compare x y)
+@end example
+
+@noindent
+tests if length @var{x} is shorter than length @var{y}.  Also,
+
+@example
+(<=/<? length-compare a x b)
+@end example
+
+@noindent
+tests if length @var{x} lies between length @var{a} (included) and
+length @var{b} (excluded).  The expression:
+
+@example
+(min-compare length-compare x y z)
+@end example
+
+@noindent
+is a shortest of the lengths @var{x}, @var{y}, and @var{z}.  Likewise,
+
+@example
+(chain<? length-compare x1 x2 x3 x4)
+@end example
+
+@noindent
+test if the lengths @var{x1}, @var{x2}, @var{x3}, @var{x3} are strictly
+increasing, and so on.
+
+Furthermore, assume there is another type @code{box} representing a
+physical box.  The type has procedures @func{width}, @func{height}, and
+@func{depth} accessing the dimension (each giving a length).  A compare
+procedure for boxes, comparing first by width then by height and then by
+depth, can be defined using the control structure @func{refine-compare}
+as:
+
+@example
+(define (box-compare box1 box2)
+  (refine-compare
+    (length-compare (width  box1) (width  box2))
+    (length-compare (height box1) (height box2))
+    (length-compare (depth  box1) (depth  box2))))
+@end example
+
+This time,
+
+@example
+(<? box-compare b1 b2)
+@end example
+
+@noindent
+tests if box @var{b1} is smaller than box @var{b2}--- in the sense of
+the order defined.  Of course, all the other tests, minimum, maximum
+etc.  are available, too.
+
+As a final complication, assume that there is also a type @code{bowl}
+with accessors @func{radius} (a length) and @func{open?} (a boolean).
+Bowls are to be compared first by whether they are open or closed, and
+then by radius.  However, bowls and boxes also need to be compared to
+each other, ordered such that a bowl is considered ``smaller'' than a
+box.  (There are type--test predicates @func{box?} and @func{bowl?}).
+Using the control structure @func{select-compare} this can be expressed
+as:
+
+@example
+(define (container-compare c1 c2)
+  (select-compare c1 c2
+    (bowl? (boolean-compare (open?  c1) (open?  c2))
+           (length-compare  (radius c1) (radius c2)))
+    (box?  (box-compare c1 c2))
+    (else "neither bowls nor boxes" c1 c2)))
+@end example
+
+This is an example of ``hierarchical extension'' of compare procedures.
+Also note the implicit use of @func{refine-compare} in the @func{bowl?}
+case.
+
+
+@c page
+@node compare conventions
+@section Terminology and conventions
+
+
+A @emph{compare procedure} is a Scheme procedure of two arguments
+returning an exact integer in @code{@{-1, 0, 1@}} such that the valid
+input values are ordered according to some total order.  A compare
+procedure, together with a set of Scheme values to which it is
+applicable, represents a compare function.
+
+A @emph{comparison} is either an expression applying a compare procedure
+to two values, or the result of such an expression.
+
+Each operation (macro or procedure) processing the value of a comparison
+checks if the value is indeed an exact integer in the set @code{@{-1, 0,
+1@}}.  If this is not the case, an error is signalled.
+
+Compare procedures expecting certain types of argument should raise an
+error in case the arguments are not of this type.  For most compare
+procedures specified in this @srfi{}, this behavior is required.  A
+compare procedure @func{compare} can be used for type--checking value
+@var{x} by evaluating @code{(compare x x)}, in case that is desired.
+This is useful in procedures like @func{chain<?} which guarantee to
+check each argument unconditionally.
+
+
+@c page
+@node compare spec
+@section Specification
+
+
+
+@menu
+* compare spec atoms::          Comparing atoms.
+* compare spec sequence::       Comparing lists and vectors.
+@end menu
+
+
+@c page
+@node compare spec atoms
+@subsection Comparing atoms
+
+
+In this section, compare procedures for most of the atomic types of
+@rnrs{5} are defined: booleans, characters, strings, symbols, and
+numbers.
+
+As a general naming convention, a procedure named:
+
+@example
+@var{type}-compare-@var{order}
+@end example
+
+@noindent
+compares two objects of the type @var{type} with respect to a total
+order for which @var{order} is a mnemonic hint (e.g. @code{-ci} for
+case--insensitive).  Of course, @code{-@var{order}} may be absent if
+there is just one order or the order is obvious.  It is an error if a
+compare procedure accepting objects of a certain type is called with one
+or two arguments not of that type.
+
+
+@defun boolean-compare @var{bool1} @var{bool2}
+Compare two booleans, ordered by @false{} < @true{}.
+
+@quotation
+@emph{Note:} A non--@false{} value is not interpreted as a ``true
+value,'' but rather an error will be signalled.
+@end quotation
+@end defun
+
+
+@defun char-compare @var{char1} @var{char2}
+@defunx char-compare-ci @var{char1} @var{char2}
+Compare characters as @func{char<=?} and @func{char-ci<=?}
+respectively.  The suffix @code{-ci} means ``case insensitive.''
+@end defun
+
+
+@defun string-compare @var{string1} @var{string2}
+@defunx string-compare-ci @var{string1} @var{string2}
+Compare strings as @func{string<=} and @func{string-ci<=?}.  The suffix
+@code{-ci} means ``case insensitive.''
+
+@quotation
+@emph{Note:} @func{compare-string} could be defined as:
+
+@example
+(define (string-compare string1 string2)
+  (vector-compare-as-list char-compare
+                          string1 string2
+                          string-length string-ref))
+@end example
+@end quotation
+@end defun
+
+
+@defun symbol-compare @var{symbol1} @var{symbol2}
+Compares symbols as @func{string<=} on the names returned by
+@func{symbol->string}.
+@end defun
+
+
+@defun integer-compare @var{x} @var{y}
+@defunx rational-compare @var{x} @var{y}
+@defunx real-compare @var{x} @var{y}
+@defunx complex-compare @var{x} @var{y}
+@defunx number-compare @var{x} @var{y}
+Compare two numbers.  It is an error if an argument is not of the type
+specified by the name of the procedure.
+
+Complex numbers are ordered lexicographically on pairs (re, im).  For
+objects representing real numbers @code{sign(@var{x} - @var{y})} is
+computed.  The ordering for values satisfying @func{real?} or
+@func{complex?} but not representing a real or complex number should be
+consistent with procedures @func{=} and @func{<} of @rnrs{5}, and apart
+from that it is unspecified.
+
+Numerical compare procedures are compatible with the @rnrs{5} numerical
+tower in the following sense: If @code{S} is a subtype of the numerical
+type @code{T} and @var{x}, @var{y} can be represented both in @code{S}
+and in @code{T}, then @func{compare-S} and @func{compare-T} compute the
+same result.
+
+@quotation
+@emph{Note:} Floating point formats usually include several symbolic
+values not simply representing rational numbers.  For example, the
+@ieee{} 754 standard defines @code{-0}, @code{-Inf}, @code{+Inf}, and
+@code{NaN} (not a number) for continuing a calculation in the presence
+of error conditions.  The behavior of the numerical comparison operation
+is unspecified in case an argument is one of the special symbols.
+@end quotation
+
+@quotation
+@emph{Warning:} The propagation of inexactness can lead to surprises.
+In a Scheme system propagating inexactness in complex numbers (such as
+PLT, version 208):
+
+@quotation
+(complex-compare (make-rectangular (/ 1 3)  1.)
+                 (make-rectangular (/ 1 3) -1))
+=> -1
+@end quotation
+
+At first glance, one might expect the first complex number to be larger,
+because the numbers are equal on their real parts and the first
+imaginary part (@code{1.}) is larger than the second (@code{-1}).
+Closer inspection reveals that the decimal dot causes the first real
+part to be made inexact upon construction of the complex number, and
+since @code{(exact->inexact (/ 1 3))} is less than @code{(/ 1 3)} in the
+underlying floating point format used, the real parts decide the
+comparison of the complex numbers.
+@end quotation
+@end defun
+
+
+@c page
+@node compare spec sequence
+@subsection Comparing lists and vectors
+
+
+In this section compare procedures are defined for Scheme lists and vectors -- and for objects that can be accessed like lists or like vectors.
+
+An object x can be accessed like a vector if there are procedures size and ref such that (size x) is a non-negative integer n indicating the number of elements, and (ref x i) is the i-th element of x for i [srfi-67-Z-G-D-4.png] {0, ..., n - 1}. The default vector access procedures are vector-length and vector-ref.
+
+An object x can be accessed like a (proper) list if there are procedures empty?, head, and tail such that (empty? x) is a boolean indicating that there are no elements in x, (head x) is the first element of x, and (tail x) is an object representing the residual elements of x. The default list access procedures are null?, car, and cdr.
+
+Independent of the way the elements are accessed, the natural ordering of vectors and lists differs: Sequences are compared as vectors if shorter sequences are smaller than longer sequences, and sequences of the same size are compared lexicographically. Sequences are compared as lists if the empty sequence is smallest, and two non-empty sequences are compared by their first elements, and only if the first elements are equal the residual sequences are compared, recursively.
+procedure:  (vector-compare [ compare ] x y [ size ref ])
+procedure:  (vector-compare-as-list [ compare ] x y [ size ref ])
+procedure:  (list-compare [ compare ] x y [ empty? head tail ])
+procedure:  (list-compare-as-vector [ compare ] x y [ empty? head tail ])
+Compare two sequences x and y, using compare for comparing elements. The result is an exact integer in { - 1, 0, 1}. If compare is not supplied, default-compare is used.
+
+The procedure named access-compare-as-order accesses the objects like access and compares them with respect to the order given by order. The names type-compare are abbreviations for type-compare-as-type.
+
+Examples:
+
+  (list-compare           '(2) '(1 2))    ===>  1
+  (list-compare-as-vector '(2) '(1 2))    ===> -1
+  (vector-compare         '#(2) '#(1 2))  ===> -1
+  (vector-compare-as-list '#(2) '#(1 2))  ===>  1
+
+
+
+@c page
+@node compare references
+@section References
+
+
+
+@c page
 @node lightweight-testing
 @chapter Lightweight testing
 
@@ -16973,6 +17405,7 @@ Egner as the reference implementation for @ansrfi{78}.
 * lightweight-testing spec::            Specification.
 * lightweight-testing references::      References.
 @end menu
+
 
 @c page
 @node lightweight-testing license
