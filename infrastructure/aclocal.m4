@@ -150,13 +150,12 @@ AC_CACHE_SAVE
 AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],[
 if test "$nausicaa_ENABLE_IKARUS" = yes ; then
   NAUSICAA_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
-  NAUSICAA_PROGRAM([SCHEME_SCRIPT],[scheme-script],[the Ikarus scheme-script executable])
 fi
 if test "$nausicaa_ENABLE_YPSILON" = yes ; then
-NAUSICAA_PROGRAM([YPSILON],[ypsilon],[another R6RS Scheme])
+NAUSICAA_PROGRAM([YPSILON],[ypsilon],[the Ypsilon Scheme executable])
 fi
 if test "$nausicaa_ENABLE_LARCENY" = yes ; then
-NAUSICAA_PROGRAM([LARCENY],[larceny],[another R6RS Scheme])
+NAUSICAA_PROGRAM([LARCENY],[larceny],[the Larceny Scheme executable])
 fi
 AC_CACHE_SAVE
 ])
@@ -268,39 +267,36 @@ dnl --------------------------------------------------------------------
 dnl 1 SCHEME_CODE
 dnl 2 ADDITIONAL_IKARUS_OPTIONS
 dnl 3 AFTER_SHELL_CODE
-AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT],[
-NAUSICAA_WITH_TMPFILE([
-nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
-"${IKARUS}" --r6rs-script "${nausicaa_TMPFILE}" $2`
-],[$3])
-])
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT],
+  [NAUSICAA_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
+    "${IKARUS}" --r6rs-script "${nausicaa_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
 dnl 3 OPTIONAL_ACTION_IF_FOUND
 dnl 4 OPTIONAL_ACTION_IF_FOUND
-AC_DEFUN([NAUSICAA_IKARUS_CHECK_LIBRARY],[AC_MSG_CHECKING([availability of Ikarus library $2])
-NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (rnrs) (rnrs eval (6)))
-(with-exception-handler
-  (lambda (ex)
-    (display "no\n")
-    (exit))
-  (lambda ()
-    (environment (quote $2))
-    (display "yes\n")))
-],,[AC_MSG_RESULT([$nausicaa_ANSWER])
-AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
-if test "$nausicaa_ANSWER" = yes ; then
-dnl action if found
-:
-$3
-else
-dnl action if not found
-AC_MSG_WARN([Ikarus Scheme could not find library])
-$4
-fi
-])
-])
+AC_DEFUN([NAUSICAA_IKARUS_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Ikarus library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+        (lambda (ex)
+          (display "no\n")
+          (exit))
+        (lambda ()
+          (environment (quote $2))
+          (display "yes\n")))],,
+       [AC_MSG_RESULT([$nausicaa_ANSWER])
+        AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
+        if test "$nausicaa_ANSWER" = yes ; then
+          dnl action if found
+          :
+          $3
+        else
+          dnl action if not found
+          AC_MSG_WARN([Ikarus Scheme could not find library])
+          $4
+        fi])])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -310,40 +306,38 @@ dnl --------------------------------------------------------------------
 dnl 1 SCHEME_CODE
 dnl 2 ADDITIONAL_YPSILON_OPTIONS
 dnl 3 AFTER_SHELL_CODE
-AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT],[
-NAUSICAA_WITH_TMPFILE([
-nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
-"${YPSILON}" --r6rs "${nausicaa_TMPFILE}" $2`
-],[$3])
-])
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT],
+  [NAUSICAA_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
+    "${YPSILON}" --r6rs "${nausicaa_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
 dnl 3 OPTIONAL_ACTION_IF_FOUND
 dnl 4 OPTIONAL_ACTION_IF_FOUND
-AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],[AC_MSG_CHECKING([availability of Ypsilon library $2])
-NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
-(with-exception-handler
-  (lambda (ex)
-    (display "no\n")
-    (exit))
-  (lambda ()
-    (environment (quote $2))
-    (display "yes\n")))
-],[--compatible],[AC_MSG_RESULT([$nausicaa_ANSWER])
-AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
-if test "$nausicaa_ANSWER" = yes ; then
-dnl action if found.
-:
-$3
-else
-dnl action if not found.
-:
-AC_MSG_WARN([Ypsilon Scheme could not find library '$2'])
-$4
-fi
-])
-])
+AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Ypsilon library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))
+     ],[--compatible],
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Ypsilon Scheme could not find library '$2'])
+        $4
+      fi])])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -353,42 +347,37 @@ dnl --------------------------------------------------------------------
 dnl 1 SCHEME_CODE
 dnl 2 ADDITIONAL_LARCENY_OPTIONS
 dnl 3 AFTER_SHELL_CODE
-AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT],[
-NAUSICAA_WITH_TMPFILE([
-nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
-"${LARCENY}" -r6rs -program "${nausicaa_TMPFILE}" $2`
-],[$3])
-])
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT],
+  [NAUSICAA_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
+    "${LARCENY}" -r6rs -program "${nausicaa_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
 dnl 3 OPTIONAL_ACTION_IF_FOUND
 dnl 4 OPTIONAL_ACTION_IF_FOUND
-AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],[AC_MSG_CHECKING([availability of Larceny library $2])
-NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
-(with-exception-handler
-  (lambda (ex)
-    (display "no\n")
-    (exit))
-  (lambda ()
-    (environment (quote $2))
-    (display "yes\n")))
-],,[AC_MSG_RESULT([$nausicaa_ANSWER])
-AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
-if test "$nausicaa_ANSWER" = yes ; then
-dnl action if found.
-:
-$3
-else
-dnl action if not found.
-:
-AC_MSG_WARN([Larceny Scheme could not find library '$2'])
-$4
-fi
-])
-])
-
-
+AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Larceny library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))],,
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Larceny Scheme could not find library '$2'])
+        $4
+      fi])])
 
 dnl page
 dnl --------------------------------------------------------------------

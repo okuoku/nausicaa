@@ -33,6 +33,7 @@ SRFI
   documentation should be updated accordingly.
 * Add documentation for: compare.
 * Write the FOLDING macro?
+* Run spell checking on the whole documentation.
 
 
 Rlwrap GNU Readline wrappers

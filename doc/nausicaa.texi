@@ -624,8 +624,8 @@ then we are ready to apply the @command{make} program to the
 @section Options for @command{configure}
 
 
-For the full list of available configuration options, we should try the
-command:
+For the full list of available configuration options, and inspection of
+default values, we should try the command:
 
 @example
 $ ../configure --help
@@ -652,7 +652,10 @@ Enable or disable the compilation and installation of @fasl{} files;
 these are the precompiled version of the installed libraries.  It
 defaults to: no, do not precompile files.
 
-At present (revision 1695) only libraries can be compiled by Ikarus.
+@quotation
+@emph{Note:} The Larceny compiler is slow (really); when using Larceny,
+enabling precompilation is strongly recommended.
+@end quotation
 
 @item --enable-sls
 @itemx --disable-sls
@@ -741,18 +744,14 @@ checking whether compiled files will be built and installed ... no
 and the help screen will include the lines:
 
 @example
---disable-fasl   enable installation of precompiled libraries
+--enable-fasl   enable installation of precompiled libraries
                 (default: yes)
 @end example
-
-When the default is @code{yes}: it is better to write
-@var{option-description} as a description of the disable option, because
-that is what the user does to change the default.
 @end deffn
 
 
 @deffn {Autoconf Macro} NAUSICAA_WITH_OPTION (@var{variable}, @var{identifier}, @var{default}, @var{checking-description}, @var{option-description})
-Define a @code{--with-} command line option for @configure{}.  Set
+Define a ``with component'' command line option for @configure{}.  Set
 @var{variable} to the argument given to the option.
 
 @var{variable} is an output variable, it is used as argument for
@@ -777,7 +776,8 @@ when @configure{} is executed with the @code{--help} option.
 Usage example:
 
 @example
-NAUSICAA_WITH_OPTION([package_BUILD_VERSION],[build-version],[1nau],
+NAUSICAA_WITH_OPTION([package_BUILD_VERSION],[build-version],
+   [1nau],
    [binary package build revision tag],
    [select binary package build revision tag])
 @end example
@@ -818,12 +818,12 @@ Usage example to find the Scheme executables:
 NAUSICAA_PROGRAM([IKARUS],
    [ikarus],
    [the Ikarus Scheme executable])
-NAUSICAA_PROGRAM([SCHEME_SCRIPT],
-   [scheme-script],
-   [the scheme-script executable])
+NAUSICAA_PROGRAM([LARCENY],
+   [larceny],
+   [the Larceny Scheme executable])
 NAUSICAA_PROGRAM([YPSILON],
    [ypsilon],
-   [another R6RS Scheme])
+   [the Ypsilon Scheme executable])
 @end example
 @end deffn
 
@@ -857,11 +857,9 @@ A minimal @file{configure.ac} template should look like this:
 
 @example
 AC_INIT([nausicaa-posix],[0.1d0])
-AC_PREREQ(2.60)
-AC_CONFIG_SRCDIR([libraries/compile-all.sps])
-NAUSICAA_BEGIN()
+NAUSICAA_BEGIN
 dnl project specific options
-NAUSICAA_END()
+NAUSICAA_END
 @end example
 
 
@@ -884,8 +882,8 @@ common blocks.
 
 
 @deffn {Autoconf Macro} NAUSICAA_END
-The starting macro for Nausicaa configuration.  Defines the common
-output files.
+The ending macro for Nausicaa configuration.  Defines the common output
+files.
 @end deffn
 
 
@@ -916,7 +914,7 @@ hurt to check for them.
 
 @deffn {Autoconf Macro} NAUSICAA_SCHEME_PROGRAMS
 Initialises a set of variables to the pathnames of Scheme executables.
-This macros finds the Ikarus and Ypsilon programs.
+This macro finds the Larceny, Ypsilon and Ikarus programs.
 @end deffn
 
 
@@ -1010,6 +1008,24 @@ pacman_PROGRAM
 @deffn {Autoconf Macro} NAUSICAA_SCHEME_CHECK_LIBRARY (@var{name}, @var{import_spec}, @var{action_if_found}, @var{action_if_not_found})
 Attempt to find a Scheme library loadable by all the enabled Scheme
 implementations.
+
+Usage example that verifies the availability of @code{(uriel lang)}:
+
+@example
+NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_LANG],[(uriel lang)])
+@end example
+
+@noindent
+if successful the following output variables are set to @code{yes}:
+
+@example
+HAS_LARCENY_LIB_URIEL_LANG
+HAS_YPSILON_LIB_URIEL_LANG
+HAS_IKARUS_LIB_URIEL_LANG
+@end example
+
+@noindent
+if the library is not available the variables are set to @code{no}.
 @end deffn
 
 
@@ -1020,7 +1036,7 @@ implementations.
 
 @deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
 Evaluate @var{scheme_code} with Ikarus by storing it in a temporary file
-and invoking "@code{$@{IKARUS@} --r6rs-script} with additional command
+and invoking @code{$@{IKARUS@} --r6rs-script} with additional command
 line @var{options}.  Then, after the temporary file has been removed,
 evaluate @var{shell_chunk}.
 
@@ -1034,47 +1050,13 @@ that @var{shell_chunk} can examine it.
 Attempt to find a Scheme library loadable by Ikarus.
 
 If the library is found the output variable
-@code{HAS_IKARUS_LIB_@var{name}} is set to @code{yes}, otherwise it is
+@code{HAS_IKARUS_LIB_<@var{name}>} is set to @code{yes}, otherwise it is
 set to @code{no}.
 
 The optional @var{action_if_found} is executed if the library was found.
 The optional @var{action_if_not_found} is executed if the library was
 not found.
 @end deffn
-
-
-As an example, here is the implementation of the macro above:
-
-@example
-AC_DEFUN([NAUSICAA_IKARUS_CHECK_LIBRARY],[
-AC_MSG_CHECKING([availability of Ikarus library $2])
-NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (rnrs) (rnrs eval (6)))
-(with-exception-handler
-  (lambda (ex)
-    (display "no\n")
-    (exit))
-  (lambda ()
-    (environment (quote $2))
-    (display "yes\n")))
-],,[if test "$nausicaa_ANSWER" = yes ; then
-: dnl action if found.
-$3
-else
-: dnl action if not found.
-$4
-fi
-AC_MSG_RESULT([$nausicaa_ANSWER])
-AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
-])
-])
-@end example
-
-@noindent
-and here is how we verify if @library{uriel ffi} is installed:
-
-@example
-NAUSICAA_IKARUS_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-@end example
 
 
 @c page
@@ -1084,7 +1066,7 @@ NAUSICAA_IKARUS_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 
 @deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
 Evaluate @var{scheme_code} with Ypsilon by storing it in a temporary file
-and invoking "@code{$@{YPSILON@} --r6rs-script} with additional command
+and invoking @code{$@{YPSILON@} --r6rs-script} with additional command
 line @var{options}.  Then, after the temporary file has been removed,
 evaluate @var{shell_chunk}.
 
@@ -1098,47 +1080,13 @@ that @var{shell_chunk} can examine it.
 Attempt to find a Scheme library loadable by Ypsilon.
 
 If the library is found the output variable
-@code{HAS_YPSILON_LIB_@var{name}} is set to @code{yes}, otherwise it is
-set to @code{no}.
+@code{HAS_YPSILON_LIB_<@var{name}>} is set to @code{yes}, otherwise it
+is set to @code{no}.
 
 The optional @var{action_if_found} is executed if the library was found.
 The optional @var{action_if_not_found} is executed if the library was
 not found.
 @end deffn
-
-
-As an example, here is the implementation of the macro above:
-
-@example
-AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],[
-AC_MSG_CHECKING([availability of Ypsilon library $2])
-NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
-(with-exception-handler
-  (lambda (ex)
-    (display "no\n")
-    (exit))
-  (lambda ()
-    (environment (quote $2))
-    (display "yes\n")))
-],[--compatible],[if test "$nausicaa_ANSWER" = yes ; then
-: dnl action if found.
-$3
-else
-: dnl action if not found.
-$4
-fi
-AC_MSG_RESULT([$nausicaa_ANSWER])
-AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
-])
-])
-@end example
-
-@noindent
-and here is how we verify if @library{uriel ffi} is installed:
-
-@example
-NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-@end example
 
 
 @c page
@@ -1148,7 +1096,7 @@ NAUSICAA_YPSILON_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
 
 @deffn {Autoconf Macro} NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT (@var{scheme_code}, @var{options}, @var{shell_chunk})
 Evaluate @var{scheme_code} with Larceny by storing it in a temporary
-file and invoking "@code{$@{LARCENY@} -r6rs -program} with additional
+file and invoking @code{$@{LARCENY@} -r6rs -program} with additional
 command line @var{options}.  Then, after the temporary file has been
 removed, evaluate @var{shell_chunk}.
 
@@ -1162,47 +1110,13 @@ that @var{shell_chunk} can examine it.
 Attempt to find a Scheme library loadable by Larceny.
 
 If the library is found the output variable
-@code{HAS_LARCENY_LIB_@var{name}} is set to @code{yes}, otherwise it is
-set to @code{no}.
+@code{HAS_LARCENY_LIB_<@var{name}>} is set to @code{yes}, otherwise it
+is set to @code{no}.
 
 The optional @var{action_if_found} is executed if the library was found.
 The optional @var{action_if_not_found} is executed if the library was
 not found.
 @end deffn
-
-
-As an example, here is the implementation of the macro above:
-
-@example
-AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],[
-AC_MSG_CHECKING([availability of Larceny library $2])
-NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
-(with-exception-handler
-  (lambda (ex)
-    (display "no\n")
-    (exit))
-  (lambda ()
-    (environment (quote $2))
-    (display "yes\n")))
-],,[if test "$nausicaa_ANSWER" = yes ; then
-: dnl action if found.
-$3
-else
-: dnl action if not found.
-$4
-fi
-AC_MSG_RESULT([$nausicaa_ANSWER])
-AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
-])
-])
-@end example
-
-@noindent
-and here is how we verify if @library{uriel ffi} is installed:
-
-@example
-NAUSICAA_LARCENY_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-@end example
 
 
 @c page
@@ -1230,7 +1144,7 @@ facilities; not needed in the other cases.
 
 
 @deffn {Autoconf Macro} NAUSICAA_C_LANGUAGE
-Setup the C language environment.  Mandtory when we need to use the C
+Setup the C language environment.  Mandatory when we need to use the C
 compiler to inspect system and libraries facilities.
 @end deffn
 
@@ -1585,7 +1499,7 @@ NAUSICAA_ALIGNOF_TEST([UINT],[unsigned int])
 
 
 @deffn {Autoconf Macro} NAUSICAA_ALIGNOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
-Acquire the align of a C language type.
+Acquire the alignment of a C language type.
 
 The output variable @code{ALIGNOF_<@var{suffix}>} will be set to the
 result.  If the test fails the value of the output variable will be
@@ -1809,6 +1723,16 @@ NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{struct-typedef}.@var{field-name})
 @end deffn
 
 
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_STRUCT_TYPE (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{headers})
+Perform an inspection for a C language field structure type definition,
+which is itself a structure.  This macro is required when we need to
+access a structure which is embedded in another structure.
+
+Only the offset of the field (output variable
+@code{OFFSETOF_<@var{SUFFIX}>}) and the pointer getter (output variable
+@code{GETTEROF_<@var{SUFFIX}>}) are defined.
+@end deffn
+
 
 @c page
 @node conf clang common
@@ -1820,7 +1744,7 @@ Perform tests to determine the size (the number of bytes) of the common
 C language types.  The following output variables are defined:
 
 @multitable {SIZEOF_SHORT_UINT} {unsigned long long}
-@headitem Variable @tab C type
+@headitem Variable @tab Size of C type
 @item SIZEOF_SHORT_INT
 @tab short int
 @item SIZEOF_SHORT_UINT
@@ -1844,6 +1768,62 @@ C language types.  The following output variables are defined:
 @item SIZEOF_POINTER
 @tab void *
 @end multitable
+
+@multitable {ALIGNOF_SHORT_UINT} {unsigned long long}
+@headitem Variable @tab Alignment of C type
+@item ALIGNOF_SHORT_INT
+@tab short int
+@item ALIGNOF_SHORT_UINT
+@tab unsigned short int
+@item ALIGNOF_INT
+@tab int
+@item ALIGNOF_UINT
+@tab unsigned int
+@item ALIGNOF_LONG
+@tab long
+@item ALIGNOF_ULONG
+@tab unsigned long
+@item ALIGNOF_LLONG
+@tab long long
+@item ALIGNOF_ULLONG
+@tab unsigned long long
+@item ALIGNOF_FLOAT
+@tab float
+@item ALIGNOF_DOUBLE
+@tab double
+@item ALIGNOF_POINTER
+@tab void *
+@end multitable
+
+@multitable {STRIDEOF_SHORT_UINT} {unsigned long long}
+@headitem Variable @tab Array stride of C type
+@item STRIDEOF_SHORT_INT
+@tab short int
+@item STRIDEOF_SHORT_UINT
+@tab unsigned short int
+@item STRIDEOF_INT
+@tab int
+@item STRIDEOF_UINT
+@tab unsigned int
+@item STRIDEOF_LONG
+@tab long
+@item STRIDEOF_ULONG
+@tab unsigned long
+@item STRIDEOF_LLONG
+@tab long long
+@item STRIDEOF_ULLONG
+@tab unsigned long long
+@item STRIDEOF_FLOAT
+@tab float
+@item STRIDEOF_DOUBLE
+@tab double
+@item STRIDEOF_POINTER
+@tab void *
+@end multitable
+
+Additionally @code{TYPEOF_POINTER_INTEGER} is set to the type
+specification of the integer whose size equals the size of a pointer.
+It is one among @code{unsigned-int} and @code{unsigned-long}
 @end deffn
 
 
@@ -1900,7 +1880,8 @@ Additionally the output variable @code{WORDS_BIGENDIAN} is set to
 
 @deffn {Autoconf Macro} NAUSICAA_C_ERRNO
 Perform tests to determine the value of all the known @code{errno}
-predefined values.  The following output variables are defined:
+predefined values.  The following list of @code{errno} symbols is used
+to define output variables with prefix @code{VALUEOF_}.
 
 @example
 EPERM           ENOENT          ESRCH           EINTR
@@ -1965,9 +1946,15 @@ infrastructure.
 
 @defvar nausicaa_ENABLE_IKARUS
 @defvarx nausicaa_ENABLE_YPSILON
-@c @defvarx nausicaa_ENABLE_LARCENY
+@defvarx nausicaa_ENABLE_LARCENY
 Enable/disable the usage of the named Scheme implementation.  If set to
 @code{yes}, the implementation is enabled.
+
+The default value of these variables is determined by the
+@command{configure} command line options: @option{--enable-ikarus},
+@option{--disable-ikarus}, @option{--enable-ypsilon},
+@option{--disable-ypsilon}, @option{--enable-larceny},
+@option{--disable-larceny}.
 @end defvar
 
 
@@ -2713,15 +2700,19 @@ the source files are duplicated under the build directory, preserving
 the directory structure;
 
 @item
-the library files are built by running the command:
+the library files are built by running the commands:
 
 @example
-ikarus --compile-dependencies ../libraries/compile-all.sps
+ikarus --compile-dependencies \
+  $(srcdir)/libraries/compile-all.ikarus.sps
+
+larceny -r6rs -program \
+  $(srcdir)/libraries/compile-all.larceny.sps
 @end example
 
 @noindent
-with a system environment that allows Ikarus to find the relevant
-libraries.
+with a system environment that allows Ikarus and Larceny to find the
+relevant libraries.
 @end enumerate
 
 
@@ -2741,6 +2732,16 @@ This rule is invoked by @code{all}.
 @end deffn
 
 
+@deffn {Makefile Rule} yfasl
+@deffnx {Makefile Rule} ifasl
+@deffnx {Makefile Rule} lfasl
+Scheme implementation specific compilation rule.  @code{yfasl} for
+Ypsilon, @code{ifasl} for Ikarus, @code{lfasl} for Larceny (the first
+letter is an ell).  The Ypsilon rule just copies source files from the
+source directory to the build directory.
+@end deffn
+
+
 @deffn {Makefile Rule} fasl-clean
 Remove all the compiled files.  To be invoked as:
 
@@ -2749,6 +2750,14 @@ $ make fasl-clean
 @end example
 
 This rule is invoked by @code{clean}.
+@end deffn
+
+
+@deffn {Makefile Rule} fasl-ikarus-clean
+@deffnx {Makefile Rule} fasl-larceny-clean
+@deffnx {Makefile Rule} fasl-ypsilon-clean
+Remove the compiled file for a specific Scheme implementation.  The
+Ypsilon rule does nothing.
 @end deffn
 
 
@@ -2975,6 +2984,17 @@ selects the test file @file{tests/test-posix.sps}.  When the tests are
 written using the @code{(uriel test)} Scheme library: the @code{name}
 variable selects a test name.  @ref{test,Writing test suites,Writing
 test suites,nausicaa-uriel}
+@end deffn
+
+
+@deffn {Makefile Rule} ytest
+@deffnx {Makefile Rule} itest
+@deffnx {Makefile Rule} ltest
+Scheme implementation specific test rule: runs the tests only with the
+selected implementation.  @code{ytest} for Ypsilon, @code{itest} for
+Ikarus, @code{ltest} for Larceny (the first letter is an ell).
+
+Usually the Ypsilon rule is the fastest.
 @end deffn
 
 
