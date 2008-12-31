@@ -27,12 +27,32 @@
 ;;; OTHERWISE,  ARISING FROM, OUT  OF OR  IN CONNECTION  WITH THE
 ;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#!r6rs
-(import (rnrs) (srfi rec))
+
+;;;; setup
 
-(display 
- ((rec (F N) 
-    (if (zero? N) 1 
-      (* N (F (- N 1)))))
-  10))
-(newline)
+#!r6rs
+(import (r6rs)
+  (lang-lib)
+  (check-lib))
+
+(check-set-mode! 'report-failed)
+(display "*** testing rec\n")
+
+
+;;;; code
+
+(check
+    ((recursion (f n)
+       (if (zero? n)
+	   1
+	 (* n (f (- n 1)))))
+     5)
+  => 120)
+
+
+;;;; done
+
+(check-report)
+
+
+;;; end of file

@@ -27,14 +27,19 @@
 ;;; OTHERWISE,  ARISING FROM, OUT  OF OR  IN CONNECTION  WITH THE
 ;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+
 #!r6rs
 (import
   (rnrs)
   (rnrs mutable-pairs)
-  (srfi format)
-  (srfi lightweight-testing))
+  (format-lib)
+  (check-lib))
 
 (check-set-mode! 'report-failed)
+(display "*** testing format\n")
+
+
 
 #;(define (format-lots n f fmt-str . args)
   (let loop ([i 0] [r #f])
@@ -220,6 +225,8 @@ def")
   (test '("~f" 1e-4)      "1e-4")      ;; OK; prefer: "0.0001"
   (test '("~f" -1.23e-10) "-1.23e-10") ;; OK
 
+
+;;;; done
 
 (check-report)
 

@@ -29,11 +29,11 @@
 
 #!r6rs
 (library (srfi and-let-star)
-  (export 
+  (export
     and-let*)
-  (import 
+  (import
     (rnrs))
-  
+
   (define-syntax and-let*
     (lambda (stx)
       (define (get-id c)
@@ -42,7 +42,7 @@
         [(_ (clause* ...) body* ...)
          (for-all identifier? (filter values (map get-id #'(clause* ...))))
          #'(and-let*-core #t (clause* ...) body* ...)])))
-  
+
   (define-syntax and-let*-core
     (lambda (stx)
       (syntax-case stx ()
@@ -65,5 +65,6 @@
         [(kw last () body* ...)
          (if (positive? (length #'(body* ...)))
            #'(begin body* ...)
-           #'last)])))
-)
+           #'last)]))))
+
+;;; end of file

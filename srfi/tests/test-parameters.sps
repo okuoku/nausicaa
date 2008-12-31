@@ -28,37 +28,11 @@
 ;;;; setup
 
 (import (r6rs)
-  (srfi parameters))
+  (lang-lib)
+  (check-lib))
 
-(define testnum 0)
-
-(define-syntax check
-  (syntax-rules (=>)
-    ((_ ?form => ?expected-result)
-     (let ((result ?form)
-	   (expected-result ?expected-result))
-       (if (equal? result expected-result)
-	   (begin
-	     (display "test number ")
-	     (display testnum)
-	     (display " success")
-	     (newline))
-	 (begin
-	   (display "test number ")
-	   (display testnum)
-	   (display " FAILURE expected ")
-	   (display expected-result)
-	   (display " got ")
-	   (display result)
-	   (newline)
-	   (display "\t")
-	   (write (quote ?form))
-	   (newline)))
-       (set! testnum (+ 1 testnum))))))
-
-(newline)
-(display "*** testing parameters ...")
-(newline)
+(check-set-mode! 'report-failed)
+(display "*** testing and-let-star\n")
 
 
 
@@ -147,9 +121,6 @@
 
 ;;;; done
 
-(display "*** testing parameters end")
-(newline)
-(newline)
-
+(check-report)
 
 ;;; end of file

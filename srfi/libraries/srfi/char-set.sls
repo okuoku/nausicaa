@@ -189,12 +189,13 @@
     char-set:empty       char-set:full)
   (import
       (rename (except (rnrs)
-		      define-record-type)
+;		      define-record-type
+		      )
 	      (integer->char %latin1->char)
 	      (char->integer %char->latin1))
     (rnrs mutable-strings)
     (rnrs r5rs)
-    (srfi records)
+;    (srfi records)
     (srfi parameters)
     (srfi private let-opt))
 
@@ -206,13 +207,19 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type :char-set
-  (make-char-set s)
-  char-set?
-  (s char-set:s))
+(define-record-type char-set-record
+  (fields (immutable s char-set:s)))
 
+(define char-set? char-set-record?)
+(define make-char-set make-char-set-record)
 
-(define (%string-copy s) (substring s 0 (string-length s)))
+;; (define-record-type :char-set
+;;   (make-char-set s)
+;;   char-set?
+;;   (s char-set:s))
+
+(define (%string-copy s)
+  (substring s 0 (string-length s)))
 
 ;;;Parse, type-check & default a final optional BASE-CS parameter from a
 ;;;rest argument. Return  a *fresh copy* of the  underlying string.  The

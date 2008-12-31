@@ -33,7 +33,7 @@
     (rename (general-cond cond)))
   (import
     (rnrs))
-  
+
   (define-syntax general-cond
     (lambda (stx)
       (syntax-case stx ()
@@ -49,5 +49,6 @@
                                           (apply receiver vals)))]
                                  [_ c]))
                              #'(clauses ...))])
-           #'(cond ours ...))])))
-)
+           #'(cond ours ...))]))))
+
+;;; end of file

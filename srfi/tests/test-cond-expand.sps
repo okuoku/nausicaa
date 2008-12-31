@@ -32,6 +32,7 @@
   (features-lib))
 
 (check-set-mode! 'report-failed)
+(display "*** testing cond-expand\n")
 
 
 ;;;; code
@@ -49,7 +50,6 @@
 (check-feature srfi-2)
 (check-feature srfi-6)
 (check-feature srfi-8)
-(check-feature srfi-9)
 (check-feature srfi-13)
 (check-feature srfi-14)
 (check-feature srfi-19)
@@ -72,7 +72,6 @@
 (check-feature (srfi and-let*))
 (check-feature (srfi string-ports))
 (check-feature (srfi receive))
-(check-feature (srfi records))
 (check-feature (srfi strings))
 (check-feature (srfi char-set))
 (check-feature (srfi time))

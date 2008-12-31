@@ -130,10 +130,9 @@
 (compile-library "env-lib.sls"		"env-lib.larceny.slfasl")
 (compile-library "features-lib.sls"	"features-lib.larceny.slfasl")
 (compile-library "format-lib.sls"	"format-lib.larceny.slfasl")
+(compile-library "lang-lib.sls"		"lang-lib.larceny.slfasl")
 (compile-library "list-lib.sls"		"list-lib.larceny.slfasl")
 (compile-library "loop-lib.sls"		"loop-lib.larceny.slfasl")
-(compile-library "parm-lib.sls"		"parm-lib.larceny.slfasl")
-(compile-library "receive-lib.sls"	"receive-lib.larceny.slfasl")
 (compile-library "string-lib.sls"	"string-lib.larceny.slfasl")
 (compile-library "vector-lib.sls"	"vector-lib.larceny.slfasl")
 

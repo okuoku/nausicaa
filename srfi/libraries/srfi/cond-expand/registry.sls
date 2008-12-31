@@ -45,7 +45,6 @@
 	(and-let*		. 2)
 	(string-ports		. 6)
 	(receive		. 8)
-	(records		. 9)
 	(strings		. 13)
 	(char-set		. 14)
 	(time			. 19)

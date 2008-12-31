@@ -41,7 +41,7 @@
 (import (r6rs)
   (rnrs eval (6))
   (check-lib)
-  (srfi and-let-star))
+  (lang-lib))
 
 ;; Here we use  EVAL because a syntax violation  error cannot be catched
 ;; by GUARD, and so it causes the program termination.
@@ -57,6 +57,7 @@
        => #t))))
 
 (check-set-mode! 'report-failed)
+(display "*** testing and-let-star\n")
 
 
 ;;;; code

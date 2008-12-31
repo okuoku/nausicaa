@@ -32,6 +32,7 @@
   (rnrs mutable-pairs (6)))
 
 (check-set-mode! 'report-failed)
+(display "*** testing list-helpers\n")
 
 (define-syntax make-queue
   (syntax-rules ()

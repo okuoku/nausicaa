@@ -415,15 +415,13 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 * and-let-star::                An @func{and} with local bindings.
 * string-ports::                Basic string ports.
 * receive::                     Binding to multiple values.
-* records::                     Defining record types.
 * strings::                     The string library.
 * char-set::                    Character set library.
 * time::                        Time data types and procedures.
 * cut::                         Notation for specializing parameters
                                 without currying.
 * random::                      Sources of random bits.
-* rec::                         A special form @func{rec} for recursive
-                                evaluation.
+* rec::                         A special form for recursive evaluation.
 * args-fold::                   A program argument processor.
 * parameters::                  Parameter objects.
 * streams::                     Streams library.
@@ -463,7 +461,7 @@ Feature based conditional expansion construct
 * cond-expand spec::            Specifications.
 * cond-expand features::        Feature identifiers.
 
-@ansrfi{1} list library
+List library
 
 * list license::                Original license.
 * list abstract::               Abstract.
@@ -476,7 +474,7 @@ Feature based conditional expansion construct
 Discussion
 
 * list disc general::           General discussion.
-* list disc linear update::     ``Linear update'' procedures.
+* list disc linear update::     Linear update procedures.
 * list disc improper::          Improper lists.
 * list disc errors::            Errors.
 * list disc not included::      Not included in this library.
@@ -484,7 +482,6 @@ Discussion
 Specifications
 
 * list spec intro::             Introduction.
-* list spec stub::              Stub library bindings.
 * list spec cons::              Constructors.
 * list spec pred::              Predicates.
 * list spec select::            Selectors.
@@ -497,6 +494,7 @@ Specifications
 * list spec alist::             Association lists.
 * list spec set::               Set operations on lists.
 * list spec side::              Primitive side--effects.
+* list spec stub::              Stub library bindings.
 
 Constructors
 
@@ -523,6 +521,7 @@ An @func{and} with local bindings
 * and-let-star abstract::       Abstract.
 * and-let-star rationale::      Rationale.
 * and-let-star spec::           Specification.
+* and-let-star stub::           Stub library.
 
 Basic string ports
 
@@ -537,15 +536,9 @@ Binding to multiple values
 * receive abstract::            Abstract.
 * receive rationale::           Rationale.
 * receive spec::                Specification.
+* receive stub::                Stub library.
 
-Defining record types
-
-* records license::             Original license.
-* records abstract::            Abstract.
-* records rationale::           Rationale.
-* records spec::                Specification.
-
-@ansrfi{13} string library
+String library
 
 * strings license::             Original license.
 * strings abstract::            Abstract.
@@ -632,6 +625,7 @@ Notation for specializing parameters without currying
 * cut spec::                    Specification.
 * cut design::                  Rationale design.
 * cut ack::                     Acknowledgements.
+* cut stub::                    Stub library.
 
 Sources of random bits
 
@@ -644,7 +638,7 @@ Sources of random bits
 * random ack::                  Acknowledgements.
 * random references::           References.
 
-A special form @func{rec} for recursive evaluation
+A special form for recursive evaluation
 
 * rec license::                 Original license.
 * rec abstract::                Abstract.
@@ -652,6 +646,7 @@ A special form @func{rec} for recursive evaluation
 * rec spec::                    Specification.
 * rec ack::                     Acknowledgements.
 * rec references::              References.
+* rec stub::                    Stub library.
 
 A program argument processor
 
@@ -666,6 +661,7 @@ Parameter objects
 * parameters abstract::         Abstract.
 * parameters rationale::        Rationale.
 * parameters spec::             Specification.
+* parameters stub::             Stub library.
 
 Streams
 
@@ -741,6 +737,7 @@ A more general @func{cond} clause
 * general-cond abstract::       Abstract.
 * general-cond rationale::      Rationale.
 * general-cond spec::           Specification.
+* general-cond stub::           Stub library.
 
 Lightweight testing
 
@@ -854,10 +851,6 @@ Basic string ports.
 @itemx @library{srfi receive}
 Binding multiple values.
 
-@item @ansrfi{9}
-@itemx @library{srfi records}
-Record types definition.
-
 @item @ansrfi{13}
 @itemx @library{srfi strings}
 The string library.
@@ -949,18 +942,23 @@ bindings.
 @item format-lib
 Imports @library{srfi format} and exports all its bindings.
 
+@item lang-lib
+Imports and re--exports bindings from the following libraries:
+
+@example
+(srfi and-let-star)
+(srfi cut)
+(srfi general-cond)
+(srfi parameters)
+(srfi receive)
+@end example
+
 @item list-lib
 Imports @library{srfi lists} and exports all its bindings.
 
 @item loop-lib
 Imports @library{srfi eager-comprehensions} and exports all its
 bindings.
-
-@item parm-lib
-Imports @library{srfi parameters} and exports all its bindings.
-
-@item receive-lib
-Imports @library{srfi receive} and exports all its bindings.
 
 @item string-lib
 Imports @library{srfi strings} and @library{srfi string-ports} and
@@ -1210,7 +1208,6 @@ What follows is a list of features that can be queried using the
 @itemx srfi-2
 @itemx srfi-6
 @itemx srfi-8
-@itemx srfi-9
 @itemx srfi-13
 @itemx srfi-14
 @itemx srfi-19
@@ -1232,7 +1229,6 @@ What follows is a list of features that can be queried using the
 @itemx (srfi and-let*)
 @itemx (srfi string-ports)
 @itemx (srfi receive)
-@itemx (srfi records)
 @itemx (srfi strings)
 @itemx (srfi char-set)
 @itemx (srfi time)
@@ -1255,7 +1251,7 @@ One feature for each @srfi{}.
 
 @c page
 @node list
-@chapter @ansrfi{1} list library
+@chapter List library
 
 
 @cindex @srfi{} list library
@@ -1434,7 +1430,7 @@ adopt this library and get good results with it.
 
 @menu
 * list disc general::           General discussion.
-* list disc linear update::     ``Linear update'' procedures.
+* list disc linear update::     Linear update procedures.
 * list disc improper::          Improper lists.
 * list disc errors::            Errors.
 * list disc not included::      Not included in this library.
@@ -1514,7 +1510,7 @@ composing procedure names from a set of basic lexemes.
 
 @c page
 @node list disc linear update
-@subsection ``Linear update'' procedures
+@subsection Linear update procedures
 
 
 Many procedures in this library have ``pure'' and ``linear update''
@@ -1742,7 +1738,6 @@ they should have their own @srfi{} specs.
 
 @menu
 * list spec intro::             Introduction.
-* list spec stub::              Stub library bindings.
 * list spec cons::              Constructors.
 * list spec pred::              Predicates.
 * list spec select::            Selectors.
@@ -1755,6 +1750,7 @@ they should have their own @srfi{} specs.
 * list spec alist::             Association lists.
 * list spec set::               Set operations on lists.
 * list spec side::              Primitive side--effects.
+* list spec stub::              Stub library bindings.
 @end menu
 
 
@@ -1801,49 +1797,6 @@ a boolean procedure taking two arguments.
 
 It is an error to pass a circular or dotted list to a procedure not
 defined to accept such an argument.
-
-
-@c page
-@node list spec stub
-@subsection Stub library bindings
-
-
-The bindings exported by @library{srfi lists} are re--exported by
-@library{list-lib} with the following changes:
-
-@enumerate
-@item
-The @func{assoc} function from the @srfi{} is renamed to
-@func{srfi:assoc}.
-
-@item
-The @func{map} function from the @srfi{} is renamed to @func{srfi:map}.
-
-@item
-The @func{for-each} function from the @srfi{} is renamed to
-@func{srfi:for-each}.
-
-@item
-The @func{fold-right} function from the @srfi{} is renamed to
-@func{srfi:fold-right}.
-
-@item
-The @func{remove} function from the @srfi{} is renamed to
-@func{srfi:remove}.
-
-@item
-The @func{member} function from the @srfi{} is renamed to
-@func{srfi:member}.
-@end enumerate
-
-
-Additionally the following bindings are defined.
-
-
-@defun tree-copy @var{list}
-Copy the whole tree of the list @var{list}, not only the spine (which is
-what @func{list-copy} does).
-@end defun
 
 
 @c page
@@ -4367,6 +4320,51 @@ respectively.  The returned value is unspecified.
 
 
 @c page
+@node list spec stub
+@subsection Stub library bindings
+
+
+The bindings exported by @library{srfi lists} are re--exported by
+@library{list-lib} with the following changes:
+
+@enumerate
+@item
+The @func{assoc} function from the @srfi{} is renamed to
+@func{srfi:assoc}.
+
+@item
+The @func{map} function from the @srfi{} is renamed to @func{srfi:map}.
+
+@item
+The @func{for-each} function from the @srfi{} is renamed to
+@func{srfi:for-each}.
+
+@item
+The @func{fold-right} function from the @srfi{} is renamed to
+@func{srfi:fold-right}.
+
+@item
+The @func{remove} function from the @srfi{} is renamed to
+@func{srfi:remove}.
+
+@item
+The @func{member} function from the @srfi{} is renamed to
+@func{srfi:member}.
+@end enumerate
+
+
+Additionally the following bindings are defined.
+
+
+@defun tree-copy @var{list}
+Copy the whole tree of the list @var{list}, not only the spine (which is
+what @func{list-copy} does).
+@end defun
+
+
+
+
+@c page
 @node list ack
 @section Acknowledgements
 
@@ -4455,6 +4453,7 @@ Kiselyov as reference implementation for @ansrfi{2}.
 * and-let-star abstract::       Abstract.
 * and-let-star rationale::      Rationale.
 * and-let-star spec::           Specification.
+* and-let-star stub::           Stub library.
 @end menu
 
 
@@ -4652,6 +4651,16 @@ ext_claw_env[ (VARIABLE EXPRESSION), env ] =
               VARIABLE boundto eval[ EXPRESSION, env ]]
 @end example
 
+
+@c page
+@node and-let-star stub
+@section Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi and-let-star}.
+
+
 @c page
 @node string-ports
 @chapter Basic string ports
@@ -4802,6 +4811,7 @@ implementation for @ansrfi{8}.
 * receive abstract::            Abstract.
 * receive rationale::           Rationale.
 * receive spec::                Specification.
+* receive stub::                Stub library.
 @end menu
 
 
@@ -4948,199 +4958,17 @@ body are the values of the @var{receive}--expression.
 
 
 @c page
-@node records
-@chapter Defining record types
+@node receive stub
+@section Stub library
 
 
-@cindex @srfi{} records
-
-
-The @library{srfi records} library has been written by Richard Kelsey as
-reference implementation for @ansrfi{9}.
-
-@menu
-* records license::             Original license.
-* records abstract::            Abstract.
-* records rationale::           Rationale.
-* records spec::                Specification.
-@end menu
-
-
-@c page
-@node records license
-@section Original license
-
-
-Copyright @copyright{} 1999 Richard Kelsey.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-@c page
-@node records abstract
-@section Abstract
-
-
-This @srfi{} describes syntax for creating new data types, called
-record types.  A predicate, a constructor, and field accessors and
-modifiers are defined for each record type.  Each new record type is
-distinct from all existing types, including other record types and
-Scheme's predefined types.
-
-@c page
-@node records rationale
-@section Rationale
-
-
-Many Scheme implementations provide means for creating new types,
-usually called either records or structures.  The
-@func{DEFINE-RECORD-TYPE} syntax described here is a slight
-simplification of one written for Scheme 48 by Jonathan Rees.  Unlike
-many record--defining macros or special forms, it does not create any
-new identifiers.  Instead, the names of the record type, predicate,
-constructor, and so on are all listed explicitly in the source.  This
-has the following advantages:
-
-@itemize
-@item
-It can be defined using a simple @func{syntax-rules} macro in Scheme
-implementations that provide a procedural interface for creating record
-types.
-
-@item
-It does not restrict users to a particular naming convention.
-
-@item
-Tools like grep and @gnu{} Emacs's tag facility will see the defining
-occurance of each identifier.
-@end itemize
-
-
-@c page
-@node records spec
-@section Specification
-
-
-@cindex @srfi{} record @api{}
-@findex define-record-type
-
-
-The syntax of a record--type definition is:
-
-@example
-<command or definition>
-  -> <record type definition>           ; addition to 8.1.6 in R5RS
-
-<record type definition>
-  -> (define-record-type <type name>
-       (<constructor name> <field tag> ...)
-       <predicate name>
-       <field spec> ...)
-
-<field spec> -> (<field tag> <accessor name>)
-             -> (<field tag> <accessor name> <modifier name>)
-
-<field tag> -> <identifier>
-<... name>  -> <identifier>
-@end example
-
-@func{define-record-type} is generative: each use creates a new record
-type that is distinct from all existing types, including other record
-types and Scheme's predefined types.  Record--type definitions may only
-occur at top--level (there are two possible semantics for ``internal''
-record--type definitions, generative and nongenerative, and no consensus
-as to which is better).
-
-An instance of @func{define-record-type} is equivalent to the following
-definitions:
-
-@itemize
-@item
-@code{<type name>} is bound to a representation of the record type
-itself.  Operations on record types, such as defining print methods,
-reflection, etc. are left to other @srfi{}s.
-
-@item
-@code{<constructor name>} is bound to a procedure that takes as many
-arguments as there are @code{<field tag>}s in the @code{(<constructor
-name> ...)}  subform and returns a new @code{<type name>} record.
-Fields whose tags are listed with @code{<constructor name>} have the
-corresponding argument as their initial value.  The initial values of
-all other fields are unspecified.
-
-@item
-@code{<predicate name>} is a predicate that returns @true{} when given a
-value returned by @code{<constructor name>} and @false{} for everything
-else.
-
-@item
-Each @code{<accessor name>} is a procedure that takes a record of type
-@code{<type name>} and returns the current value of the corresponding
-field.  It is an error to pass an accessor a value which is not a record
-of the appropriate type.
-
-@item
-Each @code{<modifier name>} is a procedure that takes a record of type
-@code{<type name>} and a value which becomes the new value of the
-corresponding field; an unspecified value is returned.  It is an error
-to pass a modifier a first argument which is not a record of the
-appropriate type.
-@end itemize
-
-Records are disjoint from the types listed in Section 4.2 of @rnrs{5}.
-
-@func{set!}--ing the value of any of these identifiers has no effect on
-the behavior of any of their original values.
-
-The following:
-
-@example
-(define-record-type :pare
-  (kons x y)
-  pare?
-  (x kar set-kar!)
-  (y kdr))
-@end example
-
-@noindent
-defines @var{kons} to be a constructor, @var{kar} and @var{kdr} to be
-accessors, @var{set-kar!} to be a modifier, and @var{pare?} to be a
-predicate for @code{:pare}s.
-
-Example:
-
-@example
-(pare? (kons 1 2))        => #t
-(pare? (cons 1 2))        => #f
-(kar (kons 1 2))          => 1
-(kdr (kons 1 2))          => 2
-(let ([k (kons 1 2)])
-  (set-kar! k 3)
-  (kar k))                => 3
-@end example
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi receive}.
 
 
 @c page
 @node strings
-@chapter @ansrfi{13} string library
+@chapter String library
 
 
 @cindex @srfi{} strings
@@ -9763,8 +9591,7 @@ procedure.
 @cindex @srfi{} cut
 
 
-The @library{srfi cut} has been written by Sebastian Egner as the
-reference implementation for @ansrfi{26}.
+@ansrfi{26} has been written by Sebastian Egner.
 
 
 @menu
@@ -9774,6 +9601,7 @@ reference implementation for @ansrfi{26}.
 * cut spec::                    Specification.
 * cut design::                  Rationale design.
 * cut ack::                     Acknowledgements.
+* cut stub::                    Stub library.
 @end menu
 
 
@@ -10077,6 +9905,15 @@ people, mostly through the discussion archive.  In particular, the
 semantics and the design rationale have been greatly improved in the
 course of the discussion.  I would like to thank all who have
 contributed.
+
+
+@c page
+@node cut stub
+@section Stub library
+
+
+The @library{lang-lib} library imports and re--exports the bindings from
+@library{srfi cut}.
 
 
 @c page
@@ -10614,7 +10451,7 @@ Resources on random number generators and randomness:
 
 @c page
 @node rec
-@chapter A special form @func{rec} for recursive evaluation
+@chapter A special form for recursive evaluation
 
 
 @cindex @srfi{} rec
@@ -10632,7 +10469,9 @@ The @library{srfi rec} library has been written by Mirko Luedde
 * rec spec::                    Specification.
 * rec ack::                     Acknowledgements.
 * rec references::              References.
+* rec stub::                    Stub library.
 @end menu
+
 
 @c page
 @node rec license
@@ -10659,7 +10498,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 
 
 @c page
@@ -10930,9 +10768,11 @@ tail--recursive implementation of the factorial function.
 
 @example
 > (define F (rec (F N)
-                ((rec (G K L)
-                   (if (zero? K) L
-                     (G (- K 1) (* K L)))) N 1)))
+                 ((rec (G K L)
+                    (if (zero? K)
+                        L
+                      (G (- K 1) (* K L))))
+              N 1)))
 > F
 #<procedure>
 > (F 0)
@@ -10967,6 +10807,21 @@ March, 1985.
 [KCR1998] @emph{Revised^5 Report on the Algorithmic Language Scheme}.
 R. Kelsey, W. Clinger, J. Rees.  Higher--Order and Symbolic Computation,
 volume 11, number 1, September 1998.
+
+
+@c page
+@node rec stub
+@section Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi rec}, with the following changes.
+
+
+@itemize
+@item
+The @func{rec} binding from the @srfi{} is renamed to @func{recursion}.
+@end itemize
 
 
 @c page
@@ -11208,6 +11063,7 @@ the reference implementation for @ansrfi{39}.
 * parameters abstract::         Abstract.
 * parameters rationale::        Rationale.
 * parameters spec::             Specification.
+* parameters stub::             Stub library.
 @end menu
 
 
@@ -11449,6 +11305,14 @@ With reference to thte example above:
 @end example
 @end deffn
 
+
+@c page
+@node parameters stub
+@section Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi parameters}.
 
 
 @c page
@@ -16681,7 +16545,7 @@ The reference implementation is @rnrs{5} compliant and easy to port.  In
 not requiring advanced features (aside from @code{~W} and @code{~F})
 small implementations are possible.  E.g. the reference code does not
 use side effects (assignment) and is less than a third the source size
-of the latest SLIB implementation of @func{FORMAT} (less than a tenth if
+of the latest SLIB implementation of @func{format} (less than a tenth if
 @code{~F} support is elided).
 
 The optional port argument allows for compatibility with older code
@@ -16949,7 +16813,9 @@ the reference implementation for @ansrfi{61}.
 * general-cond abstract::       Abstract.
 * general-cond rationale::      Rationale.
 * general-cond spec::           Specification.
+* general-cond stub::           Stub library.
 @end menu
+
 
 @c page
 @node general-cond license
@@ -17046,15 +16912,15 @@ a list of all the characters it produces until the end.
 
 @example
 (define (port->char-list port)
-  (cond [(read-char port)
-            char?
+  (cond ((read-char port)
+         char?
          => (lambda (c)
-              (cons c (port->char-list port)))]
-        [else '()]))
+              (cons c (port->char-list port))))
+        (else '())))
 @end example
 
 Consider now a hypothetical @func{table-entry} procedure that accepts
-two arguments, a table (perhaps a hash table) and a key to an entry that
+two arguments: a table (perhaps a hash table) and a key to an entry that
 may be in the table; it returns two values: a boolean that denotes
 whether or not an entry with the given key was in the table and, if it
 was, the value associated with the key.  Also, a hypothetical
@@ -17065,12 +16931,28 @@ with the new type of @func{cond} clause:
 
 @example
 (cond ...
-      [(table-entry <table> <key>) proj0
+      ((table-entry <table> <key>)
+       proj0
        => (lambda (present? value)
-            ...[VALUE is bound to the value of the entry]...)]
+            ...(VALUE is bound to the value of the entry)...))
       ...)
 @end example
 
+
+@c page
+@node general-cond stub
+@section Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi general-cond}, with the following changes.
+
+
+@itemize
+@item
+The @func{cond} @srfi{} function is renamed to both @func{srfi:cond} and
+@func{general-cond}.
+@end itemize
 
 
 @c page

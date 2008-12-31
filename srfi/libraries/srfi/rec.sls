@@ -1,8 +1,12 @@
-;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2002 Dr. Mirko Luedde <Mirko.Luedde@SAP.com>
+;;;All Rights Reserved.
+;;;
+;;;Modified by Derick Eddington as port to R6RS.
+;;;Modified by Marco Maggi upon inclusion in Nausicaa.
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
-;;;"Software"), to  deal in the Software  without restriction, including
+;;;``Software''), to deal in the Software without restriction, including
 ;;;without limitation  the rights to use, copy,  modify, merge, publish,
 ;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
 ;;;permit persons to whom the Software is furnished to do so, subject to
@@ -11,12 +15,7 @@
 ;;;The  above  copyright notice  and  this  permission  notice shall  be
 ;;;included in all copies or substantial portions of the Software.
 ;;;
-;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
-;;;copyright holders  shall not be  used in advertising or  otherwise to
-;;;promote  the sale,  use or  other dealings  in this  Software without
-;;;prior written authorization.
-;;;
-;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;THE SOFTWARE  IS PROVIDED  ``AS IS'', WITHOUT  WARRANTY OF  ANY KIND,
 ;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
 ;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
 ;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
@@ -30,12 +29,11 @@
   (export rec)
   (import (rnrs))
 
-;;; Taken directly from the SRFI-31
   (define-syntax rec
     (syntax-rules ()
-      [(rec (NAME . VARIABLES) . BODY)
-       (letrec ( (NAME (lambda VARIABLES . BODY)) ) NAME)]
-      [(rec NAME EXPRESSION)
-       (letrec ( (NAME EXPRESSION) ) NAME)])))
+      [(rec (?name . ?variables) . ?body)
+       (letrec ( (?name (lambda ?variables . ?body)) ) ?name)]
+      [(rec ?name ?expr)
+       (letrec ( (?name ?expr) ) ?name)])))
 
 ;;; end of file
