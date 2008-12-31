@@ -31,7 +31,6 @@ SRFI
 * Write a test file for each SRFI.
 * Not all the SRFI authors  have written the implementation library, the
   documentation should be updated accordingly.
-* Add documentation for: compare.
 * Write the FOLDING macro?
 * Run spell checking on the whole documentation.
 
@@ -46,8 +45,8 @@ Rlwrap GNU Readline wrappers
 Uriel
 -----
 
-* Request FOREIGN-PROCEDURE/WITH-ERRNO to  the Larceny people and update
-  PRIMITIVE-MAKE-C-FUNCTION/WITH-ERRNO accordingly.
+* Fix the  temporary PRIMITIVE-MAKE-C-FUNCTION/WITH-ERRNO implementation
+  with Larceny.
 * Write the long-long peekers/pokers for Ypsilon and Larceny.
 * Add/request/whatever  long-long  (if  possible)  as  foreign  function
   argument and return value.
@@ -72,8 +71,6 @@ IrRegex
 -------
 
 * Add documentation for the regexps.
-* Fix the problem of "|---|"  symbols that are not recognised by Ypsilon
-  with the --r6rs option, but are with the --compatible option.
 
 
 POSIX
@@ -91,7 +88,7 @@ POSIX
 Glibc
 -----
 
-* Finish the time interface
+* Finish the time interface.
 * Test and document the streams-pipe library.
 * Add the string functions.
 * Add the mmap interface.
