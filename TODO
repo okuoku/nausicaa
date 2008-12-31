@@ -15,6 +15,15 @@ Stuff related to me, the Earth and the Universe in general
   (already done?).
 
 
+Stubs
+-----
+
+* Write a stub library for testing the ffi.
+* Add select stuff to the POSIX stub.
+* Write a stub library for "long double" as memory blocks.
+* Write a stub library for "long long" as memory blocks.
+
+
 SRFI
 ----
 
@@ -23,6 +32,7 @@ SRFI
 * Not all the SRFI authors  have written the implementation library, the
   documentation should be updated accordingly.
 * Add documentation for: compare.
+* Write the FOLDING macro?
 
 
 Rlwrap GNU Readline wrappers

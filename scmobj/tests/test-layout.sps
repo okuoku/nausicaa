@@ -32,9 +32,8 @@
 ;;; Setup.
 ;;; ------------------------------------------------------------
 
-(import (rnrs)
-;;  (only (ikarus) printf pretty-print)
-  (srfi lightweight-testing)
+(import (r6rs)
+  (check-lib)
   (scmobj))
 
 (check-set-mode! 'report-failed)

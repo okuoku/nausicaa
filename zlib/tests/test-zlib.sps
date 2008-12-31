@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/Zlib
 ;;;Contents: tests for zlib
 ;;;Date: Mon Dec  8, 2008
-;;;Time-stamp: <2008-12-18 21:42:05 marco>
+;;;Time-stamp: <2008-12-31 10:36:15 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,14 +28,10 @@
 
 ;;;; setup
 
-(import (rnrs)
-  (uriel printing)
-  (uriel test)
+(import (r6rs)
   (uriel lang)
-  (uriel memory)
-  (uriel ffi)
-  (uriel cstring)
-  (uriel errno)
+  (uriel foreign)
+  (uriel test)
   (zlib)
   (srfi random))
 
@@ -48,20 +44,20 @@
 (define original-len (strlen original-ptr))
 
 (define (dump-zstream zstream)
-  (print #t "dumping ~s:
+  (format #t "dumping ~s:
 next_in:\t~s
 avail_in:\t~s
 total_in:\t~s
 next_out:\t~s
 avail_out:\t~s
 total_out:\t~s\n"
-	 (pointer->integer zstream)
-	 (zstream-next_in-ref zstream)
-	 (zstream-avail_in-ref zstream)
-	 (zstream-total_in-ref zstream)
-	 (zstream-next_out-ref zstream)
-	 (zstream-avail_out-ref zstream)
-	 (zstream-total_out-ref zstream)))
+	  (pointer->integer zstream)
+	  (zstream-next_in-ref zstream)
+	  (zstream-avail_in-ref zstream)
+	  (zstream-total_in-ref zstream)
+	  (zstream-next_out-ref zstream)
+	  (zstream-avail_out-ref zstream)
+	  (zstream-total_out-ref zstream)))
 
 (define dictionary "ENABLEDISABLEstripinstallallcleannausicaapackageuninstallslack")
 

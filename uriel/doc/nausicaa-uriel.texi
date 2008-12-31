@@ -529,10 +529,12 @@ by the libraries in the Nausicaa distribution.  It re--exports bindings
 from the following libraries:
 
 @example
-(srfi format)
-(srfi parameters)
-(srfi receive)
+(lang-lib)
+(format-lib)
 @end example
+
+@noindent
+which are installed by the Nausicaa/@srfi{} package.
 
 The library @library{uriel foreign} is a compound library that exports
 all the bindings from the following libraries:

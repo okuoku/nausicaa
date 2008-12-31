@@ -33,7 +33,7 @@
     object-property-default-value
     make-object-property with-true-property)
   (import (r6rs)
-    (parm-lib))
+    (lang-lib))
 
 
 ;;;; code

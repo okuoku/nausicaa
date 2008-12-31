@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-26 15:41:45 marco>
+;;;Time-stamp: <2008-12-31 10:10:08 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -44,7 +44,7 @@
     ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno)
   (import (core)
-    (receive-lib)
+    (lang-lib)
     (uriel ffi sizeof)
     (uriel memory))
 

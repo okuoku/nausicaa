@@ -40,7 +40,7 @@
     ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno)
   (import (rnrs)
-    (primitives foreign-file foreign-procedure)
+    (primitives foreign-file foreign-procedure syscall)
     (uriel lang)
     (uriel ffi sizeof)
     (uriel memory))
@@ -87,6 +87,11 @@
 
 ;;;; interface functions
 
+(define-syntax get-errno
+  (syntax-rules ()
+    ((_)
+     (syscall 47))))
+
 (define (primitive-make-c-function ret-type funcname arg-types)
   (foreign-procedure (symbol->string/maybe funcname)
 		     (if (equal? '(void) arg-types)
@@ -97,7 +102,7 @@
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
     (lambda args
-      (values (apply f args) 0))))
+      (values (apply f args) (get-errno)))))
 
 
 

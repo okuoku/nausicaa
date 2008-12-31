@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-12-26 16:44:45 marco>
+;;;Time-stamp: <2008-12-31 10:22:48 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -36,7 +36,7 @@
     (rename (check-it check)) check-report check-ec check-set-mode!
     testname)
   (import (r6rs)
-    (parm-lib)
+    (uriel lang)
     (check-lib)
     (only (string-lib) string-suffix? string-prefix?)
     (env-lib))

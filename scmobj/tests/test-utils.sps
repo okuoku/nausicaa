@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/ScmObj
 ;;;Contents: tests for helper functions
 ;;;Date: Thu Nov 20, 2008
-;;;Time-stamp: <2008-11-21 12:19:39 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -30,9 +29,8 @@
 ;;; Setup.
 ;;; --------------------------------------------------------------------
 
-(import (rnrs)
-;;  (only (ikarus) printf pretty-print)
-  (srfi lightweight-testing)
+(import (r6rs)
+  (check-lib)
   (scmobj)
   (scmobj utils))
 

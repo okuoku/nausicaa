@@ -2,7 +2,6 @@
 ;;;Part of: ScmObj
 ;;;Contents: tests for ScmObj
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-12-25 20:41:34 marco>
 ;;;
 ;;;Abstract
 ;;;

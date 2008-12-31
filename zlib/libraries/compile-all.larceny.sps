@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/POSIX
+;;;Part of: Nausicaa/Zlib
 ;;;Contents: compile script
 ;;;Date: Wed Dec 31, 2008
 ;;;
@@ -23,13 +23,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (posix environment))
-  (only (posix time))
-  (only (posix working-directory))
-  (only (posix fd))
-  (only (posix job))
-  (only (posix process))
-  (only (posix process stub)))
+(import (rnrs)
+  (larceny compiler))
+
+(compile-library "zlib/sizeof.sls"
+		 "zlib/sizeof.larceny.slfasl")
+
+(compile-library "zlib.sls"
+		 "zlib.larceny.slfasl")
+
 
 ;;; end of file

@@ -41,17 +41,14 @@
     ;;miscellaneous
     symbol->string/maybe
 
-    ;;bindings from (receive-lib)
-    receive
-
-    ;;bindings from (parm-lib)
-    make-parameter		parameterize
+    ;;bindings from (lang-lib)
+    and-let* cut cute make-parameter parameterize
+    general-cond receive recursion
 
     ;;bindings from (format-lib)
     format)
   (import (r6rs)
-    (receive-lib)
-    (parm-lib)
+    (lang-lib)
     (format-lib))
 
 

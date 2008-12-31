@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa-ScmObj
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-12-18 21:58:33 marco>
+;;;Time-stamp: <2008-12-31 10:37:29 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -66,8 +66,8 @@
     call-next-method next-method?)
   (import (r6rs)
     (rnrs mutable-pairs (6))
-    (srfi lists)
-    (srfi parameters))
+    (list-lib)
+    (lang-lib))
 
 
 ;;;; Helper functions and syntaxes: generic routines.
