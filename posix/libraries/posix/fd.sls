@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -171,26 +171,28 @@
       (?primitive ?fd ?pointer ?number-of-bytes)
       ?fd))))
 
-(define (do-pread-or-pwrite ?funcname ?primitive ?fd ?pointer ?number-of-bytes ?offset)
-  (temp-failure-retry-minus-one
-   ?funcname
-   (?primitive ?fd ?pointer ?number-of-bytes ?offset)
-   ?fd))
+(define-syntax do-pread-or-pwrite
+  (syntax-rules ()
+    ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes ?offset)
+     (temp-failure-retry-minus-one
+      ?funcname
+      (?primitive ?fd ?pointer ?number-of-bytes ?offset)
+      ?fd))))
 
 (define (primitive-read fd pointer number-of-bytes)
-  (do-read-or-write 'primitive-read
+  (do-read-or-write primitive-read
 		    platform-read fd pointer number-of-bytes))
 
 (define (primitive-write fd pointer number-of-bytes)
-  (do-read-or-write 'primitive-write
+  (do-read-or-write primitive-write
 		    platform-write fd pointer number-of-bytes))
 
 (define (primitive-pread fd pointer number-of-bytes offset)
-  (do-pread-or-pwrite 'primitive-pread
+  (do-pread-or-pwrite primitive-pread
 		      platform-pread fd pointer number-of-bytes offset))
 
 (define (primitive-pwrite fd pointer number-of-bytes offset)
-  (do-pread-or-pwrite 'primitive-pwrite
+  (do-pread-or-pwrite primitive-pwrite
 		      platform-pwrite fd pointer number-of-bytes offset))
 
 ;;; --------------------------------------------------------------------

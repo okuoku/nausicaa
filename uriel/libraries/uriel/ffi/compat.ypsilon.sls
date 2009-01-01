@@ -1,8 +1,8 @@
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;Time-stamp: <2008-12-31 10:10:08 marco>
+;;;Time-stamp: <2009-01-01 08:54:31 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -250,53 +250,78 @@
 	(case (length mappers)
 	  ((0)
 	   (lambda ()
-	     (values (cast-func (stub-func f 0))
-		     (shared-object-errno))))
+	     ;;We  have  to  use  LET*  here to  enforce  the  order  of
+	     ;;evaluation: we want to gather the "errno" value AFTER the
+	     ;;foreign function call.
+	     (let* ((retval	(cast-func (stub-func f 0)))
+		    (errval	(shared-object-errno)))
+	       (values retval errval))))
 	  ((1)
 	   (let ((mapper (car mappers)))
 	     (lambda (arg)
-	       (values (cast-func (stub-func f (mapper arg)))
-		       (shared-object-errno)))))
+	       ;;We  have to  use  LET*  here to  enforce  the order  of
+	       ;;evaluation: we  want to gather the  "errno" value AFTER
+	       ;;the foreign function call.
+	       (let* ((retval	(cast-func (stub-func f (mapper arg))))
+		      (errval	(shared-object-errno)))
+		 (values retval errval)))))
 	  ((2)
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers)))
 	     (lambda (arg1 arg2)
-	       (values (cast-func (stub-func f
-					     (mapper1 arg1)
-					     (mapper2 arg2)))
-		       (shared-object-errno)))))
+	       ;;We  have to  use  LET*  here to  enforce  the order  of
+	       ;;evaluation: we  want to gather the  "errno" value AFTER
+	       ;;the foreign function call.
+	       (let* ((retval	(cast-func (stub-func f
+						      (mapper1 arg1)
+						      (mapper2 arg2))))
+		      (errval	(shared-object-errno)))
+		 (values retval errval)))))
 	  ((3)
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers))
 		 (mapper3 (caddr mappers)))
 	     (lambda (arg1 arg2 arg3)
-	       (values (cast-func (stub-func f
-					     (mapper1 arg1)
-					     (mapper2 arg2)
-					     (mapper3 arg3)))
-		       (shared-object-errno)))))
+	       ;;We  have to  use  LET*  here to  enforce  the order  of
+	       ;;evaluation: we  want to gather the  "errno" value AFTER
+	       ;;the foreign function call.
+	       (let* ((retval	(cast-func (stub-func f
+						      (mapper1 arg1)
+						      (mapper2 arg2)
+						      (mapper3 arg3))))
+		      (errval	(shared-object-errno)))
+		 (values retval errval)))))
 	  ((4)
 	   (let ((mapper1 (car mappers))
 		 (mapper2 (cadr mappers))
 		 (mapper3 (caddr mappers))
 		 (mapper4 (cadddr mappers)))
 	     (lambda (arg1 arg2 arg3 arg4)
-	       (values (cast-func (stub-func f
-					     (mapper1 arg1)
-					     (mapper2 arg2)
-					     (mapper3 arg3)
-					     (mapper4 arg4)))
-		       (shared-object-errno)))))
+	       ;;We  have to  use  LET*  here to  enforce  the order  of
+	       ;;evaluation: we  want to gather the  "errno" value AFTER
+	       ;;the foreign function call.
+	       (let* ((retval	(cast-func (stub-func f
+						      (mapper1 arg1)
+						      (mapper2 arg2)
+						      (mapper3 arg3)
+						      (mapper4 arg4))))
+		      (errval	(shared-object-errno)))
+		 (values retval errval)))))
 	  (else
 	   (lambda args
 	     (unless (= (length args) (length mappers))
 	       (assertion-violation funcname
 		 (format "wrong number of arguments, expected ~a" (length mappers))
 		 args))
-	     (values (cast-func (apply stub-func f
-				       (map (lambda (m a)
-					      (m a)) mappers args)))
-		     (shared-object-errno)))))))))
+	     ;;We  have  to  use  LET*  here to  enforce  the  order  of
+	     ;;evaluation: we want to gather the "errno" value AFTER the
+	     ;;foreign function call.
+	     (let* ((retval	(cast-func
+				 (apply stub-func f
+					(map (lambda (m a)
+					       (m a)) mappers args))))
+		    (errval	(shared-object-errno)))
+		    (values retval errval)))))))))
 
 
 

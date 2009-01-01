@@ -1,4 +1,4 @@
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -102,7 +102,12 @@
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
     (lambda args
-      (values (apply f args) (get-errno)))))
+      ;;We have to use LET* here  to enforce the order of evaluation: we
+      ;;want  to gather  the "errno"  value AFTER  the  foreign function
+      ;;call.
+      (let* ((retval	(apply f args))
+	     (errval	(get-errno)))
+	(values retval errval)))))
 
 
 
