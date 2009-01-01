@@ -29,11 +29,11 @@
 (compile-library "posix/sizeof.sls"
 		 "posix/sizeof.larceny.slfasl")
 
-(compile-library "posix/working-directory/platform.sls"
-		 "posix/working-directory/platform.larceny.slfasl")
+(compile-library "posix/file/platform.sls"
+		 "posix/file/platform.larceny.slfasl")
 
-(compile-library "posix/working-directory.sls"
-		 "posix/working-directory.larceny.slfasl")
+(compile-library "posix/file.sls"
+		 "posix/file.larceny.slfasl")
 
 (compile-library "posix/time/stub.sls"
 		 "posix/time/stub.larceny.slfasl")

@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: interface to POSIX functions for R6RS Scheme
-;;;Date: Mon Nov 24, 2008
+;;;Contents: file system functions
+;;;Date: Thu Jan  1, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,26 +23,32 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 
 ;;;; setup
 
-(library (posix working-directory)
+(library (posix file)
   (export
+
+    ;; working directory
     getcwd	primitive-getcwd	primitive-getcwd-function
     chdir	primitive-chdir		primitive-chdir-function
+    fchdir	primitive-fchdir	primitive-fchdir-function
+    (rename (getcwd pwd))
 
-    (rename (getcwd pwd)))
+    )
   (import (r6rs)
     (uriel lang)
     (uriel foreign)
     (posix sizeof)
-    (posix working-directory platform))
+    (posix file platform))
 
   (define dummy
     (shared-object self-shared-object))
 
+
 
-;;;; code
+;;;; working directory
 
 (define (primitive-getcwd)
   (let loop ((buflen 1024))
@@ -68,17 +74,41 @@
 			   directory-pathname))
       result)))
 
+(define (primitive-fchdir fd)
+  (receive (result errno)
+      (platform-fchdir fd)
+    (unless (= 0 result)
+      (raise-errno-error 'primitive-fchdir errno fd))
+    result))
+
 (define-primitive-parameter
   primitive-getcwd-function primitive-getcwd)
 
 (define-primitive-parameter
   primitive-chdir-function primitive-chdir)
 
+(define-primitive-parameter
+  primitive-fchdir-function primitive-fchdir)
+
 (define (getcwd)
   ((primitive-getcwd-function)))
 
 (define (chdir pathname)
   ((primitive-chdir-function) pathname))
+
+(define (fchdir fd)
+  ((primitive-fchdir-function) fd))
+
+
+
+;;;; done
+
+)
+
+;;; end of file
+
+
+
 
 
 ;;;; done

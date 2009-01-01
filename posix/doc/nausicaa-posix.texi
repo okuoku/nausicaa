@@ -414,7 +414,7 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * environment::                 Environment variables.
 * time::                        Date and time.
-* working directory::           The working directory.
+* file::                        File system.
 * fd::                          File descriptors.
 * process::                     Processes.
 * job::                         Job control.
@@ -602,6 +602,64 @@ the action: if true the value is replaced, if @false{} it is left alone.
 
 
 @c page
+@node file
+@chapter File system
+
+The bindings described in this chapter are exported by @library{posix
+file} and @library{posix file platform}.  Additionally if we have
+installed the Stubs library for @posix{}, we can import the
+@library{posix file stub} library; see the Nausicaa/Stubs project for
+details.
+
+
+@menu
+* working directory::           The working directory.
+@end menu
+
+
+@c page
+@node working directory
+@section The working directory
+
+
+@glibcref{Working Directory,Working Directory}
+
+
+@deffn Function getcwd
+@deffnx Function primitive-getcwd
+@deffnx Parameter primitive-getcwd-function
+@deffnx Function platform-getcwd
+Return a string representing the current working directory.
+@end deffn
+
+
+@defun pwd
+An alias for @func{getcwd}.
+@end defun
+
+
+@deffn Function chdir @var{pathname}
+@deffnx Function primitive-chdir @var{pathname}
+@deffnx Parameter primitive-chdir-function
+@deffnx Function platform-chdir @var{pathname}
+Change the current directory to the selected @var{pathname}, which must
+be a Scheme string or symbol.  If an error occurs changing directory
+(because of access permissions): an exception is raised.
+@end deffn
+
+
+@deffn Function fchdir @var{fd}
+@deffnx Function primitive-fchdir @var{fd}
+@deffnx Parameter primitive-fchdir-function
+@deffnx Function platform-fchdir @var{fd}
+Change the current directory to the one associated to the file
+descriptor @var{fd}.
+@end deffn
+
+
+
+
+@c page
 @node time
 @chapter Date and time
 
@@ -736,40 +794,6 @@ Build and return a new @code{struct-tms} record.
 Getters for the fields of @code{struct-tms} records.  All the returned
 values are floating point numbers.
 @end defun
-
-
-@c page
-@node working directory
-@chapter The working directory
-
-
-The following bindings are exported by @library{posix working-directory}
-and @library{posix working-directory platform}.
-
-@glibcref{Working Directory,Working Directory}
-
-
-@deffn Function getcwd
-@deffnx Function primitive-getcwd
-@deffnx Parameter primitive-getcwd-function
-@deffnx Function platform-getcwd
-Return a string representing the current working directory.
-@end deffn
-
-
-@defun pwd
-An alias for @func{getcwd}.
-@end defun
-
-
-@deffn Function chdir @var{pathname}
-@deffnx Function primitive-chdir @var{pathname}
-@deffnx Parameter primitive-chdir-function
-@deffnx Function platform-chdir @var{pathname}
-Change the current directory to the selected @var{pathname}, which must
-be a Scheme string or symbol.  If an error occurs changing directory
-(because of access permissions): an exception is raised.
-@end deffn
 
 
 @c page
