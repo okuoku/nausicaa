@@ -24,7 +24,7 @@ sense of "programs that work".
 2. License
 ----------
 
-Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
@@ -74,6 +74,10 @@ A. Credits
 ----------
 
 The stuff was written by Marco Maggi.
+
+  The  "tests/r6rs"  subdirectory  holds R6RS  compatibility
+tests gathered  from the PLT  Scheme repository (Thu  Jan 1,
+2009).
 
 
 B. Bug reports
