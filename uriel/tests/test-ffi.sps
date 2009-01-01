@@ -33,6 +33,12 @@
 
 (check-set-mode! 'report-failed)
 
+(define debugging #t)
+(define (debug . args)
+  (when debugging
+    (apply format (current-error-port) args)))
+
+
 
 ;;;; foreign functions
 
@@ -83,6 +89,56 @@
 		      platform-pread fd pointer number-of-bytes offset))
 
 ;;; --------------------------------------------------------------------
+;;; This is used to raise a ENOEXEC errno error.
+
+(define-c-function/with-errno platform-execv
+  (int execv (char* pointer)))
+
+(define (primitive-execv pathname args)
+  (with-compensations
+    (receive (result errno)
+	(platform-execv (string->cstring/c pathname)
+			(strings->argv args malloc-block/c))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-execv errno (list pathname args))))))
+
+(define primitive-execv-function
+  (make-parameter primitive-execv
+    (lambda (func)
+      (unless (procedure? func)
+	(assertion-violation 'primitive-execv-function
+	  "expected procedure as value for the PRIMITIVE-EXECV-FUNCTION parameter"
+	  func))
+      func)))
+
+(define (execv pathname args)
+  ((primitive-execv-function) pathname args))
+
+;;; --------------------------------------------------------------------
+;;; This is used to raise a ENOTDIR errno error.
+
+(define-c-function/with-errno platform-opendir
+  (pointer opendir (char*)))
+
+(define (primitive-opendir pathname)
+  (with-compensations
+    (receive (result errno)
+	(platform-opendir (string->cstring/c pathname))
+      (when (pointer-null? result)
+	(raise-errno-error 'primitive-opendir errno pathname))
+      result)))
+
+(define primitive-opendir-function
+  (make-parameter primitive-opendir
+    (lambda (func)
+      (unless (procedure? func)
+	(assertion-violation 'primitive-opendir-function
+	  "expected procedure as value for the PRIMITIVE-OPENDIR-FUNCTION parameter"
+	  func))
+      func)))
+
+(define (opendir pathname)
+  ((primitive-opendir-function) pathname))
 
 
 ;;;; errno conditions
@@ -98,9 +154,6 @@
 
 (check
     (guard (exc (else
-;; 		 (write exc)(newline)
-;; 		 (write (condition-who exc))(newline)
-;; 		 (write (condition-message exc))(newline)
 		 (list (errno-condition? exc)
 		       (condition-who exc)
 		       (errno-symbolic-value exc)
@@ -108,6 +161,25 @@
       (primitive-pread 0 (integer->pointer 1234) 10 -10))
   => '(#t primitive-pread EINVAL))
 
+(check
+    (let ((pathname '/etc/passwd))
+      (guard (exc (else
+		   (list (errno-condition? exc)
+			 (condition-who exc)
+			 (errno-symbolic-value exc)
+			 )))
+	(execv pathname '())))
+  => '(#t primitive-execv EACCES))
+
+(check
+    (let ((pathname '/etc/passwd))
+      (guard (exc (else
+		   (list (errno-condition? exc)
+			 (condition-who exc)
+			 (errno-symbolic-value exc)
+			 )))
+	(opendir pathname)))
+  => '(#t primitive-opendir ENOTDIR))
 
 
 

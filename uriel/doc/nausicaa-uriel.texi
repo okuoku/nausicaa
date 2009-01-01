@@ -1726,8 +1726,8 @@ otherwise.
 
 
 @defun pointer-null? @var{pointer}
-Return @true{} if @var{pointer} represents a null pointer, @false{}
-otherwise.
+Return @true{} if @var{pointer} represents a null pointer according to
+the underlying Scheme implementation, @false{} otherwise.
 @end defun
 
 

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -39,6 +39,7 @@
     ;;pointers
     pointer?
     integer->pointer			pointer->integer
+    pointer-null			pointer-null?
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -74,22 +75,35 @@
 
 ;;;; pointers
 
-;; (define-record-type pointer
-;;   (fields (immutable value)))
+;;NULL pointers are #f for Larceny.   But then VOID*? does not accept #f
+;;as valid.
 
 (define (integer->pointer value)
-  (unless (integer? value)
-    (assertion-violation 'integer->pointer
-      "expected integer value" value))
-  ((record-constructor void*-rt) value))
+  (if (= 0 value)
+      #f
+    (begin
+      (unless (integer? value)
+	(assertion-violation 'integer->pointer
+	  "expected integer value" value))
+      ((record-constructor void*-rt) value))))
 
 (define (pointer->integer pointer)
-  (unless (pointer? pointer)
-    (assertion-violation 'pointer->integer
-      "expected pointer value" pointer))
-  (void*->address pointer))
+  (if pointer
+      (begin
+	(unless (pointer? pointer)
+	  (assertion-violation 'pointer->integer
+	    "expected pointer value" pointer))
+	(void*->address pointer))
+    0))
 
 (define pointer? void*?)
+
+(define pointer-null
+  #f)
+
+(define (pointer-null? pointer)
+  (if pointer #f #t))
+
 
 
 ;;;; foreign functions
@@ -171,8 +185,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (pointer-ref-c-pointer pointer position)
-  ((record-constructor void*-rt)
-   (%peek-pointer (+ position (pointer->integer pointer)))))
+  (integer->pointer (%peek-pointer (+ position (pointer->integer pointer)))))
 
 
 

@@ -2,13 +2,13 @@
 ;;;Part of: Nausicaa/Uriel
 ;;;Contents: compatibility memory functions for Ikarus
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2008-12-17 21:05:06 marco>
+;;;Time-stamp: <2009-01-01 11:02:00 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -40,6 +40,7 @@
     ;;pointers
     pointer?
     integer->pointer			pointer->integer
+    pointer-null			pointer-null?
 
     ;;peekers
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -57,6 +58,15 @@
     pointer-set-c-double!		pointer-set-c-pointer!)
   (import (rnrs)
     (ikarus foreign))
+
+
+;;;; pointers
+
+(define pointer-null
+  (integer->pointer 0))
+
+(define (pointer-null? pointer)
+  (= 0 (pointer->integer pointer)))
 
 
 ;;;; foreign functions

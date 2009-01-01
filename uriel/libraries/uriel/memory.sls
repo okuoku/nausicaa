@@ -7,7 +7,7 @@
 ;;;
 ;;;	Notice that this library avoids using (uriel ffi).
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -238,12 +238,6 @@
 (define (pointer-add pointer offset)
   (integer->pointer (+ (pointer->integer pointer)
 		       offset)))
-
-(define pointer-null
-  (integer->pointer 0))
-
-(define (pointer-null? pointer)
-  (= 0 (pointer->integer pointer)))
 
 ;;;This  implementation works  with  Ikarus and  Ypsilon,  but not  with
 ;;;Larceny-5877: "=" requires 2 arguments  and cannot be applied to just
