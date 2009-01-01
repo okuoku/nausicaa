@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for the process related POSIX functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-26 17:59:53 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -69,7 +68,7 @@
   (check
       (let ()
 	(define (fake-fork)
-	  (values -1 EINVAL))
+	  (raise-errno-error 'fork EINVAL))
 	(parameterize ((primitive-fork-function fake-fork))
 	  (guard (exc (else
 		       (list (errno-condition? exc)
@@ -101,12 +100,14 @@
 
   (check
       (parameterize ((primitive-execv-function
-		      (lambda args (values -1 EINVAL))))
+		      (lambda args
+			(raise-errno-error 'execv EINVAL args))))
 	(guard (exc (else
 		     (list (errno-condition? exc)
+			   (condition-who exc)
 			   (errno-symbolic-value exc))))
 	  (execv '/bin/ls '(ls))))
-    => '(#t EINVAL))
+    => '(#t execv EINVAL))
 
 ;;; --------------------------------------------------------------------
 
@@ -120,7 +121,8 @@
 
   (check
       (parameterize ((primitive-execve-function
-		      (lambda args (values -1 EINVAL))))
+		      (lambda args
+			(raise-errno-error 'execve EINVAL args))))
 	(guard (exc (else
 		     (list (errno-condition? exc)
 			   (errno-symbolic-value exc))))
@@ -140,7 +142,7 @@
   (check
       (let ()
 	(define (fake-execvp . args)
-	  (values -1 EINVAL))
+	  (raise-errno-error 'execve EINVAL args))
 	(parameterize ((primitive-execvp-function fake-execvp))
 	  (guard (exc (else
 		       (list (errno-condition? exc)

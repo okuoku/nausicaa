@@ -29,28 +29,28 @@
 
 (library (posix fd)
   (export
-    open primitive-open primitive-open-function platform-open
-    close primitive-close primitive-close-function platform-close
+    open	primitive-open		primitive-open-function
+    close	primitive-close		primitive-close-function
 
-    read primitive-read primitive-read-function platform-read
-    write primitive-write primitive-write-function platform-write
-    pread primitive-pread primitive-pread-function platform-pread
-    pwrite primitive-pwrite primitive-pwrite-function platform-pwrite
+    read	primitive-read		primitive-read-function
+    write	primitive-write		primitive-write-function
+    pread	primitive-pread		primitive-pread-function
+    pwrite	primitive-pwrite	primitive-pwrite-function
 
-    lseek primitive-lseek primitive-lseek-function platform-lseek
+    lseek	primitive-lseek		primitive-lseek-function
 
-    sync primitive-sync primitive-sync-function platform-sync
-    fsync primitive-fsync primitive-fsync-function platform-fsync
-    fdatasync primitive-fdatasync primitive-fdatasync-function platform-fdatasync
+    sync	primitive-sync		primitive-sync-function
+    fsync	primitive-fsync		primitive-fsync-function
+    fdatasync	primitive-fdatasync	primitive-fdatasync-function
 
-    fcntl primitive-fcntl primitive-fcntl-function platform-fcntl
-    ioctl primitive-ioctl primitive-ioctl-function platform-ioctl
+    fcntl	primitive-fcntl		primitive-fcntl-function
+    ioctl	primitive-ioctl		primitive-ioctl-function
 
-    dup primitive-dup primitive-dup-function platform-dup
-    dup2 primitive-dup2 primitive-dup2-function platform-dup2
+    dup		primitive-dup		primitive-dup-function
+    dup2	primitive-dup2		primitive-dup2-function
 
-    pipe primitive-pipe-function primitive-pipe platform-pipe
-    mkfifo primitive-mkfifo-function primitive-mkfifo platform-mkfifo
+    pipe	primitive-pipe		primitive-pipe-function
+    mkfifo	primitive-mkfifo	primitive-mkfifo-function
 
     fd->binary-input-port		fd->textual-input-port
     fd->binary-output-port		fd->textual-output-port
@@ -58,10 +58,11 @@
 
     pipe-binary-ports			pipe-textual-ports)
   (import (except (r6rs) read write)
+    (rnrs mutable-strings (6))
     (uriel lang)
     (uriel foreign)
     (posix sizeof)
-    (rnrs mutable-strings (6)))
+    (posix fd platform))
 
   (define dummy
     (shared-object self-shared-object))
@@ -99,33 +100,20 @@
 
 ;;;; opening and closing
 
-(define-c-function/with-errno platform-open
-  (int open (char* int mode_t)))
-
 (define (primitive-open pathname open-mode permissions)
   (with-compensations
-    (let ((c-pathname (string->cstring/c pathname)))
-      (temp-failure-retry-minus-one
-       primitive-open
-       (platform-open c-pathname open-mode permissions)
-       (list pathname open-mode permissions)))))
+    (temp-failure-retry-minus-one
+     primitive-open
+     (platform-open (string->cstring/c pathname) open-mode permissions)
+     (list pathname open-mode permissions))))
 
-(define primitive-open-function
-  (make-parameter primitive-open
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-open-function
-	  "expected procedure as value for PRIMITIVE-OPEN-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-open-function primitive-open)
 
 (define (open pathname open-mode permissions)
   ((primitive-open-function) pathname open-mode permissions))
 
 ;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-close
-  (int close (int)))
 
 (define (primitive-close fd)
   (temp-failure-retry-minus-one
@@ -133,14 +121,8 @@
    (platform-close fd)
    fd))
 
-(define primitive-close-function
-  (make-parameter primitive-close
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-close-function
-	  "expected procedure as value for PRIMITIVE-CLOSE-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-close-function primitive-close)
 
 (define (close fd)
   ((primitive-close-function) fd))
@@ -148,20 +130,6 @@
 
 
 ;;;; reading and writing
-
-(define-c-function/with-errno platform-read
-  (ssize_t read (int void* size_t)))
-
-(define-c-function/with-errno platform-pread
-  (ssize_t pread (int void* size_t off_t)))
-
-(define-c-function/with-errno platform-write
-  (ssize_t write (int void* size_t)))
-
-(define-c-function/with-errno platform-pwrite
-  (ssize_t pwrite (int void* size_t off_t)))
-
-;;; --------------------------------------------------------------------
 
 (define-syntax do-read-or-write
   (syntax-rules ()
@@ -197,41 +165,17 @@
 
 ;;; --------------------------------------------------------------------
 
-(define primitive-read-function
-  (make-parameter primitive-read
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-read-function
-	  "expected procedure as value for PRIMITIVE-READ-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-read-function primitive-read)
 
-(define primitive-write-function
-  (make-parameter primitive-write
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-write-function
-	  "expected procedure as value for PRIMITIVE-WRITE-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-write-function primitive-write)
 
-(define primitive-pread-function
-  (make-parameter primitive-pread
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-pread-function
-	  "expected procedure as value for PRIMITIVE-PREAD-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-pread-function primitive-pread)
 
-(define primitive-pwrite-function
-  (make-parameter primitive-pwrite
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-pwrite-function
-	  "expected procedure as value for PRIMITIVE-PWRITE-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-pwrite-function primitive-pwrite)
 
 ;;; --------------------------------------------------------------------
 
@@ -251,10 +195,6 @@
 
 ;;;; seeking
 
-(define-c-function/with-errno platform-lseek
-  (off_t lseek (int off_t int)))
-
-
 (define (primitive-lseek fd offset whence)
   ;;It seems  that EINTR  cannot happen with  "lseek()", but it  does no
   ;;harm to use the macro.
@@ -263,14 +203,8 @@
    (platform-lseek fd offset whence)
    fd))
 
-(define primitive-lseek-function
-  (make-parameter primitive-lseek
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-lseek-function
-	  "expected procedure as value for PRIMITIVE-LSEEK-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-lseek-function primitive-lseek)
 
 (define (lseek fd offset whence)
   ((primitive-lseek-function) fd offset whence))
@@ -278,17 +212,6 @@
 
 
 ;;;; synchronisation
-
-(define-c-function/with-errno platform-sync
-  (int sync (void)))
-
-(define-c-function/with-errno platform-fsync
-  (int fsync (int)))
-
-(define-c-function/with-errno platform-fdatasync
-  (int fdatasync (int)))
-
-;;; --------------------------------------------------------------------
 
 (define (primitive-sync)
   (receive (result errno)
@@ -305,32 +228,14 @@
 
 ;;; --------------------------------------------------------------------
 
-(define primitive-sync-function
-  (make-parameter primitive-sync
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-sync-function
-	  "expected procedure as value for PRIMITIVE-SYNC-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-sync-function primitive-sync)
 
-(define primitive-fsync-function
-  (make-parameter primitive-fsync
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-fsync-function
-	  "expected procedure as value for PRIMITIVE-FSYNC-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-fsync-function primitive-fsync)
 
-(define primitive-fdatasync-function
-  (make-parameter primitive-fdatasync
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-fdatasync-function
-	  "expected procedure as value for PRIMITIVE-FDATASYNC-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-fdatasync-function primitive-fdatasync)
 
 ;;; --------------------------------------------------------------------
 
@@ -347,35 +252,17 @@
 
 ;;;; control operations
 
-(define-c-function/with-errno platform-fcntl
-  (int fcntl (int int int)))
-
-(define-c-function/with-errno platform-ioctl
-  (int ioctl (int int int)))
-
 (define (primitive-fcntl fd operation arg)
   (call-for-minus-one primitive-fcntl platform-fcntl fd operation arg))
 
 (define (primitive-ioctl fd operation arg)
   (call-for-minus-one primitive-ioctl platform-ioctl fd operation arg))
 
-(define primitive-fcntl-function
-  (make-parameter primitive-fcntl
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-fcntl-function
-	  "expected procedure as value for PRIMITIVE-FCNTL-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-fcntl-function primitive-fcntl)
 
-(define primitive-ioctl-function
-  (make-parameter primitive-ioctl
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-ioctl-function
-	  "expected procedure as value for PRIMITIVE-IOCTL-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-ioctl-function primitive-ioctl)
 
 (define (fcntl fd operation arg)
   ((primitive-fcntl-function) fd operation arg))
@@ -387,35 +274,17 @@
 
 ;;;; duplicating
 
-(define-c-function/with-errno platform-dup
-  (int dup (int)))
-
-(define-c-function/with-errno platform-dup2
-  (int dup2 (int int)))
-
 (define (primitive-dup fd)
   (call-for-minus-one primitive-dup platform-dup fd))
 
 (define (primitive-dup2 old new)
   (call-for-minus-one primitive-dup2 platform-dup2 old new))
 
-(define primitive-dup-function
-  (make-parameter primitive-dup
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-dup-function
-	  "expected procedure as value for PRIMITIVE-DUP-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-dup-function primitive-dup)
 
-(define primitive-dup2-function
-  (make-parameter primitive-dup2
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-dup2-function
-	  "expected procedure as value for PRIMITIVE-DUP2-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-dup2-function primitive-dup2)
 
 (define (dup fd)
   ((primitive-dup-function) fd))
@@ -427,9 +296,6 @@
 
 ;;;; making pipes
 
-(define-c-function/with-errno platform-pipe
-  (int pipe (pointer)))
-
 (define (primitive-pipe)
   (with-compensations
     (let ((p (malloc-block/c (sizeof-int-array 2))))
@@ -439,23 +305,6 @@
 	    (raise-errno-error 'primitive-pipe errno)
 	  (values (peek-array-signed-int p 0)
 		  (peek-array-signed-int p 1)))))))
-
-(define primitive-pipe-function
-  (make-parameter primitive-pipe
-    (lambda (func)
-      (if (procedure? func)
-	  func
-	(assertion-violation 'primitive-pipe-function
-	  "expected procedure as value for the PRIMITIVE-PIPE-FUNCTION parameter"
-	  func)))))
-
-(define (pipe)
-  ((primitive-pipe-function)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-mkfifo
-  (int mkfifo (char* mode_t)))
 
 (define (primitive-mkfifo pathname mode)
   (with-compensations
@@ -467,14 +316,14 @@
 			       (list pathname mode))
 	  result)))))
 
-(define primitive-mkfifo-function
-  (make-parameter primitive-mkfifo
-    (lambda (func)
-      (if (procedure? func)
-	  func
-	(assertion-violation 'primitive-mkfifo-function
-	  "expected procedure as value for the PRIMITIVE-MKFIFO-FUNCTION parameter"
-	  func)))))
+(define-primitive-parameter
+  primitive-pipe-function primitive-pipe)
+
+(define-primitive-parameter
+  primitive-mkfifo-function primitive-mkfifo)
+
+(define (pipe)
+  ((primitive-pipe-function)))
 
 (define (mkfifo pathname mode)
   ((primitive-mkfifo-function) pathname mode))

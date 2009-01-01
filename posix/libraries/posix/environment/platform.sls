@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: Ikarus POSIX functions compatibility for environment
-;;;Date: Mon Nov 24, 2008
+;;;Contents: interface to platform functions for access to environment variables
+;;;Date: Thu Jan  1, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,9 +23,32 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (posix environment compat)
+
+
+;;;; setup
+
+(library (posix environment platform)
   (export
-    (rename (getenv primitive-getenv)))
-  (import (only (ikarus) getenv)))
+    platform-getenv
+    platform-setenv)
+  (import (r6rs)
+    (uriel lang)
+    (uriel foreign)
+    (posix sizeof))
+
+
+;;;; code
+
+(define-c-function platform-setenv
+  (int setenv (char* char* int)))
+
+(define-c-function platform-getenv
+  (char* getenv (char*)))
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

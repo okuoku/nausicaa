@@ -2,13 +2,13 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to job control functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 17:40:02 marco>
+;;;Time-stamp: <2009-01-01 16:53:39 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,21 +30,19 @@
 
 (library (posix job)
   (export
-    ctermid primitive-ctermid primitive-ctermid-function platform-ctermid
-
-    setsid primitive-setsid primitive-setsid-function platform-setsid
-    getsid primitive-getsid primitive-getsid-function platform-getsid
-
-    getpgrp primitive-getpgrp primitive-getpgrp-function platform-getpgrp
-    setpgid primitive-setpgid primitive-setpgid-function platform-setpgid
-
-    tcgetpgrp primitive-tcgetpgrp primitive-tcgetpgrp-function platform-tcgetpgrp
-    tcsetpgrp primitive-tcsetpgrp primitive-tcsetpgrp-function platform-tcsetpgrp
-    tcgetsid primitive-tcgetsid primitive-tcgetsid-function platform-tcgetsid)
+    ctermid	primitive-ctermid	primitive-ctermid-function
+    setsid	primitive-setsid	primitive-setsid-function
+    getsid	primitive-getsid	primitive-getsid-function
+    getpgrp	primitive-getpgrp	primitive-getpgrp-function
+    setpgid	primitive-setpgid	primitive-setpgid-function
+    tcgetpgrp	primitive-tcgetpgrp	primitive-tcgetpgrp-function
+    tcsetpgrp	primitive-tcsetpgrp	primitive-tcsetpgrp-function
+    tcgetsid	primitive-tcgetsid	primitive-tcgetsid-function)
   (import (r6rs)
     (uriel lang)
     (uriel foreign)
-    (posix sizeof))
+    (posix sizeof)
+    (posix job platform))
 
   (define dummy
     (shared-object self-shared-object))
@@ -52,9 +50,6 @@
 
 
 ;;;; terminal identification
-
-(define-c-function/with-errno platform-ctermid
-  (char* ctermid (char*)))
 
 (define (primitive-ctermid)
   (with-compensations
@@ -65,14 +60,8 @@
 	    (raise-errno-error 'primitive-ctermid errno)
 	  (cstring->string p))))))
 
-(define primitive-ctermid-function
-  (make-parameter primitive-ctermid
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-ctermid-function
-	  "expected procedure as value for the PRIMITIVE-CTERMID-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-ctermid-function primitive-ctermid)
 
 (define (ctermid)
   ((primitive-ctermid-function)))
@@ -81,32 +70,12 @@
 
 ;;;; process group
 
-(define-c-function/with-errno platform-setsid
-  (pid_t setsid (void)))
-
 (define (primitive-setsid)
   (receive (result errno)
       (platform-setsid)
     (if (= -1 errno)
 	(raise-errno-error 'setsid errno)
       result)))
-
-(define primitive-setsid-function
-  (make-parameter primitive-setsid
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-setsid-function
-	  "expected procedure as value for the PRIMITIVE-SETSID-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (setsid)
-  ((primitive-setsid-function)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-getsid
-  (pid_t getsid (pid_t)))
 
 (define (primitive-getsid pid)
   (receive (result errno)
@@ -115,46 +84,12 @@
 	(raise-errno-error 'getsid errno pid)
       result)))
 
-(define primitive-getsid-function
-  (make-parameter primitive-getsid
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-getsid-function
-	  "expected procedure as value for the PRIMITIVE-GETSID-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (getsid pid)
-  ((primitive-getsid-function) pid))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-getpgrp
-  (pid_t getpgrp (void)))
-
 (define (primitive-getpgrp)
   (receive (result errno)
       (platform-getpgrp)
     (if (= -1 errno)
 	(raise-errno-error 'getpgrp errno)
       result)))
-
-(define primitive-getpgrp-function
-  (make-parameter primitive-getpgrp
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-getpgrp-function
-	  "expected procedure as value for the PRIMITIVE-GETPGRP-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (getpgrp)
-  ((primitive-getpgrp-function)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-setpgid
-  (int setpgid (pid_t pid_t)))
 
 (define (primitive-setpgid pid pgid)
   (receive (result errno)
@@ -163,14 +98,26 @@
 	(raise-errno-error 'setpgid errno (list pid pgid))
       result)))
 
-(define primitive-setpgid-function
-  (make-parameter primitive-setpgid
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-setpgid-function
-	  "expected procedure as value for the PRIMITIVE-SETPGID-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-setsid-function primitive-setsid)
+
+(define-primitive-parameter
+  primitive-getsid-function primitive-getsid)
+
+(define-primitive-parameter
+  primitive-getpgrp-function primitive-getpgrp)
+
+(define-primitive-parameter
+  primitive-setpgid-function primitive-setpgid)
+
+(define (setsid)
+  ((primitive-setsid-function)))
+
+(define (getsid pid)
+  ((primitive-getsid-function) pid))
+
+(define (getpgrp)
+  ((primitive-getpgrp-function)))
 
 (define (setpgid pid pgid)
   ((primitive-setpgid-function) pid pgid))
@@ -179,32 +126,12 @@
 
 ;;;; terminal access
 
-(define-c-function/with-errno platform-tcgetpgrp
-  (pid_t tcgetpgrp (int)))
-
 (define (primitive-tcgetpgrp fd)
   (receive (result errno)
       (platform-tcgetpgrp fd)
     (if (= -1 errno)
 	(raise-errno-error 'tcgetpgrp errno fd)
       result)))
-
-(define primitive-tcgetpgrp-function
-  (make-parameter primitive-tcgetpgrp
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-tcgetpgrp-function
-	  "expected procedure as value for the PRIMITIVE-TCGETPGRP-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (tcgetpgrp fd)
-  ((primitive-tcgetpgrp-function) fd))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-tcsetpgrp
-  (pid_t tcsetpgrp (int pid_t)))
 
 (define (primitive-tcsetpgrp fd pgid)
   (receive (result errno)
@@ -213,23 +140,6 @@
 	(raise-errno-error 'tcsetpgrp errno (list fd pgid))
       result)))
 
-(define primitive-tcsetpgrp-function
-  (make-parameter primitive-tcsetpgrp
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-tcsetpgrp-function
-	  "expected procedure as value for the PRIMITIVE-TCSETPGRP-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (tcsetpgrp fd pgid)
-  ((primitive-tcsetpgrp-function) fd pgid))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-tcgetsid
-  (pid_t tcgetsid (int)))
-
 (define (primitive-tcgetsid fd)
   (receive (result errno)
       (platform-tcgetsid fd)
@@ -237,14 +147,20 @@
 	(raise-errno-error 'tcgetsid errno fd)
       result)))
 
-(define primitive-tcgetsid-function
-  (make-parameter primitive-tcgetsid
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-tcgetsid-function
-	  "expected procedure as value for the PRIMITIVE-TCGETSID-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-tcgetpgrp-function primitive-tcgetpgrp)
+
+(define-primitive-parameter
+  primitive-tcsetpgrp-function primitive-tcsetpgrp)
+
+(define-primitive-parameter
+  primitive-tcgetsid-function primitive-tcgetsid)
+
+(define (tcgetpgrp fd)
+  ((primitive-tcgetpgrp-function) fd))
+
+(define (tcsetpgrp fd pgid)
+  ((primitive-tcsetpgrp-function) fd pgid))
 
 (define (tcgetsid fd)
   ((primitive-tcgetsid-function) fd))

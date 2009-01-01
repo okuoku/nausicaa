@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to POSIX functions for R6RS Scheme
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-19 16:33:31 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,44 +23,66 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
+;;;; setup
+
 (library (posix working-directory)
   (export
-    getcwd primitive-getcwd (rename (getcwd pwd))
-    chdir primitive-chdir)
+    getcwd	primitive-getcwd	primitive-getcwd-function
+    chdir	primitive-chdir		primitive-chdir-function
+
+    (rename (getcwd pwd)))
   (import (r6rs)
     (uriel lang)
-    (uriel foreign))
+    (uriel foreign)
+    (posix sizeof)
+    (posix working-directory platform))
 
   (define dummy
     (shared-object self-shared-object))
 
-  (define-c-function/with-errno primitive-getcwd
-    (char* getcwd (char* size_t)))
+
+;;;; code
 
-  (define-c-function/with-errno primitive-chdir
-    (int chdir (char*)))
-
-  (define (getcwd)
-    (let loop ((buflen 1024))
-      (with-compensations
-	(let ((buffer (malloc-block/c buflen)))
-	  (receive (cstr errno)
-	      (primitive-getcwd buffer buflen)
-	    (if (and (= 0 (pointer->integer cstr))
-		     (or (= EINVAL errno)
-			 (= ERANGE errno)))
-		(loop (* 2 buflen))
-	      (begin
-		(when (pointer-null? cstr)
-		  (raise-errno-error 'getcwd errno #f))
-		(cstring->string buffer))))))))
-
-  (define (chdir directory-pathname)
+(define (primitive-getcwd)
+  (let loop ((buflen 1024))
     (with-compensations
-      (receive (result errno)
-	  (primitive-chdir (string->cstring/c directory-pathname))
-	(unless (= 0 result)
-	  (raise-errno-error 'chdir errno directory-pathname))
-	result))))
+      (let ((buffer (malloc-block/c buflen)))
+	(receive (cstr errno)
+	    (platform-getcwd buffer buflen)
+	  (if (and (= 0 (pointer->integer cstr))
+		   (or (= EINVAL errno)
+		       (= ERANGE errno)))
+	      (loop (* 2 buflen))
+	    (begin
+	      (when (pointer-null? cstr)
+		(raise-errno-error 'primitive-getcwd errno))
+	      (cstring->string buffer))))))))
+
+(define (primitive-chdir directory-pathname)
+  (with-compensations
+    (receive (result errno)
+	(platform-chdir (string->cstring/c directory-pathname))
+      (unless (= 0 result)
+	(raise-errno-error 'primitive-chdir errno
+			   directory-pathname))
+      result)))
+
+(define-primitive-parameter
+  primitive-getcwd-function primitive-getcwd)
+
+(define-primitive-parameter
+  primitive-chdir-function primitive-chdir)
+
+(define (getcwd)
+  ((primitive-getcwd-function)))
+
+(define (chdir pathname)
+  ((primitive-chdir-function) pathname))
+
+
+;;;; done
+
+)
 
 ;;; end of file

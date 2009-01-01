@@ -45,6 +45,10 @@ Rlwrap GNU Readline wrappers
 Uriel
 -----
 
+* Add tests for the null pointer conversion and predicate.
+* Add an optional predicate argument  to the make c function bindings to
+  let the  function be discarded  when loading the library  (for example
+  because the foreign library does not implement it).
 * Fix the  temporary PRIMITIVE-MAKE-C-FUNCTION/WITH-ERRNO implementation
   with Larceny.
 * Write the long-long peekers/pokers for Ypsilon and Larceny.
@@ -76,6 +80,8 @@ IrRegex
 POSIX
 -----
 
+* Review  the libraries  for  errno handling:  the PRIMITIVE-  functions
+  should raise errors, not the high level ones.
 * Add the scatter/gather fd interface.
 * Add a library  with an interface to the  "waitid()" function described
   in the waitpid manual page (linux specific).

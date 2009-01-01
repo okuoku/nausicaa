@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to process related POSIX functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 16:33:15 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -32,24 +31,26 @@
   (export
 
     ;; identification
-    getpid getppid
+    getpid	getppid
 
     ;; forking
-    fork primitive-fork primitive-fork-function
+    fork	primitive-fork		primitive-fork-function
 
     ;; executing
-    execv primitive-execv primitive-execv-function platform-execv
-    execve primitive-execve primitive-execve-function platform-execve
-    execvp primitive-execvp primitive-execvp-function platform-execvp
+    execv	primitive-execv		primitive-execv-function
+    execve	primitive-execve	primitive-execve-function
+    execvp	primitive-execvp	primitive-execvp-function
 
     ;; waiting
-    platform-waitpid primitive-waitpid
-    waitpid waitpid/any waitpid/any-my-group waitpid/group
-    )
+    waitpid	primitive-waitpid	primitive-waitpid-function
+    waitpid/any
+    waitpid/any-my-group
+    waitpid/group)
   (import (r6rs)
     (uriel lang)
     (uriel foreign)
-    (posix sizeof))
+    (posix sizeof)
+    (posix process platform))
 
   (define dummy
     (shared-object self-shared-object))
@@ -57,120 +58,80 @@
 
 ;;;; process id
 
-(define-c-function getpid
-  (pid_t getpid (void)))
+(define (getpid)
+  (platform-getpid))
 
-(define-c-function getppid
-  (pid_t getppid (void)))
-
+(define (getppid)
+  (platform-getppid))
 
 
 ;;;; forking
 
-(define-c-function/with-errno primitive-fork
-  (pid_t fork (void)))
-
-(define primitive-fork-function
-  (make-parameter primitive-fork
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-fork-function
-	  "expected procedure as value for the PRIMITIVE-FORK-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (fork)
+(define (primitive-fork)
   (receive (result errno)
-      ((primitive-fork-function))
+      (platform-fork)
     (when (= -1 result)
-      (raise-errno-error 'fork errno))
+      (raise-errno-error 'primitive-fork errno))
     result))
 
+(define-primitive-parameter
+  primitive-fork-function primitive-fork)
+
+(define (fork)
+  ((primitive-fork-function)))
 
 
 ;;;; executing
 
-(define-c-function/with-errno platform-execv
-  (int execv (char* pointer)))
-
 (define (primitive-execv pathname args)
   (with-compensations
-    (platform-execv (string->cstring/c pathname)
-		    (strings->argv args malloc-block/c))))
-
-(define primitive-execv-function
-  (make-parameter primitive-execv
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-execv-function
-	  "expected procedure as value for the PRIMITIVE-EXECV-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (execv pathname args)
-  (receive (result errno)
-      ((primitive-execv-function) pathname args)
-    (when (= -1 result)
-      (raise-errno-error 'execv errno (list pathname args)))))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-execve
-  (int execve (char* pointer pointer)))
+    (receive (result errno)
+	(platform-execv (string->cstring/c pathname)
+			(strings->argv args malloc-block/c))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-execv errno
+			   (list pathname args))))))
 
 (define (primitive-execve pathname args envs)
   (with-compensations
-    (platform-execve (string->cstring/c pathname)
-		     (strings->argv args malloc-block/c)
-		     (strings->argv envs malloc-block/c))))
-
-(define primitive-execve-function
-  (make-parameter primitive-execve
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-execve-function
-	  "expected procedure as value for the PRIMITIVE-EXECVE-FUNCTION parameter"
-	  func))
-      func)))
-
-(define (execve pathname args envs)
-  (receive (result errno)
-      ((primitive-execve-function) pathname args envs)
-    (when (= -1 result)
-      (raise-errno-error 'execve errno (list pathname args envs)))))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno platform-execvp
-  (int execvp (char* pointer)))
+    (receive (result errno)
+	(platform-execve (string->cstring/c pathname)
+			 (strings->argv args malloc-block/c)
+			 (strings->argv envs malloc-block/c))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-execve errno
+			   (list pathname args envs))))))
 
 (define (primitive-execvp pathname args)
   (with-compensations
-    (platform-execvp (string->cstring/c pathname)
-		     (strings->argv args malloc-block/c))))
+    (receive (result errno)
+	(platform-execvp (string->cstring/c pathname)
+			 (strings->argv args malloc-block/c))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-execvp errno
+			   (list pathname args))))))
 
-(define primitive-execvp-function
-  (make-parameter primitive-execvp
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-execvp-function
-	  "expected procedure as value for the PRIMITIVE-EXECVP-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-execv-function primitive-execv)
+
+(define-primitive-parameter
+  primitive-execve-function primitive-execve)
+
+(define-primitive-parameter
+  primitive-execvp-function primitive-execvp)
+
+(define (execv pathname args)
+  ((primitive-execv-function) pathname args))
+
+(define (execve pathname args envs)
+  ((primitive-execve-function) pathname args envs))
 
 (define (execvp pathname args)
-  (receive (result errno)
-      ((primitive-execvp-function) pathname args)
-    (when (= -1 result)
-      (raise-errno-error 'execvp errno (list pathname args)))))
+  ((primitive-execvp-function) pathname args))
 
 
 
 ;;;; waiting
-
-(define-c-function/with-errno platform-waitpid
-  (pid_t waitpid (pid_t pointer int)))
-
 
 (define (primitive-waitpid pid options)
   (with-compensations
@@ -184,23 +145,26 @@
 	    (raise-errno-error 'waitpid errno pid))
 	  (values result (peek-signed-int status* 0)))))))
 
+(define-primitive-parameter
+  primitive-waitpid-function primitive-waitpid)
+
 (define (waitpid pid options)
   (unless (< 0 pid)
     (assertion-violation 'waitpid
       "expected strictly positive process id" pid))
-  (primitive-waitpid pid options))
+  ((primitive-waitpid-function) pid options))
 
 (define (waitpid/any options)
-  (primitive-waitpid -1 options))
+  ((primitive-waitpid-function) -1 options))
 
 (define (waitpid/any-my-group options)
-  (primitive-waitpid 0 options))
+  ((primitive-waitpid-function) 0 options))
 
 (define (waitpid/group gpid options)
   (unless (< 0 gpid)
     (assertion-violation 'waitpid/group
       "expected strictly positive process group id" gpid))
-  (primitive-waitpid (- gpid) options))
+  ((primitive-waitpid-function) (- gpid) options))
 
 
 

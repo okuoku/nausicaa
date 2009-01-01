@@ -468,7 +468,7 @@ Variables holding constant values
 @noindent
 This document describes an interface to the @posix{} system functions
 offered by the underlying platform.  Basically this library makes use of
-the foreign functions interface defined by @library{uriel ffi}, and
+the foreign functions interface defined by @library{uriel foreign}, and
 occasionally makes use of the Scheme implementation specific facilities.
 
 For all the functions only a brief description is given: we have to use
@@ -485,7 +485,13 @@ the foreign function's own documentation to have all the details.
 @section Introduction to the interface
 
 
-The interface adheres the following pattern for function @func{x}:
+Unless otherwise specified, for each set of features there are 2
+libraries: @library{posix ---} and @library{posix --- platform}; the
+first is the high level one and the second exports the low level
+@code{platform-} bindings.
+
+Unless otherwise specified, the interface adheres the following pattern
+for function @func{x}:
 
 @deffn Function x @var{arg} ...
 @deffnx Function primitive-x @var{arg} ...
@@ -496,7 +502,8 @@ This is an interface for the @cfunc{x} foreign function.
 @func{x} and @func{primitive-x} do something with the arguments, which
 are regular Scheme values.  If successful they return values
 representing the result; in case of error they raise an @code{&errno}
-condition.
+condition.  The @code{&errno} condition is defined by the Uriel
+libraries.
 
 @func{x} does the job by applying to the arguments the current value of
 the @func{primitive-x-function} parameter, which must be a function.
@@ -522,7 +529,8 @@ This interface gives us 3 choices:
 @item
 To call directly the foreign function using the @func{platform-x}
 wrapper; in this case we are responsible to convert the Scheme arguments
-to the appropriate C language level values.
+to the appropriate C language level values (beware to non--garbage
+collected values!).
 
 @item
 To call the Scheme adapter @func{primitive-x}; this gives us: automatic
@@ -539,35 +547,58 @@ test Scheme code execution paths that handle exceptions.
 @end enumerate
 
 
+Example of usage of failing primitive fork function:
+
+@example
+(define (fake-fork)
+  (raise-errno-error 'fork EINVAL))
+
+(parameterize ((primitive-fork-function fake-fork))
+   ---
+   (fork)
+   ---)
+@end example
+
+
 @c page
 @node environment
 @chapter Environment variables
 
 
-The following bindings are exported by @library{posix environment}.
+The following bindings are exported by @library{posix environment} and
+@library{posix environment platform}.
+
+@glibcref{Environment Access,Environment Access}
+
 @naulibcref{environment}
 
 
-@defun getenv @var{varname}
+@deffn Function getenv @var{varname}
+@deffnx Function primitive-getenv @var{varname}
+@deffnx Parameter primitive-getenv-function @var{varname}
+@deffnx Function platform-getenv @var{varname}
 Return the current value of the environment variable @var{varname}, as a
 Scheme string.  @var{varname} must be a Scheme string or symbol.  If the
 variable is not set: the return value if @false{}.  If the variable is
 set to the empty string: the return value is the empty string.
-@end defun
+@end deffn
 
 
-@defun setenv @var{varname} @var{value} @var{replace}
+@deffn Function setenv @var{varname} @var{value} @var{replace}
+@deffnx Function primitive-setenv @var{varname} @var{value} @var{replace}
+@deffnx Parameter primitive-setenv-function
+@deffnx Function platform-setenv @var{varname} @var{value} @var{replace}
 Set a new value for the environment variable @var{varname}.
 @var{varname} and @var{value} must be Scheme strings or symbols.  If the
 environment already contains @var{varname}, then @var{replace} controls
 the action: if true the value is replaced, if @false{} it is left alone.
-@end defun
+@end deffn
 
 
-@c @defun unsetenv @var{varname}
+@c @deffn unsetenv @var{varname}
 @c Remove the entry for @var{varname} from the environment.  @var{varname}
 @c must be a string or symbol.
-@c @end defun
+@c @end deffn
 
 
 @c page
@@ -630,27 +661,6 @@ Peekers and pokers for the fields of a @code{struct timespec}.
 @end deffn
 
 
-@deffn {Record Type} struct-tms
-A Scheme record used to hold normalised results of @func{times}
-invocations.  It has a field for each field of @code{struct tms}.
-@end deffn
-
-
-@defun make-struct-tms @var{utime} @var{stime} @var{cutime} @var{cstime}
-Build and return a new @code{struct-tms} record.
-@end defun
-
-
-@defun struct-tms-tms_utime-ref @var{tms-record}
-@defunx struct-tms-tms_stime-ref @var{tms-record}
-@defunx struct-tms-tms_cutime-ref @var{tms-record}
-@defunx struct-tms-tms_cstime-ref @var{tms-record}
-Getters for the fields of @code{struct-tms} records.  All the returned
-values are floating point numbers.
-@end defun
-
-
-
 @c page
 @node time clock
 @section Processor time
@@ -658,7 +668,11 @@ values are floating point numbers.
 
 If we have installed the Nausicaa/Stubs library for @posix{} functions:
 we can import the @library{posix time stub} library, which exports the
-@func{clock} and @func{times} bindings.
+following bindings.
+
+@glibcref{CPU Time,CPU Time Inquiry}
+
+@glibcref{Processor Time,Processor Time Inquiry}
 
 
 @defvar CLOCKS_PER_SEC
@@ -704,43 +718,58 @@ value, the value of @code{errno} right after the function call.
 @end deffn
 
 
+@deffn {Record Type} struct-tms
+A Scheme record used to hold normalised results of @func{times}
+invocations.  It has a field for each field of @code{struct tms}.
+@end deffn
+
+
+@defun make-struct-tms @var{utime} @var{stime} @var{cutime} @var{cstime}
+Build and return a new @code{struct-tms} record.
+@end defun
+
+
+@defun struct-tms-tms_utime-ref @var{tms-record}
+@defunx struct-tms-tms_stime-ref @var{tms-record}
+@defunx struct-tms-tms_cutime-ref @var{tms-record}
+@defunx struct-tms-tms_cstime-ref @var{tms-record}
+Getters for the fields of @code{struct-tms} records.  All the returned
+values are floating point numbers.
+@end defun
+
+
 @c page
 @node working directory
 @chapter The working directory
 
 
-The following bindings are exported by @library{posix working-directory}.
+The following bindings are exported by @library{posix working-directory}
+and @library{posix working-directory platform}.
+
+@glibcref{Working Directory,Working Directory}
 
 
-@defun getcwd
-@defunx pwd
-@func{getcwd} and @func{pwd} return a Scheme string representing the
-current working directory.  If an error occurs reading the current
-directory (because of access permissions): an exception is raised.
+@deffn Function getcwd
+@deffnx Function primitive-getcwd
+@deffnx Parameter primitive-getcwd-function
+@deffnx Function platform-getcwd
+Return a string representing the current working directory.
+@end deffn
+
+
+@defun pwd
+An alias for @func{getcwd}.
 @end defun
 
 
-@defun primitive-getcwd
-Return 2 values: if successful, a C string representing the current
-working directory and zero; if an error occurred, @false{} and an exact
-integer representing the value of @code{errno} just after the call to
-the system @cfunc{getcwd} function.
-@end defun
-
-
-@defun chdir @var{pathname}
+@deffn Function chdir @var{pathname}
+@deffnx Function primitive-chdir @var{pathname}
+@deffnx Parameter primitive-chdir-function
+@deffnx Function platform-chdir @var{pathname}
 Change the current directory to the selected @var{pathname}, which must
 be a Scheme string or symbol.  If an error occurs changing directory
 (because of access permissions): an exception is raised.
-@end defun
-
-
-@defun primitive-chdir @var{pathname}
-Change the current directory to the selected @var{pathname}, which must
-be a C string.  Return two values: the return value from the function,
-an exact integer, and the value of @code{errno} just after the call to
-the foreign function.
-@end defun
+@end deffn
 
 
 @c page
@@ -749,7 +778,8 @@ the foreign function.
 
 
 File descriptor arguments and return values are handled at the Scheme
-level as exact integers.  The main library is @library{posix fd}.
+level as exact integers.  The main libraries are @library{posix fd} and
+@library{posix fd platform}.
 
 @menu
 * fd constants::                Variables holding constant values.
@@ -947,7 +977,7 @@ Flags for file descriptor locking.
 @deffn Function open @var{pathname} @var{open-mode} @var{permissions}
 @deffnx Function primitive-open @var{pathname} @var{open-mode} @var{permissions}
 @deffnx Parameter primitive-open-function
-@deffnx platform-open @var{pathname} @var{open-mode} @var{permissions}
+@deffnx Function platform-open @var{pathname} @var{open-mode} @var{permissions}
 Open with @var{open-mode} the file selected by @var{pathname} and return
 a file descriptor.  If the file is created, it is created with
 access @var{permissions}.
@@ -1557,6 +1587,10 @@ Then the following implementations are possible:
 @chapter Processes
 
 
+The bindings described in this chapter are exported by @library{posix
+process} and @library{posix process platform}.
+
+
 @menu
 * process id::                  Process identification.
 * process fork::                Creating a process.
@@ -1578,11 +1612,13 @@ Then the following implementations are possible:
 
 
 @defun getpid
+@defunx platform-getpid
 Return the process id of the current process.
 @end defun
 
 
 @defun getppid
+@defunx platform-getppid
 Return the process id of the parent process.
 @end defun
 
@@ -1600,40 +1636,14 @@ impossible to know what the Scheme implementation does.
 @end quotation
 
 
-@deffn Parameter primitive-fork-function
-Holds the function used by @func{fork} to fork a process.  It is
-initialised to @func{primitive-fork}.
+@deffn Function fork
+@deffnx Function primitive-fork
+@deffnx Parameter primitive-fork-function
+@deffnx Function platform-fork
+Create a new process by forking the current one.  If successful
+@func{fork} returns zero in the child process and the child process' id
+in the parent process.
 @end deffn
-
-
-@defun fork
-@defunx primitive-fork
-Create a new process by forking the current one.
-
-If successful @func{fork} returns zero in the child process and the
-child process' id in the parent process; else it raises an @code{&errno}
-condition.  @func{primitive-fork} returns 2 values: the return value of
-the foreign function call and the value of @code{errno} right after the
-call.
-
-@func{fork} forks the process by invoking the function which is the
-current vale of the @func{primitive-fork-function} parameter.  This
-allows us to test failing execution paths by setting the parameter to a
-procedure that returns error values.
-@end defun
-
-
-Example of usage of failing primitive fork function:
-
-@example
-(define (fake-fork)
-  (values -1 EINVAL))
-
-(parameterize ((primitive-fork-function fake-fork))
-   ---
-   (fork)
-   ---)
-@end example
 
 
 @c page
@@ -1648,28 +1658,11 @@ Example of usage of failing primitive fork function:
 @deffnx Function primitive-execv @var{pathname} @var{args}
 @deffnx Parameter primitive-execv-function
 @deffnx Function platform-execv @var{c-pathname} @var{argv}
-Execute the file selected by the Scheme string or symbol @var{pathname}
-using the list of Scheme strings or symbols @var{args} as command line
-arguments.  By convention the first value of @var{args} must be the name
-(with no directory path) of the executed process.
-
-If successful a new process is executed and these functions do not
-return.
-
-If an error occurs @func{execv} raises an @code{&errno} condition, while
-@func{primitive-execv} returns 2 values: the return value of the foreign
-function (which should be @code{-1}) and the value of @code{errno} right
-after the foreign function call.
-
-@func{execv} executes the process by invoking the function which is the
-current value of the @func{primitive-execv-function} parameter.  This
-allows us to test failing execution paths by setting the parameter to a
-procedure that returns error values.
-
-@func{platform-execv} is the wrapper for the foreign function
-@cfunc{execv}; it accepts a C string as @var{c-pathname} argument and a
-pointer to a null--terminated array of C strings as @var{argv} argument.
-@urielref{cstring argv,Converting arrays of cstrings}
+Execute the file selected by the string or symbol @var{pathname} using
+the list of strings or symbols @var{args} as command line arguments.  By
+convention the first value of @var{args} must be the name (with no
+directory pathname) of the executed process.  If successful a new
+process is executed and these functions do not return.
 
 Usage example:
 
@@ -1686,7 +1679,8 @@ error handling path:
 
 @example
 (parameterize ((primitive-execv-function
-                (lambda args (values -1 EINVAL))))
+                (lambda args
+                  (raise-errno-error 'execv EINVAL))))
    (guard (exc ---)
      ---
      (execv '/bin/ls '(ls))
@@ -1700,32 +1694,16 @@ error handling path:
 @deffnx Function primitive-execve @var{pathname} @var{args} @var{envs}
 @deffnx Parameter primitive-execve-function
 @deffnx Function platform-execve @var{c-pathname} @var{argv} @var{envv}
-Execute the file selected by the Scheme string or symbol @var{pathname}
-using the list of Scheme strings or symbols @var{args} as command line
-arguments.  By convention the first value of @var{args} must be the name
-(with no directory path) of the executed process.
+Execute the file selected by the string or symbol @var{pathname} using
+the list of strings or symbols @var{args} as command line arguments.  By
+convention the first value of @var{args} must be the name (with no
+directory path) of the executed process.
 
-@var{envs} must be a list of Scheme strings or symbols used to set the
-process execution environment.
+@var{envs} must be a list of strings or symbols used to set the process
+execution environment.
 
 If successful a new process is executed and these functions do not
 return.
-
-If an error occurs @func{execve} raises an @code{&errno} condition, while
-@func{primitive-execve} returns 2 values: the return value of the foreign
-function (which should be @code{-1}) and the value of @code{errno} right
-after the foreign function call.
-
-@func{execve} executes the process by invoking the function which is the
-current value of the @func{primitive-execve-function} parameter.  This
-allows us to test failing execution paths by setting the parameter to a
-procedure that returns error values.
-
-@func{platform-execve} is the wrapper for the foreign function
-@cfunc{execve}; it accepts a C string as @var{c-pathname} argument and
-pointers to null--terminated arrays of C strings as @var{argv} and
-@var{envv} arguments.  @urielref{cstring argv,Converting arrays of
-cstrings}
 
 Usage example:
 
@@ -1744,7 +1722,8 @@ error handling path:
 
 @example
 (parameterize ((primitive-execve-function
-               (lambda args (values -1 EINVAL))))
+               (lambda args
+                 (raise-errno-error 'execve EINVAL))))
   (guard (exc ---)
     (execve '/usr/bin/du
             '(du /bin/ls)
@@ -1780,30 +1759,17 @@ For the following functions: the @var{options} argument can be zero or a
 @glibcref{Process Completion,Process Completion}
 
 
-@defun primitive-waitpid @var{pid} @var{options}
-@defunx platform-waitpid @var{pid} @var{pointer} @var{options}
+@deffn Function primitive-waitpid @var{pid} @var{options}
+@deffnx Parameter primitive-waitpid-function
+@deffnx Function platform-waitpid @var{pid} @var{pointer} @var{options}
 Wait for a single process or a set of processes in a group.  For the
 full documentation we have to refer to the documentation of the foreign
 function @cfunc{waitpid}.
-
-@var{pointer} must reference an @code{int} sized location in which
-@func{platform-waitpid} will store the status of the tracked process.
-
-If successful @func{primitive-waitpid} returns 2 values: zero or the id
-of the tracked process, the status of the tracked process.  In case of
-error it raises an @code{&errno} condition.  If the foreign function
-returns an error with @code{errno} set to @code{EINTR}:
-@func{primitive-waitpid} loops replaying the foreign function call with
-the same arguments.
-
-@func{platform-waitpid} returns 2 values: the return value of the
-foreign function call and the value of @code{errno} right after the
-call.
-@end defun
+@end deffn
 
 
 @defun waitpid @var{pid} @var{options}
-A wrapper for @cfunc{primitive-watipid} that tracks a specific child
+A wrapper for @func{primitive-watipid} that tracks a specific child
 process.
 @end defun
 
@@ -1815,13 +1781,13 @@ processes.
 
 
 @defun waitpid/any-my-group @var{options}
-A wrapper for @cfunc{primitive-watipid} that tracks all the child
+A wrapper for @func{primitive-watipid} that tracks all the child
 processes in the same group of the caller.
 @end defun
 
 
 @defun waitpid/group @var{gpid} @var{options}
-A wrapper for @cfunc{primitive-watipid} that tracks all the child
+A wrapper for @func{primitive-watipid} that tracks all the child
 processes in the group with id @var{gpid}.
 @end defun
 
@@ -1891,6 +1857,10 @@ used to query the status without building a record.
 @chapter Job control
 
 
+The bindings described in this chapter are exported by @library{posix
+job} and @library{posix job platform}.
+
+
 @menu
 * job terminal::                Terminal identification.
 * job group::                   Process group functions.
@@ -1917,16 +1887,6 @@ for this process.
 bytes in which the foreign function will store the terminal file
 pathname as a C string.  @code{L_ctermid} is exported by @library{posix
 sizeof}.
-
-If successful @func{ctermid} and @func{primitive-ctermid} return a
-Scheme string, else they raise an @code{&errno} condition.
-@func{platform-ctermid} returns 2 values: the return value from the
-foreign function call and the value of @code{errno} right after the
-foreign call.
-
-@func{ctermid} does the job by invoking the current value of the
-@func{primitive-ctermid-function} parameter, which is initially set to
-@func{primitive-ctermid}.
 @end deffn
 
 
@@ -1942,17 +1902,8 @@ foreign call.
 @deffnx Function primitive-setsid
 @deffnx Parameter primitive-setsid-function
 @deffnx Function platform-setsid
-Create a new session and return the new process group id.
-
-If successful @func{setsid} and @func{primitive-setsid} return an
-integer representing the group id, else they raise an @code{&errno}
-condition.  @func{platform-setsid} returns 2 values: the return value
-from the foreign function call and the value of @code{errno} right after
-the foreign call.
-
-@func{setsid} does the job by invoking the current value of the
-@func{primitive-setsid-function} parameter, which is initially set to
-@func{primitive-setsid}.
+Create a new session and return an integer representing the new process
+group id.
 @end deffn
 
 
@@ -1961,16 +1912,6 @@ the foreign call.
 @deffnx Parameter primitive-getsid-function
 @deffnx Function platform-getsid @var{pid}
 Return the group id of the session leader of the process with @var{pid}.
-
-If successful @func{getsid} and @func{primitive-getsid} return an
-integer representing the group id, else they raise an @code{&errno}
-condition.  @func{platform-getsid} returns 2 values: the return value
-from the foreign function call and the value of @code{errno} right after
-the foreign call.
-
-@func{getsid} does the job by invoking the current value of the
-@func{primitive-getsid-function} parameter, which is initially set to
-@func{primitive-getsid}.
 @end deffn
 
 
@@ -1978,18 +1919,8 @@ the foreign call.
 @deffnx Function primitive-getpgrp
 @deffnx Parameter primitive-getpgrp-function
 @deffnx Function platform-getpgrp
-Return the process group id of group to which the current process
+Return the process group id of the group to which the current process
 belongs.
-
-If successful @func{getpgrp} and @func{primitive-getpgrp} return an
-integer representing the group id, else they raise an @code{&errno}
-condition.  @func{platform-getpgrp} returns 2 values: the return value
-from the foreign function call and the value of @code{errno} right after
-the foreign call.
-
-@func{getpgrp} does the job by invoking the current value of the
-@func{primitive-getpgrp-function} parameter, which is initially set to
-@func{primitive-getpgrp}.
 @end deffn
 
 
@@ -1998,15 +1929,6 @@ the foreign call.
 @deffnx Parameter primitive-setpgid-function
 @deffnx Function platform-setpgid @var{pid} @var{pgid}
 Put the process @var{pid} in the group @var{pgid}.
-
-If an error occurs @func{setpgid} and @func{primitive-setpgid} raise an
-@code{&errno} condition.  @func{platform-setpgid} returns 2 values: the
-return value from the foreign function call and the value of
-@code{errno} right after the foreign call.
-
-@func{setpgid} does the job by invoking the current value of the
-@func{primitive-setpgid-function} parameter, which is initially set to
-@func{primitive-setpgid}.
 @end deffn
 
 
@@ -2025,16 +1947,6 @@ Access}
 @deffnx Function platform-tcgetpgrp @var{fd}
 Return the process group id of the foreground process group associated
 with the terminal open on descriptor @var{fd}.
-
-If successful @func{tcgetpgrp} and @func{primitive-tcgetpgrp} return an
-integer representing the group id, else they raise an @code{&errno}
-condition.  @func{platform-tcgetpgrp} returns 2 values: the return value
-from the foreign function call and the value of @code{errno} right after
-the foreign call.
-
-@func{tcgetpgrp} does the job by invoking the current value of the
-@func{primitive-tcgetpgrp-function} parameter, which is initially set to
-@func{primitive-tcgetpgrp}.
 @end deffn
 
 
@@ -2043,15 +1955,6 @@ the foreign call.
 @deffnx Parameter primitive-tcsetpgrp-function
 @deffnx Function platform-tcsetpgrp @var{fd} @var{pgid}
 Set a terminal's foreground process group id.
-
-If an error occurs @func{tcsetpgrp} and @func{primitive-tcsetpgrp} raise
-an @code{&errno} condition.  @func{platform-tcsetpgrp} returns 2 values:
-the return value from the foreign function call and the value of
-@code{errno} right after the foreign call.
-
-@func{tcsetpgrp} does the job by invoking the current value of the
-@func{primitive-tcsetpgrp-function} parameter, which is initially set to
-@func{primitive-tcsetpgrp}.
 @end deffn
 
 
@@ -2061,16 +1964,6 @@ the return value from the foreign function call and the value of
 @deffnx Function platform-tcgetsid @var{fd}
 Return the process group id of the session for which the open on
 descriptor @var{fd} is the controlling terminal.
-
-If successful @func{tcgetsid} and @func{primitive-tcgetsid} return an
-integer representing the group id, else they raise an @code{&errno}
-condition.  @func{platform-tcgetsid} returns 2 values: the return value
-from the foreign function call and the value of @code{errno} right after
-the foreign call.
-
-@func{tcgetsid} does the job by invoking the current value of the
-@func{primitive-tcgetsid-function} parameter, which is initially set to
-@func{primitive-tcgetsid}.
 @end deffn
 
 
