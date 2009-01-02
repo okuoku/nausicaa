@@ -40,7 +40,9 @@
     ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno)
   (import (rnrs)
-    (primitives foreign-file foreign-procedure syscall)
+    (primitives
+     foreign-file foreign-procedure get-errno set-errno!
+     syscall)
     (uriel lang)
     (uriel ffi sizeof)
     (uriel memory))
@@ -87,15 +89,15 @@
 
 ;;;; interface functions
 
-(define-syntax get-errno
-  (syntax-rules ()
-    ((_)
-     (syscall 47))))
+;; (define-syntax get-errno
+;;   (syntax-rules ()
+;;     ((_)
+;;      (syscall 47))))
 
-(define-syntax set-errno
-  (syntax-rules ()
-    ((_ ?value)
-     (syscall 48 ?value))))
+;; (define-syntax set-errno
+;;   (syntax-rules ()
+;;     ((_ ?value)
+;;      (syscall 48 ?value))))
 
 (define (primitive-make-c-function ret-type funcname arg-types)
   (foreign-procedure (symbol->string/maybe funcname)
@@ -111,7 +113,7 @@
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
       ;;call.
       (let* ((retval	(begin
-			  (set-errno 0)
+			  (set-errno! 0)
 			  (apply f args)))
 	     (errval	(get-errno)))
 	(values retval errval)))))
