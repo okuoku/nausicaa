@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -40,12 +40,40 @@
 (parameterize ((testname 'pointers))
 
   (check
+      (pointer-null? pointer-null)
+    => #t)
+
+  (check
+      (pointer-null? (integer->pointer 123))
+    => #f)
+
+  (check
+      (pointer? pointer-null)
+    => #t)
+
+  (check
+      (pointer? (integer->pointer 123))
+    => #t)
+
+  (check
+      (pointer? 123)
+    => #f)
+
+  (check
+      (pointer-null? (integer->pointer 123))
+    => #f)
+
+  (check
       (pointer->integer (integer->pointer 123))
     => 123)
 
   (check
       (pointer->integer (integer->pointer 0))
     => 0)
+
+  (check
+      (pointer-null? (integer->pointer 0))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 

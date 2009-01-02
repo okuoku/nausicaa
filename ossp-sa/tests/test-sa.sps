@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -38,11 +38,6 @@
 
 (format (current-error-port)
   "~%*** WARNING *** Remember to turn off firewall rules for 127.0.0.1:8080!!!~%~%")
-
-(define debugging #f)
-(define (debug . args)
-  (when debugging
-    (apply format (current-error-port) args)))
 
 
 
