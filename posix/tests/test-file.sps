@@ -40,11 +40,6 @@
 
 (check-set-mode! 'report-failed)
 
-(define debugging #t)
-(define (debug . args)
-  (when debugging
-    (apply format (current-error-port) args)
-    (newline (current-error-port))))
 
 
 ;;;; test hierarchy
@@ -90,167 +85,231 @@ Ses ailes de geant l'empechent de marcher.")
   (system (string-append "mkdir --mode=0700 " the-subdir-1))
   (system (string-append "mkdir --mode=0700 " the-subdir-2))
   (system (string-append "mkdir --mode=0700 " the-subdir-3))
-  (system (string-append "umask 0077; echo \"" the-string "\" >" the-file))
-  (system (string-append "umask 0077; echo \"" the-string "\" >" the-file-10))
-  (system (string-append "umask 0077; echo \"" the-string "\" >" the-file-11))
-  (system (string-append "umask 0077; echo \"" the-string "\" >" the-file-2)))
+  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file))
+  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
+  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
+  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
 
 (define (clean-test-hierarchy)
   (system (string-append "rm -fr " the-root)))
 
 
 
-(parameterize ((testname 'working-directory))
+(parameterize ((testname	'working-directory)
+	       (debugging	#t))
 
-  (check
-      (let ((dirname '/))
-	(chdir dirname))
-    => 0)
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
 
-  (check
-      (let ((dirname '/usr/local/bin))
-	(chdir dirname))
-    => 0)
+	(check
+	    (let ((dirname '/))
+	      (chdir dirname))
+	  => 0)
 
-  (check
-      (let ((dirname '/scrappy/dappy/doo))
-	(guard (exc (else
-		     (list (errno-condition? exc)
-			   (condition-who exc)
-			   (errno-symbolic-value exc))))
-	  (chdir dirname)))
-    => '(#t primitive-chdir ENOENT))
+	(check
+	    (let ((dirname '/usr/local/bin))
+	      (chdir dirname))
+	  => 0)
 
-  (check
-      (let ((dirname '/usr/local/bin))
-	(chdir dirname)
-	(getcwd))
-    => "/usr/local/bin")
+	(check
+	    (let ((dirname '/scrappy/dappy/doo))
+	      (guard (exc (else
+			   (list (errno-condition? exc)
+				 (condition-who exc)
+				 (errno-symbolic-value exc))))
+		(chdir dirname)))
+	  => '(#t primitive-chdir ENOENT))
 
-  (check
-      (let ((dirname '/bin))
-	(chdir dirname)
-	(pwd))
-    => "/bin")
+	(check
+	    (let ((dirname '/usr/local/bin))
+	      (chdir dirname)
+	      (getcwd))
+	  => "/usr/local/bin")
 
-  )
+	(check
+	    (let ((dirname '/bin))
+	      (chdir dirname)
+	      (pwd))
+	  => "/bin")
+
+	))))
 
 
 
-(clean-test-hierarchy)
+(parameterize ((testname	'directory-access)
+	       (debugging	#t))
 
-(parameterize ((testname 'directory-access))
-
-  (with-compensations
-      (compensate
-	  (make-test-hierarchy)
-	(with
-	 (clean-test-hierarchy)))
-
-    (check
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
 	(with-compensations
-	  (let ((dir	(opendir/c the-root))
-		(layout	'()))
-	    (do ((entry (readdir dir) (readdir dir)))
-		((pointer-null? entry))
-	      (set! layout
-		    (cons (cstring->string (struct-dirent-d_name-ref entry))
-			  layout)))
-	    (list-sort string<? layout)))
-      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
 
-    (check
+	  (check
+	      (with-compensations
+		(let ((dir	(opendir/c the-root))
+		      (layout	'()))
+		  (do ((entry (readdir dir) (readdir dir)))
+		      ((pointer-null? entry))
+		    (set! layout
+			  (cons (cstring->string (struct-dirent-d_name-ref entry))
+				layout)))
+		  (list-sort string<? layout)))
+	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	  (check
+	      (with-compensations
+		(let ((dir	(opendir/c the-subdir-1))
+		      (layout	'()))
+		  (do ((entry (readdir dir) (readdir dir)))
+		      ((pointer-null? entry))
+		    (set! layout
+			  (cons (cstring->string (struct-dirent-d_name-ref entry))
+				layout)))
+		  (list-sort string<? layout)))
+	    => '("." ".." "name-10.ext" "name-11.ext"))
+
+	  (check
+	      (with-compensations
+		(let ((dir	(opendir/c the-subdir-3))
+		      (layout	'()))
+		  (do ((entry (readdir dir) (readdir dir)))
+		      ((pointer-null? entry))
+		    (set! layout
+			  (cons (cstring->string (struct-dirent-d_name-ref entry))
+				layout)))
+		  (list-sort string<? layout)))
+	    => '("." ".."))
+
+	  (check
+	      (list-sort string<? (directory-list the-root))
+	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	  (check
+	      (list-sort string<? (directory-list the-subdir-1))
+	    => '("." ".." "name-10.ext" "name-11.ext"))
+
+	  (check
+	      (list-sort string<? (directory-list the-subdir-3))
+	    => '("." ".."))
+
+	  ;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
+	  ;;compensation (weird but I have tested it, believe me!).
+	  (check
+	      (letrec ((fd (open the-root O_RDONLY 0)))
+		(list-sort string<? (directory-list/fd fd)))
+	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	  ;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
+	  ;;compensation (weird but I have tested it, believe me!).
+	  (when (number? O_NOATIME)
+	    (check
+		(with-compensations
+		  (letrec ((fd (open the-root O_RDONLY 0)))
+		    (list-sort string<? (directory-list/fd fd))))
+	      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
+
+	  (check
+	      (with-compensations
+		(let ((dir	(opendir/c the-root))
+		      (layout2	'())
+		      (layout1	'()))
+		  (do ((entry (readdir dir) (readdir dir)))
+		      ((pointer-null? entry))
+		    (set! layout1
+			  (cons (cstring->string (struct-dirent-d_name-ref entry))
+				layout1)))
+		  (rewinddir dir)
+		  (do ((entry (readdir dir) (readdir dir)))
+		      ((pointer-null? entry))
+		    (set! layout2
+			  (cons (cstring->string (struct-dirent-d_name-ref entry))
+				layout2)))
+		  (append (list-sort string<? layout1)
+			  (list-sort string<? layout2))))
+	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"
+		 "." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	  (check
+	      (with-compensations
+		(let ((dir	(opendir/c the-root))
+		      (layout	'()))
+		  (do ((entry (readdir dir) (readdir dir)))
+		      ((pointer-null? entry))
+		    (set! layout
+			  (cons (cons (cstring->string (struct-dirent-d_name-ref entry))
+				      (telldir entry))
+				layout)))
+		  (map car (list-sort (lambda (a b)
+					(string<? (car a) (car b)))
+				      layout))))
+	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	  )))))
+
+
+
+(parameterize ((testname	'links)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
 	(with-compensations
-	  (let ((dir	(opendir/c the-subdir-1))
-		(layout	'()))
-	    (do ((entry (readdir dir) (readdir dir)))
-		((pointer-null? entry))
-	      (set! layout
-		    (cons (cstring->string (struct-dirent-d_name-ref entry))
-			  layout)))
-	    (list-sort string<? layout)))
-      => '("." ".." "name-10.ext" "name-11.ext"))
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+	  (let ((the-other (string-join (list the-root "other.ext") "/")))
 
-    (check
-	(with-compensations
-	  (let ((dir	(opendir/c the-subdir-3))
-		(layout	'()))
-	    (do ((entry (readdir dir) (readdir dir)))
-		((pointer-null? entry))
-	      (set! layout
-		    (cons (cstring->string (struct-dirent-d_name-ref entry))
-			  layout)))
-	    (list-sort string<? layout)))
-      => '("." ".."))
+	    (check
+		(with-compensations
+		    (compensate
+			(link the-file the-other)
+		      (with
+		       (delete-file the-other)))
+		  (with-input-from-file the-other
+		    (lambda ()
+		      (get-string-all (current-input-port)))))
+	      => the-string)
 
-    (check
-	(list-sort string<? (directory-list the-root))
-      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+	    (check
+		(with-compensations
+		    (compensate
+			(symlink the-file the-other)
+		      (with
+		       (delete-file the-other)))
+		  (with-input-from-file the-other
+		    (lambda ()
+		      (get-string-all (current-input-port)))))
+	      => the-string)
 
-    (check
-	(list-sort string<? (directory-list the-subdir-1))
-      => '("." ".." "name-10.ext" "name-11.ext"))
+	    (check
+		(with-compensations
+		    (compensate
+			(symlink the-file the-other)
+		      (with
+		       (delete-file the-other)))
+		  (realpath the-other))
+	      => the-file)
 
-    (check
-	(list-sort string<? (directory-list the-subdir-3))
-      => '("." ".."))
+	    ))))))
 
-    (check
-	(letrec ((fd	(compensate
-			    (open the-root O_RDONLY 0)
-			  (with
-			   (close fd)))))
-	  (list-sort string<? (directory-list/fd fd)))
-      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
-
-    (when (number? O_NOATIME)
-      (check
-	  (letrec ((fd	(compensate
-			    (open the-root O_RDONLY 0)
-			  (with
-			   (close fd)))))
-	    (list-sort string<? (directory-list/fd fd)))
-	=> '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
-
-    (check
-	(with-compensations
-	  (let ((dir		(opendir/c the-root))
-		(layout2	'())
-		(layout1	'()))
-	    (do ((entry (readdir dir) (readdir dir)))
-		((pointer-null? entry))
-	      (set! layout1
-		    (cons (cstring->string (struct-dirent-d_name-ref entry))
-			  layout1)))
-	    (rewinddir dir)
-	    (do ((entry (readdir dir) (readdir dir)))
-		((pointer-null? entry))
-	      (set! layout2
-		    (cons (cstring->string (struct-dirent-d_name-ref entry))
-			  layout2)))
-	    (append (list-sort string<? layout1)
-		    (list-sort string<? layout2))))
-      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"
-	   "." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
-
-    (check
-	(with-compensations
-	  (let ((dir	(opendir/c the-root))
-		(layout	'()))
-	    (do ((entry (readdir dir) (readdir dir)))
-		((pointer-null? entry))
-	      (set! layout
-		    (cons (cons (cstring->string (struct-dirent-d_name-ref entry))
-				(telldir entry))
-			  layout)))
-	    (map car (list-sort (lambda (a b)
-				  (string<? (car a) (car b)))
-				layout))))
-      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
-
-    ))
-
-(clean-test-hierarchy)
 
 
 ;;;; done

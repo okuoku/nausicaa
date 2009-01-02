@@ -615,6 +615,8 @@ details.
 @menu
 * file working directory::      The working directory.
 * file directory access::       Accessing directory entries.
+* file links::                  Hard and symbolic links.
+* file remove::                 Removing files and directories.
 @end menu
 
 
@@ -702,6 +704,8 @@ Getter for the @code{d_name} field of a @code{struct dirent} type.
 
 
 @glibcref{Opening a Directory,Opening a directory stream}
+@glibcref{Reading/Closing Directory,Reading and closing a directory
+stream}
 
 
 @deffn Function opendir @var{pathname}
@@ -730,6 +734,25 @@ Like @func{opendir} and @func{fdopendir}, but push the appropriate call
 to @func{closedir} on the dynamic environment of the current
 compensation stack.  @urielref{lang compensations}
 @end defun
+
+
+@deffn Function closedir @var{stream}
+@deffnx Function primitive-closedir @var{stream}
+@deffnx Parameter primitive-closedir-function
+@deffnx Function platform-closedir @var{stream}
+Close the directory @var{stream} previously opened with @func{opendir}
+or @func{fdopendir}.
+
+@quotation
+@emph{Note:} Applying this function to a stream that was opened with
+@func{fdopendir}, closes the underlying file descriptor, too.  This is
+weird but I have tested it with @file{libc-2.5.so}, so believe me.
+
+This means that we have to avoid closing the file descriptor with
+@func{close} (as it is very obscurely written in the @gnu{} C Library
+documentation).
+@end quotation
+@end deffn
 
 
 @deffn Function dirfd @var{stream}
@@ -765,15 +788,6 @@ Usage examples:
 
 
 @glibcref{Reading/Closing Directory,Reading and closing a directory stream}
-
-
-@deffn Function closedir @var{stream}
-@deffnx Function primitive-closedir @var{stream}
-@deffnx Parameter primitive-closedir-function
-@deffnx Function platform-closedir @var{stream}
-Close the directory @var{stream} previously opened with @func{opendir}
-or @func{fdopendir}.
-@end deffn
 
 
 @deffn Function readdir @var{stream}
@@ -879,6 +893,50 @@ Seek to @var{position} the directory @var{stream} previously opened with
 @func{opendir} or @func{fdopendir}.  @var{position} must be a value
 previously returned by @func{telldir}.
 @end deffn
+
+
+@c page
+@node file links
+@section Hard and symbolic links
+
+
+@glibcref{Hard Links,Hard Links}
+@glibcref{Symbolic Links,Symbolic Links}
+
+
+@deffn Function link @var{oldname} @var{newname}
+@deffnx Function primitive-link @var{oldname} @var{newname}
+@deffnx Parameter primitive-link-function
+@deffnx Function platform-link @var{oldname} @var{newname}
+Link to the new name specified by the string or symbol @var{newname} the
+file selected by the string or symbol @var{oldname}.
+@end deffn
+
+
+@deffn Function symlink @var{oldname} @var{newname}
+@deffnx Function primitive-symlink @var{oldname} @var{newname}
+@deffnx Parameter primitive-symlink-function
+@deffnx Function platform-symlink @var{oldname} @var{newname}
+Link to the new name specified by the string or symbol @var{newname} the
+file selected by the string or symbol @var{oldname}.
+@end deffn
+
+
+@deffn Function realpath @var{pathname}
+@deffnx Function primitive-realpath @var{pathname}
+@deffnx Parameter primitive-realpath-function
+@deffnx Function platform-realpath @var{pathname}
+Return a string representing the real pathname of the symbolic link
+selected by the string or symbol @var{pathname}.
+@end deffn
+
+
+@c page
+@node file remove
+@section Removing files and directories
+
+
+@glibcref{Deleting Files,Deleting Files}
 
 
 @c page
@@ -1824,7 +1882,7 @@ Then the following implementations are possible:
              #f
              #f
              (lambda ()
-               (close in))))))
+               (close ou))))))
 @end example
 
 

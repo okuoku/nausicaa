@@ -67,6 +67,8 @@
 * GRZipII (compression library, )
 * ZZip/ZZlib (compression library, )
 
+* Oniguruma regex library (initially developed for Ruby).
+
 
 Big but maybe feasible extension candidates
 -------------------------------------------

@@ -50,6 +50,12 @@
     fdopendir/compensated	(rename (fdopendir/compensated fdopendir/c))
     directory-list	directory-list/fd
 
+    ;; links
+    link		primitive-link		primitive-link-function
+    symlink		primitive-symlink	primitive-symlink-function
+    readlink		primitive-readlink	primitive-readlink-function
+    realpath		primitive-realpath	primitive-realpath-function
+
     )
   (import (r6rs)
     (uriel lang)
@@ -260,6 +266,80 @@
 	(set! layout
 	      (cons (cstring->string (struct-dirent-d_name-ref entry))
 		    layout))))))
+
+
+
+;;;; links
+
+(define (real-primitive-link func funcname oldname newname)
+  (with-compensations
+    (receive (result errno)
+	(func (string->cstring/c oldname)
+	      (string->cstring/c newname))
+      (when (= -1 result)
+	(raise-errno-error funcname errno
+			   (list oldname newname)))
+      result)))
+
+(define (primitive-link oldname newname)
+  (real-primitive-link platform-link 'primitive-link
+		       oldname newname))
+
+(define (primitive-symlink oldname newname)
+  (real-primitive-link platform-symlink 'primitive-symlink
+		       oldname newname))
+
+(define (primitive-readlink pathname)
+  (with-compensations
+    (let ((c-pathname	(string->cstring/c pathname)))
+      (receive (size errno)
+	  (platform-readlink c-pathname pointer-null 0)
+	(when (= -1 size)
+	  (raise-errno-error 'primitive-readlink errno pathname))
+	(let ((buffer	(malloc-block/c size)))
+	  (receive (result errno)
+	      (platform-readlink c-pathname buffer size)
+	    (when (= -1 size)
+	      (raise-errno-error 'primitive-readlink errno pathname))
+	    (cstring->string/len buffer result)))))))
+
+(define (primitive-realpath pathname)
+  (with-compensations
+    (receive (buffer errno)
+	(platform-realpath (string->cstring/c pathname) pointer-null)
+      (when (pointer-null? buffer)
+	(raise-errno-error 'primitive-realpath errno pathname))
+      (begin0
+	  (cstring->string buffer)
+	(primitive-free buffer)))))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-link-function primitive-link)
+
+(define-primitive-parameter
+  primitive-symlink-function primitive-symlink)
+
+(define-primitive-parameter
+  primitive-readlink-function primitive-readlink)
+
+(define-primitive-parameter
+  primitive-realpath-function primitive-realpath)
+
+;;; --------------------------------------------------------------------
+
+(define (link oldname newname)
+  ((primitive-link-function) oldname newname))
+
+(define (symlink oldname newname)
+  ((primitive-symlink-function) oldname newname))
+
+(define (readlink pathname)
+  ((primitive-readlink-function) pathname))
+
+(define (realpath pathname)
+  ((primitive-realpath-function) pathname))
 
 
 

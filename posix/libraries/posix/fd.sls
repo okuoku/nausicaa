@@ -461,7 +461,7 @@
 	     (lambda (bv start count) (custom-textual-write ou bv start count))
 	     #f
 	     #f
-	     (lambda () (close in))))))
+	     (lambda () (close ou))))))
 
 
 
