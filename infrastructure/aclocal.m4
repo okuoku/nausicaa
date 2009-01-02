@@ -687,7 +687,7 @@ NAUSICAA_SETTER_TEST([$1],[$2])
 
 AC_DEFUN([NAUSICAA_GETTER_TEST],
   [NAUSICAA_OPTIONAL_TEST([GETTEROF_$1],
-     [NAUSICAA_DEFAULT_VALUE([GETTEROF_$1],[#f])
+     [NAUSICAA_DEFAULT_VALUE([getterof_$1],[#f])
       AC_CACHE_CHECK([getter for type '$2'],
         [nausicaa_cv_getterof_$1],
         [if   test "${TYPEOF_$1}" = signed-char ; then
@@ -727,7 +727,7 @@ AC_DEFUN([NAUSICAA_GETTER_TEST],
 
 AC_DEFUN([NAUSICAA_SETTER_TEST],
   [NAUSICAA_OPTIONAL_TEST([SETTEROF_$1],
-     [NAUSICAA_DEFAULT_VALUE([SETTEROF_$1],[#f])
+     [NAUSICAA_DEFAULT_VALUE([setterof_$1],[#f])
       AC_CACHE_CHECK([setter for type '$2'],
         [nausicaa_cv_setterof_$1],
         [if   test "${TYPEOF_$1}" = signed-char       ; then
