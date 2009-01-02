@@ -127,11 +127,14 @@
     (newline (current-error-port))))
 
 (define (debug-print-condition message exc)
-  (debug "~s ~s: ~s"
+  (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
 	 message
 	 (condition-who exc)
 	 (if (message-condition? exc)
 	     (condition-message exc)
+	   #f)
+	 (if (irritants-condition? exc)
+	     (condition-irritants exc)
 	   #f)))
 
 
