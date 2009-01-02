@@ -2,13 +2,12 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: tests for deferred exceptions
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-12-19 07:44:15 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -45,9 +44,10 @@
        (with-deferred-exceptions-handler
 	   (lambda (exc)
 	     (add-result -4))
-	 (add-result 1)
-	 (add-result 2)
-	 3))
+	 (lambda ()
+	   (add-result 1)
+	   (add-result 2)
+	   3)))
     => '(3 (1 2))))
 
 ;;;No error.  With DEFER-EXCEPTIONS.
@@ -56,12 +56,13 @@
      (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result -4))
-       (add-result 1)
-       (defer-exceptions
-	 (add-result 2)
-	 (add-result 3))
-       (add-result 4)
-       5))
+       (lambda ()
+	 (add-result 1)
+	 (defer-exceptions
+	   (add-result 2)
+	   (add-result 3))
+	 (add-result 4)
+	 5)))
   => '(5 (1 2 3 4)))
 
 ;;;No error.  With nested exception handler.
@@ -70,15 +71,16 @@
      (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result -2))
-       (with-exception-handler
-	   (lambda (exc)
-	     (add-result -1))
-	 (lambda ()
-	   (add-result 1)
-	   (defer-exceptions
-	     (add-result 2))
-	   (add-result 3)
-	   4))))
+       (lambda ()
+	 (with-exception-handler
+	     (lambda (exc)
+	       (add-result -1))
+	   (lambda ()
+	     (add-result 1)
+	     (defer-exceptions
+	       (add-result 2))
+	     (add-result 3)
+	     4)))))
   => '(4 (1 2 3)))
 
 ;;;Simple raise.
@@ -87,20 +89,19 @@
      (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result -2))
-       (guard (exc (else exc))
-	 (add-result 1)
-	 (defer-exceptions
-	   (add-result 2))
-	 (raise 'woppa)
-	 (add-result 3)
-	 4)))
+       (lambda ()
+	 (guard (exc (else exc))
+	   (add-result 1)
+	   (defer-exceptions
+	     (add-result 2))
+	   (raise 'woppa)
+	   (add-result 3)
+	   4))))
   => '(woppa (1 2)))
 
 
-
-;; ------------------------------------------------------------
-;; Deferred exception.
-;; ------------------------------------------------------------
+
+;;;; deferred exception
 
 ;;Deferred exception in the body.
 (check
@@ -109,13 +110,14 @@
 	 (lambda (exc)
 	   (add-result -2)
 	   (add-result exc))
-       (add-result 1)
-       (defer-exceptions
-	 (add-result 2)
-	 (raise 'woppa)
-	 (add-result 3))
-       (add-result 4)
-       5))
+       (lambda ()
+	 (add-result 1)
+	 (defer-exceptions
+	   (add-result 2)
+	   (raise 'woppa)
+	   (add-result 3))
+	 (add-result 4)
+	 5)))
   => '(5 (1 2 4 -2 woppa)))
 
 ;;More deferred exceptions in the body.
@@ -124,21 +126,22 @@
      (with-deferred-exceptions-handler
 	 (lambda (exc)
 	   (add-result exc))
-       (add-result 1)
-       (defer-exceptions
-	 (add-result 2)
-	 (raise 'woppa1)
-	 (add-result 3))
-       (defer-exceptions
-	 (add-result 4)
-	 (raise 'woppa2)
-	 (add-result 5))
-       (defer-exceptions
-	 (add-result 6)
-	 (raise 'woppa3)
-	 (add-result 7))
-       (add-result 8)
-       9))
+       (lambda ()
+	 (add-result 1)
+	 (defer-exceptions
+	   (add-result 2)
+	   (raise 'woppa1)
+	   (add-result 3))
+	 (defer-exceptions
+	   (add-result 4)
+	   (raise 'woppa2)
+	   (add-result 5))
+	 (defer-exceptions
+	   (add-result 6)
+	   (raise 'woppa3)
+	   (add-result 7))
+	 (add-result 8)
+	 9)))
   => '(9 (1 2 4 6 8 woppa3 woppa2 woppa1)))
 
 ;;Deferred exception and error, both in the body.
@@ -151,15 +154,16 @@
 	   (lambda (exc)
 	     (add-result -2)
 	     (add-result exc))
-	 (add-result 1)
-	 (defer-exceptions
-	   (add-result 2)
-	   (raise 'woppa)
-	   (add-result 3))
-	 (add-result 4)
-	 (raise 'ulla)
-	 (add-result 5)
-	 6)))
+	 (lambda ()
+	   (add-result 1)
+	   (defer-exceptions
+	     (add-result 2)
+	     (raise 'woppa)
+	     (add-result 3))
+	   (add-result 4)
+	   (raise 'ulla)
+	   (add-result 5)
+	   6))))
   => '(ulla (1 2 4 -2 woppa -3)))
 
 ;;Deferred exception in the exception handler.
@@ -172,26 +176,25 @@
 	   (lambda (exc)
 	     (add-result -8)
 	     (add-result exc))
-	 (with-exception-handler
-	     (lambda (exc)
-	       (add-result -4)
-	       (defer-exceptions
-		 (add-result -5)
-		 (raise 'woppa)
-		 (add-result -6))
-	       (add-result -7)
-	       (raise exc))
-	   (lambda ()
-	     (add-result 1)
-	     (raise 'ulla)
-	     (add-result 2)
-	     3)))))
+	 (lambda ()
+	   (with-exception-handler
+	       (lambda (exc)
+		 (add-result -4)
+		 (defer-exceptions
+		   (add-result -5)
+		   (raise 'woppa)
+		   (add-result -6))
+		 (add-result -7)
+		 (raise exc))
+	     (lambda ()
+	       (add-result 1)
+	       (raise 'ulla)
+	       (add-result 2)
+	       3))))))
   => '(ulla (1 -4 -5 -7 -8 woppa -9)))
 
-
-
 
-;;; Done.
+;;;; done
 
 
 (check-report)

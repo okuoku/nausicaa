@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2009-01-02 10:25:18 marco>
+;;;Time-stamp: <2009-01-02 13:13:57 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -35,7 +35,8 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function primitive-make-c-function/with-errno)
+    primitive-make-c-function primitive-make-c-function/with-errno
+    primitive-make-c-callback)
   (import (ikarus)
     (ikarus foreign))
 
@@ -121,6 +122,30 @@
 			  (apply f args)))
 	     (errval	(errno)))
 	(values retval errval)))))
+
+
+
+;;;; callbacks
+
+(define make-c-callback-maybe
+  (letrec ((signature-hash
+	    (lambda (obj)
+	      (let ((h (abs (apply + (map symbol-hash obj)))))
+		h)))
+	   (callout-table
+	    (make-hashtable signature-hash equal?)))
+    (lambda (spec)
+      (let* ((signature (map external->internal spec))
+	     (f (hashtable-ref callout-table signature #f)))
+	(or f (let* ((f (make-c-callout (car signature)
+					(if (equal? '(void) (cdr signature))
+					    '()
+					  (cdr signature)))))
+		(hashtable-set! callout-table signature f)
+		f))))))
+
+(define (primitive-make-c-callback scheme-function ret-type arg-types)
+  ((make-c-callout-maybe (cons ret-type arg-types)) scheme-function))
 
 
 

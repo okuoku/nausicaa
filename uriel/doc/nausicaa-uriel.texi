@@ -1046,13 +1046,14 @@ A form that uses deferred exceptions looks like this:
 (with-deferred-exceptions-handler
     (lambda (exc)
       (handle-the-exception exc))
-  (before-do-something)
-  (before-do-something)
-  (defer-exceptions
-    (do-something)
-    (do-something))
-  (after-do-something)
-  (after-do-something))
+  (lambda ()
+    (before-do-something)
+    (before-do-something)
+    (defer-exceptions
+      (do-something)
+      (do-something))
+    (after-do-something)
+    (after-do-something)))
 @end example
 
 @noindent
@@ -1082,11 +1083,10 @@ discarded.
 @end deffn
 
 
-@deffn Syntax with-deferred-exceptions-handler @var{handler} @var{form} ...
+@deffn Syntax with-deferred-exceptions-handler @var{handler} @var{thunk}
 Setup a deferred exception handler dynamic environment, in which
-@var{handler} is the exceptions handler, for the evaluation of the
-@var{form}s.  All the @var{form}s are evaluated as in the body of a
-@func{begin}.  If a deferred exception is raised
+@var{handler} is the exceptions handler, for the evaluation of
+@var{thunk}.  If a deferred exception is raised
 @func{run-deferred-exceptions-handler} is invoked.
 @end deffn
 

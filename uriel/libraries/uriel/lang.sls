@@ -6,7 +6,7 @@
 ;;;Abstract
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -140,7 +140,7 @@
   (make-parameter #f))
 
 (define (run-deferred-exceptions-handler)
-  (when (deferred-exceptions)
+  (unless (null? (deferred-exceptions))
     (for-each
 	(lambda (exc)
 	  (guard (exc (else #f))
@@ -158,12 +158,12 @@
 
 (define-syntax with-deferred-exceptions-handler
   (syntax-rules ()
-    ((_ ?handler ?form0 ?form ...)
+    ((_ ?handler ?thunk)
      (parameterize ((deferred-exceptions '())
 		    (deferred-exceptions-handler ?handler))
        (dynamic-wind
 	   (lambda () #f)
-	   (lambda () ?form0 ?form ...)
+	   ?thunk
 	   (lambda () (run-deferred-exceptions-handler)))))))
 
 
