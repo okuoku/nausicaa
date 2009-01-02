@@ -33,12 +33,6 @@
 
 (check-set-mode! 'report-failed)
 
-(define debugging #t)
-(define (debug . args)
-  (when debugging
-    (apply format (current-error-port) args)))
-
-
 
 ;;;; foreign functions
 

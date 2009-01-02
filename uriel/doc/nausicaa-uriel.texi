@@ -1521,9 +1521,9 @@ modifies the queue @var{list} then it must either maintain
 @chapter Writing test suites
 
 
-This chapter documents a wrapper for the @library{srfi
-lightweight-testing} library that adds the ability to select tests with
-appropriate values of environment variables.
+This chapter documents a wrapper for the @srfi{} lightweight testing
+library that adds the ability to select tests with appropriate values of
+environment variables.
 
 To load the library:
 
@@ -1533,8 +1533,21 @@ To load the library:
 @end example
 
 @noindent
-all the bindings from @library{srfi lightweight-testing} are exported by
-@library{uriel test}; @func{check} is redefined as described below.
+all the bindings from @library{check-lib} are exported by @library{uriel
+test}; @func{check} is redefined as described below.
+@library{check-lib} is installed by Nausicaa/@srfi{}.
+
+@menu
+* test result::                 Handling multiple results.
+* test eval::                   Evaluating forms.
+* test select::                 Selecting tests to be run.
+* test debug::                  Printing debug messages.
+@end menu
+
+
+@c page
+@node test result
+@section Handling multiple results
 
 
 @deffn Syntax with-result @var{form0} @var{form} ...
@@ -1559,6 +1572,11 @@ Return the current value of the implicit variable defined by
 @end defun
 
 
+@c page
+@node test eval
+@section Evaluating forms
+
+
 @deffn catch-exception @var{form0} @var{form} ...
 Evaluate all the @var{form}s as in @func{begin}.  If an exception is
 raised: catch it and return its value.
@@ -1577,10 +1595,10 @@ value as result.
 @end deffn
 
 
-@deffn check @var{expr} => @var{expected}
-@deffnx check @var{expr} (=> @var{equal}) @var{expected}
-@deffnx check @var{name} @var{expr} (=> @var{equal}) @var{expected}
-@deffnx check @var{name} @var{expr} => @var{expected}
+@deffn Syntax check @var{expr} => @var{expected}
+@deffnx Syntax check @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{name} @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{name} @var{expr} => @var{expected}
 A wrapper for @func{check} from @library{srfi lightweight-testing} that
 does, basically, the same thing.
 
@@ -1597,6 +1615,37 @@ The test name and the value of @env{name} do match if the value of
 @func{string-prefix?} and @func{string-suffix?} functions from
 @library{srfi strings}.
 @end deffn
+
+
+@c page
+@node test debug
+@section Printing debug messages
+
+
+@deffn Parameter debugging
+When set to true @func{debug} will print its message.  It is initialised
+to @false{}.
+@end deffn
+
+
+@defun debug @var{string}
+@defunx debug @var{format-string} @var{arg} ...
+If the @code{debugging} parameter is set to true, print @var{string} to
+the current error port, or hand @var{format-string} and the optional
+@var{arg} values to @func{format} and print the result to the current
+error port.
+@end defun
+
+
+@defun debug-print-condition @var{message} @var{exc}
+A wrapper for @func{debug} that prints @var{message} and does its best
+to print @var{exc}, which must be a Scheme condition value.
+@end defun
+
+
+@c page
+@node test select
+@section Selecting tests to be run
 
 
 @deffn Parameter testname

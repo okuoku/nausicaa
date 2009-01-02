@@ -2,13 +2,12 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: utilities for unit testing
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-12-31 10:22:48 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -34,7 +33,8 @@
     catch-exception false-if-exception
     check-for-true
     (rename (check-it check)) check-report check-ec check-set-mode!
-    testname)
+    testname
+    debug debugging debug-print-condition)
   (import (r6rs)
     (uriel lang)
     (check-lib)
@@ -114,6 +114,26 @@
        (when (check-activation)
 	 (check ?expr (=> ?equal) ?expected-result))))
     ))
+
+
+;;;; debugging
+
+(define debugging
+  (make-parameter #f))
+
+(define (debug . args)
+  (when (debugging)
+    (apply format (current-error-port) args)
+    (newline (current-error-port))))
+
+(define (debug-print-condition message exc)
+  (debug "~s ~s: ~s"
+	 message
+	 (condition-who exc)
+	 (if (message-condition? exc)
+	     (condition-message exc)
+	   #f)))
+
 
 
 ;;;; done
