@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;
-;;;Time-stamp: <2009-01-01 08:54:31 marco>
+;;;Time-stamp: <2009-01-02 10:23:01 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -237,6 +237,11 @@
 			       (map (lambda (m a)
 				      (m a)) mappers args))))))))))
 
+(define-syntax set-errno
+  (syntax-rules ()
+    ((_ ?value)
+     #f)))
+
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (receive (cast-func stub-func)
       (select-cast-and-stub (external->internal ret-type))
@@ -253,7 +258,9 @@
 	     ;;We  have  to  use  LET*  here to  enforce  the  order  of
 	     ;;evaluation: we want to gather the "errno" value AFTER the
 	     ;;foreign function call.
-	     (let* ((retval	(cast-func (stub-func f 0)))
+	     (let* ((retval	(begin
+				  (set-errno 0)
+				  (cast-func (stub-func f 0))))
 		    (errval	(shared-object-errno)))
 	       (values retval errval))))
 	  ((1)
@@ -262,7 +269,9 @@
 	       ;;We  have to  use  LET*  here to  enforce  the order  of
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
-	       (let* ((retval	(cast-func (stub-func f (mapper arg))))
+	       (let* ((retval	(begin
+				  (set-errno 0)
+				  (cast-func (stub-func f (mapper arg)))))
 		      (errval	(shared-object-errno)))
 		 (values retval errval)))))
 	  ((2)
@@ -272,9 +281,11 @@
 	       ;;We  have to  use  LET*  here to  enforce  the order  of
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
-	       (let* ((retval	(cast-func (stub-func f
+	       (let* ((retval	(begin
+				  (set-errno 0)
+				  (cast-func (stub-func f
 						      (mapper1 arg1)
-						      (mapper2 arg2))))
+						      (mapper2 arg2)))))
 		      (errval	(shared-object-errno)))
 		 (values retval errval)))))
 	  ((3)
@@ -285,10 +296,12 @@
 	       ;;We  have to  use  LET*  here to  enforce  the order  of
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
-	       (let* ((retval	(cast-func (stub-func f
-						      (mapper1 arg1)
-						      (mapper2 arg2)
-						      (mapper3 arg3))))
+	       (let* ((retval	(begin
+				  (set-errno 0)
+				  (cast-func (stub-func f
+							(mapper1 arg1)
+							(mapper2 arg2)
+							(mapper3 arg3)))))
 		      (errval	(shared-object-errno)))
 		 (values retval errval)))))
 	  ((4)
@@ -300,11 +313,13 @@
 	       ;;We  have to  use  LET*  here to  enforce  the order  of
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
-	       (let* ((retval	(cast-func (stub-func f
-						      (mapper1 arg1)
-						      (mapper2 arg2)
-						      (mapper3 arg3)
-						      (mapper4 arg4))))
+	       (let* ((retval	(begin
+				  (set-errno 0)
+				  (cast-func (stub-func f
+							(mapper1 arg1)
+							(mapper2 arg2)
+							(mapper3 arg3)
+							(mapper4 arg4)))))
 		      (errval	(shared-object-errno)))
 		 (values retval errval)))))
 	  (else
@@ -316,12 +331,14 @@
 	     ;;We  have  to  use  LET*  here to  enforce  the  order  of
 	     ;;evaluation: we want to gather the "errno" value AFTER the
 	     ;;foreign function call.
-	     (let* ((retval	(cast-func
-				 (apply stub-func f
-					(map (lambda (m a)
-					       (m a)) mappers args))))
+	     (let* ((retval	(begin
+				  (set-errno 0)
+				  (cast-func
+				   (apply stub-func f
+					  (map (lambda (m a)
+						 (m a)) mappers args)))))
 		    (errval	(shared-object-errno)))
-		    (values retval errval)))))))))
+	       (values retval errval)))))))))
 
 
 

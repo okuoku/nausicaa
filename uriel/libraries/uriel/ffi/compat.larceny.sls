@@ -92,6 +92,11 @@
     ((_)
      (syscall 47))))
 
+(define-syntax set-errno
+  (syntax-rules ()
+    ((_ ?value)
+     (syscall 48 ?value))))
+
 (define (primitive-make-c-function ret-type funcname arg-types)
   (foreign-procedure (symbol->string/maybe funcname)
 		     (if (equal? '(void) arg-types)
@@ -105,7 +110,9 @@
       ;;We have to use LET* here  to enforce the order of evaluation: we
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
       ;;call.
-      (let* ((retval	(apply f args))
+      (let* ((retval	(begin
+			  (set-errno 0)
+			  (apply f args)))
 	     (errval	(get-errno)))
 	(values retval errval)))))
 

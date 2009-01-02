@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2009-01-01 08:47:52 marco>
+;;;Time-stamp: <2009-01-02 10:25:18 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -105,13 +105,20 @@
       (error 'primitive-make-c-function (dlerror) funcname))
     ((make-c-callout-maybe (cons ret-type arg-types)) f)))
 
+(define-syntax set-errno
+  (syntax-rules ()
+    ((_ ?value)
+     #f)))
+
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
     (lambda args
       ;;We have to use LET* here  to enforce the order of evaluation: we
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
       ;;call.
-      (let* ((retval	(apply f args))
+      (let* ((retval	(begin
+			  (set-errno 0)
+			  (apply f args)))
 	     (errval	(errno)))
 	(values retval errval)))))
 

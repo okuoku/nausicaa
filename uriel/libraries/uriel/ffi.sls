@@ -7,7 +7,7 @@
 ;;;
 ;;;	This is the core of the "(uriel ffi)" library.
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -40,9 +40,11 @@
 
     ;;foreign struct accessors
     define-c-struct-accessors
-    define-c-struct-getter		define-c-struct-setter)
+    define-c-struct-getter		define-c-struct-setter
+    define-c-struct-field-pointer-getter)
 
   (import (r6rs)
+    (uriel memory)
     (uriel ffi compat))
 
 
@@ -150,6 +152,14 @@
        (syntax-rules ()
 	 ((_ struct-pointer value)
 	  (?foreign-type-setter struct-pointer ?field-offset value)))))))
+
+(define-syntax define-c-struct-field-pointer-getter
+  (syntax-rules ()
+    ((_ ?getter-name ?field-offset)
+     (define-syntax ?getter-name
+       (syntax-rules ()
+	 ((_ struct-pointer)
+	  (pointer-add struct-pointer ?field-offset)))))))
 
 
 
