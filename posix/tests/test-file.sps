@@ -27,7 +27,8 @@
 
 ;;;; setup
 
-(import (except (r6rs) read write)
+(import (except (r6rs)
+		read write remove)
   (uriel lang)
   (uriel foreign)
   (only (string-lib) string-join)
@@ -310,6 +311,61 @@ Ses ailes de geant l'empechent de marcher.")
 
 	    ))))))
 
+
+
+
+(parameterize ((testname	'remove)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (check
+	      (begin
+		(unlink the-file)
+		(file-exists? the-file))
+	    => #f)
+
+	  (check
+	      (begin
+		(remove the-file-2)
+		(file-exists? the-file-2))
+	    => #f)
+
+	  (check
+	      (begin
+		(rmdir the-subdir-3)
+		(file-exists? the-subdir-3))
+	    => #f)
+
+	  (check
+	      (guard (exc (else
+			   (list (condition-who exc)
+				 (errno-condition? exc)
+				 (errno-symbolic-value exc))))
+		(rmdir the-subdir-1))
+	    => '(primitive-rmdir #t ENOTEMPTY))
+
+	  (check
+	      (begin
+		(unlink the-file-10)
+		(unlink the-file-11)
+		(rmdir the-subdir-1)
+		(file-exists? the-subdir-1))
+	    => #f)
+
+
+	  )))))
 
 
 ;;;; done

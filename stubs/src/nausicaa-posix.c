@@ -2,7 +2,6 @@
    Part of: Nausicaa/Stubs
    Contents: POSIX stub
    Date: Fri Dec 19, 2008
-   Time-stamp: <2008-12-22 16:11:11 marco>
 
    Abstract
 
@@ -10,7 +9,7 @@
 	meant to be compiled in  a C shared library and used
 	by the Nausicaa/POSIX Scheme library.
 
-   Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+   Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 
    This program  is free  software: you can  redistribute it
    and/or  modify it  under  the terms  of  the GNU  General
@@ -42,6 +41,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <sys/times.h>
+#include <sys/stat.h>
 
 extern int nausicaa_posix_wifexited	(int status);
 extern int nausicaa_posix_wexitstatus	(int status);
@@ -53,6 +53,13 @@ extern int nausicaa_posix_wstopsig	(int status);
 
 extern double nausicaa_posix_clock	(void);
 extern double nausicaa_posix_times	(double * tms);
+
+extern int nausicaa_posix_stat	(const char * pathname,
+				 struct stat * buf);
+extern int nausicaa_posix_fstat	(int filedes,
+				 struct stat * buf);
+extern int nausicaa_posix_lstat	(const char * pathname,
+				 struct stat * buf);
 
 
 
@@ -118,6 +125,32 @@ nausicaa_posix_times (double * tms)
   tms[2] = t.tms_cutime;
   tms[3] = t.tms_cstime;
   return (double)result;
+}
+
+
+/** ------------------------------------------------------------
+ ** Stat functions.
+ ** ----------------------------------------------------------*/
+
+/* It is  a misfortune that  stubs functions are  needed but
+   invoking "dlsym()"  on the stat functions  fails with all
+   the Scheme  implementations.  If someone  has a solution:
+   email me!!! */
+
+int
+nausicaa_posix_stat (const char * pathname, struct stat * buf)
+{
+  return stat(pathname, buf);
+}
+int
+nausicaa_posix_fstat (int filedes, struct stat * buf)
+{
+  return fstat(filedes, buf);
+}
+int
+nausicaa_posix_lstat (const char * pathname, struct stat * buf)
+{
+  return lstat(pathname, buf);
 }
 
 

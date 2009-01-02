@@ -47,14 +47,13 @@
     platform-realpath
     platform-unlink
     platform-rmdir
+    platform-remove
     platform-rename
     platform-mkdir
-;;     platform-stat
-;;     platform-fstat
-;;     platform-lstat
     platform-chown
     platform-fchown
     platform-umask
+;;; This is a GNU extension.
 ;;    platform-getumask
     platform-chmod
     platform-fchmod
@@ -135,20 +134,14 @@
 (define-c-function/with-errno platform-rmdir
   (int rmdir (char*)))
 
+(define-c-function/with-errno platform-remove
+  (int remove (char*)))
+
 (define-c-function/with-errno platform-rename
   (int rename (char* char*)))
 
 (define-c-function/with-errno platform-mkdir
   (int mkdir (char* mode_t)))
-
-;; (define-c-function/with-errno platform-fstat
-;;   (int fstat (int pointer)))
-
-;; (define-c-function/with-errno platform-lstat
-;;   (int lstat (int pointer)))
-
-;; (define-c-function/with-errno platform-stat
-;;   (int stat (char* pointer)))
 
 (define-c-function/with-errno platform-chown
   (int chown (char* uid_t gid_t)))
@@ -159,6 +152,7 @@
 (define-c-function/with-errno platform-umask
   (mode_t umask (mode_t)))
 
+;;; This is a GNU extension.
 ;; (define-c-function/with-errno platform-getumask
 ;;   (int getumask (void)))
 

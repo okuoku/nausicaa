@@ -617,6 +617,7 @@ details.
 * file directory access::       Accessing directory entries.
 * file links::                  Hard and symbolic links.
 * file remove::                 Removing files and directories.
+* file rename::                 Renaming files and directories.
 @end menu
 
 
@@ -937,6 +938,39 @@ selected by the string or symbol @var{pathname}.
 
 
 @glibcref{Deleting Files,Deleting Files}
+
+
+@deffn Function unlink @var{pathname}
+@deffnx Function primitive-unlink @var{pathname}
+@deffnx Parameter primitive-unlink-function
+@deffnx Function platform-unlink @var{pathname}
+Remove the file selected by the string or symbol @var{pathname}.
+@end deffn
+
+
+@deffn Function remove @var{pathname}
+@deffnx Function primitive-remove @var{pathname}
+@deffnx Parameter primitive-remove-function
+@deffnx Function platform-remove @var{pathname}
+Remove the file selected by the string or symbol @var{pathname}.
+@end deffn
+
+
+@deffn Function rmdir @var{pathname}
+@deffnx Function primitive-rmdir @var{pathname}
+@deffnx Parameter primitive-rmdir-function
+@deffnx Function platform-rmdir @var{pathname}
+Remove the directory selected by the string or symbol @var{pathname}.
+The directory has to be empty.
+@end deffn
+
+
+@c page
+@node file rename
+@section Renaming files and directories
+
+
+@glibcref{Renaming Files,Renaming Files}
 
 
 @c page

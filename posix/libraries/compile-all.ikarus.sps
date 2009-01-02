@@ -27,6 +27,7 @@
   (only (posix environment))
   (only (posix time))
   (only (posix file))
+  (only (posix file stat))
   (only (posix fd))
   (only (posix job))
   (only (posix process))

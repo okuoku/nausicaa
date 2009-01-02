@@ -40,8 +40,10 @@ NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
 
+dnl These work!!!
 AC_CHECK_FUNC([stat])
-
+AC_CHECK_FUNC([lstat])
+AC_CHECK_FUNC([fstat])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -80,12 +82,16 @@ dnl --------------------------------------------------------------------
 dnl Inspection: typedefs.
 dnl --------------------------------------------------------------------
 
+NAU_POSIX_INSPECT_TYPE([BLKCNT_T],[blkcnt_t],[unsigned-int])
 NAU_POSIX_INSPECT_TYPE([CLOCK_T],[clock_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([DEV_T],[dev_t],[signed-int])
 NAU_POSIX_INSPECT_TYPE([GID_T],[gid_t],[signed-int])
 NAU_POSIX_INSPECT_TYPE([INO_T],[ino_t],[unsigned-int])
-NAU_POSIX_INSPECT_TYPE([MODE_T],[mode_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([MODE_T],[mode_t],[unsigned-int])
+NAU_POSIX_INSPECT_TYPE([NLINK_T],[nlink_t],[unsigned-int])
 NAU_POSIX_INSPECT_TYPE([OFF_T],[off_t],[unsigned-int])
 NAU_POSIX_INSPECT_TYPE([PID_T],[pid_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([TIME_T],[time_t],[signed-int])
 NAU_POSIX_INSPECT_TYPE([UID_T],[uid_t],[signed-int])
 
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_FLOCK],[struct flock])
@@ -106,9 +112,26 @@ NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMESPEC_TV_NSEC],[struct timespec],[tv_nse
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_DIRENT],[struct dirent])
 NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_DIRENT_D_NAME],[struct dirent],[d_name])
 
+dnl Note that the "time_usec" and "st_dev" fields are not detected on my
+dnl platform.
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_STAT],[struct stat])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_MODE],[struct stat],[st_mode],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_INO],[struct stat],[st_ino],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_DEV],[struct stat],[st_dev],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_NLINK],[struct stat],[st_nlink],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_UID],[struct stat],[st_uid],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_GID],[struct stat],[st_gid],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_SIZE],[struct stat],[st_size],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_ATIME],[struct stat],[st_atime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_ATIME_USEC],[struct stat],[st_atime_usec],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_MTIME],[struct stat],[st_mtime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_MTIME_USEC],[struct stat],[st_mtime_usec],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_CTIME],[struct stat],[st_mtime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_CTIME_USEC],[struct stat],[st_ctime_usec],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_BLOCKS],[struct stat],[st_blocks],[unsigned-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_BLKSIZE],[struct stat],[st_blksize],[unsigned-int])
 
 AC_CACHE_SAVE
-
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -130,7 +153,6 @@ NAU_POSIX_VALUEOF_TEST([O_EXLOCK])
 NAU_POSIX_VALUEOF_TEST([O_FSYNC])
 NAU_POSIX_VALUEOF_TEST([O_IGNORE_CTTY])
 NAU_POSIX_VALUEOF_TEST([O_NDELAY])
-NAU_POSIX_VALUEOF_TEST([O_NOATIME])
 NAU_POSIX_VALUEOF_TEST([O_NOCTTY])
 NAU_POSIX_VALUEOF_TEST([O_NOLINK])
 NAU_POSIX_VALUEOF_TEST([O_NONBLOCK])
@@ -171,6 +193,11 @@ NAU_POSIX_VALUEOF_TEST([F_WRLCK])
 NAU_POSIX_VALUEOF_TEST([WNOHANG])
 NAU_POSIX_VALUEOF_TEST([WUNTRACED])
 NAU_POSIX_VALUEOF_TEST([WCONTINUED])
+
+NAU_POSIX_VALUEOF_TEST([R_OK])
+NAU_POSIX_VALUEOF_TEST([W_OK])
+NAU_POSIX_VALUEOF_TEST([X_OK])
+NAU_POSIX_VALUEOF_TEST([F_OK])
 
 NAU_POSIX_VALUEOF_TEST([L_ctermid])
 

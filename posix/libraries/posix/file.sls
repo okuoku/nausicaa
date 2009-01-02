@@ -56,8 +56,12 @@
     readlink		primitive-readlink	primitive-readlink-function
     realpath		primitive-realpath	primitive-realpath-function
 
+    ;; removing
+    unlink		primitive-unlink	primitive-unlink-function
+    rmdir		primitive-rmdir		primitive-rmdir-function
+    remove		primitive-remove	primitive-remove-function
     )
-  (import (r6rs)
+  (import (except (r6rs) remove)
     (uriel lang)
     (uriel foreign)
     (posix sizeof)
@@ -306,7 +310,8 @@
 (define (primitive-realpath pathname)
   (with-compensations
     (receive (buffer errno)
-	(platform-realpath (string->cstring/c pathname) pointer-null)
+	(platform-realpath (string->cstring/c pathname)
+			   pointer-null)
       (when (pointer-null? buffer)
 	(raise-errno-error 'primitive-realpath errno pathname))
       (begin0
@@ -340,6 +345,56 @@
 
 (define (realpath pathname)
   ((primitive-realpath-function) pathname))
+
+
+
+;;;; removing
+
+(define (primitive-unlink pathname)
+  (with-compensations
+    (receive (result errno)
+	(platform-unlink (string->cstring/c pathname))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-unlink errno pathname))
+      result)))
+
+(define (primitive-remove pathname)
+  (with-compensations
+    (receive (result errno)
+	(platform-remove (string->cstring/c pathname))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-remove errno pathname))
+      result)))
+
+(define (primitive-rmdir pathname)
+  (with-compensations
+    (receive (result errno)
+	(platform-rmdir (string->cstring/c pathname))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-rmdir errno pathname))
+      result)))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-unlink-function primitive-unlink)
+
+(define-primitive-parameter
+  primitive-remove-function primitive-remove)
+
+(define-primitive-parameter
+  primitive-rmdir-function primitive-rmdir)
+
+;;; --------------------------------------------------------------------
+
+(define (unlink pathname)
+  ((primitive-unlink-function) pathname))
+
+(define (remove pathname)
+  ((primitive-remove-function) pathname))
+
+(define (rmdir pathname)
+  ((primitive-rmdir-function) pathname))
 
 
 

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -59,14 +59,8 @@
 	(raise-errno-error 'primitive-clock errno)
       result)))
 
-(define primitive-clock-function
-  (make-parameter primitive-clock
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-clock-function
-	  "expected procedure as value for the PRIMITIVE-CLOCK-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-clock-function primitive-clock)
 
 (define (clock)
   ((primitive-clock-function)))
@@ -97,14 +91,8 @@
 				   (peek-array-double p 2)
 				   (peek-array-double p 3))))))))
 
-(define primitive-times-function
-  (make-parameter primitive-times
-    (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-times-function
-	  "expected procedure as value for the PRIMITIVE-TIMES-FUNCTION parameter"
-	  func))
-      func)))
+(define-primitive-parameter
+  primitive-times-function primitive-times)
 
 (define (times)
   ((primitive-times-function)))

@@ -32,6 +32,9 @@
 (compile-library "posix/file/platform.sls"
 		 "posix/file/platform.larceny.slfasl")
 
+(compile-library "posix/file/stat.sls"
+		 "posix/file/stat.larceny.slfasl")
+
 (compile-library "posix/file.sls"
 		 "posix/file.larceny.slfasl")
 

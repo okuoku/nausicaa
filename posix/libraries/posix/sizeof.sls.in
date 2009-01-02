@@ -31,19 +31,24 @@
     define-primitive-parameter
 
     ;; types
+    blkcnt_t		pointer-set-c-blkcnt_t!	pointer-ref-c-blkcnt_t
     clock_t		pointer-set-c-clock_t!	pointer-ref-c-clock_t
+    dev_t		pointer-set-c-dev_t!	pointer-ref-c-dev_t
     gid_t		pointer-set-c-gid_t!	pointer-ref-c-gid_t
     ino_t		pointer-set-c-ino_t!	pointer-ref-c-ino_t
     mode_t		pointer-set-c-mode_t!	pointer-ref-c-mode_t
+    nlink_t		pointer-set-c-nlink_t!	pointer-ref-c-nlink_t
     off_t		pointer-set-c-off_t!	pointer-ref-c-off_t
     pid_t		pointer-set-c-pid_t!	pointer-ref-c-pid_t
+    time_t		pointer-set-c-time_t!	pointer-ref-c-time_t
     uid_t		pointer-set-c-uid_t!	pointer-ref-c-uid_t
 
     ;; structures
-    sizeof-struct-flock alignof-struct-flock strideof-struct-flock
-    sizeof-struct-timeval alignof-struct-timeval strideof-struct-timeval
-    sizeof-struct-timespec alignof-struct-timespec strideof-struct-timespec
     sizeof-struct-dirent alignof-struct-dirent strideof-struct-dirent
+    sizeof-struct-flock alignof-struct-flock strideof-struct-flock
+    sizeof-struct-stat alignof-struct-stat strideof-struct-stat
+    sizeof-struct-timespec alignof-struct-timespec strideof-struct-timespec
+    sizeof-struct-timeval alignof-struct-timeval strideof-struct-timeval
 
     ;; constants
     O_ACCMODE		O_CREAT		O_EXCL
@@ -65,6 +70,8 @@
 
     F_RDLCK		F_WRLCK		F_UNLCK
 
+    R_OK		W_OK		X_OK		F_OK
+
     SEEK_SET		SEEK_CUR	SEEK_END
     WNOHANG		WUNTRACED	WCONTINUED
     L_ctermid		CLOCKS_PER_SEC
@@ -78,10 +85,27 @@
 
     struct-timeval-tv_sec-set!		struct-timeval-tv_sec-ref
     struct-timeval-tv_usec-set!		struct-timeval-tv_usec-ref
+
     struct-timespec-tv_sec-set!		struct-timespec-tv_sec-ref
     struct-timespec-tv_nsec-set!	struct-timespec-tv_nsec-ref
 
     struct-dirent-d_name-ref
+
+    struct-stat-st_mode-set!		struct-stat-st_mode-ref
+    struct-stat-st_ino-set!		struct-stat-st_ino-ref
+    struct-stat-st_dev-set!		struct-stat-st_dev-ref
+    struct-stat-st_nlink-set!		struct-stat-st_nlink-ref
+    struct-stat-st_uid-set!		struct-stat-st_uid-ref
+    struct-stat-st_gid-set!		struct-stat-st_gid-ref
+    struct-stat-st_size-set!		struct-stat-st_size-ref
+    struct-stat-st_atime-set!		struct-stat-st_atime-ref
+    struct-stat-st_atime_usec-set!	struct-stat-st_atime_usec-ref
+    struct-stat-st_mtime-set!		struct-stat-st_mtime-ref
+    struct-stat-st_mtime_usec-set!	struct-stat-st_mtime_usec-ref
+    struct-stat-st_ctime-set!		struct-stat-st_ctime-ref
+    struct-stat-st_ctime_usec-set!	struct-stat-st_ctime_usec-ref
+    struct-stat-st_blocks-set!		struct-stat-st_blocks-ref
+    struct-stat-st_blksize-set!		struct-stat-st_blksize-ref
     )
   (import (rnrs)
     (uriel lang)
@@ -107,9 +131,17 @@
 
 ;;;; basic type definitions
 
-(define uid_t				(quote @TYPEOF_UID_T@))
-(define pointer-set-c-uid_t!		@SETTEROF_UID_T@)
-(define pointer-ref-c-uid_t		@GETTEROF_UID_T@)
+(define blkcnt_t			(quote @TYPEOF_BLKCNT_T@))
+(define pointer-set-c-blkcnt_t!		@SETTEROF_BLKCNT_T@)
+(define pointer-ref-c-blkcnt_t		@GETTEROF_BLKCNT_T@)
+
+(define clock_t				(quote @TYPEOF_CLOCK_T@))
+(define pointer-set-c-clock_t!		@SETTEROF_CLOCK_T@)
+(define pointer-ref-c-clock_t		@GETTEROF_CLOCK_T@)
+
+(define dev_t				(quote @TYPEOF_DEV_T@))
+(define pointer-set-c-dev_t!		@SETTEROF_DEV_T@)
+(define pointer-ref-c-dev_t		@GETTEROF_DEV_T@)
 
 (define gid_t				(quote @TYPEOF_GID_T@))
 (define pointer-set-c-gid_t!		@SETTEROF_GID_T@)
@@ -123,17 +155,25 @@
 (define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
 (define pointer-ref-c-mode_t		@GETTEROF_MODE_T@)
 
-(define pid_t				(quote @TYPEOF_PID_T@))
-(define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
-(define pointer-ref-c-pid_t		@GETTEROF_PID_T@)
+(define nlink_t				(quote @TYPEOF_NLINK_T@))
+(define pointer-set-c-nlink_t!		@SETTEROF_NLINK_T@)
+(define pointer-ref-c-nlink_t		@GETTEROF_NLINK_T@)
 
 (define off_t				(quote @TYPEOF_OFF_T@))
 (define pointer-set-c-off_t!		@SETTEROF_OFF_T@)
 (define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
 
-(define clock_t				(quote @TYPEOF_CLOCK_T@))
-(define pointer-set-c-clock_t!		@SETTEROF_CLOCK_T@)
-(define pointer-ref-c-clock_t		@GETTEROF_CLOCK_T@)
+(define pid_t				(quote @TYPEOF_PID_T@))
+(define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
+(define pointer-ref-c-pid_t		@GETTEROF_PID_T@)
+
+(define time_t				(quote @TYPEOF_TIME_T@))
+(define pointer-set-c-time_t!		@SETTEROF_TIME_T@)
+(define pointer-ref-c-time_t		@GETTEROF_TIME_T@)
+
+(define uid_t				(quote @TYPEOF_UID_T@))
+(define pointer-set-c-uid_t!		@SETTEROF_UID_T@)
+(define pointer-ref-c-uid_t		@GETTEROF_UID_T@)
 
 
 
@@ -154,6 +194,10 @@
 (define sizeof-struct-dirent		@SIZEOF_STRUCT_DIRENT@)
 (define alignof-struct-dirent		@ALIGNOF_STRUCT_DIRENT@)
 (define strideof-struct-dirent		@STRIDEOF_STRUCT_DIRENT@)
+
+(define sizeof-struct-stat		@SIZEOF_STRUCT_STAT@)
+(define alignof-struct-stat		@ALIGNOF_STRUCT_STAT@)
+(define strideof-struct-stat		@STRIDEOF_STRUCT_STAT@)
 
 
 
@@ -199,6 +243,11 @@
 (define F_RDLCK			@VALUEOF_F_RDLCK@)
 (define F_WRLCK			@VALUEOF_F_WRLCK@)
 (define F_UNLCK			@VALUEOF_F_UNLCK@)
+
+(define R_OK			@VALUEOF_R_OK@)
+(define W_OK			@VALUEOF_W_OK@)
+(define X_OK			@VALUEOF_X_OK@)
+(define F_OK			@VALUEOF_F_OK@)
 
 (define SEEK_SET		@VALUEOF_SEEK_SET@)
 (define SEEK_CUR		@VALUEOF_SEEK_CUR@)
@@ -251,6 +300,8 @@
   @SETTEROF_STRUCT_FLOCK_L_PID@
   @GETTEROF_STRUCT_FLOCK_L_PID@)
 
+;;; --------------------------------------------------------------------
+
 (define-c-struct-accessors
   struct-timeval-tv_sec-set!
   struct-timeval-tv_sec-ref
@@ -264,6 +315,8 @@
   @OFFSETOF_STRUCT_TIMEVAL_TV_USEC@
   @SETTEROF_STRUCT_TIMEVAL_TV_USEC@
   @GETTEROF_STRUCT_TIMEVAL_TV_USEC@)
+
+;;; --------------------------------------------------------------------
 
 (define-c-struct-accessors
   struct-timespec-tv_sec-set!
@@ -279,9 +332,118 @@
   @SETTEROF_STRUCT_TIMESPEC_TV_NSEC@
   @GETTEROF_STRUCT_TIMESPEC_TV_NSEC@)
 
+;;; --------------------------------------------------------------------
+
 (define-c-struct-field-pointer-getter
   struct-dirent-d_name-ref
   @OFFSETOF_STRUCT_DIRENT_D_NAME@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessors
+  struct-stat-st_mode-set!
+  struct-stat-st_mode-ref
+  @OFFSETOF_STRUCT_STAT_ST_MODE@
+  @SETTEROF_STRUCT_STAT_ST_MODE@
+  @GETTEROF_STRUCT_STAT_ST_MODE@)
+
+(define-c-struct-accessors
+  struct-stat-st_ino-set!
+  struct-stat-st_ino-ref
+  @OFFSETOF_STRUCT_STAT_ST_INO@
+  @SETTEROF_STRUCT_STAT_ST_INO@
+  @GETTEROF_STRUCT_STAT_ST_INO@)
+
+(define-c-struct-accessors
+  struct-stat-st_dev-set!
+  struct-stat-st_dev-ref
+  @OFFSETOF_STRUCT_STAT_ST_DEV@
+  @SETTEROF_STRUCT_STAT_ST_DEV@
+  @GETTEROF_STRUCT_STAT_ST_DEV@)
+
+(define-c-struct-accessors
+  struct-stat-st_nlink-set!
+  struct-stat-st_nlink-ref
+  @OFFSETOF_STRUCT_STAT_ST_NLINK@
+  @SETTEROF_STRUCT_STAT_ST_NLINK@
+  @GETTEROF_STRUCT_STAT_ST_NLINK@)
+
+(define-c-struct-accessors
+  struct-stat-st_uid-set!
+  struct-stat-st_uid-ref
+  @OFFSETOF_STRUCT_STAT_ST_UID@
+  @SETTEROF_STRUCT_STAT_ST_UID@
+  @GETTEROF_STRUCT_STAT_ST_UID@)
+
+(define-c-struct-accessors
+  struct-stat-st_gid-set!
+  struct-stat-st_gid-ref
+  @OFFSETOF_STRUCT_STAT_ST_GID@
+  @SETTEROF_STRUCT_STAT_ST_GID@
+  @GETTEROF_STRUCT_STAT_ST_GID@)
+
+(define-c-struct-accessors
+  struct-stat-st_size-set!
+  struct-stat-st_size-ref
+  @OFFSETOF_STRUCT_STAT_ST_SIZE@
+  @SETTEROF_STRUCT_STAT_ST_SIZE@
+  @GETTEROF_STRUCT_STAT_ST_SIZE@)
+
+(define-c-struct-accessors
+  struct-stat-st_atime-set!
+  struct-stat-st_atime-ref
+  @OFFSETOF_STRUCT_STAT_ST_ATIME@
+  @SETTEROF_STRUCT_STAT_ST_ATIME@
+  @GETTEROF_STRUCT_STAT_ST_ATIME@)
+
+(define-c-struct-accessors
+  struct-stat-st_atime_usec-set!
+  struct-stat-st_atime_usec-ref
+  @OFFSETOF_STRUCT_STAT_ST_ATIME_USEC@
+  @SETTEROF_STRUCT_STAT_ST_ATIME_USEC@
+  @GETTEROF_STRUCT_STAT_ST_ATIME_USEC@)
+
+(define-c-struct-accessors
+  struct-stat-st_mtime-set!
+  struct-stat-st_mtime-ref
+  @OFFSETOF_STRUCT_STAT_ST_MTIME@
+  @SETTEROF_STRUCT_STAT_ST_MTIME@
+  @GETTEROF_STRUCT_STAT_ST_MTIME@)
+
+(define-c-struct-accessors
+  struct-stat-st_mtime_usec-set!
+  struct-stat-st_mtime_usec-ref
+  @OFFSETOF_STRUCT_STAT_ST_MTIME_USEC@
+  @SETTEROF_STRUCT_STAT_ST_MTIME_USEC@
+  @GETTEROF_STRUCT_STAT_ST_MTIME_USEC@)
+
+(define-c-struct-accessors
+  struct-stat-st_ctime-set!
+  struct-stat-st_ctime-ref
+  @OFFSETOF_STRUCT_STAT_ST_CTIME@
+  @SETTEROF_STRUCT_STAT_ST_CTIME@
+  @GETTEROF_STRUCT_STAT_ST_CTIME@)
+
+(define-c-struct-accessors
+  struct-stat-st_ctime_usec-set!
+  struct-stat-st_ctime_usec-ref
+  @OFFSETOF_STRUCT_STAT_ST_CTIME_USEC@
+  @SETTEROF_STRUCT_STAT_ST_CTIME_USEC@
+  @GETTEROF_STRUCT_STAT_ST_CTIME_USEC@)
+
+(define-c-struct-accessors
+  struct-stat-st_blocks-set!
+  struct-stat-st_blocks-ref
+  @OFFSETOF_STRUCT_STAT_ST_BLOCKS@
+  @SETTEROF_STRUCT_STAT_ST_BLOCKS@
+  @GETTEROF_STRUCT_STAT_ST_BLOCKS@)
+
+(define-c-struct-accessors
+  struct-stat-st_blksize-set!
+  struct-stat-st_blksize-ref
+  @OFFSETOF_STRUCT_STAT_ST_BLKSIZE@
+  @SETTEROF_STRUCT_STAT_ST_BLKSIZE@
+  @GETTEROF_STRUCT_STAT_ST_BLKSIZE@)
 
 
 
