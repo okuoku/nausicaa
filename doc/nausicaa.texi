@@ -1723,14 +1723,14 @@ NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{struct-typedef}.@var{field-name})
 @end deffn
 
 
-@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_STRUCT_TYPE (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{headers})
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE_POINTER (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{headers})
 Perform an inspection for a C language field structure type definition,
-which is itself a structure.  This macro is required when we need to
-access a structure which is embedded in another structure.
+but only to acquire the offset.  This macro is required when we need to
+access a structure field through a pointer to it; an example is the
+@code{d_name} field of @code{struct dirent} from @file{dirent.h}.
 
 Only the offset of the field (output variable
-@code{OFFSETOF_<@var{SUFFIX}>}) and the pointer getter (output variable
-@code{GETTEROF_<@var{SUFFIX}>}) are defined.
+@code{OFFSETOF_<@var{SUFFIX}>}) is defined.
 @end deffn
 
 

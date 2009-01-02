@@ -13,7 +13,7 @@ dnl     Full  documentation  for the  macros  in  this  file is  in  the
 dnl   Nausicaa general documentation, under the "doc" directory of the
 dnl   top source tree.
 dnl
-dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -783,6 +783,15 @@ AC_DEFUN([NAUSICAA_INSPECT_TYPE],
    NAUSICAA_ACCESSORS_TEST([$1],[$2])])
 
 dnl 1 variable-suffix
+dnl 2 typedef
+dnl 3 default-value
+dnl 4 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_STRUCT_TYPE],
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[$3],[$4])
+   NAUSICAA_ALIGNOF_TEST([$1],[$2],[$3],[$4])
+   NAUSICAA_STRIDEOF_TEST([$1],[$2],[$3],[$4])])
+
+dnl 1 variable-suffix
 dnl 2 struct-typedef
 dnl 3 field-name
 dnl 4 type-guess
@@ -795,23 +804,12 @@ AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE],
    NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])])
 
 dnl 1 variable-suffix
-dnl 2 typedef
-dnl 3 default-value
-dnl 4 optional-headers
-AC_DEFUN([NAUSICAA_INSPECT_STRUCT_TYPE],
-  [NAUSICAA_SIZEOF_TEST([$1],[$2],[$3],[$4])
-   NAUSICAA_ALIGNOF_TEST([$1],[$2],[$3],[$4])
-   NAUSICAA_STRIDEOF_TEST([$1],[$2],[$3],[$4])])
-
-dnl 1 variable-suffix
 dnl 2 struct-typedef
 dnl 3 field-name
 dnl 4 optional-headers
-AC_DEFUN([NAUSICAA_INSPECT_FIELD_STRUCT_TYPE],
-  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$4])
-   TYPEOF_$1=pointer
-   AC_SUBST([TYPEOF_$1])
-   NAUSICAA_GETTER_TEST([$1],[$2.$3])])
+AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE_POINTER],
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$4])])
+
 
 dnl page
 dnl --------------------------------------------------------------------
