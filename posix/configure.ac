@@ -2,13 +2,12 @@ dnl
 dnl Part of: Nausicaa/POSIX
 dnl Contents: configuration file template
 dnl Date: Fri Dec  5, 2008
-dnl Time-stamp: <2008-12-23 08:19:23 marco>
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it under the terms of the GNU General Public
@@ -41,6 +40,8 @@ NAUSICAA_SYSTEM_SETUP
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
 
+AC_CHECK_FUNC([stat])
+
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -51,6 +52,8 @@ m4_define([NAU_POSIX_INCLUDES],[
 #include <fcntl.h>
 #include <time.h>
 #include <sys/times.h>
+#include <sys/stat.h>
+#include <dirent.h>
 ])
 
 AC_DEFUN([NAU_POSIX_VALUEOF_TEST],
@@ -65,6 +68,9 @@ AC_DEFUN([NAU_POSIX_INSPECT_TYPE],
 AC_DEFUN([NAU_POSIX_INSPECT_FIELD_TYPE],
   [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_POSIX_INCLUDES])])
 
+AC_DEFUN([NAU_POSIX_INSPECT_FIELD_TYPE_POINTER],
+  [NAUSICAA_INSPECT_FIELD_TYPE_POINTER([$1],[$2],[$3],[NAU_POSIX_INCLUDES])])
+
 AC_DEFUN([NAU_POSIX_INSPECT_STRUCT_TYPE],
    [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[NAU_POSIX_INCLUDES])])
 
@@ -74,25 +80,31 @@ dnl --------------------------------------------------------------------
 dnl Inspection: typedefs.
 dnl --------------------------------------------------------------------
 
-NAU_POSIX_INSPECT_TYPE([MODE_T],[mode_t],[signed-int])
-NAU_POSIX_INSPECT_TYPE([PID_T],[pid_t],[signed-int])
-NAU_POSIX_INSPECT_TYPE([OFF_T],[off_t],[unsigned-int])
 NAU_POSIX_INSPECT_TYPE([CLOCK_T],[clock_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([GID_T],[gid_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([INO_T],[ino_t],[unsigned-int])
+NAU_POSIX_INSPECT_TYPE([MODE_T],[mode_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([OFF_T],[off_t],[unsigned-int])
+NAU_POSIX_INSPECT_TYPE([PID_T],[pid_t],[signed-int])
+NAU_POSIX_INSPECT_TYPE([UID_T],[uid_t],[signed-int])
 
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_FLOCK],[struct flock])
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_TYPE],[struct flock],[l_type],[signed-int],,)
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_TYPE],[struct flock],[l_type],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_WHENCE],[struct flock],[l_whence],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_START],[struct flock],[l_start],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_LEN],[struct flock],[l_len],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_FLOCK_L_PID],[struct flock],[l_pid],[signed-int])
 
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TIMEVAL],[struct timeval])
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEVAL_TV_SEC],[struct timeval],[tv_sec],[signed-int],,)
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEVAL_TV_USEC],[struct timeval],[tv_usec],[signed-int],,)
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEVAL_TV_SEC],[struct timeval],[tv_sec],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEVAL_TV_USEC],[struct timeval],[tv_usec],[signed-int])
 
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TIMESPEC],[struct timespec])
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMESPEC_TV_SEC],[struct timespec],[tv_sec],[signed-int],,)
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMESPEC_TV_NSEC],[struct timespec],[tv_nsec],[signed-int],,)
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMESPEC_TV_SEC],[struct timespec],[tv_sec],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMESPEC_TV_NSEC],[struct timespec],[tv_nsec],[signed-int])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_DIRENT],[struct dirent])
+NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_DIRENT_D_NAME],[struct dirent],[d_name])
 
 
 AC_CACHE_SAVE
@@ -131,6 +143,9 @@ NAU_POSIX_VALUEOF_TEST([O_SYNC])
 NAU_POSIX_VALUEOF_TEST([O_TRUNC])
 NAU_POSIX_VALUEOF_TEST([O_WRITE])
 NAU_POSIX_VALUEOF_TEST([O_WRONLY])
+
+dnl This is GNU specific.
+NAU_POSIX_VALUEOF_TEST([O_NOATIME])
 
 NAU_POSIX_VALUEOF_TEST([FD_CLOEXEC])
 

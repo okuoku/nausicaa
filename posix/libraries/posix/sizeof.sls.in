@@ -31,15 +31,19 @@
     define-primitive-parameter
 
     ;; types
+    clock_t		pointer-set-c-clock_t!	pointer-ref-c-clock_t
+    gid_t		pointer-set-c-gid_t!	pointer-ref-c-gid_t
+    ino_t		pointer-set-c-ino_t!	pointer-ref-c-ino_t
     mode_t		pointer-set-c-mode_t!	pointer-ref-c-mode_t
     off_t		pointer-set-c-off_t!	pointer-ref-c-off_t
     pid_t		pointer-set-c-pid_t!	pointer-ref-c-pid_t
-    clock_t		pointer-set-c-clock_t!	pointer-ref-c-clock_t
+    uid_t		pointer-set-c-uid_t!	pointer-ref-c-uid_t
 
     ;; structures
     sizeof-struct-flock alignof-struct-flock strideof-struct-flock
     sizeof-struct-timeval alignof-struct-timeval strideof-struct-timeval
     sizeof-struct-timespec alignof-struct-timespec strideof-struct-timespec
+    sizeof-struct-dirent alignof-struct-dirent strideof-struct-dirent
 
     ;; constants
     O_ACCMODE		O_CREAT		O_EXCL
@@ -49,6 +53,8 @@
     O_READ		O_SHLOCK	O_TRUNC
     O_WRITE		O_WRONLY	O_APPEND
     O_NDELAY
+
+    O_NOATIME
 
     F_DUPFD		F_GETFD		F_GETFL
     F_GETLK		F_GETOWN	F_SETFD
@@ -75,6 +81,7 @@
     struct-timespec-tv_sec-set!		struct-timespec-tv_sec-ref
     struct-timespec-tv_nsec-set!	struct-timespec-tv_nsec-ref
 
+    struct-dirent-d_name-ref
     )
   (import (rnrs)
     (uriel lang)
@@ -99,6 +106,18 @@
 
 
 ;;;; basic type definitions
+
+(define uid_t				(quote @TYPEOF_UID_T@))
+(define pointer-set-c-uid_t!		@SETTEROF_UID_T@)
+(define pointer-ref-c-uid_t		@GETTEROF_UID_T@)
+
+(define gid_t				(quote @TYPEOF_GID_T@))
+(define pointer-set-c-gid_t!		@SETTEROF_GID_T@)
+(define pointer-ref-c-gid_t		@GETTEROF_GID_T@)
+
+(define ino_t				(quote @TYPEOF_INO_T@))
+(define pointer-set-c-ino_t!		@SETTEROF_INO_T@)
+(define pointer-ref-c-ino_t		@GETTEROF_INO_T@)
 
 (define mode_t				(quote @TYPEOF_MODE_T@))
 (define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
@@ -131,6 +150,10 @@
 (define sizeof-struct-timespec		@SIZEOF_STRUCT_TIMESPEC@)
 (define alignof-struct-timespec		@ALIGNOF_STRUCT_TIMESPEC@)
 (define strideof-struct-timespec	@STRIDEOF_STRUCT_TIMESPEC@)
+
+(define sizeof-struct-dirent		@SIZEOF_STRUCT_DIRENT@)
+(define alignof-struct-dirent		@ALIGNOF_STRUCT_DIRENT@)
+(define strideof-struct-dirent		@STRIDEOF_STRUCT_DIRENT@)
 
 
 
@@ -255,6 +278,11 @@
   @OFFSETOF_STRUCT_TIMESPEC_TV_NSEC@
   @SETTEROF_STRUCT_TIMESPEC_TV_NSEC@
   @GETTEROF_STRUCT_TIMESPEC_TV_NSEC@)
+
+(define-c-struct-field-pointer-getter
+  struct-dirent-d_name-ref
+  @OFFSETOF_STRUCT_DIRENT_D_NAME@)
+
 
 
 ;;;; done

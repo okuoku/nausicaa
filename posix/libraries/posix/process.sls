@@ -40,6 +40,7 @@
     execv	primitive-execv		primitive-execv-function
     execve	primitive-execve	primitive-execve-function
     execvp	primitive-execvp	primitive-execvp-function
+    system	primitive-system	primitive-system-function
 
     ;; waiting
     waitpid	primitive-waitpid	primitive-waitpid-function
@@ -111,6 +112,14 @@
 	(raise-errno-error 'primitive-execvp errno
 			   (list pathname args))))))
 
+(define (primitive-system command)
+  (with-compensations
+    (receive (result errno)
+	(platform-system (string->cstring/c command))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-system errno command))
+      result)))
+
 (define-primitive-parameter
   primitive-execv-function primitive-execv)
 
@@ -120,6 +129,9 @@
 (define-primitive-parameter
   primitive-execvp-function primitive-execvp)
 
+(define-primitive-parameter
+  primitive-system-function primitive-system)
+
 (define (execv pathname args)
   ((primitive-execv-function) pathname args))
 
@@ -128,6 +140,9 @@
 
 (define (execvp pathname args)
   ((primitive-execvp-function) pathname args))
+
+(define (system command)
+  ((primitive-system-function) command))
 
 
 

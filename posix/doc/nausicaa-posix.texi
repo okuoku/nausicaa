@@ -613,12 +613,13 @@ details.
 
 
 @menu
-* working directory::           The working directory.
+* file working directory::      The working directory.
+* file directory access::       Accessing directory entries.
 @end menu
 
 
 @c page
-@node working directory
+@node file working directory
 @section The working directory
 
 
@@ -657,6 +658,227 @@ descriptor @var{fd}.
 @end deffn
 
 
+@c page
+@node file directory access
+@section Accessing directory entries
+
+
+@glibcref{Accessing Directories,Accessing Directories}
+
+
+@menu
+* file directory access types:: Type definitions.
+* file directory access open::  Accessing a directory stream.
+* file directory access read::  Reading a directory stream.
+* file directory access seek::  Random access to a directory stream.
+@end menu
+
+
+@c page
+@node file directory access types
+@subsection Type definitions
+
+
+The following bindings are exported from @library{posix sizeof}.
+
+@glibcref{Directory Entries,Format of a directory entry}
+
+
+@defvar sizeof-struct-dirent
+@defvarx alignof-struct-dirent
+@defvarx strideof-struct-dirent
+Size, alignment and array stride of @code{struct dirent} types.
+@end defvar
+
+
+@deffn Syntax struct-dirent-d_name-ref @var{pointer}
+Getter for the @code{d_name} field of a @code{struct dirent} type.
+@end deffn
+
+
+@c page
+@node file directory access open
+@subsection Accessing a directory stream
+
+
+@glibcref{Opening a Directory,Opening a directory stream}
+
+
+@deffn Function opendir @var{pathname}
+@deffnx Function primitive-opendir @var{pathname}
+@deffnx Parameter primitive-opendir-function
+@deffnx Function platform-opendir @var{pathname}
+Open and return a stream associated to the directory selected by the
+string or symbol @var{pathname}.
+@end deffn
+
+
+@deffn Function fdopendir @var{fd}
+@deffnx Function primitive-fdopendir @var{fd}
+@deffnx Parameter primitive-fdopendir-function
+@deffnx Function platform-fdopendir @var{fd}
+Open and return a stream associated to the directory selected by the
+file descriptor @var{fd}.
+@end deffn
+
+
+@defun opendir/compensated @var{pathname}
+@defunx fdopendir/compensated @var{fd}
+@defunx opendir/c @var{pathname}
+@defunx fdopendir/c @var{fd}
+Like @func{opendir} and @func{fdopendir}, but push the appropriate call
+to @func{closedir} on the dynamic environment of the current
+compensation stack.  @urielref{lang compensations}
+@end defun
+
+
+@deffn Function dirfd @var{stream}
+@deffnx Function primitive-dirfd @var{stream}
+@deffnx Parameter primitive-dirfd-function
+@deffnx Function platform-dirfd @var{stream}
+Return the file descriptor associated to the directory @var{stream}
+previously opened with @func{opendir} or @func{fdopendir}.
+@end deffn
+
+
+Usage examples:
+
+@example
+(let ((stream #f))
+  (dynamic-wind
+    (lambda ()
+      (set! stream (opendir "/home/marco/share/sounds")))
+    (lambda ()
+      ---)
+    (lambda ()
+      (closedir stream))))
+
+(with-compensations
+  (let ((stream (opendir "/home/marco/share/sounds")))
+    ---))
+@end example
+
+
+@c page
+@node file directory access read
+@subsection Reading a directory stream
+
+
+@glibcref{Reading/Closing Directory,Reading and closing a directory stream}
+
+
+@deffn Function closedir @var{stream}
+@deffnx Function primitive-closedir @var{stream}
+@deffnx Parameter primitive-closedir-function
+@deffnx Function platform-closedir @var{stream}
+Close the directory @var{stream} previously opened with @func{opendir}
+or @func{fdopendir}.
+@end deffn
+
+
+@deffn Function readdir @var{stream}
+@deffnx Function primitive-readdir @var{stream}
+@deffnx Parameter primitive-readdir-function
+@deffnx Function platform-readdir @var{stream}
+Return a pointer to a statically allocated @code{struct dirent}
+describing the next entry from the directory @var{stream}, previously
+opened with @func{opendir} or @func{fdopendir}.
+
+Notice that the returned strings are the names of the entries relative
+to the uplevel directory.  No slash and no directory part are in there.
+@end deffn
+
+
+@defun directory-list @var{pathname}
+@defunx directory-list/fd @var{fd}
+High level functions that open the directory selected by the string or
+symbol @var{pathname} or file descriptor @var{fd}, read all the entries
+and return a list of string holding the entry names.
+@end defun
+
+
+As a usage example for the low level function, let's see how
+@func{directory-list} is implemented:
+
+@example
+(define (directory-list pathname)
+  (with-compensations
+    (let ((dir    (opendir/compensated pathname))
+          (layout '()))
+      (do ((entry (readdir dir) (readdir dir)))
+          ((pointer-null? entry)
+           layout)
+        (set! layout
+              (cons (cstring->string
+                     (struct-dirent-d_name-ref entry))
+                    layout))))))
+@end example
+
+@noindent
+to read a directory and sort the entries:
+
+@example
+(list-sort string<? (directory-list "/home/marco"))
+@end example
+
+@noindent
+to read a directory using the file descriptor and the @gnu{} flag
+@code{O_NOATIME}:
+
+@example
+(with-compensations
+  (letrec ((fd (compensate
+                   (open the-root
+                         (if (number? O_NOATIME)
+                             (bitwise-ior O_RDONLY
+                                          O_NOATIME)
+                           O_RDONLY)
+                         0)
+                 (with
+                  (close fd)))))
+    (directory-list/fd fd)))
+@end example
+
+
+@c page
+@node file directory access seek
+@subsection Random access to a directory stream
+
+
+For the following bindings: the @code{platform-} functions return a
+@strong{single} value, they do not use @code{errno} to signal errors.
+
+
+@deffn Function rewinddir @var{stream}
+@deffnx Function primitive-rewinddir @var{stream}
+@deffnx Parameter primitive-rewinddir-function
+@deffnx Function platform-rewinddir @var{stream}
+Rewind the directory @var{stream} previously opened with @func{opendir}
+or @func{fdopendir}.
+@end deffn
+
+
+@deffn Function telldir @var{stream}
+@deffnx Function primitive-telldir @var{stream}
+@deffnx Parameter primitive-telldir-function
+@deffnx Function platform-telldir @var{stream}
+Return an exact integer representing the current position in the
+directory @var{stream} previously opened with @func{opendir} or
+@func{fdopendir}.
+
+Notice that returned values look like arbitrary integers, they do not
+follow a predictable sequence.
+@end deffn
+
+
+@deffn Function seekdir @var{stream} @var{position}
+@deffnx Function primitive-seekdir @var{stream} @var{position}
+@deffnx Parameter primitive-seekdir-function
+@deffnx Function platform-seekdir @var{stream} @var{position}
+Seek to @var{position} the directory @var{stream} previously opened with
+@func{opendir} or @func{fdopendir}.  @var{position} must be a value
+previously returned by @func{telldir}.
+@end deffn
 
 
 @c page
@@ -1764,6 +1986,14 @@ error handling path:
 These functions are like the @func{execv} ones, except that
 @var{pathname} can be the name of a file that is searched in the current
 @env{PATH} search path.
+@end deffn
+
+
+@deffn Function system @var{command}
+@deffnx Function primitive-system @var{command}
+@deffnx Parameter primitive-system-function
+@deffnx Function platform-system @var{command}
+Run @var{command} using the system shell.
 @end deffn
 
 

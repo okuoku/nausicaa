@@ -31,10 +31,24 @@
   (export
 
     ;; working directory
-    getcwd	primitive-getcwd	primitive-getcwd-function
-    chdir	primitive-chdir		primitive-chdir-function
-    fchdir	primitive-fchdir	primitive-fchdir-function
+    getcwd		primitive-getcwd	primitive-getcwd-function
+    chdir		primitive-chdir		primitive-chdir-function
+    fchdir		primitive-fchdir	primitive-fchdir-function
     (rename (getcwd pwd))
+
+    ;; directory access
+    opendir		primitive-opendir	primitive-opendir-function
+    fdopendir		primitive-fdopendir	primitive-fdopendir-function
+    dirfd		primitive-dirfd		primitive-dirfd-function
+    closedir		primitive-closedir	primitive-closedir-function
+    readdir		primitive-readdir	primitive-readdir-function
+    rewinddir		primitive-rewinddir	primitive-rewinddir-function
+    telldir		primitive-telldir	primitive-telldir-function
+    seekdir		primitive-seekdir	primitive-seekdir-function
+
+    opendir/compensated		(rename (opendir/compensated opendir/c))
+    fdopendir/compensated	(rename (fdopendir/compensated fdopendir/c))
+    directory-list	directory-list/fd
 
     )
   (import (r6rs)
@@ -81,6 +95,8 @@
       (raise-errno-error 'primitive-fchdir errno fd))
     result))
 
+;;; --------------------------------------------------------------------
+
 (define-primitive-parameter
   primitive-getcwd-function primitive-getcwd)
 
@@ -89,6 +105,8 @@
 
 (define-primitive-parameter
   primitive-fchdir-function primitive-fchdir)
+
+;;; --------------------------------------------------------------------
 
 (define (getcwd)
   ((primitive-getcwd-function)))
@@ -101,13 +119,147 @@
 
 
 
-;;;; done
+;;;; directory access
 
-)
+(define (primitive-opendir pathname)
+  (with-compensations
+    (receive (result errno)
+	(platform-opendir (string->cstring/c pathname))
+      (when (pointer-null? result)
+	(raise-errno-error 'primitive-opendir errno pathname))
+      result)))
 
-;;; end of file
+(define (primitive-fdopendir fd)
+  (receive (result errno)
+      (platform-fdopendir fd)
+    (when (pointer-null? result)
+      (raise-errno-error 'primitive-fdopendir errno fd))
+    result))
 
+(define (primitive-dirfd stream)
+  (receive (result errno)
+      (platform-dirfd stream)
+    (when (= -1 result)
+      (raise-errno-error 'primitive-dirfd errno stream))
+    result))
 
+(define (primitive-closedir stream)
+  (receive (result errno)
+      (platform-closedir stream)
+    (when (= -1 result)
+      (raise-errno-error 'primitive-closedir errno stream))
+    result))
+
+(define (primitive-readdir stream)
+  (receive (result errno)
+      (platform-readdir stream)
+    ;;Here  we assume  that errno  is  set to  zero by  PLATFORM-READDIR
+    ;;before the call to the foreign function.
+;;;FIXME  temporarily commented out  waiting for  Ikarus and  Ypsilon to
+;;;provide an "errno" setter.
+;;     (when (and (pointer-null? result)
+;; 	       (not (= 0 errno)))
+;;       (raise-errno-error 'primitive-readdir errno stream))
+    result))
+
+(define (primitive-rewinddir stream)
+  (platform-rewinddir stream))
+
+(define (primitive-telldir stream)
+  (platform-telldir stream))
+
+(define (primitive-seekdir stream position)
+  (platform-seekdir stream position))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-opendir-function primitive-opendir)
+
+(define-primitive-parameter
+  primitive-fdopendir-function primitive-fdopendir)
+
+(define-primitive-parameter
+  primitive-dirfd-function primitive-dirfd)
+
+(define-primitive-parameter
+  primitive-closedir-function primitive-closedir)
+
+(define-primitive-parameter
+  primitive-readdir-function primitive-readdir)
+
+(define-primitive-parameter
+  primitive-rewinddir-function primitive-rewinddir)
+
+(define-primitive-parameter
+  primitive-telldir-function primitive-telldir)
+
+(define-primitive-parameter
+  primitive-seekdir-function primitive-seekdir)
+
+;;; --------------------------------------------------------------------
+
+(define (opendir pathname)
+  ((primitive-opendir-function) pathname))
+
+(define (fdopendir fd)
+  ((primitive-fdopendir-function) fd))
+
+(define (dirfd stream)
+  ((primitive-dirfd-function) stream))
+
+(define (closedir stream)
+  ((primitive-closedir-function) stream))
+
+(define (readdir stream)
+  ((primitive-readdir-function) stream))
+
+(define (rewinddir stream)
+  ((primitive-rewinddir-function) stream))
+
+(define (telldir stream)
+  ((primitive-telldir-function) stream))
+
+(define (seekdir stream position)
+  ((primitive-seekdir-function) stream position))
+
+;;; --------------------------------------------------------------------
+
+(define (opendir/compensated pathname)
+  (letrec ((stream (compensate
+		       (opendir pathname)
+		     (with
+		      (closedir stream)))))
+    stream))
+
+(define (fdopendir/compensated fd)
+  (letrec ((stream (compensate
+		       (fdopendir fd)
+		     (with
+		      (closedir stream)))))
+    stream))
+
+(define (directory-list pathname)
+  (with-compensations
+    (let ((dir		(opendir/compensated pathname))
+	  (layout	'()))
+      (do ((entry (readdir dir) (readdir dir)))
+	  ((pointer-null? entry)
+	   layout)
+	(set! layout
+	      (cons (cstring->string (struct-dirent-d_name-ref entry))
+		    layout))))))
+
+(define (directory-list/fd fd)
+  (with-compensations
+    (let ((dir		(fdopendir/compensated fd))
+	  (layout	'()))
+      (do ((entry (readdir dir) (readdir dir)))
+	  ((pointer-null? entry)
+	   layout)
+	(set! layout
+	      (cons (cstring->string (struct-dirent-d_name-ref entry))
+		    layout))))))
 
 
 

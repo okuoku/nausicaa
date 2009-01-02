@@ -35,6 +35,7 @@
     platform-execv
     platform-execve
     platform-execvp
+    platform-system
     platform-waitpid)
   (import (r6rs)
     (uriel lang)
@@ -61,6 +62,9 @@
 
 (define-c-function/with-errno platform-execvp
   (int execvp (char* pointer)))
+
+(define-c-function/with-errno platform-system
+  (int system (char*)))
 
 (define-c-function/with-errno platform-waitpid
   (pid_t waitpid (pid_t pointer int)))

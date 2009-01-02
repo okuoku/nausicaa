@@ -29,7 +29,7 @@
 
 (library (posix file platform)
   (export
-    platform-getcwd
+     platform-getcwd
     platform-chdir
     platform-fchdir
     platform-opendir
@@ -49,13 +49,13 @@
     platform-rmdir
     platform-rename
     platform-mkdir
-    platform-stat
-    platform-fstat
-    platform-lstat
+;;     platform-stat
+;;     platform-fstat
+;;     platform-lstat
     platform-chown
     platform-fchown
     platform-umask
-    platform-getumask
+;;    platform-getumask
     platform-chmod
     platform-fchmod
     platform-access
@@ -64,7 +64,7 @@
     platform-lutimes
     platform-futimes
     platform-ftruncate
-    platform-mknod
+;;    platform-mknod
     platform-tmpfile
     platform-tempnam
     platform-mktemp
@@ -74,7 +74,8 @@
     (uriel foreign)
     (posix sizeof))
 
-  (define d (shared-object self-shared-object))
+  (define d
+    (shared-object self-shared-object))
 
 
 
@@ -104,13 +105,13 @@
 (define-c-function/with-errno platform-closedir
   (int closedir (pointer)))
 
-(define-c-function/with-errno platform-rewinddir
+(define-c-function platform-rewinddir
   (void rewinddir (pointer)))
 
-(define-c-function/with-errno platform-telldir
+(define-c-function platform-telldir
   (long telldir (pointer)))
 
-(define-c-function/with-errno platform-seekdir
+(define-c-function platform-seekdir
   (void seekdir (pointer long)))
 
 (define-c-function/with-errno platform-scandir
@@ -140,14 +141,14 @@
 (define-c-function/with-errno platform-mkdir
   (int mkdir (char* mode_t)))
 
-(define-c-function/with-errno platform-stat
-  (int stat (char* pointer)))
+;; (define-c-function/with-errno platform-fstat
+;;   (int fstat (int pointer)))
 
-(define-c-function/with-errno platform-fstat
-  (int fstat (int pointer)))
+;; (define-c-function/with-errno platform-lstat
+;;   (int lstat (int pointer)))
 
-(define-c-function/with-errno platform-lstat
-  (int lstat (int pointer)))
+;; (define-c-function/with-errno platform-stat
+;;   (int stat (char* pointer)))
 
 (define-c-function/with-errno platform-chown
   (int chown (char* uid_t gid_t)))
@@ -158,8 +159,8 @@
 (define-c-function/with-errno platform-umask
   (mode_t umask (mode_t)))
 
-(define-c-function/with-errno platform-getumask
-  (int getumask (void)))
+;; (define-c-function/with-errno platform-getumask
+;;   (int getumask (void)))
 
 (define-c-function/with-errno platform-chmod
   (int chmod (char* mode_t)))
@@ -185,8 +186,8 @@
 (define-c-function/with-errno platform-ftruncate
   (int ftruncate (int off_t)))
 
-(define-c-function/with-errno platform-mknod
-  (int mknod (char* int int)))
+;; (define-c-function/with-errno platform-mknod
+;;   (int mknod (char* int int)))
 
 (define-c-function/with-errno platform-tmpfile
   (FILE* tmpfile (void)))

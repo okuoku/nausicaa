@@ -31,8 +31,7 @@
   (uriel lang)
   (uriel test)
   (uriel foreign)
-  (posix environment)
-  (posix working-directory))
+  (posix environment))
 
 (check-set-mode! 'report-failed)
 
@@ -54,51 +53,6 @@
     => "pasta")
 
   )
-
-
-
-(parameterize ((testname 'chdir))
-  (check
-      (let ((dirname '/))
-	(chdir dirname))
-    => 0)
-
-  (check
-      (let ((dirname '/usr/local/bin))
-	(chdir dirname))
-    => 0)
-
-;;;This guard is needed because  Larceny-5880 does not support access to
-;;;errno values, so this test has to deal with a non-&errno condition.
-  (guard (exc (else #f))
-    (check
-	(let ((dirname '/scrappy/dappy/doo))
-	  (guard (exc (else
-		       #;(format #t "msg ~s ~s ~s ~s~%"
-			       (condition-message exc)
-			       (errno-condition? exc)
-			       (condition-who exc)
-			       (condition-irritants exc))
-		       (list (errno-condition? exc)
-			     (condition-who exc)
-			     (errno-symbolic-value exc)
-;;;			   (condition-message exc)
-			     )))
-	    (chdir dirname)))
-      => '(#t primitive-chdir ENOENT))))
-
-(parameterize ((testname 'getcwd))
-  (check
-      (let ((dirname '/usr/local/bin))
-	(chdir dirname)
-	(getcwd))
-    => "/usr/local/bin")
-
-  (check
-      (let ((dirname '/bin))
-	(chdir dirname)
-	(pwd))
-    => "/bin"))
 
 
 
