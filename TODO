@@ -80,11 +80,10 @@ IrRegex
 POSIX
 -----
 
-* Review  the libraries  for  errno handling:  the PRIMITIVE-  functions
-  should raise errors, not the high level ones.
+* FIXME: solve the readdir  error detection problem, whenever Ikarus and
+  Ypsilon implement the "errno" setter.
 * Add the scatter/gather fd interface.
-* Add a library  with an interface to the  "waitid()" function described
-  in the waitpid manual page (linux specific).
+* Add the mmap interface.
 * Node "File System Interface".
 * Node "Signal Handling".
 * Node "Name Service Switch".
@@ -95,9 +94,10 @@ Glibc
 -----
 
 * Finish the time interface.
+* Add a library  with an interface to the  "waitid()" function described
+  in the waitpid manual page (linux specific).
 * Test and document the streams-pipe library.
 * Add the string functions.
-* Add the mmap interface.
 * Find a way to add the select interface.
 
 
