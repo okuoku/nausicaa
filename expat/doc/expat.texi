@@ -1,0 +1,2928 @@
+\input expat.tex
+@c %**start of header
+@setfilename expat.info
+@settitle Expat
+@c %**end of header
+
+@c page
+@c ------------------------------------------------------------
+@c Macros.
+@c ------------------------------------------------------------
+
+@macro version{}
+2.0.1
+@end macro
+
+@c page
+@c ------------------------------------------------------------
+@c License macros.
+@c ------------------------------------------------------------
+
+@macro gnu{}
+@acronym{GNU}
+@end macro
+
+@macro gpl{}
+@acronym{GPL}
+@end macro
+
+@macro fdl{}
+@acronym{FDL}
+@end macro
+
+@macro bsd{}
+@acronym{BSD}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Miscellaneous acronyms.
+@c ------------------------------------------------------------
+
+@macro pxml{}
+@acronym{XML}
+@end macro
+
+@macro uri{}
+@acronym{URI}
+@end macro
+
+@macro dtd{}
+@acronym{DTD}
+@end macro
+
+@macro ansi{}
+@acronym{ANSI}
+@end macro
+
+@macro api{}
+@acronym{API}
+@end macro
+
+@macro ascii{}
+@acronym{ASCII}
+@end macro
+
+@macro cpu{}
+@acronym{CPU}
+@end macro
+
+@macro ieee{}
+@acronym{IEEE}
+@end macro
+
+@macro iso{}
+@acronym{ISO}
+@end macro
+
+@macro ram{}
+@acronym{RAM}
+@end macro
+
+@macro posix{}
+@acronym{POSIX}
+@end macro
+
+@c Remember that @url is already used by Texinfo.
+@macro urla{}
+@acronym{URL}
+@end macro
+
+@macro utf{}
+@acronym{UTF}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Software related macros.
+@c ------------------------------------------------------------
+
+@macro gmp{}
+@acronym{GMP}
+@end macro
+
+@macro gcc{}
+@acronym{GCC}
+@end macro
+
+@macro glibc{}
+@gnu{} C Library
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Network related acronyms.
+@c ------------------------------------------------------------
+
+@macro tcp{}
+@acronym{TCP}
+@end macro
+
+@macro udp{}
+@acronym{UDP}
+@end macro
+
+@macro icmp{}
+@acronym{ICMP}
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro http{}
+@acronym{HTTP}
+@end macro
+
+@macro https{}
+@acronym{HTTP}
+@end macro
+
+@macro ftp{}
+@acronym{FTP}
+@end macro
+
+@macro smtp{}
+@acronym{SMTP}
+@end macro
+
+@macro snmp{}
+@acronym{SNMP}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Arguments macros.
+@c ------------------------------------------------------------
+
+@macro vari{ARG}
+@var{\ARG\1}
+@end macro
+
+@macro varii{ARG}
+@var{\ARG\2}
+@end macro
+
+@macro variii{ARG}
+@var{\ARG\3}
+@end macro
+
+@macro variv{ARG}
+@var{\ARG\4}
+@end macro
+
+@macro varn{ARG}
+@var{\ARG\n}
+@end macro
+
+@macro vark{ARG}
+@var{\ARG\k}
+@end macro
+
+@macro varj{ARG}
+@var{\ARG\j}
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro meta{ARG}
+<\ARG\>
+@end macro
+
+@macro metai{ARG}
+@meta{\ARG\1}
+@end macro
+
+@macro metaii{ARG}
+@meta{\ARG\2}
+@end macro
+
+@macro metaiii{ARG}
+@meta{\ARG\3}
+@end macro
+
+@macro metaiv{ARG}
+@meta{\ARG\4}
+@end macro
+
+@macro metan{ARG}
+@meta{\ARG\n}
+@end macro
+
+@macro metak{ARG}
+@meta{\ARG\k}
+@end macro
+
+@macro metaj{ARG}
+@meta{\ARG\j}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c C language macros.
+@c ------------------------------------------------------------
+
+@macro cfunc{NAME}
+@code{\NAME\()}
+@end macro
+
+@macro null{}
+@code{NULL}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Scheme language macros.
+@c ------------------------------------------------------------
+
+@macro clos{}
+@acronym{CLOS}
+@end macro
+
+@macro library{NAME}
+@code{(\NAME\)}
+@end macro
+
+@macro module{NAME}
+@code{\NAME\}
+@end macro
+
+@macro repl{}
+@acronym{REPL}
+@end macro
+
+@macro rnrs{VERSION}
+@acronym{R\VERSION\RS}
+@end macro
+
+@macro srfi{}
+@acronym{SRFI}
+@end macro
+
+@ignore
+Separating the @srfi{}  macro from the number with a  '--' rather than a
+'-' makes the expansion look ugly in menu entries under the Info reader.
+IMHO this should not happen, but  it does; so we live with this, because
+the main purpose of this document is to provide an Info version.
+@end ignore
+@macro ansrfi{NUM}
+@srfi{}-\NUM\
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro func{NAME}
+@code{@sc{\NAME\}}
+@end macro
+
+@macro nil{}
+@code{()}
+@end macro
+
+@macro true{}
+@code{#t}
+@end macro
+
+@macro false{}
+@code{#f}
+@end macro
+
+@macro keyword{NAME}
+@code{#:\NAME\}
+@end macro
+
+@macro class{NAME}
+@code{<\NAME\>}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Macros for references to external documents.
+@c ------------------------------------------------------------
+
+@macro glibcref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,libc}
+@end macro
+
+@macro rsixref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,r6rs}
+@end macro
+
+@macro rfiveref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,r5rs}
+@end macro
+
+@macro ikarusref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,ikarus}
+@end macro
+
+@macro bibref{TAG}
+@code{[\TAG\]}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Values.
+@c ------------------------------------------------------------
+
+@set TITLE                      Expat
+
+@c To be used as @value{PACKAGE} whenever we need to include the full
+@c name of this package.
+@set PACKAGE                    Expat
+
+@c To be used as @value{PACKAGE} whenever we need to include the
+@c nickname of the project: the name that is used to compose the
+@c distribution tarball or the web address.
+@set PACKAGE_NICKNAME           expat
+
+
+@c page
+@c ------------------------------------------------------------
+@c Copyright notice.
+@c ------------------------------------------------------------
+
+@copying
+This document describes version @version{} of @value{PACKAGE}.
+@value{PACKAGE} is a library, written in C, for parsing @pxml{}
+documents.  It's the underlying @pxml{} parser for the open source
+Mozilla project, Perl's @code{XML::Parser}, Python's
+@code{xml.parsers.expat}, and other open--source @pxml{} parsers.
+
+@quotation
+This is a Texinfo reformatting of the original documentation from Expat
+version @version{}.
+@end quotation
+
+@noindent
+Copyright @copyright{} 1998, 1999, 2000 Thai Open Source Software Center
+Ltd and Clark Cooper.
+
+@noindent
+Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006 Expat
+maintainers.
+
+See the appendix ``Package License'' for the licence notice.
+@end copying
+
+
+@c page
+@c ------------------------------------------------------------
+@c Headers.
+@c ------------------------------------------------------------
+
+@titlepage
+@title @value{TITLE}
+@subtitle Revision @version{}
+@author @value{AUTHOR} @value{AUTHOR_EMAIL}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c ------------------------------------------------------------
+
+@ifinfo
+@dircategory Development
+@direntry
+* expat: (expat).               Expat.
+@end direntry
+@end ifinfo
+
+@c ------------------------------------------------------------
+
+@ignore
+@syncodeindex tp cp
+@syncodeindex vr cp
+@syncodeindex fn cp
+@end ignore
+
+
+@c page
+@ifnottex
+@node Top
+@top Expat
+
+@insertcopying
+
+@menu
+* overview::                    Overview of the package.
+* intro::                       The Expat @pxml{} parser.
+* install::                     Building and installing Expat.
+* using::                       Using Expat.
+* api::                         Expat reference.
+
+Appendices
+
+* package license::             Package license.
+* references::                  Bibliography and references.
+
+Indexes
+
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
+@end menu
+@end ifnottex
+
+
+@c page
+@node overview
+@chapter Overview
+
+
+Expat is a library, written in C, for parsing @pxml{} documents.  It's
+the underlying @pxml{} parser for the open source Mozilla project,
+Perl's @code{XML::Parser}, Python's @code{xml.parsers.expat}, and other
+open--source @pxml{} parsers.
+
+This library is the creation of James Clark, who's also given us
+@code{groff} (an @code{nroff} look--alike), Jade (an implemention of
+@acronym{ISO}'s @acronym{DSSSL} stylesheet language for @acronym{SGML}),
+@acronym{XP} (a Java @pxml{} parser package), @acronym{XT} (a Java
+@acronym{XSL} engine).  James was also the technical lead on the @pxml{}
+Working Group at @acronym{W3C} that produced the @pxml{} specification.
+
+This is free software, licensed under the MIT/X Consortium license.  You
+may download it from the Expat home page.
+
+The bulk of this document was originally commissioned as an article by
+@code{XML.com}.  They graciously allowed Clark Cooper to retain
+copyright and to distribute it with Expat.  This version has been
+substantially extended to include documentation on features which have
+been added since the original article was published, and additional
+information on using the original interface.
+
+
+@menu
+* overview copying::            Copying this document.
+@end menu
+
+
+@c page
+@node overview copying
+@section Copying this document
+
+
+@insertcopying
+
+
+@c page
+@node intro
+@chapter The Expat @pxml{} parser
+
+
+Expat is a stream--oriented parser.  You register callback (or handler)
+functions with the parser and then start feeding it the document.  As
+the parser recognizes parts of the document, it will call the
+appropriate handler for that part (if you've registered one).  The
+document is fed to the parser in pieces, so you can start parsing before
+you have all the document.  This also allows you to parse really huge
+documents that won't fit into memory.
+
+Expat can be intimidating due to the many kinds of handlers and options
+you can set.  But you only need to learn four functions in order to do
+90% of what you'll want to do with it:
+
+@table @cfunc
+@item XML_ParserCreate
+Create a new parser object.
+
+@item XML_SetElementHandler
+Set handlers for start and end tags.
+
+@item XML_SetCharacterDataHandler
+Set handler for text.
+
+@item XML_Parse
+Pass a buffer full of document to the parser
+@end table
+
+These functions and others are described in the reference part of this
+document.  The reference section also describes in detail the parameters
+passed to the different types of handlers.
+
+Let's look at a very simple example program that only uses 3 of the
+above functions (it doesn't need to set a character handler).  The
+program @file{outline.c} prints an element outline, indenting child
+elements to distinguish them from the parent element that contains them.
+
+@example
+/***********************************************************
+ * outline.c
+ *
+ * Copyright 1999, Clark Cooper
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it
+ * and/or modify it under the terms of the license contained
+ * in the COPYING file that comes with the expat distribution.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+ * KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+ * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+ * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Read an XML document from standard input and print an
+ * element outline on standard output.  Must be used with
+ * Expat compiled for UTF-8 output.
+ */
+
+
+#include <stdio.h>
+#include <expat.h>
+
+#if defined(__amigaos__) && defined(__USE_INLINE__)
+#  include <proto/expat.h>
+#endif
+
+#ifdef XML_LARGE_SIZE
+#  if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
+#    define XML_FMT_INT_MOD "I64"
+#  else
+#    define XML_FMT_INT_MOD "ll"
+#  endif
+#else
+#  define XML_FMT_INT_MOD "l"
+#endif
+
+#define BUFFSIZE        8192
+
+char Buff[BUFFSIZE];
+
+int Depth;
+
+static void XMLCALL
+start(void *data, const char *el, const char **attr)
+@{
+  int i;
+
+  for (i = 0; i < Depth; i++)
+    printf("  ");
+
+  printf("%s", el);
+
+  for (i = 0; attr[i]; i += 2)
+    printf(" %s='%s'", attr[i], attr[i + 1]);
+
+  printf("\n");
+  Depth++;
+@}
+
+static void XMLCALL
+end(void *data, const char *el)
+@{
+  Depth--;
+@}
+
+int
+main(int argc, char *argv[])
+@{
+  XML_Parser p = XML_ParserCreate(NULL);
+  if (! p)
+    @{
+      fprintf(stderr, "Couldn't allocate memory for parser\n");
+      exit(-1);
+    @}
+
+  XML_SetElementHandler(p, start, end);
+
+  for (;;)
+    @{
+      int done;
+      int len;
+
+      len = (int)fread(Buff, 1, BUFFSIZE, stdin);
+      if (ferror(stdin))
+        @{
+          fprintf(stderr, "Read error\n");
+          exit(-1);
+        @}
+    done = feof(stdin);
+
+    if (XML_Parse(p, Buff, len, done) == XML_STATUS_ERROR)
+      @{
+        fprintf(stderr,
+                "Parse error at line %" XML_FMT_INT_MOD "u:\n%s\n",
+                XML_GetCurrentLineNumber(p),
+                XML_ErrorString(XML_GetErrorCode(p)));
+        exit(-1);
+      @}
+
+      if (done)
+        break;
+    @}
+  XML_ParserFree(p);
+  return 0;
+@}
+@end example
+
+The start handler does all the work.  It prints two indenting spaces for
+every level of ancestor elements, then it prints the element and
+attribute information.  Finally it increments the global Depth variable.
+
+@example
+int Depth;
+
+void XMLCALL
+start(void *data, const char *el, const char **attr)
+@{
+  int i;
+
+  for (i = 0; i < Depth; i++)
+    printf("  ");
+
+  printf("%s", el);
+
+  for (i = 0; attr[i]; i += 2)
+    printf(" %s='%s'", attr[i], attr[i + 1]);
+
+  printf("\n");
+  Depth++;
+@}
+@end example
+
+The end tag simply does the bookkeeping work of decrementing Depth.
+
+@example
+void XMLCALL
+end(void *data, const char *el)
+@{
+  Depth--;
+@}
+@end example
+
+Note the @code{XMLCALL} annotation used for the callbacks.  This is used
+to ensure that the Expat and the callbacks are using the same calling
+convention in case the compiler options used for Expat itself and the
+client code are different.  Expat tries not to care what the default
+calling convention is, though it may require that it be compiled with a
+default convention of @code{cdecl} on some platforms.  For code which
+uses Expat, however, the calling convention is specified by the
+@code{XMLCALL} annotation on most platforms; callbacks should be defined
+using this annotation.
+
+The @code{XMLCALL} annotation was added in Expat 1.95.7, but existing
+working Expat applications don't need to add it (since they are already
+using the @code{cdecl} calling convention, or they wouldn't be working).
+The annotation is only needed if the default calling convention may be
+something other than @code{cdecl}.  To use the annotation safely with
+older versions of Expat, you can conditionally define it after including
+Expat's header file:
+
+@example
+#include <expat.h>
+
+#ifndef XMLCALL
+#  if defined(_MSC_EXTENSIONS) && !defined(__BEOS__) && !defined(__CYGWIN__)
+#    define XMLCALL __cdecl
+#  elif defined(__GNUC__)
+#    define XMLCALL __attribute__((cdecl))
+#  else
+#    define XMLCALL
+#  endif
+#endif
+@end example
+
+After creating the parser, the main program just has the job of
+shoveling the document to the parser so that it can do its work.
+
+
+@c page
+@node install
+@chapter Building and installing Expat
+
+
+The Expat distribution comes as a compressed (with @gnu{} Gzip) tar
+file.  You may download the latest version from Source Forge.  After
+unpacking this, cd into the directory.  Then follow either the Win32
+directions or Unix directions below.
+
+@subsubheading Building under Win32
+
+If you're using the @gnu{} compiler under Cygwin, follow the Unix
+directions in the next section.  Otherwise if you have Microsoft's
+Developer Studio installed, then from Windows Explorer double--click on
+@file{expat.dsp} in the lib directory and build and install in the usual
+manner.
+
+Alternatively, you may download the Win32 binary package that contains
+the @file{expat.h} include file and a pre--built @acronym{DLL}.
+
+@subsubheading Building under Unix (or @gnu{})
+
+First you'll need to run the configure shell script in order to
+configure the Makefiles and headers for your system.
+
+If you're happy with all the defaults that configure picks for you, and
+you have permission on your system to install into @file{/usr/local},
+you can install Expat with this sequence of commands:
+
+@example
+$ ./configure
+$ make
+$ make install
+@end example
+
+There are some options that you can provide to this script, but the only
+one we'll mention here is the @option{--prefix} option.  You can find
+out all the options available by running configure with just the
+@option{--help} option.
+
+By default, the @command{configure} script sets things up so that the
+library gets installed in @file{/usr/local/lib} and the associated
+header file in @file{/usr/local/include}.  But if you were to give the
+option @code{--prefix=/home/me/mystuff}, then the library and header
+would get installed in @file{/home/me/mystuff/lib} and
+@file{/home/me/mystuff/include} respectively.
+
+@subsubheading Configuring Expat Using the Pre--Processor
+
+Expat's feature set can be configured using a small number of
+pre-processor definitions. The definition of this symbols does not
+affect the set of entry points for Expat, only the behavior of the
+@api{} and the definition of character types in the case of
+@code{XML_UNICODE_WCHAR_T}.  The symbols are:
+
+@table @code
+@item XML_DTD
+Include support for using and reporting @dtd{}--based content.  If this
+is defined, default attribute values from an external @dtd{} subset are
+reported and attribute value normalization occurs based on the type of
+attributes defined in the external subset.  Without this, Expat has a
+smaller memory footprint and can be faster, but will not load external
+entities or process conditional sections.  This does not affect the set
+of functions available in the @api{}.
+
+@item XML_NS
+When defined, support for the Namespaces in @pxml{} specification is
+included.
+
+@item XML_UNICODE
+When defined, character data reported to the application is encoded in
+@utf{}-16 using wide characters of the type @code{XML_Char}.  This is
+implied if @code{XML_UNICODE_WCHAR_T} is defined.
+
+@item XML_UNICODE_WCHAR_T
+If defined, causes the @code{XML_Char} character type to be defined
+using the @code{wchar_t} type; otherwise, @code{unsigned short} is used.
+Defining this implies @code{XML_UNICODE}.
+
+@item XML_LARGE_SIZE
+If defined, causes the @code{XML_Size} and @code{XML_Index} integer
+types to be at least 64 bits in size.  This is intended to support
+processing of very large input streams, where the return values of
+@cfunc{XML_GetCurrentByteIndex}, @cfunc{XML_GetCurrentLineNumber} and
+@cfunc{XML_GetCurrentColumnNumber} could overflow.  It may not be
+supported by all compilers, and is turned off by default.
+
+@item XML_CONTEXT_BYTES
+The number of input bytes of markup context which the parser will ensure
+are available for reporting via @cfunc{XML_GetInputContext}.  This is
+normally set to 1024, and must be set to a positive interger.  If this
+is not defined, the input context will not be available and
+@cfunc{XML_GetInputContext} will always report @null{}.  Without this,
+Expat has a smaller memory footprint and can be faster.
+
+@item XML_STATIC
+On Windows, this should be set if Expat is going to be linked statically
+with the code that calls it; this is required to get all the right
+@acronym{MSVC} magic annotations correct.  This is ignored on other
+platforms.
+@end table
+
+
+@c page
+@node using
+@chapter Using Expat
+
+
+@menu
+* using compile::               Compiling and linking against expat.
+* using basics::                Basics.
+* using comm::                  Communicating between handlers.
+* using version::               @pxml{} version.
+* using namespace::             Namespace processing.
+* using encodings::             Character encodings.
+* using entity::                Handling external entity references.
+* using dtd::                   Parsing @dtd{}s.
+* using stop::                  Temporarily stopping parsing.
+@end menu
+
+
+@c page
+@node using compile
+@section Compiling and linking against expat
+
+
+Unless you installed Expat in a location not expected by your compiler
+and linker, all you have to do to use Expat in your programs is to
+include the Expat header:
+
+@example
+#include <expat.h>
+@end example
+
+@noindent
+in your files that make calls to it and to tell the linker that it needs
+to link against the Expat library.  On Unix systems, this would usually
+be done with the @code{-lexpat} argument.  Otherwise, you'll need to
+tell the compiler where to look for the Expat header and the linker
+where to find the Expat library.  You may also need to take steps to
+tell the operating system where to find this library at run time.
+
+On a Unix--based system, here's what a @file{Makefile} might look like
+when Expat is installed in a standard location:
+
+@example
+CC=cc
+LDFLAGS=
+LIBS= -lexpat
+xmlapp: xmlapp.o
+        $(CC) $(LDFLAGS) -o xmlapp xmlapp.o $(LIBS)
+@end example
+
+If you installed Expat in, say, @file{/home/me/mystuff}, then the
+@file{Makefile} would look like this:
+
+@example
+CC=cc
+CFLAGS= -I/home/me/mystuff/include
+LDFLAGS=
+LIBS= -L/home/me/mystuff/lib -lexpat
+xmlapp: xmlapp.o
+        $(CC) $(LDFLAGS) -o xmlapp xmlapp.o $(LIBS)
+@end example
+
+You'd also have to set the environment variable @env{LD_LIBRARY_PATH} to
+@file{/home/me/mystuff/lib} (or to
+@code{$@{LD_LIBRARY_PATH@}:/home/me/mystuff/lib} if
+@env{LD_LIBRARY_PATH} already has some directories in it) in order to
+run your application.
+
+
+@c page
+@node using basics
+@section Basics
+
+
+As we saw in the example in the overview, the first step in parsing an
+@pxml{} document with Expat is to create a parser object.  There are
+three functions in the Expat @api{} for creating a parser object.
+However, only two of these (@cfunc{XML_ParserCreate} and
+@cfunc{XML_ParserCreateNS}) can be used for constructing a parser for a
+top--level document.  The object returned by these functions is an
+opaque pointer (i.e. @file{expat.h} declares it as @code{void *}) to
+data with further internal structure.  In order to free the memory
+associated with this object you must call @cfunc{XML_ParserFree}.  Note
+that if you have provided any user data that gets stored in the parser,
+then your application is responsible for freeing it prior to calling
+@cfunc{XML_ParserFree}.
+
+The objects returned by the parser creation functions are good for
+parsing only one @pxml{} document or external parsed entity.  If your
+application needs to parse many @pxml{} documents, then it needs to
+create a parser object for each one.  The best way to deal with this is
+to create a higher level object that contains all the default
+initialization you want for your parser objects.
+
+Walking through a document hierarchy with a stream oriented parser will
+require a good stack mechanism in order to keep track of current
+context.  For instance, to answer the simple question, ``What element
+does this text belong to?'' requires a stack, since the parser may have
+descended into other elements that are children of the current one and
+has encountered this text on the way out.
+
+The things you're likely to want to keep on a stack are the currently
+opened element and it's attributes.  You push this information onto the
+stack in the start handler and you pop it off in the end handler.
+
+For some tasks, it is sufficient to just keep information on what the
+depth of the stack is (or would be if you had one).  The outline program
+shown above presents one example.  Another such task would be skipping
+over a complete element.  When you see the start tag for the element you
+want to skip, you set a skip flag and record the depth at which the
+element started.  When the end tag handler encounters the same depth,
+the skipped element has ended and the flag may be cleared.  If you
+follow the convention that the root element starts at 1, then you can
+use the same variable for skip flag and skip depth.
+
+@example
+void
+init_info (Parseinfo *info)
+@{
+  info->skip  = 0;
+  info->depth = 1;
+  /* Other initializations here */
+@}
+
+void XMLCALL
+rawstart (void *data, const char *el, const char **attr)
+@{
+  Parseinfo *inf = (Parseinfo *) data;
+
+  if (! inf->skip)
+    @{
+      if (should_skip(inf, el, attr))
+        inf->skip = inf->depth;
+      else
+        start(inf, el, attr); /* This does rest of start handling */
+    @}
+
+  inf->depth++;
+@}
+
+void XMLCALL
+rawend (void *data, const char *el)
+@{
+  Parseinfo *inf = (Parseinfo *) data;
+
+  inf->depth--;
+
+  if (! inf->skip)
+    end(inf, el);              /* This does rest of end handling */
+
+  if (inf->skip == inf->depth)
+    inf->skip = 0;
+@}
+@end example
+
+Notice in the above example the difference in how depth is manipulated
+in the start and end handlers.  The end tag handler should be the mirror
+image of the start tag handler.  This is necessary to properly model
+containment.  Since, in the start tag handler, we incremented depth
+after the main body of start tag code, then in the end handler, we need
+to manipulate it @emph{before} the main body.  If we'd decided to
+increment it first thing in the start handler, then we'd have had to
+decrement it last thing in the end handler.
+
+
+@c page
+@node using comm
+@section Communicating between handlers
+
+
+In order to be able to pass information between different handlers
+without using globals, you'll need to define a data structure to hold
+the shared variables.  You can then tell Expat (with the
+@cfunc{XML_SetUserData} function) to pass a pointer to this structure to
+the handlers.  This is the first argument received by most handlers.
+
+In the reference section, an argument to a callback function is named
+@var{userData} and have type @code{void *} if the user data is passed;
+it will have the type @code{XML_Parser} if the parser itself is passed.
+When the parser is passed, the user data may be retrieved using
+@cfunc{XML_GetUserData}.
+
+One common case where multiple calls to a single handler may need to
+communicate using an application data structure is the case when content
+passed to the character data handler (set by
+@cfunc{XML_SetCharacterDataHandler}) needs to be accumulated.
+
+A common first--time mistake with any of the event--oriented interfaces
+to an @pxml{} parser is to expect all the text contained in an element
+to be reported by a single call to the character data handler.  Expat,
+like many other @pxml{} parsers, reports such data as a sequence of
+calls; there's no way to know when the end of the sequence is reached
+until a different callback is made.  A buffer referenced by the user
+data structure proves both an effective and convenient place to
+accumulate character data.
+
+
+@c page
+@node using version
+@section @pxml{} version
+
+
+Expat is an @pxml{} 1.0 parser, and as such never complains based on the
+value of the version pseudo--attribute in the @pxml{} declaration, if
+present.
+
+If an application needs to check the version number (to support
+alternate processing), it should use the @cfunc{XML_SetXmlDeclHandler}
+function to set a handler that uses the information in the @pxml{}
+declaration to determine what to do.  This example shows how to check
+that only a version number of @code{1.0} is accepted:
+
+@example
+static int wrong_version;
+static XML_Parser parser;
+
+static void XMLCALL
+xmldecl_handler(void            *userData,
+                const XML_Char  *version,
+                const XML_Char  *encoding,
+                int              standalone)
+@{
+  static const XML_Char Version_1_0[] = @{ '1', '.', '0', 0 @};
+
+  int i;
+
+  for (i = 0; i < (sizeof(Version_1_0) / sizeof(Version_1_0[0])); ++i)
+    @{
+      if (version[i] != Version_1_0[i])
+        @{
+          wrong_version = 1;
+          /* also clear all other handlers: */
+          XML_SetCharacterDataHandler(parser, NULL);
+          ...
+          return;
+        @}
+    @}
+  ...
+@}
+@end example
+
+
+@c page
+@node using namespace
+@section Namespace processing
+
+
+When the parser is created using the @cfunc{XML_ParserCreateNS},
+function, Expat performs namespace processing.  Under namespace
+processing, Expat consumes @code{xmlns} and @code{xmlns:...} attributes,
+which declare namespaces for the scope of the element in which they
+occur.  This means that your start handler will not see these
+attributes.  Your application can still be informed of these
+declarations by setting namespace declaration handlers with
+@cfunc{XML_SetNamespaceDeclHandler}.
+
+Element type and attribute names that belong to a given namespace are
+passed to the appropriate handler in expanded form.  By default this
+expanded form is a concatenation of the namespace @uri{}, the separator
+character (which is the 2nd argument to @cfunc{XML_ParserCreateNS}), and
+the local name (i.e. the part after the colon).  Names with undeclared
+prefixes are not well--formed when namespace processing is enabled, and
+will trigger an error.  Unprefixed attribute names are never expanded,
+and unprefixed element names are only expanded when they are in the
+scope of a default namespace.
+
+However if @cfunc{XML_SetReturnNSTriplet} has been called with a
+non--zero @var{do_nst} parameter, then the expanded form for names with
+an explicit prefix is a concatenation of: @uri{}, separator, local name,
+separator, prefix.
+
+You can set handlers for the start of a namespace declaration and for
+the end of a scope of a declaration with the
+@cfunc{XML_SetNamespaceDeclHandler} function.  The
+@var{StartNamespaceDeclHandler} is called prior to the start tag handler
+and the @var{EndNamespaceDeclHandler} is called after the corresponding
+end tag that ends the namespace's scope.
+
+The namespace start handler gets passed the prefix and @uri{} for the
+namespace.  For a default namespace declaration (@code{xmlns='...'}),
+the prefix will be null.  The @uri{} will be null for the case where the
+default namespace is being unset.  The namespace end handler just gets
+the prefix for the closing scope.
+
+These handlers are called for each declaration.  So if, for instance, a
+start tag had three namespace declarations, then the
+@var{StartNamespaceDeclHandler} would be called three times before the
+start tag handler is called, once for each declaration.
+
+
+@c page
+@node using encodings
+@section Character encodings
+
+
+While @pxml{} is based on Unicode, and every @pxml{} processor is
+required to recognized @utf{}-8 and @utf{}-16 (1 and 2 byte encodings of
+Unicode), other encodings may be declared in @pxml{} documents or
+entities.  For the main document, an @pxml{} declaration may contain an
+encoding declaration:
+
+@example
+<?xml version="1.0" encoding="ISO-8859-2"?>
+@end example
+
+External parsed entities may begin with a text declaration, which looks
+like an @pxml{} declaration with just an encoding declaration:
+
+@example
+<?xml encoding="Big5"?>
+@end example
+
+With Expat, you may also specify an encoding at the time of creating a
+parser.  This is useful when the encoding information may come from a
+source outside the document itself (like a higher level protocol).
+
+There are four built--in encodings in Expat:
+
+@example
+UTF-8
+UTF-16
+ISO-8859-1
+US-ASCII
+@end example
+
+Anything else discovered in an encoding declaration or in the protocol
+encoding specified in the parser constructor, triggers a call to the
+@var{UnknownEncodingHandler}.  This handler gets passed the encoding
+name and a pointer to an @code{XML_Encoding} data structure.  Your
+handler must fill in this structure and return @code{XML_STATUS_OK} if
+it knows how to deal with the encoding.  Otherwise the handler should
+return @code{XML_STATUS_ERROR}.  The handler also gets passed a pointer
+to an optional application data structure that you may indicate when you
+set the handler.
+
+Expat places restrictions on character encodings that it can support by
+filling in the @code{XML_Encoding} structure.
+
+@enumerate
+@item
+Every @ascii{} character that can appear in a well--formed @pxml{}
+document must be represented by a single byte, and that byte must
+correspond to it's @ascii{} encoding (except for the characters
+@code{$@@\^'@{@}~}).
+
+@item
+Characters must be encoded in 4 bytes or less.
+
+@item
+All characters encoded must have Unicode scalar values less than or
+equal to 65535 (0xFFFF).  This does not apply to the built--in support
+for @utf{}-16 and @utf{}-8.
+
+@item
+No character may be encoded by more that one distinct sequence of bytes.
+@end enumerate
+
+@code{XML_Encoding} contains an array of integers that correspond to the
+first byte of an encoding sequence.  If the value in the array for a
+byte is zero or positive, then the byte is a single byte encoding that
+encodes the Unicode scalar value contained in the array.  A @code{-1} in
+this array indicates a malformed byte.  If the value is @code{-2},
+@code{-3}, or @code{-4}, then the byte is the beginning of a 2, 3, or 4
+byte sequence respectively.  Multi--byte sequences are sent to the
+convert function pointed at in the @code{XML_Encoding} structure.  This
+function should return the Unicode scalar value for the sequence or
+@code{-1} if the sequence is malformed.
+
+One pitfall that novice Expat users are likely to fall into is that
+although Expat may accept input in various encodings, the strings that
+it passes to the handlers are always encoded in @utf{}-8 or @utf{}-16
+(depending on how Expat was compiled).  Your application is responsible
+for any translation of these strings into other encodings.
+
+
+@c page
+@node using entity
+@section Handling external entity references
+
+
+Expat does not read or parse external entities directly.  Note that any
+external @dtd{} is a special case of an external entity.  If you've set
+no @var{ExternalEntityRefHandler}, then external entity references are
+silently ignored.  Otherwise, it calls your handler with the information
+needed to read and parse the external entity.
+
+Your handler isn't actually responsible for parsing the entity, but it
+is responsible for creating a subsidiary parser with
+@cfunc{XML_ExternalEntityParserCreate} that will do the job.  This
+returns an instance of @code{XML_Parser} that has handlers and other
+data structures initialized from the parent parser.  You may then use
+@cfunc{XML_Parse} or @cfunc{XML_ParseBuffer} calls against this parser.
+Since external entities my refer to other external entities, your
+handler should be prepared to be called recursively.
+
+
+@c page
+@node using dtd
+@section Parsing @dtd{}s
+
+
+In order to parse parameter entities, before starting the parse, you
+must call @cfunc{XML_SetParamEntityParsing} with one of the following
+arguments:
+
+@table @code
+@item XML_PARAM_ENTITY_PARSING_NEVER
+Don't parse parameter entities or the external subset.
+
+@item XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE
+Parse parameter entites and the external subset unless standalone was
+set to ``yes'' in the @pxml{} declaration.
+
+@item XML_PARAM_ENTITY_PARSING_ALWAYS
+Always parse parameter entities and the external subset.
+@end table
+
+In order to read an external @dtd{}, you also have to set an external
+entity reference handler as described above.
+
+
+@c page
+@node using stop
+@section Temporarily stopping parsing
+
+
+Expat 1.95.8 introduces a new feature: its now possible to stop parsing
+temporarily from within a handler function, even if more data has
+already been passed into the parser.  Applications for this include:
+
+@itemize
+@item
+Supporting the @code{XInclude} specification.
+
+@item
+Delaying further processing until additional information is available
+from some other source.
+
+@item
+Adjusting processor load as task priorities shift within an application.
+
+@item
+Stopping parsing completely (simply free or reset the parser instead of
+resuming in the outer parsing loop).  This can be useful if a
+application--domain error is found in the @pxml{} being parsed or if the
+result of the parse is determined not to be useful after all.
+@end itemize
+
+To take advantage of this feature, the main parsing loop of an
+application needs to support this specifically.  It cannot be supported
+with a parsing loop compatible with Expat 1.95.7 or earlier (though
+existing loops will continue to work without supporting the stop/resume
+feature).
+
+An application that uses this feature for a single parser will have the
+rough structure (in pseudo--code):
+
+@example
+fd = open_input()
+p  = create_parser()
+
+if parse_xml(p, fd)
+  @{
+    /* suspended */
+
+    int suspended = 1;
+
+    while (suspended)
+      @{
+        do_something_else()
+        if ready_to_resume()
+          @{
+            suspended = continue_parsing(p, fd);
+          @}
+      @}
+  @}
+@end example
+
+An application that may resume any of several parsers based on input
+(either from the @pxml{} being parsed or some other source) will
+certainly have more interesting control structures.
+
+This C function could be used for the @cfunc{parse_xml} function
+mentioned in the pseudo-code above:
+
+@example
+#define BUFF_SIZE 10240
+
+/* Parse a document from the open file descriptor 'fd' until
+   the parse is complete (the document has been completely
+   parsed, or there's been an error), or the parse is stopped.
+   Return non-zero when the parse is merely suspended. */
+
+int
+parse_xml (XML_Parser p, int fd)
+@{
+  for (;;)
+    @{
+      int last_chunk;
+      int bytes_read;
+      enum XML_Status status;
+
+      void *buff = XML_GetBuffer(p, BUFF_SIZE);
+      if (buff == NULL)
+        @{
+         /* handle error... */
+         return 0;
+        @}
+    bytes_read = read(fd, buff, BUFF_SIZE);
+    if (bytes_read < 0)
+      @{
+        /* handle error... */
+        return 0;
+      @}
+    status = XML_ParseBuffer(p, bytes_read, bytes_read == 0);
+    switch (status)
+      @{
+        case XML_STATUS_ERROR:
+          /* handle error... */
+          return 0;
+        case XML_STATUS_SUSPENDED:
+          return 1;
+      @}
+      if (bytes_read == 0)
+        return 0;
+    @}
+@}
+@end example
+
+The corresponding @cfunc{continue_parsing} function is somewhat simpler,
+since it only need deal with the return code from
+@cfunc{XML_ResumeParser}; it can delegate the input handling to the
+@cfunc{parse_xml} function:
+
+@example
+/* Continue parsing a document which had been suspended.
+   The 'p' and 'fd' arguments are the same as passed to
+   parse_xml().  Return non-zero when the parse is
+   suspended. */
+int
+continue_parsing (XML_Parser p, int fd)
+@{
+  enum XML_Status status = XML_ResumeParser(p);
+  switch (status)
+    @{
+      case XML_STATUS_ERROR:
+        /* handle error... */
+        return 0;
+      case XML_ERROR_NOT_SUSPENDED:
+        /* handle error... */
+        return 0;.
+      case XML_STATUS_SUSPENDED:
+        return 1;
+    @}
+  return parse_xml(p, fd);
+@}
+@end example
+
+Now that we've seen what a mess the top--level parsing loop can become,
+what have we gained?  Very simply, we can now use the
+@cfunc{XML_StopParser} function to stop parsing, without having to go to
+great lengths to avoid additional processing that we're expecting to
+ignore.  As a bonus, we get to stop parsing temporarily, and come back
+to it when we're ready.
+
+To stop parsing from a handler function, use the @cfunc{XML_StopParser}
+function.  This function takes two arguments; the parser being stopped
+and a flag indicating whether the parse can be resumed in the future.
+
+
+@c page
+@node api
+@chapter Expat reference
+
+
+@menu
+* api create::                  Parser creation.
+* api parse::                   Parsing.
+* api handlers::                Setting the handlers.
+* api report::                  Parse position and error
+                                reporting functions.
+* api version::                 Inspecting Expat version.
+* api features::                Inspecting Expat features.
+* api memory::                  Parser associated memory.
+* api misc::                    Miscellaneous functions.
+@end menu
+
+
+@c page
+@node api create
+@section Parser creation
+
+
+@deftypefun XML_Parser XML_ParserCreate (const XML_Char * @var{encoding})
+Construct a new parser.  If @var{encoding} is non--@null{}, it specifies
+a character encoding to use for the document.  This overrides the
+document encoding declaration.  There are four built--in encodings:
+
+@example
+US-ASCII
+UTF-8
+UTF-16
+ISO-8859-1
+@end example
+
+Any other value will invoke a call to the @var{UnknownEncodingHandler}.
+@end deftypefun
+
+
+@deftypefun XML_Parser XML_ParserCreateNS (const XML_Char * @var{encoding}, XML_Char @var{sep})
+Construct a new parser that has namespace processing in effect.
+Namespace expanded element names and attribute names are returned as a
+concatenation of the namespace @uri{}, @var{sep}, and the local part of
+the name.
+
+This means that you should pick a character for @var{sep} that can't be
+part of a legal @uri{}.  There is a special case when @var{sep} is the
+null character @code{\0}: the namespace @uri{} and the local part will
+be concatenated without any separator---this is intended to support
+@acronym{RDF} processors.  It is a programming error to use the null
+separator with namespace triplets.
+@end deftypefun
+
+
+@deftypefun XML_Parser XML_ParserCreate_MM (const XML_Char * @var{encoding}, const XML_Memory_Handling_Suite * @var{ms}, const XML_Char * @var{sep})
+Construct a new parser using the suite of memory handling functions
+specified in @var{ms}.  If @var{ms} is @null{}, then use the standard
+set of memory management functions.  If @var{sep} is non--@null{}, then
+namespace processing is enabled in the created parser and the character
+pointed at by @var{sep} is used as the separator between the namespace
+@uri{} and the local part of the name.
+
+@example
+typedef struct @{
+  void * ( *malloc_fcn  )(size_t size);
+  void * ( *realloc_fcn )(void *ptr, size_t size);
+  void   ( *free_fcn    )(void *ptr);
+@} XML_Memory_Handling_Suite;
+@end example
+@end deftypefun
+
+
+@deftypefun XML_Parser XML_ExternalEntityParserCreate (XML_Parser @var{p}, const XML_Char * @var{context}, const XML_Char * @var{encoding})
+Construct a new @code{XML_Parser} object for parsing an external general
+entity.  @var{context} is the context argument passed in a call to a
+@var{ExternalEntityRefHandler}.  Other state information such as
+handlers, user data, namespace processing is inherited from the parser
+passed as the first argument.  So you shouldn't need to call any of the
+behavior changing functions on this parser (unless you want it to act
+differently than the parent parser).
+@end deftypefun
+
+
+@deftypefun void XML_ParserFree (XML_Parser @var{p})
+Free memory used by the parser.  Your application is responsible for
+freeing any memory associated with user data.
+@end deftypefun
+
+
+@deftypefun XML_Bool XML_ParserReset (XML_Parser @var{p}, const XML_Char * @var{encoding})
+Clean up the memory structures maintained by the parser so that it may
+be used again.  After this has been called, the parser is ready to start
+parsing a new document.  All handlers are cleared from the parser,
+except for the @var{unknownEncodingHandler}.  The parser's external
+state is re--initialized except for the values of @var{ns} and
+@var{ns_triplets}.  This function may not be used on a parser created
+using @cfunc{XML_ExternalEntityParserCreate}; it will return
+@code{XML_FALSE} in that case.  Returns @code{XML_TRUE} on success.
+Your application is responsible for dealing with any memory associated
+with user data.
+@end deftypefun
+
+
+@c page
+@node api parse
+@section Parsing
+
+
+To state the obvious: the three parsing functions @cfunc{XML_Parse},
+@cfunc{XML_ParseBuffer} and @cfunc{XML_GetBuffer} must not be called
+from within a handler unless they operate on a separate parser instance,
+that is, one that did not call the handler.  For example, it is fine to
+call the parsing functions from within an
+@cfunc{XML_ExternalEntityRefHandler}, if they apply to the parser
+created by @cfunc{XML_ExternalEntityParserCreate}.
+
+@quotation
+@emph{Note:} the @var{len} argument passed to these functions should be
+considerably less than the maximum value for an integer, as it could
+create an integer overflow situation if the added lengths of a buffer
+and the unprocessed portion of the previous buffer exceed the maximum
+integer value.  Input data at the end of a buffer will remain
+unprocessed if it is part of an @pxml{} token for which the end is not
+part of that buffer.
+@end quotation
+
+
+@deftp Enumeration {enum XML_Status}
+Type of the return values.
+
+@table @code
+@item XML_STATUS_ERROR
+Error.
+
+@item XML_STATUS_OK
+Success.
+@end table
+@end deftp
+
+
+@deftypefun {enum XML_Status} XML_Parse (XML_Parser @var{p}, const char * @var{s}, int @var{len}, int @var{isFinal})
+Parse some more of the document.
+
+The string @var{s} is a buffer containing part (or perhaps all) of the
+document.  The number of bytes of @var{s} that are part of the document
+is indicated by @var{len}.  This means that @var{s} doesn't have to be
+zero terminated.
+
+The @var{isFinal} parameter informs the parser that this is the last
+piece of the document.  Frequently, the last piece is empty (i.e. @var{len} is
+zero).
+
+If successful return @code{XML_STATUS_OK}, otherwise
+@code{XML_STATUS_ERROR}.
+@end deftypefun
+
+
+@deftypefun {enum XML_Status} XML_ParseBuffer (XML_Parser @var{p}, int @var{len}, int @var{isFinal})
+This is just like @cfunc{XML_Parse}, except in this case Expat provides
+the buffer.  By obtaining the buffer from Expat with the
+@cfunc{XML_GetBuffer} function, the application can avoid double copying
+of the input.
+@end deftypefun
+
+
+@deftypefun {void *} XML_GetBuffer (XML_Parser @var{p}, int @var{len})
+Obtain a buffer of size @var{len} to read a piece of the document into.
+Return @null{} if Expat can't allocate enough memory for this buffer.
+
+This function has to be called prior to every call to
+@cfunc{XML_ParseBuffer}.
+
+A typical use would look like this:
+
+@example
+for (;;)
+  @{
+    int    bytes_read;
+    void * buff = XML_GetBuffer(p, BUFF_SIZE);
+
+    if (buff == NULL)
+      @{
+        /* handle error */
+      @}
+
+    bytes_read = read(docfd, buff, BUFF_SIZE);
+    if (bytes_read < 0)
+      @{
+        /* handle error */
+      @}
+
+    if (! XML_ParseBuffer(p, bytes_read, bytes_read == 0))
+      @{
+        /* handle parse error */
+      @}
+
+    if (bytes_read == 0)
+      break;
+  @}
+@end example
+@end deftypefun
+
+
+@deftypefun {enum XML_Status} XML_StopParser (XML_Parser @var{p}, XML_Bool @var{resumable})
+Stops parsing, causing @cfunc{XML_Parse} or @cfunc{XML_ParseBuffer} to
+return.  Must be called from within a call--back handler, except when
+aborting (when @var{resumable} is @code{XML_FALSE}) an already suspended
+parser.  Some call--backs may still follow because they would otherwise
+get lost, including:
+
+@itemize
+@item
+the end element handler for empty elements when stopped in the start
+element handler;
+
+@item
+the end namespace declaration handler when stopped in the end element
+handler;
+
+@item
+the character data handler when stopped in the character data handler
+while making multiple call-backs on a contiguous chunk of characters;
+@end itemize
+
+@noindent
+and possibly others.
+
+This can be called from most handlers, including @dtd{} related
+call--backs, except when parsing an external parameter entity and
+@var{resumable} is @code{XML_TRUE}.
+
+If successful return @code{XML_STATUS_OK}, otherwise
+@code{XML_STATUS_ERROR}.  The possible error codes are:
+
+@table @code
+@item XML_ERROR_SUSPENDED
+when suspending an already suspended parser;
+
+@item XML_ERROR_FINISHED
+when the parser has already finished;
+
+@item XML_ERROR_SUSPEND_PE
+when suspending while parsing an external PE.
+@end table
+
+Since the stop/resume feature requires application support in the outer
+parsing loop, it is an error to call this function for a parser not
+being handled appropriately.  @ref{using stop} for details.
+
+When @var{resumable} is @code{XML_TRUE} then parsing is suspended, that
+is, @cfunc{XML_Parse} and @cfunc{XML_ParseBuffer} return
+@code{XML_STATUS_SUSPENDED}.  Otherwise, parsing is aborted, that is,
+@cfunc{XML_Parse} and @cfunc{XML_ParseBuffer} return
+@code{XML_STATUS_ERROR} with error code @code{XML_ERROR_ABORTED}.
+
+@quotation
+@emph{Note:} This will be applied to the current parser instance only,
+that is, if there is a parent parser then it will continue parsing when
+the external entity reference handler returns.  It is up to the
+implementation of that handler to call @cfunc{XML_StopParser} on the
+parent parser (recursively), if one wants to stop parsing altogether.
+@end quotation
+
+When suspended, parsing can be resumed by calling
+@cfunc{XML_ResumeParser}.
+
+@quotation
+@emph{Note:} New in Expat 1.95.8.
+@end quotation
+@end deftypefun
+
+
+@deftypefun {enum XML_Status} XML_ResumeParser (XML_Parser @var{p})
+Resume parsing after it has been suspended with @cfunc{XML_StopParser}.
+Must not be called from within a handler call--back.
+
+Return the same status codes of @cfunc{XML_Parse} or
+@cfunc{XML_ParseBuffer}.
+
+An additional error code, @code{XML_ERROR_NOT_SUSPENDED}, will be
+returned if the parser was not currently suspended.
+
+@quotation
+@emph{Note:} This must be called on the most deeply nested child parser
+instance first, and on its parent parser only after the child parser has
+finished, to be applied recursively until the document entity's parser
+is restarted.  That is, the parent parser will not resume by itself and
+it is up to the application to call @cfunc{XML_ResumeParser} on it at
+the appropriate moment.
+@end quotation
+
+@quotation
+@emph{Note:} New in Expat 1.95.8.
+@end quotation
+@end deftypefun
+
+
+@deftp Enumeration {enum XML_Parsing}
+Parser status values.  Defined symbols are:
+
+@example
+XML_INITIALIZED
+XML_PARSING
+XML_FINISHED
+XML_SUSPENDED
+@end example
+@end deftp
+
+
+@deftp {Struct Typedef} XML_ParsingStatus
+The status of a parser.  The description of public fields follows.
+
+@table @code
+@item enum XML_Parsing parsing
+The current status of the parser.
+
+@item XML_Bool finalBuffer
+True if the internal buffer holds the final chunk of the document.
+@end table
+@end deftp
+
+
+@deftypefun void XML_GetParsingStatus (XML_Parser @var{p}, XML_ParsingStatus * @var{status})
+Fill the structure reference by @var{status} with the status of the
+parser with respect to being initialized, parsing, finished, or
+suspended, and whether the final buffer is being processed.
+
+@var{status} must not be @null{}.
+
+@quotation
+@emph{Note:} New in Expat 1.95.8.
+@end quotation
+@end deftypefun
+
+
+@c page
+@node api handlers
+@section Setting the handlers
+
+
+Although handlers are typically set prior to parsing and left alone, an
+application may choose to set or change the handler for a parsing event
+while the parse is in progress.  For instance, your application may
+choose to ignore all text not descended from a @code{para} element.  One
+way it could do this is to set the character handler when a @code{para}
+start tag is seen, and unset it for the corresponding end tag.
+
+A handler may be unset by providing a @null{} pointer to the appropriate
+handler setter.  None of the handler setting functions have a return
+value.
+
+Your handlers will be receiving strings in arrays of type
+@code{XML_Char}.  This type is conditionally defined in @file{expat.h}
+as either @code{char}, @code{wchar_t} or @code{unsigned short}.  The
+former implies @utf{}-8 encoding, the latter two imply @utf{}-16
+encoding.  Note that you'll receive them in this form independent of the
+original encoding of the document.
+
+
+@deftp {Function Pointer Typedef} XML_StartElementHandler
+Defined as:
+
+@example
+typedef void (* XML_StartElementHandler) (void * user_data,
+                                          const XML_Char * name,
+                                          const XML_Char ** atts);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetStartElementHandler (XML_Parser @var{p}, XML_StartElementHandler @var{start})
+Set the handler for start (and empty) tags.  Attributes are passed to
+the the start handler as a pointer to a vector of char pointers.  Each
+attribute seen in a start (or empty) tag occupies 2 consecutive places
+in this vector: the attribute name followed by the attribute value.
+These pairs are terminated by a @null{} pointer.
+
+Note that an empty tag generates a call to both start and end handlers
+(in that order).
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_EndElementHandler
+Defined as:
+
+@example
+typedef void (* XML_EndElementHandler) (void * user_data,
+                                        const XML_Char * name);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetEndElementHandler (XML_Parser @var{p}, XML_EndElementHandler @var{end})
+Set the handler for end (and empty) tags.  As noted above, an empty tag
+generates a call to both start and end handlers.
+@end deftypefun
+
+
+@deftypefun void XML_SetElementHandler (XML_Parser @var{p}, XML_StartElementHandler @var{start}, XML_EndElementHandler @var{end})
+Set handlers for start and end tags with one call.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_CharacterDataHandler
+Defined as:
+
+@example
+typedef void (* XML_CharacterDataHandler) (void * user_data,
+                                           const XML_Char * s,
+                                           int len);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetCharacterDataHandler (XML_Parser @var{p}, XML_CharacterDataHandler @var{handler})
+Set a text handler.  The string the handler receives is @strong{not}
+zero--terminated.  We have to use the @var{len} argument to deal with
+the end of the string.
+
+A single block of contiguous text free of markup may still result in a
+sequence of calls to this handler.  In other words, if we are searching
+for a pattern in the text, it may be split across calls to this
+handler.
+
+Note: Setting this handler to @null{} may @strong{not} immediately
+terminate callbacks if the parser is currently processing such a single
+block of contiguous markup--free text, as the parser will continue
+calling back until the end of the block is reached.
+@end deftypefun
+
+
+
+@deftp {Function Pointer Typedef} XML_ProcessingInstructionHandler
+@example
+typedef void (* XML_ProcessingInstructionHandler) (void * user_data,
+                                                   const XML_Char * target,
+                                                   const XML_Char * data);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetProcessingInstructionHandler (XML_Parser @var{p}, XML_ProcessingInstructionHandler @var{proc})
+Set a handler for processing instructions.  The target is the first word
+in the processing instruction.  The data is the rest of the characters
+in it after skipping all whitespace after the initial word.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_CommentHandler
+Defined as:
+
+@example
+typedef void (* XML_CommentHandler) (void * user_data,
+                                     const XML_Char * data);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetCommentHandler (XML_Parser @var{p}, XML_CommentHandler @var{handler})
+Set a handler for comments.  The data is all text inside the comment
+delimiters.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_StartCdataSectionHandler
+Defined as:
+
+@example
+typedef void (* XML_StartCdataSectionHandler) (void * user_data);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetStartCdataSectionHandler (XML_Parser @var{p}, XML_StartCdataSectionHandler @var{start})
+Set a handler that gets called at the beginning of a @code{CDATA}
+section.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_EndCdataSectionHandler
+Defined as:
+
+@example
+typedef void (* XML_EndCdataSectionHandler) (void * user_data);
+@end example
+@end deftp
+
+@deftypefun void XML_SetEndCdataSectionHandler (XML_Parser @var{p}, XML_EndCdataSectionHandler @var{end})
+Set a handler that gets called at the end of a @code{CDATA} section.
+@end deftypefun
+
+
+@deftypefun void XML_SetCdataSectionHandler (XML_Parser @var{p}, XML_StartCdataSectionHandler @var{start}, XML_EndCdataSectionHandler @var{end})
+Sets both @code{CDATA} and section handlers with one call.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_DefaultHandler
+Defined as:
+
+@example
+typedef void (* XML_DefaultHandler) (void * user_data,
+                                     const XML_Char * s,
+                                     int len);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetDefaultHandler (XML_Parser @var{p}, XML_DefaultHandler @var{h})
+Set a handler for any characters in the document which wouldn't
+otherwise be handled.  This includes both data for which no handlers can
+be set (like some kinds of @dtd{} declarations) and data which could be
+reported but which currently has no handler set.
+
+The characters are passed exactly as they were present in the @pxml{}
+document except that they will be encoded in @utf{}-8 or @utf{}-16.
+Line boundaries are not normalized.
+
+Note that a byte order mark character is not passed to the default
+handler.
+
+There are no guarantees about how characters are divided between calls
+to the default handler: for example, a comment might be split between
+multiple calls.
+
+Setting the handler with this call has the side effect of turning off
+expansion of references to internally defined general entities.  Instead
+these references are passed to the default handler.
+
+See also @cfunc{XML_DefaultCurrent}.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_DefaultHandler
+Defined as:
+
+@example
+typedef void (* XML_DefaultHandler) (void * user_data,
+                                     const XML_Char *s,
+                                     int len);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetDefaultHandlerExpand (XML_Parser @var{p}, XML_DefaultHandler @var{h})
+Set a default handler, but doesn't inhibit the expansion of internal
+entity references.  The entity reference will not be passed to the
+default handler.
+
+See also @cfunc{XML_DefaultCurrent}.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_ExternalEntityRefHandler
+Defined as:
+
+@example
+typedef int (* XML_ExternalEntityRefHandler) (XML_Parser p,
+                                              const XML_Char * context,
+                                              const XML_Char * base,
+                                              const XML_Char * system_id,
+                                              const XML_Char * public_id);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetExternalEntityRefHandler (XML_Parser @var{p}, XML_ExternalEntityRefHandler @var{h})
+Set an external entity reference handler.  This handler is also called
+for processing an external @dtd{} subset if parameter entity parsing is
+in effect. (See @cfunc{XML_SetParamEntityParsing}.)
+
+The context parameter specifies the parsing context in the format
+expected by the context argument to
+@cfunc{XML_ExternalEntityParserCreate}.  @code{code} is valid only until
+the handler returns, so if the referenced entity is to be parsed later,
+it must be copied.
+
+@var{context} is @null{} only when the entity is a parameter entity,
+which is how one can differentiate between general and parameter
+entities.
+
+The @var{base} parameter is the base to use for relative system
+identifiers.  It is set by @cfunc{XML_SetBase} and may be @null{}.
+
+The @var{public_id} parameter is the public id given in the entity
+declaration and may be @null{}.
+
+@var{system_id} is the system identifier specified in the entity
+declaration and is never @null{}.
+
+There are a couple of ways in which this handler differs from others.
+
+@enumerate
+@item
+This handler returns a status indicator (an integer).
+@code{XML_STATUS_OK} should be returned for successful handling of the
+external entity reference.  Returning @code{XML_STATUS_ERROR} indicates
+failure, and causes the calling parser to return an
+@code{XML_ERROR_EXTERNAL_ENTITY_HANDLING} error.
+
+@item
+Instead of having the user data as its first argument, it receives the
+parser that encountered the entity reference.  This, along with the
+@var{context} parameter, may be used as arguments to a call to
+@cfunc{XML_ExternalEntityParserCreate}.  Using the returned parser, the
+body of the external entity can be recursively parsed.
+@end enumerate
+
+Since this handler may be called recursively, it should not be saving
+information into global or static variables.
+@end deftypefun
+
+
+@deftypefun void XML_SetExternalEntityRefHandlerArg (XML_Parser @var{p}, void * @var{arg})
+Set the argument passed to the @code{XML_ExternalEntityRefHandler}.  If
+@var{arg} is not @null{}, it is the new value passed to the handler set
+using @cfunc{XML_SetExternalEntityRefHandler}; if @var{arg} is @null{},
+the argument passed to the handler function will be the parser object
+itself.
+
+@quotation
+@emph{Note:} The type of @var{arg} and the type of the first argument to
+the @code{XML_ExternalEntityRefHandler} do not match.  This function
+takes a @code{void *} to be passed to the handler, while the handler
+accepts an @code{XML_Parser}.
+
+This is a historical accident, but will not be corrected before Expat
+2.0 (at the earliest) to avoid causing compiler warnings for code that's
+known to work with this @api{}.  It is the responsibility of the
+application code to know the actual type of the argument passed to the
+handler and to manage it properly.
+@end quotation
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef}
+Defined as:
+
+@example
+typedef void (* XML_SkippedEntityHandler) (void * user_data,
+                                           const XML_Char *entityName,
+                                           int is_parameter_entity);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetSkippedEntityHandler (XML_Parser @var{p}, XML_SkippedEntityHandler @var{h})
+Set a skipped entity handler.  This is called in two situations:
+
+@enumerate
+@item
+An entity reference is encountered for which no declaration has been
+read and this is not an error.
+
+@item
+An internal entity reference is read, but not expanded, because
+@cfunc{XML_SetDefaultHandler} has been called.
+@end enumerate
+
+The @var{is_parameter_entity} argument will be non--zero for a parameter
+entity and zero for a general entity.
+
+@quotation
+@emph{Note:} skipped parameter entities in declarations and skipped
+general entities in attribute values cannot be reported, because the
+event would be out of sync with the reporting of the declarations or
+attribute values.
+@end quotation
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_UnknownEncodingHandler
+Defined as:
+
+@example
+typedef int (* XML_UnknownEncodingHandler) (void * encodingHandlerData,
+                                            const XML_Char *name,
+                                            XML_Encoding *info);
+@end example
+@end deftp
+
+
+@deftp {Struct Typedef} XML_Encoding
+Structure representing an encoding.
+
+@table @code
+@item int map[256]
+@item void * data
+@item int (* convert) (void * data, const char * s)
+@item void (* release) (void * data)
+@end table
+@end deftp
+
+
+@deftypefun void XML_SetUnknownEncodingHandler (XML_Parser @var{p}, XML_UnknownEncodingHandler @var{enchandler}, void * @var{encoding_handler_data})
+Set a handler to deal with encodings other than the built in set.  This
+should be done before @cfunc{XML_Parse} or @cfunc{XML_ParseBuffer} have
+been called on the given parser.
+
+If the handler knows how to deal with an encoding with the given name,
+it should fill in the @var{info} data structure and return
+@code{XML_STATUS_OK}.  Otherwise it should return
+@code{XML_STATUS_ERROR}.  The handler will be called at most once per
+parsed (external) entity.  The optional application data pointer
+@var{encoding_handler_data} will be passed back to the handler.
+
+The @var{map} array contains information for every possible possible
+leading byte in a byte sequence.
+
+@itemize
+@item
+If the corresponding value is >= 0, then it's a single byte sequence and
+the byte encodes that Unicode value.
+
+@item
+If the value is -1, then that byte is invalid as the initial byte in a
+sequence.
+
+@item
+If the value is -n, where n is an integer > 1, then n is the number of
+bytes in the sequence and the actual conversion is accomplished by a
+call to the function pointed at by convert.
+@end itemize
+
+This function may return @code{-1} if the sequence itself is invalid.
+The @code{convert} pointer may be null if there are only single byte
+codes.  The @var{data} parameter passed to the @code{convert} function
+is the data pointer from @cfunc{XML_Encoding}.  The string @var{s} is
+@strong{not} zero--terminated and points at the sequence of bytes to be
+converted.
+
+The function pointed at by @code{release} is called by the parser when
+it is finished with the encoding.  It may be @null{}.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_StartNamespaceDeclHandler
+Defined as:
+
+@example
+typedef void (* XML_StartNamespaceDeclHandler) (void * user_data,
+                                                const XML_Char *prefix,
+                                                const XML_Char *uri);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetStartNamespaceDeclHandler (XML_Parser @var{p}, XML_StartNamespaceDeclHandler @var{start})
+Set a handler to be called when a namespace is declared.  Namespace
+declarations occur inside start tags.  But the namespace declaration
+start handler is called before the start tag handler for each namespace
+declared in that start tag.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_EndNamespaceDeclHandler
+Defined as:
+
+@example
+typedef void (* XML_EndNamespaceDeclHandler) (void * user_data,
+                                              const XML_Char *prefix);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetEndNamespaceDeclHandler (XML_Parser @var{p}, XML_EndNamespaceDeclHandler @var{end})
+Set a handler to be called when leaving the scope of a namespace
+declaration.  This will be called, for each namespace declaration, after
+the handler for the end tag of the element in which the namespace was
+declared.
+@end deftypefun
+
+
+@deftypefun void XML_SetNamespaceDeclHandler (XML_Parser @var{p}, XML_StartNamespaceDeclHandler @var{start}, XML_EndNamespaceDeclHandler @var{end})
+Set both namespace declaration handlers with a single call.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_XmlDeclHandler
+Defined as:
+
+@example
+typedef void (* XML_XmlDeclHandler) (void            *userData,
+                                     const XML_Char  *version,
+                                     const XML_Char  *encoding,
+                                     int             standalone);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetXmlDeclHandler (XML_Parser @var{p}, XML_XmlDeclHandler @var{xmldecl})
+Sets a handler that is called for @pxml{} declarations and also for text
+declarations discovered in external entities.  The way to distinguish is
+that the version parameter will be @null{} for text declarations.  The
+encoding parameter may be @null{} for an @pxml{} declaration.  The
+standalone argument will contain -1, 0, or 1 indicating respectively
+that there was no standalone parameter in the declaration, that it was
+given as no, or that it was given as yes.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_StartDoctypeDeclHandler
+Defined as:
+
+@example
+typedef void (* XML_StartDoctypeDeclHandler) (void           *userData,
+                                              const XML_Char *doctypeName,
+                                              const XML_Char *sysid,
+                                              const XML_Char *pubid,
+                                              int            has_internal_subset);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetStartDoctypeDeclHandler (XML_Parser @var{p}, XML_StartDoctypeDeclHandler @var{start})
+Set a handler that is called at the start of a @code{DOCTYPE}
+declaration, before any external or internal subset is parsed.  Both
+sysid and pubid may be @null{}.  The @var{has_internal_subset} will be
+non--zero if the @code{DOCTYPE} declaration has an internal subset.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_EndDoctypeDeclHandler
+Defined as:
+
+@example
+typedef void (* XML_EndDoctypeDeclHandler) (void * user_data);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetEndDoctypeDeclHandler (XML_Parser @var{p}, XML_EndDoctypeDeclHandler @var{end})
+Set a handler that is called at the end of a DOCTYPE declaration, after
+parsing any external subset.
+@end deftypefun
+
+
+@deftypefun void XML_SetDoctypeDeclHandler (XML_Parser @var{p}, XML_StartDoctypeDeclHandler @var{start}, XML_EndDoctypeDeclHandler @var{end})
+Set both doctype handlers with one call.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_ElementDeclHandler
+Defined as:
+
+@example
+typedef void (* XML_ElementDeclHandler) (void *userData,
+                                         const XML_Char *name,
+                                         XML_Content *model);
+@end example
+@end deftp
+
+
+@deftp Enumeration XML_Content_Type
+Used to identify the content type.
+@end deftp
+
+
+@defmac XML_CTYPE_EMPTY
+@defmacx XML_CTYPE_ANY
+@defmacx XML_CTYPE_MIXED
+@defmacx XML_CTYPE_NAME
+@defmacx XML_CTYPE_CHOICE
+@defmacx XML_CTYPE_SEQ
+Values of the @code{XML_Content_Type} enumeration.
+@end defmac
+
+
+@deftp Enumeration XML_Content_Quant
+Used to identifiy ???
+@end deftp
+
+
+@defmac XML_CQUANT_NONE
+@defmacx XML_CQUANT_OPT
+@defmacx XML_CQUANT_REP
+@defmacx XML_CQUANT_PLUS
+Values of the @code{XML_Content_Quant} enumeration.
+@end defmac
+
+
+@deftp Struct XML_cp
+@deftpx {Struct Typedef} XML_Content
+Description of public fields follows.
+
+@table @code
+@item enum XML_Content_Type type
+@item enum XML_Content_Quant quant
+@item const XML_Char * name
+@item unsigned int numchildren
+@item XML_Content * children
+@end table
+@end deftp
+
+
+@deftypefun void XML_SetElementDeclHandler (XML_Parser @var{p}, XML_ElementDeclHandler @var{eldecl})
+Set a handler for element declarations in a @dtd{}.  The handler gets
+called with the name of the element in the declaration and a pointer to
+a structure that contains the element model.
+
+It is the application's responsibility to free this data structure using
+@cfunc{XML_FreeContentModel}.
+
+The @var{model} argument is the root of a tree of @code{XML_Content}
+nodes.
+
+If @code{type} equals @code{XML_CTYPE_EMPTY} or @code{XML_CTYPE_ANY},
+then @code{quant} will be @code{XML_CQUANT_NONE}, and the other fields
+will be zero or @null{}.
+
+If @code{type} is @code{XML_CTYPE_MIXED}, then @code{quant} will be
+@code{XML_CQUANT_NONE} or @code{XML_CQUANT_REP} and @code{numchildren}
+will contain the number of elements that are allowed to be mixed in and
+children points to an array of @code{XML_Content} structures that will
+all have type @code{XML_CTYPE_NAME} with no quantification.  Only the
+root node can be type @code{XML_CTYPE_EMPTY}, @code{XML_CTYPE_ANY}, or
+@code{XML_CTYPE_MIXED}.
+
+For type @code{XML_CTYPE_NAME}, the name field points to the name and
+the @code{numchildren} and @code{children} fields will be zero and
+@null{}.  The @code{quant} field will indicate any quantifiers placed on
+the name.
+
+Types @code{XML_CTYPE_CHOICE} and @code{XML_CTYPE_SEQ} indicate a choice
+or sequence respectively.  The @code{numchildren} field indicates how
+many nodes in the choice or sequence and children points to the nodes.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_AttlistDeclHandler
+Defined as:
+
+@example
+typedef void
+(* XML_AttlistDeclHandler) (void           * user_data,
+                            const XML_Char * elname,
+                            const XML_Char * attname,
+                            const XML_Char * att_type,
+                            const XML_Char * dflt,
+                            int            isrequired);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetAttlistDeclHandler (XML_Parser @var{p}, XML_AttlistDeclHandler @var{attdecl})
+Set a handler for @code{attlist} declarations in the @dtd{}.  This
+handler is called for each attribute.  So a single @code{attlist}
+declaration with multiple attributes declared will generate multiple
+calls to this handler.
+
+The @var{elname} parameter returns the name of the element for which the
+attribute is being declared.
+
+The attribute @code{name} is in the @var{attname} parameter.
+
+The attribute @code{type} is in the @var{att_type} parameter. It is the
+string representing the type in the declaration with whitespace removed.
+
+The @var{dflt} parameter holds the default value.  It will be @null{} in
+the case of @code{#IMPLIED} or @code{#REQUIRED} attributes.  We can
+distinguish these two cases by checking the @var{isrequired} parameter,
+which will be true in the case of @code{#REQUIRED} attributes.
+
+Attributes which are @code{#FIXED} will have also have a true
+@var{isrequired}, but they will have the non--@null{} fixed value in the
+@var{dflt} parameter.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_EntityDeclHandler
+Defined as:
+
+@example
+typedef void
+(* XML_EntityDeclHandler) (void           * user_data,
+                           const XML_Char * entity_name,
+                           int              is_parameter_entity,
+                           const XML_Char * value,
+                           int              value_length,
+                           const XML_Char * base,
+                           const XML_Char * system_id,
+                           const XML_Char * public_id,
+                           const XML_Char * notation_name);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetEntityDeclHandler (XML_Parser @var{p}, XML_EntityDeclHandler @var{h})
+Set a handler that will be called for all entity declarations.  The
+@var{is_parameter_entity} argument will be non--zero in the case of
+parameter entities and zero otherwise.
+
+For internal entities (@code{<!ENTITY foo "bar">}), @var{value} will be
+non--@null{} and @var{system_id}, @var{public_id}, and
+@var{notation_name} will all be @null{}.
+
+The @var{value} string is not zero--terminated; the length is provided
+in the @var{value_length} parameter.  Do not use @var{value_length} to
+test for internal entities, since it is legal to have zero--length
+values.  Instead check for whether or not @var{value} is @null{}.
+
+The @var{notation_name} argument will have a non--@null{} value only for
+unparsed entity declarations.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_UnparsedEntityDeclHandler
+Defined as:
+
+@example
+typedef void
+(* XML_UnparsedEntityDeclHandler) (void * user_data,
+                                   const XML_Char * entity_name,
+                                   const XML_Char * base,
+                                   const XML_Char * system_id,
+                                   const XML_Char * public_id,
+                                   const XML_Char * notation_name);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetUnparsedEntityDeclHandler (XML_Parser @var{p}, XML_UnparsedEntityDeclHandler @var{h})
+Set a handler that receives declarations of unparsed entities.  These are
+entity declarations that have a notation (@code{NDATA}) field:
+
+@example
+<!ENTITY logo SYSTEM "images/logo.gif" NDATA gif>
+@end example
+
+This handler is obsolete and is provided for backwards compatibility.
+Use instead @cfunc{XML_SetEntityDeclHandler}.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_NotationDeclHandler
+Defined as:
+
+@example
+typedef void
+(* XML_NotationDeclHandler) (void * user_data,
+                             const XML_Char * notation_name,
+                             const XML_Char * base,
+                             const XML_Char * system_id,
+                             const XML_Char * public_id);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetNotationDeclHandler (XML_Parser @var{p}, XML_NotationDeclHandler @var{h})
+Set a handler that receives notation declarations.
+@end deftypefun
+
+
+@deftp {Function Pointer Typedef} XML_NotStandaloneHandler
+Defined as:
+
+@example
+typedef int (* XML_NotStandaloneHandler) (void * user_data);
+@end example
+@end deftp
+
+
+@deftypefun void XML_SetNotStandaloneHandler (XML_Parser @var{p}, XML_NotStandaloneHandler @var{h})
+Set a handler that is called if the document is not ``standalone''.
+This happens when there is an external subset or a reference to a
+parameter entity, but does not have standalone set to @code{yes} in an
+@pxml{} declaration.  If this handler returns @code{XML_STATUS_ERROR},
+then the parser will throw an @code{XML_ERROR_NOT_STANDALONE} error.
+@end deftypefun
+
+
+
+@c page
+@node api report
+@section Parse position and error reporting functions
+
+
+These are the functions you'll want to call when the parse functions
+return XML_STATUS_ERROR (a parse error has occurred), although the
+position reporting functions are useful outside of errors. The position
+reported is the byte position (in the original document or entity
+encoding) of the first of the sequence of characters that generated the
+current event (or the error that caused the parse functions to return
+XML_STATUS_ERROR.) The exceptions are callbacks trigged by declarations
+in the document prologue, in which case they exact position reported is
+somewhere in the relevant markup, but not necessarily as meaningful as
+for other events.
+
+The position reporting functions are accurate only outside of the
+DTD. In other words, they usually return bogus information when called
+from within a DTD declaration handler.
+
+enum XML_Error XMLCALL
+XML_GetErrorCode(XML_Parser p);
+
+Return what type of error has occurred.
+
+const XML_LChar * XMLCALL
+XML_ErrorString(enum XML_Error code);
+
+Return a string describing the error corresponding to code. The code
+should be one of the enums that can be returned from XML_GetErrorCode.
+
+XML_Index XMLCALL
+XML_GetCurrentByteIndex(XML_Parser p);
+
+Return the byte offset of the position. This always corresponds to the
+values returned by XML_GetCurrentLineNumber and
+XML_GetCurrentColumnNumber.
+
+XML_Size XMLCALL
+XML_GetCurrentLineNumber(XML_Parser p);
+
+Return the line number of the position. The first line is reported as 1.
+
+XML_Size XMLCALL
+XML_GetCurrentColumnNumber(XML_Parser p);
+
+Return the offset, from the beginning of the current line, of the position.
+
+int XMLCALL
+XML_GetCurrentByteCount(XML_Parser p);
+
+Return the number of bytes in the current event. Returns 0 if the event
+is inside a reference to an internal entity and for the end-tag event
+for empty element tags (the later can be used to distinguish
+empty-element tags from empty elements using separate start and end
+tags).
+
+const char * XMLCALL
+XML_GetInputContext(XML_Parser p,
+                    int *offset,
+                    int *size);
+
+Returns the parser's input buffer, sets the integer pointed at by offset
+to the offset within this buffer of the current parse position, and set
+the integer pointed at by size to the size of the returned buffer.
+
+This should only be called from within a handler during an active parse
+and the returned buffer should only be referred to from within the
+handler that made the call. This input buffer contains the untranslated
+bytes of the input.
+
+Only a limited amount of context is kept, so if the event triggering a
+call spans over a very large amount of input, the actual parse position
+may be before the beginning of the buffer.
+
+If XML_CONTEXT_BYTES is not defined, this will always return NULL.
+
+
+
+@c page
+@node api version
+@section Expat version
+
+
+@deftypefun {XML_LChar *} XML_ExpatVersion (void)
+Return the library version as a string (e.g. @code{expat_1.95.1}).
+@end deftypefun
+
+
+@deftp {Struct Typedef} XML_Expat_Version
+Type of structure representing the Expat version.  Description of public
+fields follows.
+
+@table @code
+@item int major
+The major version number.
+
+@item int minor
+The minor version number.
+
+@item int micro
+The micro version number.
+@end table
+@end deftp
+
+
+@deftypefun {struct XML_Expat_Version} XML_ExpatVersionInfo (void)
+Return the library version information as a structure (yes, the whole
+structure is the returned value).
+@end deftypefun
+
+
+@defmac XML_MAJOR_VERSION
+@defmacx XML_MINOR_VERSION
+@defmacx XML_MICRO_VERSION
+These macros are defined to support compile--time tests of the library
+version.  Testing these constants is currently the best way to determine
+if particular parts of the Expat @api{} are available.
+@end defmac
+
+
+@c page
+@node api features
+@section Expat features
+
+
+@deftp Enumeration XML_FeatureEnum
+Type of values representing Expat features.
+@end deftp
+
+
+@defmac XML_FEATURE_END
+@defmacx XML_FEATURE_UNICODE
+@defmacx XML_FEATURE_UNICODE_WCHAR_T
+@defmacx XML_FEATURE_DTD
+@defmacx XML_FEATURE_CONTEXT_BYTES
+@defmacx XML_FEATURE_MIN_SIZE
+@defmacx XML_FEATURE_SIZEOF_XML_CHAR
+@defmacx XML_FEATURE_SIZEOF_XML_LCHAR
+@defmacx XML_FEATURE_NS
+@defmacx XML_FEATURE_LARGE_SIZ
+Values of the @code{XML_FeatureEnum} enumeration representing Expat
+features.
+@end defmac
+
+
+@deftp {Struct Typedef} XML_Feature
+Type of the records representing Expat features.  Public fields
+description follows.
+
+@table @code
+@item enum XML_FeatureEnum feature
+A constant representing the feature.
+
+@item XML_LChar * name
+Pointer to a statically allocated string representing the name of the
+feature.
+
+@item long int value
+A value associated to the feature.
+@end table
+@end deftp
+
+
+@deftypefun {const XML_Feature *} XML_GetFeatureList (void)
+Return a list of ``feature'' records, providing details on how Expat was
+configured at compile time.  Most applications should not need to worry
+about this, but this information is otherwise not available from Expat.
+This function allows code that needs to check these features to do so at
+runtime.
+
+The return value is a pointer to a statically allocated array of
+@code{XML_Feature}, terminated by a record with the @code{feature} field
+set to @code{XML_FEATURE_END} and @code{name} field set to @null{}.
+
+Since an application that requires this kind of information needs to
+determine the type of character the name points to, records for the
+@code{XML_FEATURE_SIZEOF_XML_CHAR} and
+@code{XML_FEATURE_SIZEOF_XML_LCHAR} will be located at the beginning of
+the list, followed by @code{XML_FEATURE_UNICODE} and
+@code{XML_FEATURE_UNICODE_WCHAR_T}, if they are present at all.
+
+Some features have an associated value.  If there isn't an associated
+value, the value field is set to 0.  At this time, the following
+features have been defined to have values:
+
+@table @code
+@item XML_FEATURE_SIZEOF_XML_CHAR
+The number of bytes occupied by one @code{XML_Char} character.
+
+@item XML_FEATURE_SIZEOF_XML_LCHAR
+The number of bytes occupied by one @code{XML_LChar} character.
+
+@item XML_FEATURE_CONTEXT_BYTES
+The maximum number of characters of context which can be reported by
+@cfunc{XML_GetInputContext}.
+@end table
+@end deftypefun
+
+
+@c page
+@node api memory
+@section Parser associated memory
+
+
+The following functions allow external code to share the memory
+allocator an @cfunc{XML_Parser} has been configured to use.  This is
+especially useful for third--party libraries that interact with a parser
+object created by application code, or heavily layered applications.
+This can be essential when using dynamically loaded libraries which use
+different C standard libraries (this can happen on Windows, at least).
+
+
+@deftypefun {void *} XML_MemMalloc (XML_Parser @var{p}, size_t @var{size})
+Allocate @var{size} bytes of memory using the allocator the parser
+object has been configured to use.  Return a pointer to the memory or
+@null{} on failure.  Memory allocated in this way must be freed using
+@cfunc{XML_MemFree}.
+@end deftypefun
+
+
+@deftypefun {void *} XML_MemRealloc (XML_Parser @var{p}, void * @var{ptr}, size_t @var{size})
+Allocate or reallocate @var{size} bytes of memory using the allocator
+the parser object has been configured to use.
+
+@var{ptr} must point to a block of memory allocated by
+@cfunc{XML_MemMalloc} or @cfunc{XML_MemRealloc}, or be @null{}.
+
+When reallocating, this function tries to expand the block pointed to by
+@var{ptr} if possible.
+
+Return a pointer to the memory or @null{} on failure.  On success, the
+original block has either been expanded or freed.  On failure, the
+original block has not been freed; the caller is responsible for freeing
+the original block.
+
+Memory allocated in this way must be freed using @cfunc{XML_MemFree}.
+@end deftypefun
+
+
+@deftypefun void XML_MemFree (XML_Parser @var{p}, void * @var{ptr})
+Free a block of memory pointed to by @var{ptr}.  The block must have
+been allocated by @cfunc{XML_MemMalloc} or @cfunc{XML_MemRealloc}, or be
+@null{}.
+@end deftypefun
+
+
+@c page
+@node api misc
+@section Miscellaneous functions
+
+
+The functions in this section either obtain state information from the
+parser or can be used to dynamicly set parser options.
+
+
+@deftypefun void XML_SetUserData (XML_Parser @var{p}, void * @var{user_data})
+@deftypefunx {void *} XML_GetUserData (XML_Parser @var{p})
+Set or get the user data pointer that gets passed to handlers,
+overwriting any previous value.  The application is responsible for
+managing the memory associated with @var{user_data}.
+@end deftypefun
+
+
+@deftypefun void XML_UseParserAsHandlerArg (XML_Parser @var{p})
+Set the parser pointer itself as @var{user_data} argument for the
+handlers.  The user data can still be obtained using the
+@cfunc{XML_GetUserData} function.
+@end deftypefun
+
+
+@deftypefun {enum XML_Status} XML_SetBase (XML_Parser @var{p}, const XML_Char * @var{base})
+Set the base to be used for resolving relative @uri{}s in system
+identifiers.  The string referenced by @var{base} is duplicated.  If
+@var{base} is @null{} the base is reset.
+
+Return @code{XML_STATUS_OK} if successful.  Return
+@code{XML_STATUS_ERROR} if there's no memory to duplicate the base.
+@end deftypefun
+
+
+@deftypefun {const XML_Char *} XML_GetBase (XML_Parser @var{p})
+Return the current base for resolving relative @uri{}s.  The returned
+value can be @null{} if no base was set.
+@end deftypefun
+
+
+@deftypefun int XML_GetSpecifiedAttributeCount (XML_Parser @var{p})
+When attributes are reported to the start handler in the atts vector,
+attributes that were explicitly set in the element occur before any
+attributes that receive their value from default information in an
+@code{ATTLIST} declaration.
+
+This function returns the number of attributes that were explicitly set
+times 2, thus giving the offset in the atts array passed to the start
+tag handler of the first attribute set due to defaults.  It supplies
+information for the last call to a start handler.  If called inside a
+start handler, then that means the current call.
+@end deftypefun
+
+
+@deftypefun int XML_GetIdAttributeIndex (XML_Parser @var{p})
+Return the index of the @code{ID} attribute passed in the atts array in
+the last call to @cfunc{XML_StartElementHandler}, or @code{-1} if there
+is no @code{ID} attribute.  If called inside a start handler, then that
+means the current call.
+@end deftypefun
+
+
+@deftypefun {enum XML_Status} XML_SetEncoding (XML_Parser @var{p}, const XML_Char * @var{encoding})
+Set the encoding to be used by the parser, return @code{XML_STATUS_OK}
+if successful.
+
+The string referenced by @var{encoding} is duplicated, the return value
+is @code{XML_STATUS_ERROR} if there is not enough memory to duplicate
+it.
+
+This function must not be called after @cfunc{XML_Parse} or
+@cfunc{XML_ParseBuffer} have been called on the given parser, the return
+value is @code{XML_STATUS_ERROR} if the parser is in the
+@code{XML_PARSING} or @code{XML_SUSPENDED} status.
+
+Calling this function is equivalent to passing a non--@null{} encoding
+argument to the parser creation functions.
+@end deftypefun
+
+
+@deftypefun int XML_SetParamEntityParsing (XML_Parser @var{p}, enum XML_ParamEntityParsing @var{code})
+Enable parsing of parameter entities according to @var{code}, including
+the external parameter entity that is the external @dtd{} subset.  The
+choices for @var{code} are:
+
+@example
+XML_PARAM_ENTITY_PARSING_NEVER
+XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE
+XML_PARAM_ENTITY_PARSING_ALWAYS
+@end example
+@end deftypefun
+
+
+@deftypefun {enum XML_Error} XML_UseForeignDTD (XML_Parser @var{p}, XML_Bool @var{use_dtd})
+Allow an application to provide an external subset for the document type
+declaration for documents which do not specify an external subset of
+their own.
+
+For documents which specify an external subset in their @code{DOCTYPE}
+declaration, the application--provided subset will be ignored.
+
+If the document does not contain a @code{DOCTYPE} declaration at all and
+@var{use_dtd} is true, the application--provided subset will be parsed,
+but the @var{startDoctypeDeclHandler} and @var{endDoctypeDeclHandler}
+functions, if set, will not be called.
+
+The setting of parameter entity parsing, controlled using
+@cfunc{XML_SetParamEntityParsing}, will be honored.
+
+The application--provided external subset is read by calling the
+external entity reference handler set via
+@cfunc{XML_SetExternalEntityRefHandler} with both @var{publicId} and
+@var{systemId} set to @null{}.
+
+Return values are:
+
+@table @code
+@item XML_ERROR_CANT_CHANGE_FEATURE_ONCE_PARSING
+If this function is called after parsing has begun; @var{use_dtd} is
+ignored.
+
+@item XML_ERROR_FEATURE_REQUIRES_XML_DTD
+If called when Expat has been compiled without @dtd{} support, it
+returns
+
+@item XML_ERROR_NONE
+Otherwise.
+@end table
+
+@quotation
+@emph{Note:} For the purpose of checking WFC: Entity Declared, passing
+@var{use_dtd} == @code{XML_TRUE} will make the parser behave as if the
+document had a @dtd{} with an external subset.  This holds true even if
+the external entity reference handler returns without action.
+@end quotation
+@end deftypefun
+
+
+@deftypefun void XML_SetReturnNSTriplet (XML_Parser @var{p}, int @var{do_nst})
+This function only has an effect when using a parser created with
+@cfunc{XML_ParserCreateNS}, i.e. when namespace processing is in effect.
+The @var{do_nst} argument sets whether or not prefixes are returned with
+names qualified with a namespace prefix.  If this function is called
+with non--zero @var{do_nst}, then namespace qualified names (that is
+qualified with a prefix as opposed to belonging to a default namespace)
+are returned as a triplet with the three parts separated by the
+namespace separator specified when the parser was created.  The order of
+returned parts is @uri{}, local name, and prefix.
+
+If @var{do_nst} is zero, then namespaces are reported in the default
+manner, @uri{} then local name separated by the namespace separator.
+@end deftypefun
+
+
+@deftypefun void XML_DefaultCurrent (XML_Parser @var{p})
+This function can be called within a handler for a start element, end
+element, processing instruction or character data.  It causes the
+corresponding markup to be passed to the default handler set by
+@cfunc{XML_SetDefaultHandler} or @cfunc{XML_SetDefaultHandlerExpand}.
+It does nothing if there is not a default handler.
+@end deftypefun
+
+
+@deftypefun void XML_FreeContentModel (XML_Parser @var{p}, XML_Content * @var{model})
+Deallocate the model argument passed to the
+@cfunc{XML_ElementDeclHandler} callback set using
+@cfunc{XML_ElementDeclHandler}.  This function should not be used for
+any other purpose.
+@end deftypefun
+
+
+@c page
+@node package license
+@appendix Package license
+
+
+Copyright @copyright{} 1998, 1999, 2000 Thai Open Source Software Center
+Ltd and Clark Cooper.
+
+@noindent
+Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006 Expat
+maintainers.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node references
+@appendix Bibliography and references
+
+
+
+@c page
+@node concept index
+@appendix An entry for each concept
+
+@printindex cp
+
+@node function index
+@appendix An entry for each function.
+
+@printindex fn
+
+@node variable index
+@appendix An entry for each variable.
+
+@printindex vr
+
+@node type index
+@appendix An entry for each type.
+
+@printindex tp
+
+@contents
+@bye
+
+@c end of file
