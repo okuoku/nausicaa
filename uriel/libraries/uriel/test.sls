@@ -129,7 +129,9 @@
 (define (debug-print-condition message exc)
   (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
 	 message
-	 (condition-who exc)
+	 (if (who-condition? exc)
+	     (condition-who exc)
+	   'no-who)
 	 (if (message-condition? exc)
 	     (condition-message exc)
 	   #f)
