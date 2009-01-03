@@ -618,6 +618,9 @@ details.
 * file links::                  Hard and symbolic links.
 * file remove::                 Removing files and directories.
 * file rename::                 Renaming files and directories.
+* file mkdir::                  Creating directories.
+* file attr::                   File attributes.
+* file temp::                   Temporary files.
 @end menu
 
 
@@ -971,6 +974,87 @@ The directory has to be empty.
 
 
 @glibcref{Renaming Files,Renaming Files}
+
+
+@deffn Function rename @var{oldname} @var{newname}
+@deffnx Function primitive-rename @var{oldname} @var{newname}
+@deffnx Parameter primitive-rename-function
+@deffnx Function platform-rename @var{oldname} @var{newname}
+Rename the file selected by the string or symbol @var{oldname} to the
+pathname selected by the string or symbol @var{newname}.
+@end deffn
+
+
+@c page
+@node file mkdir
+@section Creating directories
+
+
+@glibcref{Creating Directories,Creating Directories}
+
+
+@deffn Function mkdir @var{pathname}
+@deffnx Function primitive-mkdir @var{pathname}
+@deffnx Parameter primitive-mkdir-function
+@deffnx Function platform-mkdir @var{pathname}
+Create a new directory with pathname selected by the string or symbol
+@var{pathname}.
+@end deffn
+
+
+@c page
+@node file attr
+@section File attributes
+
+
+@glibcref{File attributes,File attributes}
+
+
+@c page
+@node file temp
+@section Temporary files
+
+
+@glibcref{Temporary Files,Temporary Files}
+
+
+@deffn Function tmpnam
+@deffnx Function primitive-tmpnam
+@deffnx Parameter primitive-tmpnam-function
+@deffnx Function platform-tmpnam
+Return a file pathname that, at the time of the call, does not exist on
+the system.
+@end deffn
+
+
+@deffn Function mktemp @var{template}
+@deffnx Function primitive-mktemp @var{template}
+@deffnx Parameter primitive-mktemp-function
+@deffnx Function platform-mktemp @var{template}
+Return a file pathname that, at the time of the call, does not exist on
+the system.  The pathname is built modifying the string or symbol
+@var{template}, which must include the @code{XXXXXX} sequence of
+characters.
+@end deffn
+
+
+@deffn Function mkstemp @var{template}
+@deffnx Function primitive-mkstemp @var{template}
+@deffnx Parameter primitive-mkstemp-function
+@deffnx Function platform-mkstemp @var{template}
+Return 2 values: a file descriptor and a file pathname.  The pathname is
+built modifying the string or symbol @var{template}, which must include
+the @code{XXXXXX} sequence of characters.
+
+Usage example:
+
+@example
+(let-values (((fd pathname) (mkstemp "/tmp/XXXXXX")))
+  ---
+  (close fd)
+  (delete-file pathname))
+@end example
+@end deffn
 
 
 @c page

@@ -74,7 +74,9 @@
 
     SEEK_SET		SEEK_CUR	SEEK_END
     WNOHANG		WUNTRACED	WCONTINUED
-    L_ctermid		CLOCKS_PER_SEC
+    CLOCKS_PER_SEC
+
+    L_ctermid		L_tmpnam
 
     ;;struct accessors
     struct-flock-l_type-set!		struct-flock-l_type-ref
@@ -258,6 +260,7 @@
 (define WCONTINUED		@VALUEOF_WCONTINUED@)
 
 (define L_ctermid		@VALUEOF_L_ctermid@)
+(define L_tmpnam		@VALUEOF_L_tmpnam@)
 
 (define CLOCKS_PER_SEC		@VALUEOF_CLOCKS_PER_SEC@)
 

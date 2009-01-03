@@ -53,8 +53,6 @@
     platform-chown
     platform-fchown
     platform-umask
-;;; This is a GNU extension.
-;;    platform-getumask
     platform-chmod
     platform-fchmod
     platform-access
@@ -63,9 +61,7 @@
     platform-lutimes
     platform-futimes
     platform-ftruncate
-;;    platform-mknod
-    platform-tmpfile
-    platform-tempnam
+    platform-tmpnam
     platform-mktemp
     platform-mkstemp)
   (import (r6rs)
@@ -152,10 +148,6 @@
 (define-c-function/with-errno platform-umask
   (mode_t umask (mode_t)))
 
-;;; This is a GNU extension.
-;; (define-c-function/with-errno platform-getumask
-;;   (int getumask (void)))
-
 (define-c-function/with-errno platform-chmod
   (int chmod (char* mode_t)))
 
@@ -180,14 +172,8 @@
 (define-c-function/with-errno platform-ftruncate
   (int ftruncate (int off_t)))
 
-;; (define-c-function/with-errno platform-mknod
-;;   (int mknod (char* int int)))
-
-(define-c-function/with-errno platform-tmpfile
-  (FILE* tmpfile (void)))
-
-(define-c-function/with-errno platform-tempnam
-  (char* tempnam (char* char*)))
+(define-c-function platform-tmpnam
+  (char* tmpnam (char*)))
 
 (define-c-function/with-errno platform-mktemp
   (char* mktemp (char*)))

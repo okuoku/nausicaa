@@ -60,6 +60,17 @@
     unlink		primitive-unlink	primitive-unlink-function
     rmdir		primitive-rmdir		primitive-rmdir-function
     remove		primitive-remove	primitive-remove-function
+
+    ;; renaming
+    rename		primitive-rename	primitive-rename-function
+
+    ;; mkdir
+    mkdir		primitive-mkdir		primitive-mkdir-function
+
+    ;; temporary files
+    tmpnam		primitive-tmpnam	primitive-tmpnam-function
+    mktemp		primitive-mktemp	primitive-mktemp-function
+    mkstemp		primitive-mkstemp	primitive-mkstemp-function
     )
   (import (except (r6rs) remove)
     (uriel lang)
@@ -395,6 +406,97 @@
 
 (define (rmdir pathname)
   ((primitive-rmdir-function) pathname))
+
+
+
+;;;; renaming
+
+(define (primitive-rename oldname newname)
+  (with-compensations
+    (receive (result errno)
+	(platform-rename (string->cstring/c oldname)
+			 (string->cstring/c newname))
+      (when (= -1 result)
+	(raise-errno-error 'primitive-rename errno
+			   (list oldname newname)))
+      result)))
+
+(define-primitive-parameter
+  primitive-rename-function primitive-rename)
+
+(define (rename oldname newname)
+  ((primitive-rename-function) oldname newname))
+
+
+
+;;;; making directories
+
+(define (primitive-mkdir pathname mode)
+  (with-compensations
+    (receive (result errno)
+	(platform-mkdir (string->cstring/c pathname) mode)
+      (when (= -1 result)
+	(raise-errno-error 'primitive-mkdir errno
+			   (list pathname mode)))
+      result)))
+
+(define-primitive-parameter
+  primitive-mkdir-function primitive-mkdir)
+
+(define (mkdir pathname mode)
+  ((primitive-mkdir-function) pathname mode))
+
+
+
+;;;; temporary files
+
+(define (primitive-tmpnam)
+  (with-compensations
+    (let ((p	(malloc-block/c (+ 1 L_tmpnam))))
+      (platform-tmpnam p)
+      (cstring->string p))))
+
+(define (primitive-mktemp template)
+  (with-compensations
+    (let ((p	(string->cstring/c template)))
+      (receive (result errno)
+	  (platform-mktemp p)
+	(when (pointer-null? result)
+	  (raise-errno-error 'primitive-mktemp errno template))
+	(cstring->string p)))))
+
+(define (primitive-mkstemp template)
+  (with-compensations
+    (let ((p	(string->cstring/c template)))
+      (receive (result errno)
+	  (platform-mkstemp p)
+	(when (= -1 result)
+	  (raise-errno-error 'primitive-mktemp errno template))
+	(values result
+		(cstring->string p))))))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-tmpnam-function primitive-tmpnam)
+
+(define-primitive-parameter
+  primitive-mktemp-function primitive-mktemp)
+
+(define-primitive-parameter
+  primitive-mkstemp-function primitive-mkstemp)
+
+;;; --------------------------------------------------------------------
+
+(define (tmpnam)
+  ((primitive-tmpnam-function)))
+
+(define (mktemp template)
+  ((primitive-mktemp-function) template))
+
+(define (mkstemp template)
+  ((primitive-mkstemp-function) template))
+
 
 
 

@@ -368,6 +368,124 @@ Ses ailes de geant l'empechent de marcher.")
 	  )))))
 
 
+
+(parameterize ((testname	'rename)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (let ((the-other-file (string-join (list the-root "other.ext") "/"))
+		(the-other-dir  (string-join (list the-root "dir-4") "/")))
+
+	    (check
+		(begin
+		  (rename the-file the-other-file)
+		  (list (file-exists? the-file)
+			(file-exists? the-other-file)))
+	      => '(#f #t))
+
+	    (check
+		(begin
+		  (rename the-subdir-1 the-other-dir)
+		  (list (file-exists? the-subdir-1)
+			(file-exists? the-other-dir)))
+	      => '(#f #t))
+
+
+	    ))))))
+
+
+
+(parameterize ((testname	'mkdir)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (let ((the-other-dir  (string-join (list the-root "dir-4") "/")))
+
+	    (check
+		(list
+		  (file-exists? the-other-dir)
+		  (begin
+		    (mkdir the-other-dir #o700)
+		    (file-exists? the-other-dir)))
+	      => '(#f #t))
+
+	    ))))))
+
+
+
+(parameterize ((testname	'tmpfile)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (check
+	      (let ((pathname (tmpnam)))
+;;;		(debug "tmpnam: ~s" pathname)
+		(list (string? pathname)
+		      (file-exists? pathname)))
+	    => '(#t #f))
+
+	  (check
+	      (let ((pathname (mktemp (string-join
+				       (list TMPDIR "XXXXXX")
+				       "/"))))
+;;;		(debug "mktemp: ~s" pathname)
+		(list (string? pathname)
+		      (file-exists? pathname)))
+	    => '(#t #f))
+
+	  (check
+	      (let-values (((fd pathname)
+			    (mkstemp (string-join
+				      (list TMPDIR "XXXXXX")
+				      "/"))))
+;;;		(debug "mkstemp: ~s" pathname)
+		(close fd)
+		(list (string? pathname)
+		      (begin0
+			  (file-exists? pathname)
+			(delete-file pathname))))
+	    => '(#t #t))
+
+	  )))))
+
+
+
 ;;;; done
 
 (check-report)
