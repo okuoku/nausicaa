@@ -35,7 +35,11 @@
     platform-alphasort
     platform-versionsort
     platform-ftw
-    platform-nftw)
+    platform-nftw
+    platform-mknod
+    platform-tmpfile
+    platform-mkdtemp
+    platform-getumask)
   (import (r6rs)
     (uriel lang)
     (uriel foreign)
@@ -69,6 +73,18 @@
 
 (define-c-function/with-errno platform-nftw
   (int nftw (char* callback int int)))
+
+(define-c-function/with-errno platform-mknod
+  (int mknod (char* int int)))
+
+(define-c-function/with-errno platform-tmpfile
+  (FILE* tmpfile (void)))
+
+(define-c-function/with-errno platform-mkdtemp
+  (char* mkdtemp (char*)))
+
+(define-c-function/with-errno platform-getumask
+  (int getumask (void)))
 
 
 

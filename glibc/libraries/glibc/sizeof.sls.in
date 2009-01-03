@@ -63,6 +63,24 @@
 
 
 
+;;;; helpers
+
+(define-syntax define-primitive-parameter
+  (syntax-rules ()
+    ((_ ?parameter-name ?primitive-name)
+     (define ?parameter-name
+       (make-parameter ?primitive-name
+	 (lambda (func)
+	   (unless (procedure? func)
+	     (assertion-violation (quote ?parameter-name)
+	       (format "expected procedure as value for ~s parameter"
+		 ?parameter-name)
+	       func))
+	   func))))))
+
+
+
+
 ;;;; typedefs
 
 (define time_t				(quote @TYPEOF_TIME_T@))
