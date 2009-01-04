@@ -2,13 +2,13 @@
 ;;;Part of: Uriel libraries for R6RS
 ;;;Contents: compound library for foreign functions interfaces
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-24 17:04:49 marco>
+;;;Time-stamp: <2009-01-04 09:29:22 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -156,7 +156,7 @@
     define-c-function			define-c-function/with-errno
 
     ;;foreign struct accessors
-    define-c-struct-accessors
+    define-c-struct-accessors		define-c-struct-field-pointer-getter
     define-c-struct-getter		define-c-struct-setter
 
 

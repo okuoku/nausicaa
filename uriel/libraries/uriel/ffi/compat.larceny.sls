@@ -79,9 +79,9 @@
     ((double)
      'double)
     ((pointer void* char* FILE*)
-     'void*)
+     '(maybe void*))
     ((callback)
-     'void*)
+     '(maybe void*))
     (else
      (assertion-violation 'make-c-function
        "unknown C language type identifier" type))))
