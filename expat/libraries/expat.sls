@@ -32,7 +32,9 @@
     )
   (import (r6rs)
     (uriel lang)
-    (uriel foreign))
+    (uriel foreign)
+    (expat sizeof)
+    (expat platform))
 
 
 ;;;;

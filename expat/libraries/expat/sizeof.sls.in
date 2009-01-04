@@ -29,15 +29,444 @@
 (library (expat sizeof)
   (export
 
+    ;; type definitions
+    XML_Char
+    XML_LChar
+
+    XML_Bool
+    XML_Content_Quant
+    XML_Content_Type
+    XML_Error
+    XML_FeatureEnum
+    XML_Index
+    XML_ParamEntityParsing
+    XML_Parser
+    XML_Parsing
+    XML_Size
+    XML_Status
+
+    sizeof-XML_Bool		alignof-XML_Bool	strideof-XML_Bool
+    sizeof-XML_Char		alignof-XML_Char	strideof-XML_Char
+    sizeof-XML_LChar		alignof-XML_LChar	strideof-XML_LChar
+    sizeof-XML_Content		alignof-XML_Content	strideof-XML_Content
+    sizeof-XML_Content_Quant	alignof-XML_Content_Quant strideof-XML_Content_Quant
+    sizeof-XML_Content_Type	alignof-XML_Content_Type strideof-XML_Content_Type
+    sizeof-XML_Encoding		alignof-XML_Encoding	strideof-XML_Encoding
+    sizeof-XML_Error		alignof-XML_Error	strideof-XML_Error
+    sizeof-XML_Expat_Version	alignof-XML_Expat_Version strideof-XML_Expat_Version
+    sizeof-XML_Index		alignof-XML_Index	strideof-XML_Index
+    sizeof-XML_ParamEntityParsing alignof-XML_ParamEntityParsing strideof-XML_ParamEntityParsing
+    sizeof-XML_Parsing		alignof-XML_Parsing	strideof-XML_Parsing
+    sizeof-XML_ParsingStatus	alignof-XML_ParsingStatus strideof-XML_ParsingStatus
+    sizeof-XML_Size		alignof-XML_Size	strideof-XML_Size
+    sizeof-XML_Status		alignof-XML_Status	strideof-XML_Status
+
+    ;; constants
+    XML_TRUE
+    XML_FALSE
+
+    XML_STATUS_ERROR
+    XML_STATUS_OK
+    XML_STATUS_SUSPENDED
+
+    XML_ERROR_NONE
+    XML_ERROR_NO_MEMORY
+    XML_ERROR_SYNTAX
+    XML_ERROR_NO_ELEMENTS
+    XML_ERROR_INVALID_TOKEN
+    XML_ERROR_UNCLOSED_TOKEN
+    XML_ERROR_PARTIAL_CHAR
+    XML_ERROR_TAG_MISMATCH
+    XML_ERROR_DUPLICATE_ATTRIBUTE
+    XML_ERROR_JUNK_AFTER_DOC_ELEMENT
+    XML_ERROR_PARAM_ENTITY_REF
+    XML_ERROR_UNDEFINED_ENTITY
+    XML_ERROR_RECURSIVE_ENTITY_REF
+    XML_ERROR_ASYNC_ENTITY
+    XML_ERROR_BAD_CHAR_REF
+    XML_ERROR_BINARY_ENTITY_REF
+    XML_ERROR_ATTRIBUTE_EXTERNAL_ENTITY_REF
+    XML_ERROR_MISPLACED_XML_PI
+    XML_ERROR_UNKNOWN_ENCODING
+    XML_ERROR_INCORRECT_ENCODING
+    XML_ERROR_UNCLOSED_CDATA_SECTION
+    XML_ERROR_EXTERNAL_ENTITY_HANDLING
+    XML_ERROR_NOT_STANDALONE
+    XML_ERROR_UNEXPECTED_STATE
+    XML_ERROR_ENTITY_DECLARED_IN_PE
+    XML_ERROR_FEATURE_REQUIRES_XML_DTD
+    XML_ERROR_CANT_CHANGE_FEATURE_ONCE_PARSING
+    XML_ERROR_UNBOUND_PREFIX
+    XML_ERROR_UNDECLARING_PREFIX
+    XML_ERROR_INCOMPLETE_PE
+    XML_ERROR_XML_DECL
+    XML_ERROR_TEXT_DECL
+    XML_ERROR_PUBLICID
+    XML_ERROR_SUSPENDED
+    XML_ERROR_NOT_SUSPENDED
+    XML_ERROR_ABORTED
+    XML_ERROR_FINISHED
+    XML_ERROR_SUSPEND_PE
+    XML_ERROR_RESERVED_PREFIX_XML
+    XML_ERROR_RESERVED_PREFIX_XMLNS
+    XML_ERROR_RESERVED_NAMESPACE_URI
+
+    XML_CTYPE_EMPTY
+    XML_CTYPE_ANY
+    XML_CTYPE_MIXED
+    XML_CTYPE_NAME
+    XML_CTYPE_CHOICE
+    XML_CTYPE_SEQ
+
+    XML_CQUANT_NONE
+    XML_CQUANT_OPT
+    XML_CQUANT_REP
+    XML_CQUANT_PLUS
+
+    XML_PARAM_ENTITY_PARSING_NEVER
+    XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE
+    XML_PARAM_ENTITY_PARSING_ALWAYS
+
+    XML_MAJOR_VERSION
+    XML_MINOR_VERSION
+    XML_MICRO_VERSION
+
+    XML_FEATURE_END
+    XML_FEATURE_UNICODE
+    XML_FEATURE_UNICODE_WCHAR_T
+    XML_FEATURE_DTD
+    XML_FEATURE_CONTEXT_BYTES
+    XML_FEATURE_MIN_SIZE
+    XML_FEATURE_SIZEOF_XML_CHAR
+    XML_FEATURE_SIZEOF_XML_LCHAR
+    XML_FEATURE_NS
+    XML_FEATURE_LARGE_SIZE
+
+    ;; structure accessors
+    struct-xml-content-type-set!		struct-xml-content-type-ref
+    struct-xml-content-quant-set!		struct-xml-content-quant-ref
+    struct-xml-content-name-set!		struct-xml-content-name-ref
+    struct-xml-content-numchildren-set!		struct-xml-content-numchildren-ref
+    struct-xml-content-children-set!		struct-xml-content-children-ref
+
+    struct-xml-encoding-map-ref			struct-xml-encoding-data-set!
+    struct-xml-encoding-data-ref
+    struct-xml-encoding-convert-set!		struct-xml-encoding-convert-ref
+    struct-xml-encoding-release-set!		struct-xml-encoding-release-ref
+
+    struct-xml-parsing-status-parsing-set!	struct-xml-parsing-status-parsing-ref
+    struct-xml-parsing-status-final-buffer-set!	struct-xml-parsing-status-final-buffer-ref
+
+    struct-xml-expat-version-major-set!		struct-xml-expat-version-major-ref
+    struct-xml-expat-version-minor-set!		struct-xml-expat-version-minor-ref
+    struct-xml-expat-version-micro-set!		struct-xml-expat-version-micro-ref
+    struct-xml-feature-feature-set!		struct-xml-feature-feature-ref
+    struct-xml-feature-name-set!		struct-xml-feature-name-ref
+    struct-xml-feature-value-set!		struct-xml-feature-value-ref
     )
   (import (r6rs)
     (uriel lang)
     (uriel foreign))
 
 
+;;;; type definitions
+
+;; (define XML_Char			(quote @TYPEOF_XML_CHAR@))
+;; (define XML_LChar			(quote @TYPEOF_XML_LCHAR@))
+(define XML_Char			(quote signed-int))
+(define XML_LChar			(quote signed-int))
+
+;;(define XML_Bool			(quote @TYPEOF_XML_BOOL@))
+(define XML_Bool			(quote signed-int))
+(define XML_Content_Quant		(quote @TYPEOF_XML_CONTENT_QUANT@))
+(define XML_Content_Type		(quote @TYPEOF_XML_CONTENT_TYPE@))
+(define XML_Error			(quote @TYPEOF_XML_ERROR@))
+(define XML_FeatureEnum			(quote @TYPEOF_XML_FEATURE_ENUM@))
+(define XML_Index			(quote @TYPEOF_XML_INDEX@))
+(define XML_ParamEntityParsing		(quote @TYPEOF_XML_PARAM_ENTITY_PARSING@))
+(define XML_Parser			(quote pointer))
+(define XML_Parsing			(quote @TYPEOF_XML_PARSING@))
+(define XML_Size			(quote @TYPEOF_XML_SIZE@))
+(define XML_Status			(quote @TYPEOF_XML_STATUS@))
+
+(define sizeof-XML_Bool			(quote @SIZEOF_XML_BOOL@))
+(define alignof-XML_Bool		(quote @ALIGNOF_XML_BOOL@))
+(define strideof-XML_Bool		(quote @STRIDEOF_XML_BOOL@))
+
+(define sizeof-XML_Char			(quote @SIZEOF_XML_CHAR@))
+(define alignof-XML_Char		(quote @ALIGNOF_XML_CHAR@))
+(define strideof-XML_Char		(quote @STRIDEOF_XML_CHAR@))
+
+(define sizeof-XML_LChar		(quote @SIZEOF_XML_LCHAR@))
+(define alignof-XML_LChar		(quote @ALIGNOF_XML_LCHAR@))
+(define strideof-XML_LChar		(quote @STRIDEOF_XML_LCHAR@))
+
+(define sizeof-XML_Content		(quote @SIZEOF_XML_CONTENT@))
+(define alignof-XML_Content		(quote @ALIGNOF_XML_CONTENT@))
+(define strideof-XML_Content		(quote @STRIDEOF_XML_CONTENT@))
+
+(define sizeof-XML_Content_Quant	(quote @SIZEOF_XML_CONTENT_QUANT@))
+(define alignof-XML_Content_Quant	(quote @ALIGNOF_XML_CONTENT_QUANT@))
+(define strideof-XML_Content_Quant	(quote @STRIDEOF_XML_CONTENT_QUANT@))
+
+(define sizeof-XML_Content_Type		(quote @SIZEOF_XML_CONTENT_TYPE@))
+(define alignof-XML_Content_Type	(quote @ALIGNOF_XML_CONTENT_TYPE@))
+(define strideof-XML_Content_Type	(quote @STRIDEOF_XML_CONTENT_TYPE@))
+
+(define sizeof-XML_Encoding		(quote @SIZEOF_XML_ENCODING@))
+(define alignof-XML_Encoding		(quote @ALIGNOF_XML_ENCODING@))
+(define strideof-XML_Encoding		(quote @STRIDEOF_XML_ENCODING@))
+
+(define sizeof-XML_Error		(quote @SIZEOF_XML_ERROR@))
+(define alignof-XML_Error		(quote @ALIGNOF_XML_ERROR@))
+(define strideof-XML_Error		(quote @STRIDEOF_XML_ERROR@))
+
+(define sizeof-XML_Index		(quote @SIZEOF_XML_INDEX@))
+(define alignof-XML_Index		(quote @ALIGNOF_XML_INDEX@))
+(define strideof-XML_Index		(quote @STRIDEOF_XML_INDEX@))
+
+(define sizeof-XML_ParamEntityParsing	(quote @SIZEOF_XML_PARAM_ENTITY_PARSING@))
+(define alignof-XML_ParamEntityParsing	(quote @ALIGNOF_XML_PARAM_ENTITY_PARSING@))
+(define strideof-XML_ParamEntityParsing	(quote @STRIDEOF_XML_PARAM_ENTITY_PARSING@))
+
+(define sizeof-XML_Parsing		(quote @SIZEOF_XML_PARSING@))
+(define alignof-XML_Parsing		(quote @ALIGNOF_XML_PARSING@))
+(define strideof-XML_Parsing		(quote @STRIDEOF_XML_PARSING@))
+
+(define sizeof-XML_ParsingStatus	(quote @SIZEOF_XML_PARSING_STATUS@))
+(define alignof-XML_ParsingStatus	(quote @ALIGNOF_XML_PARSING_STATUS@))
+(define strideof-XML_ParsingStatus	(quote @STRIDEOF_XML_PARSING_STATUS@))
+
+(define sizeof-XML_Size			(quote @SIZEOF_XML_SIZE@))
+(define alignof-XML_Size		(quote @ALIGNOF_XML_SIZE@))
+(define strideof-XML_Size		(quote @STRIDEOF_XML_SIZE@))
+
+(define sizeof-XML_Status		(quote @SIZEOF_XML_STATUS@))
+(define alignof-XML_Status		(quote @ALIGNOF_XML_STATUS@))
+(define strideof-XML_Status		(quote @STRIDEOF_XML_STATUS@))
+
+(define sizeof-XML_Expat_Version	(quote @SIZEOF_XML_EXPAT_VERSION@))
+(define alignof-XML_Expat_Version	(quote @ALIGNOF_XML_EXPAT_VERSION@))
+(define strideof-XML_Expat_Version	(quote @STRIDEOF_XML_EXPAT_VERSION@))
+
+
+
 ;;;; constants
 
+(define XML_TRUE			@VALUEOF_XML_TRUE@)
+(define XML_FALSE			@VALUEOF_XML_FALSE@)
 
+(define XML_STATUS_ERROR		@VALUEOF_XML_STATUS_ERROR@)
+(define XML_STATUS_OK			@VALUEOF_XML_STATUS_OK@)
+(define XML_STATUS_SUSPENDED		@VALUEOF_XML_STATUS_SUSPENDED@)
+
+;;; Values for the "XML_Error" enumeration.
+(define XML_ERROR_NONE			@VALUEOF_XML_ERROR_NONE@)
+(define XML_ERROR_NO_MEMORY		@VALUEOF_XML_ERROR_NO_MEMORY@)
+(define XML_ERROR_SYNTAX		@VALUEOF_XML_ERROR_SYNTAX@)
+(define XML_ERROR_NO_ELEMENTS		@VALUEOF_XML_ERROR_NO_ELEMENTS@)
+(define XML_ERROR_INVALID_TOKEN		@VALUEOF_XML_ERROR_INVALID_TOKEN@)
+(define XML_ERROR_UNCLOSED_TOKEN	@VALUEOF_XML_ERROR_UNCLOSED_TOKEN@)
+(define XML_ERROR_PARTIAL_CHAR		@VALUEOF_XML_ERROR_PARTIAL_CHAR@)
+(define XML_ERROR_TAG_MISMATCH		@VALUEOF_XML_ERROR_TAG_MISMATCH@)
+(define XML_ERROR_DUPLICATE_ATTRIBUTE	@VALUEOF_XML_ERROR_DUPLICATE_ATTRIBUTE@)
+(define XML_ERROR_JUNK_AFTER_DOC_ELEMENT @VALUEOF_XML_ERROR_JUNK_AFTER_DOC_ELEMENT@)
+(define XML_ERROR_PARAM_ENTITY_REF	@VALUEOF_XML_ERROR_PARAM_ENTITY_REF@)
+(define XML_ERROR_UNDEFINED_ENTITY	@VALUEOF_XML_ERROR_UNDEFINED_ENTITY@)
+(define XML_ERROR_RECURSIVE_ENTITY_REF	@VALUEOF_XML_ERROR_RECURSIVE_ENTITY_REF@)
+(define XML_ERROR_ASYNC_ENTITY		@VALUEOF_XML_ERROR_ASYNC_ENTITY@)
+(define XML_ERROR_BAD_CHAR_REF		@VALUEOF_XML_ERROR_BAD_CHAR_REF@)
+(define XML_ERROR_BINARY_ENTITY_REF	@VALUEOF_XML_ERROR_BINARY_ENTITY_REF@)
+(define XML_ERROR_ATTRIBUTE_EXTERNAL_ENTITY_REF @VALUEOF_XML_ERROR_ATTRIBUTE_EXTERNAL_ENTITY_REF@)
+(define XML_ERROR_MISPLACED_XML_PI	@VALUEOF_XML_ERROR_MISPLACED_XML_PI@)
+(define XML_ERROR_UNKNOWN_ENCODING	@VALUEOF_XML_ERROR_UNKNOWN_ENCODING@)
+(define XML_ERROR_INCORRECT_ENCODING	@VALUEOF_XML_ERROR_INCORRECT_ENCODING@)
+(define XML_ERROR_UNCLOSED_CDATA_SECTION @VALUEOF_XML_ERROR_UNCLOSED_CDATA_SECTION@)
+(define XML_ERROR_EXTERNAL_ENTITY_HANDLING @VALUEOF_XML_ERROR_EXTERNAL_ENTITY_HANDLING@)
+(define XML_ERROR_NOT_STANDALONE	@VALUEOF_XML_ERROR_NOT_STANDALONE@)
+(define XML_ERROR_UNEXPECTED_STATE	@VALUEOF_XML_ERROR_UNEXPECTED_STATE@)
+(define XML_ERROR_ENTITY_DECLARED_IN_PE	@VALUEOF_XML_ERROR_ENTITY_DECLARED_IN_PE@)
+(define XML_ERROR_FEATURE_REQUIRES_XML_DTD @VALUEOF_XML_ERROR_FEATURE_REQUIRES_XML_DTD@)
+(define XML_ERROR_CANT_CHANGE_FEATURE_ONCE_PARSING @VALUEOF_XML_ERROR_CANT_CHANGE_FEATURE_ONCE_PARSING@)
+(define XML_ERROR_UNBOUND_PREFIX	@VALUEOF_XML_ERROR_UNBOUND_PREFIX@)
+(define XML_ERROR_UNDECLARING_PREFIX	@VALUEOF_XML_ERROR_UNDECLARING_PREFIX@)
+(define XML_ERROR_INCOMPLETE_PE		@VALUEOF_XML_ERROR_INCOMPLETE_PE@)
+(define XML_ERROR_XML_DECL		@VALUEOF_XML_ERROR_XML_DECL@)
+(define XML_ERROR_TEXT_DECL		@VALUEOF_XML_ERROR_TEXT_DECL@)
+(define XML_ERROR_PUBLICID		@VALUEOF_XML_ERROR_PUBLICID@)
+(define XML_ERROR_SUSPENDED		@VALUEOF_XML_ERROR_SUSPENDED@)
+(define XML_ERROR_NOT_SUSPENDED		@VALUEOF_XML_ERROR_NOT_SUSPENDED@)
+(define XML_ERROR_ABORTED		@VALUEOF_XML_ERROR_ABORTED@)
+(define XML_ERROR_FINISHED		@VALUEOF_XML_ERROR_FINISHED@)
+(define XML_ERROR_SUSPEND_PE		@VALUEOF_XML_ERROR_SUSPEND_PE@)
+(define XML_ERROR_RESERVED_PREFIX_XML	@VALUEOF_XML_ERROR_RESERVED_PREFIX_XML@)
+(define XML_ERROR_RESERVED_PREFIX_XMLNS	@VALUEOF_XML_ERROR_RESERVED_PREFIX_XMLNS@)
+(define XML_ERROR_RESERVED_NAMESPACE_URI @VALUEOF_XML_ERROR_RESERVED_NAMESPACE_URI@)
+
+;;; Values for the "XML_Content_Type" enumeration.
+(define XML_CTYPE_EMPTY		@VALUEOF_XML_CTYPE_EMPTY@)
+(define XML_CTYPE_ANY		@VALUEOF_XML_CTYPE_ANY@)
+(define XML_CTYPE_MIXED		@VALUEOF_XML_CTYPE_MIXED@)
+(define XML_CTYPE_NAME		@VALUEOF_XML_CTYPE_NAME@)
+(define XML_CTYPE_CHOICE	@VALUEOF_XML_CTYPE_CHOICE@)
+(define XML_CTYPE_SEQ		@VALUEOF_XML_CTYPE_SEQ@)
+
+;;; Values for the "XML_Content_Quant" enumeration.
+(define XML_CQUANT_NONE		@VALUEOF_XML_CQUANT_NONE@)
+(define XML_CQUANT_OPT		@VALUEOF_XML_CQUANT_OPT@)
+(define XML_CQUANT_REP		@VALUEOF_XML_CQUANT_REP@)
+(define XML_CQUANT_PLUS		@VALUEOF_XML_CQUANT_PLUS@)
+
+;;; Values for the "XML_ParamEntityParsing" enumeration.
+(define XML_PARAM_ENTITY_PARSING_NEVER	@VALUEOF_XML_PARAM_ENTITY_PARSING_NEVER@)
+(define XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE @VALUEOF_XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE@)
+(define XML_PARAM_ENTITY_PARSING_ALWAYS @VALUEOF_XML_PARAM_ENTITY_PARSING_ALWAYS@)
+
+;;; Version numbers.
+(define XML_MAJOR_VERSION	@VALUEOF_XML_MAJOR_VERSION@)
+(define XML_MINOR_VERSION	@VALUEOF_XML_MINOR_VERSION@)
+(define XML_MICRO_VERSION	@VALUEOF_XML_MICRO_VERSION@)
+
+;;; Values for the "XML_FeatureEnum" enumeration.
+(define XML_FEATURE_END			@VALUEOF_XML_FEATURE_END@)
+(define XML_FEATURE_UNICODE		@VALUEOF_XML_FEATURE_UNICODE@)
+(define XML_FEATURE_UNICODE_WCHAR_T	@VALUEOF_XML_FEATURE_UNICODE_WCHAR_T@)
+(define XML_FEATURE_DTD			@VALUEOF_XML_FEATURE_DTD@)
+(define XML_FEATURE_CONTEXT_BYTES	@VALUEOF_XML_FEATURE_CONTEXT_BYTES@)
+(define XML_FEATURE_MIN_SIZE		@VALUEOF_XML_FEATURE_MIN_SIZE@)
+(define XML_FEATURE_SIZEOF_XML_CHAR	@VALUEOF_XML_FEATURE_SIZEOF_XML_CHAR@)
+(define XML_FEATURE_SIZEOF_XML_LCHAR	@VALUEOF_XML_FEATURE_SIZEOF_XML_LCHAR@)
+(define XML_FEATURE_NS			@VALUEOF_XML_FEATURE_NS@)
+(define XML_FEATURE_LARGE_SIZE		@VALUEOF_XML_FEATURE_LARGE_SIZE@)
+
+
+
+
+;;;; structure accessors
+
+(define-c-struct-accessors
+  struct-xml-content-type-set!
+  struct-xml-content-type-ref
+  @OFFSETOF_STRUCT_XML_CONTENT_TYPE@
+  @SETTEROF_STRUCT_XML_CONTENT_TYPE@
+  @GETTEROF_STRUCT_XML_CONTENT_TYPE@)
+
+(define-c-struct-accessors
+  struct-xml-content-quant-set!
+  struct-xml-content-quant-ref
+  @OFFSETOF_STRUCT_XML_CONTENT_QUANT@
+  @SETTEROF_STRUCT_XML_CONTENT_QUANT@
+  @GETTEROF_STRUCT_XML_CONTENT_QUANT@)
+
+(define-c-struct-accessors
+  struct-xml-content-name-set!
+  struct-xml-content-name-ref
+  @OFFSETOF_STRUCT_XML_CONTENT_NAME@
+  @SETTEROF_STRUCT_XML_CONTENT_NAME@
+  @GETTEROF_STRUCT_XML_CONTENT_NAME@)
+
+(define-c-struct-accessors
+  struct-xml-content-numchildren-set!
+  struct-xml-content-numchildren-ref
+  @OFFSETOF_STRUCT_XML_CONTENT_NUMCHILDREN@
+  @SETTEROF_STRUCT_XML_CONTENT_NUMCHILDREN@
+  @GETTEROF_STRUCT_XML_CONTENT_NUMCHILDREN@)
+
+(define-c-struct-accessors
+  struct-xml-content-children-set!
+  struct-xml-content-children-ref
+  @OFFSETOF_STRUCT_XML_CONTENT_CHILDREN@
+  @SETTEROF_STRUCT_XML_CONTENT_CHILDREN@
+  @GETTEROF_STRUCT_XML_CONTENT_CHILDREN@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-field-pointer-getter
+  struct-xml-encoding-map-ref
+  @OFFSETOF_STRUCT_XML_ENCODING_MAP@)
+
+(define-c-struct-accessors
+  struct-xml-encoding-data-set!
+  struct-xml-encoding-data-ref
+  @OFFSETOF_STRUCT_XML_ENCODING_DATA@
+  @SETTEROF_STRUCT_XML_ENCODING_DATA@
+  @GETTEROF_STRUCT_XML_ENCODING_DATA@)
+
+(define-c-struct-accessors
+  struct-xml-encoding-convert-set!
+  struct-xml-encoding-convert-ref
+  @OFFSETOF_STRUCT_XML_ENCODING_CONVERT@
+  @SETTEROF_STRUCT_XML_ENCODING_CONVERT@
+  @GETTEROF_STRUCT_XML_ENCODING_CONVERT@)
+
+(define-c-struct-accessors
+  struct-xml-encoding-release-set!
+  struct-xml-encoding-release-ref
+  @OFFSETOF_STRUCT_XML_ENCODING_RELEASE@
+  @SETTEROF_STRUCT_XML_ENCODING_RELEASE@
+  @GETTEROF_STRUCT_XML_ENCODING_RELEASE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessors
+  struct-xml-parsing-status-parsing-set!
+  struct-xml-parsing-status-parsing-ref
+  @OFFSETOF_STRUCT_XML_PARSING_STATUS_PARSING@
+  @SETTEROF_STRUCT_XML_PARSING_STATUS_PARSING@
+  @GETTEROF_STRUCT_XML_PARSING_STATUS_PARSING@)
+
+(define-c-struct-accessors
+  struct-xml-parsing-status-final-buffer-set!
+  struct-xml-parsing-status-final-buffer-ref
+  @OFFSETOF_STRUCT_XML_PARSING_STATUS_FINAL_BUFFER@
+  @SETTEROF_STRUCT_XML_PARSING_STATUS_FINAL_BUFFER@
+  @GETTEROF_STRUCT_XML_PARSING_STATUS_FINAL_BUFFER@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessors
+  struct-xml-expat-version-major-set!
+  struct-xml-expat-version-major-ref
+  @OFFSETOF_STRUCT_XML_EXPAT_VERSION_MAJOR@
+  @SETTEROF_STRUCT_XML_EXPAT_VERSION_MAJOR@
+  @GETTEROF_STRUCT_XML_EXPAT_VERSION_MAJOR@)
+
+(define-c-struct-accessors
+  struct-xml-expat-version-minor-set!
+  struct-xml-expat-version-minor-ref
+  @OFFSETOF_STRUCT_XML_EXPAT_VERSION_MINOR@
+  @SETTEROF_STRUCT_XML_EXPAT_VERSION_MINOR@
+  @GETTEROF_STRUCT_XML_EXPAT_VERSION_MINOR@)
+
+(define-c-struct-accessors
+  struct-xml-expat-version-micro-set!
+  struct-xml-expat-version-micro-ref
+  @OFFSETOF_STRUCT_XML_EXPAT_VERSION_MICRO@
+  @SETTEROF_STRUCT_XML_EXPAT_VERSION_MICRO@
+  @GETTEROF_STRUCT_XML_EXPAT_VERSION_MICRO@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessors
+  struct-xml-feature-feature-set!
+  struct-xml-feature-feature-ref
+  @OFFSETOF_STRUCT_XML_FEATURE_FEATURE@
+  @SETTEROF_STRUCT_XML_FEATURE_FEATURE@
+  @GETTEROF_STRUCT_XML_FEATURE_FEATURE@)
+
+(define-c-struct-accessors
+  struct-xml-feature-name-set!
+  struct-xml-feature-name-ref
+  @OFFSETOF_STRUCT_XML_FEATURE_NAME@
+  @SETTEROF_STRUCT_XML_FEATURE_NAME@
+  @GETTEROF_STRUCT_XML_FEATURE_NAME@)
+
+(define-c-struct-accessors
+  struct-xml-feature-value-set!
+  struct-xml-feature-value-ref
+  @OFFSETOF_STRUCT_XML_FEATURE_VALUE@
+  @SETTEROF_STRUCT_XML_FEATURE_VALUE@
+  @GETTEROF_STRUCT_XML_FEATURE_VALUE@)
 
 
 

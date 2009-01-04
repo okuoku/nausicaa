@@ -30,6 +30,9 @@
 (compile-library "expat/sizeof.sls"
 		 "expat/sizeof.larceny.slfasl")
 
+(compile-library "expat/platform.sls"
+		 "expat/platform.larceny.slfasl")
+
 (compile-library "expat.sls"
 		 "expat.larceny.slfasl")
 
