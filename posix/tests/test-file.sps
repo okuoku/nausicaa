@@ -36,6 +36,7 @@
   (posix process)
   (posix fd)
   (posix file)
+  (posix file stat)
   (posix sizeof)
   (env-lib))
 
@@ -483,6 +484,51 @@ Ses ailes de geant l'empechent de marcher.")
 	    => '(#t #t))
 
 	  )))))
+
+
+
+
+(parameterize ((testname	'stat)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (let ((the-other (string-join (list the-root "other.ext") "/")))
+
+	    (check
+		(struct-stat? (stat the-file))
+	      => #t)
+
+	    (check
+		(with-compensations
+		  (letrec ((fd (compensate
+				   (open the-file O_RDONLY 0)
+				 (with
+				  (close fd)))))
+		    (struct-stat? (fstat fd))))
+	      => #t)
+
+	    (check
+		(with-compensations
+		    (compensate
+			(symlink the-file the-other)
+		      (with
+		       (delete-file the-other)))
+		  (struct-stat? (lstat the-other)))
+	      => #t)
+
+	    ))))))
 
 
 

@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: tests for job control functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2008-12-19 17:39:27 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -37,6 +36,9 @@
 (check-set-mode! 'report-failed)
 
 
+
+(debugging #t)
+
 
 (parameterize ((testname 'terminal-id))
 
@@ -73,6 +75,7 @@
   )
 
 
+
 
 (parameterize ((testname 'access))
 

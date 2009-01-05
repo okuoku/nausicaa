@@ -42,6 +42,23 @@
     stat	primitive-stat		primitive-stat-function
     lstat	primitive-lstat		primitive-lstat-function
     fstat	primitive-fstat		primitive-fstat-function
+
+    make-struct-stat struct-stat? struct-stat->record
+    struct-stat-mode
+    struct-stat-ino
+    struct-stat-dev
+    struct-stat-nlink
+    struct-stat-uid
+    struct-stat-gid
+    struct-stat-size
+    struct-stat-atime
+    struct-stat-atime_usec
+    struct-stat-mtime
+    struct-stat-mtime_usec
+    struct-stat-ctime
+    struct-stat-ctime_usec
+    struct-stat-blocks
+    struct-stat-blksize
     )
   (import (r6rs)
     (uriel lang)
@@ -56,10 +73,49 @@
 
 ;;;; stat record
 
+(define-record-type struct-stat
+  (fields (immutable mode)
+	  (immutable ino)
+	  (immutable dev)
+	  (immutable nlink)
+	  (immutable uid)
+	  (immutable gid)
+	  (immutable size)
+	  (immutable atime)
+	  (immutable atime_usec)
+	  (immutable mtime)
+	  (immutable mtime_usec)
+	  (immutable ctime)
+	  (immutable ctime_usec)
+	  (immutable blocks)
+	  (immutable blksize)))
 
+(define (struct-stat->record *struct-stat)
+  ;;Some "struct  stat" field  may be unimplemented,  so we  default its
+  ;;value to #f.
+  (let-syntax ((get	(syntax-rules ()
+			  ((_ ?getter)
+			   (guard (exc (else #f))
+			     (?getter *struct-stat))))))
+    (make-struct-stat
+     (get struct-stat-st_mode-ref)
+     (get struct-stat-st_ino-ref)
+     (get struct-stat-st_dev-ref)
+     (get struct-stat-st_nlink-ref)
+     (get struct-stat-st_uid-ref)
+     (get struct-stat-st_gid-ref)
+     (get struct-stat-st_size-ref)
+     (get struct-stat-st_atime-ref)
+     (get struct-stat-st_atime_usec-ref)
+     (get struct-stat-st_mtime-ref)
+     (get struct-stat-st_mtime_usec-ref)
+     (get struct-stat-st_ctime-ref)
+     (get struct-stat-st_ctime_usec-ref)
+     (get struct-stat-st_blocks-ref)
+     (get struct-stat-st_blksize-ref))))
 
 
-;;;; code
+;;; interface
 
 (define-c-function/with-errno platform-stat
   (int nausicaa_posix_stat (char* pointer)))
@@ -68,27 +124,42 @@
   (int nausicaa_posix_fstat (int pointer)))
 
 (define-c-function/with-errno platform-lstat
-  (int nausicaa_posix_lstat (int pointer)))
+  (int nausicaa_posix_lstat (char* pointer)))
 
 ;;; --------------------------------------------------------------------
 
+;;;FIXME For some reason it looks  like the size of "struct stat" is not
+;;;determined correctly by the  Autoconf macros.  Dunno why.  This error
+;;;causes segmentation faults in the REAL-PRIMITIVE-STAT function.
+;;;
+;;;The fix below solves the  problem.  Note that on my i686-pc-linux-gnu
+;;;adding 5 bytes to SIZEOF-STRUCT-STAT solves the problem, but adding 4
+;;;bytes is not enough.
+(define the-size-of-struct-stat 1024)
+
 (define (real-primitive-stat func funcname pathname)
   (with-compensations
-    (let ((*stat-struct	(malloc-block/c sizeof-struct-stat)))
+    (let ((*struct-stat	(malloc-block/c the-size-of-struct-stat)))
       (receive (result errno)
-	  (func (string->cstring/c pathname) *stat-struct)
+	  (func (string->cstring/c pathname) *struct-stat)
 	(when (= -1 result)
 	  (raise-errno-error funcname errno pathname))
-	result))))
+	(struct-stat->record *struct-stat)))))
 
 (define (primitive-stat pathname)
   (real-primitive-stat platform-stat 'primitive-stat pathname))
 
-(define (primitive-fstat pathname)
-  (real-primitive-stat platform-fstat 'primitive-fstat pathname))
-
 (define (primitive-lstat pathname)
   (real-primitive-stat platform-lstat 'primitive-lstat pathname))
+
+(define (primitive-fstat fd)
+  (with-compensations
+    (let ((*struct-stat	(malloc-block/c the-size-of-struct-stat)))
+      (receive (result errno)
+	  (platform-fstat fd *struct-stat)
+	(when (= -1 result)
+	  (raise-errno-error 'primitive-fstat errno fd))
+	(struct-stat->record *struct-stat)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -109,8 +180,8 @@
 (define (lstat pathname)
   ((primitive-lstat-function) pathname))
 
-(define (fstat pathname)
-  ((primitive-fstat-function) pathname))
+(define (fstat fd)
+  ((primitive-fstat-function) fd))
 
 
 

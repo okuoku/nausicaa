@@ -1007,7 +1007,118 @@ Create a new directory with pathname selected by the string or symbol
 @section File attributes
 
 
-@glibcref{File attributes,File attributes}
+@glibcref{File Attributes,File Attributes}
+
+
+@menu
+* file attr stat::              File attributes.
+@end menu
+
+
+@c page
+@node file attr stat
+@subsection File attributes
+
+
+For some reason the stat functions are not loadable as all the other
+symbols from the C language standard library.  So the bindings for
+@func{stat}, @func{fstat} and @func{lstat} are exported by the
+@library{posix file stat} library which is usable only if the Stubs
+library for @posix{} features is installed on the system.  See the
+Nausicaa/Stubs project for details.
+
+@glibcref{Attribute Meanings,The meaning of the File Attributes}
+@glibcref{Reading Attributes,Reading Attributes}
+
+
+@deftp {Record Type} struct-stat
+Type of record used to hold fields from a @code{struct stat}.  List of
+fields follows:
+
+@example
+mode            ino
+dev             nlink
+uid             gid
+size
+atime           atime_usec
+mtime           mtime_usec
+ctime           ctime_usec
+blocks          blksize
+@end example
+
+@noindent
+all the fields are immutable, we have to refer to the original
+documentation of @code{struct stat} for their meaning.
+
+Some field are not available on every platform in the foreign
+@code{struct stat}, in this case the associated field in the
+@code{struct-stat} record should be set to @false{}.  For example
+@code{atime_usec}, @code{mtime_usec}, @code{ctime_usec} are not
+available on some common platforms.
+@end deftp
+
+
+@defun make-struct-stat @var{mode} @var{ino} @var{dev} @var{nlink} @var{uid} @var{gid} @var{size} @var{atime} @var{atime_usec} @var{mtime} @var{mtime_usec} @var{ctime} @var{ctime_usec} @var{blocks} @var{blksize}
+Build and return a new @code{struct-stat} record.
+@end defun
+
+
+@defun struct-stat? @var{obj}
+Return @true{} if @var{obj} is a @code{struct-stat} record.
+@end defun
+
+
+@defun struct-stat-mode @var{struct-stat}
+@defunx struct-stat-ino @var{struct-stat}
+@defunx struct-stat-dev @var{struct-stat}
+@defunx struct-stat-nlink @var{struct-stat}
+@defunx struct-stat-uid @var{struct-stat}
+@defunx struct-stat-gid @var{struct-stat}
+@defunx struct-stat-size @var{struct-stat}
+@defunx struct-stat-atime @var{struct-stat}
+@defunx struct-stat-atime_usec @var{struct-stat}
+@defunx struct-stat-mtime @var{struct-stat}
+@defunx struct-stat-mtime_usec @var{struct-stat}
+@defunx struct-stat-ctime @var{struct-stat}
+@defunx struct-stat-ctime_usec @var{struct-stat}
+@defunx struct-stat-blocks @var{struct-stat}
+@defunx struct-stat-blksize @var{struct-stat}
+Getters for the fields of a @code{struct-stat} record.
+@end defun
+
+
+@defun struct-stat->record @var{pointer}
+Given a pointer to a block of memory holding a foreign @code{struct
+stat}, build and return a @code{struct-stat} record.  All the fields
+that are not available in the foreign structure are set to @false{}.
+@end defun
+
+
+@deffn Function stat @var{pathname}
+@deffnx Function primitive-stat @var{pathname}
+@deffnx Parameter primitive-stat-function
+@deffnx Function platform-stat @var{pathname} @var{pointer}
+Return a @code{struct-stat} record filled with attributes of the file or
+directory selected by the string or symbol @var{pathname}.
+@end deffn
+
+
+@deffn Function fstat @var{fd}
+@deffnx Function primitive-fstat @var{fd}
+@deffnx Parameter primitive-fstat-function
+@deffnx Function platform-fstat @var{fd} @var{pointer}
+Return a @code{struct-stat} record filled with attributes of the file or
+directory selected by the file descriptor @var{fd}.
+@end deffn
+
+
+@deffn Function lstat @var{pathname}
+@deffnx Function primitive-lstat @var{pathname}
+@deffnx Parameter primitive-lstat-function
+@deffnx Function platform-lstat @var{pathname} @var{pointer}
+Return a @code{struct-stat} record filled with attributes of the
+symbolic link selected by the string or symbol @var{pathname}.
+@end deffn
 
 
 @c page
