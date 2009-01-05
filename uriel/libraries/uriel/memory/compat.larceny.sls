@@ -96,7 +96,8 @@
 	(void*->address pointer))
     0))
 
-(define pointer? void*?)
+(define (pointer? obj)
+  (if obj (void*? obj) #t))
 
 (define pointer-null
   #f)

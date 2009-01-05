@@ -47,6 +47,8 @@
       (pointer-null? (integer->pointer 123))
     => #f)
 
+;;; --------------------------------------------------------------------
+
   (check
       (pointer? pointer-null)
     => #t)
