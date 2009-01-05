@@ -158,13 +158,14 @@
 	   (syntax
 	    (define-syntax ?setter-name
 	      (syntax-rules ()
-		((_ struct-pointer)
+		((_ struct-pointer value)
 		 (?foreign-type-setter struct-pointer
-				       ?field-offset)))))
+				       ?field-offset
+				       value)))))
 	 (syntax
 	  (define-syntax ?setter-name
 	    (syntax-rules ()
-	      ((_ struct-pointer)
+	      ((_ struct-pointer value)
 	       (raise-unimplemented-error (quote ?setter-name)))))))))))
 
 (define-syntax define-c-struct-field-pointer-getter
