@@ -54,12 +54,22 @@ extern int nausicaa_posix_wstopsig	(int status);
 extern double nausicaa_posix_clock	(void);
 extern double nausicaa_posix_times	(double * tms);
 
-extern int nausicaa_posix_stat	(const char * pathname,
-				 struct stat * buf);
-extern int nausicaa_posix_fstat	(int filedes,
-				 struct stat * buf);
-extern int nausicaa_posix_lstat	(const char * pathname,
-				 struct stat * buf);
+extern int nausicaa_posix_stat		(const char * pathname, struct stat * buf);
+extern int nausicaa_posix_fstat		(int filedes, struct stat * buf);
+extern int nausicaa_posix_lstat		(const char * pathname, struct stat * buf);
+extern int nausicaa_posix_sizeof_stat	(void);
+
+extern int nausicaa_posix_stat_is_dir	(mode_t m);
+extern int nausicaa_posix_stat_is_chr	(mode_t m);
+extern int nausicaa_posix_stat_is_blk	(mode_t m);
+extern int nausicaa_posix_stat_is_reg	(mode_t m);
+extern int nausicaa_posix_stat_is_fifo	(mode_t m);
+extern int nausicaa_posix_stat_is_lnk	(mode_t m);
+extern int nausicaa_posix_stat_is_sock	(mode_t m);
+
+extern int nausicaa_posix_stat_typeismq	(struct stat * s);
+extern int nausicaa_posix_stat_typeissem(struct stat * s);
+extern int nausicaa_posix_stat_typeisshm(struct stat * s);
 
 
 
@@ -151,6 +161,67 @@ int
 nausicaa_posix_lstat (const char * pathname, struct stat * buf)
 {
   return lstat(pathname, buf);
+}
+int
+nausicaa_posix_sizeof_stat (void)
+{
+  return sizeof(struct stat);
+}
+
+/* ------------------------------------------------------------ */
+
+int
+nausicaa_posix_stat_is_dir (mode_t m)
+{
+  return S_ISDIR(m);
+}
+int
+nausicaa_posix_stat_is_chr (mode_t m)
+{
+  return S_ISCHR(m);
+}
+int
+nausicaa_posix_stat_is_blk (mode_t m)
+{
+  return S_ISBLK(m);
+}
+int
+nausicaa_posix_stat_is_reg (mode_t m)
+{
+  return S_ISREG(m);
+}
+int
+nausicaa_posix_stat_is_fifo (mode_t m)
+{
+  return S_ISFIFO(m);
+}
+int
+nausicaa_posix_stat_is_lnk (mode_t m)
+{
+  return S_ISLNK(m);
+}
+int
+nausicaa_posix_stat_is_sock (mode_t m)
+{
+  return S_ISSOCK(m);
+}
+
+/* ------------------------------------------------------------ */
+
+int
+nausicaa_posix_stat_typeismq (struct stat * s)
+{
+  return S_TYPEISMQ(s);
+}
+int
+nausicaa_posix_stat_typeissem (struct stat * s)
+{
+  return S_TYPEISSEM(s);
+}
+int
+nausicaa_posix_stat_typeisshm (struct stat * s)
+{
+  return S_TYPEISSEM(s);
 }
 
 
