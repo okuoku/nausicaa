@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Uriel
-;;;Contents: compile script
-;;;Date: Fri Dec 26, 2008
+;;;Contents: tests for the &unimplemented condition
+;;;Date: Mon Jan  5, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,18 +23,45 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (uriel unimplemented))
-  (only (uriel lang))
-  (only (uriel combinators))
-  (only (uriel define-macro))
-  (only (uriel memory))
-  (only (uriel ffi sizeof))
-  (only (uriel ffi))
-  (only (uriel errno))
-  (only (uriel cstring))
-  (only (uriel foreign))
-  (only (uriel object-property))
-  (only (uriel test)))
+
+
+;;;; setup
+
+(import (r6rs)
+  (uriel unimplemented)
+  (uriel lang)
+  (uriel test))
+
+(check-set-mode! 'report-failed)
+
+
+
+(parameterize ((debugging	#t))
+
+  (check
+      (guard (exc (else
+		   (list (who-condition? exc)
+			 (condition-who exc)
+			 (unimplemented-condition? exc)
+			 )))
+	(raise-unimplemented-error 'woppa))
+    => '(#t woppa #t))
+
+  (check
+      (guard (exc (else
+		   (list (who-condition? exc)
+			 (message-condition? exc)
+			 (condition-who exc)
+			 (unimplemented-condition? exc)
+			 )))
+	(raise-unimplemented-error 'woppa))
+    => '(#t #t woppa #t))
+
+  )
+
+
+;;;; done
+
+(check-report)
 
 ;;; end of file

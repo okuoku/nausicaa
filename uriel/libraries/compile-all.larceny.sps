@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,6 +25,9 @@
 
 (import (rnrs)
   (larceny compiler))
+
+(compile-library "uriel/unimplemented.sls"
+		 "uriel/unimplemented.larceny.slfasl")
 
 (compile-library "uriel/lang.sls"
 		 "uriel/lang.larceny.slfasl")

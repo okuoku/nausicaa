@@ -121,9 +121,11 @@
 (define debugging
   (make-parameter #f))
 
-(define (debug . args)
+(define (debug thing . args)
   (when (debugging)
-    (apply format (current-error-port) args)
+    (if (string? thing)
+	  (apply format (current-error-port) thing args)
+      (write thing (current-error-port)))
     (newline (current-error-port))))
 
 (define (debug-print-condition message exc)

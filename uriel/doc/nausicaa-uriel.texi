@@ -608,6 +608,7 @@ for the independent libraries see the corresponding sections.
 
 Independent libraries
 
+* lang unimplemented::          Unimplemented condition.
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
@@ -1109,6 +1110,42 @@ else if it is a string, return it.  If it is neither a string nor a
 symbol: raise an assertion violation.
 @end defun
 
+
+
+@c page
+@node lang unimplemented
+@section Unimplemented condition
+
+
+The following bindings are exported by the @library{uriel unimplemented}
+library.
+
+
+@deftp &unimplemented
+The type of condition used to signal unimplemented features.  It is
+defined as:
+
+@example
+(define-condition-type &unimplemented &error
+  make-unimplemented-condition
+  unimplemented-condition?)
+@end example
+@end deftp
+
+
+@defun raise-unimplemented-error @var{who}
+@defunx raise-unimplemented-error @var{who} @var{message}
+@defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
+Raise a composite condition embedding a condition of type
+@code{unimplemented}.
+
+@var{who} is used for the @code{&who} component.
+
+@var{message} is used for the @code{&message} component and defaults to
+@code{feature not implemented or not available}.
+
+@var{irritants} is used for the @code{&irritants} component.
+@end defun
 
 
 @c page
