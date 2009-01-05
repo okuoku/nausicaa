@@ -1012,6 +1012,7 @@ Create a new directory with pathname selected by the string or symbol
 
 @menu
 * file attr stat::              File attributes.
+* file attr owner::             File owner and group.
 @end menu
 
 
@@ -1020,12 +1021,24 @@ Create a new directory with pathname selected by the string or symbol
 @subsection File attributes
 
 
-For some reason the stat functions are not loadable as all the other
-symbols from the C language standard library.  So the bindings for
-@func{stat}, @func{fstat} and @func{lstat} are exported by the
-@library{posix file stat} library which is usable only if the Stubs
-library for @posix{} features is installed on the system.  See the
-Nausicaa/Stubs project for details.
+For some reason the stat functions are not loadable, as all the other
+symbols, from the C language standard library.  So the bindings
+described in this section are exported by the @library{posix file stat}
+library which is usable only if the Stubs library for @posix{} features
+is installed on the system.  See the Nausicaa/Stubs project for details.
+
+
+@menu
+* file attr stat record::       Acquiring the file attributes.
+* file attr stat type::         Type inspection.
+* file attr stat perms::        Access permissions inspection.
+@end menu
+
+
+@c page
+@node file attr stat record
+@subsubsection Acquiring the file attributes
+
 
 @glibcref{Attribute Meanings,The meaning of the File Attributes}
 @glibcref{Reading Attributes,Reading Attributes}
@@ -1118,6 +1131,162 @@ directory selected by the file descriptor @var{fd}.
 @deffnx Function platform-lstat @var{pathname} @var{pointer}
 Return a @code{struct-stat} record filled with attributes of the
 symbolic link selected by the string or symbol @var{pathname}.
+@end deffn
+
+
+@c page
+@node file attr stat type
+@subsubsection Type inspection
+
+
+The integer in the @code{mode} field of a @code{struct-stat} record can
+be inspected with the following functions.
+
+
+@defun S_ISDIR @var{mode}
+@defunx S_ISCHR @var{mode}
+@defunx S_ISBLK @var{mode}
+@defunx S_ISREG @var{mode}
+@defunx S_ISFIFO @var{mode}
+@defunx S_ISLNK @var{mode}
+@defunx S_ISSOCK @var{mode}
+Return non--zero if the file or directory associated with the integer
+@var{mode} is of the named type, otherwise return zero.
+@end defun
+
+
+@defun S_TYPEISMQ @var{struct-stat-pointer}
+@defunx S_TYPEISSEM @var{struct-stat-pointer}
+@defunx S_TYPEISSHM @var{struct-stat-pointer}
+Return non--zero if the file or directory associated with the
+@code{strut stat} referenced by the pointer is of the named type,
+otherwise return zero.
+@end defun
+
+
+@defun file-is-directory? @var{obj}
+@defunx file-is-character-special? @var{obj}
+@defunx file-is-block-special? @var{obj}
+@defunx file-is-regular? @var{obj}
+@defunx file-is-fifo? @var{obj}
+@defunx file-is-socket? @var{obj}
+Return @true{} if @var{obj} is associated to a file of the named type,
+@false{} otherwise.  @var{obj} can be a file descriptor or a string or
+symbol representing a pathname.  The @code{mode} field is acquired with
+a call to @func{fstat} or @func{stat}.
+
+There is no way to distinguish between an integer representing a file
+descriptor and an integer representing the @code{mode} field, so
+@var{obj} @strong{cannot} be a mode field.
+@end defun
+
+
+@defun file-is-symbolic-link? @var{pathname}
+Return @true{} if @var{pathname} is associated to a symbolic link,
+@false{} otherwise.  @var{pathname} must be a string or symbol
+representing a pathname.  The @code{mode} field is acquired with a call
+to @func{lstat}.
+@end defun
+
+
+@defun file-is-message-queue? @var{obj}
+@defunx file-is-semaphore? @var{obj}
+@defunx file-is-shared-memory? @var{obj}
+Return @true{} if @var{obj} is associated to a file of the named type,
+@false{} otherwise.  @var{obj} can be a file descriptor or a string or
+symbol representing a pathname.  These predicates require access to the
+full @code{struct stat}, so they are implemented with the low level
+@func{platform-stat} and @func{platform-fstat}.
+@end defun
+
+
+@c page
+@node file attr stat perms
+@subsubsection Access permissions inspection
+
+
+Access permissions can be inspected with a bitwise combination between
+the @code{mode} field and the permissions constants, @ref{fd constants
+perms}.  For example, the following evaluates to @false{} if
+@file{/bin/ls} is readable by its owner:
+
+@example
+(= 0 (bitwise-and S_IRUSR
+                  (struct-stat-mode (stat "/bin/ls"))))
+@end example
+
+@noindent
+while the following evaluates to @false{} if @file{/bin/ls} is readable
+both by its owner and group:
+
+@example
+(= 0 (bitwise-and (bitwise-ior S_IRUSR S_IRGRP)
+                  (struct-stat-mode (stat "/bin/ls"))))
+@end example
+
+
+@defun file-user-readable? @var{obj}
+@defunx file-user-writable? @var{obj}
+@defunx file-user-executable? @var{obj}
+@defunx file-group-readable? @var{obj}
+@defunx file-group-writable? @var{obj}
+@defunx file-group-executable? @var{obj}
+@defunx file-other-readable? @var{obj}
+@defunx file-other-writable? @var{obj}
+@defunx file-other-executable? @var{obj}
+@defunx file-setuid? @var{obj}
+@defunx file-setgid? @var{obj}
+@defunx file-sticky? @var{obj}
+Return @true{} if the named permissions bit is set, @false{} otherwise.
+
+@var{obj} can a file descriptor or a string or symbol representing a
+pathname.  For a file descriptor: the @code{mode} field is acquired with
+a call to @func{fstat}.  For a pathname: the @code{mode} field is
+acquired with a call to @func{stat}.
+@end defun
+
+
+@defun lfile-user-readable? @var{pathname}
+@defunx lfile-user-writable? @var{pathname}
+@defunx lfile-user-executable? @var{pathname}
+@defunx lfile-group-readable? @var{pathname}
+@defunx lfile-group-writable? @var{pathname}
+@defunx lfile-group-executable? @var{pathname}
+@defunx lfile-other-readable? @var{pathname}
+@defunx lfile-other-writable? @var{pathname}
+@defunx lfile-other-executable? @var{pathname}
+@defunx lfile-setuid? @var{pathname}
+@defunx lfile-setgid? @var{pathname}
+@defunx lfile-sticky? @var{pathname}
+Return @true{} if the named permissions bit is set, @false{} otherwise.
+@var{pathname} must be a string or symbol representing a pathname and
+the the @code{mode} field is acquired with @func{lstat}.
+@end defun
+
+
+@c page
+@node file attr owner
+@subsection File owner and group
+
+
+@glibcref{File Owner,File Owner}
+
+
+@deffn Function chown @var{pathname} @var{owner-id} @var{group-id}
+@deffnx Function primitive-chown @var{pathname} @var{owner-id} @var{group-id}
+@deffnx Parameter primitive-chown-function
+@deffnx Function platform-chown @var{pathname} @var{owner-id} @var{group-id}
+Change the file owner and group to the given numeric identifiers.
+@var{pathname} must be a string or symbol representing a pathname.
+@end deffn
+
+
+@deffn Function fchown @var{fd} @var{owner-id} @var{group-id}
+@deffnx Function primitive-fchown @var{fd} @var{owner-id} @var{group-id}
+@deffnx Parameter primitive-fchown-function
+@deffnx Function platform-fchown fchown @var{fd} @var{owner-id} @var{group-id}
+Change the file owner and group to the given numeric identifiers.
+@var{fd} must be a file descriptor.
 @end deffn
 
 
@@ -1335,6 +1504,7 @@ level as exact integers.  The main libraries are @library{posix fd} and
 
 @menu
 * fd constants status::         File status flags.
+* fd constants perms::          Permissions.
 * fd constants control::        File control flags.
 * fd constants seek::           File positions.
 * fd constants lock::           Locking.
@@ -1417,6 +1587,75 @@ Open--time action flags to be used with @func{open}.
 
 @defvar O_NOATIME
 @gnu{} only flag to be used with @func{open}.
+@end defvar
+
+
+@c page
+@node fd constants perms
+@subsection Permissions
+
+
+All the bindings described here are exported by the library
+@library{posix sizeof}.
+
+@glibcref{Permission Bits,The mode bits for access permission}
+
+
+@defvar S_IRUSR
+@defvarx S_IWUSR
+@defvarx S_IXUSR
+Permissions bits for file owner access.
+@end defvar
+
+@defvar S_IRGRP
+@defvarx S_IWGRP
+@defvarx S_IXGRP
+Permissions bits for group access.
+@end defvar
+
+@defvar S_IROTH
+@defvarx S_IWOTH
+@defvarx S_IXOTH
+Permissions bits for other users access.
+@end defvar
+
+@defvar S_IRWXU
+Theis is the bitwise combination of permissions bits for user access.
+It could be defined as:
+
+@example
+(define S_IRWXU
+  (bitwise-ior S_IRUSR S_IWUSR S_IXUSR))
+@end example
+@end defvar
+
+
+@defvar S_IRWXG
+Theis is the bitwise combination of permissions bits for group access.
+It could be defined as:
+
+@example
+(define S_IRWXG
+  (bitwise-ior S_IRGRP S_IWGRP S_IXGRP))
+@end example
+@end defvar
+
+
+@defvar S_IRWXO
+Theis is the bitwise combination of permissions bits for other users
+access.  It could be defined as:
+
+@example
+(define S_IRWXO
+  (bitwise-ior S_IROTH S_IWOTH S_IXOTH))
+@end example
+@end defvar
+
+
+@defvar S_ISUID
+@defvarx S_ISGID
+@defvarx S_ISVTX
+These are the setuid, setgid and ``sticky bit'' values.
 @end defvar
 
 
@@ -1523,9 +1762,11 @@ access @var{permissions}.
 @code{O_TRUNC}, @code{O_EXCL}, @code{O_NONBLOCK}.
 
 @var{permissions} must be an exact integer and it is best given as an
-octal number.  It can be zero if we are not interested in creating a new
-file.  Here are examples of the most common values, where: @code{r}
-stands for readable, @code{w} for writable, @code{x} for executable:
+octal number or a bitwise combination of constants, @ref{fd constants
+perms}.  It can be zero if we are not interested in creating a new file.
+Here are octal number examples of the most common values, where:
+@code{r} stands for readable, @code{w} for writable, @code{x} for
+executable:
 
 @multitable {#o755} {user perms} {group perms} {other perms}
 @headitem mode @tab user perms @tab group perms @tab other perms
@@ -1557,13 +1798,23 @@ Here is the table for the octal digits:
 @item 3 @tab @code{-wx} @tab 7 @tab @code{rwx}
 @end multitable
 
-
 Example:
 
 @example
 (let ((fd (open "/tmp/marco/name.ext"
                 (bitwise-ior O_CREAT O_EXCL O_WRONLY)
                 #o640)))
+  ---)
+@end example
+
+@noindent
+with symbolic permissions bits (more portable):
+
+@example
+(let ((fd (open "/tmp/marco/name.ext"
+                (bitwise-ior O_CREAT O_EXCL O_WRONLY)
+                (bitwise-ior S_IRUSR S_IWUSR
+                             S_IRGRP))))
   ---)
 @end example
 @end deffn

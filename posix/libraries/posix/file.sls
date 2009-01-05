@@ -359,6 +359,45 @@
 
 
 
+;;;; owner
+
+(define (primitive-chown pathname owner-id group-id)
+  (with-compensations
+    (receive (result errno)
+	(platform-chown (string->cstring/c pathname)
+			owner-id group-id)
+      (when (= -1 result)
+	(raise-errno-error 'primitive-chown errno
+			   (list pathname owner-id group-id)))
+      result)))
+
+(define (primitive-fchown fd owner-id group-id)
+  (with-compensations
+    (receive (result errno)
+	(platform-fchown fd owner-id group-id)
+      (when (= -1 result)
+	(raise-errno-error 'primitive-fchown errno
+			   (list fd owner-id group-id)))
+      result)))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-chown-function primitive-chown)
+
+(define-primitive-parameter
+  primitive-fchown-function primitive-fchown)
+
+;;; --------------------------------------------------------------------
+
+(define (chown pathname owner-id group-id)
+  ((primitive-chown-function) pathname owner-id group-id))
+
+(define (fchown fd owner-id group-id)
+  ((primitive-fchown-function) fd owner-id group-id))
+
+
+
 ;;;; removing
 
 (define (primitive-unlink pathname)

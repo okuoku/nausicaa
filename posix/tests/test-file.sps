@@ -87,7 +87,7 @@ Ses ailes de geant l'empechent de marcher.")
   (system (string-append "mkdir --mode=0700 " the-subdir-1))
   (system (string-append "mkdir --mode=0700 " the-subdir-2))
   (system (string-append "mkdir --mode=0700 " the-subdir-3))
-  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file))
+  (system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
   (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
   (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
   (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
@@ -504,29 +504,168 @@ Ses ailes de geant l'empechent de marcher.")
 	      (with
 	       (clean-test-hierarchy)))
 
-	  (let ((the-other (string-join (list the-root "other.ext") "/")))
+	  (letrec ((the-other
+		    (string-join (list the-root "other.ext") "/"))
+		   (fd
+		    (compensate
+			(open the-file O_RDONLY 0)
+		      (with
+		       (close fd)))))
+
+	    (compensate
+		(symlink the-file the-other)
+	      (with
+	       (delete-file the-other)))
 
 	    (check
 		(struct-stat? (stat the-file))
 	      => #t)
 
 	    (check
-		(with-compensations
-		  (letrec ((fd (compensate
-				   (open the-file O_RDONLY 0)
-				 (with
-				  (close fd)))))
-		    (struct-stat? (fstat fd))))
+		(struct-stat? (fstat fd))
 	      => #t)
 
 	    (check
 		(with-compensations
-		    (compensate
-			(symlink the-file the-other)
-		      (with
-		       (delete-file the-other)))
 		  (struct-stat? (lstat the-other)))
 	      => #t)
+
+;;; --------------------------------------------------------------------
+
+	    (check
+		(list (file-is-directory? the-subdir-1)
+		      (file-is-directory? the-file)
+		      (file-is-directory? the-other)
+		      (file-is-directory? fd))
+	      => '(#t #f #f #f))
+
+	    (check
+		(list (file-is-character-special? the-subdir-1)
+		      (file-is-character-special? the-file)
+		      (file-is-character-special? the-other)
+		      (file-is-character-special? fd))
+	      => '(#f #f #f #f))
+
+	    (check
+		(list (file-is-block-special? the-subdir-1)
+		      (file-is-block-special? the-file)
+		      (file-is-block-special? the-other)
+		      (file-is-block-special? fd))
+	      => '(#f #f #f #f))
+
+	    (check
+		(list (file-is-regular? the-subdir-1)
+		      (file-is-regular? the-file)
+		      (file-is-regular? the-other)
+		      (file-is-regular? fd))
+	      => '(#f #t #t #t))
+
+	    (check
+		(list (file-is-fifo? the-subdir-1)
+		      (file-is-fifo? the-file)
+		      (file-is-fifo? the-other)
+		      (file-is-fifo? fd))
+	      => '(#f #f #f #f))
+
+	    (check
+		(list (file-is-symbolic-link? the-subdir-1)
+		      (file-is-symbolic-link? the-file)
+		      (file-is-symbolic-link? the-other))
+	      => '(#f #f #t))
+
+	    (check
+		(list (file-is-socket? the-subdir-1)
+		      (file-is-socket? the-file)
+		      (file-is-socket? the-other)
+		      (file-is-socket? fd))
+	      => '(#f #f #f #f))
+
+	    (check
+		(list (file-is-semaphore? the-subdir-1)
+		      (file-is-semaphore? the-file)
+		      (file-is-semaphore? the-other)
+		      (file-is-semaphore? fd))
+	      => '(#f #f #f #f))
+
+	    (check
+		(list (file-is-shared-memory? the-subdir-1)
+		      (file-is-shared-memory? the-file)
+		      (file-is-shared-memory? the-other)
+		      (file-is-shared-memory? fd))
+	      => '(#f #f #f #f))
+
+	    (check
+		(list (file-is-message-queue? the-subdir-1)
+		      (file-is-message-queue? the-file)
+		      (file-is-message-queue? the-other)
+		      (file-is-message-queue? fd))
+	      => '(#f #f #f #f))
+
+;;; --------------------------------------------------------------------
+
+	    (check
+		(= 0 (bitwise-ior S_IRUSR
+				  (struct-stat-mode (stat the-file))))
+	      => #f)
+
+	    (check
+		(= 0 (bitwise-ior S_IROTH
+				  (struct-stat-mode (stat the-file))))
+	      => #f)
+
+	    (check
+		(list (file-user-readable? the-file)
+		      (file-user-writable? the-file)
+		      (file-user-executable? the-file)
+		      (file-group-readable? the-file)
+		      (file-group-writable? the-file)
+		      (file-group-executable? the-file)
+		      (file-other-readable? the-file)
+		      (file-other-writable? the-file)
+		      (file-other-executable? the-file)
+		      (file-setuid? the-file)
+		      (file-setgid? the-file)
+		      (file-sticky? the-file))
+	      => '(#t #t #f
+		      #t #f #f
+		      #f #f #f
+		      #f #f #f))
+
+	    (check
+		(list (file-user-readable? fd)
+		      (file-user-writable? fd)
+		      (file-user-executable? fd)
+		      (file-group-readable? fd)
+		      (file-group-writable? fd)
+		      (file-group-executable? fd)
+		      (file-other-readable? fd)
+		      (file-other-writable? fd)
+		      (file-other-executable? fd)
+		      (file-setuid? fd)
+		      (file-setgid? fd)
+		      (file-sticky? fd))
+	      => '(#t #t #f
+		      #t #f #f
+		      #f #f #f
+		      #f #f #f))
+
+	    (check
+		(list (lfile-user-readable? the-other)
+		      (lfile-user-writable? the-other)
+		      (lfile-user-executable? the-other)
+		      (lfile-group-readable? the-other)
+		      (lfile-group-writable? the-other)
+		      (lfile-group-executable? the-other)
+		      (lfile-other-readable? the-other)
+		      (lfile-other-writable? the-other)
+		      (lfile-other-executable? the-other)
+		      (lfile-setuid? the-other)
+		      (lfile-setgid? the-other)
+		      (lfile-sticky? the-other))
+	      => '(#t #t #t
+		      #t #t #t
+		      #t #t #t
+		      #f #f #f))
 
 	    ))))))
 

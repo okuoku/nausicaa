@@ -78,6 +78,12 @@
 
     L_ctermid		L_tmpnam
 
+    S_IRUSR		S_IWUSR		S_IXUSR
+    S_IRGRP		S_IWGRP		S_IXGRP
+    S_IROTH		S_IWOTH		S_IXOTH
+    S_IRWXU		S_IRWXG		S_IRWXO
+    S_ISUID		S_ISGID		S_ISVTX
+
     ;;struct accessors
     struct-flock-l_type-set!		struct-flock-l_type-ref
     struct-flock-l_whence-set!		struct-flock-l_whence-ref
@@ -263,6 +269,26 @@
 (define L_tmpnam		@VALUEOF_L_tmpnam@)
 
 (define CLOCKS_PER_SEC		@VALUEOF_CLOCKS_PER_SEC@)
+
+(define S_IRUSR			@VALUEOF_S_IRUSR@)
+(define S_IWUSR			@VALUEOF_S_IWUSR@)
+(define S_IXUSR			@VALUEOF_S_IXUSR@)
+
+(define S_IRGRP			@VALUEOF_S_IRGRP@)
+(define S_IWGRP			@VALUEOF_S_IWGRP@)
+(define S_IXGRP			@VALUEOF_S_IXGRP@)
+
+(define S_IROTH			@VALUEOF_S_IROTH@)
+(define S_IWOTH			@VALUEOF_S_IWOTH@)
+(define S_IXOTH			@VALUEOF_S_IXOTH@)
+
+(define S_IRWXU			@VALUEOF_S_IRWXU@)
+(define S_IRWXG			@VALUEOF_S_IRWXG@)
+(define S_IRWXO			@VALUEOF_S_IRWXO@)
+
+(define S_ISUID			@VALUEOF_S_ISUID@)
+(define S_ISGID			@VALUEOF_S_ISGID@)
+(define S_ISVTX			@VALUEOF_S_ISVTX@)
 
 
 

@@ -43,7 +43,30 @@
     lstat	primitive-lstat		primitive-lstat-function
     fstat	primitive-fstat		primitive-fstat-function
 
-    make-struct-stat struct-stat? struct-stat->record
+    S_ISDIR	file-is-directory?
+    S_ISCHR	file-is-character-special?
+    S_ISBLK	file-is-block-special?
+    S_ISREG	file-is-regular?
+    S_ISFIFO	file-is-fifo?
+    S_ISLNK	file-is-symbolic-link?
+    S_ISSOCK	file-is-socket?
+
+    S_TYPEISMQ	file-is-message-queue?
+    S_TYPEISSEM	file-is-semaphore?
+    S_TYPEISSHM	file-is-shared-memory?
+
+    file-user-readable?		file-user-writable?	file-user-executable?
+    file-group-readable?	file-group-writable?	file-group-executable?
+    file-other-readable?	file-other-writable?	file-other-executable?
+    file-setuid?		file-setgid?		file-sticky?
+
+    lfile-user-readable?	lfile-user-writable?	lfile-user-executable?
+    lfile-group-readable?	lfile-group-writable?	lfile-group-executable?
+    lfile-other-readable?	lfile-other-writable?	lfile-other-executable?
+    lfile-setuid?		lfile-setgid?		lfile-sticky?
+
+    make-struct-stat struct-stat?
+
     struct-stat-mode
     struct-stat-ino
     struct-stat-dev
@@ -63,7 +86,8 @@
   (import (r6rs)
     (uriel lang)
     (uriel foreign)
-    (posix sizeof))
+    (except (posix sizeof)
+	    sizeof-struct-stat))
 
   (define stub-lib
     (let ((o (open-shared-object 'libnausicaa-posix.so)))
@@ -115,7 +139,24 @@
      (get struct-stat-st_blksize-ref))))
 
 
-;;; interface
+;;; low level interface
+
+;;;FIXME For some reason it looks  like the size of "struct stat" is not
+;;;determined correctly by the  Autoconf macros.  Dunno why.  This error
+;;;causes segmentation faults in the REAL-PRIMITIVE-STAT function.
+;;;
+;;;The fix below solves the  problem.
+;;;
+;;;Note that  on my  i686-pc-linux-gnu adding the  size reported  by the
+;;;Autoconf  macro  is 88,  while  the  value  returned by  the  foreign
+;;;function is 96.
+(define-c-function platform-sizeof-stat
+  (int nausicaa_posix_sizeof_stat (void)))
+
+(define sizeof-struct-stat
+  (platform-sizeof-stat))
+
+;;; --------------------------------------------------------------------
 
 (define-c-function/with-errno platform-stat
   (int nausicaa_posix_stat (char* pointer)))
@@ -128,18 +169,45 @@
 
 ;;; --------------------------------------------------------------------
 
-;;;FIXME For some reason it looks  like the size of "struct stat" is not
-;;;determined correctly by the  Autoconf macros.  Dunno why.  This error
-;;;causes segmentation faults in the REAL-PRIMITIVE-STAT function.
-;;;
-;;;The fix below solves the  problem.  Note that on my i686-pc-linux-gnu
-;;;adding 5 bytes to SIZEOF-STRUCT-STAT solves the problem, but adding 4
-;;;bytes is not enough.
-(define the-size-of-struct-stat 1024)
+(define-c-function S_ISDIR
+  (int nausicaa_posix_stat_is_dir (mode_t)))
+
+(define-c-function S_ISCHR
+  (int nausicaa_posix_stat_is_chr (mode_t)))
+
+(define-c-function S_ISBLK
+  (int nausicaa_posix_stat_is_blk (mode_t)))
+
+(define-c-function S_ISREG
+  (int nausicaa_posix_stat_is_reg (mode_t)))
+
+(define-c-function S_ISFIFO
+  (int nausicaa_posix_stat_is_fifo (mode_t)))
+
+(define-c-function S_ISLNK
+  (int nausicaa_posix_stat_is_lnk (mode_t)))
+
+(define-c-function S_ISSOCK
+  (int nausicaa_posix_stat_is_sock (mode_t)))
+
+;;; --------------------------------------------------------------------
+
+(define-c-function S_TYPEISMQ
+  (int nausicaa_posix_stat_typeismq (pointer)))
+
+(define-c-function S_TYPEISSEM
+  (int nausicaa_posix_stat_typeissem(pointer)))
+
+(define-c-function S_TYPEISSHM
+  (int nausicaa_posix_stat_typeisshm(pointer)))
+
+
+
+;;;; stat functions
 
 (define (real-primitive-stat func funcname pathname)
   (with-compensations
-    (let ((*struct-stat	(malloc-block/c the-size-of-struct-stat)))
+    (let ((*struct-stat	(malloc-block/c sizeof-struct-stat)))
       (receive (result errno)
 	  (func (string->cstring/c pathname) *struct-stat)
 	(when (= -1 result)
@@ -154,7 +222,7 @@
 
 (define (primitive-fstat fd)
   (with-compensations
-    (let ((*struct-stat	(malloc-block/c the-size-of-struct-stat)))
+    (let ((*struct-stat	(malloc-block/c sizeof-struct-stat)))
       (receive (result errno)
 	  (platform-fstat fd *struct-stat)
 	(when (= -1 result)
@@ -182,6 +250,216 @@
 
 (define (fstat fd)
   ((primitive-fstat-function) fd))
+
+
+;;;; type inspection
+
+(define (type-inspection funcname pred obj)
+  (cond
+
+   ;; file descriptor
+   ((and (integer? obj) (< -1 obj))
+    (pred (fstat obj)))
+
+   ;; pathname
+   ((or (string? obj) (symbol? obj))
+    (pred (stat obj)))
+
+   (else
+    (error funcname
+      "expected file descriptor, file pathname or pointer to stat structure"
+      obj))))
+
+;;; --------------------------------------------------------------------
+
+(define (file-is-directory? obj)
+  (type-inspection
+   'file-is-directory?
+   (lambda (record)
+     (not (= 0 (S_ISDIR (struct-stat-mode record)))))
+   obj))
+
+(define (file-is-character-special? obj)
+  (type-inspection
+   'file-is-character-special?
+   (lambda (record)
+     (not (= 0 (S_ISCHR (struct-stat-mode record)))))
+   obj))
+
+(define (file-is-block-special? obj)
+  (type-inspection
+   'file-is-block-special?
+   (lambda (record)
+     (not (= 0 (S_ISBLK (struct-stat-mode record)))))
+   obj))
+
+(define (file-is-regular? obj)
+  (type-inspection
+   'file-is-regular?
+   (lambda (record)
+     (not (= 0 (S_ISREG (struct-stat-mode record)))))
+   obj))
+
+(define (file-is-fifo? obj)
+  (type-inspection
+   'file-is-fifo?
+   (lambda (record)
+     (not (= 0 (S_ISFIFO (struct-stat-mode record)))))
+   obj))
+
+(define (file-is-socket? obj)
+  (type-inspection
+   'file-is-socket?
+   (lambda (record)
+     (not (= 0 (S_ISSOCK (struct-stat-mode record)))))
+   obj))
+
+(define (file-is-symbolic-link? pathname)
+  (not (= 0 (S_ISLNK (struct-stat-mode (lstat pathname))))))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-type-inspection funcname getter obj)
+
+  (cond
+
+   ;; file descriptor
+   ((and (integer? obj) (< -1 obj))
+    (with-compensations
+      (let ((*struct-stat (malloc-block/c sizeof-struct-stat)))
+	(receive (result errno)
+	    (platform-fstat obj *struct-stat)
+	  (when (= -1 result)
+	    (raise-errno-error funcname errno obj))
+	  (not (= 0 (getter *struct-stat)))))))
+
+   ;; pathname
+   ((or (string? obj) (symbol? obj))
+    (with-compensations
+      (let ((*struct-stat (malloc-block/c sizeof-struct-stat)))
+	(receive (result errno)
+	    (platform-stat (string->cstring/c obj) *struct-stat)
+	  (when (= -1 result)
+	    (raise-errno-error funcname errno obj))
+	  (not (= 0 (getter *struct-stat)))))))
+
+   (else
+    (error funcname
+      "expected file descriptor, file pathname or pointer to stat structure"
+      obj))))
+
+(define (file-is-message-queue? obj)
+  (pointer-type-inspection 'file-is-message-queue? S_TYPEISMQ obj))
+
+(define (file-is-semaphore? obj)
+  (pointer-type-inspection 'file-is-semaphore? S_TYPEISSEM obj))
+
+(define (file-is-shared-memory? obj)
+  (pointer-type-inspection 'file-is-semaphore? S_TYPEISSHM obj))
+
+
+
+;;;; mode inspection
+
+(define (mode-inspection the-stat funcname mask obj)
+
+  (define (set? record)
+    (not (= 0 (bitwise-and mask (struct-stat-mode record)))))
+
+  (cond
+
+   ;; pointer to "struct stat" memory block
+   ((pointer? obj)
+    (set? obj))
+
+   ;; file descriptor
+   ((and (eq? the-stat stat) (integer? obj) (< -1 obj))
+    (set? (fstat obj)))
+
+   ;; pathname
+   ((or (string? obj) (symbol? obj))
+    (set? (the-stat obj)))
+
+   (else
+    (error funcname
+      "expected file descriptor, file pathname or pointer to stat structure"
+      obj))))
+
+;;; --------------------------------------------------------------------
+
+(define (file-user-readable? obj)
+  (mode-inspection stat 'file-user-readable? S_IRUSR obj))
+
+(define (file-user-writable? obj)
+  (mode-inspection stat 'file-user-writable? S_IWUSR obj))
+
+(define (file-user-executable? obj)
+  (mode-inspection stat 'file-user-executable? S_IXUSR obj))
+
+(define (file-group-readable? obj)
+  (mode-inspection stat 'file-user-readable? S_IRGRP obj))
+
+(define (file-group-writable? obj)
+  (mode-inspection stat 'file-group-writable? S_IWGRP obj))
+
+(define (file-group-executable? obj)
+  (mode-inspection stat 'file-group-executable? S_IXGRP obj))
+
+(define (file-other-readable? obj)
+  (mode-inspection stat 'file-other-readable? S_IROTH obj))
+
+(define (file-other-writable? obj)
+  (mode-inspection stat 'file-other-writable? S_IWOTH obj))
+
+(define (file-other-executable? obj)
+  (mode-inspection stat 'file-other-executable? S_IXOTH obj))
+
+(define (file-setuid? obj)
+  (mode-inspection stat 'file-setuid? S_ISUID obj))
+
+(define (file-setgid? obj)
+  (mode-inspection stat 'file-setgid? S_ISGID obj))
+
+(define (file-sticky? obj)
+  (mode-inspection stat 'file-sticky? S_ISVTX obj))
+
+;;; --------------------------------------------------------------------
+
+(define (lfile-user-readable? obj)
+  (mode-inspection lstat 'lfile-user-readable? S_IRUSR obj))
+
+(define (lfile-user-writable? obj)
+  (mode-inspection lstat 'lfile-user-writable? S_IWUSR obj))
+
+(define (lfile-user-executable? obj)
+  (mode-inspection lstat 'lfile-user-executable? S_IXUSR obj))
+
+(define (lfile-group-readable? obj)
+  (mode-inspection lstat 'lfile-user-readable? S_IRGRP obj))
+
+(define (lfile-group-writable? obj)
+  (mode-inspection lstat 'lfile-group-writable? S_IWGRP obj))
+
+(define (lfile-group-executable? obj)
+  (mode-inspection lstat 'lfile-group-executable? S_IXGRP obj))
+
+(define (lfile-other-readable? obj)
+  (mode-inspection lstat 'lfile-other-readable? S_IROTH obj))
+
+(define (lfile-other-writable? obj)
+  (mode-inspection lstat 'lfile-other-writable? S_IWOTH obj))
+
+(define (lfile-other-executable? obj)
+  (mode-inspection lstat 'lfile-other-executable? S_IXOTH obj))
+
+(define (lfile-setuid? obj)
+  (mode-inspection lstat 'lfile-setuid? S_ISUID obj))
+
+(define (lfile-setgid? obj)
+  (mode-inspection lstat 'lfile-setgid? S_ISGID obj))
+
+(define (lfile-sticky? obj)
+  (mode-inspection lstat 'lfile-sticky? S_ISVTX obj))
 
 
 
