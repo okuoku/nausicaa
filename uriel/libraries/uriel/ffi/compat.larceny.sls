@@ -38,7 +38,9 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function primitive-make-c-function/with-errno)
+    primitive-make-c-function primitive-make-c-function/with-errno
+
+    errno)
   (import (rnrs)
     (primitives
      foreign-file foreign-procedure get-errno set-errno!
@@ -89,15 +91,12 @@
 
 ;;;; interface functions
 
-;; (define-syntax get-errno
-;;   (syntax-rules ()
-;;     ((_)
-;;      (syscall 47))))
-
-;; (define-syntax set-errno
-;;   (syntax-rules ()
-;;     ((_ ?value)
-;;      (syscall 48 ?value))))
+(define errno
+  (case-lambda
+   ((value)
+    (set-errno! value))
+   (()
+    (get-errno))))
 
 (define (primitive-make-c-function ret-type funcname arg-types)
   (foreign-procedure (symbol->string/maybe funcname)

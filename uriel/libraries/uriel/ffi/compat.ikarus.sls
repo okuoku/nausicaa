@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2009-01-02 13:13:57 marco>
+;;;Time-stamp: <2009-01-05 22:21:59 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -36,9 +36,12 @@
 
     ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno
-    primitive-make-c-callback)
+    primitive-make-c-callback
+
+    errno)
   (import (ikarus)
-    (ikarus foreign))
+    (rename (ikarus foreign)
+	    (errno ikarus:errno)))
 
 
 
@@ -106,10 +109,15 @@
       (error 'primitive-make-c-function (dlerror) funcname))
     ((make-c-callout-maybe (cons ret-type arg-types)) f)))
 
-(define-syntax set-errno
+(define __errno_location
+  (primitive-make-c-function 'pointer '__errno_location '(void)))
+
+(define-syntax errno
   (syntax-rules ()
     ((_ ?value)
-     #f)))
+     (pointer-set-c-int! (__errno_location) 0 ?value))
+    ((_)
+     (ikarus:errno))))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
@@ -118,7 +126,7 @@
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
       ;;call.
       (let* ((retval	(begin
-			  (set-errno 0)
+			  (errno 0)
 			  (apply f args)))
 	     (errval	(errno)))
 	(values retval errval)))))

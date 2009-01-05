@@ -135,46 +135,84 @@
   ((primitive-opendir-function) pathname))
 
 
-;;;; errno conditions
 
-(check
-    (let ((dirname '/scrappy/dappy/doo))
-      (guard (exc (else
-		   (list (errno-condition? exc)
-			 (condition-who exc)
-			 (errno-symbolic-value exc))))
-	(chdir dirname)))
-  => '(#t chdir ENOENT))
+(parameterize ((testname	'conditions)
+	       (debugging	#t))
 
-(check
-    (guard (exc (else
-		 (list (errno-condition? exc)
-		       (condition-who exc)
-		       (errno-symbolic-value exc)
-		       )))
-      (primitive-pread 0 (integer->pointer 1234) 10 -10))
-  => '(#t primitive-pread EINVAL))
+  (check
+      (let ((dirname '/scrappy/dappy/doo))
+	(guard (exc (else
+		     (list (errno-condition? exc)
+			   (condition-who exc)
+			   (errno-symbolic-value exc))))
+	  (chdir dirname)))
+    => '(#t chdir ENOENT))
 
-(check
-    (let ((pathname '/etc/passwd))
+  (check
       (guard (exc (else
 		   (list (errno-condition? exc)
 			 (condition-who exc)
 			 (errno-symbolic-value exc)
 			 )))
-	(execv pathname '())))
-  => '(#t primitive-execv EACCES))
+	(primitive-pread 0 (integer->pointer 1234) 10 -10))
+    => '(#t primitive-pread EINVAL))
 
-(check
-    (let ((pathname '/etc/passwd))
-      (guard (exc (else
-		   (list (errno-condition? exc)
-			 (condition-who exc)
-			 (errno-symbolic-value exc)
-			 )))
-	(opendir pathname)))
-  => '(#t primitive-opendir ENOTDIR))
+  (check
+      (let ((pathname '/etc/passwd))
+	(guard (exc (else
+		     (list (errno-condition? exc)
+			   (condition-who exc)
+			   (errno-symbolic-value exc)
+			   )))
+	  (execv pathname '())))
+    => '(#t primitive-execv EACCES))
 
+  (check
+      (let ((pathname '/etc/passwd))
+	(guard (exc (else
+		     (list (errno-condition? exc)
+			   (condition-who exc)
+			   (errno-symbolic-value exc)
+			   )))
+	  (opendir pathname)))
+    => '(#t primitive-opendir ENOTDIR))
+
+  )
+
+
+
+;;;WARNING:  these do not  work because  what is  returned by  ERRNO for
+;;;Ypsilon and  Ikarus is  the value  of the last  "errno" saved  in the
+;;;internal state variable.
+
+;; (parameterize ((testname	'errno)
+;; 	       (debugging	#t))
+
+;;   (check
+;;       (begin
+;; 	(errno 0)
+;; 	(errno))
+;;     => 0)
+
+;;   (check
+;;       (begin
+;; 	(errno EINVAL)
+;; 	(errno))
+;;     => EINVAL)
+
+;;   (check
+;;       (begin
+;; 	(errno ENOMEM)
+;; 	(errno))
+;;     => ENOMEM)
+
+;;   (check
+;;       (begin
+;; 	(errno 0)
+;; 	(errno))
+;;     => 0)
+
+;;   )
 
 
 ;;;; done

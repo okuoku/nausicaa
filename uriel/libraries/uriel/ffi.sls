@@ -38,6 +38,7 @@
     make-c-function			make-c-function/with-errno
     define-c-function			define-c-function/with-errno
 ;;    primitive-make-c-callback		make-c-callback
+    errno
 
     ;;foreign struct accessors
     define-c-struct-accessors

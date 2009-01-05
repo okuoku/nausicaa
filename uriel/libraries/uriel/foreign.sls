@@ -2,7 +2,7 @@
 ;;;Part of: Uriel libraries for R6RS
 ;;;Contents: compound library for foreign functions interfaces
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2009-01-04 09:29:22 marco>
+;;;Time-stamp: <2009-01-05 22:12:59 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -154,6 +154,8 @@
     primitive-make-c-function		primitive-make-c-function/with-errno
     make-c-function			make-c-function/with-errno
     define-c-function			define-c-function/with-errno
+
+    errno
 
     ;;foreign struct accessors
     define-c-struct-accessors		define-c-struct-field-pointer-getter

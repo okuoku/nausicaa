@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;
-;;;Time-stamp: <2009-01-02 10:23:01 marco>
+;;;Time-stamp: <2009-01-05 22:21:27 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -42,7 +42,9 @@
     shared-object primitive-open-shared-object self-shared-object
 
     ;;interface functions
-    primitive-make-c-function primitive-make-c-function/with-errno)
+    primitive-make-c-function primitive-make-c-function/with-errno
+
+    errno)
   (import (core)
     (lang-lib)
     (uriel ffi sizeof)
@@ -147,7 +149,7 @@
 
 
 
-;;;; interface functions
+;;;; interface functions, no errno
 
 (define (select-cast-and-stub ret-type)
   (let ((identity (lambda (x) x)))
@@ -237,10 +239,19 @@
 			       (map (lambda (m a)
 				      (m a)) mappers args))))))))))
 
-(define-syntax set-errno
+
+
+;;;; interface functions, with errno
+
+(define __errno_location
+  (primitive-make-c-function 'pointer '__errno_location '(void)))
+
+(define-syntax errno
   (syntax-rules ()
     ((_ ?value)
-     #f)))
+     (pointer-set-c-int! (__errno_location) 0 ?value))
+    ((_)
+     (shared-object-errno))))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (receive (cast-func stub-func)
@@ -259,9 +270,9 @@
 	     ;;evaluation: we want to gather the "errno" value AFTER the
 	     ;;foreign function call.
 	     (let* ((retval	(begin
-				  (set-errno 0)
+				  (errno 0)
 				  (cast-func (stub-func f 0))))
-		    (errval	(shared-object-errno)))
+		    (errval	(errno)))
 	       (values retval errval))))
 	  ((1)
 	   (let ((mapper (car mappers)))
@@ -270,9 +281,9 @@
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
 	       (let* ((retval	(begin
-				  (set-errno 0)
+				  (errno 0)
 				  (cast-func (stub-func f (mapper arg)))))
-		      (errval	(shared-object-errno)))
+		      (errval	(errno)))
 		 (values retval errval)))))
 	  ((2)
 	   (let ((mapper1 (car mappers))
@@ -282,11 +293,11 @@
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
 	       (let* ((retval	(begin
-				  (set-errno 0)
+				  (errno 0)
 				  (cast-func (stub-func f
 						      (mapper1 arg1)
 						      (mapper2 arg2)))))
-		      (errval	(shared-object-errno)))
+		      (errval	(errno)))
 		 (values retval errval)))))
 	  ((3)
 	   (let ((mapper1 (car mappers))
@@ -297,12 +308,12 @@
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
 	       (let* ((retval	(begin
-				  (set-errno 0)
+				  (errno 0)
 				  (cast-func (stub-func f
 							(mapper1 arg1)
 							(mapper2 arg2)
 							(mapper3 arg3)))))
-		      (errval	(shared-object-errno)))
+		      (errval	(errno)))
 		 (values retval errval)))))
 	  ((4)
 	   (let ((mapper1 (car mappers))
@@ -314,13 +325,13 @@
 	       ;;evaluation: we  want to gather the  "errno" value AFTER
 	       ;;the foreign function call.
 	       (let* ((retval	(begin
-				  (set-errno 0)
+				  (errno 0)
 				  (cast-func (stub-func f
 							(mapper1 arg1)
 							(mapper2 arg2)
 							(mapper3 arg3)
 							(mapper4 arg4)))))
-		      (errval	(shared-object-errno)))
+		      (errval	(errno)))
 		 (values retval errval)))))
 	  (else
 	   (lambda args
@@ -332,12 +343,12 @@
 	     ;;evaluation: we want to gather the "errno" value AFTER the
 	     ;;foreign function call.
 	     (let* ((retval	(begin
-				  (set-errno 0)
+				  (errno 0)
 				  (cast-func
 				   (apply stub-func f
 					  (map (lambda (m a)
 						 (m a)) mappers args)))))
-		    (errval	(shared-object-errno)))
+		    (errval	(errno)))
 	       (values retval errval)))))))))
 
 
