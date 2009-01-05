@@ -1012,7 +1012,9 @@ Create a new directory with pathname selected by the string or symbol
 
 @menu
 * file attr stat::              File attributes.
-* file attr owner::             File owner and group.
+* file attr owner::             Changing owner and group.
+* file attr mode::              Changing file permissions.
+* file attr access::            Testing access.
 @end menu
 
 
@@ -1264,6 +1266,24 @@ the the @code{mode} field is acquired with @func{lstat}.
 @end defun
 
 
+@defun file-permissions @var{obj}
+@defunx lfile-permissions @var{obj}
+Return an exact integer representing the access permissions bits from
+the @code{mode} field of a @code{struct-stat} record.
+
+For @func{file-permissions}: @var{obj} can be a file descriptor or a
+pathname in the form of a string or symbol; the mode is acquired with a
+call to @func{fstat} or @func{stat}.
+
+For @func{file-permissions}: @var{obj} must be a pathname in the form of
+a string or symbol; the mode is acquired with a call to @func{lstat}.
+
+The returned values can be examined and manipulated using the @code{S_*}
+constants (@ref{fd constants perms}), and also used as argument for a
+call to @func{chmod} or @func{fchmod}.
+@end defun
+
+
 @c page
 @node file attr owner
 @subsection File owner and group
@@ -1288,6 +1308,90 @@ Change the file owner and group to the given numeric identifiers.
 Change the file owner and group to the given numeric identifiers.
 @var{fd} must be a file descriptor.
 @end deffn
+
+
+@c page
+@node file attr mode
+@subsection Changing file permissions
+
+
+The @var{mask} argument for the following function must be an exact
+integer representing access permissions bits.  The value can be composed
+as bitwise combination of the constants described at @ref{fd constants
+perms}.
+
+@glibcref{Setting Permissions,Assigning File Permissions}
+
+
+@deffn Function umask @var{mask}
+@deffnx Function primitive-umask @var{mask}
+@deffnx Parameter primitive-umask-function
+@deffnx Function platform-umask @var{mask}
+Set the umask to @var{mask} and return the old @var{mask}.  To query the
+current mask without changing it:
+
+@example
+(let ((m (umask 0)))
+  (umask m)
+  m)
+@end example
+
+@noindent
+or use @func{getumask}, which has exactly this implementation.
+@end deffn
+
+
+@defun getumask
+Return the current umask.
+@end defun
+
+
+@deffn Function chmod @var{pathname} @var{mask}
+@deffnx Function primitive-chmod @var{pathname} @var{mask}
+@deffnx Parameter primitive-chmod-function
+@deffnx Function platform-chmod @var{pathname} @var{mask}
+Change the file access permissions bits to the given numeric mask.
+@var{pathname} must be a string or symbol representing a pathname.
+@end deffn
+
+
+@deffn Function fchmod @var{fd} @var{mask}
+@deffnx Function primitive-fchmod @var{fd} @var{mask}
+@deffnx Parameter primitive-fchmod-function
+@deffnx Function platform-fchmod @var{fd} @var{mask}
+Change the file access permissions bits to the given numeric mask.
+@var{fd} must be a file descriptor.
+@end deffn
+
+
+@c page
+@node file attr access
+@subsection Testing access
+
+
+@glibcref{Testing File Access,Testing permission to access a file}
+
+
+@deffn Function access @var{pathname} @var{mask}
+@deffnx Function primitive-access @var{pathname} @var{mask}
+@deffnx Parameter primitive-access-function
+@deffnx Function platform-access @var{pathname} @var{mask}
+Return @true{} if the process has permission to access the file selected
+by the string or symbol @var{pathname} as specified by @var{mask}.
+Return @false{} otherwise.
+
+@var{mask} can be the bitwise combination of: @code{F_OK}, @code{R_OK},
+@code{W_OK}, @code{X_OK}.
+@end deffn
+
+
+@defvar F_OK
+@defvarx R_OK
+@defvarx W_OK
+@defvarx X_OK
+Constants representing requests for access permission testing with
+@func{access}.  These bindings are exported by @library{posix sizeof}.
+@end defvar
 
 
 @c page

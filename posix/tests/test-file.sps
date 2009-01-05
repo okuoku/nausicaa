@@ -669,6 +669,164 @@ Ses ailes de geant l'empechent de marcher.")
 
 	    ))))))
 
+
+
+(parameterize ((testname	'chown)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (check
+	      (let* ((record	(stat the-file))
+		     (uid	(struct-stat-uid record))
+		     (gid	(struct-stat-gid record)))
+		(chown the-file uid gid))
+	    => 0)
+
+	  (check
+	      (with-compensations
+		(letrec ((fd (compensate
+				 (open the-file O_RDONLY 0)
+			       (with
+				(close fd)))))
+		  (let* ((record	(fstat fd))
+			 (uid		(struct-stat-uid record))
+			 (gid		(struct-stat-gid record)))
+		    (fchown fd uid gid))))
+	    => 0)
+
+	  )))))
+
+
+
+(parameterize ((testname	'chmod)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (umask #o0027)
+
+	  (check
+	      (getumask)
+	    => #o0027)
+
+	  (check
+	      (let ()
+		(umask 0)
+		(chmod the-file #o555)
+		(file-permissions the-file))
+	    => #o555)
+
+	  (check
+	      (with-compensations
+		(letrec ((fd (compensate
+				 (open the-file O_RDONLY 0)
+			       (with
+				(close fd)))))
+		  (umask 0)
+		  (fchmod fd #o123)
+		  (file-permissions fd)))
+	    => #o123)
+
+	  )))))
+
+
+
+(parameterize ((testname	'access)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (check
+	      (begin
+		(chmod the-file S_IRWXU)
+		(access the-file F_OK))
+	    => #t)
+
+	  (check
+	      (let ((the-other (string-join (list the-root "other.ext") "/")))
+		(access the-other F_OK))
+	    => #f)
+
+	  (check
+	      (begin
+		(chmod the-file S_IRUSR)
+		(access the-file R_OK))
+	    => #t)
+
+	  (check
+	      (begin
+		(chmod the-file 0)
+		(access the-file R_OK))
+	    => #f)
+
+	  (check
+	      (begin
+		(chmod the-file S_IWUSR)
+		(access the-file W_OK))
+	    => #t)
+
+	  (check
+	      (begin
+		(chmod the-file 0)
+		(access the-file W_OK))
+	    => #f)
+
+	  (check
+	      (with-compensations
+		  (compensate
+		      (umask 0)
+		    (with
+		     (umask #o027)))
+		(chmod the-file S_IXUSR)
+;;;(debug "~o" (file-permissions the-file))
+		(access the-file X_OK))
+	    => #t)
+
+	  (check
+	      (access the-subdir-1 X_OK)
+	    => #t)
+
+	  (check
+	      (begin
+		(chmod the-file 0)
+		(access the-file X_OK))
+	    => #f)
+
+	  )))))
 
 
 ;;;; done

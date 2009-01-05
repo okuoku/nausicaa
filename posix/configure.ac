@@ -56,6 +56,7 @@ m4_define([NAU_POSIX_INCLUDES],[
 #include <sys/times.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <utime.h>
 ])
 
 AC_DEFUN([NAU_POSIX_VALUEOF_TEST],
@@ -130,6 +131,10 @@ NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_CTIME],[struct stat],[st_mtime],[si
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_CTIME_USEC],[struct stat],[st_ctime_usec],[unsigned-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_BLOCKS],[struct stat],[st_blocks],[unsigned-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_BLKSIZE],[struct stat],[st_blksize],[unsigned-int])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_UTIMBUF],[struct utimbuf])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_UTIMBUF_ACTIME],[struct utimbuf],[actime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_UTIMBUF_MODTIME],[struct utimbuf],[modtime],[signed-int])
 
 AC_CACHE_SAVE
 

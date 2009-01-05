@@ -49,6 +49,7 @@
     sizeof-struct-stat alignof-struct-stat strideof-struct-stat
     sizeof-struct-timespec alignof-struct-timespec strideof-struct-timespec
     sizeof-struct-timeval alignof-struct-timeval strideof-struct-timeval
+    sizeof-struct-utimbuf alignof-struct-utimbuf strideof-struct-utimbuf
 
     ;; constants
     O_ACCMODE		O_CREAT		O_EXCL
@@ -114,6 +115,9 @@
     struct-stat-st_ctime_usec-set!	struct-stat-st_ctime_usec-ref
     struct-stat-st_blocks-set!		struct-stat-st_blocks-ref
     struct-stat-st_blksize-set!		struct-stat-st_blksize-ref
+
+    struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
+    struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
     )
   (import (rnrs)
     (uriel lang)
@@ -206,6 +210,10 @@
 (define sizeof-struct-stat		@SIZEOF_STRUCT_STAT@)
 (define alignof-struct-stat		@ALIGNOF_STRUCT_STAT@)
 (define strideof-struct-stat		@STRIDEOF_STRUCT_STAT@)
+
+(define sizeof-struct-utimbuf		@SIZEOF_STRUCT_UTIMBUF@)
+(define alignof-struct-utimbuf		@ALIGNOF_STRUCT_UTIMBUF@)
+(define strideof-struct-utimbuf		@STRIDEOF_STRUCT_UTIMBUF@)
 
 
 
@@ -473,6 +481,22 @@
   @OFFSETOF_STRUCT_STAT_ST_BLKSIZE@
   @SETTEROF_STRUCT_STAT_ST_BLKSIZE@
   @GETTEROF_STRUCT_STAT_ST_BLKSIZE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessors
+  struct-utimbuf-actime-set!
+  struct-utimbuf-actime-ref
+  @OFFSETOF_STRUCT_UTIMBUF_ACTIME@
+  @SETTEROF_STRUCT_UTIMBUF_ACTIME@
+  @GETTEROF_STRUCT_UTIMBUF_ACTIME@)
+
+(define-c-struct-accessors
+  struct-utimbuf-modtime-set!
+  struct-utimbuf-modtime-ref
+  @OFFSETOF_STRUCT_UTIMBUF_MODTIME@
+  @SETTEROF_STRUCT_UTIMBUF_MODTIME@
+  @GETTEROF_STRUCT_UTIMBUF_MODTIME@)
 
 
 

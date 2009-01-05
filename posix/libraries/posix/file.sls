@@ -71,6 +71,19 @@
     tmpnam		primitive-tmpnam	primitive-tmpnam-function
     mktemp		primitive-mktemp	primitive-mktemp-function
     mkstemp		primitive-mkstemp	primitive-mkstemp-function
+
+    ;; changing owner
+    chown		primitive-chown		primitive-chown-function
+    fchown		primitive-fchown	primitive-fchown-function
+
+    ;; changing permissions
+    umask		primitive-umask		primitive-umask-function
+    chmod		primitive-chmod		primitive-chmod-function
+    fchmod		primitive-fchmod	primitive-fchmod-function
+    getumask
+
+    ;; access test
+    access		primitive-access	primitive-access-function
     )
   (import (except (r6rs) remove)
     (uriel lang)
@@ -176,11 +189,9 @@
       (platform-readdir stream)
     ;;Here  we assume  that errno  is  set to  zero by  PLATFORM-READDIR
     ;;before the call to the foreign function.
-;;;FIXME  temporarily commented out  waiting for  Ikarus and  Ypsilon to
-;;;provide an "errno" setter.
-;;     (when (and (pointer-null? result)
-;; 	       (not (= 0 errno)))
-;;       (raise-errno-error 'primitive-readdir errno stream))
+    (when (and (pointer-null? result)
+	       (not (= 0 errno)))
+      (raise-errno-error 'primitive-readdir errno stream))
     result))
 
 (define (primitive-rewinddir stream)
@@ -359,7 +370,7 @@
 
 
 
-;;;; owner
+;;;; changing owner
 
 (define (primitive-chown pathname owner-id group-id)
   (with-compensations
@@ -395,6 +406,86 @@
 
 (define (fchown fd owner-id group-id)
   ((primitive-fchown-function) fd owner-id group-id))
+
+
+
+;;;; changing permissions
+
+(define (primitive-umask mask)
+  (with-compensations
+    (receive (result errno)
+	(platform-umask mask)
+      (when (= -1 result)
+	(raise-errno-error 'primitive-umask errno mask))
+      result)))
+
+(define (getumask)
+  (let ((m (umask 0)))
+    (umask m)
+    m))
+
+(define (primitive-chmod pathname mode)
+  (with-compensations
+    (receive (result errno)
+	(platform-chmod (string->cstring/c pathname) mode)
+      (when (= -1 result)
+	(raise-errno-error 'primitive-chmod errno (list pathname mode)))
+      result)))
+
+(define (primitive-fchmod fd mode)
+  (with-compensations
+    (receive (result errno)
+	(platform-fchmod fd mode)
+      (when (= -1 result)
+	(raise-errno-error 'primitive-fchmod errno (list fd mode)))
+      result)))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-umask-function primitive-umask)
+
+(define-primitive-parameter
+  primitive-chmod-function primitive-chmod)
+
+(define-primitive-parameter
+  primitive-fchmod-function primitive-fchmod)
+
+;;; --------------------------------------------------------------------
+
+(define (umask mask)
+  ((primitive-umask-function) mask))
+
+(define (chmod pathname mode)
+  ((primitive-chmod-function) pathname mode))
+
+(define (fchmod fd mode)
+  ((primitive-fchmod-function) fd mode))
+
+
+
+;;;; testing access
+
+(define (primitive-access pathname mask)
+  (with-compensations
+    (receive (result errno)
+	(platform-access (string->cstring/c pathname) mask)
+;;       (write (list result errno) (current-error-port))
+;;       (newline (current-error-port))
+      (when (and (= -1 result)
+		 (not (= 0 errno))
+		 (not (= EACCES errno))
+		 (not (= ENOENT errno))
+		 )
+	(raise-errno-error 'primitive-access errno
+			   (list pathname mask)))
+      (= 0 result))))
+
+(define-primitive-parameter
+  primitive-access-function primitive-access)
+
+(define (access fd mask)
+  ((primitive-access-function) fd mask))
 
 
 

@@ -65,6 +65,8 @@
     lfile-other-readable?	lfile-other-writable?	lfile-other-executable?
     lfile-setuid?		lfile-setgid?		lfile-sticky?
 
+    file-permissions		lfile-permissions
+
     make-struct-stat struct-stat?
 
     struct-stat-mode
@@ -267,8 +269,7 @@
 
    (else
     (error funcname
-      "expected file descriptor, file pathname or pointer to stat structure"
-      obj))))
+      "expected file descriptor or file pathname" obj))))
 
 ;;; --------------------------------------------------------------------
 
@@ -345,8 +346,7 @@
 
    (else
     (error funcname
-      "expected file descriptor, file pathname or pointer to stat structure"
-      obj))))
+      "expected file descriptor or file pathname" obj))))
 
 (define (file-is-message-queue? obj)
   (pointer-type-inspection 'file-is-message-queue? S_TYPEISMQ obj))
@@ -368,10 +368,6 @@
 
   (cond
 
-   ;; pointer to "struct stat" memory block
-   ((pointer? obj)
-    (set? obj))
-
    ;; file descriptor
    ((and (eq? the-stat stat) (integer? obj) (< -1 obj))
     (set? (fstat obj)))
@@ -382,8 +378,7 @@
 
    (else
     (error funcname
-      "expected file descriptor, file pathname or pointer to stat structure"
-      obj))))
+      "expected file descriptor or file pathname" obj))))
 
 ;;; --------------------------------------------------------------------
 
@@ -460,6 +455,35 @@
 
 (define (lfile-sticky? obj)
   (mode-inspection lstat 'lfile-sticky? S_ISVTX obj))
+
+;;; --------------------------------------------------------------------
+
+(define (file-permissions obj)
+
+  (define (get-mode record)
+    (let ((mode (struct-stat-mode record)))
+      (bitwise-and
+       (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
+       mode)))
+
+  (cond
+
+   ;; file descriptor
+   ((and (integer? obj) (< -1 obj))
+    (get-mode (fstat obj)))
+
+   ;; pathname
+   ((or (string? obj) (symbol? obj))
+    (get-mode (stat obj)))
+
+   (else
+    (error 'file-permissions
+      "expected file descriptor or file pathname" obj))))
+
+(define (lfile-permissions obj)
+  (bitwise-and
+   (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
+   (struct-stat-mode (lstat obj))))
 
 
 
