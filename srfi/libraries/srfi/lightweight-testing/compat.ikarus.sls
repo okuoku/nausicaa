@@ -33,8 +33,8 @@
   (import
     (rnrs)
     (only (ikarus) pretty-print))
-  
-  ;;; check.scm says a pretty-print with a trailing newline 
+
+  ;;; check.scm says a pretty-print with a trailing newline
   ;;; will make its print-outs look bad, so:
   (define pretty-print/no-trailing-newline
     (case-lambda
@@ -45,6 +45,7 @@
                     (substring os 0 (- (string-length os) 1))
                     os)])
          (display os output-port))]
-      [(datum) 
-       (pretty-print/no-trailing-newline datum (current-output-port))]))  
-)
+      [(datum)
+       (pretty-print/no-trailing-newline datum (current-output-port))]))  )
+
+;;; end of file

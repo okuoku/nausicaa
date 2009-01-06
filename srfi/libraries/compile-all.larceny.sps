@@ -8,7 +8,7 @@
 ;;;	Order  does matter!!!  Libraries  that are  imported into  other
 ;;;	libraries must be compiled first.
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -60,12 +60,6 @@
 
 (compile-library "srfi/lists.sls"
  		 "srfi/lists.larceny.slfasl")
-
-(compile-library "srfi/string-ports/compat.larceny.sls"
-		 "srfi/string-ports/compat.larceny.slfasl")
-
-(compile-library "srfi/string-ports.sls"
- 		 "srfi/string-ports.larceny.slfasl")
 
 (compile-library "srfi/records.sls"
 		 "srfi/records.larceny.slfasl")

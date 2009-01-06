@@ -413,7 +413,6 @@ included in the section entitled ``@gnu{} Free Documentation License''.
                                 construct.
 * list::                        List library.
 * and-let-star::                An @func{and} with local bindings.
-* string-ports::                Basic string ports.
 * receive::                     Binding to multiple values.
 * strings::                     The string library.
 * char-set::                    Character set library.
@@ -523,13 +522,6 @@ An @func{and} with local bindings
 * and-let-star rationale::      Rationale.
 * and-let-star spec::           Specification.
 * and-let-star stub::           Stub library.
-
-Basic string ports
-
-* string-ports license::        Original license.
-* string-ports abstract::       Abstract.
-* string-ports rationale::      Rationale.
-* string-ports spec::           Specification.
 
 Binding to multiple values
 
@@ -740,6 +732,23 @@ A more general @func{cond} clause
 * general-cond spec::           Specification.
 * general-cond stub::           Stub library.
 
+Comparison functions
+
+* compare license::             Original license.
+* compare abstract::            Abstract and rationale.
+* compare intro::               Introduction.
+* compare conventions::         Terminology and conventions.
+* compare spec::                Specification.
+
+Specification
+
+* compare spec atoms::          Comparing atoms.
+* compare spec sequence::       Comparing lists and vectors.
+* compare spec pair::           Comparing pairs and improper lists.
+* compare spec default::        The default compare procedure.
+* compare spec cons::           Constructing compare procedures.
+* compare spec using::          Using compare procedures.
+
 Lightweight testing
 
 * lightweight-testing license::         Original license.
@@ -843,10 +852,6 @@ The list library.
 @item @ansrfi{2}
 @itemx @library{srfi and-let-star}
 An @func{and} with local bindings.
-
-@item @ansrfi{6}
-@itemx @library{srfi string-ports}
-Basic string ports.
 
 @item @ansrfi{8}
 @itemx @library{srfi receive}
@@ -962,8 +967,7 @@ Imports @library{srfi eager-comprehensions} and exports all its
 bindings.
 
 @item string-lib
-Imports @library{srfi strings} and @library{srfi string-ports} and
-exports all their bindings.
+Imports @library{srfi strings} and exports all its bindings.
 
 @item vector-lib
 Imports @library{srfi vectors} and exports all its bindings.
@@ -1211,7 +1215,6 @@ What follows is a list of features that can be queried using the
 @itemx srfi-8
 @itemx srfi-13
 @itemx srfi-14
-@itemx srfi-19
 @itemx srfi-26
 @itemx srfi-27
 @itemx srfi-31
@@ -1228,7 +1231,6 @@ What follows is a list of features that can be queried using the
 @itemx (srfi cond-expand)
 @itemx (srfi lists)
 @itemx (srfi and-let*)
-@itemx (srfi string-ports)
 @itemx (srfi receive)
 @itemx (srfi strings)
 @itemx (srfi char-set)
@@ -4660,137 +4662,6 @@ ext_claw_env[ (VARIABLE EXPRESSION), env ] =
 
 The @library{lang-lib} library imports and re--exports bindings from
 @library{srfi and-let-star}.
-
-
-@c page
-@node string-ports
-@chapter Basic string ports
-
-
-@cindex @srfi{} string-ports
-
-
-The @library{srfi string-ports} library has been written by William D
-Clinger as the reference implementation for @ansrfi{6}.
-
-@menu
-* string-ports license::        Original license.
-* string-ports abstract::       Abstract.
-* string-ports rationale::      Rationale.
-* string-ports spec::           Specification.
-@end menu
-
-
-@c page
-@node string-ports license
-@section Original license
-
-
-Copyright @copyright{} 1999 William D Clinger.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node string-ports abstract
-@section Abstract
-
-
-Scheme's I/O primitives are extended by adding three new procedures that
-
-@itemize
-@item
-create an input port from a string;
-
-@item
-create an output port whose contents are accumulated in Scheme's working
-memory instead of an external file;
-
-@item
-extract the accumulated contents of an in--memory output port and return
-them in the form of a string.
-@end itemize
-
-
-@c page
-@node string-ports rationale
-@section Rationale
-
-
-Scheme's procedures for performing input and output from and to ports
-become more useful when extended by string ports.  The interface
-described here has been in use since 1986 or before, and is currently
-supported by several of the major implementations.
-
-
-@c page
-@node string-ports spec
-@section Specification
-
-
-@cindex @srfi{} string-ports api
-
-
-This specification is taken from the MacScheme Reference Manual.
-
-@defun open-input-string @var{string}
-Take a string and return an input port that delivers characters from the
-string.  The port can be closed by @func{close-input-port}, though its
-storage will be reclaimed by the garbage collector if it becomes
-inaccessible.
-
-Example:
-
-@example
-(define p (open-input-string "(a . (b . c . ())) 34"))
-
-(input-port? p)                 =>  #t
-(read p)                        =>  (a b c)
-(read p)                        =>  34
-(eof-object? (peek-char p))     =>  #t
-@end example
-@end defun
-
-
-@defun open-output-string
-Return an output port that will accumulate characters for retrieval by
-@func{get-output-string}.  The port can be closed by the procedure
-@code{close-output-port}, though its storage will be reclaimed by the
-garbage collector if it becomes inaccessible.
-
-@example
-(let ([q (open-output-string)]
-      [x '(a b c)])
-  (write (car x) q)
-  (write (cdr x) q)
-  (get-output-string q))
-  =>  "a(b c)"
-@end example
-@end defun
-
-
-@defun get-output-string @var{output-port}
-Given an output port created by @func{open-output-string}, return a
-string consisting of the characters that have been output to the port so
-far.
-@end defun
 
 
 @c page
@@ -8964,7 +8835,8 @@ February, and so on.
 An integer representing the year.
 
 @item Time zone
-A integer the number of seconds east of GMT for this timezone.
+An integer representing the number of seconds east of @acronym{GMT} for
+this timezone.
 @end table
 
 A @emph{Julian Day} represents a point in time as a real number of days
@@ -8981,32 +8853,32 @@ of days since 1858-11-17T00:00:00Z (November 17, 1858 at midnight, UTC).
 
 The following constants are required:
 
-@deffn Constant time-duration
+@deffn Variable time-duration
 Symbol representing @emph{Time} duration.
 @end deffn
 
 
-@deffn Constant time-monotonic
+@deffn Variable time-monotonic
 Symbol representing monotonic time.
 @end deffn
 
 
-@deffn Constant time-process
+@deffn Variable time-process
 Symbol representing time spent in current process.
 @end deffn
 
 
-@deffn Constant time-tai
+@deffn Variable time-tai
 Symbol representing @tai{} time.
 @end deffn
 
 
-@deffn Constant time-thread
+@deffn Variable time-thread
 Symbol representing time spent in current thread.
 @end deffn
 
 
-@deffn Constant time-utc
+@deffn Variable time-utc
 Symbol representting @utc{} time.
 @end deffn
 
@@ -9481,11 +9353,13 @@ specification of locales is beyond this @srfi{}.
 
 
 @defun date->string @var{date} [@var{format-string}]
-Converts a date to a string, using the format string.  The format string
-is copied as is; except escape characters (indicated by the tilde) are
-replaced with specfic conversions.  The following table lists the
-required conversion specifiers; implementations are free to extend this
-list.
+Convert a date to a string, using the format string.
+
+The format string is copied as is; except escape characters (indicated
+by the tilde) are replaced with specfic conversions.
+
+The following table lists the required conversion specifiers;
+implementations are free to extend this list.
 
 @multitable {Escape Char} {scrappy dappy doo, scrappy dappy doo, scappy dappy}
 @headitem Escape Char @tab Conversion
@@ -9535,13 +9409,24 @@ list.
 
 
 @defun string->date @func{input-string} @func{template-string}
-Converts an input string to a date, using the template string.  The
-input string must match the template string as is; except escape
-characters (preceded by a the tilde) indicate special converters which
-(1) move to the next character in the input string fulfilling a
-criterion; (2) read a value, and (3) act on this value in some way. The
-table below lists the required converters; implementations are free to
-extend this list.
+Convert an input string to a date, using the template string.
+
+The input string must match the template string as is; except escape
+characters (preceded by a the tilde) indicate special converters which:
+
+@enumerate
+@item
+move to the next character in the input string fulfilling a criterion;
+
+@item
+read a value;
+
+@item
+act on this value in some way.
+@end enumerate
+
+The table below lists the required converters; implementations are free
+to extend this list.
 
 @multitable {Escape} {char-alphabetic?} {Scrappy dappy doo, scrappy} {Scrappy dappy}
 @headitem Escape @tab Skip to @tab Read @tab Contract
@@ -9563,6 +9448,7 @@ extend this list.
 @item ~z @tab any @tab time zone @tab date--zone--offset
 @end multitable
 @end defun
+
 
 @c page
 @node time ack

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Derick Eddington
+;;; Copyright (c) 2009 Marco Maggi
 ;;;
 ;;; Permission  is  hereby  granted,  free  of  charge,  to  any  person
 ;;; obtaining a copy of this software and associated documentation files
@@ -25,14 +25,12 @@
 ;;; CONNECTION WITH  THE SOFTWARE  OR THE USE  OR OTHER DEALINGS  IN THE
 ;;; SOFTWARE.
 
-(library (srfi format compat)
+(library (srfi lightweight-testing compat)
   (export
-    pretty-print
-    ascii-tab)
-  (import
-    (rnrs base)
-    (only (core) pretty-print))
+    pretty-print/no-trailing-newline)
+  (import (rnrs))
 
-  (define ascii-tab #\tab))
+  (define (pretty-print/no-trailing-newline thing)
+    (write thing)))
 
 ;;; end of file

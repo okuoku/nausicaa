@@ -5,8 +5,11 @@
 ;;; UPDATED    Syntax updated for R6RS February 2008 by Ken Dickey
 ;;; LANGUAGE   R6RS but specific to Ikarus Scheme
 ;;;
-;;;Small changes  by Derick Eddington  to make the begining  of `format'
+;;;Small changes by  Derick Eddington to make the  beginning of `format'
 ;;;more effecient and more abstracted.
+;;;
+;;;Adapted by Marco Maggi  for Nausicaa inclusion: removed dependence of
+;;;string-ports.
 ;;;
 ;;;Copyright (C) Kenneth A Dickey (2003).  All Rights Reserved.
 ;;;
@@ -38,9 +41,9 @@
   (export
     format)
   (import (rnrs)
+    (srfi receive)
     (srfi sharing)
-    (srfi format compat)
-    (srfi string-ports))
+    (srfi format compat))
 
   (define (format arg0 . arg*)
 
@@ -393,20 +396,23 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
       (let ( [unused-args (format-help port format-string args)] )
         (if (not (null? unused-args))
 	    (problem "unused arguments" unused-args)
-          (return-value port))))
+          (return-value))))
 
 		; format body
     (if (string? arg0)
-	(_format (open-output-string) arg0 arg* get-output-string)
+	(receive (port getter)
+	    (open-string-output-port)
+	  (_format port arg0 arg* getter))
       (if (null? arg*)
 	  (problem "too few arguments" (list arg0))
-        (let ([port (cond [(eq? arg0 #f) (open-output-string)]
-                          [(eq? arg0 #t) (current-output-port)]
-                          [(output-port? arg0) arg0]
-                          [else (problem "bad output-port argument" arg0)])]
-              [arg1 (car arg*)])
-          (if (string? arg1)
-	      (_format port arg1 (cdr arg*) (if arg0 (lambda (ignore) (values)) get-output-string))
-            (problem "not a string" arg1)))))))
+	(receive (port getter)
+	    (cond ((eq? arg0 #f) (open-string-output-port))
+		  ((eq? arg0 #t) (values (current-output-port) (lambda () #t)))
+		  ((output-port? arg0) (values arg0 (lambda () #t)))
+		  (else (problem "bad output-port argument" arg0)))
+	  (let ((arg1 (car arg*)))
+	    (if (string? arg1)
+		(_format port arg1 (cdr arg*) (if arg0 (lambda (ignore) (values)) getter))
+	      (problem "not a string" arg1))))))))
 
 ;;; end of file

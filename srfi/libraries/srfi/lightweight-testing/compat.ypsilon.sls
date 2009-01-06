@@ -29,5 +29,6 @@
   (export
     (rename (pretty-print pretty-print/no-trailing-newline)))
   (import
-    (only (core) pretty-print))
-)
+    (only (core) pretty-print)))
+
+;;; end of file

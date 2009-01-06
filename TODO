@@ -80,14 +80,15 @@ IrRegex
 POSIX
 -----
 
-* FIXME: solve the readdir  error detection problem, whenever Ikarus and
-  Ypsilon implement the "errno" setter.
 * Add the scatter/gather fd interface.
 * Add the mmap interface.
-* Node "File System Interface".
-* Node "Signal Handling".
-* Node "Name Service Switch".
+* Finish the time interface.
 * Node "Users and Groups".
+* Node "System Management".
+* Node "System Configuration".
+* Node "Signal Handling".
+
+* Fix failing tests in the file interface.
 
 
 Glibc
@@ -99,6 +100,7 @@ Glibc
 * Test and document the streams-pipe library.
 * Add the string functions.
 * Find a way to add the select interface.
+* Node "Name Service Switch" (with example stubs library?).
 
 
 MP

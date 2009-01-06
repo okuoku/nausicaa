@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -52,7 +52,6 @@
 (check-feature srfi-8)
 (check-feature srfi-13)
 (check-feature srfi-14)
-(check-feature srfi-19)
 (check-feature srfi-26)
 (check-feature srfi-27)
 (check-feature srfi-31)
@@ -70,7 +69,6 @@
 (check-feature (srfi cond-expand))
 (check-feature (srfi lists))
 (check-feature (srfi and-let*))
-(check-feature (srfi string-ports))
 (check-feature (srfi receive))
 (check-feature (srfi strings))
 (check-feature (srfi char-set))

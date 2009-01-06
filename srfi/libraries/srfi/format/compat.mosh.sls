@@ -1,4 +1,4 @@
-;;; Copyright (c) 2008 Derick Eddington
+;;; Copyright (c) 2009 Marco Maggi
 ;;;
 ;;; Permission  is  hereby  granted,  free  of  charge,  to  any  person
 ;;; obtaining a copy of this software and associated documentation files
@@ -29,10 +29,10 @@
   (export
     pretty-print
     ascii-tab)
-  (import
-    (rnrs base)
-    (only (core) pretty-print))
-
+  (import (rnrs))
+  (define (pretty-print thing)
+    (write thing)
+    (newline))
   (define ascii-tab #\tab))
 
 ;;; end of file
