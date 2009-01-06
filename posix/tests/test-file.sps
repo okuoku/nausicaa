@@ -829,6 +829,86 @@ Ses ailes de geant l'empechent de marcher.")
 	  )))))
 
 
+;;;; file times
+
+(parameterize ((testname	'times)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+
+	(define (get-times pathname)
+	  (let ((record (stat the-file)))
+	    #;(debug "atime ~s\nctime ~s\nmtime ~s"
+		   (struct-stat-atime record)
+		   (struct-stat-ctime record)
+		   (struct-stat-mtime record))
+	    (list (struct-stat-atime record)
+		  (struct-stat-mtime record))))
+
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  ;;;The SUS says  that an implementation may choose  not to set
+	  ;;;the access time of the file, even though it is requested by
+	  ;;;the "utime()" call.
+	  (check
+	      (begin
+		(chmod the-file #o700)
+		(get-times the-file)
+		(utime the-file 123 456)
+		(cadr (get-times the-file)))
+	    => '(456))
+
+	  (check
+	      (utime the-file)
+	    => 0)
+
+	  )))))
+
+
+
+;;;; file size
+
+(parameterize ((testname	'size)
+	       (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (exc)
+	(debug-print-condition "deferred condition" exc))
+    (lambda ()
+      (guard (exc (else
+		   (debug-print-condition "sync condition" exc)))
+
+	(with-compensations
+	  (clean-test-hierarchy)
+	    (compensate
+		(make-test-hierarchy)
+	      (with
+	       (clean-test-hierarchy)))
+
+	  (check
+	      (begin
+		(file-size the-file))
+	    => (string-length the-string))
+
+	  (check
+	      (begin
+		(ftruncate the-file 5)
+		(file-size the-file))
+	    => 5)
+
+	  )))))
+
+
 ;;;; done
 
 (check-report)

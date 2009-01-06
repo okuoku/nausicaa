@@ -84,10 +84,18 @@
 
     ;; access test
     access		primitive-access	primitive-access-function
+
+    ;; file times
+    utime		primitive-utime		primitive-utime-function
+
+    ;; file size
+    file-size		primitive-file-size	primitive-file-size-function
+    ftruncate		primitive-ftruncate	primitive-ftruncate-function
     )
-  (import (except (r6rs) remove)
+  (import (except (r6rs) remove truncate)
     (uriel lang)
     (uriel foreign)
+    (except (posix fd) read write)
     (posix sizeof)
     (posix file platform))
 
@@ -470,13 +478,10 @@
   (with-compensations
     (receive (result errno)
 	(platform-access (string->cstring/c pathname) mask)
-;;       (write (list result errno) (current-error-port))
-;;       (newline (current-error-port))
       (when (and (= -1 result)
 		 (not (= 0 errno))
 		 (not (= EACCES errno))
-		 (not (= ENOENT errno))
-		 )
+		 (not (= ENOENT errno)))
 	(raise-errno-error 'primitive-access errno
 			   (list pathname mask)))
       (= 0 result))))
@@ -486,6 +491,103 @@
 
 (define (access fd mask)
   ((primitive-access-function) fd mask))
+
+
+
+;;;; file times
+
+(define primitive-utime
+  (case-lambda
+   ((pathname access-time modification-time)
+    (with-compensations
+      (let ((*struct-utimbuf (malloc-block/c sizeof-struct-utimbuf)))
+	(struct-utimbuf-actime-set!  *struct-utimbuf access-time)
+	(struct-utimbuf-modtime-set! *struct-utimbuf modification-time)
+	(receive (result errno)
+	    (platform-utime (string->cstring/c pathname)
+			    *struct-utimbuf)
+	  (when (= -1 result)
+	    (raise-errno-error 'primitive-utime errno
+			       (list pathname access-time modification-time)))
+	  result))))
+   ((pathname)
+    (receive (result errno)
+	(platform-utime (string->cstring/c pathname) pointer-null)
+      (when (= -1 result)
+	(raise-errno-error 'primitive-utime errno pathname))
+      result))))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-utime-function primitive-utime)
+
+;;; --------------------------------------------------------------------
+
+(define utime
+  (case-lambda
+   ((pathname access-time modification-time)
+    ((primitive-utime-function) pathname access-time modification-time))
+   ((pathname)
+    ((primitive-utime-function) pathname))))
+
+
+
+;;;; file size
+
+(define (primitive-file-size obj)
+  (cond ((or (string? obj) (symbol? obj))
+	 (with-compensations
+	   (letrec ((fd (compensate
+			    (open obj O_RDONLY 0)
+			  (with
+			   (close fd)))))
+	     (primitive-file-size fd))))
+	((and (integer? obj) (<= 0 obj))
+	 (with-compensations
+	   (letrec ((pos (compensate
+			     (lseek obj 0 SEEK_CUR)
+			   (with
+			    (lseek obj pos SEEK_SET)))))
+	     (lseek obj 0 SEEK_END))))
+	(else
+	 (error 'primitive-file-size
+	   "expected file descriptor or file pathname" obj))))
+
+(define (primitive-ftruncate obj length)
+  (cond ((and (integer? obj) (<= 0 obj))
+	 (receive (result errno)
+	     (platform-ftruncate obj length)
+	   (when (= -1 result)
+	     (raise-errno-error 'primitive-ftruncate errno
+				(list obj length)))
+	   result))
+	((or (string? obj) (symbol? obj))
+	 (with-compensations
+	   (letrec ((fd (compensate
+			    (open obj O_WRONLY 0)
+			  (with
+			   (close fd)))))
+	     (primitive-ftruncate fd length))))
+	(else
+	 (error 'primitive-ftruncate
+	   "expected file descriptor or file pathname" obj))))
+
+;;; --------------------------------------------------------------------
+
+(define-primitive-parameter
+  primitive-file-size-function primitive-file-size)
+
+(define-primitive-parameter
+  primitive-ftruncate-function primitive-ftruncate)
+
+;;; --------------------------------------------------------------------
+
+(define (file-size obj)
+  ((primitive-file-size-function) obj))
+
+(define (ftruncate obj length)
+  ((primitive-ftruncate-function) obj length))
 
 
 

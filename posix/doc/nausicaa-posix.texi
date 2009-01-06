@@ -1015,6 +1015,7 @@ Create a new directory with pathname selected by the string or symbol
 * file attr owner::             Changing owner and group.
 * file attr mode::              Changing file permissions.
 * file attr access::            Testing access.
+* file attr size::              Size of files.
 @end menu
 
 
@@ -1392,6 +1393,31 @@ Return @false{} otherwise.
 Constants representing requests for access permission testing with
 @func{access}.  These bindings are exported by @library{posix sizeof}.
 @end defvar
+
+
+@c page
+@node file attr size
+@subsection Size of files
+
+
+@deffn Function file-size @var{obj}
+@deffnx Function primitive-file-size @var{obj}
+@deffnx Parameter primitive-file-size-function
+Return the file of the selected file.  @var{obj} can be a file
+descriptor or a pathname in the form of a symbol or string.
+
+This function is implemented using @func{lseek} as described in @ref{fd
+seek,Setting the file position}.
+@end deffn
+
+
+@deffn Function ftruncate @var{obj} @var{length}
+@deffnx Function primitive-ftruncate @var{obj} @var{length}
+@deffnx Parameter primitive-ftruncate-function
+@deffnx Function platform-ftruncate @var{obj} @var{length}
+Set to @var{length} the size of the selected file.  @var{obj} can be a
+file descriptor or a pathname in the form of a symbol or string.
+@end deffn
 
 
 @c page

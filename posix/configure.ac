@@ -123,17 +123,17 @@ NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_NLINK],[struct stat],[st_nlink],[un
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_UID],[struct stat],[st_uid],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_GID],[struct stat],[st_gid],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_SIZE],[struct stat],[st_size],[unsigned-int])
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_ATIME],[struct stat],[st_atime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_ATIME],     [struct stat],[st_atime],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_ATIME_USEC],[struct stat],[st_atime_usec],[unsigned-int])
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_MTIME],[struct stat],[st_mtime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_MTIME],     [struct stat],[st_mtime],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_MTIME_USEC],[struct stat],[st_mtime_usec],[unsigned-int])
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_CTIME],[struct stat],[st_mtime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_CTIME],     [struct stat],[st_ctime],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_CTIME_USEC],[struct stat],[st_ctime_usec],[unsigned-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_BLOCKS],[struct stat],[st_blocks],[unsigned-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_ST_BLKSIZE],[struct stat],[st_blksize],[unsigned-int])
 
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_UTIMBUF],[struct utimbuf])
-NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_UTIMBUF_ACTIME],[struct utimbuf],[actime],[signed-int])
+NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_UTIMBUF_ACTIME], [struct utimbuf],[actime],[signed-int])
 NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_UTIMBUF_MODTIME],[struct utimbuf],[modtime],[signed-int])
 
 AC_CACHE_SAVE

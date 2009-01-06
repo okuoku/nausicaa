@@ -29,15 +29,6 @@
 (compile-library "posix/sizeof.sls"
 		 "posix/sizeof.larceny.slfasl")
 
-(compile-library "posix/file/platform.sls"
-		 "posix/file/platform.larceny.slfasl")
-
-(compile-library "posix/file/stat.sls"
-		 "posix/file/stat.larceny.slfasl")
-
-(compile-library "posix/file.sls"
-		 "posix/file.larceny.slfasl")
-
 (compile-library "posix/time/stub.sls"
 		 "posix/time/stub.larceny.slfasl")
 
@@ -64,6 +55,16 @@
 
 (compile-library "posix/fd.sls"
 		 "posix/fd.larceny.slfasl")
+
+(compile-library "posix/file/platform.sls"
+		 "posix/file/platform.larceny.slfasl")
+
+(compile-library "posix/file/stat.sls"
+		 "posix/file/stat.larceny.slfasl")
+
+(compile-library "posix/file.sls"
+		 "posix/file.larceny.slfasl")
+
 
 (compile-library "posix/environment/platform.sls"
 		 "posix/environment/platform.larceny.slfasl")
