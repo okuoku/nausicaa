@@ -418,6 +418,7 @@ entitled ``@gnu{} Free Documentation License''.
 * fd::                          File descriptors.
 * process::                     Processes.
 * job::                         Job control.
+* users::                       Users and groups.
 
 Appendices
 
@@ -435,6 +436,47 @@ Indexes
 @detailmenu
  --- The Detailed Node Listing ---
 
+Overview of the package
+
+* overview iface::              Introduction to the interface.
+
+File system
+
+* file working directory::      The working directory.
+* file directory access::       Accessing directory entries.
+* file links::                  Hard and symbolic links.
+* file remove::                 Removing files and directories.
+* file rename::                 Renaming files and directories.
+* file mkdir::                  Creating directories.
+* file attr::                   File attributes.
+* file temp::                   Temporary files.
+
+Accessing directory entries
+
+* file directory access types:: Type definitions.
+* file directory access open::  Accessing a directory stream.
+* file directory access read::  Reading a directory stream.
+* file directory access seek::  Random access to a directory stream.
+
+File attributes
+
+* file attr stat::              File attributes.
+* file attr owner::             Changing owner and group.
+* file attr mode::              Changing file permissions.
+* file attr access::            Testing access.
+* file attr size::              Size of files.
+
+File attributes
+
+* file attr stat record::       Acquiring the file attributes.
+* file attr stat type::         Type inspection.
+* file attr stat perms::        Access permissions inspection.
+
+Date and time
+
+* time structs::                Data structures.
+* time clock::                  Processor time.
+
 File descriptors
 
 * fd constants::                Variables holding constant values.
@@ -445,13 +487,29 @@ File descriptors
 * fd control::                  Control operations.
 * fd dup::                      Duplicating file descriptors.
 * fd lock::                     File locks.
+* fd pipe::                     Pipes and FIFOs.
+* fd custom::                   Custom Scheme ports.
 
 Variables holding constant values
 
 * fd constants status::         File status flags.
+* fd constants perms::          Permissions.
 * fd constants control::        File control flags.
 * fd constants seek::           File positions.
 * fd constants lock::           Locking.
+
+Processes
+
+* process id::                  Process identification.
+* process fork::                Creating a process.
+* process exec::                Executing a file.
+* process wait::                Process completion.
+
+Job control
+
+* job terminal::                Terminal identification.
+* job group::                   Process group functions.
+* job access::                  Terminal access.
 
 @end detailmenu
 @end menu
@@ -2887,6 +2945,20 @@ Set a terminal's foreground process group id.
 Return the process group id of the session for which the open on
 descriptor @var{fd} is the controlling terminal.
 @end deffn
+
+
+@c page
+@node users
+@chapter Users and groups
+
+
+The bindings described in this chapter are exported by the
+@library{posix users} library.
+
+
+@menu
+* users
+@end menu
 
 
 @c page
