@@ -38,37 +38,78 @@
 #!r6rs
 (library (srfi time)
   (export
-    time make-time time? time-type time-nanosecond time-second
-    date make-date date? date-nanosecond date-second date-minute
-    date-hour date-day date-month date-year date-zone-offset
-    time-tai time-utc time-monotonic
-    #|time-thread time-process|#
-    time-duration
-;;;    read-leap-second-table
-    copy-time current-time
-    time-resolution time=? time>? time<? time>=? time<=?
-    time-difference time-difference! add-duration
-    add-duration! subtract-duration subtract-duration!
-    time-tai->time-utc time-tai->time-utc! time-utc->time-tai
-    time-utc->time-tai! time-monotonic->time-utc
-    time-monotonic->time-utc! time-monotonic->time-tai
-    time-monotonic->time-tai! time-utc->time-monotonic
-    time-utc->time-monotonic! time-tai->time-monotonic
-    time-tai->time-monotonic! time-tai->date time-utc->date
-    time-monotonic->date date->time-utc date->time-tai
-    date->time-monotonic leap-year? date-year-day
-    date-week-day date-week-number current-date
-    date->julian-day date->modified-julian-day
-    time-utc->julian-day time-utc->modified-julian-day
-    time-tai->julian-day time-tai->modified-julian-day
-    time-monotonic->julian-day
-    time-monotonic->modified-julian-day julian-day->time-utc
-    julian-day->time-tai julian-day->time-monotonic
-    julian-day->date modified-julian-day->date
-    modified-julian-day->time-utc
+
+    ;; constants
+    time-duration time-monotonic time-tai time-utc
+    ;;time-process time-thread
+
+    ;; current time and clock resolution
+    current-date current-julian-day current-modified-julian-day
+    current-time time-resolution
+
+    ;; time object and accessor
+    make-time time?
+    time-type time-nanosecond time-second
+    set-time-type! set-time-nanosecond! set-time-second!
+    copy-time
+
+    ;; time object comparison procedures
+    time<=? time<? time=? time>=? time>?
+
+    ;; time object arithmetic procedures
+    time-difference time-difference!
+    add-duration add-duration!
+    subtract-duration subtract-duration!
+
+    ;; date object and accessors
+    make-date date?
+    date-nanosecond date-second date-minute date-hour
+    date-day date-month date-year date-zone-offset
+    date-year-day date-week-day date-week-number
+
+    ;; converters
+    date->julian-day
+    date->modified-julian-day
+    date->time-monotonic
+    date->time-tai
+    date->time-utc
+
+    julian-day->date
+    julian-day->time-monotonic
+    julian-day->time-tai
+    julian-day->time-utc
+
+    modified-julian-day->date
+    modified-julian-day->time-monotonic
     modified-julian-day->time-tai
-    modified-julian-day->time-monotonic current-julian-day
-    current-modified-julian-day date->string string->date)
+    modified-julian-day->time-utc
+
+    time-monotonic->date
+    time-monotonic->julian-day
+    time-monotonic->modified-julian-day
+    time-monotonic->time-tai
+    time-monotonic->time-tai!
+    time-monotonic->time-utc
+    time-monotonic->time-utc!
+
+    time-tai->date
+    time-tai->julian-day
+    time-tai->modified-julian-day
+    time-tai->time-monotonic
+    time-tai->time-monotonic!
+    time-tai->time-utc
+    time-tai->time-utc!
+
+    time-utc->date
+    time-utc->julian-day
+    time-utc->modified-julian-day
+    time-utc->time-monotonic
+    time-utc->time-monotonic!
+    time-utc->time-tai
+    time-utc->time-tai!
+
+    ;; string conversion
+    date->string string->date)
   (import (rnrs)
     (rnrs r5rs)
     (rnrs mutable-strings)
@@ -293,9 +334,9 @@
 ;;;; time structure
 
 (define-record-type time
-  (fields (mutable type)
-	  (mutable nanosecond)
-	  (mutable second)))
+  (fields (mutable type		time-type	set-time-type!)
+	  (mutable nanosecond	time-nanosecond	set-time-nanosecond!)
+	  (mutable second	time-second	set-time-second!)))
 
 (define (copy-time time)
   (make-time (time-type		time)
@@ -435,17 +476,17 @@
   (if (or (not (and (time? time1) (time? time2)))
 	  (not (eq? (time-type time1) (time-type time2))))
       (tm:time-error 'time-difference 'incompatible-time-types #f))
-  (time-type-set! time3 time-duration)
+  (set-time-type! time3 time-duration)
   (if (time=? time1 time2)
       (begin
-	(time-second-set! time3 0)
-	(time-nanosecond-set! time3 0))
+	(set-time-second! time3 0)
+	(set-time-nanosecond! time3 0))
     (receive
 	(nanos secs)
 	(tm:nanoseconds->values (- (tm:time->nanoseconds time1)
 				   (tm:time->nanoseconds time2)))
-      (time-second-set! time3 secs)
-      (time-nanosecond-set! time3 nanos)))
+      (set-time-second! time3 secs)
+      (set-time-nanosecond! time3 nanos)))
   time3)
 
 (define (time-difference time1 time2)
@@ -468,11 +509,11 @@
 		 (q (quotient  nsec-plus tm:nano)))
 	     (if (negative? r)
 		 (begin
-		   (time-second-set!     time3 (+ sec-plus q -1))
-		   (time-nanosecond-set! time3 (+ tm:nano r)))
+		   (set-time-second!     time3 (+ sec-plus q -1))
+		   (set-time-nanosecond! time3 (+ tm:nano r)))
 	       (begin
-		 (time-second-set!     time3 (+ sec-plus q))
-		 (time-nanosecond-set! time3 r)))
+		 (set-time-second!     time3 (+ sec-plus q))
+		 (set-time-nanosecond! time3 r)))
 	     time3)))))
 
 (define (add-duration time1 duration)
@@ -495,11 +536,11 @@
 		 (q (quotient  nsec-minus tm:nano)))
 	     (if (negative? r)
 		 (begin
-		   (time-second-set!     time3 (- sec-minus q 1))
-		   (time-nanosecond-set! time3 (+ tm:nano r)))
+		   (set-time-second!     time3 (- sec-minus q 1))
+		   (set-time-nanosecond! time3 (+ tm:nano r)))
 	       (begin
-		 (time-second-set!     time3 (- sec-minus q))
-		 (time-nanosecond-set! time3 r)))
+		 (set-time-second!     time3 (- sec-minus q))
+		 (set-time-nanosecond! time3 r)))
 	     time3)))))
 
 (define (subtract-duration time1 duration)
@@ -515,9 +556,9 @@
   (if (not (eq? (time-type time-in) time-tai))
       (tm:time-error caller 'incompatible-time-types time-in)
     (begin
-      (time-type-set!       time-out time-utc)
-      (time-nanosecond-set! time-out (time-nanosecond time-in))
-      (time-second-set!     time-out (- (time-second time-in)
+      (set-time-type!       time-out time-utc)
+      (set-time-nanosecond! time-out (time-nanosecond time-in))
+      (set-time-second!     time-out (- (time-second time-in)
 					(tm:leap-second-neg-delta
 					 (time-second time-in))))
       time-out)))
@@ -534,9 +575,9 @@
   (if (not (eq? (time-type time-in) time-utc))
       (tm:time-error caller 'incompatible-time-types time-in)
     (begin
-      (time-type-set!       time-out time-tai)
-      (time-nanosecond-set! time-out (time-nanosecond time-in))
-      (time-second-set!     time-out (+ (time-second time-in)
+      (set-time-type!       time-out time-tai)
+      (set-time-nanosecond! time-out (time-nanosecond time-in))
+      (set-time-second!     time-out (+ (time-second time-in)
 					(tm:leap-second-delta
 					 (time-second time-in))))
       time-out)))
@@ -554,14 +595,14 @@
   (if (not (eq? (time-type time-in) time-monotonic))
       (tm:time-error 'time-monotoinc->time-utc 'incompatible-time-types time-in)
     (let ((ntime (copy-time time-in)))
-      (time-type-set! ntime time-tai)
+      (set-time-type! ntime time-tai)
       (tm:time-tai->time-utc! ntime ntime 'time-monotonic->time-utc))))
 
 (define (time-monotonic->time-utc! time-in)
   (if (not (eq? (time-type time-in) time-monotonic))
       (tm:time-error 'time-monotonic->time-utc! 'incompatible-time-types time-in)
     (begin
-      (time-type-set! time-in time-tai)
+      (set-time-type! time-in time-tai)
       (tm:time-tai->time-utc! time-in time-in 'time-monotonic->time-utc))))
 
 ;;; --------------------------------------------------------------------
@@ -570,14 +611,14 @@
   (if (not (eq? (time-type time-in) time-monotonic))
       (tm:time-error 'time-monotonic->time-tai 'incompatible-time-types time-in)
     (let ((ntime (copy-time time-in)))
-      (time-type-set! ntime time-tai)
+      (set-time-type! ntime time-tai)
       ntime)))
 
 (define (time-monotonic->time-tai! time-in)
   (if (not (eq? (time-type time-in) time-monotonic))
       (tm:time-error 'time-monotonic->time-tai! 'incompatible-time-types time-in)
     (begin
-      (time-type-set! time-in time-tai)
+      (set-time-type! time-in time-tai)
       time-in)))
 
 ;;; --------------------------------------------------------------------
@@ -587,7 +628,7 @@
       (tm:time-error 'time-utc->time-monotonic 'incompatible-time-types time-in)
     (let ((ntime (tm:time-utc->time-tai! time-in (make-time #f #f #f)
 					 'time-utc->time-monotonic)))
-      (time-type-set! ntime time-monotonic)
+      (set-time-type! ntime time-monotonic)
       ntime)))
 
 (define (time-utc->time-monotonic! time-in)
@@ -595,7 +636,7 @@
       (tm:time-error 'time-utc->time-montonic! 'incompatible-time-types time-in)
     (let ((ntime (tm:time-utc->time-tai! time-in time-in
 					 'time-utc->time-monotonic!)))
-      (time-type-set! ntime time-monotonic)
+      (set-time-type! ntime time-monotonic)
       ntime)))
 
 ;;; --------------------------------------------------------------------
@@ -604,14 +645,14 @@
   (if (not (eq? (time-type time-in) time-tai))
       (tm:time-error 'time-tai->time-monotonic 'incompatible-time-types time-in)
     (let ((ntime (copy-time time-in)))
-      (time-type-set! ntime time-monotonic)
+      (set-time-type! ntime time-monotonic)
       ntime)))
 
 (define (time-tai->time-monotonic! time-in)
   (if (not (eq? (time-type time-in) time-tai))
       (tm:time-error 'time-tai->time-monotonic! 'incompatible-time-types time-in)
     (begin
-      (time-type-set! time-in time-monotonic)
+      (set-time-type! time-in time-monotonic)
       time-in)))
 
 
@@ -1008,7 +1049,6 @@
   (cond ((= 0 offset)		(display "Z" port))
 	((negative? offset)	(display "-" port))
 	(else			(display "+" port)))
-  (write  (quotient (exact->inexact offset) (* 60.0 60)))(newline)
   (if (not (= offset 0))
       (let ((hours   (abs (quotient offset (* 60 60))))
 	    (minutes (abs (quotient (remainder offset (* 60 60)) 60))))
@@ -1048,11 +1088,28 @@
 			port)))
    (cons #\f (lambda (date pad-with port)
 	       (display
-		(if (> (date-nanosecond date)
-		       tm:nano)
-		    (tm:padding (+ (date-second date) 1)
-				pad-with 2)
-		  (tm:padding (date-second date) pad-with 2))
+		;;According  to   the  SRFI  document:   the  range  for
+		;;nanoseconds is [0; 9,999,999] inclusive; we know that:
+		;;
+		;;  1 nanosecond		= 10^{-9} seconds
+		;;  10^9 nanoseconds		= 1 second
+		;;  1,000,000,000 nanoseconds	= 1 second
+		;;
+		;;  1 microsecond		= 10^{-6} seconds
+		;;  10^3 microseconds		= 1 second
+		;;  1,000,000 microseconds	= 1 second
+		;;
+		;;  1 millisecond		= 10^{-3} seconds
+		;;  10^3 milliseconds		= 1 second
+		;;  1,000 milliseconds		= 1 second
+		;;
+		;;so  the  range  of  nanoseconds can  represent  "small
+		;;times" from zero up to "almost" 10 microseconds.
+		;;
+		(tm:padding (if (> (date-nanosecond date) tm:nano)
+				(+ (date-second date) 1)
+			      (date-second date))
+			    pad-with 2)
 		port)
 	       (let* ((ns (tm:fractional-part
 			   (/ (date-nanosecond date) tm:nano 1.0)))

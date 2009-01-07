@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,6 +30,19 @@
 (import (r6rs)
   (check-lib)
   (list-lib))
+
+;; (import (except (rnrs)
+;; 		cons* find  partition)
+;;   (check-lib)
+;;   (rename (srfi :1)
+;; 	  (filter srfi:filter)
+;; 	  (assoc srfi:assoc)
+;; 	  (member srfi:member)
+;; 	  (remove srfi:remove)
+;; 	  (for-each srfi:for-each)
+;; 	  (map srfi:map)
+;; 	  (fold-right srfi:fold-right)
+;; 	  ))
 
 (check-set-mode! 'report-failed)
 
@@ -103,9 +116,10 @@
     (iota 5 10 5)
   => '(10 15 20 25 30))
 
-(check
-    (iota -5 10 5)
-  => '())
+(guard (exc (else #f))
+  (check
+      (iota -5 10 5)
+    => '()))
 
 (check
     (let ((ell (circular-list 1 2)))

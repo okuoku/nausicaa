@@ -37,13 +37,50 @@
 
 ;;;; setup
 
+;; this is for Nausicaa's implementation
 (import (r6rs)
   (rnrs mutable-pairs (6))
   (check-lib)
+  (format-lib)
   (srfi time))
+
+;; this is for Larceny's implementation
+;; (import (r6rs)
+;;   (rnrs mutable-pairs (6))
+;;   (check-lib)
+;;   (format-lib)
+;;   (srfi :39)
+;;   (srfi :19))
 
 (check-set-mode! 'report-failed)
 (display "*** testing time\n")
+
+
+;;;; debugging
+
+(define debugging
+  (make-parameter #f))
+
+(define (debug thing . args)
+  (when (debugging)
+    (if (string? thing)
+	  (apply format (current-error-port) thing args)
+      (write thing (current-error-port)))
+    (newline (current-error-port))))
+
+(define (debug-print-condition message exc)
+  (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
+	 message
+	 (if (who-condition? exc)
+	     (condition-who exc)
+	   'no-who)
+	 (if (message-condition? exc)
+	     (condition-message exc)
+	   #f)
+	 (if (irritants-condition? exc)
+	     (condition-irritants exc)
+	   #f)))
+
 
 
 ;;;; date stuff
@@ -129,8 +166,10 @@
   => #t)
 
 (check
-    (time<? (current-time 'time-utc)
-	    (current-time))
+    ;;enforce the order of evaluation!!
+    (let* ((a (current-time 'time-utc))
+	   (b (current-time)))
+      (time<=? a b))
   => #t)
 
 (check
@@ -420,9 +459,9 @@
      => #t)))
 
 
-;;;; date to string
+;;;; date to string, single digits
 
-(define the-date
+(define date-1
   (make-date
    1 ; nanosecond
    2 ; second
@@ -430,146 +469,400 @@
    4 ; hour
    5 ; day
    6 ; month
-   7 ; year
-   (* 60 61))) ; zone-offset, in seconds east of GMT
+   1950 ; year, it has to be after 1752
+   (* 60 60))) ; zone-offset, in seconds east of GMT
+
 
 (check
-    (date->string the-date "~a")
-  => "Sun")
+    (date->string date-1 "~~")
+  => "~")
 
 (check
-    (date->string the-date "~A")
-  => "Sunday")
+    (list (date->string date-1 "~a")
+	  (date->string date-1 "~A"))
+  => '("Mon" "Monday"))
 
 (check
-    (date->string the-date "~b")
-  => "Jun")
+    (list (date->string date-1 "~b")
+	  (date->string date-1 "~B"))
+  => '("Jun" "June"))
 
 (check
-    (date->string the-date "~B")
-  => "June")
+    (date->string date-1 "~c")
+  => "Mon Jun 05 04:03:02+0101 1950")
 
 (check
-    (date->string the-date "~d")
+    (date->string date-1 "~d")
   => "05")
 
 (check
-    (date->string the-date "~e")
+    (date->string date-1 "~D")
+  => "06/05/50")
+
+(check
+    (date->string date-1 "~e")
   => " 5")
 
 (check
-    (date->string the-date "~h")
+    (date->string date-1 "~f")
+  => "02.000000001")
+
+(check
+    (date->string date-1 "~h")
   => "Jun")
 
 (check
-    (date->string the-date "~H")
+    (date->string date-1 "~H")
   => "04")
 
 (check
-    (date->string the-date "~k")
+    (date->string date-1 "~I")
+  => "04")
+
+(check
+    (date->string date-1 "~j")
+  => "156")
+
+(check
+    (date->string date-1 "~k")
   => " 4")
 
 (check
-    (date->string the-date "~m")
+    (date->string date-1 "~l")
+  => " 4")
+
+(check
+    (date->string date-1 "~m")
   => "06")
 
 (check
-    (date->string the-date "~M")
+    (date->string date-1 "~M")
   => "03")
 
 (check
-    (date->string the-date "~S")
+    (date->string date-1 "~n")
+  => "\n")
+
+(check
+    (date->string date-1 "~N")
+  => "000000001")
+
+(check
+    (date->string date-1 "~p")
+  => "AM")
+
+(check
+    (date->string date-1 "~r")
+  => "04:03:02 AM")
+
+(check
+    (date->string date-1 "~s")
+  => "-617749078")
+
+(check
+    (date->string date-1 "~S")
   => "02")
 
 (check
-    (date->string the-date "~y")
-  => "07")
+    (date->string date-1 "~t")
+  => "\t")
 
 (check
-    (date->string the-date "~Y")
-  => "7")
+    (date->string date-1 "~T")
+  => "04:03:02")
 
 (check
-    (date->string the-date "~z")
+    (date->string date-1 "~U")
+  => "23")
+
+(check
+    (date->string date-1 "~V")
+  => "23")
+
+(check
+    (date->string date-1 "~w")
+  => "1")
+
+(check
+    (date->string date-1 "~W")
+  => "23")
+
+;;; FIXME the following 2 are wrong according to the SRFI document
+(check
+    (date->string date-1 "~x")
+  => "06/05/50")
+
+(check
+    (date->string date-1 "~X")
+  => "04:03:02")
+
+(check
+    (date->string date-1 "~y")
+  => "50")
+
+(check
+    (date->string date-1 "~Y")
+  => "1950")
+
+(check
+    (date->string date-1 "~z")
   => "+0101")
 
-;;; --------------------------------------------------------------------
+;;; not implemented
+(check
+    (date->string date-1 "~Z")
+  => "")
 
-(define the-date
+;; Check out ISO 8601 year-month-day format
+(check
+    (date->string date-1 "~1")
+  => "1950-06-05")
+
+;; Check out ISO 8601 hour-minute-second-timezone format
+(check
+    (date->string date-1 "~2")
+  => " 4:03:02+0101")
+
+;; Check out ISO 8601 hour-minute-second format
+(check
+    (date->string date-1 "~3")
+  => " 4:03:02")
+
+;; Check out ISO 8601 year-month-day-hour-minute-second-timezone format
+(check
+    (date->string date-1 "~4")
+  => "1950-06-05T 4:03:02+0101")
+
+;; Check out ISO 8601 year-month-day-hour-minute-second format
+(check
+    (date->string date-1 "~5")
+  => "1950-06-05T 4:03:02")
+
+
+;;;; date to string, 2 digits
+
+(define date-2
   (make-date
-   10 ; nanosecond
-   20 ; second
-   30 ; minute
-   23 ; hour
-   10 ; day
-    6 ; month
-   70 ; year
-   0)) ; zone-offset, in seconds east of GMT
+   15		; nanosecond
+   14		; second
+   13		; minute
+   12		; hour
+   11		; day
+   10		; month
+   2000		; year
+   0))		; zone-offset, in seconds east of GMT
 
 (check
-    (date->string the-date "~a")
-  => "Sun")
+    (date->string date-1 "~~")
+  => "~")
 
 (check
-    (date->string the-date "~A")
-  => "Sunday")
+    (list (date->string date-1 "~a")
+	  (date->string date-1 "~A"))
+  => '("Mon" "Monday"))
 
 (check
-    (date->string the-date "~b")
+    (list (date->string date-1 "~b")
+	  (date->string date-1 "~B"))
+  => '("Jun" "June"))
+
+(check
+    (date->string date-1 "~c")
+  => "Mon Jun 05 04:03:02+0101 1950")
+
+(check
+    (date->string date-1 "~d")
+  => "05")
+
+(check
+    (date->string date-1 "~D")
+  => "06/05/50")
+
+(check
+    (date->string date-1 "~e")
+  => " 5")
+
+(check
+    (date->string date-1 "~f")
+  => "02.000000001")
+
+(check
+    (date->string date-1 "~h")
   => "Jun")
 
 (check
-    (date->string the-date "~B")
-  => "June")
+    (date->string date-1 "~H")
+  => "04")
 
 (check
-    (date->string the-date "~d")
-  => "10")
+    (date->string date-1 "~I")
+  => "04")
 
 (check
-    (date->string the-date "~e")
-  => "10")
+    (date->string date-1 "~j")
+  => "156")
 
 (check
-    (date->string the-date "~h")
-  => "Jun")
+    (date->string date-1 "~k")
+  => " 4")
 
 (check
-    (date->string the-date "~H")
-  => "23")
+    (date->string date-1 "~l")
+  => " 4")
 
 (check
-    (date->string the-date "~k")
-  => "23")
-
-(check
-    (date->string the-date "~m")
+    (date->string date-1 "~m")
   => "06")
 
 (check
-    (date->string the-date "~M")
-  => "30")
+    (date->string date-1 "~M")
+  => "03")
 
 (check
-    (date->string the-date "~S")
-  => "20")
+    (date->string date-1 "~n")
+  => "\n")
 
 (check
-    (date->string the-date "~y")
-  => "70")
+    (date->string date-1 "~N")
+  => "000000001")
 
 (check
-    (date->string the-date "~Y")
-  => "70")
+    (date->string date-1 "~p")
+  => "AM")
 
 (check
-    (date->string the-date "~z")
-  => "Z")
+    (date->string date-1 "~r")
+  => "04:03:02 AM")
 
 (check
-    (date->string the-date "~Z")
+    (date->string date-1 "~s")
+  => "-617749078")
+
+(check
+    (date->string date-1 "~S")
+  => "02")
+
+(check
+    (date->string date-1 "~t")
+  => "\t")
+
+(check
+    (date->string date-1 "~T")
+  => "04:03:02")
+
+(check
+    (date->string date-1 "~U")
+  => "23")
+
+(check
+    (date->string date-1 "~V")
+  => "23")
+
+(check
+    (date->string date-1 "~w")
+  => "1")
+
+(check
+    (date->string date-1 "~W")
+  => "23")
+
+;;; FIXME the following 2 are wrong according to the SRFI document
+(check
+    (date->string date-1 "~x")
+  => "06/05/50")
+
+(check
+    (date->string date-1 "~X")
+  => "04:03:02")
+
+(check
+    (date->string date-1 "~y")
+  => "50")
+
+(check
+    (date->string date-1 "~Y")
+  => "1950")
+
+(check
+    (date->string date-1 "~z")
+  => "+0101")
+
+;;; not implemented
+(check
+    (date->string date-1 "~Z")
   => "")
 
+;; Check out ISO 8601 year-month-day format
+(check
+    (date->string date-1 "~1")
+  => "1950-06-05")
+
+;; Check out ISO 8601 hour-minute-second-timezone format
+(check
+    (date->string date-1 "~2")
+  => " 4:03:02+0101")
+
+;; Check out ISO 8601 hour-minute-second format
+(check
+    (date->string date-1 "~3")
+  => " 4:03:02")
+
+;; Check out ISO 8601 year-month-day-hour-minute-second-timezone format
+(check
+    (date->string date-1 "~4")
+  => "1950-06-05T 4:03:02+0101")
+
+;; Check out ISO 8601 year-month-day-hour-minute-second format
+(check
+    (date->string date-1 "~5")
+  => "1950-06-05T 4:03:02")
+
+
+
+;;;; string->date
+
+(parameterize ((debugging #t))
+
+  (define date-3
+    (make-date
+     0		 ; nanosecond
+     56		 ; second
+     34		 ; minute
+     12		 ; hour
+     06		 ; day
+     01		 ; month
+     2009	 ; year
+     (* 60 60))) ; zone-offset, in seconds east of GMT
+
+  (check
+      (let ((d (string->date "2009-01-06T12:34:56+0100"
+			     "~Y-~m-~dT~H:~M:~S~z")))
+	(time=? (date->time-utc date-3)
+		(date->time-utc d)))
+    => #t)
+
+  (check
+      (let ((d (string->date "2009 January 06T12:34:56+0100"
+			     "~Y ~B ~dT~H:~M:~S~z")))
+	(time=? (date->time-utc date-3)
+		(date->time-utc d)))
+    => #t)
+
+  (check
+      (let ((d (string->date "2009 Jan  6 12:34:56+0100"
+			     "~Y ~b ~e ~k:~M:~S~z")))
+	(time=? (date->time-utc date-3)
+		(date->time-utc d)))
+    => #t)
+
+  (check
+      (let ((d (string->date "09 Jan  6 12:34:56+0100"
+			     "~y ~h ~e ~H:~M:~S~z")))
+	(time=? (date->time-utc date-3)
+		(date->time-utc d)))
+    => #t)
+
+  )
 
 ;;; TODO: figure out why ~f isn't working
 ;;; TODO: figure out why ~x and ~X aren't doing what the srfi-19 doc says they do
@@ -585,12 +878,6 @@
 ;;       "~S" "~t" "~T" "~U" "~V" "~w" "~W" "~x" "~X" "~y" "~Y"
 ;;       "~z" "~Z" "~1" "~2" "~3" "~4" "~5")))
 
-;; ;TODO
-;; #;(define (string->date/all-formats)
-;;   )
-
-;; (date->string/all-formats)
-;; #;(string->date/all-formats)
 
 
 

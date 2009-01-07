@@ -9080,8 +9080,11 @@ which is a time object of the same time type as @var{time1}.
 @subsection Date object and accessors
 
 
-Date objects are immutable once created.  The following procedures are
-required.
+Date objects are immutable once created.  Notice that to do operations
+with date, like the arithmetic ones, we have to convert the date objects
+to time objects.
+
+The following procedures are required.
 
 
 @defun make-date @var{nanosecond} @var{second} @var{minute} @var{hour} @var{day} @var{month} @var{year} @var{zone-offset}
@@ -9228,7 +9231,7 @@ Convert @emph{Modified Julian Day} to @utc{} time.
 @end defun
 
 
-@defun time-monotonic->date time-monotonic [@var{tz-offset}]
+@defun time-monotonic->date @var{time-monotonic} [@var{tz-offset}]
 Convert monotonic time to date, using time zone offset, which defaults
 to the local time zone.
 @end defun
