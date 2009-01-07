@@ -634,12 +634,12 @@
 ;; Check out ISO 8601 hour-minute-second-timezone format
 (check
     (date->string date-1 "~2")
-  => " 4:03:02+0100")
+  => "04:03:02+0100")
 
 ;; Check out ISO 8601 hour-minute-second format
 (check
     (date->string date-1 "~3")
-  => " 4:03:02")
+  => "04:03:02")
 
 ;; Check out ISO 8601 year-month-day-hour-minute-second-timezone format
 (check
