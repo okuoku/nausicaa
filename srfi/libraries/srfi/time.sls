@@ -48,7 +48,8 @@
     current-time time-resolution
 
     ;; time object and accessor
-    make-time time?
+    (rename (make-time* make-time))
+    time?
     time-type time-nanosecond time-second
     set-time-type! set-time-nanosecond! set-time-second!
     copy-time
@@ -62,7 +63,8 @@
     subtract-duration subtract-duration!
 
     ;; date object and accessors
-    make-date date?
+    (rename (make-date* make-date))
+    date?
     date-nanosecond date-second date-minute date-hour
     date-day date-month date-year date-zone-offset
     date-year-day date-week-day date-week-number
@@ -134,6 +136,24 @@
 ;;  Given the return value from HOST:CURRENT-TIME must return the number
 ;;  of nanoseconds.
 
+;;According  to the  SRFI document:  the  range for  nanoseconds is  [0;
+;;9,999,999] inclusive; we know that:
+;;
+;;  1 nanosecond		= 10^{-9} seconds
+;;  10^9 nanoseconds		= 1 second
+;;  1,000,000,000 nanoseconds	= 1 second
+;;
+;;  1 microsecond		= 10^{-6} seconds
+;;  10^3 microseconds		= 1 second
+;;  1,000,000 microseconds	= 1 second
+;;
+;;  1 millisecond		= 10^{-3} seconds
+;;  10^3 milliseconds		= 1 second
+;;  1,000 milliseconds		= 1 second
+;;
+;;so the range  of nanoseconds can represent "small  times" from zero up
+;;to "almost" 10 microseconds.
+;;
 
 
 ;;; helpers
@@ -338,8 +358,18 @@
 	  (mutable nanosecond	time-nanosecond	set-time-nanosecond!)
 	  (mutable second	time-second	set-time-second!)))
 
+(define (make-time* type nanosecs secs)
+  (let* ((over		(<= tm:nano nanosecs))
+	 (nanosecond	(if over
+			    (remainder nanosecs tm:nano)
+			  nanosecs))
+	 (second	(if over
+			    (+ secs (/ nanosecs tm:nano))
+			  secs)))
+    (make-time type nanosecond second)))
+
 (define (copy-time time)
-  (make-time (time-type		time)
+  (make-time* (time-type		time)
 	     (time-nanosecond	time)
 	     (time-second	time)))
 
@@ -360,17 +390,17 @@
 (define (tm:current-time-utc)
   (receive (seconds nanoseconds)
       (tm:get-time-of-day)
-    (make-time time-utc nanoseconds seconds)))
+    (make-time* time-utc nanoseconds seconds)))
 
 (define (tm:current-time-tai)
   (receive (seconds nanoseconds)
       (tm:get-time-of-day)
-    (make-time time-tai nanoseconds
+    (make-time* time-tai nanoseconds
 	       (+ seconds (tm:leap-second-delta seconds)))))
 
 ;; (define (tm:current-time-ms-time time-type proc)
 ;;   (let ((current-ms (proc)))
-;;     (make-time time-type XXX ZZZ)))
+;;     (make-time* time-type XXX ZZZ)))
 
 ;;We monotonic time  to be the same as  TAI.  A different implementation
 ;;of   CURRENT-TIME-MONTONIC   will  require   rewriting   all  of   the
@@ -378,7 +408,7 @@
 (define (tm:current-time-monotonic)
   (receive (seconds nanoseconds)
       (tm:get-time-of-day)
-    (make-time time-monotonic nanoseconds
+    (make-time* time-monotonic nanoseconds
 	       (+ seconds (tm:leap-second-delta seconds)))))
 
 ;; (define (tm:current-time-thread)
@@ -464,7 +494,7 @@
      (time-nanosecond time)))
 
 (define (tm:nanoseconds->time time-type nanoseconds)
-  (make-time time-type
+  (make-time* time-type
              (remainder nanoseconds tm:nano)
              (quotient  nanoseconds tm:nano)))
 
@@ -668,6 +698,40 @@
 	  (mutable year)
 	  (mutable zone-offset)))
 
+(define (make-date* nanosecond second minute hour
+		    day month year zone-offset)
+  (when (or (< nanosecond 0)
+	    (< (- tm:nano 1) nanosecond))
+    (assertion-violation 'make-date
+      "nanoseconds count out of range, must be [0, 999999999]" nanosecond))
+  (when (or (< second 0)
+	    (< 60 second))
+    (assertion-violation 'make-date
+      "seconds count out of range, must be [0, 60]" second))
+  (when (or (< minute 0)
+	    (< 59 minute))
+    (assertion-violation 'make-date
+      "minutes count out of range, must be [0, 59]" minute))
+  (when (or (< hour 0)
+	    (< 23 hour))
+    (assertion-violation 'make-date
+      "hours count out of range, must be [0, 23]" hour))
+  (when (or (< day 0)
+	    (< 31 day))
+    (assertion-violation 'make-date
+      "days count out of range, must be [0, 31]" day))
+  (when (or (< month 0)
+	    (< 12 month))
+    (assertion-violation 'make-date
+      "months count out of range, must be [0, 12]" month))
+  (when (or (< minute 0)
+	    (< 59 minute))
+    (assertion-violation 'make-date
+      "minutes count out of range, must be [0, 999999999]" minute))
+
+  (make-date nanosecond second minute hour
+	     day month year zone-offset))
+
 
 ;;;; Julian day stuff.
 
@@ -746,7 +810,7 @@
 	       (rem      (remainder secs (* 60 60)))
 	       (minutes  (quotient rem 60))
 	       (seconds  (remainder rem 60)))
-	  (make-date (time-nanosecond time) seconds
+	  (make-date* (time-nanosecond time) seconds
 		     minutes hours
 		     date month year offset))))))
 
@@ -759,7 +823,7 @@
       ;;a second ...
       (let ((d (tm:time->date
 		(subtract-duration! (time-tai->time-utc time)
-				    (make-time time-duration 0 1))
+				    (make-time* time-duration 0 1))
 		tz-offset time-utc)))
 	(date-second-set! d 60)
 	d)
@@ -783,7 +847,7 @@
 	(offset (date-zone-offset date)))
     (let ((jdays (- (tm:encode-julian-day-number day month year)
 		    tm:tai-epoch-in-jd)))
-      (make-time
+      (make-time*
        time-utc
        nanosecond
        (+ (* (- jdays 1/2) 24 60 60)
@@ -796,7 +860,7 @@
   (if (= (date-second d) 60)
       (subtract-duration!
        (time-utc->time-tai! (date->time-utc d))
-       (make-time time-duration 0 1))
+       (make-time* time-duration 0 1))
     (time-utc->time-tai! (date->time-utc d))))
 
 (define (date->time-monotonic date)
@@ -850,7 +914,7 @@
   (tm:week-day (date-day date) (date-month date) (date-year date)))
 
 (define (tm:days-before-first-week date day-of-week-starting-week)
-  (let* ((first-day (make-date 0 0 0 0
+  (let* ((first-day (make-date* 0 0 0 0
 			       1
 			       1
 			       (date-year date)
@@ -938,7 +1002,7 @@
 
 (define (julian-day->time-utc jdn)
   (let ((nanosecs (* tm:nano tm:sid (- jdn tm:tai-epoch-in-jd))))
-    (make-time time-utc
+    (make-time* time-utc
 	       (remainder nanosecs tm:nano)
 	       (floor (/ nanosecs tm:nano)))))
 
@@ -1087,37 +1151,23 @@
 				    #\space 2)
 			port)))
    (cons #\f (lambda (date pad-with port)
-	       (display
-		;;According  to   the  SRFI  document:   the  range  for
-		;;nanoseconds is [0; 9,999,999] inclusive; we know that:
-		;;
-		;;  1 nanosecond		= 10^{-9} seconds
-		;;  10^9 nanoseconds		= 1 second
-		;;  1,000,000,000 nanoseconds	= 1 second
-		;;
-		;;  1 microsecond		= 10^{-6} seconds
-		;;  10^3 microseconds		= 1 second
-		;;  1,000,000 microseconds	= 1 second
-		;;
-		;;  1 millisecond		= 10^{-3} seconds
-		;;  10^3 milliseconds		= 1 second
-		;;  1,000 milliseconds		= 1 second
-		;;
-		;;so  the  range  of  nanoseconds can  represent  "small
-		;;times" from zero up to "almost" 10 microseconds.
-		;;
-		(tm:padding (if (> (date-nanosecond date) tm:nano)
-				(+ (date-second date) 1)
-			      (date-second date))
-			    pad-with 2)
-		port)
-	       (let* ((ns (tm:fractional-part
-			   (/ (date-nanosecond date) tm:nano 1.0)))
-		      (le (string-length ns)))
-		 (if (> le 2)
-		     (begin
-		       (display tm:locale-number-separator port)
-		       (display (substring ns 2 le) port))))))
+	       (let ((secs	(date-second date))
+		     (nanosecs	(date-nanosecond date)))
+		 (display
+		  (tm:padding (if (< tm:nano nanosecs)
+				  (+ secs 1)
+				secs)
+			      pad-with 2)
+		  port)
+		 (display tm:locale-number-separator port)
+		 (display (tm:fractional-part (/ nanosecs tm:nano 1.0)) port)
+;; 		 (let* ((ns (tm:fractional-part
+;; 			     (/ nanosecs tm:nano 1.0)))
+;; 			(le (string-length ns)))
+;; 		   (when (> le 2)
+;; 		     (display tm:locale-number-separator port)
+;; 		     (display (substring ns 2 le) port)))
+		 )))
    (cons #\h (lambda (date pad-with port)
 	       (display (date->string date "~b") port)))
    (cons #\H (lambda (date pad-with port)
@@ -1217,9 +1267,9 @@
    (cons #\3 (lambda (date pad-with port)
 	       (display (date->string date "~k:~M:~S") port)))
    (cons #\4 (lambda (date pad-with port)
-	       (display (date->string date "~Y-~m-~dT~k:~M:~S~z") port)))
+	       (display (date->string date "~Y-~m-~dT~H:~M:~S~z") port)))
    (cons #\5 (lambda (date pad-with port)
-	       (display (date->string date "~Y-~m-~dT~k:~M:~S") port)))
+	       (display (date->string date "~Y-~m-~dT~H:~M:~S") port)))
    ))
 
 (define (tm:get-formatter char)
@@ -1560,7 +1610,7 @@
 	 (date-month date)
 	 (date-year date)
 	 (date-zone-offset date)))
-  (let ( (newdate (make-date 0 0 0 0 #f #f #f (tm:local-tz-offset))) )
+  (let ((newdate (make-date 0 0 0 0 #f #f #f (tm:local-tz-offset))))
     (tm:string->date newdate
 		     0
 		     template-string

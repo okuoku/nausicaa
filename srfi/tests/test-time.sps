@@ -162,62 +162,62 @@
   => #t)
 
 (check
-    (time? (current-time 'time-utc))
+    (time? (current-time time-utc))
   => #t)
 
 (check
     ;;enforce the order of evaluation!!
-    (let* ((a (current-time 'time-utc))
+    (let* ((a (current-time time-utc))
 	   (b (current-time)))
       (time<=? a b))
   => #t)
 
 (check
-    (time? (current-time 'time-tai))
+    (time? (current-time time-tai))
   => #t)
 
 (check
-    (time? (current-time 'time-monotonic))
+    (time? (current-time time-monotonic))
   => #t)
 
 ;; (check
-;;     (time? (current-time 'time-thread))
+;;     (time? (current-time time-thread))
 ;;   => #t)
 
 ;; (check
-;;     (time? (current-time 'time-process))
-;;   => #t)
-
-;;; --------------------------------------------------------------------
-
-(check
-    (integer? (time-resolution 'time-tai))
-  => #t)
-
-(check
-    (integer? (time-resolution 'time-utc))
-  => #t)
-
-(check
-    (integer? (time-resolution 'time-monotonic))
-  => #t)
-
-;; (check
-;;     (integer? (time-resolution 'time-thread))
-;;   => #t)
-
-;; (check
-;;     (integer? (time-resolution 'time-process))
+;;     (time? (current-time time-process))
 ;;   => #t)
 
 ;;; --------------------------------------------------------------------
 
-(let ((t1 (make-time 'time-utc 0 1))
-      (t2 (make-time 'time-utc 0 1))
-      (t3 (make-time 'time-utc 0 2))
-      (t11 (make-time 'time-utc 1001 1))
-      (t12 (make-time 'time-utc 1001 1))
-      (t13 (make-time 'time-utc 1001 2)))
+(check
+    (integer? (time-resolution time-tai))
+  => #t)
+
+(check
+    (integer? (time-resolution time-utc))
+  => #t)
+
+(check
+    (integer? (time-resolution time-monotonic))
+  => #t)
+
+;; (check
+;;     (integer? (time-resolution time-thread))
+;;   => #t)
+
+;; (check
+;;     (integer? (time-resolution time-process))
+;;   => #t)
+
+;;; --------------------------------------------------------------------
+
+(let ((t1 (make-time time-utc 0 1))
+      (t2 (make-time time-utc 0 1))
+      (t3 (make-time time-utc 0 2))
+      (t11 (make-time time-utc 1001 1))
+      (t12 (make-time time-utc 1001 1))
+      (t13 (make-time time-utc 1001 2)))
   (check
       (time=? t1 t2)
     => #t)
@@ -261,12 +261,25 @@
       (time<=? t12 t13)
     => #t))
 
+;;This  was reported  to the  SRFI-19  post-discuss list,  but with  the
+;;arguments to  MAKE-TIME given in the  wrong order.  This  test has the
+;;arguments in the correct order and it works.
+(check
+    (time=? (make-time time-monotonic (expt 10 9) 0)
+	    (make-time time-monotonic 0 1))
+  => #t)
+
+(check
+    (time=? (make-time time-monotonic (* 5 (expt 10 9)) 0)
+	    (make-time time-monotonic 0 5))
+  => #t)
+
 ;;; --------------------------------------------------------------------
 
-(let ((t1 (make-time 'time-utc 0 3000))
-      (t2 (make-time 'time-utc 0 1000))
-      (t3 (make-time 'time-duration 0 2000))
-      (t4 (make-time 'time-duration 0 -2000)))
+(let ((t1 (make-time time-utc 0 3000))
+      (t2 (make-time time-utc 0 1000))
+      (t3 (make-time time-duration 0 2000))
+      (t4 (make-time time-duration 0 -2000)))
   (check
       (time=? t3 (time-difference t1 t2))
     => #t)
@@ -278,26 +291,26 @@
 
 (define (test-one-utc-tai-edge utc tai-diff tai-last-diff)
   (let* (;; right on the edge they should be the same
-	 (utc-basic (make-time 'time-utc 0 utc))
-	 (tai-basic (make-time 'time-tai 0 (+ utc tai-diff)))
+	 (utc-basic (make-time time-utc 0 utc))
+	 (tai-basic (make-time time-tai 0 (+ utc tai-diff)))
 	 (utc->tai-basic (time-utc->time-tai utc-basic))
 	 (tai->utc-basic (time-tai->time-utc tai-basic))
 	 ;; a second before they should be the old diff
-	 (utc-basic-1 (make-time 'time-utc 0 (- utc 1)))
-	 (tai-basic-1 (make-time 'time-tai 0 (- (+ utc tai-last-diff) 1)))
+	 (utc-basic-1 (make-time time-utc 0 (- utc 1)))
+	 (tai-basic-1 (make-time time-tai 0 (- (+ utc tai-last-diff) 1)))
 	 (utc->tai-basic-1 (time-utc->time-tai utc-basic-1))
 	 (tai->utc-basic-1 (time-tai->time-utc tai-basic-1))
 	 ;; a second later they should be the new diff
-	 (utc-basic+1 (make-time 'time-utc 0 (+ utc 1)))
-	 (tai-basic+1 (make-time 'time-tai 0 (+ (+ utc tai-diff) 1)))
+	 (utc-basic+1 (make-time time-utc 0 (+ utc 1)))
+	 (tai-basic+1 (make-time time-tai 0 (+ (+ utc tai-diff) 1)))
 	 (utc->tai-basic+1 (time-utc->time-tai utc-basic+1))
 	 (tai->utc-basic+1 (time-tai->time-utc tai-basic+1))
 	 ;; ok, let's move the clock half a month or so plus half a second
 	 (shy (* 15 24 60 60))
 	 (hs (/ (expt 10 9) 2))
 	 ;; a second later they should be the new diff
-	 (utc-basic+2 (make-time 'time-utc hs (+ utc shy)))
-	 (tai-basic+2 (make-time 'time-tai hs (+ (+ utc tai-diff) shy)))
+	 (utc-basic+2 (make-time time-utc hs (+ utc shy)))
+	 (tai-basic+2 (make-time time-tai hs (+ (+ utc tai-diff) shy)))
 	 (utc->tai-basic+2 (time-utc->time-tai utc-basic+2))
 	 (tai->utc-basic+2 (time-tai->time-utc tai-basic+2))
 	 )
@@ -489,7 +502,7 @@
 
 (check
     (date->string date-1 "~c")
-  => "Mon Jun 05 04:03:02+0101 1950")
+  => "Mon Jun 05 04:03:02+0100 1950")
 
 (check
     (date->string date-1 "~d")
@@ -557,7 +570,7 @@
 
 (check
     (date->string date-1 "~s")
-  => "-617749078")
+  => "-617749018")
 
 (check
     (date->string date-1 "~S")
@@ -606,7 +619,7 @@
 
 (check
     (date->string date-1 "~z")
-  => "+0101")
+  => "+0100")
 
 ;;; not implemented
 (check
@@ -621,7 +634,7 @@
 ;; Check out ISO 8601 hour-minute-second-timezone format
 (check
     (date->string date-1 "~2")
-  => " 4:03:02+0101")
+  => " 4:03:02+0100")
 
 ;; Check out ISO 8601 hour-minute-second format
 (check
@@ -631,12 +644,12 @@
 ;; Check out ISO 8601 year-month-day-hour-minute-second-timezone format
 (check
     (date->string date-1 "~4")
-  => "1950-06-05T 4:03:02+0101")
+  => "1950-06-05T04:03:02+0100")
 
 ;; Check out ISO 8601 year-month-day-hour-minute-second format
 (check
     (date->string date-1 "~5")
-  => "1950-06-05T 4:03:02")
+  => "1950-06-05T04:03:02")
 
 
 ;;;; date to string, 2 digits
@@ -653,170 +666,182 @@
    0))		; zone-offset, in seconds east of GMT
 
 (check
-    (date->string date-1 "~~")
+    (date->string date-2 "~~")
   => "~")
 
 (check
-    (list (date->string date-1 "~a")
-	  (date->string date-1 "~A"))
-  => '("Mon" "Monday"))
+    (list (date->string date-2 "~a")
+	  (date->string date-2 "~A"))
+  => '("Wed" "Wednesday"))
 
 (check
-    (list (date->string date-1 "~b")
-	  (date->string date-1 "~B"))
-  => '("Jun" "June"))
+    (list (date->string date-2 "~b")
+	  (date->string date-2 "~B"))
+  => '("Oct" "October"))
 
 (check
-    (date->string date-1 "~c")
-  => "Mon Jun 05 04:03:02+0101 1950")
+    (date->string date-2 "~c")
+  => "Wed Oct 11 12:13:14Z 2000")
 
 (check
-    (date->string date-1 "~d")
-  => "05")
+    (date->string date-2 "~d")
+  => "11")
 
 (check
-    (date->string date-1 "~D")
-  => "06/05/50")
+    (date->string date-2 "~D")
+  => "10/11/00")
 
 (check
-    (date->string date-1 "~e")
-  => " 5")
+    (date->string date-2 "~e")
+  => "11")
 
 (check
-    (date->string date-1 "~f")
-  => "02.000000001")
+    (date->string date-2 "~f")
+  => "14.000000015")
 
 (check
-    (date->string date-1 "~h")
-  => "Jun")
+    (date->string date-2 "~h")
+  => "Oct")
 
 (check
-    (date->string date-1 "~H")
-  => "04")
+    (date->string date-2 "~H")
+  => "12")
 
 (check
-    (date->string date-1 "~I")
-  => "04")
+    (date->string date-2 "~I")
+  => "12")
 
 (check
-    (date->string date-1 "~j")
-  => "156")
+    (date->string date-2 "~j")
+  => "285")
 
 (check
-    (date->string date-1 "~k")
-  => " 4")
+    (date->string date-2 "~k")
+  => "12")
 
 (check
-    (date->string date-1 "~l")
-  => " 4")
+    (date->string date-2 "~l")
+  => "12")
 
 (check
-    (date->string date-1 "~m")
-  => "06")
+    (date->string date-2 "~m")
+  => "10")
 
 (check
-    (date->string date-1 "~M")
-  => "03")
+    (date->string date-2 "~M")
+  => "13")
 
 (check
-    (date->string date-1 "~n")
+    (date->string date-2 "~n")
   => "\n")
 
 (check
-    (date->string date-1 "~N")
-  => "000000001")
+    (date->string date-2 "~N")
+  => "000000015")
 
 (check
-    (date->string date-1 "~p")
-  => "AM")
+    (date->string date-2 "~p")
+  => "PM")
 
 (check
-    (date->string date-1 "~r")
-  => "04:03:02 AM")
+    (date->string date-2 "~r")
+  => "12:13:14 PM")
 
 (check
-    (date->string date-1 "~s")
-  => "-617749078")
+    (date->string date-2 "~s")
+  => "971266394")
 
 (check
-    (date->string date-1 "~S")
-  => "02")
+    (date->string date-2 "~S")
+  => "14")
 
 (check
-    (date->string date-1 "~t")
+    (date->string date-2 "~t")
   => "\t")
 
 (check
-    (date->string date-1 "~T")
-  => "04:03:02")
+    (date->string date-2 "~T")
+  => "12:13:14")
 
 (check
-    (date->string date-1 "~U")
-  => "23")
+    (date->string date-2 "~U")
+  => "41")
 
 (check
-    (date->string date-1 "~V")
-  => "23")
+    (date->string date-2 "~V")
+  => "41")
 
 (check
-    (date->string date-1 "~w")
-  => "1")
+    (date->string date-2 "~w")
+  => "3")
 
 (check
-    (date->string date-1 "~W")
-  => "23")
+    (date->string date-2 "~W")
+  => "41")
 
 ;;; FIXME the following 2 are wrong according to the SRFI document
 (check
-    (date->string date-1 "~x")
-  => "06/05/50")
+    (date->string date-2 "~x")
+  => "10/11/00")
 
 (check
-    (date->string date-1 "~X")
-  => "04:03:02")
+    (date->string date-2 "~X")
+  => "12:13:14")
 
 (check
-    (date->string date-1 "~y")
-  => "50")
+    (date->string date-2 "~y")
+  => "00")
 
 (check
-    (date->string date-1 "~Y")
-  => "1950")
+    (date->string date-2 "~Y")
+  => "2000")
 
+;; when the time zone offset is zero this is "Z"
 (check
-    (date->string date-1 "~z")
-  => "+0101")
+    (date->string date-2 "~z")
+  => "Z")
 
 ;;; not implemented
 (check
-    (date->string date-1 "~Z")
+    (date->string date-2 "~Z")
   => "")
 
 ;; Check out ISO 8601 year-month-day format
 (check
-    (date->string date-1 "~1")
-  => "1950-06-05")
+    (date->string date-2 "~1")
+  => "2000-10-11")
 
 ;; Check out ISO 8601 hour-minute-second-timezone format
 (check
-    (date->string date-1 "~2")
-  => " 4:03:02+0101")
+    (date->string date-2 "~2")
+  => "12:13:14Z")
 
 ;; Check out ISO 8601 hour-minute-second format
 (check
-    (date->string date-1 "~3")
-  => " 4:03:02")
+    (date->string date-2 "~3")
+  => "12:13:14")
 
 ;; Check out ISO 8601 year-month-day-hour-minute-second-timezone format
 (check
-    (date->string date-1 "~4")
-  => "1950-06-05T 4:03:02+0101")
+    (date->string date-2 "~4")
+  => "2000-10-11T12:13:14Z")
 
 ;; Check out ISO 8601 year-month-day-hour-minute-second format
 (check
-    (date->string date-1 "~5")
-  => "1950-06-05T 4:03:02")
+    (date->string date-2 "~5")
+  => "2000-10-11T12:13:14")
 
+
+
+;;;; other date to string conversions
+
+;;This was reported as error in the SRFI-19 post-discuss list.  It seems
+;;to work now.
+(check
+    (date->string
+     (time-monotonic->date (make-time time-monotonic 1 0))
+     "~f")
+  => "00.000000001")
 
 
 ;;;; string->date

@@ -8703,7 +8703,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @section Abstract
 
 
-Points in time are represented a the number of seconds (with nanosecond
+Points in time are represented as the number of seconds (with nanosecond
 precision) since ``the epoch'', a zero point in time.  Several standard
 variants are defined, including @utc{} (Universal Coordinated Time),
 @tai{} (international atomic time), and monotonic time.  A point in time
