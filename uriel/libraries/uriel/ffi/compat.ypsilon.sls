@@ -2,7 +2,7 @@
 ;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;
-;;;Time-stamp: <2009-01-05 22:21:27 marco>
+;;;Time-stamp: <2009-01-06 20:25:13 marco>
 ;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
@@ -45,7 +45,8 @@
     primitive-make-c-function primitive-make-c-function/with-errno
 
     errno)
-  (import (core)
+  (import (rename (core)
+		  (shared-object-errno errno))
     (lang-lib)
     (uriel ffi sizeof)
     (uriel memory))
@@ -242,16 +243,6 @@
 
 
 ;;;; interface functions, with errno
-
-(define __errno_location
-  (primitive-make-c-function 'pointer '__errno_location '(void)))
-
-(define-syntax errno
-  (syntax-rules ()
-    ((_ ?value)
-     (pointer-set-c-int! (__errno_location) 0 ?value))
-    ((_)
-     (shared-object-errno))))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (receive (cast-func stub-func)
