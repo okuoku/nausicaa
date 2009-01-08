@@ -8662,6 +8662,15 @@ Hillary Sullivan, who is not.
 The @library{srfi time} has been written by Will Fitzgerald as the
 reference implementation for @ansrfi{19}.
 
+@quotation
+@emph{Nausicaa note:} Unfortunately the original @srfi{} document is
+unsupported, so some fix has not been applied or cannot be applied due
+to the @srfi{} ratification process (that is: once it's done, it's
+done).  So this version of the document contains small modifications
+that are explained in appropriate notices like this one.
+@end quotation
+
+
 @menu
 * time license::                Original license.
 * time abstract::               Abstract.
@@ -8669,6 +8678,7 @@ reference implementation for @ansrfi{19}.
 * time spec::                   Specification.
 * time ack::                    Acknowledgements.
 @end menu
+
 
 @c page
 @node time license
@@ -8812,7 +8822,12 @@ well as by a time zone.  @emph{Date} objects are immutable.  A
 
 @table @emph
 @item Nanosecond
-An integer between 0 and 9,999,999, inclusive.
+An integer between 0 and 999,999,999, inclusive.
+
+@quotation
+@emph{Nausicaa note}: The original documen set the range for nanoseconds
+to @code{[0, 9,999,999]}.
+@end quotation
 
 @item Second
 An integer 0 and 60, inclusive, (60 represents a leap second).
@@ -9396,8 +9411,8 @@ implementations are free to extend this list.
 @item ~V @tab week number of year with Monday as first day of week (01...52)
 @item ~w @tab day of week (0...6)
 @item ~W @tab week number of year with Monday as first day of week (01...52)
-@item ~x @tab week number of year with Monday as first day of week (00...53)
-@item ~X @tab locale's date representation, for example: "07/31/00"
+@item ~x @tab locale's date representation, for example: "12/31/99"
+@item ~X @tab locale's time representation, for example: "23:13:48"
 @item ~y @tab last two digits of year (00...99)
 @item ~Y @tab year
 @item ~z @tab time zone in RFC-822 style
@@ -9408,6 +9423,28 @@ implementations are free to extend this list.
 @item ~4 @tab @iso{}--8601 year--month--day--hour--minute--second--timezone format
 @item ~5 @tab @iso{}--8601 year--month--day--hour--minute--second format
 @end multitable
+
+@quotation
+@emph{Nausicaa note:} These escape sequences are almost like the ones
+specified for the C library function @cfunc{strftime} and the @gnu{}
+@command{date} command line program.  The original @srfi{} document
+defined @code{~x} to:
+
+@quotation
+week number of year with Monday as first day of week (00...53)
+@end quotation
+
+@noindent
+and @code{~X} to:
+
+@quotation
+locale's date representation, for example: "07/31/00"
+@end quotation
+
+@noindent
+which is probably a document composition error, because the reference
+implementation accompanying the document does what is described above.
+@end quotation
 @end defun
 
 
