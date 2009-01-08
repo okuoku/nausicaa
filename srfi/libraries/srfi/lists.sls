@@ -485,7 +485,7 @@
 ;; *** NOTE ***
 ;;
 ;;The following helper functions and macros are duplicated and tested in
-;;the test file "test-list-helpers.sps".
+;;the test file "test-helpers-list.sps".
 
 ;;; --------------------------------------------------------------------
 

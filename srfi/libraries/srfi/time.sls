@@ -786,7 +786,8 @@
      (else
       (tm:char-pos char str (+ index 1) len))))
 
-  (if (integer? r) "0"
+  (if (integer? r)
+      "0"
     (let ((str (number->string (exact->inexact r))))
       (let ((ppos (tm:char-pos #\. str 0 (string-length str))))
 	(substring str  (+ ppos 1) (string-length str))))))

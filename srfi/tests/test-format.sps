@@ -1,3 +1,4 @@
+;;; Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;; Copyright (c) 2008 Derick Eddington
 ;;;
 ;;; Permission is  hereby granted, free of charge,  to any person
@@ -34,85 +35,244 @@
   (rnrs)
   (rnrs mutable-pairs)
   (format-lib)
-  (check-lib))
+  (check-lib)
+  (srfi sharing))
 
 (check-set-mode! 'report-failed)
 (display "*** testing format\n")
 
 
+;;;; tests from the SRFI document
 
-#;(define (format-lots n f fmt-str . args)
-  (let loop ([i 0] [r #f])
-    (if (= i n)
-      r
-      (loop (+ 1 i) (apply f fmt-str args)))))
+(check
+    (format "~h")
+  => "(format [<port>] <format-string> [<arg>...]) -- <port> is #t, #f or an output-port
+OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Encoding
+~H      [Help]          output this text
+~A      [Any]           (display arg) for humans
+~S      [Slashified]    (write arg) for parsers
+~W      [WriteCircular] like ~s but outputs circular and recursive data structures
+~~      [tilde]         output a tilde
+~T      [Tab]           output a tab character
+~%      [Newline]       output a newline character
+~&      [Freshline]     output a newline character if the previous output was not a newline
+~D      [Decimal]       the arg is a number which is output in decimal radix
+~X      [heXadecimal]   the arg is a number which is output in hexdecimal radix
+~O      [Octal]         the arg is a number which is output in octal radix
+~B      [Binary]        the arg is a number which is output in binary radix
+~w,dF   [Fixed]         the arg is a string or number which has width w and d digits after the decimal
+~C      [Character]     charater arg is output by write-char
+~_      [Space]         a single space character is output
+~Y      [Yuppify]       the list arg is pretty-printed to the output
+~?      [Indirection]   recursive format: next 2 args are format-string and list of arguments
+~K      [Indirection]   same as ~?
+")
 
-(define-syntax expect
-   (syntax-rules ()
-     [(_ expected expr)
-      (check expr => expected)]))
+(check
+    (format "Hello, ~a" "World!")
+  => "Hello, World!")
 
-;;;===================================================
+(check
+    (format "Error, list is too short: ~s" '(one "two" 3))
+  => "Error, list is too short: (one \"two\" 3)")
 
-(expect (format "test ~s" 'me) (format #f "test ~a" "me"))
+(check
+    (format "test me")
+  => "test me")
 
-(expect  " 0.333" (format "~6,3F" 1/3)) ;;; "  .333" OK
+(check
+    (format "~a ~s ~a ~s" 'this 'is "a" "test")
+  => "this is a \"test\"")
 
-(expect "  12" (format "~4F" 12))
+(check
+    (format #f "#d~d #x~x #o~o #b~b~%" 32 32 32 32)
+  => "#d32 #x20 #o40 #b100000\n")
 
-(expect "  12.346" (format "~8,3F" 12.3456))
+(check
+    (format "~a ~? ~a" 'a "~s" '(new) 'test)
+  => "a new test")
 
-(expect "123.346" (format "~6,3F" 123.3456))
+(check
+    (format #f "~&1~&~&2~&~&~&3~%")
+  => "\n1\n2\n3\n")
 
-(expect "123.346" (format "~4,3F" 123.3456))
+(check
+    (format #f "~a ~? ~a ~%" 3 " ~s ~s " '(2 2) 3)
+  => "3  2 2  3 \n")
 
-(expect "0.000+1.949i" (format "~8,3F" (sqrt -3.8)))
+(check
+    (let* ((ell		(let ((ell (list 'a 'b 'c)))
+			  (set-cdr! (cddr ell) ell)
+			  ell))
+	   (it		(format "~w" ell))
+	   (thing	(read/ss (open-string-input-port it))))
+      (list (eq? (car ell) (car thing))
+	    (eq? (cadr ell) (cadr thing))
+	    (eq? (caddr ell) (caddr thing))
+	    (eq? (cadddr ell) (cadddr thing))))
+  => '(#t #t #t #t))
 
-(expect " 32.00" (format "~6,2F" 32))
+(check
+    (format "~a~a~&" (list->string (list #\newline)) "")
+  => "\n")
 
-(expect "    32" (format "~6F" 32))
+
+;;;; floating point numbers
 
-(expect "  32.0" (format "~6F" 32.)) ;; "   32." OK
+(check
+    (format "~F" 123)
+  => "123")
+
+(check
+    (format "~F" 123.456)
+  => "123.456")
+
+(check
+    (format "~F" 123+456i)
+  => "123+456i")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~6,3F" 1/3)
+  => " 0.333")
+
+(check
+    (format "~4F" 12)
+  => "  12")
+
+(check
+    (format "~8,3F" 12.3456)
+  => "  12.346")
+
+(check
+    (format "~6,3F" 123.3456)
+  => "123.346")
+
+(check
+    (format "~4,3F" 123.3456)
+  => "123.346")
+
+(check
+    (format "~8,3F" (sqrt -3.8))
+  => "0.000+1.949i")
+
+(check
+    (format "~6,2F" 32)
+  => " 32.00")
+
+(check
+    (format "~6F" 32)
+  => "    32")
+
+(check
+    (format "~6F" 32.)
+  => "  32.0")
 ;; NB: (not (and (exact? 32.) (integer? 32.)))
 
-(expect "  3.2e46" (format "~8F" 32e45))
+(check
+    (format "~8F" 32e45)
+  => "  3.2e46")
 
-(expect " 3.2e-44" (format "~8,1F" 32e-45))
+(check
+    (format "~8,1F" 32e-45)
+  => " 3.2e-44")
 
-(expect "  3.2e21" (format "~8F" 32e20))
+(check
+    (format "~8F" 32e20)
+  => "  3.2e21")
 
-(expect "3200000.0" (format "~8F" 32e5)) ;; OK; prefer: "   3.2e6"
+(check
+    (format "~8F" 32e5)
+  => "3200000.0")
 
-(expect "  3200.0" (format "~8F" 32e2)) ;; "   3200." OK
+(check
+    (format "~8F" 32e2)
+  => "  3200.0")
 
-(expect " 3.20e11" (format "~8,2F" 32e10))
+(check
+    (format "~8,2F" 32e10)
+  => " 3.20e11")
 
-(expect "      1.2345" (format "~12F" 1.2345))
+(check
+    (format "~12F" 1.2345)
+  => "      1.2345")
 
-(expect "        1.23" (format "~12,2F" 1.2345))
+(check
+    (format "~12,2F" 1.2345)
+  => "        1.23")
 
-(expect "       1.235" (format "~12,3F" 1.2345))
+(check
+    (format "~12,3F" 1.2345)
+  => "       1.234")
 
-(expect "        0.000+1.949i" (format "~20,3F" (sqrt -3.8)))
+(check
+    (format "~20,3F" (sqrt -3.8))
+  => "        0.000+1.949i")
 
-(expect "0.000+1.949i" (format "~8,3F" (sqrt -3.8)))
+(check
+    (format "~8,3F" (sqrt -3.8))
+  => "0.000+1.949i")
 
-(expect " 3.46e11" (format "~8,2F" 3.4567e11))
+(check
+    (format "~8,2F" 3.4567e11)
+  => " 3.46e11")
 
-(expect "#0=(a b c . #0#)"
-        (format "~w" (let ( (c (list 'a 'b 'c)) ) (set-cdr! (cddr c) c) c)))
+(check
+    (format "~w" (let ( (c (list 'a 'b 'c)) ) (set-cdr! (cddr c) c) c))
+  => "#0=(a b c . #0#)")
 
-(expect "
-"
-        (format "~A~A~&" (list->string (list #\newline)) ""))
+(check
+    (format "~A~A~&" (list->string (list #\newline)) "")
+ => "\n")
 
-(expect "a new test"
-        (format "~a ~? ~a" 'a "~a" '(new) 'test))
+(check
+    (format "~a ~? ~a" 'a "~a" '(new) 'test)
+  => "a new test")
 
-(expect "a \"new\" test"
-        (format "~a ~? ~a" 'a "~s" '("new") 'test))
+(check
+    (format "~a ~? ~a" 'a "~s" '("new") 'test)
+  => "a \"new\" test")
 
-;; from SLIB
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~8,2F" 32)
+  => "   32.00")
+
+(check
+    (format "~8,3F" (sqrt -3.8))
+  => "0.000+1.949i")
+
+(check
+    (format "~8,2F" 3.4567e11)
+  => " 3.45e11")
+
+(check
+    (format "~6,3F" 1/3)
+  => " 0.333")
+
+(check
+    (format "~4F" 12)
+  => "  12")
+
+(check
+    (format "~8,3F" 123.3456)
+  => " 123.346")
+
+(check
+    (format "~6,3F" 123.3456)
+  => "123.346")
+
+(check
+    (format "~2,3F" 123.3456)
+  => "123.346")
+
+(check
+    (format "~8,3F" "foo")
+  => "     foo")
+
+;;;; from SLIB
 
 (define-syntax test
    (syntax-rules ()
@@ -146,38 +306,26 @@
 (test '("~o" 100) "144")
 (test '("~b" 100) "1100100")
 
-
 ; character test
 
 (test '("~c" #\a) "a")
-
 
 ; tilde test
 
 (test '("~~~~") "~~")
 
-
 ; whitespace character test
 
-(test '("~%") "
-")
-(test '("~&") "
-")
-(test '("abc~&") "abc
-")
-(test '("abc~&def") "abc
-def")
-(test '("~&") "
-")
+(test '("~%") "\n")
+(test '("~&") "\n")
+(test '("abc~&") "abc\n")
+(test '("abc~&def") "abc\ndef")
+(test '("~&") "\n")
 (test '("~_~_~_") "   ")
-
-
 
 ; indirection test
 
 (test '("~a ~? ~a" 10 "~a ~a" (20 30) 40) "10 20 30 40")
-
-
 
 ; slashify test
 
@@ -192,42 +340,42 @@ def")
 (test '("~s" (a "b" c)) "(a \"b\" c)")
 (test '("~a" (a "b" c)) "(a b c)")
 
+;; fixed floating points
 
-; fixed floating points
-
-  (test '("~6,2f" 3.14159) "  3.14")
-  (test '("~6,1f" 3.14159) "   3.1")
-  (test '("~6,0f" 3.14159) "    3.")
-  (test '("~5,1f" 0) "  0.0")
-  (test '("~10,7f" 3.14159) " 3.1415900")
-  (test '("~10,7f" -3.14159) "-3.1415900")
-  (test '("~6,3f" 0.0)    " 0.000")
-  (test '("~6,4f" 0.007)  "  7e-3") ;; OK; prefer: "0.0070"
-  (test '("~6,3f" 0.007)  "  7e-3") ;; OK; prefer: " 0.007"
-  (test '("~6,2f" 0.007)  "  7e-3") ;; OK; prefer: "  0.01"
-  (test '("~3,2f" 0.007)  "7e-3")   ;; OK; prefer:  ".01"
-  (test '("~3,2f" -0.007) "-7e-3")  ;; OK; prefer: "-.01"
-  (test '("~6,3f" 12345.6789) "12345.679")
-  (test '("~6f" 23.4) "  23.4")
-  (test '("~6f" 1234.5) "1234.5")
-  (test '("~6f" 12345678) "12345678")
-  (test '("~6,2f" 123.56789) "123.57")
-  (test '("~6f" 123.0) " 123.0")
-  (test '("~6f" -123.0) "-123.0")
-  (test '("~6f" 0.0) "   0.0")
-  (test '("~3,1f" 3.141) "3.1")
-  (test '("~2,0f" 3.141) "3.")
-  (test '("~1f" 3.141) "3.141")
-  (test '("~f" 123.56789) "123.56789")
-  (test '("~f" -314.0) "-314.0")
-  (test '("~f" 1e4)       "1e4")       ;; OK; prefer: "10000.0"
-  (test '("~f" -1.23e10)  "-1.23e10")  ;; OK
-  (test '("~f" 1e-4)      "1e-4")      ;; OK; prefer: "0.0001"
-  (test '("~f" -1.23e-10) "-1.23e-10") ;; OK
+(test '("~6,2f" 3.14159) "  3.14")
+(test '("~6,1f" 3.14159) "   3.1")
+(test '("~6,0f" 3.14159) "    3.")
+(test '("~5,1f" 0) "  0.0")
+(test '("~10,7f" 3.14159) " 3.1415900")
+(test '("~10,7f" -3.14159) "-3.1415900")
+(test '("~6,3f" 0.0)    " 0.000")
+(test '("~6,4f" 0.007)  "  7e-3") ;; OK; prefer: "0.0070"
+(test '("~6,3f" 0.007)  "  7e-3") ;; OK; prefer: " 0.007"
+(test '("~6,2f" 0.007)  "  7e-3") ;; OK; prefer: "  0.01"
+(test '("~3,2f" 0.007)  "7e-3")   ;; OK; prefer:  ".01"
+(test '("~3,2f" -0.007) "-7e-3")  ;; OK; prefer: "-.01"
+(test '("~6,3f" 12345.6789) "12345.679")
+(test '("~6f" 23.4) "  23.4")
+(test '("~6f" 1234.5) "1234.5")
+(test '("~6f" 12345678) "12345678")
+(test '("~6,2f" 123.56789) "123.57")
+(test '("~6f" 123.0) " 123.0")
+(test '("~6f" -123.0) "-123.0")
+(test '("~6f" 0.0) "   0.0")
+(test '("~3,1f" 3.141) "3.1")
+(test '("~2,0f" 3.141) "3.")
+(test '("~1f" 3.141) "3.141")
+(test '("~f" 123.56789) "123.56789")
+(test '("~f" -314.0) "-314.0")
+(test '("~f" 1e4)       "1e4")       ;; OK; prefer: "10000.0"
+(test '("~f" -1.23e10)  "-1.23e10")  ;; OK
+(test '("~f" 1e-4)      "1e-4")      ;; OK; prefer: "0.0001"
+(test '("~f" -1.23e-10) "-1.23e-10") ;; OK
 
 
 ;;;; done
 
 (check-report)
 
-;; #!eof
+
+;;; end of file

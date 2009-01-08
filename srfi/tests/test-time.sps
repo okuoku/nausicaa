@@ -40,6 +40,7 @@
 ;; this is for Nausicaa's implementation
 (import (r6rs)
   (rnrs mutable-pairs (6))
+  (lang-lib)
   (check-lib)
   (format-lib)
   (srfi time))
@@ -608,7 +609,6 @@
     (date->string date-1 "~W")
   => "23")
 
-;;; FIXME the following 2 are wrong according to the SRFI document
 (check
     (date->string date-1 "~x")
   => "06/05/50")

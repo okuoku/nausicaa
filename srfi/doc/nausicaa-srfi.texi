@@ -16486,8 +16486,11 @@ implementation of Scheme and Common Lisp is maintained.
 @section Specification
 
 
-@defun format [@var{port}] @var{format-string} [@var{obj} ...]
-Accept a format template (a Scheme String), and processes it, replacing
+@defun format @var{string}
+@defunx format @var{format-string} @var{obj} ...
+@defunx format @var{port} @var{string}
+@defunx format @var{port} @var{format-string} @var{obj} ...
+Accept a format template (a Scheme string), and process it, replacing
 any format directives in order with one or more characters, the
 characters themselves dependent on the semantics of the format directive
 encountered.  Each directive may consume one @var{obj}.  It is an error
@@ -16499,11 +16502,11 @@ boolean.
 
 @itemize
 @item
-If an output--port is specified, the formatted output is output into
+If an output port is specified, the formatted output is written into
 that port.
 
 @item
-If the @var{port} argument is @true{}, output is to the
+If the @var{port} argument is @true{}, output is written to the
 @code{current-output-port}.
 
 @item
@@ -16511,7 +16514,7 @@ If the @var{port} is @false{} or no port is specified, the output is
 returned as a string.
 
 @item
-If the @var{port} is specified and is @true{} or an output--port, the
+If the @var{port} is specified and is @true{} or an output port, the
 result of the @func{format} function is unspecified.
 @end itemize
 
@@ -16521,7 +16524,7 @@ The implementation may or may not allow the encoding to be selected or
 changed.
 
 It is an error if a format directive consumes an @var{obj} argument and
-that argument does not confirm to a required type as noted in the table
+that argument does not conform to a required type as noted in the table
 below.
 
 It is permissible, but highly discouraged, to implement
@@ -16532,30 +16535,74 @@ It is permissible, but highly discouraged, to implement
 A format directive is a two character sequence in the string where the
 first character is a tilde @code{~}.  Directive characters are
 case--independent, i.e. upper and lower case characters are interpreted
-the same.  Each directive code's meaning is described in the following
-table:
+the same.
 
-@multitable {~[w[,d]]F} {WriteCircular} {abcdefghilmnopqrstwvwxyz0123456789012345} {yes}
-@headitem DIRECTIVE @tab MNEMONIC @tab ACTION @tab CONSUMES?
-@item ~a @tab Any @tab (display obj) for humans @tab yes
-@item ~s @tab Slashified @tab (write obj) for parsers @tab yes
-@item ~w @tab WriteCircular @tab (write-with-shared-structure obj) like ~s, but handles recursive structures @tab yes
-@item ~d @tab Decimal @tab the obj is a number which is output in decimal radix @tab yes
-@item ~x @tab heXadecimal @tab the obj is a number which is output in hexdecimal radix @tab yes
-@item ~o @tab Octal @tab the obj is a number which is output in octal radix @tab yes
-@item ~b @tab Binary @tab the obj is a number which is output in binary radix @tab yes
-@item ~c @tab Character @tab the single charater obj is output by write-char @tab yes
-@item ~y @tab Yuppify @tab the list obj is pretty-printed to the output @tab yes
-@item ~? @tab Indirection @tab the obj is another format-string and the following obj is a list of arguments; format is called recursively @tab yes
-@item ~K @tab Indirection @tab the same as ~? for backward compatability with some existing implementations @tab yes
-@item ~[w[,d]]F @tab Fixed @tab ~w,dF outputs a number with width w and d digits after the decimal; ~wF outputs a string or number with width w @tab yes
-@item ~~ @tab Tilde @tab output a tilde @tab  no
-@item ~t @tab Tab @tab output a tab character @tab  no
-@item ~% @tab Newline @tab output a newline character @tab  no
-@item ~& @tab Freshline @tab output a newline character if it is known that the previous output was not a newline @tab    no
-@item ~_ @tab Space @tab a single space character is output @tab no
-@item ~h @tab Help @tab outputs one line of call synopsis, one line of comment, and one line of synopsis for each format directive, starting with the directive (e.g. "~t") @tab no
-@end multitable
+@table @code
+@item ~a
+Output the object representation printed by @code{(display obj)}.
+
+@item ~s
+Output the object representation printed by @code{(write obj)}.
+
+@item ~w
+Output the object representation printed by
+@code{(write-with-shared-structure obj)}; like @code{~s}, but handles
+recursive structures.
+
+@item ~d
+The @var{obj} is a number which is output in decimal radix.
+
+@item ~x
+The @var{obj} is a number which is output in hexdecimal radix.
+
+@item ~o
+The @var{obj} is a number which is output in octal radix.
+
+@item ~b
+The @var{obj} is a number which is output in binary radix.
+
+@item ~c
+The single charater @var{obj} is output by @func{write-char}.
+
+@item ~y
+The list @var{obj} is pretty--printed to the output.
+
+@item ~?
+The @var{obj} is another @var{format-string} and the following @var{obj}
+is a list of arguments; @func{format} is called recursively.
+
+@item ~K
+The same as @code{~?} for backward compatability with some existing
+implementations.
+
+@item ~F
+@itemx ~wF
+@itemx ~w,dF
+@code{~w,dF} outputs a number with width @code{w} and @code{d} digits
+after the decimal; @code{~wF} outputs a string or number with width
+@code{w}.
+
+@item ~~
+Output a tilde.
+
+@item ~t
+Output a tab character.
+
+@item ~%
+Output a newline character.
+
+@item ~&
+Output a newline character if it is known that the previous output was
+not a newline.
+
+@item ~_
+A single space character is output.
+
+@item ~h
+Output one line of call synopsis, one line of comment, and one line of
+synopsis for each format directive, starting with the directive.
+@end table
+
 
 The @code{~F}, fixed format, directive requires some elucidation:
 
