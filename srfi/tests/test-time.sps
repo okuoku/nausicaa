@@ -38,11 +38,11 @@
 ;;;; setup
 
 ;; this is for Nausicaa's implementation
-(import (r6rs)
-  (rnrs mutable-pairs (6))
-  (check-lib)
-  (format-lib)
-  (srfi time))
+;; (import (r6rs)
+;;   (rnrs mutable-pairs (6))
+;;   (check-lib)
+;;   (format-lib)
+;;   (srfi time))
 
 ;; this is for Larceny's implementation
 ;; (import (r6rs)
@@ -51,6 +51,14 @@
 ;;   (format-lib)
 ;;   (srfi :39)
 ;;   (srfi :19))
+
+;; this is for Ypsilon's implementation
+(import (r6rs)
+  (rnrs mutable-pairs (6))
+  (check-lib)
+  (format-lib)
+  (srfi srfi-39)
+  (srfi srfi-19))
 
 (check-set-mode! 'report-failed)
 (display "*** testing time\n")
