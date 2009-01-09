@@ -1,6 +1,6 @@
 
-	   GNU Readline wrapper for Ikarus Scheme
-	   ======================================
+	    GNU Readline wrapper for R6RS Scheme
+	    ====================================
 
 
 Topics
@@ -17,25 +17,32 @@ Topics
 -----------
 
 This  directory holds  a set  of files  to be  used  to wrap
-various  Scheme executables  with the  GNU  Readline wrapper
-Rlwrap by  Hans Lub.   The original version  of some  of the
-files  was   posted  to  the  Ikarus   Scheme  mailing  list
+various  R6RS  Scheme  executables  with  the  GNU  Readline
+wrapper Rlwrap,  by Hans Lub.  The original  version of some
+of the  files was posted  to the Ikarus Scheme  mailing list
 <ikarus-users@googlegroups.com>.
 
-  Supports Larceny, Ypsilon and Ikarus.
+  Currently there  is support for Ikarus,  Larceny, Mosh and
+Ypsilon.
 
-  The package is composed  by the Bourne shell scripts "lay"
-for Larceny, "ike"  for Ikarus, "ype" for Ypsilon  and a set
-of completion  files.  The scripts will  spawn "rlwrap" with
-the appropriate configuration and executable.
+  The package is composed by:
+
+ike - a Bourne shell script for Ikarus
+lay - a Bourne shell script for Larceny
+moe - a Bourne shell script for Mosh
+ype - a Bourne shell script for Ypsilon
+
+and  a set  of  completion files.   The  scripts will  spawn
+"rlwrap" with the appropriate configuration and executable.
 
   The  scripts  are  meant  to  be installed  in  the  "bin"
 directory of the user's home, while the completion files are
 concatenated, sorted, filtered  for uniqueness and installed
 as:
 
-   .larceny_completions
    .ikarus_completions
+   .larceny_completions
+   .mosh_completions
    .ypsilon_completions
 
 in the user's home directory.
@@ -43,10 +50,11 @@ in the user's home directory.
   The installation  directories can be  changed by modifying
 the variables in the "Makefile".
 
-  The  "lay",  "ike"  and  "ype" scripts  are  automatically
-generated from the templates "lay.in", "ike.in" and "ype.in"
-that  are  preprocessed  by  the "Makefile".   The  template
-themselves are meant to be customised at will.
+  The   "ike",   "lay",   "moe"   and  "ype"   scripts   are
+automatically   generated  from   the   templates  "ike.in",
+"lay.in", "moe.in" and "ype.in" that are preprocessed by the
+"Makefile".   The  template   themselves  are  meant  to  be
+customised at will.
 
 
 2. License
@@ -76,7 +84,7 @@ The following rules are available:
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/ikarus-wrapper
+    $ make install DESTDIR=/tmp/marco/scheme-wrappers
 
 
 A. Bug reports

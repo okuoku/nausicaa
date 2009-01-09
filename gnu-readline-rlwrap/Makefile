@@ -40,9 +40,10 @@ srfi_MODULES = \
 			srfi_time			\
 			srfi_vector
 
-ikarus_MODULES	= ikarus ikarus_ffi $(srfi_MODULES)
-ypsilon_MODULES	= $(srfi_MODULES)
-larceny_MODULES	= $(srfi_MODULES)
+ikarus_MODULES	= ikarus ikarus_ffi	$(srfi_MODULES)
+ypsilon_MODULES	= ypsilon		$(srfi_MODULES)
+larceny_MODULES	= larceny		$(srfi_MODULES)
+mosh_MODULES	=			$(srfi_MODULES)
 
 
 #page
@@ -68,6 +69,7 @@ SED			= sed
 IKARUS_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 YPSILON_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 LARCENY_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
+MOSH_SED_FLAGS		= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 
 ## ------------------------------------------------------------
 
@@ -102,12 +104,17 @@ ypsilon_COMPLETIONS	= completions/r6rs_identifiers \
   $(foreach m,$(ypsilon_MODULES),completions/$(m)_completions)
 larceny_COMPLETIONS	= completions/r6rs_identifiers \
   $(foreach m,$(larceny_MODULES),completions/$(m)_completions)
+mosh_COMPLETIONS	= completions/r6rs_identifiers \
+  $(foreach m,$(mosh_MODULES),completions/$(m)_completions)
 
-SCRIPTS		= $(builddir)/ike $(builddir)/ype $(builddir)/lay
+SCRIPTS		= $(builddir)/ike $(builddir)/ype \
+		  $(builddir)/lay $(builddir)/moe
 ikarus_COMPFILE	= $(builddir)/.ikarus_completions
 ypsilon_COMPFILE= $(builddir)/.ypsilon_completions
 larceny_COMPFILE= $(builddir)/.larceny_completions
-COMPFILES	= $(ikarus_COMPFILE) $(ypsilon_COMPFILE) $(larceny_COMPFILE)
+mosh_COMPFILE	= $(builddir)/.mosh_completions
+COMPFILES	= $(ikarus_COMPFILE) $(ypsilon_COMPFILE) \
+		  $(larceny_COMPFILE) $(mosh_COMPFILE)
 
 .PHONY: all clean install install-bin install-dat
 
@@ -115,9 +122,11 @@ all: builddir
 	$(SED) $(IKARUS_SED_FLAGS)  < scripts/ike.in > $(builddir)/ike
 	$(SED) $(YPSILON_SED_FLAGS) < scripts/ype.in > $(builddir)/ype
 	$(SED) $(LARCENY_SED_FLAGS) < scripts/lay.in > $(builddir)/lay
+	$(SED) $(MOSH_SED_FLAGS)    < scripts/moe.in > $(builddir)/moe
 	cat $(ikarus_COMPLETIONS)  | $(SORT) >$(ikarus_COMPFILE)
 	cat $(ypsilon_COMPLETIONS) | $(SORT) >$(ypsilon_COMPFILE)
 	cat $(larceny_COMPLETIONS) | $(SORT) >$(larceny_COMPFILE)
+	cat $(mosh_COMPLETIONS)    | $(SORT) >$(mosh_COMPFILE)
 
 clean:
 	-$(RM) $(builddir)
