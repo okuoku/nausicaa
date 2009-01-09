@@ -1,3 +1,4 @@
+#!/bin/sh
 ## Part of: Nausicaa/Scripts
 ## Contents: setup script
 ## Date: Fri Jan  9, 2009
@@ -61,7 +62,7 @@ if test -f ${BINFMT_REGISTER} ; then
         echo done
 
         echo -n enabling Larceny source scripts execution...
-        test -f ${BINFMT_LARCENY} && echo -1 >${BINFMT_YPSILON}
+        test -f ${BINFMT_LARCENY_SRC} && echo -1 >${BINFMT_LARCENY_SRC}
         echo ":LARCENY_SRC:M:3:!larceny::${BINFMT_PROG_LARCENY}:" \
             >${BINFMT_REGISTER}
         echo done
@@ -72,7 +73,7 @@ if test -f ${BINFMT_REGISTER} ; then
     if test "${BINFMT_ENABLE_YPSILON}" = yes ; then
         echo -n enabling binfmt Ypsilon Scheme scripts execution...
         test -f ${BINFMT_YPSILON} && echo -1 >${BINFMT_YPSILON}
-        echo ":YPSILON:M:3:!ypsilon::${BINFMT_PROG_IKARUS}:" \
+        echo ":YPSILON:M:3:!ypsilon::${BINFMT_PROG_YPSILON}:" \
             >${BINFMT_REGISTER}
         echo done
     else

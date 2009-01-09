@@ -16,7 +16,9 @@ Topics
 1. Introduction
 ---------------
 
-This is a Scheme library.
+This  package installs  scripts and  configuration  files to
+activate   R6RS  Scheme   programs  execution   through  the
+mechanism of the "binfmt_misc" Linux kernel module.
 
 
 2. License

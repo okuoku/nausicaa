@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename template.info
-@settitle Template
+@setfilename nausicaa-scripts.info
+@settitle Nausicaa/Scripts
 @c %**end of header
 
 @c page
@@ -12,9 +12,6 @@
 @include version.texiinc
 
 
-@c ------------------------------------------------------------
-
-@c page
 @c ------------------------------------------------------------
 @c License macros.
 @c ------------------------------------------------------------
@@ -35,9 +32,6 @@
 @acronym{BSD}
 @end macro
 
-@c ------------------------------------------------------------
-
-@c page
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -85,9 +79,6 @@
 
 
 @c ------------------------------------------------------------
-
-@c page
-@c ------------------------------------------------------------
 @c Software related macros.
 @c ------------------------------------------------------------
 
@@ -103,9 +94,6 @@
 @gnu{} C Library
 @end macro
 
-@c ------------------------------------------------------------
-
-@c page
 @c ------------------------------------------------------------
 @c Network related acronyms.
 @c ------------------------------------------------------------
@@ -144,9 +132,6 @@
 @acronym{SNMP}
 @end macro
 
-@c ------------------------------------------------------------
-
-@c page
 @c ------------------------------------------------------------
 @c Arguments macros.
 @c ------------------------------------------------------------
@@ -214,9 +199,6 @@
 @end macro
 
 @c ------------------------------------------------------------
-
-@c page
-@c ------------------------------------------------------------
 @c C language macros.
 @c ------------------------------------------------------------
 
@@ -228,9 +210,6 @@
 @code{NULL}
 @end macro
 
-@c ------------------------------------------------------------
-
-@c page
 @c ------------------------------------------------------------
 @c Scheme language macros.
 @c ------------------------------------------------------------
@@ -296,9 +275,6 @@ the main purpose of this document is to provide an Info version.
 @end macro
 
 @c ------------------------------------------------------------
-
-@c page
-@c ------------------------------------------------------------
 @c Macros for references to external documents.
 @c ------------------------------------------------------------
 
@@ -327,23 +303,21 @@ the main purpose of this document is to provide an Info version.
 @end macro
 
 
-@c ------------------------------------------------------------
-
 @c page
 @c ------------------------------------------------------------
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      This Package
+@set TITLE                      Binfmt scripts for R6RS Scheme
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    ThisPackage
+@set PACKAGE                    Nausicaa/Scripts
 
 @c To be used as @value{PACKAGE} whenever we need to include the
 @c nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           this-package
+@set PACKAGE_NICKNAME           nausicaa-scritps
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -355,9 +329,8 @@ the main purpose of this document is to provide an Info version.
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2008
+@set COPYRIGHT_YEARS            2009
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -366,7 +339,10 @@ the main purpose of this document is to provide an Info version.
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, ...
+This document describes version @version{} of @value{PACKAGE}, a set of
+scripts and configuration files to activate @rnrs{6} Scheme programs
+execution through the mechanism of the @code{binfmt_misc} Linux kernel
+module.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -387,7 +363,6 @@ entitled ``@gnu{} Free Documentation License''.
 @end quotation
 @end copying
 
-@c ------------------------------------------------------------
 
 @c page
 @c ------------------------------------------------------------
@@ -408,8 +383,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-template: (nausicaa-template). Template library
-                                          for @rnrs{6} Scheme.
+* nausicaa-scripts: (nausicaa-scripts). Binfmt_misc for @rnrs{6} Scheme.
 @end direntry
 @end ifinfo
 
@@ -421,7 +395,7 @@ entitled ``@gnu{} Free Documentation License''.
 @syncodeindex fn cp
 @end ignore
 
-@c ------------------------------------------------------------
+
 
 @c page
 @ifnottex
@@ -432,6 +406,9 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* binfmt::                      Using the @code{binfmt_misc}
+                                kernel module.
+* scheme::                      Running Scheme programs.
 
 Appendices
 
@@ -448,7 +425,7 @@ Indexes
 @end menu
 @end ifnottex
 
-@c ------------------------------------------------------------
+
 
 @c page
 @node overview
@@ -456,10 +433,462 @@ Indexes
 
 
 @noindent
-This ...
+This package installs scripts and configuration files to activate
+@rnrs{6} Scheme programs execution through the mechanism of the
+@code{binfmt_misc} Linux kernel module.  It is available only on
+Unix--like platforms running the Linux kernel.
+
+The mechanism allows to run @rnrs{6} programs without invoking
+explicitly the executable runtime program of the selected Scheme
+implementation.  It is a generalisation of the mechanism that allows to
+run shell scripts by starting the file with @code{#!/bin/sh}.
 
 
-@c ------------------------------------------------------------
+@c page
+@node binfmt
+@chapter Using the @code{binfmt_misc} kernel module
+
+@cindex Binary formats, kernel support
+@cindex Binary executables, kernel support
+
+This kernel feature allows us to invoke almost every program by simply
+typing its name in the shell.  This includes for example compiled Java,
+Python or Emacs programs, and of course Scheme programs.  This chapter
+is derived from the original @code{binfmt_misc} documentation text file
+by Richard Guenther.
+
+The feature is implemented in the @code{binfmt_misc} kernel module; it
+recognises the binary file type by matching some bytes at the beginning
+of the file with a magic byte sequence (masking out specified bits) we
+have supplied; it can also recognise a filename extension.
+
+@menu
+* binfmt loading::              Loading the module.
+* binfmt registry::             The registry.
+* binfmt using::                Using the mechanism.
+* binfmt control::              Controlling the mechanism.
+* binfmt hints::                Hints.
+@end menu
+
+
+@c page
+@node binfmt loading
+@section Loading the module
+
+
+If the module is installed on the system, we will find it in:
+
+@example
+/lib/modules/<version>/kernel/fs/binfmt_misc.ko
+@end example
+
+@noindent
+and to load it we do:
+
+@example
+# /sbin/modprobe binfmt_misc
+@end example
+
+For example on a Slackware Linux installation, loading can be done by
+uncommenting the relevant line in @file{/etc/rc.d/rc.modules}; then we
+add the following line to @file{/etc/fstab}:
+
+@example
+none /proc/sys/fs/binfmt_misc binfmt_misc defaults 0 0
+@end example
+
+@noindent
+so that the @code{binfmt_misc} directory can be mounted and it will be
+mounted when booting the system.  We can freely mount and unmount this
+virtual file system with:
+
+@example
+# mount /proc/sys/fs/binfmt_misc
+# umount /proc/sys/fs/binfmt_misc
+@end example
+
+@noindent
+but this is rarely useful.  There are other means of enabling and
+disabling the feature.
+
+
+@c page
+@node binfmt registry
+@section The registry
+
+
+To actually register a new binary type, we have to set up a string like:
+
+@example
+:name:type:offset:magic:mask:interpreter:
+@end example
+
+@noindent
+and echo it to @file{/proc/sys/fs/binfmt_misc/register}.  We can choose
+the @code{:} character upon our needs and we can omit a field by simply
+using an empty string; for example if we omit the offset and the mask
+fields:
+
+@example
+:name:type::magic::interpreter:
+@end example
+
+Fields description follows.
+
+@table @code
+@item name
+It is an identifier string.  A new @file{/proc} file will be created
+with this name under @file{/proc/sys/fs/binfmt_misc}, and we can use it
+to query and reset the configuration status.
+
+@item type
+It is the type of file recognition.  If set to @code{M} activates first
+bytes recognition (also known as ``magic'' recognition); if set to
+@code{E} activates file name extension recognition.
+
+@item offset
+It is the zero--based offset of the magic/mask in the file, counted in
+bytes.  It is used only with magic recognition.  It defaults to zero.
+
+@item magic
+It is the byte sequence @code{binfmt_misc} will look for file
+recognition.
+
+The magic string may contain hex--encoded characters like @code{\x0a} or
+@code{\xA4}.  When echoing the record from a shell environment, we will
+have to quote the backslash: @code{\\x0a}.
+
+If we chose filename extension matching, this is the extension to be
+recognised (without the @code{.}, the @code{\x0a} specials are not
+allowed).  Extension matching is case sensitive.
+
+@item mask
+It is a bitmask.  We can mask out some bits from matching by supplying a
+string with the same length of @code{magic}.  The mask is ANDed with the
+byte sequence from the file.  It defaults to @code{0xff}.
+
+@item interpreter
+It is the program that should be invoked with the binary as first
+argument.  @strong{We have to specify the full path.}
+@end table
+
+There are some restrictions:
+
+@itemize
+@item
+the whole @file{register} string may not exceed 255 characters;
+
+@item
+the magic must reside in the first 128 bytes of the file, i.e.
+offset+size(magic) has to be less than 128;
+
+@item
+the interpreter string may not exceed 127 characters.
+@end itemize
+
+
+@c page
+@node binfmt using
+@section Using the mechanism
+
+
+We may want to add the binary formats in one of the shell scripts that
+are executed at system boot time.  For example, on a Slackware Linux
+system we can use @file{/etc/rc.d/rc.local}.
+
+To do it we can add to the shell script a chunk of code like the
+following, which activates the mechanism for Scheme programs compiled
+with Larceny:
+
+@example
+if test -f /proc/sys/fs/binfmt_misc/register ; then
+  test -f /proc/sys/fs/binfmt_misc/LARCENY && \
+    echo -1 >/proc/sys/fs/binfmt_misc/LARCENY
+  echo \
+   ':LARCENY:M:2:fasl::/opt/larceny/last/scheme-script:' \
+   >/proc/sys/fs/binfmt_misc/register
+fi
+@end example
+
+@noindent
+which does the following:
+
+@enumerate
+@item
+verify if the @code{binfmt_misc} kernel module has been loaded by
+testing the existence of the @file{register} file; if the module is not
+there, nothing happens;
+
+@item
+remove the configuration from the registry if it is already there; this
+is done by testing the existence of the special file:
+
+@example
+/proc/sys/fs/binfmt_misc/LARCENY
+@end example
+
+@noindent
+echoing @code{-1} in it removes the Larceny record;
+
+@item
+echo the Larceny record into the registry with the following fields:
+
+@table @code
+@item LARCENY
+It is the name of the special file representing the record in the
+registry.
+
+@item M
+Activates first bytes recognition.
+
+@item 2
+The offset of the magic string into the file.
+
+@item fasl
+The magic string itself.
+
+@item /opt/larceny/last/scheme-script
+The full pathname to the Larceny @rnrs{6} runtime system executable.
+@end table
+
+We see that the @code{mask} field is set to the empty string, that is:
+no mask is applied and @code{fasl} is matched literally.
+@end enumerate
+
+To determine the magic string for the Larceny compiled programs: compile
+a program and read the compiled file, for example with @command{less} or
+Emacs; we will see that the first bytes are @code{#!fasl}.
+
+We have to care about the order of added entries: entries added later
+are matched first.
+
+
+@c page
+@node binfmt control
+@section Controlling the mechanism
+
+
+@subsubheading Overall control
+
+We can enable/disable the mechanism by echoing @code{0} (to disable) or
+@code{1} (to enable) to the special file:
+
+@example
+/proc/sys/fs/binfmt_misc/status
+@end example
+
+@noindent
+that is, at the shell prompt and with superuser privileges:
+
+@example
+# enable
+$ echo 1 >/proc/sys/fs/binfmt_misc/status
+
+# disable
+$ echo 0 >/proc/sys/fs/binfmt_misc/status
+@end example
+
+Applying the command @command{cat} to the @file{status} special file
+tells us the current status of @code{binfmt_misc}:
+
+@example
+$ cat /proc/sys/fs/binfmt_misc/status
+enabled
+@end example
+
+We can remove all the entries from the registry echoing @code{-1} to
+@file{status}; at the shell prompt and with superuser privileges:
+
+@example
+$ echo -1 >/proc/sys/fs/binfmt_misc/status
+@end example
+
+@noindent
+removing the entries and disabling the mechanism are two distinct
+operations.
+
+
+@subsubheading Specific format control
+
+We can enable/disable recognition of a single binary format by echoing
+@code{0} or @code{1} to the format specific special file under
+@file{/proc/sys/fs/binfmt_misc}.  For example for @code{LARCENY}, at the
+shell prompt and with superuser privileges:
+
+@example
+# enable
+$ echo 1 >/proc/sys/fs/binfmt_misc/LARCENY
+
+# disable
+$ echo 0 >/proc/sys/fs/binfmt_misc/LARCENY
+@end example
+
+@noindent
+disabled formats are @strong{not} removed from the internal table.
+
+Applying the command @command{cat} to the format's special file tells us
+the current status of that format and its configuration; for example for
+@code{LARCENY}, at the shell prompt:
+
+@example
+$ cat /proc/sys/fs/binfmt_misc/LARCENY
+@end example
+
+We can remove a specific format entry from the registry echoing
+@code{-1} to its special file; for @code{LARCENY} at the shell prompt
+and with superuser privileges:
+
+@example
+$ echo -1 >/proc/sys/fs/binfmt_misc/LARCENY
+@end example
+
+@noindent
+removing the entry and disabling the mechanism for a format are two
+distinct operations.
+
+
+@c page
+@node binfmt hints
+@section Hints
+
+
+If we want to pass command line arguments to the runtime executable, we
+must write a wrapper script for it.  There is no way to embed the
+arguments in the registry record.
+
+The runtime must @strong{not} look in the @env{PATH} environment
+variable for the filename; the kernel passes it the full filename to
+use.  Using the @env{PATH} can cause unexpected behaviour and be a
+security hazard.
+
+
+@c page
+@node scheme
+@chapter Running Scheme programs
+
+
+The @code{binfmt_misc} mechanism can be used to run both source and
+compiled Scheme programs.  @value{PACKAGE} follows the following rules,
+which we can change by customising the files in the distribution:
+
+@enumerate
+@item
+Ikarus Scheme source programs are recognised if the file starts with the
+string @code{;;;!ikarus}, the @code{binfmt_misc} configuration will look
+for the string @code{!ikarus} at zero--based offset 3 in the file.
+
+@item
+Larceny Scheme source programs are recognised if the file starts with
+the string @code{;;;!larceny}, the @code{binfmt_misc} configuration will
+look for the string @code{!larceny} at zero--based offset 3 in the file.
+
+@item
+Ypsilon Scheme source programs are recognised if the file starts with
+the string @code{;;;!ypsilon}, the @code{binfmt_misc} configuration will
+look for the string @code{!ypsilon} at zero--based offset 3 in the file.
+
+@item
+Larceny Scheme compiled programs are recognised if the file starts with
+the string @code{#!fasl}, the @code{binfmt_misc} configuration will look
+for the string @code{fasl} at zero--based offset 2 in the file.
+
+@item
+The @code{binfmt_misc} configuration is stored in a Bourne shell script
+(@file{/bin/sh} interpreter) named @file{rc.scheme} installed in the
+@code{$(sysconfdir)/rc.d} directory.
+
+The script can be executed at system boot time and again later any
+number of time: at each run it resets and reinitialise the configuration
+for Scheme programs.
+
+@item
+Ikarus Scheme source programs are run through a Bourne shell script
+(@file{/bin/sh} interpreter) named @file{ikarus-scheme-script} installed
+in the @code{$(bindir)} directory.  The script calls Ikarus with:
+
+@example
+exec "$IKARUS" --r6rs-script "$@@"
+@end example
+
+@noindent
+where @code{$IKARUS} is the Ikarus executable discovered by the
+@command{configure} script of this project.
+
+@item
+Larceny Scheme both source and compiled programs are run through a
+Bourne shell script (@file{/bin/sh} interpreter) named
+@file{larceny-scheme-script} installed in the @code{$(bindir)}
+directory.  The script calls Larceny with:
+
+@example
+exec "$LARCENY" -r6rs -program "$@@"
+@end example
+
+@noindent
+where @code{$LARCENY} is the Larceny executable discovered by the
+@command{configure} script of this project.
+
+@item
+Ypsilon Scheme source programs are run through a Bourne shell script
+(@file{/bin/sh} interpreter) named @file{ypsilon-scheme-script}
+installed in the @code{$(bindir)} directory.  The script calls Ypsilon
+with:
+
+@example
+exec "$YPSILON" --r6rs --compatible "$@@"
+@end example
+
+@noindent
+where @code{$YPSILON} is the Ypsilon executable discovered by the
+@command{configure} script of this project.
+@end enumerate
+
+The reasons for installing custom scripts are:
+
+@enumerate
+@item
+A wrapper script allows more customisation of the execution environment
+by setting system environment variables, for example to select a library
+search path.
+
+@item
+A wrapper allows the selection of command line arguments that cannot be
+embedded in the @code{binfmt_misc} registry entry.
+
+@item
+Installation of specific Scheme implementation @command{scheme-script}
+executables is problematic because of file name collision.  For example:
+both Larceny and Ikarus try to install a @command{scheme-script}
+program, which one is installed?
+
+The approach of @value{PACKAGE} is to use none of those and rely on
+custom scripts.
+@end enumerate
+
+The files installed by @value{PACKAGE} provide no way to run all the
+(portable) @rnrs{6} Scheme programs with a single Scheme implementation.
+But the installed files can be easily customised to do so.  Let's say
+that we want to run all the @rnrs{6} Scheme programs with Ypsilon; we
+can add the following chunk of code to @file{rc.scheme}:
+
+@example
+BINFMT_SCHEME=$@{BINFMT_DIR@}/R6RS_SCHEME
+
+if test "$@{BINFMT_ENABLE_YPSILON@}" = yes ; then
+    echo -n enabling binfmt R6RS Scheme scripts execution...
+    test -f $@{BINFMT_SCHEME@} && echo -1 >$@{BINFMT_SCHEME@}
+    echo ":R6RS_SCHEME:M:3:!scheme::$@{BINFMT_PROG_YPSILON@}:" \
+        >$@{BINFMT_REGISTER@}
+    echo done
+else
+    echo skipping binfmt R6RS Scheme programs execution
+fi
+@end example
+
+@noindent
+that way all the files starting with @code{;;;!scheme} are launched with
+the Ypsilon executable.
+
 
 @c page
 @node Package License
@@ -1594,7 +2023,6 @@ to permit their use in free software.
 
 
 
-@c ------------------------------------------------------------
 
 @c page
 @node concept index
