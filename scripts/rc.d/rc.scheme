@@ -61,7 +61,7 @@ if test -f ${BINFMT_REGISTER} ; then
             >${BINFMT_REGISTER}
         echo done
 
-        echo -n enabling Larceny source scripts execution...
+        echo -n enabling binfmt Larceny Scheme source scripts execution...
         test -f ${BINFMT_LARCENY_SRC} && echo -1 >${BINFMT_LARCENY_SRC}
         echo ":LARCENY_SRC:M:3:!larceny::${BINFMT_PROG_LARCENY}:" \
             >${BINFMT_REGISTER}

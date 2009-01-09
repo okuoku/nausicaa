@@ -438,8 +438,8 @@ This package installs scripts and configuration files to activate
 @code{binfmt_misc} Linux kernel module.  It is available only on
 Unix--like platforms running the Linux kernel.
 
-The mechanism allows to run @rnrs{6} programs without invoking
-explicitly the executable runtime program of the selected Scheme
+The mechanism allows to run @rnrs{6} programs without explicitly
+invoking the executable runtime program of the selected Scheme
 implementation.  It is a generalisation of the mechanism that allows to
 run shell scripts by starting the file with @code{#!/bin/sh}.
 

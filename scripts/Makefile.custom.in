@@ -105,7 +105,7 @@ binfmt-install:
 ifneq ($(strip $(binfmt_INSTLST)),)
 	$(INSTALL_DIR) $(DESTDIR)$(binfmt_INSTDIR)
 	$(foreach f,$(binfmt_INSTLST),\
-	$(INSTALL_DATA) $(f) $(DESTDIR)$(binfmt_INSTDIR);)
+	$(INSTALL_BIN) $(f) $(DESTDIR)$(binfmt_INSTDIR);)
 endif
 
 binfmt-uninstall:
