@@ -523,7 +523,9 @@ $(eval $(call nausicaa-library,$(subst -,_,$(notdir $(dir))),$(subst $(sls_SRCDI
 
 ## ---------------------------------------------------------------------
 
+ifeq ($(strip $(nausicaa_ENABLE_FASL)),yes)
 all:		fasl
+endif
 clean:		fasl-clean
 install:	sls-install fasl-install
 
@@ -1098,6 +1100,13 @@ pacman_SPECIFIC_SPEC	= meta.d/pacman/$(pacman_SPEC_FILE)
 # pacman-clean:
 # 	-$(RM) $(pacman_PACKAGE_BUILDDIR)
 
+
+#page
+## ------------------------------------------------------------
+## Custom rules.
+## ------------------------------------------------------------
+
+include Makefile.custom
 
 #page
 ## ---------------------------------------------------------------------

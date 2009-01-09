@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Trampoline for Larceny Scheme.
+
+if test -z "${LARCENYLIBPATH}" ; then
+    export LARCENYLIBPATH=/usr/local/lib/scheme
+fi
+
+LARCENY='@LARCENY@'
+
+exec "${LARCENY}" -r6rs -program "$@"
+
+### end of file
+# Local Variables:
+# mode: sh
+# End:

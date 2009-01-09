@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Trampoline for Mosh Scheme.
+
+if test -z "${MOSH_LOADPATH}" ; then
+    export MOSH_LOADPATH=/usr/local/lib/scheme
+fi
+
+MOSH='@MOSH@'
+
+exec "${MOSH}" "$@"
+
+### end of file
+# Local Variables:
+# mode: sh
+# End:

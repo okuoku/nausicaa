@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Trampoline for Ypsilon Scheme.
+
+if test -z "${YPSILON_SITELIB}" ; then
+    export YPSILON_SITELIB=/usr/local/lib/scheme
+fi
+
+YPSILON='@YPSILON@'
+
+exec "${YPSILON}" --r6rs --compatible "$@"
+
+### end of file
+# Local Variables:
+# mode: sh
+# End:

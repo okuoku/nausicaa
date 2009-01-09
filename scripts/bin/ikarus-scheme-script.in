@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Trampoline for Ikarus Scheme.
+
+if test -z "${IKARUS_LIBRARY_PATH}" ; then
+    export IKARUS_LIBRARY_PATH=/usr/local/lib/scheme
+fi
+
+IKARUS='@IKARUS@'
+
+exec "${IKARUS}" --r6rs-script "$@"
+
+### end of file
+# Local Variables:
+# mode: sh
+# End:
