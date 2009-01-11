@@ -1,6 +1,30 @@
-# ikarus.sh --
 #
-# Unofficial Slackware build script for Ikarus.
+# Part of: Nausicaa/Slackware
+# Contents: unofficial Slackware build script for Ikarus Scheme
+# Date: Sat Jan 10, 2009
+#
+# Abstract
+#
+#
+#
+# Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+#
+# This  program  is free  software:  you  can redistribute  it
+# and/or modify it  under the terms of the  GNU General Public
+# License as published by the Free Software Foundation, either
+# version  3 of  the License,  or (at  your option)  any later
+# version.
+#
+# This  program is  distributed in  the hope  that it  will be
+# useful, but  WITHOUT ANY WARRANTY; without  even the implied
+# warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
+# PURPOSE.   See  the  GNU  General Public  License  for  more
+# details.
+#
+# You should  have received a  copy of the GNU  General Public
+# License   along   with    this   program.    If   not,   see
+# <http://www.gnu.org/licenses/>.
+#
 
 set -ex
 
@@ -25,6 +49,8 @@ BUILD_VERSION=${2:?'missing build version parameter'}
 PACKAGE_NAME=${NAME}-${VERSION}-${ARCHITECTURE}-${BUILD_VERSION}.tgz
 
 DESTDIR=${TMPDIR}/${NAME}-${VERSION}
+
+BUILDDIR=${PWD}
 
 ## ------------------------------------------------------------
 ## Programs.
@@ -66,13 +92,13 @@ cd "${DESTDIR}${prefix}"/lib/ikarus
   (only (gl))
   (only (glut))
   (only (match))
-  (only (streams))
+;;;  (only (streams))
   (only (ikarus foreign)))
 
 ;;; end of file
 ' >compile-all.sps
 
-    "${srcdir}/src/ikarus" -b ./ikarus.boot \
+    IKARUS_LIBRARY_PATH= "${srcdir}/src/ikarus" -b ./ikarus.boot \
         --compile-dependencies compile-all.sps
     "${RM}" -fv compile-all.sps
 }
@@ -80,6 +106,7 @@ cd "${DESTDIR}${prefix}"/lib/ikarus
 cd "${DESTDIR}${prefix}"
 {
     "${FIND}"        -type d | "${XARGS}" "${CHMOD}" 0755
+    "${RM}" bin/scheme-script
     ("${FIND}" bin   -type f | "${XARGS}" "${STRIP}" -s) || true
     ("${FIND}" bin   -type f | "${XARGS}" "${CHMOD}" 0555) || true
     ("${FIND}" lib   -type f | "${XARGS}" "${CHMOD}" 0444) || true
@@ -91,9 +118,12 @@ cd "${DESTDIR}"
     "${SUDO}" "${CHOWN}" root.root * --recursive
     "${SUDO}" "${MAKEPKG}" --chown y "${PACKAGE_NAME}"
     "${SUDO}" "${CHMOD}" 0666 "${PACKAGE_NAME}"
-    "${CP}" "${PACKAGE_NAME}" "${srcdir}"
+    "${CP}" -fv "${PACKAGE_NAME}" "${srcdir}"
     "${SUDO}" "${RM}" -frv "${DESTDIR}"
 }
+
+cd "${BUILDDIR}"
+"${MAKE}" clean distclean
 
 exit 0
 

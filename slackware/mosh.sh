@@ -1,6 +1,6 @@
 #
 # Part of: Nausicaa/Slackware
-# Contents: unofficial Slackware build script for Ypsilon Scheme
+# Contents: unofficial Slackware build script for Mosh Scheme
 # Date: Sat Jan 10, 2009
 #
 # Abstract
@@ -36,11 +36,11 @@ srcdir=${PWD}
 : ${TMPDIR:=/tmp}
 : ${prefix:=/usr/local}
 : ${ARCHITECTURE:=i686}
-# : ${CFLAGS:='-O3 -march=i686 -mtune=i686'}
-# : ${CONFIG_OPTIONS:=}
+: ${CXXFLAGS:='-O3 -march=i686 -mtune=i686'}
+: ${CONFIG_OPTIONS:=}
 # : ${CPPFLAGS:=}
 
-NAME=ypsilon
+NAME=mosh
 VERSION=${1:?'missing version parameter'}
 BUILD_VERSION=${2:?'missing build version parameter'}
 
@@ -65,8 +65,10 @@ DESTDIR=${TMPDIR}/${NAME}-${VERSION}
 ## ------------------------------------------------------------
 ## Configuration.
 
-# Currently (checkout 285, Wed  Nov 26, 2008) Ypsilon has no
-# "configure" script.
+./configure \
+    --prefix="${prefix}"                        \
+    ${CONFIG_OPTIONS}                           \
+    CXXFLAGS="${CXXFLAGS}"
 
 ## ------------------------------------------------------------
 ## Building.
@@ -78,9 +80,9 @@ DESTDIR=${TMPDIR}/${NAME}-${VERSION}
 cd "${DESTDIR}${prefix}"
 {
     "${FIND}"        -type d | "${XARGS}" "${CHMOD}" 0755
+    "${RM}" -fv bin/{test_port,test_vm,test_fasl}
     ("${FIND}" bin   -type f | "${XARGS}" "${STRIP}" -s) || true
     ("${FIND}" bin   -type f | "${XARGS}" "${CHMOD}" 0555) || true
-    ("${FIND}" lib   -type f | "${XARGS}" "${CHMOD}" 0444) || true
     ("${FIND}" share -type f | "${XARGS}" "${CHMOD}" 0444) || true
 }
 
@@ -92,6 +94,8 @@ cd "${DESTDIR}"
     "${CP}" "${PACKAGE_NAME}" "${srcdir}"
     "${SUDO}" "${RM}" -frv "${DESTDIR}"
 }
+
+"${MAKE}" clean distclean
 
 exit 0
 

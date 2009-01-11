@@ -7,8 +7,9 @@ Topics
 ------
 
   1. Introduction
+  2. Configuration
   2. Details about Ikarus
-  3. Details about Ypsilon
+  4. Details about Ypsilon
 
 
 1. Introduction
@@ -34,7 +35,11 @@ revision": the string "1mm" means "build 1 by Marco Maggi".
 package  placed  in  the  current  directory (that  is  the  top  source
 directory of the Scheme implementation project).
 
-  At the top of each script, several variables are set with the idiom:
+
+2. Configuration
+----------------
+
+At the top of each script, several variables are set with the idiom:
 
    : ${prefix:=/usr/local}
 
@@ -69,7 +74,7 @@ values for the TMPDIR and SUDO variables:
 we can customise them at will.
 
 
-2. Details about Ikarus
+3. Details about Ikarus
 -----------------------
 
 Ikarus Scheme is  built with the interface to  Libffi activated.  Libffi
@@ -84,8 +89,12 @@ For this  reason the script  creates a "compile-all.sps"  Scheme program
 and runs it to do the precompilation.  The program precompiles most, but
 not all the libraries: we may need to customise it.
 
+  The "scheme-script" executable is not included in the package to avoid
+file name  collision with  other Schemes that  install it.  This  can be
+changed by customising the script.
 
-3. Details about Ypsilon
+
+4. Details about Ypsilon
 ------------------------
 
 The only  thing to notice is  that currently (checkout 285,  Wed Nov 26,
