@@ -449,7 +449,7 @@ ifasl: fasl-builddir fasl-copy fasl-ikarus-clean fasl-ikarus-compile
 ## ---------------------------------------------------------------------
 
 fasl_larceny_COMPILE_SCRIPT	= $(PWD)/$(sls_SRCDIR)/compile-all.larceny.sps
-fasl_larceny_COMPILE_ENV	= LARCENYLIBPATH=$(PWD)/$(sls_BUILDDIR):$(LARCENYLIBPATH)
+fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(sls_BUILDDIR):$(LARCENY_LIBPATH)
 fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
 fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) $(fasl_larceny_COMPILE_COMMAND) $(fasl_larceny_COMPILE_SCRIPT)
 
@@ -594,7 +594,7 @@ endif
 
 ## ---------------------------------------------------------------------
 
-nau_ltest_ENV		= LARCENYLIBPATH=$(nau_test_PATH):$(LARCENYLIBPATH)
+nau_ltest_ENV		= LARCENY_LIBPATH=$(nau_test_PATH):$(LARCENY_LIBPATH)
 nau_ltest_ENV		+= $(nau_test_ENV)
 nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
 nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_ltest_PROGRAM)
@@ -1106,7 +1106,7 @@ pacman_SPECIFIC_SPEC	= meta.d/pacman/$(pacman_SPEC_FILE)
 ## Custom rules.
 ## ------------------------------------------------------------
 
-include Makefile.custom
+-include Makefile.custom
 
 #page
 ## ---------------------------------------------------------------------
