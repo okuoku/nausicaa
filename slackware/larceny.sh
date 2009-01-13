@@ -27,8 +27,8 @@
 #
 
 set -ex
-echo this script is unfinished!!!
-exit 2
+# echo this script is unfinished!!!
+# exit 2
 
 ## ------------------------------------------------------------
 ## Setup.
@@ -138,7 +138,7 @@ DIR=\${0%/*}
 LIBDIR=\${DIR}/../lib/${NAME}/${VERSION}
 LIBEXECDIR=\${DIR}/../libexec/${NAME}/${VERSION}
 export LARCENY_ROOT=\${LIBEXECDIR}
-export LARCENY_LIBPATH=\${LIBDIR}:\${LARCENY_LIBPATH}
+export LARCENY_LIBPATH=\${LIBDIR}:\${LIBDIR}/lib/R6RS:\${LARCENY_LIBPATH}
 
 exec \"\${LARCENY_ROOT}/larceny.bin\" \\
     -heap \"\${LARCENY_ROOT}/larceny.heap\" \\
