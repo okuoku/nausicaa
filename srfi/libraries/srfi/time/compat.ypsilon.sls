@@ -41,5 +41,6 @@
   (define (host:current-time) (microsecond))
   (define (host:time-nanosecond t) (* (mod t 1000000) 1000))
   (define (host:time-second t) (div t 1000000))
-  (define (host:time-gmt-offset t) (/ (- t (microsecond->utc t)) 1000000))
-)
+  (define (host:time-gmt-offset t) (/ (- t (microsecond->utc t)) 1000000)))
+
+;;; end of file

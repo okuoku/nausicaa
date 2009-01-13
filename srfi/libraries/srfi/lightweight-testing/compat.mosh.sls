@@ -28,9 +28,9 @@
 (library (srfi lightweight-testing compat)
   (export
     pretty-print/no-trailing-newline)
-  (import (rnrs))
+  (import (rnrs)
+    (mosh pp))
 
-  (define (pretty-print/no-trailing-newline thing)
-    (write thing)))
+  (define pretty-print/no-trailing-newline pretty-print))
 
 ;;; end of file

@@ -432,6 +432,10 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 * lightweight-testing::         Lightweight testing.
 * environment-variables::       Environment variables.
 
+External documents
+
+* format-lib:(format-lib).      Formatted output.
+
 Appendices
 
 * Documentation License::       GNU Free Documentation License.

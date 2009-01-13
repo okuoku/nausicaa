@@ -18,13 +18,11 @@ Topics
 -----------
 
 This  directory holds  implementations of  the  SRFI (Scheme
-Requests  for Implementation)  adapted to  R6RS  and Ikarus.
-The  files are  a  checkout of  the  development version  at
-Launchpad   (see  Resources)   by   Derick  Eddington.    To
-assimilated the libraries into Nausicaa, library identifiers
-and file names have been normalised.
-
-  The current checkout is: revision 58.
+Requests  for Implementation) adapted  to R6RS  Scheme.  The
+files are a checkout of the development version at Launchpad
+(see Resources) by  Derick Eddington.  Further modifications
+where applied.   To assimilate the  libraries into Nausicaa,
+library identifiers and file names have been normalised.
 
 
 2. License
@@ -37,7 +35,10 @@ it.
 3. Install
 ----------
 
-Basically we should do:
+We  should make  sure to  install Nausicaa/R6RS  before this
+package.
+
+  Basically we should do:
 
   $ cd srfi
   $ mkdir "=build"
@@ -71,15 +72,14 @@ code files.
   The  port  to  Ikarus  is  the work  of  Derick  Eddington
 (<https://launchpad.net/~derick-eddington>).
 
+  Nausicaa adaptation is by Marco Maggi.
+
 
 B. Bug reports
 --------------
 
-Bug reports about the SRFI code should be reported to Derick
-Eddington using the Launchpad interface.
-
-  Bug  reports about  this  installation infrastructure  are
-welcome: Send them by email to <mrc.mgg@gmail.com>.
+Bug    reports    are     appreciated,    send    them    to
+<mrc.mgg@gmail.com>.
 
 
 C. Resources

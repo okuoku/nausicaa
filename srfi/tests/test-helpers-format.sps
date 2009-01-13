@@ -37,8 +37,169 @@
 
 
 
+(define (make-padded-string str len char)
+  (let ((off (- len (string-length str))))
+    (if (positive? off)
+	(string-append (make-string off char) str)
+      str)))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (make-padded-string "123" 5 #\B)
+  => "BB123")
+
+(check
+    (make-padded-string "12345" 5 #\B)
+  => "12345")
+
+(check
+    (make-padded-string "123456789" 5 #\B)
+  => "123456789")
+
+
+
+;;;;
+
+(define (reduce-right* f ell)
+  (let loop ((head	(car ell))
+	     (ell	(cdr ell)))
+    (if (pair? ell)
+	(f head (loop (car ell) (cdr ell)))
+      head)))
+
+(define (round-to-nearest/tie-on-even the-string)
+  (reduce-right* (lambda (next knil)
+		   (cond ((< knil 5)	next)
+			 ((> knil 5)	(+ 1 next))
+			 (else		(let ((n (+ 1 next)))
+					  (if (even? n)
+					      n
+					    next)))))
+   (map (lambda (c)
+	  (string->number (make-string 1 c)))
+     (string->list the-string))))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (round-to-nearest/tie-on-even "12345")
+  => 1)
+
+(check
+    (round-to-nearest/tie-on-even "0")
+  => 0)
+
+(check
+    (round-to-nearest/tie-on-even "4")
+  => 4)
+
+(check
+    (round-to-nearest/tie-on-even "55555")
+  => 6)
+
+(check
+    (round-to-nearest/tie-on-even "45")
+  => 4)
+
+(check
+    (round-to-nearest/tie-on-even "65")
+  => 6)
+
+(check
+    (round-to-nearest/tie-on-even "75")
+  => 8)
+
+(check
+    (round-to-nearest/tie-on-even "99")
+  => 10)
+
+(check
+    (round-to-nearest/tie-on-even "07")
+  => 1)
+
+(check
+    (round-to-nearest/tie-on-even "007")
+  => 0)
+
+
+
+
 (define (localised-decimal-separator)
   ".")
+
+#;(define (compose-with-digits digits pre-str frac-str exp-str)
+  (let ((frac-len (string-length frac-str)))
+    (cond
+
+     ((< frac-len digits)
+      (string-append pre-str
+		     (localised-decimal-separator)
+		     frac-str
+		     (make-string (- digits frac-len) #\0)
+		     exp-str))
+
+     ((= frac-len digits)
+      (string-append pre-str
+		     (localised-decimal-separator)
+		     frac-str
+		     exp-str))
+
+     (else ;; (> frac-len digits)
+      (let* ((first-part	(substring frac-str 0 digits))
+	     (last-part		(substring frac-str digits frac-len))
+	     (frac-tmp		(number->string
+				 ;;ROUND is defined  by R6RS to round to
+				 ;;the nearest even inexact integer when
+				 ;;the  argument is halfway  between two
+				 ;;integers.
+				 (round (string->number
+					 (string-append
+					  first-part
+					  "." ;DO  NOT use the localised
+					      ;separator   here  because
+					      ;STRING->NUMBER  will  not
+					      ;recognise it.
+					  last-part)))))
+	     (dot-idx		(string-index frac-tmp #\.))
+	     ;;Example:
+	     ;;
+	     ;;  frac-str   = "997"
+	     ;;  first-part = "9"
+	     ;;  last-part  = "97"
+	     ;;  digits     = 1
+	     ;;  frac-tmp   = "10.0"
+	     ;;
+	     ;;the "1" has  to be added to the  integral part.  First we
+	     ;;check the dot position
+;; 	     (carry?		(and (< digits (string-index frac-tmp #\.))
+;; 				     (< 0 (round (string->number
+;; 						  (string-append
+;; 						   "0."
+;; 						   frac-str))))))
+	     (carry?		(< 9  0 (round (string->number
+					     (string-append
+					      "0."
+					      frac-str)))))
+	     )
+(write pre-str)(newline)
+(write frac-str)(newline)
+(write first-part)(newline)
+(write last-part)(newline)
+(write frac-tmp)(newline)
+(write digits)(newline)
+(write (string-index frac-tmp #\.))(newline)
+(write carry?)(newline)
+(write (round (string->number
+	       (string-append
+		"0."
+		frac-str))))(newline)
+	(string-append (if carry?
+			   (number->string (+ 1 (string->number pre-str)))
+			 pre-str)
+		       (localised-decimal-separator)
+		       (substring frac-tmp 0 digits)
+		       exp-str))))))
 
 (define (compose-with-digits digits pre-str frac-str exp-str)
   (let ((frac-len (string-length frac-str)))
@@ -57,33 +218,33 @@
 		     frac-str
 		     exp-str))
 
-     (else
-      (let* ((first-part	(substring frac-str 0 digits))
-	     (last-part		(substring frac-str digits frac-len))
-	     (temp-str		(number->string
-				 ;;ROUND is defined  by R6RS to round to
-				 ;;the nearest even inexact integer when
-				 ;;the  argument is halfway  between two
-				 ;;integers.
-				 (round (string->number
-					 (string-append
-					  first-part
-					  (localised-decimal-separator)
-					  last-part)))))
-	     (dot-pos	(string-index  temp-str #\.))
-	     (carry?	(and (> dot-pos digits)
-			     (> (round (string->number
-					(string-append "0." frac-str)))
-				0)))
-	     (new-frac	(substring temp-str 0 digits)))
+     (else ;; (> frac-len digits)
+      (let* ((first-part	(substring frac-str 0 (- digits 1)))
+	     (last-part		(substring frac-str (- digits 1) frac-len))
+	     (rounded-digit	(round-to-nearest/tie-on-even last-part))
+	     (carry?		(= 10 rounded-digit)))
+(newline)
+(write "-------------")(newline)
+(write frac-str)(newline)
+(write first-part)(newline)
+(write last-part)(newline)
+(write rounded-digit)(newline)
+(write carry?)(newline)
 	(string-append (if carry?
 			   (number->string (+ 1 (string->number pre-str)))
 			 pre-str)
 		       (localised-decimal-separator)
-		       new-frac
+		       first-part
+		       (if carry?
+			   "0"
+			 (number->string rounded-digit))
 		       exp-str))))))
 
 ;;; --------------------------------------------------------------------
+
+(check
+    (compose-with-digits 2 "0" "007" "")
+  => "0.01")
 
 (check
     (compose-with-digits 5 "12" "456" "e789")
@@ -164,40 +325,40 @@
     (compose-with-digits 1 "12" "45555" "")
   => "12.5")
 
-;;; --------------------------------------------------------------------
+;; ;;; --------------------------------------------------------------------
 
-(check
-    (compose-with-digits 0 "12" "456789" "")
-  => "12.")
+;; (check
+;;     (compose-with-digits 0 "12" "456789" "")
+;;   => "12.")
 
-;;Rounding 12.456789  to 1  digit in the  fractional part is  like doing
-;;these steps:
-;;
-;; 12.456789 -> 12.45679 -> 12.4568 -> 12.457 -> 12.46 -> 12.5
-;;
-(check
-    (compose-with-digits 1 "12" "456789" "")
-  => "12.5")
+;; ;;Rounding 12.456789  to 1  digit in the  fractional part is  like doing
+;; ;;these steps:
+;; ;;
+;; ;; 12.456789 -> 12.45679 -> 12.4568 -> 12.457 -> 12.46 -> 12.5
+;; ;;
+;; (check
+;;     (compose-with-digits 1 "12" "456789" "")
+;;   => "12.5")
 
-(check
-    (compose-with-digits 2 "12" "456789" "")
-  => "12.46")
+;; (check
+;;     (compose-with-digits 2 "12" "456789" "")
+;;   => "12.46")
 
-(check
-    (compose-with-digits 3 "12" "456789" "")
-  => "12.457")
+;; (check
+;;     (compose-with-digits 3 "12" "456789" "")
+;;   => "12.457")
 
-(check
-    (compose-with-digits 4 "12" "456789" "")
-  => "12.4568")
+;; (check
+;;     (compose-with-digits 4 "12" "456789" "")
+;;   => "12.4568")
 
-(check
-    (compose-with-digits 5 "12" "456789" "")
-  => "12.45679")
+;; (check
+;;     (compose-with-digits 5 "12" "456789" "")
+;;   => "12.45679")
 
-(check
-    (compose-with-digits 6 "12" "456789" "")
-  => "12.456789")
+;; (check
+;;     (compose-with-digits 6 "12" "456789" "")
+;;   => "12.456789")
 
 
 ;;;; rounding

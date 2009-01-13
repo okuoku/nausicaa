@@ -129,7 +129,10 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
      (when (null? ?args)
        (problem "too few arguments")))))
 
-(define (string-grow str len char)
+;;Return  a string  of  LEN char  with  STR anchored  to  the right  and
+;;left-padded with CHARs.  If the length of STR is greater than LEN: STR
+;;is returned.
+(define (make-padded-string str len char)
   (let ((off (- len (string-length str))))
     (if (positive? off)
 	(string-append (make-string off char) str)
@@ -182,53 +185,60 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 
 
 
-(define (format-fixed number-or-string width digits) ; returns a string
+(define (format-fixed number-or-string width digits)
   (cond
-   ((string? number-or-string)
-    (string-grow number-or-string width #\space))
-   ((number? number-or-string)
-    (let* ((num	(real-part number-or-string))
-	   (real	(if digits (+ 0.0 num) num))
+
+   ((real? number-or-string)
+    (format-fixed-number number-or-string width digits))
+
+   ((complex? number-or-string)
+    (let* ((num		(real-part number-or-string))
+	   (real	(if digits (inexact num) num))
 	   (imag	(imag-part number-or-string)))
-      (cond
-       ((not (zero? imag))
-	(string-grow
-	 (string-append (format-fixed real 0 digits)
-			(if (negative? imag) "" "+")
-			(format-fixed imag 0 digits)
-			"i")
-	 width
-	 #\space))
-       (digits
-	(let* ((num-str	(number->string (if (rational? real)
-					    (+ 0.0 real)
-					  real)))
-	       (dot-index	(string-index  num-str #\.))
-	       (exp-index	(string-index  num-str #\e))
-	       (length	(string-length num-str))
-	       (pre-string	(cond
-				 ((and exp-index (not dot-index))
-				  (substring num-str 0 exp-index))
-				 (dot-index
-				  (substring num-str 0 dot-index))
-				 (else
-				  num-str)))
-	       (exp-string	(if exp-index
-				    (substring num-str exp-index length)
-				  ""))
-	       (frac-string	(let ((dot-idx (or dot-index -1)))
-				  (if exp-index
-				      (substring num-str (+ dot-idx 1) exp-index)
-				    (substring num-str (+ dot-idx 1) length)))))
-	  (string-grow (if dot-index
-			   (compose-with-digits digits pre-string
-						frac-string exp-string)
-			 (string-append pre-string exp-string))
-		       width #\space)))
-       (else ;; no digits
-	(string-grow (number->string real) width #\space)))))
+      (make-padded-string
+       (string-append (format-fixed-number real 0 digits)
+		      (if (negative? imag) "" "+")
+		      (format-fixed-number imag 0 digits)
+		      "i")
+       width
+       #\space)))
+
+   ((string? number-or-string)
+    (make-padded-string number-or-string width #\space))
+
    (else
-    (error 'format "~F requires a number or a string" number-or-string))))
+    (problem "~F requires a number or a string" number-or-string))))
+
+(define (format-fixed-number number width digits)
+  (if digits
+      (let* ((num-str	(number->string (if (rational? number)
+					    (inexact number)
+					  number)))
+	     (dot-idx	(string-index  num-str #\.))
+	     (exp-idx	(string-index  num-str #\e))
+	     (length	(string-length num-str))
+	     (pre-str	(cond
+			 ((and exp-idx (not dot-idx))
+			  (substring num-str 0 exp-idx))
+			 (dot-idx
+			  (substring num-str 0 dot-idx))
+			 (else
+			  num-str)))
+	     (exp-str	(if exp-idx
+			    (substring num-str exp-idx length)
+			  ""))
+	     (frac-str (let ((dot-idx (or dot-idx -1)))
+			 (if exp-idx
+			     (substring num-str
+					(+ dot-idx 1)
+					exp-idx)
+			   (substring num-str (+ dot-idx 1) length)))))
+	(make-padded-string (if dot-idx
+				(compose-with-digits digits pre-str
+						     frac-str exp-str)
+			      (string-append pre-str exp-str))
+			    width #\space))
+    (make-padded-string (number->string number) width #\space)))
 
 
 
@@ -261,6 +271,7 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 	  (write-char #\~ p) ;; tilde at end of string is just output
 	  arglist)	       ;; return unused args
       (case (char-upcase (string-ref format-strg pos))
+
 	((#\A) ; Any -- for humans
 	 (require-an-arg arglist)
 	 (let ((whatever (car arglist)))
@@ -268,13 +279,23 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 	   (anychar-dispatch (+ pos 1)
 			     (cdr arglist)
 			     (has-newline? whatever last-was-newline))))
+
 	((#\S) ; Slashified -- for parsers
 	 (require-an-arg arglist)
 	 (let ((whatever (car arglist)))
-	   (write whatever p)
+	   (case whatever
+	     ;;Normalise  to newline  because  #\newline and  #\linefeed
+	     ;;have EQUAL?  values and different implementations default
+	     ;;to  one  or  the  other  (example:  Ypsilon  prints  only
+	     ;;#\linefeed, Larceny only #\newline).
+	     ((#\newline #\linefeed)
+	      (display "#\\newline" p))
+	     (else
+	      (write whatever p)))
 	   (anychar-dispatch (+ pos 1)
 			     (cdr arglist)
 			     (has-newline? whatever last-was-newline))))
+
 	((#\W)
 	 (require-an-arg arglist)
 	 (let ((whatever (car arglist)))
@@ -282,51 +303,64 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 	   (anychar-dispatch (+ pos 1)
 			     (cdr arglist)
 			     (has-newline? whatever last-was-newline))))
+
 	((#\D) ; Decimal
 	 (require-an-arg arglist)
 	 (display (number->string (car arglist) 10) p)
 	 (anychar-dispatch (+ pos 1) (cdr arglist) #f))
+
 	((#\X) ; HeXadecimal
 	 (require-an-arg arglist)
 	 (display (number->string (car arglist) 16) p)
 	 (anychar-dispatch (+ pos 1) (cdr arglist) #f))
+
 	((#\O) ; Octal
 	 (require-an-arg arglist)
 	 (display (number->string (car arglist)  8) p)
 	 (anychar-dispatch (+ pos 1) (cdr arglist) #f))
+
 	((#\B) ; Binary
 	 (require-an-arg arglist)
 	 (display (number->string (car arglist)  2) p)
 	 (anychar-dispatch (+ pos 1) (cdr arglist) #f))
+
 	((#\C) ; Character
 	 (require-an-arg arglist)
 	 (write-char (car arglist) p)
 	 (anychar-dispatch (+ pos 1)
 			   (cdr arglist)
 			   (eqv? (car arglist) #\newline)))
+
 	((#\~) ; Tilde
 	 (write-char #\~ p)
 	 (anychar-dispatch (+ pos 1) arglist #f))
+
 	((#\%) ; Newline
 	 (newline p)
 	 (anychar-dispatch (+ pos 1) arglist #t))
+
 	((#\&)			; Freshline
 	 (when (not last-was-newline) ;; (unless last-was-newline ..
 	   (newline p))
 	 (anychar-dispatch (+ pos 1) arglist #t))
+
 	((#\_) ; Space
 	 (write-char #\space p)
 	 (anychar-dispatch (+ pos 1) arglist #f))
+
 	((#\T) ; Tab -- IMPLEMENTATION DEPENDENT ENCODING
 	 (write-char ascii-tab p)
 	 (anychar-dispatch (+ pos 1) arglist #f))
+
 	((#\Y) ; Pretty-print
 	 (pretty-print (car arglist) p)
 	 (anychar-dispatch (+ pos 1) (cdr arglist) #f))
+
 	((#\F)
 	 (require-an-arg arglist)
 	 (display (format-fixed (car arglist) 0 #f) p)
 	 (anychar-dispatch (+ pos 1) (cdr arglist) #f))
+
 	((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
 	 ;; gather "~w(,d)F" w and d digits
 	 (let loop ((index		(+ pos 1))
@@ -365,6 +399,7 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 			(problem "too many commas in directive" format-strg)))
 		     (else
 		      (problem "~w,dF directive ill-formed" format-strg)))))))
+
 	((#\? #\K) ; indirection -- take next arg as format string
 	 (cond     ;  and following arg as list of format args
 	  ((< (length arglist) 2)
@@ -374,9 +409,11 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 	  (else
 	   (format-help p (car arglist) (cadr arglist))
 	   (anychar-dispatch (+ pos 1) (cddr arglist) #f))))
+
 	((#\H) ; Help
 	 (display documentation-string p)
 	 (anychar-dispatch (+ pos 1) arglist #t))
+
 	(else
 	 (problem "unknown tilde escape" (string-ref format-strg pos))))))
 

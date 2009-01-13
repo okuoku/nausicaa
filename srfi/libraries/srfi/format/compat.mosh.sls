@@ -29,10 +29,8 @@
   (export
     pretty-print
     ascii-tab)
-  (import (rnrs))
-  (define (pretty-print thing)
-    (write thing)
-    (newline))
+  (import (rnrs)
+    (mosh pp))
   (define ascii-tab #\tab))
 
 ;;; end of file
