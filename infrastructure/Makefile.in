@@ -96,8 +96,9 @@ nausicaa_ENABLE_FASL	?= @nausicaa_ENABLE_FASL@
 ## ---------------------------------------------------------------------
 
 nausicaa_ENABLE_IKARUS	= @nausicaa_ENABLE_IKARUS@
-nausicaa_ENABLE_YPSILON	= @nausicaa_ENABLE_YPSILON@
 nausicaa_ENABLE_LARCENY	= @nausicaa_ENABLE_LARCENY@
+nausicaa_ENABLE_MOSH	= @nausicaa_ENABLE_MOSH@
+nausicaa_ENABLE_YPSILON	= @nausicaa_ENABLE_YPSILON@
 
 
 #page
@@ -234,7 +235,10 @@ INSTALL_DATA		= $(INSTALL) -p -m $(INSTALL_DATA_MODE)
 
 ## ---------------------------------------------------------------------
 
-MAKEINFO_FLAGS		= --no-split -I$(doc_texinfo_SRCDIR) -I$(doc_texinfo_BUILDDIR)
+MAKEINFO_FLAGS		= --no-split \
+			  -I$(doc_texinfo_SRCDIR) \
+			  -I$(doc_texinfo_BUILDDIR) \
+			  -I$(srcdir)/../infrastructure
 MAKEINFO_INFO_FLAGS	= $(MAKEINFO_FLAGS)
 MAKEINFO_HTML_FLAGS	= $(MAKEINFO_FLAGS) --html
 
@@ -247,8 +251,9 @@ MAKEINFO_HTML_FLAGS	= $(MAKEINFO_FLAGS) --html
 SCHEME_SCRIPT		= @SCHEME_SCRIPT@
 
 IKARUS			= @IKARUS@
-YPSILON			= @YPSILON@
 LARCENY			= @LARCENY@
+MOSH			= @MOSH@
+YPSILON			= @YPSILON@
 
 SORT_UNIQUE		= $(SORT) --unique
 SORT_REVERSE		= $(SORT) --reverse
@@ -408,26 +413,19 @@ ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 fasl: fasl-larceny-compile
 endif
 
+# No batch compilation is available for Mosh.
+# ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+# fasl: fasl-mosh-compile
+# endif
+
+# No batch compilation is available for Ypsilon.
+# ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+# fasl: fasl-ypsilon-compile
+# endif
+
 else
 fasl:
 endif
-
-## ---------------------------------------------------------------------
-
-#fasl_ypsilon_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ypsilon.sps
-#fasl_ypsilon_COMPILE_ENV	= YPSILON_LIBRARY_PATH=$(sls_BUILDDIR):$(YPSILON_LIBRARY_PATH)
-#fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --compile-dependencies
-#fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV) $(fasl_ypsilon_COMPILE_COMMAND) $(fasl_ypsilon_COMPILE_SCRIPT)
-
-.PHONY: yfasl fasl-ypsilon-compile
-
-fasl-ypsilon-compile:
-#	test -f $(fasl_ypsilon_COMPILE_SCRIPT) && $(fasl_ypsilon_COMPILE_RUN)
-
-fasl-ypsilon-clean:
-#	$(FIND) $(sls_BUILDDIR) -name \*.ypsilon-fasl -exec $(RM) \{\} \;
-
-yfasl: fasl-builddir fasl-copy fasl-ypsilon-clean fasl-ypsilon-compile
 
 ## ---------------------------------------------------------------------
 
@@ -465,6 +463,40 @@ lfasl: fasl-builddir fasl-copy fasl-larceny-clean fasl-larceny-compile
 
 ## ------------------------------------------------------------
 
+#fasl_mosh_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.mosh.sps
+#fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR):$(MOSH_LIBRARY_PATH)
+#fasl_mosh_COMPILE_COMMAND	= $(MOSH) --compile-dependencies
+#fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV) $(fasl_mosh_COMPILE_COMMAND) $(fasl_mosh_COMPILE_SCRIPT)
+
+.PHONY: mfasl fasl-mosh-compile
+
+fasl-mosh-compile:
+#	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
+
+fasl-mosh-clean:
+#	$(FIND) $(sls_BUILDDIR) -name \*.mosh-fasl -exec $(RM) \{\} \;
+
+mfasl: fasl-builddir fasl-copy fasl-mosh-clean fasl-mosh-compile
+
+## ---------------------------------------------------------------------
+
+#fasl_ypsilon_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ypsilon.sps
+#fasl_ypsilon_COMPILE_ENV	= YPSILON_LIBRARY_PATH=$(sls_BUILDDIR):$(YPSILON_LIBRARY_PATH)
+#fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --compile-dependencies
+#fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV) $(fasl_ypsilon_COMPILE_COMMAND) $(fasl_ypsilon_COMPILE_SCRIPT)
+
+.PHONY: yfasl fasl-ypsilon-compile
+
+fasl-ypsilon-compile:
+#	test -f $(fasl_ypsilon_COMPILE_SCRIPT) && $(fasl_ypsilon_COMPILE_RUN)
+
+fasl-ypsilon-clean:
+#	$(FIND) $(sls_BUILDDIR) -name \*.ypsilon-fasl -exec $(RM) \{\} \;
+
+yfasl: fasl-builddir fasl-copy fasl-ypsilon-clean fasl-ypsilon-compile
+
+## ---------------------------------------------------------------------
+
 # Synopsis:
 #
 #   $(eval $(call nausicaa-library,<PREFIX>,<SRCDIR>,<INSTDIR>))
@@ -480,6 +512,14 @@ endif
 ifeq ($$(strip $$(nausicaa_ENABLE_LARCENY)),yes)
 sls_$(1)_TARGETS	+= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.larceny.slfasl)
 endif
+## No batch compilation available for Mosh.
+# ifeq ($$(strip $$(nausicaa_ENABLE_MOSH)),yes)
+# sls_$(1)_TARGETS	+= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.mosh.fasl)
+# endif
+## No batch compilation available for Ypsilon.
+# ifeq ($$(strip $$(nausicaa_ENABLE_YPSILON)),yes)
+# sls_$(1)_TARGETS	+= $$(wildcard $$(sls_$(1)_BUILDDIR)/*.ypsilon.fasl)
+# endif
 
 sls_$(1)_INSTLST	= $$(sls_$(1)_SOURCES)
 sls_$(1)_INSTDIR	= $(3)
@@ -554,26 +594,6 @@ tests test check:
 
 ## ---------------------------------------------------------------------
 
-nau_ytest_ENV		= YPSILON_SITELIB=$(nau_test_PATH):$(YPSILON_SITELIB)
-nau_ytest_ENV		+= $(nau_test_ENV)
-nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
-nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_ytest_PROGRAM)
-
-.PHONY: ytests ytest ycheck
-
-ytests ytest ycheck:
-ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
-ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_ytest_RUN) $(f);)
-else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ytest_RUN) $(f);)
-endif
-
-tests test check: ytest
-endif
-
-## ---------------------------------------------------------------------
-
 nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
 nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
@@ -610,6 +630,46 @@ else
 endif
 
 tests test check: ltest
+endif
+
+## ------------------------------------------------------------
+
+nau_mtest_ENV		= MOSH_LOADPATH=$(nau_test_PATH):$(MOSH_LOADPATH)
+nau_mtest_ENV		+= $(nau_test_ENV)
+nau_mtest_PROGRAM	= $(MOSH)
+nau_mtest_RUN		= $(nau_mtest_ENV) $(nau_mtest_PROGRAM)
+
+.PHONY: mtests mtest mcheck
+
+mtests mtest mcheck:
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+ifeq ($(strip $(file)),)
+	$(foreach f,$(nau_test_FILES),$(nau_mtest_RUN) $(f);)
+else
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_mtest_RUN) $(f);)
+endif
+
+tests test check: mtest
+endif
+
+## ---------------------------------------------------------------------
+
+nau_ytest_ENV		= YPSILON_SITELIB=$(nau_test_PATH):$(YPSILON_SITELIB)
+nau_ytest_ENV		+= $(nau_test_ENV)
+nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
+nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_ytest_PROGRAM)
+
+.PHONY: ytests ytest ycheck
+
+ytests ytest ycheck:
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+ifeq ($(strip $(file)),)
+	$(foreach f,$(nau_test_FILES),$(nau_ytest_RUN) $(f);)
+else
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ytest_RUN) $(f);)
+endif
+
+tests test check: ytest
 endif
 
 

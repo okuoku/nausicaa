@@ -157,6 +157,9 @@ fi
 if test "$nausicaa_ENABLE_LARCENY" = yes ; then
 NAUSICAA_PROGRAM([LARCENY],[larceny],[the Larceny Scheme executable])
 fi
+if test "$nausicaa_ENABLE_MOSH" = yes ; then
+NAUSICAA_PROGRAM([MOSH],[mosh],[the Mosh Scheme executable])
+fi
 AC_CACHE_SAVE
 ])
 
@@ -203,15 +206,18 @@ NAUSICAA_PROGRAM([pacman_PROGRAM],[pacman],[the Pacman package manager])
 ])
 
 AC_DEFUN([NAUSICAA_OPTIONS],[
-NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_IKARUS],[ikarus],[yes],
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_IKARUS],[ikarus],[no],
   [whether usage of Ikarus Scheme is enabled],
   [disable usage of Ikarus Scheme])
-NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[no],
-  [whether usage of Ypsilon Scheme is enabled],
-  [disable usage of Ypsilon Scheme])
 NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_LARCENY],[larceny],[no],
   [whether usage of Larceny Scheme is enabled],
   [disable usage of Larceny Scheme])
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_MOSH],[mosh],[no],
+  [whether usage of Mosh Scheme is enabled],
+  [disable usage of Mosh Scheme])
+NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[yes],
+  [whether usage of Ypsilon Scheme is enabled],
+  [disable usage of Ypsilon Scheme])
 
 NAUSICAA_ENABLE_OPTION([nausicaa_ENABLE_DOC],[doc],[yes],
   [whether documentation files will be installed],
@@ -381,6 +387,46 @@ AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],
 
 dnl page
 dnl --------------------------------------------------------------------
+dnl Macros for Mosh Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_MOSH_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_MOSH_SCRIPT],
+  [NAUSICAA_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
+    "${MOSH}" "${nausicaa_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_MOSH_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Mosh library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_MOSH_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))],,
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_MOSH_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Mosh Scheme could not find library '$2'])
+        $4
+      fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
 dnl Macros for Scheme.
 dnl --------------------------------------------------------------------
 
@@ -393,6 +439,9 @@ AC_DEFUN([NAUSICAA_SCHEME_CHECK_LIBRARY],
    fi
    if test "$nausicaa_ENABLE_LARCENY" = yes ; then
      NAUSICAA_LARCENY_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_MOSH" = yes ; then
+     NAUSICAA_MOSH_CHECK_LIBRARY([$1],[$2],[$3],[$4])
    fi
 ])
 

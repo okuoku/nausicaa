@@ -11,12 +11,13 @@ set -x
     fi)
 
 ../configure \
-    --enable-fasl \
-    --enable-ikarus \
-    --enable-ypsilon \
-    --enable-larceny \
+    --enable-fasl               \
+    --enable-ikarus             \
+    --enable-larceny            \
+    --enable-ypsilon            \
     "$@"
 
+#    --enable-mosh               \
 
 
 ### end of file
