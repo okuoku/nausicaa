@@ -720,7 +720,10 @@
 
 
 
-;;;; helpers, miscellaneous functions for floating point numbers formatting
+;;;; helpers, miscellaneous functions for floating point numbers
+
+;;See the documentation of  FORMAT:PARSE-FLOAT below for more details on
+;;flonums handling.
 
 ;;Return  an  integer  number  representing  the current  value  of  the
 ;;exponent buffer.
@@ -816,10 +819,10 @@
 (define (format:fn-round digits)
   (increment! digits format:fn-dot)
   (do ((i digits (- i 1))
-       (c 5))
-      ((or (= c 0) (< i 0))
+       (carry 5))
+      ((or (= carry 0) (< i 0))
        (set! format:fn-len digits)
-       (when (= c 1)
+       (when (= carry 1)
 	 ;;This  body  prepends  a   "1"  to  the  mantissa  buffer  and
 	 ;;increments the dot position.   This way it performs the carry
 	 ;;normalisation for the roundings like:
@@ -829,13 +832,15 @@
 	 (format:fn-zfill #t 1)
 	 (string-set! format:fn-str 0 #\1)
 	 (increment! format:fn-dot 1)))
-    (set! c (+ (- (char->integer (string-ref format:fn-str i))
-		  format:zero-ch) c))
+    (set! carry (+ (- (char->integer (string-ref format:fn-str i))
+		      format:zero-ch)
+		   carry))
     (string-set! format:fn-str i (integer->char
-				  (if (< c 10)
-				      (+ c format:zero-ch)
-				    (+ (- c 10) format:zero-ch))))
-    (set! c (if (< c 10) 0 1))))
+				  (if (< carry 10)
+				      (+ carry format:zero-ch)
+				    (+ (- carry 10)
+				       format:zero-ch))))
+    (set! carry (if (< carry 10) 0 1))))
 
 ;;Print to the destination the mantissa part of the number.
 ;;
@@ -1205,7 +1210,8 @@
 
       (cond
 
-       ((or (infinite? number) (nan? number))
+       ((and (not (string? number))
+	     (or (infinite? number) (nan? number)))
 	(format:out-inf-nan number width digits edigits overch padch))
 
        (digits	; fixed precision
@@ -1312,9 +1318,12 @@
 	  (overch	(if (> l 4) (list-ref parameters 4) #f))
 	  (padch	(if (> l 5) (list-ref parameters 5) #f)))
       (cond
-       ((or (infinite? number) (nan? number))
+
+       ((and (not (string? number))
+	     (or (infinite? number) (nan? number)))
 	;;FIXME: this isn't right.  (But why? MarcoMaggi)
 	(format:out-inf-nan number width digits edigits overch padch))
+
        (else
 	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
 	;;variables "format:fn-*".
