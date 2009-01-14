@@ -781,8 +781,8 @@ zero).
 (format #t "~@@f" 0) @print{} +0.0
 @end example
 
-If the output is less than @var{width} (default is no limit and no
-padding) characters it's padded on the left with @var{padchar} (space by
+If the output is less than @var{width} characters (default is no limit
+and no padding) it's padded on the left with @var{padchar} (space by
 default).  If the output equals or exceeds @var{width} then there's no
 padding and the decimals after the comma are truncated if this makes the
 number fit the @var{width}.
@@ -803,6 +803,15 @@ default is to output as many decimals as required.)
 @example
 (format #t "~1,2f" 3.125) @print{} 3.13
 (format #t "~1,2f" 1.5)   @print{} 1.50
+@end example
+
+@noindent
+Decimals are rounded only when requested.  If not requested they are not
+rounded nor truncated when the output exceeds the requested @var{width}.
+
+@example
+(format #t "~1f"   0.123) @print{} "0.123")
+(format #t "~1,2f" 0.123) @print{} ".12")
 @end example
 
 @var{scale} is a power of 10 applied to the value, moving the decimal

@@ -1,14 +1,10 @@
-;;;"format.scm" Common LISP text output formatter for SLIB
-;;;Written 1992-1994 by Dirk Lutzebaeck (lutzeb@cs.tu-berlin.de)
-;;;Assimilated into Guile May 1999
+;;;"format.scm" Common LISP text output formatter for SLIB.
 ;;;
-;;;This code is in the public domain.
+;;;Written 1992-1994 by Dirk Lutzebaeck. Authors of the original version
+;;;(<1.4) were Ken Dickey and Aubrey Jaffer.  Assimilated into Guile May
+;;;1999.  Ported to R6RS Scheme and Nausicaa by Marco Maggi.
 ;;;
-;;;Authors of  the original version (<  1.4) were Ken  Dickey and Aubrey
-;;;Jaffer.
-;;;
-;;;Ported to R6RS Scheme by Marco Maggi.
-;;;
+;;;Copyright (c) 1992-1994 Dirk Lutzebaeck <lutzeb@cs.tu-berlin.de>
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
@@ -49,7 +45,8 @@
 	  quotient)
     (only (rnrs mutable-strings)
 	  string-set!)
-    (format-lib compat))
+    (format-lib compat)
+    (lang-lib))
 
 
 
@@ -89,8 +86,8 @@
 (define format:parameter-characters
   '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+ #\v #\# #\'))
 
-(define format:space-ch (char->integer #\space))
-(define format:zero-ch	(char->integer #\0))
+(define space-char-integer (char->integer #\space))
+(define zero-char-integer	(char->integer #\0))
 
 ;;Roman numerals (from dorai@cs.rice.edu).
 (define format:roman-alist
@@ -231,7 +228,10 @@
 (define-syntax increment!
   (syntax-rules ()
     ((_ ?varname ?step)
-     (set! ?varname (+ ?varname ?step)))))
+     (set! ?varname (+ ?varname ?step)))
+    ((_ ?varname)
+     (set! ?varname (+ ?varname 1)))))
+
 
 ;;Extract an  escape sequence  parameter from a  list of  parameters and
 ;;return it.
@@ -290,7 +290,7 @@
 ;;; Floating point numbers related stuff.
 
   ;;Maximum number of digits.
-  (define format:fn-max 400)
+  (define mantissa-max-length 400)
 
   ;;Floating point  number buffer for  the mantissa.  It is  filled with
   ;;the  string  representation  of  the  mantissa.  If  the  flonum  is
@@ -298,39 +298,39 @@
   ;;
   ;;Notice that the dot is not stored in the buffer.  The sign (positive
   ;;or negative) also  is not stored in the buffer,  rather it is marked
-  ;;by FORMAT:FN-POS?.
-  (define format:fn-str #f)
+  ;;by MANTISSA-IS-POSITIVE.
+  (define mantissa-buffer #f)
 
-  ;;The index  of the first  *unused* char in the  FORMAT:FN-STR buffer.
-  ;;It is also the length of the mantissa string in FORMAT:FN-STR.
-  (define format:fn-len 0)
+  ;;The index  of the first  *unused* char in the  MANTISSA-BUFFER buffer.
+  ;;It is also the length of the mantissa string in MANTISSA-BUFFER.
+  (define mantissa-length 0)
 
-  ;;The index of  the digit in FORMAT:FN-STR that  comes right after the
+  ;;The index of  the digit in MANTISSA-BUFFER that  comes right after the
   ;;dot.  If  the flonum is  "12.345e67", the mantissa buffer  is filled
   ;;with "12345"  and this  variable is set  to 2,  so '3' is  the digit
   ;;right after the dot.
-  (define format:fn-dot #f)
+  (define mantissa-dot-index #f)
 
   ;;Set to #t if the mantissa is positive, to #f otherwise.
-  (define format:fn-pos? #t)
+  (define mantissa-is-positive #t)
 
   ;; max. number of exponent digits
-  (define format:en-max 10)
+  (define exponent-max-length 10)
 
   ;;Floating point  number buffer for  the exponent.  It is  filled with
   ;;the  string  representation  of  the  exponent.  If  the  flonum  is
   ;;"12.345e67", this buffer is filled with "67".
   ;;
   ;;Notice that  The sign  (positive or negative)  is NOT stored  in the
-  ;;buffer, rather it is marked by FORMAT:EN-POS?.
-  (define format:en-str #f)
+  ;;buffer, rather it is marked by EXPONENT-IS-POSITIVE.
+  (define exponent-buffer #f)
 
-  ;;The index  of the first  *unused* char in the  FORMAT:EN-STR buffer.
-  ;;It is also the length of the exponent string in FORMAT:EN-STR.
-  (define format:en-len 0)
+  ;;The index  of the first  *unused* char in the  EXPONENT-BUFFER buffer.
+  ;;It is also the length of the exponent string in EXPONENT-BUFFER.
+  (define exponent-length 0)
 
   ;;Set to #t if the exponent is positive, to #f otherwise.
-  (define format:en-pos? #t)
+  (define exponent-is-positive #t)
 
 
 
@@ -445,7 +445,7 @@
 	    (padinc	(format:par parameters l 1 1 "padinc"))
 	    (minpad	(format:par parameters l 2 0 "minpad"))
 	    (padchar	(integer->char
-			 (format:par parameters l 3 format:space-ch #f)))
+			 (format:par parameters l 3 space-char-integer #f)))
 	    (objstr	(format:obj->str obj use-write)))
 	(unless pad-left
 	  (format:out-str objstr))
@@ -500,7 +500,7 @@
 	    (numstr-len (string-length numstr)))
 	(let ((mincol		(format:par pars l 0 #f "mincol"))
 	      (padchar		(integer->char
-				 (format:par pars l 1 format:space-ch #f)))
+				 (format:par pars l 1 space-char-integer #f)))
 	      (commachar	(integer->char
 				 (format:par pars l 2 (char->integer #\,) #f)))
 	      (commawidth	(format:par pars l 3 3 "commawidth")))
@@ -700,7 +700,9 @@
 ;;"-inf.0" or "+nan.0", suitably justified in their field.  We insist on
 ;;printing this exact form so that the numbers can be read back in.
 (define (format:out-inf-nan number width digits edigits overch padch)
-  (let* ((str		(number->string number))
+  (let* ((str		(if (string? number)
+			    number
+			  (number->string number)))
 	 (len		(string-length str))
 	 (dot		(string-index str #\.))
 	 (digits	(+ (or digits 0)
@@ -713,134 +715,139 @@
 	     (rightpad (if width
 			   (max (- width leftpad len) 0)
 			 0))
-	     (padch (integer->char (or padch format:space-ch))))
+	     (padch (integer->char (or padch space-char-integer))))
 	(format:out-fill leftpad padch)
 	(format:out-str str)
 	(format:out-fill rightpad padch)))))
 
 
 
-;;;; helpers, miscellaneous functions for floating point numbers
+;;;; helpers, setters and getters for the flonum buffers
+
+(define-syntax mantissa-set!
+  (syntax-rules ()
+    ((_ ?idx ?char)
+     (string-set! mantissa-buffer ?idx ?char))))
+
+(define-syntax mantissa-ref
+  (syntax-rules ()
+    ((_ ?idx)
+     (string-ref mantissa-buffer ?idx))))
+
+(define-syntax mantissa-digit-set!
+  (syntax-rules ()
+    ((_ ?idx ?digit)
+     (mantissa-set! ?idx (integer->char (+ ?digit zero-char-integer))))))
+
+(define-syntax mantissa-digit-ref
+  (syntax-rules ()
+    ((_ ?idx)
+     (- (char->integer (mantissa-ref ?idx)) zero-char-integer))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax exponent-set!
+  (syntax-rules ()
+    ((_ ?idx ?char)
+     (string-set! exponent-buffer ?idx ?char))))
+
+(define-syntax exponent-ref
+  (syntax-rules ()
+    ((_ ?idx)
+     (string-ref exponent-buffer ?idx))))
+
+(define-syntax exponent-digit-set!
+  (syntax-rules ()
+    ((_ ?idx ?digit)
+     (exponent-set! ?idx (integer->char (+ ?digit zero-char-integer))))))
+
+(define-syntax exponent-digit-ref
+  (syntax-rules ()
+    ((_ ?idx)
+     (- (char->integer (exponent-ref ?idx)) zero-char-integer))))
+
+;;; --------------------------------------------------------------------
+
+
+
+;;;; helpers, miscellaneous stuff for floating point numbers
 
 ;;See the documentation of  FORMAT:PARSE-FLOAT below for more details on
 ;;flonums handling.
 
 ;;Return  an  integer  number  representing  the current  value  of  the
 ;;exponent buffer.
-(define (format:en-int)
-  (if (= format:en-len 0)
+(define (exponent-buffer->integer)
+  (if (= exponent-length 0)
       0
     (do ((i 0 (+ i 1))
 	 (n 0))
-	((= i format:en-len)
-	 (if format:en-pos?
+	((= i exponent-length)
+	 (if exponent-is-positive
 	     n
 	   (- n)))
       (set! n (+ (* n 10)
-		 (- (char->integer (string-ref format:en-str i))
-		    format:zero-ch))))))
+		 (exponent-digit-ref i))))))
 
-;;Store an integer number into the exponent buffer FORMAT:EN-STR, update
-;;FORMAT:EN-LEN and FORMAT:EN-POS?  accordingly.
-(define (format:en-set en)
+;;Store an integer number into the exponent buffer EXPONENT-BUFFER, update
+;;EXPONENT-LENGTH and EXPONENT-IS-POSITIVE  accordingly.
+(define (integer->exponent-buffer en)
   (unless (integer? en)
-    (error 'format:en-set
+    (error 'integer->exponent-buffer
       "invalid value for floating point number exponent"
       en))
-  (set! format:en-len 0)
-  (set! format:en-pos? (>= en 0))
+  (set! exponent-length 0)
+  (set! exponent-is-positive (>= en 0))
   (let* ((en-str (number->string en))
 	 (en-len (string-length en-str)))
     (do ((i 0 (+ i 1)))
 	((= i en-len))
       (let ((ch (string-ref en-str i)))
 	(when (char-numeric? ch)
-	  (string-set! format:en-str format:en-len ch)
-	  (increment! format:en-len 1))))))
+	  (exponent-set! exponent-length ch)
+	  (increment! exponent-length 1))))))
 
-;;Fill the mantissa buffer with zeros, update FORMAT:FN-LEN accordingly.
-;;Examples:
+;;Fill   the  mantissa   buffer  with   zeros,   update  MANTISSA-LENGTH
+;;accordingly but not MANTISSA-DOT-INDEX.  Examples:
 ;;
-;;  (set! format:fn-str "123")
-;;  (format:fn-zfill #t 3)
-;;  format:fn-str => "000123"
+;;  (set! mantissa-buffer "123")
+;;  (mantissa-zfill #t 3)
+;;  mantissa-buffer => "000123"
 ;;
-;;  (set! format:fn-str "123")
-;;  (format:fn-zfill #f 3)
-;;  format:fn-str => "123000"
+;;  (set! mantissa-buffer "123")
+;;  (mantissa-zfill #f 3)
+;;  mantissa-buffer => "123000"
 ;;
-(define (format:fn-zfill left? n)
-  (when (> (+ n format:fn-len) format:fn-max) ; from the left or right
-    (error 'format:fn-zfill
-      "number is too long to format (enlarge format:fn-max)"))
-  (increment! format:fn-len n)
+(define (mantissa-zfill left? n)
+  (when (> (+ n mantissa-length) mantissa-max-length) ; from the left or right
+    (error 'mantissa-zfill
+      "number is too long to format (enlarge mantissa-max-length)"))
+  (increment! mantissa-length n)
   (if left?
-      (do ((i format:fn-len (- i 1))) ; fill n 0s to left
+      (do ((i mantissa-length (- i 1))) ; fill n 0s to left
 	  ((< i 0))
-	(string-set! format:fn-str i
-		     (if (< i n)
-			 #\0
-		       (string-ref format:fn-str (- i n)))))
-    (do ((i (- format:fn-len n) (+ i 1))) ; fill n 0s to the right
-	((= i format:fn-len))
-      (string-set! format:fn-str i #\0))))
+	(mantissa-set! i (if (< i n)
+			     #\0
+			   (mantissa-ref (- i n)))))
+    (do ((i (- mantissa-length n) (+ i 1))) ; fill n 0s to the right
+	((= i mantissa-length))
+      (mantissa-set! i #\0))))
 
 ;;Shift  left  current  by  N  positions  the  mantissa  buffer,  update
-;;FORMAT:FN-LEN accordingly.   It is used  to remove leading  zeros from
+;;MANTISSA-LENGTH accordingly.   It is used  to remove leading  zeros from
 ;;the mantissa buffer:
 ;;
 ;;  "000123" -> "123"
 ;;
-(define (format:fn-shiftleft n)
-  (when (> n format:fn-len)
-    (error 'format:fn-shiftleft
-      "internal error in format:fn-shiftleft"
-      n format:fn-len))
+(define (mantissa-shift-left n)
+  (when (> n mantissa-length)
+    (error 'mantissa-shift-left
+      "internal error in mantissa-shift-left"
+      n mantissa-length))
   (do ((i n (+ i 1)))
-      ((= i format:fn-len)
-       (increment! format:fn-len (- n)))
-    (string-set! format:fn-str (- i n) (string-ref format:fn-str i))))
-
-;;Round the current value of FORMAT:FN-STR to the number of digits after
-;;the dot selected by DIGITS.
-;;
-;;We assume  that there are at least  DIGITS+FORMAT:FN-DOT characters in
-;;the mantissa buffer.
-;;
-;;We want  the same behaviour requested  by R6RS for ROUND,  and by IEEE
-;;754 for rounding to nearest.  When rounding an in-the-middle digit: we
-;;round it to even.
-;;
-;;Examples of carry normalisation:
-;;
-;;  "0.9" -> "1.0"
-;;  "9.9" -> "10.0"
-;;
-(define (format:fn-round digits)
-  (increment! digits format:fn-dot)
-  (do ((i digits (- i 1))
-       (carry 5))
-      ((or (= carry 0) (< i 0))
-       (set! format:fn-len digits)
-       (when (= carry 1)
-	 ;;This  body  prepends  a   "1"  to  the  mantissa  buffer  and
-	 ;;increments the dot position.   This way it performs the carry
-	 ;;normalisation for the roundings like:
-	 ;;
-	 ;;	"9.9" -> "10.0"
-	 ;;
-	 (format:fn-zfill #t 1)
-	 (string-set! format:fn-str 0 #\1)
-	 (increment! format:fn-dot 1)))
-    (set! carry (+ (- (char->integer (string-ref format:fn-str i))
-		      format:zero-ch)
-		   carry))
-    (string-set! format:fn-str i (integer->char
-				  (if (< carry 10)
-				      (+ carry format:zero-ch)
-				    (+ (- carry 10)
-				       format:zero-ch))))
-    (set! carry (if (< carry 10) 0 1))))
+      ((= i mantissa-length)
+       (increment! mantissa-length (- n)))
+    (mantissa-set! (- i n) (mantissa-ref i))))
 
 ;;Print to the destination the mantissa part of the number.
 ;;
@@ -849,24 +856,24 @@
 ;;If ADD-LEADING-ZERO? is true: a  leading zero is output if the integer
 ;;part of the mantissa is zero ("0.123"), else it is not (".123").
 ;;
-(define (format:fn-out modifier add-leading-zero?)
-  (if format:fn-pos?
+(define (mantissa-out modifier add-leading-zero?)
+  (if mantissa-is-positive
       (when (eq? modifier 'at)
 	(format:out-char #\+))
     (format:out-char #\-))
-  (if (= format:fn-dot 0)
+  (if (= 0 mantissa-dot-index)
       (when add-leading-zero?
 	(format:out-char #\0))
-    (format:out-substr format:fn-str 0 format:fn-dot));integer part
+    (format:out-substr mantissa-buffer 0 mantissa-dot-index));integer part
   (format:out-char #\.)
-  (format:out-substr format:fn-str format:fn-dot format:fn-len));fractional part
+  (format:out-substr mantissa-buffer mantissa-dot-index mantissa-length));fractional part
 
 ;;Print to the destination  the exponent-start character followed by the
 ;;exponent string.
 ;;
 ;;The EDIGITS argument is the requested minimum width of the digits part
 ;;of  the  exponent, exponent-start  char  and  sign  excluded.  If  the
-;;current string in FORMAT:EN-STR is shorter than EDIGITS: padding zeros
+;;current string in EXPONENT-BUFFER is shorter than EDIGITS: padding zeros
 ;;are  output before  the digits.   If EDIGITS  is #f:  the  exponent is
 ;;output without padding.
 ;;
@@ -874,58 +881,127 @@
 ;;#\e  or  #\E,  but  can   be  #f  to  select  FORMAT:EXPCH,  which  is
 ;;configurable at library installation time.
 ;;
-(define (format:en-out edigits expch)
+(define (exponent-out edigits expch)
   (format:out-char (if expch (integer->char expch) format:expch))
-  (format:out-char (if format:en-pos? #\+ #\-))
+  (format:out-char (if exponent-is-positive #\+ #\-))
   (when edigits
-    (when (< format:en-len edigits)
-      (format:out-fill (- edigits format:en-len) #\0)))
-  (format:out-substr format:en-str 0 format:en-len))
+    (when (< exponent-length edigits)
+      (format:out-fill (- edigits exponent-length) #\0)))
+  (format:out-substr exponent-buffer 0 exponent-length))
 
 ;;Strip trailing zeros  but one from the mantissa  buffer.  The mantissa
-;;buffer is "updated" by mutating the value in FORMAT:FN-LEN.  Examples:
+;;buffer  is  "updated"  by   mutating  the  value  in  MANTISSA-LENGTH.
+;;Examples:
 ;;
-;;  (set! format:fn-dot 1)
-;;  (set! format:fn-len 6)
-;;  (set! format:fn-str "123000")
-;;  (format:fn-strip)
-;;  format:fn-len => 4
+;;  (set! mantissa-dot-index 1)
+;;  (set! mantissa-length 6)
+;;  (set! mantissa-buffer "123000")
+;;  (mantissa-strip-tail-zeros)
+;;  mantissa-length => 4
 ;;
-;;  (set! format:fn-dot 4)
-;;  (set! format:fn-len 6)
-;;  (set! format:fn-str "123000")
-;;  (format:fn-strip)
-;;  format:fn-len => 5
+;;  (set! mantissa-dot-index 4)
+;;  (set! mantissa-length 6)
+;;  (set! mantissa-buffer "123000")
+;;  (mantissa-strip-tail-zeros)
+;;  mantissa-length => 5
 ;;
-(define (format:fn-strip)
-  (string-set! format:fn-str format:fn-len #\0)
-  (do ((i format:fn-len (- i 1)))
-      ((or (not (char=? #\0 (string-ref format:fn-str i)))
-	   (<= i format:fn-dot))
-       (set! format:fn-len (+ i 1)))))
+(define (mantissa-strip-tail-zeros)
+  (string-set! mantissa-buffer mantissa-length #\0)
+  (do ((i mantissa-length (- i 1)))
+      ((or (not (char=? #\0 (string-ref mantissa-buffer i)))
+	   (<= i mantissa-dot-index))
+       (set! mantissa-length (+ i 1)))))
 
 ;;Count  leading zeros  in  the  mantissa buffer.  Examples:
 ;;
-;;  (set! format:fn-str "000123")
-;;  (format:fn-count-leading-zeros) => 3
+;;  (set! mantissa-buffer "000123")
+;;  (mantissa-count-leading-zeros) => 3
 ;;
-;;  (set! format:fn-str "0")
-;;  (format:fn-count-leading-zeros) => 0
+;;  (set! mantissa-buffer "0")
+;;  (mantissa-count-leading-zeros) => 0
 ;;
 ;;Return zero if the mantissa is actually zero, that is "0".
-(define (format:fn-count-leading-zeros)
+(define (mantissa-count-leading-zeros)
   (do ((i 0 (+ i 1)))
-      ((or (= i format:fn-len)
-	   (not (char=? #\0 (string-ref format:fn-str i))))
-       (if (= i format:fn-len)
+      ((or (= i mantissa-length)
+	   (not (char=? #\0 (string-ref mantissa-buffer i))))
+       (if (= i mantissa-length)
 	   0
 	 i))))
+
+
+;;;; helpers, rounding floating point numbers
+
+(define (mantissa-round-digits-after-dot number-of-digits)
+
+  ;;Think of the mantissa buffer like this:
+  ;;
+  ;; I = integer digits		F = fractional digits
+  ;; X = rounded digit		T = truncated digits
+  ;;
+  ;;     IIIIIIIIIIIIIIFFFFFFFFFFFXTTTTTTTTTTTTTTTTTTT
+  ;;     ^             ^          ^^
+  ;;     |             |          ||
+  ;; index zero    index of dot   | --- index of first
+  ;;                              |     truncated digit
+  ;;                              |
+  ;;                          index of
+  ;;                          rounded digit
+
+  (define (compute-rounded-digit-with-carry digit first-truncated-digit-idx)
+    (let ((rounded (if (= first-truncated-digit-idx mantissa-length)
+		       digit
+		     (let ((d (mantissa-ref first-truncated-digit-idx)))
+		       (cond ((char>? #\5 d)	digit)
+			     ((char<? #\5 d)	(+ 1 digit))
+			     (else
+			      (let ((j (+ 1 first-truncated-digit-idx)))
+				(if (= j mantissa-length)
+				    (if (even? digit)
+					digit
+				      (+ 1 digit))
+				  (+ 1 digit)))))))))
+      (if (> 10 rounded)
+	  (values rounded #f)
+	(values 0 #t))))
+
+  (define (propagate-carry idx)
+    (let ((carry #t))
+      (do ((i idx (- i 1)))
+	  ((or (not carry) (< i 0))
+	   (when carry
+	     ;;This  body prepends  a  "1" to  the  mantissa buffer  and
+	     ;;increments the  dot position.   This way it  performs the
+	     ;;carry normalisation for the roundings like:
+	     ;;
+	     ;;	"9.9" -> "10.0"
+	     ;;
+	     (mantissa-zfill #t 1)
+	     (mantissa-set! 0 #\1)
+	     (increment! mantissa-dot-index)))
+	(let ((digit (+ 1 (mantissa-digit-ref i))))
+	  (set! carry (>= digit 10))
+	  (mantissa-digit-set! i (if carry (- digit 10) digit))))))
+
+  (when (and (= 0 mantissa-dot-index)
+	     (= 0 number-of-digits))
+    (mantissa-zfill #t 1)
+    (increment! mantissa-dot-index))
+  (let* ((i (+ mantissa-dot-index number-of-digits -1))
+	 (j (+ 1 i)))
+    (unless (= i mantissa-length)
+      (receive (rounded-digit carry)
+	  (compute-rounded-digit-with-carry (mantissa-digit-ref i) j)
+	(mantissa-digit-set! i rounded-digit) ;;store the rounded digit
+	(set! mantissa-length j)	      ;;truncate the tail digits
+	(when carry (propagate-carry (- i 1)))))))
+
 
 
 ;;;; helpers, parsing of floating point numbers
 
 ;;Parse  the floating  point  number string  representation in  NUM-STR,
-;;filling the FORMAT:FN-* and FORMAT:EN-* variables with the result.
+;;filling the MANTISSA-* and EXPONENT-* variables with the result.
 ;;
 ;;The string rep in NUM-STR is expected to be one of the following:
 ;;
@@ -948,11 +1024,11 @@
 ;;is "12." is a valid string rep for "12.0".
 ;;
 (define (format:parse-float num-str fixed? scale)
-  (set! format:fn-pos?	#t)
-  (set! format:fn-len	0)
-  (set! format:fn-dot	#f)
-  (set! format:en-pos?	#t)
-  (set! format:en-len	0)
+  (set! mantissa-length		0)
+  (set! mantissa-is-positive	#t)
+  (set! mantissa-dot-index	#f)
+  (set! exponent-is-positive	#t)
+  (set! exponent-length		0)
 
   (when (string-prefix? "#d" num-str)
     (set! num-str (substring num-str 2 (string-length num-str))))
@@ -981,12 +1057,12 @@
 
     (do ((i 0 (+ i 1)))
 	((= i num-len)
-	 (when (not format:fn-dot)
-	   (set! format:fn-dot format:fn-len))
+	 (when (not mantissa-dot-index)
+	   (set! mantissa-dot-index mantissa-length))
 	 (when all-zeros?
 	   (set! left-zeros    0)
-	   (set! format:fn-dot 0)
-	   (set! format:fn-len 1))
+	   (set! mantissa-dot-index 0)
+	   (set! mantissa-length 1))
 
 	 ;;Now format the parsed values according to FORMAT's need.
 	 (if fixed?
@@ -994,61 +1070,61 @@
 	     (begin
 	       ;;Fixed format "m.nnn" or ".nnn".
 	       (when (and (> left-zeros 0)
-			  (> format:fn-dot 0))
-		 (if (> format:fn-dot left-zeros)
+			  (> mantissa-dot-index 0))
+		 (if (> mantissa-dot-index left-zeros)
 		     (begin ; norm 0{0}nn.mm to nn.mm
-		       (format:fn-shiftleft left-zeros)
-		       (increment! format:fn-dot (- left-zeros))
+		       (mantissa-shift-left left-zeros)
+		       (increment! mantissa-dot-index (- left-zeros))
 		       (set! left-zeros 0))
 		   (begin ; normalize 0{0}.nnn to .nnn
-		     (format:fn-shiftleft format:fn-dot)
-		     (increment! left-zeros (- format:fn-dot))
-		     (set! format:fn-dot 0))))
-	       (when (or (not (= scale 0)) (> format:en-len 0))
-		 (let ((shift (+ scale (format:en-int))))
+		     (mantissa-shift-left mantissa-dot-index)
+		     (increment! left-zeros (- mantissa-dot-index))
+		     (set! mantissa-dot-index 0))))
+	       (when (or (not (= scale 0)) (> exponent-length 0))
+		 (let ((shift (+ scale (exponent-buffer->integer))))
 		   (cond
 		    (all-zeros? #t)
-		    ((> (+ format:fn-dot shift) format:fn-len)
-		     (format:fn-zfill
-		      #f (- shift (- format:fn-len format:fn-dot)))
-		     (set! format:fn-dot format:fn-len))
-		    ((< (+ format:fn-dot shift) 0)
-		     (format:fn-zfill #t (- (- shift) format:fn-dot))
-		     (set! format:fn-dot 0))
+		    ((> (+ mantissa-dot-index shift) mantissa-length)
+		     (mantissa-zfill
+		      #f (- shift (- mantissa-length mantissa-dot-index)))
+		     (set! mantissa-dot-index mantissa-length))
+		    ((< (+ mantissa-dot-index shift) 0)
+		     (mantissa-zfill #t (- (- shift) mantissa-dot-index))
+		     (set! mantissa-dot-index 0))
 		    (else
 		     (if (> left-zeros 0)
 			 (if (<= left-zeros shift) ; shift always > 0 here
-			     (format:fn-shiftleft shift) ; shift out 0s
+			     (mantissa-shift-left shift) ; shift out 0s
 			   (begin
-			     (format:fn-shiftleft left-zeros)
-			     (set! format:fn-dot (- shift left-zeros))))
-		       (set! format:fn-dot (+ format:fn-dot shift))))))))
+			     (mantissa-shift-left left-zeros)
+			     (set! mantissa-dot-index (- shift left-zeros))))
+		       (set! mantissa-dot-index (+ mantissa-dot-index shift))))))))
 
 	   ;;Exponential format "m.nnnEee".
 	   (let ((negexp (if (> left-zeros 0)
-			     (- left-zeros format:fn-dot -1)
-			   (if (= format:fn-dot 0) 1 0))))
+			     (- left-zeros mantissa-dot-index -1)
+			   (if (= mantissa-dot-index 0) 1 0))))
 	     (if (> left-zeros 0)
 		 (begin ; normalize 0{0}.nnn to n.nn
-		   (format:fn-shiftleft left-zeros)
-		   (set! format:fn-dot 1))
-	       (when (= format:fn-dot 0)
-		 (set! format:fn-dot 1)))
-	     (format:en-set (- (+ (- format:fn-dot scale)
-				  (format:en-int))
-			       negexp))
+		   (mantissa-shift-left left-zeros)
+		   (set! mantissa-dot-index 1))
+	       (when (= mantissa-dot-index 0)
+		 (set! mantissa-dot-index 1)))
+	     (integer->exponent-buffer (- (+ (- mantissa-dot-index scale)
+					     (exponent-buffer->integer))
+					  negexp))
 	     (cond
 	      (all-zeros?
-	       (format:en-set 0)
-	       (set! format:fn-dot 1))
+	       (integer->exponent-buffer 0)
+	       (set! mantissa-dot-index 1))
 	      ((< scale 0) ; leading zero
-	       (format:fn-zfill #t (- scale))
-	       (set! format:fn-dot 0))
-	      ((> scale format:fn-dot)
-	       (format:fn-zfill #f (- scale format:fn-dot))
-	       (set! format:fn-dot scale))
+	       (mantissa-zfill #t (- scale))
+	       (set! mantissa-dot-index 0))
+	      ((> scale mantissa-dot-index)
+	       (mantissa-zfill #f (- scale mantissa-dot-index))
+	       (set! mantissa-dot-index scale))
 	      (else
-	       (set! format:fn-dot scale)))))
+	       (set! mantissa-dot-index scale)))))
 	 #t)
 
       ;;DO body.
@@ -1056,9 +1132,9 @@
 	(cond
 
 	 ((char-numeric? ch)
-	  ;;Store the numeric char in the mantissa buffer FORMAT:FN-STR,
-	  ;;or   in  the   exponential  buffer   FORMAT:EN-STR.   Update
-	  ;;FORMAT:FN-LEN or FORMAT:EN-LEN accordingly.
+	  ;;Store the numeric char in the mantissa buffer MANTISSA-BUFFER,
+	  ;;or   in  the   exponential  buffer   EXPONENT-BUFFER.   Update
+	  ;;MANTISSA-LENGTH or EXPONENT-LENGTH accordingly.
 	  (if mantissa?
 	      (begin
 		(set! mantissa-started? #t)
@@ -1066,12 +1142,12 @@
 		    (when all-zeros?
 		      (increment! left-zeros 1))
 		  (set! all-zeros? #f))
-		(string-set! format:fn-str format:fn-len ch)
-		(increment! format:fn-len 1))
+		(string-set! mantissa-buffer mantissa-length ch)
+		(increment! mantissa-length 1))
 	    (begin
 	      (set! exponent-started? #t)
-	      (string-set! format:en-str format:en-len ch)
-	      (increment! format:en-len 1))))
+	      (string-set! exponent-buffer exponent-length ch)
+	      (increment! exponent-length 1))))
 
 	 ((or (char=? ch #\-) (char=? ch #\+))
 	  ;;Record the sign of the mantissa or exponent.  Raise an error
@@ -1081,21 +1157,21 @@
 	      (if mantissa-started?
 		  (error 'format:parse-float error-message num-str)
 		(begin
-		  (set! format:fn-pos? (char=? ch #\+))
+		  (set! mantissa-is-positive (char=? ch #\+))
 		  (set! mantissa-started? #t)))
 	    (if exponent-started?
 		(error 'format:parse-float error-message num-str)
 	      (begin
-		(set! format:en-pos? (char=? ch #\+))
+		(set! exponent-is-positive (char=? ch #\+))
 		(set! exponent-started? #t)))))
 
 	 ((char=? ch #\.)
 	  ;;Record the  index of  the first digit  after the dot  in the
 	  ;;mantissa buffer.  Raise  an error if the dot  is found twice
 	  ;;or if we are not parsing the mantissa.
-	  (when (or format:fn-dot (not mantissa?))
+	  (when (or mantissa-dot-index (not mantissa?))
 	    (error 'format:parse-float error-message num-str))
-	  (set! format:fn-dot format:fn-len))
+	  (set! mantissa-dot-index mantissa-length))
 
 	 ((or (char=? ch #\e) (char=? ch #\E))
 	  ;;Record the end of mantissa  and start of exponent.  Raise an
@@ -1115,7 +1191,7 @@
 ;;implementation of the "~f" escape sequence.
 (define (format:out-fixed modifier number parameters)
   (when (not (or (and (number? number)
-		      (real? number))
+		      (real?   number))
 		 (string? number)))
     (error 'format:out-fixed
       "argument is not a real number or a number string"
@@ -1126,65 +1202,84 @@
 	  (digits	(format:par parameters l 1 #f "digits"))
 	  (scale	(format:par parameters l 2 0  #f))
 	  (overch	(format:par parameters l 3 #f #f))
-	  (padch	(format:par parameters l 4 format:space-ch #f)))
+	  (padch	(format:par parameters l 4 space-char-integer #f)))
 
-      (cond
+      (let ((number-string (if (string? number)
+			       number
+			     (number->string (inexact number)))))
 
-       ((and (not (string? number))
-	     (or (infinite? number) (nan? number)))
-	(format:out-inf-nan number width digits #f overch padch))
+	(cond
+	 ((member number-string '("+inf.0" "-inf.0" "+nan.0" "-nan.0"))
+	  (format:out-inf-nan number-string width digits #f overch padch))
 
-       (digits
-	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "format:fn-*".
-	(format:parse-float (if (string? number)
-				number
-			      (number->string (inexact number)))
-			    #t scale)
-	(if (<= (- format:fn-len format:fn-dot) digits)
-	    (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
-	  (format:fn-round digits))
-	(if width
-	    (let ((numlen (+ format:fn-len 1)))
-	      (when (or (not format:fn-pos?) (eq? modifier 'at))
-		(increment! numlen 1))
-	      (when (and (= format:fn-dot 0) (> width (+ digits 1)))
-		(increment! numlen 1))
-	      (when (< numlen width)
-		(format:out-fill (- width numlen) (integer->char padch)))
-	      (if (and overch (> numlen width))
+	 (digits
+	  ;;The  call to FORMAT:PARSE-FLOAT  updated the  internal state
+	  ;;variables "mantissa-*" and "exponent-*".
+	  (format:parse-float number-string #t scale)
+
+	  ;;A number of  digits after the dot is  requested: add them if
+	  ;;missing or round and truncate digits if too many.
+	  (if (<= (- mantissa-length mantissa-dot-index) digits)
+	      (mantissa-zfill #f (- digits (- mantissa-length mantissa-dot-index)))
+	    (mantissa-round-digits-after-dot digits))
+
+	  (if (not width)
+	      (mantissa-out modifier #t)
+	    ;;An output  width is requested.   We compute the  number of
+	    ;;characters required to  output the mantissa, starting with
+	    ;;digits in the buffer plus the dot char.
+	    (let  ((output-len	(+ mantissa-length 1))
+		   (prepend-zero	(> width (+ digits 1))))
+	      ;;Plus or minus sign.
+	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
+		(increment! output-len))
+	      ;;If mantissa's integer part is zero and it does not cause
+	      ;;a  width overflow:  prepend  a "0."   to the  fractional
+	      ;;part, else prepend only the dot.
+	      (when (and (= mantissa-dot-index 0) prepend-zero)
+		(increment! output-len))
+	      ;;Output pad characters before the number.
+	      (when (< output-len width)
+		(format:out-fill (- width output-len) (integer->char padch)))
+	      ;;Output the number or the overflow chars.
+	      (if (and overch (> output-len width))
 		  (format:out-fill width (integer->char overch))
-		(format:fn-out modifier (> width (+ digits 1)))))
-	  (format:fn-out modifier #t)))
+		(mantissa-out modifier prepend-zero)))))
 
-       (else
-	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "format:fn-*".
-	(format:parse-float (if (string? number)
-				number
-			      (number->string (inexact number)))
-			    #t scale)
-	(format:fn-strip)
-	(if width
-	    (let ((numlen (+ format:fn-len 1)))
-	      (when (or (not format:fn-pos?) (eq? modifier 'at))
-		(set! numlen (+ numlen 1)))
-	      (when (= format:fn-dot 0)
-		(set! numlen (+ numlen 1)))
-	      (when (< numlen width)
-		(format:out-fill (- width numlen) (integer->char padch)))
-	      (if (> numlen width) ; adjust precision if possible
-		  (let ((dot-index (- numlen
-				      (- format:fn-len format:fn-dot))))
-		    (if (> dot-index width)
-			(if overch ; numstr too big for required width
-			    (format:out-fill width (integer->char overch))
-			  (format:fn-out modifier #t))
-		      (begin
-			(format:fn-round (- width dot-index))
-			(format:fn-out modifier #t))))
-		(format:fn-out modifier #t)))
-	  (format:fn-out modifier #t)))))))
+	 (else
+	  ;;The call to  FORMAT:PARSE-FLOAT updates the internal state
+	  ;;variables "mantissa-*" and "exponent-*".
+	  (format:parse-float number-string #t scale)
+	  (mantissa-strip-tail-zeros)
+	  (if (not width)
+	      (mantissa-out modifier #t)
+	    ;;An output  width is requested.   We compute the  number of
+	    ;;characters required to  output the mantissa, starting with
+	    ;;digits in the buffer plus the dot char.
+	    (let ((output-len (+ mantissa-length 1)))
+	      ;;Plus or minus sign.
+	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
+		(increment! output-len))
+	      ;;If mantissa's  integer part is  zero prepend a  "0."  to
+	      ;;the fractional part.
+	      (when (= mantissa-dot-index 0)
+		(increment! output-len))
+	      ;;Output pad characters before the number.
+	      (when (< output-len width)
+		(format:out-fill (- width output-len) (integer->char padch)))
+	      ;;Adjust precision if possible.   Beware that we can still
+	      ;;be forced to output the overflow characters.
+	      (if (<= output-len width)
+		  (mantissa-out modifier #t)
+		(let ((dot-index (- output-len
+				    (- mantissa-length mantissa-dot-index))))
+		  (if (> dot-index width)
+		      (if overch ; numstr too big for required width
+			  (format:out-fill width (integer->char overch))
+			(mantissa-out modifier #t))
+		    (begin
+		      (mantissa-round-digits-after-dot (- width dot-index))
+		      (mantissa-out modifier #t)))))))))))))
 
 
 ;;;; helpers, floating point numbers: exponential format
@@ -1205,7 +1300,7 @@
 	  (edigits	(format:par parameters l 2 #f "exponent digits"))
 	  (scale	(format:par parameters l 3 1  #f))
 	  (overch	(format:par parameters l 4 #f #f))
-	  (padch	(format:par parameters l 5 format:space-ch #f))
+	  (padch	(format:par parameters l 5 space-char-integer #f))
 	  (expch	(format:par parameters l 6 #f #f)))
 
       (cond
@@ -1222,80 +1317,80 @@
 			    0)
 			digits)))
 	  ;;The  call to FORMAT:PARSE-FLOAT  updates the  internal state
-	  ;;variables "format:fn-*".
+	  ;;variables "mantissa-*".
 	  (format:parse-float (if (string? number)
 				  number
 				(number->string number))
 			      #f scale)
-	  (if (<= (- format:fn-len format:fn-dot) digits)
-	      (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
-	    (format:fn-round digits))
+	  (if (<= (- mantissa-length mantissa-dot-index) digits)
+	      (mantissa-zfill #f (- digits (- mantissa-length mantissa-dot-index)))
+	    (mantissa-round-digits-after-dot digits))
 	  (if width
-	      (if (and edigits overch (> format:en-len edigits))
+	      (if (and edigits overch (> exponent-length edigits))
 		  (format:out-fill width (integer->char overch))
-		(let ((numlen (+ format:fn-len 3))) ; .E+
-		  (when (or (not format:fn-pos?) (eq? modifier 'at))
+		(let ((numlen (+ mantissa-length 3))) ; .E+
+		  (when (or (not mantissa-is-positive) (eq? modifier 'at))
 		    (set! numlen (+ numlen 1)))
-		  (when (and (= format:fn-dot 0) (> width (+ digits 1)))
+		  (when (and (= mantissa-dot-index 0) (> width (+ digits 1)))
 		    (set! numlen (+ numlen 1)))
 		  (set! numlen
 			(+ numlen
-			   (if (and edigits (>= edigits format:en-len))
+			   (if (and edigits (>= edigits exponent-length))
 			       edigits
-			     format:en-len)))
+			     exponent-length)))
 		  (when (< numlen width)
 		    (format:out-fill (- width numlen) (integer->char padch)))
 		  (if (and overch (> numlen width))
 		      (format:out-fill width (integer->char overch))
 		    (begin
-		      (format:fn-out modifier (> width (- numlen 1)))
-		      (format:en-out edigits expch)))))
+		      (mantissa-out modifier (> width (- numlen 1)))
+		      (exponent-out edigits expch)))))
 	    (begin
-	      (format:fn-out modifier #t)
-	      (format:en-out edigits expch)))))
+	      (mantissa-out modifier #t)
+	      (exponent-out edigits expch)))))
 
        (else
 	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "format:fn-*".
+	;;variables "mantissa-*".
 	(format:parse-float (if (string? number)
 				number
 			      (number->string number))
 			    #f scale)
-	(format:fn-strip)
+	(mantissa-strip-tail-zeros)
 	(if width
-	    (if (and edigits overch (> format:en-len edigits))
+	    (if (and edigits overch (> exponent-length edigits))
 		(format:out-fill width (integer->char overch))
-	      (let ((numlen (+ format:fn-len 3))) ; .E+
-		(when (or (not format:fn-pos?) (eq? modifier 'at))
+	      (let ((numlen (+ mantissa-length 3))) ; .E+
+		(when (or (not mantissa-is-positive) (eq? modifier 'at))
 		  (increment! numlen 1))
-		(when (= format:fn-dot 0)
+		(when (= mantissa-dot-index 0)
 		  (increment! numlen 1))
 		(set! numlen
 		      (+ numlen
-			 (if (and edigits (>= edigits format:en-len))
+			 (if (and edigits (>= edigits exponent-length))
 			     edigits
-			   format:en-len)))
+			   exponent-length)))
 		(when (< numlen width)
 		  (format:out-fill (- width numlen) (integer->char padch)))
 		(if (> numlen width) ; adjust precision if possible
-		    (let ((f (- format:fn-len format:fn-dot))) ; fract len
+		    (let ((f (- mantissa-length mantissa-dot-index))) ; fract len
 		      (if (> (- numlen f) width)
 			  (if overch ; numstr too big for required width
 			      (format:out-fill width
 					       (integer->char overch))
 			    (begin
-			      (format:fn-out modifier #t)
-			      (format:en-out edigits expch)))
+			      (mantissa-out modifier #t)
+			      (exponent-out edigits expch)))
 			(begin
-			  (format:fn-round (+ (- f numlen) width))
-			  (format:fn-out modifier #t)
-			  (format:en-out edigits expch))))
+			  (mantissa-round-digits-after-dot (+ (- f numlen) width))
+			  (mantissa-out modifier #t)
+			  (exponent-out edigits expch))))
 		  (begin
-		    (format:fn-out modifier #t)
-		    (format:en-out edigits expch)))))
+		    (mantissa-out modifier #t)
+		    (exponent-out edigits expch)))))
 	  (begin
-	    (format:fn-out modifier #t)
-	    (format:en-out edigits expch))))))))
+	    (mantissa-out modifier #t)
+	    (exponent-out edigits expch))))))))
 
 
 
@@ -1326,22 +1421,22 @@
 
        (else
 	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "format:fn-*".
+	;;variables "mantissa-*".
 	(format:parse-float (if (string? number)
 				number
 			      (number->string number))
 			    #t 0)
-	(format:fn-strip)
+	(mantissa-strip-tail-zeros)
 	;;For  the following algorithm  see Steele's  CL book  page 395.
 	;;NUMBER less than (abs 1.0) ?
 	(let* ((ee	(if edigits (+ edigits 2) 4))
 	       (ww	(if width (- width ee) #f))
-	       (n	(if (= format:fn-dot 0)
-			    (- (format:fn-count-leading-zeros))
-			  format:fn-dot))
+	       (n	(if (= mantissa-dot-index 0)
+			    (- (mantissa-count-leading-zeros))
+			  mantissa-dot-index))
 	       (d	(if digits
 			    digits
-			  (max format:fn-len (min n 7)))) ; q = format:fn-len
+			  (max mantissa-length (min n 7)))) ; q = mantissa-length
 	       (dd	(- d n)))
 	  (if (<= 0 dd d)
 	      (begin
@@ -1365,7 +1460,7 @@
     (let ((digits	(format:par parameters l 0 2 "digits"))
 	  (mindig	(format:par parameters l 1 1 "mindig"))
 	  (width	(format:par parameters l 2 0 "width"))
-	  (padch	(format:par parameters l 3 format:space-ch #f)))
+	  (padch	(format:par parameters l 3 space-char-integer #f)))
 
       (cond
        ((or (infinite? number) (nan? number))
@@ -1373,47 +1468,47 @@
 
        (else
 	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "format:fn-*".
+	;;variables "mantissa-*".
 	(format:parse-float (if (string? number)
 				number
 			      (number->string number))
 			    #t 0)
-	(if (<= (- format:fn-len format:fn-dot) digits)
-	    (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
-	  (format:fn-round digits))
-	(let ((numlen (+ format:fn-len 1)))
-	  (when (or (not format:fn-pos?) (memq modifier '(at colon-at)))
+	(if (<= (- mantissa-length mantissa-dot-index) digits)
+	    (mantissa-zfill #f (- digits (- mantissa-length mantissa-dot-index)))
+	  (mantissa-round-digits-after-dot digits))
+	(let ((numlen (+ mantissa-length 1)))
+	  (when (or (not mantissa-is-positive) (memq modifier '(at colon-at)))
 	    (increment! numlen 1))
-	  (when (and mindig (> mindig format:fn-dot))
-	    (increment! numlen (- mindig format:fn-dot)))
-	  (when (and (= format:fn-dot 0) (not mindig))
+	  (when (and mindig (> mindig mantissa-dot-index))
+	    (increment! numlen (- mindig mantissa-dot-index)))
+	  (when (and (= mantissa-dot-index 0) (not mindig))
 	    (increment! numlen 1))
 	  (if (< numlen width)
 	      (case modifier
 		((colon)
-		 (if (not format:fn-pos?)
+		 (if (not mantissa-is-positive)
 		     (format:out-char #\-))
 		 (format:out-fill (- width numlen) (integer->char padch)))
 		((at)
 		 (format:out-fill (- width numlen) (integer->char padch))
-		 (format:out-char (if format:fn-pos? #\+ #\-)))
+		 (format:out-char (if mantissa-is-positive #\+ #\-)))
 		((colon-at)
-		 (format:out-char (if format:fn-pos? #\+ #\-))
+		 (format:out-char (if mantissa-is-positive #\+ #\-))
 		 (format:out-fill (- width numlen) (integer->char padch)))
 		(else
 		 (format:out-fill (- width numlen) (integer->char padch))
-		 (if (not format:fn-pos?)
+		 (if (not mantissa-is-positive)
 		     (format:out-char #\-))))
-	    (if format:fn-pos?
+	    (if mantissa-is-positive
 		(if (memq modifier '(at colon-at)) (format:out-char #\+))
 	      (format:out-char #\-))))
-	(when (and mindig (> mindig format:fn-dot))
-	  (format:out-fill (- mindig format:fn-dot) #\0))
-	(when (and (= format:fn-dot 0) (not mindig))
+	(when (and mindig (> mindig mantissa-dot-index))
+	  (format:out-fill (- mindig mantissa-dot-index) #\0))
+	(when (and (= mantissa-dot-index 0) (not mindig))
 	  (format:out-char #\0))
-	(format:out-substr format:fn-str 0 format:fn-dot)
+	(format:out-substr mantissa-buffer 0 mantissa-dot-index)
 	(format:out-char #\.)
-	(format:out-substr format:fn-str format:fn-dot format:fn-len))))))
+	(format:out-substr mantissa-buffer mantissa-dot-index mantissa-length))))))
 
 
 
@@ -1424,7 +1519,7 @@
     (let ((colnum	(format:par parameters l 0 1 "colnum"))
 	  (padinc	(format:par parameters l 1 1 "padinc"))
 	  (padch	(integer->char
-			 (format:par parameters l 2 format:space-ch #f))))
+			 (format:par parameters l 2 space-char-integer #f))))
       (case modifier
 	((colon colon-at)
 	 (error 'format:tabulate
@@ -2054,8 +2149,8 @@
 
 ;;;; body of FORMAT
 
-(set! format:fn-str (make-string format:fn-max)) ; number buffer
-(set! format:en-str (make-string format:en-max)) ; exponent buffer
+(set! mantissa-buffer	(make-string mantissa-max-length))
+(set! exponent-buffer	(make-string exponent-max-length))
 
 (format:dispatch-to-destination-port args)
 

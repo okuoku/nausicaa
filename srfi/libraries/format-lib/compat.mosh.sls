@@ -27,6 +27,7 @@
 
 (library (format-lib compat)
   (export pretty-print)
-  (import (only (mosh pp) pretty-print)))
+  (import (only (mosh pp)
+		pretty-print)))
 
 ;;; end of file

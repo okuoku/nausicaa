@@ -46,8 +46,8 @@
 
 ;;; --------------------------------------------------------------------
 
-(define format:zero-ch		(char->integer #\0))
-(define format:fn-max		400)
+(define zero-char-integer	(char->integer #\0))
+(define mantissa-max-length	400)
 (define mantissa-buffer		#f)
 (define mantissa-length		#f)
 (define mantissa-dot-index	#f)
@@ -58,22 +58,6 @@
      (set! ?varname (+ ?varname ?step)))
     ((_ ?varname)
      (set! ?varname (+ ?varname 1)))))
-
-(define (format:fn-zfill left? n)
-  (when (> (+ n mantissa-length) format:fn-max) ; from the left or right
-    (error 'format:fn-zfill
-      "number is too long to format (enlarge format:fn-max)"))
-  (increment! mantissa-length n)
-  (if left?
-      (do ((i mantissa-length (- i 1))) ; fill n 0s to left
-	  ((< i 0))
-	(string-set! mantissa-buffer i
-		     (if (< i n)
-			 #\0
-		       (string-ref mantissa-buffer (- i n)))))
-    (do ((i (- mantissa-length n) (+ i 1))) ; fill n 0s to the right
-	((= i mantissa-length))
-      (string-set! mantissa-buffer i #\0))))
 
 ;;; --------------------------------------------------------------------
 
@@ -90,12 +74,30 @@
 (define-syntax mantissa-digit-set!
   (syntax-rules ()
     ((_ ?idx ?digit)
-     (mantissa-set! ?idx (integer->char (+ ?digit format:zero-ch))))))
+     (mantissa-set! ?idx (integer->char (+ ?digit zero-char-integer))))))
 
 (define-syntax mantissa-digit-ref
   (syntax-rules ()
     ((_ ?idx)
-     (- (char->integer (mantissa-ref ?idx)) format:zero-ch))))
+     (- (char->integer (mantissa-ref ?idx)) zero-char-integer))))
+
+;;; --------------------------------------------------------------------
+
+(define (mantissa-zfill left? n)
+  (when (> (+ n mantissa-length) mantissa-max-length) ; from the left or right
+    (error 'mantissa-zfill
+      "number is too long to format (enlarge mantissa-max-length)"))
+  (increment! mantissa-length n)
+  (if left?
+      (do ((i mantissa-length (- i 1))) ; fill n 0s to left
+	  ((< i 0))
+	(mantissa-set! i (if (< i n)
+			     #\0
+			   (mantissa-ref (- i n)))))
+    (do ((i (- mantissa-length n) (+ i 1))) ; fill n 0s to the right
+	((= i mantissa-length))
+      (mantissa-set! i #\0))))
+
 
 
 
@@ -116,19 +118,18 @@
   ;;                          rounded digit
 
   (define (compute-rounded-digit-with-carry digit first-truncated-digit-idx)
-    (let ((rounded
-	   ;;Scan the truncated digits  in the mantissa buffer, stopping
-	   ;;at the  first above or  below "#\5".  If all  the truncated
-	   ;;digits are equal to 5: apply the rounding to even.
-	   (let loop ((i first-truncated-digit-idx))
-	     (if (= i mantissa-length)
-		 (if (even? digit)
-		     digit
-		   (+ 1 digit))
-	       (let ((d (mantissa-ref i)))
-		 (cond ((char>? #\5 d)	digit)
-		       ((char<? #\5 d)	(+ 1 digit))
-		       (else		(loop (+ 1 i)))))))))
+    (let ((rounded (if (= first-truncated-digit-idx mantissa-length)
+		       digit
+		     (let ((d (mantissa-ref first-truncated-digit-idx)))
+		       (cond ((char>? #\5 d)	digit)
+			     ((char<? #\5 d)	(+ 1 digit))
+			     (else
+			      (let ((j (+ 1 first-truncated-digit-idx)))
+				(if (= j mantissa-length)
+				    (if (even? digit)
+					digit
+				      (+ 1 digit))
+				  (+ 1 digit)))))))))
       (if (> 10 rounded)
 	  (values rounded #f)
 	(values 0 #t))))
@@ -144,13 +145,17 @@
 	     ;;
 	     ;;	"9.9" -> "10.0"
 	     ;;
-	     (format:fn-zfill #t 1)
+	     (mantissa-zfill #t 1)
 	     (mantissa-set! 0 #\1)
 	     (increment! mantissa-dot-index)))
 	(let ((digit (+ 1 (mantissa-digit-ref i))))
 	  (set! carry (>= digit 10))
 	  (mantissa-digit-set! i (if carry (- digit 10) digit))))))
 
+  (when (and (= 0 mantissa-dot-index)
+	     (= 0 number-of-digits))
+    (mantissa-zfill #t 1)
+    (increment! mantissa-dot-index))
   (let* ((i (+ mantissa-dot-index number-of-digits -1))
 	 (j (+ 1 i)))
     (unless (= i mantissa-length)
@@ -159,6 +164,8 @@
 	(mantissa-digit-set! i rounded-digit) ;;store the rounded digit
 	(set! mantissa-length j)	      ;;truncate the tail digits
 	(when carry (propagate-carry (- i 1)))))))
+
+
 
 
 
@@ -333,23 +340,27 @@
 
 ;;;; rounding to even
 
-(check (round-digits-after-dot "120555xxx" 6 2 1) => '("120" 3 2))
-(check (round-digits-after-dot "121555xxx" 6 2 1) => '("122" 3 2))
-(check (round-digits-after-dot "122555xxx" 6 2 1) => '("122" 3 2))
-(check (round-digits-after-dot "123555xxx" 6 2 1) => '("124" 3 2))
-(check (round-digits-after-dot "124555xxx" 6 2 1) => '("124" 3 2))
-(check (round-digits-after-dot "125555xxx" 6 2 1) => '("126" 3 2))
-(check (round-digits-after-dot "126555xxx" 6 2 1) => '("126" 3 2))
-(check (round-digits-after-dot "127555xxx" 6 2 1) => '("128" 3 2))
-(check (round-digits-after-dot "128555xxx" 6 2 1) => '("128" 3 2))
+(check (round-digits-after-dot "1205xxx" 4 2 1) => '("120" 3 2))
+(check (round-digits-after-dot "1215xxx" 4 2 1) => '("122" 3 2))
+(check (round-digits-after-dot "1225xxx" 4 2 1) => '("122" 3 2))
+(check (round-digits-after-dot "1235xxx" 4 2 1) => '("124" 3 2))
+(check (round-digits-after-dot "1245xxx" 4 2 1) => '("124" 3 2))
+(check (round-digits-after-dot "1255xxx" 4 2 1) => '("126" 3 2))
+(check (round-digits-after-dot "1265xxx" 4 2 1) => '("126" 3 2))
+(check (round-digits-after-dot "1275xxx" 4 2 1) => '("128" 3 2))
+(check (round-digits-after-dot "1285xxx" 4 2 1) => '("128" 3 2))
+
+(check (round-digits-after-dot "9985xxx" 4 2 1) => '("998"  3 2))
 
 ;;; --------------------------------------------------------------------
 ;;; rounding with carry
 
-(check (round-digits-after-dot "129555xxx" 6 2 1) => '("130"  3 2))
-(check (round-digits-after-dot "199555xxx" 6 2 1) => '("200"  3 2))
-(check (round-digits-after-dot "299555xxx" 6 2 1) => '("300"  3 2))
-(check (round-digits-after-dot "999555xxx" 6 2 1) => '("1000" 4 3))
+(check (round-digits-after-dot "1295xxx" 4 2 1) => '("130"  3 2))
+(check (round-digits-after-dot "1995xxx" 4 2 1) => '("200"  3 2))
+(check (round-digits-after-dot "2995xxx" 4 2 1) => '("300"  3 2))
+(check (round-digits-after-dot "99955xx" 5 2 1) => '("1000" 4 3))
+(check (round-digits-after-dot "9995xxx" 4 2 1) => '("1000" 4 3))
+(check (round-digits-after-dot "99953xx" 5 2 1) => '("1000" 4 3))
 
 
 

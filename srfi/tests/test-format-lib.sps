@@ -832,6 +832,24 @@
 (check (format "~,0f" 8.5) => "8.")
 (check (format "~,0f" 9.5) => "10.")
 
+(check (format "~,0f" 0.0)  => "0.")
+(check (format "~,0f" 0.3)  => "0.")
+(check (format "~,0f" 0.51) => "1.")
+(check (format "~,0f" 0.7)  => "1.")
+
+;;Remember that the  dot and fractional part are  truncated only if this
+;;makes  the output  fit the  requested WIDTH,  else they  are  kept and
+;;rounded only if a number of digits after the dot was requested.
+(check (format "~1,0f" 0.0)  => "0.")
+(check (format "~1,0f" 1.4)  => "1.")
+(check (format "~1,0f" 1.5)  => "2.")
+(check (format "~1,0f" 1.6)  => "2.")
+
+(check (format "~1f"   0.123) => "0.123")
+(check (format "~1,2f" 0.123) => ".12")
+(check (format "~1,2f" 1.123) => "1.12")
+(check (format "~2,2f" 0.123) => ".12")
+
 
 
 ;;;; complex numbers

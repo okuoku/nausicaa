@@ -464,7 +464,7 @@ lfasl: fasl-builddir fasl-copy fasl-larceny-clean fasl-larceny-compile
 ## ------------------------------------------------------------
 
 #fasl_mosh_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.mosh.sps
-#fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR):$(MOSH_LIBRARY_PATH)
+#fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR):$(MOSH_LOADPATH)
 #fasl_mosh_COMPILE_COMMAND	= $(MOSH) --compile-dependencies
 #fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV) $(fasl_mosh_COMPILE_COMMAND) $(fasl_mosh_COMPILE_SCRIPT)
 
