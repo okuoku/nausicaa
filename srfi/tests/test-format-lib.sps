@@ -450,6 +450,14 @@
   => "123.0")
 
 (check
+    (format "~f" 0.0)
+  => "0.0")
+
+(check
+    (format "~f" 0e-3)
+  => "0.0")
+
+(check
     (format "~f" 123.0)
   => "123.0")
 
@@ -547,6 +555,38 @@
 (check
     (format "~f" "+1.23")
   => "1.23")
+
+(check
+    (format "~f" "0.0")
+  => "0.0")
+
+(check
+    (format "~f" "00000000.00000000000")
+  => "0.0")
+
+(check
+    (format "~f" "0.")
+  => "0.0")
+
+(check
+    (format "~f" ".0")
+  => "0.0")
+
+(check
+    (format "~f" "0e-3")
+  => "0.0")
+
+(check
+    (format "~f" "000.000e-3")
+  => "0.0")
+
+(check
+    (format "~f" ".0000123456e2")
+  => "0.00123456")
+
+(check
+    (format "~f" ".00123456789e4")
+  => "12.3456789")
 
 (check
     (guard (exc (else 'error))

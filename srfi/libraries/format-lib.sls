@@ -835,8 +835,9 @@
      (mantissa-zfill #f ?number-of-zeros))))
 
 ;;Shift  left  current  by  N  positions  the  mantissa  buffer,  update
-;;MANTISSA-LENGTH accordingly.   It is used  to remove leading  zeros from
-;;the mantissa buffer:
+;;MANTISSA-LENGTH accordingly but not MANTISSA-DOT-INDEX.
+;;
+;;It is used to remove leading zeros from the mantissa buffer:
 ;;
 ;;  "000123" -> "123"
 ;;
@@ -1077,88 +1078,17 @@
 	;;otherwise.  It is used to detect a true zero like "0.0000".
 	(all-zeros?		#t)
 
-	;;The number of zeros at the beginning of the mantissa buffer.
+	;;The number of  zeros at the beginning of  the mantissa buffer.
+	;;For this value it does not matter where the dot index is.
 	(left-zeros		0)
 
 	(number-len		(string-length number-string))
 
 	(error-message		"invalid character in number string representation"))
 
+    ;;This cycle parses the NUMBER-STRING.
     (do ((i 0 (+ i 1)))
-	((= i number-len)
-	 (when (not mantissa-dot-index)
-	   (set! mantissa-dot-index mantissa-length))
-	 (when all-zeros?
-	   (set! left-zeros		0)
-	   (set! mantissa-dot-index	0)
-	   (set! mantissa-length	1))
-
-	 (case normalisation-format
-
-	   ((fixed-point)
-	    (when (and (> left-zeros 0)
-		       (> mantissa-dot-index 0))
-	      (if (> mantissa-dot-index left-zeros)
-		  (begin ; norm 0{0}nn.mm to nn.mm
-		    (mantissa-shift-left left-zeros)
-		    (increment! mantissa-dot-index (- left-zeros))
-		    (set! left-zeros 0))
-		(begin ; normalize 0{0}.nnn to .nnn
-		  (mantissa-shift-left mantissa-dot-index)
-		  (increment! left-zeros (- mantissa-dot-index))
-		  (set! mantissa-dot-index 0))))
-	    (when (or (not (= scale 0)) (> exponent-length 0))
-	      (let ((shift (+ scale (exponent-buffer->integer))))
-		(cond
-		 (all-zeros? #t)
-		 ((> (+ mantissa-dot-index shift) mantissa-length)
-		  (mantissa-zfill
-		   #f (- shift (- mantissa-length mantissa-dot-index)))
-		  (set! mantissa-dot-index mantissa-length))
-		 ((< (+ mantissa-dot-index shift) 0)
-		  (mantissa-prepend-zeros (- (- shift) mantissa-dot-index))
-		  (set! mantissa-dot-index 0))
-		 (else
-		  (if (> left-zeros 0)
-		      (if (<= left-zeros shift) ; shift always > 0 here
-			  (mantissa-shift-left shift) ; shift out 0s
-			(begin
-			  (mantissa-shift-left left-zeros)
-			  (set! mantissa-dot-index (- shift left-zeros))))
-		    (set! mantissa-dot-index (+ mantissa-dot-index shift))))))))
-
-	   ((exponential)
-	    (let ((negexp (if (> left-zeros 0)
-			      (- left-zeros mantissa-dot-index -1)
-			    (if (= mantissa-dot-index 0) 1 0))))
-	      (if (> left-zeros 0)
-		  (begin ; normalize 0{0}.nnn to n.nn
-		    (mantissa-shift-left left-zeros)
-		    (set! mantissa-dot-index 1))
-		(when (= mantissa-dot-index 0)
-		  (set! mantissa-dot-index 1)))
-	      (integer->exponent-buffer (- (+ (- mantissa-dot-index scale)
-					      (exponent-buffer->integer))
-					   negexp))
-	      (cond
-	       (all-zeros?
-		(integer->exponent-buffer 0)
-		(set! mantissa-dot-index 1))
-	       ((< scale 0) ; leading zero
-		(mantissa-prepend-zeros (- scale))
-		(set! mantissa-dot-index 0))
-	       ((> scale mantissa-dot-index)
-		(mantissa-append-zeros (- scale mantissa-dot-index))
-		(set! mantissa-dot-index scale))
-	       (else
-		(set! mantissa-dot-index scale)))))
-
-	   (else
-	    (error 'format:parse-float
-	      "internal error, unknown flonum normalisation format"
-	      normalisation-format))))
-
-      ;;DO body.
+	((= i number-len))
       (let ((ch (string-ref number-string i)))
 	(cond
 
@@ -1213,7 +1143,178 @@
 	  (set! mantissa? #f))
 
 	 (else
-	  (error 'format:parse-float error-message ch)))))))
+	  (error 'format:parse-float error-message ch)))))
+
+    ;;Normalisation: if no dot in the input string, we put the dot index
+    ;;at the end of the buffer.
+    (when (not mantissa-dot-index)
+      (set! mantissa-dot-index mantissa-length))
+
+    ;;Normalisation: this  is when  all the digits  in the  mantissa are
+    ;;zero,  we normalise  the values  so that  the mantissa  is  just a
+    ;;single zero.
+    (when all-zeros?
+      (set! left-zeros		0)
+      (set! mantissa-dot-index	0)
+      (set! mantissa-length	1))
+
+    ;;Parsing of NUMBER-STRING is finished.
+
+    ;;Now we normalise the buffers according to the requested format.
+    (case normalisation-format
+
+      ((fixed-point)
+
+       ;;Remove the leading zeros in the mantissa.  Examples:
+       (when (and (> left-zeros 0)
+		  (> mantissa-dot-index 0))
+	 (cond ((> mantissa-dot-index left-zeros)
+		;;Normalise buffers like:
+		;;
+		;;  "0000123.45" -> "123.45"
+		;;
+		(mantissa-shift-left left-zeros)
+		(increment! mantissa-dot-index (- left-zeros))
+		(set! left-zeros 0))
+	       (else
+		;;Normalise buffers like:
+		;;
+		;;  "000.000123" -> ".000123"
+		;;
+		(mantissa-shift-left mantissa-dot-index)
+		(increment! left-zeros (- mantissa-dot-index))
+		(set! mantissa-dot-index 0))))
+
+       ;;Normalise buffers to have zero exponent.
+       (unless (and (= 0 scale) (= 0 exponent-length) (not all-zeros?))
+	 ;;SHIFT is  the number  of positions we  have to shift  the dot
+	 ;;index to have zero exponent.  It may happen that shifting the
+	 ;;dot index moves it outside the mantissa buffer, in which case
+	 ;;we have to append or prepend zeros.
+	 (let* ((shift			(+ scale (exponent-buffer->integer)))
+		(shifted-dot-index	(+ mantissa-dot-index shift)))
+	   (cond
+	    ;;This is for cases like:
+	    ;;
+	    ;;  shift           = 5
+	    ;;  mantissa-buffer = "123456"
+	    ;;                        ^
+	    ;;                  dot index = 3
+	    ;;
+	    ;;which must be normalised to:
+	    ;;
+	    ;;  mantissa-buffer = "12345600"
+	    ;;                             ^
+	    ;;                       dot index = 8
+	    ;;
+	    ((< mantissa-length shifted-dot-index)
+	     (mantissa-append-zeros (- shift (- mantissa-length mantissa-dot-index)))
+	     (set! mantissa-dot-index mantissa-length))
+
+	    ;;This is for cases like:
+	    ;;
+	    ;;  shift           = -5
+	    ;;  mantissa-buffer = "123456"
+	    ;;                        ^
+	    ;;                  dot index = 3
+	    ;;
+	    ;;which must be normalised to:
+	    ;;
+	    ;;  mantissa-buffer = "00123456"
+	    ;;                     ^
+	    ;;               dot index = 0
+	    ;;
+	    ((< shifted-dot-index 0)
+	     (mantissa-prepend-zeros (- (- shift) mantissa-dot-index))
+	     (set! mantissa-dot-index 0))
+
+	    ;;The following are cases in which shifting does not require
+	    ;;appending or prepending zeros,  but only to adjust the dot
+	    ;;index.
+	    ;;
+	    ;;Remember that we have removed the leading zeros before the
+	    ;;dot index, so there are only 2 cases: there are no leading
+	    ;;zeros; there are leading zeros and the dot index is zero.
+
+	    ;;This is for cases like:
+	    ;;
+	    ;;  shift           = 2
+	    ;;  mantissa-buffer = "123456"
+	    ;;                        ^
+	    ;;                    dot index
+	    ;;
+	    ;;which must be normalised to:
+	    ;;
+	    ;;  mantissa-buffer = "123456"
+	    ;;                          ^
+	    ;;                      dot index
+	    ;;
+	    ((= 0 left-zeros)
+	     (increment! mantissa-dot-index shift))
+
+	    ;;This is for cases like:
+	    ;;
+	    ;;  shift           = 2
+	    ;;  mantissa-buffer = "0000123456"
+	    ;;                     ^
+	    ;;                 dot index
+	    ;;
+	    ;;which must be normalised to:
+	    ;;
+	    ;;  mantissa-buffer = "00123456"
+	    ;;                     ^
+	    ;;                 dot index
+	    ;;
+	    ((<= shift left-zeros)
+	     (mantissa-shift-left shift))
+
+	    ;;This is for cases like:
+	    ;;
+	    ;;  shift           = 4
+	    ;;  mantissa-buffer = "00123456789"
+	    ;;                     ^
+	    ;;                 dot index
+	    ;;
+	    ;;which must be normalised to:
+	    ;;
+	    ;;  mantissa-buffer = "123456789"
+	    ;;                       ^
+	    ;;                   dot index
+	    ;;
+	    (else
+	     (mantissa-shift-left left-zeros)
+	     (set! mantissa-dot-index (- shift left-zeros)))))))
+
+      ((exponential)
+       (let ((negexp (if (> left-zeros 0)
+			 (- left-zeros mantissa-dot-index -1)
+		       (if (= mantissa-dot-index 0) 1 0))))
+	 (if (> left-zeros 0)
+	     (begin ; normalize 0{0}.nnn to n.nn
+	       (mantissa-shift-left left-zeros)
+	       (set! mantissa-dot-index 1))
+	   (when (= mantissa-dot-index 0)
+	     (set! mantissa-dot-index 1)))
+	 (integer->exponent-buffer (- (+ (- mantissa-dot-index scale)
+					 (exponent-buffer->integer))
+				      negexp))
+	 (cond
+	  (all-zeros?
+	   (integer->exponent-buffer 0)
+	   (set! mantissa-dot-index 1))
+	  ((< scale 0) ; leading zero
+	   (mantissa-prepend-zeros (- scale))
+	   (set! mantissa-dot-index 0))
+	  ((> scale mantissa-dot-index)
+	   (mantissa-append-zeros (- scale mantissa-dot-index))
+	   (set! mantissa-dot-index scale))
+	  (else
+	   (set! mantissa-dot-index scale)))))
+
+      (else
+       (error 'format:parse-float
+	 "internal error, unknown flonum normalisation format"
+	 normalisation-format)))))
 
 
 
