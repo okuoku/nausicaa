@@ -98,6 +98,16 @@
 	((= i mantissa-length))
       (mantissa-set! i #\0))))
 
+(define-syntax mantissa-prepend-zeros
+  (syntax-rules ()
+    ((_ ?number-of-zeros)
+     (mantissa-zfill #t ?number-of-zeros))))
+
+(define-syntax mantissa-append-zeros
+  (syntax-rules ()
+    ((_ ?number-of-zeros)
+     (mantissa-zfill #f ?number-of-zeros))))
+
 
 
 
@@ -124,12 +134,20 @@
 		       (cond ((char>? #\5 d)	digit)
 			     ((char<? #\5 d)	(+ 1 digit))
 			     (else
-			      (let ((j (+ 1 first-truncated-digit-idx)))
-				(if (= j mantissa-length)
-				    (if (even? digit)
-					digit
-				      (+ 1 digit))
-				  (+ 1 digit)))))))))
+			      ;;Here D  is #\5, so  we scan the  rest of
+			      ;;the  mantissa  buffer:   if  we  find  a
+			      ;;non-zero char, we  round up; if we reach
+			      ;;the end of the buffer we round to even.
+			      (let loop ((i (+ 1 first-truncated-digit-idx)))
+				(cond
+				 ((= i mantissa-length)
+				  (if (even? digit)
+				      digit
+				    (+ 1 digit)))
+				 ((char=? #\0 (mantissa-ref i))
+				  (loop (+ 1 i)))
+				 (else
+				  (+ 1 digit))))))))))
       (if (> 10 rounded)
 	  (values rounded #f)
 	(values 0 #t))))
@@ -145,7 +163,7 @@
 	     ;;
 	     ;;	"9.9" -> "10.0"
 	     ;;
-	     (mantissa-zfill #t 1)
+	     (mantissa-prepend-zeros 1)
 	     (mantissa-set! 0 #\1)
 	     (increment! mantissa-dot-index)))
 	(let ((digit (+ 1 (mantissa-digit-ref i))))
@@ -154,7 +172,7 @@
 
   (when (and (= 0 mantissa-dot-index)
 	     (= 0 number-of-digits))
-    (mantissa-zfill #t 1)
+    (mantissa-prepend-zeros 1)
     (increment! mantissa-dot-index))
   (let* ((i (+ mantissa-dot-index number-of-digits -1))
 	 (j (+ 1 i)))
@@ -164,7 +182,6 @@
 	(mantissa-digit-set! i rounded-digit) ;;store the rounded digit
 	(set! mantissa-length j)	      ;;truncate the tail digits
 	(when carry (propagate-carry (- i 1)))))))
-
 
 
 
@@ -352,6 +369,11 @@
 
 (check (round-digits-after-dot "9985xxx" 4 2 1) => '("998"  3 2))
 
+(check (round-digits-after-dot "1205000" 7 2 1) => '("120" 3 2))
+(check (round-digits-after-dot "1205001" 7 2 1) => '("121" 3 2))
+(check (round-digits-after-dot "1215000" 7 2 1) => '("122" 3 2))
+(check (round-digits-after-dot "1215001" 7 2 1) => '("122" 3 2))
+
 ;;; --------------------------------------------------------------------
 ;;; rounding with carry
 
@@ -361,6 +383,7 @@
 (check (round-digits-after-dot "99955xx" 5 2 1) => '("1000" 4 3))
 (check (round-digits-after-dot "9995xxx" 4 2 1) => '("1000" 4 3))
 (check (round-digits-after-dot "99953xx" 5 2 1) => '("1000" 4 3))
+
 
 
 

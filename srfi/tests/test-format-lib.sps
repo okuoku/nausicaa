@@ -33,7 +33,7 @@
 
 
 
-;;;; basic
+;;;; destination selection
 
 (check
     (format "ciao")
@@ -72,7 +72,7 @@
   => "ciao")
 
 
-;;;; generic object output
+;;;; escapes ~a and ~s, generic object output
 
 (check
     (format #f "ciao ~a" 123)
@@ -171,7 +171,7 @@
 
 
 
-;;;; character
+;;;; escape ~c, characters
 
 (check
     (format "~c" #\A)
@@ -195,7 +195,7 @@
 
 
 
-;;;; integers
+;;;; escapes ~d ~x ~o ~b, integer numbers
 
 (check
     (format "~d" 123)
@@ -342,7 +342,7 @@
   => "FEED")
 
 
-;;;; integers in words
+;;;; escape ~r, integers in words
 
 (check
     (format "~r" 123)
@@ -443,7 +443,7 @@
 
 
 
-;;;; floats
+;;;; esape ~f, basic tests
 
 (check
     (format "~f" 123)
@@ -596,7 +596,7 @@
 
 
 
-;;; escape sequence ~f and decimals
+;;; escape ~f, number of decimals
 
 (check
     (format "~6,3f" 1/3)
@@ -687,10 +687,10 @@
     (format "~6,3f" 12345.6789)
   => "12345.679")
 
-;;; --------------------------------------------------------------------
+
 
 
-;;;; rounding with ~f
+;;;; escape ~f, rounding of decimals
 
 (check
     (format "~12,2f" 1.2345)
@@ -849,6 +849,358 @@
 (check (format "~1,2f" 0.123) => ".12")
 (check (format "~1,2f" 1.123) => "1.12")
 (check (format "~2,2f" 0.123) => ".12")
+
+
+
+;;;; escape ~f, scaling factor
+
+(check (format "~,,1f"	1)	=> "10.0")
+(check (format "~,,1f"	10)	=> "100.0")
+(check (format "~,,1f"	0.1)	=> "1.0")
+(check (format "~,,1f"	0.01)	=> "0.1")
+
+(check (format "~,,-1f"	1)	=> "0.1")
+(check (format "~,,-1f"	10)	=> "1.0")
+(check (format "~,,-1f"	0.1)	=> "0.01")
+(check (format "~,,-1f"	0.01)	=> "0.001")
+
+
+
+;;;; escape ~f, overflow char
+
+(check (format "~4,,,'xf" 12345) => "xxxx")
+(check (format "~4,,,'xf" 123e5) => "xxxx")
+
+
+
+;;;; escape ~e, basic tests
+
+(check
+    (format "~e" 123)
+  => "1.23E+2")
+
+(check
+    (format "~e" 123.0)
+  => "1.23E+2")
+
+(check
+    (format "~e" 123.4)
+  => "1.234E+2")
+
+(check
+    (format "~e" 1e-1)
+  => "1.0E-1")
+
+(check
+    (format "~e" 1e9)
+  => "1.0E+9")
+
+(check
+    (format "~e" +inf.0)
+  => "+inf.0")
+
+(check
+    (format "~e" -inf.0)
+  => "-inf.0")
+
+(check
+    (format "~e" +nan.0)
+  => "+nan.0")
+
+(check
+    (format "~,,,,,,'ee" 123)
+  => "1.23e+2")
+
+;;; --------------------------------------------------------------------
+;;; @ modifier
+
+(check
+    (format "~@e" 123)
+  => "+1.23E+2")
+
+(check
+    (format "~@e" 123.0)
+  => "+1.23E+2")
+
+(check
+    (format "~@e" 123.4)
+  => "+1.234E+2")
+
+(check
+    (format "~@e" 1e-1)
+  => "+1.0E-1")
+
+(check
+    (format "~@e" -123.0)
+  => "-1.23E+2")
+
+;;; --------------------------------------------------------------------
+;;; strings
+
+(check
+    (format "~12,2e" "1.2345")
+  => "     1.23E+0")
+;;;   012345678901
+
+(check
+    (format "~e" "#d1.2345")
+  => "1.2345E+0")
+
+(check
+    (format "~e" "1.2345")
+  => "1.2345E+0")
+
+(check
+    (format "~e" "1.23e4")
+  => "1.23E+4")
+
+(check
+    (format "~e" "-1.23")
+  => "-1.23E+0")
+
+(check
+    (format "~e" "+1.23")
+  => "1.23E+0")
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.23+45"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.23-45"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.2345e6-1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.2345e6+1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.2.3e61"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1..3e61"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.23e6.1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.23e6e1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.23a61"))
+  => 'error)
+
+
+;;; escape ~e, width and padding
+
+(check
+    (format "~10e" 123.456)
+  => "1.23456E+2")
+;;;   0123456789
+
+(check
+    (format "~15,,,,,'.e" 123.456)
+  => ".....1.23456E+2")
+;;;   012345678901234
+
+(check
+    (format "~10,,,,,'.e" 123.456789123)
+  => "1.23457E+2")
+;;;   0123456789
+
+(check
+    (format "~5,,,,'.e" 1e9)
+  => "1.E+9")
+;;;   01234
+
+(check
+    (format "~5,,,,'x,'.e" 1e9)
+  => "1.E+9")
+;;;   01234
+
+(check
+    (format "~2,,,,'x,'.e" 1e9)
+  => "xx")
+
+(check
+    (format "~5,,,,'.e" 1000000000.123456)
+;;;                     0123456789
+  => "1.E+9")
+
+(check
+    (format "~6,,,,'.e" 1000000000.123456)
+;;;                     0123456789
+  => "1.0E+9")
+
+(check
+    (format "~5e" 123456)
+  => "1.E+5")
+;;;   01234
+
+(check
+    (format "~2e" 123456)
+  => "1.23456E+5")
+;;;   01234
+
+
+;;; escape ~e, number of decimals, exponents, integer digits, overflow
+
+(check
+    (format "~6,3e" 1/3)
+  => "3.333E-1")
+;;;   012345
+
+(check
+    (format "~8,3e" 12.3456)
+  => "1.235E+1")
+;;;   01234567
+
+(check
+    (format "~6,3e" 123.3456)
+  => "1.233E+2")
+;;;   012345
+
+;;; --------------------------------------------------------------------
+;;; number of exponent digits
+
+(check
+    (format "~,,1e" 1.0e99)
+  => "1.0E+99")
+
+(check
+    (format "~,,6e" 1.0e99)
+  => "1.0E+000099")
+
+;;; --------------------------------------------------------------------
+;;; number of integer digits
+
+(check
+    (format "~,,,0e" 12345.0)
+  => "0.12345E+5")
+
+(check
+    (format "~,,,1e" 12345.0)
+  => "1.2345E+4")
+
+(check
+    (format "~,,,2e" 12345.0)
+  => "12.345E+3")
+
+(check
+    (format "~,,,3e" 12345.0)
+  => "123.45E+2")
+
+(check
+    (format "~,,,4e" 12345.0)
+  => "1234.5E+1")
+
+(check
+    (format "~,,,5e" 12345.0)
+  => "12345.0E+0")
+
+(check
+    (format "~,,,6e" 12345.0)
+  => "123450.0E-1")
+
+(check
+    (format "~,,,7e" 12345.0)
+  => "1234500.0E-2")
+
+(check
+    (format "~,,,8e" 12345.0)
+  => "12345000.0E-3")
+
+(check
+    (format "~,,,-1e" 12345.0)
+  => "0.012345E+6")
+
+(check
+    (format "~,,,-2e" 12345.0)
+  => "0.0012345E+7")
+
+(check
+    (format "~,,,-3e" 12345.0)
+  => "0.00012345E+8")
+
+(check
+    (format "~,,,0e" 1.2345)
+  => "0.12345E+1")
+
+(check
+    (format "~,,,1e" 1.2345)
+  => "1.2345E+0")
+
+(check
+    (format "~,,,2e" 1.2345)
+  => "12.345E-1")
+
+(check
+    (format "~,,,3e" 1.2345)
+  => "123.45E-2")
+
+(check
+    (format "~,,,4e" 1.2345)
+  => "1234.5E-3")
+
+(check
+    (format "~,,,-1e" 1.2345)
+  => "0.012345E+2")
+
+(check
+    (format "~,,,-2e" 1.2345)
+  => "0.0012345E+3")
+
+;;; --------------------------------------------------------------------
+;;; number of integer digits and decimals
+
+;;this does not round
+(check
+    (format "~,4,,1e" 123.45)
+  => "1.2345E+2")
+
+;;this does not round
+(check
+    (format "~,3,,2e" 123.45)
+  => "12.345E+1")
+
+(check
+    (format "~,5,,2e" 123.45)
+  => "12.34500E+1")
+
+(check
+    (format "~,5,,1e" 123.45)
+  => "1.23450E+2")
+
+(check
+    (format "~,1,,3e" 12345.0)
+  => "123.4E+2")
+
+(check
+    (format "~,3,,3e" 12345.6789)
+  => "123.457E+2")
+
+;;; --------------------------------------------------------------------
+;;; overflow char
+
+(check (format "~4,,,,'xe" 12345) => "xxxx")
+(check (format "~4,,,,'xe" 123e5) => "xxxx")
 
 
 

@@ -4,8 +4,8 @@
 ;;;(<1.4) were Ken Dickey and Aubrey Jaffer.  Assimilated into Guile May
 ;;;1999.  Ported to R6RS Scheme and Nausicaa by Marco Maggi.
 ;;;
-;;;Copyright (c) 1992-1994 Dirk Lutzebaeck <lutzeb@cs.tu-berlin.de>
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 1992-1994 Dirk Lutzebaeck <lutzeb@cs.tu-berlin.de>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -52,53 +52,37 @@
 
 ;;;; configuration
 
-;;Symbols are  converted by  SYMBOL->STRING so the  case of  the printed
-;;symbols is implementation dependent.  FORMAT:SYMBOL-CASE-CONV is a one
-;;arg  closure  which  is  either #f  (no  conversion),  STRING-UPCASE!,
-;;STRING-DOWNCASE! or STRING-CAPITALIZE!.
-(define format:symbol-case-conv #f)
-
-;;As  FORMAT:SYMBOL-CASE-CONV  but  applies  for the  representation  of
-;;implementation internal objects.
-(define format:iobj-case-conv #f)
-
-;;The character prefixing the exponent value in "~e" printing.
-(define format:expch #\E)
-
-;;Detects if the scheme system implements flonums (see at eof).
-(define format:floats #t)
-
-;;Detects if the scheme system implements complex numbers.
-(define format:complex-numbers #t)
-
 (define format:version "4.0")
 
 
 
 ;;;; constants
 
-(define format:ascii-non-printable-charnames
+;;The default character prefixing the exponent value in "~e" printing.
+(define default-exponential-char #\E)
+
+(define ascii-non-printable-charnames
   '#("nul" "soh" "stx" "etx" "eot" "enq" "ack" "bel"
      "bs"  "ht"  "nl"  "vt"  "np"  "cr"  "so"  "si"
      "dle" "dc1" "dc2" "dc3" "dc4" "nak" "syn" "etb"
      "can" "em"  "sub" "esc" "fs"  "gs"  "rs"  "us" "space"))
 
-(define format:parameter-characters
+(define parameter-characters
   '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+ #\v #\# #\'))
 
 (define space-char-integer (char->integer #\space))
 (define zero-char-integer	(char->integer #\0))
 
 ;;Roman numerals (from dorai@cs.rice.edu).
-(define format:roman-alist
+(define roman-alist
   '((1000 #\M) (500 #\D) (100 #\C) (50 #\L)
     (10 #\X) (5 #\V) (1 #\I)))
 
-(define format:roman-boundary-values
+(define roman-boundary-values
   '(100 100 10 10 1 1 #f))
 
 ;;Cardinals & ordinals (from dorai@cs.rice.edu).
-(define format:cardinal-ones-list
+(define cardinal-ones-list
   '(#f
     "one"	"two"		"three"
     "four"	"five"		"six"
@@ -108,13 +92,13 @@
     "sixteen"	"seventeen"	"eighteen"
     "nineteen"))
 
-(define format:cardinal-tens-list
+(define cardinal-tens-list
   '(#f
     #f		"twenty"	"thirty"
     "forty"	"fifty"		"sixty"
     "seventy"	"eighty"	"ninety"))
 
-(define format:cardinal-thousand-block-list
+(define cardinal-thousand-block-list
   '(""
     " thousand"		" million"		" billion"
     " trillion"		" quadrillion"		" quintillion"
@@ -124,7 +108,7 @@
     " quindecillion"	" sexdecillion"		" septendecillion"
     " octodecillion"	" novemdecillion"	" vigintillion"))
 
-(define format:ordinal-ones-list
+(define ordinal-ones-list
   '(#f
     "first"		"second"		"third"
     "fourth"		"fifth"			"sixth"
@@ -134,11 +118,15 @@
     "sixteenth"		"seventeenth"		"eighteenth"
     "nineteenth"))
 
-(define format:ordinal-tens-list
+(define ordinal-tens-list
   '(#f
     #f			"twentieth"		"thirtieth"
     "fortieth"		"fiftieth"		"sixtieth"
     "seventieth"	"eightieth"		"ninetieth"))
+
+;;These are values for the FORMAT argument to FORMAT:PARSE-FLOAT.
+(define flonum-format
+  (make-enumeration '(fixed-point exponential)))
 
 
 
@@ -146,8 +134,6 @@
 
 (define (port-column port)
   0)
-
-(define string-capitalize string-titlecase)
 
 ;;Return the  first K  elements from the  list ELL; this  function comes
 ;;from SRFI lists.
@@ -187,7 +173,7 @@
 ;; "*hello"	-> "*Hello"
 ;; "hello you"	-> "Hello you"
 ;;
-(define (string-capitalize-first str)
+(define (string-titlecase/first str)
   (let ((cap-str		(string-copy str))
 	(non-first-alpha	#f)
 	(str-len		(string-length str)))
@@ -361,7 +347,7 @@
   (increment! format:output-col n))
 
 ;;Print a string filled with the same char.  Update the output column.
-(define (format:out-fill n ch)
+(define (format:print-fill-chars n ch)
   (format:out-str (make-string n ch))
   (increment! format:output-col n))
 
@@ -452,7 +438,7 @@
 	(do ((objstr-len (string-length objstr))
 	     (i minpad (+ i padinc)))
 	    ((>= (+ objstr-len i) minwidth)
-	     (format:out-fill i padchar)))
+	     (format:print-fill-chars i padchar)))
 	(when pad-left
 	  (format:out-str objstr))))))
 
@@ -473,7 +459,7 @@
       ((char=? ch #\newline)
        "newline")
       ((and (>= int-rep 0) (<= int-rep 32))
-       (vector-ref format:ascii-non-printable-charnames int-rep))
+       (vector-ref ascii-non-printable-charnames int-rep))
       ((= int-rep 127)
        "del")
       ((>= int-rep 128) ; octal representation
@@ -515,7 +501,7 @@
 					  commawidth)
 				numlen)))
 	      (when (> mincol numlen)
-		(format:out-fill (- mincol numlen) padchar))))
+		(format:print-fill-chars (- mincol numlen) padchar))))
 	  (when (and (memq modifier '(at colon-at))
 		     (>= number 0))
 	    (format:out-char #\+))
@@ -539,9 +525,8 @@
   (unless (and (integer? n) (>= n 1))
     (error 'format:num->old-roman
       "only strictly positive integers can be romanized" n))
-
   (let loop ((n n)
-	     (romans format:roman-alist)
+	     (romans roman-alist)
 	     (s '()))
     (if (null? romans)
 	(list->string (reverse s))
@@ -557,10 +542,9 @@
   (unless (and (integer? n) (> n 0))
     (error 'format:num->roman
       "only positive integers can be romanized" n))
-
   (let loop ((n n)
-	     (romans format:roman-alist)
-	     (boundaries format:roman-boundary-values)
+	     (romans roman-alist)
+	     (boundaries roman-boundary-values)
 	     (s '()))
     (if (null? romans)
 	(list->string (reverse s))
@@ -597,22 +581,22 @@
      (if (> hundreds 0)
 	 (append
 	  (string->list
-	   (list-ref format:cardinal-ones-list hundreds))
+	   (list-ref cardinal-ones-list hundreds))
 	  (string->list" hundred")
 	  (if (> tens+ones 0) '(#\space) '()))
        '())
      (if (< tens+ones 20)
 	 (if (> tens+ones 0)
 	     (string->list
-	      (list-ref format:cardinal-ones-list tens+ones))
+	      (list-ref cardinal-ones-list tens+ones))
 	   '())
        (append
 	(string->list
-	 (list-ref format:cardinal-tens-list tens))
+	 (list-ref cardinal-tens-list tens))
 	(if (> ones 0)
 	    (cons #\-
 		  (string->list
-		   (list-ref format:cardinal-ones-list ones)))
+		   (list-ref cardinal-ones-list ones)))
 	  '()))))))
 
 ;;Return the  string representation of an integer  number using cardinal
@@ -628,7 +612,7 @@
    ((< n 0)
     (string-append "minus " (format:num->cardinal (- n))))
    (else
-    (let ((power3-word-limit (length format:cardinal-thousand-block-list)))
+    (let ((power3-word-limit (length cardinal-thousand-block-list)))
       (let loop ((n n)
 		 (power3 0)
 		 (s '()))
@@ -646,7 +630,7 @@
 		       (if (< power3 power3-word-limit)
 			   (string->list
 			    (list-ref
-			     format:cardinal-thousand-block-list
+			     cardinal-thousand-block-list
 			     power3))
 			 (append
 			  (string->list " times ten to the ")
@@ -680,15 +664,15 @@
 	 "")
        (if (= tens+ones 0) ""
 	 (if (< tens+ones 20)
-	     (list-ref format:ordinal-ones-list tens+ones)
+	     (list-ref ordinal-ones-list tens+ones)
 	   (let ((tens (quotient tens+ones 10))
 		 (ones (remainder tens+ones 10)))
 	     (if (= ones 0)
-		 (list-ref format:ordinal-tens-list tens)
+		 (list-ref ordinal-tens-list tens)
 	       (string-append
-		(list-ref format:cardinal-tens-list tens)
+		(list-ref cardinal-tens-list tens)
 		"-"
-		(list-ref format:ordinal-ones-list ones)))))))))))
+		(list-ref ordinal-ones-list ones)))))))))))
 
 
 
@@ -699,26 +683,28 @@
 ;;Infinity  and not-a-number  are  always printed  exactly as  "+inf.0",
 ;;"-inf.0" or "+nan.0", suitably justified in their field.  We insist on
 ;;printing this exact form so that the numbers can be read back in.
-(define (format:out-inf-nan number width digits edigits overch padch)
+;;
+(define (format:print-inf-nan number width decimals expdigits
+			      overflow-char pad-char)
   (let* ((str		(if (string? number)
 			    number
 			  (number->string number)))
 	 (len		(string-length str))
 	 (dot		(string-index str #\.))
-	 (digits	(+ (or digits 0)
-			   (if edigits (+ edigits 2) 0))))
-    (if (and width overch (< width len))
-	(format:out-fill width (integer->char overch))
-      (let* ((leftpad (if width
-			  (max (- width (max len (+ dot 1 digits))) 0)
-			0))
-	     (rightpad (if width
-			   (max (- width leftpad len) 0)
-			 0))
-	     (padch (integer->char (or padch space-char-integer))))
-	(format:out-fill leftpad padch)
+	 (digits	(+ (or decimals 0)
+			   (if expdigits (+ expdigits 2) 0))))
+    (if (and width overflow-char (< width len))
+	(format:print-fill-chars width (integer->char overflow-char))
+      (let* ((leftpad	(if width
+			    (max (- width (max len (+ dot 1 digits))) 0)
+			  0))
+	     (rightpad	(if width
+			    (max (- width leftpad len) 0)
+			  0))
+	     (pad-char	(integer->char (or pad-char space-char-integer))))
+	(format:print-fill-chars leftpad pad-char)
 	(format:out-str str)
-	(format:out-fill rightpad padch)))))
+	(format:print-fill-chars rightpad pad-char)))))
 
 
 
@@ -766,14 +752,19 @@
     ((_ ?idx)
      (- (char->integer (exponent-ref ?idx)) zero-char-integer))))
 
-;;; --------------------------------------------------------------------
-
 
 
 ;;;; helpers, miscellaneous stuff for floating point numbers
-
+;;
 ;;See the documentation of  FORMAT:PARSE-FLOAT below for more details on
 ;;flonums handling.
+
+(define (validate-flonum-argument number caller-function)
+  (when (not (or (and (number? number) (real? number))
+		 (string? number)))
+    (error caller-function
+      "argument is not a real number or a number string representation"
+      number)))
 
 ;;Return  an  integer  number  representing  the current  value  of  the
 ;;exponent buffer.
@@ -820,8 +811,8 @@
 ;;
 (define (mantissa-zfill left? n)
   (when (> (+ n mantissa-length) mantissa-max-length) ; from the left or right
-    (error 'mantissa-zfill
-      "number is too long to format (enlarge mantissa-max-length)"))
+    ;;If this happens we have to enlarge MANTISSA-MAX-LENGTH.
+    (error 'mantissa-zfill "flonum too long to format"))
   (increment! mantissa-length n)
   (if left?
       (do ((i mantissa-length (- i 1))) ; fill n 0s to left
@@ -832,6 +823,16 @@
     (do ((i (- mantissa-length n) (+ i 1))) ; fill n 0s to the right
 	((= i mantissa-length))
       (mantissa-set! i #\0))))
+
+(define-syntax mantissa-prepend-zeros
+  (syntax-rules ()
+    ((_ ?number-of-zeros)
+     (mantissa-zfill #t ?number-of-zeros))))
+
+(define-syntax mantissa-append-zeros
+  (syntax-rules ()
+    ((_ ?number-of-zeros)
+     (mantissa-zfill #f ?number-of-zeros))))
 
 ;;Shift  left  current  by  N  positions  the  mantissa  buffer,  update
 ;;MANTISSA-LENGTH accordingly.   It is used  to remove leading  zeros from
@@ -856,7 +857,7 @@
 ;;If ADD-LEADING-ZERO? is true: a  leading zero is output if the integer
 ;;part of the mantissa is zero ("0.123"), else it is not (".123").
 ;;
-(define (mantissa-out modifier add-leading-zero?)
+(define (mantissa-print modifier add-leading-zero?)
   (if mantissa-is-positive
       (when (eq? modifier 'at)
 	(format:out-char #\+))
@@ -878,15 +879,16 @@
 ;;output without padding.
 ;;
 ;;The EXPCH argument selects the exponent-start character.  It should be
-;;#\e  or  #\E,  but  can   be  #f  to  select  FORMAT:EXPCH,  which  is
-;;configurable at library installation time.
+;;#\e or #\E, but can be #f to select DEFAULT-EXPONENTIAL-CHAR.
 ;;
-(define (exponent-out edigits expch)
-  (format:out-char (if expch (integer->char expch) format:expch))
+(define (exponent-print edigits expch)
+  (format:out-char (if expch
+		       (integer->char expch)
+		     default-exponential-char))
   (format:out-char (if exponent-is-positive #\+ #\-))
   (when edigits
     (when (< exponent-length edigits)
-      (format:out-fill (- edigits exponent-length) #\0)))
+      (format:print-fill-chars (- edigits exponent-length) #\0)))
   (format:out-substr exponent-buffer 0 exponent-length))
 
 ;;Strip trailing zeros  but one from the mantissa  buffer.  The mantissa
@@ -929,6 +931,15 @@
 	   0
 	 i))))
 
+;;When  a minimum number  of decimals  after the  dot is  requested: add
+;;zeros if missing, or round and truncate decimals if too many.
+(define (mantissa-adjust-decimals-as-requested requested-decimals)
+  (let ((number-of-decimals (- mantissa-length mantissa-dot-index)))
+    (if (<= number-of-decimals requested-decimals)
+	(mantissa-append-zeros (- requested-decimals number-of-decimals))
+      (mantissa-round-digits-after-dot requested-decimals))))
+
+
 
 ;;;; helpers, rounding floating point numbers
 
@@ -955,12 +966,20 @@
 		       (cond ((char>? #\5 d)	digit)
 			     ((char<? #\5 d)	(+ 1 digit))
 			     (else
-			      (let ((j (+ 1 first-truncated-digit-idx)))
-				(if (= j mantissa-length)
-				    (if (even? digit)
-					digit
-				      (+ 1 digit))
-				  (+ 1 digit)))))))))
+			      ;;Here D  is #\5, so  we scan the  rest of
+			      ;;the  mantissa  buffer:   if  we  find  a
+			      ;;non-zero char, we  round up; if we reach
+			      ;;the end of the buffer we round to even.
+			      (let loop ((i (+ 1 first-truncated-digit-idx)))
+				(cond
+				 ((= i mantissa-length)
+				  (if (even? digit)
+				      digit
+				    (+ 1 digit)))
+				 ((char=? #\0 (mantissa-ref i))
+				  (loop (+ 1 i)))
+				 (else
+				  (+ 1 digit))))))))))
       (if (> 10 rounded)
 	  (values rounded #f)
 	(values 0 #t))))
@@ -976,7 +995,7 @@
 	     ;;
 	     ;;	"9.9" -> "10.0"
 	     ;;
-	     (mantissa-zfill #t 1)
+	     (mantissa-prepend-zeros 1)
 	     (mantissa-set! 0 #\1)
 	     (increment! mantissa-dot-index)))
 	(let ((digit (+ 1 (mantissa-digit-ref i))))
@@ -985,7 +1004,7 @@
 
   (when (and (= 0 mantissa-dot-index)
 	     (= 0 number-of-digits))
-    (mantissa-zfill #t 1)
+    (mantissa-prepend-zeros 1)
     (increment! mantissa-dot-index))
   (let* ((i (+ mantissa-dot-index number-of-digits -1))
 	 (j (+ 1 i)))
@@ -998,10 +1017,16 @@
 
 
 
-;;;; helpers, parsing of floating point numbers
+;;;; helpers, parsing flonums
 
-;;Parse  the floating  point  number string  representation in  NUM-STR,
-;;filling the MANTISSA-* and EXPONENT-* variables with the result.
+;;Parse  the   flonum  representation  in   NUMBER-STRING,  filling  the
+;;MANTISSA-*  and EXPONENT-*  variables with  the result.   The argument
+;;NORMALISATION-FORMAT  selects  how   the  mantissa  and  exponent  are
+;;normalised:
+;;
+;;* fixed-point
+;;
+;;* exponential
 ;;
 ;;The string rep in NUM-STR is expected to be one of the following:
 ;;
@@ -1023,18 +1048,22 @@
 ;;Notice that the  fractional part of the mantissa  may be missing, that
 ;;is "12." is a valid string rep for "12.0".
 ;;
-(define (format:parse-float num-str fixed? scale)
+(define (format:parse-float number-string normalisation-format scale)
+  (unless mantissa-buffer
+    (set! mantissa-buffer (make-string mantissa-max-length)))
+  (unless exponent-buffer
+    (set! exponent-buffer (make-string exponent-max-length)))
   (set! mantissa-length		0)
   (set! mantissa-is-positive	#t)
   (set! mantissa-dot-index	#f)
   (set! exponent-is-positive	#t)
   (set! exponent-length		0)
 
-  (when (string-prefix? "#d" num-str)
-    (set! num-str (substring num-str 2 (string-length num-str))))
+  (when (string-prefix? "#d" number-string)
+    (set! number-string (substring number-string
+				   2 (string-length number-string))))
 
-  (let (
-	;;This is #t while parsing  the mantissa, and becomes #f if/when
+  (let ( ;This is #t while parsing  the mantissa, and becomes #f if/when
 	;;the exponential is found.
 	(mantissa?		#t)
 
@@ -1051,90 +1080,92 @@
 	;;The number of zeros at the beginning of the mantissa buffer.
 	(left-zeros		0)
 
-	(num-len		(string-length num-str))
+	(number-len		(string-length number-string))
 
 	(error-message		"invalid character in number string representation"))
 
     (do ((i 0 (+ i 1)))
-	((= i num-len)
+	((= i number-len)
 	 (when (not mantissa-dot-index)
 	   (set! mantissa-dot-index mantissa-length))
 	 (when all-zeros?
-	   (set! left-zeros    0)
-	   (set! mantissa-dot-index 0)
-	   (set! mantissa-length 1))
+	   (set! left-zeros		0)
+	   (set! mantissa-dot-index	0)
+	   (set! mantissa-length	1))
 
-	 ;;Now format the parsed values according to FORMAT's need.
-	 (if fixed?
+	 (case normalisation-format
 
-	     (begin
-	       ;;Fixed format "m.nnn" or ".nnn".
-	       (when (and (> left-zeros 0)
-			  (> mantissa-dot-index 0))
-		 (if (> mantissa-dot-index left-zeros)
-		     (begin ; norm 0{0}nn.mm to nn.mm
-		       (mantissa-shift-left left-zeros)
-		       (increment! mantissa-dot-index (- left-zeros))
-		       (set! left-zeros 0))
-		   (begin ; normalize 0{0}.nnn to .nnn
-		     (mantissa-shift-left mantissa-dot-index)
-		     (increment! left-zeros (- mantissa-dot-index))
-		     (set! mantissa-dot-index 0))))
-	       (when (or (not (= scale 0)) (> exponent-length 0))
-		 (let ((shift (+ scale (exponent-buffer->integer))))
-		   (cond
-		    (all-zeros? #t)
-		    ((> (+ mantissa-dot-index shift) mantissa-length)
-		     (mantissa-zfill
-		      #f (- shift (- mantissa-length mantissa-dot-index)))
-		     (set! mantissa-dot-index mantissa-length))
-		    ((< (+ mantissa-dot-index shift) 0)
-		     (mantissa-zfill #t (- (- shift) mantissa-dot-index))
-		     (set! mantissa-dot-index 0))
-		    (else
-		     (if (> left-zeros 0)
-			 (if (<= left-zeros shift) ; shift always > 0 here
-			     (mantissa-shift-left shift) ; shift out 0s
-			   (begin
-			     (mantissa-shift-left left-zeros)
-			     (set! mantissa-dot-index (- shift left-zeros))))
-		       (set! mantissa-dot-index (+ mantissa-dot-index shift))))))))
+	   ((fixed-point)
+	    (when (and (> left-zeros 0)
+		       (> mantissa-dot-index 0))
+	      (if (> mantissa-dot-index left-zeros)
+		  (begin ; norm 0{0}nn.mm to nn.mm
+		    (mantissa-shift-left left-zeros)
+		    (increment! mantissa-dot-index (- left-zeros))
+		    (set! left-zeros 0))
+		(begin ; normalize 0{0}.nnn to .nnn
+		  (mantissa-shift-left mantissa-dot-index)
+		  (increment! left-zeros (- mantissa-dot-index))
+		  (set! mantissa-dot-index 0))))
+	    (when (or (not (= scale 0)) (> exponent-length 0))
+	      (let ((shift (+ scale (exponent-buffer->integer))))
+		(cond
+		 (all-zeros? #t)
+		 ((> (+ mantissa-dot-index shift) mantissa-length)
+		  (mantissa-zfill
+		   #f (- shift (- mantissa-length mantissa-dot-index)))
+		  (set! mantissa-dot-index mantissa-length))
+		 ((< (+ mantissa-dot-index shift) 0)
+		  (mantissa-prepend-zeros (- (- shift) mantissa-dot-index))
+		  (set! mantissa-dot-index 0))
+		 (else
+		  (if (> left-zeros 0)
+		      (if (<= left-zeros shift) ; shift always > 0 here
+			  (mantissa-shift-left shift) ; shift out 0s
+			(begin
+			  (mantissa-shift-left left-zeros)
+			  (set! mantissa-dot-index (- shift left-zeros))))
+		    (set! mantissa-dot-index (+ mantissa-dot-index shift))))))))
 
-	   ;;Exponential format "m.nnnEee".
-	   (let ((negexp (if (> left-zeros 0)
-			     (- left-zeros mantissa-dot-index -1)
-			   (if (= mantissa-dot-index 0) 1 0))))
-	     (if (> left-zeros 0)
-		 (begin ; normalize 0{0}.nnn to n.nn
-		   (mantissa-shift-left left-zeros)
-		   (set! mantissa-dot-index 1))
-	       (when (= mantissa-dot-index 0)
-		 (set! mantissa-dot-index 1)))
-	     (integer->exponent-buffer (- (+ (- mantissa-dot-index scale)
-					     (exponent-buffer->integer))
-					  negexp))
-	     (cond
-	      (all-zeros?
-	       (integer->exponent-buffer 0)
-	       (set! mantissa-dot-index 1))
-	      ((< scale 0) ; leading zero
-	       (mantissa-zfill #t (- scale))
-	       (set! mantissa-dot-index 0))
-	      ((> scale mantissa-dot-index)
-	       (mantissa-zfill #f (- scale mantissa-dot-index))
-	       (set! mantissa-dot-index scale))
-	      (else
-	       (set! mantissa-dot-index scale)))))
-	 #t)
+	   ((exponential)
+	    (let ((negexp (if (> left-zeros 0)
+			      (- left-zeros mantissa-dot-index -1)
+			    (if (= mantissa-dot-index 0) 1 0))))
+	      (if (> left-zeros 0)
+		  (begin ; normalize 0{0}.nnn to n.nn
+		    (mantissa-shift-left left-zeros)
+		    (set! mantissa-dot-index 1))
+		(when (= mantissa-dot-index 0)
+		  (set! mantissa-dot-index 1)))
+	      (integer->exponent-buffer (- (+ (- mantissa-dot-index scale)
+					      (exponent-buffer->integer))
+					   negexp))
+	      (cond
+	       (all-zeros?
+		(integer->exponent-buffer 0)
+		(set! mantissa-dot-index 1))
+	       ((< scale 0) ; leading zero
+		(mantissa-prepend-zeros (- scale))
+		(set! mantissa-dot-index 0))
+	       ((> scale mantissa-dot-index)
+		(mantissa-append-zeros (- scale mantissa-dot-index))
+		(set! mantissa-dot-index scale))
+	       (else
+		(set! mantissa-dot-index scale)))))
+
+	   (else
+	    (error 'format:parse-float
+	      "internal error, unknown flonum normalisation format"
+	      normalisation-format))))
 
       ;;DO body.
-      (let ((ch (string-ref num-str i)))
+      (let ((ch (string-ref number-string i)))
 	(cond
 
 	 ((char-numeric? ch)
-	  ;;Store the numeric char in the mantissa buffer MANTISSA-BUFFER,
-	  ;;or   in  the   exponential  buffer   EXPONENT-BUFFER.   Update
-	  ;;MANTISSA-LENGTH or EXPONENT-LENGTH accordingly.
+	  ;;Store   the   numeric  char   in   MANTISSA-BUFFER,  or   in
+	  ;;EXPONENT-BUFFER.  Update  MANTISSA-LENGTH or EXPONENT-LENGTH
+	  ;;accordingly.
 	  (if mantissa?
 	      (begin
 		(set! mantissa-started? #t)
@@ -1153,31 +1184,32 @@
 	  ;;Record the sign of the mantissa or exponent.  Raise an error
 	  ;;if  the  sign  comes  inside  the  mantissa  or  inside  the
 	  ;;exponent.
-	  (if mantissa?
-	      (if mantissa-started?
-		  (error 'format:parse-float error-message num-str)
+	  (let ((positive (char=? ch #\+)))
+	    (if mantissa?
+		(if mantissa-started?
+		    (error 'format:parse-float error-message number-string)
+		  (begin
+		    (set! mantissa-is-positive positive)
+		    (set! mantissa-started? #t)))
+	      (if exponent-started?
+		  (error 'format:parse-float error-message number-string)
 		(begin
-		  (set! mantissa-is-positive (char=? ch #\+))
-		  (set! mantissa-started? #t)))
-	    (if exponent-started?
-		(error 'format:parse-float error-message num-str)
-	      (begin
-		(set! exponent-is-positive (char=? ch #\+))
-		(set! exponent-started? #t)))))
+		  (set! exponent-is-positive positive)
+		  (set! exponent-started? #t))))))
 
 	 ((char=? ch #\.)
 	  ;;Record the  index of  the first digit  after the dot  in the
 	  ;;mantissa buffer.  Raise  an error if the dot  is found twice
 	  ;;or if we are not parsing the mantissa.
 	  (when (or mantissa-dot-index (not mantissa?))
-	    (error 'format:parse-float error-message num-str))
+	    (error 'format:parse-float error-message number-string))
 	  (set! mantissa-dot-index mantissa-length))
 
 	 ((or (char=? ch #\e) (char=? ch #\E))
 	  ;;Record the end of mantissa  and start of exponent.  Raise an
 	  ;;error if we are already parsing the exponent.
 	  (unless mantissa?
-	    (error 'format:parse-float error-message num-str))
+	    (error 'format:parse-float error-message number-string))
 	  (set! mantissa? #f))
 
 	 (else
@@ -1185,21 +1217,18 @@
 
 
 
-;;;; helpers, floating point numbers: fixed-point format
+;;;; helpers, flonums: fixed-point format
 
-;;Print the  fixed point string representation  of a number.   It is the
+;;Print the  fixed point  string representation of  a number; it  is the
 ;;implementation of the "~f" escape sequence.
-(define (format:out-fixed modifier number parameters)
-  (when (not (or (and (number? number)
-		      (real?   number))
-		 (string? number)))
-    (error 'format:out-fixed
-      "argument is not a real number or a number string"
-      number))
-
+;;
+;;This function  parses the NUMBER  into the MANTISSA-*  variables, then
+;;formats a fixed point number.
+(define (format:print-flonum-fixed-point modifier number parameters)
+  (validate-flonum-argument number 'format:print-flonum-fixed-point)
   (let ((l (length parameters)))
     (let ((width	(format:par parameters l 0 #f "width"))
-	  (digits	(format:par parameters l 1 #f "digits"))
+	  (decimals	(format:par parameters l 1 #f "decimals"))
 	  (scale	(format:par parameters l 2 0  #f))
 	  (overch	(format:par parameters l 3 #f #f))
 	  (padch	(format:par parameters l 4 space-char-integer #f)))
@@ -1210,26 +1239,23 @@
 
 	(cond
 	 ((member number-string '("+inf.0" "-inf.0" "+nan.0" "-nan.0"))
-	  (format:out-inf-nan number-string width digits #f overch padch))
+	  (format:print-inf-nan number-string width decimals #f overch padch))
 
-	 (digits
-	  ;;The  call to FORMAT:PARSE-FLOAT  updated the  internal state
-	  ;;variables "mantissa-*" and "exponent-*".
-	  (format:parse-float number-string #t scale)
+	 (decimals
+	  ;;This fills MANTISSA-* variables.
+	  (format:parse-float number-string 'fixed-point scale)
 
-	  ;;A number of  digits after the dot is  requested: add them if
-	  ;;missing or round and truncate digits if too many.
-	  (if (<= (- mantissa-length mantissa-dot-index) digits)
-	      (mantissa-zfill #f (- digits (- mantissa-length mantissa-dot-index)))
-	    (mantissa-round-digits-after-dot digits))
+	  ;;A number of decimals after the dot is requested: add them if
+	  ;;missing or round and truncate decimals if too many.
+	  (mantissa-adjust-decimals-as-requested decimals)
 
 	  (if (not width)
-	      (mantissa-out modifier #t)
+	      (mantissa-print modifier #t)
 	    ;;An output  width is requested.   We compute the  number of
 	    ;;characters required to  output the mantissa, starting with
 	    ;;digits in the buffer plus the dot char.
-	    (let  ((output-len	(+ mantissa-length 1))
-		   (prepend-zero	(> width (+ digits 1))))
+	    (let  ((output-len		(+ mantissa-length 1))
+		   (prepend-zero	(> width (+ decimals 1))))
 	      ;;Plus or minus sign.
 	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
 		(increment! output-len))
@@ -1240,19 +1266,18 @@
 		(increment! output-len))
 	      ;;Output pad characters before the number.
 	      (when (< output-len width)
-		(format:out-fill (- width output-len) (integer->char padch)))
+		(format:print-fill-chars (- width output-len) (integer->char padch)))
 	      ;;Output the number or the overflow chars.
 	      (if (and overch (> output-len width))
-		  (format:out-fill width (integer->char overch))
-		(mantissa-out modifier prepend-zero)))))
+		  (format:print-fill-chars width (integer->char overch))
+		(mantissa-print modifier prepend-zero)))))
 
 	 (else
-	  ;;The call to  FORMAT:PARSE-FLOAT updates the internal state
-	  ;;variables "mantissa-*" and "exponent-*".
-	  (format:parse-float number-string #t scale)
+	  ;;This fills MANTISSA-* variables.
+	  (format:parse-float number-string 'fixed-point scale)
 	  (mantissa-strip-tail-zeros)
 	  (if (not width)
-	      (mantissa-out modifier #t)
+	      (mantissa-print modifier #t)
 	    ;;An output  width is requested.   We compute the  number of
 	    ;;characters required to  output the mantissa, starting with
 	    ;;digits in the buffer plus the dot char.
@@ -1266,249 +1291,268 @@
 		(increment! output-len))
 	      ;;Output pad characters before the number.
 	      (when (< output-len width)
-		(format:out-fill (- width output-len) (integer->char padch)))
+		(format:print-fill-chars (- width output-len) (integer->char padch)))
 	      ;;Adjust precision if possible.   Beware that we can still
 	      ;;be forced to output the overflow characters.
 	      (if (<= output-len width)
-		  (mantissa-out modifier #t)
+		  (mantissa-print modifier #t)
 		(let ((dot-index (- output-len
 				    (- mantissa-length mantissa-dot-index))))
 		  (if (> dot-index width)
-		      (if overch ; numstr too big for required width
-			  (format:out-fill width (integer->char overch))
-			(mantissa-out modifier #t))
+		      (if overch
+			  ;;too big for required width
+			  (format:print-fill-chars width (integer->char overch))
+			(mantissa-print modifier #t))
 		    (begin
 		      (mantissa-round-digits-after-dot (- width dot-index))
-		      (mantissa-out modifier #t)))))))))))))
+		      (mantissa-print modifier #t)))))))))))))
 
 
-;;;; helpers, floating point numbers: exponential format
+;;;; helpers, flonums: exponential format
 
 ;;Print the  exponential string representation  of a number.  It  is the
 ;;implementation of the "~e" escape sequence.
-(define (format:out-expon modifier number parameters)
-  (when (not (or (and (number? number)
-		      (real? number))
-		 (string? number)))
-    (error 'format:out-expon
-      "argument is not a number"
-      number))
-
+;;
+;;This  function parses the  NUMBER into  the MANTISSA-*  and EXPONENT-*
+;;variables, then formats an exponential number.
+;;
+(define (format:print-flonum-exponential modifier number parameters)
+  (validate-flonum-argument number 'format:print-flonum-exponential)
   (let ((l (length parameters)))
     (let ((width	(format:par parameters l 0 #f "width"))
-	  (digits	(format:par parameters l 1 #f "digits"))
-	  (edigits	(format:par parameters l 2 #f "exponent digits"))
-	  (scale	(format:par parameters l 3 1  #f))
-	  (overch	(format:par parameters l 4 #f #f))
-	  (padch	(format:par parameters l 5 space-char-integer #f))
-	  (expch	(format:par parameters l 6 #f #f)))
+	  (decimals	(format:par parameters l 1 #f "decimals"))
+	  (expdigits	(format:par parameters l 2 #f "expdigits"))
+	  (intdigits	(format:par parameters l 3 1  #f))
+	  (overflowchar	(format:par parameters l 4 #f #f))
+	  (padchar	(format:par parameters l 5 space-char-integer #f))
+	  (expchar	(format:par parameters l 6 #f #f)))
 
-      (cond
+      (let ((number-string (if (string? number)
+			       number
+			     (number->string (inexact number)))))
 
-       ((and (not (string? number))
-	     (or (infinite? number) (nan? number)))
-	(format:out-inf-nan number width digits edigits overch padch))
+	(define (compute-exponent-digits)
+	  (if (and expdigits (> expdigits exponent-length))
+	      expdigits
+	    exponent-length))
 
-       (digits	; fixed precision
+	(define (print-padding-chars number-of-chars)
+	  (format:print-fill-chars number-of-chars
+				   (integer->char padchar)))
 
-	(let ((digits (if (> scale 0)
-			  (if (< scale (+ digits 2))
-			      (+ (- digits scale) 1)
-			    0)
-			digits)))
-	  ;;The  call to FORMAT:PARSE-FLOAT  updates the  internal state
-	  ;;variables "mantissa-*".
-	  (format:parse-float (if (string? number)
-				  number
-				(number->string number))
-			      #f scale)
-	  (if (<= (- mantissa-length mantissa-dot-index) digits)
-	      (mantissa-zfill #f (- digits (- mantissa-length mantissa-dot-index)))
-	    (mantissa-round-digits-after-dot digits))
-	  (if width
-	      (if (and edigits overch (> exponent-length edigits))
-		  (format:out-fill width (integer->char overch))
-		(let ((numlen (+ mantissa-length 3))) ; .E+
-		  (when (or (not mantissa-is-positive) (eq? modifier 'at))
-		    (set! numlen (+ numlen 1)))
-		  (when (and (= mantissa-dot-index 0) (> width (+ digits 1)))
-		    (set! numlen (+ numlen 1)))
-		  (set! numlen
-			(+ numlen
-			   (if (and edigits (>= edigits exponent-length))
-			       edigits
-			     exponent-length)))
-		  (when (< numlen width)
-		    (format:out-fill (- width numlen) (integer->char padch)))
-		  (if (and overch (> numlen width))
-		      (format:out-fill width (integer->char overch))
-		    (begin
-		      (mantissa-out modifier (> width (- numlen 1)))
-		      (exponent-out edigits expch)))))
-	    (begin
-	      (mantissa-out modifier #t)
-	      (exponent-out edigits expch)))))
+	(define (print-padding-chars-if-needed output-len)
+	  (when (< output-len width)
+	    (print-padding-chars (- width output-len))))
 
-       (else
-	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "mantissa-*".
-	(format:parse-float (if (string? number)
-				number
-			      (number->string number))
-			    #f scale)
-	(mantissa-strip-tail-zeros)
-	(if width
-	    (if (and edigits overch (> exponent-length edigits))
-		(format:out-fill width (integer->char overch))
-	      (let ((numlen (+ mantissa-length 3))) ; .E+
-		(when (or (not mantissa-is-positive) (eq? modifier 'at))
-		  (increment! numlen 1))
-		(when (= mantissa-dot-index 0)
-		  (increment! numlen 1))
-		(set! numlen
-		      (+ numlen
-			 (if (and edigits (>= edigits exponent-length))
-			     edigits
-			   exponent-length)))
-		(when (< numlen width)
-		  (format:out-fill (- width numlen) (integer->char padch)))
-		(if (> numlen width) ; adjust precision if possible
-		    (let ((f (- mantissa-length mantissa-dot-index))) ; fract len
-		      (if (> (- numlen f) width)
-			  (if overch ; numstr too big for required width
-			      (format:out-fill width
-					       (integer->char overch))
-			    (begin
-			      (mantissa-out modifier #t)
-			      (exponent-out edigits expch)))
-			(begin
-			  (mantissa-round-digits-after-dot (+ (- f numlen) width))
-			  (mantissa-out modifier #t)
-			  (exponent-out edigits expch))))
-		  (begin
-		    (mantissa-out modifier #t)
-		    (exponent-out edigits expch)))))
-	  (begin
-	    (mantissa-out modifier #t)
-	    (exponent-out edigits expch))))))))
+	(define (print-overflow-chars number-of-chars)
+	  (format:print-fill-chars number-of-chars
+				   (integer->char overflowchar)))
+
+	(define print-number
+	  (case-lambda
+	   ((add-leading-zero?)
+	    (mantissa-print modifier add-leading-zero?)
+	    (exponent-print expdigits expchar))
+	   (()
+	    (print-number #t))))
+
+	(cond
+	 ((member number-string '("+inf.0" "-inf.0" "+nan.0" "-nan.0"))
+	  (format:print-inf-nan number-string width expdigits #f overflowchar padchar))
+
+	 (decimals ;;Requested decimals.
+
+	  ;;We hand  INTDIGITS as SCALE  argument to FORMAT:PARSE-FLOAT.
+	  ;;This can lead to the  following results for the mantissa and
+	  ;;exponent:
+	  ;;
+	  ;;  INTDIGITS = 2   "1.2345" ->    "123.45e-2"
+	  ;;  INTDIGITS = 4   "1.2345" ->  "12345.0e-4"
+	  ;;  INTDIGITS = 5   "1.2345" -> "123450.0e-5"
+	  ;;
+	  ;;that   is:   decimals   may   disappear  from   the   number
+	  ;;representation in the mantissa+exponent buffers.
+	  ;;
+	  ;;We  do not  care  about  this: if  the  user requested  both
+	  ;;integer  and decimals  digits,  we print  them  even if  the
+	  ;;decimals are all zeros.
+	  ;;
+
+;;;*** TO BE REMOVED ***
+;;;
+;;;This is a piece of code from the pre-MarcoMaggi swirling.  It detects
+;;;the case  of positive INTDIGITS  and DECIMALS and does  some decimals
+;;;normalisation that (in the opinion of MM) makes not sense at all.
+;;;
+;;; 	  (when (< 0 intdigits)
+;;; 	    (set! decimals (if (< intdigits (+ decimals 2))
+;;; 			       (+ (- decimals intdigits) 1)
+;;; 			     0)))
+;;;
+;;;*** END TO BE REMOVED ***
+
+	  ;;This fills MANTISSA-* and EXPONENT-* variables.
+	  (format:parse-float number-string 'exponential intdigits)
+
+	  ;;A  number of  decimals after  the dot  is requested:  if not
+	  ;;enough are in the mantissa buffer, append zeros; if too many
+	  ;;are in the mantissa buffer, round and truncate them.
+	  (mantissa-adjust-decimals-as-requested decimals)
+
+	  (cond
+	   ;;If more exponent digits that requested are present: print
+	   ;;the overflow chars.
+	   ((and width expdigits overflowchar (> exponent-length expdigits))
+	    (print-overflow-chars width))
+
+	   (width
+	    ;;Compute  the output  length starting  with  the mantissa
+	    ;;plus the string ".E+" or ".E-".
+	    (let ((output-len (+ mantissa-length 3)))
+	      ;;Sign before the mantissa.
+	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
+		(increment! output-len))
+
+	      ;;If there  is room  and the integer  part is  zero: the
+	      ;;mantissa will start with "0.", else it will start with
+	      ;;"."; for example "0.123E+0" rather than ".123E+0".
+	      (when (and (= mantissa-dot-index 0) (> width (+ decimals 1)))
+		(increment! output-len))
+
+	      ;;If more exponent digits  than present are required: we
+	      ;;will   add  them   (with  the   appropriate   call  to
+	      ;;EXPONENT-PRINT).
+	      (increment! output-len (compute-exponent-digits))
+
+	      ;;Print the padding chars before the number.
+	      (print-padding-chars-if-needed output-len)
+
+	      ;;Print the overflow chars or the number itself.
+	      (if (and overflowchar (> output-len width))
+		  (print-overflow-chars width)
+		(print-number (> width (- output-len 1))))))
+
+	   (else
+	    ;;No width requested, so just print the number.
+	    (print-number))))
+
+	 (else ;;No decimals requested.
+	  ;;This fills MANTISSA-* and EXPONENT-* variables.
+	  (format:parse-float number-string 'exponential intdigits)
+	  (mantissa-strip-tail-zeros)
+
+	  (cond
+	   ;;If more  exponent digits that requested  are present: print
+	   ;;the overflow chars.
+	   ((and width expdigits overflowchar (> exponent-length expdigits))
+	    (print-overflow-chars width))
+
+	   (width
+	    ;;Compute the output length  starting with the mantissa plus
+	    ;;the string ".E+" or ".E-".
+	    (let ((output-len (+ mantissa-length 3)))
+	      ;;Sign before the mantissa.
+	      (when (or (not mantissa-is-positive) (eq? modifier 'at))
+		(increment! output-len 1))
+
+	      ;;If  the integer part  is zero:  the mantissa  will start
+	      ;;with "0."  not only  "."; for example  "0.123E+0" rather
+	      ;;than ".123E+0".
+	      (when (= mantissa-dot-index 0)
+		(increment! output-len 1))
+
+	      ;;If more  exponent digits  than present are  required: we
+	      ;;will   add   them   (with   the  appropriate   call   to
+	      ;;EXPONENT-PRINT).
+	      (increment! output-len (compute-exponent-digits))
+
+	      ;;Print the padding chars before the number.
+	      (print-padding-chars-if-needed output-len)
+
+	      (if (<= output-len width)
+		  (print-number)
+		;;If rounding decimals is  enough to make the output fit
+		;;the requested  width: do  it; else print  the overflow
+		;;char, if given; else just print the number.
+		(let* ((fractional-len	(- mantissa-length mantissa-dot-index))
+		       (integer-len	(- output-len fractional-len))
+		       (rounding-fixes	(<= integer-len width)))
+		  (cond
+		   (rounding-fixes
+		    (mantissa-round-digits-after-dot (- width integer-len))
+		    (print-number))
+		   (overflowchar
+		    (print-overflow-chars width))
+		   (else
+		    (print-number)))))))
+
+	   (else
+	    ;;No width requested, so just print the number.
+	    (print-number)))))))))
 
 
 
-;;;; helpers, floating point numbers: general format
-
-;;Print  the general  string  representation  of a  number.   It is  the
-;;implementation of  the "~g"  escape sequence.
-(define (format:out-general modifier number parameters)
-  (when (not (or (and (number? number)
-		      (real? number))
-		 (string? number)))
-    (error 'format:out-general
-      "argument is not a number or a number string"
-      number))
-
-  (let ((l (length parameters)))
-    (let ((width	(if (> l 0) (list-ref parameters 0) #f))
-	  (digits	(if (> l 1) (list-ref parameters 1) #f))
-	  (edigits	(if (> l 2) (list-ref parameters 2) #f))
-	  (overch	(if (> l 4) (list-ref parameters 4) #f))
-	  (padch	(if (> l 5) (list-ref parameters 5) #f)))
-      (cond
-
-       ((and (not (string? number))
-	     (or (infinite? number) (nan? number)))
-	;;FIXME: this isn't right.  (But why? MarcoMaggi)
-	(format:out-inf-nan number width digits edigits overch padch))
-
-       (else
-	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "mantissa-*".
-	(format:parse-float (if (string? number)
-				number
-			      (number->string number))
-			    #t 0)
-	(mantissa-strip-tail-zeros)
-	;;For  the following algorithm  see Steele's  CL book  page 395.
-	;;NUMBER less than (abs 1.0) ?
-	(let* ((ee	(if edigits (+ edigits 2) 4))
-	       (ww	(if width (- width ee) #f))
-	       (n	(if (= mantissa-dot-index 0)
-			    (- (mantissa-count-leading-zeros))
-			  mantissa-dot-index))
-	       (d	(if digits
-			    digits
-			  (max mantissa-length (min n 7)))) ; q = mantissa-length
-	       (dd	(- d n)))
-	  (if (<= 0 dd d)
-	      (begin
-		(format:out-fixed modifier number (list ww dd #f overch padch))
-		(format:out-fill ee #\space)) ;~@T not implemented yet
-	    (format:out-expon modifier number parameters))))))))
-
-
-
-;;;; helpers, floating point numbers: dollar format
+;;;; helpers, flonums: dollar format
 
 ;;Print  the  dollar string  representation  of  a  number.  It  is  the
 ;;implementation of the "~$" escape sequence.
-(define (format:out-dollar modifier number parameters)
-  (when (not (or (number? number) (string? number)))
-    (error 'format:out-dollar
-      "argument is not a number or a number string"
-      number))
-
+(define (format:print-flonum-dollar modifier number parameters)
+  (validate-flonum-argument number 'format:print-flonum-dollar)
   (let ((l (length parameters)))
-    (let ((digits	(format:par parameters l 0 2 "digits"))
+    (let ((decimals	(format:par parameters l 0 2 "decimals"))
 	  (mindig	(format:par parameters l 1 1 "mindig"))
 	  (width	(format:par parameters l 2 0 "width"))
 	  (padch	(format:par parameters l 3 space-char-integer #f)))
 
-      (cond
-       ((or (infinite? number) (nan? number))
-	(format:out-inf-nan number width digits #f #f padch))
+      (let ((number-string (if (string? number)
+			       number
+			     (number->string (inexact number)))))
 
-       (else
-	;;The  call  to FORMAT:PARSE-FLOAT  updates  the internal  state
-	;;variables "mantissa-*".
-	(format:parse-float (if (string? number)
-				number
-			      (number->string number))
-			    #t 0)
-	(if (<= (- mantissa-length mantissa-dot-index) digits)
-	    (mantissa-zfill #f (- digits (- mantissa-length mantissa-dot-index)))
-	  (mantissa-round-digits-after-dot digits))
-	(let ((numlen (+ mantissa-length 1)))
-	  (when (or (not mantissa-is-positive) (memq modifier '(at colon-at)))
-	    (increment! numlen 1))
+	(cond
+	 ((member number-string '("+inf.0" "-inf.0" "+nan.0" "-nan.0"))
+	  (format:print-inf-nan number-string width decimals #f #f padch))
+
+	 (else
+	  ;;This fills the internal state MANTISSA-* variables.
+	  (format:parse-float number-string 'fixed-point 0)
+
+	  ;;A number of  decimals after the dot is  requested: add them if
+	  ;;missing or round and truncate decimals if too many.
+	  (mantissa-adjust-decimals-as-requested decimals)
+
+	  (let ((numlen (+ mantissa-length 1)))
+	    (when (or (not mantissa-is-positive) (memq modifier '(at colon-at)))
+	      (increment! numlen 1))
+	    (when (and mindig (> mindig mantissa-dot-index))
+	      (increment! numlen (- mindig mantissa-dot-index)))
+	    (when (and (= mantissa-dot-index 0) (not mindig))
+	      (increment! numlen 1))
+	    (if (< numlen width)
+		(case modifier
+		  ((colon)
+		   (if (not mantissa-is-positive)
+		       (format:out-char #\-))
+		   (format:print-fill-chars (- width numlen) (integer->char padch)))
+		  ((at)
+		   (format:print-fill-chars (- width numlen) (integer->char padch))
+		   (format:out-char (if mantissa-is-positive #\+ #\-)))
+		  ((colon-at)
+		   (format:out-char (if mantissa-is-positive #\+ #\-))
+		   (format:print-fill-chars (- width numlen) (integer->char padch)))
+		  (else
+		   (format:print-fill-chars (- width numlen) (integer->char padch))
+		   (if (not mantissa-is-positive)
+		       (format:out-char #\-))))
+	      (if mantissa-is-positive
+		  (if (memq modifier '(at colon-at)) (format:out-char #\+))
+		(format:out-char #\-))))
 	  (when (and mindig (> mindig mantissa-dot-index))
-	    (increment! numlen (- mindig mantissa-dot-index)))
+	    (format:print-fill-chars (- mindig mantissa-dot-index) #\0))
 	  (when (and (= mantissa-dot-index 0) (not mindig))
-	    (increment! numlen 1))
-	  (if (< numlen width)
-	      (case modifier
-		((colon)
-		 (if (not mantissa-is-positive)
-		     (format:out-char #\-))
-		 (format:out-fill (- width numlen) (integer->char padch)))
-		((at)
-		 (format:out-fill (- width numlen) (integer->char padch))
-		 (format:out-char (if mantissa-is-positive #\+ #\-)))
-		((colon-at)
-		 (format:out-char (if mantissa-is-positive #\+ #\-))
-		 (format:out-fill (- width numlen) (integer->char padch)))
-		(else
-		 (format:out-fill (- width numlen) (integer->char padch))
-		 (if (not mantissa-is-positive)
-		     (format:out-char #\-))))
-	    (if mantissa-is-positive
-		(if (memq modifier '(at colon-at)) (format:out-char #\+))
-	      (format:out-char #\-))))
-	(when (and mindig (> mindig mantissa-dot-index))
-	  (format:out-fill (- mindig mantissa-dot-index) #\0))
-	(when (and (= mantissa-dot-index 0) (not mindig))
-	  (format:out-char #\0))
-	(format:out-substr mantissa-buffer 0 mantissa-dot-index)
-	(format:out-char #\.)
-	(format:out-substr mantissa-buffer mantissa-dot-index mantissa-length))))))
+	    (format:out-char #\0))
+	  (format:out-substr mantissa-buffer 0 mantissa-dot-index)
+	  (format:out-char #\.)
+	  (format:out-substr mantissa-buffer mantissa-dot-index mantissa-length)))))))
 
 
 
@@ -1526,7 +1570,7 @@
 	   "unsupported modifier for escape sequence ~t"
 	   modifier))
 	((at)	; relative tabulation
-	 (format:out-fill
+	 (format:print-fill-chars
 	  (if (= padinc 0)
 	      colnum ; colnum = colrel
 	    (do ((c 0 (+ c padinc))
@@ -1535,7 +1579,7 @@
 		 (- c format:output-col))))
 	  padch))
 	(else	; absolute tabulation
-	 (format:out-fill
+	 (format:print-fill-chars
 	  (cond
 	   ((< format:output-col colnum)
 	    (- colnum format:output-col))
@@ -1578,7 +1622,8 @@
 
     (define (peek-next-char)
       (if (>= format:pos format-string-len)
-	  (error "illegal format string")
+	  (error 'format:format-work
+	    "illegal format string")
 	(string-ref format-string format:pos)))
 
     (define (one-positive-integer? params)
@@ -1605,7 +1650,7 @@
       (add-arg-pos -1)
       (when (negative? arg-pos)
 	(error 'format:format-work
-	    "missing backward argument(s)"))
+	  "missing backward argument(s)"))
       (list-ref arglist arg-pos))
 
     (define (rest-args)
@@ -1647,12 +1692,12 @@
 		 (memv (peek-next-char) ; find conditional
 		; directives
 		       (append '(#\[ #\] #\; #\: #\@ #\^)
-			       format:parameter-characters)))
+			       parameter-characters)))
 	     (or (zero? iteration-nest)
 		 (memv (peek-next-char) ; find iteration
 		; directives
 		       (append '(#\{ #\} #\: #\@ #\^)
-			       format:parameter-characters))))
+			       parameter-characters))))
 	(case (char-upcase (next-char))
 	  ;; format directives
 	  ((#\A) ; Any -- for humans
@@ -1694,33 +1739,21 @@
 	      modifier (next-arg) (cdr params) (car params)))
 	   (anychar-dispatch))
 	  ((#\F) ; Fixed-format floating-point
-	   (if format:floats
-	       (format:out-fixed modifier (next-arg) params)
-	     (format:out-str (number->string (next-arg))))
+	   (format:print-flonum-fixed-point modifier (next-arg) params)
 	   (anychar-dispatch))
 	  ((#\E) ; Exponential floating-point
-	   (if format:floats
-	       (format:out-expon modifier (next-arg) params)
-	     (format:out-str (number->string (next-arg))))
-	   (anychar-dispatch))
-	  ((#\G) ; General floating-point
-	   (if format:floats
-	       (format:out-general modifier (next-arg) params)
-	     (format:out-str (number->string (next-arg))))
+	   (format:print-flonum-exponential modifier (next-arg) params)
 	   (anychar-dispatch))
 	  ((#\$) ; Dollars floating-point
-	   (if format:floats
-	       (format:out-dollar modifier (next-arg) params)
-	     (format:out-str (number->string (next-arg))))
+	   (format:print-flonum-dollar modifier (next-arg) params)
 	   (anychar-dispatch))
 	  ((#\I) ; Complex numbers
-	   (when (not format:complex-numbers)
-	     (error "complex numbers not supported by this scheme system"))
 	   (let ((z (next-arg)))
 	     (when (not (complex? z))
-	       (error "argument not a complex number"))
-	     (format:out-fixed modifier (real-part z) params)
-	     (format:out-fixed 'at (imag-part z) params)
+	       (error 'format:format-work
+		 "argument not a complex number"))
+	     (format:print-flonum-fixed-point modifier (real-part z) params)
+	     (format:print-flonum-fixed-point 'at      (imag-part z) params)
 	     (format:out-char #\i))
 	   (anychar-dispatch))
 	  ((#\C) ; Character
@@ -1728,7 +1761,8 @@
 			 (integer->char (car params))
 		       (next-arg))))
 	     (when (not (char? ch))
-	       (error "escape sequence ~c expects a character"))
+	       (error 'format:format-work
+		 "escape sequence ~c expects a character"))
 	     (case modifier
 	       ((at)
 		(format:out-str (format:char->str ch)))
@@ -1756,7 +1790,8 @@
 	       (prev-arg))
 	   (let ((arg (next-arg)))
 	     (when (not (number? arg))
-	       (error "escape sequence ~p expects a number argument"))
+	       (error 'format:format-work
+		 "escape sequence ~p expects a number argument"))
 	     (if (= arg 1)
 		 (when (memq modifier '(at colon-at))
 		   (format:out-char #\y))
@@ -1766,12 +1801,12 @@
 	   (anychar-dispatch))
 	  ((#\~) ; Tilde
 	   (if (one-positive-integer? params)
-	       (format:out-fill (car params) #\~)
+	       (format:print-fill-chars (car params) #\~)
 	     (format:out-char #\~))
 	   (anychar-dispatch))
 	  ((#\%) ; Newline
 	   (if (one-positive-integer? params)
-	       (format:out-fill (car params) #\newline)
+	       (format:print-fill-chars (car params) #\newline)
 	     (format:out-char #\newline))
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
@@ -1779,7 +1814,7 @@
 	   (if (one-positive-integer? params)
 	       (begin
 		 (if (> (car params) 0)
-		     (format:out-fill (- (car params)
+		     (format:print-fill-chars (- (car params)
 					 (if (>
 					      format:output-col
 					      0) 0 1))
@@ -1790,17 +1825,17 @@
 	   (anychar-dispatch))
 	  ((#\_) ; Space character
 	   (if (one-positive-integer? params)
-	       (format:out-fill (car params) #\space)
+	       (format:print-fill-chars (car params) #\space)
 	     (format:out-char #\space))
 	   (anychar-dispatch))
 	  ((#\/) ; Tabulator character
 	   (if (one-positive-integer? params)
-	       (format:out-fill (car params) #\tab)
+	       (format:print-fill-chars (car params) #\tab)
 	     (format:out-char #\tab))
 	   (anychar-dispatch))
 	  ((#\|) ; Page seperator
 	   (if (one-positive-integer? params)
-	       (format:out-fill (car params) #\page)
+	       (format:print-fill-chars (car params) #\page)
 	     (format:out-char #\page))
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
@@ -1814,7 +1849,8 @@
 	  ((#\? #\K) ; Indirection (is "~K" in T-Scheme)
 	   (cond
 	    ((memq modifier '(colon colon-at))
-	     (error "illegal modifier in escape sequence ~?"))
+	     (error 'format:format-work
+	       "illegal modifier in escape sequence ~?"))
 	    ((eq? modifier 'at)
 	     (let* ((frmt (next-arg))
 		    (args (rest-args)))
@@ -1850,7 +1886,8 @@
 	      (set! arg-pos (if (one-positive-integer? params)
 				(car params) 0)))
 	     ((colon-at)
-	      (error "illegal modifier `:@' in escape sequence ~*"))
+	      (error 'format:format-work
+		"illegal modifier `:@' in escape sequence ~*"))
 	     (else ; jump forward
 	      (if (one-positive-integer? params)
 		  (do ((i 0 (+ i 1)))
@@ -1861,14 +1898,15 @@
 	  ((#\() ; Case conversion begin
 	   (set! format:case-conversion
 		 (case modifier
-		   ((at) string-capitalize-first)
-		   ((colon) string-capitalize)
-		   ((colon-at) string-upcase)
-		   (else string-downcase)))
+		   ((at)	string-titlecase/first)
+		   ((colon)	string-titlecase)
+		   ((colon-at)	string-upcase)
+		   (else	string-downcase)))
 	   (anychar-dispatch))
 	  ((#\)) ; Case conversion end
 	   (when (not format:case-conversion)
-	     (error "missing escape sequence ~("))
+	     (error 'format:format-work
+	       "missing escape sequence ~("))
 	   (set! format:case-conversion #f)
 	   (anychar-dispatch))
 	  ((#\[) ; Conditional begin
@@ -1883,7 +1921,8 @@
 		     ((at) 'if-then)
 		     ((colon) 'if-else-then)
 		     ((colon-at)
-		      (error "illegal modifier in escape sequence ~["))
+		      (error 'format:format-work
+			"illegal modifier in escape sequence ~["))
 		     (else 'num-case)))
 	     (set! conditional-arg
 		   (if (one-positive-integer? params)
@@ -1892,9 +1931,11 @@
 	   (anychar-dispatch))
 	  ((#\;) ; Conditional separator
 	   (when (zero? conditional-nest)
-	     (error "escape sequence ~; not in ~[~] conditional"))
+	     (error 'format:format-work
+	       "escape sequence ~; not in ~[~] conditional"))
 	   (when (not (null? params))
-	     (error "no parameter allowed in ~~;"))
+	     (error 'format:format-work
+	       "no parameter allowed in ~~;"))
 	   (when (= conditional-nest 1)
 	     (let ((clause-str
 		    (cond
@@ -1903,7 +1944,8 @@
 		      (substring format-string clause-pos
 				 (- format:pos 3)))
 		     ((memq modifier '(at colon-at))
-		      (error "illegal modifier in escape sequence ~;"))
+		      (error 'format:format-work
+			"illegal modifier in escape sequence ~;"))
 		     (else
 		      (substring format-string clause-pos
 				 (- format:pos 2))))))
@@ -1912,12 +1954,15 @@
 	   (anychar-dispatch))
 	  ((#\]) ; Conditional end
 	   (when (zero? conditional-nest)
-	     (error "missing escape sequence ~["))
+	     (error 'format:format-work
+	       "missing escape sequence ~["))
 	   (set! conditional-nest (- conditional-nest 1))
 	   (when modifier
-	     (error "no modifier allowed in escape sequence ~]"))
+	     (error 'format:format-work
+	       "no modifier allowed in escape sequence ~]"))
 	   (when (not (null? params))
-	     (error "no parameter allowed in escape sequence ~]"))
+	     (error 'format:format-work
+	       "no parameter allowed in escape sequence ~]"))
 	   (cond
 	    ((zero? conditional-nest)
 	     (let ((clause-str (substring format-string clause-pos
@@ -1939,7 +1984,8 @@
 	       ((num-case)
 		(when (or (not (integer? conditional-arg))
 			  (< conditional-arg 0))
-		  (error "argument not a positive integer"))
+		  (error 'format:format-work
+		    "argument not a positive integer"))
 		(when (not (and (>= conditional-arg (length clauses))
 				(not clause-default)))
 		  (add-arg-pos
@@ -1965,16 +2011,19 @@
 	   (anychar-dispatch))
 	  ((#\}) ; Iteration end
 	   (when (zero? iteration-nest)
-	     (error "missing in escape sequence ~{"))
+	     (error 'format:format-work
+	       "missing in escape sequence ~{"))
 	   (set! iteration-nest (- iteration-nest 1))
 	   (case modifier
 	     ((colon)
 	      (when (not max-iterations)
 		(set! max-iterations 1)))
 	     ((colon-at at)
-	      (error "illegal modifier")))
+	      (error 'format:format-work
+		"illegal modifier")))
 	   (when (not (null? params))
-	     (error "no parameters allowed in escape sequence ~}"))
+	     (error 'format:format-work
+	       "no parameters allowed in escape sequence ~}"))
 	   (if (zero? iteration-nest)
 	       (let ((iteration-str
 		      (substring format-string iteration-pos
@@ -1986,7 +2035,8 @@
 		    (let ((args (next-arg))
 			  (args-len 0))
 		      (when (not (list? args))
-			(error "expected a list argument"))
+			(error 'format:format-work
+			  "expected a list argument"))
 		      (set! args-len (length args))
 		      (do ((arg-pos 0 (+ arg-pos
 					 (format:format-work
@@ -2000,7 +2050,8 @@
 		    (let ((args (next-arg))
 			  (args-len 0))
 		      (when (not (list? args))
-			(error "expected a list argument"))
+			(error 'format:format-work
+			  "expected a list argument"))
 		      (set! args-len (length args))
 		      (do ((arg-pos 0 (+ arg-pos 1)))
 			  ((or (>= arg-pos args-len)
@@ -2008,7 +2059,8 @@
 				    (>= arg-pos max-iterations))))
 			(let ((sublist (list-ref args arg-pos)))
 			  (when (not (list? sublist))
-			    (error "expected a list of lists argument"))
+			    (error 'format:format-work
+			      "expected a list of lists argument"))
 			  (format:format-work iteration-str sublist)))))
 		   ((rest-args)
 		    (let* ((args (rest-args))
@@ -2036,11 +2088,13 @@
 				 arg-pos)
 			      (let ((sublist (list-ref args arg-pos)))
 				(when (not (list? sublist))
-				  (error "expected list arguments"))
+				  (error 'format:format-work
+				    "expected list arguments"))
 				(format:format-work iteration-str sublist)))))
 		      (add-arg-pos usedup-args)))
 		   (else
-		    (error "internal error in escape sequence ~}")))))
+		    (error 'format:format-work
+		      "internal error in escape sequence ~}")))))
 	   (anychar-dispatch))
 	  ((#\^) ; Up and out
 	   (let* ((continue
@@ -2054,7 +2108,8 @@
 				 (list-ref params 1)
 				 (list-ref params 2)))
 			(else
-			 (error "too much parameters")))))
+			 (error 'format:format-work
+			   "too much parameters")))))
 		    (format:case-conversion ; if conversion stop conversion
 		     (set! format:case-conversion string-copy) #t)
 		    ((= iteration-nest 1) #t)
@@ -2069,23 +2124,27 @@
 
 	  ((#\@) ; `@' modifier
 	   (when (memq modifier '(at colon-at))
-	     (error "double `@' modifier"))
+	     (error 'format:format-work
+	       "double `@' modifier"))
 	   (set! modifier (if (eq? modifier 'colon) 'colon-at 'at))
 	   (tilde-dispatch))
 	  ((#\:) ; `:' modifier
 	   (when (memq modifier '(colon colon-at))
-	     (error "double escape sequence `:' modifier"))
+	     (error 'format:format-work
+	       "double escape sequence `:' modifier"))
 	   (set! modifier (if (eq? modifier 'at) 'colon-at 'colon))
 	   (tilde-dispatch))
 	  ((#\') ; Character parameter
 	   (when modifier
-	     (error "misplaced escape sequence modifier"))
+	     (error 'format:format-work
+	       "misplaced escape sequence modifier"))
 	   (set! params (append params (list (char->integer (next-char)))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
 	  ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+) ; num. paramtr
 	   (when modifier
-	     (error "misplaced escape sequence modifier"))
+	     (error 'format:format-work
+	       "misplaced escape sequence modifier"))
 	   (let ((num-str-beg (- format:pos 1))
 		 (num-str-end format:pos))
 	     (do ((ch (peek-next-char) (peek-next-char)))
@@ -2102,38 +2161,32 @@
 	   (tilde-dispatch))
 	  ((#\V) ; Variable parameter from next argum.
 	   (when modifier
-	     (error "misplaced escape sequence modifier"))
+	     (error 'format:format-work
+	       "misplaced escape sequence modifier"))
 	   (set! params (append params (list (next-arg))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
 	  ((#\#) ; Parameter is number of remaining args
 	   (when param-value-found
-	     (error "misplaced '#'"))
+	     (error 'format:format-work
+	       "misplaced '#'"))
 	   (when modifier
-	     (error "misplaced escape sequence modifier"))
+	     (error 'format:format-work
+	       "misplaced escape sequence modifier"))
 	   (set! params (append params (list (length (rest-args)))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
 	  ((#\,) ; Parameter separators
 	   (when modifier
-	     (error "misplaced escape sequence modifier"))
+	     (error 'format:format-work
+	       "misplaced escape sequence modifier"))
 	   (if (not param-value-found)
 	       (set! params (append params '(#f)))) ; append empty paramtr
 	   (set! param-value-found #f)
 	   (tilde-dispatch))
-	  ((#\Q) ; Inquiry messages
-	   (if (eq? modifier 'colon)
-	       (format:out-str format:version)
-	     (let ((nl (string #\newline)))
-	       (format:out-str
-		(string-append
-		 "SLIB Common LISP format version " format:version nl
-		 "  (C) copyright 1992-1994 by Dirk Lutzebaeck" nl
-		 "  please send bug reports to `lutzeb@cs.tu-berlin.de'"
-		 nl))))
-	   (anychar-dispatch))
 	  (else ; Unknown tilde directive
-	   (error "unknown control character"
+	   (error 'format:format-work
+	     "unknown control character"
 	     (string-ref format-string (- format:pos 1))))))
        (else
 	(anychar-dispatch)))) ; in case of conditional
@@ -2149,16 +2202,7 @@
 
 ;;;; body of FORMAT
 
-(set! mantissa-buffer	(make-string mantissa-max-length))
-(set! exponent-buffer	(make-string exponent-max-length))
+(format:dispatch-to-destination-port args)))
 
-(format:dispatch-to-destination-port args)
-
-
-;;;; done
-
-) ;; end of FORMAT defininition
-
-) ;; end of LIBRARY form
 
 ;;; end of file

@@ -407,7 +407,8 @@ entitled ``@gnu{} Free Documentation License''.
 * escape values::               Escape sequences for generic values.
 * escape char::                 Escape sequences for characters.
 * escape integers::             Escape sequences for integers.
-* escape floats::               Escape sequences for floats.
+* escape flonums::              Escape sequences for flonums.
+* escape complex::              Escape sequences for complex numbers.
 
 
 Appendices
@@ -755,8 +756,21 @@ described for @code{~d} above.
 
 
 @c page
-@node escape floats
-@chapter Escape sequences for floats
+@node escape flonums
+@chapter Escape sequences for flonums
+
+
+@menu
+* escape flonums fixed::        Fixed point format.
+* escape flonums exponent::     Exponential format.
+* escape flonums general::      General format.
+* escape flonums dollar::       Dollar format.
+@end menu
+
+
+@c page
+@node escape flonums fixed
+@section Fixed point format
 
 
 @deffn Escape @code{~f}
@@ -834,8 +848,13 @@ printed instead of the value.
 @end deffn
 
 
+@c page
+@node escape flonums exponent
+@section Exponential format
+
+
 @deffn Escape ~e
-Real exponential float.  Parameters: @var{width}, @var{mantdigits},
+Real exponential float.  Parameters: @var{width}, @var{decimals},
 @var{expdigits}, @var{intdigits}, @var{overflowchar}, @var{padchar},
 @var{expchar}.
 
@@ -860,18 +879,32 @@ left with @var{padchar} (space by default).  The default for
 @var{width} is to output with no padding.
 
 @example
-(format #f "~10e" 1234.0)     @result{} "  1.234E+3"
-(format #f "~10,,,,,'*e" 0.5) @result{} "****5.0E-1"
+(format #f "~10e" 1234.0)       @result{} "  1.234E+3"
+(format #f "~10,,,,,'*e" 0.5)   @result{} "****5.0E-1"
 @end example
 
-@c  FIXME: Describe what happens when the number is bigger than WIDTH.
-@c  There seems to be a bit of dodginess about this, or some deviation
-@c  from Common Lisp.
+If the output is more than @var{width} characters: decimals in the
+exponential representation are rounded to make the output fit the
+@var{width}; if rounding does not make the output fit, the full output
+without rounding is printed.  When @var{decimals} is specified: no
+rounding is done to remove those decimals, even if the output exceeds
+the @var{width}.
 
-@var{mantdigits} is the number of digits shown in the mantissa after
-the decimal point.  The value is rounded or trailing zeros are added
-as necessary.  The default @var{mantdigits} is to show as much as
-needed by the value.
+@example
+;; here rounding succeeds in making the output fit
+(format #f "~5e" 123456)        @result{} "1.E+5"
+
+;; here rounding fails in making the output fit
+(format #f "~2e" 123456)        @result{} "1.23456E+5"
+
+;; here DECIMALS causes the output to overflow
+(format "~6,3e" 123.3456)       @result{} "1.233E+2"
+@end example
+
+@var{decimals} is the number of digits shown in the mantissa after the
+decimal point.  The value is rounded or trailing zeros are added as
+necessary.  The default @var{decimals} is to show as much as needed by
+the value.
 
 @example
 (format #f "~,3e" 11111.0) @result{} "1.111E+4"
@@ -893,24 +926,14 @@ decimal point in the mantissa.  @var{intdigits} can be zero, in which
 case the integer part is a single @code{0}, or it can be negative,
 in which case leading zeros are shown after the decimal point.
 
-@c  FIXME: When INTDIGITS is 0, Common Lisp format apparently only
-@c  shows the single 0 digit if it fits in WIDTH.  format.scm seems to
-@c  show it always.  Is it meant to?
-
 @example
 (format #t "~,,,3e" 12345.0)  @print{} 123.45E+2
 (format #t "~,,,0e" 12345.0)  @print{} 0.12345E+5
 (format #t "~,,,-3e" 12345.0) @print{} 0.00012345E+8
 @end example
 
-@c  FIXME: MANTDIGITS with negative INTDIGITS doesn't match CL spec,
-@c  believe the spec says it ought to still show mantdigits+1 sig
-@c  figures, ie. leading zeros don't count towards MANTDIGITS, but it
-@c  seems to just treat MANTDIGITS as how many digits after the
-@c  decimal point.
-
-If @var{overflowchar} is given then @var{width} is a hard limit.  If
-the output would exceed @var{width} then instead that many
+If @var{overflowchar} is given then @var{width} is a hard limit.  If the
+output would exceed @var{width} then instead that many
 @var{overflowchar}s are printed.
 
 @example
@@ -926,36 +949,44 @@ the output would exceed @var{width} then instead that many
 @end deffn
 
 
+@c page
+@node escape flonums general
+@section General format
+
+
 @deffn Escape @code{~g}
-Real general float.  Parameters: @var{width}, @var{mantdigits},
+Real general float.  Parameters: @var{width}, @var{decimals},
 @var{expdigits}, @var{intdigits}, @var{overflowchar}, @var{padchar},
 @var{expchar}.
 
 Output a number or number string in either exponential format the same
-as @code{~e}, or fixed-point format like @code{~f} but aligned
-where the mantissa would have been and followed by padding where the
-exponent would have been.
+as @code{~e}, or fixed--point format like @code{~f} but aligned where
+the mantissa would have been and followed by padding where the exponent
+would have been.
 
-@c  FIXME: The default MANTDIGITS is apparently max(needed,min(n,7))
-@c  where 10^(n-1)<=abs(x)<=10^n.  But the Common Lisp spec seems to
-@c  ask for "needed" to be without leading or trailing zeros, whereas
-@c  format.scm seems to include trailing zeros, ending up with it
-@c  using fixed format for bigger values than it should.
+@c  FIXME: The default DECIMALS is apparently max(needed,min(n,7)) where
+@c  10^(n-1)<=abs(x)<=10^n.  But the Common Lisp spec seems to ask for
+@c  "needed" to be without leading or trailing zeros, whereas format.scm
+@c  seems to include trailing zeros, ending up with it using fixed
+@c  format for bigger values than it should.
 
-Fixed-point is used when the absolute value is 0.1 or more and it
-takes no more space than the mantissa in exponential format, ie.@:
-basically up to @var{mantdigits} digits.
+Fixed--point is used when the absolute value is 0.1 or more and it takes
+no more space than the mantissa in exponential format, ie.@: basically
+up to @var{decimals} digits.
 
 @example
-(format #f "~12,4,2g" 999.0)    @result{} "   999.0    "
-(format #f "~12,4,2g" "100000") @result{} "  1.0000E+05"
+(format #t "~12,4,2g" 999.0)    @print{} "   999.0    "
+(format #t "~12,4,2g" "100000") @print{} "  1.0000E+05"
 @end example
 
-The parameters are interpreted as per @code{~e} above.  When
-fixed-point is used, the @var{decimals} parameter to @code{~f} is
-established from @var{mantdigits}, so as to give a total
-@math{@var{mantdigits}+1} figures.
+The parameters are interpreted as per @code{~e} above.  When fixed-point
+is used, the @var{decimals} parameter to @code{~f} is established from
+@var{decimals}, so as to give a total @math{@var{decimals}+1} figures.
 @end deffn
+
+@c page
+@node escape flonums dollar
+@section Dollar format
 
 
 @deffn Escape @code{~$}
@@ -1010,13 +1041,17 @@ integers then printing with the scale option in @code{~f} may be a
 better approach.
 @end deffn
 
-
 @c  For reference, fractions don't work with ~$ (or any of the float
 @c  conversions) currently.  If they did work then we could perhaps
 @c  suggest keeping dollar amounts as rationals, which would of course
 @c  give exact cents.  An integer as cents is probably still a better
 @c  recommendation though, since it forces one to think about where
 @c  and when rounding can or should occur.
+
+@c page
+@node escape complex
+@chapter Escape sequences for complex numbers
+
 
 @deffn Escape ~i
 Complex fixed--point float.  Parameters: @var{width}, @var{decimals},
@@ -1510,13 +1545,6 @@ equal.  For three parameters, termination is when @math{@var{val1} <=
 
 
 @c  FIXME: Good examples of these?
-
-@deffn Escape @code{~q}
-Inquiry message.  Insert a copyright message into the output.
-
-@code{~:q} inserts the format implementation version.
-@end deffn
-
 
 It's an error if there are not enough arguments for the escapes in the
 format string, but any excess arguments are ignored.
