@@ -36,7 +36,8 @@
 
 #!r6rs
 (library (format-lib)
-  (export format)
+  (export
+    format format-output-column)
   (import (rename (rnrs)
 		  (infinite? rnrs:infinite?)
 		  (nan? rnrs:nan?))
@@ -47,13 +48,6 @@
 	  string-set!)
     (format-lib compat)
     (lang-lib))
-
-
-
-;;;; configuration
-
-(define format:version "4.0")
-
 
 
 ;;;; constants
@@ -124,16 +118,24 @@
     "fortieth"		"fiftieth"		"sixtieth"
     "seventieth"	"eightieth"		"ninetieth"))
 
-;;These are values for the FORMAT argument to FORMAT:PARSE-FLOAT.
-(define flonum-format
-  (make-enumeration '(fixed-point exponential)))
-
 
 
 ;;;; porting and miscellaneous helpers
 
-(define (port-column port)
-  0)
+;;R6RS states that FINITE?, INFINITE? and NAN? reject complex numbers.
+(define (infinite? num)
+  (or (rnrs:infinite? (real-part num))
+      (rnrs:infinite? (imag-part num))))
+(define (nan? num)
+  (or (rnrs:nan? (real-part num))
+      (rnrs:nan? (imag-part num))))
+
+(define-syntax increment!
+  (syntax-rules ()
+    ((_ ?varname ?step)
+     (set! ?varname (+ ?varname ?step)))
+    ((_ ?varname)
+     (set! ?varname (+ ?varname 1)))))
 
 ;;Return the  first K  elements from the  list ELL; this  function comes
 ;;from SRFI lists.
@@ -158,6 +160,21 @@
     (do ((i 0 (+ 1 i)))
 	((or (= i len) (char=? ch (string-ref str i)))
 	 (if (= i len) #f i)))))
+
+;;Return the index of CH in STR starting from the end.
+(define (string-index-right str ch)
+  (do ((i (- (string-length str) 1) (- i 1)))
+      ((or (< i 0) (char=? ch (string-ref str i)))
+       (if (< i 0) #f i))))
+
+(define (string-count-tabs str)
+  (let ((len (string-length str)))
+    (do ((i 0 (+ 1 i))
+	 (count 0))
+	((= i len)
+	 count)
+      (when (char=? #\tab (string-ref str i))
+	(increment! count)))))
 
 ;;Convert a string to its  representation with the first alphabetic char
 ;;capitalised.   We iterate  over  the chars  rather  than extracting  a
@@ -211,13 +228,9 @@
 	 (loop (exact (floor (inexact (/ num radix))))
 	       (cons (number->string (remainder num radix)) res)))))))
 
-(define-syntax increment!
-  (syntax-rules ()
-    ((_ ?varname ?step)
-     (set! ?varname (+ ?varname ?step)))
-    ((_ ?varname)
-     (set! ?varname (+ ?varname 1)))))
 
+
+;;;; escape sequence parameter handling
 
 ;;Extract an  escape sequence  parameter from a  list of  parameters and
 ;;return it.
@@ -238,20 +251,63 @@
 	    par)
 	default))))
 
-;;R6RS states that FINITE?, INFINITE? and NAN? reject complex numbers.
-(define (infinite? num)
-  (or (rnrs:infinite? (real-part num))
-      (rnrs:infinite? (imag-part num))))
-(define (nan? num)
-  (or (rnrs:nan? (real-part num))
-      (rnrs:nan? (imag-part num))))
+
+
+;;;; output column handling
+
+(define (port-column port)
+  0)
+
+(define format-output-column
+  (make-parameter #f
+    (lambda (obj)
+      (unless (or (not obj) (and (integer? obj)
+				 (exact? obj)
+				 (not (negative? obj))))
+	(assertion-violation 'format-output-column
+	  "invalid value for FORMAT-OUTPUT-COLUMN parameter, expected integer or #f"
+	  obj))
+      obj)))
+
+(define (increment-output-column delta)
+  (and-let* ((column (format-output-column)))
+    (format-output-column (+ delta column))))
+
+;;To be  invoked after printing STR  to the destination  port.  Scan the
+;;string for  the last newline  and tabulations, then adjust  the output
+;;column accordingly.  Notice  that what matters is the  last newline in
+;;the string.
+;;
+;;A tabulation is defined to be 8 characters.
+;;
+;;Examples:
+;;
+;;  "ciao"		-> increment by 4
+;;  "one\ntwo"		-> set to 3
+;;  "ciao\nmamma\n"	-> set to 0
+;;  "\t"		-> increment by 8
+;;  "A\t"		-> increment by 1+8 = stringlen+8-1
+;;  "A\t\t"		-> increment by 1+2*8 = stringlen+2*8-2
+;;  "ciao\nmamma\t"	-> increment by 5+8
+;;
+(define (adjust-output-column-from-string str)
+  (let* ((idx	(string-index-right str #\newline))
+	 (str	(if idx
+		    (begin
+		      (format-output-column 0)
+		      (substring str (+ 1 idx) (string-length str)))
+		  str))
+	 (len	(string-length str))
+	 (tabs	(string-count-tabs str)))
+    (format-output-column (+ len (- (* 8 tabs) tabs)))))
 
 
 ;;;; incipit
-(define (format . args)
+
+(define (format arg0 . args)
 
   ;;Current format output port.
-  (define format:port #f)
+  (define destination-port #f)
 
   ;;Current format output TTY column.
   (define format:output-col 0)
@@ -272,200 +328,148 @@
   ;;strings starting with "#<" in an extra pair of double quotes.
   (define format:read-proof #f)
 
-;;; --------------------------------------------------------------------
-;;; Floating point numbers related stuff.
+
+;;;; helpers, dispatching arguments
 
-  ;;Maximum number of digits.
-  (define mantissa-max-length 400)
+;;Notice that  rewriting this  implementation with CASE-LAMBDA  does not
+;;bring true advantage.
+(define (format:dispatch-arguments arg0 args)
 
-  ;;Floating point  number buffer for  the mantissa.  It is  filled with
-  ;;the  string  representation  of  the  mantissa.  If  the  flonum  is
-  ;;"12.345e67", this buffer is filled with "12345".
-  ;;
-  ;;Notice that the dot is not stored in the buffer.  The sign (positive
-  ;;or negative) also  is not stored in the buffer,  rather it is marked
-  ;;by MANTISSA-IS-POSITIVE.
-  (define mantissa-buffer #f)
+  (define (invalid-string irritant)
+    (assertion-violation 'format
+      "invalid format string" irritant))
 
-  ;;The index  of the first  *unused* char in the  MANTISSA-BUFFER buffer.
-  ;;It is also the length of the mantissa string in MANTISSA-BUFFER.
-  (define mantissa-length 0)
+  (let*-values
+      (((sarg)		(string? arg0))
+       ((format-string)	(cond (sarg
+			       arg0)
+			      ((null? args)
+			       (invalid-string arg0))
+			      (else
+			       (let ((s (car args)))
+				 (unless (string? s)
+				   (invalid-string s))
+				 s))))
+       ((port getter)	(cond (sarg
+			       (open-string-output-port))
+			      ((boolean? arg0)
+			       (if arg0
+				   (values (current-output-port) #f)
+				 (open-string-output-port)))
+			      ((output-port? arg0)
+			       (values arg0 #f))
+			      ((number? arg0)
+			       (values (current-error-port) #f))
+			      (else
+			       (assertion-violation 'format
+				 "invalid destination" arg0))))
+       ((arglist)	(if sarg args (cdr args))))
 
-  ;;The index of  the digit in MANTISSA-BUFFER that  comes right after the
-  ;;dot.  If  the flonum is  "12.345e67", the mantissa buffer  is filled
-  ;;with "12345"  and this  variable is set  to 2,  so '3' is  the digit
-  ;;right after the dot.
-  (define mantissa-dot-index #f)
-
-  ;;Set to #t if the mantissa is positive, to #f otherwise.
-  (define mantissa-is-positive #t)
-
-  ;; max. number of exponent digits
-  (define exponent-max-length 10)
-
-  ;;Floating point  number buffer for  the exponent.  It is  filled with
-  ;;the  string  representation  of  the  exponent.  If  the  flonum  is
-  ;;"12.345e67", this buffer is filled with "67".
-  ;;
-  ;;Notice that  The sign  (positive or negative)  is NOT stored  in the
-  ;;buffer, rather it is marked by EXPONENT-IS-POSITIVE.
-  (define exponent-buffer #f)
-
-  ;;The index  of the first  *unused* char in the  EXPONENT-BUFFER buffer.
-  ;;It is also the length of the exponent string in EXPONENT-BUFFER.
-  (define exponent-length 0)
-
-  ;;Set to #t if the exponent is positive, to #f otherwise.
-  (define exponent-is-positive #t)
-
+    (set! destination-port port)
+    (let ((arg-pos (format:format format-string arglist))
+	  (arg-len (length arglist)))
+      (cond ((> arg-pos arg-len)
+	     (error 'format
+	       "missing argument" (- arg-pos arg-len)))
+	    (format:flush-output
+	     (flush-output-port port)))
+      (and getter (getter)))))
 
 
-;;;; helpers, output to destination functions
-
-;;Print a string with case conversion.  Update the output column.
-(define (format:out-str str)
-  (display (if format:case-conversion
-	       (format:case-conversion str)
-	     str)
-	   format:port)
-  (increment! format:output-col (string-length str)))
+;;;; helpers, output to destination
 
 ;;Print  a single  character with  case conversion.   Update  the output
 ;;column.
-(define (format:out-char ch)
+(define (format:print-char ch)
   (if format:case-conversion
-      (display (format:case-conversion (string ch)) format:port)
-    (write-char ch format:port))
-  (set! format:output-col
-	(if (char=? ch #\newline)
-	    0
-	  (+ format:output-col 1))))
+      (display (format:case-conversion (string ch)) destination-port)
+    (write-char ch destination-port))
+  (if (char=? ch #\newline)
+      (format-output-column 0)
+    (increment-output-column 1)))
+
+;;Print a string with case conversion.  Update the output column.
+(define (format:print-string str)
+  (display (if format:case-conversion
+	       (format:case-conversion str)
+	     str)
+	   destination-port)
+  (adjust-output-column-from-string str))
 
 ;;Print a substring.  Update the output column.
-(define (format:out-substr str i n)
-  (display (substring str i n) format:port)
-  (increment! format:output-col n))
+(define (format:print-substring str i n)
+  (let ((str (substring str i n)))
+    (display str destination-port)
+    (adjust-output-column-from-string str)))
 
 ;;Print a string filled with the same char.  Update the output column.
 (define (format:print-fill-chars n ch)
-  (format:out-str (make-string n ch))
-  (increment! format:output-col n))
-
-
-
-;;;; helpers, dispatching to destination port
-
-;;Invoked at the  end of the FORMAT body; ARGS is  the list of arguments
-;;given to FORMAT.  This function parses ARGS to select the output port,
-;;then invokes FORMAT:FORMAT to start the formatting.
-(define (format:dispatch-to-destination-port args)
-  (when (< (length args) 1)
-    (assertion-violation 'format:dispatch-to-destination-port
-      "not enough arguments"))
-  (let ((args (if (string? (car args))
-		  (cons #f args)
-		args)))
-    (let ((destination		(car args))
-	  (format-string	(cadr args))
-	  (arglist		(cddr args)))
-      (cond
-       ((boolean? destination)
-	(if destination
-	    (format:format (current-output-port) format-string arglist)
-	  (call-with-string-output-port
-	      (lambda (port)
-		(format:format port format-string arglist)))))
-       ((output-port? destination)
-	(format:format destination format-string arglist))
-       ((number? destination)
-	(format:format (current-error-port) format-string arglist))
-       (else
-	(assertion-violation 'format:dispatch-to-destination-port
-	  "invalid destination" destination))))))
-
-;;Setup the internal state for  this invocation to FORMAT, then hand the
-;;arguments to FORMAT:FORMAT-WORK.
-(define (format:format port format-string arglist)
-  (set! format:port port)
-  (let* ((col (port-column port)))
-    (when col
-      (set! format:output-col col)))
-
-  (let ((arg-pos (format:format-work format-string arglist))
-	(arg-len (length arglist)))
-    (if (> arg-pos arg-len)
-	(begin
-	  (set! format:arg-pos (+ arg-len 1))
-	  (display format:arg-pos)
-	  (error 'format:format
-	    "missing argument" (- arg-pos arg-len)))
-      (when format:flush-output
-	(flush-output-port port)))))
+  (let ((str (make-string n ch)))
+    (format:print-string str)
+    (adjust-output-column-from-string str)))
 
 
 
 ;;;; helpers, any object to string
 
-;;Convert  an arbitrary object  OBJ to  a string.   If USE-WRITE  is true
-;;WRITE style is selected, else DISPLAY style is used.
-(define (format:obj->str obj use-write)
-  (let ((res (call-with-string-output-port
-		 (lambda (port) ((if use-write write display)
-				 obj port)))))
-    (if (and format:read-proof (string-prefix? "#<" res))
-	(call-with-string-output-port
-	    (lambda (port) (write res port)))
-      res)))
-
 ;;Print any object with padding  chars.  It is the implementation of the
 ;;"~s" and "~a" escape sequences.
 ;;
-;;If PAD-LEFT is  false the object string is  printed first, followed by
-;;the  padding (if any);  else the  padding (if  any) is  printed first,
-;;followed by the object string.
+;;USE-WRITE decides whether to use WRITE or DISPLAY.
+;;
+;;PAD-LEFT decides whether padding (if any) is to the left or right.
+;;
 (define (format:out-obj-padded pad-left obj use-write parameters)
+
+  (define (obj->str obj use-write)
+    (let ((res (call-with-string-output-port
+		   (lambda (port) ((if use-write write display)
+				   obj port)))))
+      (if (and format:read-proof (string-prefix? "#<" res))
+	  (call-with-string-output-port
+	      (lambda (port) (write res port)))
+	res)))
+
   (if (null? parameters)
-      (format:out-str (format:obj->str obj use-write))
+      (format:print-string (obj->str obj use-write))
     (let ((l (length parameters)))
       (let ((minwidth	(format:par parameters l 0 0 "minwidth"))
 	    (padinc	(format:par parameters l 1 1 "padinc"))
 	    (minpad	(format:par parameters l 2 0 "minpad"))
 	    (padchar	(integer->char
 			 (format:par parameters l 3 space-char-integer #f)))
-	    (objstr	(format:obj->str obj use-write)))
-	(unless pad-left
-	  (format:out-str objstr))
-	(do ((objstr-len (string-length objstr))
-	     (i minpad (+ i padinc)))
-	    ((>= (+ objstr-len i) minwidth)
-	     (format:print-fill-chars i padchar)))
-	(when pad-left
-	  (format:out-str objstr))))))
+	    (objstr	(obj->str obj use-write)))
+
+	(define (print-padding)
+	  (do ((objstr-len (string-length objstr))
+	       (i minpad (+ i padinc)))
+	      ((>= (+ objstr-len i) minwidth)
+	       (format:print-fill-chars i padchar))))
+
+	(cond (pad-left	(print-padding)
+			(format:print-string objstr))
+	      (else	(format:print-string objstr)
+			(print-padding)))))))
 
 
 
 ;;;; helpers, character to string
 
-;;Convert a  character into a slashified  string as done  by WRITE.  The
-;;procedure is dependent on the integer representation of characters and
-;;assumes a character number according to the ASCII character set.
+;;Convert a character into a slashified string as done by WRITE.
 (define (format:char->str ch)
-  (let ((int-rep (char->integer ch)))
-    (when (< int-rep 0) ; if chars are [-128...+127]
-      (increment! int-rep 256))
-    (string-append
-     "#\\"
-     (cond
-      ((char=? ch #\newline)
-       "newline")
-      ((and (>= int-rep 0) (<= int-rep 32))
-       (vector-ref ascii-non-printable-charnames int-rep))
-      ((= int-rep 127)
-       "del")
-      ((>= int-rep 128) ; octal representation
-       (number->string int-rep 8))
-      (else
-       (string ch))))))
+  (let ((ich (char->integer ch)))
+    (string-append "#\\"
+		   (cond
+		    ((char=? ch #\newline)
+		     "newline")
+		    ((and (>= ich 0) (<= ich 32))
+		     (vector-ref ascii-non-printable-charnames ich))
+		    ((= ich 127)
+		     "del")
+		    ((>= ich 128) ; octal representation
+		     (number->string ich 8))
+		    (else
+		     (string ch))))))
 
 
 ;;;; helpers, integer numbers to string
@@ -481,7 +485,7 @@
   ;;number.
   (let ((numstr (string-downcase (number->string/radix number radix))))
     (if (and (null? pars) (not modifier))
-	(format:out-str numstr)
+	(format:print-string numstr)
       (let ((l		(length pars))
 	    (numstr-len (string-length numstr)))
 	(let ((mincol		(format:par pars l 0 #f "mincol"))
@@ -504,17 +508,17 @@
 		(format:print-fill-chars (- mincol numlen) padchar))))
 	  (when (and (memq modifier '(at colon-at))
 		     (>= number 0))
-	    (format:out-char #\+))
+	    (format:print-char #\+))
 	  (if (memq modifier '(colon colon-at)) ; insert comma character
 	      (let ((start (remainder numstr-len commawidth))
 		    (ns (if (< number 0) 1 0)))
-		(format:out-substr numstr 0 start)
+		(format:print-substring numstr 0 start)
 		(do ((i start (+ i commawidth)))
 		    ((>= i numstr-len))
 		  (when (> i ns)
-		    (format:out-char commachar))
-		  (format:out-substr numstr i (+ i commawidth))))
-	    (format:out-str numstr)))))))
+		    (format:print-char commachar))
+		  (format:print-substring numstr i (+ i commawidth))))
+	    (format:print-string numstr)))))))
 
 
 ;;;; helpers, integer numbers to roman string
@@ -703,12 +707,80 @@
 			  0))
 	     (pad-char	(integer->char (or pad-char space-char-integer))))
 	(format:print-fill-chars leftpad pad-char)
-	(format:out-str str)
+	(format:print-string str)
 	(format:print-fill-chars rightpad pad-char)))))
 
-
 
-;;;; helpers, setters and getters for the flonum buffers
+;;;; flonum string representations parsing variables
+
+;;The mantissa buffer.   It is filled with the  string representation of
+;;the mantissa of  a flonum.  If the flonum  is "12.345e67", this buffer
+;;is filled with "12345".
+;;
+;;Notice:  the  dot  is  not  stored  in the  buffer;  its  position  is
+;;registered in MANTISSA-DOT-INDEX.
+;;
+;;Notice: the sign  (positive or negative) is not  stored in the buffer;
+;;it is registered as boolean in MANTISSA-IS-POSITIVE.
+;;
+(define mantissa-buffer #f)
+
+;;Number of allocated bytes in MANTISSA-BUFFER.
+(define mantissa-max-length 400)
+
+;;The length of the string in  MANTISSA-BUFFER.  It is also the index of
+;;the first *unused* byte in MANTISSA-BUFFER buffer.
+;;
+(define mantissa-length 0)
+
+;;The zero-based index of the  digit in MANTISSA-BUFFER that comes right
+;;after the dot.
+;;
+;;If  the flonum  is "12.345e67",  the  mantissa buffer  is filled  with
+;;"12345" and this variable is set to 2, so '3' is the digit right after
+;;the dot.
+;;
+(define mantissa-dot-index #f)
+
+;;Set to #t if the mantissa is positive, to #f otherwise.
+(define mantissa-is-positive #t)
+
+;;; --------------------------------------------------------------------
+
+;;The  exponent buffer.  filled  with the  string representation  of the
+;;exponent.  If  the flonum is  "12.345e67", this buffer is  filled with
+;;"67".
+;;
+;;Notice: the sign  (positive or negative) is not  stored in the buffer,
+;;rather it is marked by EXPONENT-IS-POSITIVE.
+;;
+(define exponent-buffer #f)
+
+;;Number of bytes allocated in EXPONENT-BUFFER.
+(define exponent-max-length 10)
+
+;;The length of  the string in EXPONENT-BUFFER. It is  also the index of
+;;the first *unused* byte in the EXPONENT-BUFFER buffer.
+(define exponent-length 0)
+
+;;Set to #t if the exponent is positive, to #f otherwise.
+(define exponent-is-positive #t)
+
+;;; --------------------------------------------------------------------
+
+;;Reset  the flonum  variables  to  values suitable  for  a new  parsing
+;;action.
+(define (initialise-flonum-variables)
+  (unless mantissa-buffer
+    (set! mantissa-buffer (make-string mantissa-max-length)))
+  (set! mantissa-length		0)
+  (set! mantissa-is-positive	#t)
+  (set! mantissa-dot-index	#f)
+
+  (unless exponent-buffer
+    (set! exponent-buffer (make-string exponent-max-length)))
+  (set! exponent-is-positive	#t)
+  (set! exponent-length		0))
 
 (define-syntax mantissa-set!
   (syntax-rules ()
@@ -730,8 +802,6 @@
     ((_ ?idx)
      (- (char->integer (mantissa-ref ?idx)) zero-char-integer))))
 
-;;; --------------------------------------------------------------------
-
 (define-syntax exponent-set!
   (syntax-rules ()
     ((_ ?idx ?char)
@@ -752,11 +822,10 @@
     ((_ ?idx)
      (- (char->integer (exponent-ref ?idx)) zero-char-integer))))
 
-
 
 ;;;; helpers, miscellaneous stuff for floating point numbers
 ;;
-;;See the documentation of  FORMAT:PARSE-FLOAT below for more details on
+;;See the documentation of  FORMAT:PARSE-FLONUM below for more details on
 ;;flonums handling.
 
 (define (validate-flonum-argument number caller-function)
@@ -861,14 +930,14 @@
 (define (mantissa-print modifier add-leading-zero?)
   (if mantissa-is-positive
       (when (eq? modifier 'at)
-	(format:out-char #\+))
-    (format:out-char #\-))
+	(format:print-char #\+))
+    (format:print-char #\-))
   (if (= 0 mantissa-dot-index)
       (when add-leading-zero?
-	(format:out-char #\0))
-    (format:out-substr mantissa-buffer 0 mantissa-dot-index));integer part
-  (format:out-char #\.)
-  (format:out-substr mantissa-buffer mantissa-dot-index mantissa-length));fractional part
+	(format:print-char #\0))
+    (format:print-substring mantissa-buffer 0 mantissa-dot-index));integer part
+  (format:print-char #\.)
+  (format:print-substring mantissa-buffer mantissa-dot-index mantissa-length));fractional part
 
 ;;Print to the destination  the exponent-start character followed by the
 ;;exponent string.
@@ -883,14 +952,14 @@
 ;;#\e or #\E, but can be #f to select DEFAULT-EXPONENTIAL-CHAR.
 ;;
 (define (exponent-print edigits expch)
-  (format:out-char (if expch
+  (format:print-char (if expch
 		       (integer->char expch)
 		     default-exponential-char))
-  (format:out-char (if exponent-is-positive #\+ #\-))
+  (format:print-char (if exponent-is-positive #\+ #\-))
   (when edigits
     (when (< exponent-length edigits)
       (format:print-fill-chars (- edigits exponent-length) #\0)))
-  (format:out-substr exponent-buffer 0 exponent-length))
+  (format:print-substring exponent-buffer 0 exponent-length))
 
 ;;Strip trailing zeros  but one from the mantissa  buffer.  The mantissa
 ;;buffer  is  "updated"  by   mutating  the  value  in  MANTISSA-LENGTH.
@@ -1020,45 +1089,38 @@
 
 ;;;; helpers, parsing flonums
 
-;;Parse  the   flonum  representation  in   NUMBER-STRING,  filling  the
-;;MANTISSA-*  and EXPONENT-*  variables with  the result.   The argument
-;;NORMALISATION-FORMAT  selects  how   the  mantissa  and  exponent  are
-;;normalised:
-;;
-;;* fixed-point
-;;
-;;* exponential
-;;
-;;The string rep in NUM-STR is expected to be one of the following:
-;;
-;;  "12"		"+12"		"-12"
-;;  "12.345"		"+12.345"	"-12.345"
-;;  "12.345e67"		"+12.345e67"	"-12.345e67"
-;;  "12.345E67"		"+12.345E67"	"-12.345E67"
-;;  "12.345e-67"	"+12.345e-67"	"-12.345e-67"
-;;  "12.345E-67"	"+12.345E-67"	"-12.345E-67"
-;;
-;;everything  before the  'e'  or  'E' char  is  called "mantissa",  and
-;;everything   after  is   called  "exponent".    We  accept   a  string
-;;representation that starts with "#d"  (which is the prefix for decimal
-;;representations).
-;;
-;;Notice that the  integer part of the mantissa may  be missing, that is
-;;".123" is a valid string rep for "0.123".
-;;
-;;Notice that the  fractional part of the mantissa  may be missing, that
-;;is "12." is a valid string rep for "12.0".
-;;
-(define (format:parse-float number-string normalisation-format scale)
-  (unless mantissa-buffer
-    (set! mantissa-buffer (make-string mantissa-max-length)))
-  (unless exponent-buffer
-    (set! exponent-buffer (make-string exponent-max-length)))
-  (set! mantissa-length		0)
-  (set! mantissa-is-positive	#t)
-  (set! mantissa-dot-index	#f)
-  (set! exponent-is-positive	#t)
-  (set! exponent-length		0)
+(define (format:parse-flonum number-string normalisation-format scale)
+  ;;Parse  the  flonum  representation  in  NUMBER-STRING,  filling  the
+  ;;MANTISSA-* and  EXPONENT-* variables with the  result.  The argument
+  ;;NORMALISATION-FORMAT  selects  how  the  mantissa and  exponent  are
+  ;;normalised:
+  ;;
+  ;;* fixed-point
+  ;;
+  ;;* exponential
+  ;;
+  ;;The string rep in NUM-STR is expected to be one of the following:
+  ;;
+  ;;  "12"		"+12"		"-12"
+  ;;  "12.345"		"+12.345"	"-12.345"
+  ;;  "12.345e67"	"+12.345e67"	"-12.345e67"
+  ;;  "12.345E67"	"+12.345E67"	"-12.345E67"
+  ;;  "12.345e-67"	"+12.345e-67"	"-12.345e-67"
+  ;;  "12.345E-67"	"+12.345E-67"	"-12.345E-67"
+  ;;
+  ;;everything  before the  'e' or  'E' char  is called  "mantissa", and
+  ;;everything  after   is  called  "exponent".   We   accept  a  string
+  ;;representation  that  starts with  "#d"  (which  is  the prefix  for
+  ;;decimal representations).
+  ;;
+  ;;Notice that the integer part of the mantissa may be missing, that is
+  ;;".123" is a valid string rep for "0.123".
+  ;;
+  ;;Notice that the fractional part of the mantissa may be missing, that
+  ;;is "12." is a valid string rep for "12.0".
+  ;;
+
+  (initialise-flonum-variables)
 
   (when (string-prefix? "#d" number-string)
     (set! number-string (substring number-string
@@ -1117,12 +1179,12 @@
 	  (let ((positive (char=? ch #\+)))
 	    (if mantissa?
 		(if mantissa-started?
-		    (error 'format:parse-float error-message number-string)
+		    (error 'format:parse-flonum error-message number-string)
 		  (begin
 		    (set! mantissa-is-positive positive)
 		    (set! mantissa-started? #t)))
 	      (if exponent-started?
-		  (error 'format:parse-float error-message number-string)
+		  (error 'format:parse-flonum error-message number-string)
 		(begin
 		  (set! exponent-is-positive positive)
 		  (set! exponent-started? #t))))))
@@ -1132,18 +1194,18 @@
 	  ;;mantissa buffer.  Raise  an error if the dot  is found twice
 	  ;;or if we are not parsing the mantissa.
 	  (when (or mantissa-dot-index (not mantissa?))
-	    (error 'format:parse-float error-message number-string))
+	    (error 'format:parse-flonum error-message number-string))
 	  (set! mantissa-dot-index mantissa-length))
 
 	 ((or (char=? ch #\e) (char=? ch #\E))
 	  ;;Record the end of mantissa  and start of exponent.  Raise an
 	  ;;error if we are already parsing the exponent.
 	  (unless mantissa?
-	    (error 'format:parse-float error-message number-string))
+	    (error 'format:parse-flonum error-message number-string))
 	  (set! mantissa? #f))
 
 	 (else
-	  (error 'format:parse-float error-message ch)))))
+	  (error 'format:parse-flonum error-message ch)))))
 
     ;;Normalisation: if no dot in the input string, we put the dot index
     ;;at the end of the buffer.
@@ -1312,7 +1374,7 @@
 	   (set! mantissa-dot-index scale)))))
 
       (else
-       (error 'format:parse-float
+       (error 'format:parse-flonum
 	 "internal error, unknown flonum normalisation format"
 	 normalisation-format)))))
 
@@ -1344,7 +1406,7 @@
 
 	 (decimals
 	  ;;This fills MANTISSA-* variables.
-	  (format:parse-float number-string 'fixed-point scale)
+	  (format:parse-flonum number-string 'fixed-point scale)
 
 	  ;;A number of decimals after the dot is requested: add them if
 	  ;;missing or round and truncate decimals if too many.
@@ -1375,7 +1437,7 @@
 
 	 (else
 	  ;;This fills MANTISSA-* variables.
-	  (format:parse-float number-string 'fixed-point scale)
+	  (format:parse-flonum number-string 'fixed-point scale)
 	  (mantissa-strip-tail-zeros)
 	  (if (not width)
 	      (mantissa-print modifier #t)
@@ -1463,7 +1525,7 @@
 
 	 (decimals ;;Requested decimals.
 
-	  ;;We hand  INTDIGITS as SCALE  argument to FORMAT:PARSE-FLOAT.
+	  ;;We hand  INTDIGITS as SCALE  argument to FORMAT:PARSE-FLONUM.
 	  ;;This can lead to the  following results for the mantissa and
 	  ;;exponent:
 	  ;;
@@ -1493,7 +1555,7 @@
 ;;;*** END TO BE REMOVED ***
 
 	  ;;This fills MANTISSA-* and EXPONENT-* variables.
-	  (format:parse-float number-string 'exponential intdigits)
+	  (format:parse-flonum number-string 'exponential intdigits)
 
 	  ;;A  number of  decimals after  the dot  is requested:  if not
 	  ;;enough are in the mantissa buffer, append zeros; if too many
@@ -1539,7 +1601,7 @@
 
 	 (else ;;No decimals requested.
 	  ;;This fills MANTISSA-* and EXPONENT-* variables.
-	  (format:parse-float number-string 'exponential intdigits)
+	  (format:parse-flonum number-string 'exponential intdigits)
 	  (mantissa-strip-tail-zeros)
 
 	  (cond
@@ -1615,7 +1677,7 @@
 
 	 (else
 	  ;;This fills the internal state MANTISSA-* variables.
-	  (format:parse-float number-string 'fixed-point 0)
+	  (format:parse-flonum number-string 'fixed-point 0)
 
 	  ;;A number of  decimals after the dot is  requested: add them if
 	  ;;missing or round and truncate decimals if too many.
@@ -1632,28 +1694,28 @@
 		(case modifier
 		  ((colon)
 		   (if (not mantissa-is-positive)
-		       (format:out-char #\-))
+		       (format:print-char #\-))
 		   (format:print-fill-chars (- width numlen) (integer->char padch)))
 		  ((at)
 		   (format:print-fill-chars (- width numlen) (integer->char padch))
-		   (format:out-char (if mantissa-is-positive #\+ #\-)))
+		   (format:print-char (if mantissa-is-positive #\+ #\-)))
 		  ((colon-at)
-		   (format:out-char (if mantissa-is-positive #\+ #\-))
+		   (format:print-char (if mantissa-is-positive #\+ #\-))
 		   (format:print-fill-chars (- width numlen) (integer->char padch)))
 		  (else
 		   (format:print-fill-chars (- width numlen) (integer->char padch))
 		   (if (not mantissa-is-positive)
-		       (format:out-char #\-))))
+		       (format:print-char #\-))))
 	      (if mantissa-is-positive
-		  (if (memq modifier '(at colon-at)) (format:out-char #\+))
-		(format:out-char #\-))))
+		  (if (memq modifier '(at colon-at)) (format:print-char #\+))
+		(format:print-char #\-))))
 	  (when (and mindig (> mindig mantissa-dot-index))
 	    (format:print-fill-chars (- mindig mantissa-dot-index) #\0))
 	  (when (and (= mantissa-dot-index 0) (not mindig))
-	    (format:out-char #\0))
-	  (format:out-substr mantissa-buffer 0 mantissa-dot-index)
-	  (format:out-char #\.)
-	  (format:out-substr mantissa-buffer mantissa-dot-index mantissa-length)))))))
+	    (format:print-char #\0))
+	  (format:print-substring mantissa-buffer 0 mantissa-dot-index)
+	  (format:print-char #\.)
+	  (format:print-substring mantissa-buffer mantissa-dot-index mantissa-length)))))))
 
 
 
@@ -1695,7 +1757,7 @@
 
 ;;;; actual formatting
 
-(define (format:format-work format-string arglist)
+(define (format:format format-string arglist)
   (letrec
       ((format-string-len (string-length format-string))
        (arg-pos 0)		  ;argument position in arglist
@@ -1723,7 +1785,7 @@
 
     (define (peek-next-char)
       (if (>= format:pos format-string-len)
-	  (error 'format:format-work
+	  (error 'format:format
 	    "illegal format string")
 	(string-ref format-string format:pos)))
 
@@ -1736,13 +1798,13 @@
 	     (= (length params) 1))
 	#t)
        (else
-	(error 'format:format-work
+	(error 'format:format
 	  "one positive integer parameter expected"))))
 
     (define (next-arg)
       (when (>= arg-pos arg-len)
 	(set! format:arg-pos (+ arg-len 1))
-	(error 'format:format-work
+	(error 'format:format
 	  "missing argument(s)"))
       (add-arg-pos 1)
       (list-ref arglist (- arg-pos 1)))
@@ -1750,7 +1812,7 @@
     (define (prev-arg)
       (add-arg-pos -1)
       (when (negative? arg-pos)
-	(error 'format:format-work
+	(error 'format:format
 	  "missing backward argument(s)"))
       (list-ref arglist arg-pos))
 
@@ -1778,13 +1840,13 @@
 	   (else
 	    (if (and (zero? conditional-nest)
 		     (zero? iteration-nest))
-		(format:out-char char))
+		(format:print-char char))
 	    (anychar-dispatch))))))
 
     (define (tilde-dispatch)
       (cond
        ((>= format:pos format-string-len)
-	(format:out-str "~") ; tilde at end of
+	(format:print-string "~") ; tilde at end of
 		; string is just
 		; output
 	arg-pos) ; used for ~?
@@ -1851,22 +1913,22 @@
 	  ((#\I) ; Complex numbers
 	   (let ((z (next-arg)))
 	     (when (not (complex? z))
-	       (error 'format:format-work
+	       (error 'format:format
 		 "argument not a complex number"))
 	     (format:print-flonum-fixed-point modifier (real-part z) params)
 	     (format:print-flonum-fixed-point 'at      (imag-part z) params)
-	     (format:out-char #\i))
+	     (format:print-char #\i))
 	   (anychar-dispatch))
 	  ((#\C) ; Character
 	   (let ((ch (if (one-positive-integer? params)
 			 (integer->char (car params))
 		       (next-arg))))
 	     (when (not (char? ch))
-	       (error 'format:format-work
+	       (error 'format:format
 		 "escape sequence ~c expects a character"))
 	     (case modifier
 	       ((at)
-		(format:out-str (format:char->str ch)))
+		(format:print-string (format:char->str ch)))
 	       ((colon)
 		(let ((c (char->integer ch)))
 		  (if (< c 0)
@@ -1876,39 +1938,39 @@
 		  (cond
 		   ((< c #x20) ; assumes that control
 		; chars are < #x20
-		    (format:out-char #\^)
-		    (format:out-char
+		    (format:print-char #\^)
+		    (format:print-char
 		     (integer->char (+ c #x40))))
 		   ((>= c #x7f)
-		    (format:out-str "#\\")
-		    (format:out-str (number->string c 8)))
+		    (format:print-string "#\\")
+		    (format:print-string (number->string c 8)))
 		   (else
-		    (format:out-char ch)))))
-	       (else (format:out-char ch))))
+		    (format:print-char ch)))))
+	       (else (format:print-char ch))))
 	   (anychar-dispatch))
 	  ((#\P) ; Plural
 	   (if (memq modifier '(colon colon-at))
 	       (prev-arg))
 	   (let ((arg (next-arg)))
 	     (when (not (number? arg))
-	       (error 'format:format-work
+	       (error 'format:format
 		 "escape sequence ~p expects a number argument"))
 	     (if (= arg 1)
 		 (when (memq modifier '(at colon-at))
-		   (format:out-char #\y))
+		   (format:print-char #\y))
 	       (if (memq modifier '(at colon-at))
-		   (format:out-str "ies")
-		 (format:out-char #\s))))
+		   (format:print-string "ies")
+		 (format:print-char #\s))))
 	   (anychar-dispatch))
 	  ((#\~) ; Tilde
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\~)
-	     (format:out-char #\~))
+	     (format:print-char #\~))
 	   (anychar-dispatch))
 	  ((#\%) ; Newline
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\newline)
-	     (format:out-char #\newline))
+	     (format:print-char #\newline))
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
 	  ((#\&) ; Fresh line
@@ -1922,57 +1984,57 @@
 				      #\newline))
 		 (set! format:output-col 0))
 	     (if (> format:output-col 0)
-		 (format:out-char #\newline)))
+		 (format:print-char #\newline)))
 	   (anychar-dispatch))
 	  ((#\_) ; Space character
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\space)
-	     (format:out-char #\space))
+	     (format:print-char #\space))
 	   (anychar-dispatch))
 	  ((#\/) ; Tabulator character
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\tab)
-	     (format:out-char #\tab))
+	     (format:print-char #\tab))
 	   (anychar-dispatch))
 	  ((#\|) ; Page seperator
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\page)
-	     (format:out-char #\page))
+	     (format:print-char #\page))
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
 	  ((#\T) ; Tabulate
 	   (format:tabulate modifier params)
 	   (anychar-dispatch))
 	  ((#\Y) ; Pretty-print
-	   (pretty-print (next-arg) format:port)
+	   (pretty-print (next-arg) destination-port)
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
 	  ((#\? #\K) ; Indirection (is "~K" in T-Scheme)
 	   (cond
 	    ((memq modifier '(colon colon-at))
-	     (error 'format:format-work
+	     (error 'format:format
 	       "illegal modifier in escape sequence ~?"))
 	    ((eq? modifier 'at)
 	     (let* ((frmt (next-arg))
 		    (args (rest-args)))
-	       (add-arg-pos (format:format-work frmt args))))
+	       (add-arg-pos (format:format frmt args))))
 	    (else
 	     (let* ((frmt (next-arg))
 		    (args (next-arg)))
-	       (format:format-work frmt args))))
+	       (format:format frmt args))))
 	   (anychar-dispatch))
 	  ((#\!) ; Flush output
 	   (set! format:flush-output #t)
 	   (anychar-dispatch))
 	  ((#\newline) ; Continuation lines
 	   (if (eq? modifier 'at)
-	       (format:out-char #\newline))
+	       (format:print-char #\newline))
 	   (if (< format:pos format-string-len)
 	       (do ((ch (peek-next-char) (peek-next-char)))
 		   ((or (not (char-whitespace? ch))
 			(= format:pos (- format-string-len 1))))
 		 (if (eq? modifier 'colon)
-		     (format:out-char (next-char))
+		     (format:print-char (next-char))
 		   (next-char))))
 	   (anychar-dispatch))
 	  ((#\*) ; Argument jumping
@@ -1987,7 +2049,7 @@
 	      (set! arg-pos (if (one-positive-integer? params)
 				(car params) 0)))
 	     ((colon-at)
-	      (error 'format:format-work
+	      (error 'format:format
 		"illegal modifier `:@' in escape sequence ~*"))
 	     (else ; jump forward
 	      (if (one-positive-integer? params)
@@ -2006,7 +2068,7 @@
 	   (anychar-dispatch))
 	  ((#\)) ; Case conversion end
 	   (when (not format:case-conversion)
-	     (error 'format:format-work
+	     (error 'format:format
 	       "missing escape sequence ~("))
 	   (set! format:case-conversion #f)
 	   (anychar-dispatch))
@@ -2022,7 +2084,7 @@
 		     ((at) 'if-then)
 		     ((colon) 'if-else-then)
 		     ((colon-at)
-		      (error 'format:format-work
+		      (error 'format:format
 			"illegal modifier in escape sequence ~["))
 		     (else 'num-case)))
 	     (set! conditional-arg
@@ -2032,10 +2094,10 @@
 	   (anychar-dispatch))
 	  ((#\;) ; Conditional separator
 	   (when (zero? conditional-nest)
-	     (error 'format:format-work
+	     (error 'format:format
 	       "escape sequence ~; not in ~[~] conditional"))
 	   (when (not (null? params))
-	     (error 'format:format-work
+	     (error 'format:format
 	       "no parameter allowed in ~~;"))
 	   (when (= conditional-nest 1)
 	     (let ((clause-str
@@ -2045,7 +2107,7 @@
 		      (substring format-string clause-pos
 				 (- format:pos 3)))
 		     ((memq modifier '(at colon-at))
-		      (error 'format:format-work
+		      (error 'format:format
 			"illegal modifier in escape sequence ~;"))
 		     (else
 		      (substring format-string clause-pos
@@ -2055,14 +2117,14 @@
 	   (anychar-dispatch))
 	  ((#\]) ; Conditional end
 	   (when (zero? conditional-nest)
-	     (error 'format:format-work
+	     (error 'format:format
 	       "missing escape sequence ~["))
 	   (set! conditional-nest (- conditional-nest 1))
 	   (when modifier
-	     (error 'format:format-work
+	     (error 'format:format
 	       "no modifier allowed in escape sequence ~]"))
 	   (when (not (null? params))
-	     (error 'format:format-work
+	     (error 'format:format
 	       "no parameter allowed in escape sequence ~]"))
 	   (cond
 	    ((zero? conditional-nest)
@@ -2074,23 +2136,23 @@
 	     (case conditional-type
 	       ((if-then)
 		(if conditional-arg
-		    (format:format-work (car clauses)
+		    (format:format (car clauses)
 					(list conditional-arg))))
 	       ((if-else-then)
 		(add-arg-pos
-		 (format:format-work (if conditional-arg
+		 (format:format (if conditional-arg
 					 (cadr clauses)
 				       (car clauses))
 				     (rest-args))))
 	       ((num-case)
 		(when (or (not (integer? conditional-arg))
 			  (< conditional-arg 0))
-		  (error 'format:format-work
+		  (error 'format:format
 		    "argument not a positive integer"))
 		(when (not (and (>= conditional-arg (length clauses))
 				(not clause-default)))
 		  (add-arg-pos
-		   (format:format-work
+		   (format:format
 		    (if (>= conditional-arg (length clauses))
 			clause-default
 		      (list-ref clauses conditional-arg))
@@ -2112,7 +2174,7 @@
 	   (anychar-dispatch))
 	  ((#\}) ; Iteration end
 	   (when (zero? iteration-nest)
-	     (error 'format:format-work
+	     (error 'format:format
 	       "missing in escape sequence ~{"))
 	   (set! iteration-nest (- iteration-nest 1))
 	   (case modifier
@@ -2120,10 +2182,10 @@
 	      (when (not max-iterations)
 		(set! max-iterations 1)))
 	     ((colon-at at)
-	      (error 'format:format-work
+	      (error 'format:format
 		"illegal modifier")))
 	   (when (not (null? params))
-	     (error 'format:format-work
+	     (error 'format:format
 	       "no parameters allowed in escape sequence ~}"))
 	   (if (zero? iteration-nest)
 	       (let ((iteration-str
@@ -2136,11 +2198,11 @@
 		    (let ((args (next-arg))
 			  (args-len 0))
 		      (when (not (list? args))
-			(error 'format:format-work
+			(error 'format:format
 			  "expected a list argument"))
 		      (set! args-len (length args))
 		      (do ((arg-pos 0 (+ arg-pos
-					 (format:format-work
+					 (format:format
 					  iteration-str
 					  (list-tail args arg-pos))))
 			   (i 0 (+ i 1)))
@@ -2151,7 +2213,7 @@
 		    (let ((args (next-arg))
 			  (args-len 0))
 		      (when (not (list? args))
-			(error 'format:format-work
+			(error 'format:format
 			  "expected a list argument"))
 		      (set! args-len (length args))
 		      (do ((arg-pos 0 (+ arg-pos 1)))
@@ -2160,15 +2222,15 @@
 				    (>= arg-pos max-iterations))))
 			(let ((sublist (list-ref args arg-pos)))
 			  (when (not (list? sublist))
-			    (error 'format:format-work
+			    (error 'format:format
 			      "expected a list of lists argument"))
-			  (format:format-work iteration-str sublist)))))
+			  (format:format iteration-str sublist)))))
 		   ((rest-args)
 		    (let* ((args (rest-args))
 			   (args-len (length args))
 			   (usedup-args
 			    (do ((arg-pos 0 (+ arg-pos
-					       (format:format-work
+					       (format:format
 						iteration-str
 						(list-tail
 						 args arg-pos))))
@@ -2189,12 +2251,12 @@
 				 arg-pos)
 			      (let ((sublist (list-ref args arg-pos)))
 				(when (not (list? sublist))
-				  (error 'format:format-work
+				  (error 'format:format
 				    "expected list arguments"))
-				(format:format-work iteration-str sublist)))))
+				(format:format iteration-str sublist)))))
 		      (add-arg-pos usedup-args)))
 		   (else
-		    (error 'format:format-work
+		    (error 'format:format
 		      "internal error in escape sequence ~}")))))
 	   (anychar-dispatch))
 	  ((#\^) ; Up and out
@@ -2209,7 +2271,7 @@
 				 (list-ref params 1)
 				 (list-ref params 2)))
 			(else
-			 (error 'format:format-work
+			 (error 'format:format
 			   "too much parameters")))))
 		    (format:case-conversion ; if conversion stop conversion
 		     (set! format:case-conversion string-copy) #t)
@@ -2225,26 +2287,26 @@
 
 	  ((#\@) ; `@' modifier
 	   (when (memq modifier '(at colon-at))
-	     (error 'format:format-work
+	     (error 'format:format
 	       "double `@' modifier"))
 	   (set! modifier (if (eq? modifier 'colon) 'colon-at 'at))
 	   (tilde-dispatch))
 	  ((#\:) ; `:' modifier
 	   (when (memq modifier '(colon colon-at))
-	     (error 'format:format-work
+	     (error 'format:format
 	       "double escape sequence `:' modifier"))
 	   (set! modifier (if (eq? modifier 'at) 'colon-at 'colon))
 	   (tilde-dispatch))
 	  ((#\') ; Character parameter
 	   (when modifier
-	     (error 'format:format-work
+	     (error 'format:format
 	       "misplaced escape sequence modifier"))
 	   (set! params (append params (list (char->integer (next-char)))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
 	  ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+) ; num. paramtr
 	   (when modifier
-	     (error 'format:format-work
+	     (error 'format:format
 	       "misplaced escape sequence modifier"))
 	   (let ((num-str-beg (- format:pos 1))
 		 (num-str-end format:pos))
@@ -2262,31 +2324,31 @@
 	   (tilde-dispatch))
 	  ((#\V) ; Variable parameter from next argum.
 	   (when modifier
-	     (error 'format:format-work
+	     (error 'format:format
 	       "misplaced escape sequence modifier"))
 	   (set! params (append params (list (next-arg))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
 	  ((#\#) ; Parameter is number of remaining args
 	   (when param-value-found
-	     (error 'format:format-work
+	     (error 'format:format
 	       "misplaced '#'"))
 	   (when modifier
-	     (error 'format:format-work
+	     (error 'format:format
 	       "misplaced escape sequence modifier"))
 	   (set! params (append params (list (length (rest-args)))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
 	  ((#\,) ; Parameter separators
 	   (when modifier
-	     (error 'format:format-work
+	     (error 'format:format
 	       "misplaced escape sequence modifier"))
 	   (if (not param-value-found)
 	       (set! params (append params '(#f)))) ; append empty paramtr
 	   (set! param-value-found #f)
 	   (tilde-dispatch))
 	  (else ; Unknown tilde directive
-	   (error 'format:format-work
+	   (error 'format:format
 	     "unknown control character"
 	     (string-ref format-string (- format:pos 1))))))
        (else
@@ -2303,7 +2365,7 @@
 
 ;;;; body of FORMAT
 
-(format:dispatch-to-destination-port args)))
+(format:dispatch-arguments arg0 args)))
 
 
 ;;; end of file

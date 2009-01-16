@@ -655,7 +655,8 @@ form.
 
 If the @var{charnum} parameter is given then an argument is not taken
 but instead the character is @code{(integer->char @var{charnum})}.  This
-can be used for instance to output characters given by their ASCII code.
+can be used for instance to output characters given by their Unicode
+code.
 
 @example
 (format #t "~65c")  @print{} A
@@ -763,7 +764,7 @@ described for @code{~d} above.
 @menu
 * escape flonums fixed::        Fixed point format.
 * escape flonums exponent::     Exponential format.
-* escape flonums general::      General format.
+* escape flonums eng::          Engineering format.
 * escape flonums dollar::       Dollar format.
 @end menu
 
@@ -950,8 +951,8 @@ output would exceed @var{width} then instead that many
 
 
 @c page
-@node escape flonums general
-@section General format
+@node escape flonums eng
+@section Engineering format
 
 
 @deffn Escape @code{~g}
@@ -983,6 +984,7 @@ The parameters are interpreted as per @code{~e} above.  When fixed-point
 is used, the @var{decimals} parameter to @code{~f} is established from
 @var{decimals}, so as to give a total @math{@var{decimals}+1} figures.
 @end deffn
+
 
 @c page
 @node escape flonums dollar

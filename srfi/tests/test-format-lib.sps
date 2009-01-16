@@ -33,6 +33,64 @@
 
 
 
+;;;; basic errors
+
+;;This is signaled by the Scheme implementation.
+(check
+    (guard (exc (else 'error))
+      (format))
+  => 'error)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format 'wo))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format 'wo))
+  => "invalid format string")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format #f))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format #t))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format 123))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format (current-output-port)))
+  => "invalid format string")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format #f 123))
+  => "invalid format string")
+
+
+
 ;;;; destination selection
 
 (check
@@ -516,6 +574,11 @@
     (format "~10,,,,'.f" 123.456)
   => "...123.456")
 ;;;   0123456789
+
+(check
+    (format "~10,,,,'\nf" 123.456)
+  => "\n\n\n123.456")
+;;;   0 1 2 3456789
 
 (check
     (format "~10,,,,'.f" 123.456789123)
