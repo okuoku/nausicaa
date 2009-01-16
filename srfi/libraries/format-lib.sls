@@ -825,7 +825,7 @@
 
 ;;;; helpers, miscellaneous stuff for floating point numbers
 ;;
-;;See the documentation of  FORMAT:PARSE-FLONUM below for more details on
+;;See the documentation of FORMAT:PARSE-FLONUM below for more details on
 ;;flonums handling.
 
 (define (validate-flonum-argument number caller-function)
@@ -849,8 +849,8 @@
       (set! n (+ (* n 10)
 		 (exponent-digit-ref i))))))
 
-;;Store an integer number into the exponent buffer EXPONENT-BUFFER, update
-;;EXPONENT-LENGTH and EXPONENT-IS-POSITIVE  accordingly.
+;;Store  an integer  number  into the  exponent buffer  EXPONENT-BUFFER,
+;;update EXPONENT-LENGTH and EXPONENT-IS-POSITIVE accordingly.
 (define (integer->exponent-buffer en)
   (unless (integer? en)
     (error 'integer->exponent-buffer
@@ -944,8 +944,8 @@
 ;;
 ;;The EDIGITS argument is the requested minimum width of the digits part
 ;;of  the  exponent, exponent-start  char  and  sign  excluded.  If  the
-;;current string in EXPONENT-BUFFER is shorter than EDIGITS: padding zeros
-;;are  output before  the digits.   If EDIGITS  is #f:  the  exponent is
+;;current  string in  EXPONENT-BUFFER is  shorter than  EDIGITS: padding
+;;zeros are output before the digits.  If EDIGITS is #f: the exponent is
 ;;output without padding.
 ;;
 ;;The EXPCH argument selects the exponent-start character.  It should be
@@ -984,7 +984,7 @@
 	   (<= i mantissa-dot-index))
        (set! mantissa-length (+ i 1)))))
 
-;;Count  leading zeros  in  the  mantissa buffer.  Examples:
+;;Count leading zeros in the mantissa buffer.  Examples:
 ;;
 ;;  (set! mantissa-buffer "000123")
 ;;  (mantissa-count-leading-zeros) => 3
@@ -1005,7 +1005,7 @@
 ;;zeros if missing, or round and truncate decimals if too many.
 (define (mantissa-adjust-decimals-as-requested requested-decimals)
   (let ((number-of-decimals (- mantissa-length mantissa-dot-index)))
-    (if (<= number-of-decimals requested-decimals)
+    (if (< number-of-decimals requested-decimals)
 	(mantissa-append-zeros (- requested-decimals number-of-decimals))
       (mantissa-round-digits-after-dot requested-decimals))))
 
@@ -1013,93 +1013,138 @@
 
 ;;;; helpers, rounding floating point numbers
 
+;;This  function  mutates  the  MANTISSA-* variables  truncating  excess
+;;fractional digits and rounding the last non-truncated digit.
+;;
+;;It follows the IEEE 754 standard of rounding to nearest, ties to even;
+;;IEEE  754 applies  it to  rounding of  integers, here  we apply  it to
+;;rounding of fractional digits.
+;;
+;;Many examples are in the test suite, here we can just consider:
+;;
+;;  1.23 -> 1.2		1.28 -> 1.3	1.254 -> 1.3	..to nearest
+;;  1.25 -> 1.2		1.35 -> 1.4			..to even
+;;  1.98 -> 2.0		9.98 -> 10.0			..with carry
+;;  1.3  -> 1.3						..no rounding
+;;
+;;Think of the mantissa buffer like this:
+;;
+;; I = integer digits		F = fractional digits
+;; X = rounded digit		T = truncated digits
+;;
+;;                 number-of-digits
+;;                   ............
+;;                   |          |
+;;     IIIIIIIIIIIIIIFFFFFFFFFFFXTTTTTTTTTTTTTTTTTTT
+;;     ^             ^          ^^
+;;     |             |          ||
+;; index zero    index of dot   | --- index of first
+;;                              |     truncated digit
+;;                              |
+;;                          index of
+;;                          rounded digit
+;;
 (define (mantissa-round-digits-after-dot number-of-digits)
 
-  ;;Think of the mantissa buffer like this:
-  ;;
-  ;; I = integer digits		F = fractional digits
-  ;; X = rounded digit		T = truncated digits
-  ;;
-  ;;     IIIIIIIIIIIIIIFFFFFFFFFFFXTTTTTTTTTTTTTTTTTTT
-  ;;     ^             ^          ^^
-  ;;     |             |          ||
-  ;; index zero    index of dot   | --- index of first
-  ;;                              |     truncated digit
-  ;;                              |
-  ;;                          index of
-  ;;                          rounded digit
+  (define (main)
+    (fix-special-case)
+    ;;The  following  drives the  rounding.   The  index  I locates  the
+    ;;rounded digit, the index J locates the first truncated digit.
+    (let* ((i (+ mantissa-dot-index number-of-digits -1))
+	   (j (+ 1 i)))
+      (unless (= i mantissa-length)
+	(receive (rounded-digit carry)
+	    (compute-rounded-digit-with-carry (mantissa-digit-ref i) j)
+	  (mantissa-digit-set! i rounded-digit)	;store the rounded digit
+	  (set! mantissa-length j) ;truncate the tail digits
+	  (when carry (propagate-carry-to-upward-digits (- i 1)))))))
+
+  (define (fix-special-case)
+    ;;Think of  the number "0.51" that  we want to round  with no digits
+    ;;after the dot.  The mantissa  buffer is (leading zeros are deleted
+    ;;by the callers of this function):
+    ;;
+    ;;  "51"
+    ;;   ^
+    ;;   dot index = 0      mantissa-length = 2
+    ;;
+    ;;the rounded  digit is the  implicit zero to  the left of the  5 at
+    ;;index -1.  So we prepend a zero to have this mantissa buffer:
+    ;;
+    ;;  "051"
+    ;;    ^
+    ;;   dot index = 1      mantissa-length = 3
+    ;;
+    ;;which after rounding will be:
+    ;;
+    ;;  "1TT"               T = truncated digits
+    ;;    ^
+    ;;   dot index = 1      mantissa-length = 1
+    ;;
+    (when (and (= 0 mantissa-dot-index)
+	       (= 0 number-of-digits))
+      (mantissa-prepend-zeros 1)
+      (increment! mantissa-dot-index)))
 
   (define (compute-rounded-digit-with-carry digit first-truncated-digit-idx)
-    (let ((rounded (if (= first-truncated-digit-idx mantissa-length)
-		       digit
-		     (let ((d (mantissa-ref first-truncated-digit-idx)))
-		       (cond ((char>? #\5 d)	digit)
-			     ((char<? #\5 d)	(+ 1 digit))
-			     (else
-			      ;;Here D  is #\5, so  we scan the  rest of
-			      ;;the  mantissa  buffer:   if  we  find  a
-			      ;;non-zero char, we  round up; if we reach
-			      ;;the end of the buffer we round to even.
-			      (let loop ((i (+ 1 first-truncated-digit-idx)))
-				(cond
-				 ((= i mantissa-length)
-				  (if (even? digit)
-				      digit
-				    (+ 1 digit)))
-				 ((char=? #\0 (mantissa-ref i))
-				  (loop (+ 1 i)))
-				 (else
-				  (+ 1 digit))))))))))
+    (let ((rounded
+	   (if (= first-truncated-digit-idx mantissa-length)
+	       digit ;no rounding needed
+	     (let ((d (mantissa-ref first-truncated-digit-idx)))
+	       (cond ((char>? #\5 d)	digit)
+		     ((char<? #\5 d)	(+ 1 digit))
+		     (else
+		      ;;Here D is #\5, so it is a tie.  We scan the rest
+		      ;;of the  mantissa buffer:  if we find  a non-zero
+		      ;;char, we  round up to  nearest; if we  reach the
+		      ;;end of the buffer we round to even.
+		      (let loop ((i (+ 1 first-truncated-digit-idx)))
+			(cond
+			 ((= i mantissa-length)
+			  (if (even? digit)
+			      digit
+			    (+ 1 digit)))
+			 ((char=? #\0 (mantissa-ref i))
+			  (loop (+ 1 i)))
+			 (else
+			  (+ 1 digit))))))))))
       (if (> 10 rounded)
 	  (values rounded #f)
 	(values 0 #t))))
 
-  (define (propagate-carry idx)
+  (define (propagate-carry-to-upward-digits idx)
     (let ((carry #t))
       (do ((i idx (- i 1)))
-	  ((or (not carry) (< i 0))
+	  ((or (< i 0)
+	       (not carry))
 	   (when carry
 	     ;;This  body prepends  a  "1" to  the  mantissa buffer  and
 	     ;;increments the  dot position.   This way it  performs the
 	     ;;carry normalisation for the roundings like:
 	     ;;
-	     ;;	"9.9" -> "10.0"
+	     ;;	9.98 -> 10.0
 	     ;;
 	     (mantissa-prepend-zeros 1)
 	     (mantissa-set! 0 #\1)
 	     (increment! mantissa-dot-index)))
-	(let ((digit (+ 1 (mantissa-digit-ref i))))
-	  (set! carry (>= digit 10))
-	  (mantissa-digit-set! i (if carry (- digit 10) digit))))))
 
-  (when (and (= 0 mantissa-dot-index)
-	     (= 0 number-of-digits))
-    (mantissa-prepend-zeros 1)
-    (increment! mantissa-dot-index))
-  (let* ((i (+ mantissa-dot-index number-of-digits -1))
-	 (j (+ 1 i)))
-    (unless (= i mantissa-length)
-      (receive (rounded-digit carry)
-	  (compute-rounded-digit-with-carry (mantissa-digit-ref i) j)
-	(mantissa-digit-set! i rounded-digit) ;;store the rounded digit
-	(set! mantissa-length j)	      ;;truncate the tail digits
-	(when carry (propagate-carry (- i 1)))))))
+	;;Propagate the carry.
+	(let ((digit+carry (+ 1 (mantissa-digit-ref i))))
+	  (set! carry (>= digit+carry 10))
+	  (mantissa-digit-set! i (if carry
+				     (- digit+carry 10)
+				   digit+carry))))))
 
+  (main))
 
 
 ;;;; helpers, parsing flonums
 
 (define (format:parse-flonum number-string normalisation-format scale)
   ;;Parse  the  flonum  representation  in  NUMBER-STRING,  filling  the
-  ;;MANTISSA-* and  EXPONENT-* variables with the  result.  The argument
-  ;;NORMALISATION-FORMAT  selects  how  the  mantissa and  exponent  are
-  ;;normalised:
+  ;;MANTISSA-* and  EXPONENT-* variables with the  result.
   ;;
-  ;;* fixed-point
-  ;;
-  ;;* exponential
-  ;;
-  ;;The string rep in NUM-STR is expected to be one of the following:
+  ;;The string representation is expected to be one of the following:
   ;;
   ;;  "12"		"+12"		"-12"
   ;;  "12.345"		"+12.345"	"-12.345"
@@ -1109,15 +1154,22 @@
   ;;  "12.345E-67"	"+12.345E-67"	"-12.345E-67"
   ;;
   ;;everything  before the  'e' or  'E' char  is called  "mantissa", and
-  ;;everything  after   is  called  "exponent".   We   accept  a  string
-  ;;representation  that  starts with  "#d"  (which  is  the prefix  for
-  ;;decimal representations).
+  ;;everything  after is called  "exponent".  "eN"  means "*  10^N".  We
+  ;;accept a string  representation that starts with "#d"  (which is the
+  ;;prefix for decimal representations).
   ;;
   ;;Notice that the integer part of the mantissa may be missing, that is
   ;;".123" is a valid string rep for "0.123".
   ;;
   ;;Notice that the fractional part of the mantissa may be missing, that
   ;;is "12." is a valid string rep for "12.0".
+  ;;
+  ;;The  argument  NORMALISATION-FORMAT  selects  how the  mantissa  and
+  ;;exponent are normalised:
+  ;;
+  ;;* fixed-point	the exponent is normalised to zero
+  ;;
+  ;;* exponential
   ;;
 
   (initialise-flonum-variables)
@@ -1126,12 +1178,12 @@
     (set! number-string (substring number-string
 				   2 (string-length number-string))))
 
-  (let ( ;This is #t while parsing  the mantissa, and becomes #f if/when
+  (let ( ;This is #t while parsing the mantissa, and becomes #f if/when
 	;;the exponential is found.
 	(mantissa?		#t)
 
 	;;Once  the first  char of  the  mantissa or  exponent has  been
-	;;parsed, some  characters are  no more allowed.   The following
+	;;parsed, some  characters are  allowed no more.   The following
 	;;variables detect this.
 	(mantissa-started?	#f)
 	(exponent-started?	#f)
@@ -1144,9 +1196,16 @@
 	;;For this value it does not matter where the dot index is.
 	(left-zeros		0)
 
-	(number-len		(string-length number-string))
+	(number-len		(string-length number-string)))
 
-	(error-message		"invalid character in number string representation"))
+    (define (raise-parsing-error)
+      (error 'format:parse-flonum
+	"invalid character in number string representation"
+	number-string))
+
+    (when (= 0 number-len)
+      (error 'format:parse-flonum
+	"invalid empty string as number string representation"))
 
     ;;This cycle parses the NUMBER-STRING.
     (do ((i 0 (+ i 1)))
@@ -1155,22 +1214,21 @@
 	(cond
 
 	 ((char-numeric? ch)
-	  ;;Store   the   numeric  char   in   MANTISSA-BUFFER,  or   in
+	  ;;Store   the   numeric   char   in  MANTISSA-BUFFER   or   in
 	  ;;EXPONENT-BUFFER.  Update  MANTISSA-LENGTH or EXPONENT-LENGTH
 	  ;;accordingly.
-	  (if mantissa?
-	      (begin
-		(set! mantissa-started? #t)
-		(if (char=? ch #\0)
-		    (when all-zeros?
-		      (increment! left-zeros 1))
-		  (set! all-zeros? #f))
-		(string-set! mantissa-buffer mantissa-length ch)
-		(increment! mantissa-length 1))
-	    (begin
-	      (set! exponent-started? #t)
-	      (string-set! exponent-buffer exponent-length ch)
-	      (increment! exponent-length 1))))
+	  (cond (mantissa?
+		 (set! mantissa-started? #t)
+		 (if (char=? ch #\0)
+		     (when all-zeros?
+		       (increment! left-zeros 1))
+		   (set! all-zeros? #f))
+		 (string-set! mantissa-buffer mantissa-length ch)
+		 (increment! mantissa-length 1))
+		(else
+		 (set! exponent-started? #t)
+		 (string-set! exponent-buffer exponent-length ch)
+		 (increment! exponent-length 1))))
 
 	 ((or (char=? ch #\-) (char=? ch #\+))
 	  ;;Record the sign of the mantissa or exponent.  Raise an error
@@ -1179,12 +1237,12 @@
 	  (let ((positive (char=? ch #\+)))
 	    (if mantissa?
 		(if mantissa-started?
-		    (error 'format:parse-flonum error-message number-string)
+		    (raise-parsing-error)
 		  (begin
 		    (set! mantissa-is-positive positive)
 		    (set! mantissa-started? #t)))
 	      (if exponent-started?
-		  (error 'format:parse-flonum error-message number-string)
+		  (raise-parsing-error)
 		(begin
 		  (set! exponent-is-positive positive)
 		  (set! exponent-started? #t))))))
@@ -1194,28 +1252,29 @@
 	  ;;mantissa buffer.  Raise  an error if the dot  is found twice
 	  ;;or if we are not parsing the mantissa.
 	  (when (or mantissa-dot-index (not mantissa?))
-	    (error 'format:parse-flonum error-message number-string))
+	    (raise-parsing-error))
 	  (set! mantissa-dot-index mantissa-length))
 
 	 ((or (char=? ch #\e) (char=? ch #\E))
 	  ;;Record the end of mantissa  and start of exponent.  Raise an
 	  ;;error if we are already parsing the exponent.
 	  (unless mantissa?
-	    (error 'format:parse-flonum error-message number-string))
+	    (raise-parsing-error))
 	  (set! mantissa? #f))
 
 	 (else
-	  (error 'format:parse-flonum error-message ch)))))
+	  ;;No other chars are allowed in the string representation.
+	  (raise-parsing-error)))))
 
     ;;Normalisation: if no dot in the input string, we put the dot index
     ;;at the end of the buffer.
-    (when (not mantissa-dot-index)
+    (unless mantissa-dot-index
       (set! mantissa-dot-index mantissa-length))
 
-    ;;Normalisation: this  is when  all the digits  in the  mantissa are
-    ;;zero,  we normalise  the values  so that  the mantissa  is  just a
-    ;;single zero.
     (when all-zeros?
+      ;;Normalisation: this is  when all the digits in  the mantissa are
+      ;;zero (example: "000.0000"), we  normalise the values so that the
+      ;;mantissa is just a single zero.
       (set! left-zeros		0)
       (set! mantissa-dot-index	0)
       (set! mantissa-length	1))

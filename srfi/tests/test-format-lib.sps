@@ -653,6 +653,11 @@
 
 (check
     (guard (exc (else 'error))
+      (format "~f" ""))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
       (format "~12,2f" "1.23+45"))
   => 'error)
 
