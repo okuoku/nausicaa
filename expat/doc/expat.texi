@@ -429,7 +429,41 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Overview
+
+* overview copying::            Copying this document.
+
+Using Expat
+
+* using compile::               Compiling and linking against expat.
+* using basics::                Basics.
+* using comm::                  Communicating between handlers.
+* using version::               @pxml{} version.
+* using namespace::             Namespace processing.
+* using encodings::             Character encodings.
+* using entity::                Handling external entity references.
+* using dtd::                   Parsing @dtd{}s.
+* using stop::                  Temporarily stopping parsing.
+
+Expat reference
+
+* api create::                  Parser creation.
+* api parse::                   Parsing.
+* api handlers::                Setting the handlers.
+* api report::                  Parse position and error
+                                reporting functions.
+* api version::                 Inspecting Expat version.
+* api features::                Inspecting Expat features.
+* api memory::                  Parser associated memory.
+* api misc::                    Miscellaneous functions.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 
@@ -2451,76 +2485,77 @@ then the parser will throw an @code{XML_ERROR_NOT_STANDALONE} error.
 
 
 These are the functions you'll want to call when the parse functions
-return XML_STATUS_ERROR (a parse error has occurred), although the
-position reporting functions are useful outside of errors. The position
-reported is the byte position (in the original document or entity
-encoding) of the first of the sequence of characters that generated the
-current event (or the error that caused the parse functions to return
-XML_STATUS_ERROR.) The exceptions are callbacks trigged by declarations
-in the document prologue, in which case they exact position reported is
-somewhere in the relevant markup, but not necessarily as meaningful as
-for other events.
+return @code{XML_STATUS_ERROR} (a parse error has occurred), although
+the position reporting functions are useful outside of errors.  The
+position reported is the byte position (in the original document or
+entity encoding) of the first of the sequence of characters that
+generated the current event (or the error that caused the parse
+functions to return @code{XML_STATUS_ERROR}).  The exceptions are
+callbacks trigged by declarations in the document prologue, in which
+case they exact position reported is somewhere in the relevant markup,
+but not necessarily as meaningful as for other events.
 
 The position reporting functions are accurate only outside of the
-DTD. In other words, they usually return bogus information when called
-from within a DTD declaration handler.
+@dtd{}.  In other words, they usually return bogus information when
+called from within a @dtd{} declaration handler.
 
-enum XML_Error XMLCALL
-XML_GetErrorCode(XML_Parser p);
 
+@deftypefun {enum XML_Error} XML_GetErrorCode (XML_Parser @var{p})
 Return what type of error has occurred.
+@end deftypefun
 
-const XML_LChar * XMLCALL
-XML_ErrorString(enum XML_Error code);
 
-Return a string describing the error corresponding to code. The code
-should be one of the enums that can be returned from XML_GetErrorCode.
+@deftypefun {const XML_LChar *} XML_ErrorString (enum XML_Error @var{code})
+Return a string describing the error corresponding to code.  The code
+should be one of the enums that can be returned from
+@cfunc{XML_GetErrorCode}.
+@end deftypefun
 
-XML_Index XMLCALL
-XML_GetCurrentByteIndex(XML_Parser p);
 
-Return the byte offset of the position. This always corresponds to the
-values returned by XML_GetCurrentLineNumber and
-XML_GetCurrentColumnNumber.
+@deftypefun XML_Index XML_GetCurrentByteIndex (XML_Parser @var{p})
+Return the byte offset of the position.  This always corresponds to the
+values returned by @cfunc{XML_GetCurrentLineNumber} and
+@cfunc{XML_GetCurrentColumnNumber}.
+@end deftypefun
 
-XML_Size XMLCALL
-XML_GetCurrentLineNumber(XML_Parser p);
 
-Return the line number of the position. The first line is reported as 1.
+@deftypefun XML_Size XML_GetCurrentLineNumber (XML_Parser @var{p})
+Return the line number of the position.  The first line is reported as
+1.
+@end deftypefun
 
-XML_Size XMLCALL
-XML_GetCurrentColumnNumber(XML_Parser p);
 
-Return the offset, from the beginning of the current line, of the position.
+@deftypefun XML_Size XML_GetCurrentColumnNumber (XML_Parser @var{p})
+Return the offset, from the beginning of the current line, of the
+position.
+@end deftypefun
 
-int XMLCALL
-XML_GetCurrentByteCount(XML_Parser p);
 
-Return the number of bytes in the current event. Returns 0 if the event
-is inside a reference to an internal entity and for the end-tag event
-for empty element tags (the later can be used to distinguish
-empty-element tags from empty elements using separate start and end
-tags).
+@deftypefun int XML_GetCurrentByteCount (XML_Parser @var{p})
+Return the number of bytes in the current event, 0 if the event is
+inside a reference to an internal entity and for the end--tag event for
+empty element tags (the later can be used to distinguish empty--element
+tags from empty elements using separate start and end tags).
+@end deftypefun
 
-const char * XMLCALL
-XML_GetInputContext(XML_Parser p,
-                    int *offset,
-                    int *size);
 
-Returns the parser's input buffer, sets the integer pointed at by offset
+@deftypefun {const char *} XML_GetInputContext (XML_Parser @var{p}, int * @var{offset}, int * @var{size})
+Return the parser's input buffer, sets the integer pointed at by offset
 to the offset within this buffer of the current parse position, and set
 the integer pointed at by size to the size of the returned buffer.
 
 This should only be called from within a handler during an active parse
 and the returned buffer should only be referred to from within the
-handler that made the call. This input buffer contains the untranslated
+handler that made the call.  This input buffer contains the untranslated
 bytes of the input.
 
 Only a limited amount of context is kept, so if the event triggering a
 call spans over a very large amount of input, the actual parse position
 may be before the beginning of the buffer.
 
-If XML_CONTEXT_BYTES is not defined, this will always return NULL.
+If @code{XML_CONTEXT_BYTES} is not defined, this will always return
+@null{}.
+@end deftypefun
 
 
 
