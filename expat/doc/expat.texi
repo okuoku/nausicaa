@@ -1,4 +1,4 @@
-\input expat.tex
+\input texinfo.tex
 @c %**start of header
 @setfilename expat.info
 @settitle Expat
@@ -229,74 +229,8 @@
 @code{\NAME\()}
 @end macro
 
-@macro null{}
+@macro cnull{}
 @code{NULL}
-@end macro
-
-
-@c page
-@c ------------------------------------------------------------
-@c Scheme language macros.
-@c ------------------------------------------------------------
-
-@macro clos{}
-@acronym{CLOS}
-@end macro
-
-@macro library{NAME}
-@code{(\NAME\)}
-@end macro
-
-@macro module{NAME}
-@code{\NAME\}
-@end macro
-
-@macro repl{}
-@acronym{REPL}
-@end macro
-
-@macro rnrs{VERSION}
-@acronym{R\VERSION\RS}
-@end macro
-
-@macro srfi{}
-@acronym{SRFI}
-@end macro
-
-@ignore
-Separating the @srfi{}  macro from the number with a  '--' rather than a
-'-' makes the expansion look ugly in menu entries under the Info reader.
-IMHO this should not happen, but  it does; so we live with this, because
-the main purpose of this document is to provide an Info version.
-@end ignore
-@macro ansrfi{NUM}
-@srfi{}-\NUM\
-@end macro
-
-@c ------------------------------------------------------------
-
-@macro func{NAME}
-@code{@sc{\NAME\}}
-@end macro
-
-@macro nil{}
-@code{()}
-@end macro
-
-@macro true{}
-@code{#t}
-@end macro
-
-@macro false{}
-@code{#f}
-@end macro
-
-@macro keyword{NAME}
-@code{#:\NAME\}
-@end macro
-
-@macro class{NAME}
-@code{<\NAME\>}
 @end macro
 
 
@@ -380,7 +314,7 @@ See the appendix ``Package License'' for the licence notice.
 @titlepage
 @title @value{TITLE}
 @subtitle Revision @version{}
-@author @value{AUTHOR} @value{AUTHOR_EMAIL}
+@c @author @value{AUTHOR} @value{AUTHOR_EMAIL}
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -719,7 +653,8 @@ Expat's header file:
 #include <expat.h>
 
 #ifndef XMLCALL
-#  if defined(_MSC_EXTENSIONS) && !defined(__BEOS__) && !defined(__CYGWIN__)
+#  if defined(_MSC_EXTENSIONS) && !defined(__BEOS__) &&
+      !defined(__CYGWIN__)
 #    define XMLCALL __cdecl
 #  elif defined(__GNUC__)
 #    define XMLCALL __attribute__((cdecl))
@@ -826,7 +761,7 @@ The number of input bytes of markup context which the parser will ensure
 are available for reporting via @cfunc{XML_GetInputContext}.  This is
 normally set to 1024, and must be set to a positive interger.  If this
 is not defined, the input context will not be available and
-@cfunc{XML_GetInputContext} will always report @null{}.  Without this,
+@cfunc{XML_GetInputContext} will always report @cnull{}.  Without this,
 Expat has a smaller memory footprint and can be faster.
 
 @item XML_STATIC
@@ -1431,7 +1366,7 @@ and a flag indicating whether the parse can be resumed in the future.
 
 
 @deftypefun XML_Parser XML_ParserCreate (const XML_Char * @var{encoding})
-Construct a new parser.  If @var{encoding} is non--@null{}, it specifies
+Construct a new parser.  If @var{encoding} is non--@cnull{}, it specifies
 a character encoding to use for the document.  This overrides the
 document encoding declaration.  There are four built--in encodings:
 
@@ -1463,8 +1398,8 @@ separator with namespace triplets.
 
 @deftypefun XML_Parser XML_ParserCreate_MM (const XML_Char * @var{encoding}, const XML_Memory_Handling_Suite * @var{ms}, const XML_Char * @var{sep})
 Construct a new parser using the suite of memory handling functions
-specified in @var{ms}.  If @var{ms} is @null{}, then use the standard
-set of memory management functions.  If @var{sep} is non--@null{}, then
+specified in @var{ms}.  If @var{ms} is @cnull{}, then use the standard
+set of memory management functions.  If @var{sep} is non--@cnull{}, then
 namespace processing is enabled in the created parser and the character
 pointed at by @var{sep} is used as the separator between the namespace
 @uri{} and the local part of the name.
@@ -1574,7 +1509,7 @@ of the input.
 
 @deftypefun {void *} XML_GetBuffer (XML_Parser @var{p}, int @var{len})
 Obtain a buffer of size @var{len} to read a piece of the document into.
-Return @null{} if Expat can't allocate enough memory for this buffer.
+Return @cnull{} if Expat can't allocate enough memory for this buffer.
 
 This function has to be called prior to every call to
 @cfunc{XML_ParseBuffer}.
@@ -1734,7 +1669,7 @@ Fill the structure reference by @var{status} with the status of the
 parser with respect to being initialized, parsing, finished, or
 suspended, and whether the final buffer is being processed.
 
-@var{status} must not be @null{}.
+@var{status} must not be @cnull{}.
 
 @quotation
 @emph{Note:} New in Expat 1.95.8.
@@ -1754,7 +1689,7 @@ choose to ignore all text not descended from a @code{para} element.  One
 way it could do this is to set the character handler when a @code{para}
 start tag is seen, and unset it for the corresponding end tag.
 
-A handler may be unset by providing a @null{} pointer to the appropriate
+A handler may be unset by providing a @cnull{} pointer to the appropriate
 handler setter.  None of the handler setting functions have a return
 value.
 
@@ -1782,7 +1717,7 @@ Set the handler for start (and empty) tags.  Attributes are passed to
 the the start handler as a pointer to a vector of char pointers.  Each
 attribute seen in a start (or empty) tag occupies 2 consecutive places
 in this vector: the attribute name followed by the attribute value.
-These pairs are terminated by a @null{} pointer.
+These pairs are terminated by a @cnull{} pointer.
 
 Note that an empty tag generates a call to both start and end handlers
 (in that order).
@@ -1831,7 +1766,7 @@ sequence of calls to this handler.  In other words, if we are searching
 for a pattern in the text, it may be split across calls to this
 handler.
 
-Note: Setting this handler to @null{} may @strong{not} immediately
+Note: Setting this handler to @cnull{} may @strong{not} immediately
 terminate callbacks if the parser is currently processing such a single
 block of contiguous markup--free text, as the parser will continue
 calling back until the end of the block is reached.
@@ -1841,9 +1776,10 @@ calling back until the end of the block is reached.
 
 @deftp {Function Pointer Typedef} XML_ProcessingInstructionHandler
 @example
-typedef void (* XML_ProcessingInstructionHandler) (void * user_data,
-                                                   const XML_Char * target,
-                                                   const XML_Char * data);
+typedef void
+  (* XML_ProcessingInstructionHandler) (void * user_data,
+                                        const XML_Char * target,
+                                        const XML_Char * data);
 @end example
 @end deftp
 
@@ -1964,11 +1900,12 @@ See also @cfunc{XML_DefaultCurrent}.
 Defined as:
 
 @example
-typedef int (* XML_ExternalEntityRefHandler) (XML_Parser p,
-                                              const XML_Char * context,
-                                              const XML_Char * base,
-                                              const XML_Char * system_id,
-                                              const XML_Char * public_id);
+typedef int
+  (* XML_ExternalEntityRefHandler) (XML_Parser p,
+                                    const XML_Char * context,
+                                    const XML_Char * base,
+                                    const XML_Char * system_id,
+                                    const XML_Char * public_id);
 @end example
 @end deftp
 
@@ -1984,18 +1921,18 @@ expected by the context argument to
 the handler returns, so if the referenced entity is to be parsed later,
 it must be copied.
 
-@var{context} is @null{} only when the entity is a parameter entity,
+@var{context} is @cnull{} only when the entity is a parameter entity,
 which is how one can differentiate between general and parameter
 entities.
 
 The @var{base} parameter is the base to use for relative system
-identifiers.  It is set by @cfunc{XML_SetBase} and may be @null{}.
+identifiers.  It is set by @cfunc{XML_SetBase} and may be @cnull{}.
 
 The @var{public_id} parameter is the public id given in the entity
-declaration and may be @null{}.
+declaration and may be @cnull{}.
 
 @var{system_id} is the system identifier specified in the entity
-declaration and is never @null{}.
+declaration and is never @cnull{}.
 
 There are a couple of ways in which this handler differs from others.
 
@@ -2022,8 +1959,8 @@ information into global or static variables.
 
 @deftypefun void XML_SetExternalEntityRefHandlerArg (XML_Parser @var{p}, void * @var{arg})
 Set the argument passed to the @code{XML_ExternalEntityRefHandler}.  If
-@var{arg} is not @null{}, it is the new value passed to the handler set
-using @cfunc{XML_SetExternalEntityRefHandler}; if @var{arg} is @null{},
+@var{arg} is not @cnull{}, it is the new value passed to the handler set
+using @cfunc{XML_SetExternalEntityRefHandler}; if @var{arg} is @cnull{},
 the argument passed to the handler function will be the parser object
 itself.
 
@@ -2042,13 +1979,14 @@ handler and to manage it properly.
 @end deftypefun
 
 
-@deftp {Function Pointer Typedef}
+@deftp {Function Pointer Typedef} XML_SkippedEntityHandler
 Defined as:
 
 @example
-typedef void (* XML_SkippedEntityHandler) (void * user_data,
-                                           const XML_Char *entityName,
-                                           int is_parameter_entity);
+typedef void
+  (* XML_SkippedEntityHandler) (void * user_data,
+                                const XML_Char *entityName,
+                                int is_parameter_entity);
 @end example
 @end deftp
 
@@ -2082,9 +2020,10 @@ attribute values.
 Defined as:
 
 @example
-typedef int (* XML_UnknownEncodingHandler) (void * encodingHandlerData,
-                                            const XML_Char *name,
-                                            XML_Encoding *info);
+typedef int
+  (* XML_UnknownEncodingHandler) (void * encodingHandlerData,
+                                  const XML_Char *name,
+                                  XML_Encoding *info);
 @end example
 @end deftp
 
@@ -2139,7 +2078,7 @@ is the data pointer from @cfunc{XML_Encoding}.  The string @var{s} is
 converted.
 
 The function pointed at by @code{release} is called by the parser when
-it is finished with the encoding.  It may be @null{}.
+it is finished with the encoding.  It may be @cnull{}.
 @end deftypefun
 
 
@@ -2147,9 +2086,10 @@ it is finished with the encoding.  It may be @null{}.
 Defined as:
 
 @example
-typedef void (* XML_StartNamespaceDeclHandler) (void * user_data,
-                                                const XML_Char *prefix,
-                                                const XML_Char *uri);
+typedef void
+  (* XML_StartNamespaceDeclHandler) (void * user_data,
+                                     const XML_Char *prefix,
+                                     const XML_Char *uri);
 @end example
 @end deftp
 
@@ -2166,8 +2106,9 @@ declared in that start tag.
 Defined as:
 
 @example
-typedef void (* XML_EndNamespaceDeclHandler) (void * user_data,
-                                              const XML_Char *prefix);
+typedef void
+  (* XML_EndNamespaceDeclHandler) (void * user_data,
+                                   const XML_Char *prefix);
 @end example
 @end deftp
 
@@ -2200,8 +2141,8 @@ typedef void (* XML_XmlDeclHandler) (void            *userData,
 @deftypefun void XML_SetXmlDeclHandler (XML_Parser @var{p}, XML_XmlDeclHandler @var{xmldecl})
 Sets a handler that is called for @pxml{} declarations and also for text
 declarations discovered in external entities.  The way to distinguish is
-that the version parameter will be @null{} for text declarations.  The
-encoding parameter may be @null{} for an @pxml{} declaration.  The
+that the version parameter will be @cnull{} for text declarations.  The
+encoding parameter may be @cnull{} for an @pxml{} declaration.  The
 standalone argument will contain -1, 0, or 1 indicating respectively
 that there was no standalone parameter in the declaration, that it was
 given as no, or that it was given as yes.
@@ -2212,11 +2153,12 @@ given as no, or that it was given as yes.
 Defined as:
 
 @example
-typedef void (* XML_StartDoctypeDeclHandler) (void           *userData,
-                                              const XML_Char *doctypeName,
-                                              const XML_Char *sysid,
-                                              const XML_Char *pubid,
-                                              int            has_internal_subset);
+typedef void
+  (* XML_StartDoctypeDeclHandler) (void * userData,
+                                   const XML_Char * doctypeName,
+                                   const XML_Char * sysid,
+                                   const XML_Char * pubid,
+                                   int has_internal_subset);
 @end example
 @end deftp
 
@@ -2224,7 +2166,7 @@ typedef void (* XML_StartDoctypeDeclHandler) (void           *userData,
 @deftypefun void XML_SetStartDoctypeDeclHandler (XML_Parser @var{p}, XML_StartDoctypeDeclHandler @var{start})
 Set a handler that is called at the start of a @code{DOCTYPE}
 declaration, before any external or internal subset is parsed.  Both
-sysid and pubid may be @null{}.  The @var{has_internal_subset} will be
+sysid and pubid may be @cnull{}.  The @var{has_internal_subset} will be
 non--zero if the @code{DOCTYPE} declaration has an internal subset.
 @end deftypefun
 
@@ -2315,7 +2257,7 @@ nodes.
 
 If @code{type} equals @code{XML_CTYPE_EMPTY} or @code{XML_CTYPE_ANY},
 then @code{quant} will be @code{XML_CQUANT_NONE}, and the other fields
-will be zero or @null{}.
+will be zero or @cnull{}.
 
 If @code{type} is @code{XML_CTYPE_MIXED}, then @code{quant} will be
 @code{XML_CQUANT_NONE} or @code{XML_CQUANT_REP} and @code{numchildren}
@@ -2327,7 +2269,7 @@ root node can be type @code{XML_CTYPE_EMPTY}, @code{XML_CTYPE_ANY}, or
 
 For type @code{XML_CTYPE_NAME}, the name field points to the name and
 the @code{numchildren} and @code{children} fields will be zero and
-@null{}.  The @code{quant} field will indicate any quantifiers placed on
+@cnull{}.  The @code{quant} field will indicate any quantifiers placed on
 the name.
 
 Types @code{XML_CTYPE_CHOICE} and @code{XML_CTYPE_SEQ} indicate a choice
@@ -2365,13 +2307,13 @@ The attribute @code{name} is in the @var{attname} parameter.
 The attribute @code{type} is in the @var{att_type} parameter. It is the
 string representing the type in the declaration with whitespace removed.
 
-The @var{dflt} parameter holds the default value.  It will be @null{} in
+The @var{dflt} parameter holds the default value.  It will be @cnull{} in
 the case of @code{#IMPLIED} or @code{#REQUIRED} attributes.  We can
 distinguish these two cases by checking the @var{isrequired} parameter,
 which will be true in the case of @code{#REQUIRED} attributes.
 
 Attributes which are @code{#FIXED} will have also have a true
-@var{isrequired}, but they will have the non--@null{} fixed value in the
+@var{isrequired}, but they will have the non--@cnull{} fixed value in the
 @var{dflt} parameter.
 @end deftypefun
 
@@ -2400,15 +2342,15 @@ Set a handler that will be called for all entity declarations.  The
 parameter entities and zero otherwise.
 
 For internal entities (@code{<!ENTITY foo "bar">}), @var{value} will be
-non--@null{} and @var{system_id}, @var{public_id}, and
-@var{notation_name} will all be @null{}.
+non--@cnull{} and @var{system_id}, @var{public_id}, and
+@var{notation_name} will all be @cnull{}.
 
 The @var{value} string is not zero--terminated; the length is provided
 in the @var{value_length} parameter.  Do not use @var{value_length} to
 test for internal entities, since it is legal to have zero--length
-values.  Instead check for whether or not @var{value} is @null{}.
+values.  Instead check for whether or not @var{value} is @cnull{}.
 
-The @var{notation_name} argument will have a non--@null{} value only for
+The @var{notation_name} argument will have a non--@cnull{} value only for
 unparsed entity declarations.
 @end deftypefun
 
@@ -2418,12 +2360,13 @@ Defined as:
 
 @example
 typedef void
-(* XML_UnparsedEntityDeclHandler) (void * user_data,
-                                   const XML_Char * entity_name,
-                                   const XML_Char * base,
-                                   const XML_Char * system_id,
-                                   const XML_Char * public_id,
-                                   const XML_Char * notation_name);
+  (* XML_UnparsedEntityDeclHandler)
+    (void * user_data,
+     const XML_Char * entity_name,
+     const XML_Char * base,
+     const XML_Char * system_id,
+     const XML_Char * public_id,
+     const XML_Char * notation_name);
 @end example
 @end deftp
 
@@ -2554,7 +2497,7 @@ call spans over a very large amount of input, the actual parse position
 may be before the beginning of the buffer.
 
 If @code{XML_CONTEXT_BYTES} is not defined, this will always return
-@null{}.
+@cnull{}.
 @end deftypefun
 
 
@@ -2653,7 +2596,7 @@ runtime.
 
 The return value is a pointer to a statically allocated array of
 @code{XML_Feature}, terminated by a record with the @code{feature} field
-set to @code{XML_FEATURE_END} and @code{name} field set to @null{}.
+set to @code{XML_FEATURE_END} and @code{name} field set to @cnull{}.
 
 Since an application that requires this kind of information needs to
 determine the type of character the name points to, records for the
@@ -2696,7 +2639,7 @@ different C standard libraries (this can happen on Windows, at least).
 @deftypefun {void *} XML_MemMalloc (XML_Parser @var{p}, size_t @var{size})
 Allocate @var{size} bytes of memory using the allocator the parser
 object has been configured to use.  Return a pointer to the memory or
-@null{} on failure.  Memory allocated in this way must be freed using
+@cnull{} on failure.  Memory allocated in this way must be freed using
 @cfunc{XML_MemFree}.
 @end deftypefun
 
@@ -2706,12 +2649,12 @@ Allocate or reallocate @var{size} bytes of memory using the allocator
 the parser object has been configured to use.
 
 @var{ptr} must point to a block of memory allocated by
-@cfunc{XML_MemMalloc} or @cfunc{XML_MemRealloc}, or be @null{}.
+@cfunc{XML_MemMalloc} or @cfunc{XML_MemRealloc}, or be @cnull{}.
 
 When reallocating, this function tries to expand the block pointed to by
 @var{ptr} if possible.
 
-Return a pointer to the memory or @null{} on failure.  On success, the
+Return a pointer to the memory or @cnull{} on failure.  On success, the
 original block has either been expanded or freed.  On failure, the
 original block has not been freed; the caller is responsible for freeing
 the original block.
@@ -2723,7 +2666,7 @@ Memory allocated in this way must be freed using @cfunc{XML_MemFree}.
 @deftypefun void XML_MemFree (XML_Parser @var{p}, void * @var{ptr})
 Free a block of memory pointed to by @var{ptr}.  The block must have
 been allocated by @cfunc{XML_MemMalloc} or @cfunc{XML_MemRealloc}, or be
-@null{}.
+@cnull{}.
 @end deftypefun
 
 
@@ -2754,7 +2697,7 @@ handlers.  The user data can still be obtained using the
 @deftypefun {enum XML_Status} XML_SetBase (XML_Parser @var{p}, const XML_Char * @var{base})
 Set the base to be used for resolving relative @uri{}s in system
 identifiers.  The string referenced by @var{base} is duplicated.  If
-@var{base} is @null{} the base is reset.
+@var{base} is @cnull{} the base is reset.
 
 Return @code{XML_STATUS_OK} if successful.  Return
 @code{XML_STATUS_ERROR} if there's no memory to duplicate the base.
@@ -2763,7 +2706,7 @@ Return @code{XML_STATUS_OK} if successful.  Return
 
 @deftypefun {const XML_Char *} XML_GetBase (XML_Parser @var{p})
 Return the current base for resolving relative @uri{}s.  The returned
-value can be @null{} if no base was set.
+value can be @cnull{} if no base was set.
 @end deftypefun
 
 
@@ -2802,7 +2745,7 @@ This function must not be called after @cfunc{XML_Parse} or
 value is @code{XML_STATUS_ERROR} if the parser is in the
 @code{XML_PARSING} or @code{XML_SUSPENDED} status.
 
-Calling this function is equivalent to passing a non--@null{} encoding
+Calling this function is equivalent to passing a non--@cnull{} encoding
 argument to the parser creation functions.
 @end deftypefun
 
@@ -2833,13 +2776,13 @@ If the document does not contain a @code{DOCTYPE} declaration at all and
 but the @var{startDoctypeDeclHandler} and @var{endDoctypeDeclHandler}
 functions, if set, will not be called.
 
-The setting of parameter entity parsing, controlled using
-@cfunc{XML_SetParamEntityParsing}, will be honored.
+The setting of parameter entity parsing will be honored (refer to
+@cfunc{XML_SetParamEntityParsing}).
 
 The application--provided external subset is read by calling the
 external entity reference handler set via
 @cfunc{XML_SetExternalEntityRefHandler} with both @var{publicId} and
-@var{systemId} set to @null{}.
+@var{systemId} set to @cnull{}.
 
 Return values are:
 
