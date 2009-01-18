@@ -409,25 +409,16 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 
-* cond-expand::                 Feature based conditional expansion
-                                construct.
+* lang-lib::                    Language extension library.
 * list::                        List library.
-* and-let-star::                An @func{and} with local bindings.
-* receive::                     Binding to multiple values.
 * strings::                     The string library.
 * char-set::                    Character set library.
 * time::                        Time data types and procedures.
-* cut::                         Notation for specializing parameters
-                                without currying.
 * random::                      Sources of random bits.
-* rec::                         A special form for recursive evaluation.
 * args-fold::                   A program argument processor.
-* parameters::                  Parameter objects.
 * streams::                     Streams library.
 * eager-comp::                  Extended loops.
 * vector::                      Vectors library.
-* format::                      Intermediate format strings.
-* general-cond::                A more general @func{cond} clause.
 * compare::                     Comparison functions.
 * lightweight-testing::         Lightweight testing.
 * environment-variables::       Environment variables.
@@ -457,6 +448,18 @@ Overview of the package
 * overview srfi::               The @srfi{} libraries.
 * overview stub::               Stub libraries.
 
+Language extension library
+
+* cond-expand::                 Feature based conditional expansion
+                                construct.
+* and-let-star::                An @func{and} with local bindings.
+* receive::                     Binding to multiple values.
+* cut::                         Notation for specializing parameters
+                                without currying.
+* rec::                         A special form for recursive evaluation.
+* parameters::                  Parameter objects.
+* general-cond::                A more general @func{cond} clause.
+
 Feature based conditional expansion construct
 
 * cond-expand license::         Original license.
@@ -464,6 +467,58 @@ Feature based conditional expansion construct
 * cond-expand rationale::       Rationale.
 * cond-expand spec::            Specifications.
 * cond-expand features::        Feature identifiers.
+
+An @func{and} with local bindings
+
+* and-let-star license::        Original license.
+* and-let-star abstract::       Abstract.
+* and-let-star rationale::      Rationale.
+* and-let-star spec::           Specification.
+* and-let-star stub::           Stub library.
+
+Binding to multiple values
+
+* receive license::             Original license.
+* receive abstract::            Abstract.
+* receive rationale::           Rationale.
+* receive spec::                Specification.
+* receive stub::                Stub library.
+
+Notation for specializing parameters without currying
+
+* cut license::                 Original license.
+* cut abstract::                Abstract.
+* cut rationale::               Rationale.
+* cut spec::                    Specification.
+* cut design::                  Rationale design.
+* cut ack::                     Acknowledgements.
+* cut stub::                    Stub library.
+
+A special form for recursive evaluation
+
+* rec license::                 Original license.
+* rec abstract::                Abstract.
+* rec rationale::               Rationale.
+* rec spec::                    Specification.
+* rec ack::                     Acknowledgements.
+* rec references::              References.
+* rec stub::                    Stub library.
+
+Parameter objects
+
+* parameters license::          Document license.
+* parameters abstract::         Abstract.
+* parameters rationale::        Rationale.
+* parameters spec::             Specification.
+* parameters stub::             Stub library.
+
+A more general @func{cond} clause
+
+* general-cond license::        Original license.
+* general-cond abstract::       Abstract.
+* general-cond rationale::      Rationale.
+* general-cond spec::           Specification.
+* general-cond stub::           Stub library.
 
 List library
 
@@ -518,22 +573,6 @@ Fold, unfold and map
 * list spec fold reduce::       Reducing.
 * list spec fold unfold::       Unfolding.
 * list spec fold map::          Mapping.
-
-An @func{and} with local bindings
-
-* and-let-star license::        Original license.
-* and-let-star abstract::       Abstract.
-* and-let-star rationale::      Rationale.
-* and-let-star spec::           Specification.
-* and-let-star stub::           Stub library.
-
-Binding to multiple values
-
-* receive license::             Original license.
-* receive abstract::            Abstract.
-* receive rationale::           Rationale.
-* receive spec::                Specification.
-* receive stub::                Stub library.
 
 String library
 
@@ -614,16 +653,6 @@ Specification
 * time spec string::            Date to string/string to date
                                 converters.
 
-Notation for specializing parameters without currying
-
-* cut license::                 Original license.
-* cut abstract::                Abstract.
-* cut rationale::               Rationale.
-* cut spec::                    Specification.
-* cut design::                  Rationale design.
-* cut ack::                     Acknowledgements.
-* cut stub::                    Stub library.
-
 Sources of random bits
 
 * random license::              Original license.
@@ -635,30 +664,12 @@ Sources of random bits
 * random ack::                  Acknowledgements.
 * random references::           References.
 
-A special form for recursive evaluation
-
-* rec license::                 Original license.
-* rec abstract::                Abstract.
-* rec rationale::               Rationale.
-* rec spec::                    Specification.
-* rec ack::                     Acknowledgements.
-* rec references::              References.
-* rec stub::                    Stub library.
-
 A program argument processor
 
 * args-fold license::           Original license.
 * args-fold abstract::          Abstract.
 * args-fold rationale::         Rationale.
 * args-fold spec::              Specification.
-
-Parameter objects
-
-* parameters license::          Document license.
-* parameters abstract::         Abstract.
-* parameters rationale::        Rationale.
-* parameters spec::             Specification.
-* parameters stub::             Stub library.
 
 Streams
 
@@ -719,22 +730,6 @@ Specification
 * vector spec search::          Searching.
 * vector spec mutators::        Mutators.
 * vector spec conv::            Conversion.
-
-Intermediate format strings
-
-* format license::              Original license.
-* format abstract::             Abstract.
-* format rationale::            Rationale.
-* format spec::                 Specification.
-* format examples::             Examples.
-
-A more general @func{cond} clause
-
-* general-cond license::        Original license.
-* general-cond abstract::       Abstract.
-* general-cond rationale::      Rationale.
-* general-cond spec::           Specification.
-* general-cond stub::           Stub library.
 
 Comparison functions
 
@@ -979,8 +974,29 @@ Imports @library{srfi vectors} and exports all its bindings.
 
 
 @c page
+@node lang-lib
+@chapter Language extension library
+
+
+The @library{lang-lib} library collects bindings from the @srfi{}s that
+extend the Scheme language core features.
+
+@menu
+* cond-expand::                 Feature based conditional expansion
+                                construct.
+* and-let-star::                An @func{and} with local bindings.
+* receive::                     Binding to multiple values.
+* cut::                         Notation for specializing parameters
+                                without currying.
+* rec::                         A special form for recursive evaluation.
+* parameters::                  Parameter objects.
+* general-cond::                A more general @func{cond} clause.
+@end menu
+
+
+@c page
 @node cond-expand
-@chapter Feature based conditional expansion construct
+@section Feature based conditional expansion construct
 
 
 @ansrfi{0} was written by Marc Feeley, the @value{PACKAGE}
@@ -997,7 +1013,7 @@ implementation was written by Derick Eddington.
 
 @c page
 @node cond-expand license
-@section Original license
+@subsection Original license
 
 
 Copyright @copyright{} Marc Feeley 1999.  All Rights Reserved.
@@ -1028,7 +1044,7 @@ PARTICULAR PURPOSE.
 
 @c page
 @node cond-expand abstract
-@section Abstract
+@subsection Abstract
 
 
 @noindent
@@ -1079,7 +1095,7 @@ testing construct.
 
 @c page
 @node cond-expand rationale
-@section Rationale
+@subsection Rationale
 
 
 @noindent
@@ -1137,7 +1153,7 @@ restrictions can of course be lifted by some Scheme systems or by other
 
 @c page
 @node cond-expand spec
-@section Specifications
+@subsection Specifications
 
 
 @findex cond-expand
@@ -1204,7 +1220,7 @@ present.
 
 @c page
 @node cond-expand features
-@section Feature identifiers
+@subsection Feature identifiers
 
 
 What follows is a list of features that can be queried using the
@@ -1254,6 +1270,1542 @@ What follows is a list of features that can be queried using the
 @itemx (srfi lightweight-testing)
 One feature for each @srfi{}.
 @end table
+
+
+@c page
+@node and-let-star
+@section An @func{and} with local bindings
+
+
+@cindex @srfi{} and-let-star
+
+
+@noindent
+The @library{srfi and-let-star} library has been written by Oleg
+Kiselyov as reference implementation for @ansrfi{2}.
+
+
+@menu
+* and-let-star license::        Original license.
+* and-let-star abstract::       Abstract.
+* and-let-star rationale::      Rationale.
+* and-let-star spec::           Specification.
+* and-let-star stub::           Stub library.
+@end menu
+
+
+@c page
+@node and-let-star license
+@subsection Original license
+
+
+Copyright @copyright{} 1998 Oleg Kiselyov.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node and-let-star abstract
+@subsection Abstract
+
+
+Like an ordinary @func{and}, an @func{and-let*} special form evaluates
+its arguments (expressions) one after another in order, till the first
+one that yields @false{}.  Unlike @func{and}, however, a non--@false{}
+result of one expression can be bound to a fresh variable and used in
+the subsequent expressions.  @func{and-let*} is a cross--breed between
+@func{let*} and @func{and}.
+
+
+
+@c page
+@node and-let-star rationale
+@subsection Rationale
+
+
+In case of an ordinary @func{and} formed of proper boolean expressions:
+
+@example
+(and e1 e2 ...)
+@end example
+
+@noindent
+expression @var{e2}, if it gets to be evaluated, knows that @var{e1} has
+returned non--@false{}.  Moreover, @var{e2} knows exactly what the
+result of @var{e1} was (true) which @var{e2} can use to its advantage.
+If @var{e1} however is an extended boolean expression, @var{e2} can no
+longer tell which particular non--@false{} value @var{e1} has returned.
+Chances are it took a lot of work to evaluate @var{e1}, and the produced
+result (a number, a vector, a string, etc) may be of value to @var{e2}.
+Alas, the @func{and} form merely checks that the result is not an
+@false{}, and throws it away.  If @var{e2} needs it, it has to compute
+that value anew.
+
+This proposed @func{and-let*} special form lets constituent expressions
+get hold of the results of already evaluated expressions, without
+re--doing their work.
+
+@func{and-let*} can be thought of as a combination of @func{let*} and
+@func{and}, or a generalization of @func{cond}'s send operator,
+@code{=>}.  An @func{and-let*} form can also be considered a sequence of
+guarded expressions.
+
+In a regular program, forms may produce results, bind them to variables
+and let other forms use these results.  @func{and-let*} differs in that
+it checks to make sure that every produced result ``makes sense'' (that
+is, not an @false{}).  The first ``failure'' triggers the guard and
+aborts the rest of the sequence (which presumably would not make any
+sense to execute anyway).  Examples:
+
+@example
+(and-let* ([my-list     (compute-list)]
+           [            (not (null? my-list))])
+  (do-something my-list))
+
+(define (look-up key alist)
+  (and-let* ([x (assq key alist)])
+    (cdr x)))
+
+(or
+  (and-let* ([c (read-char)]
+             [  (not (eof-object? c))])
+    (string-set! some-str i c)
+    (set! i (+ 1 i)))
+  (begin
+    (do-process-eof)))
+
+;; A more realistic example
+;; Parse the 'timestamp' ::= 'token1' 'token2'
+;;   token1 ::= 'YY' 'MM' 'J'
+;;   token2 ::= 'GG' 'gg' "/"
+(define (parse-full-timestamp token1 token2)
+  (and-let* ([  (= 5 (string-length token1))]
+             [  (= 5 (string-length token2))]
+             [timestamp
+                (OS:string->time "%m/%d/%y %H:%M"
+                  (string
+                    (string-ref token1 2) (string-ref token1 3) #\/
+                    (string-ref token1 0) (string-ref token1 1) #\/
+                    (case (string-ref token1 4)
+                      ((#\8 #\9) #\9) (else #\0))
+                    (string-ref token1 4) #\space
+                    (string-ref token2 0) (string-ref token2 1) #\:
+                    (string-ref token2 2) (string-ref token2 3)))]
+             [  (positive? timestamp)])
+           timestamp))
+@end example
+
+@func{and-let*} is also similar to an ``anaphoric @func{and}'' Lisp
+macro@footnote{Rob Warnock, comp.lang.scheme, 26 Feb 1998 09:06:43 GMT,
+Message-ID: @url{6d3bb3$3804h@@fido.asd.sgi.com}}.  @func{and-let*}
+allows however more than one intermediate result, each of which
+continues to be bound through the rest of the form.
+
+
+@c page
+@node and-let-star spec
+@subsection Specification
+
+
+@findex and-let*
+
+
+@example
+AND-LET* (CLAWS) BODY
+
+CLAWS ::= '() | (cons CLAW CLAWS)
+CLAW  ::=  (VARIABLE EXPRESSION) | (EXPRESSION) |
+           BOUND-VARIABLE
+@end example
+
+@itemize
+@item
+The @code{CLAWS} are evaluated in the strict left--to--right order.
+
+@item
+For each @code{CLAW}, the @code{EXPRESSION} part is evaluated first (or
+@code{BOUND-VARIABLE} is looked up)
+
+@item
+If the result is @false{}, @func{and-let*} immediately returns
+@func{#f}.
+
+@item
+Otherwise, if the @code{claw} is of the form @code{(VARIABLE
+EXPRESSION)} the @code{EXPRESSION}'s value is bound to a freshly made
+@code{VARIABLE}.
+
+@item
+The @code{VARIABLE} is available for the rest of the @code{CLAWS}, and
+the @code{BODY}.
+
+@item
+As usual, all @code{VARIABLE}s must be unique (like in @func{let*}).
+@end itemize
+
+
+@subsubheading Formal (denotational) semantics
+
+
+@example
+eval[ (AND-LET* (CLAW1 ...) BODY), env] =
+   eval_claw[ CLAW1, env ] andalso
+   eval[ (AND-LET* ( ...) BODY), ext_claw_env[CLAW1, env]]
+
+eval[ (AND-LET* (CLAW) ), env] = eval_claw[ CLAW, env ]
+eval[ (AND-LET* () FORM1 ...), env] = eval[ (BEGIN FORM1 ...), env ]
+eval[ (AND-LET* () ), env] = #t
+
+eval_claw[ BOUND-VARIABLE, env ] =
+   eval[ BOUND-VARIABLE, env ]
+eval_claw[ (EXPRESSION), env ] =
+   eval[ EXPRESSION, env ]
+eval_claw[ (VARIABLE EXPRESSION), env ] =
+   eval[ EXPRESSION, env ]
+
+ext_claw_env[ BOUND-VARIABLE, env ] = env
+ext_claw_env[ (EXPRESSION), env ] =
+   env-after-eval[ EXPRESSION, env ]
+ext_claw_env[ (VARIABLE EXPRESSION), env ] =
+   extend-env[ env-after-eval[ EXPRESSION, env ],
+              VARIABLE boundto eval[ EXPRESSION, env ]]
+@end example
+
+
+@c page
+@node and-let-star stub
+@subsection Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi and-let-star}.
+
+
+@c page
+@node receive
+@section Binding to multiple values
+
+
+@cindex @srfi{} receive
+
+
+The @library{srfi receive} has been written by John David Stone
+(Department of Mathematics and Computer Science, Grinnell College,
+Grinnell, Iowa 50112, @email{stone@@cs.grinnell.edu}) as reference
+implementation for @ansrfi{8}.
+
+
+@menu
+* receive license::             Original license.
+* receive abstract::            Abstract.
+* receive rationale::           Rationale.
+* receive spec::                Specification.
+* receive stub::                Stub library.
+@end menu
+
+
+@c page
+@node receive license
+@subsection Original license
+
+
+Copyright @copyright{} 1999 John David Stone.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+@c page
+@node receive abstract
+@subsection Abstract
+
+
+The only mechanism that @rnrs{5} provides for binding identifiers to the
+values of a multiple--valued expression is the primitive
+@func{call-with-values}.  This @srfi{} proposes a more concise, more
+readable syntax for creating such bindings.
+
+@c page
+@node receive rationale
+@subsection Rationale
+
+
+Although @rnrs{5} supports multiple--valued expressions, it provides
+only the essential procedures @func{values} and @func{call-with-values}.
+It is evident that the authors expected Scheme programmers to define
+other constructs in terms of these, abstracting common patterns of use.
+
+One such pattern consists in binding an identifier to each of the values
+of a multiple--valued expression and then evaluating an expression in
+the scope of the bindings.  As an instance of this pattern, consider the
+following excerpt from a quicksort procedure:
+
+@example
+(call-with-values
+  [lambda ()
+    (partition (precedes pivot) others)]
+  [lambda (fore aft)
+    (append (qsort fore) (cons pivot (qsort aft)))])
+@end example
+
+Here @func{partition} is a multiple--valued procedure that takes two
+arguments, a predicate and a list, and returns two lists, one comprising
+the list elements that satisfy the predicate, the other those that do
+not.  The purpose of the expression shown is to partition the list
+@var{others}, sort each of the sublists, and recombine the results into
+a sorted list.
+
+For our purposes, the important step is the binding of the identifiers
+fore and aft to the values returned by @func{partition}.  Expressing the
+construction and use of these bindings with the @func{call-by-values}
+primitive is cumbersome: One must explicitly embed the expression that
+provides the values for the bindings in a parameterless procedure, and
+one must explicitly embed the expression to be evaluated in the scope of
+those bindings in another procedure, writing as its parameters the
+identifiers that are to be bound to the values received.
+
+These embeddings are boilerplate, exposing the underlying binding
+mechanism but not revealing anything relevant to the particular program
+in which it occurs.  So the use of a syntactic abstraction that exposes
+only the interesting parts (the identifiers to be bound, the
+multiple--valued expression that supplies the values, and the body of
+the receiving procedure) makes the code more concise and more readable:
+
+@example
+(receive (fore aft)
+    [partition (precedes pivot) others]
+  [append (qsort fore)
+          (cons pivot (qsort aft))])
+@end example
+
+The advantages are similar to those of a @func{let}--expression over a
+procedure call with a @func{lambda}--expression as its operator.  In
+both cases, cleanly separating a ``header'' in which the bindings are
+established from a ``body'' in which they are used makes it easier to
+follow the code.
+
+
+@c page
+@node receive spec
+@subsection Specification
+
+
+@cindex @srfi{} receive api
+
+
+@deffn Syntax receive @var{formals} @var{expression} @var{body}
+@var{formals}, @var{expression}, and @var{body} are as described in
+@rnrs{5}.  Specifically, @var{formals} can have any of three forms:
+
+@table @code
+@item (variable1 ... variablen)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen} to fresh
+locations.  The @var{expression} is evaluated, and its values are stored
+into those locations (it is an error if @var{expression} does not have
+exactly @var{n} values).
+
+@item variable
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable} to a fresh location.  The
+@var{expression} is evaluated, its values are converted into a newly
+allocated list, and the list is stored in the location bound to
+@var{variable}.
+
+@item (variable1 ... variablen . variablen+1)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
+locations.  The @var{expression} is evaluated.  Its first @var{n} values
+are stored into the locations bound to @var{variable1}, ...,
+@var{variablen}.  Any remaining values are converted into a newly
+allocated list, which is stored into the location bound to
+@var{variablen+1} (it is an error if @var{expression} does not have at
+least @var{n} values.
+@end table
+
+In any case, the expressions in @var{body} are evaluated sequentially in
+the extended environment.  The results of the last expression in the
+body are the values of the @var{receive}--expression.
+@end deffn
+
+
+@c page
+@node receive stub
+@subsection Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi receive}.
+
+
+@c page
+@node cut
+@section Notation for specializing parameters without currying
+
+
+@cindex @srfi{} cut
+
+
+@ansrfi{26} has been written by Sebastian Egner.
+
+
+@menu
+* cut license::                 Original license.
+* cut abstract::                Abstract.
+* cut rationale::               Rationale.
+* cut spec::                    Specification.
+* cut design::                  Rationale design.
+* cut ack::                     Acknowledgements.
+* cut stub::                    Stub library.
+@end menu
+
+
+@c page
+@node cut license
+@subsection Original license
+
+
+Copyright @copyright{} 2002 Sebastian Egner.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node cut abstract
+@subsection Abstract
+
+
+When programming in functional style, it is frequently necessary to
+specialize some of the parameters of a multi--parameter procedure.  For
+example, from the binary operation @func{cons} one might want to obtain
+the unary operation @code{(lambda (x) (cons 1 x))}.  This specialization
+of parameters is also known as ``partial application'', ``operator
+section'' or ``projection''.
+
+The mechanism proposed here allows to write this sort of specialization
+in a simple and compact way.  The mechanism is best explained by a few
+examples:
+
+@example
+(cut cons (+ a 1) <>)   = (lambda (x2) (cons (+ a 1) x2))
+(cut list 1 <> 3 <> 5)  = (lambda (x2 x4) (list 1 x2 3 x4 5))
+(cut list)              = (lambda () (list))
+(cut list 1 <> 3 <...>) = (lambda (x2 . xs) (apply list 1 x2 3 xs))
+(cut <> a b)            = (lambda (f) (f a b))
+@end example
+
+As you see, the macro @func{cut} specializes some of the parameters of
+its first argument.  The parameters that are to show up as formal
+variables of the result are indicated by the symbol @code{<>}, pronouced
+as ``slot''.  In addition, the symbol @code{<...>}, pronounced as
+``rest--slot'', matches all residual arguments of a variable argument
+procedure.  As you can see from the last example above, the first
+argument can also be a slot, as one should expect in Scheme.
+
+In addition to @func{cut}, there is a variant called @func{cute} (a
+mnemonic for ``@func{cut} with evaluated non--slots'') which evaluates
+the non--slot expressions at the time the procedure is specialized, not
+at the time the specialized procedure is called.  For example:
+
+@example
+(cute cons (+ a 1) <>) = (let ([a1 (+ a 1)])
+                           (lambda (x2)
+                             (cons a1 x2)))
+@end example
+
+As you see from comparing this example with the first example above, the
+@func{cute}--variant will evaluate @code{(+ a 1)} once, while the
+@func{cut}--variant will evaluate it during every invocation of the
+resulting procedure.
+
+The mechanism proposed in this @srfi{} allows specializing any subset
+of the variables of a procedure.  The result can be of fixed arity or of
+variable arity.  The mechanism does not allow permutation, omission,
+duplication or any other processing of the arguments; for this it is
+necessary to write to use a different mechanism such as @func{lambda}.
+
+
+
+@c page
+@node cut rationale
+@subsection Rationale
+
+
+A particularly elegant way to deal with specialization is known as
+currying (Schoenfinkel 1924, Curry 1958).  The idea of currying is to
+reduce multi--argument functions to single--argument functions by
+regarding an @var{n}--ary function as a unary function mapping its first
+argument into an (@var{n-1})--ary function (which is curried in turn).
+This point of view, apart from its theoretical elegance, allows an
+extremely compact notation for specializing the first argument of a
+function.  In the first example, one could simply write @code{(cons 1)}.
+
+Yet, Scheme is not a curried language---the number of arguments passed
+to a procedure must match the number of its parameters at all times.
+This allows zero--arity and variable--arity procedures but in order to
+specialize parameters one usually has to write down a lambda--expression
+and invent some irrelevant identifiers for its formal variables (@var{x}
+in the examples in the Abstract).  For this reason, the mechanism
+proposed in this @srfi{} provides a simple and compact notation for
+specializing any subset of the parameters of a procedure.
+
+Note: @emph{The mechanism proposed here is not currying!}
+
+The purpose of the mechanism proposed here is to make the benefits of
+currying available within the programming language Scheme.  There are
+two primary benefits of currying in practice: Higher--order types are
+substantially simplified and there is a simple notation for specializing
+parameters.  The type aspect is irrelevant as Scheme has latent typing.
+The specialization aspect is largly covered with this @srfi{}.
+
+Here are a few more examples for illustration:
+
+@example
+(map (cut * 2 <>) '(1 2 3 4))
+(map (cut vector-set! x <> 0) indices)
+(for-each (cut write <> port) exprs)
+(map (cut <> x y z) (list min max))
+(for-each (cut <>) thunks)
+@end example
+
+
+
+@c page
+@node cut spec
+@subsection Specification
+
+
+@findex cut
+@findex cute
+
+The formal syntax of a specialized expression, in the style of the
+Revised^5 Report on the Algorithmic Language Scheme:
+
+@example
+<cut-expression> -->  (cut  <slot-or-expr> <slot-or-expr>*)
+                    | (cut  <slot-or-expr> <slot-or-expr>* <...>)
+                    | (cute <slot-or-expr> <slot-or-expr>*)
+                    | (cute <slot-or-expr> <slot-or-expr>* <...>)
+
+<slot-or-expr>   -->  <>              ; a "slot"
+                    | <expression>    ; a "non-slot expression"
+@end example
+
+The macro @func{cut} transforms a @code{<cut-expression>} into a
+@code{<lambda expression>} with as many formal variables as there are
+slots in the list @code{<slot-or-expr>*}.  The body of the resulting
+@code{<lambda expression>} calls the first @code{<slot-or-expr>} with
+arguments from @code{<slot-or-expr>*} in the order they appear.
+
+In case there is a rest--slot symbol, the resulting procedure is also of
+variable arity, and the body calls the first @code{<slot-or-expr>} with
+all arguments provided to the actual call of the specialized procedure.
+
+The macro @func{cute} is similar to the macro @func{cut}, except that it
+first binds new variables to the result of evaluating the non--slot
+expressions (in an unspecific order) and then substituting the variables
+for the non--slot expressions.  In effect, @func{cut} evaluates
+non--slot expressions at the time the resulting procedure is called,
+whereas @func{cute} evaluates the non--slot expressions at the time the
+procedure is constructed.
+
+
+
+@c page
+@node cut design
+@subsection Rationale design
+
+
+@subsubheading Why not real currying/uncurrying?
+
+It is possible in Scheme to implement a macro turning a multi--argument
+procedure into a nesting of single--argument procedures and back.  These
+operations are usually called ``curry'' and ``uncurry'' in other
+programming languages.
+
+Yet, Scheme remains an inherently uncurried language and is not prepared
+to deal with curried procedures in a convenient way.  Hence, a ``by the
+book'' implementation of currying would only be useful if you apply it
+in the sequence ``curry, specialize some arguments, and uncurry again'',
+which is exactly the purpose of the macro @func{cut} specified in this
+document.  The primary relevance of currying/uncurrying in Scheme is to
+teach concepts of combinatory logic.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why not a more general mechanism, also allowing permutation omission and duplication of arguments?
+
+The reason is that I, the author of this @srfi{}, consider more general
+mechanisms too dangerous to mix them with the mechanism proposed here.
+In particular, as soon as parameters are being rearranged it is usually
+necessary to be aware of the meaning of the parameters; unnamed
+variables can be quite harmful then.  The mechanism proposed here is
+designed to prevent this.
+
+Please refer to the discussion threads ``OK, how about...,'' (Alan
+Bawden), ``is that useful?'' (Walter C.  Pelissero), and ``l, the
+ultimate curry that is not curry'' (Al Petrofsky).
+
+@c ------------------------------------------------------------
+
+@subsubheading Why are the macro called @func{cut}/@func{cute} and not [enter your favourite here]?
+
+Well, the original name proposed for this @srfi{} was @func{curry}
+which immediately stirred some emotions as it does not what is commonly
+known as currying.  Some alternatives have been discussed, such as:
+
+@example
+section         specialise      specialize,
+partial-apply   partial-call    partial-lambda,
+_j              _i              $
+&               srfi-26         foobar
+xyz             schoenfinkelize curry-which-isnt-curry
+tandoori
+@end example
+
+@noindent
+and it has also been suggested to pick a five letter symbol uniformly at
+random and fix this as a name.  To be fair, not all of these name have
+been put forward as serious proposals, some of them were merely to
+illustrate a point in the discussion.  In addition, I have played with
+the game of the name quite a bit and considered other candidates not
+listed here.
+
+Despite the fact that the discussion list only represents a highly
+biased random sample of people's opinion (motivation to post a message
+is higher if you disagree, for example) it told me that the @srfi{}
+could potentially benefit from a different name; however impractical it
+may be to go for unanimous popularity.
+
+The name @func{cut} refers to ``operator section'', as the concept is
+often called in other programming languages, but I tend to remember it
+as the acronym for ``Curry Upon This''. ;-) The names for the evaluating
+version of @func{cut} that have been proposed were @func{cut!},
+@func{cutlet}, @func{cut*}, and @func{cute}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Is it possible to implement the @srfi{} without macros?
+
+Not really.  As Stephan Houben has pointed out during the discussion
+(refer to ``Implementing it as a procedure'') it is possible to
+implement the @func{cute}--mechanism as a procedure.  Refer also to Al
+Petrofsky's posting ``Problems with @emph{curry}'s formal
+specification'' for details.
+
+However, the procedural implementation comes with a slight performance
+penalty and it is not possible the implement the @func{cut}--mechanism
+as a procedure, too.
+
+As both are needed, we rely on macros to implement the @srfi{}.  Why is
+there another symbol for the rest--slot when @func{lambda}--expressions
+use the dotted notation for variable length argument lists?  There are
+two reasons.  The first one is the existence of a procedural
+implementation of a related mechanism (refer to the previous paragraph).
+For a procedure, however, it is not possible to have dotted notation.
+The second reason is the way the hygienic macro mechanism in @rnrs{5} is
+defined to deal with dotted notation, as Felix Winkelmann has pointed
+out.  Refer to the discussion threads ``Improper lists in macros [WAS:
+none]''.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is it impossible to specify when a non--slot is evaluate individually per non--slot?
+
+@func{cut} evaluates all non--slots at the time the specialized
+procedure is called and @func{cute} evaluates all non--slots at the time
+the procedure is being specialized.  These are only the two extremes and
+it is possible to define a syntax that allows to choose per non--slot.
+However, I am convinced that the benefit of the greater flexibility is
+not worth the risk of confusion.  If a piece of code really depends on
+the distinction, it might be better to make this explicit through
+@func{let} and @func{lambda}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is @code{(cut if <> 0 1)} etc. illegal?
+
+It is specified that a @code{<slot-or-expr>} must be either the slot
+symbol or an @func{<expression>} in the sense of @rnrs{5}, Section
+7.1.3.  As if is no @func{<expression>}, the above case is illegal.  The
+reason why @func{cut} and @func{cute} are restricted in this sense is
+the difficulty of defining the meaning of such generalized expressions.
+Please refer to the discussion archive for details.
+
+
+@c page
+@node cut ack
+@subsection Acknowledgements
+
+
+An important part of this @srfi{} is based on the contribution of other
+people, mostly through the discussion archive.  In particular, the
+semantics and the design rationale have been greatly improved in the
+course of the discussion.  I would like to thank all who have
+contributed.
+
+
+@c page
+@node cut stub
+@subsection Stub library
+
+
+The @library{lang-lib} library imports and re--exports the bindings from
+@library{srfi cut}.
+
+
+@c page
+@node rec
+@section A special form for recursive evaluation
+
+
+@cindex @srfi{} rec
+
+
+The @library{srfi rec} library has been written by Mirko Luedde
+@email{Mirko.Luedde@@SAP.com} as the reference implementation for
+@ansrfi{31}.
+
+
+@menu
+* rec license::                 Original license.
+* rec abstract::                Abstract.
+* rec rationale::               Rationale.
+* rec spec::                    Specification.
+* rec ack::                     Acknowledgements.
+* rec references::              References.
+* rec stub::                    Stub library.
+@end menu
+
+
+@c page
+@node rec license
+@subsection Original license
+
+
+Copyright @copyright{} 2002 Dr. Mirko Luedde.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node rec abstract
+@subsection Abstract
+
+
+We propose the implementation of a special form called @func{rec}.  This
+form is a generalization and combination of the forms @func{rec} and
+@func{named-lambda} of [Clinger1985].  It allows the simple and
+non--imperative construction of self--referential expressions.
+
+As an important special case, it extends the A. Church form
+@func{lambda} such that it allows the direct definition of recursive
+procedures without using further special forms like @func{let} or
+@func{letrec}, without using advanced constructions like the H. B. Curry
+combinator and, unlike @func{define}, without introducing variable
+bindings into the external environment.
+
+
+
+@c page
+@node rec rationale
+@subsection Rationale
+
+
+@subheading General
+
+
+Among the prominent features of the Scheme programming language as
+defined in [KCR1998] are the following:
+
+@itemize
+@item
+it has simple syntax;
+
+@item
+it encourages recursive definitions, e.g. by ensuring memory efficient
+tail recursion;
+
+@item
+it supports non--imperative programming.
+@end itemize
+
+Nevertheless Scheme does not provide a syntax for recursive evaluations
+with the properties of:
+
+@itemize
+@item
+being as simple, intuitive and close to the mathematical standard
+notation as possible;
+
+@item
+allowing general recursion;
+
+@item
+being non--imperative.
+@end itemize
+
+@c ------------------------------------------------------------
+
+@subheading Example
+
+@subsubheading Problem 1
+
+Let us look at the factorial function.  In mathematical notation this
+function is expressed as:
+
+@example
+(F : N |--> 1,            if N = 0;
+            N * F(N - 1), otherwise
+@end example
+
+This expression is a term and not a definition or proposition.
+
+We investigate some approaches to express the factorial function in
+Scheme.
+
+@itemize
+@item
+The simplest way perhaps is as:
+
+@example
+(define (F N)
+  (if (zero? N)
+      1
+    (* N (F (- N 1)))))
+@end example
+
+But this expression is not a term.  It binds the factorial function to
+the variable @var{f}.  The expression itself may not occur in a
+syntactical context where a name of the factorial is required.
+
+@item
+We list several ways to express the factorial as a function term.
+
+@enumerate
+@item
+@example
+(let ()
+  (define (F N)
+    (if (zero? N)
+        1
+      (* N (F (- N 1)))))
+      F)
+@end example
+
+@item
+@example
+(lambda (N)
+  (let F ([N N])
+    (if (zero? N)
+        1
+      (* N (F (- N 1))))))
+@end example
+
+@item
+@example
+(letrec ([F (lambda (N)
+              (if (zero? N)
+                  1
+                (* N (F (- N 1)))))])
+  F)
+@end example
+
+@item
+@example
+((lambda (F)
+   (F F))
+ (lambda (G)
+   (lambda (N)
+     (if (zero? N)
+         1
+       (* N ((G G) (- N 1)))))))
+@end example
+@end enumerate
+
+All these expressions define the factorial anonymously, not binding it
+to a variable.  However, all these expressions are more verbose than it
+seems necessary and they are less intuitive than it seems desirable.
+@end itemize
+
+@c ------------------------------------------------------------
+
+@subsubheading Solution 1
+
+A solution to our problem was already provided in [Clinger1985] by the
+form @func{named-lambda}.  An even earlier solution with a slightly
+different syntax was implemented in Kent Dybvig's Chez Scheme system.
+Using this special form, we can denote the factorial simply by:
+
+@example
+(named-lambda (F N)
+  (if (zero? N)
+      1
+    (* N (F (- N 1)))))
+@end example
+
+This expression is a function term that denotes the factorial in the
+appropriate brevity.
+
+However, the form @func{named-lambda} has been dropped from later
+versions of the Scheme Report.  Also it is missing in
+state--of--the--art implementations such as Chez Scheme (6.0a) and
+@acronym{MIT} Scheme (7.7.0).  (The latter actually knows a form
+@func{named-lambda} with different semantics.)
+
+@c ------------------------------------------------------------
+
+@subsubheading Problem 2
+
+The constant stream of ones can be defined via:
+
+@example
+(define S (cons 1 (delay S)))
+@end example
+
+As in the case of the factorial, we are able to define the recursive
+object at the price of spending an externally bound name.  Remedying
+this with let or letrec leads to similar objections as above.
+
+@subsubheading Solution 2
+
+@noindent
+This particular case of the self--referential problem was solved by the
+@func{rec} form in [Clinger1985].  This form allows writing:
+
+@example
+(rec S (cons 1 (delay S)))
+@end example
+
+This expression is non--imperative and does not introduce an external
+variable binding.
+
+Also this form has been dropped from later versions of the Scheme
+Report.  Moreover, from our point of view this form alone is not capable
+of solving Problem 1.  The respective definition would look like:
+
+@example
+(rec F
+  (lambda (N)
+    (if (zero? N)
+        1
+      (* N (F (- N 1))))))
+@end example
+
+This again does not seem quite as simple and intuitive as the
+mathematical notation.
+
+@c ------------------------------------------------------------
+
+@subheading Proposal
+
+We therefore propose to implement the @func{rec} special form in a
+generalized way that combines the advantages of the @func{named-lambda}
+and @func{rec} forms.  The factorial function could be written:
+
+@example
+(rec (F N)
+  (if (zero? N)
+      1
+    (* N (F (- N 1)))))
+@end example
+
+
+@c page
+@node rec spec
+@subsection Specification
+
+
+@findex rec
+
+
+@subsubheading Syntax
+
+The following production rules are to be added to those of [KCR1998] (we
+reuse names of non--terminals).
+
+@example
+<derived expression> --> <rec expression>
+<rec expression>     --> (rec <variable>    <expression>)
+<rec expression>     --> (rec (<variable>+) <body>)
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Semantics
+
+Scheme versions such as [KCR1998] providing @func{define-syntax},
+@func{syntax-rules}, @func{letrec} and @func{lambda} might implement
+@func{rec} as follows.
+
+@example
+(define-syntax rec
+  (syntax-rules ()
+    [(rec (NAME . VARIABLES) . BODY)
+     (letrec ( (NAME (lambda VARIABLES . BODY)) ) NAME)]
+    [(rec NAME EXPRESSION)
+     (letrec ( (NAME EXPRESSION) ) NAME)]))
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Test
+
+The following session shows in which way @func{rec} allows a
+tail--recursive implementation of the factorial function.
+
+@example
+> (define F (rec (F N)
+                 ((rec (G K L)
+                    (if (zero? K)
+                        L
+                      (G (- K 1) (* K L))))
+              N 1)))
+> F
+#<procedure>
+> (F 0)
+1
+> (F 10)
+3628800
+@end example
+
+
+@c page
+@node rec ack
+@subsection Acknowledgements
+
+
+The author thanks Al Petrofsky for the final solution and Hal Abelson,
+Chris Hanson and others for their input.  The work of the maintainers of
+the @srfi{} forum is highly appreciated.
+
+
+@c page
+@node rec references
+@subsection References
+
+
+[Clinger1985] @emph{Draft of Report of the October 1984 Workshop on
+Scheme}.  W. Clinger.  Proceedings Brandeis Workshop Oct. 22--23, 1984.
+March, 1985.
+
+@center @url{http://www.swiss.ai.mit.edu/ftpdir/scheme-mail/HTML/rrrs-1985}
+
+@noindent
+[KCR1998] @emph{Revised^5 Report on the Algorithmic Language Scheme}.
+R. Kelsey, W. Clinger, J. Rees.  Higher--Order and Symbolic Computation,
+volume 11, number 1, September 1998.
+
+
+@c page
+@node rec stub
+@subsection Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi rec}, with the following changes.
+
+
+@itemize
+@item
+The @func{rec} binding from the @srfi{} is renamed to @func{recursion}.
+@end itemize
+
+
+@c page
+@node parameters
+@section Parameter objects
+
+
+@cindex @srfi{} parameters
+
+
+The @library{srfi parameters} library has been written by Marc Feeley as
+the reference implementation for @ansrfi{39}.
+
+
+@menu
+* parameters license::          Document license.
+* parameters abstract::         Abstract.
+* parameters rationale::        Rationale.
+* parameters spec::             Specification.
+* parameters stub::             Stub library.
+@end menu
+
+
+@c page
+@node parameters license
+@subsection Original license
+
+
+Copyright @copyright{} 2002 Marc Feeley.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node parameters abstract
+@subsection Abstract
+
+
+This @srfi{} defines parameter objects, the procedure
+@func{make-parameter} to create parameter objects and the
+@func{parameterize} special form to dynamically bind parameter objects.
+
+In the dynamic environment, each parameter object is bound to a cell
+containing the value of the parameter.  When a procedure is called the
+called procedure inherits the dynamic environment from the caller.  The
+@func{parameterize} special form allows the binding of a parameter
+object to be changed for the dynamic extent of its body.
+
+
+@c page
+@node parameters rationale
+@subsection Rationale
+
+
+The @emph{dynamic environment} is the structure which allows the system
+to find the value returned by the @rnrs{5} procedures
+@func{current-input-port} and @func{current-output-port}.  The @rnrs{5}
+procedures @func{with-input-from-file} and @func{with-output-to-file}
+extend the dynamic environment to produce a new dynamic environment
+which is in effect for the dynamic extent of the call to the thunk
+passed as their last argument.
+
+These procedures are essentially special purpose dynamic binding
+operations on hidden dynamic variables (one for
+@func{current-input-port} and one for @func{current-output-port}).  The
+purpose of this @srfi{} is to generalize this dynamic binding mechanism
+(which exists in all @rnrs{5} compliant systems) to allow the user to
+introduce new dynamic variables and dynamically bind them.
+
+General dynamic binding mechanisms exist in several implementations of
+Scheme under various names, including ``fluid'' variables and parameter
+objects.  The parameter objects specified in this @srfi{} are
+compatible with the semantics of all implementations of Scheme we know
+which currently support parameter objects (in the sense that it is
+possible to implement this @srfi{} so that old code works the same as
+before).  We believe Chez--Scheme was the first implementation of Scheme
+to have used parameter objects.
+
+In the presence of threads, the dynamic binding mechanism does not
+behave the same way in all implementations of Scheme supporting dynamic
+binding.  The issue is the relationship between the dynamic environments
+of the parent and child threads when a thread is created.  In Scheme 48
+the child gets a fresh dynamic environment where (typically but not
+necessarily) all the bindings are to their initial value.
+
+In MzScheme and Gambit--C the child is given a dynamic environment
+inherited from the parent.  In this inherited dynamic environment the
+dynamic variables have the same values as the parent's dynamic
+environment.  However, in MzScheme the cells bound to the dynamic
+variables in the child are distinct from those of the parent (i.e. an
+assignment of a value to a dynamic variable is not visible in the other
+thread).  In Gambit--C the child and parent dynamic environment share
+the same cells (i.e. an assignment of a value to a dynamic variable is
+visible in the other thread).  Note that in the absence of assignment to
+dynamic variables the MzScheme and Gambit--C approaches are equivalent.
+
+Given that there are semantic differences in the presence of threads and
+that there are valid reasons for choosing each semantics, this @srfi{}
+does not specify the semantics of parameter objects in the presence of
+threads.  It is left to the implementation and other @srfi{}s which
+extend this @srfi{} to specify the interaction between parameter
+objects and threads.
+
+
+
+@c page
+@node parameters spec
+@subsection Specification
+
+
+The @emph{dynamic environment} is composed of two parts: the @emph{local
+dynamic environment} and the @emph{global dynamic environment}.  The
+global dynamic environment is used to lookup parameter objects that
+can't be found in the local dynamic environment.  When parameter objects
+are created, their initial binding is put in the global dynamic
+environment (by mutation).  The local dynamic environment is only
+extended by the @func{parameterize} form.
+
+@emph{Parameter objects} are created with the @func{make-parameter}
+procedure which takes one or two arguments.  The second argument is a
+one argument conversion procedure.  If only one argument is passed to
+@func{make-parameter} the identity function is used as a conversion
+procedure.  The global dynamic environment is updated to associate the
+parameter object to a new cell.  The initial content of the cell is the
+result of applying the conversion procedure to the first argument of
+@func{make-parameter}.
+
+A @emph{parameter object} is a procedure which accepts zero or one
+argument.  The cell bound to a particular parameter object in the
+dynamic environment is accessed by calling the parameter object.  When
+no argument is passed, the content of the cell is returned.  When one
+argument is passed the content of the cell is updated with the result of
+applying the parameter object's conversion procedure to the argument.
+
+The @func{parameterize} special form, when given a parameter object and
+a value, binds for the dynamic extent of its body the parameter object
+to a new cell.  The initial content of the cell is the result of
+applying the parameter object's conversion procedure to the value.  The
+parameterize special form behaves analogously to let when binding more
+than one parameter object (that is the order of evaluation is
+unspecified and the new bindings are only visible in the body of the
+parameterize special form).
+
+Note that the conversion procedure can be used for guaranteeing the type
+of the parameter object's binding and/or to perform some conversion of
+the value.
+
+Because it is possible to implement the @rnrs{5} procedures
+@func{current-input-port} and @func{current-output-port} as parameter
+objects and this offers added functionnality, it is required by this
+@srfi{} that they be implemented as parameter objects created with
+@func{make-parameter}.
+
+
+@defun make-parameter @var{init} [@var{converter}]
+Returns a new parameter object which is bound in the global dynamic
+environment to a cell containing the value returned by the call
+@code{(converter init)}.  If the conversion procedure converter is not
+specified the identity function is used instead.
+
+The parameter object is a procedure which accepts zero or one argument.
+When it is called with no argument, the content of the cell bound to
+this parameter object in the current dynamic environment is returned.
+When it is called with one argument, the content of the cell bound to
+this parameter object in the current dynamic environment is set to the
+result of the call @code{(converter arg)}, where @var{arg} is the
+argument passed to the parameter object, and an unspecified value is
+returned.
+
+@example
+(define radix
+  (make-parameter 10))
+
+(define write-shared
+  (make-parameter #f
+    (lambda (x)
+      (if (boolean? x)
+          x
+        (error "only booleans are accepted by write-shared")))))
+
+(radix)           =>  10
+(radix 2)
+(radix)           =>  2
+(write-shared 0)  gives an error
+
+(define prompt
+  (make-parameter 123
+    (lambda (x)
+      (if (string? x)
+          x
+        (with-output-to-string (lambda () (write x)))))))
+
+(prompt)       =>  "123"
+(prompt ">")
+(prompt)       =>  ">"
+@end example
+@end defun
+
+
+@deffn Syntax parameterize ((@var{expr1} @var{expr2}) ...) @var{body})
+The expressions @var{expr1} and @var{expr2} are evaluated in an
+unspecified order.  The value of the @var{expr1} expressions must be
+parameter objects.  For each @var{expr1} expression and in an
+unspecified order, the local dynamic environment is extended with a
+binding of the parameter object @var{expr1} to a new cell whose content
+is the result of the call @code{(converter val)}, where @var{val} is the
+value of @var{expr2} and @var{converter} is the conversion procedure of
+the parameter object.
+
+The resulting dynamic environment is then used for the evaluation of
+@var{body} (which refers to the @rnrs{5} grammar nonterminal of that
+name).  The result(s) of the parameterize form are the result(s) of the
+@var{body}.
+
+With reference to thte example above:
+
+@example
+(radix)
+=>  2
+
+(parameterize ([radix 16])
+  (radix))
+=>  16
+
+(radix)
+=>  2
+
+(define (f n)
+  (number->string n (radix)))
+
+(f 10)
+=>  "1010"
+
+(parameterize ([radix 8])
+  (f 10))
+=>  "12"
+
+(parameterize ([radix 8]
+               [prompt (f 10)])
+  (prompt))
+=>  "1010"
+@end example
+@end deffn
+
+
+@c page
+@node parameters stub
+@subsection Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi parameters}.
+
+
+@c page
+@node general-cond
+@section A more general @func{cond} clause
+
+
+@cindex @srfi{} general-cond
+
+
+The @library{srfi general-cond} has been written by Taylor Campbell as
+the reference implementation for @ansrfi{61}.
+
+
+@menu
+* general-cond license::        Original license.
+* general-cond abstract::       Abstract.
+* general-cond rationale::      Rationale.
+* general-cond spec::           Specification.
+* general-cond stub::           Stub library.
+@end menu
+
+
+@c page
+@node general-cond license
+@subsection Original license
+
+
+Copyright @copyright{} 2004 Taylor Campbell.  All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node general-cond abstract
+@subsection Abstract
+
+
+This @srfi{} proposes an extension to the @func{cond} syntax to allow a
+more general clause, one that allows binding the results of tests as in
+the @code{=>} clauses and user--defined meaning of the success and
+failure of tests.
+
+
+@c page
+@node general-cond rationale
+@subsection Rationale
+
+
+The present set of @func{cond} clauses is based on simple boolean
+testing.  It is prohibitively inexpressive in that the condition part of
+a @func{cond} clause that uses @code{=>} may pass only a single value to
+the receiver, and it enforces a semantics whereby @false{} implies
+failure of the condition.
+
+Programmers frequently use different tokens to imply failure, such as in
+@rnrs{5}'s I/O readers which return a distinguished ``EOF object'' to
+denote failure, and a successful condition may produce more than one
+useful value.  This simple extension allows any meaning of ``failure''
+to be assigned on a per--clause basis, and it also allows the condition
+to return multiple values to be passed to the receiver.
+
+
+@c page
+@node general-cond spec
+@subsection Specification
+
+
+@findex cond
+
+The @code{<cond clause>} production in the formal syntax of Scheme as
+written by @rnrs{5} Section 7.1.3 is extended with a new option:
+
+@example
+<cond clause> --->
+    ...
+  | (<generator> <guard> => <receiver>)
+@end example
+
+@noindent
+where @code{<generator>}, @code{<guard>} and @code{<receiver>} are all
+@code{<expression>}.
+
+Clauses of this form have the following semantics: @code{<generator>} is
+evaluated and it may return arbitrarily many values.  @code{<guard>} is
+applied to an argument list containing the values in order that
+@code{<generator>} returned.  If @code{<guard>} returns a true value for
+that argument list, @code{<receiver>} is applied with an equivalent
+argument list.  If @code{<guard>} returns a false value, however, the
+clause is abandoned and the next one is tried.
+
+@c ------------------------------------------------------------
+
+@subsubheading Examples
+
+
+This @func{port->char-list} procedure accepts an input port and returns
+a list of all the characters it produces until the end.
+
+@example
+(define (port->char-list port)
+  (cond ((read-char port)
+         char?
+         => (lambda (c)
+              (cons c (port->char-list port))))
+        (else '())))
+@end example
+
+Consider now a hypothetical @func{table-entry} procedure that accepts
+two arguments: a table (perhaps a hash table) and a key to an entry that
+may be in the table; it returns two values: a boolean that denotes
+whether or not an entry with the given key was in the table and, if it
+was, the value associated with the key.  Also, a hypothetical
+@var{proj0} combinator (projection of argument 0) returns its 0th
+argument and ignores all others.  One might conditionally branch to a
+certain body of code if the table contains the desired entry like so
+with the new type of @func{cond} clause:
+
+@example
+(cond ...
+      ((table-entry <table> <key>)
+       proj0
+       => (lambda (present? value)
+            ...(VALUE is bound to the value of the entry)...))
+      ...)
+@end example
+
+
+@c page
+@node general-cond stub
+@subsection Stub library
+
+
+The @library{lang-lib} library imports and re--exports bindings from
+@library{srfi general-cond}, with the following changes.
+
+
+@itemize
+@item
+The @func{cond} @srfi{} function is renamed to both @func{srfi:cond} and
+@func{general-cond}.
+@end itemize
 
 
 @c page
@@ -4440,406 +5992,6 @@ Vol. 11, No. 1, September, 1998, and ACM SIGPLAN Notices, Vol. 33,
 No. 9, October, 1998.  Available at
 
 @center @url{http://www.schemers.org/Documents/Standards/}
-
-
-@c page
-@node and-let-star
-@chapter An @func{and} with local bindings
-
-
-@cindex @srfi{} and-let-star
-
-
-@noindent
-The @library{srfi and-let-star} library has been written by Oleg
-Kiselyov as reference implementation for @ansrfi{2}.
-
-
-@menu
-* and-let-star license::        Original license.
-* and-let-star abstract::       Abstract.
-* and-let-star rationale::      Rationale.
-* and-let-star spec::           Specification.
-* and-let-star stub::           Stub library.
-@end menu
-
-
-@c page
-@node and-let-star license
-@section Original license
-
-
-Copyright @copyright{} 1998 Oleg Kiselyov.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node and-let-star abstract
-@section Abstract
-
-
-Like an ordinary @func{and}, an @func{and-let*} special form evaluates
-its arguments (expressions) one after another in order, till the first
-one that yields @false{}.  Unlike @func{and}, however, a non--@false{}
-result of one expression can be bound to a fresh variable and used in
-the subsequent expressions.  @func{and-let*} is a cross--breed between
-@func{let*} and @func{and}.
-
-
-
-@c page
-@node and-let-star rationale
-@section Rationale
-
-
-In case of an ordinary @func{and} formed of proper boolean expressions:
-
-@example
-(and e1 e2 ...)
-@end example
-
-@noindent
-expression @var{e2}, if it gets to be evaluated, knows that @var{e1} has
-returned non--@false{}.  Moreover, @var{e2} knows exactly what the
-result of @var{e1} was (true) which @var{e2} can use to its advantage.
-If @var{e1} however is an extended boolean expression, @var{e2} can no
-longer tell which particular non--@false{} value @var{e1} has returned.
-Chances are it took a lot of work to evaluate @var{e1}, and the produced
-result (a number, a vector, a string, etc) may be of value to @var{e2}.
-Alas, the @func{and} form merely checks that the result is not an
-@false{}, and throws it away.  If @var{e2} needs it, it has to compute
-that value anew.
-
-This proposed @func{and-let*} special form lets constituent expressions
-get hold of the results of already evaluated expressions, without
-re--doing their work.
-
-@func{and-let*} can be thought of as a combination of @func{let*} and
-@func{and}, or a generalization of @func{cond}'s send operator,
-@code{=>}.  An @func{and-let*} form can also be considered a sequence of
-guarded expressions.
-
-In a regular program, forms may produce results, bind them to variables
-and let other forms use these results.  @func{and-let*} differs in that
-it checks to make sure that every produced result ``makes sense'' (that
-is, not an @false{}).  The first ``failure'' triggers the guard and
-aborts the rest of the sequence (which presumably would not make any
-sense to execute anyway).  Examples:
-
-@example
-(and-let* ([my-list     (compute-list)]
-           [            (not (null? my-list))])
-  (do-something my-list))
-
-(define (look-up key alist)
-  (and-let* ([x (assq key alist)])
-    (cdr x)))
-
-(or
-  (and-let* ([c (read-char)]
-             [  (not (eof-object? c))])
-    (string-set! some-str i c)
-    (set! i (+ 1 i)))
-  (begin
-    (do-process-eof)))
-
-;; A more realistic example
-;; Parse the 'timestamp' ::= 'token1' 'token2'
-;;   token1 ::= 'YY' 'MM' 'J'
-;;   token2 ::= 'GG' 'gg' "/"
-(define (parse-full-timestamp token1 token2)
-  (and-let* ([  (= 5 (string-length token1))]
-             [  (= 5 (string-length token2))]
-             [timestamp
-                (OS:string->time "%m/%d/%y %H:%M"
-                  (string
-                    (string-ref token1 2) (string-ref token1 3) #\/
-                    (string-ref token1 0) (string-ref token1 1) #\/
-                    (case (string-ref token1 4)
-                      ((#\8 #\9) #\9) (else #\0))
-                    (string-ref token1 4) #\space
-                    (string-ref token2 0) (string-ref token2 1) #\:
-                    (string-ref token2 2) (string-ref token2 3)))]
-             [  (positive? timestamp)])
-           timestamp))
-@end example
-
-@func{and-let*} is also similar to an ``anaphoric @func{and}'' Lisp
-macro@footnote{Rob Warnock, comp.lang.scheme, 26 Feb 1998 09:06:43 GMT,
-Message-ID: @url{6d3bb3$3804h@@fido.asd.sgi.com}}.  @func{and-let*}
-allows however more than one intermediate result, each of which
-continues to be bound through the rest of the form.
-
-
-@c page
-@node and-let-star spec
-@section Specification
-
-
-@findex and-let*
-
-
-@example
-AND-LET* (CLAWS) BODY
-
-CLAWS ::= '() | (cons CLAW CLAWS)
-CLAW  ::=  (VARIABLE EXPRESSION) | (EXPRESSION) |
-           BOUND-VARIABLE
-@end example
-
-@itemize
-@item
-The @code{CLAWS} are evaluated in the strict left--to--right order.
-
-@item
-For each @code{CLAW}, the @code{EXPRESSION} part is evaluated first (or
-@code{BOUND-VARIABLE} is looked up)
-
-@item
-If the result is @false{}, @func{and-let*} immediately returns
-@func{#f}.
-
-@item
-Otherwise, if the @code{claw} is of the form @code{(VARIABLE
-EXPRESSION)} the @code{EXPRESSION}'s value is bound to a freshly made
-@code{VARIABLE}.
-
-@item
-The @code{VARIABLE} is available for the rest of the @code{CLAWS}, and
-the @code{BODY}.
-
-@item
-As usual, all @code{VARIABLE}s must be unique (like in @func{let*}).
-@end itemize
-
-
-@subsubheading Formal (denotational) semantics
-
-
-@example
-eval[ (AND-LET* (CLAW1 ...) BODY), env] =
-   eval_claw[ CLAW1, env ] andalso
-   eval[ (AND-LET* ( ...) BODY), ext_claw_env[CLAW1, env]]
-
-eval[ (AND-LET* (CLAW) ), env] = eval_claw[ CLAW, env ]
-eval[ (AND-LET* () FORM1 ...), env] = eval[ (BEGIN FORM1 ...), env ]
-eval[ (AND-LET* () ), env] = #t
-
-eval_claw[ BOUND-VARIABLE, env ] =
-   eval[ BOUND-VARIABLE, env ]
-eval_claw[ (EXPRESSION), env ] =
-   eval[ EXPRESSION, env ]
-eval_claw[ (VARIABLE EXPRESSION), env ] =
-   eval[ EXPRESSION, env ]
-
-ext_claw_env[ BOUND-VARIABLE, env ] = env
-ext_claw_env[ (EXPRESSION), env ] =
-   env-after-eval[ EXPRESSION, env ]
-ext_claw_env[ (VARIABLE EXPRESSION), env ] =
-   extend-env[ env-after-eval[ EXPRESSION, env ],
-              VARIABLE boundto eval[ EXPRESSION, env ]]
-@end example
-
-
-@c page
-@node and-let-star stub
-@section Stub library
-
-
-The @library{lang-lib} library imports and re--exports bindings from
-@library{srfi and-let-star}.
-
-
-@c page
-@node receive
-@chapter Binding to multiple values
-
-
-@cindex @srfi{} receive
-
-
-The @library{srfi receive} has been written by John David Stone
-(Department of Mathematics and Computer Science, Grinnell College,
-Grinnell, Iowa 50112, @email{stone@@cs.grinnell.edu}) as reference
-implementation for @ansrfi{8}.
-
-
-@menu
-* receive license::             Original license.
-* receive abstract::            Abstract.
-* receive rationale::           Rationale.
-* receive spec::                Specification.
-* receive stub::                Stub library.
-@end menu
-
-
-@c page
-@node receive license
-@section Original license
-
-
-Copyright @copyright{} 1999 John David Stone.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-@c page
-@node receive abstract
-@section Abstract
-
-
-The only mechanism that @rnrs{5} provides for binding identifiers to the
-values of a multiple--valued expression is the primitive
-@func{call-with-values}.  This @srfi{} proposes a more concise, more
-readable syntax for creating such bindings.
-
-@c page
-@node receive rationale
-@section Rationale
-
-
-Although @rnrs{5} supports multiple--valued expressions, it provides
-only the essential procedures @func{values} and @func{call-with-values}.
-It is evident that the authors expected Scheme programmers to define
-other constructs in terms of these, abstracting common patterns of use.
-
-One such pattern consists in binding an identifier to each of the values
-of a multiple--valued expression and then evaluating an expression in
-the scope of the bindings.  As an instance of this pattern, consider the
-following excerpt from a quicksort procedure:
-
-@example
-(call-with-values
-  [lambda ()
-    (partition (precedes pivot) others)]
-  [lambda (fore aft)
-    (append (qsort fore) (cons pivot (qsort aft)))])
-@end example
-
-Here @func{partition} is a multiple--valued procedure that takes two
-arguments, a predicate and a list, and returns two lists, one comprising
-the list elements that satisfy the predicate, the other those that do
-not.  The purpose of the expression shown is to partition the list
-@var{others}, sort each of the sublists, and recombine the results into
-a sorted list.
-
-For our purposes, the important step is the binding of the identifiers
-fore and aft to the values returned by @func{partition}.  Expressing the
-construction and use of these bindings with the @func{call-by-values}
-primitive is cumbersome: One must explicitly embed the expression that
-provides the values for the bindings in a parameterless procedure, and
-one must explicitly embed the expression to be evaluated in the scope of
-those bindings in another procedure, writing as its parameters the
-identifiers that are to be bound to the values received.
-
-These embeddings are boilerplate, exposing the underlying binding
-mechanism but not revealing anything relevant to the particular program
-in which it occurs.  So the use of a syntactic abstraction that exposes
-only the interesting parts (the identifiers to be bound, the
-multiple--valued expression that supplies the values, and the body of
-the receiving procedure) makes the code more concise and more readable:
-
-@example
-(receive (fore aft)
-    [partition (precedes pivot) others]
-  [append (qsort fore)
-          (cons pivot (qsort aft))])
-@end example
-
-The advantages are similar to those of a @func{let}--expression over a
-procedure call with a @func{lambda}--expression as its operator.  In
-both cases, cleanly separating a ``header'' in which the bindings are
-established from a ``body'' in which they are used makes it easier to
-follow the code.
-
-
-@c page
-@node receive spec
-@section Specification
-
-
-@cindex @srfi{} receive api
-
-
-@deffn Syntax receive @var{formals} @var{expression} @var{body}
-@var{formals}, @var{expression}, and @var{body} are as described in
-@rnrs{5}.  Specifically, @var{formals} can have any of three forms:
-
-@table @code
-@item (variable1 ... variablen)
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen} to fresh
-locations.  The @var{expression} is evaluated, and its values are stored
-into those locations (it is an error if @var{expression} does not have
-exactly @var{n} values).
-
-@item variable
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable} to a fresh location.  The
-@var{expression} is evaluated, its values are converted into a newly
-allocated list, and the list is stored in the location bound to
-@var{variable}.
-
-@item (variable1 ... variablen . variablen+1)
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
-locations.  The @var{expression} is evaluated.  Its first @var{n} values
-are stored into the locations bound to @var{variable1}, ...,
-@var{variablen}.  Any remaining values are converted into a newly
-allocated list, which is stored into the location bound to
-@var{variablen+1} (it is an error if @var{expression} does not have at
-least @var{n} values.
-@end table
-
-In any case, the expressions in @var{body} are evaluated sequentially in
-the extended environment.  The results of the last expression in the
-body are the values of the @var{receive}--expression.
-@end deffn
-
-
-@c page
-@node receive stub
-@section Stub library
-
-
-The @library{lang-lib} library imports and re--exports bindings from
-@library{srfi receive}.
 
 
 @c page
@@ -9515,339 +10667,6 @@ procedure.
 
 
 @c page
-@node cut
-@chapter Notation for specializing parameters without currying
-
-
-@cindex @srfi{} cut
-
-
-@ansrfi{26} has been written by Sebastian Egner.
-
-
-@menu
-* cut license::                 Original license.
-* cut abstract::                Abstract.
-* cut rationale::               Rationale.
-* cut spec::                    Specification.
-* cut design::                  Rationale design.
-* cut ack::                     Acknowledgements.
-* cut stub::                    Stub library.
-@end menu
-
-
-@c page
-@node cut license
-@section Original license
-
-
-Copyright @copyright{} 2002 Sebastian Egner.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node cut abstract
-@section Abstract
-
-
-When programming in functional style, it is frequently necessary to
-specialize some of the parameters of a multi--parameter procedure.  For
-example, from the binary operation @func{cons} one might want to obtain
-the unary operation @code{(lambda (x) (cons 1 x))}.  This specialization
-of parameters is also known as ``partial application'', ``operator
-section'' or ``projection''.
-
-The mechanism proposed here allows to write this sort of specialization
-in a simple and compact way.  The mechanism is best explained by a few
-examples:
-
-@example
-(cut cons (+ a 1) <>)   = (lambda (x2) (cons (+ a 1) x2))
-(cut list 1 <> 3 <> 5)  = (lambda (x2 x4) (list 1 x2 3 x4 5))
-(cut list)              = (lambda () (list))
-(cut list 1 <> 3 <...>) = (lambda (x2 . xs) (apply list 1 x2 3 xs))
-(cut <> a b)            = (lambda (f) (f a b))
-@end example
-
-As you see, the macro @func{cut} specializes some of the parameters of
-its first argument.  The parameters that are to show up as formal
-variables of the result are indicated by the symbol @code{<>}, pronouced
-as ``slot''.  In addition, the symbol @code{<...>}, pronounced as
-``rest--slot'', matches all residual arguments of a variable argument
-procedure.  As you can see from the last example above, the first
-argument can also be a slot, as one should expect in Scheme.
-
-In addition to @func{cut}, there is a variant called @func{cute} (a
-mnemonic for ``@func{cut} with evaluated non--slots'') which evaluates
-the non--slot expressions at the time the procedure is specialized, not
-at the time the specialized procedure is called.  For example:
-
-@example
-(cute cons (+ a 1) <>) = (let ([a1 (+ a 1)])
-                           (lambda (x2)
-                             (cons a1 x2)))
-@end example
-
-As you see from comparing this example with the first example above, the
-@func{cute}--variant will evaluate @code{(+ a 1)} once, while the
-@func{cut}--variant will evaluate it during every invocation of the
-resulting procedure.
-
-The mechanism proposed in this @srfi{} allows specializing any subset
-of the variables of a procedure.  The result can be of fixed arity or of
-variable arity.  The mechanism does not allow permutation, omission,
-duplication or any other processing of the arguments; for this it is
-necessary to write to use a different mechanism such as @func{lambda}.
-
-
-
-@c page
-@node cut rationale
-@section Rationale
-
-
-A particularly elegant way to deal with specialization is known as
-currying (Schoenfinkel 1924, Curry 1958).  The idea of currying is to
-reduce multi--argument functions to single--argument functions by
-regarding an @var{n}--ary function as a unary function mapping its first
-argument into an (@var{n-1})--ary function (which is curried in turn).
-This point of view, apart from its theoretical elegance, allows an
-extremely compact notation for specializing the first argument of a
-function.  In the first example, one could simply write @code{(cons 1)}.
-
-Yet, Scheme is not a curried language---the number of arguments passed
-to a procedure must match the number of its parameters at all times.
-This allows zero--arity and variable--arity procedures but in order to
-specialize parameters one usually has to write down a lambda--expression
-and invent some irrelevant identifiers for its formal variables (@var{x}
-in the examples in the Abstract).  For this reason, the mechanism
-proposed in this @srfi{} provides a simple and compact notation for
-specializing any subset of the parameters of a procedure.
-
-Note: @emph{The mechanism proposed here is not currying!}
-
-The purpose of the mechanism proposed here is to make the benefits of
-currying available within the programming language Scheme.  There are
-two primary benefits of currying in practice: Higher--order types are
-substantially simplified and there is a simple notation for specializing
-parameters.  The type aspect is irrelevant as Scheme has latent typing.
-The specialization aspect is largly covered with this @srfi{}.
-
-Here are a few more examples for illustration:
-
-@example
-(map (cut * 2 <>) '(1 2 3 4))
-(map (cut vector-set! x <> 0) indices)
-(for-each (cut write <> port) exprs)
-(map (cut <> x y z) (list min max))
-(for-each (cut <>) thunks)
-@end example
-
-
-
-@c page
-@node cut spec
-@section Specification
-
-
-@findex cut
-@findex cute
-
-The formal syntax of a specialized expression, in the style of the
-Revised^5 Report on the Algorithmic Language Scheme:
-
-@example
-<cut-expression> -->  (cut  <slot-or-expr> <slot-or-expr>*)
-                    | (cut  <slot-or-expr> <slot-or-expr>* <...>)
-                    | (cute <slot-or-expr> <slot-or-expr>*)
-                    | (cute <slot-or-expr> <slot-or-expr>* <...>)
-
-<slot-or-expr>   -->  <>              ; a "slot"
-                    | <expression>    ; a "non-slot expression"
-@end example
-
-The macro @func{cut} transforms a @code{<cut-expression>} into a
-@code{<lambda expression>} with as many formal variables as there are
-slots in the list @code{<slot-or-expr>*}.  The body of the resulting
-@code{<lambda expression>} calls the first @code{<slot-or-expr>} with
-arguments from @code{<slot-or-expr>*} in the order they appear.
-
-In case there is a rest--slot symbol, the resulting procedure is also of
-variable arity, and the body calls the first @code{<slot-or-expr>} with
-all arguments provided to the actual call of the specialized procedure.
-
-The macro @func{cute} is similar to the macro @func{cut}, except that it
-first binds new variables to the result of evaluating the non--slot
-expressions (in an unspecific order) and then substituting the variables
-for the non--slot expressions.  In effect, @func{cut} evaluates
-non--slot expressions at the time the resulting procedure is called,
-whereas @func{cute} evaluates the non--slot expressions at the time the
-procedure is constructed.
-
-
-
-@c page
-@node cut design
-@section Rationale design
-
-
-@subsubheading Why not real currying/uncurrying?
-
-It is possible in Scheme to implement a macro turning a multi--argument
-procedure into a nesting of single--argument procedures and back.  These
-operations are usually called ``curry'' and ``uncurry'' in other
-programming languages.
-
-Yet, Scheme remains an inherently uncurried language and is not prepared
-to deal with curried procedures in a convenient way.  Hence, a ``by the
-book'' implementation of currying would only be useful if you apply it
-in the sequence ``curry, specialize some arguments, and uncurry again'',
-which is exactly the purpose of the macro @func{cut} specified in this
-document.  The primary relevance of currying/uncurrying in Scheme is to
-teach concepts of combinatory logic.
-
-@c ------------------------------------------------------------
-
-@subsubheading Why not a more general mechanism, also allowing permutation omission and duplication of arguments?
-
-The reason is that I, the author of this @srfi{}, consider more general
-mechanisms too dangerous to mix them with the mechanism proposed here.
-In particular, as soon as parameters are being rearranged it is usually
-necessary to be aware of the meaning of the parameters; unnamed
-variables can be quite harmful then.  The mechanism proposed here is
-designed to prevent this.
-
-Please refer to the discussion threads ``OK, how about...,'' (Alan
-Bawden), ``is that useful?'' (Walter C.  Pelissero), and ``l, the
-ultimate curry that is not curry'' (Al Petrofsky).
-
-@c ------------------------------------------------------------
-
-@subsubheading Why are the macro called @func{cut}/@func{cute} and not [enter your favourite here]?
-
-Well, the original name proposed for this @srfi{} was @func{curry}
-which immediately stirred some emotions as it does not what is commonly
-known as currying.  Some alternatives have been discussed, such as:
-
-@example
-section         specialise      specialize,
-partial-apply   partial-call    partial-lambda,
-_j              _i              $
-&               srfi-26         foobar
-xyz             schoenfinkelize curry-which-isnt-curry
-tandoori
-@end example
-
-@noindent
-and it has also been suggested to pick a five letter symbol uniformly at
-random and fix this as a name.  To be fair, not all of these name have
-been put forward as serious proposals, some of them were merely to
-illustrate a point in the discussion.  In addition, I have played with
-the game of the name quite a bit and considered other candidates not
-listed here.
-
-Despite the fact that the discussion list only represents a highly
-biased random sample of people's opinion (motivation to post a message
-is higher if you disagree, for example) it told me that the @srfi{}
-could potentially benefit from a different name; however impractical it
-may be to go for unanimous popularity.
-
-The name @func{cut} refers to ``operator section'', as the concept is
-often called in other programming languages, but I tend to remember it
-as the acronym for ``Curry Upon This''. ;-) The names for the evaluating
-version of @func{cut} that have been proposed were @func{cut!},
-@func{cutlet}, @func{cut*}, and @func{cute}.
-
-@c ------------------------------------------------------------
-
-@subsubheading Is it possible to implement the @srfi{} without macros?
-
-Not really.  As Stephan Houben has pointed out during the discussion
-(refer to ``Implementing it as a procedure'') it is possible to
-implement the @func{cute}--mechanism as a procedure.  Refer also to Al
-Petrofsky's posting ``Problems with @emph{curry}'s formal
-specification'' for details.
-
-However, the procedural implementation comes with a slight performance
-penalty and it is not possible the implement the @func{cut}--mechanism
-as a procedure, too.
-
-As both are needed, we rely on macros to implement the @srfi{}.  Why is
-there another symbol for the rest--slot when @func{lambda}--expressions
-use the dotted notation for variable length argument lists?  There are
-two reasons.  The first one is the existence of a procedural
-implementation of a related mechanism (refer to the previous paragraph).
-For a procedure, however, it is not possible to have dotted notation.
-The second reason is the way the hygienic macro mechanism in @rnrs{5} is
-defined to deal with dotted notation, as Felix Winkelmann has pointed
-out.  Refer to the discussion threads ``Improper lists in macros [WAS:
-none]''.
-
-@c ------------------------------------------------------------
-
-@subsubheading Why is it impossible to specify when a non--slot is evaluate individually per non--slot?
-
-@func{cut} evaluates all non--slots at the time the specialized
-procedure is called and @func{cute} evaluates all non--slots at the time
-the procedure is being specialized.  These are only the two extremes and
-it is possible to define a syntax that allows to choose per non--slot.
-However, I am convinced that the benefit of the greater flexibility is
-not worth the risk of confusion.  If a piece of code really depends on
-the distinction, it might be better to make this explicit through
-@func{let} and @func{lambda}.
-
-@c ------------------------------------------------------------
-
-@subsubheading Why is @code{(cut if <> 0 1)} etc. illegal?
-
-It is specified that a @code{<slot-or-expr>} must be either the slot
-symbol or an @func{<expression>} in the sense of @rnrs{5}, Section
-7.1.3.  As if is no @func{<expression>}, the above case is illegal.  The
-reason why @func{cut} and @func{cute} are restricted in this sense is
-the difficulty of defining the meaning of such generalized expressions.
-Please refer to the discussion archive for details.
-
-
-@c page
-@node cut ack
-@section Acknowledgements
-
-
-An important part of this @srfi{} is based on the contribution of other
-people, mostly through the discussion archive.  In particular, the
-semantics and the design rationale have been greatly improved in the
-course of the discussion.  I would like to thank all who have
-contributed.
-
-
-@c page
-@node cut stub
-@section Stub library
-
-
-The @library{lang-lib} library imports and re--exports the bindings from
-@library{srfi cut}.
-
-
-@c page
 @node random
 @chapter Sources of random bits
 
@@ -10381,381 +11200,6 @@ Resources on random number generators and randomness:
 
 
 @c page
-@node rec
-@chapter A special form for recursive evaluation
-
-
-@cindex @srfi{} rec
-
-
-The @library{srfi rec} library has been written by Mirko Luedde
-@email{Mirko.Luedde@@SAP.com} as the reference implementation for
-@ansrfi{31}.
-
-
-@menu
-* rec license::                 Original license.
-* rec abstract::                Abstract.
-* rec rationale::               Rationale.
-* rec spec::                    Specification.
-* rec ack::                     Acknowledgements.
-* rec references::              References.
-* rec stub::                    Stub library.
-@end menu
-
-
-@c page
-@node rec license
-@section Original license
-
-
-Copyright @copyright{} 2002 Dr. Mirko Luedde.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node rec abstract
-@section Abstract
-
-
-We propose the implementation of a special form called @func{rec}.  This
-form is a generalization and combination of the forms @func{rec} and
-@func{named-lambda} of [Clinger1985].  It allows the simple and
-non--imperative construction of self--referential expressions.
-
-As an important special case, it extends the A. Church form
-@func{lambda} such that it allows the direct definition of recursive
-procedures without using further special forms like @func{let} or
-@func{letrec}, without using advanced constructions like the H. B. Curry
-combinator and, unlike @func{define}, without introducing variable
-bindings into the external environment.
-
-
-
-@c page
-@node rec rationale
-@section Rationale
-
-
-@subheading General
-
-
-Among the prominent features of the Scheme programming language as
-defined in [KCR1998] are the following:
-
-@itemize
-@item
-it has simple syntax;
-
-@item
-it encourages recursive definitions, e.g. by ensuring memory efficient
-tail recursion;
-
-@item
-it supports non--imperative programming.
-@end itemize
-
-Nevertheless Scheme does not provide a syntax for recursive evaluations
-with the properties of:
-
-@itemize
-@item
-being as simple, intuitive and close to the mathematical standard
-notation as possible;
-
-@item
-allowing general recursion;
-
-@item
-being non--imperative.
-@end itemize
-
-@c ------------------------------------------------------------
-
-@subheading Example
-
-@subsubheading Problem 1
-
-Let us look at the factorial function.  In mathematical notation this
-function is expressed as:
-
-@example
-(F : N |--> 1,            if N = 0;
-            N * F(N - 1), otherwise
-@end example
-
-This expression is a term and not a definition or proposition.
-
-We investigate some approaches to express the factorial function in
-Scheme.
-
-@itemize
-@item
-The simplest way perhaps is as:
-
-@example
-(define (F N)
-  (if (zero? N)
-      1
-    (* N (F (- N 1)))))
-@end example
-
-But this expression is not a term.  It binds the factorial function to
-the variable @var{f}.  The expression itself may not occur in a
-syntactical context where a name of the factorial is required.
-
-@item
-We list several ways to express the factorial as a function term.
-
-@enumerate
-@item
-@example
-(let ()
-  (define (F N)
-    (if (zero? N)
-        1
-      (* N (F (- N 1)))))
-      F)
-@end example
-
-@item
-@example
-(lambda (N)
-  (let F ([N N])
-    (if (zero? N)
-        1
-      (* N (F (- N 1))))))
-@end example
-
-@item
-@example
-(letrec ([F (lambda (N)
-              (if (zero? N)
-                  1
-                (* N (F (- N 1)))))])
-  F)
-@end example
-
-@item
-@example
-((lambda (F)
-   (F F))
- (lambda (G)
-   (lambda (N)
-     (if (zero? N)
-         1
-       (* N ((G G) (- N 1)))))))
-@end example
-@end enumerate
-
-All these expressions define the factorial anonymously, not binding it
-to a variable.  However, all these expressions are more verbose than it
-seems necessary and they are less intuitive than it seems desirable.
-@end itemize
-
-@c ------------------------------------------------------------
-
-@subsubheading Solution 1
-
-A solution to our problem was already provided in [Clinger1985] by the
-form @func{named-lambda}.  An even earlier solution with a slightly
-different syntax was implemented in Kent Dybvig's Chez Scheme system.
-Using this special form, we can denote the factorial simply by:
-
-@example
-(named-lambda (F N)
-  (if (zero? N)
-      1
-    (* N (F (- N 1)))))
-@end example
-
-This expression is a function term that denotes the factorial in the
-appropriate brevity.
-
-However, the form @func{named-lambda} has been dropped from later
-versions of the Scheme Report.  Also it is missing in
-state--of--the--art implementations such as Chez Scheme (6.0a) and
-@acronym{MIT} Scheme (7.7.0).  (The latter actually knows a form
-@func{named-lambda} with different semantics.)
-
-@c ------------------------------------------------------------
-
-@subsubheading Problem 2
-
-The constant stream of ones can be defined via:
-
-@example
-(define S (cons 1 (delay S)))
-@end example
-
-As in the case of the factorial, we are able to define the recursive
-object at the price of spending an externally bound name.  Remedying
-this with let or letrec leads to similar objections as above.
-
-@subsubheading Solution 2
-
-@noindent
-This particular case of the self--referential problem was solved by the
-@func{rec} form in [Clinger1985].  This form allows writing:
-
-@example
-(rec S (cons 1 (delay S)))
-@end example
-
-This expression is non--imperative and does not introduce an external
-variable binding.
-
-Also this form has been dropped from later versions of the Scheme
-Report.  Moreover, from our point of view this form alone is not capable
-of solving Problem 1.  The respective definition would look like:
-
-@example
-(rec F
-  (lambda (N)
-    (if (zero? N)
-        1
-      (* N (F (- N 1))))))
-@end example
-
-This again does not seem quite as simple and intuitive as the
-mathematical notation.
-
-@c ------------------------------------------------------------
-
-@subheading Proposal
-
-We therefore propose to implement the @func{rec} special form in a
-generalized way that combines the advantages of the @func{named-lambda}
-and @func{rec} forms.  The factorial function could be written:
-
-@example
-(rec (F N)
-  (if (zero? N)
-      1
-    (* N (F (- N 1)))))
-@end example
-
-
-@c page
-@node rec spec
-@section Specification
-
-
-@findex rec
-
-
-@subsubheading Syntax
-
-The following production rules are to be added to those of [KCR1998] (we
-reuse names of non--terminals).
-
-@example
-<derived expression> --> <rec expression>
-<rec expression>     --> (rec <variable>    <expression>)
-<rec expression>     --> (rec (<variable>+) <body>)
-@end example
-
-@c ------------------------------------------------------------
-
-@subsubheading Semantics
-
-Scheme versions such as [KCR1998] providing @func{define-syntax},
-@func{syntax-rules}, @func{letrec} and @func{lambda} might implement
-@func{rec} as follows.
-
-@example
-(define-syntax rec
-  (syntax-rules ()
-    [(rec (NAME . VARIABLES) . BODY)
-     (letrec ( (NAME (lambda VARIABLES . BODY)) ) NAME)]
-    [(rec NAME EXPRESSION)
-     (letrec ( (NAME EXPRESSION) ) NAME)]))
-@end example
-
-@c ------------------------------------------------------------
-
-@subsubheading Test
-
-The following session shows in which way @func{rec} allows a
-tail--recursive implementation of the factorial function.
-
-@example
-> (define F (rec (F N)
-                 ((rec (G K L)
-                    (if (zero? K)
-                        L
-                      (G (- K 1) (* K L))))
-              N 1)))
-> F
-#<procedure>
-> (F 0)
-1
-> (F 10)
-3628800
-@end example
-
-
-@c page
-@node rec ack
-@section Acknowledgements
-
-
-The author thanks Al Petrofsky for the final solution and Hal Abelson,
-Chris Hanson and others for their input.  The work of the maintainers of
-the @srfi{} forum is highly appreciated.
-
-
-@c page
-@node rec references
-@section References
-
-
-[Clinger1985] @emph{Draft of Report of the October 1984 Workshop on
-Scheme}.  W. Clinger.  Proceedings Brandeis Workshop Oct. 22--23, 1984.
-March, 1985.
-
-@center @url{http://www.swiss.ai.mit.edu/ftpdir/scheme-mail/HTML/rrrs-1985}
-
-@noindent
-[KCR1998] @emph{Revised^5 Report on the Algorithmic Language Scheme}.
-R. Kelsey, W. Clinger, J. Rees.  Higher--Order and Symbolic Computation,
-volume 11, number 1, September 1998.
-
-
-@c page
-@node rec stub
-@section Stub library
-
-
-The @library{lang-lib} library imports and re--exports bindings from
-@library{srfi rec}, with the following changes.
-
-
-@itemize
-@item
-The @func{rec} binding from the @srfi{} is renamed to @func{recursion}.
-@end itemize
-
-
-@c page
 @node args-fold
 @chapter A program argument processor
 
@@ -10974,276 +11418,6 @@ returning the final seeds values as results.
 @emph{Note:} @func{args-fold} will create temporary options as necessary
 for the @func{unrecognized-option-proc}.
 @end defun
-
-
-
-@c page
-@node parameters
-@chapter Parameter objects
-
-
-@cindex @srfi{} parameters
-
-
-The @library{srfi parameters} library has been written by Marc Feeley as
-the reference implementation for @ansrfi{39}.
-
-
-@menu
-* parameters license::          Document license.
-* parameters abstract::         Abstract.
-* parameters rationale::        Rationale.
-* parameters spec::             Specification.
-* parameters stub::             Stub library.
-@end menu
-
-
-@c page
-@node parameters license
-@section Original license
-
-
-Copyright @copyright{} 2002 Marc Feeley.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node parameters abstract
-@section Abstract
-
-
-This @srfi{} defines parameter objects, the procedure
-@func{make-parameter} to create parameter objects and the
-@func{parameterize} special form to dynamically bind parameter objects.
-
-In the dynamic environment, each parameter object is bound to a cell
-containing the value of the parameter.  When a procedure is called the
-called procedure inherits the dynamic environment from the caller.  The
-@func{parameterize} special form allows the binding of a parameter
-object to be changed for the dynamic extent of its body.
-
-
-@c page
-@node parameters rationale
-@section Rationale
-
-
-The @emph{dynamic environment} is the structure which allows the system
-to find the value returned by the @rnrs{5} procedures
-@func{current-input-port} and @func{current-output-port}.  The @rnrs{5}
-procedures @func{with-input-from-file} and @func{with-output-to-file}
-extend the dynamic environment to produce a new dynamic environment
-which is in effect for the dynamic extent of the call to the thunk
-passed as their last argument.
-
-These procedures are essentially special purpose dynamic binding
-operations on hidden dynamic variables (one for
-@func{current-input-port} and one for @func{current-output-port}).  The
-purpose of this @srfi{} is to generalize this dynamic binding mechanism
-(which exists in all @rnrs{5} compliant systems) to allow the user to
-introduce new dynamic variables and dynamically bind them.
-
-General dynamic binding mechanisms exist in several implementations of
-Scheme under various names, including ``fluid'' variables and parameter
-objects.  The parameter objects specified in this @srfi{} are
-compatible with the semantics of all implementations of Scheme we know
-which currently support parameter objects (in the sense that it is
-possible to implement this @srfi{} so that old code works the same as
-before).  We believe Chez--Scheme was the first implementation of Scheme
-to have used parameter objects.
-
-In the presence of threads, the dynamic binding mechanism does not
-behave the same way in all implementations of Scheme supporting dynamic
-binding.  The issue is the relationship between the dynamic environments
-of the parent and child threads when a thread is created.  In Scheme 48
-the child gets a fresh dynamic environment where (typically but not
-necessarily) all the bindings are to their initial value.
-
-In MzScheme and Gambit--C the child is given a dynamic environment
-inherited from the parent.  In this inherited dynamic environment the
-dynamic variables have the same values as the parent's dynamic
-environment.  However, in MzScheme the cells bound to the dynamic
-variables in the child are distinct from those of the parent (i.e. an
-assignment of a value to a dynamic variable is not visible in the other
-thread).  In Gambit--C the child and parent dynamic environment share
-the same cells (i.e. an assignment of a value to a dynamic variable is
-visible in the other thread).  Note that in the absence of assignment to
-dynamic variables the MzScheme and Gambit--C approaches are equivalent.
-
-Given that there are semantic differences in the presence of threads and
-that there are valid reasons for choosing each semantics, this @srfi{}
-does not specify the semantics of parameter objects in the presence of
-threads.  It is left to the implementation and other @srfi{}s which
-extend this @srfi{} to specify the interaction between parameter
-objects and threads.
-
-
-
-@c page
-@node parameters spec
-@section Specification
-
-
-The @emph{dynamic environment} is composed of two parts: the @emph{local
-dynamic environment} and the @emph{global dynamic environment}.  The
-global dynamic environment is used to lookup parameter objects that
-can't be found in the local dynamic environment.  When parameter objects
-are created, their initial binding is put in the global dynamic
-environment (by mutation).  The local dynamic environment is only
-extended by the @func{parameterize} form.
-
-@emph{Parameter objects} are created with the @func{make-parameter}
-procedure which takes one or two arguments.  The second argument is a
-one argument conversion procedure.  If only one argument is passed to
-@func{make-parameter} the identity function is used as a conversion
-procedure.  The global dynamic environment is updated to associate the
-parameter object to a new cell.  The initial content of the cell is the
-result of applying the conversion procedure to the first argument of
-@func{make-parameter}.
-
-A @emph{parameter object} is a procedure which accepts zero or one
-argument.  The cell bound to a particular parameter object in the
-dynamic environment is accessed by calling the parameter object.  When
-no argument is passed, the content of the cell is returned.  When one
-argument is passed the content of the cell is updated with the result of
-applying the parameter object's conversion procedure to the argument.
-
-The @func{parameterize} special form, when given a parameter object and
-a value, binds for the dynamic extent of its body the parameter object
-to a new cell.  The initial content of the cell is the result of
-applying the parameter object's conversion procedure to the value.  The
-parameterize special form behaves analogously to let when binding more
-than one parameter object (that is the order of evaluation is
-unspecified and the new bindings are only visible in the body of the
-parameterize special form).
-
-Note that the conversion procedure can be used for guaranteeing the type
-of the parameter object's binding and/or to perform some conversion of
-the value.
-
-Because it is possible to implement the @rnrs{5} procedures
-@func{current-input-port} and @func{current-output-port} as parameter
-objects and this offers added functionnality, it is required by this
-@srfi{} that they be implemented as parameter objects created with
-@func{make-parameter}.
-
-
-@defun make-parameter @var{init} [@var{converter}]
-Returns a new parameter object which is bound in the global dynamic
-environment to a cell containing the value returned by the call
-@code{(converter init)}.  If the conversion procedure converter is not
-specified the identity function is used instead.
-
-The parameter object is a procedure which accepts zero or one argument.
-When it is called with no argument, the content of the cell bound to
-this parameter object in the current dynamic environment is returned.
-When it is called with one argument, the content of the cell bound to
-this parameter object in the current dynamic environment is set to the
-result of the call @code{(converter arg)}, where @var{arg} is the
-argument passed to the parameter object, and an unspecified value is
-returned.
-
-@example
-(define radix
-  (make-parameter 10))
-
-(define write-shared
-  (make-parameter #f
-    (lambda (x)
-      (if (boolean? x)
-          x
-        (error "only booleans are accepted by write-shared")))))
-
-(radix)           =>  10
-(radix 2)
-(radix)           =>  2
-(write-shared 0)  gives an error
-
-(define prompt
-  (make-parameter 123
-    (lambda (x)
-      (if (string? x)
-          x
-        (with-output-to-string (lambda () (write x)))))))
-
-(prompt)       =>  "123"
-(prompt ">")
-(prompt)       =>  ">"
-@end example
-@end defun
-
-
-@deffn Syntax parameterize ((@var{expr1} @var{expr2}) ...) @var{body})
-The expressions @var{expr1} and @var{expr2} are evaluated in an
-unspecified order.  The value of the @var{expr1} expressions must be
-parameter objects.  For each @var{expr1} expression and in an
-unspecified order, the local dynamic environment is extended with a
-binding of the parameter object @var{expr1} to a new cell whose content
-is the result of the call @code{(converter val)}, where @var{val} is the
-value of @var{expr2} and @var{converter} is the conversion procedure of
-the parameter object.
-
-The resulting dynamic environment is then used for the evaluation of
-@var{body} (which refers to the @rnrs{5} grammar nonterminal of that
-name).  The result(s) of the parameterize form are the result(s) of the
-@var{body}.
-
-With reference to thte example above:
-
-@example
-(radix)
-=>  2
-
-(parameterize ([radix 16])
-  (radix))
-=>  16
-
-(radix)
-=>  2
-
-(define (f n)
-  (number->string n (radix)))
-
-(f 10)
-=>  "1010"
-
-(parameterize ([radix 8])
-  (f 10))
-=>  "12"
-
-(parameterize ([radix 8]
-               [prompt (f 10)])
-  (prompt))
-=>  "1010"
-@end example
-@end deffn
-
-
-@c page
-@node parameters stub
-@section Stub library
-
-
-The @library{lang-lib} library imports and re--exports bindings from
-@library{srfi parameters}.
 
 
 @c page
@@ -16374,563 +16548,6 @@ Stephan Houben.
 sorting routines, written by Olin Shivers.
 
 @center @url{http://srfi.schemers.org/srfi-32/}
-
-
-@c page
-@node format
-@chapter Intermediate format strings
-
-
-@cindex @srfi{} format
-
-
-The @library{srfi format} has been written by Ken Dickey as the
-reference implementation for @ansrfi{48}.
-
-@menu
-* format license::              Original license.
-* format abstract::             Abstract.
-* format rationale::            Rationale.
-* format spec::                 Specification.
-* format examples::             Examples.
-@end menu
-
-
-@c page
-@node format license
-@section Original license
-
-
-Copyright @copyright{} 2003 Kenneth A Dickey.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node format abstract
-@section Abstract
-
-
-This document specifies Format Strings, a method of interpreting a
-Scheme string which contains a number of format directives that are
-replaced with other string data according to the semantics of each
-directive.  This @srfi{} extends @ansrfi{28} in being more generally
-useful but is less general than advanced format strings in that it does
-not allow, aside from @code{~F}, for controlled positioning of text
-within fields.
-
-
-@subsubheading Issues
-
-Some may disagree with specific escape options or return values.  For
-those who desire complex options as implemented by SLIB or Common Lisp's
-@func{format}, an upwards compatible ``Advanced Format'' @srfi{} should
-be proposed.
-
-In particular, the reference implementation given here does not accept
-numeric arguments (aside from @code{~F}).  Hence it does not support
-@ansrfi{29}.
-
-It is highly desireable that baseline library code be small, attempt to
-eliminiate heap allocation and bound stack usage.  This is especially
-important in embedded systems.  This can be accomplished by writing
-directly to a port, rather than a string, by not supporting @code{~W} or
-@code{~F}, and by replacing @code{(display (number->string n r) p)} with
-a carefully written @code{(display:number->string n r p)} which does not
-build intermediate strings.
-
-As this is intermediate format, it was felt that @code{~F} and @code{~W}
-are too highly useful to elide.  The @code{~H} option is helpful to
-users, allows for programattic query, and makes clear which format
-directives are supported.
-
-
-@c page
-@node format rationale
-@section Rationale
-
-
-Inheriting from MacLisp, nearly all Lisp and Scheme implementations
-support some form of @func{format} function with support for various
-numbers of format directives.  By agreeing to the options here, we raise
-the bar for portable code.
-
-The reference implementation is @rnrs{5} compliant and easy to port.  In
-not requiring advanced features (aside from @code{~W} and @code{~F})
-small implementations are possible.  E.g. the reference code does not
-use side effects (assignment) and is less than a third the source size
-of the latest SLIB implementation of @func{format} (less than a tenth if
-@code{~F} support is elided).
-
-The optional port argument allows for compatibility with older code
-written for, e.g. scheme48, MIT Scheme, T, et cetera, which required a
-port argument.  It is also useful in cases where a synoptic
-implementation of Scheme and Common Lisp is maintained.
-
-
-@c page
-@node format spec
-@section Specification
-
-
-@defun format @var{string}
-@defunx format @var{format-string} @var{obj} ...
-@defunx format @var{port} @var{string}
-@defunx format @var{port} @var{format-string} @var{obj} ...
-Accept a format template (a Scheme string), and process it, replacing
-any format directives in order with one or more characters, the
-characters themselves dependent on the semantics of the format directive
-encountered.  Each directive may consume one @var{obj}.  It is an error
-if fewer or more @var{obj} values are provided than format directives
-that require them.
-
-When a @var{port} is specified it must be either an output port or a
-boolean.
-
-@itemize
-@item
-If an output port is specified, the formatted output is written into
-that port.
-
-@item
-If the @var{port} argument is @true{}, output is written to the
-@code{current-output-port}.
-
-@item
-If the @var{port} is @false{} or no port is specified, the output is
-returned as a string.
-
-@item
-If the @var{port} is specified and is @true{} or an output port, the
-result of the @func{format} function is unspecified.
-@end itemize
-
-It is unspecified which encoding is used (e.g. @ascii{}, EBCDIC,
-Unicode).  A given implementation must specify which encoding is used.
-The implementation may or may not allow the encoding to be selected or
-changed.
-
-It is an error if a format directive consumes an @var{obj} argument and
-that argument does not conform to a required type as noted in the table
-below.
-
-It is permissible, but highly discouraged, to implement
-@func{pretty-print} as @code{(define pretty-print write)}.
-@end defun
-
-
-A format directive is a two character sequence in the string where the
-first character is a tilde @code{~}.  Directive characters are
-case--independent, i.e. upper and lower case characters are interpreted
-the same.
-
-@table @code
-@item ~a
-Output the object representation printed by @code{(display obj)}.
-
-@item ~s
-Output the object representation printed by @code{(write obj)}.
-
-@item ~w
-Output the object representation printed by
-@code{(write-with-shared-structure obj)}; like @code{~s}, but handles
-recursive structures.
-
-@item ~d
-The @var{obj} is a number which is output in decimal radix.
-
-@item ~x
-The @var{obj} is a number which is output in hexdecimal radix.
-
-@item ~o
-The @var{obj} is a number which is output in octal radix.
-
-@item ~b
-The @var{obj} is a number which is output in binary radix.
-
-@item ~c
-The single charater @var{obj} is output by @func{write-char}.
-
-@item ~y
-The list @var{obj} is pretty--printed to the output.
-
-@item ~?
-The @var{obj} is another @var{format-string} and the following @var{obj}
-is a list of arguments; @func{format} is called recursively.
-
-@item ~K
-The same as @code{~?} for backward compatability with some existing
-implementations.
-
-@item ~F
-@itemx ~wF
-@itemx ~w,dF
-@code{~w,dF} outputs a number with width @code{w} and @code{d} digits
-after the decimal; @code{~wF} outputs a string or number with width
-@code{w}.
-
-@item ~~
-Output a tilde.
-
-@item ~t
-Output a tab character.
-
-@item ~%
-Output a newline character.
-
-@item ~&
-Output a newline character if it is known that the previous output was
-not a newline.
-
-@item ~_
-A single space character is output.
-
-@item ~h
-Output one line of call synopsis, one line of comment, and one line of
-synopsis for each format directive, starting with the directive.
-@end table
-
-
-The @code{~F}, fixed format, directive requires some elucidation:
-
-@itemize
-@item
-@code{~wF} is useful for strings or numbers.  Where the string (or
-@func{number->string} of the number) has fewer characters than the
-integer width @var{w}, the string is padded on the left with space
-characters.
-
-@item
-@code{~w,dF} is typically used only on numbers.  For strings, the
-@var{d} specifier is ignored.  For numbers, the integer @var{d}
-specifies the number of decimal digits after the decimal place.  Both
-@var{w} and @var{d} must be zero or positive.
-
-@item
-If @var{d} is specified, the number is processed as if added to
-@code{0.0}, i.e. it is converted to an inexact value.
-
-@example
-(format "~8,2F" 1/3)
-=> "    0.33"
-@end example
-
-@item
-If no @var{d} is specified, the number is not coerced to inexact.
-
-@example
-(format "~6F" 32)
-=> "    32"
-@end example
-
-@item
-Digits are padded to the right with zeros:
-
-@example
-(format "~8,2F" 32)
-=> "   32.00"
-@end example
-
-@item
-If the number it too large to fit in the width specified, a string
-longer than the width is returned:
-
-@example
-(format "~1,2F" 4321)
-=> "4321.00"
-@end example
-
-@item
-If the number is complex, @var{d} is applied to both real and imaginal
-parts:
-
-@example
-(format "~1,2F" (sqrt -3.9)) => "0.00+1.97i"
-@end example
-
-@item
-For very large or very small numbers, the point where exponential
-notation is used is implementation defined.
-
-@example
-(format "~8F" 32e5)
-=> "   3.2e6" or "3200000.0"
-@end example
-@end itemize
-
-
-@c page
-@node format examples
-@section Examples
-
-
-@example
-(format "~h")
-; =>
-"(format [<port>] <format-string> [<arg>...]) -- <port> is #t, #f or an output-port
-OPTION  [MNEMONIC]      DESCRIPTION     -- This implementation Assumes ASCII Text Encoding
-~H      [Help]          output this text
-~A      [Any]           (display arg) for humans
-~S      [Slashified]    (write arg) for parsers
-~~      [tilde]         output a tilde
-~T      [Tab]           output a tab character
-~%      [Newline]       output a newline character
-~&      [Freshline]     output a newline character if the previous output was not a newline
-~D      [Decimal]       the arg is a number which is output in decimal radix
-~X      [heXadecimal]   the arg is a number which is output in hexdecimal radix
-~O      [Octal]         the arg is a number which is output in octal radix
-~B      [Binary]        the arg is a number which is output in binary radix
-~w,dF   [Fixed]         the arg is a string or number which has width w and d digits after the decimal
-~C      [Character]     charater arg is output by write-char
-~_      [Space]         a single space character is output
-~Y      [Yuppify]       the list arg is pretty-printed to the output
-~?      [Indirection]   recursive format: next arg is a format-string and the following arg a list of arguments
-~K      [Indirection]   same as ~?
-"
-
-(format "Hello, ~a" "World!")
-; => "Hello, World!"
-
-(format "Error, list is too short: ~s" '(one "two" 3))
-; => "Error, list is too short: (one \"two\" 3))"
-
-(format "test me")
-; => "test me"
-
-(format "~a ~s ~a ~s" 'this 'is "a" "test")
-; => "this is a \"test\""
-
-(format #t "#d~d #x~x #o~o #b~b~%" 32 32 32 32)
-;; Prints:   #d32 #x20 #o40 #b100000
-; => <unspecified>
-
-(format "~a ~? ~a" 'a "~s" '(new) 'test)
-; =>"a new test"
-
-(format #f "~&1~&~&2~&~&~&3~%")
-; =>
-"
-1
-2
-3
-"
-
-(format #f "~a ~? ~a ~%" 3 " ~s ~s " '(2 2) 3)
-; =>
-"3  2 2  3
-"
-
-(format "~w" (let ( (c '(a b c)) ) (set-cdr! (cddr c) c) c))
-; => "#1=(a b c . #1#)"
-
-(format "~8,2F" 32)
-; => "   32.00"
-
-(format "~8,3F" (sqrt -3.8))
-; => "0.000+1.949i"
-
-(format "~8,2F" 3.4567e11)
-; => " 3.45e11"
-
-(format "~6,3F" 1/3)
-; => " 0.333"
-
-(format "~4F" 12)
-; => "  12"
-
-(format "~8,3F" 123.3456)
-; => " 123.346"
-
- (format "~6,3F" 123.3456)
-; => "123.346"
-
- (format "~2,3F" 123.3456)
-; => "123.346"
-
-(format "~8,3F" "foo")
-; => "     foo"
-
-(format "~a~a~&" (list->string (list #\newline)) "")
-; =>
-"
-"
-@end example
-
-
-@c page
-@node general-cond
-@chapter A more general @func{cond} clause
-
-
-@cindex @srfi{} general-cond
-
-
-The @library{srfi general-cond} has been written by Taylor Campbell as
-the reference implementation for @ansrfi{61}.
-
-
-@menu
-* general-cond license::        Original license.
-* general-cond abstract::       Abstract.
-* general-cond rationale::      Rationale.
-* general-cond spec::           Specification.
-* general-cond stub::           Stub library.
-@end menu
-
-
-@c page
-@node general-cond license
-@section Original license
-
-
-Copyright @copyright{} 2004 Taylor Campbell.  All rights reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@c page
-@node general-cond abstract
-@section Abstract
-
-
-This @srfi{} proposes an extension to the @func{cond} syntax to allow a
-more general clause, one that allows binding the results of tests as in
-the @code{=>} clauses and user--defined meaning of the success and
-failure of tests.
-
-
-@c page
-@node general-cond rationale
-@section Rationale
-
-
-The present set of @func{cond} clauses is based on simple boolean
-testing.  It is prohibitively inexpressive in that the condition part of
-a @func{cond} clause that uses @code{=>} may pass only a single value to
-the receiver, and it enforces a semantics whereby @false{} implies
-failure of the condition.
-
-Programmers frequently use different tokens to imply failure, such as in
-@rnrs{5}'s I/O readers which return a distinguished ``EOF object'' to
-denote failure, and a successful condition may produce more than one
-useful value.  This simple extension allows any meaning of ``failure''
-to be assigned on a per--clause basis, and it also allows the condition
-to return multiple values to be passed to the receiver.
-
-
-@c page
-@node general-cond spec
-@section Specification
-
-
-@findex cond
-
-The @code{<cond clause>} production in the formal syntax of Scheme as
-written by @rnrs{5} Section 7.1.3 is extended with a new option:
-
-@example
-<cond clause> --->
-    ...
-  | (<generator> <guard> => <receiver>)
-@end example
-
-@noindent
-where @code{<generator>}, @code{<guard>} and @code{<receiver>} are all
-@code{<expression>}.
-
-Clauses of this form have the following semantics: @code{<generator>} is
-evaluated and it may return arbitrarily many values.  @code{<guard>} is
-applied to an argument list containing the values in order that
-@code{<generator>} returned.  If @code{<guard>} returns a true value for
-that argument list, @code{<receiver>} is applied with an equivalent
-argument list.  If @code{<guard>} returns a false value, however, the
-clause is abandoned and the next one is tried.
-
-@c ------------------------------------------------------------
-
-@subsubheading Examples
-
-
-This @func{port->char-list} procedure accepts an input port and returns
-a list of all the characters it produces until the end.
-
-@example
-(define (port->char-list port)
-  (cond ((read-char port)
-         char?
-         => (lambda (c)
-              (cons c (port->char-list port))))
-        (else '())))
-@end example
-
-Consider now a hypothetical @func{table-entry} procedure that accepts
-two arguments: a table (perhaps a hash table) and a key to an entry that
-may be in the table; it returns two values: a boolean that denotes
-whether or not an entry with the given key was in the table and, if it
-was, the value associated with the key.  Also, a hypothetical
-@var{proj0} combinator (projection of argument 0) returns its 0th
-argument and ignores all others.  One might conditionally branch to a
-certain body of code if the table contains the desired entry like so
-with the new type of @func{cond} clause:
-
-@example
-(cond ...
-      ((table-entry <table> <key>)
-       proj0
-       => (lambda (present? value)
-            ...(VALUE is bound to the value of the entry)...))
-      ...)
-@end example
-
-
-@c page
-@node general-cond stub
-@section Stub library
-
-
-The @library{lang-lib} library imports and re--exports bindings from
-@library{srfi general-cond}, with the following changes.
-
-
-@itemize
-@item
-The @func{cond} @srfi{} function is renamed to both @func{srfi:cond} and
-@func{general-cond}.
-@end itemize
 
 
 @c page

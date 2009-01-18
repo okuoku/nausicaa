@@ -73,6 +73,11 @@
 Big but maybe feasible extension candidates
 -------------------------------------------
 
+* Libg3d - 3d viewer
+  <http://automagically.de/g3dviewer/>
+* ICU - International Components for Unicode
+  <http://icu-project.org/>
+
 * igraph (graph library, ,
   <http://cneurocvs.rmki.kfki.hu/igraph/>)
 * GAUL, genetic algorithm utility library

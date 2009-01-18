@@ -1,482 +1,743 @@
+;;;
+;;;Part of: Nausicaa/SRFI
+;;;Contents: tests for format-lib
+;;;Date: Sun Jan 11, 2009
+;;;
+;;;Abstract
+;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
-;;;Copyright (c) 2008 Derick Eddington
-;;;Copyright (C) 2003 Kenneth A Dickey.
 ;;;
-;;;Some test comes from the SRFI itself other from SLIB.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;Permission is hereby granted, free of charge, to any person obtaining
-;;;a  copy of  this  software and  associated  documentation files  (the
-;;;"Software"), to  deal in the Software  without restriction, including
-;;;without limitation  the rights to use, copy,  modify, merge, publish,
-;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
-;;;permit persons to whom the Software is furnished to do so, subject to
-;;;the following conditions:
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;The  above  copyright notice  and  this  permission  notice shall  be
-;;;included in all copies or substantial portions of the Software.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
-;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
-;;;copyright holders  shall not be  used in advertising or  otherwise to
-;;;promote  the sale,  use or  other dealings  in this  Software without
-;;;prior written authorization.
-;;;
-;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
-;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
-;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
-;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
-;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
-;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
-;;;SOFTWARE.
 
 
+;;;; setup
 
-#!r6rs
-(import
-  (rnrs)
-  (rnrs mutable-pairs)
-  (srfi format)
+(import (r6rs)
+  (srfi cond-expand)
   (check-lib)
-  (srfi sharing))
+  (format-lib))
 
 (check-set-mode! 'report-failed)
-(display "*** testing format\n")
-
-
-;;;; misc
-
-(check
-    (format "~h")
-  => "(format [<port>] <format-string> [<arg>...]) -- <port> is #t, #f or an output-port
-OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Encoding
-~H      [Help]          output this text
-~A      [Any]           (display arg) for humans
-~S      [Slashified]    (write arg) for parsers
-~W      [WriteCircular] like ~s but outputs circular and recursive data structures
-~~      [tilde]         output a tilde
-~T      [Tab]           output a tab character
-~%      [Newline]       output a newline character
-~&      [Freshline]     output a newline character if the previous output was not a newline
-~D      [Decimal]       the arg is a number which is output in decimal radix
-~X      [heXadecimal]   the arg is a number which is output in hexdecimal radix
-~O      [Octal]         the arg is a number which is output in octal radix
-~B      [Binary]        the arg is a number which is output in binary radix
-~w,dF   [Fixed]         the arg is a string or number which has width w and d digits after the decimal
-~C      [Character]     charater arg is output by write-char
-~_      [Space]         a single space character is output
-~Y      [Yuppify]       the list arg is pretty-printed to the output
-~?      [Indirection]   recursive format: next 2 args are format-string and list of arguments
-~K      [Indirection]   same as ~?
-")
-
-(check
-    (format "Hello, ~a" "World!")
-  => "Hello, World!")
-
-(check
-    (format "Error, list is too short: ~s" '(one "two" 3))
-  => "Error, list is too short: (one \"two\" 3)")
-
-(check
-    (format "test me")
-  => "test me")
-
-(check
-    (format "~a ~s ~a ~s" 'this 'is "a" "test")
-  => "this is a \"test\"")
-
-(check
-    (format #f "#d~d #x~x #o~o #b~b~%" 32 32 32 32)
-  => "#d32 #x20 #o40 #b100000\n")
-
-(check
-    (format "~a ~? ~a" 'a "~s" '(new) 'test)
-  => "a new test")
-
-(check
-    (format #f "~&1~&~&2~&~&~&3~%")
-  => "\n1\n2\n3\n")
-
-(check
-    (format #f "~a ~? ~a ~%" 3 " ~s ~s " '(2 2) 3)
-  => "3  2 2  3 \n")
-
-(check
-    (let* ((ell		(let ((ell (list 'a 'b 'c)))
-			  (set-cdr! (cddr ell) ell)
-			  ell))
-	   (it		(format "~w" ell))
-	   (thing	(read/ss (open-string-input-port it))))
-      (list (eq? (car ell) (car thing))
-	    (eq? (cadr ell) (cadr thing))
-	    (eq? (caddr ell) (caddr thing))
-	    (eq? (cadddr ell) (cadddr thing))))
-  => '(#t #t #t #t))
-
-(check
-    (format "~a~a~&" (list->string (list #\newline)) "")
-  => "\n")
-
-(check
-    (format "abc")
-  => "abc")
-
-(check
-    (format "~a" 10)
-  => "10")
-
-(check
-    (format "~a" -1.2)
-  => "-1.2")
-
-(check
-    (format "~a" 'a)
-  => "a")
-
-(check
-    (format "~a" #t)
-  => "#t")
-
-(check
-    (format "~a" #f)
-  => "#f")
-
-(check
-    (format "~a" "abc")
-  => "abc")
-
-(check
-    (format "~a" '#(1 2 3))
-  => "#(1 2 3)")
-
-(check
-    (format "~a" '())
-  => "()")
-
-(check
-    (format "~a" '(a))
-  => "(a)")
-
-(check
-    (format "~a" '(a b))
-  => "(a b)")
-
-(check
-    (format "~a" '(a (b c) d))
-  => "(a (b c) d)")
-
-(check
-    (format "~a" '(a . b))
-  => "(a . b)")
-
-(check
-    (format "~a" '(a (b c . d)))
-  => "(a (b c . d))")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~a ~a" 10 20)
-  => "10 20")
-
-(check
-    (format "~a abc ~a def" 10 20)
-  => "10 abc 20 def")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~d" 100)
-  => "100")
-
-(check
-    (format "~x" 100)
-  => "64")
-
-(check
-    (format "~o" 100)
-  => "144")
-
-(check
-    (format "~b" 100)
-  => "1100100")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~c" #\a)
-  => "a")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~~~~")
-  => "~~")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~%")
-  => "\n")
-
-(check
-    (format "~&")
-  => "\n")
-
-(check
-    (format "abc~&")
-  => "abc\n")
-
-(check
-    (format "abc~&def")
-  => "abc\ndef")
-
-(check
-    (format "~&")
-  => "\n")
-
-(check
-    (format "~_~_~_")
-  => "   ")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~a ~? ~a" 10 "~a ~a" '(20 30) 40)
-  => "10 20 30 40")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~s" "abc")
-  => "\"abc\"")
-
-(check
-    (format "~s" "abc \\ abc")
-  => "\"abc \\\\ abc\"")
-
-(check
-    (format "~a" "abc \\ abc")
-  => "abc \\ abc")
-
-(check
-    (format "~s" "abc \" abc")
-  => "\"abc \\\" abc\"")
-
-(check
-    (format "~a" "abc \" abc")
-  => "abc \" abc")
-
-(check
-    (format "~s" #\space)
-  => "#\\space")
-
-(check
-    (format "~s" #\newline)
-  => "#\\newline")
-
-(check
-    (format "~s" #\linefeed)
-  => "#\\newline")
-
-(check
-    (format "~s" #\a)
-  => "#\\a")
-
-(check
-    (format "~s" '(a "b" c))
-  => "(a \"b\" c)")
-
-(check
-    (format "~a" '(a "b" c))
-  => "(a b c)")
 
 
 
-;;;; floating point numbers
+;;;; basic errors
+
+;;This is signaled by the Scheme implementation.
+(check
+    (guard (exc (else 'error))
+      (format))
+  => 'error)
+
+;;; --------------------------------------------------------------------
 
 (check
-    (format "~F" 123)
+    (guard (exc (else
+		 (condition-message exc)))
+      (format 'wo))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format 'wo))
+  => "invalid format string")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format #f))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format #t))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format 123))
+  => "invalid format string")
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format (current-output-port)))
+  => "invalid format string")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (guard (exc (else
+		 (condition-message exc)))
+      (format #f 123))
+  => "invalid format string")
+
+
+
+;;;; destination selection
+
+(check
+    (format "ciao")
+  => "ciao")
+
+(check
+    (format "ciao ~s" 123)
+  => "ciao 123")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format #f "ciao")
+  => "ciao")
+
+(check
+    (format #f "ciao")
+  => "ciao")
+
+(check
+    (begin
+      (format #t "ciao, this is text output to the current output port\n")
+      #t)
+  => #t)
+
+(check
+    (begin
+      (format 1 "ciao, this is text output to the current error port\n")
+      #t)
+  => #t)
+
+(check
+    (call-with-string-output-port
+	(lambda (port)
+	  (format port "ciao")))
+  => "ciao")
+
+
+;;;; escapes ~a and ~s, generic object output
+
+(check
+    (format #f "ciao ~a" 123)
+  => "ciao 123")
+
+(check
+    (format #f "ciao ~s" 123)
+  => "ciao 123")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format #f "ciao ~:a" 123)
+  => "ciao 123")
+
+(check
+    (format #f "ciao ~:a" display)
+  => (cond-expand
+      (ypsilon  "ciao \"#<subr display>\"")
+      (larceny	"ciao \"#<PROCEDURE display>\"")
+      (ikarus	"ciao \"#<procedure display>\"")
+      (mosh	"ciao \"#<subr display>\"")))
+
+(check
+    (format #f "ciao ~:s" 123)
+  => "ciao 123")
+
+(check
+    (format #f "ciao ~:s" display)
+  => (cond-expand
+      (ypsilon  "ciao \"#<subr display>\"")
+      (larceny	"ciao \"#<PROCEDURE display>\"")
+      (ikarus	"ciao \"#<procedure display>\"")
+      (mosh	"ciao \"#<subr display>\"")))
+
+;;; --------------------------------------------------------------------
+
+(check
+    (list (format "~5a" 123)
+	  (format "~5s" 123))
+  => '("123  "
+       "123  "))
+
+(check
+    (list (format "~5@a" 123)
+	  (format "~5@s" 123))
+  => '("  123"
+       "  123"))
+
+(check
+    (list (format "~5,,,'.a" 123)
+	  (format "~5,,,'.s" 123))
+  => '("123.."
+       "123.."))
+
+(check
+    (list (format "~5,,,'.@a" 123)
+	  (format "~5,,,'.@s" 123))
+  => '("..123"
+       "..123"))
+
+(check
+    (list (format "~5,,4,'.@a" 123)
+	  (format "~5,,4,'.@s" 123))
+  => '("....123"
+       "....123"))
+;;;     1234
+
+(check
+    (list (format "~10,,,'a@a" 123)
+	  (format "~10,,,'a@s" 123))
+  => '("aaaaaaa123"
+       "aaaaaaa123"))
+;;;     1234567
+
+(check
+    (list (format "~10,3,,'u@a" 123)
+	  (format "~10,3,,'u@s" 123))
+  => '("uuuuuuuuu123"
+       "uuuuuuuuu123"))
+;;;     123456789
+
+(check
+    (list (format "~11,2,,'u@a" 123)
+	  (format "~11,2,,'u@s" 123))
+  => '("uuuuuuuu123"
+       "uuuuuuuu123"))
+;;;     12345678
+
+(check
+    (list (format "~8,2,,'u@a" 1)
+	  (format "~8,2,,'u@s" 1))
+  => '("uuuuuuuu1"
+       "uuuuuuuu1"))
+;;;     12345678
+
+
+
+;;;; escape ~c, characters
+
+(check
+    (format "~c" #\A)
+  => "A")
+
+(check
+    (format "~@c" #\A)
+  => "#\\A")
+
+(check
+    (format "~:c" #\newline)
+  => "^J")
+
+(check
+    (format "~:c" #\linefeed)
+  => "^J")
+
+(check
+    (format "~65c")
+  => "A")
+
+
+
+;;;; escapes ~d ~x ~o ~b, integer numbers
+
+(check
+    (format "~d" 123)
   => "123")
 
 (check
-    (format "~F" 123.456)
-  => "123.456")
+    (format "~x ~x" 3 10)
+  => "3 a")
 
 (check
-    (format "~F" 123+456i)
-  => "123+456i")
+    (format "~o" 509)
+  => "775")
+
+(check
+    (format "~b" 6)
+  => "110")
 
 ;;; --------------------------------------------------------------------
 
 (check
-    (format "~F" +inf.0)
-  => "+inf.0")
+    (format "~d" -123)
+  => "-123")
+
 (check
-    (format "~F" -inf.0)
+    (format "~x ~x" -3 -10)
+  => "-3 -a")
+
+(check
+    (format "~o" -509)
+  => "-775")
+
+(check
+    (format "~b" -6)
+  => "-110")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~5d" 123)
+  => "  123")
+;;;   12345
+
+(check
+    (format "~5x" 11)
+  => "    b")
+;;;   12345
+
+(check
+    (format "~5o" 509)
+  => "  775")
+;;;   12345
+
+(check
+    (format "~5b" 6)
+  => "  110")
+;;;   12345
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~5,'.d" 123)
+  => "..123")
+;;;   12345
+
+(check
+    (format "~5,'.x" 11)
+  => "....b")
+;;;   12345
+
+(check
+    (format "~5,'.o" 509)
+  => "..775")
+;;;   12345
+
+(check
+    (format "~5,'.b" 6)
+  => "..110")
+;;;   12345
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~@d" 0)
+  => "+0")
+
+(check
+    (format "~@d" 123)
+  => "+123")
+
+(check
+    (format "~@x ~@x" 3 10)
+  => "+3 +a")
+
+(check
+    (format "~@o" 509)
+  => "+775")
+
+(check
+    (format "~@b" 6)
+  => "+110")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~:d" 123456789)
+  => "123,456,789")
+
+(check
+    (format "~:x" #x123456789)
+  => "123,456,789")
+
+(check
+    (format "~:o" #o123456712)
+  => "123,456,712")
+
+(check
+    (format "~:b" #b10101100)
+  => "10,101,100")
+
+(check
+    (format "~,,'b,2:d" 123456789)
+  => "1b23b45b67b89")
+
+(check
+    (format "~,,'b,2:x" #x123456789)
+  => "1b23b45b67b89")
+
+(check
+    (format "~,,'b,2:o" #o123456712)
+  => "1b23b45b67b12")
+
+(check
+    (format "~,,'b,2:b" #b10101100)
+  => "10b10b11b00")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~x" 65261)
+  => "feed")
+
+(check
+    (format "~:@(~x~)" 65261)
+  => "FEED")
+
+
+;;;; escape ~r, integers in words
+
+(check
+    (format "~r" 123)
+  => "one hundred twenty-three")
+
+(check
+    (format "~r" -123)
+  => "minus one hundred twenty-three")
+
+(check
+    (format "~r" 1000000)
+  => "one million")
+
+(check
+    (format "~r" 1000000000)
+  => "one billion")
+
+(check
+    (format "~r" 1000000000000)
+  => "one trillion")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~:r" 123)
+  => "one hundred twenty-third")
+
+(check
+    (format "~:r" 9)
+  => "ninth")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~@r" 89)
+  => "LXXXIX")
+
+(check
+    (format "~:@r" 89)
+  => "LXXXVIIII")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~3r" 0)
+  => "0")
+
+(check
+    (format "~3r" 1)
+  => "1")
+
+(check
+    (format "~3r" 2)
+  => "2")
+
+(check
+    (format "~3r" 3)
+  => "10")
+
+(check
+    (format "~3r" 4)
+  => "11")
+
+(check
+    (format "~3r" 27)
+  => "1000")
+
+(check
+    (format "~3,5r" 26)
+  => "  222")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~4r" 0)
+  => "0")
+
+(check
+    (format "~4r" 1)
+  => "1")
+
+(check
+    (format "~4r" 2)
+  => "2")
+
+(check
+    (format "~4r" 3)
+  => "3")
+
+(check
+    (format "~4r" 4)
+  => "10")
+
+(check
+    (format "~4r" 9)
+  => "21")
+
+
+
+
+;;;; esape ~f, basic tests
+
+(check
+    (format "~f" 123)
+  => "123.0")
+
+(check
+    (format "~f" 0.0)
+  => "0.0")
+
+(check
+    (format "~f" 0e-3)
+  => "0.0")
+
+(check
+    (format "~f" 123.0)
+  => "123.0")
+
+(check
+    (format "~f" 123.4)
+  => "123.4")
+
+(check
+    (format "~f" 1e-1)
+  => "0.1")
+
+(check
+    (format "~f" +inf.0)
+  => "+inf.0")
+
+(check
+    (format "~f" -inf.0)
   => "-inf.0")
 
 (check
-    (format "~F" +nan.0)
+    (format "~f" +nan.0)
   => "+nan.0")
 
 ;;; --------------------------------------------------------------------
+;;; @ modifier
 
 (check
-    (format "~4F" 12)
-  => "  12")
+    (format "~@f" 123)
+  => "+123.0")
 
 (check
-    (format "~4F" 1234)
-  => "1234")
+    (format "~@f" 123.0)
+  => "+123.0")
 
 (check
-    (format "~4F" 123456)
-  => "123456")
+    (format "~@f" 123.4)
+  => "+123.4")
 
 (check
-    (format "~6F" 32)
-  => "    32")
+    (format "~@f" 1e-1)
+  => "+0.1")
 
 (check
-    (format "~6F" 32.)
-  => "  32.0")
-
-(check
-    (format "~8F" 32e45)
-  => "  3.2e46")
-
-(check
-    (format "~12F" 1.2345)
-  => "      1.2345")
-
-(check
-    (format "~6f" 23.4)
-  => "  23.4")
-
-(check
-    (format "~6f" 1234.5)
-  => "1234.5")
-
-(check
-    (format "~6f" 12345678)
-  => "12345678")
-
-(check
-    (format "~6,2f" 123.56789)
-  => "123.57")
-
-(check
-    (format "~6f" 123.0)
-  => " 123.0")
-
-(check
-    (format "~6f" -123.0)
+    (format "~@f" -123.0)
   => "-123.0")
 
-(check
-    (format "~6f" 0.0)
-  => "   0.0")
+;;; --------------------------------------------------------------------
+;;; width and padding
 
 (check
-    (format "~3,1f" 3.141)
-  => "3.1")
+    (format "~10f" 123.456)
+  => "   123.456")
+;;;   0123456789
 
 (check
-    (format "~2,0f" 3.141)
-  => "3.")
+    (format "~10,,,,'.f" 123.456)
+  => "...123.456")
+;;;   0123456789
 
 (check
-    (format "~1f" 3.141)
-  => "3.141")
+    (format "~10,,,,'\nf" 123.456)
+  => "\n\n\n123.456")
+;;;   0 1 2 3456789
 
 (check
-    (format "~f" 123.56789)
-  => "123.56789")
+    (format "~10,,,,'.f" 123.456789123)
+  => "123.456789")
 
 (check
-    (format "~f" -314.0)
-  => "-314.0")
+    (format "~5,,,,'.f" 1e9)
+  => "1000000000.0")
 
 (check
-    (format "~f" 1e4)
-  => "10000.0")
-
-(check
-    (format "~f" -1.23e10)
-  => "-1230000000.0")
-
-(check
-    (format "~f" -1.23e-10)
-  => "-0.000000000123")
-
-(check
-    (format "~f" 1e-4)
-  => "0.0001")
+    (format "~5,,,,'.f" 1000000000.123456)
+  => "1000000000.123456")
 
 ;;; --------------------------------------------------------------------
+;;; strings
 
 (check
-    (format "~6,2F" 32)
-  => " 32.00")
-
-(check
-    (format "~8F" 32e20)
-  => "  3.2e21")
-
-(check
-    (format "~8F" 32e5)
-  => "3200000.0")
-
-(check
-    (format "~8F" 32e2)
-  => "  3200.0")
-
-;;; --------------------------------------------------------------------
-
-(check
-    (format "~6,3F" 1/3)
-  => " 0.333")
-
-(check
-    (format "~8,3F" 12.3456)
-  => "  12.346")
-
-(check
-    (format "~6,3F" 123.3456)
-  => "123.346")
-
-(check
-    (format "~4,3F" 123.3456)
-  => "123.346")
-
-(check
-    (format "~8,1F" 32e-45)
-  => " 3.2e-44")
-
-(check
-    (format "~8,2F" 32e10)
-  => " 3.20e11")
-
-(check
-    (format "~12,2F" 1.2345)
+    (format "~12,2f" "1.2345")
   => "        1.23")
 
 (check
-    (format "~12,3F" 1.2345)
-  => "       1.234")
+    (format "~f" "#d1.2345")
+  => "1.2345")
 
 (check
-    (format "~20,3F" (sqrt -3.8))
-  => "        0.000+1.949i")
+    (format "~f" "1.2345")
+  => "1.2345")
 
 (check
-    (format "~8,3F" (sqrt -3.8))
-  => "0.000+1.949i")
+    (format "~f" "1.23e4")
+  => "12300.0")
 
 (check
-    (format "~8,2F" 3.4567e11)
-  => " 3.46e11")
+    (format "~f" "-1.23")
+  => "-1.23")
+
+(check
+    (format "~f" "+1.23")
+  => "1.23")
+
+(check
+    (format "~f" "0.0")
+  => "0.0")
+
+(check
+    (format "~f" "00000000.00000000000")
+  => "0.0")
+
+(check
+    (format "~f" "0.")
+  => "0.0")
+
+(check
+    (format "~f" ".0")
+  => "0.0")
+
+(check
+    (format "~f" "0e-3")
+  => "0.0")
+
+(check
+    (format "~f" "000.000e-3")
+  => "0.0")
+
+(check
+    (format "~f" ".0000123456e2")
+  => "0.00123456")
+
+(check
+    (format "~f" ".00123456789e4")
+  => "12.3456789")
+
+(check
+    (guard (exc (else 'error))
+      (format "~f" ""))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2f" "1.23+45"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2f" "1.23-45"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2f" "1.2345e6-1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2f" "1.2345e6+1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~f" "1.2.3e61"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~f" "1..3e61"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~f" "1.23e6.1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~f" "1.23e6e1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~f" "1.23a61"))
+  => 'error)
+
+
+
+
+;;; escape ~f, number of decimals
+
+(check
+    (format "~6,3f" 1/3)
+  => " 0.333")
+
+(check
+    (format "~8,3f" 12.3456)
+  => "  12.346")
+
+(check
+    (format "~6,3f" 123.3456)
+  => "123.346")
+
+(check
+    (format "~4,3f" 123.3456)
+  => "123.346")
+
+(check
+    (format "~8,1f" 32e-45)
+  => "     0.0")
+;;;   01234567
+
+(check
+    (format "~8,2f" 32e10)
+  => "320000000000.00")
+;;;   012345678901
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~8,2f" 3.4567e11)
+  => "345670000000.00")
+;;;   012345678901
 
 (check
     (format "~6,2f" 3.14159)
@@ -524,21 +785,554 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 
 (check
     (format "~3,2f" 0.007)
-  => "0.01")
+  => ".01")
 
 (check
     (format "~3,2f" -0.007)
-  => "-0.01")
+  => "-.01")
 
 (check
     (format "~6,3f" 12345.6789)
   => "12345.679")
 
+
+
+
+;;;; escape ~f, rounding of decimals
+
+(check
+    (format "~12,2f" 1.2345)
+  => "        1.23")
+;;;   012345678901
+
+(check
+    (format "~12,3f" 1.2345)
+  => "       1.234")
+;;;   012345678901
+
+(check
+    (format "~,2f" 0.007)
+  => "0.01")
+
+(check
+    (format "~,5f" 12.456e999)
+  => "+inf.0")
+
+(check
+    (format "~,5f" -12.456e999)
+  => "-inf.0")
+
+(check
+    (format "~,5f" 12.456e10)
+  => "124560000000.00000")
+;;;     0123456789
+
+(check
+    (format "~,5f" 12.456)
+  => "12.45600")
+
+(check
+    (format "~,5f" 12.456)
+  => "12.45600")
+
 ;;; --------------------------------------------------------------------
 
 (check
-    (format "~8,3F" (sqrt -3.8))
+    (format "~,1f" 12.44)
+  => "12.4")
+
+(check
+    (format "~,1f" 12.46)
+  => "12.5")
+
+;;When 5 is the last digit: the number is rounded with the last digit in
+;;the result being the nearest even.
+(check
+    (format "~,1f" 12.45)
+  => "12.4")
+
+(check
+    (format "~,1f" 12.451)
+  => "12.5")
+
+(check
+    (format "~,1f" 12.454)
+  => "12.5")
+
+(check
+    (format "~,1f" 12.456)
+  => "12.5")
+
+;;Not so weird if you think of it!
+(check
+    (format "~,1f" 12.449)
+  => "12.4")
+
+;;Rounding 55 is done to the nearest even which is 60.
+(check
+    (format "~,2f" 12.455)
+  => "12.46")
+
+(check
+    (format "~,1f" 12.455)
+  => "12.5")
+
+(check
+    (format "~,1f" 12.4555)
+  => "12.5")
+
+(check
+    (format "~,1f" 12.4555)
+  => "12.5")
+
+(check
+    (format "~,1f" 12.45555)
+  => "12.5")
+
+;;; --------------------------------------------------------------------
+
+(check
+    (format "~,0f" 12.456789)
+  => "12.")
+
+;;Rounding 12.456789  to 1  digit in the  fractional part is  like doing
+;;these steps:
+;;
+;; 12.456789 -> 12.45679 -> 12.4568 -> 12.457 -> 12.46 -> 12.5
+;;
+(check
+    (format "~,1f" 12.456789)
+  => "12.5")
+
+(check
+    (format "~,2f" 12.456789)
+  => "12.46")
+
+(check
+    (format "~,3f" 12.456789)
+  => "12.457")
+
+(check
+    (format "~,4f" 12.456789)
+  => "12.4568")
+
+(check
+    (format "~,5f" 12.456789)
+  => "12.45679")
+
+(check
+    (format "~,6f" 12.456789)
+  => "12.456789")
+
+;;; --------------------------------------------------------------------
+
+;;We want  the same behaviour requested  by R6RS for ROUND,  and by IEEE
+;;754 for rounding to nearest.  When rounding an in-the-middle digit, we
+;;round it to even.
+(check (format "~,0f" 0.5) => "0.")
+(check (format "~,0f" 1.5) => "2.")
+(check (format "~,0f" 2.5) => "2.")
+(check (format "~,0f" 3.5) => "4.")
+(check (format "~,0f" 4.5) => "4.")
+(check (format "~,0f" 5.5) => "6.")
+(check (format "~,0f" 6.5) => "6.")
+(check (format "~,0f" 7.5) => "8.")
+(check (format "~,0f" 8.5) => "8.")
+(check (format "~,0f" 9.5) => "10.")
+
+(check (format "~,0f" 0.0)  => "0.")
+(check (format "~,0f" 0.3)  => "0.")
+(check (format "~,0f" 0.51) => "1.")
+(check (format "~,0f" 0.7)  => "1.")
+
+;;Remember that the  dot and fractional part are  truncated only if this
+;;makes  the output  fit the  requested WIDTH,  else they  are  kept and
+;;rounded only if a number of digits after the dot was requested.
+(check (format "~1,0f" 0.0)  => "0.")
+(check (format "~1,0f" 1.4)  => "1.")
+(check (format "~1,0f" 1.5)  => "2.")
+(check (format "~1,0f" 1.6)  => "2.")
+
+(check (format "~1f"   0.123) => "0.123")
+(check (format "~1,2f" 0.123) => ".12")
+(check (format "~1,2f" 1.123) => "1.12")
+(check (format "~2,2f" 0.123) => ".12")
+
+
+
+;;;; escape ~f, scaling factor
+
+(check (format "~,,1f"	1)	=> "10.0")
+(check (format "~,,1f"	10)	=> "100.0")
+(check (format "~,,1f"	0.1)	=> "1.0")
+(check (format "~,,1f"	0.01)	=> "0.1")
+
+(check (format "~,,-1f"	1)	=> "0.1")
+(check (format "~,,-1f"	10)	=> "1.0")
+(check (format "~,,-1f"	0.1)	=> "0.01")
+(check (format "~,,-1f"	0.01)	=> "0.001")
+
+
+
+;;;; escape ~f, overflow char
+
+(check (format "~4,,,'xf" 12345) => "xxxx")
+(check (format "~4,,,'xf" 123e5) => "xxxx")
+
+
+
+;;;; escape ~e, basic tests
+
+(check
+    (format "~e" 123)
+  => "1.23E+2")
+
+(check
+    (format "~e" 123.0)
+  => "1.23E+2")
+
+(check
+    (format "~e" 123.4)
+  => "1.234E+2")
+
+(check
+    (format "~e" 1e-1)
+  => "1.0E-1")
+
+(check
+    (format "~e" 1e9)
+  => "1.0E+9")
+
+(check
+    (format "~e" +inf.0)
+  => "+inf.0")
+
+(check
+    (format "~e" -inf.0)
+  => "-inf.0")
+
+(check
+    (format "~e" +nan.0)
+  => "+nan.0")
+
+(check
+    (format "~,,,,,,'ee" 123)
+  => "1.23e+2")
+
+;;; --------------------------------------------------------------------
+;;; @ modifier
+
+(check
+    (format "~@e" 123)
+  => "+1.23E+2")
+
+(check
+    (format "~@e" 123.0)
+  => "+1.23E+2")
+
+(check
+    (format "~@e" 123.4)
+  => "+1.234E+2")
+
+(check
+    (format "~@e" 1e-1)
+  => "+1.0E-1")
+
+(check
+    (format "~@e" -123.0)
+  => "-1.23E+2")
+
+;;; --------------------------------------------------------------------
+;;; strings
+
+(check
+    (format "~12,2e" "1.2345")
+  => "     1.23E+0")
+;;;   012345678901
+
+(check
+    (format "~e" "#d1.2345")
+  => "1.2345E+0")
+
+(check
+    (format "~e" "1.2345")
+  => "1.2345E+0")
+
+(check
+    (format "~e" "1.23e4")
+  => "1.23E+4")
+
+(check
+    (format "~e" "-1.23")
+  => "-1.23E+0")
+
+(check
+    (format "~e" "+1.23")
+  => "1.23E+0")
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.23+45"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.23-45"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.2345e6-1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~12,2e" "1.2345e6+1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.2.3e61"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1..3e61"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.23e6.1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.23e6e1"))
+  => 'error)
+
+(check
+    (guard (exc (else 'error))
+      (format "~e" "1.23a61"))
+  => 'error)
+
+
+;;; escape ~e, width and padding
+
+(check
+    (format "~10e" 123.456)
+  => "1.23456E+2")
+;;;   0123456789
+
+(check
+    (format "~15,,,,,'.e" 123.456)
+  => ".....1.23456E+2")
+;;;   012345678901234
+
+(check
+    (format "~10,,,,,'.e" 123.456789123)
+  => "1.23457E+2")
+;;;   0123456789
+
+(check
+    (format "~5,,,,'.e" 1e9)
+  => "1.E+9")
+;;;   01234
+
+(check
+    (format "~5,,,,'x,'.e" 1e9)
+  => "1.E+9")
+;;;   01234
+
+(check
+    (format "~2,,,,'x,'.e" 1e9)
+  => "xx")
+
+(check
+    (format "~5,,,,'.e" 1000000000.123456)
+;;;                     0123456789
+  => "1.E+9")
+
+(check
+    (format "~6,,,,'.e" 1000000000.123456)
+;;;                     0123456789
+  => "1.0E+9")
+
+(check
+    (format "~5e" 123456)
+  => "1.E+5")
+;;;   01234
+
+(check
+    (format "~2e" 123456)
+  => "1.23456E+5")
+;;;   01234
+
+
+;;; escape ~e, number of decimals, exponents, integer digits, overflow
+
+(check
+    (format "~6,3e" 1/3)
+  => "3.333E-1")
+;;;   012345
+
+(check
+    (format "~8,3e" 12.3456)
+  => "1.235E+1")
+;;;   01234567
+
+(check
+    (format "~6,3e" 123.3456)
+  => "1.233E+2")
+;;;   012345
+
+;;; --------------------------------------------------------------------
+;;; number of exponent digits
+
+(check
+    (format "~,,1e" 1.0e99)
+  => "1.0E+99")
+
+(check
+    (format "~,,6e" 1.0e99)
+  => "1.0E+000099")
+
+;;; --------------------------------------------------------------------
+;;; number of integer digits
+
+(check
+    (format "~,,,0e" 12345.0)
+  => "0.12345E+5")
+
+(check
+    (format "~,,,1e" 12345.0)
+  => "1.2345E+4")
+
+(check
+    (format "~,,,2e" 12345.0)
+  => "12.345E+3")
+
+(check
+    (format "~,,,3e" 12345.0)
+  => "123.45E+2")
+
+(check
+    (format "~,,,4e" 12345.0)
+  => "1234.5E+1")
+
+(check
+    (format "~,,,5e" 12345.0)
+  => "12345.0E+0")
+
+(check
+    (format "~,,,6e" 12345.0)
+  => "123450.0E-1")
+
+(check
+    (format "~,,,7e" 12345.0)
+  => "1234500.0E-2")
+
+(check
+    (format "~,,,8e" 12345.0)
+  => "12345000.0E-3")
+
+(check
+    (format "~,,,-1e" 12345.0)
+  => "0.012345E+6")
+
+(check
+    (format "~,,,-2e" 12345.0)
+  => "0.0012345E+7")
+
+(check
+    (format "~,,,-3e" 12345.0)
+  => "0.00012345E+8")
+
+(check
+    (format "~,,,0e" 1.2345)
+  => "0.12345E+1")
+
+(check
+    (format "~,,,1e" 1.2345)
+  => "1.2345E+0")
+
+(check
+    (format "~,,,2e" 1.2345)
+  => "12.345E-1")
+
+(check
+    (format "~,,,3e" 1.2345)
+  => "123.45E-2")
+
+(check
+    (format "~,,,4e" 1.2345)
+  => "1234.5E-3")
+
+(check
+    (format "~,,,-1e" 1.2345)
+  => "0.012345E+2")
+
+(check
+    (format "~,,,-2e" 1.2345)
+  => "0.0012345E+3")
+
+;;; --------------------------------------------------------------------
+;;; number of integer digits and decimals
+
+;;this does not round
+(check
+    (format "~,4,,1e" 123.45)
+  => "1.2345E+2")
+
+;;this does not round
+(check
+    (format "~,3,,2e" 123.45)
+  => "12.345E+1")
+
+(check
+    (format "~,5,,2e" 123.45)
+  => "12.34500E+1")
+
+(check
+    (format "~,5,,1e" 123.45)
+  => "1.23450E+2")
+
+(check
+    (format "~,1,,3e" 12345.0)
+  => "123.4E+2")
+
+(check
+    (format "~,3,,3e" 12345.6789)
+  => "123.457E+2")
+
+;;; --------------------------------------------------------------------
+;;; overflow char
+
+(check (format "~4,,,,'xe" 12345) => "xxxx")
+(check (format "~4,,,,'xe" 123e5) => "xxxx")
+
+
+
+;;;; complex numbers
+
+(check
+    (format "~i" 1+2i)
+  => "1.0+2.0i")
+
+(check
+    (format "~,3i" (sqrt -3.8))
   => "0.000+1.949i")
+
+(check
+    (format "~10,3i" (sqrt -3.8))
+  => "     0.000    +1.949i")
+;;;   0123456789
+;;;             0123456789
+
+(check
+    (format "~8,3i" (sqrt -3.8))
+  => "   0.000  +1.949i")
+;;;   01234567
+;;;           01234567
 
 
 
@@ -546,6 +1340,5 @@ OPTION  [MNEMONIC]      DESCRIPTION     -- Implementation Assumes ASCII Text Enc
 ;;;; done
 
 (check-report)
-
 
 ;;; end of file
