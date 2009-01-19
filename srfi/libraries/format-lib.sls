@@ -1225,17 +1225,20 @@
   ;;* exponential	the mantissa is put  in the "n.mmm"  format with
   ;;			only one digit in the integer part.
   ;;
-  ;;Scale is an  integer that is added to the  exponent, so that "1.2e3"
-  ;;with  SCALE =  4  becomes "1.2e7";  in  other words:  the number  in
-  ;;NUMBER-STRING is multiplied by "10^SCALE".
-  ;;
+  ;;SCALE is a power of 10 that is used as scaling factor for the number
+  ;;value: "1.2e3" with SCALE =  4 becomes "1.2e7".  For the fixed-point
+  ;;format: SCALE is just a scaling factor.  For the exponential format:
+  ;;SCALE is used as number of digits to show in the integer part of the
+  ;;mantissa.
 
   (let* ( ;Set to  #t if  all the  digits in the  mantissa are  zeros, #f
 	 ;;otherwise.  It is used to detect a true zero like "0.0000".
 	 (all-zeros?	#t)
 
-	 ;;The number of  zeros at the beginning of  the mantissa buffer.
-	 ;;For this value it does not matter where the dot index is.
+	 ;;The number of  zeros at the beginning of  the mantissa buffer
+	 ;;(it does not  matter where the dot index  is).  This value is
+	 ;;also the  index of the  first non-zero digit in  the mantissa
+	 ;;buffer.
 	 (left-zeros	0)
 
 	 (number-string	(if (string-prefix? "#d" number-string)
@@ -1251,7 +1254,7 @@
 	  ((fixed-point)
 	   (normalise-to-fixed-point-format))
 	  ((exponential)
-	   (normalise-to-exponential-format))
+	   (normalise-to-exponential-format scale))
 	  (else
 	   (error 'format:parse-flonum
 	     "internal error, unknown flonum normalisation format"
@@ -1485,90 +1488,29 @@
 	    (mantissa-shift-left left-zeros)
 	    (set! mantissa-dot-index (- shift left-zeros)))))))
 
-    (define (normalise-to-exponential-format)
-      ;;We want to  put the mantissa in the format  "n.mmm", and add the
-      ;;SCALE factor to the exponent.   Here there may be zeros in front
-      ;;of the integer part.  Examples: the representation:
-      ;;
-      ;;  exponent		= 4
-      ;;  mantissa-dot-index	= 3
-      ;;  mantissa-buffer	= "123456"
-      ;;                              ^
-      ;;                          dot index
-      ;;
-      ;;must be normalised to:
-      ;;
-      ;;  exponent		= 2
-      ;;  mantissa-dot-index	= 1
-      ;;  mantissa-buffer	= "123456"
-      ;;                            ^
-      ;;                        dot index
-      ;;
-      ;;the representation:
-      ;;
-      ;;  exponent		= 4
-      ;;  left-zeros		= 3
-      ;;  mantissa-dot-index	= 6
-      ;;  mantissa-buffer	= "000123456"
-      ;;                                 ^
-      ;;                             dot index
-      ;;
-      ;;must be normalised to:
-      ;;
-      ;;  exponent		= 2
-      ;;  mantissa-dot-index	= 1
-      ;;  mantissa-buffer	= "123456"
-      ;;                            ^
-      ;;                        dot index
-      ;;
-      ;;the representation:
-      ;;
-      ;;  exponent		= 4
-      ;;  left-zeros		= 3
-      ;;  mantissa-dot-index	= 2
-      ;;  mantissa-buffer	= "000123456"
-      ;;                             ^
-      ;;                         dot index
-      ;;
-      ;;must be normalised to:
-      ;;
-      ;;  exponent		= -1
-      ;;  mantissa-dot-index	= 1
-      ;;  mantissa-buffer	= "123456"
-      ;;                            ^
-      ;;                        dot index
-      ;;
-
-      (integer->exponent-buffer (+ (exponent-buffer->integer)
-				   scale
-				   (- left-zeros mantissa-dot-index)))
-
-      ;;This is what we want at the end.
-      (mantissa-shift-left left-zeros)
-      (set! mantissa-dot-index 1)
-
-;;       (let ((negexp (if (> left-zeros 0)
-;; 			(- left-zeros mantissa-dot-index -1)
-;; 		      (if (= mantissa-dot-index 0) 1 0))))
-;; 	(cond ((> left-zeros 0)
-;; 	       ; normalize 0{0}.nnn to n.nn
-;; 	       (mantissa-shift-left left-zeros)
-;; 	       (set! mantissa-dot-index 1))
-;; 	      ((= mantissa-dot-index 0)
-;; 	       (set! mantissa-dot-index 1)))
-;; 	(integer->exponent-buffer (- (+ (- mantissa-dot-index scale)
-;; 					(exponent-buffer->integer))
-;; 				     negexp))
-;; 	(cond
-;; 	 ((< scale 0) ; leading zero
-;; 	  (mantissa-prepend-zeros (- scale))
-;; 	  (set! mantissa-dot-index 0))
-;; 	 ((> scale mantissa-dot-index)
-;; 	  (mantissa-append-zeros (- scale mantissa-dot-index))
-;; 	  (set! mantissa-dot-index scale))
-;; 	 (else
-;; 	  (set! mantissa-dot-index scale))))
-      )
+    (define (normalise-to-exponential-format intdigits)
+      (cond ((> left-zeros 0)
+	     ;; normalize 0{0}.nnn to n.nn
+	     (mantissa-shift-left left-zeros)
+	     (set! mantissa-dot-index 1))
+	    ((= mantissa-dot-index 0)
+	     (set! mantissa-dot-index 1)))
+      (integer->exponent-buffer (- (+ (- mantissa-dot-index intdigits)
+				      (exponent-buffer->integer))
+				   (if (> left-zeros 0)
+				       (- left-zeros mantissa-dot-index -1)
+				     (if (= mantissa-dot-index 0)
+					 1
+				       0))))
+      (cond
+       ((< intdigits 0) ; leading zero
+	(mantissa-prepend-zeros (- intdigits))
+	(set! mantissa-dot-index 0))
+       ((> intdigits mantissa-dot-index)
+	(mantissa-append-zeros (- intdigits mantissa-dot-index))
+	(set! mantissa-dot-index intdigits))
+       (else
+	(set! mantissa-dot-index intdigits))))
 
     (main)))
 
@@ -1739,7 +1681,7 @@
 ;;;
 ;;;This is a piece of code from the pre-MarcoMaggi swirling.  It detects
 ;;;the case  of positive INTDIGITS  and DECIMALS and does  some decimals
-;;;normalisation that (in the opinion of MM) makes not sense at all.
+;;;normalisation that (in the opinion of MM) makes no sense at all.
 ;;;
 ;;; 	  (when (< 0 intdigits)
 ;;; 	    (set! decimals (if (< intdigits (+ decimals 2))
