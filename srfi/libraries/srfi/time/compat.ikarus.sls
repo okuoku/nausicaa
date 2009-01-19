@@ -1,4 +1,5 @@
-;;; Copyright (c) 2008 Derick Eddington
+;;; Copyright (c) 2008, 2009  Derick Eddington
+;;;Modified by Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;; Permission is  hereby granted, free of charge,  to any person
 ;;; obtaining   a   copy   of   this  software   and   associated
@@ -29,7 +30,6 @@
 
 (library (srfi time compat)
   (export
-    format
     host:time-resolution
     host:current-time
     host:time-nanosecond
@@ -37,8 +37,8 @@
     host:time-gmt-offset)
   (import
     (rnrs base)
-    (only (ikarus) format)
-    (prefix (only (ikarus) current-time time-nanosecond time-second time-gmt-offset)
+    (prefix (only (ikarus)
+		  current-time time-nanosecond time-second time-gmt-offset)
             host:))
 
   ;; Ikarus uses gettimeofday() which gives microseconds,

@@ -1,4 +1,5 @@
-;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2008, 2009 Derick Eddington
+;;;Modified by Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -27,7 +28,6 @@
 
 (library (srfi time compat)
   (export
-    format
     host:time-resolution
     host:current-time
     host:time-nanosecond
@@ -36,8 +36,7 @@
   (import (r5rs)
     (rnrs)
     (larceny load)
-    (primitives r5rs:require current-utc-time timezone-offset)
-    (srfi format))
+    (primitives r5rs:require current-utc-time timezone-offset))
 
   (define-record-type time (fields secs usecs))
 

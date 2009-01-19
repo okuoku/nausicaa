@@ -115,6 +115,7 @@
   (import (rnrs)
     (rnrs r5rs)
     (rnrs mutable-strings)
+    (format-lib)
     (srfi receive)
     (srfi time compat))
 

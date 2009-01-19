@@ -32,7 +32,6 @@
   (only (srfi cut))
   (only (srfi eager-comprehensions))
   (only (srfi environment-variables))
-  (only (srfi format))
   (only (srfi general-cond))
   (only (srfi lightweight-testing))
   (only (srfi lists))

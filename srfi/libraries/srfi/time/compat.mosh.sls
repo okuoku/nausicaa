@@ -1,4 +1,5 @@
-;;;Copyright (c) 2008 Marco Maggi
+;;;Copyright (c) 2008, 2009 Marco Maggi
+;;;Modified by Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -27,14 +28,13 @@
 
 (library (srfi time compat)
   (export
-   format
    host:time-resolution
    host:current-time
    host:time-nanosecond
    host:time-second
    host:time-gmt-offset)
   (import (rnrs base)
-    (only (core) format microsecond microsecond->utc))
+    (only (core) microsecond microsecond->utc))
 
   (define host:time-resolution 1000)
   (define (host:current-time) (microsecond))

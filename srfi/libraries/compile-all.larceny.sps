@@ -61,20 +61,11 @@
 (compile-library "srfi/lists.sls"
  		 "srfi/lists.larceny.slfasl")
 
-(compile-library "srfi/records.sls"
-		 "srfi/records.larceny.slfasl")
-
 (compile-library "srfi/char-set.sls"
 		 "srfi/char-set.larceny.slfasl")
 
 (compile-library "srfi/strings.sls"
 		 "srfi/strings.larceny.slfasl")
-
-(compile-library "srfi/format/compat.larceny.sls"
-		 "srfi/format/compat.larceny.slfasl")
-
-(compile-library "srfi/format.sls"
-		 "srfi/format.larceny.slfasl")
 
 (compile-library "srfi/time/compat.larceny.sls"
 		 "srfi/time/compat.larceny.slfasl")
