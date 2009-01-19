@@ -50,7 +50,7 @@ dnl --------------------------------------------------------------------
 AC_CONFIG_FILES([bin.d/larceny-scheme-script:bin/larceny-scheme-script.in])
 AC_CONFIG_FILES([bin.d/ikarus-scheme-script:bin/ikarus-scheme-script.in])
 AC_CONFIG_FILES([bin.d/ypsilon-scheme-script:bin/ypsilon-scheme-script.in])
-dnl AC_CONFIG_FILES([mosh-scheme-script:bin/mosh-scheme-script])
+AC_CONFIG_FILES([bin.d/mosh-scheme-script:bin/mosh-scheme-script.in])
 AC_CONFIG_FILES([Makefile.custom])
 NAUSICAA_END
 

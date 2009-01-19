@@ -45,6 +45,10 @@ ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 scripts_BIN	+= larceny-scheme-script
 endif
 
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+scripts_BIN	+= mosh-scheme-script
+endif
+
 scripts_INSTLST	= $(addprefix $(scripts_BUILDDIR)/,$(scripts_BIN))
 scripts_INSTDIR	= $(bindir)
 
@@ -91,6 +95,7 @@ binfmt-all: binfmt-builddir
 		-e 's%BINDIR%$(bindir)%g'				\
 		-e 's%OPT_ENABLE_IKARUS%$(nausicaa_ENABLE_IKARUS)%g'	\
 		-e 's%OPT_ENABLE_LARCENY%$(nausicaa_ENABLE_LARCENY)%g'	\
+		-e 's%OPT_ENABLE_MOSH%$(nausicaa_ENABLE_MOSH)%g'	\
 		-e 's%OPT_ENABLE_YPSILON%$(nausicaa_ENABLE_YPSILON)%g'	\
 		<$(binfmt_SRCDIR)/rc.scheme		\
 		>$(binfmt_BUILDDIR)/rc.scheme
