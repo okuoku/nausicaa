@@ -114,6 +114,7 @@
 (check
     (begin
       (format #t "ciao, this is text output to the current output port\n")
+      (flush-output-port (current-output-port))
       #t)
   => #t)
 

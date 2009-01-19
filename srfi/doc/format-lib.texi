@@ -765,7 +765,6 @@ described for @code{~d} above.
 * escape flonums fixed::        Fixed point format.
 * escape flonums exponent::     Exponential format.
 * escape flonums eng::          Engineering format.
-* escape flonums dollar::       Dollar format.
 @end menu
 
 
@@ -956,99 +955,8 @@ output would exceed @var{width} then instead that many
 
 
 @deffn Escape @code{~g}
-Real general float.  Parameters: @var{width}, @var{decimals},
-@var{expdigits}, @var{intdigits}, @var{overflowchar}, @var{padchar},
-@var{expchar}.
-
-Output a number or number string in either exponential format the same
-as @code{~e}, or fixed--point format like @code{~f} but aligned where
-the mantissa would have been and followed by padding where the exponent
-would have been.
-
-@c  FIXME: The default DECIMALS is apparently max(needed,min(n,7)) where
-@c  10^(n-1)<=abs(x)<=10^n.  But the Common Lisp spec seems to ask for
-@c  "needed" to be without leading or trailing zeros, whereas format.scm
-@c  seems to include trailing zeros, ending up with it using fixed
-@c  format for bigger values than it should.
-
-Fixed--point is used when the absolute value is 0.1 or more and it takes
-no more space than the mantissa in exponential format, ie.@: basically
-up to @var{decimals} digits.
-
-@example
-(format #t "~12,4,2g" 999.0)    @print{} "   999.0    "
-(format #t "~12,4,2g" "100000") @print{} "  1.0000E+05"
-@end example
-
-The parameters are interpreted as per @code{~e} above.  When fixed-point
-is used, the @var{decimals} parameter to @code{~f} is established from
-@var{decimals}, so as to give a total @math{@var{decimals}+1} figures.
 @end deffn
 
-
-@c page
-@node escape flonums dollar
-@section Dollar format
-
-
-@deffn Escape @code{~$}
-Monetary style fixed-point float.  Parameters: @var{decimals},
-@var{intdigits}, @var{width}, @var{padchar}.
-
-@c  For reference, fmtdoc.txi from past versions of slib showed the
-@c  INTDIGITS parameter as SCALE.  That looks like a typo, in the code
-@c  and in the Common Lisp spec it's a minimum digits for the integer
-@c  part, it isn't a power of 10 like in ~f.
-
-Output a number or number string in fixed-point format, ie.@: with a
-decimal point.  @var{decimals} is the number of decimal places to
-show, default 2.
-
-@example
-(format #t "~$" 5)       @print{} 5.00
-(format #t "~4$" "2.25") @print{} 2.2500
-(format #t "~4$" "1e-2") @print{} 0.0100
-@end example
-
-@code{~@@$} prints a @code{+} sign on positive numbers (including
-zero).
-
-@example
-(format #t "~@@$" 0) @print{} +0.00
-@end example
-
-@var{intdigits} is a minimum number of digits to show in the integer
-part of the value (default 1).
-
-@example
-(format #t "~,3$" 9.5)   @print{} 009.50
-(format #t "~,0$" 0.125) @print{} .13
-@end example
-
-If the output is less than @var{width} characters (default 0), it's
-padded on the left with @var{padchar} (default space).  @code{~:$}
-puts the padding after the sign.
-
-@example
-(format #f "~,,8$" -1.5)   @result{} "   -1.50"
-(format #f "~,,8:$" -1.5)  @result{} "-   1.50"
-(format #f "~,,8,'.:@@$" 3) @result{} "+...3.00"
-@end example
-
-Note that floating point for dollar amounts is generally not a good
-idea, because a cent @math{0.01} cannot be represented exactly in the
-binary floating point Guile uses, which leads to slowly accumulating
-rounding errors.  Keeping values as cents (or fractions of a cent) in
-integers then printing with the scale option in @code{~f} may be a
-better approach.
-@end deffn
-
-@c  For reference, fractions don't work with ~$ (or any of the float
-@c  conversions) currently.  If they did work then we could perhaps
-@c  suggest keeping dollar amounts as rationals, which would of course
-@c  give exact cents.  An integer as cents is probably still a better
-@c  recommendation though, since it forces one to think about where
-@c  and when rounding can or should occur.
 
 @c page
 @node escape complex

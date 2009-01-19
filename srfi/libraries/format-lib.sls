@@ -1488,6 +1488,8 @@
 	    (mantissa-shift-left left-zeros)
 	    (set! mantissa-dot-index (- shift left-zeros)))))))
 
+    ;;I dunno what  happens here, so for the time being  "do not fix it,
+    ;;if it is not broken" (MM).
     (define (normalise-to-exponential-format intdigits)
       (cond ((> left-zeros 0)
 	     ;; normalize 0{0}.nnn to n.nn
@@ -1791,67 +1793,15 @@
 
 
 
-;;;; helpers, flonums: dollar format
+;;;; helpers, complex numbers
 
-;;Print  the  dollar string  representation  of  a  number.  It  is  the
-;;implementation of the "~$" escape sequence.
-(define (format:print-flonum-dollar modifier number parameters)
-  (validate-flonum-argument number 'format:print-flonum-dollar)
-  (let ((l (length parameters)))
-    (let ((decimals	(format:par parameters l 0 2 "decimals"))
-	  (mindig	(format:par parameters l 1 1 "mindig"))
-	  (width	(format:par parameters l 2 0 "width"))
-	  (padch	(format:par parameters l 3 space-char-integer #f)))
-
-      (let ((number-string (if (string? number)
-			       number
-			     (number->string (inexact number)))))
-
-	(cond
-	 ((member number-string '("+inf.0" "-inf.0" "+nan.0" "-nan.0"))
-	  (format:print-inf-nan number-string width decimals #f #f padch))
-
-	 (else
-	  ;;This fills the internal state MANTISSA-* variables.
-	  (format:parse-flonum number-string 'fixed-point 0)
-
-	  ;;A number of  decimals after the dot is  requested: add them if
-	  ;;missing or round and truncate decimals if too many.
-	  (mantissa-adjust-decimals-as-requested decimals)
-
-	  (let ((numlen (+ mantissa-length 1)))
-	    (when (or (not mantissa-is-positive) (memq modifier '(at colon-at)))
-	      (increment! numlen 1))
-	    (when (and mindig (> mindig mantissa-dot-index))
-	      (increment! numlen (- mindig mantissa-dot-index)))
-	    (when (and (= mantissa-dot-index 0) (not mindig))
-	      (increment! numlen 1))
-	    (if (< numlen width)
-		(case modifier
-		  ((colon)
-		   (if (not mantissa-is-positive)
-		       (format:print-char #\-))
-		   (format:print-fill-chars (- width numlen) (integer->char padch)))
-		  ((at)
-		   (format:print-fill-chars (- width numlen) (integer->char padch))
-		   (format:print-char (if mantissa-is-positive #\+ #\-)))
-		  ((colon-at)
-		   (format:print-char (if mantissa-is-positive #\+ #\-))
-		   (format:print-fill-chars (- width numlen) (integer->char padch)))
-		  (else
-		   (format:print-fill-chars (- width numlen) (integer->char padch))
-		   (if (not mantissa-is-positive)
-		       (format:print-char #\-))))
-	      (if mantissa-is-positive
-		  (if (memq modifier '(at colon-at)) (format:print-char #\+))
-		(format:print-char #\-))))
-	  (when (and mindig (> mindig mantissa-dot-index))
-	    (format:print-fill-chars (- mindig mantissa-dot-index) #\0))
-	  (when (and (= mantissa-dot-index 0) (not mindig))
-	    (format:print-char #\0))
-	  (format:print-substring mantissa-buffer 0 mantissa-dot-index)
-	  (format:print-char #\.)
-	  (format:print-substring mantissa-buffer mantissa-dot-index mantissa-length)))))))
+(define (format:print-complex modifier z params)
+  (unless (complex? z)
+    (error 'format:print-complex
+      "argument not a complex number" z))
+  (format:print-flonum-fixed-point modifier (real-part z) params)
+  (format:print-flonum-fixed-point 'at      (imag-part z) params)
+  (format:print-char #\i))
 
 
 
@@ -1997,33 +1947,39 @@
 		; directives
 		       (append '(#\{ #\} #\: #\@ #\^)
 			       parameter-characters))))
-	(case (char-upcase (next-char))
+	(case (next-char)
 	  ;; format directives
-	  ((#\A) ; Any -- for humans
+	  ((#\a) ; Any -- for humans
 	   (set! format:read-proof
 		 (memq modifier '(colon colon-at)))
 	   (format:out-obj-padded (memq modifier '(at colon-at))
 				  (next-arg) #f params)
 	   (anychar-dispatch))
-	  ((#\S) ; Slashified -- for parsers
+
+	  ((#\s) ; Slashified -- for parsers
 	   (set! format:read-proof
 		 (memq modifier '(colon colon-at)))
 	   (format:out-obj-padded (memq modifier '(at colon-at))
 				  (next-arg) #t params)
 	   (anychar-dispatch))
-	  ((#\D) ; Decimal
+
+	  ((#\d) ; Decimal
 	   (format:out-num-padded modifier (next-arg) params 10)
 	   (anychar-dispatch))
-	  ((#\X) ; Hexadecimal
+
+	  ((#\x) ; Hexadecimal
 	   (format:out-num-padded modifier (next-arg) params 16)
 	   (anychar-dispatch))
-	  ((#\O) ; Octal
+
+	  ((#\o) ; Octal
 	   (format:out-num-padded modifier (next-arg) params 8)
 	   (anychar-dispatch))
-	  ((#\B) ; Binary
+
+	  ((#\b) ; Binary
 	   (format:out-num-padded modifier (next-arg) params 2)
 	   (anychar-dispatch))
-	  ((#\R)
+
+	  ((#\r)
 	   (if (null? params)
 	       (format:out-obj-padded ; Roman, cardinal, ordinal numerals
 		#f
@@ -2037,25 +1993,27 @@
 	     (format:out-num-padded ; any Radix
 	      modifier (next-arg) (cdr params) (car params)))
 	   (anychar-dispatch))
-	  ((#\F) ; Fixed-format floating-point
+
+	  ((#\f) ; Fixed-format floating-point
 	   (format:print-flonum-fixed-point modifier (next-arg) params)
 	   (anychar-dispatch))
-	  ((#\E) ; Exponential floating-point
+
+	  ((#\e) ; Exponential floating-point
 	   (format:print-flonum-exponential modifier (next-arg) params)
 	   (anychar-dispatch))
-	  ((#\$) ; Dollars floating-point
-	   (format:print-flonum-dollar modifier (next-arg) params)
+
+;;;This must be replaced by a function that can print currency with i18n
+;;;support.
+;;;
+;;; 	  ((#\$) ; Dollars floating-point
+;;; 	   (format:print-flonum-dollar modifier (next-arg) params)
+;;; 	   (anychar-dispatch))
+
+	  ((#\i) ; Complex numbers
+	   (format:print-complex modifier (next-arg) params)
 	   (anychar-dispatch))
-	  ((#\I) ; Complex numbers
-	   (let ((z (next-arg)))
-	     (when (not (complex? z))
-	       (error 'format:format
-		 "argument not a complex number"))
-	     (format:print-flonum-fixed-point modifier (real-part z) params)
-	     (format:print-flonum-fixed-point 'at      (imag-part z) params)
-	     (format:print-char #\i))
-	   (anychar-dispatch))
-	  ((#\C) ; Character
+
+	  ((#\c) ; Character
 	   (let ((ch (if (one-positive-integer? params)
 			 (integer->char (car params))
 		       (next-arg))))
@@ -2068,15 +2026,11 @@
 	       ((colon)
 		(let ((c (char->integer ch)))
 		  (if (< c 0)
-		      (set! c (+ c 256))) ; compensate
-		; complement
-		; impl.
+		      (set! c (+ c 256))) ; compensate complement impl.
 		  (cond
-		   ((< c #x20) ; assumes that control
-		; chars are < #x20
+		   ((< c #x20) ; assumes that control chars are < #x20
 		    (format:print-char #\^)
-		    (format:print-char
-		     (integer->char (+ c #x40))))
+		    (format:print-char (integer->char (+ c #x40))))
 		   ((>= c #x7f)
 		    (format:print-string "#\\")
 		    (format:print-string (number->string c 8)))
@@ -2084,7 +2038,8 @@
 		    (format:print-char ch)))))
 	       (else (format:print-char ch))))
 	   (anychar-dispatch))
-	  ((#\P) ; Plural
+
+	  ((#\p) ; Plural
 	   (if (memq modifier '(colon colon-at))
 	       (prev-arg))
 	   (let ((arg (next-arg)))
@@ -2098,53 +2053,62 @@
 		   (format:print-string "ies")
 		 (format:print-char #\s))))
 	   (anychar-dispatch))
+
 	  ((#\~) ; Tilde
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\~)
 	     (format:print-char #\~))
 	   (anychar-dispatch))
+
 	  ((#\%) ; Newline
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\newline)
 	     (format:print-char #\newline))
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
+
 	  ((#\&) ; Fresh line
 	   (if (one-positive-integer? params)
 	       (begin
 		 (if (> (car params) 0)
 		     (format:print-fill-chars (- (car params)
-					 (if (>
-					      format:output-col
-					      0) 0 1))
-				      #\newline))
+						 (if (>
+						      format:output-col
+						      0) 0 1))
+					      #\newline))
 		 (set! format:output-col 0))
 	     (if (> format:output-col 0)
 		 (format:print-char #\newline)))
 	   (anychar-dispatch))
+
 	  ((#\_) ; Space character
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\space)
 	     (format:print-char #\space))
 	   (anychar-dispatch))
+
 	  ((#\/) ; Tabulator character
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\tab)
 	     (format:print-char #\tab))
 	   (anychar-dispatch))
+
 	  ((#\|) ; Page seperator
 	   (if (one-positive-integer? params)
 	       (format:print-fill-chars (car params) #\page)
 	     (format:print-char #\page))
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
+
 	  ((#\T) ; Tabulate
 	   (format:tabulate modifier params)
 	   (anychar-dispatch))
+
 	  ((#\Y) ; Pretty-print
 	   (pretty-print (next-arg) destination-port)
 	   (set! format:output-col 0)
 	   (anychar-dispatch))
+
 	  ((#\? #\K) ; Indirection (is "~K" in T-Scheme)
 	   (cond
 	    ((memq modifier '(colon colon-at))
@@ -2159,9 +2123,11 @@
 		    (args (next-arg)))
 	       (format:format frmt args))))
 	   (anychar-dispatch))
+
 	  ((#\!) ; Flush output
 	   (set! format:flush-output #t)
 	   (anychar-dispatch))
+
 	  ((#\newline) ; Continuation lines
 	   (if (eq? modifier 'at)
 	       (format:print-char #\newline))
@@ -2173,6 +2139,7 @@
 		     (format:print-char (next-char))
 		   (next-char))))
 	   (anychar-dispatch))
+
 	  ((#\*) ; Argument jumping
 	   (case modifier
 	     ((colon) ; jump backwards
@@ -2194,6 +2161,7 @@
 		    (next-arg))
 		(next-arg))))
 	   (anychar-dispatch))
+
 	  ((#\() ; Case conversion begin
 	   (set! format:case-conversion
 		 (case modifier
@@ -2202,12 +2170,14 @@
 		   ((colon-at)	string-upcase)
 		   (else	string-downcase)))
 	   (anychar-dispatch))
+
 	  ((#\)) ; Case conversion end
 	   (when (not format:case-conversion)
 	     (error 'format:format
 	       "missing escape sequence ~("))
 	   (set! format:case-conversion #f)
 	   (anychar-dispatch))
+
 	  ((#\[) ; Conditional begin
 	   (set! conditional-nest (+ conditional-nest 1))
 	   (cond
@@ -2228,6 +2198,7 @@
 		       (car params)
 		     (next-arg)))))
 	   (anychar-dispatch))
+
 	  ((#\;) ; Conditional separator
 	   (when (zero? conditional-nest)
 	     (error 'format:format
@@ -2251,6 +2222,7 @@
 	       (set! clauses (append clauses (list clause-str)))
 	       (set! clause-pos format:pos)))
 	   (anychar-dispatch))
+
 	  ((#\]) ; Conditional end
 	   (when (zero? conditional-nest)
 	     (error 'format:format
@@ -2273,13 +2245,13 @@
 	       ((if-then)
 		(if conditional-arg
 		    (format:format (car clauses)
-					(list conditional-arg))))
+				   (list conditional-arg))))
 	       ((if-else-then)
 		(add-arg-pos
 		 (format:format (if conditional-arg
-					 (cadr clauses)
-				       (car clauses))
-				     (rest-args))))
+				    (cadr clauses)
+				  (car clauses))
+				(rest-args))))
 	       ((num-case)
 		(when (or (not (integer? conditional-arg))
 			  (< conditional-arg 0))
@@ -2294,6 +2266,7 @@
 		      (list-ref clauses conditional-arg))
 		    (rest-args))))))))
 	   (anychar-dispatch))
+
 	  ((#\{) ; Iteration begin
 	   (set! iteration-nest (+ iteration-nest 1))
 	   (cond
@@ -2308,6 +2281,7 @@
 	     (set! max-iterations (if (one-positive-integer? params)
 				      (car params) #f))))
 	   (anychar-dispatch))
+
 	  ((#\}) ; Iteration end
 	   (when (zero? iteration-nest)
 	     (error 'format:format
@@ -2395,6 +2369,7 @@
 		    (error 'format:format
 		      "internal error in escape sequence ~}")))))
 	   (anychar-dispatch))
+
 	  ((#\^) ; Up and out
 	   (let* ((continue
 		   (cond
@@ -2427,12 +2402,14 @@
 	       "double `@' modifier"))
 	   (set! modifier (if (eq? modifier 'colon) 'colon-at 'at))
 	   (tilde-dispatch))
+
 	  ((#\:) ; `:' modifier
 	   (when (memq modifier '(colon colon-at))
 	     (error 'format:format
 	       "double escape sequence `:' modifier"))
 	   (set! modifier (if (eq? modifier 'at) 'colon-at 'colon))
 	   (tilde-dispatch))
+
 	  ((#\') ; Character parameter
 	   (when modifier
 	     (error 'format:format
@@ -2440,6 +2417,7 @@
 	   (set! params (append params (list (char->integer (next-char)))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
+
 	  ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+) ; num. paramtr
 	   (when modifier
 	     (error 'format:format
@@ -2458,6 +2436,7 @@
 					     num-str-end))))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
+
 	  ((#\V) ; Variable parameter from next argum.
 	   (when modifier
 	     (error 'format:format
@@ -2465,6 +2444,7 @@
 	   (set! params (append params (list (next-arg))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
+
 	  ((#\#) ; Parameter is number of remaining args
 	   (when param-value-found
 	     (error 'format:format
@@ -2475,6 +2455,7 @@
 	   (set! params (append params (list (length (rest-args)))))
 	   (set! param-value-found #t)
 	   (tilde-dispatch))
+
 	  ((#\,) ; Parameter separators
 	   (when modifier
 	     (error 'format:format
@@ -2483,6 +2464,7 @@
 	       (set! params (append params '(#f)))) ; append empty paramtr
 	   (set! param-value-found #f)
 	   (tilde-dispatch))
+
 	  (else ; Unknown tilde directive
 	   (error 'format:format
 	     "unknown control character"
