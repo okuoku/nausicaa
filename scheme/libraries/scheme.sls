@@ -1,14 +1,13 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: stub library to make Ikarus R6RS compliant
+;;;Part of: Nausicaa/Scheme
+;;;Contents: augmented Scheme language around (rnrs)
 ;;;Date: Tue Dec  9, 2008
-;;;Time-stamp: <2008-12-16 10:20:54 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,7 +23,102 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (r6rs)
+
+;;;; copyright notice for some SRFI definitions
+;;;
+;;;Copyright (c) 2008 Derick Eddington
+;;;
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
+;;;
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
+;;;
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
+;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
+
+
+;;;; copyright notice for the REC definition, renamed to RECURSIION
+;;;
+;;;Copyright (c) 2002 Dr. Mirko Luedde <Mirko.Luedde@SAP.com>
+;;;All Rights Reserved.
+;;;
+;;;Modified by Derick Eddington as port to R6RS.
+;;;Modified by Marco Maggi upon inclusion in Nausicaa.
+;;;
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;``Software''), to deal in the Software without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
+;;;
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
+;;;
+;;;THE SOFTWARE  IS PROVIDED  ``AS IS'', WITHOUT  WARRANTY OF  ANY KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
+
+
+;;;; copyright notice for the CUT and CUTE definitions
+;;;
+;;;Reference implementation for SRFI-26 "cut"
+;;;
+;;;Copyright (c) 2002 Sebastian.Egner@philips.com, 5-Jun-2002.
+;;;Copyright (c) 2002 Al Petrofsky <al@petrofsky.org>
+;;;Copyright (c) 2008 Derick Eddington
+;;;
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
+;;;
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
+;;;
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
+;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
+
+
+
+(library (scheme)
   (export
     &assertion
     &condition
@@ -293,7 +387,8 @@
     exit
     exp
     expt
-    fields
+;;; this is an auxiliary syntax
+;;;    fields
     file-exists?
     file-options
     filter
@@ -445,7 +540,8 @@
     identifier?
     if
     imag-part
-    immutable
+;;; this is an auxiliary syntax
+;;;    immutable
     implementation-restriction-violation?
     inexact
 ;;; this is in (rnrs r5rs (6))
@@ -540,7 +636,8 @@
     mod0
 ;;; this is in (rnrs r5rs (6))
 ;;;    modulo
-    mutable
+;;; this is an auxiliary syntax
+;;;    mutable
     nan?
     native-endianness
     native-eol-style
@@ -550,7 +647,8 @@
     no-infinities-violation?
     no-nans-violation?
     non-continuable-violation?
-    nongenerative
+;;; this is an auxiliary syntax
+;;;    nongenerative
     not
 ;;; this is in (rnrs r5rs (6))
 ;;;    null-environment
@@ -559,7 +657,8 @@
     number?
     numerator
     odd?
-    opaque
+;;; this is an auxiliary syntax
+;;;    opaque
     open-bytevector-input-port
     open-bytevector-output-port
     open-file-input-port
@@ -573,8 +672,10 @@
     output-port-buffer-mode
     output-port?
     pair?
-    parent
-    parent-rtd
+;;; this is an auxiliary syntax
+;;;    parent
+;;; this is an auxiliary syntax
+;;;    parent-rtd
     partition
     peek-char
     port-eof?
@@ -585,7 +686,8 @@
     port?
     positive?
     procedure?
-    protocol
+;;; this is an auxiliary syntax
+;;;    protocol
     put-bytevector
     put-char
     put-datum
@@ -634,7 +736,8 @@
     round
 ;;; this is in (rnrs r5rs (6))
 ;;;    scheme-report-environment
-    sealed
+;;; this is an auxiliary syntax
+;;;    sealed
     serious-condition?
     set!
 ;;; these are in (rnrs mutable-pairs (6))
@@ -741,11 +844,105 @@
     with-syntax
     write
     write-char
-    zero?)
-  (import (except (rnrs) equal-hash))
-  (define (equal-hash obj)
-    (string-hash
-     (call-with-string-output-port
- 	 (lambda (port) (write obj port))))))
+    zero?
+
+;;; --------------------------------------------------------------------
+
+    and-let* receive recursion cut cute
+    )
+  (import (rnrs))
+
+
+;;;; additional definitions
+
+(define-syntax and-let*
+  (lambda (stx)
+    (define (get-id c)
+      (syntax-case c () [(var expr) #'var] [_ #f]))
+    (syntax-case stx ()
+      [(_ (clause* ...) body* ...)
+       (for-all identifier? (filter values (map get-id #'(clause* ...))))
+       #'(and-let*-core #t (clause* ...) body* ...)])))
+
+(define-syntax and-let*-core
+  (lambda (stx)
+    (syntax-case stx ()
+      [(kw _ ([var expr] clause* ...) body* ...)
+       #'(let ([var expr])
+	   (if var
+               (kw var (clause* ...) body* ...)
+	     #f))]
+      [(kw _ ([expr] clause* ...) body* ...)
+       #'(let ([t expr])
+	   (if t
+               (kw t (clause* ...) body* ...)
+	     #f))]
+      [(kw _ (id clause* ...) body* ...)
+       (or (identifier? #'id)
+	   (syntax-violation #f "invalid clause" stx #'id))
+       #'(if id
+             (kw id (clause* ...) body* ...)
+	   #f)]
+      [(kw last () body* ...)
+       (if (positive? (length #'(body* ...)))
+           #'(begin body* ...)
+	 #'last)])))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax receive
+  (syntax-rules ()
+    [(_ formals expression b b* ...)
+     (call-with-values
+         (lambda () expression)
+       (lambda formals b b* ...))]))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax recursion
+  (syntax-rules ()
+    ((rec (?name . ?variables) . ?body)
+     (letrec ( (?name (lambda ?variables . ?body)) ) ?name))
+    ((rec ?name ?expr)
+     (letrec ( (?name ?expr) ) ?name))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax internal-cut
+  (syntax-rules (<> <...>)
+    ((internal-cut (?slot-name ...) (?proc ?arg ...))
+     (lambda (?slot-name ...) ((begin ?proc) ?arg ...)))
+    ((internal-cut (?slot-name ...) (?proc ?arg ...) <...>)
+     (lambda (?slot-name ... . rest-slot) (apply ?proc ?arg ... rest-slot)))
+    ((internal-cut (?slot-name ...)	(?position ...)		<>   . ?se)
+     (internal-cut (?slot-name ... x)	(?position ... x)	     . ?se))
+    ((internal-cut (?slot-name ...)	(?position ...)		?nse . ?se)
+     (internal-cut (?slot-name ...)	(?position ... ?nse)	     . ?se))))
+
+(define-syntax internal-cute
+  (syntax-rules (<> <...>)
+    ((internal-cute (?slot-name ...) ?nse-bindings (?proc ?arg ...))
+     (let ?nse-bindings (lambda (?slot-name ...) (?proc ?arg ...))))
+    ((internal-cute (?slot-name ...) ?nse-bindings (?proc ?arg ...) <...>)
+     (let ?nse-bindings (lambda (?slot-name ... . x) (apply ?proc ?arg ... x))))
+    ((internal-cute (?slot-name ...)   ?nse-bindings  (?position ...)   <>  . se)
+     (internal-cute (?slot-name ... x) ?nse-bindings  (?position ... x)     . se))
+    ((internal-cute ?slot-names        ?nse-bindings  (?position ...)   nse . se)
+     (internal-cute ?slot-names ((x nse) . ?nse-bindings) (?position ... x) . se))))
+
+(define-syntax cut
+  (syntax-rules ()
+    ((cut . slots-or-exprs)
+     (internal-cut () () . slots-or-exprs))))
+
+(define-syntax cute
+  (syntax-rules ()
+    ((cute . slots-or-exprs)
+     (internal-cute () () () . slots-or-exprs))))
+
+
+;;;; done
+
+)
 
 ;;; end of file

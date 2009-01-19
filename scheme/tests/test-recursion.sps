@@ -31,7 +31,7 @@
 ;;;; setup
 
 #!r6rs
-(import (r6rs)
+(import (scheme)
   (lang-lib)
   (check-lib))
 

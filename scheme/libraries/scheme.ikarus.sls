@@ -1,14 +1,13 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: wrapper for (rnrs) that tries to be R6RS
+;;;Part of: Nausicaa/Scheme
+;;;Contents: augmented Scheme language around (rnrs), for Ikarus
 ;;;Date: Tue Dec  9, 2008
-;;;Time-stamp: <2008-12-16 08:16:22 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,7 +23,9 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (r6rs)
+
+
+(library (scheme)
   (export
     &assertion
     &condition
@@ -293,8 +294,7 @@
     exit
     exp
     expt
-;;; this is an auxiliary syntax
-;;;    fields
+    fields
     file-exists?
     file-options
     filter
@@ -446,8 +446,7 @@
     identifier?
     if
     imag-part
-;;; this is an auxiliary syntax
-;;;    immutable
+    immutable
     implementation-restriction-violation?
     inexact
 ;;; this is in (rnrs r5rs (6))
@@ -542,8 +541,7 @@
     mod0
 ;;; this is in (rnrs r5rs (6))
 ;;;    modulo
-;;; this is an auxiliary syntax
-;;;    mutable
+    mutable
     nan?
     native-endianness
     native-eol-style
@@ -553,8 +551,7 @@
     no-infinities-violation?
     no-nans-violation?
     non-continuable-violation?
-;;; this is an auxiliary syntax
-;;;    nongenerative
+    nongenerative
     not
 ;;; this is in (rnrs r5rs (6))
 ;;;    null-environment
@@ -563,8 +560,7 @@
     number?
     numerator
     odd?
-;;; this is an auxiliary syntax
-;;;    opaque
+    opaque
     open-bytevector-input-port
     open-bytevector-output-port
     open-file-input-port
@@ -578,10 +574,8 @@
     output-port-buffer-mode
     output-port?
     pair?
-;;; this is an auxiliary syntax
-;;;    parent
-;;; this is an auxiliary syntax
-;;;    parent-rtd
+    parent
+    parent-rtd
     partition
     peek-char
     port-eof?
@@ -592,8 +586,7 @@
     port?
     positive?
     procedure?
-;;; this is an auxiliary syntax
-;;;    protocol
+    protocol
     put-bytevector
     put-char
     put-datum
@@ -642,8 +635,7 @@
     round
 ;;; this is in (rnrs r5rs (6))
 ;;;    scheme-report-environment
-;;; this is an auxiliary syntax
-;;;    sealed
+    sealed
     serious-condition?
     set!
 ;;; these are in (rnrs mutable-pairs (6))
@@ -751,6 +743,10 @@
     write
     write-char
     zero?)
-  (import (rnrs)))
+  (import (except (rnrs) equal-hash))
+  (define (equal-hash obj)
+    (string-hash
+     (call-with-string-output-port
+ 	 (lambda (port) (write obj port))))))
 
 ;;; end of file

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
@@ -38,7 +38,7 @@
 
 ;;;; setup
 
-(import (r6rs)
+(import (scheme)
   (rnrs eval (6))
   (check-lib)
   (lang-lib))

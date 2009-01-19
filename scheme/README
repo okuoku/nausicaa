@@ -1,6 +1,6 @@
 
-		       R6RS adapters
-		       =============
+		      Nausicaa/Scheme
+		      ===============
 
 
 Topics
@@ -16,9 +16,11 @@ Topics
 1. Introduction
 ---------------
 
-This is a Scheme library that attempts to make self-defining
+This is a set of  Scheme libraries that defines an augmented
+R6RS  Scheme language.   It attempts  to  make self-defining
 R6RS  Scheme  implementations more  R6RS  compliant, in  the
-sense of "programs that work".
+sense of "programs that work".  Additionally, some functions
+from the SRFI collection is exported by default.
 
 
 2. License
@@ -48,7 +50,7 @@ License   along   with    this   program.    If   not,   see
 
 Basically we should do:
 
-   $ cd template
+   $ cd scheme
    $ mkdir "=build"
    $ cd "=build"
    $ ../configure
@@ -63,7 +65,7 @@ Basically we should do:
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/nausicaa-r6rs
+    $ make install DESTDIR=/tmp/marco/nausicaa-scheme
 
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to

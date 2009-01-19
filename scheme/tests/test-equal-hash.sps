@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Uriel libraries
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: test for equal-hash implementation
 ;;;Date: Mon Dec  8, 2008
 ;;;
@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,7 +23,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (r6rs))
+(import (scheme))
 
 (define-syntax check
   (syntax-rules (=>)
