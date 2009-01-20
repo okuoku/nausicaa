@@ -1,6 +1,8 @@
 ## try-larceny-compatibility.sh --
 ##
 
-larceny -path tests/r6rs -r6rs -program run.sps
+export LARCENY_LIBPATH=$PWD:$LARCENY_LIBPATH
+
+exec larceny -r6rs -program tests/r6rs/run.sps
 
 ### end of file

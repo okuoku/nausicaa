@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs syntax-case)
@@ -17,7 +34,7 @@
      [else (syntax->datum s)]))
 
   ;; ----------------------------------------
-  
+
   (define p (cons 4 5))
   (define-syntax p.car
     (lambda (x)
@@ -34,7 +51,7 @@
          [(set! _ e) #'(set! p2 (cons e (cdr p2)))]
          [(_ . rest) #'((car p2) . rest)]
          [_  #'(car p2)]))))
-  
+
   (define-syntax rec
     (lambda (x)
       (syntax-case x ()
@@ -53,7 +70,7 @@
                 (let f () e ... (f)))))])))
 
   ;; ----------------------------------------
-  
+
   (define (run-syntax-case-tests)
 
     (test p.car 4)
@@ -62,17 +79,17 @@
     (set! p2.car 15)
     (test p2.car 15)
     (test p2 '(15 . 5))
-    
+
     (test (map (rec fact
                     (lambda (n)
-                      (if (= n 0)                 
+                      (if (= n 0)
                           1
                           (* n (fact (- n 1))))))
                '(1 2 3 4 5))
           '(1 2 6 24 120))
-    
+
     ; (test/exn (rec 5 (lambda (x) x)) &syntax) ; not a runtime exception
-    
+
     (test
      (let ([fred 17])
        (define-syntax a
@@ -86,7 +103,7 @@
               #`(list
                    #,(free-identifier=? #'id1 #'id2)
                    #,(bound-identifier=? #'id1 #'id2))])))
-       (a fred)) 
+       (a fred))
      '(#t #f))
 
     ; (test/exn (let ([a 3] [a 4]) (+ a a)) &syntax)
@@ -96,7 +113,7 @@
                         (syntax-case x ()
                           [(_ b)
                            #'(let ([a 3] [b 4]) (+ a b))]))])
-            (dolet a)) 
+            (dolet a))
           7)
 
     ;; check that it's ok as an expression:
@@ -112,14 +129,14 @@
 
     #;
     (test/exn (let ([else #f])
-                (case 0 [else (write "oops")])) 
+                (case 0 [else (write "oops")]))
               &syntax)
 
     (test (let ((n 3) (ls '()))
             (loop
              (if (= n 0) (break ls))
              (set! ls (cons 'a ls))
-             (set! n (- n 1)))) 
+             (set! n (- n 1))))
           '(a a a))
 
     ;; ----------------------------------------
@@ -130,19 +147,19 @@
     (test (syntax-case #'(1) () [(x) (syntax->datum #'x)]) 1)
     (test (syntax-case '("a") () [(x) #'x]) "a")
     (test (syntax-case #'("a") () [(x) (syntax->datum #'x)]) "a")
-    (test (syntax-case '(1 #f "s" #vu8(9) #(5 7)) () 
-            [(x ...) #'(x ...)]) 
+    (test (syntax-case '(1 #f "s" #vu8(9) #(5 7)) ()
+            [(x ...) #'(x ...)])
           '(1 #f "s" #vu8(9) #(5 7)))
-    (test (syntax-case #'(1 #f "s" #vu8(9) #(5 7)) () 
-            [(x ...) (map syntax->datum #'(x ...))]) 
+    (test (syntax-case #'(1 #f "s" #vu8(9) #(5 7)) ()
+            [(x ...) (map syntax->datum #'(x ...))])
           '(1 #f "s" #vu8(9) #(5 7)))
     (test (syntax-case '(1 2 3 4) () [(x y . z) #'z]) '(3 4))
-    (test (syntax-case #'(a b c d) () [(x y . z) (syntax->datum #'z)]) 
+    (test (syntax-case #'(a b c d) () [(x y . z) (syntax->datum #'z)])
           '(c d))
-    (test (syntax-case #'(nonesuch 12) (nonesuch) 
+    (test (syntax-case #'(nonesuch 12) (nonesuch)
             [(nonesuch x) (syntax->datum #'x)])
           12)
-    (test (syntax-case #'(different 12) (nonesuch) 
+    (test (syntax-case #'(different 12) (nonesuch)
             [(nonesuch x) #'x]
             [_ 'other])
           'other)
@@ -248,7 +265,7 @@
 
     (test (syntax->datum #`(1 2 3)) '(1 2 3))
     (test (syntax->datum #`1) 1)
-    
+
     ;; Check wrapping:
     (test (let ([v #`(1 #,(+ 1 1) 3)])
             (list (pair? v)

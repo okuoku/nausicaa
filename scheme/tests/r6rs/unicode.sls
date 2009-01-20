@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs unicode)
@@ -11,12 +28,12 @@
     (test (char-downcase #\i) #\i)
     (test (char-titlecase #\i) #\I)
     (test (char-foldcase #\i) #\i)
-    
+
     (test (char-upcase #\xDF) #\xDF)
     (test (char-downcase #\xDF) #\xDF)
     (test (char-titlecase #\xDF) #\xDF)
     (test (char-foldcase #\xDF) #\xDF)
-    
+
     (test (char-upcase #\x3A3) #\x3A3)
     (test (char-downcase #\x3A3) #\x3C3)
     (test (char-titlecase #\x3A3) #\x3A3)
@@ -82,7 +99,7 @@
     (test (string-downcase "Stra\xDF;e") "stra\xDF;e")
     (test (string-foldcase "Stra\xDF;e") "strasse")
     (test (string-downcase "STRASSE")  "strasse")
-    
+
     (test (string-downcase "\x3A3;") "\x3C3;")
 
     (test (string-upcase "\x39E;\x391;\x39F;\x3A3;") "\x39E;\x391;\x39F;\x3A3;")
@@ -90,8 +107,8 @@
     (test (string-downcase "\x39E;\x391;\x39F;\x3A3;\x3A3;") "\x3BE;\x3B1;\x3BF;\x3C3;\x3C2;")
     (test (string-downcase "\x39E;\x391;\x39F;\x3A3; \x3A3;") "\x3BE;\x3B1;\x3BF;\x3C2; \x3C3;")
     (test (string-foldcase "\x39E;\x391;\x39F;\x3A3;") "\x3BE;\x3B1;\x3BF;\x3C3;")
-    (test (string-upcase "\x3BE;\x3B1;\x3BF;\x3C3;") "\x39E;\x391;\x39F;\x3A3;") 
-    (test (string-upcase "\x3BE;\x3B1;\x3BF;\x3C2;") "\x39E;\x391;\x39F;\x3A3;") 
+    (test (string-upcase "\x3BE;\x3B1;\x3BF;\x3C3;") "\x39E;\x391;\x39F;\x3A3;")
+    (test (string-upcase "\x3BE;\x3B1;\x3BF;\x3C2;") "\x39E;\x391;\x39F;\x3A3;")
 
     (test (string-titlecase "kNock KNoCK") "Knock Knock")
     (test (string-titlecase "who's there?") "Who's There?")

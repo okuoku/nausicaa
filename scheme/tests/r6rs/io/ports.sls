@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs io ports)
@@ -19,11 +36,11 @@
          (test (bytevector->string #vu8(#xFE #xFF 0 97 0 112 0 112 #x3 #xBB 0 101)
                                    (make-transcoder (utf-16-codec)))
                "app\x03BB;e")
-         (test (bytevector->string #vu8(97 10 98 13 99 13 10 100 #o302 #o205 101 
+         (test (bytevector->string #vu8(97 10 98 13 99 13 10 100 #o302 #o205 101
                                            #o342 #o200 #o250 102 13 #o302 #o205 103)
                                    (make-transcoder (utf-8-codec) 'none))
                "a\nb\rc\r\nd\x85;e\x2028;f\r\x85;g")
-         (test (bytevector->string #vu8(97 10 98 13 99 13 10 100 #o302 #o205 101 #o342 
+         (test (bytevector->string #vu8(97 10 98 13 99 13 10 100 #o302 #o205 101 #o342
                                            #o200 #o250 102 13 #o302 #o205 103)
                                    (make-transcoder (utf-8-codec) 'lf))
                "a\nb\nc\nd\ne\nf\ng")
@@ -209,7 +226,7 @@
     (let ([p (open-file-output-port "io-tmp1"
                                     (file-options no-create))])
       (test/unspec (close-port p)))
-    
+
     ;; Re-open if 'no-fail is specified:
     (let ([p (open-file-output-port "io-tmp1"
                                     (file-options no-fail))])
@@ -294,11 +311,11 @@
       (close-port p))
     (let ([p (open-file-input-port "io-tmp1" (file-options) 'none)])
       (close-port p))
-    
+
     ;; ----------------------------------------
     ;; Transcoders
 
-    (let ([p (open-file-output-port "io-tmp1" (file-options no-create) 
+    (let ([p (open-file-output-port "io-tmp1" (file-options no-create)
                                     'block (make-transcoder (latin-1-codec)))])
       (when (port-has-port-position? p)
         (test/unspec (port-position p))
@@ -323,7 +340,7 @@
       (test (get-char p) (eof-object))
       (close-port p))
 
-    (let ([p (open-file-output-port "io-tmp1" (file-options no-create) 
+    (let ([p (open-file-output-port "io-tmp1" (file-options no-create)
                                     'block (make-transcoder (utf-8-codec)))])
       (test/unspec (put-string p "app\x3BB;e"))
       (close-port p))
@@ -331,8 +348,8 @@
                                    'block (make-transcoder (latin-1-codec)))])
       (test (get-string-n p 20) "app\xCE;\xBB;e")
       (close-port p))
-    
-    (let ([p (open-file-output-port "io-tmp1" (file-options no-create) 
+
+    (let ([p (open-file-output-port "io-tmp1" (file-options no-create)
                                     'block (make-transcoder (utf-16-codec)))])
       (test/unspec (put-string p "app\x3BB;e"))
       (close-port p))
@@ -432,7 +449,7 @@
       (test/unspec (close-port p)))
 
     (test/unspec (delete-file "io-tmp1"))
-    
+
     ;; ----------------------------------------
     ;; bytevector ports
 
@@ -520,7 +537,7 @@
            (lambda (p)
              (test/unspec (put-string p "app\x3BB;y"))))
           "app\x3BB;y")
-    
+
     ;; ----------------------------------------
     ;; custom ports
 
@@ -582,7 +599,7 @@
 
     ;; textual port positions are hopelessly broken in R6RS
     #;(test-positions make-custom-textual-input-port)
-    
+
     (let* ([accum '()]
            [p (make-custom-binary-output-port
                "custom out"
@@ -658,7 +675,7 @@
       (test save 10)
       (test (get-u8 p) 7)
       (close-port p))
-    
+
     (test-positions (lambda (id r/w get set close)
                       (make-custom-binary-input/output-port
                        id r/w r/w get set close)))
@@ -678,7 +695,7 @@
       (test save #\q)
       (test (get-char p) #\!)
       (close-port p))
-    
+
     ;; textual port positions are hopelessly broken in R6RS
     #;(test-positions (lambda (id r/w get set close)
                         (make-custom-textual-input/output-port
@@ -765,6 +782,6 @@
     (test-rw '#(a 1/2 "str" #vu8(1 2 7)))
 
     ;; ----------------------------------------
-    
+
     ;;
     ))

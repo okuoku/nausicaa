@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs reader)
@@ -47,7 +64,7 @@
      "#o+0"
      "#o-0"
      "#o0"
-     
+
      "#X-238973897AAAAAFFFFbb00bbdddcc"
      "#X238973897AAAAA000FFFFbbbbdddcc"
      "#X+07edf387"
@@ -74,30 +91,30 @@
      "#O0"
      "#i#xf/e"
      "#x#if/e")
-    
-    (test (read (open-string-input-port "#\\nul")) 
+
+    (test (read (open-string-input-port "#\\nul"))
           (integer->char #x0))
-    (test (read (open-string-input-port "#\\alarm")) 
+    (test (read (open-string-input-port "#\\alarm"))
           (integer->char #x7))
-    (test (read (open-string-input-port "#\\backspace")) 
+    (test (read (open-string-input-port "#\\backspace"))
           (integer->char #x8))
-    (test (read (open-string-input-port "#\\tab")) 
+    (test (read (open-string-input-port "#\\tab"))
           (integer->char #x9))
-    (test (read (open-string-input-port "#\\linefeed")) 
+    (test (read (open-string-input-port "#\\linefeed"))
           (integer->char #xA))
-    (test (read (open-string-input-port "#\\newline")) 
+    (test (read (open-string-input-port "#\\newline"))
           (integer->char #xA))
-    (test (read (open-string-input-port "#\\vtab")) 
+    (test (read (open-string-input-port "#\\vtab"))
           (integer->char #xB))
-    (test (read (open-string-input-port "#\\page")) 
+    (test (read (open-string-input-port "#\\page"))
           (integer->char #xC))
-    (test (read (open-string-input-port "#\\return")) 
+    (test (read (open-string-input-port "#\\return"))
           (integer->char #xD))
-    (test (read (open-string-input-port "#\\esc")) 
+    (test (read (open-string-input-port "#\\esc"))
           (integer->char #x1B))
-    (test (read (open-string-input-port "#\\space")) 
+    (test (read (open-string-input-port "#\\space"))
           (integer->char #x20))
-    (test (read (open-string-input-port "#\\delete")) 
+    (test (read (open-string-input-port "#\\delete"))
           (integer->char #x7F))
 
     ;;

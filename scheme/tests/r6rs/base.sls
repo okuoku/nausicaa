@@ -1,5 +1,4 @@
-;;;Copyright (c) 2004-2009 PLT Scheme Inc.
-;;;Copyright (c) 1995-2000 Matthew Flatt
+;;;Copyright (c) 2008 Matthew Flatt
 ;;;
 ;;;This library is free software;  you can redistribute it and/or modify
 ;;;it  under the  terms of  the GNU  Library General  Public  License as

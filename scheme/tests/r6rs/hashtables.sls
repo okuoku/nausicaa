@@ -1,3 +1,19 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
 #!r6rs
 
 (library (tests r6rs hashtables)
@@ -35,7 +51,7 @@
            (test (hashtable-mutable? h) #t)
            (test (hashtable-mutable? h1) #t)
            (test (hashtable-mutable? h1i) #f)
-           
+
            (test (vector-length (hashtable-keys h))
                  (hashtable-size h))
            (test (vector-length (let-values ([(k e) (hashtable-entries h)])
@@ -83,12 +99,12 @@
            (test (hashtable-contains? h1i key) #t) ...
 
            (test/unspec (hashtable-clear! h1))
-           
+
            (test/exn (hashtable-set! h1i key/r #f) &violation)
            (test/exn (hashtable-delete! h1i key/r) &violation)
            (test/exn (hashtable-update! h1i key/r (lambda (q) q) 'none) &violation)
            (test/exn (hashtable-clear! h1i) &violation)))]))
-  
+
   ;; ----------------------------------------
 
   (define (run-hashtables-tests)
@@ -106,7 +122,7 @@
                  '(#(2 3 1)  . #(two three one))
                  '(#(3 1 2)  . #(three one two))
                  '(#(3 2 1)  . #(three two one))))
-    
+
     (test-ht (make-eq-hashtable) eq?
              (['a 7] ['b "bee"]
               [#t 8] [#f 9]
@@ -114,7 +130,7 @@
              'b "bee" "bumble"
              'd 12
              'c)
-    
+
     (test-ht (make-eqv-hashtable) eqv?
              (['a 7] [#\b "bee"]
               [#t 8] [0.0 85]
@@ -124,12 +140,12 @@
              123456789101112)
 
     (let ([val-of (lambda (a)
-                    (if (number? a) 
-                        a 
+                    (if (number? a)
+                        a
                         (string->number a)))])
       (test-ht (make-hashtable val-of
                                (lambda (a b)
-                                 (= (val-of a) (val-of b)))) 
+                                 (= (val-of a) (val-of b))))
                equal?
                ([1 'one]["2" 'two]
                 [3 'three]["4" 'four])
@@ -140,7 +156,7 @@
     (test (hashtable? (make-eq-hashtable 10)) #t)
     (test (hashtable? (make-eqv-hashtable 10)) #t)
     (test (hashtable? (make-hashtable (lambda (x) 0) equal? 10)) #t)
-    
+
     (let ([zero (lambda (a) 0)]
           [same? (lambda (a b) #t)])
       (let ([ht (make-hashtable zero same?)])

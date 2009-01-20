@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs arithmetic fixnums)
@@ -33,11 +50,11 @@
                  (vals->list fxop/carry-reference fx1 fx2 fx3))]))
 
   (define (carry-tests l)
-    (for-each 
+    (for-each
      (lambda (n)
-       (for-each 
+       (for-each
         (lambda (m)
-          (for-each 
+          (for-each
            (lambda (p)
              (carry-test fx*/carry fx*/carry-reference n m p)
              (carry-test fx+/carry fx+/carry-reference n m p)
@@ -98,7 +115,7 @@
                       (test (fx<? b a) #f)
                       (test (fx<? c b) #f)
                       (test (fx<? a c b) #f)
-                      
+
                       (test (fx<=? a a) #t)
                       (test (fx<=? a b) #t)
                       (test (fx<=? a c) #t)
@@ -115,7 +132,7 @@
                       (test (fx<=? b c a) #f))])
                (test-lt fx<? fx<=? a b c)
                (test-lt fx>? fx>=? c b a))
-             
+
              ;; Since b is between a and c, we can add or subtract 1:
              (test (fx=? (+ b 1) (+ b 1)) #t)
              (test (fx<? b (+ b 1)) #t)
@@ -127,7 +144,7 @@
              (test (fx<=? b (- b 1)) #f)
              (test (fx>? b (- b 1)) #t)
              (test (fx>=? b (- b 1)) #t)
-             
+
              ;; Check min & max while we have ordered values:
              (test (fxmin a b) a)
              (test (fxmin b c) b)
@@ -181,7 +198,7 @@
     (test (fx* -1 (greatest-fixnum)) (+ (least-fixnum) 1))
     (test/exn (fx* (greatest-fixnum) 2) &implementation-restriction)
     (test/exn (fx* (least-fixnum) -1) &implementation-restriction)
-    
+
     (test (fx- 1) -1)
     (test (fx- -1) 1)
     (test (fx- 0) 0)
@@ -195,7 +212,7 @@
     (test/exn (fx- (least-fixnum) 1) &implementation-restriction)
 
     ;; If you put N numbers here, it runs to O(N^3) tests!
-    (carry-tests (list 0 1 2 -1 -2 38734 -3843 2484598 -348732487 
+    (carry-tests (list 0 1 2 -1 -2 38734 -3843 2484598 -348732487
                        (greatest-fixnum) (least-fixnum)))
 
     (test (fxdiv 123 10) 12)

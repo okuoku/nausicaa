@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs lists)
@@ -6,24 +23,24 @@
           (tests r6rs test))
 
   (define (run-lists-tests)
-    
+
     ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;  Tests originally from R6RS
 
     (test (find even? '(3 1 4 1 5 9)) 4)
     (test (find even? '(3 1 5 1 5 9)) #f)
-    
+
     (test (for-all even? '()) #t)
     (test (for-all even? '(3 1 4 1 5 9)) #f)
     ;; (test (for-all even? '(3 1 4 1 5 9 . 2)) #f) ; removed from R6RS
     (test (for-all even? '(2 4 14)) #t)
     (test/exn (for-all even? '(2 4 14 . 9)) &assertion)
     (test (for-all (lambda (n) (and (even? n) n))
-                   '(2 4 14)) 
+                   '(2 4 14))
           14)
     (test (for-all < '(1 2 3) '(2 3 4)) #t)
     (test (for-all < '(1 2 4) '(2 3 4)) #f)
-    
+
     (test (exists even? '(3 1 4 1 5 9)) #t)
     (test (exists even? '(3 1 1 5 9)) #f)
     (test (exists even? '()) #f)
@@ -39,28 +56,28 @@
     (test (fold-left + 0 '(1 2 3 4 5)) 15)
 
     (test (fold-left (lambda (a e) (cons e a)) '()
-                     '(1 2 3 4 5)) 
+                     '(1 2 3 4 5))
           '(5 4 3 2 1))
 
     (test (fold-left (lambda (count x)
                        (if (odd? x) (+ count 1) count))
                      0
-                     '(3 1 4 1 5 9 2 6 5 3)) 
+                     '(3 1 4 1 5 9 2 6 5 3))
           7)
     (test (fold-left (lambda (max-len s)
                        (max max-len (string-length s)))
                      0
-                     '("longest" "long" "longer")) 
+                     '("longest" "long" "longer"))
           7)
 
     (test (fold-left cons '(q) '(a b c)) '((((q) . a) . b) . c))
-    
+
     (test (fold-left + 0 '(1 2 3) '(4 5 6)) 21)
-    
+
     (test (fold-right + 0 '(1 2 3 4 5)) 15)
-    
+
     (test (fold-right cons '() '(1 2 3 4 5)) '(1 2 3 4 5))
-    
+
     (test (fold-right (lambda (x l)
                         (if (odd? x) (cons x l) l))
                       '()
@@ -70,17 +87,17 @@
     (test (fold-right cons '(q) '(a b c)) '(a b c q))
 
     (test (fold-right + 0 '(1 2 3) '(4 5 6)) 21)
-    
+
     (test (remp even? '(3 1 4 1 5 9 2 6 5)) '(3 1 1 5 9 5))
 
     (test (remove 1 '(3 1 4 1 5 9 2 6 5)) '(3 4 5 9 2 6 5))
-    
+
     (test (remv 1 '(3 1 4 1 5 9 2 6 5)) '(3 4 5 9 2 6 5))
-    
+
     (test (remq 'foo '(bar foo baz)) '(bar baz))
-    
+
     (test (memp even? '(3 1 4 1 5 9 2 6 5)) '(4 1 5 9 2 6 5))
-    
+
     (test (memq 'a '(a b c))               '(a b c))
     (test (memq 'b '(a b c))               '(b c))
     (test (memq 'a '(b c d))               #f)
@@ -101,7 +118,7 @@
 
     (test (assq (list 'a) '(((a)) ((b)) ((c))))
           #f)
-    (test (assoc (list 'a) '(((a)) ((b)) ((c))))   
+    (test (assoc (list 'a) '(((a)) ((b)) ((c))))
           '((a)))
     (test/unspec (assq 5 '((2 3) (5 7) (11 13))))
     (test (assv 5 '((2 3) (5 7) (11 13))) '(5 7))
@@ -130,10 +147,10 @@
     (test (fold-left (lambda (a b) (cons b a)) '() '(1 2 3 4 5))
           '(5 4 3 2 1))
     (test (fold-left (lambda (count x)
-                       (if (odd? x) 
-                           (+ count 1) 
+                       (if (odd? x)
+                           (+ count 1)
                            count))
-                     0 
+                     0
                      '(3 1 4 1 5 9 2 6 5 3))
           7)
     (test (fold-left cons '(q) '(a b c)) '((((q) . a) . b) . c))
@@ -142,7 +159,7 @@
     (test (fold-right cons '() '(1 2 3 4 5))
           '(1 2 3 4 5))
     (test (fold-right (lambda (x l)
-                        (if (odd? x) 
+                        (if (odd? x)
                             (cons x l)
                             l))
                       '()

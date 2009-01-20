@@ -1,3 +1,19 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
 #!r6rs
 
 (library (tests r6rs conditions)
@@ -23,7 +39,7 @@
     (parent &condition)
     (fields
      (immutable x real-cond1-x)))
-  
+
   (define cond1?
     (condition-predicate
      (record-type-descriptor &cond1)))
@@ -31,9 +47,9 @@
     (condition-accessor
      (record-type-descriptor &cond1)
      real-cond1-x))
-  
+
   (define foo (make-cond1 'foo))
-  
+
   (define-record-type (&cond2 make-cond2 real-cond2?)
     (parent &condition)
     (fields
@@ -89,14 +105,14 @@
     (test (real-cond1? (condition foo bar)) #f)
     (test (cond1-x (condition foo bar)) 'foo)
     (test (cond2-y (condition foo bar)) 'bar)
-                
+
     (test (simple-conditions (condition foo bar))
           (list foo bar))
 
     (test (simple-conditions
            (condition foo (condition bar)))
           (list foo bar))
-    
+
     (test (c? v1)        #t)
     (test (c1? v1)       #t)
     (test (c2? v1)       #f)
@@ -134,11 +150,11 @@
                (make-message-condition "message")
                message-condition?
                condition-message)
-    
+
     (test-cond &warning &condition
                (make-warning)
                warning?)
-    
+
     (test-cond &serious &condition
                (make-serious-condition)
                serious-condition?)
@@ -176,7 +192,7 @@
     (test-cond &lexical &violation
                (make-lexical-violation)
                lexical-violation?)
-    
+
     (test-cond &syntax &violation
                (make-syntax-violation '(lambda (x) case) 'case)
                syntax-violation?
@@ -247,7 +263,7 @@
                i/o-encoding-error?
                i/o-error-port
                i/o-encoding-error-char)
-    
+
     ;;
     ))
 

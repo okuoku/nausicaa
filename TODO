@@ -9,10 +9,17 @@ Stuff related to me, the Earth and the Universe in general
 * Why I cannot install only the FASL files under ikarus?
 * Add support for pacman?
 * Add support for dpkg?
-* Document somewhere that ypsilon requires the --compatible flag.
+* Document  somewhere that  ypsilon requires  the --compatible  flag, or
+  remove the need for --compatible.
 * Review all the redhat spec files and update the license field.
 * Install  only  the  compiled  files  of  the  enabled  implementations
   (already done?).
+
+
+Scheme
+------
+
+* Review the stdlib chapter for format problems.
 
 
 Stubs

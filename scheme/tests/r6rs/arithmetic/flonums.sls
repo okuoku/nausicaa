@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs arithmetic flonums)
@@ -37,7 +54,7 @@
      (lambda (fl)
        (test (fl=? +nan.0 fl)                #f)
        (test (fl<? +nan.0 fl)                #f)))
-    
+
     (test (flnegative? -0.0)   #f)
     (test (flfinite? +inf.0)   #f)
     (test (flfinite? 5.0)      #t)
@@ -45,15 +62,15 @@
     (test (flinfinite? +inf.0) #t)
     (test (flinfinite? -inf.0) #t)
     (test (flinfinite? +nan.0) #f)
-    
+
     (test (fl+ +inf.0 -inf.0)       +nan.0)
-    (try-flonums 
+    (try-flonums
      (lambda (fl)
        (test (fl+ +nan.0 fl)           +nan.0)
        (test (fl* +nan.0 fl)           +nan.0)))
 
     (test (fl- +inf.0 +inf.0)       +nan.0)
-    
+
     (test (fl/ 1.0 0.0)  +inf.0)
     (test (fl/ -1.0 0.0) -inf.0)
     (test (fl/ 0.0 0.0)  +nan.0)
@@ -62,16 +79,16 @@
     (test (flnumerator -inf.0)            -inf.0)
     (test (fldenominator +inf.0)          1.0)
     (test (fldenominator -inf.0)          1.0)
-    
+
     ;; (test (flnumerator 0.75)              3.0) ; probably
     ;; (test (fldenominator 0.75)            4.0) ; probably
 
     (test (flnumerator -0.0)             -0.0)
-    
+
     (test (flfloor +inf.0)                        +inf.0)
     (test (flceiling -inf.0)                      -inf.0)
     (test (fltruncate +nan.0)                     +nan.0)
-    
+
     (test (flexp +inf.0)                +inf.0)
     (test (flexp -inf.0)                0.0)
     (test (fllog +inf.0)                +inf.0)
@@ -85,7 +102,7 @@
     (test (flsqrt -0.0)                  -0.0)
 
     ;; ----------------------------------------
-    
+
     (let ([test-ordered
            (lambda (a b c)
              (test (fl=? a a) #t)
@@ -111,7 +128,7 @@
                       (test (fl<? b a) #f)
                       (test (fl<? c b) #f)
                       (test (fl<? a c b) #f)
-                      
+
                       (test (fl<=? a a) #t)
                       (test (fl<=? a b) #t)
                       (test (fl<=? a c) #t)
@@ -128,7 +145,7 @@
                       (test (fl<=? b c a) #f))])
                (test-lt fl<? fl<=? a b c)
                (test-lt fl>? fl>=? c b a))
-             
+
              ;; Since b is between a and c, we can add or subtract 1:
              (test (fl=? (+ b 1) (+ b 1)) #t)
              (test (fl<? b (+ b 1)) #t)
@@ -140,7 +157,7 @@
              (test (fl<=? b (- b 1)) #f)
              (test (fl>? b (- b 1)) #t)
              (test (fl>=? b (- b 1)) #t)
-             
+
              ;; Check min & max while we have ordered values:
              (test (flmin a b) a)
              (test (flmin b c) b)
@@ -153,7 +170,7 @@
       (test-ordered 1.0 2.0 3.0)
       (test-ordered -1.0 0.0 1.0)
       (test-ordered -1.0e5 0.0 1.0e-5))
-    
+
     (test (flinteger? 4.0) #t)
     (test (flinteger? 4.1) #f)
     (test (flzero? 4.1) #f)
@@ -165,7 +182,7 @@
     (test (flnegative? 4.1) #f)
     (test (flnegative? 0.0) #f)
     (test (flnegative? -4.1) #t)
-    
+
     (test (fleven? 2.0) #t)
     (test (fleven? -2.0) #t)
     (test (fleven? 0.0) #t)

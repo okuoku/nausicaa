@@ -484,7 +484,7 @@ Numbers
 * lang numbers fix flo::        Fixnums and flonums.
 * lang numbers requirements::   Implementation requirements.
 * lang numbers inf nan::        Infinities and NaNs.
-* lang numbers minus zero::     Distinguished @code{-0.0}.
+* lang numbers minus zero::     Distinguished @math{-0.0}.
 
 Lexical syntax and datum syntax
 
@@ -542,10 +542,17 @@ Libraries
 
 * lang library form::           Library form.
 * lang library import export::  Import and export levels.
-* lang library files::          Library files
-* lang library path::           Library search path.
-* lang library names::          Mapping library names to file names.
 * lang library examples::       Examples.
+
+Library form
+
+* lang library form decl::      Library declaration.
+* lang library form names::     Library names.
+* lang library form export::    The export specification.
+* lang library form import::    The import specification.
+* lang library form version::   The version reference.
+* lang library form conflicts:: Handling conflicts.
+* lang library form body::      Library bodies.
 
 Top--level programs
 
@@ -876,9 +883,6 @@ These specifications are described in the chapters:
 @node lang
 @chapter The Scheme language
 
-@c ###########
-@lowersections
-@c ###########
 
 @menu
 * lang overview::               Overview of Scheme.
@@ -895,10 +899,9 @@ These specifications are described in the chapters:
 @end menu
 
 
-
 @c page
 @node lang overview
-@chapter Overview of Scheme
+@section Overview of Scheme
 
 @c originally this chapter was the "struct" file.
 
@@ -986,7 +989,7 @@ result of a computation that involved rounding or other errors.
 
 @c page
 @node lang overview basic types
-@section Basic types
+@subsection Basic types
 
 
 Scheme programs manipulate @emph{objects}, which are also referred to as
@@ -1058,7 +1061,7 @@ Procedures are values in Scheme.
 
 @c page
 @node lang overview expressions
-@section Expressions
+@subsection Expressions
 
 
 The most important elements of Scheme code are @emph{expressions}.
@@ -1104,7 +1107,7 @@ be used to indicate structure.
 
 @c page
 @node lang overview variables
-@section Variables and binding
+@subsection Variables and binding
 
 
 Scheme allows identifiers to stand for locations containing values.
@@ -1130,7 +1133,7 @@ bindings are available in the @emph{body} of the @func{let} expression,
 
 @c page
 @node lang overview definitions
-@section Definitions
+@subsection Definitions
 
 
 The variables bound by a @func{let} expression are @emph{local}, because
@@ -1172,7 +1175,7 @@ local binding can be found along the way:
 
 @c page
 @node lang overview forms
-@section Forms
+@subsection Forms
 
 
 While definitions are not expressions, compound expressions and
@@ -1193,7 +1196,7 @@ program.  In particular, @code{23} is a @emph{subform} of the form
 
 @c page
 @node lang overview procedures
-@section Procedures
+@subsection Procedures
 
 
 Definitions can also be used to define procedures:
@@ -1258,7 +1261,7 @@ object and adds 42 to it.
 
 @c page
 @node lang overview syntax
-@section Procedure calls and syntactic keywords
+@subsection Procedure calls and syntactic keywords
 
 
 Whereas @code{(+ 23 42)}, @code{(f 23)}, and @code{((lambda (x) (+ x
@@ -1288,7 +1291,7 @@ create new bindings for syntactic keywords; @ref{lang overview macros} below.
 
 @c page
 @node lang overview assignment
-@section Assignment
+@subsection Assignment
 
 
 Scheme variables bound by definitions or @func{let} or @func{lambda}
@@ -1313,7 +1316,7 @@ previous value of @code{x}, 23, is replaced by 42.
 
 @c page
 @node lang overview macros
-@section Derived forms and macros
+@subsection Derived forms and macros
 
 
 Many of the special forms specified in this report can be translated
@@ -1377,7 +1380,7 @@ languages to be derived forms in Scheme.
 
 @c page
 @node lang overview data
-@section Syntactic data and datum values
+@subsection Syntactic data and datum values
 
 
 A subset of the Scheme objects is called @emph{datum values}.  These
@@ -1423,7 +1426,7 @@ particular interpreters and program transformers.
 
 @c page
 @node lang overview continuations
-@section Continuations
+@subsection Continuations
 
 
 Whenever a Scheme expression is evaluated there is a @emph{continuation}
@@ -1475,7 +1478,7 @@ exceptions in other languages.
 
 @c page
 @node lang overview libraries
-@section Libraries
+@subsection Libraries
 
 
 Scheme code can be organized in components called @emph{libraries}.
@@ -1502,7 +1505,7 @@ line:
 
 @c page
 @node lang overview programs
-@section Top--level programs
+@subsection Top--level programs
 
 
 A Scheme program is invoked via a @emph{top--level program}.  Like a
@@ -1537,7 +1540,7 @@ output the contents of the file to standard output:
 
 @c page
 @node lang requirements
-@chapter Requirement levels
+@section Requirement levels
 
 
 The key words ``must'', ``must not'', ``should'', ``should not'',
@@ -1585,7 +1588,7 @@ note the absence of an absolute requirement.
 
 @c page
 @node lang numbers
-@chapter Numbers
+@section Numbers
 
 
 This chapter describes Scheme's model for numbers.  It is important to
@@ -1614,7 +1617,7 @@ machine representations, as explained below.
 
 @c page
 @node lang numbers tower
-@section Numerical tower
+@subsection Numerical tower
 
 
 Numbers may be arranged into a tower of subsets in which each level is a
@@ -1647,7 +1650,7 @@ apparent to a casual programmer writing simple programs.
 
 @c page
 @node lang numbers exactness
-@section Exactness
+@subsection Exactness
 
 
 It is useful to distinguish between number objects that are known to
@@ -1683,7 +1686,7 @@ result as close as practical to the mathematically ideal result.
 
 @c page
 @node lang numbers fix flo
-@section Fixnums and flonums
+@subsection Fixnums and flonums
 
 
 A @emph{fixnum} is an exact integer object that lies within a certain
@@ -1699,7 +1702,7 @@ representations.
 
 @c page
 @node lang numbers requirements
-@section Implementation requirements
+@subsection Implementation requirements
 
 
 Implementations of Scheme must support number objects for the entire
@@ -1750,7 +1753,7 @@ implementation.
 
 @c page
 @node lang numbers inf nan
-@section Infinities and NaNs
+@subsection Infinities and NaNs
 
 
 Some Scheme implementations, specifically those that follow the @ieee{}
@@ -1772,7 +1775,7 @@ infinity or less than negative infinity.
 
 @c page
 @node lang numbers minus zero
-@section Distinguished @math{-0.0}
+@subsection Distinguished @math{-0.0}
 
 
 Some Scheme implementations, specifically those that follow the @ieee{}
@@ -1786,7 +1789,7 @@ distinguish @math{-0.0}''.
 
 @c page
 @node lang lex
-@chapter Lexical syntax and datum syntax
+@section Lexical syntax and datum syntax
 
 
 @menu
@@ -1861,7 +1864,7 @@ by this report.  @code{#!r6rs} is otherwise treated as a comment;
 
 @c page
 @node lang lex notation
-@section Notation
+@subsection Notation
 
 
 The formal syntax for Scheme is written in an extended @acronym{BNF}.
@@ -1886,7 +1889,7 @@ name: @meta{character tabulation} (U+0009), @meta{linefeed} (U+000A),
 
 @c page
 @node lang lex syntax
-@section Lexical syntax
+@subsection Lexical syntax
 
 
 The lexical syntax determines how a character sequence is split into a
@@ -1924,7 +1927,7 @@ For example, @code{#x1A} and @code{#X1a} are equivalent.  The identifier
 
 @c page
 @node lang lex syntax formal account
-@subsection Formal account
+@subsubsection Formal account
 
 
 @noindent
@@ -2062,7 +2065,7 @@ decimal radix.
 
 @c page
 @node lang lex syntax line endings
-@subsection Line endings
+@subsubsection Line endings
 
 
 Line endings are significant in Scheme in single--line comments
@@ -2079,7 +2082,7 @@ character of Scheme.
 
 @c page
 @node lang lex syntax whitespace and comments
-@subsection Whitespace and comments
+@subsubsection Whitespace and comments
 
 
 @emph{Whitespace} characters are spaces, linefeeds, carriage returns,
@@ -2128,7 +2131,7 @@ report, is also otherwise treated as a comment.
 
 @c page
 @node lang lex syntax identifiers
-@subsection Identifiers
+@subsubsection Identifiers
 
 
 @cindex Identifier, definition of
@@ -2177,7 +2180,7 @@ syntactic datum, in which case it represents a @emph{symbol}
 
 @c page
 @node lang lex syntax booleans
-@subsection Booleans
+@subsubsection Booleans
 
 
 The standard boolean objects for true and false have external
@@ -2186,7 +2189,7 @@ representations @true{} and @false{}.
 
 @c page
 @node lang lex syntax characters
-@subsection Characters
+@subsubsection Characters
 
 
 Characters are represented using the notation @code{#\<character>} or
@@ -2253,7 +2256,7 @@ instead.
 
 @c page
 @node lang lex syntax strings
-@subsection Strings
+@subsubsection Strings
 
 
 String are represented by sequences of characters enclosed within
@@ -2324,7 +2327,7 @@ bc"             U+0041, U+000A, U+0062, U+0063
 
 @c page
 @node lang lex syntax numbers
-@subsection Numbers
+@subsubsection Numbers
 
 
 The syntax of external representations for number objects is described
@@ -2423,7 +2426,7 @@ flonums, but that is not required by this report.
 
 @c page
 @node lang lex datum
-@section Datum syntax
+@subsection Datum syntax
 
 
 The datum syntax describes the syntax of syntactic data in terms of a
@@ -2455,7 +2458,7 @@ bytevectors.
 
 @c page
 @node lang lex datum formal account
-@subsection Formal account
+@subsubsection Formal account
 
 
 The following grammar describes the syntax of syntactic data in terms of
@@ -2483,7 +2486,7 @@ syntax,Lexical Syntax}
 
 @c page
 @node lang lex datum pairs and lists
-@subsection Pairs and lists
+@subsubsection Pairs and lists
 
 
 List and pair data, representing pairs and lists of values are
@@ -2531,7 +2534,7 @@ and 6.
 
 @c page
 @node lang lex datum vectors
-@subsection Vectors
+@subsubsection Vectors
 
 
 Vector data, representing vectors of objects, are represented using the
@@ -2550,7 +2553,7 @@ evaluates to a vector.
 
 @c page
 @node lang lex datum bytevectors
-@subsection Bytevectors
+@subsubsection Bytevectors
 
 
 Bytevector data, representing bytevectors (@ref{stdlib bytevector}), are
@@ -2569,7 +2572,7 @@ expression that evaluates to a bytevector.
 
 @c page
 @node lang lex datum abbreviations
-@subsection Abbreviations
+@subsubsection Abbreviations
 
 
 @example
@@ -2609,7 +2612,7 @@ for @code{(unsyntax-splicing <datum>)}.
 
 @c page
 @node lang basic
-@chapter Semantic concepts
+@section Semantic concepts
 
 @ignore
 In the original document this chapter was the "basic.tex" file.
@@ -2635,7 +2638,7 @@ In the original document this chapter was the "basic.tex" file.
 
 @c page
 @node lang basic programs and libraries
-@section Programs and libraries
+@subsection Programs and libraries
 
 
 A Scheme program consists of a @emph{top--level} program together with a
@@ -2671,7 +2674,7 @@ the exceptions and conditions libraries, and the libraries for records.
 
 @c page
 @node lang basic variables keywords regions
-@section Variables, keywords, and regions
+@subsection Variables, keywords, and regions
 
 
 @cindex Keyword, definition of
@@ -2748,7 +2751,7 @@ there is no binding for the identifier, it is said to be @emph{unbound}.
 
 @c page
 @node lang basic exceptions
-@section Exceptional situations
+@subsection Exceptional situations
 
 
 A variety of exceptional situations are distinguished in this report,
@@ -2796,7 +2799,7 @@ exceptional situation that permits the exception handler to return.
 
 @c page
 @node lang basic argument checking
-@section Argument checking
+@subsection Argument checking
 
 
 Many procedures specified in this report or as part of a standard
@@ -2839,7 +2842,7 @@ described in section ``Safety''.
 
 @c page
 @node lang basic syntax violations
-@section Syntax violations
+@subsection Syntax violations
 
 
 The subforms of a special form usually need to obey certain syntactic
@@ -2863,7 +2866,7 @@ must not be allowed to begin.
 
 @c page
 @node lang basic safety
-@section Safety
+@subsection Safety
 
 
 The standard libraries whose exports are described by this document are
@@ -2890,7 +2893,7 @@ safety.
 
 @c page
 @node lang basic boolean values
-@section Boolean values
+@subsection Boolean values
 
 
 Although there is a separate boolean type, any Scheme value can be used
@@ -2902,7 +2905,7 @@ value except @false{}, and the word ``false'' to refer to @false{}.
 
 @c page
 @node lang basic multiple return values
-@section Multiple return values
+@subsection Multiple return values
 
 
 A Scheme expression can evaluate to an arbitrary finite number of
@@ -2929,7 +2932,7 @@ these values accept any number of values.
 
 @c page
 @node lang basic unspecified behavior
-@section Unspecified behavior
+@subsection Unspecified behavior
 
 
 If an expression is said to ``return unspecified values'', then the
@@ -2942,7 +2945,7 @@ themselves.
 
 @c page
 @node lang basic storage model
-@section Storage model
+@subsection Storage model
 
 
 Variables and objects such as pairs, vectors, bytevectors, strings,
@@ -2980,7 +2983,7 @@ with condition type @code{&assertion}.
 
 @c page
 @node lang basic proper tail recursion
-@section Proper tail recursion
+@subsection Proper tail recursion
 
 
 Implementations of Scheme must be @emph{properly tail--recursive}.
@@ -3002,7 +3005,7 @@ are described in section ``Tail calls and tail contexts''.
 
 @c page
 @node lang basic dynamic extent
-@section Dynamic extent and the dynamic environment
+@subsection Dynamic extent and the dynamic environment
 
 
 @cindex Dynamic extent, definition of
@@ -3036,7 +3039,7 @@ invoking the escape procedure it creates.
 
 @c page
 @node lang entry
-@chapter Entry format
+@section Entry format
 
 @ignore
 In the original document, this chapter was the "entry.tex" file.
@@ -3070,7 +3073,7 @@ various restrictions on subforms or arguments.
 
 @c page
 @node lang entry syntax
-@section Syntax entries
+@subsection Syntax entries
 
 
 If @emph{category} is ``Syntax'', the entry describes a special
@@ -3125,7 +3128,7 @@ is raised.
 
 @c page
 @node lang entry procedure
-@section Procedure entries
+@subsection Procedure entries
 
 
 If @emph{Category} is ``Procedure'', then the entry describes a
@@ -3258,7 +3261,7 @@ using the word ``must'').
 
 @c page
 @node lang entry implementation resp
-@section Implementation responsibilities
+@subsection Implementation responsibilities
 
 
 In addition to the restrictions implied by naming conventions, an entry
@@ -3280,7 +3283,7 @@ subforms or arguments not mentioned in the paragraph.
 
 @c page
 @node lang entry other kinds
-@section Other kinds of entries
+@subsection Other kinds of entries
 
 
 If @emph{Category} is something other than ``Syntax'' and ``Procedure'',
@@ -3309,7 +3312,7 @@ is exported with level 1.
 
 @c page
 @node lang entry equivalent
-@section Equivalent entries
+@subsection Equivalent entries
 
 
 The description of an entry occasionally states that it is @emph{the
@@ -3321,7 +3324,7 @@ can be imported under the same name without conflict.
 
 @c page
 @node lang entry evaluation examples
-@section Evaluation examples
+@subsection Evaluation examples
 
 
 The symbol @code{@result{}} used in program examples can be read
@@ -3373,7 +3376,7 @@ only specified conditionally or approximately.  For example:
 
 @c page
 @node lang entry naming conventions
-@section Naming conventions
+@subsection Naming conventions
 
 
 By convention, the names of procedures that store values into previously
@@ -3401,7 +3404,7 @@ By convention, the names of condition types start with @code{&}.
 
 @c page
 @node lang library
-@chapter Libraries
+@section Libraries
 
 
 @ignore
@@ -3417,16 +3420,13 @@ semantics for library expansion and execution.
 @menu
 * lang library form::           Library form.
 * lang library import export::  Import and export levels.
-* lang library files::          Library files
-* lang library path::           Library search path.
-* lang library names::          Mapping library names to file names.
 * lang library examples::       Examples.
 @end menu
 
 
 @c page
 @node lang library form
-@section Library form
+@subsection Library form
 
 
 @findex library
@@ -3460,7 +3460,7 @@ met.
 
 @c page
 @node lang library form decl
-@subsection Library declaration
+@subsubsection Library declaration
 
 
 A library declaration contains the following elements:
@@ -3512,7 +3512,7 @@ imported into the library or defined within the library.
 
 @c page
 @node lang library form names
-@subsection Library names
+@subsubsection Library names
 
 
 A @meta{library name} uniquely identifies a library within an
@@ -3537,7 +3537,7 @@ object.  An empty @meta{version} is equivalent to @code{()}.
 
 @c page
 @node lang library form export
-@subsection The export specification
+@subsubsection The export specification
 
 
 An @meta{export spec} names a set of imported and locally defined
@@ -3560,7 +3560,7 @@ each @code{(@hyperi{identifier} @hyperii{identifier})} pairing, using
 
 @c page
 @node lang library form import
-@subsection The import specification
+@subsubsection The import specification
 
 
 Each @meta{import spec} specifies a set of bindings to be imported into
@@ -3621,7 +3621,7 @@ reference} of @code{()}.
 
 @c page
 @node lang library form version
-@subsection The version reference
+@subsubsection The version reference
 
 
 A @meta{version reference} specifies a set of @meta{version}s that it
@@ -3692,7 +3692,7 @@ Examples:
 
 @c page
 @node lang library form conflicts
-@subsection Handling conflicts
+@subsubsection Handling conflicts
 
 
 When more than one library is identified by a library reference, the
@@ -3747,7 +3747,7 @@ distinct.
 
 @c page
 @node lang library form body
-@subsection Library bodies
+@subsubsection Library bodies
 
 
 The @meta{library body} of a @func{library} form consists of forms that
@@ -3818,15 +3818,15 @@ All other variables defined within a library are mutable.
 
 @c page
 @node lang library import export
-@section Import and export levels
+@subsection Import and export levels
 
 
 Expanding a library may require run--time information from another
 library.  For example, if a macro transformer calls a procedure from
-library @code{A}, then the library @code{A} must be instantiated before
-expanding any use of the macro in library @code{B}.  Library @code{A}
-may not be needed when library @code{B} is eventually run as part of a
-program, or it may be needed for run time of library @code{B}, too.  The
+library @math{A}, then the library @math{A} must be instantiated before
+expanding any use of the macro in library @math{B}.  Library @math{A}
+may not be needed when library @math{B} is eventually run as part of a
+program, or it may be needed for run time of library @math{B}, too.  The
 library mechanism distinguishes these times by phases, which are
 explained in this section.
 
@@ -3843,62 +3843,62 @@ variable binding.
 A @emph{phase} is a time at which the expressions within a library are
 evaluated.  Within a library body, top--level expressions and the
 right--hand sides of @func{define} forms are evaluated at run time,
-i.e. phase @emph{0}, and the right--hand sides of @func{define-syntax}
-forms are evaluated at expand time, i.e. phase @emph{1}.  When
+i.e. phase @math{0}, and the right--hand sides of @func{define-syntax}
+forms are evaluated at expand time, i.e. phase @math{1}.  When
 @func{define-syntax}, @func{let-syntax}, or @func{letrec-syntax} forms
-appear within code evaluated at phase @emph{n}, the right--hand sides
-are evaluated at phase @emph{n+1}.
+appear within code evaluated at phase @math{n}, the right--hand sides
+are evaluated at phase @math{n+1}.
 
 These phases are relative to the phase in which the library itself is
 used.  An @emph{instance} of a library corresponds to an evaluation of
 its variable definitions and expressions in a particular phase relative
 to another library---a process called @emph{instantiation}.  For
-example, if a top--level expression in a library @emph{B} refers to a
-variable export from another library @emph{A}, then it refers to the
-export from an instance of @emph{A} at phase @emph{0} (relative to the
-phase of @emph{B}).  But if a phase @emph{1} expression within @emph{B}
-refers to the same binding from @emph{A}, then it refers to the export
-from an instance of @emph{A} at phase @emph{1} (relative to the phase of
-@emph{B}).
+example, if a top--level expression in a library @math{B} refers to a
+variable export from another library @math{A}, then it refers to the
+export from an instance of @math{A} at phase @math{0} (relative to the
+phase of @math{B}).  But if a phase @math{1} expression within @math{B}
+refers to the same binding from @math{A}, then it refers to the export
+from an instance of @math{A} at phase @math{1} (relative to the phase of
+@math{B}).
 
 A @emph{visit} of a library corresponds to the evaluation of its syntax
 definitions in a particular phase relative to another library; a process
 called @emph{visiting}.  For example, if a top--level expression in a
-library @emph{B} refers to a macro export from another library @emph{A},
-then it refers to the export from a visit of @emph{A} at phase @emph{0}
-(relative to the phase of @emph{B}), which corresponds to the evaluation
-of the macro's transformer expression at phase @emph{1}.
+library @math{B} refers to a macro export from another library @math{A},
+then it refers to the export from a visit of @math{A} at phase @math{0}
+(relative to the phase of @math{B}), which corresponds to the evaluation
+of the macro's transformer expression at phase @math{1}.
 
 A @emph{level} is a lexical property of an identifier that determines in
 which phases it can be referenced.  The level for each identifier bound
-by a definition within a library is @emph{0}; that is, the identifier
-can be referenced only at phase @emph{0} within the library.  The level
-for each imported binding is determined by the enclosing @code{for} form
-of the @code{import} in the importing library, in addition to the levels
+by a definition within a library is @math{0}; that is, the identifier
+can be referenced only at phase @math{0} within the library.  The level
+for each imported binding is determined by the enclosing @func{for} form
+of the @func{import} in the importing library, in addition to the levels
 of the identifier in the exporting library.  Import and export levels
 are combined by pairwise addition of all level combinations.  For
 example, references to an imported identifier exported for levels
-@emph{p_a} and @emph{p_b} and imported for levels @emph{q_a},
-@emph{q_b}, and @emph{q_c} are valid at levels @emph{p_a + q_a},
-@emph{p_a + q_b}, @emph{p_a + q_c}, @emph{p_b + q_a}, @emph{p_b + q_b},
-and @emph{p_b + q_c}.  An @meta{import set} without an enclosing
-@code{for} is equivalent to @code{(for @meta{import set} run)}, which is
+@math{p_a} and @math{p_b} and imported for levels @math{q_a},
+@math{q_b}, and @math{q_c} are valid at levels @math{p_a + q_a},
+@math{p_a + q_b}, @math{p_a + q_c}, @math{p_b + q_a}, @math{p_b + q_b},
+and @math{p_b + q_c}.  An @meta{import set} without an enclosing
+@func{for} is equivalent to @code{(for @meta{import set} run)}, which is
 the same as @code{(for @meta{import set} (meta 0))}.
 
-The export level of an exported binding is @emph{0} for all bindings
+The export level of an exported binding is @math{0} for all bindings
 that are defined within the exporting library.  The export levels of a
 reexported binding, i.e. an export imported from another library, are
 the same as the effective import levels of that binding within the
 reexporting library.
 
 For the libraries defined in the library report, the export level is
-@emph{0} for nearly all bindings.  The exceptions are
+@math{0} for nearly all bindings.  The exceptions are
 @func{syntax-rules}, @func{identifier-syntax}, @code{...}, and @code{_}
 from the @rsixlibrary{base} library, which are exported with level
-@emph{1}, @func{set!} from the @rsixlibrary{base} library, which is
-exported with levels @emph{0} and @emph{1}, and all bindings from the
+@math{1}, @func{set!} from the @rsixlibrary{base} library, which is
+exported with levels @math{0} and @math{1}, and all bindings from the
 composite @code{(rnrs (6))} library, which are exported with levels
-@emph{0} and @emph{1}.
+@math{0} and @math{1}.
 
 Macro expansion within a library can introduce a reference to an
 identifier that is not explicitly imported into the library.  In that
@@ -3908,212 +3908,46 @@ the library that supplied the identifier's lexical context) and the
 library that encloses the reference.  For example, suppose that
 expanding a library invokes a macro transformer, and the evaluation of
 the macro transformer refers to an identifier that is exported from
-another library (so the phase @emph{1} instance of the library is used);
+another library (so the phase @math{1} instance of the library is used);
 suppose further that the value of the binding is a syntax object
-representing an identifier with only a level @emph{n} binding; then, the
-identifier must be used only at phase @emph{n+1} in the library being
+representing an identifier with only a level @math{n} binding; then, the
+identifier must be used only at phase @math{n+1} in the library being
 expanded.  This combination of levels and phases is why negative levels
 on identifiers can be useful, even though libraries exist only at
 non--negative phases.
 
-If any of a library's definitions are referenced at phase @emph{0} in
+If any of a library's definitions are referenced at phase @math{0} in
 the expanded form of a program, then an instance of the referenced
-library is created for phase @emph{0} before the program's definitions
+library is created for phase @math{0} before the program's definitions
 and expressions are evaluated.  This rule applies transitively: if the
-expanded form of one library references at phase @emph{0} an identifier
+expanded form of one library references at phase @math{0} an identifier
 from another library, then before the referencing library is
-instantiated at phase @emph{n}, the referenced library must be
-instantiated at phase @emph{n}.  When an identifier is referenced at any
-phase @emph{n} greater than @emph{0}, in contrast, then the defining
-library is instantiated at phase @emph{n} at some unspecified time
+instantiated at phase @math{n}, the referenced library must be
+instantiated at phase @math{n}.  When an identifier is referenced at any
+phase @math{n} greater than @math{0}, in contrast, then the defining
+library is instantiated at phase @math{n} at some unspecified time
 before the reference is evaluated.  Similarly, when a macro keyword is
-referenced at phase @emph{n} during the expansion of a library, then the
-defining library is visited at phase @emph{n} at some unspecified time
+referenced at phase @math{n} during the expansion of a library, then the
+defining library is visited at phase @math{n} at some unspecified time
 before the reference is evaluated.
 
 An implementation may distinguish instances/visits of a library for
 different phases or to use an instance/visit at any phase as an
 instance/visit at any other phase.  An implementation may further expand
 each @code{library} form with distinct visits of libraries in any phase
-and/or instances of libraries in phases above @emph{0}.  An
+and/or instances of libraries in phases above @math{0}.  An
 implementation may create instances/visits of more libraries at more
 phases than required to satisfy references.  When an identifier appears
 as an expression in a phase that is inconsistent with the identifier's
 level, then an implementation may raise an exception either at expand
 time or run time, or it may allow the reference.  Thus, a library whose
 meaning depends on whether the instances of a library are distinguished
-or shared across phases or @code{library} expansions may be unportable.
-
-
-
-@c page
-@node lang library files
-@section Library files
-
-
-@noindent
-The contributed libraries are installed in the system when Ikarus is
-installed.  By default, running the @command{configure} script installs
-the contributed libraries into the @file{/usr/local/lib/ikarus}
-directory.  If a @code{--prefix=DIR} argument was supplied to
-@command{configure}, then the libraries are installed in the
-@file{DIR/ikarus/lib} directory.
-
-We may install additional libraries into the Ikarus library directory.
-Doing so makes them available for @func{import} into other libraries and
-script regardless of where the importing code is located or the current
-directory in which it is executed.
-
-
-@c page
-@node lang library path
-@section Library search path
-
-
-@cindex @env{IKARUS_LIBRARY_PATH}
-@cindex Search path for libraries
-@cindex Libraries search path
-
-
-@noindent
-There may be situations in which we may wish to install our own
-libraries into a different location.  For example, we may not have
-sufficient administrative privileges to write to the system directory,
-or we may wish to keep our own libraries separated from the standard
-libraries.  Whatever the reason is, we can store our library files in
-any location we want and set up the @env{IKARUS_LIBRARY_PATH}
-environment variable to point to these locations.  The value of
-@env{IKARUS_LIBRARY_PATH} is a colon--separated list of directories in
-which Ikarus will search.
-
-For example, suppose our script imports the @code{(streams derived)}
-library.  Suppose that Ikarus was installed under @file{/usr/local}, and
-that @env{IKARUS_LIBRARY_PATH} is set to:
-
-@example
-/home/john/ikarus-libraries:/home/john/srfis
-@end example
-
-First, Ikarus will map the library name to the file path
-@file{streams/derived.ss}; then it will search in the following
-locations, in sequence, until it finds the file it is looking for:
-
-@example
-./streams/derived.ss
-/home/john/ikarus-libraries/streams/derived.ss
-/home/john/srfis/streams/derived.ss
-/usr/local/lib/ikarus/streams/derived.ss
-@end example
-
-@quotation
-@emph{Warning:} The current behavior of Ikarus regarding the
-@env{IKARUS_LIBRARY_PATH} is preliminary and is likely to change in
-future releases.
-@end quotation
-
-The method in which the value of @env{IKARUS_LIBRARY_PATH} is defined is
-typically shell dependant.  If we use @gnu{} Bash, we typically set the
-values of environment variables in the @file{~/.bash_profile} or
-@file{~/.bashrc} file by adding the following lines:
-
-@example
-IKARUS_LIBRARY_PATH=/path/to/some/directory:/and/another
-export IKARUS_LIBRARY_PATH
-@end example
-
-
-@defun library-path
-Return a list of strings representing the search path for libraries.
-Example, from a Unix shell prompt:
-
-@example
-$ echo '(write (library-path))' | ikarus
-...
-> ("." "/usr/local/lib/ikarus")
-
-$ echo '(write (library-path))' | \
-IKARUS_LIBRARY_PATH=/usr/lib/ikarus ikarus
-...
-> ("." "/usr/lib/ikarus" "/usr/local/lib/ikarus")
-@end example
-
-@noindent
-so it is possible to inspect the directories.
-
-@unstable{1661}
-@end defun
-
-
-
-@c page
-@node lang library names
-@section Mapping library names to file names
-
-
-@ignore
-Try to use the word 'path' to indicate a list of directories in which to
-search for a file, and the word 'pathname' to indicate a specific file
-or directory string identifier.
-@end ignore
-
-
-@noindent
-The name of an @rnrs{6} library consists of a non--empty list of
-identifiers (symbols), followed by an optional version number.  All of
-the standard @rnrs{6} libraries are built into Ikarus, thus importing
-any one of them does not require any special action other than listing
-the library name in the @func{import} part of a library or a script.
-The same holds for the @library{ikarus} library.
-
-When importing a user library, Ikarus uses a simple mechanism to map
-library names to file names.  A library name is converted to a file
-pathname by joining the library identifiers with a pathname separator,
-e.g. @code{/}.
-
-@multitable {`(foo bar baz)'} {File name}
-@headitem Library Name @tab File name
-@item @code{(foo)} @tab @code{foo}
-@item @code{(foo bar)} @tab @file{foo/bar}
-@item @code{(foo bar baz)} @tab @file{foo/bar/baz}
-@end multitable
-
-Having mapped a library name to a file pathname, Ikarus attempts to
-locate that file in one of several locations.  The locations attempted
-depend on two settings: the search path and the file suffix set (e.g.,
-@code{.sls}, @code{.ss}, @code{.scm}, etc.).
-
-First, Ikarus attempts to locate the file in the current working
-directory from which Ikarus was invoked.  In the current working
-directory, Ikarus enumerates all the file suffixes before searching
-other locations.  If the file is not found in the current directory,
-Ikarus tries to find it in the Ikarus library directory.  The Ikarus
-library directory is determined when Ikarus is installed (based on the
-@option{--prefix} argument that was passed to the @command{configure}
-script).  If Ikarus fails to locate the library file, it raises an
-exception and exits.
-
-@quotation
-@emph{Tip:} Use simple library names for the libraries that you define.
-Library names that contain non--printable characters, complex
-punctuations, or Unicode may pose a challenge for some operating
-systems.  If Ikarus cannot find a library, it will raise an error
-listing the locations in which it looked, helping you move the library
-file to a place where Ikarus can find it.
-@end quotation
-
-
-@defun library-extensions
-Return a list of strings representing the extensions added to a library
-name when resolving a library specification.
-
-@unstable{1661}
-@end defun
-
+or shared across phases or @func{library} expansions may be unportable.
 
 
 @c page
 @node lang library examples
-@section Examples
+@subsection Examples
 
 
 Examples for various @meta{import spec}s and @meta{export spec}s:
@@ -4229,16 +4063,14 @@ Examples for macros and phases:
 @end example
 
 
-
 @c page
 @node lang programs
-@chapter Top--level programs
+@section Top--level programs
 
 
 @ignore
 In the original document this chapter is the "programs.tex" file.
 @end ignore
-
 
 A ``top--level program'' specifies an entry point for defining and
 running a Scheme program.  A top--level program specifies a set of
@@ -4255,7 +4087,7 @@ top--level program defines a complete Scheme program.
 
 @c page
 @node lang programs syntax
-@section Top--level program syntax
+@subsection Top--level program syntax
 
 
 A top--level program is a delimited piece of text, typically a file,
@@ -4293,12 +4125,10 @@ the body, including portions wrapped in @func{begin}, @func{let-syntax},
 or @func{letrec-syntax} forms, may be specified by a syntactic
 abstraction.
 
-@c ------------------------------------------------------------
-
 
 @c page
 @node lang programs semantics
-@section Top--level program semantics
+@subsection Top--level program semantics
 
 
 A top--level program is executed by treating the program similarly to a
@@ -4319,21 +4149,20 @@ expressions without concurrently expanding the body, so the actual
 translation is somewhat more complicated.)
 
 On platforms that support it, a top--level program may access its
-command line by calling the @func{command-line} procedure (@ref{stdlib
-programlib}).
-
+command line by calling the @func{command-line} procedure, @ref{stdlib
+programlib,Command line access and exit values}
 
 
 @c page
 @node lang syntax
-@chapter Primitive syntax
+@section Primitive syntax
 
 
 @ignore
 In the original document this chapter is the "syntax.tex" file.
 @end ignore
 
-After the @code{import} form within a @code{library} form or a
+After the @func{import} form within a @func{library} form or a
 top--level program, the forms that constitute the body of the library or
 the top--level program depend on the libraries that are imported.  In
 particular, imported syntactic keywords determine the available
@@ -4348,10 +4177,9 @@ references, procedure calls, and macro uses.
 @end menu
 
 
-
 @c page
 @node lang syntax primitive
-@section Primitive expression types
+@subsection Primitive expression types
 
 
 The entries in this section all describe expressions, which may occur in
@@ -4370,14 +4198,14 @@ boolean, a character, a string, or a bytevector, evaluates ``to
 itself''.
 
 @example
-145932          =>  145932
-#t              =>  #t
-"abc"           =>  "abc"
-#vu8(2 24 123)  => #vu8(2 24 123)
+145932          @result{}  145932
+#t              @result{}  #t
+"abc"           @result{}  "abc"
+#vu8(2 24 123)  @result{} #vu8(2 24 123)
 @end example
 
-As noted in section ``Storage model'', the value of a literal expression
-is immutable.
+The value of a literal expression is immutable, @ref{lang basic storage
+model,Storage model}
 @end deffn
 
 @c ------------------------------------------------------------
@@ -4395,7 +4223,7 @@ imported:
 
 @example
 (define x 28)
-x   =>  28
+x @result{} 28
 @end example
 @end deffn
 
@@ -4417,8 +4245,8 @@ The following examples assume the @rsixlibrary{base} library has been
 imported:
 
 @example
-(+ 3 4)                 =>  7
-((if #f + *) 3 4)       =>  12
+(+ 3 4)                 @result{} 7
+((if #f + *) 3 4)       @result{} 12
 @end example
 
 If the value of @meta{operator} is not a procedure, an exception with
@@ -4446,11 +4274,9 @@ syntactically valid expression.
 @end quotation
 @end deffn
 
-
-
 @c page
 @node lang syntax macros
-@section Macros
+@subsection Macros
 
 
 @cindex Transformer, definition of
@@ -4522,11 +4348,9 @@ use of the macro.
 Macros defined using the @func{syntax-case} facility are also hygienic
 unless @func{datum->syntax} is used.
 
-
-
 @c page
 @node lang expansion
-@chapter Expansion process
+@section Expansion process
 
 
 @ignore
@@ -4612,7 +4436,7 @@ violate this restriction.
     (lambda (e)
       (+ 1 2)))
   (define + 2)
-  (foo))%
+  (foo))
 @end example
 
 The following do not violate the restriction.
@@ -4620,21 +4444,21 @@ The following do not violate the restriction.
 @example
 (let ([x 5])
   (define lambda list)
-  (lambda x x))         =>  (5 5)
+  (lambda x x))         @result{}  (5 5)
 
 (let-syntax ([def0 (syntax-rules ()
                      [(_ x) (define x 0)])])
   (let ([z 3])
     (define def0 list)
     (def0 z)
-    (list z)))          =>  (3)
+    (list z)))          @result{}  (3)
 
 (let ()
   (define-syntax foo
     (lambda (e)
       (let ([+ -]) (+ 1 2))))
   (define + 2)
-  (foo))                =>  -1%
+  (foo))                @result{}  -1
 @end example
 
 The implementation should treat a violation of the restriction as a
@@ -4737,21 +4561,17 @@ evaluation order is preserved.  The @func{begin} wrapper allows
 @meta{expression} to evaluate to an arbitrary number of values.
 @end itemize
 
-
-
 @c page
 @node lang derived
-@chapter Sample definitions for derived forms
+@section Sample definitions for derived forms
 
 
 @ignore
 In the original document this appendix is the file "derived.tex".
 @end ignore
 
-
 This appendix contains sample definitions for some of the keywords
 described in this report in terms of simpler forms:
-
 
 @c ------------------------------------------------------------
 
@@ -5032,15 +4852,6 @@ The @func{let} keyword could be defined in terms of @func{lambda} and
       val ...))))
 @end example
 
-
-@c page
-@c ------------------------------------------------------------
-@c End of lowered sections from the R6RS document.
-@c ------------------------------------------------------------
-
-@raisesections
-
-
 @c page
 @node baselib
 @chapter Base library
@@ -5142,9 +4953,9 @@ before assigning the value of @meta{expression} to it.
 @example
 (define add3
   (lambda (x) (+ x 3)))
-(add3 3)                            =>  6
+(add3 3)                            @result{}  6
 (define first car)
-(first '(1 2))                      =>  1
+(first '(1 2))                      @result{}  1
 @end example
 
 The continuation of @meta{expression} should not be invoked more than
@@ -5184,8 +4995,6 @@ variable.  This form is equivalent to:
 @end example
 @end deffn
 
-
-
 @c page
 @node baselib definitions syntax
 @subsection Syntax definitions
@@ -5224,7 +5033,7 @@ Example:
     (syntax-rules ()
       ((odd?  x) (not (even? x)))))
   (even? 10))
-=> #t
+@result{} #t
 @end example
 
 An implication of the left--to--right processing order is that one
@@ -5239,13 +5048,12 @@ Example:
       ((bind-to-zero id) (define id 0))))
   (bind-to-zero x)
   x)
-=> 0
+@result{} 0
 @end example
 
 The behavior is unaffected by any binding for @func{bind-to-zero} that
 might appear outside of the @func{let} expression.
 @end deffn
-
 
 
 @c page
@@ -5273,7 +5081,7 @@ Example:
   (define foo (lambda (y) (bar x y)))
   (define bar (lambda (a b) (+ (* a b) a)))
   (foo (+ x 3)))
-=>  45
+@result{}  45
 @end example
 
 When @func{begin}, @func{let-syntax}, or @func{letrec-syntax} forms
@@ -5292,7 +5100,6 @@ the @func{let} expression in the above example is equivalent to
             (bar (lambda (a b) (+ (* a b) a))))
     (foo (+ x 3))))
 @end example
-
 
 
 @c page
@@ -5316,8 +5123,6 @@ expression types.
 * baselib expressions sequencing::      Sequencing.
 @end menu
 
-
-
 @c page
 @node baselib expressions quotation
 @subsection Quotation
@@ -5329,22 +5134,22 @@ evaluates to the datum value represented by @meta{datum}.  This notation
 is used to include constants.
 
 @example
-(quote a)               =>  a
-(quote #(a b c))        =>  #(a b c)
-(quote (+ 1 2))         =>  (+ 1 2)
+(quote a)               @result{} a
+(quote #(a b c))        @result{} #(a b c)
+(quote (+ 1 2))         @result{} (+ 1 2)
 @end example
 
 @code{(quote @meta{datum})} may be abbreviated as @code{'@meta{datum}}:
 
 @example
-'"abc"               =>  "abc"
-'145932              =>  145932
-'a                   =>  a
-'#(a b c)            =>  #(a b c)
-'()                  =>  ()
-'(+ 1 2)             =>  (+ 1 2)
-'(quote a)           =>  (quote a)
-''a                  =>  (quote a)
+'"abc"               @result{} "abc"
+'145932              @result{} 145932
+'a                   @result{} a
+'#(a b c)            @result{} #(a b c)
+'()                  @result{} ()
+'(+ 1 2)             @result{} (+ 1 2)
+'(quote a)           @result{} (quote a)
+''a                  @result{} (quote a)
 @end example
 
 Constants are immutable.
@@ -5354,7 +5159,6 @@ Constants are immutable.
 expression may share the same locations.
 @end quotation
 @end deffn
-
 
 
 @c page
@@ -5379,23 +5183,23 @@ expression in the body are returned as the results of the procedure
 call.
 
 @example
-(lambda (x) (+ x x))      =>  a procedure
-((lambda (x) (+ x x)) 4)  =>  8
+(lambda (x) (+ x x))      @result{} a procedure
+((lambda (x) (+ x x)) 4)  @result{} 8
 
 ((lambda (x)
    (define (p y)
      (+ y 1))
    (+ (p x) x))
- 5) => 11
+ 5) @result{} 11
 
 (define reverse-subtract
   (lambda (x y) (- y x)))
-(reverse-subtract 7 10)         =>  3
+(reverse-subtract 7 10)         @result{} 3
 
 (define add4
   (let ((x 4))
     (lambda (y) (+ x y))))
-(add4 6)                        =>  10
+(add4 6)                        @result{} 10
 @end example
 
 @meta{formals} must have one of the following forms:
@@ -5420,9 +5224,9 @@ the arguments left over after all the other arguments have been matched
 up against the other parameters.
 
 @example
-((lambda x x) 3 4 5 6)          =>  (3 4 5 6)
+((lambda x x) 3 4 5 6)          @result{} (3 4 5 6)
 ((lambda (x y . z) z)
- 3 4 5 6)                       =>  (5 6)
+ 3 4 5 6)                       @result{} (5 6)
 @end example
 @end table
 
@@ -5449,19 +5253,17 @@ and no @meta{alternate} is specified, then the result of the expression
 is unspecified.
 
 @example
-(if (> 3 2) 'yes 'no)           => yes
-(if (> 2 3) 'yes 'no)           => no
+(if (> 3 2) 'yes 'no)           @result{} yes
+(if (> 2 3) 'yes 'no)           @result{} no
 (if (> 3 2)
     (- 3 2)
-    (+ 3 2))                    => 1
-(if #f #f)                      => unspecified
+    (+ 3 2))                    @result{} 1
+(if #f #f)                      @result{} unspecified
 @end example
 
 The @meta{consequent} and @meta{alternate} expressions are in tail
 context if the @func{if} expression itself is.
 @end deffn
-
-
 
 @c page
 @node baselib expressions assignments
@@ -5478,7 +5280,7 @@ of the @func{set!} expression is unspecified.
 (let ((x 2))
   (+ x 1)
   (set! x 4)
-  (+ x 1)) =>  5
+  (+ x 1)) @result{} 5
 @end example
 
 It is a syntax violation if @meta{variable} refers to an immutable
@@ -5489,8 +5291,6 @@ binding.
 as well.
 @end quotation
 @end deffn
-
-
 
 @c page
 @node baselib expressions derived cond
@@ -5544,14 +5344,14 @@ evaluated, and the values of the last one are returned.
 
 @example
 (cond ((> 3 2) 'greater)
-      ((< 3 2) 'less))          => greater
+      ((< 3 2) 'less))          @result{} greater
 
 (cond ((> 3 3) 'greater)
       ((< 3 3) 'less)
-      (else 'equal))            => equal
+      (else 'equal))            @result{} equal
 
 (cond ('(1 2 3) => cadr)
-      (else #f))                => 2
+      (else #f))                @result{} 2
 @end example
 
 For a @meta{cond clause} of one of the following forms:
@@ -5617,14 +5417,14 @@ values.
 @example
 (case (* 2 3)
   ((2 3 5 7) 'prime)
-  ((1 4 6 8 9) 'composite))     => composite
+  ((1 4 6 8 9) 'composite))     @result{} composite
 (case (car '(c d))
   ((a) 'a)
-  ((b) 'b))                     => unspecified
+  ((b) 'b))                     @result{} unspecified
 (case (car '(c d))
   ((a e i o u) 'vowel)
   ((w y) 'semivowel)
-  (else 'consonant))            => consonant
+  (else 'consonant))            @result{} consonant
 @end example
 
 The last @meta{expression} of a @meta{case clause} is in tail context if
@@ -5643,10 +5443,10 @@ evaluating the remaining expressions.  In the latter case, the last
 expression is evaluated and its values are returned.
 
 @example
-(and (= 2 2) (> 2 1))           =>  #t
-(and (= 2 2) (< 2 1))           =>  #f
-(and 1 2 'c '(f g))             =>  (f g)
-(and)                           =>  #t
+(and (= 2 2) (> 2 1))           @result{}  #t
+(and (= 2 2) (< 2 1))           @result{}  #f
+(and 1 2 'c '(f g))             @result{}  (f g)
+(and)                           @result{}  #t
 @end example
 
 The @func{and} keyword could be defined in terms of @func{if} using
@@ -5677,10 +5477,10 @@ without evaluating the remaining expressions.  In the latter case, the
 last expression is evaluated and its values are returned.
 
 @example
-(or (= 2 2) (> 2 1))            => #t
-(or (= 2 2) (< 2 1))            => #t
-(or #f #f #f)                   => #f
-(or '(b c) (/ 3 0))             => (b c)
+(or (= 2 2) (> 2 1))            @result{} #t
+(or (= 2 2) (< 2 1))            @result{} #t
+(or #f #f #f)                   @result{} #f
+(or '(b c) (/ 3 0))             @result{} (b c)
 @end example
 
 The @func{or} keyword could be defined in terms of @func{if} using
@@ -5699,8 +5499,6 @@ The @func{or} keyword could be defined in terms of @func{if} using
 The last @meta{test} expression is in tail context if the @func{or}
 expression itself is.
 @end deffn
-
-
 
 @c page
 @node baselib expressions binding
@@ -5761,12 +5559,12 @@ region.
 
 @example
 (let ((x 2) (y 3))
-  (* x y))                      => 6
+  (* x y))                      @result{} 6
 
 (let ((x 2) (y 3))
   (let ((x 7)
         (z (+ x y)))
-    (* z x)))                   => 35
+    (* z x)))                   @result{} 35
 @end example
 
 See also named @func{let}.
@@ -5794,7 +5592,7 @@ in which the first binding is visible and initialized, and so on.
 (let ((x 2) (y 3))
   (let* ((x 7)
          (z (+ x y)))
-    (* z x)))             => 70
+    (* z x)))             @result{} 70
 @end example
 
 @quotation
@@ -5837,7 +5635,7 @@ its region, making it possible to define mutually recursive procedures.
                 \schfalse
                 (even? (- n 1))))))
   (even? 88))
-=> #t
+@result{} #t
 @end example
 
 It should be possible to evaluate each @meta{init} without assigning or
@@ -5890,7 +5688,7 @@ recursive procedures.
           (x (p 5))
           (y x))
   y)
-=>  5
+@result{}  5
 @end example
 
 It must be possible to evaluate each @meta{init} without assigning or
@@ -5938,17 +5736,17 @@ exception with condition type @code{&assertion} is raised.
 (let-values (((a b) (values 1 2))
              ((c d) (values 3 4)))
   (list a b c d))
-=> (1 2 3 4)
+@result{} (1 2 3 4)
 
 (let-values (((a b . c) (values 1 2 3 4)))
   (list a b c))
-=> (1 2 (3 4))
+@result{} (1 2 (3 4))
 
 (let ((a 'a) (b 'b) (x 'x) (y 'y))
   (let-values (((a b) (values x y))
                ((x y) (values a b)))
     (list a b x y)))
-=> (x y a b)
+@result{} (x y a b)
 @end example
 @end deffn
 
@@ -5977,7 +5775,7 @@ initialized, and so on.
   (let*-values (((a b) (values x y))
                 ((x y) (values a b)))
     (list a b x y)))
-=> (x y x y)
+@result{} (x y x y)
 @end example
 
 @quotation
@@ -5986,7 +5784,6 @@ expression must be distinct, the variables bound by different
 @meta{formals} of a @func{let*-values} expression need not be distinct.
 @end quotation
 @end deffn
-
 
 
 @c page
@@ -6027,15 +5824,14 @@ output.
 
 (begin (set! x 5)
        (+ x 1))
-=>  6
+@result{}  6
 
 (begin (display "4 plus 1 equals ")
        (display (+ 4 1)))
-=>  unspecified and prints 4 plus 1 equals 5
+@result{} unspecified
+@print{} 4 plus 1 equals 5
 @end example
 @end deffn
-
-
 
 @c page
 @node baselib predicates
@@ -6163,15 +5959,15 @@ arguments.
 @end quotation
 
 @example
-(eqv? 'a 'a)                     =>  #t
-(eqv? 'a 'b)                     =>  #f
-(eqv? 2 2)                       =>  #t
-(eqv? '() '())                   =>  #t
-(eqv? 100000000 100000000)       =>  #t
-(eqv? (cons 1 2) (cons 1 2))     =>  #f
+(eqv? 'a 'a)                     @result{} #t
+(eqv? 'a 'b)                     @result{} #f
+(eqv? 2 2)                       @result{} #t
+(eqv? '() '())                   @result{} #t
+(eqv? 100000000 100000000)       @result{} #t
+(eqv? (cons 1 2) (cons 1 2))     @result{} #f
 (eqv? (lambda () 1)
-      (lambda () 2))             =>  #f
-(eqv? #f 'nil)                   =>  #f
+      (lambda () 2))             @result{} #f
+(eqv? #f 'nil)                   @result{} #f
 @end example
 
 The following examples illustrate cases in which the above rules do not
@@ -6180,19 +5976,19 @@ such cases is that the value returned by @func{eqv?} must be a boolean.
 
 @example
 (let ((p (lambda (x) x)))
-  (eqv? p p))                   => unspecified
+  (eqv? p p))                   @result{} unspecified
 
-(eqv? "" "")                    => unspecified
+(eqv? "" "")                    @result{} unspecified
 
-(eqv? '#() '#())                => unspecified
-
-(eqv? (lambda (x) x)
-      (lambda (x) x))           => unspecified
+(eqv? '#() '#())                @result{} unspecified
 
 (eqv? (lambda (x) x)
-      (lambda (y) y))           => unspecified
+      (lambda (x) x))           @result{} unspecified
 
-(eqv? +nan.0 +nan.0)            => unspecified
+(eqv? (lambda (x) x)
+      (lambda (y) y))           @result{} unspecified
+
+(eqv? +nan.0 +nan.0)            @result{} unspecified
 @end example
 
 The next set of examples shows the use of @func{eqv?} with procedures
@@ -6208,25 +6004,25 @@ equivalence.
     (let ((n 0))
       (lambda () (set! n (+ n 1)) n))))
 (let ((g (gen-counter)))
-  (eqv? g g))           =>  unspecified
+  (eqv? g g))           @result{}  unspecified
 (eqv? (gen-counter) (gen-counter))
-                        =>  #f
+                        @result{}  #f
 (define gen-loser
   (lambda ()
     (let ((n 0))
       (lambda () (set! n (+ n 1)) 27))))
 (let ((g (gen-loser)))
-  (eqv? g g))           =>  unspecified
+  (eqv? g g))           @result{}  unspecified
 (eqv? (gen-loser) (gen-loser))
-                        =>  unspecified
+                        @result{}  unspecified
 
 (letrec ((f (lambda () (if (eqv? f g) 'both 'f)))
          (g (lambda () (if (eqv? f g) 'both 'g))))
-  (eqv? f g)) => unspecified
+  (eqv? f g)) @result{} unspecified
 
 (letrec ((f (lambda () (if (eqv? f g) 'f 'both)))
          (g (lambda () (if (eqv? f g) 'g 'both))))
-  (eqv? f g)) => #f
+  (eqv? f g)) @result{} #f
 @end example
 
 Implementations may share structure between constants where appropriate.
@@ -6236,11 +6032,11 @@ value of @func{eqv?} on constants is sometimes
 implementation--dependent.
 
 @example
-(eqv? '(a) '(a))                 => unspecified
-(eqv? "a" "a")                   => unspecified
-(eqv? '(b) (cdr '(a b)))         => unspecified
+(eqv? '(a) '(a))                 @result{} unspecified
+(eqv? "a" "a")                   @result{} unspecified
+(eqv? '(b) (cdr '(a b)))         @result{} unspecified
 (let ((x '(a)))
-  (eqv? x x))                    => #t
+  (eqv? x x))                    @result{} #t
 @end example
 @end deffn
 
@@ -6260,23 +6056,23 @@ implementation--dependent, but it always returns either @true{} or
 @func{eqv?} on empty vectors, empty bytevectors, and empty strings.
 
 @example
-(eq? 'a 'a)                     => #t
-(eq? '(a) '(a))                 => unspecified
-(eq? (list 'a) (list 'a))       => #f
-(eq? "a" "a")                   => unspecified
-(eq? "" "")                     => unspecified
-(eq? '() '())                   => #t
-(eq? 2 2)                       => unspecified
-(eq? #\A #\A)                   => unspecified
-(eq? car car)                   => #t
+(eq? 'a 'a)                     @result{} #t
+(eq? '(a) '(a))                 @result{} unspecified
+(eq? (list 'a) (list 'a))       @result{} #f
+(eq? "a" "a")                   @result{} unspecified
+(eq? "" "")                     @result{} unspecified
+(eq? '() '())                   @result{} #t
+(eq? 2 2)                       @result{} unspecified
+(eq? #\A #\A)                   @result{} unspecified
+(eq? car car)                   @result{} #t
 (let ((n (+ 2 3)))
-  (eq? n n))                    => unspecified
+  (eq? n n))                    @result{} unspecified
 (let ((x '(a)))
-  (eq? x x))                    => #t
+  (eq? x x))                    @result{} #t
 (let ((x '#()))
-  (eq? x x))                    => unspecified
+  (eq? x x))                    @result{} unspecified
 (let ((p (lambda (x) x)))
-  (eq? p p))                    => unspecified
+  (eq? p p))                    @result{} unspecified
 @end example
 @end deffn
 
@@ -6292,32 +6088,32 @@ outgoing edges, uses @func{string=?} to compare strings, uses
 and uses @func{eqv?} to compare other nodes.
 
 @example
-(equal? 'a 'a)                  =>  #t
+(equal? 'a 'a)                  @result{}  #t
 
-(equal? '(a) '(a))              =>  #t
+(equal? '(a) '(a))              @result{}  #t
 
 (equal? '(a (b) c)
-        '(a (b) c))             =>  #t
+        '(a (b) c))             @result{}  #t
 
-(equal? "abc" "abc")            =>  #t
+(equal? "abc" "abc")            @result{}  #t
 
-(equal? 2 2)                    =>  #t
+(equal? 2 2)                    @result{}  #t
 
 (equal? (make-vector 5 'a)
-        (make-vector 5 'a))     =>  #t
+        (make-vector 5 'a))     @result{}  #t
 
 (equal? '#vu8(1 2 3 4 5)
         (u8-list->bytevector
-         '(1 2 3 4 5))          =>  #t
+         '(1 2 3 4 5))          @result{}  #t
 
 (equal? (lambda (x) x)
-        (lambda (y) y))         =>  unspecified
+        (lambda (y) y))         @result{}  unspecified
 
 (let* ((x (list 'a))
        (y (list 'a))
        (z (list x y)))
   (list (equal? z (list y x))
-        (equal? z (list x x)))) =>  (#t #t)
+        (equal? z (list x x)))) @result{}  (#t #t)
 @end example
 
 @quotation
@@ -6336,13 +6132,12 @@ its arguments contain cycles.
 Return @true{} if @var{obj} is a procedure, otherwise return @false{}.
 
 @example
-(procedure? car)                        => #t
-(procedure? 'car)                       => #f
-(procedure? (lambda (x) (* x x)))       => #t
-(procedure? '(lambda (x) (* x x)))      => #f
+(procedure? car)                        @result{} #t
+(procedure? 'car)                       @result{} #f
+(procedure? (lambda (x) (* x x)))       @result{} #t
+(procedure? '(lambda (x) (* x x)))      @result{} #f
 @end example
 @end deffn
-
 
 
 @c page
@@ -6418,8 +6213,7 @@ One general exception to the rule above is that an implementation may
 return an exact result despite inexact arguments if that exact result
 would be the correct result for all possible substitutions of exact
 arguments for the inexact ones.  An example is @code{(* 1.0 0)} which
-may return either @code{0} (exact) or @code{0.0} (inexact).
-
+may return either @math{0} (exact) or @math{0.0} (inexact).
 
 
 @c page
@@ -6441,8 +6235,6 @@ exception handler is the continuation that otherwise would have received
 the infinity or NaN value.  This requirement also applies to conversions
 between number objects and external representations, including the
 reading of program source code.
-
-
 
 @c page
 @node baselib math semantics
@@ -6466,17 +6258,17 @@ section for later reference.
 
 
 Scheme's operations for performing integer division rely on mathematical
-operations @emph{div}, @emph{mod}, @emph{div_0}, and @emph{mod_0}, that
-are defined as follows:
+operations @math{\div}, @math{\mod}, @math{\div_0}, and @math{\mod_0},
+that are defined as follows:
 
 @itemize
 @item
-@emph{div}, @emph{mod}, @emph{div_0}, and @emph{mod_0} each accept two
-real numbers @emph{x_1} and @emph{x_2} as operands, where @emph{x_2}
+@math{\div}, @math{\mod}, @math{\div_0}, and @math{\mod_0} each accept
+two real numbers @math{x_1} and @math{x_2} as operands, where @math{x_2}
 must be nonzero.
 
 @item
-@emph{div} returns an integer, and @emph{mod} returns a real.  Their
+@math{\div} returns an integer, and @math{\mod} returns a real.  Their
 results are specified by:
 
 @example
@@ -6506,9 +6298,9 @@ Examples:
 @end example
 
 @item
-@emph{div_0} and @emph{mod_0} are like @emph{div} and @emph{mod}, except
-the result of @emph{mod_0} lies within a half--open interval centered on
-zero.  The results are specified by:
+@math{\div_0} and @math{\mod_0} are like @math{\div} and @math{\mod},
+except the result of @math{\mod_0} lies within a half--open interval
+centered on zero.  The results are specified by:
 
 @example
 x_1 div_0 x_2 = n_d
@@ -6544,14 +6336,14 @@ Examples:
 @subsubsection Transcendental functions
 
 
-In general, the transcendental functions @emph{log}, @emph{sin^(-1)}
-(arcsine), @emph{cos^(-1)} (arccosine), and @emph{tan^(-1)} are multiply
-defined.  The value of @code{log z} is defined to be the one whose
-imaginary part lies in the range from @code{-pi} (inclusive if
-@code{-0.0} is distinguished, exclusive otherwise) to @code{pi}
-(inclusive).  @code{log 0} is undefined.
+In general, the transcendental functions @math{\log}, @math{\sin^(-1)}
+(arcsine), @math{\cos^(-1)} (arccosine), and @math{\tan^(-1)} are
+multiply defined.  The value of @math{\log z} is defined to be the one
+whose imaginary part lies in the range from @math{-\pi} (inclusive if
+@math{-0.0} is distinguished, exclusive otherwise) to @math{\pi}
+(inclusive).  @math{\log 0} is undefined.
 
-The value of @code{log z} for non--real @var{z} is defined in terms of
+The value of @math{\log z} for non--real @math{z} is defined in terms of
 log on real numbers as:
 
 @example
@@ -6559,20 +6351,20 @@ log z = log |z| + (angle z) i
 @end example
 
 @noindent
-where @code{angle z} is the angle of @code{z = a * e^(i * b)} specified
+where @math{angle z} is the angle of @math{z = a * e^(i * b)} specified
 as:
 
 @example
 angle z = b + 2 pi n
 @end example
 
-with @code{-pi <= angle z <= \pi} and @code{angle z = b + 2 pi n} for
-some integer @var{n}.
+with @math{-\pi <= angle z <= \pi} and @math{angle z = b + 2 pi n} for
+some integer @math{n}.
 
-With the one--argument version of @emph{log} defined this way, the
-values of the two--argument--version of @emph{log}, @code{sin^(-1) z},
-@code{cos^(-1) z}, @code{tan^(-1) z}, and the two--argument version
-of @code{tan^(-1)} are according to the following formulae:
+With the one--argument version of @math{\log} defined this way, the
+values of the two--argument--version of @math{\log}, @code{sin^(-1) z},
+@math{cos^(-1) z}, @math{tan^(-1) z}, and the two--argument version of
+@math{tan^(-1)} are according to the following formulae:
 
 @example
 log_b z = (log z)/(log b)
@@ -6582,12 +6374,12 @@ tan^(-1) z = (log (1 + i z) - log (1 - i z)) / (2 i)
 tan^(-1) x y = angle(x + yi)
 @end example
 
-The range of @code{tan^(-1) x y} is as in the following table.  The
+The range of @math{tan^(-1) x y} is as in the following table.  The
 asterisk (*) indicates that the entry applies to implementations that
 distinguish minus zero.
 
-@multitable {*} {@emph{y} condition} {@emph{x} condition} {range of result @emph{r}}
-@headitem @tab @emph{y} condition @tab @emph{x} condition @tab range of result @emph{r}
+@multitable {*} {@math{y} condition} {@math{x} condition} {range of result @math{r}}
+@headitem @tab @math{y} condition @tab @math{x} condition @tab range of result @math{r}
 @item @tab y = 0.0 @tab x > 0.0 @tab 0.0
 @item * @tab y = +0.0  @tab x > 0.0 @tab +0.0
 @item * @tab y = -0.0 @tab x > 0.0 @tab -0.0
@@ -6608,7 +6400,6 @@ distinguish minus zero.
 @item * @tab y = +0.0 @tab x = 0 @tab pi/2
 @item * @tab y = -0.0 @tab x = 0 @tab -pi/2
 @end multitable
-
 
 
 @c page
@@ -6664,28 +6455,28 @@ is true if and only if @code{(= (denominator @var{q}) 1)} is true.  If
 is @false{}.
 
 @example
-(complex? 3+4i)                        => #t
-(complex? 3)                           => #t
-(real? 3)                              => #t
-(real? -2.5+0.0i)                      => #f
-(real? -2.5+0i)                        => #t
-(real? -2.5)                           => #t
-(real? #e1e10)                         => #t
-(rational? 6/10)                       => #t
-(rational? 6/3)                        => #t
-(rational? 2)                          => #t
-(integer? 3+0i)                        => #t
-(integer? 3.0)                         => #t
-(integer? 8/4)                         => #t
+(complex? 3+4i)                        @result{} #t
+(complex? 3)                           @result{} #t
+(real? 3)                              @result{} #t
+(real? -2.5+0.0i)                      @result{} #f
+(real? -2.5+0i)                        @result{} #t
+(real? -2.5)                           @result{} #t
+(real? #e1e10)                         @result{} #t
+(rational? 6/10)                       @result{} #t
+(rational? 6/3)                        @result{} #t
+(rational? 2)                          @result{} #t
+(integer? 3+0i)                        @result{} #t
+(integer? 3.0)                         @result{} #t
+(integer? 8/4)                         @result{} #t
 
-(number? +nan.0)                       => #t
-(complex? +nan.0)                      => #t
-(real? +nan.0)                         => #t
-(rational? +nan.0)                     => #f
-(complex? +inf.0)                      => #t
-(real? -inf.0)                         => #t
-(rational? -inf.0)                     => #f
-(integer? -inf.0)                      => #f
+(number? +nan.0)                       @result{} #t
+(complex? +nan.0)                      @result{} #t
+(real? +nan.0)                         @result{} #t
+(rational? +nan.0)                     @result{} #f
+(complex? +inf.0)                      @result{} #t
+(real? -inf.0)                         @result{} #t
+(rational? -inf.0)                     @result{} #f
+(integer? -inf.0)                      @result{} #f
 @end example
 
 @quotation
@@ -6710,27 +6501,27 @@ in the sense of @code{=} to some object of the named type, and otherwise
 they return @false{}.
 
 @example
-(real-valued? +nan.0)                  => #t
-(real-valued? +nan.0+0i)               => #t
-(real-valued? -inf.0)                  => #t
-(real-valued? 3)                       => #t
-(real-valued? -2.5+0.0i)               => #t
-(real-valued? -2.5+0i)                 => #t
-(real-valued? -2.5)                    => #t
-(real-valued? #e1e10)                  => #t
+(real-valued? +nan.0)                  @result{} #t
+(real-valued? +nan.0+0i)               @result{} #t
+(real-valued? -inf.0)                  @result{} #t
+(real-valued? 3)                       @result{} #t
+(real-valued? -2.5+0.0i)               @result{} #t
+(real-valued? -2.5+0i)                 @result{} #t
+(real-valued? -2.5)                    @result{} #t
+(real-valued? #e1e10)                  @result{} #t
 
-(rational-valued? +nan.0)              => #f
-(rational-valued? -inf.0)              => #f
-(rational-valued? 6/10)                => #t
-(rational-valued? 6/10+0.0i)           => #t
-(rational-valued? 6/10+0i)             => #t
-(rational-valued? 6/3)                 => #t
+(rational-valued? +nan.0)              @result{} #f
+(rational-valued? -inf.0)              @result{} #f
+(rational-valued? 6/10)                @result{} #t
+(rational-valued? 6/10+0.0i)           @result{} #t
+(rational-valued? 6/10+0i)             @result{} #t
+(rational-valued? 6/3)                 @result{} #t
 
-(integer-valued? 3+0i)                 => #t
-(integer-valued? 3+0.0i)               => #t
-(integer-valued? 3.0)                  => #t
-(integer-valued? 3.0+0.0i)             => #t
-(integer-valued? 8/4)                  => #t
+(integer-valued? 3+0i)                 @result{} #t
+(integer-valued? 3+0.0i)               @result{} #t
+(integer-valued? 3.0)                  @result{} #t
+(integer-valued? 3.0+0.0i)             @result{} #t
+(integer-valued? 8/4)                  @result{} #t
 @end example
 
 @quotation
@@ -6755,8 +6546,8 @@ quantity.  For any number object, precisely one of these predicates is
 true.
 
 @example
-(exact? 5)                   => #t
-(inexact? +inf.0)            => #t
+(exact? 5)                   @result{} #t
+(inexact? +inf.0)            @result{} #t
 @end example
 @end deffn
 
@@ -6801,7 +6592,6 @@ no reasonably close exact equivalent, an exception with condition type
 @end deffn
 
 
-
 @c page
 @node baselib math ops value pred
 @subsubsection Value predicates
@@ -6819,31 +6609,31 @@ nondecreasing, or monotonically nonincreasing, and @false{} otherwise.
 Examples:
 
 @example
-(= +inf.0 +inf.0)               => #t
-(= -inf.0 +inf.0)               => #f
-(= -inf.0 -inf.0)               => #t
+(= +inf.0 +inf.0)               @result{} #t
+(= -inf.0 +inf.0)               @result{} #f
+(= -inf.0 -inf.0)               @result{} #t
 @end example
 
 @noindent
 for any real number object @var{x} that is neither infinite nor NaN:
 
 @example
-(< -inf.0 @var{x} +inf.0)       => #t
-(> +inf.0 @var{x} -inf.0)       => #t
+(< -inf.0 @var{x} +inf.0)       @result{} #t
+(> +inf.0 @var{x} -inf.0)       @result{} #t
 @end example
 
 @noindent
 for any number object @var{z}:
 
 @example
-(= +nan.0 @var{z})              => #f
+(= +nan.0 @var{z})              @result{} #f
 @end example
 
 For any real number object @var{x}:
 
 @example
-(< +nan.0 @var{x})              => #f
-(> +nan.0 @var{x})              => #f
+(< +nan.0 @var{x})              @result{} #f
+(> +nan.0 @var{x})              @result{} #f
 @end example
 
 These predicates must be transitive.
@@ -6902,18 +6692,18 @@ Tests whether it is a NaN.
 @end table
 
 @example
-(zero? +0.0)                  => #t
-(zero? -0.0)                  => #t
-(zero? +nan.0)                => #f
-(positive? +inf.0)            => #t
-(negative? -inf.0)            => #t
-(positive? +nan.0)            => #f
-(negative? +nan.0)            => #f
-(finite? +inf.0)              => #f
-(finite? 5)                   => #t
-(finite? 5.0)                 => #t
-(infinite? 5.0)               => #f
-(infinite? +inf.0)            => #t
+(zero? +0.0)                  @result{} #t
+(zero? -0.0)                  @result{} #t
+(zero? +nan.0)                @result{} #f
+(positive? +inf.0)            @result{} #t
+(negative? -inf.0)            @result{} #t
+(positive? +nan.0)            @result{} #f
+(negative? +nan.0)            @result{} #f
+(finite? +inf.0)              @result{} #f
+(finite? 5)                   @result{} #t
+(finite? 5.0)                 @result{} #t
+(infinite? 5.0)               @result{} #f
+(infinite? +inf.0)            @result{} #t
 @end example
 
 @quotation
@@ -6921,7 +6711,6 @@ Tests whether it is a NaN.
 because a small inaccuracy may affect the result.
 @end quotation
 @end deffn
-
 
 
 @c page
@@ -6934,15 +6723,15 @@ because a small inaccuracy may affect the result.
 These procedures return the maximum or minimum of their arguments.
 
 @example
-(max 3 4)                       =>  4
-(max 3.9 4)                     =>  4.0
+(max 3 4)               @result{} 4
+(max 3.9 4)             @result{} 4.0
 @end example
 
 For any real number object @var{x} that is not a NaN:
 
 @example
-(max +inf.0 @var{x})            =>  +inf.0
-(min -inf.0 @var{x})            =>  -inf.0
+(max +inf.0 @var{x})    @result{} +inf.0
+(min -inf.0 @var{x})    @result{} -inf.0
 @end example
 
 @quotation
@@ -6957,8 +6746,6 @@ then the procedure may raise an exception with condition type
 @end quotation
 @end deffn
 
-
-
 @c page
 @node baselib math ops arithmetic
 @subsubsection Arithmetic operations
@@ -6969,40 +6756,40 @@ then the procedure may raise an exception with condition type
 These procedures return the sum or product of their arguments.
 
 @example
-(+ 3 4)                                =>  7
-(+ 3)                                  =>  3
-(+)                                    =>  0
-(+ +inf.0 +inf.0)                      =>  +inf.0
-(+ +inf.0 -inf.0)                      =>  +nan.0
+(+ 3 4)                 @result{}  7
+(+ 3)                   @result{}  3
+(+)                     @result{}  0
+(+ +inf.0 +inf.0)       @result{}  +inf.0
+(+ +inf.0 -inf.0)       @result{}  +nan.0
 
-(* 4)                                  =>  4
-(*)                                    =>  1
-(* 5 +inf.0)                           =>  +inf.0
-(* -5 +inf.0)                          =>  -inf.0
-(* +inf.0 +inf.0)                      =>  +inf.0
-(* +inf.0 -inf.0)                      =>  -inf.0
-(* 0 +inf.0)                           =>  0 or +nan.0
-(* 0 +nan.0)                           =>  0 or +nan.0
-(* 1.0 0)                              =>  0 or 0.0
+(* 4)                   @result{}  4
+(*)                     @result{}  1
+(* 5 +inf.0)            @result{}  +inf.0
+(* -5 +inf.0)           @result{}  -inf.0
+(* +inf.0 +inf.0)       @result{}  +inf.0
+(* +inf.0 -inf.0)       @result{}  -inf.0
+(* 0 +inf.0)            @result{}  0 or +nan.0
+(* 0 +nan.0)            @result{}  0 or +nan.0
+(* 1.0 0)               @result{}  0 or 0.0
 @end example
 
 For any real number object @var{x} that is neither infinite nor NaN:
 
 @example
-(+ +inf.0 @var{x})                           =>  +inf.0
-(+ -inf.0 @var{x})                           =>  -inf.0
+(+ +inf.0 x)            @result{}  +inf.0
+(+ -inf.0 x)            @result{}  -inf.0
 @end example
 
 For any real number object @var{x}:
 
 @example
-(+ +nan.0 @var{x})                           =>  +nan.0
+(+ +nan.0 x)            @result{}  +nan.0
 @end example
 
 For any real number object @var{x} that is not an exact 0:
 
 @example
-(* +nan.0 @var{x})                           =>  +nan.0
+(* +nan.0 x)            @result{}  +nan.0
 @end example
 
 If any of these procedures are applied to mixed non--rational real and
@@ -7014,10 +6801,10 @@ Implementations that distinguish @code{-0.0} should adopt behavior
 consistent with the following examples:
 
 @example
-(+  0.0 -0.0)  =>  0.0
-(+ -0.0  0.0)  =>  0.0
-(+  0.0  0.0)  =>  0.0
-(+ -0.0 -0.0)  => -0.0
+(+  0.0 -0.0)           @result{}  0.0
+(+ -0.0  0.0)           @result{}  0.0
+(+  0.0  0.0)           @result{}  0.0
+(+ -0.0 -0.0)           @result{} -0.0
 @end example
 @end deffn
 
@@ -7029,10 +6816,10 @@ its arguments, associating to the left.  With one argument, however, it
 returns the additive inverse of its argument.
 
 @example
-(- 3 4)                                =>  -1
-(- 3 4 5)                              =>  -6
-(- 3)                                  =>  -3
-(- +inf.0 +inf.0)                      =>  +nan.0
+(- 3 4)                 @result{} -1
+(- 3 4 5)               @result{} -6
+(- 3)                   @result{} -3
+(- +inf.0 +inf.0)       @result{} +nan.0
 @end example
 
 If this procedure is applied to mixed non--rational real and non--real
@@ -7040,16 +6827,16 @@ complex arguments, it either raises an exception with condition type
 @code{&implementation-restriction} or returns an unspecified number
 object.
 
-Implementations that distinguish @code{-0.0} should adopt behavior
+Implementations that distinguish @math{-0.0} should adopt behavior
 consistent with the following examples:
 
 @example
-(-  0.0)       => -0.0
-(- -0.0)       =>  0.0
-(-  0.0 -0.0)  =>  0.0
-(- -0.0  0.0)  => -0.0
-(-  0.0  0.0)  =>  0.0
-(- -0.0 -0.0)  =>  0.0
+(-  0.0)                @result{} -0.0
+(- -0.0)                @result{}  0.0
+(-  0.0 -0.0)           @result{}  0.0
+(- -0.0  0.0)           @result{} -0.0
+(-  0.0  0.0)           @result{}  0.0
+(- -0.0 -0.0)           @result{}  0.0
 @end example
 @end deffn
 
@@ -7062,18 +6849,18 @@ quotient of its arguments, associating to the left.  With one argument,
 however, it returns the multiplicative inverse of its argument.
 
 @example
-(/ 3 4 5)                              =>  3/20
-(/ 3)                                  =>  1/3
-(/ 0.0)                                =>  +inf.0
-(/ 1.0 0)                              =>  +inf.0
-(/ -1 0.0)                             =>  -inf.0
-(/ +inf.0)                             =>  0.0
-(/ 0 0)                                =>  exception &assertion
-(/ 3 0)                                =>  exception &assertion
-(/ 0 3.5)                              =>  0.0
-(/ 0 0.0)                              =>  +nan.0
-(/ 0.0 0)                              =>  +nan.0
-(/ 0.0 0.0)                            =>  +nan.0
+(/ 3 4 5)               @result{} 3/20
+(/ 3)                   @result{} 1/3
+(/ 0.0)                 @result{} +inf.0
+(/ 1.0 0)               @result{} +inf.0
+(/ -1 0.0)              @result{} -inf.0
+(/ +inf.0)              @result{} 0.0
+(/ 0 0)                 @result{} exception &assertion
+(/ 3 0)                 @result{} exception &assertion
+(/ 0 3.5)               @result{} 0.0
+(/ 0 0.0)               @result{} +nan.0
+(/ 0.0 0)               @result{} +nan.0
+(/ 0.0 0.0)             @result{} +nan.0
 @end example
 
 If this procedure is applied to mixed non--rational real and non--real
@@ -7087,8 +6874,8 @@ object.
 Returns the absolute value of its argument.
 
 @example
-(abs -7)                               =>  7
-(abs -inf.0)                           =>  +inf.0
+(abs -7)                 @result{}  7
+(abs -inf.0)             @result{}  +inf.0
 @end example
 @end deffn
 
@@ -7101,26 +6888,28 @@ Returns the absolute value of its argument.
 @deffnx Procedure mod0 @vari{x} @varii{x}
 These procedures implement number--theoretic integer division and return
 the results of the corresponding mathematical operations specified in
-@ref{baselib math semantics integer}.  If @vari{x} and @varii{x} are exact,
-@varii{x} must be nonzero. In the cases where the mathematical
-requirements in @ref{baselib math semantics integer} cannot be satisfied by
-any number object, either an exception is raised with condition type
+@ref{baselib math semantics integer}.  If @vari{x} and @varii{x} are
+exact, @varii{x} must be nonzero. In the cases where the mathematical
+requirements in @ref{baselib math semantics integer} cannot be satisfied
+by any number object, either an exception is raised with condition type
 @code{&implementation-restriction}, or unspecified number objects (one
 for for @func{div}, @func{mod}, @func{div0} and @func{mod0}, two for
 @func{div-and-mod} and @func{div0-and-mod0}) are returned.
 
 @example
-(div @vari{x} @varii{x})                => @vari{x} div @varii{x}
-(mod @vari{x} @varii{x})                => @vari{x} mod @varii{x}
+(div x1 x2)        @result{} x1 div x2
+(mod x1 x2)        @result{} x1 mod x2
 
-(div-and-mod @vari{x} @varii{x})
-=> @vari{x} div @varii{x}, @vari{x} mod @varii{x} ;; two return values
+(div-and-mod x1 x2)
+@result{} x1 div x2,
+   x1 mod x2 ;; two return values
 
-(div0 @vari{x} @varii{x})               => @vari{x} div_0 @varii{x}
-(mod0 @vari{x} @varii{x})               => @vari{x} mod_0 @varii{x}
+(div0 x1 x2)       @result{} x1 div_0 x2
+(mod0 x1 x2)       @result{} x1 mod_0 x2
 
-(div0-and-mod0 @vari{x} @varii{x})
-=> @vari{x} div_0 @varii{x}, @vari{x} mod_0 @varii{x} ;; two return values
+(div0-and-mod0 x1 x2)
+@result{} x1 div_0 x2,
+   x1 mod_0 x2 ;; two return values
 @end example
 @end deffn
 
@@ -7131,11 +6920,11 @@ These procedures return the greatest common divisor or least common
 multiple of their arguments.  The result is always non--negative.
 
 @example
-(gcd 32 -36)                           =>  4
-(gcd)                                  =>  0
-(lcm 32 -36)                           =>  288
-(lcm 32.0 -36)                         =>  288.0
-(lcm)                                  =>  1
+(gcd 32 -36)                    @result{} 4
+(gcd)                           @result{} 0
+(lcm 32 -36)                    @result{} 288
+(lcm 32.0 -36)                  @result{} 288.0
+(lcm)                           @result{} 1
 @end example
 @end deffn
 
@@ -7153,9 +6942,9 @@ in lowest terms.  The denominator is always positive.  The denominator
 of @code{0} is defined to be @code{1}.
 
 @example
-(numerator   (/ 6 4))                  =>  3
-(denominator (/ 6 4))                  =>  2
-(denominator (inexact (/ 6 4)))        =>  2.0
+(numerator   (/ 6 4))           @result{} 3
+(denominator (/ 6 4))           @result{} 2
+(denominator (inexact (/ 6 4))) @result{} 2.0
 @end example
 @end deffn
 
@@ -7194,22 +6983,22 @@ return an infinity when given an infinity as an argument, and a NaN when
 given a NaN.
 
 @example
-(floor -4.3)                           =>  -5.0
-(ceiling -4.3)                         =>  -4.0
-(truncate -4.3)                        =>  -4.0
-(round -4.3)                           =>  -4.0
+(floor -4.3)            @result{} -5.0
+(ceiling -4.3)          @result{} -4.0
+(truncate -4.3)         @result{} -4.0
+(round -4.3)            @result{} -4.0
 
-(floor 3.5)                            =>  3.0
-(ceiling 3.5)                          =>  4.0
-(truncate 3.5)                         =>  3.0
-(round 3.5)                            =>  4.0
+(floor 3.5)             @result{} 3.0
+(ceiling 3.5)           @result{} 4.0
+(truncate 3.5)          @result{} 3.0
+(round 3.5)             @result{} 4.0
 
-(round 7/2)                            =>  4
-(round 7)                              =>  7
+(round 7/2)             @result{} 4
+(round 7)               @result{} 7
 
-(floor +inf.0)                         =>  +inf.0
-(ceiling -inf.0)                       =>  -inf.0
-(round +nan.0)                         =>  +nan.0
+(floor +inf.0)          @result{} +inf.0
+(ceiling -inf.0)        @result{} -inf.0
+(round +nan.0)          @result{} +nan.0
 @end example
 @end deffn
 
@@ -7219,25 +7008,25 @@ The @func{rationalize} procedure returns a number object representing
 the @emph{simplest} rational number differing from @vari{x} by no more
 than @varii{x}.
 
-A rational number @emph{r_1} is @emph{simpler} than another rational
-number @emph{r_2} if @code{r_1 = p_1/q_1} and @code{r_2 = p_2/q_2} (in
-lowest terms) and @code{|p_1| <= |p_2|} and @code{|q_1| <= |q_2|}.  Thus
-@code{3/5} is simpler than @code{4/7}.
+A rational number @math{r_1} is @emph{simpler} than another rational
+number @math{r_2} if @math{r_1 = p_1/q_1} and @math{r_2 = p_2/q_2} (in
+lowest terms) and @math{|p_1| <= |p_2|} and @math{|q_1| <= |q_2|}.  Thus
+@math{3/5} is simpler than @math{4/7}.
 
 Although not all rationals are comparable in this ordering (consider
-@code{2/7} and @code{3/5}) any interval contains a rational number that
+@math{2/7} and @math{3/5}) any interval contains a rational number that
 is simpler than every other rational number in that interval (the
-simpler @code{2/5} lies between @code{2/7} and @code{3/5}).
+simpler @math{2/5} lies between @math{2/7} and @math{3/5}).
 
-Note that @code{0 = 0/1} is the simplest rational of all.
+Note that @math{0 = 0/1} is the simplest rational of all.
 
 @example
-(rationalize (exact .3) 1/10)          => 1/3
-(rationalize .3 1/10)                  => #i1/3  ; approximately
+(rationalize (exact .3) 1/10)   @result{} 1/3
+(rationalize .3 1/10)           @result{} #i1/3 ; approximately
 
-(rationalize +inf.0 3)                 =>  +inf.0
-(rationalize +inf.0 +inf.0)            =>  +nan.0
-(rationalize 3 +inf.0)                 =>  0.0
+(rationalize +inf.0 3)          @result{} +inf.0
+(rationalize +inf.0 +inf.0)     @result{} +nan.0
+(rationalize 3 +inf.0)          @result{} 0.0
 @end example
 
 The first two examples hold only in implementations whose inexact real
@@ -7281,17 +7070,26 @@ These procedures may return inexact results even when given exact
 arguments.
 
 @example
-(exp +inf.0)    => +inf.0
-(exp -inf.0)    => 0.0
-(log +inf.0)    => +inf.0
-(log 0.0)       => -inf.0
-(log 0)         => exception &assertion
-(log -inf.0)    => +inf.0+3.141592653589793i    ; approximately
-(atan -inf.0)   => -1.5707963267948965          ; approximately
-(atan +inf.0)   => 1.5707963267948965           ; approximately
-(log -1.0+0.0i) => 0.0+3.141592653589793i       ; approximately
-(log -1.0-0.0i) => 0.0-3.141592653589793i       ; approximately
-                                                ; if -0.0 is distinguished
+(exp +inf.0)    @result{} +inf.0
+(exp -inf.0)    @result{} 0.0
+(log +inf.0)    @result{} +inf.0
+(log 0.0)       @result{} -inf.0
+(log 0)         @result{} exception &assertion
+
+(log -inf.0)    @result{} +inf.0+3.141592653589793i
+                ; approximately
+
+(atan -inf.0)   @result{} -1.5707963267948965
+                ; approximately
+
+(atan +inf.0)   @result{} 1.5707963267948965
+                ; approximately
+
+(log -1.0+0.0i) @result{} 0.0+3.141592653589793i
+                ; approximately
+
+(log -1.0-0.0i) @result{} 0.0-3.141592653589793i
+                ; approximately if -0.0 is distinguished
 @end example
 @end deffn
 
@@ -7305,41 +7103,38 @@ arguments.
 @deffn Procedure sqrt @var{z}
 Return the principal square root of @var{z}.  For rational @var{z}, the
 result has either positive real part, or zero real part and
-non--negative imaginary part.  With @emph{log} defined as in @ref{baselib
-math semantics trascend}, the value of @code{(sqrt @var{z})} could be
-expressed as:
-
-@example
-e^((log z)/2)
-@end example
+non--negative imaginary part.  With @math{\log} defined as in
+@ref{baselib math semantics trascend}, the value of @code{(sqrt
+@var{z})} could be expressed as @math{e^((\log z)/2)}.
 
 The @func{sqrt} procedure may return an inexact result even when given
 an exact argument.
 
 @example
-(sqrt -5)                   =>  0.0+2.23606797749979i ; approximately
-(sqrt +inf.0)               =>  +inf.0
-(sqrt -inf.0)               =>  +inf.0i
+(sqrt -5)               @result{} 0.0+2.23606797749979i
+                        ; approximately
+(sqrt +inf.0)           @result{} +inf.0
+(sqrt -inf.0)           @result{} +inf.0i
 @end example
 @end deffn
 
 
 @deffn Procedure exact-integer-sqrt @var{k}
 The @func{exact-integer-sqrt} procedure returns two non--negative exact
-integer objects @emph{s} and @emph{r} where @code{@var{k} = s^2 + r} and
-@code{@var{k} < (s+1)^2}.
+integer objects @math{s} and @math{r} where @math{@var{k} = s^2 + r} and
+@math{@var{k} < (s+1)^2}.
 
 @example
-(exact-integer-sqrt 4)  => 2 0 ; two return values
-(exact-integer-sqrt 5)  => 2 1 ; two return values
+(exact-integer-sqrt 4)  @result{} 2 0 ; two return values
+(exact-integer-sqrt 5)  @result{} 2 1 ; two return values
 @end example
 @end deffn
 
 
 @deffn Procedure expt @vari{z} @varii{z}
 Return @vari{z} raised to the power @varii{z}.  For non--zero @vari{z},
-this is @code{e^(z_2 log z_1)}.  @code{0.0^z} is @code{1.0} if
-@code{@var{z} = 0.0}, and @code{0.0} if @code{(real-part @var{z})} is
+this is @math{e^(z_2 \log z_1)}.  @math{0.0^z} is @math{1.0} if
+@math{@var{z} = 0.0}, and @math{0.0} if @code{(real-part @var{z})} is
 positive.  For other cases in which the first argument is zero, either
 an exception is raised with condition type
 @code{&implementation-restriction}, or an unspecified number object is
@@ -7352,18 +7147,17 @@ For all other values of @vari{z} and @varii{z}, @code{(expt @vari{z}
 @varii{z} are exact.
 
 @example
-(expt 5 3)                  =>  125
-(expt 5 -3)                 =>  1/125
-(expt 5 0)                  =>  1
-(expt 0 5)                  =>  0
-(expt 0 5+.0000312i)        =>  0.0
-(expt 0 -5)                 =>  unspecified
-(expt 0 -5+.0000312i)       =>  unspecified
-(expt 0 0)                  =>  1
-(expt 0.0 0.0)              =>  1.0
+(expt 5 3)                  @result{} 125
+(expt 5 -3)                 @result{} 1/125
+(expt 5 0)                  @result{} 1
+(expt 0 5)                  @result{} 0
+(expt 0 5+.0000312i)        @result{} 0.0
+(expt 0 -5)                 @result{} unspecified
+(expt 0 -5+.0000312i)       @result{} unspecified
+(expt 0 0)                  @result{} 1
+(expt 0.0 0.0)              @result{} 1.0
 @end example
 @end deffn
-
 
 
 @c page
@@ -7377,60 +7171,66 @@ For all other values of @vari{z} and @varii{z}, @code{(expt @vari{z}
 @deffnx Procedure imag-part @var{z}
 @deffnx Procedure magnitude @var{z}
 @deffnx Procedure angle @var{z}
-Suppose @emph{a_1}, @emph{a_2}, @emph{a_3}, and @emph{a_4} are real
-numbers, and @emph{c} is a complex number such that the following holds:
+Suppose @math{a_1}, @math{a_2}, @math{a_3}, and @math{a_4} are real
+numbers, and @math{c} is a complex number such that the following holds:
 
 @example
 c = a_1 + a_2 i = a_3 e^(i a_4)
 @end example
 
 Then, if @vari{x}, @varii{x}, @variii{x}, and @variv{x} are number
-objects representing @emph{a_1}, @emph{a_2}, @emph{a_3}, and @emph{a_4},
+objects representing @math{a_1}, @math{a_2}, @math{a_3}, and @math{a_4},
 respectively, @code{(make-rectangular @vari{x} @varii{x})} returns
-@emph{c}, and @code{(make-polar @variii{x} @variv{x})} returns @emph{c}.
+@math{c}, and @code{(make-polar @variii{x} @variv{x})} returns @math{c}.
 
 @example
-(make-rectangular 1.1 2.2)    => 1.1+2.2i ; approximately
-(make-polar 1.1 2.2)          => 1.1@@2.2 ; approximately
+(make-rectangular 1.1 2.2)    @result{} 1.1+2.2i ; approximately
+(make-polar 1.1 2.2)          @result{} 1.1@@2.2 ; approximately
 @end example
 
-Conversely, if @code{-pi <= a_4 <= pi}, and if @emph{z} is a number
-object representing @emph{c}, then @code{(real-part @var{z})} returns
-@emph{a_1}, @code{(imag-part @var{z})} returns @emph{a_2},
-@code{(magnitude @var{z})} returns @emph{a_3}, and @code{(angle
-@var{z})} returns @emph{a_4}.
+Conversely, if @math{-\pi <= a_4 <= \pi}, and if @math{z} is a number
+object representing @math{c}, then @code{(real-part @var{z})} returns
+@math{a_1}, @code{(imag-part @var{z})} returns @math{a_2},
+@code{(magnitude @var{z})} returns @math{a_3}, and @code{(angle
+@var{z})} returns @math{a_4}.
 
 @example
-(real-part 1.1+2.2i)              => 1.1  ; approximately
-(imag-part 1.1+2.2i)              => 2.2  ; approximately
-(magnitude 1.1@@2.2)              => 1.1  ; approximately
-(angle     1.1@@2.2)              => 2.2  ; approximately
+(real-part 1.1+2.2i)    @result{} 1.1
+                        ; approximately
+(imag-part 1.1+2.2i)    @result{} 2.2
+                        ; approximately
+(magnitude 1.1@@2.2)     @result{} 1.1
+                        ; approximately
+(angle     1.1@@2.2)     @result{} 2.2
+                        ; approximately
 
-(angle -1.0)            => 3.141592653589793 ; approximately
-(angle -1.0+0.0i)       => 3.141592653589793 ; approximately
-(angle -1.0-0.0i)       => -3.141592653589793
+(angle -1.0)            @result{} 3.141592653589793
+                        ; approximately
+(angle -1.0+0.0i)       @result{} 3.141592653589793
+                        ; approximately
+(angle -1.0-0.0i)       @result{} -3.141592653589793
                         ; approximately if -0.0 is distinguished
-(angle +inf.0)          => 0.0
-(angle -inf.0)          => 3.141592653589793 ; approximately
+(angle +inf.0)          @result{} 0.0
+(angle -inf.0)          @result{} 3.141592653589793
+                        ; approximately
 @end example
 
 Moreover, suppose @vari{x}, @varii{x} are such that either @vari{x} or
 @varii{x} is an infinity, then
 
 @example
-(make-rectangular @vari{x} @varii{x})   => @var{z}
-(magnitude @var{z})                     => +inf.0
+(make-rectangular x1 x2)        @result{} @var{z}
+(magnitude z)                   @result{} +inf.0
 @end example
 
 The @func{make-polar}, @func{magnitude}, and @func{angle} procedures may
 return inexact results even when given exact arguments.
 
 @example
-(angle -1)              => 3.141592653589793 ; approximately
+(angle -1)              @result{} 3.141592653589793
+                        ; approximately
 @end example
 @end deffn
-
-
 
 @c page
 @node baselib math string
@@ -7445,8 +7245,8 @@ and returns as a string an external representation of the given number
 object in the given radix such that:
 
 @example
-(let ((number   @var{z})
-      (radix    @var{radix}))
+(let ((number @var{z})
+      (radix  @var{radix}))
   (eqv?
     (string->number (number->string number radix) radix)
     number))
@@ -7456,11 +7256,11 @@ object in the given radix such that:
 is true.  If no possible result makes this expression true, an exception
 with condition type @code{&implementation-restriction} is raised.
 
-@var{radix} must be an exact integer object, either @code{2}, @code{8},
-@code{10}, or @code{16}.  If omitted, @var{radix} defaults to @code{10}.
+@var{radix} must be an exact integer object, either @math{2}, @math{8},
+@math{10}, or @math{16}.  If omitted, @var{radix} defaults to @math{10}.
 If a @var{precision} is specified, then @var{z} must be an inexact
 complex number object, @var{precision} must be an exact positive integer
-object, and @var{radix} must be @code{10}.
+object, and @var{radix} must be @math{10}.
 
 @quotation
 @emph{Note:} The error case can occur only when @var{z} is not a complex
@@ -7470,11 +7270,11 @@ imaginary part.
 
 If a @var{precision} is specified, then the representations of the
 inexact real components of the result, unless they are infinite or NaN,
-specify an explicit @meta{mantissa width} @var{p}, and @var{p} is the
-least @emph{@var{p} >= @var{precision}} for which the above expression
-is true.
+specify an explicit @meta{mantissa width} @math{p}, and @math{p} is the
+least @math{p >= @var{precision}} for which the above expression is
+true.
 
-If @var{z} is inexact, the radix is @code{10}, and the above expression
+If @var{z} is inexact, the radix is @math{10}, and the above expression
 and condition can be satisfied by a result that contains a decimal
 point, then the result contains a decimal point and is expressed using
 the minimum number of digits (exclusive of exponent, trailing zeroes,
@@ -7491,24 +7291,24 @@ radix prefix.
 Return a number object with maximally precise representation expressed
 by the given @var{string}.
 
-@var{radix} must be an exact integer object, either @code{2}, @code{8},
-@code{10}, or @code{16}.  If supplied, @var{radix} is a default radix
+@var{radix} must be an exact integer object, either @math{2}, @math{8},
+@math{10}, or @math{16}.  If supplied, @var{radix} is a default radix
 that may be overridden by an explicit radix prefix in @var{string}
 (e.g. @code{#o177}).  If @var{radix} is not supplied, then the default
-radix is @code{10}.
+radix is @math{10}.
 
 If @var{string} is not a syntactically valid notation for a number
 object or a notation for a rational number object with a zero
 denominator, then @func{string->number} returns @false{}.
 
 @example
-(string->number "100")                 => 100
-(string->number "100" 16)              => 256
-(string->number "1e2")                 => 100.0
-(string->number "0/0")                 => #f
-(string->number "+inf.0")              => +inf.0
-(string->number "-inf.0")              => -inf.0
-(string->number "+nan.0")              => +nan.0
+(string->number "100")          @result{} 100
+(string->number "100" 16)       @result{} 256
+(string->number "1e2")          @result{} 100.0
+(string->number "0/0")          @result{} #f
+(string->number "+inf.0")       @result{} +inf.0
+(string->number "-inf.0")       @result{} -inf.0
+(string->number "+nan.0")       @result{} +nan.0
 @end example
 
 @quotation
@@ -7516,8 +7316,6 @@ denominator, then @func{string->number} returns @false{}.
 object or @false{}; it never raises an exception.
 @end quotation
 @end deffn
-
-
 
 @c page
 @node baselib booleans
@@ -7539,13 +7337,13 @@ each other and from the symbol @code{nil}.
 Return @true{} if @var{obj} is @false{}, or @false{} otherwise.
 
 @example
-(not #t)         => #f
-(not 3)          => #f
-(not (list 3))   => #f
-(not #f)         => #t
-(not '())        => #f
-(not (list))     => #f
-(not 'nil)       => #f
+(not #t)         @result{} #f
+(not 3)          @result{} #f
+(not (list 3))   @result{} #f
+(not #f)         @result{} #t
+(not '())        @result{} #f
+(not (list))     @result{} #f
+(not 'nil)       @result{} #f
 @end example
 @end deffn
 
@@ -7555,9 +7353,9 @@ Return @true{} if @var{obj} is either @true{} or @false{}, or @false{}
 otherwise.
 
 @example
-(boolean? #f)   => #t
-(boolean? 0)    => #f
-(boolean? '())  => #f
+(boolean? #f)   @result{} #t
+(boolean? 0)    @result{} #f
+(boolean? '())  @result{} #f
 @end example
 @end deffn
 
@@ -7565,7 +7363,6 @@ otherwise.
 @deffn Procedure {boolean=?} @vari{bool} @varii{bool} @variii{bool} @dots{}
 Return @true{} if the booleans are the same.
 @end deffn
-
 
 
 @c page
@@ -7629,10 +7426,10 @@ field.
 Return @true{} if @var{obj} is a pair, @false{} otherwise.
 
 @example
-(pair? '(a . b))        => #t
-(pair? '(a b c))        => #t
-(pair? '())             => #f
-(pair? '#(a b))         => #f
+(pair? '(a . b))        @result{} #t
+(pair? '(a b c))        @result{} #t
+(pair? '())             @result{} #f
+(pair? '#(a b))         @result{} #f
 @end example
 @end deffn
 
@@ -7643,11 +7440,11 @@ Return a newly allocated pair whose car is @vari{obj} and whose cdr is
 @func{eqv?}) from every existing object.
 
 @example
-(cons 'a '())           =>  (a)
-(cons '(a) '(b c d))    =>  ((a) b c d)
-(cons "a" '(b c))       =>  ("a" b c)
-(cons 'a 3)             =>  (a . 3)
-(cons '(a b) 'c)        =>  ((a b) . c)
+(cons 'a '())           @result{}  (a)
+(cons '(a) '(b c d))    @result{}  ((a) b c d)
+(cons "a" '(b c))       @result{}  ("a" b c)
+(cons 'a 3)             @result{}  (a . 3)
+(cons '(a b) 'c)        @result{}  ((a b) . c)
 @end example
 @end deffn
 
@@ -7656,10 +7453,10 @@ Return a newly allocated pair whose car is @vari{obj} and whose cdr is
 Return the contents of the car field of @var{pair}.
 
 @example
-(car '(a b c))          => a
-(car '((a) b c d))      => (a)
-(car '(1 . 2))          => 1
-(car '())               => exception &assertion
+(car '(a b c))          @result{} a
+(car '((a) b c d))      @result{} (a)
+(car '(1 . 2))          @result{} 1
+(car '())               @result{} exception &assertion
 @end example
 @end deffn
 
@@ -7668,9 +7465,9 @@ Return the contents of the car field of @var{pair}.
 Return the contents of the cdr field of @var{pair}.
 
 @example
-(cdr '((a) b c d))      => (b c d)
-(cdr '(1 . 2))          => 2
-(cdr '())               => exception &assertion
+(cdr '((a) b c d))      @result{} (b c d)
+(cdr '(1 . 2))          @result{} 2
+(cdr '())               @result{} exception &assertion
 @end example
 @end deffn
 
@@ -7703,9 +7500,9 @@ definition, all lists are chains of pairs that have finite length and
 are terminated by the empty list.
 
 @example
-(list? '(a b c))     => #t
-(list? '())          => #t
-(list? '(a . b))     => #f
+(list? '(a b c))     @result{} #t
+(list? '())          @result{} #t
+(list? '(a . b))     @result{} #f
 @end example
 @end deffn
 
@@ -7714,8 +7511,8 @@ are terminated by the empty list.
 Return a newly allocated list of its arguments.
 
 @example
-(list 'a (+ 3 4) 'c)    => (a 7 c)
-(list)                  => ()
+(list 'a (+ 3 4) 'c)    @result{} (a 7 c)
+(list)                  @result{} ()
 @end example
 @end deffn
 
@@ -7724,9 +7521,9 @@ Return a newly allocated list of its arguments.
 Return the length of @var{list}.
 
 @example
-(length '(a b c))               =>  3
-(length '(a (b) (c d e)))       =>  3
-(length '())                    =>  0
+(length '(a b c))               @result{}  3
+(length '(a (b) (c d e)))       @result{}  3
+(length '())                    @result{}  0
 @end example
 @end deffn
 
@@ -7739,11 +7536,11 @@ Return a possibly improper list consisting of the elements of the first
 @var{obj} is not a list.
 
 @example
-(append '(x) '(y))              =>  (x y)
-(append '(a) '(b c d))          =>  (a b c d)
-(append '(a (b)) '((c)))        =>  (a (b) (c))
-(append '(a b) '(c . d))        =>  (a b c . d)
-(append '() 'a)                 =>  a
+(append '(x) '(y))              @result{}  (x y)
+(append '(a) '(b c d))          @result{}  (a b c d)
+(append '(a (b)) '((c)))        @result{}  (a (b) (c))
+(append '(a b) '(c . d))        @result{}  (a b c . d)
+(append '() 'a)                 @result{}  a
 @end example
 
 If @func{append} constructs a non--empty chain of pairs, it is always
@@ -7756,8 +7553,8 @@ Return a newly allocated list consisting of the elements of @var{list}
 in reverse order.
 
 @example
-(reverse '(a b c))              => (c b a)
-(reverse '(a (b c) d (e (f))))  => ((e (f)) d (b c) a)
+(reverse '(a b c))              @result{} (c b a)
+(reverse '(a (b c) d (e (f))))  @result{} ((e (f)) d (b c) a)
 @end example
 @end deffn
 
@@ -7768,7 +7565,7 @@ subchain of pairs of @var{list} obtained by omitting the first @var{k}
 elements.
 
 @example
-(list-tail '(a b c d) 2)        =>  (c d)
+(list-tail '(a b c d) 2)        @result{}  (c d)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -7783,7 +7580,7 @@ The @func{list-tail} procedure returns the @var{k}th element of
 @var{list}.
 
 @example
-(list-ref '(a b c d) 2)         => c
+(list-ref '(a b c d) 2)         @result{} c
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -7806,18 +7603,18 @@ elements of the @var{list}s is unspecified.  If multiple returns occur
 from @func{map}, the values returned by earlier returns are not mutated.
 
 @example
-(map cadr '((a b) (d e) (g h)))         =>  (b e h)
+(map cadr '((a b) (d e) (g h)))         @result{}  (b e h)
 
 (map (lambda (n) (expt n n))
-     '(1 2 3 4 5))                      =>  (1 4 27 256 3125)
+     '(1 2 3 4 5))                      @result{}  (1 4 27 256 3125)
 
-(map + '(1 2 3) '(4 5 6))               =>  (5 7 9)
+(map + '(1 2 3) '(4 5 6))               @result{}  (5 7 9)
 
 (let ((count 0))
   (map (lambda (ignored)
          (set! count (+ count 1))
          count)
-       '(a b)))                         =>  (1 2) or (2 1)
+       '(a b)))                         @result{}  (1 2) or (2 1)
 @end example
 
 @strong{Implementation responsibilities:} The implementation should
@@ -7845,13 +7642,13 @@ dynamic environment as @func{for-each} itself.  The return values of
               (vector-set! v i (* i i)))
             '(0 1 2 3 4))
   v)
-=>  #(0 1 4 9 16)
+@result{}  #(0 1 4 9 16)
 
 (for-each (lambda (x) x) '(1 2 3 4))
-=> unspecified
+@result{} unspecified
 
 (for-each even? '())
-=> unspecified
+@result{} unspecified
 @end example
 
 @strong{Implementation responsibilities:} The implementation should
@@ -7865,7 +7662,6 @@ applying it as described.  An implementation may check whether
 tail--call @var{proc} on the last elements.
 @end quotation
 @end deffn
-
 
 
 @c page
@@ -7883,12 +7679,12 @@ symbol literal is formed using @func{quote}.
 Return @true{} if @var{obj} is a symbol, @false{} otherwise.
 
 @example
-(symbol? 'foo)          => #t
-(symbol? (car '(a b)))  => #t
-(symbol? "bar")         => #f
-(symbol? 'nil)          => #t
-(symbol? '())           => #f
-(symbol? #f)            => #f
+(symbol? 'foo)          @result{} #t
+(symbol? (car '(a b)))  @result{} #t
+(symbol? "bar")         @result{} #f
+(symbol? 'nil)          @result{} #t
+(symbol? '())           @result{} #f
+(symbol? #f)            @result{} #f
 @end example
 @end deffn
 
@@ -7897,9 +7693,9 @@ Return @true{} if @var{obj} is a symbol, @false{} otherwise.
 Return the name of @var{symbol} as an immutable string.
 
 @example
-(symbol->string 'flying-fish)                   =>  "flying-fish"
-(symbol->string 'Martin)                        =>  "Martin"
-(symbol->string (string->symbol "Malvina"))     =>  "Malvina"
+(symbol->string 'flying-fish)                   @result{}  "flying-fish"
+(symbol->string 'Martin)                        @result{}  "Martin"
+(symbol->string (string->symbol "Malvina"))     @result{}  "Malvina"
 @end example
 @end deffn
 
@@ -7915,23 +7711,22 @@ Return the symbol whose name is @var{string}.
 
 @example
 (eq? 'mISSISSIppi 'mississippi)
-=> #f
+@result{} #f
 
 (string->symbol "mISSISSIppi")
-=> the symbol with name "mISSISSIppi"
+@result{} the symbol with name "mISSISSIppi"
 
 (eq? 'bitBlt (string->symbol "bitBlt"))
-=> #t
+@result{} #t
 
 (eq? 'JollyWog (string->symbol (symbol->string 'JollyWog)))
-=> #t
+@result{} #t
 
 (string=? "K. Harper, M.D."
           (symbol->string (string->symbol "K. Harper, M.D.")))
-=> #t
+@result{} #t
 @end example
 @end deffn
-
 
 
 @c page
@@ -7943,7 +7738,7 @@ Return the symbol whose name is @var{string}.
 
 @quotation
 Unicode defines a standard mapping between sequences of @emph{Unicode
-scalar values} (integers in the range @code{0} to @code{#x10FFFF},
+scalar values} (integers in the range @math{0} to @code{#x10FFFF},
 excluding the range @code{#xD800} to @code{#xDFFF}) in the latest
 version of the standard and human--readable ``characters''.
 
@@ -7985,9 +7780,9 @@ as an exact integer object.  For a Unicode scalar value @var{sv},
 @func{integer->char} returns its associated character.
 
 @example
-(integer->char 32) =>                   #\space
-(char->integer (integer->char 5000))    => 5000
-(integer->char #\xD800)                 => exception &assertion
+(integer->char 32)                      @result{} #\space
+(char->integer (integer->char 5000))    @result{} 5000
+(integer->char #\xD800)                 @result{} exception &assertion
 @end example
 @end deffn
 
@@ -8001,11 +7796,10 @@ These procedures impose a total ordering on the set of characters
 according to their Unicode scalar values.
 
 @example
-@c (char<? #\z #\\ss)      => #t
-(char<? #\z #\Z)        => #f
+@c (char<? #\z #\\ss)      @result{} #t
+(char<? #\z #\Z)                @result{} #f
 @end example
 @end deffn
-
 
 
 @c page
@@ -8062,7 +7856,7 @@ characters in the same positions.  Otherwise, the @func{string=?}
 procedure returns @false{}.
 
 @example
-(string=? "Strause" "Strasse")    => #f
+(string=? "Strause" "Strasse")    @result{} #f
 @end example
 @end deffn
 
@@ -8079,9 +7873,9 @@ the same up to the length of the shorter string, the shorter string is
 considered to be lexicographically less than the longer string.
 
 @example
-(string<? "z" "a")      => #t
-(string<? "z" "zz")     => #t
-(string<? "z" "Z")      => #f
+(string<? "z" "a")      @result{} #t
+(string<? "z" "zz")     @result{} #t
+(string<? "z" "Z")      @result{} #f
 @end example
 @end deffn
 
@@ -8145,7 +7939,6 @@ Returns a newly allocated copy of the given @var{string}.
 @end deffn
 
 
-
 @c page
 @node baselib vectors
 @section Vectors
@@ -8166,7 +7959,7 @@ indexed by one less than the length of the vector.
 Like list constants, vector constants must be quoted:
 
 @example
-'#(0 (2 2 2 2) "Anna")     =>  #(0 (2 2 2 2) "Anna")
+'#(0 (2 2 2 2) "Anna")     @result{}  #(0 (2 2 2 2) "Anna")
 @end example
 
 
@@ -8188,7 +7981,7 @@ Return a newly allocated vector whose elements contain the given
 arguments.  Analogous to @code{list}.
 
 @example
-(vector 'a 'b 'c)               =>  #(a b c)
+(vector 'a 'b 'c)               @result{}  #(a b c)
 @end example
 @end deffn
 
@@ -8204,7 +7997,7 @@ object.
 procedure returns the contents of element @var{k} of @var{vector}.
 
 @example
-(vector-ref '#(1 1 2 3 5 8 13 21) 5)     =>  8
+(vector-ref '#(1 1 2 3 5 8 13 21) 5)     @result{}  8
 @end example
 @end deffn
 
@@ -8221,10 +8014,10 @@ exception with condition type @code{&assertion} to be raised.
 (let ((vec (vector 0 '(2 2 2 2) "Anna")))
   (vector-set! vec 1 '("Sue" "Sue"))
   vec)
-=>  #(0 ("Sue" "Sue") "Anna")
+@result{}  #(0 ("Sue" "Sue") "Anna")
 
 (vector-set! '#(0 1 2) 1 "doe")
-=>  unspecified
+@result{}  unspecified
     ;; constant vector
     ;; should raise exception &assertion
 @end example
@@ -8240,8 +8033,8 @@ The @func{list->vector} procedure returns a newly created vector
 initialized to the elements of the list @var{list}.
 
 @example
-(vector->list '#(dah dah didah))        =>  (dah dah didah)
-(list->vector '(dididit dah))           =>  #(dididit dah)
+(vector->list '#(dah dah didah))        @result{} (dah dah didah)
+(list->vector '(dididit dah))           @result{} #(dididit dah)
 @end example
 @end deffn
 
@@ -8290,7 +8083,6 @@ the restrictions on @var{proc} to the extent performed by applying it as
 described.  An implementation may check whether @var{proc} is an
 appropriate argument before applying it.
 @end deffn
-
 
 
 @c page
@@ -8355,9 +8147,9 @@ has condition type @code{&assertion}.
                  (loop (- n 1) (* r n))))))
       (loop n 1)))
 
-(fac 5)         => 120
-(fac 4.5)       => exception &assertion
-(fac -3)        => exception &assertion
+(fac 5)         @result{} 120
+(fac 4.5)       @result{} exception &assertion
+(fac -3)        @result{} exception &assertion
 @end example
 @end deffn
 
@@ -8376,7 +8168,6 @@ is syntax to provide as much information as possible about the location
 of the assertion failure.
 @end quotation
 @end deffn
-
 
 
 @c page
@@ -8405,14 +8196,14 @@ If a call to @func{apply} occurs in a tail context, the call to
 @var{proc} is also in a tail context.
 
 @example
-(apply + (list 3 4))                    =>  7
+(apply + (list 3 4))                    @result{}  7
 
 (define compose
   (lambda (f g)
     (lambda args
       (f (apply g args)))))
 
-((compose sqrt *) 12 75)                =>  30
+((compose sqrt *) 12 75)                @result{}  30
 @end example
 @end deffn
 
@@ -8454,7 +8245,7 @@ no need for a procedure with the power of @func{call/cc}.
                     (exit x)))
               '(54 0 37 -3 245 19))
     #t))
-=>  -3
+@result{}  -3
 
 (define list-length
   (lambda (obj)
@@ -8468,9 +8259,9 @@ no need for a procedure with the power of @func{call/cc}.
                           (else (return #f))))))
           (r obj))))))
 
-(list-length '(1 2 3 4))                        =>  4
-(list-length '(a b . c))                        => #f
-(call-with-current-continuation procedure?)     => #t
+(list-length '(1 2 3 4))                        @result{}  4
+(list-length '(a b . c))                        @result{} #f
+(call-with-current-continuation procedure?)     @result{} #t
 @end example
 
 @quotation
@@ -8519,10 +8310,10 @@ continuation of the call to @func{call-with-values}.
 (call-with-values
     (lambda () (values 4 5))
   (lambda (a b) b))
-=>  5
+@result{}  5
 
 (call-with-values * -)
-=>  -1
+@result{}  -1
 @end example
 
 If a call to @code{call-with-values} occurs in a tail context, the call
@@ -8591,7 +8382,7 @@ actually called.
     (if (< (length path) 4)
         (c 'talk2)
         (reverse path))))
-=> (connect talk1 disconnect connect talk2 disconnect)
+@result{} (connect talk1 disconnect connect talk2 disconnect)
 
 (let ((n 0))
   (call-with-current-continuation
@@ -8605,7 +8396,7 @@ actually called.
         (lambda ()
           (set! n (+ n 4))))))
   n)
-=> 1
+@result{} 1
 
 (let ((n 0))
   (call-with-current-continuation
@@ -8624,14 +8415,13 @@ actually called.
         (lambda ()
           (set! n (+ n 4))))))
   n)
-=> 7
+@result{} 7
 @end example
 
 @quotation
 @emph{Note:} Entering a dynamic extent restores its dynamic environment.
 @end quotation
 @end deffn
-
 
 
 @c page
@@ -8664,10 +8454,9 @@ procedure named by @meta{variable}.
          (loop (cdr numbers)
                nonneg
                (cons (car numbers) neg)))))
-=>  ((6 1 3) (-5 -2))
+@result{} ((6 1 3) (-5 -2))
 @end example
 @end deffn
-
 
 
 @c page
@@ -8715,33 +8504,33 @@ The following abbreviations may be used:
 Examples:
 
 @example
-`(list ,(+ 1 2) 4)                      => (list 3 4)
+`(list ,(+ 1 2) 4)                      @result{} (list 3 4)
 
 (let ((name 'a))
-  `(list ,name ',name))                 => (list a (quote a))
+  `(list ,name ',name))                 @result{} (list a (quote a))
 
-`(a ,(+ 1 2) ,@@(map abs '(4 -5 6)) b)   => (a 3 4 5 6 b)
+`(a ,(+ 1 2) ,@@(map abs '(4 -5 6)) b)   @result{} (a 3 4 5 6 b)
 
 `((foo ,(- 10 3))
-  ,@@(cdr '(c)) . ,(car '(cons)))        => ((foo 7) . cons)
+  ,@@(cdr '(c)) . ,(car '(cons)))        @result{} ((foo 7) . cons)
 
 `#(10 5 ,(sqrt 4) ,@@(map sqrt '(16 9)) 8)
-                                        => #(10 5 2 4 3 8)
+                                        @result{} #(10 5 2 4 3 8)
 
 (let ((name 'foo))
-  `((unquote name name name)))          => (foo foo foo)
+  `((unquote name name name)))          @result{} (foo foo foo)
 
 (let ((name '(foo)))
-  `((unquote-splicing name name name))) => (foo foo foo)
+  `((unquote-splicing name name name))) @result{} (foo foo foo)
 
 (let ((q '((append x y) (sqrt 9))))
   ``(foo ,,@@q))
-=> `(foo (unquote (append x y) (sqrt 9)))
+@result{} `(foo (unquote (append x y) (sqrt 9)))
 
 (let ((x '(2 3))
       (y '(4 5)))
   `(foo (unquote (append x y) (sqrt 9))))
-=> (foo (2 3 4 5) 3)
+@result{} (foo (2 3 4 5) 3)
 @end example
 
 Quasiquote forms may be nested.  Substitutions are made only for
@@ -8751,12 +8540,12 @@ successive quasiquotation, and decreases by one inside each unquotation.
 
 @example
 `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f)
-=>  (a `(b ,(+ 1 2) ,(foo 4 d) e) f)
+@result{}  (a `(b ,(+ 1 2) ,(foo 4 d) e) f)
 
 (let ((name1 'x)
       (name2 'y))
   `(a `(b ,,name1 ,',name2 d) e))
-=>  (a `(b ,x ,'y d) e)
+@result{}  (a `(b ,x ,'y d) e)
 @end example
 
 A @func{quasiquote} expression may return either fresh, mutable objects
@@ -8824,7 +8613,6 @@ precedence.
 @end deffn
 
 
-
 @c page
 @node baselib syntax binding
 @section Binding constructs for syntactic keywords
@@ -8883,25 +8671,25 @@ transformer.
   (let ([if #t])
     (when if (set! if 'now))
     if))
-=>  now
+@result{}  now
 
 (let ([x 'outer])
   (let-syntax ([m (syntax-rules () ((m) x))])
     (let ([x 'inner])
       (m))))
-=>  outer
+@result{}  outer
 
 (let ()
   (let-syntax ([def (syntax-rules ()
                       [(def stuff ...) (define stuff ...)])])
     (def foo 42))
   foo)
-=> 42
+@result{} 42
 
 (let ()
   (let-syntax ())
   5)
-=> 5
+@result{} 5
 @end example
 @end deffn
 
@@ -8942,7 +8730,7 @@ transformer.
         [let    odd?]
         [if     even?])
     (my-or x (let temp) (if y) y)))
-=> 7
+@result{} 7
 @end example
 
 The following example highlights how @func{let-syntax} and
@@ -8955,7 +8743,7 @@ The following example highlights how @func{let-syntax} and
                [g (syntax-rules ()
                     [(g x) (f x)])])
     (list (f 1) (g 1))))
-=> (1 2)
+@result{} (1 2)
 
 (let ([f (lambda (x) (+ x 1))])
   (letrec-syntax ([f (syntax-rules ()
@@ -8963,7 +8751,7 @@ The following example highlights how @func{let-syntax} and
                   [g (syntax-rules ()
                        [(g x) (f x)])])
     (list (f 1) (g 1))))
-=> (1 1)
+@result{} (1 1)
 @end example
 
 The two expressions are identical except that the @func{let-syntax} form
@@ -8973,7 +8761,6 @@ the @func{let}-bound variable @code{f}, whereas in the second it refers
 to the keyword @code{f} whose binding is established by the
 @func{letrec-syntax} form.
 @end deffn
-
 
 
 @c page
@@ -9063,104 +8850,104 @@ have no lexical binding.
 A subpattern followed by an ellipsis can match zero or more elements of
 the input.
 
-More formally, an input form @emph{F} matches a pattern @emph{P} if and
+More formally, an input form @math{F} matches a pattern @math{P} if and
 only if one of the following holds:
 
 @itemize
 @item
-@emph{P} is an underscore (@code{_}).
+@math{P} is an underscore (@code{_}).
 
 @item
-@emph{P} is a pattern variable.
+@math{P} is a pattern variable.
 
 @item
-@emph{P} is a literal identifier and @emph{F} is an identifier such that
-both @emph{P} and @emph{F} would refer to the same binding if both were
+@math{P} is a literal identifier and @math{F} is an identifier such that
+both @math{P} and @math{F} would refer to the same binding if both were
 to appear in the output of the macro outside of any bindings inserted
 into the output of the macro.  (If neither of two like--named
 identifiers refers to any binding, i.e., both are undefined, they are
 considered to refer to the same binding.)
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
-(@emph{P_1} @dots{} @emph{P_n})
+(P_1 @dots{} P_n)
 @end example
 
 @noindent
-and @emph{F} is a list of @emph{n} elements that match @emph{P_1}
-through @emph{P_n}.
+and @math{F} is a list of @math{n} elements that match @math{P_1}
+through @math{P_n}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
-(@emph{P_1} @dots{} @emph{P_n} . @emph{P_x})
+(P_1 @dots{} P_n . P_x)
 @end example
 
 @noindent
-and @emph{F} is a list or improper list of @emph{n} or more elements
-whose first @emph{n} elements match @emph{P_1} through @emph{P_n} and
-whose @emph{n}th cdr matches @emph{P_x}.
+and @math{F} is a list or improper list of @math{n} or more elements
+whose first @math{n} elements match @math{P_1} through @math{P_n} and
+whose @math{n}-th cdr matches @math{P_x}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
-(@emph{P_1} @dots{} @emph{P_k} @emph{P_e} @meta{ellipsis} @emph{P_(m+1)} @dots{} @emph{P_n})
+(P_1 @dots{} P_k P_e @meta{ellipsis} P_(m+1) @dots{} P_n)
 @end example
 
 @noindent
-where @meta{ellipsis} is the identifier @code{...}  and @emph{F} is a
-list of @emph{n} elements whose first @emph{k} elements match @emph{P_1}
-through @emph{P_k}, whose next @emph{m-k} elements each match
-@emph{P_e}, and whose remaining @emph{n-m} elements match @emph{P_(m+1)}
-through @emph{P_n}.
+where @meta{ellipsis} is the identifier @code{...}  and @math{F} is a
+list of @math{n} elements whose first @math{k} elements match @math{P_1}
+through @math{P_k}, whose next @math{m-k} elements each match
+@math{P_e}, and whose remaining @math{n-m} elements match @math{P_(m+1)}
+through @math{P_n}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
-(@emph{P_1} @dots{} @emph{P_k} @emph{P_e} @meta{ellipsis} @emph{P_(m+1)} @dots{} @emph{P_n} . @emph{P_x})
+(P_1 @dots{} P_k P_e @meta{ellipsis} P_(m+1) @dots{} P_n . P_x)
 @end example
 
 @noindent
-where @meta{ellipsis} is the identifier @code{...} and @emph{F} is a
-list or improper list of @emph{n} elements whose first @emph{k} elements
-match @emph{P_1} through @emph{P_k}, whose next @emph{m-k} elements each
-match @emph{P_e}, whose next @emph{n-m} elements match @emph{P_(m+1)}
-through @emph{P_n}, and whose @emph{n}th and final cdr matches
-@emph{P_x}.
+where @meta{ellipsis} is the identifier @code{...} and @math{F} is a
+list or improper list of @math{n} elements whose first @math{k} elements
+match @math{P_1} through @math{P_k}, whose next @math{m-k} elements each
+match @math{P_e}, whose next @math{n-m} elements match @math{P_(m+1)}
+through @math{P_n}, and whose @math{n}th and final cdr matches
+@math{P_x}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
-#(@emph{P_1} @dots{} @emph{P_n})
+#(P_1 @dots{} P_n)
 @end example
 
 @noindent
-and @emph{F} is a vector of @emph{n} elements that match @emph{P_1}
-through @emph{P_n}.
+and @math{F} is a vector of @math{n} elements that match @math{P_1}
+through @math{P_n}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
-#(@emph{P_1} @dots{} @emph{P_k} @emph{P_e} @meta{ellipsis} @emph{P_(m+1)} @dots{} @emph{P_n})
+#(P_1 @dots{} P_k P_e @meta{ellipsis} P_(m+1) @dots{} P_n)
 @end example
 
 @noindent
-where @meta{ellipsis} is the identifier @code{...} and @emph{F} is a
-vector of @emph{n} or more elements whose first @emph{k} elements match
-@emph{P_1} through @emph{P_k}, whose next @emph{m-k} elements each match
-@emph{P_e}, and whose remaining @emph{n-m} elements match @emph{P_(m+1)}
-through @emph{P_n}.
+where @meta{ellipsis} is the identifier @code{...} and @math{F} is a
+vector of @math{n} or more elements whose first @math{k} elements match
+@math{P_1} through @math{P_k}, whose next @math{m-k} elements each match
+@math{P_e}, and whose remaining @math{n-m} elements match @math{P_(m+1)}
+through @math{P_n}.
 
 @item
-@emph{P} is a pattern datum (any nonlist, nonvector, nonsymbol datum)
-and @emph{F} is equal to @emph{P} in the sense of the @func{equal?}
+@math{P} is a pattern datum (any nonlist, nonvector, nonsymbol datum)
+and @math{F} is equal to @math{P} in the sense of the @func{equal?}
 procedure.
 @end itemize
 
@@ -9212,7 +8999,8 @@ following is not an error.
 
 @example
 (let ((=> #f))
-  (cond (#t => 'ok)))           => ok
+  (cond (#t => 'ok)))
+@result{} ok
 @end example
 
 The macro transformer for @func{cond} recognizes @code{=>} as a local
@@ -9252,8 +9040,8 @@ the binding are replaced by @meta{template}.
 @example
 (define p (cons 4 5))
 (define-syntax p.car (identifier-syntax (car p)))
-p.car => 4
-(set! p.car 15) => exception &syntax
+p.car           @result{} 4
+(set! p.car 15) @result{} exception &syntax
 @end example
 
 The second, more general, form of @func{identifier-syntax} permits the
@@ -9269,8 +9057,8 @@ replaced by @hyperii{template}.
     [_ (car p)]
     [(set! _ e) (set-car! p e)]))
 (set! p.car 15)
-p.car           => 15
-p               => (15 . 5)
+p.car           @result{} 15
+p               @result{} (15 . 5)
 @end example
 @end deffn
 
@@ -9401,7 +9189,6 @@ returning an unexpected number of values can be ignored, because in that
 case the effect of the @func{let} is explicitly unspecified and
 implementation--dependent.)
 @end quotation
-
 
 
 @c page

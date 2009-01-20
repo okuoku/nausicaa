@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs arithmetic bitwise)
@@ -7,11 +24,11 @@
 
   ;; Helpers originally from Ikarus test suite:
   (define (ref ei)
-    (do ((result 0 (+ result 1)) 
-         (bits (if (negative? ei) 
-                   (bitwise-not ei) 
-                   ei) 
-               (bitwise-arithmetic-shift bits -1))) 
+    (do ((result 0 (+ result 1))
+         (bits (if (negative? ei)
+                   (bitwise-not ei)
+                   ei)
+               (bitwise-arithmetic-shift bits -1)))
         ((zero? bits)
          result)))
   (define-syntax len-test
@@ -19,7 +36,7 @@
       [(_ n) (test (bitwise-length n)
                    (ref n))]))
   (define (pos-count-bits n)
-    (if (zero? n) 
+    (if (zero? n)
         0
         (let ([c (count-bits (bitwise-arithmetic-shift-right n 1))])
           (if (even? n) c (+ c 1)))))
@@ -31,20 +48,20 @@
     (syntax-rules ()
       [(_ n)
        (test (bitwise-bit-count n) (count-bits n))]))
-      
+
   (define (run-arithmetic-bitwise-tests)
 
     (test (bitwise-first-bit-set 0)         -1)
     (test (bitwise-first-bit-set 1)         0)
     (test (bitwise-first-bit-set -4)        2)
-    
+
     (test (bitwise-arithmetic-shift -6 -1) -3)
     (test (bitwise-arithmetic-shift -5 -1) -3)
     (test (bitwise-arithmetic-shift -4 -1) -2)
     (test (bitwise-arithmetic-shift -3 -1) -2)
     (test (bitwise-arithmetic-shift -2 -1) -1)
     (test (bitwise-arithmetic-shift -1 -1) -1)
-    
+
     (test (bitwise-reverse-bit-field #b1010010 1 4)    88) ; #b1011000
 
     ;; Originally from Ikarus test suite:
@@ -221,7 +238,7 @@
     (count-test -847234234903290482390849023840928390482309480923840923840983)
     (count-test (greatest-fixnum))
     (count-test (least-fixnum))
-    
+
     (test (bitwise-not 12) -13)
     (test (bitwise-not -12) 11)
     (test (bitwise-not -1) 0)
@@ -263,7 +280,7 @@
     (test (bitwise-bit-count (expt 2 300)) 1)
     (test (bitwise-bit-count (- (expt 2 300) 1)) 300)
     (test (bitwise-bit-count (- (expt 2 300))) -301)
-    
+
     (test (bitwise-length (expt 2 300)) 301)
     (test (bitwise-length (- (expt 2 300) 1)) 300)
     (test (bitwise-length (- (expt 2 300))) 300)

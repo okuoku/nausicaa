@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs records syntactic)
@@ -12,32 +29,32 @@
             (mutable y point-y set-point-y!))
     (nongenerative
      point-4893d957-e00b-11d9-817f-00111175eb9e))
-  
+
   (define-record-type (cpoint make-cpoint cpoint?)
     (parent point)
     (protocol
      (lambda (n)
-       (lambda (x y c) 
+       (lambda (x y c)
          ((n x y) (color->rgb c)))))
     (fields
      (mutable rgb cpoint-rgb cpoint-rgb-set!)))
-  
+
   (define-record-type (cpoint2 make-cpoint2 cpoint2?)
     (parent-rtd (record-type-descriptor point)
                 (record-constructor-descriptor point))
     (fields rgb)
     (opaque #f) (sealed #f))
-  
+
   (define (color->rgb c)
     (cons 'rgb c))
-  
+
   (define p1 (make-point 1 2))
   (define p2 (make-cpoint 3 4 'red))
 
   (define-record-type (ex1 make-ex1 ex1?)
     (protocol (lambda (p) (lambda a (p a))))
     (fields (immutable f ex1-f)))
-  
+
   (define ex1-i1 (make-ex1 1 2 3))
 
   (define-record-type (ex2 make-ex2 ex2?)
@@ -45,7 +62,7 @@
      (lambda (p) (lambda (a . b) (p a b))))
     (fields (immutable a ex2-a)
             (immutable b ex2-b)))
-  
+
   (define ex2-i1 (make-ex2 1 2 3))
 
   (define-record-type (unit-vector
@@ -54,7 +71,7 @@
     (protocol
      (lambda (p)
        (lambda (x y z)
-         (let ((length 
+         (let ((length
                 (sqrt (+ (* x x)
                          (* y y)
                          (* z z)))))
@@ -64,9 +81,9 @@
     (fields (immutable x unit-vector-x)
             (immutable y unit-vector-y)
             (immutable z unit-vector-z)))
-  
+
   (define *ex3-instance* #f)
-  
+
   (define-record-type ex3
     (parent cpoint)
     (protocol
@@ -75,17 +92,17 @@
          (let ((r ((n x y 'red) t)))
            (set! *ex3-instance* r)
            r))))
-    (fields 
+    (fields
      (mutable thickness))
     (sealed #t) (opaque #t))
-  
+
   (define ex3-i1 (make-ex3 1 2 17))
 
   (define-record-type (tag make-tag tag?))
   (define-record-type (otag make-otag otag?) (opaque #t))
   (define-record-type (stag make-stag stag?) (sealed #t))
   (define-record-type (ostag make-ostag ostag?) (opaque #t) (sealed #t))
-  
+
   ;; ----------------------------------------
 
   (define (run-records-syntactic-tests)
@@ -105,7 +122,7 @@
     (test (point-y p1) 17)
 
     (test (record-rtd p1) (record-type-descriptor point))
-    
+
     (test (ex1-f ex1-i1) '(1 2 3))
 
     (test (ex2-a ex2-i1) 1)
@@ -138,13 +155,13 @@
 
     (test (record-type-sealed? (record-type-descriptor point)) #f)
     (test (record-type-sealed? (record-type-descriptor ex3)) #t)
-      
+
     (test (record-type-opaque? (record-type-descriptor point)) #f)
     (test (record-type-opaque? (record-type-descriptor ex3)) #t)
-      
+
     (test (record-type-field-names (record-type-descriptor point)) '#(x y))
     (test (record-type-field-names (record-type-descriptor cpoint2)) '#(rgb))
-    
+
     (test (record-field-mutable? (record-type-descriptor point) 0) #f)
     (test (record-field-mutable? (record-type-descriptor point) 1) #t)
     (test (record-field-mutable? (record-type-descriptor cpoint) 0) #t)

@@ -1,3 +1,20 @@
+;;;Copyright (c) 2008 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs r5rs)
@@ -35,7 +52,7 @@
 
     (test (modulo -13 4)           3)
     (test (remainder -13 4)        -1)
-    
+
     (test (modulo 13 -4)           -3)
     (test (remainder 13 -4)        1)
 
@@ -45,11 +62,11 @@
     (test (remainder -13 -4.0)     -1.0)
 
     (test (force (delay (+ 1 2)))    3)
-    
+
     (test (let ((p (delay (+ 1 2))))
-            (list (force p) (force p)))  
+            (list (force p) (force p)))
           '(3 3))
-    
+
 
     (test (head (tail (tail a-stream))) 2)
 
@@ -57,7 +74,7 @@
     (test (force p) 6)
     (test/unspec p)
     (test (begin (set! x 10)
-                 (force p))      
+                 (force p))
           6)
 
     ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
