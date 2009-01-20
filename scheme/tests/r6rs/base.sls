@@ -1,3 +1,21 @@
+;;;Copyright (c) 2004-2009 PLT Scheme Inc.
+;;;Copyright (c) 1995-2000 Matthew Flatt
+;;;
+;;;This library is free software;  you can redistribute it and/or modify
+;;;it  under the  terms of  the GNU  Library General  Public  License as
+;;;published by  the Free Software  Foundation; either version 2  of the
+;;;License, or (at your option) any later version.
+;;;
+;;;This library is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;Library General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU Library  General Public
+;;;License along with  this library; if not, write  to the Free Software
+;;;Foundation,  Inc.,  51  Franklin  Street,  Fifth  Floor,  Boston,  MA
+;;;02110-1301 USA.
+
 #!r6rs
 
 (library (tests r6rs base)
@@ -100,7 +118,7 @@
     (lambda ()
       (let ((n 0))
         (lambda () (set! n (+ n 1)) 27))))
-  
+
   (define (fac n)
     (if (not (integer-valued? n))
         (assertion-violation
@@ -142,7 +160,7 @@
   (be-like-begin sequence)
 
   (define p (cons 4 5))
-  (define-syntax p.car 
+  (define-syntax p.car
     (identifier-syntax (car p)))
 
   (define-syntax kons
@@ -198,7 +216,7 @@
 
     (test (letrec ([x (if (eq? (cons 1 2) (cons 1 2))
                           x
-                          1)]) 
+                          1)])
             x)
           1)
 
@@ -224,14 +242,14 @@
              (define (p y)
                (+ y 1))
              (+ (p x) x))
-           5) 
+           5)
           11)
     (test (reverse-subtract 7 10) 3)
     (test (add4 6) 10)
     (test ((lambda x x) 3 4 5 6) '(3 4 5 6))
     (test ((lambda (x y . z) z) 3 4 5 6)
           '(5 6))
-    
+
     ;; 11.4.3
     (test (if (> 3 2) 'yes 'no) 'yes)
     (test (if (> 2 3) 'yes 'no) 'no)
@@ -245,12 +263,12 @@
     (test (let ((x 2))
             (+ x 1)
             (set! x 4)
-            (+ x 1)) 
+            (+ x 1))
           5)
 
     ;; 11.4.5
     (test (cond ((> 3 2) 'greater)
-                ((< 3 2) 'less))          
+                ((< 3 2) 'less))
           'greater)
 
     (test (cond ((> 3 3) 'greater)
@@ -258,7 +276,7 @@
                 (else 'equal))
           'equal)
     (test (cond ('(1 2 3) => cadr)
-                (else #t))          
+                (else #t))
           2)
 
     (test (case (* 2 3)
@@ -309,7 +327,7 @@
                       (if (zero? n)
                           #f
                           (even? (- n 1))))))
-            (even? 88))   
+            (even? 88))
           #t)
     (test (letrec* ((p
                      (lambda (x)
@@ -384,7 +402,7 @@
                    (g (lambda () (if (eqv? f g) 'g 'both))))
             (eqv? f g))
           #f)
-    
+
     (test/unspec (eqv? '(a) '(a)))
     (test/unspec (eqv? "a" "a"))
     (test/unspec (eqv? '(b) (cdr '(a b))))
@@ -404,7 +422,7 @@
     (test/unspec (let ((n (+ 2 3)))
                    (eq? n n)))
     (test (let ((x '(a)))
-            (eq? x x)) 
+            (eq? x x))
           #t)
     (test/unspec (let ((x '#()))
                    (eq? x x)))
@@ -417,7 +435,7 @@
     (test (equal? "abc" "abc") #t)
     (test (equal? 2 2) #t)
     (test (equal? (make-vector 5 'a)
-                  (make-vector 5 'a)) 
+                  (make-vector 5 'a))
           #t)
     (test (equal? '#vu8(1 2 3 4 5)
                   (u8-list->bytevector
@@ -604,40 +622,40 @@
     (test (zero-or-nan? (* 0 +inf.0)) #t)
     (test (zero-or-nan? (* 0 +nan.0)) #t)
     (test (zero? (* 1.0 0)) #t)
-    
-    (try-reals 
+
+    (try-reals
      (lambda (x)
        (test (+ +inf.0 x)                            +inf.0)
        (test (+ -inf.0 x)                            -inf.0))
      '(+inf.0 -inf.0 +nan.0))
-    
-    (try-reals 
+
+    (try-reals
      (lambda (x)
        (test (+ +nan.0 x)                            +nan.0))
      '())
 
-    (try-reals 
+    (try-reals
      (lambda (x)
        (test (* +nan.0 x)                            +nan.0))
      '(0))
-    
+
     (test (+ 0.0 -0.0)  0.0)
     (test (+ -0.0 0.0)  0.0)
     (test (+ 0.0 0.0)   0.0)
     (test (+ -0.0 -0.0) -0.0)
-    
+
     (test (- 3 4)                                 -1)
     (test (- 3 4 5)                               -6)
     (test (- 3)                                   -3)
     (test (- +inf.0 +inf.0)                       +nan.0)
-    
+
     (test (- 0.0)       -0.0)
     (test (- -0.0)      0.0)
     (test (- 0.0 -0.0)  0.0)
     (test (- -0.0 0.0)  -0.0)
     (test (- 0.0 0.0)   0.0)
     (test (- -0.0 -0.0) 0.0)
-    
+
     (test (/ 3 4 5)                               3/20)
     (test (/ 2 3)                                 2/3)
     (test (/ 3 2.0)                               1.5)
@@ -729,7 +747,7 @@
     (divmod-test (least-fixnum) (least-fixnum))
     (divmod-test (greatest-fixnum) (least-fixnum))
     (divmod-test (least-fixnum) (greatest-fixnum))
-    (divmod-test (greatest-fixnum) (greatest-fixnum))    
+    (divmod-test (greatest-fixnum) (greatest-fixnum))
 
     (divmod-test +17.0 +3.0)
     (divmod-test +17.0 -3.0)
@@ -809,7 +827,7 @@
     (test (lcm 32 -36)                            288)
     (test (lcm 32.0 -36)                          288.0)
     (test (lcm)                                   1)
-    
+
     (test (numerator 6)                           6)
     (test (numerator (/ 6 4))                     3)
     (test (denominator (/ 6 4))                   2)
@@ -825,17 +843,17 @@
     (test (ceiling 3.5)                           4.0)
     (test (truncate 3.5)                          3.0)
     (test (round 3.5)                             4.0)
-    
+
     (test (round 7/2)                             4)
     (test (round 7)                               7)
-    
+
     (test (floor +inf.0)                          +inf.0)
     (test (ceiling -inf.0)                        -inf.0)
     (test (round +nan.0)                          +nan.0)
-    
+
     (test (rationalize (exact .3) 1/10)          1/3)
     (test/approx (rationalize .3 1/10) #i1/3)
-    
+
     (test (rationalize +inf.0 3)                  +inf.0)
     (test (rationalize +inf.0 +inf.0)             +nan.0)
     (test (rationalize 3 +inf.0)                  0.0)
@@ -867,7 +885,7 @@
     (test/values (exact-integer-sqrt 0) 0 0)
     (test/values (exact-integer-sqrt 4) 2 0)
     (test/values (exact-integer-sqrt 5) 2 1)
-    
+
     (test (expt 5 3)                   125)
     (test (expt 5 -3)                  1/125)
     (test (expt 5 0)                   1)
@@ -880,8 +898,8 @@
     (test/unspec-or-exn (expt 0 -5+.0000312i) &implementation-restriction)
     (test (expt 0 0)                   1)
     (test (expt 0.0 0.0)               1.0)
-    
-    
+
+
     (test/approx (make-rectangular 1.1 0.0) 1.1+0.0i)
     (test/approx (make-rectangular 1.1 2.2) 1.1+2.2i)
     (test/approx (make-polar 1.1 0.0) 1.1+0.0i)
@@ -903,7 +921,7 @@
     (test (zero? (imag-part 1.1)) #t)
     (test (zero? (imag-part +nan.0)) #t)
     (test (zero? (imag-part +inf.0)) #t)
-    (test (zero? (imag-part -inf.0)) #t) 
+    (test (zero? (imag-part -inf.0)) #t)
 
     (test/approx (angle 1.1@2.2)                  2.2)
 
@@ -921,7 +939,7 @@
 
     (test/approx (angle -1)   3.141592653589793)
 
-    (for-each 
+    (for-each
      (lambda (n)
        (test (string->number (number->string n)) n)
        (test (string->number (number->string (inexact n) 10 5)) (inexact n))
@@ -950,7 +968,7 @@
      ("10" 10)
      ("1" 1)
      ("-17" -17)
-     ("+13476238746782364786237846872346782364876238477" 
+     ("+13476238746782364786237846872346782364876238477"
       13476238746782364786237846872346782364876238477)
      ("1/2" (/ 1 2))
      ("-1/2" (/ 1 -2))
@@ -1002,7 +1020,7 @@
     (test (not '())         #f)
     (test (not (list))      #f)
     (test (not 'nil)        #f)
-    
+
     (test (boolean? #f)   #t)
     (test (boolean? 0)           #f)
     (test (boolean? '())         #f)
@@ -1030,7 +1048,7 @@
     (test (car '((a) b c d))       '(a))
     (test (car '(1 . 2))           1)
     (test/exn (car '()) &assertion)
-    
+
     (test (cdr '((a) b c d))       '(b c d))
     (test (cdr '(1 . 2))           2)
     (test/exn (cdr '()) &assertion)
@@ -1073,7 +1091,7 @@
     (test (list? '(a b c))      #t)
     (test (list? '())           #t)
     (test (list? '(a . b))      #f)
-    
+
     (test (list 'a (+ 3 4) 'c)             '(a 7 c))
     (test (list)                           '())
 
@@ -1116,7 +1134,7 @@
             (for-each (lambda (i)
                         (vector-set! v i (* i i)))
                       '(0 1 2 3 4))
-            v) 
+            v)
           '#(0 1 4 9 16))
 
     (test/unspec (for-each (lambda (x) x) '(1 2 3 4)))
@@ -1136,12 +1154,12 @@
     (test (symbol=? 'a 'b)         #f)
     (test (symbol=? 'a 'a 'b)      #f)
     (test (symbol=? 'a 'a 'a 'a)   #t)
-    
-    (test (symbol->string 'flying-fish)     
+
+    (test (symbol->string 'flying-fish)
           "flying-fish")
     (test (symbol->string 'Martin)           "Martin")
     (test (symbol->string
-           (string->symbol "Malvina"))     
+           (string->symbol "Malvina"))
           "Malvina")
 
     (test (eq? 'mISSISSIppi 'mississippi)   #f)
@@ -1153,14 +1171,14 @@
                 (symbol->string 'JollyWog)))   #t)
     (test (string=? "K. Harper, M.D."
                     (symbol->string
-                     (string->symbol "K. Harper, M.D.")))   
+                     (string->symbol "K. Harper, M.D.")))
           #t)
 
     ;; 11.11
     (test (char? #\a) #t)
     (test (char? 'a) #f)
     (test (char? 65) #f)
-    
+
     (test (integer->char 32) #\space)
     (test (integer->char #xDF) #\xDF)
     (test (integer->char #x10AAAA) #\x10AAAA)
@@ -1285,15 +1303,15 @@
       (vector-fill! vec 10.1)
       (test vec '#(10.1 10.1 10.1)))
 
-    (test (vector-map (lambda (x) (+ 1 x)) 
+    (test (vector-map (lambda (x) (+ 1 x))
                       '#(1 2 3))
           '#(2 3 4))
-    (test (vector-map (lambda (x y) (- x y)) 
-                      '#(3 4 5) 
+    (test (vector-map (lambda (x y) (- x y))
+                      '#(3 4 5)
                       '#(0 -1 2))
           '#(3 5 3))
     (test (vector-map (lambda (x y f) (f (- x y)))
-                      '#(3 4 5) 
+                      '#(3 4 5)
                       '#(0 -1 2)
                       (vector - * /))
           '#(-3 5 1/3))
@@ -1323,7 +1341,7 @@
      (list error assertion-violation))
     (test/exn (error 'apple "bad" 'worm) &error)
     (test/exn (assertion-violation 'apple "bad" 'worm) &assertion)
-    
+
     (test (condition-message
            (guard (v [#t v])
                   (assertion-violation 'apple "bad" 'worm)))
@@ -1357,7 +1375,7 @@
     ;; 11.15
     (test (apply + (list 3 4))               7)
     (test/approx ((compose sqrt *) 12 75)    30)
-    
+
     (test (call-with-current-continuation
            (lambda (exit)
              (for-each (lambda (x)
@@ -1408,7 +1426,7 @@
                   (reverse path))))
           '(connect talk1 disconnect
                     connect talk2 disconnect))
-    
+
     (test (let ((n 0))
             (call-with-current-continuation
              (lambda (k)
@@ -1420,7 +1438,7 @@
                      (set! n (+ n 2)))
                    (lambda ()
                      (set! n (+ n 4))))))
-            n) 
+            n)
           1)
 
     (test (let ((n 0))
@@ -1439,7 +1457,7 @@
                            (k))))
                    (lambda ()
                      (set! n (+ n 4))))))
-            n) 
+            n)
           7)
 
     ;; 11.16
@@ -1459,7 +1477,7 @@
 
     ;; 11.17
     (test `(list ,(+ 1 2) 4)  '(list 3 4))
-    (test (let ((name 'a)) `(list ,name ',name)) 
+    (test (let ((name 'a)) `(list ,name ',name))
           '(list a (quote a)))
     (test `(a ,(+ 1 2) ,@(map abs '(4 -5 6)) b)
           '(a 3 4 5 6 b))
@@ -1475,14 +1493,14 @@
             `((unquote-splicing name name name)))
           '(foo foo foo))
     (test (let ((q '((append x y) (sqrt 9))))
-            ``(foo ,,@q)) 
+            ``(foo ,,@q))
           '`(foo (unquote (append x y) (sqrt 9))))
     (test (let ((x '(2 3))
                 (y '(4 5)))
             `(foo (unquote (append x y) (- 9))))
           '(foo (2 3 4 5) -9))
 
-    (test `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f) 
+    (test `(a `(b ,(+ 1 2) ,(foo ,(+ 1 3) d) e) f)
           '(a `(b ,(+ 1 2) ,(foo 4 d) e) f))
     (test (let ((name1 'x)
                 (name2 'y))
@@ -1492,10 +1510,10 @@
     (test (let ((a 3)) `((1 2) ,a ,4 ,'five 6))
           '((1 2) 3 4 five 6))
     (test (let ((a 3)) `((1 2) ,a ,4 ,'five 6))
-          (let ((a 3)) 
+          (let ((a 3))
             (cons '(1 2)
                   (cons a (cons 4 (cons 'five '(6)))))))
-    
+
     ;; 11.18
     (test (let-syntax ((when (syntax-rules ()
                                ((when test stmt1 stmt2 ...)
@@ -1522,7 +1540,7 @@
 
     (test (let ()
             (let-syntax ())
-            5) 
+            5)
           5)
 
     (test (letrec-syntax
@@ -1550,15 +1568,15 @@
                               ((f x) x)))
                          (g (syntax-rules ()
                               ((g x) (f x)))))
-              (list (f 1) (g 1)))) 
+              (list (f 1) (g 1))))
           '(1 2))
-    
+
     (test (let ((f (lambda (x) (+ x 1))))
             (letrec-syntax ((f (syntax-rules ()
                                  ((f x) x)))
                             (g (syntax-rules ()
                                  ((g x) (f x)))))
-              (list (f 1) (g 1)))) 
+              (list (f 1) (g 1))))
           '(1 1))
 
     (test (sequence 1 2 3 4) 4)
@@ -1566,7 +1584,7 @@
     (test (let ((=> #f))
             (cond (#t => 'ok)))
           'ok)
-    
+
     (test p.car 4)
     ; (test/exn (set! p.car 15) &syntax) - not a runtime test
 
