@@ -9195,7 +9195,6 @@ implementation--dependent.)
 @node stdlib
 @chapter Standard libraries
 
-@lowersections
 
 @menu
 * stdlib unicode::              Unicode.
@@ -9222,7 +9221,7 @@ implementation--dependent.)
 
 @c page
 @node stdlib unicode
-@chapter Unicode
+@section Unicode
 
 
 The procedures exported by the @rsixlibrary{unicode} library provide
@@ -9243,7 +9242,7 @@ difference between upper case and lower case.  These procedures have
 
 @c page
 @node stdlib unicode characters
-@section Characters
+@subsection Characters
 
 
 @deffn Procedure char-upcase @var{char}
@@ -9279,10 +9278,10 @@ For Turkic characters @code{#\x130} and @code{#\x131},
 @func{char-upcase}.
 
 @example
-(char-upcase #\i)               => #\I
-(char-downcase #\i)             => #\i
-(char-titlecase #\i)            => #\I
-(char-foldcase #\i)             => #\i
+(char-upcase #\i)               @result{} #\I
+(char-downcase #\i)             @result{} #\i
+(char-titlecase #\i)            @result{} #\I
+(char-foldcase #\i)             @result{} #\i
 @end example
 
 @quotation
@@ -9318,8 +9317,8 @@ These procedures are similar to @func{char=?}, etc., but operate on the
 case--folded versions of the characters.
 
 @example
-(char-ci<? #\z #\Z)             => #f
-(char-ci=? #\z #\Z)             => #f
+(char-ci<? #\z #\Z)             @result{} #f
+(char-ci=? #\z #\Z)             @result{} #f
 @end example
 @end deffn
 
@@ -9342,13 +9341,13 @@ lower case if it has the ``Lowercase'' property, and title case if it is
 in the Lt general category.
 
 @example
-(char-alphabetic? #\a)          => #t
-(char-numeric? #\1)             => #t
-(char-whitespace? #\space)      => #t
-(char-whitespace? #\x00A0)      => #t
-(char-lower-case? #\x00AA)      => #t
-(char-title-case? #\I)          => #f
-(char-title-case? #\x01C5)      => #t
+(char-alphabetic? #\a)          @result{} #t
+(char-numeric? #\1)             @result{} #t
+(char-whitespace? #\space)      @result{} #t
+(char-whitespace? #\x00A0)      @result{} #t
+(char-lower-case? #\x00AA)      @result{} #t
+(char-title-case? #\I)          @result{} #f
+(char-title-case? #\x01C5)      @result{} #t
 @end example
 @end deffn
 
@@ -9363,17 +9362,16 @@ Return a symbol representing the Unicode general category of
 @code{Co}, or @code{Cn}.
 
 @example
-(char-general-category #\a)             => Ll
-(char-general-category #\space)         => Zs
-(char-general-category #\x10FFFF)       => Cn
+(char-general-category #\a)             @result{} Ll
+(char-general-category #\space)         @result{} Zs
+(char-general-category #\x10FFFF)       @result{} Cn
 @end example
 @end deffn
 
 
-
 @c page
 @node stdlib unicode strings
-@section Strings
+@subsection Strings
 
 
 @deffn Procedure string-upcase @var{string}
@@ -9397,14 +9395,14 @@ procedure converts the first cased character of each word, and downcases
 all other cased characters.
 
 @example
-(string-upcase "Hi")                    => "HI"
-(string-downcase "Hi")                  => "hi"
-(string-foldcase "Hi")                  => "hi"
+(string-upcase "Hi")                    @result{} "HI"
+(string-downcase "Hi")                  @result{} "hi"
+(string-foldcase "Hi")                  @result{} "hi"
 
-(string-titlecase "kNock KNoCK")        => "Knock Knock"
-(string-titlecase "who's there?")       => "Who's There?"
-(string-titlecase "r6rs")               => "R6rs"
-(string-titlecase "R6RS")               => "R6rs"
+(string-titlecase "kNock KNoCK")        @result{} "Knock Knock"
+(string-titlecase "who's there?")       @result{} "Who's There?"
+(string-titlecase "r6rs")               @result{} "R6rs"
+(string-titlecase "R6RS")               @result{} "R6rs"
 @end example
 
 @quotation
@@ -9435,8 +9433,8 @@ These procedures are similar to @func{string=?}, etc., but operate on
 the case--folded versions of the strings.
 
 @example
-(string-ci<? "z" "Z")                   => #f
-(string-ci=? "z" "Z")                   => #t
+(string-ci<? "z" "Z")                   @result{} #f
+(string-ci=? "z" "Z")                   @result{} #t
 @end example
 @end deffn
 
@@ -9452,18 +9450,17 @@ sense of @func{string=?} to the argument, these procedures may return
 the argument instead of a newly allocated string.
 
 @example
-(string-normalize-nfd "\xE9;")          => "\x65;\x301;"
-(string-normalize-nfc "\xE9;")          => "\xE9;"
-(string-normalize-nfd "\x65;\x301;")    => "\x65;\x301;"
-(string-normalize-nfc "\x65;\x301;")    => "\xE9;"
+(string-normalize-nfd "\xE9;")          @result{} "\x65;\x301;"
+(string-normalize-nfc "\xE9;")          @result{} "\xE9;"
+(string-normalize-nfd "\x65;\x301;")    @result{} "\x65;\x301;"
+(string-normalize-nfc "\x65;\x301;")    @result{} "\xE9;"
 @end example
 @end deffn
 
 
-
 @c page
 @node stdlib bytevector
-@chapter Bytevectors
+@section Bytevectors
 
 
 Many applications deal with blocks of binary data by accessing them in
@@ -9476,8 +9473,8 @@ with specified endianness.
 Bytevectors are objects of a disjoint type.  Conceptually, a bytevector
 represents a sequence of 8-bit bytes.  The description of bytevectors
 uses the term @emph{byte} for an exact integer object in the interval
-@code{(-128, @dots{}, 127)} and the term @emph{octet} for an exact
-integer object in the interval @code{(0, @dots{}, 255)}.  A byte
+@math{(-128, @dots{}, 127)} and the term @emph{octet} for an exact
+integer object in the interval @math{(0, @dots{}, 255)}.  A byte
 corresponds to its two's complement representation as an octet.
 
 The length of a bytevector is the number of bytes it contains. This
@@ -9495,7 +9492,7 @@ Like string literals, literals representing bytevectors do not need to
 be quoted:
 
 @example
-#vu8(12 23 123) => #vu8(12 23 123)
+#vu8(12 23 123)         @result{} #vu8(12 23 123)
 @end example
 
 
@@ -9514,10 +9511,9 @@ be quoted:
 @end menu
 
 
-
 @c page
 @node stdlib bytevector endianness
-@section Endianness
+@subsection Endianness
 
 
 Many operations described in this chapter accept an @emph{endianness}
@@ -9542,10 +9538,9 @@ different levels of a binary representation.
 @end quotation
 
 
-
 @c page
 @node stdlib bytevector general
-@section General operations
+@subsection General operations
 
 
 @deffn Syntax endianness @meta{endianness symbol}
@@ -9589,7 +9584,7 @@ Return @true{} if @var{obj} is a bytevector, @false{} otherwise.
 Return a newly allocated bytevector of @var{k} bytes.  If the @var{fill}
 argument is missing, the initial contents of the returned bytevector are
 unspecified.  If the @var{fill} argument is present, it must be an exact
-integer object in the interval @code{(-128, @dots{} 255)} that specifies
+integer object in the interval @math{(-128, @dots{} 255)} that specifies
 the initial value for the bytes of the bytevector: If @var{fill} is
 positive, it is interpreted as an octet; if it is negative, it is
 interpreted as a byte.
@@ -9651,7 +9646,7 @@ This returns unspecified values.
 (let ((b (u8-list->bytevector '(1 2 3 4 5 6 7 8))))
   (bytevector-copy! b 0 b 3 4)
   (bytevector->u8-list b))
-=> (1 2 3 1 2 3 4 8)
+@result{} (1 2 3 1 2 3 4 8)
 @end example
 @end deffn
 
@@ -9661,10 +9656,9 @@ Return a newly allocated copy of @var{bytevector}.
 @end deffn
 
 
-
 @c page
 @node stdlib bytevector bytes and octets
-@section Operations on bytes and octets
+@subsection Operations on bytes and octets
 
 
 @deffn Procedure bytevector-u8-ref @var{bytevector} @var{k}
@@ -9685,7 +9679,7 @@ of @var{bytevector}, as a (signed) byte.
     (bytevector-u8-ref b1 0)
     (bytevector-s8-ref b2 0)
     (bytevector-u8-ref b2 0)))
-=> (-127 129 -1 255)
+@result{} (-127 129 -1 255)
 @end example
 @end deffn
 
@@ -9713,7 +9707,7 @@ Both procedures return unspecified values.
     (bytevector-u8-ref b 0)
     (bytevector-s8-ref b 1)
     (bytevector-u8-ref b 1)))
-=> (-126 130 -10 246)
+@result{} (-126 130 -10 246)
 @end example
 @end deffn
 
@@ -9731,10 +9725,9 @@ same order.  It is analogous to @func{list->vector}.
 @end deffn
 
 
-
 @c page
 @node stdlib bytevector integers
-@section Operations on integers of arbitrary size
+@subsection Operations on integers of arbitrary size
 
 
 @deffn Procedure bytevector-uint-ref @var{bytevector} @var{k} @var{endianness} @var{size}
@@ -9746,8 +9739,8 @@ same order.  It is analogous to @func{list->vector}.
 
 The @func{bytevector-uint-ref} procedure retrieves the exact integer
 object corresponding to the unsigned representation of size @var{size}
-and specified by @var{endianness} at indices @var{k}, @dots{},
-@var{k}+@var{size}-1.
+and specified by @var{endianness} at indices @math{@var{k}, @dots{},
+@var{k} + @var{size} - 1}.
 
 The @func{bytevector-sint-ref} procedure retrieves the exact integer
 object corresponding to the two's--complement representation of size
@@ -9759,13 +9752,15 @@ in the interval @code{(0, @dots{}, 256^(size-1))}.
 
 The @func{bytevector-uint-set!} procedure stores the unsigned
 representation of size @var{size} and specified by @var{endianness} into
-@var{bytevector} at indices @var{k}, @dots{}, @var{k}+@var{size}-1.
+@var{bytevector} at indices @math{@var{k}, @dots{}, @var{k} + @var{size}
+- 1}.
 
 For @func{bytevector-sint-set!}, @var{n} must be an exact integer object
-in the interval @code{(-(256^size)/2, @dots{}, (256^(size))/2-1)}.
+in the interval @math{(-(256^size)/2, @dots{}, (256^(size))/2-1)}.
 @func{bytevector-sint-set!} stores the two's--complement representation
 of size @var{size} and specified by @var{endianness} into
-@var{bytevector} at indices @var{k}, @dots{}, @var{k}+@var{size}-1.
+@var{bytevector} at indices @math{@var{k}, @dots{}, @var{k} + @var{size}
+- 1}.
 
 The @code{...-set!} procedures return unspecified values.
 
@@ -9775,25 +9770,25 @@ The @code{...-set!} procedures return unspecified values.
 (bytevector-uint-set! b 0 (- (expt 2 128) 3) (endianness little) 16)
 
 (bytevector-uint-ref b 0 (endianness little) 16)
-=> #xfffffffffffffffffffffffffffffffd
+@result{} #xfffffffffffffffffffffffffffffffd
 
 (bytevector-sint-ref b 0 (endianness little) 16)
-=> -3
+@result{} -3
 
 (bytevector->u8-list b)
-=> (253 255 255 255 255 255 255 255
+@result{} (253 255 255 255 255 255 255 255
     255 255 255 255 255 255 255 255)
 
 (bytevector-uint-set! b 0 (- (expt 2 128) 3) (endianness big) 16)
 
 (bytevector-uint-ref b 0 (endianness big) 16)
-=> #xfffffffffffffffffffffffffffffffd
+@result{} #xfffffffffffffffffffffffffffffffd
 
 (bytevector-sint-ref b 0 (endianness big) 16)
-=> -3
+@result{} -3
 
 (bytevector->u8-list b)
-=> (255 255 255 255 255 255 255 255
+@result{} (255 255 255 255 255 255 255 255
     255 255 255 255 255 255 255 253))
 @end example
 @end deffn
@@ -9806,10 +9801,10 @@ The @code{...-set!} procedures return unspecified values.
 @var{size} must be a positive exact integer object.
 
 For @func{uint-list->bytevector}, @var{list} must be a list of exact
-integer objects in the interval @code{(0, @dots{}, (256^size)-1)}.
+integer objects in the interval @math{(0, @dots{}, (256^size)-1)}.
 
 For @func{sint-list->bytevector}, @var{list} must be a list of exact
-integer objects in the interval @code{(-(256^size)/2, @dots{},
+integer objects in the interval @math{(-(256^size)/2, @dots{},
 (256^(size))/2-1)}.
 
 The length of @var{bytevector} must be divisible by @var{size}.
@@ -9823,19 +9818,17 @@ one--byte representations.
 @example
 (let ((b (u8-list->bytevector '(1 2 3 255 1 2 1 2))))
   (bytevector->sint-list b (endianness little) 2))
-=> (513 -253 513 513)
+@result{} (513 -253 513 513)
 
 (let ((b (u8-list->bytevector '(1 2 3 255 1 2 1 2))))
   (bytevector->uint-list b (endianness little) 2))
-=> (513 65283 513 513)
+@result{} (513 65283 513 513)
 @end example
 @end deffn
 
-
-
 @c page
 @node stdlib bytevector integers 16
-@section Operations on 16--bit integers
+@subsection Operations on 16--bit integers
 
 
 @deffn Procedure {bytevector-u16-ref} @var{bytevector} @var{k} @var{endianness}
@@ -9849,22 +9842,22 @@ one--byte representations.
 @var{k} must be a valid index of @var{bytevector}; so must @var{k}+1.
 
 For @func{bytevector-u16-set!} and @func{bytevector-u16-native-set!},
-@var{n} must be an exact integer object in the interval
-@code{0 <= n <= 2^16-1}.
+@var{n} must be an exact integer object in the interval @math{0 <= n <=
+2^16-1}.
 
 For @func{bytevector-s16-set!} and @func{bytevector-s16-native-set!},
-@var{n} must be an exact integer object in the interval
-@code{-2^15 <= n <= 2^15-1}.
+@var{n} must be an exact integer object in the interval @math{-2^15 <= n
+<= 2^15-1}.
 
 These procedures retrieve and set two--byte representations of numbers
-at indices @var{k} and @var{k}+1 according to the endianness specified
-by @var{endianness}.  The procedures with @code{u16} in their names deal
-with the unsigned representation; those with @code{s16} in their names
-deal with the two's--complement representation.
+at indices @var{k} and @math{@var{k}+1} according to the endianness
+specified by @var{endianness}.  The procedures with @code{u16} in their
+names deal with the unsigned representation; those with @code{s16} in
+their names deal with the two's--complement representation.
 
 The procedures with @code{native} in their names employ the native
 endianness, and work only at aligned indices: @var{k} must be a multiple
-of 2.
+of @math{2}.
 
 The @code{...-set!} procedures return unspecified values.
 
@@ -9874,26 +9867,25 @@ The @code{...-set!} procedures return unspecified values.
     '(255 255 255 255 255 255 255 255
       255 255 255 255 255 255 255 253)))
 
-(bytevector-u16-ref b 14 (endianness little))           => 65023
-(bytevector-s16-ref b 14 (endianness little))           => -513
-(bytevector-u16-ref b 14 (endianness big))              => 65533
-(bytevector-s16-ref b 14 (endianness big))              => -3
+(bytevector-u16-ref b 14 (endianness little))           @result{} 65023
+(bytevector-s16-ref b 14 (endianness little))           @result{} -513
+(bytevector-u16-ref b 14 (endianness big))              @result{} 65533
+(bytevector-s16-ref b 14 (endianness big))              @result{} -3
 
 (bytevector-u16-set! b 0 12345 (endianness little))
-(bytevector-u16-ref b 0 (endianness little))            => 12345
+(bytevector-u16-ref b 0 (endianness little))            @result{} 12345
 
 (bytevector-u16-native-set! b 0 12345)
-(bytevector-u16-native-ref b 0)                         => 12345
+(bytevector-u16-native-ref b 0)                         @result{} 12345
 
-(bytevector-u16-ref b 0 (endianness little))            => unspecified
+(bytevector-u16-ref b 0 (endianness little))            @result{} unspecified
 @end example
 @end deffn
 
 
-
 @c page
 @node stdlib bytevector integers 32
-@section Operations on 32--bit integers
+@subsection Operations on 32--bit integers
 
 
 @deffn Procedure {bytevector-u32-ref} @var{bytevector} @var{k} @var{endianness}
@@ -9907,12 +9899,12 @@ The @code{...-set!} procedures return unspecified values.
 @var{k}, @dots{}, @var{k}+3 must be valid indices of @var{bytevector}.
 
 For @func{bytevector-u32-set!} and @func{bytevector-u32-native-set!},
-@var{n} must be an exact integer object in the interval
-@code{0 <= n <= 2^32-1}.
+@var{n} must be an exact integer object in the interval @math{0 <= n <=
+2^32-1}.
 
 For @func{bytevector-s32-set!} and @func{bytevector-s32-native-set!},
-@var{n} must be an exact integer object in the interval
-@code{-2^31 <= n <= 2^32-1}.
+@var{n} must be an exact integer object in the interval @math{-2^31 <= n
+<= 2^32-1}.
 
 These retrieve and set four--byte representations of numbers at indices
 @var{k}, @dots{}, @var{k}+3, according to the endianness specified by
@@ -9922,7 +9914,7 @@ two's--complement representation.
 
 The procedures with @code{native} in their names employ the native
 endianness, and work only at aligned indices: @var{k} must be a multiple
-of 4.
+of @math{4}.
 
 The @code{...-set!} procedures return unspecified values.
 
@@ -9932,18 +9924,16 @@ The @code{...-set!} procedures return unspecified values.
     '(255 255 255 255 255 255 255 255
       255 255 255 255 255 255 255 253)))
 
-(bytevector-u32-ref b 12 (endianness little))   => 4261412863
-(bytevector-s32-ref b 12 (endianness little))   => -33554433
-(bytevector-u32-ref b 12 (endianness big))      => 4294967293
-(bytevector-s32-ref b 12 (endianness big))      => -3
+(bytevector-u32-ref b 12 (endianness little))   @result{} 4261412863
+(bytevector-s32-ref b 12 (endianness little))   @result{} -33554433
+(bytevector-u32-ref b 12 (endianness big))      @result{} 4294967293
+(bytevector-s32-ref b 12 (endianness big))      @result{} -3
 @end example
 @end deffn
 
-
-
 @c page
 @node stdlib bytevector integers 64
-@section Operations on 64--bit integers
+@subsection Operations on 64--bit integers
 
 
 @deffn Procedure {bytevector-u64-ref} @var{bytevector} @var{k} @var{endianness}
@@ -9957,22 +9947,22 @@ The @code{...-set!} procedures return unspecified values.
 @var{k}, @dots{}, @var{k}+7 must be valid indices of @var{bytevector}.
 
 For @func{bytevector-u64-set!} and @func{bytevector-u64-native-set!},
-@var{n} must be an exact integer object in the interval
-@code{0 <= n <= 2^64-1}.
+@var{n} must be an exact integer object in the interval @math{0 <= n <=
+2^64-1}.
 
 For @func{bytevector-s64-set!} and @func{bytevector-s64-native-set!},
-@var{n} must be an exact integer object in the interval
-@code{-2^63 <= n <= 2^64-1}.
+@var{n} must be an exact integer object in the interval @math{-2^63 <= n
+<= 2^64-1}.
 
 These retrieve and set eight--byte representations of numbers at indices
-@var{k}, @dots{}, @var{k}+7, according to the endianness specified by
-@var{endianness}.  The procedures with @code{u64} in their names deal
-with the unsigned representation; those with @code{s64} with the
-two's--complement representation.
+@math{@var{k}, @dots{}, @var{k}+7}, according to the endianness
+specified by @var{endianness}.  The procedures with @code{u64} in their
+names deal with the unsigned representation; those with @code{s64} with
+the two's--complement representation.
 
 The procedures with @code{native} in their names employ the native
 endianness, and work only at aligned indices: @var{k} must be a multiple
-of 8.
+of @math{8}.
 
 The @code{...-set!} procedures return unspecified values.
 
@@ -9982,26 +9972,25 @@ The @code{...-set!} procedures return unspecified values.
     '(255 255 255 255 255 255 255 255
       255 255 255 255 255 255 255 253)))
 
-(bytevector-u64-ref b 8 (endianness little))    => 18302628885633695743
-(bytevector-s64-ref b 8 (endianness little))    => -144115188075855873
-(bytevector-u64-ref b 8 (endianness big))       => 18446744073709551613
-(bytevector-s64-ref b 8 (endianness big))       => -3
+(bytevector-u64-ref b 8 (endianness little))    @result{} 18302628885633695743
+(bytevector-s64-ref b 8 (endianness little))    @result{} -144115188075855873
+(bytevector-u64-ref b 8 (endianness big))       @result{} 18446744073709551613
+(bytevector-s64-ref b 8 (endianness big))       @result{} -3
 @end example
 @end deffn
 
-
-
 @c page
 @node stdlib bytevector flonum
-@section Operations on @ieee{} 754 representations
+@subsection Operations on @ieee{} 754 representations
 
 
 @deffn Procedure bytevector-ieee-single-native-ref @var{bytevector} @var{k}
 @deffnx Procedure bytevector-ieee-single-ref @var{bytevector} @var{k} @var{endianness}
-@var{k}, @dots{}, @var{k}+3 must be valid indices of @var{bytevector}.
+@math{@var{k}, @dots{}, @var{k}+3} must be valid indices of
+@var{bytevector}.
 
 For @code{bytevector-ieee-single-native-ref}, @var{k} must be a multiple
-of 4.
+of @math{4}.
 
 These procedures return the inexact real number object that best
 represents the @ieee{} 754 single--precision number represented by the
@@ -10011,10 +10000,11 @@ four bytes beginning at index @var{k}.
 
 @deffn Procedure bytevector-ieee-double-native-ref @var{bytevector} @var{k}
 @deffnx Procedure bytevector-ieee-double-ref @var{bytevector} @var{k} @var{endianness}
-@var{k}, @dots{}, @var{k}+7 must be valid indices of @var{bytevector}.
+@math{@var{k}, @dots{}, @var{k}+7} must be valid indices of
+@var{bytevector}.
 
 For @func{bytevector-ieee-double-native-ref}, @var{k} must be a multiple
-of 8.
+of @math{8}.
 
 These procedures return the inexact real number object that best
 represents the @ieee{} 754 double--precision number represented by the
@@ -10024,10 +10014,11 @@ eight bytes beginning at index @var{k}.
 
 @deffn Procedure {bytevector-ieee-single-native-set!} @var{bytevector} @var{k} @var{x}
 @deffnx Procedure {bytevector-ieee-single-set!} @var{bytevector} @var{k} @var{x} @var{endianness}
-@var{k}, @dots{}, @var{k}+3 must be valid indices of @var{bytevector}.
+@math{@var{k}, @dots{}, @var{k}+3} must be valid indices of
+@var{bytevector}.
 
 For @func{bytevector-ieee-single-native-set!}, @var{k} must be a
-multiple of 4.
+multiple of @math{4}.
 
 These procedures store an @ieee{} 754 single--precision representation
 of @var{x} into elements @var{k} through @var{k}+3 of @var{bytevector},
@@ -10037,21 +10028,21 @@ and return unspecified values.
 
 @deffn Procedure {bytevector-ieee-double-native-set!} @var{bytevector} @var{k} @var{x}
 @deffnx Procedure {bytevector-ieee-double-set!} @var{bytevector} @var{k} @var{x} @var{endianness}
-@var{K}, @dots{}, @var{k}+7 must be valid indices of @var{bytevector}.
+@math{@var{k}, @dots{}, @var{k}+7} must be valid indices of
+@var{bytevector}.
 
 For @func{bytevector-ieee-double-native-set!}, @var{k} must be a
-multiple of 8.
+multiple of @math{8}.
 
 These procedures store an @ieee{} 754 double--precision representation
-of @var{x} into elements @var{k} through @var{k}+7 of @var{bytevector},
-and return unspecified values.
+of @var{x} into elements @var{k} through @math{@var{k}+7} of
+@var{bytevector}, and return unspecified values.
 @end deffn
-
 
 
 @c page
 @node stdlib bytevector strings
-@section Operations on strings
+@subsection Operations on strings
 
 
 This section describes procedures that convert between strings and
@@ -10154,11 +10145,9 @@ specifying @code{little} and @utf{}-32LE.
 @end quotation
 @end deffn
 
-
-
 @c page
 @node stdlib list
-@chapter List utilities
+@section List utilities
 
 
 This chapter describes the @rsixlibrary{lists} library, which contains
@@ -10175,8 +10164,8 @@ of the list, @func{find} returns @false{}.  @var{proc} is always called
 in the same dynamic environment as @func{find} itself.
 
 @example
-(find even? '(3 1 4 1 5 9))             => 4
-(find even? '(3 1 5 1 5 9))             => #f
+(find even? '(3 1 4 1 5 9))             @result{} 4
+(find even? '(3 1 5 1 5 9))             @result{} #f
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10192,24 +10181,24 @@ appropriate argument before applying it.
 @deffn Procedure for-all @var{proc} @vari{list} @varii{list} @dots{} @varn{list}
 @deffnx Procedure exists @var{proc} @vari{list} @varii{list} @dots{} @varn{list}
 The @var{list}s should all have the same length, and @var{proc} should
-accept @emph{n} arguments and return a single value.  @var{proc} should
+accept @math{n} arguments and return a single value.  @var{proc} should
 not mutate the @var{list} arguments.
 
-For natural numbers @emph{i} = 0, 1, @dots{}, the @func{for-all}
+For natural numbers @math{i = 0, 1, @dots{}}, the @func{for-all}
 procedure successively applies @var{proc} to arguments @emph{x_i^1
 @dots{} x_i^n}, where @emph{x_i^j} is the @emph{i}th element of
 @var{listj}, until @false{} is returned.
 
 If @var{proc} returns true values for all but the last element of
 @vari{list}, @func{for-all} performs a tail call of @var{proc} on the
-@emph{k}th elements, where @emph{k} is the length of @vari{list}.  If
+@math{k}-th elements, where @math{k} is the length of @vari{list}.  If
 @var{proc} returns @false{} on any set of elements, @func{for-all}
 returns @false{} after the first such application of @var{proc}.  If the
 @var{list}s are all empty, @func{for-all} returns @true{}.
 
-For natural numbers @emph{i} = 0, 1, @dots{}, the @func{exists}
-procedure applies @var{proc} successively to arguments @emph{x_i^1}
-@dots{} @emph{x_i^n}, where @emph{x_i^j} is the @emph{i}th element of
+For natural numbers @math{i = 0, 1, @dots{}}, the @func{exists}
+procedure applies @var{proc} successively to arguments @math{x_i^1
+@dots{} x_i^n}, where @math{x_i^j} is the @math{i}-th element of
 @var{listj}, until a true value is returned.
 
 If @var{proc} returns @false{} for all but the last elements of the
@@ -10223,22 +10212,22 @@ the @var{list}s are all empty, @code{exists} returns @false{}.
 @func{for-all} or, respectively, @func{exists} itself.
 
 @example
-(for-all even? '(3 1 4 1 5 9))          => #f
-(for-all even? '(3 1 4 1 5 9 . 2))      => #f
-(for-all even? '(2 4 14))               => #t
-(for-all even? '(2 4 14 . 9))           => exception &assertion
+(for-all even? '(3 1 4 1 5 9))          @result{} #f
+(for-all even? '(3 1 4 1 5 9 . 2))      @result{} #f
+(for-all even? '(2 4 14))               @result{} #t
+(for-all even? '(2 4 14 . 9))           @result{} exception &assertion
 (for-all (lambda (n) (and (even? n) n))
-         '(2 4 14))                     => 14
-(for-all < '(1 2 3) '(2 3 4))           => #t
-(for-all < '(1 2 4) '(2 3 4))           => #f
+         '(2 4 14))                     @result{} 14
+(for-all < '(1 2 3) '(2 3 4))           @result{} #t
+(for-all < '(1 2 4) '(2 3 4))           @result{} #f
 
-(exists even? '(3 1 4 1 5 9))           => #t
-(exists even? '(3 1 1 5 9))             => #f
-(exists even? '(3 1 1 5 9 . 2))         => exception &assertion
+(exists even? '(3 1 4 1 5 9))           @result{} #t
+(exists even? '(3 1 1 5 9))             @result{} #f
+(exists even? '(3 1 1 5 9 . 2))         @result{} exception &assertion
 (exists (lambda (n) (and (even? n) n))
-        '(2 1 4 14))                    => 2
-(exists < '(1 2 4) '(2 3 4))            => #t
-(exists > '(1 2 3) '(2 3 4))            => #f
+        '(2 1 4 14))                    @result{} 2
+(exists < '(1 2 4) '(2 3 4))            @result{} #t
+(exists > '(1 2 3) '(2 3 4))            @result{} #f
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10276,9 +10265,9 @@ or @func{partitions}, the return values returned by earlier returns are
 not mutated.
 
 @example
-(filter even? '(3 1 4 1 5 9 2 6))       => (4 2 6)
+(filter even? '(3 1 4 1 5 9 2 6))       @result{} (4 2 6)
 
-(partition even? '(3 1 4 1 5 9 2 6))    => (4 2 6) (3 1 1 5 9)
+(partition even? '(3 1 4 1 5 9 2 6))    @result{} (4 2 6) (3 1 1 5 9)
                                            ; two values
 @end example
 
@@ -10311,29 +10300,29 @@ reached; then the accumulator value is returned.
 @func{fold-left} itself.
 
 @example
-(fold-left + 0 '(1 2 3 4 5))            => 15
+(fold-left + 0 '(1 2 3 4 5))            @result{} 15
 
 (fold-left (lambda (a e)
              (cons e a))
            '()
-           '(1 2 3 4 5))                => (5 4 3 2 1)
+           '(1 2 3 4 5))                @result{} (5 4 3 2 1)
 
 (fold-left (lambda (count x)
              (if (odd? x)
                  (+ count 1)
                count))
            0
-           '(3 1 4 1 5 9 2 6 5 3))      => 7
+           '(3 1 4 1 5 9 2 6 5 3))      @result{} 7
 
 (fold-left (lambda (max-len s)
              (max max-len (string-length s)))
            0
            '("longest" "long" "longer"))
-                                        => 7
+                                        @result{} 7
 
-(fold-left cons '(q) '(a b c))          => ((((q) . a) . b) . c)
+(fold-left cons '(q) '(a b c))          @result{} ((((q) . a) . b) . c)
 
-(fold-left + 0 '(1 2 3) '(4 5 6))       => 21
+(fold-left + 0 '(1 2 3) '(4 5 6))       @result{} 21
 @end example
 
 @strong{Implementation responsibilities:} The implementation should
@@ -10367,19 +10356,19 @@ returned.
 @func{fold-right} itself.
 
 @example
-(fold-right + 0 '(1 2 3 4 5))                   => 15
+(fold-right + 0 '(1 2 3 4 5))                   @result{} 15
 
-(fold-right cons '() '(1 2 3 4 5))              => (1 2 3 4 5)
+(fold-right cons '() '(1 2 3 4 5))              @result{} (1 2 3 4 5)
 
 (fold-right (lambda (x l)
               (if (odd? x) (cons x l) l))
             '()
             '(3 1 4 1 5 9 2 6 5))
-                                                => (3 1 1 5 9 5)
+                                                @result{} (3 1 1 5 9 5)
 
-(fold-right cons '(q) '(a b c))                 => (a b c q)
+(fold-right cons '(q) '(a b c))                 @result{} (a b c q)
 
-(fold-right + 0 '(1 2 3) '(4 5 6))              => 21
+(fold-right + 0 '(1 2 3) '(4 5 6))              @result{} 21
 @end example
 
 @strong{Implementation responsibilities:} The implementation should
@@ -10415,13 +10404,13 @@ the input list.  If multiple returns occur from @func{remp}, the return
 values returned by earlier returns are not mutated.
 
 @example
-(remp even? '(3 1 4 1 5 9 2 6 5))       => (3 1 1 5 9 5)
+(remp even? '(3 1 4 1 5 9 2 6 5))       @result{} (3 1 1 5 9 5)
 
-(remove 1 '(3 1 4 1 5 9 2 6 5))         => (3 4 5 9 2 6 5)
+(remove 1 '(3 1 4 1 5 9 2 6 5))         @result{} (3 4 5 9 2 6 5)
 
-(remv 1 '(3 1 4 1 5 9 2 6 5))           => (3 4 5 9 2 6 5)
+(remv 1 '(3 1 4 1 5 9 2 6 5))           @result{} (3 4 5 9 2 6 5)
 
-(remq 'foo '(bar foo baz))              => (bar baz)
+(remq 'foo '(bar foo baz))              @result{} (bar baz)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10456,15 +10445,15 @@ returned.  The @func{member} procedure uses @func{equal?} to compare
 @func{eqv?} and @func{memq} uses @func{eq?}.
 
 @example
-(memp even? '(3 1 4 1 5 9 2 6 5))       => (4 1 5 9 2 6 5)
+(memp even? '(3 1 4 1 5 9 2 6 5))       @result{} (4 1 5 9 2 6 5)
 
-(memq 'a '(a b c))                      => (a b c)
-(memq 'b '(a b c))                      => (b c)
-(memq 'a '(b c d))                      => #f
-(memq (list 'a) '(b (a) c))             => #f
-(member (list 'a) '(b (a) c))           => ((a) c)
-(memq 101 '(100 101 102))               => unspecified
-(memv 101 '(100 101 102))               => (101 102)
+(memq 'a '(a b c))                      @result{} (a b c)
+(memq 'b '(a b c))                      @result{} (b c)
+(memq 'a '(b c d))                      @result{} #f
+(memq (list 'a) '(b (a) c))             @result{} #f
+(member (list 'a) '(b (a) c))           @result{} ((a) c)
+(memq 101 '(100 101 102))               @result{} unspecified
+(memv 101 '(100 101 102))               @result{} (101 102)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10512,17 +10501,17 @@ check whether @var{proc} is an appropriate argument before applying it.
 @example
 (define d '((3 a) (1 b) (4 c)))
 
-(assp even? d)                                  => (4 c)
-(assp odd? d)                                   => (3 a)
+(assp even? d)                                  @result{} (4 c)
+(assp odd? d)                                   @result{} (3 a)
 
 (define e '((a 1) (b 2) (c 3)))
-(assq 'a e)                                     => (a 1)
-(assq 'b e)                                     => (b 2)
-(assq 'd e)                                     => #f
-(assq (list 'a) '(((a)) ((b)) ((c))))           => #f
-(assoc (list 'a) '(((a)) ((b)) ((c))))          => ((a))
-(assq 5 '((2 3) (5 7) (11 13)))                 => unspecified
-(assv 5 '((2 3) (5 7) (11 13)))                 => (5 7)
+(assq 'a e)                                     @result{} (a 1)
+(assq 'b e)                                     @result{} (b 2)
+(assq 'd e)                                     @result{} #f
+(assq (list 'a) '(((a)) ((b)) ((c))))           @result{} #f
+(assoc (list 'a) '(((a)) ((b)) ((c))))          @result{} ((a))
+(assq 5 '((2 3) (5 7) (11 13)))                 @result{} unspecified
+(assv 5 '((2 3) (5 7) (11 13)))                 @result{} (5 7)
 @end example
 @end deffn
 
@@ -10535,17 +10524,16 @@ and whose last cdr is @var{obj}.  If called with only one argument,
 @func{cons*} returns that argument.
 
 @example
-(cons* 1 2 '(3 4 5))            => (1 2 3 4 5)
-(cons* 1 2 3)                   => (1 2 . 3)
-(cons* 1)                       => 1
+(cons* 1 2 '(3 4 5))            @result{} (1 2 3 4 5)
+(cons* 1 2 3)                   @result{} (1 2 . 3)
+(cons* 1)                       @result{} 1
 @end example
 @end deffn
 
 
-
 @c page
 @node stdlib sorting
-@chapter Sorting
+@section Sorting
 
 
 This chapter describes the @rsixlibrary{sorting} library for sorting
@@ -10569,8 +10557,8 @@ The results may be @func{eq?} to the argument when the argument is
 already sorted, and the result of @func{list-sort} may share structure
 with a tail of the original list.
 
-The sorting algorithm performs @emph{O(n log n)} calls to @var{proc}
-where @emph{n} is the length of @var{list} or @var{vector}, and all
+The sorting algorithm performs @math{O(n log n)} calls to @var{proc}
+where @math{n} is the length of @var{list} or @var{vector}, and all
 arguments passed to @var{proc} are elements of the list or vector being
 sorted, but the pairing of arguments and the sequencing of calls to
 @var{proc} are not specified.  If multiple returns occur from
@@ -10578,8 +10566,8 @@ sorted, but the pairing of arguments and the sequencing of calls to
 earlier returns are not mutated.
 
 @example
-(list-sort < '(3 5 2 1))                => (1 2 3 5)
-(vector-sort < '#(3 5 2 1))             => #(1 2 3 5)
+(list-sort < '(3 5 2 1))                @result{} (1 2 3 5)
+(vector-sort < '#(3 5 2 1))             @result{} #(1 2 3 5)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10597,7 +10585,7 @@ otherwise.
 
 The @func{vector-sort!} procedure destructively sorts @var{vector} in
 ascending order according to @var{proc}.  The sorting algorithm performs
-@emph{O(n^2)} calls to @var{proc} where @emph{n} is the length of
+@math{O(n^2)} calls to @var{proc} where @math{n} is the length of
 @var{vector}, and all arguments passed to @var{proc} are elements of the
 vector being sorted, but the pairing of arguments and the sequencing of
 calls to @var{proc} are not specified.  The sorting algorithm may be
@@ -10605,8 +10593,8 @@ unstable.  The procedure returns unspecified values.
 
 @example
 (define v (vector 3 5 2 1))
-(vector-sort! < v)              => unspecified
-v                               => #(1 2 3 5)
+(vector-sort! < v)              @result{} unspecified
+v                               @result{} #(1 2 3 5)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10615,11 +10603,9 @@ described.  An implementation may check whether @var{proc} is an
 appropriate argument before applying it.
 @end deffn
 
-
-
 @c page
 @node stdlib control
-@chapter Control structures
+@section Control structures
 
 
 This chapter describes the @rsixlibrary{control} library, which provides
@@ -10648,23 +10634,23 @@ The final @hyper{expression} is in tail context if the @func{when} or
 @func{unless} form is itself in tail context.
 
 @example
-(when (> 3 2) 'greater)         => greater
-(when (< 3 2) 'greater)         => unspecified
-(unless (> 3 2) 'less)          => unspecified
-(unless (< 3 2) 'less)          => less
+(when (> 3 2) 'greater)         @result{} greater
+(when (< 3 2) 'greater)         @result{} unspecified
+(unless (> 3 2) 'less)          @result{} unspecified
+(unless (< 3 2) 'less)          @result{} less
 @end example
 
 The @func{when} and @func{unless} expressions are derived forms.  They
 could be defined by the following macros:
 
 @example
-(define-syntax @code{when}
+(define-syntax when
   (syntax-rules ()
     ((when test result1 result2 ...)
      (if test
          (begin result1 result2 ...)))))
 
-(define-syntax @code{unless}
+(define-syntax unless
   (syntax-rules ()
     ((unless test result1 result2 ...)
      (if (not test)
@@ -10697,7 +10683,7 @@ the next iteration begins.
 If @meta{test} evaluates to a true value, the @meta{expression}s are
 evaluated from left to right and the values of the last
 @meta{expression} are returned.  If no @hyper{expression}s are present,
-then the @code{do} expression returns unspecified values.
+then the @func{do} expression returns unspecified values.
 
 The region consists of the entire @func{do} expression except for the
 @meta{init}s.
@@ -10706,7 +10692,7 @@ A @meta{step} may be omitted, in which case the effect is the same as if
 @code{(@meta{variable} @hyper{init} @hyper{variable})} had been written
 instead of @code{(@meta{variable} @hyper{init})}.
 
-If a @code{do} expression appears in a tail context, the
+If a @func{do} expression appears in a tail context, the
 @meta{expression}s are a @hyper{tail sequence} in the sense of report
 section @ref{baselib tail call}, i.e., the last @meta{expression} is
 also in a tail context.
@@ -10715,12 +10701,14 @@ also in a tail context.
 (do ((vec (make-vector 5))
      (i 0 (+ i 1)))
     ((= i 5) vec)
-  (vector-set! vec i i))                => #(0 1 2 3 4)
+  (vector-set! vec i i))
+@result{} #(0 1 2 3 4)
 
 (let ((x '(1 3 5 7 9)))
   (do ((x x (cdr x))
        (sum 0 (+ sum (car x))))
-      ((null? x) sum)))                 => 25
+      ((null? x) sum)))
+@result{} 25
 @end example
 
 The following definition of @func{do} uses a trick to expand the
@@ -10783,7 +10771,7 @@ number of arguments is the same as the number of formal parameters in
 @end example
 
 @noindent
-and the number of arguments is at least @emph{n}.
+and the number of arguments is at least @math{n}.
 
 @item
 @meta{formals} has the form @code{@hyper{variable}}.
@@ -10808,11 +10796,11 @@ type @code{&assertion} is raised.
    ((a b c d . e) (list 'four a b c d e))
    (rest (list 'rest rest))))
 
-(foo)                                   => zero
-(foo 1)                                 => (one 1)
-(foo 1 2)                               => (two 1 2)
-(foo 1 2 3)                             => (rest (1 2 3))
-(foo 1 2 3 4)                           => (four 1 2 3 4 ())
+(foo)                   @result{} zero
+(foo 1)                 @result{} (one 1)
+(foo 1 2)               @result{} (two 1 2)
+(foo 1 2 3)             @result{} (rest (1 2 3))
+(foo 1 2 3 4)           @result{} (four 1 2 3 4 ())
 @end example
 
 The @func{case-lambda} keyword can be defined in terms of @func{lambda}
@@ -10848,16 +10836,14 @@ by the following macros:
 @end example
 @end deffn
 
-
-
-
 @c page
 @node stdlib records
-@chapter Records
+@section Records
 
 
 This section describes abstractions for creating new data types
 representing records.
+
 
 @menu
 * stdlib records intro::                Introduction.
@@ -10868,11 +10854,9 @@ representing records.
 * stdlib records inspection::           Inspection.
 @end menu
 
-
-
 @c page
 @node stdlib records intro
-@section Introduction
+@subsection Introduction
 
 
 A record is a compound data structure with a fixed number of components,
@@ -10952,7 +10936,7 @@ constructor descriptors, respectively.
 
 @c page
 @node stdlib records mutability
-@section Mutability and equivalence of records
+@subsection Mutability and equivalence of records
 
 
 The fields of a record type are designated @emph{mutable} or
@@ -10988,11 +10972,9 @@ where applying an accessor to both yields results for which @func{eqv?}
 returns @false{}, then @func{eqv?} returns @false{}.
 @end itemize
 
-
-
 @c page
 @node stdlib records syntactic layer
-@section Syntactic layer
+@subsection Syntactic layer
 
 
 The syntactic layer is provided by the @rsixlibrary{records syntactic}
@@ -11166,7 +11148,7 @@ generated every time a @func{define-record-type} form is evaluated:
            (define-record-type r ...)
            (if x r? (make-r ...)))))
   ((f #t) (f #f)))
-=> #f
+@result{} #f
 @end example
 @end deffn
 
@@ -11388,30 +11370,30 @@ The following example uses the @func{record?} procedure from the
 (define p1 (make-point 1 2))
 (define p2 (make-cpoint 3 4 'red))
 
-(point? p1)                             => #t
-(point? p2)                             => #t
-(point? (vector))                       => #f
-(point? (cons 'a 'b))                   => #f
-(cpoint? p1)                            => #f
-(cpoint? p2)                            => #f
-(point-x p1)                            => 1
-(point-y p1)                            => 2
-(point-x p2)                            => 3
-(point-y p2)                            => 4
-(cpoint-rgb p2)                         => (rgb . red)
+(point? p1)                             @result{} #t
+(point? p2)                             @result{} #t
+(point? (vector))                       @result{} #f
+(point? (cons 'a 'b))                   @result{} #f
+(cpoint? p1)                            @result{} #f
+(cpoint? p2)                            @result{} #f
+(point-x p1)                            @result{} 1
+(point-y p1)                            @result{} 2
+(point-x p2)                            @result{} 3
+(point-y p2)                            @result{} 4
+(cpoint-rgb p2)                         @result{} (rgb . red)
 
-(set-point-y! p1 17)                    => unspecified
-(point-y p1)                            => 17
+(set-point-y! p1 17)                    @result{} unspecified
+(point-y p1)                            @result{} 17
 
 (record-rtd p1)
-=> (record-type-descriptor point)
+@result{} (record-type-descriptor point)
 
 (define-record-type (ex1 make-ex1 ex1?)
   (protocol (lambda (p) (lambda a (p a))))
   (fields (immutable f ex1-f)))
 
 (define ex1-i1 (make-ex1 1 2 3))
-(ex1-f ex1-i1)                          => (1 2 3)
+(ex1-f ex1-i1)                          @result{} (1 2 3)
 
 (define-record-type (ex2 make-ex2 ex2?)
   (protocol
@@ -11420,8 +11402,8 @@ The following example uses the @func{record?} procedure from the
           (immutable b ex2-b)))
 
 (define ex2-i1 (make-ex2 1 2 3))
-(ex2-a ex2-i1)                          => 1
-(ex2-b ex2-i1)                          => (2 3)
+(ex2-a ex2-i1)                          @result{} 1
+(ex2-b ex2-i1)                          @result{} (2 3)
 
 (define-record-type (unit-vector
                      make-unit-vector
@@ -11455,22 +11437,20 @@ The following example uses the @func{record?} procedure from the
   (sealed #t) (opaque #t))
 
 (define ex3-i1 (make-ex3 1 2 17))
-(ex3? ex3-i1)                           => #t
-(cpoint-rgb ex3-i1) => (rgb . red)
-(ex3-thickness ex3-i1)                  => 17
-(ex3-thickness-set! ex3-i1 18)          => unspecified
-(ex3-thickness ex3-i1)                  => 18
-*ex3-instance*                          => ex3-i1
+(ex3? ex3-i1)                           @result{} #t
+(cpoint-rgb ex3-i1) @result{} (rgb . red)
+(ex3-thickness ex3-i1)                  @result{} 17
+(ex3-thickness-set! ex3-i1 18)          @result{} unspecified
+(ex3-thickness ex3-i1)                  @result{} 18
+*ex3-instance*                          @result{} ex3-i1
 
-(record? ex3-i1)                        => #f
+(record? ex3-i1)                        @result{} #f
 @end example
-
-
 
 
 @c page
 @node stdlib records procedural layer
-@section Procedural layer
+@subsection Procedural layer
 
 
 The procedural layer is provided by the @rsixlibrary{records procedural}
@@ -11786,11 +11766,11 @@ The mutator returns unspecified values.
 (define point-y-set! (record-mutator :point 1))
 
 (define p1 (make-point 1 2))
-(point? p1)                             => #t
-(point-x p1)                            => 1
-(point-y p1)                            => 2
-(point-x-set! p1 5)                     => unspecified
-(point-x p1)                            => 5
+(point? p1)                             @result{} #t
+(point-x p1)                            @result{} 1
+(point-y p1)                            @result{} 2
+(point-x-set! p1 5)                     @result{} unspecified
+(point-x p1)                            @result{} 5
 
 (define :point2
   (make-record-type-descriptor
@@ -11806,11 +11786,11 @@ The mutator returns unspecified values.
 (define point2-yy (record-accessor :point2 1))
 
 (define p2 (make-point2 1 2 3 4))
-(point? p2)                             => #t
-(point-x p2)                            => 1
-(point-y p2)                            => 2
-(point2-xx p2)                          => 3
-(point2-yy p2)                          => 4
+(point? p2)                             @result{} #t
+(point-x p2)                            @result{} 1
+(point-y p2)                            @result{} 2
+(point2-xx p2)                          @result{} 3
+(point2-yy p2)                          @result{} 4
 
 (define :point-cd/abs
   (make-record-constructor-descriptor
@@ -11822,8 +11802,8 @@ The mutator returns unspecified values.
 (define make-point/abs
   (record-constructor :point-cd/abs))
 
-(point-x (make-point/abs -1 -2))        => 1
-(point-y (make-point/abs -1 -2))        => 2
+(point-x (make-point/abs -1 -2))        @result{} 1
+(point-y (make-point/abs -1 -2))        @result{} 2
 
 (define :cpoint
   (make-record-type-descriptor
@@ -11853,16 +11833,15 @@ The mutator returns unspecified values.
 (define (color->rgb c)
   (cons 'rgb c))
 
-(cpoint-rgb (make-cpoint -1 -3 'red))   => (rgb . red)
-(point-x (make-cpoint -1 -3 'red))      => -1
-(point-x (make-cpoint/abs -1 -3 'red))  => 1
+(cpoint-rgb (make-cpoint -1 -3 'red))   @result{} (rgb . red)
+(point-x (make-cpoint -1 -3 'red))      @result{} -1
+(point-x (make-cpoint/abs -1 -3 'red))  @result{} 1
 @end example
-
 
 
 @c page
 @node stdlib records inspection
-@section Inspection
+@subsection Inspection
 
 
 The @rsixlibrary{records inspection} library provides procedures for
@@ -11945,11 +11924,9 @@ represented by @var{rtd} is mutable, and @false{} if not.  @var{k} is as
 in @func{record-accessor}.
 @end deffn
 
-
-
 @c page
 @node stdlib exceptions
-@chapter Exceptions and conditions
+@section Exceptions and conditions
 
 
 Scheme allows programs to deal with exceptional situations using two
@@ -11974,7 +11951,7 @@ objects, as well as a facility for extending the taxonomy.
 
 @c page
 @node stdlib exceptions exceptions
-@section Exceptions
+@subsection Exceptions
 
 
 @cindex Catching exceptions
@@ -12096,7 +12073,7 @@ by the call to @code{raise-continuable}.
       (make-error)
       (make-message-condition "I am an error"))))
    ;; prints: I am an error
-=> error
+@result{} error
 
 (guard (con
          ((error? con)
@@ -12108,7 +12085,7 @@ by the call to @code{raise-continuable}.
     (condition
       (make-violation)
       (make-message-condition "I am an error"))))
-=> exception &violation
+@result{} exception &violation
 
 (guard (con
          ((error? con)
@@ -12116,7 +12093,7 @@ by the call to @code{raise-continuable}.
           #f))
   (call-with-input-file "foo.scm" read))
    ;; prints: error opening file
-=> #f
+@result{} #f
 
 (with-exception-handler
   (lambda (con)
@@ -12136,14 +12113,13 @@ by the call to @code{raise-continuable}.
              "should be a number")))
        23)))
    ;; prints: should be a number
-=> 65
+@result{} 65
 @end example
-
 
 
 @c page
 @node stdlib exceptions conditions
-@section Conditions
+@subsection Conditions
 
 
 This section describes Scheme's @rsixlibrary{conditions} library for
@@ -12166,7 +12142,7 @@ allow an exceptional situation to be described in multiple ways.
 
 @c page
 @node stdlib exceptions conditions objects
-@subsection Condition objects
+@subsubsection Condition objects
 
 
 Conceptually, there are two different kinds of condition objects:
@@ -12262,9 +12238,9 @@ component.
 
 (define foo (make-cond1 'foo))
 
-(condition? foo)                        => #t
-(cond1? foo)                            => #t
-(cond1-x foo)                           => foo
+(condition? foo)                        @result{} #t
+(cond1? foo)                            @result{} #t
+(cond1-x foo)                           @result{} foo
 
 (define-record-type (&cond2 make-cond2 real-cond2?)
   (parent &condition)
@@ -12281,21 +12257,21 @@ component.
 
 (define bar (make-cond2 'bar))
 
-(condition? (condition foo bar))        => #t
-(cond1? (condition foo bar))            => #t
-(cond2? (condition foo bar))            => #t
-(cond1? (condition foo))                => #t
-(real-cond1? (condition foo))           => unspecified
-(real-cond1? (condition foo bar))       => #f
-(cond1-x (condition foo bar))           => foo
-(cond2-y (condition foo bar))           => bar
+(condition? (condition foo bar))        @result{} #t
+(cond1? (condition foo bar))            @result{} #t
+(cond2? (condition foo bar))            @result{} #t
+(cond1? (condition foo))                @result{} #t
+(real-cond1? (condition foo))           @result{} unspecified
+(real-cond1? (condition foo bar))       @result{} #f
+(cond1-x (condition foo bar))           @result{} foo
+(cond2-y (condition foo bar))           @result{} bar
 
 (equal? (simple-conditions (condition foo bar))
-        (list foo bar))                 => #t
+        (list foo bar))                 @result{} #t
 
 (equal? (simple-conditions
           (condition foo (condition bar)))
-        (list foo bar))                 => #t
+        (list foo bar))                 @result{} #t
 @end example
 
 
@@ -12352,21 +12328,21 @@ corresponding field from a condition of type @meta{condition-type}.
 @example
 (define v1 (make-c1 "V1" "a1"))
 
-(c? v1)        => #t
-(c1? v1)       => #t
-(c2? v1)       => #f
-(c-x v1)       => "V1"
-(c1-a v1)      => "a1"
+(c? v1)        @result{} #t
+(c1? v1)       @result{} #t
+(c2? v1)       @result{} #f
+(c-x v1)       @result{} "V1"
+(c1-a v1)      @result{} "a1"
 @end example
 
 @example
 (define v2 (make-c2 "V2" "b2"))
 
-(c? v2)        => #t
-(c1? v2)       => #f
-(c2? v2)       => #t
-(c-x v2)       => "V2"
-(c2-b v2)      => "b2"
+(c? v2)        @result{} #t
+(c1? v2)       @result{} #f
+(c2? v2)       @result{} #t
+(c-x v2)       @result{} "V2"
+(c2-b v2)      @result{} "b2"
 @end example
 
 @example
@@ -12374,41 +12350,40 @@ corresponding field from a condition of type @meta{condition-type}.
              (make-c1 "V3/1" "a3")
              (make-c2 "V3/2" "b3")))
 
-(c? v3)        => #t
-(c1? v3)       => #t
-(c2? v3)       => #t
-(c-x v3)       => "V3/1"
-(c1-a v3)      => "a3"
-(c2-b v3)      => "b3"
+(c? v3)        @result{} #t
+(c1? v3)       @result{} #t
+(c2? v3)       @result{} #t
+(c-x v3)       @result{} "V3/1"
+(c1-a v3)      @result{} "a3"
+(c2-b v3)      @result{} "b3"
 @end example
 
 @example
 (define v4 (condition v1 v2))
 
-(c? v4)        => #t
-(c1? v4)       => #t
-(c2? v4)       => #t
-(c-x v4)       => "V1"
-(c1-a v4)      => "a1"
-(c2-b v4)      => "b2"
+(c? v4)        @result{} #t
+(c1? v4)       @result{} #t
+(c2? v4)       @result{} #t
+(c-x v4)       @result{} "V1"
+(c1-a v4)      @result{} "a1"
+(c2-b v4)      @result{} "b2"
 @end example
 
 @example
 (define v5 (condition v2 v3))
 
-(c? v5)        => #t
-(c1? v5)       => #t
-(c2? v5)       => #t
-(c-x v5)       => "V2"
-(c1-a v5)      => "a3"
-(c2-b v5)      => "b2"
+(c? v5)        @result{} #t
+(c1? v5)       @result{} #t
+(c2? v5)       @result{} #t
+(c-x v5)       @result{} "V2"
+(c1-a v5)      @result{} "a3"
+(c2-b v5)      @result{} "b2"
 @end example
-
 
 
 @c page
 @node stdlib exceptions conditions types
-@subsection Standard condition types
+@subsubsection Standard condition types
 
 
 Hierarchy of standard condition types:
@@ -12674,11 +12649,9 @@ This condition type could be defined by:
 This type describes unbound identifiers in the program.
 @end deffn
 
-
-
 @c page
 @node stdlib io
-@chapter Input/output
+@section Input/output
 
 
 This chapter describes Scheme's libraries for performing input and
@@ -12708,7 +12681,7 @@ libraries.
 
 @c page
 @node stdlib io conditions
-@section Condition types
+@subsection Condition types
 
 
 The procedures described in this chapter, when they detect an
@@ -12899,10 +12872,9 @@ procedures accepting a port as an argument should include an
 @end deffn
 
 
-
 @c page
 @node stdlib io port
-@section Port input/output
+@subsection Port input/output
 
 
 The @rsixlibrary{io ports} library defines an I/O layer for
@@ -12948,11 +12920,9 @@ or any kind of port, respectively.
 * stdlib io port input output ports::   Input/output ports.
 @end menu
 
-
-
 @c page
 @node stdlib io port file names
-@subsection File names
+@subsubsection File names
 
 
 Some of the procedures described in this chapter accept a file name as
@@ -12965,10 +12935,9 @@ A @var{filename} parameter name means that the corresponding argument
 must be a file name.
 
 
-
 @c page
 @node stdlib io port file options
-@subsection File options
+@subsubsection File options
 
 
 When opening a file, the various procedures in this library accept a
@@ -13021,10 +12990,9 @@ symbol}s; they have implementation--specific meaning, if any.
 @end deffn
 
 
-
 @c page
 @node stdlib io port buffer modes
-@subsection Buffer modes
+@subsubsection Buffer modes
 
 
 Each port has an associated buffer mode.  For an output port, the buffer
@@ -13077,11 +13045,9 @@ Return @true{} if the argument is a valid buffer--mode symbol, and
 returns @false{} otherwise.
 @end deffn
 
-
-
 @c page
 @node stdlib io port transcoders
-@subsection Transcoders
+@subsubsection Transcoders
 
 
 Several different Unicode encoding schemes describe standard ways to
@@ -13290,10 +13256,9 @@ according to the output direction of the transcoder.
 @end deffn
 
 
-
 @c page
 @node stdlib io port eof object
-@subsection End--of--file object
+@subsubsection End--of--file object
 
 
 The end--of--file object is returned by various I/O procedures when they
@@ -13304,8 +13269,8 @@ reach end of file.
 Return the end--of--file object.
 
 @example
-(eqv? (eof-object) (eof-object))        => #t
-(eq? (eof-object) (eof-object))         => #t
+(eqv? (eof-object) (eof-object))        @result{} #t
+(eq? (eof-object) (eof-object))         @result{} #t
 @end example
 @end deffn
 
@@ -13321,10 +13286,9 @@ otherwise.
 @end deffn
 
 
-
 @c page
 @node stdlib io port io ports
-@subsection Input and output ports
+@subsubsection Input and output ports
 
 
 The operations described in this section are common to input and output
@@ -13452,10 +13416,9 @@ or output operation.
 @end deffn
 
 
-
 @c page
 @node stdlib io port input ports
-@subsection Input ports
+@subsubsection Input ports
 
 
 An input port allows the reading of an infinite sequence of bytes or
@@ -13670,11 +13633,9 @@ procedures otherwise behave as described.  If they do not, however, the
 behavior of the resulting port is unspecified.
 @end deffn
 
-
-
 @c page
 @node stdlib io port binary input
-@subsection Binary input
+@subsubsection Binary input
 
 
 @deffn Procedure get-u8 @var{binary-input-port}
@@ -13761,10 +13722,9 @@ become available, even if some bytes are already available.
 @end deffn
 
 
-
 @c page
 @node stdlib io port textual input
-@subsection Textual input
+@subsubsection Textual input
 
 
 @deffn Procedure get-char @var{textual-input-port}
@@ -13892,10 +13852,9 @@ and therefore cannot be parsed, an exception with condition types
 @end deffn
 
 
-
 @c page
 @node stdlib io port output ports
-@subsection Output ports
+@subsubsection Output ports
 
 
 An output port is a sink to which bytes or characters are written.  The
@@ -14083,7 +14042,7 @@ resulting port is unspecified.
 Return a newly created textual output port whose byte sink is an
 arbitrary algorithm represented by the @var{write!} procedure.  @var{Id}
 must be a string naming the new port, provided for informational
-purposes only.  @var{Write!} must be a procedure and should behave as
+purposes only.  @var{write!} must be a procedure and should behave as
 specified below; it will be called by operations that perform textual
 output.
 
@@ -14104,7 +14063,7 @@ characters that it wrote, as an exact integer object.
 @end table
 
 The port may or may not have an associated transcoder; if it does, the
-transcoder is implementation-dependent.
+transcoder is implementation--dependent.
 
 @strong{Implementation responsibilities:} The implementation must check
 the return values of @var{write!} only when it actually calls
@@ -14115,10 +14074,9 @@ resulting port is unspecified.
 @end deffn
 
 
-
 @c page
 @node stdlib io port binary output
-@subsection Binary output
+@subsubsection Binary output
 
 
 @deffn Procedure put-u8 @var{binary-output-port} @var{octet}
@@ -14145,10 +14103,9 @@ returns unspecified values.
 @end deffn
 
 
-
 @c page
 @node stdlib io port textual output
-@subsection Textual output
+@subsubsection Textual output
 
 
 @deffn Procedure put-char @var{textual-output-port} @var{char}
@@ -14202,10 +14159,9 @@ in by subsequent calls to @func{get-datum}.
 @end deffn
 
 
-
 @c page
 @node stdlib io port input output ports
-@subsection Input/output ports
+@subsubsection Input/output ports
 
 
 @deffn Procedure {open-file-input/output-port} @var{filename}
@@ -14256,10 +14212,9 @@ specified in the description of @func{make-custom-textual-input-port}.
 @end deffn
 
 
-
 @c page
 @node stdlib io simple
-@section Simple input/output
+@subsection Simple input/output
 
 
 This section describes the @rsixlibrary{io simple} library, which
@@ -14437,10 +14392,9 @@ returned by @func{current-output-port}.
 @end deffn
 
 
-
 @c page
 @node stdlib files
-@chapter File system
+@section File system
 
 
 This chapter describes the @rsixlibrary{files} library for operations on
@@ -14466,10 +14420,9 @@ exist or cannot be deleted, an exception with condition type
 @end deffn
 
 
-
 @c page
 @node stdlib programlib
-@chapter Command line access and exit values
+@section Command line access and exit values
 
 
 The procedures described in this section are exported by the
@@ -14498,10 +14451,9 @@ If @var{obj} is @false{}, the exit is assumed to be abnormal.
 @end deffn
 
 
-
 @c page
 @node stdlib arithmetics
-@chapter Arithmetics
+@section Arithmetics
 
 
 This chapter describes Scheme's libraries for more specialized numerical
@@ -14519,7 +14471,7 @@ on exact integer objects.
 
 @c page
 @node stdlib arithmetics bitwise
-@section Bitwise operations
+@subsection Bitwise operations
 
 
 A number of procedures operate on the binary two's--complement
@@ -14531,24 +14483,17 @@ representation of an exact integer object.  Bit fields are always
 positive, and always defined using a finite number of bits.
 
 
-
 @c page
 @node stdlib arithmetics fixnum
-@section Fixnums
+@subsection Fixnums
 
 
 Every implementation must define its fixnum range as a closed interval:
-
-@example
-[-2^(w-1), 2^(w-1)-1]
-@end example
-
-@noindent
-such that @emph{w} is a (mathematical) integer @emph{w >= 24}.  Every
-mathematical integer within an implementation's fixnum range must
-correspond to an exact integer object that is representable within the
-implementation.  A fixnum is an exact integer object whose value lies
-within this fixnum range.
+@math{[-2^(w-1), 2^(w-1)-1]} such that @emph{w} is a (mathematical)
+integer @math{w >= 24}.  Every mathematical integer within an
+implementation's fixnum range must correspond to an exact integer object
+that is representable within the implementation.  A fixnum is an exact
+integer object whose value lies within this fixnum range.
 
 This section describes the @rsixlibrary{arithmetic fixnums} library,
 which defines various operations on fixnums.  Fixnum operations perform
@@ -14569,7 +14514,7 @@ range, @false{} otherwise.
 @deffn Procedure fixnum-width
 @deffnx Procedure least-fixnum
 @deffnx Procedure greatest-fixnum
-These procedures return @emph{w}, @emph{-2^(w-1)} and @emph{2^(w-1)-1}:
+These procedures return @math{w}, @math{-2^(w-1)} and @math{2^(w-1)-1}:
 the width, minimum and the maximum value of the fixnum range,
 respectively.
 @end deffn
@@ -14616,7 +14561,7 @@ not a fixnum.
 @deffn Procedure {fx-} @vari{fx} @varii{fx}
 @deffnx Procedure {fx-} @var{fx}
 With two arguments, this procedure returns the difference
-@vari{fx}-@varii{fx}, provided that difference is a fixnum.
+@math{@vari{fx} - @varii{fx}}, provided that difference is a fixnum.
 
 With one argument, this procedure returns the additive inverse of its
 argument, provided that integer object is a fixnum.
@@ -14626,7 +14571,7 @@ raised if the mathematically correct result of this procedure is not a
 fixnum.
 
 @example
-(fx- (least-fixnum))  => exception &assertion
+(fx- (least-fixnum))  @result{} exception &assertion
 @end example
 @end deffn
 
@@ -14641,17 +14586,17 @@ fixnum.
 
 These procedures implement number--theoretic integer division and return
 the results of the corresponding mathematical operations specified in
-report section``Integer division''.
+@ref{baselib math semantics integer,Integer division}
 
 @example
-(fxdiv @vari{fx} @varii{fx})         => @vari{fx} div @varii{fx}
-(fxmod @vari{fx} @varii{fx})         => @vari{fx} mod @varii{fx}
-(fxdiv-and-mod @vari{fx} @varii{fx}) => @vari{fx} div @varii{fx}, @vari{fx} mod @varii{fx}
+(fxdiv @vari{fx} @varii{fx})         @result{} @vari{fx} div @varii{fx}
+(fxmod @vari{fx} @varii{fx})         @result{} @vari{fx} mod @varii{fx}
+(fxdiv-and-mod @vari{fx} @varii{fx}) @result{} @vari{fx} div @varii{fx}, @vari{fx} mod @varii{fx}
                                         ; two return values
-(fxdiv0 @vari{fx} @varii{fx})        => @vari{fx} div_0 @varii{fx}
-(fxmod0 @vari{fx} @varii{fx})        => @vari{fx} mod_0 @varii{fx}
+(fxdiv0 @vari{fx} @varii{fx})        @result{} @vari{fx} div_0 @varii{fx}
+(fxmod0 @vari{fx} @varii{fx})        @result{} @vari{fx} mod_0 @varii{fx}
 (fxdiv0-and-mod0 @vari{fx} @varii{fx})
-=> @vari{fx} @vari{fx} div_0 @varii{fx}, @vari{fx} mod_0 @varii{fx}
+@result{} @vari{fx} @vari{fx} div_0 @varii{fx}, @vari{fx} mod_0 @varii{fx}
    ; two return values
 @end example
 @end deffn
@@ -14760,9 +14705,9 @@ Return the index of the least significant 1 bit in the two's complement
 representation of @var{fx}.  If @var{fx} is 0, then -1 is returned.
 
 @example
-(fxfirst-bit-set 0)        =>  -1
-(fxfirst-bit-set 1)        =>  0
-(fxfirst-bit-set -4)       =>  2
+(fxfirst-bit-set 0)        @result{}  -1
+(fxfirst-bit-set 1)        @result{}  0
+(fxfirst-bit-set -4)       @result{}  2
 @end example
 @end deffn
 
@@ -14918,15 +14863,14 @@ from @vari{fx} by reversing the order of the bits at positions from
 @varii{fx} (inclusive) to @variii{fx} (exclusive).
 
 @example
-(fxreverse-bit-field #b1010010 1 4)       =>  88 ; #b1011000
+(fxreverse-bit-field #b1010010 1 4)       @result{}  88 ; #b1011000
 @end example
 @end deffn
 
 
-
 @c page
 @node stdlib arithmetics flonum
-@section Flonums
+@subsection Flonums
 
 
 This section describes the @rsixlibrary{arithmetic flonums} library.
@@ -14967,13 +14911,13 @@ nondecreasing, or monotonically nonincreasing, @false{} otherwise.
 These predicates must be transitive.
 
 @example
-(fl=? +inf.0 +inf.0)           => #t
-(fl=? -inf.0 +inf.0)           => #f
-(fl=? -inf.0 -inf.0)           => #t
-(fl=? 0.0 -0.0)                => #t
-(fl<? 0.0 -0.0)                => #f
-(fl=? +nan.0 @var{fl})         => #f
-(fl<? +nan.0 @var{fl})         => #f
+(fl=? +inf.0 +inf.0)            @result{} #t
+(fl=? -inf.0 +inf.0)            @result{} #f
+(fl=? -inf.0 -inf.0)            @result{} #t
+(fl=? 0.0 -0.0)                 @result{} #t
+(fl<? 0.0 -0.0)                 @result{} #f
+(fl=? +nan.0 fl)                @result{} #f
+(fl<? +nan.0 fl)                @result{} #f
 @end example
 @end deffn
 
@@ -15020,11 +14964,11 @@ tests whether it is a NaN.
 @end table
 
 @example
-(flnegative? -0.0)              => #f
-(flfinite?   +inf.0)            => #f
-(flfinite?   5.0)               => #t
-(flinfinite? 5.0)               => #f
-(flinfinite? +inf.0)            => #t
+(flnegative? -0.0)              @result{} #f
+(flfinite?   +inf.0)            @result{} #f
+(flfinite?   5.0)               @result{} #t
+(flinfinite? 5.0)               @result{} #f
+(flinfinite? +inf.0)            @result{} #t
 @end example
 
 @quotation
@@ -15051,9 +14995,9 @@ represent flonums using @ieee{} binary floating point, the meaning of
 ``best'' is defined by the @ieee{} standards.)
 
 @example
-(fl+ +inf.0 -inf.0)             =>  +nan.0
-(fl+ +nan.0 @var{fl})           =>  +nan.0
-(fl* +nan.0 @var{fl})           =>  +nan.0
+(fl+ +inf.0 -inf.0)             @result{}  +nan.0
+(fl+ +nan.0 @var{fl})           @result{}  +nan.0
+(fl* +nan.0 @var{fl})           @result{}  +nan.0
 @end example
 @end deffn
 
@@ -15075,16 +15019,16 @@ represent flonums using @ieee{} binary floating point, the meaning of
 ``best'' is reasonably well--defined by the @ieee{} standards.)
 
 @example
-(fl- +inf.0 +inf.0)      =>  +nan.0
+(fl- +inf.0 +inf.0)             @result{}  +nan.0
 @end example
 
 For undefined quotients, @func{fl/} behaves as specified by the @ieee{}
 standards:
 
 @example
-(fl/ 1.0 0.0)                   => +inf.0
-(fl/ -1.0 0.0)                  => -inf.0
-(fl/ 0.0 0.0)                   => +nan.0
+(fl/ 1.0 0.0)                   @result{} +inf.0
+(fl/ -1.0 0.0)                  @result{} -inf.0
+(fl/ 0.0 0.0)                   @result{} +nan.0
 @end example
 @end deffn
 
@@ -15112,14 +15056,14 @@ and @func{flmod0}, two for @func{fldiv-and-mod} and
 @func{fldiv0-and-mod0}) are returned.
 
 @example
-(fldiv @vari{fl} @varii{fl})         => @vari{fl} div @varii{fl}
-(flmod @vari{fl} @varii{fl})         => @vari{fl} mod @varii{fl}
-(fldiv-and-mod @vari{fl} @varii{fl}) => @vari{fl} div @varii{fl}, @vari{fl} mod @varii{fl}
+(fldiv @vari{fl} @varii{fl})         @result{} @vari{fl} div @varii{fl}
+(flmod @vari{fl} @varii{fl})         @result{} @vari{fl} mod @varii{fl}
+(fldiv-and-mod @vari{fl} @varii{fl}) @result{} @vari{fl} div @varii{fl}, @vari{fl} mod @varii{fl}
                                         ; two return values
-(fldiv0 @vari{fl} @varii{fl})        => @vari{fl} div_0 @varii{fl}
-(flmod0 @vari{fl} @varii{fl})        => @vari{fl} mod_0 @varii{fl}
+(fldiv0 @vari{fl} @varii{fl})        @result{} @vari{fl} div_0 @varii{fl}
+(flmod0 @vari{fl} @varii{fl})        @result{} @vari{fl} mod_0 @varii{fl}
 (fldiv0-and-mod0 @vari{fl} @varii{fl})
-=> @vari{fl} div_0 @varii{fl}, @vari{fl} mod_0 @varii{fl}
+@result{} @vari{fl} div_0 @varii{fl}, @vari{fl} mod_0 @varii{fl}
    ; two return values
 @end example
 @end deffn
@@ -15130,21 +15074,21 @@ and @func{flmod0}, two for @func{fldiv-and-mod} and
 These procedures return the numerator or denominator of @var{fl} as a
 flonum; the result is computed as if @var{fl} was represented as a
 fraction in lowest terms.  The denominator is always positive.  The
-denominator of 0.0 is defined to be 1.0.
+denominator of @math{0.0} is defined to be @math{1.0}.
 
 @example
-(flnumerator +inf.0)           =>  +inf.0
-(flnumerator -inf.0)           =>  -inf.0
-(fldenominator +inf.0)         =>  1.0
-(fldenominator -inf.0)         =>  1.0
-(flnumerator 0.75)             =>  3.0 ; probably
-(fldenominator 0.75)           =>  4.0 ; probably
+(flnumerator +inf.0)           @result{} +inf.0
+(flnumerator -inf.0)           @result{} -inf.0
+(fldenominator +inf.0)         @result{} 1.0
+(fldenominator -inf.0)         @result{} 1.0
+(flnumerator 0.75)             @result{} 3.0 ; probably
+(fldenominator 0.75)           @result{} 4.0 ; probably
 @end example
 
 Implementations should implement following behavior:
 
 @example
-(flnumerator -0.0)             => -0.0
+(flnumerator -0.0)             @result{} -0.0
 @end example
 @end deffn
 
@@ -15177,9 +15121,9 @@ return an infinity when given an infinity as an argument, and a NaN when
 given a NaN:
 
 @example
-(flfloor +inf.0)                       =>  +inf.0
-(flceiling -inf.0)                     =>  -inf.0
-(fltruncate +nan.0)                    =>  +nan.0
+(flfloor +inf.0)                @result{} +inf.0
+(flceiling -inf.0)              @result{} -inf.0
+(fltruncate +nan.0)             @result{} +nan.0
 @end example
 @end deffn
 
@@ -15221,26 +15165,26 @@ Implementations that use @ieee{} binary floating--point arithmetic
 should follow the relevant standards for these procedures.
 
 @example
-(flexp +inf.0)                => +inf.0
-(flexp -inf.0)                => 0.0
-(fllog +inf.0)                => +inf.0
-(fllog 0.0)                   => -inf.0
-(fllog -0.0)                  => unspecified ; if -0.0 is distinguished
-(fllog -inf.0)                => +nan.0
-(flatan -inf.0)               => -1.5707963267948965  ; approximately
-(flatan +inf.0)               => 1.5707963267948965   ; approximately
+(flexp +inf.0)          @result{} +inf.0
+(flexp -inf.0)          @result{} 0.0
+(fllog +inf.0)          @result{} +inf.0
+(fllog 0.0)             @result{} -inf.0
+(fllog -0.0)            @result{} unspecified ; if -0.0 is distinguished
+(fllog -inf.0)          @result{} +nan.0
+(flatan -inf.0)         @result{} -1.5707963267948965  ; approximately
+(flatan +inf.0)         @result{} 1.5707963267948965   ; approximately
 @end example
 @end deffn
 
 
 @deffn Procedure {flsqrt} @var{fl}
-Returns the principal square root of @var{fl}. For -0.0, @func{flsqrt}
-should return -0.0; for other negative arguments, the result may be a
-NaN or some unspecified flonum.
+Returns the principal square root of @var{fl}.  For @math{-0.0},
+@func{flsqrt} should return @math{-0.0}; for other negative arguments,
+the result may be a NaN or some unspecified flonum.
 
 @example
-(flsqrt +inf.0)               => +inf.0
-(flsqrt -0.0)                 => -0.0
+(flsqrt +inf.0)         @result{} +inf.0
+(flsqrt -0.0)           @result{} -0.0
 @end example
 @end deffn
 
@@ -15253,7 +15197,7 @@ The @func{flexpt} procedure returns @vari{fl} raised to the power
 @varii{fl}.  If @vari{fl} is negative and @varii{fl} is not an integer
 object, the result may be a NaN, or may be some unspecified flonum.
 
-If @vari{fl} and @varii{fl} are both zero, the result is @code{1.0}.  If
+If @vari{fl} and @varii{fl} are both zero, the result is @math{1.0}.  If
 @vari{fl} is zero and @varii{fl} is positive, the result is zero.  If
 @vari{fl} is negative, the result may be a NaN, or may be some
 unspecified flonum.
@@ -15298,10 +15242,9 @@ precision.
 @end deffn
 
 
-
 @c page
 @node stdlib arithmetics exact bitwise
-@section Exact bitwise arithmetic
+@subsection Exact bitwise arithmetic
 
 
 This section describes the @rsixlibrary{arithmetic bitwise} library.
@@ -15324,18 +15267,19 @@ These procedures return the exact integer object that is the bit--wise
 ``and'', ``inclusive or'', or ``exclusive or'' of the two's complement
 representations of their arguments.  If they are passed only one
 argument, they return that argument.  If they are passed no arguments,
-they return the integer object (either -1 or 0) that acts as identity
-for the operation.
+they return the integer object (either @math{-1} or @math{0}) that acts
+as identity for the operation.
 @end deffn
 
 
 @deffn Procedure bitwise-if @vari{ei} @varii{ei} @variii{ei}
-Return the exact integer object that is the bit-wise ``if'' of the two's
-complement representations of its arguments, i.e. for each bit, if it is
-1 in @vari{ei}, the corresponding bit in @varii{ei} becomes the value of
-the corresponding bit in the result, and if it is 0, the corresponding
-bit in @variii{ei} becomes the corresponding bit in the value of the
-result.  This is the result of the following computation:
+Return the exact integer object that is the bit--wise ``if'' of the
+two's complement representations of its arguments, i.e. for each bit, if
+it is @math{1} in @vari{ei}, the corresponding bit in @varii{ei} becomes
+the value of the corresponding bit in the result, and if it is @math{0},
+the corresponding bit in @variii{ei} becomes the corresponding bit in
+the value of the result.  This is the result of the following
+computation:
 
 @example
 (bitwise-ior (bitwise-and @vari{ei} @varii{ei})
@@ -15374,13 +15318,14 @@ the result of the following computation:
 
 
 @deffn Procedure bitwise-first-bit-set @var{ei}
-Returns the index of the least significant 1 bit in the two's complement
-representation of @var{ei}.  If @var{ei} is 0, then -1 is returned.
+Returns the index of the least significant @math{1} bit in the two's
+complement representation of @var{ei}.  If @var{ei} is @math{0}, then
+@math{-1} is returned.
 
 @example
-(bitwise-first-bit-set 0)        =>  -1
-(bitwise-first-bit-set 1)        =>  0
-(bitwise-first-bit-set -4)       =>  2
+(bitwise-first-bit-set 0)        @result{} -1
+(bitwise-first-bit-set 1)        @result{} 0
+(bitwise-first-bit-set -4)       @result{} 2
 @end example
 @end deffn
 
@@ -15389,7 +15334,7 @@ representation of @var{ei}.  If @var{ei} is 0, then -1 is returned.
 @varii{ei} must be non--negative.
 
 The @func{bitwise-bit-set?} procedure returns @true{} if the
-@varii{ei}th bit is 1 in the two's complement representation of
+@varii{ei}th bit is @math{1} in the two's complement representation of
 @vari{ei}, and @false{} otherwise.  This is the result of the following
 computation:
 
@@ -15403,7 +15348,8 @@ computation:
 
 
 @deffn Procedure bitwise-copy-bit @vari{ei} @varii{ei} @variii{ei}
-@varii{ei} must be non--negative, and @variii{ei} must be either 0 or 1.
+@varii{ei} must be non--negative, and @variii{ei} must be either
+@math{0} or @math{1}.
 
 The @func{bitwise-copy-bit} procedure returns the result of replacing
 the @varii{ei}th bit of @vari{ei} by @variii{ei}, which is the result of
@@ -15444,8 +15390,8 @@ less than or equal to @variii{ei}.
 The @func{bitwise-copy-bit-field} procedure returns the result of
 replacing in @vari{ei} the bits at positions from @varii{ei} (inclusive)
 to @variii{ei} (exclusive) by the bits in @variv{ei} from position 0
-(inclusive) to position @variii{ei}-@varii{ei} (exclusive) which is the
-result of the following computation:
+(inclusive) to position @math{@variii{ei} - @varii{ei}} (exclusive)
+which is the result of the following computation:
 
 @example
 (let* ((to    @vari{ei})
@@ -15476,12 +15422,12 @@ Return the result of the following computation:
 Examples:
 
 @example
-(bitwise-arithmetic-shift -6 -1)    => -3
-(bitwise-arithmetic-shift -5 -1)    => -3
-(bitwise-arithmetic-shift -4 -1)    => -2
-(bitwise-arithmetic-shift -3 -1)    => -2
-(bitwise-arithmetic-shift -2 -1)    => -1
-(bitwise-arithmetic-shift -1 -1)    => -1
+(bitwise-arithmetic-shift -6 -1)    @result{} -3
+(bitwise-arithmetic-shift -5 -1)    @result{} -3
+(bitwise-arithmetic-shift -4 -1)    @result{} -2
+(bitwise-arithmetic-shift -3 -1)    @result{} -2
+(bitwise-arithmetic-shift -2 -1)    @result{} -1
+(bitwise-arithmetic-shift -1 -1)    @result{} -1
 @end example
 @end deffn
 
@@ -15547,15 +15493,15 @@ obtained from @vari{ei} by reversing the order of the bits at positions
 from @varii{ei} (inclusive) to @variii{ei} (exclusive).
 
 @example
-(bitwise-reverse-bit-field #b1010010 1 4)      =>  88 ; #b1011000
+(bitwise-reverse-bit-field #b1010010 1 4)
+@result{}  88 ; #b1011000
 @end example
 @end deffn
 
 
-
 @c page
 @node stdlib syntax-case
-@chapter Syntax--case
+@section Syntax--case
 
 
 The @rsixlibrary{syntax-case} library provides support for writing
@@ -15584,10 +15530,9 @@ Examples
 @end menu
 
 
-
 @c page
 @node stdlib syntax-case hygiene
-@section Hygiene
+@subsection Hygiene
 
 
 Barendregt's @emph{hygiene condition} for the lambda calculus is an
@@ -15683,10 +15628,9 @@ An algebra that defines how marks and substitutions work more precisely
 is given in section 2.4 of Oscar Waddell's PhD thesis.
 
 
-
 @c page
 @node stdlib syntax-case objects
-@section Syntax objects
+@subsection Syntax objects
 
 
 A @emph{syntax object} is a representation of a Scheme form that
@@ -15723,11 +15667,9 @@ Syntax objects representing identifiers are always wrapped and are
 distinct from other types of values.  Wrapped syntax objects that are
 not identifiers may or may not be distinct from other types of values.
 
-
-
 @c page
 @node stdlib syntax-case transformers
-@section Transformers
+@subsection Transformers
 
 
 In @func{define-syntax}, @func{let-syntax}, and @func{letrec-syntax}
@@ -15769,10 +15711,9 @@ appropriate argument before applying it.
 @end deffn
 
 
-
 @c page
 @node stdlib syntax-case parsing
-@section Parsing input and producing output
+@subsection Parsing input and producing output
 
 
 Transformers can destructure their input with @func{syntax-case} and
@@ -16122,8 +16063,8 @@ appears on the left-hand side of a @func{set!}  expression.
       [(_ . rest) #'((car p) . rest)]
       [_  #'(car p)])))
 
-p.car                                   => 4
-(set! p.car 15)                         => exception &syntax
+p.car                   @result{} 4
+(set! p.car 15)         @result{} exception &syntax
 
 (define p (cons 4 5))
 (define-syntax p.car
@@ -16135,15 +16076,13 @@ p.car                                   => 4
         [_  #'(car p)]))))
 (set! p.car 15)
 
-p.car                                   => 15
-p                                       => (15 . 5)
+p.car                   @result{} 15
+p                       @result{} (15 . 5)
 @end example
-
-
 
 @c page
 @node stdlib syntax-case identifier
-@section Identifier predicates
+@subsection Identifier predicates
 
 
 @deffn Procedure {identifier?} @var{obj}
@@ -16159,18 +16098,18 @@ objects, below.
 (define-syntax rec
   (lambda (x)
     (syntax-case x ()
-      [(_ x e)
+      ((_ x e)
        (identifier? #'x)
-       #'(letrec ([x e]) x)])))
+       #'(letrec ((x e)) x)))))
 
 (map (rec fact
        (lambda (n)
          (if (= n 0)
              1
              (* n (fact (- n 1))))))
-     '(1 2 3 4 5))    => (1 2 6 24 120)
+     '(1 2 3 4 5))    @result{} (1 2 6 24 120)
 
-(rec 5 (lambda (x) x)) => exception &syntax
+(rec 5 (lambda (x) x)) @result{} exception &syntax
 @end example
 @end deffn
 
@@ -16225,20 +16164,20 @@ The @func{syntax-case} and @func{syntax-rules} forms internally use
 list against input identifiers.
 
 @example
-(let ([fred 17])
+(let ((fred 17))
   (define-syntax a
     (lambda (x)
       (syntax-case x ()
-        [(_ id) #'(b id fred)])))
+        ((_ id) #'(b id fred)))))
   (define-syntax b
     (lambda (x)
       (syntax-case x ()
-        [(_ id1 id2)
+        ((_ id1 id2)
          #`(list
              #,(free-identifier=? #'id1 #'id2)
-             #,(bound-identifier=? #'id1 #'id2))])))
+             #,(bound-identifier=? #'id1 #'id2))))))
   (a fred))
-=> (#t #f)
+@result{} (#t #f)
 @end example
 
 The following definition of unnamed @func{let} uses
@@ -16251,16 +16190,16 @@ The following definition of unnamed @func{let} uses
       (lambda (ls)
         (or (null? ls)
             (and (let notmem?
-                        ([x (car ls)] [ls (cdr ls)])
+                        ((x (car ls)) (ls (cdr ls)))
                    (or (null? ls)
                        (and (not (bound-identifier=?
                                    x (car ls)))
                             (notmem? x (cdr ls)))))
                  (unique-ids? (cdr ls))))))
     (syntax-case x ()
-      [(_ ((i v) ...) e1 e2 ...)
+      ((_ ((i v) ...) e1 e2 ...)
        (unique-ids? #'(i ...))
-       #'((lambda (i ...) e1 e2 ...) v ...)])))
+       #'((lambda (i ...) e1 e2 ...) v ...)))))
 @end example
 
 The argument @code{#'(i ...)} to @func{unique-ids?} is guaranteed to be
@@ -16269,19 +16208,19 @@ a list by the rules given in the description of @func{syntax} above.
 With this definition of @func{let}:
 
 @example
-(let ([a 3] [a 4]) (+ a a))    => exception &syntax
+(let ((a 3) (a 4)) (+ a a))    @result{} exception &syntax
 @end example
 
 However,
 
 @example
 (let-syntax
-  ([dolet (lambda (x)
+  ((dolet (lambda (x)
             (syntax-case x ()
-              [(_ b)
-               #'(let ([a 3] [b 4]) (+ a b))]))])
+              ((_ b)
+               #'(let ((a 3) (b 4)) (+ a b)))))))
   (dolet a))
-=> 7
+@result{} 7
 @end example
 
 @noindent
@@ -16297,22 +16236,22 @@ version of @func{case} explicitly tests for @code{else} using
 (define-syntax case
   (lambda (x)
     (syntax-case x ()
-      [(_ e0 [(k ...) e1 e2 ...] ...
-              [else-key else-e1 else-e2 ...])
+      ((_ e0 ((k ...) e1 e2 ...) ...
+              (else-key else-e1 else-e2 ...))
        (and (identifier? #'else-key)
             (free-identifier=? #'else-key #'else))
-       #'(let ([t e0])
+       #'(let ((t e0))
            (cond
-             [(memv t '(k ...)) e1 e2 ...]
+             ((memv t '(k ...)) e1 e2 ...)
              ...
-             [else else-e1 else-e2 ...]))]
-      [(_ e0 [(ka ...) e1a e2a ...]
-              [(kb ...) e1b e2b ...] ...)
-       #'(let ([t e0])
+             (else else-e1 else-e2 ...))))
+      ((_ e0 ((ka ...) e1a e2a ...)
+              ((kb ...) e1b e2b ...) ...)
+       #'(let ((t e0))
            (cond
-             [(memv t '(ka ...)) e1a e2a ...]
-             [(memv t '(kb ...)) e1b e2b ...]
-             ...))])))
+             ((memv t '(ka ...)) e1a e2a ...)
+             ((memv t '(kb ...)) e1b e2b ...)
+             ...))))))
 @end example
 
 With either definition of @func{case}, @code{else} is not recognized as
@@ -16320,8 +16259,8 @@ an auxiliary keyword if an enclosing lexical binding for @code{else}
 exists.  For example,
 
 @example
-(let ([else @false{}])
-  (case 0 [else (write "oops")]))    => exception &syntax
+(let ((else @false{}))
+  (case 0 (else (write "oops"))))    @result{} exception &syntax
 @end example
 
 @noindent
@@ -16330,10 +16269,9 @@ since @code{else} is bound lexically and is therefore not the same
 @end deffn
 
 
-
 @c page
 @node stdlib syntax-case conversion
-@section Syntax--object and datum conversions
+@subsection Syntax--object and datum conversions
 
 
 @deffn Procedure {syntax->datum} @var{syntax-object}
@@ -16377,12 +16315,12 @@ to an escape procedure within the loop body.  (The derived
 (define-syntax loop
   (lambda (x)
     (syntax-case x ()
-      [(k e ...)
+      ((k e ...)
        (with-syntax
-           ([break (datum->syntax #'k 'break)])
+           ((break (datum->syntax #'k 'break)))
          #'(call-with-current-continuation
              (lambda (break)
-               (let f () e ... (f)))))])))
+               (let f () e ... (f)))))))))
 
 (let ((n 3) (ls '()))
   (loop
@@ -16398,10 +16336,10 @@ Were @code{loop} to be defined as:
 (define-syntax loop
   (lambda (x)
     (syntax-case x ()
-      [(_ e ...)
+      ((_ e ...)
        #'(call-with-current-continuation
            (lambda (break)
-             (let f () e ... (f))))])))
+             (let f () e ... (f))))))))
 @end example
 
 @noindent
@@ -16415,18 +16353,18 @@ form, as demonstrated by the following definition of @func{include}.
   (lambda (x)
     (define read-file
       (lambda (fn k)
-        (let ([p (open-file-input-port fn)])
-          (let f ([x (get-datum p)])
+        (let ((p (open-file-input-port fn)))
+          (let f ((x (get-datum p)))
             (if (eof-object? x)
                 (begin (close-port p) '())
                 (cons (datum->syntax k x)
                       (f (get-datum p))))))))
     (syntax-case x ()
-      [(k filename)
-       (let ([fn (syntax->datum #'filename)])
-         (with-syntax ([(exp ...)
-                        (read-file fn #'k)])
-           #'(begin exp ...)))])))
+      ((k filename)
+       (let ((fn (syntax->datum #'filename)))
+         (with-syntax (((exp ...)
+                        (read-file fn #'k)))
+           #'(begin exp ...)))))))
 @end example
 
 @code{(include "filename")} expands into a @func{begin} expression
@@ -16455,7 +16393,7 @@ the expression:
 @end example
 
 @noindent
-evaluates to @code{50}.
+evaluates to @math{50}.
 
 The definition of @func{include} uses @func{datum->syntax} to convert
 the objects read from the file into syntax objects in the proper lexical
@@ -16464,10 +16402,9 @@ expressions are scoped where the @func{include} form appears.
 @end deffn
 
 
-
 @c page
 @node stdlib syntax-case temporaries
-@section Generating lists of temporaries
+@subsection Generating lists of temporaries
 
 
 Transformers can introduce a fixed number of identifiers into their
@@ -16509,10 +16446,9 @@ defined helper to generate the necessary temporaries.
 @end deffn
 
 
-
 @c page
 @node stdlib syntax-case derived
-@section Derived forms and procedures
+@subsection Derived forms and procedures
 
 
 The forms and procedures described in this section can be defined in
@@ -16554,27 +16490,27 @@ where appropriate.
 (define-syntax cond
   (lambda (x)
     (syntax-case x ()
-      [(_ c1 c2 ...)
-       (let f ([c1 #'c1] [c2* #'(c2 ...)])
+      ((_ c1 c2 ...)
+       (let f ((c1 #'c1) (c2* #'(c2 ...)))
          (syntax-case c2* ()
-           [()
+           (()
             (syntax-case c1 (else =>)
-              [(else e1 e2 ...) #'(begin e1 e2 ...)]
-              [(e0) #'e0]
-              [(e0 => e1)
-               #'(let ([t e0]) (if t (e1 t)))]
-              [(e0 e1 e2 ...)
-               #'(if e0 (begin e1 e2 ...))])]
-           [(c2 c3 ...)
-            (with-syntax ([rest (f #'c2 #'(c3 ...))])
+              ((else e1 e2 ...) #'(begin e1 e2 ...))
+              ((e0) #'e0)
+              ((e0 => e1)
+               #'(let ((t e0)) (if t (e1 t))))
+              ((e0 e1 e2 ...)
+               #'(if e0 (begin e1 e2 ...)))))
+           ((c2 c3 ...)
+            (with-syntax ((rest (f #'c2 #'(c3 ...))))
               (syntax-case c1 (=>)
-                [(e0) #'(let ([t e0]) (if t t rest))]
-                [(e0 => e1)
-                 #'(let ([t e0]) (if t (e1 t) rest))]
-                [(e0 e1 e2 ...)
+                ((e0) #'(let ((t e0)) (if t t rest)))
+                ((e0 => e1)
+                 #'(let ((t e0)) (if t (e1 t) rest)))
+                ((e0 e1 e2 ...)
                  #'(if e0
                         (begin e1 e2 ...)
-                        rest)]))]))])))
+                        rest)))))))))))
 @end example
 @end deffn
 
@@ -16618,22 +16554,22 @@ be rewritten using @func{quasisyntax} as follows.
 (define-syntax case
   (lambda (x)
     (syntax-case x ()
-      [(_ e c1 c2 ...)
-       #`(let ([t e])
-           #,(let f ([c1 #'c1] [cmore #'(c2 ...)])
+      ((_ e c1 c2 ...)
+       #`(let ((t e))
+           #,(let f ((c1 #'c1) (cmore #'(c2 ...)))
                (if (null? cmore)
                    (syntax-case c1 (else)
-                     [(else e1 e2 ...)
-                      #'(begin e1 e2 ...)]
-                     [((k ...) e1 e2 ...)
+                     ((else e1 e2 ...)
+                      #'(begin e1 e2 ...))
+                     (((k ...) e1 e2 ...)
                       #'(if (memv t '(k ...))
-                            (begin e1 e2 ...))])
+                            (begin e1 e2 ...))))
                    (syntax-case c1 ()
-                     [((k ...) e1 e2 ...)
+                     (((k ...) e1 e2 ...)
                       #`(if (memv t '(k ...))
                             (begin e1 e2 ...)
                             #,(f (car cmore)
-                                  (cdr cmore)))]))))])))
+                                  (cdr cmore))))))))))))
 @end example
 
 Uses of @func{unsyntax} and @func{unsyntax-splicing} with zero or more
@@ -16664,11 +16600,11 @@ defined in terms of @func{syntax-case} as follows.
 (define-syntax syntax-rules
   (lambda (x)
     (syntax-case x ()
-      [(_ (lit ...) [(k . p) t] ...)
+      ((_ (lit ...) ((k . p) t) ...)
        (for-all identifier? #'(lit ... k ...))
        #'(lambda (x)
            (syntax-case x (lit ...)
-             [(_ . p) #'t] ...))])))
+             ((_ . p) #'t) ...))))))
 @end example
 @end quotation
 
@@ -16681,27 +16617,25 @@ as follows.
 @example
 (define-syntax identifier-syntax
   (syntax-rules (set!)
-    [(_ e)
+    ((_ e)
      (lambda (x)
        (syntax-case x ()
-         [id (identifier? #'id) #'e]
-         [(_ x (... ...)) #'(e x (... ...))]))]
-    [(_ (id exp1) ((set! var val) exp2))
+         (id (identifier? #'id) #'e)
+         ((_ x (... ...)) #'(e x (... ...))))))
+    ((_ (id exp1) ((set! var val) exp2))
      (and (identifier? #'id) (identifier? #'var))
      (make-variable-transformer
        (lambda (x)
          (syntax-case x (set!)
-           [(set! var val) #'exp2]
-           [(id x (... ...)) #'(exp1 x (... ...))]
-           [id (identifier? #'id) #'exp1])))]))
+           ((set! var val) #'exp2)
+           ((id x (... ...)) #'(exp1 x (... ...)))
+           (id (identifier? #'id) #'exp1)))))))
 @end example
 @end quotation
 
-
-
 @c page
 @node stdlib syntax-case violations
-@section Syntax violations
+@subsection Syntax violations
 
 
 @deffn Procedure syntax-violation @var{who message form}
@@ -16748,10 +16682,9 @@ provided, the value of the subform field is @false{}.
 @end deffn
 
 
-
 @c page
 @node stdlib syntax-case define-macro
-@section Common Lisp style macros
+@subsection Common Lisp style macros
 
 
 @findex lisp-transformer
@@ -16779,7 +16712,7 @@ where the original macro use appeared.
 
 @c page
 @node stdlib hashtable
-@chapter Hashtables
+@section Hashtables
 
 
 The @rsixlibrary{hashtables} library provides a set of operations on
@@ -16814,7 +16747,7 @@ must be hashtable keys.
 
 @c page
 @node stdlib hashtable constructors
-@section Constructors
+@subsection Constructors
 
 
 @deffn Procedure make-eq-hashtable
@@ -16870,10 +16803,9 @@ hashtable operation may call the hash function more than once.
 @end deffn
 
 
-
 @c page
 @node stdlib hashtable procedures
-@section Procedures
+@subsection Procedures
 
 
 @deffn Procedure {hashtable?} @var{obj}
@@ -16972,7 +16904,7 @@ Example:
   (hashtable-set! h 2 'two)
   (hashtable-set! h 3 'three)
   (hashtable-entries h))
-=> #(1 2 3) #(one two three) ; two return values
+@result{} #(1 2 3) #(one two three) ; two return values
 @end example
 
 @noindent
@@ -16980,10 +16912,9 @@ the order of the entries in the result vectors is not known.
 @end deffn
 
 
-
 @c page
 @node stdlib hashtable inspection
-@section Inspection
+@subsection Inspection
 
 
 @deffn Procedure hashtable-equivalence-function @var{hashtable}
@@ -17006,10 +16937,9 @@ Return @true{} if @var{hashtable} is mutable, otherwise @false{}.
 @end deffn
 
 
-
 @c page
 @node stdlib hashtable hash functions
-@section Hash functions
+@subsection Hash functions
 
 
 The @func{equal-hash}, @func{string-hash}, and @func{string-ci-hash}
@@ -17061,10 +16991,9 @@ Return an integer hash value for @var{symbol}.
 @end deffn
 
 
-
 @c page
 @node stdlib enum
-@chapter Enumerations
+@section Enumerations
 
 
 This chapter describes the @rsixlibrary{enums} library for dealing with
@@ -17113,7 +17042,7 @@ universe, the unary procedure returns @false{}.
 (let* ((e (make-enumeration '(red green blue)))
        (i (enum-set-indexer e)))
   (list (i 'red) (i 'green) (i 'blue) (i 'yellow)))
-=> (0 1 2 #f)
+@result{} (0 1 2 #f)
 @end example
 
 The @func{enum-set-indexer} procedure could be defined as follows using
@@ -17149,7 +17078,7 @@ canonical order of the universe of @var{enum-set}.
 @example
 (let* ((e (make-enumeration '(red green blue)))
        (c (enum-set-constructor e)))
-  (enum-set->list (c '(blue red))))    => (red blue)
+  (enum-set->list (c '(blue red))))    @result{} (red blue)
 @end example
 @end deffn
 
@@ -17181,7 +17110,7 @@ are equal as enumeration types.  Otherwise, @false{} is returned.
    (enum-set-subset? (c '(red blue)) (c '(blue red)))
    (enum-set-subset? (c '(red blue)) (c '(red)))
    (enum-set=? (c '(red blue)) (c '(blue red)))))
-=> (#t #f #t #t #f #t)
+@result{} (#t #f #t #t #f #t)
 @end example
 @end deffn
 
@@ -17209,7 +17138,7 @@ returns the intersection of @vari{enum-set} and @varii{enum-set}.  The
         (enum-set->list
          (enum-set-difference (c '(red green))
                               (c '(red blue))))))
-=> ((red blue) (red) (green))
+@result{} ((red blue) (red) (green))
 @end example
 @end deffn
 
@@ -17222,7 +17151,7 @@ Return @var{enum-set}'s complement with respect to its universe.
        (c (enum-set-constructor e)))
   (enum-set->list
     (enum-set-complement (c '(red)))))
-=> (green blue)
+@result{} (green blue)
 @end example
 @end deffn
 
@@ -17240,7 +17169,7 @@ its second, no elements are dropped, and the injection is returned.)
             '(red black white))))
   (enum-set->list
     (enum-set-projection e1 e2))))
-=> (red black)
+@result{} (red black)
 @end example
 @end deffn
 
@@ -17292,11 +17221,11 @@ Example:
   (black white purple maroon)
   color-set)
 
-(color black)                      => black
-(color purpel)                     => exception &syntax
-(enum-set->list (color-set))       => ()
+(color black)                      @result{} black
+(color purpel)                     @result{} exception &syntax
+(enum-set->list (color-set))       @result{} ()
 (enum-set->list
-  (color-set maroon white))        => (white maroon)
+  (color-set maroon white))        @result{} (white maroon)
 @end example
 
 @quotation
@@ -17307,10 +17236,9 @@ names of the @hyper{symbol}s are significant.
 @end deffn
 
 
-
 @c page
 @node stdlib complib
-@chapter Composite library
+@section Composite library
 
 
 The @rsixlibrary{} library is a composite of most of the libraries
@@ -17332,7 +17260,7 @@ All of the bindings exported by @rsixlibrary{} are exported for both
 
 @c page
 @node stdlib eval
-@chapter Evaluation
+@section Evaluation
 
 
 The @rsixlibrary{eval} library allows a program to create Scheme
@@ -17399,10 +17327,9 @@ but I see no &syntax in section 7.1 of R6RS document.
 @end deffn
 
 
-
 @c page
 @node stdlib mutable pairs
-@chapter Mutable pairs
+@section Mutable pairs
 
 
 The procedures provided by the @rsixlibrary{mutable-pairs} library allow
@@ -17417,9 +17344,9 @@ procedure returns unspecified values.
 @example
 (define (f) (list 'not-a-constant-list))
 (define (g) '(constant-list))
-(set-car! (f) 3)             => unspecified
-(set-car! (g) 3)             => unspecified
-                                ; should raise exception &assertion
+(set-car! (f) 3)        @result{} unspecified
+(set-car! (g) 3)        @result{} unspecified
+                        ; should raise exception &assertion
 @end example
 
 If an immutable pair is passed to @func{set-car!}, an exception with
@@ -17442,15 +17369,15 @@ condition type @code{&assertion} should be raised.
   (list
    (equal? x x)
    (equal? x y)
-   (equal? (list x y 'a) (list y x 'b))))    =>  (#t #t #f)
+   (equal? (list x y 'a) (list y x 'b))))
+@result{}  (#t #t #f)
 @end example
 @end deffn
 
 
-
 @c page
 @node stdlib mutable strings
-@chapter Mutable strings
+@section Mutable strings
 
 
 The @func{string-set!} procedure provided by the
@@ -17470,13 +17397,13 @@ exception with condition type @code{&assertion} to be raised.
 @example
 (define (f) (make-string 3 #\*))
 (define (g) "***")
-(string-set! (f) 0 #\?)                 => unspecified
-(string-set! (g) 0 #\?)                 => unspecified
+(string-set! (f) 0 #\?)         @result{} unspecified
+(string-set! (g) 0 #\?)         @result{} unspecified
                                 ; should raise exception &assertion
 
 (string-set! (symbol->string 'immutable)
              0
-             #\?)                       => unspecified
+             #\?)               @result{} unspecified
                                 ; should raise exception &assertion
 @end example
 
@@ -17493,10 +17420,9 @@ unspecified values.
 @end deffn
 
 
-
 @c page
 @node stdlib rfive compat
-@chapter @rnrs{5} compatibility
+@section @rnrs{5} compatibility
 
 
 The features described in this chapter are exported from the
@@ -17520,17 +17446,17 @@ These procedures implement number--theoretic (integer) division.
 objects.  If @vari{n}/@varii{n} is an integer object:
 
 @example
-(quotient @vari{n} @varii{n})   => @vari{n}/@varii{n}
-(remainder @vari{n} @varii{n})  => 0
-(modulo @vari{n} @varii{n})     => 0
+(quotient @vari{n} @varii{n})   @result{} @vari{n}/@varii{n}
+(remainder @vari{n} @varii{n})  @result{} 0
+(modulo @vari{n} @varii{n})     @result{} 0
 @end example
 
 If @vari{n}/@varii{n} is not an integer object:
 
 @example
-(quotient @vari{n} @varii{n})   => @var{n_q}
-(remainder @vari{n} @varii{n})  => @var{n_r}
-(modulo @vari{n} @varii{n})     => @var{n_m}
+(quotient @vari{n} @varii{n})   @result{} @var{n_q}
+(remainder @vari{n} @varii{n})  @result{} @var{n_r}
+(modulo @vari{n} @varii{n})     @result{} @var{n_m}
 @end example
 
 @noindent
@@ -17552,26 +17478,26 @@ not equal to 0,
 @example
 (= @vari{n} (+ (* @varii{n} (quotient @vari{n} @varii{n}))
                (remainder @vari{n} @varii{n})))
-=> #t
+@result{} #t
 @end example
 
 @noindent
 provided all number object involved in that computation are exact.
 
 @example
-(modulo 13 4)           =>  1
-(remainder 13 4)        =>  1
+(modulo 13 4)           @result{}  1
+(remainder 13 4)        @result{}  1
 
-(modulo -13 4)          =>  3
-(remainder -13 4)       =>  -1
+(modulo -13 4)          @result{}  3
+(remainder -13 4)       @result{}  -1
 
-(modulo 13 -4)          =>  -3
-(remainder 13 -4)       =>  1
+(modulo 13 -4)          @result{}  -3
+(remainder 13 -4)       @result{}  1
 
-(modulo -13 -4)         =>  -1
-(remainder -13 -4)      =>  -1
+(modulo -13 -4)         @result{}  -1
+(remainder -13 -4)      @result{}  -1
 
-(remainder -13 -4.0)    =>  -1.0
+(remainder -13 -4.0)    @result{}  -1.0
 @end example
 
 @quotation
@@ -17621,10 +17547,10 @@ if it is forced a second time, the previously computed value is
 returned.
 
 @example
-(force (delay (+ 1 2)))                 =>  3
+(force (delay (+ 1 2)))                 @result{}  3
 
 (let ((p (delay (+ 1 2))))
-  (list (force p) (force p)))           =>  (3 3)
+  (list (force p) (force p)))           @result{}  (3 3)
 
 (define a-stream
   (letrec ((next
@@ -17635,7 +17561,7 @@ returned.
 (define tail
   (lambda (stream) (force (cdr stream))))
 
-(head (tail (tail a-stream)))           =>  2
+(head (tail (tail a-stream)))           @result{}  2
 @end example
 
 Promises are mainly intended for programs written in functional style.
@@ -17651,11 +17577,11 @@ is computed for a promise, no matter how many times it is forced.
                     count
                     (force p)))))
 (define x 5)
-p                     =>  a promise
-(force p)             =>  6
-p                     =>  a promise, still
+p                     @result{}  a promise
+(force p)             @result{}  6
+p                     @result{}  a promise, still
 (begin (set! x 10)
-       (force p))     =>  6
+       (force p))     @result{}  6
 @end example
 
 Here is a possible implementation of @func{delay} and @func{force}.
@@ -17738,19 +17664,6 @@ described in this report, and the keyword bindings, including @code{=>},
 @code{...}, @code{else}, and @code{_} are the same as those described in
 this report.
 @end deffn
-
-
-@c ------------------------------------------------------------
-
-
-
-
-@c page
-@c ------------------------------------------------------------
-@c End of lowersections for the standard libraries chapter.
-@c ------------------------------------------------------------
-
-@raisesections
 
 
 @c page

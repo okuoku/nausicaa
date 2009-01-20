@@ -19,7 +19,11 @@ Stuff related to me, the Earth and the Universe in general
 Scheme
 ------
 
-* Review the stdlib chapter for format problems.
+* import lists
+* import strings
+* import format
+* import streams
+* import ffi
 
 
 Stubs
