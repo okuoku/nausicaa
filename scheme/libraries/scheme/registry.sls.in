@@ -1,5 +1,5 @@
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2008 Derick Eddington
-;;;Modified by Marco Maggi for inclusion in Nausicaa.
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -30,31 +30,28 @@
 (library (scheme registry)
   (export available-features)
   (import (rnrs)
-    (scheme implementation-features))
-
+    (except (scheme compat) equal-hash))
   (define available-features
-    (apply append OS-features
-	   implementation-features
-	   '(r6rs
-	     @NAUSICAA_OS@
-	     and-let*
-	     args-fold
-	     char-set
-	     checks
-	     compare
-	     cut
-	     eager-comprehensions
-	     format
-	     general-cond
-	     lists
-	     parameters
-	     random
-	     rec
-	     receive
-	     sharing
-	     streams
-	     strings
-	     time
-	     vectors))))
+    (append implementation-features
+	    '(@NAUSICAA_OS@)
+	    '(r6rs
+	      and-let*
+	      begin0
+	      char-set
+	      checks
+	      compare
+	      cut
+	      loops
+	      format
+	      lists
+	      parameters
+	      random
+	      recursion
+	      receive
+	      sharing
+	      streams
+	      strings
+	      time
+	      vectors))))
 
 ;;; end of file

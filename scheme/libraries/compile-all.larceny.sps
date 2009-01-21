@@ -32,6 +32,9 @@
 (compile-library "scheme/compat.larceny.sls"
 		 "scheme/compat.larceny.slfasl")
 
+(compile-library "scheme/registry.sls"
+		 "scheme/registry.slfasl")
+
 (compile-library "scheme.sls"
 		 "scheme.slfasl")
 

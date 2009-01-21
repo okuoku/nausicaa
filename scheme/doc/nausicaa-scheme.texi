@@ -17697,6 +17697,9 @@ implementations of @srfi{} specifications that were voted to the
 * schemelib features::          Feature--based conditional expansion.
 * schemelib macros::            Syntactic abstractions.
 * schemelib parameters::        Paremeter objects.
+* schemelib shared::            External representation for data
+                                with shared structure.
+* schemelib unimplemented::     Unimplemented error condition.
 @end menu
 
 
@@ -17855,6 +17858,30 @@ RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A
 PARTICULAR PURPOSE.
 
 
+@subsubheading @ansrfi{38}: External representation for data with shared structure
+
+Copyright @copyright{} 2003 Ray Dillinger.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
 @c page
 @node schemelib features
 @section Feature--based conditional expansion
@@ -17923,6 +17950,77 @@ Examples:
 @end deffn
 
 
+What follows is the list of supported features.
+
+@table @code
+@item linux-gnu
+@itemx openbsd
+@itemx winnt3.5
+@itemx sysv4
+@itemx darwin
+@itemx ...
+Platform identifiers selected by the @code{AC_CANONICAL_TARGET} macro of
+@gnu{} Autoconf.
+
+@item r6rs
+The @rnrs{6} Scheme language.
+
+@item and-let*
+The @func{and-let*} syntax.
+
+@item begin0
+The @func{begin0} syntax.
+
+@item char-set
+The @library{char-set} library.
+
+@item checks
+The @library{checks} library.
+
+@item compare
+The @library{compare} library.
+
+@item cut
+The @func{cut} and @func{cute} syntaxes.
+
+@item loops
+The @library{loops} library.
+
+@item format
+The @library{format} library.
+
+@item lists
+The @library{lists} library.
+
+@item parameters
+The parameter objects feature.
+
+@item random
+The @library{random} library.
+
+@item recursion
+The @func{recursion} syntax.
+
+@item receive
+The @func{receive} syntax.
+
+@item sharing
+The shared structures reading/writing @srfi{} functions.
+
+@item streams
+The @library{streams} library.
+
+@item strings
+The @library{strings} library.
+
+@item time
+The @library{time} library.
+
+@item vectors
+The @library{vectors} library.
+@end table
+
+
 @c page
 @node schemelib macros
 @section Syntactic abstractions
@@ -17958,6 +18056,27 @@ immediately; @var{bound-varname} is available to the rest of the
 If all the @var{expression}s and @var{bound-variable}s in @var{formals}
 evaluate to true, the forms in @var{body} are evaluated and the result
 of the last one returned.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax begin0 @var{form0} @var{form} ...
+Evaluate all the @var{form}s like the standard @func{begin}, but return
+the value of @var{form0}.  The implementation comes from the @rnrs{6}
+original document, Appendix A ``Formal semantics''.
+
+@example
+(define-syntax begin0
+  (syntax-rules ()
+    ((_ ?form0 ?form ...)
+     (call-with-values
+         (lambda () ?form0)
+       (lambda x
+         ?form ...
+         (apply values x))))))
+@end example
+
+This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
 @end deffn
 
 @c ------------------------------------------------------------
@@ -18197,6 +18316,142 @@ With reference to the example above:
 @end example
 @end deffn
 
+
+@c page
+@node schemelib shared
+@section External representation for data with shared structure
+
+
+@rnrs{6} Scheme provides the procedure @func{write}, which prints
+machine--readable representations of lists and other objects.  However,
+the printed representation does not preserve information about what
+parts of the structure are shared, and in the case of self--referential
+objects the behavior of @func{write} itself is undefined; it is
+permitted to go into an infinite loop.
+
+For example, it is possible to have a list within which two or more
+members are the same string (in the sense of @func{eq?}), but when the
+list is written, there is not sufficient information in the
+representation to recover the @func{eq?} relationship.  When the list is
+read back in, there will be two or more copies of the string which are
+@func{eqv?}  but not @func{eq?}.
+
+As an example of the second problem, the results of evaluating:
+
+@example
+(define a (cons 'val1 'val2))
+(set-cdr! a a)
+(write a)
+@end example
+
+@noindent
+are undefined.
+
+@defun write-with-shared-structure @var{obj}
+@defunx write-with-shared-structure @var{obj} @var{port}
+@defunx write-with-shared-structure @var{obj} @var{port} @var{optarg}
+@defunx write/ss @var{obj}
+@defunx write/ss @var{obj} @var{port}
+@defunx write/ss @var{obj} @var{port} @var{optarg}
+Write a written representation of @var{obj} to the given @var{port}.
+Strings that appear in the written representation are enclosed in
+doublequotes, and within those strings backslash and doublequote
+characters are escaped by backslashes.  Character objects are written
+using the @code{#\} notation.
+
+@func{write-with-shared-structure} and @func{write/ss} are bound to the
+same function.
+
+Objects which denote locations rather than values, if they appear at
+more than one point in the data being written, are preceded by
+@code{#N=} the first time they are written and replaced by @code{#N#}
+all subsequent times they are written, where @var{N} is a natural number
+used to identify that particular object.
+
+If objects which denote locations occur only once in the structure, then
+@func{write/ss} produces the same external representation for those
+objects as @func{write}.
+
+@func{write/ss} terminates in finite time when writing finite data, and
+produces a finite representation when writing finite data.
+
+@func{write/ss} returns an unspecified value.
+
+The @var{port} argument may be omitted, in which case it defaults to the
+value returned by @func{current-output-port}.
+
+The @var{optarg} is ignored.
+
+The following example shows a cons cell whose cdr contains itself:
+
+@example
+(define a (cons 'val1 'val2))
+(set-cdr! a a)
+(write/ss a)
+@print{} #1=(val1 . #1#)
+@end example
+@end defun
+
+
+@defun read-with-shared-structure
+@defunx read-with-shared-structure @var{port}
+@defunx read/ss
+@defunx read/ss @var{port}
+Convert the external representations of Scheme objects produced by
+@func{write/ss} into scheme objects.  Return the next object parsable
+from the given input @var{port}, updating @var{port} to point to the
+first character past the end of the external representation of the
+object.
+
+@func{read-with-shared-structure} and @func{read/ss} are bound to the
+same function.
+
+If an end--of--file is encountered in the input before any characters
+are found that can begin an object, then an end--of--file object is
+returned.  The port remains open, and further attempts to read it (by
+@func{read/ss} or @func{read}) will also return an end--of--file object.
+
+If an end--of--file is encountered after the beginning of an object's
+external representation, but the external representation is incomplete
+and therefore not parsable, an error is signalled.
+
+The @var{port} argument may be omitted, in which case it defaults to the
+value returned by @func{current-input-port}.
+
+It is an error to read from a closed port.
+@end defun
+
+
+@c page
+@node schemelib unimplemented
+@section Unimplemented error condition
+
+
+@deftp Condition &unimplemented
+The type of condition used to signal unimplemented features.  It is
+defined as:
+
+@example
+(define-condition-type &unimplemented &error
+  make-unimplemented-condition
+  unimplemented-condition?)
+@end example
+@end deftp
+
+
+@defun raise-unimplemented-error @var{who}
+@defunx raise-unimplemented-error @var{who} @var{message}
+@defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
+Raise a composite condition embedding a condition of type
+@code{&unimplemented}.
+
+@var{who} is used for the @code{&who} component.
+
+@var{message} is used for the @code{&message} component and defaults to
+@code{feature not implemented or not available}.
+
+@var{irritants} is used for the @code{&irritants} component.
+@end defun
 
 
 @c page

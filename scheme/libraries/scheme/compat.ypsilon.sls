@@ -27,7 +27,7 @@
 (library (scheme compat)
   (export
 
-    equal-hash pretty-print
+    equal-hash pretty-print implementation-features
 
     ;; parameters
     make-parameter parameterize
@@ -38,6 +38,9 @@
   (import (rnrs)
     (only (core)
 	  make-parameter parameterize pretty-print
-	  lookup-process-environment process-environment->alist)))
+	  lookup-process-environment process-environment->alist))
+
+  (define implementation-features
+    '(ypsilon)))
 
 ;;; end of file

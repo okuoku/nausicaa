@@ -27,7 +27,7 @@
 (library (scheme compat)
   (export
 
-    equal-hash pretty-print
+    equal-hash pretty-print implementation-features
 
     ;; parameters
     (rename (make-this-parameter make-parameter)
@@ -38,6 +38,9 @@
   (import (rnrs)
     (primitives make-parameter parameterize getenv pretty-print)
     (scheme unimplemented))
+
+  (define implementation-features
+    '(larceny))
 
   (define (get-environment-variables)
     (raise-unimplemented-error 'get-environment-variables))

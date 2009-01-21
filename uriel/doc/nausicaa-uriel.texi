@@ -459,6 +459,13 @@ Deferred exceptions
 * lang deferred exceptions usage::      Usage examples.
 * lang deferred exceptions api::        Programming interface.
 
+Writing test suites
+
+* test result::                 Handling multiple results.
+* test eval::                   Evaluating forms.
+* test select::                 Selecting tests to be run.
+* test debug::                  Printing debug messages.
+
 Low level memory handling
 
 * memory conditions::           Out of memory errors.
@@ -608,7 +615,6 @@ for the independent libraries see the corresponding sections.
 
 Independent libraries
 
-* lang unimplemented::          Unimplemented condition.
 * lang combinators::            Combinators.
 * lang object-property::        Object properties.
 * lang define-macro::           Common Lisp style macros.
@@ -620,26 +626,6 @@ Independent libraries
 @c page
 @node lang simple
 @section Simple language extensions
-
-
-@deffn Syntax begin0 @var{form0} @var{form} ...
-Evaluate all the @var{form}s like the standard @func{begin}, but return
-the value of @var{form0}.  The implementation comes from the @rnrs{6}
-original document, Appendix A ``Formal semantics''.
-
-@example
-(define-syntax begin0
-  (syntax-rules ()
-    ((_ ?form0 ?form ...)
-     (call-with-values
-         (lambda () ?form0)
-       (lambda x
-         ?form ...
-         (apply values x))))))
-@end example
-
-This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
-@end deffn
 
 
 @deffn Syntax dotimes (@var{varname} @var{exclusive-count}) @var{form} ...
@@ -1108,43 +1094,6 @@ silently ignored.
 If @var{obj} is a symbol: convert it to string and return the result;
 else if it is a string, return it.  If it is neither a string nor a
 symbol: raise an assertion violation.
-@end defun
-
-
-
-@c page
-@node lang unimplemented
-@section Unimplemented condition
-
-
-The following bindings are exported by the @library{uriel unimplemented}
-library.
-
-
-@deftp &unimplemented
-The type of condition used to signal unimplemented features.  It is
-defined as:
-
-@example
-(define-condition-type &unimplemented &error
-  make-unimplemented-condition
-  unimplemented-condition?)
-@end example
-@end deftp
-
-
-@defun raise-unimplemented-error @var{who}
-@defunx raise-unimplemented-error @var{who} @var{message}
-@defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
-Raise a composite condition embedding a condition of type
-@code{unimplemented}.
-
-@var{who} is used for the @code{&who} component.
-
-@var{message} is used for the @code{&message} component and defaults to
-@code{feature not implemented or not available}.
-
-@var{irritants} is used for the @code{&irritants} component.
 @end defun
 
 

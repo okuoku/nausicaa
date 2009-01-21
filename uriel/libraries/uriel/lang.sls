@@ -28,7 +28,7 @@
 (library (uriel lang)
   (export
     ;;simple syntaxes
-    begin0 dotimes dolist loop-upon-list ensure
+    dotimes dolist loop-upon-list ensure
 
     ;;deferred exceptions
     with-deferred-exceptions-handler
@@ -53,17 +53,6 @@
 
 
 ;;;; simple sintaxes
-
-;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
-;;;``Formal semantics''.
-(define-syntax begin0
-  (syntax-rules ()
-    ((_ ?expr0 ?expr ...)
-     (call-with-values
-	 (lambda () ?expr0)
-       (lambda x
-	 ?expr ...
-	 (apply values x))))))
 
 (define-syntax dotimes
   (syntax-rules ()

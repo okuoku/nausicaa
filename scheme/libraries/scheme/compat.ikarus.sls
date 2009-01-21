@@ -27,7 +27,7 @@
 (library (scheme compat)
   (export
 
-    equal-hash pretty-print
+    equal-hash pretty-print implementation-features
 
     ;; parameters
     make-parameter parameterize
@@ -40,6 +40,9 @@
 	  make-parameter parameterize getenv pretty-print)
     (only (scheme unimplemented)
 	  raise-unimplemented-error))
+
+  (define implementation-features
+    '(ikarus))
 
   (define (get-environment-variables)
     (raise-unimplemented-error 'get-environment-variables))

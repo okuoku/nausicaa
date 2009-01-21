@@ -39,7 +39,7 @@
 (library (scheme compat)
   (export
 
-    equal-hash pretty-print
+    equal-hash pretty-print implementation-features
 
     ;; parameters
     make-parameter parameterize
@@ -51,6 +51,9 @@
 	  get-environment-variable get-environment-variables)
     (only (mosh pp)
 	  pretty-print))
+
+  (define implementation-features
+    '(mosh))
 
   (define make-parameter
     (case-lambda
