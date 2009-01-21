@@ -1,6 +1,6 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
-;;;Contents: tests for format-lib
+;;;Part of: Nausicaa/Scheme
+;;;Contents: tests for format
 ;;;Date: Sun Jan 11, 2009
 ;;;
 ;;;Abstract
@@ -24,10 +24,9 @@
 
 ;;;; setup
 
-(import (r6rs)
-  (srfi cond-expand)
-  (check-lib)
-  (format-lib))
+(import (scheme)
+  (checks)
+  (format))
 
 (check-set-mode! 'report-failed)
 

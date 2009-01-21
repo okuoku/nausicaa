@@ -34,7 +34,8 @@
 	    (parameterize-this parameterize))
 
     ;; environment variables
-    (rename (getenv get-environment-variable)))
+    (rename (getenv get-environment-variable))
+    get-environment-variables)
   (import (rnrs)
     (primitives make-parameter parameterize getenv pretty-print)
     (scheme unimplemented))

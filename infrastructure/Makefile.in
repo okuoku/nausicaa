@@ -585,6 +585,10 @@ nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(file).sps)
 
+ifneq ($(strip $(name)),)
+nau_test_ENV		+= CHECK_TEST_NAME=$(name)
+endif
+
 # Here we include the build directory but not the source directory.
 nau_test_PATH		= $(THE_LIBPATH)$(sls_BUILDDIR):$(srcdir)/tests
 

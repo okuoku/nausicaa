@@ -459,13 +459,6 @@ Deferred exceptions
 * lang deferred exceptions usage::      Usage examples.
 * lang deferred exceptions api::        Programming interface.
 
-Writing test suites
-
-* test result::                 Handling multiple results.
-* test eval::                   Evaluating forms.
-* test select::                 Selecting tests to be run.
-* test debug::                  Printing debug messages.
-
 Low level memory handling
 
 * memory conditions::           Out of memory errors.
@@ -574,7 +567,7 @@ solve this problem, Nausicaa provides the @library{r6rs} library which
 is meant to be loaded with:
 
 @example
-(import (r6rs))
+(import (scheme))
 @end example
 
 @noindent
@@ -592,7 +585,7 @@ Syntaxes and functions are provided to extend the Scheme language.  To
 load the main library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel lang))
 @end example
 
@@ -992,7 +985,7 @@ raises an exception?  If this @emph{second level} exception is left
 going: it replaces the original one (@emph{first level}), which is lost:
 
 @example
-(import (r6rs))
+(import (scheme))
 
 (with-exception-handler
     (lambda (e)
@@ -1105,7 +1098,7 @@ symbol: raise an assertion violation.
 To load the library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel combinators))
 @end example
 
@@ -1190,7 +1183,7 @@ Guile, the @gnu{} Ubiquitous Interface Language for Extensions.
 To load the library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel object-property))
 @end example
 
@@ -1225,9 +1218,9 @@ not registered before.  The default value is @false{}.
 The following will evaluate successfully:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel object-property)
-  (uriel test)
+  (checks)
   (srfi parameters))
 
 (check-set-mode! 'report-failed)
@@ -1266,7 +1259,7 @@ The following will evaluate successfully:
 To load the library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel define-macro))
 @end example
 
@@ -1285,9 +1278,9 @@ be evaluated as a form in the dynamic environment of the caller.
 The following will evaluate successfully:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel define-macro)
-  (uriel test))
+  (checks))
 
 (check-set-mode! 'report-failed)
 
@@ -1355,7 +1348,7 @@ provides an interface to register them and invoke them in sequence.  To
 load the library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel cleanup))
 @end example
 
@@ -1394,7 +1387,7 @@ instead.
 The functions in this section are imported by:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel queue))
 @end example
 
@@ -1501,154 +1494,6 @@ modifies the queue @var{list} then it must either maintain
 @end defun
 
 
-
-@c page
-@node test
-@chapter Writing test suites
-
-
-This chapter documents a wrapper for the @srfi{} lightweight testing
-library that adds the ability to select tests with appropriate values of
-environment variables.
-
-To load the library:
-
-@example
-(import (r6rs)
-  (uriel test))
-@end example
-
-@noindent
-all the bindings from @library{check-lib} are exported by @library{uriel
-test}; @func{check} is redefined as described below.
-@library{check-lib} is installed by Nausicaa/@srfi{}.
-
-@menu
-* test result::                 Handling multiple results.
-* test eval::                   Evaluating forms.
-* test select::                 Selecting tests to be run.
-* test debug::                  Printing debug messages.
-@end menu
-
-
-@c page
-@node test result
-@section Handling multiple results
-
-
-@deffn Syntax with-result @var{form0} @var{form} ...
-Evaluate all the @var{form}s, as in @func{begin}, in a dynamic
-environment in which an implicit result variable is defined.  The
-implicit variable is handled as a list.
-
-Return a list whose first value is the return value of the last
-@var{form} and whose second value is the value of the implicit variable.
-@end deffn
-
-
-@defun add-result @var{value}
-Append @var{value} to the list in the implicit variable defined by
-@func{with-result}.
-@end defun
-
-
-@defun get-result
-Return the current value of the implicit variable defined by
-@func{with-result}.
-@end defun
-
-
-@c page
-@node test eval
-@section Evaluating forms
-
-
-@deffn catch-exception @var{form0} @var{form} ...
-Evaluate all the @var{form}s as in @func{begin}.  If an exception is
-raised: catch it and return its value.
-@end deffn
-
-
-@deffn false-if-exception @var{form0} @var{form} ...
-Evaluate all the @var{form}s as in @func{begin}.  If an exception is
-raised: return @false{}.
-@end deffn
-
-
-@deffn Syntax check-for-true @var{expr}
-Evaluate @var{expr} in a @func{check} syntax, expecting a non--false
-value as result.
-@end deffn
-
-
-@deffn Syntax check @var{expr} => @var{expected}
-@deffnx Syntax check @var{expr} (=> @var{equal}) @var{expected}
-@deffnx Syntax check @var{name} @var{expr} (=> @var{equal}) @var{expected}
-@deffnx Syntax check @var{name} @var{expr} => @var{expected}
-A wrapper for @func{check} from @library{srfi lightweight-testing} that
-does, basically, the same thing.
-
-When @var{name} is given or the parameter @code{testname} is set to a
-non--false value: the value must be a string or symbol that is
-interpreted as the ``name'' of this test.  If the environment variable
-@env{name} is set to the empty string, nothing special happens: the test
-is evaluated as usual.  If the environment variable @env{name} is set to
-a non--empty string: the test name is checked against @env{name} and if
-the test is evaluated only if there is a match; otherwise it is skipped.
-
-The test name and the value of @env{name} do match if the value of
-@env{name} is the prefix or suffix of the test name, according to the
-@func{string-prefix?} and @func{string-suffix?} functions from
-@library{srfi strings}.
-@end deffn
-
-
-@c page
-@node test debug
-@section Printing debug messages
-
-
-@deffn Parameter debugging
-When set to true @func{debug} will print its message.  It is initialised
-to @false{}.
-@end deffn
-
-
-@defun debug @var{string}
-@defunx debug @var{format-string} @var{arg} ...
-If the @code{debugging} parameter is set to true, print @var{string} to
-the current error port, or hand @var{format-string} and the optional
-@var{arg} values to @func{format} and print the result to the current
-error port.
-@end defun
-
-
-@defun debug-print-condition @var{message} @var{exc}
-A wrapper for @func{debug} that prints @var{message} and does its best
-to print @var{exc}, which must be a Scheme condition value.
-@end defun
-
-
-@c page
-@node test select
-@section Selecting tests to be run
-
-
-@deffn Parameter testname
-Holds the currently selected name for a @func{check} test.  Must be set
-to @false{}, a string or a symbol.  In the case of the symbol: the name
-of the symbol is interpreted as name of the test.
-
-The parameter can be used to give the same name to a set of @func{check}
-forms.
-
-@quotation
-@strong{Note} The @library{uriel test} library does @strong{not} export
-@func{parameterize} from @library{srfi parameters}.
-@end quotation
-@end deffn
-
-
 @c page
 @node memory
 @chapter Low level memory handling
@@ -1659,7 +1504,7 @@ access.  Memory allocated with these functions is subjected to garbage
 collection.  To import the main library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel memory))
 @end example
 
@@ -3042,7 +2887,7 @@ implementation provides guardians (Ikarus does, Ypsilon does not).
 To load the library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel guarded-malloc))
 @end example
 
@@ -3080,7 +2925,7 @@ This chapter describes a wrapper of the foreign functions interface from
 the underlying Scheme implementation.  To load the library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel ffi))
 @end example
 
@@ -3136,7 +2981,7 @@ expressions support).
     Z_FILTERED Z_HUFFMAN_ONLY Z_RLE Z_FIXED Z_DEFAULT_STRATEGY
 
     Z_NULL)
-  (import (r6rs)
+  (import (scheme)
     (uriel ffi))
 
   (define zlib
@@ -3505,7 +3350,7 @@ A set of bindings is provided to allow interface libraries to be aware
 of C language type sizes and limits.  To load the library:
 
 @example
-(import (r6rs)
+(import (scheme)
   (uriel ffi sizeof))
 @end example
 

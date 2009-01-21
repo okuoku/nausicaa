@@ -38,6 +38,12 @@
 (compile-library "scheme.sls"
 		 "scheme.slfasl")
 
+(compile-library "format.sls"
+		 "format.slfasl")
+
+;; (compile-library "strings.sls"
+;; 		 "strings.slfasl")
+
 (compile-library "loops.sls"
 		 "loops.slfasl")
 

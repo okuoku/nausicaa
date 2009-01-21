@@ -418,7 +418,7 @@ the list of original documents and their authors.
 * lang::                        The Scheme language.
 * baselib::                     Base library.
 * stdlib::                      Standard libraries.
-* schemelib::                   The augmented language.
+* naulib::                      The augmented language.
 * libs::                        More libraries.
 * foreign::                     Foreign functions interface.
 
@@ -447,6 +447,7 @@ Overview of the package
 * overview compliancy::         On being compliant.
 * overview language::           On the @library{scheme} language.
 * overview libraries::          Other libraries.
+* overview binfmt::             Launching Scheme programs directly.
 
 The Scheme language
 
@@ -741,6 +742,39 @@ Hashtables
 * stdlib hashtable inspection::         Inspection.
 * stdlib hashtable hash functions::     Hash functions.
 
+The augmented language
+
+* naulib license::           Original @srfi{} licenses.
+* naulib features::          Feature--based conditional expansion.
+* naulib macros::            Syntactic abstractions.
+* naulib parameters::        Paremeter objects.
+* naulib shared::            External representation for data
+                                with shared structure.
+* naulib environment::       Accessing environment variables.
+* naulib unimplemented::     Unimplemented error condition.
+
+More libraries
+
+* libs checks::                 Lightweight testing.
+
+Lightweight testing
+
+* libs checks license::         Original license.
+* libs checks eval::            Evaluating code.
+* libs checks result::          Handling multiple results.
+* libs checks select::          Selecting tests to be run.
+* libs checks debug::           Printing debug messages.
+
+Launching programs directly
+
+* binfmt overview::             Overview of the mechanism.
+* binfmt loading::              Loading the module.
+* binfmt registry::             The registry.
+* binfmt using::                Using the mechanism.
+* binfmt control::              Controlling the mechanism.
+* binfmt hints::                Hints.
+* binfmt scheme::               Running Scheme programs.
+
 Scheme programming examples
 
 * examples macros::             Exploring macro mechanisms.
@@ -852,7 +886,7 @@ available in the chapters:
 
 @noindent
 the features that extend the @library{rnrs} language are described in
-the chapter @ref{schemelib,The augmented language}.
+the chapter @ref{naulib,The augmented language}.
 
 
 @c page
@@ -17682,7 +17716,7 @@ this report.
 
 
 @c page
-@node schemelib
+@node naulib
 @chapter The augmented language
 
 
@@ -17693,18 +17727,19 @@ implementations of @srfi{} specifications that were voted to the
 
 
 @menu
-* schemelib license::           Original @srfi{} licenses.
-* schemelib features::          Feature--based conditional expansion.
-* schemelib macros::            Syntactic abstractions.
-* schemelib parameters::        Paremeter objects.
-* schemelib shared::            External representation for data
+* naulib license::              Original @srfi{} licenses.
+* naulib features::             Feature--based conditional expansion.
+* naulib macros::               Syntactic abstractions.
+* naulib parameters::           Paremeter objects.
+* naulib shared::               External representation for data
                                 with shared structure.
-* schemelib unimplemented::     Unimplemented error condition.
+* naulib environment::          Accessing environment variables.
+* naulib unimplemented::        Unimplemented error condition.
 @end menu
 
 
 @c page
-@node schemelib license
+@node naulib license
 @section Original @srfi{} licenses
 
 
@@ -17882,8 +17917,32 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+@subsubheading @ansrfi{98}: Environment variables
+
+Copyright @copyright{} 2008 Taro Minowa (Higepon).  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
 @c page
-@node schemelib features
+@node naulib features
 @section Feature--based conditional expansion
 
 
@@ -18022,7 +18081,7 @@ The @library{vectors} library.
 
 
 @c page
-@node schemelib macros
+@node naulib macros
 @section Syntactic abstractions
 
 
@@ -18244,7 +18303,7 @@ which can be written:
 
 
 @c page
-@node schemelib parameters
+@node naulib parameters
 @section Paremeter objects
 
 
@@ -18318,7 +18377,7 @@ With reference to the example above:
 
 
 @c page
-@node schemelib shared
+@node naulib shared
 @section External representation for data with shared structure
 
 
@@ -18423,7 +18482,50 @@ It is an error to read from a closed port.
 
 
 @c page
-@node schemelib unimplemented
+@node naulib environment
+@section Accessing environment variables
+
+
+Most operating systems provide a mechanism for passing auxiliary
+parameters implicitly to child processes.  Usually, this mechanism is
+called ``the environment'', and is conceptually a map from string names
+to string values.  The string names are called environment variables.
+
+Some applications rely on environment variables to modify their behavior
+according to local settings.  Also, various established protocols rely
+on environment variables as a form of interprocess communication.
+
+
+@deffn Procedure get-environment-variable @var{name}
+Return the value of the named environment variable as a string, or
+@false{} if the named environment variable is not found.  The name
+argument is expected to be a string.  @func{get-environment-variable}
+may use locale--setting information to encode the name and decode the
+value of the environment variable.  If the value cannot be decoded, an
+exception may be raised.
+
+@example
+(get-environment-variable "PATH")
+@result{} "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+@end example
+@end deffn
+
+
+@deffn Procedure get-environment-variables
+Return names and values of all the environment variables as an alist.
+The same decoding considerations as for @func{get-environment-variable}
+apply.
+
+@example
+(get-environment-variables)
+@result{} (("PATH" . "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin")
+    ("USERNAME" . "taro"))
+@end example
+@end deffn
+
+
+@c page
+@node naulib unimplemented
 @section Unimplemented error condition
 
 
@@ -18459,6 +18561,289 @@ Raise a composite condition embedding a condition of type
 @chapter More libraries
 
 
+@menu
+* libs checks::                 Lightweight testing.
+@end menu
+
+
+@c page
+@node libs checks
+@section Lightweight testing
+
+
+The @library{checks} library provides a simple mechanism for testing
+Scheme programs.  As a most primitive example, the expression:
+
+@example
+(check (+ 1 1) => 3)
+@end example
+
+@noindent
+evaluates the expression @code{(+ 1 1)} and compares the result with the
+expected result @code{3} provided after the syntactic keyword @code{=>}.
+Then the outcome of this comparison is reported in human--readable form
+by printing a message of the form:
+
+@example
+(+ 1 1) @result{} 2 ; *** failed ***
+; expected result: 3
+@end example
+
+
+@menu
+* libs checks license::         Original license.
+* libs checks eval::            Evaluating code.
+* libs checks result::          Handling multiple results.
+* libs checks select::          Selecting tests to be run.
+* libs checks debug::           Printing debug messages.
+@end menu
+
+
+@c page
+@node libs checks license
+@subsection Original license
+
+
+Copyright @copyright{} 2005--2006 Sebastian Egner.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@c page
+@node libs checks eval
+@subsection Evaluating code
+
+
+@deffn Syntax check @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{expr} => @var{expected}
+@deffnx Syntax check @var{name} @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{name} @var{expr} => @var{expected}
+Evaluate @var{expr} and compare the value to the value of @var{expected}
+using the predicate @var{equal}, which is @func{equal?} when omitted.
+Then a report is printed according to the current mode setting (see
+below) and the outcome is recorded in a global state to be used in
+@func{check-report}.
+
+The precise order of evaluation is that first @var{equal} and
+@var{expected} are evaluated (in unspecified order) and then @var{expr}
+is evaluated.  Example: @code{(check (+ 1 1) => 2)}.
+
+When @var{name} is given or the parameter @code{testname} is set to a
+non--false value: the value must be a string or symbol that is
+interpreted as the ``name'' of this test.  If the environment variable
+@env{CHECK_TEST_NAME} is set to the empty string, nothing special
+happens: the test is evaluated as usual.  If the environment variable
+@env{CHECK_TEST_NAME} is set to a non--empty string: its value is
+matched against @var{name} and the test is evaluated only if there is a
+match; otherwise it is skipped.
+
+The test name and the value of @env{CHECK_TEST_NAME} do match if the
+value of @env{CHECK_TEST_name} is the prefix or suffix of the test name,
+according to the @func{string-prefix?} and @func{string-suffix?}
+functions from @library{strings}.
+@end deffn
+
+
+@deffn Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected} (@var{argument*}))
+@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected} (@var{argument*})
+@deffnx Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected}
+An eager comprehension for executing a parametric sequence of checks.
+
+Enumerate the sequence of bindings specified by @var{qualifier*}.  For
+each binding evaluate @var{equal} and @var{expected} in unspecified
+order. Then evaluate @var{expr} and compare the value obtained to the
+value of @var{expected} using the value of @var{equal} as predicate,
+which is @func{equal?} when omitted.
+
+The comprehension stops after the first failed check, if there is any.
+Then a report is printed according to the current mode setting (see
+below) and the outcome is recorded in a global state to be used in
+@func{check-report}.  The entire @func{check-ec} counts as a single
+check.
+
+In case the check fails @var{argument*} is used for constructing an
+informative message with the argument values.  Use @var{argument*} to
+list the relevant free variables of @var{expr} (see examples) that you
+want to have printed.
+
+A @var{qualifier} is any qualifier of an eager comprehension as
+specified in @srfi{42}.
+
+Examples:
+
+@example
+(check-ec (: e 100)
+          (positive? (expt 2 e))
+          => #t (e)) ; fails on fixnums
+
+(check-ec (: e 100)
+          (:let x (expt 2.0 e))
+          (= (+ x 1) x)
+          => #f (x)) ; fails
+
+(check-ec (: x 10)
+          (: y 10)
+          (: z 10)
+          (* x (+ y z))
+          => (+ (* x y) (* x z))
+             (x y z)) ; passes with 10^3 cases checked
+@end example
+@end deffn
+
+
+@defun check-report
+Print a summary and the first failed check, if there is any, depending
+on the current mode settings.
+@end defun
+
+
+@defun check-set-mode! @var{mode}
+Set the current mode to @var{mode}, which must be a symbol among:
+@code{off}, @code{summary}, @code{report-failed}, @code{report}; the
+default is @code{report}.  Note that you can change the mode at any
+time, and that @func{check}, @func{check-ec} and @func{check-report} use
+the current value.
+
+The mode symbols have the following meaning:
+
+@table @code
+@item off
+do not execute any of the checks;
+
+@item summary
+print only summary in @func{check-report} and nothing else;
+
+@item report-failed
+report failed checks when they happen, and in summary;
+
+@item report
+report every example executed.
+@end table
+@end defun
+
+
+@defun check-reset!
+Reset the global state (counters of correct/failed examples) to the
+state immediately after loading the module for the first time, i.e. no
+checks have been executed.
+@end defun
+
+
+@defun check-passed? @var{expected-total-count}
+Return @true{} if there were no failed checks and
+@var{expected-total-count} correct checks, @false{} otherwise.
+
+Rationale: This procedure can be used in automatized tests by
+terminating a test program with the statement:
+
+@example
+(exit (if (check-passed? n) 0 1))
+@end example
+@end defun
+
+
+@deffn catch-exception @var{form0} @var{form} ...
+Evaluate all the @var{form}s as in @func{begin}.  If an exception is
+raised: catch it and return its value.
+@end deffn
+
+
+@deffn false-if-exception @var{form0} @var{form} ...
+Evaluate all the @var{form}s as in @func{begin}.  If an exception is
+raised: return @false{}.
+@end deffn
+
+
+@deffn Syntax check-for-true @var{expr}
+Evaluate @var{expr} in a @func{check} syntax, expecting a non--false
+value as result.
+@end deffn
+
+
+@c page
+@node libs checks result
+@subsection Handling multiple results
+
+
+@deffn Syntax with-result @var{form0} @var{form} ...
+Evaluate all the @var{form}s, as in @func{begin}, in a dynamic
+environment in which an implicit result variable is defined.  The
+implicit variable is handled as a list.
+
+Return a list whose first value is the return value of the last
+@var{form} and whose second value is the value of the implicit variable.
+@end deffn
+
+
+@defun add-result @var{value}
+Append @var{value} to the list in the implicit variable defined by
+@func{with-result}.
+@end defun
+
+
+@defun get-result
+Return the current value of the implicit variable defined by
+@func{with-result}.
+@end defun
+
+
+@c page
+@node libs checks debug
+@subsection Printing debug messages
+
+
+@deffn Parameter debugging
+When set to true @func{debug} will print its message.  It is initialised
+to @false{}.
+@end deffn
+
+
+@defun debug @var{string}
+@defunx debug @var{format-string} @var{arg} ...
+If the @code{debugging} parameter is set to true, print @var{string} to
+the current error port, or hand @var{format-string} and the optional
+@var{arg} values to @func{format} and print the result to the current
+error port.
+@end defun
+
+
+@defun debug-print-condition @var{message} @var{exc}
+A wrapper for @func{debug} that prints @var{message} and does its best
+to print @var{exc}, which must be a Scheme condition value.
+@end defun
+
+
+@c page
+@node libs checks select
+@subsection Selecting tests to be run
+
+
+@deffn Parameter testname
+Holds the currently selected name for a @func{check} test.  Must be set
+to @false{}, a string or a symbol.  In the case of the symbol: the name
+of the symbol is interpreted as name of the test.
+
+The parameter can be used to give the same name to a set of @func{check}
+forms.
+@end deffn
 
 
 @c page

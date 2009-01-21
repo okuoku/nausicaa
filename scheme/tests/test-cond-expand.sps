@@ -45,7 +45,6 @@
        => #t))))
 
 (check-feature and-let*)
-(check-feature args-fold)
 (check-feature char-set)
 (check-feature checks)
 (check-feature compare)

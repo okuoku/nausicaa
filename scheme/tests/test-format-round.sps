@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for rounding flonums
 ;;;Date: Wed Jan 14, 2009
 ;;;
@@ -27,22 +27,11 @@
 
 ;;;; setup
 
-(import (rnrs)
-  (check-lib)
-  (lang-lib)
+(import (scheme)
+  (checks)
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)
-
-;;; --------------------------------------------------------------------
-
-(define debugging
-  (make-parameter #f))
-
-(define (debug . args)
-  (when (debugging)
-    (write args (current-error-port))
-    (newline (current-error-port))))
 
 ;;; --------------------------------------------------------------------
 

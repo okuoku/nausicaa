@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for srfi lists
 ;;;Date: Mon Dec 29, 2008
 ;;;
@@ -27,37 +27,9 @@
 
 ;;;; setup
 
-;; this is for Nausicaa's implementation
-(import (r6rs)
-  (check-lib)
-  (list-lib))
-
-;; this is for Larceny's implementation
-;; (import (except (rnrs)
-;; 		cons* find  partition)
-;;   (check-lib)
-;;   (rename (srfi :1)
-;; 	  (filter srfi:filter)
-;; 	  (assoc srfi:assoc)
-;; 	  (member srfi:member)
-;; 	  (remove srfi:remove)
-;; 	  (for-each srfi:for-each)
-;; 	  (map srfi:map)
-;; 	  (fold-right srfi:fold-right)))
-
-;; this is for Ipsilon's implementation
-;; (import (except (rnrs)
-;; 		cons* find  partition)
-;;   (check-lib)
-;;   (rename (srfi srfi-1)
-;; 	  (filter srfi:filter)
-;; 	  (assoc srfi:assoc)
-;; 	  (member srfi:member)
-;; ;;; Ypsilon does not export REMOVE!!!
-;; ;;;	  (remove srfi:remove)
-;; 	  (for-each srfi:for-each)
-;; 	  (map srfi:map)
-;; 	  (fold-right srfi:fold-right)))
+(import (scheme)
+  (checks)
+  (lists))
 
 (check-set-mode! 'report-failed)
 

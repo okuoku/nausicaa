@@ -303,7 +303,7 @@
 
 
 #!r6rs
-(library (srfi strings)
+(library (strings)
   (export
     string-map string-map!
     string-fold       string-unfold

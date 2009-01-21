@@ -37,13 +37,23 @@
     check-set-mode!
     check-reset!
     check-passed?
-    )
-  (import (rename (rnrs)
+
+    ;; result handling
+    with-result add-result get-result
+
+    ;; more macros
+    catch-exception false-if-exception check-for-true
+
+    ;; selecting tests
+    testname
+
+    ;; debugging
+    debug debugging debug-print-condition)
+  (import (rename (scheme)
 		  (display	rnrs:display)
 		  (write	rnrs:write)
 		  (newline	rnrs:newline))
-    (only (scheme compat)
-	  make-parameter parameterize pretty-print)
+    (format)
     (loops))
 
 
@@ -75,6 +85,14 @@
       (display os output-port)))
    ((datum)
     (pretty-print/no-trailing-newline datum (current-output-port)))))
+
+;;Return true if S1 is the prefix in S2.
+(define (string-prefix? s1 s2)
+  (or (eq? s1 s2)
+      (let ((len1 (string-length s1)))
+	(and (<= len1 (string-length s2))
+	     (string=? s1 (substring s2 0 len1))))))
+
 
 
 ;;; mode handling
@@ -198,7 +216,7 @@
 	    "unrecognized check:mode" (check:mode))))
   (if #f #f))
 
-(define-syntax check
+(define-syntax srfi:check
   (syntax-rules (=>)
     ((check expr => expected)
      (check expr (=> equal?) expected))
@@ -285,6 +303,115 @@
     ((check-ec (nested q1 ...) q etc ...)
      (check-ec (nested q1 ... q) etc ...))
     ((check-ec q1 q2             etc ...)
-     (check-ec (nested q1 q2)    etc ...)))))
+     (check-ec (nested q1 q2)    etc ...))))
+
+
+;;;; handling results
+
+(define result
+  (make-parameter #f))
+
+(define-syntax with-result
+  (syntax-rules ()
+    ((_ ?form ... ?last-form)
+     (parameterize ((result '()))
+       ?form ... (list ?last-form (get-result))))))
+
+(define (add-result value)
+  (result (cons value (result))))
+
+(define (get-result)
+  (reverse (result)))
+
+
+;;;; more macros
+
+(define-syntax catch-exception
+  (syntax-rules ()
+    ((_ ?form0 ?form ...)
+     (guard (exc (else exc))
+       ?form0 ?form ...))))
+
+(define-syntax false-if-exception
+  (syntax-rules ()
+    ((_ ?form0 ?form ...)
+     (guard (exc (else #f))
+       ?form0 ?form ...))))
+
+(define-syntax check-for-true
+  (syntax-rules ()
+    ((_ ?form)
+     (check-it (and ?form #t) => #t))))
+
+
+;;;; selecting tests
+
+(define testname
+  (make-parameter #f
+    (lambda (value)
+      (unless (or (not value) (string? value) (symbol? value))
+	(assertion-violation 'testname
+	  "expected #f or string as parameter value" value))
+      (if (symbol? value)
+	  (symbol->string value)
+	value))))
+
+(define selected-test (get-environment-variable "CHECK_TEST_NAME"))
+
+(define (check-activation)
+  (or (not selected-test)
+      (= 0 (string-length selected-test))
+      (if (testname)
+	  (or (string-prefix? selected-test (testname))
+	      (string-prefix? (testname) selected-test))
+	#f)))
+
+(define-syntax check
+  (syntax-rules (=>)
+    ((_ ?expr => ?expected-result)
+     (srfi:check ?expr (=> equal?) ?expected-result))
+
+    ((_ ?expr (=> ?equal) ?expected-result)
+     (when (check-activation)
+       (check ?expr (=> ?equal) ?expected-result)))
+
+    ((_ ?name ?expr => ?expected-result)
+     (srfi:check ?name ?expr (=> equal?) ?expected-result))
+
+    ((_ ?name ?expr (=> ?equal) ?expected-result)
+     (parameterize ((testname ?name))
+       (when (check-activation)
+	 (check ?expr (=> ?equal) ?expected-result))))))
+
+
+;;;; debugging
+
+(define debugging
+  (make-parameter #f))
+
+(define (debug thing . args)
+  (when (debugging)
+    (if (string? thing)
+	  (apply format (current-error-port) thing args)
+      (write thing (current-error-port)))
+    (newline (current-error-port))))
+
+(define (debug-print-condition message exc)
+  (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
+	 message
+	 (if (who-condition? exc)
+	     (condition-who exc)
+	   'no-who)
+	 (if (message-condition? exc)
+	     (condition-message exc)
+	   #f)
+	 (if (irritants-condition? exc)
+	     (condition-irritants exc)
+	   #f)))
+
+
+;;;; done
+
+)
 
 ;;; end of file

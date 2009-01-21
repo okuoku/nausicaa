@@ -26,6 +26,9 @@
 (import
   (only (scheme))
   (only (checks))
-  (only (loops)))
+  (only (loops))
+  (only (format))
+;;  (only (strings))
+  )
 
 ;;; end of file

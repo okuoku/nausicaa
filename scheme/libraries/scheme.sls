@@ -893,6 +893,8 @@
     parameterize make-parameter
     (rename (parameterize parameterise))
 
+    get-environment-variable get-environment-variables
+
     write-with-shared-structure
     read-with-shared-structure
     (rename (write-with-shared-structure write/ss))
@@ -900,7 +902,10 @@
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
-    make-unimplemented-condition raise-unimplemented-error)
+    make-unimplemented-condition raise-unimplemented-error
+
+    ;; other stuff
+    pretty-print)
   (import (except (rnrs) equal-hash)
     (rnrs mutable-pairs)
     (rnrs mutable-strings)

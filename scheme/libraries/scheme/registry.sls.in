@@ -30,7 +30,8 @@
 (library (scheme registry)
   (export available-features)
   (import (rnrs)
-    (except (scheme compat) equal-hash))
+    (only (scheme compat)
+	  implementation-features))
   (define available-features
     (append implementation-features
 	    '(@NAUSICAA_OS@)

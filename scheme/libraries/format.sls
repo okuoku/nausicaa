@@ -35,19 +35,17 @@
 
 
 #!r6rs
-(library (format-lib)
+(library (format)
   (export
     format format-output-column)
-  (import (rename (rnrs)
+  (import (rename (scheme)
 		  (infinite? rnrs:infinite?)
 		  (nan? rnrs:nan?))
     (only (rnrs r5rs)
 	  remainder
 	  quotient)
     (only (rnrs mutable-strings)
-	  string-set!)
-    (format-lib compat)
-    (lang-lib))
+	  string-set!))
 
 
 ;;;; constants
