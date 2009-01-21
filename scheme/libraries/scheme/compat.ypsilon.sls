@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compile script for Larceny
-;;;Date: Mon Jan 19, 2009
+;;;Contents: Ypsilon compatibility library for (scheme) language
+;;;Date: Wed Jan 21, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,22 +23,21 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (rnrs)
-  (larceny compiler))
+#!r6rs
+(library (scheme compat)
+  (export
 
-(compile-library "scheme/unimplemented.sls"
-		 "scheme/unimplemented.slfasl")
+    equal-hash pretty-print
 
-(compile-library "scheme/compat.larceny.sls"
-		 "scheme/compat.larceny.slfasl")
+    ;; parameters
+    make-parameter parameterize
 
-(compile-library "scheme.sls"
-		 "scheme.slfasl")
-
-(compile-library "loops.sls"
-		 "loops.slfasl")
-
-(compile-library "checks.sls"
-		 "checks.slfasl")
+    ;; environment variables
+    (rename (lookup-process-environment get-environment-variable)
+	    (process-environment->alist get-environment-variables)))
+  (import (rnrs)
+    (only (core)
+	  make-parameter parameterize pretty-print
+	  lookup-process-environment process-environment->alist)))
 
 ;;; end of file

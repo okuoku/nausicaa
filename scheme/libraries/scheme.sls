@@ -848,9 +848,19 @@
 
 ;;; --------------------------------------------------------------------
 
-    and-let* receive recursion cut cute
+    ;; stuff from the SRFIs
+    and-let* receive recursion cut cute parameterize make-parameter
+
+    ;; unimplemented condition
+    &unimplemented
+    make-unimplemented-condition
+    unimplemented-condition?
+    raise-unimplemented-error
+
     )
-  (import (rnrs))
+  (import (except (rnrs) equal-hash)
+    (scheme compat)
+    (scheme unimplemented))
 
 
 ;;;; additional definitions

@@ -1,34 +1,35 @@
-;;; Copyright (c) 2008 Derick Eddington
+;;;Eager Comprehensions in [outer..inner|expr]-Convention
+;;;sebastian.egner@philips.com, Eindhoven, The Netherlands, 25-Apr-2005
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008 Derick Eddington
 ;;;
-;;; Permission is  hereby granted, free of charge,  to any person
-;;; obtaining   a   copy   of   this  software   and   associated
-;;; documentation files (the "Software"), to deal in the Software
-;;; without restriction, including  without limitation the rights
-;;; to use, copy, modify, merge, publish, distribute, sublicense,
-;;; and/or sell copies of the  Software, and to permit persons to
-;;; whom  the Software  is furnished  to  do so,  subject to  the
-;;; following conditions:
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
 ;;;
-;;; The above  copyright notice and this  permission notice shall
-;;; be  included in  all copies  or substantial  portions  of the
-;;; Software.
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
 ;;;
-;;; Except as contained in this  notice, the name(s) of the above
-;;; copyright  holders  shall  not  be  used  in  advertising  or
-;;; otherwise to promote the sale,  use or other dealings in this
-;;; Software without prior written authorization.
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
 ;;;
-;;; THE  SOFTWARE IS PROVIDED  "AS IS",  WITHOUT WARRANTY  OF ANY
-;;; KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE
-;;; WARRANTIES  OF  MERCHANTABILITY,  FITNESS  FOR  A  PARTICULAR
-;;; PURPOSE AND  NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS
-;;; OR  COPYRIGHT HOLDERS  BE LIABLE  FOR ANY  CLAIM,  DAMAGES OR
-;;; OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT,  TORT OR
-;;; OTHERWISE,  ARISING FROM, OUT  OF OR  IN CONNECTION  WITH THE
-;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
 
 #!r6rs
-(library (srfi eager-comprehensions)
+(library (loops)
   (export
     do-ec list-ec append-ec string-ec string-append-ec vector-ec
     vector-of-length-ec sum-ec product-ec min-ec max-ec any?-ec
@@ -38,62 +39,9 @@
     :-dispatch-ref :-dispatch-set! make-initial-:-dispatch
     dispatch-union :generator-proc)
   (import (rnrs)
-    (rnrs r5rs)
-    (srfi parameters))
-
-
-; <PLAINTEXT>
-; Eager Comprehensions in [outer..inner|expr]-Convention
-; ======================================================
-;
-; sebastian.egner@philips.com, Eindhoven, The Netherlands, 25-Apr-2005
-; Scheme R5RS (incl. macros), SRFI-23 (error).
-;;; Modified by Derick Eddington to be able to be included into an R6RS library.
-;
-; Loading the implementation into Scheme48 0.57:
-;   ,open srfi-23
-;   ,load ec.scm
-;
-; Loading the implementation into PLT/DrScheme 202:
-;   ; File > Open ... "ec.scm", click Execute
-;
-; Loading the implementation into SCM 5d7:
-;   (require 'macro) (require 'record)
-;   (load "ec.scm")
-;
-; Implementation comments:
-;   * All local (not exported) identifiers are named ec-<something>.
-;   * This implementation focuses on portability, performance,
-;     readability, and simplicity roughly in this order. Design
-;     decisions related to performance are taken for Scheme48.
-;   * Alternative implementations, Comments and Warnings are
-;     mentioned after the definition with a heading.
-
-
-; ==========================================================================
-; The fundamental comprehension do-ec
-; ==========================================================================
-;
-; All eager comprehensions are reduced into do-ec and
-; all generators are reduced to :do.
-;
-; We use the following short names for syntactic variables
-;   q    - qualifier
-;   cc   - current continuation, thing to call at the end;
-;          the CPS is (m (cc ...) arg ...) -> (cc ... expr ...)
-;   cmd  - an expression being evaluated for its side-effects
-;   expr - an expression
-;   gen  - a generator of an eager comprehension
-;   ob   - outer binding
-;   oc   - outer command
-;   lb   - loop binding
-;   ne1? - not-end1? (before the payload)
-;   ib   - inner binding
-;   ic   - inner command
-;   ne2? - not-end2? (after the payload)
-;   ls   - loop step
-;   etc  - more arguments of mixed type
-
+    (only (scheme compat)
+	  make-parameter parameterize)
+    (rnrs r5rs))
 
 ; (do-ec q ... cmd)
 ;   handles nested, if/not/and/or, begin, :let, and calls generator
@@ -864,7 +812,6 @@
                     (set! result (f2 value result)) )))
        (if empty x0 result) ))))
 
-
 (define-syntax fold-ec
   (syntax-rules (nested)
     ((fold-ec x0 (nested q1 ...) q etc1 etc2 etc ...)
@@ -877,7 +824,7 @@
     ((fold-ec x0 qualifier expression f2)
      (let ((result x0))
        (do-ec qualifier (set! result (f2 expression result)))
-       result ))))
+       result))))
 
 
 ; ==========================================================================

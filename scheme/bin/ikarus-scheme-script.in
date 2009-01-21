@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# Part of: Nausicaa/Scripts
-# Contents: Trampoline for Mosh Scheme.
+# Part of: Nausicaa/Scheme
+# Contents: Trampoline for Ikarus Scheme.
 # Date: Mon Jan 19, 2009
 #
 # Abstract
@@ -27,13 +27,13 @@
 # <http://www.gnu.org/licenses/>.
 #
 
-if test -z "${MOSH_LOADPATH}" ; then
-    export MOSH_LOADPATH=/usr/local/lib/scheme
+if test -z "${IKARUS_LIBRARY_PATH}" ; then
+    export IKARUS_LIBRARY_PATH=/usr/local/lib/scheme
 fi
 
-MOSH='@MOSH@'
+IKARUS='@IKARUS@'
 
-exec "${MOSH}" "$@"
+exec "${IKARUS}" --r6rs-script "$@"
 
 ### end of file
 # Local Variables:

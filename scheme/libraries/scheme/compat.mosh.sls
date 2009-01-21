@@ -1,3 +1,12 @@
+;;;
+;;;Part of: Nausicaa/Scheme
+;;;Contents: Mosh compatibility library for (scheme) language
+;;;Date: Wed Jan 21, 2009
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;
@@ -26,31 +35,56 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-
-;;;; setup
-
 #!r6rs
-(import (scheme)
-  (checks))
+(library (scheme compat)
+  (export
 
-(check-set-mode! 'report-failed)
-(display "*** testing recursion\n")
+    equal-hash pretty-print
 
-
-;;;; code
+    ;; parameters
+    make-parameter parameterize
 
-(check
-    ((recursion (f n)
-       (if (zero? n)
-	   1
-	 (* n (f (- n 1)))))
-     5)
-  => 120)
+    ;; environment variables
+    get-environment-variable get-environment-variables)
+  (import (rnrs)
+    (only (system)
+	  get-environment-variable get-environment-variables)
+    (only (mosh pp)
+	  pretty-print))
 
-
-;;;; done
+  (define make-parameter
+    (case-lambda
+     ((val)
+      (make-parameter val values))
+     ((val guard)
+      (unless (procedure? guard)
+	(assertion-violation 'make-parameter "not a procedure" guard))
+      (let ((p (case-lambda
+		(() val)
+		((x) (set! val (guard x))))))
+	(p val)
+	p))))
 
-(check-report)
-
+  ;;Derived from Ikarus's implementation of parameterize.
+  (define-syntax parameterize
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_ () ?expr0 ?expr ...)
+         (syntax (letrec* () ?expr0 ?expr ...)))
+        ((_ ((?parm ?value) ...) ?expr0 ?expr ...)
+         (with-syntax
+	     (((tp ...) (generate-temporaries (syntax (?parm ...))))
+	      ((te ...) (generate-temporaries (syntax (?value ...)))))
+           (syntax (let ((tp ?parm) ...
+			 (te ?value) ...)
+		     (let ((swap (lambda ()
+				   (let ((t (tp)))
+				     (tp te)
+				     (set! te t))
+				   ...)))
+		       (dynamic-wind
+			   swap
+			   (lambda () ?expr0 ?expr ...)
+			   swap))))))))))
 
 ;;; end of file

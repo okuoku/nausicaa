@@ -24,6 +24,8 @@
 ;;;
 
 (import
-  (only (scheme)))
+  (only (scheme))
+  (only (checks))
+  (only (loops)))
 
 ;;; end of file

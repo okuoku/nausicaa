@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# Part of: Nausicaa/Scripts
-# Contents: Trampoline for Ikarus Scheme.
+# Part of: Nausicaa/Scheme
+# Contents: Trampoline for Ypsilon Scheme.
 # Date: Mon Jan 19, 2009
 #
 # Abstract
@@ -27,13 +27,13 @@
 # <http://www.gnu.org/licenses/>.
 #
 
-if test -z "${IKARUS_LIBRARY_PATH}" ; then
-    export IKARUS_LIBRARY_PATH=/usr/local/lib/scheme
+if test -z "${YPSILON_SITELIB}" ; then
+    export YPSILON_SITELIB=/usr/local/lib/scheme
 fi
 
-IKARUS='@IKARUS@'
+YPSILON='@YPSILON@'
 
-exec "${IKARUS}" --r6rs-script "$@"
+exec "${YPSILON}" --r6rs --compatible "$@"
 
 ### end of file
 # Local Variables:

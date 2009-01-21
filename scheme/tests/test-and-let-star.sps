@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for and-let-star
 ;;;Date: Thu Dec 25, 2008
 ;;;
@@ -39,9 +39,8 @@
 ;;;; setup
 
 (import (scheme)
-  (rnrs eval (6))
-  (check-lib)
-  (lang-lib))
+  (checks)
+  (rnrs eval (6)))
 
 ;; Here we use  EVAL because a syntax violation  error cannot be catched
 ;; by GUARD, and so it causes the program termination.
@@ -53,7 +52,7 @@
 ;; 		      (write exc)(newline)
 ;; 		      (write (syntax-violation? exc))(newline)
 		      (syntax-violation? exc)))
-	   (eval '?form (environment '(rnrs) '(srfi and-let-star))))
+	   (eval '?form (environment '(scheme))))
        => #t))))
 
 (check-set-mode! 'report-failed)

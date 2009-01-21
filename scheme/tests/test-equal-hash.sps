@@ -23,23 +23,17 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (scheme))
+(import (scheme)
+  (checks))
 
-(define-syntax check
-  (syntax-rules (=>)
-    ((_ ?form => ?expected-result)
-     (let ((result ?form))
-       (if (equal? result ?expected-result)
-	   (begin
-	     (display "*** test success")
-	     (newline))
-	 (begin
-	   (display "*** test FAILURE")
-	   (newline)))))))
+(check-set-mode! 'report-failed)
+(display "*** testing equal-hash\n")
+
 
 (check
     (integer? (equal-hash '#(1 2 3)))
   => #t)
 
+(check-report)
 
 ;;; end of file

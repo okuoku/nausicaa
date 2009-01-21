@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compile script for Larceny
-;;;Date: Mon Jan 19, 2009
+;;;Contents: Ikarus compatibility library for (scheme) language
+;;;Date: Wed Jan 21, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,22 +23,30 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (rnrs)
-  (larceny compiler))
+#!r6rs
+(library (scheme compat)
+  (export
 
-(compile-library "scheme/unimplemented.sls"
-		 "scheme/unimplemented.slfasl")
+    equal-hash pretty-print
 
-(compile-library "scheme/compat.larceny.sls"
-		 "scheme/compat.larceny.slfasl")
+    ;; parameters
+    make-parameter parameterize
 
-(compile-library "scheme.sls"
-		 "scheme.slfasl")
+    ;; environment variables
+    (rename (getenv get-environment-variable))
+    get-environment-variables)
+  (import (except (rnrs) equal-hash)
+    (only (ikarus)
+	  make-parameter parameterize getenv pretty-print)
+    (only (scheme unimplemented)
+	  raise-unimplemented-error))
 
-(compile-library "loops.sls"
-		 "loops.slfasl")
+  (define (get-environment-variables)
+    (raise-unimplemented-error 'get-environment-variables))
 
-(compile-library "checks.sls"
-		 "checks.slfasl")
+  (define (equal-hash obj)
+    (string-hash
+     (call-with-string-output-port
+ 	 (lambda (port) (write obj port))))))
 
 ;;; end of file
