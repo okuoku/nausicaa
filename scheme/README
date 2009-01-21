@@ -78,6 +78,21 @@ to install the files under a temporary location; example:
 described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
 
+  A  set   of  tests  to  assess   compatibility  of  Scheme
+implementations with the R6RS  standard is included.  To run
+them:
+
+    $ make test-ikarus-compat
+    $ make test-larceny-compat
+    $ make test-mosh-compat
+    $ make test-ypsilon-compat
+
+to run them all:
+
+    $ make test-compat
+
+beware that the execution of these tests may take minutes.
+
 
 A. Credits
 ----------

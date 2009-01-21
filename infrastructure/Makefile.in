@@ -481,7 +481,7 @@ mfasl: fasl-builddir fasl-copy fasl-mosh-clean fasl-mosh-compile
 ## ---------------------------------------------------------------------
 
 #fasl_ypsilon_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ypsilon.sps
-#fasl_ypsilon_COMPILE_ENV	= YPSILON_LIBRARY_PATH=$(sls_BUILDDIR):$(YPSILON_LIBRARY_PATH)
+#fasl_ypsilon_COMPILE_ENV	= YPSILON_SITELIB=$(sls_BUILDDIR):$(YPSILON_SITELIB)
 #fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --compile-dependencies
 #fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV) $(fasl_ypsilon_COMPILE_COMMAND) $(fasl_ypsilon_COMPILE_SCRIPT)
 

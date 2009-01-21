@@ -30,6 +30,65 @@
 
 nau_scheme_ENABLE_BINFMT	= @nau_scheme_ENABLE_BINFMT@
 
+
+#page
+## ------------------------------------------------------------
+## R6RS compatibility tests.
+## ------------------------------------------------------------
+
+test_compat_SCRIPT	= $(srcdir)/tests/r6rs/run.sps
+
+.PHONY: test-compat
+
+## ------------------------------------------------------------
+
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+.PHONY: test-ikarus-compat
+
+test-ikarus-compat:
+	IKARUS_LIBRARY_PATH=$(srcdir):$(IKARUS_LIBRARY_PATH) \
+	$(IKARUS) --r6rs-script $(test_compat_SCRIPT)
+
+test-compat: test-ikarus-compat
+endif
+
+## ------------------------------------------------------------
+
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+.PHONY: test-larceny-compat
+
+test-larceny-compat:
+	LARCENY_LIBPATH=$(srcdir):$(LARCENY_LIBPATH) \
+	$(LARCENY) -r6rs -program  $(test_compat_SCRIPT)
+
+test-compat: test-larceny-compat
+endif
+
+## ------------------------------------------------------------
+
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+.PHONY: test-mosh-compat
+
+test-mosh-compat:
+	MOSH_LOADPATH=$(srcdir):$(MOSH_LOADPATH) \
+	$(MOSH) $(test_compat_SCRIPT)
+
+test-compat: test-mosh-compat
+endif
+
+## ------------------------------------------------------------
+
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+.PHONY: test-ypsilon-compat
+
+test-ypsilon-compat:
+	YPSILON_SITELIB=$(srcdir):$(YPSILON_SITELIB) \
+	$(YPSILON) $(test_compat_SCRIPT)
+
+test-compat: test-ypsilon-compat
+endif
+
+
 #page
 ## ------------------------------------------------------------
 ## Binfmt scripts.
