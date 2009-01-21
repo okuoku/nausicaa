@@ -849,18 +849,17 @@
 ;;; --------------------------------------------------------------------
 
     ;; stuff from the SRFIs
-    and-let* receive recursion cut cute parameterize make-parameter
+    cond-expand and-let* receive recursion cut cute
+    parameterize make-parameter
+    (rename (parameterize parameterise))
 
     ;; unimplemented condition
-    &unimplemented
-    make-unimplemented-condition
-    unimplemented-condition?
-    raise-unimplemented-error
-
-    )
+    &unimplemented unimplemented-condition?
+    make-unimplemented-condition raise-unimplemented-error)
   (import (except (rnrs) equal-hash)
     (scheme compat)
-    (scheme unimplemented))
+    (scheme unimplemented)
+    (for (scheme registry) expand))
 
 
 ;;;; additional definitions
@@ -911,10 +910,10 @@
 
 (define-syntax recursion
   (syntax-rules ()
-    ((rec (?name . ?variables) . ?body)
-     (letrec ( (?name (lambda ?variables . ?body)) ) ?name))
-    ((rec ?name ?expr)
-     (letrec ( (?name ?expr) ) ?name))))
+    ((_ (?name . ?variables) . ?body)
+     (letrec ((?name (lambda ?variables . ?body))) ?name))
+    ((_ ?name ?expr)
+     (letrec ((?name ?expr)) ?name))))
 
 ;;; --------------------------------------------------------------------
 
@@ -949,6 +948,49 @@
   (syntax-rules ()
     ((cute . slots-or-exprs)
      (internal-cute () () () . slots-or-exprs))))
+
+
+;;;; feature--based conditional expansion
+
+(define-syntax cond-expand
+  (lambda (stx)
+    (syntax-case stx (and or not else)
+      ((_)
+       (syntax-violation #f "unfulfilled cond-expand" stx))
+
+      ((_ (else ?body ...))
+       (syntax (begin ?body ...)))
+
+      ((_ ((and) ?body ...) ?more-clauses ...)
+       (syntax (begin ?body ...)))
+
+      ((_ ((and ?req1 ?req2 ...) ?body ...) ?more-clauses ...)
+       (syntax (cond-expand
+		(?req1 (cond-expand
+			((and ?req2 ...) ?body ...)
+			?more-clauses ...))
+		?more-clauses ...)))
+
+      ((_ ((or) ?body ...) ?more-clauses ...)
+       (syntax (cond-expand ?more-clauses ...)))
+
+      ((_ ((or ?req1 ?req2 ...) ?body ...) ?more-clauses ...)
+       (syntax (cond-expand
+		(?req1	(begin ?body ...))
+		(else	(cond-expand
+			 ((or ?req2 ...) ?body ...)
+			 ?more-clauses ...)))))
+
+      ((_ ((not ?req) ?body ...) ?more-clauses ...)
+       (syntax (cond-expand
+		(?req	(cond-expand ?more-clauses ...))
+		(else	?body ...))))
+
+      ((_ (?feature-id ?body ...) ?more-clauses ...)
+       (if (member (syntax->datum (syntax ?feature-id)) available-features)
+           (syntax (begin body ...))
+	 (syntax (cond-expand more-clauses ...)))))))
+
 
 
 ;;;; done

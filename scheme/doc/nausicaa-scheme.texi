@@ -17686,9 +17686,523 @@ this report.
 @chapter The augmented language
 
 
+This chapter describes the features added by the @library{scheme}
+language to the @library{rnrs} language.  Most of them are the
+implementations of @srfi{} specifications that were voted to the
+@emph{final} status.
+
+
+@menu
+* schemelib license::           Original @srfi{} licenses.
+* schemelib features::          Feature--based conditional expansion.
+* schemelib macros::            Syntactic abstractions.
+* schemelib parameters::        Paremeter objects.
+@end menu
+
+
+@c page
+@node schemelib license
+@section Original @srfi{} licenses
+
+
+@subsubheading @ansrfi{2}: An @func{and} with local bindings
+
+Copyright @copyright{} 1998 Oleg Kiselyov.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{8}: Binding multiple values
+
+Copyright @copyright{} 1999 John David Stone.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{26}: Notation for specializing parameters without currying
+
+Copyright @copyright{} 2002 Sebastian Egner.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{31}: A special form for recursive evaluation
+
+
+Copyright @copyright{} 2002 Dr. Mirko Luedde
+@email{Mirko.Luedde@@SAP.com}.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{39}: Parameter objects
+
+Copyright @copyright{} 2002 Marc Feeley.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{0}: Feature based conditional expansion construct
+
+Copyright @copyright{} 1999 Marc Feeley .  All Rights Reserved.
+
+This document and translations of it may be copied and furnished to
+others, and derivative works that comment on or otherwise explain it or
+assist in its implementation may be prepared, copied, published and
+distributed, in whole or in part, without restriction of any kind,
+provided that the above copyright notice and this paragraph are included
+on all such copies and derivative works.  However, this document itself
+may not be modified in any way, such as by removing the copyright notice
+or references to the Scheme Request For Implementation process or
+editors, except as needed for the purpose of developing SRFIs in which
+case the procedures for copyrights defined in the SRFI process must be
+followed, or as required to translate it into languages other than
+English.
+
+The limited permissions granted above are perpetual and will not be
+revoked by the authors or their successors or assigns.
+
+This document and the information contained herein is provided on an
+``AS IS'' basis and THE AUTHOR AND THE SRFI EDITORS DISCLAIM ALL
+WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY
+WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
+RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A
+PARTICULAR PURPOSE.
+
+
+@c page
+@node schemelib features
+@section Feature--based conditional expansion
+
+
+It is desirable that programs which depend on additions to the standard
+Scheme language name those additions.  For example the @srfi{}s provide
+the specifications of some additions (``features'').  The
+@func{cond-expand} syntax described below provides the means to actually
+check that features are present in the Scheme system.
+
+A particular functionality may exist in several or even most Scheme
+systems but its @api{} may be different (use of a procedure or
+special--form, name, number of parameters, etc).  To write code that
+will run on several Scheme systems, it is useful to have a common
+construct to enable or disable sections of code based on the existence
+or absence of a feature in the Scheme system being used.
+
+Features are identified by feature identifiers.  In order for the
+semantics of this construct to be well--defined, the feature identifier
+must of course refer to a feature which has a well--defined meaning.
+There is thus a need for a registry to keep track of the formal
+specification associated with each valid feature--identifier.
+
+
+@deffn Syntax cond-expand @meta{clause} ...
+@deffnx Syntax cond-expand @meta{clause} ... (else @meta{body})
+Test for the existence of features at macro--expansion time.  Each
+@var{clause} has the following formal definition:
+
+@example
+<clause>
+        -> (<feature requirement> <body>)
+
+<feature requirement>
+        -> <feature identifier>
+         | (and <feature requirement>*)
+         | (or  <feature requirement>*)
+         | (not <feature requirement>)
+
+<feature identifier>
+        -> one of the symbols described below
+@end example
+
+@func{cond-expand} either expands into the @meta{body} of one of its
+clauses or signals an error during syntactic processing.
+@func{cond-expand} expands into the body of the first clause whose
+feature requirement is currently satisfied (the else clause, if present,
+is selected if none of the previous clauses is selected).
+
+A @meta{feature requirement} has an obvious interpretation as a logical
+formula, where the @meta{feature identifier} symbols have meaning true
+if the associated feature is in effect at the location of the
+@func{cond-expand} form, and @false{} otherwise.  A feature requirement
+is satisfied if its formula is true under this interpretation.
+
+Examples:
+
+@example
+(cond-expand
+  ((or linux macos)
+   ---)
+  (windows
+   ---))
+@end example
+@end deffn
+
+
+@c page
+@node schemelib macros
+@section Syntactic abstractions
+
+
+@deffn Syntax and-let* @var{formals} . @var{body}
+Like an ordinary @func{and}, an @func{and-let*} special form evaluates
+the expressions in @var{formals} in order until the first one that
+yields @false{}.  Unlike @func{and}, however, a non--@false{} result of
+one expression can be bound to a fresh variable and used in the
+subsequent expressions.  @func{and-let*} is a cross--breed between
+@func{let*} and @func{and}.
+
+@var{formals} can be the empty list, or a list of the following
+elements:
+
+@table @code
+@item (@var{varname} @var{expression})
+evaluate @var{expression}; if the result is @false{}: return @false{}
+immediately, else bind the result to @var{varname}; @var{varname} is
+available to the rest of the @var{expressions}, and the @code{BODY};
+
+@item @var{expression}
+evaluate @var{expression}; if the result is @false{}: return @false{}
+immediately;
+
+@item @var{bound-variable}
+look up @var{bound-variable}; if the value is @false{}; return @false{}
+immediately; @var{bound-varname} is available to the rest of the
+@var{expressions}, and the @var{body}.
+@end table
+
+If all the @var{expression}s and @var{bound-variable}s in @var{formals}
+evaluate to true, the forms in @var{body} are evaluated and the result
+of the last one returned.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax receive @var{formals} @var{expression} . @var{body}
+The mechanism provided for binding identifiers to the values of a
+multiple--valued expression are @func{call-with-values},
+@func{let-values}, @func{let*-values}.  @func{receive} is another
+concise and readable syntax for creating such bindings.
+
+@var{formals} can have any of 3 forms:
+
+@table @code
+@item (variable1 ... variablen)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen} to fresh
+locations.  The @var{expression} is evaluated, and its values are stored
+into those locations (it is an error if @var{expression} does not have
+exactly @var{n} values).
+
+@item variable
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable} to a fresh location.  The
+@var{expression} is evaluated, its values are converted into a newly
+allocated list, and the list is stored in the location bound to
+@var{variable}.
+
+@item (variable1 ... variablen . variablen+1)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
+locations.  The @var{expression} is evaluated.  Its first @var{n} values
+are stored into the locations bound to @var{variable1}, ...,
+@var{variablen}.  Any remaining values are converted into a newly
+allocated list, which is stored into the location bound to
+@var{variablen+1} (it is an error if @var{expression} does not have at
+least @var{n} values.
+@end table
+
+In any case, the expressions in @var{body} are evaluated sequentially in
+the extended environment.  The results of the last expression in the
+body are the values of the @var{receive}--expression.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax cut @var{slot-or-expr} ...
+@deffnx Syntax cute @var{slot-or-expr} ...
+When programming in functional style, it is frequently necessary to
+specialize some of the parameters of a multi--parameter procedure.  For
+example, from the binary operation @func{cons} one might want to obtain
+the unary operation @code{(lambda (x) (cons 1 x))}.  This specialization
+of parameters is also known as ``partial application'', ``operator
+section'' or ``projection''.
+
+The @func{cut} and @func{cute} syntaxes allow to write this sort of
+specialization in a simple and compact way.  Examples:
+
+@example
+(cut cons (+ a 1) <>)   = (lambda (x2)
+                            (cons (+ a 1) x2))
+
+(cut list 1 <> 3 <> 5)  = (lambda (x2 x4)
+                            (list 1 x2 3 x4 5))
+
+(cut list)              = (lambda () (list))
+
+(cut list 1 <> 3 <...>) = (lambda (x2 . xs)
+                            (apply list 1 x2 3 xs))
+
+(cut <> a b)            = (lambda (f) (f a b))
+@end example
+
+@func{cut} specializes some of the parameters of its first argument.
+The parameters that are to show up as formal variables of the result are
+indicated by the symbol @code{<>}, pronouced as ``slot''.  In addition,
+the symbol @code{<...>}, pronounced as ``rest--slot'', matches all
+residual arguments of a variable argument procedure.  The first argument
+can also be a slot.
+
+@func{cute} evaluates the non--slot expressions at the time the
+procedure is specialized, not at the time the specialized procedure is
+called.  For example:
+
+@example
+(cute cons (+ a 1) <>) = (let ((a1 (+ a 1)))
+                           (lambda (x2)
+                             (cons a1 x2)))
+@end example
+
+@noindent
+@func{cute} will evaluate @code{(+ a 1)} once, while the @func{cut}
+would evaluate it during every invocation of the resulting procedure.
+
+The formal syntax of a specialized expression is:
+
+@example
+<cut-expression> -> (cut  <slot-or-expr> <slot-or-expr>*)
+                 |  (cut  <slot-or-expr> <slot-or-expr>* <...>)
+                 |  (cute <slot-or-expr> <slot-or-expr>*)
+                 |  (cute <slot-or-expr> <slot-or-expr>* <...>)
+
+<slot-or-expr>   -> <>              ; a "slot"
+                 |  <expression>    ; a "non-slot expression"
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax recursion @var{formals} @var{body}
+Allow the simple and non--imperative construction of self--referential
+expressions.  The implementation is:
+
+@example
+(define-syntax recursion
+  (syntax-rules ()
+    ((_ (?name . ?variables) . ?body)
+     (letrec ((?name (lambda ?variables . ?body))) ?name))
+    ((_ ?name ?expr)
+     (letrec ((?name ?expr)) ?name))))
+@end example
+
+@func{recursion} generates an inner lambda using @var{formals} and
+@var{body}; the first identifier in @var{formals} is meant to be bound
+to the inner lambda itself.  The return value is a function that invokes
+the inner lambda with the inner lambda and the given arguments.
+
+For example the following:
+
+@example
+(define (dummy n)
+  (let loop ((n n))
+    (if (zero? n)
+        1
+      (* n (loop (- n 1))))))
+
+(dummy 5)
+@end example
+
+@noindent
+can be rewritten:
+
+@example
+(letrec ((dummy (lambda (loop n)
+                  (if (zero? n)
+                      1
+                    (* n (loop (- n 1)))))))
+  (dummy 5))
+@result{} 120
+@end example
+
+@noindent
+which can be written:
+
+@example
+((recursion (loop n)
+   (if (zero? n)
+       1
+     (* n (loop (- n 1)))))
+ 5)
+@result{} 120
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+
+@c page
+@node schemelib parameters
+@section Paremeter objects
+
+
+@defun make-parameter @var{init}
+@defunx make-parameter @var{init} @var{converter}
+Return a new parameter object which is bound to a cell containing the
+value returned by @code{(converter init)}.  If @var{converter} is not
+specified, the identity function is used instead.
+
+The parameter object is a procedure which accepts zero or one argument.
+When it is called with no argument, the content of the cell bound to
+this parameter object in the current dynamic environment is returned.
+When it is called with one argument, the content of the cell bound to
+this parameter object in the current dynamic environment is set to the
+result of the call @code{(converter arg)}, where @var{arg} is the
+argument passed to the parameter object, and an unspecified value is
+returned.
+
+Examples:
+
+@example
+(define radix
+  (make-parameter 10))
+
+(radix)         @result{} 10
+(radix 2)
+(radix)         @result{} 2
+@end example
+@end defun
+
+
+@deffn Syntax parameterize ((@var{expr1} @var{expr2}) ...) . @var{body}
+@deffnx Syntax parameterise ((@var{expr1} @var{expr2}) ...) . @var{body}
+The expressions @var{expr1} and @var{expr2} are evaluated in an
+unspecified order.  The value of the @var{expr1} expressions must be
+parameter objects.  For each @var{expr1} expression and in an
+unspecified order, the local dynamic environment is extended with a
+binding of the parameter object @var{expr1} to a new cell whose content
+is the result of the call @code{(converter val)}, where @var{val} is the
+value of @var{expr2} and @var{converter} is the conversion procedure of
+the parameter object.
+
+The resulting dynamic environment is then used for the evaluation of the
+forms in @var{body}.  The result(s) of the @func{parameterize} form are
+the result(s) of the @var{body}.
+
+With reference to the example above:
+
+@example
+(radix)
+=>  2
+
+(parameterize ((radix 16))
+  (radix))
+=>  16
+
+(radix)
+=>  2
+
+(define (f n)
+  (number->string n (radix)))
+
+(f 10)
+=>  "1010"
+
+(parameterize ((radix 8))
+  (f 10))
+=>  "12"
+@end example
+@end deffn
+
+
+
 @c page
 @node libs
 @chapter More libraries
+
 
 
 

@@ -27,46 +27,34 @@
 ;;;SOFTWARE.
 
 #!r6rs
-(library (srfi cond-expand registry)
-  (export
-    available-features)
+(library (scheme registry)
+  (export available-features)
   (import (rnrs)
-    (srfi cond-expand implementation-features))
-
-  (define srfi-features
-    (map
-	(lambda (x)
-	  (list `(srfi ,(car x))
-		(string->symbol
-		 (string-append "srfi-" (number->string (cdr x))))))
-      ;; name                    SRFI code number
-      '((cond-expand		. 0)
-	(lists			. 1)
-	(and-let*		. 2)
-	(string-ports		. 6)
-	(receive		. 8)
-	(strings		. 13)
-	(char-set		. 14)
-	(time			. 19)
-	(cut			. 26)
-	(random			. 27)
-	(rec			. 31)
-	(args-fold		. 37)
-	(sharing		. 38)
-	(parameters		. 39)
-	(streams		. 41)
-	(eager-comprehensions	. 42)
-	(vectors		. 43)
-	(format			. 48)
-	(general-cond		. 61)
-	(compare		. 67)
-	(lightweight-testing	. 78))))
+    (scheme implementation-features))
 
   (define available-features
-    (apply append
-           '(R6RS r6rs)
-           implementation-features
-	   OS-features
-           srfi-features)))
+    (apply append OS-features
+	   implementation-features
+	   '(r6rs
+	     @NAUSICAA_OS@
+	     and-let*
+	     args-fold
+	     char-set
+	     checks
+	     compare
+	     cut
+	     eager-comprehensions
+	     format
+	     general-cond
+	     lists
+	     parameters
+	     random
+	     rec
+	     receive
+	     sharing
+	     streams
+	     strings
+	     time
+	     vectors))))
 
 ;;; end of file

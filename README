@@ -23,7 +23,7 @@ Topics
 
 This is a distribution of Scheme language libraries for R6RS
 Scheme  implementations.  Currently  it attempts  to support
-Larceny, Ypsilon and Ikarus.
+Larceny, Ypsilon and Ikarus (Mosh support will be added).
 
 
 1.1 About 'Nausicaa'
@@ -68,15 +68,9 @@ of  a Nausicaa  project: the  individual,  project specific,
 README files; the  Nausicaa overall documentation in Texinfo
 format, which is available in the "doc" subdirectory.
 
-  To  use  the  Nausicaa  libraries  you  must  install  the
-packages    of   the   Nausicaa/R6RS,    Nausicaa/SRFI   and
-Nausicaa/Uriel  projects.   For   some  projects  the  Uriel
-package is required only to run the test suite.
-
-  Notice  that  Nausicaa will  not  work  with the  Xitomatl
-distribution of  SRFI libraries, because  they are installed
-with export specification "(xitomatl srfi ---)" which is not
-used as import specification by Nausicaa's libraries.
+  To use the Nausicaa libraries you must install the package
+of the Nausicaa/Scheme project.  This project embeds all the
+SRFIs that are needed by the other projects.
 
   For your own safety,  take this advice: never, ever, drive
 building  and  installation  of  packages  from  the  source
@@ -132,8 +126,8 @@ resources).
   using other Scheme implementations will not work;
 
 * by default  the libraries  are NOT precompiled;  to enable
-  precompilation you must  use the "--enable-fasl" option to
-  the "configure" script;
+  precompilation you must pass the "--enable-fasl" option to
+  the "configure" scripts;
 
 * the Larceny compiler is slow (really); when using Larceny,
   enabling precompilation is strongly recommended;
@@ -152,8 +146,8 @@ resources).
 
 * by default only documentation  in Info format is built and
   installed,  documentation  in HTML  format  is pruned;  to
-  change  this  use  the  '--enable-doc-html'  configuration
-  option.
+  change  this pass  the '--enable-doc-html'  option  to the
+  "configure" scripts.
 
   There is  basic support  for Linux packages  creation, for
 example for  Slackware; read the  Nausicaa documentation for
@@ -244,6 +238,10 @@ Ikarus Scheme can be downloaded from:
 
        <http://www.cs.indiana.edu/~aghuloum/ikarus/>
                <http://launchpad.net/ikarus>
+
+Mosh Scheme can be downloaded from:
+
+	  <http://code.google.com/p/mosh-scheme/>
 
 the GNU Software tools can be downloaded from:
 
