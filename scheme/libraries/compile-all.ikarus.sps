@@ -28,6 +28,7 @@
   (only (checks))
   (only (loops))
   (only (lists))
+  (only (char-sets))
   (only (format))
 ;;  (only (strings))
   )
