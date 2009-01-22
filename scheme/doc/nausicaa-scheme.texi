@@ -755,14 +755,65 @@ The augmented language
 
 More libraries
 
+* more lists::                  List library.
 * more checks::                 Lightweight testing.
+* more char-sets::              Character sets.
+
+List library
+
+* more lists intro::            Introduction.
+* more lists linear update::    Linear update procedures.
+* more lists improper::         Improper lists.
+* more lists cons::             Constructors.
+* more lists pred::             Predicates.
+* more lists select::           Selectors.
+* more lists misc::             Length, append, concatenate,
+                                reverse, zip and count.
+* more lists fold::             Fold, unfold and map.
+* more lists filter::           Filtering and partitioning.
+* more lists search::           Searching.
+* more lists delete::           Deletion.
+* more lists alist::            Association lists.
+* more lists set::              Set operations on lists.
+
+Constructors
+
+* more lists cons pair::         Pair constructors.
+* more lists cons list::         List constructors.
+
+Predicates
+
+* more lists pred kind::         Kinds of list.
+* more lists pred null::         Null predicates.
+* more lists pred pair::         Pair predicates.
+* more lists pred cmp::          Comparison.
+
+Fold, unfold and map
+
+* more lists fold fold::         Folding.
+* more lists fold reduce::       Reducing.
+* more lists fold unfold::       Unfolding.
+* more lists fold map::          Mapping.
 
 Lightweight testing
 
+* more checks select::          Selecting tests to be run.
 * more checks eval::            Evaluating code.
 * more checks result::          Handling multiple results.
-* more checks select::          Selecting tests to be run.
 * more checks debug::           Printing debug messages.
+
+Character sets
+
+* more char-sets intro::        Introduction.
+* more char-sets make::         Creation.
+* more char-sets pred::         Predicates.
+* more char-sets inspect::      Inspection.
+* more char-sets conv::         Conversion.
+* more char-sets search::       Searching.
+* more char-sets filter::       Filtering.
+* more char-sets iter::         Iteration.
+* more char-sets set::          Set operations.
+* more char-sets std::          Standard char sets.
 
 Launching programs directly
 
@@ -18396,7 +18447,7 @@ Raise a composite condition embedding a condition of type
 @menu
 * more lists::                  List library.
 * more checks::                 Lightweight testing.
-* more char-set::               Character sets.
+* more char-sets::              Character sets.
 @end menu
 
 
@@ -18859,7 +18910,7 @@ proper and dotted.
 @subsubsection Comparison
 
 
-@defun list= @var{elm=?} @var{list1} ...
+@defun list=? @var{elm=?} @var{list1} ...
 Determines list equality, given an element--equality procedure
 @var{elm=?}.  Proper list @var{AL} equals proper list @var{BL} if:
 
@@ -18880,10 +18931,10 @@ In the n--ary case, every @var{listi} is compared to @var{listi+1} (as
 opposed, for example, to comparing @var{list1} to every @var{listi}, for
 @code{i>1}).
 
-If there are no list arguments at all, @func{list=} simply returns
+If there are no list arguments at all, @func{list=?} simply returns
 @true{}.
 
-It is an error to apply @func{list=} to anything except proper lists.
+It is an error to apply @func{list=?} to anything except proper lists.
 While implementations may choose to extend it to circular lists, note
 that it cannot reasonably be extended to dotted lists, as it provides no
 way to specify an equality procedure for comparing the list terminators.
@@ -18894,7 +18945,7 @@ way to specify an equality procedure for comparing the list terminators.
 @end quotation
 
 Note that the dynamic order in which the @var{elm=?} procedure is applied
-to pairs of elements is not specified.  For example, if @func{list=} is
+to pairs of elements is not specified.  For example, if @func{list=?} is
 applied to three lists, @var{AL}, @var{BL}, and @var{CL}, it may first
 completely compare @var{AL} to @var{BL}, then compare @var{BL} to
 @var{CL}, or it may compare the first elements of @var{AL} and @var{BL},
@@ -18909,43 +18960,43 @@ must be the case that:
 @end example
 
 Note that this implies that two lists which are @func{eq?} are always
-@func{list=}, as well; implementations may exploit this fact to
+@func{list=?}, as well; implementations may exploit this fact to
 ``short--cut'' the element--by--element comparisons.
 
 Examples:
 
 @example
-(list= eq?)
+(list=? eq?)
 => #t
 
-(list= eq? '(a))
+(list=? eq? '(a))
 => #t
 
-(list= = '(1 2 3 4)
-         '(1 2 3 4))
+(list=? = '(1 2 3 4)
+          '(1 2 3 4))
 => #t
 
-(list= = '(1 2 3 4)
-         '(1 9 3 4))
+(list=? = '(1 2 3 4)
+          '(1 9 3 4))
 => #f
 
-(list= = '(1 2 3 4)
-         '(1 2 3 4)
-         '(1 2 3 4))
+(list=? = '(1 2 3 4)
+          '(1 2 3 4)
+          '(1 2 3 4))
 => #t
 
-(list= = '(1 2 3 4)
-         '(1 2 3 4 5)
-         '(1 2 3 4))
+(list=? = '(1 2 3 4)
+          '(1 2 3 4 5)
+          '(1 2 3 4))
 => #f
 
-(list= = '())
+(list=? = '())
 => #t
 
-(list= = '() '())
+(list=? = '() '())
 => #t
 
-(list= = '() '() '())
+(list=? = '() '() '())
 => #t
 @end example
 @end defun
@@ -20192,64 +20243,6 @@ successful; that is, if the list contains an element satisfying the
 search criteria.
 @end table
 
-Here are some examples, using the @func{find} and @func{any} procedures
-as canonical representatives:
-
-@example
-;; Proper list -- success
-(find even? '(1 2 3))	=> 2
-(any  even? '(1 2 3))	=> #t
-
-;; proper list -- failure
-(find even? '(1 7 3))	=> #f
-(any  even? '(1 7 3))	=> #f
-
-;; Failure is error on a dotted list.
-(find even? '(1 3 . x))	=> error
-(any  even? '(1 3 . x))	=> error
-
-;; The dotted list contains an element satisfying the search.
-;; This case is not specified -- it could be success, an error,
-;; or some third possibility.
-(find even? '(1 2 . x))	=> error/undefined
-(any  even? '(1 2 . x))	=> error/undefined ; success, error or other.
-
-;; circular list -- success
-(find even? (circular-list 1 6 3)) => 6
-(any  even? (circular-list 1 6 3)) => #t
-
-;; circular list -- failure is error. Procedure may diverge.
-(find even? (circular-list 1 3)) => error
-(any  even? (circular-list 1 3)) => error
-@end example
-
-
-@defun find @var{pred} @var{clist}
-Return the first element of @var{clist} that satisfies predicate
-@var{pred}; return @false{} if no element does.
-
-@example
-(find even? '(3 1 4 1 5 9)) => 4
-@end example
-
-Note that @func{find} has an ambiguity in its lookup semantics: if
-@func{find} returns @false{}, you cannot tell (in general) if it found a
-@false{} element that satisfied @var{pred}, or if it did not find any
-element at all.  In many situations, this ambiguity cannot arise: either
-the list being searched is known not to contain any @false{} elements,
-or the list is guaranteed to have an element satisfying @var{pred}.
-However, in cases where this ambiguity can arise, you should use
-@func{find-tail} instead of @func{find}, @func{find-tail} has no such
-ambiguity:
-
-@example
-(cond
- ((find-tail pred lis)
-  => (lambda (pair) ...)) ; Handle (CAR PAIR)
- (else ...)) ; Search failed.
-@end example
-@end defun
-
 
 @defun find-tail @var{pred} @var{clist}
 Return the first pair of @var{clist} whose car satisfies @var{pred}.  If
@@ -20274,6 +20267,21 @@ In the circular--list case, this procedure ``rotates'' the list.
 the predicate is inverted: @func{find-tail} searches until it finds an
 element satisfying the predicate; @func{drop-while} searches until it
 finds an element that doesn't satisfy the predicate.
+
+@quotation
+@emph{Note:} the @func{find} defined by @rnrs{6} has an ambiguity in its
+lookup semantics: if @func{find} returns @false{}, we cannot tell (in
+general) if it found a @false{} element that satisfied @var{pred}, or if
+it did not find any element at all.
+
+In many situations, this ambiguity cannot arise: either the list being
+searched is known not to contain any @false{} elements, or the list is
+guaranteed to have an element satisfying @var{pred}.
+
+However, in cases where this ambiguity can arise, we should use
+@func{find-tail} instead of @func{find}, @func{find-tail} has no such
+ambiguity.
+@end quotation
 @end defun
 
 
@@ -20709,7 +20717,7 @@ operating upon large sets will probably wish to use other data
 structures and algorithms.
 
 
-@defun lset<= @var{=} @var{list1} ...
+@defun lset<=? @var{=} @var{list1} ...
 Return true if, and only if, every @var{listi} is a subset of
 @var{listi+1}, using @var{=} for the element--equality procedure.  List
 @var{AL} is a subset of list @var{BL} if every element in @var{AL} is
@@ -20720,17 +20728,17 @@ comparison, the @var{=} procedure's first argument is an element of
 Examples:
 
 @example
-(lset<= eq? '(a) '(a b a) '(a b c c)) => #t
+(lset<=? eq? '(a) '(a b a) '(a b c c)) => #t
 
-(lset<= eq?) => #t             ; Trivial cases
-(lset<= eq? '(a)) => #t
+(lset<=? eq?) => #t             ; Trivial cases
+(lset<=? eq? '(a)) => #t
 @end example
 
 If invoked with all null lists, the return value is @true{}.
 @end defun
 
 
-@defun lset= @var{=} @var{list1} @var{list2} ...
+@defun lset=? @var{=} @var{list1} @var{list2} ...
 Return true if, and only if, every @var{listi} is set--equal to
 @var{listi+1}, using @var{=} for the element--equality procedure.
 ``Set--equal'' simply means that @var{listi} is a subset of
@@ -20741,10 +20749,10 @@ second argument is an element of @var{listi+1}.
 Examples:
 
 @example
-(lset= eq? '(b e a) '(a e b) '(e e b a)) => #t
+(lset=? eq? '(b e a) '(a e b) '(e e b a)) => #t
 
-(lset= eq?) => #t               ; Trivial cases
-(lset= eq? '(a)) => #t
+(lset=? eq?) => #t               ; Trivial cases
+(lset=? eq? '(a)) => #t
 @end example
 @end defun
 
@@ -21261,23 +21269,26 @@ to print @var{exc}, which must be a Scheme condition value.
 
 
 @c page
-@node more char-set
+@node more char-sets
 @section Character sets
 
 
 @menu
-* more char-set intro::         Introduction.
-* more char-set create::        Creating char sets.
-* more char-set general::       General procedures.
-* more char-set iter::          Iterating over char sets.
-* more char-set query::         Querying char sets.
-* more char-set algebra::       Char sets algebra.
-* more char-set sets::          Standard char sets.
+* more char-sets intro::        Introduction.
+* more char-sets make::         Creation.
+* more char-sets pred::         Predicates.
+* more char-sets inspect::      Inspection.
+* more char-sets conv::         Conversion.
+* more char-sets search::       Searching.
+* more char-sets filter::       Filtering.
+* more char-sets iter::         Iteration.
+* more char-sets set::          Set operations.
+* more char-sets std::          Standard char sets.
 @end menu
 
 
 @c page
-@node more char-set intro
+@node more char-sets intro
 @subsection Introduction
 
 
@@ -21321,8 +21332,8 @@ A parameter followed by @code{...} means zero--or--more elements.
 
 
 @c page
-@node more char-set create
-@subsection Creating char sets
+@node more char-sets make
+@subsection Creation
 
 
 @defun char-set @var{char1} ...
@@ -21342,7 +21353,43 @@ function; so copies are not guaranteed to be distinct by @func{eq?}.
 @end defun
 
 
-@defun list->char-set @var{char-list} [@var{base-cs}]
+@c page
+@node more char-sets pred
+@subsection Predicates and assertions
+
+
+@defun assert-list-of-chars @var{chars} @var{func-name}
+If @var{chars} is not a list of characters (according to @func{char?}),
+raise an assertion violation using @var{func-name} as name of the
+function that raised the error.
+@end defun
+
+
+@defun char-set? @var{obj}
+Return @true{} if @var{obj} is a character set, otherwise @false{}.
+@end defun
+
+
+@c page
+@node more char-sets inspect
+@subsection Inspection
+
+
+@defun char-set-size @var{cs}
+Return the number of characters in @var{cs}.
+@end defun
+
+
+@c page
+@node more char-sets conv
+@subsection Conversion
+
+
+@subsubheading List conversion
+
+
+@defun list->char-set @var{char-list}
+@defunx list->char-set @var{char-list} @var{base-cs}
 @defunx list->char-set! @var{char-list} @var{base-cs}
 Return a character set containing the characters in the list of
 characters @var{char-list}.
@@ -21350,13 +21397,24 @@ characters @var{char-list}.
 If character set @var{base-cs} is provided, the characters from
 @var{char-list} are added to it.
 
+@func{list->char-set} produces a fresh character set.
+
 @func{list->char-set!} is allowed, but not required, to side--effect and
-reuse the storage in @var{base-cs}; @func{list->char-set} produces a
-fresh character set.
+reuse the storage in @var{base-cs}.
 @end defun
 
 
-@defun string->char-set @var{s} [@var{base-cs}]
+@defun char-set->list @var{cs}
+Return a list holding all the characters in @var{cs}.  The order in
+which @var{cs}'s characters appear in the list is undefined.
+@end defun
+
+
+@subsubheading String conversion
+
+
+@defun string->char-set @var{s}
+@defunx string->char-set @var{s} @var{base-cs}
 @defunx string->char-set! @var{s} @var{base-cs}
 Return a character set containing the characters in the string @var{s}.
 
@@ -21369,224 +21427,135 @@ a fresh character set.
 @end defun
 
 
-@defun char-set-filter @var{pred} @var{cs} [@var{base-cs}]
-@defunx char-set-filter! @var{pred} @var{cs} @var{base-cs}
-Return a character set containing every character @var{c} in @var{cs}
-such that @code{(pred c)} returns true.
-
-If character set @var{base-cs} is provided, the characters specified by
-@var{pred} are added to it.
-
-@func{char-set-filter!} is allowed, but not required, to side--effect
-and reuse the storage in @var{base-cs}; @func{char-set-filter} produces
-a fresh character set.
-
-An implementation may not save away a reference to @var{pred} and invoke
-it after @func{char-set-filter} or @func{char-set-filter!} returns; that
-is, ``lazy'', on--demand implementations are not allowed, as @var{pred}
-may have external dependencies on mutable data or have other
-side--effects.
-
-@quotation
-@emph{Rationale:} This procedure provides a means of converting a
-character predicate into its equivalent character set; the @var{cs}
-parameter allows the programmer to bound the predicate's domain.
-
-Programmers should be aware that filtering a character set such as
-@func{char-set:full} could be a very expensive operation in an
-implementation that provided an extremely large character type, such as
-32-bit Unicode.
-@end quotation
+@defun char-set->string @var{cs}
+Return a string containing the characters in @var{cs}.  The order in
+which @var{cs}'s characters appear in the string is undefined.
 @end defun
 
 
-@defun ucs-range->char-set @var{lower} @var{upper} [@var{error?} @var{base-cs}]
-@defunx ucs-range->char-set! @var{lower} @var{upper} @var{error?} @var{base-cs}
+@subsubheading Unicode
+
+
+@defun ucs-range->char-set @var{lower} @var{upper}
+@defunx ucs-range->char-set @var{lower} @var{upper} @var{base-cs}
+@defunx ucs-range->char-set! @var{lower} @var{upper} @var{base-cs}
 @var{lower} and @var{upper} are exact non--negative integers,
-@var{lower} <= @var{upper}.
+@math{@var{lower} <= @var{upper}}.
 
 Return a character set containing every character whose ISO/IEC 10646
 UCS-4 code lies in the half--open range @code{[@var{lower},
 @var{upper})}.
 
-@itemize
-@item
-If the requested range includes unassigned UCS values, these are
-silently ignored (the current UCS specification has ``holes'' in the
-space of assigned codes).
-
-@item
-If the requested range includes ``private'' or ``user space'' codes,
-these are handled in an implementation--specific manner; however, a
-UCS--based or Unicode--based Scheme implementation should pass them
-through transparently.
-
-@item
-If any code from the requested range specifies a valid, assigned UCS
-character that has no corresponding representative in the
-implementation's character type, then (1) an error is raised if
-@var{error?}  is true, and (2) the code is ignored if @var{error?} is
-@false{} (the default).  This might happen, for example, if the
-implementation uses @ascii{} characters, and the requested range
-includes non--@ascii{} characters.
-@end itemize
+If the requested range includes unassigned @acronym{UCS} values, these
+are silently ignored (the current @acronym{UCS} specification has
+``holes'' in the space of assigned codes).
 
 If character set @var{base-cs} is provided, the characters specified by
 the range are added to it.
 
-@func{ucs-range->char-set!} is allowed, but not required, to
-side--effect and reuse the storage in @var{base-cs};
 @func{ucs-range->char-set} produces a fresh character set.
-
-Note that @ascii{} codes are a subset of the Latin-1 codes, which are in
-turn a subset of the 16-bit Unicode codes, which are themselves a subset
-of the 32-bit UCS-4 codes.  We commit to a specific encoding in this
-routine, regardless of the underlying representation of characters, so
-that client code using this library will be portable.  I.e., a
-conformant Scheme implementation may use EBCDIC or SHIFT-JIS to encode
-characters; it must simply map the UCS characters from the given range
-into the native representation when possible, and report errors when not
-possible.
+@func{ucs-range->char-set!} is allowed, but not required, to
+side--effect and reuse the storage in @var{base-cs}.
 @end defun
 
 
-@defun ->char-set @var{x}
-Coerces @var{x} into a char-set.  @var{x} may be a string, character or
-char-set.  A string is converted to the set of its constituent
-characters; a character is converted to a singleton set; a char-set is
-returned as--is.
+@subsubheading Any value
 
-This procedure is intended for use by other procedures that want to
-provide ``user--friendly'', wide--spectrum interfaces to their clients.
+
+@defun ->char-set @var{obj}
+Coerces @var{obj} into a char set.  @var{obj} may be a string, a list of
+characters, a single character or a char set.  If @var{obj} is a
+character, a copy of it is returned.
 @end defun
 
 
 @c page
-@node more char-set general
-@subsection General procedures
+@node more char-sets search
+@subsection Searching
 
 
-@defun char-set? @var{obj}
-Return @true{} if @var{obj} is a character set, otherwise @false{}.
+@defun char-set-contains? @var{cs} @var{char}
+Return @true{} if @var{char} is an element of @var{cs}.
 @end defun
 
 
-@defun char-set= @var{cs1} ...
-Return @true{} if the given character sets are equal.
-
-Boundary cases:
-
-@example
-(char-set=)
-=> #t
-
-(char-set= cs)
-=> #t
-@end example
-
-@quotation
-@emph{Rationale:} Transitive binary relations are generally extended to
-@var{n}--ary relations in Scheme, which enables clearer, more concise
-code to be written.  While the zero--argument and one--argument cases
-will almost certainly not arise in first--order uses of such relations,
-they may well arise in higher--order cases or macro-generated code.
-E.g., consider:
-
-@example
-(apply char-set= cset-list)
-@end example
-
-This is well--defined if the list is empty or a singleton list.  Hence
-we extend these relations to any number of arguments.  Implementors have
-reported actual uses of @var{n}--ary relations in higher--order cases
-allowing for fewer than two arguments.  The way of Scheme is to handle
-the general case; we provide the fully general extension.
-
-A counter--argument to this extension is that @rnrs{5}'s transitive
-binary arithmetic relations (=, <, etc.) require at least two arguments,
-hence this decision is a break with the prior convention; although it is
-at least one that is backwards--compatible.
-@end quotation
+@defun char-set-find @var{pred} @var{cs}
+Return the first character in @var{cs} for which @var{pred} returns
+true.
 @end defun
 
 
-@defun char-set<= @var{cs1} ...
-Return @true{} if every character set @var{csi} is a subset of character
-set @var{csi}+1.
-
-Boundary cases:
-
-@example
-(char-set<=)
-=> #t
-
-(char-set<= cs)
-=> #t
-@end example
-
-@quotation
-@emph{Rationale:} See @func{char-set=} for discussion of zero--argument
-and one--argument applications.  Consider testing a list of char--sets
-for monotonicity with:
-
-@example
-(apply char-set<= cset-list)
-@end example
-@end quotation
+@defun char-set-every @var{pred} @var{cs}
+Return @true{} if @var{pred} applied to the characters in @var{cs}
+returns true on @strong{every} application.
 @end defun
 
 
-@defun char-set-hash @var{cs}
-@defunx char-set-hash @var{cs} @var{bound}
-Compute and return a hash value for the character set @var{cs}.  The
-hash value is an exact integer.
+@defun char-set-any @var{pred} @var{cs}
+Return @true{} if @var{pred} applied to the characters in @var{cs}
+returns true on @strong{any} application.
+@end defun
 
-@var{bound} is a non--negative exact integer specifying the range of the
-hash function.  A positive value restricts the return value to the range
-@code{[0, @var{bound})}.
 
-If @var{bound} is either zero or not given, the implementation may use
-an implementation--specific default value, chosen to be as large as is
-efficiently practical.  For instance, the default range might be chosen
-for a given implementation to map all strings into the range of integers
-that can be represented with a single machine word.
-
-Invariant:
-
-@example
-(char-set= cs1 cs2) => (= (char-set-hash cs1 b)
-                          (char-set-hash cs2 b))
-@end example
-
-A legal but nonetheless discouraged implementation:
-
-@example
-(define (char-set-hash cs . maybe-bound) 1)
-@end example
-
-@quotation
-@emph{Rationale:} allowing the user to specify an explicit bound
-simplifies user code by removing the mod operation that typically
-accompanies every hash computation, and also may allow the
-implementation of the hash function to exploit a reduced range to
-efficiently compute the hash value.
-
-E.g., for small bounds, the hash function may be computed in a fashion
-such that intermediate values never overflow into bignum integers,
-allowing the implementor to provide a fixnum--specific ``fast path'' for
-computing the common cases very rapidly.
-@end quotation
+@defun char-set-count @var{pred} @var{cs}
+Apply @var{pred} to the chars of character set @var{cs}, and return the
+number of chars that caused the predicate to return true.
 @end defun
 
 
 @c page
-@node more char-set iter
-@subsection Iterating over char sets
+@node more char-sets filter
+@subsection Filtering
+
+
+@defun char-set-filter @var{pred} @var{cs}
+@defunx char-set-filter @var{pred} @var{cs} @var{base-cs}
+@defunx char-set-filter! @var{pred} @var{cs} @var{base-cs}
+Return a character set containing every character @var{c} in @var{cs}
+such that @code{(pred c)} returns true.  If character set @var{base-cs}
+is provided, the characters specified by @var{pred} are added to it.
+
+@func{char-set-filter} produces a fresh character set.
+@func{char-set-filter!} is allowed, but not required, to side--effect
+and reuse the storage in @var{base-cs}.
+@end defun
+
+
+@defun char-set-partition @var{pred} @var{cs}
+@defunx char-set-partition! @var{pred} @var{cs}
+Partition the characters in @var{cs} with predicate @var{pred} and
+return 2 values: a char set holding the characters satisfying
+@var{pred}, a char set holding the other characters.
+
+@func{char-set-partition!} is allowed, but nor required, to modify
+@var{cs}.
+@end defun
+
+
+@defun char-set-remove @var{char} @var{cs}
+Return a char set holding the characters in @var{cs} that are not
+@var{char}.
+@end defun
+
+
+@defun char-set-remove* @var{pred} @var{cs}
+@defunx char-set-remove*! @var{pred} @var{cs}
+Return a char set holding the characters in @var{cs} that do not satisfy
+@var{pred}.
+
+@func{char-set-remove*!} is allowed, but nor required, to modify
+@var{cs}.
+@end defun
+
+
+@c page
+@node more char-sets iter
+@subsection Iteration
 
 
 @defun char-set-cursor @var{cset}
-@defunx char-set-ref @var{cset} @var{cursor}
-@defunx char-set-cursor-next @var{cset} @var{cursor}
+@defunx char-set-ref @var{cursor}
+@defunx char-set-cursor-next @var{cursor}
 @defunx end-of-char-set? @var{cursor}
 Cursors are a low--level facility for iterating over the characters in a
 set.  A cursor is a value that indexes a character in a char set.
@@ -21600,34 +21569,17 @@ A cursor index is incremented with @func{char-set-cursor-next}, which
 returns the updated cursor; in this way, code can step through every
 character in a char set.
 
-Stepping a cursor ``past the end'' of a char set produces a cursor that
-answers @true{} to @func{end-of-char-set?}.  It is an error to pass such
-a cursor to @func{char-set-ref} or to @func{char-set-cursor-next}.
-
-A cursor value may not be used in conjunction with a different character
-set; if it is passed to @func{char-set-ref} or
-@func{char-set-cursor-next} with a character set other than the one used
-to create it, the results and effects are undefined.
-
-Example:
+Examples:
 
 @example
-(define cs (char-set #\G #\a #\T #\e #\c #\h))
-
-;; Collect elts of CS into a list.
-(let lp ((cur (char-set-cursor cs)) (ans '()))
+(let loop ((cur (char-set-cursor cs)))
   (if (end-of-char-set? cur)
-      ans
-    (lp (char-set-cursor-next cs cur)
-        (cons (char-set-ref cs cur) ans))))
-=> (#\G #\T #\a #\c #\e #\h)
+      ---
+    (loop (char-set-cursor-next cur))))
 
-;; Equivalently, using a list unfold
-(unfold-right end-of-char-set?
-              (curry char-set-ref cs)
-              (curry char-set-cursor-next cs)
-              (char-set-cursor cs))
-=> (#\G #\T #\a #\c #\e #\h)
+(do ((cur (char-set-cursor cs) (char-set-cursor-next cur)))
+    ((end-of-char-set? cur))
+  ---)
 @end example
 @end defun
 
@@ -21760,68 +21712,26 @@ Example:
 
 
 @c page
-@node more char-set query
-@subsection Querying char sets
+@node more char-sets set
+@subsection Set operations
 
 
-@defun char-set-size @var{cs}
-Return the number of elements in character set @var{cs}.
+@defun char-set=?
+@defunx char-set=? @var{cs}
+@defunx char-set=? @var{cs0} @var{cs} @dots{}
+Return @true{} if the given character sets are equal.  If called without
+arguments or with one argument: return @true{}.
 @end defun
 
 
-@defun char-set-count @var{pred} @var{cs}
-Apply @var{pred} to the chars of character set @var{cs}, and return the
-number of chars that caused the predicate to return true.
+@defun char-set<=?
+@defunx char-set<=? @var{cs}
+@defunx char-set<=? @var{cs0} @var{cs} @dots{}
+Return @true{} if every character set @math{@var{cs}i} is a subset of
+character set @math{@var{cs}(i+1)}.  If called without arguments or with
+one argument: return @true{}.
 @end defun
 
-
-@defun char-set->list @var{cs}
-This procedure returns a list of the members of character set @var{cs}.
-The order in which @var{cs}'s characters appear in the list is not
-defined, and may be different from one call to another.
-@end defun
-
-
-@defun char-set->string @var{cs}
-This procedure returns a string containing the members of character set
-@var{cs}.  The order in which @var{cs}'s characters appear in the string
-is not defined, and may be different from one call to another.
-@end defun
-
-
-@defun char-set-contains? @var{cs} @var{char}
-This procedure tests char for membership in character set @var{cs}.
-@end defun
-
-
-@defun char-set-every @var{pred} @var{cs}
-@defunx char-set-any @var{pred} @var{cs}
-@func{char-set-every} returns true if predicate @var{pred} returns true
-of every character in the character set @var{cs}.
-
-@func{char-set-any} applies pred to every character in character set
-@var{cs}, and returns the first true value it finds.  If no character
-produces a true value, it returns @false{}.
-
-The order in which these procedures sequence through the elements of
-@var{cs} is not specified.
-
-Note that if you need to determine the actual character on which a
-predicate returns true, use @func{char-set-any} and arrange for the
-predicate to return the character parameter as its true value, e.g.
-
-@example
-(char-set-any
-    (lambda (c)
-      (and (char-upper-case? c) c))
-  cs)
-@end example
-@end defun
-
-
-@c page
-@node more char-set algebra
-@subsection Char sets algebra
 
 
 @defun char-set-adjoin @var{cs} @var{char1} ...
@@ -21896,8 +21806,8 @@ its two required parameters.
 
 
 @c page
-@node more char-set sets
-@subsection Standard char sets
+@node more char-sets std
+@subsection Predefined char sets
 
 
 Several character sets are predefined for convenience:
@@ -22463,8 +22373,6 @@ There are eighteen blank characters in Unicode 3.0:
 
 The @ascii{} blank characters are the first two characters above;
 horizontal tab and space.  Latin-1 adds the no--break space.
-
-
 
 
 @c page

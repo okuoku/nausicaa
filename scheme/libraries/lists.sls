@@ -35,7 +35,7 @@
 
     ;; predicats
     proper-list?	circular-list?		dotted-list?
-    null-list?		not-pair?		list=
+    null-list?		not-pair?		list=?
 
     ;; selectors
     car+cdr
@@ -78,7 +78,7 @@
     remove*		remove*!
 
     ;;searching
-    find		find-tail
+    find-tail
     take-while		take-while!
     drop-while
     span		span!
@@ -97,7 +97,7 @@
     alist-delete	alist-delete!
 
     ;; sets
-    lset<=			lset=
+    lset<=?			lset=?
     lset-adjoin
     lset-union			lset-union!
     lset-intersection		lset-intersection!
@@ -206,7 +206,7 @@
 
 ;;;; comparison
 
-(define list=
+(define list=?
   (case-lambda
    ((elm=?)
     #t)
@@ -228,8 +228,8 @@
        (else
 	#f))))
    ((elm=? . ells)
-    (and (list= elm=? (car ells) (cadr ells))
-	 (apply list= elm=? (cdr ells))))))
+    (and (list=? elm=? (car ells) (cadr ells))
+	 (apply list=? elm=? (cdr ells))))))
 
 
 ;;;; selectors
@@ -1182,7 +1182,7 @@
 (define (%lset2<= = lis1 lis2)
   (every (lambda (x) (member* x lis2 =)) lis1))
 
-(define (lset<= = . lists)
+(define (lset<=? = . lists)
   (or (not (pair? lists))
       (let lp ((s1 (car lists)) (rest (cdr lists)))
 	(or (not (pair? rest))
@@ -1191,7 +1191,7 @@
 		       (%lset2<= = s1 s2))
 		   (lp s2 rest)))))))
 
-(define (lset= = . lists)
+(define (lset=? = . lists)
   (or (not (pair? lists))
       (let lp ((s1 (car lists)) (rest (cdr lists)))
 	(or (not (pair? rest))

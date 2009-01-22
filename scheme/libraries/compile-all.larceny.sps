@@ -38,14 +38,14 @@
 (compile-library "scheme.sls"
 		 "scheme.slfasl")
 
-(compile-library "char-sets.sls"
-		 "char-sets.slfasl")
-
 (compile-library "format.sls"
 		 "format.slfasl")
 
 (compile-library "lists.sls"
 		 "lists.slfasl")
+
+(compile-library "char-sets.sls"
+		 "char-sets.slfasl")
 
 ;; (compile-library "strings.sls"
 ;; 		 "strings.slfasl")
