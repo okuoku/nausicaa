@@ -42,10 +42,10 @@
     with-result add-result get-result
 
     ;; more macros
-    catch-exception false-if-exception check-for-true
+    false-if-exception check-for-true check-for-false
 
     ;; selecting tests
-    testname
+    check-test-name
 
     ;; debugging
     debug debugging debug-print-condition)
@@ -84,14 +84,20 @@
 		  os)))
       (display os output-port)))
    ((datum)
-    (pretty-print/no-trailing-newline datum (current-output-port)))))
+    (pretty-print/no-trailing-newline datum (current-error-port)))))
 
-;;Return true if S1 is the prefix in S2.
-(define (string-prefix? s1 s2)
-  (or (eq? s1 s2)
-      (let ((len1 (string-length s1)))
-	(and (<= len1 (string-length s2))
-	     (string=? s1 (substring s2 0 len1))))))
+(define (string-prefix? prefix the-string)
+  (or (eq? prefix the-string)
+      (let ((prelen (string-length prefix)))
+	(and (<= prelen (string-length the-string))
+	     (string=? prefix (substring the-string 0 prelen))))))
+
+(define (string-suffix? suffix the-string)
+  (or (eq? suffix the-string)
+      (let ((strlen (string-length the-string))
+	    (suflen (string-length suffix)))
+	(and (<= suflen strlen)
+	     (string=? suffix (substring the-string suflen strlen))))))
 
 
 
@@ -326,12 +332,6 @@
 
 ;;;; more macros
 
-(define-syntax catch-exception
-  (syntax-rules ()
-    ((_ ?form0 ?form ...)
-     (guard (exc (else exc))
-       ?form0 ?form ...))))
-
 (define-syntax false-if-exception
   (syntax-rules ()
     ((_ ?form0 ?form ...)
@@ -341,30 +341,35 @@
 (define-syntax check-for-true
   (syntax-rules ()
     ((_ ?form)
-     (check-it (and ?form #t) => #t))))
+     (check (and ?form #t) => #t))))
+
+(define-syntax check-for-false
+  (syntax-rules ()
+    ((_ ?form)
+     (check (and ?form #f) => #t))))
 
 
 ;;;; selecting tests
 
-(define testname
+(define check-test-name
   (make-parameter #f
     (lambda (value)
       (unless (or (not value) (string? value) (symbol? value))
-	(assertion-violation 'testname
+	(assertion-violation 'check-test-name
 	  "expected #f or string as parameter value" value))
-      (if (symbol? value)
-	  (symbol->string value)
-	value))))
+      (symbol*->string value))))
 
-(define selected-test (get-environment-variable "CHECK_TEST_NAME"))
+(define selected-test
+  (get-environment-variable "CHECK_TEST_NAME"))
 
-(define (check-activation)
+(define (eval-this-test?)
   (or (not selected-test)
       (= 0 (string-length selected-test))
-      (if (testname)
-	  (or (string-prefix? selected-test (testname))
-	      (string-prefix? (testname) selected-test))
-	#f)))
+      (let ((name (check-test-name)))
+	(if name
+	    (or (string-prefix? selected-test name)
+		(string-suffix? selected-test name))
+	  #f))))
 
 (define-syntax check
   (syntax-rules (=>)
@@ -372,15 +377,15 @@
      (srfi:check ?expr (=> equal?) ?expected-result))
 
     ((_ ?expr (=> ?equal) ?expected-result)
-     (when (check-activation)
+     (when (eval-this-test?)
        (check ?expr (=> ?equal) ?expected-result)))
 
     ((_ ?name ?expr => ?expected-result)
      (srfi:check ?name ?expr (=> equal?) ?expected-result))
 
     ((_ ?name ?expr (=> ?equal) ?expected-result)
-     (parameterize ((testname ?name))
-       (when (check-activation)
+     (parameterize ((check-test-name ?name))
+       (when (eval-this-test?)
 	 (check ?expr (=> ?equal) ?expected-result))))))
 
 

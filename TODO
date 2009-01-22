@@ -19,11 +19,15 @@ Stuff related to me, the Earth and the Universe in general
 Scheme
 ------
 
-* import lists
-* import strings
-* import format
-* import streams
+* import char-set
+* import compare
 * import ffi
+* import format
+* import random
+* import streams
+* import strings
+* import time
+* import vectors
 
 
 Stubs

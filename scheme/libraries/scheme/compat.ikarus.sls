@@ -28,6 +28,7 @@
   (export
 
     equal-hash pretty-print implementation-features
+    finite? infinite? nan?
 
     ;; parameters
     make-parameter parameterize

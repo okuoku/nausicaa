@@ -1,6 +1,7 @@
 ;;;SRFI-1 list-processing library
 ;;;Reference implementation
 ;;;
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 1998, 1999 by Olin Shivers <shivers@ai.mit.edu>.
 ;;;Modified by Abdulaziz Ghuloum to port to Ikarus.
 ;;;Modified by Derick Eddington to port to R6RS.
@@ -25,37 +26,19 @@
 
 
 #!r6rs
-(library (srfi lists)
+(library (lists)
   (export
 
     ;; constructors
-    cons xcons cons*
-    list make-list list-tabulate list-copy circular-list iota
+    xcons
+    make-list list-tabulate list-copy circular-list iota
 
     ;; predicats
     proper-list?	circular-list?		dotted-list?
-    null?		null-list?
-    pair?		not-pair?
-    list=
+    null-list?		not-pair?		list=
 
     ;; selectors
-    car			cdr			car+cdr
-    caar		cadr
-    cdar		cddr
-    caaar		caadr
-    cadar		caddr
-    cdaar		cdadr
-    cddar		cdddr
-    caaaar		caaadr
-    caadar		caaddr
-    cadaar		cadadr
-    caddar		cadddr
-    cdaaar		cdaadr
-    cdadar		cdaddr
-    cddaar		cddadr
-    cdddar		cddddr
-
-    list-ref
+    car+cdr
     first		second			third
     fourth		fifth			sixth
     seventh		eighth			ninth
@@ -67,10 +50,10 @@
     last		last-pair
 
     ;; misc
-    length		length+
-    append		append!
+    length+
+    append!
     concatenate		concatenate!
-    reverse		reverse!
+    reverse!
     append-reverse	append-reverse!
     zip
     unzip1		unzip2			unzip3
@@ -78,13 +61,13 @@
     count
 
     ;; fold
-    fold		fold-right
+    fold		fold-right*
     pair-fold		pair-fold-right
     reduce		reduce-right
     unfold		unfold-right
 
     ;; map
-    map			for-each
+    map*		for-each*
     append-map		append-map!
     map!		map-in-order
     pair-for-each	filter-map
@@ -92,7 +75,7 @@
     ;; filtering
     filter		filter!
     partition		partition!
-    remove		remove!
+    remove*		remove*!
 
     ;;searching
     find		find-tail
@@ -101,16 +84,14 @@
     span		span!
     break		break!
     any			every
-    list-index
-    member
-    memq		memv
+    list-index		member*
 
     ;; deletion
     delete		delete!
     delete-duplicates	delete-duplicates!
 
     ;; alists
-    assoc
+    assoc*
     assq		assv
     alist-cons		alist-copy
     alist-delete	alist-delete!
@@ -122,20 +103,9 @@
     lset-intersection		lset-intersection!
     lset-difference		lset-difference!
     lset-xor			lset-xor!
-    lset-diff+intersection	lset-diff+intersection!
-
-    ;; side effects
-    set-car!			set-cdr!)
-  (import (rename (rnrs)
-		  (assoc	rnrs:assoc)
-		  (fold-right	rnrs:fold-right)
-		  (for-each	rnrs:for-each)
-		  (map		rnrs:map)
-		  (member	rnrs:member)
-		  (remove	rnrs:remove))
-    (rnrs mutable-pairs (6))
-    (srfi lists compat)
-    (srfi receive))
+    lset-diff+intersection	lset-diff+intersection!)
+  (import (scheme)
+    (rnrs mutable-pairs (6)))
 
 
 ;;;; constructors
@@ -143,11 +113,28 @@
 (define (xcons d a)
   (cons a d))
 
+(define make-list
+  (case-lambda
+   ((len)
+    (make-list len #f))
+   ((len fill)
+    (do ((i 0 (+ 1 i))
+	 (l '() (cons fill l)))
+	((= i len)
+	 l)))))
+
 (define (list-copy ell)
   (let loop ((ell ell))
     (if (pair? ell)
 	(cons (car ell) (loop (cdr ell)))
       ell)))
+
+(define (tree-copy x)
+  (let loop ((x x))
+    (if (pair? x)
+	(cons (loop (car x))
+	      (loop (cdr x)))
+      x)))
 
 (define (list-tabulate len proc)
   (do ((i (- len 1) (- i 1))
@@ -214,6 +201,7 @@
   (cond ((pair? l) #f)
 	((null? l) #t)
 	(else (error 'null-list? "argument out of domain" l))))
+
 
 
 ;;;; comparison
@@ -335,6 +323,12 @@
 (define (last ell)
   (car (last-pair ell)))
 
+(define (last-pair x)
+  (let loop ((x x))
+    (if (pair? (cdr x))
+	(loop (cdr x))
+      x)))
+
 
 ;;;; miscellaneous
 
@@ -355,12 +349,14 @@
 
 (define (append! . lists)
   ;; First, scan through lists looking for a non-empty one.
-  (let lp ((lists lists) (prev '()))
-    (if (not (pair? lists)) prev
+  (let lp ((lists lists)
+	   (prev '()))
+    (if (not (pair? lists))
+	prev
       (let ((first (car lists))
 	    (rest (cdr lists)))
-	(if (not (pair? first)) (lp rest first)
-
+	(if (not (pair? first))
+	    (lp rest first)
 	  ;; Now, do the splicing.
 	  (let lp2 ((tail-cons (last-pair first))
 		    (rest rest))
@@ -397,7 +393,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (zip list1 . more-lists)
-  (apply map list list1 more-lists))
+  (apply map* list list1 more-lists))
 
 (define (unzip1 lis)
   (map car lis))
@@ -648,7 +644,7 @@
 	    result
 	  (loop cdrs (apply kons cars+result))))))))
 
-(define fold-right
+(define fold-right*
   (case-lambda
 
    ((kons knil ell)
@@ -749,7 +745,7 @@
 
 ;;;; mappers
 
-(define for-each
+(define for-each*
   (case-lambda
 
    ((f ell)
@@ -788,7 +784,7 @@
 	      (cons x (recur cdrs)))  ; then tail.
 	  '()))))))
 
-(define map map-in-order)
+(define map* map-in-order)
 
 ;;; --------------------------------------------------------------------
 
@@ -953,13 +949,13 @@
 		 (values l lis)) ; Done.
 		(else (lp l (cdr l)))))))))
 
-(define (remove  pred l)
+(define (remove*  pred l)
   (filter
       (lambda (x)
 	(not (pred x)))
     l))
 
-(define (remove! pred l)
+(define (remove*! pred l)
   (filter!
       (lambda (x)
 	(not (pred x)))
@@ -1100,10 +1096,10 @@
       (and (not (null-list? lis))
 	   (if (pred (car lis)) n (lp (cdr lis) (+ n 1)))))))
 
-(define member
+(define member*
   (case-lambda
    ((x lis)
-    (member x lis equal?))
+    (member x lis))
    ((x lis =)
     (find-tail (lambda (y) (= x y)) lis))))
 
@@ -1151,10 +1147,10 @@
 
 ;;;; alists
 
-(define assoc
+(define assoc*
   (case-lambda
    ((x lis)
-    (assoc x lis equal?))
+    (assoc x lis))
    ((x lis =)
     (find (lambda (entry) (= x (car entry))) lis))))
 
@@ -1162,10 +1158,9 @@
   (cons (cons key datum) alist))
 
 (define (alist-copy alist)
-  (rnrs:map
-   (lambda (elt)
-     (cons (car elt) (cdr elt)))
-   alist))
+  (map (lambda (elt)
+	 (cons (car elt) (cdr elt)))
+    alist))
 
 (define alist-delete
   (case-lambda
@@ -1185,7 +1180,7 @@
 ;;; sets
 
 (define (%lset2<= = lis1 lis2)
-  (every (lambda (x) (member x lis2 =)) lis1))
+  (every (lambda (x) (member* x lis2 =)) lis1))
 
 (define (lset<= = . lists)
   (or (not (pair? lists))
@@ -1209,7 +1204,7 @@
 
 
 (define (lset-adjoin = lis . elts)
-  (fold (lambda (elt ans) (if (member elt ans =) ans (cons elt ans)))
+  (fold (lambda (elt ans) (if (member* elt ans =) ans (cons elt ans)))
 	lis elts))
 
 (define (lset-union = . lists)
@@ -1245,7 +1240,7 @@
     (cond ((any null-list? lists) '())
 	  ((null? lists)          lis1)
 	  (else (filter (lambda (x)
-			  (every (lambda (lis) (member x lis =)) lists))
+			  (every (lambda (lis) (member* x lis =)) lists))
 		  lis1)))))
 
 (define (lset-intersection! = lis1 . lists)
@@ -1253,7 +1248,7 @@
     (cond ((any null-list? lists) '())
 	  ((null? lists)          lis1)
 	  (else (filter! (lambda (x)
-			   (every (lambda (lis) (member x lis =)) lists))
+			   (every (lambda (lis) (member* x lis =)) lists))
 			 lis1)))))
 
 (define (lset-difference = lis1 . lists)
@@ -1261,7 +1256,7 @@
     (cond ((null? lists)     lis1)
 	  ((memq lis1 lists) '())
 	  (else (filter (lambda (x)
-			  (every (lambda (lis) (not (member x lis =)))
+			  (every (lambda (lis) (not (member* x lis =)))
 			    lists))
 		  lis1)))))
 
@@ -1270,7 +1265,7 @@
     (cond ((null? lists)     lis1)
 	  ((memq lis1 lists) '())
 	  (else (filter! (lambda (x)
-			   (every (lambda (lis) (not (member x lis =)))
+			   (every (lambda (lis) (not (member* x lis =)))
 			     lists))
 			 lis1)))))
 
@@ -1280,7 +1275,7 @@
 	      (cond ((null? a-b)     (lset-difference = b a))
 		    ((null? a-int-b) (append b a))
 		    (else (fold (lambda (xb ans)
-				  (if (member xb a-int-b =) ans (cons xb ans)))
+				  (if (member* xb a-int-b =) ans (cons xb ans)))
 				a-b
 				b)))))
 	  '() lists))
@@ -1292,7 +1287,7 @@
        (cond ((null? a-b)     (lset-difference! = b a))
 	     ((null? a-int-b) (append! b a))
 	     (else (pair-fold (lambda (b-pair ans)
-				(if (member (car b-pair) a-int-b =) ans
+				(if (member* (car b-pair) a-int-b =) ans
 				  (begin (set-cdr! b-pair ans) b-pair)))
 			      a-b
 			      b)))))
@@ -1302,7 +1297,7 @@
   (cond ((every null-list? lists) (values lis1 '()))
 	((memq lis1 lists)        (values '() lis1))
 	(else (partition (lambda (elt)
-			   (not (any (lambda (lis) (member elt lis =))
+			   (not (any (lambda (lis) (member* elt lis =))
 				     lists)))
 			 lis1))))
 
@@ -1310,7 +1305,7 @@
   (cond ((every null-list? lists) (values lis1 '()))
 	((memq lis1 lists)        (values '() lis1))
 	(else (partition! (lambda (elt)
-			    (not (any (lambda (lis) (member elt lis =))
+			    (not (any (lambda (lis) (member* elt lis =))
 				   lists)))
 			  lis1))))
 

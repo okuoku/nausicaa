@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
-;;;Contents: tests for parameters
-;;;Date: Thu Dec 25, 2008
+;;;Part of: Nausicaa/Scheme
+;;;Contents: test for R6RS compliance and extensions
+;;;Date: Mon Dec  8, 2008
 ;;;
 ;;;Abstract
 ;;;
@@ -23,20 +23,104 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 ;;;; setup
 
-(import (r6rs)
-  (lang-lib)
-  (check-lib))
+(import (scheme)
+  (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing parameters\n")
+(display "*** testing R6RS compliance and extensions\n")
 
 
 
-;;;; code
+;;;; tests
+
+(check
+    (integer? (equal-hash '#(1 2 3)))
+  => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (finite? 123)
+  => #t)
+
+(check
+    (finite? +inf.0)
+  => #f)
+
+(check
+    (finite? 123+456i)
+  => #t)
+
+(check
+    (finite? +inf.0+456i)
+  => #f)
+
+(check
+    (finite? 123+inf.0i)
+  => #f)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (infinite? 123)
+  => #f)
+
+(check
+    (infinite? +inf.0)
+  => #t)
+
+(check
+    (infinite? 123+456i)
+  => #f)
+
+(check
+    (infinite? +inf.0+456i)
+  => #t)
+
+(check
+    (infinite? 123+inf.0i)
+  => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (nan? 123)
+  => #f)
+
+(check
+    (nan? +inf.0)
+  => #f)
+
+(check
+    (nan? 123+456i)
+  => #f)
+
+(check
+    (nan? +inf.0+456i)
+  => #f)
+
+(check
+    (nan? 123+inf.0i)
+  => #f)
+
+(check
+    (nan? +nan.0)
+  => #t)
+
+(check
+    (nan? 123+nan.0i)
+  => #t)
+
+(check
+    (nan? +nan.0+456i)
+  => #t)
+
+
+
+;;;; parameters
 
 (define alpha
   (make-parameter 123))

@@ -35,59 +35,91 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
+
+
 #!r6rs
 (library (scheme compat)
   (export
 
     equal-hash pretty-print implementation-features
+    finite? infinite? nan?
 
     ;; parameters
     make-parameter parameterize
 
     ;; environment variables
     get-environment-variable get-environment-variables)
-  (import (rnrs)
+  (import (rename (rnrs)
+		  (finite?	rnrs:finite?)
+		  (infinite?	rnrs:infinite?)
+		  (nan?		rnrs:nan?))
     (only (system)
 	  get-environment-variable get-environment-variables)
     (only (mosh pp)
 	  pretty-print))
 
-  (define implementation-features
-    '(mosh))
 
-  (define make-parameter
-    (case-lambda
-     ((val)
-      (make-parameter val values))
-     ((val guard)
-      (unless (procedure? guard)
-	(assertion-violation 'make-parameter "not a procedure" guard))
-      (let ((p (case-lambda
-		(() val)
-		((x) (set! val (guard x))))))
-	(p val)
-	p))))
+
+;;;; implementation
 
-  ;;Derived from Ikarus's implementation of parameterize.
-  (define-syntax parameterize
-    (lambda (stx)
-      (syntax-case stx ()
-        ((_ () ?expr0 ?expr ...)
-         (syntax (letrec* () ?expr0 ?expr ...)))
-        ((_ ((?parm ?value) ...) ?expr0 ?expr ...)
-         (with-syntax
-	     (((tp ...) (generate-temporaries (syntax (?parm ...))))
-	      ((te ...) (generate-temporaries (syntax (?value ...)))))
-           (syntax (let ((tp ?parm) ...
-			 (te ?value) ...)
-		     (let ((swap (lambda ()
-				   (let ((t (tp)))
-				     (tp te)
-				     (set! te t))
-				   ...)))
-		       (dynamic-wind
-			   swap
-			   (lambda () ?expr0 ?expr ...)
-			   swap))))))))))
+(define implementation-features
+  '(mosh))
+
+;;; --------------------------------------------------------------------
+
+(define (finite? num)
+  (if (complex? num)
+      (and (rnrs:finite? (real-part num))
+	   (rnrs:finite? (imag-part num)))
+    (rnrs:finite? num)))
+
+(define-syntax cplx-or-pred
+  (syntax-rules ()
+    ((_ ?pred ?rnrs-pred)
+     (define (?pred num)
+       (if (complex? num)
+	   (or (?rnrs-pred (real-part num))
+	       (?rnrs-pred (imag-part num)))
+	 (?rnrs-pred num))))))
+
+(cplx-or-pred infinite?	rnrs:infinite?)
+(cplx-or-pred nan?	rnrs:nan?)
+
+;;; --------------------------------------------------------------------
+
+(define make-parameter
+  (case-lambda
+   ((val)
+    (make-parameter val values))
+   ((val guard)
+    (unless (procedure? guard)
+      (assertion-violation 'make-parameter "not a procedure" guard))
+    (let ((p (case-lambda
+	      (() val)
+	      ((x) (set! val (guard x))))))
+      (p val)
+      p))))
+
+;;Derived from Ikarus's implementation of parameterize.
+(define-syntax parameterize
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ () ?expr0 ?expr ...)
+       (syntax (letrec* () ?expr0 ?expr ...)))
+      ((_ ((?parm ?value) ...) ?expr0 ?expr ...)
+       (with-syntax
+	   (((tp ...) (generate-temporaries (syntax (?parm ...))))
+	    ((te ...) (generate-temporaries (syntax (?value ...)))))
+	 (syntax (let ((tp ?parm) ...
+		       (te ?value) ...)
+		   (let ((swap (lambda ()
+				 (let ((t (tp)))
+				   (tp te)
+				   (set! te t))
+				 ...)))
+		     (dynamic-wind
+			 swap
+			 (lambda () ?expr0 ?expr ...)
+			 swap))))))))))
 
 ;;; end of file

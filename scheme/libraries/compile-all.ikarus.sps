@@ -27,6 +27,7 @@
   (only (scheme))
   (only (checks))
   (only (loops))
+  (only (lists))
   (only (format))
 ;;  (only (strings))
   )

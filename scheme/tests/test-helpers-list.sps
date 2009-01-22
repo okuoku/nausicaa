@@ -1,13 +1,13 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
-;;;Contents: tests for list-lib helpers
+;;;Part of: Nausicaa/Scheme
+;;;Contents: tests for lists helpers
 ;;;Date: Mon Dec 29, 2008
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,8 +27,8 @@
 
 ;;;; setup
 
-(import (r6rs)
-  (check-lib)
+(import (scheme)
+  (checks)
   (rnrs mutable-pairs (6)))
 
 (check-set-mode! 'report-failed)

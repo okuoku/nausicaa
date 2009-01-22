@@ -29,7 +29,8 @@
 
 (import (scheme)
   (checks)
-  (lists))
+  (lists)
+  (rnrs mutable-pairs))
 
 (check-set-mode! 'report-failed)
 
@@ -1164,56 +1165,56 @@
 ;;; --------------------------------------------------------------------
 
 (check
-    (srfi:fold-right cons '() '(1 2 3))
+    (fold-right* cons '() '(1 2 3))
   => '(1 2 3))
 
 (check
-    (srfi:fold-right cons '() numbers)
+    (fold-right* cons '() numbers)
   => numbers)
 
 (check
-    (srfi:fold-right + 0 numbers)
+    (fold-right* + 0 numbers)
   => 45)
 
 (check
-    (srfi:fold-right cons '(4 5 6) '(1 2 3))
+    (fold-right* cons '(4 5 6) '(1 2 3))
   => '(1 2 3 4 5 6))
 
 (check
-    (srfi:fold-right (lambda (x count)
-		       (if (symbol? x)
-			   (+ count 1)
-			 count))
-		     0
-		     '(a 1 b 2 c 3))
+    (fold-right* (lambda (x count)
+		   (if (symbol? x)
+		       (+ count 1)
+		     count))
+		 0
+		 '(a 1 b 2 c 3))
   => 3)
 
 (check
-    (srfi:fold-right (lambda (s len)
-		       (max len (string-length s)))
-		     0
-		     '("ciao" "hello" "salut" "hola"))
+    (fold-right* (lambda (s len)
+		   (max len (string-length s)))
+		 0
+		 '("ciao" "hello" "salut" "hola"))
   => 5)
 
 (check
-    (srfi:fold-right (lambda (x l)
-		       (if (even? x)
-			   (cons x l)
-			 l))
-		     '()
-		     '(0 1 2 3 4 5 6 7 8 9))
+    (fold-right* (lambda (x l)
+		   (if (even? x)
+		       (cons x l)
+		     l))
+		 '()
+		 '(0 1 2 3 4 5 6 7 8 9))
   => '(0 2 4 6 8))
 
 (check
-    (srfi:fold-right cons* '()
-		     '(a b c)
-		     '(1 2 3 4 5))
+    (fold-right* cons* '()
+		 '(a b c)
+		 '(1 2 3 4 5))
   => '(a 1 b 2 c 3))
 
 (check
-    (srfi:fold-right cons* '()
-		     '(a)
-		     '(1))
+    (fold-right* cons* '()
+		 '(a)
+		 '(1))
   => '(a 1))
 
 (check
@@ -1253,7 +1254,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '(1 2 3)
 	       '(10 20 30)
@@ -1268,7 +1269,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '(1)
 	       '(10)
@@ -1281,7 +1282,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '(1)
 	       '(10 20 30)
@@ -1294,7 +1295,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '(1 2 3)
 	       '(10)
@@ -1306,7 +1307,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '(1 2 3)
 	       '(10 20 30)
@@ -1319,7 +1320,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '()
 	       '(10 20 30)
@@ -1331,7 +1332,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '(1 2 3)
 	       '()
@@ -1343,7 +1344,7 @@
 		 (cons (list (car a)
 			     (car b)
 			     (car c))
-			     knil))
+		       knil))
 	       '(999)
 	       '(1 2 3)
 	       '(10 20 30)
@@ -1632,8 +1633,8 @@
 	  (lambda (e1 e2)
 	    (set! r (list (+ e1 (car r))
 			  (+ e2 (cadr r)))))
-      '(1 10 100)
-      '(2 20 200))
+	'(1 10 100)
+	'(2 20 200))
       r)
   => '(111 222))
 
@@ -1645,163 +1646,163 @@
 	    (set! r (list (+ e1 (car r))
 			  (+ e2 (cadr r))
 			  (+ e3 (caddr r)))))
-      '(1 10 100)
-      '(2 20 200)
-      '(3 30 300))
+	'(1 10 100)
+	'(2 20 200)
+	'(3 30 300))
       r)
   => '(111 222 333))
 
 ;;; --------------------------------------------------------------------
 
 (check
-    (srfi:map - '())
+    (map* - '())
   => '())
 
 (check
-    (srfi:map - '() '())
+    (map* - '() '())
   => '())
 
 (check
-    (srfi:map - '() '() '())
+    (map* - '() '() '())
   => '())
 
 (check
-    (srfi:map - '() '() '() '())
+    (map* - '() '() '() '())
   => '())
 
 (check
-    (srfi:map - numbers)
+    (map* - numbers)
   => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
 
 (check
-    (srfi:map + '(1 2 3))
+    (map* + '(1 2 3))
   => '(1 2 3))
 
 (check
-    (srfi:map +
-	      '(1 2 3)
-	      '(10 20 30))
+    (map* +
+	  '(1 2 3)
+	  '(10 20 30))
   => '(11 22 33))
 
 (check
-    (srfi:map +
-	      '(1 2 3)
-	      '(10 20 30)
-	      '(100 200 300))
+    (map* +
+	  '(1 2 3)
+	  '(10 20 30)
+	  '(100 200 300))
   => '(111 222 333))
 
 (check
-    (srfi:map +
-	      '(1 2 3)
-	      '(10 20)
-	      '(100 200 300))
+    (map* +
+	  '(1 2 3)
+	  '(10 20)
+	  '(100 200 300))
   => '(111 222))
 
 (check
-    (srfi:map +
-	      '(1 2)
-	      '(10 20 30)
-	      '(100 200 300))
+    (map* +
+	  '(1 2)
+	  '(10 20 30)
+	  '(100 200 300))
   => '(111 222))
 
 (check
-    (srfi:map +
-	      '(1 2 3)
-	      '(10 20 30)
-	      '(100 200))
+    (map* +
+	  '(1 2 3)
+	  '(10 20 30)
+	  '(100 200))
   => '(111 222))
 
 (check
-    (srfi:map +
-	      '()
-	      '(10 20 30)
-	      '(100 200 300))
+    (map* +
+	  '()
+	  '(10 20 30)
+	  '(100 200 300))
   => '())
 
 (check
-    (srfi:map +
-	      '(1 2 3)
-	      '()
-	      '(100 200 300))
+    (map* +
+	  '(1 2 3)
+	  '()
+	  '(100 200 300))
   => '())
 
 (check
-    (srfi:map +
-	      '(1 2 3)
-	      '(10 20 30)
-	      '())
+    (map* +
+	  '(1 2 3)
+	  '(10 20 30)
+	  '())
   => '())
 
 (check
-    (srfi:map +
-	      '(3 1 4 1)
-	      (circular-list 1 0))
+    (map* +
+	  '(3 1 4 1)
+	  (circular-list 1 0))
   => '(4 1 5 1))
 
 ;;; --------------------------------------------------------------------
 
 (check
     (let ((r 0))
-      (srfi:for-each
-	  (lambda (e)
-	    (set! r (+ e r)))
-	'())
+      (for-each*
+       (lambda (e)
+	 (set! r (+ e r)))
+       '())
       r)
   => 0)
 
 (check
     (let ((r 0))
-      (srfi:for-each
-	  (lambda (e1 e2)
-	    (set! r (+ e1 e2 r)))
-	'() '())
+      (for-each*
+       (lambda (e1 e2)
+	 (set! r (+ e1 e2 r)))
+       '() '())
       r)
   => 0)
 
 (check
     (let ((r 0))
-      (srfi:for-each
-	  (lambda (e1 e2 e3)
-	    (set! r (+ e1 e2 e3 r)))
-	'() '() '())
+      (for-each*
+       (lambda (e1 e2 e3)
+	 (set! r (+ e1 e2 e3 r)))
+       '() '() '())
       r)
   => 0)
 
 (check
     (let ((r '(0 0)))
-      (srfi:for-each
-	  (lambda (e1 e2)
-	    (set! r (list (+ e1 (car r))
-			  (+ e2 (cadr r)))))
-      '(1 10 100)
-      '(2 20 200))
+      (for-each*
+       (lambda (e1 e2)
+	 (set! r (list (+ e1 (car r))
+		       (+ e2 (cadr r)))))
+       '(1 10 100)
+       '(2 20 200))
       r)
   => '(111 222))
 
 
 (check
     (let ((r '(0 0 0)))
-      (srfi:for-each
-	  (lambda (e1 e2 e3)
-	    (set! r (list (+ e1 (car r))
-			  (+ e2 (cadr r))
-			  (+ e3 (caddr r)))))
-      '(1 10 100)
-      '(2 20 200)
-      '(3 30 300))
+      (for-each*
+       (lambda (e1 e2 e3)
+	 (set! r (list (+ e1 (car r))
+		       (+ e2 (cadr r))
+		       (+ e3 (caddr r)))))
+       '(1 10 100)
+       '(2 20 200)
+       '(3 30 300))
       r)
   => '(111 222 333))
 
 (check
     (let ((r '(0 0 0)))
-      (srfi:for-each
-	  (lambda (e1 e2 e3)
-	    (set! r (list (+ e1 (car r))
-			  (+ e2 (cadr r))
-			  (+ e3 (caddr r)))))
-      '(1 10 100)
-      '(2 20 200)
-      (circular-list 3 30 300))
+      (for-each*
+       (lambda (e1 e2 e3)
+	 (set! r (list (+ e1 (car r))
+		       (+ e2 (cadr r))
+		       (+ e3 (caddr r)))))
+       '(1 10 100)
+       '(2 20 200)
+       (circular-list 3 30 300))
       r)
   => '(111 222 333))
 
@@ -1840,42 +1841,42 @@
 
 (check
     (append-map list
-		 '(1 2 3)
-		 '(10 20 30))
+		'(1 2 3)
+		'(10 20 30))
   => '(1 10 2 20 3 30))
 
 (check
     (append-map list
-		 '(1 2 3)
-		 '(10 20 30))
+		'(1 2 3)
+		'(10 20 30))
   => '(1 10 2 20 3 30))
 
 (check
     (append-map list
-		 '(1 2 3)
-		 '(10 20 30)
-		 '(100 200 300))
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200 300))
   => '(1 10 100 2 20 200 3 30 300))
 
 (check
     (append-map list
-		 '(1 2)
-		 '(10 20 30)
-		 '(100 200 300))
+		'(1 2)
+		'(10 20 30)
+		'(100 200 300))
   => '(1 10 100 2 20 200))
 
 (check
     (append-map list
-		 '(1 2 3)
-		 '(10 20)
-		 '(100 200 300))
+		'(1 2 3)
+		'(10 20)
+		'(100 200 300))
   => '(1 10 100 2 20 200))
 
 (check
     (append-map list
-		 '(1 2 3)
-		 '(10 20 30)
-		 '(100 200))
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200))
   => '(1 10 100 2 20 200))
 
 ;;; --------------------------------------------------------------------
@@ -2432,37 +2433,37 @@
 ;;; --------------------------------------------------------------------
 
 (check
-    (srfi:remove even? '())
+    (remove* even? '())
   => '())
 
 (check
-    (srfi:remove even? '(1))
+    (remove* even? '(1))
   => '(1))
 
 (check
-    (srfi:remove even? '(2))
+    (remove* even? '(2))
   => '())
 
 (check
-    (srfi:remove even? numbers)
+    (remove* even? numbers)
   => '(1 3 5 7 9))
 
 ;;; --------------------------------------------------------------------
 
 (check
-    (remove! even? '())
+    (remove*! even? '())
   => '())
 
 (check
-    (remove! even? '(1))
+    (remove*! even? '(1))
   => '(1))
 
 (check
-    (remove! even? '(2))
+    (remove*! even? '(2))
   => '())
 
 (check
-    (remove! even? (list-copy numbers))
+    (remove*! even? (list-copy numbers))
   => '(1 3 5 7 9))
 
 
@@ -2778,13 +2779,13 @@
 
 (check
     (every (lambda args
-	   (integer? (apply + args)))
+	     (integer? (apply + args)))
       '() '())
   => #t)
 
 (check
     (every (lambda args
-	   (integer? (apply + args)))
+	     (integer? (apply + args)))
       '() '() '())
   => #t)
 
@@ -2792,40 +2793,40 @@
 ;;; not applied at all and the return value is true.
 (check
     (and (every (lambda args
-		(integer? (apply + args)))
+		  (integer? (apply + args)))
 	   '(1) '() '())
 	 #t)
   => #t)
 (check
     (and (every (lambda args
-		(integer? (apply + args)))
+		  (integer? (apply + args)))
 	   '() '(1) '())
 	 #t)
   => #t)
 (check
     (and (every (lambda args
-		(integer? (apply + args)))
+		  (integer? (apply + args)))
 	   '() '() '(1))
 	 #t)
   => #t)
 
 (check
     (and (every (lambda args
-		(integer? (apply + args)))
+		  (integer? (apply + args)))
 	   '(1) '(1.1) '(2))
 	 #t)
   => #f)
 
 (check
     (and (every (lambda args
-		(integer? (apply + args)))
+		  (integer? (apply + args)))
 	   '(1) '(2) '(2))
 	 #t)
   => #t)
 
 (check
     (and (every (lambda args
-		(integer? (apply + args)))
+		  (integer? (apply + args)))
 	   '(1 2)
 	   '(2 2.2)
 	   '(1 3))
@@ -2834,7 +2835,7 @@
 
 (check
     (and (every (lambda args
-		(integer? (apply + args)))
+		  (integer? (apply + args)))
 	   '(1 2)
 	   '(2 2)
 	   '(1 3))
@@ -2935,25 +2936,25 @@
   => '((a) c))
 
 (check
-    (srfi:member '(a)
-		 '(b (a) c))
+    (member* '(a)
+	     '(b (a) c))
   => '((a) c))
 
 (check
-    (srfi:member '(a)
-		 '(b a c))
+    (member* '(a)
+	     '(b a c))
   => #f)
 
 (check
-    (srfi:member '(a)
-		 '())
+    (member* '(a)
+	     '())
   => #f)
 
 (check
-    (srfi:member 10
-		 '(1 2 3 11 4 5)
-		 (lambda (a b)
-		   (= (+ 1 a) b)))
+    (member* 10
+	     '(1 2 3 11 4 5)
+	     (lambda (a b)
+	       (= (+ 1 a) b)))
   => '(11 4 5))
 
 ;;; --------------------------------------------------------------------
@@ -2961,6 +2962,7 @@
 (check
     (memv 101 '(100 101 102))
   => '(101 102))
+
 
 
 ;;;; deletion
@@ -3179,60 +3181,60 @@
 ;;; --------------------------------------------------------------------
 
 (check
-    (srfi:assoc 'c
-		'())
+    (assoc* 'c
+	    '())
   => #f)
 
 (check
-    (srfi:assoc 'd
-		'((a . 1)
-		  (b . 2)
-		  (c . 3)))
+    (assoc* 'd
+	    '((a . 1)
+	      (b . 2)
+	      (c . 3)))
   => #f)
 
 (check
-    (srfi:assoc 'a
-		'((a . 1)
-		  (b . 2)
-		  (c . 3)))
+    (assoc* 'a
+	    '((a . 1)
+	      (b . 2)
+	      (c . 3)))
   => '(a . 1))
 
 (check
-    (srfi:assoc 'b
-		'((a . 1)
-		  (b . 2)
-		  (c . 3)))
+    (assoc* 'b
+	    '((a . 1)
+	      (b . 2)
+	      (c . 3)))
   => '(b . 2))
 
 (check
-    (srfi:assoc 'c
-		'((a . 1)
-		  (b . 2)
-		  (c . 3)))
+    (assoc* 'c
+	    '((a . 1)
+	      (b . 2)
+	      (c . 3)))
   => '(c . 3))
 
 (check
-    (srfi:assoc 'a
-		'((a . 1)
-		  (b . 2)
-		  (c . 3))
-		eq?)
+    (assoc* 'a
+	    '((a . 1)
+	      (b . 2)
+	      (c . 3))
+	    eq?)
   => '(a . 1))
 
 (check
-    (srfi:assoc 'b
-		'((a . 1)
-		  (b . 2)
-		  (c . 3))
-		eq?)
+    (assoc* 'b
+	    '((a . 1)
+	      (b . 2)
+	      (c . 3))
+	    eq?)
   => '(b . 2))
 
 (check
-    (srfi:assoc 'c
-		'((a . 1)
-		  (b . 2)
-		  (c . 3))
-		eq?)
+    (assoc* 'c
+	    '((a . 1)
+	      (b . 2)
+	      (c . 3))
+	    eq?)
   => '(c . 3))
 
 ;;; --------------------------------------------------------------------
@@ -3528,36 +3530,36 @@
 
 (check
     (lset= =
-	    '(1)
-	    '(1))
+	   '(1)
+	   '(1))
   => #t)
 
 (check
     (lset= =
-	    '(1)
-	    '(1)
-	    '(1))
+	   '(1)
+	   '(1)
+	   '(1))
   => #t)
 
 (check
     (lset= =
-	    '(1)
-	    '(1 2)
-	    '(1 2 3))
+	   '(1)
+	   '(1 2)
+	   '(1 2 3))
   => #f)
 
 (check
     (lset= =
-	    '(1)
-	    '(1 2)
-	    '(1 2))
+	   '(1)
+	   '(1 2)
+	   '(1 2))
   => #f)
 
 (check
     (lset= =
-	    '(1)
-	    '(1 2)
-	    '(1))
+	   '(1)
+	   '(1 2)
+	   '(1))
   => #f)
 
 ;;; --------------------------------------------------------------------

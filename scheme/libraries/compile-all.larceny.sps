@@ -41,6 +41,9 @@
 (compile-library "format.sls"
 		 "format.slfasl")
 
+(compile-library "lists.sls"
+		 "lists.slfasl")
+
 ;; (compile-library "strings.sls"
 ;; 		 "strings.slfasl")
 

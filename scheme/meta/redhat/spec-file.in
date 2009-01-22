@@ -1,11 +1,11 @@
 Name: @PACKAGE_NAME@
 Version: @PACKAGE_VERSION@
 Release: @package_BUILD_VERSION@
-Summary: more R6RS compliance for R6RS Scheme implementations
+Summary: Base libraries for the Nausicaa R6RS distribution.
 Group: Development/Languages
-License: LGPL
+License: GPL
 
 %description
-More R6RS compliance for R6RS Scheme implementations.
+Base libraries for the Nausicaa R6RS distribution.
 
 %files

@@ -14,10 +14,11 @@ set -x
     --enable-fasl               \
     --enable-ikarus             \
     --enable-larceny            \
-    --enable-mosh               \
     --enable-ypsilon            \
     --enable-binfmt             \
     "$@"
+
+#    --enable-mosh               \
 
 
 ### end of file

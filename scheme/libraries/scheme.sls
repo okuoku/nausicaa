@@ -24,7 +24,7 @@
 ;;;
 
 
-;;;; copyright notice for some SRFI definitions
+;;;; copyright notice for some SRFI implementations
 ;;;
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;
@@ -60,7 +60,6 @@
 ;;;All Rights Reserved.
 ;;;
 ;;;Modified by Derick Eddington as port to R6RS.
-;;;Modified by Marco Maggi upon inclusion in Nausicaa.
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -891,22 +890,27 @@
     ;; stuff from the SRFIs
     cond-expand and-let* receive recursion cut cute
     parameterize make-parameter
-    (rename (parameterize parameterise))
-
     get-environment-variable get-environment-variables
-
     write-with-shared-structure
     read-with-shared-structure
     (rename (write-with-shared-structure write/ss))
     (rename (read-with-shared-structure  read/ss))
+
+    ;; sorry, I like british spelling
+    (rename (parameterize parameterise))
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
     make-unimplemented-condition raise-unimplemented-error
 
     ;; other stuff
-    pretty-print)
-  (import (except (rnrs) equal-hash)
+    pretty-print symbol*->string)
+  (import (except (rnrs)
+		  ;;Implemented in compat because Ikarus gets it wrong.
+		  equal-hash
+		  ;;Implemented  in compat  to let them  accept complex
+		  ;;arguments.
+		  finite? infinite? nan?)
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
     (scheme compat)
@@ -914,7 +918,7 @@
     (for (scheme registry) expand))
 
 
-;;;; additional definitions
+;;;; syntactic absractions
 
 (define-syntax and-let*
   (lambda (stx)
@@ -1061,7 +1065,7 @@
 
 
 
-;;;; shared structures
+;;;; writing and reading shared structures
 
 (define (write-with-shared-structure obj . optional-port)
   (define (acons key val alist)
@@ -1308,6 +1312,14 @@
 		   (if (procedure? elt)
 		       (vector-set! obj i (unthunk elt))
 		     (fill-in-parts elt))))))))
+    obj))
+
+
+;;;; miscellaneous definitions
+
+(define (symbol*->string obj)
+  (if (symbol? obj)
+      (symbol->string obj)
     obj))
 
 

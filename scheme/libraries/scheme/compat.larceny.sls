@@ -23,11 +23,15 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
+;;;; setup
+
 #!r6rs
 (library (scheme compat)
   (export
 
     equal-hash pretty-print implementation-features
+    finite? infinite? nan?
 
     ;; parameters
     (rename (make-this-parameter make-parameter)
@@ -36,15 +40,45 @@
     ;; environment variables
     (rename (getenv get-environment-variable))
     get-environment-variables)
-  (import (rnrs)
+  (import (rename (rnrs)
+		  (finite?	rnrs:finite?)
+		  (infinite?	rnrs:infinite?)
+		  (nan?		rnrs:nan?))
     (primitives make-parameter parameterize getenv pretty-print)
     (scheme unimplemented))
+
+
+;;;; implementation
 
   (define implementation-features
     '(larceny))
 
+;;; --------------------------------------------------------------------
+
+(define (finite? num)
+  (if (complex? num)
+      (and (rnrs:finite? (real-part num))
+	   (rnrs:finite? (imag-part num)))
+    (rnrs:finite? num)))
+
+(define-syntax cplx-or-pred
+  (syntax-rules ()
+    ((_ ?pred ?rnrs-pred)
+     (define (?pred num)
+       (if (complex? num)
+	   (or (?rnrs-pred (real-part num))
+	       (?rnrs-pred (imag-part num)))
+	 (?rnrs-pred num))))))
+
+(cplx-or-pred infinite?	rnrs:infinite?)
+(cplx-or-pred nan?	rnrs:nan?)
+
+;;; --------------------------------------------------------------------
+
   (define (get-environment-variables)
     (raise-unimplemented-error 'get-environment-variables))
+
+;;; --------------------------------------------------------------------
 
   (define make-this-parameter
     (case-lambda

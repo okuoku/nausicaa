@@ -32,6 +32,7 @@
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)
+(display "*** testing format rounding routines\n")
 
 ;;; --------------------------------------------------------------------
 
