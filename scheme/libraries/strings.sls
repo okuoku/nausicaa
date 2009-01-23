@@ -1,4 +1,6 @@
-;;;SRFI 13 string library reference implementation
+;;; String library --
+;;;
+;;;Derived from the SRFI 13 reference implementation.
 ;;;
 ;;;Olin Shivers 7/2000
 ;;;
@@ -94,211 +96,8 @@
 ;;;Other copyright terms
 ;;;=====================
 ;;;
-;;;Copyright (c) 2008 Derick Eddington. Ported to R6RS.
-
-
-;;;Exports
-;;;=======
-;;;
-;;; string-map string-map!
-;;; string-fold       string-unfold
-;;; string-fold-right string-unfold-right
-;;; string-tabulate string-for-each string-for-each-index
-;;; string-every string-any
-;;; string-hash string-hash-ci
-;;; string-compare string-compare-ci
-;;; string=    string<    string>    string<=    string>=    string<>
-;;; string-ci= string-ci< string-ci> string-ci<= string-ci>= string-ci<>
-;;; string-downcase  string-upcase  string-titlecase
-;;; string-downcase! string-upcase! string-titlecase!
-;;; string-take string-take-right
-;;; string-drop string-drop-right
-;;; string-pad string-pad-right
-;;; string-trim string-trim-right string-trim-both
-;;; string-filter string-delete
-;;; string-index string-index-right
-;;; string-skip  string-skip-right
-;;; string-count
-;;; string-prefix-length string-prefix-length-ci
-;;; string-suffix-length string-suffix-length-ci
-;;; string-prefix? string-prefix-ci?
-;;; string-suffix? string-suffix-ci?
-;;; string-contains string-contains-ci
-;;; string-copy! substring/shared
-;;; string-reverse string-reverse! reverse-list->string
-;;; string-concatenate string-concatenate/shared string-concatenate-reverse
-;;; string-append/shared
-;;; xsubstring string-xcopy!
-;;; string-null?
-;;; string-join
-;;; string-tokenize
-;;; string-replace
-;;;
-;;; R5RS extended:
-;;; string->list string-copy string-fill!
-;;;
-;;; R5RS re-exports:
-;;; string? make-string string-length string-ref string-set!
-;;;
-;;; R5RS re-exports (also defined here but commented-out):
-;;; string string-append list->string
-;;;
-;;; Low-level routines:
-;;; make-kmp-restart-vector string-kmp-partial-search kmp-step
-;;; string-parse-start+end
-;;; string-parse-final-start+end
-;;; let-string-start+end
-;;; check-substring-spec
-;;; substring-spec-ok?
-
-
-;;;Imports
-;;;=======
-;;;
-;;;This is a fairly large library. While it was written for portability,
-;;;you must be aware  of its dependencies in order to run  it in a given
-;;;scheme implementation. Here is a complete list of the dependencies it
-;;;has and the assumptions it makes beyond stock R5RS Scheme:
-;;;
-;;;This code has the following non-R5RS dependencies:
-;;;
-;;;- (RECEIVE (var ...) mv-exp body ...) multiple-value binding macro;
-;;;
-;;;- Various imports from the char-set library for the routines that can
-;;;  take char-set arguments;
-;;;
-;;;- An n-ary ERROR procedure;
-;;;
-;;;- BITWISE-AND for the hash functions;
-;;;
-;;;- A simple CHECK-ARG procedure for checking parameter values; it is
-;;;
-;;;   (lambda (pred val proc)
-;;;     (if (pred val) val (error "Bad arg" val pred proc)))
-;;;
-;;;-  :OPTIONAL  and LET-OPTIONALS*  macros  for  parsing, defaulting  &
-;;;  type-checking optional parameters from a rest argument;
-;;;
-;;;- CHAR-CASED?  and  CHAR-TITLECASE   for  the   STRING-TITLECASE  &
-;;;  STRING-TITLECASE!  procedures.  The   former  returns  true  iff  a
-;;;  character is  one that has  case distinctions; in ASCII  it returns
-;;;  true on  a-z and A-Z.   CHAR-TITLECASE is analagous  to CHAR-UPCASE
-;;;  and  CHAR-DOWNCASE.  In  ASCII  &   Latin-1,  it  is  the  same  as
-;;;  CHAR-UPCASE.
-;;;
-;;;The code depends upon a small set of core string primitives from R5RS:
-;;;
-;;;     MAKE-STRING STRING-REF STRING-SET! STRING? STRING-LENGTH SUBSTRING
-;;;
-;;;(Actually,  SUBSTRING is  not  a  primitive, but  we  assume that  an
-;;;implementation's native version is  probably faster than one we could
-;;;define, so we import it from R5RS.)
-;;;
-;;;The code depends upon a small set of R5RS character primitives:
-;;;
-;;;   char? char=? char-ci=? char<? char-ci<?
-;;;   char-upcase char-downcase
-;;;   char->integer (for the hash functions)
-;;;
-;;;We assume the following:
-;;;
-;;;- CHAR-DOWNCASE o CHAR-UPCASE = CHAR-DOWNCASE
-;;;
-;;;- CHAR-CI=? is equivalent to
-;;;     (lambda (c1 c2) (char=? (char-downcase (char-upcase c1))
-;;;                             (char-downcase (char-upcase c2))))
-;;;
-;;;-     CHAR-UPCASE,    CHAR-DOWNCASE     and     CHAR-TITLECASE    are
-;;;  locale-insensitive and  consistent with Unicode's  1-1 char-mapping
-;;;  spec.
-;;;
-;;;These things are typically true, but if not, you would need to modify
-;;;the case-mapping and case-insensitive routines.
-
-
-;;;Porting & performance-tuning notes
-;;;==================================
-;;;
-;;;See  the  section   at  the  beginning  of  this   file  on  external
-;;;dependencies.
-;;;
-;;;The  biggest issue  with  respect to  porting  is the  LET-OPTIONALS*
-;;;macro.  There are many, many  optional arguments in this library; the
-;;;complexity of parsing, defaulting  & type-testing these parameters is
-;;;handled  with the  aid of  this  macro. There  are about  15 uses  of
-;;;LET-OPTIONALS*.  You  can rewrite  the  uses,  port  the hairy  macro
-;;;definition  (which  is  implemented  using a  Clinger-Rees  low-level
-;;;explicit-renaming  macro  system),  or  port the  simple,  high-level
-;;;definition, which is less efficient.
-;;;
-;;;There  is a  fair  amount  of argument  checking.  This is,  strictly
-;;;speaking, unnecessary -- the actual  body of the procedures will blow
-;;;up if, say, a START/END index is improper. However, the error message
-;;;will  not be  as good  as if  the error  were caught  at  the "higher
-;;;level."  Also, a  very, very  smart Scheme  compiler may  be  able to
-;;;exploit having the type checks done early, so that the actual body of
-;;;the  procedures can assume  proper values.   This isn't  likely; this
-;;;kind of compiler technology isn't common any longer.
-;;;
-;;;The overhead of optional-argument parsing is irritating. The optional
-;;;arguments must be  consed into a rest list on  entry, and then parsed
-;;;out.  Function call should be a  matter of a few register moves and a
-;;;jump; it should  not involve heap allocation! Your  Scheme system may
-;;;have a superior non-R5RS  optional-argument system that can eliminate
-;;;this overhead. If  so, then this is a  prime candidate for optimising
-;;;these  procedures,  *especially* the  many  optional START/END  index
-;;;parameters.
-;;;
-;;;Note  that  optional  arguments  are  also  a  barrier  to  procedure
-;;;integration.  If your Scheme  system permits you to specify alternate
-;;;entry  points for a  call when  the number  of optional  arguments is
-;;;known in a manner that enables inlining/integration, this can provide
-;;;performance improvements.
-;;;
-;;;There  is enough  *explicit* error  checking that  *all* string-index
-;;;operations should  *never* produce a bounds error.  Period. Feel like
-;;;living  dangerously? *Big*  performance win  to be  had  by replacing
-;;;STRING-REF's and STRING-SET!'s with  unsafe equivalents in the loops.
-;;;Similarly, fixnum-specific operators can speed up the arithmetic done
-;;;on the index  values in the inner loops. The  only arguments that are
-;;;not completely error checked are
-;;;
-;;;- string  lists (complete checking requires time  proportional to the
-;;;  length of the list)
-;;;
-;;;- procedure arguments, such as char->char maps & predicates.
-;;;
-;;;There is no way to check the range & domain of procedures in Scheme.
-;;;
-;;;Procedures  that  take  these  parameters cannot  fully  check  their
-;;;arguments.  But all  other types  to all  other procedures  are fully
-;;;checked.
-;;;
-;;;This  does open  up the  alternate possibility  of  simply *removing*
-;;;these checks, and letting the  safe primitives raise the errors. On a
-;;;dumb  Scheme system,  this would  provide speed  (by  eliminating the
-;;;redundant error checks) at the cost of error-message clarity.
-;;;
-;;;See the comments preceding the hash function code for notes on tuning
-;;;the   default  bound   so  that   the  code   never   overflows  your
-;;;implementation's fixnum size into bignum calculation.
-;;;
-;;;In an interpreted  Scheme, some of these procedures,  or the internal
-;;;routines  with  %  prefixes,   are  excellent  candidates  for  being
-;;;rewritten   in   C.   Consider  STRING-HASH,   %STRING-COMPARE,   the
-;;;%STRING-{SUF,PRE}FIX-LENGTH  routines,  STRING-COPY!, STRING-INDEX  &
-;;;STRING-SKIP (char-set &  char cases), SUBSTRING and SUBSTRING/SHARED,
-;;;%KMP-SEARCH, and %MULTISPAN-REPCOPY!.
-;;;
-;;;It  would also be  nice to  have the  ability to  mark some  of these
-;;;routines as candidates for inlining/integration.
-;;;
-;;;All the  %-prefixed routines  in this source  code are written  to be
-;;;called  internally to this  library. They  do *not*  perform friendly
-;;;error checks  on the inputs;  they assume everything is  proper. They
-;;;also  do  not take  optional  arguments.  These  two properties  save
-;;;calling overhead and enable procedure integration -- but they are not
-;;;appropriate for exported routines.
+;;;Copyright (c) 2008 Derick Eddington.  Ported to R6RS.
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 
 
 
@@ -310,7 +109,6 @@
     string-fold-right string-unfold-right
     string-tabulate string-for-each string-for-each-index
     string-every string-any
-    string-hash string-hash-ci
     string-compare string-compare-ci
     string=    string<    string>    string<=    string>=    string<>
     string-ci= string-ci< string-ci> string-ci<= string-ci>= string-ci<>
@@ -340,7 +138,7 @@
     string-tokenize
     string-replace
 		; R5RS extended:
-    string->list string-copy string-fill!
+    string->list string-copy* string-fill!
 		; R5RS re-exports:
     string? make-string string-length string-ref string-set!
     string string-append list->string
@@ -352,14 +150,12 @@
     ;; 	  check-substring-spec
     ;; 	  substring-spec-ok?
     )
-  (import (except (rnrs)
+  (import (except (scheme)
 		  string-copy string-for-each string->list
 		  string-upcase string-downcase string-titlecase string-hash)
     (except (rnrs mutable-strings) string-fill!)
     (rnrs r5rs)
-    (srfi parameters)
-    (srfi receive)
-    (srfi char-set)
+    (char-sets)
     (srfi private let-opt))
 
   (define-syntax check-arg
@@ -370,8 +166,6 @@
 
   (define (char-cased? c)
     (char-upper-case? (char-upcase c)))
-
-
 
 
 ;;; Support for START/END substring specs
@@ -443,20 +237,6 @@
   (if (not (substring-spec-ok? s start end))
       (error "Illegal substring spec." proc s start end)))
 
-
-;;; Defined by R5RS, so commented out here.
-;(define (string . chars)
-;  (let* ((len (length chars))
-;         (ans (make-string len)))
-;    (do ((i 0 (+ i 1))
-;	 (chars chars (cdr chars)))
-;	((>= i len))
-;      (string-set! ans i (car chars)))
-;    ans))
-;
-;(define (string . chars) (string-unfold null? car cdr chars))
-
-
 
 ;;; substring/shared S START [END]
 ;;; string-copy      S [START END]
@@ -483,20 +263,20 @@
   (if (and (zero? start) (= end (string-length s))) s
       (substring s start end)))
 
-(define (string-copy s . maybe-start+end)
-  (let-string-start+end (start end) string-copy s maybe-start+end
-    (substring s start end)))
+;; (define (string-copy s . maybe-start+end)
+;;   (let-string-start+end (start end) string-copy s maybe-start+end
+;;     (substring s start end)))
+(define string-copy*
+  (case-lambda
+   ((str)
+    (string-copy str))
+   ((str begin)
+    (substring str begin (string-length str)))
+   ((str begin end)
+    (substring str begin end))))
 
-;This library uses the R5RS SUBSTRING, but doesn't export it.
-;Here is a definition, just for completeness.
-;(define (substring s start end)
-;  (check-substring-spec substring s start end)
-;  (let* ((slen (- end start))
-;         (ans (make-string slen)))
-;    (do ((i 0 (+ i 1))
-;         (j start (+ j 1)))
-;        ((>= i slen) ans)
-;      (string-set! ans i (string-ref s j)))))
+
+;;;; iteration
 
 ;;; Basic iterators and other higher-order abstractions
 ;;; (string-map proc s [start end])
@@ -1122,52 +902,6 @@
 			    values))))
 
 
-;;; Hash
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Compute (c + 37 c + 37^2 c + ...) modulo BOUND, with sleaze thrown in
-;;; to keep the intermediate values small. (We do the calculation with just
-;;; enough bits to represent BOUND, masking off high bits at each step in
-;;; calculation. If this screws up any important properties of the hash
-;;; function I'd like to hear about it. -Olin)
-;;;
-;;; If you keep BOUND small enough, the intermediate calculations will
-;;; always be fixnums. How small is dependent on the underlying Scheme system;
-;;; we use a default BOUND of 2^22 = 4194304, which should hack it in
-;;; Schemes that give you at least 29 signed bits for fixnums. The core
-;;; calculation that you don't want to overflow is, worst case,
-;;;     (+ 65535 (* 37 (- bound 1)))
-;;; where 65535 is the max character code. Choose the default BOUND to be the
-;;; biggest power of two that won't cause this expression to fixnum overflow,
-;;; and everything will be copacetic.
-
-(define (%string-hash s char->int bound start end)
-  (let ((iref (lambda (s i) (char->int (string-ref s i))))
-	;; Compute a 111...1 mask that will cover BOUND-1:
-	(mask (let lp ((i #x10000)) ; Let's skip first 16 iterations, eh?
-		(if (>= i bound) (- i 1) (lp (+ i i))))))
-    (let lp ((i start) (ans 0))
-      (if (>= i end) (modulo ans bound)
-	  (lp (+ i 1) (bitwise-and mask (+ (* 37 ans) (iref s i))))))))
-
-(define (string-hash s . maybe-bound+start+end)
-  (let-optionals* maybe-bound+start+end ((bound 4194304 (and (integer? bound)
-							     (exact? bound)
-							     (<= 0 bound)))
-					 rest)
-    (let ((bound (if (zero? bound) 4194304 bound)))	; 0 means default.
-      (let-string-start+end (start end) string-hash s rest
-        (%string-hash s char->integer bound start end)))))
-
-(define (string-hash-ci s . maybe-bound+start+end)
-  (let-optionals* maybe-bound+start+end ((bound 4194304 (and (integer? bound)
-							     (exact? bound)
-							     (<= 0 bound)))
-					 rest)
-    (let ((bound (if (zero? bound) 4194304 bound)))	; 0 means default.
-      (let-string-start+end (start end) string-hash-ci s rest
-        (%string-hash s (lambda (c) (char->integer (char-downcase c)))
-		      bound start end)))))
-
 ;;; Case hacking
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; string-upcase  s [start end]
@@ -2094,42 +1828,51 @@
 ;;; answer string, then allocate & fill it in iteratively. Using
 ;;; STRING-CONCATENATE is less efficient.
 
-(define (string-join strings . delim+grammar)
-  (let-optionals* delim+grammar ((delim " " (string? delim))
-				 (grammar 'infix))
-    (let ((buildit (lambda (lis final)
-		     (let recur ((lis lis))
-		       (if (pair? lis)
-			   (cons delim (cons (car lis) (recur (cdr lis))))
-			   final)))))
+(define string-join
+  (case-lambda
+   ((strings)
+    (string-join strings " " 'infix))
+   ((strings delim)
+    (string-join strings delim 'infix))
+   ((strings delim grammar)
+    (define (join-with-delim ell final)
+      (let loop ((ell ell))
+	(if (pair? ell)
+	    (cons delim
+		  (cons (car ell)
+			(loop (cdr ell))))
+	  final)))
 
-      (cond ((pair? strings)
-	     (string-concatenate
-	      (case grammar
+    (cond ((pair? strings)
+	   (string-concatenate
+	    (case grammar
+	      ((infix strict-infix)
+	       (cons (car strings)
+		     (join-with-delim (cdr strings) '())))
+	      ((prefix)
+	       (join-with-delim strings '()))
+	      ((suffix)
+	       (cons (car strings)
+		     (join-with-delim (cdr strings) (list delim))))
+	      (else
+	       (assertion-violation 'string-join
+		 "illegal join grammar" grammar)))))
 
-		((infix strict-infix)
-		 (cons (car strings) (buildit (cdr strings) '())))
+	  ((not (null? strings))
+	   (error "STRINGS parameter not list." strings string-join))
 
-		((prefix) (buildit strings '()))
+	  ;; STRINGS is ()
 
-		((suffix)
-		 (cons (car strings) (buildit (cdr strings) (list delim))))
+	  ((eq? grammar 'strict-infix)
+	   (error "Empty list cannot be joined with STRICT-INFIX grammar."
+	     string-join))
 
-		(else (error "Illegal join grammar"
-			     grammar string-join)))))
-
-	     ((not (null? strings))
-	      (error "STRINGS parameter not list." strings string-join))
-
-	     ;; STRINGS is ()
-
-	     ((eq? grammar 'strict-infix)
-	      (error "Empty list cannot be joined with STRICT-INFIX grammar."
-		     string-join))
-
-	     (else "")))))		; Special-cased for infix grammar.
+	  (else ""))))) ; Special-cased for infix grammar.
 
 
-) ;; end of library form
+
+;;;; done
+
+)
 
 ;;; end of file

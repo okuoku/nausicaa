@@ -1,4 +1,6 @@
-;;;SRFI-14 character-sets library --
+;;; Character sets library --
+;;;
+;;;Derived from the SRFI-14 reference implementation.
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 1988-1995  Massachusetts Institute of Technology.
