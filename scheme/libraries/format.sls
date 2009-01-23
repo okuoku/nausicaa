@@ -38,9 +38,7 @@
 (library (format)
   (export
     format format-output-column)
-  (import (rename (scheme)
-		  (infinite? rnrs:infinite?)
-		  (nan? rnrs:nan?))
+  (import (scheme)
     (only (rnrs r5rs)
 	  remainder
 	  quotient)
@@ -119,14 +117,6 @@
 
 
 ;;;; porting and miscellaneous helpers
-
-;;R6RS states that FINITE?, INFINITE? and NAN? reject complex numbers.
-(define (infinite? num)
-  (or (rnrs:infinite? (real-part num))
-      (rnrs:infinite? (imag-part num))))
-(define (nan? num)
-  (or (rnrs:nan? (real-part num))
-      (rnrs:nan? (imag-part num))))
 
 (define-syntax increment!
   (syntax-rules ()

@@ -80,7 +80,7 @@ if test -f ${BINFMT_REGISTER} ; then
             >${BINFMT_REGISTER}
         echo done
     else
-        echo skipping binfmt Ypsilon Scheme programs execution
+        echo skipping binfmt Mosh Scheme programs execution
     fi
 
     if test "${BINFMT_ENABLE_YPSILON}" = yes ; then

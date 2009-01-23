@@ -224,11 +224,11 @@
 
 (define-syntax srfi:check
   (syntax-rules (=>)
-    ((check expr => expected)
-     (check expr (=> equal?) expected))
-    ((check expr (=> equal) expected)
-     (if (>= (check:mode) 1)
-	 (check:proc 'expr (lambda () expr) equal expected)))))
+    ((_ expr => expected)
+     (srfi:check expr (=> equal?) expected))
+    ((_ expr (=> equal) expected)
+     (when (>= (check:mode) 1)
+       (check:proc 'expr (lambda () expr) equal expected)))))
 
 
 ;;; parametric checks
@@ -374,19 +374,19 @@
 (define-syntax check
   (syntax-rules (=>)
     ((_ ?expr => ?expected-result)
-     (srfi:check ?expr (=> equal?) ?expected-result))
+     (check ?expr (=> equal?) ?expected-result))
 
     ((_ ?expr (=> ?equal) ?expected-result)
      (when (eval-this-test?)
-       (check ?expr (=> ?equal) ?expected-result)))
+       (srfi:check ?expr (=> ?equal) ?expected-result)))
 
     ((_ ?name ?expr => ?expected-result)
-     (srfi:check ?name ?expr (=> equal?) ?expected-result))
+     (check ?name ?expr (=> equal?) ?expected-result))
 
     ((_ ?name ?expr (=> ?equal) ?expected-result)
      (parameterize ((check-test-name ?name))
        (when (eval-this-test?)
-	 (check ?expr (=> ?equal) ?expected-result))))))
+	 (srfi:check ?expr (=> ?equal) ?expected-result))))))
 
 
 ;;;; debugging

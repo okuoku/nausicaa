@@ -891,11 +891,10 @@ conflicts may arise.
 Some Scheme implementation defines itself as @rnrs{6} compliant, but
 then does not provide a compliant implementation of some the features.
 @value{PACKAGE} tries, through the @library{scheme} language, to fill
-the gaps in these implementations and to provide a more compliant
-language.
+some, not all, of the gaps in these implementations.
 
-Not all the problems can be solved this way, but at least an attempt to
-make programs work is done.
+For changes to @rnrs{6} implemented in @library{scheme} see
+@ref{overview language,On the @library{scheme} language}
 
 
 @c page
@@ -903,8 +902,8 @@ make programs work is done.
 @section On the @library{scheme} language
 
 
-The @library{scheme} library does not change the semantics of the
-@rnrs{6} language, rather it has the following purposes:
+The @library{scheme} library changes some semantics of the @rnrs{6}
+language.  It has the following purposes:
 
 @itemize
 @item
@@ -912,11 +911,14 @@ To make available all the bindings from @library{rnrs}.
 
 @item
 To make self--defining @rnrs{6} Scheme implementations more @rnrs{6}
-compliant, in the sense of ``programs that work''.
+compliant, in the sense of ``programs that work''.  This means for
+example: if an underlying implementation does not provide a requested
+function, @library{scheme} tries to provide a working replacement.
 
 @item
 To offer by default some features from the @srfi{} libraries which where
-voted to @emph{final} status.
+voted to @emph{final} status.  It may be that those features are
+redefined or extended.
 @end itemize
 
 This documents describes the features of the @rnrs{6} language by
@@ -935,8 +937,8 @@ available in the chapters:
 @end itemize
 
 @noindent
-the features that extend the @library{rnrs} language are described in
-the chapter @ref{naulib,The augmented language}.
+the features of @library{scheme} that extend the @library{rnrs} language
+are described in the chapter @ref{naulib,The augmented language}.
 
 
 @c page
@@ -17771,7 +17773,7 @@ this report.
 
 
 This chapter describes the features added by the @library{scheme}
-language to the @library{rnrs} language.  Most of them are the
+language to the @library{rnrs} language.  Most of them are the revised
 implementations of @srfi{} specifications that were voted to the
 @emph{final} status.
 
@@ -17883,8 +17885,8 @@ The @func{and-let*} syntax.
 @item begin0
 The @func{begin0} syntax.
 
-@item char-set
-The @library{char-set} library.
+@item char-sets
+The @library{char-sets} library.
 
 @item checks
 The @library{checks} library.
@@ -18401,7 +18403,8 @@ apply.
 
 @example
 (get-environment-variables)
-@result{} (("PATH" . "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin")
+@result{} (("PATH" .
+     "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin")
     ("USERNAME" . "taro"))
 @end example
 @end deffn
@@ -18454,6 +18457,10 @@ Raise a composite condition embedding a condition of type
 @c page
 @node more lists
 @section List library
+
+
+This chapter describes the @library{lists} library: a collection of
+functions and macros to manipulate lists.
 
 
 @menu
@@ -21273,6 +21280,18 @@ to print @var{exc}, which must be a Scheme condition value.
 @section Character sets
 
 
+This chapter describes the @library{char-sets} library, which handles
+sets of characters.  A ``character'' is every value for which the
+application of @func{char?} returns @true{}.
+
+Char sets are allowed to hold more instances of the same character.
+
+This version of the library does nothing that can be related to a
+specific character encoding, like @ascii{}, @acronym{UCS} or Unicode.
+When needed, it relies on @func{string->list} to split a string into its
+character components.  @ref{stdlib unicode,Unicode}
+
+
 @menu
 * more char-sets intro::        Introduction.
 * more char-sets make::         Creation.
@@ -21298,7 +21317,7 @@ In the following procedure specifications:
 @item cs
 Is a character set.
 
-@item s
+@item str
 Is a string.
 
 @item char
@@ -21308,8 +21327,8 @@ Is a character.
 Is a list of characters.
 
 @item pred
-Is a unary character predicate procedure, returning a @true{}/@false{}
-value when applied to a character.
+Is a unary character predicate procedure, returning a boolean value when
+applied to a character.
 
 @item obj
 May be any value at all.
@@ -21324,10 +21343,6 @@ of the linear--update operations) from the parameter character sets.
 For example, @func{char-set-adjoin} is guaranteed to provide a fresh
 character set, even if it is not given any character parameters.
 
-Parameters given in square brackets are optional.  Unless otherwise
-noted in the text describing the procedure, any prefix of these optional
-parameters may be supplied, from zero arguments to the full list.
-
 A parameter followed by @code{...} means zero--or--more elements.
 
 
@@ -21337,7 +21352,11 @@ A parameter followed by @code{...} means zero--or--more elements.
 
 
 @defun char-set @var{char1} ...
+@defunx char-set/unique @var{char1} ...
 Return a character set containing the given characters.
+
+@func{char-set} accepts duplicates, while @func{char-set/unique} removes
+them.
 @end defun
 
 
@@ -21346,10 +21365,6 @@ Return a copy of the character set @var{cs}.  ``Copy'' means that if
 either the input parameter or the result value of this procedure is
 passed to one of the linear--update procedures described below, the
 other character set is guaranteed not to be altered.
-
-A system that provides pure--functional implementations of the
-linear--operator suite could implement this procedure as the identity
-function; so copies are not guaranteed to be distinct by @func{eq?}.
 @end defun
 
 
@@ -21358,15 +21373,28 @@ function; so copies are not guaranteed to be distinct by @func{eq?}.
 @subsection Predicates and assertions
 
 
-@defun assert-list-of-chars @var{chars} @var{func-name}
-If @var{chars} is not a list of characters (according to @func{char?}),
-raise an assertion violation using @var{func-name} as name of the
-function that raised the error.
+@defun char-set? @var{obj}
+Return @true{} if @var{obj} is a character set, otherwise @false{}.
 @end defun
 
 
-@defun char-set? @var{obj}
-Return @true{} if @var{obj} is a character set, otherwise @false{}.
+@defun assert-char-set @var{obj} @var{func-name}
+If @var{obj} is not a char set, raise an assertion violation using
+@var{func-name} as value for the @code{&who} condition.  Otherwise
+return @var{obj} itself.
+@end defun
+
+
+@defun assert-char-set/or-false @var{obj} @var{func-name}
+Like @func{assert-char-set}, but accepts @false{} as valid value for
+@var{obj}.
+@end defun
+
+
+@defun assert-list-of-chars @var{obj} @var{func-name}
+If @var{obj} is not the empty list or a list of characters (according to
+@func{char?}), raise an assertion violation using @var{func-name} as
+value for the @code{&who} condition.  Otherwise return @var{obj} itself.
 @end defun
 
 
@@ -21413,49 +21441,24 @@ which @var{cs}'s characters appear in the list is undefined.
 @subsubheading String conversion
 
 
-@defun string->char-set @var{s}
-@defunx string->char-set @var{s} @var{base-cs}
-@defunx string->char-set! @var{s} @var{base-cs}
-Return a character set containing the characters in the string @var{s}.
+@defun string->char-set @var{str}
+@defunx string->char-set @var{str} @var{base-cs}
+@defunx string->char-set! @var{str} @var{base-cs}
+Return a character set containing the characters in the string
+@var{str}.  Splitting is performed by @func{string->list}.
 
-If character set @var{base-cs} is provided, the characters from @var{s}
-are added to it.
+If character set @var{base-cs} is provided, the characters from
+@var{str} are added to it.
 
+@func{string->char-set} produces a fresh character set.
 @func{string->char-set!} is allowed, but not required, to side--effect
-and reuse the storage in @var{base-cs}; @func{string->char-set} produces
-a fresh character set.
+and reuse the storage in @var{base-cs}.
 @end defun
 
 
 @defun char-set->string @var{cs}
 Return a string containing the characters in @var{cs}.  The order in
 which @var{cs}'s characters appear in the string is undefined.
-@end defun
-
-
-@subsubheading Unicode
-
-
-@defun ucs-range->char-set @var{lower} @var{upper}
-@defunx ucs-range->char-set @var{lower} @var{upper} @var{base-cs}
-@defunx ucs-range->char-set! @var{lower} @var{upper} @var{base-cs}
-@var{lower} and @var{upper} are exact non--negative integers,
-@math{@var{lower} <= @var{upper}}.
-
-Return a character set containing every character whose ISO/IEC 10646
-UCS-4 code lies in the half--open range @code{[@var{lower},
-@var{upper})}.
-
-If the requested range includes unassigned @acronym{UCS} values, these
-are silently ignored (the current @acronym{UCS} specification has
-``holes'' in the space of assigned codes).
-
-If character set @var{base-cs} is provided, the characters specified by
-the range are added to it.
-
-@func{ucs-range->char-set} produces a fresh character set.
-@func{ucs-range->char-set!} is allowed, but not required, to
-side--effect and reuse the storage in @var{base-cs}.
 @end defun
 
 
@@ -21479,6 +21482,12 @@ Return @true{} if @var{char} is an element of @var{cs}.
 @end defun
 
 
+@defun char-set-count @var{pred} @var{cs}
+Apply @var{pred} to the chars of character set @var{cs}, and return the
+number of chars that caused the predicate to return true.
+@end defun
+
+
 @defun char-set-find @var{pred} @var{cs}
 Return the first character in @var{cs} for which @var{pred} returns
 true.
@@ -21486,20 +21495,16 @@ true.
 
 
 @defun char-set-every @var{pred} @var{cs}
-Return @true{} if @var{pred} applied to the characters in @var{cs}
-returns true on @strong{every} application.
+Return true if @var{pred} applied to the characters in @var{cs} returns
+true on @strong{every} application.  Return true if @var{cs} is the
+empty set.
 @end defun
 
 
 @defun char-set-any @var{pred} @var{cs}
 Return @true{} if @var{pred} applied to the characters in @var{cs}
-returns true on @strong{any} application.
-@end defun
-
-
-@defun char-set-count @var{pred} @var{cs}
-Apply @var{pred} to the chars of character set @var{cs}, and return the
-number of chars that caused the predicate to return true.
+returns true on @strong{any} application.  Return @false{} if @var{cs}
+is the empty set.
 @end defun
 
 
@@ -21548,38 +21553,64 @@ Return a char set holding the characters in @var{cs} that do not satisfy
 @end defun
 
 
+@defun char-set-delete-duplicates @var{cs}
+Return a new char set holding all the characters in @var{cs}, with no
+duplicates.
+@end defun
+
+
 @c page
 @node more char-sets iter
 @subsection Iteration
 
 
 @defun char-set-cursor @var{cset}
-@defunx char-set-ref @var{cursor}
+@defunx char-set-cursor-ref @var{cursor}
 @defunx char-set-cursor-next @var{cursor}
 @defunx end-of-char-set? @var{cursor}
 Cursors are a low--level facility for iterating over the characters in a
 set.  A cursor is a value that indexes a character in a char set.
 
-@func{char-set-cursor} produces a new cursor for a given char set.
-
-The set element indexed by the cursor is fetched with
-@func{char-set-ref}.
-
-A cursor index is incremented with @func{char-set-cursor-next}, which
-returns the updated cursor; in this way, code can step through every
-character in a char set.
+@func{char-set-cursor} produces a new cursor for a given char set.  The
+set element indexed by the cursor is fetched with
+@func{char-set-cursor-ref}.  A cursor index is incremented with
+@func{char-set-cursor-next}, which returns the updated cursor.
 
 Examples:
 
 @example
 (let loop ((cur (char-set-cursor cs)))
   (if (end-of-char-set? cur)
-      ---
-    (loop (char-set-cursor-next cur))))
+      (return-some-value)
+    (begin
+      (do-something-with (char-set-cursor-ref cur))
+      (loop (char-set-cursor-next cur)))))
 
 (do ((cur (char-set-cursor cs) (char-set-cursor-next cur)))
     ((end-of-char-set? cur))
-  ---)
+  (do-something-with (char-set-cursor-ref cur)))
+@end example
+@end defun
+
+
+@defun char-set-for-each @var{proc} @var{cs}
+Apply procedure @var{proc} to each character in the character set
+@var{cs}.  The return value is unspecified.
+
+The order in which @var{proc} is applied to the characters in the set is
+unspecified.
+@end defun
+
+
+@defun char-set-map @var{proc} @var{cs}
+@var{proc} must be a char->char procedure; it is applied to all the
+characters in the char set @var{cs}, and the results are collected into
+a new character set.
+
+Example:
+
+@example
+(char-set-map char-downcase cset)
 @end example
 @end defun
 
@@ -21589,11 +21620,11 @@ This is the fundamental iterator for character sets.  Applies the
 function @var{kons} across the character set @var{cs} using initial
 state value @var{knil}.  That is, if @var{cs} is the empty set, the
 procedure returns @var{knil}.  Otherwise, some element @var{c} of
-@var{cs} is chosen; let @var{cs'} be the remaining, unchosen
-characters.  The procedure returns:
+@var{cs} is chosen; let @var{cs1} be the remaining, unchosen characters.
+The procedure returns:
 
 @example
-(char-set-fold kons (kons c knil) cs')
+(char-set-fold kons (kons c knil) cs1)
 @end example
 
 Examples:
@@ -21623,90 +21654,44 @@ Examples:
 @end defun
 
 
-@defun char-set-unfold @var{f} @var{p} @var{g} @var{seed} [@var{base-cs}]
-@defunx char-set-unfold! @var{f} @var{p} @var{g} @var{seed} @var{base-cs}
+@defun char-set-unfold @var{stop?} @var{map-to-char} @var{seed-step} @var{seed}
+@defunx char-set-unfold @var{stop?} @var{map-to-char} @var{seed-step} @var{seed} @var{base-cs}
+@defunx char-set-unfold! @var{stop?} @var{map-to-char} @var{seed-step} @var{seed} @var{base-cs}
 This is a fundamental constructor for char-sets.
 
 @table @var
-@item g
-Is used to generate a series of ``seed'' values from the initial
-@var{seed}.
+@item seed-step
+Is a function used to generate a series of ``seed'' values from the
+initial @var{seed}.
 
-@item p
-It is applied to the seed values and whenever it returns true the
-unfolding stops.
+@item stop?
+It is a function applied to the seed values; whenever it returns true
+the unfolding stops.
 
-@item f
-Map each seed value to a character.  These characters are added to the
-base character set @var{base-cs} to form the result; @var{base-cs}
-defaults to the empty set.
+@item map-to-char
+A function that maps each seed value to a character.  These characters
+are added to the base character set @var{base-cs} to form the result;
+@var{base-cs} defaults to the empty set.
 @end table
 
-@func{char-set-unfold!} adds the characters to @var{base-cs} in a
-linear--update; it is allowed, but not required, to side--effect and use
-@var{base-cs}'s storage to construct the result.
-
-More precisely, the following definitions hold, ignoring the
-optional--argument issues:
-
-@example
-(define (char-set-unfold p f g seed base-cs)
-  (char-set-unfold! p f g seed (char-set-copy base-cs)))
-
-(define (char-set-unfold! p f g seed base-cs)
-  (let lp ((seed seed)
-           (cs base-cs))
-    (if (p seed)
-        cs                                   ; P says we are done.
-      (lp (g seed)                           ; Loop on (G SEED).
-          (char-set-adjoin! cs (f seed)))))) ; Add (F SEED) to set.
-@end example
-
-(Note that the actual implementation may be more efficient.)
+@func{char-set-unfold!}  is allowed, but not required, to modify
+@var{base-cs}.
 
 Examples:
 
 @example
-(port->char-set p) = (char-set-unfold eof-object? values
-                                      (lambda (x)
-                                        (read-char p))
-                                      (read-char p))
+(port->char-set p)   = (char-set-unfold
+                         eof-object?      ;; stop?
+                         values           ;; map-to-char
+                         (lambda (ch)
+                           (read-char p)) ;; seed-step
+                         (read-char p))   ;; seed
 
-(list->char-set lis) = (char-set-unfold null? car cdr lis)
-@end example
-@end defun
-
-
-@defun char-set-for-each @var{proc} @var{cs}
-Apply procedure @var{proc} to each character in the character set
-@var{cs}.  Note that the order in which @var{proc} is applied to the
-characters in the set is not specified, and may even change from one
-procedure application to another.
-
-Nothing at all is specified about the value returned by this procedure;
-it is not even required to be consistent from call to call.  It is
-simply required to be a value (or values) that may be passed to a
-command continuation, e.g. as the value of an expression appearing as a
-non--terminal subform of a begin expression.
-
-Note that in @rnrs{5}, this restricts the procedure to returning a
-single value; non--@rnrs{5} systems may not even provide this
-restriction.
-@end defun
-
-
-@defun char-set-map @var{proc} @var{cs}
-@var{proc} is a char->char procedure.  It is applied to all the
-characters in the char-set @var{cs}, and the results are collected into
-a new character set.
-
-Essentially, @func{char-set-map} lifts @var{proc} from a char->char
-procedure to a char-set -> char-set procedure.
-
-Example:
-
-@example
-(char-set-map char-downcase cset)
+(list->char-set lis) = (char-set-unfold
+                         null?
+                         car
+                         cdr
+                         lis)
 @end example
 @end defun
 
@@ -21733,77 +21718,12 @@ one argument: return @true{}.
 @end defun
 
 
-
-@defun char-set-adjoin @var{cs} @var{char1} ...
-@defunx char-set-delete @var{cs} @var{char1} ...
-Add/delete the @var{chari} characters to/from character set @var{cs}.
-@end defun
-
-
-@defun char-set-adjoin! @var{cs} @var{char1} ...
-@defunx char-set-delete! @var{cs} @var{char1} ...
-Linear--update variants.  These procedures are allowed, but not
-required, to side--effect their first parameter.
-@end defun
-
-
-@defun char-set-complement @var{cs}
-@defunx char-set-union @var{cs1} ...
-@defunx char-set-intersection @var{cs1} ...
-@defunx char-set-difference @var{cs1} @var{cs2} ...
-@defunx char-set-xor @var{cs1} ...
-@defunx char-set-diff+intersection @var{cs1} @var{cs2} ...
-These procedures implement set complement, union, intersection,
-difference, and exclusive--or for character sets.
-
-The union, intersection and xor operations are @var{n}--ary.  The
-difference function is also @var{n}--ary, associates to the left (that
-is, it computes the difference between its first argument and the union
-of all the other arguments), and requires at least one argument.
-
-Boundary cases:
-
 @example
 (char-set-union) => char-set:empty
 (char-set-intersection) => char-set:full
 (char-set-xor) => char-set:empty
 (char-set-difference cs) => cs
 @end example
-
-@func{char-set-diff+intersection} returns 2 values: the difference and
-the intersection of the arguments; it partitions its first parameter.
-It is equivalent to:
-
-@example
-(values (char-set-difference cs1 cs2 ...)
-        (char-set-intersection cs1 (char-set-union cs2 ...)))
-@end example
-
-@noindent
-but can be implemented more efficiently.
-
-Programmers should be aware that @func{char-set-complement} could
-potentially be a very expensive operation in Scheme implementations that
-provide a very large character type, such as 32-bit Unicode.  If this is
-a possibility, sets can be complemented with respect to a smaller
-universe using @func{char-set-difference}.
-@end defun
-
-
-@defun char-set-complement! @var{cs}
-@defunx char-set-union! @var{cs1} @var{cs2} ...
-@defunx char-set-intersection! @var{cs1} @var{cs2} ...
-@defunx char-set-difference! @var{cs1} @var{cs2} ...
-@defunx char-set-xor! @var{cs1} @var{cs2} ...
-@defunx char-set-diff+intersection! @var{cs1} @var{cs2} @var{cs3} ...
-These are linear--update variants of the set--algebra functions.  They
-are allowed, but not required, to side--effect their first (required)
-parameter.
-
-@func{char-set-diff+intersection!} is allowed to side--effect both of
-its two required parameters.
-@end defun
-
 
 @c page
 @node more char-sets std
