@@ -31,7 +31,7 @@ if test -z "${IKARUS_LIBRARY_PATH}" ; then
     export IKARUS_LIBRARY_PATH=/usr/local/lib/scheme
 fi
 
-IKARUS='@IKARUS@'
+IKARUS='__IKARUS__'
 
 exec "${IKARUS}" --r6rs-script "$@"
 

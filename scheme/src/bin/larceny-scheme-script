@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Part of: Nausicaa/Scheme
-# Contents: Trampoline for Mosh Scheme.
+# Contents: Trampoline for Larceny Scheme.
 # Date: Mon Jan 19, 2009
 #
 # Abstract
@@ -27,13 +27,13 @@
 # <http://www.gnu.org/licenses/>.
 #
 
-if test -z "${MOSH_LOADPATH}" ; then
-    export MOSH_LOADPATH=/usr/local/lib/scheme
+if test -z "${LARCENYLIBPATH}" ; then
+    export LARCENYLIBPATH=/usr/local/lib/scheme
 fi
 
-MOSH='@MOSH@'
+LARCENY='__LARCENY__'
 
-exec "${MOSH}" "$@"
+exec "${LARCENY}" -r6rs -program "$@"
 
 ### end of file
 # Local Variables:

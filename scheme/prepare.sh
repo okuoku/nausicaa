@@ -4,21 +4,25 @@ set -x
 
 (cd ..
     if test \
-        configure.ac -nt configure -o \
-        ../infrastructure/aclocal.m4 -nt configure
+        configure -ot prepare.sh   -o \
+        configure -ot configure.ac -o \
+        configure -ot aclocal.m4   -o \
+        configure -ot infrastructure/develstuff.autoconf
         then
         autoconf
     fi)
 
 ../configure \
-    --enable-fasl               \
-    --enable-ikarus             \
-    --enable-larceny            \
-    --enable-ypsilon            \
-    --enable-binfmt             \
+    --config-cache                              \
+    --with-abi=local-slackware                  \
+    --enable-use-sudo                           \
+    --enable-fasl                               \
+    --enable-ikarus                             \
+    --enable-larceny                            \
+    --enable-ypsilon                            \
+    --enable-binfmt                             \
     "$@"
 
-#    --enable-mosh               \
-
+#    --enable-mosh
 
 ### end of file
