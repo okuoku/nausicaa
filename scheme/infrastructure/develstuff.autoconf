@@ -144,6 +144,15 @@ AC_DEFUN_ONCE([DS_CONFIG_FILE_SLACKWARE_DOC_DESC],
 AC_DEFUN_ONCE([DS_CONFIG_FILE_SLACKWARE_DEV_DESC],
   [AC_CONFIG_FILES([meta.d/slackware/dev/slack-desc:meta/slackware/dev/slack-desc.in])])
 
+AC_DEFUN_ONCE([DS_CONFIG_FILE_SLACKWARE_BIN_DOINST],
+  [AC_CONFIG_FILES([meta.d/slackware/bin/doinst.sh:meta/slackware/bin/doinst.sh.in])])
+
+AC_DEFUN_ONCE([DS_CONFIG_FILE_SLACKWARE_DOC_DOINST],
+  [AC_CONFIG_FILES([meta.d/slackware/doc/doinst.sh:meta/slackware/doc/doinst.sh.in])])
+
+AC_DEFUN_ONCE([DS_CONFIG_FILE_SLACKWARE_DEV_DOINST],
+  [AC_CONFIG_FILES([meta.d/slackware/dev/doinst.sh:meta/slackware/dev/doinst.sh.in])])
+
 dnl page
 dnl --------------------------------------------------------------------
 dnl Sections handling.
@@ -286,7 +295,7 @@ AC_DEFUN_ONCE([DS_PACKAGING_SLACKWARE],
      [enable creation of Slackware packages with root as file owner])
   DS_ENABLE_OPTION([DS_CONFIG_SLACKWARE_LINKADD],[slackware-linkadd],[yes],
      [whether symbolic links in Slackware packages will be created by doinst.sh],
-     [enable creation of symboliclinks in Slackware packages by doinst.sh])
+     [enable creation of symbolic links in Slackware packages by doinst.sh])
   DS_ENABLE_OPTION([DS_CONFIG_SLACKWARE_USE_PREFIX_TOOLS],
      [slackware-prefix-tools],[no],
      [whether Slackware tools under installation prefix will be used for local packages],

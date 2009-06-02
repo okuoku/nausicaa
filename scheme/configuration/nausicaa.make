@@ -54,7 +54,7 @@ ifeq ($(nausicaa_ENABLE_SLS),yes)
 $(eval $(call ds-srcdir,sls,$(srcdir)/src/libraries))
 $(eval $(call ds-builddir,sls,$(builddir)/fasl.d))
 
-sls_FILES	= $(shell cd $(sls_SRCDIR) ; $(FIND) -name \*.sls)
+sls_FILES	= $(shell cd $(sls_SRCDIR) ; $(FIND) -type f -name \*.sls)
 sls_SOURCES	= $(addprefix $(sls_SRCDIR)/,$(sls_FILES))
 sls_TARGETS	= $(addprefix $(sls_BUILDDIR)/,$(sls_FILES))
 sls_INSTLST	= $(sls_TARGETS)
@@ -64,6 +64,7 @@ $(eval $(call ds-default-clean-variables,sls))
 $(eval $(call ds-module,sls,bin))
 
 $(sls_TARGETS): $(sls_BUILDDIR)/%: $(sls_SRCDIR)/%
+	@test -d $(dir $(@)) || $(MKDIR) $(dir $(@))
 	@$(CP) $(<) $(@)
 
 endif # nausicaa_ENABLE_SLS == yes
@@ -75,11 +76,13 @@ $(eval $(call ds-srcdir,fasl,$(sls_BUILDDIR)))
 $(eval $(call ds-builddir,fasl,$(sls_BUILDDIR)))
 
 fasl_ikarus_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),\
-	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.ikarus-fasl)))
+	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.ikarus*fasl)))
+fasl_mosh_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_MOSH),\
+	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.fasl)))
 fasl_larceny_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),\
 	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.slfasl)))
 fasl_TARGETS	=
-fasl_INSTLST	= $(fasl_ikarus_TARGETS) $(fasl_larceny_TARGETS)
+fasl_INSTLST	= $(fasl_ikarus_TARGETS) $(fasl_mosh_TARGETS) $(fasl_larceny_TARGETS)
 fasl_INSTDIR	= $(pkglibdir)
 
 fasl_CLEANFILES		= $(fasl_ikarus_TARGETS) $(fasl_larceny_TARGETS)
@@ -95,7 +98,7 @@ endif # nausicaa_ENABLE_FASL == yes
 ## --------------------------------------------------------------------
 
 fasl_ikarus_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ikarus.sps
-fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
+fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH) IKARUS_FASL_DIRECTORY=/
 fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
 fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) $(fasl_ikarus_COMPILE_COMMAND) $(fasl_ikarus_COMPILE_SCRIPT)
 
@@ -106,6 +109,23 @@ ifasl: sls-all ifasl-clean
 
 ifasl-clean:
 	$(RM) $(fasl_ikarus_TARGETS)
+
+## ---------------------------------------------------------------------
+
+fasl_mosh_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.mosh.sps
+fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR):$(MOSH_LOADPATH)
+fasl_mosh_COMPILE_COMMAND	= echo \
+	"(import (rnrs)(mosh)) ((symbol-value 'pre-compile-r6rs-file) \"$(fasl_mosh_COMPILE_SCRIPT)\")" \
+	| $(MOSH)
+fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV) $(fasl_mosh_COMPILE_COMMAND)
+
+.PHONY: mfasl mfasl-clean
+
+mfasl: sls-all mfasl-clean
+	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
+
+mfasl-clean:
+	$(RM) $(fasl_mosh_TARGETS)
 
 ## ---------------------------------------------------------------------
 
@@ -135,7 +155,7 @@ endif
 
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
-nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-$(file).sps)
+nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-*$(file)*.sps)
 
 ifneq ($(strip $(name)),)
 nau_test_ENV		+= CHECK_TEST_NAME=$(name)
@@ -227,9 +247,6 @@ endif
 
 tests test check: ytest
 endif
-
-
-
 
 
 ### end of file

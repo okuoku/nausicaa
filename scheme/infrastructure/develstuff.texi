@@ -1131,79 +1131,79 @@ AC_CONFIG_FILES([meta.d/$@{PACKAGE_NAME@}.pc:\
 
 
 @deffn {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_BIN_DESC
-Register as output file the description file for the @code{bin}
-Slackware package.  @ref{make dist slackware, Slackware packaging}
+@deffnx {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_DOC_DESC
+@deffnx {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_DEV_DESC
+Register as output file the description file for the @code{bin},
+@code{doc} or @code{dev} Slackware package.  @ref{make dist slackware,
+Slackware packaging}
 
-The file is called @file{slack-desc}, it source directory is:
+The source files are called @file{slack-desc.in} and their source
+directories are:
 
 @example
 $(srcdir)/meta/slackware/bin
-@end example
-
-@noindent
-and its output directory is:
-
-@example
-$(builddir)/meta.d/slackware/bin
-@end example
-
-It expands to:
-
-@example
-AC_CONFIG_FILES([meta.d/slackware/bin/slack-desc:\
-  meta/slackware/bin/slack-desc.in])
-@end example
-@end deffn
-
-
-@deffn {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_DOC_DESC
-Register as output file the description file for the @code{doc}
-Slackware package.  @ref{make dist slackware, Slackware packaging}
-
-The file is called @file{slack-desc}, it source directory is:
-
-@example
 $(srcdir)/meta/slackware/doc
-@end example
-
-@noindent
-and its output directory is:
-
-@example
-$(builddir)/meta.d/slackware/doc
-@end example
-
-It expands to:
-
-@example
-AC_CONFIG_FILES([meta.d/slackware/doc/slack-desc:\
-   meta/slackware/doc/slack-desc.in])
-@end example
-@end deffn
-
-
-@deffn {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_DEV_DESC
-Register as output file the description file for the @code{dev}
-Slackware package.  @ref{make dist slackware, Slackware packaging}
-
-The file is called @file{slack-desc}, it source directory is:
-
-@example
 $(srcdir)/meta/slackware/dev
 @end example
 
 @noindent
-and its output directory is:
+the output files are called @file{slack-desc} and their output
+directories are:
 
 @example
+$(builddir)/meta.d/slackware/bin
+$(builddir)/meta.d/slackware/doc
 $(builddir)/meta.d/slackware/dev
 @end example
 
-It expands to:
+The macros expand to:
 
 @example
+AC_CONFIG_FILES([meta.d/slackware/bin/slack-desc:\
+  meta/slackware/bin/slack-desc.in])
+AC_CONFIG_FILES([meta.d/slackware/doc/slack-desc:\
+  meta/slackware/doc/slack-desc.in])
 AC_CONFIG_FILES([meta.d/slackware/dev/slack-desc:\
   meta/slackware/dev/slack-desc.in])
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_BIN_DOINST
+@deffnx {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_DOC_DOINST
+@deffnx {Autoconf Macro} DS_CONFIG_FILE_SLACKWARE_DEV_DOINST
+Register as output file the description file for the @code{bin},
+@code{doc} or @code{dev} Slackware package.  @ref{make dist slackware,
+Slackware packaging}
+
+The input files are called @file{doinst.sh.in} and their source
+directories are:
+
+@example
+$(srcdir)/meta/slackware/bin
+$(srcdir)/meta/slackware/doc
+$(srcdir)/meta/slackware/dev
+@end example
+
+@noindent
+the output files are called @file{doinst.sh} and their output
+directories are:
+
+@example
+$(builddir)/meta.d/slackware/bin
+$(builddir)/meta.d/slackware/doc
+$(builddir)/meta.d/slackware/dev
+@end example
+
+The macros expand to:
+
+@example
+AC_CONFIG_FILES([meta.d/slackware/bin/doinst.sh:\
+  meta/slackware/bin/doinst.sh.in])
+AC_CONFIG_FILES([meta.d/slackware/doc/doinst.sh:\
+  meta/slackware/doc/doinst.sh.in])
+AC_CONFIG_FILES([meta.d/slackware/dev/doinst.sh:\
+  meta/slackware/dev/doinst.sh.in])
 @end example
 @end deffn
 
@@ -3001,6 +3001,12 @@ Create the build directory under which all the documentation files from
 Texinfo source will be created.
 @end deffn
 
+
+@defvr {Makefile Variable} texi_MORE_FLAGS
+Customisable variable meant to hold flags for the command line of all
+the @command{makeinfo} invocations.  For example: it is the place to
+select additional include directories.
+@end defvr
 
 @c page
 @node make modules texinfo info
