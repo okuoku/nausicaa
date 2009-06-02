@@ -113,11 +113,15 @@ ifasl-clean:
 ## ---------------------------------------------------------------------
 
 fasl_mosh_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.mosh.sps
+ifeq (,$(strip $(MOSH_LOADPATH)))
+fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR)
+else
 fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR):$(MOSH_LOADPATH)
-fasl_mosh_COMPILE_COMMAND	= echo \
-	"(import (rnrs)(mosh)) ((symbol-value 'pre-compile-r6rs-file) \"$(fasl_mosh_COMPILE_SCRIPT)\")" \
-	| $(MOSH)
-fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV) $(fasl_mosh_COMPILE_COMMAND)
+endif
+fasl_mosh_COMPILE_COMMAND	= printf \
+	"(import (rnrs)(mosh))\n ((symbol-value 'pre-compile-r6rs-file) \"%s\")\n(exit)\n" \
+	$(fasl_mosh_COMPILE_SCRIPT) | $(fasl_mosh_COMPILE_ENV) $(MOSH)
+fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_COMMAND)
 
 .PHONY: mfasl mfasl-clean
 

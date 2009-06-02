@@ -15,6 +15,7 @@ DS_ENABLE_OPTION([nau_scheme_ENABLE_BINFMT],[binfmt],[no],
 
 AC_CONFIG_FILES([../src/libraries/scheme/registry.sls:../src/libraries/scheme/registry.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
+DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END
 DS_END
 

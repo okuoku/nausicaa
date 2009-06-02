@@ -913,7 +913,7 @@ voted to @emph{final} status.  It may be that those features are
 redefined or extended.
 @end itemize
 
-This documents describes the features of the @rnrs{6} language by
+This document describes the features of the @rnrs{6} language by
 embedding the original @rnrs{6} documents; these specifications are
 available in the chapters:
 
@@ -944,7 +944,7 @@ good base of features and interfaces to foreign libraries (mostly coded
 in the C language).
 
 With these purposes, @value{PACKAGE} installs libraries implementing and
-extendint some of the @srfi{}s that where voted to @emph{final} status,
+extending some of the @srfi{}s that were voted to @emph{final} status,
 and providing a unified @api{} to the foreign functions interfaces of
 the underlying implementations.
 
@@ -955,9 +955,8 @@ These specifications are described in the chapters:
 @ref{more,More libraries}
 
 @item
-@ref{foreign,Foreign function interface}
+@ref{foreign,Foreign functions interface}
 @end itemize
-
 
 @c page
 @node overview binfmt

@@ -25,12 +25,12 @@
 
 (import
     (only (scheme))
-;  (only (lists))
-;  (only (char-sets))
-;;;  (only (strings))
-;  (only (checks))
-;   (only (loops))
-;  (only (format))
+  (only (lists))
+  (only (char-sets))
+;;  (only (strings))
+  (only (checks))
+   (only (loops))
+  (only (format))
   )
 
 ;;; end of file
