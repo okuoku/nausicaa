@@ -78,20 +78,21 @@ $(eval $(call ds-builddir,fasl,$(sls_BUILDDIR)))
 fasl_ikarus_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),\
 	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.ikarus*fasl)))
 fasl_mosh_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_MOSH),\
-	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.fasl)))
+	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.mosh*fasl)))
 fasl_larceny_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),\
 	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.slfasl)))
 fasl_TARGETS	=
 fasl_INSTLST	= $(fasl_ikarus_TARGETS) $(fasl_mosh_TARGETS) $(fasl_larceny_TARGETS)
 fasl_INSTDIR	= $(pkglibdir)
 
-fasl_CLEANFILES		= $(fasl_ikarus_TARGETS) $(fasl_larceny_TARGETS)
+fasl_CLEANFILES		= $(fasl_ikarus_TARGETS) $(fasl_larceny_TARGETS) $(fasl_mosh_TARGETS)
 fasl_MOSTLYLCLEANFILES	= $(fasl_CLEANFILES)
 
 $(eval $(call ds-module,fasl,bin))
 
 fasl-all:	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl)	\
-		$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl)
+		$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl)	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl)
 
 endif # nausicaa_ENABLE_FASL == yes
 
@@ -126,7 +127,8 @@ fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_COMMAND)
 .PHONY: mfasl mfasl-clean
 
 mfasl: sls-all mfasl-clean
-	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
+# Commented out Wed Jun  3, 2009 because compiling is still unstable.
+#	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
 
 mfasl-clean:
 	$(RM) $(fasl_mosh_TARGETS)
@@ -176,7 +178,7 @@ tests test check:
 
 nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
-nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
 nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
 
 .PHONY: itests itest icheck

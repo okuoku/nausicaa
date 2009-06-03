@@ -9,6 +9,7 @@ Topics
   1. Introduction
   2. License
   4. Install
+  5. Testing
   A. Credits
   B. Bug reports
   C. Resources
@@ -62,7 +63,6 @@ Basically we should do:
    $ cd "=build"
    $ ../configure
    $ make
-   $ make test
    $ make install
 
   To test what a rule will do use the "-n" option; example:
@@ -77,6 +77,34 @@ to install the files under a temporary location; example:
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
+
+5. Testing
+----------
+
+Running:
+
+   $ make test
+
+will  evaluate   the  test  suite  for   all  the  installed
+libraries.   Test   file  names  match   the  shell  pattern
+"test-*.sps", where  the star matches a "stem";  to select a
+specific  test  file we  can  set  the environment  variable
+"name" to a substring in the stem; examples:
+
+   # select test-char-set.sps
+   $ make test file=char-set
+
+   # select test-lists.sps
+   $ make test file=lists
+
+   # select test-cond-expand.sps
+   $ make test file=cond
+
+  Each test has a name; to select a specific test or section
+of tests,  we can set  the environment variable "name"  to a
+substring of the name; example:
+
+   $ make test file=char-set name=create
 
   A  set   of  tests  to  assess   compatibility  of  Scheme
 implementations with the R6RS  standard is included.  To run

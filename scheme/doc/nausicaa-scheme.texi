@@ -18433,7 +18433,6 @@ Raise a composite condition embedding a condition of type
 * more strings::                Strings library.
 @end menu
 
-
 @c page
 @node more lists
 @section List library
@@ -18459,7 +18458,6 @@ functions and macros to manipulate lists.
 * more lists alist::            Association lists.
 * more lists set::              Set operations on lists.
 @end menu
-
 
 @c page
 @node more lists intro

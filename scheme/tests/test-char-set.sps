@@ -410,34 +410,46 @@
       (member* ch '(#\a #\b #\c) char=?))
 
     (check
-	(char-set-partition it? (char-set #\a #\b #\F #\G))
-      (=> (lambda (a b)
-	    (let-values (((a1 a2) a)
-			 ((b1 b2) b))
-	      (and (char-set=? a1 b1)
-		   (char-set=? a2 b2)))))
-      (values (char-set #\a #\b)
-	      (char-set #\F #\G)))
+	(receive (in ou)
+	    (char-set-partition it? (char-set #\a #\b #\F #\G))
+	  in)
+      (=> char-set=?)
+      (char-set #\a #\b))
 
     (check
-	(char-set-partition it? (char-set #\a #\b))
-      (=> (lambda (a b)
-	    (let-values (((a1 a2) a)
-			 ((b1 b2) b))
-	      (and (char-set=? a1 b1)
-		   (char-set=? a2 b2)))))
-      (values (char-set #\a #\b)
-	      (char-set)))
+	(receive (in ou)
+	    (char-set-partition it? (char-set #\a #\b #\F #\G))
+	  ou)
+      (=> char-set=?)
+      (char-set #\F #\G))
 
     (check
-	(char-set-partition it? (char-set #\F #\G))
-      (=> (lambda (a b)
-	    (let-values (((a1 a2) a)
-			 ((b1 b2) b))
-	      (and (char-set=? a1 b1)
-		   (char-set=? a2 b2)))))
-      (values (char-set)
-	      (char-set #\F #\G)))
+	(receive (in ou)
+	    (char-set-partition it? (char-set #\a #\b))
+	  in)
+      (=> char-set=?)
+      (char-set #\a #\b))
+
+    (check
+	(receive (in ou)
+	    (char-set-partition it? (char-set #\a #\b))
+	  ou)
+      (=> char-set=?)
+      (char-set))
+
+    (check
+	(receive (in ou)
+	    (char-set-partition it? (char-set #\F #\G))
+	  in)
+      (=> char-set=?)
+      (char-set))
+
+    (check
+	(receive (in ou)
+	    (char-set-partition it? (char-set #\F #\G))
+	  ou)
+      (=> char-set=?)
+      (char-set #\F #\G))
 
     )
 

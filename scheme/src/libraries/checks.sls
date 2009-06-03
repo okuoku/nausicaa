@@ -224,11 +224,11 @@
 
 (define-syntax srfi:check
   (syntax-rules (=>)
-    ((_ expr => expected)
-     (srfi:check expr (=> equal?) expected))
-    ((_ expr (=> equal) expected)
+    ((_ ?expr => ?expected)
+     (srfi:check ?expr (=> equal?) ?expected))
+    ((_ ?expr (=> ?equal) ?expected)
      (when (>= (check:mode) 1)
-       (check:proc 'expr (lambda () expr) equal expected)))))
+       (check:proc (quote ?expr) (lambda () ?expr) ?equal ?expected)))))
 
 
 ;;; parametric checks
