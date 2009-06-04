@@ -169,7 +169,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c ------------------------------------------------------------
 
 @macro func{NAME}
-@code{@sc{\NAME\}}
+@code{\NAME\}
 @end macro
 
 @macro null{}
@@ -747,9 +747,10 @@ The augmented language
 
 More libraries
 
-* more lists::                  List library.
+* more lists::                  Lists library.
 * more checks::                 Lightweight testing.
-* more char-sets::              Character sets.
+* more char-sets::              Character sets library.
+* more strings::                Strings library.
 
 List library
 
@@ -806,6 +807,29 @@ Character sets
 * more char-sets iter::         Iteration.
 * more char-sets set::          Set operations.
 * more char-sets std::          Standard char sets.
+
+Strings library
+
+* strings intro::               Conventions.
+* strings pred::                Predicates.
+* strings cons::                Constructors.
+* strings list::                List and string conversion.
+* strings select::              Selection.
+* strings compar::              Comparison.
+* strings prefix::              Prefixes and suffixes.
+* strings search::              Searching.
+* strings case-map::            Alphabetic case mapping.
+* strings append::              Reverse and append.
+* strings fold::                Fold, unfold and map.
+* strings replicate::           Replicate and rotate.
+* strings misc::                Miscellaneous: intertion, parsing.
+* strings filter::              Filtering and deleting.
+
+Low level procedures
+
+* strings parsing::             Start/end optional-argument parsing
+                                and checking utilities.
+* strings knuth::               Knuth-Morris-Pratt searching.
 
 Launching programs directly
 
@@ -22278,272 +22302,47 @@ horizontal tab and space.  Latin-1 adds the no--break space.
 @section Strings library
 
 
-@menu
-* strings rationale::           Rationale.
-* strings spec::                Specification.
-@end menu
+This chapter describes the @library{strings} library, which handles
+strings.  This library considers strings simply to be a sequence of
+``code points'' or character encodings.  Operations such as comparison
+or reversal are always done code point by code point.
 
-@c page
-@node strings rationale
-@subsection Rationale
-
-
-This @srfi{} defines two libraries that provide a rich set of
-operations for manipulating strings.  These are frequently useful for
-scripting and other text--manipulation applications.  The library's
-design was influenced by the string libraries found in @acronym{MIT}
-Scheme, Gambit, RScheme, MzScheme, slib, Common Lisp, Bigloo, guile,
-Chez, @acronym{APL}, Java, and the @acronym{SML} standard basis.
-
-All procedures involving character comparison are available in both
-case--sensitive and case--insensitive forms.
-
-All functionality is available in substring and full--string forms.
-
-@menu
-* strings ratio code-point::    Strings are code-point sequences.
-* strings ratio i18n::          Internationalisation and
-                                super-@ascii{} character types.
-@end menu
-
-
-@c page
-@node strings ratio code-point
-@subsubsection Strings are code--point sequences
-
-
-This @srfi{} considers strings simply to be a sequence of ``code
-points'' or character encodings.  Operations such as comparison or
-reversal are always done code point by code point.  See the comments
-below on super--@ascii{} character types for implications that follow.
-
-It's entirely possible that a legal string might not be a sensible
-``text'' sequence.  For example, consider a string comprised entirely of
+It's possible that a legal string might not be a sensible ``text''
+sequence; for example, consider a string comprised entirely of
 zero--width Unicode accent characters with no preceding base character
-to modify; this is a legal string, albeit one that does not make a great
-deal of sense when interpreted as a sequence of natural--language text.
-The routines in this @srfi{} do not handle these ``text'' concerns;
-they restrict themselves to the underlying view of strings as merely a
-sequence of ``code points''.
+to modify: it is a legal string, albeit one that does not make sense
+when interpreted as a sequence of natural--language text.  The routines
+in @library{strings} do not handle these ``text'' concerns.
 
-This @srfi{} defines string operations that are locale--independent and
-context--independent.  While it is certainly important to have a
-locale--sensitive comparison or collation procedure when processing
-text, it is also important to have a suite of operations that are
-reliably invariant for basic string processing; otherwise, a change of
-locale could cause data structures such as hash tables, b--trees, symbol
-tables, directories of filenames, etc. to become corrupted.
+@menu
+* strings intro::               Conventions.
+* strings pred::                Predicates.
+* strings cons::                Constructors.
+* strings list::                List and string conversion.
+* strings select::              Selection.
+* strings compar::              Comparison.
+* strings prefix::              Prefixes and suffixes.
+* strings search::              Searching.
+* strings case-map::            Alphabetic case mapping.
+* strings append::              Reverse and append.
+* strings fold::                Fold, unfold and map.
+* strings replicate::           Replicate and rotate.
+* strings misc::                Miscellaneous: intertion, parsing.
+* strings filter::              Filtering and deleting.
 
-Locale--sensitive and context--sensitive text operations, such as
-collation, are explicitly deferred to a subsequent, companion ``text''
-@srfi{}.
+Low level procedures
 
+* strings parsing::             Start/end optional-argument parsing
+                                and checking utilities.
+* strings knuth::               Knuth-Morris-Pratt searching.
+@end menu
 
 @c page
-@node strings ratio i18n
-@subsubsection Internationalisation and super-@ascii{} character types
+@node strings intro
+@subsection Conventions
 
 
-The major issue confronting this @srfi{} is the existence of
-super--@ascii{} character encodings, such as eight--bit Latin--1 or
-16--bit and 32--bit Unicode.  It is a design goal of this @srfi{} for
-the @api{} to be portable across string implementations based on at
-least these three standard encodings.  Unfortunately, this places strong
-limitations on the @api{} design.  Here are some relevant issues.  Be
-warned that life in a super--@ascii{} world is significantly more
-complex; there are no easy answers for many of these issues.
-
-@c ------------------------------------------------------------
-
-@subsubheading Case mapping and case--folding
-
-
-@noindent
-Upper--casing and lower--casing characters is complex in super--@ascii{}
-encodings.
-
-@itemize
-@item
-Some characters case--map to more than one character.  For example, the
-Latin--1 German @code{eszet} character upper--cases to @code{SS}.
-
-@itemize --
-@item
-This means that the @rnrs{5} function @func{char-upcase} is not
-well--defined, since it is defined to produce a (single) character
-result.
-
-@item
-It means that an in--place @func{string-upcase!} procedure cannot be
-reliably defined, since the original string may not be long enough to
-contain the result; an @var{N}--character string might upcase to a
-@var{2N}--character result.
-
-@item
-It means that case--insensitive string--matching or searching is quite
-tricky.  For example, an @var{n}--character string @var{s} might match a
-@var{2N}--character string @var{s'}.
-@end itemize
-
-@item
-Some characters case--map in different ways depending upon their
-surrounding context.  For example, the Unicode Greek capital sigma
-character downcases differently depending upon whether or not it is the
-final character in a word.  Again, this spells trouble for the simple
-@rnrs{5} char--downcase function.
-
-@item
-Unicode defines three cases: lowercase, uppercase and titlecase.  The
-distinction between uppercase and titlecase arises in the presence of
-Unicode's compound characters.  For example, Unicode has a single
-character representing the compound pair @code{dz}.  Uppercasing the
-@code{dz} character produces the compound character @code{DZ}, while
-titlecasing (or, as Americans say, capitalizing) it produces compound
-character @code{Dz}.
-
-@item
-Turkish actually has different case--mappings from other languages.
-@end itemize
-
-The Unicode Consortium's web site:
-
-@center @url{http://www.unicode.org/}
-
-@noindent
-has detailed discussions of the issues.  See in particular technical
-report 21 on case mappings:
-
-@center @url{http://www.unicode.org/unicode/reports/tr21/}
-
-@ansrfi{13} makes no attempt to deal with these issues; it uses a simple
-one--to--ont locale--independent and context--independent case--mapping,
-specifically Unicode's one--to--one case--mappings given in:
-
-@center @url{ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt}
-
-The format of this file is explained in:
-
-@center @url{ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.html}
-
-Note that this means that German @code{eszet} upper--cases to itself,
-not @code{SS}.
-
-Case--mapping and case--folding operations in @ansrfi{13} are
-locale--independent so that shifting locales won't wreck hash tables,
-b--trees, symbol tables, etc.
-
-@c ------------------------------------------------------------
-
-@subsubheading String equality and string normalisation
-
-
-@noindent
-Comparing strings for equality is complicated because in some cases
-Unicode actually provides multiple encodings for the ``same'' character,
-and because what we usually think of as a ``character'' can be
-represented in Unicode as a sequence of several code--points.  For
-example, consider the letter @code{e} with an acute accent.  There is a
-single Unicode character for this.  However, Unicode also allows one to
-represent this with a two--character sequence: the @code{e} character
-followed by a zero--width acute--accent character.  As another example,
-Unicode provides some Asian characters in ``narrow'' and ``full''
-widths.
-
-There are multiple ways we might want to compare strings for equality.
-In (roughly) decreasing order of precision:
-
-@itemize
-@item
-we might want a precise comparison of the actual encoding, so that
-@code{<e-acute>} would not compare equal to @code{<e, acute>};
-
-@item
-we might want a ``normalised'' comparison, where these two sequences
-would compare equal;
-
-@item
-we might want an even more--permissive normalisation, where
-visually--distinct properties of ``the same'' character would be
-ignored; for example, we might want narrow/full--width versions of the
-same Asian character to compare equal;a
-
-@item
-we might want comparisons that are insensitive to accents and
-diacritical marks;
-
-@item
-we might want comparisons that are case--insensitive;
-
-@item
-we might want comparisons that are insensitive to several of the above
-properties;
-
-@item
-we might want ways to ``normalise'' strings into various canonical
-forms.
-@end itemize
-
-This library does not address these complexities.  @ansrfi{13} string
-equality is simply based upon comparing the encoding values used for the
-characters.  Accent--insensitive and other types of comparison are not
-provided; only a simple form of case--insensitive comparison is
-provided, which uses the one--to--one case mappings specified by Unicode
-in:
-
-@center @url{ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt}
-
-These are adequate for ``program'' or ``systems'' use of strings (e.g.
-to manipulate program identifiers and operating--system filenames).
-
-@c ------------------------------------------------------------
-
-@subsubheading String inequality
-
-
-@noindent
-Above and beyond the issues arising in string--equality, when we attempt
-to order strings there are even further considerations.
-
-@itemize
-@item
-French orders accents with right--to--left significance; the reverse of
-the significance of the characters.
-
-@item
-Case--insensitive ordering is not well defined by simple code--point
-considerations, even for simple @ascii{}: there are punctuation
-characters between the @ascii{}'s upper--case range of letters and its
-lower--case range (left--bracket, backslash, right--bracket, caret,
-underbar and backquote).  Does left--bracket compare less--than or
-greater--than @code{a} in a case--insensitive comparison?
-
-@item
-The German @code{eszet} character should sort as if it were the pair of
-letters @code{ss}.
-@end itemize
-
-Unicode defines a complex set of machinery for ordering or ``collating''
-strings, which involves mapping each string to a multi--byte sort key,
-and then doing simple lexicographic sorting with these keys.  These
-rules can be overlaid by additional domain--specific or
-language--specific rules.  Again, this @srfi{} does not address these
-issues.  @ansrfi{13} string ordering is strictly based upon a
-character--by--character comparison of the values used for representing
-the string.
-
-@c ------------------------------------------------------------
-
-@subsubheading Naming conventions
-
-
-@noindent
-This library contains a large number of procedures, but they follow a
-consistent naming scheme, and are consistent with the conventions
-developed in @ansrfi{1}.  The names are composed of smaller lexemes in a
-regular way that exposes the structure and relationships between the
-procedures.  This should help the programmer to recall or reconstitute
-the name of the particular procedure that he needs when writing his own
-code.  In particular:
+The following naming convention holds:
 
 @itemize
 @item
@@ -22558,8 +22357,8 @@ The order of common parameters is consistent across the different
 procedures.
 
 @item
-Left/right/both directionality: Procedures that have left/right
-directional variants use the following convention:
+Procedures that have left/right directional variants use the following
+convention:
 
 @multitable {right--to--left} {Suffix}
 @headitem Direction @tab Suffix
@@ -22567,241 +22366,9 @@ directional variants use the following convention:
 @item right-to-left @tab --right
 @item both @tab --both
 @end multitable
-
-This is a general convention that was established in @ansrfi{1}.  The
-value of a convention is proportional to the extent of its use.
 @end itemize
 
-@c ------------------------------------------------------------
-
-@subsubheading Shared storage
-
-
-@noindent
-Some Scheme implementations, e.g. Guile and T, provide ways to construct
-substrings that share storage with other strings.  This facility is
-called ``shared--text substrings''.  Shared--text substrings can be used
-to eliminate the allocation and copying time and space required to
-produce substrings, which can be a tremendous savings for some
-applications, reducing a linear--time operation to constant time.
-Additionally, some algorithms rely on the sharing property of these
-substrings: the application assumes that if the underlying storage is
-mutated, then all strings sharing that storage will show the change.
-However, shared--text substrings are not a common feature; most Scheme
-implementations do not provide them.
-
-@ansrfi{13} takes a middle ground with respect to shared--text substrings.
-In particular, a Scheme implementation does not need to have
-shared--text substrings in order to implement this @srfi{}.
-
-There is an additional form of storage sharing enabled by some @ansrfi{13}
-procedures, even without the benefit of shared--text substrings.  In
-some cases, some @ansrfi{13} routines are allowed to return as a result
-one of the strings that was passed in as a parameter.  For example, when
-constructing a substring with the @func{substring/shared} procedure, if
-the requested substring is the entire string, the procedure is permitted
-simply to return the original value.  That is:
-
-@example
-(eq? s (substring/shared s 0 (string-length s))) => true or false
-@end example
-
-@noindent
-whereas the @rnrs{5} @func{substring} function is required to allocate a
-fresh copy:
-
-@example
-(eq? s (substring s 0 (string-length s))) => false.
-@end example
-
-In keeping with @ansrfi{13}'s general approach to sharing, compliant
-implementations are allowed, but not required, to provide this kind of
-sharing.  Hence, procedures may not rely upon sharing in these cases.
-
-Most procedures that permit results to share storage with inputs have
-equivalent procedures that require allocating fresh storage for results.
-If an application wishes to be sure a new, fresh string is allocated,
-then these ``pure'' procedures should be used.
-
-@multitable {string-concatenate-reverse} {string-concatenate-reverse/shared}
-@headitem Fresh copy guaranteed @tab Sharing permitted
-@item @func{string-copy} @tab @func{substring/shared}
-@item @func{string-copy} @tab @func{string-take} @func{string-take-right}
-@item @func{string-copy} @tab @func{string-drop} @func{string-drop-right}
-@item @func{string-concatenate} @tab @func{string-concatenate/shared}
-@item @func{string-append} @tab @func{string-append/shared}
-@item @func{string-concatenate-reverse} @tab @func{string-concatenate-reverse/shared}
-@item @tab @func{string-pad string-pad-right}
-@item @tab @func{string-trim string-trim-right}
-@item @tab @func{string-trim-both}
-@item @tab @func{string-filter string-delete}
-@end multitable
-
-On the other hand, the functionality is present to allow one to write
-efficient code without shared--text substrings.  You can write efficient
-code that works by passing around start/end ranges indexing into a
-string instead of simply building a shared--text substring.  The @api{}
-would be much simpler without this consideration; if we had cheap
-shared--text substrings, all the start/end index parameters would
-vanish.  However, since @ansrfi{13} does not require implementations to
-provide shared--text substrings, the extended @api{} is provided.
-
-@c ------------------------------------------------------------
-
-@subsubheading @rnrs{4}/@rnrs{5} procedures
-
-
-@noindent
-The @rnrs{4} and @rnrs{5} reports define 22 string procedures.  The
-@ansrfi{13} package includes 8 of these exactly as defined, 3 in an
-extended, backwards--compatible way, and drops the remaining 11 (whose
-functionality is available via other bindings).
-
-The 8 procedures provided exactly as documented in the reports are:
-
-@example
-string?         make-string     string
-string-length   string-ref      string-set!
-string-append   list->string
-@end example
-
-The 11 functions not included are:
-
-@example
-string=?        string-ci=?     string<?
-string-ci<?     string>?        string-ci>?
-string<=?       string-ci<=?    string>=?
-string-ci>=?    substring
-@end example
-
-The @ansrfi{13} package provides alternate bindings and extended
-functionality.
-
-Additionally, the three extended procedures are:
-
-@example
-string-fill! s char [start end] -> unspecified
-string->list s [start end] -> char-list
-string-copy  s [start end] -> string
-@end example
-
-They are uniformly extended to take optional start/end parameters
-specifying substring ranges.
-
-@c ------------------------------------------------------------
-
-@subsubheading Extra--@srfi{} recommendations
-
-
-@noindent
-This @srfi{} recommends the following:
-
-@itemize
-@item
-A @srfi{} be defined for shared--text substrings, allowing programs to
-be written that actually rely on the shared--storage properties of these
-data structures.
-
-@item
-A @srfi{} be defined for manipulating Unicode text: various
-normalisation operations, collation, searching, etc.  Collation
-operations might be parameterised by a ``collation'' structure
-representing collation rules for a particular locale or language.
-
-Alternatively, a data structure specifying collation rules could be
-activated with dynamic scope by special procedures, possibly overridden
-by allowing collation rules to be optional arguments to procedures that
-need to order strings, e.g.
-
-@example
-(with-locale* denmark-locale
-  (lambda ()
-    (f x)
-    (g 42)))
-
-(with-locale taiwan-locale
-  (f x)
-  (h denmark-locale)
-  (g 42))
-
-(set-locale! denmark-locale)
-@end example
-
-@item
-A @srfi{} be defined for manipulating characters that is portable
-across at least @ascii{}, Latin--1 and Unicode.
-
-@itemize
-@item
-For backwards--compatibility, @func{char-upcase} and
-@func{char-downcase} should be defined to use the one--to--one
-locale--insensitive and context--insensitive case mappings given by
-Unicode's @file{UnicodeData.txt} table.
-
-@item
-Numeric codes for standard functions that map between characters and
-integers should be required to use the Unicode/Latin--1/@ascii{}
-mapping.  This allows programmers to write portable code.
-
-@item
-@func{char-titlecase} be added to @func{char-upcase} and
-@func{char-downcase}.
-
-@item
-@func{char-titlecase?} be added to @func{char-upcase?} and
-@func{char-downcase?}.
-
-@item
-Title/up/down--case functions be added to the character--processing
-suite which allow 1->n case maps by returning immutable,
-possibly--multi--character strings instead of single characters.  These
-case mappings need not be locale--sensitive or context--sensitive.
-@end itemize
-@end itemize
-
-These recommendations are not a part of the @ansrfi{13} spec.  Note also
-that requiring a Unicode/Latin-1/@ascii{} interface to integer/char
-mapping functions does not imply anything about the actual underlying
-encodings of characters.
-
-
-@c page
-@node strings spec
-@subsection Specification
-
-
-@menu
-High level procedures
-
-* strings spec intro::          Introduction.
-* strings spec pred::           Predicates.
-* strings spec cons::           Constructors.
-* strings spec list::           List and string conversion.
-* strings spec select::         Selection.
-* strings spec modify::         Modification.
-* strings spec compar::         Comparison.
-* strings spec prefix::         Prefixes and suffixes.
-* strings spec search::         Searching.
-* strings spec case-map::       Alphabetic case mapping.
-* strings spec append::         Reverse and append.
-* strings spec fold::           Fold, unfold and map.
-* strings spec replicate::      Replicate and rotate.
-* strings spec misc::           Miscellaneous: intertion, parsing.
-* strings spec filter::         Filtering and deleting.
-
-Low level procedures
-
-* strings spec parsing::        Start/end optional-argument parsing
-                                and checking utilities.
-* strings spec knuth::          Knuth-Morris-Pratt searching.
-@end menu
-
-@c page
-@node strings spec intro
-@subsubsection Introduction
-
-
-In the following procedure specifications:
+In the procedure specifications:
 
 @itemize
 @item
@@ -22846,9 +22413,6 @@ specifying a length of a string or some number of characters.
 @item
 An @var{obj} parameter may be any value at all.
 @end itemize
-
-Passing values to procedures with these parameters that do not satisfy
-these types is an error.
 
 Parameters given in square brackets are optional.  Unless otherwise
 noted in the text describing the procedure, any prefix of these optional
@@ -22913,14 +22477,8 @@ Comparison is simply done on individual code--points of the string.
 
 
 @c page
-@node strings spec pred
-@subsubsection Predicates
-
-
-@defun string? @var{obj}
-@rnrs{5} Return @true{} if @var{obj} is a string, otherwise return
-@false{}.
-@end defun
+@node strings pred
+@subsection Predicates
 
 
 @defun string-null? @var{s}
@@ -22931,7 +22489,7 @@ Return @true{} if @var{obj} is the empty string, otherwise return
 
 @defun string-every @var{char/char-set/pred} @var{s} [@var{start} @var{end}]
 @defunx string-any @var{char/char-set/pred} @var{s} [@var{start} @var{end}]
-Check to see if the given criteria is true of every/any character in
+Check to see if the given criteria is true on every/any character in
 @var{s}, proceeding from left (index @var{start}) to right (index
 @var{end}).
 
@@ -22951,8 +22509,8 @@ produced by the application of the predicate.
 
 @item
 If @func{string-every} returns true, the returned true value is the one
-produced by the final application of the predicate to @code{s[end]}.  If
-@func{string-every} is applied to an empty sequence of characters, it
+produced by the final application of the predicate to @code{s[end-1]}.
+If @func{string-every} is applied to an empty sequence of characters, it
 simply returns @true{}.
 @end itemize
 
@@ -22965,41 +22523,20 @@ to indicate that, in the predicate case, they do not return a simple
 boolean (@true{} or @false{}), but a general value.
 @end defun
 
-
-
 @c page
-@node strings spec cons
-@subsubsection Constructors
-
-
-@defun make-string @var{len} [@var{char}]
-@rnrs{5} Return a newly allocated string of length @var{len}.  If
-@var{char} is given, then all elements of the string are initialized to
-@var{char}, otherwise the contents of the string are unspecified.
-@end defun
-
-
-@defun string @var{char1} ...
-@rnrs{5} Return a newly allocated string composed of the argument
-characters.
-@end defun
-
-
-@defun string-tabulate @var{proc} @var{len}
-@var{proc} is an @func{integer->char} procedure.  Construct a string of
-size @var{len} by applying @var{proc} to each index to produce the
-corresponding string element. The order in which @var{proc} is applied
-to the indices is not specified.
-@end defun
+@node strings cons
+@subsection Constructors
 
 
 
 @c page
-@node strings spec list
-@subsubsection List and string conversion
+@node strings list
+@subsection List and string conversion
 
 
-@defun string->list @var{s} [@var{start} @var{end}]
+@defun string->list @var{s}
+@defunx string->list @var{s} @var{start}
+@defunx string->list @var{s} @var{start} @var{end}
 @defunx list->string @var{char-list}
 @rnrs{5}+ @func{string->list} returns a newly allocated list of the
 characters that make up the given string.  @func{list->string} returns a
@@ -23027,7 +22564,9 @@ accumulate an answer in a reverse--order list.  See also
 @end defun
 
 
-@defun string-join @var{string-list} [@var{delimiter} @var{grammar}]
+@defun string-join @var{string-list}
+@defunx string-join @var{string-list} @var{delimiter}
+@defunx string-join @var{string-list} @var{delimiter} @var{grammar}
 This procedure is a simple unparser: it pastes strings together using
 the @var{delimiter} string.
 
@@ -23078,26 +22617,14 @@ Examples:
 @end example
 @end defun
 
-
-
 @c page
-@node strings spec select
-@subsubsection Selection
+@node strings select
+@subsection Selection
 
 
-@defun string-length @var{s}
-@rnrs{5} Return the number of characters in the string @var{s}.
-@end defun
-
-
-@defun string-ref @var{s} @var{i}
-@rnrs{5} Return character @code{s[i]} using zero--origin indexing.
-@var{i} must be a valid index of @var{s}.
-@end defun
-
-
-@defun string-copy @var{s} [@var{start} @var{end}]
-@defunx substring/shared @var{s} @var{start} [@var{end}]
+@defun string-copy* @var{s}
+@defunx string-copy* @var{s} @var{start}
+@defunx string-copy* @var{s} @var{start} @var{end}
 @rnrs{5}+ @func{substring/shared} returns a string whose contents are
 the characters of @var{s} beginning with index @var{start} (inclusive)
 and ending with index @var{end} (exclusive).  It differs from the
@@ -23190,8 +22717,14 @@ It is an error to take or drop more characters than are in the string:
 @end defun
 
 
-@defun string-pad @var{s} @var{len} [@var{char} @var{start} @var{end}]
-@defunx string-pad-right @var{s} @var{len} [@var{char} @var{start} @var{end}]
+@defun string-pad @var{s} @var{len}
+@defunx string-pad @var{s} @var{len} @var{char}
+@defunx string-pad @var{s} @var{len} @var{char} @var{start}
+@defunx string-pad @var{s} @var{len} @var{char} @var{start} @var{end}
+@defunx string-pad-right @var{s} @var{len}
+@defunx string-pad-right @var{s} @var{len} @var{char}
+@defunx string-pad-right @var{s} @var{len} @var{char} @var{start}
+@defunx string-pad-right @var{s} @var{len} @var{char} @var{start} @var{end}
 Build a string of length @var{len} comprised of @var{s} padded on the
 left (right) by as many occurrences of the character @var{char} as
 needed.  If @var{s} has more than len chars, it is truncated on the left
@@ -23211,9 +22744,18 @@ Examples:
 @end defun
 
 
-@defun string-trim @var{s} [@var{char/char-set/pred} @var{start} @var{end}]
-@defunx string-trim-right @var{s} [@var{char/char-set/pred} @var{start} @var{end}]
-@defunx string-trim-both @var{s} [@var{char/char-set/pred} @var{start} @var{end}]
+@defun string-trim @var{s}
+@defunx string-trim @var{s} @var{char/char-set/pred}
+@defunx string-trim @var{s} @var{char/char-set/pred} @var{start}
+@defunx string-trim @var{s} @var{char/char-set/pred} @var{start} @var{end}
+@defunx string-trim-right @var{s}
+@defunx string-trim-right @var{s} @var{char/char-set/pred}
+@defunx string-trim-right @var{s} @var{char/char-set/pred} @var{start}
+@defunx string-trim-right @var{s} @var{char/char-set/pred} @var{start} @var{end}
+@defunx string-trim-both @var{s}
+@defunx string-trim-both @var{s} @var{char/char-set/pred}
+@defunx string-trim-both @var{s} @var{char/char-set/pred} @var{start}
+@defunx string-trim-both @var{s} @var{char/char-set/pred} @var{start} @var{end}
 Trim @var{s} by skipping over all characters on the left/on the right/on
 both sides that satisfy the second parameter @var{char/char-set/pred}:
 
@@ -23247,49 +22789,21 @@ Example:
 @end example
 @end defun
 
-
-
 @c page
-@node strings spec modify
-@subsubsection Modification
+@node strings compar
+@subsection Comparison
 
 
-@defun string-set! @var{s} @var{i} @var{char}
-@rnrs{5} @var{i} must be a valid index of @var{s}.  @func{string-set!}
-stores @var{char} in element @var{i} of @var{s}.  Constant string
-literals appearing in code are immutable; it is an error to use them in
-a @func{string-set!}.
-
-Example:
-
-@example
-(define (f) (make-string 3 #\*))
-(define (g) "***")
-(string-set! (f) 0 #\?)                ==>  unspecified
-(string-set! (g) 0 #\?)                ==>  error
-(string-set! (symbol->string 'immutable)
-             3
-             #\?)                      ==>  error
-@end example
-@end defun
-
-
-@defun string-fill! @var{s} @var{char} [@var{start} @var{end}]
-@rnrs{5} Store @var{char} in every element of @var{s}.
-
-@func{string-fill} is extended from the @rnrs{5} definition to take
-optional @var{start}/@var{end} arguments.
-@end defun
-
-
-
-@c page
-@node strings spec compar
-@subsubsection Comparison
-
-
-@defun string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} [@var{start1} @var{end1} @var{start2} @var{end2}]
+@defun string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>}
+@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1}
+@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1}
+@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2}
+@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2} @var{end2}
+@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>}
+@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1}
+@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1}
+@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2}
+@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2} @var{end2}
 Apply @var{proc<}, @var{proc=}, or @var{proc>} to the mismatch index,
 depending upon whether @var{s1} is less than, equal to, or greater than
 @var{s2}.  The ``mismatch index'' is the largest index @var{i} such that
@@ -23389,11 +22903,9 @@ integers, allowing the implementor to provide a fixnum--specific ``fast
 path'' for computing the common cases very rapidly.
 @end defun
 
-
-
 @c page
-@node strings spec prefix
-@subsubsection Prefixes and suffixes
+@node strings prefix
+@subsection Prefixes and suffixes
 
 
 @defun string-prefix-length @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
@@ -23424,11 +22936,9 @@ the comparison to the indicated substrings of @var{s1} and @var{s2}.
 case--insensitive variants.
 @end defun
 
-
-
 @c page
-@node strings spec search
-@subsubsection Searching
+@node strings search
+@subsection Searching
 
 
 @defun string-index @var{s} @var{char/char-set/pred} [@var{start} @var{end}]
@@ -23505,11 +23015,9 @@ Example:
 @func{string-contains-ci} is the case--insensitive variant.
 @end defun
 
-
-
 @c page
-@node strings spec case-map
-@subsubsection Alphabetic case mapping
+@node strings case-map
+@subsection Alphabetic case mapping
 
 
 @defun string-titlecase @var{s} [@var{start} @var{end}]
@@ -23560,11 +23068,9 @@ and do not alter their s parameter.  @func{string-upcase!} and
 @func{string-downcase!} are the in--place side--effecting variants.
 @end defun
 
-
-
 @c page
-@node strings spec append
-@subsubsection Reverse and append
+@node strings append
+@subsection Reverse and append
 
 
 @defun string-reverse @var{s} [@var{start} @var{end}]
@@ -23670,11 +23176,9 @@ coming after a base character @var{bc} in string @var{s} would come out
 before @var{bc} in the reversed result.
 @end defun
 
-
-
 @c page
-@node strings spec fold
-@subsubsection Fold, unfold and map
+@node strings fold
+@subsection Fold, unfold and map
 
 
 @defun string-map @var{proc} @var{s} [@var{start} @var{end}]
@@ -23970,10 +23474,16 @@ and correct.  Example:
 @end defun
 
 
+@defun string-tabulate @var{proc} @var{len}
+@var{proc} is an @func{integer->char} procedure.  Construct a string of
+size @var{len} by applying @var{proc} to each index to produce the
+corresponding string element.  The order in which @var{proc} is applied
+to the indices is not specified.
+@end defun
 
 @c page
-@node strings spec replicate
-@subsubsection Replicate and rotate
+@node strings replicate
+@subsection Replicate and rotate
 
 
 @defun xsubstring @var{s} @var{from} [@var{to} @var{start} @var{end}]
@@ -23995,7 +23505,7 @@ conceptual bidirectionally--infinite string:
 @end example
 
 @noindent
-that is @code{defg} repeated in both directions.
+that is @code{def} repeated in both directions.
 
 @func{xsubstring} returns the substring of this string beginning at
 index @var{from}, and ending at @var{to} which defaults to @code{from +
@@ -24039,11 +23549,9 @@ operation is not defined if @code{(eq? target s)} or these two arguments
 share storage; we cannot copy a string on top of itself.
 @end defun
 
-
-
 @c page
-@node strings spec misc
-@subsubsection Miscellaneous: intertion, parsing
+@node strings misc
+@subsection Miscellaneous: intertion, parsing
 
 
 @defun string-replace @var{s1} @var{s2} @var{start1} @var{end1} [@var{start2} @var{end2}]
@@ -24106,11 +23614,9 @@ more serious parsing is needed.
 @end example
 @end defun
 
-
-
 @c page
-@node strings spec filter
-@subsubsection Filtering and deleting
+@node strings filter
+@subsection Filtering and deleting
 
 
 @defun string-filter @var{char/char-set/pred} @var{s} [@var{start} @var{end}]
@@ -24125,10 +23631,9 @@ If the string is unaltered by the filtering operation, these functions
 may return either @var{s} or a copy of @var{s}.
 @end defun
 
-
 @c page
-@node strings spec parsing
-@subsubsection Start/end optional--argument parsing and checking utilities
+@node strings parsing
+@subsection Start/end optional--argument parsing and checking utilities
 
 
 @defun {string-parse-start+end} @var{proc} @var{s} @var{args}
@@ -24221,11 +23726,9 @@ Otherwise, @func{substring-spec-ok?} returns @true{}, and
 specified).
 @end defun
 
-
-
 @c page
-@node strings spec knuth
-@subsubsection Knuth-Morris-Pratt searching
+@node strings knuth
+@subsection Knuth-Morris-Pratt searching
 
 
 The Knuth--Morris--Pratt string--search algorithm is a method of rapidly
@@ -24460,7 +23963,6 @@ could be defined as follows:
                                 vi c= p-start))]))))
 @end example
 @end defun
-
 
 @c page
 @node foreign

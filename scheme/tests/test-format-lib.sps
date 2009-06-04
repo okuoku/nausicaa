@@ -240,7 +240,7 @@
 
 
 
-(parameterise ((check-test-name 'escape-c))
+(parameterise ((check-test-name 'characters))
 
   (check
       (format "~c" #\A)
