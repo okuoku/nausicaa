@@ -337,10 +337,9 @@ Revised^6 Report on the algorithmic language Scheme
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, a
-slightly modified @rnrs{6} Scheme language; it also provides a set of
-libraries that augment the features of the base and standard @rnrs{6}
-libraries.
+This document describes version @version{} of @value{PACKAGE}, a set of
+Scheme libraries defining a slightly modified @rnrs{6} Scheme language
+and augmenting the features of the base and standard @rnrs{6} libraries.
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}.
@@ -360,7 +359,6 @@ reformatted in Texinfo; the reformatting author and maintainer is
 @value{AUTHOR} @value{AUTHOR_EMAIL}.  See the appendix ``Credits'' for
 the list of original documents and their authors.
 @end copying
-
 
 @c page
 @c ------------------------------------------------------------
@@ -431,8 +429,7 @@ Indexes
 Overview of the package
 
 * overview copying::            Copying this document.
-* overview compliancy::         On being compliant.
-* overview language::           On the @library{nausicaa} language.
+* overview porting::            On writing portable code.
 * overview libraries::          Other libraries.
 * overview binfmt::             Launching Scheme programs directly.
 
@@ -729,7 +726,7 @@ Hashtables
 * stdlib hashtable inspection::         Inspection.
 * stdlib hashtable hash functions::     Hash functions.
 
-The augmented language
+The @library{nausicaa} language
 
 * naulib features::             Feature--based conditional expansion.
 * naulib funcs::                Functions.
@@ -805,7 +802,9 @@ Character sets
 
 Strings library
 
-* strings intro::               Conventions.
+* strings intro::               Introduction.
+* strings convention::          Interface conventions.
+* strings views::               Views over strings.
 * strings pred::                Predicates.
 * strings cons::                Constructors.
 * strings list::                List and string conversion.
@@ -822,6 +821,7 @@ Strings library
 
 Low level procedures
 
+* strings low compar::          Low level comparison functions.
 * strings parsing::             Start/end optional-argument parsing
                                 and checking utilities.
 * strings knuth::               Knuth-Morris-Pratt searching.
@@ -864,10 +864,9 @@ Syntax objects and you
 
 
 @value{PACKAGE} is a set of Scheme libraries defining a slightly
-modified @rnrs{6} Scheme language; it also provides a set of libraries
-that augment the features of the base and standard @rnrs{6} libraries.
-To use it when writing a library or program, we import
-@library{nausicaa} in place of @library{rnrs}:
+modified @rnrs{6} Scheme language and augmenting the features of the
+base and standard @rnrs{6} libraries.  To use it when writing a library
+or program, we import @library{nausicaa} in place of @library{rnrs}:
 
 @example
 (import (nausicaa)
@@ -882,8 +881,8 @@ conflicts may arise.
 
 @menu
 * overview copying::            Copying this document.
-* overview compliancy::         On being compliant.
-* overview language::           On the @library{nausicaa} language.
+* overview implementation::     Supported implementations.
+* overview porting::            On writing portable code.
 * overview libraries::          Other libraries.
 * overview binfmt::             Launching Scheme programs directly.
 @end menu
@@ -894,28 +893,61 @@ conflicts may arise.
 
 @insertcopying
 
+@c page
+@node overview implementation
+@section Supported implementations
+
+
+@value{PACKAGE} supports the following Scheme implementations:
+
+@table @strong
+@item Larceny
+It is an also @rnrs{6} compliant implementation of the Scheme
+programming language.  It is the creation of William D.  Clinger, Lars T
+Hansen and Lightship Software, Incorporated, with contributions by other
+people.
+
+@center @url{http://www.ccs.neu.edu/home/will/Larceny/}
+
+@item Ikarus
+It is an almost @rnrs{6} compliant implementation of the Scheme
+programming language.  It is the creation of Abdulaziz Ghuloum.
+
+@center @url{http://launchpad.net/ikarus}
+
+@item Mosh
+It is an @rnrs{6} compliant implementation of the Scheme programming
+language.  It is the creation of Taro Minowa (higepon).
+
+@center @url{http://code.google.com/p/mosh-scheme/}
+
+@item Ypsilon
+It is an @rnrs{6} compliant implementation of the Scheme programming
+language.  It is the creation of Yoshikatsu Fujita at LittleWing
+Company.
+
+@center @url{http://code.google.com/p/ypsilon/}
+@end table
+
+@noindent
+when referring to all of these we can use the @acronym{LIMY}
+abbreviation.
 
 @c page
-@node overview compliancy
-@section On being compliant
+@node overview porting
+@section On writing portable code
 
 
 Some Scheme implementation defines itself as @rnrs{6} compliant, but
-then does not provide a compliant implementation of some the features.
+then does not provide a compliant implementation of some of the
+features.  Also, the @rnrs{6} language has some limitations and
+underspecifications.
+
 @value{PACKAGE} tries, through the @library{nausicaa} language, to fill
-some, not all, of the gaps in these implementations.
+some (not all) of the gaps and to provide a base language to write
+portable programs among the supported Scheme implementations.
 
-For changes to @rnrs{6} implemented in @library{nausicaa} see
-@ref{overview language,On the @library{nausicaa} language}
-
-
-@c page
-@node overview language
-@section On the @library{nausicaa} language
-
-
-The @library{nausicaa} library changes some semantics of the @rnrs{6}
-language.  It has the following purposes:
+@library{nausicaa} has the following purposes:
 
 @itemize
 @item
@@ -923,14 +955,17 @@ To make available all the bindings from @library{rnrs}.
 
 @item
 To make self--defining @rnrs{6} Scheme implementations more @rnrs{6}
-compliant, in the sense of ``programs that work''.  This means for
-example: if an underlying implementation does not provide a requested
+compliant, in the sense of ``programs that work''.  This means, for
+example: If an underlying implementation does not provide a requested
 function, @library{nausicaa} tries to provide a working replacement.
 
 @item
 To offer by default some features from the @srfi{} libraries which where
 voted to @emph{final} status.  It may be that those features are
 redefined or extended.
+
+@item
+To change the specification of some function to make it more usable.
 @end itemize
 
 This document describes the features of the @rnrs{6} language by
@@ -939,13 +974,13 @@ available in the chapters:
 
 @itemize -
 @item
-@ref{lang,The Scheme language}
+@ref{lang,The Scheme language}.
 
 @item
-@ref{baselib,Base library}
+@ref{baselib,Base library}.
 
 @item
-@ref{stdlib,Standard libraries}
+@ref{stdlib,Standard libraries}.
 @end itemize
 
 @noindent
@@ -983,13 +1018,11 @@ These specifications are described in the chapters:
 @section Launching Scheme programs directly
 
 
-The appendix ``Launching programs directly'' describes an optional
-feature of @value{PACKAGE} that activates Scheme programs execution
-through the mechanism of the @code{binfmt_misc} Linux kernel module.  It
-is available only on Unix--like platforms running the Linux kernel.
-
-@ref{binfmt,Launching programs directly}
-
+The appendix @ref{binfmt,Launching programs directly} describes an
+optional feature of @value{PACKAGE} that activates Scheme programs
+execution through the mechanism of the @code{binfmt_misc} Linux kernel
+module.  It is available only on Unix--like platforms running the Linux
+kernel.
 
 @c page
 @node lang

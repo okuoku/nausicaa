@@ -23,7 +23,8 @@ Topics
 
 This is a distribution of Scheme language libraries for R6RS
 Scheme  implementations.  Currently  it attempts  to support
-Larceny, Ypsilon and Ikarus (Mosh support will be added).
+Larceny, Ikarus, Mosh and  Ypsilon; when referring to all of
+these we can use the @LIMY abbreviation.
 
 
 1.1 About 'Nausicaa'
@@ -58,7 +59,7 @@ GNU Free Documentation License.
 3. Installation
 ---------------
 
-The Nausicaa  installation infrastructure supports  only GNU
+Nausicaa's  installation  infrastructure  supports only  GNU
 systems.   This   means  Unix-like  systems   in  which  the
 following common tools and packages are installed: GNU Bash,
 GNU Make, GNU coreutils, GNU Find, GNU tar, Gzip, Bzip2.
@@ -69,8 +70,7 @@ README files; the  Nausicaa overall documentation in Texinfo
 format, which is available in the "doc" subdirectory.
 
   To use the Nausicaa libraries you must install the package
-of the Nausicaa/Scheme project.  This project embeds all the
-SRFIs that are needed by the other projects.
+of the Nausicaa/Scheme project.
 
   For your own safety,  take this advice: never, ever, drive
 building  and  installation  of  packages  from  the  source
@@ -108,7 +108,7 @@ resources).
 
   Notice that:
 
-* both the  library source files (.sls)  and the precompiled
+* Both the  library source files (.sls)  and the precompiled
   files  (for  example .ikarus-fasl)  are  installed in  the
   directory selected  by the "pkglibdir"  Makefile variable;
   by  default this  variable is  set  to "$(libdir)/scheme",
@@ -118,21 +118,21 @@ resources).
      /usr/local/lib/scheme
 
   be sure to update accordingly the libraries search path of
-  the Scheme implementation you are using;
+  the Scheme implementation you are using.
 
-* currently,  among  the  supported Scheme  implementations,
+* Currently,  among  the  supported Scheme  implementations,
   only  Larceny   and  Ikarus  Scheme   can  optionally  use
   precompiled  Scheme  files;  enabling precompilation  when
-  using other Scheme implementations will not work;
+  using other Scheme implementations will not work.
 
-* by default  the libraries  are NOT precompiled;  to enable
+* By default  the libraries  are NOT precompiled;  to enable
   precompilation you must pass the "--enable-fasl" option to
-  the "configure" scripts;
+  the "configure" scripts.
 
-* the Larceny compiler is slow (really); when using Larceny,
-  enabling precompilation is strongly recommended;
+* The Larceny compiler is slow (really); when using Larceny,
+  enabling precompilation is strongly recommended.
 
-* when  precompiling a  library for  Ikarus Scheme  with the
+* When  precompiling a  library for  Ikarus Scheme  with the
   command:
 
     $ ikarus --compile-dependencies
@@ -142,9 +142,9 @@ resources).
   libraries that are installed  along with Ikarus have to be
   precompiled;  at present  (Wed  Dec 31,  2008) the  Ikarus
   distribution does not  precompile libraries, you will have
-  to do it by hand;
+  to do it by hand.
 
-* by default only documentation  in Info format is built and
+* By default only documentation  in Info format is built and
   installed,  documentation  in HTML  format  is pruned;  to
   change  this pass  the '--enable-doc-html'  option  to the
   "configure" scripts.
@@ -205,9 +205,8 @@ B. Bug reports
 --------------
 
 See  the instructions in  the individual,  project specific,
-README  files.   Bugs  regarding the  Nausicaa  installation
-infrastructure    should    be     sent    by    email    to
-<mrc.mgg@gmail.com>.
+README  files.   You can  use  the  features  of the  GitHub
+interface.
 
 
 C. Resources
