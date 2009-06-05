@@ -1,131 +1,124 @@
+* Stuff related to me, the Earth and the Universe in general
 
-			  List of things to do
-			  ====================
+** Why I cannot install only the FASL files under ikarus?
 
-
-Stuff related to me, the Earth and the Universe in general
-----------------------------------------------------------
-
-* Why I cannot install only the FASL files under ikarus?
-* Add support for pacman?
-* Add support for dpkg?
-* Document  somewhere that  ypsilon requires  the --compatible  flag, or
-  remove the need for --compatible.
-* Review all the redhat spec files and update the license field.
-* Install  only  the  compiled  files  of  the  enabled  implementations
-  (already done?).
+** Document  somewhere that  ypsilon requires  the --compatible  flag, or
+   remove the need for --compatible.
 
 
-Scheme
-------
+* Nausicaa/Scheme
 
-* import char-set
-* import compare
-* import ffi
-* import format
-* import random
-* import streams
-* import strings
-* import time
-* import vectors
+  Import strings
 
+  Import char-set
 
-Stubs
------
+  Import compare
 
-* Write a stub library for testing the ffi.
-* Add select stuff to the POSIX stub.
-* Write a stub library for "long double" as memory blocks.
-* Write a stub library for "long long" as memory blocks.
+  Import ffi
 
+  Import format
 
-SRFI
-----
+  Import random
 
-* Finish the tests for (srfi lists) set functions.
-* Write a test file for each SRFI.
-* Not all the SRFI authors  have written the implementation library, the
-  documentation should be updated accordingly.
-* Write the FOLDING macro?
-* Run spell checking on the whole documentation.
+  Import streams
+
+  Import time
+
+  Import vectors
+
+* Nausicaa/Stubs
+
+** Write a stub library for testing the ffi.
+** Add select stuff to the POSIX stub.
+** Write a stub library for "long double" as memory blocks.
+** Write a stub library for "long long" as memory blocks.
 
 
-Rlwrap GNU Readline wrappers
-----------------------------
+* Nausicaa/SRFI
 
-* Add a Mosh specific completions file.
+** Finish the tests for (srfi lists) set functions.
+
+** Write a test file for each SRFI.
+
+** Not all the SRFI authors  have written the implementation library, the
+   documentation should be updated accordingly.
+
+** Write the FOLDING macro?
+
+** Run spell checking on the whole documentation.
 
 
-Uriel
------
+* Rlwrap GNU Readline wrappers
 
-* Add tests for the null pointer conversion and predicate.
-* Add an optional predicate argument  to the make c function bindings to
-  let the  function be discarded  when loading the library  (for example
-  because the foreign library does not implement it).
-* Fix the  temporary PRIMITIVE-MAKE-C-FUNCTION/WITH-ERRNO implementation
-  with Larceny.
-* Write the long-long peekers/pokers for Ypsilon and Larceny.
-* Add/request/whatever  long-long  (if  possible)  as  foreign  function
-  argument and return value.
-* Review the FFI documentation introduction.
-* Write the FFI documentation section about scanning C header files.
-* Write an asyncs library.
-* Add make-callback to the ffi.
-* Document  the problems  with define-macro  regarding  environment from
-  which bindings are captured (put it in Ikarus guide?).
+** Add a Mosh specific completions file.
+
+
+* Uriel
+
+** Add tests for the null pointer conversion and predicate.
+
+** Add an optional predicate argument  to the make c function bindings to
+   let the function  be discarded when loading the  library (for example
+   because the foreign library does not implement it).
+
+** Fix the  temporary PRIMITIVE-MAKE-C-FUNCTION/WITH-ERRNO implementation
+   with Larceny.
+
+** Write the long-long peekers/pokers for Ypsilon and Larceny.
+** Add/request/whatever  long-long  (if  possible)  as  foreign  function
+   argument and return value.
+
+** Review the FFI documentation introduction.
+** Write the FFI documentation section about scanning C header files.
+** Write an asyncs library.
+** Add make-callback to the ffi.
+** Document  the problems  with define-macro  regarding  environment from
+   which bindings are captured (put it in Ikarus guide?).
+
 * Scan the old gee base.
 
 
-ScmObj
-------
+* ScmObj
 
-* Add more tests.
-* Finish the documentation (replace all the original material).
-* Fix dispatching to methods with untyped args.
-
-
-IrRegex
--------
-
-* Add documentation for the regexps.
+** Add more tests.
+** Finish the documentation (replace all the original material).
+** Fix dispatching to methods with untyped args.
 
 
-POSIX
------
+* IrRegex
 
-* Add the scatter/gather fd interface.
-* Add the mmap interface.
-* Finish the time interface.
-* Node "Users and Groups".
-* Node "System Management".
-* Node "System Configuration".
-* Node "Signal Handling".
-
-* Fix failing tests in the file interface.
+** Add documentation for the regexps.
 
 
-Glibc
------
+* POSIX
 
-* Finish the time interface.
-* Add a library  with an interface to the  "waitid()" function described
-  in the waitpid manual page (linux specific).
-* Test and document the streams-pipe library.
-* Add the string functions.
-* Find a way to add the select interface.
-* Node "Name Service Switch" (with example stubs library?).
+** Add the scatter/gather fd interface.
+** Add the mmap interface.
+** Finish the time interface.
+** Node "Users and Groups".
+** Node "System Management".
+** Node "System Configuration".
+** Node "Signal Handling".
+** Fix failing tests in the file interface.
 
 
-MP
---
+* Glibc
+
+** Finish the time interface.
+
+** Add a library  with an interface to the  "waitid()" function described
+   in the waitpid manual page (linux specific).
+
+** Test and document the streams-pipe library.
+
+** Add the string functions.
+
+** Find a way to add the select interface.
+
+** Node "Name Service Switch" (with example stubs library?).
+
+
+* MP
 
 Finished?
 
-
-### end of file
-# Local Variables:
-# mode: text
-# fill-column: 72
-# paragraph-start: "*"
-# End:

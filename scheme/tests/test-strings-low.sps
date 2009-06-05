@@ -32,10 +32,9 @@
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing strings\n")
+(display "*** testing strings - low level\n")
 
 
-
 (parameterise ((check-test-name 'predicates))
 
   (check
@@ -204,7 +203,6 @@
   )
 
 
-
 (parameterise ((check-test-name 'mapping))
 
   (check
@@ -298,7 +296,6 @@
   )
 
 
-
 (parameterise ((check-test-name 'folding))
 
   (check
@@ -362,6 +359,843 @@
     => "")
 
   )
+
+
+(parameterise ((check-test-name 'prefix))
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "efgabcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "efgabcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abCd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "efgabCd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abCd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "efgabCd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "aBcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "aBcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  )
+
+
+(parameterise ((check-test-name 'comparison-case-sensitive))
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2 values values values))
+    => 4)
+
+  (check
+      (let* ((str1 "abcdef") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2 values values values))
+    => 4)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2 values values values))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2 values values values))
+    => 0)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2 values values values))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdA") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcdA") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2
+			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+    => 'equal)
+
+  (check
+      (let* ((str1 "abcdA") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcdB") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2
+			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+    => 'less)
+
+  (check
+      (let* ((str1 "abcdB") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcdA") (beg2 0) (end2 (string-length str2)))
+	(%string-compare str1 beg1 end1 str2 beg2 end2
+			 (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+    => 'greater)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcd")
+	     (beg1 0) (end1 (string-length str))
+	     (beg2 0) (end2 (string-length str)))
+	(%string= str beg1 end1 str beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "12abcd") (beg1 2) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string= str1 beg1 end1 str2 beg2 end2))
+    => 6)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string<> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string<> str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string<> str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string<> str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string<> str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string< str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string< str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string< str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string< str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string< str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string<= str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string<= str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string<= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string<= str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string<= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string> str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "ABcd") (beg2 0) (end2 (string-length str2)))
+	(%string> str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a2cd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string>= str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string>= str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string>= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "ABcd") (beg2 0) (end2 (string-length str2)))
+	(%string>= str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a2cd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string>= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  )
+
+
+(parameterise ((check-test-name 'comparison-case-insensitive))
+
+  (check
+      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
+    => 4)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
+    => 0)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-compare-ci str1 beg1 end1 str2 beg2 end2 values values values))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdA") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcda") (beg2 0) (end2 (string-length str2)))
+	(%string-compare-ci str1 beg1 end1 str2 beg2 end2
+			    (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+    => 'equal)
+
+  (check
+      (let* ((str1 "abcdA") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcdb") (beg2 0) (end2 (string-length str2)))
+	(%string-compare-ci str1 beg1 end1 str2 beg2 end2
+			    (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+    => 'less)
+
+  (check
+      (let* ((str1 "abcdb") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcdA") (beg2 0) (end2 (string-length str2)))
+	(%string-compare-ci str1 beg1 end1 str2 beg2 end2
+			    (lambda (idx) 'less) (lambda (idx) 'equal) (lambda (idx) 'greater)))
+    => 'greater)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcd")
+	     (beg1 0) (end1 (string-length str))
+	     (beg2 0) (end2 (string-length str)))
+	(%string-ci= str beg1 end1 str beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "12abcd") (beg1 2) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci= str1 beg1 end1 str2 beg2 end2))
+    => 6)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string-ci= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci= str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<> str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<> str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<> str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci< str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci< str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string-ci< str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci< str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci< str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<= str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<= str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "ABcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<= str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "a2cd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci<= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string-ci> str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "ABcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "a2cd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci> str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci>= str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abc") (beg2 0) (end2 (string-length str2)))
+	(%string-ci>= str1 beg1 end1 str2 beg2 end2))
+    => 3)
+
+  (check
+      (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci>= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "ABcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci>= str1 beg1 end1 str2 beg2 end2))
+    => 4)
+
+  (check
+      (let* ((str1 "a2cd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-ci>= str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  )
+
+
 
 
 ;;;; done

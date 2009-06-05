@@ -194,161 +194,23 @@
 
 
 
-(define-syntax unpack-1
+(define-syntax unpack
   (syntax-rules ()
+    ((_ (?str))
+     (let ((str ?str))
+       (values ?str 0 (string-length ?str))))
 
-    ((?F ?doit (?str1))
-     (let* ((str1 ?str1))
-       (?F ?doit (str1 0 (string-length str1)))))
+    ((_ (?str ?beg))
+     (let ((str ?str))
+       (values ?str ?beg (string-length ?str))))
 
-    ((?F ?doit (?str1 ?beg1))
-     (let* ((str1 ?str1))
-       (?F ?doit (str1 ?beg1 (string-length str1)))))
+    ((_ (?str ?beg ?past))
+     (values ?str ?beg ?past))
 
-    ((?F ?doit (?str1 ?beg1 ?end1))
-     (?doit ?str1 ?beg1 ?end1))
-
-    ((?F ?doit ?str1)
-     (?F ?doit (?str1)))
+    ((?F ?str)
+     (?F (?str)))
 
     ((?F ?stuff ...)
-     (syntax-violation #f "invalid parameters" (?stuff ...)))))
-
-(define-syntax unpack-with-proc-1
-  (syntax-rules ()
-
-    ((?F ?doit ?proc (?str1))
-     (let* ((str1 ?str1))
-       (?F ?doit ?proc (str1 0 (string-length str1)))))
-
-    ((?F ?doit ?proc (?str1 ?beg1))
-     (let* ((str1 ?str1))
-       (?F ?doit ?proc (str1 ?beg1 (string-length str1)))))
-
-    ((?F ?doit ?proc (?str1 ?beg1 ?end1))
-     (?doit ?proc ?str1 ?beg1 ?end1))
-
-    ((?F ?doit ?proc ?str1)
-     (?F ?doit ?proc (?str1)))
-
-    ((_ ?stuff ...)
-     (syntax-violation #f "invalid parameters" (?stuff ...)))))
-
-(define-syntax unpack-2
-  (syntax-rules ()
-
-    ((?F ?doit (?str1) (?str2))
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit
-	   (str1 0 (string-length str1))
-	   (str2 0 (string-length str2)))))
-
-    ((?F ?doit (?str1 ?beg1) ?str2)
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit
-	   (str1 ?beg1 (string-length str1))
-	   (str2 0 (string-length str2)))))
-
-    ((?F ?doit ?str1 (?str2 ?beg2))
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit
-	   (str1 0 (string-length str1))
-	   (str2 ?beg2 (string-length str2)))))
-
-    ((?F ?doit (?str1 ?beg1 ?end1) ?str2)
-     (let* ((str2 ?str2))
-       (?F ?doit
-	   (?str1 ?beg1 ?end1)
-	   (str2 0 (string-length str2)))))
-
-    ((?F ?doit ?str1 (?str2 ?beg2 ?end2))
-     (let* ((str1 ?str1))
-       (?F ?doit
-	   (str1 0 (string-length str1))
-	   (?str2 ?beg2 ?end2))))
-
-    ((?F ?doit (?str1 ?beg1) (?str2 ?beg2))
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit
-	   (str1 ?beg1 (string-length str1))
-	   (str2 ?beg2 (string-length str2)))))
-
-    ((?F ?doit (?str1 ?beg1 ?end1) (?str2 ?beg2))
-     (let* ((str2 ?str2))
-       (?F ?doit
-	   (?str1 ?beg1 ?end1)
-	   (str2 ?beg2 (string-length str2)))))
-
-    ((?F ?doit (?str1 ?beg1) (?str2 ?beg2 ?end2))
-     (let* ((str1 ?str1))
-       (?F ?doit
-	   (str1 ?beg1 (string-length str1))
-	   (?str2 ?beg2 ?end2))))
-
-    ((_ ?doit (?str1 ?beg1 ?end1) (?str2 ?beg2 ?end2))
-     (?doit ?str1 ?beg1 ?end1 ?str2 ?beg2 ?end2))
-
-    ((?F ?doit ?str1 ?str2)
-     (?F ?doit (?str1) (?str2)))
-
-    ((_ ?stuff ...)
-     (syntax-violation #f "invalid parameters" (?stuff ...)))))
-
-(define-syntax unpack-with-proc-2
-  (syntax-rules ()
-
-    ((?F ?doit ?proc ?str1 ?str2)
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit ?proc
-	   (str1 0 (string-length str1))
-	   (str2 0 (string-length str2)))))
-
-    ((?F ?doit ?proc (?str1 ?beg1) ?str2)
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit ?proc
-	   (str1 ?beg1 (string-length str1))
-	   (str2 0 (string-length str2)))))
-
-    ((?F ?doit ?proc ?str1 (?str2 ?beg2))
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit ?proc
-	   (str1 0 (string-length str1))
-	   (str2 ?beg2 (string-length str2)))))
-
-    ((?F ?doit ?proc (?str1 ?beg1 ?end1) ?str2)
-     (let* ((str2 ?str2))
-       (?F ?doit ?proc
-	   (?str1 ?beg1 ?end1)
-	   (str2 0 (string-length str2)))))
-
-    ((?F ?doit ?proc ?str1 (?str2 ?beg2 ?end2))
-     (let* ((str1 ?str1))
-       (?F ?doit ?proc
-	   (str1 0 (string-length str1))
-	   (?str2 ?beg2 ?end2))))
-
-    ((?F ?doit ?proc (?str1 ?beg1) (?str2 ?beg2))
-     (let* ((str1 ?str1) (str2 ?str2))
-       (?F ?doit ?proc
-	   (str1 ?beg1 (string-length str1))
-	   (str2 ?beg2 (string-length str2)))))
-
-    ((?F ?doit ?proc (?str1 ?beg1 ?end1) (?str2 ?beg2))
-     (let* ((str2 ?str2))
-       (?F ?doit ?proc
-	   (?str1 ?beg1 ?end1)
-	   (str2 ?beg2 (string-length str2)))))
-
-    ((?F ?doit ?proc (?str1 ?beg1) (?str2 ?beg2 ?end2))
-     (let* ((str1 ?str1))
-       (?F ?doit ?proc
-	   (str1 ?beg1 (string-length str1))
-	   (?str2 ?beg2 ?end2))))
-
-    ((_ ?doit ?proc (?str1 ?beg1 ?end1) (?str2 ?beg2 ?end2))
-     (?doit ?proc ?str1 ?beg1 ?end1 ?str2 ?beg2 ?end2))
-
-    ((_ ?stuff ...)
      (syntax-violation #f "invalid parameters" (?stuff ...)))))
 
 
@@ -356,13 +218,15 @@
 
 (define-syntax string-every
   (syntax-rules ()
-    ((_ ?proc ?str-spec)
-     (unpack-with-proc-1 %string-every ?proc ?str-spec))))
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-every ?proc str beg past)))))
 
 (define-syntax string-any
   (syntax-rules ()
-    ((_ ?proc ?str-spec)
-     (unpack-with-proc-1 %string-any ?proc ?str-spec))))
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-any ?proc str beg past)))))
 
 
 ;;;; mapping
@@ -418,12 +282,12 @@
 (define-syntax string-prefix-length
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-prefix-length ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-prefix-length ?str-spec-1 ?str-spec-2))))
 
 (define-syntax string-suffix-length
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-suffix-length ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-suffix-length ?str-spec-1 ?str-spec-2))))
 
 (define-syntax string-prefix-length-ci
   (syntax-rules ()
@@ -458,193 +322,21 @@
      (unpack-2 %string-suffix-ci? ?str-spec-1 ?str-spec-2)))
 
 
-;;; string-compare    s1 s2 proc< proc= proc> [start1 end1 start2 end2]
-;;; string-compare-ci s1 s2 proc< proc= proc> [start1 end1 start2 end2]
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Primitive string-comparison functions.
-;;; Continuation order is different from MIT Scheme.
-;;; Continuations are applied to s1's mismatch index;
-;;; in the case of equality, this is END1.
+;;;; comparison
 
-(define (%string-compare s1 start1 end1 s2 start2 end2
-			   proc< proc= proc>)
-  (let ((size1 (- end1 start1))
-	(size2 (- end2 start2)))
-    (let ((match (%string-prefix-length s1 start1 end1 s2 start2 end2)))
-      (if (= match size1)
-	  ((if (= match size2) proc= proc<) end1)
-	  ((if (= match size2)
-	       proc>
-	       (if (char<? (string-ref s1 (+ start1 match))
-			   (string-ref s2 (+ start2 match)))
-		   proc< proc>))
-	   (+ match start1))))))
+(define-syntax string-compare
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-compare str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
 
-(define (%string-compare-ci s1 start1 end1 s2 start2 end2
-			      proc< proc= proc>)
-  (let ((size1 (- end1 start1))
-	(size2 (- end2 start2)))
-    (let ((match (%string-prefix-length-ci s1 start1 end1 s2 start2 end2)))
-      (if (= match size1)
-	  ((if (= match size2) proc= proc<) end1)
-	  ((if (= match size2) proc>
-	       (if (char-ci<? (string-ref s1 (+ start1 match))
-			      (string-ref s2 (+ start2 match)))
-		   proc< proc>))
-	   (+ start1 match))))))
-
-(define (string-compare s1 s2 proc< proc= proc> . maybe-starts+ends)
-  (check-arg procedure? proc< string-compare)
-  (check-arg procedure? proc= string-compare)
-  (check-arg procedure? proc> string-compare)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-compare s1 s2 maybe-starts+ends
-    (%string-compare s1 start1 end1 s2 start2 end2 proc< proc= proc>)))
-
-(define (string-compare-ci s1 s2 proc< proc= proc> . maybe-starts+ends)
-  (check-arg procedure? proc< string-compare-ci)
-  (check-arg procedure? proc= string-compare-ci)
-  (check-arg procedure? proc> string-compare-ci)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-compare-ci s1 s2 maybe-starts+ends
-    (%string-compare-ci s1 start1 end1 s2 start2 end2 proc< proc= proc>)))
-
-
-
-;;; string=          string<>		string-ci=          string-ci<>
-;;; string<          string>		string-ci<          string-ci>
-;;; string<=         string>=		string-ci<=         string-ci>=
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Simple definitions in terms of the previous comparison funs.
-;;; I sure hope the %STRING-COMPARE calls get integrated.
-
-(define (string= s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string= s1 s2 maybe-starts+ends
-    (and (= (- end1 start1) (- end2 start2))			; Quick filter
-	 (or (and (eq? s1 s2) (= start1 start2))		; Fast path
-	     (%string-compare s1 start1 end1 s2 start2 end2	; Real test
-			      (lambda (i) #f)
-			      values
-			      (lambda (i) #f))))))
-
-(define (string<> s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string<> s1 s2 maybe-starts+ends
-    (or (not (= (- end1 start1) (- end2 start2)))		; Fast path
-	(and (not (and (eq? s1 s2) (= start1 start2)))		; Quick filter
-	     (%string-compare s1 start1 end1 s2 start2 end2	; Real test
-			      values
-			      (lambda (i) #f)
-			      values)))))
-
-(define (string< s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string< s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(< end1 end2)
-
-	(%string-compare s1 start1 end1 s2 start2 end2 		; Real test
-			 values
-			 (lambda (i) #f)
-			 (lambda (i) #f)))))
-
-(define (string> s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string> s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(> end1 end2)
-
-	(%string-compare s1 start1 end1 s2 start2 end2 		; Real test
-			 (lambda (i) #f)
-			 (lambda (i) #f)
-			 values))))
-
-(define (string<= s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string<= s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(<= end1 end2)
-
-	(%string-compare s1 start1 end1 s2 start2 end2 		; Real test
-			 values
-			 values
-			 (lambda (i) #f)))))
-
-(define (string>= s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string>= s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(>= end1 end2)
-
-	(%string-compare s1 start1 end1 s2 start2 end2 		; Real test
-			 (lambda (i) #f)
-			 values
-			 values))))
-
-(define (string-ci= s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-ci= s1 s2 maybe-starts+ends
-    (and (= (- end1 start1) (- end2 start2))			; Quick filter
-	 (or (and (eq? s1 s2) (= start1 start2))		; Fast path
-	     (%string-compare-ci s1 start1 end1 s2 start2 end2	; Real test
-				 (lambda (i) #f)
-				 values
-				 (lambda (i) #f))))))
-
-(define (string-ci<> s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-ci<> s1 s2 maybe-starts+ends
-    (or (not (= (- end1 start1) (- end2 start2)))		; Fast path
-	(and (not (and (eq? s1 s2) (= start1 start2)))		; Quick filter
-	     (%string-compare-ci s1 start1 end1 s2 start2 end2	; Real test
-				 values
-				 (lambda (i) #f)
-				 values)))))
-
-(define (string-ci< s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-ci< s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(< end1 end2)
-
-	(%string-compare-ci s1 start1 end1 s2 start2 end2	; Real test
-			    values
-			    (lambda (i) #f)
-			    (lambda (i) #f)))))
-
-(define (string-ci> s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-ci> s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(> end1 end2)
-
-	(%string-compare-ci s1 start1 end1 s2 start2 end2	; Real test
-			    (lambda (i) #f)
-			    (lambda (i) #f)
-			    values))))
-
-(define (string-ci<= s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-ci<= s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(<= end1 end2)
-
-	(%string-compare-ci s1 start1 end1 s2 start2 end2	; Real test
-			    values
-			    values
-			    (lambda (i) #f)))))
-
-(define (string-ci>= s1 s2 . maybe-starts+ends)
-  (let-string-start+end2 (start1 end1 start2 end2)
-			 string-ci>= s1 s2 maybe-starts+ends
-    (if (and (eq? s1 s2) (= start1 start2))			; Fast path
-	(>= end1 end2)
-
-	(%string-compare-ci s1 start1 end1 s2 start2 end2	; Real test
-			    (lambda (i) #f)
-			    values
-			    values))))
+(define-syntax string-compare-ci
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-compare-ci str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
 
 
 ;;; Case hacking

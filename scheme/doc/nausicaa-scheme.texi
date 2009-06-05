@@ -22794,6 +22794,166 @@ Example:
 @subsection Comparison
 
 
+@subsubheading Low level functions
+
+
+@defun %string-compare @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
+@defunx %string-compare-ci @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
+Determine the @dfn{mismatch index} between the two substrings: the
+largest index @math{i} such that for every @math{0 <= j < i},
+@math{str1[j] = str2[j]}; that is, @var{i} is the first position that
+does not match.
+
+The mismatch index is always an index into @var{s1}; in the case of
+equal strings, it is always @var{past1}; the functions observe the
+protocol in this redundant case for uniformity.
+
+The characters at the mismatch index are compared using @func{char<=?}
+or @func{char-ci<=?}.  @var{proc<}, @var{proc=}, or @var{proc>} are
+applied to the mismatch index, depending upon whether the substring of
+@var{str1} is less than, equal to, or greater than the substring of
+@var{str2}.  The result of the application is returned.
+
+If we just want to have the mismatch index: We can use @func{values} as
+value for @var{proc<}, @var{proc=} and @var{proc>}.  Another interesting
+option is to use @code{(lambda (mismatch-index) #f)} or @code{(lambda
+(mismatch-index) #t)}.
+
+Examples:
+
+@example
+(%string-compare "abcd" 0 4 "abcd" 0 4
+                 values values values)
+@result{} 5
+
+(%string-compare "abcd" 0 4 "abcd12" 0 6
+                 values values values)
+@result{} 5
+@end example
+@end defun
+
+
+@defun %string= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if they are equal, @false{}
+otherwise.
+
+@itemize
+@item
+If the substrings have different length: Return @false{}.
+
+@item
+Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
+the selected substring is the same: Return @true{}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return @false{} if they are different or @var{past1} if
+they are equal.
+@end itemize
+@end defun
+
+
+@defun %string<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return @false{} if they are equal, true
+otherwise.
+
+@itemize
+@item
+If the substrings have different length: Return @true{}.
+
+@item
+Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
+the selected substring is the same: Return @false{}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return @false{} if they are equal or the mismatch index
+if they are different.
+@end itemize
+@end defun
+
+
+@defun %string< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+less than the second, @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(< @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is less than the
+second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+@defun %string<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+less than, or equal to, the second; @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(<= @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is less than, or
+equal to, the second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+@defun %string> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+greater than the second, @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(> @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is greater than
+the second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+@defun %string>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+greater than, or equal to, the second; @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(>= @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is greater than,
+or equal to, the second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+@subsubheading High level functions
+
+
 @defun string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>}
 @defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1}
 @defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1}
@@ -22825,8 +22985,6 @@ uniformity.
                 2 4)        ; & "cd"
 => 5    ; Index of S1's "a"
 @end example
-
-True text collation is not handled by this @srfi{}.
 @end defun
 
 
@@ -22934,6 +23092,8 @@ the comparison to the indicated substrings of @var{s1} and @var{s2}.
 
 @func{string-prefix-ci?} and @func{string-suffix-ci?} are the
 case--insensitive variants.
+
+Notice that the empty string is a prefix of every string.
 @end defun
 
 @c page
