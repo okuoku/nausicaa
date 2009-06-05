@@ -24,7 +24,7 @@
 
 ;;;; setup
 
-(import (scheme)
+(import (nausicaa)
   (checks)
   (format))
 

@@ -26,7 +26,7 @@
 
 ;;;; setup
 
-(import (scheme)
+(import (nausicaa)
   (rnrs eval (6))
   (checks))
 
@@ -125,7 +125,7 @@
     (guard (exc (else (syntax-violation? exc)))
       (eval '(cond-expand
 	      (woppa	#f))
-	    (environment '(scheme))))
+	    (environment '(nausicaa))))
   => #t)
 
 

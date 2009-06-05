@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: Ypsilon compatibility library for (scheme) language
+;;;Contents: Ypsilon compatibility library for (nausicaa) language
 ;;;Date: Wed Jan 21, 2009
 ;;;
 ;;;Abstract
@@ -27,7 +27,7 @@
 ;;;; setup
 
 #!r6rs
-(library (scheme compat)
+(library (nausicaa compat)
   (export
 
     equal-hash pretty-print implementation-features

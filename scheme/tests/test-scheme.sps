@@ -26,7 +26,7 @@
 
 ;;;; setup
 
-(import (scheme)
+(import (nausicaa)
   (checks))
 
 (check-set-mode! 'report-failed)

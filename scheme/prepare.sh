@@ -22,8 +22,7 @@ set -x
     --enable-mosh                               \
     --enable-ypsilon                            \
     --enable-binfmt                             \
+    --enable-doc-ps                             \
     "$@"
-
-
 
 ### end of file

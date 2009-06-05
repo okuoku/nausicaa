@@ -27,7 +27,7 @@
 
 ;;;; setup
 
-(import (scheme)
+(import (nausicaa)
   (checks)
   (rnrs mutable-strings))
 

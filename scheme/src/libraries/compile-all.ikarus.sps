@@ -24,7 +24,7 @@
 ;;;
 
 (import
-  (only (scheme))
+  (only (nausicaa))
   (only (lists))
   (only (char-sets))
 ;;  (only (strings))

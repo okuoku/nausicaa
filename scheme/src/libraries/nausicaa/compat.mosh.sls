@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: Mosh compatibility library for (scheme) language
+;;;Contents: Mosh compatibility library for (nausicaa) language
 ;;;Date: Wed Jan 21, 2009
 ;;;
 ;;;Abstract
@@ -38,7 +38,7 @@
 
 
 #!r6rs
-(library (scheme compat)
+(library (nausicaa compat)
   (export
 
     equal-hash pretty-print implementation-features

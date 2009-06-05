@@ -26,17 +26,17 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "scheme/unimplemented.sls"
-		 "scheme/unimplemented.slfasl")
+(compile-library "nausicaa/unimplemented.sls"
+		 "nausicaa/unimplemented.slfasl")
 
-(compile-library "scheme/compat.larceny.sls"
-		 "scheme/compat.larceny.slfasl")
+(compile-library "nausicaa/compat.larceny.sls"
+		 "nausicaa/compat.larceny.slfasl")
 
-(compile-library "scheme/registry.sls"
-		 "scheme/registry.slfasl")
+(compile-library "nausicaa/registry.sls"
+		 "nausicaa/registry.slfasl")
 
-(compile-library "scheme.sls"
-		 "scheme.slfasl")
+(compile-library "nausicaa.sls"
+		 "nausicaa.slfasl")
 
 (compile-library "format.sls"
 		 "format.slfasl")

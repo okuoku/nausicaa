@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: augmented Scheme language around (rnrs)
+;;;Contents: augmented Scheme language around (rnrs) for Larceny
 ;;;Date: Tue Dec  9, 2008
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -157,7 +157,7 @@
 
 
 
-(library (scheme)
+(library (nausicaa)
   (export
     &assertion
     &condition
@@ -427,7 +427,7 @@
     exp
     expt
 ;;; this is an auxiliary syntax
-    fields
+;;;    fields
     file-exists?
     file-options
     filter
@@ -580,7 +580,7 @@
     if
     imag-part
 ;;; this is an auxiliary syntax
-    immutable
+;;;    immutable
     implementation-restriction-violation?
     inexact
 ;;; this is in (rnrs r5rs (6))
@@ -676,7 +676,7 @@
 ;;; this is in (rnrs r5rs (6))
 ;;;    modulo
 ;;; this is an auxiliary syntax
-    mutable
+;;;    mutable
     nan?
     native-endianness
     native-eol-style
@@ -687,7 +687,7 @@
     no-nans-violation?
     non-continuable-violation?
 ;;; this is an auxiliary syntax
-    nongenerative
+;;;    nongenerative
     not
 ;;; this is in (rnrs r5rs (6))
 ;;;    null-environment
@@ -697,7 +697,7 @@
     numerator
     odd?
 ;;; this is an auxiliary syntax
-    opaque
+;;;    opaque
     open-bytevector-input-port
     open-bytevector-output-port
     open-file-input-port
@@ -712,9 +712,9 @@
     output-port?
     pair?
 ;;; this is an auxiliary syntax
-    parent
+;;;    parent
 ;;; this is an auxiliary syntax
-    parent-rtd
+;;;    parent-rtd
     partition
     peek-char
     port-eof?
@@ -726,7 +726,7 @@
     positive?
     procedure?
 ;;; this is an auxiliary syntax
-    protocol
+;;;    protocol
     put-bytevector
     put-char
     put-datum
@@ -776,7 +776,7 @@
 ;;; this is in (rnrs r5rs (6))
 ;;;    scheme-report-environment
 ;;; this is an auxiliary syntax
-    sealed
+;;;    sealed
     serious-condition?
     set!
 ;;; these are in (rnrs mutable-pairs (6))
@@ -906,14 +906,14 @@
     ;; other stuff
     pretty-print symbol*->string)
   (import (except (rnrs)
-		  ;;Implemented  in compat  to let them  accept complex
+		  ;;Implemented  in compat  to let  them  accept complex
 		  ;;arguments.
 		  finite? infinite? nan?)
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
-    (scheme compat)
-    (scheme unimplemented)
-    (for (scheme registry) expand))
+    (nausicaa compat)
+    (nausicaa unimplemented)
+    (for (nausicaa registry) expand))
 
 
 ;;;; syntactic absractions

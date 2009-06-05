@@ -104,7 +104,7 @@
     lset-difference		lset-difference!
     lset-xor			lset-xor!
     lset-diff+intersection	lset-diff+intersection!)
-  (import (scheme)
+  (import (nausicaa)
     (rnrs mutable-pairs (6)))
 
 

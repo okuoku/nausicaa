@@ -38,7 +38,7 @@
 (library (format)
   (export
     format format-output-column)
-  (import (scheme)
+  (import (nausicaa)
     (only (rnrs r5rs)
 	  remainder
 	  quotient)

@@ -176,7 +176,7 @@
     ;; 	  check-substring-spec
     ;; 	  substring-spec-ok?
     )
-  (import (except (scheme)
+  (import (except (nausicaa)
 		  string-copy string-for-each string->list
 		  string-upcase string-downcase string-titlecase string-hash)
     (except (rnrs mutable-strings) string-fill!)
@@ -283,34 +283,34 @@
 (define-syntax string-prefix-length-ci
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-prefix-length ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-prefix-length ?str-spec-1 ?str-spec-2))))
 
 (define-syntax string-suffix-length-ci
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-suffix-length ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-suffix-length ?str-spec-1 ?str-spec-2))))
 
 ;;; --------------------------------------------------------------------
 
 (define-syntax string-prefix?
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-prefix? ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-prefix? ?str-spec-1 ?str-spec-2))))
 
 (define-syntax string-suffix?
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-suffix? ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-suffix? ?str-spec-1 ?str-spec-2))))
 
 (define-syntax string-prefix-ci?
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-prefix-ci? ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-prefix-ci? ?str-spec-1 ?str-spec-2))))
 
 (define-syntax string-suffix-ci?
   (syntax-rules ()
     ((_ ?str-spec-1 ?str-spec-2)
-     (unpack-2 %string-suffix-ci? ?str-spec-1 ?str-spec-2)))
+     (unpack-2 %string-suffix-ci? ?str-spec-1 ?str-spec-2))))
 
 
 ;;;; comparison

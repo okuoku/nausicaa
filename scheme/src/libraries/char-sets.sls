@@ -97,11 +97,10 @@
 ;;     char-set:hex-digit   char-set:blank       char-set:ascii
 ;;     char-set:empty       char-set:full
     )
-  (import (scheme)
+  (import (nausicaa)
     (rnrs mutable-strings)
     (rnrs r5rs)
     (lists))
-
 
 
 ;;;; helpers

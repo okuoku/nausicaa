@@ -24,12 +24,12 @@
 ;;;
 
 (import
-    (only (scheme))
+    (only (nausicaa))
   (only (lists))
   (only (char-sets))
-;;  (only (strings))
+  ;;  (only (strings))
   (only (checks))
-   (only (loops))
+  (only (loops))
   (only (format))
   )
 

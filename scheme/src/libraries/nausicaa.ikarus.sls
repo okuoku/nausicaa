@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: augmented Scheme language around (rnrs) for Ypsilon
+;;;Contents: augmented Scheme language around (rnrs)
 ;;;Date: Tue Dec  9, 2008
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -157,8 +157,7 @@
 
 
 
-#!r6rs
-(library (scheme)
+(library (nausicaa)
   (export
     &assertion
     &condition
@@ -907,14 +906,16 @@
     ;; other stuff
     pretty-print symbol*->string)
   (import (except (rnrs)
+		  ;;Implemented in compat because Ikarus gets it wrong.
+		  equal-hash
 		  ;;Implemented  in compat  to let them  accept complex
 		  ;;arguments.
 		  finite? infinite? nan?)
-    (scheme compat)
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
-    (scheme unimplemented)
-    (for (scheme registry) expand))
+    (nausicaa compat)
+    (nausicaa unimplemented)
+    (for (nausicaa registry) expand))
 
 
 ;;;; syntactic absractions
@@ -1320,7 +1321,6 @@
   (if (symbol? obj)
       (symbol->string obj)
     obj))
-
 
 
 ;;;; done

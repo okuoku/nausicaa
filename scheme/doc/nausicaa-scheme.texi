@@ -32,7 +32,6 @@ List of things to do
 @acronym{FDL}
 @end macro
 
-
 @c ------------------------------------------------------------
 @c Special notes.
 @c ------------------------------------------------------------
@@ -172,7 +171,7 @@ Revised^6 Report on the algorithmic language Scheme
 @code{\NAME\}
 @end macro
 
-@macro null{}
+@macro snull{}
 @code{()}
 @end macro
 
@@ -219,10 +218,6 @@ Revised^6 Report on the algorithmic language Scheme
 @c ------------------------------------------------------------
 @c RNRS document macros.
 @c ------------------------------------------------------------
-
-@macro cite{NAME}
-[@sc{\NAME\}]
-@end macro
 
 @macro rsixlibrary{THING}
 @code{(rnrs \THING\ (6))}
@@ -342,10 +337,10 @@ Revised^6 Report on the algorithmic language Scheme
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, a set of
-Scheme libraries that defines an augmented @rnrs{6} Scheme language.
-The package is distributed under the terms of the @gnu{} General Public
-License (@gpl{}).
+This document describes version @version{} of @value{PACKAGE}, a
+slightly modified @rnrs{6} Scheme language; it also provides a set of
+libraries that augment the features of the base and standard @rnrs{6}
+libraries.
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}.
@@ -1051,14 +1046,13 @@ Following Algol, Scheme is a statically scoped programming language.
 Each use of a variable is associated with a lexically apparent binding
 of that variable.
 
-Scheme has latent as opposed to manifest types @cite{WaiteGoos}.  Types
-are associated with objects (also called values) rather than with
-variables.  (Some authors refer to languages with latent types as
-untyped, weakly typed or dynamically typed languages.)  Other languages
-with latent types are Python, Ruby, Smalltalk, and other dialects of
-Lisp.  Languages with manifest types (sometimes referred to as strongly
-typed or statically typed languages) include Algol 60, C, C#, Java,
-Haskell, and ML.
+Scheme has latent as opposed to manifest types.  Types are associated
+with objects (also called values) rather than with variables.  (Some
+authors refer to languages with latent types as untyped, weakly typed or
+dynamically typed languages.)  Other languages with latent types are
+Python, Ruby, Smalltalk, and other dialects of Lisp.  Languages with
+manifest types (sometimes referred to as strongly typed or statically
+typed languages) include Algol 60, C, C#, Java, Haskell, and ML.
 
 All objects created in the course of a Scheme computation, including
 procedures and continuations, have unlimited extent.  No Scheme object
@@ -1847,7 +1841,7 @@ recommends, but does not require, that the @ieee{} floating--point
 standards be followed by implementations that use floating--point
 representations, and that implementations using other representations
 should match or exceed the precision achievable using these
-floating--point standards @cite{ieee}.
+floating--point standards.
 
 In particular, implementations that use floating--point representations
 must follow these rules: A floating--point result must be represented
@@ -2012,12 +2006,11 @@ name: @meta{character tabulation} (U+0009), @meta{linefeed} (U+000A),
 The lexical syntax determines how a character sequence is split into a
 sequence of lexemes, omitting non--significant portions such as comments
 and whitespace.  The character sequence is assumed to be text according
-to the Unicode standard @cite{Unicode}.  Some of the lexemes, such as
-identifiers, representations of number objects, strings etc., of the
-lexical syntax are syntactic data in the datum syntax, and thus
-represent objects.  Besides the formal account of the syntax, this
-section also describes what datum values are represented by these
-syntactic data.
+to the Unicode standard.  Some of the lexemes, such as identifiers,
+representations of number objects, strings etc., of the lexical syntax
+are syntactic data in the datum syntax, and thus represent objects.
+Besides the formal account of the syntax, this section also describes
+what datum values are represented by these syntactic data.
 
 The lexical syntax, in the description of comments, contains a forward
 reference to @meta{datum}, which is described as part of the datum
@@ -2777,8 +2770,8 @@ Chapters ``Libraries'' and ``Top--level programs'' describe the syntax
 and semantics of libraries and top--level programs, respectively.
 Chapter ``Base library'' describes a base library that defines many of
 the constructs traditionally associated with Scheme.  A separate report
-@cite{R6RS-libraries} describes the various @emph{standard libraries}
-provided by a Scheme system.
+describes the various @emph{standard libraries} provided by a Scheme
+system.
 
 The division between the base library and the other standard libraries
 is based on use, not on construction.  In particular, some facilities
@@ -4348,7 +4341,7 @@ x @result{} 28
 
 @subsubheading Procedure calls
 
-@deffn Syntax (@meta{operator} @hyperi{operand} @dots{})
+@deffn Syntax @meta{operator} @hyperi{operand} @dots{}
 A procedure call consists of expressions for the procedure to be called
 and the arguments to be passed to it, with enclosing parentheses.  A
 form in an expression context is a procedure call if @meta{operator} is
@@ -5062,8 +5055,8 @@ definitions may appear.
 
 @deffn Syntax define @meta{variable} @hyper{expression}
 @deffnx Syntax define @meta{variable}
-@deffnx Syntax define @meta{variable} @hyper{formals}) @hyper{body}
-@deffnx Syntax define (@meta{variable} . @hyper{formal}) @hyper{body})
+@deffnx Syntax define @meta{variable} @hyper{formals} @hyper{body}
+@deffnx Syntax define (@meta{variable} . @hyper{formal}) @hyper{body}
 The first from of @func{define} binds @meta{variable} to a new location
 before assigning the value of @meta{expression} to it.
 
@@ -6375,17 +6368,17 @@ section for later reference.
 
 
 Scheme's operations for performing integer division rely on mathematical
-operations @math{\div}, @math{\mod}, @math{\div_0}, and @math{\mod_0},
+operations @math{div}, @math{mod}, @math{div_0}, and @math{mod_0},
 that are defined as follows:
 
 @itemize
 @item
-@math{\div}, @math{\mod}, @math{\div_0}, and @math{\mod_0} each accept
+@math{div}, @math{mod}, @math{div_0}, and @math{mod_0} each accept
 two real numbers @math{x_1} and @math{x_2} as operands, where @math{x_2}
 must be nonzero.
 
 @item
-@math{\div} returns an integer, and @math{\mod} returns a real.  Their
+@math{div} returns an integer, and @math{mod} returns a real.  Their
 results are specified by:
 
 @example
@@ -6415,9 +6408,9 @@ Examples:
 @end example
 
 @item
-@math{\div_0} and @math{\mod_0} are like @math{\div} and @math{\mod},
-except the result of @math{\mod_0} lies within a half--open interval
-centered on zero.  The results are specified by:
+@math{div_0} and @math{mod_0} are like @math{div} and @math{mod}, except
+the result of @math{mod_0} lies within a half--open interval centered on
+zero.  The results are specified by:
 
 @example
 x_1 div_0 x_2 = n_d
@@ -6517,7 +6510,6 @@ distinguish minus zero.
 @item * @tab y = +0.0 @tab x = 0 @tab pi/2
 @item * @tab y = -0.0 @tab x = 0 @tab -pi/2
 @end multitable
-
 
 @c page
 @node baselib math ops
@@ -21121,7 +21113,7 @@ select, Selecting tests to be run}.
 @end deffn
 
 
-@deffn Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected} (@var{argument*}))
+@deffn Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected} (@var{argument*})
 @deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected} (@var{argument*})
 @deffnx Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected}
 @deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected}
@@ -24813,6 +24805,34 @@ licenses are included in this document, and can be found in the relevant
 sections.
 
 
+@subsubheading @ansrfi{0}: Feature based conditional expansion construct
+
+Copyright @copyright{} 1999 Marc Feeley .  All Rights Reserved.
+
+This document and translations of it may be copied and furnished to
+others, and derivative works that comment on or otherwise explain it or
+assist in its implementation may be prepared, copied, published and
+distributed, in whole or in part, without restriction of any kind,
+provided that the above copyright notice and this paragraph are included
+on all such copies and derivative works.  However, this document itself
+may not be modified in any way, such as by removing the copyright notice
+or references to the Scheme Request For Implementation process or
+editors, except as needed for the purpose of developing SRFIs in which
+case the procedures for copyrights defined in the SRFI process must be
+followed, or as required to translate it into languages other than
+English.
+
+The limited permissions granted above are perpetual and will not be
+revoked by the authors or their successors or assigns.
+
+This document and the information contained herein is provided on an
+``AS IS'' basis and THE AUTHOR AND THE SRFI EDITORS DISCLAIM ALL
+WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY
+WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
+RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A
+PARTICULAR PURPOSE.
+
+
 @subsubheading @ansrfi{1}: List library
 
 Certain portions of the @ansrfi{1} document (the specific, marked
@@ -24890,35 +24910,14 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@subsubheading @ansrfi{26}: Notation for specializing parameters without currying
+@subsubheading @ansrfi{13}: Strings library
 
-Copyright @copyright{} 2002 Sebastian Egner.  All Rights Reserved.
+Certain portions of this document, the specific, marked segments of text
+describing the @rnrs{5} procedures, were adapted with permission from
+the @rnrs{5} report.
 
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@subsubheading @ansrfi{31}: A special form for recursive evaluation
-
-
-Copyright @copyright{} 2002 Dr. Mirko Luedde
-@email{Mirko.Luedde@@SAP.com}.  All Rights Reserved.
+All other text is copyright @copyright{} 1998, 1999, 2000 Olin Shivers.
+All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -24938,58 +24937,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@subsubheading @ansrfi{39}: Parameter objects
-
-Copyright @copyright{} 2002 Marc Feeley.  All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@subsubheading @ansrfi{0}: Feature based conditional expansion construct
-
-Copyright @copyright{} 1999 Marc Feeley .  All Rights Reserved.
-
-This document and translations of it may be copied and furnished to
-others, and derivative works that comment on or otherwise explain it or
-assist in its implementation may be prepared, copied, published and
-distributed, in whole or in part, without restriction of any kind,
-provided that the above copyright notice and this paragraph are included
-on all such copies and derivative works.  However, this document itself
-may not be modified in any way, such as by removing the copyright notice
-or references to the Scheme Request For Implementation process or
-editors, except as needed for the purpose of developing SRFIs in which
-case the procedures for copyrights defined in the SRFI process must be
-followed, or as required to translate it into languages other than
-English.
-
-The limited permissions granted above are perpetual and will not be
-revoked by the authors or their successors or assigns.
-
-This document and the information contained herein is provided on an
-``AS IS'' basis and THE AUTHOR AND THE SRFI EDITORS DISCLAIM ALL
-WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY
-WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY
-RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A
-PARTICULAR PURPOSE.
 
 
 @subsubheading @ansrfi{14}: Character sets
@@ -25021,9 +24968,82 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+@subsubheading @ansrfi{26}: Notation for specializing parameters without currying
+
+Copyright @copyright{} 2002 Sebastian Egner.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{31}: A special form for recursive evaluation
+
+Copyright @copyright{} 2002 Dr. Mirko Luedde
+@email{Mirko.Luedde@@SAP.com}.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
 @subsubheading @ansrfi{38}: External representation for data with shared structure
 
 Copyright @copyright{} 2003 Ray Dillinger.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{39}: Parameter objects
+
+Copyright @copyright{} 2002 Marc Feeley.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -25091,10 +25111,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-
 
 @c page
 @c ------------------------------------------------------------

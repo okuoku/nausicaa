@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: Ikarus compatibility library for (scheme) language
+;;;Contents: &unimplemented condition definition
 ;;;Date: Wed Jan 21, 2009
 ;;;
 ;;;Abstract
@@ -23,34 +23,30 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-#!r6rs
-(library (scheme compat)
+(library (nausicaa unimplemented)
   (export
+    &unimplemented
+    make-unimplemented-condition
+    unimplemented-condition?
+    raise-unimplemented-error)
+  (import (rnrs))
 
-    equal-hash pretty-print implementation-features
-    finite? infinite? nan?
+  (define-condition-type &unimplemented &error
+    make-unimplemented-condition
+    unimplemented-condition?)
 
-    ;; parameters
-    make-parameter parameterize
-
-    ;; environment variables
-    (rename (getenv get-environment-variable))
-    get-environment-variables)
-  (import (except (rnrs) equal-hash)
-    (only (ikarus)
-	  make-parameter parameterize getenv pretty-print)
-    (only (scheme unimplemented)
-	  raise-unimplemented-error))
-
-  (define implementation-features
-    '(ikarus))
-
-  (define (get-environment-variables)
-    (raise-unimplemented-error 'get-environment-variables))
-
-  (define (equal-hash obj)
-    (string-hash
-     (call-with-string-output-port
- 	 (lambda (port) (write obj port))))))
+  (define raise-unimplemented-error
+    (case-lambda
+     ((who)
+      (raise-unimplemented-error who "feature not implemented or not available" #f))
+     ((who message)
+      (raise-unimplemented-error who message #f))
+     ((who message . irritants)
+      (raise (let ((c (condition (make-who-condition who)
+				 (make-message-condition message)
+				 (make-unimplemented-condition))))
+	       (if irritants
+		   (condition c (make-irritants-condition irritants))
+		 c)))))))
 
 ;;; end of file

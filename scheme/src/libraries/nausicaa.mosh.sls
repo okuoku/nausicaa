@@ -157,7 +157,7 @@
 
 
 
-(library (scheme)
+(library (nausicaa)
   (export
     &assertion
     &condition
@@ -906,16 +906,14 @@
     ;; other stuff
     pretty-print symbol*->string)
   (import (except (rnrs)
-		  ;;Implemented in compat because Ikarus gets it wrong.
-		  equal-hash
 		  ;;Implemented  in compat  to let them  accept complex
 		  ;;arguments.
 		  finite? infinite? nan?)
     (rnrs mutable-pairs)
     (rnrs mutable-strings)
-    (scheme compat)
-    (scheme unimplemented)
-    (for (scheme registry) expand))
+    (nausicaa compat)
+    (nausicaa unimplemented)
+    (for (nausicaa registry) expand))
 
 
 ;;;; syntactic absractions

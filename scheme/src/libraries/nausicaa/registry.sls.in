@@ -27,10 +27,10 @@
 ;;;SOFTWARE.
 
 #!r6rs
-(library (scheme registry)
+(library (nausicaa registry)
   (export available-features)
   (import (rnrs)
-    (only (scheme compat)
+    (only (nausicaa compat)
 	  implementation-features))
   (define available-features
     (append implementation-features

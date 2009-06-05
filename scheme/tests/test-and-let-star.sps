@@ -38,7 +38,7 @@
 
 ;;;; setup
 
-(import (scheme)
+(import (nausicaa)
   (checks)
   (rnrs eval (6)))
 
@@ -52,7 +52,7 @@
 ;; 		      (write exc)(newline)
 ;; 		      (write (syntax-violation? exc))(newline)
 		      (syntax-violation? exc)))
-	   (eval '?form (environment '(scheme))))
+	   (eval '?form (environment '(nausicaa))))
        => #t))))
 
 (check-set-mode! 'report-failed)

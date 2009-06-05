@@ -49,7 +49,7 @@
 
     ;; debugging
     debug debugging debug-print-condition)
-  (import (rename (scheme)
+  (import (rename (nausicaa)
 		  (display	rnrs:display)
 		  (write	rnrs:write)
 		  (newline	rnrs:newline))
