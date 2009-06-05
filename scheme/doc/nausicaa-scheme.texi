@@ -410,7 +410,7 @@ the list of original documents and their authors.
 * lang::                        The Scheme language.
 * baselib::                     Base library.
 * stdlib::                      Standard libraries.
-* naulib::                      The augmented language.
+* naulib::                      The @library{nausicaa} language.
 * more::                        More libraries.
 * foreign::                     Foreign functions interface.
 
@@ -437,7 +437,7 @@ Overview of the package
 
 * overview copying::            Copying this document.
 * overview compliancy::         On being compliant.
-* overview language::           On the @library{scheme} language.
+* overview language::           On the @library{nausicaa} language.
 * overview libraries::          Other libraries.
 * overview binfmt::             Launching Scheme programs directly.
 
@@ -747,66 +747,66 @@ The augmented language
 
 More libraries
 
-* more lists::                  Lists library.
-* more checks::                 Lightweight testing.
-* more char-sets::              Character sets library.
-* more strings::                Strings library.
+* lists::                       Lists library.
+* checks::                      Lightweight testing.
+* char-sets::                   Character sets library.
+* strings::                     Strings library.
 
 List library
 
-* more lists intro::            Introduction.
-* more lists linear update::    Linear update procedures.
-* more lists improper::         Improper lists.
-* more lists cons::             Constructors.
-* more lists pred::             Predicates.
-* more lists select::           Selectors.
-* more lists misc::             Length, append, concatenate,
+* lists intro::                 Introduction.
+* lists linear update::         Linear update procedures.
+* lists improper::              Improper lists.
+* lists cons::                  Constructors.
+* lists pred::                  Predicates.
+* lists select::                Selectors.
+* lists misc::                  Length, append, concatenate,
                                 reverse, zip and count.
-* more lists fold::             Fold, unfold and map.
-* more lists filter::           Filtering and partitioning.
-* more lists search::           Searching.
-* more lists delete::           Deletion.
-* more lists alist::            Association lists.
-* more lists set::              Set operations on lists.
+* lists fold::                  Fold, unfold and map.
+* lists filter::                Filtering and partitioning.
+* lists search::                Searching.
+* lists delete::                Deletion.
+* lists alist::                 Association lists.
+* lists set::                   Set operations on lists.
 
 Constructors
 
-* more lists cons pair::         Pair constructors.
-* more lists cons list::         List constructors.
+* lists cons pair::             Pair constructors.
+* lists cons list::             List constructors.
 
 Predicates
 
-* more lists pred kind::         Kinds of list.
-* more lists pred null::         Null predicates.
-* more lists pred pair::         Pair predicates.
-* more lists pred cmp::          Comparison.
+* lists pred kind::             Kinds of list.
+* lists pred null::             Null predicates.
+* lists pred pair::             Pair predicates.
+* lists pred cmp::              Comparison.
 
 Fold, unfold and map
 
-* more lists fold fold::         Folding.
-* more lists fold reduce::       Reducing.
-* more lists fold unfold::       Unfolding.
-* more lists fold map::          Mapping.
+* lists fold fold::             Folding.
+* lists fold reduce::           Reducing.
+* lists fold unfold::           Unfolding.
+* lists fold map::              Mapping.
 
 Lightweight testing
 
-* more checks select::          Selecting tests to be run.
-* more checks eval::            Evaluating code.
-* more checks result::          Handling multiple results.
-* more checks debug::           Printing debug messages.
+* checks select::               Selecting tests to be run.
+* checks eval::                 Evaluating code.
+* checks result::               Handling multiple results.
+* checks debug::                Printing debug messages.
 
 Character sets
 
-* more char-sets intro::        Introduction.
-* more char-sets make::         Creation.
-* more char-sets pred::         Predicates.
-* more char-sets inspect::      Inspection.
-* more char-sets conv::         Conversion.
-* more char-sets search::       Searching.
-* more char-sets filter::       Filtering.
-* more char-sets iter::         Iteration.
-* more char-sets set::          Set operations.
-* more char-sets std::          Standard char sets.
+* char-sets intro::             Introduction.
+* char-sets make::              Creation.
+* char-sets pred::              Predicates.
+* char-sets inspect::           Inspection.
+* char-sets conv::              Conversion.
+* char-sets search::            Searching.
+* char-sets filter::            Filtering.
+* char-sets iter::              Iteration.
+* char-sets set::               Set operations.
+* char-sets std::               Standard char sets.
 
 Strings library
 
@@ -868,29 +868,30 @@ Syntax objects and you
 @chapter Overview of the package
 
 
-@value{PACKAGE} is a set of Scheme libraries that defines an augmented
-@rnrs{6} Scheme language.  To use it when writing a library or program,
-we import @library{scheme} in place of @library{rnrs}:
+@value{PACKAGE} is a set of Scheme libraries defining a slightly
+modified @rnrs{6} Scheme language; it also provides a set of libraries
+that augment the features of the base and standard @rnrs{6} libraries.
+To use it when writing a library or program, we import
+@library{nausicaa} in place of @library{rnrs}:
 
 @example
-(import (scheme)
+(import (nausicaa)
   ---)
 @end example
 
 @noindent
-the only way to use the @library{scheme} library is as language
-definition, if we try to import both @library{scheme} and @library{rnrs}
+the only way to use the @library{nausicaa} library is as language
+definition, if we try to import both @library{nausicaa} and @library{rnrs}
 conflicts may arise.
 
 
 @menu
 * overview copying::            Copying this document.
 * overview compliancy::         On being compliant.
-* overview language::           On the @library{scheme} language.
+* overview language::           On the @library{nausicaa} language.
 * overview libraries::          Other libraries.
 * overview binfmt::             Launching Scheme programs directly.
 @end menu
-
 
 @c page
 @node overview copying
@@ -906,19 +907,19 @@ conflicts may arise.
 
 Some Scheme implementation defines itself as @rnrs{6} compliant, but
 then does not provide a compliant implementation of some the features.
-@value{PACKAGE} tries, through the @library{scheme} language, to fill
+@value{PACKAGE} tries, through the @library{nausicaa} language, to fill
 some, not all, of the gaps in these implementations.
 
-For changes to @rnrs{6} implemented in @library{scheme} see
-@ref{overview language,On the @library{scheme} language}
+For changes to @rnrs{6} implemented in @library{nausicaa} see
+@ref{overview language,On the @library{nausicaa} language}
 
 
 @c page
 @node overview language
-@section On the @library{scheme} language
+@section On the @library{nausicaa} language
 
 
-The @library{scheme} library changes some semantics of the @rnrs{6}
+The @library{nausicaa} library changes some semantics of the @rnrs{6}
 language.  It has the following purposes:
 
 @itemize
@@ -929,7 +930,7 @@ To make available all the bindings from @library{rnrs}.
 To make self--defining @rnrs{6} Scheme implementations more @rnrs{6}
 compliant, in the sense of ``programs that work''.  This means for
 example: if an underlying implementation does not provide a requested
-function, @library{scheme} tries to provide a working replacement.
+function, @library{nausicaa} tries to provide a working replacement.
 
 @item
 To offer by default some features from the @srfi{} libraries which where
@@ -953,7 +954,7 @@ available in the chapters:
 @end itemize
 
 @noindent
-the features of @library{scheme} that extend the @library{rnrs} language
+the features of @library{nausicaa} that extend the @library{rnrs} language
 are described in the chapter @ref{naulib,The augmented language}.
 
 
@@ -7661,6 +7662,15 @@ Return a possibly improper list consisting of the elements of the first
 
 If @func{append} constructs a non--empty chain of pairs, it is always
 newly allocated.  If no pairs are allocated, @var{obj} is returned.
+
+@quotation
+@rnrs{6} mandates that this function requires at least the argument
+@var{obj}; it is illegal to call this function with no arguments.
+Despite this: The Scheme implementations supported by Nausicaa (Larceny,
+Ikarus, Mosh, Ypsilon) allow calling this function with no arguments, in
+which case the return value is the empty string.  The @library{nausicaa}
+language will ensure this behaviour.  (Fri Jun 5, 2009)
+@end quotation
 @end deffn
 
 
@@ -17772,12 +17782,12 @@ this report.
 
 @c page
 @node naulib
-@chapter The augmented language
+@chapter The @library{nausicaa} language
 
 
-This chapter describes the features added by the @library{scheme}
-language to the @library{rnrs} language.  Most of them are the revised
-implementations of @srfi{} specifications that were voted to the
+This chapter describes the @library{nausicaa} language and its
+differences from the @library{rnrs} language.  Most of them are the
+revised implementations of @srfi{} specifications that were voted to the
 @emph{final} status.
 
 
@@ -17791,7 +17801,6 @@ implementations of @srfi{} specifications that were voted to the
 * naulib environment::          Accessing environment variables.
 * naulib unimplemented::        Unimplemented error condition.
 @end menu
-
 
 @c page
 @node naulib features
@@ -17834,14 +17843,14 @@ Test for the existence of features at macro--expansion time.  Each
          | (not <feature requirement>)
 
 <feature identifier>
-        -> one of the symbols described below
+        -> one of the symbols described below, or "else"
 @end example
 
 @func{cond-expand} either expands into the @meta{body} of one of its
 clauses or signals an error during syntactic processing.
 @func{cond-expand} expands into the body of the first clause whose
-feature requirement is currently satisfied (the else clause, if present,
-is selected if none of the previous clauses is selected).
+feature requirement is currently satisfied (the @code{else} clause, if
+present, is selected if none of the previous clauses is selected).
 
 A @meta{feature requirement} has an obvious interpretation as a logical
 formula, where the @meta{feature identifier} symbols have meaning true
@@ -17877,7 +17886,8 @@ The name of the underlying Scheme implementation.
 @itemx darwin
 @itemx ...
 Platform identifiers selected by the @code{AC_CANONICAL_TARGET} macro of
-@gnu{} Autoconf.
+@gnu{} Autoconf.  @xref{Canonicalizing, Canonicalizing, Getting the
+Canonical System Type, autoconf, @gnu{} Autoconf}.
 
 @item r6rs
 The @rnrs{6} Scheme language.
@@ -18451,14 +18461,14 @@ Raise a composite condition embedding a condition of type
 
 
 @menu
-* more lists::                  Lists library.
-* more checks::                 Lightweight testing.
-* more char-sets::              Character sets library.
-* more strings::                Strings library.
+* lists::                       Lists library.
+* checks::                      Lightweight testing.
+* char-sets::                   Character sets library.
+* strings::                     Strings library.
 @end menu
 
 @c page
-@node more lists
+@node lists
 @section List library
 
 
@@ -18467,24 +18477,24 @@ functions and macros to manipulate lists.
 
 
 @menu
-* more lists intro::            Introduction.
-* more lists linear update::    Linear update procedures.
-* more lists improper::         Improper lists.
-* more lists cons::             Constructors.
-* more lists pred::             Predicates.
-* more lists select::           Selectors.
-* more lists misc::             Length, append, concatenate,
+* lists intro::                 Introduction.
+* lists linear update::         Linear update procedures.
+* lists improper::              Improper lists.
+* lists cons::                  Constructors.
+* lists pred::                  Predicates.
+* lists select::                Selectors.
+* lists misc::                  Length, append, concatenate,
                                 reverse, zip and count.
-* more lists fold::             Fold, unfold and map.
-* more lists filter::           Filtering and partitioning.
-* more lists search::           Searching.
-* more lists delete::           Deletion.
-* more lists alist::            Association lists.
-* more lists set::              Set operations on lists.
+* lists fold::                  Fold, unfold and map.
+* lists filter::                Filtering and partitioning.
+* lists search::                Searching.
+* lists delete::                Deletion.
+* lists alist::                 Association lists.
+* lists set::                   Set operations on lists.
 @end menu
 
 @c page
-@node more lists intro
+@node lists intro
 @subsection Introduction
 
 
@@ -18533,7 +18543,7 @@ defined to accept such an argument.
 
 
 @c page
-@node more lists linear update
+@node lists linear update
 @subsection Linear update procedures
 
 
@@ -18635,7 +18645,7 @@ take!                   take-while!
 
 
 @c page
-@node more lists improper
+@node lists improper
 @subsection Improper lists
 
 
@@ -18701,7 +18711,7 @@ call.
 
 
 @c page
-@node more lists cons
+@node lists cons
 @subsection Constructors
 
 
@@ -18709,13 +18719,13 @@ call.
 
 
 @menu
-* more lists cons pair::         Pair constructors.
-* more lists cons list::         List constructors.
+* lists cons pair::             Pair constructors.
+* lists cons list::             List constructors.
 @end menu
 
 
 @c page
-@node more lists cons pair
+@node lists cons pair
 @subsubsection Pair constructors
 
 
@@ -18732,7 +18742,7 @@ The name stands for ``eXchanged CONS''.
 
 
 @c page
-@node more lists cons list
+@node lists cons list
 @subsubsection List constructors
 
 
@@ -18811,7 +18821,7 @@ the empty list.
 
 
 @c page
-@node more lists pred
+@node lists pred
 @subsection Predicates
 
 
@@ -18819,15 +18829,14 @@ the empty list.
 
 
 @menu
-* more lists pred kind::         Kinds of list.
-* more lists pred null::         Null predicates.
-* more lists pred pair::         Pair predicates.
-* more lists pred cmp::          Comparison.
+* lists pred kind::             Kinds of list.
+* lists pred null::             Null predicates.
+* lists pred pair::             Pair predicates.
+* lists pred cmp::              Comparison.
 @end menu
 
-
 @c page
-@node more lists pred kind
+@node lists pred kind
 @subsubsection Kind of list
 
 
@@ -18887,7 +18896,7 @@ length 0.
 
 
 @c page
-@node more lists pred null
+@node lists pred null
 @subsubsection Null predicates
 
 
@@ -18902,7 +18911,7 @@ lists.
 
 
 @c page
-@node more lists pred pair
+@node lists pred pair
 @subsubsection Pair predicates
 
 
@@ -18915,7 +18924,7 @@ proper and dotted.
 
 
 @c page
-@node more lists pred cmp
+@node lists pred cmp
 @subsubsection Comparison
 
 
@@ -19012,7 +19021,7 @@ Examples:
 
 
 @c page
-@node more lists select
+@node lists select
 @subsection Selectors
 
 
@@ -19208,7 +19217,7 @@ finite list @var{pair}.
 
 
 @c page
-@node more lists misc
+@node lists misc
 @subsection Length, append, concatenate, reverse, zip and count
 
 
@@ -19402,7 +19411,7 @@ At least one of the argument lists must be finite:
 
 
 @c page
-@node more lists fold
+@node lists fold
 @subsection Fold, unfold and map
 
 
@@ -19410,15 +19419,15 @@ At least one of the argument lists must be finite:
 
 
 @menu
-* more lists fold fold::         Folding.
-* more lists fold reduce::       Reducing.
-* more lists fold unfold::       Unfolding.
-* more lists fold map::          Mapping.
+* lists fold fold::             Folding.
+* lists fold reduce::           Reducing.
+* lists fold unfold::           Unfolding.
+* lists fold map::              Mapping.
 @end menu
 
 
 @c page
-@node more lists fold fold
+@node lists fold fold
 @subsubsection Folding
 
 
@@ -19667,7 +19676,7 @@ Examples:
 
 
 @c page
-@node more lists fold reduce
+@node lists fold reduce
 @subsubsection Reducing
 
 
@@ -19750,7 +19759,7 @@ in other words, we compute @code{(fold-right f ridentity list)}.
 
 
 @c page
-@node more lists fold unfold
+@node lists fold unfold
 @subsubsection Unfolding
 
 
@@ -19942,7 +19951,7 @@ interested readers are invited to communicate it to the author.
 
 
 @c page
-@node more lists fold map
+@node lists fold map
 @subsubsection Mapping
 
 
@@ -20130,7 +20139,7 @@ At least one of the list arguments must be finite.
 
 
 @c page
-@node more lists filter
+@node lists filter
 @subsection Filtering and partitioning
 
 
@@ -20205,7 +20214,7 @@ construct the result lists.
 
 
 @c page
-@node more lists search
+@node lists search
 @subsection Searching
 
 
@@ -20496,7 +20505,7 @@ Note that fully general list searching may be performed with the
 
 
 @c page
-@node more lists delete
+@node lists delete
 @subsection Deletion
 
 
@@ -20580,7 +20589,7 @@ cons cells in its argument list to construct the result.
 
 
 @c page
-@node more lists alist
+@node lists alist
 @subsection Association lists
 
 
@@ -20699,7 +20708,7 @@ cells from the alist parameter to construct the result.
 
 
 @c page
-@node more lists set
+@node lists set
 @subsection Set operations on lists
 
 
@@ -20999,7 +21008,7 @@ the cons cells in the first list parameter to construct its answer.
 
 
 @c page
-@node more checks
+@node checks
 @section Lightweight testing
 
 
@@ -21023,15 +21032,15 @@ by printing a message of the form:
 
 
 @menu
-* more checks select::          Selecting tests to be run.
-* more checks eval::            Evaluating code.
-* more checks result::          Handling multiple results.
-* more checks debug::           Printing debug messages.
+* checks select::               Selecting tests to be run.
+* checks eval::                 Evaluating code.
+* checks result::               Handling multiple results.
+* checks debug::                Printing debug messages.
 @end menu
 
 
 @c page
-@node more checks select
+@node checks select
 @subsection Selecting tests to be run
 
 
@@ -21089,7 +21098,7 @@ string or a symbol.
 
 
 @c page
-@node more checks eval
+@node checks eval
 @subsection Evaluating code
 
 
@@ -21107,8 +21116,8 @@ The precise order of evaluation is that first @var{equal} and
 @var{expected} are evaluated (in unspecified order) and then @var{expr}
 is evaluated.  Example: @code{(check (+ 1 1) => 2)}.
 
-When @var{name} is given: it is the name of this test, @ref{more checks
-select,Selecting tests to be run}
+When @var{name} is given: it is the name of this test, @ref{checks
+select, Selecting tests to be run}.
 @end deffn
 
 
@@ -21225,7 +21234,7 @@ Evaluate @var{expr} in a @func{check} form, expecting a non--false or
 
 
 @c page
-@node more checks result
+@node checks result
 @subsection Handling multiple results
 
 
@@ -21252,7 +21261,7 @@ Return the current value of the implicit variable defined by
 
 
 @c page
-@node more checks debug
+@node checks debug
 @subsection Printing debug messages
 
 
@@ -21278,7 +21287,7 @@ to print @var{exc}, which must be a Scheme condition value.
 
 
 @c page
-@node more char-sets
+@node char-sets
 @section Character sets
 
 
@@ -21295,21 +21304,20 @@ character components.  @ref{stdlib unicode,Unicode}
 
 
 @menu
-* more char-sets intro::        Introduction.
-* more char-sets make::         Creation.
-* more char-sets pred::         Predicates.
-* more char-sets inspect::      Inspection.
-* more char-sets conv::         Conversion.
-* more char-sets search::       Searching.
-* more char-sets filter::       Filtering.
-* more char-sets iter::         Iteration.
-* more char-sets set::          Set operations.
-* more char-sets std::          Standard char sets.
+* char-sets intro::             Introduction.
+* char-sets make::              Creation.
+* char-sets pred::              Predicates.
+* char-sets inspect::           Inspection.
+* char-sets conv::              Conversion.
+* char-sets search::            Searching.
+* char-sets filter::            Filtering.
+* char-sets iter::              Iteration.
+* char-sets set::               Set operations.
+* char-sets std::               Standard char sets.
 @end menu
 
-
 @c page
-@node more char-sets intro
+@node char-sets intro
 @subsection Introduction
 
 
@@ -21349,7 +21357,7 @@ A parameter followed by @code{...} means zero--or--more elements.
 
 
 @c page
-@node more char-sets make
+@node char-sets make
 @subsection Creation
 
 
@@ -21371,7 +21379,7 @@ other character set is guaranteed not to be altered.
 
 
 @c page
-@node more char-sets pred
+@node char-sets pred
 @subsection Predicates and assertions
 
 
@@ -21401,7 +21409,7 @@ value for the @code{&who} condition.  Otherwise return @var{obj} itself.
 
 
 @c page
-@node more char-sets inspect
+@node char-sets inspect
 @subsection Inspection
 
 
@@ -21411,7 +21419,7 @@ Return the number of characters in @var{cs}.
 
 
 @c page
-@node more char-sets conv
+@node char-sets conv
 @subsection Conversion
 
 
@@ -21475,7 +21483,7 @@ character, a copy of it is returned.
 
 
 @c page
-@node more char-sets search
+@node char-sets search
 @subsection Searching
 
 
@@ -21511,7 +21519,7 @@ is the empty set.
 
 
 @c page
-@node more char-sets filter
+@node char-sets filter
 @subsection Filtering
 
 
@@ -21562,7 +21570,7 @@ duplicates.
 
 
 @c page
-@node more char-sets iter
+@node char-sets iter
 @subsection Iteration
 
 
@@ -21699,7 +21707,7 @@ Examples:
 
 
 @c page
-@node more char-sets set
+@node char-sets set
 @subsection Set operations
 
 
@@ -21728,7 +21736,7 @@ one argument: return @true{}.
 @end example
 
 @c page
-@node more char-sets std
+@node char-sets std
 @subsection Predefined char sets
 
 
@@ -22298,24 +22306,18 @@ horizontal tab and space.  Latin-1 adds the no--break space.
 
 
 @c page
-@node more strings
+@node strings
 @section Strings library
 
 
-This chapter describes the @library{strings} library, which handles
-strings.  This library considers strings simply to be a sequence of
-``code points'' or character encodings.  Operations such as comparison
-or reversal are always done code point by code point.
-
-It's possible that a legal string might not be a sensible ``text''
-sequence; for example, consider a string comprised entirely of
-zero--width Unicode accent characters with no preceding base character
-to modify: it is a legal string, albeit one that does not make sense
-when interpreted as a sequence of natural--language text.  The routines
-in @library{strings} do not handle these ``text'' concerns.
+This chapter describes the @library{strings} library, which extends the
+string operations available in the base library (@pxref{baselib
+strings}).
 
 @menu
-* strings intro::               Conventions.
+* strings intro::               Introduction.
+* strings convention::          Interface conventions.
+* strings views::               Views over strings.
 * strings pred::                Predicates.
 * strings cons::                Constructors.
 * strings list::                List and string conversion.
@@ -22332,6 +22334,7 @@ in @library{strings} do not handle these ``text'' concerns.
 
 Low level procedures
 
+* strings low compar::          Low level comparison functions.
 * strings parsing::             Start/end optional-argument parsing
                                 and checking utilities.
 * strings knuth::               Knuth-Morris-Pratt searching.
@@ -22339,7 +22342,83 @@ Low level procedures
 
 @c page
 @node strings intro
-@subsection Conventions
+@subsection Introduction
+
+
+@subsubheading Library organisation
+
+The functions are split in a high level library, @library{strings}, and
+a low level one, @library{strings low}.  The main difference between the
+two layers is that the high level library makes heavy usage of macros to
+implement the @dfn{string views}, which allow accessing substrings of
+the strings used as arguments.
+
+All the functions in the low level library are bound to identifiers
+starting with @code{%}; for example: @func{string-prefix?} is a high
+level macro, @func{%string-prefix?} is its low level function
+homologous.
+
+@subsubheading A model for strings
+
+This library considers strings simply to be a sequence of ``code
+points'' or character encodings.  Operations such as comparison or
+reversal are always done code point by code point.
+
+It's possible that a legal string might not be a sensible ``text''
+sequence; for example, consider a string comprised entirely of
+zero--width Unicode accent characters with no preceding base character
+to modify: It is a legal string, albeit one that does not make sense
+when interpreted as a sequence of natural--language text.  The routines
+in @library{strings} do not handle these ``text'' concerns.
+
+@subsubheading Direction of iteration
+
+The library accesses the characters of a string in left--to--right or
+right--to--left order depending on the convenience of the algorithm.
+
+@subsubheading Handling side effects
+
+Care must be taken when using functions with side effects.  One reason
+for this is that some of the supported Scheme implementations will
+collapse equal datum strings in the source code to the same string in
+the program.  Mutating such a string in a point of the program, will
+make the change visible to other points in the program.  For example:
+
+@example
+(import (rnrs)
+  (rnrs mutable-strings))
+
+(define str1 "abcd")
+(define str2 "abcd")
+
+(string-set! str1 2 #\9)
+(write str2)
+@end example
+
+@noindent
+when executed by Ypsilon and Larceny will print @code{"ab9d"}, while
+when executed by Ikarus and Mosh will print @code{"abcd"} (last verified
+Fri Jun 5, 2009).  To avoid this problem completely, we can change the
+program in this way:
+
+@example
+(import (rnrs)
+  (rnrs mutable-strings))
+
+(define str1 (string-copy "abcd"))
+(define str2 (string-copy "abcd"))
+
+(string-set! str1 2 #\9)
+(write str2)
+@end example
+
+@noindent
+of course we may want to wrap into @func{string-copy} only the strings
+that are meant to be mutated.
+
+@c page
+@node strings convention
+@subsection Interface conventions
 
 
 The following naming convention holds:
@@ -22353,8 +22432,11 @@ Procedures whose names end in @code{!} are side--effecting variants.
 What values these procedures return is usually not specified.
 
 @item
-The order of common parameters is consistent across the different
-procedures.
+The order of common arguments is consistent across the different
+procedures in the high level library, and consistent across the
+different procedures in the low level library.  Arguments to some
+functions in the high level library have different order from the one of
+the homologous low level functions.
 
 @item
 Procedures that have left/right directional variants use the following
@@ -22362,7 +22444,7 @@ convention:
 
 @multitable {right--to--left} {Suffix}
 @headitem Direction @tab Suffix
-@item left-to-right @tab none
+@item left-to-right @tab @meta{none}
 @item right-to-left @tab --right
 @item both @tab --both
 @end multitable
@@ -22372,64 +22454,56 @@ In the procedure specifications:
 
 @itemize
 @item
-An @var{s} parameter is a string.
+An @var{s} argument is a string view, which is expanded by a macro in a
+triplet of values: the string, the index of the first char in the
+selected substring, the index of the character past the last in the
+selected position; @ref{strings views} for details.
 
 @item
-A @var{char} parameter is a character.
+A @var{str} argument is a string.
 
 @item
-@var{start} and @var{end} parameters are half--open string indices
-specifying a substring within a string parameter; when optional, they
-default to @code{0} and the length of the string, respectively.  When
+A @var{char} argument is a character.
+
+@item
+@var{beg} and @var{past} arguments are half--open string indices
+specifying a substring within a string argument; when unspecified, they
+default to zero and the length of the string, respectively.  When
 specified, it must be the case that:
 
 @example
-0 <= start <= end <= (string-length s)
+0 <= beg <= past <= (string-length s)
 @end example
 
 @noindent
-for the corresponding parameter @var{s}.  They typically restrict a
-procedure's action to the indicated substring.
+for the corresponding argument @var{str}.  They typically restrict a
+procedure's action to the indicated substring; when @var{beg} equals
+@var{past} the selected substring is the empty string.
 
 @item
-A @var{pred} parameter is a unary character predicate procedure,
+A @var{pred} argument is a unary character predicate procedure,
 returning a true/false value when applied to a character.
 
 @item
-A @var{char}/@var{char-set}/@var{pred} parameter is a value used to
+A @var{char}/@var{char-set}/@var{pred} argument is a value used to
 select/search for a character in a string.  If it is a character, it is
 used in an equality test; if it is a character set, it is used as a
 membership test; if it is a procedure, it is applied to the characters
 as a test predicate.
 
 @item
-An @var{i} parameter is an exact non--negative integer specifying an
+An @var{i} argument is an exact non--negative integer specifying an
 index into a string.
 
 @item
-@var{len} and @var{nchars} parameters are exact non--negative integers
+@var{len} and @var{nchars} arguments are exact non--negative integers
 specifying a length of a string or some number of characters.
 
 @item
-An @var{obj} parameter may be any value at all.
+An @var{obj} argument can be any value.
 @end itemize
 
-Parameters given in square brackets are optional.  Unless otherwise
-noted in the text describing the procedure, any prefix of these optional
-parameters may be supplied, from zero arguments to the full list.  When
-a procedure returns multiple values, this is shown by listing the return
-values in square brackets, as well.  So, for example, the procedure with
-signature:
-
-@example
-halts? f [x init-store]
-@end example
-
-@noindent
-would take one (@var{f}), two (@var{f}, @var{x}) or three (@var{f},
-@var{x}, @var{init-store}) input parameters.
-
-A parameter followed by @code{...} means zero--or--more elements.  So
+An argument followed by @code{...} means zero--or--more elements.  So
 the procedure with the signature:
 
 @example
@@ -22437,29 +22511,35 @@ sum-squares x ...
 @end example
 
 @noindent
-takes zero or more arguments (@var{x} ...), while the procedure with
-signature:
+takes zero or more arguments (@var{x}, @dots{}), while the procedure
+with signature:
 
 @example
 spell-check doc dict1 dict2 ...
 @end example
 
 @noindent
-takes two required parameters (@var{doc} and @var{dict1}) and zero or
-more optional parameters (@var{dict2} ...).
+takes two required arguments (@var{doc} and @var{dict1}) and zero or
+more optional arguments (@var{dict2} ...).
 
 If a procedure is said to return ``unspecified'', this means that
-nothing at all is said about what the procedure returns.  Such a
+nothing at all is known about what the procedure returns.  Such a
 procedure is not even required to be consistent from call to call.  It
 is simply required to return a value (or values) that may be passed to a
 command continuation, e.g. as the value of an expression appearing as a
-non--terminal subform of a begin expression.  Note that in @rnrs{5},
-this restricts such a procedure to returning a single value;
-non--@rnrs{5} systems may not even provide this restriction.
+non--terminal subform of a begin expression.
 
-
+Comparison is simply done on individual code--points of the string.
 Unless explicitly stated, for all the functions: Case--insensitive
-comparison is done by case--folding characters with the operation
+comparison is done using the functions:
+
+@example
+char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
+@end example
+
+@noindent
+provided by the underlying implementation, or by case--folding
+characters with the operation:
 
 @example
 (char-downcase (char-upcase c))
@@ -22473,7 +22553,10 @@ table:
 
 @center @url{ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt}
 
-Comparison is simply done on individual code--points of the string.
+@c page
+@node strings views
+@subsection Views over strings
+
 
 
 @c page
@@ -22792,166 +22875,6 @@ Example:
 @c page
 @node strings compar
 @subsection Comparison
-
-
-@subsubheading Low level functions
-
-
-@defun %string-compare @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
-@defunx %string-compare-ci @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
-Determine the @dfn{mismatch index} between the two substrings: the
-largest index @math{i} such that for every @math{0 <= j < i},
-@math{str1[j] = str2[j]}; that is, @var{i} is the first position that
-does not match.
-
-The mismatch index is always an index into @var{s1}; in the case of
-equal strings, it is always @var{past1}; the functions observe the
-protocol in this redundant case for uniformity.
-
-The characters at the mismatch index are compared using @func{char<=?}
-or @func{char-ci<=?}.  @var{proc<}, @var{proc=}, or @var{proc>} are
-applied to the mismatch index, depending upon whether the substring of
-@var{str1} is less than, equal to, or greater than the substring of
-@var{str2}.  The result of the application is returned.
-
-If we just want to have the mismatch index: We can use @func{values} as
-value for @var{proc<}, @var{proc=} and @var{proc>}.  Another interesting
-option is to use @code{(lambda (mismatch-index) #f)} or @code{(lambda
-(mismatch-index) #t)}.
-
-Examples:
-
-@example
-(%string-compare "abcd" 0 4 "abcd" 0 4
-                 values values values)
-@result{} 5
-
-(%string-compare "abcd" 0 4 "abcd12" 0 6
-                 values values values)
-@result{} 5
-@end example
-@end defun
-
-
-@defun %string= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if they are equal, @false{}
-otherwise.
-
-@itemize
-@item
-If the substrings have different length: Return @false{}.
-
-@item
-Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
-the selected substring is the same: Return @true{}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return @false{} if they are different or @var{past1} if
-they are equal.
-@end itemize
-@end defun
-
-
-@defun %string<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return @false{} if they are equal, true
-otherwise.
-
-@itemize
-@item
-If the substrings have different length: Return @true{}.
-
-@item
-Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
-the selected substring is the same: Return @false{}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return @false{} if they are equal or the mismatch index
-if they are different.
-@end itemize
-@end defun
-
-
-@defun %string< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-less than the second, @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(< @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is less than the
-second; @false{} otherwise.
-@end itemize
-@end defun
-
-
-@defun %string<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-less than, or equal to, the second; @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(<= @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is less than, or
-equal to, the second; @false{} otherwise.
-@end itemize
-@end defun
-
-
-@defun %string> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-greater than the second, @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(> @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is greater than
-the second; @false{} otherwise.
-@end itemize
-@end defun
-
-
-@defun %string>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-greater than, or equal to, the second; @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(>= @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is greater than,
-or equal to, the second; @false{} otherwise.
-@end itemize
-@end defun
-
-
-@subsubheading High level functions
 
 
 @defun string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>}
@@ -23790,6 +23713,167 @@ character, it is used in an equality test.
 If the string is unaltered by the filtering operation, these functions
 may return either @var{s} or a copy of @var{s}.
 @end defun
+
+@c page
+@node strings low compar
+@subsection Low level comparison functions
+
+
+@defun %string-compare @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
+@defunx %string-compare-ci @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
+Determine the @dfn{mismatch index} between the two substrings: the
+largest index @math{i} such that for every @math{0 <= j < i},
+@math{str1[j] = str2[j]}; that is, @var{i} is the first position that
+does not match.
+
+The mismatch index is always an index into @var{s1}; in the case of
+equal strings, it is always @var{past1}; the functions observe the
+protocol in this redundant case for uniformity.
+
+The characters at the mismatch index are compared using @func{char<=?}
+or @func{char-ci<=?}.  @var{proc<}, @var{proc=}, or @var{proc>} are
+applied to the mismatch index, depending upon whether the substring of
+@var{str1} is less than, equal to, or greater than the substring of
+@var{str2}.  The result of the application is returned.
+
+If we just want to have the mismatch index: We can use @func{values} as
+value for @var{proc<}, @var{proc=} and @var{proc>}.  Another interesting
+option is to use @code{(lambda (mismatch-index) #f)} or @code{(lambda
+(mismatch-index) #t)}.
+
+Examples:
+
+@example
+(%string-compare "abcd" 0 4 "abcd" 0 4
+                 values values values)
+@result{} 5
+
+(%string-compare "abcd" 0 4 "abcd12" 0 6
+                 values values values)
+@result{} 5
+@end example
+@end defun
+
+
+@defun %string= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if they are equal, @false{}
+otherwise.
+
+@itemize
+@item
+If the substrings have different length: Return @false{}.
+
+@item
+Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
+the selected substring is the same: Return @true{}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return @false{} if they are different or @var{past1} if
+they are equal.
+@end itemize
+@end defun
+
+
+@defun %string<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return @false{} if they are equal, true
+otherwise.
+
+@itemize
+@item
+If the substrings have different length: Return @true{}.
+
+@item
+Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
+the selected substring is the same: Return @false{}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return @false{} if they are equal or the mismatch index
+if they are different.
+@end itemize
+@end defun
+
+
+@defun %string< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+less than the second, @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(< @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is less than the
+second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+@defun %string<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+less than, or equal to, the second; @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(<= @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is less than, or
+equal to, the second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+@defun %string> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+greater than the second, @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(> @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is greater than
+the second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+@defun %string>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@defunx %string-ci>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+Compare two substrings: Return true if the first is lexicographically
+greater than, or equal to, the second; @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(>= @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is greater than,
+or equal to, the second; @false{} otherwise.
+@end itemize
+@end defun
+
+
+
 
 @c page
 @node strings parsing

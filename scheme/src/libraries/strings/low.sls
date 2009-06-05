@@ -130,6 +130,16 @@
     %string-compare %string-compare-ci
     %string= %string<> %string< %string> %string<= %string>=
     %string-ci= %string-ci<> %string-ci< %string-ci> %string-ci<= %string-ci>=
+
+    ;;; case hacking
+    %string-titlecase!
+
+    ;;; selecting
+    %string-take %string-take-right
+    %string-drop %string-drop-right
+    %string-trim %string-trim-right %string-trim-both
+    %string-pad %string-pad-right
+    %string-copy!
     )
   (import (rnrs)
     (rnrs mutable-strings)
@@ -199,7 +209,7 @@
 ;;;; mapping
 
 (define (%string-map proc str beg past)
-  (do ((i 0 (+ 1 i))
+  (do ((i beg (+ 1 i))
        (j 0 (+ 1 j))
        (result (make-string (- past beg))))
       ((>= i past)
@@ -207,20 +217,19 @@
     (string-set! result j (proc (string-ref str i)))))
 
 (define (%string-map! proc str beg past)
-  (do ((i 0 (+ 1 i))
-       (j 0 (+ 1 j)))
+  (do ((i beg (+ 1 i)))
       ((>= i past)
        str)
-    (string-set! str j (proc (string-ref str i)))))
+    (string-set! str i (proc (string-ref str i)))))
 
 (define (%string-for-each* proc str beg past)
-  (let loop ((i 0))
+  (let loop ((i beg))
     (when (< i past)
       (proc (string-ref str i))
       (loop (+ i 1)))))
 
 (define (%string-for-each-index proc str beg past)
-  (let loop ((i 0))
+  (let loop ((i beg))
     (when (< i past)
       (proc i)
       (loop (+ i 1)))))
@@ -535,19 +544,159 @@
   (%true-string>= %string-compare-ci str1 beg1 past1 str2 beg2 past2))
 
 
+;;;; case hacking
+
+(define (char-cased? c)
+  ;; This works  because CHAR-UPCASE returns #f if  the character has no
+  ;; upcase version.
+  (char-upper-case? (char-upcase c)))
+
+(define (%string-titlecase! str beg past)
+  (let loop ((i beg))
+    (cond ((%string-index char-cased? str i past)
+	   => (lambda (i)
+		(string-set! str i (char-titlecase (string-ref str i)))
+		(let ((i1 (+ i 1)))
+		  (cond ((%string-skip char-cased? str i1 past)
+			 => (lambda (j)
+			      (%string-map! char-downcase str i1 j)
+			      (loop (+ j 1))))
+			(else
+			 (%string-map! char-downcase str i1 past)))))))))
+
+
 ;;;; selecting
 
-(define (%string-copy! dst-str dst-beg src-str src-beg src-end)
+(define (%string-take nchars str beg past)
+  (if (<= nchars (- past beg))
+      (substring str beg (+ beg nchars))
+    (assertion-violation '%string-take
+      "requested number of chars greater than length of substring" nchars)))
+
+(define (%string-take-right nchars str beg past)
+  (if (<= nchars (- past beg))
+      (substring str (- past nchars) past)
+    (assertion-violation '%string-take-right
+      "requested number of chars greater than length of substring" nchars)))
+
+(define (%string-drop nchars str beg past)
+  (if (<= nchars (- past beg))
+      (substring str nchars past)
+    (assertion-violation '%string-take
+      "requested number of chars greater than length of substring" nchars)))
+
+(define (%string-drop-right nchars str beg past)
+  (if (<= nchars (- past beg))
+      (substring str beg (+ beg nchars))
+    (assertion-violation '%string-take
+      "requested number of chars greater than length of substring" nchars)))
+
+(define (%string-trim criterion str beg past)
+  (cond ((%string-skip criterion str beg past)
+	 => (lambda (i) (substring str i past)))
+	(else "")))
+
+(define (%string-trim-right criterion str beg past)
+  (cond ((%string-skip-right criterion str beg past)
+	 => (lambda (i) (substring str beg (+ 1 i))))
+	(else "")))
+
+(define (%string-trim-both criterion str beg past)
+  (%string-trim criterion (%string-trim-right criterion str beg past) str beg past))
+
+(define (%string-pad requested-len fill-char str beg past)
+  (let ((len (- past beg)))
+    (if (<= requested-len len)
+	(substring str (- past requested-len) past)
+      (let ((result (make-string requested-len fill-char)))
+	(%string-copy! result (- requested-len len) str beg past)
+	result))))
+
+(define (%string-pad-right requested-len fill-char str beg past)
+  (let ((len (- past beg)))
+    (if (<= requested-len len)
+	(substring str beg (+ beg requested-len))
+      (let ((result (make-string requested-len fill-char)))
+	(%string-copy! result 0 str beg past)
+	result))))
+
+(define (%string-copy! dst-str dst-beg src-str src-beg src-past)
   (if (> src-beg dst-beg)
       (do ((i src-beg (+ i 1))
 	   (j dst-beg (+ j 1)))
-	  ((>= i src-end))
+	  ((>= i src-past))
 	(string-set! dst-str j (string-ref src-str i)))
-    (do ((i (- src-end 1)                    (- i 1))
-	 (j (+ -1 dst-beg (- src-end src-beg)) (- j 1)))
+    (do ((i (- src-past 1)                    (- i 1))
+	 (j (+ -1 dst-beg (- src-past src-beg)) (- j 1)))
 	((< i src-beg))
       (string-set! dst-str j (string-ref src-str i)))))
 
+
+;;;; searching
+
+(define (%string-index criterion str beg past)
+  (cond ((char? criterion)
+	 (let loop ((i beg))
+	   (and (< i past)
+		(if (char=? criterion (string-ref str i)) i
+		  (loop (+ i 1))))))
+	((char-set? criterion)
+	 (let loop ((i beg))
+	   (and (< i past)
+		(if (char-set-contains? criterion (string-ref str i)) i
+		  (loop (+ i 1))))))
+	((procedure? criterion)
+	 (let loop ((i beg))
+	   (and (< i past)
+		(if (criterion (string-ref str i)) i
+		  (loop (+ i 1))))))
+	(else (assertion-violation '%string-index
+		"expected char-set, char or predicate as parameter"
+		criterion))))
+
+(define (%string-skip criterion str beg past)
+  (cond ((char? criterion)
+	 (let loop ((i beg))
+	   (and (< i past)
+		(if (char=? criterion (string-ref str i))
+		    (loop (+ i 1))
+		  i))))
+	((char-set? criterion)
+	 (let loop ((i beg))
+	   (and (< i past)
+		(if (char-set-contains? criterion (string-ref str i))
+		    (loop (+ i 1))
+		  i))))
+	((procedure? criterion)
+	 (let loop ((i beg))
+	   (and (< i past)
+		(if (criterion (string-ref str i)) (loop (+ i 1))
+		  i))))
+	(else (assertion-violation '%string-skip
+		"expected char-set, char or predicate as parameter"
+		criterion))))
+
+(define (%string-skip-right criterion str beg past)
+  (cond ((char? criterion)
+	 (let loop ((i (- past 1)))
+	   (and (>= i beg)
+		(if (char=? criterion (string-ref str i))
+		    (loop (- i 1))
+		  i))))
+	((char-set? criterion)
+	 (let loop ((i (- past 1)))
+	   (and (>= i beg)
+		(if (char-set-contains? criterion (string-ref str i))
+		    (loop (- i 1))
+		  i))))
+	((procedure? criterion)
+	 (let loop ((i (- past 1)))
+	   (and (>= i beg)
+		(if (criterion (string-ref str i)) (loop (- i 1))
+		  i))))
+	(else (assertion-violation '%string-skip-right
+		"expected char-set, char or predicate as parameter"
+		criterion))))
 
 
 ;;;; done

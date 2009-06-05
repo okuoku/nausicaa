@@ -27,7 +27,7 @@
 ;;;; setup
 
 (import (scheme)
-  (strings-low)
+  (strings low)
   (char-sets)
   (checks))
 
@@ -850,11 +850,17 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
-	(%string<= str1 beg1 end1 str2 beg2 end2))
-    => #t)
+  (cond-expand
+   (ikarus (check
+	       (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+		      (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+		 (%string<= str1 beg1 end1 str2 beg2 end2))
+	     => 4))
+   (else (check
+	     (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+		    (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	       (%string<= str1 beg1 end1 str2 beg2 end2))
+	   => #t)))
 
   (check
       (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
@@ -914,11 +920,18 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
-	(%string>= str1 beg1 end1 str2 beg2 end2))
-    => #t)
+  (cond-expand
+   (ikarus
+    (check
+	(let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	       (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	  (%string>= str1 beg1 end1 str2 beg2 end2))
+      => 4))
+   (else (check
+	     (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+		    (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	       (%string>= str1 beg1 end1 str2 beg2 end2))
+	   => #t)))
 
   (check
       (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
@@ -1099,11 +1112,17 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
-	(%string-ci<= str1 beg1 end1 str2 beg2 end2))
-    => #t)
+  (cond-expand
+   (ikarus (check
+	       (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+		      (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+		 (%string-ci<= str1 beg1 end1 str2 beg2 end2))
+	     => 4))
+   (else (check
+	     (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+		    (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	       (%string-ci<= str1 beg1 end1 str2 beg2 end2))
+	   => #t)))
 
   (check
       (let* ((str1 "abc") (beg1 0) (end1 (string-length str1))
@@ -1163,11 +1182,17 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd") (beg2 0) (end2 (string-length str2)))
-	(%string-ci>= str1 beg1 end1 str2 beg2 end2))
-    => #t)
+  (cond-expand
+   (ikarus (check
+	       (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+		      (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+		 (%string-ci>= str1 beg1 end1 str2 beg2 end2))
+	     => 4))
+   (else (check
+	     (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+		    (str2 "abcd") (beg2 0) (end2 (string-length str2)))
+	       (%string-ci>= str1 beg1 end1 str2 beg2 end2))
+	   => #t)))
 
   (check
       (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
@@ -1195,7 +1220,73 @@
 
   )
 
+
+(parameterise ((check-test-name 'case-hacking))
 
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string-titlecase! str beg end)
+	str)
+    => "Abcd")
+
+  (check
+      (let* ((str (string-copy "123abcd")) (beg 0) (end (string-length str)))
+	(%string-titlecase! str beg end)
+	str)
+    => "123Abcd")
+
+  (check
+      (let* ((str (string-copy "---abcd")) (beg 0) (end (string-length str)))
+	(%string-titlecase! str beg end)
+	str)
+    => "---Abcd")
+
+  (check
+      (let* ((str (string-copy "abcd efgh")) (beg 0) (end (string-length str)))
+	(%string-titlecase! str beg end)
+	str)
+    => "Abcd Efgh")
+
+  )
+
+
+(parameterise ((check-test-name 'selecting))
+
+  (check
+      (let* ((str "abcd") (beg 0) (end (string-length str)))
+	(%string-take 2 str beg end))
+    => "ab")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-take 0 str beg end))
+    => "")
+
+  (check
+      (guard (exc ((assertion-violation? exc) #t))
+	(let* ((str "abcd") (beg 0) (end (string-length str)))
+	  (%string-take 5 str beg end)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcd") (beg 0) (end (string-length str)))
+	(%string-take-right 2 str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-take-right 0 str beg end))
+    => "")
+
+  (check
+      (guard (exc ((assertion-violation? exc) #t))
+	(let* ((str "abcd") (beg 0) (end (string-length str)))
+	  (%string-take-right 5 str beg end)))
+    => #t)
+
+  )
 
 
 ;;;; done

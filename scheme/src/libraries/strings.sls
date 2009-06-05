@@ -183,15 +183,6 @@
     (rnrs r5rs)
     (char-sets))
 
-  (define-syntax check-arg
-    (syntax-rules ()
-      ((_ ?pred ?val ?caller)
-       (unless (?pred ?val)
-	 (error ?caller (quote ?val))))))
-
-  (define (char-cased? c)
-    (char-upper-case? (char-upcase c)))
-
 
 
 (define-syntax unpack
@@ -339,151 +330,106 @@
        (%string-compare-ci str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
 
 
-;;; Case hacking
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; string-upcase  s [start end]
-;;; string-upcase! s [start end]
-;;; string-downcase  s [start end]
-;;; string-downcase! s [start end]
-;;;
-;;; string-titlecase  s [start end]
-;;; string-titlecase! s [start end]
-;;;   Capitalize every contiguous alpha sequence: capitalise
-;;;   first char, lowercase rest.
+;;;; case hacking
 
-(define (string-upcase  s . maybe-start+end)
-  (let-string-start+end (start end) string-upcase s maybe-start+end
-    (%string-map char-upcase s start end)))
+(define-syntax string-upcase
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map char-upcase str beg past)))))
 
-(define (string-upcase! s . maybe-start+end)
-  (let-string-start+end (start end) string-upcase! s maybe-start+end
-    (%string-map! char-upcase s start end)))
+(define-syntax string-upcase!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map! char-upcase str beg past)))))
 
-(define (string-downcase  s . maybe-start+end)
-  (let-string-start+end (start end) string-downcase s maybe-start+end
-    (%string-map char-downcase s start end)))
+(define-syntax string-downcase
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map char-downcase str beg past)))))
 
-(define (string-downcase! s . maybe-start+end)
-  (let-string-start+end (start end) string-downcase! s maybe-start+end
-    (%string-map! char-downcase s start end)))
+(define-syntax string-downcase!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map! char-downcase str beg past)))))
 
-(define (%string-titlecase! s start end)
-  (let lp ((i start))
-    (cond ((string-index s char-cased? i end) =>
-           (lambda (i)
-	     (string-set! s i (char-titlecase (string-ref s i)))
-	     (let ((i1 (+ i 1)))
-	       (cond ((string-skip s char-cased? i1 end) =>
-		      (lambda (j)
-			(string-downcase! s i1 j)
-			(lp (+ j 1))))
-		     (else (string-downcase! s i1 end)))))))))
+(define-syntax string-titlecase
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (let ((ans (substring str beg past)))
+	 (%string-titlecase! ans 0 (- past beg))
+	 ans)))))
 
-(define (string-titlecase! s . maybe-start+end)
-  (let-string-start+end (start end) string-titlecase! s maybe-start+end
-    (%string-titlecase! s start end)))
-
-(define (string-titlecase s . maybe-start+end)
-  (let-string-start+end (start end) string-titlecase! s maybe-start+end
-    (let ((ans (substring s start end)))
-      (%string-titlecase! ans 0 (- end start))
-      ans)))
+(define-syntax string-titlecase!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-titlecase! str beg past)))))
 
 
-;;; Cutting & pasting strings
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; string-take string nchars
-;;; string-drop string nchars
-;;;
-;;; string-take-right string nchars
-;;; string-drop-right string nchars
-;;;
-;;; string-pad string k [char start end]
-;;; string-pad-right string k [char start end]
-;;;
-;;; string-trim       string [char/char-set/pred start end]
-;;; string-trim-right string [char/char-set/pred start end]
-;;; string-trim-both  string [char/char-set/pred start end]
-;;;
-;;; These trimmers invert the char-set meaning from MIT Scheme -- you
-;;; say what you want to trim.
+;;;; selecting
 
-(define (string-take s n)
-  (check-arg string? s string-take)
-  (check-arg (lambda (val) (and (integer? n) (exact? n)
-				(<= 0 n (string-length s))))
-	     n string-take)
-  (%substring/shared s 0 n))
+(define-syntax string-take
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack S)))
+       (%string-take nchars str beg past)))))
 
-(define (string-take-right s n)
-  (check-arg string? s string-take-right)
-  (let ((len (string-length s)))
-    (check-arg (lambda (val) (and (integer? n) (exact? n) (<= 0 n len)))
-	       n string-take-right)
-    (%substring/shared s (- len n) len)))
+(define-syntax string-take-right
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack S)))
+       (%string-take-right nchars str beg past)))))
 
-(define (string-drop s n)
-  (check-arg string? s string-drop)
-  (let ((len (string-length s)))
-    (check-arg (lambda (val) (and (integer? n) (exact? n) (<= 0 n len)))
-	       n string-drop)
-  (%substring/shared s n len)))
+(define-syntax string-drop
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack S)))
+       (%string-drop nchars str beg past)))))
 
-(define (string-drop-right s n)
-  (check-arg string? s string-drop-right)
-  (let ((len (string-length s)))
-    (check-arg (lambda (val) (and (integer? n) (exact? n) (<= 0 n len)))
-	       n string-drop-right)
-    (%substring/shared s 0 (- len n))))
+(define-syntax string-drop-right
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack S)))
+       (%string-drop-right nchars str beg past)))))
 
+(define-syntax string-trim
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack S)))
+       (%string-trim criterion str beg past)))))
 
-(define (string-trim s . criterion+start+end)
-  (let-optionals* criterion+start+end ((criterion char-set:whitespace) rest)
-    (let-string-start+end (start end) string-trim s rest
-      (cond ((string-skip s criterion start end) =>
-	     (lambda (i) (%substring/shared s i end)))
-	    (else "")))))
+(define-syntax string-trim-right
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack S)))
+       (%string-trim-right criterion str beg past)))))
 
-(define (string-trim-right s . criterion+start+end)
-  (let-optionals* criterion+start+end ((criterion char-set:whitespace) rest)
-    (let-string-start+end (start end) string-trim-right s rest
-      (cond ((string-skip-right s criterion start end) =>
-	     (lambda (i) (%substring/shared s 0 (+ 1 i))))
-	    (else "")))))
+(define-syntax string-trim-both
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack S)))
+       (%string-trim-both criterion str beg past)))))
 
-(define (string-trim-both s . criterion+start+end)
-  (let-optionals* criterion+start+end ((criterion char-set:whitespace) rest)
-    (let-string-start+end (start end) string-trim-both s rest
-      (cond ((string-skip s criterion start end) =>
-	     (lambda (i)
-	       (%substring/shared s i (+ 1 (string-skip-right s criterion i end)))))
-	    (else "")))))
+(define-syntax string-pad
+  (syntax-rules ()
+    ((_ ?S ?len)
+     (string-pad ?S ?len #\space))
+    ((_ ?S ?len ?char)
+     (let-values (((str beg past) (unpack S)))
+       (%string-pad ?len ?char str beg past)))))
 
-
-(define (string-pad-right s n . char+start+end)
-  (let-optionals* char+start+end ((char #\space (char? char)) rest)
-    (let-string-start+end (start end) string-pad-right s rest
-      (check-arg (lambda (n) (and (integer? n) (exact? n) (<= 0 n)))
-		 n string-pad-right)
-      (let ((len (- end start)))
-	(if (<= n len)
-	    (%substring/shared s start (+ start n))
-	    (let ((ans (make-string n char)))
-	      (%string-copy! ans 0 s start end)
-	      ans))))))
-
-(define (string-pad s n . char+start+end)
-  (let-optionals* char+start+end ((char #\space (char? char)) rest)
-    (let-string-start+end (start end) string-pad s rest
-      (check-arg (lambda (n) (and (integer? n) (exact? n) (<= 0 n)))
-		 n string-pad)
-      (let ((len (- end start)))
-	(if (<= n len)
-	    (%substring/shared s (- end n) end)
-	    (let ((ans (make-string n char)))
-	      (%string-copy! ans (- n len) s start end)
-	      ans))))))
-
+(define-syntax string-pad-right
+  (syntax-rules ()
+    ((_ ?S ?len)
+     (string-pad-right ?S ?len #\space))
+    ((_ ?S ?len ?char)
+     (let-values (((str beg past) (unpack S)))
+       (%string-pad-right ?len ?char str beg past)))))
 
 
 ;;; Filtering strings
