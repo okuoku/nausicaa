@@ -376,43 +376,43 @@
 (define-syntax string-take
   (syntax-rules ()
     ((_ ?S nchars)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-take nchars str beg past)))))
 
 (define-syntax string-take-right
   (syntax-rules ()
     ((_ ?S nchars)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-take-right nchars str beg past)))))
 
 (define-syntax string-drop
   (syntax-rules ()
     ((_ ?S nchars)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-drop nchars str beg past)))))
 
 (define-syntax string-drop-right
   (syntax-rules ()
     ((_ ?S nchars)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-drop-right nchars str beg past)))))
 
 (define-syntax string-trim
   (syntax-rules ()
     ((_ ?S criterion)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-trim criterion str beg past)))))
 
 (define-syntax string-trim-right
   (syntax-rules ()
     ((_ ?S criterion)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-trim-right criterion str beg past)))))
 
 (define-syntax string-trim-both
   (syntax-rules ()
     ((_ ?S criterion)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-trim-both criterion str beg past)))))
 
 (define-syntax string-pad
@@ -420,7 +420,7 @@
     ((_ ?S ?len)
      (string-pad ?S ?len #\space))
     ((_ ?S ?len ?char)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-pad ?len ?char str beg past)))))
 
 (define-syntax string-pad-right
@@ -428,79 +428,30 @@
     ((_ ?S ?len)
      (string-pad-right ?S ?len #\space))
     ((_ ?S ?len ?char)
-     (let-values (((str beg past) (unpack S)))
+     (let-values (((str beg past) (unpack ?S)))
        (%string-pad-right ?len ?char str beg past)))))
 
+(define-syntax string-copy!
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%string-copy! str1 beg1 str2 beg2 past2)))))
+
 
-;;; Filtering strings
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; string-delete char/char-set/pred string [start end]
-;;; string-filter char/char-set/pred string [start end]
-;;;
-;;; If the criterion is a char or char-set, we scan the string twice with
-;;;   string-fold -- once to determine the length of the result string,
-;;;   and once to do the filtered copy.
-;;; If the criterion is a predicate, we don't do this double-scan strategy,
-;;;   because the predicate might have side-effects or be very expensive to
-;;;   compute. So we preallocate a temp buffer pessimistically, and only do
-;;;   one scan over S. This is likely to be faster and more space-efficient
-;;;   than consing a list.
+;;;; filtering
 
-(define (string-delete criterion s . maybe-start+end)
-  (let-string-start+end (start end) string-delete s maybe-start+end
-    (if (procedure? criterion)
-	(let* ((slen (- end start))
-	       (temp (make-string slen))
-	       (ans-len (string-fold (lambda (c i)
-				       (if (criterion c) i
-					   (begin (string-set! temp i c)
-						  (+ i 1))))
-				     0 s start end)))
-	  (if (= ans-len slen) temp (substring temp 0 ans-len)))
+(define-syntax string-delete
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-delete criterion str beg past)))))
 
-	(let* ((cset (cond ((char-set? criterion) criterion)
-			   ((char? criterion) (char-set criterion))
-			   (else (error "string-delete criterion not predicate, char or char-set" criterion))))
-	       (len (string-fold (lambda (c i) (if (char-set-contains? cset c)
-						   i
-						   (+ i 1)))
-				 0 s start end))
-	       (ans (make-string len)))
-	  (string-fold (lambda (c i) (if (char-set-contains? cset c)
-					 i
-					 (begin (string-set! ans i c)
-						(+ i 1))))
-		       0 s start end)
-	  ans))))
-
-(define (string-filter criterion s . maybe-start+end)
-  (let-string-start+end (start end) string-filter s maybe-start+end
-    (if (procedure? criterion)
-	(let* ((slen (- end start))
-	       (temp (make-string slen))
-	       (ans-len (string-fold (lambda (c i)
-				       (if (criterion c)
-					   (begin (string-set! temp i c)
-						  (+ i 1))
-					   i))
-				     0 s start end)))
-	  (if (= ans-len slen) temp (substring temp 0 ans-len)))
-
-	(let* ((cset (cond ((char-set? criterion) criterion)
-			   ((char? criterion) (char-set criterion))
-			   (else (error "string-delete criterion not predicate, char or char-set" criterion))))
-
-	       (len (string-fold (lambda (c i) (if (char-set-contains? cset c)
-						   (+ i 1)
-						   i))
-				 0 s start end))
-	       (ans (make-string len)))
-	  (string-fold (lambda (c i) (if (char-set-contains? cset c)
-					 (begin (string-set! ans i c)
-						(+ i 1))
-					 i))
-		       0 s start end)
-	  ans))))
+(define-syntax string-filter
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-filter criterion str beg past)))))
 
 
 ;;; String search

@@ -140,6 +140,9 @@
     %string-trim %string-trim-right %string-trim-both
     %string-pad %string-pad-right
     %string-copy!
+
+    ;;; filtering
+    %string-delete %string-filter
     )
   (import (rnrs)
     (rnrs mutable-strings)
@@ -602,7 +605,8 @@
 	(else "")))
 
 (define (%string-trim-both criterion str beg past)
-  (%string-trim criterion (%string-trim-right criterion str beg past) str beg past))
+  (let ((str (%string-trim-right criterion str beg past)))
+    (%string-trim criterion str beg (string-length str))))
 
 (define (%string-pad requested-len fill-char str beg past)
   (let ((len (- past beg)))
@@ -621,15 +625,81 @@
 	result))))
 
 (define (%string-copy! dst-str dst-beg src-str src-beg src-past)
-  (if (> src-beg dst-beg)
-      (do ((i src-beg (+ i 1))
-	   (j dst-beg (+ j 1)))
-	  ((>= i src-past))
-	(string-set! dst-str j (string-ref src-str i)))
-    (do ((i (- src-past 1)                    (- i 1))
-	 (j (+ -1 dst-beg (- src-past src-beg)) (- j 1)))
-	((< i src-beg))
-      (string-set! dst-str j (string-ref src-str i)))))
+  (if (>= (- (string-length dst-str) dst-beg)
+	  (- src-past src-beg))
+      (if (> src-beg dst-beg)
+	  (do ((i src-beg (+ i 1))
+	       (j dst-beg (+ j 1)))
+	      ((>= i src-past))
+	    (string-set! dst-str j (string-ref src-str i)))
+	(do ((i (- src-past 1)                    (- i 1))
+	     (j (+ -1 dst-beg (- src-past src-beg)) (- j 1)))
+	    ((< i src-beg))
+	  (string-set! dst-str j (string-ref src-str i))))
+    (assertion-violation '%string-copy!
+      "not enough room in destination string")))
+
+
+;;;; filtering
+
+(define (%string-delete criterion str beg past)
+  (if (procedure? criterion)
+      (let* ((slen (- past beg))
+	     (temp (make-string slen))
+	     (ans-len (%string-fold (lambda (c i)
+				      (if (criterion c) i
+					(begin (string-set! temp i c)
+					       (+ i 1))))
+				    0 str beg past)))
+	(if (= ans-len slen) temp (substring temp 0 ans-len)))
+
+    (let* ((cset (cond ((char-set? criterion) criterion)
+		       ((char? criterion) (char-set criterion))
+		       (else
+			(assertion-violation '%string-delete
+			  "expected predicate, char or char-set as criterion"
+			  criterion))))
+	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+						i
+					      (+ i 1)))
+			      0 str beg past))
+	   (ans (make-string len)))
+      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+				     i
+				   (begin (string-set! ans i c)
+					  (+ i 1))))
+		   0 str beg past)
+      ans)))
+
+(define (%string-filter criterion str beg past)
+  (if (procedure? criterion)
+      (let* ((slen (- past beg))
+	     (temp (make-string slen))
+	     (ans-len (%string-fold (lambda (c i)
+				     (if (criterion c)
+					 (begin (string-set! temp i c)
+						(+ i 1))
+				       i))
+				   0 str beg past)))
+	(if (= ans-len slen) temp (substring temp 0 ans-len)))
+
+    (let* ((cset (cond ((char-set? criterion) criterion)
+		       ((char? criterion) (char-set criterion))
+		       (else
+			(assertion-violation '%string-filter
+			  "expected predicate, char or char-set as criterion"
+			  criterion))))
+	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+					       (+ i 1)
+					     i))
+			     0 str beg past))
+	   (ans (make-string len)))
+      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+				     (begin (string-set! ans i c)
+					    (+ i 1))
+				   i))
+		   0 str beg past)
+      ans)))
 
 
 ;;;; searching

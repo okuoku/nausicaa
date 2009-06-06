@@ -1286,6 +1286,354 @@
 	  (%string-take-right 5 str beg end)))
     => #t)
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcd") (beg 0) (end (string-length str)))
+	(%string-drop 2 str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-drop 0 str beg end))
+    => "")
+
+  (check
+      (guard (exc ((assertion-violation? exc) #t))
+	(let* ((str "abcd") (beg 0) (end (string-length str)))
+	  (%string-drop 5 str beg end)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcd") (beg 0) (end (string-length str)))
+	(%string-drop-right 2 str beg end))
+    => "ab")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-drop-right 0 str beg end))
+    => "")
+
+  (check
+      (guard (exc ((assertion-violation? exc) #t))
+	(let* ((str "abcd") (beg 0) (end (string-length str)))
+	  (%string-drop-right 5 str beg end)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aaabcd") (beg 0) (end (string-length str)))
+	(%string-trim #\a str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "bcd") (beg 0) (end (string-length str)))
+	(%string-trim #\a str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim #\a str beg end))
+    => "")
+
+  (check
+      (let* ((str "aaabcd") (beg 0) (end (string-length str)))
+	(%string-trim (char-set #\a #\b) str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "bcd") (beg 0) (end (string-length str)))
+	(%string-trim (char-set #\a #\b) str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim (char-set #\a #\b) str beg end))
+    => "")
+
+  (check
+      (let* ((str "AAAbcd") (beg 0) (end (string-length str)))
+	(%string-trim char-upper-case? str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "bcd") (beg 0) (end (string-length str)))
+	(%string-trim char-upper-case? str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim char-upper-case? str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "bcdaaa") (beg 0) (end (string-length str)))
+	(%string-trim-right #\a str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "bcd") (beg 0) (end (string-length str)))
+	(%string-trim-right #\a str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim-right #\a str beg end))
+    => "")
+
+  (check
+      (let* ((str "cdbaaa") (beg 0) (end (string-length str)))
+	(%string-trim-right (char-set #\a #\b) str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "cdb") (beg 0) (end (string-length str)))
+	(%string-trim-right (char-set #\a #\b) str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim-right (char-set #\a #\b) str beg end))
+    => "")
+
+  (check
+      (let* ((str "bcdAAA") (beg 0) (end (string-length str)))
+	(%string-trim-right char-upper-case? str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "bcd") (beg 0) (end (string-length str)))
+	(%string-trim-right char-upper-case? str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim-right char-upper-case? str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aaabcdaaa") (beg 0) (end (string-length str)))
+	(%string-trim-both #\a str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "bcd") (beg 0) (end (string-length str)))
+	(%string-trim-both #\a str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim-both #\a str beg end))
+    => "")
+
+  (check
+      (let* ((str "aaabcdaa") (beg 0) (end (string-length str)))
+	(%string-trim-both (char-set #\a #\b) str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "bcdb") (beg 0) (end (string-length str)))
+	(%string-trim-both (char-set #\a #\b) str beg end))
+    => "cd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim-both (char-set #\a #\b) str beg end))
+    => "")
+
+  (check
+      (let* ((str "AAAbcdAAA") (beg 0) (end (string-length str)))
+	(%string-trim-both char-upper-case? str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "bcd") (beg 0) (end (string-length str)))
+	(%string-trim-both char-upper-case? str beg end))
+    => "bcd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-trim-both char-upper-case? str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad 3 #\0 str beg end))
+    => "abc")
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad 5 #\0 str beg end))
+    => "00abc")
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad 2 #\0 str beg end))
+    => "bc")
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad 0 #\0 str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad-right 3 #\0 str beg end))
+    => "abc")
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad-right 5 #\0 str beg end))
+    => "abc00")
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad-right 2 #\0 str beg end))
+    => "ab")
+
+  (check
+      (let* ((str "abc") (beg 0) (end (string-length str)))
+	(%string-pad-right 0 #\0 str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (str2 (string-copy "12")))
+	(%string-copy! str2 0 str1 beg1 (+ 2 beg1))
+	str2)
+    => "ab")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (str2 ""))
+	(%string-copy! str2 0 str1 beg1 beg1)
+	str2)
+    => "")
+
+  (check
+      (guard (exc ((assertion-violation? exc)
+		   #t))
+	(let* ((str1 "abcd") (beg1 0) (str2 (string-copy "12")))
+	  (%string-copy! str2 3 str1 beg1 (+ 2 beg1))
+	  str2))
+    => #t)
+
+  )
+
+
+(parameterise ((check-test-name 'filtering))
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete #\b str beg end))
+    => "acd")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete #\0 str beg end))
+    => "abcbd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-delete #\b str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete (char-set #\b #\B) str beg end))
+    => "acd")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete (char-set #\0 #\1) str beg end))
+    => "abcbd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-delete (char-set #\b #\B) str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aBcBd") (beg 0) (end (string-length str)))
+	(%string-delete char-upper-case? str beg end))
+    => "acd")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete char-upper-case? str beg end))
+    => "abcbd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-delete char-upper-case? str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter #\b str beg end))
+    => "bb")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter #\0 str beg end))
+    => "")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-filter #\b str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter (char-set #\b #\B) str beg end))
+    => "bb")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter (char-set #\0 #\1) str beg end))
+    => "")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-filter (char-set #\b #\B) str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aBcBd") (beg 0) (end (string-length str)))
+	(%string-filter char-upper-case? str beg end))
+    => "BB")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter char-upper-case? str beg end))
+    => "")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-filter char-upper-case? str beg end))
+    => "")
+
   )
 
 
