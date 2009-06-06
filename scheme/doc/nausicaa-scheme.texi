@@ -23082,7 +23082,7 @@ interval @code{[start,end)} in these procedures that they do in all the
 other @ansrfi{13} procedures.
 
 The skip functions are similar, but use the complement of the criteria:
-they search for the first char that does @strong{nor} satisfy the test.
+they search for the first char that does @strong{not} satisfy the test.
 E.g., to skip over initial whitespace, say:
 
 @example

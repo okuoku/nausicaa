@@ -143,6 +143,16 @@
 
     ;;; filtering
     %string-delete %string-filter
+
+    ;;; searching
+    %string-index %string-index-right
+    %string-skip %string-skip-right
+    %string-count
+    %string-contains %string-contains-ci
+    %kmp-search %kmp-make-restart-vector %kmp-step %kmp-string-partial-search
+
+    ;;; filling
+    %string-fill*!
     )
   (import (rnrs)
     (rnrs mutable-strings)
@@ -721,7 +731,27 @@
 		(if (criterion (string-ref str i)) i
 		  (loop (+ i 1))))))
 	(else (assertion-violation '%string-index
-		"expected char-set, char or predicate as parameter"
+		"expected char-set, char or predicate as criterion"
+		criterion))))
+
+(define (%string-index-right criterion str beg past)
+  (cond ((char? criterion)
+	 (let loop ((i (- past 1)))
+	   (and (>= i beg)
+		(if (char=? criterion (string-ref str i)) i
+		  (loop (- i 1))))))
+	((char-set? criterion)
+	 (let loop ((i (- past 1)))
+	   (and (>= i beg)
+		(if (char-set-contains? criterion (string-ref str i)) i
+		  (loop (- i 1))))))
+	((procedure? criterion)
+	 (let loop ((i (- past 1)))
+	   (and (>= i beg)
+		(if (criterion (string-ref str i)) i
+		  (loop (- i 1))))))
+	(else (assertion-violation '%string-index-right
+		"expected char-set, char or predicate as criterion"
 		criterion))))
 
 (define (%string-skip criterion str beg past)
@@ -743,7 +773,7 @@
 		(if (criterion (string-ref str i)) (loop (+ i 1))
 		  i))))
 	(else (assertion-violation '%string-skip
-		"expected char-set, char or predicate as parameter"
+		"expected char-set, char or predicate as criterion"
 		criterion))))
 
 (define (%string-skip-right criterion str beg past)
@@ -765,8 +795,124 @@
 		(if (criterion (string-ref str i)) (loop (- i 1))
 		  i))))
 	(else (assertion-violation '%string-skip-right
-		"expected char-set, char or predicate as parameter"
+		"expected char-set, char or predicate as criterion"
 		criterion))))
+
+(define (%string-count criterion str beg past)
+  (cond ((char? criterion)
+	 (do ((i beg (+ i 1))
+	      (count 0 (if (char=? criterion (string-ref str i))
+			   (+ count 1)
+			 count)))
+	     ((>= i past) count)))
+	((char-set? criterion)
+	 (do ((i beg (+ i 1))
+	      (count 0 (if (char-set-contains? criterion (string-ref str i))
+			   (+ count 1)
+			 count)))
+	     ((>= i past) count)))
+	((procedure? criterion)
+	 (do ((i beg (+ i 1))
+	      (count 0 (if (criterion (string-ref str i)) (+ count 1) count)))
+	     ((>= i past) count)))
+	(else (assertion-violation '%string-count
+		"expected char-set, char or predicate as criterion"
+		criterion))))
+
+(define (%string-contains text text-beg text-past pattern pattern-beg pattern-past)
+  (%kmp-search char=? text text-beg text-past pattern pattern-beg pattern-past))
+
+(define (%string-contains-ci text text-beg text-past pattern pattern-beg pattern-past)
+  (%kmp-search char-ci=? text text-beg text-past pattern pattern-beg pattern-past))
+
+;; Knuth-Morris-Pratt string searching. See:
+;;
+;;  "Fast pattern matching in strings"
+;;  SIAM J. Computing 6(2):323-350 1977
+;;  D. E. Knuth, J. H. Morris and V. R. Pratt
+;;
+;; also described in:
+;;
+;;  "Pattern matching in strings"
+;;  Alfred V. Aho
+;;  Formal Language Theory - Perspectives and Open Problems
+;;  Ronald V. Brook (editor)
+
+(define (%kmp-search char=? text text-beg text-past pattern pattern-beg pattern-past)
+  (let ((plen (- pattern-past pattern-beg))
+	(restart-vector (%kmp-make-restart-vector char=? pattern pattern-beg pattern-past)))
+    (let loop ((ti text-beg) (pi 0)
+	       (tj (- text-past text-beg))
+	       (pj plen))
+      (if (= pi plen)
+	  (- ti plen)
+	(and (<= pj tj)
+	     (if (char=? (string-ref text ti)
+			 (string-ref pattern (+ pattern-beg pi)))
+		 (loop (+ 1 ti) (+ 1 pi) (- tj 1) (- pj 1))
+	       (let ((pi (vector-ref restart-vector pi)))
+		 (if (= pi -1)
+		     (loop (+ ti 1) 0  (- tj 1) plen)
+		   (loop ti pi tj (- plen pi))))))))))
+
+(define (%kmp-make-restart-vector char=? pattern pattern-beg pattern-past)
+  (let* ((restart-vector-len (- pattern-past pattern-beg))
+	 (restart-vector (make-vector restart-vector-len -1)))
+    (when (> restart-vector-len 0)
+      (let ((restart-vector-len-1 (- restart-vector-len 1))
+	    (c0 (string-ref pattern pattern-beg)))
+	(let loop1 ((i 0) (j -1) (k pattern-beg))
+	  (when (< i restart-vector-len-1)
+	    (let loop2 ((j j))
+	      (cond ((= j -1)
+		     (let ((i1 (+ 1 i)))
+		       (when (not (char=? (string-ref pattern (+ k 1)) c0))
+			 (vector-set! restart-vector i1 0))
+		       (loop1 i1 0 (+ k 1))))
+		    ((char=? (string-ref pattern k) (string-ref pattern (+ j pattern-beg)))
+		     (let* ((i1 (+ 1 i))
+			    (j1 (+ 1 j)))
+		       (vector-set! restart-vector i1 j1)
+		       (loop1 i1 j1 (+ k 1))))
+		    (else (loop2 (vector-ref restart-vector j)))))))))
+    restart-vector))
+
+(define (%kmp-step char=? restart-vector c i pattern pattern-beg)
+  (let loop ((i i))
+    (if (char=? c (string-ref pattern (+ i pattern-beg)))
+	(+ i 1)
+      (let ((i (vector-ref restart-vector i)))
+	(if (= i -1) 0
+	  (loop i))))))
+
+(define (%kmp-string-partial-search char=? restart-vector i text text-beg text-past pattern pattern-beg)
+  (let ((restart-vector-len (vector-length restart-vector)))
+    (let loop ((si text-beg)
+	       (vi i))
+      (cond ((= vi restart-vector-len) (- si))
+	    ((= si text-past) vi)
+	    (else
+	     (let ((c (string-ref text si)))
+	       (loop (+ si 1)
+		     (%kmp-step char=? restart-vector c i pattern pattern-beg)
+		     ;;The following named-let  is an inlined version of
+		     ;;"%kmp-step".
+;;; 		     (let loop2 ((vi vi))
+;;; 		       (if (char=? c (string-ref pattern (+ vi pattern-beg)))
+;;; 			   (+ vi 1)
+;;; 			 (let ((vi (vector-ref restart-vector vi)))
+;;; 			   (if (= vi -1) 0
+;;; 			     (loop2 vi)))))
+		     )))))))
+
+
+;;;; filling
+
+(define (%string-fill*! fill-char str beg past)
+  (do ((i (- past 1) (- i 1)))
+      ((< i beg))
+    (string-set! str i fill-char)))
+
 
 
 ;;;; done
