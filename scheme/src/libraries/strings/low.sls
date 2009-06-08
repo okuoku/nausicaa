@@ -109,8 +109,6 @@
     string-null?
     %string-every %string-any
 
-    ;; constructors
-
     ;; mapping
     %string-map %string-map!
     %string-for-each* %string-for-each-index
@@ -165,14 +163,14 @@
     string-concatenate %string-concatenate-reverse
 
     ;; replace and tokenize
-    %string-replace %string-tokenize
+    %string-replace
 
     ;; extended substring
     %xsubstring %string-xcopy!
 
-    ;; join
-    %string-join
-    )
+    ;; tokenising and joining
+    %string-tokenize %string-join
+    (rename (%string-tokenize %string-tokenise)))
   (import (rnrs)
     (rnrs mutable-strings)
     (only (rnrs r5rs) modulo quotient)
@@ -184,22 +182,22 @@
 (define (string-null? str)
   (zero? (string-length str)))
 
-(define (%string-every criterion str beg past)
-  (and (< beg past)
+(define (%string-every criterion str start past)
+  (and (< start past)
        (cond ((char? criterion)
-	      (let loop ((i beg))
+	      (let loop ((i start))
 		(or (<= past i)
 		    (and (char=? criterion (string-ref str i))
 			 (loop (+ 1 i))))))
 
 	     ((char-set? criterion)
-	      (let loop ((i beg))
+	      (let loop ((i start))
 		(or (<= past i)
 		    (and (char-set-contains? criterion (string-ref str i))
 			 (loop (+ 1 i))))))
 
 	     ((procedure? criterion) ; Slightly funky loop so that
-	      (let loop ((i beg))    ; final (PRED S[PAST-1]) call
+	      (let loop ((i start))    ; final (PRED S[PAST-1]) call
 		(let ((c (string-ref str i)) ; is a tail call.
 		      (i1 (+ i 1)))
 		  (if (= i1 past)
@@ -211,22 +209,22 @@
 		"expected char-set, char, or predicate as second parameter"
 		criterion)))))
 
-(define (%string-any criterion str beg past)
-  (and (< beg past)
+(define (%string-any criterion str start past)
+  (and (< start past)
        (cond ((char? criterion)
-	      (let loop ((i beg))
+	      (let loop ((i start))
 		(and (< i past)
 		     (or (char=? criterion (string-ref str i))
 			 (loop (+ i 1))))))
 
 	     ((char-set? criterion)
-	      (let loop ((i beg))
+	      (let loop ((i start))
 		(and (< i past)
 		     (or (char-set-contains? criterion (string-ref str i))
 			 (loop (+ i 1))))))
 
 	     ((procedure? criterion) ; Slightly funky loop so that
-	      (let loop ((i beg))    ; final (PRED S[PAST-1]) call
+	      (let loop ((i start))    ; final (PRED S[PAST-1]) call
 		(let ((c (string-ref str i)) ; is a tail call.
 		      (i1 (+ i 1)))
 		  (if (= i1 past)
@@ -241,28 +239,28 @@
 
 ;;;; mapping
 
-(define (%string-map proc str beg past)
-  (do ((i beg (+ 1 i))
+(define (%string-map proc str start past)
+  (do ((i start (+ 1 i))
        (j 0 (+ 1 j))
-       (result (make-string (- past beg))))
+       (result (make-string (- past start))))
       ((>= i past)
        result)
     (string-set! result j (proc (string-ref str i)))))
 
-(define (%string-map! proc str beg past)
-  (do ((i beg (+ 1 i)))
+(define (%string-map! proc str start past)
+  (do ((i start (+ 1 i)))
       ((>= i past)
        str)
     (string-set! str i (proc (string-ref str i)))))
 
-(define (%string-for-each* proc str beg past)
-  (let loop ((i beg))
+(define (%string-for-each* proc str start past)
+  (let loop ((i start))
     (when (< i past)
       (proc (string-ref str i))
       (loop (+ i 1)))))
 
-(define (%string-for-each-index proc str beg past)
-  (let loop ((i beg))
+(define (%string-for-each-index proc str start past)
+  (let loop ((i start))
     (when (< i past)
       (proc i)
       (loop (+ i 1)))))
@@ -270,17 +268,17 @@
 
 ;;;; folding
 
-(define (%string-fold kons knil str beg past)
+(define (%string-fold kons knil str start past)
   (let loop ((v knil)
-	     (i beg))
+	     (i start))
     (if (< i past)
 	(loop (kons (string-ref str i) v) (+ i 1))
       v)))
 
-(define (%string-fold-right kons knil str beg past)
+(define (%string-fold-right kons knil str start past)
   (let loop ((v knil)
 	     (i (- past 1)))
-    (if (>= i beg)
+    (if (>= i start)
 	(loop (kons (string-ref str i) v) (- i 1))
       v)))
 
@@ -293,7 +291,7 @@
    ((p f g seed base make-final)
     ;;The strategy is  to allocate a series of chunks  into which we stash
     ;;the chars as  we generate them. Chunk size goes up  in powers of two
-    ;;starting with 40 and levelling out at 4k, i.e.
+    ;;beging with 40 and levelling out at 4k, i.e.
     ;;
     ;;	40 40 80 160 320 640 1280 2560 4096 4096 4096 4096 4096...
     ;;
@@ -401,180 +399,180 @@
 
 ;;;; prefix and suffix
 
-(define (%true-string-prefix-length char-cmp? str1 beg1 past1 str2 beg2 past2)
+(define (%true-string-prefix-length char-cmp? str1 start1 past1 str2 start2 past2)
   ;;Find the length  of the common prefix.  It is  not required that the
   ;;two substrings passed be of equal length.
-  (let* ((delta (min (- past1 beg1) (- past2 beg2)))
-	 (past1 (+ beg1 delta)))
-    (if (and (eq? str1 str2) (= beg1 beg2)) ; EQ fast path
+  (let* ((delta (min (- past1 start1) (- past2 start2)))
+	 (past1 (+ start1 delta)))
+    (if (and (eq? str1 str2) (= start1 start2)) ; EQ fast path
 	delta
-      (let lp ((i beg1) (j beg2)) ; Regular path
+      (let lp ((i start1) (j start2)) ; Regular path
 	(if (or (>= i past1)
 		(not (char-cmp? (string-ref str1 i)
 				(string-ref str2 j))))
-	    (- i beg1)
+	    (- i start1)
 	  (lp (+ i 1) (+ j 1)))))))
 
-(define (%string-prefix-length str1 beg1 past1 str2 beg2 past2)
-  (%true-string-prefix-length char=? str1 beg1 past1 str2 beg2 past2))
+(define (%string-prefix-length str1 start1 past1 str2 start2 past2)
+  (%true-string-prefix-length char=? str1 start1 past1 str2 start2 past2))
 
-(define (%string-prefix-length-ci str1 beg1 past1 str2 beg2 past2)
-  (%true-string-prefix-length char-ci=? str1 beg1 past1 str2 beg2 past2))
+(define (%string-prefix-length-ci str1 start1 past1 str2 start2 past2)
+  (%true-string-prefix-length char-ci=? str1 start1 past1 str2 start2 past2))
 
-(define (%string-prefix? str1 beg1 past1 str2 beg2 past2)
-  (let ((len1 (- past1 beg1)))
-    (and (<= len1 (- past2 beg2)) ; Quick check
-	 (= len1 (%string-prefix-length str1 beg1 past1
-					str2 beg2 past2)))))
+(define (%string-prefix? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-prefix-length str1 start1 past1
+					str2 start2 past2)))))
 
-(define (%string-prefix-ci? str1 beg1 past1 str2 beg2 past2)
-  (let ((len1 (- past1 beg1)))
-    (and (<= len1 (- past2 beg2)) ; Quick check
-	 (= len1 (%string-prefix-length-ci str1 beg1 past1
-					   str2 beg2 past2)))))
+(define (%string-prefix-ci? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-prefix-length-ci str1 start1 past1
+					   str2 start2 past2)))))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string-suffix-length char-cmp? str1 beg1 past1 str2 beg2 past2)
+(define (%true-string-suffix-length char-cmp? str1 start1 past1 str2 start2 past2)
   ;;Find the length  of the common suffix.  It is  not required that the
   ;;two substrings passed be of equal length.
-  (let* ((delta (min (- past1 beg1) (- past2 beg2)))
-	 (beg1 (- past1 delta)))
+  (let* ((delta (min (- past1 start1) (- past2 start2)))
+	 (start1 (- past1 delta)))
     (if (and (eq? str1 str2) (= past1 past2)) ; EQ fast path
 	delta
       (let lp ((i (- past1 1)) (j (- past2 1))) ; Regular path
-	(if (or (< i beg1)
+	(if (or (< i start1)
 		(not (char-cmp? (string-ref str1 i)
 				(string-ref str2 j))))
 	    (- (- past1 i) 1)
 	  (lp (- i 1) (- j 1)))))))
 
-(define (%string-suffix-length str1 beg1 past1 str2 beg2 past2)
-  (%true-string-suffix-length char=? str1 beg1 past1 str2 beg2 past2))
+(define (%string-suffix-length str1 start1 past1 str2 start2 past2)
+  (%true-string-suffix-length char=? str1 start1 past1 str2 start2 past2))
 
-(define (%string-suffix-length-ci str1 beg1 past1 str2 beg2 past2)
-  (%true-string-suffix-length char-ci=? str1 beg1 past1 str2 beg2 past2))
+(define (%string-suffix-length-ci str1 start1 past1 str2 start2 past2)
+  (%true-string-suffix-length char-ci=? str1 start1 past1 str2 start2 past2))
 
-(define (%string-suffix? str1 beg1 past1 str2 beg2 past2)
-  (let ((len1 (- past1 beg1)))
-    (and (<= len1 (- past2 beg2)) ; Quick check
-	 (= len1 (%string-suffix-length str1 beg1 past1
-					str2 beg2 past2)))))
+(define (%string-suffix? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-suffix-length str1 start1 past1
+					str2 start2 past2)))))
 
-(define (%string-suffix-ci? str1 beg1 past1 str2 beg2 past2)
-  (let ((len1 (- past1 beg1)))
-    (and (<= len1 (- past2 beg2)) ; Quick check
-	 (= len1 (%string-suffix-length-ci str1 beg1 past1
-					   str2 beg2 past2)))))
+(define (%string-suffix-ci? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-suffix-length-ci str1 start1 past1
+					   str2 start2 past2)))))
 
 
 ;;;; comparison
 
 (define (%true-string-compare string-prefix-length-proc char-less-proc
-			      str1 beg1 past1 str2 beg2 past2 proc< proc= proc>)
-  (let ((size1 (- past1 beg1))
-	(size2 (- past2 beg2)))
-    (let ((match (string-prefix-length-proc str1 beg1 past1 str2 beg2 past2)))
+			      str1 start1 past1 str2 start2 past2 proc< proc= proc>)
+  (let ((size1 (- past1 start1))
+	(size2 (- past2 start2)))
+    (let ((match (string-prefix-length-proc str1 start1 past1 str2 start2 past2)))
       (if (= match size1)
 	  ((if (= match size2) proc= proc<) past1)
 	((if (= match size2)
 	     proc>
-	   (if (char-less-proc (string-ref str1 (+ beg1 match))
-			       (string-ref str2 (+ beg2 match)))
+	   (if (char-less-proc (string-ref str1 (+ start1 match))
+			       (string-ref str2 (+ start2 match)))
 	       proc< proc>))
-	 (+ match beg1))))))
+	 (+ match start1))))))
 
-(define (%string-compare str1 beg1 past1 str2 beg2 past2 proc< proc= proc>)
+(define (%string-compare str1 start1 past1 str2 start2 past2 proc< proc= proc>)
   (%true-string-compare %string-prefix-length char<?
-			str1 beg1 past1 str2 beg2 past2 proc< proc= proc>))
+			str1 start1 past1 str2 start2 past2 proc< proc= proc>))
 
-(define (%string-compare-ci str1 beg1 past1 str2 beg2 past2 proc< proc= proc>)
+(define (%string-compare-ci str1 start1 past1 str2 start2 past2 proc< proc= proc>)
   (%true-string-compare %string-prefix-length-ci char-ci<?
-			str1 beg1 past1 str2 beg2 past2 proc< proc= proc>))
+			str1 start1 past1 str2 start2 past2 proc< proc= proc>))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string= string-compare-proc str1 beg1 past1 str2 beg2 past2)
-  (and (= (- past1 beg1) (- past2 beg2))       ; Quick filter
-       (or (and (eq? str1 str2) (= beg1 beg2)) ; Fast path
-	   (string-compare-proc str1 beg1 past1 str2 beg2 past2 ; Real test
+(define (%true-string= string-compare-proc str1 start1 past1 str2 start2 past2)
+  (and (= (- past1 start1) (- past2 start2))       ; Quick filter
+       (or (and (eq? str1 str2) (= start1 start2)) ; Fast path
+	   (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
 				(lambda (i) #f) values (lambda (i) #f)))))
 
-(define (%string= str1 beg1 past1 str2 beg2 past2)
-  (%true-string= %string-compare str1 beg1 past1 str2 beg2 past2))
+(define (%string= str1 start1 past1 str2 start2 past2)
+  (%true-string= %string-compare str1 start1 past1 str2 start2 past2))
 
-(define (%string-ci= str1 beg1 past1 str2 beg2 past2)
-  (%true-string= %string-compare-ci str1 beg1 past1 str2 beg2 past2))
+(define (%string-ci= str1 start1 past1 str2 start2 past2)
+  (%true-string= %string-compare-ci str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string<> string-compare-proc str1 beg1 past1 str2 beg2 past2)
-  (or (not (= (- past1 beg1) (- past2 beg2)))	     ; Fast path
-      (and (not (and (eq? str1 str2) (= beg1 beg2))) ; Quick filter
-	   (string-compare-proc str1 beg1 past1 str2 beg2 past2	; Real test
+(define (%true-string<> string-compare-proc str1 start1 past1 str2 start2 past2)
+  (or (not (= (- past1 start1) (- past2 start2)))	     ; Fast path
+      (and (not (and (eq? str1 str2) (= start1 start2))) ; Quick filter
+	   (string-compare-proc str1 start1 past1 str2 start2 past2	; Real test
 				values (lambda (i) #f) values))))
 
-(define (%string<> str1 beg1 past1 str2 beg2 past2)
-  (%true-string<> %string-compare str1 beg1 past1 str2 beg2 past2))
+(define (%string<> str1 start1 past1 str2 start2 past2)
+  (%true-string<> %string-compare str1 start1 past1 str2 start2 past2))
 
-(define (%string-ci<> str1 beg1 past1 str2 beg2 past2)
-  (%true-string<> %string-compare-ci str1 beg1 past1 str2 beg2 past2))
+(define (%string-ci<> str1 start1 past1 str2 start2 past2)
+  (%true-string<> %string-compare-ci str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string< string-compare-proc str1 beg1 past1 str2 beg2 past2)
-  (if (and (eq? str1 str2) (= beg1 beg2)) ; Fast path
+(define (%true-string< string-compare-proc str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (< past1 past2)
-    (string-compare-proc str1 beg1 past1 str2 beg2 past2 ; Real test
+    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
 			 values (lambda (i) #f) (lambda (i) #f))))
 
-(define (%string< str1 beg1 past1 str2 beg2 past2)
-  (%true-string< %string-compare str1 beg1 past1 str2 beg2 past2))
+(define (%string< str1 start1 past1 str2 start2 past2)
+  (%true-string< %string-compare str1 start1 past1 str2 start2 past2))
 
-(define (%string-ci< str1 beg1 past1 str2 beg2 past2)
-  (%true-string< %string-compare-ci str1 beg1 past1 str2 beg2 past2))
+(define (%string-ci< str1 start1 past1 str2 start2 past2)
+  (%true-string< %string-compare-ci str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string<= string-compare-proc str1 beg1 past1 str2 beg2 past2)
-  (if (and (eq? str1 str2) (= beg1 beg2)) ; Fast path
+(define (%true-string<= string-compare-proc str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (<= past1 past2)
-    (string-compare-proc str1 beg1 past1 str2 beg2 past2 ; Real test
+    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
 			 values values (lambda (i) #f))))
 
-(define (%string<= str1 beg1 past1 str2 beg2 past2)
-  (%true-string<= %string-compare str1 beg1 past1 str2 beg2 past2))
+(define (%string<= str1 start1 past1 str2 start2 past2)
+  (%true-string<= %string-compare str1 start1 past1 str2 start2 past2))
 
-(define (%string-ci<= str1 beg1 past1 str2 beg2 past2)
-  (%true-string<= %string-compare-ci str1 beg1 past1 str2 beg2 past2))
+(define (%string-ci<= str1 start1 past1 str2 start2 past2)
+  (%true-string<= %string-compare-ci str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string> string-compare-proc str1 beg1 past1 str2 beg2 past2)
-  (if (and (eq? str1 str2) (= beg1 beg2)) ; Fast path
+(define (%true-string> string-compare-proc str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (> past1 past2)
-    (string-compare-proc str1 beg1 past1 str2 beg2 past2 ; Real test
+    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
 			 (lambda (i) #f) (lambda (i) #f) values)))
 
-(define (%string> str1 beg1 past1 str2 beg2 past2)
-  (%true-string> %string-compare str1 beg1 past1 str2 beg2 past2))
+(define (%string> str1 start1 past1 str2 start2 past2)
+  (%true-string> %string-compare str1 start1 past1 str2 start2 past2))
 
-(define (%string-ci> str1 beg1 past1 str2 beg2 past2)
-  (%true-string> %string-compare-ci str1 beg1 past1 str2 beg2 past2))
+(define (%string-ci> str1 start1 past1 str2 start2 past2)
+  (%true-string> %string-compare-ci str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string>= string-compare-proc str1 beg1 past1 str2 beg2 past2)
-  (if (and (eq? str1 str2) (= beg1 beg2)) ; Fast path
+(define (%true-string>= string-compare-proc str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (>= past1 past2)
-    (string-compare-proc str1 beg1 past1 str2 beg2 past2 ; Real test
+    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
 			 (lambda (i) #f) values values)))
 
-(define (%string>= str1 beg1 past1 str2 beg2 past2)
-  (%true-string>= %string-compare str1 beg1 past1 str2 beg2 past2))
+(define (%string>= str1 start1 past1 str2 start2 past2)
+  (%true-string>= %string-compare str1 start1 past1 str2 start2 past2))
 
-(define (%string-ci>= str1 beg1 past1 str2 beg2 past2)
-  (%true-string>= %string-compare-ci str1 beg1 past1 str2 beg2 past2))
+(define (%string-ci>= str1 start1 past1 str2 start2 past2)
+  (%true-string>= %string-compare-ci str1 start1 past1 str2 start2 past2))
 
 
 ;;;; case hacking
@@ -584,8 +582,8 @@
   ;; upcase version.
   (char-upper-case? (char-upcase c)))
 
-(define (%string-titlecase! str beg past)
-  (let loop ((i beg))
+(define (%string-titlecase! str start past)
+  (let loop ((i start))
     (cond ((%string-index char-cased? str i past)
 	   => (lambda (i)
 		(string-set! str i (char-titlecase (string-ref str i)))
@@ -600,71 +598,71 @@
 
 ;;;; selecting
 
-(define (%string-take nchars str beg past)
-  (if (<= nchars (- past beg))
-      (substring str beg (+ beg nchars))
+(define (%string-take nchars str start past)
+  (if (<= nchars (- past start))
+      (substring str start (+ start nchars))
     (assertion-violation '%string-take
       "requested number of chars greater than length of substring" nchars)))
 
-(define (%string-take-right nchars str beg past)
-  (if (<= nchars (- past beg))
+(define (%string-take-right nchars str start past)
+  (if (<= nchars (- past start))
       (substring str (- past nchars) past)
     (assertion-violation '%string-take-right
       "requested number of chars greater than length of substring" nchars)))
 
-(define (%string-drop nchars str beg past)
-  (if (<= nchars (- past beg))
+(define (%string-drop nchars str start past)
+  (if (<= nchars (- past start))
       (substring str nchars past)
     (assertion-violation '%string-take
       "requested number of chars greater than length of substring" nchars)))
 
-(define (%string-drop-right nchars str beg past)
-  (if (<= nchars (- past beg))
-      (substring str beg (+ beg nchars))
+(define (%string-drop-right nchars str start past)
+  (if (<= nchars (- past start))
+      (substring str start (+ start nchars))
     (assertion-violation '%string-take
       "requested number of chars greater than length of substring" nchars)))
 
-(define (%string-trim criterion str beg past)
-  (cond ((%string-skip criterion str beg past)
+(define (%string-trim criterion str start past)
+  (cond ((%string-skip criterion str start past)
 	 => (lambda (i) (substring str i past)))
 	(else "")))
 
-(define (%string-trim-right criterion str beg past)
-  (cond ((%string-skip-right criterion str beg past)
-	 => (lambda (i) (substring str beg (+ 1 i))))
+(define (%string-trim-right criterion str start past)
+  (cond ((%string-skip-right criterion str start past)
+	 => (lambda (i) (substring str start (+ 1 i))))
 	(else "")))
 
-(define (%string-trim-both criterion str beg past)
-  (let ((str (%string-trim-right criterion str beg past)))
-    (%string-trim criterion str beg (string-length str))))
+(define (%string-trim-both criterion str start past)
+  (let ((str (%string-trim-right criterion str start past)))
+    (%string-trim criterion str start (string-length str))))
 
-(define (%string-pad requested-len fill-char str beg past)
-  (let ((len (- past beg)))
+(define (%string-pad requested-len fill-char str start past)
+  (let ((len (- past start)))
     (if (<= requested-len len)
 	(substring str (- past requested-len) past)
       (let ((result (make-string requested-len fill-char)))
-	(%string-copy! result (- requested-len len) str beg past)
+	(%string-copy! result (- requested-len len) str start past)
 	result))))
 
-(define (%string-pad-right requested-len fill-char str beg past)
-  (let ((len (- past beg)))
+(define (%string-pad-right requested-len fill-char str start past)
+  (let ((len (- past start)))
     (if (<= requested-len len)
-	(substring str beg (+ beg requested-len))
+	(substring str start (+ start requested-len))
       (let ((result (make-string requested-len fill-char)))
-	(%string-copy! result 0 str beg past)
+	(%string-copy! result 0 str start past)
 	result))))
 
-(define (%string-copy! dst-str dst-beg src-str src-beg src-past)
-  (if (>= (- (string-length dst-str) dst-beg)
-	  (- src-past src-beg))
-      (if (> src-beg dst-beg)
-	  (do ((i src-beg (+ i 1))
-	       (j dst-beg (+ j 1)))
+(define (%string-copy! dst-str dst-start src-str src-start src-past)
+  (if (>= (- (string-length dst-str) dst-start)
+	  (- src-past src-start))
+      (if (> src-start dst-start)
+	  (do ((i src-start (+ i 1))
+	       (j dst-start (+ j 1)))
 	      ((>= i src-past))
 	    (string-set! dst-str j (string-ref src-str i)))
 	(do ((i (- src-past 1)                    (- i 1))
-	     (j (+ -1 dst-beg (- src-past src-beg)) (- j 1)))
-	    ((< i src-beg))
+	     (j (+ -1 dst-start (- src-past src-start)) (- j 1)))
+	    ((< i src-start))
 	  (string-set! dst-str j (string-ref src-str i))))
     (assertion-violation '%string-copy!
       "not enough room in destination string")))
@@ -672,15 +670,15 @@
 
 ;;;; filtering
 
-(define (%string-delete criterion str beg past)
+(define (%string-delete criterion str start past)
   (if (procedure? criterion)
-      (let* ((slen (- past beg))
+      (let* ((slen (- past start))
 	     (temp (make-string slen))
 	     (ans-len (%string-fold (lambda (c i)
 				      (if (criterion c) i
 					(begin (string-set! temp i c)
 					       (+ i 1))))
-				    0 str beg past)))
+				    0 str start past)))
 	(if (= ans-len slen) temp (substring temp 0 ans-len)))
 
     (let* ((cset (cond ((char-set? criterion) criterion)
@@ -692,25 +690,25 @@
 	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
 						i
 					      (+ i 1)))
-			      0 str beg past))
+			      0 str start past))
 	   (ans (make-string len)))
       (%string-fold (lambda (c i) (if (char-set-contains? cset c)
 				     i
 				   (begin (string-set! ans i c)
 					  (+ i 1))))
-		   0 str beg past)
+		   0 str start past)
       ans)))
 
-(define (%string-filter criterion str beg past)
+(define (%string-filter criterion str start past)
   (if (procedure? criterion)
-      (let* ((slen (- past beg))
+      (let* ((slen (- past start))
 	     (temp (make-string slen))
 	     (ans-len (%string-fold (lambda (c i)
 				     (if (criterion c)
 					 (begin (string-set! temp i c)
 						(+ i 1))
 				       i))
-				   0 str beg past)))
+				   0 str start past)))
 	(if (= ans-len slen) temp (substring temp 0 ans-len)))
 
     (let* ((cset (cond ((char-set? criterion) criterion)
@@ -722,31 +720,31 @@
 	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
 					       (+ i 1)
 					     i))
-			     0 str beg past))
+			     0 str start past))
 	   (ans (make-string len)))
       (%string-fold (lambda (c i) (if (char-set-contains? cset c)
 				     (begin (string-set! ans i c)
 					    (+ i 1))
 				   i))
-		   0 str beg past)
+		   0 str start past)
       ans)))
 
 
 ;;;; searching
 
-(define (%string-index criterion str beg past)
+(define (%string-index criterion str start past)
   (cond ((char? criterion)
-	 (let loop ((i beg))
+	 (let loop ((i start))
 	   (and (< i past)
 		(if (char=? criterion (string-ref str i)) i
 		  (loop (+ i 1))))))
 	((char-set? criterion)
-	 (let loop ((i beg))
+	 (let loop ((i start))
 	   (and (< i past)
 		(if (char-set-contains? criterion (string-ref str i)) i
 		  (loop (+ i 1))))))
 	((procedure? criterion)
-	 (let loop ((i beg))
+	 (let loop ((i start))
 	   (and (< i past)
 		(if (criterion (string-ref str i)) i
 		  (loop (+ i 1))))))
@@ -754,41 +752,41 @@
 		"expected char-set, char or predicate as criterion"
 		criterion))))
 
-(define (%string-index-right criterion str beg past)
+(define (%string-index-right criterion str start past)
   (cond ((char? criterion)
 	 (let loop ((i (- past 1)))
-	   (and (>= i beg)
+	   (and (>= i start)
 		(if (char=? criterion (string-ref str i)) i
 		  (loop (- i 1))))))
 	((char-set? criterion)
 	 (let loop ((i (- past 1)))
-	   (and (>= i beg)
+	   (and (>= i start)
 		(if (char-set-contains? criterion (string-ref str i)) i
 		  (loop (- i 1))))))
 	((procedure? criterion)
 	 (let loop ((i (- past 1)))
-	   (and (>= i beg)
+	   (and (>= i start)
 		(if (criterion (string-ref str i)) i
 		  (loop (- i 1))))))
 	(else (assertion-violation '%string-index-right
 		"expected char-set, char or predicate as criterion"
 		criterion))))
 
-(define (%string-skip criterion str beg past)
+(define (%string-skip criterion str start past)
   (cond ((char? criterion)
-	 (let loop ((i beg))
+	 (let loop ((i start))
 	   (and (< i past)
 		(if (char=? criterion (string-ref str i))
 		    (loop (+ i 1))
 		  i))))
 	((char-set? criterion)
-	 (let loop ((i beg))
+	 (let loop ((i start))
 	   (and (< i past)
 		(if (char-set-contains? criterion (string-ref str i))
 		    (loop (+ i 1))
 		  i))))
 	((procedure? criterion)
-	 (let loop ((i beg))
+	 (let loop ((i start))
 	   (and (< i past)
 		(if (criterion (string-ref str i)) (loop (+ i 1))
 		  i))))
@@ -796,54 +794,54 @@
 		"expected char-set, char or predicate as criterion"
 		criterion))))
 
-(define (%string-skip-right criterion str beg past)
+(define (%string-skip-right criterion str start past)
   (cond ((char? criterion)
 	 (let loop ((i (- past 1)))
-	   (and (>= i beg)
+	   (and (>= i start)
 		(if (char=? criterion (string-ref str i))
 		    (loop (- i 1))
 		  i))))
 	((char-set? criterion)
 	 (let loop ((i (- past 1)))
-	   (and (>= i beg)
+	   (and (>= i start)
 		(if (char-set-contains? criterion (string-ref str i))
 		    (loop (- i 1))
 		  i))))
 	((procedure? criterion)
 	 (let loop ((i (- past 1)))
-	   (and (>= i beg)
+	   (and (>= i start)
 		(if (criterion (string-ref str i)) (loop (- i 1))
 		  i))))
 	(else (assertion-violation '%string-skip-right
 		"expected char-set, char or predicate as criterion"
 		criterion))))
 
-(define (%string-count criterion str beg past)
+(define (%string-count criterion str start past)
   (cond ((char? criterion)
-	 (do ((i beg (+ i 1))
+	 (do ((i start (+ i 1))
 	      (count 0 (if (char=? criterion (string-ref str i))
 			   (+ count 1)
 			 count)))
 	     ((>= i past) count)))
 	((char-set? criterion)
-	 (do ((i beg (+ i 1))
+	 (do ((i start (+ i 1))
 	      (count 0 (if (char-set-contains? criterion (string-ref str i))
 			   (+ count 1)
 			 count)))
 	     ((>= i past) count)))
 	((procedure? criterion)
-	 (do ((i beg (+ i 1))
+	 (do ((i start (+ i 1))
 	      (count 0 (if (criterion (string-ref str i)) (+ count 1) count)))
 	     ((>= i past) count)))
 	(else (assertion-violation '%string-count
 		"expected char-set, char or predicate as criterion"
 		criterion))))
 
-(define (%string-contains text text-beg text-past pattern pattern-beg pattern-past)
-  (%kmp-search char=? text text-beg text-past pattern pattern-beg pattern-past))
+(define (%string-contains text text-start text-past pattern pattern-start pattern-past)
+  (%kmp-search char=? text text-start text-past pattern pattern-start pattern-past))
 
-(define (%string-contains-ci text text-beg text-past pattern pattern-beg pattern-past)
-  (%kmp-search char-ci=? text text-beg text-past pattern pattern-beg pattern-past))
+(define (%string-contains-ci text text-start text-past pattern pattern-start pattern-past)
+  (%kmp-search char-ci=? text text-start text-past pattern pattern-start pattern-past))
 
 
 ;; Knuth-Morris-Pratt string searching. See:
@@ -948,9 +946,9 @@
 
 ;;;; filling
 
-(define (%string-fill*! fill-char str beg past)
+(define (%string-fill*! fill-char str start past)
   (do ((i (- past 1) (- i 1)))
-      ((< i beg))
+      ((< i start))
     (string-set! str i fill-char)))
 
 

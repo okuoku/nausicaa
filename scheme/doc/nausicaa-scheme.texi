@@ -22342,7 +22342,7 @@ horizontal tab and space.  Latin-1 adds the no--break space.
 
 This chapter describes the @library{strings} library, which extends the
 string operations available in the base library (@pxref{baselib
-strings}).
+strings} for details).
 
 @menu
 * strings intro::               Introduction.
@@ -22379,7 +22379,7 @@ The functions are split in a high level library, @library{strings}, and
 a low level one, @library{strings low}.  The main difference between the
 two layers is that the high level library makes heavy usage of macros to
 implement the @dfn{string views}, which allow accessing substrings of
-the strings used as arguments.
+the strings used as arguments using a friendly syntax.
 
 All the functions in the low level library are bound to identifiers
 starting with @code{%}; for example: @func{string-prefix?} is a high
@@ -22388,9 +22388,10 @@ homologous.
 
 @subsubheading A model for strings
 
-This library considers strings simply to be a sequence of ``code
-points'' or character encodings.  Operations such as comparison or
-reversal are always done code point by code point.
+This library relies on the string representation of the underlying
+Scheme implementation: strings are sequences of ``code points'' or
+character encodings.  Operations such as comparison or reversal are
+always done code point by code point.
 
 It's possible that a legal string might not be a sensible ``text''
 sequence; for example, consider a string comprised entirely of
@@ -22426,8 +22427,8 @@ make the change visible to other points in the program.  For example:
 @noindent
 when executed by Ypsilon and Larceny will print @code{"ab9d"}, while
 when executed by Ikarus and Mosh will print @code{"abcd"} (last verified
-Fri Jun 5, 2009).  To avoid this problem completely, we can change the
-program in this way:
+with revisions checked out on Fri Jun 5, 2009).  To avoid this problem
+completely, we can change the program in this way:
 
 @example
 (import (rnrs)
@@ -22485,7 +22486,7 @@ In the procedure specifications:
 An @var{s} argument is a string view, which is expanded by a macro in a
 triplet of values: the string, the index of the first char in the
 selected substring, the index of the character past the last in the
-selected position; @ref{strings views} for details.
+selected position.  @ref{strings views} for details.
 
 @item
 A @var{str} argument is a string.
@@ -22494,18 +22495,18 @@ A @var{str} argument is a string.
 A @var{char} argument is a character.
 
 @item
-@var{beg} and @var{past} arguments are half--open string indices
+The @var{start} and @var{past} arguments are half--open string indices
 specifying a substring within a string argument; when unspecified, they
 default to zero and the length of the string, respectively.  When
 specified, it must be the case that:
 
 @example
-0 <= beg <= past <= (string-length s)
+0 <= start <= past <= (string-length s)
 @end example
 
 @noindent
 for the corresponding argument @var{str}.  They typically restrict a
-procedure's action to the indicated substring; when @var{beg} equals
+procedure's action to the indicated substring; when @var{start} equals
 @var{past} the selected substring is the empty string.
 
 @item
@@ -22515,17 +22516,17 @@ returning a true/false value when applied to a character.
 @item
 A @var{char}/@var{char-set}/@var{pred} argument is a value used to
 select/search for a character in a string.  If it is a character, it is
-used in an equality test; if it is a character set, it is used as a
+used in an equality test; if it is a character set, it is used in a
 membership test; if it is a procedure, it is applied to the characters
 as a test predicate.
 
 @item
-An @var{i} argument is an exact non--negative integer specifying an
-index into a string.
+An @var{i} or @var{k} argument is an exact non--negative integer
+specifying an index into a string.
 
 @item
-@var{len} and @var{nchars} arguments are exact non--negative integers
-specifying a length of a string or some number of characters.
+The @var{len} and @var{nchars} arguments are exact non--negative
+integers specifying a length of a string or some number of characters.
 
 @item
 An @var{obj} argument can be any value.
@@ -22547,7 +22548,7 @@ spell-check doc dict1 dict2 ...
 @end example
 
 @noindent
-takes two required arguments (@var{doc} and @var{dict1}) and zero or
+takes two mandatory arguments (@var{doc} and @var{dict1}) and zero or
 more optional arguments (@var{dict2} ...).
 
 If a procedure is said to return ``unspecified'', this means that
@@ -22598,11 +22599,13 @@ Return @true{} if @var{obj} is the empty string, otherwise return
 @end defun
 
 
-@defun string-every @var{char/char-set/pred} @var{s} [@var{start} @var{end}]
-@defunx string-any @var{char/char-set/pred} @var{s} [@var{start} @var{end}]
+@defun %string-every @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@defunx %string-any @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@defunx string-every @var{char/char-set/pred} @var{S}
+@defunx string-any @var{char/char-set/pred} @var{S}
 Check to see if the given criteria is true on every/any character in
-@var{s}, proceeding from left (index @var{start}) to right (index
-@var{end}).
+@var{str}, proceeding from left (index @var{start}) to right (index
+@var{past}).
 
 If @var{char/char-set/pred} is a character, it is tested for equality
 with the elements of @var{s}.
@@ -22620,13 +22623,13 @@ produced by the application of the predicate.
 
 @item
 If @func{string-every} returns true, the returned true value is the one
-produced by the final application of the predicate to @code{s[end-1]}.
+produced by the final application of the predicate to @code{s[past-1]}.
 If @func{string-every} is applied to an empty sequence of characters, it
 simply returns @true{}.
 @end itemize
 
 If @func{string-every} or @func{string-any} apply the predicate to the
-final element of the selected sequence (i.e. @code{s[end-1]}), that
+final element of the selected sequence (i.e. @code{s[past-1]}), that
 final application is a tail call.
 
 The names of these procedures do not end with a question mark; this is
