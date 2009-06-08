@@ -520,182 +520,46 @@
        (%string-fill*! ?fill-char str beg past)))))
 
 
-;;; Misc
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; (string-null? s)
-;;; (string-reverse  s [start end])
-;;; (string-reverse! s [start end])
-;;; (reverse-list->string clist)
-;;; (string->list s [start end])
+;;;; reverse
 
-(define (string-reverse s . maybe-start+end)
-  (let-string-start+end (start end) string-reverse s maybe-start+end
-    (let* ((len (- end start))
-	   (ans (make-string len)))
-      (do ((i start (+ i 1))
-	   (j (- len 1) (- j 1)))
-	  ((< j 0))
-	(string-set! ans j (string-ref s i)))
-      ans)))
+(define-syntax string-reverse
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-reverse str beg past)))))
 
-(define (string-reverse! s . maybe-start+end)
-  (let-string-start+end (start end) string-reverse! s maybe-start+end
-    (do ((i (- end 1) (- i 1))
-	 (j start (+ j 1)))
-	((<= i j))
-      (let ((ci (string-ref s i)))
-	(string-set! s i (string-ref s j))
-	(string-set! s j ci)))))
+(define-syntax string-reverse!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-reverse! str beg past)))))
 
+
+;;;; strings and lists
 
-(define (reverse-list->string clist)
-  (let* ((len (length clist))
-	 (s (make-string len)))
-    (do ((i (- len 1) (- i 1))   (clist clist (cdr clist)))
-	((not (pair? clist)))
-      (string-set! s i (car clist)))
-    s))
+(define-syntax string->list*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string->list* str beg past)))))
 
+
+;;; concatenate
 
-;(define (string->list s . maybe-start+end)
-;  (apply string-fold-right cons '() s maybe-start+end))
+(define string-concatenate-reverse
+  (case-lambda
 
-(define (string->list s . maybe-start+end)
-  (let-string-start+end (start end) string->list s maybe-start+end
-    (do ((i (- end 1) (- i 1))
-	 (ans '() (cons (string-ref s i) ans)))
-	((< i start) ans))))
+   ((string-list)
+    (%string-concatentate-reverse string-list "" 0))
 
-;;; Defined by R5RS, so commented out here.
-;(define (list->string lis) (string-unfold null? car cdr lis))
+   ((string-list final)
+    (%string-concatentate-reverse string-list final (string-length final)))
 
+   ((string-list final past)
+    (%string-concatenate-reverse string-list final past))))
 
-;;; string-concatenate        string-list -> string
-;;; string-concatenate/shared string-list -> string
-;;; string-append/shared s ... -> string
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; STRING-APPEND/SHARED has license to return a string that shares storage
-;;; with any of its arguments. In particular, if there is only one non-empty
-;;; string amongst its parameters, it is permitted to return that string as
-;;; its result. STRING-APPEND, by contrast, always allocates new storage.
-;;;
-;;; STRING-CONCATENATE & STRING-CONCATENATE/SHARED are passed a list of
-;;; strings, which they concatenate into a result string. STRING-CONCATENATE
-;;; always allocates a fresh string; STRING-CONCATENATE/SHARED may (or may
-;;; not) return a result that shares storage with any of its arguments. In
-;;; particular, if it is applied to a singleton list, it is permitted to
-;;; return the car of that list as its value.
-
-(define (string-append/shared . strings) (string-concatenate/shared strings))
-
-(define (string-concatenate/shared strings)
-  (let lp ((strings strings) (nchars 0) (first #f))
-    (cond ((pair? strings)			; Scan the args, add up total
-	   (let* ((string  (car strings))	; length, remember 1st
-		  (tail (cdr strings))		; non-empty string.
-		  (slen (string-length string)))
-	     (if (zero? slen)
-		 (lp tail nchars first)
-		 (lp tail (+ nchars slen) (or first strings)))))
-
-	  ((zero? nchars) "")
-
-	  ;; Just one non-empty string! Return it.
-	  ((= nchars (string-length (car first))) (car first))
-
-	  (else (let ((ans (make-string nchars)))
-		  (let lp ((strings first) (i 0))
-		    (if (pair? strings)
-			(let* ((s (car strings))
-			       (slen (string-length s)))
-			  (%string-copy! ans i s 0 slen)
-			  (lp (cdr strings) (+ i slen)))))
-		  ans)))))
-
-
-; Alas, Scheme 48's APPLY blows up if you have many, many arguments.
-;(define (string-concatenate strings) (apply string-append strings))
-
-;;; Here it is written out. I avoid using REDUCE to add up string lengths
-;;; to avoid non-R5RS dependencies.
-(define (string-concatenate strings)
-  (let* ((total (do ((strings strings (cdr strings))
-		     (i 0 (+ i (string-length (car strings)))))
-		    ((not (pair? strings)) i)))
-	 (ans (make-string total)))
-    (let lp ((i 0) (strings strings))
-      (if (pair? strings)
-	  (let* ((s (car strings))
-		 (slen (string-length s)))
-	    (%string-copy! ans i s 0 slen)
-	    (lp (+ i slen) (cdr strings)))))
-    ans))
-
-
-;;; Defined by R5RS, so commented out here.
-;(define (string-append . strings) (string-concatenate strings))
-
-;;; string-concatenate-reverse        string-list [final-string end] -> string
-;;; string-concatenate-reverse/shared string-list [final-string end] -> string
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Return
-;;;   (string-concatenate
-;;;     (reverse
-;;;       (cons (substring final-string 0 end) string-list)))
-
-(define (string-concatenate-reverse string-list . maybe-final+end)
-  (let-optionals* maybe-final+end ((final "" (string? final))
-				   (end (string-length final)
-					(and (integer? end)
-					     (exact? end)
-					     (<= 0 end (string-length final)))))
-    (let ((len (let lp ((sum 0) (lis string-list))
-		 (if (pair? lis)
-		     (lp (+ sum (string-length (car lis))) (cdr lis))
-		     sum))))
-
-      (%finish-string-concatenate-reverse len string-list final end))))
-
-(define (string-concatenate-reverse/shared string-list . maybe-final+end)
-  (let-optionals* maybe-final+end ((final "" (string? final))
-				   (end (string-length final)
-					(and (integer? end)
-					     (exact? end)
-					     (<= 0 end (string-length final)))))
-    ;; Add up the lengths of all the strings in STRING-LIST; also get a
-    ;; pointer NZLIST into STRING-LIST showing where the first non-zero-length
-    ;; string starts.
-    (let lp ((len 0) (nzlist #f) (lis string-list))
-      (if (pair? lis)
-	  (let ((slen (string-length (car lis))))
-	    (lp (+ len slen)
-		(if (or nzlist (zero? slen)) nzlist lis)
-		(cdr lis)))
-
-	  (cond ((zero? len) (substring/shared final 0 end))
-
-		;; LEN > 0, so NZLIST is non-empty.
-
-		((and (zero? end) (= len (string-length (car nzlist))))
-		 (car nzlist))
-
-		(else (%finish-string-concatenate-reverse len nzlist final end)))))))
-
-(define (%finish-string-concatenate-reverse len string-list final end)
-  (let ((ans (make-string (+ end len))))
-    (%string-copy! ans len final 0 end)
-    (let lp ((i len) (lis string-list))
-      (if (pair? lis)
-	  (let* ((s   (car lis))
-		 (lis (cdr lis))
-		 (slen (string-length s))
-		 (i (- i slen)))
-	    (%string-copy! ans i s 0 slen)
-	    (lp i lis))))
-    ans))
-
-
-
+
+;;;; replace
 
 ;;; string-replace s1 s2 start1 end1 [start2 end2] -> string
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -869,19 +733,7 @@
 
 
 
-;;; (string-join string-list [delimiter grammar]) => string
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Paste strings together using the delimiter string.
-;;;
-;;; (join-strings '("foo" "bar" "baz") ":") => "foo:bar:baz"
-;;;
-;;; DELIMITER defaults to a single space " "
-;;; GRAMMAR is one of the symbols {prefix, infix, strict-infix, suffix}
-;;; and defaults to 'infix.
-;;;
-;;; I could rewrite this more efficiently -- precompute the length of the
-;;; answer string, then allocate & fill it in iteratively. Using
-;;; STRING-CONCATENATE is less efficient.
+;;;; joining
 
 (define string-join
   (case-lambda
@@ -923,7 +775,6 @@
 	     string-join))
 
 	  (else ""))))) ; Special-cased for infix grammar.
-
 
 
 ;;;; done

@@ -126,33 +126,43 @@
     %string-prefix? %string-suffix?
     %string-prefix-ci? %string-suffix-ci?
 
-    ;;; comparison
+    ;; comparison
     %string-compare %string-compare-ci
     %string= %string<> %string< %string> %string<= %string>=
     %string-ci= %string-ci<> %string-ci< %string-ci> %string-ci<= %string-ci>=
 
-    ;;; case hacking
+    ;; case hacking
     %string-titlecase!
 
-    ;;; selecting
+    ;; selecting
     %string-take %string-take-right
     %string-drop %string-drop-right
     %string-trim %string-trim-right %string-trim-both
     %string-pad %string-pad-right
     %string-copy!
 
-    ;;; filtering
+    ;; filtering
     %string-delete %string-filter
 
-    ;;; searching
+    ;; searching
     %string-index %string-index-right
     %string-skip %string-skip-right
     %string-count
     %string-contains %string-contains-ci
     %kmp-search %kmp-make-restart-vector %kmp-step %kmp-string-partial-search
 
-    ;;; filling
+    ;; filling
     %string-fill*!
+
+    ;; reverse
+    %string-reverse %string-reverse!
+
+    ;; strings and lists
+    reverse-list->string
+    %string->list*
+
+    ;; concatenate
+    string-concatenate %string-concatenate-reverse
     )
   (import (rnrs)
     (rnrs mutable-strings)
@@ -933,6 +943,76 @@
       ((< i beg))
     (string-set! str i fill-char)))
 
+
+
+;;;; reverse
+
+(define (%string-reverse str start past)
+  (let* ((len (- past start))
+	 (result (make-string len)))
+    (do ((i start (+ i 1))
+	 (j (- len 1) (- j 1)))
+	((< j 0))
+      (string-set! result j (string-ref str i)))
+    result))
+
+(define (%string-reverse! str start past)
+  (do ((i (- past 1) (- i 1))
+       (j start (+ j 1)))
+      ((<= i j))
+    (let ((ci (string-ref str i)))
+      (string-set! str i (string-ref str j))
+      (string-set! str j ci))))
+
+
+;;;; strings and lists
+
+(define (reverse-list->string clist)
+  (let* ((len (length clist))
+	 (s (make-string len)))
+    (do ((i (- len 1) (- i 1))   (clist clist (cdr clist)))
+	((not (pair? clist)))
+      (string-set! s i (car clist)))
+    s))
+
+(define (%string->list* str start past)
+  (do ((i (- past 1) (- i 1))
+       (result '() (cons (string-ref str i) result)))
+      ((< i start) result)))
+
+
+
+;;;; append and concatenate
+
+(define (string-concatenate strings)
+  (let* ((total (do ((strings strings (cdr strings))
+		     (i 0 (+ i (string-length (car strings)))))
+		    ((not (pair? strings)) i)))
+	 (result (make-string total)))
+    (let lp ((i 0) (strings strings))
+      (if (pair? strings)
+	  (let* ((s (car strings))
+		 (slen (string-length s)))
+	    (%string-copy! result i s 0 slen)
+	    (lp (+ i slen) (cdr strings)))))
+    result))
+
+(define (%string-concatenate-reverse string-list final past)
+  (let* ((len (let loop ((sum 0) (lis string-list))
+		(if (pair? lis)
+		    (loop (+ sum (string-length (car lis))) (cdr lis))
+		  sum)))
+	 (result (make-string (+ past len))))
+    (%string-copy! result len final 0 past)
+    (let loop ((i len) (lis string-list))
+      (if (pair? lis)
+	  (let* ((s   (car lis))
+		 (lis (cdr lis))
+		 (slen (string-length s))
+		 (i (- i slen)))
+	    (%string-copy! result i s 0 slen)
+	    (loop i lis))))
+    result))
 
 
 ;;;; done

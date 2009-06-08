@@ -2269,6 +2269,88 @@
   )
 
 
+(parameterise ((check-test-name 'reverse))
+
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string-reverse str beg end))
+    => "dcba")
+
+  (check
+      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
+	(%string-reverse str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string-reverse! str beg end)
+	str)
+    => "dcba")
+
+  (check
+      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
+	(%string-reverse! str beg end)
+	str)
+    => "")
+
+  )
+
+
+(parameterise ((check-test-name 'lists))
+
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string->list* str beg end))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
+	(%string->list* str beg end))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (reverse-list->string '(#\a #\b #\c #\d))
+    => "dcba")
+
+  (check
+      (reverse-list->string '())
+    => "")
+
+  )
+
+
+(parameterise ((check-test-name 'concatenate))
+
+  (check
+      (string-concatenate '("ciao" " " "hello" " " "salut"))
+    => "ciao hello salut")
+
+  (check
+      (string-concatenate '())
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" (string-length " hola"))
+    => "salut hello ciao hola")
+
+  (check
+      (%string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" 3)
+    => "salut hello ciao ho")
+
+  (check
+      (%string-concatenate-reverse '() "" 0)
+    => "")
+
+
+  )
+
+
 ;;;; done
 
 (check-report)
