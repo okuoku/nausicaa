@@ -2351,6 +2351,247 @@
   )
 
 
+(parameterise ((check-test-name 'replace))
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 beg1 end1 str2 beg2 end2))
+    => "1234")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 2 2 str2 beg2 end2))
+    => "ab1234cd")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 2 2 str2 beg2 end2))
+    => "abcd")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 1 3 str2 beg2 end2))
+    => "a1234d")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 0 3 str2 beg2 end2))
+    => "1234d")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 1 4 str2 beg2 end2))
+    => "a1234")
+
+
+  )
+
+
+(parameterise ((check-test-name 'tokenize))
+
+  (check
+      (let* ((str "ciao hello salut") (beg 0) (end (string-length str)))
+	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
+			  str beg end))
+    => '("ciao" "hello" "salut")
+)
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
+			  str beg end))
+    => '())
+
+  (check
+      (let* ((str "ciao hello salut") (beg 0) (end (string-length str)))
+	(%string-tokenize (char-set) str beg end))
+    => '())
+
+  )
+
+
+(parameterise ((check-test-name 'xsubstring))
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring 0 5 str beg end))
+    => "ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring 0 9 str beg end))
+    => "ciao ciao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring -5 5 str beg end))
+    => "ciao ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring 2 4 str beg end))
+    => "ao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring -3 7 str beg end))
+    => "ao ciao ci")
+
+  (check
+      (guard (exc ((assertion-violation? exc)
+		   #t))
+	(let* ((str "") (beg 0) (end (string-length str)))
+	  (%xsubstring 0 5 str beg end)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "01234")))
+	(%string-xcopy! 0 5 result 0 (string-length result) str beg end)
+	result)
+    => "ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "012345678")))
+	(%string-xcopy! 0 9 result 0 (string-length result) str beg end)
+	result)
+    => "ciao ciao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "0123456789")))
+	(%string-xcopy! -5 5 result 0 (string-length result) str beg end)
+	result)
+    => "ciao ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "01")))
+	(%string-xcopy! 2 4 result 0 (string-length result) str beg end)
+	result)
+    => "ao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "0123456789")))
+	(%string-xcopy! -3 7 result 0 (string-length result) str beg end)
+	result)
+    => "ao ciao ci")
+
+  (check
+      (guard (exc ((assertion-violation? exc)
+		   #t))
+	(let* ((str "") (beg 0) (end (string-length str))
+	     (result (string-copy "")))
+	  (%string-xcopy! 0 5 result 0 (string-length result) str beg end)))
+    => #t)
+
+  )
+
+
+(parameterise ((check-test-name 'join))
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'infix)
+    => "c,i,a,o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'strict-infix)
+    => "c,i,a,o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'suffix)
+    => "c,i,a,o,")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'prefix)
+    => ",c,i,a,o")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '() "," 'infix)
+    => "")
+
+  (check
+      (guard (exc ((assertion-violation? exc)
+		   #t))
+	(%string-join '() "," 'strict-infix))
+    => #t)
+
+  (check
+      (%string-join '() "," 'suffix)
+    => "")
+
+  (check
+      (%string-join '() "," 'prefix)
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '("c") "," 'infix)
+    => "c")
+
+  (check
+      (%string-join '("c") "," 'strict-infix)
+    => "c")
+
+  (check
+      (%string-join '("c") "," 'suffix)
+    => "c,")
+
+  (check
+      (%string-join '("c") "," 'prefix)
+    => ",c")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'infix)
+    => "ciao")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'strict-infix)
+    => "ciao")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'suffix)
+    => "ciao")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'prefix)
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'infix)
+    => "c,;;i,;;a,;;o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'strict-infix)
+    => "c,;;i,;;a,;;o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'suffix)
+    => "c,;;i,;;a,;;o,;;")
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'prefix)
+    => ",;;c,;;i,;;a,;;o")
+
+  )
+
+
 ;;;; done
 
 (check-report)

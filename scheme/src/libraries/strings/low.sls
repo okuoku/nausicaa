@@ -163,9 +163,19 @@
 
     ;; concatenate
     string-concatenate %string-concatenate-reverse
+
+    ;; replace and tokenize
+    %string-replace %string-tokenize
+
+    ;; extended substring
+    %xsubstring %string-xcopy!
+
+    ;; join
+    %string-join
     )
   (import (rnrs)
     (rnrs mutable-strings)
+    (only (rnrs r5rs) modulo quotient)
     (char-sets))
 
 
@@ -1013,6 +1023,139 @@
 	    (%string-copy! result i s 0 slen)
 	    (loop i lis))))
     result))
+
+
+;;;; replace and tokenize
+
+(define (%string-replace str1 start1 past1 str2 start2 past2)
+  (let* ((len1		(string-length str1))
+	 (len2		(- past2 start2))
+	 (result	(make-string (+ len2 (- len1 (- past1 start1))))))
+    (%string-copy! result 0 str1 0 start1)
+    (%string-copy! result start1 str2 start2 past2)
+    (%string-copy! result (+ start1 len2) str1 past1 len1)
+    result))
+
+(define (%string-tokenize token-set str start past)
+  (let loop ((i		past)
+	     (result	'()))
+    (cond ((and (< start i) (%string-index-right token-set str start i))
+	   => (lambda (tpast-1)
+		(let ((tpast (+ 1 tpast-1)))
+		  (cond ((%string-skip-right token-set str start tpast-1)
+			 => (lambda (tstart-1)
+			      (loop tstart-1
+				    (cons (substring str (+ 1 tstart-1) tpast)
+					  result))))
+			(else (cons (substring str start tpast) result))))))
+	  (else result))))
+
+
+;;;; extended substring
+
+(define (%xsubstring from to str start past)
+  (let ((str-len	(- past start))
+	(result-len	(- to from)))
+    (cond ((zero? result-len) "")
+	  ((zero? str-len)
+	   (assertion-violation '%xsubstring "cannot replicate empty (sub)string"))
+	  ((= 1 str-len)
+	   (make-string result-len (string-ref str start)))
+
+	  ;; Selected text falls entirely within one span.
+	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
+	   (substring str
+		      (+ start (modulo from str-len))
+		      (+ start (modulo to   str-len))))
+
+	  ;; Selected text requires multiple spans.
+	  (else
+	   (let ((result (make-string result-len)))
+	     (%multispan-repcopy! from to result 0 str start past)
+	     result)))))
+
+(define (%string-xcopy! from to
+			dst-str dst-start dst-past
+			src-str src-start src-past)
+  (let* ((tocopy	(- to from))
+	 (tend		(+ dst-start tocopy))
+	 (str-len	(- src-past src-start)))
+    (cond ((zero? tocopy))
+	  ((zero? str-len)
+	   (assertion-violation '%string-xcopy! "cannot replicate empty (sub)string"))
+
+	  ((= 1 str-len)
+	   (%string-fill*! dst-str (string-ref src-str src-start) dst-start dst-past))
+
+	  ;; Selected text falls entirely within one span.
+	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
+	   (%string-copy! dst-str dst-start src-str
+			  (+ src-start (modulo from str-len))
+			  (+ src-start (modulo to   str-len))))
+
+	  (else
+	   (%multispan-repcopy! from to dst-str dst-start src-str src-start src-past)))))
+
+(define (%multispan-repcopy! from to dst-str dst-start src-str src-start src-past)
+  ;;This  is the  core  copying loop  for  XSUBSTRING and  STRING-XCOPY!
+  ;;Internal -- not exported, no careful arg checking.
+  (let* ((str-len	(- src-past src-start))
+	 (i0		(+ src-start (modulo from str-len)))
+	 (total-chars	(- to from)))
+
+    ;; Copy the partial span @ the beginning
+    (%string-copy! dst-str dst-start src-str i0 src-past)
+
+    (let* ((ncopied (- src-past i0))	      ; We've copied this many.
+	   (nleft (- total-chars ncopied))    ; # chars left to copy.
+	   (nspans (quotient nleft str-len))) ; # whole spans to copy
+
+      ;; Copy the whole spans in the middle.
+      (do ((i (+ dst-start ncopied) (+ i str-len)) ; Current target index.
+	   (nspans nspans (- nspans 1)))	   ; # spans to copy
+	  ((zero? nspans)
+	   ;; Copy the partial-span @ the end & we're done.
+	   (%string-copy! dst-str i src-str src-start (+ src-start (- total-chars (- i dst-start)))))
+
+	(%string-copy! dst-str i src-str src-start src-past))))) ; Copy a whole span.
+
+
+;;;; join
+
+(define (%string-join strings delim grammar)
+  (define (join-with-delim ell final)
+    (let loop ((ell ell))
+      (if (pair? ell)
+	  (cons delim
+		(cons (car ell)
+		      (loop (cdr ell))))
+	final)))
+
+  (cond ((pair? strings)
+	 (string-concatenate
+	  (case grammar
+	    ((infix strict-infix)
+	     (cons (car strings)
+		   (join-with-delim (cdr strings) '())))
+	    ((prefix)
+	     (join-with-delim strings '()))
+	    ((suffix)
+	     (cons (car strings)
+		   (join-with-delim (cdr strings) (list delim))))
+	    (else
+	     (assertion-violation '%string-join
+	       "illegal join grammar" grammar)))))
+
+	((not (null? strings))
+	 (assertion-violation '%string-join
+	   "STRINGS parameter is not a list" strings))
+
+	;; here we know that STRINGS is the empty string
+	((eq? grammar 'strict-infix)
+	 (assertion-violation '%string-join
+	   "empty list cannot be joined with STRICT-INFIX grammar."))
+
+	(else ""))) ; Special-cased for infix grammar.
 
 
 ;;;; done

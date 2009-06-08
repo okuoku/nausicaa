@@ -559,178 +559,41 @@
     (%string-concatenate-reverse string-list final past))))
 
 
-;;;; replace
+;;;; replace and tokenize
 
-;;; string-replace s1 s2 start1 end1 [start2 end2] -> string
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Replace S1[START1,END1) with S2[START2,END2).
+(define-syntax string-replace
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-replace str1 start1 end1 str2 start2 end2)))))
 
-(define (string-replace s1 s2 start1 end1 . maybe-start+end)
-  (check-substring-spec string-replace s1 start1 end1)
-  (let-string-start+end (start2 end2) string-replace s2 maybe-start+end
-    (let* ((slen1 (string-length s1))
-	   (sublen2 (- end2 start2))
-	   (alen (+ (- slen1 (- end1 start1)) sublen2))
-	   (ans (make-string alen)))
-      (%string-copy! ans 0 s1 0 start1)
-      (%string-copy! ans start1 s2 start2 end2)
-      (%string-copy! ans (+ start1 sublen2) s1 end1 slen1)
-      ans)))
-
-
-;;; string-tokenize s [token-set start end] -> list
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Break S up into a list of token strings, where a token is a maximal
-;;; non-empty contiguous sequence of chars belonging to TOKEN-SET.
-;;; (string-tokenize "hello, world") => ("hello," "world")
-
-(define (string-tokenize s . token-chars+start+end)
-  (let-optionals* token-chars+start+end
-                  ((token-chars char-set:graphic (char-set? token-chars)) rest)
-    (let-string-start+end (start end) string-tokenize s rest
-      (let lp ((i end) (ans '()))
-	(cond ((and (< start i) (string-index-right s token-chars start i)) =>
-	       (lambda (tend-1)
-		 (let ((tend (+ 1 tend-1)))
-		   (cond ((string-skip-right s token-chars start tend-1) =>
-			  (lambda (tstart-1)
-			    (lp tstart-1
-				(cons (substring s (+ 1 tstart-1) tend)
-				      ans))))
-			 (else (cons (substring s start tend) ans))))))
-	      (else ans))))))
+(define-syntax string-tokenize
+  (syntax-rules ()
+    ((_ ?S ?token-set)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-tokenize ?token-set str beg past)))))
 
 
-;;; xsubstring s from [to start end] -> string
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; S is a string; START and END are optional arguments that demarcate
-;;; a substring of S, defaulting to 0 and the length of S (e.g., the whole
-;;; string). Replicate this substring up and down index space, in both the
-;;  positive and negative directions. For example, if S = "abcdefg", START=3,
-;;; and END=6, then we have the conceptual bidirectionally-infinite string
-;;;     ...  d  e  f  d  e  f  d  e  f  d  e  f  d  e  f  d  e  f  d  e  f ...
-;;;     ... -9 -8 -7 -6 -5 -4 -3 -2 -1  0  1  2  3  4  5  6  7  8  9 ...
-;;; XSUBSTRING returns the substring of this string beginning at index FROM,
-;;; and ending at TO (which defaults to FROM+(END-START)).
-;;;
-;;; You can use XSUBSTRING in many ways:
-;;; - To rotate a string left:  (xsubstring "abcdef" 2)  => "cdefab"
-;;; - To rotate a string right: (xsubstring "abcdef" -2) => "efabcd"
-;;; - To replicate a string:    (xsubstring "abc" 0 7) => "abcabca"
-;;;
-;;; Note that
-;;;   - The FROM/TO indices give a half-open range -- the characters from
-;;;     index FROM up to, but not including index TO.
-;;;   - The FROM/TO indices are not in terms of the index space for string S.
-;;;     They are in terms of the replicated index space of the substring
-;;;     defined by S, START, and END.
-;;;
-;;; It is an error if START=END -- although this is allowed by special
-;;; dispensation when FROM=TO.
 
-(define (xsubstring s from . maybe-to+start+end)
-  (check-arg (lambda (val) (and (integer? val) (exact? val)))
-	     from xsubstring)
-  (receive (to start end)
-           (if (pair? maybe-to+start+end)
-	       (let-string-start+end (start end) xsubstring s (cdr maybe-to+start+end)
-		 (let ((to (car maybe-to+start+end)))
-		   (check-arg (lambda (val) (and (integer? val)
-						 (exact? val)
-						 (<= from val)))
-			      to xsubstring)
-		   (values to start end)))
-	       (let ((slen (string-length (check-arg string? s xsubstring))))
-		 (values (+ from slen) 0 slen)))
-    (let ((slen   (- end start))
-	  (anslen (- to  from)))
-      (cond ((zero? anslen) "")
-	    ((zero? slen) (error "Cannot replicate empty (sub)string"
-				  xsubstring s from to start end))
+(define-syntax xsubstring
+  (syntax-rules ()
+    ((_ ?from ?to ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (xsubstring ?from ?to str beg past)))))
 
-	    ((= 1 slen)		; Fast path for 1-char replication.
-	     (make-string anslen (string-ref s start)))
-
-	    ;; Selected text falls entirely within one span.
-	    ((= (floor (/ from slen)) (floor (/ to slen)))
-	     (substring s (+ start (modulo from slen))
-			  (+ start (modulo to   slen))))
-
-	    ;; Selected text requires multiple spans.
-	    (else (let ((ans (make-string anslen)))
-		    (%multispan-repcopy! ans 0 s from to start end)
-		    ans))))))
-
-
-;;; string-xcopy! target tstart s sfrom [sto start end] -> unspecific
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Exactly the same as xsubstring, but the extracted text is written
-;;; into the string TARGET starting at index TSTART.
-;;; This operation is not defined if (EQ? TARGET S) -- you cannot copy
-;;; a string on top of itself.
+(define-syntax string-xcopy!
+  (syntax-rules ()
+    ((_ ?from ?to ?T ?S)
+     (let-values (((str1 beg1 past1) (unpack ?T))
+		  ((str2 beg2 past2) (unpack ?S)))
+       (%string-xcopy! ?from ?to str1 beg1 past1 str2 beg2 past2)))))
 
 (define-syntax string-copy*
   (syntax-rules ()
-    ((_ ?str-spec)
-     (unpack-1 substring ?str-spec))))
-
-(define (string-xcopy! target tstart s sfrom . maybe-sto+start+end)
-  (check-arg (lambda (val) (and (integer? val) (exact? val)))
-	     sfrom string-xcopy!)
-  (receive (sto start end)
-           (if (pair? maybe-sto+start+end)
-	       (let-string-start+end (start end) string-xcopy! s (cdr maybe-sto+start+end)
-		 (let ((sto (car maybe-sto+start+end)))
-		   (check-arg (lambda (val) (and (integer? val) (exact? val)))
-			      sto string-xcopy!)
-		   (values sto start end)))
-	       (let ((slen (string-length s)))
-		 (values (+ sfrom slen) 0 slen)))
-
-    (let* ((tocopy (- sto sfrom))
-	   (tend (+ tstart tocopy))
-	   (slen (- end start)))
-      (check-substring-spec string-xcopy! target tstart tend)
-      (cond ((zero? tocopy))
-	    ((zero? slen) (error "Cannot replicate empty (sub)string"
-				 string-xcopy!
-				 target tstart s sfrom sto start end))
-
-	    ((= 1 slen)			; Fast path for 1-char replication.
-	     (string-fill! target (string-ref s start) tstart tend))
-
-	    ;; Selected text falls entirely within one span.
-	    ((= (floor (/ sfrom slen)) (floor (/ sto slen)))
-	     (%string-copy! target tstart s
-			    (+ start (modulo sfrom slen))
-			    (+ start (modulo sto   slen))))
-
-	    ;; Multi-span copy.
-	    (else (%multispan-repcopy! target tstart s sfrom sto start end))))))
-
-;;; This is the core copying loop for XSUBSTRING and STRING-XCOPY!
-;;; Internal -- not exported, no careful arg checking.
-(define (%multispan-repcopy! target tstart s sfrom sto start end)
-  (let* ((slen (- end start))
-	 (i0 (+ start (modulo sfrom slen)))
-	 (total-chars (- sto sfrom)))
-
-    ;; Copy the partial span @ the beginning
-    (%string-copy! target tstart s i0 end)
-
-    (let* ((ncopied (- end i0))			; We've copied this many.
-	   (nleft (- total-chars ncopied))	; # chars left to copy.
-	   (nspans (quotient nleft slen)))	; # whole spans to copy
-
-      ;; Copy the whole spans in the middle.
-      (do ((i (+ tstart ncopied) (+ i slen))	; Current target index.
-	   (nspans nspans (- nspans 1)))	; # spans to copy
-	  ((zero? nspans)
-	   ;; Copy the partial-span @ the end & we're done.
-	   (%string-copy! target i s start (+ start (- total-chars (- i tstart)))))
-
-	(%string-copy! target i s start end))))); Copy a whole span.
-
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (substring str beg past))))
 
 
 ;;;; joining
@@ -738,43 +601,11 @@
 (define string-join
   (case-lambda
    ((strings)
-    (string-join strings " " 'infix))
+    (%string-join strings " " 'infix))
    ((strings delim)
-    (string-join strings delim 'infix))
+    (%string-join strings delim 'infix))
    ((strings delim grammar)
-    (define (join-with-delim ell final)
-      (let loop ((ell ell))
-	(if (pair? ell)
-	    (cons delim
-		  (cons (car ell)
-			(loop (cdr ell))))
-	  final)))
-
-    (cond ((pair? strings)
-	   (string-concatenate
-	    (case grammar
-	      ((infix strict-infix)
-	       (cons (car strings)
-		     (join-with-delim (cdr strings) '())))
-	      ((prefix)
-	       (join-with-delim strings '()))
-	      ((suffix)
-	       (cons (car strings)
-		     (join-with-delim (cdr strings) (list delim))))
-	      (else
-	       (assertion-violation 'string-join
-		 "illegal join grammar" grammar)))))
-
-	  ((not (null? strings))
-	   (error "STRINGS parameter not list." strings string-join))
-
-	  ;; STRINGS is ()
-
-	  ((eq? grammar 'strict-infix)
-	   (error "Empty list cannot be joined with STRICT-INFIX grammar."
-	     string-join))
-
-	  (else ""))))) ; Special-cased for infix grammar.
+    (%string-join strings delim grammar))))
 
 
 ;;;; done
