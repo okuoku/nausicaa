@@ -904,7 +904,7 @@
     make-unimplemented-condition raise-unimplemented-error
 
     ;; other stuff
-    pretty-print symbol*->string)
+    begin0 pretty-print symbol*->string)
   (import (except (rnrs)
 		  ;;Implemented  in compat  to let them  accept complex
 		  ;;arguments.

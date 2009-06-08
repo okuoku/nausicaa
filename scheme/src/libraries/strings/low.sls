@@ -825,6 +825,7 @@
 (define (%string-contains-ci text text-beg text-past pattern pattern-beg pattern-past)
   (%kmp-search char-ci=? text text-beg text-past pattern pattern-beg pattern-past))
 
+
 ;; Knuth-Morris-Pratt string searching. See:
 ;;
 ;;  "Fast pattern matching in strings"
@@ -837,73 +838,92 @@
 ;;  Alfred V. Aho
 ;;  Formal Language Theory - Perspectives and Open Problems
 ;;  Ronald V. Brook (editor)
+;;
+;; and of course:
+;;
+;;  <http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm>
+;;
 
-(define (%kmp-search char=? text text-beg text-past pattern pattern-beg pattern-past)
-  (let ((plen (- pattern-past pattern-beg))
-	(restart-vector (%kmp-make-restart-vector char=? pattern pattern-beg pattern-past)))
-    (let loop ((ti text-beg) (pi 0)
-	       (tj (- text-past text-beg))
-	       (pj plen))
+(define (%kmp-search char= text text-start text-past pattern pattern-start pattern-past)
+  (let ((plen (- pattern-past pattern-start))
+	(restart-vector (%kmp-make-restart-vector char= pattern pattern-start pattern-past)))
+    ;; The search loop. TJ & PJ are redundant state.
+    (let loop ((ti text-start) (pi 0)
+	       (tj (- text-past text-start)) ; (- tlen ti) -- how many chars left.
+	       (pj plen)) ; (- plen pi) -- how many chars left.
+
       (if (= pi plen)
-	  (- ti plen)
-	(and (<= pj tj)
-	     (if (char=? (string-ref text ti)
-			 (string-ref pattern (+ pattern-beg pi)))
-		 (loop (+ 1 ti) (+ 1 pi) (- tj 1) (- pj 1))
-	       (let ((pi (vector-ref restart-vector pi)))
-		 (if (= pi -1)
-		     (loop (+ ti 1) 0  (- tj 1) plen)
-		   (loop ti pi tj (- plen pi))))))))))
+	  (- ti plen)			     ; Win.
+	(and (<= pj tj)			     ; Lose.
+	     (if (char= (string-ref text ti) ; Search.
+			(string-ref pattern (+ pattern-start pi)))
+		 (loop (+ 1 ti) (+ 1 pi) (- tj 1) (- pj 1)) ; Advance.
 
-(define (%kmp-make-restart-vector char=? pattern pattern-beg pattern-past)
-  (let* ((restart-vector-len (- pattern-past pattern-beg))
-	 (restart-vector (make-vector restart-vector-len -1)))
-    (when (> restart-vector-len 0)
-      (let ((restart-vector-len-1 (- restart-vector-len 1))
-	    (c0 (string-ref pattern pattern-beg)))
-	(let loop1 ((i 0) (j -1) (k pattern-beg))
-	  (when (< i restart-vector-len-1)
-	    (let loop2 ((j j))
-	      (cond ((= j -1)
-		     (let ((i1 (+ 1 i)))
-		       (when (not (char=? (string-ref pattern (+ k 1)) c0))
-			 (vector-set! restart-vector i1 0))
-		       (loop1 i1 0 (+ k 1))))
-		    ((char=? (string-ref pattern k) (string-ref pattern (+ j pattern-beg)))
-		     (let* ((i1 (+ 1 i))
-			    (j1 (+ 1 j)))
-		       (vector-set! restart-vector i1 j1)
-		       (loop1 i1 j1 (+ k 1))))
-		    (else (loop2 (vector-ref restart-vector j)))))))))
+	       (let ((pi (vector-ref restart-vector pi))) ; Retreat.
+		 (if (= pi -1)
+		     (loop (+ ti 1) 0  (- tj 1) plen) ; Punt.
+		   (loop ti       pi tj       (- plen pi))))))))))
+
+(define (%kmp-make-restart-vector char= pattern pattern-start pattern-past)
+  (let* ((rvlen (- pattern-past pattern-start))
+	 (restart-vector (make-vector rvlen -1)))
+    (if (> rvlen 0)
+	(let ((rvlen-1 (- rvlen 1))
+	      (c0 (string-ref pattern pattern-start)))
+	  ;;Here's the main loop.  We have  set RV[0] ...  RV[i].  K = I
+	  ;;+ START -- it is the corresponding index into PATTERN.
+	  (let loop1 ((i 0) (j -1) (k pattern-start))
+	    (if (< i rvlen-1)
+		;; loop2 invariant:
+		;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
+		;;   or j = -1.
+		(let loop2 ((j j))
+		  (cond ((= j -1)
+			 (let ((i1 (+ 1 i)))
+			   (if (not (char= (string-ref pattern (+ k 1)) c0))
+			       (vector-set! restart-vector i1 0))
+			   (loop1 i1 0 (+ k 1))))
+			;; pat[(k-j) .. k] matches pat[start..start+j].
+			((char= (string-ref pattern k) (string-ref pattern (+ j pattern-start)))
+			 (let* ((i1 (+ 1 i))
+				(j1 (+ 1 j)))
+			   (vector-set! restart-vector i1 j1)
+			   (loop1 i1 j1 (+ k 1))))
+
+			(else (loop2 (vector-ref restart-vector j)))))))))
     restart-vector))
 
-(define (%kmp-step char=? restart-vector c i pattern pattern-beg)
-  (let loop ((i i))
-    (if (char=? c (string-ref pattern (+ i pattern-beg)))
-	(+ i 1)
-      (let ((i (vector-ref restart-vector i)))
-	(if (= i -1) 0
-	  (loop i))))))
+(define (%kmp-step char= restart-vector next-char-from-text
+		   next-index-in-pattern pattern pattern-start)
+  (let loop ((i next-index-in-pattern))
+    (if (char= next-char-from-text (string-ref pattern (+ i pattern-start)))
+	(+ i 1)				       ; Done.
+      (let ((i (vector-ref restart-vector i))) ; Back up in PATTERN.
+	(if (= i -1)
+	    0		;;Can't back up  further, return the first index
+			;;in pattern from the start.
+	  (loop i))))))	;Keep trying for match.
 
-(define (%kmp-string-partial-search char=? restart-vector i text text-beg text-past pattern pattern-beg)
-  (let ((restart-vector-len (vector-length restart-vector)))
-    (let loop ((si text-beg)
-	       (vi i))
-      (cond ((= vi restart-vector-len) (- si))
-	    ((= si text-past) vi)
+(define (%kmp-string-partial-search char= restart-vector
+				    next-index-in-pattern
+				    text text-start text-end
+				    pattern pattern-start)
+  (let ((patlen (vector-length restart-vector)))
+    (let loop ((ti text-start)
+	       (pi next-index-in-pattern))
+      (cond ((= pi patlen) (- ti)) ; found
+	    ((= ti text-end) pi)   ; consumed all text
 	    (else
-	     (let ((c (string-ref text si)))
-	       (loop (+ si 1)
-		     (%kmp-step char=? restart-vector c i pattern pattern-beg)
-		     ;;The following named-let  is an inlined version of
-		     ;;"%kmp-step".
-;;; 		     (let loop2 ((vi vi))
-;;; 		       (if (char=? c (string-ref pattern (+ vi pattern-beg)))
-;;; 			   (+ vi 1)
-;;; 			 (let ((vi (vector-ref restart-vector vi)))
-;;; 			   (if (= vi -1) 0
-;;; 			     (loop2 vi)))))
-		     )))))))
+	     (let ((c (string-ref text ti)))
+	       (loop (+ ti 1)
+		     ;;The  following  loop  is  an inlined  version  of
+		     ;;%KMP-STEP.
+		     (let loop2 ((pi pi))
+		       (if (char= c (string-ref pattern (+ pi pattern-start)))
+			   (+ pi 1)
+			 (let ((pi (vector-ref restart-vector pi)))
+			   (if (= pi -1) 0
+			     (loop2 pi))))))))))))
 
 
 ;;;; filling

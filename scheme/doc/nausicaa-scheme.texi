@@ -429,6 +429,7 @@ Indexes
 Overview of the package
 
 * overview copying::            Copying this document.
+* overview implementation::     Supported implementations.
 * overview porting::            On writing portable code.
 * overview libraries::          Other libraries.
 * overview binfmt::             Launching Scheme programs directly.
@@ -822,9 +823,13 @@ Strings library
 Low level procedures
 
 * strings low compar::          Low level comparison functions.
-* strings parsing::             Start/end optional-argument parsing
-                                and checking utilities.
-* strings knuth::               Knuth-Morris-Pratt searching.
+* strings kmp::                 Knuth--Morris--Pratt searching.
+
+Knuth-Morris-Pratt searching
+
+* strings kmp rv::              The restart vector.
+* strings kmp step::            Single step of the search.
+* strings kmp partial::         Partial string search.
 
 Launching programs directly
 
@@ -22360,9 +22365,7 @@ strings}).
 Low level procedures
 
 * strings low compar::          Low level comparison functions.
-* strings parsing::             Start/end optional-argument parsing
-                                and checking utilities.
-* strings knuth::               Knuth-Morris-Pratt searching.
+* strings kmp::                 Knuth--Morris--Pratt searching.
 @end menu
 
 @c page
@@ -23897,114 +23900,21 @@ or equal to, the second; @false{} otherwise.
 @end itemize
 @end defun
 
-
-
-
 @c page
-@node strings parsing
-@subsection Start/end optional--argument parsing and checking utilities
-
-
-@defun {string-parse-start+end} @var{proc} @var{s} @var{args}
-@defunx {string-parse-final-start+end} @var{proc} @var{s} @var{args}
-@func{string-parse-start+end} may be used to parse a pair of optional
-start/end arguments from an argument list, defaulting them to 0 and the
-length of some string @var{s}, respectively.
-
-Let the length of string @var{s} be @var{slen}.
-
-@itemize
-@item
-If @code{args = ()}, the function returns @code{(values '() 0 slen)}.
-
-@item
-If @code{args = (i)}, @var{i} is checked to ensure it is an exact
-integer, and that @code{0 <= i <= slen}.  The function returns
-@code{(values (cdr args) i slen)}.
-
-@item
-If @code{args = (i j ...)}, @var{i} and @var{j} are checked to ensure
-they are exact integers, and that @code{0 <= i <= j <= slen}.  The
-function returns @code{(values (cddr args) i j)}.
-@end itemize
-
-If any of the checks fail, an error condition is raised, and @var{proc}
-is used as part of the error condition; it should be the client
-procedure whose argument list @func{string-parse-start+end} is parsing.
-
-@func{string-parse-final-start+end} is exactly the same, except that the
-@var{args} list passed to it is required to be of length two or less; if
-it is longer, an error condition is raised.  It may be used when the
-optional start/end parameters are final arguments to the procedure.
-
-Note that in all cases, these functions ensure that @var{s} is a string
-(by necessity, since all cases apply @func{string-length} to @var{s}
-either to default end or to bounds-check it).
-@end defun
-
-
-@deffn Syntax let-string-start+end (@var{start} @var{end} [@var{rest}]) @var{proc-exp} @var{s-exp} @var{args-exp} @var{body} ...
-Syntactic sugar for an application of @func{string-parse-start+end} or
-@func{string-parse-final-start+end}.  If a @var{rest} variable is given,
-the form is equivalent to:
-
-@example
-(call-with-values
-    (lambda ()
-      (string-parse-start+end proc-exp s-exp args-exp))
-  (lambda (rest start end)
-    body ...))
-@end example
-
-If no @var{rest} variable is given, the form is equivalent to:
-
-@example
-(call-with-values
-    (lambda ()
-      (string-parse-final-start+end proc-exp s-exp args-exp))
-  (lambda (start end)
-    body ...))
-@end example
-@end deffn
-
-
-@defun check-substring-spec @var{proc} @var{s} @var{start} @var{end}
-@defunx substring-spec-ok? @var{s} @var{start} @var{end}
-Check values @var{s}, @var{start} and @var{end} to ensure they specify a
-valid substring.  This means that @var{s} is a string, @var{start} and
-@var{end} are exact integers, and:
-
-@example
-0 <= start <= end <= (string-length s)
-@end example
-
-If the values are not proper:
-
-@itemize
-@item
-@func{check-substring-spec} raises an error condition.  @var{proc} is
-used as part of the error condition, and should be the procedure whose
-parameters we are checking.
-
-@item
-@func{substring-spec-ok?} returns @false{}.
-@end itemize
-
-Otherwise, @func{substring-spec-ok?} returns @true{}, and
-@func{check-substring-spec} simply returns (what it returns is not
-specified).
-@end defun
-
-@c page
-@node strings knuth
+@node strings kmp
 @subsection Knuth-Morris-Pratt searching
 
 
-The Knuth--Morris--Pratt string--search algorithm is a method of rapidly
-scanning a sequence of text for the occurrence of some fixed string.  It
-has the advantage of never requiring backtracking; hence, it is useful
-for searching not just strings, but also other sequences of text that do
-not support backtracking or random--access, such as input ports.
+The Knuth--Morris--Pratt (@acronym{KMP}) string--search algorithm is a
+method of rapidly scanning a sequence of text for the occurrence of some
+fixed string.  It has the advantage of never requiring backtracking;
+hence, it is useful for searching not just strings, but also other
+sequences of text that do not support backtracking or random--access,
+such as input ports.
+
+For an explanation of the algorithm:
+
+@center @url{http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm}
 
 The following routines package up the initialisation and searching
 phases of the algorithm for general use.  They also support searching
@@ -24019,219 +23929,396 @@ searching algorithms frequently require the construction of a table with
 an entry for every possible character; which can be prohibitively
 expensive in a 16-bit or 32-bit character representation.
 
+@menu
+* strings kmp rv::              The restart vector.
+* strings kmp step::            Single step of the search.
+* strings kmp partial::         Partial string search.
+* strings kmp string::          Full string search.
+@end menu
 
-@defun make-kmp-restart-vector @var{s} [@var{c=} @var{start} @var{end}]
-Build a Knuth--Morris--Pratt ``restart vector'', which is useful for
-quickly searching character sequences for the occurrence of string
-@var{s} (or the substring of @var{s} demarcated by the optional
-@var{start}/@var{end} parameters, if provided).
+@c page
+@node strings kmp rv
+@subsubsection The restart vector
 
-@var{c=} is a character--equality function used to construct the restart
-vector.  It defaults to @func{char=?}; use @func{char-ci=?}  instead for
-case--folded string search.
 
-The definition of the restart vector @var{rv} for string @var{s} is: If
-we have matched chars @code{0..i-1} of @var{s} against some search
-string @var{ss}, and @code{s[i]} doesn't match @code{ss[k]}, then reset
-@code{i := rv[i]}, and try again to match @code{ss[k]}.  If @code{rv[i]
-= -1}, then punt @code{ss[k]} completely, and move on to @code{ss[k+1]}
-and @code{s[0]}.
-
-In other words, if you have matched the first @var{i} chars of @var{s},
-but the @var{i+1}'th char doesn't match, @code{rv[i]} tells you what the
-next--longest prefix of @var{s} is that you have matched.
-
-The following string--search function shows how a restart vector is used
-to search.  Note the attractive feature of the search process: it is
-``on line'', that is, it never needs to back up and reconsider
-previously seen data.  It simply consumes characters one--at--a--time
-until declaring a complete match or reaching the end of the sequence.
-Thus, it can be easily adapted to search other character sequences (such
-as ports) that do not provide random access to their contents.
+When searching for a pattern string in a text string:
 
 @example
-(define (find-substring pattern source start end)
-  (let ([plen (string-length pattern)]
-        [rv (make-kmp-restart-vector pattern)])
-
-    ;; The search loop. SJ & PJ are redundant state.
-    (let lp ([si start]
-             [pi 0]
-             [sj (- end start)]     ; (- end si)  -- how many chars left.
-             [pj plen])             ; (- plen pi) -- how many chars left.
-       (if (= pi plen)
-           (- si plen)                             ; Win.
-         (and (<= pj sj)                           ; Lose.
-              (if [char=? (string-ref source si)           ; Test.
-                          (string-ref pattern pi)]
-                  (lp (+ 1 si) (+ 1 pi) (- sj 1) (- pj 1)) ; Advance.
-                (let ([pi (vector-ref rv pi)])             ; Retreat.
-                  (if (= pi -1)
-                      (lp (+ si 1)  0   (- sj 1)  plen)    ; Punt.
-                    (lp si          pi  sj        (- plen pi))))))))))
+(define pattern "ciao")
+(define text    "Oh, ciao!")
 @end example
 
-The optional @var{start}/@var{end} parameters restrict the restart
-vector to the indicated substring of @var{pat}; @var{rv} is @code{end -
-start} elements long.  If @code{start > 0}, then @var{rv} is offset by
-start elements from @var{pat}.  That is, @code{rv[i]} describes pattern
-element @code{pat[i + start]}.  Elements of @var{rv} are themselves
-indices that range just over @code{[0, end-start)}, not @code{[start,
-end)}.
+@noindent
+we start looking for the first char in the pattern:
 
-Rationale: the actual value of @var{rv} is ``position independent''; it
-does not depend on where in the pat string the pattern occurs, but only
-on the actual characters comprising the pattern.
+@example
+(define match-start
+  (let loop ((i 0))
+    (if (char=? (string-ref text i)
+                (string-ref pattern 0))
+        i
+      (loop (+ 1 i)))))
+@result{} 3
+@end example
+
+@noindent
+now that we know a match for the first char, we go on looking for the
+full pattern:
+
+@example
+(define match-past
+  (let loop ((pi 1)                     ;; pattern index
+             (ti (+ 1 match-start)))    ;; text index
+    (cond
+     ((= pi (string-length pattern)) pi)    ;; found
+     ((= ti (string-length text))    #f)    ;; not found
+     (else
+      (if (char=? (string-ref ti text)
+                  (string-ref pi pattern))
+          (loop (+ 1 pi) (+ 1 ti))
+        #f)))))                             ;; not found
+@end example
+
+@noindent
+we have the following possible outcomes:
+
+@itemize
+@item
+@code{match-past} is true: We have found a match in the substring
+@code{[match-start, match-past)} of @code{text}.
+
+@item
+@code{match-past} is false: We have to restart matching @code{pattern}
+from character @code{(+ 1 match-start)} of @code{text}.
+@end itemize
+
+The action ``restart matching'' involves backtracking (to go back) in
+the @code{text} string; this can be avoided if we do the following
+considerations.
+
+@itemize
+@item
+Let's say we have to perform the search:
+
+@example
+(define pattern "ciao mamma")
+(define text    "Oh, ciao papa e ciao mamma!")
+
+;;               0123456789012345678901234567
+;;               0         1         2
+@end example
+
+@noindent
+we notice that the first char @code{c} is never repeated in the pattern;
+so after we have matched the first occurrence of @code{"ciao "} in the
+substring @math{[4, 9)} of @code{text}, we do not need to restart from
+index @math{5}, we just try to match @code{pattern} from index @math{10}
+of @code{text}.
+
+@item
+Let's say we have to perform the search:
+
+@example
+(define pattern "ciao ciao mamma")
+(define text    "Oh, ciao ciao ciao mamma!")
+
+;;               01234567890123456789012345
+;;               0         1         2
+@end example
+
+@noindent
+after we have matched the first occurrence of @code{"ciao ciao "} in the
+substring @math{[4, 14)} of @code{text}, we find a @code{c} rather than
+a @code{m}; we could restart matching @code{pattern} from index
+@math{5}, but we notice that we already have matched substring @math{[0,
+5)} of @code{pattern} in substring @math{[9, 14)} of @code{text}; so we
+can avoid backtracking and go on matching index @math{5} of
+@code{pattern} with index @math{14} of @code{text}.
+@end itemize
+
+Summary: We can implement an efficient algorithm if we precompute where
+to restart from, after a partial match.  Of course, since the algorithm
+needs no backtracking, we can also search for multiple patterns in
+``parallel''.
+
+
+@defun %kmp-make-restart-vector @var{char=} @var{pattern} @var{pattern-start} @var{pattern-past}
+Build a @dfn{restart vector}, to be used to search character sequences
+for the occurrence of the selected substring of @var{pattern}.
+
+@var{char=} is a character--equality function used to construct the
+restart vector.  It is typically @func{char=?} or @func{char-ci=?}.
+
+The definition of the restart vector @math{V} for string @math{P} is: If
+we have matched chars @math{0 ... i-1} of @math{P} against some search
+string @math{T}:
+@iftex
+@tex
+$$
+P[i-1] = T[k]
+P[i-2] = T[k-1]
+...
+P[0] = T[k-(i-1)]
+$$
+@end tex
+@end iftex
+@ifnottex
+
+@example
+P[i-1] = T[k]
+P[i-2] = T[k-1]
+...
+P[0] = T[k-(i-1)]
+@end example
+
+@end ifnottex
+and @math{P[i]} does not match @math{T[k]}, then reset @math{i := V[i]},
+and try again to match @math{T[k]}.  If @math{V[i] = -1}: move on to
+@math{T[k+1]} and @math{P[0]}.
 @end defun
 
+@c page
+@node strings kmp step
+@subsubsection Single step of the search
 
-@defun kmp-step @var{pat} @var{rv} @var{c} @var{i} @var{c=} @var{p-start}
+
+@defun %kmp-step @var{char=} @var{restart-vector} @var{next-char-from-text} @var{next-index-in-pattern} @var{pattern} @var{pattern-start}
 This function encapsulates the work performed by one step of the
 @acronym{KMP} string search; it can be used to scan strings, input
 ports, or other on--line character sources for fixed strings.
 
-@var{pat} is the non--empty string specifying the text for which we are
-searching.  @var{rv} is the Knuth--Morris--Pratt restart vector for the
-pattern, as constructed by @func{make-kmp-restart-vector}.  The pattern
-begins at @code{pat[p-start]}, and is @code{(string-length rv)}
-characters long.  @var{c=} is the character--equality function used to
-construct the restart vector, typically @func{char=?} or
-@func{char-ci=?}.
+@var{char=} is the character--equality function used to construct the
+restart vector, typically @func{char=?} or @func{char-ci=?}.
 
-Suppose the pattern is @var{n} characters in length:
+@var{restart-vector} is the @acronym{KMP} restart vector for the
+pattern, as constructed by @func{%kmp-make-restart-vector}.
+
+@var{pattern} is the non--empty string specifying the text for which we
+are searching.  The pattern begins at @var{pattern-start} and is
+@code{(vector-length restart-vector)} characters long.
+
+This function returns the new index in the pattern; that is, how much of
+the pattern we have matched, including the given character from text.
+@end defun
+
+
+Searching for the pattern @code{"hello"} in the text @code{"ciao hello
+salut"} looks like this:
 
 @example
-pat[p-start, p-start + n)
-@end example
-
-We have already matched i characters:
-
-@example
-pat[p-start, p-start + i)
+(let* ((text          "ciao hello salut")
+       ;;              01234567890123456
+       ;;              0         1
+       (text-past     (string-length text))
+       (pattern       "ciao")
+       (pattern-start 0)
+       (pattern-past  (string-length pattern))
+       (rv            (%kmp-make-restart-vector char=?
+                         pattern pattern-start pattern-past)))
+  (let loop ((ti 0)
+             (pi pattern-start))
+    (or (and (= pi pattern-past) ti) ; found
+        (and (not (= ti text-past))  ; not found
+             (loop (+ 1 ti)
+                   (%kmp-step char=? rv
+                              (string-ref text ti)
+                              pi pattern pattern-start))))))
+@result{} 10
 @end example
 
 @noindent
-@var{p-start} is typically zero.  @var{c} is the next character in the
-input stream.  @func{kmp-step} returns the new @var{i} value; that is,
-how much of the pattern we have matched, including character @var{c}.
-When @var{i} reaches @var{n}, the entire pattern has been matched.
+if the pattern was not found the return value is @false{}; if the
+pattern was found the return value is the index in the text of the
+character past the last matched one.
 
-Thus a typical search loop looks like this:
-
-@example
-(let loop ([i 0])
-  (or (= i n)                           ; Win -- #t
-      (and (not (end-of-stream))        ; Lose -- #f
-           (loop (kmp-step pat rv (get-next-character)
-                           i char=? 0)))))
-@end example
-
-Example:
+Abstracting the search from a string to a generic source of characters,
+we can write the following function, whose return value is the same as
+the loop above:
 
 @example
-;; Read chars from IPORT until we find string PAT or hit EOF.
-(define (port-skip pat iport)
-  (let* ([rv     (make-kmp-restart-vector pat)]
-         [patlen (string-length pat)])
-    (let loop ([i       0]
-              [nchars   0])
-      (if (= i patlen)
-          nchars                        ; Win -- nchars skipped
-        (let ([c (read-char iport)])
-          (if (eof-object? c)
-              c                         ; Fail -- EOF
-            (loop (kmp-step pat rv c i char=? 0) ; Continue
-                  (+ nchars 1))))))))
+(define (return-match-past end-of-text? get-next-char
+                           pattern pattern-start pattern-past)
+  (let ((rv (%kmp-make-restart-vector char=?
+               pattern pattern-start pattern-past)))
+    (let loop ((ti 0)
+               (pi pattern-start))
+      (or (and (= pi pattern-past) ti) ; found
+          (and (not (end-of-text?))    ; not found
+               (loop (+ 1 ti)
+                     (%kmp-step char=? rv (get-next-char)
+                        pi pattern pattern-start)))))))
 @end example
 
-This procedure could be defined as follows:
+@noindent
+a usage example with a string looks like this:
 
 @example
-(define (kmp-step pat rv c i c= p-start)
-  (let loop ([i i])
-    (if (c= c (string-ref pat (+ i p-start)))   ; Match =>
-        (+ i 1)                                 ;   Done.
-      (let ([i (vector-ref rv i)])              ; Back up in PAT.
-        (if (= i -1)
-            0                                   ; Can't back up more.
-          (loop i)))))))                        ; Keep going.
+(let* ((text           "ciao hello salut")
+       ;;               01234567890123456
+       ;;               0         1
+       (pattern        "hello")
+       (ti             0)
+       (end-of-text?   (lambda ()
+                         (= ti (string-length text))))
+       (get-next-char  (lambda ()
+                         (begin0
+                             (string-ref text ti)
+                           (set! ti (+ 1 ti))))))
+  (return-match-past end-of-text? get-next-char
+                     pattern 0 (string-length pattern)))
+@result{} 10
 @end example
 
-Rationale: this procedure takes no optional arguments because it is
-intended as an inner--loop primitive and we do not want any run--time
-penalty for optional--argument parsing and defaulting, nor do we wish
-barriers to procedure integration/inlining.
-@end defun
+@noindent
+a usage example with an input port looks like this:
+
+@example
+(let* ((text           "ciao hello salut")
+       ;;               01234567890123456
+       ;;               0         1
+       (pattern        "salut")
+       (port           (open-string-input-port text))
+       (end-of-text?   (lambda ()
+                         (eof-object? (peek-char port))))
+       (get-next-char  (lambda ()
+                         (read-char port))))
+  (return-match-past end-of-text? get-next-char
+                     pattern 0 (string-length pattern)))
+@result{} 16
+@end example
+
+@c page
+@node strings kmp partial
+@subsubsection Partial string search
 
 
-@defun string-kmp-partial-search @var{pat} @var{rv} @var{s} @var{i} [@var{c=} @var{p-start} @var{s-start} @var{s-end}]
-Apply @func{kmp-step} across @var{s}; optional @var{s-start}/@var{s-end}
-bounds parameters restrict search to a substring of @var{s}.  The
-pattern is @code{(vector-length rv)} characters long; optional
-@var{p-start} index indicates non--zero start of pattern in @var{pat}.
+@defun %kmp-string-partial-search @var{char=} @var{restart-vector} @var{next-index-in-pattern} @var{text} @var{text-start} @var{text-end} @var{pattern} @var{pattern-start}
+Using this function is equivalent to apply @func{%kmp-step} across the
+selected substring of @var{text} in search of the selected substring of
+@var{pattern}; the pattern is @code{(vector-length rv)} characters long.
 
-Suppose @code{plen = (vector-length rv)} is the length of the pattern.
-@var{i} is an integer index into the pattern (that is @code{0 <= i <
-plen}) indicating how much of the pattern has already been matched.
-This means the pattern must be non-empty: @code{plen > 0}.
+@var{char=} is the character--equality function used to construct the
+restart vector, typically @func{char=?} or @func{char-ci=?}.
 
 @itemize
 @item
-On success, return @code{-j}, where @var{j} is the index in @var{s}
-bounding the end of the pattern; e.g. a value that could be used as the
-end parameter in a call to @func{substring/shared}.
+If the pattern is found: Return @math{-j} (a strictly negative integer)
+where @math{j} is the index of the character past the one that last
+matched the pattern in @var{text}.
 
 @item
-On continue, return the current search state @code{i'} (an index into
-@var{rv}) when the search reached the end of the string.  This is a
-non--negative integer.
-@end itemize
-
-Hence:
-
-@itemize
-@item
-A negative return value indicates success, and says where in the string
-the match occured.
-
-@item
-A non--negative return value provides the @var{i} to use for continued
-search in a following string.
+If the pattern is not found: Return the index in the restart vector (a
+non negative integer) to be used in the next call to this function.
 @end itemize
 
 This utility is designed to allow searching for occurrences of a fixed
-string that might extend across multiple buffers of text.  This is why,
-for example, we do not provide the index of the start of the match on
-success; it may have occurred in a previous buffer.
-
-To search a character sequence that arrives in ``chunks'', write a loop
-of this form:
-
-@example
-(let loop ([i 0])
-  (and (not (end-of-data?))             ; Lose -- return #f.
-       (let* ([buf (get-next-chunk)]    ; Get or fill up the buffer.
-              [i   (string-kmp-partial-search pat rv buf i)])
-         (if (< i 0)
-             (- i)                      ; Win -- return end index.
-           (loop i)))))                 ; Keep looking.
-@end example
-
-Modulo @var{start}/@var{end} optional-argument parsing, this procedure
-could be defined as follows:
-
-@example
-(define (string-kmp-partial-search pat rv s i c= p-start s-start s-end)
-  (let ([patlen (vector-length rv)])
-    (let loop ([si s-start]       ; An index into S.
-               [vi i])            ; An index into RV.
-      (cond [(= vi patlen) (- si)]      ; Win.
-            [(= si end) vi]             ; Ran off the end.
-            [else (loop (+ si 1)        ; Match s[si] & loop.
-                      (kmp-step pat rv (string-ref s si)
-                                vi c= p-start))]))))
-@end example
+string that might extend across multiple buffers of text.  Notice that,
+in this case, when the returned value is negative: It is the index in
+the last buffer, not in the whole text.
 @end defun
+
+
+A simple one--shot search over a given string looks like the following:
+
+@example
+(let* ((text            "ciao hello salut")
+       ;;                01234567890123456
+       ;;                0         1
+       (text-start      0)
+       (text-past       (string-length text))
+       (pattern         "hello")
+       (pattern-start   0)
+       (pattern-past    (string-length pattern))
+       (restart-vector  (%kmp-make-restart-vector char=?
+                           pattern pattern-start pattern-past)))
+  (let ((i (%kmp-string-partial-search
+              char=? restart-vector pattern-start
+              text text-start text-past
+              pattern pattern-start)))
+    (or (<= 0 i) ;; not found
+        (- i)))) ;; found, return match past index
+@result{} 10
+@end example
+
+@noindent
+if the pattern was not found: Return @false{}.  If the pattern was
+found: Return the index in the string of the character past the one that
+matched the end of the pattern.
+
+Generalising this to a generic source of strings (represented by a list
+of strings):
+
+@smallexample
+(let* ((strings         '("ciao h " "he hel h"
+                          "ell hel" "lo salut"))
+       (end-of-data?    (lambda ()
+                          (null? strings)))
+       (get-next-chunk  (lambda ()
+                          (begin0
+                              (car strings)
+                            (set! strings (cdr strings))))))
+
+  (let* ((pattern         "hello")
+         (pattern-start   0)
+         (pattern-past    (string-length pattern))
+         (restart-vector  (%kmp-make-restart-vector char=?
+                             pattern pattern-start pattern-past)))
+
+    (let loop ((pi 0))
+      (and (not (end-of-data?))          ; not found
+           (let* ((buf (get-next-chunk))
+                  (pi  (%kmp-string-partial-search
+                          char=? restart-vector pi
+                          buf 0 (string-length buf)
+                          pattern pattern-start)))
+             (if (< pi 0)
+                 (cons buf (- pi)) ; found
+               (loop pi)))))))
+@result{} ("lo salut" . 2)
+@end smallexample
+
+@noindent
+if the pattern was not found: Return @false{}.  If the pattern was
+found: Return a cons whose car is the string chunk holding the end of
+the text that matched, and whose cdr is the index in the chunk of the
+character past the one that matched the end of the pattern.
+
+@c page
+@node strings kmp string
+@subsubsection Full string search
+
+
+@defun %kmp-search @var{char=} @var{text} @var{text-start} @var{text-past} @var{pattern} @var{pattern-start} @var{pattern-past}
+Search the selected substring of @var{text} for the selected substring
+of @var{pattern}.  Return the index of the character in @var{text} past
+the one that matched the last character in the pattern.
+
+@var{char=} is the character--equality function used to construct the
+restart vector, typically @func{char=?} or @func{char-ci=?}.
+
+This function is like @func{%string-contains} and
+@func{%string-contains-ci}, in facts those are implemented as:
+
+@smallexample
+(define (%string-contains text text-beg text-past
+                          pattern pattern-beg pattern-past)
+  (%kmp-search char=?
+               text text-beg text-past
+               pattern pattern-beg pattern-past))
+
+(define (%string-contains-ci text text-beg text-past
+                             pattern pattern-beg pattern-past)
+  (%kmp-search char-ci=?
+               text text-beg text-past
+               pattern pattern-beg pattern-past))
+@end smallexample
+
+@noindent
+@func{%kmp-search} exposes the selection of a custom @var{char=}
+comparison function.
+@end defun
+
+
 
 @c page
 @node foreign
