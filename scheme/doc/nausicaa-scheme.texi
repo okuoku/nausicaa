@@ -21370,9 +21370,6 @@ applied to a character.
 May be any value at all.
 @end table
 
-Passing values to procedures with these parameters that do not satisfy
-these types is an error.
-
 Unless otherwise noted in the specification of a procedure, procedures
 always return character sets that are distinct (from the point of view
 of the linear--update operations) from the parameter character sets.
