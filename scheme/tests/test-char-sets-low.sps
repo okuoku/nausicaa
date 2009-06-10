@@ -76,23 +76,23 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (%range-member? (%make-range 10 20) 10)
+      (%range-contains? (%make-range 10 20) 10)
     => #t)
 
   (check
-      (%range-member? (%make-range 10 20) 20)
+      (%range-contains? (%make-range 10 20) 20)
     => #f)
 
   (check
-      (%range-member? (%make-range 10 20) 1)
+      (%range-contains? (%make-range 10 20) 1)
     => #f)
 
   (check
-      (%range-member? (%make-range 10 20) 30)
+      (%range-contains? (%make-range 10 20) 30)
     => #f)
 
   (check
-      (%range-member? (%make-range 10 20) 15)
+      (%range-contains? (%make-range 10 20) 15)
     => #t)
 
   )
@@ -213,7 +213,7 @@
   )
 
 
-(parameterise ((check-test-name	'range-comparison))
+(parameterise ((check-test-name	'range-operation))
 
   (check
       (%range-concatenate (%make-range 10 20)
@@ -242,10 +242,67 @@
     (%make-range 10 40))
 
   (check
-      (guard (exc ((assertion-violation? exc) #t))
-	(%range-union (%make-range 10 20)
-		      (%make-range 30 40)))
-    => #t)
+      (%range-union (%make-range 10 20)
+		    (%make-range 20 40))
+    (=> %range=?)
+    (%make-range 10 40))
+
+  (check
+      (%range-union (%make-range 20 40)
+		    (%make-range 10 20))
+    (=> %range=?)
+    (%make-range 10 40))
+
+  (check
+      (%range-union (%make-range 10 20)
+		    (%make-range 30 40))
+    => '((10 . 20) (30 . 40)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      ;; equal ranges
+      (%range-difference (%make-range 10 20)
+			 (%make-range 10 20))
+    => #f)
+
+  (check
+      ;; overlapping ranges
+      (%range-difference (%make-range 10 30)
+			 (%make-range 20 40))
+    => '((10 . 20) (30 . 40)))
+
+  (check
+      ;; overlapping ranges
+      (%range-difference (%make-range 20 40)
+			 (%make-range 10 30))
+    => '((10 . 20) (30 . 40)))
+
+  (check
+      ;; non-overlapping ranges
+      (%range-difference (%make-range 10 20)
+			 (%make-range 30 40))
+    => '((10 . 20) (30 . 40)))
+
+  (check
+      ;; non-overlapping ranges
+      (%range-difference (%make-range 30 40)
+			 (%make-range 10 20))
+    => '((10 . 20) (30 . 40)))
+
+  (check
+      ;; contiguous ranges
+      (%range-difference (%make-range 10 20)
+			 (%make-range 20 40))
+    (=> %range=?)
+    (%make-range 10 40))
+
+  (check
+      ;; contiguous ranges
+      (%range-difference (%make-range 20 40)
+			 (%make-range 10 20))
+    (=> %range=?)
+    (%make-range 10 40))
 
   )
 
