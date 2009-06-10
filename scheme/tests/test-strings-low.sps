@@ -51,7 +51,7 @@
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
 	(%string-every 123 "abc" 0 2))
-    => 'string-every)
+    => '%string-every)
 
 ;;; --------------------------------------------------------------------
 
@@ -128,7 +128,7 @@
       (guard (exc ((assertion-violation? exc)
 		   (condition-who exc)))
 	(%string-any 123 "abc" 0 2))
-    => 'string-any)
+    => '%string-any)
 
 ;;; --------------------------------------------------------------------
 
@@ -199,495 +199,6 @@
 	     (end (string-length str)))
 	(%string-any char-alphabetic? str beg end))
     => #f)
-
-  )
-
-
-(parameterise ((check-test-name 'mapping))
-
-  (check
-      (let* ((str "aaaa")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-map char-upcase str beg end))
-    => "AAAA")
-
-  (check
-      (let* ((str "")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-map char-upcase str beg end))
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str "aaaa")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-map! char-upcase str beg end)
-	str)
-    => "AAAA")
-
-  (check
-      (let* ((str "")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-map! char-upcase str beg end)
-	str)
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str "aaaa")
-	     (beg 0)
-	     (end (string-length str))
-	     (result ""))
-	(%string-for-each*
-	 (lambda (ch)
-	   (set! result
-		 (string-append result
-				(number->string (char->integer (char-upcase ch))))))
-	 str beg end)
-	result)
-    => "65656565")
-
-  (check
-      (let* ((str "")
-	     (beg 0)
-	     (end (string-length str))
-	     (result ""))
-	(%string-for-each*
-	 (lambda (ch)
-	   (set! result
-		 (string-append result
-				(number->string (char->integer (char-upcase ch))))))
-	 str beg end)
-	result)
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str "aaaa")
-	     (beg 0)
-	     (end (string-length str))
-	     (result '()))
-	(%string-for-each-index
-	 (lambda (idx)
-	   (set! result (cons idx result)))
-	 str beg end)
-	result)
-    => '(3 2 1 0))
-
-  (check
-      (let* ((str "")
-	     (beg 0)
-	     (end (string-length str))
-	     (result '()))
-	(%string-for-each-index
-	 (lambda (idx)
-	   (set! result (cons idx result)))
-	 str beg end)
-	result)
-    => '())
-
-  )
-
-
-(parameterise ((check-test-name 'folding))
-
-  (check
-      (let* ((str "abcd")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-fold cons '() str beg end))
-    => '(#\d #\c #\b #\a))
-
-  (check
-      (let* ((str "")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-fold cons '() str beg end))
-    => '())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str "abcd")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-fold-right cons '() str beg end))
-    => '(#\a #\b #\c #\d))
-
-  (check
-      (let* ((str "")
-	     (beg 0)
-	     (end (string-length str)))
-	(%string-fold-right cons '() str beg end))
-    => '())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (string-unfold null? car cdr '(#\a #\b #\c #\d))
-    => "abcd")
-
-  (check
-      (string-unfold null? car cdr '())
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (string-unfold-right null? car cdr '(#\a #\b #\c #\d))
-    => "dcba")
-
-  (check
-      (string-unfold-right null? car cdr '())
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (string-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
-    => "ABCD")
-
-  (check
-      (string-tabulate integer->char 0)
-    => "")
-
-  )
-
-
-(parameterise ((check-test-name 'prefix))
-
-  (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
-    => 4)
-
-  (check
-      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
-    => 1)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
-	     (str2 "a") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
-    => 1)
-
-  (check
-      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
-	     (str2 "2") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "efgabcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
-    => 4)
-
-  (check
-      (let* ((str1 "efgabcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123abCd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
-    => 1)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
-	     (str2 "a") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
-    => 1)
-
-  (check
-      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
-	     (str2 "2") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 4)
-
-  (check
-      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 4)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
-	     (str2 "a") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 1)
-
-  (check
-      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
-	     (str2 "2") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "efgabCd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123abCd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 4)
-
-  (check
-      (let* ((str1 "efgabCd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 4)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
-	     (str2 "a") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 1)
-
-  (check
-      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
-	     (str2 "2") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-  (check
-      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
-    => 0)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "aBcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "aBcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "123") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
-
-  (check
-      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
-    => #t)
 
   )
 
@@ -1221,31 +732,189 @@
   )
 
 
-(parameterise ((check-test-name 'case-hacking))
+(parameterise ((check-test-name 'mapping))
+
+  (check
+      (let* ((str "aaaa")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-map char-upcase str beg end))
+    => "AAAA")
+
+  (check
+      (let* ((str "")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-map char-upcase str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aaaa")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-map! char-upcase str beg end)
+	str)
+    => "AAAA")
+
+  (check
+      (let* ((str "")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-map! char-upcase str beg end)
+	str)
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aaaa")
+	     (beg 0)
+	     (end (string-length str))
+	     (result ""))
+	(%string-for-each*
+	 (lambda (ch)
+	   (set! result
+		 (string-append result
+				(number->string (char->integer (char-upcase ch))))))
+	 str beg end)
+	result)
+    => "65656565")
+
+  (check
+      (let* ((str "")
+	     (beg 0)
+	     (end (string-length str))
+	     (result ""))
+	(%string-for-each*
+	 (lambda (ch)
+	   (set! result
+		 (string-append result
+				(number->string (char->integer (char-upcase ch))))))
+	 str beg end)
+	result)
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aaaa")
+	     (beg 0)
+	     (end (string-length str))
+	     (result '()))
+	(%string-for-each-index
+	 (lambda (idx)
+	   (set! result (cons idx result)))
+	 str beg end)
+	result)
+    => '(3 2 1 0))
+
+  (check
+      (let* ((str "")
+	     (beg 0)
+	     (end (string-length str))
+	     (result '()))
+	(%string-for-each-index
+	 (lambda (idx)
+	   (set! result (cons idx result)))
+	 str beg end)
+	result)
+    => '())
+
+  )
+
+
+(parameterise ((check-test-name 'case))
 
   (check
       (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
-	(%string-titlecase! str beg end)
+	(%string-titlecase*! str beg end)
 	str)
     => "Abcd")
 
   (check
       (let* ((str (string-copy "123abcd")) (beg 0) (end (string-length str)))
-	(%string-titlecase! str beg end)
+	(%string-titlecase*! str beg end)
 	str)
     => "123Abcd")
 
   (check
       (let* ((str (string-copy "---abcd")) (beg 0) (end (string-length str)))
-	(%string-titlecase! str beg end)
+	(%string-titlecase*! str beg end)
 	str)
     => "---Abcd")
 
   (check
       (let* ((str (string-copy "abcd efgh")) (beg 0) (end (string-length str)))
-	(%string-titlecase! str beg end)
+	(%string-titlecase*! str beg end)
 	str)
     => "Abcd Efgh")
+
+  )
+
+
+(parameterise ((check-test-name 'folding))
+
+  (check
+      (let* ((str "abcd")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-fold cons '() str beg end))
+    => '(#\d #\c #\b #\a))
+
+  (check
+      (let* ((str "")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-fold cons '() str beg end))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcd")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-fold-right cons '() str beg end))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (let* ((str "")
+	     (beg 0)
+	     (end (string-length str)))
+	(%string-fold-right cons '() str beg end))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-unfold null? car cdr '(#\a #\b #\c #\d))
+    => "abcd")
+
+  (check
+      (string-unfold null? car cdr '())
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-unfold-right null? car cdr '(#\a #\b #\c #\d))
+    => "dcba")
+
+  (check
+      (string-unfold-right null? car cdr '())
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
+    => "ABCD")
+
+  (check
+      (string-tabulate integer->char 0)
+    => "")
 
   )
 
@@ -1511,13 +1180,13 @@
 
   (check
       (let* ((str1 "abcd") (beg1 0) (str2 (string-copy "12")))
-	(%string-copy! str2 0 str1 beg1 (+ 2 beg1))
+	(%string-copy*! str2 0 str1 beg1 (+ 2 beg1))
 	str2)
     => "ab")
 
   (check
       (let* ((str1 "abcd") (beg1 0) (str2 ""))
-	(%string-copy! str2 0 str1 beg1 beg1)
+	(%string-copy*! str2 0 str1 beg1 beg1)
 	str2)
     => "")
 
@@ -1525,114 +1194,340 @@
       (guard (exc ((assertion-violation? exc)
 		   #t))
 	(let* ((str1 "abcd") (beg1 0) (str2 (string-copy "12")))
-	  (%string-copy! str2 3 str1 beg1 (+ 2 beg1))
+	  (%string-copy*! str2 3 str1 beg1 (+ 2 beg1))
 	  str2))
     => #t)
 
   )
 
 
-(parameterise ((check-test-name 'filtering))
+(parameterise ((check-test-name 'prefix))
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-delete #\b str beg end))
-    => "acd")
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 4)
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-delete #\0 str beg end))
-    => "abcbd")
+      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
 
   (check
-      (let* ((str "") (beg 0) (end (string-length str)))
-	(%string-delete #\b str beg end))
-    => "")
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-delete (char-set #\b #\B) str beg end))
-    => "acd")
+      (let* ((str1 "efgabcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 4)
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-delete (char-set #\0 #\1) str beg end))
-    => "abcbd")
+      (let* ((str1 "efgabcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abCd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
 
   (check
-      (let* ((str "") (beg 0) (end (string-length str)))
-	(%string-delete (char-set #\b #\B) str beg end))
-    => "")
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length str1 beg1 end1 str2 beg2 end2))
+    => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aBcBd") (beg 0) (end (string-length str)))
-	(%string-delete char-upper-case? str beg end))
-    => "acd")
+      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-delete char-upper-case? str beg end))
-    => "abcbd")
+      (let* ((str1 "aBcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
 
   (check
-      (let* ((str "") (beg 0) (end (string-length str)))
-	(%string-delete char-upper-case? str beg end))
-    => "")
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-filter #\b str beg end))
-    => "bb")
+      (let* ((str1 "efgabCd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abCd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-filter #\0 str beg end))
-    => "")
+      (let* ((str1 "efgabCd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 4)
 
   (check
-      (let* ((str "") (beg 0) (end (string-length str)))
-	(%string-filter #\b str beg end))
-    => "")
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "a") (beg1 0) (end1 (string-length str1))
+	     (str2 "a") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 1)
+
+  (check
+      (let* ((str1 "1") (beg1 0) (end1 (string-length str1))
+	     (str2 "2") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
+
+  (check
+      (let* ((str1 "abcdefg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-length-ci str1 beg1 end1 str2 beg2 end2))
+    => 0)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-filter (char-set #\b #\B) str beg end))
-    => "bb")
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "abcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-filter (char-set #\0 #\1) str beg end))
-    => "")
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
 
   (check
-      (let* ((str "") (beg 0) (end (string-length str)))
-	(%string-filter (char-set #\b #\B) str beg end))
-    => "")
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aBcBd") (beg 0) (end (string-length str)))
-	(%string-filter char-upper-case? str beg end))
-    => "BB")
+      (let* ((str1 "aBcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
 
   (check
-      (let* ((str "abcbd") (beg 0) (end (string-length str)))
-	(%string-filter char-upper-case? str beg end))
-    => "")
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "aBcd123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
 
   (check
-      (let* ((str "") (beg 0) (end (string-length str)))
-	(%string-filter char-upper-case? str beg end))
-    => "")
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-prefix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123abcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str1 "aBcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "123aBcd") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "123") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
+
+  (check
+      (let* ((str1 "efg") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #f)
+
+  (check
+      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-suffix-ci? str1 beg1 end1 str2 beg2 end2))
+    => #t)
 
   )
 
@@ -2042,6 +1937,465 @@
   )
 
 
+(parameterise ((check-test-name 'filtering))
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete #\b str beg end))
+    => "acd")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete #\0 str beg end))
+    => "abcbd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-delete #\b str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete (char-set #\b #\B) str beg end))
+    => "acd")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete (char-set #\0 #\1) str beg end))
+    => "abcbd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-delete (char-set #\b #\B) str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aBcBd") (beg 0) (end (string-length str)))
+	(%string-delete char-upper-case? str beg end))
+    => "acd")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-delete char-upper-case? str beg end))
+    => "abcbd")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-delete char-upper-case? str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter #\b str beg end))
+    => "bb")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter #\0 str beg end))
+    => "")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-filter #\b str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter (char-set #\b #\B) str beg end))
+    => "bb")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter (char-set #\0 #\1) str beg end))
+    => "")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-filter (char-set #\b #\B) str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "aBcBd") (beg 0) (end (string-length str)))
+	(%string-filter char-upper-case? str beg end))
+    => "BB")
+
+  (check
+      (let* ((str "abcbd") (beg 0) (end (string-length str)))
+	(%string-filter char-upper-case? str beg end))
+    => "")
+
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-filter char-upper-case? str beg end))
+    => "")
+
+  )
+
+
+(parameterise ((check-test-name 'lists))
+
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string->list* str beg end))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
+	(%string->list* str beg end))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (reverse-list->string '(#\a #\b #\c #\d))
+    => "dcba")
+
+  (check
+      (reverse-list->string '())
+    => "")
+
+  )
+
+;;; --------------------------------------------------------------------
+
+(parameterise ((check-test-name 'tokenize))
+
+  (check
+      (let* ((str "ciao hello salut") (beg 0) (end (string-length str)))
+	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
+			  str beg end))
+    => '("ciao" "hello" "salut")
+)
+  (check
+      (let* ((str "") (beg 0) (end (string-length str)))
+	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
+			  str beg end))
+    => '())
+
+  (check
+      (let* ((str "ciao hello salut") (beg 0) (end (string-length str)))
+	(%string-tokenize (char-set) str beg end))
+    => '())
+
+  )
+
+;;; --------------------------------------------------------------------
+
+(parameterise ((check-test-name 'join))
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'infix)
+    => "c,i,a,o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'strict-infix)
+    => "c,i,a,o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'suffix)
+    => "c,i,a,o,")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "," 'prefix)
+    => ",c,i,a,o")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '() "," 'infix)
+    => "")
+
+  (check
+      (guard (exc ((assertion-violation? exc)
+		   #t))
+	(%string-join '() "," 'strict-infix))
+    => #t)
+
+  (check
+      (%string-join '() "," 'suffix)
+    => "")
+
+  (check
+      (%string-join '() "," 'prefix)
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '("c") "," 'infix)
+    => "c")
+
+  (check
+      (%string-join '("c") "," 'strict-infix)
+    => "c")
+
+  (check
+      (%string-join '("c") "," 'suffix)
+    => "c,")
+
+  (check
+      (%string-join '("c") "," 'prefix)
+    => ",c")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'infix)
+    => "ciao")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'strict-infix)
+    => "ciao")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'suffix)
+    => "ciao")
+
+  (check
+      (%string-join '("c" "i" "a" "o") "" 'prefix)
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'infix)
+    => "c,;;i,;;a,;;o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'strict-infix)
+    => "c,;;i,;;a,;;o")
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'suffix)
+    => "c,;;i,;;a,;;o,;;")
+
+  (check
+      (%string-join '("c" "i" "a" "o") ",;;" 'prefix)
+    => ",;;c,;;i,;;a,;;o")
+
+  )
+
+
+(parameterise ((check-test-name 'replicating))
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring 0 5 str beg end))
+    => "ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring 0 9 str beg end))
+    => "ciao ciao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring -5 5 str beg end))
+    => "ciao ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring 2 4 str beg end))
+    => "ao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str)))
+	(%xsubstring -3 7 str beg end))
+    => "ao ciao ci")
+
+  (check
+      (guard (exc ((assertion-violation? exc) #t))
+	(let ((str "ciao "))
+	  (%xsubstring -3 7 str 3 3)))
+    => #t)
+
+  (check
+      (guard (exc ((assertion-violation? exc)
+		   #t))
+	(let* ((str "") (beg 0) (end (string-length str)))
+	  (%xsubstring 0 5 str beg end)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "01234")))
+	(%string-xcopy! 0 5 result 0 (string-length result) str beg end)
+	result)
+    => "ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "012345678")))
+	(%string-xcopy! 0 9 result 0 (string-length result) str beg end)
+	result)
+    => "ciao ciao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "0123456789")))
+	(%string-xcopy! -5 5 result 0 (string-length result) str beg end)
+	result)
+    => "ciao ciao ")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "01")))
+	(%string-xcopy! 2 4 result 0 (string-length result) str beg end)
+	result)
+    => "ao")
+
+  (check
+      (let* ((str "ciao ") (beg 0) (end (string-length str))
+	     (result (string-copy "0123456789")))
+	(%string-xcopy! -3 7 result 0 (string-length result) str beg end)
+	result)
+    => "ao ciao ci")
+
+  (check
+      (guard (exc ((assertion-violation? exc)
+		   #t))
+	(let* ((str "") (beg 0) (end (string-length str))
+	     (result (string-copy "")))
+	  (%string-xcopy! 0 5 result 0 (string-length result) str beg end)))
+    => #t)
+
+  )
+
+
+(parameterise ((check-test-name 'filling))
+
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string-fill*! #\b str beg end)
+	str)
+    => "bbbb")
+
+  (check
+      (let* ((str (string-copy "accd")))
+	(%string-fill*! #\b str 1 3)
+	str)
+    => "abbd")
+
+  (check
+      (let* ((str (string-copy "")))
+	(%string-fill*! #\b str 0 0)
+	str)
+    => "")
+
+  )
+
+
+(parameterise ((check-test-name 'reverse))
+
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string-reverse str beg end))
+    => "dcba")
+
+  (check
+      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
+	(%string-reverse str beg end))
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
+	(%string-reverse! str beg end)
+	str)
+    => "dcba")
+
+  (check
+      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
+	(%string-reverse! str beg end)
+	str)
+    => "")
+
+  )
+
+
+(parameterise ((check-test-name 'concatenate))
+
+  (check
+      (string-concatenate '("ciao" " " "hello" " " "salut"))
+    => "ciao hello salut")
+
+  (check
+      (string-concatenate '())
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" (string-length " hola"))
+    => "salut hello ciao hola")
+
+  (check
+      (%string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" 3)
+    => "salut hello ciao ho")
+
+  (check
+      (%string-concatenate-reverse '() "" 0)
+    => "")
+
+
+  )
+
+
+(parameterise ((check-test-name 'replace))
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 beg1 end1 str2 beg2 end2))
+    => "1234")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 2 2 str2 beg2 end2))
+    => "ab1234cd")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 2 2 str2 beg2 end2))
+    => "abcd")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 1 3 str2 beg2 end2))
+    => "a1234d")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 0 3 str2 beg2 end2))
+    => "1234d")
+
+  (check
+      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
+	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
+	(%string-replace str1 1 4 str2 beg2 end2))
+    => "a1234")
+
+
+  )
+
+
 (parameterise ((check-test-name 'kmp))
 
   (let ()
@@ -2245,351 +2599,6 @@
 
   )
 
-
-(parameterise ((check-test-name 'filling))
-
-  (check
-      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
-	(%string-fill*! #\b str beg end)
-	str)
-    => "bbbb")
-
-  (check
-      (let* ((str (string-copy "accd")))
-	(%string-fill*! #\b str 1 3)
-	str)
-    => "abbd")
-
-  (check
-      (let* ((str (string-copy "")))
-	(%string-fill*! #\b str 0 0)
-	str)
-    => "")
-
-  )
-
-
-(parameterise ((check-test-name 'reverse))
-
-  (check
-      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
-	(%string-reverse str beg end))
-    => "dcba")
-
-  (check
-      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
-	(%string-reverse str beg end))
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
-	(%string-reverse! str beg end)
-	str)
-    => "dcba")
-
-  (check
-      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
-	(%string-reverse! str beg end)
-	str)
-    => "")
-
-  )
-
-
-(parameterise ((check-test-name 'lists))
-
-  (check
-      (let* ((str (string-copy "abcd")) (beg 0) (end (string-length str)))
-	(%string->list* str beg end))
-    => '(#\a #\b #\c #\d))
-
-  (check
-      (let* ((str (string-copy "")) (beg 0) (end (string-length str)))
-	(%string->list* str beg end))
-    => '())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (reverse-list->string '(#\a #\b #\c #\d))
-    => "dcba")
-
-  (check
-      (reverse-list->string '())
-    => "")
-
-  )
-
-
-(parameterise ((check-test-name 'concatenate))
-
-  (check
-      (string-concatenate '("ciao" " " "hello" " " "salut"))
-    => "ciao hello salut")
-
-  (check
-      (string-concatenate '())
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (%string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" (string-length " hola"))
-    => "salut hello ciao hola")
-
-  (check
-      (%string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" 3)
-    => "salut hello ciao ho")
-
-  (check
-      (%string-concatenate-reverse '() "" 0)
-    => "")
-
-
-  )
-
-
-(parameterise ((check-test-name 'replace))
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
-	(%string-replace str1 beg1 end1 str2 beg2 end2))
-    => "1234")
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
-	(%string-replace str1 2 2 str2 beg2 end2))
-    => "ab1234cd")
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "") (beg2 0) (end2 (string-length str2)))
-	(%string-replace str1 2 2 str2 beg2 end2))
-    => "abcd")
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
-	(%string-replace str1 1 3 str2 beg2 end2))
-    => "a1234d")
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
-	(%string-replace str1 0 3 str2 beg2 end2))
-    => "1234d")
-
-  (check
-      (let* ((str1 "abcd") (beg1 0) (end1 (string-length str1))
-	     (str2 "1234") (beg2 0) (end2 (string-length str2)))
-	(%string-replace str1 1 4 str2 beg2 end2))
-    => "a1234")
-
-
-  )
-
-
-(parameterise ((check-test-name 'tokenize))
-
-  (check
-      (let* ((str "ciao hello salut") (beg 0) (end (string-length str)))
-	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
-			  str beg end))
-    => '("ciao" "hello" "salut")
-)
-  (check
-      (let* ((str "") (beg 0) (end (string-length str)))
-	(%string-tokenize (char-set #\a #\c #\e #\i #\h #\l #\o #\s #\t #\u)
-			  str beg end))
-    => '())
-
-  (check
-      (let* ((str "ciao hello salut") (beg 0) (end (string-length str)))
-	(%string-tokenize (char-set) str beg end))
-    => '())
-
-  )
-
-
-(parameterise ((check-test-name 'xsubstring))
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str)))
-	(%xsubstring 0 5 str beg end))
-    => "ciao ")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str)))
-	(%xsubstring 0 9 str beg end))
-    => "ciao ciao")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str)))
-	(%xsubstring -5 5 str beg end))
-    => "ciao ciao ")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str)))
-	(%xsubstring 2 4 str beg end))
-    => "ao")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str)))
-	(%xsubstring -3 7 str beg end))
-    => "ao ciao ci")
-
-  (check
-      (guard (exc ((assertion-violation? exc)
-		   #t))
-	(let* ((str "") (beg 0) (end (string-length str)))
-	  (%xsubstring 0 5 str beg end)))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str))
-	     (result (string-copy "01234")))
-	(%string-xcopy! 0 5 result 0 (string-length result) str beg end)
-	result)
-    => "ciao ")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str))
-	     (result (string-copy "012345678")))
-	(%string-xcopy! 0 9 result 0 (string-length result) str beg end)
-	result)
-    => "ciao ciao")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str))
-	     (result (string-copy "0123456789")))
-	(%string-xcopy! -5 5 result 0 (string-length result) str beg end)
-	result)
-    => "ciao ciao ")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str))
-	     (result (string-copy "01")))
-	(%string-xcopy! 2 4 result 0 (string-length result) str beg end)
-	result)
-    => "ao")
-
-  (check
-      (let* ((str "ciao ") (beg 0) (end (string-length str))
-	     (result (string-copy "0123456789")))
-	(%string-xcopy! -3 7 result 0 (string-length result) str beg end)
-	result)
-    => "ao ciao ci")
-
-  (check
-      (guard (exc ((assertion-violation? exc)
-		   #t))
-	(let* ((str "") (beg 0) (end (string-length str))
-	     (result (string-copy "")))
-	  (%string-xcopy! 0 5 result 0 (string-length result) str beg end)))
-    => #t)
-
-  )
-
-
-(parameterise ((check-test-name 'join))
-
-  (check
-      (%string-join '("c" "i" "a" "o") "," 'infix)
-    => "c,i,a,o")
-
-  (check
-      (%string-join '("c" "i" "a" "o") "," 'strict-infix)
-    => "c,i,a,o")
-
-  (check
-      (%string-join '("c" "i" "a" "o") "," 'suffix)
-    => "c,i,a,o,")
-
-  (check
-      (%string-join '("c" "i" "a" "o") "," 'prefix)
-    => ",c,i,a,o")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (%string-join '() "," 'infix)
-    => "")
-
-  (check
-      (guard (exc ((assertion-violation? exc)
-		   #t))
-	(%string-join '() "," 'strict-infix))
-    => #t)
-
-  (check
-      (%string-join '() "," 'suffix)
-    => "")
-
-  (check
-      (%string-join '() "," 'prefix)
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (%string-join '("c") "," 'infix)
-    => "c")
-
-  (check
-      (%string-join '("c") "," 'strict-infix)
-    => "c")
-
-  (check
-      (%string-join '("c") "," 'suffix)
-    => "c,")
-
-  (check
-      (%string-join '("c") "," 'prefix)
-    => ",c")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (%string-join '("c" "i" "a" "o") "" 'infix)
-    => "ciao")
-
-  (check
-      (%string-join '("c" "i" "a" "o") "" 'strict-infix)
-    => "ciao")
-
-  (check
-      (%string-join '("c" "i" "a" "o") "" 'suffix)
-    => "ciao")
-
-  (check
-      (%string-join '("c" "i" "a" "o") "" 'prefix)
-    => "ciao")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (%string-join '("c" "i" "a" "o") ",;;" 'infix)
-    => "c,;;i,;;a,;;o")
-
-  (check
-      (%string-join '("c" "i" "a" "o") ",;;" 'strict-infix)
-    => "c,;;i,;;a,;;o")
-
-  (check
-      (%string-join '("c" "i" "a" "o") ",;;" 'suffix)
-    => "c,;;i,;;a,;;o,;;")
-
-  (check
-      (%string-join '("c" "i" "a" "o") ",;;" 'prefix)
-    => ",;;c,;;i,;;a,;;o")
-
-  )
 
 
 ;;;; done

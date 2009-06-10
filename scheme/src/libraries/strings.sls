@@ -107,39 +107,32 @@
   (export
 
     ;; predicates
-    string-every string-any string-null?
-
-    ;; constructors
-
-    ;; mapping
-    string-map string-map!
-    string-for-each string-for-each-index
-
-    ;; folding
-    string-fold       string-unfold
-    string-fold-right string-unfold-right
-    string-tabulate
+    string-null? string-every string-any
 
     ;; comparison
     string-compare string-compare-ci
     string=    string<    string>    string<=    string>=    string<>
     string-ci= string-ci< string-ci> string-ci<= string-ci>= string-ci<>
 
-    ;; case
-    string-downcase  string-upcase  string-titlecase
-    string-downcase! string-upcase! string-titlecase!
+    ;; mapping
+    string-map string-map!
+    string-for-each* string-for-each-index
 
-    ;; selection
-    string-copy* string-copy!
+    ;; case
+    string-downcase* string-upcase* string-titlecase*
+    string-downcase*! string-upcase*! string-titlecase*!
+
+    ;; folding
+    string-fold       string-unfold
+    string-fold-right string-unfold-right
+    string-tabulate
+
+    ;; selecting
+    substring* string-copy*!
     string-take string-take-right
     string-drop string-drop-right
-
-    ;; padding and trimming
-    string-pad string-pad-right
     string-trim string-trim-right string-trim-both
-    string-filter string-delete
-    string-index string-index-right
-    string-skip  string-skip-right
+    string-pad string-pad-right
 
     ;; prefix and suffix
     string-prefix-length string-prefix-length-ci
@@ -147,56 +140,59 @@
     string-prefix? string-prefix-ci?
     string-suffix? string-suffix-ci?
 
-    ;; search
+    ;; searching
+    string-index string-index-right
+    string-skip  string-skip-right
     string-count
     string-contains string-contains-ci
 
-    ;; reverse and append
-    string-reverse string-reverse! reverse-list->string
-    string-concatenate string-concatenate/shared string-concatenate-reverse
+    ;; filtering
+    string-filter string-delete
+
+    ;; strings and lists
+    string->list* reverse-list->string
+    string-join
+    string-tokenize (rename (string-tokenize string-tokenise))
 
     ;; replicating
     xsubstring string-xcopy!
 
-    ;; string and lists
-    string-join string->list*
-
-    string-tokenize
-    string-replace
-		; R5RS extended:
-    string-fill!
-		; R5RS re-exports:
-    string? make-string string-length string-ref string-set!
-    string string-append list->string
-		; Low-level routines:
-    ;; 	  make-kmp-restart-vector string-kmp-partial-search kmp-step
-    ;; 	  string-parse-start+end
-    ;; 	  string-parse-final-start+end
-    ;; 	  let-string-start+end
-    ;; 	  check-substring-spec
-    ;; 	  substring-spec-ok?
-    )
-  (import (except (nausicaa)
-		  string-copy string-for-each string->list
-		  string-upcase string-downcase string-titlecase string-hash)
-    (except (rnrs mutable-strings) string-fill!)
-    (rnrs r5rs)
-    (char-sets))
+    ;; concatenate, reverse, fill, replace
+    string-concatenate string-concatenate-reverse
+    string-reverse string-reverse!
+    string-fill*! string-replace)
+  (import (rnrs)
+    (strings low))
 
 
 
 (define-syntax unpack
-  (syntax-rules ()
+  (syntax-rules (view start past)
+
+    ((_ (view ?str))
+     (let ((str ?str))
+       (values str 0 (string-length str))))
+
+    ((_ (view ?str (start ?start)))
+     (let ((str ?str))
+       (values str ?start (string-length str))))
+
+    ((_ (view ?str (past ?past)))
+     (values ?str 0 ?past))
+
+    ((_ (view ?str (start ?start) (past ?past)))
+     (values ?str ?start ?past))
+
     ((_ (?str))
      (let ((str ?str))
        (values ?str 0 (string-length ?str))))
 
-    ((_ (?str ?beg))
+    ((_ (?str ?start))
      (let ((str ?str))
-       (values ?str ?beg (string-length ?str))))
+       (values ?str ?start (string-length ?str))))
 
-    ((_ (?str ?beg ?past))
-     (values ?str ?beg ?past))
+    ((_ (?str ?start ?past))
+     (values ?str ?start ?past))
 
     ((?F ?str)
      (?F (?str)))
@@ -218,6 +214,111 @@
     ((_ ?proc ?S)
      (let-values (((str beg past) (unpack ?S)))
        (%string-any ?proc str beg past)))))
+
+
+;;;; comparison
+
+(define-syntax string-compare
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-compare str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
+
+(define-syntax string-compare-ci
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-compare-ci str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax string=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string= str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string<>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string<> str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string<
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string< str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string> str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string<=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string<= str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string>=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string>= str1 start1 end1 str2 start2 end2)))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax string-ci=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-ci= str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string-ci<>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-ci<> str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string-ci<
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-ci< str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string-ci>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-ci> str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string-ci<=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-ci<= str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax string-ci>=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%string-ci>= str1 start1 end1 str2 start2 end2)))))
 
 
 ;;;; mapping
@@ -247,6 +348,47 @@
        (%string-for-each-index ?proc str beg past)))))
 
 
+;;;; case hacking
+
+(define-syntax string-upcase*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map char-upcase str beg past)))))
+
+(define-syntax string-upcase*!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map! char-upcase str beg past)))))
+
+(define-syntax string-downcase*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map char-downcase str beg past)))))
+
+(define-syntax string-downcase*!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-map! char-downcase str beg past)))))
+
+(define-syntax string-titlecase*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (let ((ans (substring str beg past)))
+	 (%string-titlecase*! ans 0 (- past beg))
+	 ans)))))
+
+(define-syntax string-titlecase*!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-titlecase*! str beg past)))))
+
+
 ;;;; folding
 
 (define-syntax string-fold
@@ -260,6 +402,80 @@
     ((?F ?kons ?knil ?S)
      (let-values (((str beg past) (unpack ?S)))
        (%string-fold-right ?kons ?knil str beg past)))))
+
+
+;;;; selecting
+
+(define-syntax substring*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (substring str beg past)))))
+
+(define-syntax string-copy*!
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%string-copy*! str1 beg1 str2 beg2 past2)))))
+
+(define-syntax string-take
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-take nchars str beg past)))))
+
+(define-syntax string-take-right
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-take-right nchars str beg past)))))
+
+(define-syntax string-drop
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-drop nchars str beg past)))))
+
+(define-syntax string-drop-right
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-drop-right nchars str beg past)))))
+
+(define-syntax string-trim
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-trim criterion str beg past)))))
+
+(define-syntax string-trim-right
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-trim-right criterion str beg past)))))
+
+(define-syntax string-trim-both
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-trim-both criterion str beg past)))))
+
+(define-syntax string-pad
+  (syntax-rules ()
+    ((_ ?S ?len)
+     (string-pad ?S ?len #\space))
+    ((_ ?S ?len ?char)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-pad ?len ?char str beg past)))))
+
+(define-syntax string-pad-right
+  (syntax-rules ()
+    ((_ ?S ?len)
+     (string-pad-right ?S ?len #\space))
+    ((_ ?S ?len ?char)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-pad-right ?len ?char str beg past)))))
 
 
 ;;;; prefix and suffix
@@ -323,147 +539,6 @@
        (%string-suffix-ci? str1 beg1 past1 str2 beg2 past2)))))
 
 
-;;;; comparison
-
-(define-syntax string-compare
-  (syntax-rules ()
-    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%string-compare str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
-
-(define-syntax string-compare-ci
-  (syntax-rules ()
-    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%string-compare-ci str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
-
-
-;;;; case hacking
-
-(define-syntax string-upcase
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-map char-upcase str beg past)))))
-
-(define-syntax string-upcase!
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-map! char-upcase str beg past)))))
-
-(define-syntax string-downcase
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-map char-downcase str beg past)))))
-
-(define-syntax string-downcase!
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-map! char-downcase str beg past)))))
-
-(define-syntax string-titlecase
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (let ((ans (substring str beg past)))
-	 (%string-titlecase! ans 0 (- past beg))
-	 ans)))))
-
-(define-syntax string-titlecase!
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-titlecase! str beg past)))))
-
-
-;;;; selecting
-
-(define-syntax string-take
-  (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-take nchars str beg past)))))
-
-(define-syntax string-take-right
-  (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-take-right nchars str beg past)))))
-
-(define-syntax string-drop
-  (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-drop nchars str beg past)))))
-
-(define-syntax string-drop-right
-  (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-drop-right nchars str beg past)))))
-
-(define-syntax string-trim
-  (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-trim criterion str beg past)))))
-
-(define-syntax string-trim-right
-  (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-trim-right criterion str beg past)))))
-
-(define-syntax string-trim-both
-  (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-trim-both criterion str beg past)))))
-
-(define-syntax string-pad
-  (syntax-rules ()
-    ((_ ?S ?len)
-     (string-pad ?S ?len #\space))
-    ((_ ?S ?len ?char)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-pad ?len ?char str beg past)))))
-
-(define-syntax string-pad-right
-  (syntax-rules ()
-    ((_ ?S ?len)
-     (string-pad-right ?S ?len #\space))
-    ((_ ?S ?len ?char)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-pad-right ?len ?char str beg past)))))
-
-(define-syntax string-copy!
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%string-copy! str1 beg1 str2 beg2 past2)))))
-
-
-;;;; filtering
-
-(define-syntax string-delete
-  (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-delete criterion str beg past)))))
-
-(define-syntax string-filter
-  (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-filter criterion str beg past)))))
-
-
 ;;;; searching
 
 (define-syntax string-index
@@ -498,29 +573,94 @@
 
 (define-syntax string-contains
   (syntax-rules ()
-    ((_ ?S1 ?S2>)
+    ((_ ?S1 ?S2)
      (let-values (((str1 start1 end1) (unpack ?S1))
 		  ((str2 start2 end2) (unpack ?S2)))
        (%string-contains str1 start1 end1 str2 start2 end2)))))
 
 (define-syntax string-contains-ci
   (syntax-rules ()
-    ((_ ?S1 ?S2>)
+    ((_ ?S1 ?S2)
      (let-values (((str1 start1 end1) (unpack ?S1))
 		  ((str2 start2 end2) (unpack ?S2)))
        (%string-contains-ci str1 start1 end1 str2 start2 end2)))))
 
 
-;;;; filling
+;;;; filtering
 
-(define-syntax string-fill*!
+(define-syntax string-delete
   (syntax-rules ()
-    ((_ ?S ?fill-char)
+    ((_ ?S criterion)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-fill*! ?fill-char str beg past)))))
+       (%string-delete criterion str beg past)))))
+
+(define-syntax string-filter
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-filter criterion str beg past)))))
 
 
-;;;; reverse
+;;;; strings and lists
+
+(define-syntax string->list*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string->list* str beg past)))))
+
+(define-syntax string-tokenize
+  (syntax-rules ()
+    ((_ ?S ?token-set)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-tokenize ?token-set str beg past)))))
+
+(define string-join
+  (case-lambda
+   ((strings)
+    (%string-join strings " " 'infix))
+   ((strings delim)
+    (%string-join strings delim 'infix))
+   ((strings delim grammar)
+    (%string-join strings delim grammar))))
+
+
+;;; replicating
+
+(define-syntax xsubstring
+  (syntax-rules ()
+    ((_ ?S ?from ?to)
+     (let-values (((str beg past) (unpack ?S)))
+       (%xsubstring ?from ?to str beg past)))))
+
+(define-syntax string-xcopy!
+  (syntax-rules ()
+    ((_ ?T ?S ?from ?to)
+     (let-values (((str1 beg1 past1) (unpack ?T))
+		  ((str2 beg2 past2) (unpack ?S)))
+       (%string-xcopy! ?from ?to str1 beg1 past1 str2 beg2 past2)))))
+
+
+;;; concatenate, reverse, replace, fill
+
+(define string-concatenate-reverse
+  (case-lambda
+
+   ((string-list)
+    (%string-concatenate-reverse string-list "" 0))
+
+   ((string-list final)
+    (%string-concatenate-reverse string-list final (string-length final)))
+
+   ((string-list final past)
+    (%string-concatenate-reverse string-list final past))))
+
+(define-syntax string-replace
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 past1) (unpack ?S1))
+		  ((str2 start2 past2) (unpack ?S2)))
+       (%string-replace str1 start1 past1 str2 start2 past2)))))
 
 (define-syntax string-reverse
   (syntax-rules ()
@@ -534,78 +674,11 @@
      (let-values (((str beg past) (unpack ?S)))
        (%string-reverse! str beg past)))))
 
-
-;;;; strings and lists
-
-(define-syntax string->list*
+(define-syntax string-fill*!
   (syntax-rules ()
-    ((_ ?S)
+    ((_ ?S ?fill-char)
      (let-values (((str beg past) (unpack ?S)))
-       (%string->list* str beg past)))))
-
-
-;;; concatenate
-
-(define string-concatenate-reverse
-  (case-lambda
-
-   ((string-list)
-    (%string-concatentate-reverse string-list "" 0))
-
-   ((string-list final)
-    (%string-concatentate-reverse string-list final (string-length final)))
-
-   ((string-list final past)
-    (%string-concatenate-reverse string-list final past))))
-
-
-;;;; replace and tokenize
-
-(define-syntax string-replace
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%string-replace str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax string-tokenize
-  (syntax-rules ()
-    ((_ ?S ?token-set)
-     (let-values (((str beg past) (unpack ?S)))
-       (%string-tokenize ?token-set str beg past)))))
-
-
-
-(define-syntax xsubstring
-  (syntax-rules ()
-    ((_ ?from ?to ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (xsubstring ?from ?to str beg past)))))
-
-(define-syntax string-xcopy!
-  (syntax-rules ()
-    ((_ ?from ?to ?T ?S)
-     (let-values (((str1 beg1 past1) (unpack ?T))
-		  ((str2 beg2 past2) (unpack ?S)))
-       (%string-xcopy! ?from ?to str1 beg1 past1 str2 beg2 past2)))))
-
-(define-syntax string-copy*
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (substring str beg past))))
-
-
-;;;; joining
-
-(define string-join
-  (case-lambda
-   ((strings)
-    (%string-join strings " " 'infix))
-   ((strings delim)
-    (%string-join strings delim 'infix))
-   ((strings delim grammar)
-    (%string-join strings delim grammar))))
+       (%string-fill*! ?fill-char str beg past)))))
 
 
 ;;;; done

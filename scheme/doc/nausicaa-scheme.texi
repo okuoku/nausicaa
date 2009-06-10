@@ -807,22 +807,17 @@ Strings library
 * strings convention::          Interface conventions.
 * strings views::               Views over strings.
 * strings pred::                Predicates.
-* strings cons::                Constructors.
-* strings list::                List and string conversion.
-* strings select::              Selection.
 * strings compar::              Comparison.
+* strings map::                 Mapping functions.
+* strings case::                Case mapping.
+* strings fold::                Fold, unfold.
+* strings select::              Selection.
 * strings prefix::              Prefixes and suffixes.
 * strings search::              Searching.
-* strings case-map::            Alphabetic case mapping.
-* strings append::              Reverse and append.
-* strings fold::                Fold, unfold and map.
+* strings filter::              Filtering and deleting.
+* strings list::                List and string conversion.
 * strings replicate::           Replicate and rotate.
 * strings misc::                Miscellaneous: intertion, parsing.
-* strings filter::              Filtering and deleting.
-
-Low level procedures
-
-* strings low compar::          Low level comparison functions.
 * strings kmp::                 Knuth--Morris--Pratt searching.
 
 Knuth-Morris-Pratt searching
@@ -830,6 +825,7 @@ Knuth-Morris-Pratt searching
 * strings kmp rv::              The restart vector.
 * strings kmp step::            Single step of the search.
 * strings kmp partial::         Partial string search.
+* strings kmp string::          Full string search.
 
 Launching programs directly
 
@@ -22349,22 +22345,17 @@ strings} for details).
 * strings convention::          Interface conventions.
 * strings views::               Views over strings.
 * strings pred::                Predicates.
-* strings cons::                Constructors.
-* strings list::                List and string conversion.
-* strings select::              Selection.
 * strings compar::              Comparison.
+* strings map::                 Mapping functions.
+* strings case::                Case mapping.
+* strings fold::                Fold, unfold.
+* strings select::              Selection.
 * strings prefix::              Prefixes and suffixes.
 * strings search::              Searching.
-* strings case-map::            Alphabetic case mapping.
-* strings append::              Reverse and append.
-* strings fold::                Fold, unfold and map.
-* strings replicate::           Replicate and rotate.
-* strings misc::                Miscellaneous: intertion, parsing.
 * strings filter::              Filtering and deleting.
-
-Low level procedures
-
-* strings low compar::          Low level comparison functions.
+* strings list::                List and string conversion.
+* strings replicate::           Replicate and rotate.
+* strings misc::                Miscellaneous functions.
 * strings kmp::                 Knuth--Morris--Pratt searching.
 @end menu
 
@@ -22587,6 +22578,129 @@ table:
 @subsection Views over strings
 
 
+String views are syntactic sugar to allow substring specification with
+minimum overhead.  Many low level string functions act on substrings
+specified with triplets of arguments:
+
+@itemize
+@item
+The full string.
+
+@item
+The @dfn{start index}: The index of the first code point included in the
+selected substring.
+
+@item
+The @dfn{past index}: The index of the code point past the last code
+point included in the selected substring.
+@end itemize
+
+To select the substring @code{"hello"} from the string @code{"ciao,
+hello, salut"} we have to determine the half--open range of code points,
+which is @math{[6, 11)}, then apply a function to the arguments:
+
+@example
+(%the-function "ciao, hello, salut" 6 11)
+
+;;              0123456789012345678
+;;              0         1
+@end example
+
+@noindent
+while to select the whole string we can do:
+
+@example
+(%the-function "ciao, hello, salut" 0 18)
+@end example
+
+@noindent
+or:
+
+@example
+(let ((str "ciao, hello, salut"))
+  (%the-function str 0 (string-length str)))
+@end example
+
+With the string views implemented by @library{strings}, the low level
+function is wrapped by a high level syntax which can be invoked as:
+
+@example
+(the-function "ciao, hello, salut")
+        ; select the whole string
+
+(the-function ("ciao, hello, salut"))
+        ; select the whole string
+
+(the-function ("ciao, hello, salut" 6))
+        ; select the substring [6, 18)
+
+(the-function ("ciao, hello, salut" 6 11))
+        ; select the substring [6, 11)
+@end example
+
+@noindent
+additionally the following verbose syntaxes are supported:
+
+@example
+(the-function (view "ciao, hello, salut"))
+        ; select the whole string
+
+(the-function (view "ciao, hello, salut"
+                (start 6)))
+        ; select the substring [6, 18)
+
+(the-function (view "ciao, hello, salut"
+                (start 6)
+                (past 11)))
+        ; select the substring [6, 11)
+
+(the-function (view "ciao, hello, salut"
+                (past 11)))
+        ; select the substring [0, 11)
+@end example
+
+@noindent
+instead of a triplet of arguments, the string view is a single argument
+that can be:
+
+@table @code
+@item @meta{string}
+@itemx (@meta{string})
+@itemx (view @meta{string})
+The string itself or an unquoted list holding the string itself,
+optionally prefixed by the @code{view} auxiliary syntax: It selects the
+whole string.
+
+@item (@meta{string} @meta{start-index})
+@itemx (view @meta{string} (start @meta{start-index}))
+An unquoted list holding the string and the start index, optionally with
+auxiliary syntaxes @code{view} and @code{start}: It selects the
+substring from the start index to the end.
+
+@item (view @meta{string} (past @meta{past-index}))
+An unquoted list holding the string and the past index, with auxiliary
+syntaxes @code{view} and @code{past}: It selects the substring from zero
+to the selected past index.
+
+@item (@meta{string} @meta{start-index} @meta{past-index})
+@itemx (view @meta{string} (start @meta{start-index}) (past @meta{past-index}))
+An unquoted list holding the string, the start index and the past index,
+optionally with auxiliary syntaxes @code{view}, @code{start} and
+@code{past}: It selects the substring between the start and past
+indexes.
+@end table
+
+@noindent
+@meta{string}, @meta{start-index} and @meta{past-index} can be arbitrary
+Scheme expressions.  High level macros accepting two or more substrings
+as arguments support string views for all of them.  When we are
+concerned with the overhead of string views, we can use the low level
+functions directly.
+
+In the following documentation: Low level functions and high level
+macros are documented together; only the meaning of arguments to low
+level function are described, the meaning of high level arguments is
+obvious.
 
 @c page
 @node strings pred
@@ -22599,13 +22713,15 @@ Return @true{} if @var{obj} is the empty string, otherwise return
 @end defun
 
 
-@defun %string-every @var{char/char-set/pred} @var{str} @var{start} @var{past}
-@defunx %string-any @var{char/char-set/pred} @var{str} @var{start} @var{past}
-@defunx string-every @var{char/char-set/pred} @var{S}
-@defunx string-any @var{char/char-set/pred} @var{S}
+@deffn Function %string-every @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Function %string-any @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Macro string-every @var{char/char-set/pred} @var{S}
+@deffnx Macro string-any @var{char/char-set/pred} @var{S}
 Check to see if the given criteria is true on every/any character in
 @var{str}, proceeding from left (index @var{start}) to right (index
 @var{past}).
+
+If the selected substring is empty, the return value is @false{}.
 
 If @var{char/char-set/pred} is a character, it is tested for equality
 with the elements of @var{s}.
@@ -22623,78 +22739,872 @@ produced by the application of the predicate.
 
 @item
 If @func{string-every} returns true, the returned true value is the one
-produced by the final application of the predicate to @code{s[past-1]}.
-If @func{string-every} is applied to an empty sequence of characters, it
-simply returns @true{}.
+produced by the application of the predicate to the last code point in
+the substring.
 @end itemize
 
-If @func{string-every} or @func{string-any} apply the predicate to the
-final element of the selected sequence (i.e. @code{s[past-1]}), that
-final application is a tail call.
+If the predicate is applied to the final element of the selected
+substring, that final application is a tail call.
 
 The names of these procedures do not end with a question mark; this is
 to indicate that, in the predicate case, they do not return a simple
 boolean (@true{} or @false{}), but a general value.
+@end deffn
+
+@c page
+@node strings compar
+@subsection Comparison
+
+
+@deffn Function %string-compare @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Function %string-compare-ci @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Macro string-compare @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Marco string-compare-ci @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
+Determine the @dfn{mismatch index} between the two substrings: the
+largest index @math{i} such that for every @math{0 <= j < i},
+@math{str1[j] = str2[j]}; that is, @math{i} is the first position that
+does not match.
+
+The mismatch index is always an index into @var{str1}; in the case of
+equal strings, it is always @var{past1}; the functions observe the
+protocol in this redundant case for uniformity.
+
+The characters at the mismatch index are compared using @func{char<=?}
+or @func{char-ci<=?}.  @var{proc<}, @var{proc=}, or @var{proc>} are
+applied to the mismatch index, depending upon whether the substring of
+@var{str1} is less than, equal to, or greater than the substring of
+@var{str2}.  The result of the application is returned.
+
+If we just want to have the mismatch index: We can use @func{values} as
+value for @var{proc<}, @var{proc=} and @var{proc>}.  Another interesting
+option is to use @code{(lambda (mismatch-index) #f)} or @code{(lambda
+(mismatch-index) #t)}.
+
+Examples:
+
+@example
+(string-compare "abcd" "abcd" values values values)
+@result{} 5
+
+(string-compare "abcd" "abcd12" values values values)
+@result{} 5
+@end example
+@end deffn
+
+
+@deffn Function %string= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Function %string-ci= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Macro string= @var{S1} @var{S2}
+@deffnx Macro string-ci= @var{S1} @var{S2}
+Compare two substrings: Return true if they are equal, @false{}
+otherwise.
+
+@itemize
+@item
+If the substrings have different length: Return @false{}.
+
+@item
+Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
+the selected substring is the same: Return @true{}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return @false{} if they are different or @var{past1} if
+they are equal.
+@end itemize
+@end deffn
+
+
+@deffn Function %string<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Function %string-ci<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Macro string<> @var{S1} @var{S1}
+@deffnx Macro string-ci<> @var{S1} @var{S2}
+Compare two substrings: Return @false{} if they are equal, true
+otherwise.
+
+@itemize
+@item
+If the substrings have different length: Return @true{}.
+
+@item
+Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
+the selected substring is the same: Return @false{}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return @false{} if they are equal or the mismatch index
+if they are different.
+@end itemize
+@end deffn
+
+
+@deffn Function %string< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Function %string-ci< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Macro string< @var{S1} @var{S2}
+@deffnx Macro string-ci< @var{S1} @var{S2}
+Compare two substrings: Return true if the first is lexicographically
+less than the second, @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(< @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is less than the
+second; @false{} otherwise.
+@end itemize
+@end deffn
+
+
+@deffn Function %string<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Function %string-ci<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Macro string<= @var{S1} @var{S2}
+@deffnx Macro string-ci<= @var{S1} @var{S2}
+Compare two substrings: Return true if the first is lexicographically
+less than, or equal to, the second; @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(<= @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is less than, or
+equal to, the second; @false{} otherwise.
+@end itemize
+@end deffn
+
+
+@deffn Function %string> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Function %string-ci> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Macro string> @var{S1} @var{S2}
+@deffnx Macro string-ci> @var{S1} @var{S2}
+Compare two substrings: Return true if the first is lexicographically
+greater than the second, @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(> @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is greater than
+the second; @false{} otherwise.
+@end itemize
+@end deffn
+
+
+@deffn Function %string>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Function %string-ci>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffnx Macro string>= @var{S1} @var{S2}
+@deffnx Macro string-ci>= @var{S1} @var{S2}
+Compare two substrings: Return true if the first is lexicographically
+greater than, or equal to, the second; @false{} otherwise.
+
+@itemize
+@item
+If @var{str1} and @var{str2} are equal according to @func{eq?} and
+@var{beg1} equals @var{beg2}: Return @code{(>= @var{past1}
+@var{past12})}.
+
+@item
+Else apply @func{%string-compare} or @func{%string-compare-ci} to the
+substrings and return: the mismatch index if the first is greater than,
+or equal to, the second; @false{} otherwise.
+@end itemize
+@end deffn
+
+@c page
+@node strings map
+@subsection Mapping functions
+
+
+@deffn Function %string-map @var{proc} @var{str} @var{start} @var{past}
+@deffnx Macro string-map @var{proc} @var{S}
+@var{proc} is a @code{char->char} procedure; it is mapped over the
+selected substring of @var{str}.  Return the result string and do not
+alter its @var{str} parameter.
+
+The order in which @var{proc} is applied to the elements of @var{str} is
+not specified.
+@end deffn
+
+
+@deffn Function %string-map! @var{proc} @var{str} @var{start} @var{past}
+@deffnx Macro string-map! @var{proc} @var{S}
+@var{proc} is a @code{char->char} procedure; it is mapped over the
+selected substring of @var{str}.  Store the mapped code points into the
+selected substring of @var{str} itself.
+
+The order in which @var{proc} is applied to the elements of @var{s} is
+not specified.
+@end deffn
+
+
+@deffn Function %string-for-each* @var{proc} @var{str} @var{start} @var{past}
+@deffnx Macro string-for-each* @var{proc} @var{S}
+Apply @var{proc} to each character in the selected substring of
+@var{str}.  This function iterates from start to end in increasing
+order.
+@end deffn
+
+
+@deffn Function %string-for-each-index @var{proc} @var{str} @var{start} @var{past}
+@deffnx Macro string-for-each-index @var{proc} @var{S}
+Apply @var{proc} to each index of the selected substring of @var{str},
+in order.  This is simply a method of looping over a string that is
+guaranteed to be safe and correct.  Example:
+
+@example
+(define S "...")
+
+(let* ((len (string-length S))
+       (ans (make-string len)))
+  (string-for-each-index
+      (lambda (i) (string-set! ans (- len i) (string-ref S i)))
+      S)
+  ans)
+@end example
+@end deffn
+
+@c page
+@node strings case
+@subsection Case mapping
+
+
+@deffn Function %string-titlecase*! @var{str} @var{start} @var{past}
+@deffnx Macro string-titlecase* @var{s}
+@deffnx Macro string-titlecase*! @var{s}
+For every character @math{c} in the selected range of @var{str}, if
+@math{c} is preceded by a cased character, it is downcased; otherwise it
+is titlecased.
+
+@func{string-titlecase*} returns the result string and does not alter
+its s parameter.  @func{string-titlecase!} is the in--place
+side--effecting variant.
+
+Examples:
+
+@example
+(string-titlecase* "--capitalize tHIS sentence.")
+@result{} "--Capitalize This Sentence."
+
+(string-titlecase* "see Spot run. see Nix run.")
+@result{} "See Spot Run. See Nix Run."
+
+(string-titlecase* "3com makes routers.")
+@result{} "3Com Makes Routers."
+@end example
+
+Note that the character preceding @code{str[start]} has no effect on the
+titlecase decision for character @code{str[start]}:
+
+@example
+(string-titlecase* ("greasy fried chicken" 2))
+@result{} "Easy Fried Chicken"
+@end example
+@end deffn
+
+
+@deffn Macro string-upcase* @var{s}
+@deffnx Macro string-upcase*! @var{s}
+@deffnx Macro string-downcase* @var{s}
+@deffnx Macro string-downcase*! @var{s}
+Raise or lower the case of the alphabetic characters in the string.
+There are no low level functions for these macros because they are just
+wrappers for @func{%string-map} and @func{%string-map!}.
+
+@func{string-upcase} and @func{string-downcase} return the result string
+and do not alter their s parameter.  @func{string-upcase!} and
+@func{string-downcase!} are the in--place side--effecting variants.
+@end deffn
+
+@c page
+@node strings fold
+@subsection Fold, unfold and map
+
+
+@deffn Function %string-fold @var{kons} @var{knil} @var{str} @var{start} @var{past}
+@deffnx Function %string-fold-right @var{kons} @var{knil} @var{str} @var{start} @var{past}
+@deffnx Macro string-fold @var{kons} @var{knil} @var{S}
+@deffnx Macro string-fold-right @var{kons} @var{knil} @var{S}
+These are the fundamental iterators for strings.  The left--fold
+operator maps the @var{kons} procedure across the string from left to
+right:
+
+@example
+(... (kons str[2] (kons str[1] (kons str[0] knil))))
+@end example
+
+@noindent
+in other words, @func{%string-fold} obeys the (tail) recursion:
+
+@example
+(%string-fold kons knil str start past) =
+   (%string-fold kons (kons str[start] knil) start+1 past)
+@end example
+
+The right--fold operator maps the @var{kons} procedure across the string
+from right to left:
+
+@example
+(kons str[0]
+  (...
+    (kons str[past-3]
+      (kons str[past-2]
+        (kons str[past-1] knil)))))
+@end example
+
+@noindent
+obeying the (tail) recursion:
+
+@example
+(%string-fold-right kons knil str start past) =
+   (%string-fold-right kons (kons s[past-1] knil)
+                       start past-1)
+@end example
+
+Examples:
+
+@example
+;; Convert a string to a list of chars.
+(string-fold cons '() "abcd")
+@result{} (#\d #\c #\b #\a))
+
+;; Count the number of upper-case characters in a string.
+(string-fold (lambda (c count)
+               (if (char-upper-case? c)
+                   (+ count 1)
+                 count))
+              0
+              "ABCdefGHi")
+@result{} 5
+
+;; Double every backslash character in S.
+(let* ((str "abc\\de\\f\\ghi")
+       (ans-len (string-fold
+                 (lambda (c sum)
+                   (+ sum (if (char=? c #\\) 2 1)))
+                 0 str))
+       (ans (make-string ans-len)))
+  (string-fold
+   (lambda (c i)
+     (let ((i (if (char=? c #\\)
+                  (begin
+                    (string-set! ans i #\\)
+                    (+ i 1))
+                i)))
+        (string-set! ans i c)
+        (+ i 1)))
+    0 str)
+   ans)
+@result{} "abc\\\\de\\\\f\\\\ghi"
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@defun string-unfold @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed}
+@defunx string-unfold @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-string}
+@defunx string-unfold @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-string} @var{make-final}
+This is a fundamental constructor for strings.  Arguments description
+follows.
+
+@table @var
+@item make-seed
+A map function used to generate a series of ``seed'' values from the
+initial seed:
+
+@example
+@var{first-seed}
+(@var{make-seed} @var{first-seed})            @result{} seed2
+(@var{make-seed} seed2)                 @result{} seed3
+(@var{make-seed} seed3)                 @result{} seed4
+...
+@end example
+
+@item stop?
+A predicate function telling when to stop generating characters; when it
+returns true when applied to one of the seed values.
+
+@item seed->char
+Map function mapping each seed value to the corresponding character in
+the result string.  These chars are assembled into the string in a
+left--to--right order.
+
+@item base
+An optional string which is used as initial/leftmost portion of the
+constructed string.  Defaults to the empty string.
+
+@item make-final
+Optional function applied to the terminal seed value (on which
+@var{stop?}  returns true) to produce the final/rightmost portion of the
+constructed string.  Defaults to @code{(lambda (x) "")}.
+@end table
+
+More precisely, the following (simple, inefficient) definitions hold:
+
+@example
+;; iterative
+(define (string-unfold stop? seed->char make-seed
+                       first-seed base-string make-final)
+  (let loop ((seed    first-seed)
+             (result  base-string))
+    (if (stop? seed)
+        (string-append result (make-final seed))
+      (loop (make-seed seed)
+            (string-append result
+                           (string (seed->char seed)))))))
+
+;; recursive
+(define (string-unfold stop? seed->char make-seed
+                       first-seed base-string make-final)
+  (string-append
+     base-string
+     (let loop ((seed first-seed))
+       (if (stop? seed)
+           (make-final seed)
+         (string-append (string (seed->char seed))
+                        (loop (make-seed seed)))))))
+@end example
+
+This function is a fairly powerful string constructor; we can use it to
+convert a list to a string, read a port into a string, reverse a string,
+copy a string, and so forth.  Examples:
+
+@example
+(port->string p) = (string-unfold eof-object? values
+                                  (lambda (x) (read-char p))
+                                  (read-char p))
+
+(list->string lis) = (string-unfold null? car cdr lis)
+
+(string-tabulate f size) = (string-unfold (lambda (i)
+                                            (= i size))
+                                          f add1 0)
+@end example
+
+@noindent
+to map @var{seed->char} over a list @var{lis}, producing a string:
+
+@example
+(string-unfold null? (compose f car) cdr lis)
+@end example
+
+Interested functional programmers may enjoy noting that
+@func{string-fold-right} and @func{string-unfold} are in some sense
+inverses.  That is, given operations @var{knull?}, @var{kar}, @var{kdr},
+@var{kons}, and @var{knil} satisfying:
+
+@example
+(kons (kar x) (kdr x)) @result{} x
+(knull? knil) @result{} #t
+@end example
+
+@noindent
+then:
+
+@example
+(string-fold-right kons knil
+                   (string-unfold knull? kar kdr x))
+@result{} x
+@end example
+
+@noindent
+and:
+
+@example
+(string-unfold knull? kar kdr
+               (string-fold-right kons knil s))
+@result{} s
+@end example
+
+The final string constructed does not share storage with either
+@var{base-string} or the value produced by @var{make-final}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun string-unfold-right @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed}
+@defunx string-unfold-right @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-string}
+@defunx string-unfold-right @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-string} @var{make-final}
+This is a fundamental constructor for strings.  The arguments are like
+the ones of @func{string-unfold}.  The difference from
+@func{string-unfold} is that this function builds the list from right to
+left; more precisely, the following (simple, inefficient) definitions
+hold:
+
+@example
+;; iterative
+(define (string-unfold-right
+           stop? seed->char make-seed
+           first-seed base-string make-final)
+  (let lp ((seed    first-seed)
+           (result  base))
+    (if (stop? seed)
+        (string-append (make-final seed) result)
+      (loop (make-seed seed)
+            (string-append (string (seed->char seed))
+                           result)))))
+
+;; recursive
+(define (string-unfold-right
+           stop? seed->char make-seed
+           first-seed base-string make-final)
+  (string-append
+     (let loop ((seed first-seed))
+       (if (stop? seed)
+           (make-final seed)
+         (string-append (loop (make-seed seed))
+                        (string (seed->char seed)))))
+     base))
+@end example
+
+Interested functional programmers may enjoy noting that
+@func{string-fold} and @func{string-unfold-right} are in some sense
+inverses.  That is, given operations @var{knull?}, @var{kar}, @var{kdr},
+@var{kons}, and @var{knil} satisfying:
+
+@example
+(kons (kar x) (kdr x)) @result{} x
+(knull? knil) @result{} #t
+@end example
+
+@noindent
+then:
+
+@example
+(string-fold kons knil
+             (string-unfold-right knull? kar kdr x))
+@result{} x
+@end example
+
+@noindent
+and:
+
+@example
+(string-unfold-right knull? kar kdr
+                     (string-fold kons knil s))
+@result{} s
+@end example
+
+The final string constructed does not share storage with either
+@var{base-string} or the value produced by @func{make-final}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun string-tabulate @var{integer->char} @var{len}
+Construct a string of size @var{len} by applying @var{integer->char} to
+each index in the range @math{[0, @var{len})} to produce the
+corresponding string element.  The order in which @var{integer->char} is
+applied to the indices is not specified.
 @end defun
 
 @c page
-@node strings cons
-@subsection Constructors
+@node strings select
+@subsection Selection
 
 
+@deffn Macro substring* S
+Wrapper for @func{substring} accepting a string view as argument.
+@end deffn
+
+
+@deffn Function %string-copy*! @var{dst-str} @var{dst-start} @var{src-str} @var{src-start} @var{src-past}
+@deffnx Macro string-copy*! @var{dst-S} @var{src-S}
+Write the selected source substring into the selected destination
+substring.  This function is the side--effecting variant of
+@func{substring} and @func{substring*}.
+
+The selected destination substring starts at @var{dst-start} in
+@var{dst-str} and extends until the end of the string.  In the
+destination string view @var{dst-S}: If a past index is specified, it is
+ignored.
+@end deffn
+
+
+@deffn Function %string-take @var{nchars} @var{str} @var{start} @var{past}
+@deffnx Function %string-take-right @var{nchars} @var{str} @var{start} @var{past}
+@deffnx Macro string-take @var{S} @var{nchars}
+@deffnx Macro string-take-right @var{S} @var{nchars}
+Return the first or last @var{nchars} of the selected substring.  These
+functions always return a newly allocated string.
+@end deffn
+
+
+@deffn Function %string-drop @var{nchars} @var{str} @var{start} @var{past}
+@deffnx Function %string-drop-right @var{nchars} @var{str} @var{start} @var{past}
+@deffnx Macro string-drop @var{S} @var{nchars}
+@deffnx Macro string-drop-right @var{S} @var{nchars}
+Drop the first or last @var{nchars} of the selected substring and return
+the resulting string.  These functions always return a newly allocated
+string.
+@end deffn
+
+
+@deffn Function %string-pad @var{requested-len} @var{fill-char} @var{str} @var{start} @var{past}
+@deffnx Function %string-pad-right @var{requested-len} @var{fill-char} @var{str} @var{start} @var{past}
+@deffnx Macro string-pad @var{S} @var{requested-len}
+@deffnx Macro string-pad @var{S} @var{requested-len} @var{fill-char}
+@deffnx Macro string-pad-right @var{S} @var{requested-len}
+@deffnx Macro string-pad-right @var{S} @var{requested-len} @var{fill-char}
+Build a string of length @var{requested-len} comprised of @var{str}
+padded on the left or right by as many occurrences of the character
+@var{fill-char} as needed.  Always return a newly allocated string.
+
+If @var{str} has more than @var{requested-len} chars, it is truncated on
+the left or right to length @var{requested-len}.  For the macros:
+@var{fill-char} defaults to @code{#\space}.
+
+Examples:
+
+@example
+(string-pad     "325" 5) => "  325"
+(string-pad   "71325" 5) => "71325"
+(string-pad "8871325" 5) => "71325"
+@end example
+@end deffn
+
+
+@deffn Function %string-trim @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Function %string-trim-right @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Function %string-trim-both @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Macro string-trim @var{S} @var{char/char-set/pred}
+@deffnx Macro string-trim-right @var{S} @var{char/char-set/pred}
+@deffnx Macro string-trim-both @var{S} @var{char/char-set/pred}
+Trim @var{str} by skipping over all characters on the left/on the
+right/on both sides that satisfy the second parameter
+@var{char/char-set/pred}:
+
+@itemize
+@item
+If it is a character @var{char}, characters equal to @var{char} are
+trimmed.
+
+@item
+If it is a char set @var{char-set}, characters contained in
+@var{char-set} are trimmed.
+
+@item
+If it is a predicate @var{pred}, it is a test predicate that is applied
+to the characters in @var{s}; a character causing it to return true is
+skipped.
+@end itemize
+
+Always return a newly allocated string.
+@end deffn
+
+@c page
+@node strings prefix
+@subsection Prefixes and suffixes
+
+
+@deffn Function %string-prefix-length @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Function %string-prefix-length-ci @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Macro string-prefix-length @var{S1} @var{S2}
+@deffnx Macro string-prefix-length-ci @var{S1} @var{S2}
+Return the length of the longest common prefix of the two substrings.
+This is equivalent to the ``mismatch index'' for the strings (modulo the
+@var{start} index offsets).
+@end deffn
+
+
+@deffn Function %string-suffix-length @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Function %string-suffix-length-ci @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Macro string-suffix-length @var{S1} @var{S2}
+@deffnx Macro string-suffix-length-ci @var{S1} @var{S2}
+Return the length of the longest common suffix of the two substrings.
+@end deffn
+
+
+@deffn Function %string-prefix? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Function %string-prefix-ci? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Macro string-prefix? @var{S1} @var{S2}
+@deffnx Macro string-prefix-ci? @var{S1} @var{S2}
+Return @true{} if @var{str1} is a prefix of @var{str2}, otherwise return
+@false{}.  Notice that the empty string is a prefix of every string.
+@end deffn
+
+
+@deffn Function %string-suffix? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Function %string-suffix-ci? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Macro string-suffix? @var{S1} @var{S2}
+@deffnx Macro string-suffix-ci? @var{S1} @var{S2}
+Return @true{} if @var{str1} is a suffix of @var{str2}, otherwise return
+@false{}.  Notice that the empty string is @strong{not} a suffix of
+every string.
+@end deffn
+
+@c page
+@node strings search
+@subsection Searching
+
+
+@deffn Function %string-index @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Function %string-index-right @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Macro string-index @var{S} @var{char/char-set/pred}
+@deffnx Macro string-index-right @var{S} @var{char/char-set/pred}
+Search through the string from the left or right, returning the index of
+the first occurrence of a character which:
+
+@itemize
+@item
+Equals @var{char/char-set/pred} if it is a character.
+
+@item
+Is in @var{char/char-set/pred} if it is a character set.
+
+@item
+Satisfies the predicate @var{char/char-set/pred} if it is a procedure.
+@end itemize
+
+If no match is found: Return @false{}.
+@end deffn
+
+
+@deffn Function %string-skip @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Function %string-skip-right @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Macro string-skip @var{S} @var{char/char-set/pred}
+@deffnx Macro string-skip-right @var{S} @var{char/char-set/pred}
+Search through the string from the left or right, returning the index of
+the first occurrence of a character which:
+
+@itemize
+@item
+Does not equal @var{char/char-set/pred} if it is a character.
+
+@item
+Is not in @var{char/char-set/pred} if it is a character set.
+
+@item
+Does not satisfy the predicate @var{char/char-set/pred} if it is a
+procedure.
+@end itemize
+
+If no match is found: Return @false{}.
+@end deffn
+
+
+@deffn Function %string-count @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Macro string-count @var{S} @var{char/char-set/pred}
+Return a count of the number of characters in @var{str} that satisfy the
+@var{char/char-set/pred} argument.  If this argument is a procedure, it
+is applied to the character as a predicate; if it is a character set,
+the character is tested for membership; if it is a character, it is used
+in an equality test.
+@end deffn
+
+
+@deffn Function %string-contains @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Function %string-contains-ci @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Macro string-contains @var{S1} @var{S2}
+@deffnx Macro string-contains-ci @var{S1} @var{S2}
+Return true if the substring of @var{str1} contains the substring of
+@var{str2}, else return @false{}.  The return value is the index in
+@var{str1} where the substring of @var{str2} occurs.
+@end deffn
+
+@c page
+@node strings filter
+@subsection Filtering and deleting
+
+
+@deffn Function %string-filter @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Macro string-filter @var{S} @var{char/char-set/pred}
+Filter the selected substring, retaining only those characters that
+satisfy the @var{char/char-set/pred} argument.  If this argument is a
+procedure, it is applied to the character as a predicate; if it is a
+char--set, the character is tested for membership; if it is a character,
+it is used in an equality test.
+
+Always return a newly allocated string.
+@end deffn
+
+
+@deffn Function %string-delete @var{char/char-set/pred} @var{str} @var{start} @var{past}
+@deffnx Macro string-delete @var{S} @var{char/char-set/pred}
+Filter the string @var{s}, retaining only those characters that do not
+satisfy the @var{char/char-set/pred} argument.  If this argument is a
+procedure, it is applied to the character as a predicate; if it is a
+char--set, the character is tested for membership; if it is a character,
+it is used in an equality test.
+
+Always return a newly allocated string.
+@end deffn
 
 @c page
 @node strings list
 @subsection List and string conversion
 
 
-@defun string->list @var{s}
-@defunx string->list @var{s} @var{start}
-@defunx string->list @var{s} @var{start} @var{end}
-@defunx list->string @var{char-list}
-@rnrs{5}+ @func{string->list} returns a newly allocated list of the
-characters that make up the given string.  @func{list->string} returns a
-newly allocated string formed from the characters in the list
-@var{char-list}, which must be a list of characters.
-@func{string->list} and @func{list->string} are inverses so far as
-@func{equal?} is concerned.
-
-@func{string->list} is extended from the @rnrs{5} definition to take
-optional @var{start}/@var{end} arguments.
-@end defun
+@deffn Function %string->list* @var{str} @var{start} @var{past}
+@deffnx Macro string->list* @var{S}
+Return a newly allocated list of the characters that make up the given
+substring.  This is an extension of the @func{string->list} function
+that adds support for substrings.
+@end deffn
 
 
 @defun reverse-list->string @var{char-list}
-An efficient implementation of @code{(compose list->string reverse)}:
+Reverse the given list of characters, then compose a string with the
+result.
 
 @example
 (reverse-list->string '(#\a #\B #\c))
-=> "cBa"
+@result{} "cBa"
 @end example
-
-This is a common idiom in the epilog of string--processing loops that
-accumulate an answer in a reverse--order list.  See also
-@func{string-concatenate-reverse} for the ``chunked'' variant.
 @end defun
+
+
+@deffn Function %string-tokenize @var{token-set} @var{str} @var{start} @var{past}
+@deffnx Function %string-tokenise @var{token-set} @var{str} @var{start} @var{past}
+@deffnx Macro string-tokenize @var{S} @var{token-set}
+@deffnx Macro string-tokenise @var{S} @var{token-set}
+Split the selected substring into a list of strings, where each string
+is a maximal, non--empty, contiguous sequence of characters from the
+character set @var{token-set}.
+
+This function provides a minimal parsing facility for simple
+applications.  More sophisticated parsers that handle quoting and
+backslash effects can easily be constructed using regular--expression
+systems; be careful not to use @func{string-tokenize} in contexts where
+more serious parsing is needed.
+
+@example
+(string-tokenize "Help make programs run, run, RUN!"
+                 (char-set #\space))
+@result{} ("Help" "make" "programs" "run," "run," "RUN!")
+@end example
+@end deffn
 
 
 @defun string-join @var{string-list}
 @defunx string-join @var{string-list} @var{delimiter}
 @defunx string-join @var{string-list} @var{delimiter} @var{grammar}
+@defunx %string-join @var{string-list} @var{delimiter} @var{grammar}
 This procedure is a simple unparser: it pastes strings together using
-the @var{delimiter} string.
-
-The @var{grammar} argument is a symbol that determines how the delimiter
-is used, and defaults to @code{infix}.  Supported values for
-@var{grammar} are:
+the @var{delimiter} string.  @var{delimiter} defaults to a single white
+space.  @var{grammar} is a symbol that determines how the delimiter is
+used, and defaults to @code{infix}.  Supported values for @var{grammar}
+are:
 
 @table @code
 @item infix
 Means an infix or separator grammar: insert the delimiter between list
-elements.  An empty list will produce an empty string; note, however,
-that parsing an empty string with an infix or separator grammar is
-ambiguous: Is it an empty list, or a list of one element, the empty
-string?
+elements.  An empty list will produce an empty string.
+
+@quotation
+Note: parsing an empty string with an infix grammar is ambiguous.  Is it
+an empty list, or a list of one element, the empty string?
+@end quotation
 
 @item strict-infix
 Means the same as @code{infix}, but will raise an error if given an
@@ -22716,883 +23626,19 @@ Examples:
 
 @example
 (string-join '("foo" "bar" "baz") ":")
-=> "foo:bar:baz"
+@result{} "foo:bar:baz"
 
 (string-join '("foo" "bar" "baz") ":" 'suffix)
-=> "foo:bar:baz:"
+@result{} "foo:bar:baz:"
 
 ;; Infix grammar is ambiguous wrt empty list vs. empty string,
-(string-join '()   ":") => ""
-(string-join '("") ":") => ""
+(string-join '()   ":") @result{} ""
+(string-join '("") ":") @result{} ""
 
-;; but suffix & prefix grammars are not.
-(string-join '()   ":" 'suffix) => ""
-(string-join '("") ":" 'suffix) => ":"
+(string-join '("") "," 'strict-infix) @result{} ""
+(string-join '("") "," 'suffix) @result{} ","
+(string-join '("") "," 'prefix) @result{} ","
 @end example
-@end defun
-
-@c page
-@node strings select
-@subsection Selection
-
-
-@defun string-copy* @var{s}
-@defunx string-copy* @var{s} @var{start}
-@defunx string-copy* @var{s} @var{start} @var{end}
-@rnrs{5}+ @func{substring/shared} returns a string whose contents are
-the characters of @var{s} beginning with index @var{start} (inclusive)
-and ending with index @var{end} (exclusive).  It differs from the
-@rnrs{5} @func{substring} in two ways:
-
-@itemize
-@item
-The @var{end} parameter is optional, not required.
-
-@item
-@func{substring/shared} may return a value that shares memory with
-@var{s} or is @func{eq?} to @var{s}.
-@end itemize
-
-@func{string-copy} is extended from its @rnrs{5} definition by the
-addition of its optional @var{start}/@var{end} parameters.  In contrast
-to @func{substring/shared}, it is guaranteed to produce a
-freshly--allocated string.
-
-Use @func{string-copy} when you want to indicate explicitly in your code
-that you wish to allocate new storage; use @func{substring/shared} when
-you don't care if you get a fresh copy or share storage with the
-original string.
-
-Examples:
-
-@example
-(string-copy "Beta substitution")
-=> "Beta substitution"
-
-(string-copy "Beta substitution" 1 10)
-=> "eta subst"
-
-(string-copy "Beta substitution" 5)
-=> "substitution"
-@end example
-@end defun
-
-
-@defun string-copy! @var{target} @var{tstart} @var{s} [@var{start} @var{end}]
-Copy the sequence of characters from index range @code{[start,end)} in
-the string @var{s} to the string @var{target}, beginning at index
-@var{tstart}.  The characters are copied left--to--right or
-right--to--left as needed; the copy is guaranteed to work, even if
-@var{target} and @var{s} are the same string.
-
-It is an error if the copy operation runs off the end of the target
-string, e.g.
-
-@example
-(string-copy! (string-copy "Microsoft") 0
-              "Regional Microsoft Operating Companies")
-=> error
-@end example
-@end defun
-
-
-@defun string-take @var{s} @var{nchars}
-@defunx string-drop @var{s} @var{nchars}
-@defunx string-take-right @var{s} @var{nchars}
-@defunx string-drop-right @var{s} @var{nchars}
-@func{string-take} returns the first @var{nchars} of @var{s}.
-
-@func{string-drop} returns all but the first @var{nchars} of @var{s}.
-
-@func{string-take-right} returns the last @var{nchars} of @var{s}.
-
-@func{string-drop-right} returns all but the last @var{nchars} of
-@var{s}.
-
-If these procedures produce the entire string, they may return either
-@var{s} or a copy of @var{s}; in some implementations, proper substrings
-may share memory with @var{s}.
-
-Examples:
-
-@example
-(string-take "Pete Szilagyi" 6) => "Pete S"
-(string-drop "Pete Szilagyi" 6) => "zilagyi"
-
-(string-take-right "Beta rules" 5) => "rules"
-(string-drop-right "Beta rules" 5) => "Beta "
-@end example
-
-It is an error to take or drop more characters than are in the string:
-
-@example
-(string-take "foo" 37) => error
-@end example
-@end defun
-
-
-@defun string-pad @var{s} @var{len}
-@defunx string-pad @var{s} @var{len} @var{char}
-@defunx string-pad @var{s} @var{len} @var{char} @var{start}
-@defunx string-pad @var{s} @var{len} @var{char} @var{start} @var{end}
-@defunx string-pad-right @var{s} @var{len}
-@defunx string-pad-right @var{s} @var{len} @var{char}
-@defunx string-pad-right @var{s} @var{len} @var{char} @var{start}
-@defunx string-pad-right @var{s} @var{len} @var{char} @var{start} @var{end}
-Build a string of length @var{len} comprised of @var{s} padded on the
-left (right) by as many occurrences of the character @var{char} as
-needed.  If @var{s} has more than len chars, it is truncated on the left
-(right) to length @var{len}.  @var{char} defaults to @code{#\space}.
-
-If @code{len <= (end - start)}, the returned value is allowed to share
-storage with @var{s}, or be exactly @var{s} (if @code{len = (end -
-start)}).
-
-Examples:
-
-@example
-(string-pad     "325" 5) => "  325"
-(string-pad   "71325" 5) => "71325"
-(string-pad "8871325" 5) => "71325"
-@end example
-@end defun
-
-
-@defun string-trim @var{s}
-@defunx string-trim @var{s} @var{char/char-set/pred}
-@defunx string-trim @var{s} @var{char/char-set/pred} @var{start}
-@defunx string-trim @var{s} @var{char/char-set/pred} @var{start} @var{end}
-@defunx string-trim-right @var{s}
-@defunx string-trim-right @var{s} @var{char/char-set/pred}
-@defunx string-trim-right @var{s} @var{char/char-set/pred} @var{start}
-@defunx string-trim-right @var{s} @var{char/char-set/pred} @var{start} @var{end}
-@defunx string-trim-both @var{s}
-@defunx string-trim-both @var{s} @var{char/char-set/pred}
-@defunx string-trim-both @var{s} @var{char/char-set/pred} @var{start}
-@defunx string-trim-both @var{s} @var{char/char-set/pred} @var{start} @var{end}
-Trim @var{s} by skipping over all characters on the left/on the right/on
-both sides that satisfy the second parameter @var{char/char-set/pred}:
-
-@itemize
-@item
-if it is a character @var{char}, characters equal to @var{char} are
-trimmed;
-
-@item
-if it is a char set @var{char-set}, characters contained in
-@var{char-set} are trimmed;
-
-@item
-if it is a predicate @var{pred}, it is a test predicate that is applied
-to the characters in @var{s}; a character causing it to return true is
-skipped.
-@end itemize
-
-@var{char/char-set/pred} defaults to the character set
-@code{char-set:whitespace} defined in @ansrfi{14}.
-
-If no trimming occurs, these functions may return either @var{s} or a
-copy of @var{s}; in some implementations, proper substrings may share
-memory with @var{s}.
-
-Example:
-
-@example
-(string-trim-both "  The outlook wasn't brilliant,  \n\r")
-=> "The outlook wasn't brilliant,"
-@end example
-@end defun
-
-@c page
-@node strings compar
-@subsection Comparison
-
-
-@defun string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>}
-@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1}
-@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1}
-@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2}
-@defunx string-compare @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2} @var{end2}
-@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>}
-@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1}
-@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1}
-@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2}
-@defunx string-compare-ci @var{s1} @var{s2} @var{proc<} @var{proc=} @var{proc>} @var{start1} @var{end1} @var{start2} @var{end2}
-Apply @var{proc<}, @var{proc=}, or @var{proc>} to the mismatch index,
-depending upon whether @var{s1} is less than, equal to, or greater than
-@var{s2}.  The ``mismatch index'' is the largest index @var{i} such that
-for every @code{0 <= j < i}, @code{s1[j] = s2[j]}; that is, @var{i} is
-the first position that doesn't match.
-
-@func{string-compare-ci} is the case--insensitive variant.
-
-The optional @var{start}/@var{end} indices restrict the comparison to
-the indicated substrings of @var{s1} and @var{s2}.  The mismatch index
-is always an index into @var{s1}; in the case of @var{proc=}, it is
-always @var{end1}; we observe the protocol in this redundant case for
-uniformity.
-
-@example
-(string-compare "The cat in the hat" "abcdefgh"
-                values values values
-                4 6         ; Select "ca"
-                2 4)        ; & "cd"
-=> 5    ; Index of S1's "a"
-@end example
-@end defun
-
-
-@defun string= @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string<> @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string< @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string> @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string<= @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string>= @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-These procedures are the lexicographic extensions to strings of the
-corresponding orderings on characters.  For example, @func{string<} is
-the lexicographic ordering on strings induced by the ordering
-@func{char<?} on characters.  If two strings differ in length but are
-the same up to the length of the shorter string, the shorter string is
-considered to be lexicographically less than the longer string.
-
-The optional @var{start}/@var{end} indices restrict the comparison to
-the indicated substrings of @var{s1} and @var{s2}.
-
-True text collation is not handled by this @srfi{}.
-@end defun
-
-
-@defun string-ci= @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-ci<> @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-ci< @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-ci> @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-ci<= @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-ci>= @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-Case--insensitive variants.
-@end defun
-
-
-@defun string-hash @var{s} [@var{bound} @var{start} @var{end}]
-@defunx string-hash-ci @var{s} [@var{bound} @var{start} @var{end}]
-Compute a hash value for the string @var{s}.  @var{bound} is a
-non--negative exact integer specifying the range of the hash function.
-A positive value restricts the return value to the range @code{[0,
-bound)}.
-
-If @var{bound} is either zero or not given, the implementation may use
-an implementation--specific default value, chosen to be as large as is
-efficiently practical.  For instance, the default range might be chosen
-for a given implementation to map all strings into the range of integers
-that can be represented with a single machine word.
-
-The optional @var{start}/@var{end} indices restrict the hash operation
-to the indicated substring of @var{s}.
-
-@func{string-hash-ci} is the case--insensitive variant.
-
-Invariants:
-
-@example
-(<= 0 (string-hash s b) (- b 1)) ; When B > 0.
-(string=    s1 s2)  =>  (= (string-hash s1 b)    (string-hash s2 b))
-(string-ci= s1 s2)  =>  (= (string-hash-ci s1 b) (string-hash-ci s2 b))
-@end example
-
-A legal but nonetheless discouraged implementation:
-
-@example
-(define (string-hash    s . other-args) 1)
-(define (string-hash-ci s . other-args) 1)
-@end example
-
-Rationale: allowing the user to specify an explicit bound simplifies
-user code by removing the mod operation that typically accompanies every
-hash computation, and also may allow the implementation of the hash
-function to exploit a reduced range to efficiently compute the hash
-value.  E.g., for small bounds, the hash function may be computed in a
-fashion such that intermediate values never overflow into bignum
-integers, allowing the implementor to provide a fixnum--specific ``fast
-path'' for computing the common cases very rapidly.
-@end defun
-
-@c page
-@node strings prefix
-@subsection Prefixes and suffixes
-
-
-@defun string-prefix-length @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-suffix-length @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-prefix-length-ci @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-suffix-length-ci @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-Return the length of the longest common prefix/suffix of the two
-strings.  For prefixes, this is equivalent to the ``mismatch index'' for
-the strings (modulo the @var{starti} index offsets).
-
-The optional @var{start}/@var{end} indices restrict the comparison to
-the indicated substrings of @var{s1} and @var{s2}.
-
-@func{string-prefix-length-ci} and @func{string-suffix-length-ci} are
-the case--insensitive variants.
-@end defun
-
-
-@defun string-prefix? @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-suffix? @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-prefix-ci? @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-suffix-ci? @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-Return @true{} if @var{s1} is a prefix/suffix of @var{s2}; otherwise
-return @false{}.  The optional @var{start}/@var{end} indices restrict
-the comparison to the indicated substrings of @var{s1} and @var{s2}.
-
-@func{string-prefix-ci?} and @func{string-suffix-ci?} are the
-case--insensitive variants.
-
-Notice that the empty string is a prefix of every string.
-@end defun
-
-@c page
-@node strings search
-@subsection Searching
-
-
-@defun string-index @var{s} @var{char/char-set/pred} [@var{start} @var{end}]
-@defunx string-index-right @var{s} @var{char/char-set/pred} [@var{start} @var{end}]
-@defunx string-skip @var{s} @var{char/char-set/pred} [@var{start} @var{end}]
-@defunx string-skip-right @var{s} @var{char/char-set/pred} [@var{start} @var{end}]
-@func{string-index} (@func{string-index-right}) searches through the
-string from the left (right), returning the index of the first
-occurrence of a character which
-
-@itemize
-@item
-equals @var{char/char-set/pred} if it is a character;
-
-@item
-is in @var{char/char-set/pred} if it is a character set;
-
-@item
-satisfies the predicate @var{char/char-set/pred} if it is a procedure.
-@end itemize
-
-If no match is found, the functions return @false{}.
-
-The @var{start} and @var{end} parameters specify the beginning and end
-indices of the search; the search includes the @var{start} index, but
-not the @var{end} index.  Be careful of ``fencepost'' considerations:
-when searching right--to--left, the first index considered is
-@var{end-1}, whereas when searching left--to--right, the first index
-considered is @var{start}
-
-That is, the @var{start}/@var{end} indices describe a same half--open
-interval @code{[start,end)} in these procedures that they do in all the
-other @ansrfi{13} procedures.
-
-The skip functions are similar, but use the complement of the criteria:
-they search for the first char that does @strong{not} satisfy the test.
-E.g., to skip over initial whitespace, say:
-
-@example
-(cond [(string-skip s char-set:whitespace) =>
-       (lambda (i) ...)] ; s[i] is not whitespace.
-      ...)
-@end example
-@end defun
-
-
-@defun string-count @var{s} @var{char/char-set/pred} [@var{start} @var{end}]
-Return a count of the number of characters in @var{s} that satisfy the
-@var{char/char-set/pred} argument.  If this argument is a procedure, it
-is applied to the character as a predicate; if it is a character set,
-the character is tested for membership; if it is a character, it is used
-in an equality test.
-@end defun
-
-
-@defun string-contains @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-@defunx string-contains-ci @var{s1} @var{s2} [@var{start1} @var{end1} @var{start2} @var{end2}]
-Return true if the string @var{s1} contains string @var{s2}; otherwise
-return @false{}.  Return the index in @var{s1} where @var{s2} occurs as
-a substring.  The optional @var{start}/@var{end} indices restrict the
-operation to the indicated substrings.
-
-The returned index is in the range @code{[start1,end1)}.  A successful
-match must lie entirely in the @code{[start1,end1)} range of @var{s1}.
-
-Example:
-
-@example
-;; Searches "a geek"
-(string-contains "eek -- what a geek." "ee" 12 18)
-=> 15
-@end example
-
-@func{string-contains-ci} is the case--insensitive variant.
-@end defun
-
-@c page
-@node strings case-map
-@subsection Alphabetic case mapping
-
-
-@defun string-titlecase @var{s} [@var{start} @var{end}]
-@defunx string-titlecase! @var{s} [@var{start} @var{end}]
-For every character @var{c} in the selected range of @var{s}, if @var{c}
-is preceded by a cased character, it is downcased; otherwise it is
-titlecased.
-
-@func{string-titlecase} returns the result string and does not alter its
-s parameter.  @func{string-titlecase!} is the in--place side--effecting
-variant.
-
-Examples:
-
-@example
-(string-titlecase "--capitalize tHIS sentence.")
-=> "--Capitalize This Sentence."
-
-(string-titlecase "see Spot run. see Nix run.")
-=> "See Spot Run. See Nix Run."
-
-(string-titlecase "3com makes routers.")
-=> "3Com Makes Routers."
-@end example
-
-Note that if a @var{start} index is specified, then the character
-preceding @code{s[start]} has no effect on the titlecase decision for
-character @code{s[start]}:
-
-@example
-(string-titlecase "greasy fried chicken" 2)
-=> "Easy Fried Chicken"
-@end example
-
-Titlecase and cased information must be compatible with the Unicode
-specification.
-@end defun
-
-
-@defun string-upcase @var{s} [@var{start} @var{end}]
-@defunx string-upcase! @var{s} [@var{start} @var{end}]
-@defunx string-downcase @var{s} [@var{start} @var{end}]
-@defunx string-downcase! @var{s} [@var{start} @var{end}]
-Raise or lower the case of the alphabetic characters in the string.
-
-@func{string-upcase} and @func{string-downcase} return the result string
-and do not alter their s parameter.  @func{string-upcase!} and
-@func{string-downcase!} are the in--place side--effecting variants.
-@end defun
-
-@c page
-@node strings append
-@subsection Reverse and append
-
-
-@defun string-reverse @var{s} [@var{start} @var{end}]
-@defunx string-reverse! @var{s} [@var{start} @var{end}]
-Reverse the string.  @func{string-reverse} returns the result string and
-does not alter its s parameter.  @func{string-reverse!} is the in--place
-side--effecting variant.
-
-Examples:
-
-@example
-(string-reverse "Able was I ere I saw elba.")
-=> ".able was I ere I saw elbA"
-
-;;; In-place rotate-left, the Bell Labs way:
-(lambda (s i)
-  (let ([i (modulo i (string-length s))])
-    (string-reverse! s 0 i)
-    (string-reverse! s i)
-    (string-reverse! s)))
-@end example
-
-Unicode note: Reversing a string simply reverses the sequence of
-code--points it contains.  So a zero--width accent character a coming
-after a base character @var{b} in string @var{s} would come out before
-@var{b} in the reversed result.
-@end defun
-
-
-@defun string-append @var{s1} ...
-@rnrs{5} Return a newly allocated string whose characters form the
-concatenation of the given strings.
-@end defun
-
-
-@defun string-concatenate @var{string-list}
-Append the elements of @var{string-list} together into a single string.
-Guaranteed to return a freshly allocated string.
-
-Note that the @code{(apply string-append string-list)} idiom is not
-robust for long lists of strings, as some Scheme implementations limit
-the number of arguments that may be passed to an n--ary procedure.
-@end defun
-
-
-@defun string-concatenate/shared @var{string-list}
-@defunx string-append/shared @var{s1} ...
-These two procedures are variants of @func{string-concatenate} and
-@func{string-append} that are permitted to return results that share
-storage with their parameters.  In particular, if
-@func{string-append/shared} is applied to just one argument, it may
-return exactly that argument, whereas @func{string-append} is required
-to allocate a fresh string.
-@end defun
-
-
-@defun string-concatenate-reverse @var{string-list} [@var{final-string} @var{end}]
-@defunx string-concatenate-reverse/shared @var{string-list} [@var{final-string} @var{end}]
-With no optional arguments, these functions are equivalent to:
-
-@example
-(string-concatenate (reverse string-list))
-@end example
-
-@noindent
-and:
-
-@example
-(string-concatenate/shared (reverse string-list))
-@end example
-
-@noindent
-respectively.
-
-If the optional argument @func{final-string} is specified, it is consed
-onto the beginning of @var{string-list} before performing the
-@func{list-reverse} and @func{string-concatenate} operations.
-
-If the optional argument @var{end} is given, only the first end
-characters of @var{final-string} are added to the string list, thus
-producing:
-
-@example
-(string-concatenate
-  (reverse (cons (substring/shared final-string 0 end)
-                 string-list)))
-@end example
-
-Example:
-
-@example
-(string-concatenate-reverse '(" must be" "Hello, I") " going.XXXX" 7)
-=> "Hello, I must be going."
-@end example
-
-This procedure is useful in the construction of procedures that
-accumulate character data into lists of string buffers, and wish to
-convert the accumulated data into a single string when done.
-
-Unicode note: Reversing a string simply reverses the sequence of
-code--points it contains.  So a zero--width accent character @var{ac}
-coming after a base character @var{bc} in string @var{s} would come out
-before @var{bc} in the reversed result.
-@end defun
-
-@c page
-@node strings fold
-@subsection Fold, unfold and map
-
-
-@defun string-map @var{proc} @var{s} [@var{start} @var{end}]
-@defunx string-map! @var{proc} @var{s} [@var{start} @var{end}]
-@var{proc} is a @code{char->char} procedure; it is mapped over @var{s}.
-@func{string-map} returns the result string and does not alter its
-@var{s} parameter.  @func{string-map!} is the in--place side--effecting
-variant.
-
-Note: The order in which @var{proc} is applied to the elements of
-@var{s} is not specified.
-@end defun
-
-
-@defun string-fold @var{kons} @var{knil} @var{s} [@var{start} @var{end}]
-@defunx string-fold-right @var{kons} @var{knil} @var{s} [@var{start} @var{end}]
-These are the fundamental iterators for strings.
-
-The left--fold operator maps the @var{kons} procedure across the string
-from left to right:
-
-@example
-(... (kons s[2] (kons s[1] (kons s[0] knil))))
-@end example
-
-@noindent
-in other words, @func{string-fold} obeys the (tail) recursion:
-
-@example
-(string-fold kons knil s start end) =
-   (string-fold kons (kons s[start] knil) start+1 end)
-@end example
-
-The right--fold operator maps the @var{kons} procedure across the string
-from right to left:
-
-@example
-(kons s[0] (... (kons s[end-3] (kons s[end-2] (kons s[end-1] knil)))))
-@end example
-
-@noindent
-obeying the (tail) recursion:
-
-@example
-(string-fold-right kons knil s start end) =
-   (string-fold-right kons (kons s[end-1] knil) start end-1)
-@end example
-
-Examples:
-
-@example
-;;; Convert a string to a list of chars.
-(string-fold-right cons '() s)
-
-;;; Count the number of lower-case characters in a string.
-(string-fold (lambda (c count)
-               (if (char-lower-case? c)
-                   (+ count 1)
-                 count))
-              0
-              s)
-
-;;; Double every backslash character in S.
-(let* ([ans-len (string-fold (lambda (c sum)
-                               (+ sum (if (char=? c #\\) 2 1)))
-                             0 s)]
-       [ans (make-string ans-len)])
-  (string-fold (lambda (c i)
-                 (let ([i (if (char=? c #\\)
-                              (begin (string-set! ans i #\\) (+ i 1))
-                            i)])
-                    (string-set! ans i c)
-                    (+ i 1)))
-               0 s)
-  ans)
-@end example
-
-The right--fold combinator is sometimes called a ``catamorphism''.
-@end defun
-
-
-@defun string-unfold @var{p} @var{f} @var{g} @var{seed} [@var{base} @var{make-final}]
-This is a fundamental constructor for strings.
-
-@table @var
-@item g
-Is used to generate a series of ``seed'' values from the initial seed:
-
-@example
-seed, (g seed), (g2 seed), (g3 seed), ...
-@end example
-
-@item p
-Tells us when to stop; when it returns true when applied to one of the
-seed values.
-
-@item f
-Maps each seed value to the corresponding character in the result
-string.  These chars are assembled into the string in a left--to--right
-order.
-
-@item base
-Is the optional initial/leftmost portion of the constructed string; it
-defaults to the empty string.
-
-@item make-final
-Is applied to the terminal seed value (on which @var{p} returns true) to
-produce the final/rightmost portion of the constructed string.  It
-defaults to @code{(lambda (x) "")}.
-@end table
-
-More precisely, the following (simple, inefficient) definitions hold:
-
-@example
-;;; Iterative
-(define (string-unfold p f g seed base make-final)
-  (let lp ([seed seed]
-           [ans base])
-    (if (p seed)
-        (string-append ans (make-final seed))
-      (lp (g seed) (string-append ans (string (f seed)))))))
-
-;;; Recursive
-(define (string-unfold p f g seed base make-final)
-  (string-append base
-                 (let recur ([seed seed])
-                   (if (p seed)
-                       (make-final seed)
-                     (string-append (string (f seed))
-                                    (recur (g seed)))))))
-@end example
-
-@func{string-unfold} is a fairly powerful string constructor; we can use
-it to convert a list to a string, read a port into a string, reverse a
-string, copy a string, and so forth.  Examples:
-
-@example
-(port->string p) = (string-unfold eof-object? values
-                                  (lambda (x) (read-char p))
-                                    (read-char p))
-
-(list->string lis) = (string-unfold null? car cdr lis)
-
-(string-tabulate f size) = (string-unfold (lambda (i)
-                                            (= i size))
-                                          f add1 0)
-@end example
-
-@noindent
-to map @var{f} over a list @var{lis}, producing a string:
-
-@example
-(string-unfold null? (compose f car) cdr lis)
-@end example
-
-Interested functional programmers may enjoy noting that
-@func{string-fold-right} and @func{string-unfold} are in some sense
-inverses.  That is, given operations @var{knull?}, @var{kar}, @var{kdr},
-@var{kons}, and @var{knil} satisfying:
-
-@example
-(kons (kar x) (kdr x)) = x  and (knull? knil) = #t
-@end example
-
-@noindent
-then:
-
-@example
-(string-fold-right kons knil (string-unfold knull? kar kdr x)) = x
-@end example
-
-@noindent
-and:
-
-@example
-(string-unfold knull? kar kdr (string-fold-right kons knil s)) = s.
-@end example
-
-The final string constructed does not share storage with either
-@var{base} or the value produced by @var{make-final}.
-
-This combinator sometimes is called an ``anamorphism''.
-
-Note: implementations should take care that runtime stack limits do not
-cause overflow when constructing large (e.g., megabyte) strings with
-@func{string-unfold}.
-@end defun
-
-
-@defun string-unfold-right @var{p} @var{f} @var{g} @var{seed} [@var{base} @var{make-final}]
-This is a fundamental constructor for strings.
-
-@table @var
-@item g
-Is used to generate a series of ``seed'' values from the initial seed:
-
-@example
-seed, (g seed), (g2 seed), (g3 seed), ...
-@end example
-
-@item p
-Tells us when to stop; when it returns true when applied to one of these
-seed values.
-
-@item f
-Maps each seed value to the corresponding character in the result
-string.  These chars are assembled into the string in a right--to--left
-order.
-
-@item base
-Is the optional initial/rightmost portion of the constructed string; it
-defaults to the empty string.
-
-@item make-final
-Is applied to the terminal seed value (on which @var{p} returns true) to
-produce the final/leftmost portion of the constructed string.  It
-defaults to @code{(lambda (x) "")}.
-@end table
-
-More precisely, the following (simple, inefficient) definitions hold:
-
-@example
-;;; Iterative
-(define (string-unfold-right p f g seed base make-final)
-  (let lp ([seed seed]
-           [ans base])
-    (if (p seed)
-        (string-append (make-final seed) ans)
-      (lp (g seed) (string-append (string (f seed)) ans)))))
-
-;;; Recursive
-(define (string-unfold-right p f g seed base make-final)
-  (string-append (let recur ([seed seed])
-                   (if (p seed)
-                       (make-final seed)
-                     (string-append (recur (g seed))
-                                    (string (f seed)))))
-                 base))
-@end example
-
-Interested functional programmers may enjoy noting that
-@func{string-fold} and @func{string-unfold-right} are in some sense
-inverses. That is, given operations @var{knull?}, @var{kar}, @var{kdr},
-@var{kons}, and @var{knil} satisfying:
-
-@example
-(kons (kar x) (kdr x)) = x and (knull? knil) = #t
-@end example
-
-@noindent
-then:
-
-@example
-(string-fold kons knil (string-unfold-right knull? kar kdr x)) = x
-@end example
-
-@noindent
-and:
-
-@example
-(string-unfold-right knull? kar kdr (string-fold kons knil s)) = s.
-@end example
-
-The final string constructed does not share storage with either
-@var{base} or the value produced by @func{make-final}.
-
-Note: implementations should take care that runtime stack limits do not
-cause overflow when constructing large (e.g., megabyte) strings with
-@func{string-unfold-right}.
-@end defun
-
-
-@defun string-for-each @var{proc} @var{s} [@var{start} @var{end}]
-Apply @var{proc} to each character in @var{s}.  @func{string-for-each}
-is required to iterate from start to end in increasing order.
-@end defun
-
-
-@defun string-for-each-index @var{proc} @var{s} [@var{start} @var{end}]
-Apply @var{proc} to each index of @var{s}, in order.  The optional
-@var{start}/@var{end} pairs restrict the endpoints of the loop.  This is
-simply a method of looping over a string that is guaranteed to be safe
-and correct.  Example:
-
-@example
-(let* ([len (string-length s)]
-       [ans (make-string len)])
-  (string-for-each-index
-      (lambda (i) (string-set! ans (- len i) (string-ref s i)))
-      s)
-  ans)
-@end example
-@end defun
-
-
-@defun string-tabulate @var{proc} @var{len}
-@var{proc} is an @func{integer->char} procedure.  Construct a string of
-size @var{len} by applying @var{proc} to each index to produce the
-corresponding string element.  The order in which @var{proc} is applied
-to the indices is not specified.
 @end defun
 
 @c page
@@ -23600,42 +23646,62 @@ to the indices is not specified.
 @subsection Replicate and rotate
 
 
-@defun xsubstring @var{s} @var{from} [@var{to} @var{start} @var{end}]
-This is the ``extended substring'' procedure that implements replicated
-copying of a substring of some string.
+@deffn Function %xsubstring @var{from} @var{to} @var{str} @var{start} @var{end}
+@deffnx Macro xsubstring @var{S} @var{from} @var{to}
+Extended substring procedure replicating the selected substring ``up and
+down'' index space, in both the positive and negative directions.
 
-@var{s} is a string; @var{start} and @var{end} are optional arguments
-that demarcate a substring of @var{s}, defaulting to 0 and the length of
-@var{s} (i.e. the whole string).
-
-This function replicates the selected substring ``up and down'' index
-space, in both the positive and negative directions.  For example, if
-@code{s = "abcdefg"}, @code{start=3}, and @code{end=6}, then we have the
-conceptual bidirectionally--infinite string:
+The call:
 
 @example
-...  d  e  f  d  e  f  d  e  f  d  e  f  d  e  f  d  e  f  d  ...
-... -9 -8 -7 -6 -5 -4 -3 -2 -1  0 +1 +2 +3 +4 +5 +6 +7 +8 +9  ...
+(%xsubstring from to "abcdefg" 3 6)
 @end example
 
 @noindent
-that is @code{def} repeated in both directions.
+selects the substring @code{"def"} and defines the conceptual
+bidirectionally--infinite string:
 
-@func{xsubstring} returns the substring of this string beginning at
-index @var{from}, and ending at @var{to} which defaults to @code{from +
-(end - start)}.
+@example
+...  e  f  d  e  f  d  e  f  d  e  f ...
+... -5 -4 -3 -2 -1  0 +1 +2 +3 +4 +5 ...
+@end example
 
-We can use @func{xsubstring} to perform a variety of tasks:
+@noindent
+that is @code{def} repeated in both directions.  @func{%xsubstring}
+returns the substring of this string beginning at index @var{from}, and
+ending at @var{to}.
+
+We can use this function to perform a variety of tasks:
 
 @itemize
 @item
-To rotate a string left: @code{(xsubstring "abcdef" 2) => "cdefab"}.
+To replicate a string:
+
+@example
+(xsubstring "abc" 0 7) @result{} "abcabca"
+@end example
 
 @item
-To rotate a string right: @code{(xsubstring "abcdef" -2) => "efabcd"}.
+To rotate a string left:
+
+@example
+(xsubstring "abcdef" 1  7)      @result{} "bcdefa"
+(xsubstring "abcdef" 2  8)      @result{} "cdefab"
+(xsubstring "abcdef" 3  9)      @result{} "defabc"
+(xsubstring "abcdef" 4 10)      @result{} "efabcd"
+(xsubstring "abcdef" 5 11)      @result{} "fabcde"
+@end example
 
 @item
-To replicate a string: @code{(xsubstring "abc" 0 7) => "abcabca"}.
+To rotate a string right:
+
+@example
+(xsubstring "abcdef" -1 5) @result{} "fabcde"
+(xsubstring "abcdef" -2 4) @result{} "efabcd"
+(xsubstring "abcdef" -3 3) @result{} "defabc"
+(xsubstring "abcdef" -4 2) @result{} "cdefab"
+(xsubstring "abcdef" -5 1) @result{} "bcdefa"
+@end example
 @end itemize
 
 Note that:
@@ -23648,260 +23714,74 @@ from index @var{from} up to, but not including, index @var{to}.
 @item
 The @var{from}/@var{to} indices are not in terms of the index space for
 string @var{s}.  They are in terms of the replicated index space of the
-substring defined by @var{s}, @var{start}, and @var{end}.
+substring defined by @var{s}, @var{start}, and @var{past}.
 @end itemize
 
-It is an error if @code{start = end}; although this is allowed by
-special dispensation when @code{from = to}.
-@end defun
+It is an error if @var{start} equals @var{past}.
+@end deffn
 
 
-@defun string-xcopy! @var{target} @var{tstart} @var{s} @var{sfrom} [@var{sto} @var{start} @var{end}]
+@deffn Function xstring-xcopy! @var{from} @var{to} @var{target} @var{target-start} @var{source} @var{source-start} @var{source-past}
+@deffnx Macro string-xcopy! @var{target-S} @var{source-S} @var{from} @var{to}
 Exactly the same as @func{xsubstring}, but the extracted text is written
-into the string @var{target} starting at index @var{tstart}.  This
-operation is not defined if @code{(eq? target s)} or these two arguments
-share storage; we cannot copy a string on top of itself.
-@end defun
+into the selected substring of @var{target}.
+
+This operation is not defined if @code{(eq? target start)}; we cannot
+copy a string on top of itself.
+@end deffn
 
 @c page
 @node strings misc
-@subsection Miscellaneous: intertion, parsing
+@subsection Miscellaneous functions
 
 
-@defun string-replace @var{s1} @var{s2} @var{start1} @var{end1} [@var{start2} @var{end2}]
-Return:
-
-@example
-(string-append (substring/shared s1 0 start1)
-               (substring/shared s2 start2 end2)
-               (substring/shared s1 end1 (string-length s1)))
-@end example
-
-That is, the segment of characters in @var{s1} from @var{start1} to
-@var{end1} is replaced by the segment of characters in @var{s2} from
-@var{start2} to @var{end2}.  If @code{start1 = end1}, this simply
-splices the @var{s2} characters into @var{s1} at the specified index.
-
-Examples:
-
-@example
-(string-replace "The TCL programmer endured daily ridicule."
-                "another miserable perl drone" 4 7 8 22 )
-=> "The miserable perl programmer endured daily ridicule."
-
-(string-replace "It's easy to code it up in Scheme." "lots of fun" 5 9)
-=> "It's lots of fun to code it up in Scheme."
-
-(define (string-insert s i t) (string-replace s t i i))
-
-(string-insert "It's easy to code it up in Scheme." 5 "really ")
-=> "It's really easy to code it up in Scheme."
-@end example
+@defun string-concatenate @var{string-list}
+Append the elements of @var{string-list} together into a single string.
+Guaranteed to return a freshly allocated string.
 @end defun
 
 
-@defun string-tokenize @var{s} [@var{token-set} @var{start} @var{end}]
-Split the string @var{s} into a list of substrings, where each substring
-is a maximal non--empty contiguous sequence of characters from the
-character set @var{token-set}.
+@deffn Function %string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
+@deffnx Macro string-concatenate-reverse @var{string-list}
+@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string}
+@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
+Reverse @var{string-list} then concatenate the elements, which must be
+strings.  The first @var{nchars} code points in @var{final-string} are
+consed onto the beginning of @var{string-list} before performing the the
+reversal and concatenation operations.
 
-@itemize
-@item
-@var{token-set} defaults to @code{char-set:graphic} (see @ansrfi{14} for
-more on character sets and @code{char-set:graphic}).
+@var{final-string} defaults to the empty string and @var{nchars}
+defaults to the length of @var{final-string}.
 
-@item
-If @var{start} or @var{end} indices are provided, they restrict
-@func{string-tokenize} to operating on the indicated substring of
-@var{s}.
-@end itemize
-
-This function provides a minimal parsing facility for simple
-applications.  More sophisticated parsers that handle quoting and
-backslash effects can easily be constructed using regular--expression
-systems; be careful not to use @func{string-tokenize} in contexts where
-more serious parsing is needed.
-
-@example
-(string-tokenize "Help make programs run, run, RUN!")
-=> ("Help" "make" "programs" "run," "run," "RUN!")
-@end example
-@end defun
-
-@c page
-@node strings filter
-@subsection Filtering and deleting
+This procedure is useful in the construction of procedures that
+accumulate character data into lists of string buffers, and wish to
+convert the accumulated data into a single string when done.
+@end deffn
 
 
-@defun string-filter @var{char/char-set/pred} @var{s} [@var{start} @var{end}]
-@defunx string-delete @var{char/char-set/pred} @var{s} [@var{start} @var{end}]
-Filter the string @var{s}, retaining only those characters that
-satisfy/do not satisfy the @var{char/char-set/pred} argument.  If this
-argument is a procedure, it is applied to the character as a predicate;
-if it is a char--set, the character is tested for membership; if it is a
-character, it is used in an equality test.
-
-If the string is unaltered by the filtering operation, these functions
-may return either @var{s} or a copy of @var{s}.
-@end defun
-
-@c page
-@node strings low compar
-@subsection Low level comparison functions
+@deffn Function %string-replace @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffnx Macro string-replace @var{S1} @var{S2}
+Replace the selected string in @var{str1} with the selected string in
+@var{str2}.  Return a newly allocated string.
+@end deffn
 
 
-@defun %string-compare @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
-@defunx %string-compare-ci @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
-Determine the @dfn{mismatch index} between the two substrings: the
-largest index @math{i} such that for every @math{0 <= j < i},
-@math{str1[j] = str2[j]}; that is, @var{i} is the first position that
-does not match.
-
-The mismatch index is always an index into @var{s1}; in the case of
-equal strings, it is always @var{past1}; the functions observe the
-protocol in this redundant case for uniformity.
-
-The characters at the mismatch index are compared using @func{char<=?}
-or @func{char-ci<=?}.  @var{proc<}, @var{proc=}, or @var{proc>} are
-applied to the mismatch index, depending upon whether the substring of
-@var{str1} is less than, equal to, or greater than the substring of
-@var{str2}.  The result of the application is returned.
-
-If we just want to have the mismatch index: We can use @func{values} as
-value for @var{proc<}, @var{proc=} and @var{proc>}.  Another interesting
-option is to use @code{(lambda (mismatch-index) #f)} or @code{(lambda
-(mismatch-index) #t)}.
-
-Examples:
-
-@example
-(%string-compare "abcd" 0 4 "abcd" 0 4
-                 values values values)
-@result{} 5
-
-(%string-compare "abcd" 0 4 "abcd12" 0 6
-                 values values values)
-@result{} 5
-@end example
-@end defun
+@deffn Function %string-reverse @var{str} @var{start} @var{past}
+@deffnx Function %string-reverse! @var{str} @var{start} @var{past}
+@deffnx Macro string-reverse @var{S}
+@deffnx Macro string-reverse! @var{S}
+Reverse the string.  @func{%string-reverse} returns the result string
+and does not alter its s parameter.  @func{%string-reverse!} is the
+in--place side--effecting variant.
+@end deffn
 
 
-@defun %string= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if they are equal, @false{}
-otherwise.
+@deffn Function %string-fill*! @var{fill-char} @var{str} @var{start} @var{past}
+@deffnx Macro string-fill*! @var{S} @var{fill-char}
+Fill the selected substring with @var{fill-char}, modifying the original
+string.
+@end deffn
 
-@itemize
-@item
-If the substrings have different length: Return @false{}.
-
-@item
-Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
-the selected substring is the same: Return @true{}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return @false{} if they are different or @var{past1} if
-they are equal.
-@end itemize
-@end defun
-
-
-@defun %string<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return @false{} if they are equal, true
-otherwise.
-
-@itemize
-@item
-If the substrings have different length: Return @true{}.
-
-@item
-Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
-the selected substring is the same: Return @false{}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return @false{} if they are equal or the mismatch index
-if they are different.
-@end itemize
-@end defun
-
-
-@defun %string< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-less than the second, @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(< @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is less than the
-second; @false{} otherwise.
-@end itemize
-@end defun
-
-
-@defun %string<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-less than, or equal to, the second; @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(<= @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is less than, or
-equal to, the second; @false{} otherwise.
-@end itemize
-@end defun
-
-
-@defun %string> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-greater than the second, @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(> @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is greater than
-the second; @false{} otherwise.
-@end itemize
-@end defun
-
-
-@defun %string>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@defunx %string-ci>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-Compare two substrings: Return true if the first is lexicographically
-greater than, or equal to, the second; @false{} otherwise.
-
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(>= @var{past1}
-@var{past12})}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is greater than,
-or equal to, the second; @false{} otherwise.
-@end itemize
-@end defun
 
 @c page
 @node strings kmp

@@ -109,68 +109,61 @@
     string-null?
     %string-every %string-any
 
+    ;; comparison
+    %string-compare %string-compare-ci
+    %string= %string<> %string< %string> %string<= %string>=
+    %string-ci= %string-ci<> %string-ci< %string-ci> %string-ci<= %string-ci>=
+
     ;; mapping
     %string-map %string-map!
     %string-for-each* %string-for-each-index
+
+    ;; case hacking
+    %string-titlecase*!
 
     ;; folding and unfolding
     %string-fold %string-fold-right
     string-unfold string-unfold-right
     string-tabulate
 
-    ;; prefix and suffix
-    %string-prefix-length %string-suffix-length
-    %string-prefix-length-ci %string-suffix-length-ci
-    %string-prefix? %string-suffix?
-    %string-prefix-ci? %string-suffix-ci?
-
-    ;; comparison
-    %string-compare %string-compare-ci
-    %string= %string<> %string< %string> %string<= %string>=
-    %string-ci= %string-ci<> %string-ci< %string-ci> %string-ci<= %string-ci>=
-
-    ;; case hacking
-    %string-titlecase!
-
     ;; selecting
+    %string-copy*!
     %string-take %string-take-right
     %string-drop %string-drop-right
     %string-trim %string-trim-right %string-trim-both
     %string-pad %string-pad-right
-    %string-copy!
 
-    ;; filtering
-    %string-delete %string-filter
+    ;; prefix and suffix
+    %string-prefix-length %string-prefix-length-ci
+    %string-suffix-length %string-suffix-length-ci
+    %string-prefix? %string-prefix-ci?
+    %string-suffix? %string-suffix-ci?
 
     ;; searching
     %string-index %string-index-right
     %string-skip %string-skip-right
     %string-count
     %string-contains %string-contains-ci
-    %kmp-search %kmp-make-restart-vector %kmp-step %kmp-string-partial-search
 
-    ;; filling
-    %string-fill*!
-
-    ;; reverse
-    %string-reverse %string-reverse!
+    ;; filtering
+    %string-delete %string-filter
 
     ;; strings and lists
     reverse-list->string
     %string->list*
+    %string-tokenize %string-join
+    (rename (%string-tokenize %string-tokenise))
 
-    ;; concatenate
-    string-concatenate %string-concatenate-reverse
-
-    ;; replace and tokenize
-    %string-replace
-
-    ;; extended substring
+    ;; replicating
     %xsubstring %string-xcopy!
 
-    ;; tokenising and joining
-    %string-tokenize %string-join
-    (rename (%string-tokenize %string-tokenise)))
+    ;; concatenate, reverse, fill, replace
+    string-concatenate %string-concatenate-reverse
+    %string-reverse %string-reverse!
+    %string-fill*! %string-replace
+
+    ;; Knuth-Morris-Pratt search
+    %kmp-search %kmp-make-restart-vector %kmp-step %kmp-string-partial-search)
   (import (rnrs)
     (rnrs mutable-strings)
     (only (rnrs r5rs) modulo quotient)
@@ -197,15 +190,15 @@
 			 (loop (+ 1 i))))))
 
 	     ((procedure? criterion) ; Slightly funky loop so that
-	      (let loop ((i start))    ; final (PRED S[PAST-1]) call
+	      (let loop ((i start))  ; final (PRED S[PAST-1]) call
 		(let ((c (string-ref str i)) ; is a tail call.
 		      (i1 (+ i 1)))
 		  (if (= i1 past)
-		      (criterion c) ; Tail call.
+		      (criterion c) ; This has to be a tail call.
 		    (and (criterion c) (loop i1))))))
 
 	     (else
-	      (assertion-violation 'string-every
+	      (assertion-violation '%string-every
 		"expected char-set, char, or predicate as second parameter"
 		criterion)))))
 
@@ -224,246 +217,17 @@
 			 (loop (+ i 1))))))
 
 	     ((procedure? criterion) ; Slightly funky loop so that
-	      (let loop ((i start))    ; final (PRED S[PAST-1]) call
+	      (let loop ((i start))  ; final (PRED S[PAST-1]) call
 		(let ((c (string-ref str i)) ; is a tail call.
 		      (i1 (+ i 1)))
 		  (if (= i1 past)
-		      (criterion c) ; Tail call.
+		      (criterion c) ; This has to be a tail call.
 		    (or (criterion c) (loop i1))))))
 
 	     (else
-	      (assertion-violation 'string-any
+	      (assertion-violation '%string-any
 		"expected char-set, char, or predicate as second parameter"
 		criterion)))))
-
-
-;;;; mapping
-
-(define (%string-map proc str start past)
-  (do ((i start (+ 1 i))
-       (j 0 (+ 1 j))
-       (result (make-string (- past start))))
-      ((>= i past)
-       result)
-    (string-set! result j (proc (string-ref str i)))))
-
-(define (%string-map! proc str start past)
-  (do ((i start (+ 1 i)))
-      ((>= i past)
-       str)
-    (string-set! str i (proc (string-ref str i)))))
-
-(define (%string-for-each* proc str start past)
-  (let loop ((i start))
-    (when (< i past)
-      (proc (string-ref str i))
-      (loop (+ i 1)))))
-
-(define (%string-for-each-index proc str start past)
-  (let loop ((i start))
-    (when (< i past)
-      (proc i)
-      (loop (+ i 1)))))
-
-
-;;;; folding
-
-(define (%string-fold kons knil str start past)
-  (let loop ((v knil)
-	     (i start))
-    (if (< i past)
-	(loop (kons (string-ref str i) v) (+ i 1))
-      v)))
-
-(define (%string-fold-right kons knil str start past)
-  (let loop ((v knil)
-	     (i (- past 1)))
-    (if (>= i start)
-	(loop (kons (string-ref str i) v) (- i 1))
-      v)))
-
-(define string-unfold
-  (case-lambda
-   ((p f g seed)
-    (string-unfold p f g seed "" (lambda (x) "")))
-   ((p f g seed base)
-    (string-unfold p f g seed base (lambda (x) "")))
-   ((p f g seed base make-final)
-    ;;The strategy is  to allocate a series of chunks  into which we stash
-    ;;the chars as  we generate them. Chunk size goes up  in powers of two
-    ;;beging with 40 and levelling out at 4k, i.e.
-    ;;
-    ;;	40 40 80 160 320 640 1280 2560 4096 4096 4096 4096 4096...
-    ;;
-    ;;This should  work pretty  well for short  strings, 1-line  (80 char)
-    ;;strings, and  longer ones. When  done, we allocate an  answer string
-    ;;and copy the chars over from the chunk buffers.
-    (let lp ((chunks '())	      ; Previously filled chunks
-	     (nchars 0)		      ; Number of chars in CHUNKS
-	     (chunk (make-string 40)) ; Current chunk into which we write
-	     (chunk-len 40)
-	     (i 0) ; Number of chars written into CHUNK
-	     (seed seed))
-      (let lp2 ((i i) (seed seed))
-	(if (not (p seed))
-	    (let ((c (f seed))
-		  (seed (g seed)))
-	      (if (< i chunk-len)
-		  (begin (string-set! chunk i c)
-			 (lp2 (+ i 1) seed))
-
-		(let* ((nchars2 (+ chunk-len nchars))
-		       (chunk-len2 (min 4096 nchars2))
-		       (new-chunk (make-string chunk-len2)))
-		  (string-set! new-chunk 0 c)
-		  (lp (cons chunk chunks) (+ nchars chunk-len)
-		      new-chunk chunk-len2 1 seed))))
-
-	  ;; We're done. Make the answer string & install the bits.
-	  (let* ((final (make-final seed))
-		 (flen (string-length final))
-		 (base-len (string-length base))
-		 (j (+ base-len nchars i))
-		 (ans (make-string (+ j flen))))
-	    (%string-copy! ans j final 0 flen) ; Install FINAL.
-	    (let ((j (- j i)))
-	      (%string-copy! ans j chunk 0 i) ; Install CHUNK[0,I).
-	      (let lp ((j j) (chunks chunks)) ; Install CHUNKS.
-		(if (pair? chunks)
-		    (let* ((chunk  (car chunks))
-			   (chunks (cdr chunks))
-			   (chunk-len (string-length chunk))
-			   (j (- j chunk-len)))
-		      (%string-copy! ans j chunk 0 chunk-len)
-		      (lp j chunks)))))
-	    (%string-copy! ans 0 base 0 base-len) ; Install BASE.
-	    ans)))))))
-
-(define string-unfold-right
-  (case-lambda
-   ((p f g seed)
-    (string-unfold-right p f g seed "" (lambda (x) "")))
-   ((p f g seed base)
-    (string-unfold-right p f g seed base (lambda (x) "")))
-   ((p f g seed base make-final)
-    (let lp ((chunks '())	      ; Previously filled chunks
-	     (nchars 0)		      ; Number of chars in CHUNKS
-	     (chunk (make-string 40)) ; Current chunk into which we write
-	     (chunk-len 40)
-	     (i 40) ; Number of chars available in CHUNK
-	     (seed seed))
-      (let lp2 ((i i) (seed seed)) ; Fill up CHUNK from right
-	(if (not (p seed))	   ; to left.
-	    (let ((c (f seed))
-		  (seed (g seed)))
-	      (if (> i 0)
-		  (let ((i (- i 1)))
-		    (string-set! chunk i c)
-		    (lp2 i seed))
-
-		(let* ((nchars2 (+ chunk-len nchars))
-		       (chunk-len2 (min 4096 nchars2))
-		       (new-chunk (make-string chunk-len2))
-		       (i (- chunk-len2 1)))
-		  (string-set! new-chunk i c)
-		  (lp (cons chunk chunks) (+ nchars chunk-len)
-		      new-chunk chunk-len2 i seed))))
-
-	  ;; We're done. Make the answer string & install the bits.
-	  (let* ((final (make-final seed))
-		 (flen (string-length final))
-		 (base-len (string-length base))
-		 (chunk-used (- chunk-len i))
-		 (j (+ base-len nchars chunk-used))
-		 (ans (make-string (+ j flen))))
-	    (%string-copy! ans 0 final 0 flen)	       ; Install FINAL.
-	    (%string-copy! ans flen chunk i chunk-len) ; Install CHUNK[I,).
-	    (let lp ((j (+ flen chunk-used))	       ; Install CHUNKS.
-		     (chunks chunks))
-	      (if (pair? chunks)
-		  (let* ((chunk  (car chunks))
-			 (chunks (cdr chunks))
-			 (chunk-len (string-length chunk)))
-		    (%string-copy! ans j chunk 0 chunk-len)
-		    (lp (+ j chunk-len) chunks))
-		(%string-copy! ans j base 0 base-len)))	; Install BASE.
-	    ans)))))))
-
-(define (string-tabulate proc len)
-  (let ((s (make-string len)))
-    (do ((i (- len 1) (- i 1)))
-	((< i 0))
-      (string-set! s i (proc i)))
-    s))
-
-
-;;;; prefix and suffix
-
-(define (%true-string-prefix-length char-cmp? str1 start1 past1 str2 start2 past2)
-  ;;Find the length  of the common prefix.  It is  not required that the
-  ;;two substrings passed be of equal length.
-  (let* ((delta (min (- past1 start1) (- past2 start2)))
-	 (past1 (+ start1 delta)))
-    (if (and (eq? str1 str2) (= start1 start2)) ; EQ fast path
-	delta
-      (let lp ((i start1) (j start2)) ; Regular path
-	(if (or (>= i past1)
-		(not (char-cmp? (string-ref str1 i)
-				(string-ref str2 j))))
-	    (- i start1)
-	  (lp (+ i 1) (+ j 1)))))))
-
-(define (%string-prefix-length str1 start1 past1 str2 start2 past2)
-  (%true-string-prefix-length char=? str1 start1 past1 str2 start2 past2))
-
-(define (%string-prefix-length-ci str1 start1 past1 str2 start2 past2)
-  (%true-string-prefix-length char-ci=? str1 start1 past1 str2 start2 past2))
-
-(define (%string-prefix? str1 start1 past1 str2 start2 past2)
-  (let ((len1 (- past1 start1)))
-    (and (<= len1 (- past2 start2)) ; Quick check
-	 (= len1 (%string-prefix-length str1 start1 past1
-					str2 start2 past2)))))
-
-(define (%string-prefix-ci? str1 start1 past1 str2 start2 past2)
-  (let ((len1 (- past1 start1)))
-    (and (<= len1 (- past2 start2)) ; Quick check
-	 (= len1 (%string-prefix-length-ci str1 start1 past1
-					   str2 start2 past2)))))
-
-;;; --------------------------------------------------------------------
-
-(define (%true-string-suffix-length char-cmp? str1 start1 past1 str2 start2 past2)
-  ;;Find the length  of the common suffix.  It is  not required that the
-  ;;two substrings passed be of equal length.
-  (let* ((delta (min (- past1 start1) (- past2 start2)))
-	 (start1 (- past1 delta)))
-    (if (and (eq? str1 str2) (= past1 past2)) ; EQ fast path
-	delta
-      (let lp ((i (- past1 1)) (j (- past2 1))) ; Regular path
-	(if (or (< i start1)
-		(not (char-cmp? (string-ref str1 i)
-				(string-ref str2 j))))
-	    (- (- past1 i) 1)
-	  (lp (- i 1) (- j 1)))))))
-
-(define (%string-suffix-length str1 start1 past1 str2 start2 past2)
-  (%true-string-suffix-length char=? str1 start1 past1 str2 start2 past2))
-
-(define (%string-suffix-length-ci str1 start1 past1 str2 start2 past2)
-  (%true-string-suffix-length char-ci=? str1 start1 past1 str2 start2 past2))
-
-(define (%string-suffix? str1 start1 past1 str2 start2 past2)
-  (let ((len1 (- past1 start1)))
-    (and (<= len1 (- past2 start2)) ; Quick check
-	 (= len1 (%string-suffix-length str1 start1 past1
-					str2 start2 past2)))))
-
-(define (%string-suffix-ci? str1 start1 past1 str2 start2 past2)
-  (let ((len1 (- past1 start1)))
-    (and (<= len1 (- past2 start2)) ; Quick check
-	 (= len1 (%string-suffix-length-ci str1 start1 past1
-					   str2 start2 past2)))))
 
 
 ;;;; comparison
@@ -575,6 +339,35 @@
   (%true-string>= %string-compare-ci str1 start1 past1 str2 start2 past2))
 
 
+;;;; mapping
+
+(define (%string-map proc str start past)
+  (do ((i start (+ 1 i))
+       (j 0 (+ 1 j))
+       (result (make-string (- past start))))
+      ((>= i past)
+       result)
+    (string-set! result j (proc (string-ref str i)))))
+
+(define (%string-map! proc str start past)
+  (do ((i start (+ 1 i)))
+      ((>= i past)
+       str)
+    (string-set! str i (proc (string-ref str i)))))
+
+(define (%string-for-each* proc str start past)
+  (let loop ((i start))
+    (when (< i past)
+      (proc (string-ref str i))
+      (loop (+ i 1)))))
+
+(define (%string-for-each-index proc str start past)
+  (let loop ((i start))
+    (when (< i past)
+      (proc i)
+      (loop (+ i 1)))))
+
+
 ;;;; case hacking
 
 (define (char-cased? c)
@@ -582,7 +375,7 @@
   ;; upcase version.
   (char-upper-case? (char-upcase c)))
 
-(define (%string-titlecase! str start past)
+(define (%string-titlecase*! str start past)
   (let loop ((i start))
     (cond ((%string-index char-cased? str i past)
 	   => (lambda (i)
@@ -596,7 +389,153 @@
 			 (%string-map! char-downcase str i1 past)))))))))
 
 
+;;;; folding
+
+(define (%string-fold kons knil str start past)
+  (let loop ((v knil)
+	     (i start))
+    (if (< i past)
+	(loop (kons (string-ref str i) v) (+ i 1))
+      v)))
+
+(define (%string-fold-right kons knil str start past)
+  (let loop ((v knil)
+	     (i (- past 1)))
+    (if (>= i start)
+	(loop (kons (string-ref str i) v) (- i 1))
+      v)))
+
+(define string-unfold
+  (case-lambda
+   ((p f g seed)
+    (string-unfold p f g seed "" (lambda (x) "")))
+   ((p f g seed base)
+    (string-unfold p f g seed base (lambda (x) "")))
+   ((p f g seed base make-final)
+    ;;The strategy is  to allocate a series of chunks  into which we stash
+    ;;the chars as  we generate them. Chunk size goes up  in powers of two
+    ;;beging with 40 and levelling out at 4k, i.e.
+    ;;
+    ;;	40 40 80 160 320 640 1280 2560 4096 4096 4096 4096 4096...
+    ;;
+    ;;This should  work pretty  well for short  strings, 1-line  (80 char)
+    ;;strings, and  longer ones. When  done, we allocate an  answer string
+    ;;and copy the chars over from the chunk buffers.
+    (let lp ((chunks '())	      ; Previously filled chunks
+	     (nchars 0)		      ; Number of chars in CHUNKS
+	     (chunk (make-string 40)) ; Current chunk into which we write
+	     (chunk-len 40)
+	     (i 0) ; Number of chars written into CHUNK
+	     (seed seed))
+      (let lp2 ((i i) (seed seed))
+	(if (not (p seed))
+	    (let ((c (f seed))
+		  (seed (g seed)))
+	      (if (< i chunk-len)
+		  (begin (string-set! chunk i c)
+			 (lp2 (+ i 1) seed))
+
+		(let* ((nchars2 (+ chunk-len nchars))
+		       (chunk-len2 (min 4096 nchars2))
+		       (new-chunk (make-string chunk-len2)))
+		  (string-set! new-chunk 0 c)
+		  (lp (cons chunk chunks) (+ nchars chunk-len)
+		      new-chunk chunk-len2 1 seed))))
+
+	  ;; We're done. Make the answer string & install the bits.
+	  (let* ((final (make-final seed))
+		 (flen (string-length final))
+		 (base-len (string-length base))
+		 (j (+ base-len nchars i))
+		 (ans (make-string (+ j flen))))
+	    (%string-copy*! ans j final 0 flen) ; Install FINAL.
+	    (let ((j (- j i)))
+	      (%string-copy*! ans j chunk 0 i) ; Install CHUNK[0,I).
+	      (let lp ((j j) (chunks chunks)) ; Install CHUNKS.
+		(if (pair? chunks)
+		    (let* ((chunk  (car chunks))
+			   (chunks (cdr chunks))
+			   (chunk-len (string-length chunk))
+			   (j (- j chunk-len)))
+		      (%string-copy*! ans j chunk 0 chunk-len)
+		      (lp j chunks)))))
+	    (%string-copy*! ans 0 base 0 base-len) ; Install BASE.
+	    ans)))))))
+
+(define string-unfold-right
+  (case-lambda
+   ((p f g seed)
+    (string-unfold-right p f g seed "" (lambda (x) "")))
+   ((p f g seed base)
+    (string-unfold-right p f g seed base (lambda (x) "")))
+   ((p f g seed base make-final)
+    (let lp ((chunks '())	      ; Previously filled chunks
+	     (nchars 0)		      ; Number of chars in CHUNKS
+	     (chunk (make-string 40)) ; Current chunk into which we write
+	     (chunk-len 40)
+	     (i 40) ; Number of chars available in CHUNK
+	     (seed seed))
+      (let lp2 ((i i) (seed seed)) ; Fill up CHUNK from right
+	(if (not (p seed))	   ; to left.
+	    (let ((c (f seed))
+		  (seed (g seed)))
+	      (if (> i 0)
+		  (let ((i (- i 1)))
+		    (string-set! chunk i c)
+		    (lp2 i seed))
+
+		(let* ((nchars2 (+ chunk-len nchars))
+		       (chunk-len2 (min 4096 nchars2))
+		       (new-chunk (make-string chunk-len2))
+		       (i (- chunk-len2 1)))
+		  (string-set! new-chunk i c)
+		  (lp (cons chunk chunks) (+ nchars chunk-len)
+		      new-chunk chunk-len2 i seed))))
+
+	  ;; We're done. Make the answer string & install the bits.
+	  (let* ((final (make-final seed))
+		 (flen (string-length final))
+		 (base-len (string-length base))
+		 (chunk-used (- chunk-len i))
+		 (j (+ base-len nchars chunk-used))
+		 (ans (make-string (+ j flen))))
+	    (%string-copy*! ans 0 final 0 flen)	       ; Install FINAL.
+	    (%string-copy*! ans flen chunk i chunk-len) ; Install CHUNK[I,).
+	    (let lp ((j (+ flen chunk-used))	       ; Install CHUNKS.
+		     (chunks chunks))
+	      (if (pair? chunks)
+		  (let* ((chunk  (car chunks))
+			 (chunks (cdr chunks))
+			 (chunk-len (string-length chunk)))
+		    (%string-copy*! ans j chunk 0 chunk-len)
+		    (lp (+ j chunk-len) chunks))
+		(%string-copy*! ans j base 0 base-len)))	; Install BASE.
+	    ans)))))))
+
+(define (string-tabulate proc len)
+  (let ((s (make-string len)))
+    (do ((i (- len 1) (- i 1)))
+	((< i 0))
+      (string-set! s i (proc i)))
+    s))
+
+
 ;;;; selecting
+
+(define (%string-copy*! dst-str dst-start src-str src-start src-past)
+  (if (>= (- (string-length dst-str) dst-start)
+	  (- src-past src-start))
+      (if (> src-start dst-start)
+	  (do ((i src-start (+ i 1))
+	       (j dst-start (+ j 1)))
+	      ((>= i src-past))
+	    (string-set! dst-str j (string-ref src-str i)))
+	(do ((i (- src-past 1)                    (- i 1))
+	     (j (+ -1 dst-start (- src-past src-start)) (- j 1)))
+	    ((< i src-start))
+	  (string-set! dst-str j (string-ref src-str i))))
+    (assertion-violation '%string-copy*!
+      "not enough room in destination string")))
 
 (define (%string-take nchars str start past)
   (if (<= nchars (- past start))
@@ -641,7 +580,7 @@
     (if (<= requested-len len)
 	(substring str (- past requested-len) past)
       (let ((result (make-string requested-len fill-char)))
-	(%string-copy! result (- requested-len len) str start past)
+	(%string-copy*! result (- requested-len len) str start past)
 	result))))
 
 (define (%string-pad-right requested-len fill-char str start past)
@@ -649,85 +588,77 @@
     (if (<= requested-len len)
 	(substring str start (+ start requested-len))
       (let ((result (make-string requested-len fill-char)))
-	(%string-copy! result 0 str start past)
+	(%string-copy*! result 0 str start past)
 	result))))
 
-(define (%string-copy! dst-str dst-start src-str src-start src-past)
-  (if (>= (- (string-length dst-str) dst-start)
-	  (- src-past src-start))
-      (if (> src-start dst-start)
-	  (do ((i src-start (+ i 1))
-	       (j dst-start (+ j 1)))
-	      ((>= i src-past))
-	    (string-set! dst-str j (string-ref src-str i)))
-	(do ((i (- src-past 1)                    (- i 1))
-	     (j (+ -1 dst-start (- src-past src-start)) (- j 1)))
-	    ((< i src-start))
-	  (string-set! dst-str j (string-ref src-str i))))
-    (assertion-violation '%string-copy!
-      "not enough room in destination string")))
-
 
-;;;; filtering
+;;;; prefix and suffix
 
-(define (%string-delete criterion str start past)
-  (if (procedure? criterion)
-      (let* ((slen (- past start))
-	     (temp (make-string slen))
-	     (ans-len (%string-fold (lambda (c i)
-				      (if (criterion c) i
-					(begin (string-set! temp i c)
-					       (+ i 1))))
-				    0 str start past)))
-	(if (= ans-len slen) temp (substring temp 0 ans-len)))
+(define (%true-string-prefix-length char-cmp? str1 start1 past1 str2 start2 past2)
+  ;;Find the length  of the common prefix.  It is  not required that the
+  ;;two substrings passed be of equal length.
+  (let* ((delta (min (- past1 start1) (- past2 start2)))
+	 (past1 (+ start1 delta)))
+    (if (and (eq? str1 str2) (= start1 start2)) ; EQ fast path
+	delta
+      (let lp ((i start1) (j start2)) ; Regular path
+	(if (or (>= i past1)
+		(not (char-cmp? (string-ref str1 i)
+				(string-ref str2 j))))
+	    (- i start1)
+	  (lp (+ i 1) (+ j 1)))))))
 
-    (let* ((cset (cond ((char-set? criterion) criterion)
-		       ((char? criterion) (char-set criterion))
-		       (else
-			(assertion-violation '%string-delete
-			  "expected predicate, char or char-set as criterion"
-			  criterion))))
-	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
-						i
-					      (+ i 1)))
-			      0 str start past))
-	   (ans (make-string len)))
-      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
-				     i
-				   (begin (string-set! ans i c)
-					  (+ i 1))))
-		   0 str start past)
-      ans)))
+(define (%string-prefix-length str1 start1 past1 str2 start2 past2)
+  (%true-string-prefix-length char=? str1 start1 past1 str2 start2 past2))
 
-(define (%string-filter criterion str start past)
-  (if (procedure? criterion)
-      (let* ((slen (- past start))
-	     (temp (make-string slen))
-	     (ans-len (%string-fold (lambda (c i)
-				     (if (criterion c)
-					 (begin (string-set! temp i c)
-						(+ i 1))
-				       i))
-				   0 str start past)))
-	(if (= ans-len slen) temp (substring temp 0 ans-len)))
+(define (%string-prefix-length-ci str1 start1 past1 str2 start2 past2)
+  (%true-string-prefix-length char-ci=? str1 start1 past1 str2 start2 past2))
 
-    (let* ((cset (cond ((char-set? criterion) criterion)
-		       ((char? criterion) (char-set criterion))
-		       (else
-			(assertion-violation '%string-filter
-			  "expected predicate, char or char-set as criterion"
-			  criterion))))
-	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
-					       (+ i 1)
-					     i))
-			     0 str start past))
-	   (ans (make-string len)))
-      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
-				     (begin (string-set! ans i c)
-					    (+ i 1))
-				   i))
-		   0 str start past)
-      ans)))
+(define (%string-prefix? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-prefix-length str1 start1 past1
+					str2 start2 past2)))))
+
+(define (%string-prefix-ci? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-prefix-length-ci str1 start1 past1
+					   str2 start2 past2)))))
+
+;;; --------------------------------------------------------------------
+
+(define (%true-string-suffix-length char-cmp? str1 start1 past1 str2 start2 past2)
+  ;;Find the length  of the common suffix.  It is  not required that the
+  ;;two substrings passed be of equal length.
+  (let* ((delta (min (- past1 start1) (- past2 start2)))
+	 (start1 (- past1 delta)))
+    (if (and (eq? str1 str2) (= past1 past2)) ; EQ fast path
+	delta
+      (let lp ((i (- past1 1)) (j (- past2 1))) ; Regular path
+	(if (or (< i start1)
+		(not (char-cmp? (string-ref str1 i)
+				(string-ref str2 j))))
+	    (- (- past1 i) 1)
+	  (lp (- i 1) (- j 1)))))))
+
+(define (%string-suffix-length str1 start1 past1 str2 start2 past2)
+  (%true-string-suffix-length char=? str1 start1 past1 str2 start2 past2))
+
+(define (%string-suffix-length-ci str1 start1 past1 str2 start2 past2)
+  (%true-string-suffix-length char-ci=? str1 start1 past1 str2 start2 past2))
+
+(define (%string-suffix? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-suffix-length str1 start1 past1
+					str2 start2 past2)))))
+
+(define (%string-suffix-ci? str1 start1 past1 str2 start2 past2)
+  (let ((len1 (- past1 start1)))
+    (and (<= len1 (- past2 start2)) ; Quick check
+	 (= len1 (%string-suffix-length-ci str1 start1 past1
+					   str2 start2 past2)))))
 
 
 ;;;; searching
@@ -844,6 +775,265 @@
   (%kmp-search char-ci=? text text-start text-past pattern pattern-start pattern-past))
 
 
+;;;; filtering
+
+(define (%string-delete criterion str start past)
+  (if (procedure? criterion)
+      (let* ((slen (- past start))
+	     (temp (make-string slen))
+	     (ans-len (%string-fold (lambda (c i)
+				      (if (criterion c) i
+					(begin (string-set! temp i c)
+					       (+ i 1))))
+				    0 str start past)))
+	(if (= ans-len slen) temp (substring temp 0 ans-len)))
+
+    (let* ((cset (cond ((char-set? criterion) criterion)
+		       ((char? criterion) (char-set criterion))
+		       (else
+			(assertion-violation '%string-delete
+			  "expected predicate, char or char-set as criterion"
+			  criterion))))
+	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+						i
+					      (+ i 1)))
+			      0 str start past))
+	   (ans (make-string len)))
+      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+				     i
+				   (begin (string-set! ans i c)
+					  (+ i 1))))
+		   0 str start past)
+      ans)))
+
+(define (%string-filter criterion str start past)
+  (if (procedure? criterion)
+      (let* ((slen (- past start))
+	     (temp (make-string slen))
+	     (ans-len (%string-fold (lambda (c i)
+				     (if (criterion c)
+					 (begin (string-set! temp i c)
+						(+ i 1))
+				       i))
+				   0 str start past)))
+	(if (= ans-len slen) temp (substring temp 0 ans-len)))
+
+    (let* ((cset (cond ((char-set? criterion) criterion)
+		       ((char? criterion) (char-set criterion))
+		       (else
+			(assertion-violation '%string-filter
+			  "expected predicate, char or char-set as criterion"
+			  criterion))))
+	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+					       (+ i 1)
+					     i))
+			     0 str start past))
+	   (ans (make-string len)))
+      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+				     (begin (string-set! ans i c)
+					    (+ i 1))
+				   i))
+		   0 str start past)
+      ans)))
+
+
+;;;; strings and lists
+
+(define (reverse-list->string clist)
+  (let* ((len (length clist))
+	 (s (make-string len)))
+    (do ((i (- len 1) (- i 1))   (clist clist (cdr clist)))
+	((not (pair? clist)))
+      (string-set! s i (car clist)))
+    s))
+
+(define (%string->list* str start past)
+  (do ((i (- past 1) (- i 1))
+       (result '() (cons (string-ref str i) result)))
+      ((< i start) result)))
+
+(define (%string-join strings delim grammar)
+  (define (join-with-delim ell final)
+    (let loop ((ell ell))
+      (if (pair? ell)
+	  (cons delim
+		(cons (car ell)
+		      (loop (cdr ell))))
+	final)))
+  (cond ((pair? strings)
+	 (string-concatenate
+	  (case grammar
+	    ((infix strict-infix)
+	     (cons (car strings)
+		   (join-with-delim (cdr strings) '())))
+	    ((prefix)
+	     (join-with-delim strings '()))
+	    ((suffix)
+	     (cons (car strings)
+		   (join-with-delim (cdr strings) (list delim))))
+	    (else
+	     (assertion-violation '%string-join
+	       "illegal join grammar" grammar)))))
+
+	((not (null? strings))
+	 (assertion-violation '%string-join
+	   "STRINGS parameter is not a list" strings))
+
+	;; here we know that STRINGS is the empty string
+	((eq? grammar 'strict-infix)
+	 (assertion-violation '%string-join
+	   "empty list cannot be joined with STRICT-INFIX grammar."))
+
+	(else ""))) ; Special-cased for infix grammar.
+
+(define (%string-tokenize token-set str start past)
+  (let loop ((i		past)
+	     (result	'()))
+    (cond ((and (< start i) (%string-index-right token-set str start i))
+	   => (lambda (tpast-1)
+		(let ((tpast (+ 1 tpast-1)))
+		  (cond ((%string-skip-right token-set str start tpast-1)
+			 => (lambda (tstart-1)
+			      (loop tstart-1
+				    (cons (substring str (+ 1 tstart-1) tpast)
+					  result))))
+			(else (cons (substring str start tpast) result))))))
+	  (else result))))
+
+
+;;;; extended substring
+
+(define (%xsubstring from to str start past)
+  (let ((str-len	(- past start))
+	(result-len	(- to from)))
+    (cond ((zero? result-len) "")
+	  ((zero? str-len)
+	   (assertion-violation '%xsubstring "cannot replicate empty (sub)string"))
+	  ((= 1 str-len)
+	   (make-string result-len (string-ref str start)))
+
+	  ;; Selected text falls entirely within one span.
+	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
+	   (substring str
+		      (+ start (modulo from str-len))
+		      (+ start (modulo to   str-len))))
+
+	  ;; Selected text requires multiple spans.
+	  (else
+	   (let ((result (make-string result-len)))
+	     (%multispan-repcopy! from to result 0 str start past)
+	     result)))))
+
+(define (%string-xcopy! from to
+			dst-str dst-start dst-past
+			src-str src-start src-past)
+  (let* ((tocopy	(- to from))
+	 (tend		(+ dst-start tocopy))
+	 (str-len	(- src-past src-start)))
+    (cond ((zero? tocopy))
+	  ((zero? str-len)
+	   (assertion-violation '%string-xcopy! "cannot replicate empty (sub)string"))
+
+	  ((= 1 str-len)
+	   (%string-fill*! dst-str (string-ref src-str src-start) dst-start dst-past))
+
+	  ;; Selected text falls entirely within one span.
+	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
+	   (%string-copy*! dst-str dst-start src-str
+			  (+ src-start (modulo from str-len))
+			  (+ src-start (modulo to   str-len))))
+
+	  (else
+	   (%multispan-repcopy! from to dst-str dst-start src-str src-start src-past)))))
+
+(define (%multispan-repcopy! from to dst-str dst-start src-str src-start src-past)
+  ;;This  is the  core  copying loop  for  XSUBSTRING and  STRING-XCOPY!
+  ;;Internal -- not exported, no careful arg checking.
+  (let* ((str-len	(- src-past src-start))
+	 (i0		(+ src-start (modulo from str-len)))
+	 (total-chars	(- to from)))
+
+    ;; Copy the partial span @ the beginning
+    (%string-copy*! dst-str dst-start src-str i0 src-past)
+
+    (let* ((ncopied (- src-past i0))	      ; We've copied this many.
+	   (nleft (- total-chars ncopied))    ; # chars left to copy.
+	   (nspans (quotient nleft str-len))) ; # whole spans to copy
+
+      ;; Copy the whole spans in the middle.
+      (do ((i (+ dst-start ncopied) (+ i str-len)) ; Current target index.
+	   (nspans nspans (- nspans 1)))	   ; # spans to copy
+	  ((zero? nspans)
+	   ;; Copy the partial-span @ the end & we're done.
+	   (%string-copy*! dst-str i src-str src-start (+ src-start (- total-chars (- i dst-start)))))
+
+	(%string-copy*! dst-str i src-str src-start src-past))))) ; Copy a whole span.
+
+
+;;;; concatenate, reverse, replace, fill
+
+(define (string-concatenate strings)
+  (let* ((total (do ((strings strings (cdr strings))
+		     (i 0 (+ i (string-length (car strings)))))
+		    ((not (pair? strings)) i)))
+	 (result (make-string total)))
+    (let lp ((i 0) (strings strings))
+      (if (pair? strings)
+	  (let* ((s (car strings))
+		 (slen (string-length s)))
+	    (%string-copy*! result i s 0 slen)
+	    (lp (+ i slen) (cdr strings)))))
+    result))
+
+(define (%string-concatenate-reverse string-list final past)
+  (let* ((len (let loop ((sum 0) (lis string-list))
+		(if (pair? lis)
+		    (loop (+ sum (string-length (car lis))) (cdr lis))
+		  sum)))
+	 (result (make-string (+ past len))))
+    (%string-copy*! result len final 0 past)
+    (let loop ((i len) (lis string-list))
+      (if (pair? lis)
+	  (let* ((s   (car lis))
+		 (lis (cdr lis))
+		 (slen (string-length s))
+		 (i (- i slen)))
+	    (%string-copy*! result i s 0 slen)
+	    (loop i lis))))
+    result))
+
+(define (%string-reverse str start past)
+  (let* ((len (- past start))
+	 (result (make-string len)))
+    (do ((i start (+ i 1))
+	 (j (- len 1) (- j 1)))
+	((< j 0))
+      (string-set! result j (string-ref str i)))
+    result))
+
+(define (%string-replace str1 start1 past1 str2 start2 past2)
+  (let* ((len1		(string-length str1))
+	 (len2		(- past2 start2))
+	 (result	(make-string (+ len2 (- len1 (- past1 start1))))))
+    (%string-copy*! result 0 str1 0 start1)
+    (%string-copy*! result start1 str2 start2 past2)
+    (%string-copy*! result (+ start1 len2) str1 past1 len1)
+    result))
+
+(define (%string-reverse! str start past)
+  (do ((i (- past 1) (- i 1))
+       (j start (+ j 1)))
+      ((<= i j))
+    (let ((ci (string-ref str i)))
+      (string-set! str i (string-ref str j))
+      (string-set! str j ci))))
+
+(define (%string-fill*! fill-char str start past)
+  (do ((i (- past 1) (- i 1)))
+      ((< i start))
+    (string-set! str i fill-char)))
+
+
 ;; Knuth-Morris-Pratt string searching. See:
 ;;
 ;;  "Fast pattern matching in strings"
@@ -942,218 +1132,6 @@
 			 (let ((pi (vector-ref restart-vector pi)))
 			   (if (= pi -1) 0
 			     (loop2 pi))))))))))))
-
-
-;;;; filling
-
-(define (%string-fill*! fill-char str start past)
-  (do ((i (- past 1) (- i 1)))
-      ((< i start))
-    (string-set! str i fill-char)))
-
-
-
-;;;; reverse
-
-(define (%string-reverse str start past)
-  (let* ((len (- past start))
-	 (result (make-string len)))
-    (do ((i start (+ i 1))
-	 (j (- len 1) (- j 1)))
-	((< j 0))
-      (string-set! result j (string-ref str i)))
-    result))
-
-(define (%string-reverse! str start past)
-  (do ((i (- past 1) (- i 1))
-       (j start (+ j 1)))
-      ((<= i j))
-    (let ((ci (string-ref str i)))
-      (string-set! str i (string-ref str j))
-      (string-set! str j ci))))
-
-
-;;;; strings and lists
-
-(define (reverse-list->string clist)
-  (let* ((len (length clist))
-	 (s (make-string len)))
-    (do ((i (- len 1) (- i 1))   (clist clist (cdr clist)))
-	((not (pair? clist)))
-      (string-set! s i (car clist)))
-    s))
-
-(define (%string->list* str start past)
-  (do ((i (- past 1) (- i 1))
-       (result '() (cons (string-ref str i) result)))
-      ((< i start) result)))
-
-
-
-;;;; append and concatenate
-
-(define (string-concatenate strings)
-  (let* ((total (do ((strings strings (cdr strings))
-		     (i 0 (+ i (string-length (car strings)))))
-		    ((not (pair? strings)) i)))
-	 (result (make-string total)))
-    (let lp ((i 0) (strings strings))
-      (if (pair? strings)
-	  (let* ((s (car strings))
-		 (slen (string-length s)))
-	    (%string-copy! result i s 0 slen)
-	    (lp (+ i slen) (cdr strings)))))
-    result))
-
-(define (%string-concatenate-reverse string-list final past)
-  (let* ((len (let loop ((sum 0) (lis string-list))
-		(if (pair? lis)
-		    (loop (+ sum (string-length (car lis))) (cdr lis))
-		  sum)))
-	 (result (make-string (+ past len))))
-    (%string-copy! result len final 0 past)
-    (let loop ((i len) (lis string-list))
-      (if (pair? lis)
-	  (let* ((s   (car lis))
-		 (lis (cdr lis))
-		 (slen (string-length s))
-		 (i (- i slen)))
-	    (%string-copy! result i s 0 slen)
-	    (loop i lis))))
-    result))
-
-
-;;;; replace and tokenize
-
-(define (%string-replace str1 start1 past1 str2 start2 past2)
-  (let* ((len1		(string-length str1))
-	 (len2		(- past2 start2))
-	 (result	(make-string (+ len2 (- len1 (- past1 start1))))))
-    (%string-copy! result 0 str1 0 start1)
-    (%string-copy! result start1 str2 start2 past2)
-    (%string-copy! result (+ start1 len2) str1 past1 len1)
-    result))
-
-(define (%string-tokenize token-set str start past)
-  (let loop ((i		past)
-	     (result	'()))
-    (cond ((and (< start i) (%string-index-right token-set str start i))
-	   => (lambda (tpast-1)
-		(let ((tpast (+ 1 tpast-1)))
-		  (cond ((%string-skip-right token-set str start tpast-1)
-			 => (lambda (tstart-1)
-			      (loop tstart-1
-				    (cons (substring str (+ 1 tstart-1) tpast)
-					  result))))
-			(else (cons (substring str start tpast) result))))))
-	  (else result))))
-
-
-;;;; extended substring
-
-(define (%xsubstring from to str start past)
-  (let ((str-len	(- past start))
-	(result-len	(- to from)))
-    (cond ((zero? result-len) "")
-	  ((zero? str-len)
-	   (assertion-violation '%xsubstring "cannot replicate empty (sub)string"))
-	  ((= 1 str-len)
-	   (make-string result-len (string-ref str start)))
-
-	  ;; Selected text falls entirely within one span.
-	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
-	   (substring str
-		      (+ start (modulo from str-len))
-		      (+ start (modulo to   str-len))))
-
-	  ;; Selected text requires multiple spans.
-	  (else
-	   (let ((result (make-string result-len)))
-	     (%multispan-repcopy! from to result 0 str start past)
-	     result)))))
-
-(define (%string-xcopy! from to
-			dst-str dst-start dst-past
-			src-str src-start src-past)
-  (let* ((tocopy	(- to from))
-	 (tend		(+ dst-start tocopy))
-	 (str-len	(- src-past src-start)))
-    (cond ((zero? tocopy))
-	  ((zero? str-len)
-	   (assertion-violation '%string-xcopy! "cannot replicate empty (sub)string"))
-
-	  ((= 1 str-len)
-	   (%string-fill*! dst-str (string-ref src-str src-start) dst-start dst-past))
-
-	  ;; Selected text falls entirely within one span.
-	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
-	   (%string-copy! dst-str dst-start src-str
-			  (+ src-start (modulo from str-len))
-			  (+ src-start (modulo to   str-len))))
-
-	  (else
-	   (%multispan-repcopy! from to dst-str dst-start src-str src-start src-past)))))
-
-(define (%multispan-repcopy! from to dst-str dst-start src-str src-start src-past)
-  ;;This  is the  core  copying loop  for  XSUBSTRING and  STRING-XCOPY!
-  ;;Internal -- not exported, no careful arg checking.
-  (let* ((str-len	(- src-past src-start))
-	 (i0		(+ src-start (modulo from str-len)))
-	 (total-chars	(- to from)))
-
-    ;; Copy the partial span @ the beginning
-    (%string-copy! dst-str dst-start src-str i0 src-past)
-
-    (let* ((ncopied (- src-past i0))	      ; We've copied this many.
-	   (nleft (- total-chars ncopied))    ; # chars left to copy.
-	   (nspans (quotient nleft str-len))) ; # whole spans to copy
-
-      ;; Copy the whole spans in the middle.
-      (do ((i (+ dst-start ncopied) (+ i str-len)) ; Current target index.
-	   (nspans nspans (- nspans 1)))	   ; # spans to copy
-	  ((zero? nspans)
-	   ;; Copy the partial-span @ the end & we're done.
-	   (%string-copy! dst-str i src-str src-start (+ src-start (- total-chars (- i dst-start)))))
-
-	(%string-copy! dst-str i src-str src-start src-past))))) ; Copy a whole span.
-
-
-;;;; join
-
-(define (%string-join strings delim grammar)
-  (define (join-with-delim ell final)
-    (let loop ((ell ell))
-      (if (pair? ell)
-	  (cons delim
-		(cons (car ell)
-		      (loop (cdr ell))))
-	final)))
-
-  (cond ((pair? strings)
-	 (string-concatenate
-	  (case grammar
-	    ((infix strict-infix)
-	     (cons (car strings)
-		   (join-with-delim (cdr strings) '())))
-	    ((prefix)
-	     (join-with-delim strings '()))
-	    ((suffix)
-	     (cons (car strings)
-		   (join-with-delim (cdr strings) (list delim))))
-	    (else
-	     (assertion-violation '%string-join
-	       "illegal join grammar" grammar)))))
-
-	((not (null? strings))
-	 (assertion-violation '%string-join
-	   "STRINGS parameter is not a list" strings))
-
-	;; here we know that STRINGS is the empty string
-	((eq? grammar 'strict-infix)
-	 (assertion-violation '%string-join
-	   "empty list cannot be joined with STRICT-INFIX grammar."))
-
-	(else ""))) ; Special-cased for infix grammar.
 
 
 ;;;; done
