@@ -18960,10 +18960,10 @@ Determines list equality, given an element--equality procedure
 
 @enumerate
 @item
-they are of the same length;
+They are of the same length.
 
 @item
-their corresponding elements are equal, according to @var{elm=?}.
+Their corresponding elements are equal, according to @var{elm=?}.
 @end enumerate
 
 If the element--comparison procedure's first argument is from
@@ -19000,7 +19000,7 @@ The equality procedure must be consistent with @func{eq?}.  That is, it
 must be the case that:
 
 @example
-(eq? x y) => (elm=? x y)
+(eq? x y) @result{} (elm=? x y)
 @end example
 
 Note that this implies that two lists which are @func{eq?} are always
@@ -19011,37 +19011,37 @@ Examples:
 
 @example
 (list=? eq?)
-=> #t
+@result{} #t
 
 (list=? eq? '(a))
-=> #t
+@result{} #t
 
 (list=? = '(1 2 3 4)
           '(1 2 3 4))
-=> #t
+@result{} #t
 
 (list=? = '(1 2 3 4)
           '(1 9 3 4))
-=> #f
+@result{} #f
 
 (list=? = '(1 2 3 4)
           '(1 2 3 4)
           '(1 2 3 4))
-=> #t
+@result{} #t
 
 (list=? = '(1 2 3 4)
           '(1 2 3 4 5)
           '(1 2 3 4))
-=> #f
+@result{} #f
 
 (list=? = '())
-=> #t
+@result{} #t
 
 (list=? = '() '())
-=> #t
+@result{} #t
 
 (list=? = '() '() '())
-=> #t
+@result{} #t
 @end example
 @end defun
 

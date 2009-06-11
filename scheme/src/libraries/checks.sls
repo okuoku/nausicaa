@@ -396,10 +396,11 @@
 
 (define (debug thing . args)
   (when (debugging)
-    (if (string? thing)
-	  (apply format (current-error-port) thing args)
-      (write thing (current-error-port)))
-    (newline (current-error-port))))
+    (let ((port (current-error-port)))
+      (if (string? thing)
+	  (apply format port thing args)
+	(write thing port))
+      (rnrs:newline port))))
 
 (define (debug-print-condition message exc)
   (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"

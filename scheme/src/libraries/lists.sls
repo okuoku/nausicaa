@@ -31,7 +31,7 @@
 
     ;; constructors
     xcons
-    make-list list-tabulate list-copy circular-list iota
+    make-list list-tabulate list-copy circular-list iota tree-copy
 
     ;; predicats
     proper-list?	circular-list?		dotted-list?

@@ -35,7 +35,7 @@
     %range-length %range-empty? %range-contains?
 
     ;; range comparison
-    %range=? %range<?
+    %range=? %range<? %range>?
     %range-start<? %range-start<=?
     %range-contiguous? %range-overlapping?
 
@@ -44,32 +44,58 @@
     %range-union %range-intersection %range-difference
 
     ;; range list operations
-    %range-for-each %range-fold
-    %range-every %range-any
-    )
+    %range-for-each %range-fold %range-every %range-any
+    %range->list
+
+    ;; set constructors
+    %make-set %set-copy
+
+    ;; set inspection
+    %set? %set-size %set-empty? %set-contains?
+
+    ;; set mutation
+    %set-add-char %set-add-range
+
+    ;; set comparison
+    %set=? %set<?
+
+    ;; set set operations
+    %set-intersection %set-union %set-difference %set-complement
+
+    ;; set list operations
+    %set-for-each %set-every %set-any %set-fold
+    %set->list)
   (import (rnrs)
-    (lists))
+    (lists)
+    (rnrs mutable-pairs))
 
 
-;;; ranges
+;;;; ranges
+;;
+;;A "range" is a pair representing a half-open interval of numbers.  The
+;;car of  the pair if the  included left-limit, the cdr  is the excluded
+;;right-limit.
+;;
+;;Empty ranges (pairs with equal values) are invalid.
+;;
 
-(define (%valid-range-bound num)
-  ;;Return true if NUM is a valid range bound.
+(define (%valid-range-limit num)
+  ;;Return true if NUM is a valid range limit.
   (and (integer? num) (exact? num) (<= 0 num)))
 
 (define (%valid-range? range)
   ;;Return true if RANGE is a valid range value.
   (and (pair? range)
-       (%valid-range-bound (car range))
-       (%valid-range-bound (car range))
+       (%valid-range-limit (car range))
+       (%valid-range-limit (car range))
        (not (%range-empty? range))))
 
 (define (%make-range start past)
   ;;Compose the start index and the  past index into a range cons.  This
   ;;function  validates the  arguments to  make sure  that the  range is
   ;;valid.
-  (if (and (%valid-range-bound start)
-	   (%valid-range-bound past)
+  (if (and (%valid-range-limit start)
+	   (%valid-range-limit past)
 	   (< start past))
       (cons start past)
     (assertion-violation '%make-range
@@ -103,12 +129,19 @@
 (define (%range<? range-a range-b)
   ;;Assuming that RANGE-A  and RANGE-B are valid ranges:  Return true if
   ;;RANGE-A has all members less than all members of RANGE-B.
-  (< (cdr range-a) (car range-b)))
+  (<= (cdr range-a) (car range-b)))
+
+(define (%range>? range-a range-b)
+  ;;Assuming that RANGE-A  and RANGE-B are valid ranges:  Return true if
+  ;;RANGE-B has all members less than all members of RANGE-A.
+  (<= (cdr range-b) (car range-a)))
 
 (define (%range-contiguous? range-a range-b)
   ;;Assuming that RANGE-A  and RANGE-B are valid ranges:  Return true if
-  ;;RANGE-A and RANGE-B are contiguous.
-  (= (cdr range-a) (car range-b)))
+  ;;RANGE-A and RANGE-B  are contiguous; it does not  matter which range
+  ;;has start less than the other.
+  (or (= (cdr range-a) (car range-b))
+      (= (cdr range-b) (car range-a))))
 
 (define (%range-start<? range-a range-b)
   ;;Assuming that RANGE-A  and RANGE-B are valid ranges:  Return true if
@@ -126,8 +159,8 @@
   ;;the ranges have some characters in common.
   (let ((start-a (car range-a)) (past-a (cdr range-a))
 	(start-b (car range-b)) (past-b (cdr range-b)))
-    (or (< start-a start-b past-a)
-	(< start-b start-a past-b))))
+    (or (and (<= start-a start-b) (< start-b past-a))
+	(and (<= start-b start-a) (< start-a past-b)))))
 
 (define (%range-concatenate range-a range-b)
   ;;Assuming that RANGE-A and  RANGE-B are valid ranges: Concatenate the
@@ -155,39 +188,37 @@
       #f)))
 
 (define (%range-union range-a range-b)
-  ;;Assuming that RANGE-A and RANGE-B are valid ranges: Return the union
-  ;;range; it does not matter which range has start less than the other.
+  ;;Union is NOT a closed operation on the space of ranges: The union of
+  ;;two ranges in general can be a set of two ranges.
   ;;
-  ;;Union is not a closed operation on the space of ranges: The union of
-  ;;two ranges can be a range  (possibly empty) or a list of ranges.  If
-  ;;the ranges  are not overlapping: The  return value is a  list of two
-  ;;ranges.
+  ;;Assuming  that RANGE-A  and  RANGE-B are  valid  ranges: Return  two
+  ;;values holding  the head and tail  of the union; it  does not matter
+  ;;which range  has start less than the  other.  It can be  that one of
+  ;;the returned values is #f.
   (let ((start-a (car range-a)) (past-a (cdr range-a))
 	(start-b (car range-b)) (past-b (cdr range-b)))
     (cond
      ((= past-a start-b)
-      (cons start-a past-b))
+      (values #f (cons start-a past-b)))
      ((= past-b start-a)
-      (cons start-b past-a))
+      (values #f (cons start-b past-a)))
      ((or (<= start-a start-b past-a)
 	  (<= start-b start-a past-b))
-      (cons (min start-a start-b)
-	    (max past-a past-b)))
+      (values #f (cons (min start-a start-b)
+		       (max past-a past-b))))
      ((< start-a start-b)
       (list range-a range-b))
      (else
       (list range-b range-a)))))
 
 (define (%range-difference range-a range-b)
-  ;;Assuming  that RANGE-A  and  RANGE-B are  valid  ranges: Return  the
-  ;;difference between  the ranges; it  does not matter which  range has
-  ;;start less than the other.
+  ;;Difference is  NOT a  closed operation on  the space of  ranges: The
+  ;;difference between two  ranges in general is a set of two ranges.
   ;;
-  ;;Difference is  not a  closed operation on  the space of  ranges: The
-  ;;union of  two ranges can  be a range  (possibly empty) or a  list of
-  ;;ranges.  If  the ranges are not  overlapping: The return  value is a
-  ;;list  of two  ranges.   If the  ranges  are equal:  Return false  to
-  ;;represent the empty string.
+  ;;Assuming  that RANGE-A  and  RANGE-B are  valid  ranges: Return  two
+  ;;values  holding the head  and tail  of the  difference; it  does not
+  ;;matter which  range has start less  than the other.  It  can be that
+  ;;one or both the returned values are #f.
   (let-values (((range-a range-b) (if (%range-start<? range-a range-b)
 				      (values range-a range-b)
 				    (values range-b range-a))))
@@ -195,123 +226,442 @@
 	  (start-b (car range-b)) (past-b (cdr range-b)))
       (cond
        ((= past-a start-b)
-	(cons start-a past-b))
+	(values #f (cons start-a past-b)))
 
        ((= start-a start-b)
-	(cond
-	 ((< past-a past-b)
-	  (cons past-a past-b))
-	 ((> past-a past-b)
-	  (cons past-b past-a))
-	 (else
-	  #f)))
+	(values #f (cond
+		    ((< past-a past-b)
+		     (cons past-a past-b))
+		    ((> past-a past-b)
+		     (cons past-b past-a))
+		    (else
+		     #f))))
 
        ((= past-a past-b)
-	(cond
-	 ((< start-a start-b)
-	  (cons start-a start-b))
-	 ;;START-A cannot be > of START-B because we sorted them before.
-	 (else
-	  #f)))
+	(values #f (cond
+		    ((< start-a start-b)
+		     (cons start-a start-b))
+		    ;;START-A cannot  be > of START-B  because we sorted
+		    ;;them before.
+		    (else
+		     #f))))
 
        ((< start-a start-b past-a)
 	(if (< start-a past-b past-a)
-	    (list (cons start-a start-b)
-		  (cons past-b past-a))
-	  (list (cons start-a start-b)
-		(cons past-a past-b))))
+	    (values (cons start-a start-b)
+		    (cons past-b past-a))
+	  (values (cons start-a start-b)
+		  (cons past-a past-b))))
 
        ((< start-a start-b)
-	(list range-a range-b))
+	(values range-a range-b))
        (else
-	(list range-b range-a))))))
+	(values range-b range-a))))))
 
 (define (%range-for-each proc range)
+  ;;Assuming RANGE is a valid range: Apply PROC to each character in the
+  ;;range.
   (do ((i (car range) (+ 1 i)))
       ((<= (cdr range) i))
     (proc (integer->char i))))
 
 (define (%range-every proc range)
-  (let ((last (cdr range)))
+  ;;Assuming RANGE is a valid range: Apply PROC to each character in the
+  ;;range  and return  true  if all  the  return values  are true.   The
+  ;;application stops at the first false return value.
+  (let ((past (cdr range)))
     (let loop ((i (car range)))
-      (or (< i last)
+      (if (< i past)
 	  (and (proc (integer->char i))
-	       (loop (+ 1 i)))))))
+	       (loop (+ 1 i)))
+	#t))))
 
 (define (%range-any proc range)
-  (let ((last (cdr range)))
+  ;;Assuming RANGE is a valid range: Apply PROC to each character in the
+  ;;range  and return  true  at least  one  return value  is true.   The
+  ;;application stops at the first true return value.
+  (let ((past (cdr range)))
     (let loop ((i (car range)))
-      (if (< i last)
+      (if (< i past)
 	  (or (proc (integer->char i))
 	      (loop (+ 1 i)))
 	#f))))
 
 (define (%range-fold kons knil range)
-  (let ((last (cdr range)))
+  ;;Assuming RANGE  is a valid range:  Fold KONS over  the characters in
+  ;;the range.
+  (let ((past (cdr range)))
     (let loop ((i (car range))
 	       (knil knil))
-      (if (< i last)
+      (if (< i past)
 	  (loop (+ 1 i) (kons (integer->char i) knil))
 	knil))))
 
-
-;;; lists of ranges
+(define (%range->list range)
+  ;;Assuming  RANGE is  a valid  range: Return  a list  holding  all the
+  ;;characters in the range.
+  (%range-fold cons '() range))
 
-(define (%set? ell)
+
+;;;; sets
+;;
+;;A "set"  is a  sorted lists  of ranges.  Empty  sets are  empty lists.
+;;Ranges in a set do not overlap and are not contiguous.  Each range has
+;;right limit strictly less than the left limit of its subsequent:
+;;
+;;   ((left1 . right1) (left2 . right2) (left3 . right3) ...)
+;;
+;;   left1 < right1 < left2 < right2 < left3 < right3 < ...
+;;
+
+(define (%set? set lower-bound upper-bound)
   ;;Scan a list to  determine if it is a valid list  of ranges; an empty
   ;;list is a valid list of ranges.
-  (every %valid-range? ell))
+  (let loop ((set set))
+    (if (null? set)
+	#t
+      (let ((range (car set)))
+	(cond
+	 ((not (%valid-range? range))
+	  #f)
+	 ((< (car range) lower-bound)
+	  #f)
+	 ((<= upper-bound (cdr range))
+	  #f)
+	 (else
+	  (loop (cdr set))))))))
 
-(define (%make-set))
+(define (%make-set . chars)
+  ;;Build and return a new set.  CHARS  may be the empty list or a mixed
+  ;;list of characters and pairs of characters.  Pairs of characters are
+  ;;interpreted  as limits-inclusive  ranges of  characters (this  is in
+  ;;contrast with the half-open representation of number ranges).
+  (let loop ((chars chars)
+	     (set '()))
+    (if (null? chars)
+	set
+      (let ((thing (car chars)))
+	(cond
+	 ((char? thing)
+	  (loop (cdr chars) (%set-add-char set thing)))
+	 ((and (pair? thing)
+	       (let ((first (car thing))
+		     (last  (cdr thing)))
+		 (and (char? first)
+		      (char? last)
+		      (<= (char->integer first) (char->integer last)))))
+	  (loop (cdr chars)
+		(%set-add-range set (cons (char->integer (car thing))
+					  (+ 1 (char->integer (cdr thing)))))))
+	 (else
+	  (assertion-violation '%make-set
+	    "invalid element for char set" thing)))))))
+
+(define (%set-add-char set ch)
+  ;;Assuming SET is a valid set and CH a character: Convert the caracter
+  ;;to its  one-element range  representation, then add  it to  the set.
+  ;;Return the resulting set.
+  (let ((chnum (char->integer ch)))
+    (%set-add-range set (cons chnum (+ 1 chnum)))))
+
+(define (%set-add-range set new-range)
+  ;;Assuming SET is  a valid set NEW-RANGE a valid  range: add the range
+  ;;to the set, return the resulting set.
+  (let loop ((set set)
+	     (result '()))
+    (if (%set-empty? set)
+	(reverse (cons new-range result))
+      (let ((range (car set)))
+;;;	  (write (list 'range range 'new-range new-range))(newline)
+	(cond
+	 ((%range=? range new-range)
+;;;	    (write (list 'equal range new-range))(newline)
+	  (append-reverse (cons range result) (cdr set)))
+	 ((%range-overlapping? range new-range)
+;;;	    (write (list 'overlapping range new-range))(newline)
+	  (let loop2 ((set       (cdr set))
+		      (new-range (let-values (((head tail) (%range-union range new-range)))
+				   tail)))
+	    (if (null? set)
+		(reverse (cons new-range result))
+	      (let ((range (car set)))
+		(cond ((%range-contiguous? range new-range)
+		       (loop2 (cdr set) (%range-concatenate range new-range)))
+		      ((%range-overlapping? range new-range)
+		       (loop2 (cdr set) (let-values (((head tail) (%range-union range new-range)))
+					  tail)))
+		      (else
+		       (append-reverse (cons new-range (cons range result))
+				       set)))))))
+	 ((%range-contiguous? range new-range)
+;;;	    (write (list 'contig range new-range))(newline)
+	  (let loop2 ((set		(cdr set))
+		      (new-range	(%range-concatenate range new-range)))
+	    (if (null? set)
+		(reverse (cons new-range result))
+	      (let ((range (car set)))
+		(cond ((%range-contiguous? range new-range)
+		       (loop2 (cdr set) (%range-concatenate range new-range)))
+		      ((%range-overlapping? range new-range)
+		       (loop2 (cdr set) (let-values (((head tail) (%range-union range new-range)))
+					  tail)))
+		      (else
+		       (append-reverse (cons new-range (cons range result))
+				       set)))))))
+	 ((%range<? new-range range)
+;;;	    (write (list 'less range new-range))(newline)
+	  (append-reverse (cons range (cons new-range result))
+			  (cdr set)))
+	 (else
+;;;	    (write (list 'other range new-range))(newline)
+	  (loop (cdr set) (cons range result))))))))
+
+(define %set-copy
+  ;;Return  a  newly allocated  set  holding a  copy  of  the given  set
+  ;;argument.
+  tree-copy)
 
 (define (%set-size set)
+  ;;Assuming SET  is a valid set:  return the number of  elements in the
+  ;;set.
   (fold (lambda (range size)
 	  (+ size (%range-length range)))
 	0 set))
 
-(define (%set-empty?))
+(define %set-empty?
+  ;;Return true if the set is empty.
+  null?)
 
-(define (%set-contains? ell char)
-  ;;Assuming ELL is a valid set: Return  true if CHAR is a member of the
-  ;;set.
-  (let ((char-num (integer->char char)))
+(define (%set-contains? set ch)
+  ;;Assuming SET is a valid set and CH a character: Return true if CH is
+  ;;a member of the set.
+  (let ((chnum (char->integer ch)))
     (any (lambda (range)
-	   (%range-contains? range char-num))
-      ell)))
+	   (%range-contains? range chnum))
+      set)))
 
 (define (%set=? set-a set-b)
-  (every %range=? set-a set-b))
+  ;;Assuming  SET-A  and SET-B  are  valid  sets:  Return true  if  they
+  ;;represent the same set.
+  (or (eq? set-a set-b)
+      (cond
+       ((null? set-a) #f)
+       ((null? set-b) #f)
+       (else
+	(every %range=? set-a set-b)))))
 
 (define (%set<? set-a set-b)
-  (%range<? (last set-a) (car set-b)))
+  ;;Assuming  SET-A and SET-B  are valid  sets: Return  true if  all the
+  ;;elements of SET-A are strictly  less than all the elements of SET-B.
+  ;;Empty sets cannot be ordered, so  if an argument is empty the return
+  ;;value is false.
+  (cond ((null? set-a) #f)
+	((null? set-b) #f)
+	(else
+	 (%range<? (last set-a) (car set-b)))))
 
-(define (%set-intersection))
+(define (%set-intersection set-a set-b)
+  ;;Assuming SET-A  and SET-B are valid  sets: Return a  set holding all
+  ;;the elements present in both of them.
+  (let loop ((result	'())
+	     (set-a	set-a)
+	     (set-b	set-b))
+    (if (or (%set-empty? set-a)
+	    (%set-empty? set-b))
+	(reverse result)
+      (let ((range-a	(car set-a))
+	    (range-b	(car set-b)))
+;;;	  (write (list 'processing range-a range-b))(newline)
+	(cond
+	 ((%range=? range-a range-b)
+;;;	    (write (list 'equal range-a range-b))(newline)
+	  (loop (cons range-a result)
+		(cdr set-a) (cdr set-b)))
+	 ((%range-overlapping? range-a range-b)
+;;;	    (write (list 'overlapping range-a range-b))(newline)
+	  (loop (cons (%range-intersection range-a range-b) result)
+		(cdr set-a) (cdr set-b)))
+	 ((%range<? range-a range-b)
+;;;	    (write (list 'less-than range-a range-b))(newline)
+	  (loop result
+		(cdr set-a) set-b))
+	 ((%range>? range-a range-b)
+;;;	    (write (list 'greater-than range-a range-b))(newline)
+	  (loop result
+		set-a   (cdr set-b)))
+	 (else
+	  (assertion-violation '%set-intersection
+	    "internal error processing ranges" (list range-a range-b))))))))
 
-(define (%set-union))
+(define (%set-union set-a set-b)
+  ;;Assuming SET-A  and SET-B are valid  sets: Return a  set holding all
+  ;;the elements present in SET-A and/or SET-B.
+  (let loop ((result '())
+	     (set-a set-a)
+	     (set-b set-b))
+    (cond
+     ((%set-empty? set-a)
+      (append-reverse result set-b))
+     ((%set-empty? set-b)
+      (append-reverse result set-a))
+     (else
+      (let ((range-a (car set-a))
+	    (range-b (car set-b)))
+	(cond
+	 ((and (not (null? result))
+	       (%range-contiguous? (car result) range-a))
+	  (loop (cons (%range-concatenate (car result) range-a) (cdr result))
+		(cdr set-a) (cons range-b set-b)))
 
-(define (%set-difference))
+	 ((and (not (null? result))
+	       (%range-contiguous? (car result) range-b))
+	  (loop (cons (%range-concatenate (car result) range-b) (cdr result))
+		(cons range-a set-a) (cdr set-b)))
+
+	 ((and (not (null? result))
+	       (%range-overlapping? (car result) range-a))
+	  (let-values (((head tail) (%range-union (car result) range-a)))
+	    (loop (cons tail (cdr result))
+		  (cdr set-a) (cons range-b set-b))))
+
+	 ((and (not (null? result))
+	       (%range-overlapping? (car result) range-b))
+	  (let-values (((head tail) (%range-union (car result) range-b)))
+	    (loop (cons tail (cdr result))
+		  (cons range-a set-a) (cdr set-b))))
+
+	 ((%range=? range-a range-b)
+	  (loop (cons range-a result)
+		(cdr set-a) (cdr set-b)))
+
+	 ((%range-contiguous? range-a range-b)
+	  (loop (cons (%range-concatenate range-a range-b) result)
+		(cdr set-a) (cdr set-b)))
+
+	 ((%range-overlapping? range-a range-b)
+	  (let-values (((head tail) (%range-union range-a range-b)))
+	    (loop (cons tail result)
+		  (cdr set-a) (cdr set-b))))
+
+	 ((%range<? range-a range-b)
+	  (loop (cons range-b (cons range-a result))
+		(cdr set-a) (cdr set-b)))
+
+	 ((%range>? range-a range-b)
+	  (loop (cons range-a (cons range-b result))
+		(cdr set-a) (cdr set-b)))
+
+	 (else
+	  (assertion-violation '%set-union
+	    "internal error processing ranges" (list range-a range-b)))))))))
+
+(define (%set-difference set-a set-b)
+  ;;Assuming SET-A  and SET-B are valid  sets: Return a  set holding all
+  ;;the elements present only in SET-A or only in SET-B.
+  (let loop ((result '())
+	     (set-a set-a)
+	     (set-b set-b))
+    (cond
+     ((%set-empty? set-a)
+      (append-reverse result set-b))
+     ((%set-empty? set-b)
+      (append-reverse result set-a))
+     (else
+      (let ((range-a (car set-a))
+	    (range-b (car set-b)))
+	(cond
+	 ((and (not (null? result))
+	       (%range-contiguous? (car result) range-a))
+	  (loop (cons (%range-concatenate (car result) range-a) (cdr result))
+		(cdr set-a) (cons range-b set-b)))
+
+	 ((and (not (null? result))
+	       (%range-contiguous? (car result) range-b))
+	  (loop (cons (%range-concatenate (car result) range-b) (cdr result))
+		(cons range-a set-a) (cdr set-b)))
+
+	 ((and (not (null? result))
+	       (%range-overlapping? (car result) range-a))
+	  (loop (cons (%range-union (car result) range-a) (cdr result))
+		(cdr set-a) (cons range-b set-b)))
+
+	 ((and (not (null? result))
+	       (%range-overlapping? (car result) range-b))
+	  (loop (cons (%range-union (car result) range-b) (cdr result))
+		(cons range-a set-a) (cdr set-b)))
+
+	 ((%range=? range-a range-b)
+	  (loop result
+		(cdr set-a) (cdr set-b)))
+
+	 ((%range-contiguous? range-a range-b)
+	  (loop (cons (%range-concatenate range-a range-b) result)
+		(cdr set-a) (cdr set-b)))
+
+	 ((%range-overlapping? range-a range-b)
+	  (let-values (((head tail) (%range-difference range-a range-b)))
+	    (loop (let ((result (if head
+				    (cons head result)
+				  result)))
+		    (if tail
+			(cons tail result)
+		      result))
+		  (cdr set-a) (cdr set-b))))
+
+	 ((%range<? range-a range-b)
+	  (loop (cons range-b (cons range-a result))
+		(cdr set-a) (cdr set-b)))
+
+	 ((%range>? range-a range-b)
+	  (loop (cons range-a (cons range-b result))
+		(cdr set-a) (cdr set-b)))
+
+	 (else
+	  (assertion-violation '%set-union
+	    "internal error processing ranges" (list range-a range-b)))))))))
+
+(define (%set-complement set)
+  ;;Assuming SET is  a valid set: Return a set  holding all the elements
+  ;;in the underlying space that are not in SET.
+  #t)
 
 (define (%set-for-each proc set)
+  ;;Assuming PROC is a unary function and SET a valid set: apply PROC to
+  ;;each element of SET.
   (for-each (lambda (range)
 	      (%range-for-each proc range))
     set))
 
 (define (%set-every proc set)
+  ;;Assuming PROC is a unary function and SET a valid set: apply PROC to
+  ;;each element  of SET and  return true if  all the return  values are
+  ;;true.  The application stops at the first #f return value.
   (every (lambda (range)
 	   (%range-every proc range))
     set))
 
 (define (%set-any proc set)
+  ;;Assuming PROC is a unary function and SET a valid set: apply PROC to
+  ;;each  element of SET  and return  true if  at least  one application
+  ;;returns  true.   The  application  stops at  the  first  application
+  ;;returning true.
   (any (lambda (range)
 	 (%range-any proc range))
     set))
 
 (define (%set-fold kons knil set)
+  ;;Assuming KONS  is a unary  function and SET  a valid set:  fold KONS
+  ;;over the elements of the set.
   (let loop ((set set)
 	     (knil knil))
     (if (null? set)
 	knil
       (loop (cdr set) (%range-fold kons knil (car set))))))
+
+(define (%set->list set)
+  ;;Assuming SET is a valid set:  Return a list holding all the elements
+  ;;in the set.
+  (reverse (apply append (map %range->list set))))
 
 
 ;;;; done
