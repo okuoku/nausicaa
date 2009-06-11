@@ -248,34 +248,53 @@
 ;;; --------------------------------------------------------------------
 
   (check
+      ;; equal
       (let-values (((head tail) (%range-union (%make-range 10 20)
 					      (%make-range 10 20))))
 	(list head tail))
     => (list #f (%make-range 10 20)))
 
-;;   (check
-;;       (let-values (((head tail) (%range-union (%make-range 10 30)
-;; 					      (%make-range 20 40))))
-;; 	(list head tail))
-;;     => (list #f (%make-range 10 40)))
+  (check
+      ;; overlapping
+      (let-values (((head tail) (%range-union (%make-range 10 30)
+					      (%make-range 20 40))))
+	(list head tail))
+    => (list #f (%make-range 10 40)))
 
-;;   (check
-;;       (let-values (((head tail) (%range-union (%make-range 10 20)
-;; 					      (%make-range 20 40))))
-;; 	(list head tail))
-;;     => (list #f (%make-range 10 40)))
+  (check
+      ;; overlapping
+      (let-values (((head tail) (%range-union (%make-range 20 40)
+					      (%make-range 10 30))))
+	(list head tail))
+    => (list #f (%make-range 10 40)))
 
-;;   (check
-;;       (let-values (((head tail) (%range-union (%make-range 20 40)
-;; 					      (%make-range 10 20))))
-;; 	(list head tail))
-;;     => (list #f (%make-range 10 40)))
+  (check
+      ;; contiguous
+      (let-values (((head tail) (%range-union (%make-range 10 20)
+					      (%make-range 20 40))))
+	(list head tail))
+    => (list #f (%make-range 10 40)))
 
-;;   (check
-;;       (let-values (((head tail) (%range-union (%make-range 10 20)
-;; 					      (%make-range 30 40))))
-;; 	(list head tail))
-;;     => '((10 . 20) (30 . 40)))
+  (check
+      ;; contiguous
+      (let-values (((head tail) (%range-union (%make-range 20 40)
+					      (%make-range 10 20))))
+	(list head tail))
+    => (list #f (%make-range 10 40)))
+
+  (check
+      ;; dijoint
+      (let-values (((head tail) (%range-union (%make-range 10 20)
+					      (%make-range 30 40))))
+	(list head tail))
+    => '((10 . 20) (30 . 40)))
+
+  (check
+      ;; dijoint
+      (let-values (((head tail) (%range-union (%make-range 30 40)
+					      (%make-range 10 20))))
+	(list head tail))
+    => '((10 . 20) (30 . 40)))
 
 ;;; --------------------------------------------------------------------
 
@@ -697,6 +716,71 @@
 		  (%make-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))
     (=> %set=?) (%make-set '(#\A . #\F)
 			   '(#\H . #\Q)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      ;; empty
+      (%set-difference (%make-set)
+		       (%make-set '(#\A . #\H)))
+    (=> %set=?) (%make-set '(#\A . #\H)))
+
+  (check
+      ;; empty
+      (%set-difference (%make-set '(#\A . #\H))
+		       (%make-set))
+    (=> %set=?) (%make-set '(#\A . #\H)))
+
+  (check
+      ;; equal
+      (%set-difference (%make-set '(#\A . #\H))
+		       (%make-set '(#\A . #\H)))
+    (=> %set=?) (%make-set))
+
+  (check
+      ;; disjoint
+      (%set-difference (%make-set '(#\A . #\C))
+		       (%make-set '(#\E . #\H)))
+    (=> %set=?) (%make-set '(#\A . #\C) '(#\E . #\H)))
+
+  (check
+      ;; disjoint
+      (%set-difference (%make-set '(#\E . #\H))
+		       (%make-set '(#\A . #\C)))
+    (=> %set=?) (%make-set '(#\A . #\C) '(#\E . #\H)))
+
+  (check
+      ;; contiguous
+      (%set-difference (%make-set '(#\A . #\D))
+		       (%make-set '(#\E . #\H)))
+    (=> %set=?) (%make-set '(#\A . #\H)))
+
+  (check
+      ;; contiguous
+      (%set-difference (%make-set '(#\E . #\H))
+		       (%make-set '(#\A . #\D)))
+    (=> %set=?) (%make-set '(#\A . #\H)))
+
+  (check
+      ;; inclusion
+      (%set-difference (%make-set '(#\C . #\F))
+		       (%make-set '(#\A . #\H)))
+    (=> %set=?) (%make-set '(#\A . #\B)
+			   '(#\G . #\H)))
+
+  (check
+      ;; inclusion
+      (%set-difference (%make-set '(#\A . #\H))
+		       (%make-set '(#\C . #\F)))
+    (=> %set=?) (%make-set '(#\A . #\B)
+			   '(#\G . #\H)))
+
+  (check 'this
+    (let ((r (%set-difference (%make-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
+			      (%make-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))))
+;;;      (write r)(newline)
+      r)
+    (=> %set=?) (%make-set #\A #\B #\E #\F #\H #\M #\N #\Q))
 
   )
 
