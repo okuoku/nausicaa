@@ -655,6 +655,42 @@
 			   '(#\I . #\L)
 			   '(#\O . #\P)))
 
+  (check
+      ;; disjoint tail
+      (%set-intersection (%make-set '(#\A . #\D) #\F)
+			 (%make-set '(#\C . #\E) #\F #\M #\P #\R))
+    (=> %set=?) (%make-set '(#\C . #\D) #\F))
+
+  (check
+      ;; disjoint tail
+      (%set-intersection (%make-set '(#\A . #\D) #\F #\M #\P #\R)
+			 (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\C . #\D) #\F))
+
+  (check
+      ;; contiguous tail
+      (%set-intersection (%make-set '(#\A . #\D) #\F #\G #\H #\I)
+			 (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\C . #\D) #\F))
+
+  (check
+      ;; contiguous tail
+      (%set-intersection (%make-set '(#\A . #\D) #\F)
+			 (%make-set '(#\C . #\E) #\F #\G #\H #\I))
+    (=> %set=?) (%make-set '(#\C . #\D) #\F))
+
+  (check
+      ;; overlapping tail
+      (%set-intersection (%make-set '(#\A . #\D) #\F)
+			 (%make-set '(#\C . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+    (=> %set=?) (%make-set '(#\C . #\D) #\F))
+
+  (check
+      ;; overlapping tail
+      (%set-intersection (%make-set '(#\A . #\D) #\F '(#\H . #\N) '(#\L . #\P))
+			 (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\C . #\D) #\F))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -717,6 +753,42 @@
     (=> %set=?) (%make-set '(#\A . #\F)
 			   '(#\H . #\Q)))
 
+  (check
+      ;; disjoint tail
+      (%set-union (%make-set '(#\A . #\D) #\F)
+		  (%make-set '(#\C . #\E) #\F #\M #\P #\R))
+    (=> %set=?) (%make-set '(#\A . #\E) #\F #\M #\P #\R))
+
+  (check
+      ;; disjoint tail
+      (%set-union (%make-set '(#\A . #\D) #\F #\M #\P #\R)
+		  (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\A . #\E) #\F #\M #\P #\R))
+
+  (check
+      ;; contiguous tail
+      (%set-union (%make-set '(#\A . #\D) #\F #\G #\H #\I)
+		  (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\A . #\E) #\F #\G #\H #\I))
+
+  (check
+      ;; contiguous tail
+      (%set-union (%make-set '(#\A . #\D) #\F)
+		  (%make-set '(#\C . #\E) #\F #\G #\H #\I))
+    (=> %set=?) (%make-set '(#\A . #\E) #\F #\G #\H #\I))
+
+  (check
+      ;; overlapping tail
+      (%set-union (%make-set '(#\A . #\D) #\F)
+		  (%make-set '(#\C . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+    (=> %set=?) (%make-set '(#\A . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+
+  (check
+      ;; overlapping tail
+      (%set-union (%make-set '(#\A . #\D) #\F '(#\H . #\N) '(#\L . #\P))
+		  (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\A . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -775,12 +847,47 @@
     (=> %set=?) (%make-set '(#\A . #\B)
 			   '(#\G . #\H)))
 
-  (check 'this
-    (let ((r (%set-difference (%make-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
-			      (%make-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))))
-;;;      (write r)(newline)
-      r)
+  (check
+      (%set-difference (%make-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
+		       (%make-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))
     (=> %set=?) (%make-set #\A #\B #\E #\F #\H #\M #\N #\Q))
+
+  (check 'this
+      ;; disjoint tail
+      (%set-difference (%make-set '(#\A . #\D) #\F)
+		       (%make-set '(#\C . #\E) #\F #\M #\P #\R))
+    (=> %set=?) (%make-set '(#\A . #\B) #\E #\M #\P #\R))
+
+  (check
+      ;; disjoint tail
+      (%set-difference (%make-set '(#\A . #\D) #\F #\M #\P #\R)
+		       (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\A . #\B) #\E #\M #\P #\R))
+
+  (check
+      ;; contiguous tail
+      (%set-difference (%make-set '(#\A . #\D) #\F #\G #\H #\I)
+		       (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\A . #\B) #\E #\G #\H #\I))
+
+  (check
+      ;; contiguous tail
+      (%set-difference (%make-set '(#\A . #\D) #\F)
+		       (%make-set '(#\C . #\E) #\F #\G #\H #\I))
+    (=> %set=?) (%make-set '(#\A . #\B) #\E #\G #\H #\I))
+
+  (check
+      ;; overlapping tail
+      (%set-difference (%make-set '(#\A . #\D) #\F)
+		       (%make-set '(#\C . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+    (=> %set=?) (%make-set '(#\A . #\B) #\E '(#\H . #\N) '(#\L . #\P)))
+
+  (check
+      ;; overlapping tail
+      (%set-difference (%make-set '(#\A . #\D) #\F '(#\H . #\N) '(#\L . #\P))
+		       (%make-set '(#\C . #\E) #\F))
+    (=> %set=?) (%make-set '(#\A . #\B) #\E '(#\H . #\N) '(#\L . #\P)))
+
 
   )
 

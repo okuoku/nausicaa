@@ -523,9 +523,9 @@
 	     (set-b set-b))
     (cond
      ((%set-empty? set-a)
-      (append-reverse result set-b))
+      (finish result set-b))
      ((%set-empty? set-b)
-      (append-reverse result set-a))
+      (finish result set-a))
      (else
       (let ((range-a (car set-a))
 	    (range-b (car set-b)))
@@ -533,24 +533,24 @@
 	 ((and (not (null? result))
 	       (%range-contiguous? (car result) range-a))
 	  (loop (cons (%range-concatenate (car result) range-a) (cdr result))
-		(cdr set-a) (cons range-b set-b)))
+		(cdr set-a) set-b))
 
 	 ((and (not (null? result))
 	       (%range-contiguous? (car result) range-b))
 	  (loop (cons (%range-concatenate (car result) range-b) (cdr result))
-		(cons range-a set-a) (cdr set-b)))
+		set-a (cdr set-b)))
 
 	 ((and (not (null? result))
 	       (%range-overlapping? (car result) range-a))
 	  (let-values (((head tail) (%range-union (car result) range-a)))
 	    (loop (cons tail (cdr result))
-		  (cdr set-a) (cons range-b set-b))))
+		  (cdr set-a) set-b)))
 
 	 ((and (not (null? result))
 	       (%range-overlapping? (car result) range-b))
 	  (let-values (((head tail) (%range-union (car result) range-b)))
 	    (loop (cons tail (cdr result))
-		  (cons range-a set-a) (cdr set-b))))
+		  set-a (cdr set-b))))
 
 	 ((%range=? range-a range-b)
 	  (loop (cons range-a result)
@@ -599,10 +599,17 @@
 			    result))
 			(cdr set)))
 	      (loop (cons range result) (cdr set))))))))
+  (define (cons-head-tail head tail result)
+    (let ((result (if head
+		      (cons head result)
+		    result)))
+      (if tail
+	  (cons tail result)
+	result)))
   (let loop ((result '())
 	     (set-a set-a)
 	     (set-b set-b))
-;;;    (write (list 'result result))(newline)
+;;;    (write (list 'result result 'set-a set-a 'set-b set-b))(newline)
     (cond
      ((and (%set-empty? set-a) (%set-empty? set-b))
       (reverse result))
@@ -614,41 +621,27 @@
       (let ((range-a (car set-a))
 	    (range-b (car set-b)))
 	(cond
-	 ((and (not (null? result))
-	       (%range-contiguous? (car result) range-a))
-;;;	  (write (list 'res-cont-a (car result) range-a))(newline)
+	 ((and (not (null? result)) (%range-contiguous? (car result) range-a))
+;;;	  (write (list 'result-contiguous-a (car result) range-a))(newline)
 	  (loop (cons (%range-concatenate (car result) range-a) (cdr result))
-		(cdr set-a) (cons range-b set-b)))
+		(cdr set-a) set-b))
 
-	 ((and (not (null? result))
-	       (%range-contiguous? (car result) range-b))
-;;;	  (write (list 'res-cont-b (car result) range-b))(newline)
+	 ((and (not (null? result)) (%range-contiguous? (car result) range-b))
+;;;	  (write (list 'result-contiguous-b (car result) range-b))(newline)
 	  (loop (cons (%range-concatenate (car result) range-b) (cdr result))
-		(cons range-a set-a) (cdr set-b)))
+		set-a (cdr set-b)))
 
-	 ((and (not (null? result))
-	       (%range-overlapping? (car result) range-a))
-;;;	  (write (list 'res-over-a (car result) range-a))(newline)
+	 ((and (not (null? result)) (%range-overlapping? (car result) range-a))
+;;;	  (write (list 'res-overlapping-a (car result) range-a))(newline)
 	  (let-values (((head tail) (%range-difference (car result) range-a)))
-	    (loop (let ((result (if tail
-				    (cons tail (cdr result))
-				  (cdr result))))
-		    (if head
-			(cons head result)
-		      result))
-		  (cdr set-a) (cons range-b set-b))))
+	    (loop (cons-head-tail head tail (cdr result))
+		  (cdr set-a) set-b)))
 
-	 ((and (not (null? result))
-	       (%range-overlapping? (car result) range-b))
-;;;	  (write (list 'res-over-b (car result) range-b))(newline)
+	 ((and (not (null? result)) (%range-overlapping? (car result) range-b))
+;;;	  (write (list 'res-overlapping-b (car result) range-b))(newline)
 	  (let-values (((head tail) (%range-difference (car result) range-b)))
-	    (loop (let ((result (if tail
-				    (cons tail (cdr result))
-				  (cdr result))))
-		    (if head
-			(cons head result)
-		      result))
-		(cons range-a set-a) (cdr set-b))))
+	    (loop (cons-head-tail head tail (cdr result))
+		  set-a (cdr set-b))))
 
 	 ((%range=? range-a range-b)
 ;;;	  (write (list 'equal range-a range-b))(newline)
@@ -663,12 +656,7 @@
 	 ((%range-overlapping? range-a range-b)
 ;;;	  (write (list 'overlapping range-a range-b))(newline)
 	  (let-values (((head tail) (%range-difference range-a range-b)))
-	    (loop (let ((result (if head
-				    (cons head result)
-				  result)))
-		    (if tail
-			(cons tail result)
-		      result))
+	    (loop (cons-head-tail head tail result)
 		  (cdr set-a) (cdr set-b))))
 
 	 ((%range<? range-a range-b)
