@@ -32,7 +32,6 @@
 (check-set-mode! 'report-failed)
 (display "*** testing R6RS compliance and extensions\n")
 
-
 
 ;;;; tests
 

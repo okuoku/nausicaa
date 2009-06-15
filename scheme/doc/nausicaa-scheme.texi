@@ -745,6 +745,10 @@ More libraries
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
 
+Low level libraries
+
+* one-dimension::               One dimensional extended ranges.
+
 List library
 
 * lists intro::                 Introduction.
@@ -791,14 +795,10 @@ Lightweight testing
 Character sets
 
 * char-sets intro::             Introduction.
-* char-sets make::              Creation.
+* char-sets make::              Constructors.
 * char-sets pred::              Predicates.
 * char-sets inspect::           Inspection.
-* char-sets conv::              Conversion.
-* char-sets search::            Searching.
-* char-sets filter::            Filtering.
-* char-sets iter::              Iteration.
-* char-sets set::               Set operations.
+* char-sets ops::               Operations.
 * char-sets std::               Standard char sets.
 
 Strings library
@@ -817,7 +817,7 @@ Strings library
 * strings filter::              Filtering and deleting.
 * strings list::                List and string conversion.
 * strings replicate::           Replicate and rotate.
-* strings misc::                Miscellaneous: intertion, parsing.
+* strings misc::                Miscellaneous functions.
 * strings kmp::                 Knuth--Morris--Pratt searching.
 
 Knuth-Morris-Pratt searching
@@ -826,6 +826,14 @@ Knuth-Morris-Pratt searching
 * strings kmp step::            Single step of the search.
 * strings kmp partial::         Partial string search.
 * strings kmp string::          Full string search.
+
+One dimensional extended ranges
+
+* one-dimension intro::         Data types and conventions.
+* one-dimension make::          Constructors.
+* one-dimension pred::          Predicates.
+* one-dimension inspect::       Inspection.
+* one-dimension ops::           Operations.
 
 Launching programs directly
 
@@ -18491,6 +18499,10 @@ Raise a composite condition embedding a condition of type
 * checks::                      Lightweight testing.
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
+
+Low level libraries
+
+* one-dimension::               One dimensional extended ranges.
 @end menu
 
 @c page
@@ -21317,28 +21329,20 @@ to print @var{exc}, which must be a Scheme condition value.
 @section Character sets
 
 
-This chapter describes the @library{char-sets} library, which handles
-sets of characters.  A ``character'' is every value for which the
-application of @func{char?} returns @true{}.
+The @library{char-sets} library handles sets of characters.
 
-Char sets are allowed to hold more instances of the same character.
-
-This version of the library does nothing that can be related to a
+A ``character'' is every value for which the application of @func{char?}
+returns @true{}.  This library does nothing that can be related to a
 specific character encoding, like @ascii{}, @acronym{UCS} or Unicode.
 When needed, it relies on @func{string->list} to split a string into its
-character components.  @ref{stdlib unicode,Unicode}
-
+character components.  @ref{stdlib unicode,Unicode}.
 
 @menu
 * char-sets intro::             Introduction.
-* char-sets make::              Creation.
+* char-sets make::              Constructors.
 * char-sets pred::              Predicates.
 * char-sets inspect::           Inspection.
-* char-sets conv::              Conversion.
-* char-sets search::            Searching.
-* char-sets filter::            Filtering.
-* char-sets iter::              Iteration.
-* char-sets set::               Set operations.
+* char-sets ops::               Operations.
 * char-sets std::               Standard char sets.
 @end menu
 
@@ -21356,7 +21360,7 @@ Is a character set.
 @item str
 Is a string.
 
-@item char
+@item ch
 Is a character.
 
 @item char-list
@@ -21370,394 +21374,257 @@ applied to a character.
 May be any value at all.
 @end table
 
-Unless otherwise noted in the specification of a procedure, procedures
-always return character sets that are distinct (from the point of view
-of the linear--update operations) from the parameter character sets.
-For example, @func{char-set-adjoin} is guaranteed to provide a fresh
-character set, even if it is not given any character parameters.
-
 A parameter followed by @code{...} means zero--or--more elements.
 
+Unless otherwise noted in the specification of a procedure, procedures
+always return character sets that are distinct from the parameter
+character sets.
 
 @c page
 @node char-sets make
-@subsection Creation
+@subsection Constructors
 
 
-@defun char-set @var{char1} ...
-@defunx char-set/unique @var{char1} ...
-Return a character set containing the given characters.
+@defun char-set . @var{args}
+Build and return a new char-set.
 
-@func{char-set} accepts duplicates, while @func{char-set/unique} removes
-them.
+@var{args} may be the empty list or a mixed list of characters and pairs
+of items.  Pairs of characters are interpreted as limits--inclusive
+ranges of characters.
 @end defun
 
 
 @defun char-set-copy @var{cs}
-Return a copy of the character set @var{cs}.  ``Copy'' means that if
-either the input parameter or the result value of this procedure is
-passed to one of the linear--update procedures described below, the
-other character set is guaranteed not to be altered.
+Return a newly allocated char-set holding a copy of @var{cs}.
 @end defun
 
+
+@defun char-set-add @var{cs} @var{char/range}
+@defunx char-set-add! @var{cs} @var{char/range}
+Add values to an existing char-set.  @var{char/range} can be a single
+character or a pair characters interpreted as a limits--inclusive range
+of characters.
+@end defun
 
 @c page
 @node char-sets pred
-@subsection Predicates and assertions
+@subsection Predicates
 
 
 @defun char-set? @var{obj}
-Return @true{} if @var{obj} is a character set, otherwise @false{}.
+Return true if @var{obj} is a valid char-set.
 @end defun
 
 
-@defun assert-char-set @var{obj} @var{func-name}
-If @var{obj} is not a char set, raise an assertion violation using
-@var{func-name} as value for the @code{&who} condition.  Otherwise
-return @var{obj} itself.
+@defun char-set-empty? @var{cs}
+Return true if the char-set is empty.
 @end defun
 
 
-@defun assert-char-set/or-false @var{obj} @var{func-name}
-Like @func{assert-char-set}, but accepts @false{} as valid value for
-@var{obj}.
+@defun char-set-contains? @var{cs} @var{ch}
+Return true if @var{ch} is an element of @var{cs}.
 @end defun
 
 
-@defun assert-list-of-chars @var{obj} @var{func-name}
-If @var{obj} is not the empty list or a list of characters (according to
-@func{char?}), raise an assertion violation using @var{func-name} as
-value for the @code{&who} condition.  Otherwise return @var{obj} itself.
+@defun char-set=? @var{cs-a} @var{cs-b}
+Return true if the arguments represent the same char-set.
 @end defun
 
+
+@defun char-set<? @var{cs-a} @var{cs-b}
+Return true if all the elements of @var{cs-a} are strictly less than all
+the elements of @var{cs-b}.  Empty sets cannot be ordered, so if an
+argument is empty the return value is @false{}.
+@end defun
+
+
+@defun char-set-subset? @var{cs-a} @var{cs-b}
+@defunx char-set-strict-subset? @var{cs-a} @var{cs-b}
+Return @true{} if @var{cs-b} is a subset or a strict subset of
+@var{cs-a}.
+@end defun
 
 @c page
 @node char-sets inspect
 @subsection Inspection
 
 
-@defun char-set-size @var{cs}
-Return the number of characters in @var{cs}.
+@defun %range-length @var{range} @var{item-}
+Return the number of items in the range.
 @end defun
 
+
+@defun %domain-size @var{domain} @var{item-}
+Return the number of items in the domain.
+@end defun
 
 @c page
-@node char-sets conv
-@subsection Conversion
+@node char-sets ops
+@subsection Operations
 
 
-@subsubheading List conversion
+@subsubheading Set operations
 
 
-@defun list->char-set @var{char-list}
-@defunx list->char-set @var{char-list} @var{base-cs}
-@defunx list->char-set! @var{char-list} @var{base-cs}
-Return a character set containing the characters in the list of
-characters @var{char-list}.
+@defun %range-intersection @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
+Return a range representing the intersection of the argument ranges.  It
+does not matter which range has start less than the other.
 
-If character set @var{base-cs} is provided, the characters from
-@var{char-list} are added to it.
-
-@func{list->char-set} produces a fresh character set.
-
-@func{list->char-set!} is allowed, but not required, to side--effect and
-reuse the storage in @var{base-cs}.
+Intersection is a closed operation on the space of ranges: The
+intersection of two ranges is a range (possibly empty).  If the ranges
+are not overlapping return @false{} to represent the empty range.
 @end defun
 
 
-@defun char-set->list @var{cs}
-Return a list holding all the characters in @var{cs}.  The order in
-which @var{cs}'s characters appear in the list is undefined.
-@end defun
+@defun %range-union @var{range-a} @var{range-b} @var{item=?} @var{item<?} @var{item<=?}
+Return two values representing the union of the argument ranges.  It
+does not matter which range has start less than the other.
 
+Union is @strong{not} a closed operation on the space of ranges: The
+union of two contiguous or overlapping ranges is a single range, but the
+union of two disjoint ranges is the set holding the two argument ranges.
 
-@subsubheading String conversion
+If the argument ranges are disjoint and non--contiguous: Return two
+values being @var{range-a} and @var{range-b}.  If the argument ranges
+are contiguous or overlapping: Return two values being @false{} and a
+new range representing the union.
 
-
-@defun string->char-set @var{str}
-@defunx string->char-set @var{str} @var{base-cs}
-@defunx string->char-set! @var{str} @var{base-cs}
-Return a character set containing the characters in the string
-@var{str}.  Splitting is performed by @func{string->list}.
-
-If character set @var{base-cs} is provided, the characters from
-@var{str} are added to it.
-
-@func{string->char-set} produces a fresh character set.
-@func{string->char-set!} is allowed, but not required, to side--effect
-and reuse the storage in @var{base-cs}.
-@end defun
-
-
-@defun char-set->string @var{cs}
-Return a string containing the characters in @var{cs}.  The order in
-which @var{cs}'s characters appear in the string is undefined.
-@end defun
-
-
-@subsubheading Any value
-
-
-@defun ->char-set @var{obj}
-Coerces @var{obj} into a char set.  @var{obj} may be a string, a list of
-characters, a single character or a char set.  If @var{obj} is a
-character, a copy of it is returned.
-@end defun
-
-
-@c page
-@node char-sets search
-@subsection Searching
-
-
-@defun char-set-contains? @var{cs} @var{char}
-Return @true{} if @var{char} is an element of @var{cs}.
-@end defun
-
-
-@defun char-set-count @var{pred} @var{cs}
-Apply @var{pred} to the chars of character set @var{cs}, and return the
-number of chars that caused the predicate to return true.
-@end defun
-
-
-@defun char-set-find @var{pred} @var{cs}
-Return the first character in @var{cs} for which @var{pred} returns
-true.
-@end defun
-
-
-@defun char-set-every @var{pred} @var{cs}
-Return true if @var{pred} applied to the characters in @var{cs} returns
-true on @strong{every} application.  Return true if @var{cs} is the
-empty set.
-@end defun
-
-
-@defun char-set-any @var{pred} @var{cs}
-Return @true{} if @var{pred} applied to the characters in @var{cs}
-returns true on @strong{any} application.  Return @false{} if @var{cs}
-is the empty set.
-@end defun
-
-
-@c page
-@node char-sets filter
-@subsection Filtering
-
-
-@defun char-set-filter @var{pred} @var{cs}
-@defunx char-set-filter @var{pred} @var{cs} @var{base-cs}
-@defunx char-set-filter! @var{pred} @var{cs} @var{base-cs}
-Return a character set containing every character @var{c} in @var{cs}
-such that @code{(pred c)} returns true.  If character set @var{base-cs}
-is provided, the characters specified by @var{pred} are added to it.
-
-@func{char-set-filter} produces a fresh character set.
-@func{char-set-filter!} is allowed, but not required, to side--effect
-and reuse the storage in @var{base-cs}.
-@end defun
-
-
-@defun char-set-partition @var{pred} @var{cs}
-@defunx char-set-partition! @var{pred} @var{cs}
-Partition the characters in @var{cs} with predicate @var{pred} and
-return 2 values: a char set holding the characters satisfying
-@var{pred}, a char set holding the other characters.
-
-@func{char-set-partition!} is allowed, but nor required, to modify
-@var{cs}.
-@end defun
-
-
-@defun char-set-remove @var{char} @var{cs}
-Return a char set holding the characters in @var{cs} that are not
-@var{char}.
-@end defun
-
-
-@defun char-set-remove* @var{pred} @var{cs}
-@defunx char-set-remove*! @var{pred} @var{cs}
-Return a char set holding the characters in @var{cs} that do not satisfy
-@var{pred}.
-
-@func{char-set-remove*!} is allowed, but nor required, to modify
-@var{cs}.
-@end defun
-
-
-@defun char-set-delete-duplicates @var{cs}
-Return a new char set holding all the characters in @var{cs}, with no
-duplicates.
-@end defun
-
-
-@c page
-@node char-sets iter
-@subsection Iteration
-
-
-@defun char-set-cursor @var{cset}
-@defunx char-set-cursor-ref @var{cursor}
-@defunx char-set-cursor-next @var{cursor}
-@defunx end-of-char-set? @var{cursor}
-Cursors are a low--level facility for iterating over the characters in a
-set.  A cursor is a value that indexes a character in a char set.
-
-@func{char-set-cursor} produces a new cursor for a given char set.  The
-set element indexed by the cursor is fetched with
-@func{char-set-cursor-ref}.  A cursor index is incremented with
-@func{char-set-cursor-next}, which returns the updated cursor.
-
-Examples:
+This function should be called like this:
 
 @example
-(let loop ((cur (char-set-cursor cs)))
-  (if (end-of-char-set? cur)
-      (return-some-value)
-    (begin
-      (do-something-with (char-set-cursor-ref cur))
-      (loop (char-set-cursor-next cur)))))
-
-(do ((cur (char-set-cursor cs) (char-set-cursor-next cur)))
-    ((end-of-char-set? cur))
-  (do-something-with (char-set-cursor-ref cur)))
+(let-values (((head tail) (%range-union r-a r-b)))
+  (when head ---)
+  (when tail ---))
 @end example
 @end defun
 
 
-@defun char-set-for-each @var{proc} @var{cs}
-Apply procedure @var{proc} to each character in the character set
-@var{cs}.  The return value is unspecified.
+@defun %range-difference @var{range-a} @var{range-b} @var{item=?} @var{item<?}
+Return two values representing the difference between the argument
+ranges; the difference is the set of elements present in one range and
+not in the other.  It does not matter which range has start less than
+the other.
 
-The order in which @var{proc} is applied to the characters in the set is
-unspecified.
-@end defun
+Difference is @strong{not} a closed operation on the space of ranges: In
+genreral the result is a couple of ranges.  The first one represents
+values which are all less than the values in the second one.  Both the
+returned values can be @false{}.
 
-
-@defun char-set-map @var{proc} @var{cs}
-@var{proc} must be a char->char procedure; it is applied to all the
-characters in the char set @var{cs}, and the results are collected into
-a new character set.
-
-Example:
+This function should be called like this:
 
 @example
-(char-set-map char-downcase cset)
+(let-values (((head tail) (%range-difference r-a r-b)))
+  (when head ---)
+  (when tail ---))
 @end example
 @end defun
 
 
-@defun char-set-fold @var{kons} @var{knil} @var{cs}
-This is the fundamental iterator for character sets.  Applies the
-function @var{kons} across the character set @var{cs} using initial
-state value @var{knil}.  That is, if @var{cs} is the empty set, the
-procedure returns @var{knil}.  Otherwise, some element @var{c} of
-@var{cs} is chosen; let @var{cs1} be the remaining, unchosen characters.
-The procedure returns:
+@defun %domain-intersection @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+Return a new domain representing the intersection of the arguments.  The
+intersection is the set of values present in both the arguments.
 
-@example
-(char-set-fold kons (kons c knil) cs1)
-@end example
-
-Examples:
-
-@example
-;; CHAR-SET-MEMBERS
-(lambda (cs)
-  (char-set-fold cons '() cs))
-
-;; CHAR-SET-SIZE
-(lambda (cs)
-  (char-set-fold (lambda (c i)
-                   (+ i 1))
-                 0
-                 cs))
-
-;; How many vowels in the char set?
-(lambda (cs)
-  (char-set-fold
-    (lambda (c i)
-      (if (vowel? c)
-          (+ i 1)
-        i))
-    0
-    cs))
-@end example
+The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun char-set-unfold @var{stop?} @var{map-to-char} @var{seed-step} @var{seed}
-@defunx char-set-unfold @var{stop?} @var{map-to-char} @var{seed-step} @var{seed} @var{base-cs}
-@defunx char-set-unfold! @var{stop?} @var{map-to-char} @var{seed-step} @var{seed} @var{base-cs}
-This is a fundamental constructor for char-sets.
+@defun %domain-union @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+Return a new domain representing the union of the arguments.  The union
+is the set of values present in one and/or the other argument.
 
-@table @var
-@item seed-step
-Is a function used to generate a series of ``seed'' values from the
-initial @var{seed}.
-
-@item stop?
-It is a function applied to the seed values; whenever it returns true
-the unfolding stops.
-
-@item map-to-char
-A function that maps each seed value to a character.  These characters
-are added to the base character set @var{base-cs} to form the result;
-@var{base-cs} defaults to the empty set.
-@end table
-
-@func{char-set-unfold!}  is allowed, but not required, to modify
-@var{base-cs}.
-
-Examples:
-
-@example
-(port->char-set p)   = (char-set-unfold
-                         eof-object?      ;; stop?
-                         values           ;; map-to-char
-                         (lambda (ch)
-                           (read-char p)) ;; seed-step
-                         (read-char p))   ;; seed
-
-(list->char-set lis) = (char-set-unfold
-                         null?
-                         car
-                         cdr
-                         lis)
-@end example
+The returned value may share some structure with the arguments.
 @end defun
 
 
-@c page
-@node char-sets set
-@subsection Set operations
+@defun %domain-difference @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+Return a new domain representing the difference of the arguments.  The
+difference is the set of values present in one or the other argument.
 
-
-@defun char-set=?
-@defunx char-set=? @var{cs}
-@defunx char-set=? @var{cs0} @var{cs} @dots{}
-Return @true{} if the given character sets are equal.  If called without
-arguments or with one argument: return @true{}.
+The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun char-set<=?
-@defunx char-set<=? @var{cs}
-@defunx char-set<=? @var{cs0} @var{cs} @dots{}
-Return @true{} if every character set @math{@var{cs}i} is a subset of
-character set @math{@var{cs}(i+1)}.  If called without arguments or with
-one argument: return @true{}.
+@defun %domain-complement @var{domain} @var{item=?} @var{item<?} @var{item<=?} @var{lower-bound} @var{upper-bound}
+Return a new domain representing the complement of @var{domain} in the
+space defined by @var{lower-bound} and @var{upper-bound}.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading List operations
+
+
+@defun %range-for-each @var{proc} @var{range} @var{item<=?} @var{item-next}
+Apply @var{proc} to each value in the range.
 @end defun
 
 
-@example
-(char-set-union) => char-set:empty
-(char-set-intersection) => char-set:full
-(char-set-xor) => char-set:empty
-(char-set-difference cs) => cs
-@end example
+@defun %range-every @var{proc} @var{range} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the range and return true if all the
+return values are true.  The application stops at the first @false{}
+return value.
+@end defun
 
+
+@defun %range-any @var{proc} @var{range} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the range and return true if at least
+one of the returned values is true.  The application stops at the first
+true return value.
+@end defun
+
+
+@defun %range-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
+Fold @var{kons} over the values in the range.
+@end defun
+
+
+@defun %range->list @var{range} @var{item<?} @var{item-next}
+Return a list holding all the elements in the range.
+@end defun
+
+
+@defun %domain-for-each @var{proc} @var{domain} @var{item<?} @var{item-next}
+Apply @var{proc} to each element of @var{domain}.
+@end defun
+
+
+@defun %domain-every @var{proc} @var{domain} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the domain and return true if all the
+return values are true.  The application stops at the first @false{}
+return value.
+@end defun
+
+
+@defun %domain-any @var{proc} @var{range} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the domain and return true if at least
+one of the returned values is true.  The application stops at the first
+true return value.
+@end defun
+
+
+@defun %domain-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
+Fold @var{kons} over the values in the domain.
+@end defun
+
+
+@defun %domain->list @var{range} @var{item<?} @var{item-next}
+Return a list holding all the elements in the domain.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Miscellaneous operations
+
+
+@defun %range-concatenate @var{range-a} @var{range-b} @var{item<?}
+Concatenate the ranges and return the resulting range.  It does not
+matter which range has start less than the other.  It makes sense to
+apply this function to ranges that satisfy @func{%range-contiguous?}.
+
+The returned range may share some value with the original ranges.
+@end defun
 @c page
 @node char-sets std
 @subsection Predefined char sets
@@ -24199,6 +24066,450 @@ comparison function.
 @end defun
 
 
+@c page
+@node one-dimension
+@section One dimensional extended ranges
+
+
+The @library{one-dimension} library implements low level operations over
+generalised ranges of value for a coordinate.  It can be used to operate
+ranges of numbers or characters or whatever objects upon which we can
+define an ordering.  @library{one-dimension} is the backbone of the
+@library{char-sets} library.
+
+@menu
+* one-dimension intro::         Data types and conventions.
+* one-dimension make::          Constructors.
+* one-dimension pred::          Predicates.
+* one-dimension inspect::       Inspection.
+* one-dimension ops::           Operations.
+@end menu
+
+@c page
+@node one-dimension intro
+@subsection Data types and conventions
+
+
+A @dfn{range} is a pair representing a half--open interval of items.
+The car of the pair if the included left--limit, called @var{start}; the
+cdr is the excluded right--limit, called @var{past}.  Empty ranges
+(pairs with equal values) are @strong{not} valid.
+
+A @dfn{domain} is a sorted list of ranges.  Empty domains are empty
+lists.  Ranges in a domain do not overlap and are not contiguous.  A
+domain has the following format:
+
+@example
+((start1 . past1) (start2 . past2) (start3 . past3) ...)
+@end example
+
+@noindent
+with the constraints:
+
+@example
+start1 < past1 < start2 < past2 < start3 < past3 < ...
+@end example
+
+The range and domain functions accept the following arguments:
+
+@table @var
+@item obj
+Any object.
+
+@item range
+A valid range according to @func{%range?}.
+
+@item domain
+A valid domain according to @func{%domain?}.
+
+@item start
+The included left--limit of a range.
+
+@item past
+The excluded right--limit of a range.
+
+@item item?
+A unary predicate returning @true{} if the argument is a valid item.
+
+@item item=?
+An n--ary predicate returning @true{} if the all the arguments are
+equal.  @func{char=?} is an example of such a function.
+
+@item item<?
+An n--ary predicate returning @true{} if the all the arguments, in the
+given order, are in strict increasing order.  @func{char<?} is an
+example of such a function.
+
+@item item<=?
+An n--ary predicate returning @true{} if the all the arguments, in the
+given order, are in non--strict increasing order.  @func{char<=?} is an
+example of such a function.
+
+@item item-?
+A binary function returning the number of items between the first
+argument (included) and the second argument (excluded).  The arithmetic
+@func{-} applied to integers is an example of such a function; for
+characters we can use:
+
+@example
+(lambda (past start)
+  (- (char->integer past)
+     (char->integer start)))
+@end example
+
+@item item-copy
+A unary function returning a copy of an item.  For ranges holding atomic
+values (like characters or integers) it is fine to use @code{(lambda (x)
+x)}.
+
+@item item-next
+A unary function returning the next value with respect to the argument.
+For integers it can be @code{(lambda (x) (+ 1 x))}; for characters it
+can be:
+
+@example
+(lambda (ch) (integer->char (+ 1 (char->integer ch))))
+@end example
+
+
+@item lower-bound
+@itemx upper-bound
+Values representing the included lower bound and the excluded upper
+bounds for the items in ranges and domains.
+
+The lower bound is used as first argument to the @var{item=?},
+@var{item<?} and @var{item<=?} predicates.  The upper bound is used as
+last argument to the @var{item=?}, @var{item<?} and @var{item<=?}
+predicates.
+@end table
+
+@c page
+@node one-dimension make
+@subsection Constructors
+
+
+@defun %make-range @var{start} @var{past} @var{item?} @var{item<?}
+Compose @var{start} and @var{past} into a range.  This function
+validates the arguments to make sure the resulting range is valid.
+@end defun
+
+
+@defun %range-copy @var{range} @var{item-copy}
+Return a clone of @var{range}.
+@end defun
+
+
+@defun %make-domain @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-next} . @var{args}
+Build and return a new domain.
+
+@var{args} may be the empty list or a mixed list of item and pairs of
+items.  Pairs of items are interpreted as limits--inclusive ranges of
+items (this is in contrast with the half--open representation of ranges
+ranges).
+@end defun
+
+
+@defun %domain-copy @var{domain} @var{item-copy}
+Return a newly allocated domain holding a copy of @var{domain}.
+@end defun
+
+
+@defun %domain-add-item @var{domain} @var{obj} @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-next}
+Add the single value @var{obj} to @var{domain}, return the new domain.
+The returned domain may share some structure with @var{domain}.
+@end defun
+
+
+@defun %domain-add-range @var{domain} @var{range} @var{item=?} @var{item<?} @var{item<=?}
+Add @var{range} to @var{domain}, return the new domain.  The returned
+domain may share some structure with @var{domain}.
+@end defun
+
+
+
+@c page
+@node one-dimension pred
+@subsection Predicates
+
+
+@subsubheading Range predicates
+
+
+@defun %range? @var{obj} @var{item?} @var{item<?}
+Return @true{} if @var{obj} is a valid range.
+@end defun
+
+
+@defun %range-contains? @var{range} @var{obj} @var{item<?} @var{item<=?}
+Return @true{} if @var{obj} is a member of @var{range}.
+@end defun
+
+
+@defun %range=? @var{range-a} @var{range-b} @var{item=?}
+Return @true{} if the ranges are equal.
+@end defun
+
+
+@defun %range<? @var{range-a} @var{range-b} @var{item<=?}
+Return @true{} if @var{range-a} has all members less than all members of
+@var{range-b}.
+@end defun
+
+
+@defun %range<=? @var{range-a} @var{range-b} @var{item<=?}
+Return @true{} if @var{range-a} has all members less than, or equal to,
+all members of @var{range-b}.
+@end defun
+
+
+@defun %range-start<? @var{range-a} @var{range-b} @var{item<?}
+Return @true{} if the start of @var{range-a} is less than the start of
+@var{range-b}.
+@end defun
+
+
+@defun %range-start<=? @var{range-a} @var{range-b} @var{item<=?}
+Return @true{} if the start of @var{range-a} is less than, or equal to,
+the start of @var{range-b}.
+@end defun
+
+
+@defun %range-contiguous? @var{range-a} @var{range-b} @var{item=?}
+Return @true{} if @var{range-a} and @var{range-b} are contiguous.  It
+does not matter which range has start less than the other.
+@end defun
+
+
+@defun %range-overlapping? @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
+Return @true{} if the ranges have some elements in common.
+@end defun
+
+
+@defun %range-subset? @var{range-a} @var{range-b} @var{item<=?}
+@defunx %range-strict-subset? @var{range-a} @var{range-b} @var{item<=?}
+Return @true{} if @var{range-b} is a subset or a strict subset of
+@var{range-a}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Domain predicates
+
+
+@defun %domain? @var{domain} @var{item<?} @var{item<=?} @var{lower-bound} @var{upper-bound}
+Return true if @var{domain} is a valid domain.
+@end defun
+
+
+@defun %domain-empty? @var{domain}
+Return true if the domain is empty.
+@end defun
+
+
+@defun %domain-contains? @var{domain} @var{obj} @var{item<?} @var{item<=?}
+Return true if @var{obj} is an element of @var{domain}.
+@end defun
+
+
+@defun %domain=? @var{domain-a} @var{domain-b} @var{item=?}
+Return true if the arguments represent the same domain.
+@end defun
+
+
+@defun %domain<? @var{domain-a} @var{domain-b} @var{item<=?}
+Return true if all the elements of @var{domain-a} are strictly less than
+all the elements of @var{domain-b}.  Empty domains cannot be ordered, so
+if an argument is empty the return value is @false{}.
+@end defun
+
+
+@defun %domain-subset? @var{domain-a} @var{domain-b} @var{item<=?}
+@defunx %domain-strict-subset? @var{domain-a} @var{domain-b} @var{item<=?}
+Return @true{} if @var{domain-b} is a subset or strict subset of
+@var{domain-a}.
+@end defun
+
+@c page
+@node one-dimension inspect
+@subsection Inspection
+
+
+@defun %range-length @var{range} @var{item-}
+Return the number of items in the range.
+@end defun
+
+
+@defun %domain-size @var{domain} @var{item-}
+Return the number of items in the domain.
+@end defun
+
+@c page
+@node one-dimension ops
+@subsection Operations
+
+
+@subsubheading Set operations
+
+
+@defun %range-intersection @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
+Return a range representing the intersection of the argument ranges.  It
+does not matter which range has start less than the other.
+
+Intersection is a closed operation on the space of ranges: The
+intersection of two ranges is a range (possibly empty).  If the ranges
+are not overlapping return @false{} to represent the empty range.
+@end defun
+
+
+@defun %range-union @var{range-a} @var{range-b} @var{item=?} @var{item<?} @var{item<=?}
+Return two values representing the union of the argument ranges.  It
+does not matter which range has start less than the other.
+
+Union is @strong{not} a closed operation on the space of ranges: The
+union of two contiguous or overlapping ranges is a single range, but the
+union of two disjoint ranges is the set holding the two argument ranges.
+
+If the argument ranges are disjoint and non--contiguous: Return two
+values being @var{range-a} and @var{range-b}.  If the argument ranges
+are contiguous or overlapping: Return two values being @false{} and a
+new range representing the union.
+
+This function should be called like this:
+
+@example
+(let-values (((head tail) (%range-union r-a r-b)))
+  (when head ---)
+  (when tail ---))
+@end example
+@end defun
+
+
+@defun %range-difference @var{range-a} @var{range-b} @var{item=?} @var{item<?}
+Return two values representing the difference between the argument
+ranges; the difference is the set of elements present in one range and
+not in the other.  It does not matter which range has start less than
+the other.
+
+Difference is @strong{not} a closed operation on the space of ranges: In
+genreral the result is a couple of ranges.  The first one represents
+values which are all less than the values in the second one.  Both the
+returned values can be @false{}.
+
+This function should be called like this:
+
+@example
+(let-values (((head tail) (%range-difference r-a r-b)))
+  (when head ---)
+  (when tail ---))
+@end example
+@end defun
+
+
+@defun %domain-intersection @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+Return a new domain representing the intersection of the arguments.  The
+intersection is the set of values present in both the arguments.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+
+@defun %domain-union @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+Return a new domain representing the union of the arguments.  The union
+is the set of values present in one and/or the other argument.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+
+@defun %domain-difference @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+Return a new domain representing the difference of the arguments.  The
+difference is the set of values present in one or the other argument.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+
+@defun %domain-complement @var{domain} @var{item=?} @var{item<?} @var{item<=?} @var{lower-bound} @var{upper-bound}
+Return a new domain representing the complement of @var{domain} in the
+space defined by @var{lower-bound} and @var{upper-bound}.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading List operations
+
+
+@defun %range-for-each @var{proc} @var{range} @var{item<=?} @var{item-next}
+Apply @var{proc} to each value in the range.
+@end defun
+
+
+@defun %range-every @var{proc} @var{range} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the range and return true if all the
+return values are true.  The application stops at the first @false{}
+return value.
+@end defun
+
+
+@defun %range-any @var{proc} @var{range} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the range and return true if at least
+one of the returned values is true.  The application stops at the first
+true return value.
+@end defun
+
+
+@defun %range-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
+Fold @var{kons} over the values in the range.
+@end defun
+
+
+@defun %range->list @var{range} @var{item<?} @var{item-next}
+Return a list holding all the elements in the range.
+@end defun
+
+
+@defun %domain-for-each @var{proc} @var{domain} @var{item<?} @var{item-next}
+Apply @var{proc} to each element of @var{domain}.
+@end defun
+
+
+@defun %domain-every @var{proc} @var{domain} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the domain and return true if all the
+return values are true.  The application stops at the first @false{}
+return value.
+@end defun
+
+
+@defun %domain-any @var{proc} @var{range} @var{item<?} @var{item-next}
+Apply @var{proc} to each value in the domain and return true if at least
+one of the returned values is true.  The application stops at the first
+true return value.
+@end defun
+
+
+@defun %domain-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
+Fold @var{kons} over the values in the domain.
+@end defun
+
+
+@defun %domain->list @var{range} @var{item<?} @var{item-next}
+Return a list holding all the elements in the domain.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Miscellaneous operations
+
+
+@defun %range-concatenate @var{range-a} @var{range-b} @var{item<?}
+Concatenate the ranges and return the resulting range.  It does not
+matter which range has start less than the other.  It makes sense to
+apply this function to ranges that satisfy @func{%range-contiguous?}.
+
+The returned range may share some value with the original ranges.
+@end defun
 
 @c page
 @node foreign

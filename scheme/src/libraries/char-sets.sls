@@ -1,44 +1,27 @@
-;;; Character sets library --
-;;;
-;;;Derived from the SRFI-14 reference implementation.
-;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
-;;;Copyright (c) 1988-1995  Massachusetts Institute of Technology.
-;;;Ported from MIT Scheme runtime by Brian D.  Carlstrom.
-;;;Massively rehacked & extended by Olin Shivers 6/98.
-;;;Massively redesigned and rehacked 5/2000 during SRFI process.
-;;;Modified by Derick Eddington for R6RS compatibility.
-;;;
-;;;This   material  was  developed   by  the   Scheme  project   at  the
-;;;Massachusetts  Institute  of  Technology,  Department  of  Electrical
-;;;Engineering and Computer Science.  Permission to copy and modify this
-;;;software, to redistribute either  the original software or a modified
-;;;version, and to use this software for any purpose is granted, subject
-;;;to the following restrictions and understandings.
-;;;
-;;;1. Any copy made of  this software must include this copyright notice
-;;;   in full.
-;;;
-;;;2. Users  of this software  agree to make  their best efforts  (a) to
-;;;   return to  the MIT Scheme  project any improvements  or extensions
-;;;   that they make, so that  these may be included in future releases;
-;;;   and (b) to inform MIT of noteworthy uses of this software.
-;;;
-;;;3. All materials  developed  as  a  consequence  of the  use of  this
-;;;   software shall  duly acknowledge such use, in  accordance with the
-;;;   usual standards of acknowledging credit in academic research.
-;;;
-;;;4. MIT has made no  warrantee or representation that the operation of
-;;;   this software will  be error-free, and MIT is  under no obligation
-;;;   to  provide  any  services,  by  way of  maintenance,  update,  or
-;;;   otherwise.
-;;;
-;;;5. In  conjunction  with  products  arising  from  the  use  of  this
-;;;   material, there shall  be no use of the  name of the Massachusetts
-;;;   Institute  of Technology  nor  of any  adaptation  thereof in  any
-;;;   advertising,  promotional,  or   sales  literature  without  prior
-;;;   written consent from MIT in each case.
-;;;
+;;
+;; Part of: Nausicaa
+;; Contents: char-sets library
+;; Date: Fri Jun 12, 2009
+;;
+;; Abstract
+;;
+;;
+;;
+;; Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;
+;; This program is free software:  you can redistribute it and/or modify
+;; it under the terms of the  GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
+;;
+;; This program is  distributed in the hope that it  will be useful, but
+;; WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;; MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;; General Public License for more details.
+;;
+;; You should  have received  a copy of  the GNU General  Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;
 
 
 
@@ -46,48 +29,26 @@
 (library (char-sets)
   (export
 
-    ;; creating
-    char-set-copy char-set char-set/unique
-
-    ;; predicates and assertions
-    char-set?		assert-char-set
-    assert-char-set/or-false
-    assert-list-of-chars
+    ;; constructors
+    (rename (full-char-set char-set)) char-set-copy
+    char-set-add char-set-add!
 
     ;; inspection
-    char-set-size
+    char-set-size (rename (domain-ref char-set-domain-ref))
 
-    ;; conversion
-    list->char-set	list->char-set!		char-set->list
-    string->char-set	string->char-set!	char-set->string
-    ->char-set
-
-    ;; searching
-    char-set-count char-set-contains?
-    char-set-every char-set-any char-set-find
-
-    ;; filtering
-    char-set-filter	char-set-filter!
-    char-set-partition	char-set-partition!
-    char-set-remove
-    char-set-remove*	char-set-remove*!
-    char-set-delete-duplicates
-    char-set-delete-duplicates!
-
-    ;; iteration
-    char-set-cursor	char-set-cursor-ref
-    end-of-char-set?	char-set-cursor-next
-    char-set-fold	char-set-unfold		char-set-unfold!
-    char-set-for-each	char-set-map
+    ;; predicates
+    (rename (full-char-set? char-set?))
+    char-set-empty? char-set-contains?
+    char-set=? char-set<? char-set-subset? char-set-strict-subset?
 
     ;; set operations
-    char-set=?		char-set<=?
-    char-set-adjoin
-    char-set-union		char-set-union!
-    char-set-intersection	char-set-intersection!
-    char-set-difference		char-set-difference!
-    char-set-xor		char-set-xor!
-    char-set-diff+intersection	char-set-diff+intersection!
+    char-set-intersection char-set-union
+    char-set-difference char-set-complement
+
+    ;; list operations
+    char-set-for-each char-set-every
+    char-set-any char-set-fold
+    char-set->list string->char-set
 
     ;; predefined
 ;;     char-set:lower-case  char-set:upper-case  char-set:title-case
@@ -97,419 +58,253 @@
 ;;     char-set:hex-digit   char-set:blank       char-set:ascii
 ;;     char-set:empty       char-set:full
     )
-  (import (nausicaa)
-    (rnrs mutable-strings)
-    (rnrs r5rs)
-    (lists))
+  (import (rnrs)
+    (one-dimension))
 
 
-;;;; helpers
 
-(define-syntax append-char-lists
-  (syntax-rules ()
-    ((_ ?ell0 ?ell ...)
-     (append (list-copy ?ell0)
-	     (list-copy ?ell)
-	     ...))))
+(define-record-type char-set
+  (fields (mutable domain domain-ref domain-set!)))
 
-(define-syntax append-char-lists!
-  (syntax-rules ()
-    ((_ ?ell0 ?ell ...)
-     (append! ?ell0 ?ell ...))))
+(define (full-char-set . args)
+  (make-char-set (apply make-domain args)))
 
-(define-syntax make-char-set-eat-list
-  (syntax-rules ()
-    ((_ ?expr)
-     (let ((l ?expr))
-       (make-char-set l (length l))))))
-
-
-;;;; record definition and constructors
-
-(define-record-type (char-set-record make-char-set char-set?)
-  (fields (immutable list	char-set-rep)
-	  (immutable length	char-set-size)))
-
-(define (char-set . chars)
-  (make-char-set-eat-list chars))
-
-(define (char-set/unique . chars)
-  (make-char-set-eat-list (delete-duplicates chars char=?)))
+(define (full-char-set? cs)
+  (and (char-set? cs)
+       (domain? (domain-ref cs))))
 
 (define (char-set-copy cs)
-  (make-char-set (list-copy (char-set-rep cs))
-		 (char-set-size cs)))
+  (make-char-set (domain-copy (domain-ref cs))))
 
-
-;;;; predicates and assertions
+(define (char-set-add cs obj)
+  (cond ((char? obj)
+	 (domain-add-item (domain-ref cs) obj))
+	((range? obj)
+	 (domain-add-range (domain-ref cs) obj))
+	(else
+	 (assertion-violation 'char-set-add
+	   "attempt to add an invalid object to a char-set" obj))))
 
-(define (assert-list-of-chars obj func-name)
-  (define (error)
-    (assertion-violation func-name
-	    "expected list of characters" obj))
-  (unless (list? obj) (error))
-  (for-each
-      (lambda (ch)
-	(unless (char? ch) (error)))
-    obj)
-  obj)
+(define (char-set-add! cs obj)
+  (domain-set! cs (char-set-add cs obj)))
 
-(define (assert-char-set obj func-name)
-  (unless (char-set? obj)
-    (assertion-violation func-name
-      "expected char set" obj))
-  obj)
+(define (char-set-size cs)
+  (domain-size (domain-ref cs)))
 
-(define (assert-char-set/or-false obj func-name)
-  (unless (or (not obj) (char-set? obj))
-    (assertion-violation func-name
-      "expected char set" obj))
-  obj)
+(define (char-set-empty? cs)
+  (domain-empty? (domain-ref cs)))
 
+(define (char-set-contains? cs item)
+  (domain-contains? (domain-ref cs) item))
 
-
-;;;; conversion
+(define (char-set=? cs-a cs-b)
+  (domain=? (domain-ref cs-a) (domain-ref cs-b)))
 
-(define list->char-set
-  (case-lambda
-   ((chars)
-    (make-char-set-eat-list (list-copy chars)))
-   ((chars base-cs)
-    (make-char-set-eat-list (append-char-lists chars (char-set-rep base-cs))))))
+(define (char-set<? cs-a cs-b)
+  (domain<? (domain-ref cs-a) (domain-ref cs-b)))
 
-(define (list->char-set! chars base-cs)
-  (make-char-set-eat-list (append-char-lists! chars (char-set-rep base-cs))))
+(define (char-set-subset? cs-a cs-b)
+  (domain-subset? (domain-ref cs-a) (domain-ref cs-b)))
 
-(define (char-set->list cs)
-  (list-copy (char-set-rep cs)))
+(define (char-set-strict-subset? cs-a cs-b)
+  (domain-strict-subset? (domain-ref cs-a) (domain-ref cs-b)))
 
-;;; --------------------------------------------------------------------
+(define (char-set-intersection cs-a cs-b)
+  (make-char-set (domain-intersection (domain-ref cs-a) (domain-ref cs-b))))
 
-(define string->char-set
-  (case-lambda
-   ((str)
-    (make-char-set (string->list str) (string-length str)))
-   ((str base-cs)
-    (make-char-set-eat-list
-     (append-char-lists (string->list str)
-			(char-set-rep base-cs))))))
+(define (char-set-union cs-a cs-b)
+  (make-char-set (domain-union (domain-ref cs-a) (domain-ref cs-b))))
 
-(define (string->char-set! str base-cs)
-  (make-char-set-eat-list
-   (append-char-lists! (string->list str)
-		       (char-set-rep base-cs))))
+(define (char-set-difference cs-a cs-b)
+  (make-char-set (domain-difference (domain-ref cs-a) (domain-ref cs-b))))
 
-(define (char-set->string cs)
-  (list->string (char-set-rep cs)))
-
-;;; --------------------------------------------------------------------
-
-(define (->char-set obj)
-  ((cond ((char-set?	obj)	char-set-copy)
-	 ((string?	obj)	string->char-set)
-	 ((list?	obj)	list->char-set)
-	 ((char?	obj)	char-set)
-	 (else
-	  (assertion-violation '->char-set
-	    "cannot convert to char set" obj)))
-   obj))
-
-
-;;;; searching
-
-(define (char-set-contains? cs char)
-  (and (member* char (char-set-rep cs) char=?)
-       #t))
-
-(define (char-set-count pred cs)
-  (count pred (char-set-rep cs)))
-
-(define (char-set-find pred cs)
-  (find pred (char-set-rep cs)))
-
-(define (char-set-every pred cs)
-  (every pred (char-set-rep cs)))
-
-(define (char-set-any pred cs)
-  (any pred (char-set-rep cs)))
-
-
-
-;;;; filtering
-
-(define char-set-filter
-  (case-lambda
-   ((pred cs)
-    (make-char-set-eat-list
-     (filter pred (char-set-rep cs))))
-   ((pred cs base-cs)
-    (make-char-set-eat-list
-     (filter pred
-       (append-char-lists (char-set-rep cs)
-			  (char-set-rep base-cs)))))))
-
-(define (char-set-filter! pred cs base-cs)
-  (make-char-set-eat-list
-   (filter! pred (append-char-lists! (char-set-rep cs)
-				     (char-set-rep base-cs)))))
-
-;;; --------------------------------------------------------------------
-
-(define (char-set-partition pred cs)
-  (receive (in out)
-      (partition pred (char-set-rep cs))
-    (values (make-char-set-eat-list in)
-	    (make-char-set-eat-list out))))
-
-(define (char-set-partition! pred cs)
-  (receive (in out)
-      (partition! pred (char-set-rep cs))
-    (values (make-char-set-eat-list in)
-	    (make-char-set-eat-list out))))
-
-;;; --------------------------------------------------------------------
-
-(define (char-set-remove* pred cs)
-  (make-char-set-eat-list
-   (remove* pred (char-set-rep cs))))
-
-(define (char-set-remove*! pred cs)
-  (make-char-set-eat-list
-   (remove*! pred (char-set-rep cs))))
-
-;;; --------------------------------------------------------------------
-
-(define (char-set-remove char cs)
-  (make-char-set-eat-list
-   (remove char (char-set-rep cs))))
-
-(define (char-set-delete-duplicates cs)
-  (make-char-set-eat-list
-   (delete-duplicates (char-set-rep cs))))
-
-(define (char-set-delete-duplicates! cs)
-  (delete-duplicates! (char-set-rep cs))
-  cs)
-
-
-;;;; iteration
-
-(define char-set-cursor		char-set-rep)
-(define end-of-char-set?	null?)
-(define char-set-cursor-ref	car)
-(define char-set-cursor-next	cdr)
-
-;;; --------------------------------------------------------------------
+(define (char-set-complement cs)
+  (make-char-set (domain-complement (domain-ref cs))))
 
 (define (char-set-for-each proc cs)
-  (for-each proc (char-set-rep cs)))
+  (domain-for-each proc (domain-ref cs)))
 
-(define (char-set-map proc cs)
-  (make-char-set-eat-list
-   (map proc (char-set-rep cs))))
+(define (char-set-every proc cs)
+  (domain-every proc (domain-ref cs)))
 
-;;; --------------------------------------------------------------------
+(define (char-set-any proc cs)
+  (domain-any proc (domain-ref cs)))
 
 (define (char-set-fold kons knil cs)
-  (fold kons knil (char-set-rep cs)))
+  (domain-fold kons knil (domain-ref cs)))
 
-(define char-set-unfold
-  (case-lambda
-   ((stop? map-to-char seed-step seed)
-    (make-char-set-eat-list
-     (unfold stop? map-to-char seed-step seed)))
-   ((stop? map-to-char seed-step seed base-cs)
-    (make-char-set-eat-list
-     (append-char-lists (unfold stop? map-to-char seed-step seed)
-			(list-copy (char-set-rep base-cs)))))))
+(define (char-set->list cs)
+  (domain->list (domain-ref cs)))
 
-(define (char-set-unfold! stop? map-to-char seed-step seed base-cs)
-  (make-char-set-eat-list
-   (append-char-lists! (unfold stop? map-to-char seed-step seed)
-		       (char-set-rep base-cs))))
+(define (string->char-set str)
+  (make-char-set (string->domain str)))
 
 
-;;;; set operations
 
-(define char-set=?
-  (case-lambda
-   (()
-    #t)
-   ((cs)
-    #t)
-   ((cs0 . args)
-    (apply lset=? char=?
-	   (char-set-rep cs0)
-	   (map char-set-rep args)))))
+(define inclusive-lower-bound (integer->char 0))
 
-(define char-set<=?
-  (case-lambda
-   (()
-    #t)
-   ((cs)
-    #t)
-   ((cs0 . args)
-    (apply lset<=? char=?
-	   (char-set-rep cs0)
-	   (map char-set-rep args)))))
+;;*FIXME* This  is a bug.  The  correct exclusive upper  bound should be
+;;1+#x10FFFF.   With this  setting  the last  character  in the  Unicode
+;;encoding (#x10FFFF) is excluded from the char sets.
+(define exclusive-upper-bound (integer->char #x10FFFF))
 
-;;; --------------------------------------------------------------------
+(define (char-next item)
+  (integer->char (+ 1 (char->integer item))))
 
-(define char-set-adjoin
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-adjoin char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (char- past start)
+  (- (char->integer past)
+     (char->integer start)))
 
-;;; --------------------------------------------------------------------
+(define (char-copy ch)
+  ch)
 
-(define char-set-union
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-union char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+
+;;;; domain wrappers for ranges
 
-(define char-set-union!
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    cs)
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-union! char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (make-range a b)
+  (%make-range a b char? char<?))
 
-;;; --------------------------------------------------------------------
+(define (range-copy a)
+  (%range-copy a char-copy))
 
-(define char-set-intersection
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-intersection char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (range? a)
+  (%range? a char? char<?))
 
-(define char-set-intersection!
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-intersection! char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (range-contains? range obj)
+  (%range-contains? range obj char<? char<=?))
 
-;;; --------------------------------------------------------------------
+(define (range-length range)
+  (%range-length range char-))
 
-(define char-set-difference
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-difference char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (range=? range-a range-b)
+  (%range=? range-a range-b char=?))
 
-(define char-set-difference!
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-difference! char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (range<? range-a range-b)
+  (%range<? range-a range-b char<=?))
 
-;;; --------------------------------------------------------------------
+(define (range<=? range-a range-b)
+  (%range<=? range-a range-b char<=?))
 
-(define char-set-xor
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-xor char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (range-contiguous? range-a range-b)
+  (%range-contiguous? range-a range-b char=?))
 
-(define char-set-xor!
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (make-char-set-eat-list
-     (apply lset-xor! char=?
-	    (char-set-rep cs0)
-	    (map char-set-rep args))))))
+(define (range-subset? range-a range-b)
+  (%range-subset? range-a range-b char<=?))
 
-;;; --------------------------------------------------------------------
+(define (range-strict-subset? range-a range-b)
+  (%range-strict-subset? range-a range-b char<=?))
 
-(define char-set-diff+intersection
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (receive (diff inter)
-	(apply lset-diff+intersection char=?
-	       (char-set-rep cs0)
-	       (map char-set-rep args))
-      (values (make-char-set-eat-list diff)
-	      (make-char-set-eat-list inter))))))
+(define (range-start<? range-a range-b)
+  (%range-start<? range-a range-b char<?))
 
-(define char-set-diff+intersection!
-  (case-lambda
-   (()
-    char-set:empty)
-   ((cs)
-    (char-set-copy cs))
-   ((cs0 . args)
-    (receive (diff inter)
-	(apply lset-diff+intersection! char=?
-	       (char-set-rep cs0)
-	       (map char-set-rep args))
-      (values (make-char-set-eat-list diff)
-	      (make-char-set-eat-list inter))))))
+(define (range-start<=? range-a range-b)
+  (%range-start<=? range-a range-b char<=?))
 
+(define (range-overlapping? range-a range-b)
+  (%range-overlapping? range-a range-b char<? char<=?))
+
+(define (range-concatenate range-a range-b)
+  (%range-concatenate range-a range-b char<?))
+
+(define (range-intersection range-a range-b)
+  (%range-intersection range-a range-b char<? char<=?))
+
+(define (range-union range-a range-b)
+  (%range-union range-a range-b char=? char<? char<=?))
+
+(define (range-difference range-a range-b)
+  (%range-difference range-a range-b char=? char<?))
+
+(define (range-for-each proc range)
+  (%range-for-each proc range char<=? char-next))
+
+(define (range-every proc range)
+  (%range-every proc range char<? char-next))
+
+(define (range-any proc range)
+  (%range-any proc range char<? char-next))
+
+(define (range-fold kons knil range)
+  (%range-fold kons knil range char<? char-next))
+
+(define (range->list range)
+  (%range->list range char<? char-next))
+
+
+;;;; domain wrappers for characters
+
+(define (make-domain . args)
+  (apply %make-domain char? char=? char<? char<=? char-next args))
+
+(define (domain-copy domain)
+  (%domain-copy domain char-copy))
+
+(define (domain-add-item domain obj)
+  (%domain-add-item domain obj char=? char<? char<=? char-next))
+
+(define (domain-add-range domain new-range)
+  (%domain-add-range domain new-range char=? char<? char<=?))
+
+(define (domain? domain)
+  (%domain? domain char? char<? char<=? inclusive-lower-bound exclusive-upper-bound))
+
+(define (domain-size domain)
+  (%domain-size domain char-))
+
+(define domain-empty? %domain-empty?)
+
+(define (domain-contains? domain obj)
+  (%domain-contains? domain obj char<? char<=?))
+
+(define (domain=? domain-a domain-b)
+  (%domain=? domain-a domain-b char=?))
+
+(define (domain<? domain-a domain-b)
+  (%domain<? domain-a domain-b char<=?))
+
+(define (domain-subset? domain-a domain-b)
+  (%domain-subset? domain-a domain-b char<=?))
+
+(define (domain-strict-subset? domain-a domain-b)
+  (%domain-strict-subset? domain-a domain-b char<=?))
+
+(define (domain-intersection domain-a domain-b)
+  (%domain-intersection domain-a domain-b char=? char<? char<=?))
+
+(define (domain-union domain-a domain-b)
+  (%domain-union domain-a domain-b char=? char<? char<=?))
+
+(define (domain-difference domain-a domain-b)
+  (%domain-difference domain-a domain-b char=? char<? char<=?))
+
+(define (domain-complement domain)
+  (%domain-complement domain char=? char<? char<=?
+		      inclusive-lower-bound exclusive-upper-bound))
+
+(define (domain-for-each proc domain)
+  (%domain-for-each proc domain char<=? char-next))
+
+(define (domain-every proc domain)
+  (%domain-every proc domain char<? char-next))
+
+(define (domain-any proc domain)
+  (%domain-any proc domain char<? char-next))
+
+(define (domain-fold kons knil domain)
+  (%domain-fold kons knil domain char<? char-next))
+
+(define (domain->list domain)
+  (%domain->list domain char<? char-next))
+
+(define (string->domain str)
+  (apply make-domain (string->list str)))
 
 
 ;;;; predefined char sets
 
-(define char-set:empty
-  (char-set))
+(define char-set:empty '())
 
-;; (define char-set:full
-;;   (char-set-complement char-set:empty))
+;;(define char-set:full (list (cons )))
 
 ;; (define char-set:lower-case
 ;;   (let* ((a-z (ucs-range->char-set #x61 #x7B))
@@ -541,63 +336,63 @@
 ;; (define char-set:letter+digit
 ;;   (char-set-union char-set:letter char-set:digit))
 
-(define char-set:punctuation
-  (make-char-set-eat-list
-   (append-char-lists
-    (string->list "!\"#%&'()*,-./:;?@[\\]_{}")
-    (map integer->char '(#xA1 ; INVERTED EXCLAMATION MARK
-			 #xAB ; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
-			 #xAD ; SOFT HYPHEN
-			 #xB7 ; MIDDLE DOT
-			 #xBB ; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-			 #xBF))))) ; INVERTED QUESTION MARK
+;; (define char-set:punctuation
+;;   (make-char-set-eat-list
+;;    (append-char-lists
+;;     (string->list "!\"#%&'()*,-./:;?@[\\]_{}")
+;;     (map integer->char '(#xA1 ; INVERTED EXCLAMATION MARK
+;; 			 #xAB ; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+;; 			 #xAD ; SOFT HYPHEN
+;; 			 #xB7 ; MIDDLE DOT
+;; 			 #xBB ; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+;; 			 #xBF))))) ; INVERTED QUESTION MARK
 
-(define char-set:symbol
-  (make-char-set-eat-list
-   (append-char-lists (string->list "$+<=>^`|~")
-		      (map integer->char '(#x00A2 ; CENT SIGN
-					   #x00A3 ; POUND SIGN
-					   #x00A4 ; CURRENCY SIGN
-					   #x00A5 ; YEN SIGN
-					   #x00A6 ; BROKEN BAR
-					   #x00A7 ; SECTION SIGN
-					   #x00A8 ; DIAERESIS
-					   #x00A9 ; COPYRIGHT SIGN
-					   #x00AC ; NOT SIGN
-					   #x00AE ; REGISTERED SIGN
-					   #x00AF ; MACRON
-					   #x00B0 ; DEGREE SIGN
-					   #x00B1 ; PLUS-MINUS SIGN
-					   #x00B4 ; ACUTE ACCENT
-					   #x00B6 ; PILCROW SIGN
-					   #x00B8 ; CEDILLA
-					   #x00D7 ; MULTIPLICATION SIGN
-					   #x00F7))))) ; DIVISION SIGN
+;; (define char-set:symbol
+;;   (make-char-set-eat-list
+;;    (append-char-lists (string->list "$+<=>^`|~")
+;; 		      (map integer->char '(#x00A2 ; CENT SIGN
+;; 					   #x00A3 ; POUND SIGN
+;; 					   #x00A4 ; CURRENCY SIGN
+;; 					   #x00A5 ; YEN SIGN
+;; 					   #x00A6 ; BROKEN BAR
+;; 					   #x00A7 ; SECTION SIGN
+;; 					   #x00A8 ; DIAERESIS
+;; 					   #x00A9 ; COPYRIGHT SIGN
+;; 					   #x00AC ; NOT SIGN
+;; 					   #x00AE ; REGISTERED SIGN
+;; 					   #x00AF ; MACRON
+;; 					   #x00B0 ; DEGREE SIGN
+;; 					   #x00B1 ; PLUS-MINUS SIGN
+;; 					   #x00B4 ; ACUTE ACCENT
+;; 					   #x00B6 ; PILCROW SIGN
+;; 					   #x00B8 ; CEDILLA
+;; 					   #x00D7 ; MULTIPLICATION SIGN
+;; 					   #x00F7))))) ; DIVISION SIGN
 
 ;; (define char-set:graphic
 ;;   (char-set-union char-set:letter+digit
 ;; 		  char-set:punctuation
 ;; 		  char-set:symbol))
 
-(define char-set:whitespace
-  (make-char-set-eat-list
-   (map integer->char '(#x09		    ; HORIZONTAL TABULATION
-			#x0A		    ; LINE FEED
-			#x0B		    ; VERTICAL TABULATION
-			#x0C		    ; FORM FEED
-			#x0D		    ; CARRIAGE RETURN
-			#x20		    ; SPACE
-			#xA0))))
+;; (define char-set:whitespace
+;;   (make-char-set-eat-list
+;;    (map integer->char '(#x09		    ; HORIZONTAL TABULATION
+;; 			#x0A		    ; LINE FEED
+;; 			#x0B		    ; VERTICAL TABULATION
+;; 			#x0C		    ; FORM FEED
+;; 			#x0D		    ; CARRIAGE RETURN
+;; 			#x20		    ; SPACE
+;; 			#xA0))))
 
 ;; (define char-set:printing
 ;;   (char-set-union char-set:whitespace
 ;; 		  char-set:graphic)) ; NO-BREAK SPACE
 
-(define char-set:blank
-  (make-char-set-eat-list
-   (map integer->char '(#x09			; HORIZONTAL TABULATION
-			#x20			; SPACE
-			#xA0))))		; NO-BREAK SPACE
+;; (define char-set:blank
+;;   (make-char-set-eat-list
+;;    (map integer->char '(#x09			; HORIZONTAL TABULATION
+;; 			#x20			; SPACE
+;; 			#xA0))))		; NO-BREAK SPACE
 
 
 ;; (define char-set:iso-control

@@ -44,6 +44,9 @@
 (compile-library "lists.sls"
 		 "lists.slfasl")
 
+(compile-library "one-dimension.sls"
+		 "one-dimension.slfasl")
+
 (compile-library "char-sets.sls"
 		 "char-sets.slfasl")
 

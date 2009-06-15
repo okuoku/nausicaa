@@ -195,7 +195,7 @@
      (values ?str ?start ?past))
 
     ((?F ?str)
-     (?F (?str)))
+     (unpack (?str)))
 
     ((?F ?stuff ...)
      (syntax-violation #f "invalid parameters" (?stuff ...)))))

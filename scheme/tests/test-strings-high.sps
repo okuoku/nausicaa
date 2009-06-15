@@ -496,9 +496,13 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (string-ci= "abcd" "abcd")
-    => #t)
+  (cond-expand
+   (ikarus (check
+	       (string-ci= "abcd" "abcd")
+	     => 4))
+   (else (check
+	     (string-ci= "abcd" "abcd")
+	   => #t)))
 
   (check
       (string-ci= ("12abcd" 2) "abcd")

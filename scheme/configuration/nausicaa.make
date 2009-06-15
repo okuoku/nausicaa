@@ -216,7 +216,11 @@ endif
 
 ## ------------------------------------------------------------
 
+ifeq (,$(strip $(MOSH_LOADPATH)))
+nau_mtest_ENV		= MOSH_LOADPATH=$(nau_test_PATH)
+else
 nau_mtest_ENV		= MOSH_LOADPATH=$(nau_test_PATH):$(MOSH_LOADPATH)
+endif
 nau_mtest_ENV		+= $(nau_test_ENV)
 nau_mtest_PROGRAM	= $(MOSH)
 nau_mtest_RUN		= $(nau_mtest_ENV) $(nau_mtest_PROGRAM)

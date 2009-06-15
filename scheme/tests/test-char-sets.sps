@@ -34,733 +34,651 @@
 (check-set-mode! 'report-failed)
 (display "*** testing char-sets\n")
 
+(define inclusive-lower-bound (integer->char 0))
+(define exclusive-upper-bound (integer->char 1114111))
+
+(define (char-next item)
+  (integer->char (+ 1 (char->integer item))))
+
+(define (domain=? actual-result expected-result)
+  (equal? (char-set-domain-ref actual-result) expected-result))
 
 
-
-(parameterise ((check-test-name	'create))
+(parameterise ((check-test-name	'integer)
+	       (debugging #t))
 
   (check
-      (char-set? (char-set #\a #\b #\c))
+      (char? (integer->char 1114111))
     => #t)
+
+  (check
+      (guard (exc ((condition? exc) #t))
+	(char? (integer->char 1114112)))
+    => #t)
+
+  )
+
+
+(parameterise ((check-test-name	'constructor))
+
+  (check
+      (char-set)
+    (=> domain=?) '())
+
+  (check
+      (char-set #\A)
+    (=> domain=?) '((#\A . #\B)))
+
+  (check (char-set #\A #\A) (=> domain=?) '((#\A . #\B)))
+  (check (char-set #\A #\A #\A) (=> domain=?) '((#\A . #\B)))
+  (check (char-set #\A #\B #\A) (=> domain=?) '((#\A . #\C)))
+  (check (char-set #\A #\A #\B #\A) (=> domain=?) '((#\A . #\C)))
+
+  (check (char-set #\A #\B) (=> domain=?) '((#\A . #\C)))
+  (check (char-set #\B #\A) (=> domain=?) '((#\A . #\C)))
+
+  (check (char-set #\A #\B #\C) (=> domain=?) '((#\A . #\D)))
+  (check (char-set #\B #\A #\C) (=> domain=?) '((#\A . #\D)))
+  (check (char-set #\C #\A #\B) (=> domain=?) '((#\A . #\D)))
+  (check (char-set #\B #\C #\A) (=> domain=?) '((#\A . #\D)))
+
+  (check (char-set #\A #\C) (=> domain=?) '((#\A . #\B) (#\C . #\D)))
+  (check (char-set #\C #\A) (=> domain=?) '((#\A . #\B) (#\C . #\D)))
+
+;;; --------------------------------------------------------------------
+
+  (check (char-set '(#\A . #\B)) (=> domain=?) '((#\A . #\C)))
+
+  ;; equal
+  (check (char-set '(#\B . #\C) '(#\B . #\C)) (=> domain=?) '((#\B . #\D)))
+
+  ;; overlapping
+  (check (char-set '(#\A . #\B) '(#\B . #\C)) (=> domain=?) '((#\A . #\D)))
+  (check (char-set '(#\B . #\C) '(#\A . #\B)) (=> domain=?) '((#\A . #\D)))
+
+  ;; contiguous
+  (check (char-set '(#\A . #\B) '(#\C . #\D)) (=> domain=?) '((#\A . #\E)))
+  (check (char-set '(#\C . #\D) '(#\A . #\B)) (=> domain=?) '((#\A . #\E)))
+
+  ;; included
+  (check (char-set '(#\A . #\D) '(#\B . #\C)) (=> domain=?) '((#\A . #\E)))
+  (check (char-set '(#\B . #\C) '(#\A . #\D)) (=> domain=?) '((#\A . #\E)))
+
+  ;; distanced
+  (check (char-set '(#\A . #\B) '(#\D . #\E)) (=> domain=?) '((#\A . #\C) (#\D . #\F)))
+  (check (char-set '(#\D . #\E) '(#\A . #\B)) (=> domain=?) '((#\A . #\C) (#\D . #\F)))
+
+  (check (char-set #\A #\D '(#\B . #\C)) (=> domain=?) '((#\A . #\E)))
+  (check (char-set #\A '(#\B . #\C) #\D) (=> domain=?) '((#\A . #\E)))
+  (check (char-set '(#\B . #\C) #\A #\D) (=> domain=?) '((#\A . #\E)))
+  (check (char-set '(#\B . #\C) #\D #\A) (=> domain=?) '((#\A . #\E)))
+
+  )
+
+
+(parameterise ((check-test-name	'predicate))
 
   (check
       (char-set? (char-set))
     => #t)
 
   (check
-      (char-set? (char-set-copy (char-set #\a #\b #\c)))
+      (char-set? (char-set '(#\A . #\C)))
     => #t)
 
   (check
-      (char-set? (char-set-copy (char-set)))
-    => #t)
-
-  (let ((l '(#\a #\b #\a #\c #\c)))
-    (check
-	(char-set->list (apply char-set l))
-      (=> list=?) l))
-
-  (check
-      (char-set->list (char-set/unique #\a #\b #\a #\c #\c))
-    => '(#\a #\b #\c))
+      (char-set? 123)
+    => #f)
 
   )
 
 
+(parameterise ((check-test-name	'inspection))
 
-(parameterise ((check-test-name 'inspection))
+  (check
+      (char-set-empty? (char-set))
+    => #t)
+
+  (check
+      (char-set-empty? (char-set #\A))
+    => #f)
+
+;;; --------------------------------------------------------------------
 
   (check
       (char-set-size (char-set))
     => 0)
 
   (check
-      (char-set-size (char-set #\a))
+      (char-set-size (char-set #\A))
     => 1)
 
   (check
-      (char-set-size (char-set #\a #\b))
+      (char-set-size (char-set #\A #\C))
     => 2)
 
-  )
+  (check
+      (char-set-size (char-set '(#\A . #\D) '(#\F . #\H)))
+    => (+ 4 3))
 
-
-
-(parameterise ((check-test-name 'predicates))
+;;; --------------------------------------------------------------------
 
   (check
-      (char-set? 123)
+      (char-set-contains? (char-set '(#\A . #\F)) #\C)
+    => #t)
+
+  (check
+      (char-set-contains? (char-set '(#\A . #\F)) #\M)
     => #f)
 
 ;;; --------------------------------------------------------------------
 
-  (let ((cs (char-set '(#\a #\b))))
-    (check
-	(assert-char-set cs 'it)
-      => cs))
+  (check
+      ;; equal
+      (char-set-subset? (char-set '(#\A . #\F))
+			(char-set '(#\A . #\F)))
+    => #t)
 
   (check
-      (guard (exc (else (condition-who exc)))
-	(assert-char-set 123 'it))
-    => 'it)
+      ;; included
+      (char-set-subset? (char-set '(#\A . #\M))
+			(char-set '(#\B . #\F)))
+    => #t)
+
+  (check
+      ;;                              included     included
+      (char-set-subset? (char-set '(#\A . #\M) '(#\P . #\Z))
+			(char-set '(#\B . #\F) '(#\S . #\X)))
+    => #t)
+
+  (check
+      ;;                              included     overlapping
+      (char-set-subset? (char-set '(#\A . #\M) '(#\P . #\X))
+			(char-set '(#\B . #\F) '(#\S . #\Z)))
+    => #f)
+
+  (check
+      ;;                              overlapping
+      (char-set-subset? (char-set '(#\A . #\D) '(#\P . #\X))
+			(char-set '(#\B . #\F) '(#\S . #\Z)))
+    => #f)
+
+  (check
+      ;;                                           included     included
+      (char-set-subset? (char-set '(#\0 . #\6) '(#\A . #\D) '(#\P . #\Z))
+			(char-set              '(#\B . #\F) '(#\S . #\X)))
+    => #f)
+
+  (check
+      ;;                                           included        included
+      (char-set-subset? (char-set '(#\0 . #\6) '(#\A . #\G) #\M '(#\P . #\Z))
+			(char-set              '(#\B . #\F)     '(#\S . #\X)))
+    => #t)
+
+  (check
+      (char-set-subset? (char-set '(#\0 . #\6) '(#\A . #\D)     '(#\P . #\Z))
+			(char-set              '(#\B . #\F) #\M '(#\S . #\X)))
+    => #f)
+
+  )
+
+
+(parameterise ((check-test-name	'comparison))
+
+  (check (char-set=? (char-set) (char-set #\A)) => #f)
+  (check (char-set=? (char-set #\A) (char-set)) => #f)
+
+  (check
+      (char-set=? (char-set #\A)
+		  (char-set #\A))
+    => #t)
+
+  (check
+      (char-set=? (char-set #\A)
+		  (char-set #\B))
+    => #f)
+
+  (check
+      (char-set=? (char-set '(#\A . #\G))
+		  (char-set '(#\A . #\G)))
+    => #t)
+
+  (check (char-set=? (char-set '(#\A . #\G)) (char-set '(#\D . #\G))) => #f)
+  (check (char-set=? (char-set '(#\D . #\G)) (char-set '(#\A . #\G))) => #f)
+
+  (check (char-set=? (char-set '(#\A . #\D)) (char-set '(#\F . #\M))) => #f)
+  (check (char-set=? (char-set '(#\F . #\M)) (char-set '(#\A . #\D))) => #f)
 
 ;;; --------------------------------------------------------------------
 
-  (let ((cs (char-set '(#\a #\b))))
-    (check
-	(assert-char-set/or-false cs 'it)
-      => cs))
+  (check (char-set<? (char-set)     (char-set #\B)) => #f)
+  (check (char-set<? (char-set #\A) (char-set))     => #f)
+
+  (check 'this (char-set<? (char-set #\A) (char-set #\B)) => #t)
+  (check (char-set<? (char-set #\A) (char-set #\A)) => #f)
+  (check (char-set<? (char-set #\B) (char-set #\A)) => #f)
+
+  )
+
+
+(parameterise ((check-test-name	'set-operations))
 
   (check
-      (guard (exc (else (condition-who exc)))
-	(assert-char-set/or-false 123 'it))
-    => 'it)
+      ;; empty
+      (char-set-intersection (char-set)
+			     (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set))
 
   (check
-      (assert-char-set/or-false #f 'it)
+      ;; empty
+      (char-set-intersection (char-set '(#\A . #\H))
+			     (char-set))
+    (=> char-set=?) (char-set))
+
+  (check
+      ;; equal
+      (char-set-intersection (char-set '(#\A . #\H))
+			     (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; disjoint
+      (char-set-intersection (char-set '(#\A . #\C))
+			     (char-set '(#\E . #\H)))
+    (=> char-set=?) (char-set))
+
+  (check
+      ;; disjoint
+      (char-set-intersection (char-set '(#\E . #\H))
+			     (char-set '(#\A . #\C)))
+    (=> char-set=?) (char-set))
+
+  (check
+      ;; contiguous
+      (char-set-intersection (char-set '(#\A . #\D))
+			     (char-set '(#\E . #\H)))
+    (=> char-set=?) (char-set))
+
+  (check
+      ;; contiguous
+      (char-set-intersection (char-set '(#\E . #\H))
+			     (char-set '(#\A . #\D)))
+    (=> char-set=?) (char-set))
+
+  (check
+      ;; inclusion
+      (char-set-intersection (char-set '(#\C . #\F))
+			     (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set '(#\C . #\F)))
+
+  (check
+      ;; inclusion
+      (char-set-intersection (char-set '(#\A . #\H))
+			     (char-set '(#\C . #\F)))
+    (=> char-set=?) (char-set '(#\C . #\F)))
+
+  (check
+      (char-set-intersection (char-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
+			     (char-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))
+    (=> char-set=?) (char-set '(#\C . #\D)
+			      '(#\I . #\L)
+			      '(#\O . #\P)))
+
+  (check
+      ;; disjoint tail
+      (char-set-intersection (char-set '(#\A . #\D) #\F)
+			     (char-set '(#\C . #\E) #\F #\M #\P #\R))
+    (=> char-set=?) (char-set '(#\C . #\D) #\F))
+
+  (check
+      ;; disjoint tail
+      (char-set-intersection (char-set '(#\A . #\D) #\F #\M #\P #\R)
+			     (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\C . #\D) #\F))
+
+  (check
+      ;; contiguous tail
+      (char-set-intersection (char-set '(#\A . #\D) #\F #\G #\H #\I)
+			     (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\C . #\D) #\F))
+
+  (check
+      ;; contiguous tail
+      (char-set-intersection (char-set '(#\A . #\D) #\F)
+			     (char-set '(#\C . #\E) #\F #\G #\H #\I))
+    (=> char-set=?) (char-set '(#\C . #\D) #\F))
+
+  (check
+      ;; overlapping tail
+      (char-set-intersection (char-set '(#\A . #\D) #\F)
+			     (char-set '(#\C . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+    (=> char-set=?) (char-set '(#\C . #\D) #\F))
+
+  (check
+      ;; overlapping tail
+      (char-set-intersection (char-set '(#\A . #\D) #\F '(#\H . #\N) '(#\L . #\P))
+			     (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\C . #\D) #\F))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      ;; empty
+      (char-set-union (char-set)
+		      (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; empty
+      (char-set-union (char-set '(#\A . #\H))
+		      (char-set))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; equal
+      (char-set-union (char-set '(#\A . #\H))
+		      (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; disjoint
+      (char-set-union (char-set '(#\A . #\C))
+		      (char-set '(#\E . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\C) '(#\E . #\H)))
+
+  (check
+      ;; disjoint
+      (char-set-union (char-set '(#\E . #\H))
+		      (char-set '(#\A . #\C)))
+    (=> char-set=?) (char-set '(#\A . #\C) '(#\E . #\H)))
+
+  (check
+      ;; contiguous
+      (char-set-union (char-set '(#\A . #\D))
+		      (char-set '(#\E . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; contiguous
+      (char-set-union (char-set '(#\E . #\H))
+		      (char-set '(#\A . #\D)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; inclusion
+      (char-set-union (char-set '(#\C . #\F))
+		      (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; inclusion
+      (char-set-union (char-set '(#\A . #\H))
+		      (char-set '(#\C . #\F)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      (char-set-union (char-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
+		      (char-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))
+    (=> char-set=?) (char-set '(#\A . #\F)
+			      '(#\H . #\Q)))
+
+  (check
+      ;; disjoint tail
+      (char-set-union (char-set '(#\A . #\D) #\F)
+		      (char-set '(#\C . #\E) #\F #\M #\P #\R))
+    (=> char-set=?) (char-set '(#\A . #\E) #\F #\M #\P #\R))
+
+  (check
+      ;; disjoint tail
+      (char-set-union (char-set '(#\A . #\D) #\F #\M #\P #\R)
+		      (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\A . #\E) #\F #\M #\P #\R))
+
+  (check
+      ;; contiguous tail
+      (char-set-union (char-set '(#\A . #\D) #\F #\G #\H #\I)
+		      (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\A . #\E) #\F #\G #\H #\I))
+
+  (check
+      ;; contiguous tail
+      (char-set-union (char-set '(#\A . #\D) #\F)
+		      (char-set '(#\C . #\E) #\F #\G #\H #\I))
+    (=> char-set=?) (char-set '(#\A . #\E) #\F #\G #\H #\I))
+
+  (check
+      ;; overlapping tail
+      (char-set-union (char-set '(#\A . #\D) #\F)
+		      (char-set '(#\C . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+    (=> char-set=?) (char-set '(#\A . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+
+  (check
+      ;; overlapping tail
+      (char-set-union (char-set '(#\A . #\D) #\F '(#\H . #\N) '(#\L . #\P))
+		      (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\A . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      ;; empty
+      (char-set-difference (char-set)
+			   (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; empty
+      (char-set-difference (char-set '(#\A . #\H))
+			   (char-set))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; equal
+      (char-set-difference (char-set '(#\A . #\H))
+			   (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set))
+
+  (check
+      ;; disjoint
+      (char-set-difference (char-set '(#\A . #\C))
+			   (char-set '(#\E . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\C) '(#\E . #\H)))
+
+  (check
+      ;; disjoint
+      (char-set-difference (char-set '(#\E . #\H))
+			   (char-set '(#\A . #\C)))
+    (=> char-set=?) (char-set '(#\A . #\C) '(#\E . #\H)))
+
+  (check
+      ;; contiguous
+      (char-set-difference (char-set '(#\A . #\D))
+			   (char-set '(#\E . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; contiguous
+      (char-set-difference (char-set '(#\E . #\H))
+			   (char-set '(#\A . #\D)))
+    (=> char-set=?) (char-set '(#\A . #\H)))
+
+  (check
+      ;; inclusion
+      (char-set-difference (char-set '(#\C . #\F))
+			   (char-set '(#\A . #\H)))
+    (=> char-set=?) (char-set '(#\A . #\B)
+			      '(#\G . #\H)))
+
+  (check
+      ;; inclusion
+      (char-set-difference (char-set '(#\A . #\H))
+			   (char-set '(#\C . #\F)))
+    (=> char-set=?) (char-set '(#\A . #\B)
+			      '(#\G . #\H)))
+
+  (check
+      (char-set-difference (char-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
+			   (char-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))
+    (=> char-set=?) (char-set #\A #\B #\E #\F #\H #\M #\N #\Q))
+
+  (check
+      ;; disjoint tail
+      (char-set-difference (char-set '(#\A . #\D) #\F)
+			   (char-set '(#\C . #\E) #\F #\M #\P #\R))
+    (=> char-set=?) (char-set '(#\A . #\B) #\E #\M #\P #\R))
+
+  (check
+      ;; disjoint tail
+      (char-set-difference (char-set '(#\A . #\D) #\F #\M #\P #\R)
+			   (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\A . #\B) #\E #\M #\P #\R))
+
+  (check
+      ;; contiguous tail
+      (char-set-difference (char-set '(#\A . #\D) #\F #\G #\H #\I)
+			   (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\A . #\B) #\E #\G #\H #\I))
+
+  (check
+      ;; contiguous tail
+      (char-set-difference (char-set '(#\A . #\D) #\F)
+			   (char-set '(#\C . #\E) #\F #\G #\H #\I))
+    (=> char-set=?) (char-set '(#\A . #\B) #\E #\G #\H #\I))
+
+  (check
+      ;; overlapping tail
+      (char-set-difference (char-set '(#\A . #\D) #\F)
+			   (char-set '(#\C . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
+    (=> char-set=?) (char-set '(#\A . #\B) #\E '(#\H . #\N) '(#\L . #\P)))
+
+  (check
+      ;; overlapping tail
+      (char-set-difference (char-set '(#\A . #\D) #\F '(#\H . #\N) '(#\L . #\P))
+			   (char-set '(#\C . #\E) #\F))
+    (=> char-set=?) (char-set '(#\A . #\B) #\E '(#\H . #\N) '(#\L . #\P)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (char-set-complement (char-set))
+    (=> domain=?)
+    (cons inclusive-lower-bound exclusive-upper-bound))
+
+  (check
+      (char-set-complement (char-set #\A))
+    (=> domain=?)
+    (let ((ch #\A))
+      (list (cons inclusive-lower-bound ch)
+	    (cons (char-next ch) exclusive-upper-bound))))
+
+  (check
+      (char-set-complement (char-set '(#\A . #\D) '(#\M . #\Z)))
+    (=> domain=?)
+    (list (cons inclusive-lower-bound #\A)
+	  (cons (char-next #\D) #\M)
+	  (cons (char-next #\Z) exclusive-upper-bound)))
+
+  (check
+      (char-set-complement (char-set '(#\A . #\D) '(#\M . #\Z) '(#\4 . #\9)))
+    (=> domain=?)
+    (list (cons inclusive-lower-bound #\4)
+	  (cons (char-next #\9) #\A)
+	  (cons (char-next #\D) #\M)
+	  (cons (char-next #\Z) exclusive-upper-bound)))
+
+  )
+
+
+(parameterise ((check-test-name	'list-operations))
+
+  (check
+      (cadr (with-result
+	     (char-set-for-each (lambda (ch)
+				  (add-result ch))
+				(char-set #\A #\B #\C))
+	     #t))
+    => '(#\A #\B #\C))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (char-set-every (lambda (ch)
+			(<= 65 (char->integer ch)))
+		      (char-set #\A #\B #\C))
+    => #t)
+
+  (check
+      (char-set-every (lambda (ch)
+			(<= 67 (char->integer ch)))
+		      (char-set #\A #\B #\C))
+    => #f)
+
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (char-set-any (lambda (ch)
+		      (= 66 (char->integer ch)))
+		    (char-set #\A #\B #\C))
+    => #t)
+
+  (check
+      (char-set-any (lambda (ch)
+		      (= 100 (char->integer ch)))
+		    (char-set #\A #\B #\C))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
-  (let ((l '(#\a #\b)))
-    (check
-	(assert-list-of-chars l 'it)
-      => l))
-
-  (let ((l '()))
-    (check
-	(assert-list-of-chars l 'it)
-      => l))
-
-  (let ((l '(#\a 2 #\b)))
-    (check
-	(false-if-exception (assert-list-of-chars l 'it))
-      => #f))
-
-  (let ((l '(#\a 2 #\b)))
-    (check
-	(guard (exc (else (condition-who exc)))
-	  (assert-list-of-chars l 'it))
-      => 'it))
-
-  (let ((l 0))
-    (check
-	(guard (exc (else (condition-who exc)))
-	  (assert-list-of-chars l 'it))
-      => 'it))
-
-  )
-
-
-
-(parameterise ((check-test-name 'conversion))
+  (check
+      (char-set-fold (lambda (ch knil)
+		       (cons (char->integer ch) knil))
+		     '()
+		     (char-set #\A #\B #\C))
+    => '(67 66 65))
 
   (check
-      (char-set? (list->char-set '(#\a #\b #\c)))
-    => #t)
-
-  (check
-      (char-set=? (char-set #\a #\b #\c)
-		  (list->char-set '(#\a #\b #\c)))
-    => #t)
-
-  (check
-      (list=? '(#\a #\b #\c)
-	      (char-set->list (char-set #\a #\b #\c)))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (char-set? (string->char-set "abc"))
-    => #t)
-
-  (check
-      (char-set=? (char-set #\a #\b #\c)
-		  (string->char-set "abc"))
-    => #t)
-
-  (check
-      (string=? (char-set->string (char-set #\a #\b #\c))
-		"abc")
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (->char-set '(#\a #\b #\c))
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
-
-  (check
-      (->char-set "abc")
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
-
-  (check
-      (->char-set #\a)
-    (=> char-set=?)
-    (char-set #\a))
-
-  (check
-      (->char-set (char-set #\a #\b #\c))
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
-
-  )
-
-
-
-(parameterise ((check-test-name 'searching))
-
-  (check
-      (char-set-contains? (char-set) #\a)
-    => #f)
-
-  (check
-      (char-set-contains? (char-set #\a) #\a)
-    => #t)
-
-  (check
-      (char-set-contains? (char-set #\b #\a #\c) #\a)
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (it? ch)
-      (char=? #\a ch))
-
-    (check
-	(char-set-count it? (char-set))
-      => 0)
-
-    (check
-	(char-set-count it? (char-set #\a))
-      => 1)
-
-    (check
-	(char-set-count it? (char-set #\b #\a #\c))
-      => 1)
-
-    (check
-	(char-set-count it? (char-set #\b #\a #\c #\a))
-      => 2)
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (it? ch)
-      (char=? #\a ch))
-
-    (check
-	(char-set-find it? (char-set))
-      => #f)
-
-    (check
-	(char-set-find it? (char-set #\a))
-      => #\a)
-
-    (check
-	(char-set-find it? (char-set #\b #\a #\c))
-      => #\a)
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (it? ch)
-      (char=? #\a ch))
-
-    (check
-	(char-set-every it? (char-set))
-      => #t)
-
-    (check
-	(char-set-every it? (char-set #\a))
-      => #t)
-
-    (check
-	(char-set-every it? (char-set #\b #\a #\c))
-      => #f)
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (it? ch)
-      (char=? #\a ch))
-
-    (check
-	(char-set-any it? (char-set))
-      => #f)
-
-    (check
-	(char-set-any it? (char-set #\a))
-      => #t)
-
-    (check
-	(char-set-any it? (char-set #\b #\a #\c))
-      => #t)
-
-    (check
-	(char-set-any it? (char-set #\b #\d #\c))
-      => #f)
-
-    )
-  )
-
-
-
-(parameterise ((check-test-name 'filter))
-
-  (let ()
-
-    (define (it? ch)
-      (member* ch '(#\a #\b #\c) char=?))
-
-    (check
-	(char-set-filter it? (char-set #\a #\b #\F #\G))
-      (=> char-set=?)
-      (char-set #\a #\b))
-
-    (check
-	(char-set-filter it? (char-set  #\F #\G))
-      (=> char-set=?)
-      (char-set))
-
-    (check
-	(char-set-filter it?
-			 (char-set #\a #\b #\F #\G)
-			 (char-set #\f #\g #\h))
-      (=> char-set=?)
-      (char-set #\a #\b))
-
-    )
-
-  (let ()
-
-    (define (it? ch)
-      (member* ch '(#\a #\b #\c #\f #\g) char=?))
-
-    (check
-	(char-set-filter it?
-			 (char-set #\a #\b #\F #\G)
-			 (char-set #\f #\g #\h))
-      (=> char-set=?)
-      (char-set #\a #\b #\f #\g))
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (it? ch)
-      (member* ch '(#\a #\b #\c) char=?))
-
-    (check
-	(char-set-filter! it? (char-set #\a #\b #\F #\G)
-			  (char-set #\f #\g #\h))
-      (=> char-set=?)
-      (char-set #\a #\b))
-
-    (check
-	(char-set-filter! it? (char-set  #\F #\G)
-			  (char-set #\f #\g #\h))
-      (=> char-set=?)
-      (char-set))
-
-    (check
-	(char-set-filter! it?
-			  (char-set #\a #\b #\F #\G)
-			  (char-set #\f #\g #\h))
-      (=> char-set=?)
-      (char-set #\a #\b))
-
-    )
-
-  (let ()
-
-    (define (it? ch)
-      (member* ch '(#\a #\b #\c #\f #\g) char=?))
-
-    (check
-	(char-set-filter! it?
-			  (char-set #\a #\b #\F #\G)
-			  (char-set #\f #\g #\h))
-      (=> char-set=?)
-      (char-set #\a #\b #\f #\g))
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (it? ch)
-      (member* ch '(#\a #\b #\c) char=?))
-
-    (check
-	(receive (in ou)
-	    (char-set-partition it? (char-set #\a #\b #\F #\G))
-	  in)
-      (=> char-set=?)
-      (char-set #\a #\b))
-
-    (check
-	(receive (in ou)
-	    (char-set-partition it? (char-set #\a #\b #\F #\G))
-	  ou)
-      (=> char-set=?)
-      (char-set #\F #\G))
-
-    (check
-	(receive (in ou)
-	    (char-set-partition it? (char-set #\a #\b))
-	  in)
-      (=> char-set=?)
-      (char-set #\a #\b))
-
-    (check
-	(receive (in ou)
-	    (char-set-partition it? (char-set #\a #\b))
-	  ou)
-      (=> char-set=?)
-      (char-set))
-
-    (check
-	(receive (in ou)
-	    (char-set-partition it? (char-set #\F #\G))
-	  in)
-      (=> char-set=?)
-      (char-set))
-
-    (check
-	(receive (in ou)
-	    (char-set-partition it? (char-set #\F #\G))
-	  ou)
-      (=> char-set=?)
-      (char-set #\F #\G))
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (char-set-remove #\b (char-set #\a #\b #\c))
-    (=> char-set=?)
-    (char-set #\a #\c))
-
-  (check
-      (char-set-remove #\D (char-set #\a #\b #\c))
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (it? ch)
-      (member* ch '(#\a #\b #\c) char=?))
-
-    (check
-	(char-set-remove* it? (char-set #\a #\b #\D #\E))
-      (=> char-set=?)
-      (char-set #\D #\E))
-
-    (check
-	(char-set-remove*! it? (char-set #\a #\b #\D #\E))
-      (=> char-set=?)
-      (char-set #\D #\E))
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (char-set-delete-duplicates (char-set #\a #\b #\a #\c))
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
-
-  (check
-      (char-set-delete-duplicates! (char-set #\a #\b #\a #\c))
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
-
-  )
-
-
-
-(parameterise ((check-test-name	'iteration))
-
-  (check
-      (with-result
-       (let ((cs (char-set #\a #\b #\c)))
-	 (do ((cursor (char-set-cursor cs) (char-set-cursor-next cursor)))
-	     ((end-of-char-set? cursor)
-	      #t)
-	   (add-result (char-set-cursor-ref cursor)))))
-    => '(#t (#\a #\b #\c)))
-
-  (check
-      (with-result
-       (let ((cs (char-set #\a)))
-	 (do ((cursor (char-set-cursor cs) (char-set-cursor-next cursor)))
-	     ((end-of-char-set? cursor)
-	      #t)
-	   (add-result (char-set-cursor-ref cursor)))))
-    => '(#t (#\a)))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (char-set-fold (lambda (c i)
-		       (+ i 1))
-		     0
-		     (char-set #\a #\b #\c))
-    => 3)
-
-  (check
-      (char-set-fold (lambda (c i)
-		       (+ i 1))
-		     0
+      (char-set-fold (lambda (ch knil)
+		       (cons (char->integer ch) knil))
+		     '()
 		     (char-set))
-    => 0)
+    => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (char-set-unfold null? car cdr '(#\a #\b #\c))
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
+      (char-set->list (char-set))
+    => '())
 
   (check
-      (let ((p (open-string-input-port "abc")))
-	(char-set-unfold eof-object?		;; stop?
-			 values			;; map-to-char
-			 (lambda (ch)
-			   (read-char p))	;; seed-step
-			 (read-char p)))	;; seed
-    (=> char-set=?)
-    (char-set #\a #\b #\c))
+      (char-set->list (char-set #\A))
+    => '(#\A))
 
   (check
-      (char-set-unfold null? car cdr '(#\a #\b #\c)
-		       (char-set #\D #\E))
-    (=> char-set=?)
-    (char-set #\a #\b #\c #\D #\E))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (char-set-unfold! null? car cdr '(#\a #\b #\c)
-			(char-set #\D #\E))
-    (=> char-set=?)
-    (char-set #\a #\b #\c #\D #\E))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (char-set-map char-upcase (char-set #\a #\b #\c))
-    (=> char-set=?)
-    (char-set #\A #\B #\C))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (with-result
-       (char-set-for-each add-result (char-set #\a #\b #\c))
-       #t)
-    => '(#t (#\a #\b #\c)))
+      (char-set->list (char-set #\A #\B #\C #\D))
+    => '(#\A #\B #\C #\D))
 
   )
 
 
-
-(parameterise ((check-test-name 'set-equal))
-
-  (check
-      (char-set=?)
-    => #t)
+(parameterise ((check-test-name	'string-operations))
 
   (check
-      (char-set=? (char-set #\a))
-    => #t)
+      (string->char-set "")
+    (=> char-set=?)
+    (char-set))
 
   (check
-      (char-set=? (char-set)
-		  (char-set #\a #\b #\c))
-    => #f)
+      (string->char-set "ABCD")
+    (=> char-set=?)
+    (char-set #\A #\B #\C #\D))
 
   (check
-      (char-set=? (char-set #\a #\b #\c)
-		  (char-set))
-    => #f)
-
-  (check
-      (char-set=? (char-set #\a #\b #\c)
-		  (char-set #\a #\b #\c))
-    => #t)
-
-  (check
-      (char-set=? (char-set #\a #\b #\c)
-		  (char-set #\a #\b #\c)
-		  (char-set #\a #\b #\c))
-    => #t)
-
-  (check
-      (char-set=? (char-set #\a #\b #\c #\d)
-		  (char-set #\a #\b #\c))
-    => #f)
-
-  (check
-      (char-set=? (char-set #\a #\b #\c)
-		  (char-set #\a #\b #\d))
-    => #f)
+      (string->char-set "ABCDBBCC")
+    (=> char-set=?)
+    (char-set #\A #\B #\C #\D))
 
   )
-
-
-
-(parameterise ((check-test-name 'set-subset))
-
-  (check
-      (char-set<=?)
-    => #t)
-
-  (check
-      (char-set<=? (char-set #\a))
-    => #t)
-
-  (check
-      (char-set<=? (char-set)
-		   (char-set #\a #\b #\c))
-    => #t)
-
-  (check
-      (char-set<=? (char-set #\a #\b #\c)
-		   (char-set))
-    => #f)
-
-  (check
-      (char-set<=? (char-set #\a #\b #\c)
-		   (char-set #\a #\b #\c))
-    => #t)
-
-  (check
-      (char-set<=? (char-set #\a #\b #\c)
-		   (char-set #\a #\b #\c)
-		   (char-set #\a #\b #\c))
-    => #t)
-
-  (check
-      (char-set<=? (char-set #\a #\b #\c #\d)
-		   (char-set #\a #\b #\c))
-    => #f)
-
-  (check
-      (char-set<=? (char-set #\a #\b #\c)
-		   (char-set #\a #\b #\c #\d)
-		   (char-set #\a #\b #\c #\d #\e))
-    => #t)
-
-  (check
-      (char-set<=? (char-set #\a #\b #\c)
-		   (char-set #\a #\b #\c #\d)
-		   (char-set)
-		   (char-set #\a #\b #\c #\d #\e))
-    => #f)
-
-  (check
-      (char-set<=? (char-set #\a #\b #\c)
-		   (char-set #\a #\b #\d))
-    => #f)
-
-  )
-
-
-
-;; (parameterise ((check-test-name 'predefined))
-
-;;   (check
-;;       (char-set? char-set:lower-case)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:upper-case)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:title-case)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:letter)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:digit)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:letter+digit)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:graphic)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:printing)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:whitespace)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:iso-control)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:punctuation)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:symbol)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:hex-digit)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:blank)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:ascii)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:empty)
-;;     => #t)
-
-;;   (check
-;;       (char-set? char-set:full)
-;;     => #t)
-
-
-;;   )
 
 
 ;;;; done
