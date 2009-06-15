@@ -178,7 +178,8 @@ tests test check:
 
 nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
-nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
+nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+#nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
 nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
 
 .PHONY: itests itest icheck

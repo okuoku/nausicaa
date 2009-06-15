@@ -1504,7 +1504,6 @@
 
     (main)))
 
-
 
 ;;;; helpers, flonums: fixed-point format
 
@@ -1522,9 +1521,11 @@
 	  (overch	(format:par parameters l 3 #f #f))
 	  (padch	(format:par parameters l 4 space-char-integer #f)))
 
-      (let ((number-string (if (string? number)
-			       number
-			     (number->string (inexact number)))))
+      (let ((number-string (cond ((string? number)	number)
+				 ((= +inf.0 number)	"+inf.0")
+				 ((= -inf.0 number)	"-inf.0")
+				 ((nan? number)		"+nan.0")
+				 (else (number->string (inexact number))))))
 
 	(cond
 	 ((member number-string '("+inf.0" "-inf.0" "+nan.0" "-nan.0"))
@@ -1616,9 +1617,11 @@
 	  (padchar	(format:par parameters l 5 space-char-integer #f))
 	  (expchar	(format:par parameters l 6 #f #f)))
 
-      (let ((number-string (if (string? number)
-			       number
-			     (number->string (inexact number)))))
+      (let ((number-string (cond ((string? number)	number)
+				 ((= +inf.0 number)	"+inf.0")
+				 ((= -inf.0 number)	"-inf.0")
+				 ((nan? number)		"+nan.0")
+				 (else (number->string (inexact number))))))
 
 	(define (compute-exponent-digits)
 	  (if (and expdigits (> expdigits exponent-length))

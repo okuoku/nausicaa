@@ -50,8 +50,11 @@
 (compile-library "char-sets.sls"
 		 "char-sets.slfasl")
 
-;; (compile-library "strings.sls"
-;; 		 "strings.slfasl")
+(compile-library "strings/low.sls"
+ 		 "strings/low.slfasl")
+
+(compile-library "strings.sls"
+ 		 "strings.slfasl")
 
 (compile-library "loops.sls"
 		 "loops.slfasl")

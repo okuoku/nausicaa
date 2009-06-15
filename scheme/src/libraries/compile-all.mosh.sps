@@ -28,7 +28,7 @@
   (only (lists))
   (only (one-dimension))
   (only (char-sets))
-  ;;  (only (strings))
+  (only (strings))
   (only (checks))
   (only (loops))
   (only (format))
