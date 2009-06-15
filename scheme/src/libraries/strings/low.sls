@@ -284,59 +284,77 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string< string-compare-proc str1 start1 past1 str2 start2 past2)
+(define (%true-string< string-prefix-proc char-pred
+		       str1 start1 past1 str2 start2 past2)
   (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (< past1 past2)
-    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
-			 values (lambda (i) #f) (lambda (i) #f))))
+    ;;Notice that CHAR-PRED is always the less-than one.
+    (%true-string-compare string-prefix-proc char-pred ; Real test
+			  str1 start1 past1 str2 start2 past2
+			  values (lambda (i) #f) (lambda (i) #f))))
 
 (define (%string< str1 start1 past1 str2 start2 past2)
-  (%true-string< %string-compare str1 start1 past1 str2 start2 past2))
+  (%true-string< %string-prefix-length char<?
+		 str1 start1 past1 str2 start2 past2))
 
 (define (%string-ci< str1 start1 past1 str2 start2 past2)
-  (%true-string< %string-compare-ci str1 start1 past1 str2 start2 past2))
+  (%true-string< %string-prefix-length-ci char-ci<?
+		 str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string<= string-compare-proc str1 start1 past1 str2 start2 past2)
+(define (%true-string<= string-prefix-proc char-pred
+			str1 start1 past1 str2 start2 past2)
   (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (<= past1 past2)
-    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
-			 values values (lambda (i) #f))))
+    ;;Notice that CHAR-PRED is always the less-than one.
+    (%true-string-compare string-prefix-proc char-pred ; Real test
+			  str1 start1 past1 str2 start2 past2
+			  values values (lambda (i) #f))))
 
 (define (%string<= str1 start1 past1 str2 start2 past2)
-  (%true-string<= %string-compare str1 start1 past1 str2 start2 past2))
+  (%true-string<= %string-prefix-length char<=?
+		  str1 start1 past1 str2 start2 past2))
 
 (define (%string-ci<= str1 start1 past1 str2 start2 past2)
-  (%true-string<= %string-compare-ci str1 start1 past1 str2 start2 past2))
+  (%true-string<= %string-prefix-length-ci char-ci<=?
+		  str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string> string-compare-proc str1 start1 past1 str2 start2 past2)
+(define (%true-string> string-prefix-proc char-pred str1 start1 past1 str2 start2 past2)
   (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (> past1 past2)
-    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
-			 (lambda (i) #f) (lambda (i) #f) values)))
+    ;;Notice that CHAR-PRED is always the less-than one.
+    (%true-string-compare string-prefix-proc char-pred ; Real test
+			  str1 start1 past1 str2 start2 past2
+			  (lambda (i) #f) (lambda (i) #f) values)))
 
 (define (%string> str1 start1 past1 str2 start2 past2)
-  (%true-string> %string-compare str1 start1 past1 str2 start2 past2))
+  (%true-string> %string-prefix-length char<?
+		 str1 start1 past1 str2 start2 past2))
 
 (define (%string-ci> str1 start1 past1 str2 start2 past2)
-  (%true-string> %string-compare-ci str1 start1 past1 str2 start2 past2))
+  (%true-string> %string-prefix-length-ci char-ci<?
+		 str1 start1 past1 str2 start2 past2))
 
 ;;; --------------------------------------------------------------------
 
-(define (%true-string>= string-compare-proc str1 start1 past1 str2 start2 past2)
+(define (%true-string>= string-prefix-proc char-pred str1 start1 past1 str2 start2 past2)
   (if (and (eq? str1 str2) (= start1 start2)) ; Fast path
       (>= past1 past2)
-    (string-compare-proc str1 start1 past1 str2 start2 past2 ; Real test
-			 (lambda (i) #f) values values)))
+    ;;Notice that CHAR-PRED is always the less-than one.
+    (%true-string-compare string-prefix-proc char-pred ; Real test
+			  str1 start1 past1 str2 start2 past2
+			  (lambda (i) #f) values values)))
 
 (define (%string>= str1 start1 past1 str2 start2 past2)
-  (%true-string>= %string-compare str1 start1 past1 str2 start2 past2))
+  (%true-string>= %string-prefix-length char<=?
+		 str1 start1 past1 str2 start2 past2))
 
 (define (%string-ci>= str1 start1 past1 str2 start2 past2)
-  (%true-string>= %string-compare-ci str1 start1 past1 str2 start2 past2))
+  (%true-string>= %string-prefix-length-ci char-ci<=?
+		 str1 start1 past1 str2 start2 past2))
 
 
 ;;;; mapping

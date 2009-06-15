@@ -315,148 +315,109 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((str "abcd"))
-	(string= str str))
-    => #t)
+  (check-for-true
+   (let* ((str "abcd"))
+     (string= str str)))
 
-  (check
-      (string= ("12abcd" 2) "abcd")
-    => 6)
+  (check-for-true
+   (string= ("12abcd" 2) "abcd"))
 
-  (check
-      (string= "abc" "abcd")
-    => #f)
+  (check-for-false
+   (string= "abc" "abcd"))
 
-  (check
-      (string= "abcd" "abc")
-    => #f)
+  (check-for-false
+   (string= "abcd" "abc"))
 
-  (check
-      (string= "ABcd" "abcd")
-    => #f)
+  (check-for-false
+   (string= "ABcd" "abcd"))
 
-  (check
-      (string= "abcd" "a2cd")
-    => #f)
+  (check-for-false
+   (string= "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (string<> "abcd" "abcd")
-    => #f)
+  (check-for-false
+   (string<> "abcd" "abcd"))
 
-  (check
-      (string<> "abc" "abcd")
-    => #t)
+  (check-for-true
+   (string<> "abc" "abcd"))
 
-  (check
-      (string<> "abcd" "abc")
-    => #t)
+  (check-for-true
+   (string<> "abcd" "abc"))
 
-  (check
-      (string<> "ABcd" "abcd")
-    => 0)
+  (check-for-true
+   (string<> "ABcd" "abcd"))
 
-  (check
-      (string<> "abcd" "a2cd")
-    => 1)
+  (check-for-true
+   (string<> "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (string< "abcd" "abcd")
-    => #f)
+  (check-for-false
+   (string< "abcd" "abcd"))
 
-  (check
-      (string< "abc" "abcd")
-    => 3)
+  (check-for-true
+   (string< "abc" "abcd"))
 
-  (check
-      (string< "abcd" "abc")
-    => #f)
+  (check-for-false
+   (string< "abcd" "abc"))
 
-  (check
-      (string< "ABcd" "abcd")
-    => 0)
+  (check-for-true
+   (string< "ABcd" "abcd"))
 
-  (check
-      (string< "abcd" "a2cd")
-    => #f)
+  (check-for-false
+   (string< "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (cond-expand
-   (ikarus (check
-	       (string<= "abcd" "abcd")
-	     => 4))
-   (else (check
-	     (string<= "abcd" "abcd")
-	   => #t)))
+  (check-for-true
+   (string<= "abcd" "abcd"))
 
-  (check
-      (string<= "abc" "abcd")
-    => 3)
+  (check-for-true
+   (string<= "abc" "abcd"))
 
-  (check
-      (string<= "abcd" "abc")
-    => #f)
+  (check-for-false
+   (string<= "abcd" "abc"))
 
-  (check
-      (string<= "ABcd" "abcd")
-    => 0)
+  (check-for-true
+   (string<= "ABcd" "abcd"))
 
-  (check
-      (string<= "abcd" "a2cd")
-    => #f)
+  (check-for-false
+   (string<= "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (string> "abcd" "abcd")
-    => #f)
+  (check-for-false
+   (string> "abcd" "abcd"))
 
-  (check
-      (string> "abcd" "abc")
-    => 3)
+  (check-for-true
+   (string> "abcd" "abc"))
 
-  (check
-      (string> "abc" "abcd")
-    => #f)
+  (check-for-false
+   (string> "abc" "abcd"))
 
-  (check
-      (string> "abcd" "ABcd")
-    => 0)
+  (check-for-true
+   (string> "abcd" "ABcd"))
 
-  (check
-      (string> "a2cd" "abcd")
-    => #f)
+  (check-for-false
+   (string> "a2cd" "abcd"))
 
 ;;; --------------------------------------------------------------------
 
-  (cond-expand
-   (ikarus (check
-	       (string>= "abcd" "abcd")
-	     => 4))
-   (else (check
-	     (string>= "abcd" "abcd")
-	   => #t)))
+  (check-for-true
+   (string>= "abcd" "abcd"))
 
-  (check
-      (string>= "abcd" "abc")
-    => 3)
+  (check-for-true
+   (string>= "abcd" "abc"))
 
-  (check
-      (string>= "abc" "abcd")
-    => #f)
+  (check-for-false
+   (string>= "abc" "abcd"))
 
-  (check
-      (string>= "abcd" "ABcd")
-    => 0)
+  (check-for-true
+   (string>= "abcd" "ABcd"))
 
-  (check
-      (string>= "a2cd" "abcd")
-    => #f)
+  (check-for-false
+   (string>= "a2cd" "abcd"))
 
   )
 
@@ -496,151 +457,108 @@
 
 ;;; --------------------------------------------------------------------
 
-  (cond-expand
-   (ikarus (check
-	       (string-ci= "abcd" "abcd")
-	     => 4))
-   (else (check
-	     (string-ci= "abcd" "abcd")
-	   => #t)))
+  (check-for-true
+   (string-ci= "abcd" "abcd"))
 
-  (check
-      (string-ci= ("12abcd" 2) "abcd")
-    => 6)
+  (check-for-true
+   (string-ci= ("12abcd" 2) "abcd"))
 
-  (check
-      (string-ci= "abc" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci= "abc" "abcd"))
 
-  (check
-      (string-ci= "abcd" "abc")
-    => #f)
+  (check-for-false
+   (string-ci= "abcd" "abc"))
 
-  (check
-      (string-ci= "ABcd" "abcd")
-    => 4)
+  (check-for-true
+   (string-ci= "ABcd" "abcd"))
 
-  (check
-      (string-ci= "abcd" "a2cd")
-    => #f)
+  (check-for-false
+   (string-ci= "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (string-ci<> "abcd" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci<> "abcd" "abcd"))
 
-  (check
-      (string-ci<> "abc" "abcd")
-    => #t)
+  (check-for-true
+   (string-ci<> "abc" "abcd"))
 
-  (check
-      (string-ci<> "abcd" "abc")
-    => #t)
+  (check-for-true
+   (string-ci<> "abcd" "abc"))
 
-  (check
-      (string-ci<> "ABcd" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci<> "ABcd" "abcd"))
 
-  (check
-      (string-ci<> "abcd" "a2cd")
-    => 1)
+  (check-for-true
+   (string-ci<> "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (string-ci< "abcd" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci< "abcd" "abcd"))
 
-  (check
-      (string-ci< "abc" "abcd")
-    => 3)
+  (check-for-true
+   (string-ci< "abc" "abcd"))
 
-  (check
-      (string-ci< "abcd" "abc")
-    => #f)
+  (check-for-false
+   (string-ci< "abcd" "abc"))
 
-  (check
-      (string-ci< "ABcd" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci< "ABcd" "abcd"))
 
-  (check
-      (string-ci< "abcd" "a2cd")
-    => #f)
+  (check-for-false
+   (string-ci< "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (cond-expand
-   (ikarus (check
-	       (string-ci<= "abcd" "abcd")
-	     => 4))
-   (else (check
-	     (string-ci<= "abcd" "abcd")
-	   => #t)))
+  (check-for-true
+   (string-ci<= "abcd" "abcd"))
 
-  (check
-      (string-ci<= "abc" "abcd")
-    => 3)
+  (check-for-true
+   (string-ci<= "abc" "abcd"))
 
-  (check
-      (string-ci<= "abcd" "abc")
-    => #f)
+  (check-for-false
+   (string-ci<= "abcd" "abc"))
 
-  (check
-      (string-ci<= "ABcd" "abcd")
-    => 4)
+  (check-for-true
+   (string-ci<= "ABcd" "abcd"))
 
-  (check
-      (string-ci<= "abcd" "a2cd")
-    => #f)
+  (check-for-false
+   (string-ci<= "abcd" "a2cd"))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (string-ci> "abcd" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci> "abcd" "abcd"))
 
-  (check
-      (string-ci> "abcd" "abc")
-    => 3)
+  (check-for-true
+   (string-ci> "abcd" "abc"))
 
-  (check
-      (string-ci> "abc" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci> "abc" "abcd"))
 
-  (check
-      (string-ci> "abcd" "ABcd")
-    => #f)
+  (check-for-false
+   (string-ci> "abcd" "ABcd"))
 
-  (check
-      (string-ci> "a2cd" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci> "a2cd" "abcd"))
 
 ;;; --------------------------------------------------------------------
 
-  (cond-expand
-   (ikarus (check
-	       (string-ci>= "abcd" "abcd")
-	     => 4))
-   (else (check
-	     (string-ci>= "abcd" "abcd")
-	   => #t)))
+  (check-for-true
+   (string-ci>= "abcd" "abcd"))
 
-  (check
-      (string-ci>= "abcd" "abc")
-    => 3)
+  (check-for-true
+   (string-ci>= "abcd" "abc"))
 
-  (check
-      (string-ci>= "abc" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci>= "abc" "abcd"))
 
-  (check
-      (string-ci>= "abcd" "ABcd")
-    => 4)
+  (check-for-true
+   (string-ci>= "abcd" "ABcd"))
 
-  (check
-      (string-ci>= "a2cd" "abcd")
-    => #f)
+  (check-for-false
+   (string-ci>= "a2cd" "abcd"))
 
   )
 

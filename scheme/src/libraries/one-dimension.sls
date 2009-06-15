@@ -38,11 +38,12 @@
     %range=? %range<? %range<=?
     %range-start<? %range-start<=?
     %range-contiguous? %range-overlapping?
+    %range-subset? %range-strict-subset?
 
     ;; range set operations
     %range-concatenate
     %range-union %range-intersection %range-difference
-    %range-subset? %range-strict-subset?
+    %range-in-first-only
 
     ;; range list operations
     %range-for-each %range-fold %range-every %range-any
@@ -211,6 +212,25 @@
 	(values range-a range-b))
        (else
 	(values range-b range-a))))))
+
+(define (%range-in-first-only range-a range-b item<? item<=?)
+  (cond
+   ((%range<? range-b range-a item<=?)
+    (values #f #f))
+
+   ((%range<? range-a range-b item<=?)
+    (values range-a #f))
+
+   (else
+    ;;Here we know they are overlapping.
+    (let ((start-a (car range-a)) (past-a (cdr range-a))
+	  (start-b (car range-b)) (past-b (cdr range-b)))
+      (values
+       (and (item<=? start-a start-b)
+	    (cons start-a start-b))
+       (and (item<? past-b past-a)
+	    (cons past-b past-a))
+	)))))
 
 (define (%range-for-each proc range item<=? item-next)
   (let ((start (car range))
@@ -504,12 +524,8 @@
 			(cdr domain)))
 	      (loop (cons range result) (cdr domain))))))))
   (define (cons-head-tail head tail result)
-    (let ((result (if head
-		      (cons head result)
-		    result)))
-      (if tail
-	  (cons tail result)
-	result)))
+    (let ((result (if head (cons head result) result)))
+      (if tail (cons tail result) result)))
   (let loop ((result '())
 	     (domain-a domain-a)
 	     (domain-b domain-b))
@@ -570,25 +586,35 @@
 	  (assertion-violation '%domain-union
 	    "internal error processing ranges" (list range-a range-b)))))))))
 
-(define (%domain-complement domain item=? item<? item<=? lower-bound upper-bound)
+(define (%domain-complement domain universe item=? item<? item<=?)
+  (define (cons-head-tail head tail result)
+    (let ((result (if head (cons head result) result)))
+      (if tail (cons tail result) result)))
   (if (null? domain)
-      (cons lower-bound upper-bound)
-    (let ((range (car domain)))
-      (let loop ((range	range)
-		 (domain	(cdr domain))
-		 (result	(let ((start (car range)))
-				  (if (item<? lower-bound start)
-				      (list (cons lower-bound start))
-				    '()))))
-	(let ((start	(car range))
-	      (past	(cdr range)))
-	  (if (null? domain)
-	      (reverse (if (item<? past upper-bound)
-			   (cons (cons past upper-bound) result)
-			 result))
-	    (let* ((new-range	(car domain))
-		   (new-start	(car new-range)))
-	      (loop new-range (cdr domain) (cons (cons past new-start) result)))))))))
+      universe
+    (let loop ((result	'())
+	       (universe	universe)
+	       (domain	domain))
+      (cond ((%domain-empty? universe)
+	     result)
+
+	    ((%domain-empty? domain)
+	     (append-reverse universe result))
+
+	    (else
+	     (let ((range-a (car universe))
+		   (range-b (car domain)))
+	       (cond ((%range<? range-a range-b item<=?)
+		      (loop (cons range-a result) (cdr universe) domain))
+
+		     ((%range=? range-a range-b item=?)
+		      (loop result (cdr universe) (cdr domain)))
+
+		     ((%range-overlapping? range-a range-b item<? item<=?)
+		      (let-values (((head tail)
+				    (%range-in-first-only range-a range-b item<? item<=?)))
+			(loop (cons-head-tail head tail result) (cdr universe) domain)))
+		     )))))))
 
 (define (%domain-subset? domain-a domain-b item<=?)
   (let loop ((domain-a domain-a)

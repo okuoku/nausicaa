@@ -21265,11 +21265,15 @@ raised: return @false{}.
 
 
 @deffn Syntax check-for-true @var{expr}
+@deffnx Syntax check-for-true @var{name} @var{expr}
 @deffnx Syntax check-for-false @var{expr}
+@deffnx Syntax check-for-false @var{name} @var{expr}
 Evaluate @var{expr} in a @func{check} form, expecting a non--false or
 @false{} value as result.
-@end deffn
 
+When @var{name} is given: it is the name of this test, @ref{checks
+select, Selecting tests to be run}.
+@end deffn
 
 @c page
 @node checks result
@@ -21449,13 +21453,8 @@ Return @true{} if @var{cs-b} is a subset or a strict subset of
 @subsection Inspection
 
 
-@defun %range-length @var{range} @var{item-}
-Return the number of items in the range.
-@end defun
-
-
-@defun %domain-size @var{domain} @var{item-}
-Return the number of items in the domain.
+@defun char-set-size @var{cs}
+Return the number of characters in @var{cs}.
 @end defun
 
 @c page
@@ -21466,87 +21465,37 @@ Return the number of items in the domain.
 @subsubheading Set operations
 
 
-@defun %range-intersection @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
-Return a range representing the intersection of the argument ranges.  It
-does not matter which range has start less than the other.
-
-Intersection is a closed operation on the space of ranges: The
-intersection of two ranges is a range (possibly empty).  If the ranges
-are not overlapping return @false{} to represent the empty range.
-@end defun
-
-
-@defun %range-union @var{range-a} @var{range-b} @var{item=?} @var{item<?} @var{item<=?}
-Return two values representing the union of the argument ranges.  It
-does not matter which range has start less than the other.
-
-Union is @strong{not} a closed operation on the space of ranges: The
-union of two contiguous or overlapping ranges is a single range, but the
-union of two disjoint ranges is the set holding the two argument ranges.
-
-If the argument ranges are disjoint and non--contiguous: Return two
-values being @var{range-a} and @var{range-b}.  If the argument ranges
-are contiguous or overlapping: Return two values being @false{} and a
-new range representing the union.
-
-This function should be called like this:
-
-@example
-(let-values (((head tail) (%range-union r-a r-b)))
-  (when head ---)
-  (when tail ---))
-@end example
-@end defun
-
-
-@defun %range-difference @var{range-a} @var{range-b} @var{item=?} @var{item<?}
-Return two values representing the difference between the argument
-ranges; the difference is the set of elements present in one range and
-not in the other.  It does not matter which range has start less than
-the other.
-
-Difference is @strong{not} a closed operation on the space of ranges: In
-genreral the result is a couple of ranges.  The first one represents
-values which are all less than the values in the second one.  Both the
-returned values can be @false{}.
-
-This function should be called like this:
-
-@example
-(let-values (((head tail) (%range-difference r-a r-b)))
-  (when head ---)
-  (when tail ---))
-@end example
-@end defun
-
-
-@defun %domain-intersection @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
-Return a new domain representing the intersection of the arguments.  The
+@defun char-set-intersection @var{cs-a} @var{cs-b}
+Return a new set representing the intersection of the arguments; the
 intersection is the set of values present in both the arguments.
 
 The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun %domain-union @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
-Return a new domain representing the union of the arguments.  The union
-is the set of values present in one and/or the other argument.
+@defun char-set-union @var{cs-a} @var{cs-b}
+Return a new set representing the union of the arguments; the union is
+the set of values present in one and/or the other argument.
 
 The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun %domain-difference @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
-Return a new domain representing the difference of the arguments.  The
+@defun char-set-difference @var{cs-a} @var{cs-b}
+Return a new set representing the difference between the arguments; the
 difference is the set of values present in one or the other argument.
 
 The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun %domain-complement @var{domain} @var{item=?} @var{item<?} @var{item<=?} @var{lower-bound} @var{upper-bound}
-Return a new domain representing the complement of @var{domain} in the
-space defined by @var{lower-bound} and @var{upper-bound}.
+@defun char-set-complement @var{cs}
+@defunx char-set-complement @var{cs} @var{cs-universe}
+Return a new set representing the complement of @var{cs} in
+@var{cs-universe}.  The complement is the set of values present in
+@var{cs-universe} which are not present in @var{cs}.
+
+If omitted, @var{cs-universe} defaults to @code{char-set:full}.
 
 The returned value may share some structure with the arguments.
 @end defun
@@ -21556,75 +21505,34 @@ The returned value may share some structure with the arguments.
 @subsubheading List operations
 
 
-@defun %range-for-each @var{proc} @var{range} @var{item<=?} @var{item-next}
-Apply @var{proc} to each value in the range.
+@defun char-set-for-each @var{proc} @var{cs}
+Apply @var{proc} to each element of @var{cs}.
 @end defun
 
 
-@defun %range-every @var{proc} @var{range} @var{item<?} @var{item-next}
-Apply @var{proc} to each value in the range and return true if all the
+@defun char-set-every @var{proc} @var{cs}
+Apply @var{proc} to each value in the set and return true if all the
 return values are true.  The application stops at the first @false{}
 return value.
 @end defun
 
 
-@defun %range-any @var{proc} @var{range} @var{item<?} @var{item-next}
-Apply @var{proc} to each value in the range and return true if at least
+@defun char-set-any @var{proc} @var{cs}
+Apply @var{proc} to each value in the set and return true if at least
 one of the returned values is true.  The application stops at the first
 true return value.
 @end defun
 
 
-@defun %range-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
-Fold @var{kons} over the values in the range.
+@defun char-set-fold @var{kons} @var{knil} @var{cs}
+Fold @var{kons} over the values in the set.
 @end defun
 
 
-@defun %range->list @var{range} @var{item<?} @var{item-next}
-Return a list holding all the elements in the range.
+@defun char-set->list @var{cs}
+Return a list holding all the values in the set.
 @end defun
 
-
-@defun %domain-for-each @var{proc} @var{domain} @var{item<?} @var{item-next}
-Apply @var{proc} to each element of @var{domain}.
-@end defun
-
-
-@defun %domain-every @var{proc} @var{domain} @var{item<?} @var{item-next}
-Apply @var{proc} to each value in the domain and return true if all the
-return values are true.  The application stops at the first @false{}
-return value.
-@end defun
-
-
-@defun %domain-any @var{proc} @var{range} @var{item<?} @var{item-next}
-Apply @var{proc} to each value in the domain and return true if at least
-one of the returned values is true.  The application stops at the first
-true return value.
-@end defun
-
-
-@defun %domain-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
-Fold @var{kons} over the values in the domain.
-@end defun
-
-
-@defun %domain->list @var{range} @var{item<?} @var{item-next}
-Return a list holding all the elements in the domain.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Miscellaneous operations
-
-
-@defun %range-concatenate @var{range-a} @var{range-b} @var{item<?}
-Concatenate the ranges and return the resulting range.  It does not
-matter which range has start less than the other.  It makes sense to
-apply this function to ranges that satisfy @func{%range-contiguous?}.
-
-The returned range may share some value with the original ranges.
-@end defun
 @c page
 @node char-sets std
 @subsection Predefined char sets
@@ -21676,7 +21584,7 @@ A hexadecimal digit: 0-9, A-F, a-f.
 Blank characters -- horizontal whitespace.
 
 @item char-set:ascii
-All characters in the ASCII set..
+All characters in the @ascii{} set.
 
 @item char-set:empty
 Empty set.
@@ -22660,22 +22568,8 @@ Examples:
 @deffnx Function %string-ci= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
 @deffnx Macro string= @var{S1} @var{S2}
 @deffnx Macro string-ci= @var{S1} @var{S2}
-Compare two substrings: Return true if they are equal, @false{}
-otherwise.
-
-@itemize
-@item
-If the substrings have different length: Return @false{}.
-
-@item
-Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
-the selected substring is the same: Return @true{}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return @false{} if they are different or @var{past1} if
-they are equal.
-@end itemize
+Compare two substrings: Return true if they are equal according to
+@func{char=?}, @false{} otherwise.
 @end deffn
 
 
@@ -22683,23 +22577,15 @@ they are equal.
 @deffnx Function %string-ci<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
 @deffnx Macro string<> @var{S1} @var{S1}
 @deffnx Macro string-ci<> @var{S1} @var{S2}
-Compare two substrings: Return @false{} if they are equal, true
-otherwise.
-
-@itemize
-@item
-If the substrings have different length: Return @true{}.
-
-@item
-Else if @var{str1} and @var{str2} are equal according to @func{eq?} and
-the selected substring is the same: Return @false{}.
-
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return @false{} if they are equal or the mismatch index
-if they are different.
-@end itemize
+Compare two substrings: Return @false{} if they are equal according to
+@func{char=?}, true otherwise.
 @end deffn
+
+
+The following predicates are the lexicographic extensions of the
+corresponding character predicates.  A string @var{str1} is
+``lexicographically'' less than @var{str2} if @var{str1} would come
+first in a dictionary.
 
 
 @deffn Function %string< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
@@ -22707,19 +22593,23 @@ if they are different.
 @deffnx Macro string< @var{S1} @var{S2}
 @deffnx Macro string-ci< @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
-less than the second, @false{} otherwise.
+less than the second, @false{} otherwise.  If @var{str2} is longer than
+@var{str1} but the substrings are equal up to the end of @var{str1}:
+Return @true{}.
 
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(< @var{past1}
-@var{past12})}.
+@example
+(string< "abcd" "abcd") @result{} #f
+(string< "abc"  "abcd") @result{} #t
+(string< "abcd" "abc") @result{} #f
+(string< "ABcd" "abcd") @result{} #t
+(string< "abcd" "a2cd") @result{} #f
 
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is less than the
-second; @false{} otherwise.
-@end itemize
+(string-ci< "abcd" "abcd") @result{} #f
+(string-ci< "abc"  "abcd") @result{} #t
+(string-ci< "abcd" "abc") @result{} #f
+(string-ci< "ABcd" "abcd") @result{} #f
+(string-ci< "abcd" "a2cd") @result{} #f
+@end example
 @end deffn
 
 
@@ -22728,19 +22618,23 @@ second; @false{} otherwise.
 @deffnx Macro string<= @var{S1} @var{S2}
 @deffnx Macro string-ci<= @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
-less than, or equal to, the second; @false{} otherwise.
+less than, or equal to, the second; @false{} otherwise.  If @var{str2}
+is longer than @var{str1} but the substrings are equal up to the end of
+@var{str1}: Return @true{}.
 
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(<= @var{past1}
-@var{past12})}.
+@example
+(string<= "abcd" "abcd") @result{} #t
+(string<= "abc"  "abcd") @result{} #t
+(string<= "abcd" "abc") @result{} #f
+(string<= "ABcd" "abcd") @result{} #t
+(string<= "abcd" "a2cd") @result{} #f
 
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is less than, or
-equal to, the second; @false{} otherwise.
-@end itemize
+(string-ci<= "abcd" "abcd") @result{} #t
+(string-ci<= "abc"  "abcd") @result{} #t
+(string-ci<= "abcd" "abc") @result{} #f
+(string-ci<= "ABcd" "abcd") @result{} #t
+(string-ci<= "abcd" "a2cd") @result{} #f
+@end example
 @end deffn
 
 
@@ -22749,19 +22643,23 @@ equal to, the second; @false{} otherwise.
 @deffnx Macro string> @var{S1} @var{S2}
 @deffnx Macro string-ci> @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
-greater than the second, @false{} otherwise.
+greater than the second, @false{} otherwise.  If @var{str1} is longer
+than @var{str2} but the substrings are equal up to the end of
+@var{str2}: Return @true{}.
 
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(> @var{past1}
-@var{past12})}.
+@example
+(string> "abcd" "abcd") @result{} #f
+(string> "abcd" "abc") @result{} #t
+(string> "abc"  "abcd") @result{} #f
+(string> "abcd" "ABcd") @result{} #t
+(string> "a2cd" "abcd") @result{} #f
 
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is greater than
-the second; @false{} otherwise.
-@end itemize
+(string-ci> "abcd" "abcd") @result{} #f
+(string-ci> "abcd" "abc") @result{} #t
+(string-ci> "abc"  "abcd") @result{} #f
+(string-ci> "abcd" "ABcd") @result{} #f
+(string-ci> "a2cd" "abcd") @result{} #f
+@end example
 @end deffn
 
 
@@ -22770,19 +22668,23 @@ the second; @false{} otherwise.
 @deffnx Macro string>= @var{S1} @var{S2}
 @deffnx Macro string-ci>= @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
-greater than, or equal to, the second; @false{} otherwise.
+greater than, or equal to, the second; @false{} otherwise.  If
+@var{str1} is longer than @var{str2} but the substrings are equal up to
+the end of @var{str2}: Return @true{}.
 
-@itemize
-@item
-If @var{str1} and @var{str2} are equal according to @func{eq?} and
-@var{beg1} equals @var{beg2}: Return @code{(>= @var{past1}
-@var{past12})}.
+@example
+(string>= "abcd" "abcd") @result{} #t
+(string>= "abcd" "abc") @result{} #t
+(string>= "abc" "abcd") @result{} #f
+(string>= "abcd" "ABcd") @result{} #t
+(string>= "a2cd" "abcd") @result{} #f
 
-@item
-Else apply @func{%string-compare} or @func{%string-compare-ci} to the
-substrings and return: the mismatch index if the first is greater than,
-or equal to, the second; @false{} otherwise.
-@end itemize
+(string-ci>= "abcd" "abcd") @result{} #t
+(string-ci>= "abcd" "abc") @result{} #t
+(string-ci>= "abc"  "abcd") @result{} #f
+(string-ci>= "abcd" "ABcd") @result{} #t
+(string-ci>= "a2cd" "abcd") @result{} #f
+@end example
 @end deffn
 
 @c page
@@ -24405,6 +24307,25 @@ This function should be called like this:
 @end defun
 
 
+@defun %range-in-first-only @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
+Return two values representing the elements of @var{range-a} that are
+not in @var{range-b}.
+
+This operation is @strong{not} a closed operation on the space of
+ranges: In genreral the result is a couple of ranges.  The first one
+represents values which are all less than the values in the second one.
+Both the returned values can be @false{}.
+
+This function should be called like this:
+
+@example
+(let-values (((head tail) (%range-in-first-only r-a r-b)))
+  (when head ---)
+  (when tail ---))
+@end example
+@end defun
+
+
 @defun %domain-intersection @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
 Return a new domain representing the intersection of the arguments.  The
 intersection is the set of values present in both the arguments.
@@ -24429,9 +24350,10 @@ The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun %domain-complement @var{domain} @var{item=?} @var{item<?} @var{item<=?} @var{lower-bound} @var{upper-bound}
+@defun %domain-complement @var{domain} @var{domain-universe} @var{item=?} @var{item<?} @var{item<=?}
 Return a new domain representing the complement of @var{domain} in the
-space defined by @var{lower-bound} and @var{upper-bound}.
+space defined by @var{domain-universe}.  The returned value holds all
+the items from @var{domain-universe} that are not in @var{domain}.
 
 The returned value may share some structure with the arguments.
 @end defun
@@ -24482,19 +24404,19 @@ return value.
 @end defun
 
 
-@defun %domain-any @var{proc} @var{range} @var{item<?} @var{item-next}
+@defun %domain-any @var{proc} @var{domain} @var{item<?} @var{item-next}
 Apply @var{proc} to each value in the domain and return true if at least
 one of the returned values is true.  The application stops at the first
 true return value.
 @end defun
 
 
-@defun %domain-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
+@defun %domain-fold @var{kons} @var{knil} @var{domain} @var{item<?} @var{item-next}
 Fold @var{kons} over the values in the domain.
 @end defun
 
 
-@defun %domain->list @var{range} @var{item<?} @var{item-next}
+@defun %domain->list @var{domain} @var{item<?} @var{item-next}
 Return a list holding all the elements in the domain.
 @end defun
 

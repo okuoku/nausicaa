@@ -158,10 +158,14 @@
   (check
       (format #f "ciao ~:a" display)
     => (cond-expand
-	(ypsilon  "ciao \"#<subr display>\"")
+	(ypsilon	"ciao \"#<subr display>\"")
 	(larceny	"ciao \"#<PROCEDURE display>\"")
-	(ikarus	"ciao \"#<procedure display>\"")
-	(mosh	"ciao \"#<subr display>\"")))
+	(ikarus		"ciao \"#<procedure display>\"")
+	(mosh		(string-append "ciao \""
+				       (call-with-string-output-port
+					   (lambda (port)
+					     (display display port)))
+				       "\""))))
 
   (check
       (format #f "ciao ~:s" 123)
@@ -170,10 +174,14 @@
   (check
       (format #f "ciao ~:s" display)
     => (cond-expand
-	(ypsilon  "ciao \"#<subr display>\"")
+	(ypsilon	"ciao \"#<subr display>\"")
 	(larceny	"ciao \"#<PROCEDURE display>\"")
-	(ikarus	"ciao \"#<procedure display>\"")
-	(mosh	"ciao \"#<subr display>\"")))
+	(ikarus		"ciao \"#<procedure display>\"")
+	(mosh		(string-append "ciao \""
+				       (call-with-string-output-port
+					   (lambda (port)
+					     (write display port)))
+				       "\""))))
 
 ;;; --------------------------------------------------------------------
 

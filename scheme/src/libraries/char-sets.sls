@@ -56,7 +56,7 @@
 ;;     char-set:graphic     char-set:printing    char-set:whitespace
 ;;     char-set:iso-control char-set:punctuation char-set:symbol
 ;;     char-set:hex-digit   char-set:blank       char-set:ascii
-;;     char-set:empty       char-set:full
+    char-set:empty       char-set:full
     )
   (import (rnrs)
     (one-dimension))
@@ -118,8 +118,12 @@
 (define (char-set-difference cs-a cs-b)
   (make-char-set (domain-difference (domain-ref cs-a) (domain-ref cs-b))))
 
-(define (char-set-complement cs)
-  (make-char-set (domain-complement (domain-ref cs))))
+(define char-set-complement
+  (case-lambda
+   ((cs)
+    (char-set-complement cs char-set:full))
+   ((cs universe)
+    (make-char-set (domain-complement (domain-ref cs) (domain-ref universe))))))
 
 (define (char-set-for-each proc cs)
   (domain-for-each proc (domain-ref cs)))
@@ -141,15 +145,11 @@
 
 
 
-(define inclusive-lower-bound (integer->char 0))
+(define (char-next ch)
+  (integer->char (+ 1 (char->integer ch))))
 
-;;*FIXME* This  is a bug.  The  correct exclusive upper  bound should be
-;;1+#x10FFFF.   With this  setting  the last  character  in the  Unicode
-;;encoding (#x10FFFF) is excluded from the char sets.
-(define exclusive-upper-bound (integer->char #x10FFFF))
-
-(define (char-next item)
-  (integer->char (+ 1 (char->integer item))))
+(define (char-prev ch)
+  (integer->char (- (char->integer ch) 1)))
 
 (define (char- past start)
   (- (char->integer past)
@@ -157,6 +157,18 @@
 
 (define (char-copy ch)
   ch)
+
+;;; --------------------------------------------------------------------
+
+;;*FIXME* This  is a bug.  The  correct exclusive upper  bound should be
+;;1+#x10FFFF.   With this  setting  the last  character  in the  Unicode
+;;encoding (#x10FFFF) is excluded from the char sets.
+
+(define inclusive-lower-bound (integer->char 0))
+(define exclusive-upper-bound (integer->char #x10FFFF))
+(define inclusive-upper-bound (char-prev exclusive-upper-bound))
+(define exclusive-inner-bound (integer->char (- #xD800 1)))
+(define inclusive-inner-bound (integer->char (+ #xDFFF 1)))
 
 
 ;;;; domain wrappers for ranges
@@ -277,9 +289,8 @@
 (define (domain-difference domain-a domain-b)
   (%domain-difference domain-a domain-b char=? char<? char<=?))
 
-(define (domain-complement domain)
-  (%domain-complement domain char=? char<? char<=?
-		      inclusive-lower-bound exclusive-upper-bound))
+(define (domain-complement domain universe)
+  (%domain-complement domain universe char=? char<? char<=?))
 
 (define (domain-for-each proc domain)
   (%domain-for-each proc domain char<=? char-next))
@@ -302,9 +313,11 @@
 
 ;;;; predefined char sets
 
-(define char-set:empty '())
+(define char-set:empty (make-char-set '()))
 
-;;(define char-set:full (list (cons )))
+(define char-set:full
+  (make-char-set (list (cons inclusive-lower-bound exclusive-inner-bound)
+		       (cons inclusive-inner-bound exclusive-upper-bound))))
 
 ;; (define char-set:lower-case
 ;;   (let* ((a-z (ucs-range->char-set #x61 #x7B))

@@ -35,7 +35,12 @@
 (display "*** testing one-dimension low\n")
 
 (define inclusive-lower-bound (integer->char 0))
-(define exclusive-upper-bound (integer->char 1114111))
+(define exclusive-upper-bound (integer->char #x10FFFF))
+(define exclusive-inner-bound (integer->char (- #xD800 1)))
+(define inclusive-inner-bound (integer->char (+ #xDFFF 1)))
+
+(define universe (list (cons inclusive-lower-bound exclusive-inner-bound)
+		       (cons inclusive-inner-bound exclusive-upper-bound)))
 
 (define (char-next item)
   (integer->char (+ 1 (char->integer item))))
@@ -104,6 +109,9 @@
 (define (range-difference range-a range-b)
   (%range-difference range-a range-b char=? char<?))
 
+(define (range-in-first-only range-a range-b)
+  (%range-in-first-only range-a range-b char<? char<=?))
+
 (define (range-for-each proc range)
   (%range-for-each proc range char<=? char-next))
 
@@ -166,9 +174,8 @@
 (define (domain-difference domain-a domain-b)
   (%domain-difference domain-a domain-b char=? char<? char<=?))
 
-(define (domain-complement domain)
-  (%domain-complement domain char=? char<? char<=?
-		      inclusive-lower-bound exclusive-upper-bound))
+(define (domain-complement domain universe)
+  (%domain-complement domain universe char=? char<? char<=?))
 
 (define (domain-for-each proc domain)
   (%domain-for-each proc domain char<=? char-next))
@@ -586,6 +593,33 @@
 						  (make-range #\A #\M))))
 	(list head tail))
     => (list #f (make-range #\A #\Z)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let-values (((head tail) (range-in-first-only (make-range #\A #\M)
+						     (make-range #\D #\F))))
+	(list head tail))
+    => (list (make-range #\A #\D)
+	     (make-range #\F #\M)))
+
+  (check
+      (let-values (((head tail) (range-in-first-only (make-range #\D #\F)
+						     (make-range #\A #\M))))
+	(list head tail))
+    => (list #f #f))
+
+  (check
+      (let-values (((head tail) (range-in-first-only (make-range #\A #\G)
+						     (make-range #\D #\M))))
+	(list head tail))
+    => (list (make-range #\A #\D) #f))
+
+  (check
+      (let-values (((head tail) (range-in-first-only (make-range #\D #\M)
+						     (make-range #\A #\G))))
+	(list head tail))
+    => (list #f (make-range #\G #\M)))
 
   )
 
@@ -1257,31 +1291,36 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (domain-complement (make-domain))
+      (domain-complement (make-domain) universe)
     (=> domain=?)
-    (cons inclusive-lower-bound exclusive-upper-bound))
+    universe)
 
   (check
-      (domain-complement (make-domain #\A))
+      (domain-complement (make-domain #\A) universe)
     (=> domain=?)
     (let ((ch #\A))
       (list (cons inclusive-lower-bound ch)
-	    (cons (char-next ch) exclusive-upper-bound))))
+	    (cons (char-next ch) exclusive-inner-bound)
+	    (cons inclusive-inner-bound exclusive-upper-bound))))
 
   (check
-      (domain-complement (make-domain '(#\A . #\D) '(#\M . #\Z)))
+      (domain-complement (make-domain '(#\A . #\D) '(#\M . #\Z))
+			 universe)
     (=> domain=?)
     (list (cons inclusive-lower-bound #\A)
 	  (cons (char-next #\D) #\M)
-	  (cons (char-next #\Z) exclusive-upper-bound)))
+	  (cons (char-next #\Z) exclusive-inner-bound)
+	  (cons inclusive-inner-bound exclusive-upper-bound)))
 
   (check
-      (domain-complement (make-domain '(#\A . #\D) '(#\M . #\Z) '(#\4 . #\9)))
+      (domain-complement (make-domain '(#\A . #\D) '(#\M . #\Z) '(#\4 . #\9))
+			 universe)
     (=> domain=?)
     (list (cons inclusive-lower-bound #\4)
 	  (cons (char-next #\9) #\A)
 	  (cons (char-next #\D) #\M)
-	  (cons (char-next #\Z) exclusive-upper-bound)))
+	  (cons (char-next #\Z) exclusive-inner-bound)
+	  (cons inclusive-inner-bound exclusive-upper-bound)))
 
   )
 

@@ -35,10 +35,16 @@
 (display "*** testing char-sets\n")
 
 (define inclusive-lower-bound (integer->char 0))
-(define exclusive-upper-bound (integer->char 1114111))
+(define exclusive-upper-bound (integer->char #x10FFFF))
+(define inclusive-upper-bound (integer->char (- #x10FFFF 1)))
+(define exclusive-inner-bound (integer->char (- #xD800 1)))
+(define inclusive-inner-bound (integer->char (+ #xDFFF 1)))
 
-(define (char-next item)
-  (integer->char (+ 1 (char->integer item))))
+(define (char-next ch)
+  (integer->char (+ 1 (char->integer ch))))
+
+(define (char-prev ch)
+  (integer->char (- (char->integer ch) 1)))
 
 (define (domain=? actual-result expected-result)
   (equal? (char-set-domain-ref actual-result) expected-result))
@@ -561,30 +567,32 @@
 
   (check
       (char-set-complement (char-set))
-    (=> domain=?)
-    (cons inclusive-lower-bound exclusive-upper-bound))
+    (=> char-set=?)
+    char-set:full)
 
   (check
       (char-set-complement (char-set #\A))
-    (=> domain=?)
-    (let ((ch #\A))
-      (list (cons inclusive-lower-bound ch)
-	    (cons (char-next ch) exclusive-upper-bound))))
+    (=> char-set=?)
+    (let* ((ch		#\A)
+	   (chup	(char-next ch))
+	   (chdn	(char-prev ch)))
+      (char-set (cons inclusive-lower-bound chdn)
+		(cons chup inclusive-upper-bound))))
 
   (check
       (char-set-complement (char-set '(#\A . #\D) '(#\M . #\Z)))
-    (=> domain=?)
-    (list (cons inclusive-lower-bound #\A)
-	  (cons (char-next #\D) #\M)
-	  (cons (char-next #\Z) exclusive-upper-bound)))
+    (=> char-set=?)
+    (char-set (cons inclusive-lower-bound (char-prev #\A))
+	      (cons (char-next #\D) (char-prev #\M))
+	      (cons (char-next #\Z) (char-prev exclusive-upper-bound))))
 
   (check
       (char-set-complement (char-set '(#\A . #\D) '(#\M . #\Z) '(#\4 . #\9)))
-    (=> domain=?)
-    (list (cons inclusive-lower-bound #\4)
-	  (cons (char-next #\9) #\A)
-	  (cons (char-next #\D) #\M)
-	  (cons (char-next #\Z) exclusive-upper-bound)))
+    (=> char-set=?)
+    (char-set (cons inclusive-lower-bound (char-prev #\4))
+	      (cons (char-next #\9) (char-prev #\A))
+	      (cons (char-next #\D) (char-prev #\M))
+	      (cons (char-next #\Z) (char-prev exclusive-upper-bound))))
 
   )
 

@@ -341,12 +341,16 @@
 (define-syntax check-for-true
   (syntax-rules ()
     ((_ ?form)
-     (check (and ?form #t) => #t))))
+     (check (if ?form #t #f) => #t))
+    ((_ (quote ?name) ?form)
+     (check (quote ?name) (if ?form #t #f) => #t))))
 
 (define-syntax check-for-false
   (syntax-rules ()
     ((_ ?form)
-     (check (and ?form #f) => #t))))
+     (check (if ?form #t #f) => #f))
+    ((_ (quote ?name) ?form)
+     (check (quote ?name) (if ?form #t #f) => #f))))
 
 
 ;;;; selecting tests
