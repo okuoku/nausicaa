@@ -2,1330 +2,683 @@
 ;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;
-;;;Taylor Campbell wrote this code; he places it in the public domain.
-;;;Modified by Derick Eddington to be included into an R6RS library.
-;;;Modified by Marco Maggi to be included in Nausicaa.
+;;;Derived from the SRFI 13 (strings list) reference implementation.
 ;;;
-;;;Permission is hereby granted, free of charge, to any person obtaining
-;;;a  copy of  this  software and  associated  documentation files  (the
-;;;"Software"), to  deal in the Software  without restriction, including
-;;;without limitation  the rights to use, copy,  modify, merge, publish,
-;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
-;;;permit persons to whom the Software is furnished to do so, subject to
-;;;the following conditions:
+;;;Olin Shivers 7/2000
 ;;;
-;;;The  above  copyright notice  and  this  permission  notice shall  be
-;;;included in all copies or substantial portions of the Software.
+;;;Copyright (c) 1988-1994 Massachusetts Institute of Technology.
+;;;Copyright (c) 1998, 1999, 2000 Olin Shivers.  All rights reserved.
+;;;   The details of the copyrights appear at the end of the file. Short
+;;;   summary: BSD-style open source.
 ;;;
-;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
-;;;copyright holders  shall not be  used in advertising or  otherwise to
-;;;promote  the sale,  use or  other dealings  in this  Software without
-;;;prior written authorization.
+;;;Copyright details
+;;;=================
 ;;;
-;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
-;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
-;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
-;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
-;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
-;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
-;;;SOFTWARE.
+;;;The prefix/suffix and comparison routines in this code had (extremely
+;;;distant) origins  in MIT Scheme's  string lib, and  was substantially
+;;;reworked by  Olin Shivers (shivers@ai.mit.edu)  9/98. As such,  it is
+;;;covered by MIT Scheme's open source copyright. See below for details.
+;;;
+;;;The KMP string-search code  was influenced by implementations written
+;;;by Stephen  Bevan, Brian Dehneyer and Will  Fitzgerald. However, this
+;;;version was written from scratch by myself.
+;;;
+;;;The remainder  of this  code was written  from scratch by  myself for
+;;;scsh.  The scsh  copyright is a BSD-style open  source copyright. See
+;;;below for details.
+;;;
+;;;-- Olin Shivers
+;;;
+;;;MIT Scheme copyright terms
+;;;==========================
+;;;
+;;;This   material  was  developed   by  the   Scheme  project   at  the
+;;;Massachusetts  Institute  of  Technology,  Department  of  Electrical
+;;;Engineering and Computer Science.  Permission to copy and modify this
+;;;software, to redistribute either  the original software or a modified
+;;;version, and to use this software for any purpose is granted, subject
+;;;to the following restrictions and understandings.
+;;;
+;;;1. Any copy made of  this software must include this copyright notice
+;;;   in full.
+;;;
+;;;2. Users  of this software  agree to make  their best efforts  (a) to
+;;;   return to  the MIT Scheme  project any improvements  or extensions
+;;;   that they make, so that  these may be included in future releases;
+;;;   and (b) to inform MIT of noteworthy uses of this software.
+;;;
+;;;3.  All materials  developed  as a  consequence  of the  use of  this
+;;;   software shall  duly acknowledge such use, in  accordance with the
+;;;   usual standards of acknowledging credit in academic research.
+;;;
+;;;4. MIT has made no  warrantee or representation that the operation of
+;;;   this software will  be error-free, and MIT is  under no obligation
+;;;   to  provide  any  services,  by  way of  maintenance,  update,  or
+;;;   otherwise.
+;;;
+;;;5. In  conjunction  with  products  arising  from  the  use  of  this
+;;;   material, there shall  be no use of the  name of the Massachusetts
+;;;   Institute  of Technology  nor  of any  adaptation  thereof in  any
+;;;   advertising,  promotional,  or   sales  literature  without  prior
+;;;   written consent from MIT in each case.
+;;;
+;;;Scsh copyright terms
+;;;====================
+;;;
+;;;All rights reserved.
+;;;
+;;;Redistribution and  use in source  and binary forms, with  or without
+;;;modification,  are permitted provided  that the  following conditions
+;;;are met:
+;;;
+;;;1.  Redistributions of source  code must  retain the  above copyright
+;;;   notice, this list of conditions and the following disclaimer.
+;;;
+;;;2. Redistributions in binary  form must reproduce the above copyright
+;;;   notice, this  list of conditions  and the following  disclaimer in
+;;;   the  documentation  and/or   other  materials  provided  with  the
+;;;   distribution.
+;;;
+;;;3. The  name of  the authors may  not be  used to endorse  or promote
+;;;   products derived from this software without specific prior written
+;;;   permission.
+;;;
+;;;THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
+;;;IMPLIED  WARRANTIES,  INCLUDING,  BUT  NOT LIMITED  TO,  THE  IMPLIED
+;;;WARRANTIES OF  MERCHANTABILITY AND  FITNESS FOR A  PARTICULAR PURPOSE
+;;;ARE  DISCLAIMED.  IN NO  EVENT SHALL  THE AUTHORS  BE LIABLE  FOR ANY
+;;;DIRECT,  INDIRECT, INCIDENTAL,  SPECIAL, EXEMPLARY,  OR CONSEQUENTIAL
+;;;DAMAGES  (INCLUDING, BUT  NOT LIMITED  TO, PROCUREMENT  OF SUBSTITUTE
+;;;GOODS  OR  SERVICES; LOSS  OF  USE,  DATA,  OR PROFITS;  OR  BUSINESS
+;;;INTERRUPTION) HOWEVER CAUSED AND  ON ANY THEORY OF LIABILITY, WHETHER
+;;;IN  CONTRACT,  STRICT LIABILITY,  OR  TORT  (INCLUDING NEGLIGENCE  OR
+;;;OTHERWISE) ARISING IN  ANY WAY OUT OF THE USE  OF THIS SOFTWARE, EVEN
+;;;IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+;;;
 
 
 
 #!r6rs
 (library (vectors)
   (export
-    ;; constructors
-    make-vector vector
-    vector-unfold         vector-unfold-right
-    vector-copy           vector-reverse-copy
-    vector-append         vector-concatenate
+
     ;; predicates
-    vector?
-    vector-empty?
-    vector=
-    ;; selectors
-    vector-ref
-    vector-length
-    ;; iteration
-    vector-fold           vector-fold-right
-    vector-map            vector-map!
-    vector-for-each
-    vector-count
+    vector-null? vector-every vector-any
+
+    ;; comparison
+    vector-compare vector-compare-ci
+    vector=    vector<    vector>    vector<=    vector>=    vector<>
+    vector-ci= vector-ci< vector-ci> vector-ci<= vector-ci>= vector-ci<>
+
+    ;; mapping
+    vector-map vector-map!
+    vector-for-each* vector-for-each-index
+
+    ;; case
+    vector-downcase* vector-upcase* vector-titlecase*
+    vector-downcase*! vector-upcase*! vector-titlecase*!
+
+    ;; folding
+    vector-fold       vector-unfold
+    vector-fold-right vector-unfold-right
+    vector-tabulate
+
+    ;; selecting
+    subvector* vector-copy*!
+    vector-take vector-take-right
+    vector-drop vector-drop-right
+    vector-trim vector-trim-right vector-trim-both
+    vector-pad vector-pad-right
+
+    ;; prefix and suffix
+    vector-prefix-length vector-prefix-length-ci
+    vector-suffix-length vector-suffix-length-ci
+    vector-prefix? vector-prefix-ci?
+    vector-suffix? vector-suffix-ci?
+
     ;; searching
-    vector-index          vector-skip
-    vector-index-right    vector-skip-right
-    vector-binary-search  vector-any    vector-every
-    ;; mutators
-    vector-set!
-    vector-swap!
-    vector-fill!
-    vector-reverse!
-    vector-copy!          vector-reverse-copy!
-    ;; conversion
-    vector->list          reverse-vector->list
-    list->vector          reverse-list->vector )
-  (import (except (rnrs)
-		  vector-map vector-for-each vector-fill! vector->list
-		  list->vector)
-    (vectors low)
-    (prefix (only (rnrs) vector-fill! vector->list list->vector) rnrs:)
-    (rnrs r5rs)
-    (srfi parameters)
-    (srfi receive))
+    vector-index vector-index-right
+    vector-skip  vector-skip-right
+    vector-count
+    vector-contains vector-contains-ci
 
-  (define-syntax check-type
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ pred? value callee)
-         (if (identifier? #'value)
-           #'(if (pred? value)
-               value
-               (error "erroneous value" value))
-           #'(let ([v value])
-               (if (pred? v)
-                 v
-                 (error "erroneous value" v))))])))
+    ;; filtering
+    vector-filter vector-delete
 
+    ;; vectors and lists
+    vector->list* reverse-list->vector
+    vector-join
+    vector-tokenize (rename (vector-tokenize vector-tokenise))
 
-
-;;;; utilities
+    ;; replicating
+    xsubvector vector-xcopy!
 
-;;; Not the best LET*-OPTIONALS, but not the worst, either.  Use Olin's
-;;; if it's available to you.
-;(define-syntax let*-optionals
-;  (syntax-rules ()
-;    ((let*-optionals (?x ...) ((?var ?default) ...) ?body1 ?body2 ...)
-;     (let ((args (?x ...)))
-;       (let*-optionals args ((?var ?default) ...) ?body1 ?body2 ...)))
-;    ((let*-optionals ?args ((?var ?default) ...) ?body1 ?body2 ...)
-;     (let*-optionals:aux ?args ?args ((?var ?default) ...)
-;       ?body1 ?body2 ...))))
-;
-;(define-syntax let*-optionals:aux
-;  (syntax-rules ()
-;    ((aux ?orig-args-var ?args-var () ?body1 ?body2 ...)
-;     (if (null? ?args-var)
-;         (let () ?body1 ?body2 ...)
-;         (error "too many arguments" (length ?orig-args-var)
-;                ?orig-args-var)))
-;    ((aux ?orig-args-var ?args-var
-;         ((?var ?default) ?more ...)
-;       ?body1 ?body2 ...)
-;     (if (null? ?args-var)
-;         (let* ((?var ?default) ?more ...) ?body1 ?body2 ...)
-;         (let ((?var (car ?args-var))
-;               (new-args (cdr ?args-var)))
-;           (let*-optionals:aux ?orig-args-var new-args
-;               (?more ...)
-;             ?body1 ?body2 ...))))))
-
-(define (nonneg-int? x)
-  (and (integer? x)
-       (not (negative? x))))
-
-(define (between? x y z)
-  (and (<  x y)
-       (<= y z)))
-
-(define (unspecified-value) (if #f #f))
-
-;++ This should be implemented more efficiently.  It shouldn't cons a
-;++ closure, and the cons cells used in the loops when using this could
-;++ be reused.
-(define (vectors-ref vectors i)
-  (map (lambda (v) (vector-ref v i)) vectors))
+    ;; concatenate, reverse, fill, replace
+    vector-concatenate vector-concatenate-reverse
+    vector-reverse vector-reverse!
+    vector-fill*! vector-replace)
+  (import (rnrs)
+    (vectors low))
 
 
 
-;;; --------------------
-;;; Error checking
+(define-syntax unpack
+  (syntax-rules (view start past)
 
-;;; Error signalling (not checking) is done in a way that tries to be
-;;; as helpful to the person who gets the debugging prompt as possible.
-;;; That said, error _checking_ tries to be as unredundant as possible.
+    ((_ (view ?vec))
+     (let ((vec ?vec))
+       (values vec 0 (vector-length vec))))
 
-;;; I don't use any sort of general condition mechanism; I use simply
-;;; SRFI 23's ERROR, even in cases where it might be better to use such
-;;; a general condition mechanism.  Fix that when porting this to a
-;;; Scheme implementation that has its own condition system.
+    ((_ (view ?vec (start ?start)))
+     (let ((vec ?vec))
+       (values vec ?start (vector-length vec))))
 
-;;; In argument checks, upon receiving an invalid argument, the checker
-;;; procedure recursively calls itself, but in one of the arguments to
-;;; itself is a call to ERROR; this mechanism is used in the hopes that
-;;; the user may be thrown into a debugger prompt, proceed with another
-;;; value, and let it be checked again.
+    ((_ (view ?vec (past ?past)))
+     (values ?vec 0 ?past))
 
-;;; Type checking is pretty basic, but easily factored out and replaced
-;;; with whatever your implementation's preferred type checking method
-;;; is.  I doubt there will be many other methods of index checking,
-;;; though the index checkers might be better implemented natively.
+    ((_ (view ?vec (start ?start) (past ?past)))
+     (values ?vec ?start ?past))
 
-;;; (CHECK-TYPE <type-predicate?> <value> <callee>) -> value
-;;;   Ensure that VALUE satisfies TYPE-PREDICATE?; if not, signal an
-;;;   error stating that VALUE did not satisfy TYPE-PREDICATE?, showing
-;;;   that this happened while calling CALLEE.  Return VALUE if no
-;;;   error was signalled.
+    ((_ (?vec))
+     (let ((vec ?vec))
+       (values ?vec 0 (vector-length ?vec))))
 
-;;; (CHECK-INDEX <vector> <index> <callee>) -> index
-;;;   Ensure that INDEX is a valid index into VECTOR; if not, signal an
-;;;   error stating that it is not and that this happened in a call to
-;;;   CALLEE.  Return INDEX when it is valid.  (Note that this does NOT
-;;;   check that VECTOR is indeed a vector.)
-;;;   Derick thinks the index checking can be optimized by wrapping all the
-;;;   appropriate procedures with an exception handler which catches out-of-
-;;;   bounds exceptions and then raises a new exception with the relevant &who.
-(define (check-index vec index callee)
-  (let ((index (check-type integer? index callee)))
-    (cond ((< index 0)
-           (check-index vec
-                        (error "vector index too low"
-                               index
-                               `(into vector ,vec)
-                               `(while calling ,callee))
-                        callee))
-          ((>= index (vector-length vec))
-           (check-index vec
-                        (error "vector index too high"
-                               index
-                               `(into vector ,vec)
-                               `(while calling ,callee))
-                        callee))
-          (else index))))
+    ((_ (?vec ?start))
+     (let ((vec ?vec))
+       (values ?vec ?start (vector-length ?vec))))
 
-;;; (CHECK-INDICES <vector>
-;;;                <start> <start-name>
-;;;                <end> <end-name>
-;;;                <caller>) -> [start end]
-;;;   Ensure that START and END are valid bounds of a range within
-;;;   VECTOR; if not, signal an error stating that they are not, with
-;;;   the message being informative about what the argument names were
-;;;   called -- by using START-NAME & END-NAME --, and that it occurred
-;;;   while calling CALLEE.  Also ensure that VEC is in fact a vector.
-;;;   Returns no useful value.
-(define (check-indices vec start start-name end end-name callee)
-  (let ((lose (lambda things
-                (apply error "vector range out of bounds"
-                       (append things
-                               `(vector was ,vec)
-                               `(,start-name was ,start)
-                               `(,end-name was ,end)
-                               `(while calling ,callee)))))
-        (start (check-type integer? start callee))
-        (end   (check-type integer? end   callee)))
-    (cond ((> start end)
-           ;; I'm not sure how well this will work.  The intent is that
-           ;; the programmer tells the debugger to proceed with both a
-           ;; new START & a new END by returning multiple values
-           ;; somewhere.
-           (receive (new-start new-end)
-                    (lose `(,end-name < ,start-name))
-             (check-indices vec
-                            new-start start-name
-                            new-end end-name
-                            callee)))
-          ((< start 0)
-           (check-indices vec
-                          (lose `(,start-name < 0))
-                          start-name
-                          end end-name
-                          callee))
-          ((>= start (vector-length vec))
-           (check-indices vec
-                          (lose `(,start-name > len)
-                                `(len was ,(vector-length vec)))
-                          start-name
-                          end end-name
-                          callee))
-          ((> end (vector-length vec))
-           (check-indices vec
-                          start start-name
-                          (lose `(,end-name > len)
-                                `(len was ,(vector-length vec)))
-                          end-name
-                          callee))
-          (else
-           (values start end)))))
+    ((_ (?vec ?start ?past))
+     (values ?vec ?start ?past))
+
+    ((?F ?vec)
+     (unpack (?vec)))
+
+    ((?F ?stuff ...)
+     (syntax-violation #f "invalid parameters" (?stuff ...)))))
 
 
+;;;; predicates
 
-;;; --------------------
-;;; Internal routines
-
-;;; These should all be integrated, native, or otherwise optimized --
-;;; they're used a _lot_ --.  All of the loops and LETs inside loops
-;;; are lambda-lifted by hand, just so as not to cons closures in the
-;;; loops.  (If your compiler can do better than that if they're not
-;;; lambda-lifted, then lambda-drop (?) them.)
-
-;;; (VECTOR-PARSE-START+END <vector> <arguments>
-;;;                         <start-name> <end-name>
-;;;                         <callee>)
-;;;       -> [start end]
-;;;   Return two values, composing a valid range within VECTOR, as
-;;;   extracted from ARGUMENTS or defaulted from VECTOR -- 0 for START
-;;;   and the length of VECTOR for END --; START-NAME and END-NAME are
-;;;   purely for error checking.
-(define (vector-parse-start+end vec args start-name end-name callee)
-  (let ((len (vector-length vec)))
-    (cond ((null? args)
-           (values 0 len))
-          ((null? (cdr args))
-           (check-indices vec
-                          (car args) start-name
-                          len end-name
-                          callee))
-          ((null? (cddr args))
-           (check-indices vec
-                          (car  args) start-name
-                          (cadr args) end-name
-                          callee))
-          (else
-           (error "too many arguments"
-                  `(extra args were ,(cddr args))
-                  `(while calling ,callee))))))
-
-(define-syntax let-vector-start+end
+(define-syntax vector-every
   (syntax-rules ()
-    ((let-vector-start+end ?callee ?vec ?args (?start ?end)
-       ?body1 ?body2 ...)
-     (let ((?vec (check-type vector? ?vec ?callee)))
-       (receive (?start ?end)
-                (vector-parse-start+end ?vec ?args '?start '?end
-                                        ?callee)
-         ?body1 ?body2 ...)))))
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-every ?proc str beg past)))))
 
-;;; (%SMALLEST-LENGTH <vector-list> <default-length> <callee>)
-;;;       -> exact, nonnegative integer
-;;;   Compute the smallest length of VECTOR-LIST.  DEFAULT-LENGTH is
-;;;   the length that is returned if VECTOR-LIST is empty.  Common use
-;;;   of this is in n-ary vector routines:
-;;;     (define (f vec . vectors)
-;;;       (let ((vec (check-type vector? vec f)))
-;;;         ...(%smallest-length vectors (vector-length vec) f)...))
-;;;   %SMALLEST-LENGTH takes care of the type checking -- which is what
-;;;   the CALLEE argument is for --; thus, the design is tuned for
-;;;   avoiding redundant type checks.
-(define %smallest-length
-  (letrec ((loop (lambda (vector-list length callee)
-                   (if (null? vector-list)
-                       length
-                       (loop (cdr vector-list)
-                             (min (vector-length
-                                   (check-type vector?
-                                               (car vector-list)
-                                               callee))
-                                  length)
-                             callee)))))
-    loop))
-
-;;; (%VECTOR-COPY! <target> <tstart> <source> <sstart> <send>)
-;;;   Copy elements at locations SSTART to SEND from SOURCE to TARGET,
-;;;   starting at TSTART in TARGET.
-;;;
-;;; Optimize this!  Probably with some combination of:
-;;;   - Force it to be integrated.
-;;;   - Let it use unsafe vector element dereferencing routines: bounds
-;;;     checking already happens outside of it.  (Or use a compiler
-;;;     that figures this out, but Olin Shivers' PhD thesis seems to
-;;;     have been largely ignored in actual implementations...)
-;;;   - Implement it natively as a VM primitive: the VM can undoubtedly
-;;;     perform much faster than it can make Scheme perform, even with
-;;;     bounds checking.
-;;;   - Implement it in assembly: you _want_ the fine control that
-;;;     assembly can give you for this.
-;;; I already lambda-lift it by hand, but you should be able to make it
-;;; even better than that.
-(define %vector-copy!
-  (letrec ((loop/l->r (lambda (target source send i j)
-                        (cond ((< i send)
-                               (vector-set! target j
-                                            (vector-ref source i))
-                               (loop/l->r target source send
-                                          (+ i 1) (+ j 1))))))
-           (loop/r->l (lambda (target source sstart i j)
-                        (cond ((>= i sstart)
-                               (vector-set! target j
-                                            (vector-ref source i))
-                               (loop/r->l target source sstart
-                                          (- i 1) (- j 1)))))))
-    (lambda (target tstart source sstart send)
-      (if (> sstart tstart)             ; Make sure we don't copy over
-                                        ;   ourselves.
-          (loop/l->r target source send sstart tstart)
-          (loop/r->l target source sstart (- send 1)
-                     (+ -1 tstart send (- sstart)))))))
-
-;;; (%VECTOR-REVERSE-COPY! <target> <tstart> <source> <sstart> <send>)
-;;;   Copy elements from SSTART to SEND from SOURCE to TARGET, in the
-;;;   reverse order.
-(define %vector-reverse-copy!
-  (letrec ((loop (lambda (target source sstart i j)
-                   (cond ((>= i sstart)
-                          (vector-set! target j (vector-ref source i))
-                          (loop target source sstart
-                                (- i 1)
-                                (+ j 1)))))))
-    (lambda (target tstart source sstart send)
-      (loop target source sstart
-            (- send 1)
-            tstart))))
-
-;;; (%VECTOR-REVERSE! <vector>)
-(define %vector-reverse!
-  (letrec ((loop (lambda (vec i j)
-                   (cond ((<= i j)
-                          (let ((v (vector-ref vec i)))
-                            (vector-set! vec i (vector-ref vec j))
-                            (vector-set! vec j v)
-                            (loop vec (+ i 1) (- j 1))))))))
-    (lambda (vec start end)
-      (loop vec start (- end 1)))))
-
-;;; (%VECTOR-FOLD1 <kons> <knil> <vector>) -> knil'
-;;;     (KONS <index> <knil> <elt>) -> knil'
-(define %vector-fold1
-  (letrec ((loop (lambda (kons knil len vec i)
-                   (if (= i len)
-                       knil
-                       (loop kons
-                             (kons i knil (vector-ref vec i))
-                             len vec (+ i 1))))))
-    (lambda (kons knil len vec)
-      (loop kons knil len vec 0))))
-
-;;; (%VECTOR-FOLD2+ <kons> <knil> <vector> ...) -> knil'
-;;;     (KONS <index> <knil> <elt> ...) -> knil'
-(define %vector-fold2+
-  (letrec ((loop (lambda (kons knil len vectors i)
-                   (if (= i len)
-                       knil
-                       (loop kons
-                             (apply kons i knil
-                                    (vectors-ref vectors i))
-                             len vectors (+ i 1))))))
-    (lambda (kons knil len vectors)
-      (loop kons knil len vectors 0))))
-
-;;; (%VECTOR-MAP! <f> <target> <length> <vector>) -> target
-;;;     (F <index> <elt>) -> elt'
-(define %vector-map1!
-  (letrec ((loop (lambda (f target vec i)
-                   (if (zero? i)
-                       target
-                       (let ((j (- i 1)))
-                         (vector-set! target j
-                                      (f j (vector-ref vec j)))
-                         (loop f target vec j))))))
-    (lambda (f target vec len)
-      (loop f target vec len))))
-
-;;; (%VECTOR-MAP2+! <f> <target> <vectors> <len>) -> target
-;;;     (F <index> <elt> ...) -> elt'
-(define %vector-map2+!
-  (letrec ((loop (lambda (f target vectors i)
-                   (if (zero? i)
-                       target
-                       (let ((j (- i 1)))
-                         (vector-set! target j
-                           (apply f j (vectors-ref vectors j)))
-                         (loop f target vectors j))))))
-    (lambda (f target vectors len)
-      (loop f target vectors len))))
+(define-syntax vector-any
+  (syntax-rules ()
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-any ?proc str beg past)))))
 
 
+;;;; comparison
 
-;;;;;;;;;;;;;;;;;;;;;;;; ***** vector-lib ***** ;;;;;;;;;;;;;;;;;;;;;;;
+(define-syntax vector-compare
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-compare str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
 
-;;; --------------------
-;;; Constructors
+(define-syntax vector-compare-ci
+  (syntax-rules ()
+    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-compare-ci str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
 
-;;; (MAKE-VECTOR <size> [<fill>]) -> vector
-;;;   [R5RS] Create a vector of length LENGTH.  If FILL is present,
-;;;   initialize each slot in the vector with it; if not, the vector's
-;;;   initial contents are unspecified.
-; Already in R6RS
-;(define make-vector make-vector)
+;;; --------------------------------------------------------------------
 
-;;; (VECTOR <elt> ...) -> vector
-;;;   [R5RS] Create a vector containing ELEMENT ..., in order.
-; Already in R6RS
-;(define vector vector)
+(define-syntax vector=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector= str1 start1 end1 str2 start2 end2)))))
 
-;;; This ought to be able to be implemented much more efficiently -- if
-;;; we have the number of arguments available to us, we can create the
-;;; vector without using LENGTH to determine the number of elements it
-;;; should have.
-;(define (vector . elements) (list->vector elements))
+(define-syntax vector<>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector<> str1 start1 end1 str2 start2 end2)))))
 
-;;; (VECTOR-UNFOLD <f> <length> <initial-seed> ...) -> vector
-;;;     (F <index> <seed> ...) -> [elt seed' ...]
-;;;   The fundamental vector constructor.  Creates a vector whose
-;;;   length is LENGTH and iterates across each index K between 0 and
-;;;   LENGTH, applying F at each iteration to the current index and the
-;;;   current seeds to receive N+1 values: first, the element to put in
-;;;   the Kth slot and then N new seeds for the next iteration.
-(define vector-unfold
-  (letrec ((tabulate!                   ; Special zero-seed case.
-            (lambda (f vec i len)
-              (cond ((< i len)
-                     (vector-set! vec i (f i))
-                     (tabulate! f vec (+ i 1) len)))))
-           (unfold1!                    ; Fast path for one seed.
-            (lambda (f vec i len seed)
-              (if (< i len)
-                  (receive (elt new-seed)
-                           (f i seed)
-                    (vector-set! vec i elt)
-                    (unfold1! f vec (+ i 1) len new-seed)))))
-           (unfold2+!                   ; Slower variant for N seeds.
-            (lambda (f vec i len seeds)
-              (if (< i len)
-                  (receive (elt . new-seeds)
-                           (apply f i seeds)
-                    (vector-set! vec i elt)
-                    (unfold2+! f vec (+ i 1) len new-seeds))))))
-    (lambda (f len . initial-seeds)
-      (let ((f   (check-type procedure?  f   'vector-unfold))
-            (len (check-type nonneg-int? len 'vector-unfold)))
-        (let ((vec (make-vector len)))
-          (cond ((null? initial-seeds)
-                 (tabulate! f vec 0 len))
-                ((null? (cdr initial-seeds))
-                 (unfold1! f vec 0 len (car initial-seeds)))
-                (else
-                 (unfold2+! f vec 0 len initial-seeds)))
-          vec)))))
+(define-syntax vector<
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector< str1 start1 end1 str2 start2 end2)))))
 
-;;; (VECTOR-UNFOLD-RIGHT <f> <length> <initial-seed> ...) -> vector
-;;;     (F <seed> ...) -> [seed' ...]
-;;;   Like VECTOR-UNFOLD, but it generates elements from LENGTH to 0
-;;;   (still exclusive with  LENGTH and inclusive with 0), not 0 to
-;;;   LENGTH as with VECTOR-UNFOLD.
-(define vector-unfold-right
-  (letrec ((tabulate!
-            (lambda (f vec i)
-              (cond ((>= i 0)
-                     (vector-set! vec i (f i))
-                     (tabulate! f vec (- i 1))))))
-           (unfold1!
-            (lambda (f vec i seed)
-              (if (>= i 0)
-                  (receive (elt new-seed)
-                           (f i seed)
-                    (vector-set! vec i elt)
-                    (unfold1! f vec (- i 1) new-seed)))))
-           (unfold2+!
-            (lambda (f vec i seeds)
-              (if (>= i 0)
-                  (receive (elt . new-seeds)
-                           (apply f i seeds)
-                    (vector-set! vec i elt)
-                    (unfold2+! f vec (- i 1) new-seeds))))))
-    (lambda (f len . initial-seeds)
-      (let ((f   (check-type procedure?  f   'vector-unfold-right))
-            (len (check-type nonneg-int? len 'vector-unfold-right)))
-        (let ((vec (make-vector len))
-              (i (- len 1)))
-          (cond ((null? initial-seeds)
-                 (tabulate! f vec i))
-                ((null? (cdr initial-seeds))
-                 (unfold1!  f vec i (car initial-seeds)))
-                (else
-                 (unfold2+! f vec i initial-seeds)))
-          vec)))))
+(define-syntax vector>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector> str1 start1 end1 str2 start2 end2)))))
 
-;;; (VECTOR-COPY <vector> [<start> <end> <fill>]) -> vector
-;;;   Create a newly allocated vector containing the elements from the
-;;;   range [START,END) in VECTOR.  START defaults to 0; END defaults
-;;;   to the length of VECTOR.  END may be greater than the length of
-;;;   VECTOR, in which case the vector is enlarged; if FILL is passed,
-;;;   the new locations from which there is no respective element in
-;;;   VECTOR are filled with FILL.
-(define (vector-copy vec . args)
-  (let ((vec (check-type vector? vec 'vector-copy)))
-    ;; We can't use LET-VECTOR-START+END, because we have one more
-    ;; argument, and we want finer control, too.
-    ;;
-    ;; Olin's implementation of LET*-OPTIONALS would prove useful here:
-    ;; the built-in argument-checks-as-you-go-along produces almost
-    ;; _exactly_ the same code as VECTOR-COPY:PARSE-ARGS.
-    (receive (start end fill)
-             (vector-copy:parse-args vec args)
-      (let ((new-vector (make-vector (- end start) fill)))
-        (%vector-copy! new-vector 0
-                       vec        start
-                       (if (> end (vector-length vec))
-                           (vector-length vec)
-                           end))
-        new-vector))))
+(define-syntax vector<=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector<= str1 start1 end1 str2 start2 end2)))))
 
-;;; Auxiliary for VECTOR-COPY.
-(define (vector-copy:parse-args vec args)
-  (if (null? args)
-      (values 0 (vector-length vec) (unspecified-value))
-      (let ((start (check-index vec (car args) 'vector-copy)))
-        (if (null? (cdr args))
-            (values start (vector-length vec) (unspecified-value))
-            (let ((end (check-type nonneg-int? (cadr args)
-                                   'vector-copy)))
-              (cond ((>= start (vector-length vec))
-                     (error "start bound out of bounds"
-                            `(start was ,start)
-                            `(end was ,end)
-                            `(vector was ,vec)
-                            `(while calling ,vector-copy)))
-                    ((> start end)
-                     (error "can't invert a vector copy!"
-                            `(start was ,start)
-                            `(end was ,end)
-                            `(vector was ,vec)
-                            `(while calling ,vector-copy)))
-                    ((null? (cddr args))
-                     (values start end (unspecified-value)))
-                    (else
-                     (let ((fill (caddr args)))
-                       (if (null? (cdddr args))
-                           (values start end fill)
-                           (error "too many arguments"
-                                  vector-copy
-                                  (cdddr args)))))))))))
+(define-syntax vector>=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector>= str1 start1 end1 str2 start2 end2)))))
 
-;;; (VECTOR-REVERSE-COPY <vector> [<start> <end>]) -> vector
-;;;   Create a newly allocated vector whose elements are the reversed
-;;;   sequence of elements between START and END in VECTOR.  START's
-;;;   default is 0; END's default is the length of VECTOR.
-(define (vector-reverse-copy vec . maybe-start+end)
-  (let-vector-start+end vector-reverse-copy vec maybe-start+end
-                        (start end)
-    (let ((new (make-vector (- end start))))
-      (%vector-reverse-copy! new 0 vec start end)
-      new)))
+;;; --------------------------------------------------------------------
 
-;;; (VECTOR-APPEND <vector> ...) -> vector
-;;;   Append VECTOR ... into a newly allocated vector and return that
-;;;   new vector.
-(define (vector-append . vectors)
-  (vector-concatenate:aux vectors vector-append))
+(define-syntax vector-ci=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-ci= str1 start1 end1 str2 start2 end2)))))
 
-;;; (VECTOR-CONCATENATE <vector-list>) -> vector
-;;;   Concatenate the vectors in VECTOR-LIST.  This is equivalent to
-;;;     (apply vector-append VECTOR-LIST)
-;;;   but VECTOR-APPEND tends to be implemented in terms of
-;;;   VECTOR-CONCATENATE, and some Schemes bork when the list to apply
-;;;   a function to is too long.
-;;;
-;;; Actually, they're both implemented in terms of an internal routine.
-(define (vector-concatenate vector-list)
-  (vector-concatenate:aux vector-list vector-concatenate))
+(define-syntax vector-ci<>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-ci<> str1 start1 end1 str2 start2 end2)))))
 
-;;; Auxiliary for VECTOR-APPEND and VECTOR-CONCATENATE
-(define vector-concatenate:aux
-  (letrec ((compute-length
-            (lambda (vectors len callee)
-              (if (null? vectors)
-                  len
-                  (let ((vec (check-type vector? (car vectors)
-                                         callee)))
-                    (compute-length (cdr vectors)
-                                    (+ (vector-length vec) len)
-                                    callee)))))
-           (concatenate!
-            (lambda (vectors target to)
-              (if (null? vectors)
-                  target
-                  (let* ((vec1 (car vectors))
-                         (len (vector-length vec1)))
-                    (%vector-copy! target to vec1 0 len)
-                    (concatenate! (cdr vectors) target
-                                  (+ to len)))))))
-    (lambda (vectors callee)
-      (cond ((null? vectors)            ;+++
-             (make-vector 0))
-            ((null? (cdr vectors))      ;+++
-             ;; Blech, we still have to allocate a new one.
-             (let* ((vec (check-type vector? (car vectors) callee))
-                    (len (vector-length vec))
-                    (new (make-vector len)))
-               (%vector-copy! new 0 vec 0 len)
-               new))
-            (else
-             (let ((new-vector
-                    (make-vector (compute-length vectors 0 callee))))
-               (concatenate! vectors new-vector 0)
-               new-vector))))))
+(define-syntax vector-ci<
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-ci< str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax vector-ci>
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-ci> str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax vector-ci<=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-ci<= str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax vector-ci>=
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-ci>= str1 start1 end1 str2 start2 end2)))))
 
 
+;;;; mapping
 
-;;; --------------------
-;;; Predicates
+(define-syntax vector-map
+  (syntax-rules ()
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-map ?proc str beg past)))))
 
-;;; (VECTOR? <value>) -> boolean
-;;;   [R5RS] Return #T if VALUE is a vector and #F if not.
-; Already in R6RS
-;(define vector? vector?)
+(define-syntax vector-map!
+  (syntax-rules ()
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-map! ?proc str beg past)))))
 
-;;; (VECTOR-EMPTY? <vector>) -> boolean
-;;;   Return #T if VECTOR has zero elements in it, i.e. VECTOR's length
-;;;   is 0, and #F if not.
-(define (vector-empty? vec)
-  (let ((vec (check-type vector? vec 'vector-empty?)))
-    (zero? (vector-length vec))))
+(define-syntax vector-for-each*
+  (syntax-rules ()
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-for-each* ?proc str beg past)))))
 
-;;; (VECTOR= <elt=?> <vector> ...) -> boolean
-;;;     (ELT=? <value> <value>) -> boolean
-;;;   Determine vector equality generalized across element comparators.
-;;;   Vectors A and B are equal iff their lengths are the same and for
-;;;   each respective elements E_a and E_b (element=? E_a E_b) returns
-;;;   a true value.  ELT=? is always applied to two arguments.  Element
-;;;   comparison must be consistent wtih EQ?; that is, if (eq? E_a E_b)
-;;;   results in a true value, then (ELEMENT=? E_a E_b) must result in a
-;;;   true value.  This may be exploited to avoid multiple unnecessary
-;;;   element comparisons.  (This implementation does, but does not deal
-;;;   with the situation that ELEMENT=? is EQ? to avoid more unnecessary
-;;;   comparisons, but I believe this optimization is probably fairly
-;;;   insignificant.)
-;;;
-;;;   If the number of vector arguments is zero or one, then #T is
-;;;   automatically returned.  If there are N vector arguments,
-;;;   VECTOR_1 VECTOR_2 ... VECTOR_N, then VECTOR_1 & VECTOR_2 are
-;;;   compared; if they are equal, the vectors VECTOR_2 ... VECTOR_N
-;;;   are compared.  The precise order in which ELT=? is applied is not
-;;;   specified.
-(define (vector= elt=? . vectors)
-  (let ((elt=? (check-type procedure? elt=? 'vector=)))
-    (cond ((null? vectors)
-           #t)
-          ((null? (cdr vectors))
-           (check-type vector? (car vectors) 'vector=)
-           #t)
-          (else
-           (let loop ((vecs vectors))
-             (let ((vec1 (check-type vector? (car vecs) 'vector=))
-                   (vec2+ (cdr vecs)))
-               (or (null? vec2+)
-                   (and (binary-vector= elt=? vec1 (car vec2+))
-                        (loop vec2+)))))))))
-(define (binary-vector= elt=? vector-a vector-b)
-  (or (eq? vector-a vector-b)           ;+++
-      (let ((length-a (vector-length vector-a))
-            (length-b (vector-length vector-b)))
-        (letrec ((loop (lambda (i)
-                         (or (= i length-a)
-                             (and (< i length-b)
-                                  (test (vector-ref vector-a i)
-                                        (vector-ref vector-b i)
-                                        i)))))
-                 (test (lambda (elt-a elt-b i)
-                         (and (or (eq? elt-a elt-b) ;+++
-                                  (elt=? elt-a elt-b))
-                              (loop (+ i 1))))))
-          (and (= length-a length-b)
-               (loop 0))))))
+(define-syntax vector-for-each-index
+  (syntax-rules ()
+    ((_ ?proc ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-for-each-index ?proc str beg past)))))
 
 
+;;;; case hacking
 
-;;; --------------------
-;;; Selectors
+(define-syntax vector-upcase*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-map char-upcase str beg past)))))
 
-;;; (VECTOR-REF <vector> <index>) -> value
-;;;   [R5RS] Return the value that the location in VECTOR at INDEX is
-;;;   mapped to in the store.
-; Already in R6RS
-;(define vector-ref vector-ref)
+(define-syntax vector-upcase*!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-map! char-upcase str beg past)))))
 
-;;; (VECTOR-LENGTH <vector>) -> exact, nonnegative integer
-;;;   [R5RS] Return the length of VECTOR.
-; Already in R6RS
-;(define vector-length vector-length)
+(define-syntax vector-downcase*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-map char-downcase str beg past)))))
 
-
+(define-syntax vector-downcase*!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-map! char-downcase str beg past)))))
 
-;;; --------------------
-;;; Iteration
+(define-syntax vector-titlecase*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (let ((ans (subvector str beg past)))
+	 (%vector-titlecase*! ans 0 (- past beg))
+	 ans)))))
 
-;;; (VECTOR-FOLD <kons> <initial-knil> <vector> ...) -> knil
-;;;     (KONS <knil> <elt> ...) -> knil' ; N vectors -> N+1 args
-;;;   The fundamental vector iterator.  KONS is iterated over each
-;;;   index in all of the vectors in parallel, stopping at the end of
-;;;   the shortest; KONS is applied to an argument list of (list I
-;;;   STATE (vector-ref VEC I) ...), where STATE is the current state
-;;;   value -- the state value begins with KNIL and becomes whatever
-;;;   KONS returned at the respective iteration --, and I is the
-;;;   current index in the iteration.  The iteration is strictly left-
-;;;   to-right.
-;;;     (vector-fold KONS KNIL (vector E_1 E_2 ... E_N))
-;;;       <=>
-;;;     (KONS (... (KONS (KONS KNIL E_1) E_2) ... E_N-1) E_N)
-(define (vector-fold kons knil vec . vectors)
-  (let ((kons (check-type procedure? kons 'vector-fold))
-        (vec  (check-type vector?    vec  'vector-fold)))
-    (if (null? vectors)
-        (%vector-fold1 kons knil (vector-length vec) vec)
-        (%vector-fold2+ kons knil
-                        (%smallest-length vectors
-                                          (vector-length vec)
-                                          vector-fold)
-                        (cons vec vectors)))))
-
-;;; (VECTOR-FOLD-RIGHT <kons> <initial-knil> <vector> ...) -> knil
-;;;     (KONS <knil> <elt> ...) -> knil' ; N vectors => N+1 args
-;;;   The fundamental vector recursor.  Iterates in parallel across
-;;;   VECTOR ... right to left, applying KONS to the elements and the
-;;;   current state value; the state value becomes what KONS returns
-;;;   at each next iteration.  KNIL is the initial state value.
-;;;     (vector-fold-right KONS KNIL (vector E_1 E_2 ... E_N))
-;;;       <=>
-;;;     (KONS (... (KONS (KONS KNIL E_N) E_N-1) ... E_2) E_1)
-;;;
-;;; Not implemented in terms of a more primitive operations that might
-;;; called %VECTOR-FOLD-RIGHT due to the fact that it wouldn't be very
-;;; useful elsewhere.
-(define vector-fold-right
-  (letrec ((loop1 (lambda (kons knil vec i)
-                    (if (negative? i)
-                        knil
-                        (loop1 kons (kons i knil (vector-ref vec i))
-                               vec
-                               (- i 1)))))
-           (loop2+ (lambda (kons knil vectors i)
-                     (if (negative? i)
-                         knil
-                         (loop2+ kons
-                                 (apply kons i knil
-                                        (vectors-ref vectors i))
-                                 vectors
-                                 (- i 1))))))
-    (lambda (kons knil vec . vectors)
-      (let ((kons (check-type procedure? kons 'vector-fold-right))
-            (vec  (check-type vector?    vec  'vector-fold-right)))
-        (if (null? vectors)
-            (loop1  kons knil vec (- (vector-length vec) 1))
-            (loop2+ kons knil (cons vec vectors)
-                    (- (%smallest-length vectors
-                                         (vector-length vec)
-                                         vector-fold-right)
-                       1)))))))
-
-;;; (VECTOR-MAP <f> <vector> ...) -> vector
-;;;     (F <elt> ...) -> value ; N vectors -> N args
-;;;   Constructs a new vector of the shortest length of the vector
-;;;   arguments.  Each element at index I of the new vector is mapped
-;;;   from the old vectors by (F I (vector-ref VECTOR I) ...).  The
-;;;   dynamic order of application of F is unspecified.
-(define (vector-map f vec . vectors)
-  (let ((f   (check-type procedure? f   'vector-map))
-        (vec (check-type vector?    vec 'vector-map)))
-    (if (null? vectors)
-        (let ((len (vector-length vec)))
-          (%vector-map1! f (make-vector len) vec len))
-        (let ((len (%smallest-length vectors
-                                     (vector-length vec)
-                                     vector-map)))
-          (%vector-map2+! f (make-vector len) (cons vec vectors)
-                          len)))))
-
-;;; (VECTOR-MAP! <f> <vector> ...) -> unspecified
-;;;     (F <elt> ...) -> element' ; N vectors -> N args
-;;;   Similar to VECTOR-MAP, but rather than mapping the new elements
-;;;   into a new vector, the new mapped elements are destructively
-;;;   inserted into the first vector.  Again, the dynamic order of
-;;;   application of F is unspecified, so it is dangerous for F to
-;;;   manipulate the first VECTOR.
-(define (vector-map! f vec . vectors)
-  (let ((f   (check-type procedure? f   'vector-map!))
-        (vec (check-type vector?    vec 'vector-map!)))
-    (if (null? vectors)
-        (%vector-map1!  f vec vec (vector-length vec))
-        (%vector-map2+! f vec (cons vec vectors)
-                        (%smallest-length vectors
-                                          (vector-length vec)
-                                          vector-map!)))
-    (unspecified-value)))
-
-;;; (VECTOR-FOR-EACH <f> <vector> ...) -> unspecified
-;;;     (F <elt> ...) ; N vectors -> N args
-;;;   Simple vector iterator: applies F to each index in the range [0,
-;;;   LENGTH), where LENGTH is the length of the smallest vector
-;;;   argument passed, and the respective element at that index.  In
-;;;   contrast with VECTOR-MAP, F is reliably applied to each
-;;;   subsequent elements, starting at index 0 from left to right, in
-;;;   the vectors.
-(define vector-for-each
-  (letrec ((for-each1
-            (lambda (f vec i len)
-              (cond ((< i len)
-                     (f i (vector-ref vec i))
-                     (for-each1 f vec (+ i 1) len)))))
-           (for-each2+
-            (lambda (f vecs i len)
-              (cond ((< i len)
-                     (apply f i (vectors-ref vecs i))
-                     (for-each2+ f vecs (+ i 1) len))))))
-    (lambda (f vec . vectors)
-      (let ((f   (check-type procedure? f   'vector-for-each))
-            (vec (check-type vector?    vec 'vector-for-each)))
-        (if (null? vectors)
-            (for-each1 f vec 0 (vector-length vec))
-            (for-each2+ f (cons vec vectors) 0
-                        (%smallest-length vectors
-                                          (vector-length vec)
-                                          vector-for-each)))))))
-
-;;; (VECTOR-COUNT <predicate?> <vector> ...)
-;;;       -> exact, nonnegative integer
-;;;     (PREDICATE? <index> <value> ...) ; N vectors -> N+1 args
-;;;   PREDICATE? is applied element-wise to the elements of VECTOR ...,
-;;;   and a count is tallied of the number of elements for which a
-;;;   true value is produced by PREDICATE?.  This count is returned.
-(define (vector-count pred? vec . vectors)
-  (let ((pred? (check-type procedure? pred? 'vector-count))
-        (vec   (check-type vector?    vec   'vector-count)))
-    (if (null? vectors)
-        (%vector-fold1 (lambda (index count elt)
-                         (if (pred? index elt)
-                             (+ count 1)
-                             count))
-                       0
-                       (vector-length vec)
-                       vec)
-        (%vector-fold2+ (lambda (index count . elts)
-                          (if (apply pred? index elts)
-                              (+ count 1)
-                              count))
-                        0
-                        (%smallest-length vectors
-                                          (vector-length vec)
-                                          vector-count)
-                        (cons vec vectors)))))
+(define-syntax vector-titlecase*!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-titlecase*! str beg past)))))
 
 
+;;;; folding
 
-;;; --------------------
-;;; Searching
+(define-syntax vector-fold
+  (syntax-rules ()
+    ((?F ?kons ?knil ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-fold ?kons ?knil str beg past)))))
 
-;;; (VECTOR-INDEX <predicate?> <vector> ...)
-;;;       -> exact, nonnegative integer or #F
-;;;     (PREDICATE? <elt> ...) -> boolean ; N vectors -> N args
-;;;   Search left-to-right across VECTOR ... in parallel, returning the
-;;;   index of the first set of values VALUE ... such that (PREDICATE?
-;;;   VALUE ...) returns a true value; if no such set of elements is
-;;;   reached, return #F.
-(define (vector-index pred? vec . vectors)
-  (vector-index/skip pred? vec vectors vector-index))
-
-;;; (VECTOR-SKIP <predicate?> <vector> ...)
-;;;       -> exact, nonnegative integer or #F
-;;;     (PREDICATE? <elt> ...) -> boolean ; N vectors -> N args
-;;;   (vector-index (lambda elts (not (apply PREDICATE? elts)))
-;;;                 VECTOR ...)
-;;;   Like VECTOR-INDEX, but find the index of the first set of values
-;;;   that do _not_ satisfy PREDICATE?.
-(define (vector-skip pred? vec . vectors)
-  (vector-index/skip (lambda elts (not (apply pred? elts)))
-                     vec vectors
-                     vector-skip))
-
-;;; Auxiliary for VECTOR-INDEX & VECTOR-SKIP
-(define vector-index/skip
-  (letrec ((loop1  (lambda (pred? vec len i)
-                     (cond ((= i len) #f)
-                           ((pred? (vector-ref vec i)) i)
-                           (else (loop1 pred? vec len (+ i 1))))))
-           (loop2+ (lambda (pred? vectors len i)
-                     (cond ((= i len) #f)
-                           ((apply pred? (vectors-ref vectors i)) i)
-                           (else (loop2+ pred? vectors len
-                                         (+ i 1)))))))
-    (lambda (pred? vec vectors callee)
-      (let ((pred? (check-type procedure? pred? callee))
-            (vec   (check-type vector?    vec   callee)))
-        (if (null? vectors)
-            (loop1 pred? vec (vector-length vec) 0)
-            (loop2+ pred? (cons vec vectors)
-                    (%smallest-length vectors
-                                      (vector-length vec)
-                                      callee)
-                    0))))))
-
-;;; (VECTOR-INDEX-RIGHT <predicate?> <vector> ...)
-;;;       -> exact, nonnegative integer or #F
-;;;     (PREDICATE? <elt> ...) -> boolean ; N vectors -> N args
-;;;   Right-to-left variant of VECTOR-INDEX.
-(define (vector-index-right pred? vec . vectors)
-  (vector-index/skip-right pred? vec vectors vector-index-right))
-
-;;; (VECTOR-SKIP-RIGHT <predicate?> <vector> ...)
-;;;       -> exact, nonnegative integer or #F
-;;;     (PREDICATE? <elt> ...) -> boolean ; N vectors -> N args
-;;;   Right-to-left variant of VECTOR-SKIP.
-(define (vector-skip-right pred? vec . vectors)
-  (vector-index/skip-right (lambda elts (not (apply pred? elts)))
-                           vec vectors
-                           vector-index-right))
-
-(define vector-index/skip-right
-  (letrec ((loop1  (lambda (pred? vec i)
-                     (cond ((negative? i) #f)
-                           ((pred? (vector-ref vec i)) i)
-                           (else (loop1 pred? vec (- i 1))))))
-           (loop2+ (lambda (pred? vectors i)
-                     (cond ((negative? i) #f)
-                           ((apply pred? (vectors-ref vectors i)) i)
-                           (else (loop2+ pred? vectors (- i 1)))))))
-    (lambda (pred? vec vectors callee)
-      (let ((pred? (check-type procedure? pred? callee))
-            (vec   (check-type vector?    vec   callee)))
-        (if (null? vectors)
-            (loop1 pred? vec (- (vector-length vec) 1))
-            (loop2+ pred? (cons vec vectors)
-                    (- (%smallest-length vectors
-                                         (vector-length vec)
-                                         callee)
-                       1)))))))
-
-;;; (VECTOR-BINARY-SEARCH <vector> <value> <cmp> [<start> <end>])
-;;;       -> exact, nonnegative integer or #F
-;;;     (CMP <value1> <value2>) -> integer
-;;;       positive -> VALUE1 > VALUE2
-;;;       zero     -> VALUE1 = VALUE2
-;;;       negative -> VALUE1 < VALUE2
-;;;   Perform a binary search through VECTOR for VALUE, comparing each
-;;;   element to VALUE with CMP.
-(define (vector-binary-search vec value cmp . maybe-start+end)
-  (let ((cmp (check-type procedure? cmp 'vector-binary-search)))
-    (let-vector-start+end vector-binary-search vec maybe-start+end
-                          (start end)
-      (let loop ((start start) (end end) (j #f))
-        (let ((i (quotient (+ start end) 2)))
-          (if (or (= start end) (and j (= i j)))
-              #f
-              (let ((comparison
-                     (check-type integer?
-                                 (cmp (vector-ref vec i) value)
-                                 'vector-binary-search)))
-                (cond ((zero?     comparison) i)
-                      ((positive? comparison) (loop start i i))
-                      (else                   (loop i end i))))))))))
-
-;;; (VECTOR-ANY <pred?> <vector> ...) -> value
-;;;   Apply PRED? to each parallel element in each VECTOR ...; if PRED?
-;;;   should ever return a true value, immediately stop and return that
-;;;   value; otherwise, when the shortest vector runs out, return #F.
-;;;   The iteration and order of application of PRED? across elements
-;;;   is of the vectors is strictly left-to-right.
-(define vector-any
-  (letrec ((loop1 (lambda (pred? vec i len len-1)
-                    (and (not (= i len))
-                         (if (= i len-1)
-                             (pred? (vector-ref vec i))
-                             (or (pred? (vector-ref vec i))
-                                 (loop1 pred? vec (+ i 1)
-                                        len len-1))))))
-           (loop2+ (lambda (pred? vectors i len len-1)
-                     (and (not (= i len))
-                          (if (= i len-1)
-                              (apply pred? (vectors-ref vectors i))
-                              (or (apply pred? (vectors-ref vectors i))
-                                  (loop2+ pred? vectors (+ i 1)
-                                         len len-1)))))))
-    (lambda (pred? vec . vectors)
-      (let ((pred? (check-type procedure? pred? 'vector-any))
-            (vec   (check-type vector?    vec   'vector-any)))
-        (if (null? vectors)
-            (let ((len (vector-length vec)))
-              (loop1 pred? vec 0 len (- len 1)))
-            (let ((len (%smallest-length vectors
-                                         (vector-length vec)
-                                         vector-any)))
-              (loop2+ pred? (cons vec vectors) 0 len (- len 1))))))))
-
-;;; (VECTOR-EVERY <pred?> <vector> ...) -> value
-;;;   Apply PRED? to each parallel value in each VECTOR ...; if PRED?
-;;;   should ever return #F, immediately stop and return #F; otherwise,
-;;;   if PRED? should return a true value for each element, stopping at
-;;;   the end of the shortest vector, return the last value that PRED?
-;;;   returned.  In the case that there is an empty vector, return #T.
-;;;   The iteration and order of application of PRED? across elements
-;;;   is of the vectors is strictly left-to-right.
-(define vector-every
-  (letrec ((loop1 (lambda (pred? vec i len len-1)
-                    (or (= i len)
-                        (if (= i len-1)
-                            (pred? (vector-ref vec i))
-                            (and (pred? (vector-ref vec i))
-                                 (loop1 pred? vec (+ i 1)
-                                        len len-1))))))
-           (loop2+ (lambda (pred? vectors i len len-1)
-                     (or (= i len)
-                         (if (= i len-1)
-                             (apply pred? (vectors-ref vectors i))
-                             (and (apply pred? (vectors-ref vectors i))
-                                  (loop2+ pred? vectors (+ i 1)
-                                          len len-1)))))))
-    (lambda (pred? vec . vectors)
-      (let ((pred? (check-type procedure? pred? 'vector-every))
-            (vec   (check-type vector?    vec   'vector-every)))
-        (if (null? vectors)
-            (let ((len (vector-length vec)))
-              (loop1 pred? vec 0 len (- len 1)))
-            (let ((len (%smallest-length vectors
-                                         (vector-length vec)
-                                         vector-every)))
-              (loop2+ pred? (cons vec vectors) 0 len (- len 1))))))))
+(define-syntax vector-fold-right
+  (syntax-rules ()
+    ((?F ?kons ?knil ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-fold-right ?kons ?knil str beg past)))))
 
 
+;;;; selecting
 
-;;; --------------------
-;;; Mutators
+(define-syntax subvector*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (subvector str beg past)))))
 
-;;; (VECTOR-SET! <vector> <index> <value>) -> unspecified
-;;;   [R5RS] Assign the location at INDEX in VECTOR to VALUE.
-; Already in R6RS
-;(define vector-set! vector-set!)
+(define-syntax vector-copy*!
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-copy*! str1 beg1 str2 beg2 past2)))))
 
-;;; (VECTOR-SWAP! <vector> <index1> <index2>) -> unspecified
-;;;   Swap the values in the locations at INDEX1 and INDEX2.
-(define (vector-swap! vec i j)
-  (let ((vec (check-type vector? vec 'vector-swap!)))
-    (let ((i (check-index vec i 'vector-swap!))
-          (j (check-index vec j 'vector-swap!)))
-      (let ((x (vector-ref vec i)))
-        (vector-set! vec i (vector-ref vec j))
-        (vector-set! vec j x)))))
+(define-syntax vector-take
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-take nchars str beg past)))))
 
-;;; (VECTOR-FILL! <vector> <value> [<start> <end>]) -> unspecified
-;;;   [R5RS+] Fill the locations in VECTOR between START, whose default
-;;;   is 0, and END, whose default is the length of VECTOR, with VALUE.
-;;;
-;;; This one can probably be made really fast natively.
-(define vector-fill!
-  (let ((%vector-fill! rnrs:vector-fill!))   ; Take the native one, under
-                                        ;   the assumption that it's
-                                        ;   faster, so we can use it if
-                                        ;   there are no optional
-                                        ;   arguments.
-    (lambda (vec value . maybe-start+end)
-      (if (null? maybe-start+end)
-          (%vector-fill! vec value)     ;+++
-          (let-vector-start+end vector-fill! vec maybe-start+end
-                                (start end)
-            (do ((i start (+ i 1)))
-                ((= i end))
-              (vector-set! vec i value)))))))
+(define-syntax vector-take-right
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-take-right nchars str beg past)))))
 
-;;; (VECTOR-COPY! <target> <tstart> <source> [<sstart> <send>])
-;;;       -> unspecified
-;;;   Copy the values in the locations in [SSTART,SEND) from SOURCE to
-;;;   to TARGET, starting at TSTART in TARGET.
-(define (vector-copy! target tstart source . maybe-sstart+send)
-  (let* ((target (check-type vector? target 'vector-copy!))
-         (tstart (check-index target tstart 'vector-copy!)))
-    (let-vector-start+end vector-copy! source maybe-sstart+send
-                          (sstart send)
-      (let* ((source-length (vector-length source))
-             (lose (lambda (argument)
-                     (error "vector range out of bounds"
-                            argument
-                            `(while calling ,vector-copy!)
-                            `(target was ,target)
-                            `(target-length was ,(vector-length target))
-                            `(tstart was ,tstart)
-                            `(source was ,source)
-                            `(source-length was ,source-length)
-                            `(sstart was ,sstart)
-                            `(send   was ,send)))))
-        (cond ((< sstart 0)
-               (lose '(sstart < 0)))
-              ((< send 0)
-               (lose '(send < 0)))
-              ((> sstart send)
-               (lose '(sstart > send)))
-              ((>= sstart source-length)
-               (lose '(sstart >= source-length)))
-              ((> send source-length)
-               (lose '(send > source-length)))
-              (else
-               (%vector-copy! target tstart
-                              source sstart send)))))))
+(define-syntax vector-drop
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-drop nchars str beg past)))))
 
-;;; (VECTOR-REVERSE-COPY! <target> <tstart> <source> [<sstart> <send>])
-(define (vector-reverse-copy! target tstart source . maybe-sstart+send)
-  (let* ((target (check-type vector? target 'vector-reverse-copy!))
-         (tstart (check-index target tstart 'vector-reverse-copy!)))
-    (let-vector-start+end vector-reverse-copy source maybe-sstart+send
-                          (sstart send)
-      (let* ((source-length (vector-length source))
-             (lose (lambda (argument)
-                     (error "vector range out of bounds"
-                            argument
-                            `(while calling ,vector-reverse-copy!)
-                            `(target was ,target)
-                            `(target-length was ,(vector-length target))
-                            `(tstart was ,tstart)
-                            `(source was ,source)
-                            `(source-length was ,source-length)
-                            `(sstart was ,sstart)
-                            `(send   was ,send)))))
-        (cond ((< sstart 0)
-               (lose '(sstart < 0)))
-              ((< send 0)
-               (lose '(send < 0)))
-              ((> sstart send)
-               (lose '(sstart > send)))
-              ((>= sstart source-length)
-               (lose '(sstart >= source-length)))
-              ((> send source-length)
-               (lose '(send > source-length)))
-              ((and (eq? target source)
-                    (= sstart tstart))
-               (%vector-reverse! target tstart send))
-              ((and (eq? target source)
-                    (or (between? sstart tstart send)
-                        (between? tstart sstart
-                                  (+ tstart (- send sstart)))))
-               (error "vector range for self-copying overlaps"
-                      vector-reverse-copy!
-                      `(vector was ,target)
-                      `(tstart was ,tstart)
-                      `(sstart was ,sstart)
-                      `(send   was ,send)))
-              (else
-               (%vector-reverse-copy! target tstart
-                                      source sstart send)))))))
+(define-syntax vector-drop-right
+  (syntax-rules ()
+    ((_ ?S nchars)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-drop-right nchars str beg past)))))
 
-;;; (VECTOR-REVERSE! <vector> [<start> <end>]) -> unspecified
-;;;   Destructively reverse the contents of the sequence of locations
-;;;   in VECTOR between START, whose default is 0, and END, whose
-;;;   default is the length of VECTOR.
-(define (vector-reverse! vec . start+end)
-  (let-vector-start+end vector-reverse! vec start+end
-                        (start end)
-    (%vector-reverse! vec start end)))
+(define-syntax vector-trim
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-trim criterion str beg past)))))
+
+(define-syntax vector-trim-right
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-trim-right criterion str beg past)))))
+
+(define-syntax vector-trim-both
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-trim-both criterion str beg past)))))
+
+(define-syntax vector-pad
+  (syntax-rules ()
+    ((_ ?S ?len)
+     (vector-pad ?S ?len #\space))
+    ((_ ?S ?len ?char)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-pad ?len ?char str beg past)))))
+
+(define-syntax vector-pad-right
+  (syntax-rules ()
+    ((_ ?S ?len)
+     (vector-pad-right ?S ?len #\space))
+    ((_ ?S ?len ?char)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-pad-right ?len ?char str beg past)))))
 
 
+;;;; prefix and suffix
 
-;;; --------------------
-;;; Conversion
+(define-syntax vector-prefix-length
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-prefix-length str1 beg1 past1 str2 beg2 past2)))))
 
-;;; (VECTOR->LIST <vector> [<start> <end>]) -> list
-;;;   [R5RS+] Produce a list containing the elements in the locations
-;;;   between START, whose default is 0, and END, whose default is the
-;;;   length of VECTOR, from VECTOR.
-(define vector->list
-  (let ((%vector->list rnrs:vector->list))
-    (lambda (vec . maybe-start+end)
-      (if (null? maybe-start+end)       ; Oughta use CASE-LAMBDA.
-          (%vector->list vec)           ;+++
-          (let-vector-start+end vector->list vec maybe-start+end
-                                (start end)
-            ;(unfold (lambda (i)        ; No SRFI 1.
-            ;          (< i start))
-            ;        (lambda (i) (vector-ref vec i))
-            ;        (lambda (i) (- i 1))
-            ;        (- end 1))
-            (do ((i (- end 1) (- i 1))
-                 (result '() (cons (vector-ref vec i) result)))
-                ((< i start) result)))))))
+(define-syntax vector-suffix-length
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-suffix-length str1 beg1 past1 str2 beg2 past2)))))
 
-;;; (REVERSE-VECTOR->LIST <vector> [<start> <end>]) -> list
-;;;   Produce a list containing the elements in the locations between
-;;;   START, whose default is 0, and END, whose default is the length
-;;;   of VECTOR, from VECTOR, in reverse order.
-(define (reverse-vector->list vec . maybe-start+end)
-  (let-vector-start+end reverse-vector->list vec maybe-start+end
-                        (start end)
-    ;(unfold (lambda (i) (= i end))     ; No SRFI 1.
-    ;        (lambda (i) (vector-ref vec i))
-    ;        (lambda (i) (+ i 1))
-    ;        start)
-    (do ((i start (+ i 1))
-         (result '() (cons (vector-ref vec i) result)))
-        ((= i end) result))))
+(define-syntax vector-prefix-length-ci
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-prefix-length-ci str1 beg1 past1 str2 beg2 past2)))))
 
-;;; (LIST->VECTOR <list> [<start> [<end>]]) -> vector
-;;;   [R5RS+] Produce a vector containing the elements in LIST, which
-;;;   must be a proper list, between START, whose default is 0, & END,
-;;;   whose default is the length of LIST.  It is suggested that if the
-;;;   length of LIST is known in advance, the START and END arguments
-;;;   be passed, so that LIST->VECTOR need not call LENGTH to determine
-;;;   the the length.
-;;;
-;;; This implementation diverges on circular lists, unless LENGTH fails
-;;; and causes - to fail as well.  Given a LENGTH* that computes the
-;;; length of a list's cycle, this wouldn't diverge, and would work
-;;; great for circular lists.
-(define list->vector
-  (let ((%list->vector rnrs:list->vector))
-    (case-lambda
-      [(lst)
-       (%list->vector lst)]
-      [(lst start)
-       (list->vector lst start (length lst))]
-      [(lst start end)
-       ;; Checking the type of a proper list is expensive, so we do it
-       ;; amortizedly, or let %LIST->VECTOR or LIST-TAIL do it.
-       ;; We can't use LET-VECTOR-START+END, because we're using the
-       ;; bounds of a _list_, not a vector.
-       (let ((start (check-type nonneg-int? start 'list->vector))
-             (end   (check-type nonneg-int? end   'list->vector)))
-         ((lambda (f)
-            (vector-unfold f (- end start) (list-tail lst start)))
-          (lambda (index l)
-            (cond ((null? l)
-                   (error "list was too short"
-                          `(list was ,lst)
-                          `(attempted end was ,end)
-                          `(while calling ,list->vector)))
-                  ((pair? l)
-                   (values (car l) (cdr l)))
-                  (else
-                   ;; Make this look as much like what CHECK-TYPE
-                   ;; would report as possible.
-                   (error "erroneous value"
-                          ;; We want SRFI 1's PROPER-LIST?, but it
-                          ;; would be a waste to link all of SRFI
-                          ;; 1 to this module for only the single
-                          ;; function PROPER-LIST?.
-                          (list list? lst)
-                          `(while calling
-                                  ,list->vector)))))))])))
+(define-syntax vector-suffix-length-ci
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-suffix-length-ci str1 beg1 past1 str2 beg2 past2)))))
 
-;;; (REVERSE-LIST->VECTOR <list> [<start> <end>]) -> vector
-;;;   Produce a vector containing the elements in LIST, which must be a
-;;;   proper list, between START, whose default is 0, and END, whose
-;;;   default is the length of LIST, in reverse order.  It is suggested
-;;;   that if the length of LIST is known in advance, the START and END
-;;;   arguments be passed, so that REVERSE-LIST->VECTOR need not call
-;;;   LENGTH to determine the the length.
-;;;
-;;; This also diverges on circular lists unless, again, LENGTH returns
-;;; something that makes - bork.
-(define reverse-list->vector
+;;; --------------------------------------------------------------------
+
+(define-syntax vector-prefix?
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-prefix? str1 beg1 past1 str2 beg2 past2)))))
+
+(define-syntax vector-suffix?
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-suffix? str1 beg1 past1 str2 beg2 past2)))))
+
+(define-syntax vector-prefix-ci?
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-prefix-ci? str1 beg1 past1 str2 beg2 past2)))))
+
+(define-syntax vector-suffix-ci?
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%vector-suffix-ci? str1 beg1 past1 str2 beg2 past2)))))
+
+
+;;;; searching
+
+(define-syntax vector-index
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-index criterion str beg past)))))
+
+(define-syntax vector-index-right
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-index-right criterion str beg past)))))
+
+(define-syntax vector-skip
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-skip criterion str beg past)))))
+
+(define-syntax vector-skip-right
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-skip-right criterion str beg past)))))
+
+(define-syntax vector-count
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-count criterion str beg past)))))
+
+(define-syntax vector-contains
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-contains str1 start1 end1 str2 start2 end2)))))
+
+(define-syntax vector-contains-ci
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 end1) (unpack ?S1))
+		  ((str2 start2 end2) (unpack ?S2)))
+       (%vector-contains-ci str1 start1 end1 str2 start2 end2)))))
+
+
+;;;; filtering
+
+(define-syntax vector-delete
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-delete criterion str beg past)))))
+
+(define-syntax vector-filter
+  (syntax-rules ()
+    ((_ ?S criterion)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-filter criterion str beg past)))))
+
+
+;;;; vectors and lists
+
+(define-syntax vector->list*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector->list* str beg past)))))
+
+(define-syntax vector-tokenize
+  (syntax-rules ()
+    ((_ ?S ?token-set)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-tokenize ?token-set str beg past)))))
+
+(define vector-join
   (case-lambda
-    [(lst)
-     (reverse-list->vector lst 0 (length lst))]
-    [(lst start)
-     (reverse-list->vector lst start (length lst))]
-    [(lst start end)
-     (let ((start (check-type nonneg-int? start 'reverse-list->vector))
-           (end   (check-type nonneg-int? end   'reverse-list->vector)))
-       ((lambda (f)
-          (vector-unfold-right f (- end start) (list-tail lst start)))
-        (lambda (index l)
-          (cond ((null? l)
-                 (error "list too short"
-                        `(list was ,lst)
-                        `(attempted end was ,end)
-                        `(while calling ,reverse-list->vector)))
-                ((pair? l)
-                 (values (car l) (cdr l)))
-                (else
-                 (error "erroneous value"
-                        (list list? lst)
-                        `(while calling ,reverse-list->vector)))))))]))
+   ((vectors)
+    (%vector-join vectors " " 'infix))
+   ((vectors delim)
+    (%vector-join vectors delim 'infix))
+   ((vectors delim grammar)
+    (%vector-join vectors delim grammar))))
 
-) ;; end of library form
+
+;;; replicating
+
+(define-syntax xsubvector
+  (syntax-rules ()
+    ((_ ?S ?from ?to)
+     (let-values (((str beg past) (unpack ?S)))
+       (%xsubvector ?from ?to str beg past)))))
+
+(define-syntax vector-xcopy!
+  (syntax-rules ()
+    ((_ ?T ?S ?from ?to)
+     (let-values (((str1 beg1 past1) (unpack ?T))
+		  ((str2 beg2 past2) (unpack ?S)))
+       (%vector-xcopy! ?from ?to str1 beg1 past1 str2 beg2 past2)))))
+
+
+;;; concatenate, reverse, replace, fill
+
+(define vector-concatenate-reverse
+  (case-lambda
+
+   ((vector-list)
+    (%vector-concatenate-reverse vector-list "" 0))
+
+   ((vector-list final)
+    (%vector-concatenate-reverse vector-list final (vector-length final)))
+
+   ((vector-list final past)
+    (%vector-concatenate-reverse vector-list final past))))
+
+(define-syntax vector-replace
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 start1 past1) (unpack ?S1))
+		  ((str2 start2 past2) (unpack ?S2)))
+       (%vector-replace str1 start1 past1 str2 start2 past2)))))
+
+(define-syntax vector-reverse
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-reverse str beg past)))))
+
+(define-syntax vector-reverse!
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-reverse! str beg past)))))
+
+(define-syntax vector-fill*!
+  (syntax-rules ()
+    ((_ ?S ?fill-char)
+     (let-values (((str beg past) (unpack ?S)))
+       (%vector-fill*! ?fill-char str beg past)))))
+
+
+;;;; done
+
+)
 
 ;;; end of file

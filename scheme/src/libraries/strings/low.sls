@@ -1093,30 +1093,30 @@
 (define (%kmp-make-restart-vector char= pattern pattern-start pattern-past)
   (let* ((rvlen (- pattern-past pattern-start))
 	 (restart-vector (make-vector rvlen -1)))
-    (if (> rvlen 0)
-	(let ((rvlen-1 (- rvlen 1))
-	      (c0 (string-ref pattern pattern-start)))
-	  ;;Here's the main loop.  We have  set RV[0] ...  RV[i].  K = I
-	  ;;+ START -- it is the corresponding index into PATTERN.
-	  (let loop1 ((i 0) (j -1) (k pattern-start))
-	    (if (< i rvlen-1)
-		;; loop2 invariant:
-		;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
-		;;   or j = -1.
-		(let loop2 ((j j))
-		  (cond ((= j -1)
-			 (let ((i1 (+ 1 i)))
-			   (if (not (char= (string-ref pattern (+ k 1)) c0))
-			       (vector-set! restart-vector i1 0))
-			   (loop1 i1 0 (+ k 1))))
-			;; pat[(k-j) .. k] matches pat[start..start+j].
-			((char= (string-ref pattern k) (string-ref pattern (+ j pattern-start)))
-			 (let* ((i1 (+ 1 i))
-				(j1 (+ 1 j)))
-			   (vector-set! restart-vector i1 j1)
-			   (loop1 i1 j1 (+ k 1))))
+    (when (> rvlen 0)
+      (let ((rvlen-1 (- rvlen 1))
+	    (c0 (string-ref pattern pattern-start)))
+	;;Here's the main loop.  We have  set RV[0] ...  RV[i].  K = I
+	;;+ START -- it is the corresponding index into PATTERN.
+	(let loop1 ((i 0) (j -1) (k pattern-start))
+	  (when (< i rvlen-1)
+	    ;; loop2 invariant:
+	    ;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
+	    ;;   or j = -1.
+	    (let loop2 ((j j))
+	      (cond ((= j -1)
+		     (let ((i1 (+ 1 i)))
+		       (when (not (char= (string-ref pattern (+ k 1)) c0))
+			 (vector-set! restart-vector i1 0))
+		       (loop1 i1 0 (+ k 1))))
+		    ;; pat[(k-j) .. k] matches pat[start..start+j].
+		    ((char= (string-ref pattern k) (string-ref pattern (+ j pattern-start)))
+		     (let* ((i1 (+ 1 i))
+			    (j1 (+ 1 j)))
+		       (vector-set! restart-vector i1 j1)
+		       (loop1 i1 j1 (+ k 1))))
 
-			(else (loop2 (vector-ref restart-vector j)))))))))
+		    (else (loop2 (vector-ref restart-vector j)))))))))
     restart-vector))
 
 (define (%kmp-step char= restart-vector next-char-from-text

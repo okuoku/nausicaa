@@ -821,6 +821,18 @@ Knuth-Morris-Pratt searching
 * strings kmp partial::         Partial string search.
 * strings kmp string::          Full string search.
 
+Vectors library
+
+* vectors intro::               Introduction.
+* vectors view::                Views over vectors.
+* vectors cons::                Constructors.
+* vectors pred::                Predicates.
+* vectors map::                 Mapping functions.
+* vectors fold::                Folding and unfolding.
+* vectors search::              Searching.
+* vectors mutators::            Mutators.
+* vectors conv::                Conversion.
+
 Lightweight testing
 
 * checks select::               Selecting tests to be run.
@@ -21184,37 +21196,38 @@ Return the number of characters in @var{cs}.
 
 @defun char-set-intersection @var{cs-a} @var{cs-b}
 Return a new set representing the intersection of the arguments; the
-intersection is the set of values present in both the arguments.
+intersection is the set of characters present in both the arguments.
 
-The returned value may share some structure with the arguments.
+The returned set may share some structure with the arguments.
 @end defun
 
 
 @defun char-set-union @var{cs-a} @var{cs-b}
 Return a new set representing the union of the arguments; the union is
-the set of values present in one and/or the other argument.
+the set of characters present in one and/or the other argument.
 
-The returned value may share some structure with the arguments.
+The returned set may share some structure with the arguments.
 @end defun
 
 
 @defun char-set-difference @var{cs-a} @var{cs-b}
 Return a new set representing the difference between the arguments; the
-difference is the set of values present in one or the other argument.
+difference is the set of characters present in one or the other
+argument (but not both).
 
-The returned value may share some structure with the arguments.
+The returned set may share some structure with the arguments.
 @end defun
 
 
 @defun char-set-complement @var{cs}
 @defunx char-set-complement @var{cs} @var{cs-universe}
 Return a new set representing the complement of @var{cs} in
-@var{cs-universe}.  The complement is the set of values present in
-@var{cs-universe} which are not present in @var{cs}.
+@var{cs-universe}.  The complement is the set of characters present in
+@var{cs-universe}, which are not present in @var{cs}.
 
 If omitted, @var{cs-universe} defaults to @code{char-set:full}.
 
-The returned value may share some structure with the arguments.
+The returned set may share some structure with the arguments.
 @end defun
 
 @c ------------------------------------------------------------
@@ -21223,31 +21236,32 @@ The returned value may share some structure with the arguments.
 
 
 @defun char-set-for-each @var{proc} @var{cs}
-Apply @var{proc} to each element of @var{cs}.
+Apply @var{proc} to each character in @var{cs}.
 @end defun
 
 
 @defun char-set-every @var{proc} @var{cs}
-Apply @var{proc} to each value in the set and return true if all the
+Apply @var{proc} to each character in the set and return true if all the
 return values are true.  The application stops at the first @false{}
 return value.
 @end defun
 
 
 @defun char-set-any @var{proc} @var{cs}
-Apply @var{proc} to each value in the set and return true if at least
-one of the returned values is true.  The application stops at the first
-true return value.
+Apply @var{proc} to each character in the set and return true if at
+least one of the returned values is true.  The application stops at the
+first true return value.
 @end defun
 
 
 @defun char-set-fold @var{kons} @var{knil} @var{cs}
-Fold @var{kons} over the values in the set.
+Fold @var{kons} over the characters in the set.
 @end defun
 
 
 @defun char-set->list @var{cs}
-Return a list holding all the values in the set.
+Return a list holding all the characters in the set.  Beware that for
+some character sets the resulting list can be big.
 @end defun
 
 @c page
@@ -22187,7 +22201,7 @@ concerned with the overhead of string views, we can use the low level
 functions directly.
 
 In the following documentation: Low level functions and high level
-macros are documented together; only the meaning of arguments to low
+macros are documented together; only the meaning of arguments to the low
 level function are described, the meaning of high level arguments is
 obvious.
 
@@ -23693,18 +23707,19 @@ The @library{vectors} library extends vector operations available in the
 base library (@pxref{baselib vectors, Vectors}).
 
 @menu
-* vector intro::                Introduction.
-* vector cons::                 Constructors.
-* vector pred::                 Predicates.
-* vector map::                  Mapping functions.
-* vector fold::                 Folding and unfolding.
-* vector search::               Searching.
-* vector mutators::             Mutators.
-* vector conv::                 Conversion.
+* vectors intro::               Introduction.
+* vectors view::                Views over vectors.
+* vectors cons::                Constructors.
+* vectors pred::                Predicates.
+* vectors map::                 Mapping functions.
+* vectors fold::                Folding and unfolding.
+* vectors search::              Searching.
+* vectors mutators::            Mutators.
+* vectors conv::                Conversion.
 @end menu
 
 @c page
-@node vector intro
+@node vectors intro
 @subsection Introduction
 
 
@@ -23778,11 +23793,137 @@ when the end of the shortest vector is reached.  The sole exception is
 lengths vary.
 
 @c page
-@node vector cons
+@node vectors view
+@subsection Views over vectors
+
+
+Vector views are syntactic sugar to allow subvector specification with
+minimum overhead.  Some low level vector functions act on subvectors
+specified with triplets of arguments:
+
+@itemize
+@item
+The full vector.
+
+@item
+The @dfn{start index}: The index of the first value included in the
+selected subvector.
+
+@item
+The @dfn{past index}: The index of the value past the last value
+included in the selected subvector.
+@end itemize
+
+To select the subvector @code{#(3 4 5)} from the vector @code{#(1 2 3 4
+5 6 7)} we have to determine the half--open range of values, which is
+@math{[3, 6)}, then apply a function to the arguments:
+
+@example
+(%the-function #(0 1 2 3 4 5 6 7) 3 6)
+@end example
+
+@noindent
+while to select the whole vector we can do:
+
+@example
+(%the-function #(0 1 2 3 4 5 6 7) 0 8)
+@end example
+
+@noindent
+or:
+
+@example
+(let ((vec #(0 1 2 3 4 5 6 7)))
+  (%the-function vec 0 (vector-length vec)))
+@end example
+
+With the vector views implemented by @library{vectors}, the low level
+function is wrapped by a high level syntax which can be invoked as:
+
+@example
+(the-function #(0 1 2 3 4 5 6 7))
+        ; select the whole vector
+
+(the-function (#(0 1 2 3 4 5 6 7)))
+        ; select the whole vector
+
+(the-function (#(0 1 2 3 4 5 6 7) 6))
+        ; select the subvector [6, 8)
+
+(the-function (#(0 1 2 3 4 5 6 7) 3 6))
+        ; select the subvector [3, 6)
+@end example
+
+@noindent
+additionally the following verbose syntaxes are supported:
+
+@example
+(the-function (view #(0 1 2 3 4 5 6 7)))
+        ; select the whole vector
+
+(the-function (view #(0 1 2 3 4 5 6 7)
+                (start 5)))
+        ; select the subvector [5, 8)
+
+(the-function (view #(0 1 2 3 4 5 6 7)
+                (start 3)
+                (past 6)))
+        ; select the subvector [3, 6)
+
+(the-function (view #(0 1 2 3 4 5 6 7)
+                (past 6)))
+        ; select the subvector [0, 6)
+@end example
+
+@noindent
+instead of a triplet of arguments, the vector view is a single argument
+that can be:
+
+@table @code
+@item @meta{vector}
+@itemx (@meta{vector})
+@itemx (view @meta{vector})
+The vector itself or an unquoted list holding the vector itself,
+optionally prefixed by the @code{view} auxiliary syntax: It selects the
+whole vector.
+
+@item (@meta{vector} @meta{start-index})
+@itemx (view @meta{vector} (start @meta{start-index}))
+An unquoted list holding the vector and the start index, optionally with
+auxiliary syntaxes @code{view} and @code{start}: It selects the
+subvector from the start index to the end.
+
+@item (view @meta{vector} (past @meta{past-index}))
+An unquoted list holding the vector and the past index, with auxiliary
+syntaxes @code{view} and @code{past}: It selects the subvector from zero
+to the selected past index.
+
+@item (@meta{vector} @meta{start-index} @meta{past-index})
+@itemx (view @meta{vector} (start @meta{start-index}) (past @meta{past-index}))
+An unquoted list holding the vector, the start index and the past index,
+optionally with auxiliary syntaxes @code{view}, @code{start} and
+@code{past}: It selects the subvector between the start and past
+indexes.
+@end table
+
+@noindent
+@meta{vector}, @meta{start-index} and @meta{past-index} can be arbitrary
+Scheme expressions.  High level macros accepting two or more subvectors
+as arguments support vector views for all of them.  When we are
+concerned with the overhead of vector views, we can use the low level
+functions directly.
+
+In the following documentation: Low level functions and high level
+macros are documented together; only the meaning of arguments to the low
+level function are described, the meaning of high level arguments is
+obvious.
+
+@c page
+@node vectors cons
 @subsection Constructors
 
 
-@deffn Function %vector-copy @var{vec} @var{start} @var{past} @var{fill}
+@deffn Function %vector-copy @var{fill} @var{vec} @var{start} @var{past}
 @deffnx Macro vector-copy @var{V}
 @deffnx Macro vector-copy @var{V} @var{fill}
 Allocate a new vector and fill it with elements from the selected
@@ -23846,14 +23987,13 @@ Append each vector in @var{vectors-list}.
 @end defun
 
 @c page
-@node vector pred
+@node vectors pred
 @subsection Predicates
 
 
 @deffn Function %vector-empty? @var{vec} @var{start} @var{past}
 @deffnx Macro vector-empty? @var{V}
-Return @true{} if the selected subvector of @var{vec} is empty, i.e. its
-length is 0.
+Return @true{} if the selected subvector of @var{vec} is empty.
 
 @example
 (vector-empty? '#(a))
@@ -23874,7 +24014,7 @@ length is 0.
 @deffn Function %vector= @var{item=?} @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
 @deffnx Macro vector= @var{item=?} @var{V1} @var{V2}
 Compare the two subvectors and return true if their elements are equal
-according to @var{item=?}.
+according to @var{item=?}.  The vectors must be of equal length.
 
 The @var{item=?} predicate must be consistent with @func{eq?}: If
 @func{eq?} would return true when applied to elements, @var{item=?}
@@ -23896,7 +24036,7 @@ must return true when applied to the same elements.
 @end deffn
 
 @c page
-@node vector map
+@node vectors map
 @subsection Mapping functions
 
 
@@ -23983,7 +24123,7 @@ Example:
 @end defun
 
 @c page
-@node vector fold
+@node vectors fold
 @subsection Folding and unfolding
 
 
@@ -24038,57 +24178,205 @@ Similar to @func{vector-fold}, but it iterates right--to--left.
 
 @c ------------------------------------------------------------
 
-@defun vector-unfold @var{proc} @var{length} @var{initial-seed} ...
-The fundamental vector constructor.  Return a vector whose length is
-@var{length} and iterate across each index @math{k} between @math{0} and
-@var{length}, applying @var{proc} at each iteration to the current index
-and current seeds, in that order, to receive @math{n + 1} values: first,
-the element to put in the @math{k}-th slot of the new vector and
-@math{n} new seeds for the next iteration.  It is an error for the
-number of seeds to vary between iterations.
+@defun vector-unfold @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed}
+@defunx vector-unfold @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-vector}
+@defunx vector-unfold @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-vector} @var{make-final}
+This is a fundamental constructor for vectors.  Arguments description
+follows.
+
+@table @var
+@item make-seed
+A map function used to generate a series of ``seed'' values from the
+initial seed:
 
 @example
-(vector-unfold (lambda (i x)
-                 (values x (- x 1)))
-               10 0)
-@result{} #(0 -1 -2 -3 -4 -5 -6 -7 -8 -8)
-
-;; construct a vector of the sequence of integers
-;; in the range [0,n)
-(vector-unfold values n)
-@result{} #(0 1 2 ··· n-2 n-1)
-
-;; copy a vector
-(vector-unfold (lambda (i)
-                 (vector-ref vector i))
-               (vector-length vector))
+@var{first-seed}
+(@var{make-seed} @var{first-seed})            @result{} seed2
+(@var{make-seed} seed2)                 @result{} seed3
+(@var{make-seed} seed3)                 @result{} seed4
+...
 @end example
+
+@item stop?
+A predicate function telling when to stop generating characters; when it
+returns true when applied to one of the seed values.
+
+@item seed->char
+Map function mapping each seed value to the corresponding character in
+the result vector.  These chars are assembled into the vector in a
+left--to--right order.
+
+@item base
+An optional vector which is used as initial/leftmost portion of the
+constructed vector.  Defaults to the empty vector.
+
+@item make-final
+Optional function applied to the terminal seed value (on which
+@var{stop?}  returns true) to produce the final/rightmost portion of the
+constructed vector.  Defaults to @code{(lambda (x) "")}.
+@end table
+
+More precisely, the following (simple, inefficient) definitions hold:
+
+@example
+;; iterative
+(define (vector-unfold stop? seed->char make-seed
+                       first-seed base-vector make-final)
+  (let loop ((seed    first-seed)
+             (result  base-vector))
+    (if (stop? seed)
+        (vector-append result (make-final seed))
+      (loop (make-seed seed)
+            (vector-append result
+                           (vector (seed->char seed)))))))
+
+;; recursive
+(define (vector-unfold stop? seed->char make-seed
+                       first-seed base-vector make-final)
+  (vector-append
+     base-vector
+     (let loop ((seed first-seed))
+       (if (stop? seed)
+           (make-final seed)
+         (vector-append (vector (seed->char seed))
+                        (loop (make-seed seed)))))))
+@end example
+
+This function is a fairly powerful vector constructor; we can use it to
+convert a list to a vector, read a port into a vector, reverse a vector,
+copy a vector, and so forth.  Examples:
+
+@example
+(port->vector p) = (vector-unfold eof-object? values
+                                  (lambda (x) (read-char p))
+                                  (read-char p))
+
+(list->vector lis) = (vector-unfold null? car cdr lis)
+
+(vector-tabulate f size) = (vector-unfold (lambda (i)
+                                            (= i size))
+                                          f add1 0)
+@end example
+
+@noindent
+to map @var{seed->char} over a list @var{lis}, producing a vector:
+
+@example
+(vector-unfold null? (compose f car) cdr lis)
+@end example
+
+Interested functional programmers may enjoy noting that
+@func{vector-fold-right} and @func{vector-unfold} are in some sense
+inverses.  That is, given operations @var{knull?}, @var{kar}, @var{kdr},
+@var{kons}, and @var{knil} satisfying:
+
+@example
+(kons (kar x) (kdr x)) @result{} x
+(knull? knil) @result{} #t
+@end example
+
+@noindent
+then:
+
+@example
+(vector-fold-right kons knil
+                   (vector-unfold knull? kar kdr x))
+@result{} x
+@end example
+
+@noindent
+and:
+
+@example
+(vector-unfold knull? kar kdr
+               (vector-fold-right kons knil s))
+@result{} s
+@end example
+
+The final vector constructed does not share storage with either
+@var{base-vector} or the value produced by @var{make-final}.
 @end defun
 
 @c ------------------------------------------------------------
 
-@defun vector-unfold-right @var{f} @var{length} @var{initial-seed}
-Like @func{vector-unfold}, but it uses @var{proc} to generate elements
-from right--to--left.
+@defun vector-unfold-right @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed}
+@defunx vector-unfold-right @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-vector}
+@defunx vector-unfold-right @var{stop?} @var{seed->char} @var{make-seed} @var{first-seed} @var{base-vector} @var{make-final}
+This is a fundamental constructor for vectors.  The arguments are like
+the ones of @func{vector-unfold}.  The difference from
+@func{vector-unfold} is that this function builds the list from right to
+left; more precisely, the following (simple, inefficient) definitions
+hold:
 
 @example
-;; Construct a vector in reverse of the integers
-;; in the range [0,n).
-(vector-unfold-right (lambda (i x)
-                       (values x (+ x 1)))
-                     n 0)
-@result{} #(n-1 n-2 ··· 2 1 0)
+;; iterative
+(define (vector-unfold-right
+           stop? seed->char make-seed
+           first-seed base-vector make-final)
+  (let lp ((seed    first-seed)
+           (result  base))
+    (if (stop? seed)
+        (vector-append (make-final seed) result)
+      (loop (make-seed seed)
+            (vector-append (vector (seed->char seed))
+                           result)))))
 
-;; Reverse vector.
-(vector-unfold-right (lambda (i x)
-                       (values (vector-ref vector x) (+ x 1)))
-                     (vector-length vector)
-                     0)
+;; recursive
+(define (vector-unfold-right
+           stop? seed->char make-seed
+           first-seed base-vector make-final)
+  (vector-append
+     (let loop ((seed first-seed))
+       (if (stop? seed)
+           (make-final seed)
+         (vector-append (loop (make-seed seed))
+                        (vector (seed->char seed)))))
+     base))
 @end example
+
+Interested functional programmers may enjoy noting that
+@func{vector-fold} and @func{vector-unfold-right} are in some sense
+inverses.  That is, given operations @var{knull?}, @var{kar}, @var{kdr},
+@var{kons}, and @var{knil} satisfying:
+
+@example
+(kons (kar x) (kdr x)) @result{} x
+(knull? knil) @result{} #t
+@end example
+
+@noindent
+then:
+
+@example
+(vector-fold kons knil
+             (vector-unfold-right knull? kar kdr x))
+@result{} x
+@end example
+
+@noindent
+and:
+
+@example
+(vector-unfold-right knull? kar kdr
+                     (vector-fold kons knil s))
+@result{} s
+@end example
+
+The final vector constructed does not share storage with either
+@var{base-vector} or the value produced by @func{make-final}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun vector-tabulate @var{integer->char} @var{len}
+Construct a vector of size @var{len} by applying @var{integer->char} to
+each index in the range @math{[0, @var{len})} to produce the
+corresponding vector element.  The order in which @var{integer->char} is
+applied to the indices is not specified.
 @end defun
 
 @c page
-@node vector search
+@node vectors search
 @subsection Searching
 
 
@@ -24212,7 +24500,7 @@ index, in order.
 @end defun
 
 @c page
-@node vector mutators
+@node vectors mutators
 @subsection Mutators
 
 
@@ -24265,7 +24553,7 @@ behaves as:
 @end deffn
 
 @c page
-@node vector conv
+@node vectors conv
 @subsection Conversion
 
 
