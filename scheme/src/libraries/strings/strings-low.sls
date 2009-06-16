@@ -102,7 +102,7 @@
 
 
 #!r6rs
-(library (strings low)
+(library (strings strings-low)
   (export
 
     ;; predicates

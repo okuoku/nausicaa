@@ -109,7 +109,7 @@
 
 
 #!r6rs
-(library (vectors low)
+(library (vectors vectors-low)
   (export
 
     ;; constructors

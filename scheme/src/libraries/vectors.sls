@@ -150,7 +150,7 @@
     vector-reverse vector-reverse!
     vector-fill*! vector-replace)
   (import (rnrs)
-    (vectors low))
+    (vectors vectors-low))
 
 
 

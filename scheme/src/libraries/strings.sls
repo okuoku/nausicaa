@@ -163,7 +163,7 @@
     string-reverse string-reverse!
     string-fill*! string-replace)
   (import (rnrs)
-    (strings low))
+    (strings strings-low))
 
 
 
