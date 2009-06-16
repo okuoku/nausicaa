@@ -786,15 +786,15 @@
 (parameterise ((check-test-name 'folding))
 
   (check
-      (string-fold cons '() "abcd")
+      (string-fold* cons '() "abcd")
     => '(#\d #\c #\b #\a))
 
   (check
-      (string-fold cons '() "")
+      (string-fold* cons '() "")
     => '())
 
   (check
-      (string-fold (lambda (c count)
+      (string-fold* (lambda (c count)
 		     (if (char-upper-case? c)
 			 (+ count 1)
 		       count))
@@ -804,12 +804,12 @@
 
   (check
       (let* ((str "abc\\de\\f\\ghi")
-	     (ans-len (string-fold
+	     (ans-len (string-fold*
 		       (lambda (c sum)
 			 (+ sum (if (char=? c #\\) 2 1)))
 		       0 str))
 	     (ans (make-string ans-len)))
-	(string-fold
+	(string-fold*
 	 (lambda (c i)
 	   (let ((i (if (char=? c #\\)
 			(begin
@@ -825,11 +825,11 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (string-fold-right cons '() "abcd")
+      (string-fold-right* cons '() "abcd")
     => '(#\a #\b #\c #\d))
 
   (check
-      (string-fold-right cons '() "")
+      (string-fold-right* cons '() "")
     => '())
 
 ;;; --------------------------------------------------------------------

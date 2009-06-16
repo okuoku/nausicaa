@@ -815,14 +815,14 @@
       (let* ((str "abcd")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold cons '() str beg end))
+	(%string-fold* cons '() str beg end))
     => '(#\d #\c #\b #\a))
 
   (check
       (let* ((str "")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold cons '() str beg end))
+	(%string-fold* cons '() str beg end))
     => '())
 
 ;;; --------------------------------------------------------------------
@@ -831,14 +831,14 @@
       (let* ((str "abcd")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold-right cons '() str beg end))
+	(%string-fold-right* cons '() str beg end))
     => '(#\a #\b #\c #\d))
 
   (check
       (let* ((str "")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold-right cons '() str beg end))
+	(%string-fold-right* cons '() str beg end))
     => '())
 
 ;;; --------------------------------------------------------------------

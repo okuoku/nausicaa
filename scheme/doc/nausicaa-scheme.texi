@@ -22528,24 +22528,47 @@ and do not alter their s parameter.  @func{string-upcase!} and
 @subsection Fold, unfold and map
 
 
-@deffn Function %string-fold @var{kons} @var{knil} @var{str} @var{start} @var{past}
-@deffnx Function %string-fold-right @var{kons} @var{knil} @var{str} @var{start} @var{past}
-@deffnx Macro string-fold @var{kons} @var{knil} @var{S}
-@deffnx Macro string-fold-right @var{kons} @var{knil} @var{S}
-These are the fundamental iterators for strings.  The left--fold
-operator maps the @var{kons} procedure across the string from left to
-right:
+@defun string-fold @var{kons} @var{knil} @var{str0} @var{str} ...
+@defunx string-fold-right @var{kons} @var{knil} @var{str0} @var{str} ...
+The fundamental string iterator.  @var{kons} is iterated left--to--right
+over each index in all of the strings, stopping at the end of the
+shortest; @var{kons} is applied as:
+
+@example
+(@var{kons} @var{i} @var{state}
+  (string-ref @var{str0} @var{i})
+  (string-ref @var{str} @var{i})
+  ···)
+@end example
+
+@noindent
+where @var{state} is the current state value; the current state value
+begins with @var{knil}, and becomes whatever @var{kons} returned at the
+respective iteration; and @var{i} is the current index.
+
+@func{string-fold-right} is similar to @func{string-fold}, but it
+iterates right--to--left.
+@end defun
+
+@c ------------------------------------------------------------
+
+@deffn Function %string-fold* @var{kons} @var{knil} @var{str} @var{start} @var{past}
+@deffnx Function %string-fold-right* @var{kons} @var{knil} @var{str} @var{start} @var{past}
+@deffnx Macro string-fold* @var{kons} @var{knil} @var{S}
+@deffnx Macro string-fold-right* @var{kons} @var{knil} @var{S}
+Fundamental iterators for substrings.  The left--fold operator maps the
+@var{kons} procedure across the string from left to right:
 
 @example
 (... (kons str[2] (kons str[1] (kons str[0] knil))))
 @end example
 
 @noindent
-in other words, @func{%string-fold} obeys the (tail) recursion:
+in other words, @func{%string-fold*} obeys the (tail) recursion:
 
 @example
-(%string-fold kons knil str start past) =
-   (%string-fold kons (kons str[start] knil) start+1 past)
+(%string-fold* kons knil str start past) =
+   (%string-fold* kons (kons str[start] knil) start+1 past)
 @end example
 
 The right--fold operator maps the @var{kons} procedure across the string
@@ -22563,25 +22586,25 @@ from right to left:
 obeying the (tail) recursion:
 
 @example
-(%string-fold-right kons knil str start past) =
-   (%string-fold-right kons (kons s[past-1] knil)
-                       start past-1)
+(%string-fold-right* kons knil str start past) =
+   (%string-fold-right* kons (kons s[past-1] knil)
+                        start past-1)
 @end example
 
 Examples:
 
 @example
 ;; Convert a string to a list of chars.
-(string-fold cons '() "abcd")
+(string-fold* cons '() "abcd")
 @result{} (#\d #\c #\b #\a))
 
 ;; Count the number of upper-case characters in a string.
-(string-fold (lambda (c count)
-               (if (char-upper-case? c)
-                   (+ count 1)
-                 count))
-              0
-              "ABCdefGHi")
+(string-fold* (lambda (c count)
+                (if (char-upper-case? c)
+                    (+ count 1)
+                  count))
+               0
+               "ABCdefGHi")
 @result{} 5
 
 ;; Double every backslash character in S.
@@ -22591,7 +22614,7 @@ Examples:
                    (+ sum (if (char=? c #\\) 2 1)))
                  0 str))
        (ans (make-string ans-len)))
-  (string-fold
+  (string-fold*
    (lambda (c i)
      (let ((i (if (char=? c #\\)
                   (begin

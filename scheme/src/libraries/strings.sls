@@ -123,8 +123,9 @@
     string-downcase*! string-upcase*! string-titlecase*!
 
     ;; folding
-    string-fold       string-unfold
-    string-fold-right string-unfold-right
+    string-fold   string-fold-right
+    string-fold*  string-fold-right*
+    string-unfold string-unfold-right
     string-tabulate
 
     ;; selecting
@@ -185,11 +186,11 @@
 
     ((_ (?str))
      (let ((str ?str))
-       (values ?str 0 (string-length ?str))))
+       (values str 0 (string-length str))))
 
     ((_ (?str ?start))
      (let ((str ?str))
-       (values ?str ?start (string-length ?str))))
+       (values str ?start (string-length str))))
 
     ((_ (?str ?start ?past))
      (values ?str ?start ?past))
@@ -391,17 +392,17 @@
 
 ;;;; folding
 
-(define-syntax string-fold
+(define-syntax string-fold*
   (syntax-rules ()
     ((?F ?kons ?knil ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-fold ?kons ?knil str beg past)))))
+       (%string-fold* ?kons ?knil str beg past)))))
 
-(define-syntax string-fold-right
+(define-syntax string-fold-right*
   (syntax-rules ()
     ((?F ?kons ?knil ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-fold-right ?kons ?knil str beg past)))))
+       (%string-fold-right* ?kons ?knil str beg past)))))
 
 
 ;;;; selecting

@@ -106,54 +106,46 @@
     vector-null? vector-every vector-any
 
     ;; comparison
-    vector-compare vector-compare-ci
-    vector=    vector<    vector>    vector<=    vector>=    vector<>
-    vector-ci= vector-ci< vector-ci> vector-ci<= vector-ci>= vector-ci<>
+    vector= vector<>
 
     ;; mapping
-    vector-map vector-map!
-    vector-for-each* vector-for-each-index
-
-    ;; case
-    vector-downcase* vector-upcase* vector-titlecase*
-    vector-downcase*! vector-upcase*! vector-titlecase*!
+    vector-map* vector-map*!
+    vector-for-each*
 
     ;; folding
-    vector-fold       vector-unfold
-    vector-fold-right vector-unfold-right
+    vector-fold   vector-fold-right
+    vector-fold*  vector-fold-right*
+    vector-unfold vector-unfold-right
     vector-tabulate
 
     ;; selecting
-    subvector* vector-copy*!
+    subvector* vector-copy vector-copy*!
     vector-take vector-take-right
     vector-drop vector-drop-right
     vector-trim vector-trim-right vector-trim-both
     vector-pad vector-pad-right
 
     ;; prefix and suffix
-    vector-prefix-length vector-prefix-length-ci
-    vector-suffix-length vector-suffix-length-ci
-    vector-prefix? vector-prefix-ci?
-    vector-suffix? vector-suffix-ci?
+    vector-prefix-length vector-suffix-length
+    vector-prefix? vector-suffix?
 
     ;; searching
     vector-index vector-index-right
-    vector-skip  vector-skip-right
-    vector-count
-    vector-contains vector-contains-ci
+    vector-skip vector-skip-right
+    vector-count vector-contains
+    vector-binary-search
 
     ;; filtering
     vector-filter vector-delete
 
     ;; vectors and lists
     vector->list* reverse-list->vector
-    vector-join
-    vector-tokenize (rename (vector-tokenize vector-tokenise))
 
     ;; replicating
     xsubvector vector-xcopy!
 
     ;; concatenate, reverse, fill, replace
+    vector-append
     vector-concatenate vector-concatenate-reverse
     vector-reverse vector-reverse!
     vector-fill*! vector-replace)
@@ -163,7 +155,7 @@
 
 
 (define-syntax unpack
-  (syntax-rules (view start past)
+  (syntax-rules (quote view start past)
 
     ((_ (view ?vec))
      (let ((vec ?vec))
@@ -179,19 +171,28 @@
     ((_ (view ?vec (start ?start) (past ?past)))
      (values ?vec ?start ?past))
 
+    ((_ ((quote ?vec)))
+     (let ((vec (quote ?vec)))
+       (values vec 0 (vector-length vec))))
+
+    ((_ (quote ?vec))
+     (let ((vec (quote ?vec)))
+       (values vec 0 (vector-length vec))))
+
     ((_ (?vec))
      (let ((vec ?vec))
-       (values ?vec 0 (vector-length ?vec))))
+       (values vec 0 (vector-length vec))))
 
     ((_ (?vec ?start))
      (let ((vec ?vec))
-       (values ?vec ?start (vector-length ?vec))))
+       (values vec ?start (vector-length vec))))
 
     ((_ (?vec ?start ?past))
      (values ?vec ?start ?past))
 
-    ((?F ?vec)
-     (unpack (?vec)))
+    ((_ ?vec)
+     (let ((vec ?vec))
+       (values vec 0 (vector-length vec))))
 
     ((?F ?stuff ...)
      (syntax-violation #f "invalid parameters" (?stuff ...)))))
@@ -199,442 +200,250 @@
 
 ;;;; predicates
 
+(define-syntax vector-null?
+  (syntax-rules ()
+    ((_ ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-null? vec beg past)))))
+
 (define-syntax vector-every
   (syntax-rules ()
-    ((_ ?proc ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-every ?proc str beg past)))))
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-every ?proc vec beg past)))))
 
 (define-syntax vector-any
   (syntax-rules ()
-    ((_ ?proc ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-any ?proc str beg past)))))
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-any ?proc vec beg past)))))
 
 
 ;;;; comparison
 
-(define-syntax vector-compare
-  (syntax-rules ()
-    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-compare str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
-
-(define-syntax vector-compare-ci
-  (syntax-rules ()
-    ((_ ?S1 ?S2 ?proc< ?proc= ?proc>)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-compare-ci str1 start1 end1 str2 start2 end2 ?proc< ?proc= ?proc>)))))
-
-;;; --------------------------------------------------------------------
-
 (define-syntax vector=
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector= str1 start1 end1 str2 start2 end2)))))
+    ((_ ?proc ?V1 ?V2)
+     (let-values (((vec1 start1 end1) (unpack ?V1))
+		  ((vec2 start2 end2) (unpack ?V2)))
+       (%vector= ?proc vec1 start1 end1 vec2 start2 end2)))))
 
 (define-syntax vector<>
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector<> str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector<
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector< str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector>
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector> str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector<=
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector<= str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector>=
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector>= str1 start1 end1 str2 start2 end2)))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax vector-ci=
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-ci= str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector-ci<>
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-ci<> str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector-ci<
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-ci< str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector-ci>
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-ci> str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector-ci<=
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-ci<= str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector-ci>=
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-ci>= str1 start1 end1 str2 start2 end2)))))
-
-
-;;;; mapping
-
-(define-syntax vector-map
-  (syntax-rules ()
-    ((_ ?proc ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-map ?proc str beg past)))))
-
-(define-syntax vector-map!
-  (syntax-rules ()
-    ((_ ?proc ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-map! ?proc str beg past)))))
-
-(define-syntax vector-for-each*
-  (syntax-rules ()
-    ((_ ?proc ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-for-each* ?proc str beg past)))))
-
-(define-syntax vector-for-each-index
-  (syntax-rules ()
-    ((_ ?proc ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-for-each-index ?proc str beg past)))))
-
-
-;;;; case hacking
-
-(define-syntax vector-upcase*
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-map char-upcase str beg past)))))
-
-(define-syntax vector-upcase*!
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-map! char-upcase str beg past)))))
-
-(define-syntax vector-downcase*
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-map char-downcase str beg past)))))
-
-(define-syntax vector-downcase*!
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-map! char-downcase str beg past)))))
-
-(define-syntax vector-titlecase*
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (let ((ans (subvector str beg past)))
-	 (%vector-titlecase*! ans 0 (- past beg))
-	 ans)))))
-
-(define-syntax vector-titlecase*!
-  (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-titlecase*! str beg past)))))
+    ((_ ?proc ?V1 ?V2)
+     (let-values (((vec1 start1 end1) (unpack ?V1))
+		  ((vec2 start2 end2) (unpack ?V2)))
+       (%vector<> ?proc vec1 start1 end1 vec2 start2 end2)))))
 
 
 ;;;; folding
 
-(define-syntax vector-fold
+(define-syntax vector-fold*
   (syntax-rules ()
-    ((?F ?kons ?knil ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-fold ?kons ?knil str beg past)))))
+    ((?F ?kons ?knil ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-fold* ?kons ?knil vec beg past)))))
 
-(define-syntax vector-fold-right
+(define-syntax vector-fold-right*
   (syntax-rules ()
-    ((?F ?kons ?knil ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-fold-right ?kons ?knil str beg past)))))
+    ((?F ?kons ?knil ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-fold-right* ?kons ?knil vec beg past)))))
 
 
 ;;;; selecting
 
 (define-syntax subvector*
   (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (subvector str beg past)))))
+    ((_ ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector vec beg past)))))
+
+(define-syntax vector-copy
+  (syntax-rules ()
+    ((_ ?V)
+     (vector-copy ?V #f))
+    ((_ ?V ?fill)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-copy ?fill vec beg past)))))
 
 (define-syntax vector-copy*!
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-copy*! str1 beg1 str2 beg2 past2)))))
+    ((_ ?V1 ?V2)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-copy*! vec1 beg1 vec2 beg2 past2)))))
 
 (define-syntax vector-take
   (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-take nchars str beg past)))))
+    ((_ ?V nchars)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-take nchars vec beg past)))))
 
 (define-syntax vector-take-right
   (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-take-right nchars str beg past)))))
+    ((_ ?V nchars)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-take-right nchars vec beg past)))))
 
 (define-syntax vector-drop
   (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-drop nchars str beg past)))))
+    ((_ ?V nchars)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-drop nchars vec beg past)))))
 
 (define-syntax vector-drop-right
   (syntax-rules ()
-    ((_ ?S nchars)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-drop-right nchars str beg past)))))
+    ((_ ?V nchars)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-drop-right nchars vec beg past)))))
 
 (define-syntax vector-trim
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-trim criterion str beg past)))))
+    ((_ ?V criterion)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-trim criterion vec beg past)))))
 
 (define-syntax vector-trim-right
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-trim-right criterion str beg past)))))
+    ((_ ?V criterion)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-trim-right criterion vec beg past)))))
 
 (define-syntax vector-trim-both
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-trim-both criterion str beg past)))))
+    ((_ ?V criterion)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-trim-both criterion vec beg past)))))
 
 (define-syntax vector-pad
   (syntax-rules ()
-    ((_ ?S ?len)
-     (vector-pad ?S ?len #\space))
-    ((_ ?S ?len ?char)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-pad ?len ?char str beg past)))))
+    ((_ ?V ?len)
+     (vector-pad ?V ?len #\space))
+    ((_ ?V ?len ?char)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-pad ?len ?char vec beg past)))))
 
 (define-syntax vector-pad-right
   (syntax-rules ()
-    ((_ ?S ?len)
-     (vector-pad-right ?S ?len #\space))
-    ((_ ?S ?len ?char)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-pad-right ?len ?char str beg past)))))
+    ((_ ?V ?len)
+     (vector-pad-right ?V ?len #\space))
+    ((_ ?V ?len ?char)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-pad-right ?len ?char vec beg past)))))
 
 
 ;;;; prefix and suffix
 
 (define-syntax vector-prefix-length
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-prefix-length str1 beg1 past1 str2 beg2 past2)))))
+    ((_ ?V1 ?V2 ?pred)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-prefix-length ?pred vec1 beg1 past1 vec2 beg2 past2)))))
 
 (define-syntax vector-suffix-length
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-suffix-length str1 beg1 past1 str2 beg2 past2)))))
-
-(define-syntax vector-prefix-length-ci
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-prefix-length-ci str1 beg1 past1 str2 beg2 past2)))))
-
-(define-syntax vector-suffix-length-ci
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-suffix-length-ci str1 beg1 past1 str2 beg2 past2)))))
+    ((_ ?V1 ?V2 ?pred)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-suffix-length ?pred vec1 beg1 past1 vec2 beg2 past2)))))
 
 ;;; --------------------------------------------------------------------
 
 (define-syntax vector-prefix?
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-prefix? str1 beg1 past1 str2 beg2 past2)))))
+    ((_ ?V1 ?V2 ?pred)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-prefix? ?pred vec1 beg1 past1 vec2 beg2 past2)))))
 
 (define-syntax vector-suffix?
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-suffix? str1 beg1 past1 str2 beg2 past2)))))
-
-(define-syntax vector-prefix-ci?
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-prefix-ci? str1 beg1 past1 str2 beg2 past2)))))
-
-(define-syntax vector-suffix-ci?
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 beg1 past1) (unpack ?S1))
-		  ((str2 beg2 past2) (unpack ?S2)))
-       (%vector-suffix-ci? str1 beg1 past1 str2 beg2 past2)))))
+    ((_ ?V1 ?V2 ?pred)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-suffix? ?pred vec1 beg1 past1 vec2 beg2 past2)))))
 
 
 ;;;; searching
 
 (define-syntax vector-index
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-index criterion str beg past)))))
+    ((_ ?V ?proc)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-index ?proc vec beg past)))))
 
 (define-syntax vector-index-right
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-index-right criterion str beg past)))))
+    ((_ ?V ?proc)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-index-right ?proc vec beg past)))))
 
 (define-syntax vector-skip
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-skip criterion str beg past)))))
+    ((_ ?V ?proc)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-skip ?proc vec beg past)))))
 
 (define-syntax vector-skip-right
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-skip-right criterion str beg past)))))
+    ((_ ?V ?proc)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-skip-right ?proc vec beg past)))))
 
 (define-syntax vector-count
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-count criterion str beg past)))))
+    ((_ ?V ?proc)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-count ?proc vec beg past)))))
 
 (define-syntax vector-contains
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-contains str1 start1 end1 str2 start2 end2)))))
-
-(define-syntax vector-contains-ci
-  (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 end1) (unpack ?S1))
-		  ((str2 start2 end2) (unpack ?S2)))
-       (%vector-contains-ci str1 start1 end1 str2 start2 end2)))))
+    ((_ ?V1 ?V2 ?pred)
+     (let-values (((vec1 start1 end1) (unpack ?V1))
+		  ((vec2 start2 end2) (unpack ?V2)))
+       (%vector-contains ?pred vec1 start1 end1 vec2 start2 end2)))))
 
 
 ;;;; filtering
 
 (define-syntax vector-delete
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-delete criterion str beg past)))))
+    ((_ ?V ?proc)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-delete ?proc vec beg past)))))
 
 (define-syntax vector-filter
   (syntax-rules ()
-    ((_ ?S criterion)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-filter criterion str beg past)))))
+    ((_ ?V ?proc)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-filter ?proc vec beg past)))))
 
 
 ;;;; vectors and lists
 
 (define-syntax vector->list*
   (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector->list* str beg past)))))
-
-(define-syntax vector-tokenize
-  (syntax-rules ()
-    ((_ ?S ?token-set)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-tokenize ?token-set str beg past)))))
-
-(define vector-join
-  (case-lambda
-   ((vectors)
-    (%vector-join vectors " " 'infix))
-   ((vectors delim)
-    (%vector-join vectors delim 'infix))
-   ((vectors delim grammar)
-    (%vector-join vectors delim grammar))))
+    ((_ ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector->list* vec beg past)))))
 
 
 ;;; replicating
 
 (define-syntax xsubvector
   (syntax-rules ()
-    ((_ ?S ?from ?to)
-     (let-values (((str beg past) (unpack ?S)))
-       (%xsubvector ?from ?to str beg past)))))
+    ((_ ?V ?from ?to)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%xsubvector ?from ?to vec beg past)))))
 
 (define-syntax vector-xcopy!
   (syntax-rules ()
-    ((_ ?T ?S ?from ?to)
-     (let-values (((str1 beg1 past1) (unpack ?T))
-		  ((str2 beg2 past2) (unpack ?S)))
-       (%vector-xcopy! ?from ?to str1 beg1 past1 str2 beg2 past2)))))
+    ((_ ?T ?V ?from ?to)
+     (let-values (((vec1 beg1 past1) (unpack ?T))
+		  ((vec2 beg2 past2) (unpack ?V)))
+       (%vector-xcopy! ?from ?to vec1 beg1 past1 vec2 beg2 past2)))))
 
 
 ;;; concatenate, reverse, replace, fill
@@ -643,7 +452,7 @@
   (case-lambda
 
    ((vector-list)
-    (%vector-concatenate-reverse vector-list "" 0))
+    (%vector-concatenate-reverse vector-list '#() 0))
 
    ((vector-list final)
     (%vector-concatenate-reverse vector-list final (vector-length final)))
@@ -653,28 +462,28 @@
 
 (define-syntax vector-replace
   (syntax-rules ()
-    ((_ ?S1 ?S2)
-     (let-values (((str1 start1 past1) (unpack ?S1))
-		  ((str2 start2 past2) (unpack ?S2)))
-       (%vector-replace str1 start1 past1 str2 start2 past2)))))
+    ((_ ?V1 ?V2)
+     (let-values (((vec1 start1 past1) (unpack ?V1))
+		  ((vec2 start2 past2) (unpack ?V2)))
+       (%vector-replace vec1 start1 past1 vec2 start2 past2)))))
 
 (define-syntax vector-reverse
   (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-reverse str beg past)))))
+    ((_ ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-reverse vec beg past)))))
 
 (define-syntax vector-reverse!
   (syntax-rules ()
-    ((_ ?S)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-reverse! str beg past)))))
+    ((_ ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-reverse! vec beg past)))))
 
 (define-syntax vector-fill*!
   (syntax-rules ()
-    ((_ ?S ?fill-char)
-     (let-values (((str beg past) (unpack ?S)))
-       (%vector-fill*! ?fill-char str beg past)))))
+    ((_ ?V ?fill-char)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-fill*! ?fill-char vec beg past)))))
 
 
 ;;;; done

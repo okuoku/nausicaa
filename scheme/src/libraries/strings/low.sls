@@ -122,7 +122,8 @@
     %string-titlecase*!
 
     ;; folding and unfolding
-    %string-fold %string-fold-right
+    string-fold string-fold-right
+    %string-fold* %string-fold-right*
     string-unfold string-unfold-right
     string-tabulate
 
@@ -168,6 +169,12 @@
     (rnrs mutable-strings)
     (only (rnrs r5rs) modulo quotient)
     (char-sets))
+
+
+;;;; helpers
+
+(define (strings-list-min-length strings)
+  (apply min (map string-length strings)))
 
 
 ;;;; predicates
@@ -409,14 +416,38 @@
 
 ;;;; folding
 
-(define (%string-fold kons knil str start past)
+(define (string-fold kons knil vec0 . strings)
+  (let* ((strings  (cons vec0 strings))
+	 (len      (strings-list-min-length strings)))
+    (let loop ((i     0)
+	       (knil  knil))
+      (if (= len i)
+	  knil
+	(loop (+ 1 i) (apply kons i knil
+			     (map (lambda (vec)
+				    (string-ref vec i))
+			       strings)))))))
+
+(define (string-fold-right kons knil vec0 . strings)
+  (let* ((strings  (cons vec0 strings))
+	 (len      (strings-list-min-length strings)))
+    (let loop ((i     (- len 1))
+	       (knil  knil))
+      (if (< i 0)
+	  knil
+	(loop (- i 1) (apply kons i knil
+			     (map (lambda (vec)
+				    (string-ref vec i))
+			       strings)))))))
+
+(define (%string-fold* kons knil str start past)
   (let loop ((v knil)
 	     (i start))
     (if (< i past)
 	(loop (kons (string-ref str i) v) (+ i 1))
       v)))
 
-(define (%string-fold-right kons knil str start past)
+(define (%string-fold-right* kons knil str start past)
   (let loop ((v knil)
 	     (i (- past 1)))
     (if (>= i start)
@@ -799,7 +830,7 @@
   (if (procedure? criterion)
       (let* ((slen (- past start))
 	     (temp (make-string slen))
-	     (ans-len (%string-fold (lambda (c i)
+	     (ans-len (%string-fold* (lambda (c i)
 				      (if (criterion c) i
 					(begin (string-set! temp i c)
 					       (+ i 1))))
@@ -812,12 +843,12 @@
 			(assertion-violation '%string-delete
 			  "expected predicate, char or char-set as criterion"
 			  criterion))))
-	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+	   (len (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
 						i
 					      (+ i 1)))
 			      0 str start past))
 	   (ans (make-string len)))
-      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+      (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
 				     i
 				   (begin (string-set! ans i c)
 					  (+ i 1))))
@@ -828,7 +859,7 @@
   (if (procedure? criterion)
       (let* ((slen (- past start))
 	     (temp (make-string slen))
-	     (ans-len (%string-fold (lambda (c i)
+	     (ans-len (%string-fold* (lambda (c i)
 				     (if (criterion c)
 					 (begin (string-set! temp i c)
 						(+ i 1))
@@ -842,12 +873,12 @@
 			(assertion-violation '%string-filter
 			  "expected predicate, char or char-set as criterion"
 			  criterion))))
-	   (len (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+	   (len (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
 					       (+ i 1)
 					     i))
 			     0 str start past))
 	   (ans (make-string len)))
-      (%string-fold (lambda (c i) (if (char-set-contains? cset c)
+      (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
 				     (begin (string-set! ans i c)
 					    (+ i 1))
 				   i))
