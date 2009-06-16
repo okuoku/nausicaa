@@ -741,9 +741,10 @@ The @library{nausicaa} language
 More libraries
 
 * lists::                       Lists library.
-* checks::                      Lightweight testing.
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
+* vectors::                     Vectors library.
+* checks::                      Lightweight testing.
 
 Low level libraries
 
@@ -785,13 +786,6 @@ Fold, unfold and map
 * lists fold unfold::           Unfolding.
 * lists fold map::              Mapping.
 
-Lightweight testing
-
-* checks select::               Selecting tests to be run.
-* checks eval::                 Evaluating code.
-* checks result::               Handling multiple results.
-* checks debug::                Printing debug messages.
-
 Character sets
 
 * char-sets intro::             Introduction.
@@ -826,6 +820,13 @@ Knuth-Morris-Pratt searching
 * strings kmp step::            Single step of the search.
 * strings kmp partial::         Partial string search.
 * strings kmp string::          Full string search.
+
+Lightweight testing
+
+* checks select::               Selecting tests to be run.
+* checks eval::                 Evaluating code.
+* checks result::               Handling multiple results.
+* checks debug::                Printing debug messages.
 
 One dimensional extended ranges
 
@@ -3298,11 +3299,11 @@ indicates that the built--in procedure @func{vector-ref} takes two
 arguments, a vector @var{vector} and an exact non--negative integer
 object @var{k} (see below).  The header lines:
 
-@deffn Procedure make-vector @var{k}
+@deffn Procedure procname @var{k}
 @dots{}
 @end deffn
 
-@deffn Procedure make-vector @var{k} @var{fill}
+@deffn Procedure procname @var{k} @var{fill}
 @dots{}
 @end deffn
 
@@ -3313,7 +3314,7 @@ arguments.  The parameter names are case--insensitive.
 As with syntax templates, an ellipsis @dots{} at the end of a header
 line, as in:
 
-@deffn Procedure = @vari{z} @varii{z} @variii{z} ...
+@deffn Procedure the-proc @vari{z} @varii{z} @variii{z} ...
 @dots{}
 @end deffn
 
@@ -18496,9 +18497,10 @@ Raise a composite condition embedding a condition of type
 
 @menu
 * lists::                       Lists library.
-* checks::                      Lightweight testing.
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
+* vectors::                     Vectors library.
+* checks::                      Lightweight testing.
 
 Low level libraries
 
@@ -21042,291 +21044,6 @@ This operation essentially partitions @var{list1}.
 @func{lset-diff+intersection}.  It is allowed, but not required, to use
 the cons cells in the first list parameter to construct its answer.
 @end defun
-
-
-
-@c page
-@node checks
-@section Lightweight testing
-
-
-The @library{checks} library provides a simple mechanism for testing
-Scheme programs.  As a most primitive example, the expression:
-
-@example
-(check (+ 1 1) => 3)
-@end example
-
-@noindent
-evaluates the expression @code{(+ 1 1)} and compares the result with the
-expected result @code{3} provided after the syntactic keyword @code{=>}.
-Then the outcome of this comparison is reported in human--readable form
-by printing a message of the form:
-
-@example
-(+ 1 1) @result{} 2 ; *** failed ***
-; expected result: 3
-@end example
-
-
-@menu
-* checks select::               Selecting tests to be run.
-* checks eval::                 Evaluating code.
-* checks result::               Handling multiple results.
-* checks debug::                Printing debug messages.
-@end menu
-
-
-@c page
-@node checks select
-@subsection Selecting tests to be run
-
-
-As usage example, let's assume that the system environment variable
-@env{CHECK_TEST_NAME} is set to @code{yellow}:
-
-@example
-(parameterise ((check-test-name 'yellow))
-
-  ;; this is evaluated
-  (check
-      (do-something)
-    => 123)
-
-  ;; this is evaluated, too
-  (check
-      (do-some-other-thing)
-    => 456))
-
-(parameterise ((check-test-name 'blue))
-
-  ;; this is NOT evaluated
-  (check
-      (do-something)
-    => #t)
-
-  ;; this is NOT evaluated
-  (check
-      (do-some-other-thing)
-    => #f))
-
-;; this is evaluated
-(check "yellow-one"
-    (do-something)
-  => 123)
-
-;; this is NOT evaluated
-(check 'red
-    (do-something)
-  => #t)
-@end example
-
-
-@defvr {Environment Variable} CHECK_TEST_NAME
-The system environment variable used to select tests in a test suite
-file.  The value of the variable must be the name, or the prefix of the
-name, or the suffix of the name, of one or more tests.
-@end defvr
-
-
-@deffn Parameter check-test-name
-Holds the name of the current test or tests.  Must be set to @false{}, a
-string or a symbol.
-@end deffn
-
-
-@c page
-@node checks eval
-@subsection Evaluating code
-
-
-@deffn Syntax check @var{expr} (=> @var{equal}) @var{expected}
-@deffnx Syntax check @var{expr} => @var{expected}
-@deffnx Syntax check @var{name} @var{expr} (=> @var{equal}) @var{expected}
-@deffnx Syntax check @var{name} @var{expr} => @var{expected}
-Evaluate @var{expr} and compare the value to the value of @var{expected}
-using the predicate @var{equal}, which is @func{equal?} when omitted.
-Then a report is printed according to the current mode setting (see
-below) and the outcome is recorded in a global state to be used in
-@func{check-report}.
-
-The precise order of evaluation is that first @var{equal} and
-@var{expected} are evaluated (in unspecified order) and then @var{expr}
-is evaluated.  Example: @code{(check (+ 1 1) => 2)}.
-
-When @var{name} is given: it is the name of this test, @ref{checks
-select, Selecting tests to be run}.
-@end deffn
-
-
-@deffn Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected} (@var{argument*})
-@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected} (@var{argument*})
-@deffnx Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected}
-@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected}
-An eager comprehension for executing a parametric sequence of checks.
-To use this syntax we have to import the @library{loops} library.
-
-Enumerate the sequence of bindings specified by @var{qualifier*}.  For
-each binding evaluate @var{equal} and @var{expected} in unspecified
-order. Then evaluate @var{expr} and compare the value obtained to the
-value of @var{expected} using the value of @var{equal} as predicate,
-which is @func{equal?} when omitted.
-
-The comprehension stops after the first failed check, if there is any.
-Then a report is printed according to the current mode setting (see
-below) and the outcome is recorded in a global state to be used in
-@func{check-report}.  The entire @func{check-ec} counts as a single
-check.
-
-In case the check fails @var{argument*} is used for constructing an
-informative message with the argument values.  Use @var{argument*} to
-list the relevant free variables of @var{expr} (see examples) that you
-want to have printed.
-
-A @var{qualifier} is any qualifier of an eager comprehension.
-
-Examples:
-
-@example
-(check-ec (: e 100)
-          (positive? (expt 2 e))
-          => #t (e)) ; fails on fixnums
-
-(check-ec (: e 100)
-          (:let x (expt 2.0 e))
-          (= (+ x 1) x)
-          => #f (x)) ; fails
-
-(check-ec (: x 10)
-          (: y 10)
-          (: z 10)
-          (* x (+ y z))
-          => (+ (* x y) (* x z))
-             (x y z)) ; passes with 10^3 cases checked
-@end example
-@end deffn
-
-
-@defun check-report
-Print a summary and the first failed check, if there is any, depending
-on the current mode settings.
-@end defun
-
-
-@defun check-set-mode! @var{mode}
-Set the current mode to @var{mode}, which must be a symbol among:
-@code{off}, @code{summary}, @code{report-failed}, @code{report}; the
-default is @code{report}.  Note that you can change the mode at any
-time, and that @func{check}, @func{check-ec} and @func{check-report} use
-the current value.
-
-The mode symbols have the following meaning:
-
-@table @code
-@item off
-do not execute any of the checks;
-
-@item summary
-print only summary in @func{check-report} and nothing else;
-
-@item report-failed
-report failed checks when they happen, and in summary;
-
-@item report
-report every example executed.
-@end table
-@end defun
-
-
-@defun check-reset!
-Reset the global state (counters of correct/failed examples) to the
-state immediately after loading the module for the first time, i.e. no
-checks have been executed.
-@end defun
-
-
-@defun check-passed? @var{expected-total-count}
-Return @true{} if there were no failed checks and
-@var{expected-total-count} correct checks, @false{} otherwise.
-
-Rationale: This procedure can be used in automatized tests by
-terminating a test program with the statement:
-
-@example
-(exit (if (check-passed? n) 0 1))
-@end example
-@end defun
-
-
-@deffn Syntax false-if-exception @var{form0} @var{form} ...
-Evaluate all the @var{form}s as in @func{begin}.  If an exception is
-raised: return @false{}.
-@end deffn
-
-
-@deffn Syntax check-for-true @var{expr}
-@deffnx Syntax check-for-true @var{name} @var{expr}
-@deffnx Syntax check-for-false @var{expr}
-@deffnx Syntax check-for-false @var{name} @var{expr}
-Evaluate @var{expr} in a @func{check} form, expecting a non--false or
-@false{} value as result.
-
-When @var{name} is given: it is the name of this test, @ref{checks
-select, Selecting tests to be run}.
-@end deffn
-
-@c page
-@node checks result
-@subsection Handling multiple results
-
-
-@deffn Syntax with-result @var{form0} @var{form} ...
-Evaluate all the @var{form}s, as in @func{begin}, in a dynamic
-environment in which an implicit result variable is defined.  The
-implicit variable is handled as a list.
-
-Return a list whose first value is the return value of the last
-@var{form} and whose second value is the value of the implicit variable.
-@end deffn
-
-
-@defun add-result @var{value}
-Append @var{value} to the list in the implicit variable defined by
-@func{with-result}.
-@end defun
-
-
-@defun get-result
-Return the current value of the implicit variable defined by
-@func{with-result}.
-@end defun
-
-
-@c page
-@node checks debug
-@subsection Printing debug messages
-
-
-@deffn Parameter debugging
-When set to true @func{debug} will print its message.  It is initialised
-to @false{}.
-@end deffn
-
-
-@defun debug @var{string}
-@defunx debug @var{format-string} @var{arg} ...
-If the @code{debugging} parameter is set to true, print @var{string} to
-the current error port, or hand @var{format-string} and the optional
-@var{arg} values to @func{format} and print the result to the current
-error port.
-@end defun
-
-
-@defun debug-print-condition @var{message} @var{exc}
-A wrapper for @func{debug} that prints @var{message} and does its best
-to print @var{exc}, which must be a Scheme condition value.
-@end defun
-
 
 @c page
 @node char-sets
@@ -23967,6 +23684,893 @@ This function is like @func{%string-contains} and
 comparison function.
 @end defun
 
+@c page
+@node vectors
+@section Vectors library
+
+
+The @library{vectors} library extends vector operations available in the
+base library (@pxref{baselib vectors, Vectors}).
+
+@menu
+* vector intro::                Introduction.
+* vector cons::                 Constructors.
+* vector pred::                 Predicates.
+* vector map::                  Mapping functions.
+* vector fold::                 Folding and unfolding.
+* vector search::               Searching.
+* vector mutators::             Mutators.
+* vector conv::                 Conversion.
+@end menu
+
+@c page
+@node vector intro
+@subsection Introduction
+
+
+In this section containing specifications of procedures, the following
+notation is used to specify parameters and return values:
+
+@table @code
+@item (f arg1 arg2 ···) -> something
+Indicates a function @var{f} takes the parameters @var{arg1},
+@var{arg2}, @dots{} and returns a value of the type @var{something}. If
+@var{something} is unspecified, then what @var{f} returns is
+implementation--dependant; this @srfi{} does not specify what it
+returns, and in order to write portable code, the return value should be
+ignored.
+
+@item vec
+The argument in this place must be a vector, i.e. it must satisfy the
+predicate @func{vector?}.
+
+@item i, j, start, size
+The argument in this place must be a nonnegative integer, i.e. it must
+satisfy the predicates @func{integer?} and either @func{zero?} or
+@func{positive?}.  The third case of it indicates the index at which
+traversal begins; the fourth case of it indicates the size of a vector.
+
+@item end
+The argument in this place must be a positive integer, i.e. it must
+satisfy the predicates @func{integer?} and @func{positive?}.  This
+indicates the index directly before which traversal will stop;
+processing will occur until the the index of the vector is end.  It is
+the closed right side of a range.
+
+@item f
+The argument in this place must be a function of one or more arguments,
+returning exactly one value.
+
+@item pred?
+The argument in this place must be a function of one or more arguments
+that returns one value, which is treated as a boolean.
+
+@item x, y, z, seed, knil, fill, key, value
+The argument in this place may be any Scheme value.
+
+@item [something]
+Indicates that @var{something} is an optional argument; it needn't
+necessarily be applied.  Something needn't necessarily be one thing; for
+example, this usage of it is perfectly valid:
+
+@example
+[start [end]]
+@end example
+
+@noindent
+and is indeed used quite often.
+
+@item something ···
+Indicates that zero or more somethings are allowed to be arguments.
+
+@item something1 something2 ···
+Indicates that at least one something must be arguments.
+
+@item something1 something2 ··· somethingn
+Exactly equivalent to the previous argument notation, but this also
+indicates that @var{n} will be used later in the procedure description.
+@end table
+
+It should be noted that all of the procedures that iterate across
+multiple vectors in parallel stop iterating and produce the final result
+when the end of the shortest vector is reached.  The sole exception is
+@func{vector=}, which automatically returns @false{} if the vectors'
+lengths vary.
+
+@c page
+@node vector cons
+@subsection Constructors
+
+
+@deffn Function %vector-copy @var{vec} @var{start} @var{past} @var{fill}
+@deffnx Macro vector-copy @var{V}
+@deffnx Macro vector-copy @var{V} @var{fill}
+Allocate a new vector and fill it with elements from the selected
+subvector of @var{vec}.  If @var{past} extends beyond the length of
+@var{vec}, the slots in the new vector that cannot be filled by elements
+from @var{vec} are filled with @var{fill}, whose default value is
+@false{}.
+
+@example
+(vector-copy '#(a b c d e f g h i))
+@result{} #(a b c d e f g h i)
+
+(vector-copy ('#(a b c d e f g h i) 6))
+@result{} #(g h i)
+
+(vector-copy ('#(a b c d e f g h i) 3 6))
+@result{} #(d e f)
+
+(vector-copy ('#(a b c d e f g h i) 6 12) 'x)
+@result{} #(g h i x x x)
+@end example
+@end deffn
+
+
+@deffn Function %vector-reverse-copy @var{vec} @var{start} @var{past}
+@deffnx Macro vector-reverse-copy @var{V}
+Like @func{vector-copy}, but copy the elements in the reverse order from
+the selected subvector of @var{vec}.
+
+@example
+(vector-reverse-copy ('#(5 4 3 2 1 0) 1 5))
+@result{} #(1 2 3 4)
+@end example
+@end deffn
+
+
+@defun Function vector-append @var{vec} ...
+Return a newly allocated vector that contains all elements in order from
+the subsequent locations in the vector arguments.
+
+@example
+(vector-append '#(x) '#(y))
+@result{} #(x y)
+
+(vector-append '#(a) '#(b c d))
+@result{} #(a b c d)
+
+(vector-append '#(a #(b)) '#(#(c)))
+@result{} #(a #(b) #(c))
+@end example
+@end defun
+
+
+@defun vector-concatenate @var{vectors-list}
+Append each vector in @var{vectors-list}.
+
+@example
+(vector-concatenate '(#(a b) #(c d)))
+@result{} #(a b c d)
+@end example
+@end defun
+
+@c page
+@node vector pred
+@subsection Predicates
+
+
+@deffn Function %vector-empty? @var{vec} @var{start} @var{past}
+@deffnx Macro vector-empty? @var{V}
+Return @true{} if the selected subvector of @var{vec} is empty, i.e. its
+length is 0.
+
+@example
+(vector-empty? '#(a))
+@result{} #f
+
+(vector-empty? '#(()))
+@result{} #f
+
+(vector-empty? '#(#()))
+@result{} #f
+
+(vector-empty? '#())
+@result{} #t
+@end example
+@end deffn
+
+
+@deffn Function %vector= @var{item=?} @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
+@deffnx Macro vector= @var{item=?} @var{V1} @var{V2}
+Compare the two subvectors and return true if their elements are equal
+according to @var{item=?}.
+
+The @var{item=?} predicate must be consistent with @func{eq?}: If
+@func{eq?} would return true when applied to elements, @var{item=?}
+must return true when applied to the same elements.
+
+@example
+(vector= eq? '#(a b c d) '#(a b c d))
+@result{} #t
+
+(vector= eq? '#(a b c d) '#(a b d c))
+@result{} #f
+
+(vector= = '#(1 2 3 4 5) '#(1 2 3 4))
+@result{} #f
+
+(vector= = '#(1 2 3 4) '#(1 2 3 4))
+@result{} #t
+@end example
+@end deffn
+
+@c page
+@node vector map
+@subsection Mapping functions
+
+
+@defun vector-map* @var{proc} @var{vec0} @var{vec} ...
+Construct a new vector of the shortest size of the vector arguments;
+this is an extension of the @func{vector-map} function.  Each element at
+index @var{i} of the new vector is mapped from the old vectors by:
+
+@example
+(@var{proc} @var{i}
+  (vector-ref @var{vec0} @var{i})
+  (vector-ref @var{vec} @var{i})
+  ···)
+@end example
+
+The dynamic order of application of @var{proc} is unspecified.
+
+@example
+(vector-map (lambda (i x) (* x x))
+              (vector-unfold (lambda (i x)
+                               (values x (+ x 1)))
+
+@result{} #(1 4 9 16)
+
+(vector-map (lambda (i x y) (* x y))
+              (vector-unfold (lambda (i x)
+                               (values x (+ x 1)))
+                             5 1)
+              (vector-unfold (lambda (i x)
+                               (values x (- x 1)))
+                             5 5))
+@result{} #(5 8 9 8 5)
+
+(let ((count 0))
+  (vector-map (lambda (ignored-index ignored-elt)
+                (set! count (+ count 1))
+                count)
+              '#(a b)))
+@result{} #(1 2) OR #(2 1)
+
+(vector-map (lambda (i elt)
+              (+ i elt))
+            '#(1 2 3 4))
+@result{} #(1 3 5 7)
+@end example
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun vector-map*! @var{proc} @var{vec0} @var{vec} ...
+Similar to @func{vector-map*}, but rather than mapping the new elements
+into a new vector, the new mapped elements are destructively inserted
+into @var{vec0}.
+
+The dynamic order of application of @var{proc} unspecified, so it is
+dangerous for @var{proc} to apply either @func{vector-ref} or
+@func{vector-set!} to @var{vec0} in @var{proc}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun vector-for-each* @var{proc} @var{vec0} @var{vec} ...
+Simple vector iterator: apply @var{proc} to each index in the range
+@math{[0, L)} (where @math{L} is the length of the smallest vector
+argument passed) and the respective list of parallel elements from
+@var{vec0}, @var{vec}, @dots{} at that index.
+
+In contrast with @func{vector-map}, @var{proc} is reliably applied to
+each subsequent elements, starting at index 0, in the vectors.
+
+Example:
+
+@example
+(vector-for-each (lambda (i x)
+                   (display x)
+                   (newline))
+  '#("foo" "bar" "baz" "quux" "zot"))
+@print{} foo
+@print{} bar
+@print{} baz
+@print{} quux
+@print{} zot
+@end example
+@end defun
+
+@c page
+@node vector fold
+@subsection Folding and unfolding
+
+
+@defun vector-fold @var{kons} @var{knil} @var{vec0} @var{vec} ...
+The fundamental vector iterator.  @var{kons} is iterated left--to--right
+over each index in all of the vectors, stopping at the end of the
+shortest; @var{kons} is applied as:
+
+@example
+(@var{kons} @var{i} @var{state}
+  (vector-ref @var{vec0} @var{i})
+  (vector-ref @var{vec} @var{i})
+  ···)
+@end example
+
+@noindent
+where @var{state} is the current state value; the current state value
+begins with @var{knil}, and becomes whatever @var{kons} returned at the
+respective iteration; and @var{i} is the current index.
+
+@example
+;; Find the longest string's length in vector-of-strings.
+(vector-fold (lambda (index len str)
+               (max (string-length str) len))
+             0 vector-of-strings)
+
+;; Produce a list of the reversed elements of vec.
+(vector-fold (lambda (index tail elt)
+               (cons elt tail))
+             '() vec)
+
+;; Count the number of even numbers in vec.
+(vector-fold (lambda (index counter n)
+               (if (even? n) (+ counter 1) counter))
+             0 vec)
+@end example
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun vector-fold-right @var{kons} @var{knil} @var{vec0} @var{vec} ...
+Similar to @func{vector-fold}, but it iterates right--to--left.
+
+@example
+;; Convert a vector to a list.
+(vector-fold-right (lambda (index tail elt)
+                     (cons elt tail))
+                   '() '#(a b c d))
+@result{} (a b c d)
+@end example
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun vector-unfold @var{proc} @var{length} @var{initial-seed} ...
+The fundamental vector constructor.  Return a vector whose length is
+@var{length} and iterate across each index @math{k} between @math{0} and
+@var{length}, applying @var{proc} at each iteration to the current index
+and current seeds, in that order, to receive @math{n + 1} values: first,
+the element to put in the @math{k}-th slot of the new vector and
+@math{n} new seeds for the next iteration.  It is an error for the
+number of seeds to vary between iterations.
+
+@example
+(vector-unfold (lambda (i x)
+                 (values x (- x 1)))
+               10 0)
+@result{} #(0 -1 -2 -3 -4 -5 -6 -7 -8 -8)
+
+;; construct a vector of the sequence of integers
+;; in the range [0,n)
+(vector-unfold values n)
+@result{} #(0 1 2 ··· n-2 n-1)
+
+;; copy a vector
+(vector-unfold (lambda (i)
+                 (vector-ref vector i))
+               (vector-length vector))
+@end example
+@end defun
+
+@c ------------------------------------------------------------
+
+@defun vector-unfold-right @var{f} @var{length} @var{initial-seed}
+Like @func{vector-unfold}, but it uses @var{proc} to generate elements
+from right--to--left.
+
+@example
+;; Construct a vector in reverse of the integers
+;; in the range [0,n).
+(vector-unfold-right (lambda (i x)
+                       (values x (+ x 1)))
+                     n 0)
+@result{} #(n-1 n-2 ··· 2 1 0)
+
+;; Reverse vector.
+(vector-unfold-right (lambda (i x)
+                       (values (vector-ref vector x) (+ x 1)))
+                     (vector-length vector)
+                     0)
+@end example
+@end defun
+
+@c page
+@node vector search
+@subsection Searching
+
+
+@defun vector-index @var{pred?} @var{vec0} @var{vec} ...
+Find and return the index of the first elements in @var{vec0},
+@var{vec}, @dots{} that satisfy @var{pred?}.  If no matching element is
+found by the end of the shortest vector: Return @false{}.
+
+@example
+(vector-index even? '#(3 1 4 1 5 9))
+@result{} 2
+
+(vector-index < '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2))
+@result{} 1
+
+(vector-index = '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2))
+@result{} #f
+@end example
+@end defun
+
+
+@defun vector-index-right @var{pred?} @var{vec0} @var{vec} ...
+Like @func{vector-index}, but it searches right--to--left and all of the
+vectors must have the same length.
+@end defun
+
+
+@defun vector-skip @var{pred?} @var{vec0} @var{vec} ...
+Find and return the index of the first elements in @var{vec0},
+@var{vec}, @dots{} that do not satisfy @var{pred?}.  If all the values
+in the vectors satisfy @var{pred?} until the end of the shortest vector:
+Return @false{}.
+
+@example
+(vector-skip number? '#(1 2 a b 3 4 c d))
+@result{} 2
+@end example
+@end defun
+
+
+@defun vector-skip-right @var{pred?} @var{vec0} @var{vec} ...
+Like @func{vector-skip}, but it searches for a non--matching element
+right--to--left and all of the vectors must have the same length.
+@end defun
+
+
+@defun vector-binary-search @var{vec} @var{value} @var{cmp}
+Similar to @func{vector-index} and @func{vector-index-right}, but
+instead of searching left to right or right to left, this performs a
+binary search.  @var{cmp} should be a procedure of two arguments and
+return:
+
+@itemize
+@item
+A negative integer, indicating that its first argument is less than its
+second.
+
+@item
+Zero, indicating that they are equal.
+
+@item
+A positive integer, indicating that the first argument is greater than
+the second argument.
+@end itemize
+
+An example @var{cmp} might be:
+
+@example
+(lambda (char1 char2)
+  (cond ((char<? char1 char2) -1)
+        ((char=? char1 char2)  0)
+        (else                  1)))
+@end example
+@end defun
+
+
+@defun vector-any @var{pred?} @var{vec0} @var{vec} ...
+Find the first set of elements in parallel from @var{vec0}, @var{vec},
+@dots{} for which @var{pred?} returns a true value.  If such a parallel
+set of elements exists: Return the value that @var{pred?}  returned for
+that set of elements.  The iteration is strictly left--to--right.
+@end defun
+
+
+@defun vector-every @var{pred?} @var{vec0} @var{vec} ...
+If, for every index @math{i} between @math{0} and the length of the
+shortest vector argument, the set of elements:
+
+@example
+(vector-ref @var{vec0} i)
+(vector-ref @var{vec} i)
+ ···
+@end example
+
+@noindent
+satisfies @var{pred?}: Return the value that @var{pred?}  returned for
+the last set of elements, at the last index of the shortest vector.  The
+iteration is strictly left--to--right.
+@end defun
+
+
+@defun vector-count @var{pred?} @var{vec0} @var{vec} ...
+Count the number of parallel elements in the vectors that satisfy
+@var{pred?}, which is applied (for each index @math{i} in the range
+@math{[0, L)}, where @math{L} is the length of the smallest vector
+argument) to @math{i} and each parallel element in the vectors at that
+index, in order.
+
+@example
+(vector-count (lambda (i elt)
+                (even? elt))
+              '#(3 1 4 1 5 9 2 5 6))
+@result{} 3
+
+(vector-count (lambda (i x y)
+                (< x y))
+              '#(1 3 6 9)
+              '#(2 4 6 8 10 12))
+@result{} 2
+@end example
+@end defun
+
+@c page
+@node vector mutators
+@subsection Mutators
+
+
+@defun vector-swap! @var{vec} @var{i} @var{j}
+Swap or exchange the values of the locations in @var{vec} at @var{i} and
+@var{j}.
+@end defun
+
+
+@deffn Function %vector-fill*! @var{fill} @var{vec} @var{start} @var{past}
+@deffnx Macro vector-fill*! @var{V} @var{fill}
+Store @var{fill} in every location of the selected subvector of
+@var{vec}.
+@end deffn
+
+
+@deffn Function %vector-reverse! @var{vec} @var{start} @var{past}
+@deffnx Macro vector-reverse! @var{V}
+Destructively reverse the contents of the selected subvector of
+@var{vec}.  Notice that this function does not deeply reverse.
+@end deffn
+
+
+@deffn Function %vector-copy! @var{vec-dst} @var{dst-start} @var{vec-src} @var{src-start} @var{src-past}
+@deffnx Macro vector-copy! @var{V-dst} @var{V-src}
+Copy the selected subvector of @var{vec-src} into @var{vec-dst} starting
+at @var{dst-start}.  When using the vector view: The past index of the
+destination vector is ignored.
+
+It is an error for @var{vec-dst} to have a length less than:
+
+@example
+@var{src-start} + (@var{src-past} - @var{src-start})
+@end example
+@end deffn
+
+
+@deffn Function %vector-reverse-copy! @var{dst-vec} @var{dst-start} @var{src-vec} @var{src-start} @var{src-past}
+@deffnx Macro vector-reverse-copy! @var{V-dst} @var{V-src}
+Like @func{vector-copy!}, but this copies the elements in the reverse
+order.  It is an error if @var{vec-dst} and @var{vec-src} are identical
+vectors and the selected subvectors overlap.
+
+However, if @code{@var{dst-start} = @var{src-start}} this function
+behaves as:
+
+@example
+(vector-reverse! @var{dst-vec} @var{dst-start} @var{src-past})
+@end example
+@end deffn
+
+@c page
+@node vector conv
+@subsection Conversion
+
+
+@deffn Function %vector->list* @var{vec} @var{start} @var{past}
+@deffnx Macro vector->list* @var{V}
+Create a list containing the elements of the selected subvector of
+@var{vec}.
+@end deffn
+
+
+@deffn Function %reverse-vector->list @var{vec} @var{start} @var{end}
+@deffnx Macro reverse-vector->list @var{vec} @var{start} @var{end}
+Like @func{vector->list}, but the resulting list contains the elements
+in reverse order.
+@end deffn
+
+
+@defun reverse-list->vector @var{proper-list}
+Like @func{list->vector}, but the resulting list contains the elements
+of @var{proper-list} in reverse order.
+@end defun
+
+@c page
+@node checks
+@section Lightweight testing
+
+
+The @library{checks} library provides a simple mechanism for testing
+Scheme programs.  As a most primitive example, the expression:
+
+@example
+(check (+ 1 1) => 3)
+@end example
+
+@noindent
+evaluates the expression @code{(+ 1 1)} and compares the result with the
+expected result @code{3} provided after the syntactic keyword @code{=>}.
+Then the outcome of this comparison is reported in human--readable form
+by printing a message of the form:
+
+@example
+(+ 1 1) @result{} 2 ; *** failed ***
+; expected result: 3
+@end example
+
+
+@menu
+* checks select::               Selecting tests to be run.
+* checks eval::                 Evaluating code.
+* checks result::               Handling multiple results.
+* checks debug::                Printing debug messages.
+@end menu
+
+
+@c page
+@node checks select
+@subsection Selecting tests to be run
+
+
+As usage example, let's assume that the system environment variable
+@env{CHECK_TEST_NAME} is set to @code{yellow}:
+
+@example
+(parameterise ((check-test-name 'yellow))
+
+  ;; this is evaluated
+  (check
+      (do-something)
+    => 123)
+
+  ;; this is evaluated, too
+  (check
+      (do-some-other-thing)
+    => 456))
+
+(parameterise ((check-test-name 'blue))
+
+  ;; this is NOT evaluated
+  (check
+      (do-something)
+    => #t)
+
+  ;; this is NOT evaluated
+  (check
+      (do-some-other-thing)
+    => #f))
+
+;; this is evaluated
+(check "yellow-one"
+    (do-something)
+  => 123)
+
+;; this is NOT evaluated
+(check 'red
+    (do-something)
+  => #t)
+@end example
+
+
+@defvr {Environment Variable} CHECK_TEST_NAME
+The system environment variable used to select tests in a test suite
+file.  The value of the variable must be the name, or the prefix of the
+name, or the suffix of the name, of one or more tests.
+@end defvr
+
+
+@deffn Parameter check-test-name
+Holds the name of the current test or tests.  Must be set to @false{}, a
+string or a symbol.
+@end deffn
+
+
+@c page
+@node checks eval
+@subsection Evaluating code
+
+
+@deffn Syntax check @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{expr} => @var{expected}
+@deffnx Syntax check @var{name} @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check @var{name} @var{expr} => @var{expected}
+Evaluate @var{expr} and compare the value to the value of @var{expected}
+using the predicate @var{equal}, which is @func{equal?} when omitted.
+Then a report is printed according to the current mode setting (see
+below) and the outcome is recorded in a global state to be used in
+@func{check-report}.
+
+The precise order of evaluation is that first @var{equal} and
+@var{expected} are evaluated (in unspecified order) and then @var{expr}
+is evaluated.  Example: @code{(check (+ 1 1) => 2)}.
+
+When @var{name} is given: it is the name of this test, @ref{checks
+select, Selecting tests to be run}.
+@end deffn
+
+
+@deffn Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected} (@var{argument*})
+@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected} (@var{argument*})
+@deffnx Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected}
+An eager comprehension for executing a parametric sequence of checks.
+To use this syntax we have to import the @library{loops} library.
+
+Enumerate the sequence of bindings specified by @var{qualifier*}.  For
+each binding evaluate @var{equal} and @var{expected} in unspecified
+order. Then evaluate @var{expr} and compare the value obtained to the
+value of @var{expected} using the value of @var{equal} as predicate,
+which is @func{equal?} when omitted.
+
+The comprehension stops after the first failed check, if there is any.
+Then a report is printed according to the current mode setting (see
+below) and the outcome is recorded in a global state to be used in
+@func{check-report}.  The entire @func{check-ec} counts as a single
+check.
+
+In case the check fails @var{argument*} is used for constructing an
+informative message with the argument values.  Use @var{argument*} to
+list the relevant free variables of @var{expr} (see examples) that you
+want to have printed.
+
+A @var{qualifier} is any qualifier of an eager comprehension.
+
+Examples:
+
+@example
+(check-ec (: e 100)
+          (positive? (expt 2 e))
+          => #t (e)) ; fails on fixnums
+
+(check-ec (: e 100)
+          (:let x (expt 2.0 e))
+          (= (+ x 1) x)
+          => #f (x)) ; fails
+
+(check-ec (: x 10)
+          (: y 10)
+          (: z 10)
+          (* x (+ y z))
+          => (+ (* x y) (* x z))
+             (x y z)) ; passes with 10^3 cases checked
+@end example
+@end deffn
+
+
+@defun check-report
+Print a summary and the first failed check, if there is any, depending
+on the current mode settings.
+@end defun
+
+
+@defun check-set-mode! @var{mode}
+Set the current mode to @var{mode}, which must be a symbol among:
+@code{off}, @code{summary}, @code{report-failed}, @code{report}; the
+default is @code{report}.  Note that you can change the mode at any
+time, and that @func{check}, @func{check-ec} and @func{check-report} use
+the current value.
+
+The mode symbols have the following meaning:
+
+@table @code
+@item off
+do not execute any of the checks;
+
+@item summary
+print only summary in @func{check-report} and nothing else;
+
+@item report-failed
+report failed checks when they happen, and in summary;
+
+@item report
+report every example executed.
+@end table
+@end defun
+
+
+@defun check-reset!
+Reset the global state (counters of correct/failed examples) to the
+state immediately after loading the module for the first time, i.e. no
+checks have been executed.
+@end defun
+
+
+@defun check-passed? @var{expected-total-count}
+Return @true{} if there were no failed checks and
+@var{expected-total-count} correct checks, @false{} otherwise.
+
+Rationale: This procedure can be used in automatized tests by
+terminating a test program with the statement:
+
+@example
+(exit (if (check-passed? n) 0 1))
+@end example
+@end defun
+
+
+@deffn Syntax false-if-exception @var{form0} @var{form} ...
+Evaluate all the @var{form}s as in @func{begin}.  If an exception is
+raised: return @false{}.
+@end deffn
+
+
+@deffn Syntax check-for-true @var{expr}
+@deffnx Syntax check-for-true @var{name} @var{expr}
+@deffnx Syntax check-for-false @var{expr}
+@deffnx Syntax check-for-false @var{name} @var{expr}
+Evaluate @var{expr} in a @func{check} form, expecting a non--false or
+@false{} value as result.
+
+When @var{name} is given: it is the name of this test, @ref{checks
+select, Selecting tests to be run}.
+@end deffn
+
+@c page
+@node checks result
+@subsection Handling multiple results
+
+
+@deffn Syntax with-result @var{form0} @var{form} ...
+Evaluate all the @var{form}s, as in @func{begin}, in a dynamic
+environment in which an implicit result variable is defined.  The
+implicit variable is handled as a list.
+
+Return a list whose first value is the return value of the last
+@var{form} and whose second value is the value of the implicit variable.
+@end deffn
+
+
+@defun add-result @var{value}
+Append @var{value} to the list in the implicit variable defined by
+@func{with-result}.
+@end defun
+
+
+@defun get-result
+Return the current value of the implicit variable defined by
+@func{with-result}.
+@end defun
+
+
+@c page
+@node checks debug
+@subsection Printing debug messages
+
+
+@deffn Parameter debugging
+When set to true @func{debug} will print its message.  It is initialised
+to @false{}.
+@end deffn
+
+
+@defun debug @var{string}
+@defunx debug @var{format-string} @var{arg} ...
+If the @code{debugging} parameter is set to true, print @var{string} to
+the current error port, or hand @var{format-string} and the optional
+@var{arg} values to @func{format} and print the result to the current
+error port.
+@end defun
+
+
+@defun debug-print-condition @var{message} @var{exc}
+A wrapper for @func{debug} that prints @var{message} and does its best
+to print @var{exc}, which must be a Scheme condition value.
+@end defun
+
+
 
 @c page
 @node one-dimension
@@ -25201,6 +25805,8 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+
+
 @subsubheading @ansrfi{26}: Notation for specializing parameters without currying
 
 Copyright @copyright{} 2002 Sebastian Egner.  All Rights Reserved.
@@ -25277,6 +25883,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @subsubheading @ansrfi{39}: Parameter objects
 
 Copyright @copyright{} 2002 Marc Feeley.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+@subsubheading @ansrfi{43}: Vectors library
+
+Copyright @copyright{} 2003 Taylor Campbell.  All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the

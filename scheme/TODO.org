@@ -1,0 +1,26 @@
+* char-set
+
+  Implement the predefined sets.
+
+* compare
+
+* foreing
+
+  Import it from uriel
+
+* format
+
+  Import the documentation from srfi.
+  Finish testing, review and documentation.
+
+* random
+
+* streams
+
+* time
+
+  Rewrite?
+
+* vectors
+
+

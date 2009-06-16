@@ -724,6 +724,7 @@ ds_texi_PREREQ		= $$(ds_texi_BUILDDIR)/version.texiinc \
 ds_texi_CLEANFILES	= $$(ds_texi_BUILDDIR)/version.texiinc
 
 .PHONY: ds-texinfo-builddir
+.SECONDARY: $$(ds_texi_BUILDDIR)/%.info
 
 ds-texinfo-builddir:
 	test -d $$(ds_texi_BUILDDIR) || $$(MKDIR) $$(ds_texi_BUILDDIR)
