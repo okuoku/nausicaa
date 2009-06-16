@@ -6,26 +6,6 @@
    remove the need for --compatible.
 
 
-* Nausicaa/Scheme
-
-  Import strings
-
-  Import char-set
-
-  Import compare
-
-  Import ffi
-
-  Import format
-
-  Import random
-
-  Import streams
-
-  Import time
-
-  Import vectors
-
 * Nausicaa/Stubs
 
 ** Write a stub library for testing the ffi.

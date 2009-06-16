@@ -24,7 +24,7 @@ Topics
 This is a distribution of Scheme language libraries for R6RS
 Scheme  implementations.  Currently  it attempts  to support
 Larceny, Ikarus, Mosh and  Ypsilon; when referring to all of
-these we can use the @LIMY abbreviation.
+these we can use the LIMY abbreviation.
 
 
 1.1 About 'Nausicaa'
