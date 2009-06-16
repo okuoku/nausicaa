@@ -265,6 +265,15 @@
     => '(#\d #\c #\b #\a))
 
   (check
+      (vector-fold (lambda (i nil x y) (cons (cons x y) nil)) '()
+		   '#(#\a #\b #\c #\d)
+		   '#(#\A #\B #\C #\D))
+    => '((#\d . #\D)
+	 (#\c . #\C)
+	 (#\b . #\B)
+	 (#\a . #\A)))
+
+  (check
       (vector-fold (lambda (i nil x) (cons x nil)) '() '#())
     => '())
 
@@ -282,6 +291,15 @@
   (check
       (vector-fold-right (lambda (i nil x) (cons x nil)) '() '#(#\a #\b #\c #\d))
     => '(#\a #\b #\c #\d))
+
+  (check
+      (vector-fold-right (lambda (i nil x y) (cons (cons x y) nil)) '()
+			 '#(#\a #\b #\c #\d)
+			 '#(#\A #\B #\C #\D))
+    => '((#\a . #\A)
+	 (#\b . #\B)
+	 (#\c . #\C)
+	 (#\d . #\D)))
 
   (check
       (vector-fold-right (lambda (i nil x) (cons x nil)) '() '#())

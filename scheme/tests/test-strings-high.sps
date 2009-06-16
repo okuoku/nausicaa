@@ -786,6 +786,53 @@
 (parameterise ((check-test-name 'folding))
 
   (check
+      (string-fold (lambda (i nil x) (cons x nil)) '() "abcd")
+    => '(#\d #\c #\b #\a))
+
+  (check
+      (string-fold (lambda (i nil x y) (cons (cons x y) nil)) '()
+		   "abcd"
+		   "ABCD")
+    => '((#\d . #\D)
+	 (#\c . #\C)
+	 (#\b . #\B)
+	 (#\a . #\A)))
+
+  (check
+      (string-fold (lambda (i nil x) (cons x nil)) '() "")
+    => '())
+
+  (check
+      (string-fold (lambda (i count c)
+		     (if (char-upper-case? c)
+			 (+ count 1)
+		       count))
+		   0
+		   "ABCdefGHi")
+    => 5)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-fold-right (lambda (i nil x) (cons x nil)) '() "abcd")
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (string-fold-right (lambda (i nil x y) (cons (cons x y) nil)) '()
+			 "abcd"
+			 "ABCD")
+    => '((#\a . #\A)
+	 (#\b . #\B)
+	 (#\c . #\C)
+	 (#\d . #\D)))
+
+  (check
+      (string-fold-right (lambda (i nil x) (cons x nil)) '() "")
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
       (string-fold* cons '() "abcd")
     => '(#\d #\c #\b #\a))
 
