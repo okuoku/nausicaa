@@ -800,17 +800,20 @@ Strings library
 * strings intro::               Introduction.
 * strings convention::          Interface conventions.
 * strings views::               Views over strings.
+* strings cons::                Constructors.
 * strings pred::                Predicates.
 * strings compar::              Comparison.
 * strings map::                 Mapping functions.
 * strings case::                Case mapping.
 * strings fold::                Fold, unfold.
 * strings select::              Selection.
+* strings pad::                 Padding and trimming.
 * strings prefix::              Prefixes and suffixes.
 * strings search::              Searching.
 * strings filter::              Filtering and deleting.
 * strings list::                List and string conversion.
 * strings replicate::           Replicate and rotate.
+* strings mutate::              Mutators.
 * strings misc::                Miscellaneous functions.
 * strings kmp::                 Knuth--Morris--Pratt searching.
 
@@ -24577,7 +24580,7 @@ An example @var{cmp} might be:
         ((char=? char1 char2)  0)
         (else                  1)))
 @end example
-@end defun
+@end deffn
 
 
 @defun vector-any @var{pred?} @var{vec0} @var{vec} ...
