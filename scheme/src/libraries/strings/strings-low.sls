@@ -106,7 +106,7 @@
   (export
 
     ;; constructors
-    string-concatenate %string-concatenate-reverse  string-tabulate
+    string-concatenate  %string-concatenate-reverse  string-tabulate
 
     ;; predicates
     string-null?  %string-every  %string-any

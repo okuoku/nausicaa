@@ -113,62 +113,60 @@
   (export
 
     ;; constructors
-    %subvector
+    vector-concatenate  %vector-concatenate-reverse
+    vector-tabulate  vector-append
 
     ;; predicates
-    %vector-null?
-    %vector-any %vector-every
+    %vector-null?  %vector-any  %vector-every
 
     ;; comparison
-    %vector= %vector<>
+    %vector=  %vector<>
 
     ;; mapping
-    vector-map* vector-map*!
-    vector-for-each*
+    vector-map*  vector-map*!  vector-for-each*
 
     ;; folding
-    vector-fold vector-fold-right
-    %vector-fold* %vector-fold-right*
-    vector-unfold vector-unfold-right
-    vector-tabulate
+    vector-fold    vector-fold-right
+    %vector-fold*  %vector-fold-right*
+    vector-unfold  vector-unfold-right
 
     ;; selecting
-    %vector-copy %vector-reverse-copy
-    %vector-take %vector-take-right
-    %vector-drop %vector-drop-right
-    %vector-trim %vector-trim-right %vector-trim-both
-    %vector-pad %vector-pad-right
+    %subvector
+    %vector-copy   %vector-reverse-copy
+    %vector-copy!  %vector-reverse-copy!
+    %vector-take   %vector-take-right
+    %vector-drop   %vector-drop-right
+
+    ;; padding and trimming
+    %vector-trim  %vector-trim-right  %vector-trim-both
+    %vector-pad   %vector-pad-right
 
     ;; prefix and suffix
-    %vector-prefix-length %vector-suffix-length
-    %vector-prefix? %vector-suffix?
+    %vector-prefix-length  %vector-suffix-length
+    %vector-prefix?        %vector-suffix?
 
     ;; searching
-    %vector-index %vector-index-right
-    %vector-skip %vector-skip-right
-    %vector-count
-    vector-binary-search
-    %vector-contains
+    %vector-index  %vector-index-right
+    %vector-skip   %vector-skip-right
+    %vector-count  %vector-contains
+    %vector-binary-search
 
     ;; filtering
-    %vector-delete %vector-filter
-
-    ;; extended subvector
-    %xsubvector %vector-xcopy!
-
-    ;; concatenate, reverse, fill, replace, swap
-    vector-append
-    vector-concatenate %vector-concatenate-reverse
-    %vector-reverse %vector-reverse!
-    %vector-fill*! %vector-replace
-
-    ;; mutators
-    %vector-copy! %vector-reverse-copy!
-    vector-swap!
+    %vector-delete  %vector-filter
 
     ;; lists
-    %vector->list* %reverse-vector->list
+    %vector->list*  %reverse-vector->list
     reverse-list->vector
+
+    ;; replicating
+    %xsubvector  %vector-xcopy!
+
+    ;; mutating
+    vector-swap!  %vector-fill*!
+
+    ;; reverse and replace
+    %vector-reverse  %vector-reverse!
+    %vector-replace
 
     ;; Knuth-Morris-Pratt search
     %kmp-vector-search %kmp-vector-make-restart-vector
@@ -571,7 +569,7 @@
 (define (%vector-contains item= vec vec-start vec-past pattern pattern-start pattern-past)
   (%kmp-vector-search item= vec vec-start vec-past pattern pattern-start pattern-past))
 
-(define (vector-binary-search value cmp vec start past)
+(define (%vector-binary-search value cmp vec start past)
   (let loop ((start start) (past past) (j #f))
     (let ((i (quotient (+ start past) 2)))
       (if (or (= start past) (and j (= i j)))
@@ -781,12 +779,11 @@
     s))
 
 (define (%reverse-vector->list vec start past)
-  (let ((len (vector-length vec)))
-    (do ((i (- past 1) (- i 1))
-	 (vlist '()))
-	((< i start)
-	 vlist)
-      (set! vlist (cons (vector-ref vec i) vlist)))))
+  (let loop ((i       start)
+	     (result  '()))
+    (if (= i past)
+	result
+      (loop (+ 1 i) (cons (vector-ref vec i) result)))))
 
 (define (%vector->list* str start past)
   (do ((i (- past 1) (- i 1))

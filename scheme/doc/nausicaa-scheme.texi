@@ -24549,7 +24549,8 @@ right--to--left and all of the vectors must have the same length.
 @end defun
 
 
-@defun vector-binary-search @var{vec} @var{value} @var{cmp}
+@deffn Function %vector-binary-search @var{value} @var{cmp} @var{vec} @var{start} @var{past}
+@deffnx Macro vector-binary-search @var{V} @var{value} @var{cmp}
 Similar to @func{vector-index} and @func{vector-index-right}, but
 instead of searching left to right or right to left, this performs a
 binary search.  @var{cmp} should be a procedure of two arguments and

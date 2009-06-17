@@ -103,60 +103,60 @@
   (export
 
     ;; constructors
-
+    vector-concatenate  vector-concatenate-reverse
+    vector-tabulate  vector-append
 
     ;; predicates
     vector-null? vector-every vector-any
 
     ;; comparison
-    vector= vector<>
+    vector=  vector<>
 
     ;; mapping
-    vector-map* vector-map*!
-    vector-for-each*
+    vector-map*  vector-map*!  vector-for-each*
 
     ;; folding
-    vector-fold   vector-fold-right
-    vector-fold*  vector-fold-right*
-    vector-unfold vector-unfold-right
-    vector-tabulate
+    vector-fold    vector-fold-right
+    vector-fold*   vector-fold-right*
+    vector-unfold  vector-unfold-right
 
     ;; selecting
     subvector*
-    vector-copy vector-reverse-copy
-    vector-take vector-take-right
-    vector-drop vector-drop-right
-    vector-trim vector-trim-right vector-trim-both
-    vector-pad vector-pad-right
+    vector-copy   vector-reverse-copy
+    vector-copy!  vector-reverse-copy!
+    vector-take   vector-take-right
+    vector-drop   vector-drop-right
+
+    ;; padding and trimming
+    vector-trim  vector-trim-right vector-trim-both
+    vector-pad   vector-pad-right
 
     ;; prefix and suffix
-    vector-prefix-length vector-suffix-length
-    vector-prefix? vector-suffix?
+    vector-prefix-length  vector-suffix-length
+    vector-prefix?        vector-suffix?
 
     ;; searching
-    vector-index vector-index-right
-    vector-skip vector-skip-right
-    vector-count vector-contains
+    vector-index  vector-index-right
+    vector-skip   vector-skip-right
+    vector-count  vector-contains
     vector-binary-search
 
     ;; filtering
-    vector-filter vector-delete
-
-    ;; replicating
-    xsubvector vector-xcopy!
-
-    ;; concatenate, reverse, fill, replace
-    vector-append
-    vector-concatenate vector-concatenate-reverse
-    vector-reverse vector-reverse!
-    vector-replace
-
-    ;; mutating
-    vector-copy! vector-reverse-copy!
-    vector-fill*! vector-swap!
+    vector-filter  vector-delete
 
     ;; lists
-    vector->list* reverse-list->vector)
+    vector->list*  reverse-vector->list
+    reverse-list->vector
+
+    ;; replicating
+    xsubvector  vector-xcopy!
+
+    ;; mutating
+    vector-fill*!  vector-swap!
+
+    ;; reverse and replace
+    vector-reverse  vector-reverse!
+    vector-replace)
   (import (rnrs)
     (vectors vectors-low))
 
@@ -204,6 +204,21 @@
 
     ((?F ?stuff ...)
      (syntax-violation #f "invalid parameters" (?stuff ...)))))
+
+
+;;;; constructors
+
+(define vector-concatenate-reverse
+  (case-lambda
+
+   ((vector-list)
+    (%vector-concatenate-reverse vector-list '#() 0))
+
+   ((vector-list final)
+    (%vector-concatenate-reverse vector-list final (vector-length final)))
+
+   ((vector-list final past)
+    (%vector-concatenate-reverse vector-list final past))))
 
 
 ;;;; predicates
@@ -281,6 +296,20 @@
      (let-values (((vec beg past) (unpack ?V)))
        (%vector-reverse-copy vec beg past)))))
 
+(define-syntax vector-copy!
+  (syntax-rules ()
+    ((_ ?V1 ?V2)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-copy! vec1 beg1 vec2 beg2 past2)))))
+
+(define-syntax vector-reverse-copy!
+  (syntax-rules ()
+    ((_ ?V1 ?V2)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-reverse-copy! vec1 beg1 vec2 beg2 past2)))))
+
 (define-syntax vector-take
   (syntax-rules ()
     ((_ ?V nchars)
@@ -304,6 +333,9 @@
     ((_ ?V nchars)
      (let-values (((vec beg past) (unpack ?V)))
        (%vector-drop-right nchars vec beg past)))))
+
+
+;;;; padding and trimming
 
 (define-syntax vector-trim
   (syntax-rules ()
@@ -355,8 +387,6 @@
      (let-values (((vec1 beg1 past1) (unpack ?V1))
 		  ((vec2 beg2 past2) (unpack ?V2)))
        (%vector-suffix-length ?pred vec1 beg1 past1 vec2 beg2 past2)))))
-
-;;; --------------------------------------------------------------------
 
 (define-syntax vector-prefix?
   (syntax-rules ()
@@ -412,6 +442,12 @@
 		  ((vec2 start2 end2) (unpack ?V2)))
        (%vector-contains ?pred vec1 start1 end1 vec2 start2 end2)))))
 
+(define-syntax vector-binary-search
+  (syntax-rules ()
+    ((_ ?V ?value ?cmp)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-binary-search ?value ?cmp vec beg past)))))
+
 
 ;;;; filtering
 
@@ -436,6 +472,12 @@
      (let-values (((vec beg past) (unpack ?V)))
        (%vector->list* vec beg past)))))
 
+(define-syntax reverse-vector->list
+  (syntax-rules ()
+    ((_ ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%reverse-vector->list vec beg past)))))
+
 
 ;;; replicating
 
@@ -454,18 +496,6 @@
 
 
 ;;; concatenate, reverse, replace, fill
-
-(define vector-concatenate-reverse
-  (case-lambda
-
-   ((vector-list)
-    (%vector-concatenate-reverse vector-list '#() 0))
-
-   ((vector-list final)
-    (%vector-concatenate-reverse vector-list final (vector-length final)))
-
-   ((vector-list final past)
-    (%vector-concatenate-reverse vector-list final past))))
 
 (define-syntax vector-replace
   (syntax-rules ()
@@ -488,20 +518,6 @@
 
 
 ;;;; mutating
-
-(define-syntax vector-copy!
-  (syntax-rules ()
-    ((_ ?V1 ?V2)
-     (let-values (((vec1 beg1 past1) (unpack ?V1))
-		  ((vec2 beg2 past2) (unpack ?V2)))
-       (%vector-copy! vec1 beg1 vec2 beg2 past2)))))
-
-(define-syntax vector-reverse-copy!
-  (syntax-rules ()
-    ((_ ?V1 ?V2)
-     (let-values (((vec1 beg1 past1) (unpack ?V1))
-		  ((vec2 beg2 past2) (unpack ?V2)))
-       (%vector-reverse-copy! vec1 beg1 vec2 beg2 past2)))))
 
 (define-syntax vector-fill*!
   (syntax-rules ()

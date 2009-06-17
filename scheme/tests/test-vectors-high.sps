@@ -33,6 +33,11 @@
 (check-set-mode! 'report-failed)
 (display "*** testing vectors\n")
 
+(define (num-cmp a b)
+  (cond ((> a b) +1)
+	((< a b) -1)
+	(else     0)))
+
 
 (parameterise ((check-test-name 'views))
 
@@ -93,6 +98,48 @@
   (check
       (subvector* (view '#(0 1 2 3) (past 2)))
     => '#(0 1))
+
+  )
+
+
+(parameterise ((check-test-name 'concatenate))
+
+  (check
+      (vector-concatenate '(#(#\c #\i #\a #\o) #(#\space)
+			    #(#\h #\e #\l #\l #\o) #(#\space)
+			    #(#\s #\a #\l #\u #\t)))
+    => '#(#\c #\i #\a #\o #\space #\h #\e #\l #\l #\o #\space #\s #\a #\l #\u #\t))
+
+  (check
+      (vector-concatenate '())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-concatenate-reverse '(#(#\c #\i #\a #\o) #(#\space)
+				    #(#\h #\e #\l #\l #\o) #(#\space)
+				    #(#\s #\a #\l #\u #\t))
+				  '#(#\space #\h #\o #\l #\a) 3)
+    => '#(#\s #\a #\l #\u #\t #\space #\h #\e #\l #\l #\o #\space #\c #\i #\a #\o #\space #\h #\o))
+
+  (check
+      (vector-concatenate-reverse '(#(#\c #\i #\a #\o) #(#\space)
+				    #(#\h #\e #\l #\l #\o) #(#\space)
+				    #(#\s #\a #\l #\u #\t))
+				  '#(#\space #\h #\o #\l #\a))
+    => '#(#\s #\a #\l #\u #\t #\space #\h #\e #\l #\l #\o #\space
+	  #\c #\i #\a #\o #\space #\h #\o #\l #\a))
+
+  (check
+      (vector-concatenate-reverse '(#(#\c #\i #\a #\o) #(#\space)
+				    #(#\h #\e #\l #\l #\o) #(#\space)
+				    #(#\s #\a #\l #\u #\t)))
+    => '#(#\s #\a #\l #\u #\t #\space #\h #\e #\l #\l #\o #\space #\c #\i #\a #\o))
+
+  (check
+      (vector-concatenate-reverse '())
+    => '#())
 
   )
 
@@ -780,6 +827,31 @@
       (vector-contains '#() '#(#\h #\e #\l #\l #\o) char=?)
     => #f)
 
+;;; --------------------------------------------------------------------
+
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 0 num-cmp) => 0)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 1 num-cmp) => 1)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 2 num-cmp) => 2)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 3 num-cmp) => 3)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 4 num-cmp) => 4)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 5 num-cmp) => 5)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 6 num-cmp) => 6)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 7 num-cmp) => 7)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 8 num-cmp) => 8)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9) 9 num-cmp) => 9)
+
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  0 num-cmp) => 0)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  1 num-cmp) => 1)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  2 num-cmp) => 2)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  3 num-cmp) => 3)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  4 num-cmp) => 4)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  5 num-cmp) => 5)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  6 num-cmp) => 6)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  7 num-cmp) => 7)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  8 num-cmp) => 8)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10)  9 num-cmp) => 9)
+  (check (vector-binary-search '#(0 1 2 3 4 5 6 7 8 9 10) 10 num-cmp) => 10)
+
   )
 
 
@@ -837,6 +909,20 @@
   (check
       (reverse-list->vector '())
     => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (reverse-vector->list '#(#\d #\c #\b #\a))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (reverse-vector->list '#(#\a))
+    => '(#\a))
+
+  (check
+      (reverse-vector->list '#())
+    => '())
 
   )
 
@@ -980,48 +1066,6 @@
       (let* ((vec (vector-copy '#())))
 	(vector-reverse! vec)
 	vec)
-    => '#())
-
-  )
-
-
-(parameterise ((check-test-name 'concatenate))
-
-  (check
-      (vector-concatenate '(#(#\c #\i #\a #\o) #(#\space)
-			    #(#\h #\e #\l #\l #\o) #(#\space)
-			    #(#\s #\a #\l #\u #\t)))
-    => '#(#\c #\i #\a #\o #\space #\h #\e #\l #\l #\o #\space #\s #\a #\l #\u #\t))
-
-  (check
-      (vector-concatenate '())
-    => '#())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (vector-concatenate-reverse '(#(#\c #\i #\a #\o) #(#\space)
-				    #(#\h #\e #\l #\l #\o) #(#\space)
-				    #(#\s #\a #\l #\u #\t))
-				  '#(#\space #\h #\o #\l #\a) 3)
-    => '#(#\s #\a #\l #\u #\t #\space #\h #\e #\l #\l #\o #\space #\c #\i #\a #\o #\space #\h #\o))
-
-  (check
-      (vector-concatenate-reverse '(#(#\c #\i #\a #\o) #(#\space)
-				    #(#\h #\e #\l #\l #\o) #(#\space)
-				    #(#\s #\a #\l #\u #\t))
-				  '#(#\space #\h #\o #\l #\a))
-    => '#(#\s #\a #\l #\u #\t #\space #\h #\e #\l #\l #\o #\space
-	  #\c #\i #\a #\o #\space #\h #\o #\l #\a))
-
-  (check
-      (vector-concatenate-reverse '(#(#\c #\i #\a #\o) #(#\space)
-				    #(#\h #\e #\l #\l #\o) #(#\space)
-				    #(#\s #\a #\l #\u #\t)))
-    => '#(#\s #\a #\l #\u #\t #\space #\h #\e #\l #\l #\o #\space #\c #\i #\a #\o))
-
-  (check
-      (vector-concatenate-reverse '())
     => '#())
 
   )
