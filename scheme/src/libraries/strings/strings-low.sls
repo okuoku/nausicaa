@@ -105,63 +105,69 @@
 (library (strings strings-low)
   (export
 
+    ;; constructors
+    string-concatenate %string-concatenate-reverse  string-tabulate
+
     ;; predicates
-    string-null?
-    %string-every %string-any
+    string-null?  %string-every  %string-any
 
     ;; comparison
-    %string-compare %string-compare-ci
-    %string= %string<> %string< %string> %string<= %string>=
-    %string-ci= %string-ci<> %string-ci< %string-ci> %string-ci<= %string-ci>=
+    %string-compare  %string-compare-ci
+    %string=  %string<>  %string-ci=  %string-ci<>
+    %string<  %string<=  %string-ci<  %string-ci<=
+    %string>  %string>=  %string-ci>  %string-ci>=
 
     ;; mapping
-    %string-map %string-map!
-    %string-for-each* %string-for-each-index
+    %string-map        %string-map!
+    %string-for-each*  %string-for-each-index
 
     ;; case hacking
     %string-titlecase*!
 
     ;; folding and unfolding
-    string-fold string-fold-right
-    %string-fold* %string-fold-right*
-    string-unfold string-unfold-right
-    string-tabulate
+    string-fold    string-fold-right
+    %string-fold*  %string-fold-right*
+    string-unfold  string-unfold-right
 
     ;; selecting
-    %string-copy*!
-    %string-take %string-take-right
-    %string-drop %string-drop-right
-    %string-trim %string-trim-right %string-trim-both
-    %string-pad %string-pad-right
+    (rename (substring %string-copy*)) %string-reverse-copy*
+    %string-copy*!  %string-reverse-copy*!
+    %string-take    %string-take-right
+    %string-drop    %string-drop-right
+
+    ;; padding and trimming
+    %string-trim    %string-trim-right  %string-trim-both
+    %string-pad     %string-pad-right
 
     ;; prefix and suffix
-    %string-prefix-length %string-prefix-length-ci
-    %string-suffix-length %string-suffix-length-ci
-    %string-prefix? %string-prefix-ci?
-    %string-suffix? %string-suffix-ci?
+    %string-prefix-length  %string-prefix-length-ci
+    %string-suffix-length  %string-suffix-length-ci
+    %string-prefix?        %string-prefix-ci?
+    %string-suffix?        %string-suffix-ci?
 
     ;; searching
-    %string-index %string-index-right
-    %string-skip %string-skip-right
+    %string-index     %string-index-right
+    %string-skip      %string-skip-right
+    %string-contains  %string-contains-ci
     %string-count
-    %string-contains %string-contains-ci
 
     ;; filtering
-    %string-delete %string-filter
+    %string-delete  %string-filter
 
-    ;; strings and lists
-    reverse-list->string
-    %string->list*
-    %string-tokenize %string-join
+    ;; lists
+    %string->list*    reverse-list->string
+    %string-tokenize  %string-join
     (rename (%string-tokenize %string-tokenise))
 
     ;; replicating
-    %xsubstring %string-xcopy!
+    %xsubstring  %string-xcopy!
 
-    ;; concatenate, reverse, fill, replace
-    string-concatenate %string-concatenate-reverse
-    %string-reverse %string-reverse!
-    %string-fill*! %string-replace
+    ;; mutating
+    %string-fill*!  string-swap!
+
+    ;; reverse and replace
+    %string-reverse  %string-reverse!
+    %string-replace
 
     ;; Knuth-Morris-Pratt search
     %kmp-search %kmp-make-restart-vector %kmp-step %kmp-string-partial-search)
@@ -175,6 +181,46 @@
 
 (define (strings-list-min-length strings)
   (apply min (map string-length strings)))
+
+
+;;;; constructors
+
+(define (string-concatenate strings)
+  (let* ((total (do ((strings strings (cdr strings))
+		     (i 0 (+ i (string-length (car strings)))))
+		    ((not (pair? strings)) i)))
+	 (result (make-string total)))
+    (let lp ((i 0) (strings strings))
+      (if (pair? strings)
+	  (let* ((s (car strings))
+		 (slen (string-length s)))
+	    (%string-copy*! result i s 0 slen)
+	    (lp (+ i slen) (cdr strings)))))
+    result))
+
+(define (%string-concatenate-reverse string-list final past)
+  (let* ((len (let loop ((sum 0) (lis string-list))
+		(if (pair? lis)
+		    (loop (+ sum (string-length (car lis))) (cdr lis))
+		  sum)))
+	 (result (make-string (+ past len))))
+    (%string-copy*! result len final 0 past)
+    (let loop ((i len) (lis string-list))
+      (if (pair? lis)
+	  (let* ((s   (car lis))
+		 (lis (cdr lis))
+		 (slen (string-length s))
+		 (i (- i slen)))
+	    (%string-copy*! result i s 0 slen)
+	    (loop i lis))))
+    result))
+
+(define (string-tabulate proc len)
+  (let ((s (make-string len)))
+    (do ((i (- len 1) (- i 1)))
+	((< i 0))
+      (string-set! s i (proc i)))
+    s))
 
 
 ;;;; predicates
@@ -561,30 +607,16 @@
 		(%string-copy*! ans j base 0 base-len)))	; Install BASE.
 	    ans)))))))
 
-(define (string-tabulate proc len)
-  (let ((s (make-string len)))
-    (do ((i (- len 1) (- i 1)))
-	((< i 0))
-      (string-set! s i (proc i)))
-    s))
-
 
 ;;;; selecting
 
-(define (%string-copy*! dst-str dst-start src-str src-start src-past)
-  (if (>= (- (string-length dst-str) dst-start)
-	  (- src-past src-start))
-      (if (> src-start dst-start)
-	  (do ((i src-start (+ i 1))
-	       (j dst-start (+ j 1)))
-	      ((>= i src-past))
-	    (string-set! dst-str j (string-ref src-str i)))
-	(do ((i (- src-past 1)                    (- i 1))
-	     (j (+ -1 dst-start (- src-past src-start)) (- j 1)))
-	    ((< i src-start))
-	  (string-set! dst-str j (string-ref src-str i))))
-    (assertion-violation '%string-copy*!
-      "not enough room in destination string")))
+(define (%string-reverse-copy* str start past)
+  (let ((result (make-string (- past start))))
+    (do ((i (- past 1) (- i 1))
+	 (j 0 (+ j 1)))
+	((< i start)
+	 result)
+      (string-set! result j (string-ref str i)))))
 
 (define (%string-take nchars str start past)
   (if (<= nchars (- past start))
@@ -1019,37 +1051,7 @@
 	(%string-copy*! dst-str i src-str src-start src-past))))) ; Copy a whole span.
 
 
-;;;; concatenate, reverse, replace, fill
-
-(define (string-concatenate strings)
-  (let* ((total (do ((strings strings (cdr strings))
-		     (i 0 (+ i (string-length (car strings)))))
-		    ((not (pair? strings)) i)))
-	 (result (make-string total)))
-    (let lp ((i 0) (strings strings))
-      (if (pair? strings)
-	  (let* ((s (car strings))
-		 (slen (string-length s)))
-	    (%string-copy*! result i s 0 slen)
-	    (lp (+ i slen) (cdr strings)))))
-    result))
-
-(define (%string-concatenate-reverse string-list final past)
-  (let* ((len (let loop ((sum 0) (lis string-list))
-		(if (pair? lis)
-		    (loop (+ sum (string-length (car lis))) (cdr lis))
-		  sum)))
-	 (result (make-string (+ past len))))
-    (%string-copy*! result len final 0 past)
-    (let loop ((i len) (lis string-list))
-      (if (pair? lis)
-	  (let* ((s   (car lis))
-		 (lis (cdr lis))
-		 (slen (string-length s))
-		 (i (- i slen)))
-	    (%string-copy*! result i s 0 slen)
-	    (loop i lis))))
-    result))
+;;;; reverse, replace
 
 (define (%string-reverse str start past)
   (let* ((len (- past start))
@@ -1077,10 +1079,55 @@
       (string-set! str i (string-ref str j))
       (string-set! str j ci))))
 
+
+;;;; mutating
+
+(define (%string-copy*! dst-str dst-start src-str src-start src-past)
+  (when (< (- (string-length dst-str) dst-start)
+	   (- src-past src-start))
+    (assertion-violation '%string-copy*!
+      "not enough room in destination string"))
+  (if (> src-start dst-start)
+      (do ((i src-start (+ i 1))
+	   (j dst-start (+ j 1)))
+	  ((>= i src-past))
+	(string-set! dst-str j (string-ref src-str i)))
+    (do ((i (- src-past 1)                    (- i 1))
+	 (j (+ -1 dst-start (- src-past src-start)) (- j 1)))
+	((< i src-start))
+      (string-set! dst-str j (string-ref src-str i)))))
+
+(define (%string-reverse-copy*! dst-str dst-start src-str src-start src-past)
+  (when (< (- (string-length dst-str) dst-start)
+	   (- src-past src-start))
+    (assertion-violation '%string-reverse-copy*!
+      "not enough room in destination string"))
+  ;;We  must handle  correctly copying  over  the same  string.  If  the
+  ;;source  and  destination strings  are  the  same,  we copy  all  the
+  ;;elements  in a  temporary  buffer first;  this  should be  optimised
+  ;;someway to reduce to the minimum the size of the buffer.
+  (if (eq? src-str dst-str)
+      (when (< src-start src-past)
+	(let* ((buffer (%string-reverse-copy* src-str src-start src-past)))
+	  (%string-copy*! dst-str dst-start buffer 0 (string-length buffer))))
+    (do ((i (- src-past 1) (- i 1))
+	 (j dst-start (+ j 1)))
+	((< i src-start))
+      (string-set! dst-str j (string-ref src-str i)))))
+
 (define (%string-fill*! fill-char str start past)
   (do ((i (- past 1) (- i 1)))
       ((< i start))
     (string-set! str i fill-char)))
+
+(define (string-swap! str i j)
+  (when (= 0 (string-length str))
+    (assertion-violation 'string-swap!
+      "attempt to swap elements in an empty string"))
+  (when (not (= i j))
+    (let ((x (string-ref str i)))
+      (string-set! str i (string-ref str j))
+      (string-set! str j x))))
 
 
 ;; Knuth-Morris-Pratt string searching. See:

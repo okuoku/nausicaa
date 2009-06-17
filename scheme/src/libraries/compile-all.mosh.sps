@@ -29,6 +29,7 @@
   (only (one-dimension))
   (only (char-sets))
   (only (strings))
+  (only (vectors))
   (only (checks))
   (only (loops))
   (only (format))

@@ -102,6 +102,9 @@
 (library (vectors)
   (export
 
+    ;; constructors
+
+
     ;; predicates
     vector-null? vector-every vector-any
 
@@ -119,7 +122,8 @@
     vector-tabulate
 
     ;; selecting
-    subvector* vector-copy vector-copy*!
+    subvector*
+    vector-copy vector-reverse-copy
     vector-take vector-take-right
     vector-drop vector-drop-right
     vector-trim vector-trim-right vector-trim-both
@@ -138,9 +142,6 @@
     ;; filtering
     vector-filter vector-delete
 
-    ;; vectors and lists
-    vector->list* reverse-list->vector
-
     ;; replicating
     xsubvector vector-xcopy!
 
@@ -148,7 +149,14 @@
     vector-append
     vector-concatenate vector-concatenate-reverse
     vector-reverse vector-reverse!
-    vector-fill*! vector-replace)
+    vector-replace
+
+    ;; mutating
+    vector-copy! vector-reverse-copy!
+    vector-fill*! vector-swap!
+
+    ;; lists
+    vector->list* reverse-list->vector)
   (import (rnrs)
     (vectors vectors-low))
 
@@ -267,12 +275,11 @@
      (let-values (((vec beg past) (unpack ?V)))
        (%vector-copy ?fill vec beg past)))))
 
-(define-syntax vector-copy*!
+(define-syntax vector-reverse-copy
   (syntax-rules ()
-    ((_ ?V1 ?V2)
-     (let-values (((vec1 beg1 past1) (unpack ?V1))
-		  ((vec2 beg2 past2) (unpack ?V2)))
-       (%vector-copy*! vec1 beg1 vec2 beg2 past2)))))
+    ((_ ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%vector-reverse-copy vec beg past)))))
 
 (define-syntax vector-take
   (syntax-rules ()
@@ -479,11 +486,28 @@
      (let-values (((vec beg past) (unpack ?V)))
        (%vector-reverse! vec beg past)))))
 
+
+;;;; mutating
+
+(define-syntax vector-copy!
+  (syntax-rules ()
+    ((_ ?V1 ?V2)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-copy! vec1 beg1 vec2 beg2 past2)))))
+
+(define-syntax vector-reverse-copy!
+  (syntax-rules ()
+    ((_ ?V1 ?V2)
+     (let-values (((vec1 beg1 past1) (unpack ?V1))
+		  ((vec2 beg2 past2) (unpack ?V2)))
+       (%vector-reverse-copy! vec1 beg1 vec2 beg2 past2)))))
+
 (define-syntax vector-fill*!
   (syntax-rules ()
-    ((_ ?V ?fill-char)
+    ((_ ?V ?fill-value)
      (let-values (((vec beg past) (unpack ?V)))
-       (%vector-fill*! ?fill-char vec beg past)))))
+       (%vector-fill*! ?fill-value vec beg past)))))
 
 
 ;;;; done

@@ -106,62 +106,71 @@
 (library (strings)
   (export
 
+    ;; constructors
+    string-concatenate  string-concatenate-reverse  string-tabulate
+
     ;; predicates
-    string-null? string-every string-any
+    string-null?  string-every  string-any
 
     ;; comparison
-    string-compare string-compare-ci
-    string=    string<    string>    string<=    string>=    string<>
-    string-ci= string-ci< string-ci> string-ci<= string-ci>= string-ci<>
+    string-compare  string-compare-ci
+    string=  string<>  string-ci=  string-ci<>
+    string<  string<=  string-ci<  string-ci<=
+    string>  string>=  string-ci>  string-ci>=
 
     ;; mapping
-    string-map string-map!
-    string-for-each* string-for-each-index
+    string-map        string-map!
+    string-for-each*  string-for-each-index
 
     ;; case
-    string-downcase* string-upcase* string-titlecase*
-    string-downcase*! string-upcase*! string-titlecase*!
+    string-downcase*   string-upcase*   string-titlecase*
+    string-downcase*!  string-upcase*!  string-titlecase*!
 
     ;; folding
-    string-fold   string-fold-right
-    string-fold*  string-fold-right*
-    string-unfold string-unfold-right
-    string-tabulate
+    string-fold    string-fold-right
+    string-fold*   string-fold-right*
+    string-unfold  string-unfold-right
 
     ;; selecting
-    substring* string-copy*!
-    string-take string-take-right
-    string-drop string-drop-right
-    string-trim string-trim-right string-trim-both
-    string-pad string-pad-right
+    substring*
+    (rename (substring* string-copy*)) string-reverse-copy*
+    string-copy*!  string-reverse-copy*!
+    string-take    string-take-right
+    string-drop    string-drop-right
+
+    ;; padding and trimming
+    string-trim  string-trim-right  string-trim-both
+    string-pad   string-pad-right
 
     ;; prefix and suffix
-    string-prefix-length string-prefix-length-ci
-    string-suffix-length string-suffix-length-ci
-    string-prefix? string-prefix-ci?
-    string-suffix? string-suffix-ci?
+    string-prefix-length  string-prefix-length-ci
+    string-suffix-length  string-suffix-length-ci
+    string-prefix?        string-prefix-ci?
+    string-suffix?        string-suffix-ci?
 
     ;; searching
-    string-index string-index-right
-    string-skip  string-skip-right
+    string-index     string-index-right
+    string-skip      string-skip-right
+    string-contains  string-contains-ci
     string-count
-    string-contains string-contains-ci
 
     ;; filtering
     string-filter string-delete
 
     ;; strings and lists
-    string->list* reverse-list->string
-    string-join
-    string-tokenize (rename (string-tokenize string-tokenise))
+    string->list*  reverse-list->string
+    string-join    string-tokenize
+    (rename (string-tokenize string-tokenise))
 
     ;; replicating
-    xsubstring string-xcopy!
+    xsubstring  string-xcopy!
 
-    ;; concatenate, reverse, fill, replace
-    string-concatenate string-concatenate-reverse
-    string-reverse string-reverse!
-    string-fill*! string-replace)
+    ;; mutating
+    string-fill*! string-swap!
+
+    ;; reverse and replace
+    string-reverse  string-reverse!
+    string-replace)
   (import (rnrs)
     (strings strings-low))
 
@@ -413,12 +422,25 @@
      (let-values (((str beg past) (unpack ?S)))
        (substring str beg past)))))
 
+(define-syntax string-reverse-copy*
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%string-reverse-copy* str beg past)))))
+
 (define-syntax string-copy*!
   (syntax-rules ()
     ((_ ?S1 ?S2)
      (let-values (((str1 beg1 past1) (unpack ?S1))
 		  ((str2 beg2 past2) (unpack ?S2)))
        (%string-copy*! str1 beg1 str2 beg2 past2)))))
+
+(define-syntax string-reverse-copy*!
+  (syntax-rules ()
+    ((_ ?S1 ?S2)
+     (let-values (((str1 beg1 past1) (unpack ?S1))
+		  ((str2 beg2 past2) (unpack ?S2)))
+       (%string-reverse-copy*! str1 beg1 str2 beg2 past2)))))
 
 (define-syntax string-take
   (syntax-rules ()

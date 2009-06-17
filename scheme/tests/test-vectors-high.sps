@@ -361,6 +361,46 @@
 (parameterise ((check-test-name 'selecting))
 
   (check
+      (vector-copy '#(0 1 2 3 4 5 6 7 8 9))
+    => '#(0 1 2 3 4 5 6 7 8 9))
+
+  (check
+      (vector-copy ('#(0 1 2 3 4 5 6 7 8 9) 4 8))
+    => '#(4 5 6 7))
+
+  (check
+      (vector-copy ('#(0 1 2 3 4 5 6 7 8 9) 4 4))
+    => '#())
+
+  (check
+      (vector-copy '#())
+    => '#())
+
+  (check
+      (vector-copy (view '#(0 1 2 3 4) (past 10)) 99)
+    => '#(0 1 2 3 4 99 99 99 99 99))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-reverse-copy '#(0 1 2 3 4 5 6 7 8 9))
+    => '#(9 8 7 6 5 4 3 2 1 0))
+
+  (check
+      (vector-reverse-copy ('#(0 1 2 3 4 5 6 7 8 9) 4 8))
+    => '#(7 6 5 4))
+
+  (check
+      (vector-reverse-copy ('#(0 1 2 3 4 5 6 7 8 9) 4 4))
+    => '#())
+
+  (check
+      (vector-reverse-copy '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
       (vector-take '#(#\a #\b #\c #\d) 2)
     => '#(#\a #\b))
 
@@ -499,27 +539,6 @@
   (check
       (vector-pad-right '#(#\a #\b #\c) 0 #\0)
     => '#())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((vec (vector-copy '#(#\1 #\2))))
-	(vector-copy*! vec (view '#(#\a #\b #\c #\d) (past 2)))
-	vec)
-    => '#(#\a #\b))
-
-  (check
-      (let ((vec '#()))
-	(vector-copy*! vec ('#(#\a #\b #\c #\d) 0 0))
-	vec)
-    => '#())
-
-  (check
-      (guard (exc ((assertion-violation? exc) #t))
-	(let* ((vec (vector-copy '#(#\1 #\2))))
-	  (vector-copy*! (vec 3) (view '#(#\a #\b #\c #\d) (past 2)))
-	  vec))
-    => #t)
 
   )
 
@@ -1033,6 +1052,202 @@
   (check
       (vector-replace ('#(#\a #\b #\c #\d) 1 4) '#(#\1 #\2 #\3 #\4))
     => '#(#\a #\1 #\2 #\3 #\4))
+
+  )
+
+
+(parameterise ((check-test-name 'mutating))
+
+  (check
+      (let* ((vec (vector-copy '#(#\1 #\2))))
+	;; not enough room in destination vector
+	;;(vector-copy! (vec 3) (view '#(#\a #\b #\c #\d) (past 2)))
+	(guard (exc ((assertion-violation? exc) #t))
+	  (vector-copy! (vec 3)
+			(view '#(#\a #\b #\c #\d) (past 2)))))
+    => #t)
+
+  (check
+      ;; whole vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2 #\3))))
+	(vector-copy! vec '#(#\a #\b #\c))
+	vec)
+    => '#(#\a #\b #\c))
+
+  (check
+      ;; zero-elements vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2 #\3))))
+	(vector-copy! vec ('#(#\a #\b #\c) 2 2))
+	vec)
+    => '#(#\1 #\2 #\3))
+
+  (check
+      ;; one-element vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2 #\3))))
+	(vector-copy! vec ('#(#\a #\b #\c) 1 2))
+	vec)
+    => '#(#\b #\2 #\3))
+
+  (check
+      ;; two-elements vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2))))
+	(vector-copy! vec (view '#(#\a #\b #\c #\d) (past 2)))
+	vec)
+    => '#(#\a #\b))
+
+  (check
+      (let ((vec '#()))
+	(vector-copy! vec ('#(#\a #\b #\c #\d) 0 0))
+	vec)
+    => '#())
+
+  (check
+      ;; over the same vector, full
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-copy! vec vec)
+	vec)
+    => '#(0 1 2 3 4 5 6 7 8 9))
+
+  (check
+      ;; over the same vector, in place
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-copy! (vec 5) (vec 5))
+	vec)
+    => '#(0 1 2 3 4 5 6 7 8 9))
+
+  (check
+      ;; over the same vector, backwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-copy! (vec 2) (vec 4 8))
+	vec)
+    => '#(0 1 4 5 6 7 6 7 8 9))
+
+  (check
+      ;; over the same vector, backwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-copy! (vec 0) (vec 4 8))
+	vec)
+    => '#(4 5 6 7 4 5 6 7 8 9))
+
+  (check
+      ;; over the same vector, forwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-copy! (vec 4) (vec 2 6))
+	vec)
+    => '#(0 1 2 3 2 3 4 5 8 9))
+
+  (check
+      ;; over the same vector, forwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-copy! (vec 6) (vec 2 6))
+	vec)
+    => '#(0 1 2 3 4 5 2 3 4 5))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((vec (vector-copy '#(#\1 #\2))))
+	;; not enough room in destination vector
+	;;(vector-reverse-copy! (vec 3) (view '#(#\a #\b #\c #\d) (past 2)))
+	(guard (exc ((assertion-violation? exc) #t))
+	  (vector-reverse-copy! (vec 3)
+			(view '#(#\a #\b #\c #\d) (past 2)))))
+    => #t)
+
+  (check
+      ;; whole vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2 #\3))))
+	(vector-reverse-copy! vec '#(#\a #\b #\c))
+	vec)
+    => '#(#\c #\b #\a))
+
+  (check
+      ;; zero-elements vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2 #\3))))
+	(vector-reverse-copy! vec ('#(#\a #\b #\c) 2 2))
+	vec)
+    => '#(#\1 #\2 #\3))
+
+  (check
+      ;; one-element vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2 #\3))))
+	(vector-reverse-copy! vec ('#(#\a #\b #\c) 1 2))
+	vec)
+    => '#(#\b #\2 #\3))
+
+  (check
+      ;; two-elements vector copy
+      (let* ((vec (vector-copy '#(#\1 #\2))))
+	(vector-reverse-copy! vec (view '#(#\a #\b #\c #\d) (past 2)))
+	vec)
+    => '#(#\b #\a))
+
+  (check
+      (let ((vec '#()))
+	(vector-reverse-copy! vec ('#(#\a #\b #\c #\d) 0 0))
+	vec)
+    => '#())
+
+  (check
+      ;; over the same vector, full
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-reverse-copy! vec vec)
+	vec)
+    => '#(9 8 7 6 5 4 3 2 1 0))
+
+  (check
+      ;; over the same vector
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-reverse-copy! (vec 5) (vec 5))
+	vec)
+    => '#(0 1 2 3 4 9 8 7 6 5))
+
+  (check
+      ;; over the same vector, backwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-reverse-copy! (vec 2) (vec 4 8))
+	vec)
+    => '#(0 1 7 6 5 4 6 7 8 9))
+
+  (check
+      ;; over the same vector, backwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-reverse-copy! (vec 0) (vec 4 8))
+	vec)
+    => '#(7 6 5 4 4 5 6 7 8 9))
+
+  (check
+      ;; over the same vector, forwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-reverse-copy! (vec 4) (vec 2 6))
+	vec)
+    => '#(0 1 2 3 5 4 3 2 8 9))
+
+  (check
+      ;; over the same vector, forwards
+      (let* ((vec (vector-copy '#(0 1 2 3 4 5 6 7 8 9))))
+	(vector-reverse-copy! (vec 6) (vec 2 6))
+	vec)
+    => '#(0 1 2 3 4 5 5 4 3 2))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(0 1 2 3 4 5))))
+	(vector-swap! vec 2 4)
+	vec)
+    => '#(0 1 4 3 2 5))
+
+  (check
+      (let ((vec (vector-copy '#(0 1 2 3 4 5))))
+	(vector-swap! vec 2 2)
+	vec)
+    => '#(0 1 2 3 4 5))
+
+  (check
+      (guard (exc ((assertion-violation? exc) #t))
+	(vector-swap! '#() 0 1))
+    => #t)
 
   )
 

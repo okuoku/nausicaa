@@ -1,3 +1,7 @@
+* nausicaa
+
+  Factorise the common stuff from the (nausicaa) libraries.
+
 * char-set
 
   Implement the predefined sets.
@@ -23,4 +27,7 @@
 
 * vectors
 
+  Review the export lists.
+  Test for binary search.
+  Review of the documentation.
 

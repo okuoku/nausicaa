@@ -114,8 +114,6 @@
 
     ;; constructors
     %subvector
-    %vector-copy
-    ;;;%vector-reverse-copy
 
     ;; predicates
     %vector-null?
@@ -135,8 +133,7 @@
     vector-tabulate
 
     ;; selecting
-    %vector-copy*!
-    ;;%vector-reverse-copy!
+    %vector-copy %vector-reverse-copy
     %vector-take %vector-take-right
     %vector-drop %vector-drop-right
     %vector-trim %vector-trim-right %vector-trim-both
@@ -164,6 +161,9 @@
     vector-concatenate %vector-concatenate-reverse
     %vector-reverse %vector-reverse!
     %vector-fill*! %vector-replace
+
+    ;; mutators
+    %vector-copy! %vector-reverse-copy!
     vector-swap!
 
     ;; lists
@@ -174,7 +174,7 @@
     %kmp-vector-search %kmp-vector-make-restart-vector
     %kmp-vector-step %kmp-vector-partial-search)
   (import (rnrs)
-    (rnrs r5rs))
+    (only (rnrs r5rs) modulo quotient))
 
 
 ;;;; helpers
@@ -191,24 +191,6 @@
     (do ((i start (+ 1 i))
 	 (j 0 (+ 1 j)))
 	((= past i)
-	 result)
-      (vector-set! result j (vector-ref vec i)))))
-
-(define (%vector-copy fill vec start past)
-  (let ((result (make-vector (- past start) fill))
-	(len (max past (vector-length vec))))
-    (do ((i start (+ 1 i))
-	 (j 0 (+ 1 j)))
-	((= len i)
-	 result)
-      (vector-set! result j (vector-ref vec i)))))
-
-(define (%vector-reverse-copy vec start past)
-  (let* ((len (- past start))
-	 (result (make-vector len)))
-    (do ((i (- past 1) (- i 1))
-	 (j 0 (+ j 1)))
-	((= len i)
 	 result)
       (vector-set! result j (vector-ref vec i)))))
 
@@ -348,18 +330,18 @@
 		 (base-len  (vector-length base))
 		 (j         (+ base-len nvalues i))
 		 (ans       (make-vector (+ j flen))))
-	    (%vector-copy*! ans j final 0 flen)
+	    (%vector-copy! ans j final 0 flen)
 	    (let ((j (- j i)))
-	      (%vector-copy*! ans j chunk 0 i)
+	      (%vector-copy! ans j chunk 0 i)
 	      (let loop ((j j) (chunks chunks))
 		(if (pair? chunks)
 		    (let* ((chunk      (car chunks))
 			   (chunks     (cdr chunks))
 			   (chunk-len  (vector-length chunk))
 			   (j          (- j chunk-len)))
-		      (%vector-copy*! ans j chunk 0 chunk-len)
+		      (%vector-copy! ans j chunk 0 chunk-len)
 		      (loop j chunks)))))
-	    (%vector-copy*! ans 0 base 0 base-len) ; Install BASE.
+	    (%vector-copy! ans 0 base 0 base-len) ; Install BASE.
 	    ans)))))))
 
 (define vector-unfold-right
@@ -397,17 +379,17 @@
 		 (chunk-used  (- chunk-len i))
 		 (j           (+ base-len nvalues chunk-used))
 		 (ans         (make-vector (+ j flen))))
-	    (%vector-copy*! ans 0 final 0 flen)
-	    (%vector-copy*! ans flen chunk i chunk-len)
+	    (%vector-copy! ans 0 final 0 flen)
+	    (%vector-copy! ans flen chunk i chunk-len)
 	    (let loop ((j (+ flen chunk-used))
 		       (chunks chunks))
 	      (if (pair? chunks)
 		  (let* ((chunk      (car chunks))
 			 (chunks     (cdr chunks))
 			 (chunk-len  (vector-length chunk)))
-		    (%vector-copy*! ans j chunk 0 chunk-len)
+		    (%vector-copy! ans j chunk 0 chunk-len)
 		    (loop (+ j chunk-len) chunks))
-		(%vector-copy*! ans j base 0 base-len)))
+		(%vector-copy! ans j base 0 base-len)))
 	    ans)))))))
 
 (define (vector-tabulate index->value len)
@@ -420,20 +402,22 @@
 
 ;;;; selecting
 
-(define (%vector-copy*! dst-vec dst-start src-vec src-start src-past)
-  (if (>= (- (vector-length dst-vec) dst-start)
-	  (- src-past src-start))
-      (if (> src-start dst-start)
-	  (do ((i src-start (+ i 1))
-	       (j dst-start (+ j 1)))
-	      ((>= i src-past))
-	    (vector-set! dst-vec j (vector-ref src-vec i)))
-	(do ((i (- src-past 1)                    (- i 1))
-	     (j (+ -1 dst-start (- src-past src-start)) (- j 1)))
-	    ((< i src-start))
-	  (vector-set! dst-vec j (vector-ref src-vec i))))
-    (assertion-violation '%vector-copy*!
-      "not enough room in destination vector")))
+(define (%vector-copy fill vec start past)
+  (let* ((imax    (min past (vector-length vec)))
+	 (result  (make-vector (- past start) fill)))
+    (do ((i start (+ 1 i))
+	 (j 0 (+ 1 j)))
+	((= imax i)
+	 result)
+      (vector-set! result j (vector-ref vec i)))))
+
+(define (%vector-reverse-copy vec start past)
+  (let ((result (make-vector (- past start))))
+    (do ((i (- past 1) (- i 1))
+	 (j 0 (+ j 1)))
+	((< i start)
+	 result)
+      (vector-set! result j (vector-ref vec i)))))
 
 (define (%vector-take nvalues vec start past)
   (if (<= nvalues (- past start))
@@ -478,7 +462,7 @@
     (if (<= requested-len len)
 	(%subvector vec (- past requested-len) past)
       (let ((result (make-vector requested-len fill-value)))
-	(%vector-copy*! result (- requested-len len) vec start past)
+	(%vector-copy! result (- requested-len len) vec start past)
 	result))))
 
 (define (%vector-pad-right requested-len fill-value vec start past)
@@ -486,7 +470,7 @@
     (if (<= requested-len len)
 	(%subvector vec start (+ start requested-len))
       (let ((result (make-vector requested-len fill-value)))
-	(%vector-copy*! result 0 vec start past)
+	(%vector-copy! result 0 vec start past)
 	result))))
 
 
@@ -653,7 +637,7 @@
 	  ((= 1 vec-len)
 	   (%vector-fill*! dst-vec (vector-ref src-vec src-start) dst-start dst-past))
 	  ((= (floor (/ from vec-len)) (floor (/ to vec-len)))
-	   (%vector-copy*! dst-vec dst-start src-vec
+	   (%vector-copy! dst-vec dst-start src-vec
 			  (+ src-start (modulo from vec-len))
 			  (+ src-start (modulo to   vec-len))))
 	  (else
@@ -663,15 +647,15 @@
   (let* ((vec-len	(- src-past src-start))
 	 (i0		(+ src-start (modulo from vec-len)))
 	 (total-values	(- to from)))
-    (%vector-copy*! dst-vec dst-start src-vec i0 src-past)
+    (%vector-copy! dst-vec dst-start src-vec i0 src-past)
     (let* ((ncopied (- src-past i0))
 	   (nleft (- total-values ncopied))
 	   (nspans (quotient nleft vec-len)))
       (do ((i (+ dst-start ncopied) (+ i vec-len))
 	   (nspans nspans (- nspans 1)))
 	  ((zero? nspans)
-	   (%vector-copy*! dst-vec i src-vec src-start (+ src-start (- total-values (- i dst-start)))))
-	(%vector-copy*! dst-vec i src-vec src-start src-past)))))
+	   (%vector-copy! dst-vec i src-vec src-start (+ src-start (- total-values (- i dst-start)))))
+	(%vector-copy! dst-vec i src-vec src-start src-past)))))
 
 
 ;;;; concatenate, reverse, replace, fill, swap
@@ -686,7 +670,7 @@
       (if (pair? vectors)
 	  (let* ((s (car vectors))
 		 (slen (vector-length s)))
-	    (%vector-copy*! result i s 0 slen)
+	    (%vector-copy! result i s 0 slen)
 	    (lp (+ i slen) (cdr vectors)))))
     result))
 
@@ -696,14 +680,14 @@
 		    (loop (+ sum (vector-length (car lis))) (cdr lis))
 		  sum)))
 	 (result (make-vector (+ past len))))
-    (%vector-copy*! result len final 0 past)
+    (%vector-copy! result len final 0 past)
     (let loop ((i len) (lis vector-list))
       (if (pair? lis)
 	  (let* ((s   (car lis))
 		 (lis (cdr lis))
 		 (slen (vector-length s))
 		 (i (- i slen)))
-	    (%vector-copy*! result i s 0 slen)
+	    (%vector-copy! result i s 0 slen)
 	    (loop i lis))))
     result))
 
@@ -720,9 +704,9 @@
   (let* ((len1		(vector-length str1))
 	 (len2		(- past2 start2))
 	 (result	(make-vector (+ len2 (- len1 (- past1 start1))))))
-    (%vector-copy*! result 0 str1 0 start1)
-    (%vector-copy*! result start1 str2 start2 past2)
-    (%vector-copy*! result (+ start1 len2) str1 past1 len1)
+    (%vector-copy! result 0 str1 0 start1)
+    (%vector-copy! result start1 str2 start2 past2)
+    (%vector-copy! result (+ start1 len2) str1 past1 len1)
     result))
 
 (define (%vector-reverse! str start past)
@@ -739,9 +723,50 @@
     (vector-set! str i fill-value)))
 
 (define (vector-swap! vec i j)
-  (let ((x (vector-ref vec i)))
-    (vector-set! vec i (vector-ref vec j))
-    (vector-set! vec j x)))
+  (when (= 0 (vector-length vec))
+    (assertion-violation 'vector-swap!
+      "attempt to swap elements in an empty vector"))
+  (when (not (= i j))
+    (let ((x (vector-ref vec i)))
+      (vector-set! vec i (vector-ref vec j))
+      (vector-set! vec j x))))
+
+
+;;;; mutators
+
+(define (%vector-copy! dst-vec dst-start src-vec src-start src-past)
+  (when (< (- (vector-length dst-vec) dst-start)
+	   (- src-past src-start))
+    (assertion-violation '%vector-copy!
+      "not enough room in destination vector"))
+  ;;We must handle correctly copying over the same vector.
+  (if (> src-start dst-start)
+      (do ((i src-start (+ i 1))
+	   (j dst-start (+ j 1)))
+	  ((>= i src-past))
+	(vector-set! dst-vec j (vector-ref src-vec i)))
+    (do ((i (- src-past 1) (- i 1))
+	 (j (+ -1 dst-start (- src-past src-start)) (- j 1)))
+	((< i src-start))
+      (vector-set! dst-vec j (vector-ref src-vec i)))))
+
+(define (%vector-reverse-copy! dst-vec dst-start src-vec src-start src-past)
+  (when (< (- (vector-length dst-vec) dst-start)
+	   (- src-past src-start))
+    (assertion-violation '%vector-reverse-copy!
+      "not enough room in destination vector"))
+  ;;We  must handle  correctly copying  over  the same  vector.  If  the
+  ;;source  and  destination vectors  are  the  same,  we copy  all  the
+  ;;elements  in a  temporary  buffer first;  this  should be  optimised
+  ;;someway to reduce to the minimum the size of the buffer.
+  (if (eq? src-vec dst-vec)
+      (when (< src-start src-past)
+	(let* ((buffer (%vector-reverse-copy src-vec src-start src-past)))
+	  (%vector-copy! dst-vec dst-start buffer 0 (vector-length buffer))))
+    (do ((i (- src-past 1) (- i 1))
+	 (j dst-start (+ j 1)))
+	((< i src-start))
+      (vector-set! dst-vec j (vector-ref src-vec i)))))
 
 
 ;;;; lists

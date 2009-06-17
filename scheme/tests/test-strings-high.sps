@@ -1126,27 +1126,6 @@
       (string-pad-right "abc" 0 #\0)
     => "")
 
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str (string-copy "12")))
-	(string-copy*! str (view "abcd" (past 2)))
-	str)
-    => "ab")
-
-  (check
-      (let ((str ""))
-	(string-copy*! str ("abcd" 0 0))
-	str)
-    => "")
-
-  (check
-      (guard (exc ((assertion-violation? exc) #t))
-	(let* ((str (string-copy "12")))
-	  (string-copy*! (str 3) (view "abcd" (past 2)))
-	  str))
-    => #t)
-
   )
 
 
@@ -2131,6 +2110,201 @@
   (check
       (string-replace ("abcd" 1 4) "1234")
     => "a1234")
+
+  )
+
+
+(parameterise ((check-test-name 'mutating))
+
+  (check
+      (let* ((str (string-copy "12")))
+	;; not enough room in destination string
+	(guard (exc ((assertion-violation? exc) #t))
+	  (string-copy*! (str 3)
+			 (view "abcd" (past 2)))))
+    => #t)
+
+  (check
+      ;; whole string copy
+      (let* ((str (string-copy "123")))
+	(string-copy*! str "abc")
+	str)
+    => "abc")
+
+  (check
+      ;; zero-elements string copy
+      (let* ((str (string-copy "123")))
+	(string-copy*! str ("abc" 2 2))
+	str)
+    => "123")
+
+  (check
+      ;; one-element string copy
+      (let* ((str (string-copy "123")))
+	(string-copy*! str ("abc" 1 2))
+	str)
+    => "b23")
+
+  (check
+      ;; two-elements string copy
+      (let* ((str (string-copy "12")))
+	(string-copy*! str (view "abcd" (past 2)))
+	str)
+    => "ab")
+
+  (check
+      (let ((str ""))
+	(string-copy*! str ("abcd" 0 0))
+	str)
+    => "")
+
+  (check
+      ;; over the same string, full
+      (let* ((str (string-copy "0123456789")))
+	(string-copy*! str str)
+	str)
+    => "0123456789")
+
+  (check
+      ;; over the same string, in place
+      (let* ((str (string-copy "0123456789")))
+	(string-copy*! (str 5) (str 5))
+	str)
+    => "0123456789")
+
+  (check
+      ;; over the same string, backwards
+      (let* ((str (string-copy "0123456789")))
+	(string-copy*! (str 2) (str 4 8))
+	str)
+    => "0145676789")
+
+  (check
+      ;; over the same string, backwards
+      (let* ((str (string-copy "0123456789")))
+	(string-copy*! (str 0) (str 4 8))
+	str)
+    => "4567456789")
+
+  (check
+      ;; over the same string, forwards
+      (let* ((str (string-copy "0123456789")))
+	(string-copy*! (str 4) (str 2 6))
+	str)
+    => "0123234589")
+
+  (check
+      ;; over the same string, forwards
+      (let* ((str (string-copy "0123456789")))
+	(string-copy*! (str 6) (str 2 6))
+	str)
+    => "0123452345")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((str (string-copy "12")))
+	;; not enough room in destination string
+	;;(string-reverse-copy*! (str 3) (view '#(#\a #\b #\c #\d) (past 2)))
+	(guard (exc ((assertion-violation? exc) #t))
+	  (string-reverse-copy*! (str 3)
+				 (view "abcd" (past 2)))))
+    => #t)
+
+  (check
+      ;; whole string copy
+      (let* ((str (string-copy "123")))
+	(string-reverse-copy*! str "abc")
+	str)
+    => "cba")
+
+  (check
+      ;; zero-elements string copy
+      (let* ((str (string-copy "123")))
+	(string-reverse-copy*! str ("abc" 2 2))
+	str)
+    => "123")
+
+  (check
+      ;; one-element string copy
+      (let* ((str (string-copy "123")))
+	(string-reverse-copy*! str ("abc" 1 2))
+	str)
+    => "b23")
+
+  (check
+      ;; two-elements string copy
+      (let* ((str (string-copy "12")))
+	(string-reverse-copy*! str (view "abcd" (past 2)))
+	str)
+    => "ba")
+
+  (check
+      (let ((str ""))
+	(string-reverse-copy*! str ("abcd" 0 0))
+	str)
+    => "")
+
+  (check
+      ;; over the same string, full
+      (let* ((str (string-copy "0123456789")))
+	(string-reverse-copy*! str str)
+	str)
+    => "9876543210")
+
+  (check
+      ;; over the same string
+      (let* ((str (string-copy "0123456789")))
+	(string-reverse-copy*! (str 5) (str 5))
+	str)
+    => "0123498765")
+
+  (check
+      ;; over the same string, backwards
+      (let* ((str (string-copy "0123456789")))
+	(string-reverse-copy*! (str 2) (str 4 8))
+	str)
+    => "0176546789")
+
+  (check
+      ;; over the same string, backwards
+      (let* ((str (string-copy "0123456789")))
+	(string-reverse-copy*! (str 0) (str 4 8))
+	str)
+    => "7654456789")
+
+  (check
+      ;; over the same string, forwards
+      (let* ((str (string-copy "0123456789")))
+	(string-reverse-copy*! (str 4) (str 2 6))
+	str)
+    => "0123543289")
+
+  (check
+      ;; over the same string, forwards
+      (let* ((str (string-copy "0123456789")))
+	(string-reverse-copy*! (str 6) (str 2 6))
+	str)
+    => "0123455432")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((str (string-copy "012345")))
+	(string-swap! str 2 4)
+	str)
+    => "014325")
+
+  (check
+      (let ((str (string-copy "012345")))
+	(string-swap! str 2 2)
+	str)
+    => "012345")
+
+  (check
+      (guard (exc ((assertion-violation? exc) #t))
+	(string-swap! "" 0 1))
+    => #t)
 
   )
 

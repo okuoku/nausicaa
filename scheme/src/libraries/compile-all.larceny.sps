@@ -50,11 +50,17 @@
 (compile-library "char-sets.sls"
 		 "char-sets.slfasl")
 
-(compile-library "strings/low.sls"
- 		 "strings/low.slfasl")
+(compile-library "strings/strings-low.sls"
+ 		 "strings/strings-low.slfasl")
 
 (compile-library "strings.sls"
  		 "strings.slfasl")
+
+(compile-library "vectors/vectors-low.sls"
+ 		 "vectors/vectors-low.slfasl")
+
+(compile-library "vectors.sls"
+ 		 "vectors.slfasl")
 
 (compile-library "loops.sls"
 		 "loops.slfasl")

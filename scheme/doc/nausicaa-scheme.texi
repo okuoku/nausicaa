@@ -21847,17 +21847,20 @@ strings} for details).
 * strings intro::               Introduction.
 * strings convention::          Interface conventions.
 * strings views::               Views over strings.
+* strings cons::                Constructors.
 * strings pred::                Predicates.
 * strings compar::              Comparison.
 * strings map::                 Mapping functions.
 * strings case::                Case mapping.
 * strings fold::                Fold, unfold.
 * strings select::              Selection.
+* strings pad::                 Padding and trimming.
 * strings prefix::              Prefixes and suffixes.
 * strings search::              Searching.
 * strings filter::              Filtering and deleting.
 * strings list::                List and string conversion.
 * strings replicate::           Replicate and rotate.
+* strings mutate::              Mutators.
 * strings misc::                Miscellaneous functions.
 * strings kmp::                 Knuth--Morris--Pratt searching.
 @end menu
@@ -21870,20 +21873,20 @@ strings} for details).
 @subsubheading Library organisation
 
 The functions are split in a high level library, @library{strings}, and
-a low level one, @library{strings low}.  The main difference between the
-two layers is that the high level library makes heavy usage of macros to
-implement the @dfn{string views}, which allow accessing substrings of
-the strings used as arguments using a friendly syntax.
+a low level one, @library{strings strings-low}.  The main difference
+between the two layers is that the high level library makes heavy usage
+of macros to implement the @dfn{string views}, which allow accessing
+substrings using a friendly syntax.
 
 All the functions in the low level library are bound to identifiers
 starting with @code{%}; for example: @func{string-prefix?} is a high
 level macro, @func{%string-prefix?} is its low level function
 homologous.
 
-@subsubheading A model for strings
+@subsubheading The model for strings
 
 This library relies on the string representation of the underlying
-Scheme implementation: strings are sequences of ``code points'' or
+Scheme implementation: Strings are sequences of ``code points'' or
 character encodings.  Operations such as comparison or reversal are
 always done code point by code point.
 
@@ -22204,6 +22207,42 @@ In the following documentation: Low level functions and high level
 macros are documented together; only the meaning of arguments to the low
 level function are described, the meaning of high level arguments is
 obvious.
+
+@c page
+@node strings cons
+@subsection Constructors
+
+
+@defun string-concatenate @var{string-list}
+Append the elements of @var{string-list} together into a single string.
+Guaranteed to return a freshly allocated string.
+@end defun
+
+
+@deffn Function %string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
+@deffnx Macro string-concatenate-reverse @var{string-list}
+@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string}
+@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
+Reverse @var{string-list} then concatenate the elements, which must be
+strings.  The first @var{nchars} code points in @var{final-string} are
+consed onto the beginning of @var{string-list} before performing the the
+reversal and concatenation operations.
+
+@var{final-string} defaults to the empty string and @var{nchars}
+defaults to the length of @var{final-string}.
+
+This procedure is useful in the construction of procedures that
+accumulate character data into lists of string buffers, and wish to
+convert the accumulated data into a single string when done.
+@end deffn
+
+
+@defun string-tabulate @var{integer->char} @var{len}
+Construct a string of size @var{len} by applying @var{integer->char} to
+each index in the range @math{[0, @var{len})} to produce the
+corresponding string element.  The order in which @var{integer->char} is
+applied to the indices is not specified.
+@end defun
 
 @c page
 @node strings pred
@@ -22535,19 +22574,25 @@ over each index in all of the strings, stopping at the end of the
 shortest; @var{kons} is applied as:
 
 @example
-(@var{kons} @var{i} @var{state}
-  (string-ref @var{str0} @var{i})
-  (string-ref @var{str} @var{i})
+(@var{kons} @var{idx} @var{state}
+  (string-ref @var{str0} @var{idx})
+  (string-ref @var{str}  @var{idx})
   ···)
 @end example
 
 @noindent
 where @var{state} is the current state value; the current state value
 begins with @var{knil}, and becomes whatever @var{kons} returned at the
-respective iteration; and @var{i} is the current index.
+respective iteration; @var{idx} is the current index.
 
 @func{string-fold-right} is similar to @func{string-fold}, but it
 iterates right--to--left.
+
+@quotation
+Notice that to allow for an unspecified number of arguments, these folds
+hand the state as first argument to @var{kons}, as opposed to the usual
+fold arguments.
+@end quotation
 @end defun
 
 @c ------------------------------------------------------------
@@ -22556,39 +22601,54 @@ iterates right--to--left.
 @deffnx Function %string-fold-right* @var{kons} @var{knil} @var{str} @var{start} @var{past}
 @deffnx Macro string-fold* @var{kons} @var{knil} @var{S}
 @deffnx Macro string-fold-right* @var{kons} @var{knil} @var{S}
-Fundamental iterators for substrings.  The left--fold operator maps the
-@var{kons} procedure across the string from left to right:
+Fundamental iterators for substrings.  @var{kons} is iterated over each
+character of the selected substring:
 
 @example
-(... (kons str[2] (kons str[1] (kons str[0] knil))))
+(@var{kons}
+  (string-ref @var{str} (+ @var{start} @var{idx}))
+  @var{state})
 @end example
 
 @noindent
-in other words, @func{%string-fold*} obeys the (tail) recursion:
+where @var{state} is the current state value; the current state value
+begins with @var{knil}, and becomes whatever @var{kons} returned at the
+respective iteration; @var{idx} is the current index.
+
+The left--fold iterator, @func{%string-fold*}, builds the return value
+as:
 
 @example
-(%string-fold* kons knil str start past) =
-   (%string-fold* kons (kons str[start] knil) start+1 past)
+(@var{kons}
+  (string-ref @var{str} (- @var{past} 1))
+  (@var{kons}
+    (string-ref @var{str} (- @var{past} 2))
+    ...
+      (@var{kons}
+        (string-ref @var{str} (+ @var{start} 2))
+        (@var{kons}
+           (string-ref @var{str} (+ @var{start} 1))
+           (@var{kons}
+              (string-ref @var{str} @var{start})
+              @var{knil})))))
 @end example
 
-The right--fold operator maps the @var{kons} procedure across the string
-from right to left:
+The right--fold iterator, @func{%string-fold-right*}, builds the return
+value as:
 
 @example
-(kons str[0]
-  (...
-    (kons str[past-3]
-      (kons str[past-2]
-        (kons str[past-1] knil)))))
-@end example
-
-@noindent
-obeying the (tail) recursion:
-
-@example
-(%string-fold-right* kons knil str start past) =
-   (%string-fold-right* kons (kons s[past-1] knil)
-                        start past-1)
+(@var{kons}
+  (string-ref @var{str} @var{start}
+  (@var{kons}
+    (string-ref @var{str} (+ @var{start} 1))
+    ...
+      (@var{kons}
+        (string-ref @var{str} (- @var{past} 3))
+        (@var{kons}
+           (string-ref @var{str} (- @var{past} 2))
+           (@var{kons}
+              (string-ref @var{str} (- @var{past} 1))
+              @var{knil})))))
 @end example
 
 Examples:
@@ -22819,15 +22879,6 @@ The final string constructed does not share storage with either
 @var{base-string} or the value produced by @func{make-final}.
 @end defun
 
-@c ------------------------------------------------------------
-
-@defun string-tabulate @var{integer->char} @var{len}
-Construct a string of size @var{len} by applying @var{integer->char} to
-each index in the range @math{[0, @var{len})} to produce the
-corresponding string element.  The order in which @var{integer->char} is
-applied to the indices is not specified.
-@end defun
-
 @c page
 @node strings select
 @subsection Selection
@@ -22838,16 +22889,50 @@ Wrapper for @func{substring} accepting a string view as argument.
 @end deffn
 
 
+@deffn Function %string-copy* @var{str} @var{start} @var{past}
+@deffnx Macro string-copy* @var{S}
+The function @func{%string-copy*} is an alias for @func{substring}; the
+macro @func{string-copy*} is an alias for @func{substring*}.
+
+@quotation
+These exist for symmetry with the @library{vectors} library; they allow
+more confidence in converting a vector function into a string function,
+and vice versa, by just replacing the string @code{vector} with the
+string @code{string}, and vice versa.
+@end quotation
+@end deffn
+
+
+@deffn Function %string-reverse-copy* @var{str} @var{start} @var{past}
+@deffnx Macro string-reverse-copy* @var{V}
+Like @func{%string-copy*}, but copy the elements in the reverse order
+from the selected substring of @var{str}.
+
+@example
+(string-reverse-copy* ('#(5 4 3 2 1 0) 1 5))
+@result{} #(1 2 3 4)
+@end example
+@end deffn
+
+
 @deffn Function %string-copy*! @var{dst-str} @var{dst-start} @var{src-str} @var{src-start} @var{src-past}
 @deffnx Macro string-copy*! @var{dst-S} @var{src-S}
 Write the selected source substring into the selected destination
 substring.  This function is the side--effecting variant of
-@func{substring} and @func{substring*}.
+@func{substring} and @func{substring*}.  This function supports copying
+over the same string.
 
 The selected destination substring starts at @var{dst-start} in
-@var{dst-str} and extends until the end of the string.  In the
+@var{dst-str} and may extend until the end of the string.  In the
 destination string view @var{dst-S}: If a past index is specified, it is
 ignored.
+@end deffn
+
+
+@deffn Function %string-reverse-copy*! @var{dst-str} @var{dst-start} @var{src-str} @var{src-start} @var{src-past}
+@deffnx Macro string-reverse-copy*! @var{V-dst} @var{V-src}
+Like @func{%string-copy*!}, but this copies the elements in the reverse
+order.  This function supports copying over the same string.
 @end deffn
 
 
@@ -22868,6 +22953,10 @@ Drop the first or last @var{nchars} of the selected substring and return
 the resulting string.  These functions always return a newly allocated
 string.
 @end deffn
+
+@c page
+@node strings pad
+@subsection Padding and trimming
 
 
 @deffn Function %string-pad @var{requested-len} @var{fill-char} @var{str} @var{start} @var{past}
@@ -22933,7 +23022,7 @@ Always return a newly allocated string.
 @deffnx Macro string-prefix-length-ci @var{S1} @var{S2}
 Return the length of the longest common prefix of the two substrings.
 This is equivalent to the ``mismatch index'' for the strings (modulo the
-@var{start} index offsets).
+start index offsets).
 @end deffn
 
 
@@ -22949,8 +23038,9 @@ Return the length of the longest common suffix of the two substrings.
 @deffnx Function %string-prefix-ci? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
 @deffnx Macro string-prefix? @var{S1} @var{S2}
 @deffnx Macro string-prefix-ci? @var{S1} @var{S2}
-Return @true{} if @var{str1} is a prefix of @var{str2}, otherwise return
-@false{}.  Notice that the empty string is a prefix of every string.
+Return @true{} if the selected substring of @var{str1} is a prefix of
+the selected substring of @var{str2}, otherwise return @false{}.  Notice
+that the empty string is a prefix of every string.
 @end deffn
 
 
@@ -22958,9 +23048,9 @@ Return @true{} if @var{str1} is a prefix of @var{str2}, otherwise return
 @deffnx Function %string-suffix-ci? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
 @deffnx Macro string-suffix? @var{S1} @var{S2}
 @deffnx Macro string-suffix-ci? @var{S1} @var{S2}
-Return @true{} if @var{str1} is a suffix of @var{str2}, otherwise return
-@false{}.  Notice that the empty string is @strong{not} a suffix of
-every string.
+Return @true{} if the selected substring of @var{str1} is a suffix of
+the selected substring of @var{str2}, otherwise return @false{}.  Notice
+that the empty string is @strong{not} a suffix of every string.
 @end deffn
 
 @c page
@@ -23016,10 +23106,18 @@ If no match is found: Return @false{}.
 @deffn Function %string-count @var{char/char-set/pred} @var{str} @var{start} @var{past}
 @deffnx Macro string-count @var{S} @var{char/char-set/pred}
 Return a count of the number of characters in @var{str} that satisfy the
-@var{char/char-set/pred} argument.  If this argument is a procedure, it
-is applied to the character as a predicate; if it is a character set,
-the character is tested for membership; if it is a character, it is used
-in an equality test.
+@var{char/char-set/pred} argument:
+
+@itemize
+@item
+If it is a procedure, it is applied to the character as a predicate.
+
+@item
+If it is a character set, the character is tested for membership.
+
+@item
+If it is a character, it is used in an equality test.
+@end itemize
 @end deffn
 
 
@@ -23027,9 +23125,10 @@ in an equality test.
 @deffnx Function %string-contains-ci @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
 @deffnx Macro string-contains @var{S1} @var{S2}
 @deffnx Macro string-contains-ci @var{S1} @var{S2}
-Return true if the substring of @var{str1} contains the substring of
-@var{str2}, else return @false{}.  The return value is the index in
-@var{str1} where the substring of @var{str2} occurs.
+Return true if the selected substring of @var{str1} contains the
+selected substring of @var{str2}, else return @false{}.  The return
+value is the index in @var{str1} where the substring of @var{str2}
+occurs.
 @end deffn
 
 @c page
@@ -23040,10 +23139,18 @@ Return true if the substring of @var{str1} contains the substring of
 @deffn Function %string-filter @var{char/char-set/pred} @var{str} @var{start} @var{past}
 @deffnx Macro string-filter @var{S} @var{char/char-set/pred}
 Filter the selected substring, retaining only those characters that
-satisfy the @var{char/char-set/pred} argument.  If this argument is a
-procedure, it is applied to the character as a predicate; if it is a
-char--set, the character is tested for membership; if it is a character,
-it is used in an equality test.
+satisfy the @var{char/char-set/pred} argument:
+
+@itemize
+@item
+If it is a procedure, it is applied to the character as a predicate.
+
+@item
+If it is a character set, the character is tested for membership.
+
+@item
+If it is a character, it is used in an equality test.
+@end itemize
 
 Always return a newly allocated string.
 @end deffn
@@ -23051,11 +23158,19 @@ Always return a newly allocated string.
 
 @deffn Function %string-delete @var{char/char-set/pred} @var{str} @var{start} @var{past}
 @deffnx Macro string-delete @var{S} @var{char/char-set/pred}
-Filter the string @var{s}, retaining only those characters that do not
-satisfy the @var{char/char-set/pred} argument.  If this argument is a
-procedure, it is applied to the character as a predicate; if it is a
-char--set, the character is tested for membership; if it is a character,
-it is used in an equality test.
+Filter the string @var{s}, retaining only those characters that do
+@strong{not} satisfy the @var{char/char-set/pred} argument:
+
+@itemize
+@item
+If it is a procedure, it is applied to the character as a predicate.
+
+@item
+If it is a character set, the character is tested for membership.
+
+@item
+If it is a character, it is used in an equality test.
+@end itemize
 
 Always return a newly allocated string.
 @end deffn
@@ -23092,17 +23207,19 @@ Split the selected substring into a list of strings, where each string
 is a maximal, non--empty, contiguous sequence of characters from the
 character set @var{token-set}.
 
-This function provides a minimal parsing facility for simple
-applications.  More sophisticated parsers that handle quoting and
-backslash effects can easily be constructed using regular--expression
-systems; be careful not to use @func{string-tokenize} in contexts where
-more serious parsing is needed.
-
 @example
 (string-tokenize "Help make programs run, run, RUN!"
                  (char-set #\space))
 @result{} ("Help" "make" "programs" "run," "run," "RUN!")
 @end example
+
+@quotation
+This function provides a minimal parsing facility for simple
+applications.  More sophisticated parsers that handle quoting and
+backslash effects can easily be constructed using regular--expression
+systems; be careful not to use @func{string-tokenize} in contexts where
+more serious parsing is needed.
+@end quotation
 @end deffn
 
 
@@ -23110,7 +23227,7 @@ more serious parsing is needed.
 @defunx string-join @var{string-list} @var{delimiter}
 @defunx string-join @var{string-list} @var{delimiter} @var{grammar}
 @defunx %string-join @var{string-list} @var{delimiter} @var{grammar}
-This procedure is a simple unparser: it pastes strings together using
+This procedure is a simple unparser: It pastes strings together using
 the @var{delimiter} string.  @var{delimiter} defaults to a single white
 space.  @var{grammar} is a symbol that determines how the delimiter is
 used, and defaults to @code{infix}.  Supported values for @var{grammar}
@@ -23118,12 +23235,13 @@ are:
 
 @table @code
 @item infix
-Means an infix or separator grammar: insert the delimiter between list
+Means an infix or separator grammar: Insert the delimiter between list
 elements.  An empty list will produce an empty string.
 
 @quotation
-Note: parsing an empty string with an infix grammar is ambiguous.  Is it
-an empty list, or a list of one element, the empty string?
+@strong{Note}: Parsing an empty string with an infix grammar is
+ambiguous.  Is it an empty list, or a list of one element, the empty
+string?
 @end quotation
 
 @item strict-infix
@@ -23131,11 +23249,11 @@ Means the same as @code{infix}, but will raise an error if given an
 empty list.
 
 @item suffix
-Means a suffix or terminator grammar: insert the delimiter after every
+Means a suffix or terminator grammar: Insert the delimiter after every
 list element.  This grammar has no ambiguities.
 
 @item prefix
-Means a prefix grammar: insert the delimiter before every list element.
+Means a prefix grammar: Insert the delimiter before every list element.
 This grammar has no ambiguities.
 @end table
 
@@ -23184,6 +23302,7 @@ bidirectionally--infinite string:
 @example
 ...  e  f  d  e  f  d  e  f  d  e  f ...
 ... -5 -4 -3 -2 -1  0 +1 +2 +3 +4 +5 ...
+                    ^
 @end example
 
 @noindent
@@ -23205,11 +23324,11 @@ To replicate a string:
 To rotate a string left:
 
 @example
-(xsubstring "abcdef" 1  7)      @result{} "bcdefa"
-(xsubstring "abcdef" 2  8)      @result{} "cdefab"
-(xsubstring "abcdef" 3  9)      @result{} "defabc"
-(xsubstring "abcdef" 4 10)      @result{} "efabcd"
-(xsubstring "abcdef" 5 11)      @result{} "fabcde"
+(xsubstring "abcdef" 1  7) @result{} "bcdefa"
+(xsubstring "abcdef" 2  8) @result{} "cdefab"
+(xsubstring "abcdef" 3  9) @result{} "defabc"
+(xsubstring "abcdef" 4 10) @result{} "efabcd"
+(xsubstring "abcdef" 5 11) @result{} "fabcde"
 @end example
 
 @item
@@ -23233,8 +23352,8 @@ from index @var{from} up to, but not including, index @var{to}.
 
 @item
 The @var{from}/@var{to} indices are not in terms of the index space for
-string @var{s}.  They are in terms of the replicated index space of the
-substring defined by @var{s}, @var{start}, and @var{past}.
+string @var{str}.  They are in terms of the replicated index space of
+the substring defined by @var{str}, @var{start}, and @var{past}.
 @end itemize
 
 It is an error if @var{start} equals @var{past}.
@@ -23243,40 +23362,32 @@ It is an error if @var{start} equals @var{past}.
 
 @deffn Function xstring-xcopy! @var{from} @var{to} @var{target} @var{target-start} @var{source} @var{source-start} @var{source-past}
 @deffnx Macro string-xcopy! @var{target-S} @var{source-S} @var{from} @var{to}
-Exactly the same as @func{xsubstring}, but the extracted text is written
-into the selected substring of @var{target}.
+Exactly the same as @func{%xsubstring}, but the extracted text is
+written into the selected substring of @var{target}.
 
 This operation is not defined if @code{(eq? target start)}; we cannot
 copy a string on top of itself.
 @end deffn
 
 @c page
-@node strings misc
-@subsection Miscellaneous functions
+@node strings mutate
+@subsection Mutators
 
 
-@defun string-concatenate @var{string-list}
-Append the elements of @var{string-list} together into a single string.
-Guaranteed to return a freshly allocated string.
+@defun string-swap! @var{str} @var{i} @var{j}
+Swap the characters in @var{str} at positions @var{i} and @var{j}.
 @end defun
 
 
-@deffn Function %string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
-@deffnx Macro string-concatenate-reverse @var{string-list}
-@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string}
-@deffnx Macro string-concatenate-reverse @var{string-list} @var{final-string} @var{nchars}
-Reverse @var{string-list} then concatenate the elements, which must be
-strings.  The first @var{nchars} code points in @var{final-string} are
-consed onto the beginning of @var{string-list} before performing the the
-reversal and concatenation operations.
-
-@var{final-string} defaults to the empty string and @var{nchars}
-defaults to the length of @var{final-string}.
-
-This procedure is useful in the construction of procedures that
-accumulate character data into lists of string buffers, and wish to
-convert the accumulated data into a single string when done.
+@deffn Function %string-fill*! @var{fill-char} @var{str} @var{start} @var{past}
+@deffnx Macro string-fill*! @var{S} @var{fill-char}
+Fill the selected substring with @var{fill-char}, modifying the original
+string.
 @end deffn
+
+@c page
+@node strings misc
+@subsection Miscellaneous functions
 
 
 @deffn Function %string-replace @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
@@ -23294,14 +23405,6 @@ Reverse the string.  @func{%string-reverse} returns the result string
 and does not alter its s parameter.  @func{%string-reverse!} is the
 in--place side--effecting variant.
 @end deffn
-
-
-@deffn Function %string-fill*! @var{fill-char} @var{str} @var{start} @var{past}
-@deffnx Macro string-fill*! @var{S} @var{fill-char}
-Fill the selected substring with @var{fill-char}, modifying the original
-string.
-@end deffn
-
 
 @c page
 @node strings kmp
@@ -24550,29 +24653,18 @@ Destructively reverse the contents of the selected subvector of
 @deffn Function %vector-copy! @var{vec-dst} @var{dst-start} @var{vec-src} @var{src-start} @var{src-past}
 @deffnx Macro vector-copy! @var{V-dst} @var{V-src}
 Copy the selected subvector of @var{vec-src} into @var{vec-dst} starting
-at @var{dst-start}.  When using the vector view: The past index of the
-destination vector is ignored.
+at @var{dst-start}.  This function supports copying over the same
+vector.
 
-It is an error for @var{vec-dst} to have a length less than:
-
-@example
-@var{src-start} + (@var{src-past} - @var{src-start})
-@end example
+When using the vector view: The past index of the destination vector is
+ignored.
 @end deffn
 
 
 @deffn Function %vector-reverse-copy! @var{dst-vec} @var{dst-start} @var{src-vec} @var{src-start} @var{src-past}
 @deffnx Macro vector-reverse-copy! @var{V-dst} @var{V-src}
 Like @func{vector-copy!}, but this copies the elements in the reverse
-order.  It is an error if @var{vec-dst} and @var{vec-src} are identical
-vectors and the selected subvectors overlap.
-
-However, if @code{@var{dst-start} = @var{src-start}} this function
-behaves as:
-
-@example
-(vector-reverse! @var{dst-vec} @var{dst-start} @var{src-past})
-@end example
+order.  This function supports copying over the same vector.
 @end deffn
 
 @c page
