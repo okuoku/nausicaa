@@ -110,7 +110,10 @@
     vector-null? vector-every vector-any
 
     ;; comparison
+    vector-compare
     vector=  vector<>
+    vector<  vector<=
+    vector>  vector>=
 
     ;; mapping
     vector-map*  vector-map*!  vector-for-each*
@@ -244,19 +247,54 @@
 
 ;;;; comparison
 
+(define-syntax vector-compare
+  (syntax-rules ()
+    ((_ ?item= ?item< ?S1 ?S2 ?proc< ?proc= ?proc>)
+     (let-values (((vec1 start1 end1) (unpack ?S1))
+		  ((vec2 start2 end2) (unpack ?S2)))
+       (%vector-compare ?item= ?item< vec1 start1 end1 vec2 start2 end2 ?proc< ?proc= ?proc>)))))
+
 (define-syntax vector=
   (syntax-rules ()
-    ((_ ?proc ?V1 ?V2)
+    ((_ ?item= ?V1 ?V2)
      (let-values (((vec1 start1 end1) (unpack ?V1))
 		  ((vec2 start2 end2) (unpack ?V2)))
-       (%vector= ?proc vec1 start1 end1 vec2 start2 end2)))))
+       (%vector= ?item= vec1 start1 end1 vec2 start2 end2)))))
 
 (define-syntax vector<>
   (syntax-rules ()
-    ((_ ?proc ?V1 ?V2)
+    ((_ ?item= ?V1 ?V2)
      (let-values (((vec1 start1 end1) (unpack ?V1))
 		  ((vec2 start2 end2) (unpack ?V2)))
-       (%vector<> ?proc vec1 start1 end1 vec2 start2 end2)))))
+       (%vector<> ?item= vec1 start1 end1 vec2 start2 end2)))))
+
+(define-syntax vector<
+  (syntax-rules ()
+    ((_ ?item= ?item< ?V1 ?V2)
+     (let-values (((vec1 start1 end1) (unpack ?V1))
+		  ((vec2 start2 end2) (unpack ?V2)))
+       (%vector< ?item= ?item< vec1 start1 end1 vec2 start2 end2)))))
+
+(define-syntax vector>
+  (syntax-rules ()
+    ((_ ?item= ?item< ?V1 ?V2)
+     (let-values (((vec1 start1 end1) (unpack ?V1))
+		  ((vec2 start2 end2) (unpack ?V2)))
+       (%vector> ?item= ?item< vec1 start1 end1 vec2 start2 end2)))))
+
+(define-syntax vector<=
+  (syntax-rules ()
+    ((_ ?item= ?item< ?V1 ?V2)
+     (let-values (((vec1 start1 end1) (unpack ?V1))
+		  ((vec2 start2 end2) (unpack ?V2)))
+       (%vector<= ?item= ?item< vec1 start1 end1 vec2 start2 end2)))))
+
+(define-syntax vector>=
+  (syntax-rules ()
+    ((_ ?item= ?item< ?V1 ?V2)
+     (let-values (((vec1 start1 end1) (unpack ?V1))
+		  ((vec2 start2 end2) (unpack ?V2)))
+       (%vector>= ?item= ?item< vec1 start1 end1 vec2 start2 end2)))))
 
 
 ;;;; folding

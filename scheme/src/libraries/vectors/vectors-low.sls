@@ -120,7 +120,10 @@
     %vector-null?  %vector-any  %vector-every
 
     ;; comparison
+    %vector-compare
     %vector=  %vector<>
+    %vector<  %vector<=
+    %vector>  %vector>=
 
     ;; mapping
     vector-map*  vector-map*!  vector-for-each*
@@ -205,6 +208,23 @@
 
 ;;;; comparison
 
+(define (%vector-compare item= item<
+			 str1 start1 past1 str2 start2 past2
+			 proc< proc= proc>)
+  (let ((size1 (- past1 start1))
+	(size2 (- past2 start2)))
+    (let ((match (%vector-prefix-length item= str1 start1 past1 str2 start2 past2)))
+      (if (= match size1)
+	  ((if (= match size2) proc= proc<) past1)
+	((if (= match size2)
+	     proc>
+	   (if (item< (vector-ref str1 (+ start1 match))
+		      (vector-ref str2 (+ start2 match)))
+	       proc< proc>))
+	 (+ match start1))))))
+
+;;; --------------------------------------------------------------------
+
 (define (%vector= item= vec1 start1 past1 vec2 start2 past2)
   (and (= (- past1 start1) (- past2 start2))
        (or (and (eq? vec1 vec2)
@@ -216,6 +236,36 @@
 
 (define (%vector<> item= vec1 start1 past1 vec2 start2 past2)
   (not (%vector= item= vec1 start1 past1 vec2 start2 past2)))
+
+;;; --------------------------------------------------------------------
+
+(define (%vector< item= item< str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2))
+      (< past1 past2)
+    (%vector-compare item= item<
+		     str1 start1 past1 str2 start2 past2
+		     values (lambda (i) #f) (lambda (i) #f))))
+
+(define (%vector<= item= item< str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2))
+      (<= past1 past2)
+    (%vector-compare item= item<
+		     str1 start1 past1 str2 start2 past2
+		     values values (lambda (i) #f))))
+
+(define (%vector> item= item< str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2))
+      (> past1 past2)
+    (%vector-compare item= item<
+		     str1 start1 past1 str2 start2 past2
+		     (lambda (i) #f) (lambda (i) #f) values)))
+
+(define (%vector>= item= item< str1 start1 past1 str2 start2 past2)
+  (if (and (eq? str1 str2) (= start1 start2))
+      (>= past1 past2)
+    (%vector-compare item= item<
+		     str1 start1 past1 str2 start2 past2
+		     (lambda (i) #f) values values)))
 
 
 ;;;; mapping

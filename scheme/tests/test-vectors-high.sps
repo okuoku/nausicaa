@@ -249,6 +249,74 @@
   (check-for-true
    (vector<> char=? '#(#\a #\b #\c #\d) '#(#\a #\2 #\c #\d)))
 
+;;; --------------------------------------------------------------------
+
+  (check-for-false
+   (vector< char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-true
+   (vector< char=? char<? '#(#\a #\b #\c) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector< char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c)))
+
+  (check-for-true
+   (vector< char=? char<? '#(#\A #\B #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector< char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\2 #\c #\d)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (vector<= char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-true
+   (vector<= char=? char<? '#(#\a #\b #\c) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector<= char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c)))
+
+  (check-for-true
+   (vector<= char=? char<? '#(#\A #\B #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector<= char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\2 #\c #\d)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-false
+   (vector> char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-true
+   (vector> char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c)))
+
+  (check-for-false
+   (vector> char=? char<? '#(#\a #\b #\c) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector> char=? char<? '#(#\A #\B #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector> char=? char<? '#(#\a #\2 #\c #\d) '#(#\a #\b #\c #\d)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (vector>= char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-true
+   (vector>= char=? char<? '#(#\a #\b #\c #\d) '#(#\a #\b #\c)))
+
+  (check-for-false
+   (vector>= char=? char<? '#(#\a #\b #\c) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector>= char=? char<? '#(#\A #\B #\c #\d) '#(#\a #\b #\c #\d)))
+
+  (check-for-false
+   (vector>= char=? char<? '#(#\a #\2 #\c #\d) '#(#\a #\b #\c #\d)))
+
   )
 
 
