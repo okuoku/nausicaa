@@ -79,7 +79,7 @@ binfmt_config_INSTLST	= $(binfmt_config_TARGETS)
 binfmt_config_INSTDIR	= $(sysconfdir)/rc.d
 
 $(eval $(call ds-default-clean-variables,binfmt_config))
-$(eval $(call ds-module,binfmt_config,bin))
+$(eval $(call ds-module,binfmt_config,bin,BIN))
 
 $(binfmt_config_TARGETS): $(binfmt_config_SOURCES)
 	$(SED) \

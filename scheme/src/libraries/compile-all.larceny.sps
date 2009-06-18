@@ -26,9 +26,6 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "nausicaa/unimplemented.sls"
-		 "nausicaa/unimplemented.slfasl")
-
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")
 
