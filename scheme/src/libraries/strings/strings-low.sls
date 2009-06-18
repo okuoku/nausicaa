@@ -413,9 +413,21 @@
 
 ;;;; mapping
 
+(define (=* . args)
+  ;;This exists because some implementations (Mosh) do not allow = to be
+  ;;called with less than 2 arguments.
+  (if (null? args)
+      #t
+    (let loop ((val  (car args))
+	       (args (cdr args)))
+      (or (null? args)
+	  (let ((new-val (car args)))
+	    (and (= val new-val)
+		 (loop new-val (cdr args))))))))
+
 (define (string-map proc str0 . strings)
   (let ((strings (cons str0 strings)))
-    (if (apply = (map string-length strings))
+    (if (apply =* (map string-length strings))
 	(let* ((len     (string-length str0))
 	       (result  (make-string len)))
 	  (do ((i 0 (+ 1 i)))
@@ -424,12 +436,12 @@
 	    (string-set! result i
 			 (apply proc i (map (lambda (str) (string-ref str i))
 					 strings)))))
-      (assertion-violation 'string-map!
+      (assertion-violation 'string-map
 	"expected strings of the same length"))))
 
 (define (string-map! proc str0 . strings)
   (let ((strings (cons str0 strings)))
-    (if (apply = (map string-length strings))
+    (if (apply =* (map string-length strings))
 	(let ((len (string-length str0)))
 	  (do ((i 0 (+ 1 i)))
 	      ((= len i))
@@ -521,7 +533,7 @@
 
 (define (string-fold kons knil vec0 . strings)
   (let ((strings (cons vec0 strings)))
-    (if (apply = (map string-length strings))
+    (if (apply =* (map string-length strings))
 	(let ((len (string-length vec0)))
 	  (let loop ((i     0)
 		     (knil  knil))
@@ -536,7 +548,7 @@
 
 (define (string-fold-right kons knil vec0 . strings)
   (let* ((strings  (cons vec0 strings)))
-    (if (apply = (map string-length strings))
+    (if (apply =* (map string-length strings))
 	(let ((len (strings-list-min-length strings)))
 	  (let loop ((i     (- len 1))
 		     (knil  knil))

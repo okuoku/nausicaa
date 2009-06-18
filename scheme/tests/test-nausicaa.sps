@@ -30,7 +30,7 @@
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing R6RS compliance and extensions\n")
+(display "*** testing some R6RS compliance and Nausicaa extensions\n")
 
 
 ;;;; tests

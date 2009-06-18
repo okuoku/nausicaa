@@ -29,8 +29,8 @@
 (compile-library "nausicaa/unimplemented.sls"
 		 "nausicaa/unimplemented.slfasl")
 
-(compile-library "nausicaa/compat.larceny.sls"
-		 "nausicaa/compat.larceny.slfasl")
+(compile-library "nausicaa/common.sls"
+		 "nausicaa/common.larceny.slfasl")
 
 (compile-library "nausicaa/registry.sls"
 		 "nausicaa/registry.slfasl")
@@ -49,6 +49,9 @@
 
 (compile-library "char-sets.sls"
 		 "char-sets.slfasl")
+
+(compile-library "knuth-morris-pratt.sls"
+ 		 "knuth-morris-pratt.slfasl")
 
 (compile-library "strings/strings-low.sls"
  		 "strings/strings-low.slfasl")

@@ -315,9 +315,21 @@
 
 ;;;; mapping
 
+(define (=* . args)
+  ;;This exists because some implementations (Mosh) do not allow = to be
+  ;;called with less than 2 arguments.
+  (if (null? args)
+      #t
+    (let loop ((val  (car args))
+	       (args (cdr args)))
+      (or (null? args)
+	  (let ((new-val (car args)))
+	    (and (= val new-val)
+		 (loop new-val (cdr args))))))))
+
 (define (vector-map! proc vec0 . vectors)
   (let ((vectors (cons vec0 vectors)))
-    (if (apply = (map vector-length vectors))
+    (if (apply =* (map vector-length vectors))
 	(let ((len (vector-length vec0)))
 	  (do ((i 0 (+ 1 i)))
 	      ((= len i))
@@ -388,7 +400,7 @@
 
 (define (vector-fold kons knil vec0 . vectors)
   (let ((vectors (cons vec0 vectors)))
-    (if (apply = (map vector-length vectors))
+    (if (apply =* (map vector-length vectors))
 	(let ((len (vector-length vec0)))
 	  (let loop ((i     0)
 		     (knil  knil))
@@ -403,7 +415,7 @@
 
 (define (vector-fold-right kons knil vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors)))
-    (if (apply = (map vector-length vectors))
+    (if (apply =* (map vector-length vectors))
 	(let ((len (vectors-list-min-length vectors)))
 	  (let loop ((i     (- len 1))
 		     (knil  knil))

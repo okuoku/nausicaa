@@ -28,31 +28,28 @@
 
 #!r6rs
 (library (nausicaa registry)
-  (export available-features)
-  (import (rnrs)
-    (only (nausicaa compat)
-	  implementation-features))
-  (define available-features
-    (append implementation-features
-	    '(@NAUSICAA_OS@)
-	    '(r6rs
-	      and-let*
-	      begin0
-	      char-set
-	      checks
-	      compare
-	      cut
-	      loops
-	      format
-	      lists
-	      parameters
-	      random
-	      recursion
-	      receive
-	      sharing
-	      streams
-	      strings
-	      time
-	      vectors))))
+  (export registry-features)
+  (import (rnrs))
+  (define registry-features
+    '(@NAUSICAA_OS@
+      r6rs
+      and-let*
+      begin0
+      char-set
+      checks
+      compare
+      cut
+      loops
+      format
+      lists
+      parameters
+      random
+      recursion
+      receive
+      sharing
+      streams
+      strings
+      time
+      vectors)))
 
 ;;; end of file

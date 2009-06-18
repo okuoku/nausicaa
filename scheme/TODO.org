@@ -1,6 +1,6 @@
 * nausicaa
 
-  Factorise the common stuff from the (nausicaa) libraries.
+  Done?
 
 * char-set
 
