@@ -31,9 +31,8 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-
-;;;Some  is derived  from  the SRFI  13  reference implementation.   Its
-;;;copyright notices are below.
+;;;Many  functions  are  derived  from  the SRFI  13  (strings  library)
+;;;reference implementation.  Its copyright notices are below.
 ;;;
 ;;;Olin Shivers 7/2000
 ;;;
@@ -126,15 +125,17 @@
     %vector>  %vector>=
 
     ;; mapping
-    vector-map*  vector-map*!  vector-for-each*
+    vector-map!
+    vector-map*     vector-map*!     vector-for-each*
+    %subvector-map  %subvector-map!  %subvector-for-each  %subvector-for-each-index
 
     ;; folding
-    vector-fold    vector-fold-right
-    %vector-fold*  %vector-fold-right*
-    vector-unfold  vector-unfold-right
+    vector-fold       vector-fold-right
+    vector-fold*      vector-fold-right*
+    %subvector-fold  %subvector-fold-right
+    vector-unfold     vector-unfold-right
 
     ;; selecting
-    %subvector
     %vector-copy   %vector-reverse-copy
     %vector-copy!  %vector-reverse-copy!
     %vector-take   %vector-take-right
@@ -169,13 +170,10 @@
 
     ;; reverse and replace
     %vector-reverse  %vector-reverse!
-    %vector-replace
-
-    ;; Knuth-Morris-Pratt search
-    %kmp-vector-search %kmp-vector-make-restart-vector
-    %kmp-vector-step %kmp-vector-partial-search)
+    %vector-replace)
   (import (rnrs)
-    (only (rnrs r5rs) modulo quotient))
+    (only (rnrs r5rs) modulo quotient)
+    (knuth-morris-pratt))
 
 
 ;;;; helpers
@@ -186,17 +184,46 @@
 
 ;;;; constructors
 
-(define (%subvector vec start past)
-  (let* ((len     (- past start))
-	 (result  (make-vector len)))
-    (do ((i start (+ 1 i))
-	 (j 0 (+ 1 j)))
-	((= past i)
-	 result)
-      (vector-set! result j (vector-ref vec i)))))
+(define (vector-concatenate vectors)
+  (let* ((total (do ((vectors vectors (cdr vectors))
+		     (i 0 (+ i (vector-length (car vectors)))))
+		    ((not (pair? vectors))
+		     i)))
+	 (result (make-vector total)))
+    (let lp ((i 0) (vectors vectors))
+      (if (pair? vectors)
+	  (let* ((s (car vectors))
+		 (slen (vector-length s)))
+	    (%vector-copy! result i s 0 slen)
+	    (lp (+ i slen) (cdr vectors)))))
+    result))
+
+(define (%vector-concatenate-reverse vector-list final past)
+  (let* ((len (let loop ((sum 0) (lis vector-list))
+		(if (pair? lis)
+		    (loop (+ sum (vector-length (car lis))) (cdr lis))
+		  sum)))
+	 (result (make-vector (+ past len))))
+    (%vector-copy! result len final 0 past)
+    (let loop ((i len) (lis vector-list))
+      (if (pair? lis)
+	  (let* ((s   (car lis))
+		 (lis (cdr lis))
+		 (slen (vector-length s))
+		 (i (- i slen)))
+	    (%vector-copy! result i s 0 slen)
+	    (loop i lis))))
+    result))
 
 (define (vector-append . vectors-list)
   (vector-concatenate vectors-list))
+
+(define (vector-tabulate index->item len)
+  (let ((vec (make-vector len)))
+    (do ((i 0 (+ 1 i)))
+	((= len i)
+	 vec)
+      (vector-set! vec i (index->item i)))))
 
 
 ;;;; predicates
@@ -204,6 +231,24 @@
 (define (%vector-null? vec start past)
   (or (= 0 past)
       (= start past)))
+
+(define (%vector-every pred vec start past)
+  (and (< start past)
+       (let loop ((i start))
+	 (let ((c (vector-ref vec i))
+	       (i1 (+ i 1)))
+	   (if (= i1 past)
+	       (pred c)
+	     (and (pred c) (loop i1)))))))
+
+(define (%vector-any pred vec start past)
+  (and (< start past)
+       (let loop ((i start))
+	 (let ((c (vector-ref vec i))
+	       (i1 (+ i 1)))
+	   (if (= i1 past)
+	       (pred c)
+	     (or (pred c) (loop i1)))))))
 
 
 ;;;; comparison
@@ -270,6 +315,18 @@
 
 ;;;; mapping
 
+(define (vector-map! proc vec0 . vectors)
+  (let ((vectors (cons vec0 vectors)))
+    (if (apply = (map vector-length vectors))
+	(let ((len (vector-length vec0)))
+	  (do ((i 0 (+ 1 i)))
+	      ((= len i))
+	    (vector-set! vec0 i
+			 (apply proc i (map (lambda (vec) (vector-ref vec i))
+					 vectors)))))
+      (assertion-violation 'vector-map!
+	"expected vectors of the same length"))))
+
 (define (vector-map* proc vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
@@ -298,10 +355,68 @@
       (apply proc i (map (lambda (vec) (vector-ref vec i))
 		      vectors)))))
 
+;;; --------------------------------------------------------------------
+
+(define (%subvector-map proc vec start past)
+  (do ((i start (+ 1 i))
+       (j 0 (+ 1 j))
+       (result (make-vector (- past start))))
+      ((= i past)
+       result)
+    (vector-set! result j (proc (vector-ref vec i)))))
+
+(define (%subvector-map! proc vec start past)
+  (do ((i start (+ 1 i)))
+      ((= i past)
+       vec)
+    (vector-set! vec i (proc (vector-ref vec i)))))
+
+(define (%subvector-for-each proc vec start past)
+  (let loop ((i start))
+    (when (< i past)
+      (proc (vector-ref vec i))
+      (loop (+ i 1)))))
+
+(define (%subvector-for-each-index proc vec start past)
+  (let loop ((i start))
+    (when (< i past)
+      (proc i)
+      (loop (+ i 1)))))
+
 
 ;;;; folding
 
 (define (vector-fold kons knil vec0 . vectors)
+  (let ((vectors (cons vec0 vectors)))
+    (if (apply = (map vector-length vectors))
+	(let ((len (vector-length vec0)))
+	  (let loop ((i     0)
+		     (knil  knil))
+	    (if (= len i)
+		knil
+	      (loop (+ 1 i) (apply kons i knil
+				   (map (lambda (vec)
+					  (vector-ref vec i))
+				     vectors))))))
+      (assertion-violation 'vector-fold
+	"expected vectors of the same length"))))
+
+(define (vector-fold-right kons knil vec0 . vectors)
+  (let* ((vectors  (cons vec0 vectors)))
+    (if (apply = (map vector-length vectors))
+	(let ((len (vectors-list-min-length vectors)))
+	  (let loop ((i     (- len 1))
+		     (knil  knil))
+	    (if (< i 0)
+		knil
+	      (loop (- i 1) (apply kons i knil
+				   (map (lambda (vec)
+					  (vector-ref vec i))
+				     vectors))))))
+      (assertion-violation 'vector-fold-right
+	"expected vectors of the same length"))))
+
+(define (vector-fold* kons knil vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
     (let loop ((i     0)
@@ -313,7 +428,7 @@
 				    (vector-ref vec i))
 			       vectors)))))))
 
-(define (vector-fold-right kons knil vec0 . vectors)
+(define (vector-fold-right* kons knil vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
     (let loop ((i     (- len 1))
@@ -325,14 +440,14 @@
 				    (vector-ref vec i))
 			       vectors)))))))
 
-(define (%vector-fold* kons knil vec start past)
+(define (%subvector-fold kons knil vec start past)
   (let loop ((v knil)
 	     (i start))
     (if (< i past)
 	(loop (kons (vector-ref vec i) v) (+ i 1))
       v)))
 
-(define (%vector-fold-right* kons knil vec start past)
+(define (%subvector-fold-right kons knil vec start past)
   (let loop ((v knil)
 	     (i (- past 1)))
     (if (>= i start)
@@ -440,22 +555,15 @@
 		(%vector-copy! ans j base 0 base-len)))
 	    ans)))))))
 
-(define (vector-tabulate index->value len)
-  (let ((vec (make-vector len)))
-    (do ((i (- len 1) (- i 1)))
-	((< i 0))
-      (vector-set! vec i (index->value i)))
-    vec))
-
 
 ;;;; selecting
 
-(define (%vector-copy fill vec start past)
-  (let* ((imax    (min past (vector-length vec)))
-	 (result  (make-vector (- past start) fill)))
+(define (%vector-copy vec start past)
+  (let* ((len     (- past start))
+	 (result  (make-vector len)))
     (do ((i start (+ 1 i))
 	 (j 0 (+ 1 j)))
-	((= imax i)
+	((= past i)
 	 result)
       (vector-set! result j (vector-ref vec i)))))
 
@@ -469,36 +577,36 @@
 
 (define (%vector-take nvalues vec start past)
   (if (<= nvalues (- past start))
-      (%subvector vec start (+ start nvalues))
+      (%vector-copy vec start (+ start nvalues))
     (assertion-violation '%vector-take
       "requested number of values greater than length of subvector" nvalues)))
 
 (define (%vector-take-right nvalues vec start past)
   (if (<= nvalues (- past start))
-      (%subvector vec (- past nvalues) past)
+      (%vector-copy vec (- past nvalues) past)
     (assertion-violation '%vector-take-right
       "requested number of values greater than length of subvector" nvalues)))
 
 (define (%vector-drop nvalues vec start past)
   (if (<= nvalues (- past start))
-      (%subvector vec nvalues past)
+      (%vector-copy vec nvalues past)
     (assertion-violation '%vector-take
       "requested number of values greater than length of subvector" nvalues)))
 
 (define (%vector-drop-right nvalues vec start past)
   (if (<= nvalues (- past start))
-      (%subvector vec start (+ start nvalues))
+      (%vector-copy vec start (+ start nvalues))
     (assertion-violation '%vector-take
       "requested number of values greater than length of subvector" nvalues)))
 
 (define (%vector-trim criterion vec start past)
   (cond ((%vector-skip criterion vec start past)
-	 => (lambda (i) (%subvector vec i past)))
+	 => (lambda (i) (%vector-copy vec i past)))
 	(else '#())))
 
 (define (%vector-trim-right criterion vec start past)
   (cond ((%vector-skip-right criterion vec start past)
-	 => (lambda (i) (%subvector vec start (+ 1 i))))
+	 => (lambda (i) (%vector-copy vec start (+ 1 i))))
 	(else '#())))
 
 (define (%vector-trim-both criterion vec start past)
@@ -508,7 +616,7 @@
 (define (%vector-pad requested-len fill-value vec start past)
   (let ((len (- past start)))
     (if (<= requested-len len)
-	(%subvector vec (- past requested-len) past)
+	(%vector-copy vec (- past requested-len) past)
       (let ((result (make-vector requested-len fill-value)))
 	(%vector-copy! result (- requested-len len) vec start past)
 	result))))
@@ -516,7 +624,7 @@
 (define (%vector-pad-right requested-len fill-value vec start past)
   (let ((len (- past start)))
     (if (<= requested-len len)
-	(%subvector vec start (+ start requested-len))
+	(%vector-copy vec start (+ start requested-len))
       (let ((result (make-vector requested-len fill-value)))
 	(%vector-copy! result 0 vec start past)
 	result))))
@@ -598,26 +706,8 @@
        (count 0 (if (pred? (vector-ref vec i)) (+ count 1) count)))
       ((>= i past) count)))
 
-(define (%vector-every pred? vec start past)
-  (and (< start past)
-       (let loop ((i start))
-	 (let ((c (vector-ref vec i))
-	       (i1 (+ i 1)))
-	   (if (= i1 past)
-	       (pred? c)
-	     (and (pred? c) (loop i1)))))))
-
-(define (%vector-any pred? vec start past)
-  (and (< start past)
-       (let loop ((i start))
-	 (let ((c (vector-ref vec i))
-	       (i1 (+ i 1)))
-	   (if (= i1 past)
-	       (pred? c)
-	     (or (pred? c) (loop i1)))))))
-
 (define (%vector-contains item= vec vec-start vec-past pattern pattern-start pattern-past)
-  (%kmp-vector-search item= vec vec-start vec-past pattern pattern-start pattern-past))
+  (%kmp-search item= vector-ref vec vec-start vec-past pattern pattern-start pattern-past))
 
 (define (%vector-binary-search value cmp vec start past)
   (let loop ((start start) (past past) (j #f))
@@ -635,23 +725,23 @@
 (define (%vector-delete pred? vec start past)
   (let* ((slen (- past start))
 	 (temp (make-vector slen))
-	 (ans-len (%vector-fold* (lambda (c i)
-				   (if (pred? c) i
-				     (begin (vector-set! temp i c)
-					    (+ i 1))))
-				 0 vec start past)))
-    (if (= ans-len slen) temp (%subvector temp 0 ans-len))))
+	 (ans-len (%subvector-fold (lambda (c i)
+				     (if (pred? c) i
+				       (begin (vector-set! temp i c)
+					      (+ i 1))))
+				   0 vec start past)))
+    (if (= ans-len slen) temp (%vector-copy temp 0 ans-len))))
 
 (define (%vector-filter pred? vec start past)
   (let* ((slen (- past start))
 	 (temp (make-vector slen))
-	 (ans-len (%vector-fold* (lambda (c i)
-				   (if (pred? c)
-				       (begin (vector-set! temp i c)
-					      (+ i 1))
-				     i))
-				 0 vec start past)))
-    (if (= ans-len slen) temp (%subvector temp 0 ans-len))))
+	 (ans-len (%subvector-fold (lambda (c i)
+				     (if (pred? c)
+					 (begin (vector-set! temp i c)
+						(+ i 1))
+				       i))
+				   0 vec start past)))
+    (if (= ans-len slen) temp (%vector-copy temp 0 ans-len))))
 
 
 ;;;; extended subvector
@@ -665,9 +755,9 @@
 	  ((= 1 vec-len)
 	   (make-vector result-len (vector-ref vec start)))
 	  ((= (floor (/ from vec-len)) (floor (/ to vec-len)))
-	   (%subvector vec
-		       (+ start (modulo from vec-len))
-		       (+ start (modulo to   vec-len))))
+	   (%vector-copy vec
+			 (+ start (modulo from vec-len))
+			 (+ start (modulo to   vec-len))))
 	  (else
 	   (let ((result (make-vector result-len)))
 	     (%multispan-repcopy! from to result 0 vec start past)
@@ -706,38 +796,7 @@
 	(%vector-copy! dst-vec i src-vec src-start src-past)))))
 
 
-;;;; concatenate, reverse, replace, fill, swap
-
-(define (vector-concatenate vectors)
-  (let* ((total (do ((vectors vectors (cdr vectors))
-		     (i 0 (+ i (vector-length (car vectors)))))
-		    ((not (pair? vectors))
-		     i)))
-	 (result (make-vector total)))
-    (let lp ((i 0) (vectors vectors))
-      (if (pair? vectors)
-	  (let* ((s (car vectors))
-		 (slen (vector-length s)))
-	    (%vector-copy! result i s 0 slen)
-	    (lp (+ i slen) (cdr vectors)))))
-    result))
-
-(define (%vector-concatenate-reverse vector-list final past)
-  (let* ((len (let loop ((sum 0) (lis vector-list))
-		(if (pair? lis)
-		    (loop (+ sum (vector-length (car lis))) (cdr lis))
-		  sum)))
-	 (result (make-vector (+ past len))))
-    (%vector-copy! result len final 0 past)
-    (let loop ((i len) (lis vector-list))
-      (if (pair? lis)
-	  (let* ((s   (car lis))
-		 (lis (cdr lis))
-		 (slen (vector-length s))
-		 (i (- i slen)))
-	    (%vector-copy! result i s 0 slen)
-	    (loop i lis))))
-    result))
+;;;; reverse and replace
 
 (define (%vector-reverse str start past)
   (let* ((len (- past start))
@@ -764,6 +823,9 @@
     (let ((ci (vector-ref str i)))
       (vector-set! str i (vector-ref str j))
       (vector-set! str j ci))))
+
+
+;;;; mutating
 
 (define (%vector-fill*! fill-value str start past)
   (do ((i (- past 1) (- i 1)))
@@ -839,94 +901,6 @@
   (do ((i (- past 1) (- i 1))
        (result '() (cons (vector-ref str i) result)))
       ((< i start) result)))
-
-
-;; Knuth-Morris-Pratt vector searching. See:
-;;
-;;  "Fast pattern matching in vectors"
-;;  SIAM J. Computing 6(2):323-350 1977
-;;  D. E. Knuth, J. H. Morris and V. R. Pratt
-;;
-;; also described in:
-;;
-;;  "Pattern matching in vectors"
-;;  Alfred V. Aho
-;;  Formal Language Theory - Perspectives and Open Problems
-;;  Ronald V. Brook (editor)
-;;
-;; and of course:
-;;
-;;  <http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm>
-;;
-
-(define (%kmp-vector-search item= vec vec-start vec-past pattern pattern-start pattern-past)
-  (let ((plen            (- pattern-past pattern-start))
-	(restart-vector  (%kmp-vector-make-restart-vector item= pattern pattern-start pattern-past)))
-    (let loop ((ti  vec-start)
-	       (pi  0)
-	       (tj  (- vec-past vec-start))
-	       (pj  plen))
-      (if (= pi plen)
-	  (- ti plen)
-	(and (<= pj tj)
-	     (if (item= (vector-ref vec ti)
-			(vector-ref pattern (+ pattern-start pi)))
-		 (loop (+ 1 ti) (+ 1 pi) (- tj 1) (- pj 1))
-	       (let ((pi (vector-ref restart-vector pi)))
-		 (if (= pi -1)
-		     (loop (+ ti 1) 0  (- tj 1) plen)
-		   (loop ti pi tj (- plen pi))))))))))
-
-(define (%kmp-vector-make-restart-vector item= pattern pattern-start pattern-past)
-  (let* ((rvlen           (- pattern-past pattern-start))
-	 (restart-vector  (make-vector rvlen -1)))
-    (when (> rvlen 0)
-      (let ((rvlen-1  (- rvlen 1))
-	    (c0       (vector-ref pattern pattern-start)))
-	(let loop1 ((i 0) (j -1) (k pattern-start))
-	  (when (< i rvlen-1)
-	    (let loop2 ((j j))
-	      (cond ((= j -1)
-		     (let ((i1 (+ 1 i)))
-		       (when (not (item= (vector-ref pattern (+ k 1)) c0))
-			 (vector-set! restart-vector i1 0))
-		       (loop1 i1 0 (+ k 1))))
-		    ((item= (vector-ref pattern k) (vector-ref pattern (+ j pattern-start)))
-		     (let* ((i1 (+ 1 i))
-			    (j1 (+ 1 j)))
-		       (vector-set! restart-vector i1 j1)
-		       (loop1 i1 j1 (+ k 1))))
-		    (else (loop2 (vector-ref restart-vector j)))))))))
-    restart-vector))
-
-(define (%kmp-vector-step item= restart-vector next-value-from-vec
-			  next-index-in-pattern pattern pattern-start)
-  (let loop ((i next-index-in-pattern))
-    (if (item= next-value-from-vec (vector-ref pattern (+ i pattern-start)))
-	(+ i 1)
-      (let ((i (vector-ref restart-vector i)))
-	(if (= i -1)
-	    0
-	  (loop i))))))
-
-(define (%kmp-vector-partial-search item= restart-vector
-				    next-index-in-pattern
-				    vec vec-start vec-end
-				    pattern pattern-start)
-  (let ((patlen (vector-length restart-vector)))
-    (let loop ((ti vec-start)
-	       (pi next-index-in-pattern))
-      (cond ((= pi patlen) (- ti))
-	    ((= ti vec-end) pi)
-	    (else
-	     (let ((c (vector-ref vec ti)))
-	       (loop (+ ti 1)
-		     (let loop2 ((pi pi))
-		       (if (item= c (vector-ref pattern (+ pi pattern-start)))
-			   (+ pi 1)
-			 (let ((pi (vector-ref restart-vector pi)))
-			   (if (= pi -1) 0
-			     (loop2 pi))))))))))))
 
 
 ;;;; done

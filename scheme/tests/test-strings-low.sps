@@ -27,7 +27,7 @@
 ;;;; setup
 
 (import (nausicaa)
-  (strings low)
+  (strings strings-low)
   (char-sets)
   (checks))
 
@@ -693,14 +693,14 @@
       (let* ((str "aaaa")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-map char-upcase str beg end))
+	(%substring-map char-upcase str beg end))
     => "AAAA")
 
   (check
       (let* ((str "")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-map char-upcase str beg end))
+	(%substring-map char-upcase str beg end))
     => "")
 
 ;;; --------------------------------------------------------------------
@@ -709,7 +709,7 @@
       (let* ((str "aaaa")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-map! char-upcase str beg end)
+	(%substring-map! char-upcase str beg end)
 	str)
     => "AAAA")
 
@@ -717,7 +717,7 @@
       (let* ((str "")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-map! char-upcase str beg end)
+	(%substring-map! char-upcase str beg end)
 	str)
     => "")
 
@@ -728,7 +728,7 @@
 	     (beg 0)
 	     (end (string-length str))
 	     (result ""))
-	(%string-for-each*
+	(%substring-for-each
 	 (lambda (ch)
 	   (set! result
 		 (string-append result
@@ -742,7 +742,7 @@
 	     (beg 0)
 	     (end (string-length str))
 	     (result ""))
-	(%string-for-each*
+	(%substring-for-each
 	 (lambda (ch)
 	   (set! result
 		 (string-append result
@@ -758,7 +758,7 @@
 	     (beg 0)
 	     (end (string-length str))
 	     (result '()))
-	(%string-for-each-index
+	(%substring-for-each-index
 	 (lambda (idx)
 	   (set! result (cons idx result)))
 	 str beg end)
@@ -770,7 +770,7 @@
 	     (beg 0)
 	     (end (string-length str))
 	     (result '()))
-	(%string-for-each-index
+	(%substring-for-each-index
 	 (lambda (idx)
 	   (set! result (cons idx result)))
 	 str beg end)
@@ -815,14 +815,14 @@
       (let* ((str "abcd")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold* cons '() str beg end))
+	(%substring-fold cons '() str beg end))
     => '(#\d #\c #\b #\a))
 
   (check
       (let* ((str "")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold* cons '() str beg end))
+	(%substring-fold cons '() str beg end))
     => '())
 
 ;;; --------------------------------------------------------------------
@@ -831,14 +831,14 @@
       (let* ((str "abcd")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold-right* cons '() str beg end))
+	(%substring-fold-right cons '() str beg end))
     => '(#\a #\b #\c #\d))
 
   (check
       (let* ((str "")
 	     (beg 0)
 	     (end (string-length str)))
-	(%string-fold-right* cons '() str beg end))
+	(%substring-fold-right cons '() str beg end))
     => '())
 
 ;;; --------------------------------------------------------------------
@@ -1869,26 +1869,6 @@
 	(%string-contains-ci str1 beg1 end1 str2 beg2 end2))
     => #f)
 
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((str1 "") (beg1 0) (end1 (string-length str1))
-	     (str2 "hello") (beg2 0) (end2 (string-length str2)))
-	(%kmp-search char=? str1 beg1 end1 str2 beg2 end2))
-    => #f)
-
-  (check
-      (let* ((str1 "ciao hello salut") (beg1 0) (end1 (string-length str1))
-	     (str2 "hello") (beg2 0) (end2 (string-length str2)))
-	(%kmp-search char=? str1 beg1 end1 str2 beg2 end2))
-    => 5)
-
-  (check
-      (let* ((str1 "ciao h he hel hell hello salut") (beg1 0) (end1 (string-length str1))
-	     (str2 "hello") (beg2 0) (end2 (string-length str2)))
-	(%kmp-search char=? str1 beg1 end1 str2 beg2 end2))
-    => 19)
-
   )
 
 
@@ -2349,211 +2329,6 @@
 
 
   )
-
-
-(parameterise ((check-test-name 'kmp))
-
-  (let ()
-
-    (define (return-match-past text pattern)
-      (let* ((text-past		(string-length text))
-	     (pattern-start	0)
-	     (pattern-past	(string-length pattern))
-	     (rv		(%kmp-make-restart-vector
-				 char=? pattern pattern-start pattern-past)))
-	(let loop ((ti 0)
-		   (pi pattern-start))
-	  (or (and (= pi pattern-past) ti) ; found
-	      (and (not (= ti text-past))  ; not found
-		   (loop (+ 1 ti)
-			 (%kmp-step char=? rv
-				    (string-ref text ti)
-				    pi pattern pattern-start)))))))
-
-    (check
-	(let* ((text "ciao hello salut") (pattern "hello"))
-	  ;;          01234567890123456
-	  ;;          0         1
-	  (return-match-past text pattern))
-      => 10)
-
-    (check
-	(let* ((text "ciao hello salut") (pattern "hola"))
-	  ;;          01234567890123456
-	  ;;          0         1
-	  (return-match-past text pattern))
-      => #f)
-
-    (check
-	(let* ((text "ciao hell salut") (pattern "hola"))
-	  ;;          01234567890123456
-	  ;;          0         1
-	  (return-match-past text pattern))
-      => #f)
-
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define (return-match-past end-of-text? get-next-char pattern pattern-start pattern-past)
-      (let ((rv (%kmp-make-restart-vector char=? pattern pattern-start pattern-past)))
-	(let loop ((ti 0)
-		   (pi pattern-start))
-	  (or (and (= pi pattern-past) ti) ; found
-	      (and (not (end-of-text?))  ; not found
-		   (loop (+ 1 ti)
-			 (%kmp-step char=? rv
-				    (get-next-char)
-				    pi pattern pattern-start)))))))
-
-    (check
-	(let* ((text "ciao hello salut")
-	       ;;     01234567890123456
-	       ;;     0         1
-	       (pattern "hello")
-	       (ti 0)
-	       (end-of-text?	(lambda ()
-				  (= ti (string-length text))))
-	       (get-next-char	(lambda ()
-				  (begin0
-				      (string-ref text ti)
-				    (set! ti (+ 1 ti))))))
-	  (return-match-past end-of-text? get-next-char
-			     pattern 0 (string-length pattern)))
-      => 10)
-
-    (check
-	(let* ((text "ciao hell salut")
-	       ;;     0123456789012345
-	       ;;     0         1
-	       (pattern "hello")
-	       (ti 0)
-	       (end-of-text?	(lambda ()
-				  (= ti (string-length text))))
-	       (get-next-char	(lambda ()
-				  (let ((ch (string-ref text ti)))
-				    (set! ti (+ 1 ti))
-				    ch))))
-	  (return-match-past end-of-text? get-next-char
-			     pattern 0 (string-length pattern)))
-      => #f)
-
-    (check
-	(let* ((text "ciao hello salut")
-	       ;;     01234567890123456
-	       ;;     0         1
-	       (pattern "salut")
-	       (ti 0)
-	       (end-of-text?	(lambda ()
-				  (= ti (string-length text))))
-	       (get-next-char	(lambda ()
-				  (let ((ch (string-ref text ti)))
-				    (set! ti (+ 1 ti))
-				    ch))))
-	  (return-match-past end-of-text? get-next-char
-			     pattern 0 (string-length pattern)))
-      => 16)
-
-    (check
-	(let* ((text "ciao hello salut")
-	       ;;     01234567890123456
-	       ;;     0         1
-	       (pattern "salut")
-	       (port	(open-string-input-port text))
-	       (end-of-text?	(lambda ()
-				  (eof-object? (peek-char port))))
-	       (get-next-char	(lambda ()
-				  (read-char port))))
-	  (return-match-past end-of-text? get-next-char
-			     pattern 0 (string-length pattern)))
-      => 16)
-
-    (check
-	(let* ((text "ciao hello salut")
-	       ;;     01234567890123456
-	       ;;     0         1
-	       (pattern "hola")
-	       (port	(open-string-input-port text))
-	       (end-of-text?	(lambda ()
-				  (eof-object? (peek-char port))))
-	       (get-next-char	(lambda ()
-				  (read-char port))))
-	  (return-match-past end-of-text? get-next-char
-			     pattern 0 (string-length pattern)))
-      => #f)
-    )
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((text		"ciao hello salut")
-	     ;;                  01234567890123456
-	     ;;			 0         1
-	     (text-start	0)
-	     (text-past		(string-length text))
-	     (pattern		"hello")
-	     (pattern-start	0)
-	     (pattern-past	(string-length pattern))
-	     (restart-vector	(%kmp-make-restart-vector char=? pattern pattern-start pattern-past)))
-	(let ((i (%kmp-string-partial-search char=? restart-vector pattern-start
-					     text text-start text-past
-					     pattern pattern-start)))
-	  (or (<= 0 i)	;; not found
-	      (- i))))	;; found, return match past index
-    => 10)
-
-  (check
-      (let* ((strings '("ciao h " "he hel h" "ell hel" "lo salut"))
-  	     (end-of-data?	(lambda ()
-  				  (null? strings)))
-  	     (get-next-chunk	(lambda ()
-  				  (begin0
-				      (car strings)
-  				    (set! strings (cdr strings))))))
-  	(let* ((pattern "hello")
-  	       (pattern-start 0)
-  	       (pattern-past (string-length pattern))
-  	       (restart-vector (%kmp-make-restart-vector char=? pattern pattern-start pattern-past)))
-  	  (let loop ((pi 0))
-  	    (and (not (end-of-data?))	       ;; not found
-  		 (let* ((buf (get-next-chunk))
-  			(pi  (%kmp-string-partial-search
-  			      char=? restart-vector pi
-  			      buf 0 (string-length buf)
-  			      pattern pattern-start)))
-  		   (if (< pi 0)
-  		       (cons buf (- pi)) ;; found
-  		     (loop pi)))))))
-    => '("lo salut" . 2))
-
-  (check
-      (let* ((strings '("ciao h " "he hel h" "ell hello" " salut"))
-  	     (end-of-data?	(lambda ()
-  				  (null? strings)))
-  	     (get-next-chunk	(lambda ()
-  				  (begin0
-				      (car strings)
-  				    (set! strings (cdr strings))))))
-  	(let* ((pattern "hello")
-  	       (pattern-start 0)
-  	       (pattern-past (string-length pattern))
-  	       (restart-vector (%kmp-make-restart-vector char=? pattern pattern-start pattern-past)))
-  	  (let loop ((pi 0))
-  	    (and (not (end-of-data?))	       ;; not found
-  		 (let* ((buf (get-next-chunk))
-  			(pi  (%kmp-string-partial-search
-  			      char=? restart-vector pi
-  			      buf 0 (string-length buf)
-  			      pattern pattern-start)))
-  		   (if (< pi 0)
-  		       (cons buf (- pi)) ;; found
-  		     (loop pi)))))))
-    => '("ell hello" . 9))
-
-  )
-
 
 
 ;;;; done

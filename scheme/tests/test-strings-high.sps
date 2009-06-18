@@ -99,6 +99,65 @@
   )
 
 
+(parameterise ((check-test-name 'constructors))
+
+  (check
+      (string-append "0123")
+    => "0123")
+
+  (check
+      (string-append "0123" "45678")
+    => "012345678")
+
+  (check
+      (string-append "")
+    => "")
+
+  (check
+      (string-append "" "")
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
+    => "ABCD")
+
+  (check
+      (string-tabulate integer->char 0)
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-concatenate '("ciao" " " "hello" " " "salut"))
+    => "ciao hello salut")
+
+  (check
+      (string-concatenate '())
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" 3)
+    => "salut hello ciao ho")
+
+  (check
+      (string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola")
+    => "salut hello ciao hola")
+
+  (check
+      (string-concatenate-reverse '("ciao" " " "hello" " " "salut"))
+    => "salut hello ciao")
+
+  (check
+      (string-concatenate-reverse '())
+    => "")
+
+  )
+
+
 (parameterise ((check-test-name 'predicates))
 
   (check
@@ -566,74 +625,135 @@
 (parameterise ((check-test-name 'mapping))
 
   (check
-      (string-map char-upcase "aaaa")
-    => "AAAA")
-
-  (check
-      (string-map char-upcase "")
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let ((str (string-copy "aaaa")))
-	(string-map! char-upcase str)
+      (let ((str (string-copy "abcd")))
+	(string-map! (lambda (i ch) (char-upcase ch))
+		     str)
 	str)
-    => "AAAA")
+    => "ABCD")
 
   (check
-      (let* ((str ""))
-	(string-map! char-upcase str)
+      (let ((str (string-copy "abcd")))
+	(string-map! (lambda (i ch-a ch-b) (if (even? i) ch-a ch-b))
+		     str "0123")
+	str)
+    => "a1c3")
+
+  (check
+      (let ((str (string-copy "")))
+	(string-map! (lambda (i ch) (char-upcase ch))
+		     str)
 	str)
     => "")
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
-	     (result ""))
-	(string-for-each*
-	 (lambda (ch)
-	   (set! result
-		 (string-append result
-				(number->string (char->integer (char-upcase ch))))))
-	 str)
-	result)
-    => "65656565")
+      (let ((str (string-copy "abcd")))
+	(string-map*! (lambda (i ch) (char-upcase ch))
+		      str)
+	str)
+    => "ABCD")
 
   (check
-      (let* ((str "")
-	     (result ""))
-	(string-for-each*
-	 (lambda (ch)
-	   (set! result
-		 (string-append result
-				(number->string (char->integer (char-upcase ch))))))
-	 str)
-	result)
+      (let ((str (string-copy "abcd")))
+	(string-map*! (lambda (i ch-a ch-b) (if (even? i) ch-a ch-b))
+		      str "01234")
+	str)
+    => "a1c3")
+
+  (check
+      (let ((str (string-copy "")))
+	(string-map*! (lambda (i ch) (char-upcase ch))
+		      str)
+	str)
     => "")
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((str "aaaa")
-	     (result '()))
-	(string-for-each-index
-	 (lambda (idx)
-	   (set! result (cons idx result)))
-	 str)
-	result)
-    => '(3 2 1 0))
+      (cadr (with-result
+	     (string-for-each* (lambda (i ch) (add-result (list i ch)))
+			       "abcd")))
+    => '((0 #\a)
+	 (1 #\b)
+	 (2 #\c)
+	 (3 #\d)))
 
   (check
-      (let* ((str "")
-	     (result '()))
-	(string-for-each-index
-	 (lambda (idx)
-	   (set! result (cons idx result)))
-	 str)
-	result)
+      (cadr (with-result
+	     (string-for-each* (lambda (i ch-a ch-b) (add-result (list i ch-a ch-b)))
+			       "abcd" "01234")))
+    => '((0 #\a #\0)
+	 (1 #\b #\1)
+	 (2 #\c #\2)
+	 (3 #\d #\3)))
+
+  (check
+      (cadr (with-result
+	     (string-for-each* (lambda (i ch) (add-result (list i ch)))
+			       "")))
     => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (substring-map (lambda (ch) (char-upcase ch))
+		     "abcd")
+    => "ABCD")
+
+
+  (check
+      (substring-map (lambda (ch) (char-upcase ch))
+		     (view "abcd" (start 1) (past 3)))
+    => "BC")
+
+  (check
+      (substring-map (lambda (ch) (char-upcase ch))
+		     "")
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((str (string-copy "abcd")))
+	(substring-map! (lambda (ch) (char-upcase ch))
+			str)
+	str)
+    => "ABCD")
+
+  (check
+      (let ((str (string-copy "abcd")))
+	(substring-map! (lambda (ch) (char-upcase ch))
+			(view str (start 1) (past 3)))
+	str)
+    => "aBCd")
+
+  (check
+      (let ((str ""))
+	(substring-map! (lambda (ch) (char-upcase ch))
+			str)
+	str)
+    => "")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (cadr (with-result
+	     (substring-for-each add-result
+				 "abcd")))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (cadr (with-result
+	     (substring-for-each add-result
+				 (view "abcd" (start 1) (past 3)))))
+    => '(#\b #\c))
+
+  (check
+      (cadr (with-result
+	     (substring-for-each add-result "")))
+    => '())
+
 
   )
 
@@ -833,30 +953,77 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (string-fold* cons '() "abcd")
+      (string-fold* (lambda (i nil x) (cons x nil)) '() "abcd")
     => '(#\d #\c #\b #\a))
 
   (check
-      (string-fold* cons '() "")
+      (string-fold* (lambda (i nil x y) (cons (cons x y) nil)) '()
+		    "abcd"
+		    "ABCDE")
+    => '((#\d . #\D)
+	 (#\c . #\C)
+	 (#\b . #\B)
+	 (#\a . #\A)))
+
+  (check
+      (string-fold* (lambda (i nil x) (cons x nil)) '() "")
     => '())
 
   (check
-      (string-fold* (lambda (c count)
-		     (if (char-upper-case? c)
-			 (+ count 1)
-		       count))
-		   0
-		   "ABCdefGHi")
+      (string-fold* (lambda (i count c)
+		      (if (char-upper-case? c)
+			  (+ count 1)
+			count))
+		    0
+		    "ABCdefGHi")
+    => 5)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (string-fold-right* (lambda (i nil x) (cons x nil)) '() "abcd")
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (string-fold-right* (lambda (i nil x y) (cons (cons x y) nil)) '()
+			  "abcd"
+			  "ABCDE")
+    => '((#\a . #\A)
+	 (#\b . #\B)
+	 (#\c . #\C)
+	 (#\d . #\D)))
+
+  (check
+      (string-fold-right* (lambda (i nil x) (cons x nil)) '() "")
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (substring-fold cons '() "abcd")
+    => '(#\d #\c #\b #\a))
+
+  (check
+      (substring-fold cons '() "")
+    => '())
+
+  (check
+      (substring-fold (lambda (c count)
+			(if (char-upper-case? c)
+			    (+ count 1)
+			  count))
+		      0
+		      "ABCdefGHi")
     => 5)
 
   (check
       (let* ((str "abc\\de\\f\\ghi")
-	     (ans-len (string-fold*
+	     (ans-len (substring-fold
 		       (lambda (c sum)
 			 (+ sum (if (char=? c #\\) 2 1)))
 		       0 str))
 	     (ans (make-string ans-len)))
-	(string-fold*
+	(substring-fold
 	 (lambda (c i)
 	   (let ((i (if (char=? c #\\)
 			(begin
@@ -872,11 +1039,11 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (string-fold-right* cons '() "abcd")
+      (substring-fold-right cons '() "abcd")
     => '(#\a #\b #\c #\d))
 
   (check
-      (string-fold-right* cons '() "")
+      (substring-fold-right cons '() "")
     => '())
 
 ;;; --------------------------------------------------------------------
@@ -897,16 +1064,6 @@
 
   (check
       (string-unfold-right null? car cdr '())
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (string-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
-    => "ABCD")
-
-  (check
-      (string-tabulate integer->char 0)
     => "")
 
   )
@@ -2049,37 +2206,6 @@
       (let* ((str (string-copy "")))
 	(string-reverse! str)
 	str)
-    => "")
-
-  )
-
-
-(parameterise ((check-test-name 'concatenate))
-
-  (check
-      (string-concatenate '("ciao" " " "hello" " " "salut"))
-    => "ciao hello salut")
-
-  (check
-      (string-concatenate '())
-    => "")
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola" 3)
-    => "salut hello ciao ho")
-
-  (check
-      (string-concatenate-reverse '("ciao" " " "hello" " " "salut") " hola")
-    => "salut hello ciao hola")
-
-  (check
-      (string-concatenate-reverse '("ciao" " " "hello" " " "salut"))
-    => "salut hello ciao")
-
-  (check
-      (string-concatenate-reverse '())
     => "")
 
   )

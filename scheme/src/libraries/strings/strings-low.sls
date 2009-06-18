@@ -118,16 +118,18 @@
     %string>  %string>=  %string-ci>  %string-ci>=
 
     ;; mapping
-    %string-map        %string-map!
-    %string-for-each*  %string-for-each-index
+    string-map      string-map!
+    string-map*     string-map*!     string-for-each*
+    %substring-map  %substring-map!  %substring-for-each  %substring-for-each-index
 
     ;; case hacking
     %string-titlecase*!
 
     ;; folding and unfolding
-    string-fold    string-fold-right
-    %string-fold*  %string-fold-right*
-    string-unfold  string-unfold-right
+    string-fold      string-fold-right
+    string-fold*     string-fold-right*
+    %substring-fold  %substring-fold-right
+    string-unfold    string-unfold-right
 
     ;; selecting
     (rename (substring %string-copy*)) %string-reverse-copy*
@@ -155,7 +157,8 @@
     %string-delete  %string-filter
 
     ;; lists
-    %string->list*    reverse-list->string
+    %string->list*   %reverse-string->list
+    reverse-list->string
     %string-tokenize  %string-join
     (rename (%string-tokenize %string-tokenise))
 
@@ -167,14 +170,12 @@
 
     ;; reverse and replace
     %string-reverse  %string-reverse!
-    %string-replace
-
-    ;; Knuth-Morris-Pratt search
-    %kmp-search %kmp-make-restart-vector %kmp-step %kmp-string-partial-search)
+    %string-replace)
   (import (rnrs)
     (rnrs mutable-strings)
     (only (rnrs r5rs) modulo quotient)
-    (char-sets))
+    (char-sets)
+    (knuth-morris-pratt))
 
 
 ;;;; helpers
@@ -412,7 +413,63 @@
 
 ;;;; mapping
 
-(define (%string-map proc str start past)
+(define (string-map proc str0 . strings)
+  (let ((strings (cons str0 strings)))
+    (if (apply = (map string-length strings))
+	(let* ((len     (string-length str0))
+	       (result  (make-string len)))
+	  (do ((i 0 (+ 1 i)))
+	      ((= len i)
+	       result)
+	    (string-set! result i
+			 (apply proc i (map (lambda (str) (string-ref str i))
+					 strings)))))
+      (assertion-violation 'string-map!
+	"expected strings of the same length"))))
+
+(define (string-map! proc str0 . strings)
+  (let ((strings (cons str0 strings)))
+    (if (apply = (map string-length strings))
+	(let ((len (string-length str0)))
+	  (do ((i 0 (+ 1 i)))
+	      ((= len i))
+	    (string-set! str0 i
+			 (apply proc i (map (lambda (str) (string-ref str i))
+					 strings)))))
+      (assertion-violation 'string-map!
+	"expected strings of the same length"))))
+
+(define (string-map* proc str0 . strings)
+  (let* ((strings  (cons str0 strings))
+	 (len      (strings-list-min-length strings)))
+    (do ((i 0 (+ 1 i))
+	 (result (make-string len)))
+	((= len i)
+	 result)
+      (string-set! result i
+		   (apply proc i (map (lambda (str) (string-ref str i))
+				   strings))))))
+
+(define (string-map*! proc str0 . strings)
+  (let* ((strings  (cons str0 strings))
+	 (len      (strings-list-min-length strings)))
+    (do ((i 0 (+ 1 i)))
+	((= len i))
+      (string-set! str0 i
+		   (apply proc i (map (lambda (str) (string-ref str i))
+				   strings))))))
+
+(define (string-for-each* proc str0 . strings)
+  (let* ((strings  (cons str0 strings))
+	 (len      (strings-list-min-length strings)))
+    (do ((i 0 (+ 1 i)))
+	((= len i))
+      (apply proc i (map (lambda (str) (string-ref str i))
+		      strings)))))
+
+;;; --------------------------------------------------------------------
+
+(define (%substring-map proc str start past)
   (do ((i start (+ 1 i))
        (j 0 (+ 1 j))
        (result (make-string (- past start))))
@@ -420,19 +477,19 @@
        result)
     (string-set! result j (proc (string-ref str i)))))
 
-(define (%string-map! proc str start past)
+(define (%substring-map! proc str start past)
   (do ((i start (+ 1 i)))
       ((>= i past)
        str)
     (string-set! str i (proc (string-ref str i)))))
 
-(define (%string-for-each* proc str start past)
+(define (%substring-for-each proc str start past)
   (let loop ((i start))
     (when (< i past)
       (proc (string-ref str i))
       (loop (+ i 1)))))
 
-(define (%string-for-each-index proc str start past)
+(define (%substring-for-each-index proc str start past)
   (let loop ((i start))
     (when (< i past)
       (proc i)
@@ -454,15 +511,45 @@
 		(let ((i1 (+ i 1)))
 		  (cond ((%string-skip char-cased? str i1 past)
 			 => (lambda (j)
-			      (%string-map! char-downcase str i1 j)
+			      (%substring-map! char-downcase str i1 j)
 			      (loop (+ j 1))))
 			(else
-			 (%string-map! char-downcase str i1 past)))))))))
+			 (%substring-map! char-downcase str i1 past)))))))))
 
 
 ;;;; folding
 
 (define (string-fold kons knil vec0 . strings)
+  (let ((strings (cons vec0 strings)))
+    (if (apply = (map string-length strings))
+	(let ((len (string-length vec0)))
+	  (let loop ((i     0)
+		     (knil  knil))
+	    (if (= len i)
+		knil
+	      (loop (+ 1 i) (apply kons i knil
+				   (map (lambda (vec)
+					  (string-ref vec i))
+				     strings))))))
+      (assertion-violation 'string-fold
+	"expected strings of the same length"))))
+
+(define (string-fold-right kons knil vec0 . strings)
+  (let* ((strings  (cons vec0 strings)))
+    (if (apply = (map string-length strings))
+	(let ((len (strings-list-min-length strings)))
+	  (let loop ((i     (- len 1))
+		     (knil  knil))
+	    (if (< i 0)
+		knil
+	      (loop (- i 1) (apply kons i knil
+				   (map (lambda (vec)
+					  (string-ref vec i))
+				     strings))))))
+      (assertion-violation 'string-fold-right
+	"expected strings of the same length"))))
+
+(define (string-fold* kons knil vec0 . strings)
   (let* ((strings  (cons vec0 strings))
 	 (len      (strings-list-min-length strings)))
     (let loop ((i     0)
@@ -474,7 +561,7 @@
 				    (string-ref vec i))
 			       strings)))))))
 
-(define (string-fold-right kons knil vec0 . strings)
+(define (string-fold-right* kons knil vec0 . strings)
   (let* ((strings  (cons vec0 strings))
 	 (len      (strings-list-min-length strings)))
     (let loop ((i     (- len 1))
@@ -486,14 +573,14 @@
 				    (string-ref vec i))
 			       strings)))))))
 
-(define (%string-fold* kons knil str start past)
+(define (%substring-fold kons knil str start past)
   (let loop ((v knil)
 	     (i start))
     (if (< i past)
 	(loop (kons (string-ref str i) v) (+ i 1))
       v)))
 
-(define (%string-fold-right* kons knil str start past)
+(define (%substring-fold-right kons knil str start past)
   (let loop ((v knil)
 	     (i (- past 1)))
     (if (>= i start)
@@ -850,10 +937,14 @@
 		criterion))))
 
 (define (%string-contains text text-start text-past pattern pattern-start pattern-past)
-  (%kmp-search char=? text text-start text-past pattern pattern-start pattern-past))
+  (%kmp-search char=? string-ref
+	       text text-start text-past
+	       pattern pattern-start pattern-past))
 
 (define (%string-contains-ci text text-start text-past pattern pattern-start pattern-past)
-  (%kmp-search char-ci=? text text-start text-past pattern pattern-start pattern-past))
+  (%kmp-search char-ci=? string-ref
+	       text text-start text-past
+	       pattern pattern-start pattern-past))
 
 
 ;;;; filtering
@@ -862,11 +953,11 @@
   (if (procedure? criterion)
       (let* ((slen (- past start))
 	     (temp (make-string slen))
-	     (ans-len (%string-fold* (lambda (c i)
-				      (if (criterion c) i
-					(begin (string-set! temp i c)
-					       (+ i 1))))
-				    0 str start past)))
+	     (ans-len (%substring-fold (lambda (c i)
+					 (if (criterion c) i
+					   (begin (string-set! temp i c)
+						  (+ i 1))))
+				       0 str start past)))
 	(if (= ans-len slen) temp (substring temp 0 ans-len)))
 
     (let* ((cset (cond ((char-set? criterion) criterion)
@@ -875,28 +966,28 @@
 			(assertion-violation '%string-delete
 			  "expected predicate, char or char-set as criterion"
 			  criterion))))
-	   (len (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
-						i
-					      (+ i 1)))
-			      0 str start past))
+	   (len (%substring-fold (lambda (c i) (if (char-set-contains? cset c)
+						   i
+						 (+ i 1)))
+				 0 str start past))
 	   (ans (make-string len)))
-      (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
-				     i
-				   (begin (string-set! ans i c)
-					  (+ i 1))))
-		   0 str start past)
+      (%substring-fold (lambda (c i) (if (char-set-contains? cset c)
+					 i
+				       (begin (string-set! ans i c)
+					      (+ i 1))))
+		       0 str start past)
       ans)))
 
 (define (%string-filter criterion str start past)
   (if (procedure? criterion)
       (let* ((slen (- past start))
 	     (temp (make-string slen))
-	     (ans-len (%string-fold* (lambda (c i)
-				     (if (criterion c)
-					 (begin (string-set! temp i c)
-						(+ i 1))
-				       i))
-				   0 str start past)))
+	     (ans-len (%substring-fold (lambda (c i)
+					 (if (criterion c)
+					     (begin (string-set! temp i c)
+						    (+ i 1))
+					   i))
+				       0 str start past)))
 	(if (= ans-len slen) temp (substring temp 0 ans-len)))
 
     (let* ((cset (cond ((char-set? criterion) criterion)
@@ -905,16 +996,16 @@
 			(assertion-violation '%string-filter
 			  "expected predicate, char or char-set as criterion"
 			  criterion))))
-	   (len (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
-					       (+ i 1)
-					     i))
-			     0 str start past))
+	   (len (%substring-fold (lambda (c i) (if (char-set-contains? cset c)
+						   (+ i 1)
+						 i))
+				 0 str start past))
 	   (ans (make-string len)))
-      (%string-fold* (lambda (c i) (if (char-set-contains? cset c)
-				     (begin (string-set! ans i c)
-					    (+ i 1))
-				   i))
-		   0 str start past)
+      (%substring-fold (lambda (c i) (if (char-set-contains? cset c)
+					 (begin (string-set! ans i c)
+						(+ i 1))
+				       i))
+		       0 str start past)
       ans)))
 
 
@@ -927,6 +1018,13 @@
 	((not (pair? clist)))
       (string-set! s i (car clist)))
     s))
+
+(define (%reverse-string->list str start past)
+  (let loop ((i       start)
+	     (result  '()))
+    (if (= i past)
+	result
+      (loop (+ 1 i) (cons (string-ref str i) result)))))
 
 (define (%string->list* str start past)
   (do ((i (- past 1) (- i 1))
@@ -1128,106 +1226,6 @@
     (let ((x (string-ref str i)))
       (string-set! str i (string-ref str j))
       (string-set! str j x))))
-
-
-;; Knuth-Morris-Pratt string searching. See:
-;;
-;;  "Fast pattern matching in strings"
-;;  SIAM J. Computing 6(2):323-350 1977
-;;  D. E. Knuth, J. H. Morris and V. R. Pratt
-;;
-;; also described in:
-;;
-;;  "Pattern matching in strings"
-;;  Alfred V. Aho
-;;  Formal Language Theory - Perspectives and Open Problems
-;;  Ronald V. Brook (editor)
-;;
-;; and of course:
-;;
-;;  <http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm>
-;;
-
-(define (%kmp-search char= text text-start text-past pattern pattern-start pattern-past)
-  (let ((plen (- pattern-past pattern-start))
-	(restart-vector (%kmp-make-restart-vector char= pattern pattern-start pattern-past)))
-    ;; The search loop. TJ & PJ are redundant state.
-    (let loop ((ti text-start) (pi 0)
-	       (tj (- text-past text-start)) ; (- tlen ti) -- how many chars left.
-	       (pj plen)) ; (- plen pi) -- how many chars left.
-
-      (if (= pi plen)
-	  (- ti plen)			     ; Win.
-	(and (<= pj tj)			     ; Lose.
-	     (if (char= (string-ref text ti) ; Search.
-			(string-ref pattern (+ pattern-start pi)))
-		 (loop (+ 1 ti) (+ 1 pi) (- tj 1) (- pj 1)) ; Advance.
-
-	       (let ((pi (vector-ref restart-vector pi))) ; Retreat.
-		 (if (= pi -1)
-		     (loop (+ ti 1) 0  (- tj 1) plen) ; Punt.
-		   (loop ti       pi tj       (- plen pi))))))))))
-
-(define (%kmp-make-restart-vector char= pattern pattern-start pattern-past)
-  (let* ((rvlen (- pattern-past pattern-start))
-	 (restart-vector (make-vector rvlen -1)))
-    (when (> rvlen 0)
-      (let ((rvlen-1 (- rvlen 1))
-	    (c0 (string-ref pattern pattern-start)))
-	;;Here's the main loop.  We have  set RV[0] ...  RV[i].  K = I
-	;;+ START -- it is the corresponding index into PATTERN.
-	(let loop1 ((i 0) (j -1) (k pattern-start))
-	  (when (< i rvlen-1)
-	    ;; loop2 invariant:
-	    ;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
-	    ;;   or j = -1.
-	    (let loop2 ((j j))
-	      (cond ((= j -1)
-		     (let ((i1 (+ 1 i)))
-		       (when (not (char= (string-ref pattern (+ k 1)) c0))
-			 (vector-set! restart-vector i1 0))
-		       (loop1 i1 0 (+ k 1))))
-		    ;; pat[(k-j) .. k] matches pat[start..start+j].
-		    ((char= (string-ref pattern k) (string-ref pattern (+ j pattern-start)))
-		     (let* ((i1 (+ 1 i))
-			    (j1 (+ 1 j)))
-		       (vector-set! restart-vector i1 j1)
-		       (loop1 i1 j1 (+ k 1))))
-
-		    (else (loop2 (vector-ref restart-vector j)))))))))
-    restart-vector))
-
-(define (%kmp-step char= restart-vector next-char-from-text
-		   next-index-in-pattern pattern pattern-start)
-  (let loop ((i next-index-in-pattern))
-    (if (char= next-char-from-text (string-ref pattern (+ i pattern-start)))
-	(+ i 1)				       ; Done.
-      (let ((i (vector-ref restart-vector i))) ; Back up in PATTERN.
-	(if (= i -1)
-	    0		;;Can't back up  further, return the first index
-			;;in pattern from the start.
-	  (loop i))))))	;Keep trying for match.
-
-(define (%kmp-string-partial-search char= restart-vector
-				    next-index-in-pattern
-				    text text-start text-end
-				    pattern pattern-start)
-  (let ((patlen (vector-length restart-vector)))
-    (let loop ((ti text-start)
-	       (pi next-index-in-pattern))
-      (cond ((= pi patlen) (- ti)) ; found
-	    ((= ti text-end) pi)   ; consumed all text
-	    (else
-	     (let ((c (string-ref text ti)))
-	       (loop (+ ti 1)
-		     ;;The  following  loop  is  an inlined  version  of
-		     ;;%KMP-STEP.
-		     (let loop2 ((pi pi))
-		       (if (char= c (string-ref pattern (+ pi pattern-start)))
-			   (+ pi 1)
-			 (let ((pi (vector-ref restart-vector pi)))
-			   (if (= pi -1) 0
-			     (loop2 pi))))))))))))
 
 
 ;;;; done

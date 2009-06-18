@@ -8,7 +8,9 @@
 
 * compare
 
-* foreing
+  Import it.
+
+* foreign
 
   Import it from uriel
 
@@ -19,15 +21,21 @@
 
 * random
 
+  Import it.
+
 * streams
+
+  Import it.
 
 * time
 
   Rewrite?
 
+* strings
+
+  Finished?
+
 * vectors
 
-  Review the export lists.
-  Test for binary search.
-  Review of the documentation.
+  Finished?
 

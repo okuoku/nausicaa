@@ -102,6 +102,38 @@
   )
 
 
+(parameterise ((check-test-name 'constructor))
+
+  (check
+      (vector-append '#(0 1 2 3))
+    => '#(0 1 2 3))
+
+  (check
+      (vector-append '#(0 1 2 3)
+		     '#(4 5 6 7 8))
+    => '#(0 1 2 3 4 5 6 7 8))
+
+  (check
+      (vector-append '#())
+    => '#())
+
+  (check
+      (vector-append '#() '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (vector-tabulate integer->char 0)
+    => '#())
+
+  )
+
+
 (parameterise ((check-test-name 'concatenate))
 
   (check
@@ -323,52 +355,149 @@
 (parameterise ((check-test-name 'mapping))
 
   (check
-      (vector-map* (lambda (i x) (char-upcase x)) '#(#\a #\b #\c #\d))
-    => '#(#\A #\B #\C #\D))
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map! (lambda (i item) (list i item))
+		     vec)
+	vec)
+    => '#((0 #\a)
+	  (1 #\b)
+	  (2 #\c)
+	  (3 #\d)))
 
   (check
-      (vector-map* (lambda (i x) (char-upcase x)) '#())
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map! (lambda (i item-a item-b) (list i item-a item-b))
+		     vec
+		     '#(#\0 #\1 #\2 #\3))
+	vec)
+    => '#((0 #\a #\0)
+	  (1 #\b #\1)
+	  (2 #\c #\2)
+	  (3 #\d #\3)))
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map! (lambda (i item) (list i item))
+		     vec)
+	vec)
     => '#())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
-	(vector-map*! (lambda (i x) (char-upcase x)) vec)
+	(vector-map*! (lambda (i item) (list i item))
+		      vec)
 	vec)
-    => '#(#\A #\B #\C #\D))
+    => '#((0 #\a)
+	  (1 #\b)
+	  (2 #\c)
+	  (3 #\d)))
 
   (check
-      (let* ((vec '#()))
-	(vector-map*! (lambda (i x) (char-upcase x)) vec)
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map*! (lambda (i item-a item-b) (list i item-a item-b))
+		      vec
+		      '#(#\0 #\1 #\2 #\3 #\4))
+	vec)
+    => '#((0 #\a #\0)
+	  (1 #\b #\1)
+	  (2 #\c #\2)
+	  (3 #\d #\3)))
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map*! (lambda (i item) (list i item))
+		      vec)
 	vec)
     => '#())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let* ((vec '#(#\a #\b #\c #\d))
-	     (result '#()))
-	(vector-for-each*
-	 (lambda (i ch)
-	   (set! result
-		 (vector-append result
-				(vector (char->integer (char-upcase ch))))))
-	 vec)
-	result)
-    => '#(65 66 67 68))
+      (cadr (with-result
+	     (vector-for-each* (lambda (i item) (add-result (list i item)))
+			       '#(#\a #\b #\c #\d))))
+    => '((0 #\a)
+	 (1 #\b)
+	 (2 #\c)
+	 (3 #\d)))
 
   (check
-      (let* ((vec '#())
-	     (result '#()))
-	(vector-for-each*
-	 (lambda (i ch)
-	   (set! result
-		 (vector-append result
-				(vector (char->integer (char-upcase ch))))))
-	 vec)
-	result)
+      (cadr (with-result
+	     (vector-for-each* (lambda (i item-a item-b) (add-result (list i item-a item-b)))
+			       '#(#\a #\b #\c #\d)
+			       '#(#\0 #\1 #\2 #\3))))
+    => '((0 #\a #\0)
+	 (1 #\b #\1)
+	 (2 #\c #\2)
+	 (3 #\d #\3)))
+
+  (check
+      (cadr (with-result
+	     (vector-for-each* (lambda (i item) (add-result (list i item)))
+			       '#())))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (subvector-map (lambda (item) (char-upcase item))
+		     '#(#\a #\b #\c #\d))
+    => '#(#\A #\B #\C #\D))
+
+
+  (check
+      (subvector-map (lambda (item) (char-upcase item))
+		     (view '#(#\a #\b #\c #\d) (start 1) (past 3)))
+    => '#(#\B #\C))
+
+  (check
+      (subvector-map (lambda (item) (char-upcase item))
+		     '#())
     => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(subvector-map! (lambda (item) (char-upcase item))
+			vec)
+	vec)
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(subvector-map! (lambda (item) (char-upcase item))
+			(view vec (start 1) (past 3)))
+	vec)
+    => '#(#\a #\B #\C #\d))
+
+  (check
+      (let ((vec '#()))
+	(subvector-map! (lambda (item) (char-upcase item))
+			vec)
+	vec)
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each add-result
+				 '#(#\a #\b #\c #\d))))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each add-result
+				 (view '#(#\a #\b #\c #\d) (start 1) (past 3)))))
+    => '(#\b #\c))
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each add-result '#())))
+    => '())
 
   )
 
@@ -376,11 +505,14 @@
 (parameterise ((check-test-name 'folding))
 
   (check
-      (vector-fold (lambda (i nil x) (cons x nil)) '() '#(#\a #\b #\c #\d))
+      (vector-fold (lambda (i nil x) (cons x nil))
+		   '()
+		   '#(#\a #\b #\c #\d))
     => '(#\d #\c #\b #\a))
 
   (check
-      (vector-fold (lambda (i nil x y) (cons (cons x y) nil)) '()
+      (vector-fold (lambda (i nil x y) (cons (cons x y) nil))
+		   '()
 		   '#(#\a #\b #\c #\d)
 		   '#(#\A #\B #\C #\D))
     => '((#\d . #\D)
@@ -389,7 +521,9 @@
 	 (#\a . #\A)))
 
   (check
-      (vector-fold (lambda (i nil x) (cons x nil)) '() '#())
+      (vector-fold (lambda (i nil x) (cons x nil))
+		   '()
+		   '#())
     => '())
 
   (check
@@ -404,11 +538,14 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (vector-fold-right (lambda (i nil x) (cons x nil)) '() '#(#\a #\b #\c #\d))
+      (vector-fold-right (lambda (i nil x) (cons x nil))
+			 '()
+			 '#(#\a #\b #\c #\d))
     => '(#\a #\b #\c #\d))
 
   (check
-      (vector-fold-right (lambda (i nil x y) (cons (cons x y) nil)) '()
+      (vector-fold-right (lambda (i nil x y) (cons (cons x y) nil))
+			 '()
 			 '#(#\a #\b #\c #\d)
 			 '#(#\A #\B #\C #\D))
     => '((#\a . #\A)
@@ -417,9 +554,87 @@
 	 (#\d . #\D)))
 
   (check
-      (vector-fold-right (lambda (i nil x) (cons x nil)) '() '#())
+      (vector-fold-right (lambda (i nil x) (cons x nil))
+			 '()
+			 '#())
     => '())
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-fold* (lambda (i nil x) (cons x nil))
+		    '()
+		    '#(#\a #\b #\c #\d))
+    => '(#\d #\c #\b #\a))
+
+  (check
+      (vector-fold* (lambda (i nil x y) (cons (cons x y) nil))
+		    '()
+		    '#(#\a #\b #\c #\d)
+		    '#(#\A #\B #\C #\D #\E))
+    => '((#\d . #\D)
+	 (#\c . #\C)
+	 (#\b . #\B)
+	 (#\a . #\A)))
+
+  (check
+      (vector-fold* (lambda (i nil x) (cons x nil))
+		    '()
+		    '#())
+    => '())
+
+  (check
+      (vector-fold* (lambda (i count c)
+		      (if (char-upper-case? c)
+			  (+ count 1)
+			count))
+		    0
+		    '#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
+    => 5)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-fold-right* (lambda (i nil x) (cons x nil))
+			  '()
+			  '#(#\a #\b #\c #\d))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (vector-fold-right* (lambda (i nil x y) (cons (cons x y) nil))
+			  '()
+			  '#(#\a #\b #\c #\d)
+			  '#(#\A #\B #\C #\D #\E))
+    => '((#\a . #\A)
+	 (#\b . #\B)
+	 (#\c . #\C)
+	 (#\d . #\D)))
+
+  (check
+      (vector-fold-right* (lambda (i nil x) (cons x nil))
+			  '()
+			  '#())
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (subvector-fold cons '() '#(#\a #\b #\c #\d))
+    => '(#\d #\c #\b #\a))
+
+  (check
+      (subvector-fold cons '() ('#(#\a #\b #\c #\d) 1 3))
+    => '(#\c #\b))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (subvector-fold-right cons '() '#(#\a #\b #\c #\d))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (subvector-fold-right cons '() ('#(#\a #\b #\c #\d) 1 3))
+    => '(#\b #\c))
 ;;; --------------------------------------------------------------------
 
   (check
@@ -438,36 +653,6 @@
 
   (check
       (vector-unfold-right null? car cdr '())
-    => '#())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (vector-fold* cons '() '#(#\a #\b #\c #\d))
-    => '(#\d #\c #\b #\a))
-
-  (check
-      (vector-fold* cons '() ('#(#\a #\b #\c #\d) 1 3))
-    => '(#\c #\b))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (vector-fold-right* cons '() '#(#\a #\b #\c #\d))
-    => '(#\a #\b #\c #\d))
-
-  (check
-      (vector-fold-right* cons '() ('#(#\a #\b #\c #\d) 1 3))
-    => '(#\b #\c))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (vector-tabulate (lambda (idx) (integer->char (+ 65 idx))) 4)
-    => '#(#\A #\B #\C #\D))
-
-  (check
-      (vector-tabulate integer->char 0)
     => '#())
 
   )
@@ -490,10 +675,6 @@
   (check
       (vector-copy '#())
     => '#())
-
-  (check
-      (vector-copy (view '#(0 1 2 3 4) (past 10)) 99)
-    => '#(0 1 2 3 4 99 99 99 99 99))
 
 ;;; --------------------------------------------------------------------
 
@@ -627,7 +808,7 @@
 
   (check
       (vector-pad '#(#\a #\b #\c) 5)
-    => '#(#\space #\space #\a #\b #\c))
+    => '#(#f #f #\a #\b #\c))
 
   (check
       (vector-pad '#(#\a #\b #\c) 2 #\0)

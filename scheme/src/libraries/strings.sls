@@ -119,17 +119,19 @@
     string>  string>=  string-ci>  string-ci>=
 
     ;; mapping
-    string-map        string-map!
-    string-for-each*  string-for-each-index
+    string-map     string-map!
+    string-map*    string-map*!    string-for-each*
+    substring-map  substring-map!  substring-for-each  substring-for-each-index
 
     ;; case
     string-downcase*   string-upcase*   string-titlecase*
     string-downcase*!  string-upcase*!  string-titlecase*!
 
     ;; folding
-    string-fold    string-fold-right
-    string-fold*   string-fold-right*
-    string-unfold  string-unfold-right
+    string-fold     string-fold-right
+    string-fold*    string-fold-right*
+    substring-fold  substring-fold-right
+    string-unfold   string-unfold-right
 
     ;; selecting
     substring*
@@ -157,7 +159,7 @@
     ;; filtering
     string-filter string-delete
 
-    ;; strings and lists
+    ;; lists
     string->list*  reverse-list->string
     string-join    string-tokenize
     (rename (string-tokenize string-tokenise))
@@ -333,29 +335,29 @@
 
 ;;;; mapping
 
-(define-syntax string-map
+(define-syntax substring-map
   (syntax-rules ()
     ((_ ?proc ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-map ?proc str beg past)))))
+       (%substring-map ?proc str beg past)))))
 
-(define-syntax string-map!
+(define-syntax substring-map!
   (syntax-rules ()
     ((_ ?proc ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-map! ?proc str beg past)))))
+       (%substring-map! ?proc str beg past)))))
 
-(define-syntax string-for-each*
+(define-syntax substring-for-each
   (syntax-rules ()
     ((_ ?proc ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-for-each* ?proc str beg past)))))
+       (%substring-for-each ?proc str beg past)))))
 
-(define-syntax string-for-each-index
+(define-syntax substring-for-each-index
   (syntax-rules ()
     ((_ ?proc ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-for-each-index ?proc str beg past)))))
+       (%substring-for-each-index ?proc str beg past)))))
 
 
 ;;;; case hacking
@@ -364,25 +366,25 @@
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-map char-upcase str beg past)))))
+       (%substring-map char-upcase str beg past)))))
 
 (define-syntax string-upcase*!
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-map! char-upcase str beg past)))))
+       (%substring-map! char-upcase str beg past)))))
 
 (define-syntax string-downcase*
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-map char-downcase str beg past)))))
+       (%substring-map char-downcase str beg past)))))
 
 (define-syntax string-downcase*!
   (syntax-rules ()
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-map! char-downcase str beg past)))))
+       (%substring-map! char-downcase str beg past)))))
 
 (define-syntax string-titlecase*
   (syntax-rules ()
@@ -401,17 +403,17 @@
 
 ;;;; folding
 
-(define-syntax string-fold*
+(define-syntax substring-fold
   (syntax-rules ()
     ((?F ?kons ?knil ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-fold* ?kons ?knil str beg past)))))
+       (%substring-fold ?kons ?knil str beg past)))))
 
-(define-syntax string-fold-right*
+(define-syntax substring-fold-right
   (syntax-rules ()
     ((?F ?kons ?knil ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%string-fold-right* ?kons ?knil str beg past)))))
+       (%substring-fold-right ?kons ?knil str beg past)))))
 
 
 ;;;; selecting
@@ -631,6 +633,12 @@
     ((_ ?S)
      (let-values (((str beg past) (unpack ?S)))
        (%string->list* str beg past)))))
+
+(define-syntax reverse-string->list
+  (syntax-rules ()
+    ((_ ?S)
+     (let-values (((str beg past) (unpack ?S)))
+       (%reverse-string->list str beg past)))))
 
 (define-syntax string-tokenize
   (syntax-rules ()

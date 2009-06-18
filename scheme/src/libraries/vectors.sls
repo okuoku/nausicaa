@@ -116,15 +116,19 @@
     vector>  vector>=
 
     ;; mapping
-    vector-map*  vector-map*!  vector-for-each*
+    vector-map!
+    vector-map*    vector-map*!    vector-for-each*
+    subvector-map  subvector-map!  subvector-for-each  subvector-for-each-index
 
     ;; folding
-    vector-fold    vector-fold-right
-    vector-fold*   vector-fold-right*
-    vector-unfold  vector-unfold-right
+    vector-fold     vector-fold-right
+    vector-fold*    vector-fold-right*
+    subvector-fold  subvector-fold-right
+    vector-unfold   vector-unfold-right
 
     ;; selecting
-    subvector*
+    (rename (%vector-copy subvector))
+    (rename (vector-copy subvector*))
     vector-copy   vector-reverse-copy
     vector-copy!  vector-reverse-copy!
     vector-take   vector-take-right
@@ -297,36 +301,55 @@
        (%vector>= ?item= ?item< vec1 start1 end1 vec2 start2 end2)))))
 
 
+;;;; mapping
+
+(define-syntax subvector-map
+  (syntax-rules ()
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector-map ?proc vec beg past)))))
+
+(define-syntax subvector-map!
+  (syntax-rules ()
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector-map! ?proc vec beg past)))))
+
+(define-syntax subvector-for-each
+  (syntax-rules ()
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector-for-each ?proc vec beg past)))))
+
+(define-syntax subvector-for-each-index
+  (syntax-rules ()
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector-for-each-index ?proc vec beg past)))))
+
+
 ;;;; folding
 
-(define-syntax vector-fold*
+(define-syntax subvector-fold
   (syntax-rules ()
     ((?F ?kons ?knil ?V)
      (let-values (((vec beg past) (unpack ?V)))
-       (%vector-fold* ?kons ?knil vec beg past)))))
+       (%subvector-fold ?kons ?knil vec beg past)))))
 
-(define-syntax vector-fold-right*
+(define-syntax subvector-fold-right
   (syntax-rules ()
     ((?F ?kons ?knil ?V)
      (let-values (((vec beg past) (unpack ?V)))
-       (%vector-fold-right* ?kons ?knil vec beg past)))))
+       (%subvector-fold-right ?kons ?knil vec beg past)))))
 
 
 ;;;; selecting
 
-(define-syntax subvector*
-  (syntax-rules ()
-    ((_ ?V)
-     (let-values (((vec beg past) (unpack ?V)))
-       (%subvector vec beg past)))))
-
 (define-syntax vector-copy
   (syntax-rules ()
     ((_ ?V)
-     (vector-copy ?V #f))
-    ((_ ?V ?fill)
      (let-values (((vec beg past) (unpack ?V)))
-       (%vector-copy ?fill vec beg past)))))
+       (%vector-copy vec beg past)))))
 
 (define-syntax vector-reverse-copy
   (syntax-rules ()
@@ -396,7 +419,7 @@
 (define-syntax vector-pad
   (syntax-rules ()
     ((_ ?V ?len)
-     (vector-pad ?V ?len #\space))
+     (vector-pad ?V ?len #f))
     ((_ ?V ?len ?char)
      (let-values (((vec beg past) (unpack ?V)))
        (%vector-pad ?len ?char vec beg past)))))
@@ -404,7 +427,7 @@
 (define-syntax vector-pad-right
   (syntax-rules ()
     ((_ ?V ?len)
-     (vector-pad-right ?V ?len #\space))
+     (vector-pad-right ?V ?len #f))
     ((_ ?V ?len ?char)
      (let-values (((vec beg past) (unpack ?V)))
        (%vector-pad-right ?len ?char vec beg past)))))
