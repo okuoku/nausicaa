@@ -39,8 +39,7 @@
     :-dispatch-ref :-dispatch-set! make-initial-:-dispatch
     dispatch-union :generator-proc)
   (import (rnrs)
-    (only (nausicaa)
-	  make-parameter parameterize)
+    (nausicaa parameter)
     (rnrs r5rs))
 
 ; (do-ec q ... cmd)

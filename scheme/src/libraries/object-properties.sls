@@ -25,7 +25,7 @@
 
 
 
-(library (object-property)
+(library (object-properties)
   (export
     object-property-initial-capacity
     object-property-default-value

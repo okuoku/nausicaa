@@ -29,7 +29,7 @@
 (compile-library "nausicaa/registry.sls"
 		 "nausicaa/registry.slfasl")
 
-(compile-library "nausicaa/parameter.sls"
+(compile-library "nausicaa/parameter.larceny.sls"
 		 "nausicaa/parameter.larceny.slfasl")
 
 (compile-library "nausicaa/common.sls"
@@ -70,5 +70,17 @@
 
 (compile-library "checks.sls"
 		 "checks.slfasl")
+
+(compile-library "object-properties.sls"
+		 "object-properties.slfasl")
+
+(compile-library "cleanup-handlers.sls"
+		 "cleanup-handlers.slfasl")
+
+(compile-library "queues.sls"
+		 "queues.slfasl")
+
+(compile-library "combinators.sls"
+		 "combinators.slfasl")
 
 ;;; end of file

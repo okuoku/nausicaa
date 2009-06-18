@@ -24,7 +24,7 @@
 
 (import (nausicaa)
   (checks)
-  (queue))
+  (queues))
 
 (check-set-mode! 'report-failed)
 (display "*** testing queue\n")

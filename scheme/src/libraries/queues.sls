@@ -21,7 +21,7 @@
 ;;; 02110-1301 USA
 ;;;
 
-(library (queue)
+(library (queues)
   (export
     sync-q! make-q q? q-empty? q-empty-check q-front q-rear
     q-remove! q-push! enq! q-pop! deq! q-length)

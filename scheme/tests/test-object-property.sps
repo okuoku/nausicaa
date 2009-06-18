@@ -27,7 +27,7 @@
 
 (import (nausicaa)
   (checks)
-  (object-property))
+  (object-properties))
 
 (check-set-mode! 'report-failed)
 (display "*** testing object property\n")

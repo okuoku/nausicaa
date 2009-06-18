@@ -30,7 +30,7 @@
     (rename (make-this-parameter make-parameter)
 	    (parameterize-this parameterize)))
   (import (rnrs)
-    (primitives make-parameter parameterize getenv pretty-print))
+    (primitives make-parameter parameterize))
 
   (define make-this-parameter
     (case-lambda

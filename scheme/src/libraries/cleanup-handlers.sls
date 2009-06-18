@@ -25,7 +25,7 @@
 
 
 
-(library (cleanup)
+(library (cleanup-handlers)
   (export
     cleanup
     register-cleanup-function

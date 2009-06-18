@@ -33,6 +33,11 @@
   (only (checks))
   (only (loops))
   (only (format))
+
+  (only (object-properties))
+  (only (cleanup-handlers))
+  (only (queues))
+  (only (combinators))
   )
 
 ;;; end of file
