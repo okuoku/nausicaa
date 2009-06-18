@@ -1,6 +1,5 @@
-;; q.test --- test (ice-9 q) module -*- scheme -*-
 ;;
-;; Copyright 2008 Marco Maggi <marcomaggi@gna.org>
+;; Copyright 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;; Copyright 2004, 2006 Free Software Foundation, Inc.
 ;;
 ;; This library is free  software; you can redistribute it and/or
@@ -22,17 +21,15 @@
 
 
 
-;; ------------------------------------------------------------
-;; Setup.
-;; ------------------------------------------------------------
 
-(import (rnrs)
-  (uriel test)
-  (uriel queue))
+(import (nausicaa)
+  (checks)
+  (queue))
 
 (check-set-mode! 'report-failed)
+(display "*** testing queue\n")
 
-;; ------------------------------------------------------------
+;;; --------------------------------------------------------------------
 
 (define-syntax check-queue-is-empty-error
   (syntax-rules ()
@@ -42,12 +39,7 @@
 	     ?form ...)
       => 'queue-is-empty)]))
 
-;; ------------------------------------------------------------
-
 
-;; ------------------------------------------------------------
-;; Tests.
-;; ------------------------------------------------------------
 
 (let ((q (make-q)))
   (check-queue-is-empty-error (q-pop! q))
@@ -91,12 +83,7 @@
   (check-queue-is-empty-error (q-pop! q))
   (check-for-true (q? q)))
 
-;; ------------------------------------------------------------
-
 
-;; ------------------------------------------------------------
-;; Done.
-;; ------------------------------------------------------------
 
 (check-report)
 

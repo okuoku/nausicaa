@@ -26,11 +26,14 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "nausicaa/common.sls"
-		 "nausicaa/common.larceny.slfasl")
-
 (compile-library "nausicaa/registry.sls"
 		 "nausicaa/registry.slfasl")
+
+(compile-library "nausicaa/parameter.sls"
+		 "nausicaa/parameter.larceny.slfasl")
+
+(compile-library "nausicaa/common.sls"
+		 "nausicaa/common.larceny.slfasl")
 
 (compile-library "nausicaa.sls"
 		 "nausicaa.slfasl")

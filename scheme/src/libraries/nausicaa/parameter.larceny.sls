@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
-;;;Contents: tests for the &unimplemented condition
-;;;Date: Mon Jan  5, 2009
+;;;Part of: Nausicaa/Scheme
+;;;Contents: parameters from Larceny
+;;;Date: Thu Jun 18, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,45 +23,31 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
+#!r6rs
+(library (nausicaa parameter)
+  (export
+    (rename (make-this-parameter make-parameter)
+	    (parameterize-this parameterize)))
+  (import (rnrs)
+    (primitives make-parameter parameterize getenv pretty-print))
 
-(import (r6rs)
-  (uriel unimplemented)
-  (uriel lang)
-  (uriel test))
+  (define make-this-parameter
+    (case-lambda
+     ((value validator)
+      (let ((the-parm (make-parameter 'unnamed (validator value))))
+	(case-lambda
+	 ((value)
+	  (the-parm (validator value)))
+	 (()
+	  (the-parm)))))
+     ((value)
+      (make-this-parameter value (lambda (x) x)))))
 
-(check-set-mode! 'report-failed)
-
-
-
-(parameterize ((debugging	#t))
-
-  (check
-      (guard (exc (else
-		   (list (who-condition? exc)
-			 (condition-who exc)
-			 (unimplemented-condition? exc)
-			 )))
-	(raise-unimplemented-error 'woppa))
-    => '(#t woppa #t))
-
-  (check
-      (guard (exc (else
-		   (list (who-condition? exc)
-			 (message-condition? exc)
-			 (condition-who exc)
-			 (unimplemented-condition? exc)
-			 )))
-	(raise-unimplemented-error 'woppa))
-    => '(#t #t woppa #t))
-
-  )
-
-
-;;;; done
-
-(check-report)
+  (define-syntax parameterize-this
+    (syntax-rules ()
+      ((_ ?bindings ?form0 ?form ...)
+       (parameterize ?bindings
+	 (letrec* () ?form0 ?form ...))))))
 
 ;;; end of file

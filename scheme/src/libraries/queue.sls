@@ -1,8 +1,8 @@
-;;; q.scm --- Queues
+;;; Queues library
 ;;;
-;;; Assimilated into Nausicaa for Ikarus Scheme: Fri Nov  7, 2008.
+;;; Assimilated into Nausicaa/Scheme: Fri Nov  7, 2008.
 ;;;
-;;; Copyright (C) 2008 Marco Maggi <marcomaggi@gna.org>
+;;; Copyright (C) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;; Copyright (C) 1995, 2001, 2004, 2006 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or modify
@@ -21,13 +21,13 @@
 ;;; 02110-1301 USA
 ;;;
 
-(library (uriel queue)
+(library (queue)
   (export
     sync-q! make-q q? q-empty? q-empty-check q-front q-rear
     q-remove! q-push! enq! q-pop! deq! q-length)
-  (import (r6rs)
-    (rnrs mutable-pairs (6))
-    (list-lib))
+  (import (rnrs)
+    (lists)
+    (rnrs mutable-pairs (6)))
 
   (define (sync-q! q)
     (set-cdr! q (if (pair? (car q)) (last-pair (car q))
@@ -52,7 +52,7 @@
   (define (q-rear q) (q-empty-check q) (cadr q))
 
   (define (q-remove! q obj)
-    (set-car! q (remove! (lambda (o)
+    (set-car! q (remove*! (lambda (o)
 			   (eq? o obj)) (car q)))
     (sync-q! q))
 

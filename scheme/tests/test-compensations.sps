@@ -1,14 +1,13 @@
 ;;;
-;;;Part of: Uriel libraries
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for compensation stacks
 ;;;Date: Wed Nov 19, 2008
-;;;Time-stamp: <2008-12-19 07:43:52 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,13 +25,20 @@
 
 
 
-;;;; setup
 
-(import (r6rs)
-  (uriel test)
-  (uriel lang))
+(import (nausicaa)
+  (checks))
 
 (check-set-mode! 'report-failed)
+(display "*** testing compensations\n")
+
+;;; --------------------------------------------------------------------
+
+(define-syntax catch-exception
+  (syntax-rules ()
+    ((_ ?form0 ?form ...)
+     (guard (exc (else exc))
+       ?form0 ?form ...))))
 
 
 ;;;; on error compensations: no error evaluation

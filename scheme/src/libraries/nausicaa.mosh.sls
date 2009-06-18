@@ -768,25 +768,35 @@
     get-environment-variable get-environment-variables
 
     ;; parameters
-    parameterize make-parameter
-    ;; sorry, I like british spelling
-    (rename (parameterize parameterise))
+    parameterize make-parameter (parameterize parameterise))
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
     make-unimplemented-condition raise-unimplemented-error
 
+    ;; simple syntaxes
+    dotimes dolist loop-upon-list ensure
+
+    ;; deferred exceptions
+    with-deferred-exceptions-handler
+    defer-exceptions run-deferred-exceptions-handler
+
+    ;; compensations
+    with-compensations with-compensations/on-error
+    compensate run-compensations push-compensation
+
+    ;; miscellaneous
+    symbol*->string symbol->string/maybe
+
     ;; other stuff
-    pretty-print symbol*->string)
+    pretty-print)
   (import (except (rnrs)
 		  ;;Implemented  in compat  to let them  accept complex
 		  ;;arguments.
 		  finite? infinite? nan?)
-    (only (system)
-	  get-environment-variable get-environment-variables
-	  make-parameter parameterize)
-    (only (mosh pp)
-	  pretty-print)
+    (only (system) get-environment-variable get-environment-variables)
+    (only (mosh pp) pretty-print)
+    (nausicaa parameter)
     (nausicaa common)
     (for (nausicaa registry) expand))
 

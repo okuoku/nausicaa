@@ -758,9 +758,6 @@
     ;; stuff from the SRFIs
     cond-expand and-let* receive recursion cut cute begin0
 
-    ;; parameters
-    parameterize make-parameter
-
     ;; shared structures
     write-with-shared-structure
     read-with-shared-structure
@@ -771,19 +768,34 @@
     (rename (getenv get-environment-variable))
     get-environment-variables
 
-    ;; sorry, I like british spelling
-    (rename (parameterize parameterise))
+    ;; parameters
+    parameterize make-parameter (rename (parameterize parameterise))
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
     make-unimplemented-condition raise-unimplemented-error
 
+    ;; simple syntaxes
+    dotimes dolist loop-upon-list ensure
+
+    ;; deferred exceptions
+    with-deferred-exceptions-handler
+    defer-exceptions run-deferred-exceptions-handler
+
+    ;; compensations
+    with-compensations with-compensations/on-error
+    compensate run-compensations push-compensation
+
+    ;; miscellaneous
+    symbol*->string symbol->string/maybe
+
     ;; other stuff
-    pretty-print symbol*->string)
+    pretty-print)
   (import (except (rnrs)
 		  equal-hash finite? infinite? nan?)
     (only (ikarus)
-	  make-parameter parameterize getenv pretty-print)
+	  getenv pretty-print)
+    (nausicaa parameter)
     (nausicaa common)
     (for (nausicaa registry) expand))
 

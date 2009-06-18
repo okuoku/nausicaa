@@ -756,10 +756,7 @@
 
 
     ;; stuff from the SRFIs
-    cond-expand and-let* receive recursion cut cute
-
-    ;; parameters
-    parameterize make-parameter
+    cond-expand and-let* receive recursion cut cute begin0
 
     ;; shared structures
     write-with-shared-structure
@@ -770,19 +767,34 @@
     (rename (lookup-process-environment get-environment-variable)
 	    (process-environment->alist get-environment-variables))
 
-    ;; sorry, I like british spelling
-    (rename (parameterize parameterise))
+    ;; parameters
+    parameterize make-parameter (rename (parameterize parameterise))
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
     make-unimplemented-condition raise-unimplemented-error
 
+    ;; simple syntaxes
+    dotimes dolist loop-upon-list ensure
+
+    ;; deferred exceptions
+    with-deferred-exceptions-handler
+    defer-exceptions run-deferred-exceptions-handler
+
+    ;; compensations
+    with-compensations with-compensations/on-error
+    compensate run-compensations push-compensation
+
+    ;; miscellaneous
+    symbol*->string symbol->string/maybe
+
     ;; other stuff
-    begin0 pretty-print symbol*->string)
+    pretty-print)
   (import (except (rnrs) finite? infinite? nan?)
     (only (core)
-	  make-parameter parameterize pretty-print
+	  pretty-print
 	  lookup-process-environment process-environment->alist)
+    (nausicaa parameter)
     (nausicaa common)
     (for (nausicaa registry) expand))
 

@@ -1,15 +1,14 @@
 ;;;
-;;;Part of: Uriel libraries for R6RS Scheme
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for graph notation
 ;;;Date: Mon Dec  1, 2008
-;;;Time-stamp: <2008-12-19 07:44:57 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;	This  is   to  test  if  all  the   wannahave  supported  Scheme
 ;;;	implementations implement reading graph notation.
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -29,16 +28,15 @@
 
 ;;;; setup
 
-(import (rnrs)
-  (uriel lang)
-  (uriel test)
+(import (nausicaa)
   (rnrs mutable-pairs (6))
-  (list-lib))
+  (checks)
+  (lists))
 
 (check-set-mode! 'report-failed)
+(display "*** testing graph notation\n")
 
 
-;;;; code
 
 (check
     '#0=(1 . #0#)
@@ -97,7 +95,6 @@
 	 ;;#9
 	 (set-car! (cddr (ninth v)) (seventh v))
 	 v))
-
 
 
 ;;;; done

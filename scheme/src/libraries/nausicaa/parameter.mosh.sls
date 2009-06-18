@@ -1,14 +1,13 @@
 ;;;
-;;;Part of: Uriel libraries
-;;;Contents: cleanup functions
-;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-16 10:12:00 marco>
+;;;Part of: Nausicaa/Scheme
+;;;Contents: parameters from Mosh
+;;;Date: Thu Jun 18, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,38 +23,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(library (uriel cleanup)
-  (export
-    uriel-cleanup
-    uriel-register-cleanup-function
-    uriel-forget-cleanup-function)
-  (import (r6rs))
-
-
-;;;; code
-
-(define cleanup-thunks '())
-
-(define (uriel-register-cleanup-function thunk)
-  (set! cleanup-thunks (cons thunk cleanup-thunks)))
-
-(define (uriel-forget-cleanup-function thunk)
-  (set! cleanup-thunks (remove thunk cleanup-thunks)))
-
-(define (uriel-cleanup)
-  (for-each
-      (lambda (thunk)
-	(thunk))
-    cleanup-thunks))
-
-
-
-;;;; done
-
-)
+#!r6rs
+(library (nausicaa parameter)
+  (export make-parameter parameterize)
+  (import (only (system) make-parameter parameterize)))
 
 ;;; end of file

@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Uriel libraries
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for deferred exceptions
 ;;;Date: Wed Nov 19, 2008
 ;;;
@@ -27,18 +27,25 @@
 
 ;;;; setup
 
-(import (rnrs)
-  (uriel test)
-  (uriel lang))
+(import (nausicaa)
+  (checks))
 
 (check-set-mode! 'report-failed)
+(display "*** testing deferred exceptions\n")
 
+;;; --------------------------------------------------------------------
+
+(define-syntax catch-exception
+  (syntax-rules ()
+    ((_ ?form0 ?form ...)
+     (guard (exc (else exc))
+       ?form0 ?form ...))))
 
 
 ;;;; no deferred exceptions
 
 ;;;No error.  No DEFER-EXCEPTIONS.
-(parameterize ((testname "this"))
+(parameterize ((check-test-name "this"))
   (check
       (with-result
        (with-deferred-exceptions-handler

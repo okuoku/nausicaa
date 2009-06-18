@@ -768,50 +768,42 @@
     (rename (getenv get-environment-variable))
     get-environment-variables
 
-    (rename (make-this-parameter make-parameter)
-	    (parameterize-this parameterize))
-    ;; sorry, I like british spelling
-    (rename (parameterize parameterise))
+    ;; parameters
+    make-parameter parameterize (rename (parameterize parameterise))
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
     make-unimplemented-condition raise-unimplemented-error
 
+    ;; simple syntaxes
+    dotimes dolist loop-upon-list ensure
+
+    ;; deferred exceptions
+    with-deferred-exceptions-handler
+    defer-exceptions run-deferred-exceptions-handler
+
+    ;; compensations
+    with-compensations with-compensations/on-error
+    compensate run-compensations push-compensation
+
+    ;; miscellaneous
+    symbol*->string symbol->string/maybe
+
     ;; other stuff
-    pretty-print symbol*->string)
+    pretty-print)
   (import (except (rnrs)
 		  ;;Implemented  in compat  to let  them  accept complex
 		  ;;arguments.
 		  finite? infinite? nan?)
+    (nausicaa parameter)
     (nausicaa common)
-    (for (nausicaa registry) expand)
-    (primitives make-parameter parameterize getenv pretty-print))
+    (for (nausicaa registry) expand))
 
 
 ;;;; Larceny specific stuff
 
 (define (get-environment-variables)
   (raise-unimplemented-error 'get-environment-variables))
-
-;;; --------------------------------------------------------------------
-
-(define make-this-parameter
-  (case-lambda
-   ((value validator)
-    (let ((the-parm (make-parameter 'unnamed (validator value))))
-      (case-lambda
-       ((value)
-	(the-parm (validator value)))
-       (()
-	(the-parm)))))
-   ((value)
-    (make-this-parameter value (lambda (x) x)))))
-
-(define-syntax parameterize-this
-  (syntax-rules ()
-    ((_ ?bindings ?form0 ?form ...)
-     (parameterize ?bindings
-       (letrec* () ?form0 ?form ...)))))
 
 
 ;;;; feature--based conditional expansion

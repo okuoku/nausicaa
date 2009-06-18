@@ -1,6 +1,6 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
-;;;Contents: definition of unimplemented condition
+;;;Part of: Nausicaa/Scheme
+;;;Contents: tests for the &unimplemented condition
 ;;;Date: Mon Jan  5, 2009
 ;;;
 ;;;Abstract
@@ -25,38 +25,41 @@
 
 
 
-;;;; setup
 
-(library (uriel unimplemented)
-  (export
-    &unimplemented
-    make-unimplemented-condition
-    unimplemented-condition?
-    raise-unimplemented-error)
-  (import (r6rs))
+(import (nausicaa)
+  (checks))
+
+(check-set-mode! 'report-failed)
+(display "*** testing unimplemented condition\n")
 
 
-;;;; code
 
-(define-condition-type &unimplemented &error
-  make-unimplemented-condition
-  unimplemented-condition?)
+(parameterize ((debugging	#f))
 
-(define raise-unimplemented-error
-  (case-lambda
-   ((who)
-    (raise-unimplemented-error who "feature not implemented or not available" #f))
-   ((who message)
-    (raise-unimplemented-error who message #f))
-   ((who message irritants)
-    (raise (condition (make-who-condition who)
-		      (make-message-condition message)
-		      (make-unimplemented-condition)
-		      (make-irritants-condition irritants))))))
+  (check
+      (guard (exc (else
+		   (list (who-condition? exc)
+			 (condition-who exc)
+			 (unimplemented-condition? exc)
+			 )))
+	(raise-unimplemented-error 'woppa))
+    => '(#t woppa #t))
+
+  (check
+      (guard (exc (else
+		   (list (who-condition? exc)
+			 (message-condition? exc)
+			 (condition-who exc)
+			 (unimplemented-condition? exc)
+			 )))
+	(raise-unimplemented-error 'woppa))
+    => '(#t #t woppa #t))
+
+  )
 
 
 ;;;; done
 
-)
+(check-report)
 
 ;;; end of file

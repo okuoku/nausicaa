@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Uriel libraries for Ikarus Scheme
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: object property library
 ;;;Date: Fri Nov 14, 2008
 ;;;
@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,18 +25,12 @@
 
 
 
-;;;; setup
-
-(library (uriel object-property)
+(library (object-property)
   (export
     object-property-initial-capacity
     object-property-default-value
     make-object-property with-true-property)
-  (import (r6rs)
-    (lang-lib))
-
-
-;;;; code
+  (import (nausicaa))
 
 (define object-property-initial-capacity
   (make-parameter 100
@@ -64,10 +58,6 @@
        (dynamic-wind
 	   (lambda () (?prop ?object #t))
 	   (lambda () ?form0 ?form ...)
-	   (lambda () (?prop ?object saved)))))))
-
-
-
-) ;; end of library form
+	   (lambda () (?prop ?object saved))))))))
 
 ;;; end of file
