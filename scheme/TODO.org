@@ -1,6 +1,6 @@
 * nausicaa
 
-  Done?
+  Fix the installation infrastructure (does not install directories).
 
 * char-set
 

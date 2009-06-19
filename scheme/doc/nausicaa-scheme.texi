@@ -26367,10 +26367,26 @@ This function is like @func{%string-contains} and
 @section One dimensional extended ranges
 
 
-The @library{one-dimension} library implements low level operations over
-generalised ranges of value for a coordinate.  It can be used to operate
+The one--dimension libraries implement low level operations over
+generalised ranges of a coordinate.  They can be used to operate on
 ranges of numbers or characters or whatever objects upon which we can
-define an ordering.  @library{one-dimension} is the backbone of the
+define an ordering.  There are two versions of the library:
+
+@table @library
+@item one-dimension-co
+Represents domains of values using disjoint half--open ranges; each
+range has a lower--included and an upper--excluded limit.
+
+@item one-dimension-cc
+Represents domains of values using disjoint double--closed ranges; each
+range has a lower--included and an upper--included limit.
+@end table
+
+Both the libraries have the same interface, meaning that the functions
+names and arguments are the same; the only difference in semantics is
+that @library{one-dimension-co} interprets argument ranges as
+half--open, while @library{one-dimension-cc} interprets argument ranges
+as double--closed.  @library{one-dimension-cc} is the backbone of the
 @library{char-sets} library.
 
 @menu
@@ -26387,13 +26403,13 @@ define an ordering.  @library{one-dimension} is the backbone of the
 
 
 A @dfn{range} is a pair representing a half--open interval of items.
-The car of the pair if the included left--limit, called @var{start}; the
-cdr is the excluded right--limit, called @var{past}.  Empty ranges
-(pairs with equal values) are @strong{not} valid.
+The car of the pair if the included lower--limit, called @var{start};
+the cdr is the excluded upper--limit, called @var{past}, or the included
+upper--limit, called @var{last}.  Empty ranges are @strong{not} valid.
 
 A @dfn{domain} is a sorted list of ranges.  Empty domains are empty
 lists.  Ranges in a domain do not overlap and are not contiguous.  A
-domain has the following format:
+domain of half--open ranges has the following format:
 
 @example
 ((start1 . past1) (start2 . past2) (start3 . past3) ...)
@@ -26404,6 +26420,20 @@ with the constraints:
 
 @example
 start1 < past1 < start2 < past2 < start3 < past3 < ...
+@end example
+
+@noindent
+a domain of double--closed ranges has the following format:
+
+@example
+((start1 . last1) (start2 . last2) (start3 . last3) ...)
+@end example
+
+@noindent
+with the constraints:
+
+@example
+start1 <= last1 < start2 <= last2 < start3 <= last3 < ...
 @end example
 
 The range and domain functions accept the following arguments:
@@ -26422,10 +26452,26 @@ A valid domain according to @func{%domain?}.
 The included left--limit of a range.
 
 @item past
-The excluded right--limit of a range.
+The excluded lower--limit of a range.
+
+@item last
+The included upper--limit of a range.
 
 @item item?
 A unary predicate returning @true{} if the argument is a valid item.
+For integers it can be @func{integer?}, while for characters it can be
+@func{char?}.
+
+If we need to exclude some range of values, we can do it by properly
+define this function.  For example, to exclude the integers in the
+half--open range @math{[10, 23)} we can use:
+
+@example
+(lambda (n)
+  (and (integer? n)
+       (<= 10  n)
+       (<   n 23)))
+@end example
 
 @item item=?
 An n--ary predicate returning @true{} if the all the arguments are
@@ -26441,22 +26487,21 @@ An n--ary predicate returning @true{} if the all the arguments, in the
 given order, are in non--strict increasing order.  @func{char<=?} is an
 example of such a function.
 
-@item item-?
-A binary function returning the number of items between the first
-argument (included) and the second argument (excluded).  The arithmetic
-@func{-} applied to integers is an example of such a function; for
-characters we can use:
+@item item-min
+An n--ary function returning the minimum between its arguments.  For
+numbers it can be @func{min}, for characters we can use:
 
 @example
-(lambda (past start)
-  (- (char->integer past)
-     (char->integer start)))
+(lambda (a b) (if (char<? a b) a b))
 @end example
 
-@item item-copy
-A unary function returning a copy of an item.  For ranges holding atomic
-values (like characters or integers) it is fine to use @code{(lambda (x)
-x)}.
+@item item-max
+An n--ary function returning the maximum between its arguments.  For
+numbers it can be @func{max}, for characters we can use:
+
+@example
+(lambda (a b) (if (char<? a b) b a))
+@end example
 
 @item item-next
 A unary function returning the next value with respect to the argument.
@@ -26467,16 +26512,38 @@ can be:
 (lambda (ch) (integer->char (+ 1 (char->integer ch))))
 @end example
 
+@item item-minus
+A binary function:
 
-@item lower-bound
-@itemx upper-bound
-Values representing the included lower bound and the excluded upper
-bounds for the items in ranges and domains.
+@itemize
+@item
+For half--open ranges: It must return the number of items between the
+first argument included and the second argument excluded.
 
-The lower bound is used as first argument to the @var{item=?},
-@var{item<?} and @var{item<=?} predicates.  The upper bound is used as
-last argument to the @var{item=?}, @var{item<?} and @var{item<=?}
-predicates.
+@item
+For double--closed ranges: It must return the number of items between
+the first argument included and the second argument included.
+@end itemize
+
+The arithmetic @func{-} applied to integers is an example of such a
+function for half--open ranges; for characters and double--closed ranges
+we can use:
+
+@example
+(lambda (past start)
+  (+ 1 (- (char->integer past)
+          (char->integer start))))
+@end example
+
+@item item-copy
+A unary function returning a copy of an item.  For ranges holding atomic
+values (like characters or integers) it is fine to use @code{(lambda (x)
+x)}.
+
+@item type
+A record used as type descriptor for collected items.  It is used as
+first arguments to all almost all the functions.  Type descriptors are
+built by @func{%make-type-descriptor}.
 @end table
 
 @c page
@@ -26484,44 +26551,49 @@ predicates.
 @subsection Constructors
 
 
-@defun %make-range @var{start} @var{past} @var{item?} @var{item<?}
-Compose @var{start} and @var{past} into a range.  This function
-validates the arguments to make sure the resulting range is valid.
+@defun %make-type-descriptor @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-min} @var{item-max} @var{item-next} @var{item-minus} @var{item-copy}
+Build and return a new type descriptor.
 @end defun
 
 
-@defun %range-copy @var{range} @var{item-copy}
+@defun %make-range @var{type} @var{start} @var{past}
+@defunx %make-range @var{type} @var{start} @var{last}
+Compose @var{start} and @var{past}/@var{last} into a range.  This
+function validates the arguments to make sure the resulting range is
+valid.
+@end defun
+
+
+@defun %range-copy @var{type} @var{range}
 Return a clone of @var{range}.
 @end defun
 
 
-@defun %make-domain @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-next} . @var{args}
+@defun %make-domain @var{type} @var{arg} ...
 Build and return a new domain.
 
-@var{args} may be the empty list or a mixed list of item and pairs of
-items.  Pairs of items are interpreted as limits--inclusive ranges of
-items (this is in contrast with the half--open representation of ranges
-ranges).
+The list of @var{arg} may be the empty list or a mixed list of item and
+pairs of items.  Pairs of items are interpreted as limits--inclusive
+ranges of items (this is in contrast with the half--open representation
+of ranges ranges).
 @end defun
 
 
-@defun %domain-copy @var{domain} @var{item-copy}
+@defun %domain-copy @var{type} @var{domain}
 Return a newly allocated domain holding a copy of @var{domain}.
 @end defun
 
 
-@defun %domain-add-item @var{domain} @var{obj} @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-next}
+@defun %domain-add-item @var{type} @var{domain} @var{obj}
 Add the single value @var{obj} to @var{domain}, return the new domain.
 The returned domain may share some structure with @var{domain}.
 @end defun
 
 
-@defun %domain-add-range @var{domain} @var{range} @var{item=?} @var{item<?} @var{item<=?}
+@defun %domain-add-range @var{type} @var{domain} @var{range}
 Add @var{range} to @var{domain}, return the new domain.  The returned
 domain may share some structure with @var{domain}.
 @end defun
-
-
 
 @c page
 @node one-dimension pred
@@ -26531,58 +26603,72 @@ domain may share some structure with @var{domain}.
 @subsubheading Range predicates
 
 
-@defun %range? @var{obj} @var{item?} @var{item<?}
+@defun %range? @var{type} @var{obj}
 Return @true{} if @var{obj} is a valid range.
 @end defun
 
 
-@defun %range-contains? @var{range} @var{obj} @var{item<?} @var{item<=?}
+@defun %range-contains? @var{type} @var{range} @var{obj}
 Return @true{} if @var{obj} is a member of @var{range}.
 @end defun
 
 
-@defun %range=? @var{range-a} @var{range-b} @var{item=?}
+@defun %range=? @var{type} @var{range-a} @var{range-b}
 Return @true{} if the ranges are equal.
 @end defun
 
 
-@defun %range<? @var{range-a} @var{range-b} @var{item<=?}
+@defun %range<? @var{type} @var{range-a} @var{range-b}
 Return @true{} if @var{range-a} has all members less than all members of
 @var{range-b}.
 @end defun
 
 
-@defun %range<=? @var{range-a} @var{range-b} @var{item<=?}
+@defun %range<=? @var{type} @var{range-a} @var{range-b}
 Return @true{} if @var{range-a} has all members less than, or equal to,
 all members of @var{range-b}.
 @end defun
 
 
-@defun %range-start<? @var{range-a} @var{range-b} @var{item<?}
+@defun %range-start<? @var{type} @var{range-a} @var{range-b}
 Return @true{} if the start of @var{range-a} is less than the start of
 @var{range-b}.
 @end defun
 
 
-@defun %range-start<=? @var{range-a} @var{range-b} @var{item<=?}
+@defun %range-start<=? @var{type} @var{range-a} @var{range-b}
 Return @true{} if the start of @var{range-a} is less than, or equal to,
 the start of @var{range-b}.
 @end defun
 
 
-@defun %range-contiguous? @var{range-a} @var{range-b} @var{item=?}
+@defun %range-past<? @var{type} @var{range-a} @var{range-b}
+@defunx %range-last<? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the past/last of @var{range-a} is less than the past
+of @var{range-b}.
+@end defun
+
+
+@defun %range-last<=? @var{type} @var{range-a} @var{range-b}
+@defunx %range-past<=? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the past/last of @var{range-a} is less than, or equal
+to, the past of @var{range-b}.
+@end defun
+
+
+@defun %range-contiguous? @var{type} @var{range-a} @var{range-b}
 Return @true{} if @var{range-a} and @var{range-b} are contiguous.  It
 does not matter which range has start less than the other.
 @end defun
 
 
-@defun %range-overlapping? @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
+@defun %range-overlapping? @var{type} @var{range-a} @var{range-b}
 Return @true{} if the ranges have some elements in common.
 @end defun
 
 
-@defun %range-subset? @var{range-a} @var{range-b} @var{item<=?}
-@defunx %range-strict-subset? @var{range-a} @var{range-b} @var{item<=?}
+@defun %range-subset? @var{type} @var{range-a} @var{range-b}
+@defunx %range-strict-subset? @var{type} @var{range-a} @var{range-b}
 Return @true{} if @var{range-b} is a subset or a strict subset of
 @var{range-a}.
 @end defun
@@ -26592,7 +26678,7 @@ Return @true{} if @var{range-b} is a subset or a strict subset of
 @subsubheading Domain predicates
 
 
-@defun %domain? @var{domain} @var{item<?} @var{item<=?} @var{lower-bound} @var{upper-bound}
+@defun %domain? @var{type} @var{domain}
 Return true if @var{domain} is a valid domain.
 @end defun
 
@@ -26602,25 +26688,25 @@ Return true if the domain is empty.
 @end defun
 
 
-@defun %domain-contains? @var{domain} @var{obj} @var{item<?} @var{item<=?}
+@defun %domain-contains? @var{type} @var{domain} @var{obj}
 Return true if @var{obj} is an element of @var{domain}.
 @end defun
 
 
-@defun %domain=? @var{domain-a} @var{domain-b} @var{item=?}
+@defun %domain=? @var{type} @var{domain-a} @var{domain-b}
 Return true if the arguments represent the same domain.
 @end defun
 
 
-@defun %domain<? @var{domain-a} @var{domain-b} @var{item<=?}
+@defun %domain<? @var{type} @var{domain-a} @var{domain-b}
 Return true if all the elements of @var{domain-a} are strictly less than
 all the elements of @var{domain-b}.  Empty domains cannot be ordered, so
 if an argument is empty the return value is @false{}.
 @end defun
 
 
-@defun %domain-subset? @var{domain-a} @var{domain-b} @var{item<=?}
-@defunx %domain-strict-subset? @var{domain-a} @var{domain-b} @var{item<=?}
+@defun %domain-subset? @var{type} @var{domain-a} @var{domain-b}
+@defunx %domain-strict-subset? @var{type} @var{domain-a} @var{domain-b}
 Return @true{} if @var{domain-b} is a subset or strict subset of
 @var{domain-a}.
 @end defun
@@ -26630,12 +26716,12 @@ Return @true{} if @var{domain-b} is a subset or strict subset of
 @subsection Inspection
 
 
-@defun %range-length @var{range} @var{item-}
+@defun %range-length @var{type} @var{range}
 Return the number of items in the range.
 @end defun
 
 
-@defun %domain-size @var{domain} @var{item-}
+@defun %domain-size @var{type} @var{domain}
 Return the number of items in the domain.
 @end defun
 
@@ -26647,7 +26733,7 @@ Return the number of items in the domain.
 @subsubheading Set operations
 
 
-@defun %range-intersection @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
+@defun %range-intersection @var{type} @var{range-a} @var{range-b}
 Return a range representing the intersection of the argument ranges.  It
 does not matter which range has start less than the other.
 
@@ -26657,7 +26743,7 @@ are not overlapping return @false{} to represent the empty range.
 @end defun
 
 
-@defun %range-union @var{range-a} @var{range-b} @var{item=?} @var{item<?} @var{item<=?}
+@defun %range-union @var{type} @var{range-a} @var{range-b}
 Return two values representing the union of the argument ranges.  It
 does not matter which range has start less than the other.
 
@@ -26673,14 +26759,14 @@ new range representing the union.
 This function should be called like this:
 
 @example
-(let-values (((head tail) (%range-union r-a r-b)))
+(let-values (((head tail) (%range-union type r-a r-b)))
   (when head ---)
   (when tail ---))
 @end example
 @end defun
 
 
-@defun %range-difference @var{range-a} @var{range-b} @var{item=?} @var{item<?}
+@defun %range-difference @var{type} @var{range-a} @var{range-b}
 Return two values representing the difference between the argument
 ranges; the difference is the set of elements present in one range and
 not in the other.  It does not matter which range has start less than
@@ -26694,14 +26780,14 @@ returned values can be @false{}.
 This function should be called like this:
 
 @example
-(let-values (((head tail) (%range-difference r-a r-b)))
+(let-values (((head tail) (%range-difference type r-a r-b)))
   (when head ---)
   (when tail ---))
 @end example
 @end defun
 
 
-@defun %range-in-first-only @var{range-a} @var{range-b} @var{item<?} @var{item<=?}
+@defun %range-in-first-only @var{type} @var{range-a} @var{range-b}
 Return two values representing the elements of @var{range-a} that are
 not in @var{range-b}.
 
@@ -26713,14 +26799,14 @@ Both the returned values can be @false{}.
 This function should be called like this:
 
 @example
-(let-values (((head tail) (%range-in-first-only r-a r-b)))
+(let-values (((head tail) (%range-in-first-only type r-a r-b)))
   (when head ---)
   (when tail ---))
 @end example
 @end defun
 
 
-@defun %domain-intersection @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+@defun %domain-intersection @var{type} @var{domain-a} @var{domain-b}
 Return a new domain representing the intersection of the arguments.  The
 intersection is the set of values present in both the arguments.
 
@@ -26728,7 +26814,7 @@ The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun %domain-union @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+@defun %domain-union @var{type} @var{domain-a} @var{domain-b}
 Return a new domain representing the union of the arguments.  The union
 is the set of values present in one and/or the other argument.
 
@@ -26736,7 +26822,7 @@ The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun %domain-difference @var{domain-a} @var{domain-b} @var{item=?} @var{item<?} @var{item<=?}
+@defun %domain-difference @var{type} @var{domain-a} @var{domain-b}
 Return a new domain representing the difference of the arguments.  The
 difference is the set of values present in one or the other argument.
 
@@ -26744,7 +26830,7 @@ The returned value may share some structure with the arguments.
 @end defun
 
 
-@defun %domain-complement @var{domain} @var{domain-universe} @var{item=?} @var{item<?} @var{item<=?}
+@defun %domain-complement @var{type} @var{domain} @var{domain-universe}
 Return a new domain representing the complement of @var{domain} in the
 space defined by @var{domain-universe}.  The returned value holds all
 the items from @var{domain-universe} that are not in @var{domain}.
@@ -26757,60 +26843,60 @@ The returned value may share some structure with the arguments.
 @subsubheading List operations
 
 
-@defun %range-for-each @var{proc} @var{range} @var{item<=?} @var{item-next}
+@defun %range-for-each @var{type} @var{proc} @var{range}
 Apply @var{proc} to each value in the range.
 @end defun
 
 
-@defun %range-every @var{proc} @var{range} @var{item<?} @var{item-next}
+@defun %range-every @var{type} @var{proc} @var{range}
 Apply @var{proc} to each value in the range and return true if all the
 return values are true.  The application stops at the first @false{}
 return value.
 @end defun
 
 
-@defun %range-any @var{proc} @var{range} @var{item<?} @var{item-next}
+@defun %range-any @var{type} @var{proc} @var{range}
 Apply @var{proc} to each value in the range and return true if at least
 one of the returned values is true.  The application stops at the first
 true return value.
 @end defun
 
 
-@defun %range-fold @var{kons} @var{knil} @var{range} @var{item<?} @var{item-next}
+@defun %range-fold @var{type} @var{kons} @var{knil} @var{range}
 Fold @var{kons} over the values in the range.
 @end defun
 
 
-@defun %range->list @var{range} @var{item<?} @var{item-next}
+@defun %range->list @var{type} @var{range}
 Return a list holding all the elements in the range.
 @end defun
 
 
-@defun %domain-for-each @var{proc} @var{domain} @var{item<?} @var{item-next}
+@defun %domain-for-each @var{type} @var{proc} @var{domain}
 Apply @var{proc} to each element of @var{domain}.
 @end defun
 
 
-@defun %domain-every @var{proc} @var{domain} @var{item<?} @var{item-next}
+@defun %domain-every @var{type} @var{proc} @var{domain}
 Apply @var{proc} to each value in the domain and return true if all the
 return values are true.  The application stops at the first @false{}
 return value.
 @end defun
 
 
-@defun %domain-any @var{proc} @var{domain} @var{item<?} @var{item-next}
+@defun %domain-any @var{type} @var{proc} @var{domain}
 Apply @var{proc} to each value in the domain and return true if at least
 one of the returned values is true.  The application stops at the first
 true return value.
 @end defun
 
 
-@defun %domain-fold @var{kons} @var{knil} @var{domain} @var{item<?} @var{item-next}
+@defun %domain-fold @var{type} @var{kons} @var{knil} @var{domain}
 Fold @var{kons} over the values in the domain.
 @end defun
 
 
-@defun %domain->list @var{domain} @var{item<?} @var{item-next}
+@defun %domain->list @var{type} @var{domain}
 Return a list holding all the elements in the domain.
 @end defun
 
@@ -26819,7 +26905,7 @@ Return a list holding all the elements in the domain.
 @subsubheading Miscellaneous operations
 
 
-@defun %range-concatenate @var{range-a} @var{range-b} @var{item<?}
+@defun %range-concatenate @var{type} @var{range-a} @var{range-b}
 Concatenate the ranges and return the resulting range.  It does not
 matter which range has start less than the other.  It makes sense to
 apply this function to ranges that satisfy @func{%range-contiguous?}.

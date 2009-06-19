@@ -97,7 +97,10 @@ AC_DEFUN([NAUSICAA_OPTIONS],
      [enable installation of precompiled libraries])
    DS_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
      [whether source files will be installed],
-     [enable installation of source files])])
+     [enable installation of source files])
+   DS_ENABLE_OPTION([nausicaa_TIME_TESTS],[time-tests],[no],
+     [whether tests will be timed],
+     [enable timing of tests])])
 
 dnl page
 dnl --------------------------------------------------------------------

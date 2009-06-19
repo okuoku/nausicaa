@@ -59,7 +59,7 @@
     char-set:empty       char-set:full
     )
   (import (rnrs)
-    (one-dimension))
+    (one-dimension-cc))
 
 
 
@@ -145,20 +145,13 @@
 
 
 
-(define (char-next ch)
-  (integer->char (+ 1 (char->integer ch))))
-
-(define (char-prev ch)
-  (integer->char (- (char->integer ch) 1)))
-
-(define (char- past start)
-  (- (char->integer past)
-     (char->integer start)))
-
-(define (char-copy ch)
-  ch)
-
-;;; --------------------------------------------------------------------
+(define char-type
+  (%make-type-descriptor char? char=? char<? char<=?
+			 (lambda (a b) (if (char<? a b) a b))
+			 (lambda (a b) (if (char<? a b) b a))
+			 (lambda (ch) (integer->char (+ 1 (char->integer ch))))
+			 (lambda (a b) (+ 1 (- (char->integer b) (char->integer a))))
+			 (lambda (ch) ch)))
 
 ;;*FIXME* This  is a bug.  The  correct exclusive upper  bound should be
 ;;1+#x10FFFF.   With this  setting  the last  character  in the  Unicode
@@ -166,7 +159,7 @@
 
 (define inclusive-lower-bound (integer->char 0))
 (define exclusive-upper-bound (integer->char #x10FFFF))
-(define inclusive-upper-bound (char-prev exclusive-upper-bound))
+(define inclusive-upper-bound (integer->char #x10FFFE))
 (define exclusive-inner-bound (integer->char (- #xD800 1)))
 (define inclusive-inner-bound (integer->char (+ #xDFFF 1)))
 
@@ -174,138 +167,138 @@
 ;;;; domain wrappers for ranges
 
 (define (make-range a b)
-  (%make-range a b char? char<?))
+  (%make-range char-type a b))
 
 (define (range-copy a)
-  (%range-copy a char-copy))
+  (%range-copy char-type a))
 
 (define (range? a)
-  (%range? a char? char<?))
+  (%range? char-type a))
 
 (define (range-contains? range obj)
-  (%range-contains? range obj char<? char<=?))
+  (%range-contains? char-type range obj))
 
 (define (range-length range)
-  (%range-length range char-))
+  (%range-length char-type range))
 
 (define (range=? range-a range-b)
-  (%range=? range-a range-b char=?))
+  (%range=? char-type range-a range-b))
 
 (define (range<? range-a range-b)
-  (%range<? range-a range-b char<=?))
+  (%range<? char-type range-a range-b))
 
 (define (range<=? range-a range-b)
-  (%range<=? range-a range-b char<=?))
+  (%range<=? char-type range-a range-b))
 
 (define (range-contiguous? range-a range-b)
-  (%range-contiguous? range-a range-b char=?))
+  (%range-contiguous? char-type range-a range-b))
 
 (define (range-subset? range-a range-b)
-  (%range-subset? range-a range-b char<=?))
+  (%range-subset? char-type range-a range-b))
 
 (define (range-strict-subset? range-a range-b)
-  (%range-strict-subset? range-a range-b char<=?))
+  (%range-strict-subset? char-type range-a range-b))
 
 (define (range-start<? range-a range-b)
-  (%range-start<? range-a range-b char<?))
+  (%range-start<? char-type range-a range-b))
 
 (define (range-start<=? range-a range-b)
-  (%range-start<=? range-a range-b char<=?))
+  (%range-start<=? char-type range-a range-b))
 
 (define (range-overlapping? range-a range-b)
-  (%range-overlapping? range-a range-b char<? char<=?))
+  (%range-overlapping? char-type range-a range-b))
 
 (define (range-concatenate range-a range-b)
-  (%range-concatenate range-a range-b char<?))
+  (%range-concatenate char-type range-a range-b))
 
 (define (range-intersection range-a range-b)
-  (%range-intersection range-a range-b char<? char<=?))
+  (%range-intersection char-type range-a range-b))
 
 (define (range-union range-a range-b)
-  (%range-union range-a range-b char=? char<? char<=?))
+  (%range-union char-type range-a range-b))
 
 (define (range-difference range-a range-b)
-  (%range-difference range-a range-b char=? char<?))
+  (%range-difference char-type range-a range-b))
 
 (define (range-for-each proc range)
-  (%range-for-each proc range char<=? char-next))
+  (%range-for-each char-type proc range))
 
 (define (range-every proc range)
-  (%range-every proc range char<? char-next))
+  (%range-every char-type proc range))
 
 (define (range-any proc range)
-  (%range-any proc range char<? char-next))
+  (%range-any char-type proc range))
 
 (define (range-fold kons knil range)
-  (%range-fold kons knil range char<? char-next))
+  (%range-fold char-type kons knil range))
 
 (define (range->list range)
-  (%range->list range char<? char-next))
+  (%range->list char-type range))
 
 
 ;;;; domain wrappers for characters
 
 (define (make-domain . args)
-  (apply %make-domain char? char=? char<? char<=? char-next args))
+  (apply %make-domain char-type args))
 
 (define (domain-copy domain)
-  (%domain-copy domain char-copy))
+  (%domain-copy char-type domain))
 
 (define (domain-add-item domain obj)
-  (%domain-add-item domain obj char=? char<? char<=? char-next))
+  (%domain-add-item char-type domain obj))
 
 (define (domain-add-range domain new-range)
-  (%domain-add-range domain new-range char=? char<? char<=?))
+  (%domain-add-range char-type domain new-range))
 
 (define (domain? domain)
-  (%domain? domain char? char<? char<=? inclusive-lower-bound exclusive-upper-bound))
+  (%domain? char-type domain))
 
 (define (domain-size domain)
-  (%domain-size domain char-))
+  (%domain-size char-type domain))
 
 (define domain-empty? %domain-empty?)
 
 (define (domain-contains? domain obj)
-  (%domain-contains? domain obj char<? char<=?))
+  (%domain-contains? char-type domain obj))
 
 (define (domain=? domain-a domain-b)
-  (%domain=? domain-a domain-b char=?))
+  (%domain=? char-type domain-a domain-b))
 
 (define (domain<? domain-a domain-b)
-  (%domain<? domain-a domain-b char<=?))
+  (%domain<? char-type domain-a domain-b))
 
 (define (domain-subset? domain-a domain-b)
-  (%domain-subset? domain-a domain-b char<=?))
+  (%domain-subset? char-type domain-a domain-b))
 
 (define (domain-strict-subset? domain-a domain-b)
-  (%domain-strict-subset? domain-a domain-b char<=?))
+  (%domain-strict-subset? char-type domain-a domain-b))
 
 (define (domain-intersection domain-a domain-b)
-  (%domain-intersection domain-a domain-b char=? char<? char<=?))
+  (%domain-intersection char-type domain-a domain-b))
 
 (define (domain-union domain-a domain-b)
-  (%domain-union domain-a domain-b char=? char<? char<=?))
+  (%domain-union char-type domain-a domain-b))
 
 (define (domain-difference domain-a domain-b)
-  (%domain-difference domain-a domain-b char=? char<? char<=?))
+  (%domain-difference char-type domain-a domain-b))
 
 (define (domain-complement domain universe)
-  (%domain-complement domain universe char=? char<? char<=?))
+  (%domain-complement char-type domain universe))
 
 (define (domain-for-each proc domain)
-  (%domain-for-each proc domain char<=? char-next))
+  (%domain-for-each char-type proc domain))
 
 (define (domain-every proc domain)
-  (%domain-every proc domain char<? char-next))
+  (%domain-every char-type proc domain))
 
 (define (domain-any proc domain)
-  (%domain-any proc domain char<? char-next))
+  (%domain-any char-type proc domain))
 
 (define (domain-fold kons knil domain)
-  (%domain-fold kons knil domain char<? char-next))
+  (%domain-fold char-type kons knil domain))
 
 (define (domain->list domain)
-  (%domain->list domain char<? char-next))
+  (%domain->list char-type domain))
 
 (define (string->domain str)
   (apply make-domain (string->list str)))

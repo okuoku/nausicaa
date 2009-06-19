@@ -23,6 +23,7 @@ set -x
     --enable-ypsilon                            \
     --enable-binfmt                             \
     --enable-doc-ps                             \
+    --enable-time-tests                         \
     "$@"
 
 ### end of file

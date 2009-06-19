@@ -157,6 +157,11 @@ ifdef LIBPATH
 THE_LIBPATH		= $(LIBPATH):
 endif
 
+nausicaa_TIME_TESTS	= @nausicaa_TIME_TESTS@
+ifeq (yes,$(strip $(nausicaa_TIME_TESTS)))
+TIME_TESTS		= time -p
+endif
+
 ## ---------------------------------------------------------------------
 
 nau_test_SRCDIR		= $(srcdir)/tests
@@ -180,7 +185,7 @@ nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
 nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
 #nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
-nau_itest_RUN		= $(nau_itest_ENV) $(nau_itest_PROGRAM)
+nau_itest_RUN		= $(nau_itest_ENV) $(TIME_TESTS) $(nau_itest_PROGRAM)
 
 .PHONY: itests itest icheck
 
@@ -200,7 +205,7 @@ endif
 nau_ltest_ENV		= LARCENY_LIBPATH=$(nau_test_PATH):$(LARCENY_LIBPATH)
 nau_ltest_ENV		+= $(nau_test_ENV)
 nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
-nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_ltest_PROGRAM)
+nau_ltest_RUN		= $(nau_ltest_ENV) $(TIME_TESTS) $(nau_ltest_PROGRAM)
 
 .PHONY: ltests ltest lcheck
 
@@ -224,7 +229,7 @@ nau_mtest_ENV		= MOSH_LOADPATH=$(nau_test_PATH):$(MOSH_LOADPATH)
 endif
 nau_mtest_ENV		+= $(nau_test_ENV)
 nau_mtest_PROGRAM	= $(MOSH)
-nau_mtest_RUN		= $(nau_mtest_ENV) $(nau_mtest_PROGRAM)
+nau_mtest_RUN		= $(nau_mtest_ENV) $(TIME_TESTS) $(nau_mtest_PROGRAM)
 
 .PHONY: mtests mtest mcheck
 
@@ -244,7 +249,7 @@ endif
 nau_ytest_ENV		= YPSILON_SITELIB=$(nau_test_PATH):$(YPSILON_SITELIB)
 nau_ytest_ENV		+= $(nau_test_ENV)
 nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
-nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_ytest_PROGRAM)
+nau_ytest_RUN		= $(nau_ytest_ENV) $(TIME_TESTS) $(nau_ytest_PROGRAM)
 
 .PHONY: ytests ytest ycheck
 
