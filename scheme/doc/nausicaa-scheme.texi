@@ -21618,6 +21618,18 @@ character sets.
 @subsection Constructors
 
 
+The character sets are defined by the Scheme standard to be in the
+ranges @math{[0, #xD800)} and @math{(#xDFFF, #x10FFFF]}.
+
+@example
+(define char-set-lower-bound       (integer->char 0))
+(define char-set-inner-upper-bound (integer->char (- #xD800 1)))
+(define char-set-inner-lower-bound (integer->char (+ 1 #xDFFF)))
+(define char-set-upper-bound       (integer->char #x10FFFF))
+@end example
+
+
+
 @defun char-set . @var{args}
 Build and return a new char-set.
 
@@ -26503,6 +26515,15 @@ numbers it can be @func{max}, for characters we can use:
 (lambda (a b) (if (char<? a b) b a))
 @end example
 
+@item item-prev
+A unary function returning the previous value with respect to the
+argument.  For integers it can be @code{(lambda (x) (- x 1))}; for
+characters it can be:
+
+@example
+(lambda (ch) (integer->char (- (char->integer ch) 1)))
+@end example
+
 @item item-next
 A unary function returning the next value with respect to the argument.
 For integers it can be @code{(lambda (x) (+ 1 x))}; for characters it
@@ -26551,7 +26572,7 @@ built by @func{%make-type-descriptor}.
 @subsection Constructors
 
 
-@defun %make-type-descriptor @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-min} @var{item-max} @var{item-next} @var{item-minus} @var{item-copy}
+@defun %make-type-descriptor @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-min} @var{item-max} @var{item-prev} @var{item-next} @var{item-minus} @var{item-copy}
 Build and return a new type descriptor.
 @end defun
 

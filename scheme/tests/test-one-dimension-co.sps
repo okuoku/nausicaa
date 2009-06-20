@@ -33,7 +33,9 @@
 (display "*** testing one-dimension-co\n")
 
 (define type (%make-type-descriptor number? = < <= min max
-				    (lambda (x) (+ 1 x)) - (lambda (x) x)))
+				    (lambda (x) (- x 1))
+				    (lambda (x) (+ 1 x))
+				    - (lambda (x) x)))
 
 
 ;;;; range wrappers for integers
@@ -1301,7 +1303,7 @@
 	  ;;                        superset   equal
 	  (make-domain '(10 . 20) '(40 . 50) '(70 . 90))
 	  (make-domain            '(30 . 60) '(70 . 90)))
-    (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 60) '(50 . 60)))
+    (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 60)))
 
   (check (domain-difference
 	  ;;                        overlap    equal
@@ -1319,7 +1321,7 @@
 	  ;;                        equal         equal
 	  (make-domain '(10 . 20) '(30 . 40)    '(50 . 60))
 	  (make-domain            '(30 . 40) 45 '(50 . 60)))
-    (=> domain=?) (make-domain '(10 . 20)))
+    (=> domain=?) (make-domain '(10 . 20) '(45 . 46)))
 
   (check (domain-difference
 	  ;;                        equal             overlap

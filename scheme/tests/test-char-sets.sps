@@ -34,35 +34,14 @@
 (check-set-mode! 'report-failed)
 (display "*** testing char-sets\n")
 
-(define inclusive-lower-bound (integer->char 0))
-(define exclusive-upper-bound (integer->char #x10FFFF))
-(define inclusive-upper-bound (integer->char (- #x10FFFF 1)))
-(define exclusive-inner-bound (integer->char (- #xD800 1)))
-(define inclusive-inner-bound (integer->char (+ #xDFFF 1)))
-
-(define (char-next ch)
-  (integer->char (+ 1 (char->integer ch))))
+(define (domain=? actual-result expected-result)
+  (equal? (char-set-domain-ref actual-result) expected-result))
 
 (define (char-prev ch)
   (integer->char (- (char->integer ch) 1)))
 
-(define (domain=? actual-result expected-result)
-  (equal? (char-set-domain-ref actual-result) expected-result))
-
-
-(parameterise ((check-test-name	'integer)
-	       (debugging #t))
-
-  (check
-      (char? (integer->char 1114111))
-    => #t)
-
-  (check
-      (guard (exc ((condition? exc) #t))
-	(char? (integer->char 1114112)))
-    => #t)
-
-  )
+(define (char-next ch)
+  (integer->char (+ 1 (char->integer ch))))
 
 
 (parameterise ((check-test-name	'constructor))
@@ -576,23 +555,26 @@
     (let* ((ch		#\A)
 	   (chup	(char-next ch))
 	   (chdn	(char-prev ch)))
-      (char-set (cons inclusive-lower-bound chdn)
-		(cons chup inclusive-upper-bound))))
+      (char-set (cons char-set-lower-bound chdn)
+		(cons chup char-set-inner-upper-bound)
+		(cons char-set-inner-lower-bound char-set-upper-bound))))
 
   (check
       (char-set-complement (char-set '(#\A . #\D) '(#\M . #\Z)))
     (=> char-set=?)
-    (char-set (cons inclusive-lower-bound (char-prev #\A))
+    (char-set (cons char-set-lower-bound (char-prev #\A))
 	      (cons (char-next #\D) (char-prev #\M))
-	      (cons (char-next #\Z) (char-prev exclusive-upper-bound))))
+	      (cons (char-next #\Z) char-set-inner-lower-bound)
+	      (cons char-set-inner-lower-bound char-set-upper-bound)))
 
   (check
       (char-set-complement (char-set '(#\A . #\D) '(#\M . #\Z) '(#\4 . #\9)))
     (=> char-set=?)
-    (char-set (cons inclusive-lower-bound (char-prev #\4))
+    (char-set (cons char-set-lower-bound (char-prev #\4))
 	      (cons (char-next #\9) (char-prev #\A))
 	      (cons (char-next #\D) (char-prev #\M))
-	      (cons (char-next #\Z) (char-prev exclusive-upper-bound))))
+	      (cons (char-next #\Z) char-set-inner-upper-bound)
+	      (cons char-set-inner-lower-bound char-set-upper-bound)))
 
   )
 

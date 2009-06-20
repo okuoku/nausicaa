@@ -29,6 +29,10 @@
 (library (char-sets)
   (export
 
+    ;; bounds
+    char-set-lower-bound char-set-upper-bound
+    char-set-inner-upper-bound char-set-inner-lower-bound
+
     ;; constructors
     (rename (full-char-set char-set)) char-set-copy
     char-set-add char-set-add!
@@ -147,21 +151,17 @@
 
 (define char-type
   (%make-type-descriptor char? char=? char<? char<=?
-			 (lambda (a b) (if (char<? a b) a b))
-			 (lambda (a b) (if (char<? a b) b a))
-			 (lambda (ch) (integer->char (+ 1 (char->integer ch))))
-			 (lambda (a b) (+ 1 (- (char->integer b) (char->integer a))))
-			 (lambda (ch) ch)))
+			 (lambda (a b) (if (char<? a b) a b)) ; min
+			 (lambda (a b) (if (char<? a b) b a)) ; max
+			 (lambda (ch) (integer->char (- (char->integer ch) 1))) ; char-prev
+			 (lambda (ch) (integer->char (+ 1 (char->integer ch)))) ; char-next
+			 (lambda (a b) (+ 1 (- (char->integer b) (char->integer a)))) ; char-minus
+			 (lambda (ch) ch))) ; char-copy
 
-;;*FIXME* This  is a bug.  The  correct exclusive upper  bound should be
-;;1+#x10FFFF.   With this  setting  the last  character  in the  Unicode
-;;encoding (#x10FFFF) is excluded from the char sets.
-
-(define inclusive-lower-bound (integer->char 0))
-(define exclusive-upper-bound (integer->char #x10FFFF))
-(define inclusive-upper-bound (integer->char #x10FFFE))
-(define exclusive-inner-bound (integer->char (- #xD800 1)))
-(define inclusive-inner-bound (integer->char (+ #xDFFF 1)))
+(define char-set-lower-bound		(integer->char 0))
+(define char-set-inner-upper-bound	(integer->char (- #xD800 1)))
+(define char-set-inner-lower-bound	(integer->char (+ 1 #xDFFF)))
+(define char-set-upper-bound		(integer->char #x10FFFF))
 
 
 ;;;; domain wrappers for ranges
@@ -309,8 +309,8 @@
 (define char-set:empty (make-char-set '()))
 
 (define char-set:full
-  (make-char-set (list (cons inclusive-lower-bound exclusive-inner-bound)
-		       (cons inclusive-inner-bound exclusive-upper-bound))))
+  (full-char-set `(,char-set-lower-bound . ,char-set-inner-upper-bound)
+		 `(,char-set-inner-lower-bound . ,char-set-upper-bound)))
 
 ;; (define char-set:lower-case
 ;;   (let* ((a-z (ucs-range->char-set #x61 #x7B))

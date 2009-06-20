@@ -86,6 +86,7 @@
 	  (immutable item<=?)
 	  (immutable item-min)
 	  (immutable item-max)
+	  (immutable item-prev)
 	  (immutable item-next)
 	  (immutable item-minus)
 	  (immutable item-copy)))
@@ -359,8 +360,7 @@
 	(item-copy x)))))
 
 (define (%domain-add-item type domain obj)
-  (let ((item? (type-descriptor-item? type))
-	(item-next (type-descriptor-item-next type)))
+  (let ((item? (type-descriptor-item? type)))
     (if (item? obj)
 	(%domain-add-range type domain (%make-range type obj))
       (assertion-violation '%domain-add-item
@@ -455,12 +455,15 @@
 
 (define (%domain=? type domain-a domain-b)
   (or (eq? domain-a domain-b)
-      (cond
-       ((null? domain-a) #f)
-       ((null? domain-b) #f)
-       (else
-	(every (lambda (a b) (%range=? type a b))
-	  domain-a domain-b)))))
+      (let loop ((domain-a domain-a)
+		 (domain-b domain-b))
+	(cond ((null? domain-a)
+	       (null? domain-b))
+	      ((null? domain-b)
+	       (null? domain-a))
+	      (else
+	       (and (%range=? type (car domain-a) (car domain-b))
+		    (loop (cdr domain-a) (cdr domain-b))))))))
 
 (define (%domain<? type domain-a domain-b)
   (cond ((null? domain-a) #f)

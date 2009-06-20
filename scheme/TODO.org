@@ -2,6 +2,15 @@
 
   Fix the installation infrastructure (does not install directories).
 
+* one-dimension
+
+  Add the  range itself to the  arguments of ITEM-NEXT  and ITEM-PREV so
+  that they can avoid jumping out of the range.
+
+  Think a way to avoid ITEM-NEXT and ITEM-PREV to go out of bounds.
+
+  General review of the code.
+
 * char-set
 
   Implement the predefined sets.
