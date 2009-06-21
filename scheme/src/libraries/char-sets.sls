@@ -155,7 +155,7 @@
 			 (lambda (a b) (if (char<? a b) b a)) ; max
 			 (lambda (ch) (integer->char (- (char->integer ch) 1))) ; char-prev
 			 (lambda (ch) (integer->char (+ 1 (char->integer ch)))) ; char-next
-			 (lambda (a b) (+ 1 (- (char->integer b) (char->integer a)))) ; char-minus
+			 (lambda (a b) (+ 1 (- (char->integer a) (char->integer b)))) ; char-minus
 			 (lambda (ch) ch))) ; char-copy
 
 (define char-set-lower-bound		(integer->char 0))

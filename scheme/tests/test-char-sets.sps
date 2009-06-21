@@ -52,51 +52,51 @@
 
   (check
       (char-set #\A)
-    (=> domain=?) '((#\A . #\B)))
+    (=> domain=?) '((#\A . #\A)))
 
-  (check (char-set #\A #\A) (=> domain=?) '((#\A . #\B)))
-  (check (char-set #\A #\A #\A) (=> domain=?) '((#\A . #\B)))
-  (check (char-set #\A #\B #\A) (=> domain=?) '((#\A . #\C)))
-  (check (char-set #\A #\A #\B #\A) (=> domain=?) '((#\A . #\C)))
+  (check (char-set #\A #\A) (=> domain=?) '((#\A . #\A)))
+  (check (char-set #\A #\A #\A) (=> domain=?) '((#\A . #\A)))
+  (check (char-set #\A #\B #\A) (=> domain=?) '((#\A . #\B)))
+  (check (char-set #\A #\A #\B #\A) (=> domain=?) '((#\A . #\B)))
 
-  (check (char-set #\A #\B) (=> domain=?) '((#\A . #\C)))
-  (check (char-set #\B #\A) (=> domain=?) '((#\A . #\C)))
+  (check (char-set #\A #\B) (=> domain=?) '((#\A . #\B)))
+  (check (char-set #\B #\A) (=> domain=?) '((#\A . #\B)))
 
-  (check (char-set #\A #\B #\C) (=> domain=?) '((#\A . #\D)))
-  (check (char-set #\B #\A #\C) (=> domain=?) '((#\A . #\D)))
-  (check (char-set #\C #\A #\B) (=> domain=?) '((#\A . #\D)))
-  (check (char-set #\B #\C #\A) (=> domain=?) '((#\A . #\D)))
+  (check (char-set #\A #\B #\C) (=> domain=?) '((#\A . #\C)))
+  (check (char-set #\B #\A #\C) (=> domain=?) '((#\A . #\C)))
+  (check (char-set #\C #\A #\B) (=> domain=?) '((#\A . #\C)))
+  (check (char-set #\B #\C #\A) (=> domain=?) '((#\A . #\C)))
 
-  (check (char-set #\A #\C) (=> domain=?) '((#\A . #\B) (#\C . #\D)))
-  (check (char-set #\C #\A) (=> domain=?) '((#\A . #\B) (#\C . #\D)))
+  (check (char-set #\A #\C) (=> domain=?) '((#\A . #\A) (#\C . #\C)))
+  (check (char-set #\C #\A) (=> domain=?) '((#\A . #\A) (#\C . #\C)))
 
 ;;; --------------------------------------------------------------------
 
-  (check (char-set '(#\A . #\B)) (=> domain=?) '((#\A . #\C)))
+  (check (char-set '(#\A . #\B)) (=> domain=?) '((#\A . #\B)))
 
   ;; equal
-  (check (char-set '(#\B . #\C) '(#\B . #\C)) (=> domain=?) '((#\B . #\D)))
+  (check (char-set '(#\B . #\C) '(#\B . #\C)) (=> domain=?) '((#\B . #\C)))
 
   ;; overlapping
-  (check (char-set '(#\A . #\B) '(#\B . #\C)) (=> domain=?) '((#\A . #\D)))
-  (check (char-set '(#\B . #\C) '(#\A . #\B)) (=> domain=?) '((#\A . #\D)))
+  (check (char-set '(#\A . #\B) '(#\B . #\C)) (=> domain=?) '((#\A . #\C)))
+  (check (char-set '(#\B . #\C) '(#\A . #\B)) (=> domain=?) '((#\A . #\C)))
 
   ;; contiguous
-  (check (char-set '(#\A . #\B) '(#\C . #\D)) (=> domain=?) '((#\A . #\E)))
-  (check (char-set '(#\C . #\D) '(#\A . #\B)) (=> domain=?) '((#\A . #\E)))
+  (check (char-set '(#\A . #\B) '(#\C . #\D)) (=> domain=?) '((#\A . #\D)))
+  (check (char-set '(#\C . #\D) '(#\A . #\B)) (=> domain=?) '((#\A . #\D)))
 
   ;; included
-  (check (char-set '(#\A . #\D) '(#\B . #\C)) (=> domain=?) '((#\A . #\E)))
-  (check (char-set '(#\B . #\C) '(#\A . #\D)) (=> domain=?) '((#\A . #\E)))
+  (check (char-set '(#\A . #\D) '(#\B . #\C)) (=> domain=?) '((#\A . #\D)))
+  (check (char-set '(#\B . #\C) '(#\A . #\D)) (=> domain=?) '((#\A . #\D)))
 
   ;; distanced
-  (check (char-set '(#\A . #\B) '(#\D . #\E)) (=> domain=?) '((#\A . #\C) (#\D . #\F)))
-  (check (char-set '(#\D . #\E) '(#\A . #\B)) (=> domain=?) '((#\A . #\C) (#\D . #\F)))
+  (check (char-set '(#\A . #\B) '(#\D . #\E)) (=> domain=?) '((#\A . #\B) (#\D . #\E)))
+  (check (char-set '(#\D . #\E) '(#\A . #\B)) (=> domain=?) '((#\A . #\B) (#\D . #\E)))
 
-  (check (char-set #\A #\D '(#\B . #\C)) (=> domain=?) '((#\A . #\E)))
-  (check (char-set #\A '(#\B . #\C) #\D) (=> domain=?) '((#\A . #\E)))
-  (check (char-set '(#\B . #\C) #\A #\D) (=> domain=?) '((#\A . #\E)))
-  (check (char-set '(#\B . #\C) #\D #\A) (=> domain=?) '((#\A . #\E)))
+  (check (char-set #\A #\D '(#\B . #\C)) (=> domain=?) '((#\A . #\D)))
+  (check (char-set #\A '(#\B . #\C) #\D) (=> domain=?) '((#\A . #\D)))
+  (check (char-set '(#\B . #\C) #\A #\D) (=> domain=?) '((#\A . #\D)))
+  (check (char-set '(#\B . #\C) #\D #\A) (=> domain=?) '((#\A . #\D)))
 
   )
 
@@ -239,14 +239,14 @@
   (check (char-set<? (char-set)     (char-set #\B)) => #f)
   (check (char-set<? (char-set #\A) (char-set))     => #f)
 
-  (check 'this (char-set<? (char-set #\A) (char-set #\B)) => #t)
+  (check (char-set<? (char-set #\A) (char-set #\B)) => #t)
   (check (char-set<? (char-set #\A) (char-set #\A)) => #f)
   (check (char-set<? (char-set #\B) (char-set #\A)) => #f)
 
   )
 
 
-(parameterise ((check-test-name	'set-operations))
+(parameterise ((check-test-name	'intersection))
 
   (check
       ;; empty
@@ -345,7 +345,10 @@
 			     (char-set '(#\C . #\E) #\F))
     (=> char-set=?) (char-set '(#\C . #\D) #\F))
 
-;;; --------------------------------------------------------------------
+  )
+
+
+(parameterise ((check-test-name	'union))
 
   (check
       ;; empty
@@ -443,7 +446,10 @@
 		      (char-set '(#\C . #\E) #\F))
     (=> char-set=?) (char-set '(#\A . #\E) #\F '(#\H . #\N) '(#\L . #\P)))
 
-;;; --------------------------------------------------------------------
+  )
+
+
+(parameterise ((check-test-name	'difference))
 
   (check
       ;; empty
@@ -501,7 +507,7 @@
     (=> char-set=?) (char-set '(#\A . #\B)
 			      '(#\G . #\H)))
 
-  (check
+  (check 'this
       (char-set-difference (char-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
 			   (char-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))
     (=> char-set=?) (char-set #\A #\B #\E #\F #\H #\M #\N #\Q))
@@ -542,7 +548,10 @@
 			   (char-set '(#\C . #\E) #\F))
     (=> char-set=?) (char-set '(#\A . #\B) #\E '(#\H . #\N) '(#\L . #\P)))
 
-;;; --------------------------------------------------------------------
+  )
+
+
+(parameterise ((check-test-name	'complement))
 
   (check
       (char-set-complement (char-set))
@@ -564,7 +573,7 @@
     (=> char-set=?)
     (char-set (cons char-set-lower-bound (char-prev #\A))
 	      (cons (char-next #\D) (char-prev #\M))
-	      (cons (char-next #\Z) char-set-inner-lower-bound)
+	      (cons (char-next #\Z) char-set-inner-upper-bound)
 	      (cons char-set-inner-lower-bound char-set-upper-bound)))
 
   (check

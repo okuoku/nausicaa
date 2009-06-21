@@ -33,10 +33,10 @@
 (display "*** testing one-dimension-cc\n")
 
 (define type (%make-type-descriptor integer? = < <= min max
-				    (lambda (x) (- x 1))
-				    (lambda (x) (+ 1 x))
-				    (lambda (a b) (+ 1 (- a b)))
-				    (lambda (x) x)))
+				    (lambda (x) (- x 1)) ; prev
+				    (lambda (x) (+ 1 x)) ; next
+				    (lambda (a b) (+ 1 (- a b))) ; minux
+				    (lambda (x) x))) ; copy
 
 
 ;;;; range wrappers for integers
