@@ -32,10 +32,21 @@
 (check-set-mode! 'report-failed)
 (display "*** testing one-dimension-co\n")
 
-(define type (%make-type-descriptor number? = < <= min max
-				    (lambda (x) (- x 1))
-				    (lambda (x) (+ 1 x))
-				    - (lambda (x) x)))
+(define type (%make-type-descriptor integer? = < <= min max
+				    (lambda (x range) ; item-prev
+				      (let ((x (- x 1)))
+					(if range
+					    (and (<= (car range) x)
+						 x)
+					  x)))
+				    (lambda (x range) ; item-next
+				      (let ((x (+ 1 x)))
+					(if range
+					    (and (< x (cdr range))
+						 x)
+					  x)))
+				    -
+				    (lambda (x) x))) ; item-copy
 
 
 ;;;; range wrappers for integers
@@ -373,8 +384,8 @@
 			   (let-values (((head tail) (range-difference ?a ?b))) (list head tail))
 			 (=> =) (list ?expected-head ?expected-tail))))))
       (F (R 40 60) (R 40 60)	#f #f)	      ; equal
-      (F (R 40 60) (R 50 60)	#f (R 40 50)) ; same past, start <
-      (F (R 50 60) (R 40 60)	#f (R 40 50)) ; same past, start >
+      (F (R 40 60) (R 50 60)	(R 40 50) #f) ; same past, start <
+      (F (R 50 60) (R 40 60)	(R 40 50) #f) ; same past, start >
       (F (R 40 50) (R 40 60)	#f (R 50 60)) ; same start, past <
       (F (R 40 60) (R 40 50)	#f (R 50 60)) ; same start, past >
       (F (R 10 20) (R 30 40)	(R 10 20) (R 30 40)) ; disjoint <

@@ -149,19 +149,44 @@
 
 
 
+(define inclusive-lower-bound		0)
+(define exclusive-inner-upper-bound	#xD800)
+(define exclusive-inner-lower-bound	#xDFFF)
+(define inclusive-upper-bound		#x10FFFF)
+
+(define char-set-lower-bound		(integer->char inclusive-lower-bound))
+(define char-set-inner-upper-bound	(integer->char (- exclusive-inner-upper-bound 1)))
+(define char-set-inner-lower-bound	(integer->char (+ 1 exclusive-inner-lower-bound)))
+(define char-set-upper-bound		(integer->char inclusive-upper-bound))
+
+(define (number-in-range? x)
+  (or (and (<= inclusive-lower-bound x)
+	   (<  x exclusive-inner-upper-bound))
+      (and (<  exclusive-inner-lower-bound x)
+	   (<= x inclusive-upper-bound))))
+
 (define char-type
   (%make-type-descriptor char? char=? char<? char<=?
 			 (lambda (a b) (if (char<? a b) a b)) ; min
 			 (lambda (a b) (if (char<? a b) b a)) ; max
-			 (lambda (ch) (integer->char (- (char->integer ch) 1))) ; char-prev
-			 (lambda (ch) (integer->char (+ 1 (char->integer ch)))) ; char-next
+			 (lambda (ch range) ; item-prev
+			   (let* ((x  (- (char->integer ch) 1)))
+			     (and (number-in-range? x)
+				  (let ((ch (integer->char x)))
+				    (if range
+					(and (<= (char->integer (car range)) x)
+					     ch)
+				      ch)))))
+			 (lambda (ch range) ; item-next
+			   (let* ((x  (+ 1 (char->integer ch))))
+			     (and (number-in-range? x)
+				  (let ((ch (integer->char x)))
+				    (if range
+					(and (<= x (char->integer (cdr range)))
+					     ch)
+				      ch)))))
 			 (lambda (a b) (+ 1 (- (char->integer a) (char->integer b)))) ; char-minus
 			 (lambda (ch) ch))) ; char-copy
-
-(define char-set-lower-bound		(integer->char 0))
-(define char-set-inner-upper-bound	(integer->char (- #xD800 1)))
-(define char-set-inner-lower-bound	(integer->char (+ 1 #xDFFF)))
-(define char-set-upper-bound		(integer->char #x10FFFF))
 
 
 ;;;; domain wrappers for ranges

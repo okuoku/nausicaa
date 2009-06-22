@@ -162,7 +162,9 @@ ifeq (yes,$(strip $(nausicaa_TIME_TESTS)))
 TIME_TESTS		= time -p
 endif
 
-## ---------------------------------------------------------------------
+nau_test_SEPARATOR	= ;echo;echo;
+
+## --------------------------------------------------------------------
 
 nau_test_SRCDIR		= $(srcdir)/tests
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
@@ -192,9 +194,9 @@ nau_itest_RUN		= $(nau_itest_ENV) $(TIME_TESTS) $(nau_itest_PROGRAM)
 itests itest icheck:
 ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_itest_RUN) $(f);)
+	$(foreach f,$(nau_test_FILES),$(nau_itest_RUN) $(f) $(nau_test_SEPARATOR))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_itest_RUN) $(f);)
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_itest_RUN) $(f) $(nau_test_SEPARATOR))
 endif
 
 tests test check: itest
@@ -212,9 +214,9 @@ nau_ltest_RUN		= $(nau_ltest_ENV) $(TIME_TESTS) $(nau_ltest_PROGRAM)
 ltests ltest lcheck:
 ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_ltest_RUN) $(f);)
+	$(foreach f,$(nau_test_FILES),$(nau_ltest_RUN) $(f) $(nau_test_SEPARATOR))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ltest_RUN) $(f);)
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ltest_RUN) $(f) $(nau_test_SEPARATOR))
 endif
 
 tests test check: ltest
@@ -236,9 +238,9 @@ nau_mtest_RUN		= $(nau_mtest_ENV) $(TIME_TESTS) $(nau_mtest_PROGRAM)
 mtests mtest mcheck:
 ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_mtest_RUN) $(f);)
+	$(foreach f,$(nau_test_FILES),$(nau_mtest_RUN) $(f) $(nau_test_SEPARATOR))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_mtest_RUN) $(f);)
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_mtest_RUN) $(f) $(nau_test_SEPARATOR))
 endif
 
 tests test check: mtest
@@ -256,9 +258,9 @@ nau_ytest_RUN		= $(nau_ytest_ENV) $(TIME_TESTS) $(nau_ytest_PROGRAM)
 ytests ytest ycheck:
 ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_ytest_RUN) $(f);)
+	$(foreach f,$(nau_test_FILES),$(nau_ytest_RUN) $(f) $(nau_test_SEPARATOR))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ytest_RUN) $(f);)
+	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ytest_RUN) $(f) $(nau_test_SEPARATOR))
 endif
 
 tests test check: ytest

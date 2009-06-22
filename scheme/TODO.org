@@ -4,12 +4,7 @@
 
 * one-dimension
 
-  Add the  range itself to the  arguments of ITEM-NEXT  and ITEM-PREV so
-  that they can avoid jumping out of the range.
-
-  Think a way to avoid ITEM-NEXT and ITEM-PREV to go out of bounds.
-
-  General review of the code.
+  General review of one-dimension-cc.
 
 * char-set
 
@@ -47,4 +42,18 @@
 * vectors
 
   Finished?
+
+
+
+
+
+
+* interp
+
+  Write an interpret library that mimics the Tcl interp library.
+
+  Use EVAL  to evaluate code  and ENVIRONMENT as  last form to  grab the
+  environment for the next evaluation.
+
+  Use continuations to implement aliases between different interpreters.
 

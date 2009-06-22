@@ -26454,6 +26454,9 @@ The range and domain functions accept the following arguments:
 @item obj
 Any object.
 
+@item item
+An object that satisfies the @var{item?} predicate of the selected type.
+
 @item range
 A valid range according to @func{%range?}.
 
@@ -26516,21 +26519,94 @@ numbers it can be @func{max}, for characters we can use:
 @end example
 
 @item item-prev
-A unary function returning the previous value with respect to the
-argument.  For integers it can be @code{(lambda (x) (- x 1))}; for
-characters it can be:
+A binary function accepting an item and a range, or false, as arguments.
+The second argument can be @false{}, meaning that no range is specified,
+or a pair whose car is the left--limit and whose cdr is the
+right--limit; when the range is true, it is guaranteed that the item is
+inside the range.
+
+This function must return the value previous to item inside the range;
+if it is not possible to compute the previous value, because the lower
+bound has been reached: The function must return @false{}.
+
+For integers it can be:
 
 @example
-(lambda (ch) (integer->char (- (char->integer ch) 1)))
+(lambda (x range)       ; with both (one-dimension-cc)
+  (let ((x (- x 1)))    ; and (one-dimension-co)
+    (if range
+        (and (<= (car range) x)
+             x)
+      x)))
+@end example
+
+@noindent
+for characters it can be:
+
+@example
+(lambda (ch range)      ; with (one-dimension-cc)
+  (let* ((x  (- (char->integer ch) 1)))
+    (and (number-in-range? x)
+         (let ((ch (integer->char x)))
+           (if range
+               (and (<= x (char->integer (car range)))
+                    ch)
+             ch)))))
+
+(define (number-in-range? x)
+  (or (and (<= 0 x)
+           (<  x #xD800))
+      (and (<  #xDFFF x)
+           (<= x #x10FFFF))))
 @end example
 
 @item item-next
-A unary function returning the next value with respect to the argument.
-For integers it can be @code{(lambda (x) (+ 1 x))}; for characters it
-can be:
+A binary function accepting an item and a range, or false, as arguments.
+The second argument can be @false{}, meaning that no range is specified,
+or a pair whose car is the left--limit and whose cdr is the
+right--limit; when the range is true, it is guaranteed that the item is
+inside the range.
+
+This function must return the value next to item inside the range; if it
+is not possible to compute the next value, because the upper bound has
+been reached: The function must return @false{}.
+
+For integers it can be:
 
 @example
-(lambda (ch) (integer->char (+ 1 (char->integer ch))))
+(lambda (x range)       ; with (one-dimension-cc)
+  (let ((x (+ 1 x)))
+    (if range
+        (and (<= x (cdr range))
+             x)
+      x)))
+
+(lambda (x range)       ; with (one-dimension-co)
+  (let ((x (+ 1 x)))
+    (if range
+        (and (< x (cdr range))
+             x)
+      x)))
+@end example
+
+@noindent
+for characters it can be:
+
+@example
+(lambda (ch range)      ; with (one-dimension-cc)
+  (let* ((x  (+ 1 (char->integer c))))
+    (and (number-in-range? x)
+         (let ((ch (integer->char x)))
+           (if range
+               (and (<= x (char->integer (cdr range)))
+                    ch)
+             ch)))))
+
+(define (number-in-range? x)
+  (or (and (<= 0 x)
+           (<  x #xD800))
+      (and (<  #xDFFF x)
+           (<= x #x10FFFF))))
 @end example
 
 @item item-minus
@@ -26590,13 +26666,10 @@ Return a clone of @var{range}.
 @end defun
 
 
-@defun %make-domain @var{type} @var{arg} ...
-Build and return a new domain.
-
-The list of @var{arg} may be the empty list or a mixed list of item and
-pairs of items.  Pairs of items are interpreted as limits--inclusive
-ranges of items (this is in contrast with the half--open representation
-of ranges ranges).
+@defun %make-domain @var{type} @var{item/range} ...
+Build and return a new domain.  The list of @var{item/range} may be the
+empty list or a mixed list of items and ranges.  See
+@func{%domain-add-item} and @func{%domain-add-range} for details.
 @end defun
 
 
@@ -26607,13 +26680,24 @@ Return a newly allocated domain holding a copy of @var{domain}.
 
 @defun %domain-add-item @var{type} @var{domain} @var{obj}
 Add the single value @var{obj} to @var{domain}, return the new domain.
-The returned domain may share some structure with @var{domain}.
+The returned domain may share some structure with @var{domain}.  If
+@var{obj} does not satisfy the @var{item?} function of @var{type}: An
+assertion violation is raised.
+
+@var{obj} is interpreted as lower limit of a range and the
+@var{item-next} function of @var{type} is used to generate the
+corresponding upper limit.  If generating the next item fails: An
+assertion violation is raised.
 @end defun
 
 
 @defun %domain-add-range @var{type} @var{domain} @var{range}
 Add @var{range} to @var{domain}, return the new domain.  The returned
 domain may share some structure with @var{domain}.
+
+@var{range} is a pair of items; it is interpreted as double--closed
+range by @library{one-dimension-cc} and as half--open range by
+@library{one-dimensionc-co}.
 @end defun
 
 @c page

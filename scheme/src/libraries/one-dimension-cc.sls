@@ -116,50 +116,42 @@
   (and (pair? obj)
        (let ((start   (car obj))
 	     (last    (cdr obj))
-	     (item?   (type-descriptor-item? type))
-	     (item<=? (type-descriptor-item<=? type)))
+	     (item?   (type-descriptor-item? type)))
 	 (and (item? start)
 	      (item? last)
-	      (item<=? start last)))))
+	      ((type-descriptor-item<=? type) start last)))))
 
 (define (%range-contains? type range obj)
   (let ((item<=? (type-descriptor-item<=? type)))
     (and (item<=? (car range) obj)
-	 (item<=? obj (cdr range)))))
+	 (item<=? obj         (cdr range)))))
 
 (define (%range-length type range)
-  (let ((item-minus (type-descriptor-item-minus type)))
-    (item-minus (cdr range) (car range))))
+  ((type-descriptor-item-minus type) (cdr range) (car range)))
 
 (define (%range=? type range-a range-b)
-  (let ((item=? (type-descriptor-item=? type)))
-    (or (eq? range-a range-b)
+  (or (eq? range-a range-b)
+      (let ((item=? (type-descriptor-item=? type)))
 	(and (item=? (car range-a) (car range-b))
 	     (item=? (cdr range-a) (cdr range-b))))))
 
 (define (%range<? type range-a range-b)
-  (let ((item<? (type-descriptor-item<? type)))
-    (item<? (cdr range-a) (car range-b))))
+  ((type-descriptor-item<? type) (cdr range-a) (car range-b)))
 
 (define (%range<=? type range-a range-b)
-  (let ((item<=? (type-descriptor-item<=? type)))
-    (item<=? (cdr range-a) (cdr range-b))))
+  ((type-descriptor-item<=? type) (cdr range-a) (cdr range-b)))
 
 (define (%range-start<? type range-a range-b)
-  (let ((item<? (type-descriptor-item<? type)))
-    (item<? (car range-a) (car range-b))))
+  ((type-descriptor-item<? type) (car range-a) (car range-b)))
 
 (define (%range-start<=? type range-a range-b)
-  (let ((item<=? (type-descriptor-item<=? type)))
-    (item<=? (car range-a) (car range-b))))
+  ((type-descriptor-item<=? type) (car range-a) (car range-b)))
 
 (define (%range-last<? type range-a range-b)
-  (let ((item<? (type-descriptor-item<? type)))
-    (item<? (cdr range-a) (cdr range-b))))
+  ((type-descriptor-item<? type) (cdr range-a) (cdr range-b)))
 
 (define (%range-last<=? type range-a range-b)
-  (let ((item<=? (type-descriptor-item<=? type)))
-    (item<=? (cdr range-a) (cdr range-b))))
+  ((type-descriptor-item<=? type) (cdr range-a) (cdr range-b)))
 
 (define (%range-contiguous? type range-a range-b)
   (let ((item-minus (type-descriptor-item-minus type)))
@@ -170,13 +162,11 @@
   (let ((item<=? (type-descriptor-item<=? type))
 	(start-a (car range-a)) (last-a (cdr range-a))
 	(start-b (car range-b)) (last-b (cdr range-b)))
-    (or (and (item<=? start-a start-b) (item<=? start-b last-a))
-	(and (item<=? start-b start-a) (item<=? start-a last-b)))))
+    (or (and (item<=? start-a start-b last-a))
+	(and (item<=? start-b start-a last-b)))))
 
 (define (%range-subset? type range-a range-b)
-  (let ((item<=? (type-descriptor-item<=? type)))
-    (and (item<=? (car range-a) (car range-b))
-	 (item<=? (cdr range-b) (cdr range-a)))))
+  ((type-descriptor-item<=? type) (car range-a) (car range-b) (cdr range-b) (cdr range-a)))
 
 (define (%range-strict-subset? type range-a range-b)
   (let ((item<? (type-descriptor-item<? type))
@@ -187,31 +177,27 @@
 	     (item<=? (cdr range-b) (cdr range-a))))))
 
 (define (%range-concatenate type range-a range-b)
-  (let ((item<? (type-descriptor-item<? type))
-	(min (type-descriptor-item-min type))
-	(max (type-descriptor-item-max type)))
-    (cons (min (car range-a) (car range-b))
-	  (max (cdr range-a) (cdr range-b)))))
+  (cons ((type-descriptor-item-min type) (car range-a) (car range-b))
+	((type-descriptor-item-max type) (cdr range-a) (cdr range-b))))
 
 (define (%range-intersection type range-a range-b)
   (let ((start-a (car range-a)) (last-a (cdr range-a))
 	(start-b (car range-b)) (last-b (cdr range-b))
-	(item<=? (type-descriptor-item<=? type))
-	(min (type-descriptor-item-min type))
-	(max (type-descriptor-item-max type)))
+	(item<=? (type-descriptor-item<=? type)))
     (and (or (item<=? start-a start-b last-a)
 	     (item<=? start-b start-a last-b))
-	 (cons (max start-a start-b)
-	       (min last-a last-b)))))
+	 (cons ((type-descriptor-item-max type) start-a start-b)
+	       ((type-descriptor-item-min type) last-a  last-b)))))
 
 (define (%range-union type range-a range-b)
+  ;;For this function  is it undocumented mandatory that:  If one of the
+  ;;returned values if  #f, it must be the first  one.  This property is
+  ;;used in the domain functions below.
   (let ((start-a (car range-a)) (last-a (cdr range-a))
 	(start-b (car range-b)) (last-b (cdr range-b))
 	(item=?  (type-descriptor-item=?   type))
 	(item<?  (type-descriptor-item<?   type))
 	(item<=? (type-descriptor-item<=?  type))
-	(min     (type-descriptor-item-min type))
-	(max     (type-descriptor-item-max type))
 	(item-minus (type-descriptor-item-minus type)))
     (cond
      ((or (item=? last-a start-b)
@@ -222,8 +208,8 @@
       (values #f (cons start-b last-a)))
      ((or (item<=? start-a start-b last-a)
 	  (item<=? start-b start-a last-b))
-      (values #f (cons (min start-a start-b)
-		       (max last-a last-b))))
+      (values #f (cons ((type-descriptor-item-min type) start-a start-b)
+		       ((type-descriptor-item-max type) last-a last-b))))
      ((item<? start-a start-b)
       (values range-a range-b))
      (else
@@ -243,11 +229,11 @@
       (cond ((item=? last-a last-b)
 	     (values #f #f))
 	    ((item<? last-a last-b)
-	     (values #f (let ((last-a/next (item-next last-a)))
+	     (values #f (let ((last-a/next (item-next last-a range-b)))
 			  (and (item<=? last-a/next last-b)
 			       (cons last-a/next last-b)))))
 	    ((item<? last-b last-a)
-	     (values #f (let ((last-b/next (item-next last-b)))
+	     (values #f (let ((last-b/next (item-next last-b range-a)))
 			  (and (item<=? last-b/next last-a)
 			       (cons last-b/next last-a)))))))
      ;;(answer-to-equal-limit last-a last-b "start"))
@@ -256,11 +242,11 @@
       (cond ((item=? start-a start-b)
 	     (values #f #f))
 	    ((item<? start-a start-b)
-	     (values #f (let ((start-b/prev (item-prev start-b)))
+	     (values #f (let ((start-b/prev (item-prev start-b range-a)))
 			  (and (item<=? start-a start-b/prev)
 			       (cons start-a start-b/prev)))))
 	    ((item<? start-b start-a)
-	     (values #f (let ((start-a/prev (item-prev start-a)))
+	     (values #f (let ((start-a/prev (item-prev start-a range-b)))
 			  (and (item<=? start-b start-a/prev)
 			       (cons start-b start-a/prev)))))))
       ;;(answer-to-equal-limit start-a start-b "last"))
@@ -280,27 +266,27 @@
      ;;Here we know that START-A != START-B and LAST-A != LAST-B.
 
      ((item<? start-a start-b) ; overlapping, a < b
-      (values (let ((start-b/prev (item-prev start-b)))
+      (values (let ((start-b/prev (item-prev start-b range-a)))
 		(and (item<=? start-a start-b/prev)
 		     (cons start-a start-b/prev)))
 	      (if (item<=? last-a last-b)
-		  (let ((last-a/next (item-next last-a)))
+		  (let ((last-a/next (item-next last-a range-b)))
 		    (and (item<=? last-a/next last-b)
 			 (cons last-a/next last-b)))
-		(let ((last-b/next (item-next last-b)))
+		(let ((last-b/next (item-next last-b range-a)))
 		  (and (item<=? last-b/next last-a)
 		       (cons last-b/next last-a))))))
 
      (else	; overlapping, a > b
       (assert (item<? start-b start-a))
-      (values (let ((start-a/prev (item-prev start-a)))
+      (values (let ((start-a/prev (item-prev start-a range-b)))
 		(and (item<=? start-b start-a/prev)
 		     (cons start-b start-a/prev)))
 	      (if (item<? last-a last-b)
-		  (let ((last-a/next (item-next last-a)))
+		  (let ((last-a/next (item-next last-a range-b)))
 		    (and (item<=? last-a/next last-b)
 			 (cons last-a/next last-b)))
-		(let ((last-b/next (item-next last-b)))
+		(let ((last-b/next (item-next last-b range-a)))
 		  (and (item<=? last-b/next last-a)
 		       (cons last-b/next last-a)))))))))
 
@@ -321,80 +307,42 @@
 	  (item-next (type-descriptor-item-next type)))
       (values
        (and (item<? start-a start-b)
-	    (let ((start-b/prev (item-prev start-b)))
+	    (let ((start-b/prev (item-prev start-b range-a)))
 	      (and (item<? start-a start-b/prev)
 		   (cons start-a start-b/prev))))
        (and (item<? last-b last-a)
-	    (let ((last-b/next (item-next last-b)))
+	    (let ((last-b/next (item-next last-b range-a)))
 	      (and (item<? last-b/next last-a)
 		   (cons last-b/next last-a)))))))))
 
 (define (%range-for-each type proc range)
-  (let ((last  (cdr range))
-	(item=?    (type-descriptor-item=? type))
-	(item<?    (type-descriptor-item<? type))
-	(item-next (type-descriptor-item-next type)))
-    ;;We do not  want to compute the item after LAST,  because it may be
-    ;;out of bounds for the type.
-    ;;
-    ;;Notice that if ITEM-NEXT jumps over LAST the loop stops correctly.
-    (let loop ((i (car range)))
-      (cond ((item<? i last)
-	     (proc i)
-	     (loop (item-next i)))
-	    ((item=? i last)
-	     (proc i))))))
+  (let loop ((next (type-descriptor-item-next type))
+	     (i    (car range)))
+    (and i (proc i)
+	 (loop next (next i range)))))
 
 (define (%range-every type proc range)
-  (let ((last (cdr range))
-	(item=?    (type-descriptor-item=? type))
-	(item<?    (type-descriptor-item<? type))
-	(item-next (type-descriptor-item-next type)))
-    ;;We do not  want to compute the item after LAST,  because it may be
-    ;;out of bounds for the type.
-    ;;
-    ;;Notice that if ITEM-NEXT jumps over LAST the loop stops correctly.
-    (let loop ((i (car range)))
-      (cond ((item<? i last)
-	     (and (proc i)
-		  (loop (item-next i))))
-	    ((item=? i last)
-	     (proc i))
-	    (else #t)))))
+  (let loop ((next   (type-descriptor-item-next type))
+	     (i      (car range)))
+    (if i
+	(and (proc i)
+	     (loop next (next i range)))
+      #t)))
 
 (define (%range-any type proc range)
-  (let ((last (cdr range))
-	(item=? (type-descriptor-item=? type))
-	(item<? (type-descriptor-item<? type))
-	(item-next (type-descriptor-item-next type)))
-    ;;We do not  want to compute the item after LAST,  because it may be
-    ;;out of bounds for the type.
-    ;;
-    ;;Notice that if ITEM-NEXT jumps over LAST the loop stops correctly.
-    (let loop ((i (car range)))
-      (cond ((item<? i last)
-	     (or (proc i)
-		 (loop (item-next i))))
-	    ((item=? i last)
-	     (proc i))
-	    (else #f)))))
+  (let loop ((next (type-descriptor-item-next type))
+	     (i    (car range)))
+    (and i
+	 (or (proc i)
+	     (loop next (next i range))))))
 
 (define (%range-fold type kons knil range)
-  (let ((last (cdr range))
-	(item=?    (type-descriptor-item=? type))
-	(item<?    (type-descriptor-item<? type))
-	(item-next (type-descriptor-item-next type)))
-    ;;We do not  want to compute the item after LAST,  because it may be
-    ;;out of bounds for the type.
-    ;;
-    ;;Notice that if ITEM-NEXT jumps over LAST the loop stops correctly.
-    (let loop ((i (car range))
-	       (knil knil))
-      (cond ((item<? i last)
-	     (loop (item-next i) (kons i knil)))
-	    ((item=? i last)
-	     (kons i knil))
-	    (else knil)))))
+  (let loop ((next (type-descriptor-item-next type))
+	     (i    (car range))
+	     (knil knil))
+    (if i
+	(loop next (next i range) (kons i knil))
+      knil)))
 
 (define (%range->list type range)
   (%range-fold type cons '() range))
@@ -403,37 +351,33 @@
 ;;;; domains
 
 (define (%make-domain type . args)
-  (let ((item?     (type-descriptor-item? type))
-	(item<=?   (type-descriptor-item<=? type)))
-    (let loop ((args args)
-	       (domain '()))
-      (if (null? args)
-	  domain
-	(let ((thing (car args)))
-	  (cond
-	   ((item? thing)
-	    (loop (cdr args) (%domain-add-item  type domain thing)))
-	   ((%range? type thing)
-	    (loop (cdr args) (%domain-add-range type domain thing)))
-	   (else
-	    (assertion-violation '%make-domain
-	      "invalid element for domain" thing))))))))
+  (let loop ((args args)
+	     (domain '()))
+    (if (null? args)
+	domain
+      (let ((thing (car args)))
+	(cond
+	 (((type-descriptor-item? type) thing)
+	  (loop (cdr args) (%domain-add-item  type domain thing)))
+	 ((%range? type thing)
+	  (loop (cdr args) (%domain-add-range type domain thing)))
+	 (else
+	  (assertion-violation '%make-domain
+	    "invalid element for domain" thing)))))))
 
 (define (%domain-copy type domain)
-  (let ((item-copy (type-descriptor-item-copy type)))
-    (let loop ((x domain))
-      (if (pair? x)
-	  (cons (loop (car x))
-		(loop (cdr x)))
-	(item-copy x)))))
+  (let loop ((copy (type-descriptor-item-copy type))
+	     (x    domain))
+    (if (pair? x)
+	(cons (loop (car x))
+	      (loop (cdr x)))
+      (copy x))))
 
 (define (%domain-add-item type domain obj)
-  (let ((item? (type-descriptor-item? type))
-	(item-next (type-descriptor-item-next type)))
-    (if (item? obj)
-	(%domain-add-range type domain (%make-range type obj))
-      (assertion-violation '%domain-add-item
-	"expected character as new item" obj))))
+  (if ((type-descriptor-item? type) obj)
+      (%domain-add-range type domain (%make-range type obj))
+    (assertion-violation '%domain-add-item
+      "expected character as new item" obj)))
 
 (define (%domain-add-range type domain new-range)
   (let loop ((domain domain)
@@ -536,10 +480,9 @@
 		    (loop (cdr domain-a) (cdr domain-b))))))))
 
 (define (%domain<? type domain-a domain-b)
-  (cond ((null? domain-a) #f)
-	((null? domain-b) #f)
-	(else
-	 (%range<? type (last domain-a) (car domain-b)))))
+  (and (not (null? domain-a))
+       (not (null? domain-b))
+       (%range<? type (last domain-a) (car domain-b))))
 
 ;;; --------------------------------------------------------------------
 
@@ -772,35 +715,32 @@
 (define (%domain-subset? type domain-a domain-b)
   (let look-for-range-b-in-domain-a ((domain-a domain-a)
 				     (domain-b domain-b))
-    (cond
-     ((%domain-empty? domain-b) #t)
-     ((%domain-empty? domain-a) #f)
-     (else
-      (let ((range-a (car domain-a))
-	    (range-b (car domain-b)))
-	(if (%range-subset? type range-a range-b)
-	    (look-for-range-b-in-domain-a domain-a (cdr domain-b))
-	  (look-for-range-b-in-domain-a (cdr domain-a) domain-b)))))))
+    (or (%domain-empty? domain-b)
+	(and (not (%domain-empty? domain-a))
+	     (let ((range-a (car domain-a))
+		   (range-b (car domain-b)))
+	       (if (%range-subset? type range-a range-b)
+		   (look-for-range-b-in-domain-a domain-a (cdr domain-b))
+		 (look-for-range-b-in-domain-a (cdr domain-a) domain-b)))))))
 
 (define (%domain-strict-subset? type domain-a domain-b)
   (let look-for-range-b-in-domain-a ((subset? #f)
 				     (domain-a domain-a)
 				     (domain-b domain-b))
-    (cond
-     ((%domain-empty? domain-b) subset?)
-     ((%domain-empty? domain-a) #f)
-     (else
-      (let ((range-a (car domain-a))
-	    (range-b (car domain-b)))
-	(cond ((%range<? type range-a range-b)
-	       (look-for-range-b-in-domain-a #t (cdr domain-a) domain-b))
-	      ((%range-strict-subset? type range-a range-b)
-	       (look-for-range-b-in-domain-a #t domain-a (cdr domain-b)))
-	      ((%range=? type range-a range-b)
-	       (look-for-range-b-in-domain-a subset? (cdr domain-a) (cdr domain-b)))
-	      ((%range-subset? type range-a range-b)
-	       (look-for-range-b-in-domain-a subset? domain-a (cdr domain-b)))
-	      (else #f)))))))
+    (if (%domain-empty? domain-b)
+	subset?
+      (and (not (%domain-empty? domain-a))
+	   (let ((range-a (car domain-a))
+		 (range-b (car domain-b)))
+	     (cond ((%range<? type range-a range-b)
+		    (look-for-range-b-in-domain-a #t (cdr domain-a) domain-b))
+		   ((%range-strict-subset? type range-a range-b)
+		    (look-for-range-b-in-domain-a #t domain-a (cdr domain-b)))
+		   ((%range=? type range-a range-b)
+		    (look-for-range-b-in-domain-a subset? (cdr domain-a) (cdr domain-b)))
+		   ((%range-subset? type range-a range-b)
+		    (look-for-range-b-in-domain-a subset? domain-a (cdr domain-b)))
+		   (else #f)))))))
 
 ;;; --------------------------------------------------------------------
 

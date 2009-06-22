@@ -33,9 +33,19 @@
 (display "*** testing one-dimension-cc\n")
 
 (define type (%make-type-descriptor integer? = < <= min max
-				    (lambda (x) (- x 1)) ; prev
-				    (lambda (x) (+ 1 x)) ; next
-				    (lambda (a b) (+ 1 (- a b))) ; minux
+				    (lambda (x range) ; item-prev
+				      (let ((x (- x 1)))
+					(if range
+					    (and (<= (car range) x)
+						 x)
+					  x)))
+				    (lambda (x range) ; item-next
+				      (let ((x (+ 1 x)))
+					(if range
+					    (and (<= x (cdr range))
+						 x)
+					  x)))
+				    (lambda (a b) (+ 1 (- a b))) ; minus
 				    (lambda (x) x))) ; copy
 
 
