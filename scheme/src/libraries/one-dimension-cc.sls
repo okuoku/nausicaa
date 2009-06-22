@@ -200,20 +200,22 @@
 	(item<=? (type-descriptor-item<=?  type))
 	(item-minus (type-descriptor-item-minus type)))
     (cond
-     ((or (item=? last-a start-b)
-	  (= 2 (item-minus start-b last-a)))
-      (values #f (cons start-a last-b)))
-     ((or (item=? last-b start-a)
-	  (= 2 (item-minus start-a last-b)))
-      (values #f (cons start-b last-a)))
-     ((or (item<=? start-a start-b last-a)
-	  (item<=? start-b start-a last-b))
-      (values #f (cons ((type-descriptor-item-min type) start-a start-b)
-		       ((type-descriptor-item-max type) last-a last-b))))
-     ((item<? start-a start-b)
-      (values range-a range-b))
+     ((= 2 (item-minus start-b last-a))	(values #f (cons start-a last-b)))
+		; contiguous, RANGE-A < RANGE-B
+     ((= 2 (item-minus start-a last-b))	(values #f (cons start-b last-a)))
+		; contiguous, RANGE-B < RANGE-A
+     ((item<? last-a start-b)	(values range-a range-b))
+		; disjoint, RANGE-A < RANGE-B
+     ((item<? last-b start-a)	(values range-b range-a))
+		; disjoint, RANGE-B < RANGE-A
+     ;;Here we know they are overlapping, that is we know that:
+     ;;
+     ;;  (and (item<=? start-b last-a)
+     ;;       (item<=? start-a last-b)) => #t
+     ;;
      (else
-      (values range-b range-a)))))
+      (values #f (cons ((type-descriptor-item-min type) start-a start-b)
+		       ((type-descriptor-item-max type) last-a  last-b)))))))
 
 (define (%range-difference type range-a range-b)
   (let ((start-a (car range-a)) (last-a (cdr range-a))
@@ -225,6 +227,19 @@
 	(item-prev  (type-descriptor-item-prev type))
 	(item-next  (type-descriptor-item-next type)))
     (cond
+     ((= 2 (item-minus start-b last-a))	(values #f (cons start-a last-b)))
+		; contiguous, RANGE-A < RANGE-B
+     ((= 2 (item-minus start-a last-b))	(values #f (cons start-b last-a)))
+		; contiguous, RANGE-B < RANGE-A
+     ((item<? last-a start-b)		(values range-a range-b))
+		; disjoint, RANGE-A < RANGE-B
+     ((item<? last-b start-a)		(values range-b range-a))
+		; disjoint, RANGE-B < RANGE-A
+     ;;Here we know they are overlapping, that is we know that:
+     ;;
+     ;;  (and (item<=? start-b last-a)
+     ;;       (item<=? start-a last-b)) => #t
+     ;;
      ((item=? start-a start-b) ; same start
       (cond ((item=? last-a last-b)
 	     (values #f #f))
@@ -236,7 +251,6 @@
 	     (values #f (let ((last-b/next (item-next last-b range-a)))
 			  (and (item<=? last-b/next last-a)
 			       (cons last-b/next last-a)))))))
-     ;;(answer-to-equal-limit last-a last-b "start"))
 
      ((item=? last-a last-b) ; same last
       (cond ((item=? start-a start-b)
@@ -249,22 +263,7 @@
 	     (values #f (let ((start-a/prev (item-prev start-a range-b)))
 			  (and (item<=? start-b start-a/prev)
 			       (cons start-b start-a/prev)))))))
-      ;;(answer-to-equal-limit start-a start-b "last"))
-
-     ((= 2 (item-minus start-b last-a)) ; contiguous
-      (values #f (cons start-a last-b)))
-
-     ((= 2 (item-minus start-a last-b)) ; contiguous
-      (values #f (cons start-b last-a)))
-
-     ((item<? last-a start-b) ; disjoint
-      (values range-a range-b))
-
-     ((item<? last-b start-a) ; disjoint
-      (values range-b range-a))
-
      ;;Here we know that START-A != START-B and LAST-A != LAST-B.
-
      ((item<? start-a start-b) ; overlapping, a < b
       (values (let ((start-b/prev (item-prev start-b range-a)))
 		(and (item<=? start-a start-b/prev)
@@ -291,20 +290,15 @@
 		       (cons last-b/next last-a)))))))))
 
 (define (%range-in-first-only type range-a range-b)
-  (cond
-   ((%range<? type range-b range-a) ; disjoint
-    (values #f range-a))
-
-   ((%range<? type range-a range-b) ; disjoint
-    (values #f range-a))
-
-   (else
-    ;;Here we know they are overlapping.
-    (let ((start-a (car range-a)) (last-a (cdr range-a))
-	  (start-b (car range-b)) (last-b (cdr range-b))
-	  (item<?    (type-descriptor-item<? type))
-	  (item-prev (type-descriptor-item-prev type))
-	  (item-next (type-descriptor-item-next type)))
+  (let ((start-a (car range-a)) (last-a (cdr range-a))
+	(start-b (car range-b)) (last-b (cdr range-b))
+	(item<?    (type-descriptor-item<? type))
+	(item-prev (type-descriptor-item-prev type))
+	(item-next (type-descriptor-item-next type)))
+    (if (or (item<? last-b start-a)
+	    (item<? last-a start-b)) ; disjoint (including contiguous)
+	(values #f range-a)
+      ;;Here we know they are overlapping.
       (values
        (and (item<? start-a start-b)
 	    (let ((start-b/prev (item-prev start-b range-a)))
@@ -313,7 +307,7 @@
        (and (item<? last-b last-a)
 	    (let ((last-b/next (item-next last-b range-a)))
 	      (and (item<? last-b/next last-a)
-		   (cons last-b/next last-a)))))))))
+		   (cons last-b/next last-a))))))))
 
 (define (%range-for-each type proc range)
   (let loop ((next (type-descriptor-item-next type))

@@ -26,7 +26,8 @@
 (import
   (only (nausicaa))
   (only (lists))
-  (only (one-dimension))
+  (only (one-dimension-cc))
+  (only (one-dimension-co))
   (only (char-sets))
   (only (strings))
   (only (vectors))

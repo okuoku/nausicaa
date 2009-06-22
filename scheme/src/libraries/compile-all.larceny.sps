@@ -44,8 +44,11 @@
 (compile-library "lists.sls"
 		 "lists.slfasl")
 
-(compile-library "one-dimension.sls"
-		 "one-dimension.slfasl")
+(compile-library "one-dimension-co.sls"
+		 "one-dimension-co.slfasl")
+
+(compile-library "one-dimension-cc.sls"
+		 "one-dimension-cc.slfasl")
 
 (compile-library "char-sets.sls"
 		 "char-sets.slfasl")
