@@ -49,10 +49,13 @@
     char-set-intersection char-set-union
     char-set-difference char-set-complement
 
+    ;; string operations
+    string->char-set
+
     ;; list operations
     char-set-for-each char-set-every
     char-set-any char-set-fold
-    char-set->list string->char-set
+    char-set->list
 
     ;; predefined
 ;;     char-set:lower-case  char-set:upper-case  char-set:title-case

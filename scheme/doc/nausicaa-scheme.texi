@@ -21593,8 +21593,13 @@ Is a character set.
 @item str
 Is a string.
 
-@item ch
+@item char
 Is a character.
+
+@item range
+Is a pair of characters interpreted as double--closed range of
+characters, the car being the lower--limit and the cdr being the
+upper--limit.
 
 @item char-list
 Is a list of characters.
@@ -21618,24 +21623,33 @@ character sets.
 @subsection Constructors
 
 
+@defvar char-set-lower-bound
+@defvarx char-set-upper-bound
+@defvarx char-set-inner-upper-bound
+@defvarx char-set-inner-lower-bound
 The character sets are defined by the Scheme standard to be in the
 ranges @math{[0, #xD800)} and @math{(#xDFFF, #x10FFFF]}.
+@library{char-sets} exports these symbols, defined as follows:
 
 @example
-(define char-set-lower-bound       (integer->char 0))
-(define char-set-inner-upper-bound (integer->char (- #xD800 1)))
-(define char-set-inner-lower-bound (integer->char (+ 1 #xDFFF)))
-(define char-set-upper-bound       (integer->char #x10FFFF))
+(define char-set-lower-bound
+  (integer->char 0))
+
+(define char-set-inner-upper-bound
+  (integer->char (- #xD800 1)))
+
+(define char-set-inner-lower-bound
+  (integer->char (+ 1 #xDFFF)))
+
+(define char-set-upper-bound
+  (integer->char #x10FFFF))
 @end example
+@end defvar
 
 
-
-@defun char-set . @var{args}
-Build and return a new char-set.
-
-@var{args} may be the empty list or a mixed list of characters and pairs
-of items.  Pairs of characters are interpreted as limits--inclusive
-ranges of characters.
+@defun char-set @var{char/range} ...
+Build and return a new char-set.  The @var{char/range} arguments may be
+the empty list or a mixed list of characters and ranges.
 @end defun
 
 
@@ -21647,8 +21661,10 @@ Return a newly allocated char-set holding a copy of @var{cs}.
 @defun char-set-add @var{cs} @var{char/range}
 @defunx char-set-add! @var{cs} @var{char/range}
 Add values to an existing char-set.  @var{char/range} can be a single
-character or a pair characters interpreted as a limits--inclusive range
-of characters.
+character or a range.  @func{char-set-add} returns a new char-set,
+@func{char-set-add!}  modifies @var{cs} itself.
+
+The returned set may share some structure with the arguments.
 @end defun
 
 @c page
@@ -21666,8 +21682,8 @@ Return true if the char-set is empty.
 @end defun
 
 
-@defun char-set-contains? @var{cs} @var{ch}
-Return true if @var{ch} is an element of @var{cs}.
+@defun char-set-contains? @var{cs} @var{char}
+Return true if @var{char} is an element of @var{cs}.
 @end defun
 
 
@@ -21701,9 +21717,6 @@ Return the number of characters in @var{cs}.
 @c page
 @node char-sets ops
 @subsection Operations
-
-
-@subsubheading Set operations
 
 
 @defun char-set-intersection @var{cs-a} @var{cs-b}
@@ -21742,10 +21755,6 @@ If omitted, @var{cs-universe} defaults to @code{char-set:full}.
 The returned set may share some structure with the arguments.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading List operations
-
 
 @defun char-set-for-each @var{proc} @var{cs}
 Apply @var{proc} to each character in @var{cs}.
@@ -21767,13 +21776,21 @@ first true return value.
 
 
 @defun char-set-fold @var{kons} @var{knil} @var{cs}
-Fold @var{kons} over the characters in the set.
+Fold @var{kons} over the characters in the set.  @var{kons} must accept
+two arguments: The next character from the set and the return value of
+the previous invocation of @var{kons}.  At the first application the
+second argument to @var{kons} is @var{knil}.
 @end defun
 
 
 @defun char-set->list @var{cs}
 Return a list holding all the characters in the set.  Beware that for
 some character sets the resulting list can be big.
+@end defun
+
+
+@defun string->char-set @var{string}
+Return a new character set holding all the characters in @var{string}.
 @end defun
 
 @c page

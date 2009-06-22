@@ -43,11 +43,6 @@
 
   Finished?
 
-
-
-
-
-
 * interp
 
   Write an interpret library that mimics the Tcl interp library.
