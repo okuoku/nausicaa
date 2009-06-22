@@ -101,7 +101,7 @@ endef
 
 #page
 ## --------------------------------------------------------------------
-## Compiled files.
+## General compiled files rules.
 ## --------------------------------------------------------------------
 
 ifeq ($(nausicaa_ENABLE_FASL),yes)
@@ -254,7 +254,7 @@ ifeq (yes,$(strip $(nausicaa_TIME_TESTS)))
 TIME_TESTS		= time -p
 endif
 
-nau_test_SEPARATOR	= ;echo;echo;
+nau_test_SEPARATOR	= echo; echo "===> test file $(1)";echo;
 
 ## --------------------------------------------------------------------
 
@@ -291,7 +291,7 @@ ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 ifeq ($(strip $(file)),)
 	$(foreach f,$(nau_test_FILES),$(nau_itest_RUN) $(f) $(nau_test_SEPARATOR))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_itest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_itest_RUN) $(f))
 endif
 
 tests test check: itest
@@ -309,9 +309,9 @@ nau_ltest_RUN		= $(nau_ltest_ENV) $(TIME_TESTS) $(nau_ltest_PROGRAM)
 ltests ltest lcheck:
 ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_ltest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ltest_RUN) $(f))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ltest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ltest_RUN) $(f))
 endif
 
 tests test check: ltest
@@ -333,9 +333,9 @@ nau_mtest_RUN		= $(nau_mtest_ENV) $(TIME_TESTS) $(nau_mtest_PROGRAM)
 mtests mtest mcheck:
 ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_mtest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_mtest_RUN) $(f))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_mtest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_mtest_RUN) $(f))
 endif
 
 tests test check: mtest
@@ -353,9 +353,9 @@ nau_ytest_RUN		= $(nau_ytest_ENV) $(TIME_TESTS) $(nau_ytest_PROGRAM)
 ytests ytest ycheck:
 ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_ytest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ytest_RUN) $(f))
 else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(nau_ytest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ytest_RUN) $(f))
 endif
 
 tests test check: ytest
