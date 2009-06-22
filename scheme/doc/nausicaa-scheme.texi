@@ -21628,7 +21628,7 @@ character sets.
 @defvarx char-set-inner-upper-bound
 @defvarx char-set-inner-lower-bound
 The character sets are defined by the Scheme standard to be in the
-ranges @math{[0, #xD800)} and @math{(#xDFFF, #x10FFFF]}.
+ranges @code{[0, #xD800)} and @code{(#xDFFF, #x10FFFF]}.
 @library{char-sets} exports these symbols, defined as follows:
 
 @example

@@ -43,12 +43,4 @@
 
   Finished?
 
-* interp
-
-  Write an interpret library that mimics the Tcl interp library.
-
-  Use EVAL  to evaluate code  and ENVIRONMENT as  last form to  grab the
-  environment for the next evaluation.
-
-  Use continuations to implement aliases between different interpreters.
 

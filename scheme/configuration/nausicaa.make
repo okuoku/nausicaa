@@ -47,77 +47,137 @@ YPSILON		= @YPSILON@
 
 #page
 ## ---------------------------------------------------------------------
-## Library source files.
+## Installation of library source files.
 ## ---------------------------------------------------------------------
 
-ifeq ($(nausicaa_ENABLE_SLS),yes)
-$(eval $(call ds-srcdir,sls,$(srcdir)/src/libraries))
-$(eval $(call ds-builddir,sls,$(builddir)/fasl.d))
+# $(1) - the identifier
+# $(2) - the subdirectory
+define nau-sls-libraries
+ifeq ($$(nausicaa_ENABLE_SLS),yes)
 
-sls_FILES	= $(shell cd $(sls_SRCDIR) ; $(FIND) -type f -name \*.sls)
-sls_SOURCES	= $(addprefix $(sls_SRCDIR)/,$(sls_FILES))
-sls_TARGETS	= $(addprefix $(sls_BUILDDIR)/,$(sls_FILES))
-sls_INSTLST	= $(sls_TARGETS)
-sls_INSTDIR	= $(pkglibdir)
+$$(eval $$(call ds-srcdir,nau_sls_$(1),$$(srcdir)/src/libraries/$(2)))
 
-$(eval $(call ds-default-clean-variables,sls))
-$(eval $(call ds-module,sls,bin))
+nau_sls_$(1)_SOURCES	= $$(call ds-glob,nau_sls_$(1),*.sls)
+nau_sls_$(1)_INSTLST	= $$(nau_sls_$(1)_SOURCES)
+nau_sls_$(1)_INSTDIR	= $$(pkglibdir)/$(2)
 
-$(sls_TARGETS): $(sls_BUILDDIR)/%: $(sls_SRCDIR)/%
-	@test -d $(dir $(@)) || $(MKDIR) $(dir $(@))
-	@$(CP) $(<) $(@)
+$$(eval $$(call ds-module,nau_sls_$(1),bin))
 
 endif # nausicaa_ENABLE_SLS == yes
-
-## ---------------------------------------------------------------------
-
-ifeq ($(nausicaa_ENABLE_FASL),yes)
-$(eval $(call ds-srcdir,fasl,$(sls_BUILDDIR)))
-$(eval $(call ds-builddir,fasl,$(sls_BUILDDIR)))
-
-fasl_ikarus_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),\
-	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.ikarus*fasl)))
-fasl_mosh_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_MOSH),\
-	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.mosh*fasl)))
-fasl_larceny_TARGETS	= $(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),\
-	$(addprefix $(sls_BUILDDIR)/,$(shell cd $(sls_BUILDDIR) && $(FIND) -name \*.slfasl)))
-fasl_TARGETS	=
-fasl_INSTLST	= $(fasl_ikarus_TARGETS) $(fasl_mosh_TARGETS) $(fasl_larceny_TARGETS)
-fasl_INSTDIR	= $(pkglibdir)
-
-fasl_CLEANFILES		= $(fasl_ikarus_TARGETS) $(fasl_larceny_TARGETS) $(fasl_mosh_TARGETS)
-fasl_MOSTLYLCLEANFILES	= $(fasl_CLEANFILES)
-
-$(eval $(call ds-module,fasl,bin))
-
-fasl-all:	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl)	\
-		$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl)	\
-		$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl)
-
-endif # nausicaa_ENABLE_FASL == yes
+endef
 
 ## --------------------------------------------------------------------
 
-fasl_ikarus_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ikarus.sps
-fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH) IKARUS_FASL_DIRECTORY=/
+# $(1) - the identifier
+# $(2) - the subdirectory
+define nau-fasl-libraries
+ifeq ($(nausicaa_ENABLE_FASL),yes)
+
+$$(eval $$(call ds-srcdir,nau_fasl_$(1),$(builddir)/fasl.d/$(2)))
+
+nau_fasl_$(1)_PATTERNS	= \
+	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	*.ikarus*fasl)	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	*.slfasl)	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	*.mosh*fasl)	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	*.cache)
+
+nau_fasl_$(1)_SOURCES	= $$(call ds-glob,nau_fasl_$(1),$$(nau_fasl_$(1)_PATTERNS))
+nau_fasl_$(1)_INSTLST	= $$(nau_fasl_$(1)_SOURCES)
+nau_fasl_$(1)_INSTDIR	= $$(pkglibdir)/$(2)
+
+$$(eval $$(call ds-module,nau_fasl_$(1),bin))
+
+endif # nausicaa_ENABLE_FASL == yes
+endef
+
+## --------------------------------------------------------------------
+
+# $(1) - the identifier
+# $(2) - the subdirectory
+define nau-libraries
+$$(eval $$(call nau-sls-libraries,$(1),$(2)))
+$$(eval $$(call nau-fasl-libraries,$(1),$(2)))
+endef
+
+#page
+## --------------------------------------------------------------------
+## Compiled files.
+## --------------------------------------------------------------------
+
+ifeq ($(nausicaa_ENABLE_FASL),yes)
+
+nau_IMPLEMENTATIONS	= \
+	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl)	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl)	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl)  \
+	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	yfasl)
+
+$(eval $(call ds-srcdir,fasl,$(srcdir)/src/libraries))
+$(eval $(call ds-builddir,fasl,$(builddir)/fasl.d))
+
+fasl_SOURCES	= $(shell cd $(fasl_SRCDIR) ; $(FIND) -type f -name \*.sls)
+fasl_TARGETS	= $(addprefix $(fasl_BUILDDIR)/,$(fasl_SOURCES))
+
+$(fasl_TARGETS): $(fasl_BUILDDIR)/%: $(fasl_SRCDIR)/%
+	@test -d $(dir $(@)) || $(MKDIR) $(dir $(@))
+	@$(CP) $(<) $(@)
+
+fasl: $(nau_IMPLEMENTATIONS)
+
+fasl-clean: $(foreach i,$(nau_IMPLEMENTATIONS),$(i)-clean)
+	$(RM) $(fasl_BUILDDIR)
+
+bin:		fasl
+bin-clean:	fasl-clean
+
+endif # nausicaa_ENABLE_FASL == yes
+
+#page
+## --------------------------------------------------------------------
+## Ikarus compilation.
+## --------------------------------------------------------------------
+
+ifeq (yes,$(nausicaa_ENABLE_FASL))
+ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+
+fasl_ikarus_FASL	= $(shell cd $(fasl_BUILDDIR) && $(FIND) -name \*.ikarus*fasl)
+fasl_ikarus_TARGETS	= $(addprefix $(fasl_BUILDDIR)/,$(fasl_ikarus_FASL))
+
+fasl_ikarus_COMPILE_SCRIPT	= $(fasl_SRCDIR)/compile-all.ikarus.sps
+fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(fasl_BUILDDIR):$(IKARUS_LIBRARY_PATH) \
+				  IKARUS_FASL_DIRECTORY=/
 fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
-fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) $(fasl_ikarus_COMPILE_COMMAND) $(fasl_ikarus_COMPILE_SCRIPT)
+fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
+					$(fasl_ikarus_COMPILE_COMMAND) \
+					$(fasl_ikarus_COMPILE_SCRIPT)
 
 .PHONY: ifasl ifasl-clean
 
-ifasl: sls-all ifasl-clean
+ifasl: $(fasl_TARGETS)
 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
 
 ifasl-clean:
 	$(RM) $(fasl_ikarus_TARGETS)
 
-## ---------------------------------------------------------------------
+endif # nausicaa_ENABLE_IKARUS == yes
+endif # nausicaa_ENABLE_FASL == yes
 
-fasl_mosh_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.mosh.sps
+#page
+## --------------------------------------------------------------------
+## Mosh compilation.
+## --------------------------------------------------------------------
+
+ifeq (yes,$(nausicaa_ENABLE_FASL))
+ifeq (yes,$(nausicaa_ENABLE_MOSH))
+
+fasl_mosh_FASL		= $(shell cd $(fasl_BUILDDIR) && $(FIND) -name \*.mosh*fasl)
+fasl_mosh_TARGETS	= $(addprefix $(fasl_BUILDDIR)/,$(fasl_mosh_FASL))
+
+fasl_mosh_COMPILE_SCRIPT	= $(fasl_SRCDIR)/compile-all.mosh.sps
 ifeq (,$(strip $(MOSH_LOADPATH)))
-fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR)
+fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR)
 else
-fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR):$(MOSH_LOADPATH)
+fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR):$(MOSH_LOADPATH)
 endif
 fasl_mosh_COMPILE_COMMAND	= printf \
 	"(import (rnrs)(mosh))\n ((symbol-value 'pre-compile-r6rs-file) \"%s\")\n(exit)\n" \
@@ -126,36 +186,68 @@ fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_COMMAND)
 
 .PHONY: mfasl mfasl-clean
 
-mfasl: sls-all mfasl-clean
+mfasl: $(fasl_TARGETS)
 # Commented out Wed Jun  3, 2009 because compiling is still unstable.
 #	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
 
 mfasl-clean:
 	$(RM) $(fasl_mosh_TARGETS)
 
-## ---------------------------------------------------------------------
+endif # nausicaa_ENABLE_MOSH == yes
+endif # nausicaa_ENABLE_FASL == yes
 
-fasl_larceny_COMPILE_SCRIPT	= $(PWD)/$(sls_SRCDIR)/compile-all.larceny.sps
-fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(sls_BUILDDIR):$(LARCENY_LIBPATH)
+#page
+## --------------------------------------------------------------------
+## Larceny compilation.
+## --------------------------------------------------------------------
+
+ifeq (yes,$(nausicaa_ENABLE_FASL))
+ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+
+fasl_larceny_FASL	= $(shell cd $(fasl_BUILDDIR) && $(FIND) -name \*.slfasl)
+fasl_larceny_TARGETS	= $(addprefix $(fasl_BUILDDIR)/,$(fasl_larceny_FASL))
+
+# The  use of  ABSPATH  is needed  because  we change  directory in  the
+# compile commands below.
+fasl_larceny_COMPILE_SCRIPT	= $(abspath $(fasl_SRCDIR)/compile-all.larceny.sps)
+fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(fasl_BUILDDIR):$(LARCENY_LIBPATH)
 fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
-fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) $(fasl_larceny_COMPILE_COMMAND) $(fasl_larceny_COMPILE_SCRIPT)
+fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
+					$(fasl_larceny_COMPILE_COMMAND) \
+					$(fasl_larceny_COMPILE_SCRIPT)
 
 .PHONY: lfasl lfasl-clean
 
-lfasl: sls-all lfasl-clean
-	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
+lfasl: $(fasl_TARGETS)
+	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(fasl_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
 
 lfasl-clean:
 	$(RM) $(fasl_larceny_TARGETS)
+
+endif # nausicaa_ENABLE_MOSH == yes
+endif # nausicaa_ENABLE_FASL == yes
+
+#page
+## --------------------------------------------------------------------
+## Ypsilon compilation.
+## --------------------------------------------------------------------
+
+ifeq (yes,$(nausicaa_ENABLE_FASL))
+ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+
+.PHONY: yfasl yfasl-clean
+
+yfasl: $(fasl_TARGETS)
+
+yfasl-clean:
+
+endif # nausicaa_ENABLE_MOSH == yes
+endif # nausicaa_ENABLE_FASL == yes
 
 #page
 ## ---------------------------------------------------------------------
 ## Testing.
 ## ---------------------------------------------------------------------
-
-ifdef LIBPATH
-THE_LIBPATH		= $(LIBPATH):
-endif
 
 nausicaa_TIME_TESTS	= @nausicaa_TIME_TESTS@
 ifeq (yes,$(strip $(nausicaa_TIME_TESTS)))
@@ -175,7 +267,10 @@ nau_test_ENV		+= CHECK_TEST_NAME=$(name)
 endif
 
 # Here we include the build directory but not the source directory.
-nau_test_PATH		= $(THE_LIBPATH)$(sls_BUILDDIR):$(srcdir)/tests
+ifdef LIBPATH
+nau_test_custom_LIBPATH	= $(LIBPATH):
+endif
+nau_test_PATH		= $(nau_test_custom_LIBPATH)$(fasl_BUILDDIR):$(srcdir)/tests
 
 .PHONY: tests test check
 
