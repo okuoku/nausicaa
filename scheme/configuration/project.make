@@ -40,6 +40,7 @@ $(eval $(call nau-libraries,core))
 $(eval $(call nau-libraries,nausicaa,nausicaa))
 $(eval $(call nau-libraries,strings,strings))
 $(eval $(call nau-libraries,vectors,vectors))
+$(eval $(call nau-libraries,char-sets,char-sets))
 
 #page
 ## ------------------------------------------------------------

@@ -363,8 +363,8 @@
   (let loop ((copy (type-descriptor-item-copy type))
 	     (x    domain))
     (if (pair? x)
-	(cons (loop (car x))
-	      (loop (cdr x)))
+	(cons (loop copy (car x))
+	      (loop copy (cdr x)))
       (copy x))))
 
 (define (%domain-add-item type domain obj)

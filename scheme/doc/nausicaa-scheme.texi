@@ -812,7 +812,13 @@ Character sets
 * char-sets pred::              Predicates.
 * char-sets inspect::           Inspection.
 * char-sets ops::               Operations.
-* char-sets std::               Standard char sets.
+* char-sets sets::              Predefined character sets.
+
+Predefined character sets
+
+* char-sets sets intro::        Introduction.
+* char-sets sets basic::        Basic character sets.
+* char-sets sets ascii::        Sets of @ascii{} characters.
 
 Strings library
 
@@ -21576,7 +21582,7 @@ character components.  @ref{stdlib unicode,Unicode}.
 * char-sets pred::              Predicates.
 * char-sets inspect::           Inspection.
 * char-sets ops::               Operations.
-* char-sets std::               Standard char sets.
+* char-sets sets::              Predefined character sets.
 @end menu
 
 @c page
@@ -21699,10 +21705,19 @@ argument is empty the return value is @false{}.
 @end defun
 
 
-@defun char-set-subset? @var{cs-a} @var{cs-b}
-@defunx char-set-strict-subset? @var{cs-a} @var{cs-b}
-Return @true{} if @var{cs-b} is a subset or a strict subset of
-@var{cs-a}.
+@defun char-set-subset? @var{cs0} @var{cs} ...
+@defunx char-set-strict-subset? @var{cs0} @var{cs} ...
+Return @true{} if the arguments, in the given order, are subsets of each
+other or strict subsets of each other.  In other words: The return value
+of the following:
+
+@example
+(char-set-subset? a b c d)
+@end example
+
+@noindent
+is true if @code{a} is a superset of @code{b}, @var{b} is a superset of
+@code{c}, @code{c} is a superset of @code{d}.
 @end defun
 
 @c page
@@ -21719,26 +21734,26 @@ Return the number of characters in @var{cs}.
 @subsection Operations
 
 
-@defun char-set-intersection @var{cs-a} @var{cs-b}
+@defun char-set-intersection @var{cs0} @var{cs} ...
 Return a new set representing the intersection of the arguments; the
-intersection is the set of characters present in both the arguments.
+intersection is the set of characters present in all the arguments.
 
 The returned set may share some structure with the arguments.
 @end defun
 
 
-@defun char-set-union @var{cs-a} @var{cs-b}
+@defun char-set-union @var{cs0} @var{cs} ...
 Return a new set representing the union of the arguments; the union is
-the set of characters present in one and/or the other argument.
+the set of characters present in one and/or more arguments.
 
 The returned set may share some structure with the arguments.
 @end defun
 
 
-@defun char-set-difference @var{cs-a} @var{cs-b}
+@defun char-set-difference @var{cs0} @var{cs} ...
 Return a new set representing the difference between the arguments; the
-difference is the set of characters present in one or the other
-argument (but not both).
+difference is the set of characters present in only one of the
+arguments.
 
 The returned set may share some structure with the arguments.
 @end defun
@@ -21794,11 +21809,477 @@ Return a new character set holding all the characters in @var{string}.
 @end defun
 
 @c page
-@node char-sets std
-@subsection Predefined char sets
+@node char-sets sets
+@subsection Predefined character sets
 
 
-Several character sets are predefined for convenience:
+Several character sets are predefined for convenience by
+@library{char-sets} and other auxiliary libraries.  They are meant to
+satisfy the simplest needs.
+
+@menu
+* char-sets sets intro::        Introduction.
+* char-sets sets basic::        Basic character sets.
+* char-sets sets ascii::        Sets of @ascii{} characters.
+* char-sets sets ranges::       Sets corresponding to Unicode ranges.
+* char-sets sets categories::   Sets corresponding to Unicode general
+                                categories.
+* char-sets sets general::      General sets of characters.
+@end menu
+
+@c page
+@node char-sets sets intro
+@subsubsection Introduction
+
+
+Unicode assigns a single number to each code element defined by the
+Standard.  Each of these numbers is called a @dfn{code point} and, when
+referred to in text, is listed in hexadecimal form following the prefix
+@code{U+}.  For example, the code point @code{U+0041} is the hexadecimal
+number @code{0041} (equal to the decimal number @code{65}); it
+represents the character @code{A} in the Unicode Standard.
+
+Each character is also assigned a unique name that specifies it and no
+other.  For example, @code{U+0041} is assigned the character name
+@code{LATIN CAPITAL LETTER A}.  @code{U+0A1B} is assigned the character
+name @code{GURMUKHI LETTER CHA}.  These Unicode names are identical to
+the @acronym{ISO}/@acronym{IEC} 10646 names for the same characters.
+
+@c ------------------------------------------------------------
+
+@subsubheading References and resources
+
+For a general overview of the Unicode Standard see@footnote{@aurl{} last
+verified Tue Jun 23, 2009.}:
+
+@center @url{http://en.wikipedia.org/wiki/Unicode}
+
+For the complete reference of Unicode code points we should inspect the
+Unicode Characters Database@footnote{@aurl{}s last verified Tue Jun 23,
+2009.}:
+
+@center @url{ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt}
+@center @url{ftp://ftp.unicode.org/Public/UNIDATA/Blocks.txt}
+
+@noindent
+which is partly and introductorily documented by@footnote{@aurl{} last
+verified Tue Jun 23, 2009.}:
+
+@center @url{ftp://ftp.unicode.org/Public/UNIDATA/UCD.html}
+
+@noindent
+the same directory on the @url{unicode.org} site offers other documents
+on the interpretation of the database.
+
+For an explanation of @ascii{} coding, see@footnote{@aurl{} last
+verified Tue Jun 23, 2009.}:
+
+@center @url{http://en.wikipedia.org/wiki/Ascii}
+
+@c ------------------------------------------------------------
+
+@subsubheading How predefined sets were defined
+
+The following methods were employed to define the character sets.
+
+@itemize
+@item
+The @ascii{}--related sets were composed by hand reading the @ascii{}
+description; they are exported by the @library{char-sets} library
+itself.
+
+@item
+All the ranges defined by the @file{Blocks.txt} database file have been
+converted to a set; they are exported by the @library{char-sets blocks}
+library (there are a lot of them).
+
+@item
+Each general category (@code{Ll}, @code{Lu}, etc.) has been converted to
+a set; they are exported by the @library{char-sets categories} library
+(there are a lot of them).
+@end itemize
+
+
+
+@c page
+@node char-sets sets basic
+@subsubsection Basic character sets
+
+
+The following character sets are defined and exported by the
+@library{char-sets} library.
+
+
+@defvr {Character Set} char-set:full
+Contains all the characters recognised by the @rnrs{6} standard.
+@end defvr
+
+
+@defvr {Character Set} char-set:empty
+The empty set.
+@end defvr
+
+@c page
+@node char-sets sets ascii
+@subsubsection Sets of @ascii{} characters
+
+
+The following character sets are defined and exported by the
+@library{char-sets} library.
+
+
+@defvr {Character Set} char-set:ascii
+All the characters in the @ascii{} set.  It is the set of all the
+characters whose numeric code is between 0 and 127, both included.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/lower-case
+All the lower--case letters between @code{#\a} and @code{#\z}, included.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/upper-case
+All the upper--case letters between @code{#\A} and @code{#\Z}, included.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/letter
+All the letters: It is the union of @code{char-set:ascii/lower-case} and
+@code{char-set:ascii/upper-case}.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/digit
+@defvrx {Character Set} char-set:ascii/dec-digit
+All the decimal digits:
+
+@example
+#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9
+@end example
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/oct-digit
+All the octal digits:
+
+@example
+#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7
+@end example
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/hex-digit
+All the hexadecimal digits:
+
+@example
+#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9
+#\a #\b #\c #\d #\e #\f
+#\A #\B #\C #\D #\E #\F
+@end example
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/letter+digit
+All the letters and decimal digits: It is the union of
+@code{char-set:ascii/letter} and @code{char-set:ascii/dec-digit}.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/punctuation
+All the punctuation characters whose numeric code is in the range
+@math{[0, 127]}:
+
+@c Yes I have verified that all of these have numeric code in the range
+@c [0, 127] (Marco Maggi, Tue Jun 23, 2009).
+@example
+@c Keep two spaces between the characters.  Also keep an empty line
+@c between them.
+#\!  #\"  #\#  #\%  #\&  #\'  #\(  #\)  #\*  #\,  #\-  #\.
+
+#\/  #\:  #\;  #\?  #\@@  #\[  #\\  #\]  #\_  #\@{  #\@}
+@end example
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/symbol
+All the symbol characters whose numeric code is in the range @math{[0,
+127]}:
+
+@c Yes I have verified that all of these have numeric code in the range
+@c [0, 127] (Marco Maggi, Tue Jun 23, 2009).
+@example
+@c Keep two spaces between the characters.
+#\$  #\+  #\<  #\=  #\>  #\^  #\`  #\|  #\~
+@end example
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/whitespace
+All the characters representing white space:
+
+@example
+#x0009  #\tab       ; HORIZONTAL TABULATION
+#x000A  #\linefeed  ; LINE FEED
+#x000B  #\vtab      ; VERTICAL TABULATION
+#x000C  #\page      ; FORM FEED
+#x000D  #\return    ; CARRIAGE RETURN
+#x0020  #\space     ; SPACE
+@end example
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/blank
+A set holding @code{#\tab} and @code{#\space}.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/graphic
+The set of all characters that put ink on the page.  It is the union of
+@code{char-set:ascii/letter+digit}, @code{char-set:ascii/punctuation}
+and @code{char-set:ascii/symbol}.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/printable
+The set of all the printable characters.  It is the union of
+@code{char-set:ascii/whitespace} and @code{char-set:ascii/graphic}.
+@end defvr
+
+
+@defvr {Character Set} char-set:ascii/control
+All the characters whose numeric code is in the range @math{[0, 31]}
+plus @math{127}.
+@end defvr
+
+@c page
+@node char-sets sets ranges
+@subsubsection Sets corresponding to Unicode ranges
+
+
+The following character sets are defined and exported by the
+@library{char-sets blocks} library.
+
+
+@defvr {Character Set} char-set:basic-latin
+@defvrx {Character Set} char-set:latin-1-supplement
+@defvrx {Character Set} char-set:latin-extended-a
+@defvrx {Character Set} char-set:latin-extended-b
+@defvrx {Character Set} char-set:ipa-extensions
+@defvrx {Character Set} char-set:spacing-modifier-letters
+@defvrx {Character Set} char-set:combining-diacritical-marks
+@defvrx {Character Set} char-set:greek-and-coptic
+@defvrx {Character Set} char-set:cyrillic
+@defvrx {Character Set} char-set:cyrillic-supplement
+@defvrx {Character Set} char-set:armenian
+@defvrx {Character Set} char-set:hebrew
+@defvrx {Character Set} char-set:arabic
+@defvrx {Character Set} char-set:syriac
+@defvrx {Character Set} char-set:arabic-supplement
+@defvrx {Character Set} char-set:thaana
+@defvrx {Character Set} char-set:nko
+@defvrx {Character Set} char-set:devanagari
+@defvrx {Character Set} char-set:bengali
+@defvrx {Character Set} char-set:gurmukhi
+@defvrx {Character Set} char-set:gujarati
+@defvrx {Character Set} char-set:oriya
+@defvrx {Character Set} char-set:tamil
+@defvrx {Character Set} char-set:telugu
+@defvrx {Character Set} char-set:kannada
+@defvrx {Character Set} char-set:malayalam
+@defvrx {Character Set} char-set:sinhala
+@defvrx {Character Set} char-set:thai
+@defvrx {Character Set} char-set:lao
+@defvrx {Character Set} char-set:tibetan
+@defvrx {Character Set} char-set:myanmar
+@defvrx {Character Set} char-set:georgian
+@defvrx {Character Set} char-set:hangul-jamo
+@defvrx {Character Set} char-set:ethiopic
+@defvrx {Character Set} char-set:ethiopic-supplement
+@defvrx {Character Set} char-set:cherokee
+@defvrx {Character Set} char-set:unified-canadian-aboriginal-syllabics
+@defvrx {Character Set} char-set:ogham
+@defvrx {Character Set} char-set:runic
+@defvrx {Character Set} char-set:tagalog
+@defvrx {Character Set} char-set:hanunoo
+@defvrx {Character Set} char-set:buhid
+@defvrx {Character Set} char-set:tagbanwa
+@defvrx {Character Set} char-set:khmer
+@defvrx {Character Set} char-set:mongolian
+@defvrx {Character Set} char-set:limbu
+@defvrx {Character Set} char-set:tai-le
+@defvrx {Character Set} char-set:new-tai-lue
+@defvrx {Character Set} char-set:khmer-symbols
+@defvrx {Character Set} char-set:buginese
+@defvrx {Character Set} char-set:balinese
+@defvrx {Character Set} char-set:sundanese
+@defvrx {Character Set} char-set:lepcha
+@defvrx {Character Set} char-set:ol-chiki
+@defvrx {Character Set} char-set:phonetic-extensions
+@defvrx {Character Set} char-set:phonetic-extensions-supplement
+@defvrx {Character Set} char-set:combining-diacritical-marks-supplement
+@defvrx {Character Set} char-set:latin-extended-additional
+@defvrx {Character Set} char-set:greek-extended
+@defvrx {Character Set} char-set:general-punctuation
+@defvrx {Character Set} char-set:superscripts-and-subscripts
+@defvrx {Character Set} char-set:currency-symbols
+@defvrx {Character Set} char-set:combining-diacritical-mark-for-symbols
+@defvrx {Character Set} char-set:letterlike-symbols
+@defvrx {Character Set} char-set:number-forms
+@defvrx {Character Set} char-set:arrows
+@defvrx {Character Set} char-set:mathematical-operators
+@defvrx {Character Set} char-set:miscellaneous-technical
+@defvrx {Character Set} char-set:control-pictures
+@defvrx {Character Set} char-set:optical-character-recognition
+@defvrx {Character Set} char-set:enclosed-alphanumerics
+@defvrx {Character Set} char-set:box-drawing
+@defvrx {Character Set} char-set:block-elements
+@defvrx {Character Set} char-set:geometric-shapes
+@defvrx {Character Set} char-set:miscellaneous-symbols
+@defvrx {Character Set} char-set:dingbats
+@defvrx {Character Set} char-set:miscellaneous-mathematical-symbols-a
+@defvrx {Character Set} char-set:supplemental-arrows-a
+@defvrx {Character Set} char-set:braille-patterns
+@defvrx {Character Set} char-set:supplemental-arrows-b
+@defvrx {Character Set} char-set:miscellaneous-mathematical-symbols-b
+@defvrx {Character Set} char-set:supplemental-mathematical-operators
+@defvrx {Character Set} char-set:miscellaneous-symbols-and-arrows
+@defvrx {Character Set} char-set:glagolitic
+@defvrx {Character Set} char-set:latin-extended-c
+@defvrx {Character Set} char-set:coptic
+@defvrx {Character Set} char-set:georgian-supplement
+@defvrx {Character Set} char-set:tifinagh
+@defvrx {Character Set} char-set:ethiopic-extended
+@defvrx {Character Set} char-set:cyrillic-extended-a
+@defvrx {Character Set} char-set:supplemental-punctuation
+@defvrx {Character Set} char-set:cjk-radicals-supplement
+@defvrx {Character Set} char-set:kangxi-radicals
+@defvrx {Character Set} char-set:ideographic-description-characters
+@defvrx {Character Set} char-set:cjk-symbols-and-punctuation
+@defvrx {Character Set} char-set:hiragana
+@defvrx {Character Set} char-set:katakana
+@defvrx {Character Set} char-set:bopomofo
+@defvrx {Character Set} char-set:hangul-compatibility-jamo
+@defvrx {Character Set} char-set:kanbun
+@defvrx {Character Set} char-set:bopomofo-extended
+@defvrx {Character Set} char-set:cjk-strokes
+@defvrx {Character Set} char-set:katakana-phonetic-extensions
+@defvrx {Character Set} char-set:enclosed-cjk-letters-and-months
+@defvrx {Character Set} char-set:cjk-compatibility
+@defvrx {Character Set} char-set:cjk-unified-Ideographs-extension-a
+@defvrx {Character Set} char-set:yijing-hexagram-symbols
+@defvrx {Character Set} char-set:cjk-unified-ideographs
+@defvrx {Character Set} char-set:yi-syllables
+@defvrx {Character Set} char-set:yi-radicals
+@defvrx {Character Set} char-set:vai
+@defvrx {Character Set} char-set:cyrillic-extended-b
+@defvrx {Character Set} char-set:modifier-tone-letters
+@defvrx {Character Set} char-set:latin-extended-d
+@defvrx {Character Set} char-set:syloti-nagri
+@defvrx {Character Set} char-set:phags-pa
+@defvrx {Character Set} char-set:saurashtra
+@defvrx {Character Set} char-set:kayah-li
+@defvrx {Character Set} char-set:Rejang
+@defvrx {Character Set} char-set:cham
+@defvrx {Character Set} char-set:hangul-syllables
+@defvrx {Character Set} char-set:private-use-area
+@defvrx {Character Set} char-set:cjk-compatibility-ideographs
+@defvrx {Character Set} char-set:alphabetic-presentation-forms
+@defvrx {Character Set} char-set:arabic-presentation-forms-a
+@defvrx {Character Set} char-set:variation-selectors
+@defvrx {Character Set} char-set:vertical-forms
+@defvrx {Character Set} char-set:combining-half-marks
+@defvrx {Character Set} char-set:cjk-compatibility-forms
+@defvrx {Character Set} char-set:small-form-variants
+@defvrx {Character Set} char-set:arabic-presentation-forms-b
+@defvrx {Character Set} char-set:halfwidth-and-fullwidth-forms
+@defvrx {Character Set} char-set:specials
+@defvrx {Character Set} char-set:linear-b-syllabary
+@defvrx {Character Set} char-set:linear-b-ideograms
+@defvrx {Character Set} char-set:aegean-numbers
+@defvrx {Character Set} char-set:ancient-greek-numbers
+@defvrx {Character Set} char-set:ancient-symbols
+@defvrx {Character Set} char-set:phaistos-disc
+@defvrx {Character Set} char-set:lycian
+@defvrx {Character Set} char-set:carian
+@defvrx {Character Set} char-set:old-italic
+@defvrx {Character Set} char-set:gothic
+@defvrx {Character Set} char-set:ugaritic
+@defvrx {Character Set} char-set:old-persian
+@defvrx {Character Set} char-set:deseret
+@defvrx {Character Set} char-set:shavian
+@defvrx {Character Set} char-set:osmanya
+@defvrx {Character Set} char-set:cypriot-syllabary
+@defvrx {Character Set} char-set:phoenician
+@defvrx {Character Set} char-set:lydian
+@defvrx {Character Set} char-set:kharoshthi
+@defvrx {Character Set} char-set:cuneiform
+@defvrx {Character Set} char-set:cuneiform-numbers-and-punctuation
+@defvrx {Character Set} char-set:byzantine-musical-symbols
+@defvrx {Character Set} char-set:musical-symbols
+@defvrx {Character Set} char-set:ancient-greek-musical-notation
+@defvrx {Character Set} char-set:tai-xuan-jing-symbols
+@defvrx {Character Set} char-set:counting-rod-numerals
+@defvrx {Character Set} char-set:mathematical-alphanumeric-symbols
+@defvrx {Character Set} char-set:mahjong-tiles
+@defvrx {Character Set} char-set:domino-tiles
+@defvrx {Character Set} char-set:cjk-unified-ideographs-extension-b
+@defvrx {Character Set} char-set:cjk-compatibility-ideographs-supplement
+@defvrx {Character Set} char-set:tags
+@defvrx {Character Set} char-set:variation-selectors-supplement
+@defvrx {Character Set} char-set:supplementary-private-use-area-a
+@defvrx {Character Set} char-set:supplementary-private-use-area-b
+These are the character sets corresponding to the ranges defined in the
+@file{Blocks.txt} file of the Unicode Character Database.
+@end defvr
+
+@c page
+@node char-sets sets categories
+@subsubsection Sets corresponding to Unicode general categories
+
+
+The following character sets are defined and exported by the
+@library{char-sets categories} library.
+
+
+@defvr {Character Set} char-set:letter-uppercase
+@defvrx {Character Set} char-set:letter-lowercase
+@defvrx {Character Set} char-set:letter-titlecase
+@defvrx {Character Set} char-set:letter-modifier
+@defvrx {Character Set} char-set:letter-other
+@defvrx {Character Set} char-set:mark-nospacing
+@defvrx {Character Set} char-set:mark-spacing-combining
+@defvrx {Character Set} char-set:mark-enclosing
+@defvrx {Character Set} char-set:number-decimal-digit
+@defvrx {Character Set} char-set:number-letter
+@defvrx {Character Set} char-set:number-other
+@defvrx {Character Set} char-set:puncutation-connector
+@defvrx {Character Set} char-set:punctuation-dash
+@defvrx {Character Set} char-set:punctuation-open
+@defvrx {Character Set} char-set:punctuation-close
+@defvrx {Character Set} char-set:punctuation-initial-quote
+@defvrx {Character Set} char-set:punctuation-final-quote
+@defvrx {Character Set} char-set:punctuation-other
+@defvrx {Character Set} char-set:symbol-math
+@defvrx {Character Set} char-set:symbol-currency
+@defvrx {Character Set} char-set:symbol-modifier
+@defvrx {Character Set} char-set:symbol-other
+@defvrx {Character Set} char-set:separator-space
+@defvrx {Character Set} char-set:separator-line
+@defvrx {Character Set} char-set:separator-paragraph
+@defvrx {Character Set} char-set:control
+@defvrx {Character Set} char-set:format
+@defvrx {Character Set} char-set:surrogate
+@defvrx {Character Set} char-set:private-use
+@defvrx {Character Set} char-set:not-assigned
+One set for each general category defined by the Unicode Standard.
+@end defvr
+
+@c page
+@node char-sets sets general
+@subsubsection General sets of characters
+
+
 
 @vtable @code
 @item char-set:lower-case
@@ -21837,20 +22318,9 @@ Punctuation characters.
 @item char-set:symbol
 Symbol characters.
 
-@item char-set:hex-digit
-A hexadecimal digit: 0-9, A-F, a-f.
-
 @item char-set:blank
 Blank characters -- horizontal whitespace.
 
-@item char-set:ascii
-All characters in the @ascii{} set.
-
-@item char-set:empty
-Empty set.
-
-@item char-set:full
-All characters.
 @end vtable
 
 Note that there may be characters in @code{char-set:letter} that are
@@ -21910,7 +22380,7 @@ character's code; the second field gives the name of the character, and
 the third field gives a two--letter category.  Other fields give simple
 1-1 case--mappings for the character and other information; see:
 
-@center @url{ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.html}
+@center @url{ftp://ftp.unicode.org/Public/UNIDATA/UCD.html}
 
 @noindent
 for further description of the file's format.  Note in particular the

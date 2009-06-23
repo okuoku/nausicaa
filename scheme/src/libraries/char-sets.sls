@@ -34,14 +34,14 @@
     char-set-inner-upper-bound char-set-inner-lower-bound
 
     ;; constructors
-    (rename (full-char-set char-set)) char-set-copy
+    (rename (true-char-set char-set)) char-set-copy
     char-set-add char-set-add!
 
     ;; inspection
     char-set-size (rename (domain-ref char-set-domain-ref))
 
     ;; predicates
-    (rename (full-char-set? char-set?))
+    (rename (true-char-set? char-set?))
     char-set-empty? char-set-contains?
     char-set=? char-set<? char-set-subset? char-set-strict-subset?
 
@@ -58,12 +58,23 @@
     char-set->list
 
     ;; predefined
+    char-set:empty       char-set:full
+
+    char-set:ascii
+    char-set:ascii/dec-digit	(rename (char-set:ascii/dec-digit char-set:ascii/digit))
+    char-set:ascii/oct-digit	char-set:ascii/hex-digit
+    char-set:ascii/lower-case	char-set:ascii/upper-case
+    char-set:ascii/letter	char-set:ascii/letter+digit
+    char-set:ascii/punctuation	char-set:ascii/symbol
+    char-set:ascii/control	char-set:ascii/whitespace
+    char-set:ascii/graphic	char-set:ascii/printable
+    char-set:ascii/blank
+
 ;;     char-set:lower-case  char-set:upper-case  char-set:title-case
-;;     char-set:letter      char-set:digit       char-set:letter+digit
+;;     char-set:letter      char-set:dec-digit   char-set:letter+digit
 ;;     char-set:graphic     char-set:printing    char-set:whitespace
 ;;     char-set:iso-control char-set:punctuation char-set:symbol
-;;     char-set:hex-digit   char-set:blank       char-set:ascii
-    char-set:empty       char-set:full
+;;     char-set:hex-digit   char-set:blank
     )
   (import (rnrs)
     (one-dimension-cc))
@@ -73,10 +84,10 @@
 (define-record-type char-set
   (fields (mutable domain domain-ref domain-set!)))
 
-(define (full-char-set . args)
+(define (true-char-set . args)
   (make-char-set (apply make-domain args)))
 
-(define (full-char-set? cs)
+(define (true-char-set? cs)
   (and (char-set? cs)
        (domain? (domain-ref cs))))
 
@@ -85,9 +96,9 @@
 
 (define (char-set-add cs obj)
   (cond ((char? obj)
-	 (domain-add-item (domain-ref cs) obj))
+	 (make-char-set (domain-add-item (domain-ref cs) obj)))
 	((range? obj)
-	 (domain-add-range (domain-ref cs) obj))
+	 (make-char-set (domain-add-range (domain-ref cs) obj)))
 	(else
 	 (assertion-violation 'char-set-add
 	   "attempt to add an invalid object to a char-set" obj))))
@@ -110,20 +121,39 @@
 (define (char-set<? cs-a cs-b)
   (domain<? (domain-ref cs-a) (domain-ref cs-b)))
 
-(define (char-set-subset? cs-a cs-b)
-  (domain-subset? (domain-ref cs-a) (domain-ref cs-b)))
+(define (char-set-subset? cs . cs-args)
+  (let loop ((domain      (domain-ref cs))
+	     (domain-args (map domain-ref cs-args)))
+    (or (null? domain-args)
+	(let ((next-domain (car domain-args)))
+	  (and (domain-subset? domain next-domain)
+	       (loop next-domain (cdr domain-args)))))))
 
-(define (char-set-strict-subset? cs-a cs-b)
-  (domain-strict-subset? (domain-ref cs-a) (domain-ref cs-b)))
+(define (char-set-strict-subset? cs . cs-args)
+  (let loop ((domain      (domain-ref cs))
+	     (domain-args (map domain-ref cs-args)))
+    (or (null? domain-args)
+	(let ((next-domain (car domain-args)))
+	  (and (domain-strict-subset? domain next-domain)
+	       (loop next-domain (cdr domain-args)))))))
 
-(define (char-set-intersection cs-a cs-b)
-  (make-char-set (domain-intersection (domain-ref cs-a) (domain-ref cs-b))))
+(define (char-set-intersection cs . cs-args)
+  (make-char-set (fold-left (lambda (domain domain-prev)
+			      (domain-intersection domain domain-prev))
+			    (domain-ref cs)
+			    (map domain-ref cs-args))))
 
-(define (char-set-union cs-a cs-b)
-  (make-char-set (domain-union (domain-ref cs-a) (domain-ref cs-b))))
+(define (char-set-union cs . cs-args)
+  (make-char-set (fold-left (lambda (domain domain-prev)
+			      (domain-union domain domain-prev))
+			    (domain-ref cs)
+			    (map domain-ref cs-args))))
 
-(define (char-set-difference cs-a cs-b)
-  (make-char-set (domain-difference (domain-ref cs-a) (domain-ref cs-b))))
+(define (char-set-difference cs . cs-args)
+  (make-char-set (fold-left (lambda (domain domain-prev)
+			      (domain-difference domain domain-prev))
+			    (domain-ref cs)
+			    (map domain-ref cs-args))))
 
 (define char-set-complement
   (case-lambda
@@ -332,109 +362,158 @@
   (apply make-domain (string->list str)))
 
 
-;;;; predefined char sets
+;;;; basic predefined char sets
+
+(define N integer->char)
+(define (R start last)
+  (cons (N start) (N last)))
 
 (define char-set:empty (make-char-set '()))
 
 (define char-set:full
-  (full-char-set `(,char-set-lower-bound . ,char-set-inner-upper-bound)
+  (true-char-set `(,char-set-lower-bound . ,char-set-inner-upper-bound)
 		 `(,char-set-inner-lower-bound . ,char-set-upper-bound)))
 
-;; (define char-set:lower-case
-;;   (let* ((a-z (ucs-range->char-set #x61 #x7B))
-;; 	 (latin1 (ucs-range->char-set! #xdf #xf7  #t a-z))
-;; 	 (latin2 (ucs-range->char-set! #xf8 #x100 #t latin1)))
-;;     (char-set-append! latin2 (integer->char #xb5))))
+
+;;;; ASCII predefined char sets
 
-;; (define char-set:upper-case
-;;   (let ((A-Z (ucs-range->char-set #x41 #x5B)))
-;;     ;; Add in the Latin-1 upper-case chars.
-;;     (ucs-range->char-set! #xd8 #xdf #t
-;; 			  (ucs-range->char-set! #xc0 #xd7 #t A-Z))))
+(define char-set:ascii
+  ;;Notice  that ASCII  has numeric  codes in  the range  [0,  127]; the
+  ;;numeric code 127 is included, and the number of codes is 128.
+  (true-char-set (R 0 127)))
+
+(define char-set:ascii/dec-digit
+  (true-char-set '(#\0 . #\9)))
+
+(define char-set:ascii/oct-digit
+  (true-char-set '(#\0 . #\7)))
+
+(define char-set:ascii/hex-digit
+  (true-char-set '(#\0 . #\9) '(#\a . #\f) '(#\A . #\F)))
+
+(define char-set:ascii/lower-case
+  (true-char-set '(#\a . #\z)))
+
+(define char-set:ascii/upper-case
+  (true-char-set '(#\A . #\Z)))
+
+(define char-set:ascii/letter
+  (char-set-union char-set:ascii/lower-case char-set:ascii/upper-case))
+
+(define char-set:ascii/letter+digit
+  (char-set-union char-set:ascii/letter char-set:ascii/dec-digit))
+
+(define char-set:ascii/punctuation
+  ;;Yes I have verified that all of these have numeric code in the range
+  ;;[0, 127] (Marco Maggi, Tue Jun 23, 2009).
+  (true-char-set #\! #\" #\# #\% #\& #\' #\( #\) #\* #\, #\- #\.
+		 #\/ #\: #\; #\? #\@ #\[ #\\ #\] #\_ #\{ #\}))
+
+(define char-set:ascii/symbol
+  ;;Yes I have verified that all of these have numeric code in the range
+  ;;[0, 127] (Marco Maggi, Tue Jun 23, 2009).
+  (true-char-set #\$ #\+ #\< #\= #\> #\^ #\` #\| #\~))
+
+(define char-set:ascii/control
+  ;;Notice that control characters are the ones whose numeric code is in
+  ;;the range [0, 31] plus 127; the number of control characters is 33.
+  (true-char-set (R 0 31) (N 127)))
+
+(define char-set:ascii/whitespace
+  (true-char-set #\x0009		  ; HORIZONTAL TABULATION
+		 #\x000A		  ; LINE FEED
+		 #\x000B		  ; VERTICAL TABULATION
+		 #\x000C		  ; FORM FEED
+		 #\x000D		  ; CARRIAGE RETURN
+		 #\x0020))		  ; SPACE
+
+(define char-set:ascii/blank
+  (true-char-set #\tab #\space))
+
+(define char-set:ascii/graphic
+  (char-set-union char-set:ascii/letter+digit
+		  char-set:ascii/punctuation
+		  char-set:ascii/symbol))
+
+(define char-set:ascii/printable
+  (char-set-union char-set:ascii/whitespace
+		  char-set:ascii/graphic)) ; NO-BREAK SPACE
+
+
+
+(define char-set:lower-case
+  (true-char-set (R #\x0061 #\x007A)
+		 (R #\x00DF #\x00F6)
+		 (R #\x00F8 #\x00FF)))
+  ; #\x00B5 this is the
+  ;
+  ; 00B5;MICRO SIGN;Ll;0;L;<compat> 03BC;;;;N;;;039C;;039C
+
+(define char-set:upper-case
+  (true-char-set (R #\x0041 #\x005B) ; A-Z
+		 (N #\x00D8)
+		 (N #\x00DF)
+		 (R #\x00C0 #\x00D7)))
 
 (define char-set:title-case
   char-set:empty)
 
 ;; (define char-set:letter
-;;   (let ((u/l (char-set-union char-set:upper-case char-set:lower-case)))
-;;     (char-set-append! u/l
-;; 		      (integer->char #xaa)	; FEMININE ORDINAL INDICATOR
-;; 		      (integer->char #xba))))	; MASCULINE ORDINAL INDICATOR
+;;   (let ((cs (char-set-union char-set:upper-case char-set:lower-case)))
+;;     (char-set-add (char-set-add cs (N #\xaa)) ; FEMININE ORDINAL INDICATOR
+;; 		  (N #\xba)))) ; MASCULINE ORDINAL INDICATOR
 
-(define char-set:digit
-  (string->char-set "0123456789"))
+(define char-set:letter+digit #f)
 
-(define char-set:hex-digit
-  (string->char-set "0123456789abcdefABCDEF"))
+(define char-set:punctuation
+  (apply true-char-set
+	 #\! #\" #\# #\% #\& #\' #\( #\) #\* #\, #\- #\.
+	 #\/ #\: #\; #\? #\@ #\[ #\\ #\] #\_ #\{ #\}
+	 (map N '(#\x00A1	   ; INVERTED EXCLAMATION MARK
+		  #\x00AB	   ; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+		  #\x00AD	   ; SOFT HYPHEN
+		  #\x00B7	   ; MIDDLE DOT
+		  #\x00BB	   ; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+		  #\x00BF)))) ; INVERTED QUESTION MARK
 
-;; (define char-set:letter+digit
-;;   (char-set-union char-set:letter char-set:digit))
+(define char-set:symbol
+  (apply true-char-set
+	 #\$ #\+ #\< #\= #\> #\^ #\` #\| #\~
+	 (map N '(#\x00A2     ; CENT SIGN
+		  #\x00A3     ; POUND SIGN
+		  #\x00A4     ; CURRENCY SIGN
+		  #\x00A5     ; YEN SIGN
+		  #\x00A6     ; BROKEN BAR
+		  #\x00A7     ; SECTION SIGN
+		  #\x00A8     ; DIAERESIS
+		  #\x00A9     ; COPYRIGHT SIGN
+		  #\x00AC     ; NOT SIGN
+		  #\x00AE     ; REGISTERED SIGN
+		  #\x00AF     ; MACRON
+		  #\x00B0     ; DEGREE SIGN
+		  #\x00B1     ; PLUS-MINUS SIGN
+		  #\x00B4     ; ACUTE ACCENT
+		  #\x00B6     ; PILCROW SIGN
+		  #\x00B8     ; CEDILLA
+		  #\x00D7     ; MULTIPLICATION SIGN
+		  #\x00F7)))) ; DIVISION SIGN
 
-;; (define char-set:punctuation
-;;   (make-char-set-eat-list
-;;    (append-char-lists
-;;     (string->list "!\"#%&'()*,-./:;?@[\\]_{}")
-;;     (map integer->char '(#xA1 ; INVERTED EXCLAMATION MARK
-;; 			 #xAB ; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
-;; 			 #xAD ; SOFT HYPHEN
-;; 			 #xB7 ; MIDDLE DOT
-;; 			 #xBB ; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-;; 			 #xBF))))) ; INVERTED QUESTION MARK
+(define char-set:whitespace
+  (apply true-char-set (map N '(#\x0009 ; HORIZONTAL TABULATION
+				#\x000A ; LINE FEED
+				#\x000B ; VERTICAL TABULATION
+				#\x000C ; FORM FEED
+				#\x000D ; CARRIAGE RETURN
+				#\x0020 ; SPACE
+				#\x00A0))))
 
-;; (define char-set:symbol
-;;   (make-char-set-eat-list
-;;    (append-char-lists (string->list "$+<=>^`|~")
-;; 		      (map integer->char '(#x00A2 ; CENT SIGN
-;; 					   #x00A3 ; POUND SIGN
-;; 					   #x00A4 ; CURRENCY SIGN
-;; 					   #x00A5 ; YEN SIGN
-;; 					   #x00A6 ; BROKEN BAR
-;; 					   #x00A7 ; SECTION SIGN
-;; 					   #x00A8 ; DIAERESIS
-;; 					   #x00A9 ; COPYRIGHT SIGN
-;; 					   #x00AC ; NOT SIGN
-;; 					   #x00AE ; REGISTERED SIGN
-;; 					   #x00AF ; MACRON
-;; 					   #x00B0 ; DEGREE SIGN
-;; 					   #x00B1 ; PLUS-MINUS SIGN
-;; 					   #x00B4 ; ACUTE ACCENT
-;; 					   #x00B6 ; PILCROW SIGN
-;; 					   #x00B8 ; CEDILLA
-;; 					   #x00D7 ; MULTIPLICATION SIGN
-;; 					   #x00F7))))) ; DIVISION SIGN
+(define char-set:blank
+  (apply true-char-set (map N '(#\x0009		 ; HORIZONTAL TABULATION
+				#\x0020		 ; SPACE
+				#\x00A0))))	 ; NO-BREAK SPACE
 
-;; (define char-set:graphic
-;;   (char-set-union char-set:letter+digit
-;; 		  char-set:punctuation
-;; 		  char-set:symbol))
-
-;; (define char-set:whitespace
-;;   (make-char-set-eat-list
-;;    (map integer->char '(#x09		    ; HORIZONTAL TABULATION
-;; 			#x0A		    ; LINE FEED
-;; 			#x0B		    ; VERTICAL TABULATION
-;; 			#x0C		    ; FORM FEED
-;; 			#x0D		    ; CARRIAGE RETURN
-;; 			#x20		    ; SPACE
-;; 			#xA0))))
-
-;; (define char-set:printing
-;;   (char-set-union char-set:whitespace
-;; 		  char-set:graphic)) ; NO-BREAK SPACE
-
-;; (define char-set:blank
-;;   (make-char-set-eat-list
-;;    (map integer->char '(#x09			; HORIZONTAL TABULATION
-;; 			#x20			; SPACE
-;; 			#xA0))))		; NO-BREAK SPACE
-
-
-;; (define char-set:iso-control
-;;   (ucs-range->char-set! #x7F #xA0 #t (ucs-range->char-set 0 32)))
-
-;; (define char-set:ascii
-;;   (ucs-range->char-set 0 128))
-
+(define char-set:iso-control
+  (true-char-set (R 0 32) (N #\x007F) (N #\x00A0)))
 
 
 ;;;; done

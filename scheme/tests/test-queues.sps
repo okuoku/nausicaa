@@ -27,7 +27,7 @@
   (queues))
 
 (check-set-mode! 'report-failed)
-(display "*** testing queue\n")
+(display "*** testing queues\n")
 
 ;;; --------------------------------------------------------------------
 

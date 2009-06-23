@@ -153,7 +153,7 @@ fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
 
 .PHONY: ifasl ifasl-clean
 
-ifasl: $(fasl_TARGETS)
+ifasl: $(fasl_TARGETS) ifasl-clean
 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
 
 ifasl-clean:
@@ -186,7 +186,7 @@ fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_COMMAND)
 
 .PHONY: mfasl mfasl-clean
 
-mfasl: $(fasl_TARGETS)
+mfasl: $(fasl_TARGETS) mfasl-clean
 # Commented out Wed Jun  3, 2009 because compiling is still unstable.
 #	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
 
@@ -218,7 +218,7 @@ fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
 
 .PHONY: lfasl lfasl-clean
 
-lfasl: $(fasl_TARGETS)
+lfasl: $(fasl_TARGETS) lfasl-clean
 	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(fasl_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
 
 lfasl-clean:
@@ -237,7 +237,7 @@ ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 
 .PHONY: yfasl yfasl-clean
 
-yfasl: $(fasl_TARGETS)
+yfasl: $(fasl_TARGETS) yfasl-clean
 
 yfasl-clean:
 

@@ -29,6 +29,7 @@
 (import (nausicaa)
   (checks)
   (char-sets)
+  (char-sets blocks)
   (lists))
 
 (check-set-mode! 'report-failed)
