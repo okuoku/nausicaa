@@ -364,10 +364,6 @@
 
 ;;;; basic predefined char sets
 
-(define N integer->char)
-(define (R start last)
-  (cons (N start) (N last)))
-
 (define char-set:empty (make-char-set '()))
 
 (define char-set:full
@@ -380,7 +376,7 @@
 (define char-set:ascii
   ;;Notice  that ASCII  has numeric  codes in  the range  [0,  127]; the
   ;;numeric code 127 is included, and the number of codes is 128.
-  (true-char-set (R 0 127)))
+  (true-char-set '(#\x0 . #\x127)))
 
 (define char-set:ascii/dec-digit
   (true-char-set '(#\0 . #\9)))
@@ -417,7 +413,7 @@
 (define char-set:ascii/control
   ;;Notice that control characters are the ones whose numeric code is in
   ;;the range [0, 31] plus 127; the number of control characters is 33.
-  (true-char-set (R 0 31) (N 127)))
+  (true-char-set '(#\x0 . #\x31) (integer->char 127)))
 
 (define char-set:ascii/whitespace
   (true-char-set #\x0009		  ; HORIZONTAL TABULATION
@@ -442,18 +438,18 @@
 
 
 (define char-set:lower-case
-  (true-char-set (R #\x0061 #\x007A)
-		 (R #\x00DF #\x00F6)
-		 (R #\x00F8 #\x00FF)))
+  (true-char-set '(#\x0061 . #\x007A)
+		 '(#\x00DF . #\x00F6)
+		 '(#\x00F8 . #\x00FF)))
   ; #\x00B5 this is the
   ;
   ; 00B5;MICRO SIGN;Ll;0;L;<compat> 03BC;;;;N;;;039C;;039C
 
 (define char-set:upper-case
-  (true-char-set (R #\x0041 #\x005B) ; A-Z
-		 (N #\x00D8)
-		 (N #\x00DF)
-		 (R #\x00C0 #\x00D7)))
+  (true-char-set '(#\x0041 . #\x005B) ; A-Z
+		 #\x00D8
+		 #\x00DF
+		 '(#\x00C0 . #\x00D7)))
 
 (define char-set:title-case
   char-set:empty)
@@ -466,54 +462,54 @@
 (define char-set:letter+digit #f)
 
 (define char-set:punctuation
-  (apply true-char-set
-	 #\! #\" #\# #\% #\& #\' #\( #\) #\* #\, #\- #\.
-	 #\/ #\: #\; #\? #\@ #\[ #\\ #\] #\_ #\{ #\}
-	 (map N '(#\x00A1	   ; INVERTED EXCLAMATION MARK
-		  #\x00AB	   ; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
-		  #\x00AD	   ; SOFT HYPHEN
-		  #\x00B7	   ; MIDDLE DOT
-		  #\x00BB	   ; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-		  #\x00BF)))) ; INVERTED QUESTION MARK
+  (true-char-set
+   #\! #\" #\# #\% #\& #\' #\( #\) #\* #\, #\- #\.
+   #\/ #\: #\; #\? #\@ #\[ #\\ #\] #\_ #\{ #\}
+   #\x00A1	     ; INVERTED EXCLAMATION MARK
+   #\x00AB	     ; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+   #\x00AD	     ; SOFT HYPHEN
+   #\x00B7	     ; MIDDLE DOT
+   #\x00BB	     ; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+   #\x00BF))	     ; INVERTED QUESTION MARK
 
 (define char-set:symbol
-  (apply true-char-set
-	 #\$ #\+ #\< #\= #\> #\^ #\` #\| #\~
-	 (map N '(#\x00A2     ; CENT SIGN
-		  #\x00A3     ; POUND SIGN
-		  #\x00A4     ; CURRENCY SIGN
-		  #\x00A5     ; YEN SIGN
-		  #\x00A6     ; BROKEN BAR
-		  #\x00A7     ; SECTION SIGN
-		  #\x00A8     ; DIAERESIS
-		  #\x00A9     ; COPYRIGHT SIGN
-		  #\x00AC     ; NOT SIGN
-		  #\x00AE     ; REGISTERED SIGN
-		  #\x00AF     ; MACRON
-		  #\x00B0     ; DEGREE SIGN
-		  #\x00B1     ; PLUS-MINUS SIGN
-		  #\x00B4     ; ACUTE ACCENT
-		  #\x00B6     ; PILCROW SIGN
-		  #\x00B8     ; CEDILLA
-		  #\x00D7     ; MULTIPLICATION SIGN
-		  #\x00F7)))) ; DIVISION SIGN
+  (true-char-set
+   #\$ #\+ #\< #\= #\> #\^ #\` #\| #\~
+   #\x00A2	     ; CENT SIGN
+   #\x00A3	     ; POUND SIGN
+   #\x00A4	     ; CURRENCY SIGN
+   #\x00A5	     ; YEN SIGN
+   #\x00A6	     ; BROKEN BAR
+   #\x00A7	     ; SECTION SIGN
+   #\x00A8	     ; DIAERESIS
+   #\x00A9	     ; COPYRIGHT SIGN
+   #\x00AC	     ; NOT SIGN
+   #\x00AE	     ; REGISTERED SIGN
+   #\x00AF	     ; MACRON
+   #\x00B0	     ; DEGREE SIGN
+   #\x00B1	     ; PLUS-MINUS SIGN
+   #\x00B4	     ; ACUTE ACCENT
+   #\x00B6	     ; PILCROW SIGN
+   #\x00B8	     ; CEDILLA
+   #\x00D7	     ; MULTIPLICATION SIGN
+   #\x00F7))	     ; DIVISION SIGN
 
 (define char-set:whitespace
-  (apply true-char-set (map N '(#\x0009 ; HORIZONTAL TABULATION
-				#\x000A ; LINE FEED
-				#\x000B ; VERTICAL TABULATION
-				#\x000C ; FORM FEED
-				#\x000D ; CARRIAGE RETURN
-				#\x0020 ; SPACE
-				#\x00A0))))
+  (true-char-set #\x0009		; HORIZONTAL TABULATION
+		 #\x000A		; LINE FEED
+		 #\x000B		; VERTICAL TABULATION
+		 #\x000C		; FORM FEED
+		 #\x000D		; CARRIAGE RETURN
+		 #\x0020		; SPACE
+		 #\x00A0))
 
 (define char-set:blank
-  (apply true-char-set (map N '(#\x0009		 ; HORIZONTAL TABULATION
-				#\x0020		 ; SPACE
-				#\x00A0))))	 ; NO-BREAK SPACE
+  (true-char-set #\x0009   ; HORIZONTAL TABULATION
+		 #\x0020   ; SPACE
+		 #\x00A0)) ; NO-BREAK SPACE
 
 (define char-set:iso-control
-  (true-char-set (R 0 32) (N #\x007F) (N #\x00A0)))
+  (true-char-set '(#\x0 . #\x32) #\x007F #\x00A0))
 
 
 ;;;; done

@@ -30,6 +30,7 @@
   (checks)
   (char-sets)
   (char-sets blocks)
+  (char-sets categories)
   (lists))
 
 (check-set-mode! 'report-failed)
