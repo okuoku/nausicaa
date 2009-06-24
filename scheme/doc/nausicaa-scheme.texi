@@ -21729,6 +21729,15 @@ is true if @code{a} is a superset of @code{b}, @var{b} is a superset of
 Return the number of characters in @var{cs}.
 @end defun
 
+
+@defun char-set-write @var{cs}
+@defunx char-set-write @var{cs} @var{port}
+Write to @var{port} a chunk of Scheme code that, when evaluated,
+generates @var{cs}.  When not given, @var{port} defaults to
+@code{(current-output-port)}.
+@end defun
+
+
 @c page
 @node char-sets ops
 @subsection Operations
@@ -21819,6 +21828,7 @@ satisfy the simplest needs.
 
 @menu
 * char-sets sets intro::        Introduction.
+* char-sets sets how::          How predefined sets were defined.
 * char-sets sets basic::        Basic character sets.
 * char-sets sets ascii::        Sets of @ascii{} characters.
 * char-sets sets ranges::       Sets corresponding to Unicode ranges.
@@ -21844,10 +21854,6 @@ other.  For example, @code{U+0041} is assigned the character name
 @code{LATIN CAPITAL LETTER A}.  @code{U+0A1B} is assigned the character
 name @code{GURMUKHI LETTER CHA}.  These Unicode names are identical to
 the @acronym{ISO}/@acronym{IEC} 10646 names for the same characters.
-
-@c ------------------------------------------------------------
-
-@subsubheading References and resources
 
 For a general overview of the Unicode Standard see@footnote{@aurl{} last
 verified Tue Jun 23, 2009.}:
@@ -21876,9 +21882,10 @@ verified Tue Jun 23, 2009.}:
 
 @center @url{http://en.wikipedia.org/wiki/Ascii}
 
-@c ------------------------------------------------------------
+@c page
+@node char-sets sets how
+@subsubsection How predefined sets were defined
 
-@subsubheading How predefined sets were defined
 
 The following methods were employed to define the character sets.
 
@@ -21896,10 +21903,132 @@ library (there are a lot of them).
 @item
 Each general category (@code{Ll}, @code{Lu}, etc.) has been converted to
 a set; they are exported by the @library{char-sets categories} library
-(there are a lot of them).
+(there are a lot of them).  Notice that not all the code points accepted
+by @func{char=?} are part of a general category, so the union of the
+category sets is different from the full character set.
 @end itemize
 
+@c ------------------------------------------------------------
 
+@subsubheading Inspecting the database
+
+On a Unix--like system, the following commands can be used to inspect
+the @file{UnicodeData.txt} database:
+
+@table @command
+@item wc -l <UnicodeData.txt
+Count the lines in the database: One line for each code point.  Notice
+that not all the code points have a line in this file; the file format
+allows ranges, so pairs of lines represent ranges of characters.
+
+@item cut -d';' -f3 <UnicodeData.txt | sort | uniq
+Print the category codes in the database (use @command{sort} first,
+because @command{uniq} removes repeated lines only if they are
+adjacent).  Notice that the @code{Cs} category (surrogate characters) is
+present in the database, but excluded from the Nausicaa libraries,
+because it describes the range @code{[#xD800, #xDFFF]} forbidden by
+@rnrs{6}.
+
+@item grep ';Cs;' <UnicodeData.txt
+Print only the lines describing the surrogate characters.  They are six
+lines representing the three ranges:
+
+@table @code
+@item [#xD800, #xDB7F]
+Non private use high surrogate.
+
+@item [#xDB80, #xDBFF]
+Private use high surrogate.
+
+@item [#xDC00, #xDFFF]
+Low surrogate.
+@end table
+
+@noindent
+Notice that these ranges are adjacent and their union is the range
+@code{[#xD800, #xDFFF]}.
+
+@item grep -v ';Cs;' <UnicodeData.txt | wc -l
+Count the lines excluding the surrogate characters.  The count should be
+@math{19330} (last verified with the database downloaded Wed Jun 23,
+2009).
+
+@item grep ';Ll;' <UnicodeData.txt
+Extract all the lines describing the @code{Ll} category.
+
+@item grep ', *\(First\|Last\)>' <UnicodeData.txt
+Extract all the lines describing the inclusive limit of a range of
+characters.
+
+@item grep -v ', *\(First\|Last\)>' <UnicodeData.txt
+Extract all the lines describing a single code point, excluding the line
+describing the limit of a range of characters.
+@end table
+
+The following Bourne shell script processes the @file{UnicodeData.txt}
+database and prints a Scheme program that, when evaluated, prints the
+definitions of category character sets.  The output script program makes
+use of the @library{char-sets} library itself.
+
+@smallexample
+# unicode-database-extract-category-code-points.sh --
+#
+
+DATABASE=$@{1:?'missing UnicodeData.txt pathname'@}
+
+CATEGORY_CODES=$(cut -d';' -f3 <"$DATABASE" | sort | uniq | grep -v Cs)
+
+echo '(import (rnrs) (char-sets))'
+
+for CATEGORY in $CATEGORY_CODES
+do
+    echo processing category $CATEGORY >&2
+    echo -n "(define category-$CATEGORY (quote ("
+    @{
+        grep ";$CATEGORY;" <"$DATABASE"   | \
+            grep -v ', *\(First\|Last\)>' | \
+            cut -d';' -f1                 | \
+            while read
+        do echo -n "#\x$REPLY "
+        done
+
+        grep ";$CATEGORY;" <"$DATABASE"   | \
+            grep ', *\(First\|Last\)>'    | \
+            cut -d';' -f1                 | \
+            while read
+        do
+            FIRST=$REPLY
+            read
+            LAST=$REPLY
+            echo -n "(#\x$FIRST . #\x$LAST) "
+        done
+    @}
+    echo ')))'
+    echo "(display \"(define char-set:category/$CATEGORY\")(newline)"
+    echo "(char-set-write (apply char-set category-$CATEGORY))(newline)"
+    echo '(display ")")(newline)'
+    echo
+done
+
+### end of file
+@end smallexample
+
+@noindent
+For example, the output for the @code{Co} category, which has only
+ranges, is (reformatted to look human readable):
+
+@example
+(define category-Co (quote ((#\xE000 . #\xF8FF)
+                            (#\xF0000 . #\xFFFFD)
+                            (#\x100000 . #\x10FFFD))))
+
+(display "(define char-set:category/Co")
+(newline)
+(char-set-write (apply char-set category-Co))
+(newline)
+(display ")")
+(newline)
+@end example
 
 @c page
 @node char-sets sets basic
@@ -22240,6 +22369,13 @@ These are the character sets corresponding to the ranges defined in the
 
 The following character sets are defined and exported by the
 @library{char-sets categories} library.
+
+Notice that not all the code points accepted by @func{char=?} are part
+of a general category, so the union of the category sets is different
+from the full character set @code{char-set:full}.
+
+Categories are disjoint, so the intersection of the category sets is the
+empty set.
 
 
 @defvr {Character Set} char-set:letter-uppercase

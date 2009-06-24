@@ -29,6 +29,8 @@
   (only (one-dimension-cc))
   (only (one-dimension-co))
   (only (char-sets))
+  (only (char-sets blocks))
+  (only (char-sets categories))
   (only (strings))
   (only (vectors))
   (only (checks))

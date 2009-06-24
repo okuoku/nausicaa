@@ -148,6 +148,15 @@
       (char-set-size (char-set '(#\A . #\D) '(#\F . #\H)))
     => (+ 4 3))
 
+  (check
+      (char-set-size char-set:empty)
+    => 0)
+
+  (check
+      (char-set-size char-set:full)
+    => (+ (- #xD800 0)
+	  (- #x10FFFF #xDFFF)))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -509,7 +518,7 @@
     (=> char-set=?) (char-set '(#\A . #\B)
 			      '(#\G . #\H)))
 
-  (check 'this
+  (check
       (char-set-difference (char-set '(#\A . #\D) '(#\H . #\M) '(#\O . #\P))
 			   (char-set '(#\C . #\F) '(#\I . #\L) '(#\N . #\Q)))
     (=> char-set=?) (char-set #\A #\B #\E #\F #\H #\M #\N #\Q))
@@ -678,6 +687,74 @@
       (string->char-set "ABCDBBCC")
     (=> char-set=?)
     (char-set #\A #\B #\C #\D))
+
+  )
+
+
+(parameterise ((check-test-name 'categories))
+
+  (check (char-set? char-set:category/letter-uppercase) => #t)
+  (check (char-set? char-set:category/letter-lowercase) => #t)
+  (check (char-set? char-set:category/letter-titlecase) => #t)
+  (check (char-set? char-set:category/letter-modifier) => #t)
+  (check (char-set? char-set:category/letter-other) => #t)
+  (check (char-set? char-set:category/mark-nospacing) => #t)
+  (check (char-set? char-set:category/mark-spacing-combining) => #t)
+  (check (char-set? char-set:category/mark-enclosing) => #t)
+  (check (char-set? char-set:category/number-decimal-digit) => #t)
+  (check (char-set? char-set:category/number-letter) => #t)
+  (check (char-set? char-set:category/number-other) => #t)
+  (check (char-set? char-set:category/puncutation-connector) => #t)
+  (check (char-set? char-set:category/punctuation-dash) => #t)
+  (check (char-set? char-set:category/punctuation-open) => #t)
+  (check (char-set? char-set:category/punctuation-close) => #t)
+  (check (char-set? char-set:category/punctuation-initial-quote) => #t)
+  (check (char-set? char-set:category/punctuation-final-quote) => #t)
+  (check (char-set? char-set:category/punctuation-other) => #t)
+  (check (char-set? char-set:category/symbol-math) => #t)
+  (check (char-set? char-set:category/symbol-currency) => #t)
+  (check (char-set? char-set:category/symbol-modifier) => #t)
+  (check (char-set? char-set:category/symbol-other) => #t)
+  (check (char-set? char-set:category/separator-space) => #t)
+  (check (char-set? char-set:category/separator-line) => #t)
+  (check (char-set? char-set:category/separator-paragraph) => #t)
+  (check (char-set? char-set:category/control) => #t)
+  (check (char-set? char-set:category/format) => #t)
+  (check (char-set? char-set:category/private-use) => #t)
+  (check (char-set? char-set:category/not-assigned) => #t)
+
+  (check
+      (char-set-intersection char-set:category/letter-uppercase
+			     char-set:category/letter-lowercase
+			     char-set:category/letter-titlecase
+			     char-set:category/letter-modifier
+			     char-set:category/letter-other
+			     char-set:category/mark-nospacing
+			     char-set:category/mark-spacing-combining
+			     char-set:category/mark-enclosing
+			     char-set:category/number-decimal-digit
+			     char-set:category/number-letter
+			     char-set:category/number-other
+			     char-set:category/puncutation-connector
+			     char-set:category/punctuation-dash
+			     char-set:category/punctuation-open
+			     char-set:category/punctuation-close
+			     char-set:category/punctuation-initial-quote
+			     char-set:category/punctuation-final-quote
+			     char-set:category/punctuation-other
+			     char-set:category/symbol-math
+			     char-set:category/symbol-currency
+			     char-set:category/symbol-modifier
+			     char-set:category/symbol-other
+			     char-set:category/separator-space
+			     char-set:category/separator-line
+			     char-set:category/separator-paragraph
+			     char-set:category/control
+			     char-set:category/format
+			     char-set:category/private-use
+			     char-set:category/not-assigned
+			     char-set:category/surrogates)
+    (=> char-set=?) char-set:empty)
 
   )
 

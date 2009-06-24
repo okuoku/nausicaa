@@ -39,6 +39,7 @@
 
     ;; inspection
     char-set-size (rename (domain-ref char-set-domain-ref))
+    char-set-write
 
     ;; predicates
     (rename (true-char-set? char-set?))
@@ -179,6 +180,22 @@
 
 (define (string->char-set str)
   (make-char-set (string->domain str)))
+
+(define char-set-write
+  (case-lambda
+   ((cs)
+    (char-set-write cs (current-output-port)))
+   ((cs port)
+    (display "(char-set " port)
+    (for-each (lambda (range)
+		(display (string-append
+			  "'("
+			  "#\\x" (number->string (char->integer (car range)) 16)
+			  " . "
+			  "#\\x" (number->string (char->integer (cdr range)) 16)
+			  ") ") port))
+      (domain-ref cs))
+    (display #\) port))))
 
 
 

@@ -53,6 +53,12 @@
 (compile-library "char-sets.sls"
 		 "char-sets.slfasl")
 
+(compile-library "char-sets/blocks.sls"
+		 "char-sets/blocks.slfasl")
+
+(compile-library "char-sets/categories.sls"
+		 "char-sets/categories.slfasl")
+
 (compile-library "knuth-morris-pratt.sls"
  		 "knuth-morris-pratt.slfasl")
 

@@ -341,6 +341,33 @@
 (define (%range->list type range)
   (%range-fold type cons '() range))
 
+;;; --------------------------------------------------------------------
+
+(define (%range->string/char range)
+  (string-append
+   "'("
+   "#\\x" (number->string (char->integer (car range)) 16)
+   " . "
+   "#\\x" (number->string (char->integer (cdr range)) 16)
+   ") "))
+
+(define %range-write/char
+  (case-lambda
+   ((range)
+    (%range-write/char range (current-output-port)))
+   ((range port)
+    (display (%range->string/char range) port))))
+
+(define (%range->string/number range)
+  (string-append "'(" (car range) " . " (cdr range) ") "))
+
+(define %range-write/number
+  (case-lambda
+   ((range)
+    (%range-write/number range (current-output-port)))
+   ((range port)
+    (display (%range->string/number range) port))))
+
 
 ;;;; domains
 
@@ -441,10 +468,15 @@
 	      (let ((range2 (car domain)))
 		(cond
 		 ((not (%range? type range2))
+;;;		  (write (list 'not-range range2))(newline)
 		  #f)
 		 ((not (%range<? type range1 range2))
+;; 		  (write (list 'not-less
+;; 			       (%range->string/char range1)
+;; 			       (%range->string/char range2)))(newline)
 		  #f)
 		 ((%range-contiguous? type range1 range2)
+;;		  (write (list 'contiguous range1 range2))(newline)
 		  #f)
 		 (else
 		  (loop range2 (cdr domain))))))))))))
@@ -544,6 +576,9 @@
      (else
       (let ((range-a (car domain-a))
 	    (range-b (car domain-b)))
+;; 	(write (list 'doing
+;; 		     (%range->string/char range-a)
+;; 		     (%range->string/char range-b)))(newline)
 	(cond
 	 ((and (not (null? result)) (%range-contiguous? type (car result) range-a))
 	  (loop (cons (%range-concatenate type (car result) range-a) (cdr result))
@@ -552,6 +587,12 @@
 	 ((and (not (null? result)) (%range-contiguous? type (car result) range-b))
 	  (loop (cons (%range-concatenate type (car result) range-b) (cdr result))
 		domain-a (cdr domain-b)))
+
+	 ((and (not (null? result)) (%range=? type (car result) range-a))
+	  (loop result (cdr domain-a) domain-b))
+
+	 ((and (not (null? result)) (%range=? type (car result) range-b))
+	  (loop result domain-a (cdr domain-b)))
 
 	 ((and (not (null? result)) (%range-overlapping? type (car result) range-a))
 	  (let-values (((head tail) (%range-union type (car result) range-a)))
@@ -572,10 +613,18 @@
 	    (loop (cons tail result) (cdr domain-a) (cdr domain-b))))
 
 	 ((%range<? type range-a range-b)
-	  (loop (cons range-b (cons range-a result)) (cdr domain-a) (cdr domain-b)))
+;; 	  (write (list 'less-than
+;; 		       (or (null? result) (%range->string/char (car result)))
+;; 		       (%range->string/char range-a)
+;; 		       (%range->string/char range-b)))(newline)
+	  (loop (cons range-a result) (cdr domain-a) domain-b))
 
 	 ((%range<? type range-b range-a)
-	  (loop (cons range-a (cons range-b result)) (cdr domain-a) (cdr domain-b)))
+;; 	  (write (list 'greater-than
+;; 		       (or (null? result) (%range->string/char (car result)))
+;; 		       (%range->string/char range-a)
+;; 		       (%range->string/char range-b)))(newline)
+          (loop (cons range-b result) domain-a (cdr domain-b)))
 
 	 (else
 	  (assertion-violation '%domain-union
@@ -652,11 +701,11 @@
 
 	 ((%range<? type range-a range-b)
 ;;;	  (write (list 'lesser range-a range-b))(newline)
-	  (loop (cons range-b (cons range-a result)) (cdr domain-a) (cdr domain-b)))
+	  (loop (cons range-a result) (cdr domain-a) domain-b))
 
 	 ((%range<? type range-b range-a)
 ;;;	  (write (list 'greater range-a range-b))(newline)
-	  (loop (cons range-a (cons range-b result)) (cdr domain-a) (cdr domain-b)))
+	  (loop (cons range-b result) domain-a (cdr domain-b)))
 
 	 (else
 	  (assertion-violation '%domain-difference

@@ -541,10 +541,10 @@
 	    (loop (cons tail result) (cdr domain-a) (cdr domain-b))))
 
 	 ((%range<? type range-a range-b)
-	  (loop (cons range-b (cons range-a result)) (cdr domain-a) (cdr domain-b)))
+	  (loop (cons range-a result) (cdr domain-a) domain-b))
 
 	 ((%range<? type range-b range-a)
-	  (loop (cons range-a (cons range-b result)) (cdr domain-a) (cdr domain-b)))
+	  (loop (cons range-b result) domain-a (cdr domain-b)))
 
 	 (else
 	  (assertion-violation '%domain-union
@@ -620,11 +620,11 @@
 
 	 ((%range<? type range-a range-b)
 ;;;	  (write (list 'lesser range-a range-b))(newline)
-	  (loop (cons range-b (cons range-a result)) (cdr domain-a) (cdr domain-b)))
+	  (loop (cons range-a result) (cdr domain-a) domain-b))
 
 	 ((%range<? type range-b range-a)
 ;;;	  (write (list 'greater range-a range-b))(newline)
-	  (loop (cons range-a (cons range-b result)) (cdr domain-a) (cdr domain-b)))
+	  (loop (cons range-b result) domain-a (cdr domain-b)))
 
 	 (else
 	  (assertion-violation '%domain-difference
