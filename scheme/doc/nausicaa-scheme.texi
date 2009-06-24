@@ -27090,6 +27090,2419 @@ The returned range may share some value with the original ranges.
 @node foreign
 @chapter Foreign functions interface
 
+@menu
+* foreign memory::              Low level memory handling.
+* foreign ffi::                 Foreign functions interface.
+* foreign cstring::             C language strings handling.
+* foreign errno::               C language system errors.
+@end menu
+
+@c page
+@node memory
+@section Low level memory handling
+
+
+This chapter describes a low level @api{} for memory allocation and
+access.  Memory allocated with these functions is subjected to garbage
+collection.  To import the main library:
+
+@example
+(import (scheme)
+  (foreign memory))
+@end example
+
+@noindent
+other libraries are described in the relevant sections.  The
+@library{uriel foreign} library also exports bindings from
+@library{uriel memory}.
+
+@menu
+* memory conditions::           Out of memory errors.
+* memory pointers::             Pointer objects.
+* memory alloc::                Allocation functions.
+* memory bytevectors::          Bytevectors conversion.
+* memory blocks::               Memory blocks.
+* memory buffers::              Memory buffers.
+* memory cache::                Caching memory blocks.
+* memory factory::              Caching object factories.
+* memory compensate::           Compensations.
+* memory buffer alloc::         Allocation in a buffer.
+* memory refcount::             Reference counting.
+* memory operations::           Operations.
+* memory peekers::              Peeking values.
+* memory pokers::               Pokers values.
+* memory array peekers::        Peeking values into arrays.
+* memory array pokers::         Poking values into arrays.
+
+Independent libraries
+
+* guarded malloc::              Guarded memory allocation.
+@end menu
+
+@c page
+@node memory conditions
+@subsection Out of memory errors
+
+
+@deftp Condition {&out-of-memory}
+Type of condition objects that represent a memory allocation error.
+@end deftp
+
+
+@deffn {Condition Constructor} make-out-of-memory-condition @var{number-of-bytes}
+@deffnx {Condition Predicate} out-of-memory-condition? @var{object}
+@deffnx {Field Getter} out-of-memory-number-of-bytes @var{object}
+Functions to handle out of memory condition objects.
+
+@var{number-of-bytes} is the size of the requested allocation that could
+not be satisfied.
+@end deffn
+
+
+Example:
+
+@example
+(define (malloc size)
+  (or (primitive-malloc size)
+      (raise (condition (make-who-condition 'malloc)
+                        (make-message-condition "out of memory")
+                        (make-out-of-memory-condition size)))))
+@end example
+
+
+@defun raise-out-of-memory @var{who} @var{number-of-bytes}
+Raise a non--continuable exception representing a memory allocation
+failure.  The following form:
+
+@example
+(raise-out-of-memory 'malloc 4096)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(raise (condition (make-who-condition 'malloc)
+                  (make-message-condition "out of memory")
+                  (make-out-of-memory-condition 4096)))
+@end example
+@end defun
+
+
+@c page
+@node memory pointers
+@subsection Pointer objects
+
+
+Pointer values are values that the Scheme implementation uses to
+represent memory blocks.  Pointer could be represented with unsigned
+exact integers, but having a specific pointer value allows validation of
+arguments.
+
+
+@deffn Procedure pointer? @var{x}
+Return @true{} if the value of @var{x} is a value that the Scheme
+implementation uses to represent memory blocks, return @false{}
+otherwise.
+@end deffn
+
+
+@defun pointer-null? @var{pointer}
+Return @true{} if @var{pointer} represents a null pointer according to
+the underlying Scheme implementation, @false{} otherwise.
+@end defun
+
+
+@defvar pointer-null
+Holds a null pointer: if @func{pointer->integer} is applied to it the
+result is 0.  This variable exists to hold a prebuilt null pointer to be
+used as return value of function argument, whenever it can make
+algorithms simpler.
+@end defvar
+
+
+@deffn Procedure pointer->integer @var{pointer}
+Convert a pointer value to an exact integer.
+@end deffn
+
+
+@deffn Procedure integer->pointer @var{exact-integer}
+Convert an exact integer to a pointer value.
+@end deffn
+
+
+@defun pointer-diff @var{pointer-1} @var{pointer-2}
+Return the difference between the pointers.  It is implemented as:
+
+@example
+(define (pointer-diff pointer-1 pointer-2)
+  (- (pointer->integer pointer-1)
+     (pointer->integer pointer-2)))
+@end example
+@end defun
+
+
+@defun pointer-add @var{pointer} @var{offset}
+Add an offset to a pointer and return the resulting pointer.  It is
+implemented as:
+
+@example
+(define (pointer-add pointer offset)
+  (integer->pointer (+ (pointer->integer pointer)
+		       offset)))
+@end example
+@end defun
+
+
+@defun pointer=? @var{pointer0} @var{pointer} ...
+@defunx pointer<? @var{pointer0} @var{pointer} ...
+@defunx pointer>? @var{pointer0} @var{pointer} ...
+@defunx pointer<=? @var{pointer0} @var{pointer} ...
+@defunx pointer>=? @var{pointer0} @var{pointer} ...
+@defunx pointer<>? @var{pointer0} @var{pointer} ...
+All the arguments must be pointer values and are internally converted to
+integers.  Return @true{} if the integers satisfy the selected predicate
+(@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
+@false{}.  @func{pointer<>?} returns @true{} if all the pointers are
+different.
+
+With the single exception of @func{pointer<>?}: all the functions return
+@true{} when applied to a single argument.
+@end defun
+
+
+@c page
+@node memory alloc
+@subsection Allocation functions
+
+
+@ref{memory pointers} for the meaning of ``pointer values'' and the
+functions we can use to handle them.
+
+
+@subsubheading Platform functions
+
+
+@defun platform-malloc @var{number-of-bytes}
+An interface to the system @cfunc{malloc} function.  Allocate a block of
+memory and return a pointer to it.  If an allocation error occurs:
+return a null pointer.
+@end defun
+
+
+@defun platform-realloc @var{pointer} @var{new-number-of-bytes}
+An interface to the system @cfunc{realloc} function.  Reallocate a block
+of memory with different size and return a pointer to it.  If an
+allocation error occurs: return a null pointer.
+@end defun
+
+
+@defun platform-calloc @var{count} @var{element-size}
+An interface to the system @cfunc{calloc} function.  Allocate a block of
+memory and return a pointer to it.  The block is big enough to hold
+@var{count} objects each @var{element-size} wide.  Bytes in the block
+are reset to zero.  If an allocation error occurs: return a null
+pointer.
+@end defun
+
+
+@defun platform-free @var{pointer}
+An interface to the system @cfunc{free} function.  Release the block of
+memory referenced by @var{pointer}.  The return value is unspecified.
+@end defun
+
+
+@subsubheading Primitive functions
+
+
+The following functions perform allocation through customisable
+functions, which allow allocation logging and validation of error
+reactions.
+
+
+@deffn Function primitive-malloc @var{number-of-bytes}
+@deffnx Parameter primitive-malloc-function
+@func{primitive-malloc} allocates a block of memory and return a pointer
+to it, or @false{} if an error occurs.  The allocation is performed
+using the current value of @func{primitive-malloc-function}, which must
+be a function.  The parameter is preset to @func{platform-malloc}.
+@end deffn
+
+
+@deffn Function primitive-realloc @var{pointer} @var{new-number-of-bytes}
+@deffnx Parameter primitive-realloc-function
+@func{primitive-realloc} reallocates a block of memory with a new size
+and return a pointer to the new block, or @false{} if an error occurs.
+The allocation is performed using the current value of
+@func{primitive-realloc-function}, which must be a function.  The
+parameter is preset to @func{platform-realloc}.
+@end deffn
+
+
+@deffn Function primitive-calloc @var{count} @var{element-size}
+@deffnx Parameter primitive-calloc-function
+@func{primitive-calloc} allocates a block of memory (big enough to hold
+@var{count} elements of @var{element-size} each) and return a pointer to
+it, or @false{} if an error occurs.  The allocation is performed using
+the current value of @func{primitive-calloc-function}, which must be a
+function.  The parameter is preset to @func{platform-calloc}.
+@end deffn
+
+
+@deffn Function primitive-free @var{pointer}
+@deffnx Parameter primitive-free-function
+@func{primitive-free} releases a block of memory.  The release is
+performed using the current value of @func{primitive-free-function},
+which must be a function.  The parameter is preset to
+@func{platform-free}.
+@end deffn
+
+
+@subsubheading Exception raising functions
+
+
+@defun malloc @var{number-of-bytes}
+@defunx realloc @var{pointer} @var{new-number-of-bytes}
+@defunx calloc @var{count} @var{element-size}
+Wrappers for the corresponding @code{primitive-} functions that raise an
+@code{&out-of-memory} condition in case of error.  Blocks of memory
+allocated with these functions can be freed with @func{primitive-free}.
+@end defun
+
+
+@subsubheading Examples
+
+
+Care must be taken when managing memory with these low level functions:
+memory blocks will @strong{not} be garbage collected.  A method to
+release memory needed in a form is to use @func{dynamic-wind}:
+
+@example
+(let ((p #f))
+  (dynamic-wind
+    (lambda () (set! p (malloc 123)))
+    (lambda () (do-something-with p))
+    (lambda () (primitive-free p))))
+@end example
+
+@noindent
+another is to use a compensation:
+
+@example
+(with-compensations
+  (letrec ((p (compensate
+                  (malloc 123)
+                (with
+                  (primitive-free p)))))
+    (do-something-with p)))
+@end example
+
+@noindent
+another method, if supported, is to use @func{malloc/guarded},
+@ref{guarded malloc,guarded-malloc}
+
+To test memory allocation failure we can do:
+
+@example
+(define (failing-alloc . args)
+  pointer-null)
+
+(parameterize ((primitive-malloc-function failing-alloc))
+  (let ((p (malloc 4096)))
+    ---))
+@end example
+
+To log memory allocations we can do:
+
+@example
+(let-values (((port get-string) (open-string-output-port)))
+  (define (logging-malloc number-of-bytes)
+    (let ((p (platform-malloc number-of-bytes)))
+      (display (format "malloc:\t~s ~s\n" p number-of-bytes) port)
+      p))
+
+  (define (logging-free pointer)
+    (display (format "free:\t~s\n" pointer) port)
+    (platform-free pointer))
+
+  (parameterize ((primitive-malloc-function logging-malloc)
+                 (primitive-free-function logging-free))
+    (let ((p (malloc 4096)))
+      ---
+      (primitive-free p))))
+@end example
+
+
+@c page
+@node memory bytevectors
+@subsection Bytevectors conversion
+
+
+In the implementation of the following functions:
+
+@itemize
+@item
+when copying from a bytevector to a memory block, bytes are peeked with
+@func{bytevector-u8-ref} and poked with @func{pointer-set-c-char!};
+
+@item
+when copying from a memory block to a bytevector bytes are peeked with
+@func{pointer-ref-c-unsigned-char} and poked with
+@func{bytevector-u8-set!}.
+@end itemize
+
+Remember that we can compare two bytevectors with @func{bytevector=?},
+but to compare raw blocks of memory we can use the @func{memcpy}
+interface function.
+
+
+@defun bytevector->pointer @var{bvector} @var{malloc}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return the pointer.
+
+If @var{number-of-bytes} is given: that number of bytes is taken as size
+of the memory block, and only that number of bytes are copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: that number of
+bytes is taken as size of the memory block, and only that number of
+bytes are copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun bytevector->memblock @var{bvector} @var{malloc}
+@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return a @code{memblock} record.
+
+If @var{number-of-bytes} is given: that number of bytes is taken as size
+of the memory block, and only that number of bytes are copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: that number of
+bytes is taken as size of the memory block, and only that number of
+bytes are copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun pointer->bytevector @var{pointer} @var{number-of-bytes}
+@defunx pointer->bytevector @var{pointer} @var{number-of-bytes} @var{offset}
+Build a bytevector of length @var{number-of-bytes} and copy into it the
+bytes from the block of memory referenced by @var{pointer}.  If
+@var{offset} is given: start to read bytes at @var{offset} from
+@var{pointer}.
+@end defun
+
+
+@defun memblock->bytevector @var{memblock}
+@defunx memblock->bytevector @var{memblock} @var{number-of-bytes}
+@defunx memblock->bytevector @var{memblock} @var{number-of-bytes} @var{offset}
+Duplicate a @code{memblock} record into a bytevector.
+
+If @var{number-of-bytes} is given: that number of bytes is taken as size
+of the bytevector, and only that number of bytes are copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: that number of
+bytes is taken as size of the bytevector, and only that number of bytes
+are copied starting at @var{offset} from the beginning of the block.
+@end defun
+
+
+@c page
+@node memory blocks
+@subsection Memory blocks
+
+
+A memblock is a record that holds a pointer to an allocated memory block
+and its allocated size.
+
+
+@deftp {Record Type} memblock
+Type of record used to represent memory blocks.  It has two fields: a
+pointer value referencing an allocated memory block and the number of
+bytes in the allocated memory block.
+@end deftp
+
+
+@defun make-memblock @var{pointer} @var{number-of-bytes}
+Build and return a new @code{memblock} record.
+@end defun
+
+
+@defun memblock? @var{value}
+Return true if @var{value} is a record of type @code{memblock}, return
+@false{} otherwise.
+@end defun
+
+
+@defun memblock-pointer @var{mb}
+Return the value of the pointer field in @var{mb}.
+@end defun
+
+
+@defun memblock-size @var{mb}
+Return the value of the size field in @var{mb}.
+@end defun
+
+
+@c page
+@node memory buffers
+@subsection Memory buffers
+
+
+A buffer is a record derived from a memblock that adds a field
+representing the number of used bytes.
+
+
+@subsubheading Making
+
+
+@deftp {Record Type} buffer
+Type of record used to represent input and output buffers.  It has three
+fields: a pointer value referencing an allocated memory block; the
+number of bytes in the allocated memory block; the number of bytes
+actually holding data.
+@end deftp
+
+
+@defun make-buffer @var{pointer} @var{number-of-bytes} @var{used-size}
+Build and return a new @code{buffer} record.
+@end defun
+
+
+@subsubheading Predicates
+
+
+@defun buffer? @var{value}
+Return true if @var{value} is a record of type @code{buffer}, return
+@false{} otherwise.
+@end defun
+
+
+@defun buffer-full? @var{buf}
+Return @true{} if all the bytes in @var{buf} are used, otherwise return
+@false{}.
+@end defun
+
+
+@defun buffer-empty? buf
+Return @true{} if all the bytes in @var{buf} are free, otherwise return
+@false{}.
+@end defun
+
+
+@defun buffer-used? buf
+Return @true{} if some of the bytes in @var{buf} are used, otherwise
+return @false{}.
+@end defun
+
+
+@subsubheading Inspection
+
+
+@defun buffer-pointer @var{buf}
+Return the value of the pointer field in @var{buf}.
+@end defun
+
+
+@defun buffer-size @var{buf}
+Return the value of the size field in @var{buf}.
+@end defun
+
+
+@defun buffer-used-size-set! @var{buf} @var{number-of-bytes}
+@defunx buffer-used-size @var{buf}
+Set or get the value of the used--size field in @var{buf}.
+@end defun
+
+
+@defun buffer-free-size @var{buf}
+Return the number of free bytes in @var{buf}.
+@end defun
+
+
+@defun buffer-pointer-to-free-bytes @var{buf}
+Return a pointer to the first free byte in @var{buf}.  If the buffer if
+full: the pointer references the first byte past the allocated block.
+@end defun
+
+
+@defun buffer-used-memblock @var{buf}
+Return a @code{memblock} record representing the used portion of
+@var{buf}.
+@end defun
+
+
+@defun buffer-free-memblock @var{buf}
+Return a @code{memblock} record representing the free portion of
+@var{buf}.
+@end defun
+
+
+@subsubheading Operations
+
+
+@defun buffer-incr-used-size! @var{buf} @var{size-step}
+Update the number of used bytes in @var{buf} by adding @var{size-step},
+which must be an exact integer (positive or negative).
+@end defun
+
+
+@defun buffer-consume-bytes! @var{buf} @var{number-of-bytes}
+Update the status of @var{buf} considering consumed the first
+@var{number-of-bytes} bytes.  This means that used bytes starting at
+1+@var{number-of-bytes} are shifted to the beginning of the allocated
+area, and the number of used bytes is decremented by
+@var{number-of-bytes}.
+@end defun
+
+
+@defun buffer-push-memblock! @var{buffer} @var{memblock}
+Copy the contents of @var{memblock} into the free area at the end of
+@var{buffer} and update the buffer's used area status.  It is an error
+if @var{buffer} has not enough free bytes to hold data from
+@var{memblock}.
+@end defun
+
+
+@defun buffer-pop-memblock! @var{memblock} @var{buffer}
+Copy from the beginning of @var{buffer} to the beginning of
+@var{memblock} enough bytes to fill @var{memblock} and update the used
+area status of @var{buffer}.  It is an error if @var{buffer} has not
+enough used bytes to fill @var{memblock}.
+@end defun
+
+
+@defun buffer-push-bytevector! @var{buffer} @var{bytevector}
+Copy all the bytes from the @var{bytevector} to the free area of
+@var{buffer}.  It is an error if @var{buffer} has not enough room to
+hold all the bytes from @var{bytevector}.
+@end defun
+
+
+@defun buffer-pop-bytevector! @var{bytevector} @var{buffer}
+Copy enough used bytes from @var{buffer} to @var{bytevector} to fill
+@var{bytevector} and update the status of @var{buffer}.  It is an error
+if @var{buffer} has not enough used bytes to fill @var{bytevector}.
+@end defun
+
+
+@defun buffer-push-buffer! @var{dst-buffer} @var{src-buffer}
+@defunx buffer-pop-buffer! @var{dst-buffer} @var{src-buffer}
+Copy as much bytes as possible from @var{src-buffer} to @var{dst-buffer}
+and update the statuses of the buffers.
+@end defun
+
+
+@c page
+@node memory cache
+@subsection Caching memory blocks
+
+
+@defun make-block-cache @var{number-of-bytes} @var{max-depth}
+Build and return a new memory blocks cache, for blocks of
+@var{number-of-bytes}, that at maximum will cache @var{max-depth}
+blocks.  The return value is an interface function with the following
+protocol:
+
+@table @emph
+@item when the function is invoked with zero arguments
+it retrieves a block from the set of cached blocks; if the set is empty:
+a new block is allocated with @func{calloc};
+
+@item when the function is invoked with 1 argument
+if the argument is the symbol @code{purge}: @func{primitive-free} is
+applied to all the blocks in the cache and the cache is reset to empty;
+
+else the argument must be a pointer previously returned by this
+interface function: if the number of blocks in the cache is less than
+@var{max-depth}, the pointer is stored in the cache, else
+@func{primitive-free} is applied to it.
+@end table
+@end defun
+
+
+@defun small-blocks-cache
+@defunx small-blocks-cache @var{pointer}
+@defunx small-blocks-cache purge
+Interface function for a cache of memory blocks of size 32, 10 blocks
+deep.  This cache is meant to be used for temporary storage space of
+output values from foreign functions.  The size of 32 should be enough
+to hold all the output values of C language standard types.
+
+Blocks are allocated with @func{calloc} and reset to zero with
+@func{memset} when released, so they are guaranteed to be set to zero
+when acquired.
+
+For example, the @gnu{} Libgcrypt library has a constructor with this
+prototype:
+
+@example
+gcry_error_t gcry_cipher_open (gcry_cipher_hd_t * hd,
+                               int algo, int mode,
+                               unsigned int flag);
+@end example
+
+@noindent
+where @code{gcry_cipher_hd_t} is a @code{typedef} for an opaque pointer
+(we can think of it as @code{void *}); the @var{hd} argument must
+reference a pointer sized location in which the function will store a
+pointer to a newly allocated data structure; this location is required
+only for the construction of a new object, so a Scheme interface could
+do (unsafe code, not handling errors):
+
+@example
+(let ((hd  #f)
+      (hd* (small-blocks-cache)))
+  (gcry_cipher_open hd* algo mode flag)
+  (set! hd (pointer-ref-c-pointer hd* 0))
+  (small-blocks-cache hd*)
+  hd)
+@end example
+@end defun
+
+
+@defun page-blocks-cache
+@defunx page-blocks-cache @var{pointer}
+@defunx page-blocks-cache purge
+Interface function for a cache of memory blocks of size 4096, 10 blocks
+deep.
+@end defun
+
+
+@defun memblocks-cache @var{memblock-or-size}
+Interface function to memblocks allocation and release.  When
+@var{memblock-or-size} is:
+
+@table @emph
+@item a record of type @code{memblock}
+the function releases the allocated memory block;
+
+@item an unsigned exact integer
+the number is meant to represent the number of bytes to be allocated: a
+new @code{memblock} record is allocated and returned.
+@end table
+
+Allocation and releasing of memory blocks is done, in this order:
+
+@enumerate
+@item
+relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block;
+
+@item
+relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block;
+
+@item
+relying on @func{calloc} and @func{primitive-free} in all the other cases.
+@end enumerate
+@end defun
+
+
+@defun buffers-cache @var{buffer-or-size}
+Like @func{memblocks-cache} but works with records of type @code{buffer}.
+@end defun
+
+
+@c page
+@node memory factory
+@subsection Caching object factories
+
+
+@defun make-caching-object-factory @var{init-func} @var{final-func} @var{number-of-bytes} @var{max-depth}
+Build and return a new caching object factory.  It is a wrapper for
+@func{make-block-cache}, to which the @var{number-of-bytes} and
+@var{max-depth} arguments are handed untouched.  The return value is an
+interface function with the following protocol:
+
+@table @emph
+@item when the function is invoked with zero arguments
+it retrieves a block from the cache and applies @var{init-func} to it; a
+pointer to the block is returned;
+
+@item when the function is invoked with 1 argument
+if the argument is the symbol @code{purge}: the same symbol is handed to
+the block cache, causing the cache to be purged of allocated blocks;
+
+else the argument must be a pointer previously returned by this
+interface function: @func{final-func} is applied to it, then it is
+handed to the underlying block cache interface function.
+@end table
+
+For example, the @acronym{MPFR} library (Multiple Precision
+Floating--Point Reliable Library) requires us to allocate structures of
+type @code{mpfr_t}, then to use an initialiser and a finaliser with the
+following prototypes:
+
+@example
+void mpfr_init  (mpfr_ptr p);
+void mpfr_clear (mpfr_ptr p);
+@end example
+
+@noindent
+@code{mpfr_t} values are real numbers with special representation, so we
+may need a lot of them to carry on computations; a Scheme interface
+could initialise itself like this:
+
+@example
+(define sizeof-mpfr 64) ;this must be exactly determined
+
+(define mpfr-lib
+  (let ((o (open-shared-object "libmpfr.so")))
+    (shared-object o)
+    o))
+
+(define mpfr_ptr 'pointer)
+(define-c-function mpfr_init  (void mpfr_init  (mpfr_ptr)))
+(define-c-function mpfr_clear (void mpfr_clear (mpfr_ptr)))
+
+(define mpfr
+  (make-caching-object-factory mpfr_init mpfr_clear
+                               sizeof-mpfr 100))
+
+(define (compensate-mpfr)
+  (letrec ((p (compensate (mpfr)
+                (with (mpfr p)))))
+    p))
+@end example
+
+@noindent
+and then:
+
+@example
+(with-compensations
+  (let ((a (compensate-mpfr))
+        (b (compensate-mpfr)))
+    (do-something-with a b)))
+@end example
+
+@noindent
+at the end of the world, if we feel like it, we can do:
+
+@example
+(mpfr 'purge)
+@end example
+@end defun
+
+
+@c page
+@node memory compensate
+@subsection Compensations
+
+
+@ref{lang compensations} for details about compensations.
+
+
+@defun malloc/compensated @var{number-of-bytes}
+@defunx calloc/compensated @var{count} @var{element-size}
+@defunx malloc/c @var{number-of-bytes}
+@defunx calloc/c @var{count} @var{element-size}
+Wrappers for @func{malloc} and @func{calloc} that allocate a block of
+memory and return a pointer to it.  The appropriate invocation to
+@func{primitive-free}, to free the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@defun malloc-small/compensated
+@defunx malloc-small/c
+Acquire a small block of memory from @func{small-blocks-cache} and
+return a pointer to it.  The appropriate invocation to
+@func{small-blocks-cache}, to release the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@defun malloc-page/compensated
+@defunx malloc-page/c
+Acquire a page of memory from @func{page-blocks-cache} and return a
+pointer to it.  The appropriate invocation to @func{page-blocks-cache},
+to release the block, is added to the dynamic environment of the current
+compensations stack.
+@end defun
+
+
+@defun malloc-block/compensated @var{number-of-bytes}
+@defunx malloc-block/c @var{number-of-bytes}
+Allocate a new memory block and return a pointer to it.  The appropriate
+invocation to the release function is added to the dynamic environment
+of the current compensations stack.
+
+Allocation and releasing of memory blocks is done, in this order:
+
+@enumerate
+@item
+relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block;
+
+@item
+relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block;
+
+@item
+relying on @func{calloc} and @func{primitive-free} in all the other cases.
+@end enumerate
+@end defun
+
+
+@defun malloc-memblock/compensated @var{number-of-bytes}
+@defunx malloc-memblock/c @var{number-of-bytes}
+Acquire a block of memory from @func{memblocks-cache} and return a
+record of type @code{memblock}.  The appropriate invocation to
+@func{memblocks-cache}, to release the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@defun malloc-buffer/compensated @var{number-of-bytes}
+@defunx malloc-buffer/c @var{number-of-bytes}
+Acquire a block of memory from @func{buffers-cache} and return a record
+of type @code{buffer}.  The appropriate invocation to
+@func{buffers-cache}, to release the block, is added to the dynamic
+environment of the current compensations stack.
+@end defun
+
+
+@c page
+@node memory buffer alloc
+@subsection Allocation in a buffer
+
+
+The @api{} described in this section allows us to allocate memory blocks
+contiguously from a preallocated memory block accessed through a
+@code{buffer} record.  Requested memory blocks are just marked as used
+in the status of a buffer.  When using this allocator there is no need
+to release individual blocks: releasing the buffer frees all of them.
+
+
+@deffn Parameter memory-buffer-pool
+Holds the buffer from which memory blocks must be allocated, or @false{}
+if buffer allocation is disabled.  The default value is @false{}.
+@end deffn
+
+
+@defun primitive-buffer-malloc @var{number-of-bytes}
+Allocates @var{number-of-bytes} in the current buffer pool and return a
+pointer to the first allocated byte, or @false{} if there is not enough
+room in the pool.
+
+Notice that this function has the correct interface to be used as value
+for the @func{primitive-malloc-function} parameter.
+@end defun
+
+
+@defun buffer-malloc @var{number-of-bytes}
+A wrapper for @func{primitive-buffer-malloc} the raises an exception if
+there is not enough room in the pool.
+@end defun
+
+
+Example:
+
+@example
+(with-compensations
+  (parameterize ((memory-buffer-pool
+                  (make-buffer (malloc/c 4096) 4096 0)))
+    (let ((p (buffer-malloc 10))
+          (q (buffer-malloc 20)))
+      ---)))
+@end example
+
+
+@c page
+@node memory refcount
+@subsection Reference counting
+
+
+Reference counting is implemented by allocating a block of memory with
+the requested size plus @code{strideof-long}.  The block will look like
+this:
+
+@example
+ strideof-long            data area
+|-------------|--------------------------------------|
+              ^
+              |
+pointer returned by MALLOC/REFCOUNT
+@end example
+
+@noindent
+the reference counter is handled as an @code{unsigned long} and it is
+located at a negative offset from the address we use to access data.
+
+
+@defun malloc/refcount @var{number-of-bytes}
+@defunx malloc/refcount @var{number-of-bytes} @var{malloc-func}
+@defunx malloc/rc @var{number-of-bytes}
+@defunx malloc/rc @var{number-of-bytes} @var{malloc-func}
+Allocate a block of memory wide enough to hold @var{number-of-bytes}
+using reference counting.  Return a pointer to the first byte in the
+data area of the allocated block.
+
+The reference counter is initially set to zero.
+
+Memory is allocated with the supplied @var{malloc-func}, or with
+@func{malloc} if @var{malloc-func} is not given.
+@end defun
+
+
+@defun pointer-acquire @var{pointer}
+Increment the reference counter of the memory block referenced by
+@var{pointer}.  The block must have been allocated with
+@func{malloc/rc}.
+@end defun
+
+
+@defun pointer-release @var{pointer}
+@defunx pointer-release @var{pointer} @var{free-func}
+Decrement the reference counter of the memory block referenced by
+@var{pointer}.  The block must have been allocated with
+@func{malloc/rc}.
+
+If the counter reaches zero: the block is freed using the supplied
+@var{free-func}, or @var{primitive-free} if @var{free-func} is not
+given.
+@end defun
+
+
+@c page
+@node memory operations
+@subsection Operations
+
+
+@defun memcpy @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
+An interface to the @cfunc{memcpy} system function.  Copy
+@var{number-of-bytes} bytes from @var{source-pointer} to
+@var{dest-pointer}.
+@end defun
+
+
+@defun memmove @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
+An interface to the @cfunc{memmove} system function.  Like @func{memcpy}
+but allows the blocks to be overlapped.
+@end defun
+
+
+@defun memset @var{pointer} @var{value} @var{number-of-bytes}
+An interface to the @cfunc{memset} system function.  Set to @var{value}
+the first @var{number-of-bytes} bytes starting from @var{pointer}.
+@end defun
+
+
+@defun memcmp @var{pointer1} @var{pointer2} @var{number-of-bytes}
+An interface to the @cfunc{memcmp} system function.  Compare
+@var{number-of-bytes} starting at @var{pointer1} and @var{pointer2} and
+return an integer having the same sign as the difference between the
+first different bytes from the blocks.  If the blocks are equal, the
+return value is zero.
+@end defun
+
+
+@c page
+@node memory peekers
+@subsection Peeking values
+
+
+The @api{} described in this section is almost equal to the one provided
+by Ikarus Scheme.  With all the functions the following notices about
+arguments have to be considered.
+
+@table @var
+@item pointer
+It must be a value used to reference a memory block.  @ref{memory
+pointers} for details.
+
+@item value
+It must be an exact integer compatible with the target data type.
+
+@item offset
+It must be an exact integer, a fixnum, representing the offset of a byte
+into an allocated block of memory.  It can be a negative offset.
+@end table
+
+When adding an offset to a pointer: all the following functions
+@strong{do not} scale the offset to the size of the peeked value.
+Pointer arithmetics is performed with byte offsets.
+
+
+@subsubheading Peeking exact integers
+
+
+@deffn Procedure pointer-ref-c-signed-char @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-char @var{pointer} @var{offset}
+Peek the single byte located at @var{offset} from @var{pointer} and
+return an exact integer representing the sign--extended integer value of
+that byte. The returned value is in the inclusive range @code{[-128,
+127]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-char @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-char @var{pointer} @var{offset}
+Peek the single byte located at @var{offset} from @var{pointer} and
+return an exact integer representing the unsigned integer value of that
+byte.  The returned value is in the inclusive range @code{[0, 255]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-signed-short @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-short @var{pointer} @var{offset}
+Peek two bytes at @var{offset} from @var{pointer} and return an exact
+integer representing the sign--extended integer value of the sequence.
+The returned value is in the inclusive range @code{[-32768, 32767]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-short @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-short @var{pointer} @var{offset}
+Peek two bytes at @var{offset} from @var{pointer} and return an exact
+integer representing the unsigned integer value of the sequence.  The
+resulting value is in the inclusive range @code{[0, 65535]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-signed-int @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-int @var{pointer} @var{offset}
+Peek four bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[-2^31, 2^31-1]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-int @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-int @var{pointer} @var{offset}
+Peek four bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[0, 2^32-1]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-signed-long @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-long @var{pointer} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
+and return an integer in the inclusive range @code{[-2^63, 2^63-1]}.
+
+On 32-bit systems, perform the same task as
+@func{pointer-ref-c-signed-int}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-long @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-long @var{pointer} @var{offset}
+On 64-bit systems: peek eight bytes at @var{offset} from @var{pointer}
+and return an integer in the inclusive range @code{[0, 2^64-1]}.
+
+On 32-bit systems: perform the same task as
+@func{pointer-ref-c-unsigned-int}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-signed-long-long @var{pointer} @var{offset}
+@deffnx Procedure peek-signed-long-long @var{pointer} @var{offset}
+Peek eight bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[-2^63, 2^63-1]}.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-unsigned-long-long @var{pointer} @var{offset}
+@deffnx Procedure peek-unsigned-long-long @var{pointer} @var{offset}
+Peek eight bytes at @var{offset} from @var{pointer} and return an exact
+integer in the inclusive range @code{[0, 2^63-1]}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Peeking floating point numbers
+
+
+@deffn Procedure pointer-ref-c-float @var{pointer} @var{offset}
+@deffnx Procedure peek-float @var{pointer} @var{offset}
+Return the four--byte float (represented as @ieee{} 754 single precision
+floating point number) stored at @var{offset} from @var{pointer}.  The
+value is extended to an @ieee{} 754 double precision floating point
+number that Ikarus uses to represent inexact numbers.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-double @var{pointer} @var{offset}
+@deffnx Procedure peek-double @var{pointer} @var{offset}
+Return the eight--byte float (represented as @ieee{} 754 double
+precision floating point number) stored at @var{offset} from
+@var{pointer}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Peeking pointers
+
+
+@deffn Procedure pointer-ref-c-pointer @var{pointer} @var{offset}
+@deffnx Procedure peek-pointer @var{pointer} @var{offset}
+Return the a value representing the pointer stored at @var{offset} from
+@var{pointer}.  The size of the pointer (also the number of bytes loaded)
+depends on the architecture: it is 4 bytes on 32-bit systems and 8 bytes
+on 64-bit systems.
+
+We have to assume that the returned value can be converted to an exact
+integer with @func{pointer->integer}.
+@end deffn
+
+
+@c page
+@node memory pokers
+@subsection Pokers values
+
+
+The @api{} described in this section is almost equal to the one provided
+by Ikarus Scheme.  With all the functions the following notices about
+arguments have to be considered.
+
+@table @var
+@item pointer
+It must be a value used to reference a memory block.  @ref{memory
+pointers} for details.
+
+@item value
+It must be an exact integer compatible with the target data type.
+
+@item offset
+It must be an exact integer, a fixnum, representing the offset of a byte
+into an allocated block of memory.  It can be a negative offset.
+@end table
+
+When adding an offset to a pointer: all the following functions
+@strong{do not} scale the offset to the size of the poked value.
+Pointer arithmetics is performed with byte offsets.
+
+
+@macro poker{BYTENUM,BITNUM}
+Set to @var{value} the \BYTENUM\ of memory located at @var{offset} from
+@var{pointer}.  Only the \BITNUM\ lowermost bits of @var{value} are used
+in the operation and the remaining bits are ignored.
+@end macro
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Poking exact integers
+
+
+@deffn Procedure pointer-set-c-char! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-char! @var{pointer} @var{offset} @var{value}
+@poker{single byte,8}
+@end deffn
+
+
+@deffn Procedure pointer-set-c-short! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-short! @var{pointer} @var{offset} @var{value}
+@poker{two bytes,16}
+@end deffn
+
+
+@deffn Procedure pointer-set-c-int! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-int! @var{pointer} @var{offset} @var{value}
+@poker{four bytes,32}
+@end deffn
+
+
+@deffn Procedure pointer-set-c-long! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-long! @var{pointer} @var{offset} @var{value}
+On 64-bit systems: @poker{eight bytes,64}
+
+On 32-bit systems: perform the same task as @func{pointer-set-c-int!}.
+@end deffn
+
+
+@deffn Procedure pointer-set-c-long-long! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-long-long! @var{pointer} @var{offset} @var{value}
+@poker{eight bytes,64}
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Poking floating point numbers
+
+
+@deffn Procedure pointer-set-c-float! @var{pointer} @var{offset} @var{flonum}
+@deffnx Procedure poke-float! @var{pointer} @var{offset} @var{flonum}
+Convert the Scheme floating point number @var{flonum} (represented in
+Ikarus as an @ieee{} 754 double precision floating point number) to a
+float (an @ieee{} 754 single precision floating point number) and store
+the result in the four bytes at @var{offset} from @var{pointer}.
+@end deffn
+
+
+@deffn Procedure pointer-set-c-double! @var{pointer} @var{offset} @var{flonum}
+@deffnx Procedure poke-double! @var{pointer} @var{offset} @var{flonum}
+Store the double precision @ieee{} 754 floating point value of the
+Scheme @var{flonum} in the eight bytes at @var{offset} from
+@var{pointer}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Poking pointers
+
+
+@deffn Procedure pointer-set-c-pointer! @var{pointer} @var{offset} @var{pointer-value}
+@deffnx Procedure poke-pointer! @var{pointer} @var{offset} @var{pointer-value}
+On 64-bit systems: set the eight bytes at @var{offset} from
+@var{pointer} to the 64-bit pointer @var{pointer-value}.
+
+On 32-bit systems: set the four bytes at @var{offset} from @var{pointer}
+to the 32-bit pointer @var{pointer-value}.
+
+We have to assume that we can convert an exact integer to a pointer
+value using @func{integer->pointer}.
+@end deffn
+
+
+@c page
+@node memory array peekers
+@subsection Peeking values into arrays
+
+
+The following functions make use of the pokers to access an array of
+basic C language data types.  The index is used to compute the position
+of the first byte taking into account the element stride of the data
+type.
+
+To allocate an array of a given type, we can compute the correct size
+using the @code{sizeof-*-array} bindings.  @ref{ffi sizeof,
+sizeof-char-array}
+
+
+@defun peek-array-signed-char @var{pointer} @var{index}
+@defunx peek-array-unsigned-char @var{pointer} @var{index}
+Peek a character integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-short @var{pointer} @var{index}
+@defunx peek-array-unsigned-short @var{pointer} @var{index}
+Peek a short integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-int @var{pointer} @var{index}
+@defunx peek-array-unsigned-int @var{pointer} @var{index}
+Peek an integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-long @var{pointer} @var{index}
+@defunx peek-array-unsigned-long @var{pointer} @var{index}
+Peek a long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-signed-long-long @var{pointer} @var{index}
+@defunx peek-array-unsigned-long-long @var{pointer} @var{index}
+Peek a long long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-float @var{pointer} @var{index}
+@defunx peek-array-double @var{pointer} @var{index}
+Peek a floating pointer number at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun peek-array-pointer @var{pointer} @var{index}
+Peek a pointer at @var{index} from @var{pointer}.
+@end defun
+
+
+@c page
+@node memory array pokers
+@subsection Poking values into arrays
+
+
+The following functions make use of the pokers to access an array of
+basic C language data types.  The index is used to compute the position
+of the first byte taking into account the element stride of the data
+type.
+
+To allocate an array of a given type, we can compute the correct size
+using the @code{sizeof-*-array} bindings.  @ref{ffi sizeof,
+sizeof-char-array}
+
+
+@defun poke-array-char! @var{pointer} @var{index} @var{value}
+Poke a character at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-short! @var{pointer} @var{index} @var{value}
+Poke a short integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-int! @var{pointer} @var{index} @var{value}
+Poke an integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-long! @var{pointer} @var{index} @var{value}
+Poke a long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-long-long! @var{pointer} @var{index} @var{value}
+Poke a long long integer at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-float! @var{pointer} @var{index} @var{value}
+@defunx poke-array-double! @var{pointer} @var{index} @var{value}
+Poke a floating point number at @var{index} from @var{pointer}.
+@end defun
+
+
+@defun poke-array-pointer! @var{pointer} @var{index} @var{value}
+Poke a pointer at @var{index} from @var{pointer}.
+@end defun
+
+
+@c page
+@node guarded malloc
+@subsection Guarded memory allocation
+
+
+The functions described in this section are usable only when the Scheme
+implementation provides guardians (Ikarus does, Ypsilon does not).
+
+To load the library:
+
+@example
+(import (scheme)
+  (uriel guarded-malloc))
+@end example
+
+
+@defun malloc/guarded @var{number-of-bytes}
+A wrapper for @func{primitive-malloc} that:
+
+@itemize
+@item
+if the allocation is successful: registers the pointer into a guardian
+and returns it;
+
+@item
+if the allocation fails, raises an @code{&out-of-memory} condition.
+@end itemize
+
+The library registers a cleanup function for the guardian in the state
+of the @library{uriel cleanup} library, so memory allocated with this
+function is released by invoking @func{uriel-cleanup}.  @strong{Do not}
+free this memory with @func{primitive-free} or any other free function.
+@end defun
+
+
+@defun calloc/guarded @var{count} @var{element-size}
+Like @func{malloc/guarded} but makes use of @func{calloc}.
+@end defun
+
+
+@c page
+@node ffi
+@section Foreign functions interface
+
+
+This chapter describes a wrapper of the foreign functions interface from
+the underlying Scheme implementation.  To load the library:
+
+@example
+(import (scheme)
+  (uriel ffi))
+@end example
+
+@noindent
+only functions needed to build an interface to a foreign C language
+shared object are made available by this library; other functions (to do
+actual operations) are in the @library{glibc ---} and @library{posix
+---} libraries.
+
+The @library{uriel foreign} library also exports bindings from
+@library{uriel ffi}.
+
+@menu
+* ffi example::                 Basic interface to Zlib.
+* ffi load::                    Dynamic loading of libraries.
+* ffi call::                    Interface functions.
+* ffi sizeof::                  Sizes and limits.
+* ffi headers::                 Inspecting foreign header files.
+@end menu
+
+
+@c page
+@node ffi example
+@subsection Basic interface to Zlib
+
+
+Here is an incomplete example interface to the popular Zlib on Unix like
+systems, to make clear what we are talking about.  It is incomplete
+because it does not define the offsets of fields in the @code{z_stream}
+structure, which are needed to use it.  @ref{ffi headers} for a
+discussion about how to implement the missing bits.
+
+As we can see: writing a binding to a foreign library is basically a
+copy and paste from the C language header file, with some adjustment
+(most of which can be done in a text editor with appropriate regular
+expressions support).
+
+@example
+(library (zlib)
+  (export
+    deflateInit deflate deflateEnd
+    inflateInit inflate inflateEnd
+
+    Z_NO_FLUSH Z_PARTIAL_FLUSH Z_SYNC_FLUSH Z_FULL_FLUSH
+    Z_FINISH Z_BLOCK
+
+    Z_OK Z_STREAM_END Z_NEED_DICT Z_ERRNO Z_STREAM_ERROR
+    Z_DATA_ERROR Z_MEM_ERROR Z_BUF_ERROR Z_VERSION_ERROR
+
+    Z_NO_COMPRESSION Z_BEST_SPEED
+    Z_BEST_COMPRESSION Z_DEFAULT_COMPRESSION
+
+    Z_FILTERED Z_HUFFMAN_ONLY Z_RLE Z_FIXED Z_DEFAULT_STRATEGY
+
+    Z_NULL)
+  (import (scheme)
+    (uriel ffi))
+
+  (define zlib
+    (let ((o (open-shared-object 'libz.so)))    ;load it
+      (shared-object o)                         ;make it current
+      o))
+
+;;; Type conversions.
+  (define z_streamp 'pointer)
+
+;;; Constants.
+  (define Z_NO_FLUSH            0)
+  (define Z_PARTIAL_FLUSH       1)
+  (define Z_SYNC_FLUSH          2)
+  (define Z_FULL_FLUSH          3)
+  (define Z_FINISH              4)
+  (define Z_BLOCK               5)
+
+  (define Z_OK                  0)
+  (define Z_STREAM_END          1)
+  (define Z_NEED_DICT           2)
+  (define Z_ERRNO               -1)
+  (define Z_STREAM_ERROR        -2)
+  (define Z_DATA_ERROR          -3)
+  (define Z_MEM_ERROR           -4)
+  (define Z_BUF_ERROR           -5)
+  (define Z_VERSION_ERROR       -6)
+
+  (define Z_NO_COMPRESSION      0)
+  (define Z_BEST_SPEED          1)
+  (define Z_BEST_COMPRESSION    9)
+  (define Z_DEFAULT_COMPRESSION -1)
+
+  (define Z_FILTERED            1)
+  (define Z_HUFFMAN_ONLY        2)
+  (define Z_RLE                 3)
+  (define Z_FIXED               4)
+  (define Z_DEFAULT_STRATEGY    0)
+
+  (define Z_NULL                0)
+
+;;; Deflating.
+  (define-c-function deflateInit
+    (int deflateInit_ (z_streamp int)))
+
+  (define-c-function deflate
+    (int deflate (z_streamp int)))
+
+  (define-c-function deflateEnd
+    (int deflateEnd (z_streamp)))
+
+;;; Inflating.
+  (define-c-function inflateInit
+    (int inflateInit_ (z_streamp)))
+
+  (define-c-function inflate
+    (int inflate (z_streamp int)))
+
+  (define-c-function inflateEnd
+    (int inflateEnd (z_streamp))))
+@end example
+
+
+@c page
+@node ffi load
+@subsection Dynamic loading of libraries
+
+
+@deffn Parameter shared-object
+Holds a value referencing the ``current'' shared object: the shared
+object in which @func{primitive-make-c-function} will look for symbols.
+Shared objects references are produced with @func{open-shared-object}.
+
+The initial value selects the current process; with this value we can
+access symbols exported by the current program and the libraries that
+have been already loaded (this may be platform specific, check out the
+documentation of your operative system).  For example: the symbols from
+the standard C library, like @cfunc{fwrite}, can be accessed this way.
+@end deffn
+
+
+@defun open-shared-object @var{library-name}
+Open a new shared object and return its identifier.  The return value is
+meant to be stored in the @code{shared-object} parameter while creating
+interface functions for it.
+
+@var{library-name} must be a string or symbol representing the file name
+or pathname to be opened.  Examples:
+
+@example
+(define mpfr-lib
+  (let ((l (open-shared-object 'libmpfr.so)))
+    (shared-object l)
+    l))
+
+(define mpfi-lib
+  (let ((l (open-shared-object '/usr/local/lib/libmpfi.so)))
+    (shared-object l)
+    l))
+@end example
+
+In the case of a name (wihtout directory part) the search path for
+shared objects is implemenation dependent.
+
+@quotation
+@emph{Unix:} We can find documentation about the search path of shared
+objects in the manual page of @cfunc{dlopen}.
+@end quotation
+@end defun
+
+
+@defvar self-shared-object
+Bound to the value that identifies the current process.  It is the
+initial value of @code{shared-object}
+@end defvar
+
+
+@c page
+@node ffi call
+@subsection Functions interface
+
+
+@menu
+* ffi call types::              Interface to C language types.
+* ffi call out::                Calling foreign functions.
+* ffi call in::                 Calling Scheme functions.
+@end menu
+
+@c page
+@node ffi call types
+@subsubsection Interface to C language types
+
+
+The following symbols are accepted as C language type identifiers, but
+not all Scheme implementations support them all: we will have to find
+out by trial and error.  We should be safe using: @code{int},
+@code{pointer} and @code{double}, which are enough for a lot of foreign
+libraries.
+
+@quotation
+@emph{Ikarus:} The Ikarus Scheme implementation supports all these
+types.
+@end quotation
+
+@quotation
+@emph{Ypsilon:} The Ypsilon Scheme implementation @strong{does not}
+support all these types. @ypsilonref{ffi types,Handling of type
+conversions}.
+@end quotation
+
+Remember that C strings (zero terminated arrays of @code{char}) must be
+created from Scheme strings with @func{string->cstring}, and handed to
+the foreign functions as pointers.
+
+@table @code
+@item char
+@itemx schar
+@itemx signed-char
+Signed character.
+
+@item uchar
+@itemx unsigned-char
+Unsigned character.
+
+@item int
+@itemx signed-int
+@itemx ssize_t
+Signed fixnum.
+
+@item uint
+@itemx unsigned
+@itemx unsigned-int
+@itemx size_t
+Unsigned fixnum.
+
+@item long
+@itemx signed-long
+Signed integer.
+
+@item ulong
+@itemx unsigned-long
+Unsigned integer.
+
+@item float
+Single precision flonum.
+
+@item double
+Double precision flonum.
+
+@item pointer
+@itemx void*
+@itemx char*
+@itemx FILE*
+Pointer to a block of memory.
+
+@item callback
+Pointer to a callback function.
+
+@item void
+No value.
+@end table
+
+
+@c page
+@node ffi call out
+@subsubsection Calling foreign functions
+
+
+@defun primitive-c-function @var{ret-type} @var{export-name} @var{arg-types}
+@defunx primitive-c-function/with-errno @var{ret-type} @var{export-name} @var{arg-types}
+Build and return a new Scheme interface function for a C language
+foreign function in the current shared object.  The current shared
+object is referenced by the value of the @code{shared-object} parameter.
+
+The @code{/with-errno} variant returns two values: the return value from
+the foreign function and the value of the @code{errno} variable just
+after the call to the foreign function.
+
+@quotation
+@emph{Note:} Some @posix{} function returns an integer representing
+success or failure, and only when the returned value represents failure
+the @code{errno} value is meaningful.
+@end quotation
+
+@table @var
+@item ret-type
+A symbol among the ones that select a C language type.  It is the type
+of value returned by the foreign function.
+
+@item pri-name
+A Scheme symbol representing the name of the symbol exported by the
+shared object.  Beware that, sometimes, the exported symbols are
+different from the ones we write in C language code to call a function.
+
+@item arg-types
+A list of symbols among the ones that select a C language type.  It is
+the list of types for the arguments required by the foreign function.
+If the foreign function accepts no arguments: this list must be @code{(void)}.
+@end table
+
+@quotation
+@emph{Unix:} One way to discover the names of symbols exported by a
+shared object, is to apply the @command{strings} command to the shared
+object.  For example, to discover the names of deflate functions in
+Zlib:
+
+@example
+$ strings /usr/lib/libz.so | grep deflate
+deflateInit_
+deflate
+deflateEnd
+...
+@end example
+@end quotation
+
+Variadic functions (like @cfunc{fprintf}) are @strong{not} supported
+(sorry).
+
+As an example, the main deflate functions from Zlib can be defined with:
+
+@example
+(define deflateInit
+  (primitive-make-c-function
+     'int 'deflateInit_ '(pointer int)))
+
+(define deflate
+  (primitive-make-c-function
+     'int 'deflate '(pointer int)))
+
+(define deflateEnd
+  (primitive-make-c-function
+     'int 'deflateEnd '(pointer)))
+@end example
+@end defun
+
+
+@deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax make-c-function/with-errno @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+@deffnx Syntax define-c-function/with-errno @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+These are wrappers for @func{primitive-make-c-function} that allow us to
+avoid quoting of arguments.  @func{define-c-function} is itself a
+wrapper for @func{make-c-function}.
+
+The @code{/with-errno} variants are wrappers for
+@func{primitive-c-function/with-errno}.
+
+As an example, the main deflate functions from Zlib can be defined with:
+
+@example
+(define zstream 'pointer)
+
+(define deflateInit
+  (make-c-function int deflateInit_ (zstream int)))
+
+(define deflate
+  (make-c-function int deflate (zstream int)))
+
+(define deflateEnd
+  (make-c-function int deflateEnd (zstream)))
+@end example
+
+@noindent
+or with:
+
+@example
+(define zstream 'pointer)
+
+(define-c-function deflateInit
+  (int deflateInit_ (zstream int)))
+
+(define-c-function deflate
+  (int deflate (zstream int)))
+
+(define-c-function deflateEnd
+  (int deflateEnd (zstream)))
+@end example
+
+@noindent
+and notice that: in the expansion of the macros, the predefined types
+(like @code{int}) will be quoted, while the custom types (like
+@code{zstream}) will be left unquoted and so they will correctly
+reference bindings (in the example @code{zstream} evaluates to
+@code{pointer}).
+@end deffn
+
+
+Miscellaneous examples from the C standard library and the @posix{}
+interface:
+
+@example
+(define-c-function fopen
+  (pointer fopen (pointer pointer)))
+
+(define-c-function fwrite
+  (size_t fwrite (pointer size_t size_t pointer)))
+
+(define-c-function fread
+  (size_t fread (pointer size_t size_t pointer)))
+
+(define-c-function open
+  (int open (pointer int)))
+
+(define-c-function write
+  (ssize_t write (int pointer size_t)))
+
+(define-c-function read
+  (ssize_t read (int pointer size_t)))
+@end example
+
+
+
+@c page
+@node ffi call in
+@subsubsection Calling Scheme functions
+
+
+
+
+@c page
+@node ffi sizeof
+@subsection Sizes and limits
+
+
+A set of bindings is provided to allow interface libraries to be aware
+of C language type sizes and limits.  To load the library:
+
+@example
+(import (scheme)
+  (uriel ffi sizeof))
+@end example
+
+The @library{uriel foreign} library also exports bindings from
+@library{uriel ffi sizeof}.
+
+
+@defvar pointer-integer
+Set to a symbol representing one of the unsigned integer types for
+callout arguments and return values.  It is meant to be the integer type
+that is equal in size to a pointer, so it can be used in place of the
+@code{pointer} type for Scheme implementation that do not have it (for
+example: Larceny checkout 5877).
+@end defvar
+
+
+@defvar sizeof-char
+@defvarx sizeof-short
+@defvarx sizeof-int
+@defvarx sizeof-long
+@defvarx sizeof-long-long
+@defvarx sizeof-float
+@defvarx sizeof-double
+@defvarx sizeof-long-double
+@defvarx sizeof-pointer
+The number of bytes in the specified type.
+@end defvar
+
+
+@defvar alignof-char
+@defvarx alignof-short
+@defvarx alignof-int
+@defvarx alignof-long
+@defvarx alignof-long-long
+@defvarx alignof-float
+@defvarx alignof-double
+@defvarx alignof-long-double
+@defvarx alignof-pointer
+The number of bytes of the alignment for the specified type.
+@end defvar
+
+
+@defvar strideof-char
+@defvarx strideof-short
+@defvarx strideof-int
+@defvarx strideof-long
+@defvarx strideof-long-long
+@defvarx strideof-float
+@defvarx strideof-double
+@defvarx strideof-long-double
+@defvarx strideof-pointer
+The number of bytes of the array stride for the specified type.
+@end defvar
+
+
+@deffn Syntax sizeof-char-array @var{number-of-elements}
+@deffnx Syntax sizeof-short-array @var{number-of-elements}
+@deffnx Syntax sizeof-int-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-long-array @var{number-of-elements}
+@deffnx Syntax sizeof-float-array @var{number-of-elements}
+@deffnx Syntax sizeof-double-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-double-array @var{number-of-elements}
+@deffnx Syntax sizeof-pointer-array @var{number-of-elements}
+Compute the number of bytes to allocate to hold an array of the
+specified type.
+@end deffn
+
+
+@defvar valueof-char-max
+@defvarx valueof-char-min
+@defvarx valueof-schar-max
+@defvarx valueof-schar-min
+@defvarx valueof-uchar-max
+@defvarx valueof-shrt-max
+@defvarx valueof-shrt-min
+@defvarx valueof-ushrt-max
+@defvarx valueof-int-max
+@defvarx valueof-int-min
+@defvarx valueof-uint-max
+@defvarx valueof-long-max
+@defvarx valueof-long-min
+@defvarx valueof-wchar-max
+@defvarx valueof-ssize-max
+The value of the specified constant.  For example: the value of
+@code{valueof-int-max} is the C language constant @code{INT_MAX}.
+@end defvar
+
+
+@defvar words-bigendian
+Bound to @true{} if the platform is big endian, @false{} otherwise.
+Notice that this information is also available with the @rnrs{6}
+function @func{native-endianness}.
+@end defvar
+
+
+@defvar on-32-bits-system
+@defvarx on-64-bits-system
+Bound to @true{} if the platform has words of 32 or 64 bits
+respectively.
+@end defvar
+
+
+@c page
+@node ffi headers
+@subsection Inspecting foreign header files
+
+
+
+@c page
+@node cstring
+@section C language strings handling
+
+
+A @emph{C string} is a block of memory holding a string of characters
+terminated by a zero byte.  The functions described in this chapter are
+exported by the @library{uriel cstring} library.  The @library{uriel
+foreign} library also exports bindings from @library{uriel cstring}.
+
+
+@menu
+* cstring inspection::          Inspecting cstrings.
+* cstring operations::          Acting upon cstrings.
+* cstring conversion::          Converting to and from cstrings.
+* cstring argv::                Converting arrays of cstrings.
+@end menu
+
+
+@c page
+@node cstring inspection
+@subsection Inspecting strings
+
+
+@defun strlen @var{pointer}
+Return the number of characters in the C string referenced by
+@var{pointer}.
+@end defun
+
+
+@defun strcmp @var{pointer1} @var{pointer2}
+@defunx strncmp @var{pointer1} @var{pointer2} @var{number-of-bytes}
+An interface to the @cfunc{strcmp} system function.  Compare
+@var{number-of-bytes} starting at @var{pointer1} and @var{pointer2} and
+return an integer having the same sign as the difference between the
+first different bytes from the blocks.  If the blocks are equal, the
+return value is zero.
+@end defun
+
+
+@c page
+@node cstring operations
+@subsection Acting upon cstrings
+
+
+@defun strdup @var{pointer}
+@defunx strdup @var{pointer} @var{malloc}
+Build a new C string copying the C string referenced by @var{pointer}
+and return a pointer to it.  The new string is allocated using the
+supplied @var{malloc} function, or @func{malloc} if no function is
+given.
+@end defun
+
+
+@defun strndup @var{pointer} @var{size}
+@defunx strndup @var{pointer} @var{size} @var{malloc}
+Build a new C string copying the first @var{size} bytes from the C
+string referenced by @var{pointer} and return a pointer to it.  The new
+string is allocated using the supplied @var{malloc} function, or
+@func{malloc} if no function is given.
+@end defun
+
+
+@c page
+@node cstring conversion
+@subsection Converting to and from cstrings
+
+
+@defun string->cstring @var{string-or-symbol}
+@defunx string->cstring @var{string-or-symbol} @var{malloc}
+@defunx string->cstring/c @var{string-or-symbol}
+Build a new C string representing the Scheme @var{string-or-symbol} and
+return a pointer value referencing it.
+
+@func{string->cstring} allocates memory using supplied @var{malloc}
+function, or @func{malloc} otherwise.  The conversion is performed using
+@func{string->utf8}.  To use a compensated allocation: we can use
+@func{malloc/c} or @func{malloc-block/c} as @var{malloc} argument.
+
+@func{string->cstring/c} allocates memory using @func{malloc-block/c}.
+@end defun
+
+
+@defun cstring->string @var{cstring}
+@defunx cstring->string/len @var{cstring} @var{number-of-bytes}
+Build a new Scheme string representing the @var{cstring}.  The
+conversion is performed using a @code{s8} bytevector.
+
+For @func{cstring->string/len} only @var{number-of-bytes} bytes are
+taken from the C string.
+@end defun
+
+
+@c page
+@node cstring argv
+@subsection Converting arrays of cstrings
+
+
+A null--terminated array of C strings looks like this:
+
+@example
+                  -
+argv pointer ---> | pointer to string -----> C string 0
+                  -
+                  | pointer to string -----> C string 1
+                  -
+                  | pointer to string -----> C string 2
+                  -
+                  | pointer to string -----> C string 3
+                  -
+                  | null pointer
+                  -
+@end example
+
+
+@defun strings->argv @var{args}
+@defunx strings->argv @var{args} @var{malloc-func}
+Convert the list of Scheme strings and symbols in @var{args} into a
+null--terminated array of strings.  Return the pointer to the array.
+
+The array and the strings are allocated with the function
+@var{malloc-func}, or with @func{malloc} if @var{malloc-func} is not
+given.
+@end defun
+
+
+@defun argv-length @var{argv}
+Return the number of strings in the null--terminated array of strings
+referenced by the @var{argv} pointer.
+@end defun
+
+
+@defun argv->strings @var{argv}
+Convert the null--terminated array of strings referenced by the
+@var{argv} pointer to a list of Scheme strings.
+@end defun
+
+
+
+@c page
+@node errno
+@section C language system errors
+
+
+The bindings described in this chapter are exported by the
+@library{uriel errno} library.  The @library{uriel foreign} library also
+exports bindings from @library{uriel errno}.
+
+
+@menu
+* errno values::                Error codes.
+* errno conversion::            Conversion of error codes.
+* errno condition::             Raising exceptions.
+@end menu
+
+
+@c page
+@node errno values
+@subsection Error codes
+
+
+@cindex @code{E2BIG}
+@cindex @code{EACCES}
+@cindex @code{EADDRINUSE}
+@cindex @code{EADDRNOTAVAIL}
+@cindex @code{EADV}
+@cindex @code{EAFNOSUPPORT}
+@cindex @code{EAGAIN}
+@cindex @code{EALREADY}
+@cindex @code{EBADE}
+@cindex @code{EBADF}
+@cindex @code{EBADFD}
+@cindex @code{EBADMSG}
+@cindex @code{EBADR}
+@cindex @code{EBADRQC}
+@cindex @code{EBADSLT}
+@cindex @code{EBFONT}
+@cindex @code{EBUSY}
+@cindex @code{ECANCELED}
+@cindex @code{ECHILD}
+@cindex @code{ECHRNG}
+@cindex @code{ECOMM}
+@cindex @code{ECONNABORTED}
+@cindex @code{ECONNREFUSED}
+@cindex @code{ECONNRESET}
+@cindex @code{EDEADLK}
+@cindex @code{EDEADLOCK}
+@cindex @code{EDESTADDRREQ}
+@cindex @code{EDOM}
+@cindex @code{EDOTDOT}
+@cindex @code{EDQUOT}
+@cindex @code{EEXIST}
+@cindex @code{EFAULT}
+@cindex @code{EFBIG}
+@cindex @code{EHOSTDOWN}
+@cindex @code{EHOSTUNREACH}
+@cindex @code{EIDRM}
+@cindex @code{EILSEQ}
+@cindex @code{EINPROGRESS}
+@cindex @code{EINTR}
+@cindex @code{EINVAL}
+@cindex @code{EIO}
+@cindex @code{EISCONN}
+@cindex @code{EISDIR}
+@cindex @code{EISNAM}
+@cindex @code{EKEYEXPIRED}
+@cindex @code{EKEYREJECTED}
+@cindex @code{EKEYREVOKED}
+@cindex @code{EL2HLT}
+@cindex @code{EL2NSYNC}
+@cindex @code{EL3HLT}
+@cindex @code{EL3RST}
+@cindex @code{ELIBACC}
+@cindex @code{ELIBBAD}
+@cindex @code{ELIBEXEC}
+@cindex @code{ELIBMAX}
+@cindex @code{ELIBSCN}
+@cindex @code{ELNRNG}
+@cindex @code{ELOOP}
+@cindex @code{EMEDIUMTYPE}
+@cindex @code{EMFILE}
+@cindex @code{EMLINK}
+@cindex @code{EMSGSIZE}
+@cindex @code{EMULTIHOP}
+@cindex @code{ENAMETOOLONG}
+@cindex @code{ENAVAIL}
+@cindex @code{ENETDOWN}
+@cindex @code{ENETRESET}
+@cindex @code{ENETUNREACH}
+@cindex @code{ENFILE}
+@cindex @code{ENOANO}
+@cindex @code{ENOBUFS}
+@cindex @code{ENOCSI}
+@cindex @code{ENODATA}
+@cindex @code{ENODEV}
+@cindex @code{ENOENT}
+@cindex @code{ENOEXEC}
+@cindex @code{ENOKEY}
+@cindex @code{ENOLCK}
+@cindex @code{ENOLINK}
+@cindex @code{ENOMEDIUM}
+@cindex @code{ENOMEM}
+@cindex @code{ENOMSG}
+@cindex @code{ENONET}
+@cindex @code{ENOPKG}
+@cindex @code{ENOPROTOOPT}
+@cindex @code{ENOSPC}
+@cindex @code{ENOSR}
+@cindex @code{ENOSTR}
+@cindex @code{ENOSYS}
+@cindex @code{ENOTBLK}
+@cindex @code{ENOTCONN}
+@cindex @code{ENOTDIR}
+@cindex @code{ENOTEMPTY}
+@cindex @code{ENOTNAM}
+@cindex @code{ENOTRECOVERABLE}
+@cindex @code{ENOTSOCK}
+@cindex @code{ENOTTY}
+@cindex @code{ENOTUNIQ}
+@cindex @code{ENXIO}
+@cindex @code{EOPNOTSUPP}
+@cindex @code{EOVERFLOW}
+@cindex @code{EOWNERDEAD}
+@cindex @code{EPERM}
+@cindex @code{EPFNOSUPPORT}
+@cindex @code{EPIPE}
+@cindex @code{EPROTO}
+@cindex @code{EPROTONOSUPPORT}
+@cindex @code{EPROTOTYPE}
+@cindex @code{ERANGE}
+@cindex @code{EREMCHG}
+@cindex @code{EREMOTE}
+@cindex @code{EREMOTEIO}
+@cindex @code{ERESTART}
+@cindex @code{EROFS}
+@cindex @code{ESHUTDOWN}
+@cindex @code{ESOCKTNOSUPPORT}
+@cindex @code{ESPIPE}
+@cindex @code{ESRCH}
+@cindex @code{ESRMNT}
+@cindex @code{ESTALE}
+@cindex @code{ESTRPIPE}
+@cindex @code{ETIME}
+@cindex @code{ETIMEDOUT}
+@cindex @code{ETOOMANYREFS}
+@cindex @code{ETXTBSY}
+@cindex @code{EUCLEAN}
+@cindex @code{EUNATCH}
+@cindex @code{EUSERS}
+@cindex @code{EWOULDBLOCK}
+@cindex @code{EXDEV}
+@cindex @code{EXFULL}
+
+It may be that not all the constants are defined on our platform, if a
+symbol is not defined the value of the corresponding variable is
+@false{}.  @value{PACKAGE} attempts to define the following symbols (in
+row--then--column alphabetical order):
+
+@example
+E2BIG               EACCES              EADDRINUSE
+EADDRNOTAVAIL       EADV                EAFNOSUPPORT
+EAGAIN              EALREADY            EBADE
+EBADF               EBADFD              EBADMSG
+EBADR               EBADRQC             EBADSLT
+EBFONT              EBUSY               ECANCELED
+ECHILD              ECHRNG              ECOMM
+ECONNABORTED        ECONNREFUSED        ECONNRESET
+EDEADLK             EDEADLOCK           EDESTADDRREQ
+EDOM                EDOTDOT             EDQUOT
+EEXIST              EFAULT              EFBIG
+EHOSTDOWN           EHOSTUNREACH        EIDRM
+EILSEQ              EINPROGRESS         EINTR
+EINVAL              EIO                 EISCONN
+EISDIR              EISNAM              EKEYEXPIRED
+EKEYREJECTED        EKEYREVOKED         EL2HLT
+EL2NSYNC            EL3HLT              EL3RST
+ELIBACC             ELIBBAD             ELIBEXEC
+ELIBMAX             ELIBSCN             ELNRNG
+ELOOP               EMEDIUMTYPE         EMFILE
+EMLINK              EMSGSIZE            EMULTIHOP
+ENAMETOOLONG        ENAVAIL             ENETDOWN
+ENETRESET           ENETUNREACH         ENFILE
+ENOANO              ENOBUFS             ENOCSI
+ENODATA             ENODEV              ENOENT
+ENOEXEC             ENOKEY              ENOLCK
+ENOLINK             ENOMEDIUM           ENOMEM
+ENOMSG              ENONET              ENOPKG
+ENOPROTOOPT         ENOSPC              ENOSR
+ENOSTR              ENOSYS              ENOTBLK
+ENOTCONN            ENOTDIR             ENOTEMPTY
+ENOTNAM             ENOTRECOVERABLE     ENOTSOCK
+ENOTTY              ENOTUNIQ            ENXIO
+EOPNOTSUPP          EOVERFLOW           EOWNERDEAD
+EPERM               EPFNOSUPPORT        EPIPE
+EPROTO              EPROTONOSUPPORT     EPROTOTYPE
+ERANGE              EREMCHG             EREMOTE
+EREMOTEIO           ERESTART            EROFS
+ESHUTDOWN           ESOCKTNOSUPPORT     ESPIPE
+ESRCH               ESRMNT              ESTALE
+ESTRPIPE            ETIME               ETIMEDOUT
+ETOOMANYREFS        ETXTBSY             EUCLEAN
+EUNATCH             EUSERS              EWOULDBLOCK
+EXDEV               EXFULL
+@end example
+
+
+@c page
+@node errno conversion
+@subsection Conversion of error codes
+
+
+@defun strerror @var{errno-numeric-value}
+An interface to the system @cfunc{strerror} function.  Return the string
+message coresponding to @var{errno-numeric-value}.
+@end defun
+
+
+@defun symbol->errno @var{symbol}
+@defunx symbol->errno/or-error @var{symbol}
+Attempt the conversion from an @code{errno} symbolic value to the
+corresponding numeric value.  Return an integer or @false{} if the
+symbol is not defined on the underlying platform.
+
+The @code{or-error} variant raises an assertion violation if
+@var{symbol} is not an @code{errno} symbolic value.
+@end defun
+
+
+@defun errno->symbol @var{number}
+@defunx errno->symbol/or-error @var{number}
+Attempt the conversion from an @code{errno} numeric value to the
+corresponding symbolic value.  Return a symbol or @false{} if
+@var{number} is not an @code{errno} numeric value.
+
+The @code{or-error} variant raises an assertion violation if
+@var{number} is not an @code{errno} numerc value.
+@end defun
+
+
+@c page
+@node errno condition
+@subsection Raising exceptions
+
+
+@deftp Condition {&errno}
+Type of condition objects that represent an error in a foreign function
+signaled with the @code{errno} variable.
+@end deftp
+
+
+@deffn {Condition Constructor} make-errno-condition @var{errno-numeric-value} @var{errno-symbolic-value}
+@deffnx {Condition Predicate} errno-condition? @var{object}
+@deffnx {Field Getter} errno-numeric-value @var{object}
+@deffnx {Field Getter} errno-symbolic-value @var{object}
+Functions to handle foreign system error condition objects.
+
+Fake example:
+
+@example
+(let ((errno ---))
+  (raise (condition (make-who-condition 'read)
+                    (make-message-condition (strerror errno))
+                    (make-errno-condition
+                      errno
+                      (errno->symbol/or-error errno-numeric-value)))))
+@end example
+@end deffn
+
+
+@defun make-errno-condition* @var{errno-numeric-value}
+Wrapper for @func{make-errno-condition} that builds an @code{&errno}
+condition from the numeric value only.
+@end defun
+
+
+@defun raise-errno-error @var{who} @var{errno-numeric-value}
+@defunx raise-errno-error @var{who} @var{errno-numeric-value} @var{irritants}
+Raise a non--continuable exception representing a foreign function
+system error signaled through the @code{errno} variable.  If
+@var{irritants} is not given, it defaults to @false{}.
+
+The following form:
+
+@example
+(let ((errno ---)
+      (pathname ---))
+  (raise-errno-error 'write errno pathname))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(raise
+  (condition (make-who-condition 'write)
+             (make-message-condition (strerror errno))
+             (make-errno-condition* errno)
+             (make-irritants-condition pathname)))
+@end example
+@end defun
+
 
 
 

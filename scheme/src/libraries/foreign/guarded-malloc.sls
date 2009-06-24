@@ -1,14 +1,13 @@
 ;;;
-;;;Part of: Uriel libraries for R6RS Scheme
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: guarded memory allocation
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2008-12-17 18:05:17 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,12 +23,12 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel guarded-malloc)
+(library (foreign guarded-malloc)
   (export
     malloc/guarded calloc/guarded)
-  (import (r6rs)
-    (uriel memory)
-    (uriel cleanup)
+  (import (rnrs)
+    (foreign memory)
+    (foreign cleanup)
     (only (ikarus) make-guardian))
 
   (define block-guardian (make-guardian))
@@ -49,6 +48,6 @@
       (block-guardian p)
       p))
 
-  (uriel-register-cleanup-function block-cleanup))
+  (foreign-register-cleanup-function block-cleanup))
 
 ;;; end of file

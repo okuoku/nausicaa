@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for low level memory functions
 ;;;Date: Tue Dec 16, 2008
 ;;;
@@ -27,17 +27,17 @@
 
 ;;;; setup
 
-(import (r6rs)
-  (uriel lang)
-  (uriel test)
-  (uriel memory)
-  (uriel ffi sizeof))
+(import (nausicaa)
+  (checks)
+  (foreign memory)
+  (foreign ffi sizeof))
 
 (check-set-mode! 'report-failed)
+(display "*** testing memory\n")
 
 
 
-(parameterize ((testname 'pointers))
+(parameterize ((check-test-name 'pointers))
 
   (check
       (pointer-null? pointer-null)
@@ -267,7 +267,7 @@
 
 
 
-(parameterize ((testname 'alloc))
+(parameterize ((check-test-name 'alloc))
 
   (define (failing-alloc . args)
     pointer-null)
@@ -404,7 +404,7 @@
 
 
 
-(parameterize ((testname 'bytevectors))
+(parameterize ((check-test-name 'bytevectors))
   (with-compensations
     (let ((bv #vu8(0 1 2 3 4 5 6 7 8 9)))
       (check
@@ -474,7 +474,7 @@
 
 
 
-(parameterize ((testname 'buffers))
+(parameterize ((check-test-name 'buffers))
 
   (define len 4096)
 
@@ -613,7 +613,7 @@
 
 
 
-(parameterize ((testname 'buffer-alloc))
+(parameterize ((check-test-name 'buffer-alloc))
 
   (check
       (with-compensations
@@ -648,7 +648,7 @@
 
 
 
-(parameterize ((testname 'refcount))
+(parameterize ((check-test-name 'refcount))
 
   (check
       (with-result
@@ -701,7 +701,7 @@
 
 
 
-(parameterize ((testname 'pokers))
+(parameterize ((check-test-name 'pokers))
 
   (check
       (let* ((p (malloc (expt 10 5)))
@@ -888,7 +888,7 @@
 
 
 
-(parameterize ((testname 'array))
+(parameterize ((check-test-name 'array))
 
   (check
       (with-compensations

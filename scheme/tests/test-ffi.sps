@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Uriel libraries
+;;;Part of: Nausicaa/Sceme
 ;;;Contents: tests for ffi library
 ;;;Date: Tue Nov 18, 2008
 ;;;
@@ -26,12 +26,12 @@
 
 ;;;; setup
 
-(import (r6rs)
-  (uriel lang)
-  (uriel foreign)
-  (uriel test))
+(import (nausicaa)
+  (foreign)
+  (checks))
 
 (check-set-mode! 'report-failed)
+(display "*** testing ffi\n")
 
 
 ;;;; foreign functions
@@ -136,7 +136,7 @@
 
 
 
-(parameterize ((testname	'conditions)
+(parameterize ((check-test-name	'conditions)
 	       (debugging	#t))
 
   (check
@@ -185,7 +185,7 @@
 ;;;Ypsilon and  Ikarus is  the value  of the last  "errno" saved  in the
 ;;;internal state variable.
 
-;; (parameterize ((testname	'errno)
+;; (parameterize ((check-test-name	'errno)
 ;; 	       (debugging	#t))
 
 ;;   (check

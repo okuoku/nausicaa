@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: low level memory functions
 ;;;Date: Tue Dec 16, 2008
 ;;;
@@ -27,7 +27,7 @@
 
 ;;;; setup
 
-(library (uriel memory)
+(library (foreign memory)
   (export
     ;;memory functions
     platform-free	primitive-free		primitive-free-function
@@ -155,10 +155,10 @@
     &out-of-memory
     make-out-of-memory-condition	out-of-memory-condition?
     out-of-memory-number-of-bytes	raise-out-of-memory)
-  (import (r6rs)
-    (uriel lang)
-    (uriel memory compat)
-    (uriel ffi sizeof))
+  (import (rnrs)
+    (foreign lang)
+    (foreign memory compat)
+    (foreign ffi sizeof))
 
 
 

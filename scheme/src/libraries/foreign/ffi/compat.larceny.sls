@@ -31,7 +31,7 @@
 
 ;;;; setup
 
-(library (uriel ffi compat)
+(library (foreign ffi compat)
   (export
 
     ;;shared object loading
@@ -45,9 +45,9 @@
     (primitives
      foreign-file foreign-procedure get-errno set-errno!
      syscall)
-    (uriel lang)
-    (uriel ffi sizeof)
-    (uriel memory))
+    (foreign lang)
+    (foreign ffi sizeof)
+    (foreign memory))
 
 
 ;;;; dynamic loading
@@ -62,7 +62,7 @@
 
 
 
-;;;; values normalisation: Uriel -> Larceny
+;;;; values normalisation: Foreign -> Larceny
 
 (define (external->internal type)
   (case type

@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for the cstring library
 ;;;Date: Wed Dec 17, 2008
 ;;;
@@ -27,17 +27,17 @@
 
 ;;;; setup
 
-(import (r6rs)
-  (uriel lang)
-  (uriel test)
-  (uriel memory)
-  (uriel cstring))
+(import (nausicaa)
+  (check)
+  (foreign memory)
+  (foreign cstring))
 
 (check-set-mode! 'report-failed)
+(display "*** testing cstring\n")
 
 
 
-(parameterize ((testname 'inspection))
+(parameterize ((check-test-name 'inspection))
 
   (check
       (with-compensations
@@ -110,7 +110,7 @@
 
 
 
-(parameterize ((testname 'conversion))
+(parameterize ((check-test-name 'conversion))
 
   (check
       (with-compensations
@@ -162,7 +162,7 @@
 
 
 
-(parameterize ((testname 'operations))
+(parameterize ((check-test-name 'operations))
 
   (check
       (with-compensations
@@ -196,7 +196,7 @@
 
 
 
-(parameterize ((testname 'argv))
+(parameterize ((check-test-name 'argv))
 
   (check
       (with-compensations

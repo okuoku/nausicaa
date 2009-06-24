@@ -1,8 +1,7 @@
 ;;;
-;;;Part of: Uriel libraries
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
-;;;Time-stamp: <2009-01-05 22:21:59 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +27,7 @@
 
 ;;;; setup
 
-(library (uriel ffi compat)
+(library (foreign ffi compat)
   (export
 
     ;;loading shared objects
@@ -43,9 +42,8 @@
     (rename (ikarus foreign)
 	    (errno ikarus:errno)))
 
-
 
-;;;;  values normalisation: Uriel -> Ikarus
+;;;;  values normalisation: Foreign -> Ikarus
 
 (define (external->internal type)
   (case type

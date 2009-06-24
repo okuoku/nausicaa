@@ -2,13 +2,9 @@
 
   Fix the installation infrastructure (does not install directories).
 
-* one-dimension
-
-  General review of one-dimension-cc.
-
 * char-set
 
-  Implement the predefined sets.
+  Finished?
 
 * compare
 

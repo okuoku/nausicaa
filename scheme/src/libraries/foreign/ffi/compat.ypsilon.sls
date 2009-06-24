@@ -2,8 +2,6 @@
 ;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;
-;;;Time-stamp: <2009-01-06 20:25:13 marco>
-;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
 ;;;are met:
@@ -35,7 +33,7 @@
 
 ;;;; setup
 
-(library (uriel ffi compat)
+(library (foreign ffi compat)
   (export
 
     ;;shared object loading
@@ -48,8 +46,8 @@
   (import (rename (core)
 		  (shared-object-errno errno))
     (lang-lib)
-    (uriel ffi sizeof)
-    (uriel memory))
+    (foreign ffi sizeof)
+    (foreign memory))
 
 
 ;;;; dynamic loading
@@ -113,12 +111,12 @@
       "expected procedure as function argument" value)))
 
 
-;;;; values normalisation: Uriel -> Ypsilon
+;;;; values normalisation: Foreign -> Ypsilon
 
 ;;;This mapping function normalises  the C type identifiers supported by
-;;;Uriel to the identifiers supported by Ypsilon.  Notice that currently
-;;;(Ypsilon checkout  281) there is  neither support for "char"  nor for
-;;;"long" in Ypsilon.
+;;;Nausicaa  to  the  identifiers  supported by  Ypsilon.   Notice  that
+;;;currently (Ypsilon checkout 281)  there is neither support for "char"
+;;;nor for "long" in Ypsilon.
 ;;;
 ;;;Care  must  be  taken  in  selecting  types,  because:
 ;;;

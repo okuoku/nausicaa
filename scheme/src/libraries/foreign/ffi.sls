@@ -1,11 +1,11 @@
 ;;;
-;;;Part of: Uriel libraries for R6RS Scheme
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: foreign function interface extensions
 ;;;Date: Tue Nov 18, 2008
 ;;;
 ;;;Abstract
 ;;;
-;;;	This is the core of the "(uriel ffi)" library.
+;;;	This is the core of the foreign functions interface.
 ;;;
 ;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -26,7 +26,7 @@
 
 ;;;; Setup.
 
-(library (uriel ffi)
+(library (foreign ffi)
   (export
 
     ;;shared object access
@@ -45,11 +45,10 @@
     define-c-struct-getter		define-c-struct-setter
     define-c-struct-field-pointer-getter)
 
-  (import (r6rs)
-    (uriel memory)
-    (uriel ffi compat)
-    (uriel unimplemented))
-
+  (import (rnrs)
+    (foreign memory)
+    (foreign ffi compat)
+    (foreign unimplemented))
 
 
 ;;;; dynamic loading

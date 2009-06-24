@@ -1,8 +1,7 @@
 ;;;
-;;;Part of: Uriel libraries for R6RS
+;;;Part of: Nausicaa libraries for R6RS
 ;;;Contents: compound library for foreign functions interfaces
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2009-01-05 22:12:59 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,11 +23,11 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (uriel foreign)
+(library (foreign)
   (export
 
 
-;;;; (uriel memory)
+;;;; (foreign memory)
 
     ;;allocation
     platform-free	primitive-free		primitive-free-function
@@ -144,7 +143,7 @@
     out-of-memory-number-of-bytes	raise-out-of-memory
 
 
-;;;; (uriel ffi)
+;;;; (foreign ffi)
 
     ;;shared object access
     open-shared-object
@@ -162,7 +161,7 @@
     define-c-struct-getter		define-c-struct-setter
 
 
-;;;; (uriel ffi sizeof)
+;;;; (foreign ffi sizeof)
 
     sizeof-char			sizeof-short
     sizeof-int			sizeof-long
@@ -199,7 +198,7 @@
 
 
 
-;;;; (uriel cstring)
+;;;; (foreign cstring)
 
     ;;inspection
     strlen
@@ -218,7 +217,7 @@
     argv-length
 
 
-;;;; (uriel errno)
+;;;; (foreign errno)
 
     strerror
 
@@ -279,16 +278,15 @@
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL
 
-
 
 ;;;; done
 
     )
-  (import (r6rs)
-    (uriel memory)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (uriel cstring)
-    (uriel errno)))
+  (import (rnrs)
+    (foreign memory)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign cstring)
+    (foreign errno)))
 
 ;;; end of file

@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: functions for cstrings handling
 ;;;Date: Tue Dec 16, 2008
 ;;;
@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 ;;;; setup
 
-(library (uriel cstring)
+(library (foreign cstring)
   (export
 
     ;;inspection
@@ -45,11 +45,11 @@
     ;; null-terminated arrays of cstrings
     strings->argv		argv->strings
     argv-length)
-  (import (r6rs)
-    (uriel lang)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (uriel memory))
+  (import (rnrs)
+    (foreign lang)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign memory))
 
 
 ;;;; inspection
@@ -62,7 +62,6 @@
 
 (define-c-function strncmp
   (int strncmp (char* char* size_t)))
-
 
 
 ;;;; operations
@@ -89,7 +88,6 @@
       (memcpy p cstring size)
       (pointer-set-c-char! p size 0)
       p))))
-
 
 
 ;;;; conversion functions

@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: compatibility memory functions for Larceny
 ;;;Date: Fri Dec 26, 2008
 ;;;
@@ -27,7 +27,7 @@
 
 ;;;; setup
 
-(library (uriel memory compat)
+(library (foreign memory compat)
   (export
 
     platform-free			platform-malloc
@@ -70,7 +70,7 @@
 
      void*? void*-rt record-constructor void*->address
      )
-    (uriel ffi sizeof))
+    (foreign ffi sizeof))
 
 
 ;;;; pointers

@@ -1,8 +1,7 @@
 ;;;
-;;;Part of: Nausicaa/Uriel
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: compatibility memory functions for Ikarus
 ;;;Date: Tue Dec 16, 2008
-;;;Time-stamp: <2009-01-01 11:02:00 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -28,7 +27,7 @@
 
 ;;;; setup
 
-(library (uriel memory compat)
+(library (foreign memory compat)
   (export
 
     platform-free			platform-malloc
