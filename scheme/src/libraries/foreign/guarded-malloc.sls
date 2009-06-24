@@ -28,7 +28,7 @@
     malloc/guarded calloc/guarded)
   (import (rnrs)
     (foreign memory)
-    (foreign cleanup)
+    (cleanup-handlers)
     (only (ikarus) make-guardian))
 
   (define block-guardian (make-guardian))
@@ -48,6 +48,6 @@
       (block-guardian p)
       p))
 
-  (foreign-register-cleanup-function block-cleanup))
+  (register-cleanup-function block-cleanup))
 
 ;;; end of file

@@ -80,6 +80,8 @@
 (compile-library "checks.sls"
 		 "checks.slfasl")
 
+;;; --------------------------------------------------------------------
+
 (compile-library "object-properties.sls"
 		 "object-properties.slfasl")
 
@@ -91,5 +93,34 @@
 
 (compile-library "combinators.sls"
 		 "combinators.slfasl")
+
+;;; --------------------------------------------------------------------
+
+(compile-library "foreign/ffi/sizeof.sls"
+		 "foreign/ffi/sizeof.slfasl")
+
+(compile-library "foreign/memory/compat.larceny.sls"
+		 "foreign/memory/compat.larceny.slfasl")
+
+(compile-library "foreign/memory.sls"
+		 "foreign/memory.slfasl")
+
+(compile-library "foreign/ffi/compat.larceny.sls"
+		 "foreign/ffi/compat.larceny.slfasl")
+
+(compile-library "foreign/ffi.sls"
+		 "foreign/ffi.slfasl")
+
+(compile-library "foreign/cstring.sls"
+		 "foreign/cstring.slfasl")
+
+(compile-library "foreign/errno.sls"
+		 "foreign/errno.slfasl")
+
+;;; (compile-library "foreign/guarded-malloc.sls"
+;;;  		 "foreign/guarded-malloc.slfasl")
+
+(compile-library "foreign.sls"
+		 "foreign.slfasl")
 
 ;;; end of file

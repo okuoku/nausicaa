@@ -41,11 +41,10 @@
     primitive-make-c-function primitive-make-c-function/with-errno
 
     errno)
-  (import (rnrs)
+  (import (nausicaa)
     (primitives
      foreign-file foreign-procedure get-errno set-errno!
      syscall)
-    (foreign lang)
     (foreign ffi sizeof)
     (foreign memory))
 

@@ -28,7 +28,7 @@
 ;;;; setup
 
 (import (nausicaa)
-  (check)
+  (checks)
   (foreign memory)
   (foreign cstring))
 

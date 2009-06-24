@@ -91,7 +91,6 @@
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL)
   (import (rnrs)
-    (lists)
     (foreign cstring)
     (foreign ffi))
 
@@ -376,11 +375,11 @@
   (cstring->string (primitive-strerror errno-value)))
 
 (define errno-vector
-  (let ((ev (make-vector (+ 1 (fold (lambda (pair max)
-				      (if (< max (cdr pair))
-					  (cdr pair)
-					max))
-				    0 errno-alist))
+  (let ((ev (make-vector (+ 1 (fold-left (lambda (pair max)
+					   (if (< max (cdr pair))
+					       (cdr pair)
+					     max))
+					 0 errno-alist))
 			 #f)))
     (for-each
 	(lambda (pair)

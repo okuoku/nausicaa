@@ -56,7 +56,7 @@
     pointer-set-c-long-long!		pointer-set-c-float!
     pointer-set-c-double!		pointer-set-c-pointer!)
   (import (rnrs)
-    (ikarus foreign))
+    (except (ikarus foreign) memcpy))
 
 
 ;;;; pointers
@@ -70,38 +70,43 @@
 
 ;;;; foreign functions
 
-  (define self (dlopen ""))
+(define self (dlopen ""))
 
-  (define platform-free
-    ((make-c-callout 'void '(pointer))
-     (dlsym self "free")))
+(define platform-free
+  ((make-c-callout 'void '(pointer))
+   (dlsym self "free")))
 
-  (define platform-malloc
-    ((make-c-callout 'pointer '(signed-int))
-     (dlsym self "malloc")))
+(define platform-malloc
+  ((make-c-callout 'pointer '(signed-int))
+   (dlsym self "malloc")))
 
-  (define platform-calloc
-    ((make-c-callout 'pointer '(signed-int signed-int))
-     (dlsym self "calloc")))
+(define platform-calloc
+  ((make-c-callout 'pointer '(signed-int signed-int))
+   (dlsym self "calloc")))
 
-  (define platform-realloc
-    ((make-c-callout 'pointer '(pointer signed-int))
-     (dlsym self "realloc")))
+(define platform-realloc
+  ((make-c-callout 'pointer '(pointer signed-int))
+   (dlsym self "realloc")))
 
-  (define memset
-    ((make-c-callout 'pointer '(pointer signed-int signed-int))
-     (dlsym self "memset")))
+(define memset
+  ((make-c-callout 'pointer '(pointer signed-int signed-int))
+   (dlsym self "memset")))
 
-  (define memmove
-    ((make-c-callout 'pointer '(pointer pointer signed-int))
-     (dlsym self "memmove")))
+(define memmove
+  ((make-c-callout 'pointer '(pointer pointer signed-int))
+   (dlsym self "memmove")))
 
-  (define memcpy
-    ((make-c-callout 'pointer '(pointer pointer signed-int))
-     (dlsym self "memcpy")))
+(define memcpy
+  ((make-c-callout 'pointer '(pointer pointer signed-int))
+   (dlsym self "memcpy")))
 
-  (define memcmp
-    ((make-c-callout 'signed-int '(pointer pointer signed-int))
-     (dlsym self "memcmp"))))
+(define memcmp
+  ((make-c-callout 'signed-int '(pointer pointer signed-int))
+   (dlsym self "memcmp")))
+
+
+;;;; done
+
+)
 
 ;;; end of file

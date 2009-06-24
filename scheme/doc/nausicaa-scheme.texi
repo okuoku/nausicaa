@@ -27090,11 +27090,18 @@ The returned range may share some value with the original ranges.
 @node foreign
 @chapter Foreign functions interface
 
+
+Nausicaa implements a foreign functions interface towards C language
+libraries built upon the interfaces provided by the underlying Scheme
+implementations.  There is a compound library @library{foreign}, which
+exports everything.  Other libraries export only a subset of the
+interface.
+
 @menu
-* foreign memory::              Low level memory handling.
-* foreign ffi::                 Foreign functions interface.
-* foreign cstring::             C language strings handling.
-* foreign errno::               C language system errors.
+* memory::                      Low level memory handling.
+* ffi::                         Foreign functions interface.
+* cstring::                     C language strings handling.
+* errno::                       C language system errors.
 @end menu
 
 @c page
@@ -27102,7 +27109,7 @@ The returned range may share some value with the original ranges.
 @section Low level memory handling
 
 
-This chapter describes a low level @api{} for memory allocation and
+This section describes a low level @api{} for memory allocation and
 access.  Memory allocated with these functions is subjected to garbage
 collection.  To import the main library:
 
@@ -27904,7 +27911,7 @@ at the end of the world, if we feel like it, we can do:
 @subsection Compensations
 
 
-@ref{lang compensations} for details about compensations.
+@ref{naulib compensations} for details about compensations.
 
 
 @defun malloc/compensated @var{number-of-bytes}
@@ -28730,8 +28737,7 @@ types.
 
 @quotation
 @emph{Ypsilon:} The Ypsilon Scheme implementation @strong{does not}
-support all these types. @ypsilonref{ffi types,Handling of type
-conversions}.
+support all these types.
 @end quotation
 
 Remember that C strings (zero terminated arrays of @code{char}) must be

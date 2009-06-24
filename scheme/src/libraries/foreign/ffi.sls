@@ -45,10 +45,9 @@
     define-c-struct-getter		define-c-struct-setter
     define-c-struct-field-pointer-getter)
 
-  (import (rnrs)
+  (import (nausicaa)
     (foreign memory)
-    (foreign ffi compat)
-    (foreign unimplemented))
+    (foreign ffi compat))
 
 
 ;;;; dynamic loading

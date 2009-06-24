@@ -41,6 +41,9 @@
   (only (cleanup-handlers))
   (only (queues))
   (only (combinators))
+
+  (only (foreign))
+;;;  (only (guarded-malloc))
   )
 
 ;;; end of file

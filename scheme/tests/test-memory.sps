@@ -30,7 +30,8 @@
 (import (nausicaa)
   (checks)
   (foreign memory)
-  (foreign ffi sizeof))
+  (foreign ffi sizeof)
+  (format))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory\n")

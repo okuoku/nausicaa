@@ -155,10 +155,10 @@
     &out-of-memory
     make-out-of-memory-condition	out-of-memory-condition?
     out-of-memory-number-of-bytes	raise-out-of-memory)
-  (import (rnrs)
-    (foreign lang)
+  (import (nausicaa)
     (foreign memory compat)
-    (foreign ffi sizeof))
+    (foreign ffi sizeof)
+    (format))
 
 
 

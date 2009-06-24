@@ -45,8 +45,7 @@
     ;; null-terminated arrays of cstrings
     strings->argv		argv->strings
     argv-length)
-  (import (rnrs)
-    (foreign lang)
+  (import (nausicaa)
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign memory))
