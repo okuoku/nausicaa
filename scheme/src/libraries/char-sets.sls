@@ -44,7 +44,7 @@
     ;; predicates
     (rename (true-char-set? char-set?))
     char-set-empty? char-set-contains?
-    char-set=? char-set<? char-set-subset? char-set-strict-subset?
+    char-set=? char-set<? char-set-subset? char-set-subset?/strict
 
     ;; set operations
     char-set-intersection char-set-union
@@ -130,12 +130,12 @@
 	  (and (domain-subset? domain next-domain)
 	       (loop next-domain (cdr domain-args)))))))
 
-(define (char-set-strict-subset? cs . cs-args)
+(define (char-set-subset?/strict cs . cs-args)
   (let loop ((domain      (domain-ref cs))
 	     (domain-args (map domain-ref cs-args)))
     (or (null? domain-args)
 	(let ((next-domain (car domain-args)))
-	  (and (domain-strict-subset? domain next-domain)
+	  (and (domain-subset?/strict domain next-domain)
 	       (loop next-domain (cdr domain-args)))))))
 
 (define (char-set-intersection cs . cs-args)
@@ -271,8 +271,8 @@
 (define (range-subset? range-a range-b)
   (%range-subset? char-type range-a range-b))
 
-(define (range-strict-subset? range-a range-b)
-  (%range-strict-subset? char-type range-a range-b))
+(define (range-subset?/strict range-a range-b)
+  (%range-subset?/strict char-type range-a range-b))
 
 (define (range-start<? range-a range-b)
   (%range-start<? char-type range-a range-b))
@@ -345,8 +345,8 @@
 (define (domain-subset? domain-a domain-b)
   (%domain-subset? char-type domain-a domain-b))
 
-(define (domain-strict-subset? domain-a domain-b)
-  (%domain-strict-subset? char-type domain-a domain-b))
+(define (domain-subset?/strict domain-a domain-b)
+  (%domain-subset?/strict char-type domain-a domain-b))
 
 (define (domain-intersection domain-a domain-b)
   (%domain-intersection char-type domain-a domain-b))
