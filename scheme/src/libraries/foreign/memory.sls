@@ -239,33 +239,27 @@
   (integer->pointer (+ (pointer->integer pointer)
 		       offset)))
 
-;;;This  implementation works  with  Ikarus and  Ypsilon,  but not  with
-;;;Larceny-5877: "=" requires 2 arguments  and cannot be applied to just
-;;;one.
-;;
-;; (define (pointer=? pointer . args)
-;;   (apply = (map pointer->integer (cons pointer args))))
-;;
-;;;the following ugly alternative works.
-(define (pointer=? pointer . args)
-  (apply = (pointer->integer pointer)
-	 (map pointer->integer (cons pointer args))))
+(define-syntax define-pointer-comparison
+  (syntax-rules ()
+    ((_ ?name ?func)
+     (define ?name
+       (case-lambda
+	(()
+	 #t)
+	((pointer)
+	 #t)
+	((pointer-a pointer-b)
+	 (?func (pointer->integer pointer-a)
+		(pointer->integer pointer-b)))
+	((pointer-a pointer-b . pointers)
+	 (apply ?func (map pointer->integer
+			(cons pointer-a (cons pointer-b pointers))))))))))
 
-(define (pointer<? pointer . args)
-  (apply < (- (pointer->integer pointer) 1)
-	 (map pointer->integer (cons pointer args))))
-
-(define (pointer>? pointer . args)
-  (apply > (+ 1 (pointer->integer pointer))
-	 (map pointer->integer (cons pointer args))))
-
-(define (pointer<=? pointer . args)
-  (apply <= (pointer->integer pointer)
-	 (map pointer->integer (cons pointer args))))
-
-(define (pointer>=? pointer . args)
-  (apply >= (pointer->integer pointer)
-	 (map pointer->integer (cons pointer args))))
+(define-pointer-comparison pointer=? =)
+(define-pointer-comparison pointer<? <)
+(define-pointer-comparison pointer>? >)
+(define-pointer-comparison pointer<=? <=)
+(define-pointer-comparison pointer>=? >=)
 
 (define (pointer<>? pointer . args)
   (not (apply pointer=? pointer args)))

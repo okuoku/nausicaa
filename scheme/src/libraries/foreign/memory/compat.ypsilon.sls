@@ -66,10 +66,10 @@
   (fields (immutable value)))
 
 (define (integer->pointer value)
-  (unless (integer? value)
+  (if (integer? value)
+      (make-pointer value)
     (assertion-violation 'integer->pointer
-      "expected integer value" value))
-  (make-pointer value))
+      "expected integer value" value)))
 
 (define (pointer->integer pointer)
   (unless (pointer? pointer)
