@@ -551,6 +551,10 @@
     native-transcoder
     negative?
     newline
+;;; these 3 are a file-option arguments
+    no-create
+    no-fail
+    no-truncate
     no-infinities-violation?
     no-nans-violation?
     non-continuable-violation?

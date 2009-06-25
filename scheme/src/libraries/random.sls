@@ -31,23 +31,39 @@
 #!r6rs
 (library (random)
   (export
-    random-integer
-    random-real
+
+    ;; no fuss
+    random-integer random-real
+
+    ;; random source
     default-random-source
     make-random-source
     random-source?
-    random-source-state-ref
-    random-source-state-set!
-    random-source-randomize!
-    random-source-pseudo-randomize!
-    random-source-make-integers
-    random-source-make-reals)
-  (import (rnrs)
-    (only (rnrs r5rs) quotient modulo)
-    (nausicaa parameter))
+    random-source-state-ref      random-source-state-set!
+    random-source-randomize!     random-source-pseudo-randomize!
+    random-source-make-integers  random-source-make-reals
+
+    ;; customisation
+    random-source-of-numbers)
+  (import (nausicaa)
+    (only (rnrs r5rs)
+	  quotient modulo))
 
 
-(define-record-type :random-source
+;;;; helpers
+
+(define (vector-copy src)
+  (let* ((len (vector-length src))
+	 (dst (make-vector len)))
+    (do ((i 0 (+ 1 i)))
+	((= len i)
+	 dst)
+      (vector-set! dst i (vector-ref src i)))))
+
+(define e2^28 (expt 2 28))
+
+
+(define-record-type (:random-source :random-source-make random-source?)
   (fields state-ref
           state-set!
           randomize!
@@ -55,35 +71,34 @@
           make-integers
           make-reals))
 
-(define :random-source-make make-:random-source)
-(define state-ref :random-source-state-ref)
-(define state-set! :random-source-state-set!)
-(define randomize! :random-source-randomize!)
-(define pseudo-randomize! :random-source-pseudo-randomize!)
-(define make-integers :random-source-make-integers)
-(define make-reals :random-source-make-reals)
+(define default-random-source-of-numbers
+  (let* ((size  128)
+	 (cache (make-bytevector (* size 4)))
+	 (next  0))
+    (lambda ()
+      (if (<= size next)
+	  (let* ((port #f))
+	    (dynamic-wind
+		(lambda ()
+		  (set! port (open-file-input-port "/dev/random"
+						   (file-options no-create)
+						   (buffer-mode none))))
+		(lambda ()
+		  (get-bytevector-n! port cache 0 size)
+		  (set! next 0))
+		(lambda ()
+		  (close-port port))))
+	(begin0
+	    (bytevector-u32-native-ref cache 0)
+	  (set! next (+ 1 next)))))))
 
-(define (default-random-source-of-numbers)
-  (let* ((port #f) (num #f))
-    (dynamic-wind
-	(lambda ()
-	  (set! port (open-file-input-port "/dev/random"
-					   (file-options no-create)
-					   (buffer-mode none))))
-	(lambda ()
-	  (set! num (bytevector-u32-native-ref
-		     (get-bytevector-n port 4) 0)))
-	(lambda ()
-	  (close-port port)))
-    num))
-
-(define :random-source-of-numbers
+(define random-source-of-numbers
   (make-parameter
       default-random-source-of-numbers
     (lambda (value)
       (if (procedure? value)
 	  value
-	(assertion-violation ':random-source-of-numbers
+	(assertion-violation 'random-source-of-numbers
 	  "expected procedure" value)))))
 
 
@@ -105,19 +120,11 @@
       (vector-set! state 5 x22)
       (modulo (- x10 x20) 4294967087))))
 
-; interface to the generic parts of the generator
-
-(define (mrg32k3a-pack-state unpacked-state)
-  unpacked-state)
-
-(define (mrg32k3a-unpack-state state)
-  state)
-
 (define (mrg32k3a-random-range) ; m1
   4294967087)
 
 (define (mrg32k3a-random-integer state range) ; rejection method
-  (let* ((q (quotient 4294967087 range))
+  (let* ((q  (quotient 4294967087 range))
          (qn (* q range)))
     (do ((x (mrg32k3a-random-m1 state) (mrg32k3a-random-m1 state)))
       ((< x qn) (quotient x q)))))
@@ -239,35 +246,42 @@
 ;     that the integer changes as fast as possible.
 
 
-; Accessing the State
-; ===================
+;;;; accessing the state
 
-(define (mrg32k3a-state-ref packed-state)
-  (cons 'lecuyer-mrg32k3a
-        (vector->list (mrg32k3a-unpack-state packed-state))))
+(define (mrg32k3a-state-ref state)
+  (cons 'lecuyer-mrg32k3a state))
 
 (define (mrg32k3a-state-set external-state)
   (define (check-value x m)
-    (if (and (integer? x)
+    (or (and (integer? x)
              (exact? x)
              (<= 0 x (- m 1)))
-        #t
-      (error "illegal value" x)))
-  (if (and (list? external-state)
-           (= (length external-state) 7)
-           (eq? (car external-state) 'lecuyer-mrg32k3a))
-      (let ((s (cdr external-state)))
-        (check-value (list-ref s 0) mrg32k3a-m1)
-        (check-value (list-ref s 1) mrg32k3a-m1)
-        (check-value (list-ref s 2) mrg32k3a-m1)
-        (check-value (list-ref s 3) mrg32k3a-m2)
-        (check-value (list-ref s 4) mrg32k3a-m2)
-        (check-value (list-ref s 5) mrg32k3a-m2)
-        (if (or (zero? (+ (list-ref s 0) (list-ref s 1) (list-ref s 2)))
-                (zero? (+ (list-ref s 3) (list-ref s 4) (list-ref s 5))))
-            (error "illegal degenerate state" external-state))
-        (mrg32k3a-pack-state (list->vector s)))
-    (error "malformed state" external-state)))
+	(assertion-violation 'mrg32k3a-state-set
+	  "illegal state value" (list x external-state))))
+  (unless (and (pair? external-state)
+	       (eq? (car external-state) 'lecuyer-mrg32k3a)
+	       (vector? (cdr external-state))
+	       (= 7 (vector-length (cdr external-state))))
+    (assertion-violation 'mrg32k3a-state-set
+      "invalid external state argument" external-state))
+  (let* ((state (cdr external-state))
+	 (s0 (vector-ref state 0))
+	 (s1 (vector-ref state 1))
+	 (s2 (vector-ref state 2))
+	 (s3 (vector-ref state 3))
+	 (s4 (vector-ref state 4))
+	 (s5 (vector-ref state 5)))
+    (check-value s0 mrg32k3a-m1)
+    (check-value s1 mrg32k3a-m1)
+    (check-value s2 mrg32k3a-m1)
+    (check-value s3 mrg32k3a-m2)
+    (check-value s4 mrg32k3a-m2)
+    (check-value s5 mrg32k3a-m2)
+    (when (or (zero? (+ s0 s1 s2))
+	      (zero? (+ s3 s4 s5)))
+      (assertion-violation 'mrg32k3a-state-set
+	"illegal degenerate state" external-state))
+    (vector-copy state)))
 
 
 ;;;; pseudo-randomization
@@ -315,121 +329,110 @@
      3321940838
      3542344109))
 
-(define mrg32k3a-generators #f) ; computed when needed
+(define mrg32k3a-pseudo-randomize-state
+  (let ((mrg32k3a-generators #f)) ; computed when needed
+    (lambda (i j)
+      (define (product A B) ; A*B in ((Z/m1*Z) x (Z/m2*Z))^(3x3)
+	(define w      65536) ; wordsize to split {0..2^32-1}
+	(define w-sqr1 209)   ; w^2 mod m1
+	(define w-sqr2 22853) ; w^2 mod m2
+	(define (lc i0 i1 i2 j0 j1 j2 m w-sqr) ; linear combination
+	  (let ((a0h (quotient (vector-ref A i0) w))
+		(a0l (modulo   (vector-ref A i0) w))
+		(a1h (quotient (vector-ref A i1) w))
+		(a1l (modulo   (vector-ref A i1) w))
+		(a2h (quotient (vector-ref A i2) w))
+		(a2l (modulo   (vector-ref A i2) w))
+		(b0h (quotient (vector-ref B j0) w))
+		(b0l (modulo   (vector-ref B j0) w))
+		(b1h (quotient (vector-ref B j1) w))
+		(b1l (modulo   (vector-ref B j1) w))
+		(b2h (quotient (vector-ref B j2) w))
+		(b2l (modulo   (vector-ref B j2) w)))
+	    (modulo
+	     (+ (* (+ (* a0h b0h)
+		      (* a1h b1h)
+		      (* a2h b2h))
+		   w-sqr)
+		(* (+ (* a0h b0l)
+		      (* a0l b0h)
+		      (* a1h b1l)
+		      (* a1l b1h)
+		      (* a2h b2l)
+		      (* a2l b2h))
+		   w)
+		(* a0l b0l)
+		(* a1l b1l)
+		(* a2l b2l))
+	     m)))
 
-(define (mrg32k3a-pseudo-randomize-state i j)
+	(vector
+	 (lc  0  1  2   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_00 mod m1
+	 (lc  0  1  2   1  4  7  mrg32k3a-m1 w-sqr1) ; (A*B)_01
+	 (lc  0  1  2   2  5  8  mrg32k3a-m1 w-sqr1)
+	 (lc  3  4  5   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_10
+	 (lc  3  4  5   1  4  7  mrg32k3a-m1 w-sqr1)
+	 (lc  3  4  5   2  5  8  mrg32k3a-m1 w-sqr1)
+	 (lc  6  7  8   0  3  6  mrg32k3a-m1 w-sqr1)
+	 (lc  6  7  8   1  4  7  mrg32k3a-m1 w-sqr1)
+	 (lc  6  7  8   2  5  8  mrg32k3a-m1 w-sqr1)
+	 (lc  9 10 11   9 12 15  mrg32k3a-m2 w-sqr2) ; (A*B)_00 mod m2
+	 (lc  9 10 11  10 13 16  mrg32k3a-m2 w-sqr2)
+	 (lc  9 10 11  11 14 17  mrg32k3a-m2 w-sqr2)
+	 (lc 12 13 14   9 12 15  mrg32k3a-m2 w-sqr2)
+	 (lc 12 13 14  10 13 16  mrg32k3a-m2 w-sqr2)
+	 (lc 12 13 14  11 14 17  mrg32k3a-m2 w-sqr2)
+	 (lc 15 16 17   9 12 15  mrg32k3a-m2 w-sqr2)
+	 (lc 15 16 17  10 13 16  mrg32k3a-m2 w-sqr2)
+	 (lc 15 16 17  11 14 17  mrg32k3a-m2 w-sqr2))) ; end of PRODUCT
 
-  (define (product A B) ; A*B in ((Z/m1*Z) x (Z/m2*Z))^(3x3)
+      (define (power A e) ; A^e
+	(cond
+	 ((zero? e)
+	  '#(1 0 0 0 1 0 0 0 1 1 0 0 0 1 0 0 0 1))
+	 ((= e 1)
+	  A)
+	 ((even? e)
+	  (power (product A A) (quotient e 2)))
+	 (else
+	  (product (power A (- e 1)) A))))
 
-    (define w      65536) ; wordsize to split {0..2^32-1}
-    (define w-sqr1 209)   ; w^2 mod m1
-    (define w-sqr2 22853) ; w^2 mod m2
+      (define (power-power A b) ; A^(2^b)
+	(if (zero? b)
+	    A
+	  (power-power (product A A) (- b 1))))
 
-    (define (lc i0 i1 i2 j0 j1 j2 m w-sqr) ; linear combination
-      (let ((a0h (quotient (vector-ref A i0) w))
-            (a0l (modulo   (vector-ref A i0) w))
-            (a1h (quotient (vector-ref A i1) w))
-            (a1l (modulo   (vector-ref A i1) w))
-            (a2h (quotient (vector-ref A i2) w))
-            (a2l (modulo   (vector-ref A i2) w))
-            (b0h (quotient (vector-ref B j0) w))
-            (b0l (modulo   (vector-ref B j0) w))
-            (b1h (quotient (vector-ref B j1) w))
-            (b1l (modulo   (vector-ref B j1) w))
-            (b2h (quotient (vector-ref B j2) w))
-            (b2l (modulo   (vector-ref B j2) w)))
-        (modulo
-         (+ (* (+ (* a0h b0h)
-                  (* a1h b1h)
-                  (* a2h b2h))
-               w-sqr)
-            (* (+ (* a0h b0l)
-                  (* a0l b0h)
-                  (* a1h b1l)
-                  (* a1l b1h)
-                  (* a2h b2l)
-                  (* a2l b2h))
-               w)
-            (* a0l b0l)
-            (* a1l b1l)
-            (* a2l b2l))
-         m)))
+      (define A	; the MRG32k3a recursion
+	'#(     0 1403580 4294156359
+		  1       0          0
+		  0       1          0
+		  527612       0 4293573854
+		  1       0          0
+		  0       1          0))
 
-    (vector
-     (lc  0  1  2   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_00 mod m1
-     (lc  0  1  2   1  4  7  mrg32k3a-m1 w-sqr1) ; (A*B)_01
-     (lc  0  1  2   2  5  8  mrg32k3a-m1 w-sqr1)
-     (lc  3  4  5   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_10
-     (lc  3  4  5   1  4  7  mrg32k3a-m1 w-sqr1)
-     (lc  3  4  5   2  5  8  mrg32k3a-m1 w-sqr1)
-     (lc  6  7  8   0  3  6  mrg32k3a-m1 w-sqr1)
-     (lc  6  7  8   1  4  7  mrg32k3a-m1 w-sqr1)
-     (lc  6  7  8   2  5  8  mrg32k3a-m1 w-sqr1)
-     (lc  9 10 11   9 12 15  mrg32k3a-m2 w-sqr2) ; (A*B)_00 mod m2
-     (lc  9 10 11  10 13 16  mrg32k3a-m2 w-sqr2)
-     (lc  9 10 11  11 14 17  mrg32k3a-m2 w-sqr2)
-     (lc 12 13 14   9 12 15  mrg32k3a-m2 w-sqr2)
-     (lc 12 13 14  10 13 16  mrg32k3a-m2 w-sqr2)
-     (lc 12 13 14  11 14 17  mrg32k3a-m2 w-sqr2)
-     (lc 15 16 17   9 12 15  mrg32k3a-m2 w-sqr2)
-     (lc 15 16 17  10 13 16  mrg32k3a-m2 w-sqr2)
-     (lc 15 16 17  11 14 17  mrg32k3a-m2 w-sqr2)))
+      ;; check arguments
+      (unless (and (integer? i)
+		   (exact? i)
+		   (integer? j)
+		   (exact? j))
+	(error "i j must be exact integer" i j))
 
-  (define (power A e) ; A^e
-    (cond
-     ((zero? e)
-      '#(1 0 0 0 1 0 0 0 1 1 0 0 0 1 0 0 0 1))
-     ((= e 1)
-      A)
-     ((even? e)
-      (power (product A A) (quotient e 2)))
-     (else
-      (product (power A (- e 1)) A))))
-
-  (define (power-power A b) ; A^(2^b)
-    (if (zero? b)
-        A
-      (power-power (product A A) (- b 1))))
-
-  (define A	; the MRG32k3a recursion
-    '#(     0 1403580 4294156359
-              1       0          0
-              0       1          0
-              527612       0 4293573854
-              1       0          0
-              0       1          0))
-
-		; check arguments
-  (if (not (and (integer? i)
-                (exact? i)
-                (integer? j)
-                (exact? j)))
-      (error "i j must be exact integer" i j))
-
-		; precompute A^(2^127) and A^(2^76) only once
-
-  (if (not mrg32k3a-generators)
-      (set! mrg32k3a-generators
-            (list (power-power A 127)
-                  (power-power A  76)
-                  (power A 16))))
+      ;; precompute A^(2^127) and A^(2^76) only once
+      (unless mrg32k3a-generators
+	(set! mrg32k3a-generators (vector (power-power A 127)
+					  (power-power A  76)
+					  (power       A  16))))
 
 		; compute M = A^(16 + i*2^127 + j*2^76)
-  (let ((M (product
-            (list-ref mrg32k3a-generators 2)
-            (product
-             (power (list-ref mrg32k3a-generators 0)
-                    (modulo i (expt 2 28)))
-             (power (list-ref mrg32k3a-generators 1)
-                    (modulo j (expt 2 28)))))))
-    (mrg32k3a-pack-state
-     (vector
-      (vector-ref M 0)
-      (vector-ref M 3)
-      (vector-ref M 6)
-      (vector-ref M 9)
-      (vector-ref M 12)
-      (vector-ref M 15)))))
+      (let ((M (product (vector-ref mrg32k3a-generators 2)
+			(product (power (vector-ref mrg32k3a-generators 0) (modulo i e2^28))
+				 (power (vector-ref mrg32k3a-generators 1) (modulo j e2^28))))))
+	(vector (vector-ref M 0)
+		(vector-ref M 3)
+		(vector-ref M 6)
+		(vector-ref M 9)
+		(vector-ref M 12)
+		(vector-ref M 15))))))
 
 
 ;;;; true randomization
@@ -442,7 +445,7 @@
 (define (mrg32k3a-randomize-state state)
   ;; G. Marsaglia's simple 16-bit generator with carry
   (let* ((m 65536)
-         (x (modulo (:random-source-of-numbers) m)))
+         (x (modulo ((random-source-of-numbers)) m)))
     (define (random-m)
       (let ((y (modulo x m)))
         (set! x (+ (* 30903 y) (quotient x m)))
@@ -451,15 +454,14 @@
       (modulo (+ (* (random-m) m) (random-m)) n))
     (let ((m1 mrg32k3a-m1)
           (m2 mrg32k3a-m2)
-          (s (mrg32k3a-unpack-state state)))
-      (mrg32k3a-pack-state
-       (vector
-        (+ 1 (modulo (+ (vector-ref s 0) (random (- m1 1))) (- m1 1)))
-        (modulo (+ (vector-ref s 1) (random m1)) m1)
-        (modulo (+ (vector-ref s 2) (random m1)) m1)
-        (+ 1 (modulo (+ (vector-ref s 3) (random (- m2 1))) (- m2 1)))
-        (modulo (+ (vector-ref s 4) (random m2)) m2)
-        (modulo (+ (vector-ref s 5) (random m2)) m2))))))
+          (s  state))
+      (vector
+       (+ 1 (modulo (+ (vector-ref s 0) (random (- m1 1))) (- m1 1)))
+       (modulo (+ (vector-ref s 1) (random m1)) m1)
+       (modulo (+ (vector-ref s 2) (random m1)) m1)
+       (+ 1 (modulo (+ (vector-ref s 3) (random (- m2 1))) (- m2 1)))
+       (modulo (+ (vector-ref s 4) (random m2)) m2)
+       (modulo (+ (vector-ref s 5) (random m2)) m2)))))
 
 
 ;;;; large integers
@@ -486,7 +488,8 @@
 	      (a (* mk-by-n n)))
 	 (do ((x (mrg32k3a-random-power state k)
 		 (mrg32k3a-random-power state k)))
-	     ((< x a) (quotient x mk-by-n)))))))
+	     ((< x a)
+	      (quotient x mk-by-n)))))))
 
 
 ;;;; multiple precision reals
@@ -510,47 +513,39 @@
 ;;;binding-time environment of MAKE-RANDOM-SOURCE.
 
 (define (make-random-source)
-  (let ((state (mrg32k3a-pack-state ; make a new copy
-                (list->vector (vector->list mrg32k3a-initial-state)))))
+  (let ((state (vector-copy mrg32k3a-initial-state)))
     (:random-source-make
-     (lambda ()
+     (lambda () ; state-ref
        (mrg32k3a-state-ref state))
-     (lambda (new-state)
+     (lambda (new-state) ; state-set!
        (set! state (mrg32k3a-state-set new-state)))
-     (lambda ()
+     (lambda () ; randomize!
        (set! state (mrg32k3a-randomize-state state)))
-     (lambda (i j)
+     (lambda (i j) ; pseudo-randomize!
        (set! state (mrg32k3a-pseudo-randomize-state i j)))
-     (lambda ()
+     (lambda () ; make-integers
        (lambda (n)
-         (cond
-	  ((not (and (integer? n) (exact? n) (positive? n)))
-	   (error "range must be exact positive integer" n))
-	  ((<= n mrg32k3a-m-max)
-	   (mrg32k3a-random-integer state n))
-	  (else
-	   (mrg32k3a-random-large state n)))))
-     (lambda args
-       (cond
-	((null? args)
-	 (lambda ()
-	   (mrg32k3a-random-real state)))
-	((null? (cdr args))
-	 (let ((unit (car args)))
-	   (cond
-	    ((not (and (real? unit) (< 0 unit 1)))
-	     (error "unit must be real in (0,1)" unit))
-	    ((<= (- (/ 1 unit) 1) mrg32k3a-m1)
-	     (lambda ()
-	       (mrg32k3a-random-real state)))
-	    (else
-	     (lambda ()
-	       (mrg32k3a-random-real-mp state unit))))))
-	(else
-	 (error "illegal arguments" args)))))))
-
-(define random-source?
-  :random-source?)
+         (cond ((not (and (integer? n) (exact? n) (positive? n)))
+		(assertion-violation 'make-integers
+		  "range upper limit must be an exact positive integer" n))
+	       ((<= n mrg32k3a-m-max)
+		(mrg32k3a-random-integer state n))
+	       (else
+		(mrg32k3a-random-large state n)))))
+     (case-lambda
+      (()
+       (lambda ()
+	 (mrg32k3a-random-real state)))
+      ((unit)
+       (cond ((not (and (real? unit) (< 0 unit 1)))
+	      (assertion-violation 'make-reals
+		"unit must be a real number in the range (0,1)" unit))
+	     ((<= (- (/ 1 unit) 1) mrg32k3a-m1)
+	      (lambda ()
+		(mrg32k3a-random-real state)))
+	     (else
+	      (lambda ()
+		(mrg32k3a-random-real-mp state unit)))))))))
 
 (define (random-source-state-ref s)
   ((:random-source-state-ref s)))
@@ -564,13 +559,15 @@
 (define (random-source-pseudo-randomize! s i j)
   ((:random-source-pseudo-randomize! s) i j))
 
-
-
 (define (random-source-make-integers s)
   ((:random-source-make-integers s)))
 
-(define (random-source-make-reals s . unit)
-  (apply (:random-source-make-reals s) unit))
+(define random-source-make-reals
+  (case-lambda
+   ((source)
+    ((:random-source-make-reals source)))
+   ((source unit)
+    ((:random-source-make-reals source) unit))))
 
 
 ;;; no fuss API
