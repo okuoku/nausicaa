@@ -142,6 +142,7 @@
   (check
       (let ((dirname '/scrappy/dappy/doo))
 	(guard (exc (else
+		     ;;(debug-print-condition "condition" exc)
 		     (list (errno-condition? exc)
 			   (condition-who exc)
 			   (errno-symbolic-value exc))))

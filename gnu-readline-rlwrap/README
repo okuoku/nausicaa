@@ -1,6 +1,9 @@
 
+		       LIMY Readline
+		       =============
+
 	    GNU Readline wrapper for R6RS Scheme
-	    ====================================
+	    ------------------------------------
 
 
 Topics
@@ -23,12 +26,10 @@ of the  files was posted  to the Ikarus Scheme  mailing list
 <ikarus-users@googlegroups.com>.
 
   Currently there  is support for Ikarus,  Larceny, Mosh and
-Ypsilon.
+Ypsilon.  The package is composed by:
 
-  The package is composed by:
-
+lae - a Bourne shell script for Larceny
 ike - a Bourne shell script for Ikarus
-lay - a Bourne shell script for Larceny
 moe - a Bourne shell script for Mosh
 ype - a Bourne shell script for Ypsilon
 
@@ -50,9 +51,9 @@ in the user's home directory.
   The installation  directories can be  changed by modifying
 the variables in the "Makefile".
 
-  The   "ike",   "lay",   "moe"   and  "ype"   scripts   are
+  The   "ike",   "lae",   "moe"   and  "ype"   scripts   are
 automatically   generated  from   the   templates  "ike.in",
-"lay.in", "moe.in" and "ype.in" that are preprocessed by the
+"lae.in", "moe.in" and "ype.in" that are preprocessed by the
 "Makefile".   The  template   themselves  are  meant  to  be
 customised at will.
 
@@ -68,14 +69,14 @@ The files in this directory are in the public domain.
 
 The following rules are available:
 
-  all		build the scripts  from the templates; build
-		the completions file;
+  all		Build the scripts  from the templates; build
+		the completions file.
 
-  clean		remove the script and completion files;
+  clean		Remove the script and completion files.
 
-  install	install the script and completion files;
+  install	Install the script and completion files.
 
-  uninstall	uninstall the script and completion files.
+  uninstall	Uninstall the script and completion files.
 
   To test what a rule will do use the "-n" option; example:
 
@@ -84,18 +85,22 @@ The following rules are available:
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/scheme-wrappers
+    $ make install DESTDIR=/tmp/marco/limy-readline
 
 
 A. Bug reports
 --------------
 
-Bug  reports and  contributions are  welcome.  Send  them by
-email to <mrc.mgg@gmail.com>.
+Bug  reports and contributions  are welcome.   Register them
+using the issue tracker at GitHub.
 
 
 B. Resources
 ------------
+
+The latest revision of this package is available at:
+
+  <http://github.com/marcomaggi/limy-readline/tree/master>
 
 Rlwrap can be found here:
 

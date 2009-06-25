@@ -1,7 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compatibility memory functions for Ypsilon
-;;;Date: Tue Dec 16, 2008
+;;;Contents: compatibility memory functions for Mosh
+;;;Date: Thu Jun 25, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -56,7 +56,6 @@
     pointer-set-c-long-long!		pointer-set-c-float!
     pointer-set-c-double!		pointer-set-c-pointer!)
   (import (core)
-    (ypsilon ffi)
     (foreign ffi sizeof))
 
 
@@ -89,52 +88,66 @@
 (define self (load-shared-object ""))
 
 (define platform-free
-  (let* ((address (lookup-shared-object self 'free))
-	 (closure (make-cdecl-callout 'void '(void*) address)))
+  (let ((f (lookup-shared-object self 'free)))
     (lambda (pointer)
-      (closure (pointer->integer pointer)))))
+      (stdcall-shared-object->void f (pointer->integer pointer)))))
 
 (define platform-malloc
-  (let* ((address (lookup-shared-object self 'malloc))
-	 (closure (make-cdecl-callout 'void* '(size_t) address)))
-    (lambda (size)
-      (integer->pointer (closure size)))))
+  (let ((f (lookup-shared-object self 'malloc)))
+    (lambda (number-of-bytes)
+      (integer->pointer
+       (stdcall-shared-object->intptr f number-of-bytes)))))
 
 (define platform-realloc
-  (let* ((address (lookup-shared-object self 'realloc))
-	 (closure (make-cdecl-callout 'void* '(void* size_t) address)))
+  (let ((f (lookup-shared-object self 'realloc)))
     (lambda (pointer new-size)
-      (integer->pointer (closure (pointer->integer pointer) new-size)))))
+      (integer->pointer
+       (stdcall-shared-object->intptr f
+				      (pointer->integer pointer)
+				      new-size)))))
 
 (define platform-calloc
-  (let* ((address (lookup-shared-object self 'calloc))
-	 (closure (make-cdecl-callout 'void* '(size_t size_t) address)))
-    (lambda (count size)
-      (integer->pointer (closure count size)))))
+  (let ((f (lookup-shared-object self 'calloc)))
+    (lambda (count element-size)
+      (integer->pointer
+       (stdcall-shared-object->intptr f count element-size)))))
 
 (define memset
-  (let* ((address (lookup-shared-object self 'memset))
-	 (closure (make-cdecl-callout 'void* '(void* int void*) address)))
-    (lambda (pointer value size)
-      (integer->pointer (closure (pointer->integer pointer) value size)))))
+  (let ((f (lookup-shared-object self 'memset)))
+    (lambda (pointer byte-value number-of-bytes)
+      (integer->pointer
+       (stdcall-shared-object->intptr f
+				      (pointer->integer pointer)
+				      byte-value
+				      number-of-bytes)))))
 
 (define memmove
-  (let* ((address (lookup-shared-object self 'memmove))
-	 (closure (make-cdecl-callout 'void* '(void* void* size_t) address)))
-    (lambda (dst src size)
-      (integer->pointer (closure (pointer->integer dst) (pointer->integer src) size)))))
+  (let ((f (lookup-shared-object self 'memmove)))
+    (lambda (dst src number-of-bytes)
+      (integer->pointer
+       (stdcall-shared-object->intptr f
+				      (pointer->integer dst)
+				      (pointer->integer src)
+				      number-of-bytes)))))
 
 (define memcpy
-  (let* ((address (lookup-shared-object self 'memcpy))
-	 (closure (make-cdecl-callout 'void* '(void* void* size_t) address)))
-    (lambda (dst src size)
-      (integer->pointer (closure (pointer->integer dst) (pointer->integer src) size)))))
+  (let ((f (lookup-shared-object self 'memcpy)))
+    (lambda (dst src number-of-bytes)
+      (integer->pointer
+       (stdcall-shared-object->intptr f
+				      (pointer->integer dst)
+				      (pointer->integer src)
+				      number-of-bytes)))))
 
 (define memcmp
-  (let* ((address (lookup-shared-object self 'memcmp))
-	 (closure (make-cdecl-callout 'void* '(void* void* size_t) address)))
-    (lambda (ptr-a ptr-b size)
-      (closure (pointer->integer ptr-a) (pointer->integer ptr-b) size))))
+  (let ((f (lookup-shared-object self 'memcmp)))
+    (lambda (a b number-of-bytes)
+      (integer->pointer
+       (stdcall-shared-object->int f
+				   (pointer->integer a)
+				   (pointer->integer b)
+				   number-of-bytes)))))
+
 
 
 ;;;; peekers

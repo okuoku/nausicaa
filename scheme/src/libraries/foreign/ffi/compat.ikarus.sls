@@ -70,7 +70,6 @@
     (else (error 'make-c-function
 	    "unknown C language type identifier" type))))
 
-
 
 ;;;; dynamic loading and interface functions
 
