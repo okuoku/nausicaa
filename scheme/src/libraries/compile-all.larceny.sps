@@ -80,6 +80,12 @@
 (compile-library "checks.sls"
 		 "checks.slfasl")
 
+(compile-library "random.sls"
+		 "random.slfasl")
+
+(compile-library "compare.sls"
+		 "compare.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (compile-library "object-properties.sls"

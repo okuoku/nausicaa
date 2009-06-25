@@ -1,34 +1,35 @@
-;;; Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008 Derick Eddington
+;;;Copyright (c) 2002 Sebastian Egner
 ;;;
-;;; Permission is  hereby granted, free of charge,  to any person
-;;; obtaining   a   copy   of   this  software   and   associated
-;;; documentation files (the "Software"), to deal in the Software
-;;; without restriction, including  without limitation the rights
-;;; to use, copy, modify, merge, publish, distribute, sublicense,
-;;; and/or sell copies of the  Software, and to permit persons to
-;;; whom  the Software  is furnished  to  do so,  subject to  the
-;;; following conditions:
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
 ;;;
-;;; The above  copyright notice and this  permission notice shall
-;;; be  included in  all copies  or substantial  portions  of the
-;;; Software.
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
 ;;;
-;;; Except as contained in this  notice, the name(s) of the above
-;;; copyright  holders  shall  not  be  used  in  advertising  or
-;;; otherwise to promote the sale,  use or other dealings in this
-;;; Software without prior written authorization.
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
 ;;;
-;;; THE  SOFTWARE IS PROVIDED  "AS IS",  WITHOUT WARRANTY  OF ANY
-;;; KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE
-;;; WARRANTIES  OF  MERCHANTABILITY,  FITNESS  FOR  A  PARTICULAR
-;;; PURPOSE AND  NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS
-;;; OR  COPYRIGHT HOLDERS  BE LIABLE  FOR ANY  CLAIM,  DAMAGES OR
-;;; OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT,  TORT OR
-;;; OTHERWISE,  ARISING FROM, OUT  OF OR  IN CONNECTION  WITH THE
-;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
 
+
 #!r6rs
-(library (srfi random)
+(library (random)
   (export
     random-integer
     random-real
@@ -42,27 +43,10 @@
     random-source-make-integers
     random-source-make-reals)
   (import (rnrs)
-    (rnrs r5rs)
-    (srfi parameters)
-    (only (srfi time) time-nanosecond current-time))
+    (only (rnrs r5rs) quotient modulo)
+    (nausicaa parameter))
 
 
-;;; R6RS port of the Scheme48 reference implementation of SRFI-27
-;;;
-;;; MODULE DEFINITION FOR SRFI-27
-;;; =============================
-;;;
-;;; Sebastian.Egner@philips.com, Mar-2002, in Scheme 48 0.57
-;;;
-;;; 1. The core generator is implemented in 'mrg32k3a-a.scm'.
-;;; 2. The generic parts of the interface are in 'mrg32k3a.scm'.
-;;; 3. The non-generic parts (record type, time, error) are here.
-;;;
-;;; history of this file:
-;;;   SE, 22-Mar-2002: initial version
-;;;   SE, 27-Mar-2002: checked again
-;;;   JS, 06-Dec-2007: R6RS port
-
 (define-record-type :random-source
   (fields state-ref
           state-set!
@@ -79,30 +63,30 @@
 (define make-integers :random-source-make-integers)
 (define make-reals :random-source-make-reals)
 
-(define (:random-source-current-time)
-  (time-nanosecond (current-time)))
+(define (default-random-source-of-numbers)
+  (let* ((port #f) (num #f))
+    (dynamic-wind
+	(lambda ()
+	  (set! port (open-file-input-port "/dev/random"
+					   (file-options no-create)
+					   (buffer-mode none))))
+	(lambda ()
+	  (set! num (bytevector-u32-native-ref
+		     (get-bytevector-n port 4) 0)))
+	(lambda ()
+	  (close-port port)))
+    num))
 
+(define :random-source-of-numbers
+  (make-parameter
+      default-random-source-of-numbers
+    (lambda (value)
+      (if (procedure? value)
+	  value
+	(assertion-violation ':random-source-of-numbers
+	  "expected procedure" value)))))
 
-;;; mrg32k3a-a.ss
-
-; 54-BIT INTEGER IMPLEMENTATION OF THE "MRG32K3A"-GENERATOR
-; =========================================================
-;
-; Sebastian.Egner@philips.com, Mar-2002.
-;
-; This file is an implementation of Pierre L'Ecuyer's MRG32k3a
-; pseudo random number generator. Please refer to 'mrg32k3a.scm'
-; for more information.
-;
-; compliance:
-;   Scheme R5RS with integers covering at least {-2^53..2^53-1}.
-;
-; history of this file:
-;   SE, 18-Mar-2002: initial version
-;   SE, 22-Mar-2002: comments adjusted, range added
-;   SE, 25-Mar-2002: pack/unpack just return their argument
-
-; the actual generator
+
 
 (define (mrg32k3a-random-m1 state)
   (let ((x11 (vector-ref state 0))
@@ -141,30 +125,7 @@
 (define (mrg32k3a-random-real state) ; normalization is 1/(m1+1)
   (* 0.0000000002328306549295728 (+ 1.0 (mrg32k3a-random-m1 state))))
 
-
-;;; mrg32k3a.ss
-
-; GENERIC PART OF MRG32k3a-GENERATOR FOR SRFI-27
-; ==============================================
-;
-; Sebastian.Egner@philips.com, 2002.
-;
-; This is the generic R5RS-part of the implementation of the MRG32k3a
-; generator to be used in SRFI-27. It is based on a separate implementation
-; of the core generator (presumably in native code) and on code to
-; provide essential functionality not available in R5RS (see below).
-;
-; compliance:
-;   Scheme R5RS with integer covering at least {-2^53..2^53-1}.
-;   In addition,
-;     SRFI-23: error
-;
-; history of this file:
-;   SE, 22-Mar-2002: refactored from earlier versions
-;   SE, 25-Mar-2002: pack/unpack need not allocate
-;   SE, 27-Mar-2002: changed interface to core generator
-;   SE, 10-Apr-2002: updated spec of mrg32k3a-random-integer
-
+
 ; Generator
 ; =========
 ;
@@ -277,7 +238,7 @@
 ;     an integer that depends on the system clock. It is desired
 ;     that the integer changes as fast as possible.
 
-
+
 ; Accessing the State
 ; ===================
 
@@ -286,14 +247,12 @@
         (vector->list (mrg32k3a-unpack-state packed-state))))
 
 (define (mrg32k3a-state-set external-state)
-
   (define (check-value x m)
     (if (and (integer? x)
              (exact? x)
              (<= 0 x (- m 1)))
         #t
-        (error "illegal value" x)))
-
+      (error "illegal value" x)))
   (if (and (list? external-state)
            (= (length external-state) 7)
            (eq? (car external-state) 'lecuyer-mrg32k3a))
@@ -308,12 +267,11 @@
                 (zero? (+ (list-ref s 3) (list-ref s 4) (list-ref s 5))))
             (error "illegal degenerate state" external-state))
         (mrg32k3a-pack-state (list->vector s)))
-      (error "malformed state" external-state)))
+    (error "malformed state" external-state)))
 
+
+;;;; pseudo-randomization
 
-; Pseudo-Randomization
-; ====================
-;
 ; Reference [1] above shows how to obtain many long streams and
 ; substream from the backbone generator.
 ;
@@ -350,12 +308,12 @@
 (define mrg32k3a-m2 4294944443) ; modulus of component 2
 
 (define mrg32k3a-initial-state ; 0 3 6 9 12 15 of A^16, see below
-  '#( 1062452522
-      2961816100
-      342112271
-      2854655037
-      3321940838
-      3542344109))
+  '#(1062452522
+     2961816100
+     342112271
+     2854655037
+     3321940838
+     3542344109))
 
 (define mrg32k3a-generators #f) ; computed when needed
 
@@ -419,21 +377,21 @@
 
   (define (power A e) ; A^e
     (cond
-      ((zero? e)
-       '#(1 0 0 0 1 0 0 0 1 1 0 0 0 1 0 0 0 1))
-      ((= e 1)
-       A)
-      ((even? e)
-       (power (product A A) (quotient e 2)))
-      (else
-       (product (power A (- e 1)) A))))
+     ((zero? e)
+      '#(1 0 0 0 1 0 0 0 1 1 0 0 0 1 0 0 0 1))
+     ((= e 1)
+      A)
+     ((even? e)
+      (power (product A A) (quotient e 2)))
+     (else
+      (product (power A (- e 1)) A))))
 
   (define (power-power A b) ; A^(2^b)
     (if (zero? b)
         A
-        (power-power (product A A) (- b 1))))
+      (power-power (product A A) (- b 1))))
 
-  (define A                        ; the MRG32k3a recursion
+  (define A	; the MRG32k3a recursion
     '#(     0 1403580 4294156359
               1       0          0
               0       1          0
@@ -441,14 +399,14 @@
               1       0          0
               0       1          0))
 
-  ; check arguments
+		; check arguments
   (if (not (and (integer? i)
                 (exact? i)
                 (integer? j)
                 (exact? j)))
       (error "i j must be exact integer" i j))
 
-  ; precompute A^(2^127) and A^(2^76) only once
+		; precompute A^(2^127) and A^(2^76) only once
 
   (if (not mrg32k3a-generators)
       (set! mrg32k3a-generators
@@ -456,7 +414,7 @@
                   (power-power A  76)
                   (power A 16))))
 
-  ; compute M = A^(16 + i*2^127 + j*2^76)
+		; compute M = A^(16 + i*2^127 + j*2^76)
   (let ((M (product
             (list-ref mrg32k3a-generators 2)
             (product
@@ -473,26 +431,24 @@
       (vector-ref M 12)
       (vector-ref M 15)))))
 
-; True Randomization
-; ==================
-;
-; The value obtained from the system time is feed into a very
-; simple pseudo random number generator. This in turn is used
-; to obtain numbers to randomize the state of the MRG32k3a
-; generator, avoiding period degeneration.
+
+;;;; true randomization
+
+;;;The value  obtained from the system  time is feed into  a very simple
+;;;pseudo  random number  generator.  This  in turn  is  used to  obtain
+;;;numbers to  randomize the state  of the MRG32k3a  generator, avoiding
+;;;period degeneration.
 
 (define (mrg32k3a-randomize-state state)
   ;; G. Marsaglia's simple 16-bit generator with carry
   (let* ((m 65536)
-         (x (modulo (:random-source-current-time) m)))
+         (x (modulo (:random-source-of-numbers) m)))
     (define (random-m)
       (let ((y (modulo x m)))
         (set! x (+ (* 30903 y) (quotient x m)))
         y))
-    (define (random n)			; m < n < m^2
+    (define (random n) ; m < n < m^2
       (modulo (+ (* (random-m) m) (random-m)) n))
-
-    ; modify the state
     (let ((m1 mrg32k3a-m1)
           (m2 mrg32k3a-m2)
           (s (mrg32k3a-unpack-state state)))
@@ -505,14 +461,13 @@
         (modulo (+ (vector-ref s 4) (random m2)) m2)
         (modulo (+ (vector-ref s 5) (random m2)) m2))))))
 
+
+;;;; large integers
 
-; Large Integers
-; ==============
-;
-; To produce large integer random deviates, for n > m-max, we first
-; construct large random numbers in the range {0..m-max^k-1} for some
-; k such that m-max^k >= n and then use the rejection method to choose
-; uniformly from the range {0..n-1}.
+;;;To produce  large integer  random deviates, for  n > m-max,  we first
+;;;construct large random numbers in the range {0..m-max^k-1} for some k
+;;;such that  m-max^k >= n and  then use the rejection  method to choose
+;;;uniformly from the range {0..n-1}.
 
 (define mrg32k3a-m-max
   (mrg32k3a-random-range))
@@ -520,43 +475,39 @@
 (define (mrg32k3a-random-power state k) ; n = m-max^k, k >= 1
   (if (= k 1)
       (mrg32k3a-random-integer state mrg32k3a-m-max)
-      (+ (* (mrg32k3a-random-power state (- k 1)) mrg32k3a-m-max)
-         (mrg32k3a-random-integer state mrg32k3a-m-max))))
+    (+ (* (mrg32k3a-random-power state (- k 1)) mrg32k3a-m-max)
+       (mrg32k3a-random-integer state mrg32k3a-m-max))))
 
 (define (mrg32k3a-random-large state n) ; n > m-max
   (do ((k 2 (+ k 1))
        (mk (* mrg32k3a-m-max mrg32k3a-m-max) (* mk mrg32k3a-m-max)))
-    ((>= mk n)
-     (let* ((mk-by-n (quotient mk n))
-            (a (* mk-by-n n)))
-       (do ((x (mrg32k3a-random-power state k)
-               (mrg32k3a-random-power state k)))
-         ((< x a) (quotient x mk-by-n)))))))
+      ((>= mk n)
+       (let* ((mk-by-n (quotient mk n))
+	      (a (* mk-by-n n)))
+	 (do ((x (mrg32k3a-random-power state k)
+		 (mrg32k3a-random-power state k)))
+	     ((< x a) (quotient x mk-by-n)))))))
 
+
+;;;; multiple precision reals
 
-; Multiple Precision Reals
-; ========================
-;
-; To produce multiple precision reals we produce a large integer value
-; and convert it into a real value. This value is then normalized.
-; The precision goal is unit <= 1/(m^k + 1), or 1/unit - 1 <= m^k.
-; If you know more about the floating point number types of the
-; Scheme system, this can be improved.
+;;;To produce multiple precision reals  we produce a large integer value
+;;;and convert it into a real value. This value is then normalized.  The
+;;;precision goal is unit <= 1/(m^k +  1), or 1/unit - 1 <= m^k.  If you
+;;;know more about the floating point number types of the Scheme system,
+;;;this can be improved.
 
 (define (mrg32k3a-random-real-mp state unit)
   (do ((k 1 (+ k 1))
        (u (- (/ 1 unit) 1) (/ u mrg32k3a-m1)))
-    ((<= u 1)
-     (/ (exact->inexact (+ (mrg32k3a-random-power state k) 1))
-        (exact->inexact (+ (expt mrg32k3a-m-max k) 1))))))
+      ((<= u 1)
+       (/ (inexact (+ (mrg32k3a-random-power state k) 1))
+	  (inexact (+ (expt mrg32k3a-m-max k) 1))))))
 
-
-; Provide the Interface as Specified in the SRFI
-; ==============================================
-;
-; An object of type random-source is a record containing the procedures
-; as components. The actual state of the generator is stored in the
-; binding-time environment of make-random-source.
+
+;;;An object of type random-source is a record containing the procedures
+;;;as components.  The actual  state of the  generator is stored  in the
+;;;binding-time environment of MAKE-RANDOM-SOURCE.
 
 (define (make-random-source)
   (let ((state (mrg32k3a-pack-state ; make a new copy
@@ -573,30 +524,30 @@
      (lambda ()
        (lambda (n)
          (cond
-           ((not (and (integer? n) (exact? n) (positive? n)))
-            (error "range must be exact positive integer" n))
-           ((<= n mrg32k3a-m-max)
-            (mrg32k3a-random-integer state n))
-           (else
-            (mrg32k3a-random-large state n)))))
+	  ((not (and (integer? n) (exact? n) (positive? n)))
+	   (error "range must be exact positive integer" n))
+	  ((<= n mrg32k3a-m-max)
+	   (mrg32k3a-random-integer state n))
+	  (else
+	   (mrg32k3a-random-large state n)))))
      (lambda args
        (cond
-         ((null? args)
-          (lambda ()
-            (mrg32k3a-random-real state)))
-         ((null? (cdr args))
-          (let ((unit (car args)))
-            (cond
-              ((not (and (real? unit) (< 0 unit 1)))
-               (error "unit must be real in (0,1)" unit))
-              ((<= (- (/ 1 unit) 1) mrg32k3a-m1)
-               (lambda ()
-                 (mrg32k3a-random-real state)))
-              (else
-               (lambda ()
-                 (mrg32k3a-random-real-mp state unit))))))
-         (else
-          (error "illegal arguments" args)))))))
+	((null? args)
+	 (lambda ()
+	   (mrg32k3a-random-real state)))
+	((null? (cdr args))
+	 (let ((unit (car args)))
+	   (cond
+	    ((not (and (real? unit) (< 0 unit 1)))
+	     (error "unit must be real in (0,1)" unit))
+	    ((<= (- (/ 1 unit) 1) mrg32k3a-m1)
+	     (lambda ()
+	       (mrg32k3a-random-real state)))
+	    (else
+	     (lambda ()
+	       (mrg32k3a-random-real-mp state unit))))))
+	(else
+	 (error "illegal arguments" args)))))))
 
 (define random-source?
   :random-source?)
@@ -613,7 +564,7 @@
 (define (random-source-pseudo-randomize! s i j)
   ((:random-source-pseudo-randomize! s) i j))
 
-; ---
+
 
 (define (random-source-make-integers s)
   ((:random-source-make-integers s)))
@@ -621,7 +572,8 @@
 (define (random-source-make-reals s . unit)
   (apply (:random-source-make-reals s) unit))
 
-; ---
+
+;;; no fuss API
 
 (define default-random-source
   (make-random-source))
@@ -630,6 +582,11 @@
   (random-source-make-integers default-random-source))
 
 (define random-real
-  (random-source-make-reals default-random-source)))
+  (random-source-make-reals default-random-source))
+
+
+;;; done
+
+)
 
 ;;; end of file

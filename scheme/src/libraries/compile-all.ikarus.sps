@@ -36,6 +36,8 @@
   (only (checks))
   (only (loops))
   (only (format))
+  (only (random))
+  (only (compare))
 
   (only (object-properties))
   (only (cleanup-handlers))
