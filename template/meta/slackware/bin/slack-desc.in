@@ -1,7 +1,7 @@
               |-----handy-ruler-----------------------------------------------|
 @PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: A collection of libraries for R6RS Scheme.
+@PACKAGE_NAME@: Base libraries for the Nausicaa R6RS distribution.
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
