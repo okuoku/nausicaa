@@ -43,7 +43,7 @@
   (only (combinators))
 
   (only (foreign))
-  (only (guarded-malloc))
+  (only (foreign guarded-malloc))
   )
 
 ;;; end of file

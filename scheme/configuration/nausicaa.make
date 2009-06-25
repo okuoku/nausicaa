@@ -289,7 +289,7 @@ nau_itest_RUN		= $(nau_itest_ENV) $(TIME_TESTS) $(nau_itest_PROGRAM)
 itests itest icheck:
 ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(nau_itest_RUN) $(f) $(nau_test_SEPARATOR))
+	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_itest_RUN) $(f))
 else
 	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_itest_RUN) $(f))
 endif

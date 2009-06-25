@@ -1,34 +1,27 @@
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
-;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
-;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;
-;;;Redistribution and  use in source  and binary forms, with  or without
-;;;modification,  are permitted provided  that the  following conditions
-;;;are met:
+;;;Part of: Nausicaa/Scheme
+;;;Contents: compatibility layer for Mosh FFI
+;;;Date: Thu Jun 25, 2009
 ;;;
-;;;1. Redistributions  of source  code must  retain the  above copyright
-;;;   notice, this list of conditions and the following disclaimer.
+;;;Abstract
 ;;;
-;;;2. Redistributions in binary form  must reproduce the above copyright
-;;;   notice, this  list of conditions  and the following  disclaimer in
-;;;   the  documentation  and/or   other  materials  provided  with  the
-;;;   distribution.
 ;;;
-;;;3. Neither the name of the  authors nor the names of its contributors
-;;;   may  be used  to endorse  or  promote products  derived from  this
-;;;   software without specific prior written permission.
 ;;;
-;;;THIS SOFTWARE  IS PROVIDED BY THE COPYRIGHT  HOLDERS AND CONTRIBUTORS
-;;;"AS IS"  AND ANY  EXPRESS OR IMPLIED  WARRANTIES, INCLUDING,  BUT NOT
-;;;LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-;;;A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
-;;;OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-;;;SPECIAL,  EXEMPLARY,  OR CONSEQUENTIAL  DAMAGES  (INCLUDING, BUT  NOT
-;;;LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-;;;DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-;;;THEORY OF  LIABILITY, WHETHER IN CONTRACT, STRICT  LIABILITY, OR TORT
-;;;(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-;;;OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
 
 
 ;;;; setup
@@ -43,75 +36,25 @@
     primitive-make-c-function primitive-make-c-function/with-errno
 
     errno)
-  (import (rename (core)
-		  (shared-object-errno errno))
-    (lang-lib)
+  (import (rnrs)
+    (mosh ffi)
     (foreign ffi sizeof)
     (foreign memory))
 
 
 ;;;; dynamic loading
 
-(define self-shared-object (load-shared-object ""))
+(define self-shared-object (open-shared-object ""))
 
 (define shared-object
   (make-parameter self-shared-object))
 
 ;;In case of error this raises an exception automatically.
-(define primitive-open-shared-object load-shared-object)
+(define primitive-open-shared-object open-shared-object)
 
 
 
-;;;; value normalisation: scheme -> c language
-
-;;;The following mapping functions  are normalisators from Scheme values
-;;;to values usable by the C language interface functions.
-
-(define (assert-int value)
-  (if (and (integer? value)
-	   (exact? value))
-      value
-    (assertion-violation 'assert-int
-      "expected exact integer as function argument" value)))
-
-(define (assert-float value)
-  (if (flonum? value)
-      (flonum->float value)
-    (assertion-violation 'assert-float
-      "expected flonum as function argument" value)))
-
-(define (assert-double value)
-  (if (flonum? value)
-      value
-    (assertion-violation 'assert-double
-      "expected flonum as function argument" value)))
-
-(define (assert-string value)
-  (if (string? value)
-      value
-    (assertion-violation 'assert-string
-      "expected string as function argument" value)))
-
-(define (assert-bytevector value)
-  (if (bytevector? value)
-      value
-    (assertion-violation 'assert-bytevector
-      "expected bytevector as function argument" value)))
-
-(define (assert-pointer p)
-  (if (pointer? p)
-      (pointer->integer p)
-    (assertion-violation 'assert-pointer
-      "expected pointer as function argument" p)))
-
-(define (assert-closure value)
-  (if (procedure? value)
-      value
-    (assertion-violation 'assert-closure
-      "expected procedure as function argument" value)))
-
-
-;;;; values normalisation: Foreign -> Ypsilon
+;;;; values normalisation: Foreign -> Mosh
 
 ;;;This mapping function normalises  the C type identifiers supported by
 ;;;Nausicaa  to  the  identifiers  supported by  Ypsilon.   Notice  that

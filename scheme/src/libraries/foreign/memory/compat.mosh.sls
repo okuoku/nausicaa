@@ -55,7 +55,8 @@
     pointer-set-c-int!			pointer-set-c-long!
     pointer-set-c-long-long!		pointer-set-c-float!
     pointer-set-c-double!		pointer-set-c-pointer!)
-  (import (core)
+  (import (rnrs)
+    (mosh ffi)
     (foreign ffi sizeof))
 
 
@@ -85,69 +86,31 @@
 
 ;;;; foreign functions
 
-(define self (load-shared-object ""))
+(define self (open-shared-library ""))
 
 (define platform-free
-  (let ((f (lookup-shared-object self 'free)))
-    (lambda (pointer)
-      (stdcall-shared-object->void f (pointer->integer pointer)))))
+  (make-c-function self 'void 'free '(void*)))
 
 (define platform-malloc
-  (let ((f (lookup-shared-object self 'malloc)))
-    (lambda (number-of-bytes)
-      (integer->pointer
-       (stdcall-shared-object->intptr f number-of-bytes)))))
+  (make-c-function self 'void* 'malloc '(int)))
 
 (define platform-realloc
-  (let ((f (lookup-shared-object self 'realloc)))
-    (lambda (pointer new-size)
-      (integer->pointer
-       (stdcall-shared-object->intptr f
-				      (pointer->integer pointer)
-				      new-size)))))
+  (make-c-function self 'void* 'realloc '(void* int)))
 
 (define platform-calloc
-  (let ((f (lookup-shared-object self 'calloc)))
-    (lambda (count element-size)
-      (integer->pointer
-       (stdcall-shared-object->intptr f count element-size)))))
+  (make-c-function self 'void* 'calloc '(int int)))
 
 (define memset
-  (let ((f (lookup-shared-object self 'memset)))
-    (lambda (pointer byte-value number-of-bytes)
-      (integer->pointer
-       (stdcall-shared-object->intptr f
-				      (pointer->integer pointer)
-				      byte-value
-				      number-of-bytes)))))
+  (make-c-function self 'void* 'memset '(void* int int)))
 
 (define memmove
-  (let ((f (lookup-shared-object self 'memmove)))
-    (lambda (dst src number-of-bytes)
-      (integer->pointer
-       (stdcall-shared-object->intptr f
-				      (pointer->integer dst)
-				      (pointer->integer src)
-				      number-of-bytes)))))
+  (make-c-function self 'void* 'memmove '(void* void* int)))
 
 (define memcpy
-  (let ((f (lookup-shared-object self 'memcpy)))
-    (lambda (dst src number-of-bytes)
-      (integer->pointer
-       (stdcall-shared-object->intptr f
-				      (pointer->integer dst)
-				      (pointer->integer src)
-				      number-of-bytes)))))
+  (make-c-function self 'void* 'memcpy '(void* void* int)))
 
 (define memcmp
-  (let ((f (lookup-shared-object self 'memcmp)))
-    (lambda (a b number-of-bytes)
-      (integer->pointer
-       (stdcall-shared-object->int f
-				   (pointer->integer a)
-				   (pointer->integer b)
-				   number-of-bytes)))))
-
+  (make-c-function self 'int 'memcpy '(void* void* int)))
 
 
 ;;;; peekers
