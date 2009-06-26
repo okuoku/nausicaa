@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: parameters from Ikarus
+;;;Contents: parameters from Mosh
 ;;;Date: Thu Jun 18, 2009
 ;;;
 ;;;Abstract
@@ -25,8 +25,8 @@
 
 
 #!r6rs
-(library (nausicaa parameter)
+(library (nausicaa parameters)
   (export make-parameter parameterize)
-  (import (only (ikarus) make-parameter parameterize)))
+  (import (only (system) make-parameter parameterize)))
 
 ;;; end of file

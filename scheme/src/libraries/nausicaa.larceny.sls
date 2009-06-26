@@ -800,7 +800,7 @@
 		  ;;arguments.
 		  finite? infinite? nan?)
     (primitives getenv pretty-print)
-    (nausicaa parameter)
+    (nausicaa parameters)
     (nausicaa common)
     (for (nausicaa registry) expand))
 

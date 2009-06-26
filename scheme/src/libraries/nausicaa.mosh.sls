@@ -768,7 +768,7 @@
     get-environment-variable get-environment-variables
 
     ;; parameters
-    parameterize make-parameter (rename (parameterize parameterise))
+    parameterize parameterise make-parameter
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
@@ -796,7 +796,6 @@
 		  finite? infinite? nan?)
     (only (system) get-environment-variable get-environment-variables)
     (only (mosh pp) pretty-print)
-    (nausicaa parameter)
     (nausicaa common)
     (for (nausicaa registry) expand))
 

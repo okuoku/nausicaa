@@ -769,7 +769,7 @@
     get-environment-variables
 
     ;; parameters
-    parameterize make-parameter (rename (parameterize parameterise))
+    parameterize parameterise make-parameter
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
@@ -795,7 +795,6 @@
 		  equal-hash finite? infinite? nan?)
     (only (ikarus)
 	  getenv pretty-print)
-    (nausicaa parameter)
     (nausicaa common)
     (for (nausicaa registry) expand))
 

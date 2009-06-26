@@ -768,7 +768,7 @@
 	    (process-environment->alist get-environment-variables))
 
     ;; parameters
-    parameterize make-parameter (rename (parameterize parameterise))
+    parameterize parameterise make-parameter
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
@@ -794,7 +794,6 @@
     (only (core)
 	  pretty-print
 	  lookup-process-environment process-environment->alist)
-    (nausicaa parameter)
     (nausicaa common)
     (for (nausicaa registry) expand))
 

@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: parameters from Mosh
+;;;Contents: parameters from Larceny
 ;;;Date: Thu Jun 18, 2009
 ;;;
 ;;;Abstract
@@ -25,8 +25,29 @@
 
 
 #!r6rs
-(library (nausicaa parameter)
-  (export make-parameter parameterize)
-  (import (only (system) make-parameter parameterize)))
+(library (nausicaa parameters)
+  (export
+    (rename (make-this-parameter make-parameter)
+	    (parameterize-this parameterize)))
+  (import (rnrs)
+    (primitives make-parameter parameterize))
+
+  (define make-this-parameter
+    (case-lambda
+     ((value validator)
+      (let ((the-parm (make-parameter 'unnamed (validator value))))
+	(case-lambda
+	 ((value)
+	  (the-parm (validator value)))
+	 (()
+	  (the-parm)))))
+     ((value)
+      (make-this-parameter value (lambda (x) x)))))
+
+  (define-syntax parameterize-this
+    (syntax-rules ()
+      ((_ ?bindings ?form0 ?form ...)
+       (parameterize ?bindings
+	 (letrec* () ?form0 ?form ...))))))
 
 ;;; end of file
