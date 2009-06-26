@@ -245,7 +245,7 @@
      (define ?name
        (case-lambda
 	(()
-	 #t)
+	 #f)
 	((pointer)
 	 #t)
 	((pointer-a pointer-b)
@@ -261,9 +261,12 @@
 (define-pointer-comparison pointer<=? <=)
 (define-pointer-comparison pointer>=? >=)
 
-(define (pointer<>? pointer . args)
-  (not (apply pointer=? pointer args)))
-
+(define pointer<>?
+  (case-lambda
+   (()
+    #f)
+   ((pointer . pointers)
+    (not (apply pointer=? pointer pointers)))))
 
 
 ;;;; records
