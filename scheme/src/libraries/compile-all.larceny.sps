@@ -29,14 +29,14 @@
 (compile-library "nausicaa/registry.sls"
 		 "nausicaa/registry.slfasl")
 
-(compile-library "nausicaa/parameter.larceny.sls"
-		 "nausicaa/parameter.larceny.slfasl")
+(compile-library "nausicaa/parameters.larceny.sls"
+		 "nausicaa/parameters.larceny.slfasl")
 
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")
 
-(compile-library "nausicaa.sls"
-		 "nausicaa.slfasl")
+(compile-library "nausicaa.larceny.sls"
+		 "nausicaa.larceny.slfasl")
 
 (compile-library "format.sls"
 		 "format.slfasl")

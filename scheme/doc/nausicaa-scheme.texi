@@ -758,6 +758,8 @@ More libraries
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
 * vectors::                     Vectors library.
+* compare::                     Comparison functions.
+* random::                      Sources of random bits.
 * checks::                      Lightweight testing.
 * queues::                      Simple queue.
 * object-properties::           Object properties.
@@ -865,6 +867,30 @@ Vectors library
 * vectors mutate::              Mutators.
 * vectors misc::                Miscellaneous functions.
 
+Comparison functions
+
+* compare abstract::            Abstract and rationale.
+* compare intro::               Introduction.
+* compare conventions::         Terminology and conventions.
+* compare spec::                Specification.
+
+Specification
+
+* compare spec atoms::          Comparing atoms.
+* compare spec sequence::       Comparing lists and vectors.
+* compare spec pair::           Comparing pairs and improper lists.
+* compare spec default::        The default compare procedure.
+* compare spec cons::           Constructing compare procedures.
+* compare spec using::          Using compare procedures.
+
+Sources of random bits
+
+* random intro::                Introduction.
+* random device::               Device--based random numbers.
+* random numbers::              Simple random numbers.
+* random source::               Random sources.
+* random usage::                Recommended usage patterns.
+
 Lightweight testing
 
 * checks select::               Selecting tests to be run.
@@ -888,6 +914,63 @@ One dimensional extended ranges
 * one-dimension pred::          Predicates.
 * one-dimension inspect::       Inspection.
 * one-dimension ops::           Operations.
+
+Foreign functions interface
+
+* memory::                      Low level memory handling.
+* ffi::                         Foreign functions interface.
+* cstring::                     C language strings handling.
+* errno::                       C language system errors.
+
+Low level memory handling
+
+* memory conditions::           Out of memory errors.
+* memory pointers::             Pointer objects.
+* memory alloc::                Allocation functions.
+* memory bytevectors::          Bytevectors conversion.
+* memory blocks::               Memory blocks.
+* memory buffers::              Memory buffers.
+* memory cache::                Caching memory blocks.
+* memory factory::              Caching object factories.
+* memory compensate::           Compensations.
+* memory buffer alloc::         Allocation in a buffer.
+* memory refcount::             Reference counting.
+* memory operations::           Operations.
+* memory peekers::              Peeking values.
+* memory pokers::               Pokers values.
+* memory array peekers::        Peeking values into arrays.
+* memory array pokers::         Poking values into arrays.
+
+Independent libraries
+
+* guarded malloc::              Guarded memory allocation.
+
+Foreign functions interface
+
+* ffi example::                 Basic interface to Zlib.
+* ffi load::                    Dynamic loading of libraries.
+* ffi call::                    Interface functions.
+* ffi sizeof::                  Sizes and limits.
+* ffi headers::                 Inspecting foreign header files.
+
+Functions interface
+
+* ffi call types::              Interface to C language types.
+* ffi call out::                Calling foreign functions.
+* ffi call in::                 Calling Scheme functions.
+
+C language strings handling
+
+* cstring inspection::          Inspecting cstrings.
+* cstring operations::          Acting upon cstrings.
+* cstring conversion::          Converting to and from cstrings.
+* cstring argv::                Converting arrays of cstrings.
+
+C language system errors
+
+* errno values::                Error codes.
+* errno conversion::            Conversion of error codes.
+* errno condition::             Raising exceptions.
 
 Launching programs directly
 
@@ -7948,7 +8031,7 @@ Return the symbol whose name is @var{string}.
 @section Characters
 
 
-@emph{Characters} are objects that represent Unicode scalar values.
+The @dfn{characters} are objects that represent Unicode scalar values.
 
 @quotation
 Unicode defines a standard mapping between sequences of @emph{Unicode
@@ -22186,6 +22269,17 @@ All the characters whose numeric code is in the range @math{[0, 31]}
 plus @math{127}.
 @end defvr
 
+
+@defvr {Character Set} char-set:ascii/vowels
+@defvrx {Character Set} char-set:ascii/consonants
+@defvrx {Character Set} char-set:ascii/vowels/lower-case
+@defvrx {Character Set} char-set:ascii/consonants/lower-case
+@defvrx {Character Set} char-set:ascii/vowels/upper-case
+@defvrx {Character Set} char-set:ascii/consonants/upper-case
+Sets of vowels and consonants.  Notice that lower case vowels are:
+@code{#\a}, @code{#\e}, @code{#\i}, @code{#\o}, @code{#\u}.
+@end defvr
+
 @c page
 @node char-sets sets blocks
 @subsubsection Sets corresponding to Unicode blocks
@@ -26446,13 +26540,16 @@ constant factor larger than the execution time of compare.
 @section Sources of random bits
 
 
-The @library{random} library provides an @api{} an interface to sources
-of random bits, or ``random sources'' for brevity.
+The @library{random} library provides an @api{} to sources of random
+bits, or ``randomness sources'' for brevity.  Other additional,
+auxiliary, libraries provide access to miscellaneous randomness
+generators.
 
 @menu
 * random intro::                Introduction.
-* random spec::                 Specification.
-* random design::               Design rationale.
+* random source::               Randomness sources.
+* random device::               Device--based random numbers.
+* random numbers::              Simple random numbers.
 * random usage::                Recommended usage patterns.
 @end menu
 
@@ -26468,14 +26565,15 @@ production process:
 @itemize
 @item
 The ``no fuss'' interface specifies that @code{(random-integer n)}
-produces the next random integer in @math{[0, n)} and
-@func{(random-real)} produces the next random real number between zero
-and one.  The details of how these random values are produced may not be
-very relevant, as long as they appear to be sufficiently random.
+produces the next random integer number @math{i} such that @math{0 <= i
+< n} and @func{(random-real)} produces the next random real number
+@math{x} such that @math{0 < x < 1}.  Details about how these random
+values are produced may not be very relevant, as long as they appear to
+be sufficiently random.
 
 @item
 For simulation purposes, on the contrary, it is usually necessary to
-know that the numbers are produced deterministically by a pseudo random
+know that the numbers are produced deterministically by a pseudo--random
 number generator of high quality and to have explicit access to its
 state.  In addition, one might want to use several independent sources
 of random numbers at the same time and it can be useful to have some
@@ -26492,210 +26590,227 @@ randomize a pseudo random number generator to increase the rate of
 available bits.
 @end itemize
 
-Once random sources provide the infrastructure to obtain random bits,
-these can be used to construct other random deviates.  Most important
-are floating point numbers of various distributions and random discrete
-structures, such as permutations or graphs.
-
+Once randomness sources provide the infrastructure to obtain random
+bits, these can be used to construct other random deviates.  Most
+important are floating point numbers of various distributions and random
+discrete structures, such as permutations or graphs.
 
 @c page
-@node random spec
-@subsection Specification
+@node random source
+@subsection Randomness sources
 
 
-@defun random-integer @var{n}
-Return the next integer in @math{[0, n)} obtained from
-@func{default-random-source}.  Subsequent results of this procedure
-appear to be independent uniformly distributed over the range @math{[0,
-n)}.  The argument @var{n} must be a positive integer, otherwise an
-error is signalled.
-@end defun
+The randomness source @api{} provides an implementation of Pierre
+L'Ecuyer's MRG32k3a generator@footnote{P. L'Ecuyer.  ``Good Parameter
+Sets for Combined Multiple Recursive Random Number Generators'', Shorter
+version in Operations Research, 47, 1 (1999), 159--164.}.
 
 
-@defun random-real
-Return the next real number @math{0 < x < 1} obtained from
-@func{default-random-source}.  Subsequent results of this procedure
-appear to be independent uniformly distributed.
-@end defun
-
-
-@defvar default-random-source
-A random source from which @func{random-integer} and @func{random-real}
-have been derived using @func{random-source-make-integers} and
-@func{random-source-make-reals}.
-
-Note that an assignment to @func{default-random-source} does not change
-the already built @func{random-integer} or @func{random-real}; it is
-also strongly recommended not to assign a new value.
-@end defvar
+@defvr {Constant} default-random-source
+A randomness source from which @func{random-integer} and
+@func{random-real} have been derived using
+@func{random-source-make-integers} and @func{random-source-make-reals}.
+@end defvr
 
 
 @defun make-random-source
-Create a new random source @var{s}.  Implementations may accept
-additional, optional arguments in order to create different types of
-random sources.  A random source created with @func{make-random-source}
-represents a deterministic stream of random bits generated by some form
-of pseudo random number generator.  Each random source obtained as
-@code{(make-random-source)} generates the same stream of values, unless
-the state is modified with one of the procedures below.
+Create and return a new randomness source, representing a deterministic
+stream of random bits.  Each randomness source generates the same stream
+of values, unless the state is modified with one of the procedures
+below.
 @end defun
 
 
 @defun random-source? @var{obj}
-Tests if @var{obj} is a random source.  Objects of type random source
-are distinct from all other types of objects.
+Tests if @var{obj} is a randomness source.  Objects of type randomness
+source are distinct from all other types of objects.
 @end defun
 
 
-@defun random-source-state-ref @var{s}
-@defunx random-source-state-set! @var{s} @var{state}
-Get and set the current state of a random source @var{s}.  The structure
-of the object state depends on the implementation; the only portable use
-of it is as argument to @func{random-source-state-set!}.  It is,
-however, required that a state possess an external representation.
+@defun random-source-state-ref @var{source}
+@defunx random-source-state-set! @var{source} @var{state}
+Get and set the current state of a randomness @var{source}.  The purpose
+of these functions is to allow saving and restoring the state between
+sessions (for example, save the state to a file and reload it later).
+It is required for the state to have representation that can be handled
+by @func{write} and @func{read}.
 @end defun
 
 
-@defun random-source-randomize! @var{s}
-Makes an effort to set the state of the random source s to a truly
-random state.  The actual quality of this randomization depends on the
-implementation but it can at least be assumed that the procedure sets s
-to a different state for each subsequent run of the Scheme system.
+@defun random-source-randomize! @var{source}
+Make an effort to set the state of the randomness @var{source} to a
+truly random state.  It makes use of the current value of the
+@func{random-source-of-integers} parameter.
 @end defun
 
 
-@defun random-source-pseudo-randomize! @var{s} @var{i} @var{j}
-Changes the state of the random source @var{s} into the initial state of
-the (@var{i}, @var{j})--th independent random source, where @var{i} and
-@var{j} are non--negative integers.  This procedure provides a mechanism
-to obtain a large number of independent random sources (usually all
-derived from the same backbone generator), indexed by two integers.  In
-contrast to @func{random-source-randomize!}, this procedure is entirely
-deterministic.
+@defun random-source-pseudo-randomize! @var{source} @var{i} @var{j}
+@c FIX THIS DESCRIPTION
+Change the state of the randomness @var{source} into the initial state
+of the (@var{i}, @var{j})--th independent randomness source, where
+@var{i} and @var{j} are non--negative integers.  This procedure provides
+a mechanism to obtain a large number of independent randomness sources
+(usually all derived from the same backbone generator), indexed by two
+integers.  In contrast to @func{random-source-randomize!}, this
+procedure is entirely deterministic.
 @end defun
 
 
-@defun random-source-make-integers @var{s}
-Obtains a procedure @var{rand} to generate random integers using the
-random source @var{s}.  @var{rand} takes a single argument @var{n},
+@defun random-source-integers-maker @var{source}
+Return a procedure @var{rand} to generate random integers using the
+randomness @var{source}.  @var{rand} takes a single argument @var{n},
 which must be a positive integer, and returns the next uniformly
-distributed random integer from the interval @code{@{0, ..., n-1@}} by
-advancing the state of the source @var{s}.
+distributed random integer from the interval @math{[0, n)} by advancing
+the state of the @var{source}.
 
-If an application obtains and uses several generators for the same
-random source @var{s}, a call to any of these generators advances the
-state of @var{s}.  Hence, the generators do not produce the same
-sequence of random integers each but rather share a state.  This also
-holds for all other types of generators derived from a fixed random
-source.  Implementations that support concurrency make sure that the
-state of a generator is properly advanced.
+If an application obtains and uses several @var{rand} procedures for the
+same randomness @var{source}, a call to any of these procedures advances
+the state of @var{source}.  Hence, the procedures do not produce the
+same sequence of random integers each but rather share a state.
 @end defun
 
 
-@defun random-source-make-reals @var{s}
-@defunx random-source-make-reals @var{s} @var{unit}
-Obtains a procedure @var{rand} to generate random real numbers @code{0 <
-x < 1} using the random source @var{s}.  The procedure @var{rand} is
-called without arguments.
+@defun random-source-reals-maker @var{source}
+@defunx random-source-reals-maker @var{source} @var{unit}
+Return a procedure @var{rand} to generate random real numbers @math{x}
+in the range @code{0 < x < 1} using the randomness @var{source}.  The
+procedure @var{rand} is called without arguments.
+
+If an application obtains and uses several @var{rand} procedures for the
+same randomness @var{source}, a call to any of these procedures advances
+the state of @var{source}.  Hence, the procedures do not produce the
+same sequence of random integers each but rather share a state.
 
 The optional parameter @var{unit} determines the type of numbers being
 produced by @var{rand} and the quantization of the output.  @var{unit}
-must be a number such that @code{0 < unit < 1}.  The numbers created by
-rand are of the same numerical type as unit and the potential output
-values are spaced by at most @var{unit}.
+must be a number such that @math{0 < unit < 1}.  The numbers created by
+@var{rand} are of the same numerical type as @var{unit} and the
+potential output values are spaced by at most @var{unit}.
 
-One can imagine @var{rand} to create numbers as @code{x*unit} where
-@var{x} is a random integer in @code{@{1, ..., floor(1/unit)-1@}}.
-Note, however, that this need not be the way the values are actually
-created and that the actual resolution of @var{rand} can be much higher
-than @var{unit}.  In case @var{unit} is absent it defaults to a
-reasonably small value (related to the width of the mantissa of an
-efficient number format).
+One can imagine @var{rand} to create numbers as @math{x * unit} where
+@var{x} is a random integer in @math{[1, floor(1/unit))}.  Note,
+however, that this need not be the way the values are actually created
+and that the actual resolution of @var{rand} can be much higher than
+@var{unit}.  In case @var{unit} is absent it defaults to a reasonably
+small value (related to the width of the mantissa of an efficient number
+format).
 @end defun
 
 @c page
-@node random design
-@subsection Design rationale
+@node random device
+@subsection Device--based random numbers
 
 
-@subsubheading Why not combine @func{random-integer} and @func{random-real?}
+Quoting Wikipedia@footnote{See
+@url{http://en.wikipedia.org/wiki/Urandom}, last verified Fri Jun 26,
+2009.}:
 
-The two procedures are not combined into a single variable--arity
-procedures to save a little time and space during execution.  Although
-some Scheme systems can deal with variable arity as efficiently as with
-fixed arity this is not always the case and time efficiency is very
-important here.
+@quotation
+In Unix--like operating systems, @file{/dev/random} is a special file
+that serves as a true random number generator or as a pseudorandom
+number generator.  It allows access to environmental noise collected
+from device drivers and other sources.  Not all operating systems
+implement the same semantics for @file{/dev/random}.  Linux was the
+first operating system to implement a true random number generator in
+this way.
+@end quotation
 
-@c ------------------------------------------------------------
+We have to remember that reading @file{/dev/random} will @strong{block}
+if not enough entropy is available, waiting for more randomness to be
+provided by the system.  This is why, by default,
+@func{make-random-source-of-numbers} will use @file{/dev/urandom}, which
+never blocks but provides randomness of lesser quality.
 
-@subsubheading Why not some object--oriented interface?
 
-There are many alternatives to the interface as specified in this
-@srfi{}.  In particular, every framework for object--orientation can be
-used to define a class for random sources and specify the interface for
-the methods on random sources.  However, as the object--oriented
-frameworks differ considerably in terms of syntax and functionality,
-this @srfi{} does not make use of any particular framework.
+@defun %random-bytevector @var{device} @var{number-of-bytes}
+@defunx random-bytevector @var{number-of-bytes}
+@defunx urandom-bytevector @var{number-of-bytes}
+Read @var{number-of-bytes} from the specified @var{device} on the file
+system and return them in a newly allocated bytevector.
+@func{random-bytevector} is a specialised version reading bytes from
+@file{/dev/random}.  @func{urandom-bytevector} is a specialised version
+reading bytes from @file{/dev/urandom}.
+@end defun
 
-@c ------------------------------------------------------------
 
-@subsubheading Why is there not just a generator with a fixed range?
+@defun %random-bytevector! @var{device} @var{bv}
+@defunx random-bytevector! @var{bv}
+@defunx urandom-bytevector! @var{bv}
+Fill the bytevector @var{bv} with bytes read from the specified
+@var{device} on the file system; return @var{bv} itself.
+@func{random-bytevector!} is a specialised version reading bytes from
+@file{/dev/random}.  @func{urandom-bytevector!} is a specialised version
+reading bytes from @file{/dev/urandom}.
+@end defun
 
-A bare fixed--range generator is of very limited use.  Nearly every
-application has to add some functionality to make use of the random
-numbers.  The most fundamental task in manipulating random numbers is to
-change the range and quantization.  This is exactly what is provided by
-@func{random-integer} and @func{random-real}.  In addition, is saves the
-user from the pitfall of changing the range with a simple
-modulo-computation which may substantially reduce the quality of the
-numbers being produced.
+@c page
+@node random numbers
+@subsection Simple random numbers
 
-The design of the interface is based on three prototype applications:
 
-@itemize
-@item
-Repeatedly choose from relatively small sets: As the size of the set is
-likely to vary from call to call, @func{random-integer} accepts a range
-argument @var{n} in every call.  The implementation should try to avoid
-boxing/unboxing of values if the ranges fit into immediate integers.
+@defun random-integer @var{n}
+Acquire the default randomness source from @func{default-random-source}
+and use it to return the next integer in the range @math{[0, n)}, where
+@var{n} is a positive integer.  Subsequent results of this procedure
+should be independent, uniformly distributed over the range @math{[0,
+n)}.
+@end defun
 
-@item
-Generate a few large integers with a fixed number of bits: As generating
-the random number itself is expensive, passing the range argument in
-every call does not hurt performance.  Hence, the same interface as in
-the first application can be used.
 
-@item
-Generate real numbers: Unlike the choose--from--set case, the range and
-the quantization is constant over a potentially very large number of
-calls.  In addition, there are usually just a few distinct instances of
-quantization and number type, most likely corresponding to underlying
-@code{float} and @code{double} representations.  Therefore,
-@func{random-real} does not accept any parameters but the procedure
-@func{random-source-make-reals} creates a properly configured
-@func{random-real} procedure.
-@end itemize
+@defun random-real
+Acquire the default randomness source from @func{default-random-source}
+and use it to return the next real number @math{x} in the range @math{0
+< x < 1}.  Subsequent results of this procedure should be independent,
+uniformly distributed.
 
-@c ------------------------------------------------------------
+This procedure does not return @math{x=0} or @math{x=1} in order to
+allow @math{\log x} and @math{\log(1-x)} without the danger of a
+numerical exception.
+@end defun
 
-@subsubheading Why bother about floating point numbers at all?
 
-A proper floating point implementation of a random number generator is
-potentially much more efficient that an integer implementation because
-it can use more powerful arithmetics hardware.  If in addition the
-application needs floating point random numbers it would be an
-intolerable waste to run an integer generator to produce floating point
-random numbers.  A secondary reason is to save the user from the ``not
-as easy as it seems'' task of converting an integer generator into a
-real generator.
+@defun make-random-source-of-integers/device
+@defunx make-random-source-of-integers/device @var{device}
+Return a closure that, when invoked, returns an exact integer in the
+range @math{[0, 2^32)}.  This source of random numbers is built around
+@func{%random-bytevector}; when @var{device} is not specified, it
+defaults to @file{/dev/urandom}.
 
-@c ------------------------------------------------------------
+@quotation
+The returned closure buffers bytes read from the device to avoid opening
+it at each invocation.
+@end quotation
+@end defun
 
-@subsubheading Why are zero and one excluded from @func{random-real}?
 
-The procedure @func{random-real} does not return @code{x = 0} or @code{x
-= 1} in order to allow @code{(log x)} and @code{(log (- 1 x))} without
-the danger of a numerical exception.
+@defun unfold-random-numbers @var{source} @var{number-of-numbers}
+@defunx unfold-random-numbers/vector @var{source} @var{number-of-numbers}
+@defunx unfold-random-numbers/string @var{source} @var{number-of-numbers}
+Given the closure @var{source} returning a random number, build and
+return a new list, vector or string of @var{number-of-numbers} random
+numbers or characters.
+
+As a usage example, the following program will generate random passwords
+with characters in the range of graphics @ascii{} codes:
+
+@example
+(import (rnrs)
+  (random)
+  (char-sets)
+  (only (rnrs r5rs) modulo))
+
+(define source
+  (make-random-source-of-integers/device "/dev/random"))
+
+(unfold-random-numbers/string
+  (lambda ()
+    (do ((ch (modulo (source) 127) (modulo (source) 127)))
+        ((char-set-contains? char-set:ascii/graphic
+                             (integer->char ch))
+         ch)))
+  10)
+@end example
+@end defun
 
 @c page
 @node random usage
@@ -26718,11 +26833,12 @@ the set @code{@{0, ..., n-1@}}.  Such a permutation is represented by a
 vector of length @var{n} for the images of the points.
 
 Observe that the implementation first defines the procedure
-@func{random-source-make-permutations} to turn a random source @var{s}
-into a procedure to generate permutations of given degree @var{n}.  In a
-second step, this is applied to the default source to define a
-ready--to--use procedure for permutations: @code{(random-permutation n)}
-constructs a random permutation of degree @var{n}.
+@func{random-source-make-permutations} to turn a randomness source
+@var{s} into a procedure to generate permutations of given degree
+@var{n}.  In a second step, this is applied to the default source to
+define a ready--to--use procedure for permutations:
+@code{(random-permutation n)} constructs a random permutation of degree
+@var{n}.
 
 @example
 (define (random-source-make-permutations s)

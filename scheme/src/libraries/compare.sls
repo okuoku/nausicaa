@@ -48,13 +48,9 @@
   (import (rnrs)
     (only (rnrs r5rs)
 	  modulo)
-    (random) ; for random-integer
-    (nausicaa parameter))
+    (random)) ; for random-integer
 
 
-; (define current-compare (make-parameter default-compare))
-; (provide current-compare)
-
 ; -----------------------------------------------------------------------
 ;
 ; Compare procedures SRFI (reference implementation)

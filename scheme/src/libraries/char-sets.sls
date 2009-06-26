@@ -71,11 +71,9 @@
     char-set:ascii/graphic	char-set:ascii/printable
     char-set:ascii/blank
 
-;;     char-set:lower-case  char-set:upper-case  char-set:title-case
-;;     char-set:letter      char-set:dec-digit   char-set:letter+digit
-;;     char-set:graphic     char-set:printing    char-set:whitespace
-;;     char-set:iso-control char-set:punctuation char-set:symbol
-;;     char-set:hex-digit   char-set:blank
+    char-set:ascii/vowels		char-set:ascii/consonants
+    char-set:ascii/vowels/lower-case	char-set:ascii/consonants/lower-case
+    char-set:ascii/vowels/upper-case	char-set:ascii/consonants/upper-case
     )
   (import (rnrs)
     (one-dimension-cc))
@@ -452,81 +450,24 @@
   (char-set-union char-set:ascii/whitespace
 		  char-set:ascii/graphic)) ; NO-BREAK SPACE
 
-
+(define char-set:ascii/vowels
+  (true-char-set #\a #\e #\i #\o #\u
+		 #\A #\E #\I #\O #\U))
 
-(define char-set:lower-case
-  (true-char-set '(#\x0061 . #\x007A)
-		 '(#\x00DF . #\x00F6)
-		 '(#\x00F8 . #\x00FF)))
-  ; #\x00B5 this is the
-  ;
-  ; 00B5;MICRO SIGN;Ll;0;L;<compat> 03BC;;;;N;;;039C;;039C
+(define char-set:ascii/vowels/lower-case
+  (true-char-set #\a #\e #\i #\o #\u))
 
-(define char-set:upper-case
-  (true-char-set '(#\x0041 . #\x005B) ; A-Z
-		 #\x00D8
-		 #\x00DF
-		 '(#\x00C0 . #\x00D7)))
+(define char-set:ascii/vowels/upper-case
+  (true-char-set #\A #\E #\I #\O #\U))
 
-(define char-set:title-case
-  char-set:empty)
+(define char-set:ascii/consonants
+  (char-set-complement char-set:ascii/vowels char-set:ascii/letter))
 
-;; (define char-set:letter
-;;   (let ((cs (char-set-union char-set:upper-case char-set:lower-case)))
-;;     (char-set-add (char-set-add cs (N #\xaa)) ; FEMININE ORDINAL INDICATOR
-;; 		  (N #\xba)))) ; MASCULINE ORDINAL INDICATOR
+(define char-set:ascii/consonants/lower-case
+  (char-set-complement char-set:ascii/vowels/lower-case char-set:ascii/lower-case))
 
-(define char-set:letter+digit #f)
-
-(define char-set:punctuation
-  (true-char-set
-   #\! #\" #\# #\% #\& #\' #\( #\) #\* #\, #\- #\.
-   #\/ #\: #\; #\? #\@ #\[ #\\ #\] #\_ #\{ #\}
-   #\x00A1	     ; INVERTED EXCLAMATION MARK
-   #\x00AB	     ; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
-   #\x00AD	     ; SOFT HYPHEN
-   #\x00B7	     ; MIDDLE DOT
-   #\x00BB	     ; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-   #\x00BF))	     ; INVERTED QUESTION MARK
-
-(define char-set:symbol
-  (true-char-set
-   #\$ #\+ #\< #\= #\> #\^ #\` #\| #\~
-   #\x00A2	     ; CENT SIGN
-   #\x00A3	     ; POUND SIGN
-   #\x00A4	     ; CURRENCY SIGN
-   #\x00A5	     ; YEN SIGN
-   #\x00A6	     ; BROKEN BAR
-   #\x00A7	     ; SECTION SIGN
-   #\x00A8	     ; DIAERESIS
-   #\x00A9	     ; COPYRIGHT SIGN
-   #\x00AC	     ; NOT SIGN
-   #\x00AE	     ; REGISTERED SIGN
-   #\x00AF	     ; MACRON
-   #\x00B0	     ; DEGREE SIGN
-   #\x00B1	     ; PLUS-MINUS SIGN
-   #\x00B4	     ; ACUTE ACCENT
-   #\x00B6	     ; PILCROW SIGN
-   #\x00B8	     ; CEDILLA
-   #\x00D7	     ; MULTIPLICATION SIGN
-   #\x00F7))	     ; DIVISION SIGN
-
-(define char-set:whitespace
-  (true-char-set #\x0009		; HORIZONTAL TABULATION
-		 #\x000A		; LINE FEED
-		 #\x000B		; VERTICAL TABULATION
-		 #\x000C		; FORM FEED
-		 #\x000D		; CARRIAGE RETURN
-		 #\x0020		; SPACE
-		 #\x00A0))
-
-(define char-set:blank
-  (true-char-set #\x0009   ; HORIZONTAL TABULATION
-		 #\x0020   ; SPACE
-		 #\x00A0)) ; NO-BREAK SPACE
-
-(define char-set:iso-control
-  (true-char-set '(#\x0 . #\x32) #\x007F #\x00A0))
+(define char-set:ascii/consonants/upper-case
+  (char-set-complement char-set:ascii/vowels/upper-case char-set:ascii/upper-case))
 
 
 ;;;; done

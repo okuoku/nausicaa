@@ -1,3 +1,7 @@
+;;;
+;;;Part of: Nausicaa/Scheme
+;;;Contents: record interface to randomness sources
+;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;Copyright (c) 2002 Sebastian Egner
@@ -32,6 +36,15 @@
 (library (random)
   (export
 
+    ;; device-based random sources of numbers
+    %random-bytevector!		%random-bytevector
+     random-bytevector!		 random-bytevector
+    urandom-bytevector!		urandom-bytevector
+
+    ;; simple sources of numbers
+    make-random-source-of-integers/device
+    random-source-of-integers
+
     ;; no fuss
     random-integer random-real
 
@@ -41,11 +54,17 @@
     random-source?
     random-source-state-ref      random-source-state-set!
     random-source-randomize!     random-source-pseudo-randomize!
-    random-source-make-integers  random-source-make-reals
+    random-source-integers-maker  random-source-reals-maker
 
-    ;; customisation
-    random-source-of-numbers)
-  (import (nausicaa)
+    ;; utilities
+    unfold-random-numbers
+    unfold-random-numbers/vector  unfold-random-numbers/string
+    random-source-make-permutations
+    random-source-make-exponentials
+    random-source-make-normals)
+  (import (rnrs)
+    (nausicaa parameters)
+    (rnrs mutable-strings)
     (only (rnrs r5rs)
 	  quotient modulo))
 
@@ -60,48 +79,151 @@
 	 dst)
       (vector-set! dst i (vector-ref src i)))))
 
+
+;;;; randomness from devices
+
+(define (%random-bytevector! device bv)
+  (let* ((number-of-bytes (bytevector-length bv))
+	 (port (open-file-input-port device
+				     (file-options no-create)
+				     (buffer-mode block))))
+    (dynamic-wind
+	(lambda () #f)
+	(lambda () (get-bytevector-n! port bv 0 number-of-bytes))
+	(lambda () (close-port port))))
+  bv)
+
+(define (%random-bytevector device number-of-bytes)
+  (%random-bytevector! device (make-bytevector number-of-bytes)))
+
+;;; --------------------------------------------------------------------
+
+(define (random-bytevector! bv)
+  (%random-bytevector! "/dev/random" bv))
+
+(define (random-bytevector number-of-bytes)
+  (%random-bytevector "/dev/random" number-of-bytes))
+
+(define (urandom-bytevector! bv)
+  (%random-bytevector! "/dev/urandom" bv))
+
+(define (urandom-bytevector number-of-bytes)
+  (%random-bytevector "/dev/urandom" number-of-bytes))
+
+
+;;;; simple sources of integers
+
+(define make-random-source-of-integers/device
+  (case-lambda
+   (()
+    (make-random-source-of-integers/device "/dev/urandom"))
+   ((device)
+    (let* ((cache (make-bytevector 4096))
+	   (next  4096))
+		;This init value  causes the vector to be  filled at the
+		;first invocation.
+      (lambda ()
+	(when (<= (bytevector-length cache) next)
+	  (%random-bytevector! device cache)
+;;;	  (write (list 'random-bytevector cache))(newline)
+	  (set! next 0))
+	(let ((n (bytevector-u32-native-ref cache next)))
+	  (set! next (+ 4 next))
+;;;	  (write (list 'number n))(newline)
+	  n))))))
+
+(define random-source-of-integers
+  (make-parameter
+      (make-random-source-of-integers/device)
+    (lambda (obj)
+      (if (procedure? obj)
+	  obj
+	(assertion-violation 'random-source-of-integers
+	  "expected procedure" obj)))))
+
+
+
+(define-record-type (:random-source :random-source-make random-source?)
+  (fields (immutable state-ref)
+	  (immutable state-set!)
+	  (immutable randomize!)
+	  (immutable pseudo-randomize!)
+	  (immutable integers-maker)
+	  (immutable reals-maker)))
+
+(define (random-source-state-ref s)
+  ((:random-source-state-ref s)))
+
+(define (random-source-state-set! s state)
+  ((:random-source-state-set! s) state))
+
+(define (random-source-randomize! s)
+  ((:random-source-randomize! s)))
+
+(define (random-source-pseudo-randomize! s i j)
+  ((:random-source-pseudo-randomize! s) i j))
+
+(define (random-source-integers-maker s)
+  ((:random-source-integers-maker s)))
+
+(define random-source-reals-maker
+  (case-lambda
+   ((source)
+    ((:random-source-reals-maker source)))
+   ((source unit)
+    ((:random-source-reals-maker source) unit))))
+
+
+;;; MRG32k3a pseudo-random numbers generator
+
+(define (make-random-source)
+  (let ((state (vector-copy mrg32k3a-initial-state)))
+    (:random-source-make
+     (lambda () ; state-ref
+       (mrg32k3a-state-internal->external state))
+     (lambda (new-state) ; state-set!
+       (set! state (mrg32k3a-state-external->internal new-state)))
+     (lambda () ; randomize!
+       (set! state (mrg32k3a-randomize-state state)))
+     (lambda (i j) ; pseudo-randomize!
+       (set! state (mrg32k3a-pseudo-randomize-state i j)))
+     (lambda () ; integers-maker
+       (lambda (n)
+         (cond ((not (and (integer? n) (exact? n) (positive? n)))
+		(assertion-violation 'integers-maker
+		  "range upper limit must be an exact positive integer" n))
+	       ((<= n mrg32k3a-m-max)
+		(mrg32k3a-random-integer state n))
+	       (else
+		(mrg32k3a-random-large state n)))))
+     (case-lambda ; reals-maker
+      (()
+       (lambda ()
+	 (mrg32k3a-random-real state)))
+      ((unit)
+       (cond ((not (and (real? unit) (< 0 unit 1)))
+	      (assertion-violation 'reals-maker
+		"unit must be a real number in the range (0,1)" unit))
+	     ((<= (- (/ 1 unit) 1) mrg32k3a-m1)
+	      (lambda ()
+		(mrg32k3a-random-real state)))
+	     (else
+	      (lambda ()
+		(mrg32k3a-random-real-mp state unit)))))))))
+
+;;; --------------------------------------------------------------------
+
+(define mrg32k3a-m1 4294967087) ; modulus of component 1
+(define mrg32k3a-m2 4294944443) ; modulus of component 2
 (define e2^28 (expt 2 28))
 
-
-(define-record-type (:random-source :random-source-make random-source?)
-  (fields state-ref
-          state-set!
-          randomize!
-          pseudo-randomize!
-          make-integers
-          make-reals))
-
-(define default-random-source-of-numbers
-  (let* ((size  128)
-	 (cache (make-bytevector (* size 4)))
-	 (next  0))
-    (lambda ()
-      (if (<= size next)
-	  (let* ((port #f))
-	    (dynamic-wind
-		(lambda ()
-		  (set! port (open-file-input-port "/dev/random"
-						   (file-options no-create)
-						   (buffer-mode none))))
-		(lambda ()
-		  (get-bytevector-n! port cache 0 size)
-		  (set! next 0))
-		(lambda ()
-		  (close-port port))))
-	(begin0
-	    (bytevector-u32-native-ref cache 0)
-	  (set! next (+ 1 next)))))))
-
-(define random-source-of-numbers
-  (make-parameter
-      default-random-source-of-numbers
-    (lambda (value)
-      (if (procedure? value)
-	  value
-	(assertion-violation 'random-source-of-numbers
-	  "expected procedure" value)))))
-
-
+(define mrg32k3a-initial-state ; 0 3 6 9 12 15 of A^16, see below
+  '#(1062452522
+     2961816100
+     342112271
+     2854655037
+     3321940838
+     3542344109))
 
 (define (mrg32k3a-random-m1 state)
   (let ((x11 (vector-ref state 0))
@@ -132,137 +254,26 @@
 (define (mrg32k3a-random-real state) ; normalization is 1/(m1+1)
   (* 0.0000000002328306549295728 (+ 1.0 (mrg32k3a-random-m1 state))))
 
-
-; Generator
-; =========
-;
-; Pierre L'Ecuyer's MRG32k3a generator is a Combined Multiple Recursive
-; Generator. It produces the sequence {(x[1,n] - x[2,n]) mod m1 : n}
-; defined by the two recursive generators
-;
-;   x[1,n] = (               a12 x[1,n-2] + a13 x[1,n-3]) mod m1,
-;   x[2,n] = (a21 x[2,n-1] +                a23 x[2,n-3]) mod m2,
-;
-; where the constants are
-;   m1       = 4294967087 = 2^32 - 209    modulus of 1st component
-;   m2       = 4294944443 = 2^32 - 22853  modulus of 2nd component
-;   a12      =  1403580                   recursion coefficients
-;   a13      =  -810728
-;   a21      =   527612
-;   a23      = -1370589
-;
-; The generator passes all tests of G. Marsaglia's Diehard testsuite.
-; Its period is (m1^3 - 1)(m2^3 - 1)/2 which is nearly 2^191.
-; L'Ecuyer reports: "This generator is well-behaved in all dimensions
-; up to at least 45: ..." [with respect to the spectral test, SE].
-;
-; The period is maximal for all values of the seed as long as the
-; state of both recursive generators is not entirely zero.
-;
-; As the successor state is a linear combination of previous
-; states, it is possible to advance the generator by more than one
-; iteration by applying a linear transformation. The following
-; publication provides detailed information on how to do that:
-;
-;    [1] P. L'Ecuyer, R. Simard, E. J. Chen, W. D. Kelton:
-;        An Object-Oriented Random-Number Package With Many Long
-;        Streams and Substreams. 2001.
-;        To appear in Operations Research.
-;
-; Arithmetics
-; ===========
-;
-; The MRG32k3a generator produces values in {0..2^32-209-1}. All
-; subexpressions of the actual generator fit into {-2^53..2^53-1}.
-; The code below assumes that Scheme's "integer" covers this range.
-; In addition, it is assumed that floating point literals can be
-; read and there is some arithmetics with inexact numbers.
-;
-; However, for advancing the state of the generator by more than
-; one step at a time, the full range {0..2^32-209-1} is needed.
+;;; --------------------------------------------------------------------
+;;; state accessors
 
-
-; Required: Backbone Generator
-; ============================
-;
-; At this point in the code, the following procedures are assumed
-; to be defined to execute the core generator:
-;
-;   (mrg32k3a-pack-state unpacked-state) -> packed-state
-;   (mrg32k3a-unpack-state packed-state) -> unpacked-state
-;      pack/unpack a state of the generator. The core generator works
-;      on packed states, passed as an explicit argument, only. This
-;      allows native code implementations to store their state in a
-;      suitable form. Unpacked states are #(x10 x11 x12 x20 x21 x22)
-;      with integer x_ij. Pack/unpack need not allocate new objects
-;      in case packed and unpacked states are identical.
-;
-;   (mrg32k3a-random-range) -> m-max
-;   (mrg32k3a-random-integer packed-state range) -> x in {0..range-1}
-;      advance the state of the generator and return the next random
-;      range-limited integer.
-;        Note that the state is not necessarily advanced by just one
-;      step because we use the rejection method to avoid any problems
-;      with distribution anomalies.
-;        The range argument must be an exact integer in {1..m-max}.
-;      It can be assumed that range is a fixnum if the Scheme system
-;      has such a number representation.
-;
-;   (mrg32k3a-random-real packed-state) -> x in (0,1)
-;      advance the state of the generator and return the next random
-;      real number between zero and one (both excluded). The type of
-;      the result should be a flonum if possible.
-
-; Required: Record Data Type
-; ==========================
-;
-; At this point in the code, the following procedures are assumed
-; to be defined to create and access a new record data type:
-;
-;   (:random-source-make a0 a1 a2 a3 a4 a5) -> s
-;     constructs a new random source object s consisting of the
-;     objects a0 .. a5 in this order.
-;
-;   (:random-source? obj) -> bool
-;     tests if a Scheme object is a :random-source.
-;
-;   (:random-source-state-ref         s) -> a0
-;   (:random-source-state-set!        s) -> a1
-;   (:random-source-randomize!        s) -> a2
-;   (:random-source-pseudo-randomize! s) -> a3
-;   (:random-source-make-integers     s) -> a4
-;   (:random-source-make-reals        s) -> a5
-;     retrieve the values in the fields of the object s.
-
-; Required: Current Time as an Integer
-; ====================================
-;
-; At this point in the code, the following procedure is assumed
-; to be defined to obtain a value that is likely to be different
-; for each invokation of the Scheme system:
-;
-;   (:random-source-current-time) -> x
-;     an integer that depends on the system clock. It is desired
-;     that the integer changes as fast as possible.
-
-
-;;;; accessing the state
-
-(define (mrg32k3a-state-ref state)
+(define (mrg32k3a-state-internal->external state)
+  ;;Package the state to be written in a way that can be read back.
   (cons 'lecuyer-mrg32k3a state))
 
-(define (mrg32k3a-state-set external-state)
+(define (mrg32k3a-state-external->internal external-state)
+  ;;Given a packaged state, verifies it and return an internal state.
   (define (check-value x m)
     (or (and (integer? x)
              (exact? x)
              (<= 0 x (- m 1)))
-	(assertion-violation 'mrg32k3a-state-set
+	(assertion-violation 'mrg32k3a-state-external->internal
 	  "illegal state value" (list x external-state))))
   (unless (and (pair? external-state)
 	       (eq? (car external-state) 'lecuyer-mrg32k3a)
 	       (vector? (cdr external-state))
-	       (= 7 (vector-length (cdr external-state))))
-    (assertion-violation 'mrg32k3a-state-set
+	       (= 6 (vector-length (cdr external-state))))
+    (assertion-violation 'mrg32k3a-state-external->internal
       "invalid external state argument" external-state))
   (let* ((state (cdr external-state))
 	 (s0 (vector-ref state 0))
@@ -279,173 +290,138 @@
     (check-value s5 mrg32k3a-m2)
     (when (or (zero? (+ s0 s1 s2))
 	      (zero? (+ s3 s4 s5)))
-      (assertion-violation 'mrg32k3a-state-set
+      (assertion-violation 'mrg32k3a-state-external->internal
 	"illegal degenerate state" external-state))
     (vector-copy state)))
 
-
-;;;; pseudo-randomization
+;;; --------------------------------------------------------------------
+;;; pseudo-randomization
 
-; Reference [1] above shows how to obtain many long streams and
-; substream from the backbone generator.
-;
-; The idea is that the generator is a linear operation on the state.
-; Hence, we can express this operation as a 3x3-matrix acting on the
-; three most recent states. Raising the matrix to the k-th power, we
-; obtain the operation to advance the state by k steps at once. The
-; virtual streams and substreams are now simply parts of the entire
-; periodic sequence (which has period around 2^191).
-;
-; For the implementation it is necessary to compute with matrices in
-; the ring (Z/(m1*m1)*Z)^(3x3). By the Chinese-Remainder Theorem, this
-; is isomorphic to ((Z/m1*Z) x (Z/m2*Z))^(3x3). We represent such a pair
-; of matrices
-;   [ [[x00 x01 x02],
-;      [x10 x11 x12],
-;      [x20 x21 x22]], mod m1
-;     [[y00 y01 y02],
-;      [y10 y11 y12],
-;      [y20 y21 y22]]  mod m2]
-; as a vector of length 18 of the integers as writen above:
-;   #(x00 x01 x02 x10 x11 x12 x20 x21 x22
-;     y00 y01 y02 y10 y11 y12 y20 y21 y22)
-;
-; As the implementation should only use the range {-2^53..2^53-1}, the
-; fundamental operation (x*y) mod m, where x, y, m are nearly 2^32,
-; is computed by breaking up x and y as x = x1*w + x0 and y = y1*w + y0
-; where w = 2^16. In this case, all operations fit the range because
-; w^2 mod m is a small number. If proper multiprecision integers are
-; available this is not necessary, but pseudo-randomize! is an expected
-; to be called only occasionally so we do not provide this implementation.
+;;Precomputed A^(2^127) and A^(2^76).  The values were precomputed using
+;;the  Scheme  program  "mrg32k3a-make-generators.sps" which  should  be
+;;included in the source distribution of this package.
+;;
+;; (define mrg32k3a-generators-0 (power-power A 127))
+;; (define mrg32k3a-generators-1 (power-power A  76))
+;; (define mrg32k3a-generators-2 (power       A  16))
 
-(define mrg32k3a-m1 4294967087) ; modulus of component 1
-(define mrg32k3a-m2 4294944443) ; modulus of component 2
+(define mrg32k3a-generators-0
+  '#(1230515664 986791581 1988835001 3580155704
+		1230515664 226153695 949770784
+		3580155704 2427906178 2093834863
+		32183930 2824425944 1022607788
+		1464411153 32183930 1610723613
+		277697599 1464411153))
+(define mrg32k3a-generators-1
+  '#(69195019 3528743235 3672091415 1871391091
+	      69195019 3672831523 4127413238
+	      1871391091 82758667 3708466080
+	      4292754251 3859662829 3889917532
+	      1511326704 4292754251 1610795712
+	      3759209742 1511326704))
+(define mrg32k3a-generators-2
+  '#(1062452522 340793741 2955879160 2961816100
+		1062452522 387300998 342112271
+		2961816100 736416029 2854655037
+		1817134745 3493477402 3321940838
+		818368950 1817134745 3542344109
+		3790774567 818368950))
 
-(define mrg32k3a-initial-state ; 0 3 6 9 12 15 of A^16, see below
-  '#(1062452522
-     2961816100
-     342112271
-     2854655037
-     3321940838
-     3542344109))
+(define (mrg32k3a-pseudo-randomize-state i j)
+  (define (product A B)	; A*B in ((Z/m1*Z) x (Z/m2*Z))^(3x3)
+    (define w      65536)	; wordsize to split {0..2^32-1}
+    (define w-sqr1 209)	; w^2 mod m1
+    (define w-sqr2 22853)	; w^2 mod m2
+    (define (lc i0 i1 i2 j0 j1 j2 m w-sqr) ; linear combination
+      (let ((a0h (quotient (vector-ref A i0) w))
+	    (a0l (modulo   (vector-ref A i0) w))
+	    (a1h (quotient (vector-ref A i1) w))
+	    (a1l (modulo   (vector-ref A i1) w))
+	    (a2h (quotient (vector-ref A i2) w))
+	    (a2l (modulo   (vector-ref A i2) w))
+	    (b0h (quotient (vector-ref B j0) w))
+	    (b0l (modulo   (vector-ref B j0) w))
+	    (b1h (quotient (vector-ref B j1) w))
+	    (b1l (modulo   (vector-ref B j1) w))
+	    (b2h (quotient (vector-ref B j2) w))
+	    (b2l (modulo   (vector-ref B j2) w)))
+	(modulo
+	 (+ (* (+ (* a0h b0h)
+		  (* a1h b1h)
+		  (* a2h b2h))
+	       w-sqr)
+	    (* (+ (* a0h b0l)
+		  (* a0l b0h)
+		  (* a1h b1l)
+		  (* a1l b1h)
+		  (* a2h b2l)
+		  (* a2l b2h))
+	       w)
+	    (* a0l b0l)
+	    (* a1l b1l)
+	    (* a2l b2l))
+	 m)))
 
-(define mrg32k3a-pseudo-randomize-state
-  (let ((mrg32k3a-generators #f)) ; computed when needed
-    (lambda (i j)
-      (define (product A B) ; A*B in ((Z/m1*Z) x (Z/m2*Z))^(3x3)
-	(define w      65536) ; wordsize to split {0..2^32-1}
-	(define w-sqr1 209)   ; w^2 mod m1
-	(define w-sqr2 22853) ; w^2 mod m2
-	(define (lc i0 i1 i2 j0 j1 j2 m w-sqr) ; linear combination
-	  (let ((a0h (quotient (vector-ref A i0) w))
-		(a0l (modulo   (vector-ref A i0) w))
-		(a1h (quotient (vector-ref A i1) w))
-		(a1l (modulo   (vector-ref A i1) w))
-		(a2h (quotient (vector-ref A i2) w))
-		(a2l (modulo   (vector-ref A i2) w))
-		(b0h (quotient (vector-ref B j0) w))
-		(b0l (modulo   (vector-ref B j0) w))
-		(b1h (quotient (vector-ref B j1) w))
-		(b1l (modulo   (vector-ref B j1) w))
-		(b2h (quotient (vector-ref B j2) w))
-		(b2l (modulo   (vector-ref B j2) w)))
-	    (modulo
-	     (+ (* (+ (* a0h b0h)
-		      (* a1h b1h)
-		      (* a2h b2h))
-		   w-sqr)
-		(* (+ (* a0h b0l)
-		      (* a0l b0h)
-		      (* a1h b1l)
-		      (* a1l b1h)
-		      (* a2h b2l)
-		      (* a2l b2h))
-		   w)
-		(* a0l b0l)
-		(* a1l b1l)
-		(* a2l b2l))
-	     m)))
+    (vector
+     (lc  0  1  2   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_00 mod m1
+     (lc  0  1  2   1  4  7  mrg32k3a-m1 w-sqr1) ; (A*B)_01
+     (lc  0  1  2   2  5  8  mrg32k3a-m1 w-sqr1)
+     (lc  3  4  5   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_10
+     (lc  3  4  5   1  4  7  mrg32k3a-m1 w-sqr1)
+     (lc  3  4  5   2  5  8  mrg32k3a-m1 w-sqr1)
+     (lc  6  7  8   0  3  6  mrg32k3a-m1 w-sqr1)
+     (lc  6  7  8   1  4  7  mrg32k3a-m1 w-sqr1)
+     (lc  6  7  8   2  5  8  mrg32k3a-m1 w-sqr1)
+     (lc  9 10 11   9 12 15  mrg32k3a-m2 w-sqr2) ; (A*B)_00 mod m2
+     (lc  9 10 11  10 13 16  mrg32k3a-m2 w-sqr2)
+     (lc  9 10 11  11 14 17  mrg32k3a-m2 w-sqr2)
+     (lc 12 13 14   9 12 15  mrg32k3a-m2 w-sqr2)
+     (lc 12 13 14  10 13 16  mrg32k3a-m2 w-sqr2)
+     (lc 12 13 14  11 14 17  mrg32k3a-m2 w-sqr2)
+     (lc 15 16 17   9 12 15  mrg32k3a-m2 w-sqr2)
+     (lc 15 16 17  10 13 16  mrg32k3a-m2 w-sqr2)
+     (lc 15 16 17  11 14 17  mrg32k3a-m2 w-sqr2))) ; end of PRODUCT
 
-	(vector
-	 (lc  0  1  2   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_00 mod m1
-	 (lc  0  1  2   1  4  7  mrg32k3a-m1 w-sqr1) ; (A*B)_01
-	 (lc  0  1  2   2  5  8  mrg32k3a-m1 w-sqr1)
-	 (lc  3  4  5   0  3  6  mrg32k3a-m1 w-sqr1) ; (A*B)_10
-	 (lc  3  4  5   1  4  7  mrg32k3a-m1 w-sqr1)
-	 (lc  3  4  5   2  5  8  mrg32k3a-m1 w-sqr1)
-	 (lc  6  7  8   0  3  6  mrg32k3a-m1 w-sqr1)
-	 (lc  6  7  8   1  4  7  mrg32k3a-m1 w-sqr1)
-	 (lc  6  7  8   2  5  8  mrg32k3a-m1 w-sqr1)
-	 (lc  9 10 11   9 12 15  mrg32k3a-m2 w-sqr2) ; (A*B)_00 mod m2
-	 (lc  9 10 11  10 13 16  mrg32k3a-m2 w-sqr2)
-	 (lc  9 10 11  11 14 17  mrg32k3a-m2 w-sqr2)
-	 (lc 12 13 14   9 12 15  mrg32k3a-m2 w-sqr2)
-	 (lc 12 13 14  10 13 16  mrg32k3a-m2 w-sqr2)
-	 (lc 12 13 14  11 14 17  mrg32k3a-m2 w-sqr2)
-	 (lc 15 16 17   9 12 15  mrg32k3a-m2 w-sqr2)
-	 (lc 15 16 17  10 13 16  mrg32k3a-m2 w-sqr2)
-	 (lc 15 16 17  11 14 17  mrg32k3a-m2 w-sqr2))) ; end of PRODUCT
+  (define (power A e) ; A^e
+    (cond
+     ((zero? e)
+      '#(1 0 0 0 1 0 0 0 1 1 0 0 0 1 0 0 0 1))
+     ((= e 1)
+      A)
+     ((even? e)
+      (power (product A A) (quotient e 2)))
+     (else
+      (product (power A (- e 1)) A))))
 
-      (define (power A e) ; A^e
-	(cond
-	 ((zero? e)
-	  '#(1 0 0 0 1 0 0 0 1 1 0 0 0 1 0 0 0 1))
-	 ((= e 1)
-	  A)
-	 ((even? e)
-	  (power (product A A) (quotient e 2)))
-	 (else
-	  (product (power A (- e 1)) A))))
+  (define (power-power A b) ; A^(2^b)
+    (if (zero? b)
+	A
+      (power-power (product A A) (- b 1))))
 
-      (define (power-power A b) ; A^(2^b)
-	(if (zero? b)
-	    A
-	  (power-power (product A A) (- b 1))))
-
-      (define A	; the MRG32k3a recursion
-	'#(     0 1403580 4294156359
-		  1       0          0
-		  0       1          0
-		  527612       0 4293573854
-		  1       0          0
-		  0       1          0))
-
-      ;; check arguments
-      (unless (and (integer? i)
-		   (exact? i)
-		   (integer? j)
-		   (exact? j))
-	(error "i j must be exact integer" i j))
-
-      ;; precompute A^(2^127) and A^(2^76) only once
-      (unless mrg32k3a-generators
-	(set! mrg32k3a-generators (vector (power-power A 127)
-					  (power-power A  76)
-					  (power       A  16))))
+  ;; check arguments
+  (unless (and (integer? i) (exact? i)
+	       (integer? j) (exact? j))
+    (assertion-violation 'mrg32k3a-pseudo-randomize-state
+      "pseudo-randomisation arguments must be exact integers" i j))
 
 		; compute M = A^(16 + i*2^127 + j*2^76)
-      (let ((M (product (vector-ref mrg32k3a-generators 2)
-			(product (power (vector-ref mrg32k3a-generators 0) (modulo i e2^28))
-				 (power (vector-ref mrg32k3a-generators 1) (modulo j e2^28))))))
-	(vector (vector-ref M 0)
-		(vector-ref M 3)
-		(vector-ref M 6)
-		(vector-ref M 9)
-		(vector-ref M 12)
-		(vector-ref M 15))))))
+  (let ((M (product mrg32k3a-generators-2
+		    (product (power mrg32k3a-generators-0 (modulo i e2^28))
+			     (power mrg32k3a-generators-1 (modulo j e2^28))))))
+    (vector (vector-ref M 0)
+	    (vector-ref M 3)
+	    (vector-ref M 6)
+	    (vector-ref M 9)
+	    (vector-ref M 12)
+	    (vector-ref M 15))))
 
-
-;;;; true randomization
-
-;;;The value  obtained from the system  time is feed into  a very simple
-;;;pseudo  random number  generator.  This  in turn  is  used to  obtain
-;;;numbers to  randomize the state  of the MRG32k3a  generator, avoiding
-;;;period degeneration.
+;;; --------------------------------------------------------------------
+;;; true randomization
 
 (define (mrg32k3a-randomize-state state)
   ;; G. Marsaglia's simple 16-bit generator with carry
   (let* ((m 65536)
-         (x (modulo ((random-source-of-numbers)) m)))
+         (x (modulo ((random-source-of-integers)) m)))
     (define (random-m)
       (let ((y (modulo x m)))
         (set! x (+ (* 30903 y) (quotient x m)))
@@ -463,22 +439,17 @@
        (modulo (+ (vector-ref s 4) (random m2)) m2)
        (modulo (+ (vector-ref s 5) (random m2)) m2)))))
 
-
-;;;; large integers
-
-;;;To produce  large integer  random deviates, for  n > m-max,  we first
-;;;construct large random numbers in the range {0..m-max^k-1} for some k
-;;;such that  m-max^k >= n and  then use the rejection  method to choose
-;;;uniformly from the range {0..n-1}.
+;;; --------------------------------------------------------------------
+;;; numbers making
 
 (define mrg32k3a-m-max
   (mrg32k3a-random-range))
 
 (define (mrg32k3a-random-power state k) ; n = m-max^k, k >= 1
-  (if (= k 1)
-      (mrg32k3a-random-integer state mrg32k3a-m-max)
-    (+ (* (mrg32k3a-random-power state (- k 1)) mrg32k3a-m-max)
-       (mrg32k3a-random-integer state mrg32k3a-m-max))))
+  (let ((n (mrg32k3a-random-integer state mrg32k3a-m-max)))
+    (if (= k 1)
+	n
+      (+ n (* mrg32k3a-m-max (mrg32k3a-random-power state (- k 1)))))))
 
 (define (mrg32k3a-random-large state n) ; n > m-max
   (do ((k 2 (+ k 1))
@@ -491,15 +462,6 @@
 	     ((< x a)
 	      (quotient x mk-by-n)))))))
 
-
-;;;; multiple precision reals
-
-;;;To produce multiple precision reals  we produce a large integer value
-;;;and convert it into a real value. This value is then normalized.  The
-;;;precision goal is unit <= 1/(m^k +  1), or 1/unit - 1 <= m^k.  If you
-;;;know more about the floating point number types of the Scheme system,
-;;;this can be improved.
-
 (define (mrg32k3a-random-real-mp state unit)
   (do ((k 1 (+ k 1))
        (u (- (/ 1 unit) 1) (/ u mrg32k3a-m1)))
@@ -508,78 +470,86 @@
 	  (inexact (+ (expt mrg32k3a-m-max k) 1))))))
 
 
-;;;An object of type random-source is a record containing the procedures
-;;;as components.  The actual  state of the  generator is stored  in the
-;;;binding-time environment of MAKE-RANDOM-SOURCE.
-
-(define (make-random-source)
-  (let ((state (vector-copy mrg32k3a-initial-state)))
-    (:random-source-make
-     (lambda () ; state-ref
-       (mrg32k3a-state-ref state))
-     (lambda (new-state) ; state-set!
-       (set! state (mrg32k3a-state-set new-state)))
-     (lambda () ; randomize!
-       (set! state (mrg32k3a-randomize-state state)))
-     (lambda (i j) ; pseudo-randomize!
-       (set! state (mrg32k3a-pseudo-randomize-state i j)))
-     (lambda () ; make-integers
-       (lambda (n)
-         (cond ((not (and (integer? n) (exact? n) (positive? n)))
-		(assertion-violation 'make-integers
-		  "range upper limit must be an exact positive integer" n))
-	       ((<= n mrg32k3a-m-max)
-		(mrg32k3a-random-integer state n))
-	       (else
-		(mrg32k3a-random-large state n)))))
-     (case-lambda
-      (()
-       (lambda ()
-	 (mrg32k3a-random-real state)))
-      ((unit)
-       (cond ((not (and (real? unit) (< 0 unit 1)))
-	      (assertion-violation 'make-reals
-		"unit must be a real number in the range (0,1)" unit))
-	     ((<= (- (/ 1 unit) 1) mrg32k3a-m1)
-	      (lambda ()
-		(mrg32k3a-random-real state)))
-	     (else
-	      (lambda ()
-		(mrg32k3a-random-real-mp state unit)))))))))
-
-(define (random-source-state-ref s)
-  ((:random-source-state-ref s)))
-
-(define (random-source-state-set! s state)
-  ((:random-source-state-set! s) state))
-
-(define (random-source-randomize! s)
-  ((:random-source-randomize! s)))
-
-(define (random-source-pseudo-randomize! s i j)
-  ((:random-source-pseudo-randomize! s) i j))
-
-(define (random-source-make-integers s)
-  ((:random-source-make-integers s)))
-
-(define random-source-make-reals
-  (case-lambda
-   ((source)
-    ((:random-source-make-reals source)))
-   ((source unit)
-    ((:random-source-make-reals source) unit))))
-
-
 ;;; no fuss API
 
 (define default-random-source
   (make-random-source))
 
 (define random-integer
-  (random-source-make-integers default-random-source))
+  (random-source-integers-maker default-random-source))
 
 (define random-real
-  (random-source-make-reals default-random-source))
+  (random-source-reals-maker default-random-source))
+
+
+;;; utility procedures
+
+(define (unfold-random-numbers source number-of-numbers)
+  (do ((i 0 (+ 1 i))
+       (ell '() (cons (source) ell)))
+      ((= i number-of-numbers)
+       ell)))
+
+(define (unfold-random-numbers/vector source number-of-numbers)
+  (do ((i 0 (+ 1 i))
+       (vec (make-vector number-of-numbers) (begin (vector-set! vec i (source)) vec)))
+      ((= i number-of-numbers)
+       vec)))
+
+(define (unfold-random-numbers/string source number-of-numbers)
+  (let ((str (make-string number-of-numbers)))
+    (do ((i 0 (+ 1 i)))
+	((= i number-of-numbers)
+	 str)
+      (do ((n (source) (source)))
+	  ((or (and (<= 0 n)     (< n #xD800))
+	       (and (< #xDFFF n) (< n #x10FFFF)))
+	   (string-set! str i (integer->char n)))))))
+
+(define (random-source-make-permutations source)
+  ;;For  the   algorithm  refer  to   Knuth's  ``The  Art   of  Computer
+  ;;Programming'', Vol. II, 2nd ed., Algorithm P of Section 3.4.2.
+  (let ((rand (random-source-integers-maker source)))
+    (lambda (n)
+      (let ((x (make-vector n 0)))
+        (do ((i 0 (+ i 1)))
+            ((= i n))
+          (vector-set! x i i))
+        (do ((k n (- k 1)))
+            ((= k 1) x)
+          (let* ((i (- k 1))
+                 (j (rand k))
+                 (xi (vector-ref x i))
+                 (xj (vector-ref x j)))
+            (vector-set! x i xj)
+            (vector-set! x j xi)))))))
+
+(define (random-source-make-exponentials source . unit)
+  ;;Refer to Knuth's  ``The Art of Computer Programming'',  Vol. II, 2nd
+  ;;ed., Section 3.4.1.D.
+  (let ((rand (apply random-source-reals-maker source unit)))
+    (lambda (mu)
+      (- (* mu (log (rand)))))))
+
+(define (random-source-make-normals source . unit)
+  ;;For  the   algorithm  refer  to   Knuth's  ``The  Art   of  Computer
+  ;;Programming'', Vol. II, 2nd ed., Algorithm P of Section 3.4.1.C.
+  (let ((rand (apply random-source-reals-maker source unit))
+        (next #f))
+    (lambda (mu sigma)
+      (if next
+          (let ((result next))
+            (set! next #f)
+            (+ mu (* sigma result)))
+        (let loop ()
+          (let* ((v1 (- (* 2 (rand)) 1))
+                 (v2 (- (* 2 (rand)) 1))
+                 (s (+ (* v1 v1) (* v2 v2))))
+            (if (>= s 1)
+                (loop)
+              (let ((scale (sqrt (/ (* -2 (log s)) s))))
+                (set! next (* scale v2))
+                (+ mu (* sigma scale v1))))))))))
 
 
 ;;; done
