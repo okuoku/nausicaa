@@ -368,6 +368,9 @@ define ds-echo
 @$(call ds-verbose,echo $(1))
 endef
 
+define ds-if-yes
+$(if $(filter yes,$(1)),$(2),$(3))
+endef
 #page
 define ds-drop-backup-files
 $(filter-out %~,$(1))
@@ -706,7 +709,8 @@ ds_texi_SOURCES		= $$(call ds-glob,ds_texi,*.texi)
 
 DS_TEXI_FLAGS		= -I $$(ds_texi_SRCDIR)		\
 			  -I $$(ds_texi_BUILDDIR)	\
-			  -I $$(infrastructuredir)
+			  -I $$(infrastructuredir)	\
+			  $$(texi_MORE_FLAGS)
 DS_TEXI2INFO_FLAGS	= $$(DS_TEXI_FLAGS) --no-split
 DS_TEXI2HTML_FLAGS	= $$(DS_TEXI_FLAGS) --no-split --html
 DS_TEXI2DVI_FLAGS	= $$(DS_TEXI_FLAGS) --dvi --tidy \
@@ -720,6 +724,7 @@ ds_texi_PREREQ		= $$(ds_texi_BUILDDIR)/version.texiinc \
 ds_texi_CLEANFILES	= $$(ds_texi_BUILDDIR)/version.texiinc
 
 .PHONY: ds-texinfo-builddir
+.SECONDARY: $$(ds_texi_BUILDDIR)/%.info
 
 ds-texinfo-builddir:
 	test -d $$(ds_texi_BUILDDIR) || $$(MKDIR) $$(ds_texi_BUILDDIR)
@@ -1772,6 +1777,10 @@ private-slackware-make-$(1): slackware-builddir
 		$$(ds_slackware_PACKAGE_BUILDDIR)/install
 	$$(ds_archive_SUDO) $$(INSTALL_DATA)					\
 		$$(ds_meta_builddir)/slackware/$(1)/slack-desc			\
+		$$(ds_slackware_PACKAGE_BUILDDIR)/install
+	-test -f $$(ds_meta_builddir)/slackware/$(1)/doinst.sh &&		\
+	$$(ds_archive_SUDO) $$(INSTALL_DATA)					\
+		$$(ds_meta_builddir)/slackware/$(1)/doinst.sh			\
 		$$(ds_slackware_PACKAGE_BUILDDIR)/install
 	$$(ds_archive_SUDO) $$(MAKE) slackware-aux-$(1)
 	cd $$(ds_slackware_PACKAGE_BUILDDIR);					\
