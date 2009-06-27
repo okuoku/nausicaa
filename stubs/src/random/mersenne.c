@@ -1,3 +1,4 @@
+
 /*
    Part of: Nausicaa/Stubs
    Contents: Mersenne Twister random number generator
@@ -129,6 +130,12 @@ nausicaa_mersenne_get_array (mersenne_context_t * ctx, int len, uint32_t * ptr)
 {
   for (int i = 0; i<len; i++)
     ptr[i] = nausicaa_mersenne_random(ctx);
+}
+void
+nausicaa_mersenne_jumpahead (mersenne_context_t *ctx, int steps)
+{
+  for (int i = 0; i<steps; i++)
+    nausicaa_mersenne_random(ctx);
 }
 
 

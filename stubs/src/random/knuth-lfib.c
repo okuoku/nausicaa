@@ -69,12 +69,17 @@ nausicaa_knuth_lfib_context_size (void)
 {
   return sizeof(knuth_lfib_context_t);
 }
+int
+nausicaa_knuth_lfib_seed_size (void)
+{
+  return 1;
+}
 void
-nausicaa_knuth_lfib_init (knuth_lfib_context_t * ctx, int _seed)
+nausicaa_knuth_lfib_init (knuth_lfib_context_t * ctx, uint32_t * _seed)
 {
   int		t, j;
   uint32_t	x[2*KK - 1];
-  uint32_t	seed = (uint32_t)_seed;
+  uint32_t	seed = _seed[0];
   uint32_t	ss   = (seed + 2) & (MM-2);
   for (j = 0; j<KK; j++) {
     x[j] = ss;
@@ -130,6 +135,12 @@ nausicaa_knuth_lfib_get_array(knuth_lfib_context_t * ctx, int n, uint32_t *a)
 {
   for (int i = 0; i<n; i++)
     a[i] = nausicaa_knuth_lfib_random(ctx);
+}
+void
+nausicaa_knuth_lfib_jumpahead (knuth_lfib_context_t *ctx, int steps)
+{
+  for (int i = 0; i<steps; i++)
+    nausicaa_knuth_lfib_random(ctx);
 }
 
 /* end of file */

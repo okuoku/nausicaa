@@ -20,6 +20,9 @@ ifeq (yes,$(strip $(nausicaa_ENABLE_RANDOM)))
 
 random_SRCDIR	= $(srcdir)/src/random
 random_BUILDDIR	= $(builddir)/random-objects.d
+
+$(random_BUILDDIR)/%.@OBJEXT@ : $(random_SRCDIR)/%.h
+
 $(eval $(call ds-c-library,random))
 
 endif

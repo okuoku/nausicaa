@@ -69,11 +69,16 @@ typedef struct r250_521_context_t {
 } r250_521_context_t;
 
 extern int nausicaa_r250_521_context_size (void);
+
+/* Return the number of seed 32bit values required. */
 extern int nausicaa_r250_521_seed_size (void);
+
 /* The seed array must hold R250_521_SEED_LEN 32bits integers. */
 extern void nausicaa_r250_521_init (r250_521_context_t * ctx, uint32_t * seed);
 extern uint32_t	nausicaa_r250_521_random (r250_521_context_t * ctx);
 extern void nausicaa_r250_521_get_array (r250_521_context_t * ctx, int len, uint32_t * ptr);
+
+extern void nausicaa_r250_521_jumpahead (r250_521_context_t *ctx, int steps);
 
 #endif /* R250_521_H */
 

@@ -141,5 +141,11 @@ nausicaa_r250_521_get_array (r250_521_context_t * ctx, int len, uint32_t * ptr)
   for (int i = 0; i<len; i++)
     ptr[i] = nausicaa_r250_521_random(ctx);
 }
+void
+nausicaa_r250_521_jumpahead (r250_521_context_t *ctx, int steps)
+{
+  for (int i = 0; i<steps; i++)
+    nausicaa_r250_521_random(ctx);
+}
 
 /* end of file */

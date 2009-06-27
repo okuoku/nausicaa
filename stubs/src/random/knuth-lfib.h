@@ -48,10 +48,16 @@ typedef struct knuth_lfib_context_t {
 } knuth_lfib_context_t;
 
 extern int nausicaa_knuth_lfib_context_size (void);
-extern void nausicaa_knuth_lfib_init (knuth_lfib_context_t *ctx, int _seed);
+
+/* Return the number of seed 32bit values required. */
+extern int nausicaa_knuth_lfib_seed_size (void);
+
+extern void nausicaa_knuth_lfib_init (knuth_lfib_context_t *ctx, uint32_t * seed);
 /* Get a single number in the range [0, 2^30) */
 extern uint32_t	nausicaa_knuth_lfib_random (knuth_lfib_context_t *ctx);
 extern void nausicaa_knuth_lfib_get_array (knuth_lfib_context_t *ctx, int len, uint32_t * ptr);
+
+extern void nausicaa_knuth_lfib_jumpahead (knuth_lfib_context_t *ctx, int steps);
 
 #endif /* NETTLE_KNUTH_LFIB_H_INCLUDED */
 

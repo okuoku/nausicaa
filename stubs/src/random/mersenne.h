@@ -64,13 +64,16 @@ typedef struct mersenne_context_t {
 } mersenne_context_t;
 
 extern int nausicaa_mersenne_context_size (void);
+/* Return the number of seed 32bit values required. */
 extern int nausicaa_mersenne_seed_size (void);
 
 /* 'buffer'  must  point  to  a MERSENNE_BUFFER_LENGTH  long  buffer  of
    'uint32_t' bytes, filled with seed numbers */
-extern void nausicaa_mersenne_init (mersenne_context_t * ctx, uint32_t * buffer);
+extern void nausicaa_mersenne_init (mersenne_context_t * ctx, uint32_t * seed);
 extern uint32_t nausicaa_mersenne_random (mersenne_context_t * ctx);
 extern void nausicaa_mersenne_get_array (mersenne_context_t * ctx, int len, uint32_t * ptr);
+
+extern void nausicaa_mersenne_jumpahead (mersenne_context_t *ctx, int steps);
 
 #endif /* MERSENNE_H */
 
