@@ -38,6 +38,10 @@ DS_ENABLE_OPTION([nausicaa_ENABLE_POSIX],[posix],[yes],
   [whether the POSIX stub library will be built and installed],
   [disable building the POSIX stub library])
 
+DS_ENABLE_OPTION([nausicaa_ENABLE_RANDOM],[random],[yes],
+  [whether the random numbers generators stub library will be built and installed],
+  [disable building the random numbers generators stub library])
+
 DS_C99_LANGUAGE_COMMON_SETUP
 DS_EXCLUDE_SECTION([DOC_RULES])
 DS_EXCLUDE_SECTION([DEV_RULES])
@@ -45,6 +49,7 @@ DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
 DS_C_LANGUAGE_LIBRARY([posix],1,0,[nausicaa-posix])
+DS_C_LANGUAGE_LIBRARY([random],1,0,[nausicaa-random])
 
 #DS_CONFIG_FILE_PKGCONFIG
 #DS_CONFIG_FILE_INSPECTION_SCRIPT

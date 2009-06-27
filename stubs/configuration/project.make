@@ -2,10 +2,26 @@
 #
 
 nausicaa_ENABLE_POSIX	= @nausicaa_ENABLE_POSIX@
+nausicaa_ENABLE_RANDOM	= @nausicaa_ENABLE_RANDOM@
+
+## --------------------------------------------------------------------
 
 ifeq (yes,$(strip $(nausicaa_ENABLE_POSIX)))
-posix_PATTERNS	= nausicaa-posix.c
+
+posix_SRCDIR	= $(srcdir)/src/posix
+posix_BUILDDIR	= $(builddir)/posix-objects.d
 $(eval $(call ds-c-library,posix))
+
+endif
+
+## --------------------------------------------------------------------
+
+ifeq (yes,$(strip $(nausicaa_ENABLE_RANDOM)))
+
+random_SRCDIR	= $(srcdir)/src/random
+random_BUILDDIR	= $(builddir)/random-objects.d
+$(eval $(call ds-c-library,random))
+
 endif
 
 ### end of file
