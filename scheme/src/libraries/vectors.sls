@@ -165,7 +165,7 @@
     vector-reverse  vector-reverse!
     vector-replace)
   (import (rnrs)
-    (vectors vectors-low))
+    (vectors low))
 
 
 
@@ -184,25 +184,6 @@
      (values ?vec 0 ?past))
 
     ((_ (view ?vec (start ?start) (past ?past)))
-     (values ?vec ?start ?past))
-
-    ((_ ((quote ?vec)))
-     (let ((vec (quote ?vec)))
-       (values vec 0 (vector-length vec))))
-
-    ((_ (quote ?vec))
-     (let ((vec (quote ?vec)))
-       (values vec 0 (vector-length vec))))
-
-    ((_ (?vec))
-     (let ((vec ?vec))
-       (values vec 0 (vector-length vec))))
-
-    ((_ (?vec ?start))
-     (let ((vec ?vec))
-       (values vec ?start (vector-length vec))))
-
-    ((_ (?vec ?start ?past))
      (values ?vec ?start ?past))
 
     ((_ ?vec)

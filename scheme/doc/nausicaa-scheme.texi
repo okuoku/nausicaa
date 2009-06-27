@@ -24137,7 +24137,9 @@ the in--place side--effecting variant.
 
 
 The @library{vectors} library extends the vector operations available in
-the base library.  @ref{baselib vectors, Vectors}.
+the base library.  @ref{baselib vectors, Vectors}.  While
+@library{vectors} is a high level interface, @library{vectors low} is a
+low level interface with the same functionalities.
 
 @menu
 * vectors intro::               Introduction.
@@ -24167,10 +24169,10 @@ the base library.  @ref{baselib vectors, Vectors}.
 @subsubheading Library organisation
 
 The functions are split in a high level library, @library{vectors}, and
-a low level one, @library{vectors vectors-low}.  The main difference
-between the two layers is that the high level library makes heavy usage
-of macros to implement the @dfn{vector views}, which allow accessing
-subvectors using a friendly syntax.
+a low level one, @library{vectors low}.  The main difference between the
+two layers is that the high level library makes heavy usage of macros to
+implement the @dfn{vector views}, which allow accessing subvectors using
+a friendly syntax.
 
 All the functions in the low level library are bound to identifiers
 starting with @code{%}; for example: @func{vector-prefix?} is a high
@@ -24247,7 +24249,7 @@ In the procedure specifications:
 
 @itemize
 @item
-An @var{V} argument is a vector view, which is expanded by a macro in a
+A @var{V} argument is a vector view, which is expanded by a macro in a
 triplet of values: the vector, the index of the first value in the
 selected subvector, the index of the value past the last in the selected
 position.  @ref{vectors views} for details.
@@ -24373,20 +24375,6 @@ function is wrapped by a high level syntax which can be invoked as:
 (the-function '#(0 1 2 3 4 5 6 7))
         ; select the whole vector
 
-(the-function ('#(0 1 2 3 4 5 6 7)))
-        ; select the whole vector
-
-(the-function ('#(0 1 2 3 4 5 6 7) 3))
-        ; select the subvector [3, 8)
-
-(the-function ('#(0 1 2 3 4 5 6 7) 3 6))
-        ; select the subvector [3, 6)
-@end example
-
-@noindent
-additionally the following verbose syntaxes are supported:
-
-@example
 (the-function (view '#(0 1 2 3 4 5 6 7)))
         ; select the whole vector
 
@@ -24410,37 +24398,33 @@ that can be:
 
 @table @code
 @item @meta{vector}
-@itemx (@meta{vector})
 @itemx (view @meta{vector})
 The vector itself or an unquoted list holding the vector itself,
-optionally prefixed by the @code{view} auxiliary syntax: It selects the
-whole vector.
+prefixed by the @code{view} auxiliary syntax: It selects the whole
+vector.
 
-@item (@meta{vector} @meta{start-index})
 @itemx (view @meta{vector} (start @meta{start-index}))
-An unquoted list holding the vector and the start index, optionally with
-auxiliary syntaxes @code{view} and @code{start}: It selects the
-subvector from the start index to the end.
+An unquoted list holding the vector and the start index, with auxiliary
+syntaxes @code{view} and @code{start}: It selects the subvector from the
+start index to the end.
 
 @item (view @meta{vector} (past @meta{past-index}))
 An unquoted list holding the vector and the past index, with auxiliary
 syntaxes @code{view} and @code{past}: It selects the subvector from zero
 to the selected past index.
 
-@item (@meta{vector} @meta{start-index} @meta{past-index})
 @itemx (view @meta{vector} (start @meta{start-index}) (past @meta{past-index}))
 An unquoted list holding the vector, the start index and the past index,
-optionally with auxiliary syntaxes @code{view}, @code{start} and
-@code{past}: It selects the subvector between the start and past
-indexes.
+with auxiliary syntaxes @code{view}, @code{start} and @code{past}: It
+selects the subvector between the start and past indexes.
 @end table
 
 @noindent
-@meta{vector}, @meta{start-index} and @meta{past-index} can be arbitrary
-Scheme expressions.  High level macros accepting two or more subvectors
-as arguments support vector views for all of them.  When we are
-concerned with the overhead of vector views, we can use the low level
-functions directly.
+@code{@meta{vector}}, @code{@meta{start-index}} and
+@code{@meta{past-index}} can be arbitrary Scheme expressions.  High
+level macros accepting two or more subvectors as arguments, support
+vector views for all of them.  When we are concerned with the overhead
+of vector views, we can use the low level functions directly.
 
 In the following documentation: Low level functions and high level
 macros are documented together; only the meaning of arguments to the low
@@ -25073,7 +25057,9 @@ Like @func{%vector-copy}, but copy the elements in the reverse order
 from the selected subvector of @var{vec}.
 
 @example
-(vector-reverse-copy ('#(5 4 3 2 1 0) 1 5))
+(vector-reverse-copy (view '#(5 4 3 2 1 0)
+                       (start 1)
+                       (past  5)))
 @result{} #(1 2 3 4)
 @end example
 @end deffn
