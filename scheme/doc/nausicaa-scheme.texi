@@ -22516,7 +22516,9 @@ One set for each general category defined by the Unicode Standard.
 
 
 The @library{strings} library extends the string operations available in
-the base library.  @ref{baselib strings, Strings}
+the base library.  @ref{baselib strings, Strings}.  While
+@library{strings} is a high level interface, @library{strings low} is a
+low level interface with the same functionalities.
 
 @menu
 * strings intro::               Introduction.
@@ -22547,10 +22549,10 @@ the base library.  @ref{baselib strings, Strings}
 @subsubheading Library organisation
 
 The functions are split in a high level library, @library{strings}, and
-a low level one, @library{strings strings-low}.  The main difference
-between the two layers is that the high level library makes heavy usage
-of macros to implement the @dfn{string views}, which allow accessing
-substrings using a friendly syntax.
+a low level one, @library{strings low}.  The main difference between the
+two layers is that the high level library makes heavy usage of macros to
+implement the @dfn{string views}, which allow accessing substrings using
+a friendly syntax.
 
 All the functions in the low level library are bound to identifiers
 starting with @code{%}; for example: @func{string-prefix?} is a high
@@ -22808,20 +22810,6 @@ function is wrapped by a high level syntax which can be invoked as:
 (the-function "ciao, hello, salut")
         ; select the whole string
 
-(the-function ("ciao, hello, salut"))
-        ; select the whole string
-
-(the-function ("ciao, hello, salut" 6))
-        ; select the substring [6, 18)
-
-(the-function ("ciao, hello, salut" 6 11))
-        ; select the substring [6, 11)
-@end example
-
-@noindent
-additionally the following verbose syntaxes are supported:
-
-@example
 (the-function (view "ciao, hello, salut"))
         ; select the whole string
 
@@ -22845,37 +22833,33 @@ that can be:
 
 @table @code
 @item @meta{string}
-@itemx (@meta{string})
 @itemx (view @meta{string})
 The string itself or an unquoted list holding the string itself,
-optionally prefixed by the @code{view} auxiliary syntax: It selects the
-whole string.
+prefixed by the @code{view} auxiliary syntax: It selects the whole
+string.
 
-@item (@meta{string} @meta{start-index})
-@itemx (view @meta{string} (start @meta{start-index}))
-An unquoted list holding the string and the start index, optionally with
-auxiliary syntaxes @code{view} and @code{start}: It selects the
-substring from the start index to the end.
+@item (view @meta{string} (start @meta{start-index}))
+An unquoted list holding the string and the start index, with auxiliary
+syntaxes @code{view} and @code{start}: It selects the substring from the
+start index to the end.
 
 @item (view @meta{string} (past @meta{past-index}))
 An unquoted list holding the string and the past index, with auxiliary
 syntaxes @code{view} and @code{past}: It selects the substring from zero
 to the selected past index.
 
-@item (@meta{string} @meta{start-index} @meta{past-index})
 @itemx (view @meta{string} (start @meta{start-index}) (past @meta{past-index}))
 An unquoted list holding the string, the start index and the past index,
-optionally with auxiliary syntaxes @code{view}, @code{start} and
-@code{past}: It selects the substring between the start and past
-indexes.
+with auxiliary syntaxes @code{view}, @code{start} and @code{past}: It
+selects the substring between the start and past indexes.
 @end table
 
 @noindent
-@meta{string}, @meta{start-index} and @meta{past-index} can be arbitrary
-Scheme expressions.  High level macros accepting two or more substrings
-as arguments support string views for all of them.  When we are
-concerned with the overhead of string views, we can use the low level
-functions directly.
+@code{@meta{string}}, @code{@meta{start-index}} and
+@code{@meta{past-index}} can be arbitrary Scheme expressions.  High
+level macros accepting two or more substrings as arguments, support
+string views for all of them.  When we are concerned with the overhead
+of string views, we can use the low level functions directly.
 
 In the following documentation: Low level functions and high level
 macros are documented together; only the meaning of arguments to the low
@@ -23641,8 +23625,10 @@ Like @func{%string-copy*}, but copy the elements in the reverse order
 from the selected substring of @var{str}.
 
 @example
-(string-reverse-copy* ('#(5 4 3 2 1 0) 1 5))
-@result{} #(1 2 3 4)
+(string-reverse-copy* (view "543210")
+                        (start 1)
+                        (past  5)))
+@result{} "1234"
 @end example
 @end deffn
 

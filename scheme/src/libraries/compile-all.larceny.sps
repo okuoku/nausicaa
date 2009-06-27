@@ -62,8 +62,8 @@
 (compile-library "knuth-morris-pratt.sls"
  		 "knuth-morris-pratt.slfasl")
 
-(compile-library "strings/strings-low.sls"
- 		 "strings/strings-low.slfasl")
+(compile-library "strings/low.sls"
+ 		 "strings/low.slfasl")
 
 (compile-library "strings.sls"
  		 "strings.slfasl")

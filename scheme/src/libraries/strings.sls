@@ -174,7 +174,7 @@
     string-reverse  string-reverse!
     string-replace)
   (import (rnrs)
-    (strings strings-low))
+    (strings low))
 
 
 
@@ -195,19 +195,9 @@
     ((_ (view ?str (start ?start) (past ?past)))
      (values ?str ?start ?past))
 
-    ((_ (?str))
+    ((?F ?str)
      (let ((str ?str))
        (values str 0 (string-length str))))
-
-    ((_ (?str ?start))
-     (let ((str ?str))
-       (values str ?start (string-length str))))
-
-    ((_ (?str ?start ?past))
-     (values ?str ?start ?past))
-
-    ((?F ?str)
-     (unpack (?str)))
 
     ((?F ?stuff ...)
      (syntax-violation #f "invalid parameters" (?stuff ...)))))

@@ -102,7 +102,7 @@
 
 
 #!r6rs
-(library (strings strings-low)
+(library (strings low)
   (export
 
     ;; constructors
