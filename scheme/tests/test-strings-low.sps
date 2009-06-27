@@ -27,7 +27,7 @@
 ;;;; setup
 
 (import (nausicaa)
-  (strings strings-low)
+  (strings low)
   (char-sets)
   (checks))
 

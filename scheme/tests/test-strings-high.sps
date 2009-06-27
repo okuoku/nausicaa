@@ -42,30 +42,6 @@
       (substring* "ciao")
     => "ciao")
 
-  (check
-      (substring* ("ciao"))
-    => "ciao")
-
-  (check
-      (substring* ("ciao" 2))
-    => "ao")
-
-  (check
-      (substring* ("ciao" 0 4))
-    => "ciao")
-
-  (check
-      (substring* ("ciao" 0 0))
-    => "")
-
-  (check
-      (substring* ("ciao" 1 1))
-    => "")
-
-  (check
-      (substring* ("ciao" 0 1))
-    => "c")
-
 ;;; --------------------------------------------------------------------
 
   (check
@@ -379,7 +355,7 @@
      (string= str str)))
 
   (check-for-true
-   (string= ("12abcd" 2) "abcd"))
+   (string= (view "12abcd" (start 2)) "abcd"))
 
   (check-for-false
    (string= "abc" "abcd"))
@@ -520,7 +496,7 @@
    (string-ci= "abcd" "abcd"))
 
   (check-for-true
-   (string-ci= ("12abcd" 2) "abcd"))
+   (string-ci= (view "12abcd" (start 2)) "abcd"))
 
   (check-for-false
    (string-ci= "abc" "abcd"))
@@ -865,7 +841,7 @@
     => "Abcd Efgh")
 
   (check
-      (string-titlecase* ("greasy fried chicken" 2))
+      (string-titlecase* (view "greasy fried chicken" (start 2)))
     => "Easy Fried Chicken")
 
 ;;; --------------------------------------------------------------------
@@ -896,7 +872,7 @@
 
   (check
       (let ((str (string-copy "greasy fried chicken")))
-	(string-titlecase*! (str 2))
+	(string-titlecase*! (view str (start 2)))
 	str)
     => "grEasy Fried Chicken")
 
@@ -1520,7 +1496,7 @@
     => 1)
 
   (check
-      (string-index ("abcd" 1) #\b)
+      (string-index (view "abcd" (start 1)) #\b)
     => 1)
 
   (check
@@ -1538,7 +1514,7 @@
     => 1)
 
   (check
-      (string-index ("abcd" 1) (char-set #\b #\B))
+      (string-index (view "abcd" (start 1)) (char-set #\b #\B))
     => 1)
 
   (check
@@ -1556,7 +1532,7 @@
     => 1)
 
   (check
-      (string-index ("aBcd" 1) char-upper-case?)
+      (string-index (view "aBcd" (start 1)) char-upper-case?)
     => 1)
 
   (check
@@ -1574,7 +1550,7 @@
     => 1)
 
   (check
-      (string-index-right ("abcd" 1) #\b)
+      (string-index-right (view "abcd" (start 1)) #\b)
     => 1)
 
   (check
@@ -1592,7 +1568,7 @@
     => 1)
 
   (check
-      (string-index-right ("abcd" 1) (char-set #\b #\B))
+      (string-index-right (view "abcd" (start 1)) (char-set #\b #\B))
     => 1)
 
   (check
@@ -1610,7 +1586,7 @@
     => 1)
 
   (check
-      (string-index-right ("aBcd" 1) char-upper-case?)
+      (string-index-right (view "aBcd" (start 1)) char-upper-case?)
     => 1)
 
   (check
@@ -1628,7 +1604,7 @@
     => 1)
 
   (check
-      (string-skip ("bacd" 1) #\b)
+      (string-skip (view "bacd" (start 1)) #\b)
     => 1)
 
   (check
@@ -1646,7 +1622,7 @@
     => 1)
 
   (check
-      (string-skip ("bacd" 1) (char-set #\b #\B))
+      (string-skip (view "bacd" (start 1)) (char-set #\b #\B))
     => 1)
 
   (check
@@ -1664,7 +1640,7 @@
     => 1)
 
   (check
-      (string-skip ("Bacd" 1) char-upper-case?)
+      (string-skip (view "Bacd" (start 1)) char-upper-case?)
     => 1)
 
   (check
@@ -1682,7 +1658,7 @@
     => 2)
 
   (check
-      (string-skip-right ("acdb" 1) #\b)
+      (string-skip-right (view "acdb" (start 1)) #\b)
     => 2)
 
   (check
@@ -1700,7 +1676,7 @@
     => 2)
 
   (check
-      (string-skip-right ("acdb" 1) (char-set #\b #\B))
+      (string-skip-right (view "acdb" (start 1)) (char-set #\b #\B))
     => 2)
 
   (check
@@ -1718,7 +1694,7 @@
     => 2)
 
   (check
-      (string-skip-right ("acdB" 1) char-upper-case?)
+      (string-skip-right (view "acdB" (start 1)) char-upper-case?)
     => 2)
 
   (check
@@ -1736,7 +1712,7 @@
     => 2)
 
   (check
-      (string-count ("abcd" 1) #\b)
+      (string-count (view "abcd" (start 1)) #\b)
     => 1)
 
   (check
@@ -1754,7 +1730,7 @@
     => 2)
 
   (check
-      (string-count ("abcd" 1) (char-set #\b #\B))
+      (string-count (view "abcd" (start 1)) (char-set #\b #\B))
     => 1)
 
   (check
@@ -1772,7 +1748,7 @@
     => 2)
 
   (check
-      (string-count ("aBcd" 1) char-upper-case?)
+      (string-count (view "aBcd" (start 1)) char-upper-case?)
     => 1)
 
   (check
@@ -1924,7 +1900,7 @@
     => '(#\a #\b #\c #\d))
 
   (check
-      (string->list* ("abcd" 1 3))
+      (string->list* (view "abcd" (start 1) (past 3)))
     => '(#\b #\c))
 
   (check
@@ -2171,13 +2147,13 @@
 
   (check
       (let* ((str (string-copy "accd")))
-	(string-fill*! (str 1 3) #\b)
+	(string-fill*! (view str (start 1) (past 3)) #\b)
 	str)
     => "abbd")
 
   (check
       (let* ((str (string-copy "")))
-	(string-fill*! (str 0 0) #\b)
+	(string-fill*! (view str (start 0) (past 0)) #\b)
 	str)
     => "")
 
@@ -2218,23 +2194,23 @@
     => "1234")
 
   (check
-      (string-replace ("abcd" 2 2) "1234")
+      (string-replace (view "abcd" (start 2) (past 2)) "1234")
     => "ab1234cd")
 
   (check
-      (string-replace ("abcd" 2 2) "")
+      (string-replace (view "abcd" (start 2) (past 2)) "")
     => "abcd")
 
   (check
-      (string-replace ("abcd" 1 3) "1234")
+      (string-replace (view "abcd" (start 1) (past 3)) "1234")
     => "a1234d")
 
   (check
-      (string-replace ("abcd" 0 3) "1234")
+      (string-replace (view "abcd" (start 0) (past 3)) "1234")
     => "1234d")
 
   (check
-      (string-replace ("abcd" 1 4) "1234")
+      (string-replace (view "abcd" (start 1) (past 4)) "1234")
     => "a1234")
 
   )
@@ -2260,14 +2236,14 @@
   (check
       ;; zero-elements string copy
       (let* ((str (string-copy "123")))
-	(string-copy*! str ("abc" 2 2))
+	(string-copy*! str (view "abc" (start 2) (past 2)))
 	str)
     => "123")
 
   (check
       ;; one-element string copy
       (let* ((str (string-copy "123")))
-	(string-copy*! str ("abc" 1 2))
+	(string-copy*! str (view "abc" (start 1) (past 2)))
 	str)
     => "b23")
 
@@ -2280,7 +2256,7 @@
 
   (check
       (let ((str ""))
-	(string-copy*! str ("abcd" 0 0))
+	(string-copy*! str (view "abcd" (start 0) (past 0)))
 	str)
     => "")
 
@@ -2294,35 +2270,39 @@
   (check
       ;; over the same string, in place
       (let* ((str (string-copy "0123456789")))
-	(string-copy*! (str 5) (str 5))
+	(string-copy*! (view str (start 5)) (view str (start 5)))
 	str)
     => "0123456789")
 
   (check
       ;; over the same string, backwards
       (let* ((str (string-copy "0123456789")))
-	(string-copy*! (str 2) (str 4 8))
+	(string-copy*! (view str (start 2))
+		       (view str (start 4) (past 8)))
 	str)
     => "0145676789")
 
   (check
       ;; over the same string, backwards
       (let* ((str (string-copy "0123456789")))
-	(string-copy*! (str 0) (str 4 8))
+	(string-copy*! (view str (start 0))
+		       (view str (start 4) (past 8)))
 	str)
     => "4567456789")
 
   (check
       ;; over the same string, forwards
       (let* ((str (string-copy "0123456789")))
-	(string-copy*! (str 4) (str 2 6))
+	(string-copy*! (view str (start 4))
+		       (view str (start 2) (past 6)))
 	str)
     => "0123234589")
 
   (check
       ;; over the same string, forwards
       (let* ((str (string-copy "0123456789")))
-	(string-copy*! (str 6) (str 2 6))
+	(string-copy*! (view str (start 6))
+		       (view str (start 2) (past 6)))
 	str)
     => "0123452345")
 
@@ -2333,7 +2313,7 @@
 	;; not enough room in destination string
 	;;(string-reverse-copy*! (str 3) (view '#(#\a #\b #\c #\d) (past 2)))
 	(guard (exc ((assertion-violation? exc) #t))
-	  (string-reverse-copy*! (str 3)
+	  (string-reverse-copy*! (view str (start 3))
 				 (view "abcd" (past 2)))))
     => #t)
 
@@ -2347,14 +2327,14 @@
   (check
       ;; zero-elements string copy
       (let* ((str (string-copy "123")))
-	(string-reverse-copy*! str ("abc" 2 2))
+	(string-reverse-copy*! str (view "abc" (start 2) (past 2)))
 	str)
     => "123")
 
   (check
       ;; one-element string copy
       (let* ((str (string-copy "123")))
-	(string-reverse-copy*! str ("abc" 1 2))
+	(string-reverse-copy*! str (view "abc" (start 1) (past 2)))
 	str)
     => "b23")
 
@@ -2367,7 +2347,7 @@
 
   (check
       (let ((str ""))
-	(string-reverse-copy*! str ("abcd" 0 0))
+	(string-reverse-copy*! str (view "abcd" (start 0) (past 0)))
 	str)
     => "")
 
@@ -2381,35 +2361,40 @@
   (check
       ;; over the same string
       (let* ((str (string-copy "0123456789")))
-	(string-reverse-copy*! (str 5) (str 5))
+	(string-reverse-copy*! (view str (start 5))
+			       (view str (start 5)))
 	str)
     => "0123498765")
 
   (check
       ;; over the same string, backwards
       (let* ((str (string-copy "0123456789")))
-	(string-reverse-copy*! (str 2) (str 4 8))
+	(string-reverse-copy*! (view str (start 2))
+			       (view str (start 4) (past 8)))
 	str)
     => "0176546789")
 
   (check
       ;; over the same string, backwards
       (let* ((str (string-copy "0123456789")))
-	(string-reverse-copy*! (str 0) (str 4 8))
+	(string-reverse-copy*! (view str (start 0))
+			       (view str (start 4) (past 8)))
 	str)
     => "7654456789")
 
   (check
       ;; over the same string, forwards
       (let* ((str (string-copy "0123456789")))
-	(string-reverse-copy*! (str 4) (str 2 6))
+	(string-reverse-copy*! (view str (start 4))
+			       (view str (start 2) (past 6)))
 	str)
     => "0123543289")
 
   (check
       ;; over the same string, forwards
       (let* ((str (string-copy "0123456789")))
-	(string-reverse-copy*! (str 6) (str 2 6))
+	(string-reverse-copy*! (view str (start 6))
+			       (view str (start 2) (past 6)))
 	str)
     => "0123455432")
 
