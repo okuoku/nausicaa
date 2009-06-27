@@ -34,71 +34,115 @@
 #include <marsaglia.h>
 
 
-int
-nausicaa_marsaglia_context_size (void)
+void
+nausicaa_marsaglia_init_cong (marsaglia_context_cong_t * ctx, uint32_t * seed)
 {
-  return sizeof(marsaglia_context_t);
+  ctx->jcong	= seed[0];
 }
 int
-nausicaa_marsaglia_seed_size (void)
+nausicaa_marsaglia_seed_size_cong (void)
 {
-  return (256 + 6); /* we count only: z, w, jsr, jcong, a, b. */
+  return 1;
 }
 void
-nausicaa_marsaglia_init (marsaglia_context_t * ctx, uint32_t * seed)
+nausicaa_marsaglia_init_fib (marsaglia_context_fib_t * ctx, uint32_t * seed)
+{
+  ctx->a	= seed[0];
+  ctx->b	= seed[1];
+}
+int
+nausicaa_marsaglia_seed_size_fib (void)
+{
+  return 2;
+}
+void
+nausicaa_marsaglia_init_kiss (marsaglia_context_kiss_t * ctx, uint32_t * seed)
+{
+  ctx->z	= seed[0];
+  ctx->w	= seed[1];
+  ctx->jsr	= seed[2];
+  ctx->jcong	= seed[3];
+}
+int
+nausicaa_marsaglia_seed_size_kiss (void)
+{
+  return 4;
+}
+void
+nausicaa_marsaglia_init_lfib4 (marsaglia_context_lfib4_t * ctx, uint32_t * seed)
+{
+  ctx->c	= 0;
+  for (int i=0; i<256; ++i)
+    ctx->t[i] = seed[i];
+}
+int
+nausicaa_marsaglia_seed_size_lfib4 (void)
+{
+  return 256; /* we count only t, c is a state */
+}
+void
+nausicaa_marsaglia_init_shr3 (marsaglia_context_shr3_t * ctx, uint32_t * seed)
+{
+  ctx->jsr	= seed[0];
+}
+int
+nausicaa_marsaglia_seed_size_shr3 (void)
+{
+  return 1;
+}
+void
+nausicaa_marsaglia_init_swb (marsaglia_context_swb_t * ctx, uint32_t * seed)
 {
   ctx->x	= 0;
   ctx->y	= 0;
   ctx->bro	= 0;
   ctx->c	= 0;
-  ctx->z	= seed[0];
-  ctx->w	= seed[1];
-  ctx->jsr	= seed[2];
-  ctx->jcong	= seed[3];
-  ctx->a	= seed[4];
-  ctx->b	= seed[5];
   for (int i=0; i<256; ++i)
     ctx->t[i] = seed[i];
 }
-uint32_t nausicaa_marsaglia_random_cong	(marsaglia_context_t * ctx) { return CONG; }
-uint32_t nausicaa_marsaglia_random_fib	(marsaglia_context_t * ctx) { return FIB; }
-uint32_t nausicaa_marsaglia_random_kiss	(marsaglia_context_t * ctx) { return KISS; }
-uint32_t nausicaa_marsaglia_random_lfib4(marsaglia_context_t * ctx) { return LFIB4; }
-uint32_t nausicaa_marsaglia_random_shr3	(marsaglia_context_t * ctx) { return SHR3; }
-uint32_t nausicaa_marsaglia_random_swb	(marsaglia_context_t * ctx) { return SWB; }
+int
+nausicaa_marsaglia_seed_size_swb (void)
+{
+  return 256;
+}
 
-#define GET_ARRAY(NAME,OPERATOR)					\
-									\
-  void									\
-  nausicaa_marsaglia_get_array_ ## NAME (marsaglia_context_t * ctx,	\
-					 int len, uint32_t * ptr)	\
-  {									\
-    for (int i = 0; i<len; i++)						\
-      ptr[i] = OPERATOR;						\
+
+
+#define STUFF(NAME,OPERATOR)					\
+								\
+  int								\
+  nausicaa_marsaglia_context_size_ ## NAME (void)		\
+  {								\
+    return sizeof(marsaglia_context_ ## NAME ## _t);		\
+  }								\
+  uint32_t							\
+  nausicaa_marsaglia_random_ ## NAME				\
+		(marsaglia_context_ ## NAME ## _t * ctx)	\
+  {								\
+    return OPERATOR;						\
+  }								\
+  void								\
+  nausicaa_marsaglia_get_array_ ## NAME				\
+		(marsaglia_context_ ## NAME ## _t * ctx,	\
+		 int len, uint32_t * ptr)			\
+  {								\
+    for (int i = 0; i<len; i++)					\
+      ptr[i] = OPERATOR;					\
+  }								\
+  void								\
+  nausicaa_marsaglia_jumpahead_ ## NAME				\
+		(marsaglia_context_ ## NAME ## _t *ctx,		\
+		 int steps)					\
+  {								\
+    for (int i = 0; i<steps; i++)				\
+      OPERATOR;							\
   }
 
-GET_ARRAY(cong,CONG)
-GET_ARRAY(fib,FIB)
-GET_ARRAY(kiss,KISS)
-GET_ARRAY(lfib4,LFIB4)
-GET_ARRAY(shr3,SHR3)
-GET_ARRAY(swb,SWB)
-
-#define JUMPAHEAD(NAME,OPERATOR)					\
-									\
-  void									\
-  nausicaa_marsaglia_jumpahead_ ## NAME (marsaglia_context_t *ctx,	\
-					 int steps)			\
-  {									\
-    for (int i = 0; i<steps; i++)					\
-      OPERATOR;								\
-  }
-
-JUMPAHEAD(cong,CONG)
-JUMPAHEAD(fib,FIB)
-JUMPAHEAD(kiss,KISS)
-JUMPAHEAD(lfib4,LFIB4)
-JUMPAHEAD(shr3,SHR3)
-JUMPAHEAD(swb,SWB)
+STUFF(cong,CONG)
+STUFF(fib,FIB)
+STUFF(kiss,KISS)
+STUFF(lfib4,LFIB4)
+STUFF(shr3,SHR3)
+STUFF(swb,SWB)
 
 /* end of file */

@@ -163,51 +163,94 @@
 
 
 
-typedef struct marsaglia_context_t {
+typedef struct marsaglia_context_cong_t {
+  uint32_t	jcong;
+} marsaglia_context_cong_t;
+
+typedef struct marsaglia_context_fib_t {
+  uint32_t	a;
+  uint32_t	b;
+} marsaglia_context_fib_t;
+
+typedef struct marsaglia_context_kiss_t {
   uint32_t	z;
   uint32_t	w;
   uint32_t	jsr;
   uint32_t	jcong;
-  uint32_t	a;
-  uint32_t	b;
-  uint32_t	t[256];
+/*   uint32_t	a; */
+/*   uint32_t	b; */
+/*   uint32_t	t[256]; */
 
   /* The following are needed only for  LFIB4 and SWB, but we include it
      so that  we have  a single context  structure type.  Also  they are
      part of the state, but NOT part of the seed values; it is enough to
      set them to zero at initialisation time. */
+/*   uint32_t	x; */
+/*   uint32_t	y; */
+/*   uint32_t	bro; */
+/*   int		c; */
+} marsaglia_context_kiss_t;
+
+typedef struct marsaglia_context_lfib4_t {
+  int		c;
+  uint32_t	t[256];
+} marsaglia_context_lfib4_t;
+
+typedef struct marsaglia_context_shr3_t {
+  uint32_t	jsr;
+} marsaglia_context_shr3_t;
+
+typedef struct marsaglia_context_swb_t {
   uint32_t	x;
   uint32_t	y;
   uint32_t	bro;
   int		c;
-} marsaglia_context_t;
+  uint32_t	t[256];
+} marsaglia_context_swb_t;
 
-extern int nausicaa_marsaglia_context_size (void);
+
+extern int nausicaa_marsaglia_context_size_cong	(void);
+extern int nausicaa_marsaglia_context_size_fib	(void);
+extern int nausicaa_marsaglia_context_size_kiss	(void);
+extern int nausicaa_marsaglia_context_size_lfib4(void);
+extern int nausicaa_marsaglia_context_size_shr3	(void);
+extern int nausicaa_marsaglia_context_size_swb	(void);
+
 /* Return the number of seed 32bit values required. */
-extern int nausicaa_marsaglia_seed_size (void);
+extern int nausicaa_marsaglia_seed_size_cong	(void);
+extern int nausicaa_marsaglia_seed_size_fib	(void);
+extern int nausicaa_marsaglia_seed_size_kiss	(void);
+extern int nausicaa_marsaglia_seed_size_lfib4	(void);
+extern int nausicaa_marsaglia_seed_size_shr3	(void);
+extern int nausicaa_marsaglia_seed_size_swb	(void);
 
-extern void nausicaa_marsaglia_init (marsaglia_context_t * ctx, uint32_t * seed);
+extern void nausicaa_marsaglia_init_cong	(marsaglia_context_cong_t * ctx, uint32_t * seed);
+extern void nausicaa_marsaglia_init_fib		(marsaglia_context_fib_t *  ctx, uint32_t * seed);
+extern void nausicaa_marsaglia_init_kiss	(marsaglia_context_kiss_t * ctx, uint32_t * seed);
+extern void nausicaa_marsaglia_init_lfib4	(marsaglia_context_lfib4_t *ctx, uint32_t * seed);
+extern void nausicaa_marsaglia_init_shr3	(marsaglia_context_shr3_t * ctx, uint32_t * seed);
+extern void nausicaa_marsaglia_init_swb		(marsaglia_context_swb_t *  ctx, uint32_t * seed);
 
-extern uint32_t nausicaa_marsaglia_random_cong	(marsaglia_context_t * ctx);
-extern uint32_t nausicaa_marsaglia_random_fib	(marsaglia_context_t * ctx);
-extern uint32_t nausicaa_marsaglia_random_kiss	(marsaglia_context_t * ctx);
-extern uint32_t nausicaa_marsaglia_random_lfib4	(marsaglia_context_t * ctx);
-extern uint32_t nausicaa_marsaglia_random_shr3	(marsaglia_context_t * ctx);
-extern uint32_t nausicaa_marsaglia_random_swb	(marsaglia_context_t * ctx);
+extern uint32_t nausicaa_marsaglia_random_cong	(marsaglia_context_cong_t * ctx);
+extern uint32_t nausicaa_marsaglia_random_fib	(marsaglia_context_fib_t *  ctx);
+extern uint32_t nausicaa_marsaglia_random_kiss	(marsaglia_context_kiss_t * ctx);
+extern uint32_t nausicaa_marsaglia_random_lfib4	(marsaglia_context_lfib4_t *ctx);
+extern uint32_t nausicaa_marsaglia_random_shr3	(marsaglia_context_shr3_t * ctx);
+extern uint32_t nausicaa_marsaglia_random_swb	(marsaglia_context_swb_t *  ctx);
 
-extern void nausicaa_marsaglia_get_array_cong	(marsaglia_context_t * ctx, int len, uint32_t * ptr);
-extern void nausicaa_marsaglia_get_array_fib	(marsaglia_context_t * ctx, int len, uint32_t * ptr);
-extern void nausicaa_marsaglia_get_array_kiss	(marsaglia_context_t * ctx, int len, uint32_t * ptr);
-extern void nausicaa_marsaglia_get_array_lfib4	(marsaglia_context_t * ctx, int len, uint32_t * ptr);
-extern void nausicaa_marsaglia_get_array_shr3	(marsaglia_context_t * ctx, int len, uint32_t * ptr);
-extern void nausicaa_marsaglia_get_array_swb	(marsaglia_context_t * ctx, int len, uint32_t * ptr);
+extern void nausicaa_marsaglia_get_array_cong	(marsaglia_context_cong_t * ctx, int len, uint32_t * ptr);
+extern void nausicaa_marsaglia_get_array_fib	(marsaglia_context_fib_t *  ctx, int len, uint32_t * ptr);
+extern void nausicaa_marsaglia_get_array_kiss	(marsaglia_context_kiss_t * ctx, int len, uint32_t * ptr);
+extern void nausicaa_marsaglia_get_array_lfib4	(marsaglia_context_lfib4_t *ctx, int len, uint32_t * ptr);
+extern void nausicaa_marsaglia_get_array_shr3	(marsaglia_context_shr3_t * ctx, int len, uint32_t * ptr);
+extern void nausicaa_marsaglia_get_array_swb	(marsaglia_context_swb_t *  ctx, int len, uint32_t * ptr);
 
-extern void nausicaa_marsaglia_jumpahead_cong	(marsaglia_context_t *ctx, int steps);
-extern void nausicaa_marsaglia_jumpahead_fib	(marsaglia_context_t *ctx, int steps);
-extern void nausicaa_marsaglia_jumpahead_kiss	(marsaglia_context_t *ctx, int steps);
-extern void nausicaa_marsaglia_jumpahead_lfib4	(marsaglia_context_t *ctx, int steps);
-extern void nausicaa_marsaglia_jumpahead_shr3	(marsaglia_context_t *ctx, int steps);
-extern void nausicaa_marsaglia_jumpahead_swb	(marsaglia_context_t *ctx, int steps);
+extern void nausicaa_marsaglia_jumpahead_cong	(marsaglia_context_cong_t * ctx, int steps);
+extern void nausicaa_marsaglia_jumpahead_fib	(marsaglia_context_fib_t *  ctx, int steps);
+extern void nausicaa_marsaglia_jumpahead_kiss	(marsaglia_context_kiss_t * ctx, int steps);
+extern void nausicaa_marsaglia_jumpahead_lfib4	(marsaglia_context_lfib4_t *ctx, int steps);
+extern void nausicaa_marsaglia_jumpahead_shr3	(marsaglia_context_shr3_t * ctx, int steps);
+extern void nausicaa_marsaglia_jumpahead_swb	(marsaglia_context_swb_t *  ctx, int steps);
 
 #endif /* MARSAGLIA_H */
 
