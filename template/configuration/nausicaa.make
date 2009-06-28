@@ -249,24 +249,36 @@ endif # nausicaa_ENABLE_FASL == yes
 ## Testing.
 ## ---------------------------------------------------------------------
 
+# Enable timing of test files  execution.  We cannot include this in the
+# separator  because  it needs  to  be  placed  between the  environment
+# variables and the actual command line.
 nausicaa_TIME_TESTS	= @nausicaa_TIME_TESTS@
 ifeq (yes,$(strip $(nausicaa_TIME_TESTS)))
-TIME_TESTS		= time -p
+nau_TIME_TESTS		= time -p
 endif
 
-nau_test_SEPARATOR	= echo; echo "===> test file $(1)";echo;
+nau_test_SEPARATOR	= echo;echo "===> test file $(2) with $(1)";echo;
 
 ## --------------------------------------------------------------------
 
+# The variable  "file" is available to  the user on the  command line of
+# "make": It selects specific files.
 nau_test_SRCDIR		= $(srcdir)/tests
+ifneq (,$(strip $(file)))
+nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*$(file)*.sps)
+else
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
-nau_test_SELECTED_FILES	= $(wildcard $(nau_test_SRCDIR)/test-*$(file)*.sps)
+endif
 
+# The variable  "name" is available to  the user on the  command line of
+# "make": It selects specific tests.
 ifneq ($(strip $(name)),)
 nau_test_ENV		+= CHECK_TEST_NAME=$(name)
 endif
 
-# Here we include the build directory but not the source directory.
+# Here we include the build directory but not the source directory.  The
+# variable "LIBPATH"  is available  to the user  on the command  line of
+# "make": It prepends more directories to the search path.
 ifdef LIBPATH
 nau_test_custom_LIBPATH	= $(LIBPATH):
 endif
@@ -277,47 +289,44 @@ nau_test_PATH		= $(nau_test_custom_LIBPATH)$(fasl_BUILDDIR):$(srcdir)/tests
 tests test check:
 
 ## ---------------------------------------------------------------------
+## Ikarus
 
 nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
 nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
 #nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
-nau_itest_RUN		= $(nau_itest_ENV) $(TIME_TESTS) $(nau_itest_PROGRAM)
+nau_itest_RUN		= $(nau_itest_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
 
-.PHONY: itests itest icheck
+.PHONY: itest itests icheck
 
-itests itest icheck:
+itest itests icheck:
 ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
-ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_itest_RUN) $(f))
-else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_itest_RUN) $(f))
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f))
 endif
 
-tests test check: itest
-endif
+test tests check: itest
 
 ## ---------------------------------------------------------------------
+## Larceny
 
 nau_ltest_ENV		= LARCENY_LIBPATH=$(nau_test_PATH):$(LARCENY_LIBPATH)
 nau_ltest_ENV		+= $(nau_test_ENV)
 nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
-nau_ltest_RUN		= $(nau_ltest_ENV) $(TIME_TESTS) $(nau_ltest_PROGRAM)
+nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
 
-.PHONY: ltests ltest lcheck
+.PHONY: ltest ltests lcheck
 
-ltests ltest lcheck:
+ltest ltests lcheck:
 ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
-ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ltest_RUN) $(f))
-else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ltest_RUN) $(f))
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f))
 endif
 
-tests test check: ltest
-endif
+test tests check: ltest
 
 ## ------------------------------------------------------------
+## Mosh
 
 ifeq (,$(strip $(MOSH_LOADPATH)))
 nau_mtest_ENV		= MOSH_LOADPATH=$(nau_test_PATH)
@@ -326,41 +335,35 @@ nau_mtest_ENV		= MOSH_LOADPATH=$(nau_test_PATH):$(MOSH_LOADPATH)
 endif
 nau_mtest_ENV		+= $(nau_test_ENV)
 nau_mtest_PROGRAM	= $(MOSH)
-nau_mtest_RUN		= $(nau_mtest_ENV) $(TIME_TESTS) $(nau_mtest_PROGRAM)
+nau_mtest_RUN		= $(nau_mtest_ENV) $(nau_TIME_TESTS) $(nau_mtest_PROGRAM)
 
-.PHONY: mtests mtest mcheck
+.PHONY: mtest mtests mcheck
 
-mtests mtest mcheck:
+mtest mtests mcheck:
 ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
-ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_mtest_RUN) $(f))
-else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_mtest_RUN) $(f))
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_RUN) $(f))
 endif
 
-tests test check: mtest
-endif
+test tests check: mtest
 
 ## ---------------------------------------------------------------------
+## Ypsilon
 
 nau_ytest_ENV		= YPSILON_SITELIB=$(nau_test_PATH):$(YPSILON_SITELIB)
 nau_ytest_ENV		+= $(nau_test_ENV)
 nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
-nau_ytest_RUN		= $(nau_ytest_ENV) $(TIME_TESTS) $(nau_ytest_PROGRAM)
+nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_TIME_TESTS) $(nau_ytest_PROGRAM)
 
-.PHONY: ytests ytest ycheck
+.PHONY: ytest ytests ycheck
 
-ytests ytest ycheck:
+ytest ytests ycheck:
 ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
-ifeq ($(strip $(file)),)
-	$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ytest_RUN) $(f))
-else
-	$(foreach f,$(nau_test_SELECTED_FILES),$(call nau_test_SEPARATOR,$(f)) $(nau_ytest_RUN) $(f))
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_RUN) $(f))
 endif
 
-tests test check: ytest
-endif
-
+test tests check: ytest
 
 ### end of file
 # Local Variables:
