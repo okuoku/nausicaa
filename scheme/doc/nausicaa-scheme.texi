@@ -26512,15 +26512,15 @@ constant factor larger than the execution time of compare.
 @section Sources of random bits
 
 
-The @library{random} library provides an @api{} to sources of random
-bits, or ``randomness sources'' for brevity.  Other additional,
-auxiliary, libraries provide access to miscellaneous randomness
+The @library{random} library provides an @api{} to access sources of
+random and pseudo--random bits, or ``randomness sources'' for brevity.
+Other, auxiliary, libraries provide access to miscellaneous randomness
 generators.
 
 @menu
 * random intro::                Introduction.
-* random source::               Randomness sources.
 * random device::               Device--based random numbers.
+* random source::               Randomness sources.
 * random numbers::              Simple random numbers.
 * random usage::                Recommended usage patterns.
 @end menu
@@ -26566,6 +26566,53 @@ Once randomness sources provide the infrastructure to obtain random
 bits, these can be used to construct other random deviates.  Most
 important are floating point numbers of various distributions and random
 discrete structures, such as permutations or graphs.
+
+@c page
+@node random device
+@subsection Device--based random numbers
+
+
+Quoting Wikipedia@footnote{See
+@url{http://en.wikipedia.org/wiki/Urandom}, last verified Fri Jun 26,
+2009.}:
+
+@quotation
+In Unix--like operating systems, @file{/dev/random} is a special file
+that serves as a true random number generator or as a pseudorandom
+number generator.  It allows access to environmental noise collected
+from device drivers and other sources.  Not all operating systems
+implement the same semantics for @file{/dev/random}.  Linux was the
+first operating system to implement a true random number generator in
+this way.
+@end quotation
+
+We have to remember that reading @file{/dev/random} will @strong{block}
+if not enough entropy is available, waiting for more randomness to be
+provided by the system.  This is why, by default,
+@func{make-random-source-of-numbers} will use @file{/dev/urandom}, which
+never blocks but provides randomness of lesser quality.
+
+
+@defun %random-bytevector @var{device} @var{number-of-bytes}
+@defunx random-bytevector @var{number-of-bytes}
+@defunx urandom-bytevector @var{number-of-bytes}
+Read @var{number-of-bytes} from the specified @var{device} on the file
+system and return them in a newly allocated bytevector.
+@func{random-bytevector} is a specialised version reading bytes from
+@file{/dev/random}.  @func{urandom-bytevector} is a specialised version
+reading bytes from @file{/dev/urandom}.
+@end defun
+
+
+@defun %random-bytevector! @var{device} @var{bv}
+@defunx random-bytevector! @var{bv}
+@defunx urandom-bytevector! @var{bv}
+Fill the bytevector @var{bv} with bytes read from the specified
+@var{device} on the file system; return @var{bv} itself.
+@func{random-bytevector!} is a specialised version reading bytes from
+@file{/dev/random}.  @func{urandom-bytevector!} is a specialised version
+reading bytes from @file{/dev/urandom}.
+@end defun
 
 @c page
 @node random source
@@ -26666,53 +26713,6 @@ and that the actual resolution of @var{rand} can be much higher than
 @var{unit}.  In case @var{unit} is absent it defaults to a reasonably
 small value (related to the width of the mantissa of an efficient number
 format).
-@end defun
-
-@c page
-@node random device
-@subsection Device--based random numbers
-
-
-Quoting Wikipedia@footnote{See
-@url{http://en.wikipedia.org/wiki/Urandom}, last verified Fri Jun 26,
-2009.}:
-
-@quotation
-In Unix--like operating systems, @file{/dev/random} is a special file
-that serves as a true random number generator or as a pseudorandom
-number generator.  It allows access to environmental noise collected
-from device drivers and other sources.  Not all operating systems
-implement the same semantics for @file{/dev/random}.  Linux was the
-first operating system to implement a true random number generator in
-this way.
-@end quotation
-
-We have to remember that reading @file{/dev/random} will @strong{block}
-if not enough entropy is available, waiting for more randomness to be
-provided by the system.  This is why, by default,
-@func{make-random-source-of-numbers} will use @file{/dev/urandom}, which
-never blocks but provides randomness of lesser quality.
-
-
-@defun %random-bytevector @var{device} @var{number-of-bytes}
-@defunx random-bytevector @var{number-of-bytes}
-@defunx urandom-bytevector @var{number-of-bytes}
-Read @var{number-of-bytes} from the specified @var{device} on the file
-system and return them in a newly allocated bytevector.
-@func{random-bytevector} is a specialised version reading bytes from
-@file{/dev/random}.  @func{urandom-bytevector} is a specialised version
-reading bytes from @file{/dev/urandom}.
-@end defun
-
-
-@defun %random-bytevector! @var{device} @var{bv}
-@defunx random-bytevector! @var{bv}
-@defunx urandom-bytevector! @var{bv}
-Fill the bytevector @var{bv} with bytes read from the specified
-@var{device} on the file system; return @var{bv} itself.
-@func{random-bytevector!} is a specialised version reading bytes from
-@file{/dev/random}.  @func{urandom-bytevector!} is a specialised version
-reading bytes from @file{/dev/urandom}.
 @end defun
 
 @c page

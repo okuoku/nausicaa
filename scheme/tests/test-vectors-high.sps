@@ -1353,7 +1353,7 @@
 	;; not enough room in destination vector
 	;;(vector-copy! (vec 3) (view '#(#\a #\b #\c #\d) (past 2)))
 	(guard (exc ((assertion-violation? exc) #t))
-	  (vector-copy! (vec 3)
+	  (vector-copy! (view vec (start 3))
 			(view '#(#\a #\b #\c #\d) (past 2)))))
     => #t)
 

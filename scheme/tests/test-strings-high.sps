@@ -2222,7 +2222,7 @@
       (let* ((str (string-copy "12")))
 	;; not enough room in destination string
 	(guard (exc ((assertion-violation? exc) #t))
-	  (string-copy*! (str 3)
+	  (string-copy*! (view str (start 3))
 			 (view "abcd" (past 2)))))
     => #t)
 

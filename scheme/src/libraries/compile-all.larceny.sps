@@ -68,8 +68,8 @@
 (compile-library "strings.sls"
  		 "strings.slfasl")
 
-(compile-library "vectors/vectors-low.sls"
- 		 "vectors/vectors-low.slfasl")
+(compile-library "vectors/low.sls"
+ 		 "vectors/low.slfasl")
 
 (compile-library "vectors.sls"
  		 "vectors.slfasl")
