@@ -38,44 +38,41 @@
   (export
 
     ;; random source interface
-    random-source?
-    random-source-state-ref      random-source-state-set!
+    random-source-maker			random-source?
+    random-source-state-ref		random-source-state-set!
     random-source-seed!
-    random-source-integers-maker random-source-reals-maker
+    random-source-integers-maker	random-source-reals-maker
     random-source-bytevectors-maker
 
     ;; random source constructors
-    make-random-source		make-random-source/device
+    make-random-source/mrg32k3a		make-random-source/device
 
     ;; low level API for device-based random sources of numbers
     random-device-cache-length
-    %device-read-bytevector!	%device-read-bytevector
+    %device-read-bytevector!		%device-read-bytevector
     %device-write-bytevector!
-    random-device-bytevector!	random-device-bytevector
-    urandom-device-bytevector!	urandom-device-bytevector
+    random-device-bytevector!		random-device-bytevector
+    urandom-device-bytevector!		urandom-device-bytevector
 
     ;; no fuss API
-    random-integer		random-real
+    random-integer			random-real
     default-random-source
 
     ;; utilities
     unfold-random-numbers
-    unfold-random-numbers/vector  unfold-random-numbers/string
-    random-source-make-permutations
-    random-source-make-exponentials
+    unfold-random-numbers/vector	unfold-random-numbers/string
+    random-source-make-permutations	random-source-make-exponentials
     random-source-make-normals)
   (import (rnrs)
     (nausicaa parameters)
-    (rnrs mutable-strings)
-    (only (rnrs r5rs)
-	  quotient modulo))
+    (rnrs mutable-strings))
 
 
 ;;;; helpers
 
-(define const:2^32		(expt 2 32))
-(define const:2^32-1		(- const:2^32 1))
-(define const:2^32^2		(* const:2^32 const:2^32))
+(define const:2^32	(expt 2 32))
+(define const:2^32-1	(- const:2^32 1))
+(define const:2^32^2	(* const:2^32 const:2^32))
 (define const:1/2^32^2	(/ 1.0 const:2^32^2))
 
 (define (vector-copy src)
@@ -93,6 +90,7 @@
   (fields (immutable state-ref)
 	  (immutable state-set!)
 	  (immutable seed!)
+	  (immutable required-seed-values)
 	  (immutable integers-maker)
 	  (immutable reals-maker)
 	  (immutable bytevectors-maker)))
@@ -103,8 +101,11 @@
 (define (random-source-state-set! s state)
   ((:random-source-state-set! s) state))
 
-(define (random-source-seed! s source-of-integers)
-  ((:random-source-seed! s) source-of-integers))
+(define (random-source-seed! s integers-maker)
+  ((:random-source-seed! s) integers-maker))
+
+(define (random-source-required-seed-values s)
+  (:random-source-required-seed-values s))
 
 (define (random-source-integers-maker s)
   (:random-source-integers-maker s))
@@ -118,183 +119,144 @@
 
 ;;; MRG32k3a pseudo-random numbers generator
 
-(define (make-random-source)
-  (let ((state (vector-copy mrg32k3a-initial-state)))
+(define (make-random-source/mrg32k3a)
+  (let ((A1 1062452522) (A2 2961816100) (A3 342112271)
+	(B1 2854655037)	(B2 3321940838)	(B3 3542344109))
+
+    (define external-state-tag 'random-source-state/mrg32k3a)
+    (define M1 4294967087) ; modulus of component 1
+    (define M2 4294944443) ; modulus of component 2
+
+    (define (compute-random-bits/advance-state)
+      (let ((A0 (mod (- (* 1403580 A2) (*  810728 A3)) M1))
+	    (B0 (mod (- (*  527612 B1) (* 1370589 B3)) M2)))
+	(set! A3 A2) ; shift the A vector right, purging the old A3
+	(set! A2 A1)
+	(set! A1 A0)
+	(set! B3 B2) ; shift the B vector right, purging the old B3
+	(set! B2 B1)
+	(set! B1 B0)
+	(mod (- A0 B0) M1)))
+
+    (define (internal-state->external-state)
+      ;;Package the state to be written in a way that can be read back.
+      (vector external-state-tag A1 A2 A3 B1 B2 B3))
+
+    (define (external-state->internal-state external-state)
+      ;;Given a packaged state, verifies it and return an internal state.
+      (define (check-value idx M)
+	(let ((S (vector-ref external-state idx)))
+	  (if (and (integer? S) (exact? S) (<= 0 S (- M 1)))
+	      S
+	    (assertion-violation 'external-state->internal-state
+	      "illegal random source MRG32k3a state value" S external-state))))
+      (unless (and (vector? external-state)
+		   (eq? external-state-tag (vector-ref external-state 0))
+		   (= 7 (vector-length external-state)))
+	(assertion-violation 'external-state->internal-state
+	  "invalid external state argument" external-state))
+      (let ((s1 (check-value 1 M1))
+	    (s2 (check-value 2 M1))
+	    (s3 (check-value 3 M1))
+	    (r1 (check-value 4 M2))
+	    (r2 (check-value 5 M2))
+	    (r3 (check-value 6 M2)))
+	(when (or (zero? (+ s1 s2 s3))
+		  (zero? (+ r1 r2 r3)))
+	  (assertion-violation 'external-state->internal-state
+	    "illegal random source MRG32k3a degenerate state" external-state))
+	(set! A1 s1) (set! A2 s2) (set! A3 s3)
+	(set! B1 r1) (set! B2 r2) (set! B3 r3)))
+
+    (define (seed! integers-maker)
+      ;; G. Marsaglia's simple 16-bit generator with carry
+      (let* ((m 65536)
+	     (x (mod (integers-maker) m)))
+	(define (random n) ; m < n < m^2
+	  (define (random-m)
+	    (let ((y (mod x m)))
+	      (set! x (+ (* 30903 y) (div x m)))
+	      y))
+	  (mod (+ (* (random-m) m) (random-m)) n))
+	(let ((M1-1 (- M1 1))
+	      (M2-1 (- M2 1)))
+	  (set! A1 (+ 1 (mod (+ A1 (random M1-1)) M1-1)))
+	  (set! B1 (+ 1 (mod (+ B1 (random M2-1)) M2-1)))
+	  (set! A2 (mod (+ A2 (random M1)) M1))
+	  (set! A3 (mod (+ A3 (random M1)) M1))
+	  (set! B2 (mod (+ B2 (random M2)) M2))
+	  (set! B3 (mod (+ B3 (random M2)) M2)))))
+
+    (define (make-random-integer U)
+      (cond ((not (and (integer? U) (exact? U) (positive? U)))
+	     (assertion-violation 'make-random-integer
+	       "range upper limit must be an exact positive integer" U))
+	    ((<= U M1)
+	     (make-random-integer/small U))
+	    (else
+	     (make-random-integer/large U))))
+
+    (define (make-random-integer/small U)
+      ;;Read the documentation of Nausicaa/Scheme, node "random prng" to
+      ;;understand what this does.
+      (let* ((Q  (div M1 U))
+	     (QU (* Q U)))
+	(do ((N (compute-random-bits/advance-state)
+		(compute-random-bits/advance-state)))
+	    ((< N QU)
+	     (div N Q)))))
+
+    (define (make-random-integer/large U)
+      ;;Read the documentation of Nausicaa/Scheme, node "random prng" to
+      ;;understand what this does.
+      (define (random-polynomial k)
+	;;This literally computes:
+	;;
+	;;   N0 + M1 * (N1 + M1 * (N2^2 + M1 * (N3^3 + ... + M1 * (Nk-1)^(k-1))))
+	;;
+	;;which can be rewritten:
+	;;
+	;;   N0 + M1 * N1 + (M1 * N2)^2 + (M1 * N3)^3 + ... + (M1 * N(k-1))^(k-1)
+	;;
+	(let ((N (make-random-integer/small M1)))
+	  (if (= k 1)
+	      N
+	    (+ N (* M1 (random-polynomial (- k 1)))))))
+      (do ((k 2 (+ k 1))
+	   (M1^k (* M1 M1) (* M1^k M1)))
+	  ((<= U M1^k)
+	   (let* ((Q  (div M1^k U))
+		  (QU (* Q U)))
+	     (do ((N' (random-polynomial k) (random-polynomial k)))
+		 ((< N' a)
+		  (div N' Q)))))))
+
+    (define (make-random-real)
+      ;;Knowing that  the generated integers N  are uniformly distibuted
+      ;;in the range 0  <= N < M, a pseudo--random real  number X in the
+      ;;range 0  < X <  1 can  be computed from  a generated N  with the
+      ;;following normalisation formula:
+      ;;
+      ;;   X = (1 + N) / (1 + M)
+      ;;
+      (* 0.0000000002328306549295728 ; = 1 / (1 + M)
+	 (+ 1.0 (compute-random-bits/advance-state))))
+
+    (define (make-random-bytevector number-of-32bit-integers)
+      (let ((bv (make-bytevector (* 4 number-of-32bit-integers))))
+	(do ((i 0 (+ 1 i)))
+	    ((= i number-of-32bit-integers)
+	     bv)
+	  (bytevector-u32-native-set! bv i (make-random-integer/small const:2^32-1)))))
+
     (:random-source-make
-     (lambda () ; state-ref
-       (mrg32k3a-state-internal->external state))
-     (lambda (new-state) ; state-set!
-       (set! state (mrg32k3a-state-external->internal new-state)))
-     (lambda (source-of-integers) ; seed!
-       (set! state (mrg32k3a-randomize-state state source-of-integers)))
-     (lambda (n) ; integers-maker
-       (cond ((not (and (integer? n) (exact? n) (positive? n)))
-	      (assertion-violation 'integers-maker
-		"range upper limit must be an exact positive integer" n))
-	     ((<= n mrg32k3a-m1)
-	      (mrg32k3a-random-integer state n))
-	     (else
-	      (mrg32k3a-random-large state n))))
-     (lambda ()	; reals-maker
-       (mrg32k3a-random-real state))
-     (lambda (number-of-32bit-integers) ; bytevectors-maker
-       (mrg32k3a-random-bytevector state number-of-32bit-integers)))))
-
-;;; --------------------------------------------------------------------
-
-(define mrg32k3a-m1 4294967087) ; modulus of component 1
-(define mrg32k3a-m2 4294944443) ; modulus of component 2
-(define e2^28 (expt 2 28))
-
-(define mrg32k3a-initial-state ; 0 3 6 9 12 15 of A^16, see below
-  '#(1062452522
-     2961816100
-     342112271
-     2854655037
-     3321940838
-     3542344109))
-
-(define (mrg32k3a-random-m1 state)
-  ;;Produce the next random value  from the stream and advance the state
-  ;;of the generator.  We interpret the state vector as the matrix:
-  ;;
-  ;;  -           -
-  ;; | x11 x12 x13 |
-  ;; | x21 x22 x23 |
-  ;;  -           -
-  ;;
-  ;;Here we do:
-  ;;
-  ;;  -  -     -                -   -       -
-  ;; | a |   | 1403580  -810728 | | x12 x21 |
-  ;; |   | = |                  | |         |
-  ;; | b |   | 527612   1370589 | | x13 x23 |
-  ;;  - -     -                -   -       -
-  ;;
-  ;; x10 = a mod mrg32k3a-m1
-  ;; x20 = b mod mrg32k3a-m2
-  ;;
-  ;;then we recompose the state vector shifting the rows:
-  ;;
-  ;;  -           -
-  ;; | x10 x11 x12 |
-  ;; | x20 x21 x22 |
-  ;;  -           -
-  ;;
-  (let ((x11 (vector-ref state 0))
-        (x12 (vector-ref state 1))
-        (x13 (vector-ref state 2))
-        (x21 (vector-ref state 3))
-        (x22 (vector-ref state 4))
-        (x23 (vector-ref state 5)))
-    (let ((x10 (modulo (- (* 1403580 x12) (* 810728 x13)) mrg32k3a-m1))
-          (x20 (modulo (- (* 527612 x21) (* 1370589 x23)) mrg32k3a-m2)))
-      (vector-set! state 0 x10)
-      (vector-set! state 1 x11)
-      (vector-set! state 2 x12)
-      (vector-set! state 3 x20)
-      (vector-set! state 4 x21)
-      (vector-set! state 5 x22)
-      (modulo (- x10 x20) mrg32k3a-m1))))
-
-;;; --------------------------------------------------------------------
-;;; state accessors
-
-(define (mrg32k3a-state-internal->external state)
-  ;;Package the state to be written in a way that can be read back.
-  (cons 'lecuyer-mrg32k3a state))
-
-(define (mrg32k3a-state-external->internal external-state)
-  ;;Given a packaged state, verifies it and return an internal state.
-  (define (check-value x m)
-    (or (and (integer? x)
-             (exact? x)
-             (<= 0 x (- m 1)))
-	(assertion-violation 'mrg32k3a-state-external->internal
-	  "illegal state value" (list x external-state))))
-  (unless (and (pair? external-state)
-	       (eq? (car external-state) 'lecuyer-mrg32k3a)
-	       (vector? (cdr external-state))
-	       (= 6 (vector-length (cdr external-state))))
-    (assertion-violation 'mrg32k3a-state-external->internal
-      "invalid external state argument" external-state))
-  (let* ((state (cdr external-state))
-	 (s0 (vector-ref state 0))
-	 (s1 (vector-ref state 1))
-	 (s2 (vector-ref state 2))
-	 (s3 (vector-ref state 3))
-	 (s4 (vector-ref state 4))
-	 (s5 (vector-ref state 5)))
-    (check-value s0 mrg32k3a-m1)
-    (check-value s1 mrg32k3a-m1)
-    (check-value s2 mrg32k3a-m1)
-    (check-value s3 mrg32k3a-m2)
-    (check-value s4 mrg32k3a-m2)
-    (check-value s5 mrg32k3a-m2)
-    (when (or (zero? (+ s0 s1 s2))
-	      (zero? (+ s3 s4 s5)))
-      (assertion-violation 'mrg32k3a-state-external->internal
-	"illegal degenerate state" external-state))
-    (vector-copy state)))
-
-;;; --------------------------------------------------------------------
-;;; reseed
-
-(define (mrg32k3a-randomize-state state source-of-integers)
-  ;; G. Marsaglia's simple 16-bit generator with carry
-  (let* ((m 65536)
-         (x (modulo (source-of-integers) m)))
-    (define (random-m)
-      (let ((y (modulo x m)))
-        (set! x (+ (* 30903 y) (quotient x m)))
-        y))
-    (define (random n) ; m < n < m^2
-      (modulo (+ (* (random-m) m) (random-m)) n))
-    (let ((m1 mrg32k3a-m1)
-          (m2 mrg32k3a-m2)
-          (s  state))
-      (vector
-       (+ 1 (modulo (+ (vector-ref s 0) (random (- m1 1))) (- m1 1)))
-       (modulo (+ (vector-ref s 1) (random m1)) m1)
-       (modulo (+ (vector-ref s 2) (random m1)) m1)
-       (+ 1 (modulo (+ (vector-ref s 3) (random (- m2 1))) (- m2 1)))
-       (modulo (+ (vector-ref s 4) (random m2)) m2)
-       (modulo (+ (vector-ref s 5) (random m2)) m2)))))
-
-;;; --------------------------------------------------------------------
-;;; numbers making
-
-(define (mrg32k3a-random-integer state range) ; rejection method
-  (let* ((q  (quotient mrg32k3a-m1 range))
-         (qn (* q range)))
-    (do ((x (mrg32k3a-random-m1 state) (mrg32k3a-random-m1 state)))
-      ((< x qn) (quotient x q)))))
-
-(define (mrg32k3a-random-real state) ; normalization is 1/(m1+1)
-  (* 0.0000000002328306549295728 (+ 1.0 (mrg32k3a-random-m1 state))))
-
-(define (mrg32k3a-random-large state n) ; n > m-max
-  (define (mrg32k3a-random-power state k) ; n = m-max^k, k >= 1
-    (let ((n (mrg32k3a-random-integer state mrg32k3a-m1)))
-      (if (= k 1)
-	  n
-	(+ n (* mrg32k3a-m1 (mrg32k3a-random-power state (- k 1)))))))
-  (do ((k 2 (+ k 1))
-       (mk (* mrg32k3a-m1 mrg32k3a-m1) (* mk mrg32k3a-m1)))
-      ((>= mk n)
-       (let* ((mk-by-n (quotient mk n))
-	      (a (* mk-by-n n)))
-	 (do ((x (mrg32k3a-random-power state k)
-		 (mrg32k3a-random-power state k)))
-	     ((< x a)
-	      (quotient x mk-by-n)))))))
-
-(define (mrg32k3a-random-bytevector state number-of-32bit-integers)
-  (let ((bv (make-bytevector number-of-32bit-integers)))
-    (do ((i 0 (+ 1 i)))
-	((= i number-of-32bit-integers)
-	 bv)
-      (bytevector-u32-native-set! bv i (mrg32k3a-random-integer state const:2^32-1)))))
+     internal-state->external-state ; state-ref
+     external-state->internal-state ; state-set!
+     seed!			    ; seed!
+     1				    ; required seed values
+     make-random-integer	    ; integers-maker
+     make-random-real		    ; reals-maker
+     make-random-bytevector)))	    ; bytevectors-maker
 
 
 ;;;; low level API for randomness from devices
@@ -380,7 +342,7 @@
 
       (define (make-integer n)
 	(if (and (integer? n) (exact? n) (positive? n))
-	    (modulo (next-integer) n)
+	    (mod (next-integer) n)
 	  (assertion-violation 'integers-maker
 	    "range upper limit must be an exact positive integer" n)))
 
@@ -419,12 +381,12 @@
 	    (set! next   _next)
 	    (set! cache  _cache))))
 
-      (define (device-randomize-state source-of-integers)
-	;;Reads random  32bit unsigned integers  from SOURCE-OF-INTEGERS until
+      (define (device-randomize-state integers-maker)
+	;;Reads random  32bit unsigned integers  from INTEGERS-MAKER until
 	;;it returns  #f; build  a bytevector  with them and  write it  to the
 	;;DEVICE.
 	(let-values (((count numbers)
-		      (do ((numbers '() (cons (source-of-integers) numbers))
+		      (do ((numbers '() (cons (integers-maker) numbers))
 			   (count 0 (+ 1 count)))
 			  ((not (car numbers))
 			   (values count (cdr numbers))))))
@@ -440,8 +402,9 @@
 	 (cons 'device (vector device next cache)))
        (lambda (new-state) ; state-set!
 	 (random-device-state-set! new-state))
-       (lambda (source-of-integers) ; seed!
-	 (device-randomize-state source-of-integers))
+       (lambda (integers-maker) ; seed!
+	 (device-randomize-state integers-maker))
+       #f	   ; required seed values
        (lambda (n) ; integers-maker
 	 (make-integer n))
        (lambda () ; reals-maker
@@ -450,8 +413,16 @@
 
 ;;; no fuss API
 
+(define random-source-maker
+  (make-parameter make-random-source/mrg32k3a
+    (lambda (obj)
+      (if (procedure? obj)
+	  obj
+	(assertion-violation 'random-source-maker
+	  "expected procedure as random source maker" obj)))))
+
 (define default-random-source
-  (make-random-source))
+  (make-random-source/mrg32k3a))
 
 (define random-integer
   (random-source-integers-maker default-random-source))

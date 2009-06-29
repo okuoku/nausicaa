@@ -7177,7 +7177,7 @@ Returns the absolute value of its argument.
 These procedures implement number--theoretic integer division and return
 the results of the corresponding mathematical operations specified in
 @ref{baselib math semantics integer}.  If @vari{x} and @varii{x} are
-exact, @varii{x} must be nonzero. In the cases where the mathematical
+exact, @varii{x} must be nonzero.  In the cases where the mathematical
 requirements in @ref{baselib math semantics integer} cannot be satisfied
 by any number object, either an exception is raised with condition type
 @code{&implementation-restriction}, or unspecified number objects (one
@@ -26515,13 +26515,18 @@ constant factor larger than the execution time of compare.
 The @library{random} library provides an @api{} to access sources of
 random and pseudo--random bits, or ``randomness sources'' for brevity.
 Other, auxiliary, libraries provide access to miscellaneous randomness
-generators.
+generators; some generator is available only if we have installed the
+@code{random} library from the Nausicaa/Stubs project.
 
 @menu
 * random intro::                Introduction.
-* random device::               Device--based random numbers.
-* random source::               Randomness sources.
+* random prng::                 Notes on the algorithms.
 * random numbers::              Simple random numbers.
+* random source::               Randomness sources.
+* random mrg32k3a::             L'Ecuyer's MRG32k3a generator
+* random device::               Device--based generator.
+* random mersenne::             The Mersenne twister.
+* random utils::                Utilities.
 * random usage::                Recommended usage patterns.
 @end menu
 
@@ -26536,9 +26541,9 @@ production process:
 
 @itemize
 @item
-The ``no fuss'' interface specifies that @code{(random-integer n)}
-produces the next random integer number @math{i} such that @math{0 <= i
-< n} and @func{(random-real)} produces the next random real number
+The ``no fuss'' interface specifies that @code{(random-integer U)}
+produces the next random integer number @math{x} such that @math{0 <= x
+< U} and @func{(random-real)} produces the next random real number
 @math{x} such that @math{0 < x < 1}.  Details about how these random
 values are produced may not be very relevant, as long as they appear to
 be sufficiently random.
@@ -26557,8 +26562,8 @@ essential, in the sense that it is difficult for an adversary to exploit
 or introduce imperfections into the distribution of random bits.
 Moreover, the linear complexity of the stream of random bits is more
 important than its statistical properties.  In these applications, an
-entropy source (producing truly random bits at a low rate) is used to
-randomize a pseudo random number generator to increase the rate of
+entropy source (producing truly random bits at a low rate) can be used
+to randomize a pseudo random number generator to increase the rate of
 available bits.
 @end itemize
 
@@ -26566,6 +26571,441 @@ Once randomness sources provide the infrastructure to obtain random
 bits, these can be used to construct other random deviates.  Most
 important are floating point numbers of various distributions and random
 discrete structures, such as permutations or graphs.
+
+@c page
+@node random prng
+@subsection Notes on the algorithms
+
+
+Pseudo--random number generators (@acronym{PRNG}s) are algorithms that
+can automatically create long runs of numbers (for example, millions of
+numbers long) with good random properties, but eventually the sequence
+repeats itself or memory usage grows without bound@footnote{Wikipedia
+contributors, ``Random number generation,'' Wikipedia, The Free
+Encyclopedia, @url{http://en.wikipedia.org/wiki/@/Random_number_generator} (accessed June 28, 2009).}.
+
+We examine some notes on the generators to be able to understand the
+basics of the code, and to reverese engineer the basic steps of source
+code available on the Internet.  This section is meant to help people
+new to the @acronym{PRNG} algorithms.
+
+@c ------------------------------------------------------------
+
+@subsubheading Linear congruential generators
+
+One of the most common @acronym{PRNG} is the @dfn{linear congruential
+generator} (@acronym{LCG}), which uses the recurrence:
+
+@example
+N' = (a N + b) mod M      0 <= N', N < M
+@end example
+
+@noindent
+to generate a new number @math{N'} from an initial state @math{N},
+@math{a} and @math{b} being known, fixed, recursion coefficients.  The
+maximum number of numbers the formula can produce is the modulus
+@math{M}.
+
+To avoid certain non--random properties of a single linear congruential
+generator, several such random number generators with slightly different
+values of the multiplier coeffient a are typically used in parallel,
+with a ``master'' random number generator that selects among the several
+different generators.
+
+The most efficient LCGs have an @math{M} equal to a power of @math{2},
+most often @math{2^32} or @math{2^64}, because this allows the modulus
+operation to be computed by merely truncating all but the rightmost
+@math{32} or @math{64} bits@footnote{Wikipedia contributors, "Linear
+congruential generator," Wikipedia, The Free Encyclopedia,
+@url{}http://en.wikipedia.org/wiki/Linear_congruential_generator
+(accessed May 24, 2009).}.
+
+@acronym{LCG}s should not be used for applications where high-quality
+randomness is critical.  For example, they are not suitable for a Monte
+Carlo simulation or for cryptographic applications.  A further problem
+of @acronym{LCG}s is that the lower--order bits of the generated
+sequence have a far shorter period than the sequence as a whole if
+@math{M} is set to a power of @math{2}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Multiply with carry
+
+Multiply--with--carry (@acronym{MWC}) is a method invented by George
+Marsaglia for generating sequences of random integers based on an
+initial set of from two to many thousands of randomly chosen seed
+values@footnote{Wikipedia contributors, ``Multiply--with--carry,''
+Wikipedia, The Free Encyclopedia,
+@url{http://en.wikipedia.org/wiki/Multiply-with-carry} (accessed May 8,
+2009).}.
+
+The main advantage of the @acronym{MWC} method is that it invokes simple
+computer integer arithmetic and leads to very fast generation of
+sequences of random numbers with immense periods, ranging from around
+@math{260} to @math{22e6}.  As with most @acronym{PRNG}s, the resulting
+sequences are functions of the randomly chosen seed values, but
+@acronym{MWC} generators seem to behave as well as, and often better
+than, others in tests of randomness.
+
+A @acronym{MWC} sequence is based on arithmetic modulo @math{M}, usually
+@math{2^32}, because arithmetic modulo that @math{M} is automatic in
+most computers, but sometimes a modulo such as @math{23^2 - 1} is used,
+because arithmetic for modulus @math{2^32 - 1} requires only a simple
+adjustment from that for @math{2^32}, and theory for @acronym{MWC}
+sequences based on modulus @math{2^32} has some nagging difficulties
+that use of @math{2^32 - 1} avoids.
+
+Complementary--multiply--with--carry generators (@acronym{CMWC}) are a
+slightly modified form of @acronym{MWC} giving better results.  A basic
+formulation of the algorithm uses the recurrence:
+
+@example
+N' = (M - 1) - (a * N + C) mod M    0 <= N < M
+
+           a * N + C
+C' = floor ---------                     C < a
+               M
+@end example
+
+@noindent
+to generate a new number @math{N'} and a new carry @math{C'} from an
+initial state @math{N} and an initial carry @math{C}, @math{a} being the
+recursion coefficient and @math{M} being the modulo.
+
+Better formulations adopt a ``lag'' of @math{r} values: Chosen a
+positive integer @math{r}, an initial carry @math{C} and a vector
+@math{[N(1), N(2), ..., N(r)]} of initial seed values, the new number
+@math{N'} and the new carry @math{C'} are computed using the seed
+@math{N(r)} as:
+
+@example
+N' = (M - 1) - (a * N(r) + C) mod M
+
+           a * N(r) + C
+C' = floor ------------
+                M
+@end example
+
+@noindent
+then the seed vector is right--shifted purging @math{N(r)}:
+
+@example
+N(r)   = N(r-1)
+N(r-1) = N(r-2)
+...
+N(2)   = N(1)
+N(1)   = N'
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Cryptographically secure @acronym{PRNG}
+
+A cryptographically secure pseudo--random number generator
+(@acronym{CSPRNG}) is a @acronym{PRNG} with properties that make it
+suitable for use in cryptography.  The requirements of an ordinary
+@acronym{PRNG} are also satisfied by a @acronym{CSPRNG}, but the reverse
+is not true.
+
+@acronym{CSPRNG} requirements fall into two groups: that they pass
+statistical randomness tests; that they hold up well under serious
+attack, even when part of their initial or running state becomes
+available to an attacker@footnote{Wikipedia contributors,
+``Cryptographically secure pseudorandom number generator,'' Wikipedia,
+The Free Encyclopedia, @url{http://en.wikipedia.org/wiki/@/
+Cryptographically@/_secure@/_pseudo-random@/_number_generator} (accessed
+June 6, 2009).}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Generating integers in a specified range
+
+In applications using a randomness source, it happens to need a random
+integer @math{x} in the given range @math{0 <= x < U}, while the
+@acronym{PRNG} generates a random integer @math{N} in the range @math{0
+<= N < M}.  In other words: We need a sample from a uniform probability
+distribution over the range @math{0 <= x < U}, by means of a sample from
+a uniform probability distribution over the range @math{0 <= N < M}.
+
+We distinguish the two cases @math{U <= M} and @math{M < U}; this is
+because when @math{U <= M} there are more integers in the range @math{0
+<= N < M} than in the range @math{0 <= x < U}, while when @math{M < U}
+it is the other way around.
+
+When @math{U <= M}, we have to understand that doing a simple @math{N
+mod U} is incorrect because it breaks uniform distribution of the result
+in the range @math{0 <= x < U}; we can use the following formulation:
+
+@example
+Q  = floor(M / U)
+QU = Q * U
+
+loop:
+  N  = <generate the next integer>
+  if (N < QU)
+  then x = floor(N / Q)
+  else goto loop
+@end example
+
+@noindent
+it works like this:
+
+@enumerate
+@item
+Conceptually partition the range @math{0 <= N < QU} in @math{U} ranges
+each of length @math{Q}, indexed by @math{x} in the range @math{0 <= x <
+U}.
+
+@item
+Generate an integer @math{N} and discard it if @math{QU <= N < M}.
+
+@item
+If @math{N} is in the range @math{0 <= N < QU}, then it is also in a
+range @math{x * Q < N < (x+1) * Q}.  @math{x} is the result.
+@end enumerate
+
+When @math{M < U}, we have to generate a number @math{N'} which is
+uniformly distributed in a range larger than @math{0 <= x < U}.  We can
+do it by computing:
+
+@example
+N' = N0 + M * N1 + (M * N2)^2 +
+   + (M * N3)^3 + ... + (M * N(k-1))^(k-1)
+@end example
+
+@noindent
+where @math{N0}, @math{N1}, ..., @math{N(k-1)} are all generated
+integers in the range @math{0 <= N < M}.  The computed number @math{N'}
+is always less than @math{M^k}, and we compute @math{k} such that
+@math{U <= M^k}.  Then we proceed like we did before for @math{U <= M}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Generating real numbers
+
+Knowing that the generated integers @math{N} are uniformly distibuted in
+the range @math{0 <= N < M}, a pseudo--random real number @math{x} in
+the range @math{0 < x < 1} can be computed from a generated @math{N}
+with the following normalisation formula:
+
+@example
+x = (1 + N) / (1 + M)
+@end example
+
+@noindent
+notice that:
+
+@example
+N = 0        =>  x = 1 / (1 + M) > 0
+N = (M - 1)  =>  x = M / (1 + M) < 1
+@end example
+
+@c page
+@node random numbers
+@subsection Simple random numbers
+
+
+@defvr {Constant} default-random-source
+A randomness source built by @func{make-random-source/mrg32k3a}, making
+use of Pierre L'Ecuyer's MRG32k3a generator.  @ref{random mrg32k3a,
+L'Ecuyer's MRG32k3a generator}.
+@end defvr
+
+
+@defun random-integer @var{n}
+Use the default randomness source to generate the next integer @math{x}
+in the range @math{0 <= x < U}, where @var{U} is a positive integer.
+Subsequent results of this procedure are independent, uniformly
+distributed over the range @math{0 <= x < U}.
+@end defun
+
+
+@defun random-real
+Use the default randomness source to generate the next real number
+@math{x} in the range @math{0 < x < 1}; @math{x=0} and @math{x=1} are
+excluded in order to allow @math{\log(x)} and @math{\log(1-x)} without
+the danger of a numerical exception.  Subsequent results of this
+procedure are independent, uniformly distributed in the range @math{0 <
+x < 1}.
+@end defun
+
+@c page
+@node random source
+@subsection Randomness sources
+
+
+@deffn Parameter random-source-maker
+Hold a procedure that can be used to generate a new randomness source.
+It is initialised to @func{make-random-source/mrg32k3a}.  For example,
+it can be used as:
+
+@example
+(define source  ((random-source-maker)))
+(define integer (random-source-integer-maker source))
+(display (integer))
+@print{} <a random integer>
+@end example
+
+@noindent
+and as:
+
+@example
+(parameterise ((random-source-maker
+                  make-random-source/device))
+  (let* ((source  ((random-source-maker)))
+         (integer (random-source-integer-maker source)))
+    (display (integer))))
+@print{} <a random integer>
+@end example
+@end deffn
+
+
+@defun random-source? @var{obj}
+Tests if @var{obj} is a randomness source.  Objects of type randomness
+source are distinct from all other types of objects.
+@end defun
+
+
+@defun random-source-state-ref @var{source}
+@defunx random-source-state-set! @var{source} @var{state}
+Get and set the current state of @var{source}.  The purpose of these
+functions is to allow saving and restoring the state between sessions
+(for example, save the state to a file and reload it later).
+
+The state value is always a vector whose first element is a symbol
+describing the generator.  The other elements of the vector depend on
+the kind of generator: Refer to generator's documentation for their
+format.
+@end defun
+
+
+@defun random-source-seed! @var{source} @var{integers-maker}
+Reseed @var{source} to a new state.  @var{integers-maker} must be a
+function that, when evaluated with no arguments, returns a random
+integer.
+@end defun
+
+
+@defun random-source-required-seed-values @var{source}
+When @func{random-source-seed!} is used to reseed a @var{source}, some
+generator will invoke @var{integers-maker} a fixed and known number of
+times, other generators will invoke it a configurable number of times,
+other generators will invoke it until it first returns @false{}.
+
+This function returns the number of times @var{integers-maker} will be
+called; if the return value is @false{}: @var{integers-maker} will be
+invoked until it first returns @false{}.
+@end defun
+
+
+The following procedures return a closure @var{rand} to generate
+pseudo--random integers and real numbers using a randomness
+@var{source}.  If an application obtains and uses several @var{rand}
+procedures for the same randomness @var{source}, a call to any of these
+procedures advances the state of @var{source}.  Hence, the procedures do
+not produce the same sequence of random integers each but rather share a
+state.
+
+
+@defun random-source-integers-maker @var{source}
+Return a procedure @var{rand} to generate random integers using
+@var{source}.  @var{rand} takes a single argument @var{n}, which must be
+a positive integer, and returns the next uniformly distributed random
+integer @math{x} in the interval @math{0 <= x < U} by advancing the
+state of @var{source}.
+@end defun
+
+
+@defun random-source-reals-maker @var{source}
+Return a procedure @var{rand} to generate random real numbers @math{x}
+in the range @code{0 < x < 1} using @var{source}; @math{x=0} and
+@math{x=1} are excluded in order to allow @math{\log(x)} and
+@math{\log(1-x)} without the danger of a numerical exception.  The
+procedure @var{rand} is called without arguments.
+@end defun
+
+@c page
+@node random mrg32k3a
+@subsection L'Ecuyer's MRG32k3a generator
+
+
+The default randomness source of @library{random} is Pierre L'Ecuyer's
+MRG32k3a generator@footnote{P. L'Ecuyer.  ``Good Parameter Sets for
+Combined Multiple Recursive Random Number Generators'', Shorter version
+in Operations Research, 47, 1 (1999), 159--164.}@footnote{P. L'Ecuyer,
+R. Simard, E. J. Chen, W. D. Kelton. ``An Object--Oriented
+Random--Number Package With Many Long Streams and Substreams''.  2001.
+To appear in Operations Research.}.
+
+
+@defun make-random-source/mrg32k3a
+Create and return a new randomness source using MRG32k3a, representing a
+deterministic stream of random bits.  Each returned randomness source
+generates the same stream of values, unless the state is modified with
+@func{random-source-seed!}.
+@end defun
+
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 7, whose first value is the symbol
+@code{random-source-state/mrg32k3a}.  All the other values in the vector
+are positive integers.
+
+@c ------------------------------------------------------------
+
+@subsubheading The algorithm
+
+
+The MRG32k3a generator produces values @math{N} in the range @math{0 <=
+N < 2^32 - 209}.  All the values @math{x} of the subexpressions of the
+actual generator, fit into the range @math{-2^53 <= x < 2^53}.  However,
+for advancing the state of the generator by more than one step at a
+time, the full range @math{0 <= x < 2^32 - 209} is needed.
+
+A new pseudo--random number @math{N} is generated with the following
+computation starting from the state vectors @math{[A1, A2, A3]} and
+@math{[B1, B2, B3]}:
+
+@example
+M1 = 4294967087 = 2^32 - 209 - 1
+M2 = 4294944443 = 2^32 - 22853
+
+c2 =  1403580
+c3 =  -810728
+d1 =   527612
+d3 = -1370589
+
+A0 = (          c2 * A2 + c3 * A3) mod M1
+B0 = (d1 * B1 +           d3 * B3) mod M2
+
+; right-shift A, purging the old A3
+A3 = A2
+A2 = A1
+A1 = A0
+
+; right-shift B, purging the old B3
+B3 = B2
+B2 = B1
+B1 = B0
+
+N = (A0 - B0) mod M1
+@end example
+
+@noindent
+notice that @math{M1} and @math{M2} are two prime numbers just below
+@math{2^32}; @math{c2}, @math{c3}, @math{d1} and @math{d3} are called
+@dfn{recursion coefficients}.  The @library{random} library defines the
+initial state vectors as:
+
+@example
+A1 = 1062452522
+A2 = 2961816100
+A3 =  342112271
+
+B1 = 2854655037
+B2 = 3321940838
+B3 = 3542344109
+@end example
 
 @c page
 @node random device
@@ -26593,6 +27033,24 @@ provided by the system.  This is why, by default,
 never blocks but provides randomness of lesser quality.
 
 
+@defun make-random-source/device
+@defunx make-random-source/device @var{device}
+Return a closure that, when invoked, returns an exact integer in the
+range @math{[0, 2^32)}.  This source of random numbers is built around
+@func{%random-bytevector}; when @var{device} is not specified, it
+defaults to @file{/dev/urandom}.
+
+@quotation
+The returned closure buffers bytes read from the device to avoid opening
+it at each invocation.
+@end quotation
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Low level @api{} for device randomness sources
+
+
 @defun %random-bytevector @var{device} @var{number-of-bytes}
 @defunx random-bytevector @var{number-of-bytes}
 @defunx urandom-bytevector @var{number-of-bytes}
@@ -26615,144 +27073,28 @@ reading bytes from @file{/dev/urandom}.
 @end defun
 
 @c page
-@node random source
-@subsection Randomness sources
+@node random mersenne
+@subsection The Mersenne twister
 
 
-The randomness source @api{} provides an implementation of Pierre
-L'Ecuyer's MRG32k3a generator@footnote{P. L'Ecuyer.  ``Good Parameter
-Sets for Combined Multiple Recursive Random Number Generators'', Shorter
-version in Operations Research, 47, 1 (1999), 159--164.}.
+The Mersenne twister is a pseudorandom number generator developed in
+1997 by Makoto Matsumoto and Takuji Nishimura@footnote{Matsumoto Makoto
+and Nishimura Takuji.  ``Mersenne twister: a 623--dimensionally
+equidistributed uniform pseudo--random number generator''.  1998.
+@acronym{ACM} Transactions on Modeling and Computer Simulation.}.  It
+provides for fast generation of very high--quality pseudorandom numbers,
+having been designed specifically to rectify many of the flaws found in
+older algorithms.  Its name derives from the fact that period length is
+chosen to be a Mersenne prime.
 
+Mersenne twister @api{} is exported by @library{random mersenne} and
+requires the installation of the @code{random} module from the
+Nausicaa/Stubs project.
 
-@defvr {Constant} default-random-source
-A randomness source from which @func{random-integer} and
-@func{random-real} have been derived using
-@func{random-source-make-integers} and @func{random-source-make-reals}.
-@end defvr
-
-
-@defun make-random-source
-Create and return a new randomness source, representing a deterministic
-stream of random bits.  Each randomness source generates the same stream
-of values, unless the state is modified with one of the procedures
-below.
-@end defun
-
-
-@defun random-source? @var{obj}
-Tests if @var{obj} is a randomness source.  Objects of type randomness
-source are distinct from all other types of objects.
-@end defun
-
-
-@defun random-source-state-ref @var{source}
-@defunx random-source-state-set! @var{source} @var{state}
-Get and set the current state of a randomness @var{source}.  The purpose
-of these functions is to allow saving and restoring the state between
-sessions (for example, save the state to a file and reload it later).
-It is required for the state to have representation that can be handled
-by @func{write} and @func{read}.
-@end defun
-
-
-@defun random-source-randomize! @var{source}
-Make an effort to set the state of the randomness @var{source} to a
-truly random state.  It makes use of the current value of the
-@func{random-source-of-integers} parameter.
-@end defun
-
-
-@defun random-source-pseudo-randomize! @var{source} @var{i} @var{j}
-@c FIX THIS DESCRIPTION
-Change the state of the randomness @var{source} into the initial state
-of the (@var{i}, @var{j})--th independent randomness source, where
-@var{i} and @var{j} are non--negative integers.  This procedure provides
-a mechanism to obtain a large number of independent randomness sources
-(usually all derived from the same backbone generator), indexed by two
-integers.  In contrast to @func{random-source-randomize!}, this
-procedure is entirely deterministic.
-@end defun
-
-
-@defun random-source-integers-maker @var{source}
-Return a procedure @var{rand} to generate random integers using the
-randomness @var{source}.  @var{rand} takes a single argument @var{n},
-which must be a positive integer, and returns the next uniformly
-distributed random integer from the interval @math{[0, n)} by advancing
-the state of the @var{source}.
-
-If an application obtains and uses several @var{rand} procedures for the
-same randomness @var{source}, a call to any of these procedures advances
-the state of @var{source}.  Hence, the procedures do not produce the
-same sequence of random integers each but rather share a state.
-@end defun
-
-
-@defun random-source-reals-maker @var{source}
-@defunx random-source-reals-maker @var{source} @var{unit}
-Return a procedure @var{rand} to generate random real numbers @math{x}
-in the range @code{0 < x < 1} using the randomness @var{source}.  The
-procedure @var{rand} is called without arguments.
-
-If an application obtains and uses several @var{rand} procedures for the
-same randomness @var{source}, a call to any of these procedures advances
-the state of @var{source}.  Hence, the procedures do not produce the
-same sequence of random integers each but rather share a state.
-
-The optional parameter @var{unit} determines the type of numbers being
-produced by @var{rand} and the quantization of the output.  @var{unit}
-must be a number such that @math{0 < unit < 1}.  The numbers created by
-@var{rand} are of the same numerical type as @var{unit} and the
-potential output values are spaced by at most @var{unit}.
-
-One can imagine @var{rand} to create numbers as @math{x * unit} where
-@var{x} is a random integer in @math{[1, floor(1/unit))}.  Note,
-however, that this need not be the way the values are actually created
-and that the actual resolution of @var{rand} can be much higher than
-@var{unit}.  In case @var{unit} is absent it defaults to a reasonably
-small value (related to the width of the mantissa of an efficient number
-format).
-@end defun
 
 @c page
-@node random numbers
-@subsection Simple random numbers
-
-
-@defun random-integer @var{n}
-Acquire the default randomness source from @func{default-random-source}
-and use it to return the next integer in the range @math{[0, n)}, where
-@var{n} is a positive integer.  Subsequent results of this procedure
-should be independent, uniformly distributed over the range @math{[0,
-n)}.
-@end defun
-
-
-@defun random-real
-Acquire the default randomness source from @func{default-random-source}
-and use it to return the next real number @math{x} in the range @math{0
-< x < 1}.  Subsequent results of this procedure should be independent,
-uniformly distributed.
-
-This procedure does not return @math{x=0} or @math{x=1} in order to
-allow @math{\log x} and @math{\log(1-x)} without the danger of a
-numerical exception.
-@end defun
-
-
-@defun make-random-source-of-integers/device
-@defunx make-random-source-of-integers/device @var{device}
-Return a closure that, when invoked, returns an exact integer in the
-range @math{[0, 2^32)}.  This source of random numbers is built around
-@func{%random-bytevector}; when @var{device} is not specified, it
-defaults to @file{/dev/urandom}.
-
-@quotation
-The returned closure buffers bytes read from the device to avoid opening
-it at each invocation.
-@end quotation
-@end defun
+@node random utils
+@subsection Utilities
 
 
 @defun unfold-random-numbers @var{source} @var{number-of-numbers}

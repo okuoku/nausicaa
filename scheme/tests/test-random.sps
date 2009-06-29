@@ -39,12 +39,14 @@
 
 (parameterise ((check-test-name 'device))
 
-  (check
-      (let* ((len 10)
-	     (bv  (random-device-bytevector len)))
-	(and (bytevector? bv)
-	     (= len (bytevector-length bv))))
-    => #t)
+;;;This will block if "/dev/random" has not enough random bytes.
+;;   (check
+;;       (parameterise ((random-device-cache-length 5))
+;; 	(let* ((len 1)
+;; 	       (bv  (random-device-bytevector len)))
+;; 	  (and (bytevector? bv)
+;; 	       (= len (bytevector-length bv)))))
+;;     => #t)
 
 ;;; --------------------------------------------------------------------
 
@@ -81,7 +83,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let* ((source  (make-random-source))
+  (let* ((source  ((random-source-maker)))
 	 (integer (random-source-integers-maker source)))
 
     (check-for-true (integer? (integer 100)))
@@ -111,12 +113,12 @@
 (parameterise ((check-test-name 'source))
 
   (check-for-true
-   (let* ((source	(make-random-source))
+   (let* ((source	((random-source-maker)))
 	  (int-maker	(random-source-integers-maker source)))
      (integer? (int-maker 10))))
 
   (check-for-true
-   (let* ((source	(make-random-source))
+   (let* ((source	((random-source-maker)))
 	  (int-maker	(random-source-integers-maker source))
 	  (n		(int-maker 10)))
      (and (<= 0 n) (< n 10))))
@@ -124,12 +126,12 @@
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((source	(make-random-source))
+   (let* ((source	((random-source-maker)))
 	  (int-maker	(random-source-reals-maker source)))
      (real? (int-maker))))
 
   (check-for-true
-   (let* ((source	(make-random-source))
+   (let* ((source	((random-source-maker)))
 	  (real-maker	(random-source-reals-maker source))
 	  (n		(real-maker)))
      (and (< 0 n) (< n 1))))
@@ -137,8 +139,8 @@
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((source-a	(make-random-source))
-	  (source-b	(make-random-source))
+   (let* ((source-a	((random-source-maker)))
+	  (source-b	((random-source-maker)))
 	  (integer	(random-source-integers-maker source-b)))
      (random-source-seed! source-a (lambda () (integer 100)))
      (let* ((real-maker	(random-source-reals-maker source-a))
@@ -148,7 +150,7 @@
 ;;; --------------------------------------------------------------------
 
   (check-for-true
-   (let* ((source	(make-random-source))
+   (let* ((source	((random-source-maker)))
 	  (state	(random-source-state-ref source)))
      (random-source-state-set! source state)
      (let ((int-maker	(random-source-integers-maker source)))
