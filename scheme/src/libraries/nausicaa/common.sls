@@ -154,9 +154,6 @@
 (library (nausicaa common)
   (export
 
-    ;; parameters
-    parameterize make-parameter (rename (parameterize parameterise))
-
     ;; predicate extensions
     finite? infinite? nan?
 
@@ -190,7 +187,7 @@
 		  (finite?	rnrs:finite?)
 		  (infinite?	rnrs:infinite?)
 		  (nan?		rnrs:nan?))
-    (nausicaa parameters)
+    (parameters)
     (rnrs mutable-pairs)
     (rnrs mutable-strings))
 

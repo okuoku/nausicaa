@@ -795,6 +795,7 @@
 	  pretty-print
 	  lookup-process-environment process-environment->alist)
     (nausicaa common)
+    (parameters)
     (for (nausicaa registry) expand))
 
 

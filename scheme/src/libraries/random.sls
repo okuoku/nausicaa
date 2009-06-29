@@ -64,7 +64,7 @@
     random-source-make-permutations	random-source-make-exponentials
     random-source-make-normals)
   (import (rnrs)
-    (nausicaa parameters)
+    (parameters)
     (rnrs mutable-strings))
 
 
@@ -227,9 +227,9 @@
 	  ((<= U M1^k)
 	   (let* ((Q  (div M1^k U))
 		  (QU (* Q U)))
-	     (do ((N' (random-polynomial k) (random-polynomial k)))
-		 ((< N' a)
-		  (div N' Q)))))))
+	     (do ((N (random-polynomial k) (random-polynomial k)))
+		 ((< N QU)
+		  (div N Q)))))))
 
     (define (make-random-real)
       ;;Knowing that  the generated integers N  are uniformly distibuted

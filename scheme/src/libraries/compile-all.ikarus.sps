@@ -25,6 +25,7 @@
 
 (import
   (only (nausicaa))
+  (only (parameters))
   (only (lists))
   (only (one-dimension-cc))
   (only (one-dimension-co))

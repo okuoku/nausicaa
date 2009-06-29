@@ -29,8 +29,8 @@
 (compile-library "nausicaa/registry.sls"
 		 "nausicaa/registry.slfasl")
 
-(compile-library "nausicaa/parameters.larceny.sls"
-		 "nausicaa/parameters.larceny.slfasl")
+(compile-library "parameters.larceny.sls"
+		 "parameters.larceny.slfasl")
 
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")

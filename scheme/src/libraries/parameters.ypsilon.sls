@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: parameters from Mosh
+;;;Contents: parameters from Ypsilon
 ;;;Date: Thu Jun 18, 2009
 ;;;
 ;;;Abstract
@@ -25,8 +25,8 @@
 
 
 #!r6rs
-(library (nausicaa parameters)
-  (export make-parameter parameterize)
-  (import (only (system) make-parameter parameterize)))
+(library (parameters)
+  (export make-parameter parameterize (rename (parameterize parameterise)))
+  (import (only (core) make-parameter parameterize)))
 
 ;;; end of file

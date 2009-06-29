@@ -797,6 +797,7 @@
     (only (system) get-environment-variable get-environment-variables)
     (only (mosh pp) pretty-print)
     (nausicaa common)
+    (parameters)
     (for (nausicaa registry) expand))
 
 

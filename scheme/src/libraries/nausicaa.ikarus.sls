@@ -796,6 +796,7 @@
     (only (ikarus)
 	  getenv pretty-print)
     (nausicaa common)
+    (parameters)
     (for (nausicaa registry) expand))
 
 
