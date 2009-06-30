@@ -411,7 +411,7 @@
 (check (list-ec (: i 1 9 3) i) => '(1 4 7))
 
 ;;This should run the :real-range generator.
-(check (list-ec (: i 0.0 1.0 0.2) i) => '(0. 0.2 0.4 0.6 0.8))
+(check (list-ec (: i 0.0 1.0 0.2) i) => '(0. 0.2 0.4 0.6000000000000001 0.8))
 
 (check (list-ec (: c #\a #\c) c) => '(#\a #\b #\c))
 
@@ -448,7 +448,7 @@
 
 (check
     (list-ec (:real-range i (index j) 0 1 0.2) (list i j))
-  => '((0. 0) (0.2 1) (0.4 2) (0.6 3) (0.8 4)) )
+  => '((0. 0) (0.2 1) (0.4 2) (0.6000000000000001 3) (0.8 4)) )
 
 (check
     (list-ec (:char-range c (index i) #\a #\c) (list c i))

@@ -42,7 +42,7 @@
     random-source-state-ref		random-source-state-set!
     random-source-seed!
     random-source-integers-maker	random-source-reals-maker
-    random-source-bytevectors-maker
+    random-source-bytevectors-maker	random-source-bytevectors-filler
 
     ;; random source constructors
     make-random-source/mrg32k3a		make-random-source/device
@@ -72,16 +72,6 @@
 
 (define const:2^32	(expt 2 32))
 (define const:2^32-1	(- const:2^32 1))
-(define const:2^32^2	(* const:2^32 const:2^32))
-(define const:1/2^32^2	(/ 1.0 const:2^32^2))
-
-(define (vector-copy src)
-  (let* ((len (vector-length src))
-	 (dst (make-vector len)))
-    (do ((i 0 (+ 1 i)))
-	((= len i)
-	 dst)
-      (vector-set! dst i (vector-ref src i)))))
 
 
 ;;;; randomness source
@@ -93,7 +83,7 @@
 	  (immutable required-seed-values)
 	  (immutable integers-maker)
 	  (immutable reals-maker)
-	  (immutable bytevectors-maker)))
+	  (immutable bytevectors-filler)))
 
 (define (random-source-state-ref s)
   ((:random-source-state-ref s)))
@@ -114,7 +104,112 @@
   (:random-source-reals-maker s))
 
 (define (random-source-bytevectors-maker s)
-  (:random-source-bytevectors-maker s))
+  (lambda (number-of-bytes)
+    (let ((bv (make-bytevector number-of-bytes)))
+      ((:random-source-bytevectors-filler s) bv)
+      bv)))
+
+(define (random-source-bytevectors-filler s)
+  (:random-source-bytevectors-filler s))
+
+
+;;;; random numbers generation
+
+(define (make-random-integer U M make-random-bits)
+  (if (<= U M)
+      (%make-random-integer/small U M make-random-bits)
+    (%make-random-integer/large U M make-random-bits)))
+
+(define (%make-random-integer/small U M make-random-bits)
+  ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
+  ;;understand what this does.
+  (let ((Q  (div M U)))
+    (if (= 0 Q)
+	(make-random-bits)
+      (let ((QU (* Q U)))
+	(do ((N (make-random-bits) (make-random-bits)))
+	    ((< N QU)
+	     (div N Q)))))))
+
+(define (%make-random-integer/large U M make-random-bits)
+  ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
+  ;;understand what this does.
+  (define (polynomial k)
+    (%polynomial k U M make-random-bits))
+  (do ((k 2 (+ k 1))
+       (M^k (* M M) (* M^k M)))
+      ((<= U M^k)
+       (let ((Q (div M^k U)))
+	 (if (= 0 Q)
+	     (polynomial k)
+	   (let* ((Q  (div M^k U))
+		  (QU (* Q U)))
+	     (do ((N (polynomial k) (polynomial k)))
+		 ((< N QU)
+		  (div N Q)))))))))
+
+(define (%polynomial k U M make-random-bits)
+  ;;The version  commented out below is an  equivalent reorganisation of
+  ;;the original version in the reference implementation of SRFI-42.  It
+  ;;literally computes:
+  ;;
+  ;;  N0 + (M * (N1 + (M * (N2 + (... (M * (N(k-3) + (M * (N(k-2) + (M * N(k-1)))))))))))
+  ;;
+  ;;which is not tail recursive.
+  ;;
+  ;;   (let ((N (%make-random-integer/small U M make-random-bits)))
+  ;;     (if (= k 1)
+  ;; 	     N
+  ;;       (+ N (* M (%polynomial (- k 1) U M make-random-bits)))))
+  ;;
+  ;;The polynomial can be rewritten:
+  ;;
+  ;;  N0 + M * N1 + M^2 * N2 + ... + M^(k-2) * N(k-2) + M^(k-1) * N(k-1)
+  ;;
+  ;;which is implemented by the tail recursive version below.
+  (let loop ((A  0)
+	     (k  k)
+	     (Mk M)
+	     (N  (%make-random-integer/small U M make-random-bits)))
+    (if (= k 1)
+	(+ N A)
+      (loop (+ N (* Mk A)) (- k 1) (* M Mk)
+	    (%make-random-integer/small U M make-random-bits)))))
+
+(define (%normalise N M)
+  (inexact (/ (+ 1 N)
+	      (+ 1 M))))
+
+(define make-random-real
+  ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
+  ;;understand what this does.
+  (case-lambda
+   ((M make-random-bits)
+    (%normalise (make-random-bits) M))
+   ((M make-random-bits unit)
+    (let ((C (- (/ unit) 1)))
+      (if (<= C M)
+	  ;;This is like: (make-random-real M make-random-bits)
+	  (%normalise (make-random-bits) M)
+	(do ((k 1 (+ k 1))
+	     (U C (/ U M)))
+	    ((<= U 1)
+	     (%normalise (%polynomial k U M make-random-bits)
+			 (expt M k)))))))))
+
+(define (random-bytevector-fill! bv make-random-32bits)
+  (let ((len  (bytevector-length bv)))
+    (let-values (((len-32bits len-rest) (div-and-mod len 4)))
+      (set! len-32bits (* 4 len-32bits))
+      (do ((i 0 (+ 4 i)))
+	  ((= i len-32bits))
+	(bytevector-u32-native-set! bv i (make-random-32bits)))
+      (let ((bits (make-bytevector 4)))
+	(bytevector-u32-native-set! bits 0 (make-random-32bits))
+	(do ((i (- len len-rest) (+ 1 i))
+	     (j 0 (+ 1 j)))
+	    ((= i len))
+	  (bytevector-u8-set! bv i (bytevector-u8-ref bits j)))))))
 
 
 ;;; MRG32k3a pseudo-random numbers generator
@@ -127,7 +222,8 @@
     (define M1 4294967087) ; modulus of component 1
     (define M2 4294944443) ; modulus of component 2
 
-    (define (compute-random-bits/advance-state)
+    (define (make-random-bits)
+      ;;Compute random bits and advance the state.
       (let ((A0 (mod (- (* 1403580 A2) (*  810728 A3)) M1))
 	    (B0 (mod (- (*  527612 B1) (* 1370589 B3)) M2)))
 	(set! A3 A2) ; shift the A vector right, purging the old A3
@@ -137,6 +233,9 @@
 	(set! B2 B1)
 	(set! B1 B0)
 	(mod (- A0 B0) M1)))
+
+    (define (make-random-32bits)
+      (make-random-integer const:2^32-1 M1 make-random-bits))
 
     (define (internal-state->external-state)
       ;;Package the state to be written in a way that can be read back.
@@ -187,76 +286,17 @@
 	  (set! B2 (mod (+ B2 (random M2)) M2))
 	  (set! B3 (mod (+ B3 (random M2)) M2)))))
 
-    (define (make-random-integer U)
-      (cond ((not (and (integer? U) (exact? U) (positive? U)))
-	     (assertion-violation 'make-random-integer
-	       "range upper limit must be an exact positive integer" U))
-	    ((<= U M1)
-	     (make-random-integer/small U))
-	    (else
-	     (make-random-integer/large U))))
-
-    (define (make-random-integer/small U)
-      ;;Read the documentation of Nausicaa/Scheme, node "random prng" to
-      ;;understand what this does.
-      (let* ((Q  (div M1 U))
-	     (QU (* Q U)))
-	(do ((N (compute-random-bits/advance-state)
-		(compute-random-bits/advance-state)))
-	    ((< N QU)
-	     (div N Q)))))
-
-    (define (make-random-integer/large U)
-      ;;Read the documentation of Nausicaa/Scheme, node "random prng" to
-      ;;understand what this does.
-      (define (random-polynomial k)
-	;;This literally computes:
-	;;
-	;;   N0 + M1 * (N1 + M1 * (N2^2 + M1 * (N3^3 + ... + M1 * (Nk-1)^(k-1))))
-	;;
-	;;which can be rewritten:
-	;;
-	;;   N0 + M1 * N1 + (M1 * N2)^2 + (M1 * N3)^3 + ... + (M1 * N(k-1))^(k-1)
-	;;
-	(let ((N (make-random-integer/small M1)))
-	  (if (= k 1)
-	      N
-	    (+ N (* M1 (random-polynomial (- k 1)))))))
-      (do ((k 2 (+ k 1))
-	   (M1^k (* M1 M1) (* M1^k M1)))
-	  ((<= U M1^k)
-	   (let* ((Q  (div M1^k U))
-		  (QU (* Q U)))
-	     (do ((N (random-polynomial k) (random-polynomial k)))
-		 ((< N QU)
-		  (div N Q)))))))
-
-    (define (make-random-real)
-      ;;Knowing that  the generated integers N  are uniformly distibuted
-      ;;in the range 0  <= N < M, a pseudo--random real  number X in the
-      ;;range 0  < X <  1 can  be computed from  a generated N  with the
-      ;;following normalisation formula:
-      ;;
-      ;;   X = (1 + N) / (1 + M)
-      ;;
-      (* 0.0000000002328306549295728 ; = 1 / (1 + M)
-	 (+ 1.0 (compute-random-bits/advance-state))))
-
-    (define (make-random-bytevector number-of-32bit-integers)
-      (let ((bv (make-bytevector (* 4 number-of-32bit-integers))))
-	(do ((i 0 (+ 1 i)))
-	    ((= i number-of-32bit-integers)
-	     bv)
-	  (bytevector-u32-native-set! bv i (make-random-integer/small const:2^32-1)))))
-
     (:random-source-make
      internal-state->external-state ; state-ref
      external-state->internal-state ; state-set!
      seed!			    ; seed!
      1				    ; required seed values
-     make-random-integer	    ; integers-maker
-     make-random-real		    ; reals-maker
-     make-random-bytevector)))	    ; bytevectors-maker
+     (lambda (U)		    ; integers-maker
+       (make-random-integer U M1 make-random-bits))
+     (lambda () ; reals-maker
+       (make-random-real M1 make-random-bits))
+     (lambda (bv) ; bytevectors-filler
+       (random-bytevector-fill! bv make-random-32bits)))))
 
 
 ;;;; low level API for randomness from devices
@@ -332,7 +372,12 @@
 		;This init value  causes the vector to be  filled at the
 		;first invocation.
 
-      (define (next-integer)
+      (define external-state-tag 'random-source-state/device)
+      (define M const:2^32-1)
+
+      (define (make-random-bits)
+	;;Extract the next 32bits from the cache and advance the cursor.
+	;;Refill the cache when needed.
 	(when (<= (bytevector-length cache) next)
 	  (%device-read-bytevector! device cache)
 	  (set! next 0))
@@ -340,75 +385,63 @@
 	  (set! next (+ 4 next))
 	  n))
 
-      (define (make-integer n)
-	(if (and (integer? n) (exact? n) (positive? n))
-	    (mod (next-integer) n)
-	  (assertion-violation 'integers-maker
-	    "range upper limit must be an exact positive integer" n)))
+      (define make-random-32bits make-random-bits)
 
-      (define (make-real)
-	(* (inexact (make-integer)) const:1/2^32^2))
+      (define (internal-state->external-state)
+	(vector external-state-tag device next cache))
 
-      (define (random-device-state-set! new-state)
-	(unless (pair? new-state)
-	  (assertion-violation 'random-device-state-set!
-	    "invalid device randomness source state, expected pair" new-state))
-	(unless (eq? 'device (car new-state))
-	  (assertion-violation 'random-device-state-set!
-	    "invalid device randomness source state, expected \"device\" as signature"
-	    (car new-state)))
-	(let ((data (cdr new-state)))
-	  (unless (and (vector? data) (= 3 (vector-length data)))
-	    (assertion-violation 'random-device-state-set!
-	      "invalid device randomness source state, expected vector of length 3 as data"
-	      data))
-	  (let ((_device (vector-ref data 0))
-		(_next   (vector-ref data 1))
-		(_cache  (vector-ref data 2)))
-	    (unless (and (string? _device) (file-exists? _device))
-	      (assertion-violation 'random-device-state-set!
-		"invalid device randomness source state, expected existent file name as device"
-		_device))
-	    (unless (and (integer? _next) (exact? _next) (positive? _next))
-	      (assertion-violation 'random-device-state-set!
-		"invalid device randomness source state, expected positive integer as next index"
-		_next))
-	    (unless (bytevector? _cache)
-	      (assertion-violation 'random-device-state-set!
-		"invalid device randomness source state, expected bytevector as randomness pool"
-		_cache))
-	    (set! device _device)
-	    (set! next   _next)
-	    (set! cache  _cache))))
+      (define (external-state->internal-state external-state)
+	(unless (and (vector? external-state)
+		     (= 4 (vector-length external-state))
+		     (eq? external-state-tag (vector-ref external-state 0)))
+	  (assertion-violation 'external-state->internal-state
+	    "invalid device randomness source state" external-state))
+	(let ((_device (vector-ref external-state 1))
+	      (_next   (vector-ref external-state 2))
+	      (_cache  (vector-ref external-state 3)))
+	  (unless (and (string? _device) (file-exists? _device))
+	    (assertion-violation 'external-state->internal-state
+	      "invalid device randomness source state, expected existent file name as device"
+	      _device))
+	  (unless (and (integer? _next) (exact? _next) (positive? _next))
+	    (assertion-violation 'external-state->internal-state
+	      "invalid device randomness source state, expected positive integer as next index"
+	      _next))
+	  (unless (bytevector? _cache)
+	    (assertion-violation 'external-state->internal-state
+	      "invalid device randomness source state, expected bytevector as randomness pool"
+	      _cache))
+	  (set! device _device)
+	  (set! next   _next)
+	  (set! cache  _cache)))
 
-      (define (device-randomize-state integers-maker)
-	;;Reads random  32bit unsigned integers  from INTEGERS-MAKER until
-	;;it returns  #f; build  a bytevector  with them and  write it  to the
-	;;DEVICE.
+      (define (seed! integers-maker)
+	;;Reads random 32bit unsigned integers from INTEGERS-MAKER until
+	;;it returns  #f; build a bytevector  with them and  write it to
+	;;the DEVICE.
 	(let-values (((count numbers)
-		      (do ((numbers '() (cons (integers-maker) numbers))
+		      (do ((numbers (list (integers-maker)) (cons (integers-maker) numbers))
 			   (count 0 (+ 1 count)))
 			  ((not (car numbers))
 			   (values count (cdr numbers))))))
 	  (let ((bv (make-bytevector (* 4 count))))
-	    (do ((i 0 (+ 1 i))
+	    (do ((i 0 (+ 4 i))
 		 (numbers numbers (cdr numbers)))
-		((= i count))
+		((null? numbers))
 	      (bytevector-u32-native-set! bv i (car numbers)))
 	    (%device-write-bytevector! device bv))))
 
       (:random-source-make
-       (lambda () ; state-ref
-	 (cons 'device (vector device next cache)))
-       (lambda (new-state) ; state-set!
-	 (random-device-state-set! new-state))
-       (lambda (integers-maker) ; seed!
-	 (device-randomize-state integers-maker))
-       #f	   ; required seed values
-       (lambda (n) ; integers-maker
-	 (make-integer n))
+       internal-state->external-state ; state-ref
+       external-state->internal-state ; state-set!
+       seed!			      ; seed!
+       #f			      ; required seed values
+       (lambda (U)		      ; integers-maker
+	 (make-random-integer U M make-random-bits))
        (lambda () ; reals-maker
-	 (next-integer)))))))
+	 (make-random-real M make-random-bits))
+       (lambda (bv) ; bytevectors-filler
+	 (random-bytevector-fill! bv make-random-32bits)))))))
 
 
 ;;; no fuss API

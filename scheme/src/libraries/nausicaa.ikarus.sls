@@ -755,6 +755,9 @@
 
 
 
+    ;; predicates
+    non-negative? non-positive?
+
     ;; stuff from the SRFIs
     cond-expand and-let* receive recursion cut cute begin0
 

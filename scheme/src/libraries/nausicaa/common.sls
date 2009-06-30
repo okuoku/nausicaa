@@ -155,7 +155,7 @@
   (export
 
     ;; predicate extensions
-    finite? infinite? nan?
+    finite? infinite? nan? non-negative? non-positive?
 
     ;; syntactic abstractions
     and-let* begin0 receive recursion cut cute
@@ -211,6 +211,12 @@
 
 (cplx-or-pred infinite?	rnrs:infinite?)
 (cplx-or-pred nan?	rnrs:nan?)
+
+(define (non-negative? n)
+  (or (positive? n) (zero? n)))
+
+(define (non-positive? n)
+  (or (negative? n) (zero? n)))
 
 
 ;;;; syntactic absractions

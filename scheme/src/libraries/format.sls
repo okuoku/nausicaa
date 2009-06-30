@@ -39,11 +39,8 @@
   (export
     format format-output-column)
   (import (nausicaa)
-    (only (rnrs r5rs)
-	  remainder
-	  quotient)
-    (only (rnrs mutable-strings)
-	  string-set!))
+    (only (rnrs r5rs) remainder quotient)
+    (only (rnrs mutable-strings) string-set!))
 
 
 ;;;; constants
@@ -216,7 +213,6 @@
 	 (loop (exact (floor (inexact (/ num radix))))
 	       (cons (number->string (remainder num radix)) res)))))))
 
-
 
 ;;;; escape sequence parameter handling
 
@@ -258,8 +254,9 @@
       obj)))
 
 (define (increment-output-column delta)
-  (and-let* ((column (format-output-column)))
-    (format-output-column (+ delta column))))
+  (let ((column (format-output-column)))
+    (when column
+      (format-output-column (+ delta column)))))
 
 ;;To be  invoked after printing STR  to the destination  port.  Scan the
 ;;string for  the last newline  and tabulations, then adjust  the output
@@ -1113,8 +1110,8 @@
     (let* ((i (+ mantissa-dot-index number-of-digits -1))
 	   (j (+ 1 i)))
       (unless (= i mantissa-length)
-	(receive (rounded-digit carry)
-	    (compute-rounded-digit-with-carry (mantissa-digit-ref i) j)
+	(let-values (((rounded-digit carry)
+		      (compute-rounded-digit-with-carry (mantissa-digit-ref i) j)))
 	  (mantissa-digit-set! i rounded-digit)	;store the rounded digit
 	  (set! mantissa-length j) ;truncate the tail digits
 	  (when carry (propagate-carry-to-upward-digits (- i 1)))))))
