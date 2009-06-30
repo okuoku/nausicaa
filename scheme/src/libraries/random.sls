@@ -123,58 +123,59 @@
 (define (%make-random-integer/small U M make-random-bits)
   ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
   ;;understand what this does.
-  (let ((Q  (div M U)))
-    (if (= 0 Q)
-	(make-random-bits)
-      (let ((QU (* Q U)))
-	(do ((N (make-random-bits) (make-random-bits)))
-	    ((< N QU)
-	     (div N Q)))))))
+  (if (= U M)
+      (make-random-bits)
+    (let* ((Q  (div M U))
+	   (QU (* Q U)))
+      (do ((N (make-random-bits) (make-random-bits)))
+	  ((< N QU)
+	   (div N Q))))))
 
 (define (%make-random-integer/large U M make-random-bits)
   ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
   ;;understand what this does.
   (define (polynomial k)
-    (%polynomial k U M make-random-bits))
+    (%polynomial k M make-random-bits))
   (do ((k 2 (+ k 1))
        (M^k (* M M) (* M^k M)))
       ((<= U M^k)
-       (let ((Q (div M^k U)))
-	 (if (= 0 Q)
-	     (polynomial k)
-	   (let* ((Q  (div M^k U))
-		  (QU (* Q U)))
-	     (do ((N (polynomial k) (polynomial k)))
-		 ((< N QU)
-		  (div N Q)))))))))
+       (if (= U M^k)
+	   (polynomial k)
+	 (let* ((Q  (div M^k U))
+		(QU (* Q U)))
+	   (do ((N (polynomial k) (polynomial k)))
+	       ((< N QU)
+		(div N Q))))))))
 
-(define (%polynomial k U M make-random-bits)
-  ;;The version  commented out below is an  equivalent reorganisation of
-  ;;the original version in the reference implementation of SRFI-42.  It
-  ;;literally computes:
-  ;;
-  ;;  N0 + (M * (N1 + (M * (N2 + (... (M * (N(k-3) + (M * (N(k-2) + (M * N(k-1)))))))))))
-  ;;
-  ;;which is not tail recursive.
-  ;;
-  ;;   (let ((N (%make-random-integer/small U M make-random-bits)))
-  ;;     (if (= k 1)
-  ;; 	     N
-  ;;       (+ N (* M (%polynomial (- k 1) U M make-random-bits)))))
-  ;;
-  ;;The polynomial can be rewritten:
-  ;;
-  ;;  N0 + M * N1 + M^2 * N2 + ... + M^(k-2) * N(k-2) + M^(k-1) * N(k-1)
-  ;;
-  ;;which is implemented by the tail recursive version below.
-  (let loop ((A  0)
-	     (k  k)
-	     (Mk M)
-	     (N  (%make-random-integer/small U M make-random-bits)))
-    (if (= k 1)
-	(+ N A)
-      (loop (+ N (* Mk A)) (- k 1) (* M Mk)
-	    (%make-random-integer/small U M make-random-bits)))))
+;;The version commented out below is an equivalent reorganisation of the
+;;original  version  in the  reference  implementation  of SRFI-42.   It
+;;literally computes:
+;;
+;;  N0 + (M * (N1 + (M * (N2 + (... (M * (N(k-3) + (M * (N(k-2) + (M * N(k-1)))))))))))
+;;
+;;which is not tail recursive.
+;;
+;; (define (%polynomial k U M make-random-bits)
+;;   (let ((N (%make-random-integer/small U M make-random-bits)))
+;;     (if (= k 1)
+;; 	     N
+;;       (+ N (* M (%polynomial (- k 1) U M make-random-bits))))))
+;;
+;;The polynomial can be rewritten:
+;;
+;;  N0 + M * N1 + M^2 * N2 + ... + M^(k-2) * N(k-2) + M^(k-1) * N(k-1)
+;;
+;;which is implemented by the tail recursive version below.
+;;
+(define (%polynomial k M make-random-bits)
+  (define (integer)
+    (%make-random-integer/small M M make-random-bits))
+  (let loop ((A   (integer))
+	     (j   1)
+	     (M^j M))
+    (if (= j k)
+	A
+      (loop (+ A (* M^j (integer))) (+ 1 j) (* M M^j)))))
 
 (define (%normalise N M)
   (inexact (/ (+ 1 N)

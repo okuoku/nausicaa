@@ -2,6 +2,10 @@
 
   Fix the installation infrastructure (does not install directories).
 
+* lists
+
+  Always use knil as first arguments to closures in fold functions.
+
 * char-set
 
   Finished?

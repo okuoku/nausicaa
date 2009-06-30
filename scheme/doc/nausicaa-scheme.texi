@@ -26618,11 +26618,13 @@ discrete structures, such as permutations or graphs.
 
 
 Pseudo--random number generators (@acronym{PRNG}s) are algorithms that
-can automatically create long runs of numbers (for example, millions of
-numbers long) with good random properties, but eventually the sequence
-repeats itself or memory usage grows without bound@footnote{Wikipedia
-contributors, ``Random number generation,'' Wikipedia, The Free
-Encyclopedia, @url{http://en.wikipedia.org/wiki/@/Random_number_generator} (accessed June 28, 2009).}.
+can automatically create long sequences of numbers (for example,
+millions of numbers) with good random properties, but eventually the
+sequence repeats itself or memory usage grows without
+bound@footnote{Wikipedia contributors, ``Random number generation,''
+Wikipedia, The Free Encyclopedia,
+@url{http://en.wikipedia.org/wiki/@/Random_number_generator} (accessed
+June 28, 2009).}.
 
 We examine some notes on the generators to be able to understand the
 basics of the code, and to reverese engineer the basic steps of source
@@ -26650,16 +26652,15 @@ N' = (a N + b) mod M      0 <= N', N < M
 @end example
 
 @noindent
-to generate a new number @math{N'} from an initial state @math{N},
-@math{a} and @math{b} being known, fixed, recursion coefficients.  The
-maximum number of numbers the formula can produce is the modulus
-@math{M}.
+to generate a new integer number @math{N'} from an initial state
+@math{N}, @math{a} and @math{b} being known, fixed, recursion
+coefficients.  The maximum number of integers the formula can produce is
+the modulus @math{M}.
 
 To avoid certain non--random properties of a single linear congruential
-generator, several such random number generators with slightly different
-values of the multiplier coeffient a are typically used in parallel,
-with a ``master'' random number generator that selects among the several
-different generators.
+generator, several such generators with slightly different values of the
+multiplier coeffient a are typically used in parallel, with a ``master''
+generator that selects among them.
 
 The most efficient LCGs have an @math{M} equal to a power of @math{2},
 most often @math{2^32} or @math{2^64}, because this allows the modulus
@@ -26773,20 +26774,21 @@ June 6, 2009).}.
 
 
 In applications using a randomness source, it happens to need a random
-integer @math{x} in the given range @math{0 <= x < U}, while the
+integer @math{X} in the given range @math{0 <= X < U}, while the
 @acronym{PRNG} generates a random integer @math{N} in the range @math{0
 <= N < M}.  In other words: We need a sample from a uniform probability
-distribution over the range @math{0 <= x < U}, by means of a sample from
+distribution over the range @math{0 <= X < U}, by means of a sample from
 a uniform probability distribution over the range @math{0 <= N < M}.
 
 We distinguish the two cases @math{U <= M} and @math{M < U}; this is
 because when @math{U <= M} there are more integers in the range @math{0
-<= N < M} than in the range @math{0 <= x < U}, while when @math{M < U}
+<= N < M} than in the range @math{0 <= X < U}, while when @math{M < U}
 it is the other way around.
 
 When @math{U <= M}, we have to understand that doing a simple @math{N
-mod U} is incorrect because it breaks uniform distribution of the result
-in the range @math{0 <= x < U}; we can use the following formulation:
+mod U} is incorrect, because it breaks uniform distribution of the
+result in the range @math{0 <= X < U}.  We can use the following
+formulation which gives uniformly distributed results:
 
 @example
 Q  = floor(M / U)
@@ -26795,30 +26797,30 @@ QU = Q * U
 loop:
   N  = <generate the next integer>
   if (N < QU)
-  then x = floor(N / Q)
+  then X = floor(N / Q)
   else goto loop
 @end example
 
 @noindent
-it works like this:
+notice that @math{QU = Q * U <= M}.  It works like this:
 
 @enumerate
 @item
-Conceptually partition the range @math{0 <= N < QU} in @math{U} ranges
-each of length @math{Q}, indexed by @math{x} in the range @math{0 <= x <
-U}.
+Conceptually partition the range @math{0 <= N < QU} in @math{U}
+intervals each of length @math{Q}, indexed by @math{X} in the range
+@math{0 <= X < U}.
 
 @item
 Generate an integer @math{N} and discard it if @math{QU <= N < M}.
 
 @item
 If @math{N} is in the range @math{0 <= N < QU}, then it is also in a
-range @math{x * Q < N < (x+1) * Q}.  @math{x} is the result.
+range @math{X * Q < N < (X+1) * Q}.  @math{X} is the result.
 @end enumerate
 
-When @math{M < U}, we have to generate a number @math{N'} which is
-uniformly distributed in a range larger than @math{0 <= x < U}.  We can
-do it by computing:
+When @math{M < U}, we have to generate a pseudo-random integers
+@math{N'} uniformly distributed in a range larger than @math{0 <= X <
+U}.  We can do it by computing:
 
 @example
 N' = N0 + M * N1 + (M * N2)^2 +
@@ -26828,8 +26830,9 @@ N' = N0 + M * N1 + (M * N2)^2 +
 @noindent
 where @math{N0}, @math{N1}, ..., @math{N(k-1)} are all generated
 integers in the range @math{0 <= N < M}.  The computed number @math{N'}
-is always less than @math{M^k}, and we compute @math{k} such that
-@math{U <= M^k}.  Then we proceed like we did before for @math{U <= M}.
+is always in the range @math{0 <= N' < M^k}, and we select @math{k} such
+that @math{U <= M^k}.  Then we proceed like we did before for @math{U <=
+M}.
 
 @c page
 @node random prng reals
@@ -26853,10 +26856,11 @@ N = 0        =>  X = 1 / (1 + M) > 0
 N = (M - 1)  =>  X = M / (1 + M) < 1
 @end example
 
-But there are more representable flonums in @math{0 < x < 1} than exact
-fractions like @math{(1 + N) / (1 + M)}.  The following program shows
-the generated inexact fractions for the very simple case @math{M = 5},
-it prints also the intervals between two adjacent fractions:
+Sometimes this is enough, but we have to notice that: There are more
+representable flonums in @math{0 < X < 1} than exact fractions like
+@math{(1 + N) / (1 + M)}.  The following program shows the generated
+inexact fractions for the very simple case @math{M = 5}, it prints also
+the intervals between two adjacent fractions:
 
 @example
 (import (rnrs)
@@ -26864,13 +26868,13 @@ it prints also the intervals between two adjacent fractions:
 
 (define M 5)
 (fold-left (lambda (prev-X X)
-	     (write (list X (- X prev-X)))
-	     (newline)
-	     X)
-	   0.
-	   (map (lambda (N)
-		  (inexact (/ (+ 1 N) (+ 1 M))))
-	     (list-tabulate M values)))
+             (write (list X (- X prev-X)))
+             (newline)
+             X)
+           0.
+           (map (lambda (N)
+                  (inexact (/ (+ 1 N) (+ 1 M))))
+             (list-tabulate M values)))
 @print{} (0.16666666666666666 0.16666666666666666)
 @print{} (0.3333333333333333  0.16666666666666666)
 @print{} (0.5                 0.16666666666666669)
@@ -26891,7 +26895,7 @@ prng integers, Generating integers in a specified range}): Use the
 generated integers @math{N} to compute a polynomial @math{N'} whose
 upper bound is @math{M^k}.
 
-So we choose a value for the desired unit, then we find @math{k} such
+So, we select a value for the desired unit, then we find @math{k} such
 that:
 
 @example
@@ -26902,7 +26906,7 @@ that:
 
 @noindent
 then we generate a big random integer @math{N'} in the range @math{0 <=
-N' < M^k} and normalise it with respect to @math{M^k}:
+N' < M^k} and normalise it with:
 
 @example
 X = (1 + N') / (1 + M^k)

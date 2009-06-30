@@ -310,7 +310,7 @@
 
 ;;;; examples
 
-(when #f
+(when #t
 
   (display "Example of random lists:\n")
   (do ((i 0 (+ 1 i)))
