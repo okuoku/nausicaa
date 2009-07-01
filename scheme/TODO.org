@@ -1,6 +1,6 @@
 * nausicaa
 
-  Fix the installation infrastructure (does not install directories).
+  XXX
 
 * lists
 
@@ -49,11 +49,12 @@
 
   Implement the shuffle and shuffle! functions for strings and vectors.
 
-  Implement a generic method to build real numbers from integers.
+  Fix  the method  to  build  real numbers  from  integers.  Update  the
+  documentation accordingly.
 
-  Implement a  randomise function taking  as argument a source  of 32bit
-  integers,  and internally querying  the random  source for  the needed
-  number of seed values.
+  Update  the  documentation on  generation  of  big  integers with  the
+  statement about  uniform distribution of polynomial  integers in their
+  range.
 
   Implement an utility function to  select a random element from a range
   of integers and of reals.  Support an optional step argument to select

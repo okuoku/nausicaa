@@ -63,6 +63,18 @@
     (check-for-true (let ((n (make-real)))
 		      (and (< 0 n) (< n 1)))))
 
+  (let* ((make-real	(random-source-reals-maker default-random-source 1e-30)))
+
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((make-real	(random-source-reals-maker default-random-source 1e-5)))
+
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
 ;;; --------------------------------------------------------------------
 
   (check-for-true
@@ -109,6 +121,19 @@
   (let* ((source	((random-source-maker)))
 	 (make-real	(random-source-reals-maker source)))
 
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+
+  (let* ((source	((random-source-maker)))
+	 (make-real	(random-source-reals-maker source 1e-30)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	((random-source-maker)))
+	 (make-real	(random-source-reals-maker source 1e-5)))
     (check-for-true (real? (make-real)))
     (check-for-true (let ((n (make-real)))
 		      (and (< 0 n) (< n 1)))))
@@ -162,6 +187,18 @@
   (let* ((source	(make-random-source/mrg32k3a))
 	 (make-real	(random-source-reals-maker source)))
 
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/mrg32k3a))
+	 (make-real	(random-source-reals-maker source 1e-30)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/mrg32k3a))
+	 (make-real	(random-source-reals-maker source 1e-5)))
     (check-for-true (real? (make-real)))
     (check-for-true (let ((n (make-real)))
 		      (and (< 0 n) (< n 1)))))
@@ -310,7 +347,7 @@
 
 ;;;; examples
 
-(when #t
+(when #f
 
   (display "Example of random lists:\n")
   (do ((i 0 (+ 1 i)))

@@ -100,8 +100,14 @@
 (define (random-source-integers-maker s)
   (:random-source-integers-maker s))
 
-(define (random-source-reals-maker s)
-  (:random-source-reals-maker s))
+(define random-source-reals-maker
+  (case-lambda
+   ((s)
+    (:random-source-reals-maker s))
+   ((s unit)
+    (let ((f (:random-source-reals-maker s)))
+      (lambda ()
+	(f unit))))))
 
 (define (random-source-bytevectors-maker s)
   (lambda (number-of-bytes)
@@ -135,17 +141,17 @@
   ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
   ;;understand what this does.
   (define (polynomial k)
+    ;;Notice that this function returns  integers N' in a range 0<=N'<M'
+    ;;with M^k<=M'; that is N' can be greater than M^k.
     (%polynomial k M make-random-bits))
   (do ((k 2 (+ k 1))
        (M^k (* M M) (* M^k M)))
       ((<= U M^k)
-       (if (= U M^k)
-	   (polynomial k)
-	 (let* ((Q  (div M^k U))
-		(QU (* Q U)))
-	   (do ((N (polynomial k) (polynomial k)))
-	       ((< N QU)
-		(div N Q))))))))
+       (let* ((Q  (div M^k U))
+	      (QU (* Q U)))
+	 (do ((N (polynomial k) (polynomial k)))
+	     ((< N QU)
+	      (div N Q)))))))
 
 ;;The version commented out below is an equivalent reorganisation of the
 ;;original  version  in the  reference  implementation  of SRFI-42.   It
@@ -191,11 +197,14 @@
     (let ((C (- (/ unit) 1)))
       (if (<= C M)
 	  ;;This is like: (make-random-real M make-random-bits)
-	  (%normalise (make-random-bits) M)
+	  (begin
+;;;	    (write 'avoiding-unit-because-too-big)(newline)
+	    (%normalise (make-random-bits) M))
 	(do ((k 1 (+ k 1))
 	     (U C (/ U M)))
 	    ((<= U 1)
-	     (%normalise (%polynomial k U M make-random-bits)
+;;;	     (write 'making-use-of-unit-here)(newline)
+	     (%normalise (%polynomial k M make-random-bits)
 			 (expt M k)))))))))
 
 (define (random-bytevector-fill! bv make-random-32bits)
@@ -294,8 +303,11 @@
      1				    ; required seed values
      (lambda (U)		    ; integers-maker
        (make-random-integer U M1 make-random-bits))
-     (lambda () ; reals-maker
+     (case-lambda ; reals-maker
+      (()
        (make-random-real M1 make-random-bits))
+      ((unit)
+       (make-random-real M1 make-random-bits unit)))
      (lambda (bv) ; bytevectors-filler
        (random-bytevector-fill! bv make-random-32bits)))))
 
@@ -439,8 +451,11 @@
        #f			      ; required seed values
        (lambda (U)		      ; integers-maker
 	 (make-random-integer U M make-random-bits))
-       (lambda () ; reals-maker
+       (case-lambda ; reals-maker
+	(()
 	 (make-random-real M make-random-bits))
+	((unit)
+	 (make-random-real M make-random-bits unit)))
        (lambda (bv) ; bytevectors-filler
 	 (random-bytevector-fill! bv make-random-32bits)))))))
 
