@@ -420,7 +420,6 @@
     (check (real? (sampler)) => #t)
     (check (let ((n (sampler))) (and (<= 0 n) (<= n 10))) => #t))
 
-
   )
 
 
@@ -518,8 +517,62 @@
 			(sampler))
 	=> #t))
 
+    )
 
-    ))
+;;; --------------------------------------------------------------------
+
+  (let ()
+    (define (test-random-integers-with-sum requested-sum number-of-numbers
+					   range-min-inclusive range-max-exclusive)
+      (let ((obj (random-integers-with-sum requested-sum number-of-numbers
+					   range-min-inclusive range-max-exclusive
+					   default-random-source)))
+;;;	(write obj)(newline)
+	(check-for-true (vector? obj))
+	(check-for-true (= number-of-numbers (vector-length obj)))
+	(check-for-true (vector-every integer? obj))
+	(do ((i 0 (+ 1 i)))
+	    ((= i number-of-numbers))
+	  (check-for-true (let ((n (vector-ref obj i)))
+			    (and (<= range-min-inclusive n)
+				 (< n range-max-exclusive)))))
+	(check (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj) => requested-sum)))
+
+    (test-random-integers-with-sum 25 8 0 10)
+    (test-random-integers-with-sum 25 8 0 5)
+    (test-random-integers-with-sum 50 8 0 20)
+    (test-random-integers-with-sum 50 8 3 10)
+    )
+
+  (let ()
+    (define (test-random-reals-with-sum requested-sum number-of-numbers
+					range-min-exclusive range-max-exclusive)
+      (let ((obj (random-reals-with-sum requested-sum number-of-numbers
+					range-min-exclusive range-max-exclusive
+					default-random-source)))
+;;;	(write obj)(newline)
+	(check-for-true (vector? obj))
+	(check-for-true (= number-of-numbers (vector-length obj)))
+	(check-for-true (vector-every real? obj))
+	(do ((i 0 (+ 1 i)))
+	    ((= i number-of-numbers))
+	  (check-for-true (let ((n (vector-ref obj i)))
+			    (and (< range-min-exclusive n)
+				 (< n range-max-exclusive)))))
+	(check
+	    (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
+	  (=> (lambda (a b)
+		(> 1e-6 (abs (- a b)))))
+	  requested-sum)))
+
+    (test-random-reals-with-sum 25 8 0 10)
+    (test-random-reals-with-sum 25 8 0 5)
+    (test-random-reals-with-sum 50 8 0 20)
+    (test-random-reals-with-sum 50 8 3 10)
+    )
+
+  )
+
 
 
 (parameterise ((check-test-name 'string))

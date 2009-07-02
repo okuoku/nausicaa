@@ -109,11 +109,9 @@
 (define random-source-reals-maker
   (case-lambda
    ((s)
-    (:random-source-reals-maker s))
+    ((:random-source-reals-maker s)))
    ((s unit)
-    (let ((f (:random-source-reals-maker s)))
-      (lambda ()
-	(f unit))))))
+    ((:random-source-reals-maker s) unit))))
 
 (define (random-source-bytevectors-maker s)
   (lambda (number-of-bytes)
@@ -128,9 +126,12 @@
 ;;;; random numbers generation
 
 (define (make-random-integer U M make-random-bits)
-  (if (<= U M)
-      (%make-random-integer/small U M make-random-bits)
-    (%make-random-integer/large U M make-random-bits)))
+  (cond ((= 0 U)
+	 0)
+	((<= U M)
+	 (%make-random-integer/small U M make-random-bits))
+	(else
+	 (%make-random-integer/large U M make-random-bits))))
 
 (define (%make-random-integer/small U M make-random-bits)
   ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
@@ -318,9 +319,11 @@
        (make-random-integer U M1 make-random-bits))
      (case-lambda ; reals-maker
       (()
-       (make-random-real M1 make-random-bits))
+       (lambda ()
+	 (make-random-real M1 make-random-bits)))
       ((unit)
-       (make-random-real M1 make-random-bits unit)))
+       (lambda ()
+	 (make-random-real M1 make-random-bits unit))))
      (lambda (bv) ; bytevectors-filler
        (random-bytevector-fill! bv make-random-32bits)))))
 
@@ -472,9 +475,11 @@
 	 (make-random-integer U M make-random-bits))
        (case-lambda ; reals-maker
 	(()
-	 (make-random-real M make-random-bits))
+	 (lambda ()
+	   (make-random-real M make-random-bits)))
 	((unit)
-	 (make-random-real M make-random-bits unit)))
+	 (lambda ()
+	   (make-random-real M make-random-bits unit))))
        (lambda (bv) ; bytevectors-filler
 	 (random-bytevector-fill! bv make-random-32bits)))))))
 

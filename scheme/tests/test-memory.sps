@@ -704,7 +704,7 @@
 
 (parameterize ((check-test-name 'pokers))
 
-  (check
+  (check 'this
       (let* ((p (malloc (expt 10 5)))
 	     (d (begin
 		  (pointer-set-c-char! p 100 65)

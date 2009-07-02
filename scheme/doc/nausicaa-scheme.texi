@@ -26808,7 +26808,9 @@ loop:
 @end example
 
 @noindent
-notice that @math{QU = Q * U <= M}.  It works like this:
+notice that @math{QU = Q * U <= M}; also notice that it is statistically
+possible that the algorithm loops forever, but we can hope that it finds
+a solution in a reasonable short time.  It works like this:
 
 @enumerate
 @item
@@ -27418,12 +27420,30 @@ randomly selected item from the selected subvector, using randomness
 from @var{source}.
 @end deffn
 
+
 @deffn Function %random-vector-sample-population @var{source} @var{len} @var{vec} @var{start} @var{past}
 @deffnx Macro random-vector-sample-population @var{V} @var{len} @var{source}
 Return a closure that, when evaluated with no arguments, returns a
 vector of @var{len} items randomly selected from the selected subvector
 of @var{vec}, using randomness from @var{source}.
 @end deffn
+
+
+@defun random-integers-with-sum @var{requested-sum} @var{number-of-numbers} @var{inclusive-min} @var{exclusive-max} @var{source}
+Return a vector of length @var{number-of-numbers}, holding random
+integers in the range @var{inclusive-min}, @var{exclusive-max} generated
+using randomness from @var{source}.  The integers are such that their
+sum equals @var{requested-sum}.
+@end defun
+
+
+@defun random-reals-with-sum @var{requested-sum} @var{number-of-numbers} @var{exclusive-min} @var{exclusive-max} @var{source}
+Return a vector of length @var{number-of-numbers}, holding random reals
+in the range @var{exclusive-min}, @var{exclusive-max} generated using
+randomness from @var{source}.  The reals are such that their sum equals
+@var{requested-sum}.  However, notice that rounding errors can be can be
+sensible here, so the solution may need a refinement.
+@end defun
 
 @c page
 @node random strings
