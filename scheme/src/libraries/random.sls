@@ -153,11 +153,13 @@
   (do ((k 2 (+ k 1))
        (M^k (* M M) (* M^k M)))
       ((<= U M^k)
-       (let* ((Q  (div M^k U))
-	      (QU (* Q U)))
-	 (do ((N (polynomial k) (polynomial k)))
-	     ((< N QU)
-	      (div N Q)))))))
+       (if (= U M^k)
+	   (polynomial k)
+	 (let* ((Q  (div M^k U))
+		(QU (* Q U)))
+	   (do ((N (polynomial k) (polynomial k)))
+	       ((< N QU)
+		(div N Q))))))))
 
 ;;The version commented out below is an equivalent reorganisation of the
 ;;original  version  in the  reference  implementation  of SRFI-42.   It
@@ -177,7 +179,9 @@
 ;;
 ;;  N0 + M * N1 + M^2 * N2 + ... + M^(k-2) * N(k-2) + M^(k-1) * N(k-1)
 ;;
-;;which is implemented by the tail recursive version below.
+;;which is implemented by the tail recursive version below.  Notice that
+;;the maximum value is realised when every N(k) equals M-1 and its value
+;;is M^k.
 ;;
 (define (%polynomial k M make-random-bits)
   (define (integer)

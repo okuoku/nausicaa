@@ -898,9 +898,9 @@ Sources of random bits
 * random device::               Device--based generator.
 * random mersenne::             The Mersenne twister.
 * random utils::                Utilities.
-* random list::                 Specialised list functions.
-* random vector::               Specialised vector functions.
-* random string::               Specialised string functions.
+* random lists::                Specialised list functions.
+* random vectors::              Specialised vector functions.
+* random strings::              Specialised string functions.
 
 Notes on the algorithms
 
@@ -26569,9 +26569,9 @@ generators; some generator is available only if we have installed the
 * random device::               Device--based generator.
 * random mersenne::             The Mersenne twister.
 * random utils::                Utilities.
-* random list::                 Specialised list functions.
-* random vector::               Specialised vector functions.
-* random string::               Specialised string functions.
+* random lists::                Specialised list functions.
+* random vectors::              Specialised vector functions.
+* random strings::              Specialised string functions.
 @end menu
 
 @c page
@@ -26586,9 +26586,9 @@ production process:
 @itemize
 @item
 The ``no fuss'' interface specifies that @code{(random-integer U)}
-produces the next random integer number @math{x} such that @math{0 <= x
+produces the next random integer number @math{X} such that @math{0 <= X
 < U} and @func{(random-real)} produces the next random real number
-@math{x} such that @math{0 < x < 1}.  Details about how these random
+@math{X} such that @math{0 < X < 1}.  Details about how these random
 values are produced may not be very relevant, as long as they appear to
 be sufficiently random.
 
@@ -26623,17 +26623,17 @@ discrete structures, such as permutations or graphs.
 
 Pseudo--random number generators (@acronym{PRNG}s) are algorithms that
 can automatically create long sequences of numbers (for example,
-millions of numbers) with good random properties, but eventually the
+millions of numbers) with good random properties; eventually the
 sequence repeats itself or memory usage grows without
 bound@footnote{Wikipedia contributors, ``Random number generation,''
 Wikipedia, The Free Encyclopedia,
 @url{http://en.wikipedia.org/wiki/@/Random_number_generator} (accessed
 June 28, 2009).}.
 
-We examine some notes on the generators to be able to understand the
-basics of the code, and to reverese engineer the basic steps of source
-code available on the Internet.  This section is meant to help people
-new to the @acronym{PRNG} algorithms.
+We examine some notes on @acronym{PRNG}s with the purpose of gaining
+basic understanding of the code, and to reverese engineer the basic
+steps of source code available on the Internet.  This section is meant
+to help people new to the @acronym{PRNG} algorithms.
 
 @menu
 * random prng lcg::             Linear congruential generators.
@@ -26663,7 +26663,7 @@ the modulus @math{M}.
 
 To avoid certain non--random properties of a single linear congruential
 generator, several such generators with slightly different values of the
-multiplier coeffient a are typically used in parallel, with a ``master''
+multiplier coeffient are typically used in parallel, with a ``master''
 generator that selects among them.
 
 The most efficient LCGs have an @math{M} equal to a power of @math{2},
@@ -26704,7 +26704,7 @@ than, others in tests of randomness.
 
 A @acronym{MWC} sequence is based on arithmetic modulo @math{M}, usually
 @math{2^32}, because arithmetic modulo that @math{M} is automatic in
-most computers, but sometimes a modulo such as @math{23^2 - 1} is used,
+most computers, but sometimes a modulo such as @math{32^2 - 1} is used,
 because arithmetic for modulus @math{2^32 - 1} requires only a simple
 adjustment from that for @math{2^32}, and theory for @acronym{MWC}
 sequences based on modulus @math{2^32} has some nagging difficulties
@@ -26765,7 +26765,7 @@ is not true.
 
 @acronym{CSPRNG} requirements fall into two groups: that they pass
 statistical randomness tests; that they hold up well under serious
-attack, even when part of their initial or running state becomes
+attacks, even when part of their initial or running state becomes
 available to an attacker@footnote{Wikipedia contributors,
 ``Cryptographically secure pseudorandom number generator,'' Wikipedia,
 The Free Encyclopedia, @url{http://en.wikipedia.org/wiki/@/
@@ -26784,11 +26784,13 @@ integer @math{X} in a given range @math{0 <= X < U}, while the
 < U} having uniform probability distribution, by means of a sample from
 the range @math{0 <= N < M} having a uniform probability distribution.
 
-We distinguish the two cases @math{U <= M} and @math{M < U}; this is
-because when @math{U <= M} there are more integers in the range @math{0
-<= N < M} than in the range @math{0 <= X < U}, while when @math{M < U}
-it is the other way around.
+We distinguish the two cases @math{U <= M} and @math{M < U}, because
+when @math{U <= M} there are more integers in the range @math{0 <= N <
+M} than in the range @math{0 <= X < U}, while when @math{M < U} it is
+the other way around.
 
+@itemize
+@item
 When @math{U <= M}, we have to understand that doing a simple @math{N
 mod U} is incorrect, because it breaks uniform distribution of the
 result in the range @math{0 <= X < U}.  We can use the following
@@ -26799,7 +26801,7 @@ Q  = floor(M / U)
 QU = Q * U
 
 loop:
-  N  = <generate the next integer>
+  N = <generate the next integer>
   if (N < QU)
   then X = floor(N / Q)
   else goto loop
@@ -26815,16 +26817,19 @@ intervals each of length @math{Q}, indexed by @math{X} in the range
 @math{0 <= X < U}.
 
 @item
-Generate an integer @math{N} and discard it if @math{QU <= N < M}.
+Generate an integer @math{N} and discard it if @math{QU <= N}.
 
 @item
 If @math{N} is in the range @math{0 <= N < QU}, then it is also in a
 range @math{X * Q < N < (X+1) * Q}.  @math{X} is the result.
 @end enumerate
 
+@item
 When @math{M < U}, we have to generate pseudo-random integers @math{N'}
-uniformly distributed in a range @math{0 <= N' < M'}, with @math{U <=
-M'}.  We can do it by computing:
+uniformly distributed in a range @math{0 <= N' < M'}, with @math{M < U
+<= M'}.  We can do it by computing the following formula, which is a
+polynomial in @math{M} and a linear combination with positive
+coefficients in @math{N(k)}:
 
 @example
 N' = N0 + M * N1 + M^2 * N2 + ... +
@@ -26833,21 +26838,34 @@ N' = N0 + M * N1 + M^2 * N2 + ... +
 
 @noindent
 where @math{N0}, @math{N1}, ..., @math{N(k-1)} are all generated
-integers in the range @math{0 <= N < M}.  The maximum value is realised
-when every @math{N(k)} equals @math{M}:
+integers in the range @math{0 <= N(k) < M}.  The maximum value, that is
+@math{M' - 1}, is realised when every @math{N(k)} equals @math{M - 1}:
 
 @example
-M' - 1 = M + M * M + M^2 * M + ... + M^(k-2) * M + M^(k-1) * M
-       = M * [1 + M + M^2 + ... + M^(k-2) + M^(k-1)]
-       = M * (1 - M^k)/(1 - M)
-
-M^k < M'
+M' - 1 = (M - 1) + M * (M - 1) + M^2 * (M - 1) + ... +
+       + ... + M^(k-2) * (M - 1) + M^(k-1) * (M - 1)
+       = (M - 1) * [1 + M + M^2 + ... + M^(k-2) + M^(k-1)]
+       = (M - 1) * (1 - M^k)/(1 - M)
+       = (M - 1) * (M^k - 1)/(M - 1)
+       = M^k - 1
 @end example
 
 @noindent
-so by selecting @math{k} such that @math{U <= M^k <= M'} we are sure
-that @math{N'} will be in a suitable range.  Then we proceed like we did
-before for @math{U <= M}.
+which implies @math{M^k = M'}.  So by selecting @math{k} such that
+@math{U <= M^k} we are sure that @math{N'} will be in a suitable range.
+Then we proceed like we did before for @math{U <= M}:
+
+@example
+Q  = floor(M' / U)
+QU = Q * U
+
+loop:
+  N' = <compute the next polynomial>
+  if (N' < QU)
+  then X = floor(N' / Q)
+  else goto loop
+@end example
+@end itemize
 
 @c page
 @node random prng reals
@@ -26876,7 +26894,8 @@ N = 0        =>  X = 1 / (1 + M) > 0
 N = (M - 1)  =>  X = M / (1 + M) < 1
 @end example
 
-Sometimes this is enough, but we have to notice that: There may be more
+@noindent
+sometimes this is enough, but we have to notice that: There may be more
 representable flonums in @math{0 < X < 1} than exact fractions like
 @math{(1 + N) / (1 + M)}.
 
@@ -26893,7 +26912,7 @@ adjacent fractions:
              (write (list X (- X prev-X)))
              (newline)
              X)
-           0.
+           0.0
            (map (lambda (N)
                   (inexact (/ (+ 1 N) (+ 1 M))))
              (list-tabulate M values)))
@@ -26905,29 +26924,28 @@ adjacent fractions:
 @end example
 
 @noindent
-so the generated flonums numbers are in ``units'' of approximately
-@math{1/6 = 0.166666666666666}; we can compute this unit with @math{1 /
-(1 + M)}.
+so the generated flonums are in ``units'' of approximately @math{1/6 =
+0.166666666666666}; we can compute this unit with @math{1 / (1 + M)}.
 
-It is useful to be able to generate flonums numbers in smaller units: We
-can do it by generating a pseudo--random integer @math{N'} uniformly
+It is useful to be able to generate flonums in smaller units: We can do
+it by generating a pseudo--random integer @math{N'} uniformly
 distributed in a range larger than @math{0 <= N < M}.  We use the same
-method previously outlined for large integers generation (@ref{random
-prng integers, Generating integers in a specified range}): Use the
-generated integers @math{N} to compute a polynomial @math{N'} in the
-range @math{0 <= N' < M'}.
+method previously outlined for large integers generation.  @ref{random
+prng integers, Generating integers in a specified range}
 
 So, we select a value for the desired unit, then we find @math{M'} such
 that:
 
 @example
-1/(1+M') < unit
-=>  1+M' > 1/unit
-=>  M' > floor(1/unit) - 1
+1 / (1 + M') <= unit
+=>  1 + M' >= 1 / unit
+=>  M' >= (1 / unit) - 1
+=>  1  >= (1 / unit) - 1 / M'
 @end example
 
 @noindent
-then we generate a big random integer @math{N'} and normalise it with:
+then we generate a big random integer @math{N'} in the range @math{0 <=
+N' < M'} and normalise it with:
 
 @example
 X = (1 + N') / (1 + M')
@@ -26955,7 +26973,7 @@ distributed over the range @math{0 <= X < U}.
 
 @defun random-real
 Use @code{default-random-source} to generate the next real number
-@math{X} in the range @math{0 < X < 1}; @math{X=0} and @math{X=1} are
+@math{X} in the range @math{0 < X < 1}.  @math{X=0} and @math{X=1} are
 excluded in order to allow @math{\log(X)} and @math{\log(1-X)} without
 the danger of a numerical exception.  Subsequent results of this
 procedure are independent, uniformly distributed in the range @math{0 <
@@ -27031,31 +27049,37 @@ invoked until it first returns @false{}.
 @end defun
 
 
+@defun random-source-jumpahead! @var{source} @var{number-of-steps}
+Move ahead @var{number-of-steps} randomness @var{source}'s state.  What
+this means exactly depends on the type of @var{source}.
+@end defun
+
+
 The following procedures return a closure @var{rand} to generate
 pseudo--random integers and real numbers using a randomness
 @var{source}.  If an application obtains and uses several @var{rand}
 procedures for the same randomness @var{source}, a call to any of these
 procedures advances the state of @var{source}.  Hence, the procedures do
-not produce the same sequence of random integers each but rather share a
-state.
+not produce the same sequence of random integers each, but rather share
+a state.
 
 
 @defun random-source-integers-maker @var{source}
 Return a procedure @var{rand} to generate random integers using
-@var{source}.  @var{rand} takes a single argument @var{n}, which must be
+@var{source}.  @var{rand} takes a single argument @var{U}, which must be
 a positive integer, and returns the next uniformly distributed random
-integer @math{x} in the interval @math{0 <= x < U} by advancing the
+integer @math{X} in the interval @math{0 <= X < U} by advancing the
 state of @var{source}.
 @end defun
 
 
 @defun random-source-reals-maker @var{source}
 @defunx random-source-reals-maker @var{source} @var{unit}
-Return a procedure @var{rand} to generate random real numbers @math{X}
-in the range @code{0 < X < 1} using @var{source}; @math{X=0} and
-@math{X=1} are excluded in order to allow @math{\log(X)} and
-@math{\log(1-X)} without the danger of a numerical exception.  The
-procedure @var{rand} is called without arguments.
+Return a procedure @var{rand} which, when invoked with no arguments,
+generates random real numbers @math{X} in the range @code{0 < X < 1}
+using @var{source}.  @math{X=0} and @math{X=1} are excluded in order to
+allow @math{\log(X)} and @math{\log(1-X)} without the danger of a
+numerical exception.
 
 The optional parameter @var{unit} determines the quantization of the
 output; @var{unit} must be a number such that @code{0 < unit < 1}.  The
@@ -27095,14 +27119,9 @@ are positive integers.
 @subsubheading The algorithm
 
 The MRG32k3a generator produces values @math{N} in the range @math{0 <=
-N < 2^32 - 209}.  All the values @math{x} of the subexpressions of the
-actual generator, fit into the range @math{-2^53 <= V < 2^53}.  However,
-for advancing the state of the generator by more than one step at a
-time, the full range @math{0 <= V < 2^32 - 209} is needed.
-
-A new pseudo--random number @math{N} is generated with the following
-computation starting from the state vectors @math{[A1, A2, A3]} and
-@math{[B1, B2, B3]}:
+N < 2^32 - 209}.  A new pseudo--random number @math{N} is generated with
+the following computation starting from the state vectors @math{[A1, A2,
+A3]} and @math{[B1, B2, B3]}:
 
 @example
 M1 = 4294967087 = 2^32 - 209
@@ -27174,7 +27193,7 @@ lesser quality.
 
 @deffn Parameter random-device-cache-length
 Device--based randomness sources cache read bytes into a bytevector of
-fixed size.  This parameters allows us to select the size at source
+fixed size.  This parameter allows us to select the size at source
 construction time.  It is preset to @math{4096}.
 @end deffn
 
@@ -27237,20 +27256,17 @@ random number or integer, build and return a new list, vector or string
 of @var{number-of-numbers} random numbers or characters.
 
 As a usage example, the following program will generate random passwords
-with characters in the range of graphics @ascii{} codes:
+with characters in the range of graphics @ascii{} codes (warning: for
+real world applications, use a true random source):
 
 @example
 (import (rnrs)
   (random)
-  (char-sets)
-  (only (rnrs r5rs) modulo))
-
-(define source
-  (make-random-source-of-integers/device "/dev/random"))
+  (char-sets))
 
 (unfold-random-numbers/string
   (lambda ()
-    (do ((ch (modulo (source) 127) (modulo (source) 127)))
+    (do ((ch (random-integer 127) (random-integer 127)))
         ((char-set-contains? char-set:ascii/graphic
                              (integer->char ch))
          ch)))
@@ -27284,7 +27300,7 @@ generating a random real @math{X} in the range @math{0 < X < 1}, then
 computing:
 
 @example
-start + (last - start) * X
+R = start + (last - start) * X
 @end example
 
 @noindent
@@ -27340,7 +27356,7 @@ random numbers using randomness from @var{source}.
 @end defun
 
 @c page
-@node random list
+@node random lists
 @subsection Specialised list functions
 
 
@@ -27369,7 +27385,7 @@ from @var{source}.
 @end defun
 
 @c page
-@node random vector
+@node random vectors
 @subsection Specialised vector functions
 
 
@@ -27377,7 +27393,8 @@ The auxiliary library @library{random vectors} exports bindings
 specialised to handle vectors and randomness sources; it is based on
 both @library{random} and @library{vectors}.  Arguments to the following
 functions follow the same conventions established for @library{vectors}
-and @library{vectors low}.
+and @library{vectors low}.  @ref{vectors convention, Interface
+conventions}
 
 
 @deffn Function %random-vector-shuffle @var{source} @var{vec} @var{start} @var{past}
@@ -27409,7 +27426,7 @@ of @var{vec}, using randomness from @var{source}.
 @end deffn
 
 @c page
-@node random string
+@node random strings
 @subsection Specialised string functions
 
 
@@ -27417,7 +27434,8 @@ The auxiliary library @library{random strings} exports bindings
 specialised to handle strings and randomness sources; it is based on
 both @library{random} and @library{strings}.  Arguments to the following
 functions follow the same conventions established for @library{strings}
-and @library{strings low}.
+and @library{strings low}.  @ref{strings convention, Interface
+conventions}
 
 
 @deffn Function %random-string-shuffle @var{source} @var{str} @var{start} @var{past}
@@ -28215,7 +28233,8 @@ nothing.
 @end deffn
 
 
-@deffn Escape @code{~newline}  (ie.@: newline character)
+@deffn Escape @code{~newline}
+@c (ie.@: newline character)
 Continuation line.  No parameters.
 
 Skip this newline and any following whitespace in the format string,
@@ -28237,15 +28256,14 @@ whitespace.
 @end deffn
 
 
-@deffn Escape @code{~(} @code{~)}
+@deffn Escape {~( ~)}
 Case conversion.  No parameters.
 
 Between @code{~(} and @code{~)} the case of all output is changed.
 The modifiers on @code{~(} control the conversion.
 
-
-@itemize @code
-@item ~(
+@itemize @asis
+@item @code{~(}
 Lower case.
 @c
 @c  FIXME: The : and @ modifiers are not yet documented because the
@@ -28269,7 +28287,7 @@ Lower case.
 @c  @code{@@} --- first letter of just the first word upper case, the
 @c  rest lower case.
 @c
-@item ~:@@(
+@item @code{~:@@(}
 Upper case.
 @end itemize
 
@@ -28366,7 +28384,7 @@ See also @code{~^} below for escaping from iteration.
 @end deffn
 
 
-@deffn Escape @code{~[} @code{~;} @code{~]}
+@deffn Escape {~[ ~; ~]}
 Conditional.  Parameter: @var{selector}.
 
 A conditional block is delimited by @code{~[} and @code{~]}, and

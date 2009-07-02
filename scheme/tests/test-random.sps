@@ -568,7 +568,7 @@
 
 ;;;; examples
 
-(when #t
+(when #f
 
   (display "Example of random lists:\n")
   (do ((i 0 (+ 1 i)))

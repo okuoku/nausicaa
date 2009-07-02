@@ -302,7 +302,7 @@ nau_itest_RUN		= $(nau_itest_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
 itest itests icheck:
 ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 	@$(foreach f,$(nau_test_FILES),\
-		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f))
+		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f);)
 endif
 
 test tests check: itest
@@ -320,7 +320,7 @@ nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
 ltest ltests lcheck:
 ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 	@$(foreach f,$(nau_test_FILES),\
-		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f))
+		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f);)
 endif
 
 test tests check: ltest
@@ -342,7 +342,7 @@ nau_mtest_RUN		= $(nau_mtest_ENV) $(nau_TIME_TESTS) $(nau_mtest_PROGRAM)
 mtest mtests mcheck:
 ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 	@$(foreach f,$(nau_test_FILES),\
-		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_RUN) $(f))
+		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_RUN) $(f);)
 endif
 
 test tests check: mtest
@@ -360,7 +360,7 @@ nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_TIME_TESTS) $(nau_ytest_PROGRAM)
 ytest ytests ycheck:
 ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 	@$(foreach f,$(nau_test_FILES),\
-		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_RUN) $(f))
+		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_RUN) $(f);)
 endif
 
 test tests check: ytest
