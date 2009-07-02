@@ -32,7 +32,8 @@
     %random-vector-sample		random-vector-sample
     %random-vector-sample-population	random-vector-sample-population
 
-    random-integers-with-sum		random-reals-with-sum)
+    random-integers-with-sum
+    random-reals-with-sum		random-reals-with-sum-refine)
   (import (rnrs)
     (random)
     (vectors low)
@@ -111,25 +112,25 @@
   ;;
   ;;URL last verified Thu Jul 2, 2009.
   ;;
-  (when (<= (- range-max range-min) 0)
-    (assertion-violation 'random-integers-with-sum
-      "invalid range limits" range-min range-max))
-  (when (< requested-sum (* range-min number-of-numbers))
-    (assertion-violation 'random-integers-with-sum
-      (string-append "impossible to generate requested sum "
-		     (number->string requested-sum)
-		     " using at most "
-		     (number->string number-of-numbers)
-		     " numbers greater or equal to "
-		     (number->string range-min))))
-  (when (> requested-sum (* (- range-max 1) number-of-numbers))
-    (assertion-violation 'random-integers-with-sum
-      (string-append "impossible to generate requested sum "
-		     (number->string requested-sum)
-		     " using at least "
-		     (number->string number-of-numbers)
-		     " numbers less than "
-		     (number->string range-max))))
+;;   (when (<= (- range-max range-min) 0)
+;;     (assertion-violation 'random-integers-with-sum
+;;       "invalid range limits" range-min range-max))
+;;   (when (< requested-sum (* range-min number-of-numbers))
+;;     (assertion-violation 'random-integers-with-sum
+;;       (string-append "impossible to generate requested sum "
+;; 		     (number->string requested-sum)
+;; 		     " using at most "
+;; 		     (number->string number-of-numbers)
+;; 		     " numbers greater or equal to "
+;; 		     (number->string range-min))))
+;;   (when (> requested-sum (* (- range-max 1) number-of-numbers))
+;;     (assertion-violation 'random-integers-with-sum
+;;       (string-append "impossible to generate requested sum "
+;; 		     (number->string requested-sum)
+;; 		     " using at least "
+;; 		     (number->string number-of-numbers)
+;; 		     " numbers less than "
+;; 		     (number->string range-max))))
   (let* ((integers-maker	(random-source-integers-maker source))
 	 (result		(make-vector number-of-numbers))
 	 (sum-so-far		0)
@@ -137,8 +138,7 @@
     (do ((i 0 (+ 1 i)))
 	((= i number-of-numbers)
 	 ;;This shuffling is required  because the generated numbers are
-	 ;;biased once,  at the end of  the vector, "min"  and "max" get
-	 ;;close each other.
+	 ;;biased once "min" and "max" start to get close each other.
 	 (%random-vector-shuffle! source result 0 number-of-numbers)
 	 result)
       (let* ((available-sum	(- requested-sum sum-so-far))
@@ -167,25 +167,28 @@
   ;;
   ;;URL last verified Thu Jul 2, 2009.
   ;;
-  (when (<= (- range-max range-min) 0)
-    (assertion-violation 'random-reals-with-sum
-      "invalid range limits" range-min range-max))
-  (when (< requested-sum (* range-min number-of-numbers))
-    (assertion-violation 'random-reals-with-sum
-      (string-append "impossible to generate requested sum "
-		     (number->string requested-sum)
-		     " using at most "
-		     (number->string number-of-numbers)
-		     " numbers greater or equal to "
-		     (number->string range-min))))
-  (when (> requested-sum (* (- range-max 1) number-of-numbers))
-    (assertion-violation 'random-reals-with-sum
-      (string-append "impossible to generate requested sum "
-		     (number->string requested-sum)
-		     " using at least "
-		     (number->string number-of-numbers)
-		     " numbers less than "
-		     (number->string range-max))))
+;;;These  are commented  out because  real  numbers can  be positive  or
+;;;negative.
+;;;
+;;;   (when (<= (- range-max range-min) 0)
+;;;     (assertion-violation 'random-reals-with-sum
+;;;       "invalid range limits" range-min range-max))
+;;;   (when (< requested-sum (* range-min number-of-numbers))
+;;;     (assertion-violation 'random-reals-with-sum
+;;;       (string-append "impossible to generate requested sum "
+;;; 		     (number->string requested-sum)
+;;; 		     " using at most "
+;;; 		     (number->string number-of-numbers)
+;;; 		     " numbers greater or equal to "
+;;; 		     (number->string range-min))))
+;;;   (when (> requested-sum (* (- range-max 1) number-of-numbers))
+;;;     (assertion-violation 'random-reals-with-sum
+;;;       (string-append "impossible to generate requested sum "
+;;; 		     (number->string requested-sum)
+;;; 		     " using at least "
+;;; 		     (number->string number-of-numbers)
+;;; 		     " numbers less than "
+;;; 		     (number->string range-max))))
   (let* ((reals-maker	(random-source-reals-maker source))
 	 (result	(make-vector number-of-numbers))
 	 (sum-so-far	0))
@@ -195,7 +198,7 @@
 	 ;;biased once,  at the end of  the vector, "min"  and "max" get
 	 ;;close each other.
 	 (%random-vector-shuffle! source result 0 number-of-numbers)
-	 result)
+	 (values result sum-so-far))
       (let* ((available-sum	(- requested-sum sum-so-far))
 	     (still-to-do-after-this-one
 	      (- number-of-numbers i 1))
@@ -208,6 +211,24 @@
 		   (+ min (* (reals-maker) (- max min))))))
 	  (vector-set! result i N)
 	  (set! sum-so-far (+ N sum-so-far)))))))
+
+
+(define (random-reals-with-sum-refine vec actual-sum requested-sum tolerance max-ntries)
+  (define (difference actual-sum requested-sum)
+    (abs (- actual-sum requested-sum)))
+  (let ((len   (vector-length vec)))
+    (do ((i 0 (+ 1 i))
+	 (diff (difference actual-sum requested-sum)
+	       (difference actual-sum requested-sum)))
+	((or (= i max-ntries)
+	     (< diff tolerance))
+	 (values vec actual-sum))
+      (let ((e (/ diff len)))
+	(write (list 'fixing-diff e))(newline)
+	(vector-map! (lambda (idx num) (- num e))
+		     vec)
+	(set! actual-sum (vector-fold (lambda (idx prev num) (+ prev num))
+				      0 vec))))))
 
 
 ;;;; done

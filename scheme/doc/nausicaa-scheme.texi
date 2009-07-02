@@ -27438,11 +27438,36 @@ sum equals @var{requested-sum}.
 
 
 @defun random-reals-with-sum @var{requested-sum} @var{number-of-numbers} @var{exclusive-min} @var{exclusive-max} @var{source}
-Return a vector of length @var{number-of-numbers}, holding random reals
-in the range @var{exclusive-min}, @var{exclusive-max} generated using
-randomness from @var{source}.  The reals are such that their sum equals
-@var{requested-sum}.  However, notice that rounding errors can be can be
-sensible here, so the solution may need a refinement.
+Return two values:
+
+@enumerate
+@item
+A vector of length @var{number-of-numbers}, holding random reals in the
+range @var{exclusive-min}, @var{exclusive-max} generated using
+randomness from @var{source}; the numbers are such that their sum equals
+approximately @var{requested-sum}.
+
+@item
+The actual sum between the numbers in the vector.
+@end enumerate
+
+Notice that rounding errors can be can be sensible here, so the solution
+may need a refinement.
+@end defun
+
+
+@defun random-reals-with-sum-refine @var{vec} @var{actual-sum} @var{requested-sum} @var{tolerance} @var{max-ntries}
+@var{vec} and @var{actual-sum} must be the return values of a previous
+call to @func{random-reals-with-sum}.  This function refines the result
+trying to reduce the absolute difference between @var{actual-sum} and
+@var{requested-sum} below @var{tolerance}, which must be a strictly
+positive real number.  It is an iterative process: It will stop when the
+tolerance is achieved or when @var{max-ntries} iterations have been
+performed.
+
+The original vector @var{vec} is modified will hold the new results.
+Return two values: The modified @var{vec} itself and the new value of
+the sum between the elements.
 @end defun
 
 @c page

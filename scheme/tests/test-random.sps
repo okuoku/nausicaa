@@ -542,14 +542,15 @@
     (test-random-integers-with-sum 25 8 0 5)
     (test-random-integers-with-sum 50 8 0 20)
     (test-random-integers-with-sum 50 8 3 10)
+    (test-random-integers-with-sum 50 8 -10 2)
     )
 
   (let ()
     (define (test-random-reals-with-sum requested-sum number-of-numbers
 					range-min-exclusive range-max-exclusive)
-      (let ((obj (random-reals-with-sum requested-sum number-of-numbers
-					range-min-exclusive range-max-exclusive
-					default-random-source)))
+      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
+						     range-min-exclusive range-max-exclusive
+						     default-random-source)))
 ;;;	(write obj)(newline)
 	(check-for-true (vector? obj))
 	(check-for-true (= number-of-numbers (vector-length obj)))
@@ -569,6 +570,39 @@
     (test-random-reals-with-sum 25 8 0 5)
     (test-random-reals-with-sum 50 8 0 20)
     (test-random-reals-with-sum 50 8 3 10)
+    )
+
+  (let ()
+    (define (test-random-reals-with-sum requested-sum number-of-numbers
+					range-min-exclusive range-max-exclusive)
+      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
+						     range-min-exclusive range-max-exclusive
+						     default-random-source)))
+;;;	(write (list obj sum))(newline)
+	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
+	(let-values (((obj sum) (random-reals-with-sum-refine obj sum
+							      requested-sum 1e-20 10)))
+
+	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
+;;;	(write (list obj sum))(newline)
+	  (check-for-true (vector? obj))
+	  (check-for-true (= number-of-numbers (vector-length obj)))
+	  (check-for-true (vector-every real? obj))
+	  (do ((i 0 (+ 1 i)))
+	      ((= i number-of-numbers))
+	    (check-for-true (let ((n (vector-ref obj i)))
+			      (let ((r (and (< range-min-exclusive n)
+					    (< n range-max-exclusive))))
+				(if r r (begin
+					  (write (list 'out-of-bounds n))
+					  (newline)))))))
+	  (check
+	      (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
+	    (=> (lambda (a b)
+		  (> 1e-6 (abs (- a b)))))
+	    requested-sum))))
+
+    (test-random-reals-with-sum 0.0 100 -50 +50)
     )
 
   )
