@@ -83,6 +83,12 @@
 (compile-library "random.sls"
 		 "random.slfasl")
 
+(compile-library "random/vectors.sls"
+		 "random/vectors.slfasl")
+
+(compile-library "random/strings.sls"
+		 "random/strings.slfasl")
+
 (compile-library "compare.sls"
 		 "compare.slfasl")
 

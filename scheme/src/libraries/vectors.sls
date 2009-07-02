@@ -163,7 +163,9 @@
 
     ;; reverse and replace
     vector-reverse  vector-reverse!
-    vector-replace)
+    vector-replace
+
+    (rename (unpack %vector-unpack)))
   (import (rnrs)
     (vectors low))
 
@@ -214,20 +216,20 @@
 (define-syntax vector-null?
   (syntax-rules ()
     ((_ ?V)
-     (let-values (((vec beg past) (unpack ?V)))
-       (%vector-null? vec beg past)))))
+     (let-values (((vec start past) (unpack ?V)))
+       (%vector-null? vec start past)))))
 
 (define-syntax vector-every
   (syntax-rules ()
     ((_ ?proc ?V)
-     (let-values (((vec beg past) (unpack ?V)))
-       (%vector-every ?proc vec beg past)))))
+     (let-values (((vec start past) (unpack ?V)))
+       (%vector-every ?proc vec start past)))))
 
 (define-syntax vector-any
   (syntax-rules ()
     ((_ ?proc ?V)
-     (let-values (((vec beg past) (unpack ?V)))
-       (%vector-any ?proc vec beg past)))))
+     (let-values (((vec start past) (unpack ?V)))
+       (%vector-any ?proc vec start past)))))
 
 
 ;;;; comparison

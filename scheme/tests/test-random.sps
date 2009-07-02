@@ -30,7 +30,10 @@
   (lists)
   (strings)
   (char-sets)
-  (vectors))
+  (vectors)
+  (random lists)
+  (random vectors)
+  (random strings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing random\n")
@@ -85,6 +88,13 @@
      (let* ((make-real	(random-source-reals-maker default-random-source))
 	    (n		(make-real)))
        (and (< 0 n) (< n 1)))))
+
+  (check
+      (begin
+	(random-source-jumpahead! default-random-source 10)
+	(let ((make-integer (random-source-integers-maker default-random-source)))
+	  (integer? (make-integer 10))))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
@@ -149,6 +159,13 @@
      (let* ((make-real	(random-source-reals-maker source-a))
 	    (n		(make-real)))
        (and (< 0 n) (< n 1)))))
+
+  (check
+      (begin
+	(random-source-jumpahead! ((random-source-maker)) 10)
+	(let ((make-integer (random-source-integers-maker ((random-source-maker)))))
+	  (integer? (make-integer 10))))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
@@ -215,6 +232,13 @@
 	    (n		(make-real)))
        (and (< 0 n) (< n 1)))))
 
+  (check
+      (begin
+	(random-source-jumpahead! (make-random-source/mrg32k3a) 10)
+	(let ((make-integer (random-source-integers-maker (make-random-source/mrg32k3a))))
+	  (integer? (make-integer 10))))
+    => #t)
+
 ;;; --------------------------------------------------------------------
 
   (let* ((source		(make-random-source/mrg32k3a))
@@ -273,6 +297,13 @@
 	    (n		(make-real)))
        (and (< 0 n) (< n 1)))))
 
+  (check
+      (begin
+	(random-source-jumpahead! (make-random-source/device) 10)
+	(let ((make-integer (random-source-integers-maker (make-random-source/device))))
+	  (integer? (make-integer 10))))
+    => #t)
+
 ;;; --------------------------------------------------------------------
 
   (let* ((source		(make-random-source/device))
@@ -325,7 +356,7 @@
 
 (parameterise ((check-test-name 'utils))
 
-  (define make-integer (lambda () (random-integer 10)))
+  (define (make-integer) (random-integer 10))
 
   (let ((obj (unfold-random-numbers make-integer 10)))
     (check-for-true (list? obj))
@@ -342,12 +373,202 @@
 
 ;;; --------------------------------------------------------------------
 
+  (let* ((perm-maker	(random-permutations-maker default-random-source))
+	 (obj		(perm-maker 10)))
+
+    (check (vector? obj) => #t)
+    (check (vector-length obj) => 10)
+    (check (vector-every (lambda (n)
+			   (and (integer? n) (<= 0 n) (< n 10)))
+			 obj)
+      => #t)
+    )
+
+  (let* ((exp-maker	(random-exponentials-maker default-random-source))
+	 (norm-maker	(random-normals-maker default-random-source)))
+    (check (real? (exp-maker 1)) => #t)
+    (check (real? (norm-maker 1 2)) => #t))
+
+;;; --------------------------------------------------------------------
+
+  (let ((sampler (random-source-integers-maker-from-range default-random-source 0 10)))
+
+    (check (integer? (sampler)) => #t)
+    (check (let ((n (sampler))) (and (<= 0 n) (<= n 10))) => #t))
+
+  (let ((sampler (random-source-integers-maker-from-range default-random-source 0 10 2)))
+
+    (check (integer? (sampler)) => #t)
+    (check (let ((n (sampler))) (and (<= 0 n) (<= n 10))) => #t)
+    (check (mod (sampler) 2) => 0)
+    (check (mod (sampler) 2) => 0)
+    (check (mod (sampler) 2) => 0)
+    (check (mod (sampler) 2) => 0)
+    (check (mod (sampler) 2) => 0)
+    (check (mod (sampler) 2) => 0)
+    )
+
+;;; --------------------------------------------------------------------
+
+  (let ((sampler (random-source-reals-maker-from-range default-random-source 0 10)))
+
+    (check (real? (sampler)) => #t)
+    (check (let ((n (sampler))) (and (<= 0 n) (<= n 10))) => #t))
+
+  (let ((sampler (random-source-reals-maker-from-range default-random-source 0 10 1.2)))
+
+    (check (real? (sampler)) => #t)
+    (check (let ((n (sampler))) (and (<= 0 n) (<= n 10))) => #t))
+
+
+  )
+
+
+(parameterise ((check-test-name 'list))
+
+  (check
+      (list? (random-list-shuffle '(0 1 2 3 4 5 6 7 8 9) default-random-source))
+    => #t)
+
+  (check
+      (length (random-list-shuffle '(0 1 2 3 4 5 6 7 8 9) default-random-source))
+    => 10)
+
+  (check
+      (every (lambda (n)
+	       (and (integer? n) (<= 0 n) (< n 10)))
+	(random-list-shuffle '(0 1 2 3 4 5 6 7 8 9) default-random-source))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let* ((sampler (random-list-sample '(0 1 2 3 4 5 6 7 8 9) default-random-source))
+	 (obj	(sampler)))
+
+    (check (integer? obj) => #t)
+    (check (and (<= 0 obj) (< obj 10)) => #t))
+
+;;; --------------------------------------------------------------------
+
+  (let ((sampler (random-list-sample-population '(0 1 2 3 4 5 6 7 8 9) 5 default-random-source)))
+
+;;     (write (sampler))(newline)
+;;     (write (sampler))(newline)
+;;     (write (sampler))(newline)
+;;     (write (sampler))(newline)
+
+    (check
+	(list? (sampler))
+      => #t)
+
+    (check
+	(length (sampler))
+      => 5)
+
+    (check
+	(every (lambda (n)
+		 (and (integer? n) (<= 0 n) (< n 10)))
+	  (sampler))
+      => #t))
+
+  )
+
+
+(parameterise ((check-test-name 'vector))
+
+  (let* ((perm-maker (random-permutations-maker default-random-source)))
+
+    (check
+	(vector? (random-vector-shuffle (perm-maker 10) default-random-source))
+      => #t)
+
+    (check
+	(vector-length (random-vector-shuffle (perm-maker 10) default-random-source))
+      => 10)
+
+    (check
+	(vector-every (lambda (n)
+			(and (integer? n) (<= 0 n) (< n 10)))
+		      (random-vector-shuffle (perm-maker 10) default-random-source))
+      => #t)
+
+;;; --------------------------------------------------------------------
+
+    (let* ((sampler (random-vector-sample (perm-maker 10) default-random-source))
+	   (obj	(sampler)))
+
+      (check (integer? obj) => #t)
+      (check (and (<= 0 obj) (< obj 10)) => #t))
+
+;;; --------------------------------------------------------------------
+
+    (let ((sampler (random-vector-sample-population (perm-maker 10) 5 default-random-source)))
+
+      (check
+	  (vector? (sampler))
+	=> #t)
+
+      (check
+	  (vector-length (sampler))
+	=> 5)
+
+      (check
+	  (vector-every (lambda (n)
+			  (and (integer? n) (<= 0 n) (< n 10)))
+			(sampler))
+	=> #t))
+
+
+    ))
+
+
+(parameterise ((check-test-name 'string))
+
+  (check
+      (string? (random-string-shuffle "abcdefghlm" default-random-source))
+    => #t)
+
+  (check
+      (string-length (random-string-shuffle "abcdefghlm" default-random-source))
+    => 10)
+
+  (check
+      (string-every (lambda (n) (and (char<=? #\a n) (char<? n #\n)))
+		    (random-string-shuffle "abcdefghlm" default-random-source))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let* ((sampler (random-string-sample "abcdefghlm" default-random-source))
+	 (obj	(sampler)))
+
+    (check (char? obj) => #t)
+    (check (and (char<=? #\a obj) (char<? obj #\n)) => #t))
+
+;;; --------------------------------------------------------------------
+
+  (let ((sampler (random-string-sample-population "abcdefghlm" 5 default-random-source)))
+
+    (check
+	(string? (sampler))
+      => #t)
+
+    (check
+	(string-length (sampler))
+      => 5)
+
+    (check
+	(string-every (lambda (n) (and (char<=? #\a n) (char<? n #\n)))
+		      (sampler))
+      => #t))
+
+
   )
 
 
 ;;;; examples
 
-(when #f
+(when #t
 
   (display "Example of random lists:\n")
   (do ((i 0 (+ 1 i)))
@@ -384,6 +605,31 @@
 		     ch)))
 	      10))
     (newline))
+
+  (let ((sampler (random-source-integers-maker-from-range default-random-source 0 10)))
+    (display "integer samples from [0, 10]:\n")
+    (do ((i 0 (+ 1 i)))
+	((= i 10))
+      (write (sampler))(newline)))
+
+  (let ((sampler (random-source-integers-maker-from-range default-random-source 0 10 2)))
+    (display "integer samples from [0, 10], step 2:\n")
+    (do ((i 0 (+ 1 i)))
+	((= i 10))
+      (write (sampler))(newline)))
+
+  (let ((sampler (random-source-reals-maker-from-range default-random-source 0 10)))
+    (display "real samples from (0, 10):\n")
+    (do ((i 0 (+ 1 i)))
+	((= i 10))
+      (write (sampler))(newline)))
+
+  (let ((sampler (random-source-reals-maker-from-range default-random-source 0 10 1.2)))
+    (display "real samples from [0, 10), step 1.2:\n")
+    (do ((i 0 (+ 1 i)))
+	((= i 10))
+      (write (sampler))(newline)))
+
   )
 
 

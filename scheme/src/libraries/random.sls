@@ -40,7 +40,7 @@
     ;; random source interface
     random-source-maker			random-source?
     random-source-state-ref		random-source-state-set!
-    random-source-seed!
+    random-source-seed!			random-source-jumpahead!
     random-source-integers-maker	random-source-reals-maker
     random-source-bytevectors-maker	random-source-bytevectors-filler
 
@@ -61,8 +61,10 @@
     ;; utilities
     unfold-random-numbers
     unfold-random-numbers/vector	unfold-random-numbers/string
-    random-source-make-permutations	random-source-make-exponentials
-    random-source-make-normals)
+    random-source-integers-maker-from-range
+    random-source-reals-maker-from-range
+    random-permutations-maker
+    random-exponentials-maker		random-normals-maker)
   (import (rnrs)
     (parameters)
     (rnrs mutable-strings))
@@ -80,6 +82,7 @@
   (fields (immutable state-ref)
 	  (immutable state-set!)
 	  (immutable seed!)
+	  (immutable jumpahead!)
 	  (immutable required-seed-values)
 	  (immutable integers-maker)
 	  (immutable reals-maker)
@@ -93,6 +96,9 @@
 
 (define (random-source-seed! s integers-maker)
   ((:random-source-seed! s) integers-maker))
+
+(define (random-source-jumpahead! s steps)
+  ((:random-source-jumpahead! s) steps))
 
 (define (random-source-required-seed-values s)
   (:random-source-required-seed-values s))
@@ -183,29 +189,26 @@
 	A
       (loop (+ A (* M^j (integer))) (+ 1 j) (* M M^j)))))
 
-(define (%normalise N M)
-  (inexact (/ (+ 1 N)
-	      (+ 1 M))))
-
 (define make-random-real
-  ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
-  ;;understand what this does.
-  (case-lambda
-   ((M make-random-bits)
-    (%normalise (make-random-bits) M))
-   ((M make-random-bits unit)
-    (let ((C (- (/ unit) 1)))
-      (if (<= C M)
-	  ;;This is like: (make-random-real M make-random-bits)
-	  (begin
+  (let ((%normalise (lambda (N M) (inexact (/ (+ 1 N) (+ 1 M))))))
+    ;;Read the documentation of  Nausicaa/Scheme, node "random prng", to
+    ;;understand what this does.
+    (case-lambda
+     ((M make-random-bits)
+      (%normalise (make-random-bits) M))
+     ((M make-random-bits unit)
+      (let ((C (- (/ unit) 1)))
+	(if (<= C M)
+	    ;;This is like: (make-random-real M make-random-bits)
+	    (begin
 ;;;	    (write 'avoiding-unit-because-too-big)(newline)
-	    (%normalise (make-random-bits) M))
-	(do ((k 1 (+ k 1))
-	     (U C (/ U M)))
-	    ((<= U 1)
+	      (%normalise (make-random-bits) M))
+	  (do ((k 1 (+ k 1))
+	       (U C (/ U M)))
+	      ((<= U 1)
 ;;;	     (write 'making-use-of-unit-here)(newline)
-	     (%normalise (%polynomial k M make-random-bits)
-			 (expt M k)))))))))
+	       (%normalise (%polynomial k M make-random-bits)
+			   (expt M k))))))))))
 
 (define (random-bytevector-fill! bv make-random-32bits)
   (let ((len  (bytevector-length bv)))
@@ -296,10 +299,16 @@
 	  (set! B2 (mod (+ B2 (random M2)) M2))
 	  (set! B3 (mod (+ B3 (random M2)) M2)))))
 
+    (define (jumpahead! number-of-steps)
+      (do ((i 0 (+ 1 i)))
+	  ((= i number-of-steps))
+	(make-random-bits)))
+
     (:random-source-make
      internal-state->external-state ; state-ref
      external-state->internal-state ; state-set!
      seed!			    ; seed!
+     jumpahead!			    ; jumpahead!
      1				    ; required seed values
      (lambda (U)		    ; integers-maker
        (make-random-integer U M1 make-random-bits))
@@ -444,10 +453,16 @@
 	      (bytevector-u32-native-set! bv i (car numbers)))
 	    (%device-write-bytevector! device bv))))
 
+      (define (jumpahead! number-of-steps)
+	(do ((i 0 (+ 1 i)))
+	    ((= i number-of-steps))
+	  (make-random-bits)))
+
       (:random-source-make
        internal-state->external-state ; state-ref
        external-state->internal-state ; state-set!
        seed!			      ; seed!
+       jumpahead!		      ; jumpahead!
        #f			      ; required seed values
        (lambda (U)		      ; integers-maker
 	 (make-random-integer U M make-random-bits))
@@ -480,68 +495,103 @@
   (random-source-reals-maker default-random-source))
 
 
-;;; utility procedures
+;;; utility procedures, unfolding
 
-(define (unfold-random-numbers source number-of-numbers)
+(define (unfold-random-numbers number-maker number-of-numbers)
   (do ((i 0 (+ 1 i))
-       (ell '() (cons (source) ell)))
+       (ell '() (cons (number-maker) ell)))
       ((= i number-of-numbers)
        ell)))
 
-(define (unfold-random-numbers/vector source number-of-numbers)
+(define (unfold-random-numbers/vector number-maker number-of-numbers)
   (do ((i 0 (+ 1 i))
-       (vec (make-vector number-of-numbers) (begin (vector-set! vec i (source)) vec)))
+       (vec (make-vector number-of-numbers) (begin (vector-set! vec i (number-maker)) vec)))
       ((= i number-of-numbers)
        vec)))
 
-(define (unfold-random-numbers/string source number-of-numbers)
+(define (unfold-random-numbers/string integer-maker number-of-numbers)
   (let ((str (make-string number-of-numbers)))
     (do ((i 0 (+ 1 i)))
 	((= i number-of-numbers)
 	 str)
-      (do ((n (source) (source)))
+      (do ((n (integer-maker) (integer-maker)))
 	  ((or (and (<= 0 n)     (< n #xD800))
 	       (and (< #xDFFF n) (< n #x10FFFF)))
 	   (string-set! str i (integer->char n)))))))
 
-(define (random-source-make-permutations source)
+
+;;;; utility procedures, numbers from range
+
+(define random-source-integers-maker-from-range
+  (case-lambda
+   ((source start last)
+    (random-source-integers-maker-from-range source start last 1))
+   ((source start last step)
+    (let ((integer-maker (random-source-integers-maker source))
+	  (max		 (div (+ (- last start) 1) step)))
+      (if (= 1 step)
+	  (lambda ()
+	    (+ start (integer-maker max)))
+	(lambda ()
+	  (+ start (* step (integer-maker max)))))))))
+
+(define random-source-reals-maker-from-range
+  (case-lambda
+   ((source start past)
+    (let ((real-maker (random-source-reals-maker source))
+	  (len        (- past start)))
+      (lambda ()
+	(+ start (* len (real-maker))))))
+   ((source start past step)
+    (let ((integer-maker	(random-source-integers-maker source))
+	  (max			(floor (/ (- past start) step))))
+      (lambda ()
+	(+ start (* step (integer-maker max))))))))
+
+
+;;; utility procedures, permutations
+
+(define (random-permutations-maker source)
   ;;For  the   algorithm  refer  to   Knuth's  ``The  Art   of  Computer
   ;;Programming'', Vol. II, 2nd ed., Algorithm P of Section 3.4.2.
-  (let ((rand (random-source-integers-maker source)))
+  (let ((integer-maker (random-source-integers-maker source)))
     (lambda (n)
       (let ((x (make-vector n 0)))
-        (do ((i 0 (+ i 1)))
-            ((= i n))
-          (vector-set! x i i))
-        (do ((k n (- k 1)))
-            ((= k 1) x)
-          (let* ((i (- k 1))
-                 (j (rand k))
-                 (xi (vector-ref x i))
-                 (xj (vector-ref x j)))
-            (vector-set! x i xj)
-            (vector-set! x j xi)))))))
+	(do ((i 0 (+ i 1)))
+	    ((= i n))
+	  (vector-set! x i i))
+	(do ((k n (- k 1)))
+	    ((= k 1) x)
+	  (let* ((i (- k 1))
+		 (j (integer-maker k))
+		 (xi (vector-ref x i))
+		 (xj (vector-ref x j)))
+	    (vector-set! x i xj)
+	    (vector-set! x j xi)))))))
 
-(define (random-source-make-exponentials source . unit)
+
+;;; utility procedures, distributions
+
+(define (random-exponentials-maker source)
   ;;Refer to Knuth's  ``The Art of Computer Programming'',  Vol. II, 2nd
   ;;ed., Section 3.4.1.D.
-  (let ((rand (apply random-source-reals-maker source unit)))
+  (let ((real-maker (random-source-reals-maker source)))
     (lambda (mu)
-      (- (* mu (log (rand)))))))
+      (- (* mu (log (real-maker)))))))
 
-(define (random-source-make-normals source . unit)
+(define (random-normals-maker source)
   ;;For  the   algorithm  refer  to   Knuth's  ``The  Art   of  Computer
   ;;Programming'', Vol. II, 2nd ed., Algorithm P of Section 3.4.1.C.
-  (let ((rand (apply random-source-reals-maker source unit))
-        (next #f))
+  (let ((next #f)
+	(real-maker (random-source-reals-maker source)))
     (lambda (mu sigma)
       (if next
           (let ((result next))
             (set! next #f)
             (+ mu (* sigma result)))
         (let loop ()
-          (let* ((v1 (- (* 2 (rand)) 1))
-                 (v2 (- (* 2 (rand)) 1))
+          (let* ((v1 (- (* 2 (real-maker)) 1))
+                 (v2 (- (* 2 (real-maker)) 1))
                  (s (+ (* v1 v1) (* v2 v2))))
             (if (>= s 1)
                 (loop)

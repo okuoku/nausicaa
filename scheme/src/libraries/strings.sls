@@ -172,7 +172,9 @@
 
     ;; reverse and replace
     string-reverse  string-reverse!
-    string-replace)
+    string-replace
+
+    (rename (unpack %string-unpack)))
   (import (rnrs)
     (strings low))
 

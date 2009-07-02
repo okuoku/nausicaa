@@ -38,6 +38,8 @@
   (only (loops))
   (only (format))
   (only (random))
+  (only (random vectors))
+  (only (random strings))
   (only (compare))
 
   (only (object-properties))

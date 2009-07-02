@@ -23,10 +23,6 @@
   Import the documentation from srfi.
   Finish testing, review and documentation.
 
-* random
-
-  Import it.
-
 * streams
 
   Import it.
@@ -45,27 +41,12 @@
 
 * random
 
-  Implement the jumpahead function.
-
-  Implement the shuffle and shuffle! functions for strings and vectors.
-
   Fix  the method  to  build  real numbers  from  integers.  Update  the
   documentation accordingly.
 
   Update  the  documentation on  generation  of  big  integers with  the
   statement about  uniform distribution of polynomial  integers in their
   range.
-
-  Implement an utility function to  select a random element from a range
-  of integers and of reals.  Support an optional step argument to select
-  only multiples of the step in the range.
-
-  Implement  an utility  function  to  select a  random  element from  a
-  sequence (list, vector, string, bytevector).
-
-  Implement  an  utility  function  "sample-population" that  returns  a
-  sequence  of "len"  random  elements from  a  given sequence  (string,
-  vector, list, bytevector).
 
 * sequence
 
