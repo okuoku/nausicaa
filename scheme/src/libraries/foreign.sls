@@ -94,48 +94,137 @@
     pointer-dismiss
 
     ;;peekers
+    pointer-ref-c-int8			pointer-ref-c-uint8
+    pointer-ref-c-int16			pointer-ref-c-uint16
+    pointer-ref-c-int32			pointer-ref-c-uint32
+    pointer-ref-c-int64			pointer-ref-c-uint64
+
+    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-void*
+
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
     pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
     pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
     pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-    pointer-ref-c-float			pointer-ref-c-double
+
     pointer-ref-c-pointer
 
-    peek-signed-char			peek-unsigned-char
-    peek-signed-short			peek-unsigned-short
-    peek-signed-int			peek-unsigned-int
-    peek-signed-long			peek-unsigned-long
-    peek-signed-long-long		peek-unsigned-long-long
-    peek-float				peek-double
-    peek-pointer
+    (rename (pointer-ref-c-signed-char		peek-signed-char)
+	    (pointer-ref-c-signed-short		peek-signed-short)
+	    (pointer-ref-c-signed-int		peek-signed-int)
+	    (pointer-ref-c-signed-long		peek-signed-long)
+	    (pointer-ref-c-signed-long-long	peek-signed-long-long)
+
+	    (pointer-ref-c-unsigned-char	peek-unsigned-char)
+	    (pointer-ref-c-unsigned-short	peek-unsigned-short)
+	    (pointer-ref-c-unsigned-int		peek-unsigned-int)
+	    (pointer-ref-c-unsigned-long	peek-unsigned-long)
+	    (pointer-ref-c-unsigned-long-long	peek-unsigned-long-long)
+
+	    (pointer-ref-c-float		peek-float)
+	    (pointer-ref-c-double		peek-double)
+	    (pointer-ref-c-pointer		peek-pointer))
 
     ;;pokers
-    pointer-set-c-char!			pointer-set-c-short!
-    pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-long-long!		pointer-set-c-float!
-    pointer-set-c-double!		pointer-set-c-pointer!
+    pointer-set-c-int8!			pointer-set-c-uint8!
+    pointer-set-c-int16!		pointer-set-c-uint16!
+    pointer-set-c-int32!		pointer-set-c-uint32!
+    pointer-set-c-int64!		pointer-set-c-uint64!
 
-    poke-char!				poke-short!
-    poke-int!				poke-long!
-    poke-long-long!			poke-float!
-    poke-double!			poke-pointer!
+    pointer-set-c-float!		pointer-set-c-double!
+    pointer-set-c-void*!
+
+    pointer-set-c-signed-char!		pointer-set-c-unsigned-char!
+    pointer-set-c-signed-short!		pointer-set-c-unsigned-short!
+    pointer-set-c-signed-int!		pointer-set-c-unsigned-int!
+    pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
+    pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
+
+    pointer-set-c-pointer!
+
+    (rename (pointer-set-c-signed-char!		poke-signed-char!)
+	    (pointer-set-c-signed-short!	poke-signed-short!)
+	    (pointer-set-c-signed-int!		poke-signed-int!)
+	    (pointer-set-c-signed-long!		poke-signed-long!)
+	    (pointer-set-c-signed-long-long!	poke-signed-long-long!)
+
+	    (pointer-set-c-unsigned-char!	poke-unsigned-char!)
+	    (pointer-set-c-unsigned-short!	poke-unsigned-short!)
+	    (pointer-set-c-unsigned-int!	poke-unsigned-int!)
+	    (pointer-set-c-unsigned-long!	poke-unsigned-long!)
+	    (pointer-set-c-unsigned-long-long!	poke-unsigned-long-long!)
+
+	    (pointer-set-c-float!		poke-float!)
+	    (pointer-set-c-double!		poke-double!)
+	    (pointer-set-c-pointer!		poke-pointer!))
 
     ;;array peekers
-    peek-array-signed-char		peek-array-unsigned-char
-    peek-array-signed-short		peek-array-unsigned-short
-    peek-array-signed-int		peek-array-unsigned-int
-    peek-array-signed-long		peek-array-unsigned-long
-    peek-array-signed-long-long		peek-array-unsigned-long-long
-    peek-array-float			peek-array-double
-    peek-array-pointer
+    array-ref-c-int8			array-ref-c-uint8
+    array-ref-c-int16			array-ref-c-uint16
+    array-ref-c-int32			array-ref-c-uint32
+    array-ref-c-int64			array-ref-c-uint64
+
+    array-ref-c-float			array-ref-c-double
+    array-ref-c-void*
+
+    array-ref-c-signed-char		array-ref-c-unsigned-char
+    array-ref-c-signed-short		array-ref-c-unsigned-short
+    array-ref-c-signed-int		array-ref-c-unsigned-int
+    array-ref-c-signed-long		array-ref-c-unsigned-long
+    array-ref-c-signed-long-long	array-ref-c-unsigned-long-long
+
+    array-ref-c-pointer
+
+    (rename (array-ref-c-signed-char		peek-array-signed-char)
+	    (array-ref-c-signed-short		peek-array-signed-short)
+	    (array-ref-c-signed-int		peek-array-signed-int)
+	    (array-ref-c-signed-long		peek-array-signed-long)
+	    (array-ref-c-signed-long-long	peek-array-signed-long-long)
+
+	    (array-ref-c-unsigned-char		peek-array-unsigned-char)
+	    (array-ref-c-unsigned-short		peek-array-unsigned-short)
+	    (array-ref-c-unsigned-int		peek-array-unsigned-int)
+	    (array-ref-c-unsigned-long		peek-array-unsigned-long)
+	    (array-ref-c-unsigned-long-long	peek-array-unsigned-long-long)
+
+	    (array-ref-c-float			peek-array-float)
+	    (array-ref-c-double			peek-array-double)
+	    (array-ref-c-pointer		peek-array-pointer))
 
     ;;array pokers
-    poke-array-char!
-    poke-array-short!			poke-array-int!
-    poke-array-long!			poke-array-long-long!
-    poke-array-float!			poke-array-double!
-    poke-array-pointer!
+    array-set-c-int8!			array-set-c-uint8!
+    array-set-c-int16!			array-set-c-uint16!
+    array-set-c-int32!			array-set-c-uint32!
+    array-set-c-int64!			array-set-c-uint64!
+
+    array-set-c-float!			array-set-c-double!
+    array-set-c-void*!
+
+    array-set-c-signed-char!		array-set-c-unsigned-char!
+    array-set-c-signed-short!		array-set-c-unsigned-short!
+    array-set-c-signed-int!		array-set-c-unsigned-int!
+    array-set-c-signed-long!		array-set-c-unsigned-long!
+    array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
+
+    array-set-c-pointer!
+
+    (rename (array-set-c-signed-char!		poke-array-signed-char!)
+	    (array-set-c-signed-short!		poke-array-signed-short!)
+	    (array-set-c-signed-int!		poke-array-signed-int!)
+	    (array-set-c-signed-long!		poke-array-signed-long!)
+	    (array-set-c-signed-long-long!	poke-array-signed-long-long!)
+
+	    (array-set-c-unsigned-char!		poke-array-unsigned-char!)
+	    (array-set-c-unsigned-short!	poke-array-unsigned-short!)
+	    (array-set-c-unsigned-int!		poke-array-unsigned-int!)
+	    (array-set-c-unsigned-long!		poke-array-unsigned-long!)
+	    (array-set-c-unsigned-long-long!	poke-array-unsigned-long-long!)
+
+	    (array-set-c-float!			poke-array-float!)
+	    (array-set-c-double!		poke-array-double!)
+	    (array-set-c-pointer!		poke-array-pointer!))
+
 
     ;;conditions
     &out-of-memory
@@ -195,7 +284,8 @@
     valueof-long-long-max	valueof-long-long-min	valueof-ulong-long-max
     valueof-wchar-max		valueof-ssize-max
     words-bigendian		on-64-bits-system	on-32-bits-system
-
+    (rename (on-32-bits-system on-32-bits-systems)
+	    (on-64-bits-system on-64-bits-systems))
 
 
 ;;;; (foreign cstring)
