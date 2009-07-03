@@ -23,7 +23,6 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 ;;;; setup
 
@@ -40,48 +39,43 @@
     pointer?
     integer->pointer			pointer->integer
     pointer-null			pointer-null?
+    pointer-diff			pointer-add
+    pointer=?				pointer<>?
+    pointer<?				pointer>?
+    pointer<=?				pointer>=?
 
     ;;peekers
+    pointer-ref-c-int8			pointer-ref-c-uint8
+    pointer-ref-c-int16			pointer-ref-c-uint16
+    pointer-ref-c-int32			pointer-ref-c-uint32
+    pointer-ref-c-int64			pointer-ref-c-uint64
+    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-void*
+
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
     pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
     pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
     pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-    pointer-ref-c-float			pointer-ref-c-double
     pointer-ref-c-pointer
 
     ;;pokers
-    pointer-set-c-char!			pointer-set-c-short!
-    pointer-set-c-int!			pointer-set-c-long!
-    pointer-set-c-long-long!		pointer-set-c-float!
-    pointer-set-c-double!		pointer-set-c-pointer!)
+    pointer-set-c-int8!			pointer-set-c-uint8!
+    pointer-set-c-int16!		pointer-set-c-uint16!
+    pointer-set-c-int32!		pointer-set-c-uint32!
+    pointer-set-c-int64!		pointer-set-c-uint64!
+    pointer-set-c-float!		pointer-set-c-double!
+    pointer-set-c-void*!
+
+    pointer-set-c-signed-char!		pointer-set-c-unsigned-char!
+    pointer-set-c-signed-short!		pointer-set-c-unsigned-short!
+    pointer-set-c-signed-int!		pointer-set-c-unsigned-int!
+    pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
+    pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
+    pointer-set-c-pointer!)
   (import (rnrs)
     (mosh ffi)
     (foreign ffi sizeof))
-
-
-;;;; pointers
-
-;; (define-record-type pointer
-;;   (fields (immutable value)))
-
-;; (define (integer->pointer value)
-;;   (unless (integer? value)
-;;     (assertion-violation 'integer->pointer
-;;       "expected integer value" value))
-;;   (make-pointer value))
-
-;; (define (pointer->integer pointer)
-;;   (unless (pointer? pointer)
-;;     (assertion-violation 'pointer->integer
-;;       "expected pointer value" pointer))
-;;   (pointer-value pointer))
-
-;; (define pointer-null
-;;   (integer->pointer 0))
-
-;; (define (pointer-null? pointer)
-;;   (= 0 (pointer->integer pointer)))
 
 
 ;;;; foreign functions
@@ -115,161 +109,56 @@
 
 ;;;; peekers
 
-;;We have to  make the peekers work even when  the position is negative.
-;;The  procedure MAKE-BYTEVECTOR-MAPPING accepts  2 arguments:  an exact
-;;integer  representing  the memory  address,  the  number  of bytes  to
-;;consider part of the bytevector.  We precompute the address+offset and
-;;use the  resulting address as first  byte of the  bytevector; then the
-;;size of the bytevector is just the size of the data we have to access.
-
-;; (define (pointer-ref-c-signed-char pointer position)
-;;   (bytevector-s8-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-char)
-;;    0))
-
-;; (define (pointer-ref-c-unsigned-char pointer position)
-;;   (bytevector-u8-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-char)
-;;    0))
-
-;; ;;; --------------------------------------------------------------------
-
-;; (define (pointer-ref-c-signed-short pointer position)
-;;   (bytevector-c-short-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-short)
-;;    0))
-
-;; (define (pointer-ref-c-unsigned-short pointer position)
-;;   (bytevector-c-unsigned-short-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-short)
-;;    0))
-
-;; ;;; --------------------------------------------------------------------
-
-;; (define (pointer-ref-c-signed-int pointer position)
-;;   (bytevector-c-int-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-int)
-;;    0))
-
-;; (define (pointer-ref-c-unsigned-int pointer position)
-;;   (bytevector-c-unsigned-int-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-int)
-;;    0))
-
-;; ;;; --------------------------------------------------------------------
-
-;; (define (pointer-ref-c-signed-long pointer position)
-;;   (bytevector-c-long-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-long)
-;;    0))
-
-;; (define (pointer-ref-c-unsigned-long pointer position)
-;;   (bytevector-c-unsigned-long-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-long)
-;;    0))
-
-;; ;;; --------------------------------------------------------------------
-
-;; (define (pointer-ref-c-signed-long-long pointer position)
-;;   (bytevector-s64-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    8)
-;;    0 (native-endianness)))
-
-;; (define (pointer-ref-c-unsigned-long-long pointer position)
-;;   (bytevector-u64-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    8)
-;;    0 (native-endianness)))
-
-;; ;;; --------------------------------------------------------------------
-
-;; (define (pointer-ref-c-float pointer position)
-;;   (bytevector-ieee-single-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-float)
-;;    0 (native-endianness)))
-
-;; (define (pointer-ref-c-double pointer position)
-;;   (bytevector-ieee-double-ref
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-double)
-;;    0 (native-endianness)))
-
-;; ;;; --------------------------------------------------------------------
-
-;; (define (pointer-ref-c-pointer pointer position)
-;;   (integer->pointer
-;;    (bytevector-c-void*-ref
-;;     (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			     sizeof-pointer)
-;;     0)))
+(define pointer-ref-c-void* pointer-ref-c-pointer)
 
 
 ;;;; pokers
 
-;;We have  to make the pokers  work even when the  position is negative.
-;;The  procedure MAKE-BYTEVECTOR-MAPPING accepts  2 arguments:  an exact
-;;integer  representing  the memory  address,  the  number  of bytes  to
-;;consider part of the bytevector.  We precompute the address+offset and
-;;use the  resulting address as first  byte of the  bytevector; then the
-;;size of the bytevector is just the size of the data we have to access.
+(define-syntax define-u-poker
+  (syntax-rules ()
+    ((_ ?name ?sizeof-data)
+     (define ?name (case ?sizeof-data
+		     ((1)	pointer-set-c-int8!)
+		     ((2)	pointer-set-c-int16!)
+		     ((4)	pointer-set-c-int32!)
+		     ((8)	pointer-set-c-int64!))))))
 
-;; (define (pointer-set-c-char! pointer position value)
-;;   (bytevector-u8-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-char)
-;;    0 value))
+(define-u-poker pointer-set-c-uint8!	1)
+(define-u-poker pointer-set-c-uint16!	2)
+(define-u-poker pointer-set-c-uint32!	4)
+(define-u-poker pointer-set-c-uint64!	8)
 
-;; (define (pointer-set-c-short! pointer position value)
-;;   (bytevector-c-short-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-short)
-;;    0 value))
+(define-syntax define-signed-poker
+  (syntax-rules ()
+    ((_ ?name ?sizeof-data)
+     (define ?name (case ?sizeof-data
+		     ((1) pointer-set-c-int8!)
+		     ((2) pointer-set-c-int16!)
+		     ((4) pointer-set-c-int32!)
+		     ((8) pointer-set-c-int64!))))))
 
-;; (define (pointer-set-c-int! pointer position value)
-;;   (bytevector-c-int-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-int)
-;;    0 value))
+(define-syntax define-unsigned-poker
+  (syntax-rules ()
+    ((_ ?name ?sizeof-data)
+     (define ?name (case ?sizeof-data
+		     ((1) pointer-set-c-uint8!)
+		     ((2) pointer-set-c-uint16!)
+		     ((4) pointer-set-c-uint32!)
+		     ((8) pointer-set-c-uint64!))))))
 
-;; (define (pointer-set-c-long! pointer position value)
-;;   (bytevector-c-long-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-long)
-;;    0 value))
+(define-signed-poker pointer-set-c-signed-char!		sizeof-char)
+(define-signed-poker pointer-set-c-signed-short!	sizeof-short)
+(define-signed-poker pointer-set-c-signed-int!		sizeof-int)
+(define-signed-poker pointer-set-c-signed-long!		sizeof-long)
+(define-signed-poker pointer-set-c-signed-long-long!	sizeof-long-long)
 
-;; (define (pointer-set-c-long-long! pointer position value)
-;;   (bytevector-s64-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-long-long)
-;;    0 value (native-endianness)))
+(define-unsigned-poker pointer-set-c-unsigned-char!	sizeof-char)
+(define-unsigned-poker pointer-set-c-unsigned-short!	sizeof-short)
+(define-unsigned-poker pointer-set-c-unsigned-int!	sizeof-int)
+(define-unsigned-poker pointer-set-c-unsigned-long!	sizeof-long)
+(define-unsigned-poker pointer-set-c-unsigned-long-long! sizeof-long-long)
 
-;; (define (pointer-set-c-float! pointer position value)
-;;   (bytevector-ieee-single-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-float)
-;;    0 value (native-endianness)))
-
-;; (define (pointer-set-c-double! pointer position value)
-;;   (bytevector-ieee-double-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-double)
-;;    0 value (native-endianness)))
-
-;; (define (pointer-set-c-pointer! pointer position value)
-;;   (bytevector-c-void*-set!
-;;    (make-bytevector-mapping (+ position (pointer-value pointer))
-;; 			    sizeof-pointer)
-;;    0 (pointer-value value)))
+(define pointer-set-c-void*! pointer-set-c-pointer!)
 
 
 ;;;; done

@@ -16,7 +16,9 @@
 
 * foreign
 
-  Import it from uriel
+  Add Mosh support.
+
+  Review the documentation.
 
 * format
 
@@ -41,12 +43,18 @@
 
 * random
 
-  Fix  the method  to  build  real numbers  from  integers.  Update  the
+  Fix  the   generator  of  sequences   with  given  sum.    Update  the
   documentation accordingly.
 
-  Update  the  documentation on  generation  of  big  integers with  the
-  statement about  uniform distribution of polynomial  integers in their
-  range.
+  Add  the  interface to  Mersenne  Twister.   Update the  documentation
+  accordingly.
+
+  Add the Marsaglia PRNGs.  Update the documentation accordingly.
+
+  Add a randomness source reading bytes from a given port?
+
+  Is  the polynomial a  uniform distribution  for every  M, or  only for
+  prime numbers M?
 
 * sequence
 

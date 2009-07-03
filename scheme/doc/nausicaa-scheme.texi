@@ -32152,60 +32152,60 @@ A set of bindings is provided to allow interface libraries to be aware
 of C language type sizes and limits.  To load the library:
 
 @example
-(import (scheme)
-  (uriel ffi sizeof))
+(import (rnrs)
+  (foreign ffi sizeof))
 @end example
 
-The @library{uriel foreign} library also exports bindings from
-@library{uriel ffi sizeof}.
+The @library{foreign} library also exports bindings from
+@library{foreign ffi sizeof}.
 
 
-@defvar pointer-integer
+@defvr Constant pointer-integer
 Set to a symbol representing one of the unsigned integer types for
 callout arguments and return values.  It is meant to be the integer type
 that is equal in size to a pointer, so it can be used in place of the
 @code{pointer} type for Scheme implementation that do not have it (for
 example: Larceny checkout 5877).
-@end defvar
+@end defvr
 
 
-@defvar sizeof-char
-@defvarx sizeof-short
-@defvarx sizeof-int
-@defvarx sizeof-long
-@defvarx sizeof-long-long
-@defvarx sizeof-float
-@defvarx sizeof-double
-@defvarx sizeof-long-double
-@defvarx sizeof-pointer
+@defvr Constant sizeof-char
+@defvrx Constant sizeof-short
+@defvrx Constant sizeof-int
+@defvrx Constant sizeof-long
+@defvrx Constant sizeof-long-long
+@defvrx Constant sizeof-float
+@defvrx Constant sizeof-double
+@defvrx Constant sizeof-long-double
+@defvrx Constant sizeof-pointer
 The number of bytes in the specified type.
-@end defvar
+@end defvr
 
 
-@defvar alignof-char
-@defvarx alignof-short
-@defvarx alignof-int
-@defvarx alignof-long
-@defvarx alignof-long-long
-@defvarx alignof-float
-@defvarx alignof-double
-@defvarx alignof-long-double
-@defvarx alignof-pointer
+@defvr Constant alignof-char
+@defvrx Constant alignof-short
+@defvrx Constant alignof-int
+@defvrx Constant alignof-long
+@defvrx Constant alignof-long-long
+@defvrx Constant alignof-float
+@defvrx Constant alignof-double
+@defvrx Constant alignof-long-double
+@defvrx Constant alignof-pointer
 The number of bytes of the alignment for the specified type.
-@end defvar
+@end defvr
 
 
-@defvar strideof-char
-@defvarx strideof-short
-@defvarx strideof-int
-@defvarx strideof-long
-@defvarx strideof-long-long
-@defvarx strideof-float
-@defvarx strideof-double
-@defvarx strideof-long-double
-@defvarx strideof-pointer
+@defvr Constant strideof-char
+@defvrx Constant strideof-short
+@defvrx Constant strideof-int
+@defvrx Constant strideof-long
+@defvrx Constant strideof-long-long
+@defvrx Constant strideof-float
+@defvrx Constant strideof-double
+@defvrx Constant strideof-long-double
+@defvrx Constant strideof-pointer
 The number of bytes of the array stride for the specified type.
-@end defvar
+@end defvr
 
 
 @deffn Syntax sizeof-char-array @var{number-of-elements}
@@ -32222,39 +32222,40 @@ specified type.
 @end deffn
 
 
-@defvar valueof-char-max
-@defvarx valueof-char-min
-@defvarx valueof-schar-max
-@defvarx valueof-schar-min
-@defvarx valueof-uchar-max
-@defvarx valueof-shrt-max
-@defvarx valueof-shrt-min
-@defvarx valueof-ushrt-max
-@defvarx valueof-int-max
-@defvarx valueof-int-min
-@defvarx valueof-uint-max
-@defvarx valueof-long-max
-@defvarx valueof-long-min
-@defvarx valueof-wchar-max
-@defvarx valueof-ssize-max
+@defvr Constant valueof-char-max
+@defvrx Constant valueof-char-min
+@defvrx Constant valueof-schar-max
+@defvrx Constant valueof-schar-min
+@defvrx Constant valueof-uchar-max
+@defvrx Constant valueof-shrt-max
+@defvrx Constant valueof-shrt-min
+@defvrx Constant valueof-ushrt-max
+@defvrx Constant valueof-int-max
+@defvrx Constant valueof-int-min
+@defvrx Constant valueof-uint-max
+@defvrx Constant valueof-long-max
+@defvrx Constant valueof-long-min
+@defvrx Constant valueof-wchar-max
+@defvrx Constant valueof-ssize-max
 The value of the specified constant.  For example: the value of
 @code{valueof-int-max} is the C language constant @code{INT_MAX}.
-@end defvar
+@end defvr
 
 
-@defvar words-bigendian
+@defvr Constant words-bigendian
 Bound to @true{} if the platform is big endian, @false{} otherwise.
 Notice that this information is also available with the @rnrs{6}
 function @func{native-endianness}.
-@end defvar
+@end defvr
 
 
-@defvar on-32-bits-system
-@defvarx on-64-bits-system
+@defvr Constant on-32-bits-system
+@defvrx Constant on-32-bits-systems
+@defvrx Constant on-64-bits-system
+@defvrx Constant on-64-bits-systems
 Bound to @true{} if the platform has words of 32 or 64 bits
 respectively.
-@end defvar
-
+@end defvr
 
 @c page
 @node ffi headers

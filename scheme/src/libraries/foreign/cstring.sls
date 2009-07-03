@@ -85,7 +85,7 @@
    ((cstring size malloc)
     (let* ((p	(malloc (+ 1 size))))
       (memcpy p cstring size)
-      (pointer-set-c-char! p size 0)
+      (pointer-set-c-signed-char! p size 0)
       p))))
 
 
@@ -99,9 +99,9 @@
 	   (pointer	(malloc (+ 1 len))))
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
-	   (pointer-set-c-char! pointer i 0)
+	   (pointer-set-c-signed-char! pointer i 0)
 	   pointer)
-	(pointer-set-c-char! pointer i (bytevector-s8-ref bv i)))))
+	(pointer-set-c-signed-char! pointer i (bytevector-s8-ref bv i)))))
    ((s)
     (string->cstring s malloc))))
 
@@ -135,23 +135,22 @@
       (do ((i 0 (+ 1 i))
 	   (c args (cdr c)))
 	  ((= i argc)
-	   (poke-array-pointer! argv argc pointer-null)
+	   (array-set-c-pointer! argv argc pointer-null)
 	   argv)
 	(poke-array-pointer! argv i (car c)))))))
 
 (define (argv-length argv)
   (do ((i 0 (+ 1 i)))
-      ((pointer-null? (peek-array-pointer argv i))
+      ((pointer-null? (array-ref-c-pointer argv i))
        i)
     #f))
 
 (define (argv->strings argv)
   (let ((args	'()))
     (do ((i 0 (+ 1 i)))
-	((pointer-null? (peek-array-pointer argv i))
+	((pointer-null? (array-ref-c-pointer argv i))
 	 (reverse args))
-      (set! args (cons (cstring->string (peek-array-pointer argv i)) args)))))
-
+      (set! args (cons (cstring->string (array-ref-c-pointer argv i)) args)))))
 
 
 ;;;; done

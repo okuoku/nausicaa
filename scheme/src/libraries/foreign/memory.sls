@@ -97,59 +97,136 @@
     pointer-dismiss
 
     ;;peekers
-    pointer-ref-c-signed-char			pointer-ref-c-unsigned-char
-    pointer-ref-c-signed-short			pointer-ref-c-unsigned-short
-    pointer-ref-c-signed-int			pointer-ref-c-unsigned-int
-    pointer-ref-c-signed-long			pointer-ref-c-unsigned-long
-    pointer-ref-c-signed-long-long		pointer-ref-c-unsigned-long-long
-    pointer-ref-c-float				pointer-ref-c-double
+    pointer-ref-c-int8			pointer-ref-c-uint8
+    pointer-ref-c-int16			pointer-ref-c-uint16
+    pointer-ref-c-int32			pointer-ref-c-uint32
+    pointer-ref-c-int64			pointer-ref-c-uint64
+
+    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-void*
+
+    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
+    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
+    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
+    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
+
     pointer-ref-c-pointer
 
-    (rename (pointer-ref-c-signed-char		peek-signed-char))
-    (rename (pointer-ref-c-unsigned-char	peek-unsigned-char))
-    (rename (pointer-ref-c-signed-short		peek-signed-short))
-    (rename (pointer-ref-c-unsigned-short	peek-unsigned-short))
-    (rename (pointer-ref-c-signed-int		peek-signed-int))
-    (rename (pointer-ref-c-unsigned-int		peek-unsigned-int))
-    (rename (pointer-ref-c-signed-long		peek-signed-long))
-    (rename (pointer-ref-c-unsigned-long	peek-unsigned-long))
-    (rename (pointer-ref-c-signed-long-long	peek-signed-long-long))
-    (rename (pointer-ref-c-unsigned-long-long	peek-unsigned-long-long))
-    (rename (pointer-ref-c-float		peek-float))
-    (rename (pointer-ref-c-double		peek-double))
-    (rename (pointer-ref-c-pointer		peek-pointer))
+    (rename (pointer-ref-c-signed-char		peek-signed-char)
+	    (pointer-ref-c-signed-short		peek-signed-short)
+	    (pointer-ref-c-signed-int		peek-signed-int)
+	    (pointer-ref-c-signed-long		peek-signed-long)
+	    (pointer-ref-c-signed-long-long	peek-signed-long-long)
+
+	    (pointer-ref-c-unsigned-char	peek-unsigned-char)
+	    (pointer-ref-c-unsigned-short	peek-unsigned-short)
+	    (pointer-ref-c-unsigned-int		peek-unsigned-int)
+	    (pointer-ref-c-unsigned-long	peek-unsigned-long)
+	    (pointer-ref-c-unsigned-long-long	peek-unsigned-long-long)
+
+	    (pointer-ref-c-float		peek-float)
+	    (pointer-ref-c-double		peek-double)
+	    (pointer-ref-c-pointer		peek-pointer))
 
     ;;pokers
-    pointer-set-c-char!				pointer-set-c-short!
-    pointer-set-c-int!				pointer-set-c-long!
-    pointer-set-c-long-long!			pointer-set-c-float!
-    pointer-set-c-double!			pointer-set-c-pointer!
+    pointer-set-c-int8!			pointer-set-c-uint8!
+    pointer-set-c-int16!		pointer-set-c-uint16!
+    pointer-set-c-int32!		pointer-set-c-uint32!
+    pointer-set-c-int64!		pointer-set-c-uint64!
 
-    (rename (pointer-set-c-char!		poke-char!))
-    (rename (pointer-set-c-short!		poke-short!))
-    (rename (pointer-set-c-int!			poke-int!))
-    (rename (pointer-set-c-long!		poke-long!))
-    (rename (pointer-set-c-long-long!		poke-long-long!))
-    (rename (pointer-set-c-float!		poke-float!))
-    (rename (pointer-set-c-double!		poke-double!))
-    (rename (pointer-set-c-pointer!		poke-pointer!))
+    pointer-set-c-float!		pointer-set-c-double!
+    pointer-set-c-void*!
+
+    pointer-set-c-signed-char!		pointer-set-c-unsigned-char!
+    pointer-set-c-signed-short!		pointer-set-c-unsigned-short!
+    pointer-set-c-signed-int!		pointer-set-c-unsigned-int!
+    pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
+    pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
+
+    pointer-set-c-pointer!
+
+    (rename (pointer-set-c-signed-char!		poke-signed-char!)
+	    (pointer-set-c-signed-short!	poke-signed-short!)
+	    (pointer-set-c-signed-int!		poke-signed-int!)
+	    (pointer-set-c-signed-long!		poke-signed-long!)
+	    (pointer-set-c-signed-long-long!	poke-signed-long-long!)
+
+	    (pointer-set-c-unsigned-char!	poke-unsigned-char!)
+	    (pointer-set-c-unsigned-short!	poke-unsigned-short!)
+	    (pointer-set-c-unsigned-int!	poke-unsigned-int!)
+	    (pointer-set-c-unsigned-long!	poke-unsigned-long!)
+	    (pointer-set-c-unsigned-long-long!	poke-unsigned-long-long!)
+
+	    (pointer-set-c-float!		poke-float!)
+	    (pointer-set-c-double!		poke-double!)
+	    (pointer-set-c-pointer!		poke-pointer!))
 
     ;;array peekers
-    (rename (pointer-ref-c-signed-char   peek-array-signed-char))
-    (rename (pointer-ref-c-unsigned-char peek-array-unsigned-char))
-    peek-array-signed-short		peek-array-unsigned-short
-    peek-array-signed-int		peek-array-unsigned-int
-    peek-array-signed-long		peek-array-unsigned-long
-    peek-array-signed-long-long		peek-array-unsigned-long-long
-    peek-array-float			peek-array-double
-    peek-array-pointer
+    array-ref-c-int8			array-ref-c-uint8
+    array-ref-c-int16			array-ref-c-uint16
+    array-ref-c-int32			array-ref-c-uint32
+    array-ref-c-int64			array-ref-c-uint64
+
+    array-ref-c-float			array-ref-c-double
+    array-ref-c-void*
+
+    array-ref-c-signed-char		array-ref-c-unsigned-char
+    array-ref-c-signed-short		array-ref-c-unsigned-short
+    array-ref-c-signed-int		array-ref-c-unsigned-int
+    array-ref-c-signed-long		array-ref-c-unsigned-long
+    array-ref-c-signed-long-long	array-ref-c-unsigned-long-long
+
+    array-ref-c-pointer
+
+    (rename (array-ref-c-signed-char		peek-array-signed-char)
+	    (array-ref-c-signed-short		peek-array-signed-short)
+	    (array-ref-c-signed-int		peek-array-signed-int)
+	    (array-ref-c-signed-long		peek-array-signed-long)
+	    (array-ref-c-signed-long-long	peek-array-signed-long-long)
+
+	    (array-ref-c-unsigned-char		peek-array-unsigned-char)
+	    (array-ref-c-unsigned-short		peek-array-unsigned-short)
+	    (array-ref-c-unsigned-int		peek-array-unsigned-int)
+	    (array-ref-c-unsigned-long		peek-array-unsigned-long)
+	    (array-ref-c-unsigned-long-long	peek-array-unsigned-long-long)
+
+	    (array-ref-c-float			peek-array-float)
+	    (array-ref-c-double			peek-array-double)
+	    (array-ref-c-pointer		peek-array-pointer))
 
     ;;array pokers
-    (rename (pointer-set-c-char!	poke-array-char!))
-    poke-array-short!			poke-array-int!
-    poke-array-long!			poke-array-long-long!
-    poke-array-float!			poke-array-double!
-    poke-array-pointer!
+    array-set-c-int8!			array-set-c-uint8!
+    array-set-c-int16!			array-set-c-uint16!
+    array-set-c-int32!			array-set-c-uint32!
+    array-set-c-int64!			array-set-c-uint64!
+
+    array-set-c-float!			array-set-c-double!
+    array-set-c-void*!
+
+    array-set-c-signed-char!		array-set-c-unsigned-char!
+    array-set-c-signed-short!		array-set-c-unsigned-short!
+    array-set-c-signed-int!		array-set-c-unsigned-int!
+    array-set-c-signed-long!		array-set-c-unsigned-long!
+    array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
+
+    array-set-c-pointer!
+
+    (rename (array-set-c-signed-char!		poke-array-signed-char!)
+	    (array-set-c-signed-short!		poke-array-signed-short!)
+	    (array-set-c-signed-int!		poke-array-signed-int!)
+	    (array-set-c-signed-long!		poke-array-signed-long!)
+	    (array-set-c-signed-long-long!	poke-array-signed-long-long!)
+
+	    (array-set-c-unsigned-char!		poke-array-unsigned-char!)
+	    (array-set-c-unsigned-short!	poke-array-unsigned-short!)
+	    (array-set-c-unsigned-int!		poke-array-unsigned-int!)
+	    (array-set-c-unsigned-long!		poke-array-unsigned-long!)
+	    (array-set-c-unsigned-long-long!	poke-array-unsigned-long-long!)
+
+	    (array-set-c-float!			poke-array-float!)
+	    (array-set-c-double!		poke-array-double!)
+	    (array-set-c-pointer!		poke-array-pointer!))
 
     ;;conditions
     &out-of-memory
@@ -159,7 +236,6 @@
     (foreign memory compat)
     (foreign ffi sizeof)
     (format))
-
 
 
 ;;;; memory allocation
@@ -226,47 +302,6 @@
 (define (calloc count element-size)
   (or (primitive-calloc count element-size)
       (raise-out-of-memory 'calloc (* count element-size))))
-
-
-
-;;;; pointer functions
-
-(define (pointer-diff pointer-1 pointer-2)
-  (- (pointer->integer pointer-1)
-     (pointer->integer pointer-2)))
-
-(define (pointer-add pointer offset)
-  (integer->pointer (+ (pointer->integer pointer)
-		       offset)))
-
-(define-syntax define-pointer-comparison
-  (syntax-rules ()
-    ((_ ?name ?func)
-     (define ?name
-       (case-lambda
-	(()
-	 #f)
-	((pointer)
-	 #t)
-	((pointer-a pointer-b)
-	 (?func (pointer->integer pointer-a)
-		(pointer->integer pointer-b)))
-	((pointer-a pointer-b . pointers)
-	 (apply ?func (map pointer->integer
-			(cons pointer-a (cons pointer-b pointers))))))))))
-
-(define-pointer-comparison pointer=? =)
-(define-pointer-comparison pointer<? <)
-(define-pointer-comparison pointer>? >)
-(define-pointer-comparison pointer<=? <=)
-(define-pointer-comparison pointer>=? >=)
-
-(define pointer<>?
-  (case-lambda
-   (()
-    #f)
-   ((pointer . pointers)
-    (not (apply pointer=? pointer pointers)))))
 
 
 ;;;; records
@@ -365,7 +400,7 @@
     (do ((i 0 (+ 1 i)))
 	((= i copy-size)
 	 (buffer-incr-used-size! buf copy-size))
-      (pointer-set-c-char! p i (bytevector-u8-ref bv i)))))
+      (pointer-set-c-unsigned-char! p i (bytevector-u8-ref bv i)))))
 
 (define (buffer-pop-bytevector! bv buf)
   (let ((copy-size	(bytevector-length bv))
@@ -391,7 +426,6 @@
 	    copy-size)
     (buffer-consume-bytes!  src copy-size)
     (buffer-incr-used-size! dst copy-size)))
-
 
 
 ;;;; caching allocated memory blocks
@@ -432,7 +466,6 @@
 	       (set! number-of-cached-blocks (+ 1 number-of-cached-blocks)))
 	   (primitive-free pointer))))))))
 
-
 
 ;;;; caching object factories
 
@@ -453,7 +486,6 @@
 	(else
 	 (final-func pointer)
 	 (block-cache pointer)))))))
-
 
 
 ;;;; predefined allocated memory blocks caches
@@ -506,7 +538,6 @@
     (make-buffer (page-blocks-cache) page-blocks-size 0))
    (else
     (make-buffer (malloc buffer-or-size) buffer-or-size 0))))
-
 
 
 ;;;; compensated allocations
@@ -570,7 +601,6 @@
 		  (buffers-cache buffer)))))
     buffer))
 
-
 
 ;;;; allocation in buffers
 
@@ -597,7 +627,6 @@
   (or (primitive-buffer-malloc number-of-bytes)
       (raise-out-of-memory 'buffer-malloc number-of-bytes)))
 
-
 
 ;;;; reference counting
 
@@ -607,13 +636,13 @@
     (malloc/refcount number-of-bytes malloc))
    ((number-of-bytes malloc-funk)
     (let ((p (malloc-funk (+ strideof-long number-of-bytes))))
-      (pointer-set-c-long! p 0 0)
+      (pointer-set-c-signed-long! p 0 0)
       (pointer-add p strideof-long)))))
 
 (define-syntax refcount-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (pointer-set-c-long! ?pointer (- strideof-long) ?value))))
+     (pointer-set-c-signed-long! ?pointer (- strideof-long) ?value))))
 
 (define-syntax refcount-ref
   (syntax-rules ()
@@ -640,7 +669,6 @@
    ((pointer free-func)
     (primitive-free (pointer-add pointer (- strideof-long))))))
 
-
 
 ;;;; bytevector conversion functions
 
@@ -655,7 +683,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i number-of-bytes)
 	   p)
-	(pointer-set-c-char! p i (bytevector-u8-ref bv (+ i offset))))))))
+	(pointer-set-c-unsigned-char! p i (bytevector-u8-ref bv (+ i offset))))))))
 
 (define bytevector->memblock
   (case-lambda
@@ -690,63 +718,121 @@
    ((mb number-of-bytes offset)
     (pointer->bytevector (memblock-pointer mb) number-of-bytes offset))))
 
-
 
 ;;;; array peekers
 
-(define (peek-array-signed-short pointer index)
-  (pointer-ref-c-signed-short pointer (* index strideof-short)))
-(define (peek-array-unsigned-short pointer index)
-  (pointer-ref-c-unsigned-short pointer (* index strideof-short)))
+(define-syntax define-array-peeker
+  (syntax-rules ()
+    ((_ ?name ?peeker ?strideof-data)
+     (define (?name pointer index)
+       (?peeker pointer (* index ?strideof-data))))
+    ((_ ?name ?peeker ?strideof-data ?mapper)
+     (define (?name pointer index)
+       (?mapper (?peeker pointer (* index ?strideof-data)))))))
 
-(define (peek-array-signed-int pointer index)
-  (pointer-ref-c-signed-int pointer (* index strideof-int)))
-(define (peek-array-unsigned-int pointer index)
-  (pointer-ref-c-unsigned-int pointer (* index strideof-int)))
+(define-syntax define-signed-array-peeker
+  (syntax-rules ()
+    ((_ ?name ?sizeof-data)
+     (define ?name (case ?sizeof-data
+		     ((1) array-ref-c-int8)
+		     ((2) array-ref-c-int16)
+		     ((4) array-ref-c-int32)
+		     ((8) array-ref-c-int64))))))
 
-(define (peek-array-signed-long pointer index)
-  (pointer-ref-c-signed-long pointer (* index strideof-long)))
-(define (peek-array-unsigned-long pointer index)
-  (pointer-ref-c-unsigned-long pointer (* index strideof-long)))
+(define-syntax define-unsigned-array-peeker
+  (syntax-rules ()
+    ((_ ?name ?sizeof-data)
+     (define ?name (case ?sizeof-data
+		     ((1) array-ref-c-uint8)
+		     ((2) array-ref-c-uint16)
+		     ((4) array-ref-c-uint32)
+		     ((8) array-ref-c-uint64))))))
 
-(define (peek-array-signed-long-long pointer index)
-  (pointer-ref-c-signed-long-long pointer (* index strideof-long-long)))
-(define (peek-array-unsigned-long-long pointer index)
-  (pointer-ref-c-unsigned-long-long pointer (* index strideof-long-long)))
+(define-array-peeker array-ref-c-int8		pointer-ref-c-int8	1)
+(define-array-peeker array-ref-c-int16		pointer-ref-c-int16	2)
+(define-array-peeker array-ref-c-int32		pointer-ref-c-int32	4)
+(define-array-peeker array-ref-c-int64		pointer-ref-c-int64	8)
 
-(define (peek-array-float pointer index)
-  (pointer-ref-c-float pointer (* index strideof-float)))
-(define (peek-array-double pointer index)
-  (pointer-ref-c-double pointer (* index strideof-float)))
+(define-array-peeker array-ref-c-uint8		pointer-ref-c-uint8	1)
+(define-array-peeker array-ref-c-uint16		pointer-ref-c-uint16	2)
+(define-array-peeker array-ref-c-uint32		pointer-ref-c-uint32	4)
+(define-array-peeker array-ref-c-uint64		pointer-ref-c-uint64	8)
 
-(define (peek-array-pointer pointer index)
-  (pointer-ref-c-pointer pointer (* index strideof-float)))
+(define-array-peeker array-ref-c-float		pointer-ref-c-float	strideof-float)
+(define-array-peeker array-ref-c-double		pointer-ref-c-double	strideof-float)
+(define-array-peeker array-ref-c-void*		pointer-ref-c-void*	strideof-pointer)
 
+(define-signed-array-peeker array-ref-c-signed-char		sizeof-char)
+(define-signed-array-peeker array-ref-c-signed-short		sizeof-short)
+(define-signed-array-peeker array-ref-c-signed-int		sizeof-int)
+(define-signed-array-peeker array-ref-c-signed-long		sizeof-long)
+(define-signed-array-peeker array-ref-c-signed-long-long	sizeof-long-long)
+
+(define-unsigned-array-peeker array-ref-c-unsigned-char		sizeof-char)
+(define-unsigned-array-peeker array-ref-c-unsigned-short	sizeof-short)
+(define-unsigned-array-peeker array-ref-c-unsigned-int		sizeof-int)
+(define-unsigned-array-peeker array-ref-c-unsigned-long		sizeof-long)
+(define-unsigned-array-peeker array-ref-c-unsigned-long-long	sizeof-long-long)
+
+(define array-ref-c-pointer array-ref-c-void*)
 
 
 ;;;; array pokers
 
-(define (poke-array-short! pointer index value)
-  (pointer-set-c-short! pointer (* index strideof-short) value))
+(define-syntax define-array-poker
+  (syntax-rules ()
+    ((_ ?name ?poker ?strideof-data)
+     (define (?name pointer index value)
+       (?poker pointer (* index ?strideof-data) value)))
+    ((_ ?name ?poker ?strideof-data ?mapper)
+     (define (?name pointer index value)
+       (?poker pointer (* index ?strideof-data) (?mapper value))))))
 
-(define (poke-array-int! pointer index value)
-  (pointer-set-c-int! pointer (* index strideof-int) value))
+(define-syntax define-signed-array-poker
+  (syntax-rules ()
+    ((_ ?name ?sizeof-data)
+     (define ?name (case ?sizeof-data
+		     ((1) array-set-c-int8!)
+		     ((2) array-set-c-int16!)
+		     ((4) array-set-c-int32!)
+		     ((8) array-set-c-int64!))))))
 
-(define (poke-array-long! pointer index value)
-  (pointer-set-c-long! pointer (* index strideof-long) value))
+(define-syntax define-unsigned-array-poker
+  (syntax-rules ()
+    ((_ ?name ?sizeof-data)
+     (define ?name (case ?sizeof-data
+		     ((1) array-set-c-uint8!)
+		     ((2) array-set-c-uint16!)
+		     ((4) array-set-c-uint32!)
+		     ((8) array-set-c-uint64!))))))
 
-(define (poke-array-long-long! pointer index value)
-  (pointer-set-c-long-long! pointer (* index strideof-long-long) value))
+(define-array-poker array-set-c-int8!	pointer-set-c-int8!	1)
+(define-array-poker array-set-c-int16!	pointer-set-c-int16!	2)
+(define-array-poker array-set-c-int32!	pointer-set-c-int32!	4)
+(define-array-poker array-set-c-int64!	pointer-set-c-int64!	8)
 
-(define (poke-array-float! pointer index value)
-  (pointer-set-c-float! pointer (* index strideof-float) value))
+(define-array-poker array-set-c-uint8!	pointer-set-c-uint8!	1)
+(define-array-poker array-set-c-uint16!	pointer-set-c-uint16!	2)
+(define-array-poker array-set-c-uint32!	pointer-set-c-uint32!	4)
+(define-array-poker array-set-c-uint64!	pointer-set-c-uint64!	8)
 
-(define (poke-array-double! pointer index value)
-  (pointer-set-c-double! pointer (* index strideof-float) value))
+(define-array-poker array-set-c-float!	pointer-set-c-float!	strideof-float)
+(define-array-poker array-set-c-double!	pointer-set-c-double!	strideof-float)
+(define-array-poker array-set-c-void*!	pointer-set-c-void*!	strideof-pointer)
 
-(define (poke-array-pointer! pointer index value)
-  (pointer-set-c-pointer! pointer (* index strideof-float) value))
+(define-signed-array-poker array-set-c-signed-char!		sizeof-char)
+(define-signed-array-poker array-set-c-signed-short!		sizeof-short)
+(define-signed-array-poker array-set-c-signed-int!		sizeof-int)
+(define-signed-array-poker array-set-c-signed-long!		sizeof-long)
+(define-signed-array-poker array-set-c-signed-long-long!	sizeof-long-long)
 
+(define-unsigned-array-poker array-set-c-unsigned-char!		sizeof-char)
+(define-unsigned-array-poker array-set-c-unsigned-short!	sizeof-short)
+(define-unsigned-array-poker array-set-c-unsigned-int!		sizeof-int)
+(define-unsigned-array-poker array-set-c-unsigned-long!		sizeof-long)
+(define-unsigned-array-poker array-set-c-unsigned-long-long!	sizeof-long-long)
+
+(define array-set-c-pointer! array-set-c-void*!)
 
 
 ;;;; conditions
@@ -760,7 +846,6 @@
   (raise (condition (make-who-condition who)
 		    (make-message-condition "out of memory")
 		    (make-out-of-memory-condition number-of-bytes))))
-
 
 
 ;;;; done

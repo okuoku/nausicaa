@@ -58,7 +58,10 @@
     valueof-long-max		valueof-long-min	valueof-ulong-max
     valueof-long-long-max	valueof-long-long-min	valueof-ulong-long-max
     valueof-wchar-max		valueof-ssize-max
-    words-bigendian		on-64-bits-system	on-32-bits-system)
+    words-bigendian
+    on-64-bits-system		on-32-bits-system
+    (rename (on-32-bits-system on-32-bits-systems)
+	    (on-64-bits-system on-64-bits-systems)))
   (import (rnrs))
 
   (define sizeof-char			@SIZEOF_CHAR@)

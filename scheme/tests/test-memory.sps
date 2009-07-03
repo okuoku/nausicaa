@@ -23,10 +23,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
 (import (nausicaa)
   (checks)
   (foreign memory)
@@ -37,7 +34,6 @@
 (display "*** testing memory\n")
 
 
-
 (parameterize ((check-test-name 'pointers))
 
   (check
@@ -264,10 +260,7 @@
 
 )
 
-;;; --------------------------------------------------------------------
-
 
-
 (parameterize ((check-test-name 'alloc))
 
   (define (failing-alloc . args)
@@ -402,9 +395,7 @@
 
   )
 
-
 
-
 (parameterize ((check-test-name 'bytevectors))
   (with-compensations
     (let ((bv #vu8(0 1 2 3 4 5 6 7 8 9)))
@@ -466,15 +457,13 @@
 	   8)
 	=> #vu8(0 1 2 3 4 5 6 7))
 
-      (check
-	  (memblock->bytevector
-	   (bytevector->memblock bv malloc-block/compensated 5 2)
-	   5)
+      (check 'this
+	(memblock->bytevector
+	 (bytevector->memblock bv malloc-block/compensated 5 2)
+	 5)
 	=> #vu8(2 3 4 5 6)))))
 
-
 
-
 (parameterize ((check-test-name 'buffers))
 
   (define len 4096)
@@ -613,7 +602,6 @@
   )
 
 
-
 (parameterize ((check-test-name 'buffer-alloc))
 
   (check
@@ -648,16 +636,13 @@
   )
 
 
-
 (parameterize ((check-test-name 'refcount))
 
   (check
       (with-result
-
        (define (logging-free pointer)
 	 (add-result 'freed)
 	 (platform-free pointer))
-
        (parameterize ((primitive-free-function logging-free))
 	 (let ((p (malloc/refcount 4096)))
 	   (pointer-acquire p)
@@ -667,11 +652,9 @@
 
   (check
       (with-result
-
        (define (logging-free pointer)
 	 (add-result 'freed)
 	 (platform-free pointer))
-
        (parameterize ((primitive-free-function logging-free))
 	 (let ((p (malloc/refcount 4096)))
 	   (pointer-acquire p)
@@ -683,11 +666,9 @@
 
   (check
       (with-result
-
        (define (logging-free pointer)
 	 (add-result 'freed)
 	 (platform-free pointer))
-
        (parameterize ((primitive-free-function logging-free))
 	 (let ((p (malloc/refcount 4096)))
 	   (pointer-acquire p)
@@ -701,158 +682,215 @@
   )
 
 
-
 (parameterize ((check-test-name 'pokers))
 
-  (check 'this
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-char! p 100 65)
-		  (pointer-ref-c-signed-char p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-char! p 100 128)
-		  (pointer-ref-c-signed-char p 100))))
-	(primitive-free p)
-	d)
-    => -128)
+  (define-syntax doit
+    (syntax-rules ()
+      ((_ value setter getter)
+       (let* ((p #f))
+	 (dynamic-wind
+	     (lambda () (set! p (malloc (expt 10 5))))
+	     (lambda ()
+;;;	       (write (list 'poking value))(newline)
+	       (setter p 100 value)
+	       (let ((v (getter p 100)))
+;;;		 (write (list 'peeked v))(newline)
+		 v))
+	     (lambda () (primitive-free p)))))))
+  (define-syntax generic-test-it
+    (syntax-rules ()
+      ((_ value setter getter)
+       (check (doit value setter getter) => value))))
+  (define-syntax generic-test-it/error
+    (syntax-rules ()
+      ((_ value setter getter)
+       (check (guard (exc ((condition? exc) #t)
+			  (else #f))
+		(doit value setter getter))
+	 => #t))))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-char! p 100 65)
-		  (pointer-ref-c-unsigned-char p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-char! p 100 128)
-		  (pointer-ref-c-unsigned-char p 100))))
-	(primitive-free p)
-	d)
-    => 128)
+  (let ()
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-signed-char! pointer-ref-c-signed-char))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-signed-char! pointer-ref-c-signed-char))))
+    (test-it 65)
+    (test-it 127)
+    (test-it -128)
+    (test-it/error 200)
+    (test-it/error -200))
+
+  (let ()
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-unsigned-char! pointer-ref-c-unsigned-char))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-unsigned-char! pointer-ref-c-unsigned-char))))
+    (test-it 65)
+    (test-it 0)
+    (test-it 255)
+    (test-it/error 300)
+    (test-it/error -200))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 65)
-		  (pointer-ref-c-signed-short p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 32768)
-		  (pointer-ref-c-signed-short p 100))))
-	(primitive-free p)
-	d)
-    => -32768)
+  (let* ((bits	16)
+	 (max	(- (expt 2 (- bits 1)) 1))
+	 (min	(- (expt 2 (- bits 1)))))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-signed-short! pointer-ref-c-signed-short))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-signed-short! pointer-ref-c-signed-short))))
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
+
+  (let* ((bits	16)
+	 (max	(- (expt 2 bits) 1))
+	 (min	0))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-unsigned-short! pointer-ref-c-unsigned-short))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-unsigned-short! pointer-ref-c-unsigned-short))))
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 65)
-		  (pointer-ref-c-unsigned-short p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-short! p 100 32768)
-		  (pointer-ref-c-unsigned-short p 100))))
-	(primitive-free p)
-	d)
-    => 32768)
+  (let* ((bits	32)
+	 (max	(- (expt 2 (- bits 1)) 1))
+	 (min	(- (expt 2 (- bits 1))))
+	 (poke pointer-set-c-signed-int!)
+	 (peek pointer-ref-c-signed-int))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value poke peek))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-signed-int! pointer-ref-c-signed-int))))
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 101))
+    (test-it/error (- min 100)))
+
+  (let* ((bits	32)
+	 (max	(- (expt 2 bits) 1))
+	 (min	0))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-unsigned-int! pointer-ref-c-unsigned-int))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-unsigned-int! pointer-ref-c-unsigned-int))))
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 65)
-		  (pointer-ref-c-signed-int p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 (expt 2 31))
-		  (pointer-ref-c-signed-int p 100))))
-	(primitive-free p)
-	d)
-    => (- (expt 2 31)))
+  (let* ((bits	(if on-32-bits-system 32 64))
+	 (max	(- (expt 2 (- bits 1)) 1))
+	 (min	(- (expt 2 (- bits 1)))))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-signed-long! pointer-ref-c-signed-long))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-signed-long! pointer-ref-c-signed-long))))
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+;;    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
+
+  (let* ((bits	(if on-32-bits-system 32 64))
+	 (max	(- (expt 2 bits) 1))
+	 (min	0))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-unsigned-long! pointer-ref-c-unsigned-long))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-unsigned-long! pointer-ref-c-unsigned-long))))
+    (test-it 65)
+;;    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+;;    (test-it/error (- min 100))
+    )
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 65)
-		  (pointer-ref-c-unsigned-int p 100))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-int! p 100 (expt 2 31))
-		  (pointer-ref-c-unsigned-int p 100))))
-	(primitive-free p)
-	d)
-    => (expt 2 31))
+  (let* ((bits	64)
+	 (max	(- (expt 2 (- bits 1)) 1))
+	 (min	(- (expt 2 (- bits 1)))))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-signed-long-long! pointer-ref-c-signed-long-long))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-signed-long-long!
+				pointer-ref-c-signed-long-long))))
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100))
+    )
 
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 65)
-		  (pointer-ref-c-signed-long p 64))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
-		  (pointer-ref-c-signed-long p 64))))
-	(primitive-free p)
-	d)
-    => (- (expt 2 (if on-64-bits-system 63 31))))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 65)
-		  (pointer-ref-c-unsigned-long p 64))))
-	(primitive-free p)
-	d)
-    => 65)
-  (check
-      (let* ((p (malloc (expt 10 5)))
-	     (d (begin
-		  (pointer-set-c-long! p 64 (expt 2 (if on-64-bits-system 63 31)))
-		  (pointer-ref-c-unsigned-long p 64))))
-	(primitive-free p)
-	d)
-    => (expt 2 (if on-64-bits-system 63 31)))
+  (let* ((bits	64)
+	 (max	(- (expt 2 bits) 1))
+	 (min	0))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value pointer-set-c-unsigned-long-long! pointer-ref-c-unsigned-long-long))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value pointer-set-c-unsigned-long-long!
+				pointer-ref-c-unsigned-long-long))))
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100))
+    )
 
 ;;; --------------------------------------------------------------------
 
@@ -888,14 +926,13 @@
   )
 
 
-
 (parameterize ((check-test-name 'array))
 
   (check
       (with-compensations
 	(let ((a (malloc/c (sizeof-char-array 16))))
-	  (poke-array-char! a 5 65)
-	  (poke-array-char! a 6 66)
+	  (poke-array-signed-char! a 5 65)
+	  (poke-array-unsigned-char! a 6 66)
 	  (list (peek-array-signed-char a 5)
 		(peek-array-unsigned-char a 6))))
     => '(65 66))
@@ -903,8 +940,8 @@
   (check
       (with-compensations
 	(let ((a (malloc/c (sizeof-int-array 16))))
-	  (poke-array-int! a 5 65)
-	  (poke-array-int! a 6 66)
+	  (poke-array-signed-int! a 5 65)
+	  (poke-array-unsigned-int! a 6 66)
 	  (list (peek-array-signed-int a 5)
 		(peek-array-unsigned-int a 6))))
     => '(65 66))
@@ -912,8 +949,8 @@
   (check
       (with-compensations
 	(let ((a (malloc/c (sizeof-short-array 16))))
-	  (poke-array-short! a 5 65)
-	  (poke-array-short! a 6 66)
+	  (poke-array-signed-short! a 5 65)
+	  (poke-array-unsigned-short! a 6 66)
 	  (list (peek-array-signed-short a 5)
 		(peek-array-unsigned-short a 6))))
     => '(65 66))
@@ -921,20 +958,20 @@
   (check
       (with-compensations
 	(let ((a (malloc/c (sizeof-long-array 16))))
-	  (poke-array-long! a 5 65)
-	  (poke-array-long! a 6 66)
+	  (poke-array-signed-long! a 5 65)
+	  (poke-array-unsigned-long! a 6 66)
 	  (list (peek-array-signed-long a 5)
 		(peek-array-unsigned-long a 6))))
     => '(65 66))
 
-;;   (check
-;;       (with-compensations
-;; 	(let ((a (malloc/c (sizeof-long-long-array 16))))
-;; 	  (poke-array-long-long! a 5 65)
-;; 	  (poke-array-long-long! a 6 66)
-;; 	  (list (peek-array-signed-long-long a 5)
-;; 		(peek-array-unsigned-long-long a 6))))
-;;     => '(65 66))
+  (check
+      (with-compensations
+	(let ((a (malloc/c (sizeof-long-long-array 16))))
+	  (poke-array-signed-long-long! a 5 65)
+	  (poke-array-unsigned-long-long! a 6 66)
+	  (list (peek-array-signed-long-long a 5)
+		(peek-array-unsigned-long-long a 6))))
+    => '(65 66))
 
   (check
       (with-compensations
