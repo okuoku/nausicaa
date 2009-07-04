@@ -85,6 +85,9 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{FFI}
 @end macro
 
+@macro class{NAME}
+@code{<\NAME\>}
+@end macro
 
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
@@ -19150,6 +19153,7 @@ silently ignored.
 * object-properties::           Object properties.
 * cleanup-handlers::            Cleaning up.
 * combinators::                 Combinators.
+* scmobj::                      A simple object system.
 
 Low level libraries
 
@@ -29328,6 +29332,1027 @@ The S combinator:
        (?x Z (?y Z))))))
 @end example
 @end deffn
+
+@c page
+@node scmobj
+@section A simple object system
+
+
+The @library{scmobj} library is an object system for Scheme that
+provides: simple and multiple inheritance, generic functions,
+multimethods.  It resembles @clos{} (the Common Lisp Object System), but
+it does not implement a meta object protocol (@acronym{MOP}).  It is a
+repackaging of ScmObj, an object system for Scheme implemented by Dorai
+Sitaram.
+
+The original code is available from@footnote{@aurl{} last checked Thu
+Nov 13, 2008.}:
+
+@center @url{http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html}
+
+@menu
+* scmobj overview::             Overview of the library.
+* scmobj example::              Objects layout examples.
+* scmobj class::                Classes.
+* scmobj instance::             Instances.
+* scmobj inspect::              Inspecting classes and instances.
+* scmobj slot::                 Accessing slots.
+* scmobj generic::              Generic procedures and methods.
+@end menu
+
+@c page
+@node scmobj overview
+@subsection Overview of the library
+
+
+@library{scmobj} objects, that is classes and instances, are association
+lists: proper lists of pairs whose cars are symbols and whose cdrs can
+be any value.
+
+In this document: each pair is called @dfn{slot}; the symbol is called
+@dfn{slot name}; the value is called @dfn{slot value}.  By convention
+the symbols must have name starting with a colon @code{:}.
+
+A @dfn{class} object is an alist whose first slot's name is
+@code{:class}, and the other slot names are:
+
+@example
+:class-definition-name
+:class-precedence-list
+:slots
+@end example
+
+An instance object is an alist whose first slot's name is @code{:class},
+and the other slot names are configured by the user.
+
+
+@deffn Slot :class
+It must be the first slot for both class and instance objects.
+
+For an instance object: the value must be the class of the instance.
+
+For a class object: the value must be the predefined @class{class}
+object, or a class object that has @class{class} in its class precedence
+list.  So a class object is a special case of instance object.
+@end deffn
+
+
+@deffn Slot :class-definition-name
+A class object's slot whose value is the ``public name'' of the class.
+By convention it must be a symbol whose name is enclosed in angular
+parentheses.  It is useful to print debug messages.
+@end deffn
+
+
+@deffn Slot :class-precedence-list
+A class object's slot whose value is a list representing the hierarchy
+of superclasses for the instance objects of the class, or @false{} if
+the class has no precedence list.  It is used for dispatching of
+multimethods.
+
+Notice that the value of this slot does @strong{not} hold the class
+object itself.
+@end deffn
+
+
+@deffn Slot :slots
+A class object's slot whose value is the list of slot names for the
+instances of the class, or @false{} if instances have no slots.  For the
+predefined @class{class} object, the list is:
+
+@example
+(:class-definition-name :class-precedence-list :slots)
+@end example
+
+Notice that the symbol @code{:class} is @strong{not} included.
+@end deffn
+
+@c page
+@node scmobj example
+@subsection Objects layout examples
+
+
+In the following it is not always convenient to show the full layout; to
+highlight informations of interest it is better to omit the layout of
+class object nested into class objects.  When this is done the string
+@code{%apple} is included in place of the layout of the class
+@class{apple}.
+
+Let's start with the layout of @class{class} itself:
+
+@example
+#0=((:class . #0#)
+    (:class-definition-name . <class>)
+    (:class-precedence-list . #f)
+    (:slots . (:class-definition-name
+               :class-precedence-list
+               :slots)))
+@end example
+
+@noindent
+we see that the class of @class{class} is @class{class} itself.
+
+As an example of class hierarchy, let's define a class with no
+superclass and no slots:
+
+@example
+(define-class <biologic>)
+@end example
+
+@noindent
+its layout is this:
+
+@example
+((:class . %class)
+ (:class-definition-name . <biologic>)
+ (:class-precedence-list . #f)
+ (:slots . #f))
+@end example
+
+@noindent
+now we derive a class from it, still without slots:
+
+@example
+(define-class <fruit> (<biologic>))
+@end example
+
+@noindent
+and the layout of the subclass is:
+
+@example
+((:class . %class)
+ (:class-definition-name . <fruit>)
+ (:class-precedence-list . (%biologic))
+ (:slots . #f))
+@end example
+
+@noindent
+finally we subclass again adding slots:
+
+@example
+(define-class <apple> (<fruit>)
+  :variety :colour :quality)
+@end example
+
+@noindent
+and the layout is:
+
+@example
+((:class . %class)
+ (:class-definition-name . <apple>)
+ (:class-precedence-list . (%fruit %biologic))
+ (:slots . (:variety :colour :quality)))
+@end example
+
+We have a usable class, so we instantiate it:
+
+@example
+(define o (make <apple>
+            ':variety 'renetta
+            ':colour  'green
+            ':quality 'high))
+@end example
+
+@noindent
+and the layout of the instance is:
+
+@example
+((:class . %apple)
+ (:variety . renetta)
+ (:colour . green)
+ (:quality . high))
+@end example
+
+We may want to add a price:
+
+@example
+(define-class <price> () :tag)
+
+(define-class <priced-apple> (<apple> <price>))
+@end example
+
+@noindent
+and the layout of the class with multiple inheritance is:
+
+@example
+((:class . %class)
+ (:class-definition-name . <priced-apple>)
+ (:class-precedence-list . (%apple
+                            %fruit
+                            %biologic
+                            %price))
+ (:slots (:variety :colour :quality :tag)))
+@end example
+
+The instance of a priced apple:
+
+@example
+(define p (make <priced-apple>
+            ':variety 'renetta
+            ':colour  'green
+            ':quality 'high
+            ':tag 100))
+@end example
+
+@noindent
+has layout:
+
+@example
+((:class . %priced-apple)
+ (:variety . renetta)
+ (:colour . green)
+ (:quality . high)
+ (:tag . 100))
+@end example
+
+@c page
+@node scmobj class
+@subsection Classes
+
+
+@menu
+* scmobj class make::           Making classes
+* scmobj class chart::          A chart for predefined classes
+* scmobj class core::           Core class types.
+* scmobj class list::           List types.
+* scmobj class compound::       Non-list compound data types.
+* scmobj class numeric::        Numeric data types.
+* scmobj class port::           Port types.
+* scmobj class misc::           Miscellaneous types.
+@end menu
+
+@c page
+@node scmobj class make
+@subsubsection Making classes
+
+
+@deffn Syntax make-class @var{list-of-superclasses} . @var{class-slots}
+Build and return a new class value.
+
+@var{list-of-superclasses} is the list of superclasses of the new
+class; acceptable values are:
+
+@itemize
+@item
+The empty list, in which case @class{class} is added by default.
+
+@item
+A list containing only the @class{class} value.
+
+@item
+A list of previously defined base classes.
+@end itemize
+
+@var{class-slots} must be a list of symbols representing the slot
+names.  By convention their names should start with a colon character,
+@code{:}.
+
+Notice that classes instantiated with @func{make-class} will have no
+class definition name.  The @func{class-definition-name} function
+applied to them will return the symbol @code{:uninitialized}.
+@end deffn
+
+
+@deffn Syntax define-class @var{name} @var{list-of-superclasses} . @var{class-slots}
+A wrapper for @func{make-class} that defines a new variable named
+@var{name} and assignes the new class to it.  The class definition name
+of the class is initialised to @var{name}.
+@end deffn
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Examples
+
+
+Definition of a class with no superclasses and 3 slots named: @code{:a},
+@code{:b} and @code{:c}:
+
+@example
+(define <one>
+  (make-class () :a :b :c)
+@end example
+
+@noindent
+the same with explicit selection of the base @class{class}:
+
+@example
+(define <one>
+  (make-class (<class>) :a :b :c)
+@end example
+
+Simple inheritance:
+
+@example
+(let* ((<one>   (make-class ()      :a :b :c))
+       (<two>   (make-class (<one>) :d :e :f))
+       (<three> (make-class (<two>) :g :h :i)))
+  ---)
+@end example
+
+@noindent
+and multiple inheritance:
+
+@example
+(let* ((<one>   (make-class ()            :a :b :c))
+       (<two>   (make-class (<one>)       :d :e :f))
+       (<three> (make-class (<two> <one>) :g :h :i)))
+  ---)
+@end example
+
+Defining classes using @func{define-class}:
+
+@example
+(define-class <one> ()
+  :a :b :c)
+
+(define-class <two> (<one>)
+  :d :e :f)
+
+(define-class <three> (<two>)
+  :g :h :i)
+@end example
+
+@c page
+@node scmobj class chart
+@subsubsection A chart for predefined classes
+
+
+@example
+<class>
+   |
+   |                             -> <input-port>
+   |                            |
+   |                            +-> <output-port>
+   |                            |
+   |                            +-> <binary-port>
+   |                            |
+   |               --> <port> --+-> <textual-port>
+   |              |
+   |              +--> <record> --> <condition>
+   v              |
+<builtin-class> ---+-------+-------+-----------+
+   |              |       |       |           |
+   v              v       v       v           v
+<number>        <pair> <vector> <bytevector> <hashtable>
+   |              |
+   v              v
+<complex>       <list> ----------+------------
+   |              |              |            |
+   v              v              v            v
+<real-valued>   <proper-list> <dotted-list> <circular-list>
+   |
+   v
+<real> ------> <flonum>
+   |
+   v
+<rational-valued>
+   |         |
+   v         v
+<rational> <integer-valued>
+   |         |
+   v         |
+<integer> <--
+   |
+   v
+<fixnum>
+@end example
+
+@c page
+@node scmobj class core
+@subsubsection Core class types
+
+
+@deftp {Class} <class>
+The base class of all the @library{scmobj} classes.
+@end deftp
+
+
+@deftp {Class} <builtin-class>
+The base class built--in Scheme values.
+@end deftp
+
+@c page
+@node scmobj class list
+@subsubsection List types
+
+
+@deftp Class <pair>
+Class for values that satisfy @func{pair?}.
+@end deftp
+
+
+@deftp Class <list>
+Class for values that satisfy @func{list?}.
+@end deftp
+
+
+@deftp Class <circular-list>
+Class for values that satisfy @func{circular-list?}.
+@end deftp
+
+
+@deftp Class <dotted-list>
+Class for values that satisfy @func{dotted-list?}.
+@end deftp
+
+
+@deftp Class <proper-list>
+Class for values that satisfy @func{proper-list?}.
+@end deftp
+
+@c page
+@node scmobj class compound
+@subsubsection Non--list compound data types
+
+
+@deftp Class <vector>
+Class for values that satisfy @func{vector?}.
+@end deftp
+
+
+@deftp Class <bytevector>
+Class for values that satisfy @func{bytevector?}.
+@end deftp
+
+
+@deftp Class <hashtable>
+Class for values that satisfy @func{hashtable?}.
+@end deftp
+
+
+@deftp Class <record>
+Class for values that satisfy @func{record?}.
+@end deftp
+
+@c page
+@node scmobj class numeric
+@subsubsection Numeric data types
+
+
+@deftp Class <number>
+Class for values that satisfy @func{number?}.
+@end deftp
+
+
+@deftp Class <complex>
+Class for values that satisfy @func{complex?}.
+@end deftp
+
+
+@deftp Class <real-valued>
+Class for values that satisfy @func{real-valued?}.
+@end deftp
+
+
+@deftp Class <real>
+Class for values that satisfy @func{real?}.
+@end deftp
+
+
+@deftp Class <rational>
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp Class <rational-valued>
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp Class <integer-valued>
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp Class <integer>
+Class for values that satisfy @func{integer?}.
+@end deftp
+
+
+@deftp Class <fixnum>
+Class for values that satisfy @func{fixnum?}.
+@end deftp
+
+
+@deftp Class <flonum>
+Class for values that satisfy @func{flonum?}.
+@end deftp
+
+@c page
+@node scmobj class port
+@subsubsection Port types
+
+
+The following classes for input/output ports are predefined.
+
+
+@deftp Class <port>
+Class for values that satisfy @func{port?}.
+@end deftp
+
+
+@deftp Class <input-port>
+Class for values that satisfy @func{input-port?}.
+@end deftp
+
+
+@deftp Class <output-port>
+Class for values that satisfy @func{output-port?}.
+@end deftp
+
+
+@deftp Class <textual-port>
+Class for values that satisfy @func{textual-port?}.
+@end deftp
+
+
+@deftp Class <binary-port>
+Class for values that satisfy @func{binary-port?}.
+@end deftp
+
+
+The binary/textual attributes are not mututally exclusive with the
+input/output attributes, so if we need it, we can use multiple
+inheritance:
+
+@example
+(define-class <binary-input-port> (<binary-port> <input-port>))
+@end example
+
+@c page
+@node scmobj class misc
+@subsubsection Miscellaneous types
+
+
+@deftp {Class} <condition>
+Class for values that satisfy @func{condition?}.
+@end deftp
+
+@c page
+@node scmobj instance
+@subsection Instances
+
+
+@defun make @var{class-object} . @var{init-slots}
+Build and return a new instance object of class @var{class-object}.  The
+optional arguments are symbol/value couples used to initialise the
+slots: The symbol must be the name of a slot, the value its value.
+@end defun
+
+
+@subsubheading Examples
+
+Instantiate a class with 3 slots:
+
+@example
+(let* ((<one> (make-class () :a :b :c))
+       (o     (make <one>
+                 ':a 1 ':b 2 ':c 3)))
+  ---)
+@end example
+
+Instantiate a class with superclasses, initialising all the slots:
+
+@example
+(let* ((<one>   (make-class () :a :b :c))
+       (<two>   (make-class (<one>) :d :e :f))
+       (<three> (make-class (<two>) :g :h :i))
+       (o       (make <three>
+                   ':a 1 ':b 2 ':c 3
+                   ':d 4 ':e 5 ':f 6
+                   ':g 7 ':h 8 ':i 9)))
+  ---)
+@end example
+
+@c page
+@node scmobj inspect
+@subsection Inspecting classes and instances
+
+
+@defun class? @var{obj}
+Does its best to determine if @var{obj} is a valid class object.
+@end defun
+
+
+@defun instance? @var{obj}
+Does its best to determine if @var{obj} is a valid instance object.
+@end defun
+
+
+@defun class-of @var{class/instance}
+Return the class of the argument.  This function can be applied to both
+class objects and instance objects.  If this function is not able to
+determine a class, it returns @false{}; this should never happen,
+though.
+@end defun
+
+
+@defun is-a? @var{class/instance} @var{class}
+Return true if @var{class/instance} is an object of class @var{class}.
+This function can be applied to both class objects and instance objects.
+@end defun
+
+
+@defun subclass? @var{class-1} @var{class-2}
+Return true if @var{class-1} is a subclass of @var{class-2}, false
+otherwise.
+@end defun
+
+
+@defun class-definition-name @var{class}
+Return the class definition name for @var{class}.  Note that the
+definition name is set only for classes instantiated with
+@func{define-class}, for classes instantiated with @func{make-class} the
+return value is @code{:uninitialized}.
+@end defun
+
+
+@defun class-precedence-list @var{class}
+Return a list of classes representing the class precendence list, used
+for method dispatching.  Note that @var{class} itself is @strong{not}
+part of the class precedence list.
+@end defun
+
+
+@defun class-slots @var{class}
+Return a list of symbols representing the slot names of @var{class}.
+The symbol @code{:class} is excluded.
+@end defun
+
+
+@defun class-direct-slots @var{class}
+Return a list of symbols representing the slot names of @var{class},
+excluding the slots of its superclasses.
+@end defun
+
+@c page
+@node scmobj slot
+@subsection Accessing slots
+
+
+@defun slot-ref @var{object} @var{slot-name}
+Return the value of @var{slot-name} in @var{object}.  @var{slot-name}
+must be a symbol.  It is an error if @var{object} has no slot named
+@var{slot-name}.
+@end defun
+
+
+@defun {slot-set!} @var{object} @var{slot-name} @var{new-value}
+Overwrite the value of @var{slot-name} in @var{object} with
+@var{new-value}.  @var{slot-name} must be a symbol.  It is an error if
+@var{object} has no slot named @var{slot-name}.
+@end defun
+
+
+@subsubheading Examples
+
+@example
+(let* ((<one>  (make-class () :a :b :c))
+       (o      (make <one>
+                 ':a 1 ':b 2 ':c 3)))
+
+  (slot-set! o ':b 123)
+
+  (list (slot-ref o ':b)
+        (slot-ref o ':a)
+        (slot-ref o ':c)))
+@result{} '(123 1 3)
+@end example
+
+@c page
+@node scmobj generic
+@subsection Generic procedures and methods
+
+
+Generic procedures are procedures that can be specialized to the classes
+of their arguments.  Each specialization of a generic procedure is
+called a method.  When applying a generic procedure to a set of
+arguments, the most specific method vis--a--vis the arguments' classes
+is chosen.
+
+@menu
+* scmobj generic dispatching::  How dispatching works.
+* scmobj generic methods::      Methods.
+* scmobj generic calling::      Calling generic procedures.
+@end menu
+
+@c page
+@node scmobj generic dispatching
+@subsubsection How dispatching works
+
+
+Here we show with some examples what we have to expect from the
+multimethod dispatching of @library{scmobj}.  In the following examples
+the string @code{%apple} is written in place of the value bound to the
+symbol @class{apple}.
+
+
+@subsubheading Simple inheritance
+
+Let's examine this example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<one>))
+(define-class <c>   (<two>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -> <one> -> <two> -> <c>
+@end example
+
+@noindent
+and the full class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: the method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature; so:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Multiple inheritance
+
+
+Let's examine this example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<top>))
+(define-class <c> (<two> <one>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -+-> <one> -+-> <c>
+       |          |
+        -> <two> -
+@end example
+
+@noindent
+and given the order in which the classes where given to
+@func{define-class}, the class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: the method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature; so:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+Another multiple inheritance example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<top>))
+(define-class <three> (<two>))
+(define-class <c> (<three> <one>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -+-------> <one> ------+-> <c>
+       |                     |
+        -> <two> -> <three> -
+@end example
+
+@noindent
+and given the order in which the classes where given to
+@func{define-class}, the class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %three %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: the method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature; so:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Other examples
+
+Let's look at this:
+
+@example
+(define-class <top> ())
+(define-class <c>   (<top>))
+(define-class <one> (<c>))
+
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+
+(doit (make <c>))
+@end example
+
+@noindent
+this will result in a ``no method defined for these argument classes''
+error because a value of class @class{c} is @strong{not} a value of
+class @class{one}.  For a method to be applicable: the class from the
+signature of the method has to be in in the class list of the argument,
+not vice versa.  That is:
+
+@example
+(subclass? <c> <one>)
+@end example
+
+@noindent
+must evaluate to true.
+
+@c page
+@node scmobj generic methods
+@subsubsection Methods
+
+
+Let's first declare a generic procedure using the macro
+@func{make-generic-function}:
+
+@example
+(define ingests
+  (make-generic-function person food))
+@end example
+
+This defines a procedure called ingests that requires two arguments.
+Presumably it describes the fact of person ingesting food.  (We are
+forced here to use the Latinate ``ingests'' rather than the Saxon
+``eats'', because we will subsequently distinguish between eating
+(solids) and drinking (liquids).)
+
+We are now ready to define methods describing the eating and drinking
+habits of the people.  To do this, we use the macro @func{define-method}
+to add methods to the generic procedure @func{ingests} define before.
+
+Schemers will drink something only if it's at least .5 wholesome: (These
+examples require the format feature.)
+
+@example
+(define-method ingests ((p <schemer>) (f <beverage>))
+  (if (>= (slot-ref f ':wholesomeness)
+          .5)
+    (format #t "~a sips some ~a.~%"
+      (slot-ref p ':name)
+      (slot-ref f ':name))))
+@end example
+
+The first subexpression of @func{define-method} is the generic
+procedure.  In this case, it is @func{ingests}.
+
+The second subexpression is a lambda--list of arguments to the method.
+This lambda--list starts off with the required arguments, where each
+argument is specified as a two--element list: the parameter followed by
+its class.  The number of required arguments is the same as the number
+of arguments specified by @func{make-generic-function} for the generic
+procedure.  The rest of the lambda--list may contain additional
+arguments, including a ``rest'' argument.  In the case above, the
+required arguments are @var{p} of class @class{schemer} and @var{f} of
+class @class{beverage}.  There are no additional arguments.
+
+After the second subexpression, we have the method body.
+
+Proceeding with other methods for ingests: no snack is too lowly for a
+Schemer:
+
+@example
+(define-method ingests ((p <schemer>) (f <snack>))
+  (format #t "~a wolfs down some ~a.~%"
+    (slot-ref p ':name)
+    (slot-ref f ':name)))
+@end example
+
+Lispers are open to any drink:
+
+@example
+(define-method ingests ((p <lisper>) (f <beverage>))
+  (format #t "~a guzzles some ~a.~%"
+    (slot-ref p ':name)
+    (slot-ref f ':name)))
+@end example
+
+Lispers won't eat anything that isn't at least .5 wholesome:
+
+@example
+(define-method ingests ((p <lisper>) (f <snack>))
+  (if (>= (slot-ref f ':wholesomeness)
+          .5)
+    (format #t "~a pecks at some ~a.~%"
+      (slot-ref p ':name)
+      (slot-ref f ':name))))
+@end example
+
+The default method: humans eat and drink anything:
+
+@example
+(define-method ingests ((p <human>) (f <food>))
+  (format #t "~a consumes ~a.~%"
+    (slot-ref p ':name)
+    (slot-ref f ':name)))
+@end example
+
+Note that ScmObj methods can specialize on more than one argument class.
+In other words, ScmObj methods, like @clos{} methods, are multimethods.
+
+@c page
+@node scmobj generic calling
+@subsubsection Calling generic procedures
+
+
+We can now offer Telemakhos, Odysseus, Diomedes, Nestor, Menelaos, and
+Penelope some beer, coke, milk, candy, french fries, and carrots. We
+call the generic procedure ingests, and let it dispatch the appropriate
+method based on the class of the person and the food arguments:
+
+@example
+(for-each
+  (lambda (person)
+    (for-each
+      (lambda (food)
+        (eat person food))
+      (list beer coke milk candy
+        french-fries carrots)))
+  (list Telemakhos Odysseus Diomedes
+    Nestor Menelaos Penelope))
+@end example
+
+You will find that, as expected,
+
+    *
+
+      Telemakhos consumes everything in sight;
+
+    *
+
+      the Schemers Odysseus and Diomedes wolf down candy, french fries and carrots but sip only milk; and
+
+    *
+
+      the Lispers Nestor and Menelaos guzzle beer, coke and milk but eat only carrots.
+
+But how does the eclectic Lisper Penelope, who is both Schemer and
+Lisper, fare? We'll find that for the purposes of nourishment, Penelope
+sits down with the Schemers. She too wolfs down candy, french fries and
+carrots but sips only milk, eschewing the more Lispy delights of beer
+and coke. This is because the class eclectic-lisper-c lists <schemer>
+before lisper-c in its superclass list.
 
 @c page
 @node kmp

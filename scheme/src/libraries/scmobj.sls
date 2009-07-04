@@ -1,21 +1,19 @@
 ;;;
-;;;Part of: Nausicaa-ScmObj
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: object system for Scheme
 ;;;Date: Tue Nov 11, 2008
-;;;Time-stamp: <2008-12-31 10:37:29 marco>
 ;;;
 ;;;Abstract
 ;;;
-;;;	This  is a port  to R6RS  and Ikarus  of ScmObj  by Dorai
+;;;	This  is a  port to  R6RS and  LIMY Schemes  of ScmObj  by Dorai
 ;;;	Sitaram.  The original code is available at:
 ;;;
-;;;	 <http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html>
+;;;	    <http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html>
 ;;;
-;;;	(last checked  Thu Nov 13, 2008).  The  original code has
-;;;	been  a  little overhauled  to  make  it  work with  R6RS
-;;;	libraries.
+;;;	(last checked Thu  Nov 13, 2008).  The original  code has been a
+;;;	little overhauled to make it work with R6RS libraries.
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 1996 Dorai Sitaram
 ;;;
 ;;;This is free software; you can redistribute it and/or modify it under
@@ -35,12 +33,10 @@
 ;;;
 
 
-;;;; Setup.
-
 (library (scmobj)
   (export
     ;;Built in classes.
-    <class> <entity-class>
+    <class> <builtin-class>
 
     <circular-list> <dotted-list> <proper-list> <list> <pair>
     <vector> <bytevector> <hashtable> <record> <condition>
@@ -64,10 +60,9 @@
 
     ;;Next method interface.
     call-next-method next-method?)
-  (import (r6rs)
+  (import (nausicaa)
     (rnrs mutable-pairs (6))
-    (list-lib)
-    (lang-lib))
+    (lists))
 
 
 ;;;; Helper functions and syntaxes: generic routines.
@@ -79,15 +74,6 @@
 	 (lambda (elm)
 	   (eq? ?element elm))
        ?list))))
-
-(define-syntax begin0
-  (syntax-rules ()
-    [(_ ?expr1 ?expr2 ...)
-     (call-with-values
-	 (lambda () ?expr1)
-       (lambda x
-	 ?expr2 ...
-	 (apply values x)))]))
 
 
 ;;;; Helper functions and syntaxes: class instantiation.
@@ -183,7 +169,7 @@
 (define (is-a? object class)
   (let ((full-class-list (instance-classes object)))
     (and (memq class full-class-list)
-	 (if (memq <entity-class> full-class-list)
+	 (if (memq <builtin-class> full-class-list)
 	     #t
 	   ;;Check that all the slots are here.
 	   (let ((object-slots (cdr (map car object))))
@@ -261,6 +247,10 @@
 ;; 			 :class-precedence-list :slots :direct-slots))))
 (define <class>
   (let ((layout
+	 ;;These two conses  make the list a mutable  value, while using
+	 ;;quasiquotation it would be a literal constant.  Mutability is
+	 ;;needed  to later  set the  value  of the  ":class" slot  with
+	 ;;SET-CDR!.
 	 (cons (cons ':class #f)
 	       '((:class-definition-name . <class>)
 		 (:class-precedence-list . ())
@@ -271,57 +261,57 @@
     (set-cdr! (car layout) layout)
     layout))
 
-(define <entity-class>
+(define <builtin-class>
   `((:class . ,<class>)
-    (:class-definition-name . <entity-class>)
+    (:class-definition-name . <builtin-class>)
     (:class-precedence-list . ())
     (:slots . ())
     (:direct-slots . ())))
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax define-entity-class
+(define-syntax define-builtin-class
   (syntax-rules ()
     ((_ ?name)
-     (define-entity-class ?name ()))
+     (define-builtin-class ?name ()))
     ((_ ?name (?superclass ...))
      (define ?name
-       `((:class . ,<entity-class>)
+       `((:class . ,<builtin-class>)
 	 (:class-definition-name . ?name)
 	 (:class-precedence-list . ,(build-class-precedence-list ?superclass ...))
 	 (:slots . ())
 	 (:direct-slots . ()))))
     ((_ ?name ?superclass)
-     (define-entity-class ?name (?superclass)))))
+     (define-builtin-class ?name (?superclass)))))
 
-(define-entity-class <pair>)
-(define-entity-class <list>		<pair>)
-(define-entity-class <circular-list>	<list>)
-(define-entity-class <dotted-list>	<list>)
-(define-entity-class <proper-list>	<list>)
-(define-entity-class <vector>)
-(define-entity-class <hashtable>)
+(define-builtin-class <pair>)
+(define-builtin-class <list>		<pair>)
+(define-builtin-class <circular-list>	<list>)
+(define-builtin-class <dotted-list>	<list>)
+(define-builtin-class <proper-list>	<list>)
+(define-builtin-class <vector>)
+(define-builtin-class <hashtable>)
 
-(define-entity-class <port>)
-(define-entity-class <input-port>	<port>)
-(define-entity-class <output-port>	<port>)
-(define-entity-class <binary-port>	<port>)
-(define-entity-class <textual-port>	<port>)
+(define-builtin-class <port>)
+(define-builtin-class <input-port>	<port>)
+(define-builtin-class <output-port>	<port>)
+(define-builtin-class <binary-port>	<port>)
+(define-builtin-class <textual-port>	<port>)
 
-(define-entity-class <record>)
-(define-entity-class <condition>	<record>)
-(define-entity-class <bytevector>)
+(define-builtin-class <record>)
+(define-builtin-class <condition>	<record>)
+(define-builtin-class <bytevector>)
 
-(define-entity-class <number>)
-(define-entity-class <complex>		<number>)
-(define-entity-class <real-valued>	<complex>)
-(define-entity-class <real>		<real-valued>)
-(define-entity-class <rational-valued>	<real>)
-(define-entity-class <flonum>		<real>)
-(define-entity-class <rational>		<rational-valued>)
-(define-entity-class <integer-valued>	<rational-valued>)
-(define-entity-class <integer>		<integer-valued>)
-(define-entity-class <fixnum>		<integer>)
+(define-builtin-class <number>)
+(define-builtin-class <complex>		<number>)
+(define-builtin-class <real-valued>	<complex>)
+(define-builtin-class <real>		<real-valued>)
+(define-builtin-class <rational-valued>	<real>)
+(define-builtin-class <flonum>		<real>)
+(define-builtin-class <rational>	<rational-valued>)
+(define-builtin-class <integer-valued>	<rational-valued>)
+(define-builtin-class <integer>		<integer-valued>)
+(define-builtin-class <fixnum>		<integer>)
 
 ;;Other possible classes that require more library loading:
 ;;
@@ -405,8 +395,13 @@
 
 (define (subclass? c1 c2)
   (cond ((eq? c1 c2) #t)
-	((eq? c1 #t) #f)
-	((eq? c2 #t) #t)
+;;;These  equalities are  here  because the  original ScmObj  classified
+;;;Scheme  built-in values as  objects of  class #t.   They are  no more
+;;;needed, but  I leave them  here just in  case the other  code becomes
+;;;nostalgic.
+;;;
+;;; 	((eq? c1 #t) #f)
+;;; 	((eq? c2 #t) #t)
 	((memq c2 (class-precedence-list c1)) #t)
 	(else #f)))
 
@@ -417,37 +412,44 @@
 	 (eq? ':class (caar value)))
     (cdar value))
 
-   ;;Order does matter here!!!
-   ((fixnum?	value)		<fixnum>)
-   ((integer?	value)		<integer>)
-   ((rational?	value)		<rational>)
-   ((integer-valued? value)	<integer-valued>)
-   ((rational-valued? value)	<rational-valued>)
-   ((flonum?	value)		<flonum>)
-   ((real?	value)		<real>)
-   ((real-valued? value)	<real-valued>)
-   ((complex?	value)		<complex>)
-   ((number?	value)		<number>)
-
+   ((number? value)
+    ;;Order does matter here!!!
+    (cond
+     ((fixnum?		value)	<fixnum>)
+     ((integer?		value)	<integer>)
+     ((rational?	value)	<rational>)
+     ((integer-valued?	value)	<integer-valued>)
+     ((rational-valued? value)	<rational-valued>)
+     ((flonum?		value)	<flonum>)
+     ((real?		value)	<real>)
+     ((real-valued?	value)	<real-valued>)
+     ((complex?		value)	<complex>)
+     ((number?		value)	<number>)
+     (else #f)))
    ((vector?	value)		<vector>)
    ((hashtable? value)		<hashtable>)
-
-   ((input-port? value)		<input-port>)
-   ((output-port? value)	<output-port>)
-   ((binary-port? value)	<binary-port>)
-   ((textual-port? value)	<textual-port>)
-   ((port? value)		<port>)
-
+   ((port? value)
+    (cond
+     ;;Order here is arbitrary.
+     ((input-port? value)	<input-port>)
+     ((output-port? value)	<output-port>)
+     ((binary-port? value)	<binary-port>)
+     ((textual-port? value)	<textual-port>)
+     ((port? value)		<port>)
+     (else #f)))
    ((condition? value)		<condition>)
    ((record? value)		<record>)
    ((bytevector? value)		<bytevector>)
-
-   ((circular-list value)	<circular-list>)
-   ((dotted-list? value)	<dotted-list>)
-   ((proper-list? value)	<proper-list>)
-   ((list? value)		<list>)
-   ((pair? value)		<pair>)
-   (else			#t)))
+   ((pair? value)
+    ;;Order does matter here!!!
+    (cond
+     ((circular-list value)	<circular-list>)
+     ((dotted-list? value)	<dotted-list>)
+     ((proper-list? value)	<proper-list>)
+     ((list? value)		<list>)
+     ((pair? value)		<pair>)
+     (else #f)))
+   (else			#f)))
 
 
 ;;;; methods dispatching
@@ -799,8 +801,8 @@
      (define-method 1 ?generic-function :primary ?args . ?body))))
 
 
-;;;; Done.
+;;;; done
 
-) ;; end of library form
+)
 
 ;;; end of file

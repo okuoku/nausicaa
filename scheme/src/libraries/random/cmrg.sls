@@ -157,7 +157,7 @@
       ;;An  entirely adhoc  way  of  seeding! This  does  NOT come  from
       ;;L'Ecuyer et al.
       (define (LCG n)
-	(* 69069 n))
+	(mod (* 69069 n) const:2^32))
       (write (list 'seed S))(newline)
       (set! S  (LCG S))
       (set! X1 (mod S M1))

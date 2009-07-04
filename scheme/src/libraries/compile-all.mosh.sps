@@ -44,6 +44,8 @@
   (only (random borosh))
   (only (compare))
 
+  (only (scmobj))
+
   (only (object-properties))
   (only (cleanup-handlers))
   (only (queues))

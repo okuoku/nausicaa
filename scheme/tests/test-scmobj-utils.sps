@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/ScmObj
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for helper functions
 ;;;Date: Thu Nov 20, 2008
 ;;;
@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,25 +23,18 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;; --------------------------------------------------------------------
-;;; Setup.
-;;; --------------------------------------------------------------------
 
-(import (r6rs)
-  (check-lib)
+(import (nausicaa)
+  (checks)
   (scmobj)
   (scmobj utils))
 
 (check-set-mode! 'report-failed)
-
-;;; --------------------------------------------------------------------
+(display "*** testing scmobj utils\n")
 
 
-;;; --------------------------------------------------------------------
-;;; Special slots accessors.
-;;; --------------------------------------------------------------------
+;;;; special slots accessors
 
 (let ()
   (define-class <alpha> () :a :b :c)
@@ -94,12 +87,8 @@
     => '(10 30))
   )
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; With slots.
-;;; --------------------------------------------------------------------
+;;; with slots
 
 (let ()
   (define-class <alpha> () :a :b :c)
@@ -134,12 +123,8 @@
       => '(1 2 3 4 5 6 7 8 9)))
   )
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Done.
-;;; --------------------------------------------------------------------
+;;; done
 
 (check-report)
 

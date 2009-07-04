@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Uriel libraries
+;;;Part of: Nausicaa/Scmobj
 ;;;Contents: helpers for CLOS
 ;;;Date: Wed Nov 19, 2008
 ;;;
@@ -8,7 +8,7 @@
 ;;;	This library of helper functions is meant to be portable to both
 ;;;	Tiny-CLOS and Nausicaa/ScmObj.
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,24 +25,15 @@
 ;;;
 
 
-;;; --------------------------------------------------------------------
-;;; Setup.
-;;; --------------------------------------------------------------------
-
 (library (scmobj utils)
   (export
     prepend-to-slot append-to-slot
     with-slots-set! with-slots-ref
     with-slots)
-  (import (r6rs)
+  (import (rnrs)
     (scmobj))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Special slot accessors.
-;;; --------------------------------------------------------------------
 
 (define-syntax prepend-to-slot
   (syntax-rules (quote)
@@ -107,13 +98,9 @@
 		    ...)
 	 ?form0 ?form ...)))))
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Done.
-;;; --------------------------------------------------------------------
+;;;; done
 
-) ;; end of library form
+)
 
 ;;; end of file

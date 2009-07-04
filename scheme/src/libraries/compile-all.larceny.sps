@@ -100,6 +100,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "scmobj.sls"
+		 "scmobj.slfasl")
+
 (compile-library "object-properties.sls"
 		 "object-properties.slfasl")
 

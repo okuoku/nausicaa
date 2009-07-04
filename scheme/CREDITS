@@ -155,6 +155,17 @@ It is  called "Borosh  - Niederreiter".  The  original code is  by Carlo
 Perassi and Heiko  Bauke.  The Scheme code was  converted by Marco Maggi
 from a C language version from the GNU Scientific Library release 1.12.
 
+scmobj.sls
+----------
+
+This is a port to R6RS and LIMY Schemes of ScmObj by Dorai Sitaram.  The
+original code is available at:
+
+   <http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html>
+
+(last checked  Thu Nov 13, 2008).   Marco Maggi overhauled  a little the
+original code to make it work with R6RS libraries.
+
 strings.sls
 -----------
 

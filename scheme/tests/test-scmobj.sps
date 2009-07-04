@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,19 +23,18 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; Setup.
 
-(import (r6rs)
-  (list-lib)
-  (check-lib)
+(import (nausicaa)
+  (lists)
+  (checks)
   (scmobj))
 
 (check-set-mode! 'report-failed)
+(display "*** testing scmobj core\n")
+
 
 
-;;;; Clas inspection: basic predefined classes.
 
 (check
     (class-of <class>)
@@ -72,41 +71,39 @@
 ;;; --------------------------------------------------------------------
 
 (check
-    (class-of <entity-class>)
+    (class-of <builtin-class>)
   => <class>)
 
 (check
-    (class-definition-name <entity-class>)
-  => '<entity-class>)
+    (class-definition-name <builtin-class>)
+  => '<builtin-class>)
 
 (check
-    (class-precedence-list <entity-class>)
+    (class-precedence-list <builtin-class>)
   => '())
 
 (check
-    (class-slots <entity-class>)
+    (class-slots <builtin-class>)
   => '())
 
 (check
-    (class-direct-slots <entity-class>)
+    (class-direct-slots <builtin-class>)
   => '())
 
 (check
-    (class? <entity-class>)
+    (class? <builtin-class>)
   => #t)
 
 (check
-    (instance? <entity-class>)
+    (instance? <builtin-class>)
   => #t)
 
 (check
-    (is-a? <entity-class> <class>)
+    (is-a? <builtin-class> <class>)
   => #t)
 
 
-;;; --------------------------------------------------------------------
-;;; Class inspection: predefined entity classes.
-;;; --------------------------------------------------------------------
+;;;; class inspection: predefined entity classes
 
 ;; <circular-list>
 ;; <dotted-list>
@@ -134,13 +131,8 @@
 ;; <complex>
 ;; <number>
 
-
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Class inspection: custom classes with simple inheritance.
-;;; --------------------------------------------------------------------
+;;;; class inspection: custom classes with simple inheritance
 
 (let* ((<one> (make-class () :a :b :c))
        (<two> (make-class (<one>) :d :e :f))
@@ -305,12 +297,8 @@
     => #t)
   )
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Class inspection: custom classes with multiple inheritance.
-;;; --------------------------------------------------------------------
+;;;; class inspection: custom classes with multiple inheritance
 
 (let ()
   (define-class <a> () :a)
@@ -427,12 +415,8 @@
 
   )
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Class instantiation: slot access.
-;;; --------------------------------------------------------------------
+;;; class instantiation: slot access
 
 (let* ((<one>	(make-class () :a :b :c))
        (o	(make <one>
@@ -472,12 +456,8 @@
     => '(2 1 3))
   )
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Class instantiation: simple inheritance.
-;;; --------------------------------------------------------------------
+;;; class instantiation: simple inheritance
 
 (let* ((<one>	(make-class () :a :b :c))
        (<two>	(make-class (<one>) :d :e :f))
@@ -572,13 +552,8 @@
       (map class-definition-name (class-precedence-list <three>))
     => '(<two> <one>)))
 
-
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Generic functions.
-;;; --------------------------------------------------------------------
+;;; generic functions
 
 (let ()
   (define-class <one> () :a :b :c)
@@ -623,13 +598,8 @@
     (check (alpha o) => 2))
   )
 
-
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Next method.
-;;; --------------------------------------------------------------------
+;;;; next method
 
 (let ()
   (define-class <one> () :a :b :c)
@@ -661,13 +631,8 @@
     )
   #t)
 
-
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Multiple inheritance.
-;;; --------------------------------------------------------------------
+;;;; multiple inheritance
 
 (let ()
   (define-class <a> () :a)
@@ -706,12 +671,8 @@
 
   )
 
-;;; --------------------------------------------------------------------
-
 
-;;; --------------------------------------------------------------------
-;;; Generic functions: predefined entity classes.
-;;; --------------------------------------------------------------------
+;;; generic functions: predefined entity classes
 
 (let ()
   (define-generic alpha o)
@@ -736,15 +697,9 @@
   (check (alpha 1.2+3.4i) => '<complex>)
   )
 
-;;; --------------------------------------------------------------------
-
-
 
-;;; --------------------------------------------------------------------
-;;; Done.
-;;; --------------------------------------------------------------------
+;;;; done
 
 (check-report)
-
 
 ;;; end of file
