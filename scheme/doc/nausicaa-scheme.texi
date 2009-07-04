@@ -26576,6 +26576,7 @@ Auxiliary libraries
 * random vectors::              Specialised vector functions.
 * random strings::              Specialised string functions.
 * random borosh::               Borosh generator.
+* random cmrg::                 combined  multiple recursive generator.
 * random mersenne::             The Mersenne twister.
 @end menu
 
@@ -27375,7 +27376,7 @@ and @library{vectors low}.  @ref{vectors convention, Interface
 conventions}
 
 
-@defunx random-vector-unfold-numbers @var{number-maker} @var{number-of-numbers}
+@defun random-vector-unfold-numbers @var{number-maker} @var{number-of-numbers}
 Given the closure @var{number-maker} returning a random number, build
 and return a new list of @var{number-of-numbers} random numbers.
 @end defun
@@ -27535,14 +27536,14 @@ the following bindings are available through the @library{random borosh}
 library.
 
 
-@defun make-random-source/borosh13
+@defun make-random-source/borosh
 Build and return a new randomness source using the
 @dfn{Borosh--Niederreiter} generator.
 
 The state returned by @func{random-source-state-ref} is a Scheme vector
 of length 2, whose first value is the symbol
-@code{random-source-state/borosh13}.  The other value is a single
-integer representable with 32 bits.
+@code{random-source-state/borosh}.  The other value is a single integer
+representable with @math{32} bits.
 @end defun
 
 
@@ -27557,6 +27558,90 @@ A = 1812433253
 
 N' = (A * N) mod M
 @end example
+
+@c page
+@node random cmrg
+@subsection combined  multiple recursive generator
+
+
+This is a combined multiple recursive generator.  The following bindings
+are available through the @library{random cmrg} library.
+
+
+@defun make-random-source/cmrg
+Build and return a new randomness source using a @acronym{CMR}
+generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 7, whose first value is the symbol
+@code{random-source-state/cmrg}.  The other values are integers
+representable with @math{32} bits.
+@end defun
+
+
+@subsubsection The algorithm
+
+The algorithm was derived from:
+
+@quotation
+P.  L'Ecuyer.  ``Combined Multiple Recursive Random Number Generators''.
+Operations Research, 44, 5 (1996), 816--822.
+@end quotation
+
+@noindent
+It is available on the Net from L'Ecuyer's home page:
+
+@center @url{http://www.iro.umontreal.ca/~lecuyer/myftp/papers/combmrg.ps}
+@center @url{ftp://ftp.iro.umontreal.ca/pub/simulation/lecuyer/papers/combmrg.ps}
+
+The sequence is:
+
+@example
+N = (X0 - Y0) mod m1
+@end example
+
+@noindent
+where the two underlying generators x and y are,
+
+@example
+X0 = (A1 X1 + A2 X2 + A3 X3) mod M1
+Y0 = (B1 Y1 + B2 X2 + B3 Y3) mod M2
+@end example
+
+@noindent
+with coefficients:
+
+@example
+A1 = 0       A2 = 63308   A3 = -183326
+B1 = 86098   B2 = 0       B3 = -539608
+@end example
+
+@noindent
+and moduli:
+
+@example
+M1 = 2^31 - 1       = 2147483647
+M2 = 2^31 - 2000169 = 2145483479
+@end example
+
+The generator is initialised with:
+
+@example
+X1 = S1 MOD M1   X2 = S2 MOD M1   X3 = S3 MOD M1
+Y1 = S4 MOD M2   Y2 = S5 MOD M2   Y3 = S6 MOD M2
+@end example
+
+@noindent
+where @math{S(n) = (69069 * S(n-1)) mod 2^32} and @math{S0} is the
+user--supplied seed.  7 iterations are performed to ``warm up'' the
+internal state.  @library{random cmrg} seeds the randomness source using
+@math{S0 = 1}.
+
+According to the paper the initial values for @math{X0} must lie in the
+range @math{0 <= X0 <= (m1 - 1)} and the initial values for @math{Y0}
+must lie in the range @math{0 <= Y0 <= (m2 - 1)}, with at least one
+non--zero value.  The seeding procedure outlined here satisfies these
+constraints.
 
 @c page
 @node random mersenne

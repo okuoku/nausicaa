@@ -28,13 +28,15 @@
 (define libc (open-shared-library ""))
 (define platform-malloc (c-function libc void* malloc int))
 (define p (platform-malloc 4096))
-;; (pointer-set-c-int8! p 0 1)
-;; (pointer-set-c-int16! p 0 1)
-;; (pointer-set-c-int32! p 0 1)
-;; (pointer-set-c-int64! p 0 1)
-;; (pointer-set-c-uint8! p 0 1)
-;; (pointer-set-c-uint16! p 0 1)
-;; (pointer-set-c-uint32! p 0 1)
-(pointer-set-c-uint64! p 0 (- (expt 2 6) 1 ))
+
+;; (define value (- (expt 2 64) 1))
+;; (pointer-set-c-uint64! p 0 value)
+;; (write (list value (pointer-ref-c-uint64 p 0)))
+;; (newline)
+
+(define value (+ 200 (- (expt 2 64) 1)))
+(pointer-set-c-uint64! p 0 value)
+(write (list value (pointer-ref-c-uint64 p 0)))
+(newline)
 
 ;;; end of file

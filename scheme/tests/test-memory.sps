@@ -885,6 +885,7 @@
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-unsigned-long-long!
 				pointer-ref-c-unsigned-long-long))))
+    (test-it 66)
     (test-it 65)
     (test-it max)
     (test-it min)

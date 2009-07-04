@@ -37,7 +37,9 @@
   (random vectors)
   (random strings)
 
-  (random borosh))
+  (random borosh)
+  (random cmrg)
+  )
 
 (check-set-mode! 'report-failed)
 (display "*** testing random\n")
@@ -525,89 +527,89 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ()
-    (define (test-random-integers-with-sum requested-sum number-of-numbers
-					   range-min-inclusive range-max-exclusive)
-      (let ((obj (random-integers-with-sum requested-sum number-of-numbers
-					   range-min-inclusive range-max-exclusive
-					   default-random-source)))
-;;;	(write obj)(newline)
-	(check-for-true (vector? obj))
-	(check-for-true (= number-of-numbers (vector-length obj)))
-	(check-for-true (vector-every integer? obj))
-	(do ((i 0 (+ 1 i)))
-	    ((= i number-of-numbers))
-	  (check-for-true (let ((n (vector-ref obj i)))
-			    (and (<= range-min-inclusive n)
-				 (< n range-max-exclusive)))))
-	(check (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj) => requested-sum)))
+;;   (let ()
+;;     (define (test-random-integers-with-sum requested-sum number-of-numbers
+;; 					   range-min-inclusive range-max-exclusive)
+;;       (let ((obj (random-integers-with-sum requested-sum number-of-numbers
+;; 					   range-min-inclusive range-max-exclusive
+;; 					   default-random-source)))
+;; ;;;	(write obj)(newline)
+;; 	(check-for-true (vector? obj))
+;; 	(check-for-true (= number-of-numbers (vector-length obj)))
+;; 	(check-for-true (vector-every integer? obj))
+;; 	(do ((i 0 (+ 1 i)))
+;; 	    ((= i number-of-numbers))
+;; 	  (check-for-true (let ((n (vector-ref obj i)))
+;; 			    (and (<= range-min-inclusive n)
+;; 				 (< n range-max-exclusive)))))
+;; 	(check (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj) => requested-sum)))
 
-    (test-random-integers-with-sum 25 8 0 10)
-    (test-random-integers-with-sum 25 8 0 5)
-    (test-random-integers-with-sum 50 8 0 20)
-    (test-random-integers-with-sum 50 8 3 10)
-    (test-random-integers-with-sum 50 8 -10 2)
-    )
+;;     (test-random-integers-with-sum 25 8 0 10)
+;;     (test-random-integers-with-sum 25 8 0 5)
+;;     (test-random-integers-with-sum 50 8 0 20)
+;;     (test-random-integers-with-sum 50 8 3 10)
+;;     (test-random-integers-with-sum 50 8 -10 2)
+;;     )
 
-  (let ()
-    (define (test-random-reals-with-sum requested-sum number-of-numbers
-					range-min-exclusive range-max-exclusive)
-      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
-						     range-min-exclusive range-max-exclusive
-						     default-random-source)))
-;;;	(write obj)(newline)
-	(check-for-true (vector? obj))
-	(check-for-true (= number-of-numbers (vector-length obj)))
-	(check-for-true (vector-every real? obj))
-	(do ((i 0 (+ 1 i)))
-	    ((= i number-of-numbers))
-	  (check-for-true (let ((n (vector-ref obj i)))
-			    (and (< range-min-exclusive n)
-				 (< n range-max-exclusive)))))
-	(check
-	    (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
-	  (=> (lambda (a b)
-		(> 1e-6 (abs (- a b)))))
-	  requested-sum)))
+;;   (let ()
+;;     (define (test-random-reals-with-sum requested-sum number-of-numbers
+;; 					range-min-exclusive range-max-exclusive)
+;;       (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
+;; 						     range-min-exclusive range-max-exclusive
+;; 						     default-random-source)))
+;; ;;;	(write obj)(newline)
+;; 	(check-for-true (vector? obj))
+;; 	(check-for-true (= number-of-numbers (vector-length obj)))
+;; 	(check-for-true (vector-every real? obj))
+;; 	(do ((i 0 (+ 1 i)))
+;; 	    ((= i number-of-numbers))
+;; 	  (check-for-true (let ((n (vector-ref obj i)))
+;; 			    (and (< range-min-exclusive n)
+;; 				 (< n range-max-exclusive)))))
+;; 	(check
+;; 	    (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
+;; 	  (=> (lambda (a b)
+;; 		(> 1e-6 (abs (- a b)))))
+;; 	  requested-sum)))
 
-    (test-random-reals-with-sum 25 8 0 10)
-    (test-random-reals-with-sum 25 8 0 5)
-    (test-random-reals-with-sum 50 8 0 20)
-    (test-random-reals-with-sum 50 8 3 10)
-    )
+;;     (test-random-reals-with-sum 25 8 0 10)
+;;     (test-random-reals-with-sum 25 8 0 5)
+;;     (test-random-reals-with-sum 50 8 0 20)
+;;     (test-random-reals-with-sum 50 8 3 10)
+;;     )
 
-  (let ()
-    (define (test-random-reals-with-sum requested-sum number-of-numbers
-					range-min-exclusive range-max-exclusive)
-      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
-						     range-min-exclusive range-max-exclusive
-						     default-random-source)))
-;;;	(write (list obj sum))(newline)
-	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
-	(let-values (((obj sum) (random-reals-with-sum-refine obj sum
-							      requested-sum 1e-20 10)))
+;;   (let ()
+;;     (define (test-random-reals-with-sum requested-sum number-of-numbers
+;; 					range-min-exclusive range-max-exclusive)
+;;       (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
+;; 						     range-min-exclusive range-max-exclusive
+;; 						     default-random-source)))
+;; ;;;	(write (list obj sum))(newline)
+;; 	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
+;; 	(let-values (((obj sum) (random-reals-with-sum-refine obj sum
+;; 							      requested-sum 1e-20 10)))
 
-	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
-;;;	(write (list obj sum))(newline)
-	  (check-for-true (vector? obj))
-	  (check-for-true (= number-of-numbers (vector-length obj)))
-	  (check-for-true (vector-every real? obj))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i number-of-numbers))
-	    (check-for-true (let ((n (vector-ref obj i)))
-			      (let ((r (and (< range-min-exclusive n)
-					    (< n range-max-exclusive))))
-				(if r r (begin
-					  (write (list 'out-of-bounds n))
-					  (newline)))))))
-	  (check
-	      (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
-	    (=> (lambda (a b)
-		  (> 1e-6 (abs (- a b)))))
-	    requested-sum))))
+;; 	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
+;; ;;;	(write (list obj sum))(newline)
+;; 	  (check-for-true (vector? obj))
+;; 	  (check-for-true (= number-of-numbers (vector-length obj)))
+;; 	  (check-for-true (vector-every real? obj))
+;; 	  (do ((i 0 (+ 1 i)))
+;; 	      ((= i number-of-numbers))
+;; 	    (check-for-true (let ((n (vector-ref obj i)))
+;; 			      (let ((r (and (< range-min-exclusive n)
+;; 					    (< n range-max-exclusive))))
+;; 				(if r r (begin
+;; 					  (write (list 'out-of-bounds n))
+;; 					  (newline)))))))
+;; 	  (check
+;; 	      (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
+;; 	    (=> (lambda (a b)
+;; 		  (> 1e-6 (abs (- a b)))))
+;; 	    requested-sum))))
 
-    (test-random-reals-with-sum 0.0 100 -50 +50)
-    )
+;;     (test-random-reals-with-sum 0.0 100 -50 +50)
+;;     )
 
   )
 
@@ -721,6 +723,78 @@
 
   (check-for-true
    (let* ((source	(make-random-source/borosh))
+	  (state	(random-source-state-ref source)))
+     (random-source-state-set! source state)
+     (let ((make-integer (random-source-integers-maker source)))
+       (integer? (make-integer 10)))))
+
+  )
+
+
+(parameterise ((check-test-name 'cmrg))
+
+  (let* ((source	(make-random-source/cmrg))
+	 (make-integer	(random-source-integers-maker source)))
+
+    (define (integer) (make-integer 100))
+
+    (check-for-true (integer? (integer)))
+    (check-for-true (positive? (integer)))
+    (check-for-true (let ((n (integer)))
+		      (and (<= 0 n) (< n 100)))))
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source	(make-random-source/cmrg))
+	 (make-real	(random-source-reals-maker source)))
+
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/cmrg))
+	 (make-real	(random-source-reals-maker source 1e-30)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/cmrg))
+	 (make-real	(random-source-reals-maker source 1e-5)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source-a	(make-random-source/cmrg))
+	  (source-b	(make-random-source/cmrg))
+	  (make-integer	(random-source-integers-maker source-b)))
+     (define (integer) (make-integer 100))
+     (random-source-seed! source-a integer)
+     (let* ((make-real	(random-source-reals-maker source-a))
+	    (n		(make-real)))
+       (and (< 0 n) (< n 1)))))
+
+  (check
+      (begin
+	(random-source-jumpahead! (make-random-source/cmrg) 10)
+	(let ((make-integer (random-source-integers-maker (make-random-source/cmrg))))
+	  (integer? (make-integer 10))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source		(make-random-source/cmrg))
+	 (bytevector-maker	(random-source-bytevectors-maker source))
+	 (obj (bytevector-maker 50)))
+    ;;(write obj)(newline)
+    (check-for-true (bytevector? obj)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source	(make-random-source/cmrg))
 	  (state	(random-source-state-ref source)))
      (random-source-state-set! source state)
      (let ((make-integer (random-source-integers-maker source)))

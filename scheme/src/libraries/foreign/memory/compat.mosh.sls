@@ -74,7 +74,9 @@
     pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
     pointer-set-c-pointer!)
   (import (rnrs)
-    (mosh ffi)
+    (rename (mosh ffi)
+	    (pointer-set-c-int64!  %pointer-set-c-int64!)
+	    (pointer-set-c-uint64! %pointer-set-c-uint64!))
     (foreign ffi sizeof))
 
 
@@ -114,19 +116,22 @@
 
 ;;;; pokers
 
-(define-syntax define-u-poker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1)	pointer-set-c-int8!)
-		     ((2)	pointer-set-c-int16!)
-		     ((4)	pointer-set-c-int32!)
-		     ((8)	pointer-set-c-int64!))))))
+;;;these are temporary!!!!!!!!!!!!!!!!!!!!!!!!
+(define min-s64 (- (expt 2 (- 64 1))))
+(define max-s64 (- (expt 2 (- 64 1)) 1))
+(define max-u64	(- (expt 2 64) 1))
 
-(define-u-poker pointer-set-c-uint8!	1)
-(define-u-poker pointer-set-c-uint16!	2)
-(define-u-poker pointer-set-c-uint32!	4)
-(define-u-poker pointer-set-c-uint64!	8)
+(define (pointer-set-c-int64! pointer index value)
+  (if (and (<= min-s64 value) (<= value max-s64))
+      (%pointer-set-c-int64! pointer index value)
+    (assertion-violation 'pointer-set-c-int64!
+      "value out of range for s64 memory poker" value)))
+
+(define (pointer-set-c-uint64! pointer index value)
+  (if (and (<= 0 value) (<= value max-u64))
+      (%pointer-set-c-uint64! pointer index value)
+    (assertion-violation 'pointer-set-c-uint64!
+      "value out of range for u64 memory poker" value)))
 
 (define-syntax define-signed-poker
   (syntax-rules ()
