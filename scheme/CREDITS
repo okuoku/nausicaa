@@ -1,0 +1,176 @@
+
+		      Credits for Nausicaa/Scheme
+		      ===========================
+
+
+This  file  is  for  credits  notes  about the  code  in  this  package.
+Additional credits for the  documentation, are in the "Credits" appendix
+of the documentation file in Texinfo format.
+
+char-sets.sls
+-------------
+
+char-sets/blocks.sls
+--------------------
+
+char-sets/categories.sls
+------------------------
+
+checks.sls
+----------
+
+cleanup-handlers.sls
+--------------------
+
+
+combinators.sls
+---------------
+
+compare.sls
+-----------
+
+foreign.sls
+-----------
+
+foreign/cstring.sls
+-------------------
+
+foreign/errno.sls
+-----------------
+
+foreign/ffi.sls
+---------------
+
+foreign/ffi/compat.ikarus.sls
+-----------------------------
+
+
+foreign/ffi/compat.larceny.sls
+------------------------------
+
+foreign/ffi/compat.mosh.sls
+---------------------------
+
+foreign/ffi/compat.ypsilon.sls
+------------------------------
+
+foreign/ffi/sizeof.sls
+----------------------
+
+foreign/guarded-malloc.sls
+--------------------------
+
+foreign/memory.sls
+------------------
+
+foreign/memory/compat.ikarus.sls
+--------------------------------
+
+foreign/memory/compat.larceny.sls
+---------------------------------
+
+foreign/memory/compat.mosh.sls
+------------------------------
+
+foreign/memory/compat.ypsilon.sls
+---------------------------------
+
+format.sls
+----------
+
+knuth-morris-pratt.sls
+----------------------
+
+lists.sls
+---------
+
+loops.sls
+---------
+
+nausicaa.ikarus.sls
+-------------------
+
+nausicaa.larceny.sls
+--------------------
+
+
+nausicaa.mosh.sls
+-----------------
+
+nausicaa.ypsilon.sls
+--------------------
+
+nausicaa/common.sls
+-------------------
+
+nausicaa/registry.sls
+---------------------
+
+object-properties.sls
+---------------------
+
+
+one-dimension-cc.sls
+--------------------
+
+
+
+one-dimension-co.sls
+--------------------
+
+parameters.ikarus.sls
+---------------------
+
+parameters.larceny.sls
+----------------------
+
+
+parameters.mosh.sls
+-------------------
+
+parameters.ypsilon.sls
+----------------------
+
+queues.sls
+----------
+
+random.sls
+----------
+
+random/lists.sls
+----------------
+
+random/strings.sls
+------------------
+
+random/vectors.sls
+------------------
+
+random/borosh.sls
+-----------------
+
+The  generator is taken  from: Donald  E. Knuth.   "The Art  of Computer
+Programming".  Volume 2.  Third Edition.  Addison-Wesley.  Page 106-108.
+It is  called "Borosh  - Niederreiter".  The  original code is  by Carlo
+Perassi and Heiko  Bauke.  The Scheme code was  converted by Marco Maggi
+from a C language version from the GNU Scientific Library release 1.12.
+
+strings.sls
+-----------
+
+strings/low.sls
+---------------
+
+vectors.sls
+-----------
+
+vectors/low.sls
+---------------
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 72
+# paragraph-start: "*"
+# End:

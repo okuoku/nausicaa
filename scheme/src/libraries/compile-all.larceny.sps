@@ -80,6 +80,9 @@
 (compile-library "checks.sls"
 		 "checks.slfasl")
 
+(compile-library "random/low.sls"
+		 "random/low.slfasl")
+
 (compile-library "random.sls"
 		 "random.slfasl")
 
@@ -88,6 +91,9 @@
 
 (compile-library "random/strings.sls"
 		 "random/strings.slfasl")
+
+(compile-library "random/distributions.sls"
+		 "random/distributions.slfasl")
 
 (compile-library "compare.sls"
 		 "compare.slfasl")

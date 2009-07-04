@@ -26,12 +26,12 @@
 
 (library (random strings)
   (export
+    random-string-unfold-chars
     %random-string-shuffle		random-string-shuffle
     %random-string-shuffle!		random-string-shuffle!
 
     %random-string-sample		random-string-sample
-    %random-string-sample-population	random-string-sample-population
-    )
+    %random-string-sample-population	random-string-sample-population)
   (import (rnrs)
     (random)
     (strings low)
@@ -76,6 +76,16 @@
 
 
 ;;;; high level
+
+(define (random-string-unfold-chars integer-maker number-of-numbers)
+  (let ((str (make-string number-of-numbers)))
+    (do ((i 0 (+ 1 i)))
+	((= i number-of-numbers)
+	 str)
+      (do ((n (integer-maker) (integer-maker)))
+	  ((or (and (<= 0 n)     (< n #xD800))
+	       (and (< #xDFFF n) (< n #x10FFFF)))
+	   (string-set! str i (integer->char n)))))))
 
 (define-syntax random-string-shuffle
   (syntax-rules ()

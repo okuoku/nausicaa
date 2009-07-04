@@ -1,6 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: record interface to randomness sources
+;;;Date: Sat Jul  4, 2009
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2008 Derick Eddington
@@ -59,15 +60,12 @@
     default-random-source
 
     ;; utilities
-    unfold-random-numbers
-    unfold-random-numbers/vector	unfold-random-numbers/string
     random-source-integers-maker-from-range
     random-source-reals-maker-from-range
-    random-permutations-maker
-    random-exponentials-maker		random-normals-maker)
+    random-permutations-maker)
   (import (rnrs)
     (parameters)
-    (rnrs mutable-strings))
+    (random low))
 
 
 ;;;; helpers
@@ -77,16 +75,6 @@
 
 
 ;;;; randomness source
-
-(define-record-type (:random-source :random-source-make random-source?)
-  (fields (immutable state-ref)
-	  (immutable state-set!)
-	  (immutable seed!)
-	  (immutable jumpahead!)
-	  (immutable required-seed-values)
-	  (immutable integers-maker)
-	  (immutable reals-maker)
-	  (immutable bytevectors-filler)))
 
 (define (random-source-state-ref s)
   ((:random-source-state-ref s)))
@@ -123,113 +111,6 @@
   (:random-source-bytevectors-filler s))
 
 
-;;;; random numbers generation
-
-(define (make-random-integer U M make-random-bits)
-  (cond ((= 0 U)
-	 0)
-	((<= U M)
-	 (%make-random-integer/small U M make-random-bits))
-	(else
-	 (%make-random-integer/large U M make-random-bits))))
-
-(define (%make-random-integer/small U M make-random-bits)
-  ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
-  ;;understand what this does.
-  (if (= U M)
-      (make-random-bits)
-    (let* ((Q  (div M U))
-	   (QU (* Q U)))
-      (do ((N (make-random-bits) (make-random-bits)))
-	  ((< N QU)
-	   (div N Q))))))
-
-(define (%make-random-integer/large U M make-random-bits)
-  ;;Read the  documentation of  Nausicaa/Scheme, node "random  prng", to
-  ;;understand what this does.
-  (define (polynomial k)
-    ;;Notice that this function returns  integers N' in a range 0<=N'<M'
-    ;;with M^k<=M'; that is N' can be greater than M^k.
-    (%polynomial k M make-random-bits))
-  (do ((k 2 (+ k 1))
-       (M^k (* M M) (* M^k M)))
-      ((<= U M^k)
-       (if (= U M^k)
-	   (polynomial k)
-	 (let* ((Q  (div M^k U))
-		(QU (* Q U)))
-	   (do ((N (polynomial k) (polynomial k)))
-	       ((< N QU)
-		(div N Q))))))))
-
-;;The version commented out below is an equivalent reorganisation of the
-;;original  version  in the  reference  implementation  of SRFI-42.   It
-;;literally computes:
-;;
-;;  N0 + (M * (N1 + (M * (N2 + (... (M * (N(k-3) + (M * (N(k-2) + (M * N(k-1)))))))))))
-;;
-;;which is not tail recursive.
-;;
-;; (define (%polynomial k U M make-random-bits)
-;;   (let ((N (%make-random-integer/small U M make-random-bits)))
-;;     (if (= k 1)
-;; 	     N
-;;       (+ N (* M (%polynomial (- k 1) U M make-random-bits))))))
-;;
-;;The polynomial can be rewritten:
-;;
-;;  N0 + M * N1 + M^2 * N2 + ... + M^(k-2) * N(k-2) + M^(k-1) * N(k-1)
-;;
-;;which is implemented by the tail recursive version below.  Notice that
-;;the maximum value is realised when every N(k) equals M-1 and its value
-;;is M^k.
-;;
-(define (%polynomial k M make-random-bits)
-  (define (integer)
-    (%make-random-integer/small M M make-random-bits))
-  (let loop ((A   (integer))
-	     (j   1)
-	     (M^j M))
-    (if (= j k)
-	A
-      (loop (+ A (* M^j (integer))) (+ 1 j) (* M M^j)))))
-
-(define make-random-real
-  (let ((%normalise (lambda (N M) (inexact (/ (+ 1 N) (+ 1 M))))))
-    ;;Read the documentation of  Nausicaa/Scheme, node "random prng", to
-    ;;understand what this does.
-    (case-lambda
-     ((M make-random-bits)
-      (%normalise (make-random-bits) M))
-     ((M make-random-bits unit)
-      (let ((C (- (/ unit) 1)))
-	(if (<= C M)
-	    ;;This is like: (make-random-real M make-random-bits)
-	    (begin
-;;;	    (write 'avoiding-unit-because-too-big)(newline)
-	      (%normalise (make-random-bits) M))
-	  (do ((k 1 (+ k 1))
-	       (U C (/ U M)))
-	      ((<= U 1)
-;;;	     (write 'making-use-of-unit-here)(newline)
-	       (%normalise (%polynomial k M make-random-bits)
-			   (expt M k))))))))))
-
-(define (random-bytevector-fill! bv make-random-32bits)
-  (let ((len  (bytevector-length bv)))
-    (let-values (((len-32bits len-rest) (div-and-mod len 4)))
-      (set! len-32bits (* 4 len-32bits))
-      (do ((i 0 (+ 4 i)))
-	  ((= i len-32bits))
-	(bytevector-u32-native-set! bv i (make-random-32bits)))
-      (let ((bits (make-bytevector 4)))
-	(bytevector-u32-native-set! bits 0 (make-random-32bits))
-	(do ((i (- len len-rest) (+ 1 i))
-	     (j 0 (+ 1 j)))
-	    ((= i len))
-	  (bytevector-u8-set! bv i (bytevector-u8-ref bits j)))))))
-
-
 ;;; MRG32k3a pseudo-random numbers generator
 
 (define (make-random-source/mrg32k3a)
@@ -254,6 +135,30 @@
 
     (define (make-random-32bits)
       (make-random-integer const:2^32-1 M1 make-random-bits))
+
+    (define (seed! integers-maker)
+      ;; G. Marsaglia's simple 16-bit generator with carry
+      (let* ((m 65536)
+	     (x (mod (integers-maker) m)))
+	(define (random n) ; m < n < m^2
+	  (define (random-m)
+	    (let ((y (mod x m)))
+	      (set! x (+ (* 30903 y) (div x m)))
+	      y))
+	  (mod (+ (* (random-m) m) (random-m)) n))
+	(let ((M1-1 (- M1 1))
+	      (M2-1 (- M2 1)))
+	  (set! A1 (+ 1 (mod (+ A1 (random M1-1)) M1-1)))
+	  (set! B1 (+ 1 (mod (+ B1 (random M2-1)) M2-1)))
+	  (set! A2 (mod (+ A2 (random M1)) M1))
+	  (set! A3 (mod (+ A3 (random M1)) M1))
+	  (set! B2 (mod (+ B2 (random M2)) M2))
+	  (set! B3 (mod (+ B3 (random M2)) M2)))))
+
+    (define (jumpahead! number-of-steps)
+      (do ((i 0 (+ 1 i)))
+	  ((= i number-of-steps))
+	(make-random-bits)))
 
     (define (internal-state->external-state)
       ;;Package the state to be written in a way that can be read back.
@@ -284,30 +189,6 @@
 	    "illegal random source MRG32k3a degenerate state" external-state))
 	(set! A1 s1) (set! A2 s2) (set! A3 s3)
 	(set! B1 r1) (set! B2 r2) (set! B3 r3)))
-
-    (define (seed! integers-maker)
-      ;; G. Marsaglia's simple 16-bit generator with carry
-      (let* ((m 65536)
-	     (x (mod (integers-maker) m)))
-	(define (random n) ; m < n < m^2
-	  (define (random-m)
-	    (let ((y (mod x m)))
-	      (set! x (+ (* 30903 y) (div x m)))
-	      y))
-	  (mod (+ (* (random-m) m) (random-m)) n))
-	(let ((M1-1 (- M1 1))
-	      (M2-1 (- M2 1)))
-	  (set! A1 (+ 1 (mod (+ A1 (random M1-1)) M1-1)))
-	  (set! B1 (+ 1 (mod (+ B1 (random M2-1)) M2-1)))
-	  (set! A2 (mod (+ A2 (random M1)) M1))
-	  (set! A3 (mod (+ A3 (random M1)) M1))
-	  (set! B2 (mod (+ B2 (random M2)) M2))
-	  (set! B3 (mod (+ B3 (random M2)) M2)))))
-
-    (define (jumpahead! number-of-steps)
-      (do ((i 0 (+ 1 i)))
-	  ((= i number-of-steps))
-	(make-random-bits)))
 
     (:random-source-make
      internal-state->external-state ; state-ref
@@ -504,31 +385,6 @@
   (random-source-reals-maker default-random-source))
 
 
-;;; utility procedures, unfolding
-
-(define (unfold-random-numbers number-maker number-of-numbers)
-  (do ((i 0 (+ 1 i))
-       (ell '() (cons (number-maker) ell)))
-      ((= i number-of-numbers)
-       ell)))
-
-(define (unfold-random-numbers/vector number-maker number-of-numbers)
-  (do ((i 0 (+ 1 i))
-       (vec (make-vector number-of-numbers) (begin (vector-set! vec i (number-maker)) vec)))
-      ((= i number-of-numbers)
-       vec)))
-
-(define (unfold-random-numbers/string integer-maker number-of-numbers)
-  (let ((str (make-string number-of-numbers)))
-    (do ((i 0 (+ 1 i)))
-	((= i number-of-numbers)
-	 str)
-      (do ((n (integer-maker) (integer-maker)))
-	  ((or (and (<= 0 n)     (< n #xD800))
-	       (and (< #xDFFF n) (< n #x10FFFF)))
-	   (string-set! str i (integer->char n)))))))
-
-
 ;;;; utility procedures, numbers from range
 
 (define random-source-integers-maker-from-range
@@ -577,36 +433,6 @@
 		 (xj (vector-ref x j)))
 	    (vector-set! x i xj)
 	    (vector-set! x j xi)))))))
-
-
-;;; utility procedures, distributions
-
-(define (random-exponentials-maker source)
-  ;;Refer to Knuth's  ``The Art of Computer Programming'',  Vol. II, 2nd
-  ;;ed., Section 3.4.1.D.
-  (let ((real-maker (random-source-reals-maker source)))
-    (lambda (mu)
-      (- (* mu (log (real-maker)))))))
-
-(define (random-normals-maker source)
-  ;;For  the   algorithm  refer  to   Knuth's  ``The  Art   of  Computer
-  ;;Programming'', Vol. II, 2nd ed., Algorithm P of Section 3.4.1.C.
-  (let ((next #f)
-	(real-maker (random-source-reals-maker source)))
-    (lambda (mu sigma)
-      (if next
-          (let ((result next))
-            (set! next #f)
-            (+ mu (* sigma result)))
-        (let loop ()
-          (let* ((v1 (- (* 2 (real-maker)) 1))
-                 (v2 (- (* 2 (real-maker)) 1))
-                 (s (+ (* v1 v1) (* v2 v2))))
-            (if (>= s 1)
-                (loop)
-              (let ((scale (sqrt (/ (* -2 (log s)) s))))
-                (set! next (* scale v2))
-                (+ mu (* sigma scale v1))))))))))
 
 
 ;;; done

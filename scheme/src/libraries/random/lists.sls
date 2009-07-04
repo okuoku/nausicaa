@@ -26,6 +26,7 @@
 
 (library (random lists)
   (export
+    random-list-unfold-numbers
     random-list-shuffle
     random-list-sample
     random-list-sample-population)
@@ -33,6 +34,12 @@
     (random))
 
 
+
+(define (random-list-unfold-numbers number-maker number-of-numbers)
+  (do ((i 0 (+ 1 i))
+       (ell '() (cons (number-maker) ell)))
+      ((= i number-of-numbers)
+       ell)))
 
 (define (random-list-shuffle ell source)
   (let* ((len  (length ell))

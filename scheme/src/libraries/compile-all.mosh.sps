@@ -40,6 +40,8 @@
   (only (random))
   (only (random vectors))
   (only (random strings))
+  (only (random distributions))
+  (only (random borosh))
   (only (compare))
 
   (only (object-properties))

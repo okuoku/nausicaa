@@ -31,9 +31,13 @@
   (strings)
   (char-sets)
   (vectors)
+
+  (random distributions)
   (random lists)
   (random vectors)
-  (random strings))
+  (random strings)
+
+  (random borosh))
 
 (check-set-mode! 'report-failed)
 (display "*** testing random\n")
@@ -358,17 +362,17 @@
 
   (define (make-integer) (random-integer 10))
 
-  (let ((obj (unfold-random-numbers make-integer 10)))
+  (let ((obj (random-list-unfold-numbers make-integer 10)))
     (check-for-true (list? obj))
     (check-for-true (every integer? obj))
     (check-for-true (every non-negative? obj)))
 
-  (let ((obj (unfold-random-numbers/vector make-integer 10)))
+  (let ((obj (random-vector-unfold-numbers make-integer 10)))
     (check-for-true (vector? obj))
     (check-for-true (vector-every integer? obj))
     (check-for-true (vector-every non-negative? obj)))
 
-  (let ((obj (unfold-random-numbers/string make-integer 10)))
+  (let ((obj (random-string-unfold-chars make-integer 10)))
     (check-for-true (string? obj)))
 
 ;;; --------------------------------------------------------------------
@@ -653,6 +657,80 @@
   )
 
 
+(parameterise ((check-test-name 'borosh))
+
+  (let* ((source	(make-random-source/borosh))
+	 (make-integer	(random-source-integers-maker source)))
+
+    (define (integer) (make-integer 100))
+
+    (check-for-true (integer? (integer)))
+    (check-for-true (positive? (integer)))
+    (check-for-true (let ((n (integer)))
+		      (and (<= 0 n) (< n 100)))))
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source	(make-random-source/borosh))
+	 (make-real	(random-source-reals-maker source)))
+
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/borosh))
+	 (make-real	(random-source-reals-maker source 1e-30)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/borosh))
+	 (make-real	(random-source-reals-maker source 1e-5)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source-a	(make-random-source/borosh))
+	  (source-b	(make-random-source/borosh))
+	  (make-integer	(random-source-integers-maker source-b)))
+     (define (integer) (make-integer 100))
+     (random-source-seed! source-a integer)
+     (let* ((make-real	(random-source-reals-maker source-a))
+	    (n		(make-real)))
+       (and (< 0 n) (< n 1)))))
+
+  (check
+      (begin
+	(random-source-jumpahead! (make-random-source/borosh) 10)
+	(let ((make-integer (random-source-integers-maker (make-random-source/borosh))))
+	  (integer? (make-integer 10))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source		(make-random-source/borosh))
+	 (bytevector-maker	(random-source-bytevectors-maker source))
+	 (obj (bytevector-maker 50)))
+    ;;(write obj)(newline)
+    (check-for-true (bytevector? obj)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source	(make-random-source/borosh))
+	  (state	(random-source-state-ref source)))
+     (random-source-state-set! source state)
+     (let ((make-integer (random-source-integers-maker source)))
+       (integer? (make-integer 10)))))
+
+  )
+
+
+
+
 ;;;; examples
 
 (when #f
@@ -660,16 +738,16 @@
   (display "Example of random lists:\n")
   (do ((i 0 (+ 1 i)))
       ((= i 5))
-    (write (unfold-random-numbers (lambda ()
-				    (random-integer 10))
-				  10))
+    (write (random-list-unfold-numbers (lambda ()
+					 (random-integer 10))
+				       10))
     (newline))
 
 
   (display "Example of random vectors:\n")
   (do ((i 0 (+ 1 i)))
       ((= i 5))
-    (write (unfold-random-numbers/vector (lambda ()
+    (write (random-vector-unfold-numbers (lambda ()
 					   (random-integer 10))
 					 10))
     (newline))
@@ -677,7 +755,7 @@
   (display "Example of random strings:\n")
   (do ((i 0 (+ 1 i)))
       ((= i 5))
-    (write (unfold-random-numbers/string (lambda ()
+    (write (random-string-unfold-chars (lambda ()
 					   (+ 65 (random-integer 21)))
 					 10))
     (newline))
@@ -685,7 +763,7 @@
   (display "Example of random passwords of printable characters:\n")
   (do ((i 0 (+ 1 i)))
       ((= i 5))
-    (display (unfold-random-numbers/string
+    (display (random-string-unfold-chars
 	      (lambda ()
 		(do ((ch (random-integer 127) (random-integer 127)))
 		    ((char-set-contains? char-set:ascii/graphic (integer->char ch))

@@ -33,7 +33,8 @@
     %random-vector-sample-population	random-vector-sample-population
 
     random-integers-with-sum
-    random-reals-with-sum		random-reals-with-sum-refine)
+    random-reals-with-sum		random-reals-with-sum-refine
+    random-vector-unfold-numbers)
   (import (rnrs)
     (random)
     (vectors low)
@@ -77,6 +78,12 @@
 
 
 ;;;; high level
+
+(define (random-vector-unfold-numbers number-maker number-of-numbers)
+  (do ((i 0 (+ 1 i))
+       (vec (make-vector number-of-numbers) (begin (vector-set! vec i (number-maker)) vec)))
+      ((= i number-of-numbers)
+       vec)))
 
 (define-syntax random-vector-shuffle
   (syntax-rules ()

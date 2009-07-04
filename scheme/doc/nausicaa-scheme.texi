@@ -898,6 +898,7 @@ Sources of random bits
 * random device::               Device--based generator.
 * random mersenne::             The Mersenne twister.
 * random utils::                Utilities.
+* random dist::                 Random numbers from known distributions.
 * random lists::                Specialised list functions.
 * random vectors::              Specialised vector functions.
 * random strings::              Specialised string functions.
@@ -26557,8 +26558,7 @@ constant factor larger than the execution time of compare.
 The @library{random} library provides an @api{} to access sources of
 random and pseudo--random bits, or ``randomness sources'' for brevity.
 Other, auxiliary, libraries provide access to miscellaneous randomness
-generators; some generator is available only if we have installed the
-@code{random} library from the Nausicaa/Stubs project.
+generators.
 
 @menu
 * random intro::                Introduction.
@@ -26567,11 +26567,16 @@ generators; some generator is available only if we have installed the
 * random source::               Randomness sources.
 * random mrg32k3a::             L'Ecuyer's MRG32k3a generator
 * random device::               Device--based generator.
-* random mersenne::             The Mersenne twister.
 * random utils::                Utilities.
+
+Auxiliary libraries
+
+* random dist::                 Random numbers from known distributions.
 * random lists::                Specialised list functions.
 * random vectors::              Specialised vector functions.
 * random strings::              Specialised string functions.
+* random borosh::               Borosh generator.
+* random mersenne::             The Mersenne twister.
 @end menu
 
 @c page
@@ -27084,9 +27089,11 @@ allow @math{\log(X)} and @math{\log(1-X)} without the danger of a
 numerical exception.
 
 The optional parameter @var{unit} determines the quantization of the
-output; @var{unit} must be a number such that @code{0 < unit < 1}.  The
-numbers created by @var{rand} are spaced by at most @var{unit}.
-@ref{random prng reals, Generating real numbers}, for details.
+output; to have effect, @var{unit} must be a number such that @code{0 <
+unit < 1}, if @var{unit} is greater than, or equal to, @math{1} the
+generated numbers will have the default unit.  The numbers created by
+@var{rand} are spaced by at most @var{unit}.  @ref{random prng reals,
+Generating real numbers}, for details.
 @end defun
 
 @c page
@@ -27108,13 +27115,12 @@ Create and return a new randomness source using MRG32k3a, representing a
 deterministic stream of random bits.  Each returned randomness source
 generates the same stream of values, unless the state is modified with
 @func{random-source-seed!}.
-@end defun
-
 
 The state returned by @func{random-source-state-ref} is a Scheme vector
 of length 7, whose first value is the symbol
 @code{random-source-state/mrg32k3a}.  All the other values in the vector
 are positive integers.
+@end defun
 
 @c ------------------------------------------------------------
 
@@ -27190,6 +27196,12 @@ if not enough entropy is available, waiting for more randomness to be
 provided by the system.  This is why, by default, this function will use
 @file{/dev/urandom}, which never blocks but provides randomness of
 lesser quality.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 7, whose first value is the symbol
+@code{random-source-state/device}.  The other values are the device
+pathname, a cache vector of values, the index of the next value to be
+extracted from the cace vector.
 @end defun
 
 
@@ -27226,55 +27238,8 @@ reading bytes from @file{/dev/urandom}.
 @end defun
 
 @c page
-@node random mersenne
-@subsection The Mersenne twister
-
-
-The Mersenne twister is a pseudorandom number generator developed in
-1997 by Makoto Matsumoto and Takuji Nishimura@footnote{Matsumoto Makoto
-and Nishimura Takuji.  ``Mersenne twister: a 623--dimensionally
-equidistributed uniform pseudo--random number generator''.  1998.
-@acronym{ACM} Transactions on Modeling and Computer Simulation.}.  It
-provides for fast generation of very high--quality pseudorandom numbers,
-having been designed specifically to rectify many of the flaws found in
-older algorithms.  Its name derives from the fact that period length is
-chosen to be a Mersenne prime.
-
-Mersenne twister @api{} is exported by @library{random mersenne} and
-requires the installation of the @code{random} module from the
-Nausicaa/Stubs project.
-
-
-@c page
 @node random utils
 @subsection Utilities
-
-
-@defun unfold-random-numbers @var{number-maker} @var{number-of-numbers}
-@defunx unfold-random-numbers/vector @var{number-maker} @var{number-of-numbers}
-@defunx unfold-random-numbers/string @var{integer-maker} @var{number-of-numbers}
-Given the closure @var{number-maker} or @var{integer-maker} returning a
-random number or integer, build and return a new list, vector or string
-of @var{number-of-numbers} random numbers or characters.
-
-As a usage example, the following program will generate random passwords
-with characters in the range of graphics @ascii{} codes (warning: for
-real world applications, use a true random source):
-
-@example
-(import (rnrs)
-  (random)
-  (char-sets))
-
-(unfold-random-numbers/string
-  (lambda ()
-    (do ((ch (random-integer 127) (random-integer 127)))
-        ((char-set-contains? char-set:ascii/graphic
-                             (integer->char ch))
-         ch)))
-  10)
-@end example
-@end defun
 
 
 @defun random-source-integers-maker-from-range @var{source} @var{start} @var{last}
@@ -27340,9 +27305,14 @@ randomness from @var{source}.  Such a permutation is represented by a
 vector of length @var{n} for the images of the points.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node random dist
+@subsection Random numbers from known distributions
 
-@subsubheading Distributions
+
+The following functions are exported by the @library{random
+distributions} library.
+
 
 @defun random-exponentials-maker @var{source}
 Return a closure which, when applied to a real number argument @var{mu},
@@ -27365,6 +27335,12 @@ random numbers using randomness from @var{source}.
 The auxiliary library @library{random lists} exports bindings
 specialised to handle lists and randomness sources; it is based on
 @library{random} only.
+
+
+@defun random-list-unfold-numbers @var{number-maker} @var{number-of-numbers}
+Given the closure @var{number-maker} returning a random number, build
+and return a new list of @var{number-of-numbers} random numbers.
+@end defun
 
 
 @defun random-list-shuffle @var{ell} @var{source}
@@ -27397,6 +27373,12 @@ both @library{random} and @library{vectors}.  Arguments to the following
 functions follow the same conventions established for @library{vectors}
 and @library{vectors low}.  @ref{vectors convention, Interface
 conventions}
+
+
+@defunx random-vector-unfold-numbers @var{number-maker} @var{number-of-numbers}
+Given the closure @var{number-maker} returning a random number, build
+and return a new list of @var{number-of-numbers} random numbers.
+@end defun
 
 
 @deffn Function %random-vector-shuffle @var{source} @var{vec} @var{start} @var{past}
@@ -27483,6 +27465,31 @@ and @library{strings low}.  @ref{strings convention, Interface
 conventions}
 
 
+@defun random-string-unfold-chars @var{integer-maker} @var{number-of-chars}
+Given the closure @var{integer-maker} returning a random integer, build
+and return a new string of @var{number-of-chars} random characters.
+
+As a usage example, the following program will generate random passwords
+with characters in the range of graphics @ascii{} codes (warning: for
+real world applications, use a true random source):
+
+@example
+(import (rnrs)
+  (random)
+  (random strings)
+  (char-sets))
+
+(random-string-unfold-chars
+  (lambda ()
+    (do ((ch (random-integer 127) (random-integer 127)))
+        ((char-set-contains? char-set:ascii/graphic
+                             (integer->char ch))
+         ch)))
+  10)
+@end example
+@end defun
+
+
 @deffn Function %random-string-shuffle @var{source} @var{str} @var{start} @var{past}
 @deffnx Macro random-string-shuffle @var{S} @var{source}
 Build a new string copying the selected substring, then shuffle it using
@@ -27510,6 +27517,66 @@ Return a closure that, when evaluated with no arguments, returns a
 string of @var{len} items randomly selected from the selected substring
 of @var{str}, using randomness from @var{source}.
 @end deffn
+
+@c page
+@node random borosh
+@subsection Borosh generator
+
+
+This generator is called @dfn{Borosh--Niederreiter}.  It was taken from:
+
+@quotation
+Donald E. Knuth.  ``The Art of Computer Programming''.  Volume 2.  Third
+Edition.  Addison-Wesley.  Page 106-108.
+@end quotation
+
+@noindent
+the following bindings are available through the @library{random borosh}
+library.
+
+
+@defun make-random-source/borosh13
+Build and return a new randomness source using the
+@dfn{Borosh--Niederreiter} generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 2, whose first value is the symbol
+@code{random-source-state/borosh13}.  The other value is a single
+integer representable with 32 bits.
+@end defun
+
+
+@subsubheading The algorithm
+
+The generator computes a new integer @math{N'} from an initial state
+@math{N} with the following formulation:
+
+@example
+M = 2^32
+A = 1812433253
+
+N' = (A * N) mod M
+@end example
+
+@c page
+@node random mersenne
+@subsection The Mersenne twister
+
+
+The Mersenne twister is a pseudorandom number generator developed in
+1997 by Makoto Matsumoto and Takuji Nishimura@footnote{Matsumoto Makoto
+and Nishimura Takuji.  ``Mersenne twister: a 623--dimensionally
+equidistributed uniform pseudo--random number generator''.  1998.
+@acronym{ACM} Transactions on Modeling and Computer Simulation.}.  It
+provides for fast generation of very high--quality pseudorandom numbers,
+having been designed specifically to rectify many of the flaws found in
+older algorithms.  Its name derives from the fact that period length is
+chosen to be a Mersenne prime.
+
+Mersenne twister @api{} is exported by @library{random mersenne} and
+requires the installation of the @code{random} module from the
+Nausicaa/Stubs project.
+
 
 @c page
 @node format
