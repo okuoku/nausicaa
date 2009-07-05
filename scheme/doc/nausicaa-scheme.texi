@@ -19153,6 +19153,7 @@ silently ignored.
 * object-properties::           Object properties.
 * cleanup-handlers::            Cleaning up.
 * combinators::                 Combinators.
+* keywords::                    Keyword values.
 * scmobj::                      A simple object system.
 
 Low level libraries
@@ -29330,6 +29331,70 @@ The S combinator:
     ((_ ?x ?y ?z)
      (let ((Z ?z))
        (?x Z (?y Z))))))
+@end example
+@end deffn
+
+@c page
+@node keywords
+@section Keyword values
+
+
+The @library{keywords} library implements a type of value,
+@dfn{keywords}, disjoint from all the other types.  Keywords can be
+treated much like symbols.
+
+
+@deffn Macro make-keyword @var{symbol}
+@deffnx Function %make-keyword @var{symbol}
+Build the macro and the function return a new keyword value associated
+to the @var{symbol}.  The macro is a wrapper for the function, so the
+following two forms are equivalent (notice the quoting):
+
+@example
+(make-keyword   alpha)
+(%make-keyword 'alpha)
+@end example
+
+When this function is applied to the same symbol multiple times, it
+returns the same keyword value; so those keywords are @func{eq?} to each
+other.
+@end deffn
+
+
+@defun keyword? @var{obj}
+Return true if @var{obj} is a keyword value.
+@end defun
+
+
+@defun keyword->symbol @var{key}
+@defunx symbol->keyword @var{str}
+Convert a keyword to and from a symbol.
+@end defun
+
+
+@defun keyword->string @var{key}
+@defunx string->keyword @var{str}
+Convert a keyword to and from a string.
+@end defun
+
+
+@deffn Syntax with-keywords @var{keywords} @var{form0} @var{form} ...
+Define a set of keywords while the forms are evaluated.  The following:
+
+@example
+(with-keywords (:a :b :c :d)
+  ---)
+@end example
+
+@noindent
+expands to:
+
+@example
+(let ((:a (make-keyword :a))
+      (:b (make-keyword :b))
+      (:c (make-keyword :c))
+      (:d (make-keyword :d)))
+  ---)
 @end example
 @end deffn
 
