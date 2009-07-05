@@ -41,15 +41,15 @@
 (define-class <priced-apple> (<apple> <price>))
 
 (define o (make <apple>
-            ':variety 'renetta
-            ':colour  'green
-            ':quality 'high))
+            :variety 'renetta
+            :colour  'green
+            :quality 'high))
 
 (define p (make <priced-apple>
-            ':variety 'renetta
-            ':colour  'green
-            ':quality 'high
-            ':tag 100))
+            :variety 'renetta
+            :colour  'green
+            :quality 'high
+            :tag 100))
 
 
 ;; (printf "\nthis is <class>\n")

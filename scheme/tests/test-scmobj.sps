@@ -419,8 +419,7 @@
 ;;; class instantiation: slot access
 
 (let* ((<one>	(make-class () :a :b :c))
-       (o	(make <one>
-		  ':a 1 ':b 2 ':c 3)))
+       (o	(make <one> :a 1 :b 2 :c 3)))
   (check
       (instance? o)
     => #t)
@@ -441,7 +440,7 @@
   (define-class <one> ()
     :a :b :c)
   (define o (make <one>
-	      ':a 1 ':b 2 ':c 3))
+			   :a 1 :b 2 :c 3))
   (check
       (instance? o)
     => #t)
@@ -463,9 +462,9 @@
        (<two>	(make-class (<one>) :d :e :f))
        (<three>	(make-class (<two>) :g :h :i))
        (o	(make <three>
-		  ':a 1 ':b 2 ':c 3
-		  ':d 4 ':e 5 ':f 6
-		  ':g 7 ':h 8 ':i 9)))
+			       :a 1 :b 2 :c 3
+			       :d 4 :e 5 :f 6
+			       :g 7 :h 8 :i 9)))
 
   (check
       (subclass? <one> <class>)
@@ -521,9 +520,9 @@
       (define-class <three> (<two>) :g :h :i)
 
       (define o (make <three>
-		  ':a 1 ':b 2 ':c 3
-		  ':d 4 ':e 5 ':f 6
-		  ':g 7 ':h 8 ':i 9))
+		  :a 1 :b 2 :c 3
+		  :d 4 :e 5 :f 6
+		  :g 7 :h 8 :i 9))
       (list (slot-ref o ':b)
 	    (slot-ref o ':d)
 	    (slot-ref o ':i))
@@ -571,9 +570,9 @@
   (define-method alpha ((o <three>))
     (slot-ref o ':g))
 
-  (let ((a (make <one> ':a 1))
-	(b (make <two> ':d 2))
-	(c (make <three> ':g 3)))
+  (let ((a (make <one> :a 1))
+	(b (make <two> :d 2))
+	(c (make <three> :g 3)))
     (check (alpha a) => 1)
     (check (alpha b) => 2)
     (check (alpha c) => 3))
@@ -594,7 +593,7 @@
   (define-method alpha ((o <one>))
     (slot-ref o ':b))
 
-  (let ((o (make <two> ':a 1 ':b 2)))
+  (let ((o (make <two> :a 1 :b 2)))
     (check (alpha o) => 2))
   )
 
@@ -620,11 +619,11 @@
 	  (call-next-method)))
 
   (let ((a (make <one>
-	     ':a 1))
+	     :a 1))
 	(b (make <two>
-	     ':a 1 ':d 2))
+	     :a 1 :d 2))
 	(c (make <three>
-	     ':a 1 ':d 2 ':g 3)))
+	     :a 1 :d 2 :g 3)))
     (check (alpha a) => 1)
     (check (alpha b) => '(2 . 1))
     (check (alpha c) => '(3 . (2 . 1)))
@@ -646,14 +645,14 @@
   (define-class <rr> (<pp> <e> <qq>))
 
   (define i (make <pp>
-	      ':a 1 ':b 2))
+	      :a 1 :b 2))
 
   (define j (make <qq>
-	      ':c 3 ':d 4))
+	      :c 3 :d 4))
 
   (define k (make <rr>
-	      ':a 10 ':b 20
-	      ':c 30 ':d 40))
+	      :a 10 :b 20
+	      :c 30 :d 40))
 
   (check
       (slot-ref i ':a)
@@ -663,7 +662,7 @@
     => 4)
   (check
       (slot-ref k ':d)
-  => 40)
+    => 40)
 
   (check
       (map class-definition-name (class-precedence-list <rr>))

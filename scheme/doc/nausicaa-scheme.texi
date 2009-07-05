@@ -29508,9 +29508,9 @@ We have a usable class, so we instantiate it:
 
 @example
 (define o (make <apple>
-            ':variety 'renetta
-            ':colour  'green
-            ':quality 'high))
+            :variety 'renetta
+            :colour  'green
+            :quality 'high))
 @end example
 
 @noindent
@@ -29548,10 +29548,10 @@ The instance of a priced apple:
 
 @example
 (define p (make <priced-apple>
-            ':variety 'renetta
-            ':colour  'green
-            ':quality 'high
-            ':tag 100))
+            :variety 'renetta
+            :colour  'green
+            :quality 'high
+            :tag 100))
 @end example
 
 @noindent
@@ -29894,11 +29894,11 @@ Class for values that satisfy @func{condition?}.
 @subsection Instances
 
 
-@defun make @var{class-object} . @var{init-slots}
+@deffn Macro make @var{class-object} . @var{init-slots}
 Build and return a new instance object of class @var{class-object}.  The
 optional arguments are symbol/value couples used to initialise the
 slots: The symbol must be the name of a slot, the value its value.
-@end defun
+@end deffn
 
 
 @subsubheading Examples
@@ -29908,7 +29908,7 @@ Instantiate a class with 3 slots:
 @example
 (let* ((<one> (make-class () :a :b :c))
        (o     (make <one>
-                 ':a 1 ':b 2 ':c 3)))
+                 :a 1 :b 2 :c 3)))
   ---)
 @end example
 
@@ -29919,9 +29919,9 @@ Instantiate a class with superclasses, initialising all the slots:
        (<two>   (make-class (<one>) :d :e :f))
        (<three> (make-class (<two>) :g :h :i))
        (o       (make <three>
-                   ':a 1 ':b 2 ':c 3
-                   ':d 4 ':e 5 ':f 6
-                   ':g 7 ':h 8 ':i 9)))
+                   :a 1 :b 2 :c 3
+                   :d 4 :e 5 :f 6
+                   :g 7 :h 8 :i 9)))
   ---)
 @end example
 
@@ -30010,7 +30010,7 @@ Overwrite the value of @var{slot-name} in @var{object} with
 @example
 (let* ((<one>  (make-class () :a :b :c))
        (o      (make <one>
-                 ':a 1 ':b 2 ':c 3)))
+                 :a 1 :b 2 :c 3)))
 
   (slot-set! o ':b 123)
 

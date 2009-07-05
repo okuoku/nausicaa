@@ -321,11 +321,30 @@
 
 ;;;; Class and instance constructors.
 
+(define (%slot class key value)
+  (if (memq key (class-slots class))
+      (cons key value)
+    (syntax-violation 'slot "invalid slot keyword" key)))
+
+;;This  macro exists  so  that we  can  specify the  slot names  without
+;;quoting them.
+;;
+(define-syntax make
+  (syntax-rules (:slots)
+    ((_ ?class (:slots (?key0 . ?value0) ...) ?key ?value ?thing ...)
+     (make ?class (:slots (?key . ?value) (?key0 . ?value0) ...) ?thing ...))
+    ((_ ?class (:slots (?key . ?value) ...))
+     (%make (quote ?class) ?class (%slot ?class (quote ?key) ?value) ...))
+    ((_ ?class ?key ?value ?thing ...)
+     (make ?class (:slots (?key . ?value)) ?thing ...))
+    ((_ ?class)
+     (make ?class '()))))
+
 ;;This is a "standard" make function, in style with CLOS.
 ;;
-(define (make class . init-args)
+(define (%make class-name class . init-args)
   (let ((instance (allocate-instance class)))
-    (initialise instance init-args)
+    (initialise instance class-name init-args)
     instance))
 
 ;;Build  a  new alist  initialising  all  the  slots, but  ":class",  to
@@ -341,17 +360,12 @@
 	       (cons x ':uninitialized))
 	  (class-slots class))))
 
-;;Interpret SLOT-VALUES  as list of alternate symbols  and values, where
-;;the symbols are slot names.
+;;Interpret SLOT-VALUES  as an alist of slot-name/slot-value pairs.
 ;;
-;;We are not  asserting (as we should) that:  (1) "(car slot-values)" is
-;;not ":class"; (2) SLOT-VALUES has an even number of elements.  Because
-;;of this errors with unclear message may happen.
-;;
-(define (initialise instance slot-values)
-  (unless (null? slot-values)
-    (slot-set! instance (car slot-values) (cadr slot-values))
-    (initialise instance (cddr slot-values))))
+(define (initialise instance class-name slot-values)
+  (map (lambda (p)
+	 (slot-set! instance (car p) (cdr p)))
+    slot-values))
 
 ;;It  is  possible  for  a  class  to add  no  new  slots:  this  allows
 ;;subclassing for the only purpose of method dispatching.
@@ -559,11 +573,11 @@
 	   (after-method-table '())
 	   (around-method-table '()))
        (make <generic>
-	 ':add-primary-method (method-adder primary-method-table)
-	 ':add-before-method  (method-adder before-method-table)
-	 ':add-after-method   (method-adder after-method-table)
-	 ':add-around-method  (method-adder around-method-table)
-	 ':interface-procedure
+	 :add-primary-method (method-adder primary-method-table)
+	 :add-before-method  (method-adder before-method-table)
+	 :add-after-method   (method-adder after-method-table)
+	 :add-around-method  (method-adder around-method-table)
+	 :interface-procedure
 	 (lambda (?arg-name ... . rest)
 	   (letrec*
 	       ((signature

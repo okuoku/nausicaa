@@ -39,9 +39,9 @@
 (let ()
   (define-class <alpha> () :a :b :c)
   (define o (make <alpha>
-	      ':a '(1 2 3)
-	      ':b '(4 5 6)
-	      ':c '(7 8 9)))
+	      :a '(1 2 3)
+	      :b '(4 5 6)
+	      :c '(7 8 9)))
 
   (prepend-to-slot o ':a 10)
   (prepend-to-slot o ':b 20)
@@ -62,9 +62,9 @@
 (let ()
   (define-class <alpha> () :a :b :c)
   (define o (make <alpha>
-	      ':a '(1 2 3)
-	      ':b '(4 5 6)
-	      ':c '(7 8 9)))
+	      :a '(1 2 3)
+	      :b '(4 5 6)
+	      :c '(7 8 9)))
 
   (with-slots-set! o (:a :b) (10 20))
   (with-slots-set! o '(:c) '(30))
@@ -93,11 +93,11 @@
 (let ()
   (define-class <alpha> () :a :b :c)
   (define A (make <alpha>
-	      ':a 1 ':b 2 ':c 3))
+	      :a 1 :b 2 :c 3))
   (define B (make <alpha>
-	      ':a 4 ':b 5 ':c 6))
+	      :a 4 :b 5 :c 6))
   (define C (make <alpha>
-	      ':a 7 ':b 8 ':c 9))
+	      :a 7 :b 8 :c 9))
 
   (with-slots ()
     (check
