@@ -796,10 +796,10 @@
     pretty-print)
   (import (except (rnrs)
 		  equal-hash finite? infinite? nan?)
-    (only (ikarus)
-	  getenv pretty-print)
+    (only (ikarus) getenv)
     (nausicaa common)
     (parameters)
+    (pretty-print)
     (for (nausicaa registry) expand))
 
 

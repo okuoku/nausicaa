@@ -802,9 +802,10 @@
 		  ;;Implemented  in compat  to let  them  accept complex
 		  ;;arguments.
 		  finite? infinite? nan?)
-    (primitives getenv pretty-print)
+    (primitives getenv)
     (nausicaa common)
     (parameters)
+    (pretty-print)
     (for (nausicaa registry) expand))
 
 

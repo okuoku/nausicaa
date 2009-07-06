@@ -798,9 +798,9 @@
 		  ;;arguments.
 		  finite? infinite? nan?)
     (only (system) get-environment-variable get-environment-variables)
-    (only (mosh pp) pretty-print)
     (nausicaa common)
     (parameters)
+    (pretty-print)
     (for (nausicaa registry) expand))
 
 
