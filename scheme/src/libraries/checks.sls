@@ -140,7 +140,7 @@
 
 (define (check:report-expression expression)
   (newline)
-  (write expression)
+  (pretty-print expression)
   (display " => "))
 
 (define (check:report-actual-result actual-result)
@@ -159,7 +159,7 @@
   (display "*** failed ***")
   (newline)
   (display " ; expected result: ")
-  (write expected-result)
+  (pretty-print expected-result)
   (newline))
 
 (define (check-report)
