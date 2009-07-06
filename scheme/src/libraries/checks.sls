@@ -50,9 +50,10 @@
     ;; debugging
     debug debugging debug-print-condition)
   (import (rename (nausicaa)
-		  (display	rnrs:display)
-		  (write	rnrs:write)
-		  (newline	rnrs:newline))
+		  (display	nausicaa:display)
+		  (write	nausicaa:write)
+		  (newline	nausicaa:newline)
+		  (pretty-print	nausicaa:pretty-print))
     (format)
     (loops))
 
@@ -60,13 +61,16 @@
 ;;; utilities
 
 (define (display thing)
-  (rnrs:display thing (current-error-port)))
+  (nausicaa:display thing (current-error-port)))
 
 (define (write thing)
-  (rnrs:write thing (current-error-port)))
+  (nausicaa:write thing (current-error-port)))
 
 (define (newline)
-  (rnrs:newline (current-error-port)))
+  (nausicaa:newline (current-error-port)))
+
+(define (pretty-print thing)
+  (nausicaa:pretty-print thing (current-error-port)))
 
 (define (check:write thing)
   (write thing (current-error-port)))
@@ -404,7 +408,7 @@
       (if (string? thing)
 	  (apply format port thing args)
 	(write thing port))
-      (rnrs:newline port))))
+      (nausicaa:newline port))))
 
 (define (debug-print-condition message exc)
   (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
