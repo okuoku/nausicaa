@@ -173,7 +173,6 @@
     %string-replace)
   (import (rnrs)
     (rnrs mutable-strings)
-    (only (rnrs r5rs) modulo quotient)
     (char-sets)
     (knuth-morris-pratt))
 
@@ -1106,8 +1105,8 @@
 	  ;; Selected text falls entirely within one span.
 	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
 	   (substring str
-		      (+ start (modulo from str-len))
-		      (+ start (modulo to   str-len))))
+		      (+ start (mod from str-len))
+		      (+ start (mod to   str-len))))
 
 	  ;; Selected text requires multiple spans.
 	  (else
@@ -1131,8 +1130,8 @@
 	  ;; Selected text falls entirely within one span.
 	  ((= (floor (/ from str-len)) (floor (/ to str-len)))
 	   (%string-copy*! dst-str dst-start src-str
-			  (+ src-start (modulo from str-len))
-			  (+ src-start (modulo to   str-len))))
+			  (+ src-start (mod from str-len))
+			  (+ src-start (mod to   str-len))))
 
 	  (else
 	   (%multispan-repcopy! from to dst-str dst-start src-str src-start src-past)))))
@@ -1141,15 +1140,15 @@
   ;;This  is the  core  copying loop  for  XSUBSTRING and  STRING-XCOPY!
   ;;Internal -- not exported, no careful arg checking.
   (let* ((str-len	(- src-past src-start))
-	 (i0		(+ src-start (modulo from str-len)))
+	 (i0		(+ src-start (mod from str-len)))
 	 (total-chars	(- to from)))
 
     ;; Copy the partial span @ the beginning
     (%string-copy*! dst-str dst-start src-str i0 src-past)
 
-    (let* ((ncopied (- src-past i0))	      ; We've copied this many.
-	   (nleft (- total-chars ncopied))    ; # chars left to copy.
-	   (nspans (quotient nleft str-len))) ; # whole spans to copy
+    (let* ((ncopied (- src-past i0))	   ; We've copied this many.
+	   (nleft (- total-chars ncopied)) ; # chars left to copy.
+	   (nspans (div nleft str-len)))   ; # whole spans to copy
 
       ;; Copy the whole spans in the middle.
       (do ((i (+ dst-start ncopied) (+ i str-len)) ; Current target index.

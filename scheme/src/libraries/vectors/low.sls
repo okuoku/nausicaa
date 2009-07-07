@@ -172,7 +172,6 @@
     %vector-reverse  %vector-reverse!
     %vector-replace)
   (import (rnrs)
-    (only (rnrs r5rs) modulo quotient)
     (knuth-morris-pratt))
 
 
@@ -723,7 +722,7 @@
 
 (define (%vector-binary-search value cmp vec start past)
   (let loop ((start start) (past past) (j #f))
-    (let ((i (quotient (+ start past) 2)))
+    (let ((i (div (+ start past) 2)))
       (if (or (= start past) (and j (= i j)))
 	  #f
 	(let ((comparison (cmp (vector-ref vec i) value)))
@@ -768,8 +767,8 @@
 	   (make-vector result-len (vector-ref vec start)))
 	  ((= (floor (/ from vec-len)) (floor (/ to vec-len)))
 	   (%vector-copy vec
-			 (+ start (modulo from vec-len))
-			 (+ start (modulo to   vec-len))))
+			 (+ start (mod from vec-len))
+			 (+ start (mod to   vec-len))))
 	  (else
 	   (let ((result (make-vector result-len)))
 	     (%multispan-repcopy! from to result 0 vec start past)
@@ -788,19 +787,19 @@
 	   (%vector-fill*! dst-vec (vector-ref src-vec src-start) dst-start dst-past))
 	  ((= (floor (/ from vec-len)) (floor (/ to vec-len)))
 	   (%vector-copy! dst-vec dst-start src-vec
-			  (+ src-start (modulo from vec-len))
-			  (+ src-start (modulo to   vec-len))))
+			  (+ src-start (mod from vec-len))
+			  (+ src-start (mod to   vec-len))))
 	  (else
 	   (%multispan-repcopy! from to dst-vec dst-start src-vec src-start src-past)))))
 
 (define (%multispan-repcopy! from to dst-vec dst-start src-vec src-start src-past)
   (let* ((vec-len	(- src-past src-start))
-	 (i0		(+ src-start (modulo from vec-len)))
+	 (i0		(+ src-start (mod from vec-len)))
 	 (total-values	(- to from)))
     (%vector-copy! dst-vec dst-start src-vec i0 src-past)
     (let* ((ncopied (- src-past i0))
 	   (nleft (- total-values ncopied))
-	   (nspans (quotient nleft vec-len)))
+	   (nspans (div nleft vec-len)))
       (do ((i (+ dst-start ncopied) (+ i vec-len))
 	   (nspans nspans (- nspans 1)))
 	  ((zero? nspans)

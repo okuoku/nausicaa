@@ -46,8 +46,6 @@
     refine-compare select-compare string-compare string-compare-ci
     symbol-compare vector-compare vector-compare-as-list)
   (import (rnrs)
-    (only (rnrs r5rs)
-	  modulo)
     (random)) ; for random-integer
 
 
@@ -365,16 +363,16 @@
   (let ((= =) (< <))
     (case-lambda
       ((compare k x0)
-       (case (modulo k 1)
+       (case (mod k 1)
          ((0)  (compare:checked x0 compare x0))
          (else (error "bad index" k))))
       ((compare k x0 x1)
-       (case (modulo k 2)
+       (case (mod k 2)
          ((0) (if<=? (compare x0 x1) x0 x1))
          ((1) (if<=? (compare x0 x1) x1 x0))
          (else (error "bad index" k))))
       ((compare k x0 x1 x2)
-       (case (modulo k 3)
+       (case (mod k 3)
          ((0) (if<=? (compare x0 x1)
                      (if<=? (compare x0 x2) x0 x2)
                      (if<=? (compare x1 x2) x1 x2)))
@@ -394,7 +392,7 @@
        (if (not (and (integer? k) (exact? k)))
            (error "bad index" k))
        (let ((n (+ 1 (length x1+))))
-         (let kth ((k   (modulo k n))
+         (let kth ((k   (mod k n))
                    (n   n)  ; = |x|
                    (rev #t) ; are x<, x=, x> reversed?
                    (x   (cons x0 x1+)))
