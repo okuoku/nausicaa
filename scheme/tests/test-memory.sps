@@ -27,6 +27,7 @@
 (import (nausicaa)
   (checks)
   (foreign memory)
+  (peekers-and-pokers)
   (foreign ffi sizeof)
   (format))
 
@@ -457,7 +458,7 @@
 	   8)
 	=> #vu8(0 1 2 3 4 5 6 7))
 
-      (check 'this
+      (check
 	(memblock->bytevector
 	 (bytevector->memblock bv malloc-block/compensated 5 2)
 	 5)
@@ -721,6 +722,7 @@
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-signed-char! pointer-ref-c-signed-char))))
     (test-it 65)
+    (test-it 0)
     (test-it 127)
     (test-it -128)
     (test-it/error 200)
@@ -754,6 +756,7 @@
       (syntax-rules ()
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-signed-short! pointer-ref-c-signed-short))))
+    (test-it 0)
     (test-it 65)
     (test-it max)
     (test-it min)
@@ -771,6 +774,7 @@
       (syntax-rules ()
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-unsigned-short! pointer-ref-c-unsigned-short))))
+    (test-it 0)
     (test-it 65)
     (test-it max)
     (test-it min)
@@ -792,6 +796,7 @@
       (syntax-rules ()
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-signed-int! pointer-ref-c-signed-int))))
+    (test-it 0)
     (test-it 65)
     (test-it max)
     (test-it min)
@@ -809,6 +814,7 @@
       (syntax-rules ()
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-unsigned-int! pointer-ref-c-unsigned-int))))
+    (test-it 0)
     (test-it 65)
     (test-it max)
     (test-it min)
@@ -828,10 +834,11 @@
       (syntax-rules ()
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-signed-long! pointer-ref-c-signed-long))))
+    (test-it 0)
     (test-it 65)
     (test-it max)
     (test-it min)
-;;    (test-it/error (+ max 100))
+    (test-it/error (+ max 100))
     (test-it/error (- min 100)))
 
   (let* ((bits	(if on-32-bits-system 32 64))
@@ -845,11 +852,12 @@
       (syntax-rules ()
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-unsigned-long! pointer-ref-c-unsigned-long))))
+    (test-it 0)
     (test-it 65)
-;;    (test-it max)
+    (test-it max)
     (test-it min)
     (test-it/error (+ max 100))
-;;    (test-it/error (- min 100))
+    (test-it/error (- min 100))
     )
 
 ;;; --------------------------------------------------------------------
@@ -866,6 +874,7 @@
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-signed-long-long!
 				pointer-ref-c-signed-long-long))))
+    (test-it 0)
     (test-it 65)
     (test-it max)
     (test-it min)
@@ -885,8 +894,9 @@
 	((_ value)
 	 (generic-test-it/error value pointer-set-c-unsigned-long-long!
 				pointer-ref-c-unsigned-long-long))))
-    (test-it 66)
+    (test-it 0)
     (test-it 65)
+    (test-it 66)
     (test-it max)
     (test-it min)
     (test-it/error (+ max 100))

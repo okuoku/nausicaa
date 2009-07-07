@@ -35,11 +35,11 @@
 
 * strings
 
-  Finished?
+  Fix the names of the fold functions, armonising them with lists.
 
 * vectors
 
-  Finished?
+  Fix the names of the fold functions, armonising them with lists.
 
 * random
 
@@ -52,6 +52,8 @@
   Add the Marsaglia PRNGs.  Update the documentation accordingly.
 
   Add a randomness source reading bytes from a given port?
+
+  Finish port from the GSL PRNGs.
 
 * arrays
 

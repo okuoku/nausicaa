@@ -25565,6 +25565,7 @@ built--in Scheme vectors.
 * arrays conventions::          Arguments conventions.
 * arrays position::             Specifying the coordinates of elements.
 * arrays shape::                Specifying the shape of arrays.
+* arrays array::                Dealing with arrays.
 @end menu
 
 @c page
@@ -25582,25 +25583,18 @@ The values collected in Scheme's built--in lists and vectors.
 The values collected in the arrays.
 @end table
 
-The elements of an @code{array} are stored in a vector in row major
-order.
-
 The following conventions are used in the documentation of arguments to
 the functions of @library{arrays}:
 
 @table @var
 @item array
-A proper @code{array} object built with @func{array}, @func{make-array},
-@func{array-copy} or @func{array-view}.  @code{array} values are
-disjoint from the other values.
+A proper @code{array} object.
 
 @item shape
-A proper @code{shape} object built with @func{array-shape}.
-@code{shape} values are disjoint from the other values.
+A proper @code{shape} object.
 
 @item position
-A proper @code{position} object built with @func{array-position}.
-@code{position} values are disjoint from the other values.
+A proper @code{position} object.
 
 @item position-step
 A built--in Scheme vector used to represent the difference between two
@@ -25630,6 +25624,11 @@ Can be any value.
 @subsection Specifying the coordinates of elements
 
 
+Values of type @code{position} represents a position in an array, in the
+same way an index represents a position in a list, string or vector.
+@code{position} values are disjoint from the other values.
+
+
 @subsubheading Constructors
 
 
@@ -25644,15 +25643,15 @@ of dimensions of the array with which the position value will be used.
 
 
 @defun array-position? @var{obj}
-Return @true{} if @var{obj} is a position value.
+Return @true{} if @var{obj} is a @code{position} value.
 @end defun
 
 
 @defun assert-array-position @var{obj} @var{func-name}
 @defunx assert-array-position/or-false @var{obj} @var{func-name}
-Raise an assertion violation exception if @var{obj} is not an array
-position, or @false{}.  @var{func-name} is used @code{who} argument for
-the exception.  Return @true{} if no exception is raised.
+Raise an assertion violation exception if @var{obj} is not a
+@code{position}, or @false{}.  @var{func-name} is used @code{who}
+argument for the exception.  Return @true{} if no exception is raised.
 @end defun
 
 
@@ -25726,6 +25725,12 @@ current output port.
 @subsection Specifying the shape of arrays
 
 
+Values of type @code{shape} represent the shape of an array, that is:
+the number of dimensions, the start index of each dimension, the past
+index of each dimension.  @code{shape} values are disjoint from the
+other values.
+
+
 @subsubheading Constructors
 
 
@@ -25746,15 +25751,15 @@ indexes for each dimension of an array.
 
 
 @defun array-shape? @var{obj}
-Return @true{} if @var{obj} is a shape value.
+Return @true{} if @var{obj} is a @code{shape} value.
 @end defun
 
 
 @defun assert-array-shape @var{obj} @var{func-name}
 @defunx assert-array-shape/or-false @var{obj} @var{func-name}
-Raise an assertion violation exception if @var{obj} is not an array
-shape, or @false{}.  @var{func-name} is used @code{who} argument for
-the exception.  Return @true{} if no exception is raised.
+Raise an assertion violation exception if @var{obj} is not a
+@code{shape} value, or @false{}.  @var{func-name} is used @code{who}
+argument for the exception.  Return @true{} if no exception is raised.
 @end defun
 
 
@@ -25821,6 +25826,31 @@ Return the number of elements in the range described by @var{shape}.
 @end defun
 
 
+@defun array-shape-index-start @var{shape} @var{dimension}
+@defunx array-shape-index-past @var{shape} @var{dimension}
+@defunx array-shape-index-last @var{shape} @var{dimension}
+Return the start, past or last value for position indexes in @var{shape}
+for the selected @var{dimension} (zero based).  Examples:
+
+@example
+(define s (array-shape '(-1  2 5)
+                       '( 5 18 7)))
+
+(array-shape-index-start s 0) @result{} -1
+(array-shape-index-past  s 0) @result{}  5
+(array-shape-index-last  s 0) @result{}  4
+
+(array-shape-index-start s 1) @result{}  2
+(array-shape-index-past  s 1) @result{} 18
+(array-shape-index-last  s 1) @result{} 17
+
+(array-shape-index-start s 2) @result{}  5
+(array-shape-index-past  s 2) @result{}  7
+(array-shape-index-last  s 3) @result{}  6
+@end example
+@end defun
+
+
 @subsubheading Conversion
 
 
@@ -25844,6 +25874,105 @@ Write to @var{port} a human readable string representation of
 Write to @var{port} a string representation of @var{shape} such that
 it can be read back with @func{read}.  @var{port} defaults to the
 current output port.
+@end defun
+
+
+@c page
+@node arrays array
+@subsection Dealing with arrays
+
+
+Values of type @code{array} represent an array, a collection of values
+that can be accessed by specifying a multidimensional position.  The
+elements of an @code{array} are stored in a vector in row major order.
+
+The @code{array} values are disjoint from all the other values, but the
+@code{shape}; an @code{array} value represents itself its own
+@code{shape}.  All the functions that can be applied to a @code{shape},
+can also be applied to an @code{array}.
+
+
+@subsubheading Constructors
+
+
+@defun make-array @var{shape}
+@defunx make-array @var{shape} @var{fill-value}
+Build and return a new @code{array} described by @var{shape}.
+@var{fill-value} is used as initialisation value for all the slots of
+the array; it defaults to @false{}.
+@end defun
+
+
+@defun array @var{shape} @var{element} ...
+Build and return a new @code{array} described by @var{shape}.  The
+elements are stored in the slots of the underlying vector, in the given
+order; there must be enough elements to fill the vector.
+@end defun
+
+
+@subsubheading Predicates and assertions
+
+
+@defun array? @var{obj}
+Return @true{} if @var{obj} is an @code{array} value.
+@end defun
+
+
+@defun assert-array @var{obj} @var{func-name}
+@defunx assert-array/or-false @var{obj} @var{func-name}
+Raise an assertion violation exception if @var{obj} is not an
+@code{array} value, or @false{}.  @var{func-name} is used @code{who}
+argument for the exception.  Return @true{} if no exception is raised.
+@end defun
+
+
+@subsubheading Accessors
+
+
+@defun array-set! @var{array} @var{position} @var{element}
+Store @var{element} at @var{position} in @var{array}, overwriting the
+old value.
+@end defun
+
+
+@defun array-ref @var{array} @var{position}
+Return the element at @var{position} in @var{array}.
+@end defun
+
+
+@subsubheading Comparison
+
+
+@defun array=? @var{pred=} @var{array0} @var{array} ...
+Return @true{} if the arguments have equal number of dimensions and hold
+the same elements according to @var{pred=}.  The predicate function
+@var{pred=} should behave like @func{eqv?}.
+@end defun
+
+
+@subsubheading Conversion
+
+
+@defun array->string @var{array}
+Return a string representation of @var{array}.
+@end defun
+
+
+@subsubheading Port output
+
+
+@defun array-display @var{array}
+@defunx array-display @var{array} @var{port}
+Write to @var{port} a human readable string representation of
+@var{array}.  @var{port} defaults to the current output port.
+@end defun
+
+
+@defun array-write @var{array}
+@defunx array-write @var{array} @var{port}
+Write to @var{port} a string representation of @var{array} such that it
+can be read back with @func{read}.  @var{port} defaults to the current
+output port.
 @end defun
 
 @c page

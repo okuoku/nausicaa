@@ -32,6 +32,9 @@
 (compile-library "parameters.larceny.sls"
 		 "parameters.larceny.slfasl")
 
+(compile-library "pretty-print.larceny.sls"
+		 "pretty-print.larceny.slfasl")
+
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")
 

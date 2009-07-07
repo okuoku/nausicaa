@@ -33,7 +33,7 @@
 (display "*** testing some R6RS compliance and Nausicaa extensions\n")
 
 
-;;;; tests
+;;;; numbers
 
 (check
     (integer? (equal-hash '#(1 2 3)))
@@ -117,6 +117,23 @@
     (nan? +nan.0+456i)
   => #t)
 
+;;; --------------------------------------------------------------------
+
+(check
+    (rational? 1.2)
+  => #f)
+
+(check
+    (rational? 12/10)
+  => #t)
+
+(check
+    (rational-valued? 1.2)
+  => #f)
+
+(check
+    (rational-valued? 12/10)
+  => #t)
 
 
 ;;;; parameters
@@ -156,20 +173,20 @@
   => 0)
 
 (check
-    (parameterize ((beta 456))
+    (parameterise ((beta 456))
       (list (beta)))
   => '(456))
 
 (check
-    (parameterize ((beta 456))
+    (parameterise ((beta 456))
       (list (beta)
-	    (parameterize ((beta 789))
+	    (parameterise ((beta 789))
 	      (beta))))
   => '(456 789))
 
 (check
     (guard (exc (else exc))
-      (parameterize ((beta 'b))
+      (parameterise ((beta 'b))
 	(list (beta))))
   => 'woppa)
 
