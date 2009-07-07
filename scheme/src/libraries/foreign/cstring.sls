@@ -137,7 +137,7 @@
 	  ((= i argc)
 	   (array-set-c-pointer! argv argc pointer-null)
 	   argv)
-	(poke-array-pointer! argv i (car c)))))))
+	(array-set-c-pointer! argv i (car c)))))))
 
 (define (argv-length argv)
   (do ((i 0 (+ 1 i)))
