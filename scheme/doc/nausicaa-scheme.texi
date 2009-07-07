@@ -19156,6 +19156,7 @@ silently ignored.
 * combinators::                 Combinators.
 * keywords::                    Keyword values.
 * sentinel::                    The sentinel value.
+* variables::                   Defining storage locations.
 * scmobj::                      A simple object system.
 
 Low level libraries
@@ -30021,6 +30022,79 @@ signal the end of the iteration:
         (loop (cons v res))))))
 @result{} (5 4 3 2 1)
 @end example
+
+@c page
+@node variables
+@section Defining storage locations
+
+
+The @library{variables} library provides a way to define simple storage
+locations similar to the variables used in many languages.  The
+@dfn{variable} type of value is disjoint from the other types.
+
+
+@defun make-variable
+@defunx make-variable @var{value}
+Build and return a new variable value.  The variable is initialised to
+@var{value}, which defaults to the sentinel.  @ref{sentinel, The
+sentinel value}
+@end defun
+
+
+@defun variable? @var{obj}
+Return @true{} if @var{obj} is a variable value.
+@end defun
+
+
+@defun variable-set! @var{variable} @var{value}
+@defunx variable-ref @var{variable}
+Setter and getter for variables.
+@end defun
+
+
+It is possible to access variables' slots using identifier syntaxes:
+
+@example
+(define-syntax define-variable
+  (syntax-rules ()
+    ((_ ?name)
+     (define-variable/test ?name sentinel))
+    ((_ ?name ?value)
+     (define ?name (make-variable ?value)))))
+
+(define-syntax v
+  (identifier-syntax
+     (_
+      (variable-ref  the-var))
+     ((set! _ ?e)
+      (variable-set! the-var ?e))))
+
+(define-variable the-var 123)
+
+v @result{} 123
+(set! v 456)
+v @result{} 456
+@end example
+
+@noindent
+a more sophisticated of this is the @func{define-variable} syntax
+exported by @library{variables}.
+
+
+@deffn Syntax define-variable @var{name}
+@deffnx Syntax define-variable @var{name} @var{value}
+Like @func{define}, but stores the value in a newly built variable which
+is then bound to @var{name}.  Example:
+
+@example
+(define-variable the-var 123)
+
+v @result{} 123
+(set! v 456)
+v @result{} 456
+@end example
+@end deffn
+
 @c page
 @node scmobj
 @section A simple object system
