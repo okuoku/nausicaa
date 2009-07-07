@@ -25636,8 +25636,8 @@ is:
 @end example
 
 For an array of two dimensions with @math{3} rows and @math{4} columns,
-we can compute the vector index by multiplying the row index by the
-number of columns, then adding the column:
+we can compute the vector index by multiplying the row coordinate by the
+number of columns, then adding the column coordinate:
 
 @example
 ;;     coordinates   formula
@@ -25657,7 +25657,7 @@ number of columns, then adding the column:
 
 For an array of three dimensions with @math{2} planes, @math{3} rows and
 @math{4} columns, we can compute the vector index by multiplying the
-plane, row and column indexes by the appropriate coefficient:
+plane, row and column coordinates by the appropriate factor:
 
 @example
 ;;     coordinates    formula
@@ -25691,7 +25691,49 @@ plane, row and column indexes by the appropriate coefficient:
 that is:
 
 @example
-index = plane * (3 * 4) + row * 4 + 1 * column
+index = plane * (3 * 4) + row * 4 + column * 1
+@end example
+
+@noindent
+generalising: The rightmost coordinate is always multiplied by @math{1},
+while the other are multiplied by a product between the length of the
+dimensions.
+
+Precisely, let's call @math{N} the number of dimensions of an array, and
+let's index the dimensions with @math{0 <= k < N}; then: @math{D(k)} is
+the length of the @math{k}-th dimension; @math{C(k)} is the @math{k}-th
+coordinate of an element and @math{F(k)} is its factor.  The index
+of the element is computed with:
+
+@example
+index = F(0) * C(0) + F(1) * C(1) + ... + F(N-1) * C(N-1)
+@end example
+
+@noindent
+being:
+
+@example
+0 <= k < N-2   =>   F(k) = D(k+1) * D(k+2) * ... * D(N-1)
+
+     k = N-1   =>   F(N-1) = 1
+@end example
+
+@noindent
+we note explicitly that @math{D(0)} is @strong{never} used in the
+computation of the factors, and that @math{D(k)} is @strong{not} used in
+the computation of @math{F(k)}.
+
+If @code{dimensions} is the list of dimensions of an array, the
+followind function will compute and return the list of factors:
+
+@example
+(define (%compute-factors dimensions)
+  (let loop ((dims    (cdr dimensions))
+             (factors '()))
+    (if (null? dims)
+        (reverse (cons 1 factors))
+      (loop (cdr dims)
+            (cons (apply * dims) factors)))))
 @end example
 
 

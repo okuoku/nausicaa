@@ -351,10 +351,10 @@
 ;;; constructors
 
 (define (%compute-factors dimensions)
-  (let loop ((dims    (cdr (reverse dimensions)))
-	     (factors '(1)))
+  (let loop ((dims    (cdr dimensions))
+	     (factors '()))
     (if (null? dims)
-	factors
+	(reverse (cons 1 factors))
       (loop (cdr dims)
 	    (cons (apply * dims) factors)))))
 
@@ -438,7 +438,7 @@
 ;;; accessors
 
 (define (%compute-index proc-name array position)
-  (write (list 'factors (:array-factors array)))(newline)
+;;;  (write (list 'factors (:array-factors array)))(newline)
   (fold-left (lambda (offset factor index)
 	       (+ offset (* factor index)))
 	     0
