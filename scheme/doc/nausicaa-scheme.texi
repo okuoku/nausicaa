@@ -19145,6 +19145,7 @@ silently ignored.
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
 * vectors::                     Vectors library.
+* arrays::                      Multidimensional arrays.
 * compare::                     Comparison functions.
 * random::                      Sources of random bits.
 * format::                      Formatting strings.
@@ -19966,7 +19967,7 @@ is, @func{concatenate} returns:
 or, equivalently:
 
 @example
-(reduce-right append '() list-of-lists)
+(reduce* append '() list-of-lists)
 @end example
 
 @func{concatenate!} is the linear--update variant, defined in terms
@@ -20126,6 +20127,33 @@ At least one of the argument lists must be finite:
 @subsubsection Folding
 
 
+@defun fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@defunx fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+Like @func{fold-left} and @func{fold-right}, defined by @rnrs{6}, but
+accept lists of different length and stop when the iteration reaches the
+end of the shortest list.
+
+Notice that, exactly as with @func{fold-left} and @func{fold-right}:
+
+@itemize
+@item
+With @func{fold-left*}, the first argument to @var{combine} is
+@var{knil}, then the return value of the previous calls to
+@var{combine}.
+
+@item
+With @func{fold-right*}, the last argument to @var{combine} is
+@var{knil}, then the return value of the previous calls to
+@var{combine}.
+@end itemize
+@end defun
+
+
+The functions @func{fold} and @func{fold*} are similar to
+@func{fold-left*} and @func{fold-right*} but @var{knil} is always the
+@strong{last} argument of the calls to @var{kons}.
+
+
 @defun fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
 The fundamental list iterator.  First, consider the single
 list--parameter case: if @code{clist1 = (e1 e2 ... en)}, then this
@@ -20204,7 +20232,7 @@ At least one of the list arguments must be finite.
 
 @c ------------------------------------------------------------
 
-@defun fold-right* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+@defun fold* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
 The fundamental list recursion operator.  First, consider the single
 list--parameter case.  If @code{clist1 = (e1 e2 ... en)}, then this
 procedure returns:
@@ -20217,8 +20245,9 @@ procedure returns:
 that is, it obeys the recursion:
 
 @example
-(fold-right* kons knil ell) = (kons (car ell)
-                                    (fold-right* kons knil (cdr ell)))
+(fold-right* kons knil ell) =
+    (kons (car ell)
+          (fold-right* kons knil (cdr ell)))
 (fold-right* kons knil '()) = knil
 @end example
 
@@ -20319,20 +20348,20 @@ At least one of the list arguments must be finite.
 
 @c ------------------------------------------------------------
 
-@defun pair-fold-right @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+@defun pair-fold* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
 Holds the same relationship with @func{fold-right} that @func{pair-fold}
 holds with fold.  Obeys the recursion:
 
 @example
-(pair-fold-right kons knil lis) =
-    (kons lis (pair-fold-right kons knil (cdr lis)))
-(pair-fold-right kons knil '()) = knil
+(pair-fold* kons knil lis) =
+    (kons lis (pair-fold* kons knil (cdr lis)))
+(pair-fold* kons knil '()) = knil
 @end example
 
 Example:
 
 @example
-(pair-fold-right cons '() '(a b c)) => ((a b c) (b c) (c))
+(pair-fold* cons '() '(a b c)) => ((a b c) (b c) (c))
 @end example
 
 At least one of the list arguments must be finite.
@@ -20340,35 +20369,34 @@ At least one of the list arguments must be finite.
 Examples:
 
 @example
-(pair-fold-right (lambda (elm knil)
-                   (cons (car elm) knil))
-                 '(999)
-                 '(1 2 3))
+(pair-fold* (lambda (elm knil)
+              (cons (car elm) knil))
+            '(999)
+            '(1 2 3))
 => (1 2 3 999)
 
-(pair-fold-right (lambda (pair tail)
-                   (set-cdr! pair tail)
-                   pair)
-                 '()
-                 '(0 1 2 3 4 5))
+(pair-fold* (lambda (pair tail)
+              (set-cdr! pair tail)
+              pair)
+            '()
+            '(0 1 2 3 4 5))
 => (0 1 2 3 4 5)
 
-(pair-fold-right (lambda (a b c knil)
-                   (cons (list (car a)
-                               (car b)
-                               (car c))
-                         knil))
-                 '(999)
-                 '(1 2 3)
-                 '(10 20 30)
-                 '(100 200 300))
+(pair-fold* (lambda (a b c knil)
+              (cons (list (car a)
+                          (car b)
+                          (car c))
+                    knil))
+            '(999)
+            '(1 2 3)
+            '(10 20 30)
+            '(100 200 300))
 => '((1 10 100)
      (2 20 200)
      (3 30 300)
      999)
 @end example
 @end defun
-
 
 @c page
 @node lists fold reduce
@@ -20426,32 +20454,31 @@ Examples:
 @end defun
 
 
-@defun reduce-right @var{f} @var{ridentity} @var{list}
-@func{reduce-right} is the @func{fold-right} variant of
+@defun reduce* @var{f} @var{ridentity} @var{list}
+@func{reduce*} is the @func{fold*} variant of
 @func{reduce}.  It obeys the following definition:
 
 @example
-(reduce-right f ridentity '()) = ridentity
-(reduce-right f ridentity '(e1)) = (f e1 ridentity) = e1
-(reduce-right f ridentity '(e1 e2 ...)) =
+(reduce* f ridentity '()) = ridentity
+(reduce* f ridentity '(e1)) = (f e1 ridentity) = e1
+(reduce* f ridentity '(e1 e2 ...)) =
     (f e1 (reduce f ridentity (e2 ...)))
 @end example
 
 @noindent
-in other words, we compute @code{(fold-right f ridentity list)}.
+in other words, we compute @code{(fold* f ridentity list)}.
 
 @example
 ;; append a bunch of lists together
-(reduce-right append
-              '()
-              '((1 2 3)
-                (4 5)
-                (6 7 8 9)
-                (0)))
+(reduce* append
+         '()
+         '((1 2 3)
+           (4 5)
+           (6 7 8 9)
+           (0)))
 => (1 2 3 4 5 6 7 8 9 0)
 @end example
 @end defun
-
 
 @c page
 @node lists fold unfold
@@ -25492,6 +25519,300 @@ the in--place side--effecting variant.
 @end deffn
 
 @c page
+@node arrays
+@section Multidimensional arrays
+
+
+The @library{arrays} library implements mutidimensional arrays on top of
+built--in Scheme vectors.
+
+
+@menu
+* arrays conventions::          Arguments conventions.
+* arrays position::             Specifying the coordinates of elements.
+* arrays shape::                Specifying the shape of arrays.
+@end menu
+
+@c page
+@node arrays conventions
+@subsection Arguments conventions
+
+
+In the documentation of @library{arrays} we call:
+
+@table @dfn
+@item items
+The values collected in Scheme's built--in lists and vectors.
+
+@item elements
+The values collected in the arrays.
+@end table
+
+The elements of an @code{array} are stored in a vector in row major
+order.
+
+The following conventions are used in the documentation of arguments to
+the functions of @library{arrays}:
+
+@table @var
+@item array
+A proper @code{array} object built with @func{array}, @func{make-array},
+@func{array-copy} or @func{array-view}.  @code{array} values are
+disjoint from the other values.
+
+@item shape
+A proper @code{shape} object built with @func{array-shape}.
+@code{shape} values are disjoint from the other values.
+
+@item position
+A proper @code{position} object built with @func{array-position}.
+@code{position} values are disjoint from the other values.
+
+@item position-step
+A built--in Scheme vector used to represent the difference between two
+@code{position} values.
+
+@item dimension
+A strictly positive, exact integer representing the extension of a
+dimension in an @code{array}.
+
+@item index
+A non--negative, exact integer representing the coordinate of an
+element.
+
+@item start
+@itemx past
+@itemx last
+When specifying a range of items or elements: @var{start} is the
+left--included bound, @var{past} is the right--included bound,
+@var{last} is the right--excluded bound.
+
+@item obj
+Can be any value.
+@end table
+
+@c page
+@node arrays position
+@subsection Specifying the coordinates of elements
+
+
+@subsubheading Constructors
+
+
+@defun array-position @var{index0} @var{index} ...
+Build and return a new @code{position} value holding the @var{index}
+arguments.  The number of arguments is meant to be equal to the number
+of dimensions of the array with which the position value will be used.
+@end defun
+
+
+@subsubheading Predicates and assertions
+
+
+@defun array-position? @var{obj}
+Return @true{} if @var{obj} is a position value.
+@end defun
+
+
+@defun assert-array-position @var{obj} @var{func-name}
+@defunx assert-array-position/or-false @var{obj} @var{func-name}
+Raise an assertion violation exception if @var{obj} is not an array
+position, or @false{}.  @var{func-name} is used @code{who} argument for
+the exception.  Return @true{} if no exception is raised.
+@end defun
+
+
+@subsubheading Comparison
+
+
+@defun array-position=? @var{position-1} @var{position-2}
+Return @true{} if the arguments have equal number of dimensions and hold
+the same indexes.
+@end defun
+
+
+@subsubheading Inspection
+
+
+@defun array-position-number-of-dimensions @var{position}
+Return the number of dimensions of the array with which the position
+value will be used.
+@end defun
+
+
+@subsubheading Operations
+
+
+@defun array-position-difference @var{position-1} @var{position-2}
+Return a list holding the differences between the coordinates in the
+arguments.  @var{position-1} and @var{position-2} must have the same
+number of dimensions.
+@end defun
+
+
+@defun array-position-step @var{position} @var{step}
+@defunx array-position-step! @var{position} @var{step}
+The @var{step} argument must be a list of exact integers with length
+equal to the number of dimensions of @var{position}.  The numbers from
+@var{step} are added index--by--index to the coordinates in
+@var{position}.
+
+@func{array-position-step} returns a new @code{position} value holding
+the result, @func{array-position-step!} mutates @var{position} itself.
+@end defun
+
+
+@subsubheading Conversion
+
+
+@defun array-position->string @var{position}
+Return a string representation of @var{position}.
+@end defun
+
+
+@subsubheading Port output
+
+
+@defun array-position-display @var{position}
+@defunx array-position-display @var{position} @var{port}
+Write to @var{port} a human readable string representation of
+@var{position}.  @var{port} defaults to the current output port.
+@end defun
+
+
+@defun array-position-write @var{position}
+@defunx array-position-write @var{position} @var{port}
+Write to @var{port} a string representation of @var{position} such that
+it can be read back with @func{read}.  @var{port} defaults to the
+current output port.
+@end defun
+
+@c page
+@node arrays shape
+@subsection Specifying the shape of arrays
+
+
+@subsubheading Constructors
+
+
+@defun array-shape @var{start-list} @var{past-list}
+Build and return a new @code{shape} describing an array or array view
+through the list of start indexes in @var{start-list} and the list of
+past indexes in @var{past-list}.
+
+The arguments must have the same length and be composed by
+non--negative, exact integers.  Indexes from the arguments are taken in
+couples: The first start with the first past, the second start with the
+second past, and so on.  Each couple describes the range of valid
+indexes for each dimension of an array.
+@end defun
+
+
+@subsubheading Predicates and assertions
+
+
+@defun array-shape? @var{obj}
+Return @true{} if @var{obj} is a shape value.
+@end defun
+
+
+@defun assert-array-shape @var{obj} @var{func-name}
+@defunx assert-array-shape/or-false @var{obj} @var{func-name}
+Raise an assertion violation exception if @var{obj} is not an array
+shape, or @false{}.  @var{func-name} is used @code{who} argument for
+the exception.  Return @true{} if no exception is raised.
+@end defun
+
+
+@subsubheading Comparison and set operations
+
+
+@defun array-shape=? @var{shape0} @var{shape} ...
+Return @true{} if the arguments have equal number of dimensions and hold
+the same indexes.
+@end defun
+
+
+@defun array-supershape? @var{shape0} @var{shape} ...
+@defunx array-supershape?/strict @var{shape0} @var{shape} ...
+Return @true{} if the arguments, in the given order, are supershapes of
+each other or strict supershapes of each other.  The shape @var{a} is
+supershape of @var{b} if:
+
+@enumerate
+@item
+They have the same number of dimensions.
+
+@item
+For each dimension, the range of elements in @var{b} is a subset of the
+range of elements in @var{a}.
+@end enumerate
+
+The following two forms are equivalent:
+
+@example
+(array-supershape? a b c d)
+(and (array-supershape? a b)
+     (array-supershape? b c)
+     (array-supershape? c d))
+@end example
+@end defun
+
+
+@defun array-subshape? @var{shape0} @var{shape} ...
+@defunx array-subshape?/strict @var{shape0} @var{shape} ...
+Return @true{} if the arguments, in the given order, are subshapes of
+each other or strict subshapes of each other.  These functions are like
+the supershape functions with the arguments reversed.
+@end defun
+
+
+@defun array-shape-contains? @var{shape} @var{position}
+Return @true{} if @var{position} selects an array element in the range
+of elements described by @var{shape}.
+@end defun
+
+
+@subsubheading Inspection
+
+
+@defun array-shape-number-of-dimensions @var{shape}
+Return the number of dimensions of the array with which the shape
+value will be used.
+@end defun
+
+
+@defun array-shape-number-of-elements @var{shape}
+Return the number of elements in the range described by @var{shape}.
+@end defun
+
+
+@subsubheading Conversion
+
+
+@defun array-shape->string @var{shape}
+Return a string representation of @var{shape}.
+@end defun
+
+
+@subsubheading Port output
+
+
+@defun array-shape-display @var{shape}
+@defunx array-shape-display @var{shape} @var{port}
+Write to @var{port} a human readable string representation of
+@var{shape}.  @var{port} defaults to the current output port.
+@end defun
+
+
+@defun array-shape-write @var{shape}
+@defunx array-shape-write @var{shape} @var{port}
+Write to @var{port} a string representation of @var{shape} such that
+it can be read back with @func{read}.  @var{port} defaults to the
+current output port.
+@end defun
+
+@c page
 @node compare
 @section Comparison functions
 
@@ -26698,8 +27019,8 @@ sequence have a far shorter period than the sequence as a whole if
 
 
 Multiply--with--carry (@acronym{MWC}) is a method invented by George
-Marsaglia for generating sequences of random integers based on an
-initial set of from two to many thousands of randomly chosen seed
+Marsaglia for generating sequences of pseudo--random integers based on
+an initial set of from two to many thousands of randomly chosen seed
 values@footnote{Wikipedia contributors, ``Multiply--with--carry,''
 Wikipedia, The Free Encyclopedia,
 @url{http://en.wikipedia.org/wiki/Multiply-with-carry} (accessed May 8,
@@ -26707,10 +27028,10 @@ Wikipedia, The Free Encyclopedia,
 
 The main advantage of the @acronym{MWC} method is that it invokes simple
 computer integer arithmetic and leads to very fast generation of
-sequences of random numbers with immense periods, ranging from around
-@math{260} to @math{22e6}.  As with most @acronym{PRNG}s, the resulting
-sequences are functions of the randomly chosen seed values, but
-@acronym{MWC} generators seem to behave as well as, and often better
+sequences of pseudo--random numbers with immense periods, ranging from
+around @math{260} to @math{22e6}.  As with most @acronym{PRNG}s, the
+resulting sequences are functions of the randomly chosen seed values,
+but @acronym{MWC} generators seem to behave as well as, and often better
 than, others in tests of randomness.
 
 A @acronym{MWC} sequence is based on arithmetic modulo @math{M}, usually
@@ -26788,12 +27109,13 @@ June 6, 2009).}.
 @subsubsection Generating integers in a specified range
 
 
-In applications using a randomness source, it happens to need a random
-integer @math{X} in a given range @math{0 <= X < U}, while the
-@acronym{PRNG} generates a random integer @math{N} in the range @math{0
-<= N < M}.  In other words: We need a sample from the range @math{0 <= X
-< U} having uniform probability distribution, by means of a sample from
-the range @math{0 <= N < M} having a uniform probability distribution.
+In applications using a randomness source, it happens to need a
+pseudo--random integer @math{X} in a given range @math{0 <= X < U},
+while the @acronym{PRNG} generates a pseudo--random integer @math{N} in
+the range @math{0 <= N < M}.  In other words: We need a sample from the
+range @math{0 <= X < U} having uniform probability distribution, by
+means of a sample from the range @math{0 <= N < M} having a uniform
+probability distribution.
 
 We distinguish the two cases @math{U <= M} and @math{M < U}, because
 when @math{U <= M} there are more integers in the range @math{0 <= N <
@@ -26838,11 +27160,11 @@ range @math{X * Q < N < (X+1) * Q}.  @math{X} is the result.
 @end enumerate
 
 @item
-When @math{M < U}, we have to generate pseudo-random integers @math{N'}
+When @math{M < U}, we have to generate pseudo--random integers @math{N'}
 uniformly distributed in a range @math{0 <= N' < M'}, with @math{M < U
 <= M'}.  We can do it by computing the following formula, which is a
 polynomial in @math{M} and a linear combination with positive
-coefficients in @math{N(k)}:
+coefficients in @math{N(i)} with @math{0 <= i < k}:
 
 @example
 N' = N0 + M * N1 + M^2 * N2 + ... +
@@ -26851,8 +27173,8 @@ N' = N0 + M * N1 + M^2 * N2 + ... +
 
 @noindent
 where @math{N0}, @math{N1}, ..., @math{N(k-1)} are all generated
-integers in the range @math{0 <= N(k) < M}.  The maximum value, that is
-@math{M' - 1}, is realised when every @math{N(k)} equals @math{M - 1}:
+integers in the range @math{0 <= N(i) < M}.  The maximum value, that is
+@math{M' - 1}, is realised when every @math{N(i)} equals @math{M - 1}:
 
 @example
 M' - 1 = (M - 1) + M * (M - 1) + M^2 * (M - 1) + ... +
@@ -26866,6 +27188,16 @@ M' - 1 = (M - 1) + M * (M - 1) + M^2 * (M - 1) + ... +
 @noindent
 which implies @math{M^k = M'}.  So by selecting @math{k} such that
 @math{U <= M^k} we are sure that @math{N'} will be in a suitable range.
+
+Computing this polinomial/combination is like expressing the big
+pseudo--random integer @math{N'} in base @math{M} where @math{N(i)} are
+the digits.  Each possible @math{N'} is uniquely associated to a
+@math{k}--tuple of integers @math{N(i)}.  Being the probability of
+@math{N(i)} uniformly distributed, each possible @math{k}--tuple has
+uniform probability in the set of all the possible @math{k}--tuples.  So
+also the probability of @math{N'} is uniformly distributed in the range
+@math{0 <= N' < M^k}.
+
 Then we proceed like we did before for @math{U <= M}:
 
 @example
@@ -26957,8 +27289,8 @@ that:
 @end example
 
 @noindent
-then we generate a big random integer @math{N'} in the range @math{0 <=
-N' < M'} and normalise it with:
+then we generate a big pseudo--random integer @math{N'} in the range
+@math{0 <= N' < M'} and normalise it with:
 
 @example
 X = (1 + N') / (1 + M')

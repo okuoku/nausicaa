@@ -53,9 +53,6 @@
 
   Add a randomness source reading bytes from a given port?
 
-  Is  the polynomial a  uniform distribution  for every  M, or  only for
-  prime numbers M?
-
 * arrays
 
   To be implemented taking inspiration from SRFI-25.
