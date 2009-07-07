@@ -4,7 +4,7 @@
 
 * lists
 
-  Always use knil as first arguments to closures in fold functions.
+  Finished?
 
 * char-set
 
@@ -55,6 +55,13 @@
 
   Is  the polynomial a  uniform distribution  for every  M, or  only for
   prime numbers M?
+
+* arrays
+
+  To be implemented taking inspiration from SRFI-25.
+
+  Use records for  everything: array (multidimensional array), array-dim
+  (dimension), array-pos (position).
 
 * sequence
 

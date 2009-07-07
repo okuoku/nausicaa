@@ -1065,7 +1065,6 @@
   )
 
 
-
 (parameterise ((check-test-name 'folding))
 
   (check
@@ -1128,78 +1127,71 @@
 	 (2 20 200)
 	 (1 10 100)))
 
-  )
-
-
-
-(parameterise ((check-test-name 'right-folding))
-
   (check
-      (fold-right cons '() '(1 2 3))
-    => '(1 2 3))
-
-  (check
-      (fold-right cons '(1 2 3) '())
-    => '(1 2 3))
-
-  (check
-      (fold-right cons '(1 2 3) '(9))
-    => '(9 1 2 3))
-
-  (check
-      (fold-right cons '() numbers)
-    => numbers)
-
-  (check
-      (fold-right + 0 numbers)
+      (fold-left* + 0 numbers)
     => 45)
 
   (check
-      (fold-right cons '(4 5 6) '(1 2 3))
+      (fold-left* xcons '() numbers)
+    => '(9 8 7 6 5 4 3 2 1 0))
+
+  (check
+      (fold-left* xcons '(4 5 6) '(3 2 1))
     => '(1 2 3 4 5 6))
 
   (check
-      (fold-right (lambda (x count)
-		    (if (symbol? x)
-			(+ count 1)
-		      count))
-		  0
-		  '(a 1 b 2 c 3))
+      (fold-left* xcons '(4 5 6) '())
+    => '(4 5 6))
+
+  (check
+      (fold-left* xcons '(4 5 6) '(3))
+    => '(3 4 5 6))
+
+  (check
+      (fold-left* (lambda (count x)
+  		    (if (symbol? x)
+  			(+ count 1)
+  		      count))
+  		  0
+  		  '(a 1 b 2 c 3))
     => 3)
 
   (check
-      (fold-right (lambda (s len)
-		    (max len (string-length s)))
-		  0
-		  '("ciao" "hello" "salut" "hola"))
+      (fold-left* (lambda (len s)
+  		    (max len (string-length s)))
+  		  0
+  		  '("ciao" "hello" "salut" "hola"))
     => 5)
 
   (check
-      (fold-right (lambda (x l)
-		    (if (even? x)
-			(cons x l)
-		      l))
+      (fold-left* (lambda (knil a b c)
+		    (cons (list a b c)
+			  knil))
 		  '()
-		  '(0 1 2 3 4 5 6 7 8 9))
-    => '(0 2 4 6 8))
+		  '(1 2 3)
+		  '(10 20 30)
+		  '(100 200 300))
+    => '((3 30 300)
+	 (2 20 200)
+	 (1 10 100)))
 
-  (check
-      (fold-right cons* '()
-		  '(a b c)
-		  '(1 2 3))
-    => '(a 1 b 2 c 3))
 
-  (check
-      (fold-right cons* '()
-		  '(a)
-		  '(1))
-    => '(a 1))
+  )
 
-;;; --------------------------------------------------------------------
+
+(parameterise ((check-test-name 'right-folding))
 
   (check
       (fold-right* cons '() '(1 2 3))
     => '(1 2 3))
+
+  (check
+      (fold-right* cons '(1 2 3) '())
+    => '(1 2 3))
+
+  (check
+      (fold-right* cons '(1 2 3) '(9))
+    => '(9 1 2 3))
 
   (check
       (fold-right* cons '() numbers)
@@ -1241,7 +1233,7 @@
   (check
       (fold-right* cons* '()
 		   '(a b c)
-		   '(1 2 3 4 5))
+		   '(1 2 3))
     => '(a 1 b 2 c 3))
 
   (check
@@ -1250,14 +1242,69 @@
 		   '(1))
     => '(a 1))
 
+;;; --------------------------------------------------------------------
+
   (check
-      (fold-right (lambda (a b c knil)
-		    (cons (list a b c)
-			  knil))
-		  '()
-		  '(1 2 3)
-		  '(10 20 30)
-		  '(100 200 300))
+      (fold* cons '() '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (fold* cons '() numbers)
+    => numbers)
+
+  (check
+      (fold* + 0 numbers)
+    => 45)
+
+  (check
+      (fold* cons '(4 5 6) '(1 2 3))
+    => '(1 2 3 4 5 6))
+
+  (check
+      (fold* (lambda (x count)
+		(if (symbol? x)
+		    (+ count 1)
+		  count))
+	      0
+	      '(a 1 b 2 c 3))
+    => 3)
+
+  (check
+      (fold* (lambda (s len)
+		(max len (string-length s)))
+	      0
+	      '("ciao" "hello" "salut" "hola"))
+    => 5)
+
+  (check
+      (fold* (lambda (x l)
+		(if (even? x)
+		    (cons x l)
+		  l))
+	      '()
+	      '(0 1 2 3 4 5 6 7 8 9))
+    => '(0 2 4 6 8))
+
+  (check
+      (fold* cons* '()
+	      '(a b c)
+	      '(1 2 3 4 5))
+    => '(a 1 b 2 c 3))
+
+  (check
+      (fold* cons* '()
+	      '(a)
+	      '(1))
+    => '(a 1))
+
+  (check
+      (fold* (lambda (a b c knil)
+	       (cons (list a b c)
+		     knil))
+	     '()
+	     '(1 2 3)
+	     '(10 20 30)
+	     '(100 200 300))
     => '((1 10 100)
 	 (2 20 200)
 	 (3 30 300)))
@@ -1390,14 +1437,14 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (pair-fold-right (lambda (elm knil)
+      (pair-fold* (lambda (elm knil)
 			 (cons (car elm) knil))
 		       '(999)
 		       '(1 2 3))
     => '(1 2 3 999))
 
   (check
-      (pair-fold-right (lambda (pair tail)
+      (pair-fold* (lambda (pair tail)
 			 (set-cdr! pair tail)
 			 pair)
 		       '()
@@ -1407,7 +1454,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1422,7 +1469,7 @@
 	 999))
 
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1435,7 +1482,7 @@
 	 999))
 
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1448,7 +1495,7 @@
 	 999))
 
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1460,7 +1507,7 @@
     => '((1 10 100)
 	 999))
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1473,7 +1520,7 @@
 	 999))
 
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1485,7 +1532,7 @@
     => '(999))
 
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1497,7 +1544,7 @@
     => '(999))
 
   (check
-      (pair-fold-right (lambda (a b c knil)
+      (pair-fold* (lambda (a b c knil)
 			 (cons (list (car a)
 				     (car b)
 				     (car c))
@@ -1511,7 +1558,6 @@
   )
 
 
-
 (parameterise ((check-test-name 'reducing))
 
   (check
@@ -1529,24 +1575,24 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (reduce-right + 0 numbers)
+      (reduce* + 0 numbers)
     => 45)
 
   (check
-      (reduce-right + 0 '())
+      (reduce* + 0 '())
     => 0)
 
   (check
-      (reduce-right max 0 '(1 2 3 4 5))
+      (reduce* max 0 '(1 2 3 4 5))
     => 5)
 
   (check
-      (reduce-right append
-		    '()
-		    '((1 2 3)
-		      (4 5)
-		      (6 7 8 9)
-		      (0)))
+      (reduce* append
+	       '()
+	       '((1 2 3)
+		 (4 5)
+		 (6 7 8 9)
+		 (0)))
     => '(1 2 3 4 5 6 7 8 9 0))
 
   )

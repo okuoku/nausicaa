@@ -1,5 +1,4 @@
-;;;SRFI-1 list-processing library
-;;;Reference implementation
+;;;Derived from SRFI-1 list-processing library, reference implementation
 ;;;
 ;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 1998, 1999 by Olin Shivers <shivers@ai.mit.edu>.
@@ -61,9 +60,10 @@
     count
 
     ;; fold
-    fold		fold-right*
-    pair-fold		pair-fold-right
-    reduce		reduce-right
+    fold		fold*
+    fold-left*		fold-right*
+    pair-fold		pair-fold*
+    reduce		reduce*
     unfold		unfold-right
 
     ;; map
@@ -369,10 +369,10 @@
 	      first)))))))
 
 (define (concatenate  lists)
-  (reduce-right append  '() lists))
+  (reduce* append  '() lists))
 
 (define (concatenate! lists)
-  (reduce-right append! '() lists))
+  (reduce* append! '() lists))
 
 (define (append-reverse rev-head tail)
   (let lp ((rev-head rev-head)
@@ -552,6 +552,19 @@
 		'()
 	      (loop (enqueue! cars (car next))
 		    (cdr ells)))))))))
+(define (%knil+cars ells knil)
+  (let ((next (car ells)))
+    (if (null? next)
+	'()
+      (let loop ((cars	(make-queue (car next)))
+		 (ells	(cdr ells)))
+	(if (null? ells)
+	    (cons knil (car cars))
+	  (let ((next (car ells)))
+	    (if (null? next)
+		'()
+	      (loop (enqueue! cars (car next))
+		    (cdr ells)))))))))
 
 ;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
 ;;return null; else return the list of the cdrs.
@@ -608,6 +621,22 @@
 	      (loop (enqueue! cars (car next))
 		    (enqueue! cdrs (cdr next))
 		    (cdr ells)))))))))
+(define (%knil+cars/cdrs ells knil)
+  (let ((next	(car ells)))
+    (if (null? next)
+	(values '() '())
+      (let loop ((cars	(make-queue (car next)))
+		 (cdrs	(make-queue (cdr next)))
+		 (ells	(cdr ells)))
+	(if (null? ells)
+	    (values (cons knil (car cars))
+		    (car cdrs))
+	  (let ((next	(car ells)))
+	    (if (null? next)
+		(values '() '())
+	      (loop (enqueue! cars (car next))
+		    (enqueue! cdrs (cdr next))
+		    (cdr ells)))))))))
 
 ;;; Like %CARS/CDRS, but blow up if any list is empty.
 (define (%cars+cdrs/no-test lists)
@@ -630,21 +659,21 @@
 
    ((kons knil ell)
     (let loop ((ell	ell)
-	       (result	knil))
+	       (knil	knil))
       (if (null-list? ell)
-	  result
-	(loop (cdr ell) (kons (car ell) result)))))
+	  knil
+	(loop (cdr ell) (kons (car ell) knil)))))
 
-   ((kons knil ell1 . ells)
-    (let loop ((ells	(cons ell1 ells))
-	       (result	knil))
-      (receive (cars+result cdrs)
-	  (%cars+knil/cdrs ells result)
-	(if (null? cars+result)
-	    result
-	  (loop cdrs (apply kons cars+result))))))))
+   ((kons knil ell0 . ells)
+    (let loop ((ells	(cons ell0 ells))
+	       (knil	knil))
+      (receive (cars+knil cdrs)
+	  (%cars+knil/cdrs ells knil)
+	(if (null? cars+knil)
+	    knil
+	  (loop cdrs (apply kons cars+knil))))))))
 
-(define fold-right*
+(define fold*
   (case-lambda
 
    ((kons knil ell)
@@ -653,14 +682,53 @@
 	  knil
 	(kons (car ell) (loop (cdr ell))))))
 
-   ((kons knil ell1 . ells)
-    (let loop ((ells (cons ell1 ells)))
+   ((kons knil ell0 . ells)
+    (let loop ((ells (cons ell0 ells)))
       (if (null? ells)
 	  knil
 	(let ((cdrs (%cdrs ells)))
 	  (if (null? cdrs)
 	      knil
 	    (apply kons (%cars+knil ells (loop cdrs))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define fold-left*
+  (case-lambda
+
+   ((combine knil ell)
+    (let loop ((knil	knil)
+	       (ell	ell))
+      (if (null-list? ell)
+	  knil
+	(loop (combine knil (car ell)) (cdr ell)))))
+
+   ((combine knil ell0 . ells)
+    (let loop ((knil	knil)
+	       (ells	(cons ell0 ells)))
+      (receive (knil+cars cdrs)
+	  (%knil+cars/cdrs ells knil)
+	(if (null? knil+cars)
+	    knil
+	  (loop (apply combine knil+cars) cdrs)))))))
+
+(define fold-right*
+  (case-lambda
+
+   ((combine knil ell)
+    (let loop ((ell ell))
+      (if (null-list? ell)
+	  knil
+	(combine (car ell) (loop (cdr ell))))))
+
+   ((combine knil ell0 . ells)
+    (let loop ((ells (cons ell0 ells)))
+      (if (null? ells)
+	  knil
+	(let ((cdrs (%cdrs ells)))
+	  (if (null? cdrs)
+	      knil
+	    (apply combine (%cars+knil ells (loop cdrs))))))))))
 
 ;;; --------------------------------------------------------------------
 
@@ -675,15 +743,15 @@
 	(let ((tail (cdr ell)))
 	  (loop tail (f ell return))))))
 
-   ((f knil ell1 . ells)
-    (let loop ((ells	(cons ell1 ells))
+   ((f knil ell0 . ells)
+    (let loop ((ells	(cons ell0 ells))
 	       (return	knil))
       (let ((tails (%cdrs ells)))
 	(if (null? tails)
 	    return
 	  (loop tails (apply f (append! ells (list return))))))))))
 
-(define (pair-fold-right f knil lis1 . ells)
+(define (pair-fold* f knil lis1 . ells)
   (if (pair? ells)
       (let loop ((ells (cons lis1 ells))) ; N-ary case
 	(let ((cdrs (%cdrs ells)))
@@ -699,7 +767,7 @@
       ridentity
     (fold f (car ell) (cdr ell))))
 
-(define (reduce-right f ridentity ell)
+(define (reduce* f ridentity ell)
   (if (null-list? ell)
       ridentity
     (let loop ((head	(car ell))
@@ -713,32 +781,32 @@
 (define unfold-right
   (case-lambda
 
-   ((stop? map-to-result seed-step seed)
-    (unfold-right stop? map-to-result seed-step seed '()))
+   ((stop? map-to-knil seed-step seed)
+    (unfold-right stop? map-to-knil seed-step seed '()))
 
-   ((stop? map-to-result seed-step seed tail)
+   ((stop? map-to-knil seed-step seed tail)
     (let loop ((seed seed)
-	       (result tail))
+	       (knil tail))
       (if (stop? seed)
-	  result
+	  knil
 	(loop (seed-step seed)
-	      (cons (map-to-result seed) result)))))))
+	      (cons (map-to-knil seed) knil)))))))
 
 (define unfold
   (case-lambda
 
-   ((stop? map-to-result seed-step seed)
+   ((stop? map-to-knil seed-step seed)
     (let loop ((seed seed))
       (if (stop? seed)
 	  '()
- 	(cons (map-to-result seed)
+ 	(cons (map-to-knil seed)
 	      (loop (seed-step seed))))))
 
-   ((stop? map-to-result seed-step seed tail-gen)
+   ((stop? map-to-knil seed-step seed tail-gen)
     (let loop ((seed seed))
       (if (stop? seed)
 	  (tail-gen seed)
-	(cons (map-to-result seed)
+	(cons (map-to-knil seed)
 	      (loop (seed-step seed))))))))
 
 
