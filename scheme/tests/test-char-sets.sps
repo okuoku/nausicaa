@@ -171,49 +171,49 @@
 
   (check
       ;; equal
-      (char-set-subset? (char-set '(#\A . #\F))
-			(char-set '(#\A . #\F)))
+      (char-set-superset? (char-set '(#\A . #\F))
+			  (char-set '(#\A . #\F)))
     => #t)
 
   (check
       ;; included
-      (char-set-subset? (char-set '(#\A . #\M))
-			(char-set '(#\B . #\F)))
+      (char-set-superset? (char-set '(#\A . #\M))
+			  (char-set '(#\B . #\F)))
     => #t)
 
   (check
       ;;                              included     included
-      (char-set-subset? (char-set '(#\A . #\M) '(#\P . #\Z))
-			(char-set '(#\B . #\F) '(#\S . #\X)))
+      (char-set-superset? (char-set '(#\A . #\M) '(#\P . #\Z))
+			  (char-set '(#\B . #\F) '(#\S . #\X)))
     => #t)
 
   (check
       ;;                              included     overlapping
-      (char-set-subset? (char-set '(#\A . #\M) '(#\P . #\X))
-			(char-set '(#\B . #\F) '(#\S . #\Z)))
+      (char-set-superset? (char-set '(#\A . #\M) '(#\P . #\X))
+			  (char-set '(#\B . #\F) '(#\S . #\Z)))
     => #f)
 
   (check
       ;;                              overlapping
-      (char-set-subset? (char-set '(#\A . #\D) '(#\P . #\X))
-			(char-set '(#\B . #\F) '(#\S . #\Z)))
+      (char-set-superset? (char-set '(#\A . #\D) '(#\P . #\X))
+			  (char-set '(#\B . #\F) '(#\S . #\Z)))
     => #f)
 
   (check
       ;;                                           included     included
-      (char-set-subset? (char-set '(#\0 . #\6) '(#\A . #\D) '(#\P . #\Z))
-			(char-set              '(#\B . #\F) '(#\S . #\X)))
+      (char-set-superset? (char-set '(#\0 . #\6) '(#\A . #\D) '(#\P . #\Z))
+			  (char-set              '(#\B . #\F) '(#\S . #\X)))
     => #f)
 
   (check
       ;;                                           included        included
-      (char-set-subset? (char-set '(#\0 . #\6) '(#\A . #\G) #\M '(#\P . #\Z))
-			(char-set              '(#\B . #\F)     '(#\S . #\X)))
+      (char-set-superset? (char-set '(#\0 . #\6) '(#\A . #\G) #\M '(#\P . #\Z))
+			  (char-set              '(#\B . #\F)     '(#\S . #\X)))
     => #t)
 
   (check
-      (char-set-subset? (char-set '(#\0 . #\6) '(#\A . #\D)     '(#\P . #\Z))
-			(char-set              '(#\B . #\F) #\M '(#\S . #\X)))
+      (char-set-superset? (char-set '(#\0 . #\6) '(#\A . #\D)     '(#\P . #\Z))
+			  (char-set              '(#\B . #\F) #\M '(#\S . #\X)))
     => #f)
 
   )

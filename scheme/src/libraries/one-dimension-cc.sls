@@ -44,6 +44,7 @@
 	    (%range-last<=? %range-past<=?))
     %range-contiguous? %range-overlapping?
     %range-subset? %range-subset?/strict
+    %range-superset? %range-superset?/strict
 
     ;; range set operations
     %range-concatenate
@@ -67,8 +68,9 @@
     %domain=? %domain<?
 
     ;; domain set operations
-    %domain-intersection %domain-union %domain-difference
-    %domain-complement %domain-subset? %domain-subset?/strict
+    %domain-intersection %domain-union %domain-difference %domain-complement
+    %domain-subset? %domain-subset?/strict
+    %domain-superset? %domain-superset?/strict
 
     ;; domain list operations
     %domain-for-each %domain-every %domain-any
@@ -165,16 +167,22 @@
     (or (and (item<=? start-a start-b last-a))
 	(and (item<=? start-b start-a last-b)))))
 
-(define (%range-subset? type range-a range-b)
+(define (%range-superset? type range-a range-b)
   ((type-descriptor-item<=? type) (car range-a) (car range-b) (cdr range-b) (cdr range-a)))
 
-(define (%range-subset?/strict type range-a range-b)
+(define (%range-subset? type range-a range-b)
+  (%range-superset? type range-b range-a))
+
+(define (%range-superset?/strict type range-a range-b)
   (let ((item<? (type-descriptor-item<? type))
 	(item<=? (type-descriptor-item<=? type)))
     (or (and (item<=? (car range-a) (car range-b))
 	     (item<?  (cdr range-b) (cdr range-a)))
 	(and (item<?  (car range-a) (car range-b))
 	     (item<=? (cdr range-b) (cdr range-a))))))
+
+(define (%range-subset?/strict type range-a range-b)
+  (%range-superset?/strict type range-b range-a))
 
 (define (%range-concatenate type range-a range-b)
   (cons ((type-descriptor-item-min type) (car range-a) (car range-b))
@@ -755,35 +763,41 @@
 			"internal error processing ranges" (list range-a range-b)))
 		     )))))))
 
-(define (%domain-subset? type domain-a domain-b)
+(define (%domain-superset? type domain-a domain-b)
   (let look-for-range-b-in-domain-a ((domain-a domain-a)
 				     (domain-b domain-b))
     (or (%domain-empty? domain-b)
 	(and (not (%domain-empty? domain-a))
 	     (let ((range-a (car domain-a))
 		   (range-b (car domain-b)))
-	       (if (%range-subset? type range-a range-b)
+	       (if (%range-superset? type range-a range-b)
 		   (look-for-range-b-in-domain-a domain-a (cdr domain-b))
 		 (look-for-range-b-in-domain-a (cdr domain-a) domain-b)))))))
 
-(define (%domain-subset?/strict type domain-a domain-b)
-  (let look-for-range-b-in-domain-a ((subset? #f)
+(define (%domain-subset? type domain-a domain-b)
+  (%domain-superset? type domain-b domain-a))
+
+(define (%domain-superset?/strict type domain-a domain-b)
+  (let look-for-range-b-in-domain-a ((superset? #f)
 				     (domain-a domain-a)
 				     (domain-b domain-b))
     (if (%domain-empty? domain-b)
-	subset?
+	superset?
       (and (not (%domain-empty? domain-a))
 	   (let ((range-a (car domain-a))
 		 (range-b (car domain-b)))
 	     (cond ((%range<? type range-a range-b)
 		    (look-for-range-b-in-domain-a #t (cdr domain-a) domain-b))
-		   ((%range-subset?/strict type range-a range-b)
+		   ((%range-superset?/strict type range-a range-b)
 		    (look-for-range-b-in-domain-a #t domain-a (cdr domain-b)))
 		   ((%range=? type range-a range-b)
-		    (look-for-range-b-in-domain-a subset? (cdr domain-a) (cdr domain-b)))
-		   ((%range-subset? type range-a range-b)
-		    (look-for-range-b-in-domain-a subset? domain-a (cdr domain-b)))
+		    (look-for-range-b-in-domain-a superset? (cdr domain-a) (cdr domain-b)))
+		   ((%range-superset? type range-a range-b)
+		    (look-for-range-b-in-domain-a superset? domain-a (cdr domain-b)))
 		   (else #f)))))))
+
+(define (%domain-subset?/strict type domain-a domain-b)
+  (%domain-superset?/strict type domain-b domain-a))
 
 ;;; --------------------------------------------------------------------
 

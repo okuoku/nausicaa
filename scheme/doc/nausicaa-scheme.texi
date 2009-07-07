@@ -21908,16 +21908,14 @@ argument is empty the return value is @false{}.
 @defun char-set-subset? @var{cs0} @var{cs} ...
 @defunx char-set-subset?/strict @var{cs0} @var{cs} ...
 Return @true{} if the arguments, in the given order, are subsets of each
-other or strict subsets of each other.  In other words: The return value
-of the following:
+other or strict subsets of each other.
+@end defun
 
-@example
-(char-set-subset? a b c d)
-@end example
 
-@noindent
-is true if @code{a} is a superset of @code{b}, @var{b} is a superset of
-@code{c}, @code{c} is a superset of @code{d}.
+@defun char-set-superset? @var{cs0} @var{cs} ...
+@defunx char-set-superset?/strict @var{cs0} @var{cs} ...
+Return @true{} if the arguments, in the given order, are supersets of
+each other or strict supersets of each other.
 @end defun
 
 @c page
@@ -31644,9 +31642,16 @@ Return @true{} if the ranges have some elements in common.
 @end defun
 
 
+@defun %range-superset? @var{type} @var{range-a} @var{range-b}
+@defunx %range-superset?/strict @var{type} @var{range-a} @var{range-b}
+Return @true{} if @var{range-a} is a superset or a strict superset of
+@var{range-a}.
+@end defun
+
+
 @defun %range-subset? @var{type} @var{range-a} @var{range-b}
 @defunx %range-subset?/strict @var{type} @var{range-a} @var{range-b}
-Return @true{} if @var{range-b} is a subset or a strict subset of
+Return @true{} if @var{range-a} is a subset or a strict subset of
 @var{range-a}.
 @end defun
 
@@ -31684,9 +31689,17 @@ if an argument is empty the return value is @false{}.
 
 @defun %domain-subset? @var{type} @var{domain-a} @var{domain-b}
 @defunx %domain-subset?/strict @var{type} @var{domain-a} @var{domain-b}
-Return @true{} if @var{domain-b} is a subset or strict subset of
-@var{domain-a}.
+Return @true{} if @var{domain-a} is a subset or strict subset of
+@var{domain-b}.
 @end defun
+
+
+@defun %domain-superset? @var{type} @var{domain-a} @var{domain-b}
+@defunx %domain-superset?/strict @var{type} @var{domain-a} @var{domain-b}
+Return @true{} if @var{domain-a} is a superset or strict superset of
+@var{domain-b}.
+@end defun
+
 
 @c page
 @node one-dimension inspect

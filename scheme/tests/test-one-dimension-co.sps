@@ -78,11 +78,11 @@
 (define (range-contiguous? range-a range-b)
   (%range-contiguous? type range-a range-b))
 
-(define (range-subset? range-a range-b)
-  (%range-subset? type range-a range-b))
+(define (range-superset? range-a range-b)
+  (%range-superset? type range-a range-b))
 
-(define (range-subset?/strict range-a range-b)
-  (%range-subset?/strict type range-a range-b))
+(define (range-superset?/strict range-a range-b)
+  (%range-superset?/strict type range-a range-b))
 
 (define (range-start<? range-a range-b)
   (%range-start<? type range-a range-b))
@@ -155,11 +155,11 @@
 (define (domain<? domain-a domain-b)
   (%domain<? type domain-a domain-b))
 
-(define (domain-subset? domain-a domain-b)
-  (%domain-subset? type domain-a domain-b))
+(define (domain-superset? domain-a domain-b)
+  (%domain-superset? type domain-a domain-b))
 
-(define (domain-subset?/strict domain-a domain-b)
-  (%domain-subset?/strict type domain-a domain-b))
+(define (domain-superset?/strict domain-a domain-b)
+  (%domain-superset?/strict type domain-a domain-b))
 
 (define (domain-intersection domain-a domain-b)
   (%domain-intersection type domain-a domain-b))
@@ -214,33 +214,33 @@
   (check (range-contains? (make-range 10 20)  5) => #f) ; lesser
   (check (range-contains? (make-range 10 20) 30) => #f) ; greater
 
-  (check (range-subset? (make-range 40 60) (make-range 40 60)) => #t) ; equal
-  (check (range-subset? (make-range 40 60) (make-range 50 60)) => #t) ; same past, start <
-  (check (range-subset? (make-range 50 60) (make-range 40 60)) => #f) ; same past, start >
-  (check (range-subset? (make-range 40 50) (make-range 40 60)) => #f) ; same start, past <
-  (check (range-subset? (make-range 40 60) (make-range 40 50)) => #t) ; same start, past >
-  (check (range-subset? (make-range 10 20) (make-range 30 40)) => #f) ; disjoint <
-  (check (range-subset? (make-range 30 40) (make-range 10 20)) => #f) ; disjoint >
-  (check (range-subset? (make-range 10 30) (make-range 20 40)) => #f) ; overlapping, start <
-  (check (range-subset? (make-range 20 40) (make-range 10 30)) => #f) ; overlapping, start >
-  (check (range-subset? (make-range 10 20) (make-range 20 30)) => #f) ; contiguous <
-  (check (range-subset? (make-range 20 30) (make-range 10 20)) => #f) ; contiguous >
-  (check (range-subset? (make-range 10 40) (make-range 20 30)) => #t) ; 1st includes 2nd
-  (check (range-subset? (make-range 20 30) (make-range 10 40)) => #f) ; 2nd includes 1st
+  (check (range-superset? (make-range 40 60) (make-range 40 60)) => #t) ; equal
+  (check (range-superset? (make-range 40 60) (make-range 50 60)) => #t) ; same past, start <
+  (check (range-superset? (make-range 50 60) (make-range 40 60)) => #f) ; same past, start >
+  (check (range-superset? (make-range 40 50) (make-range 40 60)) => #f) ; same start, past <
+  (check (range-superset? (make-range 40 60) (make-range 40 50)) => #t) ; same start, past >
+  (check (range-superset? (make-range 10 20) (make-range 30 40)) => #f) ; disjoint <
+  (check (range-superset? (make-range 30 40) (make-range 10 20)) => #f) ; disjoint >
+  (check (range-superset? (make-range 10 30) (make-range 20 40)) => #f) ; overlapping, start <
+  (check (range-superset? (make-range 20 40) (make-range 10 30)) => #f) ; overlapping, start >
+  (check (range-superset? (make-range 10 20) (make-range 20 30)) => #f) ; contiguous <
+  (check (range-superset? (make-range 20 30) (make-range 10 20)) => #f) ; contiguous >
+  (check (range-superset? (make-range 10 40) (make-range 20 30)) => #t) ; 1st includes 2nd
+  (check (range-superset? (make-range 20 30) (make-range 10 40)) => #f) ; 2nd includes 1st
 
-  (check (range-subset?/strict (make-range 40 60) (make-range 40 60)) => #f) ; equal
-  (check (range-subset?/strict (make-range 40 60) (make-range 50 60)) => #t) ; same past, start <
-  (check (range-subset?/strict (make-range 50 60) (make-range 40 60)) => #f) ; same past, start >
-  (check (range-subset?/strict (make-range 40 50) (make-range 40 60)) => #f) ; same start, past <
-  (check (range-subset?/strict (make-range 40 60) (make-range 40 50)) => #t) ; same start, past >
-  (check (range-subset?/strict (make-range 10 20) (make-range 30 40)) => #f) ; disjoint <
-  (check (range-subset?/strict (make-range 30 40) (make-range 10 20)) => #f) ; disjoint >
-  (check (range-subset?/strict (make-range 10 30) (make-range 20 40)) => #f) ; overlapping, start <
-  (check (range-subset?/strict (make-range 20 40) (make-range 10 30)) => #f) ; overlapping, start >
-  (check (range-subset?/strict (make-range 10 20) (make-range 20 30)) => #f) ; contiguous <
-  (check (range-subset?/strict (make-range 20 30) (make-range 10 20)) => #f) ; contiguous >
-  (check (range-subset?/strict (make-range 10 40) (make-range 20 30)) => #t) ; 1st includes 2nd
-  (check (range-subset?/strict (make-range 20 30) (make-range 10 40)) => #f) ; 2nd includes 1st
+  (check (range-superset?/strict (make-range 40 60) (make-range 40 60)) => #f) ; equal
+  (check (range-superset?/strict (make-range 40 60) (make-range 50 60)) => #t) ; same past, start <
+  (check (range-superset?/strict (make-range 50 60) (make-range 40 60)) => #f) ; same past, start >
+  (check (range-superset?/strict (make-range 40 50) (make-range 40 60)) => #f) ; same start, past <
+  (check (range-superset?/strict (make-range 40 60) (make-range 40 50)) => #t) ; same start, past >
+  (check (range-superset?/strict (make-range 10 20) (make-range 30 40)) => #f) ; disjoint <
+  (check (range-superset?/strict (make-range 30 40) (make-range 10 20)) => #f) ; disjoint >
+  (check (range-superset?/strict (make-range 10 30) (make-range 20 40)) => #f) ; overlapping, start <
+  (check (range-superset?/strict (make-range 20 40) (make-range 10 30)) => #f) ; overlapping, start >
+  (check (range-superset?/strict (make-range 10 20) (make-range 20 30)) => #f) ; contiguous <
+  (check (range-superset?/strict (make-range 20 30) (make-range 10 20)) => #f) ; contiguous >
+  (check (range-superset?/strict (make-range 10 40) (make-range 20 30)) => #t) ; 1st includes 2nd
+  (check (range-superset?/strict (make-range 20 30) (make-range 10 40)) => #f) ; 2nd includes 1st
 
   )
 
@@ -392,8 +392,8 @@
       (F (R 30 40) (R 10 20)	(R 10 20) (R 30 40)) ; disjoint >
       (F (R 10 30) (R 20 40)	(R 10 20) (R 30 40)) ; overlapping, start <
       (F (R 20 40) (R 10 30)	(R 10 20) (R 30 40)) ; overlapping, start >
-      (F (R 10 20) (R 20 30)	#f (R 10 30)) ; contiguous <
-      (F (R 20 30) (R 10 20)	#f (R 10 30)) ; contiguous >
+      (F (R 10 20) (R 20 30)	#f (R 10 30))	     ; contiguous <
+      (F (R 20 30) (R 10 20)	#f (R 10 30))	     ; contiguous >
       (F (R 10 40) (R 20 30)	(R 10 20) (R 30 40)) ; first includes second
       (F (R 20 30) (R 10 40)	(R 10 20) (R 30 40)) ; second includes first
       ))
@@ -543,162 +543,162 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check (domain-subset? (make-domain '(10 . 20))
-			 (make-domain '(10 . 20))) => #t) ; equal
-  (check (domain-subset? (make-domain '(10 . 20) '(30 . 40))
-			 (make-domain '(10 . 20) '(30 . 40))) => #t) ; equal
-  (check (domain-subset? (make-domain '(10 . 20) '(30 . 40) '(50 . 60))
-			 (make-domain '(10 . 20) '(30 . 40) '(50 . 60))) => #t) ; equal
+  (check (domain-superset? (make-domain '(10 . 20))
+			   (make-domain '(10 . 20))) => #t) ; equal
+  (check (domain-superset? (make-domain '(10 . 20) '(30 . 40))
+			   (make-domain '(10 . 20) '(30 . 40))) => #t) ; equal
+  (check (domain-superset? (make-domain '(10 . 20) '(30 . 40) '(50 . 60))
+			   (make-domain '(10 . 20) '(30 . 40) '(50 . 60))) => #t) ; equal
 
-  (check (domain-subset? (make-domain '(40 . 60))
-			 (make-domain '(50 . 60))) => #t) ; same past, start <
-  (check (domain-subset? (make-domain '(50 . 60))
-			 (make-domain '(40 . 60))) => #f) ; same past, start >
-  (check (domain-subset? (make-domain '(40 . 50))
-			 (make-domain '(40 . 60))) => #f) ; same start, past <
-  (check (domain-subset? (make-domain '(40 . 60))
-			 (make-domain '(40 . 50))) => #t) ; same start, past >
-  (check (domain-subset? (make-domain '(10 . 20))
-			 (make-domain '(30 . 40))) => #f) ; disjoint <
-  (check (domain-subset? (make-domain '(30 . 40))
-			 (make-domain '(10 . 20))) => #f) ; disjoint >
-  (check (domain-subset? (make-domain '(10 . 30))
-			 (make-domain '(20 . 40))) => #f) ; overlapping, start <
-  (check (domain-subset? (make-domain '(20 . 40))
-			 (make-domain '(10 . 30))) => #f) ; overlapping, start >
-  (check (domain-subset? (make-domain '(10 . 20))
-			 (make-domain '(20 . 30))) => #f) ; contiguous <
-  (check (domain-subset? (make-domain '(20 . 30))
-			 (make-domain '(10 . 20))) => #f) ; contiguous >
-  (check (domain-subset? (make-domain '(10 . 40))
-			 (make-domain '(20 . 30))) => #t) ; first includes second
-  (check (domain-subset? (make-domain '(20 . 30))
-			 (make-domain '(10 . 40))) => #f) ; second includes first
+  (check (domain-superset? (make-domain '(40 . 60))
+			   (make-domain '(50 . 60))) => #t) ; same past, start <
+  (check (domain-superset? (make-domain '(50 . 60))
+			   (make-domain '(40 . 60))) => #f) ; same past, start >
+  (check (domain-superset? (make-domain '(40 . 50))
+			   (make-domain '(40 . 60))) => #f) ; same start, past <
+  (check (domain-superset? (make-domain '(40 . 60))
+			   (make-domain '(40 . 50))) => #t) ; same start, past >
+  (check (domain-superset? (make-domain '(10 . 20))
+			   (make-domain '(30 . 40))) => #f) ; disjoint <
+  (check (domain-superset? (make-domain '(30 . 40))
+			   (make-domain '(10 . 20))) => #f) ; disjoint >
+  (check (domain-superset? (make-domain '(10 . 30))
+			   (make-domain '(20 . 40))) => #f) ; overlapping, start <
+  (check (domain-superset? (make-domain '(20 . 40))
+			   (make-domain '(10 . 30))) => #f) ; overlapping, start >
+  (check (domain-superset? (make-domain '(10 . 20))
+			   (make-domain '(20 . 30))) => #f) ; contiguous <
+  (check (domain-superset? (make-domain '(20 . 30))
+			   (make-domain '(10 . 20))) => #f) ; contiguous >
+  (check (domain-superset? (make-domain '(10 . 40))
+			   (make-domain '(20 . 30))) => #t) ; first includes second
+  (check (domain-superset? (make-domain '(20 . 30))
+			   (make-domain '(10 . 40))) => #f) ; second includes first
 
-  ;;                                    subset     subset
-  (check (domain-subset? (make-domain '(10 . 40) '(50 . 80))
-			 (make-domain '(20 . 30) '(60 . 70))) => #t)
-  ;;                                    subset     overlapping
-  (check (domain-subset? (make-domain '(10 . 40) '(50 . 70))
-			 (make-domain '(20 . 30) '(60 . 80))) => #f)
-  (check (domain-subset? (make-domain '(10 . 40) '(60 . 80))
-			 (make-domain '(20 . 30) '(50 . 70))) => #f)
+  ;;                                    superset     superset
+  (check (domain-superset? (make-domain '(10 . 40) '(50 . 80))
+			   (make-domain '(20 . 30) '(60 . 70))) => #t)
+  ;;                                    superset     overlapping
+  (check (domain-superset? (make-domain '(10 . 40) '(50 . 70))
+			   (make-domain '(20 . 30) '(60 . 80))) => #f)
+  (check (domain-superset? (make-domain '(10 . 40) '(60 . 80))
+			   (make-domain '(20 . 30) '(50 . 70))) => #f)
 
-  ;;                                               subset     equal
-  (check (domain-subset? (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
-			 (make-domain            '(40 . 50) '(70 . 90))) => #t)
+  ;;                                               superset     equal
+  (check (domain-superset? (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
+			   (make-domain            '(40 . 50) '(70 . 90))) => #t)
 
-  ;;                                               subset     subset
-  (check (domain-subset? (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
-			 (make-domain            '(40 . 50) '(80 . 85))) => #t)
+  ;;                                               superset     superset
+  (check (domain-superset? (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
+			   (make-domain            '(40 . 50) '(80 . 85))) => #t)
 
   ;;                                               superset   equal
-  (check (domain-subset? (make-domain '(10 . 20) '(40 . 50) '(70 . 90))
-			 (make-domain            '(30 . 60) '(70 . 90))) => #f)
+  (check (domain-superset? (make-domain '(10 . 20) '(40 . 50) '(70 . 90))
+			   (make-domain            '(30 . 60) '(70 . 90))) => #f)
 
   ;;                                               overlap    equal
-  (check (domain-subset? (make-domain '(10 . 20) '(30 . 50) '(70 . 90))
-			 (make-domain            '(40 . 60) '(70 . 90))) => #f)
+  (check (domain-superset? (make-domain '(10 . 20) '(30 . 50) '(70 . 90))
+			   (make-domain            '(40 . 60) '(70 . 90))) => #f)
 
   ;;                                               equal         equal
-  (check (domain-subset? (make-domain '(10 . 20) '(30 . 40)    '(50 . 60))
-			 (make-domain            '(30 . 40) 45 '(50 . 60))) => #f)
+  (check (domain-superset? (make-domain '(10 . 20) '(30 . 40)    '(50 . 60))
+			   (make-domain            '(30 . 40) 45 '(50 . 60))) => #f)
 
 ;;; --------------------------------------------------------------------
 
-  (check (domain-subset?/strict (make-domain '(10 . 20))
-				(make-domain '(10 . 20))) => #f) ; equal
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 40))
-				(make-domain '(10 . 20) '(30 . 40))) => #f) ; equal
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 40) '(50 . 60))
-				(make-domain '(10 . 20) '(30 . 40) '(50 . 60))) => #f) ; equal
+  (check (domain-superset?/strict (make-domain '(10 . 20))
+				  (make-domain '(10 . 20))) => #f) ; equal
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 40))
+				  (make-domain '(10 . 20) '(30 . 40))) => #f) ; equal
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 40) '(50 . 60))
+				  (make-domain '(10 . 20) '(30 . 40) '(50 . 60))) => #f) ; equal
 
-  (check (domain-subset?/strict (make-domain '(40 . 60))
-				(make-domain '(50 . 60))) => #t) ; same past, start <
-  (check (domain-subset?/strict (make-domain '(50 . 60))
-				(make-domain '(40 . 60))) => #f) ; same past, start >
-  (check (domain-subset?/strict (make-domain '(40 . 50))
-				(make-domain '(40 . 60))) => #f) ; same start, past <
-  (check (domain-subset?/strict (make-domain '(40 . 60))
-				(make-domain '(40 . 50))) => #t) ; same start, past >
-  (check (domain-subset?/strict (make-domain '(10 . 20))
-				(make-domain '(30 . 40))) => #f) ; disjoint <
-  (check (domain-subset?/strict (make-domain '(30 . 40))
-				(make-domain '(10 . 20))) => #f) ; disjoint >
-  (check (domain-subset?/strict (make-domain '(10 . 30))
-				(make-domain '(20 . 40))) => #f) ; overlapping, start <
-  (check (domain-subset?/strict (make-domain '(20 . 40))
-				(make-domain '(10 . 30))) => #f) ; overlapping, start >
-  (check (domain-subset?/strict (make-domain '(10 . 20))
-				(make-domain '(20 . 30))) => #f) ; contiguous <
-  (check (domain-subset?/strict (make-domain '(20 . 30))
-				(make-domain '(10 . 20))) => #f) ; contiguous >
-  (check (domain-subset?/strict (make-domain '(10 . 40))
-				(make-domain '(20 . 30))) => #t) ; first includes second
-  (check (domain-subset?/strict (make-domain '(20 . 30))
-				(make-domain '(10 . 40))) => #f) ; second includes first
+  (check (domain-superset?/strict (make-domain '(40 . 60))
+				  (make-domain '(50 . 60))) => #t) ; same past, start <
+  (check (domain-superset?/strict (make-domain '(50 . 60))
+				  (make-domain '(40 . 60))) => #f) ; same past, start >
+  (check (domain-superset?/strict (make-domain '(40 . 50))
+				  (make-domain '(40 . 60))) => #f) ; same start, past <
+  (check (domain-superset?/strict (make-domain '(40 . 60))
+				  (make-domain '(40 . 50))) => #t) ; same start, past >
+  (check (domain-superset?/strict (make-domain '(10 . 20))
+				  (make-domain '(30 . 40))) => #f) ; disjoint <
+  (check (domain-superset?/strict (make-domain '(30 . 40))
+				  (make-domain '(10 . 20))) => #f) ; disjoint >
+  (check (domain-superset?/strict (make-domain '(10 . 30))
+				  (make-domain '(20 . 40))) => #f) ; overlapping, start <
+  (check (domain-superset?/strict (make-domain '(20 . 40))
+				  (make-domain '(10 . 30))) => #f) ; overlapping, start >
+  (check (domain-superset?/strict (make-domain '(10 . 20))
+				  (make-domain '(20 . 30))) => #f) ; contiguous <
+  (check (domain-superset?/strict (make-domain '(20 . 30))
+				  (make-domain '(10 . 20))) => #f) ; contiguous >
+  (check (domain-superset?/strict (make-domain '(10 . 40))
+				  (make-domain '(20 . 30))) => #t) ; first includes second
+  (check (domain-superset?/strict (make-domain '(20 . 30))
+				  (make-domain '(10 . 40))) => #f) ; second includes first
 
-  ;;                                           subset     subset
-  (check (domain-subset?/strict (make-domain '(10 . 40) '(50 . 80))
-				(make-domain '(20 . 30) '(60 . 70))) => #t)
-  ;;                                           subset     overlapping
-  (check (domain-subset?/strict (make-domain '(10 . 40) '(50 . 70))
-				(make-domain '(20 . 30) '(60 . 80))) => #f)
-  (check (domain-subset?/strict (make-domain '(10 . 40) '(60 . 80))
-				(make-domain '(20 . 30) '(50 . 70))) => #f)
+  ;;                                           superset     superset
+  (check (domain-superset?/strict (make-domain '(10 . 40) '(50 . 80))
+				  (make-domain '(20 . 30) '(60 . 70))) => #t)
+  ;;                                           superset     overlapping
+  (check (domain-superset?/strict (make-domain '(10 . 40) '(50 . 70))
+				  (make-domain '(20 . 30) '(60 . 80))) => #f)
+  (check (domain-superset?/strict (make-domain '(10 . 40) '(60 . 80))
+				  (make-domain '(20 . 30) '(50 . 70))) => #f)
 
-  ;;                                                      subset     equal
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
-				(make-domain            '(40 . 50) '(70 . 90))) => #t)
+  ;;                                                      superset     equal
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
+				  (make-domain            '(40 . 50) '(70 . 90))) => #t)
 
-  ;;                                                      subset     subset
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
-				(make-domain            '(40 . 50) '(80 . 85))) => #t)
+  ;;                                                      superset     superset
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
+				  (make-domain            '(40 . 50) '(80 . 85))) => #t)
 
-  ;;                                                      equal      subset
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 40) '(50 . 90))
-				(make-domain            '(30 . 40) '(60 . 70))) => #t)
+  ;;                                                      equal      superset
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 40) '(50 . 90))
+				  (make-domain            '(30 . 40) '(60 . 70))) => #t)
 
 
-  ;;                                           subset     equal
-  (check (domain-subset?/strict (make-domain '(30 . 60) '(70 . 90) 100)
-				(make-domain '(40 . 50) '(70 . 90))) => #t)
+  ;;                                           superset     equal
+  (check (domain-superset?/strict (make-domain '(30 . 60) '(70 . 90) 100)
+				  (make-domain '(40 . 50) '(70 . 90))) => #t)
 
-  ;;                                           subset     subset
-  (check (domain-subset?/strict (make-domain '(30 . 60) '(70 . 90) 100)
-				(make-domain '(40 . 50) '(80 . 85))) => #t)
+  ;;                                           superset     superset
+  (check (domain-superset?/strict (make-domain '(30 . 60) '(70 . 90) 100)
+				  (make-domain '(40 . 50) '(80 . 85))) => #t)
 
-  ;;                                           equal      subset
-  (check (domain-subset?/strict (make-domain '(30 . 40) '(50 . 90) 100)
-				(make-domain '(30 . 40) '(60 . 70))) => #t)
+  ;;                                           equal      superset
+  (check (domain-superset?/strict (make-domain '(30 . 40) '(50 . 90) 100)
+				  (make-domain '(30 . 40) '(60 . 70))) => #t)
 
-  ;;                                           subset     equal
-  (check (domain-subset?/strict (make-domain '(30 . 60) '(70 . 90))
-				(make-domain '(40 . 50) '(70 . 90) 100)) => #f)
+  ;;                                           superset     equal
+  (check (domain-superset?/strict (make-domain '(30 . 60) '(70 . 90))
+				  (make-domain '(40 . 50) '(70 . 90) 100)) => #f)
 
-  ;;                                           subset     subset
-  (check (domain-subset?/strict (make-domain '(30 . 60) '(70 . 90))
-				(make-domain '(40 . 50) '(80 . 85) 100)) => #f)
+  ;;                                           superset     superset
+  (check (domain-superset?/strict (make-domain '(30 . 60) '(70 . 90))
+				  (make-domain '(40 . 50) '(80 . 85) 100)) => #f)
 
-  ;;                                           equal      subset
-  (check (domain-subset?/strict (make-domain '(30 . 40) '(50 . 90))
-				(make-domain '(30 . 40) '(60 . 70) 100)) => #f)
+  ;;                                           equal      superset
+  (check (domain-superset?/strict (make-domain '(30 . 40) '(50 . 90))
+				  (make-domain '(30 . 40) '(60 . 70) 100)) => #f)
 
   ;;                                                      superset   equal
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(40 . 50) '(70 . 90))
-				(make-domain            '(30 . 60) '(70 . 90))) => #f)
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(40 . 50) '(70 . 90))
+				  (make-domain            '(30 . 60) '(70 . 90))) => #f)
 
   ;;                                                      overlap    equal
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 50) '(70 . 90))
-				(make-domain            '(40 . 60) '(70 . 90))) => #f)
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 50) '(70 . 90))
+				  (make-domain            '(40 . 60) '(70 . 90))) => #f)
 
   ;;                                                      equal      equal
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 40) '(50 . 60))
-				(make-domain            '(30 . 40) '(50 . 60))) => #t)
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 40) '(50 . 60))
+				  (make-domain            '(30 . 40) '(50 . 60))) => #t)
 
   ;;                                                      equal         equal
-  (check (domain-subset?/strict (make-domain '(10 . 20) '(30 . 40)    '(50 . 60))
-				(make-domain            '(30 . 40) 45 '(50 . 60))) => #f)
+  (check (domain-superset?/strict (make-domain '(10 . 20) '(30 . 40)    '(50 . 60))
+				  (make-domain            '(30 . 40) 45 '(50 . 60))) => #f)
 
   )
 
@@ -791,37 +791,37 @@
 ;;; --------------------------------------------------------------------
 
   (check (domain-intersection
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(10 . 40) '(50 . 80))
 	  (make-domain '(20 . 30) '(60 . 70)))
     (=> domain=?) (make-domain '(20 . 30) '(60 . 70)))
 
   (check (domain-intersection
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(50 . 70))
 	  (make-domain '(20 . 30) '(60 . 80)))
     (=> domain=?) (make-domain '(20 . 30) '(60 . 70)))
 
   (check (domain-intersection
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(60 . 80))
 	  (make-domain '(20 . 30) '(50 . 70)))
     (=> domain=?) (make-domain '(20 . 30) '(60 . 70)))
 
   (check (domain-intersection
-	  ;;                        subset     equal
+	  ;;                        superset     equal
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain '(40 . 50) '(70 . 90)))
 
   (check (domain-intersection
-	  ;;                        subset     subset
+	  ;;                        superset     superset
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain '(40 . 50) '(80 . 85)))
 
   (check (domain-intersection
-	  ;;                        equal      subset
+	  ;;                        equal      superset
 	  (make-domain '(10 . 20) '(30 . 40) '(50 . 90))
 
 	  (make-domain            '(30 . 40) '(60 . 70)))
@@ -829,37 +829,37 @@
 
 
   (check (domain-intersection
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain '(40 . 50) '(70 . 90)))
 
   (check (domain-intersection
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain '(40 . 50) '(80 . 85)))
 
   (check (domain-intersection
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90) 100)
 	  (make-domain '(30 . 40) '(60 . 70)))
     (=> domain=?) (make-domain '(30 . 40) '(60 . 70)))
 
   (check (domain-intersection
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(70 . 90) 100))
     (=> domain=?) (make-domain '(40 . 50) '(70 . 90)))
 
   (check (domain-intersection
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(80 . 85) 100))
     (=> domain=?) (make-domain '(40 . 50) '(80 . 85)))
 
   (check (domain-intersection
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90))
 	  (make-domain '(30 . 40) '(60 . 70) 100))
     (=> domain=?) (make-domain '(30 . 40) '(60 . 70)))
@@ -1016,73 +1016,73 @@
 ;;; --------------------------------------------------------------------
 
   (check (domain-union
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(10 . 40) '(50 . 80))
 	  (make-domain '(20 . 30) '(60 . 70)))
     (=> domain=?) (make-domain '(10 . 40) '(50 . 80)))
 
   (check (domain-union
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(50 . 70))
 	  (make-domain '(20 . 30) '(60 . 80)))
     (=> domain=?) (make-domain '(10 . 40) '(50 . 80)))
 
   (check (domain-union
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(60 . 80))
 	  (make-domain '(20 . 30) '(50 . 70)))
     (=> domain=?) (make-domain '(10 . 40) '(50 . 80)))
 
   (check (domain-union
-	  ;;                        subset     equal
+	  ;;                        superset     equal
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 60) '(70 . 90)))
 
   (check (domain-union
-	  ;;                        subset     subset
+	  ;;                        superset     superset
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 60) '(70 . 90)))
 
   (check (domain-union
-	  ;;                        equal      subset
+	  ;;                        equal      superset
 	  (make-domain '(10 . 20) '(30 . 40) '(50 . 90))
 	  (make-domain            '(30 . 40) '(60 . 70)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 90)))
 
   (check (domain-union
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain '(30 . 60) '(70 . 90) '(100 . 101)))
 
   (check (domain-union
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain '(30 . 60) '(70 . 90) '(100 . 101)))
 
   (check (domain-union
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90) 100)
 	  (make-domain '(30 . 40) '(60 . 70)))
     (=> domain=?) (make-domain '(30 . 40) '(50 . 90) '(100 . 101)))
 
   (check (domain-union
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(70 . 90) 100))
     (=> domain=?) (make-domain '(30 . 60) '(70 . 90) '(100 . 101)))
 
   (check (domain-union
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(80 . 85) 100))
     (=> domain=?) (make-domain '(30 . 60) '(70 . 90) '(100 . 101)))
 
   (check (domain-union
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90))
 	  (make-domain '(30 . 40) '(60 . 70) 100))
     (=> domain=?) (make-domain '(30 . 40) '(50 . 90) '(100 . 101)))
@@ -1239,73 +1239,73 @@
 ;;; --------------------------------------------------------------------
 
   (check (domain-difference
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(10 . 40) '(50 . 80))
 	  (make-domain '(20 . 30) '(60 . 70)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 60) '(70 . 80)))
 
   (check (domain-difference
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(50 . 70))
 	  (make-domain '(20 . 30) '(60 . 80)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 60) '(70 . 80)))
 
   (check (domain-difference
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(60 . 80))
 	  (make-domain '(20 . 30) '(50 . 70)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 60) '(70 . 80)))
 
   (check (domain-difference
-	  ;;                        subset     equal
+	  ;;                        superset     equal
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 60)))
 
   (check (domain-difference
-	  ;;                        subset     subset
+	  ;;                        superset     superset
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain '(10 . 20) '(30 . 40) '(50 . 60) '(70 . 80) '(85 . 90)))
 
   (check (domain-difference
-	  ;;                        equal      subset
+	  ;;                        equal      superset
 	  (make-domain '(10 . 20) '(30 . 40) '(50 . 90))
 	  (make-domain            '(30 . 40) '(60 . 70)))
     (=> domain=?) (make-domain '(10 . 20) '(50 . 60) '(70 . 90)))
 
   (check (domain-difference
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain '(30 . 40) '(50 . 60) '(100 . 101)))
 
   (check (domain-difference
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain '(30 . 40) '(50 . 60) '(70 . 80) '(85 . 90) '(100 . 101)))
 
   (check (domain-difference
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90) 100)
 	  (make-domain '(30 . 40) '(60 . 70)))
     (=> domain=?) (make-domain '(50 . 60) '(70 . 90) '(100 . 101)))
 
   (check (domain-difference
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(70 . 90) 100))
     (=> domain=?) (make-domain '(30 . 40) '(50 . 60) '(100 . 101)))
 
   (check (domain-difference
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(80 . 85) 100))
     (=> domain=?) (make-domain '(30 . 40) '(50 . 60) '(70 . 80) '(85 . 90) '(100 . 101)))
 
   (check (domain-difference
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90))
 	  (make-domain '(30 . 40) '(60 . 70) 100))
     (=> domain=?) (make-domain '(50 . 60) '(70 . 90) '(100 . 101)))
@@ -1470,73 +1470,73 @@
 ;;; --------------------------------------------------------------------
 
   (check (domain-complement
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(10 . 40) '(50 . 80))
 	  (make-domain '(20 . 30) '(60 . 70)))
     (=> domain=?) (make-domain))
 
   (check (domain-complement
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(50 . 70))
 	  (make-domain '(20 . 30) '(60 . 80)))
     (=> domain=?) (make-domain '(70 . 80)))
 
   (check (domain-complement
-	  ;;             subset     overlapping
+	  ;;             superset     overlapping
 	  (make-domain '(10 . 40) '(60 . 80))
 	  (make-domain '(20 . 30) '(50 . 70)))
     (=> domain=?) (make-domain '(50 . 60)))
 
   (check (domain-complement
-	  ;;                        subset     equal
+	  ;;                        superset     equal
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain))
 
   (check (domain-complement
-	  ;;                        subset     subset
+	  ;;                        superset     superset
 	  (make-domain '(10 . 20) '(30 . 60) '(70 . 90))
 	  (make-domain            '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain))
 
   (check (domain-complement
-	  ;;                        equal      subset
+	  ;;                        equal      superset
 	  (make-domain '(10 . 20) '(30 . 40) '(50 . 90))
 	  (make-domain            '(30 . 40) '(60 . 70)))
     (=> domain=?) (make-domain))
 
   (check (domain-complement
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(70 . 90)))
     (=> domain=?) (make-domain))
 
   (check (domain-complement
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90) 100)
 	  (make-domain '(40 . 50) '(80 . 85)))
     (=> domain=?) (make-domain))
 
   (check (domain-complement
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90) 100)
 	  (make-domain '(30 . 40) '(60 . 70)))
     (=> domain=?) (make-domain))
 
   (check (domain-complement
-	  ;;             subset     equal
+	  ;;             superset     equal
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(70 . 90) 100))
     (=> domain=?) (make-domain '(100 . 101)))
 
   (check (domain-complement
-	  ;;             subset     subset
+	  ;;             superset     superset
 	  (make-domain '(30 . 60) '(70 . 90))
 	  (make-domain '(40 . 50) '(80 . 85) 100))
     (=> domain=?) (make-domain '(100 . 101)))
 
   (check (domain-complement
-	  ;;             equal      subset
+	  ;;             equal      superset
 	  (make-domain '(30 . 40) '(50 . 90))
 	  (make-domain '(30 . 40) '(60 . 70) 100))
     (=> domain=?) (make-domain '(100 . 101)))
