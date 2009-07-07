@@ -62,6 +62,8 @@
     ;; fold
     fold		fold*
     fold-left*		fold-right*
+    and-fold-left*	and-fold-right*
+    fold-left/pred
     pair-fold		pair-fold*
     reduce		reduce*
     unfold		unfold-right
@@ -729,6 +731,58 @@
 	  (if (null? cdrs)
 	      knil
 	    (apply combine (%cars+knil ells (loop cdrs))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define and-fold-left*
+  (case-lambda
+
+   ((combine knil ell)
+    (let loop ((knil	knil)
+	       (ell	ell))
+      (if (null-list? ell)
+	  knil
+	(let ((knil (combine knil (car ell))))
+	  (and knil
+	       (loop knil (cdr ell)))))))
+
+   ((combine knil ell0 . ells)
+    (let loop ((knil	knil)
+	       (ells	(cons ell0 ells)))
+      (receive (knil+cars cdrs)
+	  (%knil+cars/cdrs ells knil)
+	(if (null-list? knil+cars)
+	    knil
+	  (let ((knil (apply combine knil+cars)))
+	    (and knil
+		 (loop knil cdrs)))))))))
+
+(define and-fold-right*
+  (case-lambda
+
+   ((combine knil ell)
+    (let loop ((ell ell))
+      (if (null-list? ell)
+	  knil
+	(let ((knil (loop (cdr ell))))
+	  (and knil
+	       (combine (car ell) knil))))))
+
+   ((combine knil ell0 . ells)
+    (let loop ((ells (cons ell0 ells)))
+      (if (null? ells)
+	  knil
+	(let ((cdrs (%cdrs ells)))
+	  (if (null? cdrs)
+	      knil
+	    (let ((knil (loop cdrs)))
+	      (and knil
+		   (apply combine (%cars+knil ells knil)))))))))))
+
+(define (fold-left/pred pred knil ell)
+  (and-fold-left* (lambda (knil item)
+		    (and (pred knil item) item))
+		  knil ell))
 
 ;;; --------------------------------------------------------------------
 

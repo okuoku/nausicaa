@@ -20149,6 +20149,41 @@ With @func{fold-right*}, the last argument to @var{combine} is
 @end defun
 
 
+@defun and-fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@defunx and-fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+Like @func{fold-left*} and @func{fold-right*}, but stop the folding if
+the value returned by @var{combine} is @false{}, in which case the
+return value is @false{}.
+@end defun
+
+
+@defun fold-left/pred @var{pred} @var{knil} @var{clist}
+Apply @var{pred} to successive couples of elements from @var{clist};
+return true if all the evaluations of @var{pred} where true.  The
+iteration stops at the first @false{} return value from @var{pred}.
+
+This function is implemented as:
+
+@example
+(define (fold-left/pred pred knil ell)
+  (and-fold-left* (lambda (knil item)
+                    (and (pred knil item) item))
+                  knil ell))
+@end example
+
+@noindent
+and it can be used to implement predicates for ordering like @func{<}:
+
+@example
+(fold-left/pred < 0 '(1 2 3 4 5 6))
+@result{} 6
+
+(fold-left/pred < 0 '(1 2 3 -4 5 6))
+@result{} #f)
+@end example
+@end defun
+
+
 The functions @func{fold} and @func{fold*} are similar to
 @func{fold-left*} and @func{fold-right*} but @var{knil} is always the
 @strong{last} argument of the calls to @var{kons}.
@@ -20177,15 +20212,15 @@ Examples:
 @example
 ;; add the elements
 (fold + 0 '(1 2 3))
-=> 6
+@result{} 6
 
 ;; reverse a list
 (fold cons '() '(1 2 3))
-=> (3 2 1)
+@result{} (3 2 1)
 
 ;; append in reverse order
 (fold cons '(4 5 6) '(3 2 1))
-=> (1 2 3 4 5 6)
+@result{} (1 2 3 4 5 6)
 
 ;; how many symbols?
 (fold (lambda (x count)
@@ -20194,14 +20229,14 @@ Examples:
           count))
       0
       '(a 1 b 2 c 3))
-=> 3
+@result{} 3
 
 ;; length of the longest string
 (fold (lambda (s len)
         (max len (string-length s)))
       0
       '("ciao" "hello" "salut" "hola"))
-=> 5
+@result{} 5
 @end example
 
 If @var{n} list arguments are provided, then the @var{kons} function
@@ -20212,7 +20247,7 @@ operation terminates when the shortest list runs out of values:
 @example
 (fold cons* '() '(a b c)
                 '(1 2 3 4 5))
-=> (c 3
+@result{} (c 3
     b 2
     a 1)
 
@@ -20222,7 +20257,7 @@ operation terminates when the shortest list runs out of values:
       '(1 2 3)
       '(10 20 30)
       '(100 200 300))
-=> '((3 30 300)
+@result{} '((3 30 300)
      (2 20 200)
      (1 10 100))
 @end example
@@ -20256,15 +20291,15 @@ Examples:
 @example
 ;; copy the list
 (fold-right* cons '() '(1 2 3))
-=> (1 2 3)
+@result{} (1 2 3)
 
 ;; add elements
 (fold-right* + 0 numbers)
-=> 45
+@result{} 45
 
 ;; prepend elements
 (fold-right* cons '(4 5 6) '(1 2 3))
-=> (1 2 3 4 5 6)
+@result{} (1 2 3 4 5 6)
 
 ;; filter the even numbers
 (fold-right* (lambda (x l)
@@ -20273,7 +20308,7 @@ Examples:
                  l))
              '()
              '(0 1 2 3 4 5 6 7 8 9))
-=> (0 2 4 6 8)
+@result{} (0 2 4 6 8)
 @end example
 
 If @var{n} list arguments are provided, then the @var{kons} function
@@ -20288,7 +20323,7 @@ At least one of the list arguments must be finite.
              '()
              '(a b c)
              '(1 2 3 4 5))
-=> (a 1
+@result{} (a 1
     b 2
     c 3)
 
@@ -20299,7 +20334,7 @@ At least one of the list arguments must be finite.
              '(1 2 3)
              '(10 20 30)
              '(100 200 300))
-=> ((1 10 100)
+@result{} ((1 10 100)
     (2 20 200)
     (3 30 300))
 @end example
@@ -20332,7 +20367,7 @@ Examples:
              (cons (car elm) knil))
            '(999)
            '(1 2 3))
-=> (3 2 1 999)
+@result{} (3 2 1 999)
 
 ;;; destructively reverse a list
 (pair-fold (lambda (pair tail)
@@ -20340,7 +20375,7 @@ Examples:
              pair)
            '()
            '(0 1 2 3 4 5))
-=> (5 4 3 2 1 0)
+@result{} (5 4 3 2 1 0)
 @end example
 
 At least one of the list arguments must be finite.
@@ -20349,8 +20384,8 @@ At least one of the list arguments must be finite.
 @c ------------------------------------------------------------
 
 @defun pair-fold* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
-Holds the same relationship with @func{fold-right} that @func{pair-fold}
-holds with fold.  Obeys the recursion:
+Holds the same relationship with @func{fold*} that @func{pair-fold}
+holds with @func{fold}.  Obeys the recursion:
 
 @example
 (pair-fold* kons knil lis) =
@@ -20361,7 +20396,8 @@ holds with fold.  Obeys the recursion:
 Example:
 
 @example
-(pair-fold* cons '() '(a b c)) => ((a b c) (b c) (c))
+(pair-fold* cons '() '(a b c))
+@result{} ((a b c) (b c) (c))
 @end example
 
 At least one of the list arguments must be finite.
@@ -20373,14 +20409,14 @@ Examples:
               (cons (car elm) knil))
             '(999)
             '(1 2 3))
-=> (1 2 3 999)
+@result{} (1 2 3 999)
 
 (pair-fold* (lambda (pair tail)
               (set-cdr! pair tail)
               pair)
             '()
             '(0 1 2 3 4 5))
-=> (0 1 2 3 4 5)
+@result{} (0 1 2 3 4 5)
 
 (pair-fold* (lambda (a b c knil)
               (cons (list (car a)
@@ -20391,7 +20427,7 @@ Examples:
             '(1 2 3)
             '(10 20 30)
             '(100 200 300))
-=> '((1 10 100)
+@result{} '((1 10 100)
      (2 20 200)
      (3 30 300)
      999)
@@ -20446,10 +20482,10 @@ Examples:
 @example
 ;; take the max of a list of non-negative integers
 (reduce max 0 '(1 2 3 4 5 6))
-=> 6
+@result{} 6
 
 (reduce + 0 '(0 1 2 3 4 5 6 7 8 9))
-=> 45
+@result{} 45
 @end example
 @end defun
 
@@ -20476,7 +20512,7 @@ in other words, we compute @code{(fold* f ridentity list)}.
            (4 5)
            (6 7 8 9)
            (0)))
-=> (1 2 3 4 5 6 7 8 9 0)
+@result{} (1 2 3 4 5 6 7 8 9 0)
 @end example
 @end defun
 
@@ -20536,22 +20572,22 @@ programmers, it can be used in a number of ways:
         (lambda (x) (* x x))
         (lambda (x) (+ x 1))
         1)
-=> (1 4 9 16 25)
+@result{} (1 4 9 16 25)
 
 ;; Copy a proper list.
 (unfold null-list? car cdr '(1 2 3 4 5))
-=> (1 2 3 4 5)
+@result{} (1 2 3 4 5)
 
 ;; Read current input port into a list of values.
 (unfold eof-object? values (lambda (x) (read)) (read))
 
 ;; Copy a possibly non-proper list:
 (unfold not-pair? car cdr '(1 2 3 4 . 5) values)
-=> (1 2 3 4 . 5)
+@result{} (1 2 3 4 . 5)
 
 ;; Append HEAD onto TAIL:
 (unfold null-list? car cdr '(1 2 3) (lambda (x) '(4 5 6)))
-=> (1 2 3 4 5 6)
+@result{} (1 2 3 4 5 6)
 @end example
 
 @quotation
@@ -20628,18 +20664,18 @@ programmers, it can be used in a number of ways:
               (lambda (x) (* x x))
               (lambda (x) (- x 1))
               5)
-=> (1 4 9 16 25)
+@result{} (1 4 9 16 25)
 
 ;; Reverse a proper list.
 (unfold-right null-list? car cdr '(1 2 3 4 5))
-=> (5 4 3 2 1)
+@result{} (5 4 3 2 1)
 
 ;; Read current input port into a list of values.
 (unfold-right eof-object? values (lambda (x) (read)) (read))
 
 ;; Equivalent to: (append-reverse rev-head tail)
 (unfold-right null-list? car cdr '(3 2 1) '(4 5 6))
-=> (1 2 3 4 5 6)
+@result{} (1 2 3 4 5 6)
 @end example
 
 @quotation
@@ -20688,16 +20724,16 @@ the elements of the lists is unspecified.
 (map* cadr '((a b)
              (d e)
              (g h)))
-=>  (b e h)
+@result{}  (b e h)
 
 (map* (lambda (n)
         (expt n n))
   '(1 2 3 4 5))
-=> (1 4 27 256 3125)
+@result{} (1 4 27 256 3125)
 
 (map* + '(1 2 3)
         '(4 5 6))
-=> (5 7 9)
+@result{} (5 7 9)
 
 (let ((count 0))
   (map*
@@ -20705,7 +20741,7 @@ the elements of the lists is unspecified.
         (set! count (+ count 1))
         count)
     '(a b)))
-=> (1 2) or (2 1)
+@result{} (1 2) or (2 1)
 @end example
 
 This procedure extends the @rnrs{6} specification of @func{map} to allow
@@ -20718,7 +20754,7 @@ At least one of the list arguments must be a finite list:
 (map* +
       '(3 1 4 1)
       (circular-list 1 0))
-=> (4 1 5 1)
+@result{} (4 1 5 1)
 @end example
 @end defun
 
@@ -20738,7 +20774,7 @@ unspecified.
          (vector-set! v i (* i i)))
     '(0 1 2 3 4))
   v)
-=> #(0 1 4 9 16)
+@result{} #(0 1 4 9 16)
 @end example
 
 This procedure extends the @rnrs{6} specification for @func{for-each} to
@@ -20783,12 +20819,12 @@ Example:
     (lambda (x)
       (list x (- x)))
   '(1 3 8))
-=> (1 -1 3 -3 8 -8)
+@result{} (1 -1 3 -3 8 -8)
 
 (append-map! list
              '(1 2 3)
              '(10 20 30))
-=> (1 10 2 20 3 30)
+@result{} (1 10 2 20 3 30)
 @end example
 
 At least one of the list arguments must be a finite list.
@@ -20850,7 +20886,7 @@ Like @func{map}, but only true values are saved.
       (and (number? x)
            (* x x)))
   '(a 1 b 3 c 7))
-=> (1 9 49)
+@result{} (1 9 49)
 @end example
 
 The dynamic order in which the various applications of @var{f} are made
