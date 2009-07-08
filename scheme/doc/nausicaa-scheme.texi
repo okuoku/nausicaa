@@ -345,7 +345,11 @@ Scheme libraries defining a slightly modified @rnrs{6} Scheme language
 and augmenting the features of the base and standard @rnrs{6} libraries.
 
 @noindent
-Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}.
+Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}.@*
+
+Copyright @copyright{} 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
+Free Software Foundation for the section on the @library{format}
+library, adapted from the documentation of Guile.@*
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -361,10 +365,6 @@ This document embeds an unofficial assemblage of several documents
 reformatted in Texinfo; the reformatting author and maintainer is
 @value{AUTHOR} @value{AUTHOR_EMAIL}.  See the appendix ``Credits'' for
 the list of original documents and their authors.
-
-The section on the @library{format} library is adapted from the
-documentation of Guile, and it is Copyright @copyright{} 1996, 1997,
-2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation.
 @end copying
 
 @c page
@@ -765,6 +765,7 @@ More libraries
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
 * vectors::                     Vectors library.
+* arrays::                      Multidimensional arrays.
 * compare::                     Comparison functions.
 * random::                      Sources of random bits.
 * format::                      Formatting strings.
@@ -773,6 +774,10 @@ More libraries
 * object-properties::           Object properties.
 * cleanup-handlers::            Cleaning up.
 * combinators::                 Combinators.
+* keywords::                    Keyword values.
+* sentinel::                    The sentinel value.
+* variables::                   Defining storage locations.
+* scmobj::                      A simple object system.
 
 Low level libraries
 
@@ -810,7 +815,11 @@ Predicates
 
 Fold, unfold and map
 
-* lists fold fold::             Folding.
+* lists fold examples::         Folding usage examples.
+* lists fold rnrs::             Folding with @rnrs{6} style.
+* lists fold traditional::      Folding with traditional style.
+* lists fold derived::          Derived folding.
+* lists fold pair::             Folding pairs.
 * lists fold reduce::           Reducing.
 * lists fold unfold::           Unfolding.
 * lists fold map::              Mapping.
@@ -875,6 +884,14 @@ Vectors library
 * vectors mutate::              Mutators.
 * vectors misc::                Miscellaneous functions.
 
+Multidimensional arrays
+
+* arrays conventions::          Arguments conventions.
+* arrays layout::               Layout of elements in the vector.
+* arrays position::             Specifying the coordinates of elements.
+* arrays shape::                Specifying the shape of arrays.
+* arrays array::                Dealing with arrays.
+
 Comparison functions
 
 * compare abstract::            Abstract and rationale.
@@ -899,12 +916,17 @@ Sources of random bits
 * random source::               Randomness sources.
 * random mrg32k3a::             L'Ecuyer's MRG32k3a generator
 * random device::               Device--based generator.
-* random mersenne::             The Mersenne twister.
 * random utils::                Utilities.
+
+Auxiliary libraries
+
 * random dist::                 Random numbers from known distributions.
 * random lists::                Specialised list functions.
 * random vectors::              Specialised vector functions.
 * random strings::              Specialised string functions.
+* random borosh::               Borosh generator.
+* random cmrg::                 combined  multiple recursive generator.
+* random mersenne::             The Mersenne twister.
 
 Notes on the algorithms
 
@@ -936,6 +958,33 @@ Lightweight testing
 * checks eval::                 Evaluating code.
 * checks result::               Handling multiple results.
 * checks debug::                Printing debug messages.
+
+A simple object system
+
+* scmobj overview::             Overview of the library.
+* scmobj example::              Objects layout examples.
+* scmobj class::                Classes.
+* scmobj instance::             Instances.
+* scmobj inspect::              Inspecting classes and instances.
+* scmobj slot::                 Accessing slots.
+* scmobj generic::              Generic procedures and methods.
+
+Classes
+
+* scmobj class make::           Making classes
+* scmobj class chart::          A chart for predefined classes
+* scmobj class core::           Core class types.
+* scmobj class list::           List types.
+* scmobj class compound::       Non-list compound data types.
+* scmobj class numeric::        Numeric data types.
+* scmobj class port::           Port types.
+* scmobj class misc::           Miscellaneous types.
+
+Generic procedures and methods
+
+* scmobj generic dispatching::  How dispatching works.
+* scmobj generic methods::      Methods.
+* scmobj generic calling::      Calling generic procedures.
 
 Knuth-Morris-Pratt searching
 
@@ -20116,47 +20165,280 @@ At least one of the argument lists must be finite:
 @cindex List fold, unfold and map
 
 
+The @dfn{left--folding} operator is the fundamental list iterator, the
+@dfn{right--folding} operator is the fundamental list recursion
+operator.
+
 @menu
-* lists fold fold::             Folding.
+* lists fold examples::         Folding usage examples.
+* lists fold rnrs::             Folding with @rnrs{6} style.
+* lists fold traditional::      Folding with traditional style.
+* lists fold derived::          Derived folding.
+* lists fold pair::             Folding pairs.
 * lists fold reduce::           Reducing.
 * lists fold unfold::           Unfolding.
 * lists fold map::              Mapping.
 @end menu
 
+@c page
+@node lists fold examples
+@subsubsection Folding usage examples
+
+
+In the single list argument case, for a list of @math{4} elements, the
+return value of a left--folding with @rnrs{6} style, is computed as
+with:
+
+@example
+(fold-left kons knil ell) =
+  (kons (kons (kons (kons knil
+                          (list-ref ell 0))
+                    (list-ref ell 1))
+              (list-ref ell 2))
+        (list-ref ell 3))
+@end example
+
+@noindent
+while with the ``traditional'' style:
+
+@example
+(fold kons knil ell) =
+  (kons (list-ref ell 3)
+        (kons (list-ref ell 2)
+              (kons (list-ref ell 1)
+                    (kons (list-ref ell 0)
+                          knil))))
+@end example
+
+@noindent
+the return value of a right--folding with both @rnrs{6} style and
+``traditional'' style, is computed as with:
+
+@example
+(fold-right kons knil ell) =
+     (fold* kons knil ell) =
+  (kons (list-ref ell 0)
+        (kons (list-ref ell 1)
+              (kons (list-ref ell 2)
+                    (kons (list-ref ell 3)
+                          knil))))
+@end example
+
+In the multiple list arguments case, for three lists of @math{4}
+elements, the return value of a left--folding with @rnrs{6} style, is
+computed as with:
+
+@example
+(fold-left kons knil ell0 ell1 ell2) =
+  (kons (kons (kons (kons knil
+                          (list-ref ell0 0)
+                          (list-ref ell1 0)
+                          (list-ref ell2 0))
+                    (list-ref ell0 1)
+                    (list-ref ell1 1)
+                    (list-ref ell2 1))
+              (list-ref ell0 2)
+              (list-ref ell1 2)
+              (list-ref ell2 2))
+        (list-ref ell0 3)
+        (list-ref ell1 3)
+        (list-ref ell2 3))
+@end example
+
+@noindent
+while with the ``traditional'' style:
+
+@example
+(fold kons knil ell0 ell1 ell2) =
+  (kons (list-ref ell0 3)
+        (list-ref ell1 3)
+        (list-ref ell2 3)
+        (kons (list-ref ell0 2)
+              (list-ref ell1 2)
+              (list-ref ell2 2)
+              (kons (list-ref ell0 1)
+                    (list-ref ell1 1)
+                    (list-ref ell2 1)
+                    (kons (list-ref ell0 0)
+                          (list-ref ell1 0)
+                          (list-ref ell2 0)
+                          knil))))
+@end example
+
+@noindent
+the return value of a right--folding with both @rnrs{6} style and
+``traditional'' style, is computed as with:
+
+@example
+(fold-right kons knil ell0 ell1 ell2) =
+     (fold* kons knil ell0 ell1 ell2) =
+  (kons (list-ref ell0 0)
+        (list-ref ell1 0)
+        (list-ref ell2 0)
+        (kons (list-ref ell0 1)
+              (list-ref ell1 1)
+              (list-ref ell2 1)
+              (kons (list-ref ell0 2)
+                    (list-ref ell1 2)
+                    (list-ref ell2 2)
+                    (kons (list-ref ell0 3)
+                          (list-ref ell1 3)
+                          (list-ref ell2 3)
+                          knil))))
+@end example
+
+Left--folding, usage examples for @func{fold} in the single list
+argument case:
+
+@example
+;; add the elements
+(fold + 0 '(1 2 3))             @result{} 6
+
+;; reverse a list
+(fold cons '() '(1 2 3))        @result{} (3 2 1)
+
+;; append in reverse order
+(fold cons '(4 5 6) '(3 2 1))   @result{} (1 2 3 4 5 6)
+
+;; how many symbols?
+(fold (lambda (x count)
+        (if (symbol? x)
+            (+ count 1)
+          count))
+      0
+      '(a 1 b 2 c 3))           @result{} 3
+@end example
+
+Right--folding, usage examples for @func{fold*} in the single list
+argument case:
+
+@example
+;; copy the list
+(fold* cons '() '(1 2 3))       @result{} (1 2 3)
+
+;; add elements
+(fold* + 0 numbers)             @result{} 45
+
+;; prepend elements
+(fold* cons '(4 5 6) '(1 2 3))  @result{} (1 2 3 4 5 6)
+
+;; filter the even numbers
+(fold* (lambda (x l)
+         (if (even? x)
+             (cons x l)
+           l))
+       '()
+       '(0 1 2 3 4 5 6 7 8 9))
+@result{} (0 2 4 6 8)
+@end example
+
+Usage examples for @func{fold} and @func{fold*} in the multiple list
+argument case:
+
+@example
+(fold (lambda (a b c knil)
+        (cons (list a b c) knil))
+      '()
+      '(1 2 3)
+      '(10 20 30)
+      '(100 200 300))
+@result{} '((3 30 300)
+     (2 20 200)
+     (1 10 100))
+
+(fold* (lambda (a b c knil)
+         (cons (list a b c)
+                knil))
+       '()
+       '(1 2 3)
+       '(10 20 30)
+       '(100 200 300))
+@result{} ((1 10 100)
+    (2 20 200)
+    (3 30 300))
+@end example
 
 @c page
-@node lists fold fold
-@subsubsection Folding
+@node lists fold rnrs
+@subsubsection Folding with @rnrs{6} style
 
 
-@defun fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@defunx fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-Like @func{fold-left} and @func{fold-right}, defined by @rnrs{6}, but
-accept lists of different length and stop when the iteration reaches the
-end of the shortest list.
-
-Notice that, exactly as with @func{fold-left} and @func{fold-right}:
+Exactly as with the @func{fold-left} and @func{fold-right} functions
+defined by @rnrs{6}:
 
 @itemize
 @item
-With @func{fold-left*}, the first argument to @var{combine} is
-@var{knil}, then the return value of the previous calls to
-@var{combine}.
+With left--folding functions and syntaxes, the @strong{first} argument
+to the first call to @var{combine} is @var{knil}, then it is the return
+value of the previous calls to @var{combine}.
 
 @item
-With @func{fold-right*}, the last argument to @var{combine} is
-@var{knil}, then the return value of the previous calls to
-@var{combine}.
+With right--folding functions and syntaxes, the @strong{last} argument
+to to the first evaluated call to @var{combine} is @var{knil}, then it
+is the return value of the previous calls to @var{combine}.
 @end itemize
-@end defun
 
 
-@defun and-fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@defunx and-fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffn Syntax fold-left/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Syntax fold-right/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+Like @func{fold-left} and @func{fold-right}, defined by @rnrs{6}, but
+implemented as syntaxes.  These syntaxes exist only for completeness.
+@end deffn
+
+
+@deffn Function fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Function fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Syntax fold-left*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Syntax fold-right*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+Like @func{fold-left} and @func{fold-right}, defined by @rnrs{6}, but
+accept lists of different length and stop at the end of the shortest
+list.  At least one of the list arguments must be finite.  The syntaxes
+may be a little faster than the functions when multiple @var{clist}
+arguments are involved.
+@end deffn
+
+@c page
+@node lists fold traditional
+@subsubsection Folding with traditional style
+
+
+The functions @func{fold} and @func{fold*} are similar to
+@func{fold-left*} and @func{fold-right*} but @var{knil} is always the
+@strong{last} argument of the calls to @var{kons}.
+
+
+@deffn Function fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Syntax fold/stx @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+Left fold the function @var{kons} over the elements of the list
+arguments.  Accept lists of different length and stop at the end of the
+shortest list.  At least one of the list arguments must be finite.  The
+syntax may be a little faster than the function when multiple
+@var{clist} arguments are involved.
+@end deffn
+
+
+@deffn Function fold* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Syntax fold*/stx @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+Right fold the function @var{kons} over the elements of the list
+arguments.  Accept lists of different length and stop at the end of the
+shortest list.  At least one of the list arguments must be finite.  The
+syntax may be a little faster than the function when multiple
+@var{clist} arguments are involved.
+@end deffn
+
+@c page
+@node lists fold derived
+@subsubsection Derived folding
+
+
+@deffn Function and-fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Function and-fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Syntax and-fold-left*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffnx Syntax and-fold-right*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
 Like @func{fold-left*} and @func{fold-right*}, but stop the folding if
 the value returned by @var{combine} is @false{}, in which case the
 return value is @false{}.
-@end defun
+@end deffn
 
 
 @defun fold-left/pred @var{pred} @var{knil} @var{clist}
@@ -20168,9 +20450,9 @@ This function is implemented as:
 
 @example
 (define (fold-left/pred pred knil ell)
-  (and-fold-left* (lambda (knil item)
-                    (and (pred knil item) item))
-                  knil ell))
+  (and-fold-left*/stx (lambda (knil item)
+                        (and (pred knil item) item))
+                      knil ell))
 @end example
 
 @noindent
@@ -20185,164 +20467,10 @@ and it can be used to implement predicates for ordering like @func{<}:
 @end example
 @end defun
 
+@c page
+@node lists fold pair
+@subsubsection Folding pairs
 
-The functions @func{fold} and @func{fold*} are similar to
-@func{fold-left*} and @func{fold-right*} but @var{knil} is always the
-@strong{last} argument of the calls to @var{kons}.
-
-
-@defun fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
-The fundamental list iterator.  First, consider the single
-list--parameter case: if @code{clist1 = (e1 e2 ... en)}, then this
-procedure returns:
-
-@example
-(kons en ... (kons e2 (kons e1 knil)) ... )
-@end example
-
-@noindent
-that is, it obeys the (tail) recursion:
-
-@example
-(fold kons knil ell) = (fold kons (kons (car ell) knil)
-                             (cdr ell))
-(fold kons knil '()) = knil
-@end example
-
-Examples:
-
-@example
-;; add the elements
-(fold + 0 '(1 2 3))
-@result{} 6
-
-;; reverse a list
-(fold cons '() '(1 2 3))
-@result{} (3 2 1)
-
-;; append in reverse order
-(fold cons '(4 5 6) '(3 2 1))
-@result{} (1 2 3 4 5 6)
-
-;; how many symbols?
-(fold (lambda (x count)
-        (if (symbol? x)
-            (+ count 1)
-          count))
-      0
-      '(a 1 b 2 c 3))
-@result{} 3
-
-;; length of the longest string
-(fold (lambda (s len)
-        (max len (string-length s)))
-      0
-      '("ciao" "hello" "salut" "hola"))
-@result{} 5
-@end example
-
-If @var{n} list arguments are provided, then the @var{kons} function
-must take @var{n+1} parameters: one element from each list, and the
-``seed'' or fold state, which is initially @var{knil}.  The fold
-operation terminates when the shortest list runs out of values:
-
-@example
-(fold cons* '() '(a b c)
-                '(1 2 3 4 5))
-@result{} (c 3
-    b 2
-    a 1)
-
-(fold (lambda (a b c knil)
-        (cons (list a b c) knil))
-      '()
-      '(1 2 3)
-      '(10 20 30)
-      '(100 200 300))
-@result{} '((3 30 300)
-     (2 20 200)
-     (1 10 100))
-@end example
-
-At least one of the list arguments must be finite.
-@end defun
-
-@c ------------------------------------------------------------
-
-@defun fold* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
-The fundamental list recursion operator.  First, consider the single
-list--parameter case.  If @code{clist1 = (e1 e2 ... en)}, then this
-procedure returns:
-
-@example
-(kons e1 (kons e2 ... (kons en knil)))
-@end example
-
-@noindent
-that is, it obeys the recursion:
-
-@example
-(fold-right* kons knil ell) =
-    (kons (car ell)
-          (fold-right* kons knil (cdr ell)))
-(fold-right* kons knil '()) = knil
-@end example
-
-Examples:
-
-@example
-;; copy the list
-(fold-right* cons '() '(1 2 3))
-@result{} (1 2 3)
-
-;; add elements
-(fold-right* + 0 numbers)
-@result{} 45
-
-;; prepend elements
-(fold-right* cons '(4 5 6) '(1 2 3))
-@result{} (1 2 3 4 5 6)
-
-;; filter the even numbers
-(fold-right* (lambda (x l)
-               (if (even? x)
-                   (cons x l)
-                 l))
-             '()
-             '(0 1 2 3 4 5 6 7 8 9))
-@result{} (0 2 4 6 8)
-@end example
-
-If @var{n} list arguments are provided, then the @var{kons} function
-must take @var{n}+1 parameters: one element from each list, and the
-``seed'' or fold state, which is initially @var{knil}.  The fold
-operation terminates when the shortest list runs out of values:
-
-At least one of the list arguments must be finite.
-
-@example
-(fold-right* cons*
-             '()
-             '(a b c)
-             '(1 2 3 4 5))
-@result{} (a 1
-    b 2
-    c 3)
-
-(fold-right* (lambda (a b c knil)
-               (cons (list a b c)
-                     knil))
-             '()
-             '(1 2 3)
-             '(10 20 30)
-             '(100 200 300))
-@result{} ((1 10 100)
-    (2 20 200)
-    (3 30 300))
-@end example
-@end defun
-
-@c ------------------------------------------------------------
 
 @defun pair-fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
 Analogous to @func{fold}, but @var{kons} is applied to successive
@@ -24864,7 +24992,7 @@ and correct.
 @subsection Fold and unfold
 
 
-@defun vector-fold @var{kons} @var{knil} @var{vec0} @var{vec} ...
+@defun vector-fold-left @var{kons} @var{knil} @var{vec0} @var{vec} ...
 @defunx vector-fold-right @var{kons} @var{knil} @var{vec0} @var{vec} ...
 The fundamental vector iterator.  The vector arguments must have the
 same length.
@@ -24895,10 +25023,10 @@ fold arguments.
 @end defun
 
 
-@defun vector-fold* @var{kons} @var{knil} @var{vec0} @var{vec} ...
+@defun vector-fold-left* @var{kons} @var{knil} @var{vec0} @var{vec} ...
 @defunx vector-fold-right* @var{kons} @var{knil} @var{vec0} @var{vec} ...
-Like @func{vector-fold} and @func{vector-unfold} but accept vectors of
-different length, iterating until the end of the shorter one.
+Like @func{vector-fold-left} and @func{vector-fold-right} but accept
+vectors of different length, iterating until the end of the shorter one.
 @end defun
 
 @c ------------------------------------------------------------

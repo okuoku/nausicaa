@@ -1065,7 +1065,7 @@
   )
 
 
-(parameterise ((check-test-name 'folding))
+(parameterise ((check-test-name 'left-folding))
 
   (check
       (fold + 0 numbers)
@@ -1128,6 +1128,19 @@
 	 (1 10 100)))
 
   (check
+      (fold (lambda (a b c knil)
+	      (cons (list a b c)
+		    knil))
+	    '()
+	    '(1 2 3)
+	    '(10 20)
+	    '(100 200 300 400))
+    => '((2 20 200)
+	 (1 10 100)))
+
+;;; --------------------------------------------------------------------
+
+  (check
       (fold-left* + 0 numbers)
     => 45)
 
@@ -1169,10 +1182,9 @@
 			  knil))
 		  '()
 		  '(1 2 3)
-		  '(10 20 30)
-		  '(100 200 300))
-    => '((3 30 300)
-	 (2 20 200)
+		  '(10 20)
+		  '(100 200 300 400))
+    => '((2 20 200)
 	 (1 10 100)))
 
 ;;; --------------------------------------------------------------------
@@ -1188,70 +1200,193 @@
   )
 
 
-(parameterise ((check-test-name 'right-folding))
+(parameterise ((check-test-name 'left-folding-syntax))
 
   (check
-      (fold-right* cons '() '(1 2 3))
-    => '(1 2 3))
-
-  (check
-      (fold-right* cons '(1 2 3) '())
-    => '(1 2 3))
-
-  (check
-      (fold-right* cons '(1 2 3) '(9))
-    => '(9 1 2 3))
-
-  (check
-      (fold-right* cons '() numbers)
-    => numbers)
-
-  (check
-      (fold-right* + 0 numbers)
+      (fold/stx + 0 numbers)
     => 45)
 
   (check
-      (fold-right* cons '(4 5 6) '(1 2 3))
+      (fold/stx cons '() numbers)
+    => '(9 8 7 6 5 4 3 2 1 0))
+
+  (check
+      (fold/stx cons '(4 5 6) '(3 2 1))
     => '(1 2 3 4 5 6))
 
   (check
-      (fold-right* (lambda (x count)
-		     (if (symbol? x)
-			 (+ count 1)
-		       count))
-		   0
-		   '(a 1 b 2 c 3))
+      (fold/stx cons '(4 5 6) '())
+    => '(4 5 6))
+
+  (check
+      (fold/stx cons '(4 5 6) '(3))
+    => '(3 4 5 6))
+
+  (check
+      (fold/stx (lambda (x count)
+		  (if (symbol? x)
+		      (+ count 1)
+		    count))
+		0
+		'(a 1 b 2 c 3))
     => 3)
 
   (check
-      (fold-right* (lambda (s len)
-		     (max len (string-length s)))
-		   0
-		   '("ciao" "hello" "salut" "hola"))
+      (fold/stx (lambda (s len)
+		  (max len (string-length s)))
+		0
+		'("ciao" "hello" "salut" "hola"))
     => 5)
 
   (check
-      (fold-right* (lambda (x l)
-		     (if (even? x)
-			 (cons x l)
-		       l))
-		   '()
-		   '(0 1 2 3 4 5 6 7 8 9))
-    => '(0 2 4 6 8))
+      (fold/stx cons* '()
+		'(a b c)
+		'(1 2 3 4 5))
+    => '(c 3 b 2 a 1))
 
   (check
-      (fold-right* cons* '()
-		   '(a b c)
-		   '(1 2 3))
-    => '(a 1 b 2 c 3))
-
-  (check
-      (fold-right* cons* '()
-		   '(a)
-		   '(1))
+      (fold/stx cons* '()
+		'(a)
+		'(1))
     => '(a 1))
 
+  (check
+      (fold/stx (lambda (a b c knil)
+		  (cons (list a b c)
+			knil))
+		'()
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200 300))
+    => '((3 30 300)
+	 (2 20 200)
+	 (1 10 100)))
+
+  (check
+      (fold/stx (lambda (a b c knil)
+		  (cons (list a b c)
+			knil))
+		'()
+		'(1 2 3)
+		'(10 20)
+		'(100 200 300 400))
+    => '((2 20 200)
+	 (1 10 100)))
+
 ;;; --------------------------------------------------------------------
+
+  (check
+      (fold-left/stx + 0 numbers)
+    => 45)
+
+  (check
+      (fold-left/stx xcons '() numbers)
+    => '(9 8 7 6 5 4 3 2 1 0))
+
+  (check
+      (fold-left/stx xcons '(4 5 6) '(3 2 1))
+    => '(1 2 3 4 5 6))
+
+  (check
+      (fold-left/stx xcons '(4 5 6) '())
+    => '(4 5 6))
+
+  (check
+      (fold-left/stx xcons '(4 5 6) '(3))
+    => '(3 4 5 6))
+
+  (check
+      (fold-left/stx (lambda (count x)
+			(if (symbol? x)
+			    (+ count 1)
+			  count))
+		      0
+		      '(a 1 b 2 c 3))
+    => 3)
+
+  (check
+      (fold-left/stx (lambda (len s)
+			(max len (string-length s)))
+		      0
+		      '("ciao" "hello" "salut" "hola"))
+    => 5)
+
+  (check
+      (guard (exc ((assertion-violation? exc) (condition-message exc)))
+	(fold-left/stx (lambda (knil a b c)
+			 (cons (list a b c)
+			       knil))
+		       '()
+		       '(1 2 3)
+		       '(10 20)
+		       '(100 200 300 400)))
+    => "expected lists of equal length")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (fold-left*/stx + 0 numbers)
+    => 45)
+
+  (check
+      (fold-left*/stx xcons '() numbers)
+    => '(9 8 7 6 5 4 3 2 1 0))
+
+  (check
+      (fold-left*/stx xcons '(4 5 6) '(3 2 1))
+    => '(1 2 3 4 5 6))
+
+  (check
+      (fold-left*/stx xcons '(4 5 6) '())
+    => '(4 5 6))
+
+  (check
+      (fold-left*/stx xcons '(4 5 6) '(3))
+    => '(3 4 5 6))
+
+  (check
+      (fold-left*/stx (lambda (count x)
+			(if (symbol? x)
+			    (+ count 1)
+			  count))
+		      0
+		      '(a 1 b 2 c 3))
+    => 3)
+
+  (check
+      (fold-left*/stx (lambda (len s)
+			(max len (string-length s)))
+		      0
+		      '("ciao" "hello" "salut" "hola"))
+    => 5)
+
+  (check
+      (fold-left*/stx (lambda (knil a b c)
+			(cons (list a b c)
+			      knil))
+		      '()
+		      '(1 2 3)
+		      '(10 20 30)
+		      '(100 200 300))
+    => '((3 30 300)
+	 (2 20 200)
+	 (1 10 100)))
+
+  (check
+      (fold-left*/stx (lambda (knil a b c)
+			(cons (list a b c)
+			      knil))
+		      '()
+		      '(1 2 3)
+		      '(10 20)
+		      '(100 200 300 400))
+    => '((2 20 200)
+	 (1 10 100)))
+
+  )
+
+
+(parameterise ((check-test-name 'right-folding))
 
   (check
       (fold* cons '() '(1 2 3))
@@ -1318,10 +1453,359 @@
 	 (2 20 200)
 	 (3 30 300)))
 
+  (check
+      (fold* (lambda (a b c knil)
+	       (cons (list a b c)
+		     knil))
+	     '()
+	     '(1 2 3)
+	     '(10 20)
+	     '(100 200 300 400))
+    => '((1 10 100)
+	 (2 20 200)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (fold-right* cons '() '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (fold-right* cons '(1 2 3) '())
+    => '(1 2 3))
+
+  (check
+      (fold-right* cons '(1 2 3) '(9))
+    => '(9 1 2 3))
+
+  (check
+      (fold-right* cons '() numbers)
+    => numbers)
+
+  (check
+      (fold-right* + 0 numbers)
+    => 45)
+
+  (check
+      (fold-right* cons '(4 5 6) '(1 2 3))
+    => '(1 2 3 4 5 6))
+
+  (check
+      (fold-right* (lambda (x count)
+		     (if (symbol? x)
+			 (+ count 1)
+		       count))
+		   0
+		   '(a 1 b 2 c 3))
+    => 3)
+
+  (check
+      (fold-right* (lambda (s len)
+		     (max len (string-length s)))
+		   0
+		   '("ciao" "hello" "salut" "hola"))
+    => 5)
+
+  (check
+      (fold-right* (lambda (x l)
+		     (if (even? x)
+			 (cons x l)
+		       l))
+		   '()
+		   '(0 1 2 3 4 5 6 7 8 9))
+    => '(0 2 4 6 8))
+
+  (check
+      (fold-right* cons* '()
+		   '(a b c)
+		   '(1 2 3))
+    => '(a 1 b 2 c 3))
+
+  (check
+      (fold-right* cons* '()
+		   '(a)
+		   '(1))
+    => '(a 1))
+
+  (check
+      (fold-right* (lambda (a b c knil)
+		     (cons (list a b c)
+			   knil))
+		   '()
+		   '(1 2 3)
+		   '(10 20 30)
+		   '(100 200 300))
+    => '((1 10 100)
+	 (2 20 200)
+	 (3 30 300)))
+
+  (check
+      (fold-right* (lambda (a b c knil)
+		     (cons (list a b c)
+			   knil))
+		   '()
+		   '(1 2 3)
+		   '(10 20)
+		   '(100 200 300 400))
+    => '((1 10 100)
+	 (2 20 200)))
+
   )
 
 
+(parameterise ((check-test-name 'right-folding-syntax))
 
+  (check
+      (fold*/stx cons '() '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (fold*/stx cons '() numbers)
+    => numbers)
+
+  (check
+      (fold*/stx + 0 numbers)
+    => 45)
+
+  (check
+      (fold*/stx cons '(4 5 6) '(1 2 3))
+    => '(1 2 3 4 5 6))
+
+  (check
+      (fold*/stx (lambda (x count)
+		   (if (symbol? x)
+		       (+ count 1)
+		     count))
+		 0
+		 '(a 1 b 2 c 3))
+    => 3)
+
+  (check
+      (fold*/stx (lambda (s len)
+		   (max len (string-length s)))
+		 0
+		 '("ciao" "hello" "salut" "hola"))
+    => 5)
+
+  (check
+      (fold*/stx (lambda (x l)
+		   (if (even? x)
+		       (cons x l)
+		     l))
+		 '()
+		 '(0 1 2 3 4 5 6 7 8 9))
+    => '(0 2 4 6 8))
+
+  (check
+      (fold*/stx cons* '()
+		 '(a b c)
+		 '(1 2 3 4 5))
+    => '(a 1 b 2 c 3))
+
+  (check
+      (fold*/stx cons* '()
+		 '(a)
+		 '(1))
+    => '(a 1))
+
+  (check
+      (fold*/stx (lambda (a b c knil)
+		   (cons (list a b c)
+			 knil))
+		 '()
+		 '(1 2 3)
+		 '(10 20 30)
+		 '(100 200 300))
+    => '((1 10 100)
+	 (2 20 200)
+	 (3 30 300)))
+
+  (check
+      (fold*/stx (lambda (a b c knil)
+		   (cons (list a b c)
+			 knil))
+		 '()
+		 '(1 2 3)
+		 '(10 20)
+		 '(100 200 300 400))
+    => '((1 10 100)
+	 (2 20 200)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (fold-right/stx cons '() '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (fold-right/stx cons '(1 2 3) '())
+    => '(1 2 3))
+
+  (check
+      (fold-right/stx cons '(1 2 3) '(9))
+    => '(9 1 2 3))
+
+  (check
+      (fold-right/stx cons '() numbers)
+    => numbers)
+
+  (check
+      (fold-right/stx + 0 numbers)
+    => 45)
+
+  (check
+      (fold-right/stx cons '(4 5 6) '(1 2 3))
+    => '(1 2 3 4 5 6))
+
+  (check
+      (fold-right/stx (lambda (x count)
+			(if (symbol? x)
+			    (+ count 1)
+			  count))
+		      0
+		      '(a 1 b 2 c 3))
+    => 3)
+
+  (check
+      (fold-right/stx (lambda (s len)
+			(max len (string-length s)))
+		      0
+		      '("ciao" "hello" "salut" "hola"))
+    => 5)
+
+  (check
+      (fold-right/stx (lambda (x l)
+			(if (even? x)
+			    (cons x l)
+			  l))
+		      '()
+		      '(0 1 2 3 4 5 6 7 8 9))
+    => '(0 2 4 6 8))
+
+  (check
+      (fold-right/stx cons* '()
+		      '(a b c)
+		      '(1 2 3))
+    => '(a 1 b 2 c 3))
+
+  (check
+      (fold-right/stx cons* '()
+		      '(a)
+		      '(1))
+    => '(a 1))
+
+  (check
+      (fold-right/stx (lambda (a b c knil)
+			(cons (list a b c)
+			      knil))
+		      '()
+		      '(1 2 3)
+		      '(10 20 30)
+		      '(100 200 300))
+    => '((1 10 100)
+	 (2 20 200)
+	 (3 30 300)))
+
+  (check
+      (guard (exc ((assertion-violation? exc) (condition-message exc)))
+	(fold-right/stx (lambda (a b c knil)
+			  (cons (list a b c)
+				knil))
+			'()
+			'(1 2 3)
+			'(10 20)
+			'(100 200 300 400)))
+    => "expected lists of equal length")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (fold-right*/stx cons '() '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (fold-right*/stx cons '(1 2 3) '())
+    => '(1 2 3))
+
+  (check
+      (fold-right*/stx cons '(1 2 3) '(9))
+    => '(9 1 2 3))
+
+  (check
+      (fold-right*/stx cons '() numbers)
+    => numbers)
+
+  (check
+      (fold-right*/stx + 0 numbers)
+    => 45)
+
+  (check
+      (fold-right*/stx cons '(4 5 6) '(1 2 3))
+    => '(1 2 3 4 5 6))
+
+  (check
+      (fold-right*/stx (lambda (x count)
+			 (if (symbol? x)
+			     (+ count 1)
+			   count))
+		       0
+		       '(a 1 b 2 c 3))
+    => 3)
+
+  (check
+      (fold-right*/stx (lambda (s len)
+			 (max len (string-length s)))
+		       0
+		       '("ciao" "hello" "salut" "hola"))
+    => 5)
+
+  (check
+      (fold-right*/stx (lambda (x l)
+			 (if (even? x)
+			     (cons x l)
+			   l))
+		       '()
+		       '(0 1 2 3 4 5 6 7 8 9))
+    => '(0 2 4 6 8))
+
+  (check
+      (fold-right*/stx cons* '()
+		       '(a b c)
+		       '(1 2 3))
+    => '(a 1 b 2 c 3))
+
+  (check
+      (fold-right*/stx cons* '()
+		       '(a)
+		       '(1))
+    => '(a 1))
+
+  (check
+      (fold-right*/stx (lambda (a b c knil)
+			 (cons (list a b c)
+			       knil))
+		       '()
+		       '(1 2 3)
+		       '(10 20 30)
+		       '(100 200 300))
+    => '((1 10 100)
+	 (2 20 200)
+	 (3 30 300)))
+
+  (check
+      (fold-right*/stx (lambda (a b c knil)
+			 (cons (list a b c)
+			       knil))
+		       '()
+		       '(1 2 3)
+		       '(10 20)
+		       '(100 200 300 400))
+    => '((1 10 100)
+	 (2 20 200)))
+
+  )
+
+
 (parameterise ((check-test-name 'pair-folding))
 
   (check

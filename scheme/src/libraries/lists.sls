@@ -68,6 +68,10 @@
     reduce		reduce*
     unfold		unfold-right
 
+    fold-left/stx	fold-right/stx
+    fold-left*/stx	fold-right*/stx
+    fold/stx		fold*/stx
+
     ;; map
     map*		for-each*
     append-map		append-map!
@@ -654,7 +658,7 @@
       (values '() '()))))
 
 
-;;;; fold/unfold
+;;;; fold/unfold functions
 
 (define fold
   (case-lambda
@@ -731,58 +735,6 @@
 	  (if (null? cdrs)
 	      knil
 	    (apply combine (%cars+knil ells (loop cdrs))))))))))
-
-;;; --------------------------------------------------------------------
-
-(define and-fold-left*
-  (case-lambda
-
-   ((combine knil ell)
-    (let loop ((knil	knil)
-	       (ell	ell))
-      (if (null-list? ell)
-	  knil
-	(let ((knil (combine knil (car ell))))
-	  (and knil
-	       (loop knil (cdr ell)))))))
-
-   ((combine knil ell0 . ells)
-    (let loop ((knil	knil)
-	       (ells	(cons ell0 ells)))
-      (receive (knil+cars cdrs)
-	  (%knil+cars/cdrs ells knil)
-	(if (null-list? knil+cars)
-	    knil
-	  (let ((knil (apply combine knil+cars)))
-	    (and knil
-		 (loop knil cdrs)))))))))
-
-(define and-fold-right*
-  (case-lambda
-
-   ((combine knil ell)
-    (let loop ((ell ell))
-      (if (null-list? ell)
-	  knil
-	(let ((knil (loop (cdr ell))))
-	  (and knil
-	       (combine (car ell) knil))))))
-
-   ((combine knil ell0 . ells)
-    (let loop ((ells (cons ell0 ells)))
-      (if (null? ells)
-	  knil
-	(let ((cdrs (%cdrs ells)))
-	  (if (null? cdrs)
-	      knil
-	    (let ((knil (loop cdrs)))
-	      (and knil
-		   (apply combine (%cars+knil ells knil)))))))))))
-
-(define (fold-left/pred pred knil ell)
-  (and-fold-left* (lambda (knil item)
-		    (and (pred knil item) item))
-		  knil ell))
 
 ;;; --------------------------------------------------------------------
 
@@ -863,6 +815,205 @@
 	(cons (map-to-knil seed)
 	      (loop (seed-step seed))))))))
 
+
+
+;;;; fold syntaxes
+
+(define-syntax fold-left/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((combine ?combine))
+		   (let loop ((knil ?knil)
+			      (ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null? ell0) (null? L) ...)
+			 (begin
+			   (unless (and (null? ell0) (null? L) ...)
+			     (assertion-violation 'fold-left/stx
+			       "expected lists of equal length"))
+			   knil)
+		       (loop (combine knil (car ell0) (car L) ...)
+			     (cdr ell0)
+			     (cdr L)
+			     ...))))))))))
+
+(define-syntax fold-right/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((combine ?combine)
+		       (knil ?knil))
+		   (let loop ((ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null? ell0) (null? L) ...)
+			 (begin
+			   (unless (and (null? ell0) (null? L) ...)
+			     (assertion-violation 'fold-right/stx
+			       "expected lists of equal length"))
+			   knil)
+		       (combine (car ell0) (car L) ...
+				(loop (cdr ell0) (cdr L) ...)))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax fold-left*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((combine ?combine))
+		   (let loop ((knil ?knil)
+			      (ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null? ell0) (null? L) ...)
+			 knil
+		       (loop (combine knil (car ell0) (car L) ...)
+			     (cdr ell0)
+			     (cdr L)
+			     ...))))))))))
+
+(define-syntax fold-right*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((combine ?combine)
+		       (knil ?knil))
+		   (let loop ((ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null? ell0) (null? L) ...)
+			 knil
+		       (combine (car ell0) (car L) ...
+				(loop (cdr ell0) (cdr L) ...)))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax fold/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?kons ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((kons ?kons))
+		   (let loop ((knil ?knil)
+			      (ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null-list? ell0) (null-list? L) ...)
+			 knil
+		       (loop (kons (car ell0) (car L) ... knil)
+			     (cdr ell0) (cdr L) ...))))))))))
+
+(define-syntax fold*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?kons ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((kons ?kons)
+		       (knil ?knil))
+		   (let loop ((ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null-list? ell0) (null-list? L) ...)
+			 knil
+		       (kons (car ell0) (car L) ...
+			     (loop (cdr ell0) (cdr L) ...)))))))))))
+
+
+;;;; derived fold functions
+
+(define and-fold-left*
+  (case-lambda
+
+   ((combine knil ell)
+    (let loop ((knil	knil)
+	       (ell	ell))
+      (if (null-list? ell)
+	  knil
+	(let ((knil (combine knil (car ell))))
+	  (and knil
+	       (loop knil (cdr ell)))))))
+
+   ((combine knil ell0 . ells)
+    (let loop ((knil	knil)
+	       (ells	(cons ell0 ells)))
+      (receive (knil+cars cdrs)
+	  (%knil+cars/cdrs ells knil)
+	(if (null-list? knil+cars)
+	    knil
+	  (let ((knil (apply combine knil+cars)))
+	    (and knil
+		 (loop knil cdrs)))))))))
+
+(define and-fold-right*
+  (case-lambda
+
+   ((combine knil ell)
+    (let loop ((ell ell))
+      (if (null-list? ell)
+	  knil
+	(let ((knil (loop (cdr ell))))
+	  (and knil
+	       (combine (car ell) knil))))))
+
+   ((combine knil ell0 . ells)
+    (let loop ((ells (cons ell0 ells)))
+      (if (null? ells)
+	  knil
+	(let ((cdrs (%cdrs ells)))
+	  (if (null? cdrs)
+	      knil
+	    (let ((knil (loop cdrs)))
+	      (and knil
+		   (apply combine (%cars+knil ells knil)))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define (fold-left/pred pred knil ell)
+  (and-fold-left*/stx (lambda (knil item)
+			(and (pred knil item) item))
+		      knil ell))
+
+
+;;;; derived fold syntaxes
+
+(define-syntax and-fold-left*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((combine ?combine))
+		   (let loop ((knil ?knil)
+			      (ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null? ell0) (null? L) ...)
+			 knil
+		       (let ((knil (combine knil (car ell0) (car L) ...)))
+			 (and knil
+			      (loop knil (cdr ell0) (cdr L) ...))))))))))))
+
+(define-syntax and-fold-right*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?ell0 ?ell ...)
+       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((combine ?combine))
+		   (let loop ((knil ?knil)
+			      (ell0 ?ell0)
+			      (L    ?ell)
+			      ...)
+		     (if (or (null? ell0) (null? L) ...)
+			 knil
+		       (let ((knil (loop (cdr ell0) (cdr L) ...)))
+			 (and knil
+			      (combine (car ell0) (cdr L) ... knil))))))))))))
 
 
 ;;;; mappers
