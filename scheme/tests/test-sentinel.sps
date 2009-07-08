@@ -52,12 +52,12 @@
 
 (check
     (let* ((ell  '(1 2 3 4 5))
-	   (iter (lambda ()
-		   (let ((ell ell))
+	   (iter (let ((ell ell))
+		   (lambda ()
 		     (if (null? ell)
 			 sentinel
-		       (begin
-			 (car ell)
+		       (begin0
+			   (car ell)
 			 (set! ell (cdr ell))))))))
       (let loop ((res '()))
 	(let ((v (iter)))
@@ -65,7 +65,6 @@
 	      res
 	    (loop (cons v res))))))
   => '(5 4 3 2 1))
-
 
 
 ;;;; done
