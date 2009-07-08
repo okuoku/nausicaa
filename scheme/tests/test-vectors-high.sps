@@ -483,34 +483,34 @@
 (parameterise ((check-test-name 'folding))
 
   (check
-      (vector-fold (lambda (i nil x) (cons x nil))
-		   '()
-		   '#(#\a #\b #\c #\d))
+      (vector-fold-left (lambda (i nil x) (cons x nil))
+			'()
+			'#(#\a #\b #\c #\d))
     => '(#\d #\c #\b #\a))
 
   (check
-      (vector-fold (lambda (i nil x y) (cons (cons x y) nil))
-		   '()
-		   '#(#\a #\b #\c #\d)
-		   '#(#\A #\B #\C #\D))
+      (vector-fold-left (lambda (i nil x y) (cons (cons x y) nil))
+			'()
+			'#(#\a #\b #\c #\d)
+			'#(#\A #\B #\C #\D))
     => '((#\d . #\D)
 	 (#\c . #\C)
 	 (#\b . #\B)
 	 (#\a . #\A)))
 
   (check
-      (vector-fold (lambda (i nil x) (cons x nil))
-		   '()
-		   '#())
+      (vector-fold-left (lambda (i nil x) (cons x nil))
+			'()
+			'#())
     => '())
 
   (check
-      (vector-fold (lambda (i count c)
-		     (if (char-upper-case? c)
-			 (+ count 1)
-		       count))
-		   0
-		   '#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
+      (vector-fold-left (lambda (i count c)
+			  (if (char-upper-case? c)
+			      (+ count 1)
+			    count))
+			0
+			'#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
     => 5)
 
 ;;; --------------------------------------------------------------------
@@ -540,34 +540,34 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (vector-fold* (lambda (i nil x) (cons x nil))
-		    '()
-		    '#(#\a #\b #\c #\d))
+      (vector-fold-left* (lambda (i nil x) (cons x nil))
+			 '()
+			 '#(#\a #\b #\c #\d))
     => '(#\d #\c #\b #\a))
 
   (check
-      (vector-fold* (lambda (i nil x y) (cons (cons x y) nil))
-		    '()
-		    '#(#\a #\b #\c #\d)
-		    '#(#\A #\B #\C #\D #\E))
+      (vector-fold-left* (lambda (i nil x y) (cons (cons x y) nil))
+			 '()
+			 '#(#\a #\b #\c #\d)
+			 '#(#\A #\B #\C #\D #\E))
     => '((#\d . #\D)
 	 (#\c . #\C)
 	 (#\b . #\B)
 	 (#\a . #\A)))
 
   (check
-      (vector-fold* (lambda (i nil x) (cons x nil))
-		    '()
-		    '#())
+      (vector-fold-left* (lambda (i nil x) (cons x nil))
+			 '()
+			 '#())
     => '())
 
   (check
-      (vector-fold* (lambda (i count c)
-		      (if (char-upper-case? c)
-			  (+ count 1)
-			count))
-		    0
-		    '#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
+      (vector-fold-left* (lambda (i count c)
+			   (if (char-upper-case? c)
+			       (+ count 1)
+			     count))
+			 0
+			 '#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
     => 5)
 
 ;;; --------------------------------------------------------------------
@@ -597,11 +597,11 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (subvector-fold cons '() '#(#\a #\b #\c #\d))
+      (subvector-fold-left cons '() '#(#\a #\b #\c #\d))
     => '(#\d #\c #\b #\a))
 
   (check
-      (subvector-fold cons '() (view '#(#\a #\b #\c #\d) (start 1) (past 3)))
+      (subvector-fold-left cons '() (view '#(#\a #\b #\c #\d) (start 1) (past 3)))
     => '(#\c #\b))
 
 ;;; --------------------------------------------------------------------

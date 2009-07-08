@@ -128,10 +128,10 @@
     string-downcase*!  string-upcase*!  string-titlecase*!
 
     ;; folding
-    string-fold     string-fold-right
-    string-fold*    string-fold-right*
-    substring-fold  substring-fold-right
-    string-unfold   string-unfold-right
+    string-fold-left		string-fold-right
+    string-fold-left*		string-fold-right*
+    substring-fold-left		substring-fold-right
+    string-unfold		string-unfold-right
 
     ;; selecting
     substring*
@@ -395,11 +395,11 @@
 
 ;;;; folding
 
-(define-syntax substring-fold
+(define-syntax substring-fold-left
   (syntax-rules ()
     ((?F ?kons ?knil ?S)
      (let-values (((str beg past) (unpack ?S)))
-       (%substring-fold ?kons ?knil str beg past)))))
+       (%substring-fold-left ?kons ?knil str beg past)))))
 
 (define-syntax substring-fold-right
   (syntax-rules ()

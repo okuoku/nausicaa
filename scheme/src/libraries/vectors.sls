@@ -121,10 +121,10 @@
     subvector-map  subvector-map!  subvector-for-each  subvector-for-each-index
 
     ;; folding
-    vector-fold     vector-fold-right
-    vector-fold*    vector-fold-right*
-    subvector-fold  subvector-fold-right
-    vector-unfold   vector-unfold-right
+    vector-fold-left		vector-fold-right
+    vector-fold-left*		vector-fold-right*
+    subvector-fold-left		subvector-fold-right
+    vector-unfold		vector-unfold-right
 
     ;; selecting
     (rename (%vector-copy subvector))
@@ -313,11 +313,11 @@
 
 ;;;; folding
 
-(define-syntax subvector-fold
+(define-syntax subvector-fold-left
   (syntax-rules ()
     ((?F ?kons ?knil ?V)
      (let-values (((vec beg past) (unpack ?V)))
-       (%subvector-fold ?kons ?knil vec beg past)))))
+       (%subvector-fold-left ?kons ?knil vec beg past)))))
 
 (define-syntax subvector-fold-right
   (syntax-rules ()

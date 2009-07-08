@@ -882,29 +882,29 @@
 (parameterise ((check-test-name 'folding))
 
   (check
-      (string-fold (lambda (i nil x) (cons x nil)) '() "abcd")
+      (string-fold-left (lambda (i nil x) (cons x nil)) '() "abcd")
     => '(#\d #\c #\b #\a))
 
   (check
-      (string-fold (lambda (i nil x y) (cons (cons x y) nil)) '()
-		   "abcd"
-		   "ABCD")
+      (string-fold-left (lambda (i nil x y) (cons (cons x y) nil)) '()
+			"abcd"
+			"ABCD")
     => '((#\d . #\D)
 	 (#\c . #\C)
 	 (#\b . #\B)
 	 (#\a . #\A)))
 
   (check
-      (string-fold (lambda (i nil x) (cons x nil)) '() "")
+      (string-fold-left (lambda (i nil x) (cons x nil)) '() "")
     => '())
 
   (check
-      (string-fold (lambda (i count c)
-		     (if (char-upper-case? c)
-			 (+ count 1)
-		       count))
-		   0
-		   "ABCdefGHi")
+      (string-fold-left (lambda (i count c)
+			  (if (char-upper-case? c)
+			      (+ count 1)
+			    count))
+			0
+			"ABCdefGHi")
     => 5)
 
 ;;; --------------------------------------------------------------------
@@ -929,29 +929,29 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (string-fold* (lambda (i nil x) (cons x nil)) '() "abcd")
+      (string-fold-left* (lambda (i nil x) (cons x nil)) '() "abcd")
     => '(#\d #\c #\b #\a))
 
   (check
-      (string-fold* (lambda (i nil x y) (cons (cons x y) nil)) '()
-		    "abcd"
-		    "ABCDE")
+      (string-fold-left* (lambda (i nil x y) (cons (cons x y) nil)) '()
+			 "abcd"
+			 "ABCDE")
     => '((#\d . #\D)
 	 (#\c . #\C)
 	 (#\b . #\B)
 	 (#\a . #\A)))
 
   (check
-      (string-fold* (lambda (i nil x) (cons x nil)) '() "")
+      (string-fold-left* (lambda (i nil x) (cons x nil)) '() "")
     => '())
 
   (check
-      (string-fold* (lambda (i count c)
-		      (if (char-upper-case? c)
-			  (+ count 1)
-			count))
-		    0
-		    "ABCdefGHi")
+      (string-fold-left* (lambda (i count c)
+			   (if (char-upper-case? c)
+			       (+ count 1)
+			     count))
+			 0
+			 "ABCdefGHi")
     => 5)
 
 ;;; --------------------------------------------------------------------
@@ -976,30 +976,30 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (substring-fold cons '() "abcd")
+      (substring-fold-left cons '() "abcd")
     => '(#\d #\c #\b #\a))
 
   (check
-      (substring-fold cons '() "")
+      (substring-fold-left cons '() "")
     => '())
 
   (check
-      (substring-fold (lambda (c count)
-			(if (char-upper-case? c)
-			    (+ count 1)
-			  count))
-		      0
-		      "ABCdefGHi")
+      (substring-fold-left (lambda (c count)
+			     (if (char-upper-case? c)
+				 (+ count 1)
+			       count))
+			   0
+			   "ABCdefGHi")
     => 5)
 
   (check
       (let* ((str "abc\\de\\f\\ghi")
-	     (ans-len (substring-fold
+	     (ans-len (substring-fold-left
 		       (lambda (c sum)
 			 (+ sum (if (char=? c #\\) 2 1)))
 		       0 str))
 	     (ans (make-string ans-len)))
-	(substring-fold
+	(substring-fold-left
 	 (lambda (c i)
 	   (let ((i (if (char=? c #\\)
 			(begin

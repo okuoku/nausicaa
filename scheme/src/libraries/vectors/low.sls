@@ -130,10 +130,10 @@
     %subvector-map  %subvector-map!  %subvector-for-each  %subvector-for-each-index
 
     ;; folding
-    vector-fold       vector-fold-right
-    vector-fold*      vector-fold-right*
-    %subvector-fold  %subvector-fold-right
-    vector-unfold     vector-unfold-right
+    vector-fold-left		vector-fold-right
+    vector-fold-left*		vector-fold-right*
+    %subvector-fold-left	%subvector-fold-right
+    vector-unfold		vector-unfold-right
 
     ;; selecting
     %vector-copy   %vector-reverse-copy
@@ -397,7 +397,7 @@
 
 ;;;; folding
 
-(define (vector-fold kons knil vec0 . vectors)
+(define (vector-fold-left kons knil vec0 . vectors)
   (let ((vectors (cons vec0 vectors)))
     (if (apply =* (map vector-length vectors))
 	(let ((len (vector-length vec0)))
@@ -409,7 +409,7 @@
 				   (map (lambda (vec)
 					  (vector-ref vec i))
 				     vectors))))))
-      (assertion-violation 'vector-fold
+      (assertion-violation 'vector-fold-left
 	"expected vectors of the same length"))))
 
 (define (vector-fold-right kons knil vec0 . vectors)
@@ -427,7 +427,7 @@
       (assertion-violation 'vector-fold-right
 	"expected vectors of the same length"))))
 
-(define (vector-fold* kons knil vec0 . vectors)
+(define (vector-fold-left* kons knil vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
     (let loop ((i     0)
@@ -451,7 +451,7 @@
 				    (vector-ref vec i))
 			       vectors)))))))
 
-(define (%subvector-fold kons knil vec start past)
+(define (%subvector-fold-left kons knil vec start past)
   (let loop ((v knil)
 	     (i start))
     (if (< i past)
@@ -736,22 +736,22 @@
 (define (%vector-delete pred? vec start past)
   (let* ((slen (- past start))
 	 (temp (make-vector slen))
-	 (ans-len (%subvector-fold (lambda (c i)
-				     (if (pred? c) i
-				       (begin (vector-set! temp i c)
-					      (+ i 1))))
-				   0 vec start past)))
+	 (ans-len (%subvector-fold-left (lambda (c i)
+					  (if (pred? c) i
+					    (begin (vector-set! temp i c)
+						   (+ i 1))))
+					0 vec start past)))
     (if (= ans-len slen) temp (%vector-copy temp 0 ans-len))))
 
 (define (%vector-filter pred? vec start past)
   (let* ((slen (- past start))
 	 (temp (make-vector slen))
-	 (ans-len (%subvector-fold (lambda (c i)
-				     (if (pred? c)
-					 (begin (vector-set! temp i c)
-						(+ i 1))
-				       i))
-				   0 vec start past)))
+	 (ans-len (%subvector-fold-left (lambda (c i)
+					  (if (pred? c)
+					      (begin (vector-set! temp i c)
+						     (+ i 1))
+					    i))
+					0 vec start past)))
     (if (= ans-len slen) temp (%vector-copy temp 0 ans-len))))
 
 
