@@ -789,7 +789,7 @@
     compensate run-compensations push-compensation
 
     ;; miscellaneous
-    symbol*->string symbol->string/maybe
+    symbol*->string symbol->string/maybe do*
 
     ;; other stuff
     pretty-print)

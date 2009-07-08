@@ -158,7 +158,7 @@
     finite? infinite? nan? non-negative? non-positive?
 
     ;; syntactic abstractions
-    and-let* begin0 receive recursion cut cute
+    and-let* begin0 receive recursion cut cute do*
 
     ;; shared structures
     read-with-shared-structure
@@ -318,6 +318,65 @@
   (syntax-rules ()
     ((cute . slots-or-exprs)
      (internal-cute () () () . slots-or-exprs))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax do*
+  ;;Like DO,  but binds  the iteration variables  like LET*  rather than
+  ;;like LET.   Notice the "quoting"  of the ellipsis in  the LET-SYNTAX
+  ;;expressions.
+  (syntax-rules ()
+    ((_ ((?var ?init ?step ...) ...)
+	(?test ?expr ...)
+	?form ...)
+     (let-syntax ((the-expr (syntax-rules ()
+			      ((_)
+			       (values))
+			      ((_ ?-expr0 ?-expr (... ...))
+			       (begin ?-expr0 ?-expr (... ...)))))
+		  (the-step (syntax-rules ()
+			      ((_ ?-var)
+			       ?-var)
+			      ((_ ?-var ?-step)
+			       ?-step)
+			      ((_ ?-var ?-step0 ?-step (... ...))
+			       (syntax-violation 'do*
+						 "invalid step specification"
+						 '(?-step0 ?-step (... ...)))))))
+       (let* ((?var ?init) ...)
+	 (let loop ((?var ?var) ...)
+	   (if ?test
+	       (the-expr ?expr ...)
+	     (loop (the-step ?var ?step ...) ...))))))))
+
+;;;This is an old version.
+#;(define-syntax do*
+  (syntax-rules ()
+    ((_ ((?var ?init ?step ...) ...)
+	(?test ?expr ...)
+	?form ...)
+     (let* ((?var ?init) ...)
+       (let loop ((?var ?var) ...)
+	 (if ?test
+	     (do* "expr" ?expr ...)
+	   (loop (do* "step" ?var ?step ...) ...)))))
+
+    ;;What follows is a trick to  allow "?expr ..."  to be missing and
+    ;;have a clean exit expression.  The trick is derived from a trick
+    ;;in the R5RS specification.
+    ((_ "expr")
+     (values))
+    ((_ "expr" ?expr0 ?expr ...)
+     (begin ?expr0 ?expr ...))
+
+    ;;What follows is a trick to allow "?step ..." to be missing.  The
+    ;;trick is from the R5RS specification.
+    ((_ "step" ?var)
+     ?var)
+    ((_ "step" ?var ?step)
+     ?step)
+    ((_ "step" ?var ?step0 ?step ...)
+     (syntax-violation 'do* "invalid step specification" '(?step0 ?step ...)))))
 
 
 ;;;; writing and reading shared structures

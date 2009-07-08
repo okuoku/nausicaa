@@ -18473,6 +18473,11 @@ which can be written:
 
 @c ------------------------------------------------------------
 
+@deffn Syntax do* ((@meta{variable1} @meta{init1} @meta{step1}) ...) (@meta{test} @meta{expr} ...) @meta{command} ...
+Like @func{do}, but bind the variables as in @func{let*} rather than as
+in @func{let}.  The @meta{step} form is optional.
+@end deffn
+
 
 @c page
 @node naulib parameters
@@ -23513,7 +23518,7 @@ and do not alter their s parameter.  @func{string-upcase!} and
 @subsection Fold and unfold
 
 
-@defun string-fold @var{kons} @var{knil} @var{str0} @var{str} ...
+@defun string-fold-left @var{kons} @var{knil} @var{str0} @var{str} ...
 @defunx string-fold-right @var{kons} @var{knil} @var{str0} @var{str} ...
 The fundamental string iterator.  The string arguments must have the
 same length.
@@ -23544,7 +23549,7 @@ fold arguments.
 @end defun
 
 
-@defun string-fold* @var{kons} @var{knil} @var{str0} @var{str} ...
+@defun string-fold-left* @var{kons} @var{knil} @var{str0} @var{str} ...
 @defunx string-fold-right* @var{kons} @var{knil} @var{str0} @var{str} ...
 Like @func{string-fold} and @func{string-unfold} but accept strings of
 different length, iterating until the end of the shorter one.
@@ -23552,7 +23557,7 @@ different length, iterating until the end of the shorter one.
 
 @c ------------------------------------------------------------
 
-@deffn Function %substring-fold @var{kons} @var{knil} @var{str} @var{start} @var{past}
+@deffn Function %substring-fold-left @var{kons} @var{knil} @var{str} @var{start} @var{past}
 @deffnx Function %substring-fold-right @var{kons} @var{knil} @var{str} @var{start} @var{past}
 @deffnx Macro string-fold @var{kons} @var{knil} @var{S}
 @deffnx Macro string-fold-right @var{kons} @var{knil} @var{S}
@@ -23570,7 +23575,7 @@ where @var{state} is the current state value; the current state value
 begins with @var{knil}, and becomes whatever @var{kons} returned at the
 respective iteration; @var{idx} is the current index.
 
-The left--fold iterator, @func{%substring-fold}, builds the return
+The left--fold iterator, @func{%substring-fold-left}, builds the return
 value as:
 
 @example
@@ -23610,16 +23615,16 @@ Examples:
 
 @example
 ;; Convert a string to a list of chars.
-(substring-fold cons '() "abcd")
+(substring-fold-left cons '() "abcd")
 @result{} (#\d #\c #\b #\a))
 
 ;; Count the number of upper-case characters in a string.
-(substring-fold (lambda (c count)
-                  (if (char-upper-case? c)
-                      (+ count 1)
-                    count))
-                0
-                "ABCdefGHi")
+(substring-fold-left (lambda (c count)
+                       (if (char-upper-case? c)
+                           (+ count 1)
+                         count))
+                     0
+                     "ABCdefGHi")
 @result{} 5
 
 ;; Double every backslash character in S.
@@ -23629,7 +23634,7 @@ Examples:
                    (+ sum (if (char=? c #\\) 2 1)))
                  0 str))
        (ans (make-string ans-len)))
-  (substring-fold
+  (substring-fold-left
    (lambda (c i)
      (let ((i (if (char=? c #\\)
                   (begin
@@ -24992,13 +24997,58 @@ and correct.
 @subsection Fold and unfold
 
 
-@defun vector-fold-left @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@defunx vector-fold-right @var{kons} @var{knil} @var{vec0} @var{vec} ...
-The fundamental vector iterator.  The vector arguments must have the
-same length.
+@menu
+* vectors fold rnrs::           Folding with @rnrs{6} style.
+@end menu
 
-@var{kons} is iterated left--to--right over each index in all of the
-vectors, stopping at the end of the shortest; @var{kons} is applied as:
+@c page
+@node vectors fold rnrs
+@subsubsection Folding with @rnrs{6} style
+
+
+@deffn Function vector-fold-left @var{kons} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-fold-right @var{kons} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-left/stx @var{kons} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-right/stx @var{kons} @var{knil} @var{vec0} @var{vec} ...
+Fold the function @var{kons} over the vector arguments, which must have
+the same length.  The syntaxes may be a little faster in the multiple
+vector arguments case.
+
+The left--folding variants iterate @var{kons} left--to--right over each
+element of equal index in all the vectors; @var{kons} is applied as:
+
+@example
+(@var{kons} @var{state}
+  (vector-ref @var{vec0} @var{idx})
+  (vector-ref @var{vec}  @var{idx})
+  ···)
+@end example
+
+@noindent
+where @var{state} is the current state value, and it is the
+@strong{first} argument; the current state value begins with @var{knil},
+and becomes whatever @var{kons} returned at the respective iteration.
+
+The right--folding variants iterate @var{kons} right--to--left over each
+element of equal index in all the vectors; @var{kons} is applied as:
+
+@example
+(@var{kons}
+  (vector-ref @var{vec0} @var{idx})
+  (vector-ref @var{vec}  @var{idx})
+  ···
+  @var{state})
+@end example
+
+@noindent
+in which @strong{state} is the @strong{last} argument.
+@end deffn
+
+
+@defun vector-fold-left/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
+@defunx vector-fold-right/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
+Folding operators variants which apply @var{kons} using the index of the
+current elements as first argument:
 
 @example
 (@var{kons} @var{idx} @var{state}
@@ -25006,27 +25056,15 @@ vectors, stopping at the end of the shortest; @var{kons} is applied as:
   (vector-ref @var{vec}  @var{idx})
   ···)
 @end example
-
-@noindent
-where @var{state} is the current state value; the current state value
-begins with @var{knil}, and becomes whatever @var{kons} returned at the
-respective iteration; @var{idx} is the current index.
-
-@func{vector-fold-right} is similar to @func{vector-fold}, but it
-iterates right--to--left.
-
-@quotation
-Notice that to allow for an unspecified number of arguments, these folds
-hand the state as first argument to @var{kons}, as opposed to the usual
-fold arguments.
-@end quotation
 @end defun
 
 
 @defun vector-fold-left* @var{kons} @var{knil} @var{vec0} @var{vec} ...
 @defunx vector-fold-right* @var{kons} @var{knil} @var{vec0} @var{vec} ...
-Like @func{vector-fold-left} and @func{vector-fold-right} but accept
-vectors of different length, iterating until the end of the shorter one.
+@defunx vector-fold-left*/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
+@defunx vector-fold-right*/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
+Like the above functions, but accept vectors of different length,
+iterating until the end of the shortest.
 @end defun
 
 @c ------------------------------------------------------------
@@ -25769,18 +25807,18 @@ number of columns, then adding the column coordinate:
 
 @example
 ;;     coordinates   formula
-#( 0   ; 0 0         0 * 4 + 0
-   1   ; 0 1         0 * 4 + 1
-   2   ; 0 2         0 * 4 + 2
-   3   ; 0 3         0 * 4 + 3
-   4   ; 1 0         1 * 4 + 0
-   5   ; 1 1         1 * 4 + 1
-   6   ; 1 2         1 * 4 + 2
-   7   ; 1 3         1 * 4 + 3
-   8   ; 2 0         2 * 4 + 0
-   9   ; 2 1         2 * 4 + 1
-  10   ; 2 2         2 * 4 + 2
-  11)  ; 2 3         2 * 4 + 3
+#( 0   ; 0 0         0 * 4 + 0 * 1
+   1   ; 0 1         0 * 4 + 1 * 1
+   2   ; 0 2         0 * 4 + 2 * 1
+   3   ; 0 3         0 * 4 + 3 * 1
+   4   ; 1 0         1 * 4 + 0 * 1
+   5   ; 1 1         1 * 4 + 1 * 1
+   6   ; 1 2         1 * 4 + 2 * 1
+   7   ; 1 3         1 * 4 + 3 * 1
+   8   ; 2 0         2 * 4 + 0 * 1
+   9   ; 2 1         2 * 4 + 1 * 1
+  10   ; 2 2         2 * 4 + 2 * 1
+  11)  ; 2 3         2 * 4 + 3 * 1
 @end example
 
 For an array of three dimensions with @math{2} planes, @math{3} rows and
@@ -25789,30 +25827,30 @@ plane, row and column coordinates by the appropriate factor:
 
 @example
 ;;     coordinates    formula
-#( 0   ; 0 0 0        0 * (3 * 4) + 0 * 4 + 1 * 0
+#( 0   ; 0 0 0        0 * (3 * 4) + 0 * 4 + 0 * 1
    1   ; 0 0 1        0 * (3 * 4) + 0 * 4 + 1 * 1
-   2   ; 0 0 2        0 * (3 * 4) + 0 * 4 + 1 * 2
-   3   ; 0 0 3        0 * (3 * 4) + 0 * 4 + 1 * 3
-   4   ; 0 1 0        0 * (3 * 4) + 1 * 4 + 1 * 0
+   2   ; 0 0 2        0 * (3 * 4) + 0 * 4 + 2 * 1
+   3   ; 0 0 3        0 * (3 * 4) + 0 * 4 + 3 * 1
+   4   ; 0 1 0        0 * (3 * 4) + 1 * 4 + 0 * 1
    5   ; 0 1 1        0 * (3 * 4) + 1 * 4 + 1 * 1
-   6   ; 0 1 2        0 * (3 * 4) + 1 * 4 + 1 * 2
-   7   ; 0 1 3        0 * (3 * 4) + 1 * 4 + 1 * 3
-   8   ; 0 2 0        0 * (3 * 4) + 2 * 4 + 1 * 0
+   6   ; 0 1 2        0 * (3 * 4) + 1 * 4 + 2 * 1
+   7   ; 0 1 3        0 * (3 * 4) + 1 * 4 + 3 * 1
+   8   ; 0 2 0        0 * (3 * 4) + 2 * 4 + 0 * 1
    9   ; 0 2 1        0 * (3 * 4) + 2 * 4 + 1 * 1
-  10   ; 0 2 2        0 * (3 * 4) + 2 * 4 + 1 * 2
-  11   ; 0 2 3        0 * (3 * 4) + 2 * 4 + 1 * 3
-  12   ; 1 0 3        1 * (3 * 4) + 0 * 4 + 1 * 0
+  10   ; 0 2 2        0 * (3 * 4) + 2 * 4 + 2 * 1
+  11   ; 0 2 3        0 * (3 * 4) + 2 * 4 + 3 * 1
+  12   ; 1 0 3        1 * (3 * 4) + 0 * 4 + 0 * 1
   13   ; 1 0 3        1 * (3 * 4) + 0 * 4 + 1 * 1
-  14   ; 1 0 3        1 * (3 * 4) + 0 * 4 + 1 * 2
-  15   ; 1 0 3        1 * (3 * 4) + 0 * 4 + 1 * 3
-  16   ; 1 1 3        1 * (3 * 4) + 1 * 4 + 1 * 0
+  14   ; 1 0 3        1 * (3 * 4) + 0 * 4 + 2 * 1
+  15   ; 1 0 3        1 * (3 * 4) + 0 * 4 + 3 * 1
+  16   ; 1 1 3        1 * (3 * 4) + 1 * 4 + 0 * 1
   17   ; 1 1 3        1 * (3 * 4) + 1 * 4 + 1 * 1
-  18   ; 1 1 3        1 * (3 * 4) + 1 * 4 + 1 * 2
-  19   ; 1 1 3        1 * (3 * 4) + 1 * 4 + 1 * 3
-  20   ; 1 2 3        1 * (3 * 4) + 2 * 4 + 1 * 0
+  18   ; 1 1 3        1 * (3 * 4) + 1 * 4 + 2 * 1
+  19   ; 1 1 3        1 * (3 * 4) + 1 * 4 + 3 * 1
+  20   ; 1 2 3        1 * (3 * 4) + 2 * 4 + 0 * 1
   21   ; 1 2 3        1 * (3 * 4) + 2 * 4 + 1 * 1
-  22   ; 1 2 3        1 * (3 * 4) + 2 * 4 + 1 * 2
-  23)  ; 1 2 3        1 * (3 * 4) + 2 * 4 + 1 * 3
+  22   ; 1 2 3        1 * (3 * 4) + 2 * 4 + 2 * 1
+  23)  ; 1 2 3        1 * (3 * 4) + 2 * 4 + 3 * 1
 @end example
 
 @noindent
@@ -26153,6 +26191,23 @@ the array; it defaults to @false{}.
 Build and return a new @code{array} described by @var{shape}.  The
 elements are stored in the slots of the underlying vector, in the given
 order; there must be enough elements to fill the vector.
+@end defun
+
+
+@defun array-copy @var{array}
+Build and return a deep clone of @var{array}.
+@end defun
+
+
+@defun array-view @var{array} @var{mapper}
+Build and return a new @code{array} value sharing all the data with
+@var{array} and using the closure @var{mapper} to map position
+coordinates.
+
+@var{mapper} must take a position value as argument and return a
+position value as argument.  There is no constraint on what @var{mapper}
+can do on the position.  @var{mapper} is composed with whatever mapper
+function @var{array} already uses.
 @end defun
 
 
