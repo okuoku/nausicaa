@@ -43,6 +43,7 @@
   (only (random distributions))
   (only (random borosh))
   (only (compare))
+  (only (arrays))
 
   (only (scmobj))
 
@@ -50,9 +51,13 @@
   (only (cleanup-handlers))
   (only (queues))
   (only (combinators))
+  (only (sentinel))
+  (only (variables))
+  (only (keywords))
 
   (only (foreign))
   (only (foreign guarded-malloc))
+  (only (peekers-and-pokers))
   )
 
 ;;; end of file

@@ -101,6 +101,9 @@
 (compile-library "compare.sls"
 		 "compare.slfasl")
 
+(compile-library "arrays.sls"
+		 "arrays.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (compile-library "scmobj.sls"
@@ -117,6 +120,15 @@
 
 (compile-library "combinators.sls"
 		 "combinators.slfasl")
+
+(compile-library "sentinel.sls"
+		 "sentinel.slfasl")
+
+(compile-library "variables.sls"
+		 "variables.slfasl")
+
+(compile-library "keywords.sls"
+		 "keywords.slfasl")
 
 ;;; --------------------------------------------------------------------
 
@@ -146,5 +158,8 @@
 
 (compile-library "foreign.sls"
 		 "foreign.slfasl")
+
+(compile-library "peekers-and-pokers.sls"
+		 "peekers-and-pokers.slfasl")
 
 ;;; end of file
