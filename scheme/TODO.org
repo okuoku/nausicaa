@@ -67,3 +67,7 @@
   Implement a library offering a common interface for all the sequences:
   vector, list, string, bytevectors.
 
+* interp
+
+  Implement the interpreters library.
+
