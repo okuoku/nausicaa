@@ -67,6 +67,7 @@
     ;; arrays
     make-array
     array
+    array-view
     array?
     array-copy
     array-ref
@@ -345,6 +346,7 @@
   (parent :shape)
   (fields (immutable dimensions)
 	  (immutable factors)
+	  (immutable mapper)
 	  (immutable vector)))
 
 ;;; --------------------------------------------------------------------
@@ -368,6 +370,7 @@
 	   (dimensions	(map - pasts starts)))
       (:array-make starts pasts dimensions
 		   (%compute-factors dimensions)
+		   #f
 		   (make-vector (apply * dimensions) fill-value))))))
 
 (define (array shape . elements)
@@ -387,26 +390,25 @@
 	 array)
       (vector-set! vec i (car elements)))))
 
-(define array-copy
-  (case-lambda
-   ((array)
-    (:array-make (:shape-starts array)
-		 (:shape-pasts  array)
-		 (vector-copy (:array-vector array))))
-   ((array shape)
-    (:array-make (make-list (length (:shape-starts array)) 0)
-		 (map - (:shape-pasts shape) (:shape-starts shape))
-		 (let ((src (:array-vector array))
-		       (dst (make-vector (array-shape-number-of-elements shape)))
-		       (i   0))
-		   (map (lambda (start past)
-			  (do ((j start (+ 1 j)))
-			      ((= j past))
-			    (vector-set! dst i (vector-ref src j))
-			    (set! i (+ 1 i))))
-		     (:shape-starts array)
-		     (:shape-pasts  array))
-		   dst)))))
+(define (array-copy array)
+  (:array-make (:shape-starts array)
+	       (:shape-pasts  array)
+	       (:array-dimensions array)
+	       (:array-factors array)
+	       (:array-mapper array)
+	       (vector-copy (:array-vector array))))
+
+(define (array-view array mapper)
+  (:array-make (:shape-starts array)
+	       (:shape-pasts  array)
+	       (:array-dimensions array)
+	       (:array-factors array)
+	       (let ((under (:array-mapper array)))
+		 (if under
+		     (lambda (position)
+		       (under (mapper position)))
+		   mapper))
+	       (:array-vector array)))
 
 ;;; --------------------------------------------------------------------
 ;;; predicates and assertions
@@ -443,10 +445,12 @@
 	       (+ offset (* factor index)))
 	     0
 	     (:array-factors array)
-	     (:position-coordinates position)))
+	     (let ((mapper (:array-mapper array)))
+	       (if mapper
+		   (mapper (:position-coordinates position))
+		 (:position-coordinates position)))))
 
 (define (array-ref array position)
-;;;  (write (:array-vector array))(newline)
   (vector-ref (:array-vector array)
 	      (%compute-index 'array-ref array position)))
 
@@ -463,7 +467,7 @@
 		 (array-shape->string array)
 		 " "
 		 (vector-fold-right
-		  (lambda (idx string item)
+		  (lambda (item string)
 		    (string-append (element->string item) " " string))
 		  ""
 		  (:array-vector array))
@@ -485,7 +489,7 @@
     (array-shape-write array port)
     (display " " port)
     (display (vector-fold-right
-	      (lambda (idx string item)
+	      (lambda (item string)
 		(string-append (element->string item) " " string))
 	      ""
 	      (:array-vector array))

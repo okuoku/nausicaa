@@ -37,9 +37,13 @@
 
   Fix the names of the fold functions, armonising them with lists.
 
+  Implement the syntaxes for fold.
+
+  Implement the syntaxes for map and /with-index?
+
 * vectors
 
-  Fix the names of the fold functions, armonising them with lists.
+  Implement the syntaxes for map, and fold/with-index?
 
 * random
 

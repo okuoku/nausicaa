@@ -234,8 +234,9 @@
 	(write (list 'fixing-diff e))(newline)
 	(vector-map! (lambda (idx num) (- num e))
 		     vec)
-	(set! actual-sum (vector-fold (lambda (idx prev num) (+ prev num))
-				      0 vec))))))
+	(set! actual-sum (vector-fold-left/stx
+			  (lambda (idx prev num) (+ prev num))
+			  0 vec))))))
 
 
 ;;;; done

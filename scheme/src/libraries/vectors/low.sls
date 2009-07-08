@@ -185,16 +185,18 @@
   (apply min (map vector-length vectors)))
 
 (define (assert-vectors-of-equal-length proc-name vectors)
-  ;;This exists because some implementations (Mosh) do not allow = to be
-  ;;called with less than 2 arguments (which is R6RS compliant).
+  ;;This exists  because some implementations (Mosh and  Larceny) do not
+  ;;allow  = to  be called  with less  than 2  arguments (which  is R6RS
+  ;;compliant).  So it is not possible to do:
+  ;;
+  ;;	(apply = (map vector-length vectors))
+  ;;
   (unless (case (length vectors)
-	    ((0 1)
-	     #t)
-	    ((2)
-	     (= (vector-length (car vectors))
-		(vector-length (cadr vectors))))
-	    (else
-	     (= (map vector-length vectors))))
+	    ((0) #f)
+	    ((1) #t)
+	    ((2) (= (vector-length (car vectors))
+		    (vector-length (cadr vectors))))
+	    (else (apply = (map vector-length vectors))))
     (assertion-violation proc-name
       "expected vectors of the same length" vectors)))
 
@@ -945,7 +947,7 @@
 (define (%vector-delete pred? vec start past)
   (let* ((slen (- past start))
 	 (temp (make-vector slen))
-	 (ans-len (%subvector-fold-left (lambda (c i)
+	 (ans-len (%subvector-fold-left (lambda (i c)
 					  (if (pred? c) i
 					    (begin (vector-set! temp i c)
 						   (+ i 1))))
@@ -955,7 +957,7 @@
 (define (%vector-filter pred? vec start past)
   (let* ((slen (- past start))
 	 (temp (make-vector slen))
-	 (ans-len (%subvector-fold-left (lambda (c i)
+	 (ans-len (%subvector-fold-left (lambda (i c)
 					  (if (pred? c)
 					      (begin (vector-set! temp i c)
 						     (+ i 1))
