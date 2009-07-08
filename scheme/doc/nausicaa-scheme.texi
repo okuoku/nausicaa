@@ -24999,6 +24999,8 @@ and correct.
 
 @menu
 * vectors fold rnrs::           Folding with @rnrs{6} style.
+* vectors fold sub::            Folding over subvectors.
+* vectors fold unfold::         Unfolding vectors.
 @end menu
 
 @c page
@@ -25006,19 +25008,19 @@ and correct.
 @subsubsection Folding with @rnrs{6} style
 
 
-@deffn Function vector-fold-left @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-fold-right @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-fold-left/stx @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-fold-right/stx @var{kons} @var{knil} @var{vec0} @var{vec} ...
-Fold the function @var{kons} over the vector arguments, which must have
+@deffn Function vector-fold-left @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-left/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+Fold the function @var{combine} over the vector arguments, which must have
 the same length.  The syntaxes may be a little faster in the multiple
 vector arguments case.
 
-The left--folding variants iterate @var{kons} left--to--right over each
-element of equal index in all the vectors; @var{kons} is applied as:
+The left--folding variants iterate @var{combine} left--to--right over each
+element of equal index in all the vectors; @var{combine} is applied as:
 
 @example
-(@var{kons} @var{state}
+(@var{combine} @var{state}
   (vector-ref @var{vec0} @var{idx})
   (vector-ref @var{vec}  @var{idx})
   ···)
@@ -25027,13 +25029,13 @@ element of equal index in all the vectors; @var{kons} is applied as:
 @noindent
 where @var{state} is the current state value, and it is the
 @strong{first} argument; the current state value begins with @var{knil},
-and becomes whatever @var{kons} returned at the respective iteration.
+and becomes whatever @var{combine} returned at the respective iteration.
 
-The right--folding variants iterate @var{kons} right--to--left over each
-element of equal index in all the vectors; @var{kons} is applied as:
+The right--folding variants iterate @var{combine} right--to--left over each
+element of equal index in all the vectors; @var{combine} is applied as:
 
 @example
-(@var{kons}
+(@var{combine}
   (vector-ref @var{vec0} @var{idx})
   (vector-ref @var{vec}  @var{idx})
   ···
@@ -25041,90 +25043,95 @@ element of equal index in all the vectors; @var{kons} is applied as:
 @end example
 
 @noindent
-in which @strong{state} is the @strong{last} argument.
+in which @var{state} is the @strong{last} argument.
 @end deffn
 
 
-@defun vector-fold-left/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@defunx vector-fold-right/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
-Folding operators variants which apply @var{kons} using the index of the
-current elements as first argument:
+@defun vector-fold-left/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@defunx vector-fold-right/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
+Folding operators variants which apply @var{combine} using the index of the
+current elements as first argument.  For the left--folding operator:
 
 @example
-(@var{kons} @var{idx} @var{state}
+(@var{combine} @var{idx} @var{state}
   (vector-ref @var{vec0} @var{idx})
   (vector-ref @var{vec}  @var{idx})
   ···)
 @end example
-@end defun
 
-
-@defun vector-fold-left* @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@defunx vector-fold-right* @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@defunx vector-fold-left*/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
-@defunx vector-fold-right*/with-index @var{kons} @var{knil} @var{vec0} @var{vec} ...
-Like the above functions, but accept vectors of different length,
-iterating until the end of the shortest.
-@end defun
-
-@c ------------------------------------------------------------
-
-@deffn Function %subvector-fold* @var{kons} @var{knil} @var{vec} @var{start} @var{past}
-@deffnx Function %subvector-fold-right* @var{kons} @var{knil} @var{vec} @var{start} @var{past}
-@deffnx Macro subvector-fold* @var{kons} @var{knil} @var{S}
-@deffnx Macro subvector-fold-right* @var{kons} @var{knil} @var{S}
-Fundamental iterators for subvectors.  @var{kons} is iterated over each
-item of the selected subvector:
+@noindent
+for the right--folding operator:
 
 @example
-(@var{kons}
-  (vector-ref @var{vec} (+ @var{start} @var{idx}))
+(@var{combine} @var{idx}
+  (vector-ref @var{vec0} @var{idx})
+  (vector-ref @var{vec}  @var{idx})
+  ···
   @var{state})
+@end example
+@end defun
+
+
+@deffn Function vector-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-fold-left*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-fold-right*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
+Like the above functions, but accept vectors of different length,
+iterating until the end of the shortest.
+@end deffn
+
+@c page
+@node vectors fold sub
+@subsubsection Folding over subvectors
+
+
+@deffn Function %subvector-fold-left @var{combine} @var{knil} @var{vec} @var{start} @var{past}
+@deffnx Function %subvector-fold-right @var{combine} @var{knil} @var{vec} @var{start} @var{past}
+@deffnx Macro subvector-fold-left @var{combine} @var{knil} @var{S}
+@deffnx Macro subvector-fold-right @var{combine} @var{knil} @var{S}
+Fold @var{combine} over each item of the selected subvector.  The
+left--fold operator builds the return value as:
+
+@example
+(@var{combine}
+  (@var{combine}
+        ...
+        (@var{combine}
+           (@var{combine}
+              (vector-ref @var{vec} @var{start})
+              @var{knil})
+           (vector-ref @var{vec} (+ @var{start} 1)))
+        ...
+    (vector-ref @var{vec} (- @var{past} 2)))
+    ...
+  (vector-ref @var{vec} (- @var{past} 1)))
 @end example
 
 @noindent
-where @var{state} is the current state value; the current state value
-begins with @var{knil}, and becomes whatever @var{kons} returned at the
-respective iteration; @var{idx} is the current index.
-
-The left--fold iterator, @func{%subvector-fold*}, builds the return
-value as:
+the right--fold iterator builds the return value as:
 
 @example
-(@var{kons}
-  (vector-ref @var{vec} (- @var{past} 1))
-  (@var{kons}
-    (vector-ref @var{vec} (- @var{past} 2))
-    ...
-      (@var{kons}
-        (vector-ref @var{vec} (+ @var{start} 2))
-        (@var{kons}
-           (vector-ref @var{vec} (+ @var{start} 1))
-           (@var{kons}
-              (vector-ref @var{vec} @var{start})
-              @var{knil})))))
-@end example
-
-The right--fold iterator, @func{%subvector-fold-right*}, builds the
-return value as:
-
-@example
-(@var{kons}
+(@var{combine}
   (vector-ref @var{vec} @var{start}
-  (@var{kons}
+  (@var{combine}
     (vector-ref @var{vec} (+ @var{start} 1))
     ...
-      (@var{kons}
+      (@var{combine}
         (vector-ref @var{vec} (- @var{past} 3))
-        (@var{kons}
+        (@var{combine}
            (vector-ref @var{vec} (- @var{past} 2))
-           (@var{kons}
+           (@var{combine}
               (vector-ref @var{vec} (- @var{past} 1))
               @var{knil})))))
 @end example
 @end deffn
 
-@c ------------------------------------------------------------
+@c page
+@node vectors fold unfold
+@subsubsection Unfolding vectors
+
 
 @defun vector-unfold @var{stop?} @var{seed->item} @var{make-seed} @var{first-seed}
 @defunx vector-unfold @var{stop?} @var{seed->item} @var{make-seed} @var{first-seed} @var{base-vector}
@@ -25216,10 +25223,10 @@ to map @code{proc} over a list @var{lis}, producing a vector:
 Interested functional programmers may enjoy noting that
 @func{vector-fold-right} and @func{vector-unfold} are in some sense
 inverses.  That is, given operations @var{knull?}, @var{kar}, @var{kdr},
-@var{kons}, and @var{knil} satisfying:
+@var{combine}, and @var{knil} satisfying:
 
 @example
-(kons (kar x) (kdr x)) @result{} x
+(combine (kar x) (kdr x)) @result{} x
 (knull? knil) @result{} #t
 @end example
 
@@ -25227,7 +25234,7 @@ inverses.  That is, given operations @var{knull?}, @var{kar}, @var{kdr},
 then:
 
 @example
-(vector-fold-right kons knil
+(vector-fold-right combine knil
                    (vector-unfold knull? kar kdr x))
 @result{} x
 @end example
@@ -25237,7 +25244,7 @@ and:
 
 @example
 (vector-unfold knull? kar kdr
-               (vector-fold-right kons knil s))
+               (vector-fold-right combine knil s))
 @result{} s
 @end example
 

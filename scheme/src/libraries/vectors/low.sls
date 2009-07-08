@@ -130,10 +130,14 @@
     %subvector-map  %subvector-map!  %subvector-for-each  %subvector-for-each-index
 
     ;; folding
-    vector-fold-left		vector-fold-right
-    vector-fold-left*		vector-fold-right*
-    %subvector-fold-left	%subvector-fold-right
-    vector-unfold		vector-unfold-right
+    vector-fold-left			vector-fold-right
+    vector-fold-left*			vector-fold-right*
+    vector-fold-left/stx		vector-fold-right/stx
+    vector-fold-left*/stx		vector-fold-right*/stx
+    vector-fold-left/with-index		vector-fold-right/with-index
+    vector-fold-left*/with-index	vector-fold-right*/with-index
+    %subvector-fold-left		%subvector-fold-right
+    vector-unfold			vector-unfold-right
 
     ;; selecting
     %vector-copy   %vector-reverse-copy
@@ -179,6 +183,62 @@
 
 (define (vectors-list-min-length vectors)
   (apply min (map vector-length vectors)))
+
+(define (assert-vectors-of-equal-length proc-name vectors)
+  ;;This exists because some implementations (Mosh) do not allow = to be
+  ;;called with less than 2 arguments (which is R6RS compliant).
+  (unless (case (length vectors)
+	    ((0 1)
+	     #t)
+	    ((2)
+	     (= (vector-length (car vectors))
+		(vector-length (cadr vectors))))
+	    (else
+	     (= (map vector-length vectors))))
+    (assertion-violation proc-name
+      "expected vectors of the same length" vectors)))
+
+(define (%knil+elements i knil vectors)
+  ;;Extract the elements at index I from each vector in the list VECTORS
+  ;;and return the elements in a list with KNIL as first item.
+  (cons knil (map (lambda (vec) (vector-ref vec i))
+	       vectors)))
+
+(define (%elements+knil i knil vectors)
+  ;;Extract the elements at index I from each vector in the list VECTORS
+  ;;and return the elements in a list with KNIL as last item.
+  (reverse (cons knil
+		 (fold-left (lambda (knil vec) (cons (vector-ref vec i) knil))
+			    '()
+			    vectors))))
+
+(define-syntax do*
+  ;;Like DO,  but binds  the iteration variables  like LET*  rather than
+  ;;like LET.   Notice the "quoting"  of the ellipsis in  the LET-SYNTAX
+  ;;expressions.
+  (syntax-rules ()
+    ((_ ((?var ?init ?step ...) ...)
+	(?test ?expr ...)
+	?form ...)
+     (let-syntax ((the-expr (syntax-rules ()
+			      ((_)
+			       (values))
+			      ((_ ?-expr0 ?-expr (... ...))
+			       (begin ?-expr0 ?-expr (... ...)))))
+		  (the-step (syntax-rules ()
+			      ((_ ?-var)
+			       ?-var)
+			      ((_ ?-var ?-step)
+			       ?-step)
+			      ((_ ?-var ?-step0 ?-step (... ...))
+			       (syntax-violation 'do*
+						 "invalid step specification"
+						 '(?-step0 ?-step (... ...)))))))
+       (let* ((?var ?init) ...)
+	 (let loop ((?var ?var) ...)
+	   (if ?test
+	       (the-expr ?expr ...)
+	     (loop (the-step ?var ?step ...) ...))))))))
 
 
 ;;;; constructors
@@ -314,29 +374,15 @@
 
 ;;;; mapping
 
-(define (=* . args)
-  ;;This exists because some implementations (Mosh) do not allow = to be
-  ;;called with less than 2 arguments.
-  (if (null? args)
-      #t
-    (let loop ((val  (car args))
-	       (args (cdr args)))
-      (or (null? args)
-	  (let ((new-val (car args)))
-	    (and (= val new-val)
-		 (loop new-val (cdr args))))))))
-
 (define (vector-map! proc vec0 . vectors)
   (let ((vectors (cons vec0 vectors)))
-    (if (apply =* (map vector-length vectors))
-	(let ((len (vector-length vec0)))
-	  (do ((i 0 (+ 1 i)))
-	      ((= len i))
-	    (vector-set! vec0 i
-			 (apply proc i (map (lambda (vec) (vector-ref vec i))
-					 vectors)))))
-      (assertion-violation 'vector-map!
-	"expected vectors of the same length"))))
+    (assert-vectors-of-equal-length 'vector-map! vectors)
+    (let ((len (vector-length vec0)))
+      (do ((i 0 (+ 1 i)))
+	  ((= len i))
+	(vector-set! vec0 i
+		     (apply proc i (map (lambda (vec) (vector-ref vec i))
+				     vectors)))))))
 
 (define (vector-map* proc vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
@@ -395,39 +441,197 @@
       (loop (+ i 1)))))
 
 
-;;;; folding
+;;;; folding functions
 
-(define (vector-fold-left kons knil vec0 . vectors)
+(define vector-fold-left
+  (case-lambda
+   ((kons knil vec)
+    (do* ((len (vector-length vec))
+	  (i 0 (+ 1 i))
+	  (knil knil (kons knil (vector-ref vec i))))
+	 ((= i len)
+	  knil)))
+
+   ((kons knil vec0 . vectors)
+    (let ((vectors (cons vec0 vectors)))
+      (assert-vectors-of-equal-length 'vector-fold-left vectors)
+      (do* ((len (vector-length vec0))
+	    (i 0 (+ 1 i))
+	    (knil knil (apply kons (%knil+elements i knil vectors))))
+	   ((= i len)
+	    knil))))))
+
+(define vector-fold-right
+  (case-lambda
+   ((kons knil vec)
+    (do* ((len (vector-length vec))
+	  (i (- len 1) (- i 1))
+	  (knil knil (kons (vector-ref vec i) knil)))
+	 ((= i -1)
+	  knil)))
+
+   ((kons knil vec0 . vectors)
+    (let* ((vectors  (cons vec0 vectors)))
+      (assert-vectors-of-equal-length 'vector-fold-right vectors)
+      (do* ((len (vector-length vec0))
+	    (i (- len 1) (- i 1))
+	    (knil knil (apply kons (%elements+knil i knil vectors))))
+	   ((= i -1)
+	    knil))))))
+
+;;; --------------------------------------------------------------------
+
+(define vector-fold-left*
+  (case-lambda
+   ((kons knil vec)
+    (do* ((len (vector-length vec))
+	  (i 0 (+ 1 i))
+	  (knil knil (kons knil (vector-ref vec i))))
+	 ((= i len)
+	  knil)))
+
+   ((kons knil vec0 . vectors)
+    (let ((vectors (cons vec0 vectors)))
+      (do* ((len (vectors-list-min-length vectors))
+	    (i 0 (+ 1 i))
+	    (knil knil (apply kons (%knil+elements i knil vectors))))
+	   ((= i len)
+	    knil))))))
+
+(define vector-fold-right*
+  (case-lambda
+   ((kons knil vec)
+    (do* ((len (vector-length vec))
+	  (i (- len 1) (- i 1))
+	  (knil knil (kons (vector-ref vec i) knil)))
+	 ((= i -1)
+	  knil)))
+
+   ((kons knil vec0 . vectors)
+    (let* ((vectors  (cons vec0 vectors)))
+      (do* ((len (vectors-list-min-length vectors))
+	    (i (- len 1) (- i 1))
+	    (knil knil (apply kons (%elements+knil i knil vectors))))
+	   ((= i -1)
+	    knil))))))
+
+
+;;;; folding macros
+
+(define-syntax vector-fold-left/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((combine ?combine)
+		       (knil ?knil)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (assert-vectors-of-equal-length 'vector-fold-left/stx
+						   (list vec0 V ...))
+		   (do* ((len (vector-length vec0))
+			 (i 0 (+ 1 i))
+			 (knil knil (combine knil
+					     (vector-ref vec0 i)
+					     (vector-ref V i)
+					     ...)))
+			((= i len)
+			 knil)))))))))
+
+(define-syntax vector-fold-right/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((combine ?combine)
+		       (knil ?knil)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (assert-vectors-of-equal-length 'vector-fold-left/stx
+						   (list vec0 V ...))
+		   (do* ((len (vector-length vec0))
+			 (i (- len 1) (- i 1))
+			 (knil knil (combine (vector-ref vec0 i)
+					     (vector-ref V i)
+					     ...
+					     knil)))
+			((= i -1)
+			 knil)))))))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax vector-fold-left*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((combine ?combine)
+		       (knil ?knil)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (do* ((len (vectors-list-min-length (list vec0 V ...)))
+			 (i 0 (+ 1 i))
+			 (knil knil (combine knil
+					     (vector-ref vec0 i)
+					     (vector-ref V i)
+					     ...)))
+			((= i len)
+			 knil)))))))))
+
+(define-syntax vector-fold-right*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?combine ?knil ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((combine ?combine)
+		       (knil ?knil)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (do* ((len (vectors-list-min-length (list vec0 V ...)))
+			 (i (- len 1) (- i 1))
+			 (knil knil (combine (vector-ref vec0 i)
+					     (vector-ref V i)
+					     ...
+					     knil)))
+			((= i -1)
+			 knil)))))))))
+
+
+;;;; folding functions, with index
+
+(define (vector-fold-left/with-index kons knil vec0 . vectors)
   (let ((vectors (cons vec0 vectors)))
-    (if (apply =* (map vector-length vectors))
-	(let ((len (vector-length vec0)))
-	  (let loop ((i     0)
-		     (knil  knil))
-	    (if (= len i)
-		knil
-	      (loop (+ 1 i) (apply kons i knil
-				   (map (lambda (vec)
-					  (vector-ref vec i))
-				     vectors))))))
-      (assertion-violation 'vector-fold-left
-	"expected vectors of the same length"))))
+    (assert-vectors-of-equal-length 'vector-fold-left/with-index vectors)
+    (let ((len (vector-length vec0)))
+      (let loop ((i     0)
+		 (knil  knil))
+	(if (= len i)
+	    knil
+	  (loop (+ 1 i) (apply kons i knil
+			       (map (lambda (vec)
+				      (vector-ref vec i))
+				 vectors))))))))
 
-(define (vector-fold-right kons knil vec0 . vectors)
+(define (vector-fold-right/with-index kons knil vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors)))
-    (if (apply =* (map vector-length vectors))
-	(let ((len (vectors-list-min-length vectors)))
-	  (let loop ((i     (- len 1))
-		     (knil  knil))
-	    (if (< i 0)
-		knil
-	      (loop (- i 1) (apply kons i knil
-				   (map (lambda (vec)
-					  (vector-ref vec i))
-				     vectors))))))
-      (assertion-violation 'vector-fold-right
-	"expected vectors of the same length"))))
+    (assert-vectors-of-equal-length 'vector-fold-right/with-index vectors)
+    (let ((len (vectors-list-min-length vectors)))
+      (let loop ((i     (- len 1))
+		 (knil  knil))
+	(if (< i 0)
+	    knil
+	  (loop (- i 1) (apply kons i knil
+			       (map (lambda (vec)
+				      (vector-ref vec i))
+				 vectors))))))))
 
-(define (vector-fold-left* kons knil vec0 . vectors)
+;;; --------------------------------------------------------------------
+
+(define (vector-fold-left*/with-index kons knil vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
     (let loop ((i     0)
@@ -439,7 +643,7 @@
 				    (vector-ref vec i))
 			       vectors)))))))
 
-(define (vector-fold-right* kons knil vec0 . vectors)
+(define (vector-fold-right*/with-index kons knil vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
     (let loop ((i     (- len 1))
@@ -451,20 +655,25 @@
 				    (vector-ref vec i))
 			       vectors)))))))
 
-(define (%subvector-fold-left kons knil vec start past)
+
+;;;; subvector folding
+
+(define (%subvector-fold-left combine knil vec start past)
   (let loop ((v knil)
 	     (i start))
     (if (< i past)
-	(loop (kons (vector-ref vec i) v) (+ i 1))
+	(loop (combine v (vector-ref vec i)) (+ i 1))
       v)))
 
-(define (%subvector-fold-right kons knil vec start past)
+(define (%subvector-fold-right combine knil vec start past)
   (let loop ((v knil)
 	     (i (- past 1)))
     (if (>= i start)
-	(loop (kons (vector-ref vec i) v) (- i 1))
+	(loop (combine (vector-ref vec i) v) (- i 1))
       v)))
 
+
+;;;; unfolding
 
 ;;The following unfold functions are  from the SRFI 13 (strings library)
 ;;reference  implementation.  For  some documentation  on them,  see the

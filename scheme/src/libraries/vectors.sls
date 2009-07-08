@@ -121,10 +121,14 @@
     subvector-map  subvector-map!  subvector-for-each  subvector-for-each-index
 
     ;; folding
-    vector-fold-left		vector-fold-right
-    vector-fold-left*		vector-fold-right*
-    subvector-fold-left		subvector-fold-right
-    vector-unfold		vector-unfold-right
+    vector-fold-left			vector-fold-right
+    vector-fold-left*			vector-fold-right*
+    vector-fold-left/stx		vector-fold-right/stx
+    vector-fold-left*/stx		vector-fold-right*/stx
+    vector-fold-left/with-index		vector-fold-right/with-index
+    vector-fold-left*/with-index	vector-fold-right*/with-index
+    subvector-fold-left			subvector-fold-right
+    vector-unfold			vector-unfold-right
 
     ;; selecting
     (rename (%vector-copy subvector))
