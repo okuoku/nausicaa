@@ -25632,7 +25632,7 @@ the element, for an array of one dimension and four elements, the vector
 is:
 
 @example
-#(0 1 2 3 4)
+#(0 1 2 3)
 @end example
 
 For an array of two dimensions with @math{3} rows and @math{4} columns,
@@ -30125,6 +30125,7 @@ exported by @library{variables}.
 
 @deffn Syntax define-variable @var{name}
 @deffnx Syntax define-variable @var{name} @var{value}
+@deffnx Syntax define-variable (@var{name} . @meta{formals}) @meta{body}
 Like @func{define}, but stores the value in a newly built variable which
 is then bound to @var{name}.  Example:
 
@@ -30135,6 +30136,11 @@ v @result{} 123
 (set! v 456)
 v @result{} 456
 @end example
+
+The difference between @func{define-syntax} and @func{define}, is that
+@func{define} only defines a binding which cannot be modified, while
+@func{define-syntax} allocates a storage location, so the value bound to
+@var{name} can be modified at will.
 @end deffn
 
 @c page

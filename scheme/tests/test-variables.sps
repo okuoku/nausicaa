@@ -27,7 +27,8 @@
 (import (nausicaa)
   (variables)
   (sentinel)
-  (checks))
+  (checks)
+  (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing variables\n")
@@ -93,6 +94,51 @@
     => 456)
 
   )
+
+(check
+    (eval '(let ()
+	     (define-variable woppa 123)
+	     woppa)
+	  (environment '(rnrs)
+		       '(variables)))
+  => 123)
+
+(check
+    (eval '(let ()
+	     (define-variable (woppa) 123)
+	     (woppa))
+	  (environment '(rnrs)
+		       '(variables)))
+  => 123)
+
+(check
+    (eval '(let ()
+	     (define-variable (woppa a b) (list a b))
+	     (woppa 1 2))
+	  (environment '(rnrs)
+		       '(variables)))
+  => '(1 2))
+
+(check
+    (eval '(let ()
+	     (define-variable woppa
+	       (lambda (value)
+		 value))
+	     (woppa 123))
+	  (environment '(rnrs)
+		       '(variables)))
+  => 123)
+
+(check
+    (eval (call/cc (lambda (k)
+		     (define-syntax woppa
+		       (syntax-rules ()
+			 ((_)
+			  (k 123))))
+		     (woppa)))
+	  (environment '(rnrs)))
+  => 123)
+
 
 
 ;;;; done

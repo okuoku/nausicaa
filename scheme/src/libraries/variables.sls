@@ -50,6 +50,8 @@
   (define-syntax define-variable
     (lambda (stx)
       (syntax-case stx ()
+	((_ (?name . ?args) ?form0 ?form ...)
+	 (syntax (define-variable ?name (lambda ?args ?form0 ?form ...))))
 	((_ ?name)
 	 (syntax (define-variable ?name sentinel)))
 	((_ ?name ?value)
