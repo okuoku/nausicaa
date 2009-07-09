@@ -347,7 +347,9 @@
 	 (let loop ((?var ?var) ...)
 	   (if ?test
 	       (the-expr ?expr ...)
-	     (loop (the-step ?var ?step ...) ...))))))))
+	     (begin
+	       ?form ...
+	       (loop (the-step ?var ?step ...) ...)))))))))
 
 ;;;This is an old version.
 #;(define-syntax do*
