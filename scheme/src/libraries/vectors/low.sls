@@ -233,6 +233,16 @@
 			 (fold-left (lambda (knil vec) (cons (vector-ref vec i) knil))
 				    '() vectors)))))
 
+(define-syntax %test/stx
+  ;;This is used to build the test conditions in the folding macros.
+  (syntax-rules ()
+    ((_ 'plain ?state ?len-bool)
+     ?len-bool)
+    ((_ 'and ?state ?len-bool)
+     (or (not ?state) ?len-bool))
+    ((_ 'or ?state ?len-bool)
+     (or  ?state ?len-bool))))
+
 (define-syntax do*
   ;;Like DO,  but binds  the iteration variables  like LET*  rather than
   ;;like LET.   Notice the "quoting"  of the ellipsis in  the LET-SYNTAX
@@ -413,12 +423,19 @@
 (define (vector-map! proc vec0 . vectors)
   (let ((vectors (cons vec0 vectors)))
     (assert-vectors-of-equal-length 'vector-map! vectors)
-    (let ((len (vector-length vec0)))
-      (do ((i 0 (+ 1 i)))
-	  ((= len i))
-	(vector-set! vec0 i
-		     (apply proc i (map (lambda (vec) (vector-ref vec i))
-				     vectors)))))))
+    (do ((len (vector-length vec0))
+	 (i 0 (+ 1 i)))
+	((= len i))
+      (vector-set! vec0 i
+		   (apply proc i (map (lambda (vec) (vector-ref vec i))
+				   vectors))))))
+
+;; (define (vector-map! proc vec0 . vectors)
+;;   (apply vector-fold-left/with-index
+;; 	 (lambda (index state . items)
+;; 	   (vector-set! state index (apply proc index items))
+;; 	   state)
+;; 	 vec0 vec0 vectors))
 
 (define (vector-map* proc vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
@@ -777,91 +794,6 @@
 	 combine knil vec0 vectors))
 
 
-;;;; folding macros
-
-(define-syntax vector-fold-left/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
-       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
-	 (syntax (let ((combine ?combine)
-		       (knil ?knil)
-		       (vec0 ?vec0)
-		       (V    ?vec)
-		       ...)
-		   (assert-vectors-of-equal-length 'vector-fold-left/stx
-						   (list vec0 V ...))
-		   (do* ((len (vector-length vec0))
-			 (i 0 (+ 1 i))
-			 (knil knil (combine knil
-					     (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...)))
-			((= i len)
-			 knil)))))))))
-
-(define-syntax vector-fold-right/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
-       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
-	 (syntax (let ((combine ?combine)
-		       (knil ?knil)
-		       (vec0 ?vec0)
-		       (V    ?vec)
-		       ...)
-		   (assert-vectors-of-equal-length 'vector-fold-left/stx
-						   (list vec0 V ...))
-		   (do* ((len (vector-length vec0))
-			 (i (- len 1) (- i 1))
-			 (knil knil (combine (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...
-					     knil)))
-			((= i -1)
-			 knil)))))))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax vector-fold-left*/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
-       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
-	 (syntax (let ((combine ?combine)
-		       (knil ?knil)
-		       (vec0 ?vec0)
-		       (V    ?vec)
-		       ...)
-		   (do* ((len (vectors-list-min-length (list vec0 V ...)))
-			 (i 0 (+ 1 i))
-			 (knil knil (combine knil
-					     (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...)))
-			((= i len)
-			 knil)))))))))
-
-(define-syntax vector-fold-right*/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
-       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
-	 (syntax (let ((combine ?combine)
-		       (knil ?knil)
-		       (vec0 ?vec0)
-		       (V    ?vec)
-		       ...)
-		   (do* ((len (vectors-list-min-length (list vec0 V ...)))
-			 (i (- len 1) (- i 1))
-			 (knil knil (combine (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...
-					     knil)))
-			((= i -1)
-			 knil)))))))))
-
-
 ;;;; subvector folding
 
 (define (%subvector-fold-left combine knil vec start past)
@@ -879,56 +811,94 @@
       v)))
 
 
-;;;; and-folding macros
+;;;; folding macros
 
-(define-syntax vector-and-fold-left/stx
+(define-syntax %vector-fold-left/stx
   (lambda (stx)
     (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
+      ((_ ?syntax-name ?which ?combine ?knil ?vec0 ?vec ...)
        (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
 	 (syntax (let ((combine ?combine)
 		       (knil ?knil)
 		       (vec0 ?vec0)
 		       (V    ?vec)
 		       ...)
-		   (assert-vectors-of-equal-length 'vector-fold-left/stx
+		   (assert-vectors-of-equal-length (quote ?syntax-name)
 						   (list vec0 V ...))
 		   (do* ((len (vector-length vec0))
 			 (i 0 (+ 1 i))
-			 (knil knil (combine knil
-					     (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...)))
-		       ((or (not knil) (= i len))
-			knil)))))))))
+			 (state knil (combine state
+					      (vector-ref vec0 i)
+					      (vector-ref V i)
+					      ...)))
+		       ((%test/stx ?which state (= i len))
+			state)))))))))
 
-(define-syntax vector-and-fold-right/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
-       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
-	 (syntax (let ((combine ?combine)
-		       (knil ?knil)
-		       (vec0 ?vec0)
-		       (V    ?vec)
-		       ...)
-		   (assert-vectors-of-equal-length 'vector-fold-left/stx
-						   (list vec0 V ...))
-		   (do* ((len (vector-length vec0))
-			 (i (- len 1) (- i 1))
-			 (knil knil (combine (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...
-					     knil)))
-		       ((or (not knil) (= i -1))
-			knil)))))))))
+(define-syntax vector-fold-left/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-left/stx 'vector-fold-left/stx 'plain
+			    ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-and-fold-left/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-left/stx 'vector-and-fold-left/stx 'and
+			    ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-or-fold-left/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-left/stx 'vector-or-fold-left/stx 'or
+			    ?combine ?knil ?vec0 ?vec ...))))
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax vector-and-fold-left*/stx
+(define-syntax %vector-fold-right/stx
   (lambda (stx)
     (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
+      ((_ ?syntax-name ?which ?combine ?knil ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((combine ?combine)
+		       (knil ?knil)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (assert-vectors-of-equal-length (quote ?syntax-name)
+						   (list vec0 V ...))
+		   (do* ((len (vector-length vec0))
+			 (i (- len 1) (- i 1))
+			 (state knil (combine (vector-ref vec0 i)
+					      (vector-ref V i)
+					      ...
+					      state)))
+		       ((%test/stx ?which state (= i -1))
+			state)))))))))
+
+(define-syntax vector-fold-right/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-right/stx 'vector-fold-right/stx 'plain
+			     ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-and-fold-right/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-right/stx 'vector-and-fold-right/stx 'and
+			     ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-or-fold-right/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-right/stx 'vector-or-fold-right/stx 'or
+			     ?combine ?knil ?vec0 ?vec ...))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax %vector-fold-left*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?which ?combine ?knil ?vec0 ?vec ...)
        (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
 	 (syntax (let ((combine ?combine)
 		       (knil ?knil)
@@ -937,17 +907,34 @@
 		       ...)
 		   (do* ((len (vectors-list-min-length (list vec0 V ...)))
 			 (i 0 (+ 1 i))
-			 (knil knil (combine knil
-					     (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...)))
-		       ((or (not knil) (= i len))
-			knil)))))))))
+			 (state knil (combine state
+					      (vector-ref vec0 i)
+					      (vector-ref V i)
+					      ...)))
+		       ((%test/stx ?which state (= i len))
+			state)))))))))
 
-(define-syntax vector-and-fold-right*/stx
+(define-syntax vector-fold-left*/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-left*/stx 'plain ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-and-fold-left*/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-left*/stx 'and ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-or-fold-left*/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-left*/stx 'or ?combine ?knil ?vec0 ?vec ...))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax %vector-fold-right*/stx
   (lambda (stx)
     (syntax-case stx ()
-      ((_ ?combine ?knil ?vec0 ?vec ...)
+      ((_ ?which ?combine ?knil ?vec0 ?vec ...)
        (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
 	 (syntax (let ((combine ?combine)
 		       (knil ?knil)
@@ -956,12 +943,27 @@
 		       ...)
 		   (do* ((len (vectors-list-min-length (list vec0 V ...)))
 			 (i (- len 1) (- i 1))
-			 (knil knil (combine (vector-ref vec0 i)
-					     (vector-ref V i)
-					     ...
-					     knil)))
-		       ((or (not knil) (= i -1))
-			knil)))))))))
+			 (state knil (combine (vector-ref vec0 i)
+					      (vector-ref V i)
+					      ...
+					      state)))
+		       ((%test/stx ?which state (= i -1))
+			state)))))))))
+
+(define-syntax vector-fold-right*/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-right*/stx 'plain ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-and-fold-right*/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-right*/stx 'and ?combine ?knil ?vec0 ?vec ...))))
+
+(define-syntax vector-or-fold-right*/stx
+  (syntax-rules ()
+    ((_ ?combine ?knil ?vec0 ?vec ...)
+     (%vector-fold-right*/stx 'or ?combine ?knil ?vec0 ?vec ...))))
 
 
 ;;;; derived folding functions

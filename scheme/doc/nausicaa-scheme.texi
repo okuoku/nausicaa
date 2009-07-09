@@ -872,7 +872,6 @@ Vectors library
 * vectors cons::                Constructors.
 * vectors pred::                Predicates.
 * vectors compar::              Comparison.
-* vectors map::                 Mapping functions.
 * vectors fold::                Fold and unfold.
 * vectors select::              Selection.
 * vectors pad::                 Padding and trimming.
@@ -883,6 +882,13 @@ Vectors library
 * vectors replicate::           Replicate and rotate.
 * vectors mutate::              Mutators.
 * vectors misc::                Miscellaneous functions.
+
+Fold and unfold
+
+* vectors fold rnrs::           Folding with @rnrs{6} style.
+* vectors fold sub::            Folding over subvectors.
+* vectors fold unfold::         Unfolding vectors.
+* vectors fold map::            Mapping functions.
 
 Multidimensional arrays
 
@@ -24392,7 +24398,6 @@ low level interface with the same functionalities.
 * vectors cons::                Constructors.
 * vectors pred::                Predicates.
 * vectors compar::              Comparison.
-* vectors map::                 Mapping functions.
 * vectors fold::                Fold and unfold.
 * vectors select::              Selection.
 * vectors pad::                 Padding and trimming.
@@ -24892,107 +24897,6 @@ equal to, the second; @false{} otherwise.
 @end deffn
 
 @c page
-@node vectors map
-@subsection Mapping functions
-
-
-@defun vector-map! @var{proc} @var{vec0} @var{vec} ...
-Build and return a new vector mapping @var{proc} over all the elements
-of the vector arguments, from zero to the end in increasing order.  It
-is an error if the vectors have different length.
-
-@var{proc} is applied to the elements as:
-
-@example
-(@var{proc} @var{idx}
-  (vector-ref @var{vec0} @var{idx})
-  (vector-ref @var{vec}  @var{idx})
-  ...)
-@end example
-
-@noindent
-where @var{idx} is the current index.
-@end defun
-
-
-@defun vector-map* @var{proc} @var{vec0} @var{vec} ...
-@defunx vector-map*! @var{proc} @var{vec0} @var{vec} ...
-Mutate vector @var{vec0} mapping @var{proc} over all the elements of the
-vector arguments, from zero to the end in increasing order.
-
-@func{vector-map!} must be applied to vectors of the same length;
-@func{vector-map*!} accepts vectors of different length and iterates
-until the end of the shorter is reached.
-
-@var{proc} is applied to the elements as:
-
-@example
-(@var{proc} @var{idx}
-  (vector-ref @var{vec0} @var{idx})
-  (vector-ref @var{vec}  @var{idx})
-  ...)
-@end example
-
-@noindent
-where @var{idx} is the current index.
-@end defun
-
-
-@defun vector-for-each* @var{proc} @var{vec0} @var{vec} ...
-Apply @var{proc} over all the elements of the vector arguments, from
-zero to the end in increasing order.  This function accepts vectors of
-different length and iterates until the end of the shorter is reached.
-
-@var{proc} is applied to the elements as:
-
-@example
-(@var{proc} @var{idx}
-  (vector-ref @var{vec0} @var{idx})
-  (vector-ref @var{vec}  @var{idx})
-  ...)
-@end example
-
-@noindent
-where @var{idx} is the current index.
-@end defun
-
-
-@subsubheading Mapping over subvectors
-
-
-@deffn Function %subvector-map @var{proc} @var{vec} @var{start} @var{past}
-@deffnx Macro subvector-map @var{proc} @var{S}
-Build and return a new vector mapping @var{proc} over the items in the
-selected subvector of @var{vec}, from index @var{start} to index
-@var{past} in increasing order.  @var{proc} must be a @code{item->item}
-procedure.
-@end deffn
-
-
-@deffn Function %subvector-map! @var{proc} @var{vec} @var{start} @var{past}
-@deffnx Macro subvector-map! @var{proc} @var{S}
-Mutate the selected subvector of @var{vec}, mapping @var{proc} over its
-items from index @var{start} to index @var{past} in increasing order.
-@var{proc} must be a @code{item->item} procedure.
-@end deffn
-
-
-@deffn Function %subvector-for-each @var{proc} @var{vec} @var{start} @var{past}
-@deffnx Macro subvector-for-each @var{proc} @var{V}
-Apply @var{proc} to each item in the selected subvector of @var{vec},
-from index @var{start} to index @var{past} in increasing order.
-@end deffn
-
-
-@deffn Function %subvector-for-each-index @var{proc} @var{vec} @var{start} @var{past}
-@deffnx Macro subvector-for-each-index @var{proc} @var{V}
-Apply @var{proc} to each index in the selected subvector of @var{vec},
-from index @var{start} to index @var{past} in increasing order.  This is
-simply a method of looping over a vector that is guaranteed to be safe
-and correct.
-@end deffn
-
-@c page
 @node vectors fold
 @subsection Fold and unfold
 
@@ -25001,6 +24905,7 @@ and correct.
 * vectors fold rnrs::           Folding with @rnrs{6} style.
 * vectors fold sub::            Folding over subvectors.
 * vectors fold unfold::         Unfolding vectors.
+* vectors fold map::            Mapping functions.
 @end menu
 
 @c page
@@ -25059,8 +24964,8 @@ iterating until the end of the shortest.
 
 
 @defun vector-fold-left/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@defunx vector-fold-right/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @defunx vector-fold-left*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@defunx vector-fold-right/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @defunx vector-fold-right*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
 Folding operators variants which apply @var{combine} using the index of the
 current elements as first argument.  For the left--folding operators:
@@ -25082,17 +24987,28 @@ for the right--folding operators:
   ···
   @var{state})
 @end example
+
+Here is a possible implementation for @func{vector-map!}:
+
+@example
+(define (vector-map! proc vec0 . vectors)
+  (apply vector-fold-left/with-index
+         (lambda (index state . items)
+           (vector-set! state index (apply proc index items))
+           state)
+         vec0 vec0 vectors))
+@end example
 @end defun
 
 @c ------------------------------------------------------------
 
 @deffn Function vector-and-fold-left @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-and-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Function vector-and-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-and-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Function vector-and-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-and-fold-left/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-and-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-and-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-and-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-and-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
 Like the functions above, but stop the iteration if @var{combine}
 returns @false{}.  The return value is the return value of the last
@@ -25113,12 +25029,12 @@ These functions can be used to implement functions like
 
 
 @deffn Function vector-or-fold-left @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-or-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Function vector-or-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-or-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Function vector-or-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-or-fold-left/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-or-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-or-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-or-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-or-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
 Like the functions above, but stop the iteration if @var{combine}
 returns true as state.  The return value is the return value of the last
@@ -25404,6 +25320,108 @@ and:
 The final vector constructed does not share storage with either
 @var{base-vector} or the value produced by @func{make-final}.
 @end defun
+
+@c page
+@node vectors fold map
+@subsubsection Mapping functions
+
+
+@defun vector-map* @var{proc} @var{vec0} @var{vec} ...
+Build and return a new vector holding the return values of mapping
+@var{proc} over all the elements of the vector arguments, from zero to
+the end in increasing order.  It is an error if the vectors have
+different length.
+
+@var{proc} is applied to the elements as:
+
+@example
+(@var{proc} @var{idx}
+  (vector-ref @var{vec0} @var{idx})
+  (vector-ref @var{vec}  @var{idx})
+  ...)
+@end example
+
+@noindent
+where @var{idx} is the current index.
+@end defun
+
+
+@defun vector-map! @var{proc} @var{vec0} @var{vec} ...
+@defunx vector-map*! @var{proc} @var{vec0} @var{vec} ...
+Mutate vector @var{vec0} mapping @var{proc} over all the elements of the
+vector arguments, from zero to the end in increasing order.
+
+@func{vector-map!} must be applied to vectors of the same length;
+@func{vector-map*!} accepts vectors of different length and iterates
+until the end of the shorter is reached.
+
+@var{proc} is applied to the elements as:
+
+@example
+(@var{proc} @var{idx}
+  (vector-ref @var{vec0} @var{idx})
+  (vector-ref @var{vec}  @var{idx})
+  ...)
+@end example
+
+@noindent
+where @var{idx} is the current index.
+@end defun
+
+
+@defun vector-for-each* @var{proc} @var{vec0} @var{vec} ...
+Apply @var{proc} over all the elements of the vector arguments, from
+zero to the end in increasing order.  This function accepts vectors of
+different length and iterates until the end of the shorter is reached.
+
+@var{proc} is applied to the elements as:
+
+@example
+(@var{proc} @var{idx}
+  (vector-ref @var{vec0} @var{idx})
+  (vector-ref @var{vec}  @var{idx})
+  ...)
+@end example
+
+@noindent
+where @var{idx} is the current index.
+@end defun
+
+
+@subsubheading Mapping over subvectors
+
+
+@deffn Function %subvector-map @var{proc} @var{vec} @var{start} @var{past}
+@deffnx Macro subvector-map @var{proc} @var{S}
+Build and return a new vector mapping @var{proc} over the items in the
+selected subvector of @var{vec}, from index @var{start} to index
+@var{past} in increasing order.  @var{proc} must be a @code{item->item}
+procedure.
+@end deffn
+
+
+@deffn Function %subvector-map! @var{proc} @var{vec} @var{start} @var{past}
+@deffnx Macro subvector-map! @var{proc} @var{S}
+Mutate the selected subvector of @var{vec}, mapping @var{proc} over its
+items from index @var{start} to index @var{past} in increasing order.
+@var{proc} must be a @code{item->item} procedure.
+@end deffn
+
+
+@deffn Function %subvector-for-each @var{proc} @var{vec} @var{start} @var{past}
+@deffnx Macro subvector-for-each @var{proc} @var{V}
+Apply @var{proc} to each item in the selected subvector of @var{vec},
+from index @var{start} to index @var{past} in increasing order.
+@end deffn
+
+
+@deffn Function %subvector-for-each-index @var{proc} @var{vec} @var{start} @var{past}
+@deffnx Macro subvector-for-each-index @var{proc} @var{V}
+Apply @var{proc} to each index in the selected subvector of @var{vec},
+from index @var{start} to index @var{past} in increasing order.  This is
+simply a method of looping over a vector that is guaranteed to be safe
+and correct.
+@end deffn
 
 @c page
 @node vectors select
