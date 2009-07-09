@@ -25000,7 +25000,6 @@ and correct.
 @menu
 * vectors fold rnrs::           Folding with @rnrs{6} style.
 * vectors fold sub::            Folding over subvectors.
-* vectors fold and::            And--folding.
 * vectors fold unfold::         Unfolding vectors.
 @end menu
 
@@ -25013,9 +25012,11 @@ and correct.
 @deffnx Function vector-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-fold-left/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @deffnx Syntax vector-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-Fold the function @var{combine} over the vector arguments, which must have
-the same length.  The syntaxes may be a little faster in the multiple
-vector arguments case.
+Fold the function @var{combine} over the vector arguments, which must
+have the same length.  The return value is the return value of the last
+evaluated call to @var{combine}; if all the vector arguments are empty,
+the return value is @var{knil}.  The syntaxes may be a little faster in
+the multiple vector arguments case.
 
 The left--folding variants iterate @var{combine} left--to--right over each
 element of equal index in all the vectors; @var{combine} is applied as:
@@ -25048,10 +25049,21 @@ in which @var{state} is the @strong{last} argument.
 @end deffn
 
 
+@deffn Function vector-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+Like the above functions, but accept vectors of different length,
+iterating until the end of the shortest.
+@end deffn
+
+
 @defun vector-fold-left/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
 @defunx vector-fold-right/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@defunx vector-fold-left*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@defunx vector-fold-right*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
 Folding operators variants which apply @var{combine} using the index of the
-current elements as first argument.  For the left--folding operator:
+current elements as first argument.  For the left--folding operators:
 
 @example
 (@var{combine} @var{idx} @var{state}
@@ -25061,7 +25073,7 @@ current elements as first argument.  For the left--folding operator:
 @end example
 
 @noindent
-for the right--folding operator:
+for the right--folding operators:
 
 @example
 (@var{combine} @var{idx}
@@ -25072,16 +25084,85 @@ for the right--folding operator:
 @end example
 @end defun
 
+@c ------------------------------------------------------------
 
-@deffn Function vector-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-fold-left*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-fold-right*/with-index @var{combine} @var{knil} @var{vec0} @var{vec} ...
-Like the above functions, but accept vectors of different length,
-iterating until the end of the shortest.
+@deffn Function vector-and-fold-left @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-and-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-and-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-and-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-and-fold-left/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-and-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-and-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-and-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+Like the functions above, but stop the iteration if @var{combine}
+returns @false{}.  The return value is the return value of the last
+evaluated call to @var{combine}; if all the vector arguments are empty,
+the return value is @var{knil}.
+
+These functions can be used to implement functions like
+@func{vector-every}:
+
+@example
+(define (vector-every pred vec0 . vectors)
+  (apply vector-and-fold-left (lambda (state . items)
+                                (apply pred items))
+         #t ;must be true
+         (cons vec0 vectors)))
+@end example
 @end deffn
+
+
+@deffn Function vector-or-fold-left @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-or-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-or-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Function vector-or-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-or-fold-left/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-or-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-or-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-or-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
+Like the functions above, but stop the iteration if @var{combine}
+returns true as state.  The return value is the return value of the last
+evaluated call to @var{combine}.  If all the vectors are empty, the
+return value is @var{knil}.
+
+These functions can be used to implement functions like
+@func{vector-any}:
+
+@example
+(define (vector-any pred vec0 . vectors)
+  (apply vector-or-fold-left (lambda (state . items)
+                               (apply pred items))
+         #f ;must be false
+         (cons vec0 vectors)))
+@end example
+@end deffn
+
+
+@defun vector-fold-left/pred @var{pred} @var{knil} @var{vec}
+Apply @var{pred} to adjacent couples of elements from @var{vec}; return
+true if all the evaluations of @var{pred} were true.  The iteration
+stops at the first @false{} return value from @var{pred}.
+
+This function is implemented as:
+
+@example
+(define (fold-left/pred pred knil ell)
+  (vector-and-fold-left/stx (lambda (state item)
+                              (and (pred state item) item))
+     knil ell))
+@end example
+
+@noindent
+and it can be used to implement predicates for ordering like @func{<}:
+
+@example
+(vector-fold-left/pred < 0 '(1 2 3 4 5 6))
+@result{} 6
+
+(vector-fold-left/pred < 0 '(1 2 3 -4 5 6))
+@result{} #f
+@end example
+@end defun
 
 @c page
 @node vectors fold sub
@@ -25092,7 +25173,9 @@ iterating until the end of the shortest.
 @deffnx Function %subvector-fold-right @var{combine} @var{knil} @var{vec} @var{start} @var{past}
 @deffnx Macro subvector-fold-left @var{combine} @var{knil} @var{S}
 @deffnx Macro subvector-fold-right @var{combine} @var{knil} @var{S}
-Fold @var{combine} over each item of the selected subvector.  The
+Fold @var{combine} over each item of the selected subvector, return the
+return value of the last evaluated call to @var{combine}; if the
+selected subvector is empty, the return value is @var{knil}.  The
 left--fold operator builds the return value as:
 
 @example
@@ -25128,59 +25211,6 @@ the right--fold iterator builds the return value as:
               @var{knil})))))
 @end example
 @end deffn
-
-@c page
-@node vectors fold and
-@subsubsection And--folding
-
-
-@deffn Function vector-and-fold-left @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-and-fold-right @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-and-fold-left/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-and-fold-right/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-Like @func{vector-fold-left}, @func{vector-fold-right},
-@func{vector-fold-left/stx} and @func{vector-fold-right/stx}, but stop
-the iteration if @var{combine} returns @false{}, in which case the
-return value is @var{false}.
-@end deffn
-
-
-@deffn Function vector-and-fold-left* @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Function vector-and-fold-right* @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-and-fold-left*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-@deffnx Syntax vector-and-fold-right*/stx @var{combine} @var{knil} @var{vec0} @var{vec} ...
-Like @func{vector-fold-left*}, @func{vector-fold-right*},
-@func{vector-fold-left*/stx} and @func{vector-fold-right*/stx}, but stop
-the iteration if @var{combine} returns @false{}, in which case the
-return value is @var{false}.
-@end deffn
-
-
-@defun vector-fold-left/pred @var{pred} @var{knil} @var{vec}
-Apply @var{pred} to successive couples of elements from @var{vec};
-return true if all the evaluations of @var{pred} where true.  The
-iteration stops at the first @false{} return value from @var{pred}.
-
-This function is implemented as:
-
-@example
-(define (fold-left/pred pred knil ell)
-  (vector-and-fold-left/stx (lambda (knil item)
-                              (and (pred knil item) item))
-     knil ell))
-@end example
-
-@noindent
-and it can be used to implement predicates for ordering like @func{<}:
-
-@example
-(vector-fold-left/pred < 0 '(1 2 3 4 5 6))
-@result{} 6
-
-(vector-fold-left/pred < 0 '(1 2 3 -4 5 6))
-@result{} #f
-@end example
-@end defun
 
 @c page
 @node vectors fold unfold

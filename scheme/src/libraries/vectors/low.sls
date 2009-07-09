@@ -208,19 +208,30 @@
     (assertion-violation proc-name
       "expected vectors of the same length" vectors)))
 
-(define (%knil+elements i knil vectors)
+(define (%state+elements i knil vectors)
   ;;Extract the elements at index I from each vector in the list VECTORS
   ;;and return the elements in a list with KNIL as first item.
   (cons knil (map (lambda (vec) (vector-ref vec i))
 	       vectors)))
 
-(define (%elements+knil i knil vectors)
+(define (%index+state+elements i knil vectors)
+  ;;Extract the elements at index I from each vector in the list VECTORS
+  ;;and return the elements in a list with KNIL as first item.
+  (cons i (cons knil (map (lambda (vec) (vector-ref vec i)) vectors))))
+
+(define (%elements+state i knil vectors)
   ;;Extract the elements at index I from each vector in the list VECTORS
   ;;and return the elements in a list with KNIL as last item.
   (reverse (cons knil
 		 (fold-left (lambda (knil vec) (cons (vector-ref vec i) knil))
-			    '()
-			    vectors))))
+			    '() vectors))))
+
+(define (%index+elements+state i knil vectors)
+  ;;Extract the elements at index I from each vector in the list VECTORS
+  ;;and return the elements in a list with KNIL as last item.
+  (cons i (reverse (cons knil
+			 (fold-left (lambda (knil vec) (cons (vector-ref vec i) knil))
+				    '() vectors)))))
 
 (define-syntax do*
   ;;Like DO,  but binds  the iteration variables  like LET*  rather than
@@ -304,22 +315,23 @@
       (= start past)))
 
 (define (%subvector-every pred vec start past)
-  (and (< start past)
-       (let loop ((i start))
-	 (let ((c (vector-ref vec i))
-	       (i1 (+ i 1)))
-	   (if (= i1 past)
-	       (pred c)
-	     (and (pred c) (loop i1)))))))
+  (or (= start past)
+      (let loop ((i start))
+	(let ((c (vector-ref vec i))
+	      (i1 (+ i 1)))
+	  (if (= i1 past)
+	      (pred c)
+	    (and (pred c) (loop i1)))))))
 
 (define (%subvector-any pred vec start past)
-  (and (< start past)
-       (let loop ((i start))
-	 (let ((c (vector-ref vec i))
-	       (i1 (+ i 1)))
-	   (if (= i1 past)
-	       (pred c)
-	     (or (pred c) (loop i1)))))))
+  (cond ((= start past)
+	 #f)
+	(else (let loop ((i start))
+		(let ((c (vector-ref vec i))
+		      (i1 (+ i 1)))
+		  (if (= i1 past)
+		      (pred c)
+		    (or (pred c) (loop i1))))))))
 
 (define (vector-every pred vec0 . vectors)
   (apply vector-and-fold-left (lambda (state . items)
@@ -330,7 +342,7 @@
 (define (vector-any pred vec0 . vectors)
   (apply vector-or-fold-left (lambda (state . items)
 			       (apply pred items))
-	 #t
+	 #f
 	 (cons vec0 vectors)))
 
 
@@ -485,7 +497,7 @@
       (assert-vectors-of-equal-length proc-name vectors)
       (do* ((len (vector-length vec0))
 	    (i 0 (+ 1 i))
-	    (state knil (apply combine (%knil+elements i state vectors))))
+	    (state knil (apply combine (%state+elements i state vectors))))
 	  ((%test state (= i len))
 	   state))))))
 
@@ -502,7 +514,7 @@
       (assert-vectors-of-equal-length proc-name vectors)
       (do* ((len (vector-length vec0))
 	    (i (- len 1) (- i 1))
-	    (state knil (apply combine (%elements+knil i state vectors))))
+	    (state knil (apply combine (%elements+state i state vectors))))
 	  ((%test state (= i -1))
 	   state))))))
 
@@ -560,7 +572,7 @@
     (let ((vectors (cons vec0 vectors)))
       (do* ((len (vectors-list-min-length vectors))
 	    (i 0 (+ 1 i))
-	    (state knil (apply combine (%knil+elements i state vectors))))
+	    (state knil (apply combine (%state+elements i state vectors))))
 	  ((%test state (= i len))
 	   state))))))
 
@@ -576,7 +588,7 @@
     (let ((vectors (cons vec0 vectors)))
       (do* ((len (vectors-list-min-length vectors))
 	    (i (- len 1) (- i 1))
-	    (state knil (apply combine (%elements+knil i state vectors))))
+	    (state knil (apply combine (%elements+state i state vectors))))
 	  ((%test state (= i -1))
 	   state))))))
 
@@ -611,6 +623,156 @@
 
 (define (vector-or-fold-right* combine knil vec0 . vectors)
   (apply %vector-fold-right* 'vector-or-fold-right*
+	 (lambda (state len-bool) (or state len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+
+;;;; folding functions with index, equal length of list arguments
+
+;;*NOTE* aboud LEFT and RIGHT: It would  be a mess to merge the left and
+;;right folds, because of the way the index "i" needs to be computed and
+;;tested.  It is possible, but at  what confusion cost in the code?  Too
+;;much, IMO (Marco Maggi, Thu Jul 9, 2009).
+
+(define %vector-fold-left/with-index
+  (case-lambda
+   ((proc-name %test combine knil vec)
+    (do* ((len (vector-length vec))
+	  (i 0 (+ 1 i))
+	  (state knil (combine i state (vector-ref vec i))))
+	((%test state (= i len))
+	 state)))
+   ((proc-name %test combine knil vec0 . vectors)
+    (let ((vectors (cons vec0 vectors)))
+      (assert-vectors-of-equal-length proc-name vectors)
+      (do* ((len (vector-length vec0))
+	    (i 0 (+ 1 i))
+	    (state knil (apply combine (%index+state+elements i state vectors))))
+	  ((%test state (= i len))
+	   state))))))
+
+(define %vector-fold-right/with-index
+  (case-lambda
+   ((proc-name %test combine knil vec)
+    (do* ((len (vector-length vec))
+	  (i (- len 1) (- i 1))
+	  (state knil (combine i (vector-ref vec i) state)))
+	((%test state (= i -1))
+	 state)))
+   ((proc-name %test combine knil vec0 . vectors)
+    (let ((vectors (cons vec0 vectors)))
+      (assert-vectors-of-equal-length proc-name vectors)
+      (do* ((len (vector-length vec0))
+	    (i (- len 1) (- i 1))
+	    (state knil (apply combine (%index+elements+state i state vectors))))
+	  ((%test state (= i -1))
+	   state))))))
+
+;;; --------------------------------------------------------------------
+
+(define (vector-fold-left/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-left/with-index 'vector-fold-left/with-index
+	 (lambda (state len-bool) len-bool) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-and-fold-left/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-left/with-index 'vector-and-fold-left/with-index
+	 (lambda (state len-bool) (or (not state) len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-or-fold-left/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-left/with-index 'vector-or-fold-left/with-index
+	 (lambda (state len-bool) (or state len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+;;; --------------------------------------------------------------------
+
+(define (vector-fold-right/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-right/with-index 'vector-fold-right/with-index
+	 (lambda (state len-bool) len-bool) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-and-fold-right/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-right/with-index 'vector-and-fold-right/with-index
+	 (lambda (state len-bool) (or (not state) len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-or-fold-right/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-right/with-index 'vector-or-fold-right/with-index
+	 (lambda (state len-bool) (or state len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+
+;;;; folding functions with index, accepting unequal length of list arguments
+
+;;*NOTE* aboud LEFT and RIGHT: It would  be a mess to merge the left and
+;;right folds, because of the way the index "i" needs to be computed and
+;;tested.  It is possible, but at  what confusion cost in the code?  Too
+;;much, IMO (Marco Maggi, Thu Jul 9, 2009).
+
+(define %vector-fold-left*/with-index
+  (case-lambda
+   ((proc-name %test combine knil vec)
+    (do* ((len (vector-length vec))
+	  (i 0 (+ 1 i))
+	  (state knil (combine i state (vector-ref vec i))))
+	((%test state (= i len))
+	 state)))
+   ((proc-name %test combine knil vec0 . vectors)
+    (let ((vectors (cons vec0 vectors)))
+      (do* ((len (vectors-list-min-length vectors))
+	    (i 0 (+ 1 i))
+	    (state knil (apply combine (%index+state+elements i state vectors))))
+	  ((%test state (= i len))
+	   state))))))
+
+(define %vector-fold-right*/with-index
+  (case-lambda
+   ((proc-name %test combine knil vec)
+    (do* ((len (vector-length vec))
+	  (i (- len 1) (- i 1))
+	  (state knil (combine i (vector-ref vec i) state)))
+	((%test state (= i -1))
+	 state)))
+   ((proc-name %test combine knil vec0 . vectors)
+    (let ((vectors (cons vec0 vectors)))
+      (do* ((len (vectors-list-min-length vectors))
+	    (i (- len 1) (- i 1))
+	    (state knil (apply combine (%index+elements+state i state vectors))))
+	  ((%test state (= i -1))
+	   state))))))
+
+;;; --------------------------------------------------------------------
+
+(define (vector-fold-left*/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-left*/with-index 'vector-fold-left*/with-index
+	 (lambda (state len-bool) len-bool) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-and-fold-left*/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-left*/with-index 'vector-and-fold-left*/with-index
+	 (lambda (state len-bool) (or (not state) len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-or-fold-left*/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-left*/with-index 'vector-or-fold-left*/with-index
+	 (lambda (state len-bool) (or state len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+;;; --------------------------------------------------------------------
+
+(define (vector-fold-right*/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-right*/with-index 'vector-fold-right*/with-index
+	 (lambda (state len-bool) len-bool) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-and-fold-right*/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-right*/with-index 'vector-and-fold-right*/with-index
+	 (lambda (state len-bool) (or (not state) len-bool)) ;test function
+	 combine knil vec0 vectors))
+
+(define (vector-or-fold-right*/with-index combine knil vec0 . vectors)
+  (apply %vector-fold-right*/with-index 'vector-or-fold-right*/with-index
 	 (lambda (state len-bool) (or state len-bool)) ;test function
 	 combine knil vec0 vectors))
 
@@ -698,61 +860,6 @@
 					     knil)))
 			((= i -1)
 			 knil)))))))))
-
-
-;;;; folding functions, with index
-
-(define (vector-fold-left/with-index kons knil vec0 . vectors)
-  (let ((vectors (cons vec0 vectors)))
-    (assert-vectors-of-equal-length 'vector-fold-left/with-index vectors)
-    (let ((len (vector-length vec0)))
-      (let loop ((i     0)
-		 (knil  knil))
-	(if (= len i)
-	    knil
-	  (loop (+ 1 i) (apply kons i knil
-			       (map (lambda (vec)
-				      (vector-ref vec i))
-				 vectors))))))))
-
-(define (vector-fold-right/with-index kons knil vec0 . vectors)
-  (let* ((vectors  (cons vec0 vectors)))
-    (assert-vectors-of-equal-length 'vector-fold-right/with-index vectors)
-    (let ((len (vectors-list-min-length vectors)))
-      (let loop ((i     (- len 1))
-		 (knil  knil))
-	(if (< i 0)
-	    knil
-	  (loop (- i 1) (apply kons i knil
-			       (map (lambda (vec)
-				      (vector-ref vec i))
-				 vectors))))))))
-
-;;; --------------------------------------------------------------------
-
-(define (vector-fold-left*/with-index kons knil vec0 . vectors)
-  (let* ((vectors  (cons vec0 vectors))
-	 (len      (vectors-list-min-length vectors)))
-    (let loop ((i     0)
-	       (knil  knil))
-      (if (= len i)
-	  knil
-	(loop (+ 1 i) (apply kons i knil
-			     (map (lambda (vec)
-				    (vector-ref vec i))
-			       vectors)))))))
-
-(define (vector-fold-right*/with-index kons knil vec0 . vectors)
-  (let* ((vectors  (cons vec0 vectors))
-	 (len      (vectors-list-min-length vectors)))
-    (let loop ((i     (- len 1))
-	       (knil  knil))
-      (if (< i 0)
-	  knil
-	(loop (- i 1) (apply kons i knil
-			     (map (lambda (vec)
-				    (vector-ref vec i))
-			       vectors)))))))
 
 
 ;;;; subvector folding

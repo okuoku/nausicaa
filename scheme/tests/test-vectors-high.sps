@@ -186,11 +186,38 @@
   (check
       (let* ((vec '#()))
 	(subvector-every char-alphabetic? vec))
-    => #f)
+    => #t)
 
   (check
       (let* ((vec '#(1 2 3 4)))
 	(subvector-every (lambda (x) x) vec))
+    => 4)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((vec '#(#\a #\b #\c)))
+	(vector-every char-alphabetic? vec))
+    => #t)
+
+  (check
+      (let* ((vec '#(#\a #\b #\c #\2)))
+	(vector-every char-alphabetic? vec))
+    => #f)
+
+  (check
+      (let* ((vec '#(#\a #\b #\2 #\d)))
+	(vector-every char-alphabetic? vec))
+    => #f)
+
+  (check
+      (let* ((vec '#()))
+	(vector-every char-alphabetic? vec))
+    => #t)
+
+  (check
+      (let* ((vec '#(1 2 3 4)))
+	(vector-every (lambda (x) x) vec))
     => 4)
 
 ;;; --------------------------------------------------------------------
@@ -218,6 +245,33 @@
   (check
       (let* ((vec '#(1 2 3 4)))
 	(subvector-any (lambda (x) x) vec))
+    => 1)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let* ((vec '#(#\1 #\2 #\a #\4)))
+	(vector-any char-alphabetic? vec))
+    => #t)
+
+  (check
+      (let* ((vec '#(#\1 #\2 #\3 #\a)))
+	(vector-any char-alphabetic? vec))
+    => #t)
+
+  (check
+      (let* ((vec '#(#\1 #\2 #\3 #\4)))
+	(vector-any char-alphabetic? vec))
+    => #f)
+
+  (check
+      (let* ((vec '#()))
+	(vector-any char-alphabetic? vec))
+    => #f)
+
+  (check
+      (let* ((vec '#(1 2 3 4)))
+	(vector-any (lambda (x) x) vec))
     => 1)
 
   )
@@ -668,13 +722,13 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (vector-fold-right/with-index (lambda (i nil x) (cons x nil))
+      (vector-fold-right/with-index (lambda (i x nil) (cons x nil))
 				    '()
 				    '#(#\a #\b #\c #\d))
     => '(#\a #\b #\c #\d))
 
   (check
-      (vector-fold-right/with-index (lambda (i nil x y) (cons (cons x y) nil))
+      (vector-fold-right/with-index (lambda (i x y nil) (cons (cons x y) nil))
 				    '()
 				    '#(#\a #\b #\c #\d)
 				    '#(#\A #\B #\C #\D))
@@ -684,7 +738,7 @@
 	 (#\d . #\D)))
 
   (check
-      (vector-fold-right/with-index (lambda (i nil x) (cons x nil))
+      (vector-fold-right/with-index (lambda (i x nil) (cons x nil))
 				    '()
 				    '#())
     => '())
@@ -718,13 +772,13 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (vector-fold-right*/with-index (lambda (i nil x) (cons x nil))
+      (vector-fold-right*/with-index (lambda (i x nil) (cons x nil))
 				     '()
 				     '#(#\a #\b #\c #\d))
     => '(#\a #\b #\c #\d))
 
   (check
-      (vector-fold-right*/with-index (lambda (i nil x y) (cons (cons x y) nil))
+      (vector-fold-right*/with-index (lambda (i x y nil) (cons (cons x y) nil))
 				     '()
 				     '#(#\a #\b #\c #\d)
 				     '#(#\A #\B #\C #\D #\E))
@@ -734,7 +788,7 @@
 	 (#\d . #\D)))
 
   (check
-      (vector-fold-right*/with-index (lambda (i nil x) (cons x nil))
+      (vector-fold-right*/with-index (lambda (i x nil) (cons x nil))
 				     '()
 				     '#())
     => '())
@@ -808,73 +862,6 @@
 	'#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
     => 5)
 
-;;; --------------------------------------------------------------------
-
-  ;;   (check
-  ;;       (vector-fold-left/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				   '()
-  ;; 				   '#(#\a #\b #\c #\d))
-  ;;     => '(#\d #\c #\b #\a))
-
-  ;;   (check
-  ;;       (vector-fold-left/stx/with-index (lambda (i nil x y) (cons (cons x y) nil))
-  ;; 				   '()
-  ;; 				   '#(#\a #\b #\c #\d)
-  ;; 				   '#(#\A #\B #\C #\D))
-  ;;     => '((#\d . #\D)
-  ;; 	 (#\c . #\C)
-  ;; 	 (#\b . #\B)
-  ;; 	 (#\a . #\A)))
-
-  ;;   (check
-  ;;       (vector-fold-left/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				   '()
-  ;; 				   '#())
-  ;;     => '())
-
-  ;;   (check
-  ;;       (vector-fold-left/stx/with-index (lambda (i count c)
-  ;; 				     (if (char-upper-case? c)
-  ;; 					 (+ count 1)
-  ;; 				       count))
-  ;; 				   0
-  ;; 				   '#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
-  ;;     => 5)
-
-;;; --------------------------------------------------------------------
-
-  ;;   (check
-  ;;       (vector-fold-left*/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				    '()
-  ;; 				    '#(#\a #\b #\c #\d))
-  ;;     => '(#\d #\c #\b #\a))
-
-  ;;   (check
-  ;;       (vector-fold-left*/stx/with-index (lambda (i nil x y) (cons (cons x y) nil))
-  ;; 				    '()
-  ;; 				    '#(#\a #\b #\c #\d)
-  ;; 				    '#(#\A #\B #\C #\D #\E))
-  ;;     => '((#\d . #\D)
-  ;; 	 (#\c . #\C)
-  ;; 	 (#\b . #\B)
-  ;; 	 (#\a . #\A)))
-
-  ;;   (check
-  ;;       (vector-fold-left*/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				    '()
-  ;; 				    '#())
-  ;;     => '())
-
-  ;;   (check
-  ;;       (vector-fold-left*/stx/with-index (lambda (i count c)
-  ;; 				      (if (char-upper-case? c)
-  ;; 					  (+ count 1)
-  ;; 					count))
-  ;; 				    0
-  ;; 				    '#(#\A #\B #\C #\d #\e #\f #\G #\H #\i))
-  ;;     => 5)
-
-
   )
 
 
@@ -926,54 +913,6 @@
 			      '()
 			      '#())
     => '())
-
-;;; --------------------------------------------------------------------
-
-  ;;   (check
-  ;;       (vector-fold-right/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				    '()
-  ;; 				    '#(#\a #\b #\c #\d))
-  ;;     => '(#\a #\b #\c #\d))
-
-  ;;   (check
-  ;;       (vector-fold-right/stx/with-index (lambda (i nil x y) (cons (cons x y) nil))
-  ;; 				    '()
-  ;; 				    '#(#\a #\b #\c #\d)
-  ;; 				    '#(#\A #\B #\C #\D))
-  ;;     => '((#\a . #\A)
-  ;; 	 (#\b . #\B)
-  ;; 	 (#\c . #\C)
-  ;; 	 (#\d . #\D)))
-
-  ;;   (check
-  ;;       (vector-fold-right/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				    '()
-  ;; 				    '#())
-  ;;     => '())
-
-;;; --------------------------------------------------------------------
-
-  ;;   (check
-  ;;       (vector-fold-right*/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				     '()
-  ;; 				     '#(#\a #\b #\c #\d))
-  ;;     => '(#\a #\b #\c #\d))
-
-  ;;   (check
-  ;;       (vector-fold-right*/stx/with-index (lambda (i nil x y) (cons (cons x y) nil))
-  ;; 				     '()
-  ;; 				     '#(#\a #\b #\c #\d)
-  ;; 				     '#(#\A #\B #\C #\D #\E))
-  ;;     => '((#\a . #\A)
-  ;; 	 (#\b . #\B)
-  ;; 	 (#\c . #\C)
-  ;; 	 (#\d . #\D)))
-
-  ;;   (check
-  ;;       (vector-fold-right*/stx/with-index (lambda (i nil x) (cons x nil))
-  ;; 				     '()
-  ;; 				     '#())
-  ;;     => '())
 
   )
 

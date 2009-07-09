@@ -61,10 +61,7 @@
 
 * arrays
 
-  To be implemented taking inspiration from SRFI-25.
-
-  Use records for  everything: array (multidimensional array), array-dim
-  (dimension), array-pos (position).
+  Finished?
 
 * sequence
 
