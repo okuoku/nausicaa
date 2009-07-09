@@ -1069,7 +1069,7 @@
 	 (assertion-violation '%string-join
 	   "STRINGS parameter is not a list" strings))
 
-	;; here we know that STRINGS is the empty string
+	;; here we know that STRINGS is the empty list
 	((eq? grammar 'strict-infix)
 	 (assertion-violation '%string-join
 	   "empty list cannot be joined with STRICT-INFIX grammar."))
