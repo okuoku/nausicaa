@@ -39,20 +39,7 @@
 	(pos2 (array-position 8 7 6 5 4)))
 
     (check (array-position? pos) => #t)
-    (check (array-position-number-of-dimensions pos) => 5)
     (check (array-position->string pos) => "#<array-position -- 1 2 3 4 5>")
-
-    (check (array-position=? pos pos) => #t)
-    (check (array-position=? pos pos2) => #f)
-
-    (check
-	(array-position-difference pos2 pos)
-      => '(7 5 3 1 -1))
-
-    (check
-	(array-position-step pos (array-position-difference pos2 pos))
-      (=> array-position=?)
-      pos2)
 
     (check (assert-array-position pos 'this) => #t)
     (check (guard (exc (else (assertion-violation? exc)))
@@ -75,7 +62,7 @@
 	(call-with-string-output-port
 	    (lambda (port)
 	      (array-position-write pos port)))
-      => "(array-position 1 2 3 4 5)")
+      => "#(1 2 3 4 5)")
 
     )
 
@@ -84,12 +71,12 @@
 
 (parameterise ((check-test-name 'shape))
 
-  (let ((shape  (array-shape '(1 2 3 4 5)
-			     '(6 7 8 9 10)))
-	(shape2 (array-shape '(5 4 3 2 1)
-			     '(10 9 8 7 6)))
-	(pos    (array-position 2 3 4 5 6))
-	(pos2   (array-position 2 3 4 20 6)))
+  (let ((shape  (array-shape '#(1 2 3 4 5)
+			     '#(6 7 8 9 10)))
+	(shape2 (array-shape '#(5 4 3 2 1)
+			     '#(10 9 8 7 6)))
+	(pos    (array-position  2 3 4 5 6))
+	(pos2   (array-position  2 3 4 20 6)))
 
     (check (array-shape? shape) => #t)
     (check (array-shape-number-of-dimensions shape) => 5)
@@ -127,7 +114,7 @@
 	(call-with-string-output-port
 	    (lambda (port)
 	      (array-shape-write shape port)))
-      => "(array-shape '(1 2 3 4 5) '(6 7 8 9 10))")
+      => "(array-shape '#(1 2 3 4 5) '#(6 7 8 9 10))")
 
     (check-for-true (array-supershape? shape shape))
     (check-for-false (array-supershape? shape shape2))
@@ -139,12 +126,12 @@
     (check-for-false (array-subshape?/strict shape shape))
     (check-for-false (array-subshape?/strict shape2 shape)))
 
-  (let ((shape  (array-shape '(0 0 0 0 0)
-			     '(5 6 7 8 9)))
-	(shape2 (array-shape '(0 0 0 0 0)
-			     '(4 5 6 7 8)))
-	(shape3 (array-shape '(0 0 0 0 0)
-			     '(5 6 2 8 9))))
+  (let ((shape  (array-shape '#(0 0 0 0 0)
+			     '#(5 6 7 8 9)))
+	(shape2 (array-shape '#(0 0 0 0 0)
+			     '#(4 5 6 7 8)))
+	(shape3 (array-shape '#(0 0 0 0 0)
+			     '#(5 6 2 8 9))))
 
     (check-for-true (array-supershape? shape shape2))
     (check-for-true (array-supershape? shape shape3))
@@ -158,22 +145,22 @@
   )
 
 
-(parameterise ((check-test-name 'shape))
+(parameterise ((check-test-name 'array))
 
-  (let ((array  (make-array (array-shape '(1 2 3 4 5)
-					 '(6 7 8 9 10))))
-	(array2	(make-array (array-shape '(5 4 3 2 1)
-					 '(10 9 8 7 6))))
-	(array3 (make-array (array-shape '(0 0 0 0)
-					 '(3 4 5 6))))
-	(array4 (make-array (array-shape '(0 0 0) ;this is small, good for string representation
-					 '(2 3 4))))
-	(array5 (array (array-shape '(0 0 0) '(2 3 4))
+  (let ((array  (make-array (array-shape '#(1 2 3 4 5)
+					 '#(6 7 8 9 10))))
+	(array2	(make-array (array-shape '#(5 4 3 2 1)
+					 '#(10 9 8 7 6))))
+	(array3 (make-array (array-shape '#(0 0 0 0)
+					 '#(3 4 5 6))))
+	(array4 (make-array (array-shape '#(0 0 0) ;this is small, good for string representation
+					 '#(2 3 4))))
+	(array5 (array (array-shape '#(0 0 0) '#(2 3 4))
 		        1  2  3  4  5  6  7  8  9 10
 		       11 12 13 14 15 16 17 18 19 20
 		       21 22 23 24))
-	(pos    (array-position 2 3 4 5 6))
-	(pos2   (array-position 2 3 4 20 6)))
+	(pos    (array-position  2 3 4 5 6))
+	(pos2   (array-position  2 3 4 20 6)))
 
     (check (array-shape? array) => #t)
     (check (array-shape-number-of-dimensions array) => 5)
@@ -218,7 +205,7 @@
 	(call-with-string-output-port
 	    (lambda (port)
 	      (array-shape-write array port)))
-      => "(array-shape '(1 2 3 4 5) '(6 7 8 9 10))")
+      => "(array-shape '#(1 2 3 4 5) '#(6 7 8 9 10))")
 
     (check
 	(call-with-string-output-port
@@ -238,7 +225,7 @@
 				 (lambda (port)
 				   (display element port))))
 			   array4 port)))
-      => "(array (array-shape '(0 0 0) '(2 3 4)) #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f )")
+      => "(array (array-shape '#(0 0 0) '#(2 3 4)) #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f #f )")
 
     (check
 	(call-with-string-output-port
@@ -250,31 +237,47 @@
 			     array5 port)))
       => "#<array #<array-shape -- 0 0 0 -- 2 3 4> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 >")
 
-    (check (array-ref array5 (array-position 0 0 0)) => 1)
-    (check (array-ref array5 (array-position 0 0 1)) => 2)
-    (check (array-ref array5 (array-position 0 0 2)) => 3)
-    (check (array-ref array5 (array-position 0 0 3)) => 4)
-    (check (array-ref array5 (array-position 0 1 0)) => 5)
-    (check (array-ref array5 (array-position 0 1 1)) => 6)
-    (check (array-ref array5 (array-position 0 1 2)) => 7)
-    (check (array-ref array5 (array-position 0 1 3)) => 8)
-    (check (array-ref array5 (array-position 0 2 0)) => 9)
-    (check (array-ref array5 (array-position 0 2 1)) => 10)
-    (check (array-ref array5 (array-position 0 2 2)) => 11)
-    (check (array-ref array5 (array-position 0 2 3)) => 12)
-    (check (array-ref array5 (array-position 1 0 0)) => 13)
-    (check (array-ref array5 (array-position 1 0 1)) => 14)
-    (check (array-ref array5 (array-position 1 0 2)) => 15)
-    (check (array-ref array5 (array-position 1 0 3)) => 16)
-    (check (array-ref array5 (array-position 1 1 0)) => 17)
-    (check (array-ref array5 (array-position 1 1 1)) => 18)
-    (check (array-ref array5 (array-position 1 1 2)) => 19)
-    (check (array-ref array5 (array-position 1 1 3)) => 20)
-    (check (array-ref array5 (array-position 1 2 0)) => 21)
-    (check (array-ref array5 (array-position 1 2 1)) => 22)
-    (check (array-ref array5 (array-position 1 2 2)) => 23)
-    (check (array-ref array5 (array-position 1 2 3)) => 24)
+    (check (array-ref array5 (array-position  0 0 0)) => 1)
+    (check (array-ref array5 (array-position  0 0 1)) => 2)
+    (check (array-ref array5 (array-position  0 0 2)) => 3)
+    (check (array-ref array5 (array-position  0 0 3)) => 4)
+    (check (array-ref array5 (array-position  0 1 0)) => 5)
+    (check (array-ref array5 (array-position  0 1 1)) => 6)
+    (check (array-ref array5 (array-position  0 1 2)) => 7)
+    (check (array-ref array5 (array-position  0 1 3)) => 8)
+    (check (array-ref array5 (array-position  0 2 0)) => 9)
+    (check (array-ref array5 (array-position  0 2 1)) => 10)
+    (check (array-ref array5 (array-position  0 2 2)) => 11)
+    (check (array-ref array5 (array-position  0 2 3)) => 12)
+    (check (array-ref array5 (array-position  1 0 0)) => 13)
+    (check (array-ref array5 (array-position  1 0 1)) => 14)
+    (check (array-ref array5 (array-position  1 0 2)) => 15)
+    (check (array-ref array5 (array-position  1 0 3)) => 16)
+    (check (array-ref array5 (array-position  1 1 0)) => 17)
+    (check (array-ref array5 (array-position  1 1 1)) => 18)
+    (check (array-ref array5 (array-position  1 1 2)) => 19)
+    (check (array-ref array5 (array-position  1 1 3)) => 20)
+    (check (array-ref array5 (array-position  1 2 0)) => 21)
+    (check (array-ref array5 (array-position  1 2 1)) => 22)
+    (check (array-ref array5 (array-position  1 2 2)) => 23)
+    (check (array-ref array5 (array-position  1 2 3)) => 24)
 
+    (let ((view (array-view array5 (lambda (position)
+				     (vector 1
+					     (vector-ref position 0)
+					     (vector-ref position 1))))))
+      (check (array-ref view (array-position  0 0)) => 13)
+      (check (array-ref view (array-position  0 1)) => 14)
+      (check (array-ref view (array-position  0 2)) => 15)
+      (check (array-ref view (array-position  0 3)) => 16)
+      (check (array-ref view (array-position  1 0)) => 17)
+      (check (array-ref view (array-position  1 1)) => 18)
+      (check (array-ref view (array-position  1 2)) => 19)
+      (check (array-ref view (array-position  1 3)) => 20)
+      (check (array-ref view (array-position  2 0)) => 21)
+      (check (array-ref view (array-position  2 1)) => 22)
+      (check (array-ref view (array-position  2 2)) => 23)
+      (check (array-ref view (array-position  2 3)) => 24))
 
     (check-for-true (array-supershape? array array))
     (check-for-false (array-supershape? array array2))
@@ -286,12 +289,12 @@
     (check-for-false (array-subshape?/strict array array))
     (check-for-false (array-subshape?/strict array2 array)))
 
-  (let ((array  (make-array (array-shape '(0 0 0 0 0)
-					 '(5 6 7 8 9))))
-	(array2 (make-array (array-shape '(0 0 0 0 0)
-					 '(4 5 6 7 8))))
-	(array3 (make-array (array-shape '(0 0 0 0 0)
-					 '(5 6 2 8 9)))))
+  (let ((array  (make-array (array-shape '#(0 0 0 0 0)
+					 '#(5 6 7 8 9))))
+	(array2 (make-array (array-shape '#(0 0 0 0 0)
+					 '#(4 5 6 7 8))))
+	(array3 (make-array (array-shape '#(0 0 0 0 0)
+					 '#(5 6 2 8 9)))))
 
     (check-for-true (array-supershape? array array2))
     (check-for-true (array-supershape? array array3))
