@@ -38,11 +38,6 @@
     array-position?
     assert-array-position
     assert-array-position/or-false
-    array-position=?
-    array-position-number-of-dimensions
-    array-position-difference
-    array-position-step
-    array-position-step!
     array-position->string
     array-position-display
     array-position-write
@@ -83,28 +78,30 @@
     (strings))
 
 
+;;;; helpers
+
+(define (%coordinate? num)
+  (and (integer? num) (exact? num)))
+
+
 ;;;; array position
 
-(define-record-type (:position :position-make array-position?)
-  (opaque #t)
-  (fields (mutable coordinates)
-	  (immutable number-of-dimensions array-position-number-of-dimensions)))
-		;a list holding the coordinates
-
-;;; --------------------------------------------------------------------
 ;;; constructors
 
 (define (array-position . coordinates)
-  (unless (every (lambda (n)
-		   (and (integer? n) (non-negative? n)))
-	    coordinates)
+  (unless (every %coordinate? coordinates)
     (assertion-violation 'array-position
       "array coordinates must be non-negative exact integers"
       coordinates))
-  (:position-make coordinates (length coordinates)))
+  (list->vector coordinates))
 
 ;;; --------------------------------------------------------------------
 ;;; predicates and assertions
+
+(define (array-position? position)
+  (and (vector? position)
+       (vector-every %coordinate? position)
+       #t))
 
 (define (assert-array-position obj func-name)
   (or (array-position? obj)
@@ -119,36 +116,11 @@
 	obj)))
 
 ;;; --------------------------------------------------------------------
-;;; comparison
-
-(define (array-position=? position-a position-b)
-  (and (= (array-position-number-of-dimensions position-a)
-	  (array-position-number-of-dimensions position-b))
-       (every =
-	 (:position-coordinates position-a)
-	 (:position-coordinates position-b))))
-
-;;; --------------------------------------------------------------------
-;;; operations
-
-(define (array-position-difference position-a position-b)
-  (map -
-    (:position-coordinates position-a)
-    (:position-coordinates position-b)))
-
-(define (array-position-step position step)
-  (:position-make (map + (:position-coordinates position) step)
-		  (array-position-number-of-dimensions position)))
-
-(define (array-position-step! position step)
-  (:position-coordinates-set! position (map + (:position-coordinates position) step)))
-
-;;; --------------------------------------------------------------------
 ;;; Conversion and port output.
 
 (define (array-position->string position)
   (string-append "#<array-position -- "
-		 (string-join (map number->string (:position-coordinates position)) " ")
+		 (string-join (vector->list (vector-map number->string position)) " ")
 		 ">"))
 
 (define array-position-display
@@ -163,7 +135,7 @@
    ((position)
     (array-position-write position (current-output-port)))
    ((position port)
-    (write (cons 'array-position (:position-coordinates position)) port))))
+    (write position port))))
 
 
 ;;;; array shape
@@ -171,44 +143,42 @@
 (define-record-type (:shape :shape-make array-shape?)
   (opaque #t)
   (fields (immutable starts)
-		;A list holding the start indexes for each dimension.
+		;A vector holding the start indexes for each dimension.
 	  (immutable pasts)))
-		;A list holding the past indexes for each dimension.
+		;A vector holding the past indexes for each dimension.
 
 ;;; --------------------------------------------------------------------
 ;;; constructors
 
 (define (array-shape starts pasts)
-  (when (or (= 0 (length starts))
-	    (not (= (length starts) (length pasts))))
-    (assertion-violation 'array-shape
-      "invalid number of elements in shape specification"
-      starts pasts))
-  (let loop ((starts starts)
-	     (pasts  pasts))
-    (cond ((null? starts)
-	   #t)
-	  ((let ((start (car starts))
-		 (past  (car pasts)))
-	     (and (integer? start) (non-negative? start)
-		  (integer? past)  (non-negative? past)
-		  (< start past)))
-	   (loop (cdr starts) (cdr pasts)))
-	  (else
-	   (assertion-violation 'array-shape
-	     "invalid elements in shape specification"
-	     (car starts) (car pasts) starts pasts))))
+  (let ((len (vector-length starts)))
+    (when (or (= 0 len) (not (= len (vector-length pasts))))
+      (assertion-violation 'array-shape
+	"invalid number of elements in shape specification"
+	starts pasts))
+    (do* ((i 0 (+ 1 i))
+	  (S (vector-ref starts i) (vector-ref starts i))
+	  (P (vector-ref pasts  i) (vector-ref pasts  i)))
+	((= i len))
+      (unless (%coordinate? S)
+	(assertion-violation 'array-shape
+	  "invalid elements in shape starts specification"
+	  S))
+      (unless (%coordinate? P)
+	(assertion-violation 'array-shape
+	  "invalid elements in shape pasts specification"
+	  P))))
   (:shape-make starts pasts))
 
 ;;; --------------------------------------------------------------------
 ;;; predicates and assertions
 
 (define (array-shape-contains? shape position)
-  (every (lambda (start past index)
-	   (and (<= start index) (< index past)))
+  (vector-every (lambda (start past index)
+		  (and (<= start index) (< index past)))
     (:shape-starts shape)
     (:shape-pasts  shape)
-    (:position-coordinates position)))
+    position))
 
 (define (assert-array-shape obj func-name)
   (or (array-shape? obj)
@@ -226,23 +196,23 @@
 ;;; inspection
 
 (define (array-shape-number-of-dimensions shape)
-  (length (:shape-starts shape)))
+  (vector-length (:shape-starts shape)))
 
 (define (array-shape-number-of-elements shape)
-  (fold-left (lambda (sum start past)
-	       (+ sum (- past start)))
-	     0
-	     (:shape-starts shape)
-	     (:shape-pasts shape)))
+  (vector-fold-left (lambda (sum start past)
+		      (+ sum (- past start)))
+    0
+    (:shape-starts shape)
+    (:shape-pasts shape)))
 
 (define (array-shape-index-start shape dimension)
-  (list-index (:shape-starts) dimension))
+  (vector-ref (:shape-starts) dimension))
 
 (define (array-shape-index-past shape dimension)
-  (list-index (:shape-pasts) dimension))
+  (vector-ref (:shape-pasts) dimension))
 
 (define (array-shape-index-last shape dimension)
-  (- (list-index (:shape-pasts) dimension) 1))
+  (- (vector-ref (:shape-pasts) dimension) 1))
 
 ;;; --------------------------------------------------------------------
 ;;; comparison
@@ -252,55 +222,54 @@
    ((shape-a shape-b)
     (and (= (array-shape-number-of-dimensions shape-a)
 	    (array-shape-number-of-dimensions shape-b))
-	 (every (lambda (sa sb pa pb) (and (= sa sb) (= pa pb)))
+	 (vector-every (lambda (sa sb pa pb) (and (= sa sb) (= pa pb)))
 	   (:shape-starts shape-a)
 	   (:shape-starts shape-b)
 	   (:shape-pasts shape-a)
 	   (:shape-pasts shape-b))))
    ((shape0 . shape-args)
-    (fold-left/pred array-shape? (cons shape0 shape-args)))))
+    (vector-fold-left/pred array-shape? (cons shape0 shape-args)))))
 
 (define array-supershape?
   (case-lambda
    ((shape-a shape-b)
     (and (= (array-shape-number-of-dimensions shape-a)
 	    (array-shape-number-of-dimensions shape-b))
-	 (every (lambda (sa sb pa pb) (and (<= sa sb) (<= pb pa)))
+	 (vector-every (lambda (sa sb pa pb) (and (<= sa sb) (<= pb pa)))
 	   (:shape-starts shape-a)
 	   (:shape-starts shape-b)
 	   (:shape-pasts shape-a)
 	   (:shape-pasts shape-b))))
    ((shape0 . shape-args)
-    (fold-left/pred array-supershape? shape0 shape-args))))
+    (vector-fold-left/pred array-supershape? shape0 shape-args))))
 
 (define array-supershape?/strict
   (case-lambda
    ((shape-a shape-b)
     (and (= (array-shape-number-of-dimensions shape-a)
 	    (array-shape-number-of-dimensions shape-b))
-	 (let loop ((one-is-strict-supershape? #f)
-		    (starts-a	(:shape-starts shape-a))
-		    (starts-b	(:shape-starts shape-b))
-		    (pasts-a	(:shape-pasts shape-a))
-		    (pasts-b	(:shape-pasts shape-b)))
-	   (cond ((null? starts-a)
-		  one-is-strict-supershape?)
-		 ((and (<  (car starts-a) (car starts-b))
-		       (<= (car  pasts-b) (car  pasts-a)))
-		  (loop #t
-			(cdr starts-a) (cdr starts-b)
-			(cdr  pasts-a) (cdr  pasts-b)))
-		 ((and (<= (car starts-a) (car starts-b))
-		       (<  (car  pasts-b) (car  pasts-a)))
-		  (loop #t
-			(cdr starts-a) (cdr starts-b)
-			(cdr  pasts-a) (cdr  pasts-b)))
-		 ((and (<= (car starts-a) (car starts-b))
-		       (<= (car  pasts-b) (car  pasts-a)))
-		  (loop one-is-strict-supershape?
-			(cdr starts-a) (cdr starts-b)
-			(cdr  pasts-a) (cdr  pasts-b)))
-		 (else #f)))))
+	 (let* ((starts-a	(:shape-starts shape-a))
+		(starts-b	(:shape-starts shape-b))
+		(pasts-a	(:shape-pasts  shape-a))
+		(pasts-b	(:shape-pasts  shape-b))
+		(len		(vector-length starts-a)))
+	   (let loop ((one-is-strict-supershape? #f)
+		      (i 0))
+	     (if (= i len)
+		 one-is-strict-supershape?
+	       (let ((Sa (vector-ref starts-a i))
+		     (Sb (vector-ref starts-b i))
+		     (Pa (vector-ref pasts-a  i))
+		     (Pb (vector-ref pasts-b  i)))
+		 (cond ((null? starts-a)
+			one-is-strict-supershape?)
+		       ((and (<  Sa Sb) (<= Pb Pa))
+			(loop #t (+ 1 i)))
+		       ((and (<= Sa Sb) (<  Pb Pa))
+			(loop #t (+ 1 i)))
+		       ((and (<= Sa Sb) (<= Pb Pa))
+			(loop one-is-strict-supershape? (+ 1 i)))
+		       (else #f))))))))
    ((shape0 . shape-args)
     (fold-left/pred array-supershape?/strict shape0 shape-args))))
 
@@ -315,9 +284,9 @@
 
 (define (array-shape->string shape)
   (string-append "#<array-shape -- "
-		 (string-join (map number->string (:shape-starts shape)) " ")
+		 (string-join (vector->list (vector-map number->string (:shape-starts shape))) " ")
 		 " -- "
-		 (string-join (map number->string (:shape-pasts  shape)) " ")
+		 (string-join (vector->list (vector-map number->string (:shape-pasts  shape))) " ")
 		 ">"))
 
 (define array-shape-display
@@ -345,20 +314,36 @@
   (opaque #t)
   (parent :shape)
   (fields (immutable dimensions)
+		;a vector holding the lengths of the dimensions
 	  (immutable factors)
+		;a  vector  holding  the  factors used  to  compute  the
+		;absolute index in the underlying vector
 	  (immutable mapper)
+		;a mapper function for coordinates
 	  (immutable vector)))
+		;the underlying vector
 
 ;;; --------------------------------------------------------------------
 ;;; constructors
 
 (define (%compute-factors dimensions)
-  (let loop ((dims    (cdr dimensions))
-	     (factors '()))
-    (if (null? dims)
-	(reverse (cons 1 factors))
-      (loop (cdr dims)
-	    (cons (apply * dims) factors)))))
+  (do* ((len (vector-length dimensions))
+	(factors (make-vector len))
+	(kmax (- len 1))
+	(k 0 (+ 1 k)))
+      ((= k kmax)
+       (vector-set! factors (- len 1) 1)
+       factors)
+    (vector-set! factors k
+		 (subvector-fold-left * 1 (view dimensions (start (+ 1 k)))))))
+
+;; (define (%compute-factors dimensions)
+;;   (let loop ((dims    (cdr dimensions))
+;; 	     (factors '()))
+;;     (if (null? dims)
+;; 	(reverse (cons 1 factors))
+;;       (loop (cdr dims)
+;; 	    (cons (apply * dims) factors)))))
 
 (define make-array
   (case-lambda
@@ -367,11 +352,11 @@
    ((shape fill-value)
     (let* ((starts	(:shape-starts shape))
 	   (pasts	(:shape-pasts  shape))
-	   (dimensions	(map - pasts starts)))
+	   (dimensions	(vector-map - pasts starts)))
       (:array-make starts pasts dimensions
 		   (%compute-factors dimensions)
 		   #f
-		   (make-vector (apply * dimensions) fill-value))))))
+		   (make-vector (vector-fold-left * 1 dimensions) fill-value))))))
 
 (define (array shape . elements)
   (let* ((array (make-array shape))
@@ -391,11 +376,11 @@
       (vector-set! vec i (car elements)))))
 
 (define (array-copy array)
-  (:array-make (:shape-starts array)
-	       (:shape-pasts  array)
-	       (:array-dimensions array)
-	       (:array-factors array)
-	       (:array-mapper array)
+  (:array-make (vector-copy (:shape-starts array))
+	       (vector-copy (:shape-pasts  array))
+	       (vector-copy (:array-dimensions array))
+	       (vector-copy (:array-factors array))
+	       (vector-copy (:array-mapper array))
 	       (vector-copy (:array-vector array))))
 
 (define (array-view array mapper)
@@ -434,21 +419,20 @@
 		  (:array-vector array-a)
 		  (:array-vector array-b))))
    ((item= array0 . array-args)
-    (fold-left/pred array=? (cons array0 array-args)))))
+    (vector-fold-left/pred array=? (cons array0 array-args)))))
 
 ;;; --------------------------------------------------------------------
 ;;; accessors
 
 (define (%compute-index proc-name array position)
-;;;  (write (list 'factors (:array-factors array)))(newline)
-  (fold-left (lambda (offset factor index)
-	       (+ offset (* factor index)))
-	     0
-	     (:array-factors array)
-	     (let ((mapper (:array-mapper array)))
-	       (if mapper
-		   (mapper (:position-coordinates position))
-		 (:position-coordinates position)))))
+  (vector-fold-left (lambda (offset factor index)
+		      (+ offset (* factor index)))
+    0
+    (:array-factors array)
+    (let ((mapper (:array-mapper array)))
+      (if mapper
+	  (mapper position)
+	position))))
 
 (define (array-ref array position)
   (vector-ref (:array-vector array)
@@ -495,18 +479,6 @@
 	      (:array-vector array))
 	     port)
     (display ")" port))))
-
-
-;;;; views
-
-;; (define (array-view array shape)
-;;   (if (array-and-shape? array shape)
-;;       (:array-make (:shape-starts shape)
-;; 		   (:shape-pasts  shape)
-;; 		   (:array-vector array))
-;;     (assertion-violation 'array-view
-;;       "invalid shape to build a view over array"
-;;       array shape)))
 
 
 ;;;; done
