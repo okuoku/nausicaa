@@ -107,7 +107,9 @@
     vector-tabulate  vector-append
 
     ;; predicates
-    vector-null? vector-every vector-any
+    vector-null?
+    subvector-every		vector-every
+    subvector-any		vector-any
 
     ;; comparison
     vector-compare
@@ -129,6 +131,11 @@
     vector-fold-left*/with-index	vector-fold-right*/with-index
     subvector-fold-left			subvector-fold-right
     vector-unfold			vector-unfold-right
+    vector-and-fold-left		vector-and-fold-right
+    vector-and-fold-left*		vector-and-fold-right*
+    vector-and-fold-left/stx		vector-and-fold-right/stx
+    vector-and-fold-left*/stx		vector-and-fold-right*/stx
+    vector-fold-left/pred
 
     ;; selecting
     (rename (%vector-copy subvector))
@@ -223,17 +230,17 @@
      (let-values (((vec start past) (unpack ?V)))
        (%vector-null? vec start past)))))
 
-(define-syntax vector-every
+(define-syntax subvector-every
   (syntax-rules ()
     ((_ ?proc ?V)
      (let-values (((vec start past) (unpack ?V)))
-       (%vector-every ?proc vec start past)))))
+       (%subvector-every ?proc vec start past)))))
 
-(define-syntax vector-any
+(define-syntax subvector-any
   (syntax-rules ()
     ((_ ?proc ?V)
      (let-values (((vec start past) (unpack ?V)))
-       (%vector-any ?proc vec start past)))))
+       (%subvector-any ?proc vec start past)))))
 
 
 ;;;; comparison
