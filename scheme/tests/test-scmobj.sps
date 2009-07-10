@@ -28,7 +28,8 @@
 (import (nausicaa)
   (lists)
   (checks)
-  (scmobj))
+  (scmobj)
+  (sentinel))
 
 (check-set-mode! 'report-failed)
 (display "*** testing scmobj core\n")
@@ -168,15 +169,9 @@
       (class-of <three>)
     => <class>)
 
-  (check
-      (class-definition-name <one>)
-    => ':uninitialized)
-  (check
-      (class-definition-name <two>)
-    => ':uninitialized)
-  (check
-      (class-definition-name <three>)
-    => ':uninitialized)
+  (check-for-true (sentinel? (class-definition-name <one>)))
+  (check-for-true (sentinel? (class-definition-name <two>)))
+  (check-for-true (sentinel? (class-definition-name <three>)))
 
   (check
       (class-precedence-list <one>)
@@ -507,7 +502,7 @@
 
   (check
       (map class-definition-name (class-precedence-list <three>))
-    => '(:uninitialized :uninitialized))
+    => `(,sentinel ,sentinel))
 
   )
 
