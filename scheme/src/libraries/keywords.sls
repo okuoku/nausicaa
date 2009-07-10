@@ -25,7 +25,7 @@
 
 
 (library (keywords)
-  (export make-keyword %make-keyword
+  (export define-keyword make-keyword %make-keyword
 	  keyword?
 	  keyword->symbol keyword->string
 	  (rename (%make-keyword symbol->keyword))
@@ -71,6 +71,11 @@
     (syntax-rules ()
       ((_ ?sym)
        (%make-keyword (quote ?sym)))))
+
+  (define-syntax define-keyword
+    (syntax-rules ()
+      ((_ ?sym)
+       (define ?sym (make-keyword ?sym)))))
 
   (define-record-type (keyword %make-keyword keyword?)
     (fields (immutable name keyword->symbol))

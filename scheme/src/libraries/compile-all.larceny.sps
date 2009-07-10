@@ -106,6 +106,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "sentinel.sls"
+		 "sentinel.slfasl")
+
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")
 
@@ -120,9 +123,6 @@
 
 (compile-library "combinators.sls"
 		 "combinators.slfasl")
-
-(compile-library "sentinel.sls"
-		 "sentinel.slfasl")
 
 (compile-library "variables.sls"
 		 "variables.slfasl")

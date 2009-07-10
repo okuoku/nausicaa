@@ -973,7 +973,7 @@ A simple object system
 * scmobj instance::             Instances.
 * scmobj inspect::              Inspecting classes and instances.
 * scmobj slot::                 Accessing slots.
-* scmobj generic::              Generic procedures and methods.
+* scmobj generic::              Generic functions and methods.
 
 Classes
 
@@ -986,7 +986,7 @@ Classes
 * scmobj class port::           Port types.
 * scmobj class misc::           Miscellaneous types.
 
-Generic procedures and methods
+Generic functions and methods
 
 * scmobj generic dispatching::  How dispatching works.
 * scmobj generic methods::      Methods.
@@ -30294,7 +30294,7 @@ The @library{keywords} library implements a type of value,
 treated much like symbols.
 
 
-@deffn Macro make-keyword @var{symbol}
+@deffn Syntax make-keyword @var{symbol}
 @deffnx Function %make-keyword @var{symbol}
 Build the macro and the function return a new keyword value associated
 to the @var{symbol}.  The macro is a wrapper for the function, so the
@@ -30308,6 +30308,12 @@ following two forms are equivalent (notice the quoting):
 When this function is applied to the same symbol multiple times, it
 returns the same keyword value; so those keywords are @func{eq?} to each
 other.
+@end deffn
+
+
+@deffn Syntax define-keyword @var{symbol}
+Build a new keyword value using @func{make-keyword} upon @var{symbol},
+then bind it to @var{symbol}.
 @end deffn
 
 
@@ -30504,7 +30510,7 @@ Nov 13, 2008.}:
 * scmobj instance::             Instances.
 * scmobj inspect::              Inspecting classes and instances.
 * scmobj slot::                 Accessing slots.
-* scmobj generic::              Generic procedures and methods.
+* scmobj generic::              Generic functions and methods.
 @end menu
 
 @c page
@@ -30756,7 +30762,8 @@ names.  By convention their names should start with a colon character,
 
 Notice that classes instantiated with @func{make-class} will have no
 class definition name.  The @func{class-definition-name} function
-applied to them will return the symbol @code{:uninitialized}.
+applied to them will return the sentinel value.  @ref{sentinel, The
+sentinel value}
 @end deffn
 
 
@@ -30766,11 +30773,9 @@ A wrapper for @func{make-class} that defines a new variable named
 of the class is initialised to @var{name}.
 @end deffn
 
-
 @c ------------------------------------------------------------
 
 @subsubheading Examples
-
 
 Definition of a class with no superclasses and 3 slots named: @code{:a},
 @code{:b} and @code{:c}:
@@ -31111,7 +31116,7 @@ otherwise.
 Return the class definition name for @var{class}.  Note that the
 definition name is set only for classes instantiated with
 @func{define-class}, for classes instantiated with @func{make-class} the
-return value is @code{:uninitialized}.
+return value is the sentinel.  @ref{sentinel, The sentinel value}
 @end defun
 
 
@@ -31151,8 +31156,11 @@ Overwrite the value of @var{slot-name} in @var{object} with
 @var{object} has no slot named @var{slot-name}.
 @end defun
 
+@c ------------------------------------------------------------
 
 @subsubheading Examples
+
+Basic slot access:
 
 @example
 (let* ((<one>  (make-class () :a :b :c))
@@ -31163,20 +31171,85 @@ Overwrite the value of @var{slot-name} in @var{object} with
 
   (list (slot-ref o ':b)
         (slot-ref o ':a)
-        (slot-ref o ':c)))
-@result{} '(123 1 3)
+        (slot-ref o ':c))) @result{} '(123 1 3)
+@end example
+
+It is possible to define simple accessors for slots like this:
+
+@example
+(define-class <one> ()
+  :alpha :beta)
+
+(define alpha
+  (case-lambda
+    ((o)
+     (slot-ref  o ':alpha))
+    ((o v)
+     (slot-set! o ':alpha v))))
+
+(define o (make <one> :alpha 123))
+
+(alpha o)       @result{} 123
+(alpha o 456)
+(alpha o)       @result{} 456
+@end example
+
+@noindent
+or better:
+
+@example
+(define-class <one> ()
+  :alpha :beta)
+
+(define (make-accessor slot-name)
+  (case-lambda
+    ((o)
+     (slot-ref  o slot-name))
+    ((o v)
+     (slot-set! o slot-name v))))
+
+(define o (make <one> :alpha 123))
+(define alpha
+  (make-accessor ':alpha))
+
+(alpha o)       @result{} 123
+(alpha o 456)
+(alpha o)       @result{} 456
+@end example
+
+@noindent
+and closure accessors are also possible:
+
+@example
+(define-class <one> ()
+  :alpha :beta)
+
+(define (make-accessor o slot-name)
+  (case-lambda
+    (()
+     (slot-ref  o slot-name))
+    ((v)
+     (slot-set! o slot-name v))))
+
+(define o (make <one> :alpha 123))
+(define alpha
+  (make-accessor o ':alpha))
+
+(alpha)         @result{} 123
+(alpha 456)
+(alpha)         @result{} 456
 @end example
 
 @c page
 @node scmobj generic
-@subsection Generic procedures and methods
+@subsection Generic functions and methods
 
 
-Generic procedures are procedures that can be specialized to the classes
-of their arguments.  Each specialization of a generic procedure is
-called a method.  When applying a generic procedure to a set of
-arguments, the most specific method vis--a--vis the arguments' classes
-is chosen.
+@dfn{Generic functions} are procedures that can be specialized to the
+classes of their arguments.  Each specialisation of a generic function
+is called @dfn{method}.  When applying a generic function to a set of
+arguments, the most specific method with respect to the arguments'
+classes is chosen.
 
 @menu
 * scmobj generic dispatching::  How dispatching works.

@@ -38,14 +38,18 @@
 
 
 
-(define :alpha  (make-keyword alpha))
-(define :alpha1 (make-keyword alpha))
+(define :alpha   (make-keyword alpha))
+(define :alpha1  (make-keyword alpha))
+(define-keyword :beta)
 
 (check (keyword? :alpha) => #t)
 (check (keyword->symbol :alpha) => 'alpha)
 (check (keyword->string :alpha) => "alpha")
 (check (symbol->keyword 'alpha) => :alpha)
 (check (string->keyword "alpha") => :alpha)
+
+(check (keyword? :beta) => #t)
+(check (keyword->symbol :beta) => ':beta)
 
 (let ((:alpha 123))
   (check (keyword? :alpha) => #f))
