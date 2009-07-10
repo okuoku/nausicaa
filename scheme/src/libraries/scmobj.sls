@@ -62,52 +62,43 @@
     call-next-method next-method?)
   (import (nausicaa)
     (rnrs mutable-pairs (6))
-    (lists))
+    (lists)
+    (sentinel))
 
 
-;;;; Helper functions and syntaxes: generic routines.
+;;;; helpers
 
 (define-syntax position
   (syntax-rules ()
     ((_ ?element ?list)
-     (list-index
-	 (lambda (elm)
-	   (eq? ?element elm))
-       ?list))))
+     (find (lambda (elm)
+	     (eq? ?element elm))
+	   ?list))))
 
-
-;;;; Helper functions and syntaxes: class instantiation.
-
-;;Given a list of superclasses for class <x>, build and return the class
+;;Given a list of superclasses for class <x>: Build and return the class
 ;;precedence list for <x> to be used in multimethod dispatching.
 ;;
-(define (build-class-precedence-list . superclasses)
+(define (%build-class-precedence-list . superclasses)
   (if (null? superclasses)
       superclasses
-    (delete-duplicates
-     (concatenate
-      (map
-	  (lambda (super)
-	    (cons super (class-precedence-list super)))
-	superclasses))
-     eq?)))
+    (delete-duplicates (concatenate (map (lambda (super)
+					   (cons super (class-precedence-list super)))
+				      superclasses))
+		       eq?)))
 
 ;;Given the  list of  direct slot names  for class  <x> and its  list of
-;;superclasses: build and return the class precedence list for <x> to be
+;;superclasses: Build and return the class precedence list for <x> to be
 ;;used in multimethod dispatching.
 ;;
-(define (build-slot-list direct-slots . superclasses)
+(define (%build-slot-list direct-slots . superclasses)
   (if (null? superclasses)
       direct-slots
-    (delete-duplicates
-     (concatenate (cons direct-slots
-			(map (lambda (s)
-			       (class-slots s))
-			  superclasses)))
-     eq?)))
+    (delete-duplicates (concatenate (cons direct-slots
+					  (map class-slots superclasses)))
+		       eq?)))
 
 
-;;;; Access to slots.
+;;;; access to slots
 
 ;;Slot access  should be as  fast as possible,  for this reason  we make
 ;;this a syntax (it gets expanded in the function).
@@ -116,7 +107,8 @@
     ((_ ?caller ?object ?slot-name)
      (or (assq ?slot-name ?object)
 	 (assertion-violation ?caller
-	   "trying to access nonexistent slot" ?slot-name)))))
+	   "trying to access nonexistent slot"
+	   ?slot-name ?object)))))
 
 (define (slot-ref object slot-name)
   (cdr (get-slot 'slot-ref object slot-name)))
@@ -125,7 +117,7 @@
   (set-cdr! (get-slot 'slot-set! object slot-name) value))
 
 
-;;;; Class inspection functions.
+;;;; class inspection functions
 
 (define (class-definition-name class-object)
   (slot-ref class-object ':class-definition-name))
@@ -170,64 +162,62 @@
   (let ((full-class-list (instance-classes object)))
     (and (memq class full-class-list)
 	 (if (memq <builtin-class> full-class-list)
-	     #t
-	   ;;Check that all the slots are here.
+	     #t	;make sure that it returns #t not a generic true
 	   (let ((object-slots (cdr (map car object))))
-	     (every
+	     (every ;check that all the slots are here
 		 (lambda (slot-name)
-		   (let ((r (memq slot-name object-slots)))
-		     r))
+		   (memq slot-name object-slots))
 	       (class-slots class))))
-	 ;;Make sure that it returns #t not a generic true.
-	 #t)))
+	 #t)))	;make sure that it returns #t not a generic true
 
 ;;; --------------------------------------------------------------------
 
-;;It has to be:
-;;
-;;   (:class . class-object)
-;;
 (define (first-class-slot? value)
+  ;;It has to be:
+  ;;
+  ;;   (:class . class-object)
+  ;;
   (and (pair? value)
        (eq? ':class (car value))
        (eq? <class> (cdr value))))
 
-;;It has to be:
-;;
-;;   (:class-definition-name . symbol)
-;;
 (define (second-class-slot? value)
+  ;;It has to be:
+  ;;
+  ;;   (:class-definition-name . symbol)
+  ;;
   (and (pair? value)
        (eq? ':class-definition-name (car value))
-       (symbol? (cdr value))))
+       (let ((v (cdr value)))
+	 (or (symbol? v) (sentinel? v)))))
 
-;; It has to be:
-;;
-;;   (:class-precedence-list . (... classes ...))
-;;
 (define (third-class-slot? value)
+  ;; It has to be:
+  ;;
+  ;;   (:class-precedence-list . (... classes ...))
+  ;;
   (and (pair? value)
        (eq? ':class-precedence-list (car value))
        (let ((v (cdr value)))
 	 (and (proper-list? v)
 	      (every class? v)))))
 
-;;It has to be:
-;;
-;;   (:slots . (... symbols ...))
-;;
 (define (fourth-class-slot? value)
+  ;;It has to be:
+  ;;
+  ;;   (:slots . (... symbols ...))
+  ;;
   (and (pair? value)
        (eq? ':slots (car value))
        (let ((v (cdr value)))
 	 (and (proper-list? v)
 	      (every symbol? v)))))
 
-;;It has to be:
-;;
-;;   (:direct-slots . (... symbols ...))
-;;
 (define (fifth-class-slot? value)
+  ;;It has to be:
+  ;;
+  ;;   (:direct-slots . (... symbols ...))
+  ;;
   (and (pair? value)
        (eq? ':direct-slots (car value))
        (let ((v (cdr value)))
@@ -235,8 +225,10 @@
 	      (every symbol? v)))))
 
 
-;;;; Built in classes.
+;;;; built in classes
 
+;;Not all the Scheme implementations support the #0 syntax.
+;;
 ;; (define <class>
 ;;   '#0=((:class . #0#)
 ;;        (:class-definition-name . <class>)
@@ -245,6 +237,7 @@
 ;; 		  :class-precedence-list :slots :direct-slots))
 ;;        (:direct-slots . (:class-definition-name
 ;; 			 :class-precedence-list :slots :direct-slots))))
+;;
 (define <class>
   (let ((layout
 	 ;;These two conses  make the list a mutable  value, while using
@@ -278,7 +271,7 @@
      (define ?name
        `((:class . ,<builtin-class>)
 	 (:class-definition-name . ?name)
-	 (:class-precedence-list . ,(build-class-precedence-list ?superclass ...))
+	 (:class-precedence-list . ,(%build-class-precedence-list ?superclass ...))
 	 (:slots . ())
 	 (:direct-slots . ()))))
     ((_ ?name ?superclass)
@@ -319,17 +312,26 @@
 ;;
 
 
-;;;; Class and instance constructors.
+;;;; class and instance constructors
+
+(define (%make class-name class . init-args)
+  ;;This is a standard make function, in the style of CLOS.
+  ;;
+  (let ((instance (%allocate-instance class)))
+    (%initialise instance class-name init-args)
+    instance))
 
 (define (%slot class key value)
+  ;;A slot builder user by the  "make" syntax.  Makes sure that the slot
+  ;;is valid for the class.
   (if (memq key (class-slots class))
       (cons key value)
     (syntax-violation 'slot "invalid slot keyword" key)))
 
-;;This  macro exists  so  that we  can  specify the  slot names  without
-;;quoting them.
-;;
 (define-syntax make
+  ;;This  macro exists so  that we  can specify  the slot  names without
+  ;;quoting them.
+  ;;
   (syntax-rules (:slots)
     ((_ ?class (:slots (?key0 . ?value0) ...) ?key ?value ?thing ...)
      (make ?class (:slots (?key . ?value) (?key0 . ?value0) ...) ?thing ...))
@@ -340,68 +342,72 @@
     ((_ ?class)
      (make ?class '()))))
 
-;;This is a "standard" make function, in style with CLOS.
-;;
-(define (%make class-name class . init-args)
-  (let ((instance (allocate-instance class)))
-    (initialise instance class-name init-args)
-    instance))
-
-;;Build  a  new alist  initialising  all  the  slots, but  ":class",  to
-;;":uninitialized".  The  ":class" pair has  to be the first  element in
-;;the alist.
-;;
-;;The form of this function is  one of the reasons why the ":class" slot
-;;is not in the list of slots.
-;;
-(define (allocate-instance class)
+(define (%allocate-instance class)
+  ;;Build a new  alist initialising all the slots,  but ":class", to the
+  ;;sentinel.   The ":class" pair  has to  be the  first element  in the
+  ;;alist.
+  ;;
+  ;;NOTE: The structure  of this function is one of  the reasons why the
+  ;;":class" slot is not in the list of slots.
+  ;;
   (cons (cons ':class class)
 	(map (lambda (x)
-	       (cons x ':uninitialized))
+	       (cons x sentinel))
 	  (class-slots class))))
 
-;;Interpret SLOT-VALUES  as an alist of slot-name/slot-value pairs.
-;;
-(define (initialise instance class-name slot-values)
+(define (%initialise instance class-name slot-values)
+  ;;Initialise an already allocated instance with the given slot values.
+  ;;SLOT-VALUES  is  interpreted  as  an alist  of  slot-name/slot-value
+  ;;pairs.
+  ;;
   (map (lambda (p)
 	 (slot-set! instance (car p) (cdr p)))
     slot-values))
 
-;;It  is  possible  for  a  class  to add  no  new  slots:  this  allows
-;;subclassing for the only purpose of method dispatching.
-;;
-;;Notice that the  class precedence list does not  include the new class
-;;itself.
-;;
 (define-syntax make-class
+  ;;Buld a new  class object, initialise all the  slots.  The class name
+  ;;is set to the sentinel.   Notice that the class precedence list does
+  ;;not include the new class itself.
+  ;;
+  ;;It  is  possible for  a  class  to add  no  new  slots: this  allows
+  ;;subclassing for the only purpose of method dispatching.
+  ;;
+  ;;The quasiquoted alist is duplicated in DEFINE-CLASS.
+  ;;
   (syntax-rules ()
     ((_)
      (make-class ()))
     ((_ (?superclass ...) ?slot-spec ...)
      `((:class . ,<class>)
-       (:class-definition-name . :uninitialized)
+       (:class-definition-name . ,sentinel)
        (:class-precedence-list
-	. ,(build-class-precedence-list ?superclass ...))
+	. ,(%build-class-precedence-list ?superclass ...))
        (:slots
-	. ,(build-slot-list '(?slot-spec ...) ?superclass ...))
+	. ,(%build-slot-list '(?slot-spec ...) ?superclass ...))
        (:direct-slots . (?slot-spec ...))))))
 
-;;Define a binding for a class, giving it a name.
-;;
 (define-syntax define-class
+  ;;Define a binding for a class, giving it a name.
+  ;;
+  ;;This  syntax duplicates  the MAKE-CLASS  quasiquoted alist  to avoid
+  ;;problems with  mutation of values.   To implement DEFINE-CLASS  as a
+  ;;wrapper of MAKE-CLASS we should copy  the alist to make it a mutable
+  ;;object.  The alist  is small, so we just  duplicate it accepting the
+  ;;cost of keeping the two versions in sync.
+  ;;
   (syntax-rules ()
     ((_ ?name)
      (define-class ?name ()))
     ((_ ?name (?superclass ...) ?slot-spec ...)
+     ;;This  is the  same as  MAKE-CLASS, but  we also  store  the class
+     ;;definition name in its slot.
      (define ?name
-       ;;This is  the same as  MAKE-CLASS, but we also  store the
-       ;;class definition name in its slot.
        `((:class . ,<class>)
 	 (:class-definition-name . ?name)
 	 (:class-precedence-list
-	  . ,(build-class-precedence-list ?superclass ...))
+	  . ,(%build-class-precedence-list ?superclass ...))
 	 (:slots
-	  . ,(build-slot-list '(?slot-spec ...) ?superclass ...))
+	  . ,(%build-slot-list '(?slot-spec ...) ?superclass ...))
 	 (:direct-slots . (?slot-spec ...)))))))
 
 
@@ -455,7 +461,8 @@
    ((record? value)		<record>)
    ((bytevector? value)		<bytevector>)
    ((pair? value)
-    ;;Order does matter here!!!
+    ;;Order does matter  here!!!  Better leave these at  the end because
+    ;;qualifying a long list can be time-consuming.
     (cond
      ((circular-list value)	<circular-list>)
      ((dotted-list? value)	<dotted-list>)
@@ -468,7 +475,26 @@
 
 ;;;; methods dispatching
 
-(define (more-specific-method method1 method2 call-signature)
+(define (%compute-applicable-methods call-signature method-table)
+  ;;Filter out  from METHOD-TABLE (a  list of methods) the  methods that
+  ;;are not applicable  to a tuple of arguments with  types in the tuple
+  ;;CALL-SIGNATURE.  Then  sort the list  of applicable methods  so that
+  ;;the more specific are the first ones.
+  ;;
+  (map cdr
+    (list-sort
+     (lambda (method1 method2)
+       (%more-specific-method? method1 method2 call-signature))
+     (filter
+	 (lambda (method) ;return true if the method is applicable
+	   (every subclass? call-signature (car method)))
+       method-table))))
+
+(define (%more-specific-method? method1 method2 call-signature)
+  ;;Return  true   if  METHOD1  is   more  specific  than   METHOD2  for
+  ;;CALL-SIGNATURE.   This  function  is   only  used  as  predicate  by
+  ;;%COMPUTE-APPLICABLE-METHODS to sort a list of methods.
+  ;;
   (let loop ((signature1 (car method1))
 	     (signature2 (car method2))
 	     (call-signature call-signature))
@@ -487,332 +513,299 @@
 	  (< (position class1 cpl)
 	     (position class2 cpl))))))))
 
-(define (compute-applicable-methods call-signature method-table)
-  (map cdr
-    (list-sort
-     (lambda (method1 method2)
-       (more-specific-method method1 method2 call-signature))
-     (filter
-	 (lambda (method)
-	   (every subclass? call-signature (car method)))
-       method-table))))
-
 
-;;;; Next method implementation.
+;;;; next method implementation
+
+(define next-method-func-parm (make-parameter #f))
+(define next-method-pred-parm (make-parameter #f))
 
 (define-syntax call-next-method
   (syntax-rules ()
     ((_)
-     (when (scmobj:the-next-method-func)
-       ((scmobj:the-next-method-func))))))
+     (let ((f (next-method-func-parm)))
+       (when f (f))))))
 
 (define-syntax next-method?
   (syntax-rules ()
     ((_)
-     (when (scmobj:the-next-method-pred)
-       ((scmobj:the-next-method-pred))))))
-
-(define scmobj:the-next-method-func (make-parameter #f))
-(define scmobj:the-next-method-pred (make-parameter #f))
+     (let ((f (next-method-pred-parm)))
+       (when f (f))))))
 
 
-;;;; Generic functions.
+;;;; generic functions
 
-;;A 'generic  function' is  basically a couple  of values:  an interface
-;;procedure and an object of class <generic>.
-;;
-;;The interface procedure is  stored in the :interface-procedure slot of
-;;the object  and is  used to apply  the generic  function to a  list of
-;;arguments.
-;;
 (define-class <generic> ()
+  ;;A "generic function"  is basically a couple of  values: an interface
+  ;;procedure and an object of class <generic>.
+  ;;
+  ;;The interface procedure is stored in the ":interface-procedure" slot
+  ;;of the object and it is used to apply the generic function to a list
+  ;;of arguments.
+  ;;
   :interface-procedure
   :add-primary-method
   :add-before-method
   :add-after-method
   :add-around-method)
 
-;;This  is  an alist  that  will hold  all  the  generic functions  ever
-;;created.  The  keys are the  interface procedures, the values  are the
-;;<generic> objects.
-(define *generic-procedures* (make-eq-hashtable))
+(define *generic-functions*
+  ;;This will hold all the generic functions ever created.  The keys are
+  ;;the interface procedures, the values are the <generic> objects.
+  (make-eq-hashtable))
 
-;;Helper  function  that  adds  a  signature/func pointed  list  to  the
-;;appropriate  alist  of methods  (the  METHOD-TABLE  argument).  A  new
-;;method is added only if no method with the signature already exists.
-(define (add-method-to-method-table
-	 method-table method-signature method-func)
-  (unless (any (lambda (signature.function)
-		 ;;If  a  method  with  the  signature  already  exists,
-		 ;;overwrite its function with the new one.
-		 (and (every eq? method-signature
-			     (car signature.function))
-		      (begin
-			(set-cdr! signature.function method-func)
-			#t)))
-	    method-table)
-    (set! method-table
-	  (alist-cons method-signature method-func method-table)))
+(define (%add-method-to-method-table method-table signature function)
+  ;;Helper function that adds a method's signature/function pointed list
+  ;;to  the appropriate  alist of  methods (the  METHOD-TABLE argument).
+  ;;Return  the method  table (possibly  modified).  It  is used  in the
+  ;;expansion of the METHOD-ADDER syntax below.
+  ;;
+  ;;A new method is added only  if no method with the selected signature
+  ;;already  exists.  If  a method  with the  signature  already exists,
+  ;;overwrite its function with the new one.
+  ;;
+  (let ((signature.function (find (lambda (signature.function)
+				    (every eq? signature (car signature.function)))
+				  method-table)))
+    (if signature.function
+	(set-cdr! signature.function function)
+      (set! method-table (alist-cons signature function method-table))))
   method-table)
-
-;;Helper syntax for the definition of  the closure that adds a method to
-;;the appropriate method table.
-(define-syntax method-adder
-  (syntax-rules ()
-    ((_ ?method-table)
-     (lambda (method-signature method-func)
-       (set! ?method-table
-	     (add-method-to-method-table
-	      ?method-table method-signature method-func))))))
-
-(define-syntax create-generic-procedure
-  (syntax-rules ()
-    ((create-generic-procedure ?arg-name ...)
-     (let ((primary-method-table '())
-	   (before-method-table '())
-	   (after-method-table '())
-	   (around-method-table '()))
-       (make <generic>
-	 :add-primary-method (method-adder primary-method-table)
-	 :add-before-method  (method-adder before-method-table)
-	 :add-after-method   (method-adder after-method-table)
-	 :add-around-method  (method-adder around-method-table)
-	 :interface-procedure
-	 (lambda (?arg-name ... . rest)
-	   (letrec*
-	       ((signature
-		 (list (class-of ?arg-name) ...))
-
-		(applicable-primary-methods
-		 (compute-applicable-methods signature primary-method-table))
-
-		(applicable-before-methods
-		 (compute-applicable-methods signature before-method-table))
-
-		(applicable-after-methods
-		 (reverse
-		  (compute-applicable-methods signature after-method-table)))
-
-		(applicable-around-methods
-		 (compute-applicable-methods signature around-method-table))
-
-		(primary-method-called #f)
-
-		(apply-function
-		 (lambda (f) (apply f ?arg-name ... rest)))
-
-		(next-method-pred
-		 (lambda ()
-		   (if primary-method-called
-		       (not (null? applicable-primary-methods))
-		     (or (not (null? applicable-around-methods))
-			 (not (null? applicable-primary-methods))))))
-
-		(next-method-func
-		 (lambda ()
-		   (let-syntax
-		       ((consume-method
-			 (syntax-rules ()
-			   ((_ ?method-table)
-			    (begin0
-				(car ?method-table)
-			      (set! ?method-table
-				    (cdr ?method-table)))))))
-		     (cond
-
-		      ;;We enter here only  if a primary method has been
-		      ;;called   and,   in   its   body,   a   call   to
-		      ;;CALL-NEXT-METHOD if performed.
-		      (primary-method-called
-		       (apply-function
-			(consume-method applicable-primary-methods)))
-
-		      ;;If around  methods exists: we  apply them rather
-		      ;;than the  primary ones.  It is  expected that an
-		      ;;around method invokes CALL-NEXT-METHOD.
-		      ((not (null? applicable-around-methods))
-		       (apply-function
-			(consume-method applicable-around-methods)))
-
-		      ;;Raise an error if no applicable methods.
-		      ((null? applicable-primary-methods)
-		       (assertion-violation
-			   'next-method-func
-			 "no method defined for these argument classes"))
-
-		      ;;Apply  the   methods:  before,  primary,  after.
-		      ;;Return the return value of the primary.
-		      (else (set! primary-method-called #t)
-			    (for-each
-				apply-function
-			      applicable-before-methods)
-			    (begin0
-				(apply-function
-				 (consume-method applicable-primary-methods))
-			      (for-each
-				  apply-function
-				applicable-after-methods))))))))
-	     (parameterize ((scmobj:the-next-method-func next-method-func)
-			    (scmobj:the-next-method-pred next-method-pred))
-	       (next-method-func)))))))))
-
-;;; --------------------------------------------------------------------
-
-;;Helper   function  that   adds   a  new   generic   function  to   the
-;;*GENERIC-PROCEDURES*  table.  This  function  is not  expanded in  the
-;;MAKE-GENERIC-FUNCTION (as it was  in the original ScmObj code) because
-;;doing so would modify a  variable exported from this library (and this
-;;is forbidden by R6RS or Ikarus).
-(define (register-new-generic-function interface-procedure generic-object)
-  (hashtable-set! *generic-procedures* interface-procedure generic-object))
-
-(define-syntax make-generic-function
-  (syntax-rules ()
-    ((make-generic-function ?arg ...)
-     (let* ((generic-object
-	     (create-generic-procedure ?arg ...))
-            (interface-procedure
-	     (slot-ref generic-object ':interface-procedure)))
-       (register-new-generic-function interface-procedure generic-object)
-       interface-procedure))))
 
 (define-syntax define-generic
   (syntax-rules ()
     ((_ ?name ?arg ...)
      (define ?name (make-generic-function ?arg ...)))))
 
+(define-syntax make-generic-function
+  (syntax-rules ()
+    ((make-generic-function ?arg ...)
+     (let* ((generic-object       (create-generic-procedure ?arg ...))
+            (interface-procedure  (slot-ref generic-object ':interface-procedure)))
+       (hashtable-set! *generic-functions* interface-procedure generic-object)
+       interface-procedure))))
+
+(define-syntax create-generic-procedure
+  ;;Create the interface procedure of generic functions.
+  ;;
+  (syntax-rules ()
+    ((_ ?arg-name ...)
+     (let ((primary-method-table '()) ;these are all alists
+	   (before-method-table  '())
+	   (after-method-table   '())
+	   (around-method-table  '()))
+       (let-syntax ((method-adder (syntax-rules ()
+				    ((_ ?method-table)
+				     (lambda (signature function)
+				       (set! ?method-table
+					     (%add-method-to-method-table
+					      ?method-table signature function)))))))
+	 (make <generic>
+	   :add-primary-method (method-adder primary-method-table)
+	   :add-before-method  (method-adder before-method-table)
+	   :add-after-method   (method-adder after-method-table)
+	   :add-around-method  (method-adder around-method-table)
+	   :interface-procedure
+	   (lambda (?arg-name ... . rest)
+	     (let-syntax ((apply-function/stx (syntax-rules ()
+						((_ ?func-name)
+						 (apply ?func-name ?arg-name ... rest))))
+			  (consume-method (syntax-rules ()
+					    ((_ ?method-table)
+					     (begin0
+						 (car ?method-table)
+					       (set! ?method-table (cdr ?method-table)))))))
+	       (letrec* ((signature
+			  (list (class-of ?arg-name) ...))
+
+			 (applicable-primary-methods
+			  (%compute-applicable-methods signature primary-method-table))
+
+			 (applicable-before-methods
+			  (%compute-applicable-methods signature before-method-table))
+
+			 (applicable-after-methods
+			  (reverse ;!!! yes!
+			   (%compute-applicable-methods signature after-method-table)))
+
+			 (applicable-around-methods
+			  (%compute-applicable-methods signature around-method-table))
+
+			 (primary-method-called #f)
+
+			 (next-method-pred
+			  (lambda ()
+			    (if primary-method-called
+				(not (null? applicable-primary-methods))
+			      (or (not (null? applicable-around-methods))
+				  (not (null? applicable-primary-methods))))))
+
+			 (next-method-func
+			  (lambda ()
+			    (cond
+			     (primary-method-called
+			      ;;We enter here only if a primary method
+			      ;;has  been called and,  in its  body, a
+			      ;;call to CALL-NEXT-METHOD if performed.
+			      (apply-function/stx (consume-method applicable-primary-methods)))
+
+			     ((not (null? applicable-around-methods))
+			      ;;If around methods exist: we apply them
+			      ;;rather than  the primary ones.   It is
+			      ;;expected that an around method invokes
+			      ;;CALL-NEXT-METHOD   to   evaluate   the
+			      ;;primary methods.
+			      (apply-function/stx (consume-method applicable-around-methods)))
+
+			     ((null? applicable-primary-methods)
+			      ;;Raise   an  error  if   no  applicable
+			      ;;methods.
+			      (assertion-violation 'next-method-func
+				"no method defined for these argument classes"))
+
+			     (else
+			      ;;Apply  the  methods: before,  primary,
+			      ;;after.  Return the return value of the
+			      ;;primary.
+			      (set! primary-method-called #t)
+			      (for-each
+				  (lambda (f) (apply-function/stx f))
+				applicable-before-methods)
+			      (begin0
+				  (apply-function/stx (consume-method applicable-primary-methods))
+				(for-each
+				    (lambda (f) (apply-function/stx f))
+				  applicable-after-methods)))))))
+		 (parameterize ((next-method-func-parm next-method-func)
+				(next-method-pred-parm next-method-pred))
+		   (next-method-func)))))))))))
+
 
-;;;; Methods.
-
-;;What follows  is the documentation of the  DEFINE-METHOD syntax below.
-;;The pattern matching has tree phases:
-;;
-;;1. the method  is recognised as primary, before,  after or around, and
-;;two accumulator lists are initialised to nil;
-;;
-;;2. the method arguments are accumulated  in a list of "with class" and
-;;a list of "without class";
-;;
-;;3. the  method is added to  the appropriate collection  in the generic
-;;function.
-;;
-;;The ?QUALIFIER pattern variable is one of the literals:
-;;
-;;	:primary :before :after :around
-;;
-;;it defaults to ":primary".
-;;
-;;The  ?SARGS pattern variable  is a  list accumulator  for specialising
-;;arguments.  A specialising  argument is a method argument  for which a
-;;class was specified.
-;;
-;;The   ?NSARGS   pattern   variable   is   a   list   accumulator   for
-;;non-specialising arguments.   A non-specialising argument  is a method
-;;argument for which a class was NOT specified.
-;;
-;;The  ?REST pattern  variable is  used  to hold  the name  of the  rest
-;;argument.
-;;
-;;The  ?ARG pattern  variable is  the  next argument  to be  accumulated
-;;somewhere.
-;;
-;;The  ?SA   pattern  variable   is  a  specialising   argument  already
-;;accumulated.
-;;
-;;The  ?NSA  pattern variable  is  a  non-specialising argument  already
-;;accumulated.
-;;
-;;Example:
-;;
-;;  (define-method swirl-vector ((vec <vector>) idx . args)
-;;	---)
-;;
-;;here  VEC is  a  specialising argument  of  class <vector>,  IDX is  a
-;;non-specialising argument, ARGS is the name of the rest argument.
-;;
-;;A 'signature' is  a list of classes: given a  list of generic function
-;;call arguments, the arguments must  match these classes for the method
-;;to be applicable.  Example:
-;;
-;;  (define-method twist-vector ((vec <vector>) (idx <int>))
-;;     ---)
-;;
-;;the signature is: "(list <vector> <int>)".
-;;
-
-(define (add-method-to-generic-function
-	 slot-name generic-function method-signature method-func)
-  ((slot-ref (hashtable-ref *generic-procedures* generic-function #f) slot-name)
-   method-signature method-func))
-
-;;; --------------------------------------------------------------------
+;;;; methods
 
 (define-syntax define-method
+  ;;Define a new method.  The pattern matching has tree phases:
+  ;;
+  ;;1. The method is recognised as primary, before, after or around.
+  ;;
+  ;;2. The  method arguments are accumulated  in a list  of "with class"
+  ;;   and a list of "without class".
+  ;;
+  ;;3. The method is added  to the appropriate collection in the generic
+  ;;   function.
+  ;;
+  ;;The process is split into three different macros for readability.
+  ;;
+  ;;  The ?QUALIFIER pattern variable is one of the literals:
+  ;;
+  ;;     :primary
+  ;;     :before
+  ;;     :after
+  ;;     :around
+  ;;
+  ;;it  defaults to ":primary".
+  ;;
   (syntax-rules (:primary :before :after :around)
-
-    ((_ 1 ?generic-function ?qualifier ?args . ?body)
-     (define-method 2 ?generic-function ?qualifier ?args
-       ()  ;;specialising args
-       ()  ;;non-specialising args
-       . ?body))
-
-    ;;Matches  the form when  the next  argument to  be processed  has a
-    ;;class.
-    ((_ 2 ?generic-function ?qualifier ((?arg ?class) . ?args) (?sa ...) ?nsargs . ?body)
-     (define-method 2 ?generic-function ?qualifier
-       ?args (?sa ... (?arg ?class)) ?nsargs . ?body))
-
-    ;;Matches the  form when  the next argument  to be processed  has no
-    ;;class.
-    ((_ 2 ?generic-function ?qualifier (?arg . ?args) ?sargs (?nsa ...) . ?body)
-     (define-method 2 ?generic-function ?qualifier
-       ?args ?sargs (?nsa ... ?arg)  . ?body))
-
-    ;;Matches the form when all the arguments have been processed.
-    ((_ 2 ?generic-function ?qualifier () ?sargs ?nsargs . ?body)
-     (define-method 3 ?generic-function ?qualifier
-       ?sargs ?nsargs . ?body))
-
-    ;;Matches the  form when all  the arguments have been  processed and
-    ;;only the rest argument is there.
-    ((_ 2 ?generic-function ?qualifier ?rest ?sargs (?nsa ...) . ?body)
-     (define-method 3 ?generic-function ?qualifier
-       ?sargs (?nsa ... . ?rest) . ?body))
-
-    ((_ 3 ?generic-function :primary ((?arg ?class) ...) ?nsargs . ?body)
-     (add-method-to-generic-function ':add-primary-method
-      ?generic-function (list ?class ...)
-      (lambda (?arg ... . ?nsargs) . ?body)))
-
-    ((_ 3 ?generic-function :before ((?arg ?class) ...) ?nsargs . ?body)
-     (add-method-to-generic-function ':add-before-method
-      ?generic-function (list ?class ...)
-      (lambda (?arg ... . ?nsargs) . ?body)))
-
-    ((_ 3 ?generic-function :after ((?arg ?class) ...) ?nsargs . ?body)
-     (add-method-to-generic-function ':add-after-method
-      ?generic-function (list ?class ...)
-      (lambda (?arg ... . ?nsargs) . ?body)))
-
-    ((_ 3 ?generic-function :around ((?arg ?class) ...) ?nsargs . ?body)
-     (add-method-to-generic-function ':add-around-method
-      (list ?class ...)
-      (lambda (?arg ... . ?nsargs) . ?body)))
-
     ((_ ?generic-function :primary ?args . ?body)
-     (define-method 1 ?generic-function :primary ?args . ?body))
+     (%collect-classes-and-arguments ?generic-function :primary ?args () () . ?body))
 
-    ((_ ?generic-function :before ?args . ?body)
-     (define-method 1 ?generic-function :before ?args . ?body))
+    ((_ ?generic-function :before  ?args . ?body)
+     (%collect-classes-and-arguments ?generic-function :before  ?args () () . ?body))
 
-    ((_ ?generic-function :after ?args . ?body)
-     (define-method 1 ?generic-function :after ?args . ?body))
+    ((_ ?generic-function :after   ?args . ?body)
+     (%collect-classes-and-arguments ?generic-function :after   ?args () () . ?body))
 
-    ((_ ?generic-function :around ?args . ?body)
-     (define-method 1 ?generic-function :around ?args . ?body))
+    ((_ ?generic-function :around  ?args . ?body)
+     (%collect-classes-and-arguments ?generic-function :around  ?args () () . ?body))
 
-    ((_ ?generic-function ?args . ?body)
-     (define-method 1 ?generic-function :primary ?args . ?body))))
+    ((_ ?generic-function          ?args . ?body)
+     (%collect-classes-and-arguments ?generic-function :primary ?args () () . ?body))))
+
+(define-syntax %collect-classes-and-arguments
+  (syntax-rules (:primary :before :after :around)
+    ((_ ?generic-function ?qualifier ((?name ?type) . ?args) (?class ...) (?arg ...) . ?body)
+     ;;Matches the  form when  the next argument  to be processed  has a
+     ;;class.
+     (%collect-classes-and-arguments ?generic-function ?qualifier
+				     ?args (?class ... ?type) (?arg ... ?name) . ?body))
+
+    ((_ ?generic-function ?qualifier (?name . ?args) (?class ...) (?arg ...) . ?body)
+     ;;Matches the  form when the next  argument to be  processed has no
+     ;;class.
+     (%collect-classes-and-arguments ?generic-function ?qualifier
+				     ?args (?class ... #t) (?arg ... ?name)  . ?body))
+
+    ((_ ?generic-function ?qualifier () (?class ...) (?arg ...) . ?body)
+     ;;Matches  the form  when all  the arguments  have  been processed.
+     ;;This MUST come before the one below.
+     (%dispatch-method-to-adder ?generic-function ?qualifier
+				(?class ...) (?arg ...) . ?body))
+
+    ((_ ?generic-function ?qualifier ?rest (?class ...) (?arg ...) . ?body)
+     ;;Matches the form  when all the arguments have  been processed and
+     ;;only the  rest argument is there.   This MUST come  after the one
+     ;;above.
+     (%dispatch-method-to-adder ?generic-function ?qualifier
+				(?class ...) (?arg ... . ?rest) . ?body))))
+
+(define-syntax %dispatch-method-to-adder
+  (lambda (stx)
+    (syntax-case stx (:primary :before :after :around)
+      ((_ ?generic-function ?qualifier (?class ...) (?arg ...) . ?body)
+       (syntax
+	(%add-method-to-generic-function
+	 (let ((qualifier (syntax->datum (syntax ?qualifier))))
+	   (case qualifier
+	     ((:primary)	':add-primary-method)
+	     ((:before)		':add-before-method)
+	     ((:after)		':add-after-method)
+	     ((:around)		':add-around-method)
+	     (else
+	      (syntax-violation 'define-method "bad method qualifier" qualifier))))
+	 ?generic-function (list ?class ...)
+	 (lambda (?arg ... ) . ?body)))))))
+
+;;The  following  exists only  for  reference on  "how  to  do it".   It
+;;produces the slot name using a subfunction.  All the nested forms LET,
+;;WITH-SYNTAX and DATUM->SYNTAX are needed to make it work.  It does not
+;;make the code more readable, so the version above is preferred.
+;;
+#;(define-syntax %dispatch-method-to-adder
+  (lambda (stx)
+    (define (qualifier->slot-name qualifier)
+      (case qualifier
+	((:primary)	':add-primary-method)
+	((:before)	':add-before-method)
+	((:after)	':add-after-method)
+	((:around)	':add-around-method)
+	(else
+	 (syntax-violation 'define-method "bad method qualifier" qualifier))))
+    (syntax-case stx (:primary :before :after :around)
+      ((k ?generic-function ?qualifier (?class ...) (?arg ...) . ?body)
+       (let ((qualifier (syntax->datum (syntax ?qualifier))))
+	 (with-syntax ((?slot-name (datum->syntax (syntax k)
+						  (qualifier->slot-name qualifier))))
+	   (syntax
+	    (%add-method-to-generic-function (quote ?slot-name)
+					     ?generic-function (list ?class ...)
+					     (lambda (?arg ... ) . ?body)))))))))
+
+(define-syntax %add-method-to-generic-function
+  ;;Extract  the <generic> object  associated to  ?GENERIC-FUNCTION from
+  ;;the  global table; extract  from the  appropriate slot,  the closure
+  ;;used  to add  a  method; apply  the  closure to  the ?SIGNATURE  and
+  ;;?FUNCTION.
+  ;;
+  ;;The ?SLOT-NAME value can be a symbol among:
+  ;;
+  ;;	:add-primary-method
+  ;;	:add-before-method
+  ;;	:add-after-method
+  ;;	:add-around-method
+  ;;
+  (syntax-rules ()
+    ((_ ?slot-name ?generic-function ?signature ?function)
+     ((slot-ref (hashtable-ref *generic-functions* ?generic-function #f) ?slot-name)
+      ?signature ?function))))
 
 
 ;;;; done
