@@ -988,9 +988,11 @@ Classes
 
 Generic functions and methods
 
-* scmobj generic dispatching::  How dispatching works.
-* scmobj generic methods::      Methods.
-* scmobj generic calling::      Calling generic procedures.
+* scmobj generic examples::     Examples of method dispatching.
+* scmobj generic dispatching::  How generic functions and methods
+                                are invoked.
+* scmobj generic define::       Defining generic functions and methods.
+* scmobj generic next::         Invoking the next method.
 
 Knuth-Morris-Pratt searching
 
@@ -21274,9 +21276,11 @@ Examples:
 Apply the predicate across the lists, returning true if the predicate
 returns true on any application.
 
-If there are n list arguments @var{clist1} ... @var{clistn}, then
-@var{pred} must be a procedure taking n arguments and returning a
+If there are @math{n} list arguments @var{clist1} ... @var{clistn}, then
+@var{pred} must be a procedure taking @math{n} arguments and returning a
 boolean result.
+
+The all the list arguments are empty: The return value is @false{}.
 
 @func{any} applies @var{pred} to the first elements of the @var{clisti}
 parameters.  If this application returns a true value, @func{any}
@@ -21313,6 +21317,8 @@ returns true on every application.
 If there are n list arguments @var{clist1} ... @var{clistn}, then
 @var{pred} must be a procedure taking n arguments and returning a
 boolean result.
+
+The all the list arguments are empty: The return value is @true{}.
 
 @func{every} applies @var{pred} to the first elements of the
 @var{clisti} parameters.  If this application returns @false{},
@@ -30491,8 +30497,8 @@ The difference between @func{define-syntax} and @func{define}, is that
 @section A simple object system
 
 
-The @library{scmobj} library is an object system for Scheme that
-provides: simple and multiple inheritance, generic functions,
+The @library{scmobj} library defines ScmObj, an object system for Scheme
+that provides: simple and multiple inheritance, generic functions,
 multimethods.  It resembles @clos{} (the Common Lisp Object System), but
 it does not implement a meta object protocol (@acronym{MOP}).  It is a
 repackaging of ScmObj, an object system for Scheme implemented by Dorai
@@ -31252,14 +31258,16 @@ arguments, the most specific method with respect to the arguments'
 classes is chosen.
 
 @menu
-* scmobj generic dispatching::  How dispatching works.
-* scmobj generic methods::      Methods.
-* scmobj generic calling::      Calling generic procedures.
+* scmobj generic examples::     Examples of method dispatching.
+* scmobj generic dispatching::  How generic functions and methods
+                                are invoked.
+* scmobj generic define::       Defining generic functions and methods.
+* scmobj generic next::         Invoking the next method.
 @end menu
 
 @c page
-@node scmobj generic dispatching
-@subsubsection How dispatching works
+@node scmobj generic examples
+@subsubsection Examples of method dispatching.
 
 
 Here we show with some examples what we have to expect from the
@@ -31298,7 +31306,7 @@ and the full class precedence list for @class{c} is:
 so for the generic function:
 
 @example
-(define-generic doit)
+(define-generic doit o)
 (define-method doit ((o <one>)) 'one)
 (define-method doit ((o <two>)) 'two)
 @end example
@@ -31348,7 +31356,7 @@ and given the order in which the classes where given to
 so for the generic function:
 
 @example
-(define-generic doit)
+(define-generic doit o)
 (define-method doit ((o <one>)) 'one)
 (define-method doit ((o <two>)) 'two)
 @end example
@@ -31394,7 +31402,7 @@ and given the order in which the classes where given to
 so for the generic function:
 
 @example
-(define-generic doit)
+(define-generic doit o)
 (define-method doit ((o <one>)) 'one)
 (define-method doit ((o <two>)) 'two)
 @end example
@@ -31419,7 +31427,7 @@ Let's look at this:
 (define-class <c>   (<top>))
 (define-class <one> (<c>))
 
-(define-generic doit)
+(define-generic doit o)
 (define-method doit ((o <one>)) 'one)
 
 (doit (make <c>))
@@ -31440,139 +31448,209 @@ not vice versa.  That is:
 must evaluate to true.
 
 @c page
-@node scmobj generic methods
-@subsubsection Methods
+@node scmobj generic dispatching
+@subsubsection How generic functions and methods are invoked
 
 
-Let's first declare a generic procedure using the macro
-@func{make-generic-function}:
+ScmObj allows the definition of four kinds of methods: @code{:primary},
+@code{:around}, @code{:before} and @code{:after}.  The short version is
+that @code{:around} methods are applied first, then @code{:before},
+@code{:primary} and @code{:after} methods are applied in this order.
 
-@example
-(define ingests
-  (make-generic-function person food))
-@end example
+When a generic function is applied to a tuple of arguments, the
+following happens:
 
-This defines a procedure called ingests that requires two arguments.
-Presumably it describes the fact of person ingesting food.  (We are
-forced here to use the Latinate ``ingests'' rather than the Saxon
-``eats'', because we will subsequently distinguish between eating
-(solids) and drinking (liquids).)
+@enumerate
+@item
+For each argument in the tuple an ScmObj class is determined.  The tuple
+of classes is called @dfn{signature}.
+@end enumerate
 
-We are now ready to define methods describing the eating and drinking
-habits of the people.  To do this, we use the macro @func{define-method}
-to add methods to the generic procedure @func{ingests} define before.
+For each kind of method, the generic function maintains an internal
+collection in which every method's closure is associated to a signature.
 
-Schemers will drink something only if it's at least .5 wholesome: (These
-examples require the format feature.)
+@enumerate 2
+@item
+For each kind of method: The internal collection is queried for all the
+methods applicable to the tuple of arguments, using the signature as
+serch key.
 
-@example
-(define-method ingests ((p <schemer>) (f <beverage>))
-  (if (>= (slot-ref f ':wholesomeness)
-          .5)
-    (format #t "~a sips some ~a.~%"
-      (slot-ref p ':name)
-      (slot-ref f ':name))))
-@end example
+@item
+For each kind of method: The list of applicable methods is sorted from
+the more specific to the least specific for the signature.
+@end enumerate
 
-The first subexpression of @func{define-method} is the generic
-procedure.  In this case, it is @func{ingests}.
+From now on the lists of sorted, applicable methods are handled as
+stacks, with the the most specific method on the top.
 
-The second subexpression is a lambda--list of arguments to the method.
-This lambda--list starts off with the required arguments, where each
-argument is specified as a two--element list: the parameter followed by
-its class.  The number of required arguments is the same as the number
-of arguments specified by @func{make-generic-function} for the generic
-procedure.  The rest of the lambda--list may contain additional
-arguments, including a ``rest'' argument.  In the case above, the
-required arguments are @var{p} of class @class{schemer} and @var{f} of
-class @class{beverage}.  There are no additional arguments.
+From now on the application of the generic function enters an implicit
+loop in which more methods' closures can be applied to the same tuple of
+arguments.  The loop can terminate if a method's closure throws an
+exception or, for @code{:around} and @code{:primary} methods, if it does
+not take the special action of calling @func{call-next-method}.
 
-After the second subexpression, we have the method body.
+The loop is a bit articulated, so we may have to read the following
+descriptions multiple times.  We split the description in two branches:
+First a simplified invocation for generic functions having at least one
+applicable @code{:primary} method, no @code{:around} methods, and
+performing no calls to @func{call-next-method}; then the full
+application algorithm.
 
-Proceeding with other methods for ingests: no snack is too lowly for a
-Schemer:
+Here is the simplified branch with no @code{:around} methods and no
+calls to @func{call-next-method}:
 
-@example
-(define-method ingests ((p <schemer>) (f <snack>))
-  (format #t "~a wolfs down some ~a.~%"
-    (slot-ref p ':name)
-    (slot-ref f ':name)))
-@end example
+@enumerate 4
+@item
+Pop all the @code{:before} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
 
-Lispers are open to any drink:
+@item
+Pop the next @code{:primary} method from the stack and apply its closure
+to the tuple of arguments.  The return value of this application is
+saved in a temporary location.
 
-@example
-(define-method ingests ((p <lisper>) (f <beverage>))
-  (format #t "~a guzzles some ~a.~%"
-    (slot-ref p ':name)
-    (slot-ref f ':name)))
-@end example
+@item
+Pop all the @code{:after} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
 
-Lispers won't eat anything that isn't at least .5 wholesome:
+@item
+Return the saved return value of the @code{:primary} method.
+@end enumerate
 
-@example
-(define-method ingests ((p <lisper>) (f <snack>))
-  (if (>= (slot-ref f ':wholesomeness)
-          .5)
-    (format #t "~a pecks at some ~a.~%"
-      (slot-ref p ':name)
-      (slot-ref f ':name))))
-@end example
+Here is the full application algorithm:
 
-The default method: humans eat and drink anything:
+@enumerate 4
+@item
+Test if this function application originated from a call to
+@func{call-next-method} from a @code{:before} or @code{:after} method.
+If it has: Raise an assertion violation.
 
-@example
-(define-method ingests ((p <human>) (f <food>))
-  (format #t "~a consumes ~a.~%"
-    (slot-ref p ':name)
-    (slot-ref f ':name)))
-@end example
+@item
+Test if this function application originated from a call to
+@func{call-next-method} from a @code{:primary} method.  If it has:
 
-Note that ScmObj methods can specialize on more than one argument class.
-In other words, ScmObj methods, like @clos{} methods, are multimethods.
+@enumerate a
+@item
+If the stack of @code{:primary} methods is empty raise an assertion
+violation.
+
+@item
+Pop the next @code{:primary} method from the stack and apply its closure
+to the tuple of arguments.
+
+@item
+Break out returning the return value of this application: It becomes the
+return value of @func{call-next-method}.
+@end enumerate
+
+@item
+If the stack of @code{:primary} methods is empty: Raise an assertion
+violation.  This condition means that the generic function has no
+applicable methods for the tuple of arguments.
+
+@item
+If the stack of @code{:around} methods is not empty: Pop the next
+@code{:around} method and apply its closure to the tuple of arguments.
+Break out returning the return value of this application.
+
+@item
+Pop all the @code{:before} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
+
+@item
+Pop the next @code{:primary} method from the stack and apply its closure
+to the tuple of arguments.  The return value of this application is
+saved in a temporary location.
+
+@item
+Pop all the @code{:after} methods from the stack and apply their
+closures to the tuple of arguments.  The return values of these
+applications are discarded.
+
+@item
+Return the saved return value of the @code{:primary} method.
+@end enumerate
+
+The @code{:primary} methods are meant to do the real work of the
+function.  Only the most specific is applied to the arguments, however
+it can use @func{call-next-method} to invoke a least specialised version
+and use its return value.
+
+@code{:before} and @code{:after} methods are meant to test pre and post
+conditions.  @code{:before} and @code{:after} methods are applied from
+the most specific to the least specific.  Notice that the @code{:after}
+methods have no access to the return value of the @code{:primary}
+methods.
+
+@code{:around} methods are yet another level for testing pre and post
+conditions; only the most specific is applied to the arguments.  It is
+expected, but not mandatory, that an @code{:around} method invokes
+@func{call-next-method}; such invocations will consume all the
+applicable @code{:around} methods, from the least to the most specific,
+and then will start the application of @code{:before}, @code{:primary}
+and @code{:after} methods.
 
 @c page
-@node scmobj generic calling
-@subsubsection Calling generic procedures
+@node scmobj generic define
+@subsubsection Defining generic functions and methods
 
 
-We can now offer Telemakhos, Odysseus, Diomedes, Nestor, Menelaos, and
-Penelope some beer, coke, milk, candy, french fries, and carrots. We
-call the generic procedure ingests, and let it dispatch the appropriate
-method based on the class of the person and the food arguments:
+@deffn Macro define-generic @var{name} @var{arg} ...
+Define a new generic function and bind it to @var{name}.  The @var{arg}
+values represent the arguments that all the methods' closures will have.
+@end deffn
 
-@example
-(for-each
-  (lambda (person)
-    (for-each
-      (lambda (food)
-        (eat person food))
-      (list beer coke milk candy
-        french-fries carrots)))
-  (list Telemakhos Odysseus Diomedes
-    Nestor Menelaos Penelope))
-@end example
 
-You will find that, as expected,
+@deffn Macro make-generic-function @var{arg} ...
+Build and return a new generic function.  The @var{arg} values represent
+the arguments that all the methods' closures will have.
+@end deffn
 
-    *
 
-      Telemakhos consumes everything in sight;
+@deffn Macro define-method @var{generic} ((@var{arg} @var{class}) ...)
+@deffnx Macro define-method @var{generic} :primary ((@var{arg} @var{class}) ...)
+@deffnx Macro define-method @var{generic} :before ((@var{arg} @var{class}) ...)
+@deffnx Macro define-method @var{generic} :after ((@var{arg} @var{class}) ...)
+@deffnx Macro define-method @var{generic} :around ((@var{arg} @var{class}) ...)
+Add a new method to an already existent generic function, @var{generic}.
+The list of arguments specifies the classes of the values for which the
+method specialises the function.  When the method qualifier is not
+present, it defaults to @code{:primary}.
+@end deffn
 
-    *
 
-      the Schemers Odysseus and Diomedes wolf down candy, french fries and carrots but sip only milk; and
+@deffn Macro add-method @var{generic} @var{signature} @var{closure}
+@deffnx Macro add-method @var{generic} :primary @var{signature} @var{closure}
+@deffnx Macro add-method @var{generic} :before @var{signature} @var{closure}
+@deffnx Macro add-method @var{generic} :after @var{signature} @var{closure}
+@deffnx Macro add-method @var{generic} :around @var{signature} @var{closure}
+Add a new method to an already existent generic function, @var{generic}.
+@var{signature} must be a list of classes for which the method
+specialises the function.  @var{closure} must be the method's closure.
+When the method qualifier is not present, it defaults to
+@code{:primary}.
+@end deffn
 
-    *
+@c page
+@node scmobj generic next
+@subsubsection Invoking the next method
 
-      the Lispers Nestor and Menelaos guzzle beer, coke and milk but eat only carrots.
 
-But how does the eclectic Lisper Penelope, who is both Schemer and
-Lisper, fare? We'll find that for the purposes of nourishment, Penelope
-sits down with the Schemers. She too wolfs down candy, french fries and
-carrots but sips only milk, eschewing the more Lispy delights of beer
-and coke. This is because the class eclectic-lisper-c lists <schemer>
-before lisper-c in its superclass list.
+@defun call-next-method
+To be invoked from a @code{:primary} or @code{:around} method.  Call the
+next most specific method.
+@end defun
+
+
+@defun next-method?
+Return true if a next method is available.  Available next methods are
+@code{:primary} and @code{:around} methods.  After the first
+@code{:primary} method has been called, only @code{:primary} methods are
+considered.
+@end defun
 
 @c page
 @node kmp

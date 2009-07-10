@@ -47,7 +47,7 @@
 
     ;; Constructors.
     define-class define-generic define-method
-    make-class make make-generic-function
+    make-class make make-generic-function add-method
 
     ;;Class inspection.
     class-of
@@ -523,13 +523,17 @@
   (syntax-rules ()
     ((_)
      (let ((f (next-method-func-parm)))
-       (when f (f))))))
+       (if f (f)
+	 (assertion-violation 'call-next-method
+	   "invoked call-next-method outside of a generic function"))))))
 
 (define-syntax next-method?
   (syntax-rules ()
     ((_)
      (let ((f (next-method-pred-parm)))
-       (when f (f))))))
+       (if f (f)
+	 (assertion-violation 'call-next-method
+	   "invoked next-method? outside of a generic function"))))))
 
 
 ;;;; generic functions
@@ -624,60 +628,71 @@
 			  (%compute-applicable-methods signature before-method-table))
 
 			 (applicable-after-methods
-			  (reverse ;!!! yes!
-			   (%compute-applicable-methods signature after-method-table)))
+			  (%compute-applicable-methods signature after-method-table))
 
 			 (applicable-around-methods
 			  (%compute-applicable-methods signature around-method-table))
 
-			 (primary-method-called #f)
+			 (primary-method-called?  #f)
+			 (reject-recursive-calls? #f)
 
-			 (next-method-pred
+			 (is-a-next-method-available?
 			  (lambda ()
-			    (if primary-method-called
-				(not (null? applicable-primary-methods))
-			      (or (not (null? applicable-around-methods))
-				  (not (null? applicable-primary-methods))))))
+			    (not (if primary-method-called?
+				     (null? applicable-primary-methods)
+				   (and (null? applicable-around-methods)
+					(null? applicable-primary-methods))))))
 
-			 (next-method-func
+			 (call-methods
 			  (lambda ()
 			    (cond
-			     (primary-method-called
-			      ;;We enter here only if a primary method
-			      ;;has  been called and,  in its  body, a
-			      ;;call to CALL-NEXT-METHOD if performed.
-			      (apply-function/stx (consume-method applicable-primary-methods)))
+			     (reject-recursive-calls?
+			      ;;Raise  an   error  if  a   ":before"  or
+			      ;;":after" method invokes the next method.
+			      (assertion-violation 'call-methods
+				":before or :after methods are forbidden to call the next method"))
 
-			     ((not (null? applicable-around-methods))
-			      ;;If around methods exist: we apply them
-			      ;;rather than  the primary ones.   It is
-			      ;;expected that an around method invokes
-			      ;;CALL-NEXT-METHOD   to   evaluate   the
-			      ;;primary methods.
-			      (apply-function/stx (consume-method applicable-around-methods)))
+			     (primary-method-called?
+			      ;;We enter  here only if  a primary method
+			      ;;has been called and, in its body, a call
+			      ;;to CALL-NEXT-METHOD is evaluated.
+			      (when (null? applicable-primary-methods)
+				(assertion-violation 'call-methods
+				  "called next method but no more :primary methods available"))
+			      (apply-function/stx (consume-method applicable-primary-methods)))
 
 			     ((null? applicable-primary-methods)
 			      ;;Raise   an  error  if   no  applicable
 			      ;;methods.
-			      (assertion-violation 'next-method-func
+			      (assertion-violation 'call-methods
 				"no method defined for these argument classes"))
+
+			     ((not (null? applicable-around-methods))
+			      ;;If around  methods exist: we  apply them
+			      ;;first.   It is  expected that  an around
+			      ;;method   invokes   CALL-NEXT-METHOD   to
+			      ;;evaluate the primary methods.
+			      (apply-function/stx (consume-method applicable-around-methods)))
 
 			     (else
 			      ;;Apply  the  methods: before,  primary,
 			      ;;after.  Return the return value of the
 			      ;;primary.
-			      (set! primary-method-called #t)
+			      (set! reject-recursive-calls? #t)
 			      (for-each
 				  (lambda (f) (apply-function/stx f))
 				applicable-before-methods)
+			      (set! reject-recursive-calls? #f)
+			      (set! primary-method-called? #t)
 			      (begin0
 				  (apply-function/stx (consume-method applicable-primary-methods))
+				(set! reject-recursive-calls? #t)
 				(for-each
 				    (lambda (f) (apply-function/stx f))
 				  applicable-after-methods)))))))
-		 (parameterize ((next-method-func-parm next-method-func)
-				(next-method-pred-parm next-method-pred))
-		   (next-method-func)))))))))))
+		 (parameterize ((next-method-func-parm call-methods)
+				(next-method-pred-parm is-a-next-method-available?))
+		   (call-methods)))))))))))
 
 
 ;;;; methods
@@ -737,20 +752,20 @@
     ((_ ?generic-function ?qualifier () (?class ...) (?arg ...) . ?body)
      ;;Matches  the form  when all  the arguments  have  been processed.
      ;;This MUST come before the one below.
-     (%dispatch-method-to-adder ?generic-function ?qualifier
-				(?class ...) (?arg ...) . ?body))
+     (add-method ?generic-function ?qualifier (?class ...)
+		 (lambda (?arg ...) . ?body)))
 
     ((_ ?generic-function ?qualifier ?rest (?class ...) (?arg ...) . ?body)
      ;;Matches the form  when all the arguments have  been processed and
      ;;only the  rest argument is there.   This MUST come  after the one
      ;;above.
-     (%dispatch-method-to-adder ?generic-function ?qualifier
-				(?class ...) (?arg ... . ?rest) . ?body))))
+     (add-method ?generic-function ?qualifier (?class ...)
+		 (lambda (?arg ... . ?rest) . ?body)))))
 
-(define-syntax %dispatch-method-to-adder
+(define-syntax add-method
   (lambda (stx)
     (syntax-case stx (:primary :before :after :around)
-      ((_ ?generic-function ?qualifier (?class ...) (?arg ...) . ?body)
+      ((_ ?generic-function ?qualifier (?class ...) ?closure)
        (syntax
 	(%add-method-to-generic-function
 	 (let ((qualifier (syntax->datum (syntax ?qualifier))))
@@ -761,8 +776,7 @@
 	     ((:around)		':add-around-method)
 	     (else
 	      (syntax-violation 'define-method "bad method qualifier" qualifier))))
-	 ?generic-function (list ?class ...)
-	 (lambda (?arg ... ) . ?body)))))))
+	 ?generic-function (list ?class ...) ?closure))))))
 
 ;;The  following  exists only  for  reference on  "how  to  do it".   It
 ;;produces the slot name using a subfunction.  All the nested forms LET,
