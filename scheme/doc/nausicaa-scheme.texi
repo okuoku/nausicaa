@@ -25326,13 +25326,45 @@ The final vector constructed does not share storage with either
 @subsubsection Mapping functions
 
 
-@defun vector-map* @var{proc} @var{vec0} @var{vec} ...
-Build and return a new vector holding the return values of mapping
-@var{proc} over all the elements of the vector arguments, from zero to
-the end in increasing order.  It is an error if the vectors have
-different length.
+All the functions described here map their @var{proc} function argument
+over all the elements of the vector arguments, or the subvector
+argument, from zero to the end in increasing order.  In all the
+following descriptions:
 
-@var{proc} is applied to the elements as:
+@itemize
+@item
+Functions and syntaxes whose main name portion ends without a @code{!},
+build and return a new vector, storing into it the results of mapping
+@var{proc}.
+
+@item
+Functions and syntaxes whose main name portion ends with a @code{!},
+mutate their @var{vec0} vector argument, storing into it the results of
+mapping @var{proc}.
+
+@item
+Functions and syntaxes whose main name portion ends without a @code{*},
+accept only vector arguments of equal length.
+
+@item
+Functions and syntaxes whose main name portion ends with a @code{*},
+accept vector arguments of different length, stopping the iteration at
+the end of the shortest.
+
+@item
+Functions whose name ends without the @code{/with-index} suffix, apply
+their @var{proc} function argument as:
+
+@example
+(@var{proc}
+  (vector-ref @var{vec0} @var{idx})
+  (vector-ref @var{vec}  @var{idx})
+  ...)
+@end example
+
+@item
+Functions whose name ends with the @code{/with-index} suffix, apply
+their @var{proc} function argument as:
 
 @example
 (@var{proc} @var{idx}
@@ -25342,74 +25374,59 @@ different length.
 @end example
 
 @noindent
-where @var{idx} is the current index.
+where @var{idx} is the index current element.
+@end itemize
+
+
+@defun vector-map* @var{proc} @var{vec0} @var{vec} ...
+@defunx vector-map/with-index @var{proc} @var{vec0} @var{vec} ...
+@defunx vector-map*/with-index @var{proc} @var{vec0} @var{vec} ...
+Build and return a new vector holding the return values of mapping
+@var{proc} over all the elements of the vector arguments.
 @end defun
 
 
 @defun vector-map! @var{proc} @var{vec0} @var{vec} ...
 @defunx vector-map*! @var{proc} @var{vec0} @var{vec} ...
-Mutate vector @var{vec0} mapping @var{proc} over all the elements of the
-vector arguments, from zero to the end in increasing order.
-
-@func{vector-map!} must be applied to vectors of the same length;
-@func{vector-map*!} accepts vectors of different length and iterates
-until the end of the shorter is reached.
-
-@var{proc} is applied to the elements as:
-
-@example
-(@var{proc} @var{idx}
-  (vector-ref @var{vec0} @var{idx})
-  (vector-ref @var{vec}  @var{idx})
-  ...)
-@end example
-
-@noindent
-where @var{idx} is the current index.
+@defunx vector-map!/with-index @var{proc} @var{vec0} @var{vec} ...
+@defunx vector-map*!/with-index @var{proc} @var{vec0} @var{vec} ...
+Mutate @var{vec0} setting its elements to the return values of mapping
+@var{proc} over all the elements of the vector arguments.
 @end defun
 
 
 @defun vector-for-each* @var{proc} @var{vec0} @var{vec} ...
-Apply @var{proc} over all the elements of the vector arguments, from
-zero to the end in increasing order.  This function accepts vectors of
-different length and iterates until the end of the shorter is reached.
-
-@var{proc} is applied to the elements as:
-
-@example
-(@var{proc} @var{idx}
-  (vector-ref @var{vec0} @var{idx})
-  (vector-ref @var{vec}  @var{idx})
-  ...)
-@end example
-
-@noindent
-where @var{idx} is the current index.
+@defunx vector-for-each*/with-index @var{proc} @var{vec0} @var{vec} ...
+Apply @var{proc} over all the elements of the vector arguments.
 @end defun
 
+@c ------------------------------------------------------------
 
 @subsubheading Mapping over subvectors
 
-
 @deffn Function %subvector-map @var{proc} @var{vec} @var{start} @var{past}
+@deffnx Function %subvector-map/with-index @var{proc} @var{vec} @var{start} @var{past}
 @deffnx Macro subvector-map @var{proc} @var{S}
+@deffnx Macro subvector-map/with-index @var{proc} @var{S}
 Build and return a new vector mapping @var{proc} over the items in the
 selected subvector of @var{vec}, from index @var{start} to index
-@var{past} in increasing order.  @var{proc} must be a @code{item->item}
-procedure.
+@var{past} in increasing order.
 @end deffn
 
 
 @deffn Function %subvector-map! @var{proc} @var{vec} @var{start} @var{past}
+@deffnx Function %subvector-map!/with-index @var{proc} @var{vec} @var{start} @var{past}
 @deffnx Macro subvector-map! @var{proc} @var{S}
+@deffnx Macro subvector-map!/with-index @var{proc} @var{S}
 Mutate the selected subvector of @var{vec}, mapping @var{proc} over its
 items from index @var{start} to index @var{past} in increasing order.
-@var{proc} must be a @code{item->item} procedure.
 @end deffn
 
 
 @deffn Function %subvector-for-each @var{proc} @var{vec} @var{start} @var{past}
+@deffnx Function %subvector-for-each/with-index @var{proc} @var{vec} @var{start} @var{past}
 @deffnx Macro subvector-for-each @var{proc} @var{V}
+@deffnx Macro subvector-for-each/with-index @var{proc} @var{V}
 Apply @var{proc} to each item in the selected subvector of @var{vec},
 from index @var{start} to index @var{past} in increasing order.
 @end deffn
@@ -25421,6 +25438,34 @@ Apply @var{proc} to each index in the selected subvector of @var{vec},
 from index @var{start} to index @var{past} in increasing order.  This is
 simply a method of looping over a vector that is guaranteed to be safe
 and correct.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Syntax variants
+
+The following syntaxes are like the corresponding functions.  They can
+be a little faster when multiple vector arguments are present.
+
+
+@deffn Syntax vector-map/stx @var{proc} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-map*/stx @var{proc} @var{vec0} @var{vec} ...
+Like @func{vector-map} and @func{vector-map*}, but implemented as a
+syntax.
+@end deffn
+
+
+@deffn Syntax vector-map!/stx @var{proc} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-map*!/stx @var{proc} @var{vec0} @var{vec} ...
+Like @func{vector-map!} and @func{vector-map*!}, but implemented as a
+syntax.
+@end deffn
+
+
+@deffn Syntax vector-for-each/stx @var{proc} @var{vec0} @var{vec} ...
+@deffnx Syntax vector-for-each*/stx @var{proc} @var{vec0} @var{vec} ...
+Like @func{vector-for-each} and @func{vector-for-each*}, but implemented
+as a syntax.
 @end deffn
 
 @c page

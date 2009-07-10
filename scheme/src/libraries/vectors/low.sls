@@ -106,31 +106,41 @@
 ;;;IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-
-#!r6rs
 (library (vectors low)
   (export
 
     ;; constructors
-    vector-concatenate  %vector-concatenate-reverse
-    vector-tabulate  vector-append
+    vector-concatenate			%vector-concatenate-reverse
+    vector-tabulate			vector-append
 
     ;; predicates
     %vector-null?
-    %subvector-any		vector-any
-    %subvector-every		vector-every
-
+    %subvector-any			vector-any
+    %subvector-every			vector-every
 
     ;; comparison
     %vector-compare
-    %vector=  %vector<>
-    %vector<  %vector<=
-    %vector>  %vector>=
+    %vector=				%vector<>
+    %vector<				%vector<=
+    %vector>				%vector>=
 
     ;; mapping
-    vector-map!
-    vector-map*     vector-map*!     vector-for-each*
-    %subvector-map  %subvector-map!  %subvector-for-each  %subvector-for-each-index
+					vector-map/with-index
+    vector-map!				vector-map!/with-index
+    vector-map*				vector-map*/with-index
+    vector-map*!			vector-map*!/with-index
+    vector-for-each*			vector-for-each*/with-index
+    %subvector-map			%subvector-map/with-index
+    %subvector-map!			%subvector-map!/with-index
+    %subvector-for-each			%subvector-for-each/with-index
+    %subvector-for-each-index
+
+    vector-map/stx
+    vector-map*/stx
+    vector-map!/stx
+    vector-map*!/stx
+    vector-for-each/stx
+    vector-for-each*/stx
 
     ;; folding
     vector-fold-left			vector-fold-right
@@ -148,40 +158,41 @@
     vector-fold-left/pred
 
     ;; selecting
-    %vector-copy   %vector-reverse-copy
-    %vector-copy!  %vector-reverse-copy!
-    %vector-take   %vector-take-right
-    %vector-drop   %vector-drop-right
+    %vector-copy			%vector-reverse-copy
+    %vector-copy!			%vector-reverse-copy!
+    %vector-take			%vector-take-right
+    %vector-drop			%vector-drop-right
 
     ;; padding and trimming
-    %vector-trim  %vector-trim-right  %vector-trim-both
-    %vector-pad   %vector-pad-right
+    %vector-trim			%vector-trim-right
+    %vector-trim-both
+    %vector-pad				%vector-pad-right
 
     ;; prefix and suffix
-    %vector-prefix-length  %vector-suffix-length
-    %vector-prefix?        %vector-suffix?
+    %vector-prefix-length		%vector-suffix-length
+    %vector-prefix?			%vector-suffix?
 
     ;; searching
-    %vector-index  %vector-index-right
-    %vector-skip   %vector-skip-right
-    %vector-count  %vector-contains
+    %vector-index			%vector-index-right
+    %vector-skip			%vector-skip-right
+    %vector-count			%vector-contains
     %vector-binary-search
 
     ;; filtering
-    %vector-delete  %vector-filter
+    %vector-delete			%vector-filter
 
     ;; lists
-    %vector->list*  %reverse-vector->list
+    %vector->list*			%reverse-vector->list
     reverse-list->vector
 
     ;; replicating
-    %xsubvector  %vector-xcopy!
+    %xsubvector				%vector-xcopy!
 
     ;; mutating
-    vector-swap!  %vector-fill*!
+    vector-swap!			%vector-fill*!
 
     ;; reverse and replace
-    %vector-reverse  %vector-reverse!
+    %vector-reverse			%vector-reverse!
     %vector-replace)
   (import (rnrs)
     (knuth-morris-pratt))
@@ -418,7 +429,19 @@
 		     (lambda (i) #f) values values)))
 
 
-;;;; mapping
+;;;; mapping functions
+
+(define (vector-map/with-index proc vec0 . vectors)
+  (let ((vectors (cons vec0 vectors)))
+    (assert-vectors-of-equal-length 'vector-map/with-index vectors)
+    (do* ((len (vector-length vec0))
+	  (result (make-vector len))
+	  (i 0 (+ 1 i)))
+	((= len i)
+	 result)
+      (vector-set! result i (apply proc i (map (lambda (vec) (vector-ref vec i)) vectors))))))
+
+;;; --------------------------------------------------------------------
 
 (define (vector-map! proc vec0 . vectors)
   (let ((vectors (cons vec0 vectors)))
@@ -426,16 +449,25 @@
     (do ((len (vector-length vec0))
 	 (i 0 (+ 1 i)))
 	((= len i))
-      (vector-set! vec0 i
-		   (apply proc i (map (lambda (vec) (vector-ref vec i))
-				   vectors))))))
-
+      (vector-set! vec0 i (apply proc (map (lambda (vec) (vector-ref vec i)) vectors))))))
+;;The following is just an example.
+;;
 ;; (define (vector-map! proc vec0 . vectors)
 ;;   (apply vector-fold-left/with-index
 ;; 	 (lambda (index state . items)
 ;; 	   (vector-set! state index (apply proc index items))
 ;; 	   state)
 ;; 	 vec0 vec0 vectors))
+
+(define (vector-map!/with-index proc vec0 . vectors)
+  (let ((vectors (cons vec0 vectors)))
+    (assert-vectors-of-equal-length 'vector-map!/with-index vectors)
+    (do ((len (vector-length vec0))
+	 (i 0 (+ 1 i)))
+	((= len i))
+      (vector-set! vec0 i (apply proc i (map (lambda (vec) (vector-ref vec i)) vectors))))))
+
+;;; --------------------------------------------------------------------
 
 (define (vector-map* proc vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
@@ -444,26 +476,58 @@
 	 (result (make-vector len)))
 	((= len i)
 	 result)
-      (vector-set! result i
-		   (apply proc i (map (lambda (vec) (vector-ref vec i))
-				   vectors))))))
+      (vector-set! result i (apply proc (map (lambda (vec) (vector-ref vec i)) vectors))))))
+
+(define (vector-map*/with-index proc vec0 . vectors)
+  (let* ((vectors  (cons vec0 vectors))
+	 (len      (vectors-list-min-length vectors)))
+    (do ((i 0 (+ 1 i))
+	 (result (make-vector len)))
+	((= len i)
+	 result)
+      (vector-set! result i (apply proc i (map (lambda (vec) (vector-ref vec i)) vectors))))))
+
+;;; --------------------------------------------------------------------
 
 (define (vector-map*! proc vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
     (do ((i 0 (+ 1 i)))
 	((= len i))
-      (vector-set! vec0 i
-		   (apply proc i (map (lambda (vec) (vector-ref vec i))
-				   vectors))))))
+      (vector-set! vec0 i (apply proc (map (lambda (vec) (vector-ref vec i)) vectors))))))
+
+(define (vector-map*!/with-index proc vec0 . vectors)
+  (let* ((vectors  (cons vec0 vectors))
+	 (len      (vectors-list-min-length vectors)))
+    (do ((i 0 (+ 1 i)))
+	((= len i))
+      (vector-set! vec0 i (apply proc i (map (lambda (vec) (vector-ref vec i)) vectors))))))
+
+;;; --------------------------------------------------------------------
+
+(define (vector-for-each/with-index proc vec0 . vectors)
+  (let ((vectors (cons vec0 vectors)))
+    (assert-vectors-of-equal-length 'vector-for-each/with-index vectors)
+    (do ((len (vector-length vec0))
+	 (i 0 (+ 1 i)))
+	((= len i))
+      (apply proc (map (lambda (vec) (vector-ref vec i)) vectors)))))
+
+;;; --------------------------------------------------------------------
 
 (define (vector-for-each* proc vec0 . vectors)
   (let* ((vectors  (cons vec0 vectors))
 	 (len      (vectors-list-min-length vectors)))
     (do ((i 0 (+ 1 i)))
 	((= len i))
-      (apply proc i (map (lambda (vec) (vector-ref vec i))
-		      vectors)))))
+      (apply proc (map (lambda (vec) (vector-ref vec i)) vectors)))))
+
+(define (vector-for-each*/with-index proc vec0 . vectors)
+  (let* ((vectors  (cons vec0 vectors))
+	 (len      (vectors-list-min-length vectors)))
+    (do ((i 0 (+ 1 i)))
+	((= len i))
+      (apply proc i (map (lambda (vec) (vector-ref vec i)) vectors)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -475,11 +539,29 @@
        result)
     (vector-set! result j (proc (vector-ref vec i)))))
 
+(define (%subvector-map/with-index proc vec start past)
+  (do ((i start (+ 1 i))
+       (j 0 (+ 1 j))
+       (result (make-vector (- past start))))
+      ((= i past)
+       result)
+    (vector-set! result j (proc i (vector-ref vec i)))))
+
+;;; --------------------------------------------------------------------
+
 (define (%subvector-map! proc vec start past)
   (do ((i start (+ 1 i)))
       ((= i past)
        vec)
     (vector-set! vec i (proc (vector-ref vec i)))))
+
+(define (%subvector-map!/with-index proc vec start past)
+  (do ((i start (+ 1 i)))
+      ((= i past)
+       vec)
+    (vector-set! vec i (proc i (vector-ref vec i)))))
+
+;;; --------------------------------------------------------------------
 
 (define (%subvector-for-each proc vec start past)
   (let loop ((i start))
@@ -487,11 +569,121 @@
       (proc (vector-ref vec i))
       (loop (+ i 1)))))
 
+(define (%subvector-for-each/with-index proc vec start past)
+  (let loop ((i start))
+    (when (< i past)
+      (proc i (vector-ref vec i))
+      (loop (+ i 1)))))
+
+;;; --------------------------------------------------------------------
+
 (define (%subvector-for-each-index proc vec start past)
   (let loop ((i start))
     (when (< i past)
       (proc i)
       (loop (+ i 1)))))
+
+
+;;;; mapping macros
+
+(define-syntax vector-map/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?proc ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((proc ?proc)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (assert-vectors-of-equal-length 'vector-map/stx (list vec0 V ...))
+		   (do* ((len (vector-length vec0))
+			 (result (make-vector len))
+			 (i 0 (+ 1 i)))
+		       ((= i len)
+			result)
+		     (vector-set! result i
+				  (proc (vector-ref vec0 i) (vector-ref V i) ...))))))))))
+
+(define-syntax vector-map!/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?proc ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((proc ?proc)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (assert-vectors-of-equal-length 'vector-map!/stx (list vec0 V ...))
+		   (do* ((len (vector-length vec0))
+			 (i 0 (+ 1 i)))
+		       ((= i len))
+		     (vector-set! vec0 i
+				  (proc (vector-ref vec0 i) (vector-ref V i) ...))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax vector-map*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?proc ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((proc ?proc)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (do* ((len (apply min (map vector-length (list vec0 V ...))))
+			 (result (make-vector len))
+			 (i 0 (+ 1 i)))
+		       ((= i len)
+			result)
+		     (vector-set! result i
+				  (proc (vector-ref vec0 i) (vector-ref V i) ...))))))))))
+
+(define-syntax vector-map*!/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?proc ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((proc ?proc)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (do* ((len (apply min (map vector-length (list vec0 V ...))))
+			 (i 0 (+ 1 i)))
+		       ((= i len))
+		     (vector-set! vec0 i
+				  (proc (vector-ref vec0 i) (vector-ref V i) ...))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax vector-for-each/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?proc ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((proc ?proc)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (assert-vectors-of-equal-length 'vector-for-each/stx (list vec0 V ...))
+		   (do* ((len (vector-length vec0))
+			 (i 0 (+ 1 i)))
+		       ((= i len))
+		     (proc (vector-ref vec0 i) (vector-ref V i) ...)))))))))
+
+(define-syntax vector-for-each*/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?proc ?vec0 ?vec ...)
+       (with-syntax (((V ...) (generate-temporaries (syntax (?vec ...)))))
+	 (syntax (let ((proc ?proc)
+		       (vec0 ?vec0)
+		       (V    ?vec)
+		       ...)
+		   (do* ((len (apply min (map vector-length (list vec0 V ...))))
+			 (i 0 (+ 1 i)))
+		       ((= i len))
+		     (proc (vector-ref vec0 i) (vector-ref V i) ...)))))))))
 
 
 ;;;; folding functions, equal length of list arguments

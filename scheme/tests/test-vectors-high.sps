@@ -391,30 +391,56 @@
 (parameterise ((check-test-name 'mapping))
 
   (check
-      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
-	(vector-map! (lambda (i item) (list i item))
-		     vec)
-	vec)
-    => '#((0 #\a)
-	  (1 #\b)
-	  (2 #\c)
-	  (3 #\d)))
+      (vector-map/with-index (lambda (i c) (list i (char-upcase c)))
+			     '#(#\a #\b #\c #\d))
+    => '#((0 #\A)
+	  (1 #\B)
+	  (2 #\C)
+	  (3 #\D)))
 
   (check
-      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
-	(vector-map! (lambda (i item-a item-b) (list i item-a item-b))
-		     vec
-		     '#(#\0 #\1 #\2 #\3))
-	vec)
+      (vector-map/with-index list
+			     '#(#\a #\b #\c #\d)
+			     '#(#\0 #\1 #\2 #\3))
     => '#((0 #\a #\0)
 	  (1 #\b #\1)
 	  (2 #\c #\2)
 	  (3 #\d #\3)))
 
   (check
-      (let ((vec (vector-copy '#())))
-	(vector-map! (lambda (i item) (list i item))
-		     vec)
+      (vector-map/with-index list '#())
+    => '#())
+
+  (check
+      (vector-map/with-index list '#() '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map! char-upcase vec)
+	vec)
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map! list vec '#(#\0 #\1 #\2 #\3))
+	vec)
+    => '#((#\a #\0)
+	  (#\b #\1)
+	  (#\c #\2)
+	  (#\d #\3)))
+
+  (check
+      (let ((vec '#()))
+	(vector-map! char-upcase vec)
+	vec)
+    => '#())
+
+  (check
+      (let ((vec '#()))
+	(vector-map! char-upcase vec '#())
 	vec)
     => '#())
 
@@ -422,8 +448,7 @@
 
   (check
       (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
-	(vector-map*! (lambda (i item) (list i item))
-		      vec)
+	(vector-map!/with-index list vec)
 	vec)
     => '#((0 #\a)
 	  (1 #\b)
@@ -432,9 +457,7 @@
 
   (check
       (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
-	(vector-map*! (lambda (i item-a item-b) (list i item-a item-b))
-		      vec
-		      '#(#\0 #\1 #\2 #\3 #\4))
+	(vector-map!/with-index list vec '#(#\0 #\1 #\2 #\3))
 	vec)
     => '#((0 #\a #\0)
 	  (1 #\b #\1)
@@ -443,8 +466,106 @@
 
   (check
       (let ((vec (vector-copy '#())))
-	(vector-map*! (lambda (i item) (list i item))
-		      vec)
+	(vector-map!/with-index list vec)
+	vec)
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-map* char-upcase '#(#\a #\b #\c #\d))
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (vector-map* list
+		   '#(#\a #\b #\c #\d)
+		   '#(#\0 #\1 #\2 #\3 #\4))
+    => '#((#\a #\0)
+	  (#\b #\1)
+	  (#\c #\2)
+	  (#\d #\3)))
+
+  (check
+      (vector-map* char-upcase '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-map*/with-index (lambda (i c) (list i (char-upcase c)))
+			      '#(#\a #\b #\c #\d))
+    => '#((0 #\A)
+	  (1 #\B)
+	  (2 #\C)
+	  (3 #\D)))
+
+  (check
+      (vector-map*/with-index list
+			      '#(#\a #\b #\c #\d)
+			      '#(#\0 #\1 #\2 #\3 #\4))
+    => '#((0 #\a #\0)
+	  (1 #\b #\1)
+	  (2 #\c #\2)
+	  (3 #\d #\3)))
+
+  (check
+      (vector-map*/with-index list '#())
+    => '#())
+
+  (check
+      (vector-map*/with-index list '#() '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map*! char-upcase vec)
+	vec)
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map*! list vec '#(#\0 #\1 #\2 #\3 #\4))
+	vec)
+    => '#((#\a #\0)
+	  (#\b #\1)
+	  (#\c #\2)
+	  (#\d #\3)))
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map*! list vec)
+	vec)
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map*!/with-index (lambda (i item) (list i item))
+				 vec)
+	vec)
+    => '#((0 #\a)
+	  (1 #\b)
+	  (2 #\c)
+	  (3 #\d)))
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map*!/with-index (lambda (i item-a item-b) (list i item-a item-b))
+				 vec
+				 '#(#\0 #\1 #\2 #\3 #\4))
+	vec)
+    => '#((0 #\a #\0)
+	  (1 #\b #\1)
+	  (2 #\c #\2)
+	  (3 #\d #\3)))
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map*!/with-index (lambda (i item) (list i item))
+				 vec)
 	vec)
     => '#())
 
@@ -452,8 +573,29 @@
 
   (check
       (cadr (with-result
-	     (vector-for-each* (lambda (i item) (add-result (list i item)))
-			       '#(#\a #\b #\c #\d))))
+	     (vector-for-each* add-result '#(#\a #\b #\c #\d))))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (cadr (with-result
+	     (vector-for-each* (lambda (item-a item-b) (add-result (list item-a item-b)))
+			       '#(#\a #\b #\c #\d)
+			       '#(#\0 #\1 #\2 #\3))))
+    => '((#\a #\0)
+	 (#\b #\1)
+	 (#\c #\2)
+	 (#\d #\3)))
+
+  (check
+      (cadr (with-result (vector-for-each* add-result '#())))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (cadr (with-result
+	     (vector-for-each*/with-index (lambda (i item) (add-result (list i item)))
+					  '#(#\a #\b #\c #\d))))
     => '((0 #\a)
 	 (1 #\b)
 	 (2 #\c)
@@ -461,9 +603,10 @@
 
   (check
       (cadr (with-result
-	     (vector-for-each* (lambda (i item-a item-b) (add-result (list i item-a item-b)))
-			       '#(#\a #\b #\c #\d)
-			       '#(#\0 #\1 #\2 #\3))))
+	     (vector-for-each*/with-index
+	      (lambda (i item-a item-b) (add-result (list i item-a item-b)))
+	      '#(#\a #\b #\c #\d)
+	      '#(#\0 #\1 #\2 #\3))))
     => '((0 #\a #\0)
 	 (1 #\b #\1)
 	 (2 #\c #\2)
@@ -471,48 +614,88 @@
 
   (check
       (cadr (with-result
-	     (vector-for-each* (lambda (i item) (add-result (list i item)))
-			       '#())))
+	     (vector-for-each*/with-index (lambda (i item) (add-result (list i item)))
+					  '#())))
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (subvector-map (lambda (item) (char-upcase item))
-		     '#(#\a #\b #\c #\d))
+      (subvector-map char-upcase '#(#\a #\b #\c #\d))
     => '#(#\A #\B #\C #\D))
 
 
   (check
-      (subvector-map (lambda (item) (char-upcase item))
-		     (view '#(#\a #\b #\c #\d) (start 1) (past 3)))
+      (subvector-map char-upcase (view '#(#\a #\b #\c #\d) (start 1) (past 3)))
     => '#(#\B #\C))
 
   (check
-      (subvector-map (lambda (item) (char-upcase item))
-		     '#())
+      (subvector-map char-upcase '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (subvector-map/with-index (lambda (i c) (list i c)) '#(#\a #\b #\c #\d))
+    => '#((0 #\a)
+	  (1 #\b)
+	  (2 #\c)
+	  (3 #\d)))
+
+  (check
+      (subvector-map/with-index (lambda (i c) (list i c))
+				(view '#(#\a #\b #\c #\d) (start 1) (past 3)))
+    => '#((1 #\b)
+	  (2 #\c)))
+
+  (check
+      (subvector-map/with-index (lambda (i c) (list i c)) '#())
     => '#())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
-	(subvector-map! (lambda (item) (char-upcase item))
-			vec)
+	(subvector-map! char-upcase vec)
 	vec)
     => '#(#\A #\B #\C #\D))
 
   (check
       (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
-	(subvector-map! (lambda (item) (char-upcase item))
-			(view vec (start 1) (past 3)))
+	(subvector-map! char-upcase (view vec (start 1) (past 3)))
 	vec)
     => '#(#\a #\B #\C #\d))
 
   (check
       (let ((vec '#()))
-	(subvector-map! (lambda (item) (char-upcase item))
-			vec)
+	(subvector-map! char-upcase vec)
+	vec)
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(subvector-map!/with-index (lambda (i c) (list i c)) vec)
+	vec)
+    => '#((0 #\a)
+	  (1 #\b)
+	  (2 #\c)
+	  (3 #\d)))
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(subvector-map!/with-index (lambda (i c) (list i c))
+				   (view vec (start 1) (past 3)))
+	vec)
+    => '#(#\a
+	  (1 #\b)
+	  (2 #\c)
+	  #\d))
+
+  (check
+      (let ((vec '#()))
+	(subvector-map!/with-index (lambda (i c) (list i c)) vec)
 	vec)
     => '#())
 
@@ -533,6 +716,208 @@
   (check
       (cadr (with-result
 	     (subvector-for-each add-result '#())))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each/with-index (lambda (i c) (add-result (list i c)))
+					    '#(#\a #\b #\c #\d))))
+    => '((0 #\a)
+	 (1 #\b)
+	 (2 #\c)
+	 (3 #\d)))
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each/with-index (lambda (i c) (add-result (list i c)))
+					    (view '#(#\a #\b #\c #\d) (start 1) (past 3)))))
+    => '((1 #\b) (2 #\c)))
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each/with-index (lambda (i c) (add-result (list i c))) '#())))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each-index add-result
+				       '#(#\a #\b #\c #\d))))
+    => '(0 1 2 3))
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each-index add-result
+				       (view '#(#\a #\b #\c #\d) (start 1) (past 3)))))
+    => '(1 2))
+
+  (check
+      (cadr (with-result
+	     (subvector-for-each-index add-result '#())))
+    => '())
+
+  )
+
+
+(parameterise ((check-test-name 'mapping-syntax))
+
+  (check
+      (vector-map/stx char-upcase
+		      '#(#\a #\b #\c #\d))
+    => '#(#\A #\B #\C #\D))
+
+
+  (check
+      (vector-map/stx char-upcase
+		      '#(#\a #\b #\c #\d))
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (vector-map/stx list
+		      '#(#\a #\b #\c #\d)
+		      '#(#\0 #\1 #\2 #\3))
+    => '#((#\a #\0)
+	  (#\b #\1)
+	  (#\c #\2)
+	  (#\d #\3)))
+
+  (check
+      (vector-map/stx char-upcase '#())
+    => '#())
+
+  (check
+      (vector-map/stx char-upcase '#() '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (vector-map*/stx char-upcase '#(#\a #\b #\c #\d))
+    => '#(#\A #\B #\C #\D))
+
+
+  (check
+      (vector-map*/stx char-upcase '#(#\a #\b #\c #\d))
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (vector-map*/stx list
+		       '#(#\a #\b #\c #\d #\e)
+		       '#(#\0 #\1 #\2 #\3))
+    => '#((#\a #\0)
+	  (#\b #\1)
+	  (#\c #\2)
+	  (#\d #\3)))
+
+  (check
+      (vector-map*/stx char-upcase '#())
+    => '#())
+
+  (check
+      (vector-map*/stx char-upcase '#() '#())
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map!/stx char-upcase vec)
+	vec)
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map!/stx list vec '#(#\0 #\1 #\2 #\3))
+	vec)
+    => '#((#\a #\0)
+	  (#\b #\1)
+	  (#\c #\2)
+	  (#\d #\3)))
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map!/stx list vec)
+	vec)
+    => '#())
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map!/stx list vec '#())
+	vec)
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map*!/stx char-upcase vec)
+	vec)
+    => '#(#\A #\B #\C #\D))
+
+  (check
+      (let ((vec (vector-copy '#(#\a #\b #\c #\d))))
+	(vector-map*!/stx list vec '#(#\0 #\1 #\2 #\3 #\4 #\5))
+	vec)
+    => '#((#\a #\0)
+	  (#\b #\1)
+	  (#\c #\2)
+	  (#\d #\3)))
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map*!/stx list vec)
+	vec)
+    => '#())
+
+  (check
+      (let ((vec (vector-copy '#())))
+	(vector-map*!/stx list vec '#())
+	vec)
+    => '#())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (cadr (with-result
+	     (vector-for-each/stx add-result '#(#\a #\b #\c #\d))))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (cadr (with-result
+	     (vector-for-each/stx (lambda (item-a item-b) (add-result (list item-a item-b)))
+				  '#(#\a #\b #\c #\d)
+				  '#(#\0 #\1 #\2 #\3))))
+    => '((#\a #\0)
+	 (#\b #\1)
+	 (#\c #\2)
+	 (#\d #\3)))
+
+  (check
+      (cadr (with-result (vector-for-each* add-result '#())))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (cadr (with-result
+	     (vector-for-each*/stx add-result '#(#\a #\b #\c #\d))))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (cadr (with-result
+	     (vector-for-each*/stx (lambda (item-a item-b) (add-result (list item-a item-b)))
+				   '#(#\a #\b #\c #\d #\e #\f)
+				   '#(#\0 #\1 #\2 #\3))))
+    => '((#\a #\0)
+	 (#\b #\1)
+	 (#\c #\2)
+	 (#\d #\3)))
+
+  (check
+      (cadr (with-result (vector-for-each*/stx add-result '#())))
     => '())
 
   )

@@ -103,24 +103,37 @@
   (export
 
     ;; constructors
-    vector-concatenate  vector-concatenate-reverse
-    vector-tabulate  vector-append
+    vector-concatenate			vector-concatenate-reverse
+    vector-tabulate			vector-append
 
     ;; predicates
     vector-null?
-    subvector-every		vector-every
-    subvector-any		vector-any
+    subvector-every			vector-every
+    subvector-any			vector-any
 
     ;; comparison
     vector-compare
-    vector=  vector<>
-    vector<  vector<=
-    vector>  vector>=
+    vector=				vector<>
+    vector<				vector<=
+    vector>				vector>=
 
     ;; mapping
-    vector-map!
-    vector-map*    vector-map*!    vector-for-each*
-    subvector-map  subvector-map!  subvector-for-each  subvector-for-each-index
+					vector-map/with-index
+    vector-map!				vector-map!/with-index
+    vector-map*				vector-map*/with-index
+    vector-map*!			vector-map*!/with-index
+    vector-for-each*			vector-for-each*/with-index
+    subvector-map			subvector-map/with-index
+    subvector-map!			subvector-map!/with-index
+    subvector-for-each			subvector-for-each/with-index
+    subvector-for-each-index
+
+    vector-map/stx
+    vector-map*/stx
+    vector-map!/stx
+    vector-map*!/stx
+    vector-for-each/stx
+    vector-for-each*/stx
 
     ;; folding
     vector-fold-left			vector-fold-right
@@ -138,42 +151,43 @@
     vector-fold-left/pred
 
     ;; selecting
-    (rename (%vector-copy subvector))
-    (rename (vector-copy subvector*))
-    vector-copy   vector-reverse-copy
-    vector-copy!  vector-reverse-copy!
-    vector-take   vector-take-right
-    vector-drop   vector-drop-right
+    (rename (%vector-copy	subvector)
+	    (vector-copy	subvector*))
+    vector-copy				vector-reverse-copy
+    vector-copy!			vector-reverse-copy!
+    vector-take				vector-take-right
+    vector-drop				vector-drop-right
 
     ;; padding and trimming
-    vector-trim  vector-trim-right vector-trim-both
-    vector-pad   vector-pad-right
+    vector-trim				vector-trim-right
+    vector-trim-both
+    vector-pad				vector-pad-right
 
     ;; prefix and suffix
-    vector-prefix-length  vector-suffix-length
-    vector-prefix?        vector-suffix?
+    vector-prefix-length		vector-suffix-length
+    vector-prefix?			vector-suffix?
 
     ;; searching
-    vector-index  vector-index-right
-    vector-skip   vector-skip-right
-    vector-count  vector-contains
+    vector-index			vector-index-right
+    vector-skip				vector-skip-right
+    vector-count			vector-contains
     vector-binary-search
 
     ;; filtering
-    vector-filter  vector-delete
+    vector-filter			vector-delete
 
     ;; lists
-    vector->list*  reverse-vector->list
+    vector->list*			reverse-vector->list
     reverse-list->vector
 
     ;; replicating
-    xsubvector  vector-xcopy!
+    xsubvector				vector-xcopy!
 
     ;; mutating
-    vector-fill*!  vector-swap!
+    vector-fill*!			vector-swap!
 
     ;; reverse and replace
-    vector-reverse  vector-reverse!
+    vector-reverse			vector-reverse!
     vector-replace
 
     (rename (unpack %vector-unpack)))
@@ -303,17 +317,35 @@
      (let-values (((vec beg past) (unpack ?V)))
        (%subvector-map ?proc vec beg past)))))
 
+(define-syntax subvector-map/with-index
+  (syntax-rules ()
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector-map/with-index ?proc vec beg past)))))
+
 (define-syntax subvector-map!
   (syntax-rules ()
     ((_ ?proc ?V)
      (let-values (((vec beg past) (unpack ?V)))
        (%subvector-map! ?proc vec beg past)))))
 
+(define-syntax subvector-map!/with-index
+  (syntax-rules ()
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector-map!/with-index ?proc vec beg past)))))
+
 (define-syntax subvector-for-each
   (syntax-rules ()
     ((_ ?proc ?V)
      (let-values (((vec beg past) (unpack ?V)))
        (%subvector-for-each ?proc vec beg past)))))
+
+(define-syntax subvector-for-each/with-index
+  (syntax-rules ()
+    ((_ ?proc ?V)
+     (let-values (((vec beg past) (unpack ?V)))
+       (%subvector-for-each/with-index ?proc vec beg past)))))
 
 (define-syntax subvector-for-each-index
   (syntax-rules ()

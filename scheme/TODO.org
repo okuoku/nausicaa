@@ -43,7 +43,7 @@
 
 * vectors
 
-  Implement the syntaxes for map, and fold/with-index?
+  Finished.
 
 * random
 
