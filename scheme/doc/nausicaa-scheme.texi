@@ -26068,18 +26068,18 @@ followind function will compute and return the list of factors:
 @subsection Specifying the coordinates of elements
 
 
-Values of type @code{position} represents a position in an array, in the
-same way an index represents a position in a list, string or vector.
-@code{position} values are disjoint from the other values.
+Elements' position in arrays are represented by built--in Scheme vector,
+holding exact integers.
 
 
 @subsubheading Constructors
 
 
 @defun array-position @var{index0} @var{index} ...
-Build and return a new @code{position} value holding the @var{index}
-arguments.  The number of arguments is meant to be equal to the number
-of dimensions of the array with which the position value will be used.
+Build and return a new vector holding the @var{index} arguments.  The
+indexes are checked to be exact integers.  The number of arguments is
+meant to be equal to the number of dimensions of the array with which
+the position value will be used.
 @end defun
 
 
@@ -26087,55 +26087,16 @@ of dimensions of the array with which the position value will be used.
 
 
 @defun array-position? @var{obj}
-Return @true{} if @var{obj} is a @code{position} value.
+Return @true{} if @var{obj} is a vector holding exact integers.
 @end defun
 
 
 @defun assert-array-position @var{obj} @var{func-name}
 @defunx assert-array-position/or-false @var{obj} @var{func-name}
-Raise an assertion violation exception if @var{obj} is not a
-@code{position}, or @false{}.  @var{func-name} is used @code{who}
-argument for the exception.  Return @true{} if no exception is raised.
-@end defun
-
-
-@subsubheading Comparison
-
-
-@defun array-position=? @var{position-1} @var{position-2}
-Return @true{} if the arguments have equal number of dimensions and hold
-the same indexes.
-@end defun
-
-
-@subsubheading Inspection
-
-
-@defun array-position-number-of-dimensions @var{position}
-Return the number of dimensions of the array with which the position
-value will be used.
-@end defun
-
-
-@subsubheading Operations
-
-
-@defun array-position-difference @var{position-1} @var{position-2}
-Return a list holding the differences between the coordinates in the
-arguments.  @var{position-1} and @var{position-2} must have the same
-number of dimensions.
-@end defun
-
-
-@defun array-position-step @var{position} @var{step}
-@defunx array-position-step! @var{position} @var{step}
-The @var{step} argument must be a list of exact integers with length
-equal to the number of dimensions of @var{position}.  The numbers from
-@var{step} are added index--by--index to the coordinates in
-@var{position}.
-
-@func{array-position-step} returns a new @code{position} value holding
-the result, @func{array-position-step!} mutates @var{position} itself.
+Raise an assertion violation exception if @var{obj} satisfies
+@func{array-position?}, or it is @false{}.  @var{func-name} is used
+@code{who} argument for the exception.  Return @true{} if no exception
+is raised.
 @end defun
 
 
@@ -26143,7 +26104,8 @@ the result, @func{array-position-step!} mutates @var{position} itself.
 
 
 @defun array-position->string @var{position}
-Return a string representation of @var{position}.
+Return a string representation of @var{position}, specialised for array
+positions.
 @end defun
 
 
@@ -30497,17 +30459,21 @@ The difference between @func{define-syntax} and @func{define}, is that
 @section A simple object system
 
 
-The @library{scmobj} library defines ScmObj, an object system for Scheme
-that provides: simple and multiple inheritance, generic functions,
+The @library{scmobj} library defines an object system for Scheme that
+provides: simple and multiple inheritance, generic functions,
 multimethods.  It resembles @clos{} (the Common Lisp Object System), but
-it does not implement a meta object protocol (@acronym{MOP}).  It is a
-repackaging of ScmObj, an object system for Scheme implemented by Dorai
-Sitaram.
+it does not implement a meta object protocol (@acronym{MOP}).
 
-The original code is available from@footnote{@aurl{} last checked Thu
-Nov 13, 2008.}:
+The @library{scmobj} library is a reorganisation and repackaging of
+ScmObj, an object system for Scheme implemented by Dorai Sitaram.  The
+original code is available from@footnote{@aurl{} last checked Thu Nov
+13, 2008.}:
 
 @center @url{http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html}
+
+This library has the main purpose of keeping the source code simple and
+understandable, so that it can be taken as staring point for more
+sophisticated object systems.
 
 @menu
 * scmobj overview::             Overview of the library.
@@ -31314,7 +31280,7 @@ so for the generic function:
 @noindent
 applied to a value of class @class{c}: the method with @class{two} in
 the signature is @emph{more specific} than the method with @class{one}
-in the signature; so:
+in the signature:
 
 @example
 (doit (make <c>)) => 'two
@@ -31344,7 +31310,7 @@ the class hierarchy is:
 @end example
 
 @noindent
-and given the order in which the classes where given to
+and given the order in which the classes where handed to
 @func{define-class}, the class precedence list for @class{c} is:
 
 @example
@@ -31362,9 +31328,9 @@ so for the generic function:
 @end example
 
 @noindent
-applied to a value of class @class{c}: the method with @class{two} in
+applied to a value of class @class{c}: The method with @class{two} in
 the signature is @emph{more specific} than the method with @class{one}
-in the signature; so:
+in the signature:
 
 @example
 (doit (make <c>)) => 'two
@@ -31390,7 +31356,7 @@ the class hierarchy is:
 @end example
 
 @noindent
-and given the order in which the classes where given to
+and given the order in which the classes where handed to
 @func{define-class}, the class precedence list for @class{c} is:
 
 @example
@@ -31408,9 +31374,9 @@ so for the generic function:
 @end example
 
 @noindent
-applied to a value of class @class{c}: the method with @class{two} in
+applied to a value of class @class{c}: The method with @class{two} in
 the signature is @emph{more specific} than the method with @class{one}
-in the signature; so:
+in the signature:
 
 @example
 (doit (make <c>)) => 'two
@@ -31452,18 +31418,19 @@ must evaluate to true.
 @subsubsection How generic functions and methods are invoked
 
 
-ScmObj allows the definition of four kinds of methods: @code{:primary},
-@code{:around}, @code{:before} and @code{:after}.  The short version is
-that @code{:around} methods are applied first, then @code{:before},
-@code{:primary} and @code{:after} methods are applied in this order.
+@library{scmobj} allows the definition of four kinds of methods:
+@code{:primary}, @code{:around}, @code{:before} and @code{:after}.  The
+short version is that @code{:around} methods are applied first, then
+@code{:before}, @code{:primary} and @code{:after} methods are applied in
+this order.
 
 When a generic function is applied to a tuple of arguments, the
 following happens:
 
 @enumerate
 @item
-For each argument in the tuple an ScmObj class is determined.  The tuple
-of classes is called @dfn{signature}.
+For each argument in the tuple a class is determined.  The tuple of
+classes is called @dfn{signature}.
 @end enumerate
 
 For each kind of method, the generic function maintains an internal
