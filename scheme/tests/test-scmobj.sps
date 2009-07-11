@@ -24,84 +24,128 @@
 ;;;
 
 
-
 (import (nausicaa)
   (lists)
   (checks)
   (scmobj)
+  (scmobj utils)
   (sentinel))
 
 (check-set-mode! 'report-failed)
-(display "*** testing scmobj core\n")
-
+(display "*** testing scmobj \n")
 
 
+;;;; layout printing
 
-(check
-    (class-of <class>)
-  => <class>)
+(define-class <biologic>)
+(define-class <fruit> (<biologic>))
+(define-class <apple> (<fruit>) :variety :colour :quality)
+(define-class <price> () :tag)
+(define-class <priced-apple> (<apple> <price>))
 
-(check
-    (class-definition-name <class>)
-  => '<class>)
+(define o (make <apple>
+            :variety 'renetta
+            :colour  'green
+            :quality 'high))
 
-(check
-    (class-precedence-list <class>)
-  => '())
+(define p (make <priced-apple>
+            :variety 'renetta
+            :colour  'green
+            :quality 'high
+            :tag 100))
 
-(check
-    (class-slots <class>)
-  => '(:class-definition-name :class-precedence-list :slots :direct-slots))
 
-(check
-    (class-direct-slots <class>)
-  => '(:class-definition-name :class-precedence-list :slots :direct-slots))
+;; (printf "\nthis is <class>\n")
+;; (pretty-print <class>)
 
-(check
-    (class? <class>)
-  => #t)
+;; (printf "\nthis is <biologic>\n")
+;; (pretty-print <biologic>)
 
-(check
-    (instance? <class>)
-  => #t)
+;; (printf "\nthis is <fruit>\n")
+;; (pretty-print <fruit>)
 
-(check
-    (is-a? <class> <class>)
-  => #t)
+;; (printf "\nthis is <apple>\n")
+;; (pretty-print <apple>)
+
+;; (printf "\nthis is o\n")
+;; (pretty-print o)
+
+;; (printf "\nthis is <priced-apple>\n")
+;; (pretty-print <priced-apple>)
+
+;; (printf "\nthis is p\n")
+;; (pretty-print p)
+
+
+(parameterise ((check-test-name 'class-basic))
+
+  (check
+      (class-of <class>)
+    => <class>)
+
+  (check
+      (class-definition-name <class>)
+    => '<class>)
+
+  (check
+      (class-precedence-list <class>)
+    => '())
+
+  (check
+      (class-slots <class>)
+    => '(:class-definition-name :class-precedence-list :slots :direct-slots))
+
+  (check
+      (class-direct-slots <class>)
+    => '(:class-definition-name :class-precedence-list :slots :direct-slots))
+
+  (check
+      (class? <class>)
+    => #t)
+
+  (check
+      (instance? <class>)
+    => #t)
+
+  (check
+      (is-a? <class> <class>)
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
-(check
-    (class-of <builtin-class>)
-  => <class>)
+  (check
+      (class-of <builtin-class>)
+    => <class>)
 
-(check
-    (class-definition-name <builtin-class>)
-  => '<builtin-class>)
+  (check
+      (class-definition-name <builtin-class>)
+    => '<builtin-class>)
 
-(check
-    (class-precedence-list <builtin-class>)
-  => '())
+  (check
+      (class-precedence-list <builtin-class>)
+    => '())
 
-(check
-    (class-slots <builtin-class>)
-  => '())
+  (check
+      (class-slots <builtin-class>)
+    => '())
 
-(check
-    (class-direct-slots <builtin-class>)
-  => '())
+  (check
+      (class-direct-slots <builtin-class>)
+    => '())
 
-(check
-    (class? <builtin-class>)
-  => #t)
+  (check
+      (class? <builtin-class>)
+    => #t)
 
-(check
-    (instance? <builtin-class>)
-  => #t)
+  (check
+      (instance? <builtin-class>)
+    => #t)
 
-(check
-    (is-a? <builtin-class> <class>)
-  => #t)
+  (check
+      (is-a? <builtin-class> <class>)
+    => #t)
+
+  )
 
 
 ;;;; class inspection: predefined entity classes
@@ -133,562 +177,675 @@
 ;; <number>
 
 
-;;;; class inspection: custom classes with simple inheritance
+(parameterise ((check-test-name 'class-simple-inheritance))
 
-(let* ((<one> (make-class () :a :b :c))
-       (<two> (make-class (<one>) :d :e :f))
-       (<three> (make-class (<two>) :g :h :i)))
+  (let* ((<one> (make-class () :a :b :c))
+	 (<two> (make-class (<one>) :d :e :f))
+	 (<three> (make-class (<two>) :g :h :i)))
 
-  (check
-      (class? <one>)
-    => #t)
-  (check
-      (class? <two>)
-    => #t)
-  (check
-      (class? <three>)
-    => #t)
+    (check
+	(class? <one>)
+      => #t)
+    (check
+	(class? <two>)
+      => #t)
+    (check
+	(class? <three>)
+      => #t)
 
-  (check
-      (instance? <one>)
-    => #t)
-  (check
-      (instance? <two>)
-    => #t)
-  (check
-      (instance? <three>)
-    => #t)
+    (check
+	(instance? <one>)
+      => #t)
+    (check
+	(instance? <two>)
+      => #t)
+    (check
+	(instance? <three>)
+      => #t)
 
-  (check
-      (class-of <one>)
-    => <class>)
-  (check
-      (class-of <two>)
-    => <class>)
-  (check
-      (class-of <three>)
-    => <class>)
+    (check
+	(class-of <one>)
+      => <class>)
+    (check
+	(class-of <two>)
+      => <class>)
+    (check
+	(class-of <three>)
+      => <class>)
 
-  (check-for-true (sentinel? (class-definition-name <one>)))
-  (check-for-true (sentinel? (class-definition-name <two>)))
-  (check-for-true (sentinel? (class-definition-name <three>)))
+    (check-for-true (sentinel? (class-definition-name <one>)))
+    (check-for-true (sentinel? (class-definition-name <two>)))
+    (check-for-true (sentinel? (class-definition-name <three>)))
 
-  (check
-      (class-precedence-list <one>)
-    => '())
-  (check
-      (class-precedence-list <two>)
-    => (list <one>))
-  (check
-      (class-precedence-list <three>)
-    => (list <two> <one>))
+    (check
+	(class-precedence-list <one>)
+      => '())
+    (check
+	(class-precedence-list <two>)
+      => (list <one>))
+    (check
+	(class-precedence-list <three>)
+      => (list <two> <one>))
 
-  (check
-      (class-slots <one>)
-    => '(:a :b :c))
-  (check
-      (class-slots <two>)
-    => '(:d :e :f :a :b :c))
-  (check
-      (class-slots <three>)
-    => '(:g :h :i :d :e :f :a :b :c))
+    (check
+	(class-slots <one>)
+      => '(:a :b :c))
+    (check
+	(class-slots <two>)
+      => '(:d :e :f :a :b :c))
+    (check
+	(class-slots <three>)
+      => '(:g :h :i :d :e :f :a :b :c))
 
-  (check
-      (class-direct-slots <one>)
-    => '(:a :b :c))
-  (check
-      (class-direct-slots <two>)
-    => '(:d :e :f))
-  (check
-      (class-direct-slots <three>)
-    => '(:g :h :i))
+    (check
+	(class-direct-slots <one>)
+      => '(:a :b :c))
+    (check
+	(class-direct-slots <two>)
+      => '(:d :e :f))
+    (check
+	(class-direct-slots <three>)
+      => '(:g :h :i))
 
-  (check
-      (is-a? <one> <class>)
-    => #t)
-  (check
-      (is-a? <two> <class>)
-    => #t)
-  (check
-      (is-a? <three> <class>)
-    => #t)
-  )
-
-;;; --------------------------------------------------------------------
-
-(let ()
-  (define-class <one> () :a :b :c)
-  (define-class <two> (<one>) :d :e :f)
-  (define-class <three> (<two>) :g :h :i)
-
-  (check
-      (class? <one>)
-    => #t)
-  (check
-      (class? <two>)
-    => #t)
-  (check
-      (class? <three>)
-    => #t)
-
-  (check
-      (instance? <one>)
-    => #t)
-  (check
-      (instance? <two>)
-    => #t)
-  (check
-      (instance? <three>)
-    => #t)
-
-  (check
-      (class-of <one>)
-    => <class>)
-  (check
-      (class-of <two>)
-    => <class>)
-  (check
-      (class-of <three>)
-    => <class>)
-
-  (check
-      (class-definition-name <one>)
-    => '<one>)
-  (check
-      (class-definition-name <two>)
-    => '<two>)
-  (check
-      (class-definition-name <three>)
-    => '<three>)
-
-  (check
-      (class-precedence-list <one>)
-    => '())
-  (check
-      (class-precedence-list <two>)
-    => (list <one>))
-  (check
-      (class-precedence-list <three>)
-    => (list <two> <one>))
-
-  (check
-      (class-slots <one>)
-    => '(:a :b :c))
-  (check
-      (class-slots <two>)
-    => '(:d :e :f :a :b :c))
-  (check
-      (class-slots <three>)
-    => '(:g :h :i :d :e :f :a :b :c))
-
-  (check
-      (is-a? <one> <class>)
-    => #t)
-  (check
-      (is-a? <two> <class>)
-    => #t)
-  (check
-      (is-a? <three> <class>)
-    => #t)
-  )
-
-
-;;;; class inspection: custom classes with multiple inheritance
-
-(let ()
-  (define-class <a> () :a)
-  (define-class <b> () :b)
-  (define-class <c> () :c)
-  (define-class <d> () :d)
-  (define-class <e> () :e)
-
-  (define-class <pp> (<a> <b>))
-  (define-class <qq> (<c> <d>))
-  (define-class <rr> (<pp> <e> <qq>))
-
-  (check
-      (every class? (list <pp> <qq> <rr>))
-    => #t)
-  (check
-      (every instance? (list <pp> <qq> <rr>))
-    => #t)
-
-  (check
-      (list
-       (class-of <pp>)
-       (class-of <qq>)
-       (class-of <rr>))
-    => (list <class> <class> <class>))
-
-  (check
-      (class-precedence-list <pp>)
-    => (list <a> <b>))
-  (check
-      (class-precedence-list <qq>)
-    => (list <c> <d>))
-  (check
-      (class-precedence-list <rr>)
-    => (list <pp> <a> <b> <e> <qq> <c> <d>))
-
-  (check
-      (class-slots <pp>)
-    => '(:a :b))
-  (check
-      (class-slots <qq>)
-    => '(:c :d))
-  (check
-      (class-slots <rr>)
-    => '(:a :b :e :c :d))
-
-  (check
-      (is-a? <pp> <class>)
-    => #t)
-  (check
-      (is-a? <qq> <class>)
-    => #t)
-  (check
-      (is-a? <rr> <class>)
-    => #t)
-  )
+    (check
+	(is-a? <one> <class>)
+      => #t)
+    (check
+	(is-a? <two> <class>)
+      => #t)
+    (check
+	(is-a? <three> <class>)
+      => #t)
+    )
 
 ;;; --------------------------------------------------------------------
 
-(let ()
-  (define-class <a> () :a)
-  (define-class <b> () :b)
-  (define-class <c> () :c)
-  (define-class <d> () :d)
-  (define-class <e> () :e)
+  (let ()
+    (define-class <one> () :a :b :c)
+    (define-class <two> (<one>) :d :e :f)
+    (define-class <three> (<two>) :g :h :i)
 
-  (define-class <pp> (<a> <b>) :pp)
-  (define-class <qq> (<c> <d>) :qq)
-  (define-class <rr> (<pp> <e> <qq>) :rr)
+    (check
+	(class? <one>)
+      => #t)
+    (check
+	(class? <two>)
+      => #t)
+    (check
+	(class? <three>)
+      => #t)
 
-  (check
-      (every class? (list <pp> <qq> <rr>))
-    => #t)
-  (check
-      (every instance? (list <pp> <qq> <rr>))
-    => #t)
+    (check
+	(instance? <one>)
+      => #t)
+    (check
+	(instance? <two>)
+      => #t)
+    (check
+	(instance? <three>)
+      => #t)
 
-  (check
-      (list
-       (class-of <pp>)
-       (class-of <qq>)
-       (class-of <rr>))
-    => (list <class> <class> <class>))
+    (check
+	(class-of <one>)
+      => <class>)
+    (check
+	(class-of <two>)
+      => <class>)
+    (check
+	(class-of <three>)
+      => <class>)
 
-  (check
-      (class-precedence-list <pp>)
-    => (list <a> <b>))
-  (check
-      (class-precedence-list <qq>)
-    => (list <c> <d>))
-  (check
-      (class-precedence-list <rr>)
-    => (list <pp> <a> <b> <e> <qq> <c> <d>))
+    (check
+	(class-definition-name <one>)
+      => '<one>)
+    (check
+	(class-definition-name <two>)
+      => '<two>)
+    (check
+	(class-definition-name <three>)
+      => '<three>)
 
-  (check
-      (class-slots <pp>)
-    => '(:pp :a :b))
-  (check
-      (class-slots <qq>)
-    => '(:qq :c :d))
-  (check
-      (class-slots <rr>)
-    => '(:rr :pp :a :b :e :qq :c :d))
+    (check
+	(class-precedence-list <one>)
+      => '())
+    (check
+	(class-precedence-list <two>)
+      => (list <one>))
+    (check
+	(class-precedence-list <three>)
+      => (list <two> <one>))
 
-  (check
-      (is-a? <pp> <class>)
-    => #t)
-  (check
-      (is-a? <qq> <class>)
-    => #t)
-  (check
-      (is-a? <rr> <class>)
-    => #t)
+    (check
+	(class-slots <one>)
+      => '(:a :b :c))
+    (check
+	(class-slots <two>)
+      => '(:d :e :f :a :b :c))
+    (check
+	(class-slots <three>)
+      => '(:g :h :i :d :e :f :a :b :c))
+
+    (check
+	(is-a? <one> <class>)
+      => #t)
+    (check
+	(is-a? <two> <class>)
+      => #t)
+    (check
+	(is-a? <three> <class>)
+      => #t)
+    )
 
   )
 
 
-;;; class instantiation: slot access
+(parameterise ((check-test-name 'class-multiple-inheritance))
 
-(let* ((<one>	(make-class () :a :b :c))
-       (o	(make <one> :a 1 :b 2 :c 3)))
-  (check
-      (instance? o)
-    => #t)
-  (check
-      (is-a? o <one>)
-    => #t)
+  (let ()
+    (define-class <a> () :a)
+    (define-class <b> () :b)
+    (define-class <c> () :c)
+    (define-class <d> () :d)
+    (define-class <e> () :e)
 
-  (check
-      (list (slot-ref o ':b)
-	    (slot-ref o ':a)
-	    (slot-ref o ':c))
-    => '(2 1 3))
-  )
+    (define-class <pp> (<a> <b>))
+    (define-class <qq> (<c> <d>))
+    (define-class <rr> (<pp> <e> <qq>))
+
+    (check
+	(every class? (list <pp> <qq> <rr>))
+      => #t)
+    (check
+	(every instance? (list <pp> <qq> <rr>))
+      => #t)
+
+    (check
+	(list
+	 (class-of <pp>)
+	 (class-of <qq>)
+	 (class-of <rr>))
+      => (list <class> <class> <class>))
+
+    (check
+	(class-precedence-list <pp>)
+      => (list <a> <b>))
+    (check
+	(class-precedence-list <qq>)
+      => (list <c> <d>))
+    (check
+	(class-precedence-list <rr>)
+      => (list <pp> <a> <b> <e> <qq> <c> <d>))
+
+    (check
+	(class-slots <pp>)
+      => '(:a :b))
+    (check
+	(class-slots <qq>)
+      => '(:c :d))
+    (check
+	(class-slots <rr>)
+      => '(:a :b :e :c :d))
+
+    (check
+	(is-a? <pp> <class>)
+      => #t)
+    (check
+	(is-a? <qq> <class>)
+      => #t)
+    (check
+	(is-a? <rr> <class>)
+      => #t)
+    )
 
 ;;; --------------------------------------------------------------------
 
-(let ()
-  (define-class <one> ()
-    :a :b :c)
-  (define o (make <one>
-			   :a 1 :b 2 :c 3))
-  (check
-      (instance? o)
-    => #t)
-  (check
-      (is-a? o <one>)
-    => #t)
+  (let ()
+    (define-class <a> () :a)
+    (define-class <b> () :b)
+    (define-class <c> () :c)
+    (define-class <d> () :d)
+    (define-class <e> () :e)
 
-  (check
-      (list (slot-ref o ':b)
-	    (slot-ref o ':a)
-	    (slot-ref o ':c))
-    => '(2 1 3))
+    (define-class <pp> (<a> <b>) :pp)
+    (define-class <qq> (<c> <d>) :qq)
+    (define-class <rr> (<pp> <e> <qq>) :rr)
+
+    (check
+	(every class? (list <pp> <qq> <rr>))
+      => #t)
+    (check
+	(every instance? (list <pp> <qq> <rr>))
+      => #t)
+
+    (check
+	(list
+	 (class-of <pp>)
+	 (class-of <qq>)
+	 (class-of <rr>))
+      => (list <class> <class> <class>))
+
+    (check
+	(class-precedence-list <pp>)
+      => (list <a> <b>))
+    (check
+	(class-precedence-list <qq>)
+      => (list <c> <d>))
+    (check
+	(class-precedence-list <rr>)
+      => (list <pp> <a> <b> <e> <qq> <c> <d>))
+
+    (check
+	(class-slots <pp>)
+      => '(:pp :a :b))
+    (check
+	(class-slots <qq>)
+      => '(:qq :c :d))
+    (check
+	(class-slots <rr>)
+      => '(:rr :pp :a :b :e :qq :c :d))
+
+    (check
+	(is-a? <pp> <class>)
+      => #t)
+    (check
+	(is-a? <qq> <class>)
+      => #t)
+    (check
+	(is-a? <rr> <class>)
+      => #t)
+
+    )
+
   )
 
 
-;;; class instantiation: simple inheritance
+(parameterise ((check-test-name 'instance-slot-access))
 
-(let* ((<one>	(make-class () :a :b :c))
-       (<two>	(make-class (<one>) :d :e :f))
-       (<three>	(make-class (<two>) :g :h :i))
-       (o	(make <three>
-			       :a 1 :b 2 :c 3
-			       :d 4 :e 5 :f 6
-			       :g 7 :h 8 :i 9)))
+  (let* ((<one>	(make-class () :a :b :c))
+	 (o	(make <one> :a 1 :b 2 :c 3)))
+    (check
+	(instance? o)
+      => #t)
+    (check
+	(is-a? o <one>)
+      => #t)
+
+    (check
+	(list (slot-ref o ':b)
+	      (slot-ref o ':a)
+	      (slot-ref o ':c))
+      => '(2 1 3))
+    )
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+    (define-class <one> ()
+      :a :b :c)
+    (define o (make <one>
+		:a 1 :b 2 :c 3))
+    (check
+	(instance? o)
+      => #t)
+    (check
+	(is-a? o <one>)
+      => #t)
+
+    (check
+	(list (slot-ref o ':b)
+	      (slot-ref o ':a)
+	      (slot-ref o ':c))
+      => '(2 1 3))
+    )
+
+  )
+
+
+(parameterise ((check-test-name 'instance-inheritance-slot-access))
+
+  (let* ((<one>		(make-class () :a :b :c))
+	 (<two>		(make-class (<one>) :d :e :f))
+	 (<three>	(make-class (<two>) :g :h :i))
+	 (o		(make <three>
+			  :a 1 :b 2 :c 3
+			  :d 4 :e 5 :f 6
+			  :g 7 :h 8 :i 9)))
+
+    (check
+	(subclass? <one> <class>)
+      => #f)
+    (check
+	(subclass? <two> <one>)
+      => #t)
+    (check
+	(subclass? <three> <two>)
+      => #t)
+    (check
+	(subclass? <three> <one>)
+      => #t)
+    (check
+	(subclass? <one> <three>)
+      => #f)
+
+    (check
+	(is-a? <one> <class>)
+      => #t)
+    (check
+	(is-a? <two> <class>)
+      => #t)
+    (check
+	(is-a? <three> <class>)
+      => #t)
+
+    (check
+	(is-a? o <three>)
+      => #t)
+    (check
+	(is-a? o <two>)
+      => #t)
+
+    (check
+	(map (lambda (s)
+	       (slot-ref o s))
+	  '(:b :d :i))
+      => '(2 4 9))
+
+    (check
+	(map class-definition-name (class-precedence-list <three>))
+      => `(,sentinel ,sentinel))
+
+    )
+
+;;; --------------------------------------------------------------------
 
   (check
-      (subclass? <one> <class>)
-    => #f)
-  (check
-      (subclass? <two> <one>)
-    => #t)
-  (check
-      (subclass? <three> <two>)
-    => #t)
-  (check
-      (subclass? <three> <one>)
-    => #t)
-  (check
-      (subclass? <one> <three>)
-    => #f)
+      (let ()
+	(define-class <one> () :a :b :c)
+	(define-class <two> (<one>) :d :e :f)
+	(define-class <three> (<two>) :g :h :i)
 
-  (check
-      (is-a? <one> <class>)
-    => #t)
-  (check
-      (is-a? <two> <class>)
-    => #t)
-  (check
-      (is-a? <three> <class>)
-    => #t)
-
-  (check
-      (is-a? o <three>)
-    => #t)
-  (check
-      (is-a? o <two>)
-    => #t)
-
-  (check
-      (map (lambda (s)
-	     (slot-ref o s))
-	'(:b :d :i))
+	(define o (make <three>
+		    :a 1 :b 2 :c 3
+		    :d 4 :e 5 :f 6
+		    :g 7 :h 8 :i 9))
+	(list (slot-ref o ':b)
+	      (slot-ref o ':d)
+	      (slot-ref o ':i))
+	)
     => '(2 4 9))
 
   (check
-      (map class-definition-name (class-precedence-list <three>))
-    => `(,sentinel ,sentinel))
+      (let ()
+	(define-class <one> () :a :b :c)
+	(define-class <two> (<one>) :d :e :f)
+	(define-class <three> (<two>) :g :h :i)
 
-  )
+	(list (subclass? <one> <class>)
+	      (subclass? <two> <one>)
+	      (subclass? <three> <two>)
+	      (subclass? <three> <one>)
+	      (subclass? <one> <three>)))
+    => '(#f #t #t #t #f))
 
-;;; --------------------------------------------------------------------
+  (let ()
+    (define-class <one> () :a :b :c)
+    (define-class <two> (<one>) :d :e :f)
+    (define-class <three> (<two>) :g :h :i)
 
-(check
-    (let ()
-      (define-class <one> () :a :b :c)
-      (define-class <two> (<one>) :d :e :f)
-      (define-class <three> (<two>) :g :h :i)
+    (check
+	(map class-definition-name (class-precedence-list <three>))
+      => '(<two> <one>)))
 
-      (define o (make <three>
-		  :a 1 :b 2 :c 3
-		  :d 4 :e 5 :f 6
-		  :g 7 :h 8 :i 9))
-      (list (slot-ref o ':b)
-	    (slot-ref o ':d)
-	    (slot-ref o ':i))
-      )
-  => '(2 4 9))
-
-(check
-    (let ()
-      (define-class <one> () :a :b :c)
-      (define-class <two> (<one>) :d :e :f)
-      (define-class <three> (<two>) :g :h :i)
-
-      (list (subclass? <one> <class>)
-	    (subclass? <two> <one>)
-	    (subclass? <three> <two>)
-	    (subclass? <three> <one>)
-	    (subclass? <one> <three>)))
-  => '(#f #t #t #t #f))
-
-(let ()
-  (define-class <one> () :a :b :c)
-  (define-class <two> (<one>) :d :e :f)
-  (define-class <three> (<two>) :g :h :i)
-
-  (check
-      (map class-definition-name (class-precedence-list <three>))
-    => '(<two> <one>)))
-
-
-;;; generic functions
-
-(let ()
-  (define-class <one> () :a :b :c)
-  (define-class <two> (<one>) :d :e :f)
-  (define-class <three> (<two>) :g :h :i)
-
-  (define-generic alpha o)
-
-  (define-method alpha ((o <one>))
-    (slot-ref o ':a))
-
-  (define-method alpha ((o <two>))
-    (slot-ref o ':d))
-
-  (define-method alpha ((o <three>))
-    (slot-ref o ':g))
-
-  (let ((a (make <one> :a 1))
-	(b (make <two> :d 2))
-	(c (make <three> :g 3)))
-    (check (alpha a) => 1)
-    (check (alpha b) => 2)
-    (check (alpha c) => 3))
-  )
-
-;;; --------------------------------------------------------------------
-
-;;;This tests overwriting an existing method function.
-(let ()
-  (define-class <one> () :a :b :c)
-  (define-class <two> (<one>) :d :e :f)
-
-  (define-generic alpha o)
-
-  (define-method alpha ((o <one>))
-    (slot-ref o ':a))
-
-  (define-method alpha ((o <one>))
-    (slot-ref o ':b))
-
-  (let ((o (make <two> :a 1 :b 2)))
-    (check (alpha o) => 2))
   )
 
 
-;;;; next method
+(parameterise ((check-test-name 'generic-simple-inheritance))
 
-(let ()
-  (define-class <one> () :a :b :c)
-  (define-class <two> (<one>) :d :e :f)
-  (define-class <three> (<two>) :g :h :i)
+  (let ()
+    (define-class <one> () :a :b :c)
+    (define-class <two> (<one>) :d :e :f)
+    (define-class <three> (<two>) :g :h :i)
 
-  (define-generic alpha o)
+    (define-generic alpha o)
 
-  (define-method alpha ((o <one>))
-    (slot-ref o ':a))
+    (define-method alpha ((o <one>))
+      (slot-ref o ':a))
 
-  (define-method alpha ((o <two>))
-    (cons (slot-ref o ':d)
-	  (call-next-method)))
+    (define-method alpha ((o <two>))
+      (slot-ref o ':d))
 
-  (define-method alpha ((o <three>))
-    (cons (slot-ref o ':g)
-	  (call-next-method)))
+    (define-method alpha ((o <three>))
+      (slot-ref o ':g))
 
-  (let ((a (make <one>
-	     :a 1))
-	(b (make <two>
-	     :a 1 :d 2))
-	(c (make <three>
-	     :a 1 :d 2 :g 3)))
-    (check (alpha a) => 1)
-    (check (alpha b) => '(2 . 1))
-    (check (alpha c) => '(3 . (2 . 1)))
+    (let ((a (make <one> :a 1))
+	  (b (make <two> :d 2))
+	  (c (make <three> :g 3)))
+      (check (alpha a) => 1)
+      (check (alpha b) => 2)
+      (check (alpha c) => 3))
     )
-  #t)
 
-
-;;;; multiple inheritance
+;;; --------------------------------------------------------------------
 
-(let ()
-  (define-class <a> () :a)
-  (define-class <b> () :b)
-  (define-class <c> () :c)
-  (define-class <d> () :d)
-  (define-class <e> () :e)
+  (let ()
+    ;;This tests overwriting an existing method function.
 
-  (define-class <pp> (<a> <b>))
-  (define-class <qq> (<c> <d>))
-  (define-class <rr> (<pp> <e> <qq>))
+    (define-class <one> () :a :b :c)
+    (define-class <two> (<one>) :d :e :f)
 
-  (define i (make <pp>
-	      :a 1 :b 2))
+    (define-generic alpha o)
 
-  (define j (make <qq>
-	      :c 3 :d 4))
+    (define-method alpha ((o <one>))
+      (slot-ref o ':a))
 
-  (define k (make <rr>
-	      :a 10 :b 20
-	      :c 30 :d 40))
+    (define-method alpha ((o <one>))
+      (slot-ref o ':b))
 
-  (check
-      (slot-ref i ':a)
-    => 1)
-  (check
-      (slot-ref j ':d)
-    => 4)
-  (check
-      (slot-ref k ':d)
-    => 40)
+    (let ((o (make <two> :a 1 :b 2)))
+      (check (alpha o) => 2))
+    )
 
-  (check
-      (map class-definition-name (class-precedence-list <rr>))
-    => '(<pp> <a> <b> <e> <qq> <c> <d>))
+;;; --------------------------------------------------------------------
+
+  (let ()
+    ;;Built in classes.
+
+    (define-generic alpha o)
+
+    (define-method alpha ((o <fixnum>))		'<fixnum>)
+    (define-method alpha ((o <flonum>))		'<flonum>)
+    (define-method alpha ((o <integer>))	'<integer>)
+    (define-method alpha ((o <real>))		'<real>)
+    (define-method alpha ((o <complex>))	'<complex>)
+    (define-method alpha ((o <number>))		'<number>)
+
+    (check (class-definition-name (class-of 12))		=> '<fixnum>)
+    (check (class-definition-name (class-of 1.2))		=> '<rational>)
+    (check (class-definition-name (class-of (expt 12 12)))	=> '<integer>)
+    (check (class-definition-name (class-of 1.2+3.4i))		=> '<complex>)
+
+    ;;Here remember  that we  are using the  methods above,  we are
+    ;;*not* applying CLASS-OF.
+    (check (alpha 12) => '<fixnum>)
+    (check (alpha (expt 12 12)) => '<integer>)
+    (check (alpha 2/3) => '<real>)
+    (check (alpha 1.2+3.4i) => '<complex>)
+    )
 
   )
 
 
-;;; generic functions: predefined entity classes
+(parameterise ((check-test-name 'generic-next-method))
+
+  (let ()
+    (define-class <one> () :a :b :c)
+    (define-class <two> (<one>) :d :e :f)
+    (define-class <three> (<two>) :g :h :i)
+
+    (define-generic alpha o)
+
+    (define-method alpha ((o <one>))
+      (slot-ref o ':a))
+
+    (define-method alpha ((o <two>))
+      (cons (slot-ref o ':d)
+	    (call-next-method)))
+
+    (define-method alpha ((o <three>))
+      (cons (slot-ref o ':g)
+	    (call-next-method)))
+
+    (let ((a (make <one>
+	       :a 1))
+	  (b (make <two>
+	       :a 1 :d 2))
+	  (c (make <three>
+	       :a 1 :d 2 :g 3)))
+      (check (alpha a) => 1)
+      (check (alpha b) => '(2 . 1))
+      (check (alpha c) => '(3 . (2 . 1)))
+      )
+    #t)
+
+  )
+
+
+(parameterise ((check-test-name 'generic-multiple-inheritance))
+
+  (let ()
+    (define-class <a> () :a)
+    (define-class <b> () :b)
+    (define-class <c> () :c)
+    (define-class <d> () :d)
+    (define-class <e> () :e)
+
+    (define-class <pp> (<a> <b>))
+    (define-class <qq> (<c> <d>))
+    (define-class <rr> (<pp> <e> <qq>))
+
+    (define pp (make <pp> :a 1 :b 2))
+    (define qq (make <qq> :c 3 :d 4))
+    (define rr (make <rr> :a 10 :b 20 :c 30 :d 40))
+
+    (check (slot-ref pp ':a) => 1)
+    (check (slot-ref qq ':d) => 4)
+    (check (slot-ref rr ':d) => 40)
+
+    (check
+	(map class-definition-name (class-precedence-list <rr>))
+      => '(<pp> <a> <b> <e> <qq> <c> <d>))
+
+    (let ()
+
+      (define-generic alpha o)
+      (define-generic beta  o)
+      (define-generic delta o)
+
+      (define-method alpha ((o <pp>)) '<pp>)
+      (define-method alpha ((o <e>))  '<e>)
+      (check (alpha rr) => '<pp>)
+
+      ;;Call the first in the list of multiple inheritance.
+      (define-method beta ((o <c>)) '<c>)
+      (define-method beta ((o <d>)) '<d>)
+      (check (beta qq) => '<c>)
+
+      ;;Call the second in the list of multiple inheritance.
+      (define-method delta ((o <b>)) '<b>)
+      (check (delta pp) => '<b>)
+
+      ))
+
+  )
+
+
+;;;; special slots accessors
 
 (let ()
-  (define-generic alpha o)
+  (define-class <alpha> () :a :b :c)
+  (define o (make <alpha>
+	      :a '(1 2 3)
+	      :b '(4 5 6)
+	      :c '(7 8 9)))
 
-  (define-method alpha ((o <fixnum>))	'<fixnum>)
-  (define-method alpha ((o <flonum>))	'<flonum>)
-  (define-method alpha ((o <integer>))	'<integer>)
-  (define-method alpha ((o <real>))	'<real>)
-  (define-method alpha ((o <complex>))	'<complex>)
-  (define-method alpha ((o <number>))	'<number>)
+  (prepend-to-slot o ':a 10)
+  (prepend-to-slot o ':b 20)
+  (append-to-slot o ':c 40)
 
-  (check (class-definition-name (class-of 12)) => '<fixnum>)
-  (check (class-definition-name (class-of 1.2)) => '<rational>)
-  (check (class-definition-name (class-of (expt 12 12))) => '<integer>)
-  (check (class-definition-name (class-of 1.2+3.4i)) => '<complex>)
+  (check
+      (slot-ref o ':a)
+    => '(10 1 2 3))
 
-  ;;Here remember  that we  are using the  methods above,  we are
-  ;;*not* applying CLASS-OF.
-  (check (alpha 12) => '<fixnum>)
-  (check (alpha (expt 12 12)) => '<integer>)
-  (check (alpha 2/3) => '<real>)
-  (check (alpha 1.2+3.4i) => '<complex>)
+  (check
+      (slot-ref o ':b)
+    => '(20 4 5 6))
+
+  (check
+      (slot-ref o ':c)
+    => '(7 8 9 40)))
+
+(let ()
+  (define-class <alpha> () :a :b :c)
+  (define o (make <alpha>
+	      :a '(1 2 3)
+	      :b '(4 5 6)
+	      :c '(7 8 9)))
+
+  (with-slots-set! o (:a :b) (10 20))
+  (with-slots-set! o '(:c) '(30))
+
+  (check
+      (slot-ref o ':a)
+    => 10)
+  (check
+      (slot-ref o ':b)
+    => 20)
+  (check
+      (slot-ref o ':c)
+    => 30)
+
+  (check
+      (with-slots-ref o '(:a :b))
+    => '(10 20))
+  (check
+      (with-slots-ref o '(:a :c))
+    => '(10 30))
+  )
+
+
+;;; with slots
+
+(let ()
+  (define-class <alpha> () :a :b :c)
+  (define A (make <alpha>
+	      :a 1 :b 2 :c 3))
+  (define B (make <alpha>
+	      :a 4 :b 5 :c 6))
+  (define C (make <alpha>
+	      :a 7 :b 8 :c 9))
+
+  (with-slots ()
+    (check
+	(slot-ref A ':a)
+      => 1))
+
+  (with-slots (((d e f) (:a :b :c) A))
+    (check
+	(list d e f)
+      => '(1 2 3)))
+
+  (with-slots (((d e f) (:a :b :c) A)
+	       ((g h i) (:a :b :c) B))
+    (check
+	(list d e f g h i)
+      => '(1 2 3 4 5 6)))
+
+  (with-slots (((d e f) (:a :b :c) A)
+	       ((g h i) (:a :b :c) B)
+	       ((l m n) (:a :b :c) C))
+    (check
+	(list d e f g h i l m n)
+      => '(1 2 3 4 5 6 7 8 9)))
   )
 
 

@@ -71,9 +71,9 @@
 (define-syntax position
   (syntax-rules ()
     ((_ ?element ?list)
-     (find (lambda (elm)
-	     (eq? ?element elm))
-	   ?list))))
+     (list-index (lambda (elm)
+		   (eq? ?element elm))
+       ?list))))
 
 ;;Given a list of superclasses for class <x>: Build and return the class
 ;;precedence list for <x> to be used in multimethod dispatching.
@@ -592,7 +592,7 @@
   ;;Create the interface procedure of generic functions.
   ;;
   (syntax-rules ()
-    ((_ ?arg-name ...)
+    ((_ ?arg ...)
      (let ((primary-method-table '()) ;these are all alists
 	   (before-method-table  '())
 	   (after-method-table   '())
@@ -609,17 +609,17 @@
 	   :add-after-method   (method-adder after-method-table)
 	   :add-around-method  (method-adder around-method-table)
 	   :interface-procedure
-	   (lambda (?arg-name ... . rest)
+	   (lambda (?arg ... . rest)
 	     (let-syntax ((apply-function/stx (syntax-rules ()
 						((_ ?func-name)
-						 (apply ?func-name ?arg-name ... rest))))
+						 (apply ?func-name ?arg ... rest))))
 			  (consume-method (syntax-rules ()
 					    ((_ ?method-table)
 					     (begin0
 						 (car ?method-table)
 					       (set! ?method-table (cdr ?method-table)))))))
 	       (letrec* ((signature
-			  (list (class-of ?arg-name) ...))
+			  (list (class-of ?arg) ...))
 
 			 (applicable-primary-methods
 			  (%compute-applicable-methods signature primary-method-table))
@@ -665,7 +665,10 @@
 			      ;;Raise   an  error  if   no  applicable
 			      ;;methods.
 			      (assertion-violation 'call-methods
-				"no method defined for these argument classes"))
+				"no method defined for these argument classes"
+				'(?arg ...)
+				(map (lambda (o) (class-definition-name (class-of o)))
+				  (list ?arg ...))))
 
 			     ((not (null? applicable-around-methods))
 			      ;;If around  methods exist: we  apply them
