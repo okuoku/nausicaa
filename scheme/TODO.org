@@ -74,9 +74,19 @@
 
 * irregex
 
+  Write a record type for the match data.
+
+  Write a record type for the chunker.
+
   Remove from  the library  the code related  to UTF8  strings.  Useless
   with R6RS strings because they are sequences of Unicode code points.
 
   Port  the library from  the built-in  char-sets implementation  to the
   (char-sets) library.
+
+* pregexp
+
+  Replace calls to PREGEXP-ERROR with the appropriates error forms.
+
+  Replace PREGEXP-REVERSE! with REVERSE! from (lists)
 

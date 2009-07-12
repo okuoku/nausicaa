@@ -140,6 +140,15 @@ parameters.mosh.sls
 parameters.ypsilon.sls
 ----------------------
 
+pregexp.sls
+-----------
+
+This library is based upon  "pregexp" by Dorai Sitaram.  It was modified
+to work  with R6RS Scheme implementations  and to fit  into the Nausicaa
+distribution.  The original code is  available at (URL last verified Sun
+Jul 12, 2009): <http://evalwhen.com/pregexp/index.html>.
+
+
 queues.sls
 ----------
 
