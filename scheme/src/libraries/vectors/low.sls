@@ -669,7 +669,8 @@
 		   (do* ((len (vector-length vec0))
 			 (i 0 (+ 1 i)))
 		       ((= i len))
-		     (proc (vector-ref vec0 i) (vector-ref V i) ...)))))))))
+		     (proc (vector-ref vec0 i) (vector-ref V i) ...)
+		     #f))))))))
 
 (define-syntax vector-for-each*/stx
   (lambda (stx)

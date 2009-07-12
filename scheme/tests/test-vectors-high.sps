@@ -24,8 +24,6 @@
 ;;;
 
 
-;;;; setup
-
 (import (nausicaa)
   (vectors)
   (checks))
@@ -398,7 +396,7 @@
 	  (2 #\C)
 	  (3 #\D)))
 
-  (check
+  (check 'this
       (vector-map/with-index list
 			     '#(#\a #\b #\c #\d)
 			     '#(#\0 #\1 #\2 #\3))
@@ -407,11 +405,11 @@
 	  (2 #\c #\2)
 	  (3 #\d #\3)))
 
-  (check
+  (check 'this
       (vector-map/with-index list '#())
     => '#())
 
-  (check
+  (check 'this
       (vector-map/with-index list '#() '#())
     => '#())
 
@@ -759,7 +757,7 @@
 	     (subvector-for-each-index add-result '#())))
     => '())
 
-  )
+  #f)
 
 
 (parameterise ((check-test-name 'mapping-syntax))
@@ -882,42 +880,51 @@
 
   (check
       (cadr (with-result
-	     (vector-for-each/stx add-result '#(#\a #\b #\c #\d))))
+	     (vector-for-each/stx add-result '#(#\a #\b #\c #\d))
+	     #t)) ;this is required because for-each returns nothing
     => '(#\a #\b #\c #\d))
 
   (check
       (cadr (with-result
-	     (vector-for-each/stx (lambda (item-a item-b) (add-result (list item-a item-b)))
+	     (vector-for-each/stx (lambda (item-a item-b)
+				    (add-result (list item-a item-b)))
 				  '#(#\a #\b #\c #\d)
-				  '#(#\0 #\1 #\2 #\3))))
+				  '#(#\0 #\1 #\2 #\3))
+	     #t)) ;this is required because for-each returns nothing
     => '((#\a #\0)
 	 (#\b #\1)
 	 (#\c #\2)
 	 (#\d #\3)))
 
   (check
-      (cadr (with-result (vector-for-each* add-result '#())))
+      (cadr (with-result
+	     (vector-for-each* add-result '#())
+	     #t)) ;this is required because for-each returns nothing
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
       (cadr (with-result
-	     (vector-for-each*/stx add-result '#(#\a #\b #\c #\d))))
+	     (vector-for-each*/stx add-result '#(#\a #\b #\c #\d))
+	     #t)) ;this is required because for-each returns nothing
     => '(#\a #\b #\c #\d))
 
   (check
       (cadr (with-result
 	     (vector-for-each*/stx (lambda (item-a item-b) (add-result (list item-a item-b)))
 				   '#(#\a #\b #\c #\d #\e #\f)
-				   '#(#\0 #\1 #\2 #\3))))
+				   '#(#\0 #\1 #\2 #\3))
+	     #t)) ;this is required because for-each returns nothing
     => '((#\a #\0)
 	 (#\b #\1)
 	 (#\c #\2)
 	 (#\d #\3)))
 
   (check
-      (cadr (with-result (vector-for-each*/stx add-result '#())))
+      (cadr (with-result
+	     (vector-for-each*/stx add-result '#())
+	     #t))  ;this is required because for-each returns nothing
     => '())
 
   )

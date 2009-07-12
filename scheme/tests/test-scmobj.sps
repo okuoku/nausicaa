@@ -759,6 +759,12 @@
   )
 
 
+(parameterise ((check-test-name 'generic-application-protocol))
+
+  #f
+  )
+
+
 ;;;; special slots accessors
 
 (let ()
