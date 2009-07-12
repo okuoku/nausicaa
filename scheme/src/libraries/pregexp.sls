@@ -32,15 +32,23 @@
     pregexp-match
     pregexp-split
     pregexp-replace
-    pregexp-replace*)
+    pregexp-replace*
+    pregexp-comment-char)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (lists))
+    (lists)
+    (parameters))
 
 
 (define *pregexp-version* 20050502) ;last change
 
-(define *pregexp-comment-char* #\;)
+(define pregexp-comment-char
+  (make-parameter #\;
+    (lambda (obj)
+      (if (char? obj)
+	  obj
+	(assertion-violation 'pregexp-comment-char
+	  "expected characters as comment character" obj)))))
 
 (define *pregexp-nul-char-int*
 		;can't assume #\nul maps to 0 because of Scsh
@@ -132,7 +140,7 @@
       (else
        (if (or *pregexp-space-sensitive?*
 	       (and (not (char-whitespace? c))
-		    (not (char=? c *pregexp-comment-char*))))
+		    (not (char=? c (pregexp-comment-char)))))
 	   (pregexp-wrap-quantifier-if-any
 	    (list c (+ i 1)) s n)
 	 (let loop ((i i) (in-comment? #f))
@@ -143,7 +151,7 @@
 			    (not (char=? c #\newline))))
 		     ((char-whitespace? c)
 		      (loop (+ i 1) #f))
-		     ((char=? c *pregexp-comment-char*)
+		     ((char=? c (pregexp-comment-char))
 		      (loop (+ i 1) #t))
 		     (else (list ':empty i)))))))))))
 
