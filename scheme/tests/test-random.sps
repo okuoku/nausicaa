@@ -731,7 +731,7 @@
   )
 
 
-(parameterise ((check-test-name 'cmrg))
+#;(parameterise ((check-test-name 'cmrg))
 
   (let* ((source	(make-random-source/cmrg))
 	 (make-integer	(random-source-integers-maker source)))
