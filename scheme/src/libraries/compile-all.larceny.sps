@@ -130,6 +130,9 @@
 (compile-library "keywords.sls"
 		 "keywords.slfasl")
 
+(compile-library "irregex.sls"
+		 "irregex.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (compile-library "foreign/ffi/sizeof.sls"

@@ -72,3 +72,11 @@
 
   Implement the interpreters library.
 
+* irregex
+
+  Remove from  the library  the code related  to UTF8  strings.  Useless
+  with R6RS strings because they are sequences of Unicode code points.
+
+  Port  the library from  the built-in  char-sets implementation  to the
+  (char-sets) library.
+

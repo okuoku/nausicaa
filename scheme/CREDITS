@@ -75,6 +75,15 @@ foreign/memory/compat.mosh.sls
 foreign/memory/compat.ypsilon.sls
 ---------------------------------
 
+irregex.sls
+-----------
+
+The  (irregex) library  is  derived  from IrRegex  by  Alex Shinn.   The
+original package  is distributed  under a BSD  style license and  can be
+downloaded  from:  <http://synthcode.com/>.   Only  small  changes  were
+needed for integration into Nausicaa.
+
+
 format.sls
 ----------
 
