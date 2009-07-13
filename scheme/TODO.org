@@ -90,3 +90,8 @@
 
   Replace PREGEXP-REVERSE! with REVERSE! from (lists)
 
+* scmobj
+
+  Add usage examples for :before and :after methods.
+
+

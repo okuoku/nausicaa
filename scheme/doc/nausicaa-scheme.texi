@@ -31316,11 +31316,14 @@ search key.
 
 @item
 For each kind of method: The list of applicable methods is sorted from
-the more specific to the least specific for the signature.
+the more specific to the least specific for the signature.  The list of
+@code{:after} methods is reversed.
 @end enumerate
 
 From now on the lists of sorted, applicable methods are handled as
-stacks, with the the most specific method on the top.
+stacks; the stacks of @code{:primary}, @code{:around} and @code{:before}
+methods have most specific method on the top; the stack of @code{:after}
+methods has the least specific method on the top.
 
 From now on the application of the generic function enters an implicit
 loop in which more methods' closures can be applied to the same tuple of
@@ -31418,19 +31421,20 @@ function.  Only the most specific is applied to the arguments, however
 it can use @func{call-next-method} to invoke a least specialised version
 and use its return value.
 
-@code{:before} and @code{:after} methods are meant to test pre and post
-conditions.  @code{:before} and @code{:after} methods are applied from
-the most specific to the least specific.  Notice that the @code{:after}
-methods have no access to the return value of the @code{:primary}
-methods.
+@code{:before} and @code{:after} methods are meant to execute additional
+work before and after the primary methods.  While @code{:before} methods
+are applied from the most specific to the least specific, @code{:after}
+methods are applied from the least specific to the most specific.
+Notice that the @code{:after} methods have no access to the return value
+of the @code{:primary} methods.
 
-@code{:around} methods are yet another level for testing pre and post
-conditions; only the most specific is applied to the arguments.  It is
-expected, but not mandatory, that an @code{:around} method invokes
-@func{call-next-method}; such invocations will consume all the
-applicable @code{:around} methods, from the least to the most specific,
-and then will start the application of @code{:before}, @code{:primary}
-and @code{:after} methods.
+@code{:around} methods are yet another level for performing tasks before
+and after the primary methods; only the most specific is applied to the
+arguments.  It is expected, but not mandatory, that an @code{:around}
+method invokes @func{call-next-method}; such invocations will consume
+all the applicable @code{:around} methods, from the least to the most
+specific, and then will start the application of @code{:before},
+@code{:primary} and @code{:after} methods.
 
 @c page
 @node scmobj generic dispatching
@@ -31861,11 +31865,11 @@ kinds of methods; it makes use of the @func{with-result} and
 (define-method alpha :before ((o <b>))  (add-result 4))
 (define-method alpha :before ((o <e>))  (add-result 5))
 
-(define-method alpha :after  ((o <rr>)) (add-result 6))
-(define-method alpha :after  ((o <pp>)) (add-result 7))
+(define-method alpha :after  ((o <rr>)) (add-result 10))
+(define-method alpha :after  ((o <pp>)) (add-result 9))
 (define-method alpha :after  ((o <a>))  (add-result 8))
-(define-method alpha :after  ((o <b>))  (add-result 9))
-(define-method alpha :after  ((o <e>))  (add-result 10))
+(define-method alpha :after  ((o <b>))  (add-result 7))
+(define-method alpha :after  ((o <e>))  (add-result 6))
 
 (define-method alpha :around  ((o <rr>)) (cons 1 (call-next-method)))
 (define-method alpha :around  ((o <pp>)) (cons 2 (call-next-method)))
@@ -31930,11 +31934,11 @@ and let's define and apply all the kinds of methods:
 (define-method alpha :before ((o <x>))  (add-result 4))
 (define-method alpha :before ((o <t>))  (add-result 5))
 
-(define-method alpha :after ((o <z>))   (add-result 6))
-(define-method alpha :after ((o <y>))   (add-result 7))
+(define-method alpha :after ((o <z>))   (add-result 10))
+(define-method alpha :after ((o <y>))   (add-result 9))
 (define-method alpha :after ((o <w>))   (add-result 8))
-(define-method alpha :after ((o <x>))   (add-result 9))
-(define-method alpha :after ((o <t>))   (add-result 10))
+(define-method alpha :after ((o <x>))   (add-result 7))
+(define-method alpha :after ((o <t>))   (add-result 6))
 
 (with-result (alpha z))
 @result{} '((1 2 3 4 5 6 7 8 9 . 10)
@@ -31986,12 +31990,12 @@ and let's define and apply all the kinds of methods:
 (define-method alpha :before ((o <1>))  (add-result 5))
 (define-method alpha :before ((o <0>))  (add-result 6))
 
-(define-method alpha :after ((o <5>))   (add-result 7))
-(define-method alpha :after ((o <4>))   (add-result 8))
-(define-method alpha :after ((o <3>))   (add-result 9))
-(define-method alpha :after ((o <2>))   (add-result 10))
-(define-method alpha :after ((o <1>))   (add-result 11))
-(define-method alpha :after ((o <0>))   (add-result 12))
+(define-method alpha :after ((o <5>))   (add-result 12))
+(define-method alpha :after ((o <4>))   (add-result 11))
+(define-method alpha :after ((o <3>))   (add-result 10))
+(define-method alpha :after ((o <2>))   (add-result 9))
+(define-method alpha :after ((o <1>))   (add-result 8))
+(define-method alpha :after ((o <0>))   (add-result 7))
 
 (with-result (alpha n))
 @result{} '((1 2 3 4 5 6 7 8 9 10 11 . 12)

@@ -609,7 +609,8 @@
 			  (%compute-applicable-methods signature before-method-alist))
 
 			 (applicable-after-closures
-			  (%compute-applicable-methods signature after-method-alist))
+			  (reverse ;!!! yes!
+			   (%compute-applicable-methods signature after-method-alist)))
 
 			 (applicable-around-closures
 			  (%compute-applicable-methods signature around-method-alist))
