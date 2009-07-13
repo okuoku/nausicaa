@@ -355,7 +355,7 @@ Copyright @copyright{} 2003 Taylor Campbell.@*
 Copyright @copyright{} 2005 Jens Axel Soegaard.@*
 Copyright @copyright{} 2008 Taro Minowa (Higepon).@*
 Copyright @copyright{} 2005-2009 Alex Shinn.@*
-Copyright @copyright{} 1999-2005 Dorai Sitaram.
+Copyright @copyright{} 1996, 1999-2005 Dorai Sitaram.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -996,11 +996,12 @@ Classes
 
 Generic functions and methods
 
-* scmobj generic examples::     Examples of method dispatching.
-* scmobj generic dispatching::  How generic functions and methods
+* scmobj generic application::  How generic functions and methods
                                 are invoked.
+* scmobj generic dispatching::  How methods are dispatched.
 * scmobj generic define::       Defining generic functions and methods.
 * scmobj generic next::         Invoking the next method.
+* scmobj generic examples::     Examples of method dispatching.
 
 IrRegular expressions
 
@@ -30512,15 +30513,14 @@ provides: simple and multiple inheritance, generic functions,
 multimethods.  It resembles @clos{} (the Common Lisp Object System), but
 it does not implement a meta object protocol (@acronym{MOP}).
 
-The @library{scmobj} library is a reorganisation and repackaging of
-ScmObj, an object system for Scheme implemented by Dorai Sitaram.  The
-original code is available from@footnote{@aurl{} last checked Thu Nov
-13, 2008.}:
+The library is a reorganisation and repackaging of ScmObj, an object
+system for Scheme implemented by Dorai Sitaram.  The original code is
+available from@footnote{@aurl{} last checked Thu Nov 13, 2008.}:
 
 @center @url{http://www.ccs.neu.edu/home/dorai/scmobj/scmobj.html}
 
 This library has the main purpose of keeping the source code simple and
-understandable, so that it can be taken as staring point for more
+understandable, so that it can be taken as starting point for more
 sophisticated object systems.
 
 @menu
@@ -30539,12 +30539,12 @@ sophisticated object systems.
 
 
 @library{scmobj} objects, that is classes and instances, are association
-lists: proper lists of pairs whose cars are symbols and whose cdrs can
+lists: Proper lists of pairs whose cars are symbols and whose cdrs can
 be any value.
 
 In this document: each pair is called @dfn{slot}; the symbol is called
 @dfn{slot name}; the value is called @dfn{slot value}.  By convention
-the symbols must have name starting with a colon @code{:}.
+the slot name symbols must have name starting with a colon @code{:}.
 
 A @dfn{class} object is an alist whose first slot's name is
 @code{:class}, and the other slot names are:
@@ -30562,11 +30562,10 @@ and the other slot names are configured by the user.
 @deffn Slot :class
 It must be the first slot for both class and instance objects.
 
-For an instance object: the value must be the class of the instance.
+For an instance object: The value must be the class of the instance.
 
-For a class object: the value must be the predefined @class{class}
-object, or a class object that has @class{class} in its class precedence
-list.  So a class object is a special case of instance object.
+For a class object: The value must be the predefined @class{class}
+object.  So a class object is a special case of instance object.
 @end deffn
 
 
@@ -30606,20 +30605,20 @@ Notice that the symbol @code{:class} is @strong{not} included.
 
 
 In the following it is not always convenient to show the full layout; to
-highlight informations of interest it is better to omit the layout of
-class object nested into class objects.  When this is done the string
-@code{%apple} is included in place of the layout of the class
+highlight informations of interest, it is better to omit the layout of
+class objects nested into class objects.  When this is done the string
+@code{#<apple>} is included in place of the layout of the class
 @class{apple}.
 
 Let's start with the layout of @class{class} itself:
 
 @example
-#0=((:class . #0#)
-    (:class-definition-name . <class>)
-    (:class-precedence-list . #f)
-    (:slots . (:class-definition-name
-               :class-precedence-list
-               :slots)))
+((:class . #<class>)
+ (:class-definition-name . <class>)
+ (:class-precedence-list . #f)
+ (:slots . (:class-definition-name
+            :class-precedence-list
+            :slots)))
 @end example
 
 @noindent
@@ -30636,7 +30635,7 @@ superclass and no slots:
 its layout is this:
 
 @example
-((:class . %class)
+((:class . #<class>)
  (:class-definition-name . <biologic>)
  (:class-precedence-list . #f)
  (:slots . #f))
@@ -30650,12 +30649,13 @@ now we derive a class from it, still without slots:
 @end example
 
 @noindent
-and the layout of the subclass is:
+@class{fruit} is a @dfn{subclass} of @class{biologic}, @class{biologic}
+is a @dfn{superclass} of @class{fruit}; the layout of the subclass is:
 
 @example
-((:class . %class)
+((:class . #<class>)
  (:class-definition-name . <fruit>)
- (:class-precedence-list . (%biologic))
+ (:class-precedence-list . (#<biologic>))
  (:slots . #f))
 @end example
 
@@ -30671,9 +30671,9 @@ finally we subclass again adding slots:
 and the layout is:
 
 @example
-((:class . %class)
+((:class . #<class>)
  (:class-definition-name . <apple>)
- (:class-precedence-list . (%fruit %biologic))
+ (:class-precedence-list . (#<fruit> #<biologic>))
  (:slots . (:variety :colour :quality)))
 @end example
 
@@ -30690,9 +30690,9 @@ We have a usable class, so we instantiate it:
 and the layout of the instance is:
 
 @example
-((:class . %apple)
+((:class   . #<apple>)
  (:variety . renetta)
- (:colour . green)
+ (:colour  . green)
  (:quality . high))
 @end example
 
@@ -30708,13 +30708,13 @@ We may want to add a price:
 and the layout of the class with multiple inheritance is:
 
 @example
-((:class . %class)
+((:class . #<class>)
  (:class-definition-name . <priced-apple>)
- (:class-precedence-list . (%apple
-                            %fruit
-                            %biologic
-                            %price))
- (:slots (:variety :colour :quality :tag)))
+ (:class-precedence-list . (#<apple>
+                            #<fruit>
+                            #<biologic>
+                            #<price>))
+ (:slots . (:variety :colour :quality :tag)))
 @end example
 
 The instance of a priced apple:
@@ -30731,11 +30731,11 @@ The instance of a priced apple:
 has layout:
 
 @example
-((:class . %priced-apple)
+((:class   . #<priced-apple>)
  (:variety . renetta)
- (:colour . green)
+ (:colour  . green)
  (:quality . high)
- (:tag . 100))
+ (:tag     . 100))
 @end example
 
 @c page
@@ -30776,20 +30776,21 @@ A list containing only the @class{class} value.
 A list of previously defined base classes.
 @end itemize
 
-@var{class-slots} must be a list of symbols representing the slot
-names.  By convention their names should start with a colon character,
-@code{:}.
+@var{class-slots} must be a list of symbols representing the slot names.
+By convention their names should start with a colon character, @code{:}.
+It is possible for a class to add no new slots, that is
+@var{class-slots} can be the empty string: This allows subclassing for
+the only purpose of method dispatching.
 
 Notice that classes instantiated with @func{make-class} will have no
 class definition name.  The @func{class-definition-name} function
-applied to them will return the sentinel value.  @ref{sentinel, The
-sentinel value}
+applied to them will return the symbol @code{:uninitialised}.
 @end deffn
 
 
 @deffn Syntax define-class @var{name} @var{list-of-superclasses} . @var{class-slots}
 A wrapper for @func{make-class} that defines a new variable named
-@var{name} and assignes the new class to it.  The class definition name
+@var{name} and assigns the new class to it.  The class definition name
 of the class is initialised to @var{name}.
 @end deffn
 
@@ -31070,6 +31071,10 @@ Class for values that satisfy @func{condition?}.
 Build and return a new instance object of class @var{class-object}.  The
 optional arguments are symbol/value couples used to initialise the
 slots: The symbol must be the name of a slot, the value its value.
+
+It is @strong{not} mandatory to initialise all the slots in a class
+instance.  Uninitialised slots will be initialised to the symbol
+@code{:uninitialised}.
 @end deffn
 
 
@@ -31136,7 +31141,7 @@ otherwise.
 Return the class definition name for @var{class}.  Note that the
 definition name is set only for classes instantiated with
 @func{define-class}, for classes instantiated with @func{make-class} the
-return value is the sentinel.  @ref{sentinel, The sentinel value}
+return value is the symbol @code{:uninitialised}.
 @end defun
 
 
@@ -31272,203 +31277,22 @@ arguments, the most specific method with respect to the arguments'
 classes is chosen.
 
 @menu
-* scmobj generic examples::     Examples of method dispatching.
-* scmobj generic dispatching::  How generic functions and methods
+* scmobj generic application::  How generic functions and methods
                                 are invoked.
+* scmobj generic dispatching::  How methods are dispatched.
 * scmobj generic define::       Defining generic functions and methods.
 * scmobj generic next::         Invoking the next method.
+* scmobj generic examples::     Examples of method dispatching.
 @end menu
 
 @c page
-@node scmobj generic examples
-@subsubsection Examples of method dispatching.
-
-
-Here we show with some examples what we have to expect from the
-multimethod dispatching of @library{scmobj}.  In the following examples
-the string @code{%apple} is written in place of the value bound to the
-symbol @class{apple}.
-
-
-@subsubheading Simple inheritance
-
-Let's examine this example:
-
-@example
-(define-class <top> ())
-(define-class <one> (<top>))
-(define-class <two> (<one>))
-(define-class <c>   (<two>))
-@end example
-
-@noindent
-the class hierarchy is:
-
-@example
-<top> -> <one> -> <two> -> <c>
-@end example
-
-@noindent
-and the full class precedence list for @class{c} is:
-
-@example
-(cons <c> (class-precedence-list <c>))
-=> '(%c %two %one %top)
-@end example
-
-@noindent
-so for the generic function:
-
-@example
-(define-generic doit o)
-(define-method doit ((o <one>)) 'one)
-(define-method doit ((o <two>)) 'two)
-@end example
-
-@noindent
-applied to a value of class @class{c}: the method with @class{two} in
-the signature is @emph{more specific} than the method with @class{one}
-in the signature:
-
-@example
-(doit (make <c>)) => 'two
-@end example
-
-@c ------------------------------------------------------------
-
-@subsubheading Multiple inheritance
-
-
-Let's examine this example:
-
-@example
-(define-class <top> ())
-(define-class <one> (<top>))
-(define-class <two> (<top>))
-(define-class <c> (<two> <one>))
-@end example
-
-@noindent
-the class hierarchy is:
-
-@example
-<top> -+-> <one> -+-> <c>
-       |          |
-        -> <two> -
-@end example
-
-@noindent
-and given the order in which the classes where handed to
-@func{define-class}, the class precedence list for @class{c} is:
-
-@example
-(cons <c> (class-precedence-list <c>))
-=> '(%c %two %one %top)
-@end example
-
-@noindent
-so for the generic function:
-
-@example
-(define-generic doit o)
-(define-method doit ((o <one>)) 'one)
-(define-method doit ((o <two>)) 'two)
-@end example
-
-@noindent
-applied to a value of class @class{c}: The method with @class{two} in
-the signature is @emph{more specific} than the method with @class{one}
-in the signature:
-
-@example
-(doit (make <c>)) => 'two
-@end example
-
-Another multiple inheritance example:
-
-@example
-(define-class <top> ())
-(define-class <one> (<top>))
-(define-class <two> (<top>))
-(define-class <three> (<two>))
-(define-class <c> (<three> <one>))
-@end example
-
-@noindent
-the class hierarchy is:
-
-@example
-<top> -+-------> <one> ------+-> <c>
-       |                     |
-        -> <two> -> <three> -
-@end example
-
-@noindent
-and given the order in which the classes where handed to
-@func{define-class}, the class precedence list for @class{c} is:
-
-@example
-(cons <c> (class-precedence-list <c>))
-=> '(%c %three %two %one %top)
-@end example
-
-@noindent
-so for the generic function:
-
-@example
-(define-generic doit o)
-(define-method doit ((o <one>)) 'one)
-(define-method doit ((o <two>)) 'two)
-@end example
-
-@noindent
-applied to a value of class @class{c}: The method with @class{two} in
-the signature is @emph{more specific} than the method with @class{one}
-in the signature:
-
-@example
-(doit (make <c>)) => 'two
-@end example
-
-@c ------------------------------------------------------------
-
-@subsubheading Other examples
-
-Let's look at this:
-
-@example
-(define-class <top> ())
-(define-class <c>   (<top>))
-(define-class <one> (<c>))
-
-(define-generic doit o)
-(define-method doit ((o <one>)) 'one)
-
-(doit (make <c>))
-@end example
-
-@noindent
-this will result in a ``no method defined for these argument classes''
-error because a value of class @class{c} is @strong{not} a value of
-class @class{one}.  For a method to be applicable: the class from the
-signature of the method has to be in in the class list of the argument,
-not vice versa.  That is:
-
-@example
-(subclass? <c> <one>)
-@end example
-
-@noindent
-must evaluate to true.
-
-@c page
-@node scmobj generic dispatching
+@node scmobj generic application
 @subsubsection How generic functions and methods are invoked
 
 
 @library{scmobj} allows the definition of four kinds of methods:
 @code{:primary}, @code{:around}, @code{:before} and @code{:after}.  The
-short version is that @code{:around} methods are applied first, then
+short description is that @code{:around} methods are applied first, then
 @code{:before}, @code{:primary} and @code{:after} methods are applied in
 this order.
 
@@ -31488,7 +31312,7 @@ collection in which every method's closure is associated to a signature.
 @item
 For each kind of method: The internal collection is queried for all the
 methods applicable to the tuple of arguments, using the signature as
-serch key.
+search key.
 
 @item
 For each kind of method: The list of applicable methods is sorted from
@@ -31609,44 +31433,155 @@ and then will start the application of @code{:before}, @code{:primary}
 and @code{:after} methods.
 
 @c page
+@node scmobj generic dispatching
+@subsubsection How methods are dispatched
+
+
+Here we attempt the formulation of the rules by which methods are
+dispatched.  A method is identified by a triplet of values: a list of
+classes, called signature, representing the classes or expected
+arguments; a boolean value telling if the closure accepts rest
+arguments; the closure.
+
+@c ------------------------------------------------------------
+
+@subsubheading Applicability
+
+First we need to understand when a method is applicable to a tuple of
+arguments.  Given a tuple of arguments, a method supporting no rest
+arguments is applicable to it if:
+
+@enumerate
+@item
+The length of the signature is equal to the length of the arguments'
+tuple.
+
+@item
+Position by position, the class in the signature is @func{eq?} to the
+class of the value in the tuple, or it is in the class precedence list
+of the class of the value in the tuple.
+@end enumerate
+
+@noindent
+a method supporting rest arguments is applicable to it if:
+
+@enumerate
+@item
+The length of the signature is less than or equal to the length of the
+arguments' tuple.
+
+@item
+Position by position, up to the last element in the signature, the class
+in the signature is @func{eq?} to the class of the value in the tuple,
+or it is in the class precedence list of the class of the value in the
+tuple.
+@end enumerate
+
+@c ------------------------------------------------------------
+
+@subsubheading Specificity
+
+Now we can understand how to determine which one, among two applicable
+methods, is more spefiic for a tuple of arguments.  Let's call the
+methods @var{A} and @var{B}.  Notice that it is impossible for two
+distinct methods, in the same generic function, to have the same
+signature and the same support for rest arguments.
+
+@enumerate
+@item
+If both @var{A} and @var{B} support rest arguments: The one with the
+longest signature is more specific.
+
+@item
+The classes in the signatures are compared in couples, position by
+position from the beginning to the end.
+
+@enumerate a
+@item
+If the classes are @func{eq?}, the next couple is inspected.
+
+@item
+If the class from @var{A} is a subclass of the one from @var{B}: Then
+@var{A} is more specific than @var{B}.  If no subclass relation exists
+between the two, the next couple is inspected.
+
+@item
+For the current position, the class of the value in the tuple of
+arguments is determined, its class precedence acquired.  The positions
+of the classes from the signatures in the class precedence list is
+computed: If the class from @var{A} comes first, then @var{A} is more
+specific than @var{B}.
+@end enumerate
+
+@item
+If the methods' signatures have the same length, and, position by
+position, the classes of @var{A} are @func{eq?} to the classes of
+@var{B}, but @var{A} supports rest arguments while @var{B} does not:
+Then @var{B} is more specific than @var{A}.
+@end enumerate
+
+@c page
 @node scmobj generic define
 @subsubsection Defining generic functions and methods
 
 
-@deffn Macro define-generic @var{name} @var{arg} ...
-Define a new generic function and bind it to @var{name}.  The @var{arg}
-values represent the arguments that all the methods' closures will have.
+@deffn Macro define-generic @var{name}
+Define a new generic function and bind it to @var{name}.  The number of
+arguments is undefined: Every method can have a different number of
+arguments.
 @end deffn
 
 
-@deffn Macro make-generic-function @var{arg} ...
-Build and return a new generic function.  The @var{arg} values represent
-the arguments that all the methods' closures will have.
+@deffn Macro make-generic-function
+Build and return a new generic function.  The number of arguments is
+undefined: Every method can have a different number of arguments.
 @end deffn
 
 
-@deffn Macro define-method @var{generic} ((@var{arg} @var{class}) ...)
-@deffnx Macro define-method @var{generic} :primary ((@var{arg} @var{class}) ...)
-@deffnx Macro define-method @var{generic} :before ((@var{arg} @var{class}) ...)
-@deffnx Macro define-method @var{generic} :after ((@var{arg} @var{class}) ...)
-@deffnx Macro define-method @var{generic} :around ((@var{arg} @var{class}) ...)
+@deffn Macro define-method @var{generic} (@var{arg-spec} ...) . @var{body}
+@deffnx Macro define-method (@var{generic} @var{arg-spec} ...) . @var{body}
+@deffnx Macro define-method @var{generic} :primary (@var{arg-spec} ...) . @var{body}
+@deffnx Macro define-method @var{generic} :before (@var{arg-spec} ...) . @var{body}
+@deffnx Macro define-method @var{generic} :after (@var{arg-spec} ...) . @var{body}
+@deffnx Macro define-method @var{generic} :around (@var{arg-spec} ...) . @var{body}
 Add a new method to an already existent generic function, @var{generic}.
-The list of arguments specifies the classes of the values for which the
-method specialises the function.  When the method qualifier is not
+The qualifier specifies the kind of method; when the qualifier is not
 present, it defaults to @code{:primary}.
+
+The list of @var{arg-spec} specifies the classes of the values for which
+the method specialises the function.  Notice that rest arguments are
+supported and specified with the usual syntax.  A @var{arg-spec} can be:
+
+@table @code
+@item (@var{arg} @var{class})
+Where @var{arg} is the formal name of the argument and @var{class} the
+class of expected values.
+
+@item @var{arg}
+Where @var{arg} is the formal name of the argument.  In this case the
+class defaults to @true{}, which is interpreted as superclass of every
+other class.
+@end table
+
+If a method is defined with the same signature, and support for rest
+arguments, of an already registered method: The old method is
+overwritten by the new one.  Two methods having, position by position,
+arguments of the same class, but such that one supports rest arguments
+and the other does not, are different.
 @end deffn
 
 
-@deffn Macro add-method @var{generic} @var{signature} @var{closure}
-@deffnx Macro add-method @var{generic} :primary @var{signature} @var{closure}
-@deffnx Macro add-method @var{generic} :before @var{signature} @var{closure}
-@deffnx Macro add-method @var{generic} :after @var{signature} @var{closure}
-@deffnx Macro add-method @var{generic} :around @var{signature} @var{closure}
+@deffn Macro add-method @var{generic} @var{signature} @var{has-rest} @var{closure}
+@deffnx Macro add-method @var{generic} :primary @var{signature} @var{has-rest} @var{closure}
+@deffnx Macro add-method @var{generic} :before @var{signature} @var{has-rest} @var{closure}
+@deffnx Macro add-method @var{generic} :after @var{signature} @var{has-rest} @var{closure}
+@deffnx Macro add-method @var{generic} :around @var{signature} @var{has-rest} @var{closure}
 Add a new method to an already existent generic function, @var{generic}.
 @var{signature} must be a list of classes for which the method
 specialises the function.  @var{closure} must be the method's closure.
 When the method qualifier is not present, it defaults to
-@code{:primary}.
+@code{:primary}.  @var{has-rest} must be @true{} or @false{}, when
+@true{} it means that the closure supports rest arguments.
 @end deffn
 
 @c page
@@ -31665,7 +31600,438 @@ Return true if a next method is available.  Available next methods are
 @code{:primary} and @code{:around} methods.  After the first
 @code{:primary} method has been called, only @code{:primary} methods are
 considered.
+
+It can be invoked by any kind of method.
 @end defun
+
+@c page
+@node scmobj generic examples
+@subsubsection Examples of method dispatching.
+
+
+Here we show with some examples what we have to expect from the
+multimethod dispatching of @library{scmobj}.  In the following examples
+the string @code{%apple} is written in place of the value bound to the
+symbol @class{apple}.
+
+
+@subsubheading Simple inheritance
+
+Let's examine this example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<one>))
+(define-class <c>   (<two>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -> <one> -> <two> -> <c>
+@end example
+
+@noindent
+and the full class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: the method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Multiple inheritance
+
+
+Let's examine this example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<top>))
+(define-class <c> (<two> <one>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -+-> <one> -+-> <c>
+       |          |
+        -> <two> -
+@end example
+
+@noindent
+and given the order in which the classes where handed to
+@func{define-class}, the class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: The method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+Another multiple inheritance example:
+
+@example
+(define-class <top> ())
+(define-class <one> (<top>))
+(define-class <two> (<top>))
+(define-class <three> (<two>))
+(define-class <c> (<three> <one>))
+@end example
+
+@noindent
+the class hierarchy is:
+
+@example
+<top> -+-------> <one> ------+-> <c>
+       |                     |
+        -> <two> -> <three> -
+@end example
+
+@noindent
+and given the order in which the classes where handed to
+@func{define-class}, the class precedence list for @class{c} is:
+
+@example
+(cons <c> (class-precedence-list <c>))
+=> '(%c %three %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+(define-method doit ((o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of class @class{c}: The method with @class{two} in
+the signature is @emph{more specific} than the method with @class{one}
+in the signature:
+
+@example
+(doit (make <c>)) => 'two
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Other examples
+
+Let's look at this:
+
+@example
+(define-class <top> ())
+(define-class <c>   (<top>))
+(define-class <one> (<c>))
+
+(define-generic doit)
+(define-method doit ((o <one>)) 'one)
+
+(doit (make <c>))
+@end example
+
+@noindent
+this will result in a ``no method defined for these argument classes''
+error because a value of class @class{c} is @strong{not} a value of
+class @class{one}.  For a method to be applicable: the class from the
+signature of the method has to be in in the class list of the argument,
+not vice versa.  That is:
+
+@example
+(subclass? <c> <one>)
+@end example
+
+@noindent
+must evaluate to true.
+
+@c ------------------------------------------------------------
+
+@subsubheading Kinds of methods
+
+In the examples for the application of different kinds of methods, we
+will make use of the following hierarchy of classes:
+
+@example
+(define-class <a> () :a)
+(define-class <b> () :b)
+(define-class <c> () :c)
+(define-class <d> () :d)
+(define-class <e> () :e)
+
+(define-class <pp> (<a> <b>))
+(define-class <qq> (<c> <d>))
+(define-class <rr> (<pp> <e> <qq>))
+
+(define pp (make <pp> :a 1 :b 2))
+(define qq (make <qq> :c 3 :d 4))
+(define rr (make <rr> :a 10 :b 20 :c 30 :d 40))
+@end example
+
+First some error case.  The following will raise an error because
+@code{:before} methods are forbidden to @func{call-next-method}:
+
+@example
+(define-generic alpha)
+
+(define-method alpha ((o <a>))
+  1)
+
+(define-method alpha :before ((o <a>))
+  (call-next-method))
+
+(alpha pp)
+@end example
+
+The following will raise an error because we @func{call-next-method}
+when no next method is available:
+
+@example
+(define-generic alpha)
+
+(define-method alpha ((o <a>))
+  (call-next-method))
+
+(alpha pp)
+@end example
+
+The following will raise an error because we apply a generic function
+when no @code{:primary} method has been defined:
+
+@example
+(define-generic alpha)
+
+(define-method alpha :around ((o <a>))
+  (call-next-method))
+
+(alpha pp)
+@end example
+
+Here is a full example showing the order of applications for all the
+kinds of methods; it makes use of the @func{with-result} and
+@func{add-result} forms from the @library{checks} library:
+
+@example
+(define-generic alpha)
+
+(define-method alpha :before ((o <rr>)) (add-result 1))
+(define-method alpha :before ((o <pp>)) (add-result 2))
+(define-method alpha :before ((o <a>))  (add-result 3))
+(define-method alpha :before ((o <b>))  (add-result 4))
+(define-method alpha :before ((o <e>))  (add-result 5))
+
+(define-method alpha :after  ((o <rr>)) (add-result 6))
+(define-method alpha :after  ((o <pp>)) (add-result 7))
+(define-method alpha :after  ((o <a>))  (add-result 8))
+(define-method alpha :after  ((o <b>))  (add-result 9))
+(define-method alpha :after  ((o <e>))  (add-result 10))
+
+(define-method alpha :around  ((o <rr>)) (cons 1 (call-next-method)))
+(define-method alpha :around  ((o <pp>)) (cons 2 (call-next-method)))
+(define-method alpha :around  ((o <a>))  (cons 3 (call-next-method)))
+(define-method alpha :around  ((o <b>))  (cons 4 (call-next-method)))
+(define-method alpha :around  ((o <e>))  (cons 5 (call-next-method)))
+
+(define-method alpha :primary ((o <rr>)) (cons 6 (call-next-method)))
+(define-method alpha :primary ((o <pp>)) (cons 7 (call-next-method)))
+(define-method alpha :primary ((o <a>))  (cons 8 (call-next-method)))
+(define-method alpha :primary ((o <b>))  (cons 9 (call-next-method)))
+(define-method alpha :primary ((o <e>))  10)
+
+(with-result (alpha rr))
+@result{} '((1 2 3 4 5 6 7 8 9 . 10)
+     (1 2 3 4 5 6 7 8 9 10))
+@end example
+
+@noindent
+notice, in particular, how multiple inheritance is handled: Methods for
+the @class{b} and @class{e} classes, coming as seconds in the class
+inheritance lists, are applied after the methods of the @class{a} and
+@class{pp} classes.
+
+Now let's consider a the following class hierarchy with diamond
+inheritance:
+
+@example
+(define-class <t> ()    :t)   ;  <t>---+
+(define-class <x> (<t>) :x)   ;        v
+(define-class <y> (<x>) :y)   ;   --- <x> ---
+(define-class <w> (<x>) :w)   ;  |           |
+(define-class <z> (<y> <w>))  ;  v           v
+                              ; <y>         <w>
+                              ;  |           |
+                              ;   --> <z> <--
+
+(define z (make <z> :t 0 :x 1 :y 2 :w 3))
+@end example
+
+@noindent
+and let's define and apply all the kinds of methods:
+
+@example
+(define-generic alpha)
+
+(define-method alpha :around ((o <z>))  (cons 1 (call-next-method)))
+(define-method alpha :around ((o <y>))  (cons 2 (call-next-method)))
+(define-method alpha :around ((o <w>))  (cons 3 (call-next-method)))
+(define-method alpha :around ((o <x>))  (cons 4 (call-next-method)))
+(define-method alpha :around ((o <t>))  (cons 5 (call-next-method)))
+
+(define-method alpha :primary ((o <z>)) (cons 6 (call-next-method)))
+(define-method alpha :primary ((o <y>)) (cons 7 (call-next-method)))
+(define-method alpha :primary ((o <w>)) (cons 8 (call-next-method)))
+(define-method alpha :primary ((o <x>)) (cons 9 (call-next-method)))
+(define-method alpha :primary ((o <t>)) 10)
+
+(define-method alpha :before ((o <z>))  (add-result 1))
+(define-method alpha :before ((o <y>))  (add-result 2))
+(define-method alpha :before ((o <w>))  (add-result 3))
+(define-method alpha :before ((o <x>))  (add-result 4))
+(define-method alpha :before ((o <t>))  (add-result 5))
+
+(define-method alpha :after ((o <z>))   (add-result 6))
+(define-method alpha :after ((o <y>))   (add-result 7))
+(define-method alpha :after ((o <w>))   (add-result 8))
+(define-method alpha :after ((o <x>))   (add-result 9))
+(define-method alpha :after ((o <t>))   (add-result 10))
+
+(with-result (alpha z))
+@result{} '((1 2 3 4 5 6 7 8 9 . 10)
+     (1 2 3 4 5 6 7 8 9 10))
+@end example
+
+Here is yet another example with diamond inheritance:
+
+@example
+(define-class <0> () :0)        ;    <0>--+
+(define-class <1> (<0>) :1)     ;         v
+(define-class <2> (<1>) :2)     ;   ---- <1> ----
+(define-class <3> (<1>) :3)     ;  |             |
+(define-class <4> (<3>) :4)     ;  v             |
+(define-class <5> (<4> <2>))    ; <3>            |
+                                ;  |             |
+                                ;  v             v
+                                ; <4>           <2>
+                                ;  |             |
+                                ;   ---> <5> <---
+
+(define n (make <5> :0 0 :1 1 :2 2 :3 3 :4 4))
+@end example
+
+@noindent
+and let's define and apply all the kinds of methods:
+
+@example
+(define-generic alpha)
+
+(define-method alpha :around ((o <5>))  (cons 1 (call-next-method)))
+(define-method alpha :around ((o <4>))  (cons 2 (call-next-method)))
+(define-method alpha :around ((o <3>))  (cons 3 (call-next-method)))
+(define-method alpha :around ((o <2>))  (cons 4 (call-next-method)))
+(define-method alpha :around ((o <1>))  (cons 5 (call-next-method)))
+(define-method alpha :around ((o <0>))  (cons 6 (call-next-method)))
+
+(define-method alpha :primary ((o <5>)) (cons 7 (call-next-method)))
+(define-method alpha :primary ((o <4>)) (cons 8 (call-next-method)))
+(define-method alpha :primary ((o <3>)) (cons 9 (call-next-method)))
+(define-method alpha :primary ((o <2>)) (cons 10 (call-next-method)))
+(define-method alpha :primary ((o <1>)) (cons 11 (call-next-method)))
+(define-method alpha :primary ((o <0>)) 12)
+
+(define-method alpha :before ((o <5>))  (add-result 1))
+(define-method alpha :before ((o <4>))  (add-result 2))
+(define-method alpha :before ((o <3>))  (add-result 3))
+(define-method alpha :before ((o <2>))  (add-result 4))
+(define-method alpha :before ((o <1>))  (add-result 5))
+(define-method alpha :before ((o <0>))  (add-result 6))
+
+(define-method alpha :after ((o <5>))   (add-result 7))
+(define-method alpha :after ((o <4>))   (add-result 8))
+(define-method alpha :after ((o <3>))   (add-result 9))
+(define-method alpha :after ((o <2>))   (add-result 10))
+(define-method alpha :after ((o <1>))   (add-result 11))
+(define-method alpha :after ((o <0>))   (add-result 12))
+
+(with-result (alpha n))
+@result{} '((1 2 3 4 5 6 7 8 9 10 11 . 12)
+     (1 2 3 4 5 6 7 8 9 10 11 12)))
+@end example
+
+We can conclude that, when it comes to method application:
+
+@itemize
+@item
+If diamond inheritance is not present: The graph of inheritance is a
+tree, which is flattened to a list representing the visit of a preorder
+iterator.
+
+@item
+When diamond inheritance is present: Diamond groups are flattened to a
+list with classes in the middle at the center:
+
+@example
+  -- <x> --
+ |         |
+ v         v
+<y>       <w>       =>   (<z> <y> <w> <x>)
+ |         |
+  -> <z> <-
+
+  ---- <1> ----
+ |             |
+ v             |
+<3>            |
+ |             |    =>  (<5> <4> <3> <2> <1>)
+ v             v
+<4>           <2>
+ |             |
+  ---> <5> <---
+@end example
+
+@noindent
+then the graph is flattened and visited in preorder.
+@end itemize
 
 @c page
 @node irregex
