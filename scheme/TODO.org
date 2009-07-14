@@ -16,9 +16,14 @@
 
 * foreign
 
+  Move the  array peeker/pokers in  the implementation compat  files and
+  optimise them.
+
   Add Mosh support.
 
   Review the documentation.
+
+  Add callbacks.
 
 * format
 
@@ -47,10 +52,8 @@
 
 * random
 
-  Fix  the   generator  of  sequences   with  given  sum.    Update  the
-  documentation accordingly.
-
-  Add  the  interface to  Mersenne  Twister.   Update the  documentation
+  Fix the generator of sequences with given sum (notice that the test in
+  the  test   suite  is   commented  out).   Update   the  documentation
   accordingly.
 
   Add the Marsaglia PRNGs.  Update the documentation accordingly.

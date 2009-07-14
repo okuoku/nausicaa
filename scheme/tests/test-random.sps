@@ -37,6 +37,7 @@
   (random vectors)
   (random strings)
 
+  (random mersenne)
   (random borosh)
   (random cmrg)
   )
@@ -613,7 +614,6 @@
 
   )
 
-
 
 (parameterise ((check-test-name 'string))
 
@@ -655,6 +655,83 @@
 		      (sampler))
       => #t))
 
+
+  )
+
+
+(parameterise ((check-test-name 'mersenne))
+
+  (let* ((source	(make-random-source/mersenne))
+	 (make-integer	(random-source-integers-maker source)))
+
+    (define (integer) (make-integer 100))
+
+    #;(do ((i 0 (+ 1 i)))
+	((= i 100))
+      (write (integer))
+      (newline))
+
+    (check-for-true (integer? (integer)))
+    (check-for-true (non-negative? (integer)))
+    (check-for-true (let ((n (integer)))
+		      (and (<= 0 n) (< n 100)))))
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source	(make-random-source/mersenne))
+	 (make-real	(random-source-reals-maker source)))
+
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/mersenne))
+	 (make-real	(random-source-reals-maker source 1e-30)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/mersenne))
+	 (make-real	(random-source-reals-maker source 1e-5)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source-a	(make-random-source/mersenne))
+	  (source-b	(make-random-source/mersenne))
+	  (make-integer	(random-source-integers-maker source-b)))
+     (define (integer) (make-integer 100))
+     (random-source-seed! source-a integer)
+     (let* ((make-real	(random-source-reals-maker source-a))
+	    (n		(make-real)))
+       (and (< 0 n) (< n 1)))))
+
+  (check
+      (begin
+	(random-source-jumpahead! (make-random-source/mersenne) 10)
+	(let ((make-integer (random-source-integers-maker (make-random-source/mersenne))))
+	  (integer? (make-integer 10))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source		(make-random-source/mersenne))
+	 (bytevector-maker	(random-source-bytevectors-maker source))
+	 (obj (bytevector-maker 50)))
+    ;;(write obj)(newline)
+    (check-for-true (bytevector? obj)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source	(make-random-source/mersenne))
+	  (state	(random-source-state-ref source)))
+     (random-source-state-set! source state)
+     (let ((make-integer (random-source-integers-maker source)))
+       (integer? (make-integer 10)))))
 
   )
 
@@ -731,7 +808,7 @@
   )
 
 
-#;(parameterise ((check-test-name 'cmrg))
+(parameterise ((check-test-name 'cmrg))
 
   (let* ((source	(make-random-source/cmrg))
 	 (make-integer	(random-source-integers-maker source)))
@@ -801,8 +878,6 @@
        (integer? (make-integer 10)))))
 
   )
-
-
 
 
 ;;;; examples

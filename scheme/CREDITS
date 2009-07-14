@@ -173,6 +173,20 @@ It is  called "Borosh  - Niederreiter".  The  original code is  by Carlo
 Perassi and Heiko  Bauke.  The Scheme code was  converted by Marco Maggi
 from a C language version from the GNU Scientific Library release 1.12.
 
+random/mersenne.sls
+-------------------
+
+Derived from an original  C language implementation by Michael Brundage.
+Ported to Scheme by Marco Maggi.
+
+random/cmrg.sls
+-----------------
+
+This is a conversion of the C language implementation of CMRG in the GNU
+Scientific Library  (GSL), by James Theiler and  Brian Gough.  Converted
+by Marco Maggi.
+
+
 scmobj.sls
 ----------
 
