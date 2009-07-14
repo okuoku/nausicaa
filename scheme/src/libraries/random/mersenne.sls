@@ -5,6 +5,76 @@
 ;;;
 ;;;Abstract
 ;;;
+;;;	The following is the original code by Michael Brundage, slightly
+;;;	modified:
+;;;
+;;;#define MERSENNE_BUFFER_LENGTH       624
+;;;
+;;;typedef struct mersenne_context_t {
+;;;  int			index;
+;;;  unsigned long		buffer[MERSENNE_BUFFER_LENGTH];
+;;;} mersenne_context_t;
+;;;
+;;;/* 'buffer'  must  point  to  a MERSENNE_BUFFER_LENGTH  long  buffer  of
+;;;   'unsigned long' bytes, filled with seed numbers */
+;;;static void	mersenne_init		(mersenne_context_t * ctx,
+;;;					 unsigned long * buffer);
+;;;
+;;;static unsigned long mersenne_random	(mersenne_context_t * ctx);
+;;;
+;;;#define MT_IA           397
+;;;#define MT_IB           (MERSENNE_BUFFER_LENGTH - MT_IA)
+;;;#define UPPER_MASK      0x80000000
+;;;#define LOWER_MASK      0x7FFFFFFF
+;;;#define MATRIX_A        0x9908B0DF
+;;;#define TWIST(b,i,j)    ((b)[i] & UPPER_MASK) | ((b)[j] & LOWER_MASK)
+;;;#define MAGIC(s)        (((s)&1)*MATRIX_A)
+;;;
+;;;void
+;;;mersenne_init(mersenne_context_t * ctx, unsigned long * buffer)
+;;;{
+;;;  memcpy(&(ctx->buffer), buffer,
+;;;         sizeof(unsigned long)*MERSENNE_BUFFER_LENGTH);
+;;;  ctx->index  = 0;
+;;;}
+;;;unsigned long
+;;;mersenne_random (mersenne_context_t * ctx)
+;;;{
+;;;  unsigned long *	b   = ctx->buffer;
+;;;  int			idx = ctx->index;
+;;;  unsigned long		s;
+;;;  int			i;
+;;;
+;;;  if (idx == MERSENNE_BUFFER_LENGTH * sizeof(unsigned long))
+;;;    {
+;;;      idx = 0;
+;;;      i = 0;
+;;;      for (; i < MT_IB; i++) {
+;;;	s = TWIST(b, i, i+1);
+;;;	b[i] = b[i + MT_IA] ^ (s >> 1) ^ MAGIC(s);
+;;;      }
+;;;      for (; i < MERSENNE_BUFFER_LENGTH-1; i++) {
+;;;	s = TWIST(b, i, i+1);
+;;;	b[i] = b[i - MT_IB] ^ (s >> 1) ^ MAGIC(s);
+;;;      }
+;;;
+;;;      s = TWIST(b, MERSENNE_BUFFER_LENGTH-1, 0);
+;;;      b[MERSENNE_BUFFER_LENGTH-1] = b[MT_IA-1] ^ (s >> 1) ^ MAGIC(s);
+;;;    }
+;;;  ctx->index = idx + sizeof(unsigned long);
+;;;  return *(unsigned long *)((unsigned char *)b + idx);
+;;;  /*
+;;;    Matsumoto and  Nishimura additionally confound  the bits returned
+;;;    to the caller but this doesn't increase the randomness, and slows
+;;;    down the generator by as much as 25%.  So I omit these operations
+;;;    here.
+;;;
+;;;    r ^= (r >> 11);
+;;;    r ^= (r << 7) & 0x9D2C5680;
+;;;    r ^= (r << 15) & 0xEFC60000;
+;;;    r ^= (r >> 18);
+;;;  */
+;;;}
 ;;;
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
@@ -12,7 +82,7 @@
 ;;;<http://www.qbrundage.com/michaelb/pubs/essays/random_number_generation>
 ;;;
 ;;;Modified for Guile-Random by Marco Maggi
-;;;Modified for Nausicaa/Scheme by Marco Maggi
+;;;Ported to Scheme for Nausicaa/Scheme by Marco Maggi
 ;;;
 ;;;CREATIVE COMMONS PUBLIC DOMAIN DEDICATION
 ;;;

@@ -52,7 +52,11 @@
 
 * random
 
+  Implement the tests for marsaglia from the original sources.
+
   Implement the r250/521 PRGN from the C sources.
+
+  Implement the Blum Blum Shub PRNG, see Wikipedia.
 
   Fix the generator of sequences with given sum (notice that the test in
   the  test   suite  is   commented  out).   Update   the  documentation
