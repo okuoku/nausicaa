@@ -139,7 +139,7 @@
     (define (seed! integers-maker)
       ;; G. Marsaglia's simple 16-bit generator with carry
       (let* ((m 65536)
-	     (x (mod (integers-maker) m)))
+	     (x (integers-maker m)))
 	(define (random n) ; m < n < m^2
 	  (define (random-m)
 	    (let ((y (mod x m)))
@@ -330,7 +330,8 @@
 	;;it returns  #f; build a bytevector  with them and  write it to
 	;;the DEVICE.
 	(let-values (((count numbers)
-		      (do ((numbers (list (integers-maker)) (cons (integers-maker) numbers))
+		      (do ((numbers (list (integers-maker const:2^32))
+				    (cons (integers-maker const:2^32) numbers))
 			   (count 0 (+ 1 count)))
 			  ((not (car numbers))
 			   (values count (cdr numbers))))))

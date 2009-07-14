@@ -38,6 +38,7 @@
 ;;;
 
 
+#!r6rs
 (library (random low)
   (export
 

@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (library (random lists)
   (export
     random-list-unfold-numbers

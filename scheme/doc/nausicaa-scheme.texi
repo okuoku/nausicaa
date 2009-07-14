@@ -28012,10 +28012,11 @@ format.
 
 
 @defun random-source-seed! @var{source} @var{integers-maker}
-Reseed @var{source} to a new state.  @var{integers-maker} must be a
-function that, when evaluated with no arguments, returns a random
-integer.  Notice that some random sources require @var{integer-makers}
-to return integers representable with @math{32} bits.
+Reseed @var{source} to a new state.  @var{integers-maker} must be a a
+generator of random integer numbers, like the ones returned by
+@func{random-source-integers-maker}.  Notice that many random sources
+require @var{integer-makers} to return integers representable with
+@math{32} bits.
 @end defun
 
 
@@ -28498,6 +28499,7 @@ of @var{str}, using randomness from @var{source}.
 
 @menu
 * random generators mersenne::  The Mersenne twister.
+* random generators marsaglia:: George Marsaglia's generators.
 * random generators borosh::    Borosh generator.
 * random generators cmrg::      Combined multiple recursive generator.
 @end menu
@@ -28539,8 +28541,8 @@ of length 626, whose first value is the symbol
 representable with @math{32} bits.
 
 The @func{random-source-seed!} function for this generator, must be
-applied tot a random numbers generator returning integers representable
-with @math{32} bits.
+applied tot a numbers maker returning integers representable with
+@math{32} bits.
 @end defun
 
 
@@ -28548,6 +28550,353 @@ with @math{32} bits.
 bits integer numbers from a specifically built MRG32k3a randomness
 source, which in turn is initialised with the default @library{random}
 seeds.  @ref{random mrg32k3a, L'Ecuyer's MRG32k3a generator}
+
+@c page
+@node random generators marsaglia
+@subsubsection George Marsaglia's generators
+
+
+The generators described here were posted by George Marsaglia in a
+thread on @url{sci.stat.math} and @url{sci.crypt} starting on January,
+12 1999.  The following bindings are exported by the @library{random
+marsaglia} library.
+
+For all the randomness sources, the @func{random-source-seed!} function
+must be applied to a number maker returning integers representable with
+@math{32} bits.
+
+
+@defun make-random-source/marsaglia/cong
+Build and return a new randomness source using the CONG generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 2, whose first value is the symbol
+@code{random-source-state/marsaglia/cong}.  The other value is a single
+integer representable with @math{32} bits.
+@end defun
+
+
+@defun make-random-source/marsaglia/fib
+Build and return a new randomness source using the FIB generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 3, whose first value is the symbol
+@code{random-source-state/marsaglia/fib}.  The other values are integers
+representable with @math{32} bits.
+@end defun
+
+
+@defun make-random-source/marsaglia/lfib4
+Build and return a new randomness source using the LFIB4 generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 258, whose first value is the symbol
+@code{random-source-state/marsaglia/lfib4}.  The other values are
+integers representable with @math{32} bits.
+@end defun
+
+
+@defun make-random-source/marsaglia/kiss
+Build and return a new randomness source using the KISS generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 5, whose first value is the symbol
+@code{random-source-state/marsaglia/kiss}.  The other values are
+integers representable with @math{32} bits.
+@end defun
+
+
+@defun make-random-source/marsaglia/mwc
+Build and return a new randomness source using the MWC generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 3, whose first value is the symbol
+@code{random-source-state/marsaglia/mwc}.  The other values are integers
+representable with @math{32} bits.
+@end defun
+
+
+@defun make-random-source/marsaglia/shr3
+Build and return a new randomness source using the SHR3 generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 2, whose first value is the symbol
+@code{random-source-state/marsaglia/shr3}.  The other value is an
+integer representable with @math{32} bits.
+@end defun
+
+
+@defun make-random-source/marsaglia/swb
+Build and return a new randomness source using the SWB generator.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 261, whose first value is the symbol
+@code{random-source-state/marsaglia/swb}.  The other values are integers
+representable with @math{32} bits.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Algorithms
+
+Here is the core C language implementation of the generators, as posted
+by Marsaglia (line wrapping added here):
+
+@example
+#define znew    (ctx->z = 36969 * (ctx->z & 65535)
+                        + (ctx->z >> 16))
+
+#define wnew    (ctx->w = 18000 * (ctx->w & 65535)
+                        + (ctx->w >> 16))
+
+#define MWC     ((znew << 16) + wnew)
+
+#define SHR3    (ctx->jsr ^= (ctx->jsr << 17),  \
+                 ctx->jsr ^= (ctx->jsr >> 13),  \
+                 ctx->jsr ^= (ctx->jsr << 5))
+
+#define CONG    (ctx->jcong = 69069 * ctx->jcong + 1234567)
+
+#define FIB     ((ctx->b = ctx->a + ctx->b),    \
+                 (ctx->a = ctx->b - ctx->a))
+
+#define KISS    ((MWC^CONG) + SHR3)
+
+#define LFIB4   ((ctx->c)++,                            \
+                 ctx->t[ctx->c] = ctx->t[ctx->c]        \
+                                + ctx->t[ctx->c + 58]   \
+                                + ctx->t[ctx->c + 119]  \
+                                + ctx->t[ctx->c + 178])
+
+#define SWB     ((ctx->c)++,                                    \
+                 ctx->bro = (ctx->x < ctx->y),                  \
+                 ctx->t[ctx->c] = (ctx->x = ctx->t[ctx->c + 34])\
+                                - (ctx->y = ctx->t[ctx->c + 19] \
+                                          + ctx->bro))
+@end example
+
+What follows is the comment part of the original post by Marsaglia
+himself, with minor editing for formatting purposes and porting to
+Scheme (errors in the original text are probably present here, too):
+
+@quotation
+Any one of KISS, MWC, FIB, LFIB4, SWB, SHR3, or CONG can be used in an
+expression to provide a random @math{32} bits integer.
+
+The KISS generator (Keep It Simple Stupid) is designed to combine the
+two multiply--with--carry generators in MWC with the @math{3}--shift
+register SHR3 and the congruential generator CONG, using addition and
+exclusive--or.  Period about @code{2^123}.  It is one of my favorite
+generators.
+
+The MWC generator concatenates two 16 bits multiply--with--carry
+generators:
+
+@example
+x(n) = 36969 * x(n-1) + carry
+y(n) = 18000 * y(n-1) + carry mod 2^16
+@end example
+
+@noindent
+has period about @math{2^60} and seems to pass all tests of randomness.
+A favorite stand--alone generator---faster than KISS, which contains it.
+
+FIB is the classical Fibonacci sequence:
+
+@example
+x(n) = x(n-1) + x(n-2)
+@end example
+
+@noindent
+but taken modulo @math{2^32}.  Its period is @math{3 * 2^31} if one of
+its two seeds is odd and not @math{1 mod 8}.  It has little worth as a
+@acronym{RNG} by itself, but provides a simple and fast component for
+use in combination generators.
+
+SHR3 is a @math{3}--shift--register generator with period @math{2^32 -
+1}.  It uses:
+
+@example
+y(n) = y(n-1) * (I + L^17) * (I + R^13) * (I+L^5)
+@end example
+
+@noindent
+with the @math{y} viewed as binary vectors, @math{L} the @math{32 x 32}
+binary matrix that shifts a vector left @math{1}, and @math{R} its
+transpose.  SHR3 seems to pass all tests except those related to the
+binary rank test, since @math{32} successive values, as binary vectors,
+must be linearly independent, while @math{32} successive truly random 32
+bits integers, viewed as binary vectors, will be linearly independent
+only about 29% of the time.
+
+CONG is a congruential generator with the widely used @math{69069}
+multiplier:
+
+@example
+x(n) = 69069 * x(n-1) + 1234567
+@end example
+
+@noindent
+it has period @math{2^32}.  The leading half of its @math{32} bits seem
+to pass tests, but bits in the last half are too regular.
+
+LFIB4 is an extension of what I have previously defined as a lagged
+Fibonacci generator:
+
+@example
+x(n) = x(n-r) op x(n-s)
+@end example
+
+@noindent
+with the @math{x} in a finite set over which there is a binary operation
+@math{op}, such as @math{+}, @math{-} on integers modulo @math{2^32},
+@math{*} on odd such integers, exclusive-or(xor) on binary vectors.
+
+Except for those using multiplication, lagged Fibonacci generators fail
+various tests of randomness, unless the lags are very long.  (See SWB
+below).  To see if more than two lags would serve to overcome the
+problems of @math{2}-lag generators using @math{+}, @math{-} or
+@math{xor}, I have developed the @math{4}--lag generator LFIB4 using
+addition:
+
+@example
+x(n) = [x(n-256) + x(n-179) + x(n-119) + x(n-55)] mod 2^32
+@end example
+
+@noindent
+its period is @math{2^31 * (2^256 - 1)}, about @math{2^287}, and it
+seems to pass all tests---in particular, those of the kind for which
+@math{2}-lag generators using @math{+}, @math{-}, @math{xor} seem to
+fail.  For even more confidence in its suitability, LFIB4 can be
+combined with KISS, with a resulting period of about @math{2^410}: Just
+use:
+
+@example
+(let* ((kiss       (make-random-source/marsaglia/kiss))
+       (cong       (make-random-source/marsaglia/cong))
+       (c-integers (random-source-integers-maker cong))
+       (k-integers (random-source-integers-maker kiss))
+       (integers   (lambda (U M)
+                     (mod (+ (c-integers U)
+                             (k-integers U))
+                          M))))
+  ---)
+@end example
+
+@noindent
+in any Scheme expression.
+
+SWB is a subtract--with--borrow generator that I developed to give a
+simple method for producing extremely long periods:
+
+@example
+x(n) = [x(n-222) - x(n-237) - borrow] mod 2^32
+@end example
+
+@noindent
+the @code{borrow} is @math{0}, or set to @math{1} if computing
+@math{x(n-1)} caused overflow in 32 bits integer arithmetic. This
+generator has a very long period, @math{2^7098 * (2^480 - 1)}, about
+@math{2^7578}.  It seems to pass all tests of randomness, except for the
+Birthday Spacings test, which it fails badly, as do all lagged Fibonacci
+generators using @math{+}, @math{-} or @math{xor}.
+
+I would suggest combining SWB with KISS, MWC, SHR3, or CONG.  KISS+SWB
+has period @math{>2^7700} and is highly recommended.
+Subtract--with--borrow has the same local behaviour as lagged Fibonacci
+using @math{+}, @math{-}, @math{xor}---the borrow merely provides a much
+longer period.  SWB fails the birthday spacings test, as do all lagged
+Fibonacci and other generators that merely combine two previous values
+by means of @math{+}, @math{-} or @math{xor}.  Those failures are for a
+particular case: @math{m = 512} birthdays in a year of @math{n = 2^24}
+days.  There are choices of @math{m} and @math{n} for which lags
+@math{>1000} will also fail the test.  A reasonable precaution is to
+always combine a @math{2}-lag Fibonacci or SWB generator with another
+kind of generator, unless the generator uses @math{*}, for which a very
+satisfactory sequence of odd @math{32} bits integers results.
+
+The classical Fibonacci sequence @math{mod 2^32} from FIB fails several
+tests.  It is not suitable for use by itself, but is quite suitable for
+combining with other generators.
+
+The last half of the bits of CONG are too regular, and it fails tests
+for which those bits play a significant role.  CONG+FIB will also have
+too much regularity in trailing bits, as each does.  But keep in mind
+that it is a rare application for which the trailing bits play a
+significant role.  CONG is one of the most widely used generators of the
+last @math{30} years, as it was the system generator for VAX and was
+incorporated in several popular software packages, all seemingly without
+complaint.
+@end quotation
+
+The generators are seeded as follows:
+
+@table @asis
+@item CONG
+The seed values are:
+
+@example
+jcong = 380116160
+@end example
+
+@item FIB
+The seed values are:
+
+@example
+a = 224466889
+b = 7584631
+@end example
+
+@item LFIB4
+The seed values are stored in a vector of length 256, holding @math{32}
+bits representable integers; the initial vector is generated with a KISS
+randomness source created for the purpose and seeded with:
+
+@example
+jcong = 12345
+jsr   = 34221
+w     = 65435
+z     = 12345
+@end example
+
+@item KISS
+The seed values are:
+
+@example
+jcong = 380116160
+jsr   = 123456789
+w     = 521288629
+z     = 362436069
+@end example
+
+@item MWC
+The seed values are:
+
+@example
+w = 224466889
+z = 7584631
+@end example
+
+@item SHR3
+The seed values are:
+
+@example
+jsr = 123456789
+@end example
+
+@item SWB
+The seed values are stored in a vector of length 256, holding @math{32}
+bits representable integers; the initial vector is generated with a KISS
+randomness source created for the purpose and seeded with:
+
+@example
+jcong = 12345
+jsr   = 34221
+w     = 65435
+z     = 12345
+@end example
+@end table
 
 @c page
 @node random generators borosh
@@ -28576,8 +28925,8 @@ of length 2, whose first value is the symbol
 representable with @math{32} bits.
 
 The @func{random-source-seed!} function for this generator, must be
-applied to a random numbers generator returning integers representable
-with @math{32} bits.
+applied to a numbers maker returning integers representable with
+@math{32} bits.
 @end defun
 
 
@@ -28628,8 +28977,8 @@ of length 7, whose first value is the symbol
 representable with @math{32} bits.
 
 The @func{random-source-seed!} function for this generator, must be
-applied to a random numbers generator returning integers representable
-with @math{32} bits.
+applied to a numbers maker returning integers representable with
+@math{32} bits.
 @end defun
 
 @c ------------------------------------------------------------

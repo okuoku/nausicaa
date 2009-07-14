@@ -33,6 +33,7 @@
 ;;;
 
 
+#!r6rs
 (library (random borosh)
   (export make-random-source/borosh)
   (import (rnrs)
@@ -55,7 +56,7 @@
       (make-random-integer M M make-random-bits))
 
     (define (seed! integers-maker)
-      (set! N (bitwise-and M (mod (integers-maker) M))))
+      (set! N (integers-maker M)))
 
     (define (jumpahead! number-of-steps)
       (do ((i 0 (+ 1 i)))

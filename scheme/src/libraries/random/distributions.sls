@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (library (random distributions)
   (export
     random-exponentials-maker

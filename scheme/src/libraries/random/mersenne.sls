@@ -51,6 +51,7 @@
 ;;;
 
 
+#!r6rs
 (library (random mersenne)
   (export make-random-source/mersenne)
   (import (rnrs)
@@ -67,8 +68,8 @@
 	 (buffer		(make-bytevector buffer-length/bytes)))
 
     (define external-state-tag 'random-source-state/mersenne)
-    (define 2^32 (expt 2 32))
-    (define M (- 2^32 1))
+    (define const:2^32 (expt 2 32))
+    (define M (- const:2^32 1))
     (define MT_IA 397)
     (define MT_IB (- buffer-length/32bits MT_IA))
     (define buffer-length-1 (- buffer-length/32bits 1))
@@ -112,12 +113,12 @@
     (define (make-random-32bits)
       (make-random-integer M M make-random-bits))
 
-    (define (seed! 32bits-integers-maker)
+    (define (seed! integers-maker)
       (do ((i 0 (+ 4 i)))
 	  ((= i buffer-length/bytes)
 	   (set! byte-index 0))
-	(do ((N (32bits-integers-maker) (32bits-integers-maker)))
-	    ((< 0 N 2^32)
+	(do ((N (integers-maker const:2^32) (integers-maker const:2^32)))
+	    ((< 0 N)
 	     (bytevector-u32-native-set! buffer i N)))))
 
     (define (jumpahead! number-of-steps)
@@ -154,8 +155,7 @@
 	      "illegal random source Mersenne state" external-state)))))
 
     ;;Initial seeeding.
-    (let ((integer (random-source-integers-maker (make-random-source/mrg32k3a))))
-      (seed! (lambda () (integer 2^32))))
+    (seed! (random-source-integers-maker (make-random-source/mrg32k3a)))
 
     (:random-source-make
      internal-state->external-state ; state-ref

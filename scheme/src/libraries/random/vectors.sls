@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (library (random vectors)
   (export
     %random-vector-shuffle		random-vector-shuffle

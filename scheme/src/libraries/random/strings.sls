@@ -24,6 +24,7 @@
 ;;;
 
 
+#!r6rs
 (library (random strings)
   (export
     random-string-unfold-chars

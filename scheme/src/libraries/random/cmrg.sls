@@ -62,6 +62,7 @@
 ;;;
 
 
+#!r6rs
 (library (random cmrg)
   (export make-random-source/cmrg)
   (import (rnrs)
@@ -127,15 +128,8 @@
       (make-random-integer M1 M1 make-random-bits))
 
     (define (seed! integers-maker)
-      (let-syntax ((seed-it! (syntax-rules ()
-			       ((_ ?state ?M)
-				(do ((S (integers-maker) (integers-maker)))
-				    ;;We avoid choosing S=0, even though
-				    ;;it is allowed by L'Ecuyer.
-				    ((and (< 0 S ?M))
-				     (set! ?state S)))))))
-	(seed-it! X1 M1) (seed-it! X2 M1) (seed-it! X3 M1)
-	(seed-it! Y1 M2) (seed-it! Y2 M2) (seed-it! Y3 M2)))
+      (set! X1 (integers-maker M1)) (set! X2 (integers-maker M1)) (set! X3 (integers-maker M1))
+      (set! Y1 (integers-maker M2)) (set! Y2 (integers-maker M2)) (set! Y3 (integers-maker M2)))
 
     (define (jumpahead! number-of-steps)
       (do ((i 0 (+ 1 i)))
