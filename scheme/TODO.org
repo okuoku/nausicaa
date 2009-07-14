@@ -52,6 +52,8 @@
 
 * random
 
+  Implement the r250/521 PRGN from the C sources.
+
   Fix the generator of sequences with given sum (notice that the test in
   the  test   suite  is   commented  out).   Update   the  documentation
   accordingly.
