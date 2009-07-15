@@ -46,9 +46,6 @@
 
 ;;;; helpers
 
-(define const:2^32	(expt 2 32))
-(define const:2^32-1	(- const:2^32 1))
-
 (define ^		bitwise-xor)
 (define &		bitwise-and)
 

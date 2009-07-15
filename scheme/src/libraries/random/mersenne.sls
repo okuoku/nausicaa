@@ -138,8 +138,8 @@
 	 (buffer		(make-bytevector buffer-length/bytes)))
 
     (define external-state-tag 'random-source-state/mersenne)
-    (define const:2^32 (expt 2 32))
-    (define M (- const:2^32 1))
+    (define M   const:2^32)
+    (define M-1 const:2^32-1)
     (define MT_IA 397)
     (define MT_IB (- buffer-length/32bits MT_IA))
     (define buffer-length-1 (- buffer-length/32bits 1))
@@ -181,7 +181,7 @@
 		N))))))
 
     (define (make-random-32bits)
-      (make-random-integer M M make-random-bits))
+      (make-random-integer const:2^32 M make-random-bits))
 
     (define (seed! integers-maker)
       (do ((i 0 (+ 4 i)))
@@ -219,7 +219,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i buffer-length/32bits))
 	(let ((X (vector-ref external-state (+ 2 i))))
-	  (if (and (integer? X) (exact? X) (<= 0 X) (<= X M))
+	  (if (and (integer? X) (exact? X) (<= 0 X M-1))
 	      (bytevector-u32-native-set! buffer (* 4 i) X)
 	    (assertion-violation 'external-state->internal-state
 	      "illegal random source Mersenne state" external-state)))))

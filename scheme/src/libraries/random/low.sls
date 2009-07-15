@@ -42,6 +42,8 @@
 (library (random low)
   (export
 
+    const:2^32 const:2^32-1
+
     ;; randomness source
     :random-source-make random-source?
     :random-source-state-ref
@@ -57,6 +59,12 @@
     make-random-integer		make-random-real
     random-bytevector-fill!)
   (import (rnrs))
+
+
+;;;; helpers
+
+(define const:2^32   (expt 2 32))
+(define const:2^32-1 (- const:2^32 1))
 
 
 ;;;; randomness source

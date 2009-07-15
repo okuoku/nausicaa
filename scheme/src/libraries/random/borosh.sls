@@ -46,14 +46,17 @@
 
     (define external-state-tag 'random-source-state/borosh)
     (define A 1812433253)
-    (define M (expt 2 32))
+
+    ;; Numbers are generated in the range 0 <= N < M.
+    (define M   const:2^32)
+    (define M-1 const:2^32-1)
 
     (define (make-random-bits)
       (set! N (mod (* A N) M))
       N)
 
     (define (make-random-32bits)
-      (make-random-integer M M make-random-bits))
+      (make-random-integer const:2^32 M make-random-bits))
 
     (define (seed! integers-maker)
       (set! N (integers-maker M)))
@@ -73,7 +76,7 @@
 	(assertion-violation 'external-state->internal-state
 	  "invalid external state argument" external-state))
       (let ((Y (vector-ref external-state 1)))
-	(if (and (integer? Y) (exact? Y) (<= 0 Y) (<= Y M))
+	(if (and (integer? Y) (exact? Y) (<= 0 Y M-1))
 	    (set! N Y)
 	  (assertion-violation 'external-state->internal-state
 	    "illegal random source Borosh state" external-state))))

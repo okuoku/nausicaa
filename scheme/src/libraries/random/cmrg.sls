@@ -125,7 +125,7 @@
 	  N)))
 
     (define (make-random-32bits)
-      (make-random-integer M1 M1 make-random-bits))
+      (make-random-integer const:2^32 M1 make-random-bits))
 
     (define (seed! integers-maker)
       (set! X1 (integers-maker M1)) (set! X2 (integers-maker M1)) (set! X3 (integers-maker M1))

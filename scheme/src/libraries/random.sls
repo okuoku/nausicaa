@@ -68,12 +68,6 @@
     (random low))
 
 
-;;;; helpers
-
-(define const:2^32	(expt 2 32))
-(define const:2^32-1	(- const:2^32 1))
-
-
 ;;;; randomness source
 
 (define (random-source-state-ref s)
@@ -134,7 +128,7 @@
 	(mod (- A0 B0) M1)))
 
     (define (make-random-32bits)
-      (make-random-integer const:2^32-1 M1 make-random-bits))
+      (make-random-integer const:2^32 M1 make-random-bits))
 
     (define (seed! integers-maker)
       ;; G. Marsaglia's simple 16-bit generator with carry
@@ -283,7 +277,7 @@
 		;first invocation.
 
       (define external-state-tag 'random-source-state/device)
-      (define M const:2^32-1)
+      (define M const:2^32)
 
       (define (make-random-bits)
 	;;Extract the next 32bits from the cache and advance the cursor.
@@ -330,8 +324,8 @@
 	;;it returns  #f; build a bytevector  with them and  write it to
 	;;the DEVICE.
 	(let-values (((count numbers)
-		      (do ((numbers (list (integers-maker const:2^32))
-				    (cons (integers-maker const:2^32) numbers))
+		      (do ((numbers (list (integers-maker M))
+				    (cons (integers-maker M) numbers))
 			   (count 0 (+ 1 count)))
 			  ((not (car numbers))
 			   (values count (cdr numbers))))))
