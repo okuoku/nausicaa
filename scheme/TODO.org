@@ -52,8 +52,6 @@
 
 * random
 
-  Implement the tests for marsaglia from the original sources.
-
   Implement the r250/521 PRGN from the C sources.
 
   Implement the Blum Blum Shub PRNG, see Wikipedia.

@@ -46,6 +46,9 @@
 (check-set-mode! 'report-failed)
 (display "*** testing random\n")
 
+(define const:2^32 (expt 2 32))
+(define const:2^32-1 (- const:2^32 1))
+
 
 (parameterise ((check-test-name 'no-fuss))
 
@@ -658,6 +661,16 @@
 
 (parameterise ((check-test-name 'marsaglia-cong))
 
+;;   (let* ((source	(make-random-source/marsaglia/cong))
+;; 	 (make-integer	(random-source-integers-maker source))
+;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;     (check
+;; 	(do ((i 1 (+ 1 i))
+;; 	     (k (uint32) (uint32)))
+;; 	    ((= i 1000000)
+;; 	     k))
+;;       => 1529210297))
+
   (let* ((source	(make-random-source/marsaglia/cong))
 	 (make-integer	(random-source-integers-maker source)))
 
@@ -735,6 +748,16 @@
 
 (parameterise ((check-test-name 'marsaglia-fib))
 
+;;   (let* ((source	(make-random-source/marsaglia/fib))
+;; 	 (make-integer	(random-source-integers-maker source))
+;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;     (check
+;; 	(do ((i 1 (+ 1 i))
+;; 	     (k (uint32) (uint32)))
+;; 	    ((= i 1000000)
+;; 	     k))
+;;       => 3519793928))
+
   (let* ((source	(make-random-source/marsaglia/fib))
 	 (make-integer	(random-source-integers-maker source)))
 
@@ -810,84 +833,17 @@
   )
 
 
-(parameterise ((check-test-name 'marsaglia-lfib4))
-
-  (let* ((source	(make-random-source/marsaglia/lfib4))
-	 (make-integer	(random-source-integers-maker source)))
-
-    (define (integer) (make-integer 100))
-
-;;     (do ((i 0 (+ 1 i)))
-;; 	((= i 100))
-;;       (write (integer))
-;;       (newline))
-
-    (check-for-true (integer? (integer)))
-    (check-for-true (non-negative? (integer)))
-    (check-for-true (let ((n (integer)))
-		      (and (<= 0 n) (< n 100))))
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let* ((source	(make-random-source/marsaglia/lfib4))
-	 (make-real	(random-source-reals-maker source)))
-
-    (check-for-true (real? (make-real)))
-    (check-for-true (let ((n (make-real)))
-		      (and (< 0 n) (< n 1)))))
-
-  (let* ((source	(make-random-source/marsaglia/lfib4))
-	 (make-real	(random-source-reals-maker source 1e-30)))
-    (check-for-true (real? (make-real)))
-    (check-for-true (let ((n (make-real)))
-		      (and (< 0 n) (< n 1)))))
-
-  (let* ((source	(make-random-source/marsaglia/lfib4))
-	 (make-real	(random-source-reals-maker source 1e-5)))
-    (check-for-true (real? (make-real)))
-    (check-for-true (let ((n (make-real)))
-		      (and (< 0 n) (< n 1)))))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-true
-   (let* ((source-a	(make-random-source/marsaglia/lfib4))
-	  (source-b	(make-random-source/marsaglia/lfib4))
-	  (make-integer	(random-source-integers-maker source-b)))
-     (random-source-seed! source-a make-integer)
-     (let* ((make-real	(random-source-reals-maker source-a))
-	    (n		(make-real)))
-       (and (< 0 n) (< n 1)))))
-
-  (check
-      (begin
-	(random-source-jumpahead! (make-random-source/marsaglia/lfib4) 10)
-	(let ((make-integer (random-source-integers-maker (make-random-source/marsaglia/lfib4))))
-	  (integer? (make-integer 10))))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (let* ((source		(make-random-source/marsaglia/lfib4))
-	 (bytevector-maker	(random-source-bytevectors-maker source))
-	 (obj (bytevector-maker 50)))
-    ;;(write obj)(newline)
-    (check-for-true (bytevector? obj)))
-
-;;; --------------------------------------------------------------------
-
-  (check-for-true
-   (let* ((source	(make-random-source/marsaglia/lfib4))
-	  (state	(random-source-state-ref source)))
-     (random-source-state-set! source state)
-     (let ((make-integer (random-source-integers-maker source)))
-       (integer? (make-integer 10)))))
-
-  )
-
-
 (parameterise ((check-test-name 'marsaglia-kiss))
+
+;;   (let* ((source	(make-random-source/marsaglia/kiss))
+;; 	 (make-integer	(random-source-integers-maker source))
+;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;     (check
+;; 	(do ((i 1 (+ 1 i))
+;; 	     (k (uint32) (uint32)))
+;; 	    ((= i 1000000)
+;; 	     k))
+;;       => 1372460312))
 
   (let* ((source	(make-random-source/marsaglia/kiss))
 	 (make-integer	(random-source-integers-maker source)))
@@ -964,7 +920,104 @@
   )
 
 
+(parameterise ((check-test-name 'marsaglia-lfib4))
+
+;;   (let* ((source	(make-random-source/marsaglia/lfib4))
+;; 	 (make-integer	(random-source-integers-maker source))
+;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;     (check
+;; 	(do ((i 1 (+ 1 i))
+;; 	     (k (uint32) (uint32)))
+;; 	    ((= i 1000000)
+;; 	     k))
+;;       => 1064612766))
+
+  (let* ((source	(make-random-source/marsaglia/lfib4))
+	 (make-integer	(random-source-integers-maker source)))
+
+    (define (integer) (make-integer 100))
+
+;;     (do ((i 0 (+ 1 i)))
+;; 	((= i 100))
+;;       (write (integer))
+;;       (newline))
+
+    (check-for-true (integer? (integer)))
+    (check-for-true (non-negative? (integer)))
+    (check-for-true (let ((n (integer)))
+		      (and (<= 0 n) (< n 100))))
+    )
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source	(make-random-source/marsaglia/lfib4))
+	 (make-real	(random-source-reals-maker source)))
+
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/marsaglia/lfib4))
+	 (make-real	(random-source-reals-maker source 1e-30)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/marsaglia/lfib4))
+	 (make-real	(random-source-reals-maker source 1e-5)))
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source-a	(make-random-source/marsaglia/lfib4))
+	  (source-b	(make-random-source/marsaglia/lfib4))
+	  (make-integer	(random-source-integers-maker source-b)))
+     (random-source-seed! source-a make-integer)
+     (let* ((make-real	(random-source-reals-maker source-a))
+	    (n		(make-real)))
+       (and (< 0 n) (< n 1)))))
+
+  (check
+      (begin
+	(random-source-jumpahead! (make-random-source/marsaglia/lfib4) 10)
+	(let ((make-integer (random-source-integers-maker (make-random-source/marsaglia/lfib4))))
+	  (integer? (make-integer 10))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source		(make-random-source/marsaglia/lfib4))
+	 (bytevector-maker	(random-source-bytevectors-maker source))
+	 (obj (bytevector-maker 50)))
+    ;;(write obj)(newline)
+    (check-for-true (bytevector? obj)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source	(make-random-source/marsaglia/lfib4))
+	  (state	(random-source-state-ref source)))
+     (random-source-state-set! source state)
+     (let ((make-integer (random-source-integers-maker source)))
+       (integer? (make-integer 10)))))
+
+  )
+
+
 (parameterise ((check-test-name 'marsaglia-mwc))
+
+;;   (let* ((source	(make-random-source/marsaglia/mwc))
+;; 	 (make-integer	(random-source-integers-maker source))
+;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;     (check
+;; 	(do ((i 1 (+ 1 i))
+;; 	     (k (uint32) (uint32)))
+;; 	    ((= i 1000000)
+;; 	     k))
+;;       => 904977562))
 
   (let* ((source	(make-random-source/marsaglia/mwc))
 	 (make-integer	(random-source-integers-maker source)))
@@ -1043,6 +1096,16 @@
 
 (parameterise ((check-test-name 'marsaglia-shr3))
 
+;;   (let* ((source	(make-random-source/marsaglia/shr3))
+;; 	 (make-integer	(random-source-integers-maker source))
+;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;     (check
+;; 	(do ((i 1 (+ 1 i))
+;; 	     (k (uint32) (uint32)))
+;; 	    ((= i 1000000)
+;; 	     k))
+;;       => 2642725982))
+
   (let* ((source	(make-random-source/marsaglia/shr3))
 	 (make-integer	(random-source-integers-maker source)))
 
@@ -1119,6 +1182,16 @@
 
 
 (parameterise ((check-test-name 'marsaglia-swb))
+
+;;   (let* ((source	(make-random-source/marsaglia/swb))
+;; 	 (make-integer	(random-source-integers-maker source))
+;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;     (check
+;; 	(do ((i 1 (+ 1 i))
+;; 	     (k (uint32) (uint32)))
+;; 	    ((= i 1000000)
+;; 	     k))
+;;       => 627749721))
 
   (let* ((source	(make-random-source/marsaglia/swb))
 	 (make-integer	(random-source-integers-maker source)))
@@ -1202,10 +1275,10 @@
 
     (define (integer) (make-integer 100))
 
-    #;(do ((i 0 (+ 1 i)))
-	((= i 100))
-      (write (integer))
-      (newline))
+;;     (do ((i 0 (+ 1 i)))
+;; 	((= i 100))
+;;       (write (integer))
+;;       (newline))
 
     (check-for-true (integer? (integer)))
     (check-for-true (non-negative? (integer)))

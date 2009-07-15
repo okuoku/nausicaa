@@ -173,6 +173,14 @@ It is  called "Borosh  - Niederreiter".  The  original code is  by Carlo
 Perassi and Heiko  Bauke.  The Scheme code was  converted by Marco Maggi
 from a C language version from the GNU Scientific Library release 1.12.
 
+random/marsaglia.sls
+--------------------
+
+This  is  a Scheme  port  of  George  Marsaglia's pseudo-random  numbers
+generators for  the C language.  The  original is in  the Public Domain.
+The code was posted by George Marsaglia in a thread on sci.stat.math and
+sci.crypt starting on January, 12 1999.
+
 random/mersenne.sls
 -------------------
 

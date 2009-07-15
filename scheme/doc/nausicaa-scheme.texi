@@ -28635,45 +28635,56 @@ of length 261, whose first value is the symbol
 representable with @math{32} bits.
 @end defun
 
-
 @c ------------------------------------------------------------
 
 @subsubheading Algorithms
 
 Here is the core C language implementation of the generators, as posted
-by Marsaglia (line wrapping added here):
+by Marsaglia (line wrapping added here, and small bits changed):
 
 @example
-#define znew    (ctx->z = 36969 * (ctx->z & 65535)
-                        + (ctx->z >> 16))
+#define znew    (z = 36969 * (z & 65535)        \
+                   + (z >> 16))
 
-#define wnew    (ctx->w = 18000 * (ctx->w & 65535)
-                        + (ctx->w >> 16))
+#define wnew    (w = 18000 * (w & 65535)        \
+                   + (w >> 16))
 
 #define MWC     ((znew << 16) + wnew)
 
-#define SHR3    (ctx->jsr ^= (ctx->jsr << 17),  \
-                 ctx->jsr ^= (ctx->jsr >> 13),  \
-                 ctx->jsr ^= (ctx->jsr << 5))
+#define SHR3    (jsr ^= (jsr << 17),  \
+                 jsr ^= (jsr >> 13),  \
+                 jsr ^= (jsr << 5))
 
-#define CONG    (ctx->jcong = 69069 * ctx->jcong + 1234567)
+#define CONG    (jcong = 69069 * jcong + 1234567)
 
-#define FIB     ((ctx->b = ctx->a + ctx->b),    \
-                 (ctx->a = ctx->b - ctx->a))
+#define FIB     ((b = a + b),    \
+                 (a = b - a))
 
 #define KISS    ((MWC^CONG) + SHR3)
 
-#define LFIB4   ((ctx->c)++,                            \
-                 ctx->t[ctx->c] = ctx->t[ctx->c]        \
-                                + ctx->t[ctx->c + 58]   \
-                                + ctx->t[ctx->c + 119]  \
-                                + ctx->t[ctx->c + 178])
+#define LFIB4   (c++,                           \
+                 t[c] = t[c]                    \
+                      + t[(uint8_t)(c +  58)]   \
+                      + t[(uint8_t)(c + 119)]   \
+                      + t[(uint8_t)(c + 178)])
 
-#define SWB     ((ctx->c)++,                                    \
-                 ctx->bro = (ctx->x < ctx->y),                  \
-                 ctx->t[ctx->c] = (ctx->x = ctx->t[ctx->c + 34])\
-                                - (ctx->y = ctx->t[ctx->c + 19] \
-                                          + ctx->bro))
+#define SWB     (c++,                                   \
+                 bro  = (x < y),                        \
+                 t[c] = (x = t[(uint8_t)(c + 34)])      \
+                           - (y = t[(uint8_t)(c + 19)]  \
+                                + bro))
+
+#define UNI   (KISS * 2.328306e-10)
+#define VNI   (((int32_t) KISS) * 4.656613e-10)
+
+#define UC    (uint8_t)   /* a cast operation */
+
+/* Use random seeds to reset z, w, jsr, jcong, a, b,
+   and the table t[256] */
+uint32_t  z, w, jsr, jcong, a, b, t[256];
+
+uint32_t  x=0, y=0, bro;
+uint8_t   c=0;
 @end example
 
 What follows is the comment part of the original post by Marsaglia
@@ -28775,11 +28786,11 @@ use:
 @example
 (let* ((kiss       (make-random-source/marsaglia/kiss))
        (cong       (make-random-source/marsaglia/cong))
-       (c-integers (random-source-integers-maker cong))
        (k-integers (random-source-integers-maker kiss))
+       (c-integers (random-source-integers-maker cong))
        (integers   (lambda (U M)
-                     (mod (+ (c-integers U)
-                             (k-integers U))
+                     (mod (+ (k-integers U)
+                             (c-integers U))
                           M))))
   ---)
 @end example
@@ -28837,65 +28848,79 @@ The generators are seeded as follows:
 The seed values are:
 
 @example
-jcong = 380116160
+jcong = 2524969849
 @end example
+
+@noindent
+with this seeding it is known that the millionth integer is
+@math{1529210297}.
 
 @item FIB
 The seed values are:
 
 @example
-a = 224466889
-b = 7584631
+a =  9983651
+b = 95746118
 @end example
 
-@item LFIB4
-The seed values are stored in a vector of length 256, holding @math{32}
-bits representable integers; the initial vector is generated with a KISS
-randomness source created for the purpose and seeded with:
-
-@example
-jcong = 12345
-jsr   = 34221
-w     = 65435
-z     = 12345
-@end example
+@noindent
+with this seeding it is known that the millionth integer is
+@math{3519793928}.
 
 @item KISS
 The seed values are:
 
 @example
-jcong = 380116160
-jsr   = 123456789
-w     = 521288629
-z     = 362436069
+jcong = 1017008441
+jsr   = 3259917390
+w     =   99545079
+z     = 2247183469
 @end example
+
+@noindent
+with this seeding it is known that the millionth integer is
+@math{1372460312}.
+
+@item LFIB4
+The seed values are stored in a vector of length 256, holding @math{32}
+bits representable integers; the index into the vector is set to @code{c
+= 0}.  The seed values of the vector are precomputed, see the source
+code of the library.
+
+With this seeding it is known that the millionth integer is
+@math{1064612766}.
 
 @item MWC
 The seed values are:
 
 @example
-w = 224466889
-z = 7584631
+w = 1046675282
+z = 2374144069
 @end example
+
+@noindent
+with this seeding it is known that the millionth integer is
+@math{904977562}.
 
 @item SHR3
 The seed values are:
 
 @example
-jsr = 123456789
+jsr = 4176875757
 @end example
+
+@noindent
+with this seeding it is known that the millionth integer is
+@math{2642725982}.
 
 @item SWB
 The seed values are stored in a vector of length 256, holding @math{32}
-bits representable integers; the initial vector is generated with a KISS
-randomness source created for the purpose and seeded with:
+bits representable integers; the index into the vector is set to @code{c
+= 64}.  The seed values of the vector are precomputed, see the source
+code of the library.
 
-@example
-jcong = 12345
-jsr   = 34221
-w     = 65435
-z     = 12345
-@end example
+With this seeding it is known that the millionth integer is
+@math{627749721}.
 @end table
 
 @c page
