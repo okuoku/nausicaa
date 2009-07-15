@@ -39,6 +39,7 @@
 
   (random marsaglia)
   (random mersenne)
+  (random blum-blum-shub)
   (random borosh)
   (random cmrg)
   )
@@ -1351,6 +1352,11 @@
 
     (define (integer) (make-integer 100))
 
+;;     (do ((i 0 (+ 1 i)))
+;; 	((= i 100))
+;;       (write (integer))
+;;       (newline))
+
     (check-for-true (integer? (integer)))
     (check-for-true (positive? (integer)))
     (check-for-true (let ((n (integer)))
@@ -1422,6 +1428,11 @@
 
     (define (integer) (make-integer 100))
 
+;;     (do ((i 0 (+ 1 i)))
+;; 	((= i 100))
+;;       (write (integer))
+;;       (newline))
+
     (check-for-true (integer? (integer)))
     (check-for-true (positive? (integer)))
     (check-for-true (let ((n (integer)))
@@ -1478,6 +1489,80 @@
 
   (check-for-true
    (let* ((source	(make-random-source/cmrg))
+	  (state	(random-source-state-ref source)))
+     (random-source-state-set! source state)
+     (let ((make-integer (random-source-integers-maker source)))
+       (integer? (make-integer 10)))))
+
+  )
+
+
+(parameterise ((check-test-name 'blum-blum-shub))
+
+  (define (seed-it source)
+    (random-source-seed! source (let ((ell '(7 19 100)))
+				  (lambda (U)
+				    (begin0
+					(car ell)
+				      (set! ell (cdr ell)))))))
+
+  (let* ((source	(make-random-source/blum-blum-shub))
+	 (make-integer	(random-source-integers-maker source)))
+
+    (define (integer) (make-integer 100))
+    (seed-it source)
+
+    (do ((i 0 (+ 1 i)))
+	((= i 100))
+      (write (integer))
+      (newline))
+
+    (check-for-true (integer? (integer)))
+    (check-for-true (positive? (integer)))
+    (check-for-true (let ((n (integer)))
+		      (and (<= 0 n) (< n 100))))
+    )
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source	(make-random-source/blum-blum-shub))
+	 (make-real	(random-source-reals-maker source)))
+
+    (seed-it source)
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/blum-blum-shub))
+	 (make-real	(random-source-reals-maker source 1e-30)))
+    (seed-it source)
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+  (let* ((source	(make-random-source/blum-blum-shub))
+	 (make-real	(random-source-reals-maker source 1e-5)))
+    (seed-it source)
+    (check-for-true (real? (make-real)))
+    (check-for-true (let ((n (make-real)))
+		      (and (< 0 n) (< n 1)))))
+
+;;; --------------------------------------------------------------------
+
+  (let* ((source		(let ((s (make-random-source/blum-blum-shub)))
+				  (seed-it s)
+				  s))
+	 (bytevector-maker	(random-source-bytevectors-maker source))
+	 (obj			(bytevector-maker 50)))
+    ;;(write obj)(newline)
+    (check-for-true (bytevector? obj)))
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (let* ((source	(let ((s (make-random-source/blum-blum-shub)))
+			  (seed-it s)
+			  s))
 	  (state	(random-source-state-ref source)))
      (random-source-state-set! source state)
      (let ((make-integer (random-source-integers-maker source)))

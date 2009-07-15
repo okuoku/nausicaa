@@ -63,7 +63,7 @@
 
 ;;;; helpers
 
-(define const:2^32   (expt 2 32))
+(define const:2^32   (bitwise-copy-bit 0 32 1))
 (define const:2^32-1 (- const:2^32 1))
 
 

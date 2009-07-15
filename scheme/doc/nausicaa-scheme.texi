@@ -28024,11 +28024,15 @@ require @var{integer-makers} to return integers representable with
 When @func{random-source-seed!} is used to reseed a @var{source}, some
 generator will invoke @var{integers-maker} a fixed and known number of
 times, other generators will invoke it a configurable number of times,
-other generators will invoke it until it first returns @false{}.
+other generators will invoke it until it first returns @false{}, other
+generators will invoke it until the returned numbers have some desired
+property.
 
 This function returns the number of times @var{integers-maker} will be
 called; if the return value is @false{}: @var{integers-maker} will be
-invoked until it first returns @false{}.
+invoked until it first returns @false{}; if the return value is
+infinity: @var{integers-maker} will be invoked until it returns numbers
+with some desired property.
 @end defun
 
 
@@ -28500,6 +28504,7 @@ of @var{str}, using randomness from @var{source}.
 @menu
 * random generators mersenne::  The Mersenne twister.
 * random generators marsaglia:: George Marsaglia's generators.
+* random generators bbs::       Blum--Blum--Shub generator.
 * random generators borosh::    Borosh generator.
 * random generators cmrg::      Combined multiple recursive generator.
 @end menu
@@ -28922,6 +28927,127 @@ code of the library.
 With this seeding it is known that the millionth integer is
 @math{627749721}.
 @end table
+
+@c page
+@node random generators bbs
+@subsubsection Blum--Blum--Shub generator
+
+
+This is a cryptographically secure generator.  It was proposed in:
+
+@quotation
+Lenore Blum, Manuel Blum, Michael Shub.  ``A Simple Unpredictable
+Pseudo--Random Number Generator'', SIAM Journal on Computing, volume 15,
+page 364-383, May 1986.
+@end quotation
+
+@noindent
+the following bindings are exported by the @library{random
+blum-blum-shub} library.
+
+
+@defun make-random-source/blum-blum-shub
+Build and return a new randomness source using the BBS generator.  The
+returned randomness source is @strong{not} seeded; this is because
+seeding a cryptographically secure generator must be done with care, and
+it makes no sense to have a default seed.  The first operation after the
+creation of the source should be to seed it.
+
+The state returned by @func{random-source-state-ref} is a Scheme vector
+of length 5, whose first value is the symbol
+@code{random-source-state/blum-blum-shub}.  The other values are integer
+numbers.
+
+The @func{random-source-seed!} function for this generator, must be
+applied to a numbers maker returning:
+
+@enumerate
+@item
+The value of the @math{P} prime number.
+
+@item
+The value of the @math{Q} prime number.
+
+@item
+Integers numbers until one is found whose GCD with @math{P * Q} is
+@math{1}.
+@end enumerate
+
+@noindent
+see the algorithm details below.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading The algorithm
+
+BBS generates a sequence of bits, not of numbers.  Bits can be
+concatenated to yield numbers of any sort in base 2.  Seeding goes like
+this:
+
+@enumerate
+@item
+Acquire two prime numbers @math{P} and @math{Q} such that:
+
+@example
+P mod 4 = 3
+Q mod 4 = 3
+@end example
+
+@noindent
+compute @math{M = P * Q}, which will be the modulus of the internally
+generated integers.
+
+@item
+Generate (using another @acronym{PRNG}) random integers @math{S} until
+one is found such that: The greatest commond divisor (GCD) between
+@math{S} and @math{M} is @math{1}.  Notice that @rnrs{6} Scheme
+implementations already provide a @func{gcd} function.  @ref{baselib
+math ops arithmetic, Arithmetic operations}
+
+@item
+Compute the seed @math{X}:
+
+@example
+X = (S * S) mod M
+@end example
+@end enumerate
+
+The generator in @library{random blum-blum-shub} computes a new integer
+@math{N} representable with @math{32} bits, from an initial state
+@math{X} with the following formulation:
+
+@example
+X0 = (X * X) mod M
+b0 = parity(X0)
+
+X1 = (X0 * X0) mod M
+b1 = parity(X1)
+
+X2 = (X1 * X1) mod M
+b2 = parity(X2)
+
+...
+@end example
+
+@noindent
+where @math{b(k)} are the bits of @math{N}, with @math{0 <= k < 32}, and
+@math{X32} is the new state of the generator.  The function
+@math{parity(X)} is the number of bits set to @math{1} in @math{X},
+modulo @math{2}.
+
+Numbers @math{P} and @math{Q} that are not congruent to @math{3}, modulo
+@math{4}, are rejected by the seeding function in @library{random
+blum-blum-shub}.  However, the library cannot test if @math{P} and
+@math{Q} are prime numbers: It is our responsibility to select them.
+
+It is suggested, to improve the quality of the output, to select ``big''
+@math{P} and @math{Q} numbers, and to verify that the GCD of
+@math{\phi(P-1)} and @math{\phi(Q-1)} is ``small'', where @math{\phi} is
+Euler's totient function.@footnote{Wikipedia contributors.  ``Euler's
+totient function'', Wikipedia, The Free Encyclopedia,
+@url{http://en.wikipedia.org/w/index.php?title=Euler%27s_totient_function&oldid=302178857}
+(accessed July 15, 2009). }
 
 @c page
 @node random generators borosh
