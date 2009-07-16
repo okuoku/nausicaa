@@ -46,7 +46,7 @@
   (define (parse-comma)
     cons)
 
-  (lexer-init 'string \"1+2843+323*4113/545\")
+  (lexer-init 'string \"1+23e-45+678.9e12*(4113+23i) / sin 545 + tan(1, 2)\")
 
   (do ((token (lexer) (lexer)))
       ((not token))
@@ -55,6 +55,8 @@
 ")
 
 (define arithmetics "
+blanks		[ \n\t]+
+
 decint          [0-9]+
 binint          #[bB][01]+
 octint          #[oO][0-7]+
@@ -74,12 +76,16 @@ initial         [a-zA-Z!$&:<=>?_~]
 subsequent      {initial}|[0-9.@]
 symbol          {initial}{subsequent}*
 
-operator	[+\\-*/%\\^\\\\]
+operator	[\\+\\-*/%\\^\\\\]
 
 comma		,
 
+oparen		\\(
+cparen		\\)
+paren		{oparen}|{cparen}
+
 %%
-[ \\n\\t]+	;; skip blanks, tabs and newlines
+{blanks}	;; skip blanks, tabs and newlines
 {imag}		(string->number (string-append \"+\" yytext))
 {real}		(string->number yytext)
 {nan}		(string->number yytext)
@@ -93,6 +99,8 @@ comma		,
 		  ((#\\^) expt))
 {symbol}	(string->symbol yytext)
 {comma}		(parse-comma)
+
+{paren}		(string-ref yytext 0)
 
 <<EOF>>		(parse-eof)
 ")
