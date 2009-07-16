@@ -29049,6 +29049,24 @@ totient function'', Wikipedia, The Free Encyclopedia,
 @url{http://en.wikipedia.org/w/index.php?title=Euler%27s_totient_function&oldid=302178857}
 (accessed July 15, 2009). }
 
+Examples of usable numbers (produced by someone who wants to remain
+anonymous) are in the following table:
+
+@multitable {8509980829997} {2445035198143}
+@headitem @math{P} @tab @math{Q}
+@item 1856429723 @tab 162301391051
+@item 1570300533499 @tab 2445035198143
+@end multitable
+
+@c @multitable {8509980829997} {2445035198143} {GCD(\phi(P-1), \phi(Q-1))}
+@c @headitem @math{P} @tab @math{Q} @tab @math{GCD(\phi(P-1), \phi(Q-1))}
+@c @item 1856429723 @tab 557752597 @tab 8
+@c @item 11991737189 @tab 11921507909 @tab 8
+@c @item 95436523577 @tab 162301391051 @tab 8
+@c @item 995867898061 @tab 1570300533499 @tab 4
+@c @item 8509980829997 @tab 2445035198143 @tab 8
+@c @end multitable
+
 @c page
 @node random generators borosh
 @subsubsection Borosh generator

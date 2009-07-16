@@ -1500,11 +1500,13 @@
 (parameterise ((check-test-name 'blum-blum-shub))
 
   (define (seed-it source)
-    (random-source-seed! source (let ((ell '(7 19 100)))
+    (random-source-seed! source (let ((ell '(1856429723 162301391051)))
 				  (lambda (U)
-				    (begin0
-					(car ell)
-				      (set! ell (cdr ell)))))))
+				    (if (null? ell)
+					(random-integer (bitwise-copy-bit 0 32 1))
+				      (begin0
+					  (car ell)
+					(set! ell (cdr ell))))))))
 
   (let* ((source	(make-random-source/blum-blum-shub))
 	 (make-integer	(random-source-integers-maker source)))
@@ -1512,10 +1514,10 @@
     (define (integer) (make-integer 100))
     (seed-it source)
 
-    (do ((i 0 (+ 1 i)))
-	((= i 100))
-      (write (integer))
-      (newline))
+;;     (do ((i 0 (+ 1 i)))
+;; 	((= i 100))
+;;       (write (integer))
+;;       (newline))
 
     (check-for-true (integer? (integer)))
     (check-for-true (positive? (integer)))

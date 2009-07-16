@@ -74,10 +74,10 @@
       (let ((P (integers-maker const:2^32))
 	    (Q (integers-maker const:2^32)))
 	(unless (= 3 (mod P 4))
-	  (assertion-violation 'seed!
+	  (assertion-violation 'random-source-seed!
 	    "expected prime number P congruent to 3 (mod 4)" P))
 	(unless (= 3 (mod Q 4))
-	  (assertion-violation 'seed!
+	  (assertion-violation 'random-source-seed!
 	    "expected prime number Q congruent to 3 (mod 4)" Q))
 	(%init P Q integers-maker)))
 
