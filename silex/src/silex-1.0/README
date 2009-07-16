@@ -1,0 +1,65 @@
+Readme file for SILex version 1.0
+Copyright (C) 2001  Danny Dube'
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+Description
+-----------
+
+SILex is a lexical analyser generator with a Lex-like syntax.
+This directory contains the sources of the program and documentation.
+
+Contents of the directory:
+
+README		This file.
+action.l	Action lexical analyser specification.
+action.l.scm	Action lexical analyser.
+class.l		Character class lexical analyser specification.
+class.l.scm	Character class lexical analyser.
+gpl.txt		The GNU General Public License.
+lex.scm		Entire program, uses "load"s.
+lexparser.scm	Parser for specification files.
+macro.l		Macro lexical analyser specification.
+macro.l.scm	Macro lexical analyser.
+main.scm	Main module.
+multilex.scm	Run-time module for the user's programs.
+nfa2dfa.scm	Transformation from a NFA to a DFA.
+noeps.scm	Elimination of epsilon-transitions.
+output.scm	Output files generation.
+output2.scm	Auxiliary generation module; automatically generated.
+prep.scm	Some pre-printing functions.
+re2nfa.scm	Transformation from regular expressions to a NFA.
+regexp.l	Regular expressions lexical analyser specification.
+regexp.l.scm	Regular expressions lexical analyser.
+silex.scm	Entire program; automatically generated.
+silex.texi	Source of the documentation in Texinfo.
+string.l	String lexical analyser specification.
+string.l.scm	String lexical analyser.
+sweep.scm	Elimination of "dead" states.
+updateo2.scm	Generation of the module "output2.scm".
+updatesi.scm	Generation of the file "silex.scm".
+util.scm	Constants, data structures and common functions.
+
+Author
+------
+
+The author is Danny Dube'.
+
+Bug reports or other messages can be sent at:
+	dube@iro.umontreal.ca
+
+If you want to modify or improve the program yourself, you can get the
+sources in the home page of the author at:
+	http://www.iro.umontreal.ca/~dube
