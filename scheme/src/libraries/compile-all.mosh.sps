@@ -55,6 +55,7 @@
   (only (sentinel))
   (only (keywords))
   (only (irregex))
+  (only (lalr))
 
   (only (foreign))
 ;;;  (only (guarded-malloc))

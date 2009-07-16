@@ -133,6 +133,9 @@
 (compile-library "irregex.sls"
 		 "irregex.slfasl")
 
+(compile-library "lalr.sls"
+		 "lalr.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (compile-library "foreign/ffi/sizeof.sls"

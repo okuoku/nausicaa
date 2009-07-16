@@ -1,7 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compile script for Mosh
-;;;Date: Thu Jul 16, 2009
+;;;Contents: dependency maker
+;;;Date: Mon Jun 29, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,8 +23,20 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (silex))
+
+
+(import (rnrs))
+
+(let* ((port (let ((port (open-input-port (car (command-line)))))
+	       (dynamic-wind
+		   (lambda () #f)
+		   (lambda ()
+		     (open-string-input-port
+		      (string-append "(quote (\n"
+				     (get-string-all port)
+				     "\n)")))
+		   (lambda () (close-port port)))))
+       (ell (read port)))
   )
 
 ;;; end of file
