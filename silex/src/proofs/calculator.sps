@@ -42,52 +42,41 @@
 
 #|
 blanks		[ \n\t]+
-
 decint          [0-9]+
 binint          #[bB][01]+
 octint          #[oO][0-7]+
 hexint          #[xX][0-9A-Fa-f]+
 integer		{decint}|{binint}|{octint}|{hexint}
-
-exponent        ([eE][+\\-]?[0-9]+)
-truereal	[0-9]+\\.|[0-9]*\\.[0-9]+{exponent}?|[0-9]+{exponent}
+exponent        ([eE][+\-]?[0-9]+)
+truereal	[0-9]+\.|[0-9]*\.[0-9]+{exponent}?|[0-9]+{exponent}
 real		{truereal}|{integer}
-
 imag		({decint}|{real})i
-
-nan             \\-nan\\.0|\\+nan\\.0
-inf             \\-inf\\.0|\\+int\\.0
-
+nan             \-nan\.0|\+nan\.0
+inf             \-inf\.0|\+int\.0
 initial         [a-zA-Z!$&:<=>?_~]
 subsequent      {initial}|[0-9.@]
 symbol          {initial}{subsequent}*
-
-operator	[\\+\\-*/%\\^\\\\]
-
+operator	[\+\-*/%\^\\]
 comma		,
-
-oparen		\\(
-cparen		\\)
+oparen		\(
+cparen		\)
 paren		{oparen}|{cparen}
-
 %%
 {blanks}	;; skip blanks, tabs and newlines
-{imag}		(string->number (string-append \"+\" yytext))
+{imag}		(string->number (string-append "+" yytext))
 {real}		(string->number yytext)
 {nan}		(string->number yytext)
 {inf}		(string->number yytext)
 {operator}	(case (string-ref yytext 0)
-		  ((#\\+) +)
-		  ((#\\-) -)
-		  ((#\\*) *)
-		  ((#\\/) /)
-		  ((#\\%) mod)
-		  ((#\\^) expt))
+		  ((#\+) +)
+		  ((#\-) -)
+		  ((#\*) *)
+		  ((#\/) /)
+		  ((#\%) mod)
+		  ((#\^) expt))
 {symbol}	(string->symbol yytext)
 {comma}		(parse-comma)
-
 {paren}		(string-ref yytext 0)
-
 <<EOF>>		(parse-eof)
 |#
 
