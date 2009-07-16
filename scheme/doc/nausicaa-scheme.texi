@@ -29131,7 +29131,8 @@ derived from:@footnote{It is available from L'Ecuyer's home page
 (@aurl{} last verified Tue Jul 14, 2009):
 
 @center @url{http://www.iro.umontreal.ca/~lecuyer/myftp/papers/combmrg.ps}
-@center @url{ftp://ftp.iro.umontreal.ca/pub/simulation/lecuyer/papers/combmrg.ps}}
+@center @url{ftp://ftp.iro.umontreal.ca/pub/simulation/lecuyer/papers/combmrg.ps}
+}
 
 @quotation
 P.  L'Ecuyer.  ``Combined Multiple Recursive Random Number Generators''.
