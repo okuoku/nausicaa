@@ -28987,7 +28987,7 @@ this:
 
 @enumerate
 @item
-Acquire two prime numbers @math{P} and @math{Q} such that:
+Select two prime numbers @math{P} and @math{Q} such that:
 
 @example
 P mod 4 = 3
@@ -28996,7 +28996,9 @@ Q mod 4 = 3
 
 @noindent
 compute @math{M = P * Q}, which will be the modulus of the internally
-generated integers.
+generated integers.  These primes are the ``secret'' of the generated
+sequence of pseudo--random integers; for cryptographic purposes they
+have to be kept hidden.
 
 @item
 Generate (using another @acronym{PRNG}) random integers @math{S} until
@@ -29057,6 +29059,11 @@ anonymous) are in the following table:
 @item 1856429723 @tab 162301391051
 @item 1570300533499 @tab 2445035198143
 @end multitable
+
+@noindent
+these numbers are only as reference to understand what it means that the
+numbers have to be ``big''.  @strong{Do not use them for cryptographic
+purposes!}
 
 @c @multitable {8509980829997} {2445035198143} {GCD(\phi(P-1), \phi(Q-1))}
 @c @headitem @math{P} @tab @math{Q} @tab @math{GCD(\phi(P-1), \phi(Q-1))}
