@@ -1300,7 +1300,7 @@
            (lambda ()
              (if (peek-char)
                  (state-0 action-<<ERROR>>)
-                 action-<<EOF>>)))
+               action-<<EOF>>)))
           (final-lexer
            (lambda ()
              (init-lexeme)

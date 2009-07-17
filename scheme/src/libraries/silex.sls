@@ -129,26 +129,24 @@
 
 ;;; Fabrication de tables de dispatch
 
-(define make-dispatch-table
-  (lambda (size alist default)
-    (let ((v (make-vector size default)))
-      (let loop ((alist alist))
-	(if (null? alist)
-	    v
-	  (begin
-	    (vector-set! v (caar alist) (cdar alist))
-	    (loop (cdr alist))))))))
+(define (make-dispatch-table size alist default)
+  (let ((v (make-vector size default)))
+    (let loop ((alist alist))
+      (if (null? alist)
+	  v
+	(begin
+	  (vector-set! v (caar alist) (cdar alist))
+	  (loop (cdr alist)))))))
 
 ;;; Fonctions de manipulation des tokens
 
-(define make-tok
-  (lambda (tok-type lexeme line column . attr)
-    (cond ((null? attr)
-	   (vector tok-type line column lexeme))
-	  ((null? (cdr attr))
-	   (vector tok-type line column lexeme (car attr)))
-	  (else
-	   (vector tok-type line column lexeme (car attr) (cadr attr))))))
+(define (make-tok tok-type lexeme line column . attr)
+  (cond ((null? attr)
+	 (vector tok-type line column lexeme))
+	((null? (cdr attr))
+	 (vector tok-type line column lexeme (car attr)))
+	(else
+	 (vector tok-type line column lexeme (car attr) (cadr attr)))))
 
 (define get-tok-type     (lambda (tok) (vector-ref tok 0)))
 (define get-tok-line     (lambda (tok) (vector-ref tok 1)))
@@ -159,9 +157,8 @@
 
 ;;; Fonctions de manipulations des regles
 
-(define make-rule
-  (lambda (line eof? error? bol? eol? regexp action)
-    (vector line eof? error? bol? eol? regexp action #f)))
+(define (make-rule line eof? error? bol? eol? regexp action)
+  (vector line eof? error? bol? eol? regexp action #f))
 
 (define get-rule-line    (lambda (rule) (vector-ref rule 0)))
 (define get-rule-eof?    (lambda (rule) (vector-ref rule 1)))
@@ -187,14 +184,13 @@
 (define class-re    6)
 (define char-re     7)
 
-(define make-re
-  (lambda (re-type . lattr)
-    (cond ((null? lattr)
-	   (vector re-type))
-	  ((null? (cdr lattr))
-	   (vector re-type (car lattr)))
-	  ((null? (cddr lattr))
-	   (vector re-type (car lattr) (cadr lattr))))))
+(define (make-re re-type . lattr)
+  (cond ((null? lattr)
+	 (vector re-type))
+	((null? (cdr lattr))
+	 (vector re-type (car lattr)))
+	((null? (cddr lattr))
+	 (vector re-type (car lattr) (cadr lattr)))))
 
 (define get-re-type  (lambda (re) (vector-ref re 0)))
 (define get-re-attr1 (lambda (re) (vector-ref re 1)))
@@ -203,74 +199,70 @@
 ;;; Fonctions de manipulation des ensembles d'etats
 
 ; Intersection de deux ensembles d'etats
-(define ss-inter
-  (lambda (ss1 ss2)
-    (cond ((null? ss1)
-	   '())
-	  ((null? ss2)
-	   '())
-	  (else
-	   (let ((t1 (car ss1))
-		 (t2 (car ss2)))
-	     (cond ((< t1 t2)
-		    (ss-inter (cdr ss1) ss2))
-		   ((= t1 t2)
-		    (cons t1 (ss-inter (cdr ss1) (cdr ss2))))
-		   (else
-		    (ss-inter ss1 (cdr ss2)))))))))
+(define (ss-inter ss1 ss2)
+  (cond ((null? ss1)
+	 '())
+	((null? ss2)
+	 '())
+	(else
+	 (let ((t1 (car ss1))
+	       (t2 (car ss2)))
+	   (cond ((< t1 t2)
+		  (ss-inter (cdr ss1) ss2))
+		 ((= t1 t2)
+		  (cons t1 (ss-inter (cdr ss1) (cdr ss2))))
+		 (else
+		  (ss-inter ss1 (cdr ss2))))))))
 
 ; Difference entre deux ensembles d'etats
-(define ss-diff
-  (lambda (ss1 ss2)
-    (cond ((null? ss1)
-	   '())
-	  ((null? ss2)
-	   ss1)
-	  (else
-	   (let ((t1 (car ss1))
-		 (t2 (car ss2)))
-	     (cond ((< t1 t2)
-		    (cons t1 (ss-diff (cdr ss1) ss2)))
-		   ((= t1 t2)
-		    (ss-diff (cdr ss1) (cdr ss2)))
-		   (else
-		    (ss-diff ss1 (cdr ss2)))))))))
+(define (ss-diff ss1 ss2)
+  (cond ((null? ss1)
+	 '())
+	((null? ss2)
+	 ss1)
+	(else
+	 (let ((t1 (car ss1))
+	       (t2 (car ss2)))
+	   (cond ((< t1 t2)
+		  (cons t1 (ss-diff (cdr ss1) ss2)))
+		 ((= t1 t2)
+		  (ss-diff (cdr ss1) (cdr ss2)))
+		 (else
+		  (ss-diff ss1 (cdr ss2))))))))
 
 ; Union de deux ensembles d'etats
-(define ss-union
-  (lambda (ss1 ss2)
-    (cond ((null? ss1)
-	   ss2)
-	  ((null? ss2)
-	   ss1)
-	  (else
-	   (let ((t1 (car ss1))
-		 (t2 (car ss2)))
-	     (cond ((< t1 t2)
-		    (cons t1 (ss-union (cdr ss1) ss2)))
-		   ((= t1 t2)
-		    (cons t1 (ss-union (cdr ss1) (cdr ss2))))
-		   (else
-		    (cons t2 (ss-union ss1 (cdr ss2))))))))))
+(define (ss-union ss1 ss2)
+  (cond ((null? ss1)
+	 ss2)
+	((null? ss2)
+	 ss1)
+	(else
+	 (let ((t1 (car ss1))
+	       (t2 (car ss2)))
+	   (cond ((< t1 t2)
+		  (cons t1 (ss-union (cdr ss1) ss2)))
+		 ((= t1 t2)
+		  (cons t1 (ss-union (cdr ss1) (cdr ss2))))
+		 (else
+		  (cons t2 (ss-union ss1 (cdr ss2)))))))))
 
 ; Decoupage de deux ensembles d'etats
-(define ss-sep
-  (lambda (ss1 ss2)
-    (let loop ((ss1 ss1) (ss2 ss2) (l '()) (c '()) (r '()))
-      (if (null? ss1)
-	  (if (null? ss2)
-	      (vector (reverse l) (reverse c) (reverse r))
-	      (loop ss1 (cdr ss2) l c (cons (car ss2) r)))
-	  (if (null? ss2)
-	      (loop (cdr ss1) ss2 (cons (car ss1) l) c r)
-	      (let ((t1 (car ss1))
-		    (t2 (car ss2)))
-		(cond ((< t1 t2)
-		       (loop (cdr ss1) ss2 (cons t1 l) c r))
-		      ((= t1 t2)
-		       (loop (cdr ss1) (cdr ss2) l (cons t1 c) r))
-		      (else
-		       (loop ss1 (cdr ss2) l c (cons t2 r))))))))))
+(define (ss-sep ss1 ss2)
+  (let loop ((ss1 ss1) (ss2 ss2) (l '()) (c '()) (r '()))
+    (if (null? ss1)
+	(if (null? ss2)
+	    (vector (reverse l) (reverse c) (reverse r))
+	  (loop ss1 (cdr ss2) l c (cons (car ss2) r)))
+      (if (null? ss2)
+	  (loop (cdr ss1) ss2 (cons (car ss1) l) c r)
+	(let ((t1 (car ss1))
+	      (t2 (car ss2)))
+	  (cond ((< t1 t2)
+		 (loop (cdr ss1) ss2 (cons t1 l) c r))
+		((= t1 t2)
+		 (loop (cdr ss1) (cdr ss2) l (cons t1 c) r))
+		(else
+		 (loop ss1 (cdr ss2) l c (cons t2 r)))))))))
 
 ;;; Fonctions de manipulation des classes de caracteres
 
@@ -1163,6 +1155,7 @@
 ; Lexer generique
 ;
 
+;;;!!!!!!!!!!!!!!!!!!!!!!!!! make them parameters?
 (define lexer-raw #f)
 (define lexer-stack '())
 
@@ -1857,20 +1850,6 @@
 	(if rule
 	    (cons rule (loop))
 	    '())))))
-
-(define parser
-  (lambda (filename)
-    (let* ((port (open-input-file filename))
-	   (port-open? #t))
-      (lex-unwind-protect (lambda ()
-			    (if port-open?
-				(close-input-port port))))
-      (init-lexer port)
-      (let* ((macros (parse-macros))
-	     (rules (parse-rules macros)))
-	(close-input-port port)
-	(set! port-open? #f)
-	(adapt-rules rules)))))
 
 
 ;;;; Module re2nfa.scm.
@@ -3503,7 +3482,7 @@
 (define (out-print-table options-alist
 			 <<EOF>>-action <<ERROR>>-action rules
 			 nl-start no-nl-start arcs-v acc-v
-			 port)
+			 output-port)
   ;;Print the lexer table.
   ;;
   ;;OPTIONS-ALIST  must be a  proper association  list, with  symbols as
@@ -3534,90 +3513,83 @@
 	 (yytext?-l		(map get-rule-yytext? rules-l)))
 
     ;;Preamble of comments.
-    (display ";" port)
-    (newline port)
-    (display "; Table generated from the file " port)
-    (display input-file port)
-    (display " by SILex 1.0" port)
-    (newline port)
-    (display ";" port)
-    (newline port)
-    (newline port)
+    (display ";\n" output-port)
+    (display "; Table generated from the file " output-port)
+    (display input-file output-port)
+    (display " by SILex 1.0" output-port)
+    (newline output-port)
+    (display ";\n\n" output-port)
 
     ;;Print the opening of the table.
-    (display "(define " port)
-    (display table-name port)
-    (newline port)
-    (display "  (vector" port)
-    (newline port)
+    (display "(define " output-port)
+    (display table-name output-port)
+    (newline output-port)
+    (display "  (vector\n" output-port)
 
     ;;Print the description of the selected counters.  This is the value
     ;;of the "counters" option.
-    (display "   '" port)
-    (write counters-type port)
-    (newline port)
+    (display "   '" output-port)
+    (write counters-type output-port)
+    (newline output-port)
 
     ;;Print  the  action function  to  call  when  the lexer  finds  the
     ;;end-of-file.
-    (display "   (lambda (yycontinue yygetc yyungetc)\n" port)
-    (display "     (lambda (yytext" port)
-    (display counters-param-list port)
-    (newline port)
-    (display clean-eof-action port)
-    (display "       ))\n" port)
+    (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
+    (display "     (lambda (yytext" output-port)
+    (display counters-param-list output-port)
+    (newline output-port)
+    (display clean-eof-action output-port)
+    (display "       ))\n" output-port)
 
     ;;Print the action function to call when the lexer finds an error in
     ;;the input.
-    (display "   (lambda (yycontinue yygetc yyungetc)\n" port)
-    (display "     (lambda (yytext" port)
-    (display counters-param-list port)
-    (newline port)
-    (display clean-error-action port)
-    (display "       ))\n" port)
+    (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
+    (display "     (lambda (yytext" output-port)
+    (display counters-param-list output-port)
+    (newline output-port)
+    (display clean-error-action output-port)
+    (display "       ))\n" output-port)
 
     ;;Print the subvector of action  functions for the lexer rules which
     ;;is terminated by the automaton itself, in the selected format.
-    (display "   (vector\n" port)
+    (display "   (vector\n" output-port)
     (let loop ((al clean-actions-l) (yyl yytext?-l))
       (if (pair? al)
 	  (let ((yytext? (car yyl)))
-	    (display "    " port)
-	    (write yytext? port)
-	    (newline port)
-	    (display "    (lambda (yycontinue yygetc yyungetc)\n" port)
+	    (display "    " output-port)
+	    (write yytext? output-port)
+	    (newline output-port)
+	    (display "    (lambda (yycontinue yygetc yyungetc)\n" output-port)
 	    (if yytext?
 		(begin
-		  (display "      (lambda (yytext" port)
-		  (display counters-param-list port))
+		  (display "      (lambda (yytext" output-port)
+		  (display counters-param-list output-port))
 	      (begin
-		(display "      (lambda (" port)
-		(display counters-param-list-short port)))
-	    (newline port)
-	    (display (car al) port)
-	    (display "        ))" port)
+		(display "      (lambda (" output-port)
+		(display counters-param-list-short output-port)))
+	    (newline output-port)
+	    (display (car al) output-port)
+	    (display "        ))" output-port)
 	    (when (pair? (cdr al))
-	      (newline port))
+	      (newline output-port))
 	    (loop (cdr al) (cdr yyl)))))
-    (display ")\n" port)
+    (display ")\n" output-port)
 
     ;;Print  the  automaton  in  one  of the  three  supported  formats:
     ;;portable, scheme code, raw data.
     (cond ((assq 'portable options-alist)
-	   (out-print-table-chars
-	    pretty?
-	    nl-start no-nl-start arcs-v acc-v
-	    port))
+	   (out-print-table-chars pretty?
+				  nl-start no-nl-start arcs-v acc-v
+				  output-port))
 	  ((assq 'code options-alist)
-	   (out-print-table-code
-	    counters-type (vector-length rules) yytext?-l
-	    nl-start no-nl-start arcs-v acc-v
-	    port))
+	   (out-print-table-code counters-type (vector-length rules) yytext?-l
+				 nl-start no-nl-start arcs-v acc-v
+				 output-port))
 	  (else ; decision-tree
-	   (out-print-table-data
-	    pretty?
-	    nl-start no-nl-start arcs-v acc-v
-	    port)))
-    (display "))\n" port))) ;terminate the subvector and the vector
+	   (out-print-table-data pretty?
+				 nl-start no-nl-start arcs-v acc-v
+				 output-port)))
+    (display "))\n" output-port))) ;terminate the subvector and the vector
 
 (define (out-print-table-data pretty? nl-start no-nl-start arcs-v acc-v port)
   ;;Print the table  in the decision tree format, which  is the raw data
@@ -3657,7 +3629,7 @@
       (display (out-np acc-v 5) port))))
 
 (define (out-print-table-chars pretty? nl-start no-nl-start arcs-v acc-v port)
-  ;;Print the automation in the portable format.  Terminate the table.
+  ;;Print the automation in the portable format.
   (let* ((len		(vector-length arcs-v))
 	 (portable-v	(make-vector len))
 	 (arc-op	(lambda (arc)
@@ -3694,7 +3666,7 @@
     (display ((if pretty? out-pp out-np) acc-v 5) port)))
 
 (define (out-print-code-trans3 margin tree action-var port)
-  ;;Generate the automaton in  Scheme code form.  Terminate the table.
+  ;;Generate the automaton in  Scheme code form.
   (newline port)
   (display (out-blanks margin) port)
   (cond ((eq? tree 'err)
@@ -3733,14 +3705,17 @@
 	 (display ")" port))))
 
 (define (out-print-code-trans2 margin tree action-var port)
-  (newline port)
-  (display (out-blanks margin) port)
-  (display "(if c" port)
+  (display (string-append
+	    "\n"
+	    (out-blanks margin)
+	    "(if c")
+	   port)
   (out-print-code-trans3 (+ margin 4) tree action-var port)
-  (newline port)
-  (display (out-blanks (+ margin 4)) port)
-  (display action-var port)
-  (display ")" port))
+  (display (string-append
+	    "\n"
+	    (out-blanks (+ margin 4))
+	    action-var ")")
+	   port))
 
 (define (out-print-code-trans1 margin tree action-var port)
   (newline port)
@@ -3755,302 +3730,200 @@
 (define (out-print-table-code counters nbrules yytext?-l
 			      nl-start no-nl-start arcs-v acc-v
 			      port)
-  (let* ((counters-params
-	  (cond ((eq? counters 'none) ")")
-		((eq? counters 'line) " yyline)")
-		((eq? counters 'all)  " yyline yycolumn yyoffset)")))
-	 (counters-params-short
-	  (cond ((eq? counters 'none) ")")
-		((eq? counters 'line) "yyline)")
-		((eq? counters 'all)  "yyline yycolumn yyoffset)")))
-	 (nbstates (vector-length arcs-v))
-	 (trees-v (make-vector nbstates)))
-    (let loop ((s 0))
-      (if (< s nbstates)
-	  (begin
-	    (vector-set! trees-v s (prep-arcs->tree (vector-ref arcs-v s)))
-	    (loop (+ s 1)))))
-
-		; Decrire le format de l'automate
-    (display "   'code" port)
-    (newline port)
-
-		; Ecrire l'entete de la fonction
-    (display "   (lambda (<<EOF>>-pre-action" port)
-    (newline port)
-    (display "            <<ERROR>>-pre-action" port)
-    (newline port)
-    (display "            rules-pre-action" port)
-    (newline port)
-    (display "            IS)" port)
-    (newline port)
-
-		; Ecrire le debut du letrec et les variables d'actions brutes
-    (display "     (letrec" port)
-    (newline port)
-    (display "         ((user-action-<<EOF>> #f)" port)
-    (newline port)
-    (display "          (user-action-<<ERROR>> #f)" port)
-    (newline port)
-    (let loop ((i 0))
-      (if (< i nbrules)
-	  (begin
-	    (display "          (user-action-" port)
-	    (write i port)
-	    (display " #f)" port)
-	    (newline port)
-	    (loop (+ i 1)))))
-
-		; Ecrire l'extraction des fonctions du IS
-    (display "          (start-go-to-end    " port)
-    (display "(cdr (assq 'start-go-to-end IS)))" port)
-    (newline port)
-    (display "          (end-go-to-point    " port)
-    (display "(cdr (assq 'end-go-to-point IS)))" port)
-    (newline port)
-    (display "          (init-lexeme        " port)
-    (display "(cdr (assq 'init-lexeme IS)))" port)
-    (newline port)
-    (display "          (get-start-line     " port)
-    (display "(cdr (assq 'get-start-line IS)))" port)
-    (newline port)
-    (display "          (get-start-column   " port)
-    (display "(cdr (assq 'get-start-column IS)))" port)
-    (newline port)
-    (display "          (get-start-offset   " port)
-    (display "(cdr (assq 'get-start-offset IS)))" port)
-    (newline port)
-    (display "          (peek-left-context  " port)
-    (display "(cdr (assq 'peek-left-context IS)))" port)
-    (newline port)
-    (display "          (peek-char          " port)
-    (display "(cdr (assq 'peek-char IS)))" port)
-    (newline port)
-    (display "          (read-char          " port)
-    (display "(cdr (assq 'read-char IS)))" port)
-    (newline port)
-    (display "          (get-start-end-text " port)
-    (display "(cdr (assq 'get-start-end-text IS)))" port)
-    (newline port)
-    (display "          (user-getc          " port)
-    (display "(cdr (assq 'user-getc IS)))" port)
-    (newline port)
-    (display "          (user-ungetc        " port)
-    (display "(cdr (assq 'user-ungetc IS)))" port)
-    (newline port)
-
-		; Ecrire les variables d'actions
-    (display "          (action-<<EOF>>" port)
-    (newline port)
-    (display "           (lambda (" port)
-    (display counters-params-short port)
-    (newline port)
-    (display "             (user-action-<<EOF>> \"\"" port)
-    (display counters-params port)
-    (display "))" port)
-    (newline port)
-    (display "          (action-<<ERROR>>" port)
-    (newline port)
-    (display "           (lambda (" port)
-    (display counters-params-short port)
-    (newline port)
-    (display "             (user-action-<<ERROR>> \"\"" port)
-    (display counters-params port)
-    (display "))" port)
-    (newline port)
-    (let loop ((i 0) (yyl yytext?-l))
-      (when (< i nbrules)
-	(begin
-	  (display "          (action-" port)
-	  (display i port)
-	  (newline port)
-	  (display "           (lambda (" port)
-	  (display counters-params-short port)
-	  (newline port)
-	  (if (car yyl)
-	      (begin
-		(display "             (let ((yytext" port)
-		(display " (get-start-end-text)))" port)
-		(newline port)
-		(display "               (start-go-to-end)" port)
-		(newline port)
-		(display "               (user-action-" port)
-		(display i port)
-		(display " yytext" port)
-		(display counters-params port)
-		(display ")))" port)
-		(newline port))
+  (let-values (((counters-params counters-params-short)
+		(case counters
+		  ((none) (values ")" ")"))
+		  ((line) (values " yyline)"
+				  "yyline)"))
+		  ((all)  (values " yyline yycolumn yyoffset)"
+				  "yyline yycolumn yyoffset)")))))
+    (let* ((nbstates (vector-length arcs-v))
+	   (trees-v (make-vector nbstates)))
+      (let loop ((s 0))
+	(if (< s nbstates)
 	    (begin
-	      (display "             (start-go-to-end)" port)
-	      (newline port)
-	      (display "             (user-action-" port)
-	      (display i port)
-	      (display counters-params port)
-	      (display "))" port)
-	      (newline port)))
-	  (loop (+ i 1) (cdr yyl)))))
+	      (vector-set! trees-v s (prep-arcs->tree (vector-ref arcs-v s)))
+	      (loop (+ s 1)))))
 
-		; Ecrire les variables d'etats
-    (let loop ((s 0))
-      (if (< s nbstates)
-	  (let* ((tree (vector-ref trees-v s))
-		 (acc (vector-ref acc-v s))
-		 (acc-eol (car acc))
-		 (acc-no-eol (cdr acc)))
-	    (display "          (state-" port)
-	    (display s port)
-	    (newline port)
-	    (display "           (lambda (action)" port)
-	    (cond ((not acc-eol)
-		   (out-print-code-trans1 13 tree "action" port))
-		  ((not acc-no-eol)
-		   (newline port)
-		   (display (if (eq? tree 'err)
-				"             (let* ((c (peek-char))"
-			      "             (let* ((c (read-char))")
-			    port)
-		   (newline port)
-		   (display "                    (new-action (if (o" port)
-		   (display "r (not c) (= c lexer-integer-newline))" port)
-		   (newline port)
-		   (display "                                  " port)
-		   (display "  (begin (end-go-to-point) action-" port)
-		   (display acc-eol port)
-		   (display ")" port)
-		   (newline port)
-		   (display "                       " port)
-		   (display "             action)))" port)
-		   (if (eq? tree 'err)
-		       (out-print-code-trans1 15 tree "new-action" port)
-		     (out-print-code-trans2 15 tree "new-action" port))
-		   (display ")" port))
-		  ((< acc-eol acc-no-eol)
-		   (newline port)
-		   (display "             (end-go-to-point)" port)
-		   (newline port)
-		   (if (eq? tree 'err)
-		       (display "             (let* ((c (peek-char))" port)
-		     (display "             (let* ((c (read-char))" port))
-		   (newline port)
-		   (display "                    (new-action (if (o" port)
-		   (display "r (not c) (= c lexer-integer-newline))" port)
-		   (newline port)
-		   (display "                      " port)
-		   (display "              action-" port)
-		   (display acc-eol port)
-		   (newline port)
-		   (display "                      " port)
-		   (display "              action-" port)
-		   (display acc-no-eol port)
-		   (display ")))" port)
-		   (if (eq? tree 'err)
-		       (out-print-code-trans1 15 tree "new-action" port)
-		     (out-print-code-trans2 15 tree "new-action" port))
-		   (display ")" port))
-		  (else
-		   (let ((action-var
-			  (string-append "action-"
-					 (number->string acc-eol))))
-		     (newline port)
-		     (display "             (end-go-to-point)" port)
-		     (out-print-code-trans1 13 tree action-var port))))
-	    (display "))" port)
-	    (newline port)
-	    (loop (+ s 1)))))
+      ;;Print the format of the automaton.
+      (display "   'code\n" port)
+
+      (display (string-append
+		;;Ecrire l'entete de la fonction
+		"   (lambda (<<EOF>>-pre-action\n"
+		"            <<ERROR>>-pre-action\n"
+		"            rules-pre-action\n"
+		"            IS)\n"
+		;;Ecrire le  debut du letrec et  les variables d'actions
+		;;brutes.
+		"     (letrec\n"
+		"         ((user-action-<<EOF>> #f)\n"
+		"          (user-action-<<ERROR>> #f)\n")
+	       port)
+      (let loop ((i 0))
+	(when (< i nbrules)
+	  (display "          (user-action-" port)
+	  (write i port)
+	  (display " #f)" port)
+	  (newline port)
+	  (loop (+ i 1))))
+
+      (display (string-append
+		;;Ecrire l'extraction des fonctions du IS.
+		"          (start-go-to-end    (cdr (assq 'start-go-to-end IS)))\n"
+		"          (end-go-to-point    (cdr (assq 'end-go-to-point IS)))\n"
+		"          (init-lexeme        (cdr (assq 'init-lexeme IS)))\n"
+		"          (get-start-line     (cdr (assq 'get-start-line IS)))\n"
+		"          (get-start-column   (cdr (assq 'get-start-column IS)))\n"
+		"          (get-start-offset   (cdr (assq 'get-start-offset IS)))\n"
+		"          (peek-left-context  (cdr (assq 'peek-left-context IS)))\n"
+		"          (peek-char          (cdr (assq 'peek-char IS)))\n"
+		"          (read-char          (cdr (assq 'read-char IS)))\n"
+		"          (get-start-end-text (cdr (assq 'get-start-end-text IS)))\n"
+		"          (user-getc          (cdr (assq 'user-getc IS)))\n"
+		"          (user-ungetc        (cdr (assq 'user-ungetc IS)))\n"
+		;;Ecrire les variables d'actions.
+		"          (action-<<EOF>>\n"
+		"           (lambda (" counters-params-short "\n"
+		"             (user-action-<<EOF>> \"\"" counters-params "))\n"
+		"          (action-<<ERROR>>\n"
+		"           (lambda (" counters-params-short "\n"
+		"             (user-action-<<ERROR>> \"\"" counters-params "))\n")
+	       port)
+
+      (let loop ((i 0)
+		 (yyl yytext?-l))
+	(when (< i nbrules)
+	  (display (string-append
+		    "          (action-" (number->string i) "\n"
+		    "           (lambda (" counters-params-short "\n"
+		    (if (car yyl)
+			(string-append
+			 "             (let ((yytext (get-start-end-text)))\n"
+			 "               (start-go-to-end)\n"
+			 "               (user-action-" (number->string i) " yytext"
+			 counters-params ")))\n")
+		      (string-append
+		       "             (start-go-to-end)\n"
+		       "             (user-action-" (number->string i) counters-params "))\n")))
+		   port)
+	  (loop (+ i 1) (cdr yyl))))
+
+      ;; Ecrire les variables d'etats
+      (let loop ((s 0))
+	(if (< s nbstates)
+	    (let* ((tree (vector-ref trees-v s))
+		   (acc (vector-ref acc-v s))
+		   (acc-eol (car acc))
+		   (acc-no-eol (cdr acc)))
+	      (display (string-append
+			"          (state-" (number->string s) "\n"
+			"           (lambda (action)")
+		       port)
+	      (cond ((not acc-eol)
+		     (out-print-code-trans1 13 tree "action" port))
+		    ((not acc-no-eol)
+		     (display (string-append
+			       "\n"
+			       (if (eq? tree 'err)
+				   "             (let* ((c (peek-char))"
+				 "             (let* ((c (read-char))")
+			       "\n"
+			       "                    (new-action (if (o"
+			       "r (not c) (= c lexer-integer-newline))\n"
+			       "                                  "
+			       "  (begin (end-go-to-point) action-" (number->string acc-eol) ")\n"
+			       "                       "
+			       "             action)))")
+			      port)
+		     ((if (eq? tree 'err)
+			  out-print-code-trans1
+			out-print-code-trans2) 15 tree "new-action" port)
+		     (display ")" port))
+		    ((< acc-eol acc-no-eol)
+		     (display
+		      (string-append
+		       "\n"
+		       "             (end-go-to-point)\n"
+		       "             (let* ((c (" (if (eq? tree 'err) "peek-char" "read-char") "))\n"
+		       "                    (new-action (if (or (not c) (= c lexer-integer-newline))\n"
+		       "                      "
+		       "              action-" (number->string acc-eol) "\n"
+		       "                      "
+		       "              action-" (number->string acc-no-eol) ")))")
+		      port)
+		     ((if (eq? tree 'err)
+			  out-print-code-trans1
+			out-print-code-trans2) 15 tree "new-action" port)
+		     (display ")" port))
+		    (else
+		     (let ((action-var (string-append "action-" (number->string acc-eol))))
+		       (display "\n             (end-go-to-point)" port)
+		       (out-print-code-trans1 13 tree action-var port))))
+	      (display "))\n" port)
+	      (loop (+ s 1)))))
 
 		; Ecrire la variable de lancement de l'automate
-    (display "          (start-automaton" port)
-    (newline port)
-    (display "           (lambda ()" port)
-    (newline port)
-    (if (= nl-start no-nl-start)
-	(begin
-	  (display "             (if (peek-char)" port)
-	  (newline port)
-	  (display "                 (state-" port)
-	  (display nl-start port)
-	  (display " action-<<ERROR>>)" port)
-	  (newline port)
-	  (display "                 action-<<EOF>>)" port))
-      (begin
-	(display "             (cond ((not (peek-char))" port)
-	(newline port)
-	(display "                    action-<<EOF>>)" port)
-	(newline port)
-	(display "                   ((= (peek-left-context)" port)
-	(display " lexer-integer-newline)" port)
-	(newline port)
-	(display "                    (state-" port)
-	(display nl-start port)
-	(display " action-<<ERROR>>))" port)
-	(newline port)
-	(display "                   (else" port)
-	(newline port)
-	(display "                    (state-" port)
-	(display no-nl-start port)
-	(display " action-<<ERROR>>)))" port)))
-    (display "))" port)
-    (newline port)
+      (display
+       (string-append
+	"          (start-automaton\n"
+	"           (lambda ()\n"
+	(if (= nl-start no-nl-start)
+	    (string-append
+	     "             (if (peek-char)\n"
+	     "                 (state-" (number->string nl-start) " action-<<ERROR>>)\n"
+	     "               action-<<EOF>>)")
+	  (string-append
+	   "             (cond ((not (peek-char))\n"
+	   "                    action-<<EOF>>)\n"
+	   "                   ((= (peek-left-context) lexer-integer-newline)\n"
+	   "                    (state-" (number->string nl-start) " action-<<ERROR>>))\n"
+	   "                   (else\n"
+	   "                    (state-" (number->string no-nl-start) " action-<<ERROR>>)))"))
+	"))\n"
+	;; Ecrire la fonction principale de lexage
+	"          (final-lexer\n"
+	"           (lambda ()\n"
+	"             (init-lexeme)\n"
+	(cond ((eq? counters 'none)
+	       "             ((start-automaton))")
+	      ((eq? counters 'line)
+	       (string-append
+		"             (let ((yyline (get-start-line)))\n"
+		"               ((start-automaton) yyline))"))
+	      ((eq? counters 'all)
+	       (string-append
+		"             (let ((yyline (get-start-line))\n"
+		"                   (yycolumn (get-start-column))\n"
+		"                   (yyoffset (get-start-offset)))\n"
+		"               ((start-automaton) yyline yycolumn yyoffset))")))
+	"))"
+	;; Fermer les bindings du grand letrec
+	")\n"
 
-		; Ecrire la fonction principale de lexage
-    (display "          (final-lexer" port)
-    (newline port)
-    (display "           (lambda ()" port)
-    (newline port)
-    (display "             (init-lexeme)" port)
-    (newline port)
-    (cond ((eq? counters 'none)
-	   (display "             ((start-automaton))" port))
-	  ((eq? counters 'line)
-	   (display "             (let ((yyline (get-start-line)))" port)
-	   (newline port)
-	   (display "               ((start-automaton) yyline))" port))
-	  ((eq? counters 'all)
-	   (display "             (let ((yyline (get-start-line))" port)
-	   (newline port)
-	   (display "                   (yycolumn (get-start-column))" port)
-	   (newline port)
-	   (display "                   (yyoffset (get-start-offset)))" port)
-	   (newline port)
-	   (display "               ((start-automat" port)
-	   (display "on) yyline yycolumn yyoffset))" port)))
-    (display "))" port)
+	;;Initialiser les variables user-action-XX
+	"       (set! user-action-<<EOF>>"
+	" (<<EOF>>-pre-action\n"
+	"                                  final-lexer user-getc user-ungetc))\n"
+	"       (set! user-action-<<ERROR>>"
+	" (<<ERROR>>-pre-action\n"
+	"                                    final-lexer user-getc user-ungetc))\n")
+       port)
 
-		; Fermer les bindings du grand letrec
-    (display ")" port)
-    (newline port)
+      (let loop ((r 0))
+	(when (< r nbrules)
+	  (let* ((str-r  (number->string r))
+		 (blanks (out-blanks (string-length str-r))))
+	    (display (string-append
+		      "       (set! user-action-" str-r " ((vector-ref rules-pre-action "
+		      (number->string (+ (* 2 r) 1)) ")\n"
+		      blanks
+		      "                           final-lexer user-getc user-ungetc))\n")
+		     port)
+	    (loop (+ r 1)))))
 
-		; Initialiser les variables user-action-XX
-    (display "       (set! user-action-<<EOF>>" port)
-    (display " (<<EOF>>-pre-action" port)
-    (newline port)
-    (display "                                  final-lexer" port)
-    (display " user-getc user-ungetc))" port)
-    (newline port)
-    (display "       (set! user-action-<<ERROR>>" port)
-    (display " (<<ERROR>>-pre-action" port)
-    (newline port)
-    (display "                                    final-lexer" port)
-    (display " user-getc user-ungetc))" port)
-    (newline port)
-    (let loop ((r 0))
-      (when (< r nbrules)
-	(let* ((str-r (number->string r))
-	       (blanks (out-blanks (string-length str-r))))
-	  (display "       (set! user-action-" port)
-	  (display str-r port)
-	  (display " ((vector-ref rules-pre-action " port)
-	  (display (number->string (+ (* 2 r) 1)) port)
-	  (display ")" port)
-	  (newline port)
-	  (display blanks port)
-	  (display "                           final-lexer " port)
-	  (display "user-getc user-ungetc))" port)
-	  (newline port)
-	  (loop (+ r 1)))))
-
-		; Faire retourner le lexer final
-    (display "       final-lexer))" port)))
+      ;; Faire retourner le lexer final
+      (display "       final-lexer))" port))))
 
 
 ;;;; output functions
@@ -4135,53 +4008,12 @@
 ; Gestion d'erreurs
 ;
 
-(define lex-exit-continuation #f)
-(define lex-unwind-protect-list '())
-(define lex-error-filename #f)
-
-(define lex-unwind-protect
-  (lambda (proc)
-    (set! lex-unwind-protect-list (cons proc lex-unwind-protect-list))))
-
-(define lex-error
-  (lambda (line column . l)
-    (let* ((linestr (if line   (number->string line)   #f))
-	   (colstr  (if column (number->string column) #f))
-	   (namelen (string-length lex-error-filename))
-	   (linelen (if line   (string-length linestr) -1))
-	   (collen  (if column (string-length colstr)  -1))
-	   (totallen (+ namelen 1 linelen 1 collen 2)))
-      (display "Lex error:")
-      (newline)
-      (display lex-error-filename)
-      (if line
-	  (begin
-	    (display ":")
-	    (display linestr)))
-      (if column
-	  (begin
-	    (display ":")
-	    (display colstr)))
-      (display ": ")
-      (let loop ((l l))
-	(if (null? l)
-	    (newline)
-	    (let ((item (car l)))
-	      (display item)
-	      (if (equal? '#\newline item)
-		  (let loop2 ((i totallen))
-		    (if (> i 0)
-			(begin
-			  (display #\space)
-			  (loop2 (- i 1))))))
-	      (loop (cdr l)))))
-      (newline)
-      (let loop ((l lex-unwind-protect-list))
-	(if (pair? l)
-	    (begin
-	      ((car l))
-	      (loop (cdr l)))))
-      (lex-exit-continuation #f))))
+(define (lex-error line column . l)
+  (assertion-violation #f
+    (string-append "lex error: "
+		   "line "   (if line   (number->string line)   "?")
+		   "column " (if column (number->string column) "?"))
+    l))
 
 ;
 ; Decoupage des arguments
@@ -4227,38 +4059,46 @@
 	       (loop (cddr args)
 		     (cons (cons sym (cadr args)) ops))))))))
 
+
 ;
 ; Differentes etapes de la fabrication de l'automate
 ;
 
-(define lex1
-  (lambda (filein)
-;     (display "lex1: ") (write (get-internal-run-time)) (newline)
-    (parser filein)))
+(define (lex1 filein)
+  ;;     (display "lex1: ") (write (get-internal-run-time)) (newline)
+  (let ((port #f))
+    (dynamic-wind
+	(lambda ()
+	  (set! port (open-input-file filein)))
+	(lambda ()
+	  (init-lexer port)
+	  (let* ((macros (parse-macros))
+		 (rules  (parse-rules macros)))
+	    (adapt-rules rules)))
+	(lambda ()
+	  (close-input-port port)))))
 
-(define lex2
-  (lambda (filein)
-    (let* ((result (lex1 filein))
-	   (<<EOF>>-action (car result))
-	   (<<ERROR>>-action (cadr result))
-	   (rules (cddr result)))
-;       (display "lex2: ") (write (get-internal-run-time)) (newline)
-      (append (list <<EOF>>-action <<ERROR>>-action rules)
-	      (re2nfa rules)))))
+(define (lex2 filein)
+  (let* ((result (lex1 filein))
+	 (<<EOF>>-action (car result))
+	 (<<ERROR>>-action (cadr result))
+	 (rules (cddr result)))
+    ;;       (display "lex2: ") (write (get-internal-run-time)) (newline)
+    (append (list <<EOF>>-action <<ERROR>>-action rules)
+	    (re2nfa rules))))
 
-(define lex3
-  (lambda (filein)
-    (let* ((result (lex2 filein))
-	   (<<EOF>>-action   (list-ref result 0))
-	   (<<ERROR>>-action (list-ref result 1))
-	   (rules            (list-ref result 2))
-	   (nl-start         (list-ref result 3))
-	   (no-nl-start      (list-ref result 4))
-	   (arcs             (list-ref result 5))
-	   (acc              (list-ref result 6)))
-;       (display "lex3: ") (write (get-internal-run-time)) (newline)
-      (append (list <<EOF>>-action <<ERROR>>-action rules)
-	      (noeps nl-start no-nl-start arcs acc)))))
+(define (lex3 filein)
+  (let* ((result (lex2 filein))
+	 (<<EOF>>-action   (list-ref result 0))
+	 (<<ERROR>>-action (list-ref result 1))
+	 (rules            (list-ref result 2))
+	 (nl-start         (list-ref result 3))
+	 (no-nl-start      (list-ref result 4))
+	 (arcs             (list-ref result 5))
+	 (acc              (list-ref result 6)))
+    ;;       (display "lex3: ") (write (get-internal-run-time)) (newline)
+    (append (list <<EOF>>-action <<ERROR>>-action rules)
+	    (noeps nl-start no-nl-start arcs acc))))
 
 (define lex4
   (lambda (filein)
@@ -4310,6 +4150,9 @@
 ; Fonctions principales
 ;
 
+(define (lex7 args)
+  (lex6 (lex-parse-args args)))
+
 (define (lex filein output-file . options)
   (lex7 (append (list 'filein filein
 		      'table-name "lexer-table"
@@ -4321,16 +4164,6 @@
 		      'table-name table-name
 		      'output-file output-file)
 		options)))
-
-(define (lex7 args)
-  (call-with-current-continuation
-      (lambda (exit)
-	(set! lex-exit-continuation exit)
-	(set! lex-unwind-protect-list '())
-	(set! lex-error-filename (cadr (memq 'filein args)))
-	(let* ((args-alist (lex-parse-args args))
-	       (result     (lex6 args-alist)))
-	  result))))
 
 
 ;;;; done
