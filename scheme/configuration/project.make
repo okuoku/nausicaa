@@ -165,6 +165,34 @@ test-ypsilon-compat:
 test-compat: test-ypsilon-compat
 endif
 
+#page
+## --------------------------------------------------------------------
+## Special rules.
+## --------------------------------------------------------------------
+
+SILEX_PROGRAMS	= $(wildcard $(srcdir)/tests/make-silex-*.sps)
+SILEX_LIBPATH	= $(abspath $(srcdir)/tests):$(abspath $(fasl_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+SILEX_ENV	= YPSILON_SITELIB=$(SILEX_LIBPATH):$(YPSILON_SITELIB)
+SILEX_RUNNER	= $(SILEX_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+SILEX_ENV	= IKARUS_LIBRARY_PATH=$(SILEX_LIBPATH):$(IKARUS_LIBRARY_PATH)
+SILEX_RUNNER	= $(SILEX_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+SILEX_ENV	= MOSH_LOADPATH=$(SILEX_LIBPATH):$(MOSH_LOADPATH)
+SILEX_RUNNER	= $(SILEX_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+SILEX_ENV	= LARCENY_LIBPATH=$(SILEX_LIBPATH):$(LARCENY_LIBPATH)
+SILEX_RUNNER	= $(SILEX_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: silex
+
+silex:
+	$(foreach f, $(SILEX_PROGRAMS),(cd $(srcdir)/tests && $(SILEX_RUNNER) $(f));)
+
+
 
 ### end of file
 # Local Variables:

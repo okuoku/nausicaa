@@ -27,110 +27,135 @@
 
 (import (nausicaa)
   (checks)
-  (silex)
-  (rnrs eval))
+  (silex multilex)
+  (calc-code)
+  (calc-portable)
+  (calc-tree))
 
 (check-set-mode! 'report-failed)
 (display "*** testing silex\n")
 
 
+(define (test table)
 
-(define in-file "arithmetics.l")
-(define ou-file "arithmetics.l.sls")
+  (define (tokenize string)
+    (let* ((IS				(lexer-make-IS 'string string 'line))
+	   (lexer			(lexer-make-lexer table IS))
+	   (lexer-get-line		(lexer-get-func-line IS))
+	   (lexer-getc			(lexer-get-func-getc IS))
+	   (lexer-ungetc		(lexer-get-func-ungetc IS)))
+      (do* ((token (lexer) (lexer))
+	    (out   '() (cons token out)))
+	  ((not token)
+	   (reverse out)))))
 
-(define parser "
+;;; integers
 
-  (define (parse-eof)
-    #f)
+  (check (tokenize "1")		=> '(1))
+  (check (tokenize "-1")	=> `(,- 1))
+  (check (tokenize "+1")	=> `(,+ 1))
 
-  (define (parse-comma)
-    cons)
+;;; reals
 
-  (lexer-init 'string \"1+23e-45+678.9e12*(4113+23i) / sin 545 + tan(1, 2)\")
+  (check (tokenize "1.1")	=> '(1.1))
+  (check (tokenize "-1.1")	=> `(,- 1.1))
+  (check (tokenize "+1.1")	=> `(,+ 1.1))
+  (check (tokenize "1.1e10")	=> '(1.1e10))
+  (check (tokenize "1.1E10")	=> '(1.1e10))
+  (check (tokenize "1.1e-10")	=> '(1.1e-10))
+  (check (tokenize "1.1E-10")	=> '(1.1e-10))
+  (check (tokenize "1e10")	=> '(1e10))
+  (check (tokenize "1E10")	=> '(1e10))
+  (check (tokenize "1e-10")	=> '(1e-10))
+  (check (tokenize "1E-10")	=> '(1e-10))
 
-  (do ((token (lexer) (lexer)))
-      ((not token))
-    (display token)
-    (newline))
-")
+  (check (tokenize ".0")	=> '(0.0))
+  (check (tokenize "-.0")	=> `(,- 0.0))
+  (check (tokenize "0.")	=> '(0.0))
 
-(define arithmetics "
-blanks		[ \n\t]+
+;;; complexes
 
-decint          [0-9]+
-binint          #[bB][01]+
-octint          #[oO][0-7]+
-hexint          #[xX][0-9A-Fa-f]+
-integer		{decint}|{binint}|{octint}|{hexint}
+  (check (tokenize "1i")	=> '(+1i))
+  (check (tokenize "-1i")	=> `(,- +1i))
+  (check (tokenize "+1.1i")	=> `(,+ +1.1i))
+  (check (tokenize "-1.1i")	=> `(,- +1.1i))
+  (check (tokenize "+.1i")	=> `(,+ +0.1i))
+  (check (tokenize "-.1i")	=> `(,- +0.1i))
 
-exponent        ([eE][+\\-]?[0-9]+)
-truereal	[0-9]+\\.|[0-9]*\\.[0-9]+{exponent}?|[0-9]+{exponent}
-real		{truereal}|{integer}
+;;; nan and infinity
 
-imag		({decint}|{real})i
+  (check (tokenize "+nan.0")	=> '(+nan.0))
+  (check (tokenize "-nan.0")	=> '(+nan.0))
+  (check (tokenize "+inf.0")	=> '(+inf.0))
+  (check (tokenize "-inf.0")	=> '(-inf.0))
 
-nan             \\-nan\\.0|\\+nan\\.0
-inf             \\-inf\\.0|\\+int\\.0
+;;; arithmetic operators
 
-initial         [a-zA-Z!$&:<=>?_~]
-subsequent      {initial}|[0-9.@]
-symbol          {initial}{subsequent}*
+  (check (tokenize "1+2")	=> `(1 ,+ 2))
+  (check (tokenize "1+2+3")	=> `(1 ,+ 2 ,+ 3))
+  (check (tokenize "1+2-3")	=> `(1 ,+ 2 ,- 3))
+  (check (tokenize "1+(2+3)")	=> `(1 ,+ #\( 2 ,+ 3 #\)))
+  (check (tokenize "1+(2-3)")	=> `(1 ,+ #\( 2 ,- 3 #\)))
 
-operator	[\\+\\-*/%\\^\\\\]
+  (check (tokenize "1*1")	=> `(1 ,* 1))
+  (check (tokenize "1*2*3")	=> `(1 ,* 2 ,* 3))
+  (check (tokenize "1*2/3")	=> `(1 ,* 2 ,/ 3))
+  (check (tokenize "1*(2*3)")	=> `(1 ,* #\( 2 ,* 3 #\)))
+  (check (tokenize "1*(2/3)")	=> `(1 ,* #\( 2 ,/ 3 #\)))
 
-comma		,
+  (check (tokenize "1\\3")	=> `(1 ,div 3))
+  (check (tokenize "1%3")	=> `(1 ,mod 3))
+  (check (tokenize "1^3")	=> `(1 ,expt 3))
 
-oparen		\\(
-cparen		\\)
-paren		{oparen}|{cparen}
+;;; functions
 
-%%
-{blanks}	;; skip blanks, tabs and newlines
-{imag}		(string->number (string-append \"+\" yytext))
-{real}		(string->number yytext)
-{nan}		(string->number yytext)
-{inf}		(string->number yytext)
-{operator}	(case (string-ref yytext 0)
-		  ((#\\+) +)
-		  ((#\\-) -)
-		  ((#\\*) *)
-		  ((#\\/) /)
-		  ((#\\%) mod)
-		  ((#\\^) expt))
-{symbol}	(string->symbol yytext)
-{comma}		(parse-comma)
+  (check (tokenize "sin(1.1)")		=> `(sin #\( 1.1 #\)))
+  (check (tokenize "cos(sin(1.1))")	=> `(cos #\( sin #\( 1.1 #\) #\)))
+  (check (tokenize "cos(sin(1.1)+4)")	=> `(cos #\( sin #\( 1.1 #\) ,+ 4 #\)))
+  (check (tokenize "fun(1.1, 2)")	=> `(fun #\( 1.1 ,cons 2 #\)))
 
-{paren}		(string-ref yytext 0)
+  (check (tokenize "fun(1, 2, 3, 4)")
+    => `(fun #\( 1 ,cons 2 ,cons 3 ,cons 4 #\)))
 
-<<EOF>>		(parse-eof)
-")
+  (check (tokenize "fun(1+a, sin(2), 3, 4)")
+    => `(fun #\( 1 ,+ a ,cons sin #\( 2 #\) ,cons 3 ,cons 4 #\)))
 
-(when (file-exists? in-file)
-  (delete-file in-file))
+  (check
+      (tokenize "fun(1+a, sin(2), 3*g, 4+a+f+r+t)")
+    => `(fun #\( 1 ,+ a ,cons sin #\( 2 #\) ,cons 3 ,* g ,cons 4 ,+ a ,+ f ,+ r ,+ t #\)))
 
-(when (file-exists? ou-file)
-  (delete-file ou-file))
+  (check
+      (tokenize "fun(1+a, sin(2), fun(1, fun(5, 5), fun(1, 2)), 4)")
+    => `(fun #\( 1 ,+ a ,cons sin #\( 2 #\) ,cons fun #\( 1 ,cons
+	     fun #\( 5 ,cons 5 #\) ,cons fun #\( 1 ,cons 2 #\) #\) ,cons 4 #\)))
 
-(with-output-to-file in-file
-  (lambda ()
-    (display arithmetics)))
+  (check
+      (tokenize "1+23e-45+678.9e12*(4113+23i) / sin 545 + tan(1, 2)")
+    => `(1 ,+ 23e-45 ,+ 678.9e12 ,* #\( 4113 ,+ +23i #\)
+	   ,/ sin 545 ,+ tan #\( 1 ,cons 2 #\)))
 
-(lex in-file ou-file 'counters 'all)
+  (check (tokenize "1 < 3")	=> `(1 ,< 3))
+  (check (tokenize "1 > 3")	=> `(1 ,> 3))
+  (check (tokenize "1 <= 3")	=> `(1 ,<= 3))
+  (check (tokenize "1 >= 3")	=> `(1 ,>= 3))
+  (check (tokenize "1 = 3")	=> `(1 ,= 3))
 
-(define lexer (with-input-from-file ou-file
-		(lambda ()
-		  (get-string-all (current-input-port)))))
+;;; variables
 
-(define script (string-append "(let ()\n"
-			      lexer "\n"
-			      parser "\n"
-			      ")"))
+  (check (tokenize "a * 1.1")		=> `(a ,* 1.1))
+  (check (tokenize "(a * b) / c")	=> `(#\( a ,* b #\) ,/ c))
+  (check (tokenize "a * (b / c)")	=> `(a ,* #\( b ,/ c #\)))
 
-(define expr (read (open-string-input-port script)))
+  (check (tokenize "cos(a) * (tan(b) / c)")
+    => `(cos #\( a #\) ,* #\( tan #\( b #\) ,/ c #\)))
 
-(eval expr (environment '(rnrs)
-			'(rnrs mutable-strings)
-			'(rnrs r5rs)))
+  )
+
+
+
+(test calc-lexer-table/code)
+(test calc-lexer-table/portable)
+(test calc-lexer-table/tree)
 
 
 ;;;; done
