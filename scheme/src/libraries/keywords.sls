@@ -30,22 +30,26 @@
 	  keyword->symbol keyword->string
 	  (rename (%make-keyword symbol->keyword))
 	  string->keyword
-	  with-keywords)
+	  with-keywords let-keywords let-keywords*)
   (import (rnrs))
 
-  (define keyword-protocol
-    ;;Store new keywords in a table, so that keywords with the same name
-    ;;will be EQ? to each other.
-    (let ((table (make-eq-hashtable)))
-      (lambda (constructor)
-	(lambda (name)
-	  (unless (symbol? name)
-	    (assertion-violation 'make-keyword
-	      "expected symbol as keyword name" name))
-	  (or (hashtable-ref table name #f)
-	      (let ((r (constructor name)))
-		(hashtable-set! table name r)
-		r))))))
+  (define-record-type (keyword %make-keyword keyword?)
+    (fields (immutable name keyword->symbol))
+    (sealed #t)
+    (opaque #t)
+    (nongenerative keyword)
+    (protocol (let ((table (make-eq-hashtable)))
+		(lambda (constructor)
+		  ;;Store new keywords in a table, so that keywords with
+		  ;;the same name will be EQ? to each other.
+		  (lambda (name)
+		    (unless (symbol? name)
+		      (assertion-violation 'make-keyword
+			"expected symbol as keyword name" name))
+		    (or (hashtable-ref table name #f)
+			(let ((r (constructor name)))
+			  (hashtable-set! table name r)
+			  r)))))))
 
   (define (keyword->string key)
     (if (keyword? key)
@@ -77,11 +81,36 @@
       ((_ ?sym)
        (define ?sym (make-keyword ?sym)))))
 
-  (define-record-type (keyword %make-keyword keyword?)
-    (fields (immutable name keyword->symbol))
-    (protocol keyword-protocol)
-    (sealed #t)
-    (opaque #t)
-    (nongenerative keyword)))
+  (define (%parse-keywords options allow-unknown alist)
+    (let loop ((options options))
+      (unless (null? options)
+	(let* ((op (car options))
+	       (p  (assq op alist)))
+	  (cond (p
+		 (if (null? (cdr options))
+		     (assertion-violation #f "keyword option requires value" op)
+		   ((cdr p) (cadr options))))
+		((not (keyword? op))
+		 (assertion-violation #f "expected keyword option" op))
+		(allow-unknown #f)
+		(else
+		 (assertion-violation #f "unrecognised option" (keyword->symbol op)))))
+	(loop (cddr options)))))
+
+  (define-syntax let-keywords
+    (syntax-rules ()
+      ((_ ?options ?allow-unknown ((?name ?key ?default) ...) ?form0 ?form ...)
+       (let ((?name ?default) ...)
+	 (%parse-keywords ?options ?allow-unknown
+			  `((,?key . ,(lambda (v) (set! ?name v))) ...))
+	 ?form0 ?form ...))))
+
+  (define-syntax let-keywords*
+    (syntax-rules ()
+      ((_ ?options ?allow-unknown ((?name ?key ?default) ...) ?form0 ?form ...)
+       (let* ((?name ?default) ...)
+	 (%parse-keywords ?options ?allow-unknown
+			  `((?key . ,(lambda (v) (set! ?name v))) ...))
+	 ?form0 ?form ...)))))
 
 ;;; end of file

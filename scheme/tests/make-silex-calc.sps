@@ -98,19 +98,19 @@ cparen		\\)
 
 (define lp (open-string-input-port l))
 
-(lex 'input-file lexer-file 'output-file tree-file
-     'library-spec "(calc-tree)"
-     'table-name 'calc-lexer-table/tree)
+(lex :input-file lexer-file :output-file tree-file
+     :library-spec "(calc-tree)"
+     :table-name 'calc-lexer-table/tree)
 
 
-(lex 'input-string l 'output-file code-file
-     'code
-     'library-spec "(calc-code)"
-     'table-name 'calc-lexer-table/code)
+(lex :input-string l :output-file code-file
+     :lexer-format 'code
+     :library-spec "(calc-code)"
+     :table-name 'calc-lexer-table/code)
 
-(lex 'input-port lp 'output-file portable-file
-     'portable
-     'library-spec "(calc-portable)"
-     'table-name 'calc-lexer-table/portable)
+(lex :input-port lp :output-file portable-file
+     :lexer-format 'portable
+     :library-spec "(calc-portable)"
+     :table-name 'calc-lexer-table/portable)
 
 ;;; end of file

@@ -46,9 +46,15 @@
 
 
 (library (silex)
-  (export lex)
+  (export
+    lex
+    :input-file		:input-port	:input-string
+    :output-file	:output-port
+    :table-name		:library-spec
+    :counters		:pretty-print	:lexer-format)
   (import (rnrs)
     (parameters)
+    (keywords)
     (silex multilex)
     (rnrs mutable-pairs)
     (rnrs mutable-strings))
@@ -58,10 +64,10 @@
 
 (define getopt
   (case-lambda
-   ((option options-alist)
-    (getopt option options-alist #f))
-   ((option options-alist default)
-    (let* ((pair	(assq option options-alist))
+   ((option options)
+    (getopt option options #f))
+   ((option options default)
+    (let* ((pair	(assq option options))
 	   (value	(and pair (cdr pair))))
       (or value default)))))
 
@@ -3455,117 +3461,118 @@
 
 ;;;; output table functions
 
-(define (out-print-table options-alist
+(define (out-print-table options
 			 <<EOF>>-action <<ERROR>>-action rules
 			 nl-start no-nl-start arcs-v acc-v
 			 output-port)
   ;;Print the lexer table.
   ;;
-  ;;OPTIONS-ALIST  must be a  proper association  list, with  symbols as
-  ;;keys.   Notice that,  when parsing  the options  with GETOPT,  if an
-  ;;option is issued multiple times, the first wins.
-  ;;
-  (let* ((input-file		(getopt 'input-file options-alist))
-	 (table-name		(getopt 'table-name options-alist))
-	 (pretty?		(getopt 'pp         options-alist))
-	 (counters-type		(getopt 'counters options-alist 'line))
-	 (counters-param-list	(case  counters-type
+  (let-keywords options #t ((input-file		:input-file	#f)
+			    (table-name		:table-name	#f)
+			    (pretty?		:pretty-print	#f)
+			    (counters-type	:counters	'line)
+			    (lexer-format	:lexer-format	'decision-tree))
+    (let* ((counters-param-list	(case  counters-type
 		;NOTE: The leading space in the result is important.
 				  ((none)	")")
 				  ((line)	" yyline)")
 				  (else		" yyline yycolumn yyoffset)")))
-	 (counters-param-list-short
-	  (if (char=? (string-ref counters-param-list 0) #\space)
-	      (substring counters-param-list
-			 1
-			 (string-length counters-param-list))
-	    counters-param-list))
-	 (clean-eof-action	(out-clean-action <<EOF>>-action))
-	 (clean-error-action	(out-clean-action <<ERROR>>-action))
-	 (rule-op		(lambda (rule)
+	   (counters-param-list-short
+	    (if (char=? (string-ref counters-param-list 0) #\space)
+		(substring counters-param-list
+			   1
+			   (string-length counters-param-list))
+	      counters-param-list))
+	   (clean-eof-action	(out-clean-action <<EOF>>-action))
+	   (clean-error-action	(out-clean-action <<ERROR>>-action))
+	   (rule-op		(lambda (rule)
 				  (out-clean-action (get-rule-action rule))))
-	 (rules-l		(vector->list rules))
-	 (clean-actions-l	(map rule-op rules-l))
-	 (yytext?-l		(map get-rule-yytext? rules-l)))
+	   (rules-l		(vector->list rules))
+	   (clean-actions-l	(map rule-op rules-l))
+	   (yytext?-l		(map get-rule-yytext? rules-l)))
 
-    ;;Preamble of comments.
-    (display ";\n" output-port)
-    (display "; Table generated from the file " output-port)
-    (display input-file output-port)
-    (display " by SILex 1.0" output-port)
-    (newline output-port)
-    (display ";\n\n" output-port)
+      ;;Preamble of comments.
+      (display ";\n" output-port)
+      (display "; Table generated from the file " output-port)
+      (display input-file output-port)
+      (display " by SILex 1.0" output-port)
+      (newline output-port)
+      (display ";\n\n" output-port)
 
-    ;;Print the opening of the table.
-    (display "(define " output-port)
-    (display table-name output-port)
-    (newline output-port)
-    (display "  (vector\n" output-port)
+      ;;Print the opening of the table.
+      (display "(define " output-port)
+      (display table-name output-port)
+      (newline output-port)
+      (display "  (vector\n" output-port)
 
-    ;;Print the description of the selected counters.  This is the value
-    ;;of the "counters" option.
-    (display "   '" output-port)
-    (write counters-type output-port)
-    (newline output-port)
+      ;;Print the description of the selected counters.  This is the value
+      ;;of the "counters" option.
+      (display "   '" output-port)
+      (write counters-type output-port)
+      (newline output-port)
 
-    ;;Print  the  action function  to  call  when  the lexer  finds  the
-    ;;end-of-file.
-    (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
-    (display "     (lambda (yytext" output-port)
-    (display counters-param-list output-port)
-    (newline output-port)
-    (display clean-eof-action output-port)
-    (display "       ))\n" output-port)
+      ;;Print  the  action function  to  call  when  the lexer  finds  the
+      ;;end-of-file.
+      (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
+      (display "     (lambda (yytext" output-port)
+      (display counters-param-list output-port)
+      (newline output-port)
+      (display clean-eof-action output-port)
+      (display "       ))\n" output-port)
 
-    ;;Print the action function to call when the lexer finds an error in
-    ;;the input.
-    (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
-    (display "     (lambda (yytext" output-port)
-    (display counters-param-list output-port)
-    (newline output-port)
-    (display clean-error-action output-port)
-    (display "       ))\n" output-port)
+      ;;Print the action function to call when the lexer finds an error in
+      ;;the input.
+      (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
+      (display "     (lambda (yytext" output-port)
+      (display counters-param-list output-port)
+      (newline output-port)
+      (display clean-error-action output-port)
+      (display "       ))\n" output-port)
 
-    ;;Print the subvector of action  functions for the lexer rules which
-    ;;is terminated by the automaton itself, in the selected format.
-    (display "   (vector\n" output-port)
-    (let loop ((al clean-actions-l) (yyl yytext?-l))
-      (if (pair? al)
-	  (let ((yytext? (car yyl)))
-	    (display "    " output-port)
-	    (write yytext? output-port)
-	    (newline output-port)
-	    (display "    (lambda (yycontinue yygetc yyungetc)\n" output-port)
-	    (if yytext?
+      ;;Print the subvector of action  functions for the lexer rules which
+      ;;is terminated by the automaton itself, in the selected format.
+      (display "   (vector\n" output-port)
+      (let loop ((al clean-actions-l) (yyl yytext?-l))
+	(if (pair? al)
+	    (let ((yytext? (car yyl)))
+	      (display "    " output-port)
+	      (write yytext? output-port)
+	      (newline output-port)
+	      (display "    (lambda (yycontinue yygetc yyungetc)\n" output-port)
+	      (if yytext?
+		  (begin
+		    (display "      (lambda (yytext" output-port)
+		    (display counters-param-list output-port))
 		(begin
-		  (display "      (lambda (yytext" output-port)
-		  (display counters-param-list output-port))
-	      (begin
-		(display "      (lambda (" output-port)
-		(display counters-param-list-short output-port)))
-	    (newline output-port)
-	    (display (car al) output-port)
-	    (display "        ))" output-port)
-	    (when (pair? (cdr al))
-	      (newline output-port))
-	    (loop (cdr al) (cdr yyl)))))
-    (display ")\n" output-port)
+		  (display "      (lambda (" output-port)
+		  (display counters-param-list-short output-port)))
+	      (newline output-port)
+	      (display (car al) output-port)
+	      (display "        ))" output-port)
+	      (when (pair? (cdr al))
+		(newline output-port))
+	      (loop (cdr al) (cdr yyl)))))
+      (display ")\n" output-port)
 
-    ;;Print  the  automaton  in  one  of the  three  supported  formats:
-    ;;portable, scheme code, raw data.
-    (cond ((assq 'portable options-alist)
-	   (out-print-table-chars pretty?
-				  nl-start no-nl-start arcs-v acc-v
-				  output-port))
-	  ((assq 'code options-alist)
-	   (out-print-table-code counters-type (vector-length rules) yytext?-l
-				 nl-start no-nl-start arcs-v acc-v
-				 output-port))
-	  (else ; decision-tree
-	   (out-print-table-data pretty?
-				 nl-start no-nl-start arcs-v acc-v
-				 output-port)))
-    (display "))\n" output-port))) ;terminate the subvector and the vector
+      ;;Print  the  automaton  in  one  of the  three  supported  formats:
+      ;;portable, scheme code, raw data.
+      (case lexer-format
+	((portable)
+	 (out-print-table-chars pretty?
+				nl-start no-nl-start arcs-v acc-v
+				output-port))
+	((code)
+	 (out-print-table-code counters-type (vector-length rules) yytext?-l
+			       nl-start no-nl-start arcs-v acc-v
+			       output-port))
+	((decision-tree)
+	 (out-print-table-data pretty?
+			       nl-start no-nl-start arcs-v acc-v
+			       output-port))
+	(else
+	 (assertion-violation 'lex
+	   "unknown lexer output format" lexer-format)))
+      (display "))\n" output-port)))) ;terminate the subvector and the vector
 
 (define (out-print-table-data pretty? nl-start no-nl-start arcs-v acc-v port)
   ;;Print the table  in the decision tree format, which  is the raw data
@@ -3904,15 +3911,11 @@
 
 ;;;; output functions
 
-(define (output options-alist
+(define (output options
 		<<EOF>>-action <<ERROR>>-action rules
 		nl-start no-nl-start arcs acc)
   ;;Print the output code.  This is invoked both when producing the full
   ;;lexer and when producing only the tables.
-  ;;
-  ;;OPTIONS-ALIST  must be a  proper association  list, with  symbols as
-  ;;keys.   Notice that,  when parsing  the options  with GETOPT,  if an
-  ;;option is issued multiple times, the first wins.
   ;;
   (define (library-spec->string-spec spec)
     ;;We allow the library specification  to be: a string, including the
@@ -3943,100 +3946,99 @@
 	   (assertion-violation 'table-name->export-name
 	     "invalid table name specification" table-name))))
 
-  (let* ((library-spec		(getopt 'library-spec options-alist))
-	 (output-file		(getopt 'output-file  options-alist))
-	 (output-port		(getopt 'output-port  options-alist))
-	 (table-name		(getopt 'table-name   options-alist))
-	 (opened-file?		#f))
-    (dynamic-wind
-	(lambda ()
-	  (when (and output-file (not output-port))
-	    (set! output-port (open-file-output-port output-file
-						     (file-options no-fail)
-						     (buffer-mode block)
-						     (native-transcoder)))
-	    (set! opened-file? #t)))
-	(lambda ()
-	  (when library-spec
-	    (display (string-append "(library "
-				    (library-spec->string-spec library-spec)
-				    "\n"
-				    "  (export\n"
-				    "    " (table-name->export-name table-name) ")\n"
-				    "  (import (rnrs))\n"
-;; 				    "    (silex multilex)\n"
-;; 				    "    (rnrs mutable-strings))\n"
-				    "\n")
-		     output-port))
-	  (out-print-table options-alist
-			   <<EOF>>-action <<ERROR>>-action rules
-			   nl-start no-nl-start arcs acc
-			   output-port)
-	  (when library-spec
-	    (display "\n) ; end of library\n\n" output-port)))
-	(lambda ()
-	  ((if opened-file? close-output-port flush-output-port) output-port)))))
+  (let-keywords options #t ((library-spec	:library-spec #f)
+			    (output-file	:output-file  #f)
+			    (output-port	:output-port  #f)
+			    (table-name		:table-name   #f))
+    (let ((opened-file? #f))
+      (dynamic-wind
+	  (lambda ()
+	    (when (and output-file (not output-port))
+	      (set! output-port (open-file-output-port output-file
+						       (file-options no-fail)
+						       (buffer-mode block)
+						       (native-transcoder)))
+	      (set! opened-file? #t)))
+	  (lambda ()
+	    (when library-spec
+	      (display (string-append "(library "
+				      (library-spec->string-spec library-spec)
+				      "\n"
+				      "  (export\n"
+				      "    " (table-name->export-name table-name) ")\n"
+				      "  (import (rnrs))\n"
+				      ;; 				    "    (silex multilex)\n"
+				      ;; 				    "    (rnrs mutable-strings))\n"
+				      "\n")
+		       output-port))
+	    (out-print-table options
+			     <<EOF>>-action <<ERROR>>-action rules
+			     nl-start no-nl-start arcs acc
+			     output-port)
+	    (when library-spec
+	      (display "\n) ; end of library\n\n" output-port)))
+	  (lambda ()
+	    ((if opened-file? close-output-port flush-output-port) output-port))))))
 
 
 ;;;; Module main.scm.
 
-(define (lex . args)
-  (let* ((options-alist	(lex-parse-options args))
-	 (input-file	(getopt 'input-file	options-alist))
-	 (input-port	(getopt 'input-port	options-alist))
-	 (input-string	(getopt 'input-string	options-alist))
-	 (close-port?	#f))
-    (dynamic-wind
-	(lambda ()
-	  (set! input-port
-		(cond (input-string (open-string-input-port input-string))
-		      (input-port   input-port)
-		      (input-file   (begin0
-					(open-input-file input-file)
-				      (set! close-port? #t)))
-		      (else
-		       (assertion-violation 'lex
-			 "missing input method for lexer")))))
-	(lambda ()
-	  (let* ((IS	       (lexer-make-IS 'port input-port 'all))
-		 (action-lexer (lexer-make-lexer action-tables IS))
-		 (class-lexer  (lexer-make-lexer class-tables  IS))
-		 (macro-lexer  (lexer-make-lexer macro-tables  IS))
-		 (regexp-lexer (lexer-make-lexer regexp-tables IS))
-		 (string-lexer (lexer-make-lexer string-tables IS)))
-	    (parameterize ((lexer-raw		#f)
-			   (lexer-stack		'())
-			   (lexer-alist		(list (cons 'action action-lexer)
+(define (lex . options)
+  (let-keywords options #t ((input-file		:input-file	#f)
+			    (input-port		:input-port	#f)
+			    (input-string	:input-string	#f))
+    (let ((close-port? #f))
+      (dynamic-wind
+	  (lambda ()
+	    (set! input-port
+		  (cond (input-string (open-string-input-port input-string))
+			(input-port   input-port)
+			(input-file   (begin0
+					  (open-input-file input-file)
+					(set! close-port? #t)))
+			(else
+			 (assertion-violation 'lex
+			   "missing input method for lexer")))))
+	  (lambda ()
+	    (let* ((IS	       (lexer-make-IS 'port input-port 'all))
+		   (action-lexer (lexer-make-lexer action-tables IS))
+		   (class-lexer  (lexer-make-lexer class-tables  IS))
+		   (macro-lexer  (lexer-make-lexer macro-tables  IS))
+		   (regexp-lexer (lexer-make-lexer regexp-tables IS))
+		   (string-lexer (lexer-make-lexer string-tables IS)))
+	      (parameterize ((lexer-raw		#f)
+			     (lexer-stack	'())
+			     (lexer-alist	(list (cons 'action action-lexer)
 						      (cons 'class  class-lexer)
 						      (cons 'macro  macro-lexer)
 						      (cons 'regexp regexp-lexer)
 						      (cons 'string string-lexer)))
-			   (lexer-buffer-empty? #t)
-			   (lexer-buffer	#f)
-			   (lexer-history	'())
-			   (lexer-history-interp #f))
-	      (let-values (((<<EOF>>-action <<ERROR>>-action rules)
-			    (adapt-rules (parse-rules (parse-macros)))))
-
-		(let-values (((nl-start no-nl-start arcs acc)
-			      (re2nfa rules)))
+			     (lexer-buffer-empty? #t)
+			     (lexer-buffer	#f)
+			     (lexer-history	'())
+			     (lexer-history-interp #f))
+		(let-values (((<<EOF>>-action <<ERROR>>-action rules)
+			      (adapt-rules (parse-rules (parse-macros)))))
 
 		  (let-values (((nl-start no-nl-start arcs acc)
-				(noeps nl-start no-nl-start arcs acc)))
+				(re2nfa rules)))
 
 		    (let-values (((nl-start no-nl-start arcs acc)
-				  (sweep nl-start no-nl-start arcs acc)))
+				  (noeps nl-start no-nl-start arcs acc)))
 
 		      (let-values (((nl-start no-nl-start arcs acc)
-				    (nfa2dfa nl-start no-nl-start arcs acc)))
-			(prep-set-rules-yytext? rules)
-			(output options-alist
-				<<EOF>>-action <<ERROR>>-action
-				rules nl-start no-nl-start arcs acc)
-			#t))))))))
-	(lambda ()
-	  (when close-port?
-	    (close-input-port input-port))))))
+				    (sweep nl-start no-nl-start arcs acc)))
+
+			(let-values (((nl-start no-nl-start arcs acc)
+				      (nfa2dfa nl-start no-nl-start arcs acc)))
+			  (prep-set-rules-yytext? rules)
+			  (output options
+				  <<EOF>>-action <<ERROR>>-action
+				  rules nl-start no-nl-start arcs acc)
+			  #t))))))))
+	  (lambda ()
+	    (when close-port?
+	      (close-input-port input-port)))))))
 
 
 ;;;; helpers
@@ -4048,11 +4050,22 @@
 	   "column " (if column (number->string column) "?")
 	   ": " message-strings)))
 
+(define-keyword :input-file)
+(define-keyword :input-port)
+(define-keyword :input-string)
+(define-keyword :output-file)
+(define-keyword :output-port)
+(define-keyword :table-name)
+(define-keyword :library-spec)
+(define-keyword :counters)
+(define-keyword :pretty-print)
+(define-keyword :lexer-format)
+
 (define (lex-parse-options args)
   (let ((lex-recognized-options '(input-file input-port input-string
 				  output-file output-port
 				  table-name library-spec
-				  counters portable code pp))
+				  counters portable code pretty-print))
 	(lex-options-with-value '(input-file input-port input-string
 				  output-file output-port
 				  table-name library-spec

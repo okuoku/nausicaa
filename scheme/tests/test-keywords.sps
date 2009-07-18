@@ -60,6 +60,67 @@
   (check (keyword? :a) => #t)
   (check (eq? :a :b)   => #f))
 
+(with-keywords (:a :b :c :d :k)
+
+  (check
+      (let-keywords (list :a 1 :b 2 :d 4) #f
+	  ((a :a #\a)
+	   (b :b #\b)
+	   (c :c #\c)
+	   (d :d #\d))
+	  (list a b c d))
+    => '(1 2 #\c 4))
+
+  (check
+      (let-keywords (list :a 1 :b 2 :k 999 :d 4) #t
+	  ((a :a #\a)
+	   (b :b #\b)
+	   (c :c #\c)
+	   (d :d #\d))
+	  (list a b c d))
+    => '(1 2 #\c 4))
+
+  (check
+      (let-keywords '() #t
+	  ((a :a #\a)
+	   (b :b #\b)
+	   (c :c #\c)
+	   (d :d #\d))
+	  (list a b c d))
+    => '(#\a #\b #\c #\d))
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(let-keywords (list :a 1 :b 2 :k 999 :d 4) #f
+		      ((a :a #\a)
+		       (b :b #\b)
+		       (c :c #\c)
+		       (d :d #\d))
+	  (list a b c d)))
+    => "unrecognised option")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(let-keywords (list :a 1 2 :k 999 :d 4) #f
+		      ((a :a #\a)
+		       (b :b #\b)
+		       (c :c #\c)
+		       (d :d #\d))
+	  (list a b c d)))
+    => "expected keyword option")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(let-keywords (list :a 1 :d) #t
+		      ((a :a #\a)
+		       (b :b #\b)
+		       (c :c #\c)
+		       (d :d #\d))
+	  (list a b c d)))
+    => "keyword option requires value")
+
+  )
+
 
 ;;;; done
 
