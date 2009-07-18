@@ -55,7 +55,7 @@
   (import (rnrs)
     (parameters)
     (keywords)
-    (silex multilex)
+    (silex lexer)
     (rnrs mutable-pairs)
     (rnrs mutable-strings))
 
@@ -3957,7 +3957,7 @@
 				      "\n"
 				      "  (export\n"
 				      "    " (table-name->export-name table-name) ")\n"
-				      "  (import (rnrs) (silex multilex))\n"
+				      "  (import (rnrs) (silex lexer))\n"
 				      "\n")
 		       output-port))
 	    (out-print-table options

@@ -17,7 +17,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (silex multilex)
+(library (silex lexer)
   (export
     lexer-make-lexer		lexer-make-IS
     lexer-get-func-getc		lexer-get-func-ungetc

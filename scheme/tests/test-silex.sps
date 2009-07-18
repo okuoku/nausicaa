@@ -27,7 +27,7 @@
 
 (import (nausicaa)
   (checks)
-  (silex multilex)
+  (silex lexer)
   (calc-code)
   (calc-portable)
   (calc-tree))

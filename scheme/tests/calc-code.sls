@@ -1,7 +1,7 @@
 (library (calc-code)
   (export
     calc-lexer-table/code)
-  (import (rnrs) (silex multilex))
+  (import (rnrs) (silex lexer))
 
 ;
 ; Table generated from the file #f by SILex 1.0
