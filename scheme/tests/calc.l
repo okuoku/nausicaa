@@ -6,23 +6,21 @@
 ;;;Abstract
 ;;;
 ;;;	This is a  test lexer specification for a  calculator.  It seems
-;;;	to  work  well.  To  produce  it we  can  process  it using  the
-;;;	following program:
+;;;	to  work well.  To  produce the  lexer table  we can  process it
+;;;	using the following program:
 ;;;
 ;;;		(import (rnrs) (silex))
-;;;		(lex "calc-test.l" "calc-test.l.sls")
+;;;		(lex	'input-file  "calc.l"
+;;;			'output-file "calc-lib.sls"
+;;;			'library-spec "(calc-lib)"
+;;;			'table-name 'calc-lexer-table)
 ;;;
-;;;	this will produce a new file "calc-test.l.sls" that we can embed
-;;;	directly in the source code of a program.  The following:
+;;;	this  will produce a  new file  "calc-lib.sls" holding  a proper
+;;;	R6RS Scheme library having  import spec "(calc-lib)".  The table
+;;;	will  be  exported  by  the  library, bound  to  the  identifier
+;;;	"calc-lexer-table".  See the documentation for more details.
 ;;;
-;;;		(import (rnrs) (silex))
-;;;		(lex "calc-test.l" "calc-test.l.sls"
-;;;		     'library-spec "(calc-test)")
-;;;
-;;;	will  produce a  new file  "calc-test.l.sls" holding  a properly
-;;;	defined R6RS library to be loaded into a program.
-;;;
-;;;Notes
+;;;	NOTES
 ;;;
 ;;; 	The definition of the  "symbol" regular expression must not hold
 ;;; 	any of the  chars in [+-*\/^%,] or it  will result in tokenising
@@ -34,17 +32,17 @@
 ;;;Originally from Guile-Arith was written by Ian Grant <iang@pobox.com>
 ;;;This file was modified by Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;This program is free software: you can redistribute it and/or modify
-;;;it under the terms of the GNU General Public License as published by
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
 ;;;the Free Software Foundation, either version 3 of the License, or (at
 ;;;your option) any later version.
 ;;;
-;;;This program is distributed in the hope that it will be useful, but
-;;;WITHOUT ANY WARRANTY; without even the implied warranty of
-;;;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
 ;;;General Public License for more details.
 ;;;
-;;;You should have received a copy of the GNU General Public License
+;;;You should  have received  a copy of  the GNU General  Public License
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
