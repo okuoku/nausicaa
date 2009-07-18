@@ -26,23 +26,23 @@
 
     :port :procedure :string :counters
 
-    ;;Low level getters for the ":lexer" record fields.  They are needed
-    ;;in the output tables with the "code" format.
-    :lexer-start-go-to-end
-    :lexer-end-go-to-point
-    :lexer-init-lexeme
-    :lexer-get-start-line
-    :lexer-get-start-column
-    :lexer-get-start-offset
-    :lexer-peek-left-context
-    :lexer-peek-char
-    :lexer-read-char
-    :lexer-get-start-end-text
-    :lexer-get-user-line
-    :lexer-get-user-column
-    :lexer-get-user-offset
-    :lexer-user-getc
-    :lexer-user-ungetc)
+    ;;Low level getters for the ":input-system" record fields.  They are
+    ;;needed in the output tables with the "code" format.
+    :input-system-start-go-to-end
+    :input-system-end-go-to-point
+    :input-system-init-lexeme
+    :input-system-get-start-line
+    :input-system-get-start-column
+    :input-system-get-start-offset
+    :input-system-peek-left-context
+    :input-system-peek-char
+    :input-system-read-char
+    :input-system-get-start-end-text
+    :input-system-get-user-line
+    :input-system-get-user-column
+    :input-system-get-user-offset
+    :input-system-user-getc
+    :input-system-user-ungetc)
   (import (rnrs)
     (keywords)
     (rnrs mutable-strings))
@@ -57,7 +57,7 @@
 (define lexer-init-buffer-len 1024)
 (define lexer-integer-newline (char->integer #\newline))
 
-(define-record-type (:lexer :lexer-make lexer?)
+(define-record-type (:input-system :input-system-make lexer?)
   (fields (immutable start-go-to-end)
 	  (immutable end-go-to-point)
 	  (immutable init-lexeme)
@@ -428,7 +428,7 @@
 		(set! end-ptr   (- end-ptr delta))
 		(set! point-ptr (- point-ptr delta))
 		(set! user-ptr  (- user-ptr delta)))))))
-      (:lexer-make
+      (:input-system-make
        (case counters
 	 ((none) start-go-to-end-none)
 	 ((line) start-go-to-end-line)
@@ -468,19 +468,19 @@
 
 
 (define (lexer-get-func-getc IS)
-  (:lexer-user-getc IS))
+  (:input-system-user-getc IS))
 
 (define (lexer-get-func-ungetc IS)
-  (:lexer-user-ungetc IS))
+  (:input-system-user-ungetc IS))
 
 (define (lexer-get-func-line IS)
-  (:lexer-get-user-line IS))
+  (:input-system-get-user-line IS))
 
 (define (lexer-get-func-column IS)
-  (:lexer-get-user-column IS))
+  (:input-system-get-user-column IS))
 
 (define (lexer-get-func-offset IS)
-  (:lexer-get-user-offset IS))
+  (:input-system-get-user-offset IS))
 
 
 (define (lexer-make-tree-lexer tables IS)
@@ -498,21 +498,21 @@
        (acc-v                (vector-ref tables 8))
 
 		; Contenu du IS
-       (IS-start-go-to-end    (:lexer-start-go-to-end	IS))
-       (IS-end-go-to-point    (:lexer-end-go-to-point	IS))
-       (IS-init-lexeme        (:lexer-init-lexeme	IS))
-       (IS-get-start-line     (:lexer-get-start-line	IS))
-       (IS-get-start-column   (:lexer-get-start-column	IS))
-       (IS-get-start-offset   (:lexer-get-start-offset	IS))
-       (IS-peek-left-context  (:lexer-peek-left-context	IS))
-       (IS-peek-char          (:lexer-peek-char		IS))
-       (IS-read-char          (:lexer-read-char		IS))
-       (IS-get-start-end-text (:lexer-get-start-end-text IS))
-       (IS-get-user-line      (:lexer-get-user-line	IS))
-       (IS-get-user-column    (:lexer-get-user-column	IS))
-       (IS-get-user-offset    (:lexer-get-user-offset	IS))
-       (IS-user-getc          (:lexer-user-getc		IS))
-       (IS-user-ungetc        (:lexer-user-ungetc	IS))
+       (IS-start-go-to-end    (:input-system-start-go-to-end	IS))
+       (IS-end-go-to-point    (:input-system-end-go-to-point	IS))
+       (IS-init-lexeme        (:input-system-init-lexeme	IS))
+       (IS-get-start-line     (:input-system-get-start-line	IS))
+       (IS-get-start-column   (:input-system-get-start-column	IS))
+       (IS-get-start-offset   (:input-system-get-start-offset	IS))
+       (IS-peek-left-context  (:input-system-peek-left-context	IS))
+       (IS-peek-char          (:input-system-peek-char		IS))
+       (IS-read-char          (:input-system-read-char		IS))
+       (IS-get-start-end-text (:input-system-get-start-end-text IS))
+       (IS-get-user-line      (:input-system-get-user-line	IS))
+       (IS-get-user-column    (:input-system-get-user-column	IS))
+       (IS-get-user-offset    (:input-system-get-user-offset	IS))
+       (IS-user-getc          (:input-system-user-getc		IS))
+       (IS-user-ungetc        (:input-system-user-ungetc	IS))
 
 		; Resultats
        (<<EOF>>-action   #f)

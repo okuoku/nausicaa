@@ -30,11 +30,7 @@
 (import (rnrs)
   (silex))
 
-(define lexer-file	"calc.l")
-(define tree-file	"calc-tree.sls")
-(define code-file	"calc-code.sls")
-(define portable-file	"calc-portable.sls")
-
+
 (define l "
 blanks		[ \\10\\13]+
 
@@ -95,6 +91,12 @@ cparen		\\)
 <<ERROR>>	(assertion-violation #f
                   \"invalid lexer token\" yytext)
 ")
+
+
+(define lexer-file	"calc.l")
+(define tree-file	"calc-tree.sls")
+(define code-file	"calc-code.sls")
+(define portable-file	"calc-portable.sls")
 
 (define lp (open-string-input-port l))
 

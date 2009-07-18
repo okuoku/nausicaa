@@ -359,7 +359,7 @@ Copyright @copyright{} 2003 Taylor Campbell.@*
 Copyright @copyright{} 2005 Jens Axel Soegaard.@*
 Copyright @copyright{} 2008 Taro Minowa (Higepon).@*
 Copyright @copyright{} 2005-2009 Alex Shinn.@*
-Copyright @copyright{} 1996, 1999-2005 Dorai Sitaram.
+Copyright @copyright{} 1996, 1999-2005 Dorai Sitaram.@*
 Copyright @copyright{} 2001, 2009 Danny Dube'
 
 @quotation
