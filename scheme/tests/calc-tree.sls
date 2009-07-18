@@ -4,7 +4,7 @@
   (import (rnrs))
 
 ;
-; Table generated from the file #f by SILex 1.0
+; Table generated from the file calc.l by SILex 1.0
 ;
 
 (define calc-lexer-table/tree

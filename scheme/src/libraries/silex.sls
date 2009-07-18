@@ -25,7 +25,6 @@
 ;;;	a file,  port or string.   This function is  the one to  read to
 ;;;	understand the basic format of lexer tables.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2001 Danny Dube' <dube@iro.umontreal.ca>
 ;;;
 ;;;Original code  by Danny Dube'.   Port to R6RS Scheme  and integration
@@ -47,8 +46,9 @@
 
 
 (library (silex)
-  (export lex lex-tables)
+  (export lex)
   (import (rnrs)
+    (parameters)
     (silex multilex)
     (rnrs mutable-pairs)
     (rnrs mutable-strings))
@@ -64,6 +64,17 @@
     (let* ((pair	(assq option options-alist))
 	   (value	(and pair (cdr pair))))
       (or value default)))))
+
+;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
+;;;``Formal semantics''.
+(define-syntax begin0
+  (syntax-rules ()
+    ((_ ?expr0 ?expr ...)
+     (call-with-values
+	 (lambda () ?expr0)
+       (lambda x
+	 ?expr ...
+	 (apply values x))))))
 
 
 ;;;; module util.scm.
@@ -1155,109 +1166,94 @@
 ; Lexer generique
 ;
 
-;;;!!!!!!!!!!!!!!!!!!!!!!!!! make them parameters?
-(define lexer-raw #f)
-(define lexer-stack '())
+(define lexer-raw
+  (make-parameter #f))
 
-(define lexer-alist #f)
+(define lexer-stack
+  (make-parameter '()))
 
-(define lexer-buffer #f)
-(define lexer-buffer-empty? #t)
+(define lexer-alist
+  (make-parameter #f))
 
-(define lexer-history '())
-(define lexer-history-interp #f)
+(define lexer-buffer
+  (make-parameter #f))
 
-(define init-lexer
-  (lambda (port)
-    (let* ((IS (lexer-make-IS 'port port 'all))
-	   (action-lexer (lexer-make-lexer action-tables IS))
-	   (class-lexer  (lexer-make-lexer class-tables  IS))
-	   (macro-lexer  (lexer-make-lexer macro-tables  IS))
-	   (regexp-lexer (lexer-make-lexer regexp-tables IS))
-	   (string-lexer (lexer-make-lexer string-tables IS)))
-      (set! lexer-raw #f)
-      (set! lexer-stack '())
-      (set! lexer-alist
-	    (list (cons 'action action-lexer)
-		  (cons 'class  class-lexer)
-		  (cons 'macro  macro-lexer)
-		  (cons 'regexp regexp-lexer)
-		  (cons 'string string-lexer)))
-      (set! lexer-buffer-empty? #t)
-      (set! lexer-history '()))))
+(define lexer-buffer-empty?
+  (make-parameter #t))
+
+(define lexer-history
+  (make-parameter '()))
+
+(define lexer-history-interp
+  (make-parameter #f))
 
 ; Lexer brut
 ; S'assurer qu'il n'y a pas de risque de changer de
 ; lexer quand le buffer est rempli
 (define push-lexer
   (lambda (name)
-    (set! lexer-stack (cons lexer-raw lexer-stack))
-    (set! lexer-raw (cdr (assq name lexer-alist)))))
+    (lexer-stack (cons (lexer-raw) (lexer-stack)))
+    (lexer-raw (cdr (assq name (lexer-alist))))))
 
 (define pop-lexer
   (lambda ()
-    (set! lexer-raw (car lexer-stack))
-    (set! lexer-stack (cdr lexer-stack))))
+    (lexer-raw   (car (lexer-stack)))
+    (lexer-stack (cdr (lexer-stack)))))
 
 ; Traite le "unget" (capacite du unget: 1)
 (define lexer2
   (lambda ()
-    (if lexer-buffer-empty?
-	(lexer-raw)
-	(begin
-	  (set! lexer-buffer-empty? #t)
-	  lexer-buffer))))
+    (if (lexer-buffer-empty?)
+	((lexer-raw))
+      (begin
+	(lexer-buffer-empty? #t)
+	(lexer-buffer)))))
 
 (define lexer2-unget
   (lambda (tok)
-    (set! lexer-buffer tok)
-    (set! lexer-buffer-empty? #f)))
+    (lexer-buffer tok)
+    (lexer-buffer-empty? #f)))
 
 ; Traite l'historique
-(define lexer
-  (lambda ()
-    (let* ((tok (lexer2))
-	   (tok-lexeme (get-tok-lexeme tok))
-	   (hist-lexeme (if lexer-history-interp
-			    (blank-translate tok-lexeme)
-			    tok-lexeme)))
-      (set! lexer-history (cons hist-lexeme lexer-history))
-      tok)))
+(define (lexer)
+  (let* ((tok (lexer2))
+	 (tok-lexeme (get-tok-lexeme tok))
+	 (hist-lexeme (if (lexer-history-interp)
+			  (blank-translate tok-lexeme)
+			tok-lexeme)))
+    (lexer-history (cons hist-lexeme (lexer-history)))
+    tok))
 
-(define lexer-unget
-  (lambda (tok)
-    (set! lexer-history (cdr lexer-history))
-    (lexer2-unget tok)))
+(define (lexer-unget tok)
+  (lexer-history (cdr (lexer-history)))
+  (lexer2-unget tok))
 
-(define lexer-set-blank-history
-  (lambda (b)
-    (set! lexer-history-interp b)))
+(define (lexer-set-blank-history b)
+  (lexer-history-interp b))
 
-(define blank-translate
-  (lambda (s)
-    (let ((ss (string-copy s)))
-      (let loop ((i (- (string-length ss) 1)))
-	(cond ((< i 0)
-	       ss)
-	      ((char=? (string-ref ss i) (integer->char tab-ch))
-	       (loop (- i 1)))
-	      ((char=? (string-ref ss i) #\newline)
-	       (loop (- i 1)))
-	      (else
-	       (string-set! ss i #\space)
-	       (loop (- i 1))))))))
+(define (blank-translate s)
+  (let ((ss (string-copy s)))
+    (let loop ((i (- (string-length ss) 1)))
+      (cond ((< i 0)
+	     ss)
+	    ((char=? (string-ref ss i) (integer->char tab-ch))
+	     (loop (- i 1)))
+	    ((char=? (string-ref ss i) #\newline)
+	     (loop (- i 1)))
+	    (else
+	     (string-set! ss i #\space)
+	     (loop (- i 1)))))))
 
-(define lexer-get-history
-  (lambda ()
-    (let* ((rightlist (reverse lexer-history))
-	   (str (apply string-append rightlist))
-	   (strlen (string-length str))
-	   (str2 (if (and (> strlen 0)
-			  (char=? (string-ref str (- strlen 1)) #\newline))
-		     str
-		     (string-append str (string #\newline)))))
-      (set! lexer-history '())
-      str2)))
+(define (lexer-get-history)
+  (let* ((rightlist (reverse (lexer-history)))
+	 (str (apply string-append rightlist))
+	 (strlen (string-length str))
+	 (str2 (if (and (> strlen 0)
+			(char=? (string-ref str (- strlen 1)) #\newline))
+		   str
+		 (string-append str (string #\newline)))))
+    (lexer-history '())
+    str2))
 
 ;
 ; Traitement des listes de tokens
@@ -1288,13 +1284,11 @@
 		  ((= tok-type <<EOF>>-tok)
 		   (lex-error (get-tok-line tok)
 			      (get-tok-column tok)
-			      "the <<EOF>> anchor must be used alone"
-			      " and only after %%."))
+			      "the <<EOF>> anchor must be used alone and only after %%."))
 		  ((= tok-type <<ERROR>>-tok)
 		   (lex-error (get-tok-line tok)
 			      (get-tok-column tok)
-			      "the <<ERROR>> anchor must be used alone"
-			      " and only after %%."))))))))
+			      "the <<ERROR>> anchor must be used alone and only after %%."))))))))
 
 (define strip-end
   (lambda (l)
@@ -1352,11 +1346,11 @@
 			       (ass (assoc name macros)))
 			  (if ass
 			      (cons (cdr ass) (cdr tok-list))
-			      (lex-error (get-tok-line tok)
-					 (get-tok-column tok)
-					 "unknown macro \""
-					 (get-tok-2nd-attr tok)
-					 "\".")))))
+			    (lex-error (get-tok-line tok)
+				       (get-tok-column tok)
+				       "unknown macro \""
+				       (get-tok-2nd-attr tok)
+				       "\".")))))
 		(cons char-tok
 		      (lambda (tok tok-list macros)
 			(let ((c (get-tok-attr tok)))
@@ -1541,39 +1535,27 @@
       rule)))
 
 ; Retourne une paire: <<EOF>>-action et vecteur des regles ordinaires
-(define adapt-rules
-  (lambda (rules)
-    (let loop ((r rules) (revr '()) (<<EOF>>-action #f) (<<ERROR>>-action #f))
-      (if (null? r)
-	  (cons (or <<EOF>>-action default-<<EOF>>-action)
-		(cons (or <<ERROR>>-action default-<<ERROR>>-action)
-		      (list->vector (reverse revr))))
-	  (let ((r1 (car r)))
-	    (cond ((get-rule-eof? r1)
-		   (if <<EOF>>-action
-		       (lex-error (get-rule-line r1)
-				  #f
-				  "the <<EOF>> anchor can be "
-				  "used at most once.")
-		       (loop (cdr r)
-			     revr
-			     (get-rule-action r1)
-			     <<ERROR>>-action)))
-		  ((get-rule-error? r1)
-		   (if <<ERROR>>-action
-		       (lex-error (get-rule-line r1)
-				  #f
-				  "the <<ERROR>> anchor can be "
-				  "used at most once.")
-		       (loop (cdr r)
-			     revr
-			     <<EOF>>-action
-			     (get-rule-action r1))))
-		  (else
-		   (loop (cdr r)
-			 (cons r1 revr)
-			 <<EOF>>-action
-			 <<ERROR>>-action))))))))
+(define (adapt-rules rules)
+  (let loop ((r rules) (revr '()) (<<EOF>>-action #f) (<<ERROR>>-action #f))
+    (if (null? r)
+	(values (or <<EOF>>-action default-<<EOF>>-action)
+		(or <<ERROR>>-action default-<<ERROR>>-action)
+		(list->vector (reverse revr)))
+      (let ((r1 (car r)))
+	(cond ((get-rule-eof? r1)
+	       (if <<EOF>>-action
+		   (lex-error (get-rule-line r1)
+			      #f
+			      "the <<EOF>> anchor can be used at most once.")
+		 (loop (cdr r) revr (get-rule-action r1) <<ERROR>>-action)))
+	      ((get-rule-error? r1)
+	       (if <<ERROR>>-action
+		   (lex-error (get-rule-line r1)
+			      #f
+			      "the <<ERROR>> anchor can be used at most once.")
+		 (loop (cdr r) revr <<EOF>>-action (get-rule-action r1))))
+	      (else
+	       (loop (cdr r) (cons r1 revr) <<EOF>>-action <<ERROR>>-action)))))))
 
 ;
 ; Analyseur de fichier lex
@@ -2013,25 +1995,23 @@
 	  (r2n-add-arc no-nl-start 'eps rule-start)))))
 
 ; Construction de l'automate complet
-(define re2nfa
-  (lambda (rules)
-    (let ((nb-of-rules (vector-length rules)))
-      (r2n-init)
-      (let* ((nl-start (r2n-get-state #f))
-	     (no-nl-start (r2n-get-state #f)))
-	(let loop ((i 0))
-	  (if (< i nb-of-rules)
-	      (begin
-		(r2n-build-rule (vector-ref rules i)
-				i
-				nl-start
-				no-nl-start)
-		(loop (+ i 1)))))
-	(r2n-finalize-v)
-	(let ((v-arcs r2n-v-arcs)
-	      (v-acc r2n-v-acc))
-	  (r2n-init)
-	  (list nl-start no-nl-start v-arcs v-acc))))))
+(define (re2nfa rules)
+  (let ((nb-of-rules (vector-length rules)))
+    (r2n-init)
+    (let* ((nl-start (r2n-get-state #f))
+	   (no-nl-start (r2n-get-state #f)))
+      (let loop ((i 0))
+	(when (< i nb-of-rules)
+	  (r2n-build-rule (vector-ref rules i)
+			  i
+			  nl-start
+			  no-nl-start)
+	  (loop (+ i 1))))
+      (r2n-finalize-v)
+      (let ((v-arcs r2n-v-arcs)
+	    (v-acc r2n-v-acc))
+	(r2n-init)
+	(values nl-start no-nl-start v-arcs v-acc)))))
 
 
 ;;;; Module noeps.scm.
@@ -2101,19 +2081,17 @@
 		  (cons new-tran (loop (cdr trans))))))))))
 
 ; Elimination des transitions eps
-(define noeps
-  (lambda (nl-start no-nl-start arcs acc)
-    (let* ((digraph-arcs (noeps-mkvois arcs))
-	   (digraph-init (noeps-mkinit arcs))
-	   (dict (digraph digraph-arcs digraph-init noeps-merge-1))
-	   (new-nl-start (vector-ref dict nl-start))
-	   (new-no-nl-start (vector-ref dict no-nl-start)))
-      (let loop ((i (- (vector-length arcs) 1)))
-	(if (>= i 0)
-	    (begin
-	      (vector-set! arcs i (noeps-trad-arcs (vector-ref arcs i) dict))
-	      (loop (- i 1)))))
-      (list new-nl-start new-no-nl-start arcs acc))))
+(define (noeps nl-start no-nl-start arcs acc)
+  (let* ((digraph-arcs (noeps-mkvois arcs))
+	 (digraph-init (noeps-mkinit arcs))
+	 (dict (digraph digraph-arcs digraph-init noeps-merge-1))
+	 (new-nl-start (vector-ref dict nl-start))
+	 (new-no-nl-start (vector-ref dict no-nl-start)))
+    (let loop ((i (- (vector-length arcs) 1)))
+      (when (>= i 0)
+	(vector-set! arcs i (noeps-trad-arcs (vector-ref arcs i) dict))
+	(loop (- i 1))))
+    (values new-nl-start new-no-nl-start arcs acc)))
 
 ; Module sweep.scm.
 
@@ -2212,22 +2190,21 @@
 	    new-v)))))
 
 ; Elimination des etats inutiles
-(define sweep
-  (lambda (nl-start no-nl-start arcs-v acc-v)
-    (let* ((digraph-arcs (sweep-mkarcs arcs-v))
-	   (digraph-init acc-v)
-	   (digraph-op sweep-op)
-	   (dist-acc-v (digraph digraph-arcs digraph-init digraph-op))
-	   (result (sweep-renum dist-acc-v))
-	   (new-nbnodes (car result))
-	   (dict (cdr result))
-	   (new-nl-start (sweep-list nl-start dict))
-	   (new-no-nl-start (sweep-list no-nl-start dict))
-	   (new-arcs-v (sweep-states (sweep-all-arcs arcs-v dict)
-				     new-nbnodes
-				     dict))
-	   (new-acc-v (sweep-states acc-v new-nbnodes dict)))
-      (list new-nl-start new-no-nl-start new-arcs-v new-acc-v))))
+(define (sweep nl-start no-nl-start arcs-v acc-v)
+  (let* ((digraph-arcs (sweep-mkarcs arcs-v))
+	 (digraph-init acc-v)
+	 (digraph-op sweep-op)
+	 (dist-acc-v (digraph digraph-arcs digraph-init digraph-op))
+	 (result (sweep-renum dist-acc-v))
+	 (new-nbnodes (car result))
+	 (dict (cdr result))
+	 (new-nl-start (sweep-list nl-start dict))
+	 (new-no-nl-start (sweep-list no-nl-start dict))
+	 (new-arcs-v (sweep-states (sweep-all-arcs arcs-v dict)
+				   new-nbnodes
+				   dict))
+	 (new-acc-v (sweep-states acc-v new-nbnodes dict)))
+    (values new-nl-start new-no-nl-start new-arcs-v new-acc-v)))
 
 
 ;;;; Module nfa2dfa.scm.
@@ -2959,30 +2936,29 @@
 	      (loop (+ n 1))))))))
 
 ; Effectuer la transformation de l'automate de non-det. a det.
-(define nfa2dfa
-  (lambda (nl-start no-nl-start arcs-v acc-v)
-    (n2d-init-glob-vars (vector-length arcs-v))
-    (let* ((nl-d (n2d-search-state nl-start))
-	   (no-nl-d (n2d-search-state no-nl-start))
-	   (norm-arcs-v (n2d-normalize-arcs-v arcs-v)))
-      (let loop ((n 0))
-	(if (< n n2d-state-count)
-	    (let* ((dentry (vector-ref n2d-state-dict n))
-		   (ss (get-dentry-ss dentry))
-		   (arcs-l (map (lambda (s) (vector-ref norm-arcs-v s)) ss))
-		   (arcs (n2d-combine-arcs-l arcs-l))
-		   (darcs (n2d-translate-arcs arcs))
-		   (fact-darcs (n2d-factorize-darcs darcs))
-		   (accs (map (lambda (s) (vector-ref acc-v s)) ss))
-		   (acc (n2d-acc-mins accs)))
-	      (set-dentry-darcs dentry fact-darcs)
-	      (set-dentry-acc   dentry acc)
-	      (loop (+ n 1)))))
-      (let* ((result (n2d-extract-vs))
-	     (new-arcs-v (car result))
-	     (new-acc-v (cdr result)))
-	(n2d-init-glob-vars 0)
-	(list nl-d no-nl-d new-arcs-v new-acc-v)))))
+(define (nfa2dfa nl-start no-nl-start arcs-v acc-v)
+  (n2d-init-glob-vars (vector-length arcs-v))
+  (let* ((nl-d (n2d-search-state nl-start))
+	 (no-nl-d (n2d-search-state no-nl-start))
+	 (norm-arcs-v (n2d-normalize-arcs-v arcs-v)))
+    (let loop ((n 0))
+      (if (< n n2d-state-count)
+	  (let* ((dentry (vector-ref n2d-state-dict n))
+		 (ss (get-dentry-ss dentry))
+		 (arcs-l (map (lambda (s) (vector-ref norm-arcs-v s)) ss))
+		 (arcs (n2d-combine-arcs-l arcs-l))
+		 (darcs (n2d-translate-arcs arcs))
+		 (fact-darcs (n2d-factorize-darcs darcs))
+		 (accs (map (lambda (s) (vector-ref acc-v s)) ss))
+		 (acc (n2d-acc-mins accs)))
+	    (set-dentry-darcs dentry fact-darcs)
+	    (set-dentry-acc   dentry acc)
+	    (loop (+ n 1)))))
+    (let* ((result (n2d-extract-vs))
+	   (new-arcs-v (car result))
+	   (new-acc-v (cdr result)))
+      (n2d-init-glob-vars 0)
+      (values nl-d no-nl-d new-arcs-v new-acc-v))))
 
 
 ;;;; Module prep.scm.
@@ -4004,166 +3980,100 @@
 
 ;;;; Module main.scm.
 
-;
-; Gestion d'erreurs
-;
-
-(define (lex-error line column . l)
-  (assertion-violation #f
-    (string-append "lex error: "
-		   "line "   (if line   (number->string line)   "?")
-		   "column " (if column (number->string column) "?"))
-    l))
-
-;
-; Decoupage des arguments
-;
-
-(define lex-recognized-args
-  '(filein
-    table-name
-    output-file
-    output-port
-    input-port
-    counters
-    portable
-    code
-    pp
-    library-spec))
-
-(define lex-valued-args
-  '(filein
-    table-name
-    output-file
-    input-port
-    output-port
-    counters
-    library-spec))
-
-(define (lex-parse-args args)
-  (let loop ((args args)
-	     (ops  '()))
-    (if (null? args)
-	ops
-      (let ((sym (car args)))
-	(cond ((not (symbol? sym))
-	       (lex-error #f #f "bad option list."))
-	      ((not (memq sym lex-recognized-args))
-	       (lex-error #f #f "unrecognized option \"" sym "\"."))
-	      ((not (memq sym lex-valued-args))
-	       (loop (cdr args)
-		     (cons (cons sym '()) ops)))
-	      ((null? (cdr args))
-	       (lex-error #f #f "the value of \"" sym "\" not specified."))
-	      (else
-	       (loop (cddr args)
-		     (cons (cons sym (cadr args)) ops))))))))
-
-
-;
-; Differentes etapes de la fabrication de l'automate
-;
-
-(define (lex1 filein)
-  ;;     (display "lex1: ") (write (get-internal-run-time)) (newline)
-  (let ((port #f))
+(define (lex . args)
+  (let* ((options-alist	(lex-parse-options args))
+	 (input-file	(getopt 'input-file	options-alist))
+	 (input-port	(getopt 'input-port	options-alist))
+	 (input-string	(getopt 'input-string	options-alist))
+	 (close-port?	#f))
     (dynamic-wind
 	(lambda ()
-	  (set! port (open-input-file filein)))
+	  (set! input-port
+		(cond (input-string (open-string-input-port input-string))
+		      (input-port   input-port)
+		      (input-file   (begin0
+					(open-input-file input-file)
+				      (set! close-port? #t)))
+		      (else
+		       (assertion-violation 'lex
+			 "missing input method for lexer")))))
 	(lambda ()
-	  (init-lexer port)
-	  (let* ((macros (parse-macros))
-		 (rules  (parse-rules macros)))
-	    (adapt-rules rules)))
+	  (let* ((IS	       (lexer-make-IS 'port input-port 'all))
+		 (action-lexer (lexer-make-lexer action-tables IS))
+		 (class-lexer  (lexer-make-lexer class-tables  IS))
+		 (macro-lexer  (lexer-make-lexer macro-tables  IS))
+		 (regexp-lexer (lexer-make-lexer regexp-tables IS))
+		 (string-lexer (lexer-make-lexer string-tables IS)))
+	    (parameterize ((lexer-raw		#f)
+			   (lexer-stack		'())
+			   (lexer-alist		(list (cons 'action action-lexer)
+						      (cons 'class  class-lexer)
+						      (cons 'macro  macro-lexer)
+						      (cons 'regexp regexp-lexer)
+						      (cons 'string string-lexer)))
+			   (lexer-buffer-empty? #t)
+			   (lexer-buffer	#f)
+			   (lexer-history	'())
+			   (lexer-history-interp #f))
+	      (let-values (((<<EOF>>-action <<ERROR>>-action rules)
+			    (adapt-rules (parse-rules (parse-macros)))))
+
+		(let-values (((nl-start no-nl-start arcs acc)
+			      (re2nfa rules)))
+
+		  (let-values (((nl-start no-nl-start arcs acc)
+				(noeps nl-start no-nl-start arcs acc)))
+
+		    (let-values (((nl-start no-nl-start arcs acc)
+				  (sweep nl-start no-nl-start arcs acc)))
+
+		      (let-values (((nl-start no-nl-start arcs acc)
+				    (nfa2dfa nl-start no-nl-start arcs acc)))
+			(prep-set-rules-yytext? rules)
+			(output options-alist
+				<<EOF>>-action <<ERROR>>-action
+				rules nl-start no-nl-start arcs acc)
+			#t))))))))
 	(lambda ()
-	  (close-input-port port)))))
+	  (when close-port?
+	    (close-input-port input-port))))))
 
-(define (lex2 filein)
-  (let* ((result (lex1 filein))
-	 (<<EOF>>-action (car result))
-	 (<<ERROR>>-action (cadr result))
-	 (rules (cddr result)))
-    ;;       (display "lex2: ") (write (get-internal-run-time)) (newline)
-    (append (list <<EOF>>-action <<ERROR>>-action rules)
-	    (re2nfa rules))))
+
+;;;; helpers
 
-(define (lex3 filein)
-  (let* ((result (lex2 filein))
-	 (<<EOF>>-action   (list-ref result 0))
-	 (<<ERROR>>-action (list-ref result 1))
-	 (rules            (list-ref result 2))
-	 (nl-start         (list-ref result 3))
-	 (no-nl-start      (list-ref result 4))
-	 (arcs             (list-ref result 5))
-	 (acc              (list-ref result 6)))
-    ;;       (display "lex3: ") (write (get-internal-run-time)) (newline)
-    (append (list <<EOF>>-action <<ERROR>>-action rules)
-	    (noeps nl-start no-nl-start arcs acc))))
+(define (lex-error line column . message-strings)
+  (assertion-violation #f
+    (apply string-append "lex error: "
+	   "line "   (if line   (number->string line)   "?")
+	   "column " (if column (number->string column) "?")
+	   ": " message-strings)))
 
-(define lex4
-  (lambda (filein)
-    (let* ((result (lex3 filein))
-	   (<<EOF>>-action   (list-ref result 0))
-	   (<<ERROR>>-action (list-ref result 1))
-	   (rules            (list-ref result 2))
-	   (nl-start         (list-ref result 3))
-	   (no-nl-start      (list-ref result 4))
-	   (arcs             (list-ref result 5))
-	   (acc              (list-ref result 6)))
-;       (display "lex4: ") (write (get-internal-run-time)) (newline)
-      (append (list <<EOF>>-action <<ERROR>>-action rules)
-	      (sweep nl-start no-nl-start arcs acc)))))
-
-(define lex5
-  (lambda (filein)
-    (let* ((result (lex4 filein))
-	   (<<EOF>>-action   (list-ref result 0))
-	   (<<ERROR>>-action (list-ref result 1))
-	   (rules            (list-ref result 2))
-	   (nl-start         (list-ref result 3))
-	   (no-nl-start      (list-ref result 4))
-	   (arcs             (list-ref result 5))
-	   (acc              (list-ref result 6)))
-;       (display "lex5: ") (write (get-internal-run-time)) (newline)
-      (append (list <<EOF>>-action <<ERROR>>-action rules)
-	      (nfa2dfa nl-start no-nl-start arcs acc)))))
-
-(define lex6
-  (lambda (args-alist)
-    (let* ((filein           (cdr (assq 'filein args-alist)))
-	   (result           (lex5 filein))
-	   (<<EOF>>-action   (list-ref result 0))
-	   (<<ERROR>>-action (list-ref result 1))
-	   (rules            (list-ref result 2))
-	   (nl-start         (list-ref result 3))
-	   (no-nl-start      (list-ref result 4))
-	   (arcs             (list-ref result 5))
-	   (acc              (list-ref result 6)))
-;       (display "lex6: ") (write (get-internal-run-time)) (newline)
-      (prep-set-rules-yytext? rules)
-      (output args-alist
-	      <<EOF>>-action <<ERROR>>-action
-	      rules nl-start no-nl-start arcs acc)
-      #t)))
-
-;
-; Fonctions principales
-;
-
-(define (lex7 args)
-  (lex6 (lex-parse-args args)))
-
-(define (lex filein output-file . options)
-  (lex7 (append (list 'filein filein
-		      'table-name "lexer-table"
-		      'output-file output-file)
-		options)))
-
-(define (lex-tables filein table-name output-file . options)
-  (lex7 (append (list 'filein filein
-		      'table-name table-name
-		      'output-file output-file)
-		options)))
+(define (lex-parse-options args)
+  (let ((lex-recognized-options '(input-file input-port input-string
+				  output-file output-port
+				  table-name library-spec
+				  counters portable code pp))
+	(lex-options-with-value '(input-file input-port input-string
+				  output-file output-port
+				  table-name library-spec
+				  counters)))
+    (let loop ((args args)
+	       (ops  '()))
+      (if (null? args)
+	  ops
+	(let ((sym (car args)))
+	  (cond ((not (symbol? sym))
+		 (lex-error #f #f "bad option list."))
+		((not (memq sym lex-recognized-options))
+		 (lex-error #f #f "unrecognized option \"" sym "\"."))
+		((not (memq sym lex-options-with-value))
+		 (loop (cdr args)
+		       (cons (cons sym '()) ops)))
+		((null? (cdr args))
+		 (lex-error #f #f "the value of \"" sym "\" not specified."))
+		(else
+		 (loop (cddr args)
+		       (cons (cons sym (cadr args)) ops)))))))))
 
 
 ;;;; done

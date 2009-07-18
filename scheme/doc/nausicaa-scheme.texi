@@ -34770,9 +34770,9 @@ The regexp @code{ip-re} will match all and only valid @ip{} addresses.
 @section A lexical analyser generator
 
 
-This section describes @library{silex}.  ``SILex'' stands for ``Scheme
-Implementation of Lex''.  It generates a Scheme lexical analyser from a
-Lex--like specification file.  The library is a port to @rnrs{6} Scheme of
+The @library{silex} library generates a Scheme lexical analyser from a
+Lex--like specification file.  ``SILex'' stands for ``Scheme
+Implementation of Lex''.  The library is a port to @rnrs{6} Scheme of
 SILex version 1.0 by Danny Dube'.
 
 @menu
