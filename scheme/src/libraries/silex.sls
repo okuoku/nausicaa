@@ -62,15 +62,6 @@
 
 ;;;; helpers
 
-(define getopt
-  (case-lambda
-   ((option options)
-    (getopt option options #f))
-   ((option options default)
-    (let* ((pair	(assq option options))
-	   (value	(and pair (cdr pair))))
-      (or value default)))))
-
 ;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
 ;;;``Formal semantics''.
 (define-syntax begin0
@@ -3753,18 +3744,18 @@
 
       (display (string-append
 		;;Ecrire l'extraction des fonctions du IS.
-		"          (start-go-to-end    (cdr (assq 'start-go-to-end IS)))\n"
-		"          (end-go-to-point    (cdr (assq 'end-go-to-point IS)))\n"
-		"          (init-lexeme        (cdr (assq 'init-lexeme IS)))\n"
-		"          (get-start-line     (cdr (assq 'get-start-line IS)))\n"
-		"          (get-start-column   (cdr (assq 'get-start-column IS)))\n"
-		"          (get-start-offset   (cdr (assq 'get-start-offset IS)))\n"
-		"          (peek-left-context  (cdr (assq 'peek-left-context IS)))\n"
-		"          (peek-char          (cdr (assq 'peek-char IS)))\n"
-		"          (read-char          (cdr (assq 'read-char IS)))\n"
-		"          (get-start-end-text (cdr (assq 'get-start-end-text IS)))\n"
-		"          (user-getc          (cdr (assq 'user-getc IS)))\n"
-		"          (user-ungetc        (cdr (assq 'user-ungetc IS)))\n"
+		"          (start-go-to-end    (:lexer-start-go-to-end		IS))\n"
+		"          (end-go-to-point    (:lexer-end-go-to-point		IS))\n"
+		"          (init-lexeme        (:lexer-init-lexeme		IS))\n"
+		"          (get-start-line     (:lexer-get-start-line		IS))\n"
+		"          (get-start-column   (:lexer-get-start-column		IS))\n"
+		"          (get-start-offset   (:lexer-get-start-offset		IS))\n"
+		"          (peek-left-context  (:lexer-peek-left-context	IS))\n"
+		"          (peek-char          (:lexer-peek-char		IS))\n"
+		"          (read-char          (:lexer-read-char		IS))\n"
+		"          (get-start-end-text (:lexer-get-start-end-text	IS))\n"
+		"          (user-getc          (:lexer-user-getc		IS))\n"
+		"          (user-ungetc        (:lexer-user-ungetc		IS))\n"
 		;;Ecrire les variables d'actions.
 		"          (action-<<EOF>>\n"
 		"           (lambda (" counters-params-short "\n"
@@ -3966,9 +3957,7 @@
 				      "\n"
 				      "  (export\n"
 				      "    " (table-name->export-name table-name) ")\n"
-				      "  (import (rnrs))\n"
-				      ;; 				    "    (silex multilex)\n"
-				      ;; 				    "    (rnrs mutable-strings))\n"
+				      "  (import (rnrs) (silex multilex))\n"
 				      "\n")
 		       output-port))
 	    (out-print-table options
@@ -4000,7 +3989,7 @@
 			 (assertion-violation 'lex
 			   "missing input method for lexer")))))
 	  (lambda ()
-	    (let* ((IS	       (lexer-make-IS 'port input-port 'all))
+	    (let* ((IS	       (lexer-make-IS :port input-port :counters 'all))
 		   (action-lexer (lexer-make-lexer action-tables IS))
 		   (class-lexer  (lexer-make-lexer class-tables  IS))
 		   (macro-lexer  (lexer-make-lexer macro-tables  IS))
@@ -4057,9 +4046,11 @@
 (define-keyword :output-port)
 (define-keyword :table-name)
 (define-keyword :library-spec)
-(define-keyword :counters)
 (define-keyword :pretty-print)
 (define-keyword :lexer-format)
+
+;;Already defined in (silex multilex)
+;;(define-keyword :counters)
 
 (define (lex-parse-options args)
   (let ((lex-recognized-options '(input-file input-port input-string

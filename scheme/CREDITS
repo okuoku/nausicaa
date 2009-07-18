@@ -207,7 +207,8 @@ original code is available at:
 original code to make it work with R6RS libraries.
 
 silex.sls
----------
+silex/multilex.sls
+------------------
 
 ``SILex'' stands  for ``Scheme Implementation of Lex''.   It generates a
 Scheme  lexical  analyser  from  a Lex--like  specification  file.   The

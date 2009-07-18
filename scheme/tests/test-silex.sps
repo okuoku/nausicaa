@@ -39,7 +39,7 @@
 (define (test table)
 
   (define (tokenize string)
-    (let* ((IS				(lexer-make-IS 'string string 'line))
+    (let* ((IS				(lexer-make-IS :string string :counters 'line))
 	   (lexer			(lexer-make-lexer table IS))
 	   (lexer-get-line		(lexer-get-func-line IS))
 	   (lexer-getc			(lexer-get-func-getc IS))
