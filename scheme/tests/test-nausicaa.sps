@@ -135,6 +135,36 @@
     (rational-valued? 12/10)
   => #t)
 
+;;; --------------------------------------------------------------------
+
+(check
+    (equal? 1 2)
+  => #f)
+
+(check
+    (equal? 1 1)
+  => #t)
+
+(check (equal? +nan.0 +nan.0)	=> #t)
+(check (equal? +nan.0 -nan.0)	=> #t)
+(check (equal? -nan.0 +nan.0)	=> #t)
+(check (equal? -nan.0 -nan.0)	=> #t)
+
+(check (equal? +nan.0 (string->number "+nan.0"))	=> #t)
+(check (equal? +nan.0 (string->number "-nan.0"))	=> #t)
+(check (equal? -nan.0 (string->number "+nan.0"))	=> #t)
+(check (equal? -nan.0 (string->number "-nan.0"))	=> #t)
+
+(check (eqv? +nan.0 +nan.0)	=> #t)
+(check (eqv? +nan.0 -nan.0)	=> #t)
+(check (eqv? -nan.0 +nan.0)	=> #t)
+(check (eqv? -nan.0 -nan.0)	=> #t)
+
+(check (eqv? +nan.0 (string->number "+nan.0"))	=> #t)
+(check (eqv? +nan.0 (string->number "-nan.0"))	=> #t)
+(check (eqv? -nan.0 (string->number "+nan.0"))	=> #t)
+(check (eqv? -nan.0 (string->number "-nan.0"))	=> #t)
+
 
 ;;;; parameters
 
