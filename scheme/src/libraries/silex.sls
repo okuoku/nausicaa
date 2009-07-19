@@ -13,16 +13,16 @@
 ;;;
 ;;;	  Quick guide to browsing the code:
 ;;;
-;;;	LEX - This is the main function to produce a full lexer.
+;;;	LEX - This is the main function to produce the lexer table.
 ;;;
 ;;;	OUTPUT - This  function is the main output  function.  It parses
-;;;	the  options given  to the  LEX and  LEX-TABLES  procedures, and
-;;;	produces  one  among three  kinds  of  output:  a proper  Scheme
-;;;	library, a
+;;;	the options given to LEX and produces a proper Scheme library or
+;;;	just  the lexer  table.   The output  can  be saved  to a  file,
+;;;	printed to a supplied port or (only for the raw table) evaluated
+;;;	and returned as a Schemme value.
 ;;;
 ;;;	OUT-PRINT-TABLE  - This  function prints  the lexer  table  to a
-;;;	given output port; it can be configured to read lexer input from
-;;;	a file,  port or string.   This function is  the one to  read to
+;;;	given  output  port.   This  function  is the  one  to  read  to
 ;;;	understand the basic format of lexer tables.
 ;;;
 ;;;Copyright (c) 2001 Danny Dube' <dube@iro.umontreal.ca>
@@ -199,20 +199,13 @@
 	(cons (+ newline-ch 1) 'inf+)))
 
 (define default-action
-  (string-append "        (yycontinue)" (string #\newline)))
+  (string-append "        (yycontinue)" "\n"))
 
 (define default-<<EOF>>-action
-  (string-append "       '(0)" (string #\newline)))
+  (string-append "       '(0)" "\n"))
 
 (define default-<<ERROR>>-action
-  (string-append "       (begin"
-		 (string #\newline)
-		 "         (display \"Error: Invalid token.\")"
-		 (string #\newline)
-		 "         (newline)"
-		 (string #\newline)
-		 "         'error)"
-		 (string #\newline)))
+  (string-append "       (assertion-violation #f \"invalid token\" yytext)\n"))
 
 (define (make-dispatch-table size alist default)
   ;;Fabrication de tables de dispatch.
@@ -226,7 +219,7 @@
 	  (loop (cdr alist)))))))
 
 
-;;;Fonctions de manipulation des tokens
+;;; Fonctions de manipulation des tokens
 
 (define-record-type (:tok :tok-make tok?)
   (fields (immutable type		get-tok-type)
@@ -262,10 +255,22 @@
 
 
 ;;; Noeuds des regexp
-;;
-;;FIXME Should this be transformed into a record?
-;;
 
+(define-record-type (:regexp :regexp-make regexp?)
+  (fields (immutable type	get-re-type)
+	  (immutable attr1	get-re-attr1)
+	  (immutable attr2	get-re-attr2)))
+
+(define make-re
+  (case-lambda
+   ((re-type)
+    (make-re re-type #f #f))
+   ((re-type attr1)
+    (make-re re-type attr1 #f))
+   ((re-type attr1 attr2)
+    (:regexp-make re-type attr1 attr2))))
+
+;;The following are used as indexes into vectors.
 (define epsilon-re  0)
 (define or-re       1)
 (define conc-re     2)
@@ -274,18 +279,6 @@
 (define question-re 5)
 (define class-re    6)
 (define char-re     7)
-
-(define (make-re re-type . lattr)
-  (cond ((null? lattr)
-	 (vector re-type))
-	((null? (cdr lattr))
-	 (vector re-type (car lattr)))
-	((null? (cddr lattr))
-	 (vector re-type (car lattr) (cadr lattr)))))
-
-(define get-re-type  (lambda (re) (vector-ref re 0)))
-(define get-re-attr1 (lambda (re) (vector-ref re 1)))
-(define get-re-attr2 (lambda (re) (vector-ref re 2)))
 
 
 ;;; Fonctions de manipulation des ensembles d'etats
@@ -595,8 +588,27 @@
 
 ;;;; module action.l.scm
 ;;
-;;This  has been  produced by  applying the  lexer builder  to  the file
-;;"action.l".
+;;This table has  been produced by applying the  lexer builder itself to
+;;the file "action.l".  If you  change this remember that the version in
+;;the file  "action.l.scm" in the  original distribution is a  good one.
+;;Also the original version should  be at present (commented out) at the
+;;end of this code page.
+;;
+;;The new version  raises an assertion violation if  a wrong token comes
+;;from the lexer, and also as  the "code" format, which should be faster
+;;according to  the original documentation.  To recreate  the table with
+;;the (silex) API and format "code" do this:
+;;
+;;   (lex :input-file "action.l" :output-file "action.l.scm"
+;;        :counters 'all :table-name 'action-tables
+;;        :lexer-format 'code)
+;;
+;;while  the original  version  appears  to have  been  created with  an
+;;equivalent of:
+;;
+;;   (lex :input-file "action.l" :output-file "action.l.scm"
+;;        :counters 'all :table-name 'action-tables
+;;        :lexer-format 'decision-tree)
 ;;
 
 (define action-tables
@@ -608,10 +620,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       (begin
-         (display "Error: Invalid token.")
-         (newline)
-         'error)
+       (assertion-violation #f "invalid token" yytext)
        ))
    (vector
     #t
@@ -629,26 +638,207 @@
       (lambda (yytext yyline yycolumn yyoffset)
           (make-tok char-tok   yytext yyline yycolumn)
         )))
-   'tagged-chars-lists
-   0
-   0
-   '#((((#f #\	 #\space) . 4)
-       ((#f #\;) . 3)
-       ((#f #\newline) . 2)
-       ((#t #\	 #\newline #\space #\;) . 1))
-      (((#t #\newline) . 1))
-      ()
-      (((#t #\newline) . 3))
-      (((#f #\	 #\space) . 4)
-       ((#f #\;) . 3)
-       ((#t #\	 #\newline #\space #\;) . 1)))
-   '#((#f . #f) (2 . 2) (1 . 1) (0 . 0) (0 . 0))))
+   'code
+   (lambda (<<EOF>>-pre-action
+            <<ERROR>>-pre-action
+            rules-pre-action
+            IS)
+     (letrec
+         ((user-action-<<EOF>> #f)
+          (user-action-<<ERROR>> #f)
+          (user-action-0 #f)
+          (user-action-1 #f)
+          (user-action-2 #f)
+          (start-go-to-end    (:input-system-start-go-to-end	IS))
+          (end-go-to-point    (:input-system-end-go-to-point	IS))
+          (init-lexeme        (:input-system-init-lexeme	IS))
+          (get-start-line     (:input-system-get-start-line	IS))
+          (get-start-column   (:input-system-get-start-column	IS))
+          (get-start-offset   (:input-system-get-start-offset	IS))
+          (peek-left-context  (:input-system-peek-left-context	IS))
+          (peek-char          (:input-system-peek-char		IS))
+          (read-char          (:input-system-read-char		IS))
+          (get-start-end-text (:input-system-get-start-end-text IS))
+          (user-getc          (:input-system-user-getc		IS))
+          (user-ungetc        (:input-system-user-ungetc	IS))
+          (action-<<EOF>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<EOF>> "" yyline yycolumn yyoffset)))
+          (action-<<ERROR>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<ERROR>> "" yyline yycolumn yyoffset)))
+          (action-0
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-0 yytext yyline yycolumn yyoffset))))
+          (action-1
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-1 yytext yyline yycolumn yyoffset))))
+          (action-2
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-2 yytext yyline yycolumn yyoffset))))
+          (state-0
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 32)
+                       (if (< c 10)
+                           (if (< c 9)
+                               (state-1 action)
+                               (state-4 action))
+                           (if (< c 11)
+                               (state-2 action)
+                               (state-1 action)))
+                       (if (< c 59)
+                           (if (< c 33)
+                               (state-4 action)
+                               (state-1 action))
+                           (if (< c 60)
+                               (state-3 action)
+                               (state-1 action))))
+                   action))))
+          (state-1
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 10)
+                       action-2
+                       (state-1 action-2))
+                   action-2))))
+          (state-2
+           (lambda (action)
+             (end-go-to-point)
+             action-1))
+          (state-3
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 10)
+                       action-0
+                       (state-3 action-0))
+                   action-0))))
+          (state-4
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 32)
+                       (if (< c 10)
+                           (if (< c 9)
+                               (state-1 action-0)
+                               (state-4 action-0))
+                           (if (< c 11)
+                               action-0
+                               (state-1 action-0)))
+                       (if (< c 59)
+                           (if (< c 33)
+                               (state-4 action-0)
+                               (state-1 action-0))
+                           (if (< c 60)
+                               (state-3 action-0)
+                               (state-1 action-0))))
+                   action-0))))
+          (start-automaton
+           (lambda ()
+             (if (peek-char)
+                 (state-0 action-<<ERROR>>)
+               action-<<EOF>>)))
+          (final-lexer
+           (lambda ()
+             (init-lexeme)
+             (let ((yyline (get-start-line))
+                   (yycolumn (get-start-column))
+                   (yyoffset (get-start-offset)))
+               ((start-automaton) yyline yycolumn yyoffset)))))
+       (set! user-action-<<EOF>> (<<EOF>>-pre-action
+                                  final-lexer user-getc user-ungetc))
+       (set! user-action-<<ERROR>> (<<ERROR>>-pre-action
+                                    final-lexer user-getc user-ungetc))
+       (set! user-action-0 ((vector-ref rules-pre-action 1)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-1 ((vector-ref rules-pre-action 3)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-2 ((vector-ref rules-pre-action 5)
+                            final-lexer user-getc user-ungetc))
+       final-lexer))))
+
+
+;; (define action-tables
+;;   (vector
+;;    'all
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;           (make-tok eof-tok    yytext yyline yycolumn)
+;;        ))
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;        (begin
+;;          (display "Error: Invalid token.")
+;;          (newline)
+;;          'error)
+;;        ))
+;;    (vector
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;           (make-tok hblank-tok yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;           (make-tok vblank-tok yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;           (make-tok char-tok   yytext yyline yycolumn)
+;;         )))
+;;    'tagged-chars-lists
+;;    0
+;;    0
+;;    '#((((#f #\	 #\space) . 4)
+;;        ((#f #\;) . 3)
+;;        ((#f #\newline) . 2)
+;;        ((#t #\	 #\newline #\space #\;) . 1))
+;;       (((#t #\newline) . 1))
+;;       ()
+;;       (((#t #\newline) . 3))
+;;       (((#f #\	 #\space) . 4)
+;;        ((#f #\;) . 3)
+;;        ((#t #\	 #\newline #\space #\;) . 1)))
+;;    '#((#f . #f) (2 . 2) (1 . 1) (0 . 0) (0 . 0))))
 
 
 ;;;; module class.l.scm
 ;;
-;;This  has been  produced by  applying the  lexer builder  to  the file
-;;"class.l".
+;;This table has  been produced by applying the  lexer builder itself to
+;;the file "class.l".   If you change this remember  that the version in
+;;the file  "class.l.scm" in  the original distribution  is a  good one.
+;;Also the original version should  be at present (commented out) at the
+;;end of this code page.
+;;
+;;The new version  raises an assertion violation if  a wrong token comes
+;;from the lexer, and also as  the "code" format, which should be faster
+;;according to  the original documentation.  To recreate  the table with
+;;the (silex) API and format "code" do this:
+;;
+;;   (lex :input-file "class.l" :output-file "class.l.scm"
+;;        :counters 'all :table-name 'class-tables
+;;        :lexer-format 'code)
+;;
+;;while  the original  version  appears  to have  been  created with  an
+;;equivalent of:
+;;
+;;   (lex :input-file "class.l" :output-file "class.l.scm"
+;;        :counters 'all :table-name 'class-tables
+;;        :lexer-format 'decision-tree)
 ;;
 
 (define class-tables
@@ -660,10 +850,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       (begin
-         (display "Error: Invalid token.")
-         (newline)
-         'error)
+       (assertion-violation #f "invalid token" yytext)
        ))
    (vector
     #t
@@ -701,31 +888,296 @@
       (lambda (yytext yyline yycolumn yyoffset)
               (parse-ordinary-char yytext yyline yycolumn)
         )))
-   'tagged-chars-lists
-   0
-   0
-   '#((((#f #\]) . 4) ((#f #\-) . 3) ((#f #\\) . 2) ((#t #\- #\\ #\]) . 1))
-      ()
-      (((#f #\n) . 8)
-       ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 7)
-       ((#f #\-) . 6)
-       ((#t #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\n) . 5))
-      ()
-      ()
-      ()
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9))
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 10))
-      ()
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9))
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 10)))
-   '#((#f . #f) (6 . 6)   (6 . 6)   (1 . 1)   (0 . 0)   (5 . 5)   (5 . 5)
-      (3 . 3)   (2 . 2)   (4 . 4)   (3 . 3))))
+   'code
+   (lambda (<<EOF>>-pre-action
+            <<ERROR>>-pre-action
+            rules-pre-action
+            IS)
+     (letrec
+         ((user-action-<<EOF>> #f)
+          (user-action-<<ERROR>> #f)
+          (user-action-0 #f)
+          (user-action-1 #f)
+          (user-action-2 #f)
+          (user-action-3 #f)
+          (user-action-4 #f)
+          (user-action-5 #f)
+          (user-action-6 #f)
+          (start-go-to-end    (:input-system-start-go-to-end	IS))
+          (end-go-to-point    (:input-system-end-go-to-point	IS))
+          (init-lexeme        (:input-system-init-lexeme	IS))
+          (get-start-line     (:input-system-get-start-line	IS))
+          (get-start-column   (:input-system-get-start-column	IS))
+          (get-start-offset   (:input-system-get-start-offset	IS))
+          (peek-left-context  (:input-system-peek-left-context	IS))
+          (peek-char          (:input-system-peek-char		IS))
+          (read-char          (:input-system-read-char		IS))
+          (get-start-end-text (:input-system-get-start-end-text IS))
+          (user-getc          (:input-system-user-getc		IS))
+          (user-ungetc        (:input-system-user-ungetc	IS))
+          (action-<<EOF>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<EOF>> "" yyline yycolumn yyoffset)))
+          (action-<<ERROR>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<ERROR>> "" yyline yycolumn yyoffset)))
+          (action-0
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-0 yytext yyline yycolumn yyoffset))))
+          (action-1
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-1 yytext yyline yycolumn yyoffset))))
+          (action-2
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-2 yytext yyline yycolumn yyoffset))))
+          (action-3
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-3 yytext yyline yycolumn yyoffset))))
+          (action-4
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-4 yytext yyline yycolumn yyoffset))))
+          (action-5
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-5 yytext yyline yycolumn yyoffset))))
+          (action-6
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-6 yytext yyline yycolumn yyoffset))))
+          (state-0
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 92)
+                       (if (= c 45)
+                           (state-3 action)
+                           (state-1 action))
+                       (if (< c 93)
+                           (state-2 action)
+                           (if (< c 94)
+                               (state-4 action)
+                               (state-1 action))))
+                   action))))
+          (state-1
+           (lambda (action)
+             (end-go-to-point)
+             action-6))
+          (state-2
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       (if (= c 45)
+                           (state-6 action-6)
+                           (state-5 action-6))
+                       (if (< c 110)
+                           (if (< c 58)
+                               (state-7 action-6)
+                               (state-5 action-6))
+                           (if (< c 111)
+                               (state-8 action-6)
+                               (state-5 action-6))))
+                   action-6))))
+          (state-3
+           (lambda (action)
+             (end-go-to-point)
+             action-1))
+          (state-4
+           (lambda (action)
+             (end-go-to-point)
+             action-0))
+          (state-5
+           (lambda (action)
+             (end-go-to-point)
+             action-5))
+          (state-6
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-5
+                       (if (< c 58)
+                           (state-9 action-5)
+                           action-5))
+                   action-5))))
+          (state-7
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-3
+                       (if (< c 58)
+                           (state-10 action-3)
+                           action-3))
+                   action-3))))
+          (state-8
+           (lambda (action)
+             (end-go-to-point)
+             action-2))
+          (state-9
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-4
+                       (if (< c 58)
+                           (state-9 action-4)
+                           action-4))
+                   action-4))))
+          (state-10
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-3
+                       (if (< c 58)
+                           (state-10 action-3)
+                           action-3))
+                   action-3))))
+          (start-automaton
+           (lambda ()
+             (if (peek-char)
+                 (state-0 action-<<ERROR>>)
+               action-<<EOF>>)))
+          (final-lexer
+           (lambda ()
+             (init-lexeme)
+             (let ((yyline (get-start-line))
+                   (yycolumn (get-start-column))
+                   (yyoffset (get-start-offset)))
+               ((start-automaton) yyline yycolumn yyoffset)))))
+       (set! user-action-<<EOF>> (<<EOF>>-pre-action
+                                  final-lexer user-getc user-ungetc))
+       (set! user-action-<<ERROR>> (<<ERROR>>-pre-action
+                                    final-lexer user-getc user-ungetc))
+       (set! user-action-0 ((vector-ref rules-pre-action 1)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-1 ((vector-ref rules-pre-action 3)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-2 ((vector-ref rules-pre-action 5)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-3 ((vector-ref rules-pre-action 7)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-4 ((vector-ref rules-pre-action 9)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-5 ((vector-ref rules-pre-action 11)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-6 ((vector-ref rules-pre-action 13)
+                            final-lexer user-getc user-ungetc))
+       final-lexer))))
+
+
+;; (define class-tables
+;;   (vector
+;;    'all
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;               (make-tok eof-tok    yytext yyline yycolumn)
+;;        ))
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;        (begin
+;;          (display "Error: Invalid token.")
+;;          (newline)
+;;          'error)
+;;        ))
+;;    (vector
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (make-tok rbrack-tok yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (make-tok minus-tok  yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-spec-char     yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-digits-char   yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-digits-char   yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-quoted-char   yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-ordinary-char yytext yyline yycolumn)
+;;         )))
+;;    'tagged-chars-lists
+;;    0
+;;    0
+;;    '#((((#f #\]) . 4) ((#f #\-) . 3) ((#f #\\) . 2) ((#t #\- #\\ #\]) . 1))
+;;       ()
+;;       (((#f #\n) . 8)
+;;        ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 7)
+;;        ((#f #\-) . 6)
+;;        ((#t #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\n) . 5))
+;;       ()
+;;       ()
+;;       ()
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9))
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 10))
+;;       ()
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9))
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 10)))
+;;    '#((#f . #f) (6 . 6)   (6 . 6)   (1 . 1)   (0 . 0)   (5 . 5)   (5 . 5)
+;;       (3 . 3)   (2 . 2)   (4 . 4)   (3 . 3))))
 
 
 ;;;; module macro.l.scm
 ;;
-;;This  has been  produced by  applying the  lexer builder  to  the file
-;;"macro.l".
+;;This table has  been produced by applying the  lexer builder itself to
+;;the file "macro.l".   If you change this remember  that the version in
+;;the file  "macro.l.scm" in  the original distribution  is a  good one.
+;;Also the original version should  be at present (commented out) at the
+;;end of this code page.
+;;
+;;The new version  raises an assertion violation if  a wrong token comes
+;;from the lexer, and also as  the "code" format, which should be faster
+;;according to  the original documentation.  To recreate  the table with
+;;the (silex) API and format "code" do this:
+;;
+;;   (lex :input-file "macro.l" :output-file "macro.l.scm"
+;;        :counters 'all :table-name 'macro-tables
+;;        :lexer-format 'code)
+;;
+;;while  the original  version  appears  to have  been  created with  an
+;;equivalent of:
+;;
+;;   (lex :input-file "macro.l" :output-file "macro.l.scm"
+;;        :counters 'all :table-name 'macro-tables
+;;        :lexer-format 'decision-tree)
 ;;
 
 (define macro-tables
@@ -737,10 +1189,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       (begin
-         (display "Error: Invalid token.")
-         (newline)
-         'error)
+       (assertion-violation #f "invalid token" yytext)
        ))
    (vector
     #t
@@ -768,83 +1217,510 @@
       (lambda (yytext yyline yycolumn yyoffset)
          (make-tok illegal-tok         yytext yyline yycolumn)
         )))
-   'tagged-chars-lists
-   0
-   0
-   '#((((#f #\	 #\space) . 8)
-       ((#f #\;) . 7)
-       ((#f #\newline) . 6)
-       ((#f #\%) . 5)
-       ((#f  #\! #\$ #\& #\* #\/ #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E
-         #\F #\G #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U
-         #\V #\W #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i
-         #\j #\k #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y
-         #\z #\~)
-        .
-        4)
-       ((#f #\+ #\-) . 3)
-       ((#f #\.) . 2)
-       ((#t        #\	       #\newline #\space   #\!       #\$
-         #\%       #\&       #\*       #\+       #\-       #\.
-         #\/       #\:       #\;       #\<       #\=       #\>
-         #\?       #\A       #\B       #\C       #\D       #\E
-         #\F       #\G       #\H       #\I       #\J       #\K
-         #\L       #\M       #\N       #\O       #\P       #\Q
-         #\R       #\S       #\T       #\U       #\V       #\W
-         #\X       #\Y       #\Z       #\^       #\_       #\a
-         #\b       #\c       #\d       #\e       #\f       #\g
-         #\h       #\i       #\j       #\k       #\l       #\m
-         #\n       #\o       #\p       #\q       #\r       #\s
-         #\t       #\u       #\v       #\w       #\x       #\y
-         #\z       #\~)
-        .
-        1))
-      ()
-      (((#f #\.) . 9))
-      ()
-      (((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
-         #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
-         #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
-         #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
-         #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
-        .
-        10))
-      (((#f #\%) . 11)
-       ((#f  #\! #\$ #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5 #\6
-         #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G #\H
-         #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W #\X
-         #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k #\l
-         #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
-        .
-        10))
-      ()
-      (((#t #\newline) . 12))
-      ()
-      (((#f #\.) . 13))
-      (((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
-         #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
-         #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
-         #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
-         #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
-        .
-        10))
-      (((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
-         #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
-         #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
-         #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
-         #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
-        .
-        10))
-      (((#t #\newline) . 12))
-      ())
-   '#((#f . #f) (4 . 4)   (4 . 4)   (3 . 3)   (3 . 3)   (3 . 3)   (1 . 1)
-      (0 . 0)   (0 . 0)   (#f . #f) (3 . 3)   (2 . 2)   (0 . 0)   (3 . 3))))
+   'code
+   (lambda (<<EOF>>-pre-action
+            <<ERROR>>-pre-action
+            rules-pre-action
+            IS)
+     (letrec
+         ((user-action-<<EOF>> #f)
+          (user-action-<<ERROR>> #f)
+          (user-action-0 #f)
+          (user-action-1 #f)
+          (user-action-2 #f)
+          (user-action-3 #f)
+          (user-action-4 #f)
+          (start-go-to-end    (:input-system-start-go-to-end	IS))
+          (end-go-to-point    (:input-system-end-go-to-point	IS))
+          (init-lexeme        (:input-system-init-lexeme	IS))
+          (get-start-line     (:input-system-get-start-line	IS))
+          (get-start-column   (:input-system-get-start-column	IS))
+          (get-start-offset   (:input-system-get-start-offset	IS))
+          (peek-left-context  (:input-system-peek-left-context	IS))
+          (peek-char          (:input-system-peek-char		IS))
+          (read-char          (:input-system-read-char		IS))
+          (get-start-end-text (:input-system-get-start-end-text IS))
+          (user-getc          (:input-system-user-getc		IS))
+          (user-ungetc        (:input-system-user-ungetc	IS))
+          (action-<<EOF>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<EOF>> "" yyline yycolumn yyoffset)))
+          (action-<<ERROR>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<ERROR>> "" yyline yycolumn yyoffset)))
+          (action-0
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-0 yytext yyline yycolumn yyoffset))))
+          (action-1
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-1 yytext yyline yycolumn yyoffset))))
+          (action-2
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-2 yytext yyline yycolumn yyoffset))))
+          (action-3
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-3 yytext yyline yycolumn yyoffset))))
+          (action-4
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-4 yytext yyline yycolumn yyoffset))))
+          (state-0
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 46)
+                       (if (< c 36)
+                           (if (< c 11)
+                               (if (< c 9)
+                                   (state-1 action)
+                                   (if (< c 10)
+                                       (state-8 action)
+                                       (state-6 action)))
+                               (if (< c 33)
+                                   (if (< c 32)
+                                       (state-1 action)
+                                       (state-8 action))
+                                   (if (< c 34)
+                                       (state-4 action)
+                                       (state-1 action))))
+                           (if (< c 42)
+                               (if (< c 38)
+                                   (if (< c 37)
+                                       (state-4 action)
+                                       (state-5 action))
+                                   (if (< c 39)
+                                       (state-4 action)
+                                       (state-1 action)))
+                               (if (< c 44)
+                                   (if (< c 43)
+                                       (state-4 action)
+                                       (state-3 action))
+                                   (if (< c 45)
+                                       (state-1 action)
+                                       (state-3 action)))))
+                       (if (< c 65)
+                           (if (< c 58)
+                               (if (< c 47)
+                                   (state-2 action)
+                                   (if (< c 48)
+                                       (state-4 action)
+                                       (state-1 action)))
+                               (if (< c 60)
+                                   (if (< c 59)
+                                       (state-4 action)
+                                       (state-7 action))
+                                   (if (< c 64)
+                                       (state-4 action)
+                                       (state-1 action))))
+                           (if (< c 97)
+                               (if (< c 94)
+                                   (if (< c 91)
+                                       (state-4 action)
+                                       (state-1 action))
+                                   (if (< c 96)
+                                       (state-4 action)
+                                       (state-1 action)))
+                               (if (< c 126)
+                                   (if (< c 123)
+                                       (state-4 action)
+                                       (state-1 action))
+                                   (if (< c 127)
+                                       (state-4 action)
+                                       (state-1 action))))))
+                   action))))
+          (state-1
+           (lambda (action)
+             (end-go-to-point)
+             action-4))
+          (state-2
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 46)
+                       (state-9 action-4)
+                       action-4)
+                   action-4))))
+          (state-3
+           (lambda (action)
+             (end-go-to-point)
+             action-3))
+          (state-4
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 60)
+                       (if (< c 39)
+                           (if (< c 34)
+                               (if (< c 33)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (< c 36)
+                                   action-3
+                                   (state-10 action-3)))
+                           (if (< c 44)
+                               (if (< c 42)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (< c 45)
+                                   action-3
+                                   (if (< c 59)
+                                       (state-10 action-3)
+                                       action-3))))
+                       (if (< c 96)
+                           (if (< c 65)
+                               (if (< c 64)
+                                   (state-10 action-3)
+                                   action-3)
+                               (if (< c 91)
+                                   (state-10 action-3)
+                                   (if (< c 94)
+                                       action-3
+                                       (state-10 action-3))))
+                           (if (< c 123)
+                               (if (< c 97)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (= c 126)
+                                   (state-10 action-3)
+                                   action-3))))
+                   action-3))))
+          (state-5
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 59)
+                       (if (< c 38)
+                           (if (< c 34)
+                               (if (< c 33)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (< c 36)
+                                   action-3
+                                   (if (< c 37)
+                                       (state-10 action-3)
+                                       (state-11 action-3))))
+                           (if (< c 42)
+                               (if (< c 39)
+                                   (state-10 action-3)
+                                   action-3)
+                               (if (= c 44)
+                                   action-3
+                                   (state-10 action-3))))
+                       (if (< c 94)
+                           (if (< c 64)
+                               (if (< c 60)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (< c 65)
+                                   action-3
+                                   (if (< c 91)
+                                       (state-10 action-3)
+                                       action-3)))
+                           (if (< c 123)
+                               (if (= c 96)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (= c 126)
+                                   (state-10 action-3)
+                                   action-3))))
+                   action-3))))
+          (state-6
+           (lambda (action)
+             (end-go-to-point)
+             action-1))
+          (state-7
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 10)
+                       action-0
+                       (state-12 action-0))
+                   action-0))))
+          (state-8
+           (lambda (action)
+             (end-go-to-point)
+             action-0))
+          (state-9
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 46)
+                       (state-13 action)
+                       action)
+                   action))))
+          (state-10
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 60)
+                       (if (< c 39)
+                           (if (< c 34)
+                               (if (< c 33)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (< c 36)
+                                   action-3
+                                   (state-10 action-3)))
+                           (if (< c 44)
+                               (if (< c 42)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (< c 45)
+                                   action-3
+                                   (if (< c 59)
+                                       (state-10 action-3)
+                                       action-3))))
+                       (if (< c 96)
+                           (if (< c 65)
+                               (if (< c 64)
+                                   (state-10 action-3)
+                                   action-3)
+                               (if (< c 91)
+                                   (state-10 action-3)
+                                   (if (< c 94)
+                                       action-3
+                                       (state-10 action-3))))
+                           (if (< c 123)
+                               (if (< c 97)
+                                   action-3
+                                   (state-10 action-3))
+                               (if (= c 126)
+                                   (state-10 action-3)
+                                   action-3))))
+                   action-3))))
+          (state-11
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 60)
+                       (if (< c 39)
+                           (if (< c 34)
+                               (if (< c 33)
+                                   action-2
+                                   (state-10 action-2))
+                               (if (< c 36)
+                                   action-2
+                                   (state-10 action-2)))
+                           (if (< c 44)
+                               (if (< c 42)
+                                   action-2
+                                   (state-10 action-2))
+                               (if (< c 45)
+                                   action-2
+                                   (if (< c 59)
+                                       (state-10 action-2)
+                                       action-2))))
+                       (if (< c 96)
+                           (if (< c 65)
+                               (if (< c 64)
+                                   (state-10 action-2)
+                                   action-2)
+                               (if (< c 91)
+                                   (state-10 action-2)
+                                   (if (< c 94)
+                                       action-2
+                                       (state-10 action-2))))
+                           (if (< c 123)
+                               (if (< c 97)
+                                   action-2
+                                   (state-10 action-2))
+                               (if (= c 126)
+                                   (state-10 action-2)
+                                   action-2))))
+                   action-2))))
+          (state-12
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 10)
+                       action-0
+                       (state-12 action-0))
+                   action-0))))
+          (state-13
+           (lambda (action)
+             (end-go-to-point)
+             action-3))
+          (start-automaton
+           (lambda ()
+             (if (peek-char)
+                 (state-0 action-<<ERROR>>)
+               action-<<EOF>>)))
+          (final-lexer
+           (lambda ()
+             (init-lexeme)
+             (let ((yyline (get-start-line))
+                   (yycolumn (get-start-column))
+                   (yyoffset (get-start-offset)))
+               ((start-automaton) yyline yycolumn yyoffset)))))
+       (set! user-action-<<EOF>> (<<EOF>>-pre-action
+                                  final-lexer user-getc user-ungetc))
+       (set! user-action-<<ERROR>> (<<ERROR>>-pre-action
+                                    final-lexer user-getc user-ungetc))
+       (set! user-action-0 ((vector-ref rules-pre-action 1)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-1 ((vector-ref rules-pre-action 3)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-2 ((vector-ref rules-pre-action 5)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-3 ((vector-ref rules-pre-action 7)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-4 ((vector-ref rules-pre-action 9)
+                            final-lexer user-getc user-ungetc))
+       final-lexer))))
+
+
+;; (define macro-tables
+;;   (vector
+;;    'all
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;          (make-tok eof-tok             yytext yyline yycolumn)
+;;        ))
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;        (begin
+;;          (display "Error: Invalid token.")
+;;          (newline)
+;;          'error)
+;;        ))
+;;    (vector
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;          (make-tok hblank-tok          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;          (make-tok vblank-tok          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;          (make-tok percent-percent-tok yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;          (parse-id                     yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;          (make-tok illegal-tok         yytext yyline yycolumn)
+;;         )))
+;;    'tagged-chars-lists
+;;    0
+;;    0
+;;    '#((((#f #\	 #\space) . 8)
+;;        ((#f #\;) . 7)
+;;        ((#f #\newline) . 6)
+;;        ((#f #\%) . 5)
+;;        ((#f  #\! #\$ #\& #\* #\/ #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E
+;;          #\F #\G #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U
+;;          #\V #\W #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i
+;;          #\j #\k #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y
+;;          #\z #\~)
+;;         .
+;;         4)
+;;        ((#f #\+ #\-) . 3)
+;;        ((#f #\.) . 2)
+;;        ((#t        #\	       #\newline #\space   #\!       #\$
+;;          #\%       #\&       #\*       #\+       #\-       #\.
+;;          #\/       #\:       #\;       #\<       #\=       #\>
+;;          #\?       #\A       #\B       #\C       #\D       #\E
+;;          #\F       #\G       #\H       #\I       #\J       #\K
+;;          #\L       #\M       #\N       #\O       #\P       #\Q
+;;          #\R       #\S       #\T       #\U       #\V       #\W
+;;          #\X       #\Y       #\Z       #\^       #\_       #\a
+;;          #\b       #\c       #\d       #\e       #\f       #\g
+;;          #\h       #\i       #\j       #\k       #\l       #\m
+;;          #\n       #\o       #\p       #\q       #\r       #\s
+;;          #\t       #\u       #\v       #\w       #\x       #\y
+;;          #\z       #\~)
+;;         .
+;;         1))
+;;       ()
+;;       (((#f #\.) . 9))
+;;       ()
+;;       (((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
+;;          #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
+;;          #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
+;;          #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
+;;          #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
+;;         .
+;;         10))
+;;       (((#f #\%) . 11)
+;;        ((#f  #\! #\$ #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5 #\6
+;;          #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G #\H
+;;          #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W #\X
+;;          #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k #\l
+;;          #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
+;;         .
+;;         10))
+;;       ()
+;;       (((#t #\newline) . 12))
+;;       ()
+;;       (((#f #\.) . 13))
+;;       (((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
+;;          #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
+;;          #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
+;;          #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
+;;          #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
+;;         .
+;;         10))
+;;       (((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
+;;          #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
+;;          #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
+;;          #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
+;;          #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
+;;         .
+;;         10))
+;;       (((#t #\newline) . 12))
+;;       ())
+;;    '#((#f . #f) (4 . 4)   (4 . 4)   (3 . 3)   (3 . 3)   (3 . 3)   (1 . 1)
+;;       (0 . 0)   (0 . 0)   (#f . #f) (3 . 3)   (2 . 2)   (0 . 0)   (3 . 3))))
 
 
 ;;;; module regexp.l.scm
 ;;
-;;This  has been  produced by  applying the  lexer builder  to  the file
-;;"regexp.l".
+;;This table has  been produced by applying the  lexer builder itself to
+;;the file "regexp.l".  If you  change this remember that the version in
+;;the file  "regexp.l.scm" in the  original distribution is a  good one.
+;;Also the original version should  be at present (commented out) at the
+;;end of this code page.
+;;
+;;The new version  raises an assertion violation if  a wrong token comes
+;;from the lexer, and also as  the "code" format, which should be faster
+;;according to  the original documentation.  To recreate  the table with
+;;the (silex) API and format "code" do this:
+;;
+;;   (lex :input-file "regexp.l" :output-file "regexp.l.scm"
+;;        :counters 'all :table-name 'regexp-tables
+;;        :lexer-format 'code)
+;;
+;;while  the original  version  appears  to have  been  created with  an
+;;equivalent of:
+;;
+;;   (lex :input-file "regexp.l" :output-file "regexp.l.scm"
+;;        :counters 'all :table-name 'regexp-tables
+;;        :lexer-format 'decision-tree)
 ;;
 
 (define regexp-tables
@@ -856,10 +1732,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       (begin
-         (display "Error: Invalid token.")
-         (newline)
-         'error)
+       (assertion-violation #f "invalid token" yytext)
        ))
    (vector
     #t
@@ -1002,118 +1875,1056 @@
       (lambda (yytext yyline yycolumn yyoffset)
                           (make-tok <<ERROR>>-tok     yytext yyline yycolumn)
         )))
-   'tagged-chars-lists
-   0
-   0
-   '#((((#f #\	 #\space) . 18)
-       ((#f #\;) . 17)
-       ((#f #\newline) . 16)
-       ((#f #\|) . 15)
-       ((#f #\?) . 14)
-       ((#f #\+) . 13)
-       ((#f #\*) . 12)
-       ((#f #\() . 11)
-       ((#f #\)) . 10)
-       ((#f #\.) . 9)
-       ((#f #\[) . 8)
-       ((#f #\{) . 7)
-       ((#f #\") . 6)
-       ((#f #\\) . 5)
-       ((#f #\^) . 4)
-       ((#f #\$) . 3)
-       ((#t        #\	       #\newline #\space   #\"       #\$
-         #\(       #\)       #\*       #\+       #\.       #\;
-         #\<       #\?       #\[       #\\       #\^       #\{
-         #\|)
-        .
-        2)
-       ((#f #\<) . 1))
-      (((#f #\<) . 19))
-      ()
-      ()
-      ()
-      (((#f #\n) . 23)
-       ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 22)
-       ((#f #\-) . 21)
-       ((#t #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\n) . 20))
-      ()
-      (((#f  #\! #\$ #\% #\& #\* #\/ #\: #\< #\= #\> #\? #\A #\B #\C #\D
-         #\E #\F #\G #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T
-         #\U #\V #\W #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h
-         #\i #\j #\k #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x
-         #\y #\z #\~)
-        .
-        27)
-       ((#f #\+ #\-) . 26)
-       ((#f #\.) . 25)
-       ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 24))
-      (((#f #\]) . 30) ((#f #\^) . 29) ((#f #\-) . 28))
-      ()
-      ()
-      ()
-      ()
-      ()
-      ()
-      ()
-      ()
-      (((#t #\newline) . 31))
-      ()
-      (((#f #\E) . 32))
-      ()
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 33))
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 34))
-      ()
-      (((#f #\}) . 36)
-       ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 24)
-       ((#f #\,) . 35))
-      (((#f #\.) . 37))
-      (((#f #\}) . 38))
-      (((#f #\}) . 38)
-       ((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
-         #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
-         #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
-         #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
-         #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
-        .
-        27))
-      ()
-      ()
-      ()
-      (((#t #\newline) . 31))
-      (((#f #\O) . 40) ((#f #\R) . 39))
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 33))
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 34))
-      (((#f #\}) . 42) ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 41))
-      ()
-      (((#f #\.) . 26))
-      ()
-      (((#f #\R) . 43))
-      (((#f #\F) . 44))
-      (((#f #\}) . 45) ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 41))
-      ()
-      (((#f #\O) . 46))
-      (((#f #\>) . 47))
-      ()
-      (((#f #\R) . 48))
-      (((#f #\>) . 49))
-      (((#f #\>) . 50))
-      ()
-      (((#f #\>) . 51))
-      ())
-   '#((#f . #f) (25 . 25) (25 . 25) (24 . 24) (23 . 23) (25 . 25) (18 . 18)
-      (17 . 17) (9 . 9)   (8 . 8)   (7 . 7)   (6 . 6)   (5 . 5)   (4 . 4)
-      (3 . 3)   (2 . 2)   (1 . 1)   (0 . 0)   (0 . 0)   (#f . #f) (22 . 22)
-      (22 . 22) (20 . 20) (19 . 19) (#f . #f) (#f . #f) (#f . #f) (#f . #f)
-      (12 . 12) (11 . 11) (10 . 10) (0 . 0)   (#f . #f) (21 . 21) (20 . 20)
-      (#f . #f) (14 . 14) (#f . #f) (13 . 13) (#f . #f) (#f . #f) (#f . #f)
-      (15 . 15) (#f . #f) (#f . #f) (16 . 16) (#f . #f) (#f . #f) (#f . #f)
-      (26 . 26) (#f . #f) (27 . 27))))
+   'code
+   (lambda (<<EOF>>-pre-action
+            <<ERROR>>-pre-action
+            rules-pre-action
+            IS)
+     (letrec
+         ((user-action-<<EOF>> #f)
+          (user-action-<<ERROR>> #f)
+          (user-action-0 #f)
+          (user-action-1 #f)
+          (user-action-2 #f)
+          (user-action-3 #f)
+          (user-action-4 #f)
+          (user-action-5 #f)
+          (user-action-6 #f)
+          (user-action-7 #f)
+          (user-action-8 #f)
+          (user-action-9 #f)
+          (user-action-10 #f)
+          (user-action-11 #f)
+          (user-action-12 #f)
+          (user-action-13 #f)
+          (user-action-14 #f)
+          (user-action-15 #f)
+          (user-action-16 #f)
+          (user-action-17 #f)
+          (user-action-18 #f)
+          (user-action-19 #f)
+          (user-action-20 #f)
+          (user-action-21 #f)
+          (user-action-22 #f)
+          (user-action-23 #f)
+          (user-action-24 #f)
+          (user-action-25 #f)
+          (user-action-26 #f)
+          (user-action-27 #f)
+          (start-go-to-end    (:input-system-start-go-to-end	IS))
+          (end-go-to-point    (:input-system-end-go-to-point	IS))
+          (init-lexeme        (:input-system-init-lexeme	IS))
+          (get-start-line     (:input-system-get-start-line	IS))
+          (get-start-column   (:input-system-get-start-column	IS))
+          (get-start-offset   (:input-system-get-start-offset	IS))
+          (peek-left-context  (:input-system-peek-left-context	IS))
+          (peek-char          (:input-system-peek-char		IS))
+          (read-char          (:input-system-read-char		IS))
+          (get-start-end-text (:input-system-get-start-end-text IS))
+          (user-getc          (:input-system-user-getc		IS))
+          (user-ungetc        (:input-system-user-ungetc	IS))
+          (action-<<EOF>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<EOF>> "" yyline yycolumn yyoffset)))
+          (action-<<ERROR>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<ERROR>> "" yyline yycolumn yyoffset)))
+          (action-0
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-0 yytext yyline yycolumn yyoffset))))
+          (action-1
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-1 yytext yyline yycolumn yyoffset))))
+          (action-2
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-2 yytext yyline yycolumn yyoffset))))
+          (action-3
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-3 yytext yyline yycolumn yyoffset))))
+          (action-4
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-4 yytext yyline yycolumn yyoffset))))
+          (action-5
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-5 yytext yyline yycolumn yyoffset))))
+          (action-6
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-6 yytext yyline yycolumn yyoffset))))
+          (action-7
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-7 yytext yyline yycolumn yyoffset))))
+          (action-8
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-8 yytext yyline yycolumn yyoffset))))
+          (action-9
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-9 yytext yyline yycolumn yyoffset))))
+          (action-10
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-10 yytext yyline yycolumn yyoffset))))
+          (action-11
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-11 yytext yyline yycolumn yyoffset))))
+          (action-12
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-12 yytext yyline yycolumn yyoffset))))
+          (action-13
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-13 yytext yyline yycolumn yyoffset))))
+          (action-14
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-14 yytext yyline yycolumn yyoffset))))
+          (action-15
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-15 yytext yyline yycolumn yyoffset))))
+          (action-16
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-16 yytext yyline yycolumn yyoffset))))
+          (action-17
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-17 yytext yyline yycolumn yyoffset))))
+          (action-18
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-18 yytext yyline yycolumn yyoffset))))
+          (action-19
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-19 yytext yyline yycolumn yyoffset))))
+          (action-20
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-20 yytext yyline yycolumn yyoffset))))
+          (action-21
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-21 yytext yyline yycolumn yyoffset))))
+          (action-22
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-22 yytext yyline yycolumn yyoffset))))
+          (action-23
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-23 yytext yyline yycolumn yyoffset))))
+          (action-24
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-24 yytext yyline yycolumn yyoffset))))
+          (action-25
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-25 yytext yyline yycolumn yyoffset))))
+          (action-26
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-26 yytext yyline yycolumn yyoffset))))
+          (action-27
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-27 yytext yyline yycolumn yyoffset))))
+          (state-0
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 46)
+                       (if (< c 35)
+                           (if (< c 11)
+                               (if (< c 9)
+                                   (state-2 action)
+                                   (if (< c 10)
+                                       (state-18 action)
+                                       (state-16 action)))
+                               (if (< c 33)
+                                   (if (< c 32)
+                                       (state-2 action)
+                                       (state-18 action))
+                                   (if (< c 34)
+                                       (state-2 action)
+                                       (state-6 action))))
+                           (if (< c 41)
+                               (if (< c 37)
+                                   (if (< c 36)
+                                       (state-2 action)
+                                       (state-3 action))
+                                   (if (< c 40)
+                                       (state-2 action)
+                                       (state-11 action)))
+                               (if (< c 43)
+                                   (if (< c 42)
+                                       (state-10 action)
+                                       (state-12 action))
+                                   (if (< c 44)
+                                       (state-13 action)
+                                       (state-2 action)))))
+                       (if (< c 91)
+                           (if (< c 60)
+                               (if (< c 47)
+                                   (state-9 action)
+                                   (if (< c 59)
+                                       (state-2 action)
+                                       (state-17 action)))
+                               (if (< c 63)
+                                   (if (< c 61)
+                                       (state-1 action)
+                                       (state-2 action))
+                                   (if (< c 64)
+                                       (state-14 action)
+                                       (state-2 action))))
+                           (if (< c 95)
+                               (if (< c 93)
+                                   (if (< c 92)
+                                       (state-8 action)
+                                       (state-5 action))
+                                   (if (< c 94)
+                                       (state-2 action)
+                                       (state-4 action)))
+                               (if (< c 124)
+                                   (if (< c 123)
+                                       (state-2 action)
+                                       (state-7 action))
+                                   (if (< c 125)
+                                       (state-15 action)
+                                       (state-2 action))))))
+                   action))))
+          (state-1
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 60)
+                       (state-19 action-25)
+                       action-25)
+                   action-25))))
+          (state-2
+           (lambda (action)
+             (end-go-to-point)
+             action-25))
+          (state-3
+           (lambda (action)
+             (end-go-to-point)
+             action-24))
+          (state-4
+           (lambda (action)
+             (end-go-to-point)
+             action-23))
+          (state-5
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       (if (= c 45)
+                           (state-21 action-25)
+                           (state-20 action-25))
+                       (if (< c 110)
+                           (if (< c 58)
+                               (state-22 action-25)
+                               (state-20 action-25))
+                           (if (< c 111)
+                               (state-23 action-25)
+                               (state-20 action-25))))
+                   action-25))))
+          (state-6
+           (lambda (action)
+             (end-go-to-point)
+             action-18))
+          (state-7
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 58)
+                       (if (< c 43)
+                           (if (< c 36)
+                               (if (= c 33)
+                                   (state-27 action-17)
+                                   action-17)
+                               (if (< c 39)
+                                   (state-27 action-17)
+                                   (if (< c 42)
+                                       action-17
+                                       (state-27 action-17))))
+                           (if (< c 46)
+                               (if (= c 44)
+                                   action-17
+                                   (state-26 action-17))
+                               (if (< c 47)
+                                   (state-25 action-17)
+                                   (if (< c 48)
+                                       (state-27 action-17)
+                                       (state-24 action-17)))))
+                       (if (< c 94)
+                           (if (< c 64)
+                               (if (= c 59)
+                                   action-17
+                                   (state-27 action-17))
+                               (if (< c 65)
+                                   action-17
+                                   (if (< c 91)
+                                       (state-27 action-17)
+                                       action-17)))
+                           (if (< c 123)
+                               (if (= c 96)
+                                   action-17
+                                   (state-27 action-17))
+                               (if (= c 126)
+                                   (state-27 action-17)
+                                   action-17))))
+                   action-17))))
+          (state-8
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 93)
+                       (if (= c 45)
+                           (state-28 action-9)
+                           action-9)
+                       (if (< c 94)
+                           (state-30 action-9)
+                           (if (< c 95)
+                               (state-29 action-9)
+                               action-9)))
+                   action-9))))
+          (state-9
+           (lambda (action)
+             (end-go-to-point)
+             action-8))
+          (state-10
+           (lambda (action)
+             (end-go-to-point)
+             action-7))
+          (state-11
+           (lambda (action)
+             (end-go-to-point)
+             action-6))
+          (state-12
+           (lambda (action)
+             (end-go-to-point)
+             action-5))
+          (state-13
+           (lambda (action)
+             (end-go-to-point)
+             action-4))
+          (state-14
+           (lambda (action)
+             (end-go-to-point)
+             action-3))
+          (state-15
+           (lambda (action)
+             (end-go-to-point)
+             action-2))
+          (state-16
+           (lambda (action)
+             (end-go-to-point)
+             action-1))
+          (state-17
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 10)
+                       action-0
+                       (state-31 action-0))
+                   action-0))))
+          (state-18
+           (lambda (action)
+             (end-go-to-point)
+             action-0))
+          (state-19
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 69)
+                       (state-32 action)
+                       action)
+                   action))))
+          (state-20
+           (lambda (action)
+             (end-go-to-point)
+             action-22))
+          (state-21
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-22
+                       (if (< c 58)
+                           (state-33 action-22)
+                           action-22))
+                   action-22))))
+          (state-22
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-20
+                       (if (< c 58)
+                           (state-34 action-20)
+                           action-20))
+                   action-20))))
+          (state-23
+           (lambda (action)
+             (end-go-to-point)
+             action-19))
+          (state-24
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       (if (= c 44)
+                           (state-35 action)
+                           action)
+                       (if (< c 125)
+                           (if (< c 58)
+                               (state-24 action)
+                               action)
+                           (if (< c 126)
+                               (state-36 action)
+                               action)))
+                   action))))
+          (state-25
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 46)
+                       (state-37 action)
+                       action)
+                   action))))
+          (state-26
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 125)
+                       (state-38 action)
+                       action)
+                   action))))
+          (state-27
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 64)
+                       (if (< c 42)
+                           (if (< c 34)
+                               (if (< c 33)
+                                   action
+                                   (state-27 action))
+                               (if (< c 36)
+                                   action
+                                   (if (< c 39)
+                                       (state-27 action)
+                                       action)))
+                           (if (< c 45)
+                               (if (< c 44)
+                                   (state-27 action)
+                                   action)
+                               (if (= c 59)
+                                   action
+                                   (state-27 action))))
+                       (if (< c 97)
+                           (if (< c 91)
+                               (if (< c 65)
+                                   action
+                                   (state-27 action))
+                               (if (< c 94)
+                                   action
+                                   (if (< c 96)
+                                       (state-27 action)
+                                       action)))
+                           (if (< c 125)
+                               (if (< c 123)
+                                   (state-27 action)
+                                   action)
+                               (if (< c 126)
+                                   (state-38 action)
+                                   (if (< c 127)
+                                       (state-27 action)
+                                       action)))))
+                   action))))
+          (state-28
+           (lambda (action)
+             (end-go-to-point)
+             action-12))
+          (state-29
+           (lambda (action)
+             (end-go-to-point)
+             action-11))
+          (state-30
+           (lambda (action)
+             (end-go-to-point)
+             action-10))
+          (state-31
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 10)
+                       action-0
+                       (state-31 action-0))
+                   action-0))))
+          (state-32
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 80)
+                       (if (< c 79)
+                           action
+                           (state-40 action))
+                       (if (= c 82)
+                           (state-39 action)
+                           action))
+                   action))))
+          (state-33
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-21
+                       (if (< c 58)
+                           (state-33 action-21)
+                           action-21))
+                   action-21))))
+          (state-34
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-20
+                       (if (< c 58)
+                           (state-34 action-20)
+                           action-20))
+                   action-20))))
+          (state-35
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 58)
+                       (if (< c 48)
+                           action
+                           (state-41 action))
+                       (if (= c 125)
+                           (state-42 action)
+                           action))
+                   action))))
+          (state-36
+           (lambda (action)
+             (end-go-to-point)
+             action-14))
+          (state-37
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 46)
+                       (state-26 action)
+                       action)
+                   action))))
+          (state-38
+           (lambda (action)
+             (end-go-to-point)
+             action-13))
+          (state-39
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 82)
+                       (state-43 action)
+                       action)
+                   action))))
+          (state-40
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 70)
+                       (state-44 action)
+                       action)
+                   action))))
+          (state-41
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 58)
+                       (if (< c 48)
+                           action
+                           (state-41 action))
+                       (if (= c 125)
+                           (state-45 action)
+                           action))
+                   action))))
+          (state-42
+           (lambda (action)
+             (end-go-to-point)
+             action-15))
+          (state-43
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 79)
+                       (state-46 action)
+                       action)
+                   action))))
+          (state-44
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 62)
+                       (state-47 action)
+                       action)
+                   action))))
+          (state-45
+           (lambda (action)
+             (end-go-to-point)
+             action-16))
+          (state-46
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 82)
+                       (state-48 action)
+                       action)
+                   action))))
+          (state-47
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 62)
+                       (state-49 action)
+                       action)
+                   action))))
+          (state-48
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 62)
+                       (state-50 action)
+                       action)
+                   action))))
+          (state-49
+           (lambda (action)
+             (end-go-to-point)
+             action-26))
+          (state-50
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (= c 62)
+                       (state-51 action)
+                       action)
+                   action))))
+          (state-51
+           (lambda (action)
+             (end-go-to-point)
+             action-27))
+          (start-automaton
+           (lambda ()
+             (if (peek-char)
+                 (state-0 action-<<ERROR>>)
+               action-<<EOF>>)))
+          (final-lexer
+           (lambda ()
+             (init-lexeme)
+             (let ((yyline (get-start-line))
+                   (yycolumn (get-start-column))
+                   (yyoffset (get-start-offset)))
+               ((start-automaton) yyline yycolumn yyoffset)))))
+       (set! user-action-<<EOF>> (<<EOF>>-pre-action
+                                  final-lexer user-getc user-ungetc))
+       (set! user-action-<<ERROR>> (<<ERROR>>-pre-action
+                                    final-lexer user-getc user-ungetc))
+       (set! user-action-0 ((vector-ref rules-pre-action 1)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-1 ((vector-ref rules-pre-action 3)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-2 ((vector-ref rules-pre-action 5)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-3 ((vector-ref rules-pre-action 7)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-4 ((vector-ref rules-pre-action 9)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-5 ((vector-ref rules-pre-action 11)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-6 ((vector-ref rules-pre-action 13)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-7 ((vector-ref rules-pre-action 15)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-8 ((vector-ref rules-pre-action 17)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-9 ((vector-ref rules-pre-action 19)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-10 ((vector-ref rules-pre-action 21)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-11 ((vector-ref rules-pre-action 23)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-12 ((vector-ref rules-pre-action 25)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-13 ((vector-ref rules-pre-action 27)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-14 ((vector-ref rules-pre-action 29)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-15 ((vector-ref rules-pre-action 31)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-16 ((vector-ref rules-pre-action 33)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-17 ((vector-ref rules-pre-action 35)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-18 ((vector-ref rules-pre-action 37)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-19 ((vector-ref rules-pre-action 39)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-20 ((vector-ref rules-pre-action 41)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-21 ((vector-ref rules-pre-action 43)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-22 ((vector-ref rules-pre-action 45)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-23 ((vector-ref rules-pre-action 47)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-24 ((vector-ref rules-pre-action 49)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-25 ((vector-ref rules-pre-action 51)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-26 ((vector-ref rules-pre-action 53)
+                             final-lexer user-getc user-ungetc))
+       (set! user-action-27 ((vector-ref rules-pre-action 55)
+                             final-lexer user-getc user-ungetc))
+       final-lexer))))
+
+;; (define regexp-tables
+;;   (vector
+;;    'all
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok eof-tok           yytext yyline yycolumn)
+;;        ))
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;        (begin
+;;          (display "Error: Invalid token.")
+;;          (newline)
+;;          'error)
+;;        ))
+;;    (vector
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok hblank-tok        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok vblank-tok        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok pipe-tok          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok question-tok      yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok plus-tok          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok star-tok          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok lpar-tok          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok rpar-tok          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok dot-tok           yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok lbrack-tok        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok lbrack-rbrack-tok yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok lbrack-caret-tok  yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok lbrack-minus-tok  yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-id-ref               yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-power-m              yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-power-m-inf          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-power-m-n            yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok illegal-tok       yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok doublequote-tok   yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-spec-char            yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-digits-char          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-digits-char          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-quoted-char          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok caret-tok         yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok dollar-tok        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (parse-ordinary-char        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok <<EOF>>-tok       yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;                           (make-tok <<ERROR>>-tok     yytext yyline yycolumn)
+;;         )))
+;;    'tagged-chars-lists
+;;    0
+;;    0
+;;    '#((((#f #\	 #\space) . 18)
+;;        ((#f #\;) . 17)
+;;        ((#f #\newline) . 16)
+;;        ((#f #\|) . 15)
+;;        ((#f #\?) . 14)
+;;        ((#f #\+) . 13)
+;;        ((#f #\*) . 12)
+;;        ((#f #\() . 11)
+;;        ((#f #\)) . 10)
+;;        ((#f #\.) . 9)
+;;        ((#f #\[) . 8)
+;;        ((#f #\{) . 7)
+;;        ((#f #\") . 6)
+;;        ((#f #\\) . 5)
+;;        ((#f #\^) . 4)
+;;        ((#f #\$) . 3)
+;;        ((#t        #\	       #\newline #\space   #\"       #\$
+;;          #\(       #\)       #\*       #\+       #\.       #\;
+;;          #\<       #\?       #\[       #\\       #\^       #\{
+;;          #\|)
+;;         .
+;;         2)
+;;        ((#f #\<) . 1))
+;;       (((#f #\<) . 19))
+;;       ()
+;;       ()
+;;       ()
+;;       (((#f #\n) . 23)
+;;        ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 22)
+;;        ((#f #\-) . 21)
+;;        ((#t #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\n) . 20))
+;;       ()
+;;       (((#f  #\! #\$ #\% #\& #\* #\/ #\: #\< #\= #\> #\? #\A #\B #\C #\D
+;;          #\E #\F #\G #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T
+;;          #\U #\V #\W #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h
+;;          #\i #\j #\k #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x
+;;          #\y #\z #\~)
+;;         .
+;;         27)
+;;        ((#f #\+ #\-) . 26)
+;;        ((#f #\.) . 25)
+;;        ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 24))
+;;       (((#f #\]) . 30) ((#f #\^) . 29) ((#f #\-) . 28))
+;;       ()
+;;       ()
+;;       ()
+;;       ()
+;;       ()
+;;       ()
+;;       ()
+;;       ()
+;;       (((#t #\newline) . 31))
+;;       ()
+;;       (((#f #\E) . 32))
+;;       ()
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 33))
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 34))
+;;       ()
+;;       (((#f #\}) . 36)
+;;        ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 24)
+;;        ((#f #\,) . 35))
+;;       (((#f #\.) . 37))
+;;       (((#f #\}) . 38))
+;;       (((#f #\}) . 38)
+;;        ((#f  #\! #\$ #\% #\& #\* #\+ #\- #\. #\/ #\0 #\1 #\2 #\3 #\4 #\5
+;;          #\6 #\7 #\8 #\9 #\: #\< #\= #\> #\? #\A #\B #\C #\D #\E #\F #\G
+;;          #\H #\I #\J #\K #\L #\M #\N #\O #\P #\Q #\R #\S #\T #\U #\V #\W
+;;          #\X #\Y #\Z #\^ #\_ #\a #\b #\c #\d #\e #\f #\g #\h #\i #\j #\k
+;;          #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u #\v #\w #\x #\y #\z #\~)
+;;         .
+;;         27))
+;;       ()
+;;       ()
+;;       ()
+;;       (((#t #\newline) . 31))
+;;       (((#f #\O) . 40) ((#f #\R) . 39))
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 33))
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 34))
+;;       (((#f #\}) . 42) ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 41))
+;;       ()
+;;       (((#f #\.) . 26))
+;;       ()
+;;       (((#f #\R) . 43))
+;;       (((#f #\F) . 44))
+;;       (((#f #\}) . 45) ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 41))
+;;       ()
+;;       (((#f #\O) . 46))
+;;       (((#f #\>) . 47))
+;;       ()
+;;       (((#f #\R) . 48))
+;;       (((#f #\>) . 49))
+;;       (((#f #\>) . 50))
+;;       ()
+;;       (((#f #\>) . 51))
+;;       ())
+;;    '#((#f . #f) (25 . 25) (25 . 25) (24 . 24) (23 . 23) (25 . 25) (18 . 18)
+;;       (17 . 17) (9 . 9)   (8 . 8)   (7 . 7)   (6 . 6)   (5 . 5)   (4 . 4)
+;;       (3 . 3)   (2 . 2)   (1 . 1)   (0 . 0)   (0 . 0)   (#f . #f) (22 . 22)
+;;       (22 . 22) (20 . 20) (19 . 19) (#f . #f) (#f . #f) (#f . #f) (#f . #f)
+;;       (12 . 12) (11 . 11) (10 . 10) (0 . 0)   (#f . #f) (21 . 21) (20 . 20)
+;;       (#f . #f) (14 . 14) (#f . #f) (13 . 13) (#f . #f) (#f . #f) (#f . #f)
+;;       (15 . 15) (#f . #f) (#f . #f) (16 . 16) (#f . #f) (#f . #f) (#f . #f)
+;;       (26 . 26) (#f . #f) (27 . 27))))
 
 
 ;;;; module string.l.scm
 ;;
-;;This  has been  produced by  applying the  lexer builder  to  the file
-;;"string.l".
+;;This table has  been produced by applying the  lexer builder itself to
+;;the file "string.l".  If you  change this remember that the version in
+;;the file  "string.l.scm" in the  original distribution is a  good one.
+;;Also the original version should  be at present (commented out) at the
+;;end of this code page.
+;;
+;;The new version  raises an assertion violation if  a wrong token comes
+;;from the lexer, and also as  the "code" format, which should be faster
+;;according to  the original documentation.  To recreate  the table with
+;;the (silex) API and format "code" do this:
+;;
+;;   (lex :input-file "string.l" :output-file "string.l.scm"
+;;        :counters 'all :table-name 'string-tables
+;;        :lexer-format 'code)
+;;
+;;while  the original  version  appears  to have  been  created with  an
+;;equivalent of:
+;;
+;;   (lex :input-file "string.l" :output-file "string.l.scm"
+;;        :counters 'all :table-name 'string-tables
+;;        :lexer-format 'decision-tree)
 ;;
 
 (define string-tables
@@ -1125,10 +2936,7 @@
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       (begin
-         (display "Error: Invalid token.")
-         (newline)
-         'error)
+       (assertion-violation #f "invalid token" yytext)
        ))
    (vector
     #t
@@ -1161,24 +2969,251 @@
       (lambda (yytext yyline yycolumn yyoffset)
               (parse-ordinary-char      yytext yyline yycolumn)
         )))
-   'tagged-chars-lists
-   0
-   0
-   '#((((#f #\") . 3) ((#f #\\) . 2) ((#t #\" #\\) . 1))
-      ()
-      (((#f #\n) . 7)
-       ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 6)
-       ((#f #\-) . 5)
-       ((#t #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\n) . 4))
-      ()
-      ()
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 8))
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9))
-      ()
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 8))
-      (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9)))
-   '#((#f . #f) (5 . 5)   (5 . 5)   (0 . 0)   (4 . 4)   (4 . 4)   (2 . 2)
-      (1 . 1)   (3 . 3)   (2 . 2))))
+   'code
+   (lambda (<<EOF>>-pre-action
+            <<ERROR>>-pre-action
+            rules-pre-action
+            IS)
+     (letrec
+         ((user-action-<<EOF>> #f)
+          (user-action-<<ERROR>> #f)
+          (user-action-0 #f)
+          (user-action-1 #f)
+          (user-action-2 #f)
+          (user-action-3 #f)
+          (user-action-4 #f)
+          (user-action-5 #f)
+          (start-go-to-end    (:input-system-start-go-to-end	IS))
+          (end-go-to-point    (:input-system-end-go-to-point	IS))
+          (init-lexeme        (:input-system-init-lexeme	IS))
+          (get-start-line     (:input-system-get-start-line	IS))
+          (get-start-column   (:input-system-get-start-column	IS))
+          (get-start-offset   (:input-system-get-start-offset	IS))
+          (peek-left-context  (:input-system-peek-left-context	IS))
+          (peek-char          (:input-system-peek-char		IS))
+          (read-char          (:input-system-read-char		IS))
+          (get-start-end-text (:input-system-get-start-end-text IS))
+          (user-getc          (:input-system-user-getc		IS))
+          (user-ungetc        (:input-system-user-ungetc	IS))
+          (action-<<EOF>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<EOF>> "" yyline yycolumn yyoffset)))
+          (action-<<ERROR>>
+           (lambda (yyline yycolumn yyoffset)
+             (user-action-<<ERROR>> "" yyline yycolumn yyoffset)))
+          (action-0
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-0 yytext yyline yycolumn yyoffset))))
+          (action-1
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-1 yytext yyline yycolumn yyoffset))))
+          (action-2
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-2 yytext yyline yycolumn yyoffset))))
+          (action-3
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-3 yytext yyline yycolumn yyoffset))))
+          (action-4
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-4 yytext yyline yycolumn yyoffset))))
+          (action-5
+           (lambda (yyline yycolumn yyoffset)
+             (let ((yytext (get-start-end-text)))
+               (start-go-to-end)
+               (user-action-5 yytext yyline yycolumn yyoffset))))
+          (state-0
+           (lambda (action)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 35)
+                       (if (< c 34)
+                           (state-1 action)
+                           (state-3 action))
+                       (if (= c 92)
+                           (state-2 action)
+                           (state-1 action)))
+                   action))))
+          (state-1
+           (lambda (action)
+             (end-go-to-point)
+             action-5))
+          (state-2
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       (if (= c 45)
+                           (state-5 action-5)
+                           (state-4 action-5))
+                       (if (< c 110)
+                           (if (< c 58)
+                               (state-6 action-5)
+                               (state-4 action-5))
+                           (if (< c 111)
+                               (state-7 action-5)
+                               (state-4 action-5))))
+                   action-5))))
+          (state-3
+           (lambda (action)
+             (end-go-to-point)
+             action-0))
+          (state-4
+           (lambda (action)
+             (end-go-to-point)
+             action-4))
+          (state-5
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-4
+                       (if (< c 58)
+                           (state-8 action-4)
+                           action-4))
+                   action-4))))
+          (state-6
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-2
+                       (if (< c 58)
+                           (state-9 action-2)
+                           action-2))
+                   action-2))))
+          (state-7
+           (lambda (action)
+             (end-go-to-point)
+             action-1))
+          (state-8
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-3
+                       (if (< c 58)
+                           (state-8 action-3)
+                           action-3))
+                   action-3))))
+          (state-9
+           (lambda (action)
+             (end-go-to-point)
+             (let ((c (read-char)))
+               (if c
+                   (if (< c 48)
+                       action-2
+                       (if (< c 58)
+                           (state-9 action-2)
+                           action-2))
+                   action-2))))
+          (start-automaton
+           (lambda ()
+             (if (peek-char)
+                 (state-0 action-<<ERROR>>)
+               action-<<EOF>>)))
+          (final-lexer
+           (lambda ()
+             (init-lexeme)
+             (let ((yyline (get-start-line))
+                   (yycolumn (get-start-column))
+                   (yyoffset (get-start-offset)))
+               ((start-automaton) yyline yycolumn yyoffset)))))
+       (set! user-action-<<EOF>> (<<EOF>>-pre-action
+                                  final-lexer user-getc user-ungetc))
+       (set! user-action-<<ERROR>> (<<ERROR>>-pre-action
+                                    final-lexer user-getc user-ungetc))
+       (set! user-action-0 ((vector-ref rules-pre-action 1)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-1 ((vector-ref rules-pre-action 3)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-2 ((vector-ref rules-pre-action 5)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-3 ((vector-ref rules-pre-action 7)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-4 ((vector-ref rules-pre-action 9)
+                            final-lexer user-getc user-ungetc))
+       (set! user-action-5 ((vector-ref rules-pre-action 11)
+                            final-lexer user-getc user-ungetc))
+       final-lexer))))
+
+
+;; (define string-tables
+;;   (vector
+;;    'all
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;               (make-tok eof-tok         yytext yyline yycolumn)
+;;        ))
+;;    (lambda (yycontinue yygetc yyungetc)
+;;      (lambda (yytext yyline yycolumn yyoffset)
+;;        (begin
+;;          (display "Error: Invalid token.")
+;;          (newline)
+;;          'error)
+;;        ))
+;;    (vector
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (make-tok doublequote-tok yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-spec-char          yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-digits-char        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-digits-char        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-quoted-char        yytext yyline yycolumn)
+;;         ))
+;;     #t
+;;     (lambda (yycontinue yygetc yyungetc)
+;;       (lambda (yytext yyline yycolumn yyoffset)
+;;               (parse-ordinary-char      yytext yyline yycolumn)
+;;         )))
+;;    'tagged-chars-lists
+;;    0
+;;    0
+;;    '#((((#f #\") . 3) ((#f #\\) . 2) ((#t #\" #\\) . 1))
+;;       ()
+;;       (((#f #\n) . 7)
+;;        ((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 6)
+;;        ((#f #\-) . 5)
+;;        ((#t #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\n) . 4))
+;;       ()
+;;       ()
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 8))
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9))
+;;       ()
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 8))
+;;       (((#f #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) . 9)))
+;;    '#((#f . #f) (5 . 5)   (5 . 5)   (0 . 0)   (4 . 4)   (4 . 4)   (2 . 2)
+;;       (1 . 1)   (3 . 3)   (2 . 2))))
 
 
 ;;;; module lexparser.scm
@@ -1330,7 +3365,7 @@
 	 (str2 (if (and (> strlen 0)
 			(char=? (string-ref str (- strlen 1)) #\newline))
 		   str
-		 (string-append str (string #\newline)))))
+		 (string-append str "\n"))))
     (lexer-history '())
     str2))
 
@@ -1371,45 +3406,42 @@
 			      (get-tok-column tok)
 			      "the <<ERROR>> anchor must be used alone and only after %%."))))))))
 
-(define strip-end
-  (lambda (l)
-    (if (null? (cdr l))
-	'()
-	(cons (car l) (strip-end (cdr l))))))
+(define (strip-end l)
+  (if (null? (cdr l))
+      '()
+    (cons (car l) (strip-end (cdr l)))))
 
-(define extract-anchors
-  (lambda (tok-list)
-    (let* ((tok1 (car tok-list))
-	   (line (get-tok-line tok1))
-	   (tok1-type (get-tok-type tok1)))
-      (cond ((and (= tok1-type <<EOF>>-tok) (null? (cdr tok-list)))
-	     (make-rule line #t #f #f #f '() #f))
-	    ((and (= tok1-type <<ERROR>>-tok) (null? (cdr tok-list)))
-	     (make-rule line #f #t #f #f '() #f))
-	    (else
-	     (let* ((bol? (= tok1-type caret-tok))
-		    (tok-list2 (if bol? (cdr tok-list) tok-list)))
-	       (if (null? tok-list2)
-		   (make-rule line #f #f bol? #f tok-list2 #f)
-		   (let* ((len (length tok-list2))
-			  (tok2 (list-ref tok-list2 (- len 1)))
-			  (tok2-type (get-tok-type tok2))
-			  (eol? (= tok2-type dollar-tok))
-			  (tok-list3 (if eol?
-					 (strip-end tok-list2)
-					 tok-list2)))
-		     (make-rule line #f #f bol? eol? tok-list3 #f)))))))))
+(define (extract-anchors tok-list)
+  (let* ((tok1 (car tok-list))
+	 (line (get-tok-line tok1))
+	 (tok1-type (get-tok-type tok1)))
+    (cond ((and (= tok1-type <<EOF>>-tok) (null? (cdr tok-list)))
+	   (make-rule line #t #f #f #f '() #f))
+	  ((and (= tok1-type <<ERROR>>-tok) (null? (cdr tok-list)))
+	   (make-rule line #f #t #f #f '() #f))
+	  (else
+	   (let* ((bol? (= tok1-type caret-tok))
+		  (tok-list2 (if bol? (cdr tok-list) tok-list)))
+	     (if (null? tok-list2)
+		 (make-rule line #f #f bol? #f tok-list2 #f)
+	       (let* ((len (length tok-list2))
+		      (tok2 (list-ref tok-list2 (- len 1)))
+		      (tok2-type (get-tok-type tok2))
+		      (eol? (= tok2-type dollar-tok))
+		      (tok-list3 (if eol?
+				     (strip-end tok-list2)
+				   tok-list2)))
+		 (make-rule line #f #f bol? eol? tok-list3 #f))))))))
 
-(define char-list->conc
-  (lambda (char-list)
-    (if (null? char-list)
-	(make-re epsilon-re)
-	(let loop ((cl char-list))
-	  (let* ((c (car cl))
-		 (cl2 (cdr cl)))
-	    (if (null? cl2)
-		(make-re char-re c)
-		(make-re conc-re (make-re char-re c) (loop cl2))))))))
+(define (char-list->conc char-list)
+  (if (null? char-list)
+      (make-re epsilon-re)
+    (let loop ((cl char-list))
+      (let* ((c (car cl))
+	     (cl2 (cdr cl)))
+	(if (null? cl2)
+	    (make-re char-re c)
+	  (make-re conc-re (make-re char-re c) (loop cl2)))))))
 
 (define parse-tokens-atom
   (let ((action-table
@@ -1524,37 +3556,35 @@
 		   (loop (power->star-plus re (check-power-tok tok))
 			 (cdr tok-list3))))))))))
 
-(define parse-tokens-conc
-  (lambda (tok-list macros)
-    (let* ((result1 (parse-tokens-fact tok-list macros))
-	   (re1 (car result1))
-	   (tok-list2 (cdr result1))
-	   (tok (car tok-list2))
-	   (tok-type (get-tok-type tok)))
-      (cond ((or (= tok-type pipe-tok)
-		 (= tok-type rpar-tok))
-	     result1)
-	    (else ; Autres facteurs
-	     (let* ((result2 (parse-tokens-conc tok-list2 macros))
-		    (re2 (car result2))
-		    (tok-list3 (cdr result2)))
-	       (cons (make-re conc-re re1 re2) tok-list3)))))))
+(define (parse-tokens-conc tok-list macros)
+  (let* ((result1 (parse-tokens-fact tok-list macros))
+	 (re1 (car result1))
+	 (tok-list2 (cdr result1))
+	 (tok (car tok-list2))
+	 (tok-type (get-tok-type tok)))
+    (cond ((or (= tok-type pipe-tok)
+	       (= tok-type rpar-tok))
+	   result1)
+	  (else ; Autres facteurs
+	   (let* ((result2 (parse-tokens-conc tok-list2 macros))
+		  (re2 (car result2))
+		  (tok-list3 (cdr result2)))
+	     (cons (make-re conc-re re1 re2) tok-list3))))))
 
-(define parse-tokens-or
-  (lambda (tok-list macros)
-    (let* ((result1 (parse-tokens-conc tok-list macros))
-	   (re1 (car result1))
-	   (tok-list2 (cdr result1))
-	   (tok (car tok-list2))
-	   (tok-type (get-tok-type tok)))
-      (cond ((= tok-type pipe-tok)
-	     (let* ((tok-list3 (cdr tok-list2))
-		    (result2 (parse-tokens-or tok-list3 macros))
-		    (re2 (car result2))
-		    (tok-list4 (cdr result2)))
-	       (cons (make-re or-re re1 re2) tok-list4)))
-	    (else ; rpar-tok
-	     result1)))))
+(define (parse-tokens-or tok-list macros)
+  (let* ((result1 (parse-tokens-conc tok-list macros))
+	 (re1 (car result1))
+	 (tok-list2 (cdr result1))
+	 (tok (car tok-list2))
+	 (tok-type (get-tok-type tok)))
+    (cond ((= tok-type pipe-tok)
+	   (let* ((tok-list3 (cdr tok-list2))
+		  (result2 (parse-tokens-or tok-list3 macros))
+		  (re2 (car result2))
+		  (tok-list4 (cdr result2)))
+	     (cons (make-re or-re re1 re2) tok-list4)))
+	  (else ; rpar-tok
+	   result1))))
 
 (define (parse-tokens-sub tok-list macros)
   (let* ((tok-list2 (cdr tok-list)) ; Manger le lpar-tok
@@ -1586,33 +3616,30 @@
 	       (loop (cdr tl) count)))))))
 
 ; Ne traite pas les anchors
-(define parse-tokens
-  (lambda (tok-list macros)
-    (if (null? tok-list)
-	(make-re epsilon-re)
-	(let ((line (get-tok-line (car tok-list))))
-	  (parse-tokens-match tok-list line)
-	  (let* ((begin-par (make-tok lpar-tok "" line 1))
-		 (end-par (make-tok rpar-tok "" line 1)))
-	    (let* ((tok-list2 (append (list begin-par)
-				      tok-list
-				      (list end-par)))
-		   (result (parse-tokens-sub tok-list2 macros)))
-	      (car result))))))) ; (cdr result) == () obligatoirement
+(define (parse-tokens tok-list macros)
+  (if (null? tok-list)
+      (make-re epsilon-re)
+    (let ((line (get-tok-line (car tok-list))))
+      (parse-tokens-match tok-list line)
+      (let* ((begin-par (make-tok lpar-tok "" line 1))
+	     (end-par (make-tok rpar-tok "" line 1)))
+	(let* ((tok-list2 (append (list begin-par)
+				  tok-list
+				  (list end-par)))
+	       (result (parse-tokens-sub tok-list2 macros)))
+	  (car result)))))) ; (cdr result) == () obligatoirement
 
-(define tokens->regexp
-  (lambda (tok-list macros)
-    (let ((tok-list2 (de-anchor-tokens tok-list)))
-      (parse-tokens tok-list2 macros))))
+(define (tokens->regexp tok-list macros)
+  (let ((tok-list2 (de-anchor-tokens tok-list)))
+    (parse-tokens tok-list2 macros)))
 
-(define tokens->rule
-  (lambda (tok-list macros)
-    (let* ((rule (extract-anchors tok-list))
-	   (tok-list2 (get-rule-regexp rule))
-	   (tok-list3 (de-anchor-tokens tok-list2))
-	   (re (parse-tokens tok-list3 macros)))
-      (set-rule-regexp rule re)
-      rule)))
+(define (tokens->rule tok-list macros)
+  (let* ((rule (extract-anchors tok-list))
+	 (tok-list2 (get-rule-regexp rule))
+	 (tok-list3 (de-anchor-tokens tok-list2))
+	 (re (parse-tokens tok-list3 macros)))
+    (set-rule-regexp rule re)
+    rule))
 
 ; Retourne une paire: <<EOF>>-action et vecteur des regles ordinaires
 (define (adapt-rules rules)
@@ -1643,14 +3670,13 @@
 ; Analyseur de fichier lex
 ;
 
-(define parse-hv-blanks
-  (lambda ()
-    (let* ((tok (lexer))
-	   (tok-type (get-tok-type tok)))
-      (if (or (= tok-type hblank-tok)
-	      (= tok-type vblank-tok))
-	  (parse-hv-blanks)
-	  (lexer-unget tok)))))
+(define (parse-hv-blanks)
+  (let* ((tok (lexer))
+	 (tok-type (get-tok-type tok)))
+    (if (or (= tok-type hblank-tok)
+	    (= tok-type vblank-tok))
+	(parse-hv-blanks)
+      (lexer-unget tok))))
 
 (define (parse-class-range)
   (let* ((tok (lexer))
@@ -2658,9 +4684,99 @@
 
 
 ;;;; module output.scm
-;;
-;;Nettoie les actions en enlevant les lignes blanches avant et apres.
-;;
+
+(define (output options <<EOF>>-action <<ERROR>>-action rules nl-start no-nl-start arcs acc)
+  ;;Print the output code.  This is invoked both when producing the full
+  ;;lexer and when producing only the tables.
+  ;;
+  (define (library-spec->string-spec spec)
+    ;;We allow the library specification  to be: a string, including the
+    ;;parentheses; a symbol, to which  parentheses will be added; a list
+    ;;of whatever, simple converted to string.
+    ;;
+    (cond ((string? spec)
+	   spec)
+	  ((symbol? spec)
+	   (string-append "(" (symbol->string spec) ")"))
+	  ((list? spec)
+	   (string-append "(" (let-values (((port getter)
+					    (open-string-output-port)))
+				(write spec port)
+				(getter))
+			  ")"))
+	  (else
+	   (assertion-violation 'library-spec->string-spec
+	     "invalid library name specification" spec))))
+  (define (table-name->export-name table-name)
+    ;;We allow the table name to be specified as string or symbol.
+    ;;
+    (cond ((string? table-name)
+	   table-name)
+	  ((symbol? table-name)
+	   (symbol->string table-name))
+	  (else
+	   (assertion-violation 'table-name->export-name
+	     "invalid table name specification" table-name))))
+
+  (let-keywords options #t ((library-spec	:library-spec	#f)
+			    (output-file	:output-file	#f)
+			    (output-port	:output-port	#f)
+			    (output-value	:output-value	#f)
+			    (table-name		:table-name	#f)
+			    (lexer-format	:lexer-format	'decision-tree))
+
+    (when (and library-spec (not table-name))
+      (assertion-violation 'lex
+	"missing table name but library specification given, cannot create library"))
+    (when (and output-value library-spec)
+      (assertion-violation 'lex
+	"requested output as value, but given also library specification"))
+    (when (and output-value table-name)
+      (assertion-violation 'lex
+	"requested output as value, but given also table name"))
+
+    (let ((opened-file? #f)
+	  (value-getter	#f))
+      (dynamic-wind
+	  (lambda ()
+	    (cond (output-value
+		   (let-values (((sport getter) (open-string-output-port)))
+		     (set! output-port  sport)
+		     (set! value-getter getter)))
+		  ((and output-file (not output-port))
+		   (set! output-port (open-file-output-port output-file
+							    (file-options no-fail)
+							    (buffer-mode block)
+							    (native-transcoder)))
+		   (set! opened-file? #t))))
+	  (lambda ()
+	    (when library-spec
+	      (display (string-append "(library "
+				      (library-spec->string-spec library-spec)
+				      "\n"
+				      "  (export\n"
+				      "    " (table-name->export-name table-name) ")\n"
+				      "  (import (rnrs) (silex lexer))\n"
+				      "\n")
+		       output-port))
+	    (out-print-table options
+			     <<EOF>>-action <<ERROR>>-action rules
+			     nl-start no-nl-start arcs acc
+			     output-port)
+	    (when library-spec
+	      (display "\n) ; end of library\n\n" output-port)))
+	  (lambda ()
+	    ((if opened-file? close-output-port flush-output-port) output-port)))
+      (or (not value-getter)
+	  ;;Make the output value.
+	  (let ((ell (read (open-string-input-port (value-getter)))))
+	    (eval ell (if (eq? lexer-format 'code)
+			  (environment '(rnrs)
+				       '(silex lexer))
+			(environment '(rnrs)))))))))
+
+
+;;; nettoie les actions en enlevant les lignes blanches avant et apres
 
 (define (out-split-in-lines s)
   (let ((len (string-length s)))
@@ -2941,7 +5057,7 @@
 (define (out-np obj start)
   ;;Nice-printer, plus rapide mais moins beau que le pretty-printer.
   (letrec ((line-pad
-	    (string-append (string #\newline)
+	    (string-append "\n"
 			   (out-blanks (- start 1))))
 	   (step-line
 	    (lambda (p)
@@ -3023,7 +5139,7 @@
 	     (apply string-append (reverse texts))))))
 
 
-;;;; output table functions
+;;; output table functions
 
 (define (out-print-table options
 			 <<EOF>>-action <<ERROR>>-action rules
@@ -3031,6 +5147,13 @@
 			 output-port)
   ;;Print the lexer table.
   ;;
+  (define (%display stuff)
+    (display stuff output-port))
+  (define (%write stuff)
+    (write stuff output-port))
+  (define (%newline)
+    (newline output-port))
+
   (let-keywords options #t ((input-file		:input-file	#f)
 			    (table-name		:table-name	#f)
 			    (pretty?		:pretty-print	#f)
@@ -3056,68 +5179,69 @@
 	   (yytext?-l		(map get-rule-yytext? rules-l)))
 
       ;;Preamble of comments.
-      (display ";\n" output-port)
-      (display "; Table generated from the file " output-port)
-      (display input-file output-port)
-      (display " by SILex 1.0" output-port)
-      (newline output-port)
-      (display ";\n\n" output-port)
+      (%display ";\n")
+      (%display "; Table generated from the file ")
+      (%display input-file)
+      (%display " by SILex 1.0")
+      (%newline)
+      (%display ";\n\n")
 
       ;;Print the opening of the table.
       (when table-name
-	(display "(define " output-port)
-	(display table-name output-port)
-	(newline output-port))
-      (display "  (vector\n" output-port)
+	(%display "(define ")
+	(%display table-name)
+	(%newline))
+      (%display "  (vector\n")
 
       ;;Print the description of the selected counters.  This is the value
       ;;of the "counters" option.
-      (display "   '" output-port)
-      (write counters-type output-port)
-      (newline output-port)
+      (%display "   '")
+      (%write counters-type)
+      (%newline)
 
       ;;Print  the  action function  to  call  when  the lexer  finds  the
       ;;end-of-file.
-      (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
-      (display "     (lambda (yytext" output-port)
-      (display counters-param-list output-port)
-      (newline output-port)
-      (display clean-eof-action output-port)
-      (display "       ))\n" output-port)
+      (%display "   (lambda (yycontinue yygetc yyungetc)\n")
+      (%display "     (lambda (yytext")
+      (%display counters-param-list)
+      (%newline)
+      (%display clean-eof-action)
+      (%display "       ))\n")
 
       ;;Print the action function to call when the lexer finds an error in
       ;;the input.
-      (display "   (lambda (yycontinue yygetc yyungetc)\n" output-port)
-      (display "     (lambda (yytext" output-port)
-      (display counters-param-list output-port)
-      (newline output-port)
-      (display clean-error-action output-port)
-      (display "       ))\n" output-port)
+      (%display "   (lambda (yycontinue yygetc yyungetc)\n")
+      (%display "     (lambda (yytext")
+      (%display counters-param-list)
+      (%newline)
+      (%display clean-error-action)
+      (%display "       ))\n")
 
-      ;;Print the subvector of action  functions for the lexer rules which
-      ;;is terminated by the automaton itself, in the selected format.
-      (display "   (vector\n" output-port)
-      (let loop ((al clean-actions-l) (yyl yytext?-l))
-	(if (pair? al)
-	    (let ((yytext? (car yyl)))
-	      (display "    " output-port)
-	      (write yytext? output-port)
-	      (newline output-port)
-	      (display "    (lambda (yycontinue yygetc yyungetc)\n" output-port)
-	      (if yytext?
-		  (begin
-		    (display "      (lambda (yytext" output-port)
-		    (display counters-param-list output-port))
+      ;;Print the subvector of action functions for the lexer rules.
+      (%display "   (vector\n")
+      (let loop ((al clean-actions-l)
+		 (yyl yytext?-l))
+	(when (pair? al)
+	  (let ((yytext? (car yyl)))
+	    (%display "    ")
+	    (%write yytext?)
+	    (%newline)
+	    (%display "    (lambda (yycontinue yygetc yyungetc)\n")
+	    (if yytext?
 		(begin
-		  (display "      (lambda (" output-port)
-		  (display counters-param-list-short output-port)))
-	      (newline output-port)
-	      (display (car al) output-port)
-	      (display "        ))" output-port)
-	      (when (pair? (cdr al))
-		(newline output-port))
-	      (loop (cdr al) (cdr yyl)))))
-      (display ")\n" output-port)
+		  (%display "      (lambda (yytext")
+		  (%display counters-param-list))
+	      (begin
+		(%display "      (lambda (")
+		(%display counters-param-list-short)))
+	    (%newline)
+	    (%display (car al))
+	    (%display "        ))")
+	    (when (pair? (cdr al))
+	      (%newline))
+	    (loop (cdr al) (cdr yyl)))))
+      (%display ")\n")
+		;close the subvector of action functions
 
       ;;Print  the  automaton  in  one  of the  three  supported  formats:
       ;;portable, scheme code, raw data.
@@ -3138,14 +5262,19 @@
 	 (assertion-violation 'lex
 	   "unknown lexer output format" lexer-format)))
 
-      ;;terminate the subvector and the vector
-      (when table-name
-	(display ")" output-port))
-      (display ")\n" output-port))))
+      ;;Terminate the table vector and the DEFINE, is one was opened.
+      (%display (if table-name "))\n" ")\n")))))
 
-(define (out-print-table-data pretty? nl-start no-nl-start arcs-v acc-v port)
+(define (out-print-table-data pretty? nl-start no-nl-start arcs-v acc-v output-port)
   ;;Print the table  in the decision tree format, which  is the raw data
   ;;format.
+  (define (%display stuff)
+    (display stuff output-port))
+  (define (%write stuff)
+    (write stuff output-port))
+  (define (%newline)
+    (newline output-port))
+
   (let* ((len (vector-length arcs-v))
 	 (trees-v (make-vector len)))
     (let loop ((i 0))
@@ -3154,34 +5283,42 @@
 	(loop (+ i 1))))
 
 		; Decrire le format de l'automate
-    (display "   'decision-trees" port)
-    (newline port)
+    (%display "   'decision-trees")
+    (%newline)
 
 		; Ecrire l'etat de depart pour le cas "debut de la ligne"
-    (display "   " port)
-    (write nl-start port)
-    (newline port)
+    (%display "   ")
+    (%write nl-start)
+    (%newline)
 
 		; Ecrire l'etat de depart pour le cas "pas au debut de la ligne"
-    (display "   " port)
-    (write no-nl-start port)
-    (newline port)
+    (%display "   ")
+    (%write no-nl-start)
+    (%newline)
 
 		; Ecrire la table de transitions
-    (display "   '" port)
+    (%display "   '")
     (if pretty?
-	(display (out-pp trees-v 5) port)
-      (display (out-np trees-v 5) port))
-    (newline port)
+	(%display (out-pp trees-v 5))
+      (%display (out-np trees-v 5)))
+    (%newline)
 
 		; Ecrire la table des acceptations
-    (display "   '" port)
+    (%display "   '")
     (if pretty?
-	(display (out-pp acc-v 5) port)
-      (display (out-np acc-v 5) port))))
+	(%display (out-pp acc-v 5))
+      (%display (out-np acc-v 5)))))
 
-(define (out-print-table-chars pretty? nl-start no-nl-start arcs-v acc-v port)
+(define (out-print-table-chars pretty? nl-start no-nl-start arcs-v acc-v output-port)
   ;;Print the automation in the portable format.
+  ;;
+  (define (%display stuff)
+    (display stuff output-port))
+  (define (%write stuff)
+    (write stuff output-port))
+  (define (%newline)
+    (newline output-port))
+
   (let* ((len		(vector-length arcs-v))
 	 (portable-v	(make-vector len))
 	 (arc-op	(lambda (arc)
@@ -3193,95 +5330,105 @@
 	       (port-arcs (map arc-op arcs)))
 	  (vector-set! portable-v s port-arcs)
 	  (loop (+ s 1)))))
+    ;; Decrire le format de l'automate
+    (%display "   'tagged-chars-lists")
+    (%newline)
+    ;; Ecrire l'etat de depart pour le cas "debut de la ligne"
+    (%display "   ")
+    (%write nl-start)
+    (%newline)
+    ;; Ecrire l'etat de depart pour le cas "pas au debut de la ligne"
+    (%display "   ")
+    (%write no-nl-start)
+    (%newline)
+    ;; Ecrire la table de transitions
+    (%display "   '")
+    (%display ((if pretty? out-pp out-np) portable-v 5))
+    (%newline)
+    ;; Ecrire la table des acceptations
+    (%display "   '")
+    (%display ((if pretty? out-pp out-np) acc-v 5))))
 
-		; Decrire le format de l'automate
-    (display "   'tagged-chars-lists" port)
-    (newline port)
-
-		; Ecrire l'etat de depart pour le cas "debut de la ligne"
-    (display "   " port)
-    (write nl-start port)
-    (newline port)
-
-		; Ecrire l'etat de depart pour le cas "pas au debut de la ligne"
-    (display "   " port)
-    (write no-nl-start port)
-    (newline port)
-
-		; Ecrire la table de transitions
-    (display "   '" port)
-    (display ((if pretty? out-pp out-np) portable-v 5) port)
-    (newline port)
-
-		; Ecrire la table des acceptations
-    (display "   '" port)
-    (display ((if pretty? out-pp out-np) acc-v 5) port)))
-
-(define (out-print-code-trans3 margin tree action-var port)
+(define (out-print-code-trans3 margin tree action-var output-port)
   ;;Generate the automaton in  Scheme code form.
-  (newline port)
-  (display (out-blanks margin) port)
+  ;;
+  (define (%display stuff)
+    (display stuff output-port))
+  (define (%write stuff)
+    (write stuff output-port))
+  (define (%newline)
+    (newline output-port))
+
+  (%newline)
+  (%display (out-blanks margin))
   (cond ((eq? tree 'err)
-	 (display action-var port))
+	 (%display action-var))
 	((number? tree)
-	 (display "(state-" port)
-	 (display tree port)
-	 (display " " port)
-	 (display action-var port)
-	 (display ")" port))
+	 (%display "(state-")
+	 (%display tree)
+	 (%display " ")
+	 (%display action-var)
+	 (%display ")"))
 	((eq? (car tree) '=)
-	 (display "(if (= c " port)
-	 (display (list-ref tree 1) port)
-	 (display ")" port)
+	 (%display "(if (= c ")
+	 (%display (list-ref tree 1))
+	 (%display ")")
 	 (out-print-code-trans3 (+ margin 4)
 				(list-ref tree 2)
 				action-var
-				port)
+				output-port)
 	 (out-print-code-trans3 (+ margin 4)
 				(list-ref tree 3)
 				action-var
-				port)
-	 (display ")" port))
+				output-port)
+	 (%display ")"))
 	(else
-	 (display "(if (< c " port)
-	 (display (list-ref tree 0) port)
-	 (display ")" port)
+	 (%display "(if (< c ")
+	 (%display (list-ref tree 0))
+	 (%display ")")
 	 (out-print-code-trans3 (+ margin 4)
 				(list-ref tree 1)
 				action-var
-				port)
+				output-port)
 	 (out-print-code-trans3 (+ margin 4)
 				(list-ref tree 2)
 				action-var
-				port)
-	 (display ")" port))))
+				output-port)
+	 (%display ")"))))
 
-(define (out-print-code-trans2 margin tree action-var port)
+(define (out-print-code-trans2 margin tree action-var output-port)
   (display (string-append
 	    "\n"
 	    (out-blanks margin)
 	    "(if c")
-	   port)
-  (out-print-code-trans3 (+ margin 4) tree action-var port)
+	   output-port)
+  (out-print-code-trans3 (+ margin 4) tree action-var output-port)
   (display (string-append
 	    "\n"
 	    (out-blanks (+ margin 4))
 	    action-var ")")
-	   port))
+	   output-port))
 
-(define (out-print-code-trans1 margin tree action-var port)
-  (newline port)
-  (display (out-blanks margin) port)
+(define (out-print-code-trans1 margin tree action-var output-port)
+  (newline output-port)
+  (display (out-blanks margin) output-port)
   (if (eq? tree 'err)
-      (display action-var port)
+      (display action-var output-port)
     (begin
-      (display "(let ((c (read-char)))" port)
-      (out-print-code-trans2 (+ margin 2) tree action-var port)
-      (display ")" port))))
+      (display "(let ((c (read-char)))" output-port)
+      (out-print-code-trans2 (+ margin 2) tree action-var output-port)
+      (display ")" output-port))))
 
 (define (out-print-table-code counters nbrules yytext?-l
 			      nl-start no-nl-start arcs-v acc-v
-			      port)
+			      output-port)
+  (define (%display stuff)
+    (display stuff output-port))
+  (define (%write stuff)
+    (write stuff output-port))
+  (define (%newline)
+    (newline output-port))
+
   (let-values (((counters-params counters-params-short)
 		(case counters
 		  ((none) (values ")" ")"))
@@ -3298,9 +5445,9 @@
 	      (loop (+ s 1)))))
 
       ;;Print the format of the automaton.
-      (display "   'code\n" port)
+      (%display "   'code\n" )
 
-      (display (string-append
+      (%display (string-append
 		;;Ecrire l'entete de la fonction
 		"   (lambda (<<EOF>>-pre-action\n"
 		"            <<ERROR>>-pre-action\n"
@@ -3310,17 +5457,16 @@
 		;;brutes.
 		"     (letrec\n"
 		"         ((user-action-<<EOF>> #f)\n"
-		"          (user-action-<<ERROR>> #f)\n")
-	       port)
+		"          (user-action-<<ERROR>> #f)\n"))
       (let loop ((i 0))
 	(when (< i nbrules)
-	  (display "          (user-action-" port)
-	  (write i port)
-	  (display " #f)" port)
-	  (newline port)
+	  (%display "          (user-action-")
+	  (%write i)
+	  (%display " #f)")
+	  (%newline)
 	  (loop (+ i 1))))
 
-      (display (string-append
+      (%display (string-append
 		;;Ecrire l'extraction des fonctions du IS.
 		"          (start-go-to-end    (:input-system-start-go-to-end	IS))\n"
 		"          (end-go-to-point    (:input-system-end-go-to-point	IS))\n"
@@ -3340,13 +5486,12 @@
 		"             (user-action-<<EOF>> \"\"" counters-params "))\n"
 		"          (action-<<ERROR>>\n"
 		"           (lambda (" counters-params-short "\n"
-		"             (user-action-<<ERROR>> \"\"" counters-params "))\n")
-	       port)
+		"             (user-action-<<ERROR>> \"\"" counters-params "))\n"))
 
       (let loop ((i 0)
 		 (yyl yytext?-l))
 	(when (< i nbrules)
-	  (display (string-append
+	  (%display (string-append
 		    "          (action-" (number->string i) "\n"
 		    "           (lambda (" counters-params-short "\n"
 		    (if (car yyl)
@@ -3357,8 +5502,7 @@
 			 counters-params ")))\n")
 		      (string-append
 		       "             (start-go-to-end)\n"
-		       "             (user-action-" (number->string i) counters-params "))\n")))
-		   port)
+		       "             (user-action-" (number->string i) counters-params "))\n"))))
 	  (loop (+ i 1) (cdr yyl))))
 
       ;; Ecrire les variables d'etats
@@ -3368,14 +5512,13 @@
 		   (acc (vector-ref acc-v s))
 		   (acc-eol (car acc))
 		   (acc-no-eol (cdr acc)))
-	      (display (string-append
+	      (%display (string-append
 			"          (state-" (number->string s) "\n"
-			"           (lambda (action)")
-		       port)
+			"           (lambda (action)"))
 	      (cond ((not acc-eol)
-		     (out-print-code-trans1 13 tree "action" port))
+		     (out-print-code-trans1 13 tree "action" output-port))
 		    ((not acc-no-eol)
-		     (display (string-append
+		     (%display (string-append
 			       "\n"
 			       (if (eq? tree 'err)
 				   "             (let* ((c (peek-char))"
@@ -3386,14 +5529,13 @@
 			       "                                  "
 			       "  (begin (end-go-to-point) action-" (number->string acc-eol) ")\n"
 			       "                       "
-			       "             action)))")
-			      port)
+			       "             action)))"))
 		     ((if (eq? tree 'err)
 			  out-print-code-trans1
-			out-print-code-trans2) 15 tree "new-action" port)
-		     (display ")" port))
+			out-print-code-trans2) 15 tree "new-action" output-port)
+		     (%display ")"))
 		    ((< acc-eol acc-no-eol)
-		     (display
+		     (%display
 		      (string-append
 		       "\n"
 		       "             (end-go-to-point)\n"
@@ -3402,21 +5544,20 @@
 		       "                      "
 		       "              action-" (number->string acc-eol) "\n"
 		       "                      "
-		       "              action-" (number->string acc-no-eol) ")))")
-		      port)
+		       "              action-" (number->string acc-no-eol) ")))"))
 		     ((if (eq? tree 'err)
 			  out-print-code-trans1
-			out-print-code-trans2) 15 tree "new-action" port)
-		     (display ")" port))
+			out-print-code-trans2) 15 tree "new-action" output-port)
+		     (%display ")"))
 		    (else
 		     (let ((action-var (string-append "action-" (number->string acc-eol))))
-		       (display "\n             (end-go-to-point)" port)
-		       (out-print-code-trans1 13 tree action-var port))))
-	      (display "))\n" port)
+		       (%display "\n             (end-go-to-point)")
+		       (out-print-code-trans1 13 tree action-var output-port))))
+	      (%display "))\n")
 	      (loop (+ s 1)))))
 
 		; Ecrire la variable de lancement de l'automate
-      (display
+      (%display
        (string-append
 	"          (start-automaton\n"
 	"           (lambda ()\n"
@@ -3459,116 +5600,21 @@
 	"                                  final-lexer user-getc user-ungetc))\n"
 	"       (set! user-action-<<ERROR>>"
 	" (<<ERROR>>-pre-action\n"
-	"                                    final-lexer user-getc user-ungetc))\n")
-       port)
+	"                                    final-lexer user-getc user-ungetc))\n"))
 
       (let loop ((r 0))
 	(when (< r nbrules)
 	  (let* ((str-r  (number->string r))
 		 (blanks (out-blanks (string-length str-r))))
-	    (display (string-append
+	    (%display (string-append
 		      "       (set! user-action-" str-r " ((vector-ref rules-pre-action "
 		      (number->string (+ (* 2 r) 1)) ")\n"
 		      blanks
-		      "                           final-lexer user-getc user-ungetc))\n")
-		     port)
+		      "                           final-lexer user-getc user-ungetc))\n"))
 	    (loop (+ r 1)))))
 
       ;; Faire retourner le lexer final
-      (display "       final-lexer))" port))))
-
-
-;;;; output functions
-
-(define (output options <<EOF>>-action <<ERROR>>-action rules nl-start no-nl-start arcs acc)
-  ;;Print the output code.  This is invoked both when producing the full
-  ;;lexer and when producing only the tables.
-  ;;
-  (define (library-spec->string-spec spec)
-    ;;We allow the library specification  to be: a string, including the
-    ;;parentheses; a symbol, to which  parentheses will be added; a list
-    ;;of whatever, simple converted to string.
-    ;;
-    (cond ((string? spec)
-	   spec)
-	  ((symbol? spec)
-	   (string-append "(" (symbol->string spec) ")"))
-	  ((list? spec)
-	   (string-append "(" (let-values (((port getter)
-					    (open-string-output-port)))
-				(write spec port)
-				(getter))
-			  ")"))
-	  (else
-	   (assertion-violation 'library-spec->string-spec
-	     "invalid library name specification" spec))))
-  (define (table-name->export-name table-name)
-    ;;We allow the table name to be specified as string or symbol.
-    ;;
-    (cond ((string? table-name)
-	   table-name)
-	  ((symbol? table-name)
-	   (symbol->string table-name))
-	  (else
-	   (assertion-violation 'table-name->export-name
-	     "invalid table name specification" table-name))))
-
-  (let-keywords options #t ((library-spec	:library-spec	#f)
-			    (output-file	:output-file	#f)
-			    (output-port	:output-port	#f)
-			    (output-value	:output-value	#f)
-			    (table-name		:table-name	#f)
-			    (lexer-format	:lexer-format	'decision-tree))
-
-    (when (and library-spec (not table-name))
-      (assertion-violation 'lex
-	"missing table name but library specification given, cannot create library"))
-    (when (and output-value library-spec)
-      (assertion-violation 'lex
-	"requested output as value, but given also library specification"))
-    (when (and output-value table-name)
-      (assertion-violation 'lex
-	"requested output as value, but given also table name"))
-
-    (let ((opened-file? #f)
-	  (value-getter	#f))
-      (dynamic-wind
-	  (lambda ()
-	    (cond (output-value
-		   (let-values (((sport getter) (open-string-output-port)))
-		     (set! output-port  sport)
-		     (set! value-getter getter)))
-		  ((and output-file (not output-port))
-		   (set! output-port (open-file-output-port output-file
-							    (file-options no-fail)
-							    (buffer-mode block)
-							    (native-transcoder)))
-		   (set! opened-file? #t))))
-	  (lambda ()
-	    (when library-spec
-	      (display (string-append "(library "
-				      (library-spec->string-spec library-spec)
-				      "\n"
-				      "  (export\n"
-				      "    " (table-name->export-name table-name) ")\n"
-				      "  (import (rnrs) (silex lexer))\n"
-				      "\n")
-		       output-port))
-	    (out-print-table options
-			     <<EOF>>-action <<ERROR>>-action rules
-			     nl-start no-nl-start arcs acc
-			     output-port)
-	    (when library-spec
-	      (display "\n) ; end of library\n\n" output-port)))
-	  (lambda ()
-	    ((if opened-file? close-output-port flush-output-port) output-port)))
-      (or (not value-getter)
-	  ;;Make the output value.
-	  (let ((ell (read (open-string-input-port (value-getter)))))
-	    (eval ell (if (eq? lexer-format 'code)
-			  (environment '(rnrs)
-				       '(silex lexer))
-			(environment '(rnrs)))))))))
+      (%display "       final-lexer))"))))
 
 
 ;;;; done

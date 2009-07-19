@@ -133,8 +133,11 @@
 (compile-library "irregex.sls"
 		 "irregex.slfasl")
 
-(compile-library "lalr.sls"
-		 "lalr.slfasl")
+(compile-library "silex.sls"
+		 "silex.slfasl")
+
+;; (compile-library "lalr.sls"
+;; 		 "lalr.slfasl")
 
 ;;; --------------------------------------------------------------------
 

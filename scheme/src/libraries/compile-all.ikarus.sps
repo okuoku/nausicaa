@@ -55,7 +55,9 @@
   (only (variables))
   (only (keywords))
   (only (irregex))
-  (only (lalr))
+  (only (pregexp))
+  (only (silex))
+;;  (only (lalr))
 
   (only (foreign))
   (only (foreign guarded-malloc))
