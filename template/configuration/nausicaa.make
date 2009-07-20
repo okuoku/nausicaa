@@ -179,9 +179,9 @@ fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR)
 else
 fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR):$(MOSH_LOADPATH)
 endif
-fasl_mosh_COMPILE_COMMAND	= printf \
-	"(import (rnrs)(mosh))\n ((symbol-value 'pre-compile-r6rs-file) \"%s\")\n(exit)\n" \
-	$(fasl_mosh_COMPILE_SCRIPT) | $(fasl_mosh_COMPILE_ENV) $(MOSH)
+fasl_mosh_COMPILE_COMMAND	= echo \
+	"(import (rnrs)(mosh))\n ((symbol-value 'pre-compile-r6rs-file) \"$(fasl_mosh_COMPILE_SCRIPT)\")\n(exit)\n" \
+	 | $(fasl_mosh_COMPILE_ENV) $(MOSH)
 fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_COMMAND)
 
 .PHONY: mfasl mfasl-clean

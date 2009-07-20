@@ -353,14 +353,14 @@ Copyright @copyright{} 1998 Oleg Kiselyov.@*
 Copyright @copyright{} 1998, 1999, 2000 Olin Shivers.@*
 Copyright @copyright{} 1999 John David Stone.@*
 Copyright @copyright{} 1999, 2002 Marc Feeley.@*
-Copyright @copyright{} 2001, 2009 Danny Dube'
+Copyright @copyright{} 2001, 2009 Danny Dube'@*
 Copyright @copyright{} 2002 Dr. Mirko Luedde.@*
 Copyright @copyright{} 2002, 2005, 2006 Sebastian Egner.@*
 Copyright @copyright{} 2003 Ray Dillinger.@*
 Copyright @copyright{} 2003 Taylor Campbell.@*
 Copyright @copyright{} 2005 Jens Axel Soegaard.@*
 Copyright @copyright{} 2005-2009 Alex Shinn.@*
-Copyright @copyright{} 2008 Taro Minowa (Higepon).@*
+Copyright @copyright{} 2008 Taro Minowa (Higepon).
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

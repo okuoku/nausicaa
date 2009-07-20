@@ -133,6 +133,9 @@
 (compile-library "irregex.sls"
 		 "irregex.slfasl")
 
+(compile-library "silex/lexer.sls"
+		 "silex/lexer.slfasl")
+
 (compile-library "silex.sls"
 		 "silex.slfasl")
 

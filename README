@@ -52,7 +52,7 @@ and copyright assignment.
 
   Only Software Libre libraries are included.  Used licenses
 are the  GNU General Public License, the  GNU Lesser General
-Public License,  the BSD license, the BSD  like license, the
+Public License, the BSD  licenses, the BSD like license, the
 GNU Free Documentation License.
 
 
@@ -204,9 +204,8 @@ specific, REAME files.
 B. Bug reports
 --------------
 
-See  the instructions in  the individual,  project specific,
-README  files.   You can  use  the  features  of the  GitHub
-interface.
+Bug reports are appreciated.   Register them using the issue
+tracker a the GitHub site.
 
 
 C. Resources

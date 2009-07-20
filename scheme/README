@@ -72,7 +72,7 @@ Basically we should do:
   The "Makefile" supports the "DESTDIR" environment variable
 to install the files under a temporary location; example:
 
-    $ make install DESTDIR=/tmp/marco/nausicaa-scheme
+    $ make install DESTDIR=/tmp/marco/nausicaa
 
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
