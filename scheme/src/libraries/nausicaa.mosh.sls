@@ -793,12 +793,10 @@
 
     ;; other stuff
     pretty-print)
-  (import (rename (except (rnrs)
-			  ;;Implemented  in compat  to let them  accept complex
-			  ;;arguments.
-			  finite? infinite? nan?)
-		  (equal? rnrs:equal?)
-		  (eqv?   rnrs:eqv?))
+  (import  (except (rnrs)
+		   ;;Implemented  in compat  to let them  accept complex
+		   ;;arguments.
+		   finite? infinite? nan?)
     (only (system) get-environment-variable get-environment-variables)
     (nausicaa common)
     (parameters)
@@ -854,18 +852,6 @@
        (if (member (syntax->datum (syntax ?feature-id)) (cons 'mosh registry-features))
            (syntax (begin ?body ...))
 	 (syntax (cond-expand ?more-clauses ...)))))))
-
-
-
-(define (equal? a b)
-  (or (and (number? a) (number? b)
-	   (nan? a)    (nan? b))
-      (rnrs:equal? a b)))
-
-(define (eqv? a b)
-  (or (and (number? a) (number? b)
-	   (nan? a)    (nan? b))
-      (rnrs:eqv? a b)))
 
 
 ;;;; done

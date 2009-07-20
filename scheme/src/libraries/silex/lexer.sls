@@ -81,7 +81,11 @@
 			    (input-procedure	:procedure	#f)
 			    (input-string	:string		#f))
     (let-values (((buffer read-ptr input-function)
-		  (cond ((and input-port (input-port? input-port))
+		  (cond ((and input-string (string? input-string))
+			 (values (string-append (string #\newline) input-string)
+				 (+ 1 (string-length input-string))
+				 (lambda () 'eof)))
+			((and input-port (input-port? input-port))
 			 (values (make-string lexer-init-buffer-len #\newline)
 				 1
 				 (lambda () (read-char input-port))))
@@ -89,19 +93,15 @@
 			 (values (make-string lexer-init-buffer-len #\newline)
 				 1
 				 input-procedure))
-			((and input-string (string? input-string))
-			 (values (string-append (string #\newline) input-string)
-				 (+ 1 (string-length input-string))
-				 (lambda () 'eof)))
 			(else
-			 (values (string #\newline)
-				 1
-				 (lambda () 'eof))))))
+			 (assertion-violation 'lexer-make-IS
+			   "input source was not specified")))))
       (lexer-raw-IS-maker buffer read-ptr input-function
 			  (if (memq counters-type '(none line all))
 			      counters-type
 			    (assertion-violation 'lexer-make-IS
-			      "invalid selection of counters type" counters-type))))))
+			      "invalid selection of counters type"
+			      counters-type))))))
 
 (define (lexer-make-lexer tables IS)
   (case (vector-ref tables 4) ; automaton type

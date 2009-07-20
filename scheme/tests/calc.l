@@ -46,7 +46,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-blanks		[ \10\13]+
+blanks		[ \9\10\13]+
 
 decint          [0-9]+
 binint          #[bB][01]+

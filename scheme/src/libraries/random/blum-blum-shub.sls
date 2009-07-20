@@ -5,13 +5,27 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;	The  Blum-Blum-Shub  is a  cryptographically  secure PRNG.   The
-;;;	implementation is derived from:
+;;;	Blum-Blum-Shub is a PRNG proposed in:
+;;;
+;;;	   Lenore   Blum,  Manuel   Blum,  Michael   Shub.    "A  Simple
+;;;	   Unpredictable Pseudo--Random  Number Generator", SIAM Journal
+;;;	   on Computing, volume 15, page 364-383, May 1986.
+;;;
+;;;	when  seeded   with  prime  numbers   satisfying  the  specified
+;;;	requirements,  it can be  considered a  cryptographically secure
+;;;	PRNG.   The search  of  such  prime numbers  is  a delicate  and
+;;;	complex task; we have to turn to specialised literature to learn
+;;;	how to do it.
+;;;
+;;;	   This implementation is derived from:
 ;;;
 ;;;		<http://it.wikipedia.org/wiki/Blum_Blum_Shub>
 ;;;		<http://en.wikipedia.org/wiki/Blum_Blum_Shub>
 ;;;
-;;;
+;;;	   This library  makes no attempt  to validate the  seed numbers
+;;;	for the cryptographic requirements,  it just implements the PRNG
+;;;	algorithm; attaining  cryptographic security is  entirely on our
+;;;	shoulders.
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -44,17 +58,6 @@
     (define c 0)
     (define M const:2^32)
 
-    (define (%init P? Q? integer-maker)
-      (let* ((PQ?  (* P? Q?))
-	     (PQ-1 (- PQ? 1))
-	     (S   (do ((S (integer-maker PQ-1) (integer-maker PQ-1)))
-		      ((= 1 (gcd S PQ?))
-		       S))))
-	(set! P P?)
-	(set! Q Q?)
-	(set! PQ PQ?)
-	(set! X (mod (* S S) PQ))))
-
     (define external-state-tag 'random-source-state/blum-blum-shub)
 
     (define (make-random-bits)
@@ -71,15 +74,17 @@
     (define make-random-32bits make-random-bits)
 
     (define (seed! integers-maker)
-      (let ((P (integers-maker const:2^32))
-	    (Q (integers-maker const:2^32)))
-	(unless (= 3 (mod P 4))
-	  (assertion-violation 'random-source-seed!
-	    "expected prime number P congruent to 3 (mod 4)" P))
-	(unless (= 3 (mod Q 4))
-	  (assertion-violation 'random-source-seed!
-	    "expected prime number Q congruent to 3 (mod 4)" Q))
-	(%init P Q integers-maker)))
+      (let* ((P? (integers-maker const:2^32))
+	     (Q? (integers-maker const:2^32))
+	     (PQ?  (* P? Q?))
+	     (PQ-1 (- PQ? 1))
+	     (S   (do ((S (integers-maker PQ-1) (integers-maker PQ-1)))
+		      ((= 1 (gcd S PQ?))
+		       S))))
+	(set! P  P?)
+	(set! Q  Q?)
+	(set! PQ PQ?)
+	(set! X  (mod (* S S) PQ))))
 
     (define (jumpahead! number-of-steps)
       (do ((i 0 (+ 1 i)))

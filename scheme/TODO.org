@@ -8,7 +8,8 @@
 
 * char-set
 
-  Finished?
+  Merge the one-dimension  library into char-sets to make  it faster (it
+  is too slow now).
 
 * compare
 

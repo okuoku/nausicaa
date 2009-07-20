@@ -219,8 +219,7 @@ The original version of SILex is available at:
 		  <http://www.iro.umontreal.ca/~dube>
 
 (last checked Thu  Jul 16, 2009).  Marco Maggi did  the very simple port
-to R6RS (I changed almost nothing).
-
+to R6RS and Nausicaa integration (I changed almost nothing).
 
 strings.sls
 -----------

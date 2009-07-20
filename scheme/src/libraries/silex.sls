@@ -45,6 +45,7 @@
 ;;;
 
 
+#!r6rs
 (library (silex)
   (export
     lex
@@ -102,6 +103,17 @@
   (let-keywords options #t ((input-file		:input-file	#f)
 			    (input-port		:input-port	#f)
 			    (input-string	:input-string	#f))
+
+    (let-keywords options #t ((library-spec	:library-spec	#f)
+			      (table-name	:table-name	#f)
+			      (output-value	:output-value	#f))
+      (when (and library-spec (not table-name))
+	(assertion-violation 'lex
+	  "missing table name but library specification given, cannot create library"))
+      (when (and output-value table-name)
+	(assertion-violation 'lex
+	  "requested output as value, but a table name was also given")))
+
     (let ((close-port? #f))
       (dynamic-wind
 	  (lambda ()
@@ -202,7 +214,7 @@
   (string-append "        (yycontinue)" "\n"))
 
 (define default-<<EOF>>-action
-  (string-append "       '(0)" "\n"))
+  (string-append "       (eof-object)" "\n"))
 
 (define default-<<ERROR>>-action
   (string-append "       (assertion-violation #f \"invalid token\" yytext)\n"))
@@ -256,7 +268,7 @@
 
 ;;; Noeuds des regexp
 
-(define-record-type (:regexp :regexp-make regexp?)
+(define-record-type (:regexp :regexp-make :regexp?)
   (fields (immutable type	get-re-type)
 	  (immutable attr1	get-re-attr1)
 	  (immutable attr2	get-re-attr2)))
@@ -4686,13 +4698,60 @@
 ;;;; module output.scm
 
 (define (output options <<EOF>>-action <<ERROR>>-action rules nl-start no-nl-start arcs acc)
-  ;;Print the output code.  This is invoked both when producing the full
-  ;;lexer and when producing only the tables.
+  ;;Print the output code.
   ;;
+
+  (define (main)
+    (let-keywords options #t ((library-spec	:library-spec	#f)
+			      (output-file	:output-file	#f)
+			      (output-port	:output-port	#f)
+			      (output-value	:output-value	#f)
+			      (table-name	:table-name	#f)
+			      (lexer-format	:lexer-format	'decision-tree))
+      (let ((opened-file? #f)
+	    (value-getter	#f))
+	(dynamic-wind
+	    (lambda ()
+	      (cond (output-value
+		     (let-values (((sport getter) (open-string-output-port)))
+		       (set! output-port  sport)
+		       (set! value-getter getter)))
+		    ((and output-file (not output-port))
+		     (set! output-port (open-file-output-port output-file
+							      (file-options no-fail)
+							      (buffer-mode block)
+							      (native-transcoder)))
+		     (set! opened-file? #t))))
+	    (lambda ()
+	      (when library-spec
+		(display (string-append "(library "
+					(library-spec->string-spec library-spec)
+					"\n"
+					"  (export\n"
+					"    " (table-name->export-name table-name) ")\n"
+					"  (import (rnrs) (silex lexer))\n"
+					"\n")
+			 output-port))
+	      (out-print-table options
+			       <<EOF>>-action <<ERROR>>-action rules
+			       nl-start no-nl-start arcs acc
+			       output-port)
+	      (when library-spec
+		(display "\n) ; end of library\n\n" output-port)))
+	    (lambda ()
+	      ((if opened-file? close-output-port flush-output-port) output-port)))
+	(or (not value-getter)
+	    ;;Make the output value.
+	    (let ((ell (read (open-string-input-port (value-getter)))))
+	      (eval ell (if (eq? lexer-format 'code)
+			    (environment '(rnrs)
+					 '(silex lexer))
+			  (environment '(rnrs)))))))))
+
   (define (library-spec->string-spec spec)
     ;;We allow the library specification  to be: a string, including the
     ;;parentheses; a symbol, to which  parentheses will be added; a list
-    ;;of whatever, simple converted to string.
+    ;;of values, which will be converted to string.
     ;;
     (cond ((string? spec)
 	   spec)
@@ -4707,6 +4766,7 @@
 	  (else
 	   (assertion-violation 'library-spec->string-spec
 	     "invalid library name specification" spec))))
+
   (define (table-name->export-name table-name)
     ;;We allow the table name to be specified as string or symbol.
     ;;
@@ -4718,903 +4778,874 @@
 	   (assertion-violation 'table-name->export-name
 	     "invalid table name specification" table-name))))
 
-  (let-keywords options #t ((library-spec	:library-spec	#f)
-			    (output-file	:output-file	#f)
-			    (output-port	:output-port	#f)
-			    (output-value	:output-value	#f)
-			    (table-name		:table-name	#f)
-			    (lexer-format	:lexer-format	'decision-tree))
-
-    (when (and library-spec (not table-name))
-      (assertion-violation 'lex
-	"missing table name but library specification given, cannot create library"))
-    (when (and output-value library-spec)
-      (assertion-violation 'lex
-	"requested output as value, but given also library specification"))
-    (when (and output-value table-name)
-      (assertion-violation 'lex
-	"requested output as value, but given also table name"))
-
-    (let ((opened-file? #f)
-	  (value-getter	#f))
-      (dynamic-wind
-	  (lambda ()
-	    (cond (output-value
-		   (let-values (((sport getter) (open-string-output-port)))
-		     (set! output-port  sport)
-		     (set! value-getter getter)))
-		  ((and output-file (not output-port))
-		   (set! output-port (open-file-output-port output-file
-							    (file-options no-fail)
-							    (buffer-mode block)
-							    (native-transcoder)))
-		   (set! opened-file? #t))))
-	  (lambda ()
-	    (when library-spec
-	      (display (string-append "(library "
-				      (library-spec->string-spec library-spec)
-				      "\n"
-				      "  (export\n"
-				      "    " (table-name->export-name table-name) ")\n"
-				      "  (import (rnrs) (silex lexer))\n"
-				      "\n")
-		       output-port))
-	    (out-print-table options
-			     <<EOF>>-action <<ERROR>>-action rules
-			     nl-start no-nl-start arcs acc
-			     output-port)
-	    (when library-spec
-	      (display "\n) ; end of library\n\n" output-port)))
-	  (lambda ()
-	    ((if opened-file? close-output-port flush-output-port) output-port)))
-      (or (not value-getter)
-	  ;;Make the output value.
-	  (let ((ell (read (open-string-input-port (value-getter)))))
-	    (eval ell (if (eq? lexer-format 'code)
-			  (environment '(rnrs)
-				       '(silex lexer))
-			(environment '(rnrs)))))))))
-
 
-;;; nettoie les actions en enlevant les lignes blanches avant et apres
+;;;Nettoie les actions en enlevant les lignes blanches avant et apres.
+;;;Here we are still inside the OUTPUT function.
 
-(define (out-split-in-lines s)
-  (let ((len (string-length s)))
-    (let loop ((i 0) (start 0))
-      (cond ((= i len)
-	     '())
-	    ((char=? (string-ref s i) #\newline)
-	     (cons (substring s start (+ i 1))
-		   (loop (+ i 1) (+ i 1))))
-	    (else
-	     (loop (+ i 1) start))))))
-
-(define (out-empty-line? s)
-  (let ((len (- (string-length s) 1)))
-    (let loop ((i 0))
-      (cond ((= i len)
-	     #t)
-	    ((char-whitespace? (string-ref s i))
-	     (loop (+ i 1)))
-	    (else
-	     #f)))))
-
-(define (out-remove-empty-lines lines)
-  ;;Enleve les lignes vides dans une liste avant et apres l'action.
-  ;;
-  (let loop ((lines lines) (top? #t))
-    (if (null? lines)
-	'()
-      (let ((line (car lines)))
-	(cond ((not (out-empty-line? line))
-	       (cons line (loop (cdr lines) #f)))
-	      (top?
-	       (loop (cdr lines) #t))
+  (define (out-split-in-lines s)
+    (let ((len (string-length s)))
+      (let loop ((i 0) (start 0))
+	(cond ((= i len)
+	       '())
+	      ((char=? (string-ref s i) #\newline)
+	       (cons (substring s start (+ i 1))
+		     (loop (+ i 1) (+ i 1))))
 	      (else
-	       (let ((rest (loop (cdr lines) #f)))
-		 (if (null? rest)
-		     '()
-		   (cons line rest)))))))))
+	       (loop (+ i 1) start))))))
 
-(define (out-clean-action s)
-  ;;Enleve les lignes vides avant et apres l'action.
-  ;;
-  (let* ((lines (out-split-in-lines s))
-	 (clean-lines (out-remove-empty-lines lines)))
-    (apply string-append clean-lines)))
+  (define (out-empty-line? s)
+    (let ((len (- (string-length s) 1)))
+      (let loop ((i 0))
+	(cond ((= i len)
+	       #t)
+	      ((char-whitespace? (string-ref s i))
+	       (loop (+ i 1)))
+	      (else
+	       #f)))))
 
-;;Pretty-printer  pour les  booleens, la  liste vide,  les  nombres, les
-;;symboles, les caracteres, les chaines, les listes et les vecteurs.
+  (define (out-remove-empty-lines lines)
+    ;;Enleve les lignes vides dans une liste avant et apres l'action.
+    ;;
+    (let loop ((lines lines) (top? #t))
+      (if (null? lines)
+	  '()
+	(let ((line (car lines)))
+	  (cond ((not (out-empty-line? line))
+		 (cons line (loop (cdr lines) #f)))
+		(top?
+		 (loop (cdr lines) #t))
+		(else
+		 (let ((rest (loop (cdr lines) #f)))
+		   (if (null? rest)
+		       '()
+		     (cons line rest)))))))))
+
+  (define (out-clean-action s)
+    ;;Enleve les lignes vides avant et apres l'action.
+    ;;
+    (let* ((lines (out-split-in-lines s))
+	   (clean-lines (out-remove-empty-lines lines)))
+      (apply string-append clean-lines)))
+
+  ;;Pretty-printer  pour les  booleens, la  liste vide,  les  nombres, les
+  ;;symboles, les caracteres, les chaines, les listes et les vecteurs.
 
 
-(define out-max-col 76)
+  (define out-max-col 76)
 		;colonne  limite  pour   le  pretty-printer  (a  ne  pas
 		;atteindre)
 
-(define (out-flatten-list ll)
-  (let loop ((ll ll) (part-out '()))
-    (if (null? ll)
-	part-out
-      (let* ((new-part-out (loop (cdr ll) part-out))
-	     (head (car ll)))
-	(cond ((null? head)
-	       new-part-out)
-	      ((pair? head)
-	       (loop head new-part-out))
-	      (else
-	       (cons head new-part-out)))))))
+  (define (out-flatten-list ll)
+    (let loop ((ll ll) (part-out '()))
+      (if (null? ll)
+	  part-out
+	(let* ((new-part-out (loop (cdr ll) part-out))
+	       (head (car ll)))
+	  (cond ((null? head)
+		 new-part-out)
+		((pair? head)
+		 (loop head new-part-out))
+		(else
+		 (cons head new-part-out)))))))
 
-(define (out-force-string obj)
-  (if (char? obj)
-      (string obj)
-    obj))
+  (define (out-force-string obj)
+    (if (char? obj)
+	(string obj)
+      obj))
 
-; Transforme une liste impropre en une liste propre qui s'ecrit
-; de la meme facon
-(define out-regular-list
-  (let ((symbolic-dot (string->symbol ".")))
-    (lambda (p)
-      (let ((tail (cdr p)))
-	(cond ((null? tail)
-	       p)
-	      ((pair? tail)
-	       (cons (car p) (out-regular-list tail)))
-	      (else
-	       (list (car p) symbolic-dot tail)))))))
+		; Transforme une liste impropre en une liste propre qui s'ecrit
+		; de la meme facon
+  (define out-regular-list
+    (let ((symbolic-dot (string->symbol ".")))
+      (lambda (p)
+	(let ((tail (cdr p)))
+	  (cond ((null? tail)
+		 p)
+		((pair? tail)
+		 (cons (car p) (out-regular-list tail)))
+		(else
+		 (list (car p) symbolic-dot tail)))))))
 
-; Cree des chaines d'espaces de facon paresseuse
-(define out-blanks
-  (let ((cache-v (make-vector 80 #f)))
-    (lambda (n)
-      (or (vector-ref cache-v n)
-	  (let ((result (make-string n #\space)))
-	    (vector-set! cache-v n result)
-	    result)))))
+		; Cree des chaines d'espaces de facon paresseuse
+  (define out-blanks
+    (let ((cache-v (make-vector 80 #f)))
+      (lambda (n)
+	(or (vector-ref cache-v n)
+	    (let ((result (make-string n #\space)))
+	      (vector-set! cache-v n result)
+	      result)))))
 
-(define (out-separate text-l sep)
-  ;;Insere le separateur entre chaque element d'une liste non-vide.
-  ;;
-  (if (null? (cdr text-l))
-      text-l
-    (cons (car text-l) (cons sep (out-separate (cdr text-l) sep)))))
+  (define (out-separate text-l sep)
+    ;;Insere le separateur entre chaque element d'une liste non-vide.
+    ;;
+    (if (null? (cdr text-l))
+	text-l
+      (cons (car text-l) (cons sep (out-separate (cdr text-l) sep)))))
 
-(define (out-pp-columns left right wmax txt&lens)
-  ;;Met des donnees en colonnes.  Retourne comme out-pp-aux-list.
-  ;;
-  (let loop1 ((tls     txt&lens)
-	      (lwmax   0)
-	      (lwlast  0)
-	      (lines  '()))
-    (if (null? tls)
-	(vector #t 0 lwmax lwlast (reverse lines))
-      (let loop2 ((tls tls) (len 0) (first? #t) (prev-pad 0) (line '()))
-	(cond ((null? tls)
-	       (loop1 tls
-		      (max len lwmax)
-		      len
-		      (cons (reverse line) lines)))
-	      ((> (+ left len prev-pad 1 wmax) out-max-col)
-	       (loop1 tls
-		      (max len lwmax)
-		      len
-		      (cons (reverse line) lines)))
-	      (first?
-	       (let ((text     (caar tls))
-		     (text-len (cdar tls)))
-		 (loop2 (cdr tls)
-			(+ len text-len)
-			#f
-			(- wmax text-len)
-			(cons text line))))
-	      ((pair? (cdr tls))
-	       (let* ((prev-pad-s (out-blanks prev-pad))
-		      (text     (caar tls))
-		      (text-len (cdar tls)))
-		 (loop2 (cdr tls)
-			(+ len prev-pad 1 text-len)
-			#f
-			(- wmax text-len)
-			(cons text (cons " " (cons prev-pad-s line))))))
-	      (else
-	       (let ((prev-pad-s (out-blanks prev-pad))
-		     (text     (caar tls))
-		     (text-len (cdar tls)))
-		 (if (> (+ left len prev-pad 1 text-len) right)
-		     (loop1 tls
-			    (max len lwmax)
-			    len
-			    (cons (reverse line) lines))
+  (define (out-pp-columns left right wmax txt&lens)
+    ;;Met des donnees en colonnes.  Retourne comme out-pp-aux-list.
+    ;;
+    (let loop1 ((tls     txt&lens)
+		(lwmax   0)
+		(lwlast  0)
+		(lines  '()))
+      (if (null? tls)
+	  (vector #t 0 lwmax lwlast (reverse lines))
+	(let loop2 ((tls tls) (len 0) (first? #t) (prev-pad 0) (line '()))
+	  (cond ((null? tls)
+		 (loop1 tls
+			(max len lwmax)
+			len
+			(cons (reverse line) lines)))
+		((> (+ left len prev-pad 1 wmax) out-max-col)
+		 (loop1 tls
+			(max len lwmax)
+			len
+			(cons (reverse line) lines)))
+		(first?
+		 (let ((text     (caar tls))
+		       (text-len (cdar tls)))
+		   (loop2 (cdr tls)
+			  (+ len text-len)
+			  #f
+			  (- wmax text-len)
+			  (cons text line))))
+		((pair? (cdr tls))
+		 (let* ((prev-pad-s (out-blanks prev-pad))
+			(text     (caar tls))
+			(text-len (cdar tls)))
 		   (loop2 (cdr tls)
 			  (+ len prev-pad 1 text-len)
 			  #f
 			  (- wmax text-len)
-			  (append (list text " " prev-pad-s)
-				  line))))))))))
+			  (cons text (cons " " (cons prev-pad-s line))))))
+		(else
+		 (let ((prev-pad-s (out-blanks prev-pad))
+		       (text     (caar tls))
+		       (text-len (cdar tls)))
+		   (if (> (+ left len prev-pad 1 text-len) right)
+		       (loop1 tls
+			      (max len lwmax)
+			      len
+			      (cons (reverse line) lines))
+		     (loop2 (cdr tls)
+			    (+ len prev-pad 1 text-len)
+			    #f
+			    (- wmax text-len)
+			    (append (list text " " prev-pad-s)
+				    line))))))))))
 
-(define (out-pp-aux-list l left right)
-  ;;Retourne un vecteur:
-  ;;
-  ;;	#( multiline? width-all width-max width-last text-l )
-  ;;
-  (let loop ((l l) (multi? #f) (wall -1) (wmax -1) (wlast -1) (txt&lens '()))
-    (if (null? l)
-	(cond (multi?
-	       (vector #t wall wmax wlast (map car (reverse txt&lens))))
-	      ((<= (+ left wall) right)
-	       (vector #f wall wmax wlast (map car (reverse txt&lens))))
-	      ((<= (+ left wmax 1 wmax) out-max-col)
-	       (out-pp-columns left right wmax (reverse txt&lens)))
-	      (else
-	       (vector #t wall wmax wlast (map car (reverse txt&lens)))))
-      (let* ((obj (car l))
-	     (last? (null? (cdr l)))
-	     (this-right (if last? right out-max-col))
-	     (result (out-pp-aux obj left this-right))
-	     (obj-multi? (vector-ref result 0))
-	     (obj-wmax   (vector-ref result 1))
-	     (obj-wlast  (vector-ref result 2))
-	     (obj-text   (vector-ref result 3)))
-	(loop (cdr l)
-	      (or multi? obj-multi?)
-	      (+ wall obj-wmax 1)
-	      (max wmax obj-wmax)
-	      obj-wlast
-	      (cons (cons obj-text obj-wmax) txt&lens))))))
+  (define (out-pp-aux-list l left right)
+    ;;Retourne un vecteur:
+    ;;
+    ;;	#( multiline? width-all width-max width-last text-l )
+    ;;
+    (let loop ((l l) (multi? #f) (wall -1) (wmax -1) (wlast -1) (txt&lens '()))
+      (if (null? l)
+	  (cond (multi?
+		 (vector #t wall wmax wlast (map car (reverse txt&lens))))
+		((<= (+ left wall) right)
+		 (vector #f wall wmax wlast (map car (reverse txt&lens))))
+		((<= (+ left wmax 1 wmax) out-max-col)
+		 (out-pp-columns left right wmax (reverse txt&lens)))
+		(else
+		 (vector #t wall wmax wlast (map car (reverse txt&lens)))))
+	(let* ((obj (car l))
+	       (last? (null? (cdr l)))
+	       (this-right (if last? right out-max-col))
+	       (result (out-pp-aux obj left this-right))
+	       (obj-multi? (vector-ref result 0))
+	       (obj-wmax   (vector-ref result 1))
+	       (obj-wlast  (vector-ref result 2))
+	       (obj-text   (vector-ref result 3)))
+	  (loop (cdr l)
+		(or multi? obj-multi?)
+		(+ wall obj-wmax 1)
+		(max wmax obj-wmax)
+		obj-wlast
+		(cons (cons obj-text obj-wmax) txt&lens))))))
 
-(define (out-pp-aux obj left right)
-  ;;Retourne un vecteur:
-  ;;
-  ;;	#( multiline? wmax wlast text )
-  ;;
-  (cond ((boolean? obj)
-	 (vector #f 2 2 (if obj '("#t") '("#f"))))
-	((null? obj)
-	 (vector #f 2 2 '("()")))
-	((number? obj)
-	 (let* ((s (number->string obj))
-		(len (string-length s)))
-	   (vector #f len len (list s))))
-	((symbol? obj)
-	 (let* ((s (symbol->string obj))
-		(len (string-length s)))
-	   (vector #f len len (list s))))
-	((char? obj)
-	 (cond ((char=? obj #\space)
-		(vector #f 7 7 (list "#\\space")))
-	       ((char=? obj #\newline)
-		(vector #f 9 9 (list "#\\newline")))
-	       (else
-		(vector #f 3 3 (list "#\\" obj)))))
-	((string? obj)
-	 (let loop ((i (- (string-length obj) 1))
-		    (len 1)
-		    (text '("\"")))
-	   (if (= i -1)
-	       (vector #f (+ len 1) (+ len 1) (cons "\"" text))
-	     (let ((c (string-ref obj i)))
-	       (cond ((char=? c #\\)
-		      (loop (- i 1) (+ len 2) (cons "\\\\" text)))
-		     ((char=? c #\")
-		      (loop (- i 1) (+ len 2) (cons "\\\"" text)))
-		     (else
-		      (loop (- i 1) (+ len 1) (cons (string c) text))))))))
-	((pair? obj)
-	 (let* ((l (out-regular-list obj))
-		(result (out-pp-aux-list l (+ left 1) (- right 1)))
-		(multiline? (vector-ref result 0))
-		(width-all  (vector-ref result 1))
-		(width-max  (vector-ref result 2))
-		(width-last (vector-ref result 3))
-		(text-l     (vector-ref result 4)))
-	   (if multiline?
-	       (let* ((sep (list #\newline (out-blanks left)))
+  (define (out-pp-aux obj left right)
+    ;;Retourne un vecteur:
+    ;;
+    ;;	#( multiline? wmax wlast text )
+    ;;
+    (cond ((boolean? obj)
+	   (vector #f 2 2 (if obj '("#t") '("#f"))))
+	  ((null? obj)
+	   (vector #f 2 2 '("()")))
+	  ((number? obj)
+	   (let* ((s (number->string obj))
+		  (len (string-length s)))
+	     (vector #f len len (list s))))
+	  ((symbol? obj)
+	   (let* ((s (symbol->string obj))
+		  (len (string-length s)))
+	     (vector #f len len (list s))))
+	  ((char? obj)
+	   (cond ((char=? obj #\space)
+		  (vector #f 7 7 (list "#\\space")))
+		 ((char=? obj #\newline)
+		  (vector #f 9 9 (list "#\\newline")))
+		 (else
+		  (vector #f 3 3 (list "#\\" obj)))))
+	  ((string? obj)
+	   (let loop ((i (- (string-length obj) 1))
+		      (len 1)
+		      (text '("\"")))
+	     (if (= i -1)
+		 (vector #f (+ len 1) (+ len 1) (cons "\"" text))
+	       (let ((c (string-ref obj i)))
+		 (cond ((char=? c #\\)
+			(loop (- i 1) (+ len 2) (cons "\\\\" text)))
+		       ((char=? c #\")
+			(loop (- i 1) (+ len 2) (cons "\\\"" text)))
+		       (else
+			(loop (- i 1) (+ len 1) (cons (string c) text))))))))
+	  ((pair? obj)
+	   (let* ((l (out-regular-list obj))
+		  (result (out-pp-aux-list l (+ left 1) (- right 1)))
+		  (multiline? (vector-ref result 0))
+		  (width-all  (vector-ref result 1))
+		  (width-max  (vector-ref result 2))
+		  (width-last (vector-ref result 3))
+		  (text-l     (vector-ref result 4)))
+	     (if multiline?
+		 (let* ((sep (list #\newline (out-blanks left)))
+			(formatted-text (out-separate text-l sep))
+			(text (list "(" formatted-text ")")))
+		   (vector #t
+			   (+ (max width-max (+ width-last 1)) 1)
+			   (+ width-last 2)
+			   text))
+	       (let* ((sep (list " "))
 		      (formatted-text (out-separate text-l sep))
 		      (text (list "(" formatted-text ")")))
-		 (vector #t
-			 (+ (max width-max (+ width-last 1)) 1)
-			 (+ width-last 2)
-			 text))
-	     (let* ((sep (list " "))
-		    (formatted-text (out-separate text-l sep))
-		    (text (list "(" formatted-text ")")))
-	       (vector #f (+ width-all 2) (+ width-all 2) text)))))
-	((and (vector? obj) (zero? (vector-length obj)))
-	 (vector #f 3 3 '("#()")))
-	((vector? obj)
-	 (let* ((l (vector->list obj))
-		(result (out-pp-aux-list l (+ left 2) (- right 1)))
-		(multiline? (vector-ref result 0))
-		(width-all  (vector-ref result 1))
-		(width-max  (vector-ref result 2))
-		(width-last (vector-ref result 3))
-		(text-l     (vector-ref result 4)))
-	   (if multiline?
-	       (let* ((sep (list #\newline (out-blanks (+ left 1))))
+		 (vector #f (+ width-all 2) (+ width-all 2) text)))))
+	  ((and (vector? obj) (zero? (vector-length obj)))
+	   (vector #f 3 3 '("#()")))
+	  ((vector? obj)
+	   (let* ((l (vector->list obj))
+		  (result (out-pp-aux-list l (+ left 2) (- right 1)))
+		  (multiline? (vector-ref result 0))
+		  (width-all  (vector-ref result 1))
+		  (width-max  (vector-ref result 2))
+		  (width-last (vector-ref result 3))
+		  (text-l     (vector-ref result 4)))
+	     (if multiline?
+		 (let* ((sep (list #\newline (out-blanks (+ left 1))))
+			(formatted-text (out-separate text-l sep))
+			(text (list "#(" formatted-text ")")))
+		   (vector #t
+			   (+ (max width-max (+ width-last 1)) 2)
+			   (+ width-last 3)
+			   text))
+	       (let* ((sep (list " "))
 		      (formatted-text (out-separate text-l sep))
 		      (text (list "#(" formatted-text ")")))
-		 (vector #t
-			 (+ (max width-max (+ width-last 1)) 2)
-			 (+ width-last 3)
-			 text))
-	     (let* ((sep (list " "))
-		    (formatted-text (out-separate text-l sep))
-		    (text (list "#(" formatted-text ")")))
-	       (vector #f (+ width-all 3) (+ width-all 3) text)))))
-	(else
-	 (display "Internal error: out-pp")
-	 (newline))))
+		 (vector #f (+ width-all 3) (+ width-all 3) text)))))
+	  (else
+	   (display "Internal error: out-pp")
+	   (newline))))
 
-; Retourne la chaine a afficher
-(define (out-pp obj col)
-  (let* ((list-rec-of-strings-n-chars
-	  (vector-ref (out-pp-aux obj col out-max-col) 3))
-	 (list-of-strings-n-chars
-	  (out-flatten-list list-rec-of-strings-n-chars))
-	 (list-of-strings
-	  (map out-force-string list-of-strings-n-chars)))
-    (apply string-append list-of-strings)))
+		; Retourne la chaine a afficher
+  (define (out-pp obj col)
+    (let* ((list-rec-of-strings-n-chars
+	    (vector-ref (out-pp-aux obj col out-max-col) 3))
+	   (list-of-strings-n-chars
+	    (out-flatten-list list-rec-of-strings-n-chars))
+	   (list-of-strings
+	    (map out-force-string list-of-strings-n-chars)))
+      (apply string-append list-of-strings)))
 
-(define (out-np obj start)
-  ;;Nice-printer, plus rapide mais moins beau que le pretty-printer.
-  (letrec ((line-pad
-	    (string-append "\n"
-			   (out-blanks (- start 1))))
-	   (step-line
-	    (lambda (p)
-	      (set-car! p line-pad)))
-	   (p-bool
-	    (lambda (obj col objw texts hole cont)
-	      (let ((text (if obj "#t" "#f")))
-		(cont (+ col 2) (+ objw 2) (cons text texts) hole))))
-	   (p-number
-	    (lambda (obj col objw texts hole cont)
-	      (let* ((text (number->string obj))
-		     (len (string-length text)))
-		(cont (+ col len) (+ objw len) (cons text texts) hole))))
-	   (p-symbol
-	    (lambda (obj col objw texts hole cont)
-	      (let* ((text (symbol->string obj))
-		     (len (string-length text)))
-		(cont (+ col len) (+ objw len) (cons text texts) hole))))
-	   (p-char
-	    (lambda (obj col objw texts hole cont)
-	      (let* ((text
-		      (cond ((char=? obj #\space) "#\\space")
-			    ((char=? obj #\newline) "#\\newline")
-			    (else (string-append "#\\" (string obj)))))
-		     (len (string-length text)))
-		(cont (+ col len) (+ objw len) (cons text texts) hole))))
-	   (p-list
-	    (lambda (obj col objw texts hole cont)
-	      (p-tail obj (+ col 1) (+ objw 1) (cons "(" texts) hole cont)))
-	   (p-vector
-	    (lambda (obj col objw texts hole cont)
-	      (p-list (vector->list obj)
-		      (+ col 1) (+ objw 1) (cons "#" texts) hole cont)))
-	   (p-tail
-	    (lambda (obj col objw texts hole cont)
-	      (if (null? obj)
-		  (cont (+ col 1) (+ objw 1) (cons ")" texts) hole)
-		(p-obj (car obj) col objw texts hole
-		       (make-cdr-cont obj cont)))))
-	   (make-cdr-cont
-	    (lambda (obj cont)
-	      (lambda (col objw texts hole)
-		(cond ((null? (cdr obj))
-		       (cont (+ col 1) (+ objw 1) (cons ")" texts) hole))
-		      ((> col out-max-col)
-		       (step-line hole)
-		       (let ((hole2 (cons " " texts)))
-			 (p-cdr obj (+ start objw 1) 0 hole2 hole2 cont)))
-		      (else
-		       (let ((hole2 (cons " " texts)))
-			 (p-cdr obj (+ col 1) 0 hole2 hole2 cont)))))))
-	   (p-cdr
-	    (lambda (obj col objw texts hole cont)
-	      (if (pair? (cdr obj))
-		  (p-tail (cdr obj) col objw texts hole cont)
-		(p-dot col objw texts hole
-		       (make-cdr-cont (list #f (cdr obj)) cont)))))
-	   (p-dot
-	    (lambda (col objw texts hole cont)
-	      (cont (+ col 1) (+ objw 1) (cons "." texts) hole)))
-	   (p-obj
-	    (lambda (obj col objw texts hole cont)
-	      (cond ((boolean? obj)
-		     (p-bool obj col objw texts hole cont))
-		    ((number? obj)
-		     (p-number obj col objw texts hole cont))
-		    ((symbol? obj)
-		     (p-symbol obj col objw texts hole cont))
-		    ((char? obj)
-		     (p-char obj col objw texts hole cont))
-		    ((or (null? obj) (pair? obj))
-		     (p-list obj col objw texts hole cont))
-		    ((vector? obj)
-		     (p-vector obj col objw texts hole cont))))))
-    (p-obj obj start 0 '() (cons #f #f)
-	   (lambda (col objw texts hole)
-	     (if (> col out-max-col)
-		 (step-line hole))
-	     (apply string-append (reverse texts))))))
+  (define (out-np obj start)
+    ;;Nice-printer, plus rapide mais moins beau que le pretty-printer.
+    (letrec ((line-pad
+	      (string-append "\n"
+			     (out-blanks (- start 1))))
+	     (step-line
+	      (lambda (p)
+		(set-car! p line-pad)))
+	     (p-bool
+	      (lambda (obj col objw texts hole cont)
+		(let ((text (if obj "#t" "#f")))
+		  (cont (+ col 2) (+ objw 2) (cons text texts) hole))))
+	     (p-number
+	      (lambda (obj col objw texts hole cont)
+		(let* ((text (number->string obj))
+		       (len (string-length text)))
+		  (cont (+ col len) (+ objw len) (cons text texts) hole))))
+	     (p-symbol
+	      (lambda (obj col objw texts hole cont)
+		(let* ((text (symbol->string obj))
+		       (len (string-length text)))
+		  (cont (+ col len) (+ objw len) (cons text texts) hole))))
+	     (p-char
+	      (lambda (obj col objw texts hole cont)
+		(let* ((text
+			(cond ((char=? obj #\space) "#\\space")
+			      ((char=? obj #\newline) "#\\newline")
+			      (else (string-append "#\\" (string obj)))))
+		       (len (string-length text)))
+		  (cont (+ col len) (+ objw len) (cons text texts) hole))))
+	     (p-list
+	      (lambda (obj col objw texts hole cont)
+		(p-tail obj (+ col 1) (+ objw 1) (cons "(" texts) hole cont)))
+	     (p-vector
+	      (lambda (obj col objw texts hole cont)
+		(p-list (vector->list obj)
+			(+ col 1) (+ objw 1) (cons "#" texts) hole cont)))
+	     (p-tail
+	      (lambda (obj col objw texts hole cont)
+		(if (null? obj)
+		    (cont (+ col 1) (+ objw 1) (cons ")" texts) hole)
+		  (p-obj (car obj) col objw texts hole
+			 (make-cdr-cont obj cont)))))
+	     (make-cdr-cont
+	      (lambda (obj cont)
+		(lambda (col objw texts hole)
+		  (cond ((null? (cdr obj))
+			 (cont (+ col 1) (+ objw 1) (cons ")" texts) hole))
+			((> col out-max-col)
+			 (step-line hole)
+			 (let ((hole2 (cons " " texts)))
+			   (p-cdr obj (+ start objw 1) 0 hole2 hole2 cont)))
+			(else
+			 (let ((hole2 (cons " " texts)))
+			   (p-cdr obj (+ col 1) 0 hole2 hole2 cont)))))))
+	     (p-cdr
+	      (lambda (obj col objw texts hole cont)
+		(if (pair? (cdr obj))
+		    (p-tail (cdr obj) col objw texts hole cont)
+		  (p-dot col objw texts hole
+			 (make-cdr-cont (list #f (cdr obj)) cont)))))
+	     (p-dot
+	      (lambda (col objw texts hole cont)
+		(cont (+ col 1) (+ objw 1) (cons "." texts) hole)))
+	     (p-obj
+	      (lambda (obj col objw texts hole cont)
+		(cond ((boolean? obj)
+		       (p-bool obj col objw texts hole cont))
+		      ((number? obj)
+		       (p-number obj col objw texts hole cont))
+		      ((symbol? obj)
+		       (p-symbol obj col objw texts hole cont))
+		      ((char? obj)
+		       (p-char obj col objw texts hole cont))
+		      ((or (null? obj) (pair? obj))
+		       (p-list obj col objw texts hole cont))
+		      ((vector? obj)
+		       (p-vector obj col objw texts hole cont))))))
+      (p-obj obj start 0 '() (cons #f #f)
+	     (lambda (col objw texts hole)
+	       (if (> col out-max-col)
+		   (step-line hole))
+	       (apply string-append (reverse texts))))))
 
 
-;;; output table functions
+;;;Main  output table  function.  Here  we are  still inside  the OUTPUT
+;;;function.
 
-(define (out-print-table options
-			 <<EOF>>-action <<ERROR>>-action rules
-			 nl-start no-nl-start arcs-v acc-v
-			 output-port)
-  ;;Print the lexer table.
-  ;;
-  (define (%display stuff)
-    (display stuff output-port))
-  (define (%write stuff)
-    (write stuff output-port))
-  (define (%newline)
-    (newline output-port))
+  (define (out-print-table options
+			   <<EOF>>-action <<ERROR>>-action rules
+			   nl-start no-nl-start arcs-v acc-v
+			   output-port)
+    ;;Print the lexer table.
+    ;;
+    (define (%display stuff)
+      (display stuff output-port))
+    (define (%write stuff)
+      (write stuff output-port))
+    (define (%newline)
+      (newline output-port))
 
-  (let-keywords options #t ((input-file		:input-file	#f)
-			    (table-name		:table-name	#f)
-			    (pretty?		:pretty-print	#f)
-			    (counters-type	:counters	'line)
-			    (lexer-format	:lexer-format	'decision-tree))
-    (let* ((counters-param-list	(case  counters-type
+    (let-keywords options #t ((input-file	:input-file	#f)
+			      (table-name	:table-name	#f)
+			      (pretty?		:pretty-print	#f)
+			      (counters-type	:counters	'line)
+			      (lexer-format	:lexer-format	'decision-tree))
+      (let* ((counters-param-list	(case  counters-type
 		;NOTE: The leading space in the result is important.
-				  ((none)	")")
-				  ((line)	" yyline)")
-				  (else		" yyline yycolumn yyoffset)")))
-	   (counters-param-list-short
-	    (if (char=? (string-ref counters-param-list 0) #\space)
-		(substring counters-param-list
-			   1
-			   (string-length counters-param-list))
-	      counters-param-list))
-	   (clean-eof-action	(out-clean-action <<EOF>>-action))
-	   (clean-error-action	(out-clean-action <<ERROR>>-action))
-	   (rule-op		(lambda (rule)
+					  ((none)	")")
+					  ((line)	" yyline)")
+					  (else		" yyline yycolumn yyoffset)")))
+	     (counters-param-list-short
+	      (if (char=? (string-ref counters-param-list 0) #\space)
+		  (substring counters-param-list
+			     1
+			     (string-length counters-param-list))
+		counters-param-list))
+	     (clean-eof-action	(out-clean-action <<EOF>>-action))
+	     (clean-error-action	(out-clean-action <<ERROR>>-action))
+	     (rule-op		(lambda (rule)
 				  (out-clean-action (get-rule-action rule))))
-	   (rules-l		(vector->list rules))
-	   (clean-actions-l	(map rule-op rules-l))
-	   (yytext?-l		(map get-rule-yytext? rules-l)))
+	     (rules-l		(vector->list rules))
+	     (clean-actions-l	(map rule-op rules-l))
+	     (yytext?-l		(map get-rule-yytext? rules-l)))
 
-      ;;Preamble of comments.
-      (%display ";\n")
-      (%display "; Table generated from the file ")
-      (%display input-file)
-      (%display " by SILex 1.0")
-      (%newline)
-      (%display ";\n\n")
+	;;Preamble of comments.
+	(%display ";\n")
+	(%display "; Table generated from the file ")
+	(%display input-file)
+	(%display " by SILex 1.0")
+	(%newline)
+	(%display ";\n\n")
 
-      ;;Print the opening of the table.
-      (when table-name
-	(%display "(define ")
-	(%display table-name)
-	(%newline))
-      (%display "  (vector\n")
+	;;Print the opening of the table.
+	(when table-name
+	  (%display "(define ")
+	  (%display table-name)
+	  (%newline))
+	(%display "  (vector\n")
 
-      ;;Print the description of the selected counters.  This is the value
-      ;;of the "counters" option.
-      (%display "   '")
-      (%write counters-type)
-      (%newline)
+	;;Print the description of the selected counters.  This is the value
+	;;of the "counters" option.
+	(%display "   '")
+	(%write counters-type)
+	(%newline)
 
-      ;;Print  the  action function  to  call  when  the lexer  finds  the
-      ;;end-of-file.
-      (%display "   (lambda (yycontinue yygetc yyungetc)\n")
-      (%display "     (lambda (yytext")
-      (%display counters-param-list)
-      (%newline)
-      (%display clean-eof-action)
-      (%display "       ))\n")
+	;;Print  the  action function  to  call  when  the lexer  finds  the
+	;;end-of-file.
+	(%display "   (lambda (yycontinue yygetc yyungetc)\n")
+	(%display "     (lambda (yytext")
+	(%display counters-param-list)
+	(%newline)
+	(%display clean-eof-action)
+	(%display "       ))\n")
 
-      ;;Print the action function to call when the lexer finds an error in
-      ;;the input.
-      (%display "   (lambda (yycontinue yygetc yyungetc)\n")
-      (%display "     (lambda (yytext")
-      (%display counters-param-list)
-      (%newline)
-      (%display clean-error-action)
-      (%display "       ))\n")
+	;;Print the action function to call when the lexer finds an error in
+	;;the input.
+	(%display "   (lambda (yycontinue yygetc yyungetc)\n")
+	(%display "     (lambda (yytext")
+	(%display counters-param-list)
+	(%newline)
+	(%display clean-error-action)
+	(%display "       ))\n")
 
-      ;;Print the subvector of action functions for the lexer rules.
-      (%display "   (vector\n")
-      (let loop ((al clean-actions-l)
-		 (yyl yytext?-l))
-	(when (pair? al)
-	  (let ((yytext? (car yyl)))
-	    (%display "    ")
-	    (%write yytext?)
-	    (%newline)
-	    (%display "    (lambda (yycontinue yygetc yyungetc)\n")
-	    (if yytext?
+	;;Print the subvector of action functions for the lexer rules.
+	(%display "   (vector\n")
+	(let loop ((al clean-actions-l)
+		   (yyl yytext?-l))
+	  (when (pair? al)
+	    (let ((yytext? (car yyl)))
+	      (%display "    ")
+	      (%write yytext?)
+	      (%newline)
+	      (%display "    (lambda (yycontinue yygetc yyungetc)\n")
+	      (if yytext?
+		  (begin
+		    (%display "      (lambda (yytext")
+		    (%display counters-param-list))
 		(begin
-		  (%display "      (lambda (yytext")
-		  (%display counters-param-list))
-	      (begin
-		(%display "      (lambda (")
-		(%display counters-param-list-short)))
-	    (%newline)
-	    (%display (car al))
-	    (%display "        ))")
-	    (when (pair? (cdr al))
-	      (%newline))
-	    (loop (cdr al) (cdr yyl)))))
-      (%display ")\n")
+		  (%display "      (lambda (")
+		  (%display counters-param-list-short)))
+	      (%newline)
+	      (%display (car al))
+	      (%display "        ))")
+	      (when (pair? (cdr al))
+		(%newline))
+	      (loop (cdr al) (cdr yyl)))))
+	(%display ")\n")
 		;close the subvector of action functions
 
-      ;;Print  the  automaton  in  one  of the  three  supported  formats:
-      ;;portable, scheme code, raw data.
-      (case lexer-format
-	((portable)
-	 (out-print-table-chars pretty?
-				nl-start no-nl-start arcs-v acc-v
-				output-port))
-	((code)
-	 (out-print-table-code counters-type (vector-length rules) yytext?-l
-			       nl-start no-nl-start arcs-v acc-v
-			       output-port))
-	((decision-tree)
-	 (out-print-table-data pretty?
-			       nl-start no-nl-start arcs-v acc-v
-			       output-port))
-	(else
-	 (assertion-violation 'lex
-	   "unknown lexer output format" lexer-format)))
+	;;Print  the  automaton  in  one  of the  three  supported  formats:
+	;;portable, scheme code, raw data.
+	(case lexer-format
+	  ((portable)
+	   (out-print-table-chars pretty?
+				  nl-start no-nl-start arcs-v acc-v
+				  output-port))
+	  ((code)
+	   (out-print-table-code counters-type (vector-length rules) yytext?-l
+				 nl-start no-nl-start arcs-v acc-v
+				 output-port))
+	  ((decision-tree)
+	   (out-print-table-data pretty?
+				 nl-start no-nl-start arcs-v acc-v
+				 output-port))
+	  (else
+	   (assertion-violation 'lex
+	     "unknown lexer output format" lexer-format)))
 
-      ;;Terminate the table vector and the DEFINE, is one was opened.
-      (%display (if table-name "))\n" ")\n")))))
+	;;Terminate the table vector and the DEFINE, is one was opened.
+	(%display (if table-name "))\n" ")\n")))))
 
-(define (out-print-table-data pretty? nl-start no-nl-start arcs-v acc-v output-port)
-  ;;Print the table  in the decision tree format, which  is the raw data
-  ;;format.
-  (define (%display stuff)
-    (display stuff output-port))
-  (define (%write stuff)
-    (write stuff output-port))
-  (define (%newline)
-    (newline output-port))
+
+;;;Auxiliary output table function.  Here we are still inside the OUTPUT
+;;;function.
 
-  (let* ((len (vector-length arcs-v))
-	 (trees-v (make-vector len)))
-    (let loop ((i 0))
-      (when (< i len)
-	(vector-set! trees-v i (prep-arcs->tree (vector-ref arcs-v i)))
-	(loop (+ i 1))))
+  (define (out-print-table-data pretty? nl-start no-nl-start arcs-v acc-v output-port)
+    ;;Print the table in the decision tree format, which is the raw data
+    ;;format.
+    ;;
+    (define (%display stuff)
+      (display stuff output-port))
+    (define (%write stuff)
+      (write stuff output-port))
+    (define (%newline)
+      (newline output-port))
 
-		; Decrire le format de l'automate
-    (%display "   'decision-trees")
-    (%newline)
-
-		; Ecrire l'etat de depart pour le cas "debut de la ligne"
-    (%display "   ")
-    (%write nl-start)
-    (%newline)
-
-		; Ecrire l'etat de depart pour le cas "pas au debut de la ligne"
-    (%display "   ")
-    (%write no-nl-start)
-    (%newline)
-
-		; Ecrire la table de transitions
-    (%display "   '")
-    (if pretty?
-	(%display (out-pp trees-v 5))
-      (%display (out-np trees-v 5)))
-    (%newline)
-
-		; Ecrire la table des acceptations
-    (%display "   '")
-    (if pretty?
-	(%display (out-pp acc-v 5))
-      (%display (out-np acc-v 5)))))
-
-(define (out-print-table-chars pretty? nl-start no-nl-start arcs-v acc-v output-port)
-  ;;Print the automation in the portable format.
-  ;;
-  (define (%display stuff)
-    (display stuff output-port))
-  (define (%write stuff)
-    (write stuff output-port))
-  (define (%newline)
-    (newline output-port))
-
-  (let* ((len		(vector-length arcs-v))
-	 (portable-v	(make-vector len))
-	 (arc-op	(lambda (arc)
-			  (cons (class->tagged-char-list (car arc))
-				(cdr arc)))))
-    (let loop ((s 0))
-      (when (< s len)
-	(let* ((arcs	  (vector-ref arcs-v s))
-	       (port-arcs (map arc-op arcs)))
-	  (vector-set! portable-v s port-arcs)
-	  (loop (+ s 1)))))
-    ;; Decrire le format de l'automate
-    (%display "   'tagged-chars-lists")
-    (%newline)
-    ;; Ecrire l'etat de depart pour le cas "debut de la ligne"
-    (%display "   ")
-    (%write nl-start)
-    (%newline)
-    ;; Ecrire l'etat de depart pour le cas "pas au debut de la ligne"
-    (%display "   ")
-    (%write no-nl-start)
-    (%newline)
-    ;; Ecrire la table de transitions
-    (%display "   '")
-    (%display ((if pretty? out-pp out-np) portable-v 5))
-    (%newline)
-    ;; Ecrire la table des acceptations
-    (%display "   '")
-    (%display ((if pretty? out-pp out-np) acc-v 5))))
-
-(define (out-print-code-trans3 margin tree action-var output-port)
-  ;;Generate the automaton in  Scheme code form.
-  ;;
-  (define (%display stuff)
-    (display stuff output-port))
-  (define (%write stuff)
-    (write stuff output-port))
-  (define (%newline)
-    (newline output-port))
-
-  (%newline)
-  (%display (out-blanks margin))
-  (cond ((eq? tree 'err)
-	 (%display action-var))
-	((number? tree)
-	 (%display "(state-")
-	 (%display tree)
-	 (%display " ")
-	 (%display action-var)
-	 (%display ")"))
-	((eq? (car tree) '=)
-	 (%display "(if (= c ")
-	 (%display (list-ref tree 1))
-	 (%display ")")
-	 (out-print-code-trans3 (+ margin 4)
-				(list-ref tree 2)
-				action-var
-				output-port)
-	 (out-print-code-trans3 (+ margin 4)
-				(list-ref tree 3)
-				action-var
-				output-port)
-	 (%display ")"))
-	(else
-	 (%display "(if (< c ")
-	 (%display (list-ref tree 0))
-	 (%display ")")
-	 (out-print-code-trans3 (+ margin 4)
-				(list-ref tree 1)
-				action-var
-				output-port)
-	 (out-print-code-trans3 (+ margin 4)
-				(list-ref tree 2)
-				action-var
-				output-port)
-	 (%display ")"))))
-
-(define (out-print-code-trans2 margin tree action-var output-port)
-  (display (string-append
-	    "\n"
-	    (out-blanks margin)
-	    "(if c")
-	   output-port)
-  (out-print-code-trans3 (+ margin 4) tree action-var output-port)
-  (display (string-append
-	    "\n"
-	    (out-blanks (+ margin 4))
-	    action-var ")")
-	   output-port))
-
-(define (out-print-code-trans1 margin tree action-var output-port)
-  (newline output-port)
-  (display (out-blanks margin) output-port)
-  (if (eq? tree 'err)
-      (display action-var output-port)
-    (begin
-      (display "(let ((c (read-char)))" output-port)
-      (out-print-code-trans2 (+ margin 2) tree action-var output-port)
-      (display ")" output-port))))
-
-(define (out-print-table-code counters nbrules yytext?-l
-			      nl-start no-nl-start arcs-v acc-v
-			      output-port)
-  (define (%display stuff)
-    (display stuff output-port))
-  (define (%write stuff)
-    (write stuff output-port))
-  (define (%newline)
-    (newline output-port))
-
-  (let-values (((counters-params counters-params-short)
-		(case counters
-		  ((none) (values ")" ")"))
-		  ((line) (values " yyline)"
-				  "yyline)"))
-		  ((all)  (values " yyline yycolumn yyoffset)"
-				  "yyline yycolumn yyoffset)")))))
-    (let* ((nbstates (vector-length arcs-v))
-	   (trees-v (make-vector nbstates)))
-      (let loop ((s 0))
-	(if (< s nbstates)
-	    (begin
-	      (vector-set! trees-v s (prep-arcs->tree (vector-ref arcs-v s)))
-	      (loop (+ s 1)))))
-
-      ;;Print the format of the automaton.
-      (%display "   'code\n" )
-
-      (%display (string-append
-		;;Ecrire l'entete de la fonction
-		"   (lambda (<<EOF>>-pre-action\n"
-		"            <<ERROR>>-pre-action\n"
-		"            rules-pre-action\n"
-		"            IS)\n"
-		;;Ecrire le  debut du letrec et  les variables d'actions
-		;;brutes.
-		"     (letrec\n"
-		"         ((user-action-<<EOF>> #f)\n"
-		"          (user-action-<<ERROR>> #f)\n"))
+    (let* ((len (vector-length arcs-v))
+	   (trees-v (make-vector len)))
       (let loop ((i 0))
-	(when (< i nbrules)
-	  (%display "          (user-action-")
-	  (%write i)
-	  (%display " #f)")
-	  (%newline)
+	(when (< i len)
+	  (vector-set! trees-v i (prep-arcs->tree (vector-ref arcs-v i)))
 	  (loop (+ i 1))))
 
-      (%display (string-append
-		;;Ecrire l'extraction des fonctions du IS.
-		"          (start-go-to-end    (:input-system-start-go-to-end	IS))\n"
-		"          (end-go-to-point    (:input-system-end-go-to-point	IS))\n"
-		"          (init-lexeme        (:input-system-init-lexeme	IS))\n"
-		"          (get-start-line     (:input-system-get-start-line	IS))\n"
-		"          (get-start-column   (:input-system-get-start-column	IS))\n"
-		"          (get-start-offset   (:input-system-get-start-offset	IS))\n"
-		"          (peek-left-context  (:input-system-peek-left-context	IS))\n"
-		"          (peek-char          (:input-system-peek-char		IS))\n"
-		"          (read-char          (:input-system-read-char		IS))\n"
-		"          (get-start-end-text (:input-system-get-start-end-text IS))\n"
-		"          (user-getc          (:input-system-user-getc		IS))\n"
-		"          (user-ungetc        (:input-system-user-ungetc	IS))\n"
-		;;Ecrire les variables d'actions.
-		"          (action-<<EOF>>\n"
-		"           (lambda (" counters-params-short "\n"
-		"             (user-action-<<EOF>> \"\"" counters-params "))\n"
-		"          (action-<<ERROR>>\n"
-		"           (lambda (" counters-params-short "\n"
-		"             (user-action-<<ERROR>> \"\"" counters-params "))\n"))
+		; Decrire le format de l'automate
+      (%display "   'decision-trees")
+      (%newline)
 
-      (let loop ((i 0)
-		 (yyl yytext?-l))
-	(when (< i nbrules)
-	  (%display (string-append
-		    "          (action-" (number->string i) "\n"
-		    "           (lambda (" counters-params-short "\n"
-		    (if (car yyl)
-			(string-append
-			 "             (let ((yytext (get-start-end-text)))\n"
-			 "               (start-go-to-end)\n"
-			 "               (user-action-" (number->string i) " yytext"
-			 counters-params ")))\n")
-		      (string-append
-		       "             (start-go-to-end)\n"
-		       "             (user-action-" (number->string i) counters-params "))\n"))))
-	  (loop (+ i 1) (cdr yyl))))
+		; Ecrire l'etat de depart pour le cas "debut de la ligne"
+      (%display "   ")
+      (%write nl-start)
+      (%newline)
 
-      ;; Ecrire les variables d'etats
+		; Ecrire l'etat de depart pour le cas "pas au debut de la ligne"
+      (%display "   ")
+      (%write no-nl-start)
+      (%newline)
+
+		; Ecrire la table de transitions
+      (%display "   '")
+      (if pretty?
+	  (%display (out-pp trees-v 5))
+	(%display (out-np trees-v 5)))
+      (%newline)
+
+		; Ecrire la table des acceptations
+      (%display "   '")
+      (if pretty?
+	  (%display (out-pp acc-v 5))
+	(%display (out-np acc-v 5)))))
+
+
+;;;Auxiliary output table function.  Here we are still inside the OUTPUT
+;;;function.
+
+  (define (out-print-table-chars pretty? nl-start no-nl-start arcs-v acc-v output-port)
+    ;;Print the automation in the portable format.
+    ;;
+    (define (%display stuff)
+      (display stuff output-port))
+    (define (%write stuff)
+      (write stuff output-port))
+    (define (%newline)
+      (newline output-port))
+
+    (let* ((len		(vector-length arcs-v))
+	   (portable-v	(make-vector len))
+	   (arc-op	(lambda (arc)
+			  (cons (class->tagged-char-list (car arc))
+				(cdr arc)))))
       (let loop ((s 0))
-	(if (< s nbstates)
-	    (let* ((tree (vector-ref trees-v s))
-		   (acc (vector-ref acc-v s))
-		   (acc-eol (car acc))
-		   (acc-no-eol (cdr acc)))
-	      (%display (string-append
-			"          (state-" (number->string s) "\n"
-			"           (lambda (action)"))
-	      (cond ((not acc-eol)
-		     (out-print-code-trans1 13 tree "action" output-port))
-		    ((not acc-no-eol)
-		     (%display (string-append
-			       "\n"
-			       (if (eq? tree 'err)
-				   "             (let* ((c (peek-char))"
-				 "             (let* ((c (read-char))")
-			       "\n"
-			       "                    (new-action (if (o"
-			       "r (not c) (= c lexer-integer-newline))\n"
-			       "                                  "
-			       "  (begin (end-go-to-point) action-" (number->string acc-eol) ")\n"
-			       "                       "
-			       "             action)))"))
-		     ((if (eq? tree 'err)
-			  out-print-code-trans1
-			out-print-code-trans2) 15 tree "new-action" output-port)
-		     (%display ")"))
-		    ((< acc-eol acc-no-eol)
-		     (%display
-		      (string-append
-		       "\n"
-		       "             (end-go-to-point)\n"
-		       "             (let* ((c (" (if (eq? tree 'err) "peek-char" "read-char") "))\n"
-		       "                    (new-action (if (or (not c) (= c lexer-integer-newline))\n"
-		       "                      "
-		       "              action-" (number->string acc-eol) "\n"
-		       "                      "
-		       "              action-" (number->string acc-no-eol) ")))"))
-		     ((if (eq? tree 'err)
-			  out-print-code-trans1
-			out-print-code-trans2) 15 tree "new-action" output-port)
-		     (%display ")"))
-		    (else
-		     (let ((action-var (string-append "action-" (number->string acc-eol))))
-		       (%display "\n             (end-go-to-point)")
-		       (out-print-code-trans1 13 tree action-var output-port))))
-	      (%display "))\n")
-	      (loop (+ s 1)))))
+	(when (< s len)
+	  (let* ((arcs	  (vector-ref arcs-v s))
+		 (port-arcs (map arc-op arcs)))
+	    (vector-set! portable-v s port-arcs)
+	    (loop (+ s 1)))))
+      ;; Decrire le format de l'automate
+      (%display "   'tagged-chars-lists")
+      (%newline)
+      ;; Ecrire l'etat de depart pour le cas "debut de la ligne"
+      (%display "   ")
+      (%write nl-start)
+      (%newline)
+      ;; Ecrire l'etat de depart pour le cas "pas au debut de la ligne"
+      (%display "   ")
+      (%write no-nl-start)
+      (%newline)
+      ;; Ecrire la table de transitions
+      (%display "   '")
+      (%display ((if pretty? out-pp out-np) portable-v 5))
+      (%newline)
+      ;; Ecrire la table des acceptations
+      (%display "   '")
+      (%display ((if pretty? out-pp out-np) acc-v 5))))
+
+
+;;;Auxiliary output table function.  Here we are still inside the OUTPUT
+;;;function.
+
+  (define (out-print-code-trans3 margin tree action-var output-port)
+    ;;Generate the automaton in  Scheme code form.
+    ;;
+    (define (%display stuff)
+      (display stuff output-port))
+    (define (%write stuff)
+      (write stuff output-port))
+    (define (%newline)
+      (newline output-port))
+
+    (%newline)
+    (%display (out-blanks margin))
+    (cond ((eq? tree 'err)
+	   (%display action-var))
+	  ((number? tree)
+	   (%display "(state-")
+	   (%display tree)
+	   (%display " ")
+	   (%display action-var)
+	   (%display ")"))
+	  ((eq? (car tree) '=)
+	   (%display "(if (= c ")
+	   (%display (list-ref tree 1))
+	   (%display ")")
+	   (out-print-code-trans3 (+ margin 4)
+				  (list-ref tree 2)
+				  action-var
+				  output-port)
+	   (out-print-code-trans3 (+ margin 4)
+				  (list-ref tree 3)
+				  action-var
+				  output-port)
+	   (%display ")"))
+	  (else
+	   (%display "(if (< c ")
+	   (%display (list-ref tree 0))
+	   (%display ")")
+	   (out-print-code-trans3 (+ margin 4)
+				  (list-ref tree 1)
+				  action-var
+				  output-port)
+	   (out-print-code-trans3 (+ margin 4)
+				  (list-ref tree 2)
+				  action-var
+				  output-port)
+	   (%display ")"))))
+
+
+;;;Auxiliary  output table  functions.   Here we  are  still inside  the
+;;;OUTPUT function.
+
+  (define (out-print-code-trans2 margin tree action-var output-port)
+    (display (string-append
+	      "\n"
+	      (out-blanks margin)
+	      "(if c")
+	     output-port)
+    (out-print-code-trans3 (+ margin 4) tree action-var output-port)
+    (display (string-append
+	      "\n"
+	      (out-blanks (+ margin 4))
+	      action-var ")")
+	     output-port))
+
+  (define (out-print-code-trans1 margin tree action-var output-port)
+    (newline output-port)
+    (display (out-blanks margin) output-port)
+    (if (eq? tree 'err)
+	(display action-var output-port)
+      (begin
+	(display "(let ((c (read-char)))" output-port)
+	(out-print-code-trans2 (+ margin 2) tree action-var output-port)
+	(display ")" output-port))))
+
+
+;;;Auxiliary output table function.  Here we are still inside the OUTPUT
+;;;function.
+
+  (define (out-print-table-code counters nbrules yytext?-l
+				nl-start no-nl-start arcs-v acc-v
+				output-port)
+    (define (%display stuff)
+      (display stuff output-port))
+    (define (%write stuff)
+      (write stuff output-port))
+    (define (%newline)
+      (newline output-port))
+
+    (let-values (((counters-params counters-params-short)
+		  (case counters
+		    ((none) (values ")" ")"))
+		    ((line) (values " yyline)"
+				    "yyline)"))
+		    ((all)  (values " yyline yycolumn yyoffset)"
+				    "yyline yycolumn yyoffset)")))))
+      (let* ((nbstates (vector-length arcs-v))
+	     (trees-v (make-vector nbstates)))
+	(let loop ((s 0))
+	  (if (< s nbstates)
+	      (begin
+		(vector-set! trees-v s (prep-arcs->tree (vector-ref arcs-v s)))
+		(loop (+ s 1)))))
+
+	;;Print the format of the automaton.
+	(%display "   'code\n" )
+
+	(%display (string-append
+		   ;;Ecrire l'entete de la fonction
+		   "   (lambda (<<EOF>>-pre-action\n"
+		   "            <<ERROR>>-pre-action\n"
+		   "            rules-pre-action\n"
+		   "            IS)\n"
+		   ;;Ecrire le  debut du letrec et  les variables d'actions
+		   ;;brutes.
+		   "     (letrec\n"
+		   "         ((user-action-<<EOF>> #f)\n"
+		   "          (user-action-<<ERROR>> #f)\n"))
+	(let loop ((i 0))
+	  (when (< i nbrules)
+	    (%display "          (user-action-")
+	    (%write i)
+	    (%display " #f)")
+	    (%newline)
+	    (loop (+ i 1))))
+
+	(%display (string-append
+		   ;;Ecrire l'extraction des fonctions du IS.
+		   "          (start-go-to-end    (:input-system-start-go-to-end	IS))\n"
+		   "          (end-go-to-point    (:input-system-end-go-to-point	IS))\n"
+		   "          (init-lexeme        (:input-system-init-lexeme	IS))\n"
+		   "          (get-start-line     (:input-system-get-start-line	IS))\n"
+		   "          (get-start-column   (:input-system-get-start-column	IS))\n"
+		   "          (get-start-offset   (:input-system-get-start-offset	IS))\n"
+		   "          (peek-left-context  (:input-system-peek-left-context	IS))\n"
+		   "          (peek-char          (:input-system-peek-char		IS))\n"
+		   "          (read-char          (:input-system-read-char		IS))\n"
+		   "          (get-start-end-text (:input-system-get-start-end-text IS))\n"
+		   "          (user-getc          (:input-system-user-getc		IS))\n"
+		   "          (user-ungetc        (:input-system-user-ungetc	IS))\n"
+		   ;;Ecrire les variables d'actions.
+		   "          (action-<<EOF>>\n"
+		   "           (lambda (" counters-params-short "\n"
+		   "             (user-action-<<EOF>> \"\"" counters-params "))\n"
+		   "          (action-<<ERROR>>\n"
+		   "           (lambda (" counters-params-short "\n"
+		   "             (user-action-<<ERROR>> \"\"" counters-params "))\n"))
+
+	(let loop ((i 0)
+		   (yyl yytext?-l))
+	  (when (< i nbrules)
+	    (%display (string-append
+		       "          (action-" (number->string i) "\n"
+		       "           (lambda (" counters-params-short "\n"
+		       (if (car yyl)
+			   (string-append
+			    "             (let ((yytext (get-start-end-text)))\n"
+			    "               (start-go-to-end)\n"
+			    "               (user-action-" (number->string i) " yytext"
+			    counters-params ")))\n")
+			 (string-append
+			  "             (start-go-to-end)\n"
+			  "             (user-action-" (number->string i) counters-params "))\n"))))
+	    (loop (+ i 1) (cdr yyl))))
+
+	;; Ecrire les variables d'etats
+	(let loop ((s 0))
+	  (if (< s nbstates)
+	      (let* ((tree (vector-ref trees-v s))
+		     (acc (vector-ref acc-v s))
+		     (acc-eol (car acc))
+		     (acc-no-eol (cdr acc)))
+		(%display (string-append
+			   "          (state-" (number->string s) "\n"
+			   "           (lambda (action)"))
+		(cond ((not acc-eol)
+		       (out-print-code-trans1 13 tree "action" output-port))
+		      ((not acc-no-eol)
+		       (%display (string-append
+				  "\n"
+				  (if (eq? tree 'err)
+				      "             (let* ((c (peek-char))"
+				    "             (let* ((c (read-char))")
+				  "\n"
+				  "                    (new-action (if (o"
+				  "r (not c) (= c lexer-integer-newline))\n"
+				  "                                  "
+				  "  (begin (end-go-to-point) action-" (number->string acc-eol) ")\n"
+				  "                       "
+				  "             action)))"))
+		       ((if (eq? tree 'err)
+			    out-print-code-trans1
+			  out-print-code-trans2) 15 tree "new-action" output-port)
+		       (%display ")"))
+		      ((< acc-eol acc-no-eol)
+		       (%display
+			(string-append
+			 "\n"
+			 "             (end-go-to-point)\n"
+			 "             (let* ((c (" (if (eq? tree 'err) "peek-char" "read-char") "))\n"
+			 "                    (new-action (if (or (not c) (= c lexer-integer-newline))\n"
+			 "                      "
+			 "              action-" (number->string acc-eol) "\n"
+			 "                      "
+			 "              action-" (number->string acc-no-eol) ")))"))
+		       ((if (eq? tree 'err)
+			    out-print-code-trans1
+			  out-print-code-trans2) 15 tree "new-action" output-port)
+		       (%display ")"))
+		      (else
+		       (let ((action-var (string-append "action-" (number->string acc-eol))))
+			 (%display "\n             (end-go-to-point)")
+			 (out-print-code-trans1 13 tree action-var output-port))))
+		(%display "))\n")
+		(loop (+ s 1)))))
 
 		; Ecrire la variable de lancement de l'automate
-      (%display
-       (string-append
-	"          (start-automaton\n"
-	"           (lambda ()\n"
-	(if (= nl-start no-nl-start)
+	(%display
+	 (string-append
+	  "          (start-automaton\n"
+	  "           (lambda ()\n"
+	  (if (= nl-start no-nl-start)
+	      (string-append
+	       "             (if (peek-char)\n"
+	       "                 (state-" (number->string nl-start) " action-<<ERROR>>)\n"
+	       "               action-<<EOF>>)")
 	    (string-append
-	     "             (if (peek-char)\n"
-	     "                 (state-" (number->string nl-start) " action-<<ERROR>>)\n"
-	     "               action-<<EOF>>)")
-	  (string-append
-	   "             (cond ((not (peek-char))\n"
-	   "                    action-<<EOF>>)\n"
-	   "                   ((= (peek-left-context) lexer-integer-newline)\n"
-	   "                    (state-" (number->string nl-start) " action-<<ERROR>>))\n"
-	   "                   (else\n"
-	   "                    (state-" (number->string no-nl-start) " action-<<ERROR>>)))"))
-	"))\n"
-	;; Ecrire la fonction principale de lexage
-	"          (final-lexer\n"
-	"           (lambda ()\n"
-	"             (init-lexeme)\n"
-	(cond ((eq? counters 'none)
-	       "             ((start-automaton))")
-	      ((eq? counters 'line)
-	       (string-append
-		"             (let ((yyline (get-start-line)))\n"
-		"               ((start-automaton) yyline))"))
-	      ((eq? counters 'all)
-	       (string-append
-		"             (let ((yyline (get-start-line))\n"
-		"                   (yycolumn (get-start-column))\n"
-		"                   (yyoffset (get-start-offset)))\n"
-		"               ((start-automaton) yyline yycolumn yyoffset))")))
-	"))"
-	;; Fermer les bindings du grand letrec
-	")\n"
+	     "             (cond ((not (peek-char))\n"
+	     "                    action-<<EOF>>)\n"
+	     "                   ((= (peek-left-context) lexer-integer-newline)\n"
+	     "                    (state-" (number->string nl-start) " action-<<ERROR>>))\n"
+	     "                   (else\n"
+	     "                    (state-" (number->string no-nl-start) " action-<<ERROR>>)))"))
+	  "))\n"
+	  ;; Ecrire la fonction principale de lexage
+	  "          (final-lexer\n"
+	  "           (lambda ()\n"
+	  "             (init-lexeme)\n"
+	  (cond ((eq? counters 'none)
+		 "             ((start-automaton))")
+		((eq? counters 'line)
+		 (string-append
+		  "             (let ((yyline (get-start-line)))\n"
+		  "               ((start-automaton) yyline))"))
+		((eq? counters 'all)
+		 (string-append
+		  "             (let ((yyline (get-start-line))\n"
+		  "                   (yycolumn (get-start-column))\n"
+		  "                   (yyoffset (get-start-offset)))\n"
+		  "               ((start-automaton) yyline yycolumn yyoffset))")))
+	  "))"
+	  ;; Fermer les bindings du grand letrec
+	  ")\n"
 
-	;;Initialiser les variables user-action-XX
-	"       (set! user-action-<<EOF>>"
-	" (<<EOF>>-pre-action\n"
-	"                                  final-lexer user-getc user-ungetc))\n"
-	"       (set! user-action-<<ERROR>>"
-	" (<<ERROR>>-pre-action\n"
-	"                                    final-lexer user-getc user-ungetc))\n"))
+	  ;;Initialiser les variables user-action-XX
+	  "       (set! user-action-<<EOF>>"
+	  " (<<EOF>>-pre-action\n"
+	  "                                  final-lexer user-getc user-ungetc))\n"
+	  "       (set! user-action-<<ERROR>>"
+	  " (<<ERROR>>-pre-action\n"
+	  "                                    final-lexer user-getc user-ungetc))\n"))
 
-      (let loop ((r 0))
-	(when (< r nbrules)
-	  (let* ((str-r  (number->string r))
-		 (blanks (out-blanks (string-length str-r))))
-	    (%display (string-append
-		      "       (set! user-action-" str-r " ((vector-ref rules-pre-action "
-		      (number->string (+ (* 2 r) 1)) ")\n"
-		      blanks
-		      "                           final-lexer user-getc user-ungetc))\n"))
-	    (loop (+ r 1)))))
+	(let loop ((r 0))
+	  (when (< r nbrules)
+	    (let* ((str-r  (number->string r))
+		   (blanks (out-blanks (string-length str-r))))
+	      (%display (string-append
+			 "       (set! user-action-" str-r " ((vector-ref rules-pre-action "
+			 (number->string (+ (* 2 r) 1)) ")\n"
+			 blanks
+			 "                           final-lexer user-getc user-ungetc))\n"))
+	      (loop (+ r 1)))))
 
-      ;; Faire retourner le lexer final
-      (%display "       final-lexer))"))))
+	;; Faire retourner le lexer final
+	(%display "       final-lexer))"))))
+
+
+;;;End of the OUTPUT function.
+
+  (main))
 
 
 ;;;; done
