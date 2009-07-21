@@ -35736,23 +35736,14 @@ big tables.  Such an analyser is not portable to non--@rnrs{6} Schemes.
 @section Comma--separated value (@acronym{CSV}) utilities
 
 
-The @library{csv} library provides utilities for reading various kinds
-of what are commonly known as ``comma--separated value'' (@csv{}) files.
-Since there is no standard @csv{} format, this library permits @csv{}
-readers to be constructed from a specification of the peculiarities of a
-given variant.
-
-The library is inspired by version 0.9 of @csv{}, a PLT Scheme package
-by Neil Van Dyke, whose original documentation is available at:
-
-@center @url{http://www.neilvandyke.org/csv-scheme/}
-
-@noindent
-while the code should be at the PLT Scheme repository.  No code has been
-ported from that package, though.
+The @library{csv} library provides lexers and parsers to read data from
+``comma--separated value'' (@csv{}) files.  This format is not well
+defined, so the library provides both high level parsers and low level
+lexers that can be customised to fit specific needs.
 
 @menu
 * csv lexer::                   Low level tokenisation.
+* csv parser::                  Hight level parsing.
 @end menu
 
 @c page
@@ -35782,6 +35773,25 @@ This table can be rebuilt from the source @file{unquoted-data.l} in the
 @end deffn
 
 
+@deffn Constant csv-unquoted-data-table/comma
+The table used to tokenise data outside of strings, using the comma
+character as fields separator.  This binding is exported by the
+@library{csv unquoted-data-comma-lexer} library.
+
+This table can be rebuilt from the source @file{unquoted-data-comma.l}
+in the @file{src/libraries/csv} directory of the source distribution,
+with:
+
+@example
+(lex :input-file   "unquoted-data-comma.l"
+     :output-file  "unquoted-data-comma-lexer.sls"
+     :library-spec '(csv unquoted-data-comma-lexer)
+     :table-name   'csv-unquoted-data-table/comma
+     :counters     'all)
+@end example
+@end deffn
+
+
 @deffn Constant csv-strings-table
 The table used to tokenise strings.  This binding is exported by
 the @library{csv strings-lexer} library.
@@ -35803,6 +35813,7 @@ This table can be rebuilt from the source @file{strings.l} in the
 @menu
 * csv lexer strings::           Tokenising strings.
 * csv lexer unquoted-data::     Tokenising unquoted data.
+* csv lexer full::              Full parsing.
 @end menu
 
 @c page
@@ -35860,7 +35871,7 @@ tokenise strings as follows:
 @end example
 
 @noindent
-notice that the input system has to be created with @samp{ :counters
+notice that the input system has to be created with @samp{:counters
 'all}.  If we want to rebuild the string, we can do it as follows:
 
 @example
@@ -35911,15 +35922,25 @@ not inside a string.  The lexer built around
 @itemize
 @item
 The symbol @samp{eol} to represent the end of a line.  Every sequence of
-any number @samp{#\newline} and @samp{#\return} characters, in any
+any number of @samp{#\newline} and @samp{#\return} characters, in any
 order, is collapsed to a single end--of--line.
 
 @item
-The symbol @samp{string} to represent the start of a string.
+The symbol @samp{string} to represent the start of a string.  It is
+returned when the lexer finds a @samp{"} characger.
 
 @item
-The next character from the input system.
+In any other case the next character from the input system.
 @end itemize
+
+The @samp{csv-unquoted-data-table/comma} works the same, with the
+following difference in the return values:
+
+@itemize
+@item
+The symbol @samp{field} when the token is a comma character.
+@end itemize
+
 
 We can take advantage of this to tokenise unquoted data as follows:
 
@@ -35956,7 +35977,168 @@ We can take advantage of this to tokenise unquoted data as follows:
 @result{} (#\a #\l #\p #\h #\a #\space)
 @end example
 
+@c page
+@node csv lexer full
+@subsubsection Full parsing
 
+
+Here we see how the high level parsers are implemented.  The following
+function makes use of both the string and unquoted--data tables to
+convert a @csv{} file into a list of lists, with each sublist
+representing a record.  The function @func{csv->list/comma} does no
+check for the number of fields on each line.
+
+@smallexample
+(define csv->list/comma
+  (case-lambda
+   ((port)
+    (csv->list/comma port (lambda (field) field)))
+
+   ((port swirl-field)
+    (let* ((IS          (lexer-make-IS :port port :counters 'all))
+         (string-lexer  (lexer-make-lexer csv-strings-table IS))
+         (data-lexer    (lexer-make-lexer csv-unquoted-data-table/comma IS))
+         (result        '())
+         (record        '()))
+    (let-values (((port field) (open-string-output-port)))
+
+      (define (%add-token-to-field token)
+        (write-char token port))
+
+      (define (%add-string-to-field)
+        (do* ((token (string-lexer) (string-lexer)))
+            ((not token))
+          (%add-token-to-field)))
+
+      (define (%add-field-to-record)
+        (set! record (cons (swirl-field (field)) record)))
+
+      (define (%add-record-to-result)
+        (set! result (cons (reverse record) result))
+        (set! record '()))
+
+      (do* ((token (data-lexer) (data-lexer))
+            (ell   '()     (cons token ell)))
+          ((not token)
+           (%add-field-to-record)
+           (reverse (cons (reverse record) result)))
+        (case token
+
+          ((eol)
+           (%add-field-to-record)
+           (%add-record-to-result))
+
+          ((field)
+           (%add-field-to-record))
+
+          ((string)
+           (%add-string-to-field))
+
+          (else
+           (%add-token-to-field token)))))))))
+@end smallexample
+
+Here some examples:
+
+@example
+(import (rnrs)
+  (csv)
+  (strings))
+
+; Notice how spaces around commas are preserved.
+(csv->list/comma
+   (open-string-input-port "alpha, beta, delta
+one, two, three"))
+@result{} '(("alpha" " beta" " delta")
+     ("one" " two" " three"))
+
+; Trim the spaces.
+(csv->list/comma
+  (open-string-input-port "alpha, beta, delta
+one, two, three")
+  (lambda (field)
+    (string-trim-both field #\space)))
+@result{} '(("alpha" "beta" "delta")
+     ("one" "two" "three"))
+@end example
+
+The following is a variant that allows to specify, via the
+@var{separators} argument, custom characters as field separators.
+
+@smallexample
+(define csv->list
+  (case-lambda
+   ((port separators)
+    (csv->list port separators (lambda (field) field)))
+
+   ((port separators swirl-field)
+    (let* ((IS          (lexer-make-IS :port port :counters 'all))
+         (string-lexer  (lexer-make-lexer csv-strings-table IS))
+         (data-lexer    (lexer-make-lexer csv-unquoted-data-table/comma IS))
+         (result        '())
+         (record        '()))
+    (let-values (((port field) (open-string-output-port)))
+
+      (define (%add-token-to-field token)
+        (write-char token port))
+
+      (define (%add-string-to-field)
+        (do* ((token (string-lexer) (string-lexer)))
+            ((not token))
+          (%add-token-to-field)))
+
+      (define (%add-field-to-record)
+        (set! record (cons (swirl-field (field)) record)))
+
+      (define (%add-record-to-result)
+        (set! result (cons (reverse record) result))
+        (set! record '()))
+
+      (do* ((token (data-lexer) (data-lexer))
+            (ell   '()     (cons token ell)))
+          ((not token)
+           (%add-field-to-record)
+           (reverse (cons (reverse record) result)))
+        (cond
+
+          ((eq? 'eol token)
+           (%add-field-to-record)
+           (%add-record-to-result))
+
+          ((memv token separators)
+           (%add-field-to-record))
+
+          ((eq? 'string token)
+           (%add-string-to-field))
+
+          (else
+           (%add-token-to-field token)))))))))
+@end smallexample
+
+@c page
+@node csv parser
+@subsection Hight level parsing
+
+
+@defun csv->list @var{port} @var{separators}
+@defunx csv->list @var{port} @var{separators} @var{swirl-field}
+Read a @csv{} file from the textual input @var{port} and convert it into
+a list of lists, with each nested list representing a record.
+
+@var{separators} must be a list of characters and used as field
+separators in a line.
+
+@var{swirl-field} must be a procedure accepting a single string argument
+and returning a string argument.  It is applied to each field string
+before adding it to the output list.  This procedure is allowed to raise
+an exception.
+@end defun
+
+
+@defun csv->list/comma @var{port}
+@defunx csv->list/comma @var{port} @var{swirl-field}
+Like @func{csv->list}, but use only the comma as field separator.
+@end defun
 
 @c page
 @node kmp

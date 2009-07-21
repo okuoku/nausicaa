@@ -29,7 +29,9 @@
   (silex lexer)
   (csv strings-lexer)
   (csv unquoted-data-lexer)
-  (csv))
+  (csv unquoted-data-comma-lexer)
+  (csv)
+  (strings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing csv\n")
@@ -166,6 +168,96 @@
 
 
 )
+
+
+(parameterise ((check-test-name 'unquoted-data-lexer/comma))
+
+  (define (tokenise string)
+    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+	   (lexer	(lexer-make-lexer csv-unquoted-data-table/comma IS)))
+      (do* ((token (lexer) (lexer))
+	    (ell   '()     (cons token ell)))
+	  ((or (not token) (eq? token 'string))
+	   (reverse ell)))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (tokenise "alpha, beta")
+    => '(#\a #\l #\p #\h #\a field #\space #\b #\e #\t #\a))
+
+  (check
+      (tokenise "alpha\nbeta")
+    => '(#\a #\l #\p #\h #\a eol #\b #\e #\t #\a))
+
+  (check
+      (tokenise "alpha\n\nbeta")
+    => '(#\a #\l #\p #\h #\a eol #\b #\e #\t #\a))
+
+  (check
+      (tokenise "alpha\n\n\n\n\nbeta")
+    => '(#\a #\l #\p #\h #\a eol #\b #\e #\t #\a))
+
+  (check
+      (tokenise "alpha\rbeta")
+    => '(#\a #\l #\p #\h #\a eol #\b #\e #\t #\a))
+
+  (check
+      (tokenise "alpha\r\rbeta")
+    => '(#\a #\l #\p #\h #\a eol #\b #\e #\t #\a))
+
+  (check
+      (tokenise "alpha\r\r\r\r\rbeta")
+    => '(#\a #\l #\p #\h #\a eol #\b #\e #\t #\a))
+
+  (check
+      (tokenise "alpha\n\r\n\n\n\r\r\rbeta")
+    => '(#\a #\l #\p #\h #\a eol #\b #\e #\t #\a))
+
+;;; --------------------------------------------------------------------
+
+  (check ;read until the string opening
+      (tokenise "alpha \"beta")
+    => '(#\a #\l #\p #\h #\a #\space))
+
+
+)
+
+
+(parameterise ((check-test-name 'csv-comma))
+
+  (check
+      (csv->list/comma (open-string-input-port "alpha, beta, delta
+one, two, three"))
+    => '(("alpha" " beta" " delta")
+	 ("one" " two" " three")))
+
+  (check
+      (csv->list/comma (open-string-input-port "alpha, beta, delta
+one, two, three")
+		       (lambda (field)
+			 (string-trim-both field #\space)))
+    => '(("alpha" "beta" "delta")
+	 ("one" "two" "three")))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (csv->list (open-string-input-port "alpha| beta| delta
+one| two| three") '(#\|))
+    => '(("alpha" " beta" " delta")
+	 ("one" " two" " three")))
+
+  (check
+      (csv->list (open-string-input-port "alpha| beta| delta
+one| two| three") '(#\|)
+		       (lambda (field)
+			 (string-trim-both field #\space)))
+    => '(("alpha" "beta" "delta")
+	 ("one" "two" "three")))
+
+
+  )
 
 
 

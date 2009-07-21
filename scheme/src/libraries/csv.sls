@@ -9,7 +9,6 @@
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
 ;;;the Free Software Foundation, either version 3 of the License, or (at
@@ -28,74 +27,111 @@
 #!r6rs
 (library (csv)
   (export
-
-    ;; reader specification
-    make-csv-reader-spec	csv-reader-spec?
-    :newline-type		:separator-chars
-    :quote-char			:quote-doubling-escapes?
-    :comment-chars		:whitespace-chars
-    :strip-leading-whitespace?	:strip-trailing-whitespace?
-    :newlines-in-quotes?
-
-
-    )
-  (import (rnrs)
+    csv->list/comma		csv->list)
+  (import (nausicaa)
     (keywords)
     (silex lexer)
+    (csv unquoted-data-lexer)
+    (csv unquoted-data-comma-lexer)
     (csv strings-lexer))
 
 
-;;;; reader specification
+(define csv->list/comma
+  (case-lambda
+   ((port)
+    (csv->list/comma port (lambda (field) field)))
 
-(define-record-type (:reader-spec :reader-spec-make csv-reader-spec?)
-  (fields (mutable newline-type)
-	  (mutable separator-chars)
-	  (mutable quote-char)
-	  (mutable quote-doubling-escapes?)
-	  (mutable comment-chars)
-	  (mutable whitespace-chars)
-	  (mutable strip-leading-whitespace?)
-	  (mutable strip-trailing-whitespace?)
-	  (mutable newlines-in-quotes?)))
+   ((port swirl-field)
+    (let* ((IS		(lexer-make-IS :port port :counters 'all))
+	 (string-lexer	(lexer-make-lexer csv-strings-table IS))
+	 (data-lexer	(lexer-make-lexer csv-unquoted-data-table/comma IS))
+	 (result	'())
+	 (record	'()))
+    (let-values (((port field) (open-string-output-port)))
 
-(define-keyword :newline-type)
-(define-keyword :separator-chars)
-(define-keyword :quote-char)
-(define-keyword :quote-doubling-escapes?)
-(define-keyword :comment-chars)
-(define-keyword :whitespace-chars)
-(define-keyword :strip-leading-whitespace?)
-(define-keyword :strip-trailing-whitespace?)
-(define-keyword :newlines-in-quotes?)
+      (define (%add-token-to-field token)
+	(write-char token port))
 
-(define (make-csv-reader-spec . options)
-  (let-keywords options #f ((newline-type		:newline-type               'lax)
-			    (separator-chars		:separator-chars            '(#\,))
-			    (quote-char			:quote-char                 #\")
-			    (quote-doubling-escapes?	:quote-doubling-escapes?    #t)
-			    (comment-chars		:comment-chars              '())
-			    (whitespace-chars		:whitespace-chars           '(#\space))
-			    (strip-leading-whitespace?	:strip-leading-whitespace?  #f)
-			    (strip-trailing-whitespace?	:strip-trailing-whitespace? #f)
-			    (newlines-in-quotes?	:newlines-in-quotes?        #t))
-    (:reader-spec-make newline-type
-		       separator-chars
-		       quote-char
-		       quote-doubling-escapes?
-		       comment-chars
-		       whitespace-chars
-		       strip-leading-whitespace?
-		       strip-trailing-whitespace?
-		       newlines-in-quotes?)))
+      (define (%add-string-to-field)
+	(do* ((token (string-lexer) (string-lexer)))
+	    ((not token))
+	  (%add-token-to-field)))
+
+      (define (%add-field-to-record)
+	(set! record (cons (swirl-field (field)) record)))
+
+      (define (%add-record-to-result)
+	(set! result (cons (reverse record) result))
+	(set! record '()))
+
+      (do* ((token (data-lexer) (data-lexer))
+	    (ell   '()     (cons token ell)))
+	  ((not token)
+	   (%add-field-to-record)
+	   (reverse (cons (reverse record) result)))
+	(case token
+
+	  ((eol)
+	   (%add-field-to-record)
+	   (%add-record-to-result))
+
+	  ((field)
+	   (%add-field-to-record))
+
+	  ((string)
+	   (%add-string-to-field))
+
+	  (else
+	   (%add-token-to-field token)))))))))
 
 
-;;;; helpers
+(define csv->list
+  (case-lambda
+   ((port separators)
+    (csv->list port separators (lambda (field) field)))
 
+   ((port separators swirl-field)
+    (let* ((IS		(lexer-make-IS :port port :counters 'all))
+	 (string-lexer	(lexer-make-lexer csv-strings-table IS))
+	 (data-lexer	(lexer-make-lexer csv-unquoted-data-table/comma IS))
+	 (result	'())
+	 (record	'()))
+    (let-values (((port field) (open-string-output-port)))
 
-
-;;;; tokeniser
+      (define (%add-token-to-field token)
+	(write-char token port))
 
+      (define (%add-string-to-field)
+	(do* ((token (string-lexer) (string-lexer)))
+	    ((not token))
+	  (%add-token-to-field)))
 
+      (define (%add-field-to-record)
+	(set! record (cons (swirl-field (field)) record)))
+
+      (define (%add-record-to-result)
+	(set! result (cons (reverse record) result))
+	(set! record '()))
+
+      (do* ((token (data-lexer) (data-lexer))
+	    (ell   '()     (cons token ell)))
+	  ((not token)
+	   (%add-field-to-record)
+	   (reverse (cons (reverse record) result)))
+	(cond
+
+	  ((eq? 'eol token)
+	   (%add-field-to-record)
+	   (%add-record-to-result))
+
+	  ((memv token separators)
+	   (%add-field-to-record))
+
+	  ((eq? 'string token)
+	   (%add-string-to-field))
+
+	  (else
+	   (%add-token-to-field token)))))))))
 
 
 ;;;; done

@@ -32,6 +32,12 @@
      :table-name 'csv-unquoted-data-table
      :counters 'all)
 
+(lex :input-file "unquoted-data-comma.l"
+     :output-file "unquoted-data-comma-lexer.sls"
+     :library-spec '(csv unquoted-data-comma-lexer)
+     :table-name 'csv-unquoted-data-table/comma
+     :counters 'all)
+
 (lex :input-file "strings.l"
      :output-file "strings-lexer.sls"
      :library-spec '(csv strings-lexer)
