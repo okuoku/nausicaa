@@ -4758,11 +4758,10 @@
 	  ((symbol? spec)
 	   (string-append "(" (symbol->string spec) ")"))
 	  ((list? spec)
-	   (string-append "(" (let-values (((port getter)
-					    (open-string-output-port)))
-				(write spec port)
-				(getter))
-			  ")"))
+	   (let-values (((port getter)
+			 (open-string-output-port)))
+	     (write spec port)
+	     (getter)))
 	  (else
 	   (assertion-violation 'library-spec->string-spec
 	     "invalid library name specification" spec))))

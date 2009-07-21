@@ -103,3 +103,8 @@
   Add usage examples for :before and :after methods.
 
 
+* silex
+
+  Test some tokenisation  from a string including a  tab char.  There is
+  some problem somewhere.
+

@@ -105,6 +105,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{CPU}
 @end macro
 
+@macro csv{}
+@acronym{CSV}
+@end macro
+
 @macro ieee{}
 @acronym{IEEE}
 @end macro
@@ -19309,6 +19313,7 @@ silently ignored.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * silex::                       A lexical analyser generator.
+* csv::                         Comma--separated value (@acronym{CSV}) utilities.
 
 Low level libraries
 
@@ -35070,7 +35075,7 @@ the input.
 @end defun
 
 
-@deffn Option :input-string @var{string}
+@deffn Option :string @var{string}
 Instruct @func{lexer-make-IS} to build an input system that will take
 characters from the supplied string.  When the input system is
 initialized with a string, it takes a copy of it.  This way, eventual
@@ -35081,7 +35086,7 @@ When used together, this option supersedes @samp{:input-port} and
 @end deffn
 
 
-@deffn Option :input-port @var{port}
+@deffn Option :port @var{port}
 Instruct @func{lexer-make-IS} to build an input system that will read
 characters from the supplied textual input port.  The input system never
 closes itself the port it has received, this task is left to the
@@ -35091,7 +35096,7 @@ When used together, this option supersedes @samp{:input-procedure}.
 @end deffn
 
 
-@deffn Option :input-procedure @var{proc}
+@deffn Option :procedure @var{proc}
 Instruct @func{lexer-make-IS} to build an input system that will read
 characters invoking the supplied procedure.
 
@@ -35725,6 +35730,233 @@ fast lexical analyser.  Instead of containing data structures
 representing the behavior of the automaton, the table contains Scheme
 code that ``hard--codes'' the automaton.  This encoding often generates
 big tables.  Such an analyser is not portable to non--@rnrs{6} Schemes.
+
+@c page
+@node csv
+@section Comma--separated value (@acronym{CSV}) utilities
+
+
+The @library{csv} library provides utilities for reading various kinds
+of what are commonly known as ``comma--separated value'' (@csv{}) files.
+Since there is no standard @csv{} format, this library permits @csv{}
+readers to be constructed from a specification of the peculiarities of a
+given variant.
+
+The library is inspired by version 0.9 of @csv{}, a PLT Scheme package
+by Neil Van Dyke, whose original documentation is available at:
+
+@center @url{http://www.neilvandyke.org/csv-scheme/}
+
+@noindent
+while the code should be at the PLT Scheme repository.  No code has been
+ported from that package, though.
+
+@menu
+* csv lexer::                   Low level tokenisation.
+@end menu
+
+@c page
+@node csv lexer
+@subsection Low level tokenisation
+
+
+The @library{csv} library is built upon the @library{silex} library, and
+it makes available directly the lexer tables.  @ref{silex, A lexical
+analyser generator}
+
+
+@deffn Constant csv-unquoted-data-table
+The table used to tokenise data outside of strings.  This binding is
+exported by the @library{csv unquoted-data-lexer} library.
+
+This table can be rebuilt from the source @file{unquoted-data.l} in the
+@file{src/libraries/csv} directory of the source distribution, with:
+
+@example
+(lex :input-file   "unquoted-data.l"
+     :output-file  "unquoted-data-lexer.sls"
+     :library-spec '(csv unquoted-data-lexer)
+     :table-name   'csv-unquoted-data-table
+     :counters     'all)
+@end example
+@end deffn
+
+
+@deffn Constant csv-strings-table
+The table used to tokenise strings.  This binding is exported by
+the @library{csv strings-lexer} library.
+
+This table can be rebuilt from the source @file{strings.l} in the
+@file{src/libraries/csv} directory of the source distribution, with:
+
+@example
+(lex :input-file   "strings.l"
+     :output-file  "strings-lexer.sls"
+     :library-spec '(csv strings-lexer)
+     :table-name   'csv-strings-table
+     :counters     'all)
+@end example
+@end deffn
+
+
+
+@menu
+* csv lexer strings::           Tokenising strings.
+* csv lexer unquoted-data::     Tokenising unquoted data.
+@end menu
+
+@c page
+@node csv lexer strings
+@subsubsection Tokenising strings
+
+
+The @library{csv} library defines strings in a @csv{} file as sequences
+of characters enclosed in double--quotes @samp{"}.  Inside a string a
+double double--quote @samp{""} is interpreted as a single double--quote.
+
+To tokenise a string means to convert a string into the sequence of
+characters in it; this is done by a lexer using
+@samp{csv-strings-table}.  This table is meant to be used after the
+opening double--quote has been tokenised, and it will consume all the
+characters up to, and including, the closing double--quote.
+
+When the lexer finds the closing double--quote it returns @false{}, else
+it returns the next character.  We can take advantage of this to
+tokenise strings as follows:
+
+@example
+(import (rnrs)
+  (silex lexer)
+  (csv strings-lexer))
+
+(define (tokenise-string string)
+  (let* ((IS    (lexer-make-IS :string string :counters 'all))
+         (lexer (lexer-make-lexer csv-strings-table IS)))
+    (do* ((token (lexer) (lexer))
+          (ell   '()     (cons token ell)))
+        ((not token)
+         (reverse ell)))))
+
+;;All the test strings must end with a \" to signal
+;;the end-of-string to the strings lexer.
+
+(tokenise-string "\"")
+@result{} ()
+
+(tokenise-string "abcd\"")
+@result{} (#\a #\b #\c #\d)
+
+; Quoted double-quote.
+(tokenise-string "ab\"\"cd\"")
+@result{} (#\a #\b #\" #\c #\d)
+
+; Nested string.
+(tokenise-string "ab \"\"ciao\"\" cd\"")
+@result{} (#\a #\b #\space #\" #\c #\i #\a #\o #\" #\space #\c #\d)
+
+; Stop reading at the ending double-quote.
+(tokenise-string "ab\"cd")
+@result{} (#\a #\b)
+@end example
+
+@noindent
+notice that the input system has to be created with @samp{ :counters
+'all}.  If we want to rebuild the string, we can do it as follows:
+
+@example
+(import (rnrs)
+  (silex lexer)
+  (csv strings-lexer))
+
+(define (tokenise-string string)
+  (let* ((IS    (lexer-make-IS :string string :counters 'all))
+         (lexer (lexer-make-lexer csv-strings-table IS)))
+    (let-values (((port the-string) (open-string-output-port)))
+      (do* ((token (lexer) (lexer)))
+          ((not token)
+           (the-string))
+        (write-char token port)))))
+
+;;All the test strings must end with a \" to signal
+;;the end of string to the strings lexer.
+
+(tokenise-string "\"")
+@result{} ""
+
+(tokenise-string "abcd\"")
+@result{} "abcd"
+
+; Quoted double-quote.
+(tokenise-string "ab\"\"cd\"")
+@result{} "ab\"cd"
+
+; Nested string.
+(tokenise-string "ab \"\"ciao\"\" cd\"")
+@result{} "ab \"ciao\" cd"
+
+; Stop reading at the ending double-quote.
+(tokenise-string "ab\"cd")
+@result{} "ab"
+@end example
+
+@c page
+@node csv lexer unquoted-data
+@subsubsection Tokenising unquoted data
+
+
+The @library{csv} library defines unquoted data as everything that is
+not inside a string.  The lexer built around
+@samp{csv-unquoted-data-table} will return:
+
+@itemize
+@item
+The symbol @samp{eol} to represent the end of a line.  Every sequence of
+any number @samp{#\newline} and @samp{#\return} characters, in any
+order, is collapsed to a single end--of--line.
+
+@item
+The symbol @samp{string} to represent the start of a string.
+
+@item
+The next character from the input system.
+@end itemize
+
+We can take advantage of this to tokenise unquoted data as follows:
+
+@example
+(import (rnrs)
+  (silex lexer)
+  (csv unquoted-data-lexer))
+
+(define (tokenise string)
+  (let* ((IS    (lexer-make-IS :string string :counters 'all))
+         (lexer (lexer-make-lexer csv-unquoted-data-table IS)))
+    (do* ((token (lexer) (lexer))
+          (ell   '()     (cons token ell)))
+        ((or (not token) (eq? token 'string))
+         (reverse ell)))))
+
+(tokenise "alpha, beta")
+@result{} (#\a #\l #\p #\h #\a #\, #\space #\b #\e #\t #\a)
+
+; End of line
+(tokenise "alpha\nbeta")
+@result{} (#\a #\l #\p #\h #\a eol #\b #\e #\t #\a)
+
+; End of line
+(tokenise "alpha\n\rbeta")
+@result{} (#\a #\l #\p #\h #\a eol #\b #\e #\t #\a)
+
+; End of line
+(tokenise "alpha\n\r\n\rbeta")
+@result{} (#\a #\l #\p #\h #\a eol #\b #\e #\t #\a)
+
+; Read until the string opening.
+(tokenise "alpha \"beta")
+@result{} (#\a #\l #\p #\h #\a #\space)
+@end example
+
+
 
 @c page
 @node kmp
@@ -40322,10 +40554,13 @@ with no warranty of any kind.
 
 @subsubheading SILex
 
-Copyright @copyright{} 2001 Danny Dube' @email{dube@@iro.umontreal.ca}
+The section on the @library{silex} library is derived from the original
+documentation os SILex.
+
+Copyright @copyright{} 2001 Danny Dube' @email{danny.dube@@ift.ulaval.ca}
 
 SILex is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
+the terms of the @gnu{} General Public License as published by the Free
 Software Foundation; either version 2 of the License, or (at your
 option) any later version.
 

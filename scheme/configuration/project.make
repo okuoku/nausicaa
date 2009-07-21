@@ -193,6 +193,30 @@ endif
 silex:
 	$(foreach f, $(SILEX_PROGRAMS),(cd $(srcdir)/tests && $(SILEX_RUNNER) $(f));)
 
+## --------------------------------------------------------------------
+
+CSV_PROGRAM	= make-tables.sps
+CSV_LIBPATH	= $(abspath $(fasl_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+CSV_ENV		= YPSILON_SITELIB=$(CSV_LIBPATH):$(YPSILON_SITELIB)
+CSV_RUNNER	= $(CSV_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+CSV_ENV		= IKARUS_LIBRARY_PATH=$(CSV_LIBPATH):$(IKARUS_LIBRARY_PATH)
+CSV_RUNNER	= $(CSV_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+CSV_ENV		= MOSH_LOADPATH=$(CSV_LIBPATH):$(MOSH_LOADPATH)
+CSV_RUNNER	= $(CSV_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+CSV_ENV		= LARCENY_LIBPATH=$(CSV_LIBPATH):$(LARCENY_LIBPATH)
+CSV_RUNNER	= $(CSV_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: csv
+
+csv:
+	cd $(srcdir)/src/libraries/csv && $(CSV_RUNNER) $(CSV_PROGRAM)
+
 
 
 ### end of file

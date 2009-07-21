@@ -58,6 +58,7 @@
   (only (pregexp))
   (only (silex))
 ;;  (only (lalr))
+  (only (csv))
 
   (only (foreign))
   (only (foreign guarded-malloc))
