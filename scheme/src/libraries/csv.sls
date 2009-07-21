@@ -53,9 +53,11 @@
 	(write-char token port))
 
       (define (%add-string-to-field)
+	(%add-token-to-field #\")
 	(do* ((token (string-lexer) (string-lexer)))
-	    ((not token))
-	  (%add-token-to-field)))
+	    ((not token)
+	     (%add-token-to-field #\"))
+	  (%add-token-to-field token)))
 
       (define (%add-field-to-record)
 	(set! record (cons (swirl-field (field)) record)))
@@ -102,9 +104,11 @@
 	(write-char token port))
 
       (define (%add-string-to-field)
+	(%add-token-to-field #\")
 	(do* ((token (string-lexer) (string-lexer)))
-	    ((not token))
-	  (%add-token-to-field)))
+	    ((not token)
+	     (%add-token-to-field #\"))
+	  (%add-token-to-field token)))
 
       (define (%add-field-to-record)
 	(set! record (cons (swirl-field (field)) record)))

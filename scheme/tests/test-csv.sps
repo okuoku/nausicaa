@@ -100,6 +100,10 @@
       (tokenise/string "ab\"\"cd\"")
     => "ab\"cd")
 
+  (check	;quoted double-quote
+      (tokenise/string "ab\"\"\"\"\"\"cd\"")
+    => "ab\"\"\"cd")
+
   (check	;nested string
       (tokenise/string "ab \"\"ciao\"\" cd\"")
     => "ab \"ciao\" cd")
@@ -230,6 +234,12 @@
       (csv->list/comma (open-string-input-port "alpha, beta, delta
 one, two, three"))
     => '(("alpha" " beta" " delta")
+	 ("one" " two" " three")))
+
+  (check
+      (csv->list/comma (open-string-input-port "alpha, \"beta\", de\"\"\"\"\"\"lta
+one, two, three"))
+    => '(("alpha" " \"beta\"" " de\"\"\"\"lta")
 	 ("one" " two" " three")))
 
   (check
