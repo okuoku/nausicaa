@@ -165,6 +165,11 @@
 (check (eqv? -nan.0 (string->number "+nan.0"))	=> #t)
 (check (eqv? -nan.0 (string->number "-nan.0"))	=> #t)
 
+;;; --------------------------------------------------------------------
+
+(check (max 1 +nan.0) => 1.0)
+(check (nan? (min 1 +nan.0)) => #t)
+
 
 ;;;; parameters
 

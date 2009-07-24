@@ -168,7 +168,7 @@ endif
 
 #page
 ## --------------------------------------------------------------------
-## Special rules.
+## Special rules: SILex test lexers building.
 ## --------------------------------------------------------------------
 
 SILEX_PROGRAMS	= $(wildcard $(srcdir)/tests/make-silex-*.sps)
@@ -193,6 +193,36 @@ endif
 silex:
 	$(foreach f, $(SILEX_PROGRAMS),(cd $(srcdir)/tests && $(SILEX_RUNNER) $(f));)
 
+#page
+## --------------------------------------------------------------------
+## Special rules: LALR test parsers building.
+## --------------------------------------------------------------------
+
+LALR_PROGRAMS	= $(wildcard $(srcdir)/tests/make-lalr-*.sps)
+LALR_LIBPATH	= $(abspath $(srcdir)/tests):$(abspath $(fasl_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+LALR_ENV	= YPSILON_SITELIB=$(LALR_LIBPATH):$(YPSILON_SITELIB)
+LALR_RUNNER	= $(LALR_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+LALR_ENV	= IKARUS_LIBRARY_PATH=$(LALR_LIBPATH):$(IKARUS_LIBRARY_PATH)
+LALR_RUNNER	= $(LALR_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+LALR_ENV	= MOSH_LOADPATH=$(LALR_LIBPATH):$(MOSH_LOADPATH)
+LALR_RUNNER	= $(LALR_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+LALR_ENV	= LARCENY_LIBPATH=$(LALR_LIBPATH):$(LARCENY_LIBPATH)
+LALR_RUNNER	= $(LALR_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: lalr
+
+lalr:
+	$(foreach f, $(LALR_PROGRAMS),(cd $(srcdir)/tests && $(LALR_RUNNER) $(f));)
+
+#page
+## --------------------------------------------------------------------
+## Special rules: CSV lexers building.
 ## --------------------------------------------------------------------
 
 CSV_PROGRAM	= make-tables.sps

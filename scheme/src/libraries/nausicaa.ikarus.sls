@@ -794,10 +794,8 @@
 
     ;; other stuff
     pretty-print)
-  (import (rename (except (rnrs)
-			  equal-hash finite? infinite? nan?)
-		  (equal? rnrs:equal?)
-		  (eqv?   rnrs:eqv?))
+  (import (except (rnrs)
+		  equal-hash finite? infinite? nan?)
     (only (ikarus) getenv)
     (nausicaa common)
     (parameters)
@@ -859,19 +857,6 @@
        (if (member (syntax->datum (syntax ?feature-id)) (cons 'ikarus registry-features))
            (syntax (begin ?body ...))
 	 (syntax (cond-expand ?more-clauses ...)))))))
-
-
-
-(define (equal? a b)
-  (or (and (number? a) (number? b)
-	   (nan? a)    (nan? b))
-      (rnrs:equal? a b)))
-
-(define (eqv? a b)
-  (or (and (number? a) (number? b)
-	   (nan? a)    (nan? b))
-      (rnrs:eqv? a b)))
-
 
 
 ;;;; done

@@ -56,8 +56,13 @@
   (only (keywords))
   (only (irregex))
   (only (pregexp))
+
   (only (silex))
-;;  (only (lalr))
+
+  (only (lalr))
+  (only (lalr lr-driver))
+  (only (lalr glr-driver))
+
   (only (csv))
 
   (only (foreign))

@@ -139,8 +139,26 @@
 (compile-library "silex.sls"
 		 "silex.slfasl")
 
-;; (compile-library "lalr.sls"
-;; 		 "lalr.slfasl")
+(compile-library "lalr.sls"
+ 		 "lalr.slfasl")
+
+(compile-library "lalr/lr-driver.sls"
+ 		 "lalr/lr-driver.slfasl")
+
+(compile-library "lalr/glr-driver.sls"
+ 		 "lalr/glr-driver.slfasl")
+
+(compile-library "csv/strings-lexer.sls"
+ 		 "csv/strings-lexer.slfasl")
+
+(compile-library "csv/unquoted-data-lexer.sls"
+ 		 "csv/unquoted-data-lexer.slfasl")
+
+(compile-library "csv/unquoted-data-comma-lexer.sls"
+ 		 "csv/unquoted-data-comma-lexer.slfasl")
+
+(compile-library "csv.sls"
+ 		 "csv.slfasl")
 
 ;;; --------------------------------------------------------------------
 

@@ -39,64 +39,6 @@
 (display "*** testing lalr\n")
 
 
-
-(define calc-parser
-  (lalr-parser
-     ;; --- Options
-     ;; output a parser, called calc-parser, in a separate file - calc.yy.scm,
-     (output:    calc-parser "calc.yy.scm")
-     ;; output the LALR table to calc.out
-     (out-table: "calc.out")
-     ;; there should be no conflict
-     (expect:    5)
-
-     ;; --- token definitions
-     (ID NUM = LPAREN RPAREN NEWLINE COMMA
-	 (left: + -)
-	 (left: * /)
-	 (nonassoc: uminus))
-
-     (lines    (lines line) : (display-result $2)
-	       (line)       : (display-result $1))
-
-
-     ;; --- rules
-     (line     (assign NEWLINE)        : $1
-	       (expr   NEWLINE)        : $1
-	       (error  NEWLINE)        : #f)
-
-     (assign   (ID = expr)             : (add-binding $1 $3))
-
-     (expr     (expr + expr)           : (+ $1 $3)
-	       (expr - expr)           : (- $1 $3)
-	       (expr * expr)           : (* $1 $3)
-	       (expr / expr)           : (/ $1 $3)
-	       (- expr (prec: uminus)) : (- $2)
-	       (ID)                    : (get-binding $1)
-	       (ID LPAREN args RPAREN) : (invoke-proc $1 $3)
-	       (NUM)                   : $1
-	       (LPAREN expr RPAREN)    : $2)
-
-     (args     ()                      : '()
-	       (expr arg-rest)         : (cons $1 $2))
-
-     (arg-rest (COMMA expr arg-rest)   : (cons $2 $3)
-	       ()                      : '())))
-
-
-(define (display-result v)
-  (if v
-      (begin
-        (display "==> ")
-        (display v)
-        (newline))))
-
-(when (file-exists? "calc.out")
-  (delete-file "calc.out"))
-(when (file-exists? "calc.yy.scm")
-  (delete-file "calc.yy.scm"))
-
-
 ;;;
 ;;;;   The lexer
 ;;;
@@ -200,50 +142,50 @@
           0))))
 
 
-;;;
-;;;;   The main program
-;;;
+;; ;;;
+;; ;;;;   The main program
+;; ;;;
 
 
 
 
-(define calc
-  (lambda ()
-    (call-with-current-continuation
-     (lambda (k)
-       (display "********************************") (newline)
-       (display "*  Mini calculator in Scheme   *") (newline)
-       (display "*                              *") (newline)
-       (display "* Enter expressions followed   *") (newline)
-       (display "* by [RETURN] or 'quit()' to   *") (newline)
-       (display "* exit.                        *") (newline)
-       (display "********************************") (newline)
-       (init-bindings)
-       (add-binding 'quit (lambda () (k #t)))
-       (letrec ((errorp
-                 (lambda (message . args)
-                   (display message)
-                   (if (and (pair? args)
-                            (lexical-token? (car args)))
-                       (let ((token (car args)))
-                         (display (or (lexical-token-value token)
-                                      (lexical-token-category token)))
-                         (let ((source (lexical-token-source token)))
-                           (if (source-location? source)
-                               (begin
-                                 (display " (at line ")
-                                 (display (source-location-line source))
-                                 (display ", column ")
-                                 (display (+ 1 (source-location-column source)))
-                                 (display ")")))))
-                       (for-each display args))
-                   (newline)))
-                (start
-                 (lambda ()
-                   (calc-parser (make-lexer errorp) errorp))))
-         (start))))))
+;; (define calc
+;;   (lambda ()
+;;     (call-with-current-continuation
+;;      (lambda (k)
+;;        (display "********************************") (newline)
+;;        (display "*  Mini calculator in Scheme   *") (newline)
+;;        (display "*                              *") (newline)
+;;        (display "* Enter expressions followed   *") (newline)
+;;        (display "* by [RETURN] or 'quit()' to   *") (newline)
+;;        (display "* exit.                        *") (newline)
+;;        (display "********************************") (newline)
+;;        (init-bindings)
+;;        (add-binding 'quit (lambda () (k #t)))
+;;        (letrec ((errorp
+;;                  (lambda (message . args)
+;;                    (display message)
+;;                    (if (and (pair? args)
+;;                             (lexical-token? (car args)))
+;;                        (let ((token (car args)))
+;;                          (display (or (lexical-token-value token)
+;;                                       (lexical-token-category token)))
+;;                          (let ((source (lexical-token-source token)))
+;;                            (if (source-location? source)
+;;                                (begin
+;;                                  (display " (at line ")
+;;                                  (display (source-location-line source))
+;;                                  (display ", column ")
+;;                                  (display (+ 1 (source-location-column source)))
+;;                                  (display ")")))))
+;;                        (for-each display args))
+;;                    (newline)))
+;;                 (start
+;;                  (lambda ()
+;;                    (calc-parser (make-lexer errorp) errorp))))
+;;          (start))))))
 
-(calc)
+;; (calc)
 
 
 ;;;; done

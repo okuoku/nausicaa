@@ -41,10 +41,31 @@
 ;;;
 
 
-#!/r6rs
+#!r6rs
 (library (lalr glr-driver)
   (export glr-driver)
-  (import (rnrs))
+  (import (rnrs)
+    (lalr common))
+
+
+(define-syntax drop/stx
+  (syntax-rules ()
+    ((_ ?ell ?k)
+     (let loop ((ell ?ell)
+		(k   ?k))
+       (if (zero? k)
+	   ell
+	 (loop (cdr ell) (- k 1)))))))
+
+(define-syntax take-right/stx
+  (syntax-rules ()
+    ((_ ?ell ?k)
+     (let ((ell ?ell))
+       (let loop ((lag	ell)
+		  (lead	(drop/stx ell ?k)))
+	 (if (pair? lead)
+	     (loop (cdr lag) (cdr lead))
+	   lag))))))
 
 
 
@@ -102,7 +123,7 @@
 
 
   (define (push delta new-category lvalue stack)
-    (let* ((stack     (drop stack (* delta 2)))
+    (let* ((stack     (drop/stx stack (* delta 2)))
            (state     (car stack))
            (new-state (cdr (assv new-category (vector-ref ___gtable state)))))
       (cons new-state (cons lvalue stack))))
@@ -139,7 +160,7 @@
                               (cond ((eq? action '*error*)
                                      (actions-loop other-actions active-stacks))
                                     ((eq? action 'accept)
-                                     (add-parse (car (take-right stack 2)))
+                                     (add-parse (car (take-right/stx stack 2)))
                                      (actions-loop other-actions active-stacks))
                                     ((>= action 0)
                                      (let ((new-stack (shift action attr stack)))

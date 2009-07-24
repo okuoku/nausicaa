@@ -53,7 +53,8 @@
     (rnrs mutable-pairs (6))
     (rnrs mutable-strings (6))
     (strings)
-    (lists))
+    (lists)
+    (lists stx))
 
 
 ;;;; helpers

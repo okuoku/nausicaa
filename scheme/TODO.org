@@ -102,9 +102,25 @@
 
   Add usage examples for :before and :after methods.
 
-
 * silex
 
   Test some tokenisation  from a string including a  tab char.  There is
   some problem somewhere.
+
+* lalr
+
+  Do it.
+
+* gcc
+
+  Do a library  that runs GCC on files under  (by default) TMPDIR.  Make
+  it compile object files and build shared libraries.
+
+  Add functions to write a C source file from a Scheme quoted list.  The
+  Scheme list  allows quasiquotation to be  used to build  the C source.
+  Then just  display the list  into a string  port and trim  the parens,
+  which  will be the  first and  last characters  of the  output string.
+  Finally write the string to disk.
+
+  Use the FFI to load the shared library and run the function.
 

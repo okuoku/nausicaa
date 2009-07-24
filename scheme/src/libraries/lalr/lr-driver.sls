@@ -41,10 +41,11 @@
 ;;;
 
 
-#!/r6rs
+#!r6rs
 (library (lalr lr-driver)
   (export lr-driver)
-  (import (rnrs))
+  (import (rnrs)
+    (lalr common))
 
 
 
