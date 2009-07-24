@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for srfi lists
+;;;Contents: tests for (lists stx)
 ;;;Date: Mon Dec 29, 2008
 ;;;
 ;;;Abstract
@@ -25,540 +25,239 @@
 
 
 
-;;;; setup
-
 (import (nausicaa)
   (checks)
-  (lists)
+  (only (lists)
+	circular-list xcons not-pair?)
+  (lists stx)
   (rnrs mutable-pairs))
 
 (check-set-mode! 'report-failed)
 
 (define numbers '(0 1 2 3 4 5 6 7 8 9))
-(display "*** testing lists\n")
+(display "*** testing lists syntax\n")
 
 
-
 (parameterise ((check-test-name 'constructors))
 
   (check
-      (cons* 1 2 3 4 '(5 6 7 8))
-    => '(1 2 3 4 5 6 7 8))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (xcons 1 2)
-    => '(2 . 1))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (make-list 4 'c)
+      (make-list/stx 4 'c)
     => '(c c c c))
 
   (check
-      (make-list 0)
+      (make-list/stx 0)
     => '())
 
   (check
-      (make-list 0 #f)
+      (make-list/stx 0 #f)
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (list-tabulate 4 (lambda (i)
-			 (cons i 'a)))
+      (list-tabulate/stx 4 (lambda (i)
+			     (cons i 'a)))
     => '((0 . a)
 	 (1 . a)
 	 (2 . a)
 	 (3 . a)))
 
   (check
-      (list-tabulate 1 (lambda (i)
-			 (cons i 'a)))
+      (list-tabulate/stx 1 (lambda (i)
+			     (cons i 'a)))
     => '((0 . a)))
 
   (check
-      (list-tabulate 0 (lambda (i)
-			 (cons i 'a)))
+      (list-tabulate/stx 0 (lambda (i)
+			     (cons i 'a)))
     => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (list-copy numbers)
+      (list-copy/stx numbers)
     => numbers)
 
 ;;; --------------------------------------------------------------------
 
   (let ((ell '(1 2 3 4)))
     (check
-	(tree-copy ell)
+	(tree-copy/stx ell)
       => ell))
 
   (let ((ell '()))
     (check
-	(tree-copy ell)
+	(tree-copy/stx ell)
       => ell))
 
   (let ((ell '(1 (2 (3 4) 5 6) 7 8 (9 10))))
     (check
-	(tree-copy ell)
+	(tree-copy/stx ell)
       => ell))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (iota 5 10)
+      (iota/stx 5 10)
     => '(10 11 12 13 14))
 
   (check
-      (iota 5)
+      (iota/stx 5)
     => '(0 1 2 3 4))
 
   (check
-      (iota 5 10 5)
+      (iota/stx 5 10 5)
     => '(10 15 20 25 30))
 
   (guard (exc (else #f))
     (check
-	(iota -5 10 5)
+	(iota/stx -5 10 5)
       => '()))
 
-  (check
-      (let ((ell (circular-list 1 2)))
-	(list (car ell)
-	      (cadr ell)
-	      (caddr ell)
-	      (cadddr ell)))
-    => '(1 2 1 2))
-
   )
 
 
-
 (parameterise ((check-test-name 'predicates))
 
-  (check
-      (proper-list? '())
-    => #t)
+  (check (and-null?/stx)		=> #t)
+  (check (and-null?/stx '())		=> #t)
+  (check (and-null?/stx '() '())	=> #t)
+  (check (and-null?/stx '() '() '())	=> #t)
 
-  (check
-      (proper-list? '(1 2 3))
-    => #t)
+  (check (and-null?/stx '(1))		=> #f)
+  (check (and-null?/stx '(1) '(1) '(1))	=> #f)
+  (check (and-null?/stx '()  '()  '(1))	=> #f)
 
-  (check
-      (proper-list? '(1 2 3 . 4))
-    => #f)
+  (check (or-null?/stx)			=> #f)
+  (check (or-null?/stx '())		=> #t)
+  (check (or-null?/stx '() '())		=> #t)
+  (check (or-null?/stx '() '() '())	=> #t)
 
-  (check
-      (proper-list? (circular-list 1 2))
-    => #f)
+  (check (or-null?/stx '(1))		=> #f)
+  (check (or-null?/stx '(1) '(1) '(1))	=> #f)
+  (check (or-null?/stx '()  '()  '(1))	=> #t)
 
-  (check
-      (proper-list? '(1 . 2))
-    => #f)
+  (let-syntax ((check-values	(syntax-rules ()
+				  ((_ ?expr ?expected)
+				   (check (receive (a o) ?expr (list a o)) => ?expected)))))
+    (check-values (and/or-null?/stx)			 '(#t #f))
+    (check-values (and/or-null?/stx '())		 '(#t #t))
+    (check-values (and/or-null?/stx '() '())		 '(#t #t))
+    (check-values (and/or-null?/stx '() '() '())	 '(#t #t))
 
-;;; --------------------------------------------------------------------
-
-  (check
-      (circular-list? '())
-    => #f)
-
-  (check
-      (circular-list? '(1 2 3))
-    => #f)
-
-  (check
-      (circular-list? '(1 2 3 . 4))
-    => #f)
-
-  (check
-      (circular-list? (circular-list 1 2))
-    => #t)
-
-  (check
-      (circular-list? '(1 . 2))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (dotted-list? '())
-    => #f)
-
-  (check
-      (dotted-list? '(1 2 3))
-    => #f)
-
-  (check
-      (dotted-list? '(1 2 3 . 4))
-    => #t)
-
-  (check
-      (dotted-list? (circular-list 1 2))
-    => #f)
-
-  (check
-      (dotted-list? '(1 . 2))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (null? '(1 2))
-    => #f)
-
-  (check
-      (null? '(1 . 2))
-    => #f)
-
-  (check
-      (null? '(1))
-    => #f)
-
-  (check
-      (null? '())
-    => #t)
-
-  (check
-      (null-list? '(1 2))
-    => #f)
-
-  (check
-      (null-list? '(1 . 2))
-    => #f)
-
-  (check
-      (null-list? '(1))
-    => #f)
-
-  (check
-      (null-list? '())
-    => #t)
-
-  (check
-      (null-list? (circular-list 1 2))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pair? '(1 2))
-    => #t)
-
-  (check
-      (pair? '(1 . 2))
-    => #t)
-
-  (check
-      (pair? '(1))
-    => #t)
-
-  (check
-      (pair? '())
-    => #f)
-
-  (check
-      (pair? 1)
-    => #f)
-
-  (check
-      (not-pair? '(1 2))
-    => #f)
-
-  (check
-      (not-pair? '(1 . 2))
-    => #f)
-
-  (check
-      (not-pair? '(1))
-    => #f)
-
-  (check
-      (not-pair? '())
-    => #t)
-
-  (check
-      (not-pair? 1)
-    => #t)
+    (check-values (and/or-null?/stx '(1))		 '(#f #f))
+    (check-values (and/or-null?/stx '(1) '(1) '(1))	 '(#f #f))
+    (check-values (and/or-null?/stx '()  '()  '(1))	 '(#f #t)))
 
   )
 
 
-
-(parameterise ((check-test-name 'comparison))
-
-  (check
-      (list=? =)
-    => #t)
-
-  (check
-      (list=? = numbers)
-    => #t)
-
-  (check
-      (list=? = numbers numbers)
-    => #t)
-
-  (check
-      (list=? = numbers numbers numbers)
-    => #t)
-
-  (check
-      (list=? = numbers numbers numbers numbers)
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (list=? =
-	      '(1 2 3 4)
-	      '(1 9 3 4))
-    => #f)
-
-  (check
-      (list=? =
-	      '(1 2 3)
-	      '(9 2 3))
-    => #f)
-
-  (check
-      (list=? =
-	      '(1 2 3)
-	      '(9 2 3)
-	      '(9 2 3))
-    => #f)
-  (check
-      (list=? =
-	      '(9 2 3)
-	      '(1 2 3)
-	      '(9 2 3))
-    => #f)
-
-  (check
-      (list=? =
-	      '(9 2 3)
-	      '(9 2 3)
-	      '(1 2 3))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (list=? = '(1))
-    => #t)
-
-  (check
-      (list=? = '(1) '(1))
-    => #t)
-
-  (check
-      (list=? = '(1) '(1) '(1))
-    => #t)
-
-  (check
-      (list=? = '(1) '(1) '(1) '(1))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (list=? = '(1) '(1 2))
-    => #f)
-
-  (check
-      (list=? = '(1 2) '(1))
-    => #f)
-
-  (check
-      (list=? = '(1 2) '(1) '(1))
-    => #f)
-
-  (check
-      (list=? = '(1) '(1 2) '(1))
-    => #f)
-
-  (check
-      (list=? = '(1) '(1) '(1 2))
-    => #f)
-
-  (check
-      (list=? = numbers '(0 1 2 3 4))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (list=? = '())
-    => #t)
-
-  (check
-      (list=? = '() '())
-    => #t)
-
-  (check
-      (list=? = '() '() '())
-    => #t)
-
-  (check
-      (list=? = '() '() '() '())
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (list=? = '() numbers)
-    => #f)
-
-  (check
-      (list=? = numbers '())
-    => #f)
-
-  (check
-      (list=? = numbers '() '())
-    => #f)
-
-  (check
-      (list=? = '() numbers '())
-    => #f)
-
-  (check
-      (list=? = '() '() numbers)
-    => #f)
-
-  )
-
-
-
 (parameterise ((check-test-name 'selectors))
 
-  (check (first numbers)	=> 0)
-  (check (second numbers)	=> 1)
-  (check (third numbers)  => 2)
-  (check (fourth numbers)	=> 3)
-  (check (fifth numbers)  => 4)
-  (check (sixth numbers)	=> 5)
-  (check (seventh numbers) => 6)
-  (check (eighth numbers)	=> 7)
-  (check (ninth numbers)	=> 8)
-  (check (tenth numbers)	=> 9)
+  (check (fifth/stx numbers)	=> 4)
+  (check (sixth/stx numbers)	=> 5)
+  (check (seventh/stx numbers)	=> 6)
+  (check (eighth/stx numbers)	=> 7)
+  (check (ninth/stx numbers)	=> 8)
+  (check (tenth/stx numbers)	=> 9)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (list-ref numbers 0)
-    => 0)
+      (take/stx numbers 5)
+    => '(0 1 2 3 4))
 
   (check
-      (list-ref numbers 3)
-    => 3)
+      (take/stx numbers 0)
+    => '())
+
+  (check
+      (take/stx '() 0)
+    => '())
+
+  (check
+      (take/stx numbers 10)
+    => numbers)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (drop/stx numbers 5)
+    => '(5 6 7 8 9))
+
+  (check
+      (drop/stx numbers 0)
+    => numbers)
+
+  (check
+      (drop/stx '() 0)
+    => '())
+
+  (check
+      (drop/stx numbers 10)
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (take-right/stx numbers 5)
+    => '(5 6 7 8 9))
+
+  (check
+      (take-right/stx numbers 0)
+    => '())
+
+  (check
+      (take-right/stx '() 0)
+    => '())
+
+  (check
+      (take-right/stx numbers 10)
+    => numbers)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (drop-right/stx numbers 5)
+    => '(0 1 2 3 4))
+
+  (check
+      (drop-right/stx numbers 0)
+    => numbers)
+
+  (check
+      (drop-right/stx '() 0)
+    => '())
+
+  (check
+      (drop-right/stx numbers 10)
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (take!/stx '(1 3 5) 2)
+    => '(1 3))
+
+  (check
+      (guard (exc (else #t))
+	(take!/stx '() 2))
+    => #t)
+
+  (check
+      (drop-right!/stx '(1 3 5) 1)
+    => '(1 3))
+
+  (check
+      (guard (exc (else #t))
+	(drop-right!/stx '() 1))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (call-with-values
-	  (lambda () (car+cdr numbers))
-	list)
-    => (list (car numbers) (cdr numbers)))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (take numbers 5)
-    => '(0 1 2 3 4))
-
-  (check
-      (take numbers 0)
-    => '())
-
-  (check
-      (take '() 0)
-    => '())
-
-  (check
-      (take numbers 10)
-    => numbers)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (drop numbers 5)
-    => '(5 6 7 8 9))
-
-  (check
-      (drop numbers 0)
-    => numbers)
-
-  (check
-      (drop '() 0)
-    => '())
-
-  (check
-      (drop numbers 10)
-    => '())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (take-right numbers 5)
-    => '(5 6 7 8 9))
-
-  (check
-      (take-right numbers 0)
-    => '())
-
-  (check
-      (take-right '() 0)
-    => '())
-
-  (check
-      (take-right numbers 10)
-    => numbers)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (drop-right numbers 5)
-    => '(0 1 2 3 4))
-
-  (check
-      (drop-right numbers 0)
-    => numbers)
-
-  (check
-      (drop-right '() 0)
-    => '())
-
-  (check
-      (drop-right numbers 10)
-    => '())
-
-;;; --------------------------------------------------------------------
-
-  ;; (check
-  ;;     (take! (circular-list 1 3 5) 8)
-  ;;   => '(1 3))
-
-  ;; (check
-  ;;     (take! (circular-list 1 3 5) 8)
-  ;;   => '(1 3 5 1 3 5 1 3))
-
-  ;; (check
-  ;;     (drop-right! (circular-list 1 3 5) 8)
-  ;;   => '(1 3))
-
-  ;; (check
-  ;;     (drop-right! (circular-list 1 3 5) 8)
-  ;;   => '(1 3 5 1 3 5 1 3))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (call-with-values
-	  (lambda () (split-at numbers 5))
+	  (lambda () (split-at/stx numbers 5))
 	list)
     => '((0 1 2 3 4)
 	 (5 6 7 8 9)))
@@ -566,388 +265,241 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (last numbers)
+      (last/stx numbers)
     => 9)
 
   (check
-      (last '(9))
+      (last/stx '(9))
     => 9)
 
 ;;; This raises an error.
   ;;
   ;; (check
-  ;;     (last '())
+  ;;     (last/stx '())
   ;;   => '())
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (last-pair numbers)
+      (last-pair/stx numbers)
     => '(9))
 
   (check
-      (last-pair '(9))
+      (last-pair/stx '(9))
     => '(9))
 
 ;;; The empty list is not a pair, so the following raises an error.
   ;;
   ;; (check
-  ;;     (last-pair '())
+  ;;     (last-pair/stx '())
   ;;   => '())
 
   )
 
 
-
 (parameterise ((check-test-name 'miscellaneous))
 
   (check
-      (length '(1 2 3 4 5 6))
-    => 6)
-
-  (check
-      (length '(1))
-    => 1)
-
-  (check
-      (length '())
-    => 0)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (length+ '())
-    => 0)
-
-  (check
-      (length+ '(1))
-    => 1)
-
-  (check
-      (length+ '(1 2 3 4 5 6))
-    => 6)
-
-  (check
-      (length+ (circular-list 1 2 3 4 5 6))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (append '(x) '(y))
-    => '(x y))
-
-  (check
-      (append '(a) '(b c d))
-    => '(a b c d))
-
-  (check
-      (append '(a (b)) '((c)))
-    => '(a (b) (c)))
-
-  (check
-      (append '(a b) '(c . d))
-    => '(a b c . d))
-
-  (check
-      (append '() 'a)
-    => 'a)
-
-  (check
-      (append '(a) '())
-    => '(a))
-
-  (check
-      (append '(x y))
-    => '(x y))
-
-  (check
-      (append)
-    => '())
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (append!)
+      (concatenate/stx '())
     => '())
 
   (check
-      (append! '())
+      (concatenate/stx '(()))
     => '())
 
   (check
-      (append! '() '())
+      (concatenate/stx '(() ()))
     => '())
 
   (check
-      (append! '() '() '())
+      (concatenate/stx '(() () ()))
     => '())
 
   (check
-      (append! '(y))
-    => '(y))
-
-  (check
-      (append! '(x) '(y))
-    => '(x y))
-
-  (check
-      (append! '(x) '(y) '(z))
-    => '(x y z))
-
-  (check
-      (append! '(a) '(b c d))
-    => '(a b c d))
-
-  (check
-      (append! '(a (b)) '((c)))
-    => '(a (b) (c)))
-
-  (check
-      (append! '(a b) '(c . d))
-    => '(a b c . d))
-
-  (check
-      (append! '() 'a)
-    => 'a)
-
-  (check
-      (append! '(a) '())
-    => '(a))
-
-  (check
-      (append! '(x y))
-    => '(x y))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (concatenate '())
-    => '())
-
-  (check
-      (concatenate '(()))
-    => '())
-
-  (check
-      (concatenate '(() ()))
-    => '())
-
-  (check
-      (concatenate '(() () ()))
-    => '())
-
-  (check
-      (concatenate '((x)))
+      (concatenate/stx '((x)))
     => '(x))
 
   (check
-      (concatenate '((x) (y)))
+      (concatenate/stx '((x) (y)))
     => '(x y))
 
   (check
-      (concatenate '((x) (y) (z)))
+      (concatenate/stx '((x) (y) (z)))
     => '(x y z))
 
   (check
-      (concatenate '((a)
-		     (b c d)))
+      (concatenate/stx '((a)
+			 (b c d)))
     => '(a b c d))
 
   (check
-      (concatenate '((a b)
-		     (c d)))
+      (concatenate/stx '((a b)
+			 (c d)))
     => '(a b c d))
 
   (check
-      (concatenate '((a b)
-		     (c d)
-		     (e f)))
+      (concatenate/stx '((a b)
+			 (c d)
+			 (e f)))
     => '(a b c d e f))
 
   (check
-      (concatenate '((a b c d e f g)
-		     (h i)
-		     (l m n o)))
+      (concatenate/stx '((a b c d e f g)
+			 (h i)
+			 (l m n o)))
     => '(a b c d e f g h i l m n o))
 
   (check
-      (concatenate '((a (b)) ((c))))
+      (concatenate/stx '((a (b)) ((c))))
     => '(a (b) (c)))
 
   (check
-      (concatenate '((a b) (c . d)))
+      (concatenate/stx '((a b) (c . d)))
     => '(a b c . d))
 
   (check
-      (concatenate '(() (a)))
+      (concatenate/stx '(() (a)))
     => '(a))
 
   (check
-      (concatenate '((x y)))
+      (concatenate/stx '((x y)))
     => '(x y))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (concatenate! '())
+      (concatenate!/stx '())
     => '())
 
   (check
-      (concatenate! '(()))
+      (concatenate!/stx '(()))
     => '())
 
   (check
-      (concatenate! '(() ()))
+      (concatenate!/stx '(() ()))
     => '())
 
   (check
-      (concatenate! '(() () ()))
+      (concatenate!/stx '(() () ()))
     => '())
 
   (check
-      (concatenate! '((x)))
+      (concatenate!/stx '((x)))
     => '(x))
 
   (check
-      (concatenate! '((x) (y)))
+      (concatenate!/stx '((x) (y)))
     => '(x y))
 
   (check
-      (concatenate! '((x) (y) (z)))
+      (concatenate!/stx '((x) (y) (z)))
     => '(x y z))
 
   (check
-      (concatenate! '((a)
-		      (b c d)))
+      (concatenate!/stx '((a)
+			  (b c d)))
     => '(a b c d))
 
   (check
-      (concatenate! '((a b)
-		      (c d)))
+      (concatenate!/stx '((a b)
+			  (c d)))
     => '(a b c d))
 
   (check
-      (concatenate! '((a b)
-		      (c d)
-		      (e f)))
+      (concatenate!/stx '((a b)
+			  (c d)
+			  (e f)))
     => '(a b c d e f))
 
   (check
-      (concatenate! '((a b c d e f g)
-		      (h i)
-		      (l m n o)))
+      (concatenate!/stx '((a b c d e f g)
+			  (h i)
+			  (l m n o)))
     => '(a b c d e f g h i l m n o))
 
   (check
-      (concatenate! '((a (b)) ((c))))
+      (concatenate!/stx '((a (b)) ((c))))
     => '(a (b) (c)))
 
   (check
-      (concatenate! '((a b) (c . d)))
+      (concatenate!/stx '((a b) (c . d)))
     => '(a b c . d))
 
   (check
-      (concatenate! '(() (a)))
+      (concatenate!/stx '(() (a)))
     => '(a))
 
   (check
-      (concatenate! '((x y)))
+      (concatenate!/stx '((x y)))
     => '(x y))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (reverse '())
+      (append-reverse/stx '() '())
     => '())
 
   (check
-      (reverse '(1))
-    => '(1))
-
-  (check
-      (reverse '(1 2 3))
-    => '(3 2 1))
-
-  (check
-      (reverse! '())
-    => '())
-
-  (check
-      (reverse! '(1))
-    => '(1))
-
-  (check
-      (reverse! '(1 2 3))
-    => '(3 2 1))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (append-reverse '() '())
-    => '())
-
-  (check
-      (append-reverse '(x) '(y))
+      (append-reverse/stx '(x) '(y))
     => '(x y))
 
   (check
-      (append-reverse '(1 2 3) '(4 5 6))
+      (append-reverse/stx '(1 2 3) '(4 5 6))
     => '(3 2 1 4 5 6))
 
   (check
-      (append-reverse '(a) '(b c d))
+      (append-reverse/stx '(a) '(b c d))
     => '(a b c d))
 
   (check
-      (append-reverse '(a (b)) '((c)))
+      (append-reverse/stx '(a (b)) '((c)))
     => '((b) a (c)))
 
   (check
-      (append-reverse '(a) '())
+      (append-reverse/stx '(a) '())
     => '(a))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (append-reverse! '() '())
+      (append-reverse!/stx '() '())
     => '())
 
   (check
-      (append-reverse! '(x) '(y))
+      (append-reverse!/stx '(x) '(y))
     => '(x y))
 
   (check
-      (append-reverse! '(1 2 3) '(4 5 6))
+      (append-reverse!/stx '(1 2 3) '(4 5 6))
     => '(3 2 1 4 5 6))
 
   (check
-      (append-reverse! '(a) '(b c d))
+      (append-reverse!/stx '(a) '(b c d))
     => '(a b c d))
 
   (check
-      (append-reverse! '(a (b)) '((c)))
+      (append-reverse!/stx '(a (b)) '((c)))
     => '((b) a (c)))
 
   (check
-      (append-reverse! '(a) '())
+      (append-reverse!/stx '(a) '())
     => '(a))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (zip '(one two three)
-	   '(1 2 3)
-	   '(odd even odd even odd even odd even))
+      (zip/stx '(one two three)
+	       '(1 2 3)
+	       '(odd even odd even odd even odd even))
     => '((one 1 odd) (two 2 even) (three 3 odd)))
 
   (check
-      (zip '(1 2 3))
+      (zip/stx '(1 2 3))
     => '((1) (2) (3)))
 
   (check
-      (zip '(3 1 4 1)
-	   (circular-list #f #t))
+      (zip/stx '(3 1 4 1)
+	       (circular-list #f #t))
     => '((3 #f)
 	 (1 #t)
 	 (4 #f)
@@ -956,24 +508,24 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (unzip1 '((1)))
+      (unzip1/stx '((1)))
     => '(1))
 
   (check
-      (unzip1 '((1)
-		(2)))
+      (unzip1/stx '((1)
+		    (2)))
     => '(1 2))
 
   (check
-      (unzip1 '((1)
-		(2)
-		(3)))
+      (unzip1/stx '((1)
+		    (2)
+		    (3)))
     => '(1 2 3))
 
   (check
-      (unzip1 '((1 one)
-		(2 two)
-		(3 three)))
+      (unzip1/stx '((1 one)
+		    (2 two)
+		    (3 three)))
     => '(1 2 3))
 
 ;;; --------------------------------------------------------------------
@@ -981,7 +533,7 @@
   (check
       (call-with-values
 	  (lambda ()
-	    (unzip2 '((1 one))))
+	    (unzip2/stx '((1 one))))
 	list)
     => '((1)
 	 (one)))
@@ -989,8 +541,8 @@
   (check
       (call-with-values
 	  (lambda ()
-	    (unzip2 '((1 one)
-		      (2 two))))
+	    (unzip2/stx '((1 one)
+			  (2 two))))
 	list)
     => '((1 2)
 	 (one two)))
@@ -998,9 +550,9 @@
   (check
       (call-with-values
 	  (lambda ()
-	    (unzip2 '((1 one)
-		      (2 two)
-		      (3 three))))
+	    (unzip2/stx '((1 one)
+			  (2 two)
+			  (3 three))))
 	list)
     => '((1 2 3)
 	 (one two three)))
@@ -1010,9 +562,9 @@
   (check
       (call-with-values
 	  (lambda ()
-	    (unzip3 '((1 10 100)
-		      (2 20 200)
-		      (3 30 300))))
+	    (unzip3/stx '((1 10 100)
+			  (2 20 200)
+			  (3 30 300))))
 	list)
     => '((1 2 3)
 	 (10 20 30)
@@ -1021,9 +573,9 @@
   (check
       (call-with-values
 	  (lambda ()
-	    (unzip4 '((1 10 100 1000)
-		      (2 20 200 2000)
-		      (3 30 300 3000))))
+	    (unzip4/stx '((1 10 100 1000)
+			  (2 20 200 2000)
+			  (3 30 300 3000))))
 	list)
     => '((1 2 3)
 	 (10 20 30)
@@ -1033,9 +585,9 @@
   (check
       (call-with-values
 	  (lambda ()
-	    (unzip5 '((1 10 100 1000 10000)
-		      (2 20 200 2000 20000)
-		      (3 30 300 3000 30000))))
+	    (unzip5/stx '((1 10 100 1000 10000)
+			  (2 20 200 2000 20000)
+			  (3 30 300 3000 30000))))
 	list)
     => '((1 2 3)
 	 (10 20 30)
@@ -1047,155 +599,20 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (count even? numbers)
+      (count/stx even? numbers)
     => 5)
 
   (check
-      (count even? '(1))
+      (count/stx even? '(1))
     => 0)
 
   (check
-      (count even? '(2))
+      (count/stx even? '(2))
     => 1)
 
   (check
-      (count even? '())
+      (count/stx even? '())
     => 0)
-
-  )
-
-
-(parameterise ((check-test-name 'left-folding))
-
-  (check
-      (fold + 0 numbers)
-    => 45)
-
-  (check
-      (fold cons '() numbers)
-    => '(9 8 7 6 5 4 3 2 1 0))
-
-  (check
-      (fold cons '(4 5 6) '(3 2 1))
-    => '(1 2 3 4 5 6))
-
-  (check
-      (fold cons '(4 5 6) '())
-    => '(4 5 6))
-
-  (check
-      (fold cons '(4 5 6) '(3))
-    => '(3 4 5 6))
-
-  (check
-      (fold (lambda (x count)
-	      (if (symbol? x)
-		  (+ count 1)
-		count))
-	    0
-	    '(a 1 b 2 c 3))
-    => 3)
-
-  (check
-      (fold (lambda (s len)
-	      (max len (string-length s)))
-	    0
-	    '("ciao" "hello" "salut" "hola"))
-    => 5)
-
-  (check
-      (fold cons* '()
-	    '(a b c)
-	    '(1 2 3 4 5))
-    => '(c 3 b 2 a 1))
-
-  (check
-      (fold cons* '()
-	    '(a)
-	    '(1))
-    => '(a 1))
-
-  (check
-      (fold (lambda (a b c knil)
-	      (cons (list a b c)
-		    knil))
-	    '()
-	    '(1 2 3)
-	    '(10 20 30)
-	    '(100 200 300))
-    => '((3 30 300)
-	 (2 20 200)
-	 (1 10 100)))
-
-  (check
-      (fold (lambda (a b c knil)
-	      (cons (list a b c)
-		    knil))
-	    '()
-	    '(1 2 3)
-	    '(10 20)
-	    '(100 200 300 400))
-    => '((2 20 200)
-	 (1 10 100)))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (fold-left* + 0 numbers)
-    => 45)
-
-  (check
-      (fold-left* xcons '() numbers)
-    => '(9 8 7 6 5 4 3 2 1 0))
-
-  (check
-      (fold-left* xcons '(4 5 6) '(3 2 1))
-    => '(1 2 3 4 5 6))
-
-  (check
-      (fold-left* xcons '(4 5 6) '())
-    => '(4 5 6))
-
-  (check
-      (fold-left* xcons '(4 5 6) '(3))
-    => '(3 4 5 6))
-
-  (check
-      (fold-left* (lambda (count x)
-  		    (if (symbol? x)
-  			(+ count 1)
-  		      count))
-  		  0
-  		  '(a 1 b 2 c 3))
-    => 3)
-
-  (check
-      (fold-left* (lambda (len s)
-  		    (max len (string-length s)))
-  		  0
-  		  '("ciao" "hello" "salut" "hola"))
-    => 5)
-
-  (check
-      (fold-left* (lambda (knil a b c)
-		    (cons (list a b c)
-			  knil))
-		  '()
-		  '(1 2 3)
-		  '(10 20)
-		  '(100 200 300 400))
-    => '((2 20 200)
-	 (1 10 100)))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (fold-left/pred < 0 '(1 2 3 4 5 6))
-    => 6)
-
-  (check
-      (fold-left/pred < 0 '(1 2 3 -4 5 6))
-    => #f)
 
   )
 
@@ -1382,173 +799,6 @@
 		      '(100 200 300 400))
     => '((2 20 200)
 	 (1 10 100)))
-
-  )
-
-
-(parameterise ((check-test-name 'right-folding))
-
-  (check
-      (fold* cons '() '(1 2 3))
-    => '(1 2 3))
-
-  (check
-      (fold* cons '() numbers)
-    => numbers)
-
-  (check
-      (fold* + 0 numbers)
-    => 45)
-
-  (check
-      (fold* cons '(4 5 6) '(1 2 3))
-    => '(1 2 3 4 5 6))
-
-  (check
-      (fold* (lambda (x count)
-		(if (symbol? x)
-		    (+ count 1)
-		  count))
-	      0
-	      '(a 1 b 2 c 3))
-    => 3)
-
-  (check
-      (fold* (lambda (s len)
-		(max len (string-length s)))
-	      0
-	      '("ciao" "hello" "salut" "hola"))
-    => 5)
-
-  (check
-      (fold* (lambda (x l)
-		(if (even? x)
-		    (cons x l)
-		  l))
-	      '()
-	      '(0 1 2 3 4 5 6 7 8 9))
-    => '(0 2 4 6 8))
-
-  (check
-      (fold* cons* '()
-	      '(a b c)
-	      '(1 2 3 4 5))
-    => '(a 1 b 2 c 3))
-
-  (check
-      (fold* cons* '()
-	      '(a)
-	      '(1))
-    => '(a 1))
-
-  (check
-      (fold* (lambda (a b c knil)
-	       (cons (list a b c)
-		     knil))
-	     '()
-	     '(1 2 3)
-	     '(10 20 30)
-	     '(100 200 300))
-    => '((1 10 100)
-	 (2 20 200)
-	 (3 30 300)))
-
-  (check
-      (fold* (lambda (a b c knil)
-	       (cons (list a b c)
-		     knil))
-	     '()
-	     '(1 2 3)
-	     '(10 20)
-	     '(100 200 300 400))
-    => '((1 10 100)
-	 (2 20 200)))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (fold-right* cons '() '(1 2 3))
-    => '(1 2 3))
-
-  (check
-      (fold-right* cons '(1 2 3) '())
-    => '(1 2 3))
-
-  (check
-      (fold-right* cons '(1 2 3) '(9))
-    => '(9 1 2 3))
-
-  (check
-      (fold-right* cons '() numbers)
-    => numbers)
-
-  (check
-      (fold-right* + 0 numbers)
-    => 45)
-
-  (check
-      (fold-right* cons '(4 5 6) '(1 2 3))
-    => '(1 2 3 4 5 6))
-
-  (check
-      (fold-right* (lambda (x count)
-		     (if (symbol? x)
-			 (+ count 1)
-		       count))
-		   0
-		   '(a 1 b 2 c 3))
-    => 3)
-
-  (check
-      (fold-right* (lambda (s len)
-		     (max len (string-length s)))
-		   0
-		   '("ciao" "hello" "salut" "hola"))
-    => 5)
-
-  (check
-      (fold-right* (lambda (x l)
-		     (if (even? x)
-			 (cons x l)
-		       l))
-		   '()
-		   '(0 1 2 3 4 5 6 7 8 9))
-    => '(0 2 4 6 8))
-
-  (check
-      (fold-right* cons* '()
-		   '(a b c)
-		   '(1 2 3))
-    => '(a 1 b 2 c 3))
-
-  (check
-      (fold-right* cons* '()
-		   '(a)
-		   '(1))
-    => '(a 1))
-
-  (check
-      (fold-right* (lambda (a b c knil)
-		     (cons (list a b c)
-			   knil))
-		   '()
-		   '(1 2 3)
-		   '(10 20 30)
-		   '(100 200 300))
-    => '((1 10 100)
-	 (2 20 200)
-	 (3 30 300)))
-
-  (check
-      (fold-right* (lambda (a b c knil)
-		     (cons (list a b c)
-			   knil))
-		   '()
-		   '(1 2 3)
-		   '(10 20)
-		   '(100 200 300 400))
-    => '((1 10 100)
-	 (2 20 200)))
 
   )
 
@@ -1806,303 +1056,57 @@
   )
 
 
-(parameterise ((check-test-name 'pair-folding))
-
-  (check
-      (pair-fold (lambda (elm knil)
-		   (cons (car elm) knil))
-		 '(999)
-		 '(1 2 3))
-    => '(3 2 1 999))
-
-  (check
-      (pair-fold (lambda (pair tail)
-		   (set-cdr! pair tail)
-		   pair)
-		 '()
-		 (list-copy numbers))
-    => (reverse numbers))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '(1 2 3)
-		 '(10 20 30)
-		 '(100 200 300))
-    => '((3 30 300)
-	 (2 20 200)
-	 (1 10 100)
-	 999))
-
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '(1)
-		 '(10)
-		 '(100))
-    => '((1 10 100)
-	 999))
-
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '(1)
-		 '(10 20 30)
-		 '(100 200 300))
-    => '((1 10 100)
-	 999))
-
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '(1 2 3)
-		 '(10)
-		 '(100 200 300))
-    => '((1 10 100)
-	 999))
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '(1 2 3)
-		 '(10 20 30)
-		 '(100))
-    => '((1 10 100)
-	 999))
-
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '()
-		 '(10 20 30)
-		 '(100 200 300))
-    => '(999))
-
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '(1 2 3)
-		 '()
-		 '(100 200 300))
-    => '(999))
-
-  (check
-      (pair-fold (lambda (a b c knil)
-		   (cons (list (car a)
-			       (car b)
-			       (car c))
-			 knil))
-		 '(999)
-		 '(1 2 3)
-		 '(10 20 30)
-		 '())
-    => '(999))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pair-fold* (lambda (elm knil)
-			 (cons (car elm) knil))
-		       '(999)
-		       '(1 2 3))
-    => '(1 2 3 999))
-
-  (check
-      (pair-fold* (lambda (pair tail)
-			 (set-cdr! pair tail)
-			 pair)
-		       '()
-		       (list-copy numbers))
-    => numbers)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '(1 2 3)
-		       '(10 20 30)
-		       '(100 200 300))
-    => '((1 10 100)
-	 (2 20 200)
-	 (3 30 300)
-	 999))
-
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '(1)
-		       '(10)
-		       '(100))
-    => '((1 10 100)
-	 999))
-
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '(1)
-		       '(10 20 30)
-		       '(100 200 300))
-    => '((1 10 100)
-	 999))
-
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '(1 2 3)
-		       '(10)
-		       '(100 200 300))
-    => '((1 10 100)
-	 999))
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '(1 2 3)
-		       '(10 20 30)
-		       '(100))
-    => '((1 10 100)
-	 999))
-
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '()
-		       '(10 20 30)
-		       '(100 200 300))
-    => '(999))
-
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '(1 2 3)
-		       '()
-		       '(100 200 300))
-    => '(999))
-
-  (check
-      (pair-fold* (lambda (a b c knil)
-			 (cons (list (car a)
-				     (car b)
-				     (car c))
-			       knil))
-		       '(999)
-		       '(1 2 3)
-		       '(10 20 30)
-		       '())
-    => '(999))
-
-  )
-
-
 (parameterise ((check-test-name 'reducing))
 
   (check
-      (reduce + 0 numbers)
+      (reduce/stx + 0 numbers)
     => 45)
 
   (check
-      (reduce + 0 '())
+      (reduce/stx + 0 '())
     => 0)
 
   (check
-      (reduce max 0 '(1 2 3 4 5))
+      (reduce/stx max 0 '(1 2 3 4 5))
     => 5)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (reduce* + 0 numbers)
+      (reduce*/stx + 0 numbers)
     => 45)
 
   (check
-      (reduce* + 0 '())
+      (reduce*/stx + 0 '())
     => 0)
 
   (check
-      (reduce* max 0 '(1 2 3 4 5))
+      (reduce*/stx max 0 '(1 2 3 4 5))
     => 5)
 
   (check
-      (reduce* append
-	       '()
-	       '((1 2 3)
-		 (4 5)
-		 (6 7 8 9)
-		 (0)))
+      (reduce*/stx append
+		   '()
+		   '((1 2 3)
+		     (4 5)
+		     (6 7 8 9)
+		     (0)))
     => '(1 2 3 4 5 6 7 8 9 0))
 
   )
 
 
-
 (parameterise ((check-test-name 'unfolding))
 
   (check
-      (unfold (lambda (x) (< 5 x))
+      (unfold/stx (lambda (x) (< 5 x))
 	      (lambda (x) (* x x))
 	      (lambda (x) (+ x 1))
 	      1)
     => '(1 4 9 16 25))
 
   (check
-      (unfold (lambda (x) (< 5 x))
+      (unfold/stx (lambda (x) (< 5 x))
 	      (lambda (x) (* x x))
 	      (lambda (x) (+ x 1))
 	      1
@@ -2110,7 +1114,7 @@
     => '(1 4 9 16 25 . -6))
 
   (check
-      (unfold (lambda (x) #t)
+      (unfold/stx (lambda (x) #t)
 	      (lambda (x) (* x x))
 	      (lambda (x) (+ x 1))
 	      1
@@ -2118,215 +1122,310 @@
     => -1)
 
   (check
-      (unfold null-list? car cdr numbers)
+      (unfold/stx null? car cdr numbers)
     => numbers)
 
   (check
-      (unfold not-pair? car cdr '(1 2 3 4 . 5) values)
+      (unfold/stx not-pair? car cdr '(1 2 3 4 . 5) values)
     => '(1 2 3 4 . 5))
 
   (check
-      (unfold null-list? car cdr '(1 2 3) (lambda (x) '(4 5 6)))
+      (unfold/stx null? car cdr '(1 2 3) (lambda (x) '(4 5 6)))
     => '(1 2 3 4 5 6))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (unfold-right zero?
+      (unfold-right/stx zero?
 		    (lambda (x) (* x x))
 		    (lambda (x) (- x 1))
 		    5)
     => '(1 4 9 16 25))
 
   (check
-      (unfold-right null-list? car cdr '(1 2 3 4 5))
+      (unfold-right/stx null? car cdr '(1 2 3 4 5))
     => '(5 4 3 2 1))
 
   (check
-      (unfold-right null-list? car cdr '(3 2 1) '(4 5 6))
+      (unfold-right/stx null? car cdr '(3 2 1) '(4 5 6))
     => '(1 2 3 4 5 6))
 
   )
 
 
-
 (parameterise ((check-test-name 'mapping))
 
   (check
-      (map - '())
+      (map*/stx - '())
     => '())
 
   (check
-      (map - '() '())
+      (map*/stx - '() '())
     => '())
 
   (check
-      (map - '() '() '())
+      (map*/stx - '() '() '())
     => '())
 
   (check
-      (map - numbers)
+      (map*/stx - '() '() '() '())
+    => '())
+
+  (check
+      (map*/stx - numbers)
     => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
 
   (check
-      (map +
-	'(1 2 3)
-	'(10 20 30))
-    => '(11 22 33))
-
-  (check
-      (map +
-	'(1 2 3)
-	'(10 20 30)
-	'(100 200 300))
-    => '(111 222 333))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let ((r 0))
-	(for-each
-	    (lambda (e)
-	      (set! r (+ e r)))
-	  '())
-	r)
-    => 0)
-
-  (check
-      (let ((r 0))
-	(for-each
-	    (lambda (e1 e2)
-	      (set! r (+ e1 e2 r)))
-	  '() '())
-	r)
-    => 0)
-
-  (check
-      (let ((r 0))
-	(for-each
-	    (lambda (e1 e2 e3)
-	      (set! r (+ e1 e2 e3 r)))
-	  '() '() '())
-	r)
-    => 0)
-
-  (check
-      (let ((r '(0 0)))
-	(for-each
-	    (lambda (e1 e2)
-	      (set! r (list (+ e1 (car r))
-			    (+ e2 (cadr r)))))
-	  '(1 10 100)
-	  '(2 20 200))
-	r)
-    => '(111 222))
-
-
-  (check
-      (let ((r '(0 0 0)))
-	(for-each
-	    (lambda (e1 e2 e3)
-	      (set! r (list (+ e1 (car r))
-			    (+ e2 (cadr r))
-			    (+ e3 (caddr r)))))
-	  '(1 10 100)
-	  '(2 20 200)
-	  '(3 30 300))
-	r)
-    => '(111 222 333))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (map* - '())
-    => '())
-
-  (check
-      (map* - '() '())
-    => '())
-
-  (check
-      (map* - '() '() '())
-    => '())
-
-  (check
-      (map* - '() '() '() '())
-    => '())
-
-  (check
-      (map* - numbers)
-    => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
-
-  (check
-      (map* + '(1 2 3))
+      (map*/stx + '(1 2 3))
     => '(1 2 3))
 
   (check
-      (map* +
-	    '(1 2 3)
-	    '(10 20 30))
+      (map*/stx +
+		'(1 2 3)
+		'(10 20 30))
     => '(11 22 33))
 
   (check
-      (map* +
-	    '(1 2 3)
-	    '(10 20 30)
-	    '(100 200 300))
+      (map*/stx +
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200 300))
     => '(111 222 333))
 
   (check
-      (map* +
-	    '(1 2 3)
-	    '(10 20)
-	    '(100 200 300))
+      (map*/stx +
+		'(1 2 3)
+		'(10 20)
+		'(100 200 300))
     => '(111 222))
 
   (check
-      (map* +
-	    '(1 2)
-	    '(10 20 30)
-	    '(100 200 300))
+      (map*/stx +
+		'(1 2)
+		'(10 20 30)
+		'(100 200 300))
     => '(111 222))
 
   (check
-      (map* +
-	    '(1 2 3)
-	    '(10 20 30)
-	    '(100 200))
+      (map*/stx +
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200))
     => '(111 222))
 
   (check
-      (map* +
-	    '()
-	    '(10 20 30)
-	    '(100 200 300))
+      (map*/stx +
+		'()
+		'(10 20 30)
+		'(100 200 300))
     => '())
 
   (check
-      (map* +
-	    '(1 2 3)
-	    '()
-	    '(100 200 300))
+      (map*/stx +
+		'(1 2 3)
+		'()
+		'(100 200 300))
     => '())
 
   (check
-      (map* +
-	    '(1 2 3)
-	    '(10 20 30)
-	    '())
+      (map*/stx +
+		'(1 2 3)
+		'(10 20 30)
+		'())
     => '())
 
   (check
-      (map* +
-	    '(3 1 4 1)
-	    (circular-list 1 0))
+      (map*/stx +
+		'(3 1 4 1)
+		(circular-list 1 0))
     => '(4 1 5 1))
 
 ;;; --------------------------------------------------------------------
 
   (check
+      (map-in-order/stx - '())
+    => '())
+
+  (check
+      (map-in-order/stx - '() '())
+    => '())
+
+  (check
+      (map-in-order/stx - '() '() '())
+    => '())
+
+  (check
+      (map-in-order/stx - '() '() '() '())
+    => '())
+
+  (check
+      (map-in-order/stx - numbers)
+    => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+  (check
+      (map-in-order/stx + '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (map-in-order/stx +
+			'(1 2 3)
+			'(10 20 30))
+    => '(11 22 33))
+
+  (check
+      (map-in-order/stx +
+			'(1 2 3)
+			'(10 20 30)
+			'(100 200 300))
+    => '(111 222 333))
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(map-in-order/stx +
+			  '(1 2 3)
+			  '(10 20)
+			  '(100 200 300)))
+    => "expected lists of equal length")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(map-in-order/stx +
+			  '(1 2)
+			  '(10 20 30)
+			  '(100 200 300)))
+    => "expected lists of equal length")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(map-in-order/stx +
+			  '(1 2 3)
+			  '(10 20 30)
+			  '(100 200)))
+    => "expected lists of equal length")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(map-in-order/stx +
+			  '()
+			  '(10 20 30)
+			  '(100 200 300)))
+    => "expected lists of equal length")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(map-in-order/stx +
+			  '(1 2 3)
+			  '()
+			  '(100 200 300)))
+    => "expected lists of equal length")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(map-in-order/stx +
+			  '(1 2 3)
+			  '(10 20 30)
+			  '()))
+    => "expected lists of equal length")
+
+  (check
+      (guard (exc (else (condition-message exc)))
+	(map-in-order/stx +
+			  '(3 1 4 1)
+			  (circular-list 1 0)))
+    => "expected lists of equal length")
+
+;;; --------------------------------------------------------------------
+
+    (check
+        (map-in-order*/stx - '())
+      => '())
+
+    (check
+        (map-in-order*/stx - '() '())
+      => '())
+
+    (check
+        (map-in-order*/stx - '() '() '())
+      => '())
+
+    (check
+        (map-in-order*/stx - '() '() '() '())
+      => '())
+
+    (check
+        (map-in-order*/stx - numbers)
+      => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+    (check
+        (map-in-order*/stx + '(1 2 3))
+      => '(1 2 3))
+
+    (check
+        (map-in-order*/stx +
+  			 '(1 2 3)
+  			 '(10 20 30))
+      => '(11 22 33))
+
+    (check
+        (map-in-order*/stx +
+  			 '(1 2 3)
+  			 '(10 20 30)
+  			 '(100 200 300))
+      => '(111 222 333))
+
+    (check
+        (map-in-order*/stx +
+  			 '(1 2 3)
+  			 '(10 20)
+  			 '(100 200 300))
+      => '(111 222))
+
+    (check
+        (map-in-order*/stx +
+  			 '(1 2)
+  			 '(10 20 30)
+  			 '(100 200 300))
+      => '(111 222))
+
+    (check
+        (map-in-order*/stx +
+  			 '(1 2 3)
+  			 '(10 20 30)
+  			 '(100 200))
+      => '(111 222))
+
+    (check
+        (map-in-order*/stx +
+  			 '()
+  			 '(10 20 30)
+  			 '(100 200 300))
+      => '())
+
+    (check
+        (map-in-order*/stx +
+  			 '(1 2 3)
+  			 '()
+  			 '(100 200 300))
+      => '())
+
+    (check
+        (map-in-order*/stx +
+  			 '(1 2 3)
+  			 '(10 20 30)
+  			 '())
+      => '())
+
+    (check
+        (map-in-order*/stx +
+  			 '(3 1 4 1)
+  			 (circular-list 1 0))
+      => '(4 1 5 1))
+
+;;; --------------------------------------------------------------------
+
+  (check
       (let ((r 0))
-	(for-each*
+	(for-each*/stx
 	 (lambda (e)
 	   (set! r (+ e r)))
 	 '())
@@ -2335,7 +1434,7 @@
 
   (check
       (let ((r 0))
-	(for-each*
+	(for-each*/stx
 	 (lambda (e1 e2)
 	   (set! r (+ e1 e2 r)))
 	 '() '())
@@ -2344,7 +1443,7 @@
 
   (check
       (let ((r 0))
-	(for-each*
+	(for-each*/stx
 	 (lambda (e1 e2 e3)
 	   (set! r (+ e1 e2 e3 r)))
 	 '() '() '())
@@ -2353,7 +1452,7 @@
 
   (check
       (let ((r '(0 0)))
-	(for-each*
+	(for-each*/stx
 	 (lambda (e1 e2)
 	   (set! r (list (+ e1 (car r))
 			 (+ e2 (cadr r)))))
@@ -2363,420 +1462,156 @@
     => '(111 222))
 
 
-  (check
-      (let ((r '(0 0 0)))
-	(for-each*
-	 (lambda (e1 e2 e3)
-	   (set! r (list (+ e1 (car r))
-			 (+ e2 (cadr r))
-			 (+ e3 (caddr r)))))
-	 '(1 10 100)
-	 '(2 20 200)
-	 '(3 30 300))
-	r)
-    => '(111 222 333))
-
-  (check
-      (let ((r '(0 0 0)))
-	(for-each*
-	 (lambda (e1 e2 e3)
-	   (set! r (list (+ e1 (car r))
-			 (+ e2 (cadr r))
-			 (+ e3 (caddr r)))))
-	 '(1 10 100)
-	 '(2 20 200)
-	 (circular-list 3 30 300))
-	r)
-    => '(111 222 333))
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-    (define (f x)
-      (list x (- x)))
+    (check
+        (let ((r '(0 0 0)))
+  	(for-each*/stx
+  	 (lambda (e1 e2 e3)
+  	   (set! r (list (+ e1 (car r))
+  			 (+ e2 (cadr r))
+  			 (+ e3 (caddr r)))))
+  	 '(1 10 100)
+  	 '(2 20 200)
+  	 '(3 30 300))
+  	r)
+      => '(111 222 333))
 
     (check
-	(append-map f '())
-      => '())
-
-    (check
-	(append-map list '() '())
-      => '())
-
-    (check
-	(append-map list '() '() '())
-      => '())
-
-    (check
-	(append-map f '(1))
-      => '(1 -1))
-
-    (check
-	(append-map list '(1) '(2))
-      => '(1 2))
-
-    (check
-	(append-map list '(1) '(2) '(3))
-      => '(1 2 3))
-
-    (check
-	(append-map f '(1 3 8))
-      => '(1 -1 3 -3 8 -8))
-
-    (check
-	(append-map list
-		    '(1 2 3)
-		    '(10 20 30))
-      => '(1 10 2 20 3 30))
-
-    (check
-	(append-map list
-		    '(1 2 3)
-		    '(10 20 30))
-      => '(1 10 2 20 3 30))
-
-    (check
-	(append-map list
-		    '(1 2 3)
-		    '(10 20 30)
-		    '(100 200 300))
-      => '(1 10 100 2 20 200 3 30 300))
-
-    (check
-	(append-map list
-		    '(1 2)
-		    '(10 20 30)
-		    '(100 200 300))
-      => '(1 10 100 2 20 200))
-
-    (check
-	(append-map list
-		    '(1 2 3)
-		    '(10 20)
-		    '(100 200 300))
-      => '(1 10 100 2 20 200))
-
-    (check
-	(append-map list
-		    '(1 2 3)
-		    '(10 20 30)
-		    '(100 200))
-      => '(1 10 100 2 20 200))
-
-;;; --------------------------------------------------------------------
-
-    (check
-	(append-map! f '())
-      => '())
-
-    (check
-	(append-map! list '() '())
-      => '())
-
-    (check
-	(append-map! list '() '() '())
-      => '())
-
-    (check
-	(append-map! f '(1))
-      => '(1 -1))
-
-    (check
-	(append-map! list '(1) '(2))
-      => '(1 2))
-
-    (check
-	(append-map! list '(1) '(2) '(3))
-      => '(1 2 3))
-
-    (check
-	(append-map! f '(1 3 8))
-      => '(1 -1 3 -3 8 -8))
-
-    (check
-	(append-map! list
-		     '(1 2 3)
-		     '(10 20 30))
-      => '(1 10 2 20 3 30))
-
-    (check
-	(append-map! list
-		     '(1 2 3)
-		     '(10 20 30))
-      => '(1 10 2 20 3 30))
-
-    (check
-	(append-map! list
-		     '(1 2 3)
-		     '(10 20 30)
-		     '(100 200 300))
-      => '(1 10 100 2 20 200 3 30 300))
-
-    (check
-	(append-map! list
-		     '(1 2)
-		     '(10 20 30)
-		     '(100 200 300))
-      => '(1 10 100 2 20 200))
-
-    (check
-	(append-map! list
-		     '(1 2 3)
-		     '(10 20)
-		     '(100 200 300))
-      => '(1 10 100 2 20 200))
-
-    (check
-	(append-map! list
-		     '(1 2 3)
-		     '(10 20 30)
-		     '(100 200))
-      => '(1 10 100 2 20 200))
-
-    )
+        (let ((r '(0 0 0)))
+  	(for-each*/stx
+  	 (lambda (e1 e2 e3)
+  	   (set! r (list (+ e1 (car r))
+  			 (+ e2 (cadr r))
+  			 (+ e3 (caddr r)))))
+  	 '(1 10 100)
+  	 '(2 20 200)
+  	 (circular-list 3 30 300))
+  	r)
+      => '(111 222 333))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x)
-	   (set! r (cons x r)))
-	 '(1 2 3))
-	r)
-    => '((3)
-	 (2 3)
-	 (1 2 3)))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x)
-	   (set! r (cons x r)))
-	 '())
-	r)
+      (map!/stx - '())
     => '())
 
   (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '()
-	 '()
-	 '())
-	r)
-    => '())
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y)
-	   (set! r (cons (list x y)
-			 r)))
-	 '()
-	 '())
-	r)
-    => '())
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x)
-	   (set! r (cons x r)))
-	 '(1))
-	r)
-    => '((1)))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x)
-	   (set! r (cons x r)))
-	 '(1 2))
-	r)
-    => '((2)
-	 (1 2)))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y)
-	   (set! r (cons (list x y)
-			 r)))
-	 '(1 2 3)
-	 '(10 20 30))
-	r)
-    => '(((3) (30))
-	 ((2 3) (20 30))
-	 ((1 2 3) (10 20 30))))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '(1 2 3)
-	 '(10 20 30)
-	 '(100 200 300))
-	r)
-    => '(((3) (30) (300))
-	 ((2 3) (20 30) (200 300))
-	 ((1 2 3) (10 20 30) (100 200 300))))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '(1 2)
-	 '(10 20 30)
-	 '(100 200 300))
-	r)
-    => '(((2) (20 30) (200 300))
-	 ((1 2) (10 20 30) (100 200 300))))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '(1 2 3)
-	 '(10 20)
-	 '(100 200 300))
-	r)
-    => '(((2 3) (20) (200 300))
-	 ((1 2 3) (10 20) (100 200 300))))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '(1 2 3)
-	 '(10 20 30)
-	 '(100 200))
-	r)
-    => '(((2 3) (20 30) (200))
-	 ((1 2 3) (10 20 30) (100 200))))
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '()
-	 '(10 20 30)
-	 '(100 200 300))
-	r)
-    => '())
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '(1 2 3)
-	 '()
-	 '(100 200 300))
-	r)
-    => '())
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '(1 2 3)
-	 '(10 20 30)
-	 '())
-	r)
-    => '())
-
-  (check
-      (let ((r '()))
-	(pair-for-each
-	 (lambda (x y z)
-	   (set! r (cons (list x y z)
-			 r)))
-	 '(1)
-	 '(10)
-	 '(100))
-	r)
-    => '(((1) (10) (100))))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (map! - '())
-    => '())
-
-  (check
-      (map! - (list-copy numbers))
+      (map!/stx - (list-copy/stx numbers))
     => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
 
   (check
-      (map! + '(1 2 3))
+      (map!/stx + '(1 2 3))
     => '(1 2 3))
 
   (check
-      (map! - '() '())
+      (map!/stx - '() '())
     => '())
 
   (check
-      (map! - '() '() '())
+      (map!/stx - '() '() '())
     => '())
 
   (check
-      (map! - '() '() '() '())
+      (map!/stx - '() '() '() '())
     => '())
 
   (check
-      (map! +
-	    '(1 2 3)
-	    '(10 20 30))
+      (map!/stx +
+		'(1 2 3)
+		'(10 20 30))
     => '(11 22 33))
 
   (check
-      (map! +
-	    '(1 2 3)
-	    '(10 20 30)
-	    '(100 200 300))
+      (map!/stx +
+		'(1 2 3)
+		'(10 20 30)
+		'(100 200 300))
     => '(111 222 333))
 
 ;;; Only the first list argument can be shorter!!!
   (check
-      (map! +
-	    '(1 2)
-	    '(10 20 30)
-	    '(100 200 300))
+      (map!/stx +
+		'(1 2)
+		'(10 20 30)
+		'(100 200 300))
     => '(111 222))
 
   (check
-      (map! +
-	    '()
-	    '(10 20 30)
-	    '(100 200 300))
+      (map!/stx +
+		'()
+		'(10 20 30)
+		'(100 200 300))
     => '())
 
   (check
-      (map! +
-	    '(3 1 4 1)
-	    (circular-list 1 0))
+      (map!/stx +
+		'(3 1 4 1)
+		(circular-list 1 0))
     => '(4 1 5 1))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (filter-map
+      (map*!/stx - '())
+    => '())
+
+  (check
+      (map*!/stx - (list-copy/stx numbers))
+    => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+  (check
+      (map*!/stx + '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (map*!/stx - '() '())
+    => '())
+
+  (check
+      (map*!/stx - '() '() '())
+    => '())
+
+  (check
+      (map*!/stx - '() '() '() '())
+    => '())
+
+  (check
+      (map*!/stx +
+		 '(1 2 3)
+		 '(10 20 30))
+    => '(11 22 33))
+
+  (check
+      (map*!/stx +
+		 '(1 2 3)
+		 '(10 20 30)
+		 '(100 200 300))
+    => '(111 222 333))
+
+;;; Only the first list argument can be shorter!!!
+  (check
+      (map*!/stx +
+		 '(1 2)
+		 '(10 20 30)
+		 '(100 200 300))
+    => '(111 222))
+
+  (check
+      (map*!/stx +
+		 '()
+		 '(10 20 30)
+		 '(100 200 300))
+    => '())
+
+  (check
+      (map*!/stx +
+		 '(3 1 4 1)
+		 (circular-list 1 0))
+    => '(4 1 5 1))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (filter-map/stx
        (lambda (x)
 	 (and (number? x)
 	      (* x x)))
@@ -2784,95 +1619,94 @@
     => '(1 9 49))
 
   (check
-      (filter-map - '())
+      (filter-map/stx - '())
     => '())
 
   (check
-      (filter-map - '() '())
+      (filter-map/stx - '() '())
     => '())
 
   (check
-      (filter-map - '() '() '())
+      (filter-map/stx - '() '() '())
     => '())
 
   (check
-      (filter-map - '() '() '() '())
+      (filter-map/stx - '() '() '() '())
     => '())
 
   (check
-      (filter-map - numbers)
+      (filter-map/stx - numbers)
     => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
 
   (check
-      (filter-map + '(1 2 3))
+      (filter-map/stx + '(1 2 3))
     => '(1 2 3))
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20 30))
+      (filter-map/stx +
+		      '(1 2 3)
+		      '(10 20 30))
     => '(11 22 33))
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20 30)
-		  '(100 200 300))
+      (filter-map/stx +
+		      '(1 2 3)
+		      '(10 20 30)
+		      '(100 200 300))
     => '(111 222 333))
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20)
-		  '(100 200 300))
+      (filter-map/stx +
+		      '(1 2 3)
+		      '(10 20)
+		      '(100 200 300))
     => '(111 222))
 
   (check
-      (filter-map +
-		  '(1 2)
-		  '(10 20 30)
-		  '(100 200 300))
+      (filter-map/stx +
+		      '(1 2)
+		      '(10 20 30)
+		      '(100 200 300))
     => '(111 222))
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20 30)
-		  '(100 200))
+      (filter-map/stx +
+		      '(1 2 3)
+		      '(10 20 30)
+		      '(100 200))
     => '(111 222))
 
   (check
-      (filter-map +
-		  '()
-		  '(10 20 30)
-		  '(100 200 300))
+      (filter-map/stx +
+		      '()
+		      '(10 20 30)
+		      '(100 200 300))
     => '())
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '()
-		  '(100 200 300))
+      (filter-map/stx +
+		      '(1 2 3)
+		      '()
+		      '(100 200 300))
     => '())
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20 30)
-		  '())
+      (filter-map/stx +
+		      '(1 2 3)
+		      '(10 20 30)
+		      '())
     => '())
 
   (check
-      (filter-map +
-		  '(3 1 4 1)
-		  (circular-list 1 0))
+      (filter-map/stx +
+		      '(3 1 4 1)
+		      (circular-list 1 0))
     => '(4 1 5 1))
 
   )
 
 
-
-(parameterise ((check-test-name 'filtering))
+#;(parameterise ((check-test-name 'filtering))
 
   (check
       (filter even? '())
@@ -3056,8 +1890,7 @@
   )
 
 
-
-(parameterise ((check-test-name 'finding))
+#;(parameterise ((check-test-name 'finding))
 
   (check
       (find even? '())
@@ -3555,8 +2388,7 @@
   )
 
 
-
-(parameterise ((check-test-name 'deletion))
+#;(parameterise ((check-test-name 'deletion))
 
   (check
       (delete 8 '())
@@ -3748,8 +2580,7 @@
   )
 
 
-
-(parameterise ((check-test-name 'alists))
+#;(parameterise ((check-test-name 'alists))
 
   (check
       (assoc 'a
@@ -4050,114 +2881,6 @@
 		    '((a . 1))
 		    eq?)
     => '())
-
-  )
-
-
-
-(parameterise ((check-test-name 'sets))
-
-  (check
-      (lset<=? =)
-    => #t)
-
-  (check
-      (lset<=? = '())
-    => #t)
-
-  (check
-      (lset<=? = '() '())
-    => #t)
-
-  (check
-      (lset<=? = '() '() '())
-    => #t)
-
-  (check
-      (lset<=? =
-	       '(1)
-	       '(1))
-    => #t)
-
-  (check
-      (lset<=? =
-	       '(1)
-	       '(1)
-	       '(1))
-    => #t)
-
-  (check
-      (lset<=? =
-	       '(1)
-	       '(1 2)
-	       '(1 2 3))
-    => #t)
-
-  (check
-      (lset<=? =
-	       '(1)
-	       '(1 2)
-	       '(1 2))
-    => #t)
-
-  (check
-      (lset<=? =
-	       '(1)
-	       '(1 2)
-	       '(1))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (lset=? =)
-    => #t)
-
-  (check
-      (lset=? = '())
-    => #t)
-
-  (check
-      (lset=? = '() '())
-    => #t)
-
-  (check
-      (lset=? = '() '() '())
-    => #t)
-
-  (check
-      (lset=? =
-	      '(1)
-	      '(1))
-    => #t)
-
-  (check
-      (lset=? =
-	      '(1)
-	      '(1)
-	      '(1))
-    => #t)
-
-  (check
-      (lset=? =
-	      '(1)
-	      '(1 2)
-	      '(1 2 3))
-    => #f)
-
-  (check
-      (lset=? =
-	      '(1)
-	      '(1 2)
-	      '(1 2))
-    => #f)
-
-  (check
-      (lset=? =
-	      '(1)
-	      '(1 2)
-	      '(1))
-    => #f)
 
   )
 

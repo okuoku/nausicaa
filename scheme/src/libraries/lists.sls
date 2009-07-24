@@ -23,7 +23,6 @@
 ;;;
 
 
-
 #!r6rs
 (library (lists)
   (export
@@ -33,8 +32,10 @@
     make-list list-tabulate list-copy circular-list iota tree-copy
 
     ;; predicats
+    and-null?		or-null?
+    (rename (%and/or-null? and/or-null?))
     proper-list?	circular-list?		dotted-list?
-    null-list?		not-pair?		list=?
+    not-pair?		list=?
 
     ;; selectors
     car+cdr
@@ -68,15 +69,14 @@
     reduce		reduce*
     unfold		unfold-right
 
-    fold-left/stx	fold-right/stx
-    fold-left*/stx	fold-right*/stx
-    fold/stx		fold*/stx
-
     ;; map
-    map*		for-each*
+			map*
+			map-in-order*
+    map!		map*!
+    for-each*
     append-map		append-map!
-    map!		map-in-order
-    pair-for-each	filter-map
+    pair-for-each*
+    filter-map
 
     ;; filtering
     filter		filter!
@@ -96,6 +96,10 @@
     delete		delete!
     delete-duplicates	delete-duplicates!
 
+    ;; sorted lists
+    sorted-list-insert		sorted-list-insert/uniq
+    union-of-sorted-lists	union-of-sorted-lists/uniq
+
     ;; alists
     assoc*
     assq		assv
@@ -111,6 +115,8 @@
     lset-xor			lset-xor!
     lset-diff+intersection	lset-diff+intersection!)
   (import (nausicaa)
+    (lists stx)
+    (lists low)
     (rnrs mutable-pairs (6)))
 
 
@@ -169,6 +175,19 @@
 
 ;;;; predicates
 
+(define (and-null? . list-of-lists)
+  (let loop ((ells list-of-lists))
+    (or (null? ells)
+	(and (null? (car ells))
+	     (loop (cdr ells))))))
+
+(define (or-null? . list-of-lists)
+  (let loop ((ells list-of-lists))
+    (if (null? ells)
+	#f
+      (or (null? (car ells))
+	  (loop (cdr ells))))))
+
 (define (proper-list? x)
   (let lp ((x x) (lag x))
     (if (pair? x)
@@ -203,12 +222,6 @@
 (define (not-pair? x)
   (not (pair? x)))
 
-(define (null-list? l)
-  (cond ((pair? l) #f)
-	((null? l) #t)
-	(else (error 'null-list? "argument out of domain" l))))
-
-
 
 ;;;; comparison
 
@@ -224,10 +237,10 @@
       (cond
        ((eq? ell1 ell2)
 	#t)
-       ((null-list? ell1)
-	(or (null-list? ell2)
+       ((null? ell1)
+	(or (null? ell2)
 	    #f))
-       ((null-list? ell2)
+       ((null? ell2)
 	#f)
        ((elm=? (car ell1) (car ell2))
 	(loop (cdr ell1) (cdr ell2)))
@@ -316,7 +329,8 @@
   (let loop ((ell x)
 	     (k   k))
     (if (zero? k) (values '() ell)
-      (receive (prefix suffix) (loop (cdr ell) (- k 1))
+      (receive (prefix suffix)
+	  (loop (cdr ell) (- k 1))
 	(values (cons (car ell) prefix) suffix)))))
 
 (define (split-at! x k)
@@ -383,14 +397,14 @@
 (define (append-reverse rev-head tail)
   (let lp ((rev-head rev-head)
 	   (tail tail))
-    (if (null-list? rev-head)
+    (if (null? rev-head)
 	tail
       (lp (cdr rev-head) (cons (car rev-head) tail)))))
 
 (define (append-reverse! rev-head tail)
   (let lp ((rev-head rev-head)
 	   (tail tail))
-    (if (null-list? rev-head)
+    (if (null? rev-head)
 	tail
       (let ((next-rev (cdr rev-head)))
 	(set-cdr! rev-head tail)
@@ -406,7 +420,7 @@
 
 (define (unzip2 lis)
   (let recur ((lis lis))
-    (if (null-list? lis) (values lis lis) ; Use NOT-PAIR? to handle
+    (if (null? lis) (values lis lis) ; Use NOT-PAIR? to handle
       (let ((elt (car lis)))		  ; dotted lists.
 	(receive (a b) (recur (cdr lis))
 	  (values (cons (car  elt) a)
@@ -414,7 +428,7 @@
 
 (define (unzip3 lis)
   (let recur ((lis lis))
-    (if (null-list? lis) (values lis lis lis)
+    (if (null? lis) (values lis lis lis)
       (let ((elt (car lis)))
 	(receive (a b c) (recur (cdr lis))
 	  (values (cons (car   elt) a)
@@ -423,7 +437,7 @@
 
 (define (unzip4 lis)
   (let recur ((lis lis))
-    (if (null-list? lis) (values lis lis lis lis)
+    (if (null? lis) (values lis lis lis lis)
       (let ((elt (car lis)))
 	(receive (a b c d) (recur (cdr lis))
 	  (values (cons (car    elt) a)
@@ -433,7 +447,7 @@
 
 (define (unzip5 lis)
   (let recur ((lis lis))
-    (if (null-list? lis) (values lis lis lis lis lis)
+    (if (null? lis) (values lis lis lis lis lis)
       (let ((elt (car lis)))
 	(receive (a b c d e) (recur (cdr lis))
 	  (values (cons (car     elt) a)
@@ -450,7 +464,7 @@
    ((pred ell)
     (let loop ((ell ell)
 	       (i   0))
-      (if (null-list? ell) i
+      (if (null? ell) i
 	(loop (cdr ell)
 	      (if (pred (car ell))
 		  (+ i 1)
@@ -460,10 +474,10 @@
     (let loop ((ell  ell)
 	       (ells ells)
 	       (i    0))
-      (if (null-list? ell)
+      (if (null? ell)
 	  i
 	(receive (as ds)
-	    (%cars/cdrs ells)
+	    (%cars/cdrs* ells)
 	  (if (null? as) i
 	    (loop (cdr ell)
 		  ds
@@ -475,187 +489,11 @@
 
 (define (reverse! lis)
   (let lp ((lis lis) (ans '()))
-    (if (null-list? lis) ans
+    (if (null? lis) ans
       (let ((tail (cdr lis)))
 	(set-cdr! lis ans)
 	(lp tail lis)))))
 
-
-
-;;;; helpers
-
-;; *** NOTE ***
-;;
-;;The following helper functions and macros are duplicated and tested in
-;;the test file "test-helpers-list.sps".
-
-;;; --------------------------------------------------------------------
-
-;; The following macros  handle queue values: pairs whose  car is a list
-;; and  whose  cdr is  the  last  pair in  the  list.   They allow  fast
-;; insertion of elements at the end of the list.
-;;
-;;           -----------
-;;   queue  | car | cdr |
-;;           -----------
-;;             |     |
-;;         ----       ----------------
-;;        |                           |
-;;        v                           v
-;;       ---    ---    ---    ---    ---
-;; list | | |->| | |->| | |->| | |->| | |->()
-;;       ---    ---    ---    ---    ---
-;;       |      |      |      |      |
-;;       o      o      o      o      o
-
-(define-syntax make-queue
-  (syntax-rules ()
-    ((_ ?elm)
-     (let* ((v		?elm)
-	    (pair	(cons v '())))
-       (cons pair pair)))))
-
-(define-syntax enqueue!
-  (syntax-rules ()
-    ((_ ?q ?obj)
-     (let ((q ?q)
-	   (h (cons ?obj '())))
-       (set-cdr! (cdr q) h)
-       (set-cdr! q h)
-       q))))
-
-;;; --------------------------------------------------------------------
-
-;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
-;;return null; else return the list of the cars.
-(define (%cars ells)
-  (let ((next	(car ells)))
-    (if (null? next)
-	'()
-      (let loop ((cars	(make-queue (car next)))
-		 (ells	(cdr ells)))
-	(if (null? ells)
-	    (car cars)
-	  (let ((next (car ells)))
- 	    (if (null? next)
- 		'()
-	      (loop (enqueue! cars (car next))
-		    (cdr ells)))))))))
-
-;;; ELLS must be a list of lists.   If one of the lists in ELLS is null:
-;;; return null; else return the list of cars of the lists in ELLS, with
-;;; KNIL appended as last element.
-(define (%cars+knil ells knil)
-  (let ((next (car ells)))
-    (if (null? next)
-	'()
-      (let loop ((cars	(make-queue (car next)))
-		 (ells	(cdr ells)))
-	(if (null? ells)
-	    (car (enqueue! cars knil))
-	  (let ((next (car ells)))
-	    (if (null? next)
-		'()
-	      (loop (enqueue! cars (car next))
-		    (cdr ells)))))))))
-(define (%knil+cars ells knil)
-  (let ((next (car ells)))
-    (if (null? next)
-	'()
-      (let loop ((cars	(make-queue (car next)))
-		 (ells	(cdr ells)))
-	(if (null? ells)
-	    (cons knil (car cars))
-	  (let ((next (car ells)))
-	    (if (null? next)
-		'()
-	      (loop (enqueue! cars (car next))
-		    (cdr ells)))))))))
-
-;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
-;;return null; else return the list of the cdrs.
-(define (%cdrs ells)
-  (let ((next	(car ells)))
-    (if (null? next)
-	'()
-      (let loop ((ells	(cdr ells))
-		 (cdrs	(make-queue (cdr next))))
-	(if (null? ells)
-	    (car cdrs)
-	  (let ((next	(car ells)))
-	    (if (null? next)
-		'()
-	      (loop (cdr ells)
-		    (enqueue! cdrs (cdr next))))))))))
-
-;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
-;;return 2 null  values; else return 2 values: the list  of cars and the
-;;list of cdrs.
-(define (%cars/cdrs ells)
-  (let ((next (car ells)))
-    (if (null? next)
-	(values '() '())
-      (let loop ((cars	(make-queue (car next)))
-		 (cdrs	(make-queue (cdr next)))
-		 (ells	(cdr ells)))
-	(if (null? ells)
-	    (values (car cars)
-		    (car cdrs))
-	  (let ((next (car ells)))
-	    (if (null? next)
-		(values '() '())
-	      (loop (enqueue! cars (car next))
-		    (enqueue! cdrs (cdr next))
-		    (cdr ells)))))))))
-
-;;ELLS must  be a non-null list  of lists.  If  a list in ELLS  is null:
-;;return 2 null values; else return 2 values: the list of cars with KNIL
-;;appended, and the list of cdrs.
-(define (%cars+knil/cdrs ells knil)
-  (let ((next	(car ells)))
-    (if (null? next)
-	(values '() '())
-      (let loop ((cars	(make-queue (car next)))
-		 (cdrs	(make-queue (cdr next)))
-		 (ells	(cdr ells)))
-	(if (null? ells)
-	    (values (car (enqueue! cars knil))
-		    (car cdrs))
-	  (let ((next	(car ells)))
-	    (if (null? next)
-		(values '() '())
-	      (loop (enqueue! cars (car next))
-		    (enqueue! cdrs (cdr next))
-		    (cdr ells)))))))))
-(define (%knil+cars/cdrs ells knil)
-  (let ((next	(car ells)))
-    (if (null? next)
-	(values '() '())
-      (let loop ((cars	(make-queue (car next)))
-		 (cdrs	(make-queue (cdr next)))
-		 (ells	(cdr ells)))
-	(if (null? ells)
-	    (values (cons knil (car cars))
-		    (car cdrs))
-	  (let ((next	(car ells)))
-	    (if (null? next)
-		(values '() '())
-	      (loop (enqueue! cars (car next))
-		    (enqueue! cdrs (cdr next))
-		    (cdr ells)))))))))
-
-;;; Like %CARS/CDRS, but blow up if any list is empty.
-(define (%cars+cdrs/no-test lists)
-  (let recur ((lists lists))
-    (if (pair? lists)
-	(receive (list other-lists)
-	    (car+cdr lists)
-	  (receive (a d)
-	      (car+cdr list)
-	    (receive (cars cdrs)
-		(recur other-lists)
-	      (values (cons a cars) (cons d cdrs)))))
-      (values '() '()))))
 
 
 ;;;; fold/unfold functions
@@ -666,7 +504,7 @@
    ((kons knil ell)
     (let loop ((ell	ell)
 	       (knil	knil))
-      (if (null-list? ell)
+      (if (null? ell)
 	  knil
 	(loop (cdr ell) (kons (car ell) knil)))))
 
@@ -674,7 +512,7 @@
     (let loop ((ells	(cons ell0 ells))
 	       (knil	knil))
       (receive (cars+knil cdrs)
-	  (%cars+knil/cdrs ells knil)
+	  (%cars+knil/cdrs* ells knil)
 	(if (null? cars+knil)
 	    knil
 	  (loop cdrs (apply kons cars+knil))))))))
@@ -684,7 +522,7 @@
 
    ((kons knil ell)
     (let loop ((ell ell))
-      (if (null-list? ell)
+      (if (null? ell)
 	  knil
 	(kons (car ell) (loop (cdr ell))))))
 
@@ -692,10 +530,10 @@
     (let loop ((ells (cons ell0 ells)))
       (if (null? ells)
 	  knil
-	(let ((cdrs (%cdrs ells)))
+	(let ((cdrs (%cdrs* ells)))
 	  (if (null? cdrs)
 	      knil
-	    (apply kons (%cars+knil ells (loop cdrs))))))))))
+	    (apply kons (%cars+knil* ells (loop cdrs))))))))))
 
 ;;; --------------------------------------------------------------------
 
@@ -705,7 +543,7 @@
    ((combine knil ell)
     (let loop ((knil	knil)
 	       (ell	ell))
-      (if (null-list? ell)
+      (if (null? ell)
 	  knil
 	(loop (combine knil (car ell)) (cdr ell)))))
 
@@ -713,7 +551,7 @@
     (let loop ((knil	knil)
 	       (ells	(cons ell0 ells)))
       (receive (knil+cars cdrs)
-	  (%knil+cars/cdrs ells knil)
+	  (%knil+cars/cdrs* ells knil)
 	(if (null? knil+cars)
 	    knil
 	  (loop (apply combine knil+cars) cdrs)))))))
@@ -723,7 +561,7 @@
 
    ((combine knil ell)
     (let loop ((ell ell))
-      (if (null-list? ell)
+      (if (null? ell)
 	  knil
 	(combine (car ell) (loop (cdr ell))))))
 
@@ -731,10 +569,10 @@
     (let loop ((ells (cons ell0 ells)))
       (if (null? ells)
 	  knil
-	(let ((cdrs (%cdrs ells)))
+	(let ((cdrs (%cdrs* ells)))
 	  (if (null? cdrs)
 	      knil
-	    (apply combine (%cars+knil ells (loop cdrs))))))))))
+	    (apply combine (%cars+knil* ells (loop cdrs))))))))))
 
 ;;; --------------------------------------------------------------------
 
@@ -744,7 +582,7 @@
    ((f knil ell)
     (let loop ((ell	ell)
 	       (return	knil))
-      (if (null-list? ell)
+      (if (null? ell)
 	  return
 	(let ((tail (cdr ell)))
 	  (loop tail (f ell return))))))
@@ -752,7 +590,7 @@
    ((f knil ell0 . ells)
     (let loop ((ells	(cons ell0 ells))
 	       (return	knil))
-      (let ((tails (%cdrs ells)))
+      (let ((tails (%cdrs* ells)))
 	(if (null? tails)
 	    return
 	  (loop tails (apply f (append! ells (list return))))))))))
@@ -760,21 +598,21 @@
 (define (pair-fold* f knil lis1 . ells)
   (if (pair? ells)
       (let loop ((ells (cons lis1 ells))) ; N-ary case
-	(let ((cdrs (%cdrs ells)))
+	(let ((cdrs (%cdrs* ells)))
 	  (if (null? cdrs) knil
 	    (apply f (append! ells (list (loop cdrs)))))))
     (let loop ((lis lis1)) ; Fast path
-      (if (null-list? lis) knil (f lis (loop (cdr lis)))))))
+      (if (null? lis) knil (f lis (loop (cdr lis)))))))
 
 ;;; --------------------------------------------------------------------
 
 (define (reduce f ridentity ell)
-  (if (null-list? ell)
+  (if (null? ell)
       ridentity
     (fold f (car ell) (cdr ell))))
 
 (define (reduce* f ridentity ell)
-  (if (null-list? ell)
+  (if (null? ell)
       ridentity
     (let loop ((head	(car ell))
 	       (ell	(cdr ell)))
@@ -817,115 +655,6 @@
 
 
 
-;;;; fold syntaxes
-
-(define-syntax fold-left/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((combine ?combine))
-		   (let loop ((knil ?knil)
-			      (ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null? ell0) (null? L) ...)
-			 (begin
-			   (unless (and (null? ell0) (null? L) ...)
-			     (assertion-violation 'fold-left/stx
-			       "expected lists of equal length"))
-			   knil)
-		       (loop (combine knil (car ell0) (car L) ...)
-			     (cdr ell0)
-			     (cdr L)
-			     ...))))))))))
-
-(define-syntax fold-right/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((combine ?combine)
-		       (knil ?knil))
-		   (let loop ((ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null? ell0) (null? L) ...)
-			 (begin
-			   (unless (and (null? ell0) (null? L) ...)
-			     (assertion-violation 'fold-right/stx
-			       "expected lists of equal length"))
-			   knil)
-		       (combine (car ell0) (car L) ...
-				(loop (cdr ell0) (cdr L) ...)))))))))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax fold-left*/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((combine ?combine))
-		   (let loop ((knil ?knil)
-			      (ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null? ell0) (null? L) ...)
-			 knil
-		       (loop (combine knil (car ell0) (car L) ...)
-			     (cdr ell0)
-			     (cdr L)
-			     ...))))))))))
-
-(define-syntax fold-right*/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((combine ?combine)
-		       (knil ?knil))
-		   (let loop ((ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null? ell0) (null? L) ...)
-			 knil
-		       (combine (car ell0) (car L) ...
-				(loop (cdr ell0) (cdr L) ...)))))))))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax fold/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?kons ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((kons ?kons))
-		   (let loop ((knil ?knil)
-			      (ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null-list? ell0) (null-list? L) ...)
-			 knil
-		       (loop (kons (car ell0) (car L) ... knil)
-			     (cdr ell0) (cdr L) ...))))))))))
-
-(define-syntax fold*/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?kons ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((kons ?kons)
-		       (knil ?knil))
-		   (let loop ((ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null-list? ell0) (null-list? L) ...)
-			 knil
-		       (kons (car ell0) (car L) ...
-			     (loop (cdr ell0) (cdr L) ...)))))))))))
-
-
 ;;;; derived fold functions
 
 (define and-fold-left*
@@ -934,7 +663,7 @@
    ((combine knil ell)
     (let loop ((knil	knil)
 	       (ell	ell))
-      (if (null-list? ell)
+      (if (null? ell)
 	  knil
 	(let ((knil (combine knil (car ell))))
 	  (and knil
@@ -945,7 +674,7 @@
 	       (ells	(cons ell0 ells)))
       (receive (knil+cars cdrs)
 	  (%knil+cars/cdrs ells knil)
-	(if (null-list? knil+cars)
+	(if (null? knil+cars)
 	    knil
 	  (let ((knil (apply combine knil+cars)))
 	    (and knil
@@ -956,7 +685,7 @@
 
    ((combine knil ell)
     (let loop ((ell ell))
-      (if (null-list? ell)
+      (if (null? ell)
 	  knil
 	(let ((knil (loop (cdr ell))))
 	  (and knil
@@ -966,12 +695,12 @@
     (let loop ((ells (cons ell0 ells)))
       (if (null? ells)
 	  knil
-	(let ((cdrs (%cdrs ells)))
+	(let ((cdrs (%cdrs* ells)))
 	  (if (null? cdrs)
 	      knil
 	    (let ((knil (loop cdrs)))
 	      (and knil
-		   (apply combine (%cars+knil ells knil)))))))))))
+		   (apply combine (%cars+knil* ells knil)))))))))))
 
 ;;; --------------------------------------------------------------------
 
@@ -981,41 +710,6 @@
 		      knil ell))
 
 
-;;;; derived fold syntaxes
-
-(define-syntax and-fold-left*/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((combine ?combine))
-		   (let loop ((knil ?knil)
-			      (ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null? ell0) (null? L) ...)
-			 knil
-		       (let ((knil (combine knil (car ell0) (car L) ...)))
-			 (and knil
-			      (loop knil (cdr ell0) (cdr L) ...))))))))))))
-
-(define-syntax and-fold-right*/stx
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?combine ?knil ?ell0 ?ell ...)
-       (with-syntax (((L ...) (generate-temporaries (syntax (?ell ...)))))
-	 (syntax (let ((combine ?combine))
-		   (let loop ((knil ?knil)
-			      (ell0 ?ell0)
-			      (L    ?ell)
-			      ...)
-		     (if (or (null? ell0) (null? L) ...)
-			 knil
-		       (let ((knil (loop (cdr ell0) (cdr L) ...)))
-			 (and knil
-			      (combine (car ell0) (cdr L) ... knil))))))))))))
-
-
 ;;;; mappers
 
 (define for-each*
@@ -1023,26 +717,26 @@
 
    ((f ell)
     (let loop ((ell ell))
-      (unless (null-list? ell)
+      (unless (null? ell)
 	(f (car ell))
 	(loop (cdr ell)))))
 
    ((f ell . ells)
     (let loop ((ells (cons ell ells)))
       (receive (cars cdrs)
-	  (%cars/cdrs ells)
+	  (%cars/cdrs* ells)
 	(when (pair? cars)
 	  (apply f cars)
 	  (loop cdrs)))))))
 
 ;;; --------------------------------------------------------------------
 
-(define map-in-order
+(define map-in-order*
   (case-lambda
 
    ((f ell)
     (let loop ((ell ell))
-      (if (null-list? ell)
+      (if (null? ell)
 	  ell
 	(let ((tail	(cdr ell))
 	      (x	(f (car ell))))	; Do head first,
@@ -1051,13 +745,13 @@
    ((f ell . ells)
     (let recur ((ells (cons ell ells)))
       (receive (cars cdrs)
-	  (%cars/cdrs ells)
+	  (%cars/cdrs* ells)
 	(if (pair? cars)
 	    (let ((x (apply f cars))) ; Do head first,
 	      (cons x (recur cdrs)))  ; then tail.
 	  '()))))))
 
-(define map* map-in-order)
+(define map* map-in-order*)
 
 ;;; --------------------------------------------------------------------
 
@@ -1071,24 +765,24 @@
   (case-lambda
 
    ((appender f ell)
-    (if (null-list? ell)
+    (if (null? ell)
 	'()
       (let recur ((elt (car ell))
 		  (ell (cdr ell)))
 	(let ((vals (f elt)))
-	  (if (null-list? ell)
+	  (if (null? ell)
 	      vals
 	    (appender vals (recur (car ell) (cdr ell))))))))
 
    ((appender f lis1 lists)
     (receive (cars cdrs)
-	(%cars/cdrs (cons lis1 lists))
+	(%cars/cdrs* (cons lis1 lists))
       (if (null? cars) '()
 	(let recur ((cars cars)
 		    (cdrs cdrs))
 	  (let ((vals (apply f cars)))
 	    (receive (cars2 cdrs2)
-		(%cars/cdrs cdrs)
+		(%cars/cdrs* cdrs)
 	      (if (null? cars2)
 		  vals
 		(appender vals (recur cars2 cdrs2)))))))))))
@@ -1100,34 +794,70 @@
 
    ((f ell)
     (let loop ((ell ell))
-      (unless (null-list? ell)
+      (unless (null? ell)
 	(let ((tail (cdr ell))) ; Grab the cdr now,
 	  (f ell)		; in case PROC SET-CDR!s ELL.
 	  (loop tail)))))
 
    ((f ell . ells)
     (let loop ((ells (cons ell ells)))
-      (let ((tails (%cdrs ells)))
+      (let ((tails (%cdrs* ells)))
 	(when (pair? tails)
 	  (begin (apply f ells)
 		 (loop tails))))))))
 
-;;; We stop when ELL runs out, not when any list runs out.
-(define map!
+(define pair-for-each*
   (case-lambda
 
    ((f ell)
-    (pair-for-each (lambda (pair)
-		     (set-car! pair (f (car pair))))
-		   ell)
+    (let loop ((ell ell))
+      (unless (null? ell)
+	(let ((tail (cdr ell))) ; Grab the cdr now,
+	  (f ell)		; in case PROC SET-CDR!s ELL.
+	  (loop tail)))))
+
+   ((f ell . ells)
+    (let loop ((ells (cons ell ells)))
+      (let ((tails (%cdrs* ells)))
+	(when (pair? tails)
+	  (begin (apply f ells)
+		 (loop tails))))))))
+
+(define map!
+  (case-lambda
+
+;;    ((f ell)
+;;     (pair-for-each (lambda (pair)
+;; 		     (set-car! pair (f (car pair))))
+;; 		    ell)
+;;     ell)
+
+   ((f ell . ells)
+    (let loop ((ell  ell)
+	       (ells ells))
+      (unless (null? ell)
+	(receive (heads tails)
+	    (%cars+cdrs*/no-test ells)
+	  (set-car! ell (apply f (car ell) heads))
+	  (loop (cdr ell) tails))))
+    ell)))
+
+;;; We stop when ELL runs out, not when any list runs out.
+(define map*!
+  (case-lambda
+
+   ((f ell)
+    (pair-for-each* (lambda (pair)
+		      (set-car! pair (f (car pair))))
+		    ell)
     ell)
 
    ((f ell . ells)
     (let loop ((ell  ell)
 	       (ells ells))
-      (unless (null-list? ell)
+      (unless (null? ell)
 	(receive (heads tails)
-	    (%cars+cdrs/no-test ells)
+	    (%cars+cdrs*/no-test ells)
 	  (set-car! ell (apply f (car ell) heads))
 	  (loop (cdr ell) tails))))
     ell)))
@@ -1138,7 +868,7 @@
 
    ((f ell)
     (let recur ((ell ell))
-      (if (null-list? ell)
+      (if (null? ell)
 	  ell
 	(let ((tail (recur (cdr ell))))
 	  (cond
@@ -1151,7 +881,7 @@
    ((f ell . ells)
     (let recur ((ells (cons ell ells)))
       (receive (cars cdrs)
-	  (%cars/cdrs ells)
+	  (%cars/cdrs* ells)
 	(if (pair? cars)
 	    (cond
 	     ((apply f cars)
@@ -1161,14 +891,13 @@
 	      (recur cdrs))) ; Tail call in this arm.
 	  '()))))))
 
-
 
 ;;;; filter, remove, partition
 
 (define (filter! pred lis)
   (let lp ((ans lis))
     (cond
-     ((null-list? ans)
+     ((null? ans)
       ans)
      ((not (pred (car ans)))
       (lp (cdr ans)))
@@ -1190,7 +919,7 @@
 	ans)))))
 
 (define (partition! pred lis)
-  (if (null-list? lis)
+  (if (null? lis)
       (values lis lis)
     (letrec ((scan-in (lambda (in-prev out-prev lis)
 			(let lp ((in-prev in-prev) (lis lis))
@@ -1239,14 +968,14 @@
 
 (define (find-tail pred list)
   (let lp ((list list))
-    (and (not (null-list? list))
+    (and (not (null? list))
 	 (if (pred (car list))
 	     list
 	   (lp (cdr list))))))
 
 (define (take-while pred lis)
   (let recur ((lis lis))
-    (if (null-list? lis)
+    (if (null? lis)
 	'()
       (let ((x (car lis)))
 	(if (pred x)
@@ -1255,14 +984,14 @@
 
 (define (drop-while pred lis)
   (let lp ((lis lis))
-    (if (null-list? lis)
+    (if (null? lis)
 	'()
       (if (pred (car lis))
 	  (lp (cdr lis))
 	lis))))
 
 (define (take-while! pred lis)
-  (if (or (null-list? lis)
+  (if (or (null? lis)
 	  (not (pred (car lis))))
       '()
     (begin (let lp ((prev lis)
@@ -1276,7 +1005,7 @@
 
 (define (span pred lis)
   (let recur ((lis lis))
-    (if (null-list? lis)
+    (if (null? lis)
 	(values '() '())
       (let ((x (car lis)))
 	(if (pred x)
@@ -1286,12 +1015,12 @@
 	  (values '() lis))))))
 
 (define (span! pred lis)
-  (if (or (null-list? lis)
+  (if (or (null? lis)
 	  (not (pred (car lis))))
       (values '() lis)
     (let ((suffix (let lp ((prev lis)
 			   (rest (cdr lis)))
-		    (if (null-list? rest) rest
+		    (if (null? rest) rest
 		      (let ((x (car rest)))
 			(if (pred x)
 			    (lp rest (cdr rest))
@@ -1309,18 +1038,18 @@
   (if (pair? lists)
 
       ;; N-ary case
-      (receive (heads tails) (%cars/cdrs (cons lis1 lists))
+      (receive (heads tails) (%cars/cdrs* (cons lis1 lists))
 	(and (pair? heads)
 	     (let lp ((heads heads) (tails tails))
-	       (receive (next-heads next-tails) (%cars/cdrs tails)
+	       (receive (next-heads next-tails) (%cars/cdrs* tails)
 		 (if (pair? next-heads)
 		     (or (apply pred heads) (lp next-heads next-tails))
 		     (apply pred heads)))))) ; Last PRED app is tail call.
 
       ;; Fast path
-      (and (not (null-list? lis1))
+      (and (not (null? lis1))
 	   (let lp ((head (car lis1)) (tail (cdr lis1)))
-	     (if (null-list? tail)
+	     (if (null? tail)
 		 (pred head)		; Last PRED app is tail call.
 		 (or (pred head) (lp (car tail) (cdr tail))))))))
 
@@ -1328,7 +1057,7 @@
   (case-lambda
 
    ((p ls)
-    (or (null-list? ls)
+    (or (null? ls)
 	(let f ((p p) (a (car ls)) (d (cdr ls)))
 	  (cond
 	   ((pair? d)
@@ -1346,10 +1075,10 @@
      (else #t)))
 
    ((pred lis1 . lists)
-    (receive (heads tails) (%cars/cdrs (cons lis1 lists))
+    (receive (heads tails) (%cars/cdrs* (cons lis1 lists))
       (or (not (pair? heads))
 	  (let lp ((heads heads) (tails tails))
-	    (receive (next-heads next-tails) (%cars/cdrs tails)
+	    (receive (next-heads next-tails) (%cars/cdrs* tails)
 	      (if (pair? next-heads)
 		  (and (apply pred heads) (lp next-heads next-tails))
 		(apply pred heads)))))))))
@@ -1359,14 +1088,14 @@
 
       ;; N-ary case
       (let lp ((lists (cons lis1 lists)) (n 0))
-	(receive (heads tails) (%cars/cdrs lists)
+	(receive (heads tails) (%cars/cdrs* lists)
 	  (and (pair? heads)
 	       (if (apply pred heads) n
 		 (lp tails (+ n 1))))))
 
     ;; Fast path
     (let lp ((lis lis1) (n 0))
-      (and (not (null-list? lis))
+      (and (not (null? lis))
 	   (if (pred (car lis)) n (lp (cdr lis) (+ n 1)))))))
 
 (define member*
@@ -1399,7 +1128,7 @@
     (delete-duplicates lis equal?))
    ((lis elt=)
     (let recur ((lis lis))
-      (if (null-list? lis) lis
+      (if (null? lis) lis
 	(let* ((x (car lis))
 	       (tail (cdr lis))
 	       (new-tail (recur (delete x tail elt=))))
@@ -1411,11 +1140,73 @@
     (delete-duplicates! lis equal?))
    ((lis elt=)
     (let recur ((lis lis))
-      (if (null-list? lis) lis
+      (if (null? lis) lis
 	(let* ((x (car lis))
 	       (tail (cdr lis))
 	       (new-tail (recur (delete! x tail elt=))))
 	  (if (eq? tail new-tail) lis (cons x new-tail))))))))
+
+
+;;;; sorted lists
+
+(define (sorted-list-insert item ell item>)
+  (let loop ((result '())
+	     (ell    ell))
+    (if (null? ell)
+	(append-reverse (cons item result) ell)
+      (let ((x (car ell)))
+	(cond ((item> item x)
+	       (loop (cons x result) (cdr ell)))
+	      (else
+	       (append-reverse (cons item result) ell)))))))
+
+(define (sorted-list-insert/uniq item ell item< item>)
+  (let loop ((result '())
+	     (ell    ell))
+    (if (null? ell)
+	(append-reverse (cons item result) ell)
+      (let ((x (car ell)))
+	(cond ((item< item x)
+	       (append-reverse (cons item result) ell))
+	      ((item> item x)
+	       (loop (cons x result) (cdr ell)))
+	      (else
+	       ell))))))
+
+(define (union-of-sorted-lists ell1 ell2 item< item>)
+  (let loop ((result '())
+	     (ell1 ell1)
+	     (ell2 ell2))
+    (cond ((null? ell1)    (append-reverse result ell2))
+	  ((null? ell2)    (append-reverse result ell1))
+	  (else
+	   (let ((x (car ell1))
+		 (y (car ell2)))
+	     (cond
+	      ((item> x y)
+	       (loop (cons y result) ell1 (cdr ell2)))
+	      ((item< x y)
+	       (loop (cons x result) (cdr ell1) ell2))
+	      (else ;equal items
+	       ;;First the ones from ELL1, then the ones from ELL2.
+	       (loop (cons x result) (cdr ell1) ell2))))))))
+
+(define (union-of-sorted-lists/uniq ell1 ell2 item< item>)
+  (let loop ((result '())
+	     (ell1 ell1)
+	     (ell2 ell2))
+    (cond ((null? ell1)    (append-reverse result ell2))
+	  ((null? ell2)    (append-reverse result ell1))
+	  (else
+	   (let ((x (car ell1))
+		 (y (car ell2)))
+	     (cond
+	      ((item> x y)
+	       (loop (cons y result) ell1 (cdr ell2)))
+	      ((item< x y)
+	       (loop (cons x result) (cdr ell1) ell2))
+	      (else
+	       (loop result (cdr ell1) ell2))))))))
 
 
 ;;;; alists
@@ -1510,7 +1301,7 @@
 
 (define (lset-intersection = lis1 . lists)
   (let ((lists (delete lis1 lists eq?)))
-    (cond ((any null-list? lists) '())
+    (cond ((any null? lists) '())
 	  ((null? lists)          lis1)
 	  (else (filter (lambda (x)
 			  (every (lambda (lis) (member* x lis =)) lists))
@@ -1518,7 +1309,7 @@
 
 (define (lset-intersection! = lis1 . lists)
   (let ((lists (delete lis1 lists eq?)))
-    (cond ((any null-list? lists) '())
+    (cond ((any null? lists) '())
 	  ((null? lists)          lis1)
 	  (else (filter! (lambda (x)
 			   (every (lambda (lis) (member* x lis =)) lists))
@@ -1567,7 +1358,7 @@
    '() lists))
 
 (define (lset-diff+intersection = lis1 . lists)
-  (cond ((every null-list? lists) (values lis1 '()))
+  (cond ((every null? lists) (values lis1 '()))
 	((memq lis1 lists)        (values '() lis1))
 	(else (partition (lambda (elt)
 			   (not (any (lambda (lis) (member* elt lis =))
@@ -1575,7 +1366,7 @@
 			 lis1))))
 
 (define (lset-diff+intersection! = lis1 . lists)
-  (cond ((every null-list? lists) (values lis1 '()))
+  (cond ((every null? lists) (values lis1 '()))
 	((memq lis1 lists)        (values '() lis1))
 	(else (partition! (lambda (elt)
 			    (not (any (lambda (lis) (member* elt lis =))

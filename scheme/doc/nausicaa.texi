@@ -349,7 +349,6 @@ Development of Nausicaa takes place at:
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}.@*
-
 Copyright @copyright{} 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 Free Software Foundation.@*
 Copyright @copyright{} 1996, 1999-2005 Dorai Sitaram.@*
@@ -431,7 +430,9 @@ the list of original documents and their authors.
 
 Appendices
 
+* notes::                       Miscellaneous notes on everything.
 * binfmt::                      Launching programs directly.
+* examples::                    Scheme programming examples.
 * credits::                     Credits.
 * Package License::             @gnu{} General Public License.
 * Documentation License::       @gnu{} Free Documentation License.
@@ -439,7 +440,6 @@ Appendices
 
 Indexes
 
-* examples::                    Scheme programming examples.
 * concept index::               An entry for each concept.
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
@@ -796,6 +796,9 @@ More libraries
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * silex::                       A lexical analyser generator.
+* lalr::                        A LALR(1) parser generator.
+* csv::                         Comma--separated value (@acronym{CSV}) utilities.
+* schelog::                     Programming in Schelog.
 
 Low level libraries
 
@@ -808,7 +811,10 @@ List library
 * lists linear update::         Linear update procedures.
 * lists improper::              Improper lists.
 * lists cons::                  Constructors.
-* lists pred::                  Predicates.
+* lists kind::                  Kind related predicates.
+* lists null::                  Null related predicates.
+* lists pair::                  Pair related predicates.
+* lists compar::                Comparison.
 * lists select::                Selectors.
 * lists misc::                  Length, append, concatenate,
                                 reverse, zip and count.
@@ -816,20 +822,9 @@ List library
 * lists filter::                Filtering and partitioning.
 * lists search::                Searching.
 * lists delete::                Deletion.
+* lists sorted::                Utilities for sorted lists.
 * lists alist::                 Association lists.
 * lists set::                   Set operations on lists.
-
-Constructors
-
-* lists cons pair::             Pair constructors.
-* lists cons list::             List constructors.
-
-Predicates
-
-* lists pred kind::             Kinds of list.
-* lists pred null::             Null predicates.
-* lists pred pair::             Pair predicates.
-* lists pred cmp::              Comparison.
 
 Fold, unfold and map
 
@@ -1083,6 +1078,17 @@ Semantics of the specification
 * silex semantics action::      What does an action.
 * silex semantics rules::       When does a regular expression
                                 matches the input.
+
+Comma--separated value (@acronym{CSV}) utilities
+
+* csv lexer::                   Low level tokenisation.
+* csv parser::                  High level parsing.
+
+Low level tokenisation
+
+* csv lexer strings::           Tokenising strings.
+* csv lexer unquoted-data::     Tokenising unquoted data.
+* csv lexer full::              Full parsing.
 
 Knuth-Morris-Pratt searching
 
@@ -7022,6 +7028,7 @@ true.
 @example
 (exact? 5)                   @result{} #t
 (inexact? +inf.0)            @result{} #t
+(inexact? +nan.0)            @result{} #t
 @end example
 @end deffn
 
@@ -19313,7 +19320,9 @@ silently ignored.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * silex::                       A lexical analyser generator.
+* lalr::                        A LALR(1) parser generator.
 * csv::                         Comma--separated value (@acronym{CSV}) utilities.
+* schelog::                     Programming in Schelog.
 
 Low level libraries
 
@@ -19326,16 +19335,19 @@ Low level libraries
 @section List library
 
 
-This chapter describes the @library{lists} library: a collection of
-functions and macros to manipulate lists.
-
+The @library{lists} and @library{lists stx} libraries implement a rich
+collection of functions and macros to manipulate lists.  Additionally,
+@library{lists low} implements a collection of low level utilities.
 
 @menu
 * lists intro::                 Introduction.
 * lists linear update::         Linear update procedures.
 * lists improper::              Improper lists.
 * lists cons::                  Constructors.
-* lists pred::                  Predicates.
+* lists kind::                  Kind related predicates.
+* lists null::                  Null related predicates.
+* lists pair::                  Pair related predicates.
+* lists compar::                Comparison.
 * lists select::                Selectors.
 * lists misc::                  Length, append, concatenate,
                                 reverse, zip and count.
@@ -19343,14 +19355,21 @@ functions and macros to manipulate lists.
 * lists filter::                Filtering and partitioning.
 * lists search::                Searching.
 * lists delete::                Deletion.
+* lists sorted::                Utilities for sorted lists.
 * lists alist::                 Association lists.
 * lists set::                   Set operations on lists.
+* lists low::                   Low level utilities.
 @end menu
 
 @c page
 @node lists intro
 @subsection Introduction
 
+
+All the functions are exported by the @library{lists} library, while all
+the macros are exported by the @library{lists stx}.  Each macro has a
+corresponding function version, but some functions were not translated
+to macros.  Macro names always end with the suffix @samp{/stx}.
 
 The documentation of this library obeys the following conventions for
 procedure formals:
@@ -19563,24 +19582,12 @@ error cases where programmers inadvertently pass scalar values to a list
 procedure by accident, e.g., by switching the arguments to a procedure
 call.
 
-
 @c page
 @node lists cons
 @subsection Constructors
 
 
 @cindex List constructors
-
-
-@menu
-* lists cons pair::             Pair constructors.
-* lists cons list::             List constructors.
-@end menu
-
-
-@c page
-@node lists cons pair
-@subsubsection Pair constructors
 
 
 @defun xcons @var{d} @var{a}
@@ -19595,15 +19602,13 @@ The name stands for ``eXchanged CONS''.
 @end defun
 
 
-@c page
-@node lists cons list
-@subsubsection List constructors
-
-
-@defun make-list @var{n} [@var{fill}]
+@deffn Function make-list @var{n}
+@deffnx Function make-list @var{n} @var{fill}
+@deffnx Syntax make-list/stx @var{n}
+@deffnx Syntax make-list/stx @var{n} @var{fill}
 Return an @var{n}--element list, whose elements are all the value
-@var{fill}.  If the fill argument is not given, the elements of the list
-may be arbitrary values.
+@var{fill}.  If @var{fill} is not given, the elements of the list may be
+arbitrary values.
 
 @example
 (make-list 4 'c)
@@ -19612,12 +19617,13 @@ may be arbitrary values.
 (make-list 0)
 => ()
 @end example
-@end defun
+@end deffn
 
 
-@defun list-tabulate @var{n} @var{init-proc}
-Return an @var{n}--element list.  Element @var{i} of the list, where
-@code{0 <= i < n}, is produced by @code{(init-proc i)}.  No guarantee is
+@deffn Function list-tabulate @var{n} @var{init-proc}
+@deffnx Syntax list-tabulate/stx @var{n} @var{init-proc}
+Return an @var{n}--element list.  Element @math{i} of the list, where
+@math{0 <= i < n}, is produced by @code{(init-proc i)}.  No guarantee is
 made about the dynamic order in which @var{init-proc} is applied to
 these indices.
 
@@ -19625,18 +19631,20 @@ these indices.
 (list-tabulate 4 values)
 => (0 1 2 3)
 @end example
-@end defun
+@end deffn
 
 
-@defun list-copy @var{flist}
+@deffn Function list-copy @var{flist}
+@deffnx Syntax list-copy/stx @var{flist}
 Copy the spine of the argument.
-@end defun
+@end deffn
 
 
-@defun tree-copy @var{list}
+@deffn Function tree-copy @var{list}
+@deffnx Syntax tree-copy/stx @var{list}
 Copy the whole tree of the list @var{list}, not only the spine (which is
 what @func{list-copy} does).
-@end defun
+@end deffn
 
 
 @defun circular-list @var{elt1} @var{elt2} ...
@@ -19648,7 +19656,8 @@ Construct a circular list of the elements.
 @end defun
 
 
-@defun iota @var{count} [@var{start} @var{step}]
+@deffn Function iota @var{count} [@var{start} @var{step}]
+@deffnx Syntax iota/stx @var{count} [@var{start} @var{step}]
 Return a list containing the elements:
 
 @example
@@ -19671,27 +19680,11 @@ The @var{start} and @var{step} parameters default to @code{0} and
 @strong{Nausicaa note:} When @var{count} is negative the return value is
 the empty list.
 @end quotation
-@end defun
-
-
-@c page
-@node lists pred
-@subsection Predicates
-
-
-@cindex List predicates
-
-
-@menu
-* lists pred kind::             Kinds of list.
-* lists pred null::             Null predicates.
-* lists pred pair::             Pair predicates.
-* lists pred cmp::              Comparison.
-@end menu
+@end deffn
 
 @c page
-@node lists pred kind
-@subsubsection Kind of list
+@node lists kind
+@subsection Kind related predicates
 
 
 The predicates @func{proper-list?}, @func{circular-list?}, and
@@ -19750,23 +19743,32 @@ length 0.
 
 
 @c page
-@node lists pred null
-@subsubsection Null predicates
+@node lists null
+@subsection Null related predicates
 
 
-@defun null-list? @var{clist}
-@var{clist} is a proper or circular list.  This procedure returns
-@true{} if the argument is the empty list, and @false{} otherwise.  It
-is an error to pass this procedure a value which is not a proper or
-circular list.  This procedure is recommended as the termination
-condition for list--processing procedures that are not defined on dotted
-lists.
-@end defun
+@deffn Function and-null? @var{list} ...
+@deffnx Syntax and-null?/stx @var{list} ...
+Return @true{} if all the @var{list} are null or no arguments are given.
+@end deffn
 
+
+@deffn Function or-null? @var{list} ...
+@deffnx Syntax or-null?/stx @var{list} ...
+Return @true{} if at least one of the @var{list} is null.  Return
+@false{} if no arguments are given.
+@end deffn
+
+
+@deffn Function and/or-null? @var{list} ...
+@deffnx Syntax and/or-null?/stx @var{list} ...
+Return two values being the return values of @func{and-null?} and
+@func{or-null?} applied to the @var{list} arguments.
+@end deffn
 
 @c page
-@node lists pred pair
-@subsubsection Pair predicates
+@node lists pair
+@subsection Pair related predicates
 
 
 @defun not-pair? @var{x}
@@ -19778,8 +19780,8 @@ proper and dotted.
 
 
 @c page
-@node lists pred cmp
-@subsubsection Comparison
+@node lists compar
+@subsection Comparison
 
 
 @defun list=? @var{elm=?} @var{list1} ...
@@ -19882,23 +19884,29 @@ Examples:
 @cindex List selectors
 
 
-@defun first @var{pair}
-@defunx second  @var{pair}
-@defunx third   @var{pair}
-@defunx fourth  @var{pair}
-@defunx fifth   @var{pair}
-@defunx sixth   @var{pair}
-@defunx seventh @var{pair}
-@defunx eighth  @var{pair}
-@defunx ninth   @var{pair}
-@defunx tenth   @var{pair}
+@deffn Function first @var{pair}
+@deffnx Function second  @var{pair}
+@deffnx Function third   @var{pair}
+@deffnx Function fourth  @var{pair}
+@deffnx Function fifth   @var{pair}
+@deffnx Function sixth   @var{pair}
+@deffnx Function seventh @var{pair}
+@deffnx Function eighth  @var{pair}
+@deffnx Function ninth   @var{pair}
+@deffnx Function tenth   @var{pair}
+@deffnx Syntax fifth/stx   @var{pair}
+@deffnx Syntax sixth/stx   @var{pair}
+@deffnx Syntax seventh/stx @var{pair}
+@deffnx Syntax eighth/stx  @var{pair}
+@deffnx Syntax ninth/stx   @var{pair}
+@deffnx Syntax tenth/stx   @var{pair}
 Synonyms for @func{car}, @func{cadr}, @func{caddr}, ...
 
 @example
 (third '(a b c d e))
 => c
 @end example
-@end defun
+@end deffn
 
 
 @defun {car+cdr} @var{pair}
@@ -19913,8 +19921,10 @@ This can, of course, be implemented more efficiently by a compiler.
 @end defun
 
 
-@defun take @var{x} @var{i}
-@defunx drop @var{x} @var{i}
+@deffn Function take @var{x} @var{i}
+@deffnx Function drop @var{x} @var{i}
+@deffnx Syntax take/stx @var{x} @var{i}
+@deffnx Syntax drop/stx @var{x} @var{i}
 @func{take} returns the first @var{i} elements of list @var{x}.
 @func{drop} returns all but the first @var{i} elements of list @var{x}.
 
@@ -19961,11 +19971,13 @@ list is taken, e.g. @code{(take lis (length lis))}.
 @emph{Nausicaa note:} @func{drop} will return a list which is a portion
 of the argument, unless the return value is the empty list.
 @end quotation
-@end defun
+@end deffn
 
 
-@defun take-right @var{flist} @var{i}
-@defunx drop-right @var{flist} @var{i}
+@deffn Function take-right @var{flist} @var{i}
+@deffnx Function drop-right @var{flist} @var{i}
+@deffnx Syntax take-right/stx @var{flist} @var{i}
+@deffnx Syntax drop-right/stx @var{flist} @var{i}
 @func{take-right} returns the last @var{i} elements of @var{flist}.
 @func{drop-right} returns all but the last @var{i} elements of
 @var{flist}.
@@ -20009,35 +20021,25 @@ tail with @var{flist}.
 If the argument is a list of non--zero length, @func{drop-right} is
 guaranteed to return a freshly--allocated list, even in the case where
 nothing is dropped, e.g. @code{(drop-right lis 0)}.
-@end defun
+@end deffn
 
 
-@defun take! @var{clist} @var{i}
-@defunx drop-right! @var{flist} @var{i}
+@deffn Function take! @var{flist} @var{i}
+@deffnx Function drop-right! @var{flist} @var{i}
+@deffnx Syntax take!/stx @var{flist} @var{i}
+@deffnx Syntax drop-right!/stx @var{flist} @var{i}
 @func{take!} and @func{drop-right!} are linear--update variants of
 @func{take} and @func{drop-right}: the procedure is allowed, but not
 required, to alter the argument list to produce the result.
 
-If @var{x} is circular, @func{take!} may return a
-shorter--than--expected list:
-
-@example
-(take! (circular-list 1 3 5) 8)
-=> (1 3)
-
-(take! (circular-list 1 3 5) 8)
-=> (1 3 5 1 3 5 1 3)
-@end example
-
-@quotation
-@emph{Nausicaa note:} When applied to a circular list these functions go
-in infinite loop.
-@end quotation
-@end defun
+An error is raised if the length of the list is less than @var{i}.
+@end deffn
 
 
-@defun split-at @var{x} @var{i}
-@defunx split-at! @var{x} @var{i}
+@deffn Function split-at @var{x} @var{i}
+@deffnx Function split-at! @var{x} @var{i}
+@deffnx Syntax split-at/stx @var{x} @var{i}
+@deffnx Syntax split-at!/stx @var{x} @var{i}
 @func{split-at} splits the list @var{x} at index @var{i}, returning a
 list of the first @var{i} elements, and the remaining tail.  It is
 equivalent to:
@@ -20054,11 +20056,13 @@ required, to alter the argument list to produce the result.
 => (a b c)
    (d e f g h)
 @end example
-@end defun
+@end deffn
 
 
-@defun last @var{pair}
-@defunx last-pair @var{pair}
+@deffn Function last @var{pair}
+@deffnx Function last-pair @var{pair}
+@deffnx Syntax last/stx @var{pair}
+@deffnx Syntax last-pair/stx @var{pair}
 @func{last} returns the last element of the non--empty, finite list
 @var{pair}.  @func{last-pair} returns the last pair in the non--empty,
 finite list @var{pair}.
@@ -20067,8 +20071,7 @@ finite list @var{pair}.
 (last '(a b c)) => c
 (last-pair '(a b c)) => (c)
 @end example
-@end defun
-
+@end deffn
 
 @c page
 @node lists misc
@@ -20112,8 +20115,10 @@ with this parameter.
 @end defun
 
 
-@defun concatenate @var{list-of-lists}
-@defunx concatenate! @var{list-of-lists}
+@deffn Function concatenate @var{list-of-lists}
+@deffnx Function concatenate! @var{list-of-lists}
+@deffnx Syntax concatenate/stx @var{list-of-lists}
+@deffnx Syntax concatenate!/stx @var{list-of-lists}
 These functions append the elements of their argument together.  That
 is, @func{concatenate} returns:
 
@@ -20139,7 +20144,7 @@ properly.
 
 As with @func{append} and @func{append!}, the last element of the input
 list may be any value at all.
-@end defun
+@end deffn
 
 
 @defun reverse! @var{list}
@@ -20154,8 +20159,10 @@ argument's cons cells to produce the reversed list.
 @end defun
 
 
-@defun append-reverse @var{rev-head} @var{tail}
-@defunx append-reverse! @var{rev-head} @var{tail}
+@deffn Function append-reverse @var{rev-head} @var{tail}
+@deffnx Function append-reverse! @var{rev-head} @var{tail}
+@deffnx Syntax append-reverse/stx @var{rev-head} @var{tail}
+@deffnx Syntax append-reverse!/stx @var{rev-head} @var{tail}
 @func{append-reverse} returns:
 
 @example
@@ -20180,10 +20187,11 @@ reclamation.
 @func{append-reverse!} is just the linear--update variant; it is
 allowed, but not required, to alter @var{rev-head}'s cons cells to
 construct the result.
-@end defun
+@end deffn
 
 
-@defun zip @var{clist1} @var{clist2} ...
+@deffn Function zip @var{clist1} @var{clist2} ...
+@deffnx Syntax zip/stx @var{clist1} @var{clist2} ...
 Defined as:
 
 @example
@@ -20214,14 +20222,19 @@ At least one of the argument lists must be finite:
     (4 #f)
     (1 #t))
 @end example
-@end defun
+@end deffn
 
 
-@defun unzip1 @var{list}
-@defunx unzip2 @var{list}
-@defunx unzip3 @var{list}
-@defunx unzip4 @var{list}
-@defunx unzip5 @var{list}
+@deffn Function unzip1 @var{list}
+@deffnx Function unzip2 @var{list}
+@deffnx Function unzip3 @var{list}
+@deffnx Function unzip4 @var{list}
+@deffnx Function unzip5 @var{list}
+@deffnx Syntax unzip1/stx @var{list}
+@deffnx Syntax unzip2/stx @var{list}
+@deffnx Syntax unzip3/stx @var{list}
+@deffnx Syntax unzip4/stx @var{list}
+@deffnx Syntax unzip5/stx @var{list}
 @func{unzip1} takes a list of lists, where every list must contain at
 least one element, and returns a list containing the initial element of
 each such list.  That is, it returns @code{(map car lists)}.
@@ -20238,10 +20251,11 @@ and so forth.
 => (1 2 3)
    (one two three)
 @end example
-@end defun
+@end deffn
 
 
-@defun count @var{pred} @var{clist1} ...
+@deffn Function count @var{pred} @var{clist1} ...
+@deffnx Syntax count/stx @var{pred} @var{clist1} ...
 @var{pred} is a procedure taking as many arguments as there are lists
 and returning a single value.  It is applied element--wise to the
 elements of the lists, and a count is tallied of the number of elements
@@ -20261,8 +20275,7 @@ At least one of the argument lists must be finite:
 @example
 (count < '(3 1 4 1) (circular-list 1 10)) => 2
 @end example
-@end defun
-
+@end deffn
 
 @c page
 @node lists fold
@@ -20550,7 +20563,7 @@ return value is @false{}.
 
 @defun fold-left/pred @var{pred} @var{knil} @var{clist}
 Apply @var{pred} to successive couples of elements from @var{clist};
-return true if all the evaluations of @var{pred} where true.  The
+return true if all the evaluations of @var{pred} were true.  The
 iteration stops at the first @false{} return value from @var{pred}.
 
 This function is implemented as:
@@ -20676,7 +20689,8 @@ Examples:
 @subsubsection Reducing
 
 
-@defun reduce @var{f} @var{ridentity} @var{list}
+@deffn Function reduce @var{f} @var{ridentity} @var{list}
+@deffnx Syntax reduce/stx @var{f} @var{ridentity} @var{list}
 @func{reduce} is a variant of @func{fold}.  @var{ridentity} should be a
 ``right identity'' of the procedure @var{f}; that is, for any value
 @var{x} acceptable to @var{f}:
@@ -20724,10 +20738,11 @@ Examples:
 (reduce + 0 '(0 1 2 3 4 5 6 7 8 9))
 @result{} 45
 @end example
-@end defun
+@end deffn
 
 
-@defun reduce* @var{f} @var{ridentity} @var{list}
+@deffn Function reduce* @var{f} @var{ridentity} @var{list}
+@deffnx Syntax reduce*/stx @var{f} @var{ridentity} @var{list}
 @func{reduce*} is the @func{fold*} variant of
 @func{reduce}.  It obeys the following definition:
 
@@ -20751,14 +20766,17 @@ in other words, we compute @code{(fold* f ridentity list)}.
            (0)))
 @result{} (1 2 3 4 5 6 7 8 9 0)
 @end example
-@end defun
+@end deffn
 
 @c page
 @node lists fold unfold
 @subsubsection Unfolding
 
 
-@defun unfold @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} [@var{tail-gen}]
+@deffn Function unfold @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed}
+@deffnx Function unfold @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} @var{tail-gen}
+@deffnx Syntax unfold/stx @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed}
+@deffnx Syntax unfold/stx @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} @var{tail-gen}
 Generate a list from a starting value; return the result.  It is is the
 fundamental recursive list constructor, just as @func{fold-right} is the
 fundamental recursive list consumer.  It is best described by its basic
@@ -20854,11 +20872,14 @@ and:
 This combinator sometimes is called an ``anamorphism''; when an explicit
 @var{tail-gen} procedure is supplied, it is called an ``apomorphism''.
 @end quotation
-@end defun
+@end deffn
 
 @c ------------------------------------------------------------
 
-@defun unfold-right @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} [@var{tail}]
+@deffn Function unfold-right @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed}
+@deffnx Function unfold-right @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} @var{tail}
+@deffnx Syntax unfold-right/stx @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed}
+@deffnx Syntax unfold-right/stx @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed} @var{tail}
 Generate a list from a starting value; return the result.  It is the
 fundamental iterative list constructor, just as @func{fold} is the
 fundamental iterative list consumer.  Construct a list with the
@@ -20942,15 +20963,19 @@ and:
 This combinator presumably has some pretentious mathematical name;
 interested readers are invited to communicate it to the author.
 @end quotation
-@end defun
-
+@end deffn
 
 @c page
 @node lists fold map
 @subsubsection Mapping
 
 
-@defun map* @var{proc} @var{clist1} @var{clist2} ...
+@deffn Function map* @var{proc} @var{clist1} @var{clist2} ...
+@deffnx Syntax map*/stx @var{proc} @var{clist1} @var{clist2} ...
+This procedure extends the @rnrs{6} specification of @func{map} to allow
+the arguments to be of unequal length; it terminates when the shortest
+list runs out of elements.
+
 @var{proc} is a procedure taking as many arguments as there are list
 arguments and returning a single value.  @func{map} applies @var{proc}
 element--wise to the elements of the lists and returns a list of the
@@ -20981,10 +21006,6 @@ the elements of the lists is unspecified.
 @result{} (1 2) or (2 1)
 @end example
 
-This procedure extends the @rnrs{6} specification of @func{map} to allow
-the arguments to be of unequal length; it terminates when the shortest
-list runs out of elements.
-
 At least one of the list arguments must be a finite list:
 
 @example
@@ -20993,10 +21014,26 @@ At least one of the list arguments must be a finite list:
       (circular-list 1 0))
 @result{} (4 1 5 1)
 @end example
-@end defun
+@end deffn
 
 
-@defun for-each* @var{proc} @var{clist1} @var{clist2} ...
+@deffn Function map-in-order* @var{f} @var{clist1} @var{clist2} ...
+@deffnx Syntax map-in-order*/stx @var{f} @var{clist1} @var{clist2} ...
+A variant of the @func{map} procedure that guarantees to apply @var{f}
+across the elements of the @var{listi} arguments in a left--to--right
+order.  This is useful for mapping procedures that both have side
+effects and return useful values.
+
+At least one of the list arguments must be finite.
+@end deffn
+
+
+@deffn Function for-each* @var{proc} @var{clist1} @var{clist2} ...
+@deffnx Syntax for-each*/stx @var{proc} @var{clist1} @var{clist2} ...
+This procedure extends the @rnrs{6} specification for @func{for-each} to
+allow the arguments to be of unequal length; it terminates when the
+shortest list runs out.
+
 The arguments to @func{for-each*} are like the arguments to @func{map*},
 but @func{for-each*} calls @var{proc} for its side effects rather than
 for its values.  Unlike @func{map*}, @func{for-each*} is guaranteed to
@@ -21014,12 +21051,8 @@ unspecified.
 @result{} #(0 1 4 9 16)
 @end example
 
-This procedure extends the @rnrs{6} specification for @func{for-each} to
-allow the arguments to be of unequal length; it terminates when the
-shortest list runs out.
-
 At least one of the list arguments must be a finite list.
-@end defun
+@end deffn
 
 
 @defun append-map @var{f} @var{clist1} @var{clist2} ...
@@ -21068,7 +21101,20 @@ At least one of the list arguments must be a finite list.
 @end defun
 
 
-@defun {map!} @var{f} @var{list1} @var{clist2} ...
+@deffn Function map! @var{f} @var{list1} @var{list2} ...
+@deffnx Syntax map!/stx @var{f} @var{list1} @var{list2} ...
+Linear--update variant of @func{map}, @func{map!} is allowed, but not
+required, to alter the cons cells of @var{list1} to construct the result
+list.
+
+The dynamic order in which the various applications of @var{f} are made
+is not specified.  In the n--ary case, all the list arguments must have
+the same number of elements.
+@end deffn
+
+
+@deffn Function map*! @var{f} @var{list1} @var{clist2} ...
+@deffnx Syntax map*!/stx @var{f} @var{list1} @var{clist2} ...
 Linear--update variant of @func{map}, @func{map!} is allowed, but not
 required, to alter the cons cells of @var{list1} to construct the result
 list.
@@ -21076,21 +21122,12 @@ list.
 The dynamic order in which the various applications of @var{f} are made
 is not specified.  In the n--ary case, @var{clist2}, @var{clist3},
 ... must have at least as many elements as @var{list1}.
-@end defun
+@end deffn
 
 
-@defun map-in-order @var{f} @var{clist1} @var{clist2} ...
-A variant of the @func{map} procedure that guarantees to apply @var{f}
-across the elements of the @var{listi} arguments in a left--to--right
-order.  This is useful for mapping procedures that both have side
-effects and return useful values.
-
-At least one of the list arguments must be finite.
-@end defun
-
-
-@defun pair-for-each @var{f} @var{clist1} @var{clist2} ...
-Like @func{for-each}, but @var{f} is applied to successive sublists of
+@deffn Function pair-for-each* @var{f} @var{clist1} @var{clist2} ...
+@deffnx Syntax pair-for-each*/stx @var{f} @var{clist1} @var{clist2} ...
+Like @func{for-each*}, but @var{f} is applied to successive sublists of
 the argument lists.  That is, @var{f} is applied to the cons cells of
 the lists, rather than the lists' elements.  These applications occur in
 left--to--right order.
@@ -21111,10 +21148,11 @@ is given without altering the sequence of execution.
 @end example
 
 At least one of the list arguments must be a finite list.
-@end defun
+@end deffn
 
 
-@defun filter-map @var{f} @var{clist1} @var{clist2} ...
+@deffn Function filter-map @var{f} @var{clist1} @var{clist2} ...
+@deffnx Syntax filter-map/stx @var{f} @var{clist1} @var{clist2} ...
 Like @func{map}, but only true values are saved.
 
 @example
@@ -21130,7 +21168,7 @@ The dynamic order in which the various applications of @var{f} are made
 is not specified.
 
 At least one of the list arguments must be finite.
-@end defun
+@end deffn
 
 
 @c page
@@ -21586,6 +21624,70 @@ cons cells in its argument list to construct the result.
 @end example
 @end defun
 
+@c page
+@node lists sorted
+@subsection Utilities for sorted lists
+
+
+@defun sorted-list-insert @var{item} @var{list} @var{item>}
+Build a new list holding the same arguments of @var{list}, a list sorted
+in increasing order, and @var{item} inserted in such a position that the
+order is preserved.  The returned list may share structure with
+@var{list}.
+
+@var{item>} must be a predicate accepting two arguments and returning
+true if the first is greater than the second.
+
+If @var{item} is equal to one of the items in @var{list}: @var{item} is
+added before the item from @var{list}.
+@end defun
+
+
+@defun sorted-list-insert @var{item} @var{list} @var{item<} @var{item>}
+Like @func{sorted-list-insert}, buth if @var{item} is equal to one of
+the items in @var{list}: @var{item} is discarded, and @var{list} it self
+is returned.
+@end defun
+
+
+@defun union-of-sorted-lists @var{list1} @var{list2} @var{item<} @var{item>}
+Build a new list representing the union of the lists arguments.
+@var{list1} and @var{list2} are interpreted as lists sorted in
+increasing order, and the result of the union is a sorted list.  The
+returned list may share structure with the list arguments.
+
+@var{item<} and @var{item>} must be predicates accepting two arguments
+and returning true if the first is less than/greater than the second.
+
+When both @var{item<} and @var{item>} return @false{}, the two items are
+considered equal; in this case all the equal items are added to the
+result, in such a way that the items from @var{list1} all come before
+the items from @var{list2}.
+@end defun
+
+
+@defun union-of-sorted-lists/uniq @var{list1} @var{list2} @var{item<} @var{item>}
+Like @func{union-of-sorted-lists}, but when equal items are found only
+the ones from @var{list1} are added to the result.  Examples:
+
+@example
+(union-of-sorted-lists/uniq
+  '(0 1   3     8 9 10)
+  '(  1 2   4 5        11 23)
+  < >)
+@result{} '(0 1 2 3 4 5 8 9 10 11 23)
+;;     ^
+;; from list1
+
+(union-of-sorted-lists/uniq
+  '(0 1 1   3)
+  '(  1   2   4)
+  < >)
+@result{} '(0 1 1 2 3 4 5)
+;;     ^ ^
+;; both from list1
+@end example
+@end defun
 
 @c page
 @node lists alist
@@ -22003,6 +22105,158 @@ This operation essentially partitions @var{list1}.
 @func{lset-diff+intersection}.  It is allowed, but not required, to use
 the cons cells in the first list parameter to construct its answer.
 @end defun
+
+@c page
+@node lists low
+@subsection Low level utilities
+
+
+The following bindings are exported by @library{lists low}.
+
+
+@defun %and/or-null? @var{list} ...
+This is the implementation of @func{and/or-null?}.  Return two values
+being the return values of @func{and-null?} and @func{or-null?} applied
+to the @var{list} arguments.
+@end defun
+
+
+@defun %cars @var{list-of-lists}
+@defunx %cars @var{list-of-lists} @var{who}
+Return the list of cars of the sublists of @var{list-of-lists}, which
+must be a non--empty list of lists.
+
+If all the sublists are null: The return value is null.  If at least one
+sublist, but not all, is null: Raise an assertion violation using
+@var{who} as value for the @samp{&who} condition.  @var{who} defaults to
+@false{}.
+@end defun
+
+
+@defun %cars* @var{list-of-lists}
+Like @var{%cars} but accept sublists of different length.  If at least
+one sublist is null: The return value is null.
+@end defun
+
+
+@defun %cdrs @var{list-of-lists}
+@defunx %cdrs @var{list-of-lists} @var{who}
+Return the list of cdrs of the sublists of @var{list-of-lists}, which
+must be a non--empty list of lists.
+
+If all the sublists are null: The return value is null.  If at least one
+sublist, but not all, is null: Raise an assertion violation using
+@var{who} as value for the @samp{&who} condition.  @var{who} defaults to
+@false{}.
+@end defun
+
+
+@defun %cdrs* @var{list-of-lists}
+Like @var{%cdrs} but accept sublists of different length.  If at least
+one sublist is null: The return value is null.
+@end defun
+
+
+@defun %cars+knil @var{list-of-lists} @var{knil}
+@defunx %knil+cars @var{list-of-lists} @var{knil}
+@defunx %cars+knil @var{list-of-lists} @var{knil} @var{who}
+@defunx %knil+cars @var{list-of-lists} @var{knil} @var{who}
+Return the list of cars of the sublists of @var{list-of-lists}, which
+must be a non--empty list of lists.  @func{%cars+knil} adds @var{knil}
+as last value.  @func{%knil+cars} adds @var{knil} as first value.
+
+If all the sublists are null: The return value is null.  If at least one
+sublist, but not all, is null: Raise an assertion violation using
+@var{who} as value for the @samp{&who} condition.  @var{who} defaults to
+@false{}.
+@end defun
+
+
+@defun %cars+knil* @var{list-of-lists} @var{knil}
+@defunx %knil+cars* @var{list-of-lists} @var{knil}
+Like @func{%cars+knil} and @func{%knil+cars}, but accept sublists of
+different length.  If at least one sublist is null: The return value is
+null.
+@end defun
+
+
+@defun %cars+knil/cdrs @var{list-of-lists} @var{knil}
+@defunx %knil+cars/cdrs @var{list-of-lists} @var{knil}
+@defunx %cars+knil/cdrs @var{list-of-lists} @var{knil} @var{who}
+@defunx %knil+cars/cdrs @var{list-of-lists} @var{knil} @var{who}
+Given that @var{list-of-lists} must be a non--empty list of lists,
+return two values: The list of cars and the lists of cdrs of the
+sublists.  @func{%cars+knil/cdrs} adds @var{knil} as last value of the
+cars.  @func{%knil+cars/cdrs} adds @var{knil} as first value of the
+cars.
+
+If all the sublists are null: The return values are both null.  If at
+least one sublist, but not all, is null: Raise an assertion violation
+using @var{who} as value for the @samp{&who} condition.  @var{who}
+defaults to @false{}.
+@end defun
+
+
+@defun %cars+knil/cdrs* @var{list-of-lists} @var{knil}
+@defunx %knil+cars/cdrs* @var{list-of-lists} @var{knil}
+Like @func{%cars+knil/cdrs} and @func{%knil+cars/cdrs}, but accept
+sublists of different length.  If at least one sublist is null: The
+return value is null.
+@end defun
+
+
+@c ------------------------------------------------------------
+
+@subsubheading Queues
+
+The following macros handle queue values: Pairs whose car is a list and
+whose cdr is the last pair in the list.  They allow fast insertion of
+elements at the end of the list.
+
+@example
+          -----------
+  queue  | car | cdr |
+          -----------
+            |     |
+        ----       ----------------
+       |                           |
+       v                           v
+      ---    ---    ---    ---    ---
+list | | |->| | |->| | |->| | |->| | |->()
+      ---    ---    ---    ---    ---
+      |      |      |      |      |
+      o      o      o      o      o
+@end example
+
+The following @api{} does not implement a full queue value; for that see
+the @library{queues} library.  @ref{queues, Simple queues}
+
+
+@deffn Syntax %make-queue @var{obj}
+Build and return a new queue having @var{obj} as first argument.
+@end deffn
+
+
+@deffn Syntax %list->queue @var{list}
+Embed @var{list} into a queue and return it.
+@end deffn
+
+
+@deffn Syntax enqueue! @var{queue} @var{obj}
+Enqueue @var{obj} at the end of @var{queue}.
+@end deffn
+
+
+@deffn Syntax %queue-list-ref @var{queue}
+Return the list inside of @var{queue}.  It is a synonym of @func{car}.
+@end deffn
+
+
+@deffn Syntax %queue-last-pair-ref @var{queue}
+Return the last pair of the list inside of @var{queue}.  It is a synonym
+of @func{cdr}.
+@end deffn
+
 
 @c page
 @node char-sets
@@ -32741,7 +32995,7 @@ syntax; a precompiled regular expression value.
 A string.
 
 @item start
-@item past
+@itemx past
 Non--negative, exact integers representing indexes usually into a
 string.  @var{start} is the index of the first code point in a selected
 substring; @var{past} is the index of the code point past the last code
@@ -35732,6 +35986,35 @@ code that ``hard--codes'' the automaton.  This encoding often generates
 big tables.  Such an analyser is not portable to non--@rnrs{6} Schemes.
 
 @c page
+@node lalr
+@section A LALR(1) parser generator
+
+
+The @library{lalr} is a LALR(1) parser generator written in Scheme.  It
+implements an efficient algorithm for computing the lookahead sets.  The
+algorithm is the same as used in @gnu{} Bison and is described in:
+
+@quotation
+F. DeRemer and T. Pennello.  ``Efficient Computation of LALR(1)
+Look-Ahead Set''.  TOPLAS, vol. 4, no. 4, october 1982.
+@end quotation
+
+As a consequence, it is not written in a fully functional style.  In
+fact, much of the code is a direct translation from C to Scheme of the
+Bison sources.
+
+The library is a port to @rnrs{6} Scheme of Lalr-scm by Dominique
+Boucher.  The original code is available at:
+
+@center @url{http://code.google.com/p/lalr-scm/}
+
+@noindent
+while older documentation is at (@aurl{} last verified Tue Jul 21,
+2009):
+
+@center @url{http://www.iro.umontreal.ca/~boucherd/Lalr/documentation/lalr.html}
+
+@c page
 @node csv
 @section Comma--separated value (@acronym{CSV}) utilities
 
@@ -35743,7 +36026,7 @@ lexers that can be customised to fit specific needs.
 
 @menu
 * csv lexer::                   Low level tokenisation.
-* csv parser::                  Hight level parsing.
+* csv parser::                  High level parsing.
 @end menu
 
 @c page
@@ -36121,7 +36404,7 @@ The following is a variant that allows to specify, via the
 
 @c page
 @node csv parser
-@subsection Hight level parsing
+@subsection High level parsing
 
 
 @defun csv->list @var{port} @var{separators}
@@ -36143,6 +36426,592 @@ an exception.
 @defunx csv->list/comma @var{port} @var{swirl-field}
 Like @func{csv->list}, but use only the comma as field separator.
 @end defun
+
+@c page
+@node schelog
+@section Programming in Schelog
+
+
+The @library{schelog} library is an embedding of Prolog--style logic
+programming in Scheme. ``Embedding'' means we don't lose Scheme: We can
+use Prolog--style and conventional Scheme code fragments alongside each
+other.  Schelog contains the full repertoire of Prolog features,
+including meta--logical and second--order (``set'') predicates, leaving
+out only those features that could more easily and more efficiently be
+done with Scheme subexpressions.
+
+The library is a port to @rnrs{6} Scheme of Schelog by Dorai Sitaram.
+The original code is available at:
+
+@center @url{http://www.ccs.neu.edu/home/dorai/schelog/schelog.html}
+
+@c @menu
+@c * schelog simple::              Simple goals and queries.
+@c * schelog predicates::          Predicates.
+@c * schelog scheme::              Using Scheme expressions.
+@c @end menu
+
+@c @c page
+@c @node schelog simple
+@c @subsection Simple goals and queries
+
+
+@c Schelog objects are the same as Scheme objects.  However, there are two
+@c subsets of these objects that are of special interest to Schelog: goals
+@c and predicates.  We will first look at some simple goals.
+
+@c A @dfn{goal} is an object whose truth or falsity we can check.  A goal
+@c that turns out to be true is said to succeed.  A goal that turns out to
+@c be false is said to fail.
+
+@c Two simple goals that are provided in Schelog are:
+
+@c @example
+@c %true
+@c %fail
+@c @end example
+
+@c The goal @samp{%true} succeeds.  The goal @samp{%fail} always fails.
+
+@c A Schelog user can query a goal by wrapping it in a @samp{%which} form:
+
+@c @example
+@c (%which () %true)
+@c @end example
+
+@c @noindent
+@c evaluates to @samp{()}, indicating success, whereas:
+
+@c @example
+@c (%which () %fail)
+@c @end example
+
+@c @noindent
+@c evaluates to @false{}, indicating failure.
+
+@c @quotation
+@c The second subexpression of the @samp{%which} form is the empty list
+@c @samp{()}.  Later, we will see @samp{%whiches} with other lists as the
+@c second subform.
+@c @end quotation
+
+@c Henceforth, we will use the notation:
+
+@c @example
+@c E @result{} F
+@c @end example
+
+@c @noindent
+@c to say that @samp{E} evaluates to @samp{F}.  Thus:
+
+@c @example
+@c (%which () %true) @result{} ()
+@c @end example
+
+@c @c page
+@c @node schelog predicates
+@c @subsection Predicates
+
+
+@c More interesting goals are created by applying a special kind of Schelog
+@c object called a @dfn{predicate} (or relation) to other Schelog objects.
+@c Schelog comes with some primitive predicates, such as the arithmetic
+@c operators @func{%=:=} and @func{%<}, standing for arithmetic ``equal''
+@c and ``less than'' respectively.  For example, the following are some
+@c goals involving these predicates:
+
+@c @example
+@c (%which () (%=:= 1 1)) @result{} ()
+@c (%which () (%< 1 2))   @result{} ()
+@c (%which () (%=:= 1 2)) @result{} #f
+@c (%which () (%< 1 1))   @result{} #f
+@c @end example
+
+@c Other arithmetic predicates are @func{%>} greater than, @func{%<=} less
+@c than or equal to, @func{%>=} greater than or equal to, and @func{%=/=}
+@c not equal.
+
+@c Schelog predicates are not to be confused with conventional Scheme
+@c predicates (such as @func{<} and @func{=}).  Schelog predicates, when
+@c applied to arguments, produce goals that may either succeed or fail.
+@c Scheme predicates, when applied to arguments, yield a boolean value.
+@c Henceforth, we will use the term ``predicate'' to mean Schelog
+@c predicates.  Conventional predicates will be explicitly called ``Scheme
+@c predicates''.
+
+@c @menu
+@c * schelog predicates facts::    Predicates introducing facts.
+@c * schelog predicates rules::    Predicates with rules.
+@c * schelog predicates goals::    Solving goals.
+@c * schelog predicates extra::    Asserting extra clauses.
+@c * schelog predicates local::    Local variables.
+@c @end menu
+
+@c @c page
+@c @node schelog predicates facts
+@c @subsubsection Predicates introducing facts
+
+
+@c Users can create their own predicates using the Schelog form
+@c @func{%rel}.  For example, let's define the predicate @func{%knows}:
+
+@c @example
+@c (define %knows
+@c   (%rel ()
+@c     (('Odysseus 'TeX))
+@c     (('Odysseus 'Scheme))
+@c     (('Odysseus 'Prolog))
+@c     (('Odysseus 'Penelope))
+@c     (('Penelope 'TeX))
+@c     (('Penelope 'Prolog))
+@c     (('Penelope 'Odysseus))
+@c     (('Telemachus 'TeX))
+@c     (('Telemachus 'calculus))))
+@c @end example
+
+@c The expression has the expected meaning.  Each clause in the @func{%rel}
+@c establishes a fact: Odysseus knows TeX, Telemachus knows calculus, &c.
+@c In general, if we apply the predicate to the arguments in any one of its
+@c clauses, we will get a successful goal.  Thus, since @func{%knows} has a
+@c clause that reads @samp{(('Odysseus 'TeX))}, the goal @code{(%knows
+@c 'Odysseus 'TeX)} will be true.
+
+@c We can now get answers for the following types of queries:
+
+@c @example
+@c (%which ()
+@c   (%knows 'Odysseus 'TeX))
+@c @result{} ()
+
+@c (%which ()
+@c   (%knows 'Telemachus 'Scheme))
+@c @result{} #f
+@c @end example
+
+@c @c page
+@c @node schelog predicates rules
+@c @subsubsection Predicates with rules
+
+
+@c Predicates can be more complicated than the above bald recitation of
+@c facts.  The predicate clauses can be rules, eg,
+
+@c @example
+@c (define %computer-literate
+@c   (%rel (person)
+@c     ((person)
+@c       (%knows person 'TeX)
+@c       (%knows person 'Scheme))
+@c     ((person)
+@c       (%knows person 'TeX)
+@c       (%knows person 'Prolog))))
+@c @end example
+
+@c This defines the predicate @func{%computer-literate} in terms of the
+@c predicate @func{%knows}.  In effect, a person is defined as
+@c computer--literate if they know @samp{TeX} and @samp{Scheme}, or
+@c @samp{TeX} and @samp{Prolog}.
+
+@c Note that this use of @func{%rel} employs a local logic variable called
+@c @samp{person}.  In general, a @func{%rel} expression can have a list of
+@c symbols as its second subform.  These name new logic variables that can
+@c be used within the body of the @func{%rel}.
+
+@c The following query can now be answered:
+
+@c @example
+@c (%which ()
+@c   (%computer-literate 'Penelope))
+@c @result{} ()
+@c @end example
+
+@c @noindent
+@c since Penelope knows TeX and Prolog, she is computer--literate.
+
+@c @c page
+@c @node schelog predicates goals
+@c @subsubsection Solving goals
+
+
+@c The above queries are yes/no questions.  Logic programming allows more:
+@c We can formulate a goal with uninstantiated logic variables and then ask
+@c the querying process to provide, if possible, values for these variables
+@c that cause the goal to succeed.  For instance, the query:
+
+@c @example
+@c (%which (what)
+@c   (%knows 'Odysseus what))
+@c @end example
+
+@c @noindent
+@c asks for an instantiation of the logic variable what that satisfies the
+@c goal @code{(%knows 'Odysseus what)}.  In other words, we are asking,
+@c ``What does Odysseus know?''
+
+@c Note that this use of @func{%which} (like @func{%rel} in the definition
+@c of @func{%computer-literate}) uses a local logic variable, what.  In
+@c general, the second subform of @func{%which} can be a list of local
+@c logic variables.  The @func{%which} query returns an answer that is a
+@c list of bindings, one for each logic variable mentioned in its second
+@c subform.  Thus:
+
+@c @example
+@c (%which (what)
+@c   (%knows 'Odysseus what))
+@c @result{} ((what TeX))
+@c @end example
+
+@c But that is not all that wily Odysseus knows.  Schelog provides a
+@c zero--argument procedure (``thunk'') called @func{%more} that retries
+@c the goal in the last @func{%which} query for a different solution.
+
+@c @example
+@c (%more) @result{} ((what Scheme))
+@c @end example
+
+@c We can keep pumping for more solutions:
+
+@c @example
+@c (%more) @result{} ((what Prolog))
+@c (%more) @result{} ((what Penelope))
+@c (%more) @result{} #f
+@c @end example
+
+@c The final @false{} shows that there are no more solutions.  This is
+@c because there are no more clauses in the @func{%knows} predicate that
+@c list Odysseus as knowing anything else.
+
+@c @quotation
+@c It is now clear why @samp{()} was the right choice for truth in the
+@c previous yes/no @func{%which} queries that had no logic variables.
+@c @func{%which} returns a list of bindings for true goals: The list is
+@c empty when there are no variables.
+@c @end quotation
+
+@c @c page
+@c @node schelog predicates extra
+@c @subsubsection Asserting extra clauses
+
+
+@c We can add more clauses to a predicate after it has already been defined
+@c with a @func{%rel}.  Schelog provides the %assert form for this
+@c purpose. Eg,
+
+@c @example
+@c (%assert %knows ()
+@c   (('Odysseus 'archery)))
+@c @end example
+
+@c @noindent
+@c tacks on a new clause at the end of the existing clauses of the
+@c @func{%knows} predicate.  Now, the query:
+
+@c @example
+@c (%which (what)
+@c   (%knows 'Odysseus what))
+
+@c @end example
+
+@c @noindent
+@c gives @samp{TeX}, @samp{Scheme}, @samp{Prolog}, and @samp{Penelope}, as
+@c before, but a subsequent @code{(%more)} yields a new result:
+@c @samp{archery}.
+
+@c The Schelog form @func{%assert-a} is similar to @func{%assert} but adds
+@c clauses before any of the current clauses.
+
+@c Both @func{%assert} and @func{%assert-a} assume that the variable they
+@c are adding to, already names a predicate (presumably defined using
+@c @func{%rel}).  In order to allow defining a predicate entirely through
+@c @func{%asserts}, Schelog provides an empty predicate value
+@c @func{%empty-rel}.  @func{%empty-rel} takes any number of arguments and
+@c always fails.  A typical use of the @func{%empty-rel} and @func{%assert}
+@c combination:
+
+@c @example
+@c (define %parent %empty-rel)
+
+@c (%assert %parent ()
+@c   (('Laertes 'Odysseus)))
+
+@c (%assert %parent ()
+@c   (('Odysseus 'Telemachus))
+@c   (('Penelope 'Telemachus)))
+@c @end example
+
+@c (Schelog does not provide a predicate for retracting assertions, since
+@c we can keep track of older versions of predicates using conventional
+@c Scheme features (let and set!).)
+
+@c @c page
+@c @node schelog predicates local
+@c @subsubsection Local variables
+
+
+@c The local logic variables of @func{%rel} and @func{%which} expressions
+@c are in reality introduced by the Schelog syntactic form called
+@c @func{%let}.  (@func{%rel} and @func{%which} are macros written using
+@c @func{%let}.)
+
+@c @func{%let} introduces new lexically scoped logic variables.  Supposing,
+@c instead of
+
+@c @example
+@c (%which (what)
+@c   (%knows 'Odysseus what))
+@c @end example
+
+@c @noindent
+@c we had asked:
+
+@c @example
+@c (%let (what)
+@c   (%which ()
+@c     (%knows 'Odysseus what)))
+@c @end example
+
+@c @noindent
+@c this query, too, succeeds five times, since Odysseus knows five things.
+@c However, @func{%which} emits bindings only for the local variables that
+@c it introduces.  Thus, this query emits @samp{()} five times before
+@c @code{(%more)} finally returns @false{}.
+
+@c @c page
+@c @node schelog scheme
+@c @subsection Using Scheme expressions
+
+
+@c The arguments of Schelog predicates can be any Scheme objects.  In
+@c particular, composite structures such as lists, vectors and strings can
+@c be used, as also Scheme expressions using the full array of Scheme's
+@c construction and decomposition operators.  For instance, consider the
+@c following goal:
+
+@c @example
+@c (%member x '(1 2 3))
+@c @end example
+
+@c @noindent
+@c here, @func{%member} is a predicate, @samp{x} is a logic variable, and
+@c @samp{(1 2 3)} is a structure.  Given a suitably intuitive definition
+@c for @func{%member}, the above goal succeeds for @math{x = 1, 2, 3}.
+
+@c Now to defining predicates like @func{%member}:
+
+@c @example
+@c (define %member
+@c   (%rel (x y xs)
+@c     ((x (cons x xs)))
+@c     ((x (cons y xs))
+@c       (%member x xs))))
+@c @end example
+
+@c @noindent
+@c Ie, @func{%member} is defined with three local variables: @var{x},
+@c @var{y}, @var{xs}.  It has two clauses, identifying the two ways of
+@c determining membership.
+
+@c The first clause of @func{%member} states a fact: For any @var{x},
+@c @var{x} is a member of a list whose head is also @var{x}.
+
+@c The second clause of @func{%member} is a rule: @var{x} is a member of a
+@c list if we can show that it is a member of the tail of that list.  In
+@c other words, the original @func{%member} goal is translated into a
+@c subgoal, which is also a @func{%member} goal.
+
+@c Note that the variable @var{y} in the definition of @func{%member}
+@c occurs only once in the second clause.  As such, it doesn't need you to
+@c make the effort of naming it.  (Names help only in matching a second
+@c occurrence to a first.)  Schelog lets you use the expression @samp{(_)}
+@c to denote an anonymous variable.  (Ie, @samp{_} is a thunk that
+@c generates a fresh anonymous variable at each call.)  The predicate
+@c @func{%member} can be rewritten as:
+
+@c @example
+@c (define %member
+@c   (%rel (x xs)
+@c     ((x (cons x (_))))
+@c     ((x (cons (_) xs))
+@c       (%member x xs))))
+@c @end example
+
+@c @menu
+@c * schelog scheme constructor::  Constructors.
+@c * schelog scheme is::           The @func{%is} procedure.
+@c * schelog scheme lexical::      Lexical scoping.
+@c * schelog scheme type::         Type predicates.
+@c @end menu
+
+@c @c page
+@c @node schelog scheme constructor
+@c @subsubsection Constructors
+
+
+@c We can use constructors (Scheme procedures for creating structures) to
+@c simulate data types in Schelog.  For instance, let's define a
+@c natural--number data type where @samp{0} denotes zero, and @samp{(succ
+@c x)} denotes the natural number whose immediate predecessor is @var{x}.
+@c The constructor @func{succ} can be defined in Scheme as:
+
+@c @example
+@c (define succ
+@c   (lambda (x)
+@c     (vector 'succ x)))
+@c @end example
+
+@c Addition and multiplication can be defined as:
+
+@c @example
+@c (define %add
+@c   (%rel (x y z)
+@c     ((0 y y))
+@c     (((succ x) y (succ z))
+@c       (%add x y z))))
+
+@c (define %times
+@c   (%rel (x y z z1)
+@c     ((0 y 0))
+@c     (((succ x) y z)
+@c      (%times x y z1)
+@c      (%add y z1 z))))
+@c @end example
+
+@c We can do a lot of arithmetic with this in place.  For instance, the
+@c factorial predicate looks like:
+
+@c @example
+@c (define %factorial
+@c   (%rel (x y y1)
+@c     ((0 (succ 0)))
+@c     (((succ x) y)
+@c       (%factorial x y1)
+@c       (%times (succ x) y1 y))))
+@c @end example
+
+@c @c page
+@c @node schelog scheme is
+@c @subsubsection The @func{%is} procedure
+
+
+@c The above is a very inefficient way to do arithmetic, especially when
+@c the underlying language Scheme offers excellent arithmetic facilities
+@c (including a comprehensive number ``tower'' and exact rational
+@c arithmetic). One problem with using Scheme calculations directly in
+@c Schelog clauses is that the expressions used may contain logic variables
+@c that need to be dereferenced. Schelog provides the predicate %is that
+@c takes care of this. The goal:
+
+@c @example
+@c (%is X E)
+@c @end example
+
+@c @noindent
+@c unifies @var{X} with the value of @var{E} considered as a Scheme
+@c expression.  @var{E} can have logic variables, but usually they should
+@c at least be bound, as unbound variables may not be palatable values to
+@c the Scheme operators used in @var{E}.
+
+@c We can now directly use the numbers of Scheme to write a more efficient
+@c @func{%factorial} predicate:
+
+@c @example
+@c (define %factorial
+@c   (%rel (x y x1 y1)
+@c     ((0 1))
+@c     ((x y) (%is x1 (- x 1))
+@c            (%factorial x1 y1)
+@c            (%is y (* y1 x)))))
+@c @end example
+
+@c A price that this efficiency comes with is that we can use
+@c @func{%factorial} only with its first argument already instantiated.  In
+@c many cases, this is not an unreasonable constraint.  In fact, given this
+@c limitation, there is nothing to prevent us from using Scheme's factorial
+@c directly:
+
+@c @example
+@c (define %factorial
+@c   (%rel (x y)
+@c     ((x y)
+@c      (%is y (scheme-factorial x 1)))))
+@c @end example
+
+@c @noindent
+@c or better yet, ``in--line'' any calls to @func{%factorial} with
+@c @func{%is} expressions calling @func{scheme-factorial}, where the latter
+@c is defined in the usual manner:
+
+@c @example
+@c (define (scheme-factorial n r)
+@c   (if (= n 0)
+@c       r
+@c     (scheme-factorial (- n 1) (* r n))))
+@c @end example
+
+@c @c page
+@c @node schelog scheme lexical
+@c @subsubsection Lexical scoping
+
+
+@c One can use Scheme's lexical scoping to enhance predicate definition.
+@c Here is a list--reversal predicate defined using a hidden auxiliary
+@c predicate:
+
+@c @example
+@c (define %reverse
+@c   (letrec
+@c     ((revaux
+@c        (%rel (x y z w)
+@c 	 (('() y y))
+@c 	 (((cons x y) z w)
+@c 	   (revaux y
+@c 	     (cons x z) w)))))
+@c     (%rel (x y)
+@c       ((x y) (revaux x '() y)))))
+@c @end example
+
+@c @noindent
+@c @code{(revaux X Y Z)} uses @var{y} as an accumulator for reversing
+@c @var{x} into @var{z}.  @var{y} starts out as @samp{()}.  Each head of
+@c @var{x} is consed on to @var{Y}.  Finally, when @var{x} has wound down
+@c to @samp{()}, @var{y} contains the reversed list and can be returned as
+@c @var{z}.
+
+@c @noindent
+@c @func{revaux} is used purely as a helper predicate for @func{%reverse},
+@c and so it can be concealed within a lexical contour.  We use
+@c @func{letrec} instead of let because @func{revaux} is a recursive
+@c procedure.
+
+@c @c page
+@c @node schelog scheme type
+@c @subsubsection Type predicates
+
+
+@c Schelog provides a couple of predicates that let the user probe the type
+@c of objects.  The goal:
+
+@c @example
+@c (%constant X)
+@c @end example
+
+@c @noindent
+@c succeeds if @var{x} is an atomic object, ie, not a list or vector.
+
+@c The predicate @func{%compound}, the negation of @func{%constant}, checks
+@c if its argument is indeed a list or a vector.
+
+@c The above are merely the logic--programming equivalents of corresponding
+@c Scheme predicates.  Users can use the predicate @func{%is} and Scheme
+@c predicates to write more type checks in Schelog.  Thus, to test if
+@c @var{x} is a string, the following goal could be used:
+
+@c @example
+@c (%is #t (string? X))
+@c @end example
+
+@c User--defined Scheme predicates, in addition to primitive Scheme
+@c predicates, can be thus imported.
 
 @c page
 @node kmp
@@ -39686,8 +40555,500 @@ is equivalent to:
 @end example
 @end defun
 
+@c page
+@node notes
+@appendix Miscellaneous notes on everything
 
 
+@menu
+* notes nan::                   How to deal with not--a--number.
+@end menu
+
+@c page
+@node notes nan
+@appendixsec How to deal with not--a--number
+
+
+@cindex How to deal with NaN
+@cindex NaN, how to deal with it
+
+
+The not--a--number value, @dfn{NaN} for short, represents the result of
+a @emph{wrong} computation.  NaN can appear as literal in Scheme source
+code as @samp{+nan.0} or @samp{-nan.0}, and it can be the result of an
+expression composing Scheme arithmetic functions.  NaN has @strong{no
+sign}, @samp{+nan.0} and @samp{-nan.0} have the same semantic meaning.
+
+What follows is just a set of notes with no commitment to rigour in
+Mathematics.  For more informations on NaN, start from:
+
+@quotation
+Wikipedia contributors.  ``Not a number''.  Wikipedia, The Free
+Encyclopedia.
+@url{http://en.wikipedia.org/w/index.php?title=NaN&oldid=303402207}
+(accessed July 21, 2009).
+@end quotation
+
+@noindent
+see also:
+
+@quotation
+Wikipedia contributors.  ``Division by zero''.  Wikipedia, The Free
+Encyclopedia.
+@url{http://en.wikipedia.org/w/index.php?title=Division_by_zero&oldid=303258289}
+(accessed July 21, 2009).
+@end quotation
+
+Being that NaN is a little weird, let's start by understanding how to
+deal with infinities first.
+
+@menu
+* notes nan inf::               How to deal with infinities.
+* notes nan nan::               Understanding not--a--number.
+@end menu
+
+@c page
+@node notes nan inf
+@appendixsubsec How to deal with infinities
+
+
+Infinities can appear as literals in Scheme source code as @samp{+inf.0}
+or @samp{-inf.0}, and they can be the result of an expression composing
+Scheme arithmetic functions.
+
+We have to distinguish between @dfn{number objects} as defined in
+@rnrs{6} Scheme, and @dfn{numbers} as defined by Mathematics.
+
+@c ------------------------------------------------------------
+
+@subsubheading Infinities in the mathematical realm
+
+We can take that Algebra defines @dfn{groups} as couples @math{(S, o)}
+where: @math{S} is a set of mathematical entities, @math{o} is an
+operation that composes two entities in @math{S} and evaluates to some
+mathematical entity.  We can define the group @math{(R, +)}, where
+@math{R} is the set of real numbers and @math{+} is the common addition,
+because they are compliant with the following axioms:
+
+@table @emph
+@item Closure
+For every couple of reals, their sum is a real.
+
+@item Associativity
+For every triplet of reals:
+
+@example
+a + (b + c) = (a + b) + c
+@end example
+
+@item Identity element
+There exists a unique real @math{0} for which, for every real @math{a}:
+
+@example
+0 + a = a + 0 = a
+@end example
+
+@item Inverse element
+For every real @math{a} there is a unique other real @math{b} for which:
+
+@example
+a + b = 0  =>  a = -b
+@end example
+@end table
+
+@noindent
+the existence of the inverse element for addition allows the definition
+of subtraction.  The couple @math{(R, *)}, the reals with the ordinary
+product, is also a group:
+
+@table @emph
+@item Closure
+@example
+\forall a, b \in R     a * b = c   c \in R
+@end example
+
+@item Associativity
+@example
+a * (b * c) = (a * b) * c
+@end example
+
+@item Identity element
+@example
+1 * a = a * 1 = a
+@end example
+
+@item Inverse element
+@example
+a * b = 1  =>  a = 1/b
+@end example
+@end table
+
+@noindent
+the existence of the inverse element for multiplication allows the
+definition of division.
+
+The triplet @math{(S, +, *)} in which @math{S} is a set of mathematical
+entities, and @math{+} and @math{*} are composition operations with the
+properties for a group, is called @dfn{field} if the following
+additional axioms hold:
+
+@table @emph
+@item Commutativity
+@example
+a + b = b + a    a * b = b * a
+@end example
+
+@item Distributivity
+@example
+a * (b + c) = a * b + a * c
+@end example
+@end table
+
+Human experience shows that it is convenient to state (simplified):
+Every mathematical entity which is not compliant with the axioms of a
+field is not a number.
+
+Infinities are abstract mathematical entities which we can define
+through the following disequations:
+
+@example
+\forall r \in R        -\infty < r < +\infty
+@end example
+
+@noindent
+which means:
+
+@itemize
+@item
+Positive infinity is comparable to numbers and it is greater than all
+the positive numbers.
+
+@item
+Negative infinity is comparable to numbers and it is lesser than all the
+negative number.
+@end itemize
+
+@noindent
+we notice that the comparison operator @math{<} does not define a group,
+because the result of @math{1 < 2} (as defined in Mathematics) is a
+boolean value not a number.@footnote{This holds despite the fact that
+many programming languages allow a disequation to yield a number.}
+
+Despite the fact that we can compare them to numbers, @strong{infinities
+are not numbers in the Mathematics sense.}  We can show this with the
+following simple mathematical computation; let's consider the following
+equation:
+
+@example
+4 + +\infty = x
+@end example
+
+@noindent
+what should we take as value for @math{x}?  @math{x} cannot be a number
+like, say, @math{8}, because:
+
+@example
+4 + +\infty = 8
+=> +\infty = 8 - 4 = 4
+=> +\infty = 4  Wrong!
+@end example
+
+@noindent
+the only answer that tries to make some sense is @math{x = +\infty}, but
+then:
+
+@example
+4 + +\infty = +\infty
+=>  4 = +\infty - +\infty = 0
+=>  4 = 0  Wrong!
+@end example
+
+@noindent
+if we assume that infinities are numbers, some perfectly legal algebraic
+manipulation yields a wrong result.  Human beings define mathematical
+entities based on their usefulness; human experience shows that it is
+more useful to avoid absurd equations like @math{4 = 0}, than to define
+infinities as numbers.
+
+So, infinities are @strong{not} numbers and the equation @math{4 +
+\infty = x} is wrong in the sense that, in Mathematics, it is an error
+to write it.
+
+Mathematics is not ``perfect'', in the sense that it allows us to write
+wrong equations; unfortunately we can recognise an equation as wrong
+only trying to solve it.
+
+Let's look at this equation:
+
+@example
+   4 - 3       1
+------------ = - = x
+12 - (4 + 8)   0
+@end example
+
+@noindent
+what should we take as value for @math{x}?
+
+If we had the limit:
+
+@example
+         1
+\lim    --- = x      t > 0
+t -> 0   t
+@end example
+
+@noindent
+we would know that @math{x -> +\infty} (@math{x} approaches
+@math{+\infty}, it is not equal to it).  Computing @math{1 / t} for
+@math{t} smaller and smaller, yields a result that is a bigger and
+bigger positive number, which approaches the mathematical entity greater
+than all the positive numbers; that is @math{+\infty}.
+
+But what about the straight @math{1 / 0 = x}?  The only mathematical
+entity that makes sense as answer is @math{x = +\infty}, so @math{1 / 0}
+is not a number.  We can demonstrate this with the following simple
+computation:
+
+@example
+3 * (1 / 0) = y
+=>  3 / 0 = y
+=>  3 = y * 0 = 0
+=>  3 = 0   Wrong!
+@end example
+
+@noindent
+so, it is impossible for @math{1 / 0} and @math{y} to comply with the
+axioms.
+
+@c ------------------------------------------------------------
+
+@subsubheading Infinities in the computer realm
+
+Number objects are all the Scheme values for which the predicate
+@func{number?} returns @true{}.  Both the infinities @samp{+inf.0} and
+@samp{-inf.0} are number objects.  This way Scheme defines a class of
+values which can be used as arguments to arithmetic procedures, and
+which can potentially be the return value of an arithmetic procedure.
+
+We acknowledged that, when a mathematical expression is non--compliant
+with the axioms of definition of numbers, we can verify it by doing the
+computation and checking the final or partial results.  A computer can
+do the same by detecting, for example, if a division has @math{1} and
+@math{0} as operands.
+
+It turns out that making a computer processor interrupt a computation
+when an expression is wrong, is inefficient.  So two special values were
+defined to allow a computation to signal that special error:
+@samp{+inf.0} and @samp{-inf.0}.
+
+When a computation returns @samp{+inf.0} and @samp{-inf.0} we know that
+the expression was wrong.  @rnrs{6} Scheme defines the following
+conventional results:
+
+@example
+(div 1 0) @result{} error
+(/   1 0) @result{} error
+
+(/   1.0 0)   @result{} +inf.0
+(/   1   0.0) @result{} +inf.0
+(/   1.0 0.0) @result{} +inf.0
+@end example
+
+@noindent
+when both the operands are exact, the expression raises an error; when
+one of the operands is inexact, the expression yields infinity.
+
+Special rules were defined to avoid to mistake a wrong computation for a
+correct one; for example:
+
+@example
+(+ 44 (* 23 +inf.0)) @result{} +inf.0
+(+ 44 (* 23 -inf.0)) @result{} -inf.0
+@end example
+
+@noindent
+we know that both of these are wrong, but we also know that they are
+wrong in that special way for which returning an infinity makes some
+sense.  It is our responsibility to decide what to do.
+
+The special rules makes it impossible for an expression to return a
+finite number if one of the partial results was an infinity.  Sometimes
+the composition of two infinities can yield an infinity with no
+confusion; examples:
+
+@example
+(+ +inf.0 +inf.0) @result{} +inf.0
+(+ -inf.0 -inf.0) @result{} -inf.0
+
+(- +inf.0 -inf.0) @result{} +inf.0  ;like (+ +inf.0 +inf.0)
+(- -inf.0 +inf.0) @result{} -inf.0  ;like (+ -inf.0 -inf.0)
+(- +inf.0 -inf.0) @result{} +inf.0  ;like (+ +inf.0 +inf.0)
+
+(* +inf.0 +inf.0) @result{} -inf.0
+(* +inf.0 -inf.0) @result{} -inf.0
+(* -inf.0 -inf.0) @result{} +inf.0
+@end example
+
+@noindent
+but some expressions are difficult to deal with:
+
+@example
+(+ +inf.0 -inf.0) @result{} ?
+(+ -inf.0 +inf.0) @result{} ?
+
+(- -inf.0 -inf.0) @result{} ?
+(- -inf.0 +inf.0) @result{} ?
+
+(/ +inf.0 +inf.0) @result{} ?
+(/ +inf.0 -inf.0) @result{} ?
+(/ -inf.0 +inf.0) @result{} ?
+(/ -inf.0 -inf.0) @result{} ?
+@end example
+
+@noindent
+neither a number nor an infinity makes sense as result here; we need
+NaN.
+
+@c page
+@node notes nan nan
+@appendixsubsec Understanding not--a--number
+
+
+NaN is a special value used as result of a wrong expression.  We have
+seen that the composition of infinities is not always defined; in those
+cases the result is NaN:
+
+@example
+(+ +inf.0 -inf.0) @result{} +nan.0
+(+ -inf.0 +inf.0) @result{} +nan.0
+
+(- -inf.0 -inf.0) @result{} +nan.0
+(- -inf.0 +inf.0) @result{} +nan.0
+
+(/ +inf.0 +inf.0) @result{} +nan.0
+(/ +inf.0 -inf.0) @result{} +nan.0
+(/ -inf.0 +inf.0) @result{} +nan.0
+(/ -inf.0 -inf.0) @result{} +nan.0
+@end example
+
+@noindent
+also it is:
+
+@example
+(div 0   0)   @result{} <error>
+(/   0   0)   @result{} <error>
+(/   0.0 0)   @result{} +nan.0
+(/   0   0.0) @result{} +nan.0
+(/   0.0 0.0) @result{} +nan.0
+@end example
+
+@noindent
+because, in Mathematics, @math{0 / 0} is not compliant to the axioms:
+
+@example
+(0 / 0) = y
+=>  0 * y = 0    y is not unique
+@end example
+
+Special rules were defined so that an arithmetic composition between NaN
+and another number always returns NaN.  This allows us not to mistake a
+wrong computation for a correct one:
+
+@example
+(+ 1 +nan.0) @result{} +nan.0
+(- 1 +nan.0) @result{} +nan.0
+(* 1 +nan.0) @result{} +nan.0
+(/ 1 +nan.0) @result{} +nan.0
+@end example
+
+@noindent
+we have to beware, though, that some non--arithmetic function may hide
+the NaN, and give rise to some surprise:
+
+@example
+(max 1 +nan.0) @result{} 1.0       ; ! the inexact 1!!
+(min 1 +nan.0) @result{} +nan.0    ; !?!
+@end example
+
+Scheme defines a predicate to test if a value is NaN, @func{nan?}.
+@rnrs{6} Scheme mandates that:
+
+@example
+(= +nan.0 +nan.0) @result{} #f
+(= +nan.0 z)      @result{} #f
+@end example
+
+@noindent
+for ever number @var{z}.  The first is correct because a wrong
+computation is not equal, in numerical sense, to another wrong
+computation.
+
+@rnrs{6} Scheme also states that:
+
+@example
+(eqv? +nan.0 +nan.0) @result{} <undefined>
+@end example
+
+@noindent
+but currently all the LIMY Scheme implementations do:
+
+@example
+(eqv?   +nan.0 +nan.0) @result{} #t
+(equal? +nan.0 +nan.0) @result{} #t
+@end example
+
+@noindent
+notice that, by definition, @func{equal?} relies on @func{eqv?}.  This
+allows us to do tests for wrong computations using not only @func{nan?};
+this is especially useful when writing test suites (with more
+complicated stuff than this):
+
+@example
+(check
+    (list (+ 1 2) (/ 0.0 0.0))
+  => '(3 +nan.0))
+@end example
+
+The behaviour of @func{eqv?} and @func{equal?} does not reduce our
+ability to detect wrong expressions; we can always do:
+
+@example
+(let ((v (expression)))
+  (cond
+    ((= v 1)   (some-thing))
+    ((nan? v)  (some-other-thing))
+    (else      (yet-another-thing))))
+@end example
+
+@noindent
+@func{eqv?} and @func{equal?} just allow us to do (by definition
+@func{case} relies on @func{eqv?}):
+
+@example
+(case (expression)
+  ((1 2)     (some-thing))
+  ((+nan.0)  (some-other-thing))
+  (else      (yet-another-thing)))
+
+(let ((v (expression)))
+  (cond
+    ((= v 1)          (some-thing))
+    ((eqv? v +nan.0)  (some-other-thing))
+    (else             (yet-another-thing))))
+@end example
+
+@noindent
+which, in some situations, is one more possibility to code the logic of
+a function:
+
+@example
+(= (expression1) (expression2))
+@result{} <bool> ; true if the results are equal numbers
+
+(eqv? (expression1) (expression2))
+@result{} <bool> ; true if the results are equal numbers
+          ; or are both wrong expressions
+@end example
 
 @c page
 @node binfmt
