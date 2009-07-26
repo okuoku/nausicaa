@@ -85,6 +85,26 @@
 ;;; --------------------------------------------------------------------
 
   (check
+      (list-tabulate/reverse 4 (lambda (i)
+				 (cons i 'a)))
+    => '((0 . a)
+	 (1 . a)
+	 (2 . a)
+	 (3 . a)))
+
+  (check
+      (list-tabulate/reverse 1 (lambda (i)
+				 (cons i 'a)))
+    => '((0 . a)))
+
+  (check
+      (list-tabulate/reverse 0 (lambda (i)
+				 (cons i 'a)))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
       (list-copy numbers)
     => numbers)
 
@@ -131,6 +151,15 @@
 	      (caddr ell)
 	      (cadddr ell)))
     => '(1 2 1 2))
+
+  (check
+      (let ((ell (list->clist! '(1 2 3))))
+	(list (car ell)
+	      (cadr ell)
+	      (caddr ell)
+	      (cadddr ell)
+	      (cadddr (cdr ell))))
+    => '(1 2 3 1 2))
 
   )
 

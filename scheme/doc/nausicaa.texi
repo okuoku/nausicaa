@@ -19387,16 +19387,6 @@ A finite (proper or dotted) list.
 @item pair
 A pair.
 
-@item x
-@itemx y
-@itemx d
-@itemx a
-Any value.
-
-@item object
-@itemx value
-Any value.
-
 @item n
 @itemx i
 A natural number (an integer @math{>= 0}).
@@ -19409,6 +19399,17 @@ A procedure whose return value is treated as a boolean.
 
 @item =
 A boolean procedure taking two arguments.
+
+@item fill
+Can be any value.  This is used to indicate values used to fill a
+compound data structure.
+
+@item x
+@itemx y
+@itemx d
+@itemx a
+@item obj
+Any value.
 @end table
 
 It is an error to pass a circular or dotted list to a procedure not
@@ -19515,8 +19516,6 @@ span!                   split-at!
 take!                   take-while!
 @end example
 
-
-
 @c page
 @node lists improper
 @subsection Improper lists
@@ -19590,15 +19589,15 @@ call.
 @cindex List constructors
 
 
-@defun xcons @var{d} @var{a}
-Defined as @code{(lambda (d a) (cons a d))}.  Of utility only as a value
-to be conveniently passed to higher--order procedures.
+@defun xcons @vari{obj} @varii{obj}
+The name stands for ``eXchanged CONS'', it is like @func{cons} but
+reverses the arguments.  Of utility only as a value to be conveniently
+passed to higher--order procedures.
 
 @example
-(xcons '(b c) 'a) => (a b c)
+(cons 1 2)  @result{} (1 . 2)
+(xcons 1 2) @result{} (2 . 1)
 @end example
-
-The name stands for ``eXchanged CONS''.
 @end defun
 
 
@@ -19612,24 +19611,10 @@ arbitrary values.
 
 @example
 (make-list 4 'c)
-=> (c c c c)
+@result{} (c c c c)
 
 (make-list 0)
-=> ()
-@end example
-@end deffn
-
-
-@deffn Function list-tabulate @var{n} @var{init-proc}
-@deffnx Syntax list-tabulate/stx @var{n} @var{init-proc}
-Return an @var{n}--element list.  Element @math{i} of the list, where
-@math{0 <= i < n}, is produced by @code{(init-proc i)}.  No guarantee is
-made about the dynamic order in which @var{init-proc} is applied to
-these indices.
-
-@example
-(list-tabulate 4 values)
-=> (0 1 2 3)
+@result{} ()
 @end example
 @end deffn
 
@@ -19647,13 +19632,23 @@ what @func{list-copy} does).
 @end deffn
 
 
-@defun circular-list @var{elt1} @var{elt2} ...
-Construct a circular list of the elements.
+@deffn Function list-tabulate @var{n} @var{init-proc}
+@deffnx Function list-tabulate/reverse @var{n} @var{init-proc}
+@deffnx Syntax list-tabulate/stx @var{n} @var{init-proc}
+@deffnx Syntax list-tabulate/reverse/stx @var{n} @var{init-proc}
+Return an @var{n}--element list.  Element @math{i} of the list, where
+@math{0 <= i < n}, is produced by @code{(init-proc i)}.
+
+The basic variants build the list from element @math{0} to element
+@math{n-1}.  The @samp{/reverse} variants build the lists in reversed
+order, with element @math{n-1} created first.  The @samp{/reverse}
+variants should be faster, especially for long lists.
 
 @example
-(circular-list 'z 'q) => (z q z q z q ...)
+(list-tabulate 4 values)
+@result{} (0 1 2 3)
 @end example
-@end defun
+@end deffn
 
 
 @deffn Function iota @var{count} [@var{start} @var{step}]
@@ -19670,16 +19665,36 @@ The @var{start} and @var{step} parameters default to @code{0} and
 
 @example
 (iota 5)
-=> (0 1 2 3 4)
+@result{} (0 1 2 3 4)
 
 (iota 5 0 -0.1)
-=> (0 -0.1 -0.2 -0.3 -0.4)
+@result{} (0 -0.1 -0.2 -0.3 -0.4)
 @end example
 
 @quotation
 @strong{Nausicaa note:} When @var{count} is negative the return value is
 the empty list.
 @end quotation
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Circular lists
+
+
+@deffn Function circular-list @vari{obj} @varii{obj} ...
+@deffnx Syntax circular-list/stx @vari{obj} @varii{obj} ...
+Construct a circular list of the elements.
+
+@example
+(circular-list 'z 'q) @result{} (z q z q z q ...)
+@end example
+@end deffn
+
+
+@deffn Function list->clist! @var{list}
+@deffnx Syntax list->clist!/stx @var{list}
+Take a proper list and make it circular.  Return the circular list.
 @end deffn
 
 @c page
@@ -26003,8 +26018,8 @@ occurs.
 @end deffn
 
 
-@deffn Function %vector-binary-search @var{value} @var{cmp} @var{vec} @var{start} @var{past}
-@deffnx Macro vector-binary-search @var{V} @var{value} @var{cmp}
+@deffn Function %vector-binary-search @var{obj} @var{cmp} @var{vec} @var{start} @var{past}
+@deffnx Macro vector-binary-search @var{V} @var{obj} @var{cmp}
 Similar to @func{vector-index} and @func{vector-index-right}, but
 instead of searching left to right or right to left, perform a binary
 search.  @var{cmp} should be a procedure of two arguments and return:
@@ -30787,8 +30802,8 @@ Return a list whose first value is the return value of the last
 @end deffn
 
 
-@defun add-result @var{value}
-Append @var{value} to the list in the implicit variable defined by
+@defun add-result @var{obj}
+Append @var{obj} to the list in the implicit variable defined by
 @func{with-result}.
 @end defun
 
@@ -31332,9 +31347,9 @@ locations similar to the variables used in many languages.  The
 
 
 @defun make-variable
-@defunx make-variable @var{value}
+@defunx make-variable @var{obj}
 Build and return a new variable value.  The variable is initialised to
-@var{value}, which defaults to the sentinel.  @ref{sentinel, The
+@var{obj}, which defaults to the sentinel.  @ref{sentinel, The
 sentinel value}
 @end defun
 
@@ -31344,7 +31359,7 @@ Return @true{} if @var{obj} is a variable value.
 @end defun
 
 
-@defun variable-set! @var{variable} @var{value}
+@defun variable-set! @var{variable} @var{obj}
 @defunx variable-ref @var{variable}
 Setter and getter for variables.
 @end defun
@@ -31380,7 +31395,7 @@ exported by @library{variables}.
 
 
 @deffn Syntax define-variable @var{name}
-@deffnx Syntax define-variable @var{name} @var{value}
+@deffnx Syntax define-variable @var{name} @var{obj}
 @deffnx Syntax define-variable (@var{name} . @meta{formals}) @meta{body}
 Like @func{define}, but stores the value in a newly built variable which
 is then bound to @var{name}.  Example:
@@ -38594,8 +38609,8 @@ Build and return a new @code{memblock} record.
 @end defun
 
 
-@defun memblock? @var{value}
-Return true if @var{value} is a record of type @code{memblock}, return
+@defun memblock? @var{obj}
+Return true if @var{obj} is a record of type @code{memblock}, return
 @false{} otherwise.
 @end defun
 
@@ -38638,8 +38653,8 @@ Build and return a new @code{buffer} record.
 @subsubheading Predicates
 
 
-@defun buffer? @var{value}
-Return true if @var{value} is a record of type @code{buffer}, return
+@defun buffer? @var{obj}
+Return true if @var{obj} is a record of type @code{buffer}, return
 @false{} otherwise.
 @end defun
 
@@ -39149,9 +39164,10 @@ but allows the blocks to be overlapped.
 @end defun
 
 
-@defun memset @var{pointer} @var{value} @var{number-of-bytes}
-An interface to the @cfunc{memset} system function.  Set to @var{value}
-the first @var{number-of-bytes} bytes starting from @var{pointer}.
+@defun memset @var{pointer} @var{int} @var{number-of-bytes}
+An interface to the @cfunc{memset} system function.  Set to @var{int},
+an exact non--negative integer in the range @math{[0, 256)}, the first
+@var{number-of-bytes} bytes starting from @var{pointer}.
 @end defun
 
 

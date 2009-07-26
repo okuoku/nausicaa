@@ -75,6 +75,26 @@
 ;;; --------------------------------------------------------------------
 
   (check
+      (list-tabulate/reverse/stx 4 (lambda (i)
+				     (cons i 'a)))
+    => '((0 . a)
+	 (1 . a)
+	 (2 . a)
+	 (3 . a)))
+
+  (check
+      (list-tabulate/reverse/stx 1 (lambda (i)
+				     (cons i 'a)))
+    => '((0 . a)))
+
+  (check
+      (list-tabulate/reverse/stx 0 (lambda (i)
+				     (cons i 'a)))
+    => '())
+
+;;; --------------------------------------------------------------------
+
+  (check
       (list-copy/stx numbers)
     => numbers)
 
@@ -113,6 +133,25 @@
     (check
 	(iota/stx -5 10 5)
       => '()))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((ell (circular-list/stx 1 2)))
+	(list (car ell)
+	      (cadr ell)
+	      (caddr ell)
+	      (cadddr ell)))
+    => '(1 2 1 2))
+
+  (check
+      (let ((ell (list->clist!/stx '(1 2 3))))
+	(list (car ell)
+	      (cadr ell)
+	      (caddr ell)
+	      (cadddr ell)
+	      (cadddr (cdr ell))))
+    => '(1 2 3 1 2))
 
   )
 

@@ -29,8 +29,10 @@
 
     ;; constructors
     make-list/stx
+    circular-list/stx		list->clist!/stx
     list-copy/stx		tree-copy/stx
-    list-tabulate/stx		iota/stx
+    list-tabulate/stx		list-tabulate/reverse/stx
+    iota/stx
 
     ;; predicates
     and-null?/stx		or-null?/stx
@@ -137,6 +139,16 @@
     ((_ ?len ?proc)
      (let ((len  ?len)
 	   (proc ?proc))
+       (do ((i 0 (+ 1 i))
+	    (ans '() (cons (?proc i) ans)))
+	   ((= i len)
+	    (reverse ans)))))))
+
+(define-syntax list-tabulate/reverse/stx
+  (syntax-rules ()
+    ((_ ?len ?proc)
+     (let ((len  ?len)
+	   (proc ?proc))
        (do ((i (- len 1) (- i 1))
 	    (ans '() (cons (?proc i) ans)))
 	   ((< i 0)
@@ -156,6 +168,18 @@
 	    (ans '() (cons val ans)))
 	   ((<= count 0)
 	    ans))))))
+
+(define-syntax circular-list/stx
+  (syntax-rules ()
+    ((_ ?obj0 ?obj ...)
+     (list->clist!/stx (list ?obj0 ?obj ...)))))
+
+(define-syntax list->clist!/stx
+  (syntax-rules ()
+    ((_ ?ell)
+     (let ((ell ?ell))
+       (set-cdr! (last-pair/stx ell) ell)
+       ell))))
 
 
 ;;;; predicates

@@ -29,7 +29,11 @@
 
     ;; constructors
     xcons
-    make-list list-tabulate list-copy circular-list iota tree-copy
+    make-list
+    list-copy		tree-copy
+    circular-list	list->clist!
+    list-tabulate	list-tabulate/reverse
+    iota
 
     ;; predicats
     and-null?		or-null?
@@ -149,6 +153,12 @@
       x)))
 
 (define (list-tabulate len proc)
+  (do ((i 0 (+ 1 i))
+       (ans '() (cons (proc i) ans)))
+      ((= i len)
+       (reverse ans))))
+
+(define (list-tabulate/reverse len proc)
   (do ((i (- len 1) (- i 1))
        (ans '() (cons (proc i) ans)))
       ((< i 0)
@@ -168,9 +178,11 @@
 	 ans)))))
 
 (define (circular-list val1 . vals)
-  (let ((ans (cons val1 vals)))
-    (set-cdr! (last-pair ans) ans)
-    ans))
+  (list->clist! (cons val1 vals)))
+
+(define (list->clist! ell)
+  (set-cdr! (last-pair ell) ell)
+  ell)
 
 
 ;;;; predicates
