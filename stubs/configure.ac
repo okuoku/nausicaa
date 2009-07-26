@@ -32,7 +32,7 @@ dnl Setup.
 dnl ------------------------------------------------------------
 
 AC_INIT([nausicaa-stubs],[0.1d0],[mrc.mgg@gna.org])
-DS_BEGIN([./src/nausicaa-posix.c])
+DS_BEGIN([./src/posix/main.c])
 
 DS_ENABLE_OPTION([nausicaa_ENABLE_POSIX],[posix],[yes],
   [whether the POSIX stub library will be built and installed],
