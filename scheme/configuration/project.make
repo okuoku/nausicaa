@@ -38,6 +38,7 @@ nau_scheme_ENABLE_BINFMT	= @nau_scheme_ENABLE_BINFMT@
 
 $(eval $(call nau-libraries,core))
 $(eval $(call nau-libraries,nausicaa,nausicaa))
+$(eval $(call nau-libraries,lists,lists))
 $(eval $(call nau-libraries,strings,strings))
 $(eval $(call nau-libraries,vectors,vectors))
 $(eval $(call nau-libraries,random,random))

@@ -128,8 +128,8 @@ dnl 2 ADDITIONAL_IKARUS_OPTIONS
 dnl 3 AFTER_SHELL_CODE
 AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT],
   [DS_WITH_TMPFILE([
-    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
-    "${IKARUS}" --r6rs-script "${nausicaa_TMPFILE}" $2`],[$3])])
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${IKARUS}" --r6rs-script "${ds_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
@@ -167,8 +167,8 @@ dnl 2 ADDITIONAL_YPSILON_OPTIONS
 dnl 3 AFTER_SHELL_CODE
 AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT],
   [DS_WITH_TMPFILE([
-    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
-    "${YPSILON}" --r6rs "${nausicaa_TMPFILE}" $2`],[$3])])
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${YPSILON}" --r6rs "${ds_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
@@ -208,8 +208,8 @@ dnl 2 ADDITIONAL_LARCENY_OPTIONS
 dnl 3 AFTER_SHELL_CODE
 AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT],
   [DS_WITH_TMPFILE([
-    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
-    "${LARCENY}" -r6rs -program "${nausicaa_TMPFILE}" $2`],[$3])])
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${LARCENY}" -r6rs -program "${ds_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
@@ -248,8 +248,8 @@ dnl 2 ADDITIONAL_MOSH_OPTIONS
 dnl 3 AFTER_SHELL_CODE
 AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_MOSH_SCRIPT],
   [DS_WITH_TMPFILE([
-    nausicaa_ANSWER=`echo '$1' >"${nausicaa_TMPFILE}"
-    "${MOSH}" "${nausicaa_TMPFILE}" $2`],[$3])])
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${MOSH}" "${ds_TMPFILE}" $2`],[$3])])
 
 dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
 dnl 2 LIBRARY_IMPORT_SPEC
@@ -629,25 +629,25 @@ AC_DEFUN([NAUSICAA_SETTER_TEST],
       AC_CACHE_CHECK([setter for type '$2'],
         [nausicaa_cv_setterof_$1],
         [if   test "${TYPEOF_$1}" = signed-char       ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-char!"
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-char!"
          elif test "${TYPEOF_$1}" = unsigned-char     ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-char!"
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-char!"
          elif test "${TYPEOF_$1}" = signed-int    ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-int!"
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-int!"
          elif test "${TYPEOF_$1}" = unsigned-int  ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-int!"
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-int!"
          elif test "${TYPEOF_$1}" = signed-short      ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-short!"
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-short!"
          elif test "${TYPEOF_$1}" = unsigned-short    ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-short!"
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-short!"
          elif test "${TYPEOF_$1}" = signed-long       ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-long!"
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-long!"
          elif test "${TYPEOF_$1}" = unsigned-long     ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-long!"
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-long!"
          elif test "${TYPEOF_$1}" = signed-long-long  ; then
-            nausicaa_cv_setterof_$1="pointer-set-c-long-long!"
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-long-long!"
          elif test "${TYPEOF_$1}" = unsigned-long-long; then
-            nausicaa_cv_setterof_$1="pointer-set-c-long-long!"
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-long-long!"
          elif test "${TYPEOF_$1}" = float             ; then
             nausicaa_cv_setterof_$1="pointer-set-c-float!"
          elif test "${TYPEOF_$1}" = double            ; then

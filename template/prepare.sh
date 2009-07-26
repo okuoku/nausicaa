@@ -4,10 +4,11 @@ set -x
 
 (cd ..
     if test \
-        configure -ot prepare.sh   -o \
-        configure -ot configure.ac -o \
-        configure -ot aclocal.m4   -o \
-        configure -ot infrastructure/develstuff.autoconf
+        configure -ot prepare.sh                                -o \
+        configure -ot configure.ac                              -o \
+        configure -ot aclocal.m4                                -o \
+        configure -ot infrastructure/develstuff.autoconf        -o \
+        configure -ot configuration/nausicaa.autoconf
         then
         autoconf
     fi)
