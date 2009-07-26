@@ -25,19 +25,15 @@
 
 
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel test)
-  (uriel foreign)
+(import (nausicaa)
+  (foreign)
+  (checks)
   (posix environment))
 
 (check-set-mode! 'report-failed)
 
 
-
-(parameterize ((testname 'env))
+(parameterize ((check-test-name 'env))
 
   (check
       (let ()

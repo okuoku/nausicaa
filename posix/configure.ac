@@ -32,13 +32,19 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-posix],[0.1d0])
+DS_BEGIN([./src/libraries/posix/fd.sls])
+AC_CANONICAL_TARGET
+AC_USE_SYSTEM_EXTENSIONS
+AC_SUBST([NAUSICAA_OS],[$target_os])
 NAUSICAA_BEGIN
-NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
-NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_LANG],[(uriel lang)])
-NAUSICAA_SYSTEM_SETUP
+DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
+DS_EXCLUDE_SECTION([AUTOCONF])
+DS_EXCLUDE_SECTION([PKGCONFIG])
+
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign)])
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
+NAUSICAA_C_TYPES_LIMITS
 
 dnl These work!!!
 AC_CHECK_FUNC([stat])
@@ -237,8 +243,11 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../libraries/posix/sizeof.sls:libraries/posix/sizeof.sls.in])
-NAUSICAA_END
+AC_CONFIG_FILES([../src/libraries/posix/sizeof.sls:../src/libraries/posix/sizeof.sls.in])
 
+DS_CONFIG_FILE_SLACKWARE_BIN_DESC
+DS_CONFIG_FILE_SLACKWARE_DOC_DESC
+NAUSICAA_END
+DS_END
 
 ### end of file

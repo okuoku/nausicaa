@@ -23,20 +23,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(import (rename (r6rs)
+(import (rename (nausicaa)
 		(read rnrs:read)
 		(write rnrs:write))
-  (rnrs files (6))
-  (only (srfi strings) string-join)
-  (uriel lang)
-  (uriel foreign)
-  (uriel test)
-  (env-lib)
-  (only (string-lib) string-join)
+  (strings)
+  (foreign)
+  (checks)
   (posix fd)
   (posix sizeof))
 
@@ -53,7 +46,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'basic)
+(parameterize ((check-test-name	'basic)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -120,7 +113,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'dup)
+(parameterize ((check-test-name	'dup)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -169,7 +162,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'lock)
+(parameterize ((check-test-name	'lock)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -208,7 +201,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'pipe)
+(parameterize ((check-test-name	'pipe)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -298,7 +291,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'fifo)
+(parameterize ((check-test-name	'fifo)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler

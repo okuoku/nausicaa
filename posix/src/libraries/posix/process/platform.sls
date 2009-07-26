@@ -23,10 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix process platform)
   (export
     platform-getpid
@@ -37,9 +35,8 @@
     platform-execvp
     platform-system
     platform-waitpid)
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (rnrs)
+    (foreign ffi)
     (posix sizeof))
 
 

@@ -25,11 +25,9 @@
 
 
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel test)
+(import (nausicaa)
+  (checks)
+  (foreign)
   (posix job)
   (posix process))
 
@@ -40,7 +38,7 @@
 (debugging #t)
 
 
-(parameterize ((testname 'terminal-id))
+(parameterize ((check-test-name 'terminal-id))
 
   (check
       (ctermid)
@@ -50,7 +48,7 @@
 
 
 
-(parameterize ((testname 'group))
+(parameterize ((check-test-name 'group))
 
   (check
       (let ((pid (fork)))
@@ -77,7 +75,7 @@
 
 
 
-(parameterize ((testname 'access))
+(parameterize ((check-test-name 'access))
 
   (check
       (integer? (tcgetpgrp 1))

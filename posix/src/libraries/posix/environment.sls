@@ -24,19 +24,14 @@
 ;;;
 
 
-;;;; setup
-
+#!r6rs
 (library (posix environment)
   (export
     getenv setenv)
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (nausicaa)
+    (foreign)
     (posix sizeof)
     (posix environment platform))
-
-  (define dummy
-    (shared-object self-shared-object))
 
 
 ;;;; setting and getting

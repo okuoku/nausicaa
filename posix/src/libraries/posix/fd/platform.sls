@@ -23,10 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix fd platform)
   (export
     platform-open	platform-close
@@ -39,9 +37,8 @@
     platform-dup	platform-dup2
     platform-pipe	platform-mkfifo
     )
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (rnrs)
+    (foreign ffi)
     (posix sizeof))
 
 

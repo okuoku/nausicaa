@@ -25,8 +25,7 @@
 
 
 
-;;;; setup
-
+#!r6rs
 (library (posix file)
   (export
 
@@ -92,9 +91,9 @@
     file-size		primitive-file-size	primitive-file-size-function
     ftruncate		primitive-ftruncate	primitive-ftruncate-function
     )
-  (import (except (r6rs) remove truncate)
-    (uriel lang)
-    (uriel foreign)
+  (import (except (nausicaa)
+		  remove truncate)
+    (foreign)
     (except (posix fd) read write)
     (posix sizeof)
     (posix file platform))

@@ -23,10 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix time stub)
   (export
     clock primitive-clock primitive-clock-function platform-clock
@@ -36,13 +34,12 @@
     struct-tms-tms_utime-ref struct-tms-tms_stime-ref
     struct-tms-tms_cutime-ref struct-tms-tms_cstime-ref
     )
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (nausicaa)
+    (foreign)
     (posix sizeof))
 
   (define stub-lib
-    (let ((o (open-shared-object 'libnausicaa-posix.so)))
+    (let ((o (open-shared-object 'libnausicaa-posix1.so)))
       (shared-object o)
       o))
 
@@ -86,10 +83,10 @@
 	(if (= -1 result)
 	    (raise-errno-error 'primitive-clock errno)
 	  (values result
-		  (make-struct-tms (peek-array-double p 0)
-				   (peek-array-double p 1)
-				   (peek-array-double p 2)
-				   (peek-array-double p 3))))))))
+		  (make-struct-tms (array-ref-c-double p 0)
+				   (array-ref-c-double p 1)
+				   (array-ref-c-double p 2)
+				   (array-ref-c-double p 3))))))))
 
 (define-primitive-parameter
   primitive-times-function primitive-times)

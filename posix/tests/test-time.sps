@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,11 +25,8 @@
 
 
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel test)
+(import (nausicaa)
+  (checks)
   (posix time)
   (posix time stub))
 
@@ -37,8 +34,7 @@
 
 
 
-
-(parameterize ((testname 'clock))
+(parameterize ((check-test-name 'clock))
 
   (check
       (flonum? (clock))

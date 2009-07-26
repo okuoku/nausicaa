@@ -29,10 +29,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix file stat)
   (export
     platform-stat
@@ -85,14 +83,13 @@
     struct-stat-blocks
     struct-stat-blksize
     )
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (nausicaa)
+    (foreign)
     (except (posix sizeof)
 	    sizeof-struct-stat))
 
   (define stub-lib
-    (let ((o (open-shared-object 'libnausicaa-posix.so)))
+    (let ((o (open-shared-object 'libnausicaa-posix1.so)))
       (shared-object o)
       o))
 

@@ -24,7 +24,7 @@
 ;;;
 
 
-
+#!r6rs
 (library (posix sizeof)
   (export
 
@@ -120,9 +120,9 @@
     struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
     )
   (import (rnrs)
-    (uriel lang)
-    (uriel memory)
-    (uriel ffi))
+    (foreign ffi)
+    (foreign memory)
+    (parameters))
 
 
 ;;;; helpers
@@ -135,8 +135,9 @@
 	 (lambda (func)
 	   (unless (procedure? func)
 	     (assertion-violation (quote ?parameter-name)
-	       (format "expected procedure as value for ~s parameter"
-		 ?parameter-name)
+	       (string-append "expected procedure as value for "
+			      ?parameter-name
+			      " parameter")
 	       func))
 	   func))))))
 

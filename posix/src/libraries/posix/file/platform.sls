@@ -23,10 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix file platform)
   (export
      platform-getcwd
@@ -64,14 +62,12 @@
     platform-tmpnam
     platform-mktemp
     platform-mkstemp)
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (rnrs)
+    (foreign ffi)
     (posix sizeof))
 
-  (define d
+  (define dummy
     (shared-object self-shared-object))
-
 
 
 ;;;; code

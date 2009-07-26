@@ -23,16 +23,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix users platform)
   (export
     )
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (rnrs)
+    (foreign ffi)
     (posix sizeof))
 
 

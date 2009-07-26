@@ -23,10 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix process)
   (export
 
@@ -47,9 +45,8 @@
     waitpid/any
     waitpid/any-my-group
     waitpid/group)
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (nausicaa)
+    (foreign)
     (posix sizeof)
     (posix process platform))
 
@@ -158,7 +155,7 @@
 	    (when (= EINTR errno)
 	      (loop))
 	    (raise-errno-error 'waitpid errno pid))
-	  (values result (peek-signed-int status* 0)))))))
+	  (values result (pointer-ref-c-signed-int status* 0)))))))
 
 (define-primitive-parameter
   primitive-waitpid-function primitive-waitpid)

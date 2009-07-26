@@ -25,20 +25,16 @@
 
 
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel test)
-  (uriel errno)
+(import (nausicaa)
+  (foreign)
+  (checks)
   (posix process)
   (posix process stub))
 
 (check-set-mode! 'report-failed)
 
 
-
-(parameterize ((testname 'pid))
+(parameterize ((check-test-name 'pid))
 
   (check
       (integer? (getpid))
@@ -56,7 +52,7 @@
 
 
 
-(parameterize ((testname 'fork))
+(parameterize ((check-test-name 'fork))
 
   (check
       (let ((pid (fork)))
@@ -80,7 +76,7 @@
 
 
 
-(parameterize ((testname 'exec))
+(parameterize ((check-test-name 'exec))
 
   (check
       (begin
@@ -155,7 +151,7 @@
 
 
 
-(parameterize ((testname 'wait))
+(parameterize ((check-test-name 'wait))
 
   (check
       (let ((pid (fork)))

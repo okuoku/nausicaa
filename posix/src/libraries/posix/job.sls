@@ -2,7 +2,7 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to job control functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2009-01-01 16:53:39 marco>
+;;;Time-stamp: <2009-07-26 09:23:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -24,10 +24,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix job)
   (export
     ctermid	primitive-ctermid	primitive-ctermid-function
@@ -38,9 +36,8 @@
     tcgetpgrp	primitive-tcgetpgrp	primitive-tcgetpgrp-function
     tcsetpgrp	primitive-tcsetpgrp	primitive-tcsetpgrp-function
     tcgetsid	primitive-tcgetsid	primitive-tcgetsid-function)
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (nausicaa)
+    (foreign)
     (posix sizeof)
     (posix job platform))
 

@@ -25,20 +25,16 @@
 
 
 
-;;;; setup
-
-(import (except (r6rs)
+(import (except (nausicaa)
 		read write remove)
-  (uriel lang)
-  (uriel foreign)
-  (only (string-lib) string-join)
-  (uriel test)
+  (foreign)
+  (strings)
+  (checks)
   (posix process)
   (posix fd)
   (posix file)
   (posix file stat)
-  (posix sizeof)
-  (env-lib))
+  (posix sizeof))
 
 (check-set-mode! 'report-failed)
 
@@ -97,7 +93,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'working-directory)
+(parameterize ((check-test-name	'working-directory)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -142,7 +138,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'directory-access)
+(parameterize ((check-test-name	'directory-access)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -262,7 +258,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'links)
+(parameterize ((check-test-name	'links)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -315,7 +311,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'remove)
+(parameterize ((check-test-name	'remove)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -370,7 +366,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'rename)
+(parameterize ((check-test-name	'rename)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -408,7 +404,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'mkdir)
+(parameterize ((check-test-name	'mkdir)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -438,7 +434,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'tmpfile)
+(parameterize ((check-test-name	'tmpfile)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -488,7 +484,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'stat)
+(parameterize ((check-test-name	'stat)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -671,7 +667,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'chown)
+(parameterize ((check-test-name	'chown)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -710,7 +706,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'chmod)
+(parameterize ((check-test-name	'chmod)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -754,7 +750,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 
 
-(parameterize ((testname	'access)
+(parameterize ((check-test-name	'access)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -831,7 +827,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 ;;;; file times
 
-(parameterize ((testname	'times)
+(parameterize ((check-test-name	'times)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
@@ -878,7 +874,7 @@ Ses ailes de geant l'empechent de marcher.")
 
 ;;;; file size
 
-(parameterize ((testname	'size)
+(parameterize ((check-test-name	'size)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler

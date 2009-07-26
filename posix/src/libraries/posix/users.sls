@@ -23,18 +23,19 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
+#!r6rs
 (library (posix users)
   (export
+    dummy ; temporary
     )
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
+  (import (rnrs)
+    (foreign ffi)
     (posix sizeof)
     (posix users platform))
+
+  (define dummy
+    (shared-object self-shared-object))
 
 
 ;;;; code

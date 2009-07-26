@@ -25,8 +25,7 @@
 
 
 
-;;;; setup
-
+#!r6rs
 (library (posix fd)
   (export
     open	primitive-open		primitive-open-function
@@ -57,10 +56,10 @@
     fd->binary-input/ouput-port		fd->textual-input/ouput-port
 
     pipe-binary-ports			pipe-textual-ports)
-  (import (except (r6rs) read write)
-    (rnrs mutable-strings (6))
-    (uriel lang)
-    (uriel foreign)
+  (import (except (nausicaa)
+		  read write)
+    (rnrs mutable-strings)
+    (foreign)
     (posix sizeof)
     (posix fd platform))
 
@@ -303,8 +302,8 @@
 	  (platform-pipe p)
 	(if (= -1 result)
 	    (raise-errno-error 'primitive-pipe errno)
-	  (values (peek-array-signed-int p 0)
-		  (peek-array-signed-int p 1)))))))
+	  (values (array-ref-c-signed-int p 0)
+		  (array-ref-c-signed-int p 1)))))))
 
 (define (primitive-mkfifo pathname mode)
   (with-compensations
@@ -342,7 +341,7 @@
 	  ((= i len)
 ;;;	   (format #t "done~%")
 	   len)
-	(bytevector-u8-set! bv (+ start i) (peek-unsigned-char p i))))))
+	(bytevector-u8-set! bv (+ start i) (pointer-ref-c-unsigned-char p i))))))
 
 (define (custom-binary-write fd bv start count)
   (with-compensations
@@ -350,7 +349,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i count)
 	   (write fd p count))
-	(poke-char! p i (bytevector-u8-ref bv (+ start i)))))))
+	(pointer-set-c-signed-char! p i (bytevector-u8-ref bv (+ start i)))))))
 
 
 (define (fd->binary-input-port fd)
@@ -393,7 +392,7 @@
 ;;;	      (format #t "done~%")
 	   len)
 	(string-set! str (+ start i)
-		     (integer->char (peek-unsigned-char p i)))))))
+		     (integer->char (pointer-ref-c-unsigned-char p i)))))))
 
 (define (custom-textual-write fd str start count)
   (with-compensations
@@ -401,7 +400,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i count)
 	   (write fd p count))
-	(poke-char! p i (char->integer (string-ref str (+ start i))))))))
+	(pointer-set-c-signed-char! p i (char->integer (string-ref str (+ start i))))))))
 
 
 (define (fd->textual-input-port fd)
