@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: profiling utilities
+;;;Contents: profiling utilities, Mosh stuff
 ;;;Date: Tue Jul 28, 2009
 ;;;
 ;;;Abstract
@@ -23,8 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (profiling)
+(library (profiling compat)
   (export time)
-  (import (only (ypsilon time) time)))
+  (import (only (mosh) time)))
 
 ;;; end of file

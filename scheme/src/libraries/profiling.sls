@@ -1,11 +1,11 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: profiling utilities
+;;;Contents: profiling library
 ;;;Date: Tue Jul 28, 2009
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	Collection of utilities to profile code execution.
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -23,8 +23,24 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 (library (profiling)
-  (export time)
-  (import (only (ikarus) time)))
+  (export repeat time)
+  (import (rnrs)
+    (profiling compat))
+
+
+
+(define-syntax repeat
+  (syntax-rules ()
+    ((_ ?times ?expr)
+     (do ((n 0 (+ 1 n)))
+	 ((= n ?times))
+       ?expr))))
+
+
+;;;; done
+
+)
 
 ;;; end of file
