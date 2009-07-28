@@ -365,6 +365,126 @@ endif
 
 test tests check: ytest
 
+#page
+## ---------------------------------------------------------------------
+## Proofing.
+## ---------------------------------------------------------------------
+
+# Proofs is the place to try stuff.  Proofs work exactly like tests, but
+# the source directory is "$(srcdir)/proofs".
+
+# Enable timing of proof files  execution.  We cannot include this in the
+# separator  because  it needs  to  be  placed  between the  environment
+# variables and the actual command line.
+
+nau_proof_SEPARATOR	= echo;echo "===> proof file $(2) with $(1)";echo;
+
+## --------------------------------------------------------------------
+
+# The variable  "file" is available to  the user on the  command line of
+# "make": It selects specific files.
+nau_proof_SRCDIR		= $(srcdir)/proofs
+ifneq (,$(strip $(file)))
+nau_proof_FILES		= $(wildcard $(nau_proof_SRCDIR)/proof-*$(file)*.sps)
+else
+nau_proof_FILES		= $(wildcard $(nau_proof_SRCDIR)/proof-*.sps)
+endif
+
+# The variable  "name" is available to  the user on the  command line of
+# "make": It selects specific proofs.
+ifneq ($(strip $(name)),)
+nau_proof_ENV		+= CHECK_PROOF_NAME=$(name)
+endif
+
+# Here we include the build directory but not the source directory.  The
+# variable "LIBPATH"  is available  to the user  on the command  line of
+# "make": It prepends more directories to the search path.
+ifdef LIBPATH
+nau_proof_custom_LIBPATH	= $(LIBPATH):
+endif
+nau_proof_PATH		= $(nau_proof_custom_LIBPATH)$(fasl_BUILDDIR):$(srcdir)/proofs
+
+.PHONY: proofs proof
+
+proofs proof:
+
+## ---------------------------------------------------------------------
+## Ikarus
+
+nau_iproof_ENV		= IKARUS_LIBRARY_PATH=$(nau_proof_PATH):$(IKARUS_LIBRARY_PATH)
+nau_iproof_ENV		+= $(nau_proof_ENV)
+nau_iproof_PROGRAM	= $(IKARUS) --r6rs-script
+nau_iproof_RUN		= $(nau_iproof_ENV) $(nau_iproof_PROGRAM)
+
+.PHONY: iproof iproofs
+
+iproof iproofs:
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Ikarus,$(f)) $(nau_iproof_RUN) $(f);)
+endif
+
+proof proofs: iproof
+
+## ---------------------------------------------------------------------
+## Larceny
+
+nau_lproof_ENV		= LARCENY_LIBPATH=$(nau_proof_PATH):$(LARCENY_LIBPATH)
+nau_lproof_ENV		+= $(nau_proof_ENV)
+nau_lproof_PROGRAM	= $(LARCENY) -r6rs -program
+nau_lproof_RUN		= $(nau_lproof_ENV) $(nau_lproof_PROGRAM)
+
+.PHONY: lproof lproofs
+
+lproof lproofs:
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Larceny,$(f)) $(nau_lproof_RUN) $(f);)
+endif
+
+proof proofs: lproof
+
+## ------------------------------------------------------------
+## Mosh
+
+# ifeq (,$(strip $(MOSH_LOADPATH)))
+# nau_mproof_ENV		= MOSH_LOADPATH=$(nau_proof_PATH)
+# else
+# nau_mproof_ENV		= MOSH_LOADPATH=$(nau_proof_PATH):$(MOSH_LOADPATH)
+# endif
+nau_mproof_ENV		= MOSH_LOADPATH=$(nau_proof_PATH):$(MOSH_LOADPATH)
+nau_mproof_ENV		+= $(nau_proof_ENV)
+nau_mproof_PROGRAM	= $(MOSH)
+nau_mproof_RUN		= $(nau_mproof_ENV) $(nau_mproof_PROGRAM)
+
+.PHONY: mproof mproofs
+
+mproof mproofs:
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Mosh,$(f)) $(nau_mproof_RUN) $(f);)
+endif
+
+proof proofs: mproof
+
+## ---------------------------------------------------------------------
+## Ypsilon
+
+nau_yproof_ENV		= YPSILON_SITELIB=$(nau_proof_PATH):$(YPSILON_SITELIB)
+nau_yproof_ENV		+= $(nau_proof_ENV)
+nau_yproof_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
+nau_yproof_RUN		= $(nau_yproof_ENV) $(nau_yproof_PROGRAM)
+
+.PHONY: yproof yproofs
+
+yproof yproofs:
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Ypsilon,$(f)) $(nau_yproof_RUN) $(f);)
+endif
+
+proof proofs: yproof
+
 ### end of file
 # Local Variables:
 # mode: makefile-gmake
