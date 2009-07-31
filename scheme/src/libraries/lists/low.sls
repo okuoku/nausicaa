@@ -28,7 +28,7 @@
   (export
 
     ;; predicates
-    %and/or-null?
+    %and/or-null?	%and/or-eq?
 
     ;; queue
     %make-queue
@@ -100,6 +100,19 @@
 	      (or  nil or-nil)
 	      (cdr ells))))))
 
+(define (%and/or-eq? ells1 ells2)
+  (let loop ((and-eq  #t)
+	     (or-eq   #f)
+	     (ells1   ells1)
+	     (ells2   ells2))
+    (if (or (null? ells1) (null? ells2))
+	(values and-eq or-eq)
+      (let ((eq (eq? (car ells1) (car ells2))))
+	(loop (and eq and-eq)
+	      (or  eq or-eq)
+	      (cdr ells1)
+	      (cdr ells2))))))
+
 
 ;;;; queues
 ;;
@@ -126,25 +139,41 @@
 
 (define-syntax %make-queue
   (syntax-rules ()
-    ((_ ?elm)
-     (let* ((v		?elm)
-	    (pair	(cons v '())))
+    ((_ ?obj)
+     (let ((pair (cons ?obj '())))
        (cons pair pair)))))
+
+(define-syntax %enqueue!
+  (syntax-rules ()
+    ((_ ?queue ?obj)
+     (begin
+       (set-cdr! (cdr ?queue) (cons ?obj '()))
+       (cons (car ?queue) (cddr ?queue))))))
+
+;;The  following are  old versions  which  have been  prooved slower  by
+;;timing.
+;;
+;; (define-syntax %make-queue
+;;   (syntax-rules ()
+;;     ((_ ?elm)
+;;      (let* ((v		?elm)
+;; 	    (pair	(cons v '())))
+;;        (cons pair pair)))))
+;;
+;; (define-syntax %enqueue!
+;;   (syntax-rules ()
+;;     ((_ ?queue ?obj)
+;;      (let ((queue         ?queue)
+;; 	   (new-last-pair (cons ?obj '())))
+;;        (set-cdr! (%queue-last-pair-ref queue) new-last-pair)
+;;        (%queue-last-pair-set! queue new-last-pair)
+;;        queue))))
 
 (define-syntax %list->queue
   (syntax-rules ()
     ((_ ?ell)
      (let ((ell ?ell))
        (cons ell (last-pair/stx ell))))))
-
-(define-syntax %enqueue!
-  (syntax-rules ()
-    ((_ ?queue ?obj)
-     (let ((queue         ?queue)
-	   (new-last-pair (cons ?obj '())))
-       (set-cdr! (%queue-last-pair-ref queue) new-last-pair)
-       (%queue-last-pair-set! queue new-last-pair)
-       queue))))
 
 
 ;;;; cars and cdrs from list of lists, check for length
@@ -245,65 +274,51 @@
 ;;;; cars and cdrs from list of lists, no check for length
 
 (define (%cars* list-of-lists)
-  ;;LIST-OF-LISTS  must be  a  non-null list  of  lists.  If  a list  in
-  ;;LIST-OF-LISTS  is null:  return null;  else return  the list  of the
-  ;;cars.
-  ;;
   (let ((next-list	(car list-of-lists)))
     (if (null?		next-list)
 	'()
-      (let loop ((cars		(%make-queue (car next-list)))
+      (let loop ((cars		(cons (car next-list) '()))
 		 (list-of-lists	(cdr list-of-lists)))
 	(if (null? list-of-lists)
-	    (%queue-list-ref cars)
+	    (reverse cars)
 	  (let ((next-list (car list-of-lists)))
  	    (if (null? next-list)
  		'()
-	      (loop (%enqueue! cars (car next-list))
+	      (loop (cons (car next-list) cars)
 		    (cdr list-of-lists)))))))))
 
 (define (%cdrs* list-of-lists)
-  ;;LIST-OF-LISTS  must be  a  non-null list  of  lists.  If  a list  in
-  ;;LIST-OF-LISTS  is null:  return null;  else return  the list  of the
-  ;;cdrs.
-  ;;
   (let ((next-list (car list-of-lists)))
     (if (null? next-list)
 	'()
       (let loop ((list-of-lists	(cdr list-of-lists))
-		 (cdrs		(%make-queue (cdr next-list))))
+		 (cdrs		(cons (cdr next-list) '())))
 	(if (null? list-of-lists)
-	    (%queue-list-ref cdrs)
+	    (reverse cdrs)
 	  (let ((next-list (car list-of-lists)))
 	    (if (null? next-list)
 		'()
 	      (loop (cdr list-of-lists)
-		    (%enqueue! cdrs (cdr next-list))))))))))
+		    (cons (cdr next-list) cdrs)))))))))
 
 (define (%cars/cdrs* list-of-lists)
-  ;;LIST-OF-LISTS  must be  a  non-null list  of  lists.  If  a list  in
-  ;;LIST-OF-LISTS is null:  return 2 null values; else  return 2 values:
-  ;;the list of cars and the list of cdrs.
-  ;;
   (let ((next-list (car list-of-lists)))
     (if (null? next-list)
 	(values '() '())
-      (let loop ((cars		(%make-queue (car next-list)))
-		 (cdrs		(%make-queue (cdr next-list)))
+      (let loop ((cars		(cons (car next-list) '()))
+		 (cdrs		(cons (cdr next-list) '()))
 		 (list-of-lists	(cdr list-of-lists)))
 	(if (null? list-of-lists)
-	    (values (%queue-list-ref cars)
-		    (%queue-list-ref cdrs))
+	    (values (reverse cars)
+		    (reverse cdrs))
 	  (let ((next-list (car list-of-lists)))
 	    (if (null? next-list)
 		(values '() '())
-	      (loop (%enqueue! cars (car next-list))
-		    (%enqueue! cdrs (cdr next-list))
+	      (loop (cons (car next-list) cars)
+		    (cons (cdr next-list) cdrs)
 		    (cdr list-of-lists)))))))))
 
 (define (%cars+cdrs*/no-test lists)
-  ;;Like %CARS/CDRS, but blow up if any list is empty.
-  ;;
   (let recur ((lists lists))
     (if (pair? lists)
 	(receive (list other-lists)
@@ -317,81 +332,65 @@
 ;;;; cars and cdrs and knil from list of lists, no check for length
 
 (define (%cars+knil* list-of-lists knil)
-  ;;LIST-OF-LISTS  must be  a list  of lists.   If one  of the  lists in
-  ;;LIST-OF-LISTS is null: return null;  else return the list of cars of
-  ;;the lists in LIST-OF-LISTS, with KNIL appended as last element.
-  ;;
   (let ((next-list (car list-of-lists)))
     (if (null? next-list)
 	'()
-      (let loop ((cars	(%make-queue (car next-list)))
+      (let loop ((cars		(cons (car next-list) '()))
 		 (list-of-lists	(cdr list-of-lists)))
 	(if (null? list-of-lists)
-	    (%queue-list-ref (%enqueue! cars knil))
+	    (reverse (cons knil cars))
 	  (let ((next-list (car list-of-lists)))
 	    (if (null? next-list)
 		'()
-	      (loop (%enqueue! cars (car next-list))
+	      (loop (cons (car next-list) cars)
 		    (cdr list-of-lists)))))))))
 
 (define (%knil+cars* list-of-lists knil)
-  ;;LIST-OF-LISTS  must be  a list  of lists.   If one  of the  lists in
-  ;;LIST-OF-LISTS is null: return null;  else return the list of cars of
-  ;;the lists in LIST-OF-LISTS, with KNIL prepended as first element.
-  ;;
   (let ((next-list (car list-of-lists)))
     (if (null? next-list)
 	'()
-      (let loop ((cars	(%make-queue (car next-list)))
+      (let loop ((cars		(cons (car next-list) '()))
 		 (list-of-lists	(cdr list-of-lists)))
 	(if (null? list-of-lists)
-	    (cons knil (%queue-list-ref cars))
+	    (cons knil (reverse cars))
 	  (let ((next-list (car list-of-lists)))
 	    (if (null? next-list)
 		'()
-	      (loop (%enqueue! cars (car next-list))
+	      (loop (cons (car next-list) cars)
 		    (cdr list-of-lists)))))))))
 
 (define (%cars+knil/cdrs* list-of-lists knil)
-  ;;LIST-OF-LISTS  must be  a  non-null list  of  lists.  If  a list  in
-  ;;LIST-OF-LISTS is null:  return 2 null values; else  return 2 values:
-  ;;the list of cars with KNIL appended, and the list of cdrs.
-  ;;
   (let ((next-list (car list-of-lists)))
     (if (null? next-list)
 	(values '() '())
-      (let loop ((cars		(%make-queue (car next-list)))
-		 (cdrs		(%make-queue (cdr next-list)))
+      (let loop ((cars		(cons (car next-list) '()))
+		 (cdrs		(cons (cdr next-list) '()))
 		 (list-of-lists	(cdr list-of-lists)))
 	(if (null? list-of-lists)
-	    (values (%queue-list-ref (%enqueue! cars knil))
-		    (%queue-list-ref cdrs))
+	    (values (reverse (cons knil cars))
+		    (reverse cdrs))
 	  (let ((next-list (car list-of-lists)))
 	    (if (null? next-list)
 		(values '() '())
-	      (loop (%enqueue! cars (car next-list))
-		    (%enqueue! cdrs (cdr next-list))
+	      (loop (cons (car next-list) cars)
+		    (cons (cdr next-list) cdrs)
 		    (cdr list-of-lists)))))))))
 
 (define (%knil+cars/cdrs* list-of-lists knil)
-  ;;LIST-OF-LISTS  must be  a  non-null list  of  lists.  If  a list  in
-  ;;LIST-OF-LISTS is null:  return 2 null values; else  return 2 values:
-  ;;the list of cars with KNIL prepended, and the list of cdrs.
-  ;;
   (let ((next-list (car list-of-lists)))
     (if (null? next-list)
 	(values '() '())
-      (let loop ((cars	(%make-queue (car next-list)))
-		 (cdrs	(%make-queue (cdr next-list)))
+      (let loop ((cars		(cons (car next-list) '()))
+		 (cdrs		(cons (cdr next-list) '()))
 		 (list-of-lists	(cdr list-of-lists)))
 	(if (null? list-of-lists)
-	    (values (cons knil (%queue-list-ref cars))
-		    (%queue-list-ref cdrs))
+	    (values (cons knil (reverse cars))
+		    (reverse cdrs))
 	  (let ((next-list (car list-of-lists)))
 	    (if (null? next-list)
 		(values '() '())
-	      (loop (%enqueue! cars (car next-list))
-		    (%enqueue! cdrs (cdr next-list))
+	      (loop (cons (car next-list) cars)
+		    (cons (cdr next-list) cdrs)
 		    (cdr list-of-lists)))))))))
 
 

@@ -133,7 +133,7 @@
     (cons c (class-precedence-list c))))
 
 (define (instance? value)
-  (and (proper-list? value)
+  (and (list? value)
        (pair? (car value))
        (eq? ':class (caar value))
        (class? (cdar value))))
@@ -144,7 +144,7 @@
        (eq? <class> (cdar value))))
 
 (define (class? value)
-  (and (proper-list? value)
+  (and (list? value)
        (= 5 (length value))
        (first-class-slot?  (car value))
        (second-class-slot? (cadr value))
@@ -196,7 +196,7 @@
   (and (pair? value)
        (eq? ':class-precedence-list (car value))
        (let ((v (cdr value)))
-	 (and (proper-list? v)
+	 (and (list? v)
 	      (every class? v)))))
 
 (define (fourth-class-slot? value)
@@ -207,7 +207,7 @@
   (and (pair? value)
        (eq? ':slots (car value))
        (let ((v (cdr value)))
-	 (and (proper-list? v)
+	 (and (list? v)
 	      (every symbol? v)))))
 
 (define (fifth-class-slot? value)
@@ -218,7 +218,7 @@
   (and (pair? value)
        (eq? ':direct-slots (car value))
        (let ((v (cdr value)))
-	 (and (proper-list? v)
+	 (and (list? v)
 	      (every symbol? v)))))
 
 
@@ -472,7 +472,7 @@
     (cond
      ((circular-list value)	<circular-list>)
      ((dotted-list? value)	<dotted-list>)
-     ((proper-list? value)	<proper-list>)
+     ((list? value)		<proper-list>)
      ((list? value)		<list>)
      ((pair? value)		<pair>)
      (else #f)))
@@ -724,7 +724,7 @@
      ;;If the closure supports  rest arguments, compare only as
      ;;much classes as there are in SIGNATURE.
      ((and has-rest (> call-len len))
-      (every subclass? (take call-signature len) signature))
+      (every subclass? (take-left call-signature len) signature))
 
      ;;This method is not applicable.
      (else #f))))

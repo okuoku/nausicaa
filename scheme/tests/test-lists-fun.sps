@@ -105,22 +105,63 @@
 ;;; --------------------------------------------------------------------
 
   (check
+      (list-copy '())
+    => '())
+
+  (check
+      (list-copy '(1))
+    => '(1))
+
+  (check
       (list-copy numbers)
     => numbers)
 
+  (check
+      (list-copy '(1 . 2))
+    => '(1 . 2))
+
+  (check
+      (list-copy '(1 2 3 . 4))
+    => '(1 2 3 . 4))
+
 ;;; --------------------------------------------------------------------
+
+  (check
+      (tree-copy '())
+    => '())
+
+  (check
+      (tree-copy '(1))
+    => '(1))
+
+  (check
+      (tree-copy '(1 . 2))
+    => '(1 . 2))
 
   (let ((ell '(1 2 3 4)))
     (check
 	(tree-copy ell)
       => ell))
 
-  (let ((ell '()))
+  (let ((ell '(1 2 3 4 . 5)))
     (check
 	(tree-copy ell)
       => ell))
 
-  (let ((ell '(1 (2 (3 4) 5 6) 7 8 (9 10))))
+  (let ((ell '(1 (2 (3 4)
+		    5
+		    6)
+		 7 8
+		 (9 10))))
+    (check
+	(tree-copy ell)
+      => ell))
+
+  (let ((ell '(1 (2 (3 . 4)
+		    5
+		    6)
+		 7 8
+		 (9 . 10))))
     (check
 	(tree-copy ell)
       => ell))
@@ -139,83 +180,54 @@
       (iota 5 10 5)
     => '(10 15 20 25 30))
 
-  (guard (exc (else #f))
-    (check
-	(iota -5 10 5)
-      => '()))
-
   (check
-      (let ((ell (circular-list 1 2)))
-	(list (car ell)
-	      (cadr ell)
-	      (caddr ell)
-	      (cadddr ell)))
-    => '(1 2 1 2))
-
-  (check
-      (let ((ell (list->clist! '(1 2 3))))
-	(list (car ell)
-	      (cadr ell)
-	      (caddr ell)
-	      (cadddr ell)
-	      (cadddr (cdr ell))))
-    => '(1 2 3 1 2))
+      (guard (exc (else #t))
+	(iota -5 10 5))
+    => #t)
 
   )
 
 
-(parameterise ((check-test-name 'predicates))
-
-  (check (and-null?)			=> #t)
-  (check (and-null? '())		=> #t)
-  (check (and-null? '() '())		=> #t)
-  (check (and-null? '() '() '())	=> #t)
-
-  (check (and-null? '(1))		=> #f)
-  (check (and-null? '(1) '(1) '(1))	=> #f)
-  (check (and-null? '()  '()  '(1))	=> #f)
-
-  (check (or-null?)			=> #f)
-  (check (or-null? '())			=> #t)
-  (check (or-null? '() '())		=> #t)
-  (check (or-null? '() '() '())		=> #t)
-
-  (check (or-null? '(1))		=> #f)
-  (check (or-null? '(1) '(1) '(1))	=> #f)
-  (check (or-null? '()  '()  '(1))	=> #t)
-
-  (let-syntax ((check-values	(syntax-rules ()
-				  ((_ ?expr ?expected)
-				   (check (receive (a o) ?expr (list a o)) => ?expected)))))
-    (check-values (and/or-null?)		 '(#t #f))
-    (check-values (and/or-null? '())		 '(#t #t))
-    (check-values (and/or-null? '() '())	 '(#t #t))
-    (check-values (and/or-null? '() '() '())	 '(#t #t))
-
-    (check-values (and/or-null? '(1))		 '(#f #f))
-    (check-values (and/or-null? '(1) '(1) '(1))	 '(#f #f))
-    (check-values (and/or-null? '()  '()  '(1))	 '(#f #t)))
-
-;;; --------------------------------------------------------------------
+(parameterise ((check-test-name 'kind-predicates))
 
   (check
-      (proper-list? '())
+      (list? '())
     => #t)
 
   (check
-      (proper-list? '(1 2 3))
+      (list? '(1 2 3))
     => #t)
 
   (check
-      (proper-list? '(1 2 3 . 4))
+      (list? '(1 2 3 . 4))
     => #f)
 
   (check
-      (proper-list? (circular-list 1 2))
+      (list? '(1 . 2))
     => #f)
 
   (check
-      (proper-list? '(1 . 2))
+      (list? (circular-list 1 2))
+    => #f)
+
+  (check
+      (list? (circular-list 1 2 3 4 5 6))
+    => #f)
+
+  (check
+      (list? (list 1 2 3 4 (circular-list 5 6 7 8)))
+    => #t)
+
+  (check
+      (list? 123)
+    => #f)
+
+  (check
+      (list? #\a)
+    => #f)
+
+  (check
+      (list? 'alpha)
     => #f)
 
 ;;; --------------------------------------------------------------------
@@ -229,6 +241,10 @@
     => #f)
 
   (check
+      (circular-list? '(1 . 2))
+    => #f)
+
+  (check
       (circular-list? '(1 2 3 . 4))
     => #f)
 
@@ -237,7 +253,27 @@
     => #t)
 
   (check
-      (circular-list? '(1 . 2))
+      (circular-list? (circular-list 1 2 3 4 5 6))
+    => #t)
+
+  (check
+      (circular-list? (list 1 2 3 4 (circular-list 5 6 7 8)))
+    => #f)
+
+  (check
+      (circular-list? (cons 1 (cons 2 (cons 3 (cons 4 (circular-list 5 6 7 8))))))
+    => #t)
+
+  (check
+      (circular-list? 123)
+    => #f)
+
+  (check
+      (circular-list? #\a)
+    => #f)
+
+  (check
+      (circular-list? 'alpha)
     => #f)
 
 ;;; --------------------------------------------------------------------
@@ -251,6 +287,10 @@
     => #f)
 
   (check
+      (dotted-list? '(1 . 2))
+    => #t)
+
+  (check
       (dotted-list? '(1 2 3 . 4))
     => #t)
 
@@ -259,8 +299,28 @@
     => #f)
 
   (check
-      (dotted-list? '(1 . 2))
-    => #t)
+      (dotted-list? (circular-list 1 2 3 4 5 6))
+    => #f)
+
+  (check
+      (dotted-list? (list 1 2 3 4 (circular-list 5 6 7 8)))
+    => #f)
+
+  (check
+      (dotted-list? (cons 1 (cons 2 (cons 3 (cons 4 (circular-list 5 6 7 8))))))
+    => #f)
+
+  (check
+      (dotted-list? 123)
+    => #f)
+
+  (check
+      (dotted-list? #\a)
+    => #f)
+
+  (check
+      (dotted-list? 'alpha)
+    => #f)
 
 ;;; --------------------------------------------------------------------
 
@@ -302,6 +362,8 @@
       (pair? 1)
     => #f)
 
+;;; --------------------------------------------------------------------
+
   (check
       (not-pair? '(1 2))
     => #f)
@@ -321,6 +383,41 @@
   (check
       (not-pair? 1)
     => #t)
+
+  )
+
+
+(parameterise ((check-test-name 'null-predicates))
+
+  (check (and-null?)			=> #t)
+  (check (and-null? '())		=> #t)
+  (check (and-null? '() '())		=> #t)
+  (check (and-null? '() '() '())	=> #t)
+
+  (check (and-null? '(1))		=> #f)
+  (check (and-null? '(1) '(1) '(1))	=> #f)
+  (check (and-null? '()  '()  '(1))	=> #f)
+
+  (check (or-null?)			=> #f)
+  (check (or-null? '())			=> #t)
+  (check (or-null? '() '())		=> #t)
+  (check (or-null? '() '() '())		=> #t)
+
+  (check (or-null? '(1))		=> #f)
+  (check (or-null? '(1) '(1) '(1))	=> #f)
+  (check (or-null? '()  '()  '(1))	=> #t)
+
+  (let-syntax ((check-values	(syntax-rules ()
+				  ((_ ?expr ?expected)
+				   (check (receive (a o) ?expr (list a o)) => ?expected)))))
+    (check-values (and/or-null?)		 '(#t #f))
+    (check-values (and/or-null? '())		 '(#t #t))
+    (check-values (and/or-null? '() '())	 '(#t #t))
+    (check-values (and/or-null? '() '() '())	 '(#t #t))
+
+    (check-values (and/or-null? '(1))		 '(#f #f))
+    (check-values (and/or-null? '(1) '(1) '(1))	 '(#f #f))
+    (check-values (and/or-null? '()  '()  '(1))	 '(#f #t)))
 
   )
 
@@ -502,38 +599,48 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (take numbers 5)
+      (take-left '() 0)
+    => '())
+
+  (check
+      (take-left numbers 0)
+    => '())
+
+  (check
+      (take-left numbers 5)
     => '(0 1 2 3 4))
 
   (check
-      (take numbers 0)
-    => '())
+      (take-left numbers 10)
+    => numbers)
 
   (check
-      (take '() 0)
-    => '())
-
-  (check
-      (take numbers 10)
+      (append (take-left numbers 3)
+	      (drop-left numbers 3))
     => numbers)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (drop numbers 5)
-    => '(5 6 7 8 9))
+      (drop-right numbers 5)
+    => '(0 1 2 3 4))
 
   (check
-      (drop numbers 0)
+      (drop-right numbers 0)
     => numbers)
 
   (check
-      (drop '() 0)
+      (drop-right '() 0)
     => '())
 
   (check
-      (drop numbers 10)
+      (drop-right numbers 10)
     => '())
+
+  (check
+      (append (drop-right numbers 3)
+	      (take-right numbers 3))
+    => numbers)
 
 ;;; --------------------------------------------------------------------
 
@@ -574,13 +681,15 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (take! '(1 3 5) 2)
+      (take-left! '(1 3 5) 2)
     => '(1 3))
 
   (check
       (guard (exc (else #t))
-	(take! '() 2))
+	(take-left! '() 2))
     => #t)
+
+;;; --------------------------------------------------------------------
 
   (check
       (drop-right! '(1 3 5) 1)
@@ -3800,6 +3909,119 @@
 		    '((a . 1))
 		    eq?)
     => '())
+
+  )
+
+
+(parameterise ((check-test-name 'circular-lists))
+
+  (check
+      (let ((ell (circular-list 1 2)))
+	(list (car ell)
+	      (cadr ell)
+	      (caddr ell)
+	      (cadddr ell)))
+    => '(1 2 1 2))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((ell (list->circular-list! '(1 2 3))))
+	(list (car ell)
+	      (cadr ell)
+	      (caddr ell)
+	      (cadddr ell)
+	      (cadddr (cdr ell))))
+    => '(1 2 3 1 2))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list->list! (circular-list 1 2 3 4 5 6 7))
+    => '(1 2 3 4 5 6 7))
+
+  (check
+      (circular-list->list! (circular-list 1))
+    => '(1))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list->list! (circular-list-copy '()))
+    => '())
+
+  (check
+      (circular-list->list! (circular-list-copy (circular-list 1 2 3 4 5)))
+    => '(1 2 3 4 5))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list-length '())
+    => 0)
+
+  (check
+      (circular-list-length (circular-list 1))
+    => 1)
+
+  (check
+      (circular-list-length (circular-list 1 2 3 4 5))
+    => 5)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list= =)
+    => #t)
+
+  (check
+      (circular-list= = '())
+    => #t)
+
+  (check
+      (circular-list= = '() '() '())
+    => #t)
+
+  (check
+      (circular-list= = '() '(1) '())
+    => #f)
+
+  (check
+      (circular-list= = '() (circular-list 1) '())
+    => #f)
+
+  (check
+      (circular-list= = (circular-list 1))
+    => #t)
+
+  (check
+      (circular-list= = (circular-list 1) (circular-list 1) (circular-list 1))
+    => #t)
+
+  (check
+      (circular-list= = (circular-list 1) (circular-list 2) (circular-list 1))
+    => #f)
+
+  (check
+      (circular-list= =
+		      (circular-list 1 2 3 4 5)
+		      (circular-list 1 2 3 4 5)
+		      (circular-list 1 2 3 4 5))
+    => #t)
+
+  (check
+      (circular-list= =
+		      (circular-list 1 2 3 4 5)
+		      (circular-list 1 2 3 99 5)
+		      (circular-list 1 2 3 4 5))
+    => #f)
+
+  (check
+      (circular-list= =
+		      (circular-list 1 2 3 4 5)
+		      (circular-list 1 2 3)
+		      (circular-list 1 2 3 4 5))
+    => #f)
 
   )
 

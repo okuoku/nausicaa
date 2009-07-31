@@ -30,16 +30,24 @@
     ;; constructors
     xcons
     make-list
-    list-copy		tree-copy
-    circular-list	list->clist!
-    list-tabulate	list-tabulate/reverse
+    list-copy			tree-copy
+    list-tabulate		list-tabulate/reverse
     iota
 
+    ;; circular lists
+    circular-list		list->circular-list!
+    circular-list->list!	circular-list-copy
+    circular-list-length	circular-list=
+
     ;; predicats
-    and-null?		or-null?
+    circular-list?		circular-list?/or-null
+    dotted-list?		dotted-list?/or-null
+    not-pair?
+    and-null?			or-null?
     (rename (%and/or-null? and/or-null?))
-    proper-list?	circular-list?		dotted-list?
-    not-pair?		list=?
+
+    ;; comparison
+    list=?
 
     ;; selectors
     car+cdr
@@ -48,8 +56,8 @@
     seventh		eighth			ninth
     tenth
 
-    take		take-right		take!
-    drop		drop-right		drop-right!
+    take-left		take-right		take-left!
+    drop-left		drop-right		drop-right!
     split-at		split-at!
     last		last-pair
 
@@ -153,16 +161,16 @@
       x)))
 
 (define (list-tabulate len proc)
-  (do ((i 0 (+ 1 i))
-       (ans '() (cons (proc i) ans)))
+  (do ((i   0   (+ 1 i))
+       (ell '() (cons (proc i) ell)))
       ((= i len)
-       (reverse ans))))
+       (reverse ell))))
 
 (define (list-tabulate/reverse len proc)
   (do ((i (- len 1) (- i 1))
-       (ans '() (cons (proc i) ans)))
+       (ret '() (cons (proc i) ret)))
       ((< i 0)
-       ans)))
+       ret)))
 
 (define iota
   (case-lambda
@@ -171,21 +179,128 @@
    ((count start)
     (iota count start 1))
    ((count start step)
-    (do ((count count (- count 1))
-	 (val (+ start (* (- count 1) step)) (- val step))
-	 (ans '() (cons val ans)))
-	((<= count 0)
-	 ans)))))
+    (if (< count 0)
+	(assertion-violation 'iota
+	  "expected non-negative count argument" count)
+      (do ((count count (- count 1))
+	   (val (+ start (* (- count 1) step)) (- val step))
+	   (ret '() (cons val ret)))
+	  ((<= count 0)
+	   ret))))))
+
+
+;;;; circular lists
 
 (define (circular-list val1 . vals)
-  (list->clist! (cons val1 vals)))
+  (list->circular-list! (cons val1 vals)))
 
-(define (list->clist! ell)
+(define (list->circular-list! ell)
   (set-cdr! (last-pair ell) ell)
   ell)
 
+(define (circular-last-pair circ)
+  (let loop ((p circ))
+    (if (eq? circ (cdr p))
+	p
+      (loop (cdr p)))))
+
+(define (circular-list->list! circ)
+  (if (null? circ)
+      circ
+    (begin
+      (set-cdr! (circular-last-pair circ) '())
+      circ)))
+
+(define (circular-list-copy circ)
+  (if (null? circ)
+      circ
+    (let loop ((cir circ)
+	       (ell '()))
+      (if (eq? circ (cdr cir))
+	  (list->circular-list! (reverse (cons (car cir) ell)))
+	(loop (cdr cir) (cons (car cir) ell))))))
+
+(define (circular-list-length circ)
+  (if (null? circ)
+      0
+    (do ((i 1 (+ 1 i))
+	 (p circ (cdr p)))
+	((eq? circ (cdr p))
+	 i))))
+
+(define (circular-list= item= . list-of-clists)
+  (let-values (((and-nil or-nil) (apply %and/or-null? list-of-clists)))
+    (cond (and-nil #t)
+	  (or-nil  #f)
+	  (else
+	   (let loop ((circs list-of-clists))
+	     (let-values (((cars cdrs) (%cars/cdrs* circs)))
+	       (or (null? cars)
+		   (and (apply item= cars)
+			(let-values (((and-eq or-eq) (%and/or-eq? list-of-clists cdrs)))
+			  (cond (and-eq #t)
+				(or-eq  #f)
+				(else (loop cdrs))))))))))))
+
 
 ;;;; predicates
+
+(define (not-pair? obj)
+  (not (pair? obj)))
+
+;;IMPLEMENTATION NOTE
+;;
+;;We can detect if a list is circular with the simple:
+;;
+;; (define (simple-circular-list? obj)
+;;   (let loop ((ell obj))
+;;     (and (pair? ell)
+;; 	 (let ((ell (cdr ell)))
+;; 	   (or (eq? obj ell)
+;; 	       (loop ell))))))
+;;
+;;which works fine for circular lists being "rings" like:
+;;
+;;  (circular-list 1 2 3 4 5)
+;;
+;;but fails with lists which have a circular tail like:
+;;
+;;  (cons 1 (cons 2 (cons 3 (cons 4 (circular-list 5 6 7 8)))))
+;;
+
+(define (circular-list? obj)
+  (let loop ((ell obj) (lag obj))
+    (and (pair? ell)
+	 (let ((ell (cdr ell)))
+	   (and (pair? ell)
+		(let ((ell (cdr ell))
+		      (lag (cdr lag)))
+		  (or (eq? ell lag)
+		      (loop ell lag))))))))
+
+(define (circular-list?/or-null obj)
+  (or (null? obj) (circular-list? obj)))
+
+(define (dotted-list? obj)
+  (and (pair? obj)
+       ;;At every iteration ELL is CDR-ed twice, LAG is CDR-ed once.  So
+       ;;if  OBJ is a  pair, member  of circular  list, EQ?   below will
+       ;;detect   it   with   the   same  number   of   comparisons   of
+       ;;CIRCULAR-LIST?.
+       (let loop ((ell obj)
+		  (lag obj))
+	 (if (pair? ell)
+	     (let ((ell (cdr ell)))
+	       (if (pair? ell)
+		   (let ((ell (cdr ell))
+			 (lag (cdr lag)))
+		     (and (not (eq? ell lag))
+			  (loop ell lag)))
+		 (not (null? ell))))
+	   (not (null? ell))))))
+
+(define (dotted-list?/or-null obj)
+  (or (null? obj) (dotted-list? obj)))
 
 (define (and-null? . list-of-lists)
   (let loop ((ells list-of-lists))
@@ -200,50 +315,16 @@
       (or (null? (car ells))
 	  (loop (cdr ells))))))
 
-(define (proper-list? x)
-  (let lp ((x x) (lag x))
-    (if (pair? x)
-	(let ((x (cdr x)))
-	  (if (pair? x)
-	      (let ((x   (cdr x))
-		    (lag (cdr lag)))
-		(and (not (eq? x lag)) (lp x lag)))
-	    (null? x)))
-      (null? x))))
-
-(define (dotted-list? x)
-  (let lp ((x x) (lag x))
-    (if (pair? x)
-	(let ((x (cdr x)))
-	  (if (pair? x)
-	      (let ((x   (cdr x))
-		    (lag (cdr lag)))
-		(and (not (eq? x lag)) (lp x lag)))
-	    (not (null? x))))
-      (not (null? x)))))
-
-(define (circular-list? x)
-  (let lp ((x x) (lag x))
-    (and (pair? x)
-	 (let ((x (cdr x)))
-	   (and (pair? x)
-		(let ((x   (cdr x))
-		      (lag (cdr lag)))
-		  (or (eq? x lag) (lp x lag))))))))
-
-(define (not-pair? x)
-  (not (pair? x)))
-
 
 ;;;; comparison
 
 (define list=?
   (case-lambda
-   ((elm=?)
+   ((item=)
     #t)
-   ((elm=? ell)
+   ((item= ell)
     #t)
-   ((elm=? ell1 ell2)
+   ((item= ell1 ell2)
     (let loop ((ell1 ell1)
 	       (ell2 ell2))
       (cond
@@ -254,13 +335,13 @@
 	    #f))
        ((null? ell2)
 	#f)
-       ((elm=? (car ell1) (car ell2))
+       ((item= (car ell1) (car ell2))
 	(loop (cdr ell1) (cdr ell2)))
        (else
 	#f))))
-   ((elm=? . ells)
-    (and (list=? elm=? (car ells) (cadr ells))
-	 (apply list=? elm=? (cdr ells))))))
+   ((item= . ells)
+    (and (list=? item= (car ells) (cadr ells))
+	 (apply list=? item= (cdr ells))))))
 
 
 ;;;; selectors
@@ -281,33 +362,35 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (take ell k)
-  (let loop ((ell ell)
-	     (k   k))
-    (if (zero? k)
-	'()
-      (cons (car ell)
-	    (loop (cdr ell) (- k 1))))))
+(define (take-left dotted k)
+  (let loop ((ret '())
+	     (dotted dotted)
+	     (k k))
+    (if (= 0 k)
+	(reverse ret)
+      (loop (cons (car dotted) ret)
+	    (cdr dotted)
+	    (- k 1)))))
 
-(define (drop ell k)
-  (let loop ((ell ell)
-	     (k   k))
+(define (drop-left dotted k)
+  (let loop ((dotted dotted)
+	     (k k))
     (if (zero? k)
-	ell
-      (loop (cdr ell) (- k 1)))))
+	dotted
+      (loop (cdr dotted) (- k 1)))))
 
 ;;; --------------------------------------------------------------------
 
-(define (take-right ell k)
-  (let loop ((lag	ell)
-	     (lead	(drop ell k)))
+(define (take-right dotted k)
+  (let loop ((lag	dotted)
+	     (lead	(drop-left dotted k)))
     (if (pair? lead)
 	(loop (cdr lag) (cdr lead))
       lag)))
 
-(define (drop-right ell k)
-  (let loop ((lag	ell)
-	     (lead	(drop ell k)))
+(define (drop-right dotted k)
+  (let loop ((lag	dotted)
+	     (lead	(drop-left dotted k)))
     (if (pair? lead)
 	(cons (car lag)
 	      (loop (cdr lag) (cdr lead)))
@@ -315,30 +398,31 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (take! ell k)
+(define (take-left! dotted k)
   (if (zero? k)
       '()
     (begin
-      (set-cdr! (drop ell (- k 1)) '())
-      ell)))
+      (set-cdr! (drop-left dotted (- k 1)) '())
+      dotted)))
 
-(define (drop-right! ell k)
+(define (drop-right! dotted k)
   ;;In this  function, LEAD is actually  K+1 ahead of LAG.  This lets us
   ;;stop LAG one step early, in time to smash its cdr to ().
-  (let ((lead (drop ell k)))
+  (let ((lead (drop-left dotted k)))
     (if (pair? lead)
-	(let loop ((lag  ell)
+	(let loop ((lag  dotted)
 		   (lead (cdr lead))) ; Standard case
 	  (if (pair? lead)
 	      (loop (cdr lag) (cdr lead))
-	    (begin (set-cdr! lag '())
-		   ell)))
+	    (begin
+	      (set-cdr! lag '())
+	      dotted)))
       '()))) ; Special case dropping everything -- no cons to side-effect.
 
 ;;; --------------------------------------------------------------------
 
-(define (split-at x k)
-  (let loop ((ell x)
+(define (split-at ell k)
+  (let loop ((ell ell)
 	     (k   k))
     (if (zero? k) (values '() ell)
       (receive (prefix suffix)
@@ -347,7 +431,7 @@
 
 (define (split-at! x k)
   (if (zero? k) (values '() x)
-    (let* ((prev   (drop x (- k 1)))
+    (let* ((prev   (drop-left x (- k 1)))
 	   (suffix (cdr prev)))
       (set-cdr! prev '())
       (values x suffix))))
@@ -367,7 +451,7 @@
 (define (length+ x) ; Returns #f if X is circular.
   (let lp ((x x) (lag x) (len 0))
     (if (pair? x)
-	(let ((x (cdr x))
+	(let ((x   (cdr x))
 	      (len (+ len 1)))
 	  (if (pair? x)
 	      (let ((x   (cdr x))
@@ -488,9 +572,9 @@
 	       (i    0))
       (if (null? ell)
 	  i
-	(receive (as ds)
-	    (%cars/cdrs* ells)
-	  (if (null? as) i
+	(let-values (((as ds) (%cars/cdrs* ells)))
+	  (if (null? as)
+	      i
 	    (loop (cdr ell)
 		  ds
 		  (if (apply pred (car ell) as)
@@ -500,12 +584,11 @@
 ;;; --------------------------------------------------------------------
 
 (define (reverse! lis)
-  (let lp ((lis lis) (ans '()))
-    (if (null? lis) ans
+  (let lp ((lis lis) (ret '()))
+    (if (null? lis) ret
       (let ((tail (cdr lis)))
-	(set-cdr! lis ans)
+	(set-cdr! lis ret)
 	(lp tail lis)))))
-
 
 
 ;;;; fold/unfold functions
@@ -664,7 +747,6 @@
 	  (tail-gen seed)
 	(cons (map-to-knil seed)
 	      (loop (seed-step seed))))))))
-
 
 
 ;;;; derived fold functions
@@ -907,12 +989,12 @@
 ;;;; filter, remove, partition
 
 (define (filter! pred lis)
-  (let lp ((ans lis))
+  (let lp ((ret lis))
     (cond
-     ((null? ans)
-      ans)
-     ((not (pred (car ans)))
-      (lp (cdr ans)))
+     ((null? ret)
+      ret)
+     ((not (pred (car ret)))
+      (lp (cdr ret)))
      (else
       (letrec ((scan-in (lambda (prev lis)
 			  (if (pair? lis)
@@ -927,8 +1009,8 @@
 					    (scan-in lis (cdr lis)))
 				   (lp (cdr lis)))
 			       (set-cdr! prev lis))))))
-	(scan-in ans (cdr ans))
-	ans)))))
+	(scan-in ret (cdr ret))
+	ret)))))
 
 (define (partition! pred lis)
   (if (null? lis)
@@ -1280,35 +1362,35 @@
 
 
 (define (lset-adjoin = lis . elts)
-  (fold (lambda (elt ans) (if (member* elt ans =) ans (cons elt ans)))
+  (fold (lambda (elt ret) (if (member* elt ret =) ret (cons elt ret)))
 	lis elts))
 
 (define (lset-union = . lists)
-  (reduce (lambda (lis ans)
-	    (cond ((null? lis) ans)
-		  ((null? ans) lis)
-		  ((eq? lis ans) ans)
+  (reduce (lambda (lis ret)
+	    (cond ((null? lis) ret)
+		  ((null? ret) lis)
+		  ((eq? lis ret) ret)
 		  (else
-		   (fold (lambda (elt ans)
-			   (if (any (lambda (x) (= x elt)) ans)
-			       ans
-			     (cons elt ans)))
-			 ans lis))))
+		   (fold (lambda (elt ret)
+			   (if (any (lambda (x) (= x elt)) ret)
+			       ret
+			     (cons elt ret)))
+			 ret lis))))
 	  '() lists))
 
 (define (lset-union! = . lists)
-  (reduce (lambda (lis ans)
-	    (cond ((null? lis) ans)
-		  ((null? ans) lis)
-		  ((eq? lis ans) ans)
+  (reduce (lambda (lis ret)
+	    (cond ((null? lis) ret)
+		  ((null? ret) lis)
+		  ((eq? lis ret) ret)
 		  (else
 		   (pair-fold
-		    (lambda (pair ans)
+		    (lambda (pair ret)
 		      (let ((elt (car pair)))
-			(if (any (lambda (x) (= x elt)) ans)
-			    ans
-			  (begin (set-cdr! pair ans) pair))))
-		    ans lis))))
+			(if (any (lambda (x) (= x elt)) ret)
+			    ret
+			  (begin (set-cdr! pair ret) pair))))
+		    ret lis))))
 	  '() lists))
 
 (define (lset-intersection = lis1 . lists)
@@ -1350,8 +1432,8 @@
 	    (receive (a-b a-int-b)   (lset-diff+intersection = a b)
 	      (cond ((null? a-b)     (lset-difference = b a))
 		    ((null? a-int-b) (append b a))
-		    (else (fold (lambda (xb ans)
-				  (if (member* xb a-int-b =) ans (cons xb ans)))
+		    (else (fold (lambda (xb ret)
+				  (if (member* xb a-int-b =) ret (cons xb ret)))
 				a-b
 				b)))))
 	  '() lists))
@@ -1362,9 +1444,9 @@
      (receive (a-b a-int-b)   (lset-diff+intersection! = a b)
        (cond ((null? a-b)     (lset-difference! = b a))
 	     ((null? a-int-b) (append! b a))
-	     (else (pair-fold (lambda (b-pair ans)
-				(if (member* (car b-pair) a-int-b =) ans
-				  (begin (set-cdr! b-pair ans) b-pair)))
+	     (else (pair-fold (lambda (b-pair ret)
+				(if (member* (car b-pair) a-int-b =) ret
+				  (begin (set-cdr! b-pair ret) b-pair)))
 			      a-b
 			      b)))))
    '() lists))

@@ -4,7 +4,10 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	Time building a list with  the queue functions from (lists low),
+;;;	versus building  it in reverse  than calling REVERSE.   It seems
+;;;	that  the queue  is faster  with  Ikarus, slower  with Mosh  and
+;;;	Ypsilon.
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -23,53 +26,99 @@
 ;;;
 
 
-(import (nausicaa)
-  (lists)
-  (lists low)
-  (checks)
-  (mosh))
+(import (rnrs)
+  (profiling)
+  (rnrs mutable-pairs))
 
-(define-syntax repeat
+(define %queue-list-ref		car)
+(define %queue-last-pair-ref	cdr)
+(define %queue-last-pair-set!	set-cdr!)
+
+(define-syntax %make-queue
   (syntax-rules ()
-    ((_ ?times ?expr)
-     (do ((n 0 (+ 1 n)))
-	 ((= n ?times))
-       ?expr))))
+    ((_ ?obj)
+     (let ((pair (cons ?obj '())))
+       (cons pair pair)))))
 
-;;Warm up.
-(repeat 1000 (do ((i 0 (+ 1 i))
-		  (l (%make-queue 0) (%enqueue! l i)))
-		 ((= i 10000)
-		  (%queue-list-ref l))))
-(repeat 1000 (do ((i 0 (+ 1 i))
-		  (l '(0) (cons i l)))
-		 ((= i 10000)
-		  (reverse l))))
+(define-syntax %enqueue!
+  (syntax-rules ()
+    ((_ ?queue ?obj)
+     (begin
+       (set-cdr! (cdr ?queue) (cons ?obj '()))
+       (cons (car ?queue) (cddr ?queue))))))
+
+
+;;;; warm up
+
+(write (do ((i 1 (+ 1 i))
+	    (l (%make-queue 0) (%enqueue! l i)))
+	   ((= i 10)
+	    (%queue-list-ref l))))
+(newline)
+
+(write (do ((i 1 (+ 1 i))
+	    (l '(0) (cons i l)))
+	   ((= i 10)
+	    (reverse l))))
+(newline)
+
+(write (do ((i 1 (+ 1 i))
+	    (l '(0) (cons i l)))
+	   ((= i 10)
+	    (reverse l))))
+(newline)
+
+(write (let loop ((l '(0))
+		  (i 1))
+	 (if (= i 10)
+	     (reverse l)
+	   (loop (cons i l) (+ 1 i)))))
+(newline)
+(newline)
+
+
+(define warmup-times	1000)
+(define repeat-times	1000)
+(define max-value+1	10000)
+
+(repeat warmup-times (do ((i 1 (+ 1 i))
+			  (l (%make-queue 0) (%enqueue! l i)))
+			 ((= i max-value+1)
+			  (%queue-list-ref l))))
+
+(repeat warmup-times (do ((i 1 (+ 1 i))
+			  (l '(0) (cons i l)))
+			 ((= i max-value+1)
+			  (reverse l))))
 
 ;;The proof with DO.
-(time (repeat 1000 (do ((i 0 (+ 1 i))
-			(l (%make-queue 0) (%enqueue! l i)))
-		       ((= i 1000)
-			(%queue-list-ref l)))))
+(time (repeat repeat-times (do ((i 1 (+ 1 i))
+				(l (%make-queue 0) (%enqueue! l i)))
+			       ((= i max-value+1)
+				(%queue-list-ref l)))))
+(newline)
 
-(time (repeat 1000 (do ((i 0 (+ 1 i))
-			(l '(0) (cons i l)))
-		       ((= i 1000)
-			(reverse l)))))
+(time (repeat repeat-times (do ((i 1 (+ 1 i))
+				(l '(0) (cons i l)))
+			       ((= i max-value+1)
+				(reverse l)))))
+(newline)
+(newline)
+(newline)
 
 ;;The proof with LET.
-(time (repeat 1000 (let loop ((l (%make-queue 0))
-			      (i 0))
-		     (if (= i 1000)
-			 (%queue-list-ref l)
-		       (begin
-			 (%enqueue! l i)
-			 (loop l (+ 1 i)))))))
+(time (repeat repeat-times (let loop ((l (%make-queue 0))
+				      (i 1))
+			     (if (= i max-value+1)
+				 (%queue-list-ref l)
+			       (loop (%enqueue! l i) (+ 1 i))))))
+(newline)
 
-(time (repeat 1000 (let loop ((l '(0))
-			      (i 0))
-		     (if (= i 1000)
-			 (reverse l)
-		       (loop (cons i l) (+ 1 i))))))
+(time (repeat repeat-times (let loop ((l '(0))
+				      (i 1))
+			     (if (= i max-value+1)
+				 (reverse l)
+			       (loop (cons i l) (+ 1 i))))))
+(newline)
 
 ;;; end of file

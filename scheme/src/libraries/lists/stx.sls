@@ -29,10 +29,13 @@
 
     ;; constructors
     make-list/stx
-    circular-list/stx		list->clist!/stx
     list-copy/stx		tree-copy/stx
     list-tabulate/stx		list-tabulate/reverse/stx
     iota/stx
+
+    circular-list/stx		list->circular-list!/stx
+    circular-list->list!/stx	circular-list-copy/stx
+    circular-list-length/stx	circular-list=/stx
 
     ;; predicates
     and-null?/stx		or-null?/stx
@@ -75,8 +78,9 @@
     filter-map/stx
 
     )
-  (import (nausicaa)
-    (rnrs mutable-pairs))
+  (import (rnrs)
+    (rnrs mutable-pairs)
+    (lists low))
 
 
 ;;;; helpers
@@ -139,10 +143,12 @@
     ((_ ?len ?proc)
      (let ((len  ?len)
 	   (proc ?proc))
-       (do ((i 0 (+ 1 i))
-	    (ans '() (cons (?proc i) ans)))
-	   ((= i len)
-	    (reverse ans)))))))
+       (if (= 0 len)
+	   '()
+	 (do ((i 1 (+ 1 i))
+	      (q (%make-queue (proc 0)) (%enqueue! q (proc i))))
+	     ((= i len)
+	      (%queue-list-ref q))))))))
 
 (define-syntax list-tabulate/reverse/stx
   (syntax-rules ()
@@ -169,17 +175,83 @@
 	   ((<= count 0)
 	    ans))))))
 
+
+;;;; circular lists
+
 (define-syntax circular-list/stx
   (syntax-rules ()
     ((_ ?obj0 ?obj ...)
-     (list->clist!/stx (list ?obj0 ?obj ...)))))
+     (list->circular-list!/stx (list ?obj0 ?obj ...)))))
 
-(define-syntax list->clist!/stx
+(define-syntax list->circular-list!/stx
   (syntax-rules ()
     ((_ ?ell)
      (let ((ell ?ell))
        (set-cdr! (last-pair/stx ell) ell)
        ell))))
+
+(define-syntax circular-list->list!/stx
+  (syntax-rules ()
+    ((_ ?cell)
+     (let ((cell ?cell))
+       (if (null? cell)
+	   cell
+	 (let ((p (let loop ((p cell))
+		    (if (eq? cell (cdr p))
+			p
+		      (loop (cdr p))))))
+	   (set-cdr! p '())
+	   cell))))))
+
+(define-syntax circular-list-copy/stx
+  (syntax-rules ()
+    ((_ ?cell)
+     (let ((cell ?cell))
+       (if (null? cell)
+	   cell
+	 (let loop ((cir cell)
+		    (ell '()))
+	   (if (eq? cell (cdr cir))
+	       (list->circular-list!/stx (reverse (cons (car cir) ell)))
+	     (loop (cdr cir) (cons (car cir) ell)))))))))
+
+(define-syntax circular-list-length/stx
+  (syntax-rules ()
+    ((_ ?cell)
+     (let ((cell ?cell))
+       (if (null? cell)
+	   0
+	 (do ((i 1 (+ 1 i))
+	      (p cell (cdr p)))
+	     ((eq? cell (cdr p))
+	      i)))))))
+
+(define-syntax circular-list=/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?=)
+       (syntax #t))
+      ((_ ?= ?cell ...)
+       (with-syntax (((cell ...) (generate-temporaries (syntax (?cell ...))))
+		     ((circ ...) (generate-temporaries (syntax (?cell ...))))
+		     ((null ...) (generate-temporaries (syntax (?cell ...))))
+		     ((last ...) (generate-temporaries (syntax (?cell ...)))))
+	 (syntax (let ((=    ?=)
+		       (circ ?cell)
+		       ...)
+		   (let ((null (null? circ))
+			 ...)
+		     (cond ((and null ...) #t)
+			   ((or  null ...) #f)
+			   (else
+			    (let loop ((cell circ)
+				       ...)
+			      (and (= (car cell) ...)
+				   (let ((last (eq? circ (cdr cell)))
+					 ...)
+				     (if (or  last ...)
+					 (and last ...)
+				       (loop (cdr cell) ...)))))))))))))))
 
 
 ;;;; predicates
@@ -296,8 +368,7 @@
      (let loop ((ell ?ell)
 		(k   ?k))
        (if (zero? k) (values '() ell)
-	 (receive (prefix suffix)
-	     (loop (cdr ell) (- k 1))
+	 (let-values (((prefix suffix) (loop (cdr ell) (- k 1))))
 	   (values (cons (car ell) prefix) suffix)))))))
 
 (define-syntax split-at!/stx
@@ -375,7 +446,7 @@
        (if (null? lis)
 	   (values lis lis) ; Use NOT-PAIR? to handle
 	 (let ((elt (car lis)))		     ; dotted lists.
-	   (receive (a b) (recur (cdr lis))
+	   (let-values (((a b) (recur (cdr lis))))
 	     (values (cons (car  elt) a)
 		     (cons (cadr elt) b)))))))))
 
@@ -386,7 +457,7 @@
        (if (null? lis)
 	   (values lis lis lis)
 	 (let ((elt (car lis)))
-	   (receive (a b c) (recur (cdr lis))
+	   (let-values (((a b c) (recur (cdr lis))))
 	     (values (cons (car   elt) a)
 		     (cons (cadr  elt) b)
 		     (cons (caddr elt) c)))))))))
@@ -398,7 +469,7 @@
        (if (null? lis)
 	   (values lis lis lis lis)
 	 (let ((elt (car lis)))
-	   (receive (a b c d) (recur (cdr lis))
+	   (let-values (((a b c d) (recur (cdr lis))))
 	     (values (cons (car    elt) a)
 		     (cons (cadr   elt) b)
 		     (cons (caddr  elt) c)
@@ -411,7 +482,7 @@
        (if (null? lis)
 	   (values lis lis lis lis lis)
 	 (let ((elt (car lis)))
-	   (receive (a b c d e) (recur (cdr lis))
+	   (let-values (((a b c d e) (recur (cdr lis))))
 	     (values (cons (car     elt) a)
 		     (cons (cadr    elt) b)
 		     (cons (caddr   elt) c)

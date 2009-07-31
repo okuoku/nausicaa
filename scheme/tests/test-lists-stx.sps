@@ -95,22 +95,63 @@
 ;;; --------------------------------------------------------------------
 
   (check
+      (list-copy/stx '())
+    => '())
+
+  (check
+      (list-copy/stx '(1))
+    => '(1))
+
+  (check
       (list-copy/stx numbers)
     => numbers)
 
+  (check
+      (list-copy/stx '(1 . 2))
+    => '(1 . 2))
+
+  (check
+      (list-copy/stx '(1 2 3 . 4))
+    => '(1 2 3 . 4))
+
 ;;; --------------------------------------------------------------------
+
+  (check
+      (tree-copy/stx '())
+    => '())
+
+  (check
+      (tree-copy/stx '(1))
+    => '(1))
+
+  (check
+      (tree-copy/stx '(1 . 2))
+    => '(1 . 2))
 
   (let ((ell '(1 2 3 4)))
     (check
 	(tree-copy/stx ell)
       => ell))
 
-  (let ((ell '()))
+  (let ((ell '(1 2 3 4 . 5)))
     (check
 	(tree-copy/stx ell)
       => ell))
 
-  (let ((ell '(1 (2 (3 4) 5 6) 7 8 (9 10))))
+  (let ((ell '(1 (2 (3 4)
+		    5
+		    6)
+		 7 8
+		 (9 10))))
+    (check
+	(tree-copy/stx ell)
+      => ell))
+
+  (let ((ell '(1 (2 (3 . 4)
+		    5
+		    6)
+		 7 8
+		 (9 . 10))))
     (check
 	(tree-copy/stx ell)
       => ell))
@@ -134,7 +175,10 @@
 	(iota/stx -5 10 5)
       => '()))
 
-;;; --------------------------------------------------------------------
+  )
+
+
+(parameterise ((check-test-name 'circular-list))
 
   (check
       (let ((ell (circular-list/stx 1 2)))
@@ -144,14 +188,105 @@
 	      (cadddr ell)))
     => '(1 2 1 2))
 
+;;; --------------------------------------------------------------------
+
   (check
-      (let ((ell (list->clist!/stx '(1 2 3))))
+      (let ((ell (list->circular-list!/stx '(1 2 3))))
 	(list (car ell)
 	      (cadr ell)
 	      (caddr ell)
 	      (cadddr ell)
 	      (cadddr (cdr ell))))
     => '(1 2 3 1 2))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list->list!/stx (circular-list 1 2 3 4 5 6 7))
+    => '(1 2 3 4 5 6 7))
+
+  (check
+      (circular-list->list!/stx (circular-list 1))
+    => '(1))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list->list!/stx (circular-list-copy/stx '()))
+    => '())
+
+  (check
+      (circular-list->list!/stx (circular-list-copy/stx (circular-list 1 2 3 4 5)))
+    => '(1 2 3 4 5))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list-length/stx '())
+    => 0)
+
+  (check
+      (circular-list-length/stx (circular-list 1))
+    => 1)
+
+  (check
+      (circular-list-length/stx (circular-list 1 2 3 4 5))
+    => 5)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (circular-list=/stx =)
+    => #t)
+
+  (check
+      (circular-list=/stx = '())
+    => #t)
+
+  (check
+      (circular-list=/stx = '() '() '())
+    => #t)
+
+  (check
+      (circular-list=/stx = '() '(1) '())
+    => #f)
+
+  (check
+      (circular-list=/stx = '() (circular-list 1) '())
+    => #f)
+
+  (check
+      (circular-list=/stx = (circular-list 1))
+    => #t)
+
+  (check
+      (circular-list=/stx = (circular-list 1) (circular-list 1) (circular-list 1))
+    => #t)
+
+  (check
+      (circular-list=/stx = (circular-list 1) (circular-list 2) (circular-list 1))
+    => #f)
+
+  (check
+      (circular-list=/stx =
+			  (circular-list 1 2 3 4 5)
+			  (circular-list 1 2 3 4 5)
+			  (circular-list 1 2 3 4 5))
+    => #t)
+
+  (check
+      (circular-list=/stx =
+			  (circular-list 1 2 3 4 5)
+			  (circular-list 1 2 3 99 5)
+			  (circular-list 1 2 3 4 5))
+    => #f)
+
+  (check
+      (circular-list=/stx =
+			  (circular-list 1 2 3 4 5)
+			  (circular-list 1 2 3)
+			  (circular-list 1 2 3 4 5))
+    => #f)
 
   )
 
