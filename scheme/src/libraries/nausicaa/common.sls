@@ -157,6 +157,9 @@
     ;; predicate extensions
     finite? infinite? nan? non-negative? non-positive?
 
+    ;; comparison extensions
+    =
+
     ;; syntactic abstractions
     and-let* begin0 receive recursion cut cute do*
 
@@ -186,7 +189,8 @@
   (import (rename (rnrs)
 		  (finite?	rnrs:finite?)
 		  (infinite?	rnrs:infinite?)
-		  (nan?		rnrs:nan?))
+		  (nan?		rnrs:nan?)
+		  (=		rnrs:=))
     (parameters)
     (rnrs mutable-pairs)
     (rnrs mutable-strings))
@@ -217,6 +221,16 @@
 
 (define (non-positive? n)
   (or (negative? n) (zero? n)))
+
+
+(define =
+  (case-lambda
+   (()
+    #t)
+   ((obj)
+    (rnrs:= obj obj))
+   ((obj . objs)
+    (apply rnrs:= obj objs))))
 
 
 ;;;; syntactic absractions

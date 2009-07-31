@@ -129,7 +129,7 @@
 
 (check
     (rational-valued? 1.2)
-  => #f)
+  => #t)
 
 (check
     (rational-valued? 12/10)
@@ -169,6 +169,24 @@
 
 (check (max 1 +nan.0) => 1.0)
 (check (nan? (min 1 +nan.0)) => #t)
+
+;;; --------------------------------------------------------------------
+
+(check
+    (=)
+  => #t)
+
+(check
+    (= 1)
+  => #t)
+
+(check
+    (= 1 2)
+  => #f)
+
+(check
+    (= 1 1)
+  => #t)
 
 
 ;;;; parameters

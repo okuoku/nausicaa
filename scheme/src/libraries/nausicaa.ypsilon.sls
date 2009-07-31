@@ -793,7 +793,7 @@
 
     ;; other stuff
     pretty-print)
-  (import (except (rnrs) finite? infinite? nan?)
+  (import (except (rnrs) finite? infinite? nan? =)
     (only (core)
 	  lookup-process-environment process-environment->alist)
     (nausicaa common)

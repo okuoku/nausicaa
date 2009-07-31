@@ -799,6 +799,7 @@
     ;; other stuff
     pretty-print)
   (import (except (rnrs)
+		  =
 		  ;;Implemented  in compat  to let  them  accept complex
 		  ;;arguments.
 		  finite? infinite? nan?)
