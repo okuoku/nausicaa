@@ -25,8 +25,7 @@
 
 
 
-;;;; setup
-
+#!r6rs
 (library (foreign memory compat)
   (export
 
