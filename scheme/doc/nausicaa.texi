@@ -121,6 +121,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{POSIX}
 @end macro
 
+@macro rfc{}
+@acronym{RFC}
+@end macro
+
 @macro utf{}
 @acronym{UTF}
 @end macro
@@ -275,6 +279,10 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c ------------------------------------------------------------
 
+@macro var0{THING}
+@var{\THING\0}
+@end macro
+
 @macro vari{THING}
 @var{\THING\1}
 @end macro
@@ -420,7 +428,7 @@ the list of original documents and their authors.
 @insertcopying
 
 @menu
-* overview::                    Overview of the package.
+* overview::                    Overview of the distribution.
 * lang::                        The Scheme language.
 * baselib::                     Base library.
 * stdlib::                      Standard libraries.
@@ -808,12 +816,9 @@ Low level libraries
 List library
 
 * lists intro::                 Introduction.
-* lists linear update::         Linear update procedures.
-* lists improper::              Improper lists.
+* lists conventions::           Conventions.
 * lists cons::                  Constructors.
-* lists kind::                  Kind related predicates.
-* lists null::                  Null related predicates.
-* lists pair::                  Pair related predicates.
+* lists pred::                  Predicates.
 * lists compar::                Comparison.
 * lists select::                Selectors.
 * lists misc::                  Length, append, concatenate,
@@ -824,7 +829,9 @@ List library
 * lists delete::                Deletion.
 * lists sorted::                Utilities for sorted lists.
 * lists alist::                 Association lists.
+* lists circ::                  Circular lists.
 * lists set::                   Set operations on lists.
+* lists low::                   Low level utilities.
 
 Fold, unfold and map
 
@@ -1164,6 +1171,15 @@ C language system errors
 * errno conversion::            Conversion of error codes.
 * errno condition::             Raising exceptions.
 
+Miscellaneous notes on everything
+
+* notes nan::                   How to deal with not--a--number.
+
+How to deal with not--a--number
+
+* notes nan inf::               How to deal with infinities.
+* notes nan nan::               Understanding not--a--number.
+
 Launching programs directly
 
 * binfmt overview::             Overview of the mechanism.
@@ -1198,7 +1214,7 @@ Syntax objects and you
 
 @c page
 @node overview
-@chapter Overview of the package
+@chapter Overview of the distribution
 
 
 @value{PACKAGE} is a set of Scheme libraries defining a slightly
@@ -1388,7 +1404,15 @@ kernel.
 
 @c originally this chapter was the "struct" file.
 
+This chapter gives an overview of Scheme's semantics.  The purpose of
+this overview is to explain enough about the basic concepts of the
+language to facilitate understanding of the subsequent chapters of the
+report, which are organized as a reference manual.  Consequently, this
+overview is neither a complete introduction to the language, nor precise
+in all respects, nor normative in any way.
+
 @menu
+* lang overview intro::                 Introduction.
 * lang overview basic types::        Basic types.
 * lang overview expressions::        Expressions.
 * lang overview variables::          Variables and binding.
@@ -1404,26 +1428,23 @@ kernel.
 * lang overview programs::           Top--level programs.
 @end menu
 
+@c page
+@node lang overview intro
+@subsection Introduction
 
-@noindent
-This chapter gives an overview of Scheme's semantics.  The purpose of
-this overview is to explain enough about the basic concepts of the
-language to facilitate understanding of the subsequent chapters of the
-report, which are organized as a reference manual.  Consequently, this
-overview is not a complete introduction to the language, nor is it
-precise in all respects or normative in any way.
 
 Following Algol, Scheme is a statically scoped programming language.
 Each use of a variable is associated with a lexically apparent binding
 of that variable.
 
-Scheme has latent as opposed to manifest types.  Types are associated
-with objects (also called values) rather than with variables.  (Some
-authors refer to languages with latent types as untyped, weakly typed or
-dynamically typed languages.)  Other languages with latent types are
-Python, Ruby, Smalltalk, and other dialects of Lisp.  Languages with
-manifest types (sometimes referred to as strongly typed or statically
-typed languages) include Algol 60, C, C#, Java, Haskell, and ML.
+Scheme has @dfn{latent} as opposed to @dfn{manifest} types.  Types are
+associated with objects (also called values) rather than with variables.
+(Some authors refer to languages with latent types as untyped, weakly
+typed or dynamically typed languages.)  Other languages with latent
+types are Python, Ruby, Smalltalk, and other dialects of Lisp.
+Languages with manifest types (sometimes referred to as strongly typed
+or statically typed languages) include Algol 60, C, C#, Java, Haskell,
+and ML.
 
 All objects created in the course of a Scheme computation, including
 procedures and continuations, have unlimited extent.  No Scheme object
@@ -1463,8 +1484,8 @@ an argument expression is not evaluated unless its value is needed by
 the procedure.
 
 Scheme's model of arithmetic provides a rich set of numerical types and
-operations on them.  Furthermore, it distinguishes @emph{exact} and
-@emph{inexact} number objects: Essentially, an exact number object
+operations on them.  Furthermore, it distinguishes @dfn{exact} and
+@dfn{inexact} number objects: Essentially, an exact number object
 corresponds to a number exactly, and an inexact number object is the
 result of a computation that involved rounding or other errors.
 
@@ -1474,9 +1495,9 @@ result of a computation that involved rounding or other errors.
 @subsection Basic types
 
 
-Scheme programs manipulate @emph{objects}, which are also referred to as
-@emph{values}.  Scheme objects are organized into sets of values called
-@emph{types}.  This section gives an overview of the fundamentally
+Scheme programs manipulate @dfn{objects}, which are also referred to as
+@dfn{values}.  Scheme objects are organized into sets of values called
+@dfn{types}.  This section gives an overview of the fundamentally
 important types of the Scheme language.  More types are described in
 later chapters.
 
@@ -1497,14 +1518,14 @@ however, any object different from @false{} counts as true.
 
 Scheme supports a rich variety of numerical data types, including
 objects representing integers of arbitrary precision, rational numbers,
-complex numbers, and inexact numbers of various kinds.  @ref{lang numbers}
-gives an overview of the structure of Scheme's numerical tower.
+complex numbers, and inexact numbers of various kinds.  @ref{lang
+numbers, Numbers}
 
 @subsubheading Characters
 
 Scheme characters mostly correspond to textual characters.  More
-precisely, they are isomorphic to the @emph{scalar values} of the
-Unicode standard.
+precisely, they are isomorphic to the @dfn{scalar values} of the Unicode
+standard.
 
 @subsubheading Strings
 
@@ -1513,7 +1534,7 @@ represent arbitrary Unicode texts.
 
 @subsubheading Symbols
 
-A symbol is an object representing a string, the symbol's @emph{name}.
+A symbol is an object representing a string, the symbol's @dfn{name}.
 Unlike strings, two symbols whose names are spelled the same way are
 never distinguishable.  Symbols are useful for many applications; for
 instance, they may be used the way enumerated values are used in other
@@ -1523,8 +1544,8 @@ languages.
 
 A pair is a data structure with two components.  The most common use of
 pairs is to represent (singly linked) lists, where the first component
-(the ``car'') represents the first element of the list, and the second
-component (the ``cdr'') the rest of the list.  Scheme also has a
+(the @dfn{car}) represents the first element of the list, and the second
+component (the @dfn{cdr}) the rest of the list.  Scheme also has a
 distinguished empty list, which is the last cdr in a chain of pairs that
 form a list.
 
@@ -1540,15 +1561,16 @@ are more appropriate than lists for random access to elements.
 
 Procedures are values in Scheme.
 
-
 @c page
 @node lang overview expressions
 @subsection Expressions
 
 
-The most important elements of Scheme code are @emph{expressions}.
-Expressions can be @emph{evaluated}, producing a @emph{value}.
-(Actually, any number of values; @ref{lang basic multiple return values}.)
+The most important elements of Scheme code are @dfn{expressions}.
+Expressions can be @dfn{evaluated}, producing a @dfn{value}.  (Actually,
+any number of values.  @ref{lang basic multiple return values, Multiple
+return values}.)
+
 The most fundamental expressions are literal expressions:
 
 @example
@@ -1556,24 +1578,27 @@ The most fundamental expressions are literal expressions:
 23 @result{} 23
 @end example
 
-This notation means that the expression @true{} evaluates to @true{},
-that is, the value for ``true'', and that the expression @code{23}
-evaluates to a number object representing the number 23.
+@noindent
+this notation means that the expression @samp{#t} evaluates to @true{},
+that is, the value for ``true'', and that the expression @samp{23}
+evaluates to a number object representing the number @math{23}.
 
 Compound expressions are formed by placing parentheses around their
 subexpressions.  The first subexpression identifies an operation; the
 remaining subexpressions are operands to the operation:
 
 @example
-(+ 23 42) @result{} 65
-(+ 14 (* 23 42)) @result{} 980
+(+ 23 42)               @result{} 65
+(+ 14 (* 23 42))        @result{} 980
 @end example
 
-In the first of these examples, @func{+} is the name of the built--in
-operation for addition, and @code{23} and @code{42} are the operands.
-The expression @code{(+ 23 42)} reads as ``the sum of 23 and 42''.
-Compound expressions can be nested---the second example reads as ``the
-sum of 14 and the product of 23 and 42''.
+@noindent
+in the first of these examples, @func{+} is the name of the built--in
+operation for addition, and @samp{23} and @samp{42} are the operands.
+The expression @code{(+ 23 42)} reads as ``the sum of @math{23} and
+@math{42}''.  Compound expressions can be nested---the second example
+reads as ``the sum of @math{14} and the product of @math{23} and
+@math{42}''.
 
 As these examples indicate, compound expressions in Scheme are always
 written using the same prefix notation.  As a consequence, the
@@ -1585,7 +1610,6 @@ Scheme.
 As in many other languages, whitespace (including line endings) is not
 significant when it separates subexpressions of an expression, and can
 be used to indicate structure.
-
 
 @c page
 @node lang overview variables
@@ -1606,12 +1630,11 @@ useful to think of the variable as standing for the value directly.
 
 In this case, the expression starting with @func{let} is a binding
 construct.  The parenthesized structure following the @func{let} lists
-variables alongside expressions: the variable @code{x} alongside
-@code{23}, and the variable @code{y} alongside @code{42}.  The
-@func{let} expression binds @code{x} to 23, and @code{y} to 42.  These
-bindings are available in the @emph{body} of the @func{let} expression,
-@code{(+ x y)}, and only there.
-
+variables alongside expressions: the variable @samp{x} alongside
+@samp{23}, and the variable @samp{y} alongside @samp{42}.  The
+@func{let} expression binds @samp{x} to @samp{23}, and @samp{y} to
+@samp{42}.  These bindings are available in the @emph{body} of the
+@func{let} expression, @code{(+ x y)}, and only there.
 
 @c page
 @node lang overview definitions
@@ -1619,7 +1642,7 @@ bindings are available in the @emph{body} of the @func{let} expression,
 
 
 The variables bound by a @func{let} expression are @emph{local}, because
-their bindings are visible only in the @func{let}'s body.  Scheme also
+their bindings are visible only in @func{let}'s body.  Scheme also
 allows creating top--level bindings for identifiers as follows:
 
 @example
@@ -1629,19 +1652,20 @@ allows creating top--level bindings for identifiers as follows:
 @end example
 
 @noindent
-(These are actually ``top--level'' in the body of a top--level program
-or library; @ref{lang library}.)
+these are actually ``top--level'' in the body of a top--level program
+or library.  @ref{lang library, Libraries}.
 
-The first two parenthesized structures are @emph{definitions}; they
-create top--level bindings, binding @code{x} to 23 and @code{y} to 42.
-Definitions are not expressions, and cannot appear in all places where
-an expression can occur.  Moreover, a definition has no value.
+The first two parenthesized structures are @dfn{definitions}; they
+create top--level bindings, binding @samp{x} to @samp{23} and @samp{y}
+to @samp{42}.  Definitions are not expressions, and cannot appear in all
+places where an expression can occur.  Moreover, a definition has no
+value.
 
 Bindings follow the lexical structure of the program: When several
 bindings with the same name exist, a variable refers to the binding that
-is closest to it, starting with its occurrence in the program and going
-from inside to outside, and referring to a top--level binding if no
-local binding can be found along the way:
+is ``closest'' to it, starting with its occurrence in the program and
+going from inside to outside, and referring to a top--level binding if
+no local binding can be found along the way:
 
 @example
 (define x 23)
@@ -1653,7 +1677,6 @@ local binding can be found along the way:
   (let ((y 44))
     (+ x y))) @result{} 67
 @end example
-
 
 @c page
 @node lang overview forms
@@ -1669,12 +1692,11 @@ definitions exhibit similar syntactic structure:
 @end example
 
 While the first line contains a definition, and the second an
-expression, this distinction depends on the bindings for @func{let}
-and @func{*}.  At the purely syntactical level, both are @emph{forms},
-and @emph{form} is the general name for a syntactic part of a Scheme
-program.  In particular, @code{23} is a @emph{subform} of the form
-@code{(define x 23)}.
-
+expression, this distinction depends on the bindings for @func{let} and
+@func{*}.  At the purely syntactical level, both are @dfn{forms}, and
+@dfn{form} is the general name for a syntactic part of a Scheme program.
+In particular, @samp{23} is a @emph{subform} of the form @code{(define x
+23)}.
 
 @c page
 @node lang overview procedures
@@ -1695,7 +1717,7 @@ over objects.  In the example, the first definition defines a procedure
 called @func{f}.  (Note the parentheses around @code{f x}, which
 indicate that this is a procedure definition.)  The expression @code{(f
 23)} is a procedure call, meaning, roughly, ``evaluate @code{(+ x 42)}
-(the body of the procedure) with @var{x} bound to 23''.
+(the body of the procedure) with @samp{x} bound to @samp{23}''.
 
 As procedures are objects, they can be passed to other procedures:
 
@@ -1709,9 +1731,10 @@ As procedures are objects, they can be passed to other procedures:
 (g f 23) @result{} 65
 @end example
 
+@noindent
 In this example, the body of @func{g} is evaluated with @var{p} bound to
-@func{f} and @var{x} bound to 23, which is equivalent to @code{(f 23)},
-which evaluates to 65.
+@func{f} and @samp{x} bound to @samp{23}, which is equivalent to
+@code{(f 23)}, which evaluates to @samp{65}.
 
 In fact, many predefined operations of Scheme are provided not by
 syntax, but by variables whose values are procedures.  The @func{+}
@@ -1740,7 +1763,6 @@ The entire expression in this example is a procedure call; @code{(lambda
 (x) (+ x 42))}, evaluates to a procedure that takes a single number
 object and adds 42 to it.
 
-
 @c page
 @node lang overview syntax
 @subsection Procedure calls and syntactic keywords
@@ -1749,7 +1771,7 @@ object and adds 42 to it.
 Whereas @code{(+ 23 42)}, @code{(f 23)}, and @code{((lambda (x) (+ x
 42)) 23)} are all examples of procedure calls, @func{lambda} and
 @func{let} expressions are not.  This is because @func{let}, even though
-it is an identifier, is not a variable, but is instead a @emph{syntactic
+it is an identifier, is not a variable, but is instead a @dfn{syntactic
 keyword}.  A form that has a syntactic keyword as its first
 subexpression obeys special rules determined by the keyword.  The
 @func{let} identifier in a definition is also a syntactic keyword.
@@ -1761,15 +1783,15 @@ procedure.  In @func{let} expressions, the first subform is a list of
 binding specifications, and the remaining subforms constitute a body of
 expressions.
 
-Procedure calls can generally be distinguished from these @emph{special
+Procedure calls can generally be distinguished from these @dfn{special
 forms} by looking for a syntactic keyword in the first position of a
 form: if the first position does not contain a syntactic keyword, the
 expression is a procedure call.  (So--called @emph{identifier macros}
 allow creating other kinds of special forms, but are comparatively
 rare.)  The set of syntactic keywords of Scheme is fairly small, which
 usually makes this task fairly simple.  It is possible, however, to
-create new bindings for syntactic keywords; @ref{lang overview macros} below.
-
+create new bindings for syntactic keywords.  @ref{lang overview macros,
+Derived forms and macros}
 
 @c page
 @node lang overview assignment
@@ -1780,7 +1802,7 @@ Scheme variables bound by definitions or @func{let} or @func{lambda}
 expressions are not actually bound directly to the objects specified in
 the respective bindings, but to locations containing these objects.  The
 contents of these locations can subsequently be modified destructively
-via @emph{assignment}:
+via @dfn{assignment}:
 
 @example
 (let ((x 23))
@@ -1792,9 +1814,8 @@ In this case, the body of the @func{let} expression consists of two
 expressions which are evaluated sequentially, with the value of the
 final expression becoming the value of the entire @func{let} expression.
 The expression @code{(set! x 42)} is an assignment, saying ``replace the
-object in the location referenced by @code{x} with 42''.  Thus, the
-previous value of @code{x}, 23, is replaced by 42.
-
+object in the location referenced by @samp{x} with @samp{42}''.  Thus,
+the previous value of @samp{x}, @samp{23}, is replaced by @samp{42}.
 
 @c page
 @node lang overview macros
@@ -1816,10 +1837,10 @@ following two expressions are equivalent:
 @result{} 65
 @end example
 
-Special forms like @func{let} expressions are called @emph{derived
-forms} because their semantics can be derived from that of other kinds
-of forms by a syntactic transformation.  Some procedure definitions are
-also derived forms.  The following two definitions are equivalent:
+Special forms like @func{let} expressions are called @dfn{derived forms}
+because their semantics can be derived from that of other kinds of forms
+by a syntactic transformation.  Some procedure definitions are also
+derived forms.  The following two definitions are equivalent:
 
 @example
 (define (f x)
@@ -1846,8 +1867,8 @@ by binding syntactic keywords to macros:
 
 The @func{define-syntax} construct specifies that a parenthesized
 structure matching the pattern @code{(def f (p ...) body)}, where
-@func{f}, @code{p}, and @code{body} are pattern variables, is translated
-to @code{(define (f p ...) body)}.  Thus, the @code{def} form appearing
+@samp{f}, @samp{p}, and @samp{body} are pattern variables, is translated
+to @code{(define (f p ...) body)}.  Thus, the @samp{def} form appearing
 in the example gets translated to:
 
 @example
@@ -1859,59 +1880,57 @@ The ability to create new syntactic keywords makes Scheme extremely
 flexible and expressive, allowing many of the features built into other
 languages to be derived forms in Scheme.
 
-
 @c page
 @node lang overview data
 @subsection Syntactic data and datum values
 
 
-A subset of the Scheme objects is called @emph{datum values}.  These
+A subset of the Scheme objects is called @dfn{datum values}.  These
 include booleans, number objects, characters, symbols, and strings as
 well as lists and vectors whose elements are data.  Each datum value may
-be represented in textual form as a @emph{syntactic datum}, which can be
+be represented in textual form as a @dfn{syntactic datum}, which can be
 written out and read back in without loss of information.  A datum value
 may be represented by several different syntactic data.  Moreover, each
 datum value can be trivially translated to a literal expression in a
-program by prepending a @code{'} (single quote) to a corresponding
+program by prepending a @samp{'} (single quote) to a corresponding
 syntactic datum:
 
 @example
 '23             @result{} 23
-'@true{}        @result{} @true{}
+'#t             @result{} #t
 'foo            @result{} foo
 '(1 2 3)        @result{} (1 2 3)
 '#(1 2 3)       @result{} #(1 2 3)
 @end example
 
-The @code{'} shown in the previous examples is not needed for
+The @samp{'} shown in the previous examples is not needed for
 representations of number objects or booleans.  The syntactic datum
-@code{foo} represents a symbol with name ``foo'', and @code{'foo} is a
-literal expression with that symbol as its value.  @code{(1 2 3)} is a
-syntactic datum that represents a list with elements 1, 2, and 3, and
-@code{'(1 2 3)} is a literal expression with this list as its value.
-Likewise, @code{#(1 2 3)} is a syntactic datum that represents a vector
-with elements 1, 2 and 3, and @code{'#(1 2 3)} is the corresponding
-literal.
+@samp{foo} represents a symbol with name ``foo'', and @samp{'foo} is a
+literal expression with that symbol as its value.  @samp{(1 2 3)} is a
+syntactic datum that represents a list with elements @samp{1}, @samp{2},
+and @samp{3}, and @samp{'(1 2 3)} is a literal expression with this list
+as its value.  Likewise, @samp{#(1 2 3)} is a syntactic datum that
+represents a vector with elements @samp{1}, @samp{2} and @samp{3}, and
+@samp{'#(1 2 3)} is the corresponding literal.
 
 The syntactic data are a superset of the Scheme forms.  Thus, data can
 be used to represent Scheme forms as data objects.  In particular,
 symbols can be used to represent identifiers.
 
 @example
-'(+ 23 42)                      @result{} (+ 23 42)
-'(define (f x) (+ x 42))        @result{} (define (f x) (+ x 42))
+'(+ 23 42)                 @result{} (+ 23 42)
+'(define (f x) (+ x 42))   @result{} (define (f x) (+ x 42))
 @end example
 
 This facilitates writing programs that operate on Scheme source code, in
 particular interpreters and program transformers.
-
 
 @c page
 @node lang overview continuations
 @subsection Continuations
 
 
-Whenever a Scheme expression is evaluated there is a @emph{continuation}
+Whenever a Scheme expression is evaluated there is a @dfn{continuation}
 wanting the result of the expression.  The continuation represents an
 entire (default) future for the computation.  For example, informally
 the continuation of @code{3} in the expression
@@ -1926,9 +1945,9 @@ the scenes and programmers do not think much about them.  On rare
 occasions, however, a programmer may need to deal with continuations
 explicitly.
 
-The @func{call-with-current-continuation} procedure (@ref{baselib control})
-allows Scheme programmers to do that by creating a procedure that
-reinstates the current continuation.
+The @func{call-with-current-continuation} procedure allows Scheme
+programmers to do that by creating a procedure that reinstates the
+current continuation.  @ref{baselib control, Control features}
 
 The @func{call-with-current-continuation} procedure accepts a procedure,
 calls it immediately with an argument that is an @emph{escape
@@ -1939,10 +1958,10 @@ abandons its own continuation, and reinstates the continuation of the
 call to @func{call-with-current-continuation}.
 
 In the following example, an escape procedure representing the
-continuation that adds 1 to its argument is bound to @code{escape}, and
-then called with 3 as an argument.  The continuation of the call to
-@code{escape} is abandoned, and instead the 3 is passed to the
-continuation that adds 1:
+continuation that adds @samp{1} to its argument is bound to
+@code{escape}, and then called with @samp{3} as an argument.  The
+continuation of the call to @code{escape} is abandoned, and instead the
+@samp{3} is passed to the continuation that adds @samp{1}:
 
 @example
 (+ 1 (call-with-current-continuation
@@ -1957,22 +1976,19 @@ times.  This makes @func{call-with-current-continuation} significantly
 more powerful than typical non--local control constructs such as
 exceptions in other languages.
 
-
 @c page
 @node lang overview libraries
 @subsection Libraries
 
 
-Scheme code can be organized in components called @emph{libraries}.
-Each library contains definitions and expressions.  It can import
-definitions from other libraries and export definitions to other
-libraries.
+Scheme code can be organized in components called @dfn{libraries}.  Each
+library contains definitions and expressions.  It can import definitions
+from other libraries and export definitions to other libraries.
 
-The following library called @code{(hello)} exports a definition called
-@func{hello-world}, and imports the base library (@ref{baselib}) and the
-simple I/O library (@ref{stdlib io simple}).  The @func{hello-world}
-export is a procedure that displays @code{Hello World} on a separate
-line:
+The following library called @samp{(hello)} exports a definition called
+@func{hello-world}, and imports the base library and the simple I/O
+library.  The @func{hello-world} export is a procedure that displays
+@samp{Hello World} on a separate line:
 
 @example
 (library (hello)
@@ -1984,26 +2000,25 @@ line:
     (newline)))
 @end example
 
-
 @c page
 @node lang overview programs
 @subsection Top--level programs
 
 
-A Scheme program is invoked via a @emph{top--level program}.  Like a
+A Scheme program is invoked via a @dfn{top--level program}.  Like a
 library, a top--level program contains imports, definitions and
 expressions, and specifies an entry point for execution.  Thus a
 top--level program defines, via the transitive closure of the libraries
 it imports, a Scheme program.
 
 The following top--level program obtains the first argument from the
-command line via the @code{command-line} procedure from the
-@rsixlibrary{programs} library (@ref{stdlib programlib}).  It then opens
-the file using @func{open-file-input-port} (@ref{stdlib io port input
-ports}), yielding a @emph{port}, i.e. a connection to the file as a data
-source, and calls the @func{get-bytes-all} procedure to obtain the
-contents of the file as binary data.  It then uses @func{put-bytes} to
-output the contents of the file to standard output:
+command line via the @func{command-line} procedure from the
+@rsixlibrary{programs} library.  It then opens the file using
+@func{open-file-input-port}, yielding a @emph{port}, i.e. a connection
+to the file as a data source, and calls the @func{get-bytes-all}
+procedure to obtain the contents of the file as binary data.  It then
+uses @func{put-bytes} to output the contents of the file to standard
+output:
 
 @example
 #!r6rs
@@ -2019,7 +2034,6 @@ output the contents of the file to standard output:
   (close-port p))
 @end example
 
-
 @c page
 @node lang requirements
 @section Requirement levels
@@ -2027,7 +2041,7 @@ output the contents of the file to standard output:
 
 The key words ``must'', ``must not'', ``should'', ``should not'',
 ``recommended'', ``may'', and ``optional'' in this report are to be
-interpreted as described in @acronym{RFC} 2119.  Specifically:
+interpreted as described in @rfc{} 2119.  Specifically:
 
 @table @strong
 @item must
@@ -2057,16 +2071,16 @@ optional.
 
 In particular, this report occasionally uses ``should'' to designate
 circumstances that are outside the specification of this report, but
-cannot be practically detected by an implementation; @ref{lang basic
-argument checking}.  In such circumstances, a particular implementation
-may allow the programmer to ignore the recommendation of the report and
-even exhibit reasonable behavior.  However, as the report does not
-specify the behavior, these programs may be unportable, that is, their
-execution might produce different results on different implementations.
+cannot be practically detected by an implementation.  @ref{lang basic
+argument checking, Arguments checking}.  In such circumstances, a
+particular implementation may allow the programmer to ignore the
+recommendation of the report and even exhibit reasonable behavior.
+However, as the report does not specify the behavior, these programs may
+be unportable, that is, their execution might produce different results
+on different implementations.
 
 Moreover, this report occasionally uses the phrase ``not required'' to
 note the absence of an absolute requirement.
-
 
 @c page
 @node lang numbers
@@ -2078,14 +2092,13 @@ distinguish between the mathematical numbers, the Scheme objects that
 attempt to model them, the machine representations used to implement the
 numbers, and notations used to write numbers.
 
-In this report, the term @emph{number} refers to a mathematical number,
-and the term @emph{number object} refers to a Scheme object representing
-a number.  This report uses the types @emph{complex}, @emph{real},
-@emph{rational}, and @emph{integer} to refer to both mathematical
-numbers and number objects.  The @emph{fixnum} and @emph{flonum} types
-refer to special subsets of the number objects, as determined by common
-machine representations, as explained below.
-
+In this report, the term @dfn{number} refers to a mathematical number,
+and the term @dfn{number object} refers to a Scheme object representing
+a number.  This report uses the types @dfn{complex}, @dfn{real},
+@dfn{rational}, and @dfn{integer} to refer to both mathematical numbers
+and number objects.  The @dfn{fixnum} and @dfn{flonum} types refer to
+special subsets of the number objects, as determined by common machine
+representations, as explained below.
 
 @menu
 * lang numbers tower::          Numerical tower.
@@ -2118,8 +2131,9 @@ and a complex.  The same is true of the number objects that model 5.
 
 Number objects are organized as a corresponding tower of subtypes
 defined by the predicates @code{number?}, @code{complex?}, @code{real?},
-@code{rational?}, and @code{ integer?}; @ref{baselib math ops type pred}.
-Integer number objects are also called @emph{integer objects}.
+@code{rational?}, and @code{ integer?}.  @ref{baselib math ops type
+pred, Numerical types predicates}.  Integer number objects are also
+called @dfn{integer objects}.
 
 There is no simple relationship between the subset that contains a
 number and its representation inside a computer.  For example, the
@@ -2128,7 +2142,6 @@ operations treat number objects as abstract data, as independent of
 their representation as possible.  Although an implementation of Scheme
 may use many different representations for numbers, this should not be
 apparent to a casual programmer writing simple programs.
-
 
 @c page
 @node lang numbers exactness
@@ -2158,29 +2171,29 @@ derived using inexact operations.  Thus inexactness is contagious.
 
 Exact arithmetic is reliable in the following sense: If exact number
 objects are passed to any of the arithmetic procedures described in
-section ``Propagation of exactness and inexactness'', and an exact
-number object is returned, then the result is mathematically correct.
-This is generally not true of computations involving inexact number
-objects because approximate methods such as floating--point arithmetic
-may be used, but it is the duty of each implementation to make the
-result as close as practical to the mathematically ideal result.
-
+@ref{baselib math exactness, Propagation of exactness and inexactness},
+and an exact number object is returned, then the result is
+mathematically correct.  This is generally not true of computations
+involving inexact number objects because approximate methods such as
+floating--point arithmetics may be used, but it is the duty of each
+implementation to make the result as close as practical to the
+mathematically ideal result.
 
 @c page
 @node lang numbers fix flo
 @subsection Fixnums and flonums
 
 
-A @emph{fixnum} is an exact integer object that lies within a certain
+A @dfn{fixnum} is an exact integer object that lies within a certain
 implementation--dependent subrange of the exact integer objects.
-(Library section on ``Fixnums'' describes a library for computing with
-fixnums.)  Likewise, every implementation must designate a subset of its
-inexact real number objects as @emph{flonums}, and to convert certain
-external representations into flonums.  (Library section on ``Flonums''
-describes a library for computing with flonums.)  Note that this does
-not imply that an implementation must use floating--point
-representations.
+@ref{stdlib arithmetics fixnum, Fixnums}
 
+Likewise, every implementation must designate a subset of its inexact
+real number objects as @dfn{flonums}, and to convert certain external
+representations into flonums.  @ref{stdlib arithmetics flonum, Flonums}
+
+Note that this does not imply that an implementation must use
+floating--point representations.
 
 @c page
 @node lang numbers requirements
@@ -2188,14 +2201,14 @@ representations.
 
 
 Implementations of Scheme must support number objects for the entire
-tower of subtypes given in section ``Numerical tower''.  Moreover,
-implementations must support exact integer objects and exact rational
-number objects of practically unlimited size and precision, and to
-implement certain procedures (listed in ``Propagation of exactness and
-inexactness'') so they always return exact results when given exact
-arguments.  (``Practically unlimited'' means that the size and precision
-of these numbers should only be limited by the size of the available
-memory.)
+tower of subtypes given in @ref{lang numbers tower, Numerical tower}.
+Moreover, implementations must support exact integer objects and exact
+rational number objects of practically unlimited size and precision, and
+to implement certain procedures (listed in @ref{baselib math exactness,
+Propagation of exactness and inexactness}), so they always return exact
+results when given exact arguments.  (``Practically unlimited'' means
+that the size and precision of these numbers should only be limited by
+the size of the available memory.)
 
 Implementations may support only a limited range of inexact number
 objects of any type, subject to the requirements of this section.  For
@@ -2239,8 +2252,8 @@ implementation.
 
 
 Some Scheme implementations, specifically those that follow the @ieee{}
-floating--point standards, distinguish special number objects called,
-@emph{negative infinity}, and @emph{NaN}.
+floating--point standards, distinguish special number objects called
+@dfn{positive infinity}, @dfn{negative infinity} and @dfn{NaN}.
 
 Positive infinity is regarded as an inexact real (but not rational)
 number object that represents an indeterminate number greater than the
@@ -2253,7 +2266,6 @@ A NaN is regarded as an inexact real (but not rational) number object so
 indeterminate that it might represent any real number, including
 positive or negative infinity, and might even be greater than positive
 infinity or less than negative infinity.
-
 
 @c page
 @node lang numbers minus zero
@@ -2275,38 +2287,43 @@ distinguish @math{-0.0}''.
 
 
 @menu
+* lang lex intro::              Introduction.
 * lang lex notation::           Notation.
 * lang lex syntax::             Lexical syntax.
 * lang lex datum::              Datum syntax.
 @end menu
 
-@noindent
+@c page
+@node lang lex intro
+@subsection Introduction
+
+
 The syntax of Scheme code is organized in three levels:
 
 @enumerate
 @item
-the @emph{lexical syntax} that describes how a program text is split
-into a sequence of lexemes,
+The @dfn{lexical syntax} that describes how a program text is split
+into a sequence of lexemes.
 
 @item
-the @emph{datum syntax}, formulated in terms of the lexical syntax, that
-structures the lexeme sequence as a sequence of @emph{syntactic data},
-where a syntactic datum is a recursively structured entity,
+The @dfn{datum syntax}, formulated in terms of the lexical syntax, that
+structures the lexeme sequence as a sequence of @dfn{syntactic data},
+where a syntactic datum is a recursively structured entity.
 
 @item
-the @emph{program syntax} formulated in terms of the datum syntax,
+The @dfn{program syntax} formulated in terms of the datum syntax,
 imposing further structure and assigning meaning to syntactic data.
 @end enumerate
 
-Syntactic data (also called @emph{external representations}) double as a
+Syntactic data (also called @dfn{external representations}) double as a
 notation for objects, and Scheme's @rsixlibrary{io ports} library
-(library section ``Port I/O'') provides the @func{get-datum} and
-@func{put-datum} procedures for reading and writing syntactic data,
-converting between their textual representation and the corresponding
-objects.  Each syntactic datum represents a corresponding @emph{datum
-value}.  A syntactic datum can be used in a program to obtain the
-corresponding datum value using @code{quote} (@ref{baselib expressions
-quotation}).
+provides the @func{get-datum} and @func{put-datum} procedures for
+reading and writing syntactic data, converting between their textual
+representation and the corresponding objects.  @ref{stdlib io port, Port
+input/output}.  Each syntactic datum represents a corresponding
+@emph{datum value}.  A syntactic datum can be used in a program to
+obtain the corresponding datum value using @func{quote}.  @ref{baselib
+expressions quotation, Quotation}
 
 Scheme source code consists of syntactic data and (non--significant)
 comments.  Syntactic data in Scheme source code are called @emph{forms}.
@@ -2342,7 +2359,6 @@ syntax.  The syntax @code{#!r6rs} may be used to signify that the input
 afterward is written with the lexical syntax and datum syntax described
 by this report.  @code{#!r6rs} is otherwise treated as a comment;
 @ref{lang lex syntax whitespace and comments}.
-
 
 @c page
 @node lang lex notation
@@ -18320,6 +18336,13 @@ The @library{vectors} library.
 @section Functions
 
 
+@defun = @var{x} ...
+An extension of the @rnrs{6} @func{=} function that also accepts zero
+and one arguments.  When called with no arguments, return @true{}.  When
+called with one argument, return the result of comparing it with itself.
+@end defun
+
+
 @defun non-negative? @var{x}
 @defunx non-positive? @var{x}
 Return @true{} if @var{x} is strictly positive or strictly negative.
@@ -19323,6 +19346,7 @@ silently ignored.
 * lalr::                        A LALR(1) parser generator.
 * csv::                         Comma--separated value (@acronym{CSV}) utilities.
 * schelog::                     Programming in Schelog.
+* email addresses::             Email address processing.
 
 Low level libraries
 
@@ -19335,18 +19359,27 @@ Low level libraries
 @section List library
 
 
-The @library{lists} and @library{lists stx} libraries implement a rich
+The @library{lists} and @library{lists stx} libraries implement a
 collection of functions and macros to manipulate lists.  Additionally,
 @library{lists low} implements a collection of low level utilities.
+These libraries have two purposes: To provide a rich set of functions
+and macros and to be a source code repository from which code can be
+taken and specialised.  For the last purpose, the libraries export
+macros that may make little sense in most scenarios (beside the fact
+that they are always inlined).
+
+@quotation
+@strong{Note} The @library{lists ---} libraries are derived from the
+@ansrfi{1} document and reference implementation by Olin Shivers, but
+they are @strong{not} compatible with it.  Read carefully this
+documentation!
+@end quotation
 
 @menu
 * lists intro::                 Introduction.
-* lists linear update::         Linear update procedures.
-* lists improper::              Improper lists.
+* lists conventions::           Conventions.
 * lists cons::                  Constructors.
-* lists kind::                  Kind related predicates.
-* lists null::                  Null related predicates.
-* lists pair::                  Pair related predicates.
+* lists pred::                  Predicates.
 * lists compar::                Comparison.
 * lists select::                Selectors.
 * lists misc::                  Length, append, concatenate,
@@ -19357,6 +19390,7 @@ collection of functions and macros to manipulate lists.  Additionally,
 * lists delete::                Deletion.
 * lists sorted::                Utilities for sorted lists.
 * lists alist::                 Association lists.
+* lists circ::                  Circular lists.
 * lists set::                   Set operations on lists.
 * lists low::                   Low level utilities.
 @end menu
@@ -19364,161 +19398,6 @@ collection of functions and macros to manipulate lists.  Additionally,
 @c page
 @node lists intro
 @subsection Introduction
-
-
-All the functions are exported by the @library{lists} library, while all
-the macros are exported by the @library{lists stx}.  Each macro has a
-corresponding function version, but some functions were not translated
-to macros.  Macro names always end with the suffix @samp{/stx}.
-
-The documentation of this library obeys the following conventions for
-procedure formals:
-
-@table @var
-@item list
-A proper (finite, nil--terminated) list.
-
-@item clist
-A proper or circular list.
-
-@item flist
-A finite (proper or dotted) list.
-
-@item pair
-A pair.
-
-@item n
-@itemx i
-A natural number (an integer @math{>= 0}).
-
-@item proc
-A procedure.
-
-@item pred
-A procedure whose return value is treated as a boolean.
-
-@item =
-A boolean procedure taking two arguments.
-
-@item fill
-Can be any value.  This is used to indicate values used to fill a
-compound data structure.
-
-@item x
-@itemx y
-@itemx d
-@itemx a
-@item obj
-Any value.
-@end table
-
-It is an error to pass a circular or dotted list to a procedure not
-defined to accept such an argument.
-
-
-@c page
-@node lists linear update
-@subsection Linear update procedures
-
-
-Many procedures in this library have ``pure'' and ``linear update''
-variants.  A ``pure'' procedure has no side--effects, and in particular
-does not alter its arguments in any way.  A ``linear update'' procedure
-is allowed, but not required, to side--effect its arguments in order to
-construct its result.  ``Linear update'' procedures are typically given
-names ending with an exclamation point.
-
-So, for example, @code{(append!  list1 list2)} is allowed to construct
-its result by simply using @func{set-cdr!} to set the cdr of the last
-pair of @var{list1} to point to @var{list2}, and then returning
-@var{list1} (unless @var{list1} is the empty list, in which case it
-would simply return @var{list2}).  However, @func{append!} may also
-elect to perform a pure append operation, this is a legal definition of
-append!:
-
-@example
-(define append! append)
-@end example
-
-This is why we do not call these procedures ``destructive'', because
-they aren't required to be destructive.  They are @emph{potentially}
-destructive.
-
-What this means is that we may only apply linear--update procedures to
-values that we know are ``dead'', values that will never be used again
-in our program.  This must be so, since we can't rely on the value
-passed to a linear--update procedure after that procedure has been
-called.  It might be unchanged; it might be altered.
-
-The ``linear'' in ``linear update'' doesn't mean ``linear time'' or
-``linear space'' or any sort of multiple--of--n kind of meaning.  It's a
-fancy term that type theorists and pure functional programmers use to
-describe systems where we are only allowed to have exactly one
-reference to each variable.  This provides a guarantee that the value
-bound to a variable is bound to no other variable.  So when we use a
-variable in a variable reference, we ``use it up''.  Knowing that no
-one else has a pointer to that value means the a system primitive is
-free to side--effect its arguments to produce what is, observationally,
-a pure--functional result.
-
-In the context of this library, ``linear update'' means we, the
-programmers, know there are no other live references to the value passed
-to the procedure; after passing the value to one of these procedures,
-the value of the old pointer is indeterminate.  Basically, we are
-licensing the Scheme implementation to alter the data structure if it
-feels like it; we have declared we don't care either way.
-
-We get no help from Scheme in checking that the values we claim are
-``linear'' really are.  So we better get it right.  Or play it safe and
-use the non--@code{!} procedures; it doesn't do any good to compute
-quickly if we get the wrong answer.
-
-Why go to all this trouble to define the notion of ``linear update'' and
-use it in a procedure spec, instead of the more common notion of a
-``destructive'' operation?
-
-First, note that destructive list--processing procedures are almost
-always used in a linear--update fashion.  This is in part required by
-the special case of operating upon the empty list, which can't be
-side--effected.  This means that destructive operators are not pure
-side--effects, they have to return a result.
-
-Second, note that code written using linear--update operators can be
-trivially ported to a pure, functional subset of Scheme by simply
-providing pure implementations of the linear--update operators.
-
-Finally, requiring destructive side--effects ruins opportunities to
-parallelise these operations, and the places where one has taken the
-trouble to spell out destructive operations are usually exactly the code
-one would want a parallelising compiler to parallelise: the
-efficiency--critical kernels of the algorithm.
-
-Linear--update operations are easily parallelised.  Going with a
-linear--update spec doesn't close off these valuable alternative
-implementation techniques.  This list library is intended as a set of
-low--level, basic operators, so we don't want to exclude these possible
-implementations.
-
-The linear--update procedures in this library are:
-
-@example
-alist-delete!           append!
-append-map!             append-reverse!
-break!                  concatenate!
-delete!                 delete-duplicates!
-drop-right!             filter!
-lset-adjoin!            lset-diff+intersection!
-lset-difference!        lset-xor!
-lset-intersection!      lset-union!
-map!                    partition!
-remove!                 reverse!
-span!                   split-at!
-take!                   take-while!
-@end example
-
-@c page
-@node lists improper
-@subsection Improper lists
 
 
 Scheme does not properly have a list type, just as the C language does
@@ -19529,22 +19408,65 @@ complications ensue from the fact that Scheme allows side--effects to
 these tuples, raising the possibility of lists of unbounded length, and
 trees of unbounded depth (that is, circular data structures).
 
-However, there is a simple view of the world of Scheme values that
-considers every value to be a list of some sort.  That is, every value
-is either:
+What follows is a classification of concrete values with respect to
+@dfn{list} as an abstract concept.
 
-@itemize
-@item
-a ``proper list'' (a finite, nil--terminated list) such as:
+@c ------------------------------------------------------------
+
+@subsubheading Null value
+
+It is a special value which can be identified with the predicate
+@func{null?}.  Null is meant to represent empty lists and to be the
+terminator for proper lists.
+
+@func{length} applied to null returns zero.  In light of what follows,
+it makes sense to consider null as a list of length zero for all the
+list classes: proper, circular, dotted, generalised.
+
+@c ------------------------------------------------------------
+
+@subsubheading Proper lists
+
+A finite, null--terminated list.  More precisely a proper list is
+defined as: A pair whose cdr is a proper list or null.  The opposite of
+proper is @dfn{improper}; everything that is not null or a proper list,
+is an improper list.
 
 @example
 (a b c)
-()
 (32)
 @end example
 
-@item
-a ``dotted list'' (a finite, non--nil terminated list) such as:
+@c ------------------------------------------------------------
+
+@subsubheading Circular list
+
+An infinite, unterminated list.  A circular list is a value such that
+@func{cdr} applied any number of times always returns a pair.  The
+opposite of circular is @dfn{finite}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Dotted list
+
+A finite, non--nil terminated list, such as:
+
+@example
+(a b c . d)
+(x . y)
+@end example
+
+@noindent
+a dotted list is a value for which there exists an integer @math{n > 0},
+such that @func{cdr} applied @math{n} times yields neither a pair nor
+null.  This means that, for a dotted list, either @func{null?} or
+@func{pair?} return @true{}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Generalised list
+
+A finite, non--nil terminated list, such as:
 
 @example
 (a b c . d)
@@ -19553,19 +19475,25 @@ a ``dotted list'' (a finite, non--nil terminated list) such as:
 george
 @end example
 
-@item
-or a ``circular list'' (an infinite, unterminated list).
-@end itemize
+@noindent
+an improper list is a value for which there exists an integer @math{n >=
+0}, such that @func{cdr} applied @math{n} times yields neither a pair
+nor null.  This includes non--pair, non--null values (symbols, numbers,
+etc.), which are considered to be improper lists of length @math{0}.
+Dotted lists are improper lists.
 
-Note that the zero--length dotted lists are simply all the non--null,
-non--pair values.
+@c ------------------------------------------------------------
 
-This view is captured by the predicates @func{proper-list?},
-@func{dotted-list?}, and @func{circular-list?}.  This list library users
-should note that dotted lists are not commonly used, and are considered
-by many Scheme programmers to be an ugly artifact of Scheme's lack of a
-true list type.  However, dotted lists do play a noticeable role in the
-syntax of Scheme, in the ``rest'' parameters used by n--ary lambdas:
+This view is captured by the predicates @func{list?} (defined by
+@rnrs{6}), @func{improper-list?} and @func{circular-list?}  which
+partition the entire universe of Scheme values.  Additionally
+@func{dotted-list?} recognises dotted lists.
+
+This list library users should note that dotted lists are not commonly
+used, and are considered by many Scheme programmers to be an ugly
+artifact of Scheme's lack of a true list type.  However, dotted lists do
+play a noticeable role in the syntax of Scheme, in the ``rest''
+parameters used by n--ary lambdas:
 
 @example
 (lambda (x y . rest) ...)
@@ -19580,6 +19508,60 @@ procedures, it has the benefit of allowing the procedures to catch the
 error cases where programmers inadvertently pass scalar values to a list
 procedure by accident, e.g., by switching the arguments to a procedure
 call.
+
+@c page
+@node lists conventions
+@subsection Conventions
+
+
+All the functions are exported by the @library{lists} library, while all
+the macros are exported by @library{lists stx}.  Each macro has a
+corresponding function version, but some functions were not translated
+to macros.  Macro names always end with the suffix @samp{/stx}.
+
+It is an error to pass a circular or dotted list to a procedure not
+defined to accept such an argument.  It is an error to pass a proper or
+dotted list to a procedure defined for circular lists.
+
+All the functions and macros whose main name ends with @samp{!}, are
+allowed, but not required, to alter their arguments.
+
+The documentation of this library obeys the following conventions for
+procedure formals:
+
+@table @var
+@item ell
+A proper (finite, nil--terminated) list.
+
+@item circ
+A proper or circular list.
+
+@item dotted
+A dotted list.
+
+@item pair
+A pair.
+
+@item n
+@itemx i
+A natural number (an integer @math{>= 0}).
+
+@item proc
+A procedure.
+
+@item pred
+A procedure whose return value is treated as a boolean.
+
+@item item=
+A boolean procedure taking two arguments.
+
+@item fill
+Can be any value.  This is used to indicate values used to fill a
+compound data structure.
+
+@item obj
+Any value, this includes dotted lists.
+@end table
 
 @c page
 @node lists cons
@@ -19619,16 +19601,16 @@ arbitrary values.
 @end deffn
 
 
-@deffn Function list-copy @var{flist}
-@deffnx Syntax list-copy/stx @var{flist}
+@deffn Function list-copy @var{fell}
+@deffnx Syntax list-copy/stx @var{fell}
 Copy the spine of the argument.
 @end deffn
 
 
-@deffn Function tree-copy @var{list}
-@deffnx Syntax tree-copy/stx @var{list}
-Copy the whole tree of the list @var{list}, not only the spine (which is
-what @func{list-copy} does).
+@deffn Function tree-copy @var{fell}
+@deffnx Syntax tree-copy/stx @var{fell}
+Copy the whole tree of @var{fell}, not only the spine (which is what
+@func{list-copy} does).
 @end deffn
 
 
@@ -19642,7 +19624,7 @@ Return an @var{n}--element list.  Element @math{i} of the list, where
 The basic variants build the list from element @math{0} to element
 @math{n-1}.  The @samp{/reverse} variants build the lists in reversed
 order, with element @math{n-1} created first.  The @samp{/reverse}
-variants should be faster, especially for long lists.
+variants may be a little faster, especially for long lists.
 
 @example
 (list-tabulate 4 values)
@@ -19651,8 +19633,12 @@ variants should be faster, especially for long lists.
 @end deffn
 
 
-@deffn Function iota @var{count} [@var{start} @var{step}]
-@deffnx Syntax iota/stx @var{count} [@var{start} @var{step}]
+@deffn Function iota @var{count}
+@deffnx Function iota @var{count} @var{start}
+@deffnx Function iota @var{count} @var{start} @var{step}
+@deffnx Syntax iota/stx @var{count}
+@deffnx Syntax iota/stx @var{count} @var{start}
+@deffnx Syntax iota/stx @var{count} @var{start} @var{step}
 Return a list containing the elements:
 
 @example
@@ -19660,8 +19646,8 @@ Return a list containing the elements:
 @end example
 
 The @var{start} and @var{step} parameters default to @code{0} and
-@code{1}, respectively.  This procedure takes its name from the
-@acronym{APL} primitive.
+@code{1}, respectively.  @var{count} must be a non--negative number.
+The resulting list is built in reverse, starting from the last element.
 
 @example
 (iota 5)
@@ -19670,187 +19656,95 @@ The @var{start} and @var{step} parameters default to @code{0} and
 (iota 5 0 -0.1)
 @result{} (0 -0.1 -0.2 -0.3 -0.4)
 @end example
-
-@quotation
-@strong{Nausicaa note:} When @var{count} is negative the return value is
-the empty list.
-@end quotation
 @end deffn
+
+@c page
+@node lists pred
+@subsection Predicates
+
+
+@defun not-pair? @var{obj}
+Defined as:
+
+@example
+(lambda (x) (not (pair? x)))
+@end example
+
+@noindent
+provided as a procedure as it can be useful as the termination condition
+for list--processing procedures that wish to handle all finite lists,
+both proper and dotted.
+@end defun
+
+
+@defun circular-list? @var{obj}
+@defunx circular-list?/or-null @var{obj}
+Return @true{} if @var{obj} is a circular list.  The @samp{/or-null}
+variant returns @true{} also if @var{obj} null.
+@end defun
+
+
+@defun dotted-list? @var{obj}
+@defunx dotted-list?/or-null @var{obj}
+Return @true{} if @var{obj} is a dotted list.  The @samp{/or-null}
+variant returns @true{} also if @var{obj} null.
+@end defun
 
 @c ------------------------------------------------------------
 
-@subsubheading Circular lists
-
-
-@deffn Function circular-list @vari{obj} @varii{obj} ...
-@deffnx Syntax circular-list/stx @vari{obj} @varii{obj} ...
-Construct a circular list of the elements.
-
-@example
-(circular-list 'z 'q) @result{} (z q z q z q ...)
-@end example
+@deffn Function and-null? @var{ell} ...
+@deffnx Syntax and-null?/stx @var{ell} ...
+Return @true{} if all the @var{ell} are null or no arguments are given.
 @end deffn
 
 
-@deffn Function list->clist! @var{list}
-@deffnx Syntax list->clist!/stx @var{list}
-Take a proper list and make it circular.  Return the circular list.
-@end deffn
-
-@c page
-@node lists kind
-@subsection Kind related predicates
-
-
-The predicates @func{proper-list?}, @func{circular-list?}, and
-@func{dotted-list?} partition the entire universe of Scheme values.
-
-
-@defun proper-list? @var{x}
-Return true if, and only if, @var{x} is a proper list: a finite,
-nil--terminated list.  More carefully: The empty list is a proper list.
-A pair whose cdr is a proper list is also a proper list:
-
-@example
-<proper-list> ::= ()                        (Empty proper list)
-              |   (cons <x> <proper-list>)  (Proper-list pair)
-@end example
-
-Note that this definition rules out circular lists.  This function is
-required to detect this case and return @false{}.  Nil--terminated lists
-are called ``proper'' lists by @rnrs{5} and Common Lisp.  The opposite
-of proper is improper.
-
-@rnrs{5} binds this function to the variable @func{list?}.
-
-@example
-(not (proper-list? x)) = (or (dotted-list? x)
-                             (circular-list? x))
-@end example
-@end defun
-
-
-@defun circular-list? @var{x}
-Return @true{} if @var{x} is a circular list.  A circular list is a
-value such that for every @code{n >= 0}, @code{cdrn(x)} is a pair.
-
-Terminology: The opposite of circular is finite.
-
-@example
-(not (circular-list? x)) = (or (proper-list? x)
-                               (dotted-list? x))
-@end example
-@end defun
-
-
-@defun dotted-list? @var{x}
-Return @true{} if @var{x} is a finite, non--nil--terminated list.  That
-is, there exists an @code{n >= 0} such that @code{cdrn(x)} is neither a
-pair nor @code{()}.  This includes non--pair, non--@code{()} values
-(e.g. symbols, numbers), which are considered to be dotted lists of
-length 0.
-
-@example
-(not (dotted-list? x)) = (or (proper-list? x)
-                             (circular-list? x))
-@end example
-@end defun
-
-
-@c page
-@node lists null
-@subsection Null related predicates
-
-
-@deffn Function and-null? @var{list} ...
-@deffnx Syntax and-null?/stx @var{list} ...
-Return @true{} if all the @var{list} are null or no arguments are given.
-@end deffn
-
-
-@deffn Function or-null? @var{list} ...
-@deffnx Syntax or-null?/stx @var{list} ...
-Return @true{} if at least one of the @var{list} is null.  Return
+@deffn Function or-null? @var{ell} ...
+@deffnx Syntax or-null?/stx @var{ell} ...
+Return @true{} if at least one of the @var{ell} is null.  Return
 @false{} if no arguments are given.
 @end deffn
 
 
-@deffn Function and/or-null? @var{list} ...
-@deffnx Syntax and/or-null?/stx @var{list} ...
+@deffn Function and/or-null? @var{ell} ...
+@deffnx Syntax and/or-null?/stx @var{ell} ...
 Return two values being the return values of @func{and-null?} and
-@func{or-null?} applied to the @var{list} arguments.
+@func{or-null?} applied to the @var{ell} arguments.
 @end deffn
-
-@c page
-@node lists pair
-@subsection Pair related predicates
-
-
-@defun not-pair? @var{x}
-Defined as: @code{(lambda (x) (not (pair? x)))}.  Provided as a
-procedure as it can be useful as the termination condition for
-list--processing procedures that wish to handle all finite lists, both
-proper and dotted.
-@end defun
-
 
 @c page
 @node lists compar
 @subsection Comparison
 
 
-@defun list=? @var{elm=?} @var{list1} ...
+@defun list=? @var{item=} @var0{ell} ...
 Determines list equality, given an element--equality procedure
-@var{elm=?}.  Proper list @var{AL} equals proper list @var{BL} if:
+@var{item=}.  Proper list @vari{ell} equals proper list @varii{ell} if:
 
 @enumerate
 @item
 They are of the same length.
 
 @item
-Their corresponding elements are equal, according to @var{elm=?}.
+Their corresponding elements are equal, according to @var{item=}.
 @end enumerate
 
-If the element--comparison procedure's first argument is from
-@var{listi}, then its second argument is from @var{listi+1}, i.e. it is
-always called as @code{(elm=? a b)} for @var{a} an element of list
-@var{AL}, and @var{b} an element of list @var{BL}.
+If there are no list arguments, or only one list argument: The return
+value is @true{}.  If there are two or more list arguments they are
+compared in couples: First @var0{ell} is compared to @vari{ell}, then
+@vari{ell} is compared to @varii{ell}, etc.  The iteration over list
+arguments stops if two list arguments are found different.
 
-In the n--ary case, every @var{listi} is compared to @var{listi+1} (as
-opposed, for example, to comparing @var{list1} to every @var{listi}, for
-@code{i>1}).
-
-If there are no list arguments at all, @func{list=?} simply returns
-@true{}.
-
-It is an error to apply @func{list=?} to anything except proper lists.
-While implementations may choose to extend it to circular lists, note
-that it cannot reasonably be extended to dotted lists, as it provides no
-way to specify an equality procedure for comparing the list terminators.
-
-@quotation
-@emph{Nausicaa note:} The @value{PACKAGE} implementation does
-@strong{not} support comparison of circular lists.
-@end quotation
-
-Note that the dynamic order in which the @var{elm=?} procedure is applied
-to pairs of elements is not specified.  For example, if @func{list=?} is
-applied to three lists, @var{AL}, @var{BL}, and @var{CL}, it may first
-completely compare @var{AL} to @var{BL}, then compare @var{BL} to
-@var{CL}, or it may compare the first elements of @var{AL} and @var{BL},
-then the first elements of @var{BL} and @var{CL}, then the second
-elements of @var{AL} and @var{BL}, and so forth.
-
-The equality procedure must be consistent with @func{eq?}.  That is, it
-must be the case that:
+@var{item=} is applied to elements from two list arguments taken with
+the same order; the first from @vari{ell}, the second from @varii{ell},
+etc.  @var{item=} must be consistent with @func{eq?}:
 
 @example
 (eq? x y) @result{} (elm=? x y)
 @end example
 
-Note that this implies that two lists which are @func{eq?} are always
-@func{list=?}, as well; implementations may exploit this fact to
-``short--cut'' the element--by--element comparisons.
+@noindent
+this implies that two lists which are @func{eq?} are always
+@func{list=?}, as well.
 
 Examples:
 
@@ -19889,7 +19783,6 @@ Examples:
 @result{} #t
 @end example
 @end defun
-
 
 @c page
 @node lists select
@@ -19931,71 +19824,65 @@ The fundamental pair deconstructor:
 (lambda (p)
   (values (car p) (cdr p)))
 @end example
-
-This can, of course, be implemented more efficiently by a compiler.
 @end defun
 
 
-@deffn Function take @var{x} @var{i}
-@deffnx Function drop @var{x} @var{i}
-@deffnx Syntax take/stx @var{x} @var{i}
-@deffnx Syntax drop/stx @var{x} @var{i}
-@func{take} returns the first @var{i} elements of list @var{x}.
-@func{drop} returns all but the first @var{i} elements of list @var{x}.
+@deffn Function take-left @var{dotted} @var{i}
+@deffnx Function drop-left @var{dotted} @var{i}
+@deffnx Syntax take-left/stx @var{dotted} @var{i}
+@deffnx Syntax drop-left/stx @var{dotted} @var{i}
+@func{take-left} returns the first @var{i} elements of list
+@var{dotted}.  @func{drop-left} returns all but the first @var{i}
+elements of list @var{dotted}.
 
 @example
-(take '(a b c d e) 2)
+(take-left '(a b c d e) 2)
 => (a b)
 
-(drop '(a b c d e) 2)
+(drop-left '(a b c d e) 2)
 => (c d e)
 @end example
 
-@var{x} may be any value: a proper, circular, or dotted list:
+@var{dotted} may be any value: a proper, circular, or dotted list:
 
 @example
-(take '(1 2 3 . d) 2)
+(take-left '(1 2 3 . d) 2)
 => (1 2)
 
-(drop '(1 2 3 . d) 2)
+(drop-left '(1 2 3 . d) 2)
 => (3 . d)
 
-(take '(1 2 3 . d) 3)
+(take-left '(1 2 3 . d) 3)
 => (1 2 3)
 
-(drop '(1 2 3 . d) 3)
+(drop-left '(1 2 3 . d) 3)
 => d
 @end example
 
-For a legal @var{i}, @func{take} and @func{drop} partition the list in a
-manner which can be inverted with append:
+For a legal @var{i}, @func{take-left} and @func{drop-left} partition the
+list in a manner which can be inverted with append:
 
 @example
-(append (take x i) (drop x i)) = x
+(append (take-left x i) (drop-left x i)) = x
 @end example
 
-@func{drop} is exactly equivalent to performing @var{i} @func{cdr}
-operations on @var{x}; the returned value shares a common tail with
-@var{x}.
+@func{drop-left} is exactly equivalent to performing @var{i} @func{cdr}
+operations on @var{dotted}; the returned value shares a common tail with
+@var{dotted}.
 
-If the argument is a list of non--zero length, @func{take} is guaranteed
-to return a freshly--allocated list, even in the case where the entire
-list is taken, e.g. @code{(take lis (length lis))}.
-
-@quotation
-@emph{Nausicaa note:} @func{drop} will return a list which is a portion
-of the argument, unless the return value is the empty list.
-@end quotation
+If the argument is a list of non--zero length, @func{take-left} is
+guaranteed to return a freshly--allocated list, even in the case where
+the entire list is taken: @code{(take-left dotted (length+ dotted))}.
 @end deffn
 
 
-@deffn Function take-right @var{flist} @var{i}
-@deffnx Function drop-right @var{flist} @var{i}
-@deffnx Syntax take-right/stx @var{flist} @var{i}
-@deffnx Syntax drop-right/stx @var{flist} @var{i}
-@func{take-right} returns the last @var{i} elements of @var{flist}.
+@deffn Function take-right @var{dotted} @var{i}
+@deffnx Function drop-right @var{dotted} @var{i}
+@deffnx Syntax take-right/stx @var{dotted} @var{i}
+@deffnx Syntax drop-right/stx @var{dotted} @var{i}
+@func{take-right} returns the last @var{i} elements of @var{dotted}.
 @func{drop-right} returns all but the last @var{i} elements of
-@var{flist}.
+@var{dotted}.
 
 @example
 (take-right '(a b c d e) 2)
@@ -20007,7 +19894,7 @@ of the argument, unless the return value is the empty list.
 
 The returned list may share a common tail with the argument list.
 
-@var{flist} may be any finite list, either proper or dotted:
+@var{dotted} may be any finite list, either proper or dotted:
 
 @example
 (take-right '(1 2 3 . d) 2)
@@ -20023,26 +19910,26 @@ The returned list may share a common tail with the argument list.
 => (1 2 3)
 @end example
 
-For a legal @var{i}, @func{take-right} and @var{drop-right} partition
+For a legal @var{i}, @func{take-right} and @func{drop-right} partition
 the list in a manner which can be inverted with append:
 
 @example
-(append (take flist i) (drop flist i)) = flist
+(append (drop-right flist i) (take-right flist i)) = flist
 @end example
 
 The return value of @func{take-right} is guaranteed to share a common
-tail with @var{flist}.
+tail with @var{dotted}.
 
 If the argument is a list of non--zero length, @func{drop-right} is
 guaranteed to return a freshly--allocated list, even in the case where
-nothing is dropped, e.g. @code{(drop-right lis 0)}.
+nothing is dropped, e.g. @code{(drop-right dotted 0)}.
 @end deffn
 
 
-@deffn Function take! @var{flist} @var{i}
-@deffnx Function drop-right! @var{flist} @var{i}
-@deffnx Syntax take!/stx @var{flist} @var{i}
-@deffnx Syntax drop-right!/stx @var{flist} @var{i}
+@deffn Function take-left! @var{dotted} @var{i}
+@deffnx Function drop-right! @var{dotted} @var{i}
+@deffnx Syntax take-left!/stx @var{dotted} @var{i}
+@deffnx Syntax drop-right!/stx @var{dotted} @var{i}
 @func{take!} and @func{drop-right!} are linear--update variants of
 @func{take} and @func{drop-right}: the procedure is allowed, but not
 required, to alter the argument list to produce the result.
@@ -20060,7 +19947,7 @@ list of the first @var{i} elements, and the remaining tail.  It is
 equivalent to:
 
 @example
-(values (take x i) (drop x i))
+(values (take-left x i) (drop-left x i))
 @end example
 
 @func{split-at!} is the linear--update variant.  It is allowed, but not
@@ -20103,11 +19990,9 @@ finite list @var{pair}.
 
 @defun {length+} @var{clist}
 Return the length of the argument, or @false{} if @var{clist} is a
-circular list.
-
-The length of a proper list is a non--negative integer @math{n} such
-that @func{cdr} applied @math{n} times to the list produces the empty
-list.
+circular list.  The length of a proper list is a non--negative integer
+@math{n} such that @func{cdr} applied @math{n} times to the list
+produces the empty list.
 @end defun
 
 
@@ -21822,6 +21707,66 @@ key is greater than five with @code{(alist-delete 5 alist <)}.
 cells from the alist parameter to construct the result.
 @end defun
 
+@c page
+@node lists circ
+@subsection Circular lists
+
+
+@subsubheading Constructors
+
+@deffn Function circular-list @vari{obj} @varii{obj} ...
+@deffnx Syntax circular-list/stx @vari{obj} @varii{obj} ...
+Construct a circular list of the elements.
+
+@example
+(circular-list 'z 'q) @result{} (z q z q z q ...)
+@end example
+@end deffn
+
+
+@deffn Function list->circular-list! @var{list}
+@deffnx Syntax list->circular-list!/stx @var{list}
+Take a proper list and make it circular.  Return the circular list.
+@end deffn
+
+
+@deffn Function circular-list->list! @var{clist}
+@deffnx Function circular-list->list!/stx @var{clist}
+Take a circular list and ``open it'' returning a proper list.  The car
+of the returned list is the car of @var{clist}.  If @var{clist} is null,
+return null.
+@end deffn
+
+
+@deffn Function circular-list-copy @var{clist}
+@deffnx Syntax circular-list-copy/stx @var{clist}
+Build and return a copy of @var{clist}.  If @var{clist} is null, return
+null.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Inspection
+
+@deffn Function circular-list-length @var{clist}
+@deffnx Syntax circular-list-length/stx @var{clist}
+Return the number of elements in @var{clist}.  The length of a circular
+list is a non--negative exact integer @math{n} such that: @func{cdr}
+applied @math{n} times to @var{clist}, returns the @var{clist} pair
+itself.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Comparison
+
+@deffn Function circular-list= @var{=} @vari{clist} ...
+@deffnx Function circular-list=/stx @var{=} @vari{clist} @varii{clist}
+Compare the list arguments using @var{=}, return true if the lists are
+equal.  If all the list arguments are null, return @true{}.  If at least
+one list arguments i null, but not all, return @false{}.  If the list
+arguments have different length, return @false{}.
+@end deffn
 
 @c page
 @node lists set
@@ -22136,6 +22081,48 @@ to the @var{list} arguments.
 @end defun
 
 
+@defun %and/or-eq? @var{list-of-clists1} @var{list-of-clists2}
+Given two lists of lists (possibly circular), compare with @func{eq?}
+the sublists from the arguments, and return two boolean values:
+
+@enumerate
+@item
+True if each sublist from @var{list-of-clists1} is @func{eq?} to its
+homologous from @var{list-of-clists2}.
+
+@item
+True if at least one sublist from @var{list-of-clists1} is @func{eq?} to
+its homologous from @var{list-of-clists2}.
+@end enumerate
+
+@var{list-of-clists1} and @var{list-of-clists2} are meant to have the
+same length, but this is not tested.  The iteration will stop when the
+end of the shorter list is found.
+
+To understand how this function is used, consider the following:
+
+@smallexample
+(define (circular-list= item= . list-of-clists)
+  (let-values (((and-nil or-nil)
+               (apply %and/or-null? list-of-clists)))
+    (cond (and-nil #t)
+          (or-nil  #f)
+          (else
+           (let loop ((cells list-of-clists))
+             (let-values (((cars cdrs) (%cars/cdrs* cells)))
+               (or
+                (null? cars)
+                (and
+                 (apply item= cars)
+                 (let-values (((and-eq or-eq)
+                              (%and/or-eq? list-of-clists cdrs)))
+                   (cond (and-eq #t)
+                         (or-eq  #f)
+                         (else (loop cdrs))))))))))))
+@end smallexample
+@end defun
+
+
 @defun %cars @var{list-of-lists}
 @defunx %cars @var{list-of-lists} @var{who}
 Return the list of cars of the sublists of @var{list-of-lists}, which
@@ -22169,6 +22156,26 @@ sublist, but not all, is null: Raise an assertion violation using
 @defun %cdrs* @var{list-of-lists}
 Like @var{%cdrs} but accept sublists of different length.  If at least
 one sublist is null: The return value is null.
+@end defun
+
+
+@defun %cars/cdrs @var{list-of-lists}
+Given a list of sublists, return two values being the list of cars and
+the list of cdrs from @var{list-of-lists}.  If the sublists are detected
+
+not to have equal length, raise an error.
+@end defun
+
+
+@defun %cars/cdrs* @var{list-of-lists}
+Like @func{%cars/cdrs}, but accept lists of different length.  If a list
+in @var{list-of-lists} is null: Return 2 null values.
+@end defun
+
+
+@defun %cars+cdrs*/no-test @var{list-of-lists}
+Like @func{%cars/cdrs*}, but do not test if one sublist is null.  If one
+sublist is null, the behaviour is undefined.
 @end defun
 
 
@@ -22219,14 +22226,15 @@ sublists of different length.  If at least one sublist is null: The
 return value is null.
 @end defun
 
-
 @c ------------------------------------------------------------
 
 @subsubheading Queues
 
 The following macros handle queue values: Pairs whose car is a list and
-whose cdr is the last pair in the list.  They allow fast insertion of
-elements at the end of the list.
+whose cdr is the last pair in the list.  They allow user friendly
+insertion of elements at the end of the list.  Experiments show that
+building a list in reverse and then applying @func{reverse} to it, is
+almost always faster than using these queue macros.
 
 @example
           -----------
@@ -22248,17 +22256,21 @@ the @library{queues} library.  @ref{queues, Simple queues}
 
 
 @deffn Syntax %make-queue @var{obj}
-Build and return a new queue having @var{obj} as first argument.
+Build and return a new queue having @var{obj} as first argument.  Takes
+care of evaluating @var{obj} only once.
 @end deffn
 
 
-@deffn Syntax %list->queue @var{list}
-Embed @var{list} into a queue and return it.
+@deffn Syntax %list->queue @var{ell}
+Embed @var{list} into a queue and return it.  Takes care of evaluating
+@var{ell} only once.
 @end deffn
 
 
 @deffn Syntax enqueue! @var{queue} @var{obj}
-Enqueue @var{obj} at the end of @var{queue}.
+Enqueue @var{obj} at the end of @var{queue} and return a new queue
+value.  Takes care of evaluating @var{obj} only once, but evaluates
+@var{queue} multiple times.
 @end deffn
 
 
@@ -22272,6 +22284,45 @@ Return the last pair of the list inside of @var{queue}.  It is a synonym
 of @func{cdr}.
 @end deffn
 
+
+Examples of building a list using a queue:
+
+@example
+(define max-value+1 10)
+
+(do ((i 1 (+ 1 i))
+     (l (%make-queue 0) (%enqueue! l i)))
+    ((= i max-value+1)
+     (%queue-list-ref l)))
+@result{} '(0 1 2 3 4 5 6 7 8 9)
+
+(let loop ((l (%make-queue 0))
+           (i 1))
+  (if (= i max-value+1)
+      (%queue-list-ref l)
+    (loop (%enqueue! l i) (+ 1 i))))
+@result{} '(0 1 2 3 4 5 6 7 8 9)
+@end example
+
+@noindent
+which is the same of doing:
+
+@example
+(define max-value+1 10)
+
+(do ((i 1 (+ 1 i))
+     (l '(0) (cons i l)))
+    ((= i max-value+1)
+     (reverse l)))
+@result{} '(0 1 2 3 4 5 6 7 8 9)
+
+(let loop ((l '(0))
+           (i 1))
+  (if (= i max-value+1)
+      (reverse l)
+    (loop (cons i l) (+ 1 i))))
+@result{} '(0 1 2 3 4 5 6 7 8 9)
+@end example
 
 @c page
 @node char-sets
@@ -33863,7 +33914,7 @@ unlikely to be compiled efficiently.
 
 The following utility regular expressions are also provided for common
 patterns that people are eternally reinventing.  They are not
-necessarily the official patterns matching the @acronym{RFC} definitions
+necessarily the official patterns matching the @rfc{} definitions
 of the given data, because of the way that such patterns tend to be
 used.  There are three general usages for regexps:
 
@@ -33889,12 +33940,12 @@ want to exclude a period or comma at the tail end of an @aurl{}, since
 it's more likely being used as punctuation rather than part of the
 @aurl{}, despite the fact that it would be valid @aurl{} syntax.
 
-Another problem with the @acronym{RFC} definitions is the standard
-itself may have become irrelevant.  For example, the pattern
-@library{irregex} provides for email addresses doesn't match quoted
-local parts (e.g. @code{"first last"@@domain.com}) because these are
-increasingly rare, and unsupported by enough software that it's better
-to discourage their use.  Conversely, technically consecutive periods
+Another problem with the @rfc{} definitions is the standard itself may
+have become irrelevant.  For example, the pattern @library{irregex}
+provides for email addresses doesn't match quoted local parts
+(e.g. @code{"first last"@@domain.com}) because these are increasingly
+rare, and unsupported by enough software that it's better to discourage
+their use.  Conversely, technically consecutive periods
 (e.g. @code{first..last@@domain.com}) are not allowed in email
 addresses, but most email software does allow this, and in fact such
 addresses are quite common in Japan.
@@ -35424,8 +35475,9 @@ next character from @var{input-system}.
 
 
 @defun lexer-get-func-ungetc @var{input-system}
-Return a closure which, when applied to a character, will push it in
-@var{input-system} so that it will be the next character read.
+Return a closure which, when invoked with no arguments, will put back in
+@var{input-system} a character previously got with the closure returned
+by @func{lexer-get-func-getc}.
 @end defun
 
 @c page
@@ -36138,33 +36190,34 @@ tokenise strings as follows:
   (silex lexer)
   (csv strings-lexer))
 
-(define (tokenise-string string)
+(define (tokenise string)
   (let* ((IS    (lexer-make-IS :string string :counters 'all))
          (lexer (lexer-make-lexer csv-strings-table IS)))
-    (do* ((token (lexer) (lexer))
-          (ell   '()     (cons token ell)))
+    (do ((token (lexer) (lexer))
+         (ell   '()))
         ((not token)
-         (reverse ell)))))
+         (reverse ell))
+      (set! ell (cons token ell)))))
 
 ;;All the test strings must end with a \" to signal
 ;;the end-of-string to the strings lexer.
 
-(tokenise-string "\"")
+(tokenise "\"")
 @result{} ()
 
-(tokenise-string "abcd\"")
+(tokenise "abcd\"")
 @result{} (#\a #\b #\c #\d)
 
 ; Quoted double-quote.
-(tokenise-string "ab\"\"cd\"")
+(tokenise "ab\"\"cd\"")
 @result{} (#\a #\b #\" #\c #\d)
 
 ; Nested string.
-(tokenise-string "ab \"\"ciao\"\" cd\"")
+(tokenise "ab \"\"ciao\"\" cd\"")
 @result{} (#\a #\b #\space #\" #\c #\i #\a #\o #\" #\space #\c #\d)
 
 ; Stop reading at the ending double-quote.
-(tokenise-string "ab\"cd")
+(tokenise "ab\"cd")
 @result{} (#\a #\b)
 @end example
 
@@ -36177,11 +36230,11 @@ notice that the input system has to be created with @samp{:counters
   (silex lexer)
   (csv strings-lexer))
 
-(define (tokenise-string string)
-  (let* ((IS    (lexer-make-IS :string string :counters 'all))
+(define (tokenise string)
+  (let* ((IS    (lexer-make-IS :string string))
          (lexer (lexer-make-lexer csv-strings-table IS)))
     (let-values (((port the-string) (open-string-output-port)))
-      (do* ((token (lexer) (lexer)))
+      (do ((token (lexer) (lexer)))
           ((not token)
            (the-string))
         (write-char token port)))))
@@ -36189,22 +36242,22 @@ notice that the input system has to be created with @samp{:counters
 ;;All the test strings must end with a \" to signal
 ;;the end of string to the strings lexer.
 
-(tokenise-string "\"")
+(tokenise "\"")
 @result{} ""
 
-(tokenise-string "abcd\"")
+(tokenise "abcd\"")
 @result{} "abcd"
 
 ; Quoted double-quote.
-(tokenise-string "ab\"\"cd\"")
+(tokenise "ab\"\"cd\"")
 @result{} "ab\"cd"
 
 ; Nested string.
-(tokenise-string "ab \"\"ciao\"\" cd\"")
+(tokenise "ab \"\"ciao\"\" cd\"")
 @result{} "ab \"ciao\" cd"
 
 ; Stop reading at the ending double-quote.
-(tokenise-string "ab\"cd")
+(tokenise "ab\"cd")
 @result{} "ab"
 @end example
 
@@ -36225,7 +36278,7 @@ order, is collapsed to a single end--of--line.
 
 @item
 The symbol @samp{string} to represent the start of a string.  It is
-returned when the lexer finds a @samp{"} characger.
+returned when the lexer finds a @samp{"} character.
 
 @item
 In any other case the next character from the input system.
@@ -36250,10 +36303,11 @@ We can take advantage of this to tokenise unquoted data as follows:
 (define (tokenise string)
   (let* ((IS    (lexer-make-IS :string string :counters 'all))
          (lexer (lexer-make-lexer csv-unquoted-data-table IS)))
-    (do* ((token (lexer) (lexer))
-          (ell   '()     (cons token ell)))
+    (do ((token (lexer) (lexer))
+         (ell   '()))
         ((or (not token) (eq? token 'string))
-         (reverse ell)))))
+         (reverse ell))
+      (set! ell (cons token ell)))))
 
 (tokenise "alpha, beta")
 @result{} (#\a #\l #\p #\h #\a #\, #\space #\b #\e #\t #\a)
@@ -36293,49 +36347,51 @@ check for the number of fields on each line.
     (csv->list/comma port (lambda (field) field)))
 
    ((port swirl-field)
-    (let* ((IS          (lexer-make-IS :port port :counters 'all))
-         (string-lexer  (lexer-make-lexer csv-strings-table IS))
-         (data-lexer    (lexer-make-lexer csv-unquoted-data-table/comma IS))
-         (result        '())
-         (record        '()))
-    (let-values (((port field) (open-string-output-port)))
+    (let* ((IS            (lexer-make-IS :port port
+                                         :counters 'all))
+           (string-lexer  (lexer-make-lexer
+                            csv-strings-table IS))
+           (data-lexer    (lexer-make-lexer
+                            csv-unquoted-data-table/comma IS))
+           (result        '())
+           (record        '()))
+      (let-values (((port field) (open-string-output-port)))
 
-      (define (%add-token-to-field token)
-        (write-char token port))
+        (define (%add-token-to-field token)
+          (write-char token port))
 
-      (define (%add-string-to-field)
-        (%add-token-to-field #\")
-        (do* ((token (string-lexer) (string-lexer)))
+        (define (%add-string-to-field)
+          (%add-token-to-field #\")
+          (do ((token (string-lexer) (string-lexer)))
+              ((not token)
+               (%add-token-to-field #\"))
+            (%add-token-to-field token)))
+
+        (define (%add-field-to-record)
+          (set! record (cons (swirl-field (field)) record)))
+
+        (define (%add-record-to-result)
+          (set! result (cons (reverse record) result))
+          (set! record '()))
+
+        (do ((token (data-lexer) (data-lexer)))
             ((not token)
-             (%add-token-to-field #\"))
-          (%add-token-to-field token)))
+             (%add-field-to-record)
+             (reverse (cons (reverse record) result)))
+          (case token
 
-      (define (%add-field-to-record)
-        (set! record (cons (swirl-field (field)) record)))
+            ((eol)
+             (%add-field-to-record)
+             (%add-record-to-result))
 
-      (define (%add-record-to-result)
-        (set! result (cons (reverse record) result))
-        (set! record '()))
+            ((field)
+             (%add-field-to-record))
 
-      (do* ((token (data-lexer) (data-lexer))
-            (ell   '()     (cons token ell)))
-          ((not token)
-           (%add-field-to-record)
-           (reverse (cons (reverse record) result)))
-        (case token
+            ((string)
+             (%add-string-to-field))
 
-          ((eol)
-           (%add-field-to-record)
-           (%add-record-to-result))
-
-          ((field)
-           (%add-field-to-record))
-
-          ((string)
-           (%add-string-to-field))
-
-          (else
-           (%add-token-to-field token)))))))))
+            (else
+             (%add-token-to-field token)))))))))
 @end smallexample
 
 Here some examples:
@@ -36372,49 +36428,51 @@ The following is a variant that allows to specify, via the
     (csv->list port separators (lambda (field) field)))
 
    ((port separators swirl-field)
-    (let* ((IS          (lexer-make-IS :port port :counters 'all))
-         (string-lexer  (lexer-make-lexer csv-strings-table IS))
-         (data-lexer    (lexer-make-lexer csv-unquoted-data-table/comma IS))
-         (result        '())
-         (record        '()))
-    (let-values (((port field) (open-string-output-port)))
+    (let* ((IS            (lexer-make-IS :port port
+                                         :counters 'all))
+           (string-lexer  (lexer-make-lexer
+                            csv-strings-table IS))
+           (data-lexer    (lexer-make-lexer
+                            csv-unquoted-data-table/comma IS))
+           (result        '())
+           (record        '()))
+      (let-values (((port field) (open-string-output-port)))
 
-      (define (%add-token-to-field token)
-        (write-char token port))
+        (define (%add-token-to-field token)
+          (write-char token port))
 
-      (define (%add-string-to-field)
-        (%add-token-to-field #\")
-        (do* ((token (string-lexer) (string-lexer)))
+        (define (%add-string-to-field)
+          (%add-token-to-field #\")
+          (do ((token (string-lexer) (string-lexer)))
+              ((not token)
+               (%add-token-to-field #\"))
+            (%add-token-to-field token)))
+
+        (define (%add-field-to-record)
+          (set! record (cons (swirl-field (field)) record)))
+
+        (define (%add-record-to-result)
+          (set! result (cons (reverse record) result))
+          (set! record '()))
+
+        (do ((token (data-lexer) (data-lexer)))
             ((not token)
-             (%add-token-to-field #\"))
-          (%add-token-to-field token)))
+             (%add-field-to-record)
+             (reverse (cons (reverse record) result)))
+          (cond
 
-      (define (%add-field-to-record)
-        (set! record (cons (swirl-field (field)) record)))
+            ((eq? 'eol token)
+             (%add-field-to-record)
+             (%add-record-to-result))
 
-      (define (%add-record-to-result)
-        (set! result (cons (reverse record) result))
-        (set! record '()))
+            ((memv token separators)
+             (%add-field-to-record))
 
-      (do* ((token (data-lexer) (data-lexer))
-            (ell   '()     (cons token ell)))
-          ((not token)
-           (%add-field-to-record)
-           (reverse (cons (reverse record) result)))
-        (cond
+            ((eq? 'string token)
+             (%add-string-to-field))
 
-          ((eq? 'eol token)
-           (%add-field-to-record)
-           (%add-record-to-result))
-
-          ((memv token separators)
-           (%add-field-to-record))
-
-          ((eq? 'string token)
-           (%add-string-to-field))
-
-          (else
-           (%add-token-to-field token)))))))))
+            (else
+             (%add-token-to-field token)))))))))
 @end smallexample
 
 @c page
@@ -37027,6 +37085,705 @@ The original code is available at:
 
 @c User--defined Scheme predicates, in addition to primitive Scheme
 @c predicates, can be thus imported.
+
+@c page
+@node email addresses
+@section Parsing email addresses
+
+
+The @library{email addresses} library implements a lexer and parser for
+email addresses.  The parser is compliant to @rfc{} 822 format.  We can
+download @rfc{} 822 from @url{http://www.ietf.org}.
+
+The library is a rewriting of the C++ sources in @samp{Librfc822}
+version 1.0, Copyright @copyright{} 1998--2002 by Peter Simons,
+distributed under the terms of the @gnu{} General Public License.
+
+@menu
+* email addresses components::  Parsed components.
+* email addresses class::       Object classes.
+* email addresses lexer::       Splitting an address into tokens.
+* email addresses parser::      Splitting an address into logical units.
+@end menu
+
+@c page
+@node email addresses components
+@subsection Parsed components
+
+
+The following is an overview of an email address' components.
+
+@table @strong
+@item Comments
+Comments are strings enclosed in parentheses and may be present at any
+point in an address.
+
+@item Domain
+A list of strings separated by dots:
+
+@example
+alpha.beta.gamma
+@result{} domain strings = alpha beta gamma
+@end example
+
+@item Domain literal
+A string enclosed in square brackets:
+
+@example
+[100.200.300.400]
+domain literal @result{} 100.200.300.400
+@end example
+
+@item Local part
+A list of strings separated by dots:
+
+@example
+alpha.beta.gamma
+@result{} domain strings = alpha beta gamma
+@end example
+
+@item Address specification
+
+@example
+marco@@localhost
+@result{} local part = marco
+@result{} domain     = localhost
+@end example
+
+@item Route
+
+@example
+@@alpha.it,@@beta.it:
+@result{} first domain  = alpha.it
+@result{} second domain = beta.it
+@end example
+
+@item Route address
+
+@example
+<@@alpha.it,@@beta.it:marco@@there.it>
+@result{} route      = @@alpha.it,@@beta.it
+@result{} local part = marco
+@result{} domain     = there.it
+@end example
+
+@item Mailbox
+
+@example
+"Marco Maggi" <@@alpha.it,@@beta.it:marco@@there.it>
+@result{} phrase (quoted literal) = "Marco Maggi"
+@result{} route                   = @@alpha.it,@@beta.it
+@result{} local part              = marco
+@result{} domain                  = there.it
+
+my address <marco@@there.it>
+@result{} phrase (atoms)          = my address
+@result{} route                   =
+@result{} local part              = marco
+@result{} domain                  = there.it
+@end example
+
+Lists of mailboxes are mailboxes separated by @code{,}:
+
+@example
+<marco@@there.it>, <marco@@localhost>, <root@@localhost>
+@result{} first mailbox  = <marco@@there.it>
+@result{} second mailbox = <marco@@localhost>
+@result{} third mailbox  = <root@@localhost>
+@end example
+
+@item Group
+List of mailboxes enclosed in @samp{: ... ;} with optional phrase:
+
+@example
+: marco@@localhost, <marco@@there.com> ;
+@result{} phrase         =
+@result{} first mailbox  = marco@@localhost
+@result{} second mailbox = marco@@there.com
+
+:marco@@localhost, "Marco Maggi" (a comment) <marco@@there.com> ;
+@result{} phrase         =
+@result{} first mailbox  = marco@@localhost
+@result{} second mailbox = "Marco Maggi" <marco@@there.com>
+
+mailing-list :marco@@localhost, ,,, ,, ,
+   ,, "Marco Maggi" <marco@@there.com> ;
+@result{} phrase         = mailing-list
+@result{} first mailbox  = marco@@localhost
+@result{} second mailbox = "Marco Maggi" <marco@@there.com>
+@end example
+
+@item Address
+An address is a list of mailboxes and groups separated by @samp{,}.
+@end table
+
+@c page
+@node email addresses class
+@subsection Object classes
+
+
+@menu
+* email addresses elements::            Elements.
+* email addresses domain::              Domain.
+* email addresses local-part::          Local part.
+* email addresses addr-spec::           Address specification.
+* email addresses route::               Route.
+* email addresses route-address::       Route address.
+* email addresses mailbox::             Mailbox.
+* email addresses group::               Group of mailboxes.
+* email addresses address::             Address.
+@end menu
+
+@c page
+@node email addresses elements
+@subsubsection Elements
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <elements>
+A wrapper for a list. Elements are stored in reversed order. Public
+slots:
+
+@table @code
+@item ell
+holds the list; the initialisation value is the empty list.
+@end table
+@end deftp
+
+
+@subsubheading Predicates
+
+
+@deffn {Generic Function} null? (@var{o} <elements>)
+Return @true{} if the list is empty.
+@end deffn
+
+
+@subsubheading Adding elements
+
+
+@deffn {Generic Function} append (@var{o} <elements>) (@var{part} <string>)
+Add @var{part} to the beginning of the list.
+@end deffn
+
+
+@deffn {Generic Function} append (@var{o} <elements>) (@var{parts} <list>)
+Invoke @func{append} on @var{o} and each of the elements of
+@var{parts} reversed.
+@end deffn
+
+
+@deffn {Generic Function} append (@var{o} <elements>) (@var{parts} <elements>)
+Add all the elements of @var{parts} to the list in @var{o}.
+@end deffn
+
+
+@subsubheading Getting elements
+
+
+@deffn {Generic Function} elements (@var{o} <elements>)
+Return the list of @var{o} in correct order.
+@end deffn
+
+
+@deffn {Generic Function} string-elements (@var{o} <elements>)
+Return the list of @var{o} in correct order, converting all the elements
+to a string with an invocation to @func{any->string}.
+@end deffn
+
+
+@subsubheading Conversion
+
+
+@deffn {Generic Funcion} any->string (@var{o} <elements>)
+Display @var{o} into a string port (using @func{display}); if the
+resulting string has zero length: return @false{}, else return the
+resulting string.
+@end deffn
+
+@c page
+@node email addresses domain
+@subsubsection Domain
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <domain> (<elements>)
+Holds the list of sub--domain strings.
+@end deftp
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <domain>) (@var{p} <port>)
+Display to @var{p} the string representation of @var{o}: all the strings
+in @var{o} joined with a dot.
+@end deffn
+
+@c page
+@node email addresses local-part
+@subsubsection Local part
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <local-part> (<elements>)
+Holds a list of local part strings. The local part is a single string,
+but for parsing reasons it is accumulated as a list of strings.
+@end deftp
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <local-part>) (@var{p} <port>)
+Display to @var{p} the string representation of @var{o}: all the strings
+in @var{o} joined with a dot.
+@end deffn
+
+@c page
+@node email addresses addr-spec
+@subsubsection Address specification
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <addr-spec>
+Holds an address specification: a local part and a domain. Public slots:
+
+@table @code
+@item local-part
+holds a @class{local-part}; the initialisation value is @false{};
+
+@item domain
+holds a @class{domain}; the initialisation value is @false{}.
+@end table
+
+@end deftp
+
+
+@subsubheading Predicates
+
+
+@deffn {Generic Function} null? (@var{o} <addr-spec>)
+Return @true{} if both the local part and the domain are @false{} or
+@func{null?} applied on them returns @true{}.
+@end deffn
+
+
+@subsubheading Getters
+
+
+@deffn {Generic Function} elements (@var{o} <addr-spec>)
+Return a list of two elements: a @class{local-part} and a @class{domain}
+instance.
+@end deffn
+
+
+@deffn {Generic Function} string-elements (@var{o} <addr-spec>)
+Return a list of two strings: the representations of the local part and
+the domain.
+@end deffn
+
+
+@subsubheading Accessors
+
+
+@deffn {Generic Function} local-part (@var{o} <addr-spec>)
+Accessor for the @class{local-part} slot.
+@end deffn
+
+@deffn {Generic Function} domain (@var{o} <addr-spec>)
+Accessor for the @class{domain} slot.
+@end deffn
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <addr-spec>) (@var{p} <port>)
+Display to @var{p} the string representation of @var{o}.
+@end deffn
+
+
+@subsubheading Conversion
+
+
+@deffn {Generic Function} any->string (@var{o} <addr-spec>)
+Display @var{o} into a string port (using @func{display}); if the
+resulting string has zero length: return @false{}, else return the
+resulting string.
+@end deffn
+
+@c page
+@node email addresses route
+@subsubsection Route
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <route> (<elements>)
+Holds a list of domains to be used to route the message to the final
+destination.
+@end deftp
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <route>) (@var{p} <port>)
+Print to @var{p} the string representation of @var{o}.
+@end deffn
+
+
+@subsubheading Appending
+
+
+@deffn {Generic Function} append (@var{o} <route>) (@var{s} <domain>)
+Append a domain to the list in @var{o}.
+@end deffn
+
+
+@subsubheading Conversion
+
+
+@deffn {Generic Function} any->string (@var{o} <route>)
+Display @var{o} into a string port (using @func{display}); if the
+resulting string has zero length: return @false{}, else return the
+resulting string.
+@end deffn
+
+@c page
+@node email addresses route-address
+@subsubsection Route address
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <route-address> (<addr-spec>)
+Adds a @class{route} to @class{addr-spec}. Public slots:
+
+@table @code
+@item route
+holds the @class{route} object; the initialisation value is @false{};
+@item addr-spec
+a virtual slots that allows the existence of the @func{addr-spec}
+accessor.
+@end table
+@end deftp
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <route-address>) (@var{p} <port>)
+Display to @var{p} the string representation of @var{o}.
+@end deffn
+
+
+@subsubheading Getters
+
+
+@deffn {Generic Function} elements (@var{o} <route-address>)
+Return a list of two elements: a @class{route} and an @class{addr-spec}
+instance. If the route is not set: @false{} is returned in place of the
+instance.
+@end deffn
+
+
+@deffn {Generic Function} string-elements (@var{o} <route-address>)
+Return a list of two strings: the representations of the route and the
+addr--spec. If the route is not set: @false{} is returned in place of
+the string.
+@end deffn
+
+
+@subsubheading Accessors
+
+
+@deffn {Generic Function} addr-spec (@var{o} <route-address>)
+Accessor for the @class{addr-spec} slot. Gets and sets an
+@class{addr-spec} from to @var{o}.
+@end deffn
+
+
+@deffn {Generic Function} route (@var{o} <route-address>)
+Accessor for the @class{route} slot.
+@end deffn
+
+@c page
+@node email addresses mailbox
+@subsubsection Mailbox
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <mailbox> (<route-address>)
+Adds a phrase to a @class{route-address}. Public slots:
+
+@table @code
+@item phrase
+holds the phrase string; the initialisation value is @false{};
+
+@item route-address
+virtual allocation slot that allows the existence of the
+@func{route-address} accessor.
+@end table
+@end deftp
+
+
+@subsubheading Getters
+
+
+@deffn {Generic Function} elements (@var{o} <mailbox>)
+Return a list: the phrase's string, a @class{route} object, an
+@class{addr-spec} object. If the phrase is not set: @false{} is returned
+in place of the string.
+@end deffn
+
+
+@deffn {Generic Function} string-elements (@var{o} <mailbox>)
+Return a list of strings: the phrase string, the @class{route}
+representation, the @class{addr-spec} representation. If the phrase is
+not set: @false{} is returned in place of the string.
+@end deffn
+
+
+@subsubheading Accessors
+
+
+@deffn {Generic Function} phrase (@var{o} <mailbox>)
+Accessor for the phrase slot.
+@end deffn
+
+
+@deffn {Generic Function} route-address (@var{o} <mailbox>)
+Accessor for the route address slot. Sets/gets a @class{route-address}
+object to/from @var{o}.
+@end deffn
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <mailbox>) (@var{p} <port>)
+Display to @var{p} the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses group
+@subsubsection Group of mailboxes
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} class} <group> (<elements>)
+Holds a list of mailboxes and a phrase.
+@end deftp
+
+
+@subsubheading Getters
+
+
+@deffn {Generic Function} elements (@var{o} <group>)
+Return a list of elements: the phrase or @false{} if the phrase is not
+set; one @class{mailbox} instance for each mailbox in the list.
+@end deffn
+
+
+@deffn {Generic Function} string-elements (@var{o} <group>)
+Return a list of strings: the phrase or @false{} if the phrase is not
+set; a string representation for each mailbox.
+@end deffn
+
+
+@subsubheading Modifiers
+
+
+@deffn {Generic Function} append (@var{o} <group>) (@var{s} <mailbox>)
+Add a mailbox to the list.
+@end deffn
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <group>) (@var{p} <port>)
+Display to @var{p} the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses address
+@subsubsection Address
+
+
+@subsubheading Class definition
+
+
+@deftp {@acronym{GOOPS} Class} <address> (<elements>)
+Holds a list of mailboxes and groups.
+@end deftp
+
+
+@subsubheading Modifiers
+
+
+@deffn {Generic Function} append (@var{o} <address>) (@var{s} <mailbox>)
+@deffnx {Generic Function} append (@var{o} <address>) (@var{s} <group>)
+Add a mailbox or group to the list.
+@end deffn
+
+
+@subsubheading Output
+
+
+@deffn {Generic Function} display (@var{o} <address>) (@var{p} <port>)
+Display to @var{p} the string representation of @var{o}.
+@end deffn
+
+@c page
+@node email addresses lexer
+@subsection Splitting an address into tokens
+
+
+@defun email-address-lexer @var{address-string}
+Converts a string in @rfc{} 822 format into a list of pairs whose car is
+the token type and whose cdr is the token string.
+
+Token types are symbols: @samp{character}, @samp{atom},
+@samp{quoted-string}, @samp{domain-literal}.
+
+If an invalid substring is found, an exception is raised with key
+@samp{syntax-error}.
+@end defun
+
+
+Examples:
+
+@example
+(email-address-lexer "<simons@@rhein.de>")
+-> ((character . "<")
+    (atom      . "simons")
+    (character . "@@")
+    (atom      . "rhein")
+    (character . ".")
+    (atom      . "de")
+    (character . ">"))
+
+(email-address-lexer "\"Peter Simons\" <simons@@rhein.de>")
+-> '((quoted-string . "Peter Simons")
+     (character     . "<")
+     (atom          . "simons")
+     (character     . "@@")
+     (atom          . "rhein")
+     (character     . ".")
+     (atom          . "de")
+     (character     . ">"))
+
+;; comments are removed
+(email-address-lexer "\"Peter Simons\" (Peter Simons) <simons@@rhein.de>")
+-> ((quoted-string . "Peter Simons")
+    (character     . "<")
+    (atom          . "simons")
+    (character     . "@@")
+    (atom          . "rhein")
+    (character     . ".")
+    (atom          . "de")
+    (character     . ">"))
+@end example
+
+@c page
+@node email addresses parser
+@subsection Parsing tokens
+
+
+@subsubheading Parsing domains and local parts
+
+
+@deffn {Scheme Function} email-address-parse-domain @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is a @class{domain} object and whose
+second component is the rest of @var{token-list}.
+@end deffn
+
+
+@deffn {Scheme Function} email-address-parse-local-part @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is a @class{local-part} object and whose
+second component is the rest of @var{token-list}.
+@end deffn
+
+
+@subsubheading Parsing address specifications
+
+
+@deffn {Scheme Function} email-address-parse-addr-spec @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is an @class{addr-spec} object and whose
+second component is the rest of @var{token-list}.
+@end deffn
+
+
+@deffn {Scheme Function} email-address-parse-route @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is a @class{route} object and whose second
+component is the rest of @var{token-list}.
+@end deffn
+
+
+@deffn {Scheme Function} email-address-parse-route-address @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is an @class{route-address} object and
+whose second component is the rest of @var{token-list}.
+@end deffn
+
+
+@subsubheading Parsing mailboxes
+
+
+@deffn {Generic Function} email-address-parse-mailbox @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is an @class{mailbox} object and whose
+second component is the rest of @var{token-list}.
+@end deffn
+
+
+@deffn {Generic Function} email-address-parse-mailbox @var{token-list} [@var{phrase}]
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is an @class{group} object and whose
+second component is the rest of @var{token-list}.
+
+Note: the group can have a phrase at the beginning; the phrase is not
+parsed here, it is accumulated by the address parsers and handed to this
+function with the optional @var{phrase} parameter.
+@end deffn
+
+
+@deffn {Generic Function} email-address-parse-mailbox-or-group @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is an @class{mailbox} or @class{group}
+object and whose second component is the rest of @var{token-list}.
+@end deffn
+
+
+@subsubheading Parsing addresses
+
+
+@deffn {Generic Function} email-address-parse-address @var{token-list}
+Parse the first elements of @var{token-list}. Return a @func{values}
+@acronym{SMOB} whose first component is an @class{address} object and whose
+second component is the rest of @var{token-list}.
+@end deffn
 
 @c page
 @node kmp

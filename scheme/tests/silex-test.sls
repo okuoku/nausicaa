@@ -26,7 +26,8 @@
 
 (library (silex-test)
   (export test-calc)
-  (import (nausicaa)
+  (import (except (nausicaa) =)
+    (only (rnrs) =)
     (silex lexer)
     (checks))
 

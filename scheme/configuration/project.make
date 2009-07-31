@@ -44,6 +44,9 @@ $(eval $(call nau-libraries,vectors,vectors))
 $(eval $(call nau-libraries,random,random))
 $(eval $(call nau-libraries,char-sets,char-sets))
 $(eval $(call nau-libraries,silex,silex))
+$(eval $(call nau-libraries,profiling,profiling))
+$(eval $(call nau-libraries,email,email))
+
 $(eval $(call nau-libraries,foreign,foreign))
 $(eval $(call nau-libraries,foreign_ffi,foreign/ffi))
 $(eval $(call nau-libraries,foreign_memory,foreign/memory))
@@ -247,6 +250,33 @@ endif
 
 csv:
 	cd $(srcdir)/src/libraries/csv && $(CSV_RUNNER) $(CSV_PROGRAM)
+
+#page
+## --------------------------------------------------------------------
+## Special rules: email address lexers building.
+## --------------------------------------------------------------------
+
+EMAIL_PROGRAM	= make-tables.sps
+EMAIL_LIBPATH	= $(abspath $(fasl_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+EMAIL_ENV		= YPSILON_SITELIB=$(EMAIL_LIBPATH):$(YPSILON_SITELIB)
+EMAIL_RUNNER	= $(EMAIL_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+EMAIL_ENV		= IKARUS_LIBRARY_PATH=$(EMAIL_LIBPATH):$(IKARUS_LIBRARY_PATH)
+EMAIL_RUNNER	= $(EMAIL_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+EMAIL_ENV		= MOSH_LOADPATH=$(EMAIL_LIBPATH):$(MOSH_LOADPATH)
+EMAIL_RUNNER	= $(EMAIL_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+EMAIL_ENV		= LARCENY_LIBPATH=$(EMAIL_LIBPATH):$(LARCENY_LIBPATH)
+EMAIL_RUNNER	= $(EMAIL_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: email
+
+email:
+	cd $(srcdir)/src/libraries/email && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
 
 
 

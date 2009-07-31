@@ -42,16 +42,17 @@
   (define (tokenise/list string)
     (let* ((IS	(lexer-make-IS :string string :counters 'all))
 	   (lexer	(lexer-make-lexer csv-strings-table IS)))
-      (do* ((token (lexer) (lexer))
-	    (ell   '()     (cons token ell)))
+      (do ((token (lexer) (lexer))
+	   (ell   '()))
 	  ((not token)
-	   (reverse ell)))))
+	   (reverse ell))
+	(set! ell (cons token ell)))))
 
   (define (tokenise/string string)
     (let* ((IS	(lexer-make-IS :string string))
 	   (lexer	(lexer-make-lexer csv-strings-table IS)))
       (let-values (((port the-string) (open-string-output-port)))
-	(do* ((token (lexer) (lexer)))
+	(do ((token (lexer) (lexer)))
 	    ((not token)
 	     (the-string))
 	  (write-char token port)))))
@@ -125,10 +126,11 @@
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	   (lexer	(lexer-make-lexer csv-unquoted-data-table IS)))
-      (do* ((token (lexer) (lexer))
-	    (ell   '()     (cons token ell)))
+      (do ((token (lexer) (lexer))
+	   (ell   '()))
 	  ((or (not token) (eq? token 'string))
-	   (reverse ell)))))
+	   (reverse ell))
+	(set! ell (cons token ell)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -179,10 +181,11 @@
   (define (tokenise string)
     (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	   (lexer	(lexer-make-lexer csv-unquoted-data-table/comma IS)))
-      (do* ((token (lexer) (lexer))
-	    (ell   '()     (cons token ell)))
+      (do ((token (lexer) (lexer))
+	   (ell   '()))
 	  ((or (not token) (eq? token 'string))
-	   (reverse ell)))))
+	   (reverse ell))
+	(set! ell (cons token ell)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -268,191 +271,6 @@ one| two| three") '(#\|)
 
 
   )
-
-
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise ","))
-;;   => '(("" "")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise ",,,"))
-;;   => '(("" "" "" "")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "alpha,"))
-;;   => '(("alpha" "")))
-
-;; ;; ------------------------------------------------------------
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "alpha"))
-;;   => '(("alpha")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "alpha, beta, delta, gamma"))
-;;   => '(("alpha" " beta" " delta" " gamma")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "alpha, beta
-;; delta, gamma"))
-;;   => '(("alpha" " beta")("delta" " gamma")))
-
-
-;;;Tokeniser: quoting tests.
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alpha\""))
-;;   => '(("\"alpha\"")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise " \" alpha	\""))
-;;   => '((" \" alpha	\"")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alpha\", beta, \"gamma\""))
-;;   => '(("\"alpha\"" " beta" " \"gamma\"")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alpha\", beta, \"
-;; gamma\""))
-;;   => '(("\"alpha\"" " beta" " \"
-;; gamma\"")))
-
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alpha\""))
-;;   => '(("\"alpha\"")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alp\"\"ha\""))
-;;   => '(("\"alp\"\"ha\"")))
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alpha, beta\", \"gamma\""))
-;;   => '(("\"alpha, beta\"" " \"gamma\"")))
-
-;; 
-;; ;;; tokeniser: errors
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "alpha\""))
-;;   => 'misc-error
-;;   #:catch-error #t)
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alpha"))
-;;   => 'misc-error
-;;   #:catch-error #t)
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "alp\"ha"))
-;;   => 'misc-error
-;;   #:catch-error #t)
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-tokenise "\"alpha\" a"))
-;;   => 'misc-error
-;;   #:catch-error #t)
-
-;; 
-;; ;;; parser: field handling
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-trim "  alpha  "))
-;;   => "alpha")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-trim (format #f "~/alpha~/")))
-;;   => "alpha")
-
-;; (check
-;;   (lambda ()
-;;     (let ((carriage-return #\cr))
-;;       (gee-csv-trim (format #f "alpha~A" carriage-return))))
-;;   => "alpha")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-trim "  alpha
-;;  "))
-;;   => "alpha")
-
-;; ;; ------------------------------------------------------------
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-remove-quotes "alpha"))
-;;   => "alpha")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-remove-quotes "al\"\"pha"))
-;;   => "al\"pha")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-remove-quotes "\"alpha\""))
-;;   => "alpha")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-remove-quotes "\"al\"\"pha\""))
-;;   => "al\"pha")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-remove-quotes "  \"al\"\"pha\"   "))
-;;   => "  al\"pha   ")
-
-;; 
-;; ;;; composer: field handling
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-add-quotes "  alpha   "))
-;;   => "\"  alpha   \"")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-add-quotes "  alp\"ha   "))
-;;   => "\"  alp\"\"ha   \"")
-
-;; 
-;; ;; composer: document building
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-compose '(("alpha" "beta" "gamma")
-;; 		       ("delta" "omega" "chi"))))
-;;   => "alpha,beta,gamma
-;; delta,omega,chi")
-
-;; (check
-;;   (lambda ()
-;;     (gee-csv-compose '(("alpha" 2 "gamma")
-;; 		       ("delta" 3 "chi"))))
-;;   => "alpha,2,gamma
-;; delta,3,chi")
 
 
 ;;;; done

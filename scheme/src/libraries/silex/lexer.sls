@@ -17,6 +17,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
+#!r6rs
 (library (silex lexer)
   (export
     lexer-make-lexer		lexer-make-IS
@@ -373,28 +375,26 @@
 		    'eof))))))
 	 (user-ungetc-none
 	  (lambda ()
-	    (if (> user-ptr start-ptr)
-		(set! user-ptr (- user-ptr 1)))))
+	    (when (> user-ptr start-ptr)
+	      (set! user-ptr (- user-ptr 1)))))
 	 (user-ungetc-line
 	  (lambda ()
-	    (if (> user-ptr start-ptr)
-		(begin
-		  (set! user-ptr (- user-ptr 1))
-		  (let ((c (string-ref buffer user-ptr)))
-		    (if (char=? c #\newline)
-			(set! user-line (- user-line 1))))))))
+	    (when (> user-ptr start-ptr)
+	      (set! user-ptr (- user-ptr 1))
+	      (let ((c (string-ref buffer user-ptr)))
+		(if (char=? c #\newline)
+		    (set! user-line (- user-line 1)))))))
 	 (user-ungetc-all
 	  (lambda ()
-	    (if (> user-ptr start-ptr)
-		(begin
-		  (set! user-ptr (- user-ptr 1))
-		  (let ((c (string-ref buffer user-ptr)))
-		    (if (char=? c #\newline)
-			(begin
-			  (set! user-line (- user-line 1))
-			  (set! user-up-to-date? #f))
-		      (set! user-column (- user-column 1)))
-		    (set! user-offset (- user-offset 1)))))))
+	    (when (> user-ptr start-ptr)
+	      (set! user-ptr (- user-ptr 1))
+	      (let ((c (string-ref buffer user-ptr)))
+		(if (char=? c #\newline)
+		    (begin
+		      (set! user-line (- user-line 1))
+		      (set! user-up-to-date? #f))
+		  (set! user-column (- user-column 1)))
+		(set! user-offset (- user-offset 1))))))
 	 (reorganize-buffer ; Decaler ou agrandir le buffer
 	  (lambda ()
 	    (if (< (* 2 start-ptr) buflen)
