@@ -40,12 +40,12 @@ state 3
 
 state 4
 
-   assign --> ID . = expr    (rule 7)
+   assign --> ID . ASSIGN expr    (rule 7)
    expr --> ID .    (rule 13)
    expr --> ID . LPAREN args RPAREN    (rule 14)
 
    *default* : reduce using rule 13
-   = : shift and goto state 14
+   ASSIGN : shift and goto state 14
    LPAREN : shift and goto state 13
 
 state 5
@@ -143,7 +143,7 @@ state 13
 
 state 14
 
-   assign --> ID = . expr    (rule 7)
+   assign --> ID ASSIGN . expr    (rule 7)
 
    *default* : Error
    ID : shift and goto state 10
@@ -252,7 +252,7 @@ state 26
 
 state 27
 
-   assign --> ID = expr .    (rule 7)
+   assign --> ID ASSIGN expr .    (rule 7)
    expr --> expr . + expr    (rule 8)
    expr --> expr . - expr    (rule 9)
    expr --> expr . * expr    (rule 10)

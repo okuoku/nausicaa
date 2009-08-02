@@ -26,7 +26,11 @@
 
 
 (import (nausicaa)
+  (silex lexer)
   (calc-parser)
+  (calc-parser-helper)
+  (calc-parser-lexer)
+  (lalr common)
   (checks)
   (rnrs mutable-pairs))
 
@@ -35,6 +39,23 @@
 
 
 
+(define (doit string)
+  (let* ((IS		(lexer-make-IS :string string :counters 'line))
+	 (lexer		(lexer-make-lexer calc-parser-lexer-table IS))
+	 (error-handler	(lambda (message token)
+			  (error #f (string-append message
+						   " line "
+						   (number->string
+						    (source-location-line
+						     (lexical-token-source token))))
+				 (lexical-token-value token)))))
+    (calc-parser lexer error-handler)))
+
+(parameterise ((table-of-variables (make-eq-hashtable)))
+  (doit "1 + 2 + 4 * 3
+a = 2
+a * 3
+"))
 
 
 ;;;; done

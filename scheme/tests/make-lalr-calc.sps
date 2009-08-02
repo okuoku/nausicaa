@@ -33,17 +33,20 @@
 #!r6rs
 (import (rnrs)
   (lalr)
-  (silex))
+  (prefix (silex) silex:))
 
 
 ;;;; lexer
 
-(lex :output-file "calc-parser-lexer.sls"
-     :lexer-format 'code
-     :library-spec "(calc-parser-lexer)"
-     :table-name 'calc-parser-lexer-table
-     :input-string "
-blanks		[ \\9\\10\\13]+
+(silex:lex silex::output-file "calc-parser-lexer.sls"
+	   silex::lexer-format 'code
+	   silex::counters 'all
+	   silex::library-spec "(calc-parser-lexer)"
+	   silex::library-imports '((lalr common))
+	   silex::table-name 'calc-parser-lexer-table
+	   silex::input-string "
+blanks		[ \\9]+
+newline		[\\10\\13]+
 
 decint          [0-9]+
 binint          #[bB][01]+
@@ -60,12 +63,13 @@ imag		({decint}|{real})i
 nan             \\-nan\\.0|\\+nan\\.0|nan\\.0
 inf             \\-inf\\.0|\\+inf\\.0|inf\\.0
 
-initial         [a-zA-Z!$&:<=>?_~]
+initial         [a-zA-Z!$&:?_~]
 subsequent      {initial}|[0-9.@]
 symbol          {initial}{subsequent}*
 
-cmpoperator	(<=|>=)
-operator	[\\+\\-*/%\\^\\\\<>=]
+cmpoperator	(<=|>=|==)
+operator	[\\+\\-*/%\\^\\\\<>]
+assign		=
 
 comma		,
 
@@ -73,36 +77,48 @@ oparen		\\(
 cparen		\\)
 
 %%
-{blanks}	;; skip blanks, tabs and newlines
-{imag}		(string->number (string-append \"+\" yytext))
-{real}		(string->number yytext)
-{nan}		(string->number yytext)
-{inf}		(string->number yytext)
-{operator}	(case (string-ref yytext 0)
-		  ((#\\+) +)
-		  ((#\\-) -)
-		  ((#\\*) *)
-		  ((#\\/) /)
-		  ((#\\%) mod)
-		  ((#\\^) expt)
-		  ((#\\\\) div)
-		  ((#\\=) =)
-		  ((#\\<) <)
-		  ((#\\>) >))
-{cmpoperator}	(cond
-                  ((string=? yytext \"<=\") <=)
-                  ((string=? yytext \">=\") >=))
-{symbol}	(string->symbol yytext)
-{comma}		(begin cons)
+{blanks}	;; skip spaced and tabs
+{imag}		(make-lexical-token 'NUM
+				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (string->number (string-append \"+\" yytext)))
+{real}		(make-lexical-token 'NUM
+				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (string->number yytext))
+{nan}		(make-lexical-token 'NUM
+				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    +nan.0)
+{inf}		(make-lexical-token 'NUM
+				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    +inf.0)
+{operator}	(let ((position (make-source-location \"<input>\" yyline yycolumn yyoffset -1)))
+		  (case (string-ref yytext 0)
+		    ((#\\+)	'+)
+		    ((#\\-)	'-)
+		    ((#\\*)	'*)
+		    ((#\\/)	'/)
+		    ((#\\%)	(make-lexical-token 'FUN position mod))
+		    ((#\\^)	(make-lexical-token 'FUN position expt))
+		    ((#\\\\)	(make-lexical-token 'FUN position div))
+		    ((#\\<)	(make-lexical-token 'FUN position <))
+		    ((#\\>)	(make-lexical-token 'FUN position >))))
+{cmpoperator}	(let ((position (make-source-location \"<input>\" yyline yycolumn yyoffset -1)))
+		  (cond
+		   ((string=? yytext \"==\") (make-lexical-token 'FUN position =))
+		   ((string=? yytext \"<=\") (make-lexical-token 'FUN position <=))
+		   ((string=? yytext \">=\") (make-lexical-token 'FUN position >=))))
+{symbol}	(make-lexical-token 'ID
+				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (string->symbol yytext))
+{assign}	(begin 'ASSIGN)
 
-{oparen}	(begin #\\()
-{cparen}	(begin #\\))
+{comma}		(begin 'COMMA)
+{newline}	(begin 'NEWLINE)
+{oparen}	(begin 'LPAREN)
+{cparen}	(begin 'RPAREN)
 
-<<EOF>>		(begin #f)
-<<ERROR>>	(assertion-violation #f
-                  \"invalid lexer token\")
+<<EOF>>		(begin '*eoi*)
+<<ERROR>>	(assertion-violation #f \"invalid lexer token\")
 ")
-
 
 
 ;;;; parser
@@ -122,19 +138,28 @@ cparen		\\)
  :expect		5
 		;there should be no conflicts
 
- :tokens	'(ID NUM = LPAREN RPAREN NEWLINE COMMA
+ :tokens	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
 		  (left: + -)
 		  (left: * /)
 		  (nonassoc: uminus))
 
- :rules	'((lines    (lines line)	: (write $2)
-		    (line)		: (write $1))
+ :rules	'((lines
+	   (lines line)		: (begin
+				    (display $2)
+				    (newline))
+		;this prints the result of all the lines but the first
+	   (line)		: (begin
+				    (display $1)
+				    (newline)))
+		;this prints the result of the first line only
 
 	  (line     (assign NEWLINE)	: $1
 		    (expr   NEWLINE)	: $1
 		    (error  NEWLINE)	: #f)
 
-	  (assign   (ID = expr)		: (hashtable-set! (table-of-variables) $1 $3))
+	  (assign   (ID ASSIGN expr)	: (begin
+					    (hashtable-set! (table-of-variables) $1 $3)
+					    "set variable"))
 
 	  (expr     (expr + expr)	: (+ $1 $3)
 		    (expr - expr)	: (- $1 $3)

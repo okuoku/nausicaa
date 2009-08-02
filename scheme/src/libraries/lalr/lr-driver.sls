@@ -162,23 +162,25 @@
                  (i     (___category ___input))
                  (attr  (___value ___input))
                  (act   (___action i (vector-ref ___atable state))))
-
             (cond ((not (symbol? i))
-                   (___errorp "Syntax error: invalid token: " ___input)
+                   (___errorp "syntax error: invalid token: " ___input)
                    #f)
 
-                  ;; Input succesfully parsed
+                  ;;Input  succesfully parsed.   This happens  also when
+                  ;;"*eoi*" is  found, which  means that the  value from
+                  ;;the  vector is  returned to  the caller;  this value
+                  ;;should be #<unspecified>.
                   ((eq? act 'accept)
                    (vector-ref ___stack 1))
 
-                  ;; Syntax error in input
+                  ;;Syntax error in input.
                   ((eq? act '*error*)
                    (if (eq? i '*eoi*)
                        (begin
-                         (___errorp "Syntax error: unexpected end of input")
+                         (___errorp "syntax error: unexpected end of input")
                          #f)
 		     (begin
-		       (___errorp "Syntax error: unexpected token : " ___input)
+		       (___errorp "syntax error: unexpected token: " ___input)
 		       (___recover i)
 		       (if (>= ___sp 0)
 			   (set! ___input #f)
@@ -187,10 +189,10 @@
 			   (set! ___input '*eoi*)))
 		       (loop))))
 
-                  ;; Shift current token on top of the stack
+                  ;;Shift current token on top of the stack.
                   ((>= act 0)
                    (___shift act attr)
-                   (set! ___input (if (eq? i '*eoi*) '*eoi* #f))
+		   (set! ___input (if (eq? i '*eoi*) '*eoi* #f))
                    (loop))
 
                   ;; Reduce by rule (- act)

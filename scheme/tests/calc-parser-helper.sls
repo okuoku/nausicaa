@@ -32,7 +32,6 @@
     table-of-variables)
   (import (rnrs)
     (parameters))
-
   (define table-of-variables
     (make-parameter #f)))
 

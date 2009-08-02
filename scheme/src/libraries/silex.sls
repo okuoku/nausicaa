@@ -51,7 +51,7 @@
     lex
     :input-file		:input-port	:input-string
     :output-file	:output-port	:output-value
-    :table-name		:library-spec
+    :table-name		:library-spec	:library-imports
     :counters		:pretty-print	:lexer-format)
   (import (rnrs)
     (parameters)
@@ -90,6 +90,7 @@
 (define-keyword :output-value)
 (define-keyword :table-name)
 (define-keyword :library-spec)
+(define-keyword :library-imports)
 (define-keyword :pretty-print)
 (define-keyword :lexer-format)
 
@@ -4702,12 +4703,13 @@
   ;;
 
   (define (main)
-    (let-keywords options #t ((library-spec	:library-spec	#f)
-			      (output-file	:output-file	#f)
-			      (output-port	:output-port	#f)
-			      (output-value	:output-value	#f)
-			      (table-name	:table-name	#f)
-			      (lexer-format	:lexer-format	'decision-tree))
+    (let-keywords options #t ((library-spec	:library-spec		#f)
+			      (library-imports	:library-imports	'())
+			      (output-file	:output-file		#f)
+			      (output-port	:output-port		#f)
+			      (output-value	:output-value		#f)
+			      (table-name	:table-name		#f)
+			      (lexer-format	:lexer-format		'decision-tree))
       (let ((opened-file? #f)
 	    (value-getter	#f))
 	(dynamic-wind
@@ -4729,9 +4731,12 @@
 					"\n"
 					"  (export\n"
 					"    " (table-name->export-name table-name) ")\n"
-					"  (import (rnrs) (silex lexer))\n"
-					"\n")
-			 output-port))
+					"  (import (rnrs) (silex lexer)")
+			 output-port)
+		(for-each (lambda (spec)
+			    (write spec output-port))
+		  library-imports)
+		(display ")\n\n" output-port))
 	      (out-print-table options
 			       <<EOF>>-action <<ERROR>>-action rules
 			       nl-start no-nl-start arcs acc
