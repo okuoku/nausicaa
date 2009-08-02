@@ -28,9 +28,9 @@
   (checks)
   (silex lexer)
   (silex-test)
-  (calc-code)
-  (calc-portable)
-  (calc-tree))
+  (calc-code-lexer)
+  (calc-portable-lexer)
+  (calc-tree-lexer))
 
 (check-set-mode! 'report-failed)
 (display "*** testing silex from file\n")

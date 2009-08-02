@@ -46,6 +46,13 @@
   (export
     lalr-parser
 
+    :library-spec		:library-imports
+    :parser-type		:table-name
+    :output-value		:output-port
+    :output-file		:output-table
+    :expect			:tokens
+    :rules
+
     make-source-location	source-location?
     source-location-line
     source-location-input
@@ -60,39 +67,75 @@
   (import (rnrs)
     (lalr common)
     (lists)
+    (parameters)
+    (keywords)
     (pretty-print)
-    (rnrs mutable-pairs))
+    (rnrs mutable-pairs)
+    (rnrs eval))
 
 
+;;;; Keyword options for the LALR-PARSER function.
 
-(define (lalr-parser arguments)
+(define-keyword :library-spec)
+		;Used to select  the library specification when printing
+		;the generated parser to a  file in the form of a proper
+		;Scheme library.   The value  must be a  proper <library
+		;name> as defined by R6RS.
 
-  (define (main)
-    (extract-arguments arguments build-driver))
+(define-keyword :library-imports)
+		;A list of library specification that is included in the
+		;import spec for the generated library.
 
-(define (extract-arguments lst proc)
-  (let loop ((options '())
-	     (tokens  '())
-	     (rules   '())
-	     (lst     lst))
-    (if (pair? lst)
-	(let ((p (car lst)))
-	  (cond
-	   ((and (pair? p)
-		 (lalr-keyword? (car p))
-		 (assq (car p) *valid-options*))
-	    (loop (cons p options) tokens rules (cdr lst)))
-	   (else
-	    (proc options p (cdr lst)))))
-      (error "Malformed lalr-parser form" lst))))
+(define-keyword :parser-type)
+		;Used to  select the parser  type.  It must be  a symbol
+		;among: lr, glr.
+
+(define-keyword :table-name)
+		;Used to  select the name  of the binding for  the table
+		;representing  the  generated  parser.   It  must  be  a
+		;symbol.
+
+(define-keyword :output-value)
+		;A boolean.   If true the generated  parser is evaluated
+		;with  EVAL  and  returned  as proper  Scheme  value  by
+		;LALR-PARSER.
+		;
+		;This     option    supersedes     ":output-port"    and
+		;":output-file".
+
+(define-keyword :output-port)
+		;A port or #f.  If it is a port, the generated parser is
+		;printed to this port.
+		;
+		;This option supersedes ":output-file".
+
+(define-keyword :output-file)
+		;A file  pathname or #f.  If  it is a  file pathname (as
+		;string),  the generated  parser is  saved in  this file
+		;(overwriting its previous content, if any).
+
+(define-keyword :output-table)
+		;A file  pathname or #f.  If  it is a  file pathname (as
+		;string), a human readable  dump of the generated parser
+		;is saved in the file (overwriting its previous content,
+		;if any).
+
+(define-keyword :expect)
+		;An integer number.  It  is the number of rule conflicts
+		;we expect in the  parser definition.  In a well defined
+		;parser, there should be no conflicts.
+
+(define-keyword :tokens)
+		;A list representing the parser tokens, their precedence
+		;and their associativity.
+
+(define-keyword :rules)
+		;A list representing the parser rules.
 
 
 ;;;; helpers
 
-(define lalr-keyword? symbol?)
-(define BITS-PER-WORD 30)
-
-(define (with-output-to-file pathname proc)
+(define (with-output-to-new-file pathname proc)
   (let ((port #f))
     (dynamic-wind
 	(lambda ()
@@ -105,18 +148,110 @@
 	  (close-output-port port)))))
 
 
-;;;; macros pour la gestion des vecteurs de bits
+;;;; bit fields
+;;
+;;The following functions handle Scheme vectors whose elements are exact
+;;integer  numbers.  Each  integer number  is used  as a  "word" holding
+;;bits: It  is meant to  hold at least (LALR-BITS-PER-WORD)  bits.  This
+;;value is configurable.
+;;
+;;The whole vector  is a bit field split into words;  let's say the bits
+;;per integer are 30, then the first 30 bits are in the word at index 0,
+;;the next 30 bits are in the word at index 1, and so on.
+;;
+;;The library always  use bit fields/vector of fixed  size.  The size is
+;;computed with an equivalent of:
+;;
+;;  (define token-set-size (+ 1 (div nterms (lalr-bits-per-word))))
+;;
+;;in the body of LALR-PARSER.
+;;
+;;*NOTE* We do not have to confuse indexes in the vector with indexes of
+;;bits.
+;;
+;;*FIXME*  These bit  fields can  probably be  replaced with  single big
+;;integers;  do it  after understanding  how  they are  used.  A  simple
+;;vector of  booleans could do, but  it seems we need  the OR operation,
+;;which is faster with a single integer.
+;;
 
-(define (set-bit v b)
-  (let ((x (div b BITS-PER-WORD))
-	(y (expt 2 (mod b BITS-PER-WORD))))
-    (vector-set! v x (bitwise-ior (vector-ref v x) y))))
+(define lalr-bits-per-word
+  (make-parameter 30))
 
-(define (bit-union v1 v2 n)
-  (do ((i 0 (+ i 1)))
-      ((= i n))
+(define (new-set nelem)
+  (make-vector nelem 0))
+
+(define (set-bit bit-field bit-index)
+  ;;Interpret V as vector of numbers, which in turn are bit fields.
+  ;;
+  (let* ((nbits		(lalr-bits-per-word))
+	 (word-index	(div  bit-index nbits))
+	 (word		(expt 2 (mod bit-index nbits))))
+    (vector-set! bit-field word-index
+		 (bitwise-ior (vector-ref bit-field word-index) word))))
+
+(define (bit-union v1 v2 vector-size)
+  ;;Compute the OR between the bit fields and store the result in V1.
+  ;;
+  (do ((i 0 (+ 1 i)))
+      ((= i vector-size))
     (vector-set! v1 i (bitwise-ior (vector-ref v1 i)
 				   (vector-ref v2 i)))))
+
+
+(define (lalr-parser . options)
+
+  (define (main)
+    (let-keywords options #f ((library-spec	:library-spec		#f)
+			      (library-imports	:library-imports	'())
+			      (parser-type	:parser-type		'lr)
+			      (table-name	:table-name		#f)
+
+			      (output-value	:output-value		#f)
+			      (output-port	:output-port		#f)
+			      (output-file	:output-file		#f)
+
+			      (output-table	:output-table		#f)
+
+			      (expect		:expect			0)
+			      (rules		:rules			#f)
+			      (tokens		:tokens			#f))
+
+      (set! expected-conflicts expect)
+      (set! driver-name (case parser-type
+			  ((glr)	'glr-driver)
+			  ((lr)		'lr-driver)
+			  (else
+			   (assertion-violation 'lalr-parser
+			     "expected \"lr\" or \"glr\" as parser type"
+			     parser-type))))
+
+      (let* ((gram/actions (gen-tables! tokens rules))
+	     (code         `(,driver-name ',action-table
+					  ,(build-goto-table)
+					  ,(build-reduction-table gram/actions))))
+
+	(when output-table
+	  (with-output-to-new-file output-table debug:print-states))
+
+	(let* ((imports	(append `((rnrs)
+				  (lalr ,driver-name)
+				  (lalr common))
+				library-imports))
+	       (code	(cond (library-spec `(library ,library-spec
+					       (export ,table-name)
+					       (import ,@imports)
+					       (define ,table-name ,code)))
+			      (else code))))
+
+	  (cond (output-value
+		 (eval code (environment imports)))
+		(output-port
+		 (pretty-print code output-port))
+		(output-file
+		 (with-output-to-new-file output-file
+					  (lambda (port)
+					    (pretty-print code port)))))))))
 
 
 ;;;; macro pour les structures de donnees
@@ -147,24 +282,21 @@
 (define (red-nreds c)            (vector-ref c 1))
 (define (red-rules c)            (vector-ref c 2))
 
-
-(define (new-set nelem)
-  (make-vector nelem 0))
-
-
 (define (vector-map f v)
-  (let ((vm-n (- (vector-length v) 1)))
-    (let loop ((vm-low 0) (vm-high vm-n))
-      (if (= vm-low vm-high)
-	  (vector-set! v vm-low (f (vector-ref v vm-low) vm-low))
-	(let ((vm-middle (div (+ vm-low vm-high) 2)))
-	  (loop vm-low vm-middle)
-	  (loop (+ vm-middle 1) vm-high))))))
+  (let ((n (- (vector-length v) 1)))
+    (let loop ((low 0)
+	       (high n))
+      (if (= low high)
+	  (vector-set! v low (f (vector-ref v low) low))
+	(let ((middle (div (+ low high) 2)))
+	  (loop low middle)
+	  (loop (+ middle 1) high))))))
 
+
+;;;; state variables
 
 ;; - Constantes
 (define STATE-TABLE-SIZE 1009)
-
 
 ;; - Tableaux
 (define rrhs         #f)
@@ -179,7 +311,7 @@
 (define shift-symbol #f)
 (define shift-set    #f)
 (define red-set      #f)
-(define state-table  #f)
+(define state-table  (make-vector STATE-TABLE-SIZE '()))
 (define acces-symbol #f)
 (define reduction-table #f)
 (define shift-table  #f)
@@ -216,75 +348,31 @@
 
 (define driver-name     'lr-driver)
 
-(define (gen-tables! tokens gram )
-  (initialize-all)
-  (rewrite-grammar
-   tokens
-   gram
-   (lambda (terms terms/prec vars gram gram/actions)
-     (set! the-terminals/prec (list->vector terms/prec))
-     (set! the-terminals (list->vector terms))
-     (set! the-nonterminals (list->vector vars))
-     (set! nterms (length terms))
-     (set! nvars  (length vars))
-     (set! nsyms  (+ nterms nvars))
-     (let ((no-of-rules (length gram/actions))
-	   (no-of-items (let loop ((l gram/actions) (count 0))
-			  (if (null? l)
-			      count
-			    (loop (cdr l) (+ count (length (caar l))))))))
-       (pack-grammar no-of-rules no-of-items gram)
-       (set-derives)
-       (set-nullable)
-       (generate-states)
-       (lalr)
-       (build-tables)
-       (compact-action-table terms)
-       gram/actions))))
+
+;;;; initialisation functions
 
-
-(define (initialize-all)
-  (set! rrhs         #f)
-  (set! rlhs         #f)
-  (set! ritem        #f)
-  (set! nullable     #f)
-  (set! derives      #f)
-  (set! fderives     #f)
-  (set! firsts       #f)
-  (set! kernel-base  #f)
-  (set! kernel-end   #f)
-  (set! shift-symbol #f)
-  (set! shift-set    #f)
-  (set! red-set      #f)
-  (set! state-table  (make-vector STATE-TABLE-SIZE '()))
-  (set! acces-symbol #f)
-  (set! reduction-table #f)
-  (set! shift-table  #f)
-  (set! consistent   #f)
-  (set! lookaheads   #f)
-  (set! LA           #f)
-  (set! LAruleno     #f)
-  (set! lookback     #f)
-  (set! goto-map     #f)
-  (set! from-state   #f)
-  (set! to-state     #f)
-  (set! includes     #f)
-  (set! F            #f)
-  (set! action-table #f)
-  (set! nstates         #f)
-  (set! first-state     #f)
-  (set! last-state      #f)
-  (set! final-state     #f)
-  (set! first-shift     #f)
-  (set! last-shift      #f)
-  (set! first-reduction #f)
-  (set! last-reduction  #f)
-  (set! nshifts         #f)
-  (set! maxrhs          #f)
-  (set! ngotos          #f)
-  (set! token-set-size  #f)
-  (set! rule-precedences '()))
-
+(define (gen-tables! tokens gram)
+  (rewrite-grammar tokens gram
+		   (lambda (terms terms/prec vars gram gram/actions)
+		     (set! the-terminals/prec (list->vector terms/prec))
+		     (set! the-terminals (list->vector terms))
+		     (set! the-nonterminals (list->vector vars))
+		     (set! nterms (length terms))
+		     (set! nvars  (length vars))
+		     (set! nsyms  (+ nterms nvars))
+		     (let ((no-of-rules (length gram/actions))
+			   (no-of-items (let loop ((l gram/actions) (count 0))
+					  (if (null? l)
+					      count
+					    (loop (cdr l) (+ count (length (caar l))))))))
+		       (pack-grammar no-of-rules no-of-items gram)
+		       (set-derives)
+		       (set-nullable)
+		       (generate-states)
+		       (lalr)
+		       (build-tables)
+		       (compact-action-table terms)
+		       gram/actions))))
 
 (define (pack-grammar no-of-rules no-of-items gram)
   (set! nrules (+  no-of-rules 1))
@@ -311,32 +399,28 @@
 		      (vector-set! ritem it-no3 (car rhs))
 		      (loop3 (cdr rhs) (+ it-no3 1))))))))))))
 
-
 (define (set-derives)
-  (define delts (make-vector (+ nrules 1) 0))
-  (define dset  (make-vector nvars -1))
-
-  (let loop ((i 1) (j 0))		; i = 0
-    (if (< i nrules)
-	(let ((lhs (vector-ref rlhs i)))
-	  (if (>= lhs 0)
-	      (begin
-		(vector-set! delts j (cons i (vector-ref dset lhs)))
-		(vector-set! dset lhs j)
-		(loop (+ i 1) (+ j 1)))
-	    (loop (+ i 1) j)))))
-
-  (set! derives (make-vector nvars 0))
-
-  (let loop ((i 0))
-    (if (< i nvars)
-	(let ((q (let loop2 ((j (vector-ref dset i)) (s '()))
-		   (if (< j 0)
-		       s
-		     (let ((x (vector-ref delts j)))
-		       (loop2 (cdr x) (cons (car x) s)))))))
-	  (vector-set! derives i q)
-	  (loop (+ i 1))))))
+  (let ((delts (make-vector (+ nrules 1) 0))
+	(dset  (make-vector nvars -1)))
+    (let loop ((i 1) (j 0))
+      (if (< i nrules)
+	  (let ((lhs (vector-ref rlhs i)))
+	    (if (>= lhs 0)
+		(begin
+		  (vector-set! delts j (cons i (vector-ref dset lhs)))
+		  (vector-set! dset lhs j)
+		  (loop (+ i 1) (+ j 1)))
+	      (loop (+ i 1) j)))))
+    (set! derives (make-vector nvars 0))
+    (let loop ((i 0))
+      (if (< i nvars)
+	  (let ((q (let loop2 ((j (vector-ref dset i)) (s '()))
+		     (if (< j 0)
+			 s
+		       (let ((x (vector-ref delts j)))
+			 (loop2 (cdr x) (cons (car x) s)))))))
+	    (vector-set! derives i q)
+	    (loop (+ i 1)))))))
 
 (define (set-nullable)
   (set! nullable (make-vector nvars #f))
@@ -435,9 +519,7 @@
 
 (define (set-fderives)
   (set! fderives (make-vector nvars #f))
-
   (set-firsts)
-
   (let loop ((i 0))
     (if (< i nvars)
 	(let ((x (let loop2 ((l (vector-ref firsts i)) (fd '()))
@@ -447,7 +529,6 @@
 			    (union-of-sorted-lists-of-numbers (vector-ref derives (car l)) fd))))))
 	  (vector-set! fderives i x)
 	  (loop (+ i 1))))))
-
 
 (define (closure core)
   ;; Initialization
@@ -479,21 +560,15 @@
 	    (loop2 (cdr c) (cons (car c) itemsetv2))
 	  (reverse itemsetv2))))))
 
+
+;;;;
 
-
-(define (allocate-item-sets)
-  (set! kernel-base (make-vector nsyms 0))
-  (set! kernel-end  (make-vector nsyms #f)))
-
-
-(define (allocate-storage)
-  (allocate-item-sets)
-  (set! red-set (make-vector (+ nrules 1) 0)))
-
-		; --
-
-
-(define (initialize-states)
+(define (generate-states)
+  (set! kernel-base	(make-vector nsyms 0))
+  (set! kernel-end	(make-vector nsyms #f))
+  (set! red-set		(make-vector (+ nrules 1) 0))
+  (set-fderives)
+  ;;Initialize states.
   (let ((p (new-core)))
     (set-core-number! p 0)
     (set-core-acc-sym! p #f)
@@ -502,25 +577,17 @@
 
     (set! first-state (list p))
     (set! last-state first-state)
-    (set! nstates 1)))
-
-
-
-(define (generate-states)
-  (allocate-storage)
-  (set-fderives)
-  (initialize-states)
+    (set! nstates 1))
   (let loop ((this-state first-state))
-    (if (pair? this-state)
-	(let* ((x (car this-state))
-	       (is (closure (core-items x))))
-	  (save-reductions x is)
-	  (new-itemsets is)
-	  (append-states)
-	  (if (> nshifts 0)
-	      (save-shifts x))
-	  (loop (cdr this-state))))))
-
+    (when (pair? this-state)
+      (let* ((x  (car this-state))
+	     (is (closure (core-items x))))
+	(save-reductions x is)
+	(new-itemsets is)
+	(append-states)
+	(if (> nshifts 0)
+	    (save-shifts x))
+	(loop (cdr this-state))))))
 
 (define (new-itemsets itemset)
   ;; - Initialization
@@ -550,8 +617,6 @@
 
   (set! nshifts (length shift-symbol)))
 
-
-
 (define (get-state sym)
   (let* ((isp  (vector-ref kernel-base sym))
 	 (n    (length isp))
@@ -579,7 +644,6 @@
 		(core-number x))
 	    (loop (cdr sp1))))))))
 
-
 (define (new-state sym)
   (let* ((isp  (vector-ref kernel-base sym))
 	 (n    (length isp))
@@ -594,8 +658,8 @@
     (set! nstates (+ nstates 1))
     p))
 
-
-		; --
+
+;;;;
 
 (define (append-states)
   (set! shift-set
@@ -604,7 +668,8 @@
 	      '()
 	    (cons (get-state (car l)) (loop (cdr l)))))))
 
-		; --
+
+;;;;
 
 (define (save-shifts core)
   (let ((p (new-shift)))
@@ -640,11 +705,11 @@
 	      (set! first-reduction (list p))
 	      (set! last-reduction first-reduction)))))))
 
-
-		; --
+
+;;;;
 
 (define (lalr)
-  (set! token-set-size (+ 1 (div nterms BITS-PER-WORD)))
+  (set! token-set-size (+ 1 (div nterms (lalr-bits-per-word))))
   (set-accessing-symbol)
   (set-shift-table)
   (set-reduction-table)
@@ -720,7 +785,9 @@
 	(vector-set! lookaheads nstates count)
 	(let ((c (max count 1)))
 	  (set! LA (make-vector c #f))
-	  (do ((j 0 (+ j 1))) ((= j c)) (vector-set! LA j (new-set token-set-size)))
+	  (do ((j 0 (+ j 1)))
+	      ((= j c))
+	    (vector-set! LA j (new-set token-set-size)))
 	  (set! LAruleno (make-vector c -1))
 	  (set! lookback (make-vector c #f)))
 	(let loop ((i 0) (np 0))
@@ -988,10 +1055,8 @@
 	      (traverse i))
 	  (loop (+ i 1)))))) ; end of DIGRAPH
 
-
-;; ----------------------------------------------------------------------
-;; operator precedence management
-;; ----------------------------------------------------------------------
+
+;;;; operator precedence management
 
 ;; a vector of precedence descriptors where each element
 ;; is of the form (terminal type precedence)
@@ -1027,9 +1092,8 @@
 		(loop i1 (get-symbol-precedence (- item nvars)))
 	      (loop i1 prec)))))))))
 
-;; ----------------------------------------------------------------------
-;; Build the various tables
-;; ----------------------------------------------------------------------
+
+;;;; build the various tables
 
 (define expected-conflicts 0)
 
@@ -1059,8 +1123,9 @@
 	      (newline))
 	  conflict-messages)))
 
-  ;; --- Add an action to the action table
   (define (add-action state symbol new-action)
+    ;;Add an action to the action table.
+    ;;
     (let* ((state-actions (vector-ref action-table state))
 	   (actions       (assv symbol state-actions)))
       (if (pair? actions)
@@ -1120,7 +1185,7 @@
 			      (let ((in-la-set? (mod x 2)))
 				(if (= in-la-set? 1)
 				    (add-action i token rule)))
-			      (if (= y BITS-PER-WORD)
+			      (if (= y (lalr-bits-per-word))
 				  (loop2 (+ token 1)
 					 (vector-ref lav (+ z 1))
 					 1
@@ -1184,9 +1249,8 @@
 		     (cons `(*default* *error*)
 			   (translate-terms acts))))))) ; end of  compact-action-table
 
-
-
-;; --
+
+;;;;
 
 (define (rewrite-grammar tokens grammar k)
 
@@ -1385,20 +1449,19 @@
 		       (cons (cons prod action)
 			     rev-productions-and-actions))))))))))
 
-(define (valid-nonterminal? x)
-  (symbol? x))
+(define valid-nonterminal? symbol?)
 
-(define (valid-terminal? x)
-  (symbol? x))			; DB
+(define valid-terminal? symbol?) ; DB
 
 
 ;;;; miscellaneous
 
-(define (pos-in-list x lst)
-  (let loop ((lst lst) (i 0))
-    (cond ((not (pair? lst))    #f)
-	  ((equal? (car lst) x) i)
-	  (else                 (loop (cdr lst) (+ i 1))))))
+(define-syntax pos-in-list
+  (syntax-rules ()
+    ((_ ?element ?list)
+     (list-index (lambda (elm)
+		   (equal? ?element elm))
+       ?list))))
 
 (define-syntax union-of-sorted-lists-of-numbers
   (syntax-rules ()
@@ -1408,7 +1471,7 @@
 (define-syntax sorted-list-of-numbers-insert
   (syntax-rules ()
     ((_ ?item ?ell)
-     (sorted-list-insert ?item ?ell < >))))
+     (sorted-list-insert ?item ?ell >))))
 
 (define (lalr-filter p lst)
   (let loop ((l lst))
@@ -1571,93 +1634,6 @@
 					    '()
 					  '(___sp)))))))))
 	  gram/actions))))
-
-
-;;;; options parsing
-
-(define *valid-options*
-  (list
-   (cons 'out-table:
-	 (lambda (option)
-	   (and (list? option)
-		(= (length option) 2)
-		(string? (cadr option)))))
-   (cons 'output:
-	 (lambda (option)
-	   (and (list? option)
-		(= (length option) 3)
-		(symbol? (cadr option))
-		(string? (caddr option)))))
-   (cons 'expect:
-	 (lambda (option)
-	   (and (list? option)
-		(= (length option) 2)
-		(integer? (cadr option))
-		(>= (cadr option) 0))))
-
-   (cons 'driver:
-	 (lambda (option)
-	   (and (list? option)
-		(= (length option) 2)
-		(symbol? (cadr option))
-		(memq (cadr option) '(lr glr)))))))
-
-(define (validate-options options)
-  (for-each
-      (lambda (option)
-	(let ((p (assoc (car option) *valid-options*)))
-	  (when (or (not p)
-		    (not ((cdr p) option)))
-	    (error "Invalid option:" option))))
-    options))
-
-(define (output-parser! options code)
-  ;;Save the parser to a file.
-  ;;
-  (let ((option (assq 'output: options)))
-    (when option
-      (let ((parser-name (cadr option))
-	    (file-name   (caddr option)))
-	(with-output-to-file file-name
-	  (lambda (port)
-	    (pretty-print `(define ,parser-name ,code) port)
-	    (newline port)))))))
-
-(define (output-table! options)
-  ;;Save the  tables to a file  in a human readable  format.  Useful for
-  ;;debugging.
-  ;;
-  (let ((option (assq 'out-table: options)))
-    (when option
-      (let ((file-name (cadr option)))
-	(with-output-to-file file-name debug:print-states)))))
-
-(define (set-expected-conflicts! options)
-  (let ((option (assq 'expect: options)))
-    (set! expected-conflicts (if option (cadr option) 0))))
-
-(define (set-driver-name! options)
-  (let ((option (assq 'driver: options)))
-    (when option
-      (let ((driver-type (cadr option)))
-	(set! driver-name (if (eq? driver-type 'glr)
-			      'glr-driver
-			    'lr-driver))))))
-
-
-;;; We are still in LALR-PARSER.
-
-(define (build-driver options tokens rules)
-  (validate-options options)
-  (set-expected-conflicts! options)
-  (set-driver-name! options)
-  (let* ((gram/actions (gen-tables! tokens rules))
-	 (code         `(,driver-name ',action-table
-				      ,(build-goto-table)
-				      ,(build-reduction-table gram/actions))))
-    (output-table! options)
-    (output-parser! options code)
-    code))
 
 
 ;;;; done

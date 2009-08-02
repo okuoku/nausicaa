@@ -32,57 +32,128 @@
 
 #!r6rs
 (import (rnrs)
-  (lalr))
+  (lalr)
+  (silex))
 
-(define (display-result v)
-  (when v
-    (display v)
-    (newline)))
+
+;;;; lexer
+
+(lex :output-file "calc-parser-lexer.sls"
+     :lexer-format 'code
+     :library-spec "(calc-parser-lexer)"
+     :table-name 'calc-parser-lexer-table
+     :input-string "
+blanks		[ \\9\\10\\13]+
+
+decint          [0-9]+
+binint          #[bB][01]+
+octint          #[oO][0-7]+
+hexint          #[xX][0-9A-Fa-f]+
+integer		{decint}|{binint}|{octint}|{hexint}
+
+exponent        ([eE][+\\-]?[0-9]+)
+truereal	[0-9]+\\.|[0-9]*\\.[0-9]+{exponent}?|[0-9]+{exponent}
+real		{truereal}|{integer}
+
+imag		({decint}|{real})i
+
+nan             \\-nan\\.0|\\+nan\\.0|nan\\.0
+inf             \\-inf\\.0|\\+inf\\.0|inf\\.0
+
+initial         [a-zA-Z!$&:<=>?_~]
+subsequent      {initial}|[0-9.@]
+symbol          {initial}{subsequent}*
+
+cmpoperator	(<=|>=)
+operator	[\\+\\-*/%\\^\\\\<>=]
+
+comma		,
+
+oparen		\\(
+cparen		\\)
+
+%%
+{blanks}	;; skip blanks, tabs and newlines
+{imag}		(string->number (string-append \"+\" yytext))
+{real}		(string->number yytext)
+{nan}		(string->number yytext)
+{inf}		(string->number yytext)
+{operator}	(case (string-ref yytext 0)
+		  ((#\\+) +)
+		  ((#\\-) -)
+		  ((#\\*) *)
+		  ((#\\/) /)
+		  ((#\\%) mod)
+		  ((#\\^) expt)
+		  ((#\\\\) div)
+		  ((#\\=) =)
+		  ((#\\<) <)
+		  ((#\\>) >))
+{cmpoperator}	(cond
+                  ((string=? yytext \"<=\") <=)
+                  ((string=? yytext \">=\") >=))
+{symbol}	(string->symbol yytext)
+{comma}		(begin cons)
+
+{oparen}	(begin #\\()
+{cparen}	(begin #\\))
+
+<<EOF>>		(begin #f)
+<<ERROR>>	(assertion-violation #f
+                  \"invalid lexer token\")
+")
 
 
 
+;;;; parser
 
-(define calc-parser
-  (lalr-parser
-   '( ;; --- Options
-     ;; output a parser, called calc-parser, in a separate file - calc.yy.scm,
-     (output:    calc-parser "calc-parser.sls")
-     ;; output the LALR table to calc.out
-     (out-table: "calc-parser-tables.txt")
-     ;; there should be no conflict
-     (expect:    5)
+(lalr-parser
 
-     ;; --- token definitions
-     (ID NUM = LPAREN RPAREN NEWLINE COMMA
-	 (left: + -)
-	 (left: * /)
-	 (nonassoc: uminus))
+ :output-file		"calc-parser.sls"
+		;output a parser, called calc-parser, in a separate file
 
-     (lines    (lines line) : (display-result $2)
-	       (line)       : (display-result $1))
+ :table-name		'calc-parser
+ :library-spec		'(calc-parser)
+ :library-imports	'((calc-parser-helper))
 
+ :output-table		"calc-parser-tables.txt"
+		;output to a file the human readable LALR table
 
-     ;; --- rules
-     (line     (assign NEWLINE)        : $1
-	       (expr   NEWLINE)        : $1
-	       (error  NEWLINE)        : #f)
+ :expect		5
+		;there should be no conflicts
 
-     (assign   (ID = expr)             : (add-binding $1 $3))
+ :tokens	'(ID NUM = LPAREN RPAREN NEWLINE COMMA
+		  (left: + -)
+		  (left: * /)
+		  (nonassoc: uminus))
 
-     (expr     (expr + expr)           : (+ $1 $3)
-	       (expr - expr)           : (- $1 $3)
-	       (expr * expr)           : (* $1 $3)
-	       (expr / expr)           : (/ $1 $3)
-	       (- expr (prec: uminus)) : (- $2)
-	       (ID)                    : (get-binding $1)
-	       (ID LPAREN args RPAREN) : (invoke-proc $1 $3)
-	       (NUM)                   : $1
-	       (LPAREN expr RPAREN)    : $2)
+ :rules	'((lines    (lines line)	: (write $2)
+		    (line)		: (write $1))
 
-     (args     ()                      : '()
-	       (expr arg-rest)         : (cons $1 $2))
+	  (line     (assign NEWLINE)	: $1
+		    (expr   NEWLINE)	: $1
+		    (error  NEWLINE)	: #f)
 
-     (arg-rest (COMMA expr arg-rest)   : (cons $2 $3)
-	       ()                      : '()))))
+	  (assign   (ID = expr)		: (hashtable-set! (table-of-variables) $1 $3))
+
+	  (expr     (expr + expr)	: (+ $1 $3)
+		    (expr - expr)	: (- $1 $3)
+		    (expr * expr)	: (* $1 $3)
+		    (expr / expr)	: (/ $1 $3)
+		    (- expr (prec: uminus))
+					: (- $2)
+		    (ID)		: (hashtable-ref (table-of-variables) $1 #f)
+		    (ID LPAREN args RPAREN)
+					: (apply $1 $3)
+		    (NUM)		: $1
+		    (LPAREN expr RPAREN)
+					: $2)
+
+	  (args     ()			: '()
+		    (expr arg-rest)	: (cons $1 $2))
+
+	  (arg-rest (COMMA expr arg-rest)
+					: (cons $2 $3)
+		    ()			: '())))
 
 ;;; end of file

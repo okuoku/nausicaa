@@ -26,6 +26,7 @@
 
 
 (import (nausicaa)
+  (email addresses)
   (silex lexer)
   (email address-strings-lexer)
   (email address-comments-lexer)
@@ -147,54 +148,10 @@
   => '(domain-literal . "[ciao]"))
 
 
-;;;; full address lexer
-
-(define (tokenise-address string)
-  (let* ((IS	(lexer-make-IS :string string :counters 'all))
-	 (lexer	(lexer-make-lexer email-address-table IS)))
-    (define (accumulate-comment)
-      (let ((lexer (lexer-make-lexer email-address-comments-table IS)))
-	(do ((token  (lexer) (lexer))
-	     (result ""))
-	    ((not token)
-	     result)
-	  (set! result (string-append result
-				      (if (eq? token 'comment)
-					  (string-append "(" (accumulate-comment) ")")
-					token))))))
-    (do ((token (lexer) (lexer))
-	 (res   '()))
-	((not token)
-	 (reverse res))
-;;;      (write (list 'token token))(newline)
-      (set! res (case token
-
-		  ((quoted-text)
-		   (let ((lexer (lexer-make-lexer email-address-strings-table IS)))
-		     (do ((token (lexer) (lexer))
-			  (text  ""))
-			 ((not token)
-			  (cons (cons 'quoted-text text) res))
-		       (set! text (string-append text token)))))
-
-		  ((comment)
-		   (cons (cons 'comment (accumulate-comment)) res))
-
-		  ((domain-literal)
-		   (let ((lexer (lexer-make-lexer email-address-domain-literals-table IS)))
-		     (do ((token (lexer) (lexer))
-			  (dtext  ""))
-			 ((not token)
-			  (cons (cons 'domain-literal dtext) res))
-		       (set! dtext (string-append dtext token)))))
-
-		  (else
-		   (cons token res)))))))
-
-;;; --------------------------------------------------------------------
+;;;; full address lexer, list
 
 (check
-    (tokenise-address "simons@rhein.de")
+    (address->tokens :string "simons@rhein.de")
   => '((atom . "simons")
        (character . #\@)
        (atom . "rhein")
@@ -202,7 +159,7 @@
        (atom . "de")))
 
 (check
-    (tokenise-address "<simons@rhein.de>")
+    (address->tokens :string "<simons@rhein.de>")
   => '((character . #\<)
        (atom . "simons")
        (character . #\@)
@@ -212,7 +169,7 @@
        (character . #\>)))
 
 (check
-    (tokenise-address "\"Peter Simons\" <simons@rhein.de>")
+    (address->tokens :string "\"Peter Simons\" <simons@rhein.de>")
   => '((quoted-text . "Peter Simons")
        (character . #\<)
        (atom . "simons")
@@ -223,7 +180,7 @@
        (character . #\>)))
 
 (check
-    (tokenise-address "Peter Simons <simons@rhein.de>")
+    (address->tokens :string "Peter Simons <simons@rhein.de>")
   => '((atom . "Peter")
        (atom . "Simons")
        (character . #\<)
@@ -235,7 +192,7 @@
        (character . #\>)))
 
 (check
-    (tokenise-address "testing my parser : peter.simons@gmd.de,
+    (address->tokens :string "testing my parser : peter.simons@gmd.de,
             (peter.)simons@rhein.de ,,,,,
          testing my parser <simons@ieee.org>,
          it rules <@peti.gmd.de,@listserv.gmd.de:simons @ cys .de>
@@ -310,7 +267,7 @@
        (atom . "org")))
 
 (check
-    (tokenise-address "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
+    (address->tokens :string "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
   => '((atom . "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?=")
        (character . #\<)
        (atom . "fandom")
@@ -323,7 +280,7 @@
        (character . #\>)))
 
 (check
-    (tokenise-address "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
+    (address->tokens :string "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
   => '((atom . "=?iso-8859-1?q?Ulrich_Sch=F6bel?=")
        (character . #\<)
        (atom . "ulrich")
@@ -334,7 +291,7 @@
        (character . #\>)))
 
 (check
-    (tokenise-address " \"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
+    (address->tokens :string " \"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
   => '((quoted-text . "Steve Redler IV, Tcl2006 Conference Program Chair")
        (character . #\<)
        (atom . "steve")
@@ -345,7 +302,7 @@
        (character . #\>)))
 
 (check
-    (tokenise-address "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
+    (address->tokens :string "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
   => '((quoted-text . "Peter Simons")
        (comment . "Peter Simons")
        (character . #\<)
@@ -358,7 +315,7 @@
 
 
 (check
-    (tokenise-address "simons@[rhein].de")
+    (address->tokens :string "simons@[rhein].de")
   => '((atom . "simons")
        (character . #\@)
        (domain-literal . "rhein")
@@ -369,8 +326,79 @@
 
 (check
     (guard (exc (else (condition-message exc)))
-      (tokenise-address "simons[@rhein.de"))
+      (address->tokens :string "simons[@rhein.de"))
   => "found end of input while parsing domain literal")
+
+
+;;;; parser, domain
+
+(define (parse-domain string)
+  (call-with-string-output-port
+      (lambda (port)
+	(domain-display (address-parse-domain (make-address-lexer :string string))
+			port))))
+
+(check
+    (parse-domain "alpha")
+  => "#<domain -- alpha>")
+
+(check
+    (parse-domain "alpha.beta.delta")
+  => "#<domain -- alpha.beta.delta>")
+
+(check
+    (guard (exc (else (condition-message exc)))
+      (parse-domain "alpha."))
+  => "found end of address while parsing address domain")
+
+(check
+    (guard (exc (else (condition-message exc)))
+      (parse-domain "alpha.beta."))
+  => "found end of address while parsing address domain")
+
+
+
+;;;; parser, local part
+
+(define (parse-local-part string)
+  (call-with-string-output-port
+      (lambda (port)
+	(local-part-display (address-parse-local-part (make-address-lexer :string string))
+			    port))))
+
+(check
+    (parse-local-part "alpha")
+  => "#<local-part -- alpha>")
+
+(check
+    (parse-local-part "alpha.beta.delta")
+  => "#<local-part -- alpha.beta.delta>")
+
+(check
+    (guard (exc (else (condition-message exc)))
+      (parse-local-part "alpha."))
+  => "found end of address while parsing address local part")
+
+(check
+    (guard (exc (else (condition-message exc)))
+      (parse-local-part "alpha.beta."))
+  => "found end of address while parsing address local part")
+
+
+
+;;;; parser, addr-spec
+
+(define (parse-addr-spec string)
+  (call-with-string-output-port
+      (lambda (port)
+	(addr-spec-display (address-parse-addr-spec (make-address-lexer :string string))
+			   port))))
+
+(write    (address->tokens :string "marcomaggi@gna.org"))(newline)
+
+(check
+    (parse-addr-spec "marcomaggi@gna.org")
+  => "#<addr-spec -- marcomaggi@gna.org>")
 
 
 ;;;; done

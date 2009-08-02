@@ -1,14 +1,16 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for lalr
-;;;Date: Thu Jul 16, 2009
+;;;Contents: helper library for the calc parser
+;;;Date: Sun Aug  2, 2009
 ;;;
 ;;;Abstract
 ;;;
-;;;	Simple calculator in Scheme.
+;;;	This is a helper library for the calc parser generated as a test
+;;;	for the (lalr) library.  It is imported by "calc-parser.sls" and
+;;;	"test-lalr.sps".
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
-;;;Copyright (c) 2004 Dominique Boucher
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,20 +27,13 @@
 ;;;
 
 
-(import (nausicaa)
-  (calc-parser)
-  (checks)
-  (rnrs mutable-pairs))
+(library (calc-parser-helper)
+  (export
+    table-of-variables)
+  (import (rnrs)
+    (parameters))
 
-(check-set-mode! 'report-failed)
-(display "*** testing lalr\n")
-
-
-
-
-
-;;;; done
-
-(check-report)
+  (define table-of-variables
+    (make-parameter #f)))
 
 ;;; end of file

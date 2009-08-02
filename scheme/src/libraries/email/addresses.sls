@@ -25,138 +25,264 @@
 
 
 #!r6rs
-(library (email address)
-  (export a)
-  (import (rnrs))
+(library (email addresses)
+  (export
+
+    ;; lexers
+    make-address-lexer		address->tokens
+
+    ;; parsers
+    address-parse-domain
+    address-parse-local-part
+    address-parse-addr-spec
+
+    ;; domain data type
+    make-domain			domain?
+    domain-subdomains
+    domain-display		domain-write		domain->string
+
+    ;; local part data type
+    make-local-part		local-part?
+    local-part-subparts
+    local-part-display		local-part-write	local-part->string
+
+    ;; addr-spec data type
+    make-addr-spec		addr-spec?
+    addr-spec-local-part	addr-spec-domain
+    addr-spec-display		addr-spec-write		addr-spec->string
+
+    )
+  (import (rnrs)
+    (silex lexer)
+    (email address-strings-lexer)
+    (email address-comments-lexer)
+    (email address-domain-literals-lexer)
+    (email address-lexer)
+    (parameters)
+    (strings))
 
 
-(define (make-lexer arg)
-  (let ((in-port (cond ((string? arg)
-			(open-string-input-port arg))
-		       ((and (input-port?   arg)
-			     (textual-port? arg))
-			arg)
-		       (else
-			(assertion-violation 'make-lexer
-			  "expected string or textual input port" arg))))
-	(offset  0))
+(define (address->tokens . options)
+  (let ((lexer		(apply make-address-lexer options))
+	(list-of-tokens	'()))
+    (do ((token (lexer) (lexer)))
+	((not token)
+	 (reverse list-of-tokens))
+      (set! list-of-tokens (cons token list-of-tokens)))))
+
+(define (make-address-lexer . options)
+  (let* ((IS	(apply lexer-make-IS (append (list :counters 'all) options)))
+	 (lexer	(lexer-make-lexer email-address-table IS)))
     (lambda ()
-      (let-syntax ((is-char	(syntax-rules () ((_ ?c) (<= ?c #\127))))
-		   (is-control	(syntax-rules () ((_ ?c) (<= ?c #\31))))
-		   (is-space	(syntax-rules () ((_ ?c) (or (char=? ?c #\space)
-							     (char=? ?c #\tab)))))
-		   (is-space	(syntax-rules () ((_ ?c) (char<=? #\160 ?c #\255))))
-		   (is-special	(syntax-rules () ((_ ?c) (memv ?c
-							       '(#\( #\)
-								 #\< #\>
-								 #\@ #\,
-								 #\; #\:
-								 #\backspace
-								 #\" #\.
-								 #\[ #\])))))
-		   (is-atom	(syntax-rules () ((_ ?c) (and (is-char ?c)
-							      (not (is-special ?c))
-							      (not (is-space   ?c))
-							      (not (is-control ?c))))))
-		   (is-ctext	(syntax-rules () ((_ ?c) (and (or (is-char    ?c)
-								  (is-bigchar ?c))
-							      (not (char=? #\( ?c))
-							      (not (char=? #\) ?c))
-							      (not (char=? #\backslash ?c))))))
-		   (is-dtext	(syntax-rules () ((_ ?c) (and (is-char    ?c)
-							      (not (char=? #\[ ?c))
-							      (not (char=? #\] ?c))
-							      (not (char=? #\backslash ?c))))))
-		   (is-qtext	(syntax-rules () ((_ ?c) (and (is-char    ?c)
-							      (not (char=? #\" ?c))
-							      (not (char=? #\backslash ?c)))))))
+      (lex-dispatch-token (lexer) IS))))
 
-	(define (next-char)
-	  (set! offset (+ 1 offset))
-	  (get-char in-port))
+;;; --------------------------------------------------------------------
 
-	(define (error message)
-	  (assertion-violation 'lexer message address-string))
+(define (lex-dispatch-token token IS)
+  (define (lex-comment-token IS)
+    (let ((lexer (lexer-make-lexer email-address-comments-table IS)))
+      (do ((token  (lexer) (lexer))
+	   (result ""))
+	  ((not token)
+	   (cons 'comment result))
+	(set! result (string-append result
+				    (if (eq? token 'comment)
+					(string-append "(" (lex-comment-token IS) ")")
+				      token))))))
 
-	(define (eat-comment ou-port)
-	  (define error-message/incomplete "incomplete comment in email address")
-	  (let loop ((c (next-char)))
-	    (cond ((eof-object? c)
-		   (error error-message/incomplete))
+  (define (lex-quoted-text-token IS)
+    (let ((lexer (lexer-make-lexer email-address-strings-table IS)))
+      (do ((token (lexer) (lexer))
+	   (text  ""))
+	  ((not token)
+	   (cons 'quoted-text text))
+	(set! text (string-append text token)))))
 
-		  ((is-ctext c)
-		   (put-char c ou-port)
-		   (loop (next-char)))
+  (define (lex-domain-literal-token IS)
+    (let ((lexer (lexer-make-lexer email-address-domain-literals-table IS)))
+      (do ((token (lexer) (lexer))
+	   (dtext  ""))
+	  ((not token)
+	   (cons 'domain-literal dtext))
+	(set! dtext (string-append dtext token)))))
 
-		  (else
-		   (case c
-		     ((#\backslash)
-		      (let ((c1 (next-char)))
-			(cond ((eof-object? c1)
-			       (error error-message/incomplete))
-			      (else
-			       (put-char c  ou-port)
-			       (put-char c1 ou-port)
-			       (loop (next-char))))))
+  (case token
+    ((quoted-text)	(lex-quoted-text-token IS))
+    ((comment)		(lex-comment-token IS))
+    ((domain-literal)	(lex-domain-literal-token IS))
+    (else		token)))
 
-		     ((#\()
-		      (eat-comment ou-port)
-		      (loop (next-char)))
+
+;;;; address domain record
 
-		     ((#\))
-		      (put-char c ou-port)
-		      (loop (next-char)))
+(define-record-type domain
+  (fields (immutable subdomains)))
 
-		     (else
-		      (error (string-append "forbidden character \""
-					    (list->string (list c))
-					    "\" in email address comment offset "
-					    (number->string offset)))))))))
+(define domain-display
+  (case-lambda
+   ((domain)
+    (domain-display domain (current-output-port)))
+   ((domain port)
+    (display (string-append "#<domain -- "
+			    (string-join (domain-subdomains domain) ".")
+			    ">")
+	     port))))
 
-	(define (eat-spaces-after-newline)
-	  ;;There must be at least one space after a cr+lf sequence.
-	  ;;
-	  (let loop ((c (next-char)))
-	    (case c
-	      ((#\space #\tab)
-	       (loop (next-char)))
-	      (else
-	       (error "newline without proper continuation of spaces")))))
+(define domain-write
+  (case-lambda
+   ((domain)
+    (domain-display domain (current-output-port)))
+   ((domain port)
+    (display "(make-domain " port)
+    (write (domain-subdomains domain) port)
+    (display ")" port))))
 
-	(let loop ((c (next-char)))
-	  (cond ((eof-object? c)
-		 )
+(define (domain->string domain)
+  (string-join (domain-subdomains domain) "."))
 
-		((is-atom c)
-		 (let-values (((ou-port getter) (open-string-output-port)))
-		   (put-char c ou-port)
-		   (let loop2 ((c (next-char)))
-		     (cond ((eof-object? c))))))
+
+;;;; address local part record
 
-		(else (case c
-			((#\()
-			 (let-values (((ou-port getter) (open-string-output-port)))
-			   (eat-comment ou-port)
-			   (cons 'comment (string-append "(" (getter)))))
+(define-record-type local-part
+  (fields (immutable subparts)))
 
-			((#\< #\> #\@ #\, #\; #\: #\.')
-			 (cons 'character . c))
+(define local-part-display
+  (case-lambda
+   ((local-part)
+    (local-part-display local-part (current-output-port)))
+   ((local-part port)
+    (display (string-append "#<local-part -- "
+			    (string-join (local-part-subparts local-part) ".")
+			    ">")
+	     port))))
 
-			((#\newline)
-			 (eat-spaces-aftger-newline)
-			 (loop (next-char)))
+(define local-part-write
+  (case-lambda
+   ((local-part)
+    (local-part-display local-part (current-output-port)))
+   ((local-part port)
+    (display "(make-local-part " port)
+    (write (local-part-subparts local-part) port)
+    (display ")" port))))
 
-			((#\return)
-			 (if (char=? #\newline (next-char))
-			     (eat-spaces-aftger-newline)
-			   (error "return character not followed by newline character")))
+(define (local-part->string local-part)
+  (string-join (local-part-subparts local-part) "."))
 
-			((#\space #\tab)
-			 (loop (next-char)))
+
+;;;; address addr-spec record
 
+(define-record-type addr-spec
+  (fields (immutable local-part)
+	  (immutable domain)))
 
+(define addr-spec-display
+  (case-lambda
+   ((addr-spec)
+    (addr-spec-display addr-spec (current-output-port)))
+   ((addr-spec port)
+    (display (string-append "#<addr-spec -- "
+			    (addr-spec->string addr-spec)
+			    ">")
+	     port))))
 
-			)))))))
+(define addr-spec-write
+  (case-lambda
+   ((addr-spec)
+    (addr-spec-display addr-spec (current-output-port)))
+   ((addr-spec port)
+    (display "(make-addr-spec " port)
+    (local-part-write (addr-spec-local-part addr-spec) port)
+    (display " " port)
+    (domain-write (addr-spec-domain addr-spec) port)
+    (display ")" port))))
+
+(define (addr-spec->string addr-spec)
+  (string-append (local-part->string (addr-spec-local-part addr-spec))
+		 "@"
+		 (domain->string (addr-spec-domain addr-spec))))
+
+
+;;;; parser helpers
+
+(define proc-name
+  ;;Set  to the  current parser  function name.   It is  used  by helper
+  ;;functions to report errors.
+  ;;
+  (make-parameter #f))
+
+(define parsing-object-descr
+  ;;Set to  a string describing  the address component we  are currently
+  ;;parsing.  It is used by helper functions to report errors.
+  ;;
+  (make-parameter #f))
+
+(define (assert-expected-token token token-type token-pred token-type-descr)
+  ;;Assert that  TOKEN is of  type TOKEN-TYPE and  satisfies TOKEN-PRED.
+  ;;If not raise an assertion violation.
+  ;;
+  (assert-token token)
+  (unless (and (eq? token-type (car token))
+	       (token-pred (cdr token)))
+    (assertion-violation (proc-name)
+      (string-append "expected " token-type-descr " while parsing " (parsing-object-descr))
+      token)))
+
+(define (assert-token token)
+  ;;Assert that TOKEN is true.  If not raise an assertion violation.
+  ;;
+  (unless token
+    (assertion-violation (proc-name)
+      (string-append "found end of address while parsing " (parsing-object-descr)))))
+
+
+;;;; parser functions
+
+(define (address-parse-domain lexer)
+  (parameterise ((proc-name		'address-parse-domain)
+		 (parsing-object-descr	"address domain"))
+    (parse-dotted-strings lexer make-domain "subdomain string")))
+
+(define (address-parse-local-part lexer)
+  (parameterise ((proc-name		'address-parse-local-part)
+		 (parsing-object-descr	"address local part"))
+    (parse-dotted-strings lexer make-local-part "local part string")))
+
+(define (parse-dotted-strings lexer make-object atom-descr)
+  ;;Parse a sequence of tokens:
+  ;;
+  ;;	atom (character atom)*
+  ;;
+  ;;in which the characters are dots.
+  ;;
+  (let ((token-first (lexer)))
+    (assert-expected-token token-first 'atom string? atom-descr)
+    (let loop ((list-of-strings (list (cdr token-first))))
+      (let ((token-dot (lexer)))
+	(if (not token-dot)
+	    (make-object (reverse list-of-strings))
+	  (begin
+	    (assert-expected-token token-dot 'character
+				   (lambda (obj) (char=? #\. obj))
+				   "dot separator")
+	    (let ((token-atom (lexer)))
+	      (assert-expected-token token-atom 'atom string? atom-descr)
+	      (loop (cons (cdr token-atom) list-of-strings)))))))))
+
+(define (address-parse-addr-spec lexer)
+  ;;Parse the sequence:
+  ;;
+  ;;	local-part #\@ domain
+  ;;
+  (parameterise ((proc-name		'address-parse-addr-spec)
+		 (parsing-object-descr	"addr spec"))
+    (let ((domain (address-parse-domain lexer)))
+      (write domain)(newline)
+      (assert-expected-token (lexer) 'character
+			     (lambda (obj) (char=? #\@ obj))
+			     "at separator")
+      (let ((local-part (address-parse-local-part lexer)))
+	(make-addr-spec (make-local-part local-part)
+			(make-domain     domain))))))
 
 
 ;;;; done

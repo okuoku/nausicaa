@@ -32,7 +32,7 @@
 
 
 (define l "
-blanks		[ \\10\\13]+
+blanks		[ \\9\\10\\13]+
 
 decint          [0-9]+
 binint          #[bB][01]+
@@ -89,30 +89,30 @@ cparen		\\)
 
 <<EOF>>		(begin #f)
 <<ERROR>>	(assertion-violation #f
-                  \"invalid lexer token\" yytext)
+                  \"invalid lexer token\")
 ")
 
 
 (define lexer-file	"calc.l")
-(define tree-file	"calc-tree.sls")
-(define code-file	"calc-code.sls")
-(define portable-file	"calc-portable.sls")
+(define tree-file	"calc-tree-lexer.sls")
+(define code-file	"calc-code-lexer.sls")
+(define portable-file	"calc-portable-lexer.sls")
 
 (define lp (open-string-input-port l))
 
 (lex :input-file lexer-file :output-file tree-file
-     :library-spec "(calc-tree)"
+     :library-spec "(calc-tree-lexer)"
      :table-name 'calc-lexer-table/tree)
 
 
 (lex :input-string l :output-file code-file
      :lexer-format 'code
-     :library-spec "(calc-code)"
+     :library-spec "(calc-code-lexer)"
      :table-name 'calc-lexer-table/code)
 
 (lex :input-port lp :output-file portable-file
      :lexer-format 'portable
-     :library-spec "(calc-portable)"
+     :library-spec "(calc-portable-lexer)"
      :table-name 'calc-lexer-table/portable)
 
 ;;; end of file

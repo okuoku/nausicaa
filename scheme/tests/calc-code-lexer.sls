@@ -1,4 +1,4 @@
-(library (calc-code)
+(library (calc-code-lexer)
   (export
     calc-lexer-table/code)
   (import (rnrs) (silex lexer))
@@ -184,7 +184,7 @@
                        (if (< c 38)
                            (if (< c 32)
                                (if (< c 11)
-                                   (if (< c 10)
+                                   (if (< c 9)
                                        action
                                        (state-16 action))
                                    (if (= c 13)
@@ -597,9 +597,11 @@
              (let ((c (read-char)))
                (if c
                    (if (< c 13)
-                       (if (= c 10)
-                           (state-16 action-0)
-                           action-0)
+                       (if (< c 9)
+                           action-0
+                           (if (< c 11)
+                               (state-16 action-0)
+                               action-0))
                        (if (< c 32)
                            (if (< c 14)
                                (state-16 action-0)
