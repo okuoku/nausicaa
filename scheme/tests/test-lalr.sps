@@ -30,17 +30,14 @@
   (calc-parser)
   (calc-parser-helper)
   (calc-parser-lexer)
-  (lalr common)
-  (checks)
-  (rnrs mutable-pairs))
+  (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing lalr\n")
 
 
-
 (define (doit string)
-  (let* ((IS		(lexer-make-IS :string string :counters 'line))
+  (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	 (lexer		(lexer-make-lexer calc-parser-lexer-table IS))
 	 (error-handler	(lambda (message token)
 			  (error #f (string-append message
@@ -49,13 +46,27 @@
 						    (source-location-line
 						     (lexical-token-source token))))
 				 (lexical-token-value token)))))
-    (calc-parser lexer error-handler)))
+    (parameterise ((table-of-variables (make-eq-hashtable))
+		   (evaluated-expressions '()))
+      (calc-parser lexer error-handler)
+      (evaluated-expressions))))
 
-(parameterise ((table-of-variables (make-eq-hashtable)))
-  (doit "1 + 2 + 4 * 3
-a = 2
-a * 3
-"))
+(check
+      (doit "1\n")
+  => '(1))
+
+(check
+      (doit "1 + 2 + 4 * 3 \n a = 2 \n a * 3 \n")
+  => '(6 15))
+
+(check
+      (doit "sin(1.2)\n")
+  => (list (sin 1.2)))
+
+(check
+      (doit "atan(1.2, 0.5)\n")
+  => (list (atan 1.2 0.5)))
+
 
 
 ;;;; done

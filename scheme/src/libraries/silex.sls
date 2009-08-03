@@ -218,7 +218,7 @@
   (string-append "       (eof-object)" "\n"))
 
 (define default-<<ERROR>>-action
-  (string-append "       (assertion-violation #f \"invalid token\" yytext)\n"))
+  (string-append "       (assertion-violation #f \"invalid token\")\n"))
 
 (define (make-dispatch-table size alist default)
   ;;Fabrication de tables de dispatch.
@@ -4749,9 +4749,8 @@
 	    ;;Make the output value.
 	    (let ((ell (read (open-string-input-port (value-getter)))))
 	      (eval ell (if (eq? lexer-format 'code)
-			    (environment '(rnrs)
-					 '(silex lexer))
-			  (environment '(rnrs)))))))))
+			    (apply environment '(rnrs) '(silex lexer) library-imports)
+			  (apply environment '(rnrs) library-imports))))))))
 
   (define (library-spec->string-spec spec)
     ;;We allow the library specification  to be: a string, including the

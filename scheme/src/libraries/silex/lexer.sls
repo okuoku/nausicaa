@@ -86,7 +86,7 @@
 		  (cond ((and input-string (string? input-string))
 			 (values (string-append (string #\newline) input-string)
 				 (+ 1 (string-length input-string))
-				 (lambda () 'eof)))
+				 (lambda () (eof-object))))
 			((and input-port (input-port? input-port))
 			 (values (make-string lexer-init-buffer-len #\newline)
 				 1
@@ -242,7 +242,7 @@
 		      (set! read-ptr (+ point-ptr 1))
 		      (char->integer c))
 		  (begin
-		    (set! input-f (lambda () 'eof))
+		    (set! input-f (lambda () (eof-object)))
 		    #f))))))
 	 (read-char
 	  (lambda ()
@@ -260,7 +260,7 @@
 		      (set! point-ptr read-ptr)
 		      (char->integer c))
 		  (begin
-		    (set! input-f (lambda () 'eof))
+		    (set! input-f (lambda () (eof-object)))
 		    #f))))))
 	 (get-start-end-text ; Obtention du lexeme
 	  (lambda ()
@@ -315,8 +315,8 @@
 		      (set! user-ptr read-ptr)
 		      c)
 		  (begin
-		    (set! input-f (lambda () 'eof))
-		    'eof))))))
+		    (set! input-f (lambda () (eof-object)))
+		    (eof-object)))))))
 	 (user-getc-line
 	  (lambda ()
 	    (if (< user-ptr start-ptr)
@@ -339,8 +339,8 @@
 			  (set! user-line (+ user-line 1)))
 		      c)
 		  (begin
-		    (set! input-f (lambda () 'eof))
-		    'eof))))))
+		    (set! input-f (lambda () (eof-object)))
+		    (eof-object)))))))
 	 (user-getc-all
 	  (lambda ()
 	    (if (< user-ptr start-ptr)
@@ -371,8 +371,8 @@
 		      (set! user-offset (+ user-offset 1))
 		      c)
 		  (begin
-		    (set! input-f (lambda () 'eof))
-		    'eof))))))
+		    (set! input-f (lambda () (eof-object)))
+		    (eof-object)))))))
 	 (user-ungetc-none
 	  (lambda ()
 	    (when (> user-ptr start-ptr)

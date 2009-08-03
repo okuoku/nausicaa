@@ -53,6 +53,7 @@
     :expect			:tokens
     :rules
 
+    ;; re-exports from (lalr common)
     make-source-location	source-location?
     source-location-line
     source-location-input
@@ -239,11 +240,23 @@
 				  (lalr common))
 				library-imports))
 	       (code	(cond (library-spec `(library ,library-spec
-					       (export ,table-name)
+					       (export ,table-name
+						       ;; re-exports from (lalr common)
+						       make-source-location
+						       source-location?
+						       source-location-line
+						       source-location-input
+						       source-location-column
+						       source-location-offset
+						       source-location-length
+						       make-lexical-token
+						       lexical-token?
+						       lexical-token-value
+						       lexical-token-category
+						       lexical-token-source)
 					       (import ,@imports)
 					       (define ,table-name ,code)))
 			      (else code))))
-
 	  (cond (output-value
 		 (eval code (environment imports)))
 		(output-port

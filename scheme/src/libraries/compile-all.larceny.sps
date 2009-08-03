@@ -139,6 +139,9 @@
 (compile-library "silex.sls"
 		 "silex.slfasl")
 
+(compile-library "lalr/common.sls"
+ 		 "lalr/common.slfasl")
+
 (compile-library "lalr.sls"
  		 "lalr.slfasl")
 

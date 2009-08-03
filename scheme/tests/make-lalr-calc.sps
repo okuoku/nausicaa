@@ -39,7 +39,6 @@
 ;;;; lexer
 
 (silex:lex silex::output-file "calc-parser-lexer.sls"
-	   silex::lexer-format 'code
 	   silex::counters 'all
 	   silex::library-spec "(calc-parser-lexer)"
 	   silex::library-imports '((lalr common))
@@ -63,7 +62,7 @@ imag		({decint}|{real})i
 nan             \\-nan\\.0|\\+nan\\.0|nan\\.0
 inf             \\-inf\\.0|\\+inf\\.0|inf\\.0
 
-initial         [a-zA-Z!$&:?_~]
+initial         [a-zA-Z_]
 subsequent      {initial}|[0-9.@]
 symbol          {initial}{subsequent}*
 
@@ -130,7 +129,7 @@ cparen		\\)
 
  :table-name		'calc-parser
  :library-spec		'(calc-parser)
- :library-imports	'((calc-parser-helper))
+ :library-imports	'((calc-parser-helper) (rnrs eval))
 
  :output-table		"calc-parser-tables.txt"
 		;output to a file the human readable LALR table
@@ -144,14 +143,16 @@ cparen		\\)
 		  (nonassoc: uminus))
 
  :rules	'((lines
-	   (lines line)		: (begin
-				    (display $2)
-				    (newline))
-		;this prints the result of all the lines but the first
-	   (line)		: (begin
-				    (display $1)
-				    (newline)))
-		;this prints the result of the first line only
+	   (lines line)		: (let ((result $2))
+				    (when result
+				      (evaluated-expressions
+				       (cons result (evaluated-expressions)))))
+		;this reports the result of all the lines but the first
+	   (line)		: (let ((result $1))
+				    (when result
+				      (evaluated-expressions
+				       (cons result (evaluated-expressions))))))
+		;this reports the result of the first line only
 
 	  (line     (assign NEWLINE)	: $1
 		    (expr   NEWLINE)	: $1
@@ -159,7 +160,7 @@ cparen		\\)
 
 	  (assign   (ID ASSIGN expr)	: (begin
 					    (hashtable-set! (table-of-variables) $1 $3)
-					    "set variable"))
+					    #f))
 
 	  (expr     (expr + expr)	: (+ $1 $3)
 		    (expr - expr)	: (- $1 $3)
@@ -169,7 +170,7 @@ cparen		\\)
 					: (- $2)
 		    (ID)		: (hashtable-ref (table-of-variables) $1 #f)
 		    (ID LPAREN args RPAREN)
-					: (apply $1 $3)
+					: (apply (eval $1 (environment '(rnrs))) $3)
 		    (NUM)		: $1
 		    (LPAREN expr RPAREN)
 					: $2)

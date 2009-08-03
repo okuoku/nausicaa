@@ -1,6 +1,18 @@
 (library (calc-parser)
-  (export calc-parser)
-  (import (rnrs) (lalr lr-driver) (lalr common) (calc-parser-helper))
+  (export calc-parser
+          make-source-location
+          source-location?
+          source-location-line
+          source-location-input
+          source-location-column
+          source-location-offset
+          source-location-length
+          make-lexical-token
+          lexical-token?
+          lexical-token-value
+          lexical-token-category
+          lexical-token-source)
+  (import (rnrs) (lalr lr-driver) (lalr common) (calc-parser-helper) (rnrs eval))
   (define calc-parser
     (lr-driver
       '#(((*default* *error*) (error 5) (ID 4) (NUM 3) (LPAREN 2) (- 1))
@@ -84,10 +96,18 @@
           (let* (($2 (vector-ref ___stack (- ___sp 1))) ($1 (vector-ref ___stack (- ___sp 3)))) $1))
         (lambda (___stack ___sp ___goto-table ___push yypushback)
           (let* (($2 (vector-ref ___stack (- ___sp 1))) ($1 (vector-ref ___stack (- ___sp 3))))
-            (___push 2 1 (begin (display $2) (newline)))))
+            (___push
+              2
+              1
+              (let ((result $2))
+                (when result (evaluated-expressions (cons result (evaluated-expressions))))))))
         (lambda (___stack ___sp ___goto-table ___push yypushback)
           (let* (($1 (vector-ref ___stack (- ___sp 1))))
-            (___push 1 1 (begin (display $1) (newline)))))
+            (___push
+              1
+              1
+              (let ((result $1))
+                (when result (evaluated-expressions (cons result (evaluated-expressions))))))))
         (lambda (___stack ___sp ___goto-table ___push yypushback)
           (let* (($2 (vector-ref ___stack (- ___sp 1))) ($1 (vector-ref ___stack (- ___sp 3))))
             (___push 2 2 $1)))
@@ -99,7 +119,7 @@
           (let* (($3 (vector-ref ___stack (- ___sp 1)))
                  ($2 (vector-ref ___stack (- ___sp 3)))
                  ($1 (vector-ref ___stack (- ___sp 5))))
-            (___push 3 3 (begin (hashtable-set! (table-of-variables) $1 $3) "set variable"))))
+            (___push 3 3 (begin (hashtable-set! (table-of-variables) $1 $3) #f))))
         (lambda (___stack ___sp ___goto-table ___push yypushback)
           (let* (($3 (vector-ref ___stack (- ___sp 1)))
                  ($2 (vector-ref ___stack (- ___sp 3)))
@@ -131,7 +151,7 @@
                  ($3 (vector-ref ___stack (- ___sp 3)))
                  ($2 (vector-ref ___stack (- ___sp 5)))
                  ($1 (vector-ref ___stack (- ___sp 7))))
-            (___push 4 4 (apply $1 $3))))
+            (___push 4 4 (apply (eval $1 (environment '(rnrs))) $3))))
         (lambda (___stack ___sp ___goto-table ___push yypushback)
           (let* (($1 (vector-ref ___stack (- ___sp 1)))) (___push 1 4 $1)))
         (lambda (___stack ___sp ___goto-table ___push yypushback)

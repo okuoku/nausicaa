@@ -29,10 +29,13 @@
 
 (library (calc-parser-helper)
   (export
-    table-of-variables)
+    table-of-variables
+    evaluated-expressions)
   (import (rnrs)
     (parameters))
   (define table-of-variables
+    (make-parameter #f))
+  (define evaluated-expressions
     (make-parameter #f)))
 
 ;;; end of file

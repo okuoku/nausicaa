@@ -43,10 +43,23 @@
 
 #!r6rs
 (library (lalr glr-driver)
-  (export glr-driver)
+  (export
+    glr-driver
+
+    ;; re-exports from (lalr common)
+    make-source-location	source-location?
+    source-location-line
+    source-location-input
+    source-location-column
+    source-location-offset
+    source-location-length
+
+    make-lexical-token		lexical-token?
+    lexical-token-value
+    lexical-token-category
+    lexical-token-source)
   (import (rnrs)
     (lalr common))
-
 
 (define-syntax drop/stx
   (syntax-rules ()

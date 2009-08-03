@@ -91,7 +91,7 @@ cparen		\\)
 {oparen}	(begin #\\()
 {cparen}	(begin #\\))
 
-<<EOF>>		(begin #f)
+<<EOF>>		(eof-object)
 <<ERROR>>	(assertion-violation #f
                   \"invalid lexer token\" yytext)
 ")

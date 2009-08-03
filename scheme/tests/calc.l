@@ -63,7 +63,7 @@ imag		({decint}|{real})i
 nan             \-nan\.0|\+nan\.0|nan\.0
 inf             \-inf\.0|\+inf\.0|inf\.0
 
-initial         [a-zA-Z!$&:<=>?_~]
+initial         [a-zA-Z_]
 subsequent      {initial}|[0-9.@]
 symbol          {initial}{subsequent}*
 
@@ -101,7 +101,7 @@ cparen		\)
 {oparen}	(begin #\()
 {cparen}	(begin #\))
 
-<<EOF>>		(begin #f)
+<<EOF>>		(eof-object)
 <<ERROR>>	(assertion-violation #f
                   "invalid lexer token" yytext)
 

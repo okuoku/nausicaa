@@ -37,13 +37,15 @@
   (define (tokenize string)
     (let* ((IS				(lexer-make-IS :string string :counters 'line))
 	   (lexer			(lexer-make-lexer table IS))
-	   (lexer-get-line		(lexer-get-func-line IS))
-	   (lexer-getc			(lexer-get-func-getc IS))
-	   (lexer-ungetc		(lexer-get-func-ungetc IS)))
-      (do* ((token (lexer) (lexer))
-	    (out   '() (cons token out)))
-	  ((not token)
-	   (reverse out)))))
+;; 	   (lexer-get-line		(lexer-get-func-line IS))
+;; 	   (lexer-getc			(lexer-get-func-getc IS))
+;; 	   (lexer-ungetc		(lexer-get-func-ungetc IS))
+	   )
+      (do ((token (lexer) (lexer))
+	   (out   '()))
+	  ((eof-object? token)
+	   (reverse out))
+	(set! out (cons token out)))))
 
 ;;; integers
 

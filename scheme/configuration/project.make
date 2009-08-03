@@ -37,19 +37,21 @@ nau_scheme_ENABLE_BINFMT	= @nau_scheme_ENABLE_BINFMT@
 ## --------------------------------------------------------------------
 
 $(eval $(call nau-libraries,core))
-$(eval $(call nau-libraries,nausicaa,nausicaa))
-$(eval $(call nau-libraries,lists,lists))
-$(eval $(call nau-libraries,strings,strings))
-$(eval $(call nau-libraries,vectors,vectors))
-$(eval $(call nau-libraries,random,random))
-$(eval $(call nau-libraries,char-sets,char-sets))
-$(eval $(call nau-libraries,silex,silex))
-$(eval $(call nau-libraries,profiling,profiling))
-$(eval $(call nau-libraries,email,email))
 
+$(eval $(call nau-libraries,char-sets,char-sets))
+$(eval $(call nau-libraries,csv,csv))
+$(eval $(call nau-libraries,email,email))
 $(eval $(call nau-libraries,foreign,foreign))
 $(eval $(call nau-libraries,foreign_ffi,foreign/ffi))
 $(eval $(call nau-libraries,foreign_memory,foreign/memory))
+$(eval $(call nau-libraries,lalr,lalr))
+$(eval $(call nau-libraries,lists,lists))
+$(eval $(call nau-libraries,nausicaa,nausicaa))
+$(eval $(call nau-libraries,profiling,profiling))
+$(eval $(call nau-libraries,random,random))
+$(eval $(call nau-libraries,silex,silex))
+$(eval $(call nau-libraries,strings,strings))
+$(eval $(call nau-libraries,vectors,vectors))
 
 #page
 ## ------------------------------------------------------------
