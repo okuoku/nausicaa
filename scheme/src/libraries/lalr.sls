@@ -47,9 +47,9 @@
     lalr-parser
 
     :library-spec		:library-imports
-    :parser-type		:table-name
+    :parser-type		:parser-name
     :output-value		:output-port
-    :output-file		:output-table
+    :output-file		:dump-table
     :expect			:tokens
     :rules
 
@@ -77,61 +77,21 @@
 
 ;;;; Keyword options for the LALR-PARSER function.
 
-(define-keyword :library-spec)
-		;Used to select  the library specification when printing
-		;the generated parser to a  file in the form of a proper
-		;Scheme library.   The value  must be a  proper <library
-		;name> as defined by R6RS.
-
-(define-keyword :library-imports)
-		;A list of library specification that is included in the
-		;import spec for the generated library.
-
-(define-keyword :parser-type)
-		;Used to  select the parser  type.  It must be  a symbol
-		;among: lr, glr.
-
-(define-keyword :table-name)
-		;Used to  select the name  of the binding for  the table
-		;representing  the  generated  parser.   It  must  be  a
-		;symbol.
+(define-keyword :tokens)
+(define-keyword :rules)
+(define-keyword :expect)
 
 (define-keyword :output-value)
-		;A boolean.   If true the generated  parser is evaluated
-		;with  EVAL  and  returned  as proper  Scheme  value  by
-		;LALR-PARSER.
-		;
-		;This     option    supersedes     ":output-port"    and
-		;":output-file".
-
 (define-keyword :output-port)
-		;A port or #f.  If it is a port, the generated parser is
-		;printed to this port.
-		;
-		;This option supersedes ":output-file".
-
 (define-keyword :output-file)
-		;A file  pathname or #f.  If  it is a  file pathname (as
-		;string),  the generated  parser is  saved in  this file
-		;(overwriting its previous content, if any).
 
-(define-keyword :output-table)
-		;A file  pathname or #f.  If  it is a  file pathname (as
-		;string), a human readable  dump of the generated parser
-		;is saved in the file (overwriting its previous content,
-		;if any).
+(define-keyword :dump-table)
 
-(define-keyword :expect)
-		;An integer number.  It  is the number of rule conflicts
-		;we expect in the  parser definition.  In a well defined
-		;parser, there should be no conflicts.
+(define-keyword :library-spec)
+(define-keyword :library-imports)
+(define-keyword :parser-type)
 
-(define-keyword :tokens)
-		;A list representing the parser tokens, their precedence
-		;and their associativity.
-
-(define-keyword :rules)
-		;A list representing the parser rules.
+(define-keyword :parser-name)
 
 
 ;;;; helpers
@@ -206,13 +166,13 @@
     (let-keywords options #f ((library-spec	:library-spec		#f)
 			      (library-imports	:library-imports	'())
 			      (parser-type	:parser-type		'lr)
-			      (table-name	:table-name		#f)
+			      (parser-name	:parser-name		#f)
 
 			      (output-value	:output-value		#f)
 			      (output-port	:output-port		#f)
 			      (output-file	:output-file		#f)
 
-			      (output-table	:output-table		#f)
+			      (dump-table	:dump-table		#f)
 
 			      (expect		:expect			0)
 			      (rules		:rules			#f)
@@ -232,31 +192,38 @@
 					  ,(build-goto-table)
 					  ,(build-reduction-table gram/actions))))
 
-	(when output-table
-	  (with-output-to-new-file output-table debug:print-states))
+	(when dump-table
+	  (with-output-to-new-file dump-table debug:print-states))
 
-	(let* ((imports	(append `((rnrs)
-				  (lalr ,driver-name)
-				  (lalr common))
+	(let* ((imports	(append `((rnrs) (lalr ,driver-name) (lalr common))
 				library-imports))
-	       (code	(cond (library-spec `(library ,library-spec
-					       (export ,table-name
-						       ;; re-exports from (lalr common)
-						       make-source-location
-						       source-location?
-						       source-location-line
-						       source-location-input
-						       source-location-column
-						       source-location-offset
-						       source-location-length
-						       make-lexical-token
-						       lexical-token?
-						       lexical-token-value
-						       lexical-token-category
-						       lexical-token-source)
-					       (import ,@imports)
-					       (define ,table-name ,code)))
-			      (else code))))
+	       (code	(cond (library-spec ;generate a library
+			       (unless parser-name
+				 (assertion-violation 'lalr-parser
+				   "parser binding name required when building a library"))
+			       `(library ,library-spec
+				  (export ,parser-name
+					  ;; re-exports from (lalr common)
+					  make-source-location
+					  source-location?
+					  source-location-line
+					  source-location-input
+					  source-location-column
+					  source-location-offset
+					  source-location-length
+					  make-lexical-token
+					  lexical-token?
+					  lexical-token-value
+					  lexical-token-category
+					  lexical-token-source)
+				  (import ,@imports)
+				  (define (,parser-name) ,code)))
+
+			      (parser-name ;generate a DEFINE form
+			       `(define (,parser-name) ,code))
+
+			      (else ;generate a lambda
+			       `(lambda () ,code)))))
 	  (cond (output-value
 		 (eval code (environment imports)))
 		(output-port
@@ -1129,12 +1096,15 @@
     (set! conflict-messages (cons l conflict-messages)))
 
   (define (log-conflicts)
-    (if (> (length conflict-messages) expected-conflicts)
-	(for-each
-	    (lambda (message)
-	      (for-each display message)
-	      (newline))
-	  conflict-messages)))
+    (when (and expected-conflicts
+	       (> (length conflict-messages) expected-conflicts))
+      (for-each
+	  (lambda (message)
+	    (for-each (lambda (s)
+			(display s (current-error-port)))
+	      message)
+	    (newline (current-error-port)))
+	conflict-messages)))
 
   (define (add-action state symbol new-action)
     ;;Add an action to the action table.

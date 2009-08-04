@@ -127,14 +127,14 @@ cparen		\\)
  :output-file		"calc-parser.sls"
 		;output a parser, called calc-parser, in a separate file
 
- :table-name		'calc-parser
+ :parser-name		'make-calc-parser
  :library-spec		'(calc-parser)
  :library-imports	'((calc-parser-helper) (rnrs eval))
 
- :output-table		"calc-parser-tables.txt"
+ :dump-table		"calc-parser-tables.txt"
 		;output to a file the human readable LALR table
 
- :expect		5
+;;; :expect		5
 		;there should be no conflicts
 
  :tokens	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA

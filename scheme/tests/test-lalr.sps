@@ -45,10 +45,11 @@
 						   (number->string
 						    (source-location-line
 						     (lexical-token-source token))))
-				 (lexical-token-value token)))))
+				 (lexical-token-value token))))
+	 (parser	(make-calc-parser)))
     (parameterise ((table-of-variables (make-eq-hashtable))
 		   (evaluated-expressions '()))
-      (calc-parser lexer error-handler)
+      (parser lexer error-handler)
       (evaluated-expressions))))
 
 (check

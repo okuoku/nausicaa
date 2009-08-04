@@ -36117,10 +36117,12 @@ big tables.  Such an analyser is not portable to non--@rnrs{6} Schemes.
 @section A LALR(1) parser generator
 
 
-The @library{lalr} library is a LALR(1) parser generator written in
-Scheme.  It implements an efficient algorithm for computing the
-lookahead sets.  The algorithm is the same used in @gnu{} Bison and it
-is described in:
+The @library{lalr} library is a LALR(1) parser table generator.  The
+@library{lalr lr-driver} and @library{lalr glr-driver} libraries
+generate a Scheme parser using a supplied table.  The two drivers are
+not compatible, each of them require a specifically built table.
+
+The algorithm is the same used in @gnu{} Bison and it is described in:
 
 @quotation
 F. DeRemer and T. Pennello.  ``Efficient Computation of LALR(1)
@@ -36128,30 +36130,512 @@ Look-Ahead Set''.  TOPLAS, vol. 4, no. 4, october 1982.
 @end quotation
 
 @noindent
-As a consequence, it is not written in a fully functional style.  In
+as a consequence, it is not written in a fully functional style.  In
 fact, much of the code is a direct translation from C to Scheme of the
 Bison sources.
 
 The library is a port to @rnrs{6} Scheme of Lalr-scm by Dominique
-Boucher.  The original code is available at:@footnote{@aurl{} last
-verified Tue Jul 21, 2009.}
+Boucher.  The original code is available at@footnote{@aurl{} last
+verified Tue Jul 21, 2009.}:
 
 @center @url{http://code.google.com/p/lalr-scm/}
 
 @noindent
-while older documentation is at:@footnote{@aurl{} last verified Tue Jul
-21, 2009}
+while older documentation is at@footnote{@aurl{} last verified Tue Jul
+21, 2009}:
 
 @center @url{http://www.iro.umontreal.ca/~boucherd/Lalr/documentation/lalr.html}
 
 @menu
-* lalr intro::                  Introduction.
+* lalr tables::                 Creating parser tables.
+* lalr syntax::                 Defining the parser.
+* lalr parser::                 Running the parser.
+* lalr token::                  Describing tokens.
+* lalr glr::                    Generalised LR parsing.
 @end menu
 
 @c page
-@node lalr intro
-@subsection Introduction
+@node lalr tables
+@subsection Creating parser tables
 
+
+The following bindings, keywords included, are exported by the
+@library{lalr} library.
+
+
+@defun lalr-parser @var{keyword} @var{value} ...
+Generate a parser table to be used by the @samp{lr} or @samp{glr}
+drivers.  The behaviour of this function is configured with the
+@var{keyword}/@var{value} couples used as arguments; see below for the
+list of supported options.  @ref{keywords, Keyword values}
+
+The parser definition is a set of S--expressions.
+
+The core of the output is a set of parser ``tables'': Scheme vectors
+representing the automaton.  There are three of them: action, goto,
+reduction.  The tables are used as arguments for a call to
+@func{lr-driver} or @func{glr-driver}: Their return value is a closure
+implementing an instance of the parser.  See the options below for the
+output types.
+
+The output can be saved to a file, or written to a port, or evaluated
+using the @library{rnrs eval} library and returned as value.
+@end defun
+
+
+@deffn Option :tokens @var{sexpr}
+Specifies a list representing the parser tokens, their precedence and
+their associativity.
+@end deffn
+
+
+@deffn Option :rules @var{sexpr}
+Specifies a list representing the parser rules.
+@end deffn
+
+
+@deffn Option :expect @var{number-of-conflicts}
+Specifies the number of rule conflicts we expect in the parser
+definition.  In a well defined parser, there should be zero conflicts.
+The default is zero.
+
+When more than @var{number-of-conflicts} are detected, warning messages
+are printed to the current error port.  If @var{number-of-conflicts} is
+@false{}, rather than an exact non-negative integer, no message is ever
+displayed on the error port.
+@end deffn
+
+
+@deffn Option :parser-type @var{driver}
+Select the type of tables to generate.  Available drivers are selected
+with a symbol among: @samp{lr}, @samp{glr}.  The default is @samp{lr}.
+@end deffn
+
+
+@deffn Option :output-value #t|#f
+Instruct @func{lalr-parser} to evaluate the output with @func{eval} and
+return a proper Scheme function implementing a parser maker.  With this
+option, in the case of the @samp{lr} driver, the generated code has the
+form:
+
+@example
+(lambda ()
+  (lr-driver <action-table> <goto-table> <reduction-table>))
+@end example
+
+@noindent
+so the value returned by @func{lalr-parser} is a closure which, when
+evaluated with no arguments, returns a new parser function.  See
+@samp{:library-imports} to add libraries to the evaluation environment.
+
+When used together, this option supersedes @samp{:output-port} and
+@samp{:output-file}.
+@end deffn
+
+
+@deffn Option :output-port @var{port}
+Instruct @func{lalr-parser} to print the generated code to the specified
+port.  When used together, this option supersedes @samp{:output-file}.
+
+When neither @samp{:library-spec} nor @samp{:parser-name} are used, the
+output is the same as the one generated by @samp{:output-value}: A
+lambda function returning new parser functions.  See
+@samp{:library-spec} and @samp{:parser-name} for details on the other
+output types.
+@end deffn
+
+
+@deffn Option :output-file @var{pathname}
+Instruct @func{lalr-parser} to save the generated code to the specified
+file.  @var{pathname} must be a Scheme string representing a file
+pathname.  The file will be overwritten if it already exists.
+
+When neither @samp{:library-spec} nor @samp{:parser-name} are used, the
+output is the same as the one generated by @samp{:output-value}: A
+lambda function returning new parser functions.  See
+@samp{:library-spec} and @samp{:parser-name} for details on the other
+output types.
+@end deffn
+
+
+@deffn Option :dump-table @var{pathname}
+Instruct @func{lalr-parser} to save a human readable dump of the
+generated parser in the specified file.  The file will be overwritten if
+it already exists.  This is useful for debugging purposes (if we know
+how the parser works).
+@end deffn
+
+
+@deffn Option :parser-name @var{name}
+Instruct @func{lalr-parser} to use the symbol @var{name} as identifier
+to which bind the parser maker function.  It is mandatory to use this
+option when generating a library.
+
+If this option is used, but @samp{:library-spec} is not: The output is a
+@func{define} form which, when evaluated, binds the parser maker to
+@var{name}.  Example output for the @samp{lr} driver:
+
+@example
+(define (@var{name})
+  (lr-driver <action-table> <goto-table> <reduction-table>))
+@end example
+@end deffn
+
+
+@deffn Option :library-spec @var{spec}
+Instruct @func{lalr-parser} to generate a proper Scheme library, holding
+the parser definition and exporting a binding to the parser maker
+function.  @var{spec} must be a proper @meta{library name} as defined by
+@rnrs{6}.  @ref{lang library form, Libary form}
+
+This option is especially useful in conjunction with @samp{output-file}.
+It is mandatory to use the option @samp{:parser-name} along with
+@samp{:library-spec}.
+
+Example output for the @samp{lr} driver assuming @var{name} is the value
+used for the @samp{:parser-name} option:
+
+@example
+(library @var{spec}
+  (export @var{name}
+          ---) ; other bindings from (lalr common)
+  (import (rnrs) (lalr lr-driver) (lalr common))
+  (define (@var{name})
+    (lr-driver <action-table> <goto-table>
+               <reduction-table>)))
+@end example
+
+Notice that all the bindings exported by @library{lalr common} are
+re--exported by the generated library.
+@end deffn
+
+
+@deffn Option :library-imports @var{imports}
+Instruct @func{lalr-parser} to add @var{imports} to the list of Scheme
+libraries required by the parser definition.  @var{imports} must be a
+list of library specifications; for example, if the parser definition
+requires the @library{calc-helper} library, we must use:
+
+@example
+:library-imports '((calc-helper))
+@end example
+
+The selected imports will be added to the import list of the generated
+library (if @samp{:library-spec} is used), or to the @func{eval}
+environment argument (if @samp{:output-value} is used).  The imports are
+ignored when the output is a @func{define} form.
+
+By default, the import list always includes @samp{(rnrs)}, the selected
+driver's library @library{lalr lr-driver} or @library{glr-driver}, and
+@library{lalr common}.
+@end deffn
+
+@c page
+@node lalr syntax
+@subsection Defining the parser
+
+
+The grammar is specified by first giving the list of terminals and the
+list of non--terminal definitions.  Each non--terminal definition is a
+list where the first element is the non--terminal and the other elements
+are the right--hand sides (lists of grammar symbols).  In addition to
+this, each right--hand side can be followed by a semantic action.
+
+For example, consider the following (@samp{yacc}) grammar for a very
+simple expression language:
+
+@example
+e : e '+' t
+  | e '-' t
+  | t
+  ;
+
+t : t '*' f
+  : t '/' f
+  | f
+  ;
+
+f : ID
+  ;
+@end example
+
+@noindent
+the same grammar, written with @library{lalr}, would look like this:
+
+@example
+(lalr-parser
+
+  :tokens '(ID + - * /)
+
+  :rules '((e (e + t)    : (+ $1 $3)
+              (e - t)    : (- $1 $3)
+              (t)        : $1)
+
+           (t (t * f)    : (* $1 $3)
+              (t / f)    : (/ $1 $3)
+              (f)        : $1)
+
+           (f (ID)       : $1))
+
+  ---) ;other options
+@end example
+
+In the semantic actions, the symbol @samp{$n} refers to the synthesized
+attribute value of the @math{n}-th symbol in the production.  The value
+associated with the non--terminal on the left is the result of
+evaluating the semantic action (it defaults to @false{}).
+
+@c ------------------------------------------------------------
+
+@subsubheading Operator precedence and associativity
+
+The above grammar implicitly handles operator precedences.  It is also
+possible to explicitly assign precedences and associativity to terminal
+symbols and productions a la Yacc.  Here is a modified (and augmented)
+version of the grammar:
+
+@example
+(lalr-parser
+
+  :tokens '(ID
+            (left: + -)
+            (left: * /)
+            (nonassoc: uminus))
+
+  :rules '((e (e + e)              : (+ $1 $3)
+              (e - e)              : (- $1 $3)
+              (e * e)              : (* $1 $3)
+              (e / e)              : (/ $1 $3)
+              (- e (prec: uminus)) : (- $2)
+              (ID)                 : $1))
+
+  ---) ;other options
+@end example
+
+The @samp{left:} directive is used to specify a set of left--associative
+operators of the same precedence level.  The @samp{right:} directive
+specifies right--associative operators.  The @samp{nonassoc:} directive
+specifies operators that are non--associative.
+
+Note the use of the (apparently) useless terminal @samp{uminus}.  It is
+only defined in order to assign to the penultimate rule a precedence
+level higher than that of @samp{*} and @samp{/}.  The @samp{prec:}
+directive can only appear as the last element of a rule.
+
+Finally, note that precedence levels are incremented from left to right,
+i.e. the precedence level of @samp{+} and @samp{-} is less than the
+precedence level of @samp{*} and @samp{/} since the formers appear first
+in the list of terminal symbols (token definitions).
+
+@c ------------------------------------------------------------
+
+@subsubheading Error recovery
+
+@library{lalr} implements a very simple error recovery strategy.  A
+production can be of the form
+
+@example
+(rulename
+   ---
+   (error TERMINAL) : action-code)
+@end example
+
+@noindent
+there can be several such productions for a single rulename.  This will
+cause the parser to skip all the tokens produced by the lexer that are
+different than the given @samp{TERMINAL}.
+
+For a C--like language, one can synchronize on semicolons and closing
+curly brackets by writing error rules like these:
+
+@example
+(stmt
+   (expression SEMICOLON)   : ---
+   (LBRACKET stmt RBRACKET) : ---
+   (error SEMICOLON)
+   (error RBRACKET))
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading A final note on conflict resolution
+
+Conflicts in the grammar are handled in a conventional way.  In the
+absence of precedence directives, Shift/Reduce conflicts are resolved by
+shifting, and Reduce/Reduce conflicts are resolved by choosing the rule
+listed first in the grammar definition.
+
+@c page
+@node lalr parser
+@subsection Running the parser
+
+
+Here we suppose to have used @func{lalr-parser} to generate a proper
+Scheme library exporting a binding to the parser maker.  Let
+@library{calc-parser} be the library specification and
+@func{calc-parser} the name of the binding to the parser maker.
+
+The parser maker is invoked with no arguments and returns a new parser
+closure, which represents an instance of the parser.  To create a parser
+closure we do:
+
+@example
+(import (rnrs)
+  (calc-parser))
+
+(define parser (calc-parser))
+@end example
+
+The @func{parser} function accepts two arguments, the lexer function and
+an error handler function.  When invoked, it consumes tokens from the
+lexer until the end of input is found or an unrecoverable error occurs.
+
+To invoke @func{parser} with a lexer generated by the @library{silex}
+library, using a table in @samp{calc-lexer-table} to parse
+@var{input-string}, we do:
+
+@example
+(let* ((IS            (lexer-make-IS :string @var{input-string}
+                                     :counters 'all))
+       (lexer         (lexer-make-lexer calc-lexer-table IS))
+       (error-handler (lambda (message token) ---)))
+  (parser lexer error-handler))
+@end example
+
+The only way to allow the parser closure to return a value, is to give
+it access to some global state.  For example using parameters.
+
+@c ------------------------------------------------------------
+
+@subsubheading The lexical analyser
+
+The lexical analyser (@func{lexer} in the example above) must be a thunk
+invoked each time the parser needs to lookahead in the token stream.
+Its return value must represent a token: is either a symbol, or a record
+created by @func{make-lexical-token}.  @ref{lalr token, Describing
+tokens}
+
+Once the end of file is encountered, the lexical analyser must always
+return the symbol @samp{*eoi*} each time it is invoked.
+
+@c ------------------------------------------------------------
+
+@subsubheading The error procedure
+
+The error procedure must be a function accepting two arguments: an error
+message as Scheme string, the lexical token that caused the error.
+
+@c page
+@node lalr token
+@subsection Describing tokens
+
+
+The following bindings are exported by the @library{lalr common}
+library, and are re--exported by Scheme libraries generated by
+@func{lalr-parser}.
+
+Tokens are described using either Scheme symbols or instances of the
+@samp{lexical-token} record.  In the case of symbols, they must be in
+the list of tokens specified by the @samp{:tokens} option to
+@func{lalr-parser}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Lexical token records
+
+An instance of @samp{lexical-token} record is immutable.
+
+
+@defun make-lexical-token @var{category} @var{source} @var{value}
+Build and return a new instance of @samp{lexical-token} record.
+
+@var{category} must be a symbol among the ones specified by the
+@samp{:tokens} option to @func{lalr-parser}.
+
+@var{source} must be an instance of @samp{source-location} record.  It
+represents the position of the token in the input stream.
+
+@var{value} must be the semantic value associated with the token.
+
+For example, a string token would have a category set to @samp{STRING}
+while its semantic value is set to the Scheme string value.
+@end defun
+
+
+@defun lexical-token? @var{obj}
+Return true if @var{obj} is an instance of @samp{lexical-token}.
+@end defun
+
+
+@defun lexical-token-category @var{tok}
+@defunx lexical-token-source @var{tok}
+@defunx lexical-token-value @var{tok}
+Getters for the fields of @samp{lexical-token} records.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Source location records
+
+Source location records are not used by the parser itself; they are
+meant to store informations about the position of a token in the input
+stream to be displayed in case of error.  An instance of
+@samp{source-location} record is immutable.
+
+
+@defun make-source-location @var{input} @var{line} @var{colum} @var{offset} @var{length}
+Build and return a new instance of @samp{source-location} record.
+
+@var{input} must be an object describing the input source, for example
+(the name of the input file.
+
+@var{line}, @var{column} and @var{offset} are meant to be counters for
+the line number, column number and offset from the start.  They match
+the local bindings @samp{yyline}, @samp{yycolumn} and @samp{yyoffset}
+available to the lexer actions of the @library{silex} library.
+
+@var{length} is meant to be the length of the string which generated the
+token.
+@end defun
+
+
+@defun source-location? @var{obj}
+Return true if @var{obj} is an instance of @samp{source-location}
+record.
+@end defun
+
+
+@defun source-location-input @var{loc}
+@defunx source-location-line @var{loc}
+@defunx source-location-column @var{loc}
+@defunx source-location-offset @var{loc}
+@defunx source-location-length @var{loc}
+Getters for the fields of a @samp{source-location} record.
+@end defun
+
+@c page
+@node lalr glr
+@subsection Generalised LR parsing
+
+
+GLR parsing (which stands for Generalized LR parsing) is an extension of
+the traditional LR parsing technique to handle highly ambiguous
+grammars.  It is especially interesting for natural language processing,
+the context in which the technique has been devised.
+
+To generate a GLR parser instead of a regular LALR parser, simply use
+the @samp{:parser-type 'glr} option with @func{lalr-parser}.
+
+GLR parsers are run in exactly the same way as regular LALR parsers.
+The only difference is that the result of the parsing is a (possibly
+empty) list of parses instead of a single parse.
+
+Since the parsing of a phrase can lead to many potential parses, errors
+cannot be detected as easily as with deterministic LR parsing.  For this
+reason, it is advised to not put error productions in the grammar (they
+will be ignored anyway).  Moreover, GLR parsers are usually not meant
+for interactive parsers (like the calculator example that comes with the
+distribution).
 
 @c page
 @node csv

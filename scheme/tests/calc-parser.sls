@@ -1,5 +1,5 @@
 (library (calc-parser)
-  (export calc-parser
+  (export make-calc-parser
           make-source-location
           source-location?
           source-location-line
@@ -13,7 +13,7 @@
           lexical-token-category
           lexical-token-source)
   (import (rnrs) (lalr lr-driver) (lalr common) (calc-parser-helper) (rnrs eval))
-  (define calc-parser
+  (define (make-calc-parser)
     (lr-driver
       '#(((*default* *error*) (error 5) (ID 4) (NUM 3) (LPAREN 2) (- 1))
          ((*default* *error*) (ID 10) (NUM 3) (LPAREN 2) (- 1))
