@@ -78,44 +78,78 @@ cparen		\\)
 %%
 {blanks}	;; skip spaced and tabs
 {imag}		(make-lexical-token 'NUM
-				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (make-source-location #f
+							  yyline yycolumn yyoffset
+							  (string-length yytext))
 				    (string->number (string-append \"+\" yytext)))
+
 {real}		(make-lexical-token 'NUM
-				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (make-source-location #f
+							  yyline yycolumn yyoffset
+							  (string-length yytext))
 				    (string->number yytext))
+
 {nan}		(make-lexical-token 'NUM
-				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (make-source-location #f yyline yycolumn yyoffset
+							  (string-length yytext))
 				    +nan.0)
+
 {inf}		(make-lexical-token 'NUM
-				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (make-source-location #f yyline yycolumn yyoffset
+							  (string-length yytext))
 				    +inf.0)
-{operator}	(let ((position (make-source-location \"<input>\" yyline yycolumn yyoffset -1)))
+
+{operator}	(let ((position (make-source-location #f yyline yycolumn yyoffset
+						      (string-length yytext))))
 		  (case (string-ref yytext 0)
-		    ((#\\+)	'+)
-		    ((#\\-)	'-)
-		    ((#\\*)	'*)
-		    ((#\\/)	'/)
+		    ((#\\+)	(make-lexical-token '+ position '+))
+		    ((#\\-)	(make-lexical-token '- position '-))
+		    ((#\\*)	(make-lexical-token '* position '*))
+		    ((#\\/)	(make-lexical-token '/ position '/))
 		    ((#\\%)	(make-lexical-token 'FUN position mod))
 		    ((#\\^)	(make-lexical-token 'FUN position expt))
 		    ((#\\\\)	(make-lexical-token 'FUN position div))
 		    ((#\\<)	(make-lexical-token 'FUN position <))
 		    ((#\\>)	(make-lexical-token 'FUN position >))))
-{cmpoperator}	(let ((position (make-source-location \"<input>\" yyline yycolumn yyoffset -1)))
-		  (cond
-		   ((string=? yytext \"==\") (make-lexical-token 'FUN position =))
-		   ((string=? yytext \"<=\") (make-lexical-token 'FUN position <=))
-		   ((string=? yytext \">=\") (make-lexical-token 'FUN position >=))))
+
+{cmpoperator}	(let ((position (make-source-location #f
+						      yyline yycolumn yyoffset
+						      (string-length yytext))))
+		  (case yytext
+		   ((\"==\") (make-lexical-token 'FUN position =))
+		   ((\"<=\") (make-lexical-token 'FUN position <=))
+		   ((\">=\") (make-lexical-token 'FUN position >=))))
 {symbol}	(make-lexical-token 'ID
-				    (make-source-location \"<input>\" yyline yycolumn yyoffset -1)
+				    (make-source-location #f yyline yycolumn yyoffset
+							  (string-length yytext))
 				    (string->symbol yytext))
-{assign}	(begin 'ASSIGN)
 
-{comma}		(begin 'COMMA)
-{newline}	(begin 'NEWLINE)
-{oparen}	(begin 'LPAREN)
-{cparen}	(begin 'RPAREN)
+{assign}	(make-lexical-token
+		 'ASSIGN
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'ASSIGN)
 
-<<EOF>>		(begin '*eoi*)
+{comma}		(make-lexical-token
+		 'COMMA
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'COMMA)
+{newline}	(make-lexical-token
+		 'NEWLINE
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'NEWLINE)
+{oparen}	(make-lexical-token
+		 'LPAREN
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'LPAREN)
+{cparen}	(make-lexical-token
+		 'RPAREN
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'RPAREN)
+
+<<EOF>>		(make-lexical-token
+		 '*eoi*
+		 (make-source-location #f yyline yycolumn yyoffset 0)
+		 (eof-object))
 <<ERROR>>	(assertion-violation #f \"invalid lexer token\")
 ")
 
@@ -137,7 +171,7 @@ cparen		\\)
 ;;; :expect		5
 		;there should be no conflicts
 
- :tokens	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
+ :terminals	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
 		  (left: + -)
 		  (left: * /)
 		  (nonassoc: uminus))
@@ -146,17 +180,23 @@ cparen		\\)
 	   (lines line)		: (let ((result $2))
 				    (when result
 				      (evaluated-expressions
-				       (cons result (evaluated-expressions)))))
+				       (cons result (evaluated-expressions))))
+				    result)
 		;this reports the result of all the lines but the first
 	   (line)		: (let ((result $1))
 				    (when result
 				      (evaluated-expressions
-				       (cons result (evaluated-expressions))))))
+				       (cons result (evaluated-expressions))))
+				    result))
 		;this reports the result of the first line only
 
 	  (line     (assign NEWLINE)	: $1
 		    (expr   NEWLINE)	: $1
+
 		    (error  NEWLINE)	: #f)
+		;either a line starts  with an expression or assignment,
+		;or it  is an  error; in case  of error discard  all the
+		;tokens up until the first newline
 
 	  (assign   (ID ASSIGN expr)	: (begin
 					    (hashtable-set! (table-of-variables) $1 $3)

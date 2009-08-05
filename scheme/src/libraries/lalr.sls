@@ -50,7 +50,7 @@
     :parser-type		:parser-name
     :output-value		:output-port
     :output-file		:dump-table
-    :expect			:tokens
+    :expect			:terminals
     :rules
 
     ;; re-exports from (lalr common)
@@ -64,7 +64,9 @@
     make-lexical-token		lexical-token?
     lexical-token-value
     lexical-token-category
-    lexical-token-source)
+    lexical-token-source
+
+    lexical-token?/end-of-input)
   (import (rnrs)
     (lalr common)
     (lists)
@@ -77,7 +79,7 @@
 
 ;;;; Keyword options for the LALR-PARSER function.
 
-(define-keyword :tokens)
+(define-keyword :terminals)
 (define-keyword :rules)
 (define-keyword :expect)
 
@@ -107,6 +109,23 @@
 	(lambda () (proc port))
 	(lambda ()
 	  (close-output-port port)))))
+
+(define-syntax position-in-list
+  (syntax-rules ()
+    ((_ ?element ?list)
+     (list-index (lambda (elm)
+		   (equal? ?element elm))
+       ?list))))
+
+(define-syntax union-of-sorted-lists-of-numbers
+  (syntax-rules ()
+    ((_ ell1 ell2)
+     (union-of-sorted-lists/uniq ell1 ell2 < >))))
+
+(define-syntax sorted-list-of-numbers-insert
+  (syntax-rules ()
+    ((_ ?item ?ell)
+     (sorted-list-insert ?item ?ell >))))
 
 
 ;;;; bit fields
@@ -176,7 +195,7 @@
 
 			      (expect		:expect			0)
 			      (rules		:rules			#f)
-			      (tokens		:tokens			#f))
+			      (terminals	:terminals		#f))
 
       (set! expected-conflicts expect)
       (set! driver-name (case parser-type
@@ -187,7 +206,7 @@
 			     "expected \"lr\" or \"glr\" as parser type"
 			     parser-type))))
 
-      (let* ((gram/actions (gen-tables! tokens rules))
+      (let* ((gram/actions (gen-tables! terminals rules))
 	     (code         `(,driver-name ',action-table
 					  ,(build-goto-table)
 					  ,(build-reduction-table gram/actions))))
@@ -197,25 +216,21 @@
 
 	(let* ((imports	(append `((rnrs) (lalr ,driver-name) (lalr common))
 				library-imports))
+	       (exports	`(,parser-name
+			  ;; re-exports from (lalr common)
+			  make-source-location		source-location?
+			  source-location-line		source-location-input
+			  source-location-column	source-location-offset
+			  source-location-length
+			  make-lexical-token		lexical-token?
+			  lexical-token-value		lexical-token-category
+			  lexical-token-source		lexical-token?/end-of-input))
 	       (code	(cond (library-spec ;generate a library
 			       (unless parser-name
 				 (assertion-violation 'lalr-parser
 				   "parser binding name required when building a library"))
 			       `(library ,library-spec
-				  (export ,parser-name
-					  ;; re-exports from (lalr common)
-					  make-source-location
-					  source-location?
-					  source-location-line
-					  source-location-input
-					  source-location-column
-					  source-location-offset
-					  source-location-length
-					  make-lexical-token
-					  lexical-token?
-					  lexical-token-value
-					  lexical-token-category
-					  lexical-token-source)
+				  (export ,@exports)
 				  (import ,@imports)
 				  (define (,parser-name) ,code)))
 
@@ -225,7 +240,7 @@
 			      (else ;generate a lambda
 			       `(lambda () ,code)))))
 	  (cond (output-value
-		 (eval code (environment imports)))
+		 (eval code (apply environment imports)))
 		(output-port
 		 (pretty-print code output-port))
 		(output-file
@@ -352,6 +367,7 @@
 		       (lalr)
 		       (build-tables)
 		       (compact-action-table terms)
+		       (action-table-list->alist)
 		       gram/actions))))
 
 (define (pack-grammar no-of-rules no-of-items gram)
@@ -1075,9 +1091,56 @@
 
 ;;;; build the various tables
 
-(define expected-conflicts 0)
+(define expected-conflicts	0)
+(define the-terminals		#f)	;names of terminal symbols
+(define the-nonterminals	#f)	;non-terminals
+
+(define (get-symbol n)
+  (if (>= n nvars)
+      (vector-ref the-terminals (- n nvars))
+    (vector-ref the-nonterminals n)))
 
 (define (build-tables)
+
+  (define (main)
+    (set! action-table (make-vector nstates '()))
+    (do ((i 0 (+ i 1)))	; i = state
+	((= i nstates))
+      (let ((red (vector-ref reduction-table i)))
+	(if (and red (>= (red-nreds red) 1))
+	    (if (and (= (red-nreds red) 1) (vector-ref consistent i))
+		(add-action-for-all-terminals i (- (car (red-rules red))))
+	      (let ((k (vector-ref lookaheads (+ i 1))))
+		(let loop ((j (vector-ref lookaheads i)))
+		  (if (< j k)
+		      (let ((rule (- (vector-ref LAruleno j)))
+			    (lav  (vector-ref LA j)))
+			(let loop2 ((token 0) (x (vector-ref lav 0)) (y 1) (z 0))
+			  (if (< token nterms)
+			      (begin
+				(let ((in-la-set? (mod x 2)))
+				  (if (= in-la-set? 1)
+				      (add-action i token rule)))
+				(if (= y (lalr-bits-per-word))
+				    (loop2 (+ token 1)
+					   (vector-ref lav (+ z 1))
+					   1
+					   (+ z 1))
+				  (loop2 (+ token 1) (div x 2) (+ y 1) z)))))
+			(loop (+ j 1)))))))))
+
+      (let ((shiftp (vector-ref shift-table i)))
+	(if shiftp
+	    (let loop ((k (shift-shifts shiftp)))
+	      (if (pair? k)
+		  (let* ((state (car k))
+			 (symbol (vector-ref acces-symbol state)))
+		    (if (>= symbol nvars)
+			(add-action i (- symbol nvars) state))
+		    (loop (cdr k))))))))
+
+    (add-action final-state 0 'accept)
+    (log-conflicts))
 
   (define (resolve-conflict sym rule)
     (let ((sym-prec   (get-symbol-precedence sym))
@@ -1149,45 +1212,7 @@
 	((= i nterms))
       (add-action state i action)))
 
-  (set! action-table (make-vector nstates '()))
-
-  (do ((i 0 (+ i 1)))			; i = state
-      ((= i nstates))
-    (let ((red (vector-ref reduction-table i)))
-      (if (and red (>= (red-nreds red) 1))
-	  (if (and (= (red-nreds red) 1) (vector-ref consistent i))
-	      (add-action-for-all-terminals i (- (car (red-rules red))))
-	    (let ((k (vector-ref lookaheads (+ i 1))))
-	      (let loop ((j (vector-ref lookaheads i)))
-		(if (< j k)
-		    (let ((rule (- (vector-ref LAruleno j)))
-			  (lav  (vector-ref LA j)))
-		      (let loop2 ((token 0) (x (vector-ref lav 0)) (y 1) (z 0))
-			(if (< token nterms)
-			    (begin
-			      (let ((in-la-set? (mod x 2)))
-				(if (= in-la-set? 1)
-				    (add-action i token rule)))
-			      (if (= y (lalr-bits-per-word))
-				  (loop2 (+ token 1)
-					 (vector-ref lav (+ z 1))
-					 1
-					 (+ z 1))
-				(loop2 (+ token 1) (div x 2) (+ y 1) z)))))
-		      (loop (+ j 1)))))))))
-
-    (let ((shiftp (vector-ref shift-table i)))
-      (if shiftp
-	  (let loop ((k (shift-shifts shiftp)))
-	    (if (pair? k)
-		(let* ((state (car k))
-		       (symbol (vector-ref acces-symbol state)))
-		  (if (>= symbol nvars)
-		      (add-action i (- symbol nvars) state))
-		  (loop (cdr k))))))))
-
-  (add-action final-state 0 'accept)
-  (log-conflicts))
+  (main))
 
 (define (compact-action-table terms)
   (define (most-common-action acts)
@@ -1224,16 +1249,33 @@
 	    (vector-set! action-table i
 			 (cons `(*default* ,(if act act '*error*))
 			       (translate-terms
-				(lalr-filter (lambda (x)
-					       (not (and (= (length x) 2)
-							 (eq? (cadr x) act))))
-					     acts)))))
+				(filter (lambda (x)
+					  (not (and (= (length x) 2)
+						    (eq? (cadr x) act))))
+				  acts)))))
 	(vector-set! action-table i
 		     (cons `(*default* *error*)
-			   (translate-terms acts))))))) ; end of  compact-action-table
+			   (translate-terms acts)))))))
+
+(define (action-table-list->alist)
+  ;;For some unknown reason the action list is built as a list of lists,
+  ;;even though it is used as  alist.  This function is called after the
+  ;;construction is finished, to convert the list of lists into a proper
+  ;;list.  (Marco Maggi, Wed Aug 5, 2009)
+  ;;
+  (do ((len (vector-length action-table))
+       (i 0 (+ 1 i)))
+      ((= i len))
+    (vector-set! action-table i
+		 (map (lambda (ell)
+			(cons (car ell) (cadr ell)))
+		   (vector-ref action-table i)))))
 
 
 ;;;;
+
+(define valid-nonterminal?	symbol?)
+(define valid-terminal?		symbol?)
 
 (define (rewrite-grammar tokens grammar k)
 
@@ -1342,10 +1384,10 @@
   (define No-NT (length nonterms))
 
   (define (encode x)
-    (let ((PosInNT (pos-in-list x nonterms)))
+    (let ((PosInNT (position-in-list x nonterms)))
       (if PosInNT
 	  PosInNT
-	(let ((PosInT (pos-in-list x terms)))
+	(let ((PosInT (position-in-list x terms)))
 	  (if PosInT
 	      (+ No-NT PosInT)
 	    (error "undefined symbol : " x))))))
@@ -1366,7 +1408,7 @@
 		     (member (cadr first) terms))
 		(if (null? rest)
 		    (begin
-		      (add-rule-precedence! ruleno (pos-in-list (cadr first) terms))
+		      (add-rule-precedence! ruleno (position-in-list (cadr first) terms))
 		      (loop rest))
 		  (error "prec: directive should be at end of rule: " rhs))
 	      (error "Invalid prec: directive: " first)))
@@ -1432,52 +1474,8 @@
 		       (cons (cons prod action)
 			     rev-productions-and-actions))))))))))
 
-(define valid-nonterminal? symbol?)
-
-(define valid-terminal? symbol?) ; DB
-
 
-;;;; miscellaneous
-
-(define-syntax pos-in-list
-  (syntax-rules ()
-    ((_ ?element ?list)
-     (list-index (lambda (elm)
-		   (equal? ?element elm))
-       ?list))))
-
-(define-syntax union-of-sorted-lists-of-numbers
-  (syntax-rules ()
-    ((_ ell1 ell2)
-     (union-of-sorted-lists/uniq ell1 ell2 < >))))
-
-(define-syntax sorted-list-of-numbers-insert
-  (syntax-rules ()
-    ((_ ?item ?ell)
-     (sorted-list-insert ?item ?ell >))))
-
-(define (lalr-filter p lst)
-  (let loop ((l lst))
-    (if (null? l)
-	'()
-      (let ((x (car l)) (y (cdr l)))
-	(if (p x)
-	    (cons x (loop y))
-	  (loop y))))))
-
-
-;;;; debugging tools
-
-(define the-terminals #f)		; names of terminal symbols
-(define the-nonterminals #f)		; non-terminals
-
-(define (get-symbol n)
-  (if (>= n nvars)
-      (vector-ref the-terminals (- n nvars))
-    (vector-ref the-nonterminals n)))
-
-
-;;; debugging tools: print tables in human-readable format
+;;; debugging tools: print parser in human-readable format
 
 (define (debug:print-states port)
   (define (%display stuff)
@@ -1526,7 +1524,7 @@
       (if (null? l)
 	  #t
 	(let ((sym (caar l))
-	      (act (cadar l)))
+	      (act (cdar l)))
 	  (%display "   ")
 	  (cond
 	   ((eq? sym 'default)
@@ -1548,7 +1546,9 @@
 		     (i		(core-number core))
 		     (items	(core-items core))
 		     (actions	(vector-ref action-table i)))
-		(%display "state ") (%display i) (%newline)
+		(%display "state ")
+		(%display i)
+		(%newline)
 		(%newline)
 		(for-each (lambda (x)
 			    (%display "   ")
@@ -1590,9 +1590,28 @@
       ,@(map
 	    (lambda (p)
 	      (let ((act (cdr p)))
-		`(lambda ,(if (eq? driver-name 'lr-driver)
-			      '(___stack ___sp ___goto-table ___push yypushback)
-			    '(___sp ___goto-table ___push))
+		`(lambda
+;;;NOTE
+;;;(Marco Maggi; Tue Aug 4, 2009)
+;;;
+;;;It seems that "___goto-table" and  "yypushback" are never used in the
+;;;reduction table closures by the generated code.  I do not see why the
+;;;client code  should access the goto  table, so I removed  it from the
+;;;formals.  There may be some  reason to pushback the current token, so
+;;;I left it.
+;;;
+;;;Original code:
+;;;
+;;; 		     ,(if (eq? driver-name 'lr-driver)
+;;; 			  '(___stack ___sp ___goto-table ___reduce-pop-and-push yypushback)
+;;; 			'(___sp ___goto-table ___reduce-pop-and-push))
+;;;
+;;;Modified code:
+;;;
+ 		     ,(if (eq? driver-name 'lr-driver)
+ 			  '(___stack ___sp ___reduce-pop-and-push yypushback)
+ 			'(___sp ___reduce-pop-and-push))
+
 		   ,(let* ((nt (caar p)) (rhs (cdar p)) (n (length rhs)))
 		      `(let* (,@(if act
 				    (let loop ((i 1) (l rhs))
@@ -1612,10 +1631,10 @@
 				  '()))
 			 ,(if (= nt 0)
 			      '$1
-			    `(___push ,n ,nt ,(cdr p)
-				      ,@(if (eq? driver-name 'lr-driver)
-					    '()
-					  '(___sp)))))))))
+			    `(___reduce-pop-and-push ,n ,nt ,(cdr p)
+						     ,@(if (eq? driver-name 'lr-driver)
+							   '()
+							 '(___sp)))))))))
 	  gram/actions))))
 
 

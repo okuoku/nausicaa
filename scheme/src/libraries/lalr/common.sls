@@ -54,7 +54,9 @@
     make-lexical-token		lexical-token?
     lexical-token-value
     lexical-token-category
-    lexical-token-source)
+    lexical-token-source
+
+    lexical-token?/end-of-input)
   (import (rnrs))
 
 
@@ -70,6 +72,10 @@
 	  (immutable column  source-location-column)
 	  (immutable offset  source-location-offset)
 	  (immutable length  source-location-length)))
+
+(define (lexical-token?/end-of-input obj)
+  (and (lexical-token? obj)
+       (eq? '*eoi* (lexical-token-category obj))))
 
 
 ;;;; done

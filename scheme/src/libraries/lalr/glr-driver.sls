@@ -57,7 +57,9 @@
     make-lexical-token		lexical-token?
     lexical-token-value
     lexical-token-category
-    lexical-token-source)
+    lexical-token-source
+
+    lexical-token?/end-of-input)
   (import (rnrs)
     (lalr common))
 

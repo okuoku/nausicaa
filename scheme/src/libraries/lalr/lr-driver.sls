@@ -57,7 +57,9 @@
     make-lexical-token		lexical-token?
     lexical-token-value
     lexical-token-category
-    lexical-token-source)
+    lexical-token-source
+
+    lexical-token?/end-of-input)
   (import (rnrs)
     (lalr common)
     (parameters))
@@ -65,234 +67,164 @@
 (define lalr-initial-stack-size
   (make-parameter 500))
 
+(define eoi-token
+  (make-lexical-token '*eoi*
+		      (make-source-location #f +nan.0 +nan.0 +nan.0 0)
+		      (eof-object)))
+
 
 (define (lr-driver action-table goto-table reduction-table)
   (lambda (lexer error-handler)
-;;;
-;;;Notes:
-;;;
-;;;A value  returned by (lexer) can be  a Scheme symbol or  a record of
-;;;type "lexical-token".  This value is stored in the INPUT variable.
-;;;
-;;;The stack
-;;;---------
-;;;
-;;;Processing  of input  and rules  is performed  on a  stack:  A Scheme
-;;;vector  which  is  dynamically  enlarged  when  needed.   The  "stack
-;;;pointer" is an index in the stack's vector.  Values are pushed to and
-;;;popped from the stack in couples.
-;;;
-;;;Couples  are  pushed  by  the  local functions:  PUSH,  SHIFT,  SYNC.
-;;;Pushing a couple goes like this:
-;;;
-;;;	(increment! stack-pointer 2)
-;;;	(enlarge-stack-if-needed)
-;;;	(vector-set! stack (- stack-pointer 1) value)
-;;;	(vector-set! stack stack-pointer       meta)
-;;;
-;;;this operation is implemented in  the STACK-PUSH!  macro.  META is an
-;;;integer  describing a  parser state  or value  attribute, VALUE  is a
-;;;token or the result of a reduction closure.
-;;;
-;;;Couples are popped only  by the local function POP-AND-PUSH.  Popping
-;;;a single couple goes like this:
-;;;
-;;;	(increment! stack-pointer -2)
-;;;
-;;;popping a number of couples equal to USED-COUPLE goes like this:
-;;;
-;;;	(increment! stack-pointer (* -2 USED-COUPLES))
-;;;
-;;;this operation is implemented in the STACK-POP! macro.
-;;;
-;;;The reduction table
-;;;-------------------
-;;;
-;;;REDUCTION-TABLE is  a vector of  closures embedding the  client forms
-;;;coming from the parser rules.
-;;;
-;;;Each  closure takes  values from  the  stack, assigns  them to  local
-;;;variables $1,  $2, ...   and evaluates the  client form.   The client
-;;;form  is supposed  to use  the variables  $1, $2,  ...  to  compute a
-;;;result.
-;;;
-;;;The values  used from  the stack  are popped, and  the result  of the
-;;;client form is pushed.  This is the "reduction" process.
-;;;
     (let ((stack		(make-vector (lalr-initial-stack-size) 0))
 	  (stack-pointer	0)
-	  (reuse-last-token	#f)
-	  (input		#f))
+	  (reuse-last-token	#f))
 
-      (let-syntax ((stack-set!	(syntax-rules ()
+      (define-syntax stack-set!	(syntax-rules ()
 				  ((_ ?offset ?value)
 				   (vector-set! stack ?offset ?value))))
-		   (stack-ref	(syntax-rules ()
+
+      (define-syntax stack-ref	(syntax-rules ()
 				  ((_ ?offset)
 				   (vector-ref stack ?offset))))
-		   (action-ref	(syntax-rules ()
+
+      (define-syntax action-ref	(syntax-rules ()
 				  ((_ ?state)
 				   (vector-ref action-table ?state))))
-		   (increment!	(syntax-rules ()
+
+      (define-syntax increment!	(syntax-rules ()
 				  ((_ ?varname ?step)
-				   (set! ?varname (+ ?varname ?step))))))
-	(define-syntax stack-pop!
-	  (syntax-rules ()
-	    ((_ ?used-values)
-	     (increment! stack-pointer (* -2 ?used-values)))))
+				   (set! ?varname (+ ?varname ?step)))))
 
-	(define-syntax stack-push!
-	  (syntax-rules ()
-	    ((_ ?first ?second)
-	     (begin
-	       (increment! stack-pointer 2)
-	       (enlarge-stack-if-needed)
-	       (stack-set! (- stack-pointer 1) ?first)
-	       (stack-set! stack-pointer       ?second)))))
+      (define-syntax stack-pop!	(syntax-rules ()
+				  ((_ ?used-couples)
+				   (increment! stack-pointer (* -2 ?used-couples)))))
 
-	(define consume
-	  ;;Consume a token from the input, or reuse the last token.
-	  ;;
-	  (let ((last-token #f))
-	    (lambda ()
-	      (set! input (if reuse-last-token
-			      (begin
-				(set! reuse-last-token #f)
-				last-token)
-			    (lexer)))
-	      (set! last-token input))))
+      (define-syntax stack-push! (syntax-rules ()
+				   ((_ ?first ?second)
+				    (begin
+				      (increment! stack-pointer 2)
+				      (enlarge-stack-if-needed)
+				      (stack-set! (- stack-pointer 1) ?first)
+				      (stack-set! stack-pointer       ?second)))))
 
-	(define (pushback)
-	  ;;Signal to CONSUME that it has to reuse the last token.
-	  ;;
-	  (set! reuse-last-token #t))
+      (define (enlarge-stack-if-needed)
+	(let ((len (vector-length stack)))
+	  (when (>= stack-pointer len)
+	    (do ((new-stack (make-vector (* 2 len) 0))
+		 (i 0 (+ 1 i)))
+		((= i len)
+		 (set! stack new-stack))
+	      (vector-set! new-stack i (stack-ref i))))))
 
-	(define (category-ref tok)
-	  (if (lexical-token? tok)
-	      (lexical-token-category tok)
-	    tok))
+      (define consume
+	(let ((last-token #f))
+	  (lambda ()
+	    (if reuse-last-token
+		(set! reuse-last-token #f)
+	      (begin
+		(set! last-token (lexer))
+		(unless (lexical-token? last-token)
+		  (error-handler "expected lexical token from lexer" last-token)
+		  (consume))))
+	    last-token)))
 
-	(define (value-ref tok)
-	  (if (lexical-token? tok)
-	      (lexical-token-value tok)
-	    tok))
+      (define (yypushback)
+	(set! reuse-last-token #t))
 
-	(define (enlarge-stack-if-needed)
-	  ;;If the stack is full, double its size.
-	  ;;
-	  (let ((len (vector-length stack)))
-	    (when (>= stack-pointer len)
-	      (do ((new-stack (make-vector (* 2 len) 0))
-		   (i 0 (+ 1 i)))
-		  ((= i len)
-		   (set! stack new-stack))
-		(vector-set! new-stack i (stack-ref i))))))
+      (define (select-action terminal-symbol state-index)
+	(let* ((action-alist (action-ref state-index))
+	       (pair (assq terminal-symbol action-alist)))
+	  (if pair (cdr pair) (cdar action-alist))))
 
-	(define (pop-and-push used-values new-category lvalue)
-	  ;;Called at the end of each reduction closure.
-	  ;;
-	  ;;Pop USED-VALUES couples from  the stack.  USED-VALUES can be
-	  ;;zero.
-	  ;;
-	  ;;Push a  new couple: the new  state and LVALUE,  which is the
-	  ;;value returned by the client form in the reduction closure.
-	  ;;
-	  (stack-pop! used-values)
-	  (let* ((state     (stack-ref stack-pointer))
-		 (new-state (cdr (assoc new-category (vector-ref goto-table state)))))
-	    (stack-push! lvalue new-state)))
+      (define (reduce reduction-index)
+	((vector-ref reduction-table reduction-index)
+	 stack stack-pointer reduce-pop-and-push yypushback))
 
-	(define (reduce st)
-	  ((vector-ref reduction-table st) stack stack-pointer goto-table pop-and-push pushback))
+      (define (reduce-pop-and-push used-couples goto-keyword client-form-result-value)
+	(stack-pop! used-couples)
+	(let* ((state-index	(stack-ref stack-pointer))
+	       (new-state-index	(cdr (assq goto-keyword
+					   (vector-ref goto-table state-index)))))
+	  (stack-push! client-form-result-value new-state-index)))
 
-	(define (action x l)
-	  (let ((y (assoc x l)))
-	    (if y (cadr y) (cadar l))))
+      (define (reduce-using-default-action)
+	(let* ((state-index	(stack-ref  stack-pointer))
+	       (actions-alist	(action-ref state-index))
+	       (default-action	(and (pair? actions-alist)
+				     (cdar actions-alist))))
+	  ;;(assert (eq? '*default* (caar actions-alist)))
+	  (when (and (= 1 (length actions-alist))
+		     (< default-action 0))
+	    (reduce (- default-action))
+	    (reduce-using-default-action))))
 
-	(define (recover tok)
-	  (let find-state ((sp stack-pointer))
-	    (if (< sp 0)
-		(set! stack-pointer sp)
-	      (let* ((state (stack-ref sp))
-		     (act   (assoc 'error (action-ref state))))
-		(if act
-		    (begin
-		      (set! stack-pointer sp)
-		      (sync (cadr act) tok))
-		  (find-state (- sp 2)))))))
+      (define (recover-from-error offending-token)
+	;;Rewind the stack looking  for an action index whose action
+	;;alist has  an "error" field.   If it finds one  call SYNC,
+	;;else return leaving STACK-POINTER set to -1.
+	;;
+	(let rewind-stack ()
+	  (if (< stack-pointer 0)
+		eoi-token ;recovery failed, simulate end-of-input
+	    (let* ((action-index (stack-ref stack-pointer))
+		   (error-entry  (assq 'error (action-ref action-index))))
+	      (if (not error-entry)
+		  (begin
+		    (increment! stack-pointer -2)
+		    (rewind-stack))
+		(let* ((state-index (cdr error-entry))
+		       ;;SYNC-SET is  the list of keywords  in the error
+		       ;;action alist, with the exclusion of the default
+		       ;;entry.
+		       (sync-set    (map car (cdr (action-ref state-index)))))
+		  (increment! stack-pointer 4)
+		  (enlarge-stack-if-needed)
+		  (stack-set! (- stack-pointer 3) #f)
+		  (stack-set! (- stack-pointer 2) state-index)
+		  (let skip-token ((token offending-token))
+		    (let ((category (lexical-token-category token)))
+		      (if (eq? category '*eoi*)
+			  (begin ;end-of-input while trying to recover, return end-of-input token
+			    (set! stack-pointer -1)
+			    token)
+			(if (memq category sync-set)
+			    (let ((act (assq category (action-ref state-index))))
+			      (stack-set! (- stack-pointer 1) #f)
+			      (stack-set! stack-pointer (cdr act))
+			      token)
+			  (skip-token (consume))))))))))))
 
-	(define (sync state tok)
-	  (let ((sync-set (map car (cdr (action-ref state)))))
-	    (increment! stack-pointer 4)
-	    (enlarge-stack-if-needed)
-	    (stack-set! (- stack-pointer 3) #f)
-	    (stack-set! (- stack-pointer 2) state)
-	    (let skip ()
-	      (let ((i (category-ref input)))
-		(if (eq? i '*eoi*)
-		    (set! stack-pointer -1)
-		  (if (memq i sync-set)
-		      (let ((act (assoc i (action-ref state))))
-			(stack-set! (- stack-pointer 1) #f)
-			(stack-set! stack-pointer (cadr act)))
-		    (begin
-		      (consume)
-		      (skip))))))))
+      (let loop ((token (consume)))
+	(let* ((state-index	(stack-ref stack-pointer))
+	       (category	(lexical-token-category token))
+	       (action-value	(select-action category state-index)))
+	  (cond
 
-	(let loop ()
-	  (if input
-	      (let* ((state (stack-ref stack-pointer))
-		     (i     (category-ref input))
-		     (attr  (value-ref input))
-		     (act   (action i (action-ref state))))
-		(cond ((not (symbol? i))
-		       (error-handler "syntax error: invalid token: " input)
-		       #f)
+	   ((eq? action-value 'accept) ;success, return the value to the caller
+	    (stack-ref 1))
 
-		      ;;Input  succesfully parsed.   This happens  also when
-		      ;;"*eoi*" is  found, which  means that the  value from
-		      ;;the  vector is  returned to  the caller;  this value
-		      ;;should be #<unspecified>.
-		      ((eq? act 'accept)
-		       (stack-ref 1))
+	   ((eq? action-value '*error*) ;syntax error in input
+	    (if (eq? category '*eoi*)
+		(error-handler "unexpected end of input" token)
+	      (begin
+		(error-handler "syntax error, unexpected token" token)
+		(let ((token (recover-from-error token)))
+		  (if (<= 0 stack-pointer)
+		      (reduce-using-default-action) ;recovery succeeded
+		    (set! stack-pointer 0));recovery failed, TOKEN set to end--of--input
+		  (loop token)))))
 
-		      ;;Syntax error in input.
-		      ((eq? act '*error*)
-		       (if (eq? i '*eoi*)
-			   (begin
-			     (error-handler "syntax error: unexpected end of input")
-			     #f)
-			 (begin
-			   (error-handler "syntax error: unexpected token: " input)
-			   (recover i)
-			   (if (>= stack-pointer 0)
-			       (set! input #f)
-			     (begin
-			       (set! stack-pointer 0)
-			       (set! input '*eoi*)))
-			   (loop))))
+	   ((>= action-value  0) ;shift current token on top of the stack
+	    (stack-push! (lexical-token-value token) action-value)
+	    (if (eq? category '*eoi*)
+		(set! token eoi-token)
+	      (reduce-using-default-action))
+	    (loop (consume)))
 
-		      ;;Shift current token on top of the stack.
-		      ((>= act 0)
-		       (stack-push! attr act)
-		       (set! input (if (eq? i '*eoi*) '*eoi* #f))
-		       (loop))
-
-		      ;;Reduce by rule (- act).
-		      (else
-		       (reduce (- act))
-		       (loop))))
-
-	    ;;No lookahead,  so check  if there is  a default  action that
-	    ;;does not require the lookahead.
-	    (let* ((state  (stack-ref  stack-pointer))
-		   (acts   (action-ref state))
-		   (defact (if (pair? acts) (cadar acts) #f)))
-	      (if (and (= 1 (length acts))
-		       (< defact 0))
-		  (reduce (- defact))
-		(consume))
-	      (loop))))))))
+	   (else ;reduce by rule (- action-value)
+	    (reduce (- action-value))
+	    (loop token)))));end of LOOP
+      )))
 
 
 ;;;; done

@@ -12,7 +12,10 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       		(begin '*eoi*)
+       		(make-lexical-token
+		 '*eoi*
+		 (make-source-location #f yyline yycolumn yyoffset 0)
+		 (eof-object))
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
@@ -29,39 +32,46 @@
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
       		(make-lexical-token 'NUM
-				    (make-source-location "<input>" yyline yycolumn yyoffset -1)
+				    (make-source-location #f
+							  yyline yycolumn yyoffset
+							  (string-length yytext))
 				    (string->number (string-append "+" yytext)))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
       		(make-lexical-token 'NUM
-				    (make-source-location "<input>" yyline yycolumn yyoffset -1)
+				    (make-source-location #f
+							  yyline yycolumn yyoffset
+							  (string-length yytext))
 				    (string->number yytext))
         ))
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
+      (lambda (yytext yyline yycolumn yyoffset)
      		(make-lexical-token 'NUM
-				    (make-source-location "<input>" yyline yycolumn yyoffset -1)
+				    (make-source-location #f yyline yycolumn yyoffset
+							  (string-length yytext))
 				    +nan.0)
         ))
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
+      (lambda (yytext yyline yycolumn yyoffset)
      		(make-lexical-token 'NUM
-				    (make-source-location "<input>" yyline yycolumn yyoffset -1)
+				    (make-source-location #f yyline yycolumn yyoffset
+							  (string-length yytext))
 				    +inf.0)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-          	(let ((position (make-source-location "<input>" yyline yycolumn yyoffset -1)))
+          	(let ((position (make-source-location #f yyline yycolumn yyoffset
+						      (string-length yytext))))
 		  (case (string-ref yytext 0)
-		    ((#\+)	'+)
-		    ((#\-)	'-)
-		    ((#\*)	'*)
-		    ((#\/)	'/)
+		    ((#\+)	(make-lexical-token '+ position '+))
+		    ((#\-)	(make-lexical-token '- position '-))
+		    ((#\*)	(make-lexical-token '* position '*))
+		    ((#\/)	(make-lexical-token '/ position '/))
 		    ((#\%)	(make-lexical-token 'FUN position mod))
 		    ((#\^)	(make-lexical-token 'FUN position expt))
 		    ((#\\)	(make-lexical-token 'FUN position div))
@@ -71,43 +81,61 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-             	(let ((position (make-source-location "<input>" yyline yycolumn yyoffset -1)))
-		  (cond
-		   ((string=? yytext "==") (make-lexical-token 'FUN position =))
-		   ((string=? yytext "<=") (make-lexical-token 'FUN position <=))
-		   ((string=? yytext ">=") (make-lexical-token 'FUN position >=))))
+             	(let ((position (make-source-location #f
+						      yyline yycolumn yyoffset
+						      (string-length yytext))))
+		  (case yytext
+		   (("==") (make-lexical-token 'FUN position =))
+		   (("<=") (make-lexical-token 'FUN position <=))
+		   ((">=") (make-lexical-token 'FUN position >=))))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
         	(make-lexical-token 'ID
-				    (make-source-location "<input>" yyline yycolumn yyoffset -1)
+				    (make-source-location #f yyline yycolumn yyoffset
+							  (string-length yytext))
 				    (string->symbol yytext))
         ))
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-        	(begin 'ASSIGN)
+      (lambda (yytext yyline yycolumn yyoffset)
+        	(make-lexical-token
+		 'ASSIGN
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'ASSIGN)
         ))
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-       		(begin 'COMMA)
+      (lambda (yytext yyline yycolumn yyoffset)
+       		(make-lexical-token
+		 'COMMA
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'COMMA)
         ))
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-         	(begin 'NEWLINE)
+      (lambda (yytext yyline yycolumn yyoffset)
+         	(make-lexical-token
+		 'NEWLINE
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'NEWLINE)
         ))
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-        	(begin 'LPAREN)
+      (lambda (yytext yyline yycolumn yyoffset)
+        	(make-lexical-token
+		 'LPAREN
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'LPAREN)
         ))
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-        	(begin 'RPAREN)
+      (lambda (yytext yyline yycolumn yyoffset)
+        	(make-lexical-token
+		 'RPAREN
+		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+		 'RPAREN)
         )))
    'decision-trees
    0
