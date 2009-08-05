@@ -214,7 +214,7 @@
 	(when dump-table
 	  (with-output-to-new-file dump-table debug:print-states))
 
-	(let* ((imports	(append `((rnrs) (lalr ,driver-name) (lalr common))
+	(let* ((imports	(append `((rnrs) (lalr ,driver-name) (lalr common) (sentinel))
 				library-imports))
 	       (exports	`(,parser-name
 			  ;; re-exports from (lalr common)
@@ -1446,6 +1446,9 @@
 	    ;; -- check 'error' productions
 	    (check-error-production rhs)
 
+	    ;;The  following form detects  the presence  of the  ": ---"
+	    ;;trailer in a rule definition, that is it detects if a rule
+	    ;;has a client form.
 	    (if (and (pair? rest)
 		     (eq? (car rest) ':)
 		     (pair? (cdr rest)))
@@ -1453,22 +1456,44 @@
 		       (+ i 1)
 		       (cons (cons prod (cadr rest))
 			     rev-productions-and-actions))
+	      ;;The following form generates
 	      (let* ((rhs-length (length rhs))
 		     (action
-		      (cons 'vector
-			    (cons (list 'quote (string->symbol
-						(string-append
-						 name
-						 "-"
-						 (number->string i))))
-				  (let loop-j ((j 1))
-				    (if (> j rhs-length)
-					'()
-				      (cons (string->symbol
-					     (string-append
-					      "$"
-					      (number->string j)))
-					    (loop-j (+ j 1)))))))))
+;;;NOTE
+;;;(Marco Maggi; Wed Aug  5, 2009)
+;;;
+;;;The following form  generate a fake client form  whenever the grammar
+;;;definition has a right-hand side  rule with no client form.  I cannot
+;;;understand  why in  hell the  fake form  for a  rule that  consumes 3
+;;;values  from the  stack, in  a non-terminal  called "woppa",  has the
+;;;format:
+;;;
+;;;	(vector 'woppa-3 $1 $2 $3)
+;;;
+;;;if it consumes 4 values it is:
+;;;
+;;;	(vector 'woppa-4 $1 $2 $3 $4)
+;;;
+;;;and so  on.  I  replace it  with the sentinel  value, let's  see what
+;;;happens.
+;;;
+;;;Original code:
+;;;
+;;; 		      (cons 'vector
+;;; 			    (cons (list 'quote (string->symbol
+;;; 						(string-append
+;;; 						 name
+;;; 						 "-"
+;;; 						 (number->string i))))
+;;; 				  (let loop-j ((j 1))
+;;; 				    (if (> j rhs-length)
+;;; 					'()
+;;; 				      (cons (string->symbol
+;;; 					     (string-append
+;;; 					      "$"
+;;; 					      (number->string j)))
+;;; 					    (loop-j (+ j 1)))))))
+		      'sentinel))
 		(loop1 rest
 		       (+ i 1)
 		       (cons (cons prod action)
@@ -1609,8 +1634,8 @@
 ;;;Modified code:
 ;;;
  		     ,(if (eq? driver-name 'lr-driver)
- 			  '(___stack ___sp ___reduce-pop-and-push yypushback)
- 			'(___sp ___reduce-pop-and-push))
+ 			  '(___stack ___sp ___reduce-pop-and-push yypushback yycustom)
+ 			'(___sp ___reduce-pop-and-push yycustom))
 
 		   ,(let* ((nt (caar p)) (rhs (cdar p)) (n (length rhs)))
 		      `(let* (,@(if act

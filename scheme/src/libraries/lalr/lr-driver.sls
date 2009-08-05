@@ -74,7 +74,7 @@
 
 
 (define (lr-driver action-table goto-table reduction-table)
-  (lambda (lexer error-handler)
+  (lambda (lexer error-handler yycustom)
     (let ((stack		(make-vector (lalr-initial-stack-size) 0))
 	  (stack-pointer	0)
 	  (reuse-last-token	#f))
@@ -138,7 +138,7 @@
 
       (define (reduce reduction-index)
 	((vector-ref reduction-table reduction-index)
-	 stack stack-pointer reduce-pop-and-push yypushback))
+	 stack stack-pointer reduce-pop-and-push yypushback yycustom))
 
       (define (reduce-pop-and-push used-couples goto-keyword client-form-result-value)
 	(stack-pop! used-couples)

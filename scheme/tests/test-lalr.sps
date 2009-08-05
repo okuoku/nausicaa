@@ -67,7 +67,7 @@
 	   (parser	(make-calc-parser)))
       (parameterise ((table-of-variables (make-eq-hashtable))
 		     (evaluated-expressions '()))
-	(let ((v (parser wrap-lexer error-handler)))
+	(let ((v (parser wrap-lexer error-handler #f)))
 	  (cons v (evaluated-expressions))))))
 
   (check
@@ -103,10 +103,11 @@
 
 (parameterise ((check-test-name 'error-recovery))
 
-  (define test-lexer-string-1 "
+  (define test-lexer-string "
 blanks		[ \\9]+
 newline		[\\10\\13]+
 decint          [0-9]+
+comma		,
 initial         [a-zA-Z_]
 subsequent      {initial}|[0-9.@]
 symbol          {initial}{subsequent}*
@@ -126,74 +127,85 @@ symbol          {initial}{subsequent}*
 				    (make-source-location #f yyline yycolumn yyoffset
 							  (string-length yytext))
 				    (string->symbol yytext))
+{comma}		(make-lexical-token 'COMMA
+				    (make-source-location #f yyline yycolumn yyoffset
+							  (string-length yytext))
+				    (string->symbol yytext))
 <<EOF>>		(make-lexical-token '*eoi*
 		 (make-source-location #f yyline yycolumn yyoffset 0)
 		 (eof-object))
 <<ERROR>>	(assertion-violation #f \"invalid lexer token\")
 ")
 
-  (define test-parser-sexpr-1
-    '((lines (lines line)	: (let ((result $2))
-				    (when result
-				      (evaluated-expressions (cons result (evaluated-expressions)))))
-	     (line)		: (let ((result $1))
-				    (when result
-				      (evaluated-expressions (cons result (evaluated-expressions))))))
+  (define test-parser-sexpr
+    '((lines (lines line)	: (yycustom $2)
+	     (line)		: (yycustom $1))
       (line (NEWLINE)		: #\newline
             (NUM NEWLINE)	: $1
-	    (error NEWLINE)	: #f)
-		;either a line starts  with an expression or assignment,
-		;or it  is an  error; in case  of error discard  all the
-		;tokens up until the first newline
+            (COMMA NUM NEWLINE)
+                ;this is a rule with no client form
+	    (error NEWLINE)	: (begin 'error-client-form))
+		;either a line starts with a number or newline, or it is
+		;an error; in case of error discard all the tokens until
+		;the first newline
       ))
 
   (define (doit string)
-    (parameterise ((evaluated-expressions '()))
-      (let* ((lexer-table	(silex:lex silex::output-value #t
-  				   silex::counters 'all
-  				   silex::library-imports '((lalr common))
-  				   silex::input-string test-lexer-string-1))
-    	      (make-parser	(lalr-parser :output-value #t
-  				     :library-imports '((calc-parser-helper))
-  				     :terminals '(NUM ID NEWLINE)
-  				     :rules test-parser-sexpr-1))
-  	      (IS		(lexer-make-IS :string string :counters 'all))
-  	      (lexer		(lexer-make-lexer lexer-table IS))
-  	      (error-handler	(lambda (message token)
+    (let* ((lexer-table	(silex:lex silex::output-value #t
+				   silex::counters 'all
+				   silex::library-imports '((lalr common))
+				   silex::input-string test-lexer-string))
+  	   (make-parser	(lalr-parser :output-value #t
+				     :library-imports '((calc-parser-helper))
+				     :terminals '(NUM ID COMMA NEWLINE)
+				     :rules test-parser-sexpr))
+	   (IS		(lexer-make-IS :string string :counters 'all))
+	   (lexer		(lexer-make-lexer lexer-table IS))
+           (result		'())
+           (yycustom		(lambda (value)
+                                  (set! result (cons value result))))
+	   (error-handler	(lambda (message token)
                                   (when #f
                                     (display message)(newline)
                                     (display token)(newline))
-                                  (evaluated-expressions
-                                    (cons `(error-token . ,(lexical-token-value token))
-                                           (evaluated-expressions)))))
-  	   (parser		(make-parser)))
-  	(parser lexer error-handler)
-  	(evaluated-expressions))))
+                                  (yycustom `(error-token . ,(lexical-token-value token)))))
+           (parser		(make-parser)))
+;; (lalr-parser :output-port (current-output-port)
+;; 	     :library-imports '((calc-parser-helper))
+;; 	     :terminals '(NUM ID COMMA NEWLINE)
+;; 	     :rules test-parser-sexpr)
+  	(parser lexer error-handler yycustom)
+        result))
 
   (check ;correct input
       (doit "1\n")
     => '(1))
 
+  (check ;correct input with comma, which is a rule with no client form
+      (doit ",1 \n")
+    => '(1))
+
   (check
-      ;;The 1st line triggers an error, recovery happens, the 1st
+      ;;The  1st  line triggers  an  error,  recovery  happens, the  1st
       ;;newline is correctly parser; the 2nd line is correct.
       (doit "1 alpha \n 2 \n")
-    => '(2 #\newline (error-token . alpha)))
+    => '(2 #\newline error-client-form (error-token . alpha)))
 
   (check
-      ;;The 1st line triggers an error, recovery happens, the newline
-      ;;is correctly parsed.
+      ;;The 1st line triggers an error, recovery happens, the newline is
+      ;;correctly parsed.
       (doit "1 2 \n")
-    => '(#\newline (error-token . 2)))
+    => '(#\newline error-client-form (error-token . 2)))
 
   (check
-      ;;Unexpected end-of-input after the "1" (a newline was expected),
-      ;;it triggers an error, end-of-input happens while trying to recover.
+      ;;Unexpected end-of-input after the  "1" (a newline was expected),
+      ;;it  triggers  an error,  end-of-input  happens  while trying  to
+      ;;recover.
       (doit "1")
     => `((error-token . ,(eof-object))))
 
   (check
-      ;;The symbol triggers the first error error, the unexpected
+      ;;The  symbol  triggers  the  first error  error,  the  unexpected
       ;;end-of-input happens while trying to recover.
       (doit "alpha")
     => `((error-token . ,(eof-object)) (error-token . alpha)))
