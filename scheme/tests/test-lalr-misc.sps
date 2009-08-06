@@ -25,9 +25,8 @@
 
 
 (import (nausicaa)
-  (prefix (silex) silex:)
   (lalr)
-  (silex lexer)
+  (lalr lr-driver) ;required only to play with LALR-INITIAL-STACK-SIZE
   (sentinel)
   (checks))
 
@@ -66,12 +65,22 @@
 				      t))))
            (result		'())
            (yycustom		(lambda (value)
-                                  (set! result (cons value result))))
+                                  (set! result (cons value result))
+				  'yycustom))
 	   (error-handler	(lambda (message token)
+				  ;;(display message)(newline)
                                   (yycustom `(error-token . ,(lexical-token-value token)))))
            (parser		(make-parser)))
-      (parser lexer error-handler yycustom)
+      (parameterise ((lalr-initial-stack-size 10))
+	(parser lexer error-handler yycustom))
       result))
+
+  (when #t
+    (lalr-parser :output-port (current-output-port)
+		 :terminals parser-terminals
+		 :rules parser-non-terminals)
+    (newline)
+    (newline))
 
   (check	;correct input
       (doit (list (make-lexical-token 'NUMBER  #f 1)
@@ -81,9 +90,21 @@
 
   (check
       ;;The ID triggers an error, recovery happens, the first NEWLINE is
-      ;;correctly parser; the second line is correct.
+      ;;correctly parsed; the second line is correct.
       (doit (list (make-lexical-token 'NUMBER  #f 1)
                   (make-lexical-token 'ID      #f 'alpha)
+                  (make-lexical-token 'NEWLINE #f #\newline)
+                  (make-lexical-token 'NUMBER  #f 2)
+                  (make-lexical-token 'NEWLINE #f #\newline)
+		  eoi-token))
+    => '(2 #\newline error-client-form (error-token . alpha)))
+
+  (check 'this
+      ;;The  first ID  triggers an  error, recovery  happens,  the first
+      ;;NEWLINE is correctly parsed; the second line is correct.
+      (doit (list (make-lexical-token 'NUMBER  #f 1)
+                  (make-lexical-token 'ID      #f 'alpha)
+                  (make-lexical-token 'ID      #f 'beta)
                   (make-lexical-token 'NEWLINE #f #\newline)
                   (make-lexical-token 'NUMBER  #f 2)
                   (make-lexical-token 'NEWLINE #f #\newline)

@@ -12,7 +12,8 @@
           lexical-token-value
           lexical-token-category
           lexical-token-source
-          lexical-token?/end-of-input)
+          lexical-token?/end-of-input
+          lalr-initial-stack-size)
   (import (rnrs) (lalr lr-driver) (lalr common) (sentinel) (calc-parser-helper) (rnrs eval))
   (define (make-calc-parser)
     (lr-driver

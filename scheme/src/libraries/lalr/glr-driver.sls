@@ -83,7 +83,6 @@
 	   lag))))))
 
 
-
 (define (glr-driver action-table goto-table reduction-table)
   (define ___atable action-table)
   (define ___gtable goto-table)

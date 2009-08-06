@@ -67,7 +67,8 @@
     lexical-token-source
 
     lexical-token?/end-of-input)
-  (import (rnrs)
+  (import (rename (rnrs)
+		  (error rnrs:error))
     (lalr common)
     (lists)
     (parameters)
@@ -181,6 +182,9 @@
 
 (define (lalr-parser . options)
 
+  (define (error message . irritants)
+    (eval rnrs:error 'lalr-parser message irritants))
+
   (define (main)
     (let-keywords options #f ((library-spec	:library-spec		#f)
 			      (library-imports	:library-imports	'())
@@ -224,7 +228,10 @@
 			  source-location-length
 			  make-lexical-token		lexical-token?
 			  lexical-token-value		lexical-token-category
-			  lexical-token-source		lexical-token?/end-of-input))
+			  lexical-token-source		lexical-token?/end-of-input
+			  ,@(if (eq? driver-name 'lr-driver)
+				'(lalr-initial-stack-size)
+			      '())))
 	       (code	(cond (library-spec ;generate a library
 			       (unless parser-name
 				 (assertion-violation 'lalr-parser
@@ -344,31 +351,262 @@
 (define driver-name     'lr-driver)
 
 
-;;;; initialisation functions
+;;;; tables generation, part 1
 
-(define (gen-tables! tokens gram)
-  (rewrite-grammar tokens gram
-		   (lambda (terms terms/prec vars gram gram/actions)
-		     (set! the-terminals/prec (list->vector terms/prec))
-		     (set! the-terminals (list->vector terms))
-		     (set! the-nonterminals (list->vector vars))
-		     (set! nterms (length terms))
-		     (set! nvars  (length vars))
-		     (set! nsyms  (+ nterms nvars))
-		     (let ((no-of-rules (length gram/actions))
-			   (no-of-items (let loop ((l gram/actions) (count 0))
-					  (if (null? l)
-					      count
-					    (loop (cdr l) (+ count (length (caar l))))))))
-		       (pack-grammar no-of-rules no-of-items gram)
-		       (set-derives)
-		       (set-nullable)
-		       (generate-states)
-		       (lalr)
-		       (build-tables)
-		       (compact-action-table terms)
-		       (action-table-list->alist)
-		       gram/actions))))
+(define (gen-tables! terminals grammar)
+  ;;TERMINALS  is  the  full,  untouched,  list of  terminals  given  to
+  ;;LALR-PARSER.
+  ;;
+  ;;GRAMMAR  is the  full, untouched,  list  of grammar  rules given  to
+  ;;LALR-PARSER.
+  ;;
+
+  (define eoi '*eoi*)
+
+  (define (check-terminal term terms)
+    (cond ((not (symbol? term))
+	   (error "invalid terminal: " term))
+	  ((member term terms)
+	   (error "duplicate definition of terminal: " term))))
+
+  (define (prec->type prec)
+    (cdr (assq prec '((left:     . left)
+		      (right:    . right)
+		      (nonassoc: . nonassoc)))))
+
+  (define terms		#f)
+  (define terms/prec	#f)
+  (define nonterm-defs	#f)
+
+  (unless (list? terminals)
+    (error "Invalid token list: " terminals))
+  (when (null? grammar)
+    (error "Grammar definition must have a non-empty list of productions" '()))
+
+  ;;Validate TERMINALS and generate the values for TERMS and TERMS/PREC.
+  (let check-terminals ((terminals      terminals)
+			(rev-terms      '())
+			(rev-terms/prec '())
+			(prec-level     0))
+    (if (null? terminals)
+	(begin
+	  (set! terms      (reverse rev-terms))
+	  (set! terms/prec (reverse rev-terms/prec)))
+      (let ((term (car terminals)))
+	(cond ((pair? term)
+	       (if (and (memq (car term) '(left: right: nonassoc:))
+			(not (null? (cdr term))))
+		   (let ((prec    (+ prec-level 1))
+			 (optype  (prec->type (car term))))
+		     (let loop-toks ((l              (cdr term))
+				     (rev-terms      rev-terms)
+				     (rev-terms/prec rev-terms/prec))
+		       (if (null? l)
+			   (check-terminals (cdr terminals) rev-terms rev-terms/prec prec)
+			 (let ((term (car l)))
+			   (check-terminal term rev-terms)
+			   (loop-toks (cdr l)
+				      (cons term rev-terms)
+				      (cons (list term optype prec)
+					    rev-terms/prec))))))
+		 (error "invalid operator precedence specification: " term)))
+	      (else
+	       (check-terminal term rev-terms)
+	       (check-terminals (cdr terminals)
+				(cons term rev-terms)
+				(cons (list term 'none 0) rev-terms/prec)
+				prec-level))))))
+
+  ;;Validate GRAMMAR and generate the value for NONTERM-DEFS.
+  (let check-grammar ((grammar          grammar)
+		      (rev-nonterm-defs '()))
+    (if (null? grammar)
+	(set! nonterm-defs (reverse rev-nonterm-defs))
+      (let ((def (car grammar)))
+	(unless (pair? def)
+	  (error "Nonterminal definition must be a non-empty list" '()))
+	(let ((nonterm (car def)))
+	  (cond ((not (symbol? nonterm))
+		 (error "Invalid nonterminal:" nonterm))
+		((or (member nonterm terms)
+		     (assoc  nonterm rev-nonterm-defs))
+		 (error "Nonterminal previously defined:" nonterm))
+		(else
+		 (check-grammar (cdr grammar) (cons def rev-nonterm-defs))))))))
+
+  (let* ((terms		`(,eoi error                  . ,terms))
+	 (terms/prec	`((eoi none 0) (error none 0) . ,terms/prec))
+	 (nonterms	`(*start*                     . ,(map car nonterm-defs)))
+	 (defs		`((*start* (,(cadr nonterms) ,eoi) : $1) . ,nonterm-defs))
+	 (compiled-nonterm-defs (let loop-defs ((defs      defs)
+						(ruleno    0)
+						(comp-defs '()))
+				  (if (null? defs)
+				      (reverse comp-defs)
+				    (let ((compiled-def (rewrite-nonterm-def (car defs) ruleno
+									     terms nonterms)))
+				      (loop-defs (cdr defs)
+						 (+ ruleno (length compiled-def))
+						 (cons compiled-def comp-defs))))))
+	 (gram    (map (lambda (x)
+			 (cons (caaar x) (map cdar x)))
+		    compiled-nonterm-defs))
+	 (actions (apply append compiled-nonterm-defs)))
+    (set! the-terminals/prec (list->vector terms/prec))
+    (set! the-terminals (list->vector terms))
+    (set! the-nonterminals (list->vector nonterms))
+    (set! nterms (length terms))
+    (set! nvars  (length nonterms))
+    (set! nsyms  (+ nterms nvars))
+    (let ((no-of-rules (length actions))
+	  (no-of-items (let loop ((l actions) (count 0))
+			 (if (null? l)
+			     count
+			   (loop (cdr l) (+ count (length (caar l))))))))
+      (pack-grammar no-of-rules no-of-items gram)
+      (set-derives)
+      (set-nullable)
+      (generate-states)
+      (lalr)
+      (build-tables)
+      (compact-action-table terms)
+      (action-table-list->alist)
+      actions)))
+
+
+;;;; tables generation, part 2
+
+(define (rewrite-nonterm-def nonterm-def ruleno terms nonterms)
+
+  (define (encode category)
+    (or (position-in-list category nonterms)
+	(let ((pos (position-in-list category terms)))
+	  (if pos
+	      (+ pos (length nonterms))
+	    (error "undefined symbol in nonterminal definition" category)))))
+
+  (define (process-prec-directive right-hand-side ruleno)
+    (let loop ((l right-hand-side))
+      (if (null? l)
+	  '()
+	(let ((first (car l))
+	      (rest  (cdr l)))
+	  (cond ((or (member first terms) (member first nonterms))
+		 (cons first (loop rest))) ;non-recursive exit
+		((and (pair? first)
+		      (eq? (car first) 'prec:))
+		 (if (and (pair? (cdr first))
+			  (null? (cddr first))
+			  (member (cadr first) terms))
+		     (if (null? rest)
+			 (begin
+			   (add-rule-precedence! ruleno (position-in-list (cadr first) terms))
+			   (loop rest))
+		       (error "\"prec:\" directive should be at end of rule" right-hand-side))
+		   (error "invalid \"prec:\" directive" first)))
+		(else
+		 (error "invalid terminal or nonterminal" first)))))))
+
+  (define (check-error-production right-hand-side)
+    (let loop ((right-hand-side right-hand-side))
+      (when (pair? right-hand-side)
+	(if (and (eq? (car right-hand-side) 'error)
+		 (or (null? (cdr right-hand-side))
+		     (not (member (cadr right-hand-side) terms))
+		     (not (null? (cddr right-hand-side)))))
+	    (error "invalid 'error' production, a single terminal symbol must follow the 'error' token"
+	      right-hand-side))
+	(loop (cdr right-hand-side)))))
+
+  (when (null? (cdr nonterm-def))
+    (error "at least one production needed for nonterminal" nonterm-def))
+
+  (let loop ((lst (cdr nonterm-def))
+	     (i 1)
+	     (rev-productions-and-actions '()))
+    (if (null? lst)
+	(reverse rev-productions-and-actions)
+      (let* ((right-hand-side	(process-prec-directive (car lst) (+ ruleno i -1)))
+	     (rest		(cdr lst))
+	     (prod		(map encode (cons (car nonterm-def) right-hand-side))))
+
+	;;Check for undefined tokens.
+	;;
+	;;FIXME This has been already  done by ENCODE, no? (Marco Maggi;
+	;;Thu Aug 6, 2009)
+	(for-each (lambda (x)
+		    (when (not (or (member x terms) (member x nonterms)))
+		      (error "invalid terminal or nonterminal" x)))
+	  right-hand-side)
+
+	(check-error-production right-hand-side)
+
+	;;The  following form detects  the presence  of the  ": ---"
+	;;trailer in a rule definition, that is it detects if a rule
+	;;has a semantic action.
+	(if (and (pair? rest)
+		 (eq?   (car rest) ':)
+		 (pair? (cdr rest)))
+	    (loop (cddr rest)
+		  (+ i 1)
+		  (cons (cons prod (cadr rest))
+			rev-productions-and-actions))
+;;;NOTE
+;;;(Marco Maggi; Wed Aug  5, 2009)
+;;;
+;;;The  following form  generate  a fake  semantic  action whenever  the
+;;;grammar  definition  has a  right-hand  side  rule  with no  semantic
+;;;action.  I  cannot understand why  in hell the  fake form for  a rule
+;;;that  consumes 3  values from  the  stack, in  a non-terminal  called
+;;;"woppa", has the format:
+;;;
+;;;	(vector 'woppa-3 $1 $2 $3)
+;;;
+;;;if it consumes 4 values it is:
+;;;
+;;;	(vector 'woppa-4 $1 $2 $3 $4)
+;;;
+;;;and so on.  Maybe for  debugging purposes?  Anyway, I replace it with
+;;;the  sentinel  value, let's  see  what  happens.   The quoted  symbol
+;;;SENTINEL will be expanded to  the actual sentinel value when the code
+;;;is evaluated in a library or by EVAL.
+;;;
+;;;Original code:
+;;;
+;;;           (let* ((rhs-length (length rhs))
+;;; 		     (action (cons 'vector
+;;; 			       (cons (list 'quote (string->symbol
+;;; 						(string-append
+;;; 						 name
+;;; 						 "-"
+;;; 						 (number->string i))))
+;;; 				  (let loop-j ((j 1))
+;;; 				    (if (> j rhs-length)
+;;; 					'()
+;;; 				      (cons (string->symbol
+;;; 					     (string-append
+;;; 					      "$"
+;;; 					      (number->string j)))
+;;; 					    (loop-j (+ j 1)))))))
+;;;		(loop rest
+;;;		     (+ i 1)
+;;;		     (cons (cons prod action)
+;;;			   rev-productions-and-actions)))
+;;;
+;;;also the whole "let loop" for must be wrapped in:
+;;;
+;;;  (let ((name (symbol->string (car nonterm-def))))
+;;;     ---)
+;;;
+;;;Modified code:
+	  (loop rest
+		(+ i 1)
+		(cons (cons prod 'sentinel)
+		      rev-productions-and-actions))
+	  )))))
+
+
+;;;; tables generation, part 3
 
 (define (pack-grammar no-of-rules no-of-items gram)
   (set! nrules (+  no-of-rules 1))
@@ -720,26 +958,26 @@
 (define (set-accessing-symbol)
   (set! acces-symbol (make-vector nstates #f))
   (let loop ((l first-state))
-    (if (pair? l)
-	(let ((x (car l)))
-	  (vector-set! acces-symbol (core-number x) (core-acc-sym x))
-	  (loop (cdr l))))))
+    (when (pair? l)
+      (let ((x (car l)))
+	(vector-set! acces-symbol (core-number x) (core-acc-sym x))
+	(loop (cdr l))))))
 
 (define (set-shift-table)
   (set! shift-table (make-vector nstates #f))
   (let loop ((l first-shift))
-    (if (pair? l)
-	(let ((x (car l)))
-	  (vector-set! shift-table (shift-number x) x)
-	  (loop (cdr l))))))
+    (when (pair? l)
+      (let ((x (car l)))
+	(vector-set! shift-table (shift-number x) x)
+	(loop (cdr l))))))
 
 (define (set-reduction-table)
   (set! reduction-table (make-vector nstates #f))
   (let loop ((l first-reduction))
-    (if (pair? l)
-	(let ((x (car l)))
-	  (vector-set! reduction-table (red-number x) x)
-	  (loop (cdr l))))))
+    (when (pair? l)
+      (let ((x (car l)))
+	(vector-set! reduction-table (red-number x) x)
+	(loop (cdr l))))))
 
 (define (set-max-rhs)
   (let loop ((p 0) (curmax 0) (length 0))
@@ -1270,234 +1508,6 @@
 		 (map (lambda (ell)
 			(cons (car ell) (cadr ell)))
 		   (vector-ref action-table i)))))
-
-
-;;;;
-
-(define valid-nonterminal?	symbol?)
-(define valid-terminal?		symbol?)
-
-(define (rewrite-grammar tokens grammar k)
-
-  (define eoi '*eoi*)
-
-  (define (check-terminal term terms)
-    (cond
-     ((not (valid-terminal? term))
-      (error "invalid terminal: " term))
-     ((member term terms)
-      (error "duplicate definition of terminal: " term))))
-
-  (define (prec->type prec)
-    (cdr (assq prec '((left:     . left)
-		      (right:    . right)
-		      (nonassoc: . nonassoc)))))
-
-  (cond
-   ;; --- a few error conditions
-   ((not (list? tokens))
-    (error "Invalid token list: " tokens))
-   ((not (pair? grammar))
-    (error "Grammar definition must have a non-empty list of productions" '()))
-
-   (else
-    ;; --- check the terminals
-    (let loop1 ((lst            tokens)
-		(rev-terms      '())
-		(rev-terms/prec '())
-		(prec-level     0))
-      (if (pair? lst)
-	  (let ((term (car lst)))
-	    (cond
-	     ((pair? term)
-	      (if (and (memq (car term) '(left: right: nonassoc:))
-		       (not (null? (cdr term))))
-		  (let ((prec    (+ prec-level 1))
-			(optype  (prec->type (car term))))
-		    (let loop-toks ((l             (cdr term))
-				    (rev-terms      rev-terms)
-				    (rev-terms/prec rev-terms/prec))
-		      (if (null? l)
-			  (loop1 (cdr lst) rev-terms rev-terms/prec prec)
-			(let ((term (car l)))
-			  (check-terminal term rev-terms)
-			  (loop-toks
-			   (cdr l)
-			   (cons term rev-terms)
-			   (cons (list term optype prec) rev-terms/prec))))))
-
-		(error "invalid operator precedence specification: " term)))
-
-	     (else
-	      (check-terminal term rev-terms)
-	      (loop1 (cdr lst)
-		     (cons term rev-terms)
-		     (cons (list term 'none 0) rev-terms/prec)
-		     prec-level))))
-
-	;; --- check the grammar rules
-	(let loop2 ((lst grammar) (rev-nonterm-defs '()))
-	  (if (pair? lst)
-	      (let ((def (car lst)))
-		(if (not (pair? def))
-		    (error "Nonterminal definition must be a non-empty list" '())
-		  (let ((nonterm (car def)))
-		    (cond ((not (valid-nonterminal? nonterm))
-			   (error "Invalid nonterminal:" nonterm))
-			  ((or (member nonterm rev-terms)
-			       (assoc nonterm rev-nonterm-defs))
-			   (error "Nonterminal previously defined:" nonterm))
-			  (else
-			   (loop2 (cdr lst)
-				  (cons def rev-nonterm-defs)))))))
-	    (let* ((terms        (cons eoi            (cons 'error          (reverse rev-terms))))
-		   (terms/prec   (cons '(eoi none 0)  (cons '(error none 0) (reverse rev-terms/prec))))
-		   (nonterm-defs (reverse rev-nonterm-defs))
-		   (nonterms     (cons '*start* (map car nonterm-defs))))
-	      (if (= (length nonterms) 1)
-		  (error "Grammar must contain at least one nonterminal" '())
-		(let loop-defs ((defs      (cons `(*start* (,(cadr nonterms) ,eoi) : $1)
-						 nonterm-defs))
-				(ruleno    0)
-				(comp-defs '()))
-		  (if (pair? defs)
-		      (let* ((nonterm-def  (car defs))
-			     (compiled-def (rewrite-nonterm-def
-					    nonterm-def
-					    ruleno
-					    terms nonterms)))
-			(loop-defs (cdr defs)
-				   (+ ruleno (length compiled-def))
-				   (cons compiled-def comp-defs)))
-
-		    (let ((compiled-nonterm-defs (reverse comp-defs)))
-		      (k terms
-			 terms/prec
-			 nonterms
-			 (map (lambda (x) (cons (caaar x) (map cdar x)))
-			   compiled-nonterm-defs)
-			 (apply append compiled-nonterm-defs))))))))))))))
-
-
-(define (rewrite-nonterm-def nonterm-def ruleno terms nonterms)
-
-  (define No-NT (length nonterms))
-
-  (define (encode x)
-    (let ((PosInNT (position-in-list x nonterms)))
-      (if PosInNT
-	  PosInNT
-	(let ((PosInT (position-in-list x terms)))
-	  (if PosInT
-	      (+ No-NT PosInT)
-	    (error "undefined symbol : " x))))))
-
-  (define (process-prec-directive rhs ruleno)
-    (let loop ((l rhs))
-      (if (null? l)
-	  '()
-	(let ((first (car l))
-	      (rest  (cdr l)))
-	  (cond
-	   ((or (member first terms) (member first nonterms))
-	    (cons first (loop rest)))
-	   ((and (pair? first)
-		 (eq? (car first) 'prec:))
-	    (if (and (pair? (cdr first))
-		     (null? (cddr first))
-		     (member (cadr first) terms))
-		(if (null? rest)
-		    (begin
-		      (add-rule-precedence! ruleno (position-in-list (cadr first) terms))
-		      (loop rest))
-		  (error "prec: directive should be at end of rule: " rhs))
-	      (error "Invalid prec: directive: " first)))
-	   (else
-	    (error "Invalid terminal or nonterminal: " first)))))))
-
-  (define (check-error-production rhs)
-    (let loop ((rhs rhs))
-      (if (pair? rhs)
-	  (begin
-	    (if (and (eq? (car rhs) 'error)
-		     (or (null? (cdr rhs))
-			 (not (member (cadr rhs) terms))
-			 (not (null? (cddr rhs)))))
-		(error "Invalid 'error' production. A single terminal symbol must follow the 'error' token.:" rhs))
-	    (loop (cdr rhs))))))
-
-
-  (if (not (pair? (cdr nonterm-def)))
-      (error "At least one production needed for nonterminal:" (car nonterm-def))
-    (let ((name (symbol->string (car nonterm-def))))
-      (let loop1 ((lst (cdr nonterm-def))
-		  (i 1)
-		  (rev-productions-and-actions '()))
-	(if (not (pair? lst))
-	    (reverse rev-productions-and-actions)
-	  (let* ((rhs  (process-prec-directive (car lst) (+ ruleno i -1)))
-		 (rest (cdr lst))
-		 (prod (map encode (cons (car nonterm-def) rhs))))
-	    ;; -- check for undefined tokens
-	    (for-each (lambda (x)
-			(if (not (or (member x terms) (member x nonterms)))
-			    (error "Invalid terminal or nonterminal:" x)))
-	      rhs)
-	    ;; -- check 'error' productions
-	    (check-error-production rhs)
-
-	    ;;The  following form detects  the presence  of the  ": ---"
-	    ;;trailer in a rule definition, that is it detects if a rule
-	    ;;has a client form.
-	    (if (and (pair? rest)
-		     (eq? (car rest) ':)
-		     (pair? (cdr rest)))
-		(loop1 (cddr rest)
-		       (+ i 1)
-		       (cons (cons prod (cadr rest))
-			     rev-productions-and-actions))
-	      ;;The following form generates
-	      (let* ((rhs-length (length rhs))
-		     (action
-;;;NOTE
-;;;(Marco Maggi; Wed Aug  5, 2009)
-;;;
-;;;The following form  generate a fake client form  whenever the grammar
-;;;definition has a right-hand side  rule with no client form.  I cannot
-;;;understand  why in  hell the  fake form  for a  rule that  consumes 3
-;;;values  from the  stack, in  a non-terminal  called "woppa",  has the
-;;;format:
-;;;
-;;;	(vector 'woppa-3 $1 $2 $3)
-;;;
-;;;if it consumes 4 values it is:
-;;;
-;;;	(vector 'woppa-4 $1 $2 $3 $4)
-;;;
-;;;and so  on.  I  replace it  with the sentinel  value, let's  see what
-;;;happens.
-;;;
-;;;Original code:
-;;;
-;;; 		      (cons 'vector
-;;; 			    (cons (list 'quote (string->symbol
-;;; 						(string-append
-;;; 						 name
-;;; 						 "-"
-;;; 						 (number->string i))))
-;;; 				  (let loop-j ((j 1))
-;;; 				    (if (> j rhs-length)
-;;; 					'()
-;;; 				      (cons (string->symbol
-;;; 					     (string-append
-;;; 					      "$"
-;;; 					      (number->string j)))
-;;; 					    (loop-j (+ j 1)))))))
-		      'sentinel))
-		(loop1 rest
-		       (+ i 1)
-		       (cons (cons prod action)
-			     rev-productions-and-actions))))))))))
 
 
 ;;; debugging tools: print parser in human-readable format
