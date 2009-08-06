@@ -57,12 +57,17 @@
   (only (irregex))
   (only (pregexp))
 
+  (only (silex lexer))
   (only (silex))
 
-  (only (lalr))
+  (only (lalr common))
   (only (lalr lr-driver))
   (only (lalr glr-driver))
+  (only (lalr))
 
+  (only (csv strings-lexer))
+  (only (csv unquoted-data-lexer))
+  (only (csv unquoted-data-comma-lexer))
   (only (csv))
 
   (only (foreign))

@@ -67,17 +67,42 @@
 (define lalr-initial-stack-size
   (make-parameter 500))
 
-(define eoi-token
-  (make-lexical-token '*eoi*
-		      (make-source-location #f +nan.0 +nan.0 +nan.0 0)
-		      (eof-object)))
-
 
 (define (lr-driver action-table goto-table reduction-table)
   (lambda (lexer error-handler yycustom)
     (let ((stack		(make-vector (lalr-initial-stack-size) 0))
 	  (stack-pointer	0)
 	  (reuse-last-token	#f))
+
+      (define (main token)
+	(let* ((state-index	(stack-ref stack-pointer))
+	       (category	(lexical-token-category token))
+	       (action-value	(select-action category state-index)))
+;;(write (list 'token category action-value))(newline)
+	  (cond
+	   ((eq? action-value 'accept) ;success, return the value to the caller
+	    (stack-ref 1))
+
+	   ((eq? action-value '*error*) ;syntax error in input
+	    (if (eq? category '*eoi*)
+		(error-handler "unexpected end of input" token)
+	      (begin
+		(error-handler "syntax error, unexpected token" token)
+		(let ((token (recover-from-error token)))
+		  (if (<= 0 stack-pointer)
+		      (reduce-using-default-action) ;recovery succeeded
+		    (set! stack-pointer 0)) ;recovery failed, TOKEN set to end--of--input
+		  (main token)))))
+
+	   ((>= action-value  0) ;shift (= push) token on the stack
+	    (stack-push! (lexical-token-value token) action-value)
+	    (unless (eq? category '*eoi*)
+	      (reduce-using-default-action))
+	    (main (retrieve-token-from-lexer)))
+
+	   (else ;reduce using the rule at index "(- ACTION-VALUE)"
+	    (reduce (- action-value))
+	    (main token))))) ;we have not used the token, yet
 
       (define-syntax stack-set!	(syntax-rules ()
 				  ((_ ?offset ?value)
@@ -116,7 +141,7 @@
 		 (set! stack new-stack))
 	      (vector-set! new-stack i (stack-ref i))))))
 
-      (define consume
+      (define retrieve-token-from-lexer
 	(let ((last-token #f))
 	  (lambda ()
 	    (if reuse-last-token
@@ -125,7 +150,7 @@
 		(set! last-token (lexer))
 		(unless (lexical-token? last-token)
 		  (error-handler "expected lexical token from lexer" last-token)
-		  (consume))))
+		  (retrieve-token-from-lexer))))
 	    last-token)))
 
       (define (yypushback)
@@ -159,19 +184,17 @@
 	    (reduce-using-default-action))))
 
       (define (recover-from-error offending-token)
-	;;Rewind the stack looking  for an action index whose action
-	;;alist has  an "error" field.   If it finds one  call SYNC,
-	;;else return leaving STACK-POINTER set to -1.
-	;;
-	(let rewind-stack ()
+	(let rewind-stack-loop ()
 	  (if (< stack-pointer 0)
-		eoi-token ;recovery failed, simulate end-of-input
+	      (make-lexical-token '*eoi* ;recovery failed, simulate end-of-input
+				  (lexical-token-source offending-token)
+				  (eof-object))
 	    (let* ((action-index (stack-ref stack-pointer))
 		   (error-entry  (assq 'error (action-ref action-index))))
 	      (if (not error-entry)
 		  (begin
 		    (increment! stack-pointer -2)
-		    (rewind-stack))
+		    (rewind-stack-loop))
 		(let* ((state-index (cdr error-entry))
 		       ;;SYNC-SET is  the list of keywords  in the error
 		       ;;action alist, with the exclusion of the default
@@ -192,39 +215,9 @@
 			      (stack-set! (- stack-pointer 1) #f)
 			      (stack-set! stack-pointer (cdr act))
 			      token)
-			  (skip-token (consume))))))))))))
+			  (skip-token (retrieve-token-from-lexer))))))))))))
 
-      (let loop ((token (consume)))
-	(let* ((state-index	(stack-ref stack-pointer))
-	       (category	(lexical-token-category token))
-	       (action-value	(select-action category state-index)))
-	  (cond
-
-	   ((eq? action-value 'accept) ;success, return the value to the caller
-	    (stack-ref 1))
-
-	   ((eq? action-value '*error*) ;syntax error in input
-	    (if (eq? category '*eoi*)
-		(error-handler "unexpected end of input" token)
-	      (begin
-		(error-handler "syntax error, unexpected token" token)
-		(let ((token (recover-from-error token)))
-		  (if (<= 0 stack-pointer)
-		      (reduce-using-default-action) ;recovery succeeded
-		    (set! stack-pointer 0));recovery failed, TOKEN set to end--of--input
-		  (loop token)))))
-
-	   ((>= action-value  0) ;shift current token on top of the stack
-	    (stack-push! (lexical-token-value token) action-value)
-	    (if (eq? category '*eoi*)
-		(set! token eoi-token)
-	      (reduce-using-default-action))
-	    (loop (consume)))
-
-	   (else ;reduce by rule (- action-value)
-	    (reduce (- action-value))
-	    (loop token)))));end of LOOP
-      )))
+      (main (retrieve-token-from-lexer)))))
 
 
 ;;;; done

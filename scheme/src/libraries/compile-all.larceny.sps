@@ -44,6 +44,12 @@
 (compile-library "format.sls"
 		 "format.slfasl")
 
+(compile-library "lists/low.sls"
+		 "lists/low.slfasl")
+
+(compile-library "lists/stx.sls"
+		 "lists/stx.slfasl")
+
 (compile-library "lists.sls"
 		 "lists.slfasl")
 
@@ -142,14 +148,14 @@
 (compile-library "lalr/common.sls"
  		 "lalr/common.slfasl")
 
-(compile-library "lalr.sls"
- 		 "lalr.slfasl")
-
 (compile-library "lalr/lr-driver.sls"
  		 "lalr/lr-driver.slfasl")
 
 (compile-library "lalr/glr-driver.sls"
  		 "lalr/glr-driver.slfasl")
+
+(compile-library "lalr.sls"
+ 		 "lalr.slfasl")
 
 (compile-library "csv/strings-lexer.sls"
  		 "csv/strings-lexer.slfasl")

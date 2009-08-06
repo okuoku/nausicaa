@@ -67,27 +67,20 @@
       (lambda (yytext yyline yycolumn yyoffset)
           	(let ((position (make-source-location #f yyline yycolumn yyoffset
 						      (string-length yytext))))
-		  (case (string-ref yytext 0)
-		    ((#\+)	(make-lexical-token '+ position '+))
-		    ((#\-)	(make-lexical-token '- position '-))
-		    ((#\*)	(make-lexical-token '* position '*))
-		    ((#\/)	(make-lexical-token '/ position '/))
-		    ((#\%)	(make-lexical-token 'FUN position mod))
-		    ((#\^)	(make-lexical-token 'FUN position expt))
-		    ((#\\)	(make-lexical-token 'FUN position div))
-		    ((#\<)	(make-lexical-token 'FUN position <))
-		    ((#\>)	(make-lexical-token 'FUN position >))))
-        ))
-    #t
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yytext yyline yycolumn yyoffset)
-             	(let ((position (make-source-location #f
-						      yyline yycolumn yyoffset
-						      (string-length yytext))))
-		  (case yytext
-		   (("==") (make-lexical-token 'FUN position =))
-		   (("<=") (make-lexical-token 'FUN position <=))
-		   ((">=") (make-lexical-token 'FUN position >=))))
+		  (case (string->symbol yytext)
+		    ((+)	(make-lexical-token '+ position '+))
+		    ((-)	(make-lexical-token '- position '-))
+		    ((*)	(make-lexical-token '* position '*))
+		    ((/)	(make-lexical-token '/ position '/))
+		    ((%)	(make-lexical-token 'MOD position mod))
+		    ((^)	(make-lexical-token 'EXPT position expt))
+		    ((\x5C;)	(make-lexical-token 'DIV position div))
+		    ((<)	(make-lexical-token 'LESS position <))
+		    ((>)	(make-lexical-token 'GREAT position >))
+		    ((<=)	(make-lexical-token 'LESSEQ position <=))
+		    ((>=)	(make-lexical-token 'GREATEQ position >=))
+		    ((==)	(make-lexical-token 'EQUAL position =))
+		    (else       (error #f "unknown operator" yytext))))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
@@ -141,48 +134,44 @@
    0
    0
    '#((47 (36 (13 (10 (9 err 17) (11 3 err)) (32 (14 3 err) (33 17 (35 err
-    16)))) (42 (38 (37 err 9) (40 err (41 2 1))) (44 (43 9 12) (45 4 (46 13
-    14))))) (93 (62 (58 (48 9 15) (60 err (61 8 6))) (65 (63 7 err) (91 5
-    (92 err 9)))) (105 (95 (94 err 9) (= 96 err 5)) (110 (106 10 5) (111 11
+    16)))) (42 (38 (37 err 8) (40 err (41 2 1))) (44 (43 8 12) (45 4 (46 13
+    14))))) (93 (62 (58 (48 8 15) (60 err (61 7 9))) (65 (63 6 err) (91 5
+    (92 err 8)))) (105 (95 (94 err 8) (= 96 err 5)) (110 (106 10 5) (111 11
     (123 5 err)))))) err err (11 (10 err 3) (= 13 3 err)) err (64 (47 (46
     err 5) (48 err (58 5 err))) (96 (91 5 (95 err 5)) (97 err (123 5
-    err)))) (= 61 18 err) (= 61 18 err) (= 61 18 err) err (91 (48 (= 46 5
-    err) (58 5 (64 err 5))) (97 (= 95 5 err) (111 (110 5 19) (123 5 err))))
-    (91 (48 (= 46 5 err) (58 5 (64 err 5))) (97 (= 95 5 err) (98 20 (123 5
-    err)))) (106 (105 err 21) (= 110 22 err)) (106 (105 err 23) (= 110 24
-    err)) (48 err (58 25 err)) (69 (47 (46 err 27) (48 err (58 15 err)))
-    (102 (70 26 (101 err 26)) (= 105 28 err))) (89 (79 (= 66 31 err) (80 30
-    (88 err 29))) (111 (= 98 31 err) (120 (112 30 err) (121 29 err)))) (10
-    (9 err 17) (= 32 17 err)) err (91 (48 (= 46 5 err) (58 5 (64 err 5)))
-    (97 (= 95 5 err) (103 (102 5 32) (123 5 err)))) (91 (48 (= 46 5 err)
-    (58 5 (64 err 5))) (97 (= 95 5 err) (111 (110 5 33) (123 5 err)))) (=
-    110 34 err) (= 97 35 err) (= 110 36 err) (= 97 37 err) (70 (58 (48 err
-    25) (69 err 38)) (102 (101 err 38) (= 105 28 err))) (45 (= 43 40 err)
-    (48 (46 40 err) (58 39 err))) (58 (48 err 25) (= 105 28 err)) err (65
-    (48 err (58 41 err)) (97 (71 41 err) (103 41 err))) (48 err (56 42
-    err)) (48 err (50 43 err)) (64 (47 (46 err 44) (48 err (58 5 err))) (96
-    (91 5 (95 err 5)) (97 err (123 5 err)))) (64 (47 (46 err 45) (48 err
-    (58 5 err))) (96 (91 5 (95 err 5)) (97 err (123 5 err)))) (= 102 46
-    err) (= 110 47 err) (= 102 48 err) (= 110 49 err) (45 (= 43 51 err) (48
-    (46 51 err) (58 50 err))) (58 (48 err 39) (= 105 28 err)) (48 err (58
-    39 err)) (71 (58 (48 err 41) (65 err 41)) (103 (97 err 41) (= 105 28
-    err))) (56 (48 err 42) (= 105 28 err)) (50 (48 err 43) (= 105 28 err))
-    (64 (48 (= 46 5 err) (49 52 (58 5 err))) (96 (91 5 (95 err 5)) (97 err
-    (123 5 err)))) (64 (48 (= 46 5 err) (49 53 (58 5 err))) (96 (91 5 (95
-    err 5)) (97 err (123 5 err)))) (= 46 54 err) (= 46 55 err) (= 46 56
-    err) (= 46 57 err) (58 (48 err 50) (= 105 28 err)) (48 err (58 50 err))
-    (64 (47 (46 err 5) (48 err (58 5 err))) (96 (91 5 (95 err 5)) (97 err
-    (123 5 err)))) (64 (47 (46 err 5) (48 err (58 5 err))) (96 (91 5 (95
-    err 5)) (97 err (123 5 err)))) (= 48 58 err) (= 48 59 err) (= 48 58
-    err) (= 48 59 err) err err)
-   '#((#f . #f) (12 . 12) (11 . 11) (10 . 10) (9 . 9) (7 . 7) (8 . 8) (5 .
-    5) (5 . 5) (5 . 5) (7 . 7) (7 . 7) (5 . 5) (5 . 5) (#f . #f) (2 . 2)
-    (#f . #f) (0 . 0) (6 . 6) (7 . 7) (7 . 7) (#f . #f) (#f . #f) (#f . #f)
-    (#f . #f) (2 . 2) (#f . #f) (2 . 2) (1 . 1) (#f . #f) (#f . #f) (#f .
-    #f) (7 . 7) (7 . 7) (#f . #f) (#f . #f) (#f . #f) (#f . #f) (#f . #f)
-    (2 . 2) (#f . #f) (2 . 2) (2 . 2) (2 . 2) (7 . 7) (7 . 7) (#f . #f) (#f
-    . #f) (#f . #f) (#f . #f) (2 . 2) (#f . #f) (4 . 4) (3 . 3) (#f . #f)
-    (#f . #f) (#f . #f) (#f . #f) (4 . 4) (3 . 3))))
+    err)))) (= 61 8 err) (= 61 8 err) err (= 61 8 err) (91 (48 (= 46 5 err)
+    (58 5 (64 err 5))) (97 (= 95 5 err) (111 (110 5 18) (123 5 err)))) (91
+    (48 (= 46 5 err) (58 5 (64 err 5))) (97 (= 95 5 err) (98 19 (123 5
+    err)))) (= 110 20 err) (= 110 21 err) (48 err (58 22 err)) (69 (47 (46
+    err 24) (48 err (58 15 err))) (102 (70 23 (101 err 23)) (= 105 25
+    err))) (89 (79 (= 66 28 err) (80 27 (88 err 26))) (111 (= 98 28 err)
+    (120 (112 27 err) (121 26 err)))) (10 (9 err 17) (= 32 17 err)) (91 (48
+    (= 46 5 err) (58 5 (64 err 5))) (97 (= 95 5 err) (103 (102 5 29) (123 5
+    err)))) (91 (48 (= 46 5 err) (58 5 (64 err 5))) (97 (= 95 5 err) (111
+    (110 5 30) (123 5 err)))) (= 97 31 err) (= 97 32 err) (70 (58 (48 err
+    22) (69 err 33)) (102 (101 err 33) (= 105 25 err))) (45 (= 43 35 err)
+    (48 (46 35 err) (58 34 err))) (58 (48 err 22) (= 105 25 err)) err (65
+    (48 err (58 36 err)) (97 (71 36 err) (103 36 err))) (48 err (56 37
+    err)) (48 err (50 38 err)) (64 (47 (46 err 39) (48 err (58 5 err))) (96
+    (91 5 (95 err 5)) (97 err (123 5 err)))) (64 (47 (46 err 40) (48 err
+    (58 5 err))) (96 (91 5 (95 err 5)) (97 err (123 5 err)))) (= 110 41
+    err) (= 110 42 err) (45 (= 43 44 err) (48 (46 44 err) (58 43 err))) (58
+    (48 err 34) (= 105 25 err)) (48 err (58 34 err)) (71 (58 (48 err 36)
+    (65 err 36)) (103 (97 err 36) (= 105 25 err))) (56 (48 err 37) (= 105
+    25 err)) (50 (48 err 38) (= 105 25 err)) (64 (48 (= 46 5 err) (49 45
+    (58 5 err))) (96 (91 5 (95 err 5)) (97 err (123 5 err)))) (64 (48 (= 46
+    5 err) (49 46 (58 5 err))) (96 (91 5 (95 err 5)) (97 err (123 5 err))))
+    (= 46 47 err) (= 46 48 err) (58 (48 err 43) (= 105 25 err)) (48 err (58
+    43 err)) (64 (47 (46 err 5) (48 err (58 5 err))) (96 (91 5 (95 err 5))
+    (97 err (123 5 err)))) (64 (47 (46 err 5) (48 err (58 5 err))) (96 (91
+    5 (95 err 5)) (97 err (123 5 err)))) (= 48 49 err) (= 48 49 err) err)
+   '#((#f . #f) (11 . 11) (10 . 10) (9 . 9) (8 . 8) (6 . 6) (5 . 5) (5 . 5)
+    (5 . 5) (7 . 7) (6 . 6) (6 . 6) (5 . 5) (5 . 5) (#f . #f) (2 . 2) (#f .
+    #f) (0 . 0) (6 . 6) (6 . 6) (#f . #f) (#f . #f) (2 . 2) (#f . #f) (2 .
+    2) (1 . 1) (#f . #f) (#f . #f) (#f . #f) (6 . 6) (6 . 6) (#f . #f) (#f
+    . #f) (#f . #f) (2 . 2) (#f . #f) (2 . 2) (2 . 2) (2 . 2) (6 . 6) (6 .
+    6) (#f . #f) (#f . #f) (2 . 2) (#f . #f) (4 . 4) (3 . 3) (#f . #f) (#f
+    . #f) (3 . 3))))
 
 ) ; end of library
 

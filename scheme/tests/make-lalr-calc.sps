@@ -60,14 +60,13 @@ real		{truereal}|{integer}
 imag		({decint}|{real})i
 
 nan             \\-nan\\.0|\\+nan\\.0|nan\\.0
-inf             \\-inf\\.0|\\+inf\\.0|inf\\.0
+inf             \\inf\\.0
 
 initial         [a-zA-Z_]
 subsequent      {initial}|[0-9.@]
 symbol          {initial}{subsequent}*
 
-cmpoperator	(<=|>=|==)
-operator	[\\+\\-*/%\\^\\\\<>]
+operator	(<=|>=|==|[\\+*/%\\^\\\\<>\\-])
 assign		=
 
 comma		,
@@ -101,24 +100,21 @@ cparen		\\)
 
 {operator}	(let ((position (make-source-location #f yyline yycolumn yyoffset
 						      (string-length yytext))))
-		  (case (string-ref yytext 0)
-		    ((#\\+)	(make-lexical-token '+ position '+))
-		    ((#\\-)	(make-lexical-token '- position '-))
-		    ((#\\*)	(make-lexical-token '* position '*))
-		    ((#\\/)	(make-lexical-token '/ position '/))
-		    ((#\\%)	(make-lexical-token 'FUN position mod))
-		    ((#\\^)	(make-lexical-token 'FUN position expt))
-		    ((#\\\\)	(make-lexical-token 'FUN position div))
-		    ((#\\<)	(make-lexical-token 'FUN position <))
-		    ((#\\>)	(make-lexical-token 'FUN position >))))
+		  (case (string->symbol yytext)
+		    ((+)	(make-lexical-token '+ position '+))
+		    ((-)	(make-lexical-token '- position '-))
+		    ((*)	(make-lexical-token '* position '*))
+		    ((/)	(make-lexical-token '/ position '/))
+		    ((%)	(make-lexical-token 'MOD position mod))
+		    ((^)	(make-lexical-token 'EXPT position expt))
+		    ((\\x5C;)	(make-lexical-token 'DIV position div))
+		    ((<)	(make-lexical-token 'LESS position <))
+		    ((>)	(make-lexical-token 'GREAT position >))
+		    ((<=)	(make-lexical-token 'LESSEQ position <=))
+		    ((>=)	(make-lexical-token 'GREATEQ position >=))
+		    ((==)	(make-lexical-token 'EQUAL position =))
+		    (else       (error #f \"unknown operator\" yytext))))
 
-{cmpoperator}	(let ((position (make-source-location #f
-						      yyline yycolumn yyoffset
-						      (string-length yytext))))
-		  (case yytext
-		   ((\"==\") (make-lexical-token 'FUN position =))
-		   ((\"<=\") (make-lexical-token 'FUN position <=))
-		   ((\">=\") (make-lexical-token 'FUN position >=))))
 {symbol}	(make-lexical-token 'ID
 				    (make-source-location #f yyline yycolumn yyoffset
 							  (string-length yytext))
@@ -173,8 +169,9 @@ cparen		\\)
 
  :terminals	'(ID NUM ASSIGN LPAREN RPAREN NEWLINE COMMA
 		  (left: + -)
-		  (left: * /)
-		  (nonassoc: uminus))
+		  (left: * / DIV MOD EXPT LESS GREAT LESSEQ GREATEQ EQUAL)
+		  (nonassoc: uminus)
+		  (nonassoc: uplus))
 
  :rules	'((lines
 	   (lines line)		: (let ((result $2))
@@ -206,8 +203,18 @@ cparen		\\)
 		    (expr - expr)	: (- $1 $3)
 		    (expr * expr)	: (* $1 $3)
 		    (expr / expr)	: (/ $1 $3)
+		    (+ expr (prec: uplus))
+					: $2
 		    (- expr (prec: uminus))
 					: (- $2)
+		    (expr DIV expr)	: (div $1 $3)
+		    (expr MOD expr)	: (mod $1 $3)
+		    (expr EXPT expr)	: (expt $1 $3)
+		    (expr LESS expr)	: (< $1 $3)
+		    (expr GREAT expr)	: (> $1 $3)
+		    (expr LESSEQ expr)	: (<= $1 $3)
+		    (expr GREATEQ expr)	: (>= $1 $3)
+		    (expr EQUAL expr)	: (= $1 $3)
 		    (ID)		: (hashtable-ref (table-of-variables) $1 #f)
 		    (ID LPAREN args RPAREN)
 					: (apply (eval $1 (environment '(rnrs))) $3)
