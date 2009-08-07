@@ -173,19 +173,21 @@ cparen		\\)
 		  (nonassoc: uminus)
 		  (nonassoc: uplus))
 
- :rules	'((lines
+ :rules	'((script	(lines)	: $1)
+
+	  (lines
 	   (lines line)		: (let ((result $2))
 				    (when result
 				      (evaluated-expressions
 				       (cons result (evaluated-expressions))))
 				    result)
-		;this reports the result of all the lines but the first
+		;this reports the result of the last line
 	   (line)		: (let ((result $1))
 				    (when result
 				      (evaluated-expressions
 				       (cons result (evaluated-expressions))))
 				    result))
-		;this reports the result of the first line only
+		;this reports the result of all the lines but the last
 
 	  (line     (assign NEWLINE)	: $1
 		    (expr   NEWLINE)	: $1

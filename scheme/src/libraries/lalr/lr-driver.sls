@@ -74,40 +74,49 @@
 	  (stack-pointer	0)
 	  (reuse-last-token	#f))
 
-      (define (main token)
+      (define (main lookahead-token)
 	(let* ((state-index	(stack-ref stack-pointer))
-	       (category	(lexical-token-category token))
+	       (category	(lexical-token-category lookahead-token))
 	       (action-value	(select-action category state-index)))
-(write (list 'main action-value stack))(newline)
-;;(write (list 'token category action-value))(newline)
+;;;(clean-stack)
+;;;(write (list 'main stack-pointer stack action-value))(newline)
+;;;(write (list 'token category action-value))(newline)
 	  (cond
 	   ((eq? action-value 'accept) ;success, return the value to the caller
 	    (stack-ref 1))
 
 	   ((eq? action-value '*error*) ;syntax error in input
 	    (if (eq? category '*eoi*)
-		(error-handler "unexpected end of input" token)
+		(error-handler "unexpected end of input" lookahead-token)
 	      (begin
-		(error-handler "syntax error, unexpected token" token)
-		(let ((token (recover-from-error token)))
+		(error-handler "syntax error, unexpected token" lookahead-token)
+		(let ((token (recover-from-error lookahead-token)))
 		  (if (<= 0 stack-pointer)
 		      (reduce-using-default-actions) ;recovery succeeded
 		    (set! stack-pointer 0)) ;recovery failed, TOKEN set to end--of--input
 		  (main token)))))
 
 	   ((<= 0 action-value) ;shift (= push) token on the stack
-(write (list 'shift token))(newline)
-	    (stack-push! (lexical-token-value token) action-value)
+;;;(write (list 'shift lookahead-token))(newline)
+	    (stack-push! (lexical-token-value lookahead-token) action-value)
 	    (main (if (eq? category '*eoi*)
 		      (begin
 			(reduce-using-default-actions)
-			token)
+			lookahead-token)
 		    (retrieve-token-from-lexer))))
 
 	   (else ;reduce using the rule at index "(- ACTION-VALUE)"
-(write (list 'reduce action-value))(newline)
+;;;(write (list 'reduce action-value))(newline)
 	    (reduce (- action-value))
-	    (main token))))) ;we have not used the token, yet
+	    (main lookahead-token))))) ;we have not used the token, yet
+
+      (define (clean-stack)
+        ;;To be used for debugging  only.  Clears the unused portions of
+        ;;the stack.
+        ;;
+        (do ((i (+ 1 stack-pointer) (+ 1 i)))
+            ((>= i (vector-length stack)))
+          (vector-set! stack i #f)))
 
       (define-syntax stack-set!	(syntax-rules ()
 				  ((_ ?offset ?value)
@@ -156,7 +165,7 @@
 		(unless (lexical-token? last-token)
 		  (error-handler "expected lexical token from lexer" last-token)
 		  (retrieve-token-from-lexer))))
-(write (list 'lookahead last-token))(newline)
+;;;(write (list 'lookahead last-token))(newline)
 	    last-token)))
 
       (define (yypushback)
@@ -185,12 +194,12 @@
             ;;;(assert (eq? '*default* (caar actions-alist)))
             (let ((default-action (cdar actions-alist)))
 	      (when (< default-action 0)
-(write (list 'reducing-default default-action stack))(newline)
+;;;(write (list 'reducing-default default-action stack))(newline)
 		(reduce (- default-action))
 		(reduce-using-default-actions))))))
 
       (define (recover-from-error offending-token)
-(write (list 'recovering offending-token stack))(newline)
+;;;(write (list 'recovering offending-token stack))(newline)
         (let rewind-stack-loop ()
 	  (if (< stack-pointer 0)
 	      (make-lexical-token '*eoi* ;recovery failed, simulate end-of-input
@@ -205,7 +214,7 @@
 		(synchronise-stack-and-input offending-token (cdr error-entry)))))))
 
        (define (synchronise-stack-and-input offending-token error-state-index)
-(write (list 'recover-sync-index error-state-index))(newline)
+;;;(write (list 'recover-sync-index error-state-index))(newline)
          (let* ((error-actions	(action-ref error-state-index))
 		(sync-set	(map car (cdr error-actions))))
 	   (increment! stack-pointer 4)
@@ -213,7 +222,7 @@
 	   (stack-set! (- stack-pointer 3) #f)
 	   (stack-set! (- stack-pointer 2) #f)
 ;;;	   (stack-set! (- stack-pointer 2) error-state-index)
-(write (list 'recover-sync offending-token stack))(newline)
+;;;(write (list 'recover-sync offending-token stack))(newline)
 	   (let skip-token ((token offending-token))
 	     (let ((category (lexical-token-category token)))
 	       (cond ((eq? category '*eoi*) ;end-of-input while trying to recover
@@ -226,7 +235,7 @@
 		      ;;"error" right-hand side rule.
 		      (stack-set! (- stack-pointer 1) #f)
 		      (stack-set! stack-pointer (cdr (assq category error-actions)))
-(write (list 'recover-finish offending-token stack))(newline)
+;;;(write (list 'recover-finish offending-token stack))(newline)
 		      token)
 		     (else
 		      (skip-token (retrieve-token-from-lexer))))))))

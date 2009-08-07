@@ -36142,6 +36142,7 @@ at@footnote{@aurl{} last verified Tue Jul 21, 2009.}:
 @center @url{http://www.iro.umontreal.ca/~boucherd/Lalr/documentation/lalr.html}
 
 @menu
+* lalr intro::                  Introduction to the LR parser.
 * lalr tables::                 Creating parser tables.
 * lalr lexer::                  Describing tokens.
 * lalr parser::                 Running the parser.
@@ -36149,6 +36150,770 @@ at@footnote{@aurl{} last verified Tue Jul 21, 2009.}:
 * lalr lr::                     The LR parser.
 * lalr glr::                    Generalised LR parsing.
 @end menu
+
+@c page
+@node lalr intro
+@subsection Introduction to the LR parser
+
+
+Here we see an introduction to the behaviour of the LR driver; it is
+meant to be a tutorial for users who know nothing about parsing, and it
+has no commitment to be rigorous.
+
+We describe the basic mechanism of the parser, in a way that is easy to
+understand.  We can think of what the actual driver in @library{lalr
+lr-driver} does as an optimised version of what we see here.
+
+Let's say we want to compute simple arithmetic expressions involving
+numbers, the operators @math{+-*/}, and parentheses to establish
+precedence.  We want to compute one--line expressions like:
+
+@example
+10
+-20
+1 + 2
+3 * 4 - 5
+(6 - (7 - 8)) * 2
+@end example
+
+@menu
+* lalr intro tokens::           Splitting expressions in
+                                semantic tokens.
+* lalr intro want::             What we want.
+* lalr intro simple::           Simplified parser behaviour.
+* lalr intro look::             Why the lookahead.
+* lalr intro states::           From symbol sequences to states.
+* lalr intro nonterm::          Non--terminal categories.
+* lalr intro error::            Error recovering.
+@end menu
+
+@c page
+@node lalr intro tokens
+@subsubsection Splitting expressions in semantic tokens
+
+
+The first step is to split the expression in @dfn{tokens}, that is basic
+elements which have a semantic meaning.  In @samp{3 * 4 - 5} there are
+five of them:
+
+@example
+3       -> number
+*       -> operator
+4       -> number
+-       -> operator
+5       -> number
+@end example
+
+Splitting the input into tokens is the job of the lexer.  We cannot
+decide what the lexer has to do if we do not define the parser grammar
+first.
+
+We can be sure that we want to deal with every number @math{3} in the
+same way; the same goes for every operator @math{*}.  But there is more
+of this.
+
+Scheme implements the functions @func{+}, @func{-}, @func{*}, @func{/}
+which can be applied to every number; so it is reasonable to state that:
+We are not interested in the concrete value of each number, but only in
+the fact that they are number.  We can say that all the number tokens
+are in the same @dfn{category}; let's use the Scheme symbol @samp{N} to
+indicate it.  @samp{N} is an abstraction for each number.
+
+The Scheme functions @func{+}, @func{-}, @func{*}, @func{/} are all
+applied in the same way, but the arithmetic operators @math{+-*/} are
+not: @math{+} and @math{-} can be both unary and binary, @math{*} and
+@math{/} take precedence over @math{+} and @math{-}.  We may come up
+with the following alternative categorisations:
+
+@itemize
+@item
+All the operator tokens are in the same category.
+
+@item
+The operators @math{+} and @math{-} are in a category; the operators
+@math{*} and @math{/} are in another category.
+
+@item
+Each operators has its own category.
+@end itemize
+
+Putting all the tokens equal to each other in the same category is
+always safe, but it leads to an explosion of the number of categories;
+this complicates the definition of the grammar.  Experience shows that
+``it works'' to put @math{+} and @math{-} in a category, let's call it
+@samp{A} like addition, and @math{*} and @math{/} in another category,
+let's call it @samp{M} like multiplication.
+
+With these abstractions, we can see the expression @samp{3 * 4 - 5} as
+the following ordered sequence of categorised tokens:
+
+@example
+[N, 3]  [M, *]  [N, 4]  [A, -]  [N, 5]
+@end example
+
+@noindent
+the parser will not be interested in the concrete values, only in the
+categories; so it will see the sequence as just:
+
+@example
+N M N A N
+@end example
+
+We want to support parentheses, too.  The semantic meaning of the open
+parenthesis is different from the semantic meaning of the closed one;
+@math{(1 + 2)} makes sense, but @math{(1 + 2(} is wrong; giving
+different semantic meaning to the parentheses is mandatory to recognise
+nested expressions like @math{(1 * (2 + 3))}.  So we assign the open
+parenthesis to the category @samp{O} and the closed one to the category
+@samp{C}; with these abstractions, the expression:
+
+@example
+(6 - (7 - 8)) * 2
+@end example
+
+@noindent
+is tokenised by the following ordered sequence (from left to right, then
+top to bottom):
+
+@example
+[O, (]  [N, 6]  [A, -]  [O, (]  [N, 7]  [A, -]
+[N, 8]  [C, )]  [C, )]  [M, *]  [N, 2]
+@end example
+
+@noindent
+but the parser is interested only in the categories:
+
+@example
+O N A O N A N C C M N
+@end example
+
+The categories defined so far are not the only ones with which an LR
+parser is concerned; we call them @dfn{terminal categories} or
+@dfn{terminals}, because they are direct abstractions of concrete
+values.  In contrast, the other categories are called @dfn{non--terminal
+categories} or @dfn{non--terminals}, because they are higher level
+abstractions for sequences of terminals and nested non--terminals.
+
+When we represent a terminal with a Scheme object, we need at least two
+fields:
+
+@enumerate
+@item
+The Scheme symbol representing the category.
+
+@item
+The Scheme object representing the concrete value.  We can represent:
+
+@itemize
+@item
+Number tokens with Scheme number objects.
+
+@item
+Operator tokens with the Scheme functions implementing them.
+
+@item
+Parenthesis tokens with the Scheme characters @samp{#\(} and @samp{#\)}.
+@end itemize
+@end enumerate
+
+Experience shows that it is useful to define yet another token: The
+end--of-input.  It is used by the lexer to signal the end of input
+condition, and also by the parser in some special situation.  We need to
+define a new terminal category for this, let's call it @samp{*eoi*}.
+The concrete value of this terminal is not important, we can just select
+@samp{(eof-object)}; in what follows we will display it as
+@samp{#<eof>}.
+
+Putting all together, given the input expression:
+
+@example
+(6 - (7 - 8)) * 2
+@end example
+
+@noindent
+the lexer transforms it into the ordered sequence of tokens:
+
+@example
+[O, (]  [N, 6]  [A, -]  [O, (]  [N, 7]  [A, -]
+[N, 8]  [C, )]  [C, )]  [M, *]  [N, 2]  [*eoi*, #<eof>]
+@end example
+
+@noindent
+and the parser will operate on the terminal categories:
+
+@example
+O N A O N A N C C M N *eoi*
+@end example
+
+@c page
+@node lalr intro want
+@subsubsection What we want
+
+
+Let's take the simple expression @samp{1 + 2}, its categorised
+tokenisation is:
+
+@example
+[N, 1] [A, +] [N, 2] [*eoi*, #<eof>]
+@end example
+
+@noindent
+and we can imagine values and category symbols to be available in Scheme
+vectors:
+
+@example
+#(1  +  2  #<eof>)
+#(N  A  N   *eoi*)
+@end example
+
+@noindent
+experience shows that it is useful to consider a fake first element in
+both vectors; we assign this element to an additional terminal category
+whose symbol is @samp{S} as in start, its value is not important so we
+select @false{}:
+
+@example
+#(#f  1  +  2  #<eof>)
+#( S  N  A  N   *eoi*)
+@end example
+
+@noindent
+at first all the categories are terminals.
+
+Basically, the parser should recognise the subvector @samp{N A N} as
+representing a subexpression we can compute; then we want the parser to
+apply to the values @samp{1 + 2} a @dfn{semantic action} of our choice
+to compute a result.
+
+The semantic action is just a Scheme form in which we do whatever we
+want with the three operands @samp{1}, @samp{+} and @samp{2}; for
+example we can compute the result @math{1 + 2 = 3}.  The parser
+generator should create code like this:
+
+@example
+(let (($1   1)   ;
+      ($2   +)   ; Automatically generated preamble
+      ($3   2))  ;
+
+  ($2 $1 $3))    ; Our semantic action.
+@end example
+
+So we want the parser to mutate the vectors as follows:
+
+@example
+#(#f  3  #<eof>  #f  #f)
+#( S  N   *eoi*  #f  #f)
+@end example
+
+Finally we want the parser to recognise @samp{*eoi*} as the
+end--of--input terminal, and to finish the parsing operation returning
+the value @samp{3} it left in the vector before.
+
+We can describe all of this in terms of three basic actions: lookahead,
+shift, reduce; with the addition of two special actions: accept, error.
+We assume that the parser can consult a data structure called
+@dfn{grammar} and decide what to do.
+
+@c page
+@node lalr intro simple
+@subsubsection Simplified parser behaviour
+
+
+We scan the vectors using a variable @samp{p}, as in pointer, holding
+the index of the current element; at first @samp{p} is set to zero, so
+it references the terminal @samp{S}:
+
+@example
+#(#f  1  +  2  #<eof>)
+#( S  N  A  N   *eoi*)
+   |
+   p
+@end example
+
+Parser searches the grammar to acquire the action associated to the
+symbol @samp{S}; it finds the action is @dfn{lookahead}, that is: To
+look at the element at index @samp{1 + p}; such element is always a
+terminal, in this case with symbol @samp{N}.
+
+The parser searches the grammar and recognises the symbol @samp{N} as
+valid; it finds that there is no action associated to @samp{N}, so it
+looks for the sequence @samp{S N}, finding that the action associated to
+it is a @dfn{shift}, that is: Increment @samp{p} by @math{1}.  The
+parser obeys:
+
+@example
+#(#f  1  +  2  #<eof>)
+#( S  N  A  N   *eoi*)
+      |
+      p
+@end example
+
+A shift action is similar to pushing a value on a stack; for this
+reason, we name the Scheme vectors @dfn{stacks} and the variable
+@samp{p} @dfn{stack pointer}.
+
+After a shift, the parser always performs a lookahead; it acquires the
+symbol @samp{A} which is recognised by the grammar as valid.  Parser
+searches the grammar for each of the sequences @samp{A}, @samp{N A},
+@samp{S N A}, finding that the action associated to @samp{N A} is a
+shift.  Parser obeys:
+
+@example
+#(#f  1  +  2  #<eof>)
+#( S  N  A  N   *eoi*)
+         |
+         p
+@end example
+
+Again after a shift, the parser performs a lookahead; it acquires the
+symbol @samp{N} which is recognised by the grammar as valid.  Parser
+searches the grammar for each of the sequences @samp{N}, @samp{A N},
+@samp{N A N}, @samp{S N A N}, finding that the action associated to
+@samp{N A N} is a shift.  Parser obeys:
+
+@example
+#(#f  1  +  2  #<eof>)
+#( S  N  A  N   *eoi*)
+            |
+            p
+@end example
+
+After the shift, parser performs a lookahead; it acquires the symbol
+@samp{*eoi*} which is recognised by the grammar as valid.  Parser
+searches the grammar for each of the sequences @samp{*eoi*}, @samp{N
+*eoi*}, @samp{A N *eoi*}, @samp{N A N *eoi*}, @samp{S N A N *eoi*},
+finding that the action associated to @samp{N A N *eoi*} is a reduce:
+Take the values associated to @samp{N A N}, that is @samp{1 + 2}, and
+use them as arguments for the semantic action the grammar associates to
+@samp{N A N *eoi*}.
+
+We have established that we want the semantic actions to compute the
+given expression, so the result of the evaluation is @samp{3}; parser
+searches the grammar, finding that the result associated to @samp{N A N
+*eoi*} has to be of category @samp{N}; so it mutates the stacks and the
+stack pointer as follows:
+
+@example
+#(#f  3 #<eof>  #f  #f)
+#( S  N  *eoi*  #f  #f)
+      |
+      p
+@end example
+
+After a reduce, parser always searches the grammar to decide the next
+action; it finds the next action for @samp{N A N *eoi*} is @dfn{accept},
+that is: stop parsing and return the value referenced by the stack
+pointer, which is @samp{3}.
+
+@c page
+@node lalr intro look
+@subsubsection Why the lookahead
+
+
+Why do we need to look ahead at the next category?  When the situation
+is:
+
+@example
+#(#f  1  +  2  #<eof>)
+#( S  N  A  N   *eoi*)
+            |
+            p
+@end example
+
+@noindent
+we can recognise the subvector @samp{N A N} to be a reducible one
+without looking a the next category; the same goes with:
+
+@example
+#(#f  1  +  2  -  3  #<eof>)
+#( S  N  A  N  A  N   *eoi*)
+            |
+            p
+@end example
+
+But let's look at:
+
+@example
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
+            |
+            p
+@end example
+
+@noindent
+it is an error to reduce @samp{N A N}, because the following
+multiplication takes precedence over addition; we can detect the need to
+give precedence to what follows only by looking at the next category.
+
+This is not always the case.  Let's make a change to our parser, let's
+say we want to parse scripts in which every line is an arithmetic
+expression.  We add a new token with category @samp{T}, as in
+terminator, and value @samp{#\newline}.
+
+Let's look at this example:
+
+@example
+#(#f  1  +  2  *  3  #\newline  4  /  5  #\newline  #<eof>)
+#( S  N  A  N  M  N  T          N  M  N  T           *eoi*)
+                  |
+                  p
+@end example
+
+@noindent
+once the parser has performed the lookahead and detected the @samp{T}
+category, the grammar can tell it to reduce twice the stack, without
+doing another lookahead:
+
+@example
+#(#f  1  +  6  #\newline  4  /  5  #\newline  #<eof>  #f #f)
+#( S  N  A  N  T          N  M  N  T           *eoi*  #f #f)
+            |
+            p
+
+#(#f  7  #\newline  4  /  5  #\newline  #<eof>  #f #f #f #f)
+#( S  N  T          N  M  N  T           *eoi*  #f #f #f #f)
+      |
+      p
+@end example
+
+@noindent
+then it can shift and go on.  Notice that, with a well written grammar,
+the parser generator can understand that the result of the first line is
+no more needed and remove it with a reduce action.
+
+@c page
+@node lalr intro states
+@subsubsection From symbol sequences to states
+
+
+We have seen that parser searches the grammar for an action associated
+to a sequence of category symbols; this is inefficient.  We can
+represent the grammar with a directed graph, having @samp{S} as single
+source and the @samp{*eoi*} terminal as single sink.
+
+There are many possible expressions and many possible paths in the
+graph; for example, the following expressions:
+
+@example
+1
+1 + 2
+1 + (2 * 3)
+3 * 4
+@end example
+
+@noindent
+and much more can be represented by the following sequences of
+terminals:
+
+@example
+N *eoi*
+N A N *eoi*
+N A O N M N C *eoi*
+N M N *eoi*
+@end example
+
+@noindent
+which in turn are represented by the following graph, showing the
+initial lookahead and the shift actions:
+
+@example
+S ==> N --> *eoi*
+      |
+      |---> A --> N
+      |     |
+      |      ---> O --> N --> M --> N --> C
+      |
+       ---> M --> N
+@end example
+
+We can represent the reductions:
+
+@example
+N A N      ++++> N
+N M N      ++++> N
+O N M N C  ++++> N
+@end example
+
+@noindent
+as follows:
+
+@example
+    *eoi*
+      ^
+      |
+S ==> N <++++++++++++++++++++++++++++++++++++++
+      |           +                            +
+      |           +                            +
+      |---> A --> N <+++++++++++++++++++++     +
+      |     |                             +    +
+      |      ---> O --> N --> M --> N --> C    +
+      |                                        +
+       ---> M --> N +++++++++++++++++++++++++++
+@end example
+
+@noindent
+the sink @samp{*eoi*} is associated to the final accept action.
+
+Starting from @samp{S}, with each shift and reduce we move our position
+in the graph to some node.  What matters to select the next action to
+perform, is just the node we enter with each lookahead; we can assign a
+name to each node, using lower case letters, to obtain the following:
+
+@example
+        [*eoi*, c]
+           ^
+           |
+[S, a] => [N, b] <+++++++++++++++++++++++
+           |               +             +
+           |               +             +
+           |--> [A, d] -> [N, e]         +
+           |     v         ^             +
+           |    [O, g]     +             +
+           |     v         +             +
+           |    [N, h]     +             +
+           |     v         +             +
+           |    [M, i]     +             +
+           |     v         +             +
+           |    [N, l] -> [C, m]         +
+           |                             +
+            --> [M, o] -> [N, p] ++++++++
+@end example
+
+@noindent
+then we can represent parsing with a sequence of states:
+
+@example
+S N *eoi*               @result{} a b c <accept>
+
+S N A N *eoi*           @result{} a b d e b c <accept>
+
+S N A O N M N C *eoi*   @result{} a b d g h i l m e b c <accept>
+
+S N M N *eoi*           @result{} a b o p b c <accept>
+@end example
+
+With this, when the parser is in the state @samp{x} and the lookahead
+returns the symbol @samp{Y}, it can search the grammar to know the next
+action and the next state.
+
+Let's try it with the expression @samp{1 + 2}; we add a stack for the
+states:
+
+@example
+#(#f   1   +   2  #<eof>)
+#( S   N   A   N   *eoi*)
+#( a  #f  #f  #f      #f)
+   |
+   p
+@end example
+
+@noindent
+the lookahead returns @samp{N} and the grammar associates @samp{[a, N]}
+with @samp{[b, shift]}:
+
+@example
+#(#f   1   +   2  #<eof>)
+#( S   N   A   N   *eoi*)
+#( a   b  #f  #f      #f)
+       |
+       p
+@end example
+
+@noindent
+the lookahead returns @samp{A} and the grammar associates @samp{[b, A]}
+with @samp{[d, shift]}:
+
+@example
+#(#f   1   +   2  #<eof>)
+#( S   N   A   N   *eoi*)
+#( a   b   d  #f      #f)
+           |
+           p
+@end example
+
+@noindent
+the lookahead returns @samp{N} and the grammar associates @samp{[d, N]}
+with @samp{[e, shift]}:
+
+@example
+#(#f   1   +   2  #<eof>)
+#( S   N   A   N   *eoi*)
+#( a   b   d   e      #f)
+               |
+               p
+@end example
+
+@noindent
+the lookahead returns @samp{*eoi*} and the grammar associates @samp{[e,
+*eoi*]} with @samp{[b, reduce]}:
+
+@example
+#(#f   3  #<eof>)
+#( S   N   *eoi*)
+#( a   b      #f)
+       |
+       p
+@end example
+
+@noindent
+the lookahead returns @samp{*eoi*} and the grammar associates @samp{[b,
+*eoi*]} with @samp{[c, accept]}.
+
+Here we can understand why the shift and lookahead actions are distinct;
+when the state is @samp{e}, there is no outgoing link to a node having
+@samp{*eoi*} as category, but still the grammar knows what action to
+take.
+
+@c page
+@node lalr intro nonterm
+@subsubsection Non--terminal categories
+
+
+We have seen the graph representation of the grammar with tokens
+belonging to terminal categories.  But how many nodes are there in such
+a graph?  There are an infinite number of expressions, and consequently
+an infinite number of sequences of terminals i required to represent
+them.  This would make it impossible to code a parser, unless we take a
+different approach.
+
+We start by noticing that if the following sequences of terminals
+represent expressions:
+
+@example
+N
+A N
+N A N
+N M N
+@end example
+
+@noindent
+then the following sequences of terminals represent expressions with
+subexpression:
+
+@example
+N A  N
+N A  A N
+N A  N A N
+N A  N M N
+
+N M  N
+N M  A N
+N M  N A N
+N M  N M N
+@end example
+
+Let's define a new category indicated by the symbol @samp{E} which
+represents the basic expression:
+
+@example
+E = N
+  = A N
+  = N A N
+  = N M N
+@end example
+
+@noindent
+then we can represent the composite sequences written above with:
+
+@example
+N A E
+N M E
+@end example
+
+@noindent
+and more generally:
+
+@example
+E A E
+E M E
+@end example
+
+Let's suppose in defining the category @samp{E} we can use @samp{E}
+itself recursively; then we can write:
+
+@example
+E = N
+  = A E
+  = E A E
+  = E M E
+@end example
+
+@noindent
+and let's not forget that there are parentheses:
+
+@example
+E = N
+  = A E
+  = E A E
+  = E M E
+  = O E C
+@end example
+
+@noindent
+with this definition involving a few symbols we can represent the whole
+set of possible expressions; this thanks to recursion of @samp{E}.
+
+Categories defined this way, as sequences of the same and other
+categories, are called non--terminals for reasons we can imagine.
+
+@c @example
+@c     *eoi*
+@c       ^
+@c       |
+@c S ==> N <++++++++++++++++++++++++++++++++++++++
+@c       |           +                            +
+
+@c       |     N
+@c       |     ^
+@c       |     |     +                            +
+@c       |---> A --> N <+++++++++++++++++++++     +
+@c       |     |                             +    +
+@c       |      ---> O --> N --> M --> N --> C    +
+@c       |                                        +
+@c        ---> M --> N +++++++++++++++++++++++++++
+@c @end example
+
+Let's see how we can parse an expression using the non--terminal
+category; let's take:
+
+@example
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
+   |
+   p
+@end example
+
+@noindent
+everything goes as usual with lookaheads and shifts until:
+
+@example
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
+                  |
+                  p
+@end example
+
+@noindent
+the lookahead returns @samp{*eoi*} and the grammar says to reduce to
+@samp{E} twice:
+
+@example
+#(#f  1  +  6  #<eof>  #f #f)
+#( S  N  A  E   *eoi*  #f #f)
+            |
+            p
+
+#(#f  7  #<eof>  #f #f #f #f)
+#( S  E   *eoi*  #f #f #f #f)
+      |
+      p
+@end example
+
+@c page
+@node lalr intro error
+@subsubsection Error recovering
+
+
 
 @c page
 @node lalr tables
@@ -36502,7 +37267,7 @@ Getters for the fields of a @samp{source-location} record.
 Here we suppose to have used @func{lalr-parser} to generate a proper
 Scheme library exporting a binding to the parser maker.  Let
 @library{calc-parser} be the library specification and
-@func{calc-parser} the name of the binding to the parser maker.
+@func{make-calc-parser} the name of the binding to the parser maker.
 
 The parser maker is invoked with no arguments and returns a new parser
 closure, which represents an instance of the parser.  To create a parser
@@ -36512,10 +37277,10 @@ closure we do:
 (import (rnrs)
   (calc-parser))
 
-(define parser (calc-parser))
+(define parser (make-calc-parser))
 @end example
 
-The @func{parser} function accepts two arguments, the lexer function and
+The @func{parser} function accepts two arguments, the lexer closure and
 an error handler procedure.  When invoked, it consumes tokens from the
 lexer until the end of input is found or an unrecoverable error occurs.
 
@@ -36524,43 +37289,69 @@ library, using a table in @samp{calc-lexer-table} to parse
 @var{input-string}, we do:
 
 @example
-(let* ((IS            (lexer-make-IS :string @var{input-string}
-                                     :counters 'all))
-       (lexer         (lexer-make-lexer calc-lexer-table IS))
-       (error-handler (lambda (message token) ---)))
-  (parser lexer error-handler))
+(let* ((IS        (lexer-make-IS :string @var{input-string}
+                                 :counters 'all))
+       (lexer     (lexer-make-lexer calc-lexer-table IS))
+       (error-hnd (lambda (message token) ---)))
+  (parser lexer error-hnd))
 @end example
 
-The only way to allow the parser closure to return a value, is to give
-it access to some global state.  For example using parameters.
+The parser closure will return the value computed by the semantic action
+of the last expression parsed.  For example, in a line--oriented
+calculator that parses:
+
+@example
+1 + 2
+3 * 4
+5 - 6
+@end example
+
+@noindent
+the returned value is the result of parsing @samp{5 - 6}, which is the
+last line; the results computed by the semantic actions of the previous
+lines, are discarded.  @ref{lalr grammar basics, Basics of grammar
+definition}
+
+The only way to allow the parser closure to make accessible the result
+of each ``outer'' expression, is to give it access to some state defined
+outside of the parser; we can do this using parameters or the
+@samp{yycustom} local binding.
 
 @c ------------------------------------------------------------
 
 @subsubheading The lexical analyser
 
-The lexical analyser (@func{lexer} in the example above) must be a thunk
-invoked each time the parser needs to lookahead in the token stream.
-Its return value must be a record created by @func{make-lexical-token}.
-@ref{lalr lexer, Describing tokens}
+The lexer closure must be a thunk invoked each time the parser needs to
+lookahead in the token stream.  Its return value must be a record of
+type @samp{lexical-token}.  @ref{lalr lexer, Describing tokens}
 
 Once the end of input is found, the lexical analyser must return a
 lexical token with category @samp{*eoi*} each time it is invoked.
+
+If the lexer raises an exception, it will go through the parser closure
+with no obstacles.
 
 @c ------------------------------------------------------------
 
 @subsubheading The error procedure
 
-The error procedure must be a function accepting two arguments: an error
-message as Scheme string, the lexical token that caused the error.  A
-simple error procedure may look like this:
+It must be a function accepting two arguments: an error message as
+Scheme string, the lexical token that caused the error.  Its return
+value of does not matter for the parser itself.
+
+If the error procedure returns, the parser closure attempts to recover
+from the error and to resume parsing.  If it raises an exception parsing
+may stop, depending on how the program deals with it.
+
+A simple error procedure raising an exception looks like this:
 
 @example
 (define (error-handler message token)
   (error #f
     (if (not (lexical-token? token))
         message
-      (let* ((position  (lexical-token-source token))
-             (line      (source-location-line position))
+      (let* ((position  (lexical-token-source   token))
+             (line      (source-location-line   position))
              (column    (source-location-column position)))
         (string-append message
           " line "
@@ -36574,34 +37365,32 @@ The error procedure is invoked:
 
 @itemize
 @item
-When an invalid value is returned by the lexer.  If the value is not
+When an invalid value is returned by the lexer.  If the value is not a
 @samp{lexical-token} record, the error procedure is invoked with the
 offending value as second argument.
 
 Parsing stops and the return value of the parser closure is the return
-value of the error procedure.  The error procedure is allowed to throw
-an exception.
+value of the error procedure, if any.
 
 @item
 The stream of tokens returned by the lexer violates parser's grammar.
 
 @itemize -
 @item
-If the error is an unexpected end--of--input, the second argument is the
-@samp{(eof-object)}.
+If the error is an unexpected end--of--input, the second argument is a
+@samp{lexical-token} record with @samp{*eoi*} in the category field.
 
 Parsing stops and the return value of the parser closure is the return
-value of the error procedure.  The error procedure is allowed to throw
-an exception.
+value of the error procedure, if any.
 
 @item
-If the error is another grammar violation, the second argument is the
-offending token.
+If the error is another grammar violation, the error procedure is
+invoked with the offending value as second argument; its return value,
+if any, is discarded.
 
-The error procedure is allowed to throw a non--continuable exception, in
-which case parsing stops.  If the error procedure returns, the parser
-will try to recover from the error; the return value of the error
-procedure is discarded.
+If the error procedure returns, the parser will try to recover from the
+error and resume parsing; if error recovery fails, the parser behaves as
+if the end--of--input is found.
 @end itemize
 @end itemize
 
@@ -36611,7 +37400,7 @@ procedure is discarded.
 
 
 @menu
-* lalr grammar intro::          Introduction.
+* lalr grammar basics::         Basics of grammar definition.
 * lalr grammar precedence::     Operator precedence and associativity.
 * lalr grammar client::         Writing client forms.
 * lalr grammar error::          Error recovery.
@@ -36619,8 +37408,8 @@ procedure is discarded.
 @end menu
 
 @c page
-@node lalr grammar intro
-@subsubsection Introduction
+@node lalr grammar basics
+@subsubsection Basics of grammar definition
 
 
 The grammar is defined by the list of terminal token categories and the

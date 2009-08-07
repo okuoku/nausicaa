@@ -3,7 +3,7 @@ State table
 
 state 0
 
-   *start* --> . lines *eoi*    (rule 1)
+   *start* --> . script *eoi*    (rule 1)
 
    *default* : Error
    error : shift and goto state 6
@@ -15,10 +15,10 @@ state 0
 
 state 1
 
-   expr --> - . expr    (rule 13)
+   expr --> - . expr    (rule 14)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -26,10 +26,10 @@ state 1
 
 state 2
 
-   expr --> + . expr    (rule 12)
+   expr --> + . expr    (rule 13)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -37,10 +37,10 @@ state 2
 
 state 3
 
-   expr --> LPAREN . expr RPAREN    (rule 25)
+   expr --> LPAREN . expr RPAREN    (rule 26)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -48,215 +48,210 @@ state 3
 
 state 4
 
-   expr --> NUM .    (rule 24)
+   expr --> NUM .    (rule 25)
 
-   *default* : reduce using rule 24
+   *default* : reduce using rule 25
 
 state 5
 
-   assign --> ID . ASSIGN expr    (rule 7)
-   expr --> ID .    (rule 22)
-   expr --> ID . LPAREN args RPAREN    (rule 23)
+   assign --> ID . ASSIGN expr    (rule 8)
+   expr --> ID .    (rule 23)
+   expr --> ID . LPAREN args RPAREN    (rule 24)
 
-   *default* : reduce using rule 22
-   ASSIGN : shift and goto state 16
-   LPAREN : shift and goto state 15
+   *default* : reduce using rule 23
+   ASSIGN : shift and goto state 17
+   LPAREN : shift and goto state 16
 
 state 6
 
-   line --> error . NEWLINE    (rule 6)
+   line --> error . NEWLINE    (rule 7)
 
    *default* : Error
-   NEWLINE : shift and goto state 17
+   NEWLINE : shift and goto state 18
 
 state 7
 
-   line --> expr . NEWLINE    (rule 5)
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : Error
-   NEWLINE : shift and goto state 30
-   + : shift and goto state 29
-   - : shift and goto state 28
-   * : shift and goto state 27
-   / : shift and goto state 26
-   DIV : shift and goto state 25
-   MOD : shift and goto state 24
-   EXPT : shift and goto state 23
-   LESS : shift and goto state 22
-   GREAT : shift and goto state 21
-   LESSEQ : shift and goto state 20
-   GREATEQ : shift and goto state 19
-   EQUAL : shift and goto state 18
-
-state 8
-
-   line --> assign . NEWLINE    (rule 4)
+   line --> expr . NEWLINE    (rule 6)
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
 
    *default* : Error
    NEWLINE : shift and goto state 31
+   + : shift and goto state 30
+   - : shift and goto state 29
+   * : shift and goto state 28
+   / : shift and goto state 27
+   DIV : shift and goto state 26
+   MOD : shift and goto state 25
+   EXPT : shift and goto state 24
+   LESS : shift and goto state 23
+   GREAT : shift and goto state 22
+   LESSEQ : shift and goto state 21
+   GREATEQ : shift and goto state 20
+   EQUAL : shift and goto state 19
+
+state 8
+
+   line --> assign . NEWLINE    (rule 5)
+
+   *default* : Error
+   NEWLINE : shift and goto state 32
 
 state 9
 
-   lines --> line .    (rule 3)
+   lines --> line .    (rule 4)
 
-   *default* : reduce using rule 3
+   *default* : reduce using rule 4
 
 state 10
 
-   *start* --> lines . *eoi*    (rule 1)
-   lines --> lines . line    (rule 2)
+   script --> lines .    (rule 2)
+   lines --> lines . line    (rule 3)
 
-   *default* : Error
-   *eoi* : shift and goto state 32
-   error : shift and goto state 6
-   ID : shift and goto state 5
-   NUM : shift and goto state 4
-   LPAREN : shift and goto state 3
-   + : shift and goto state 2
+   *default* : reduce using rule 2
    - : shift and goto state 1
+   + : shift and goto state 2
+   LPAREN : shift and goto state 3
+   NUM : shift and goto state 4
+   ID : shift and goto state 5
+   error : shift and goto state 6
 
 state 11
 
-   expr --> ID .    (rule 22)
-   expr --> ID . LPAREN args RPAREN    (rule 23)
+   *start* --> script . *eoi*    (rule 1)
 
-   *default* : reduce using rule 22
-   LPAREN : shift and goto state 15
+   *default* : Error
+   *eoi* : shift and goto state 34
 
 state 12
 
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> - expr .    (rule 13)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
+   expr --> ID .    (rule 23)
+   expr --> ID . LPAREN args RPAREN    (rule 24)
 
-   *default* : reduce using rule 13
-   EQUAL : shift and goto state 18
-   GREATEQ : shift and goto state 19
-   LESSEQ : shift and goto state 20
-   GREAT : shift and goto state 21
-   LESS : shift and goto state 22
-   EXPT : shift and goto state 23
-   MOD : shift and goto state 24
-   DIV : shift and goto state 25
-   / : shift and goto state 26
-   * : shift and goto state 27
+   *default* : reduce using rule 23
+   LPAREN : shift and goto state 16
 
 state 13
 
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> + expr .    (rule 12)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> - expr .    (rule 14)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
 
-   *default* : reduce using rule 12
+   *default* : reduce using rule 14
+   EQUAL : shift and goto state 19
+   GREATEQ : shift and goto state 20
+   LESSEQ : shift and goto state 21
+   GREAT : shift and goto state 22
+   LESS : shift and goto state 23
+   EXPT : shift and goto state 24
+   MOD : shift and goto state 25
+   DIV : shift and goto state 26
+   / : shift and goto state 27
+   * : shift and goto state 28
 
 state 14
 
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-   expr --> LPAREN expr . RPAREN    (rule 25)
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> + expr .    (rule 13)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
 
-   *default* : Error
-   RPAREN : shift and goto state 34
-   + : shift and goto state 29
-   - : shift and goto state 28
-   * : shift and goto state 27
-   / : shift and goto state 26
-   DIV : shift and goto state 25
-   MOD : shift and goto state 24
-   EXPT : shift and goto state 23
-   LESS : shift and goto state 22
-   GREAT : shift and goto state 21
-   LESSEQ : shift and goto state 20
-   GREATEQ : shift and goto state 19
-   EQUAL : shift and goto state 18
+   *default* : reduce using rule 13
 
 state 15
 
-   expr --> ID LPAREN . args RPAREN    (rule 23)
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+   expr --> LPAREN expr . RPAREN    (rule 26)
 
-   *default* : reduce using rule 26
-   - : shift and goto state 1
-   + : shift and goto state 2
-   LPAREN : shift and goto state 3
-   NUM : shift and goto state 4
-   ID : shift and goto state 11
+   *default* : Error
+   RPAREN : shift and goto state 35
+   + : shift and goto state 30
+   - : shift and goto state 29
+   * : shift and goto state 28
+   / : shift and goto state 27
+   DIV : shift and goto state 26
+   MOD : shift and goto state 25
+   EXPT : shift and goto state 24
+   LESS : shift and goto state 23
+   GREAT : shift and goto state 22
+   LESSEQ : shift and goto state 21
+   GREATEQ : shift and goto state 20
+   EQUAL : shift and goto state 19
 
 state 16
 
-   assign --> ID ASSIGN . expr    (rule 7)
+   expr --> ID LPAREN . args RPAREN    (rule 24)
 
-   *default* : Error
-   ID : shift and goto state 11
-   NUM : shift and goto state 4
-   LPAREN : shift and goto state 3
-   + : shift and goto state 2
+   *default* : reduce using rule 27
    - : shift and goto state 1
+   + : shift and goto state 2
+   LPAREN : shift and goto state 3
+   NUM : shift and goto state 4
+   ID : shift and goto state 12
 
 state 17
 
-   line --> error NEWLINE .    (rule 6)
-
-   *default* : reduce using rule 6
-
-state 18
-
-   expr --> expr EQUAL . expr    (rule 21)
+   assign --> ID ASSIGN . expr    (rule 8)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
    - : shift and goto state 1
 
+state 18
+
+   line --> error NEWLINE .    (rule 7)
+
+   *default* : reduce using rule 7
+
 state 19
 
-   expr --> expr GREATEQ . expr    (rule 20)
+   expr --> expr EQUAL . expr    (rule 22)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -264,10 +259,10 @@ state 19
 
 state 20
 
-   expr --> expr LESSEQ . expr    (rule 19)
+   expr --> expr GREATEQ . expr    (rule 21)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -275,10 +270,10 @@ state 20
 
 state 21
 
-   expr --> expr GREAT . expr    (rule 18)
+   expr --> expr LESSEQ . expr    (rule 20)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -286,10 +281,10 @@ state 21
 
 state 22
 
-   expr --> expr LESS . expr    (rule 17)
+   expr --> expr GREAT . expr    (rule 19)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -297,10 +292,10 @@ state 22
 
 state 23
 
-   expr --> expr EXPT . expr    (rule 16)
+   expr --> expr LESS . expr    (rule 18)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -308,10 +303,10 @@ state 23
 
 state 24
 
-   expr --> expr MOD . expr    (rule 15)
+   expr --> expr EXPT . expr    (rule 17)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -319,10 +314,10 @@ state 24
 
 state 25
 
-   expr --> expr DIV . expr    (rule 14)
+   expr --> expr MOD . expr    (rule 16)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -330,10 +325,10 @@ state 25
 
 state 26
 
-   expr --> expr / . expr    (rule 11)
+   expr --> expr DIV . expr    (rule 15)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -341,10 +336,10 @@ state 26
 
 state 27
 
-   expr --> expr * . expr    (rule 10)
+   expr --> expr / . expr    (rule 12)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -352,10 +347,10 @@ state 27
 
 state 28
 
-   expr --> expr - . expr    (rule 9)
+   expr --> expr * . expr    (rule 11)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -363,10 +358,10 @@ state 28
 
 state 29
 
-   expr --> expr + . expr    (rule 8)
+   expr --> expr - . expr    (rule 10)
 
    *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
@@ -374,396 +369,407 @@ state 29
 
 state 30
 
-   line --> expr NEWLINE .    (rule 5)
-
-   *default* : reduce using rule 5
-
-state 31
-
-   line --> assign NEWLINE .    (rule 4)
-
-   *default* : reduce using rule 4
-
-state 32
-
-   *start* --> lines *eoi* .    (rule 1)
-
-   *default* : reduce using rule 1
-   *eoi* : Accept input
-
-state 33
-
-   lines --> lines line .    (rule 2)
-
-   *default* : reduce using rule 2
-
-state 34
-
-   expr --> LPAREN expr RPAREN .    (rule 25)
-
-   *default* : reduce using rule 25
-
-state 35
-
-   expr --> ID LPAREN args . RPAREN    (rule 23)
+   expr --> expr + . expr    (rule 9)
 
    *default* : Error
-   RPAREN : shift and goto state 50
-
-state 36
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-   args --> expr . arg-rest    (rule 27)
-
-   *default* : reduce using rule 29
-   EQUAL : shift and goto state 18
-   GREATEQ : shift and goto state 19
-   LESSEQ : shift and goto state 20
-   GREAT : shift and goto state 21
-   LESS : shift and goto state 22
-   EXPT : shift and goto state 23
-   MOD : shift and goto state 24
-   DIV : shift and goto state 25
-   / : shift and goto state 26
-   * : shift and goto state 27
-   - : shift and goto state 28
-   + : shift and goto state 29
-   COMMA : shift and goto state 51
-
-state 37
-
-   assign --> ID ASSIGN expr .    (rule 7)
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 7
-   + : shift and goto state 29
-   - : shift and goto state 28
-   * : shift and goto state 27
-   / : shift and goto state 26
-   DIV : shift and goto state 25
-   MOD : shift and goto state 24
-   EXPT : shift and goto state 23
-   LESS : shift and goto state 22
-   GREAT : shift and goto state 21
-   LESSEQ : shift and goto state 20
-   GREATEQ : shift and goto state 19
-   EQUAL : shift and goto state 18
-
-state 38
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-   expr --> expr EQUAL expr .    (rule 21)
-
-   *default* : reduce using rule 21
-
-state 39
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr GREATEQ expr .    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 20
-
-state 40
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr LESSEQ expr .    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 19
-
-state 41
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr GREAT expr .    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 18
-
-state 42
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr LESS expr .    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 17
-
-state 43
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr EXPT expr .    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 16
-
-state 44
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr MOD expr .    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 15
-
-state 45
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr DIV expr .    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 14
-
-state 46
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr / expr .    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 11
-
-state 47
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr * expr .    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 10
-
-state 48
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr - expr .    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 9
-   EQUAL : shift and goto state 18
-   GREATEQ : shift and goto state 19
-   LESSEQ : shift and goto state 20
-   GREAT : shift and goto state 21
-   LESS : shift and goto state 22
-   EXPT : shift and goto state 23
-   MOD : shift and goto state 24
-   DIV : shift and goto state 25
-   / : shift and goto state 26
-   * : shift and goto state 27
-
-state 49
-
-   expr --> expr . + expr    (rule 8)
-   expr --> expr + expr .    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-
-   *default* : reduce using rule 8
-   EQUAL : shift and goto state 18
-   GREATEQ : shift and goto state 19
-   LESSEQ : shift and goto state 20
-   GREAT : shift and goto state 21
-   LESS : shift and goto state 22
-   EXPT : shift and goto state 23
-   MOD : shift and goto state 24
-   DIV : shift and goto state 25
-   / : shift and goto state 26
-   * : shift and goto state 27
-
-state 50
-
-   expr --> ID LPAREN args RPAREN .    (rule 23)
-
-   *default* : reduce using rule 23
-
-state 51
-
-   arg-rest --> COMMA . expr arg-rest    (rule 28)
-
-   *default* : Error
-   ID : shift and goto state 11
+   ID : shift and goto state 12
    NUM : shift and goto state 4
    LPAREN : shift and goto state 3
    + : shift and goto state 2
    - : shift and goto state 1
 
+state 31
+
+   line --> expr NEWLINE .    (rule 6)
+
+   *default* : reduce using rule 6
+
+state 32
+
+   line --> assign NEWLINE .    (rule 5)
+
+   *default* : reduce using rule 5
+
+state 33
+
+   lines --> lines line .    (rule 3)
+
+   *default* : reduce using rule 3
+
+state 34
+
+   *start* --> script *eoi* .    (rule 1)
+
+   *default* : reduce using rule 1
+   *eoi* : Accept input
+
+state 35
+
+   expr --> LPAREN expr RPAREN .    (rule 26)
+
+   *default* : reduce using rule 26
+
+state 36
+
+   expr --> ID LPAREN args . RPAREN    (rule 24)
+
+   *default* : Error
+   RPAREN : shift and goto state 51
+
+state 37
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+   args --> expr . arg-rest    (rule 28)
+
+   *default* : reduce using rule 30
+   EQUAL : shift and goto state 19
+   GREATEQ : shift and goto state 20
+   LESSEQ : shift and goto state 21
+   GREAT : shift and goto state 22
+   LESS : shift and goto state 23
+   EXPT : shift and goto state 24
+   MOD : shift and goto state 25
+   DIV : shift and goto state 26
+   / : shift and goto state 27
+   * : shift and goto state 28
+   - : shift and goto state 29
+   + : shift and goto state 30
+   COMMA : shift and goto state 52
+
+state 38
+
+   assign --> ID ASSIGN expr .    (rule 8)
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 8
+   + : shift and goto state 30
+   - : shift and goto state 29
+   * : shift and goto state 28
+   / : shift and goto state 27
+   DIV : shift and goto state 26
+   MOD : shift and goto state 25
+   EXPT : shift and goto state 24
+   LESS : shift and goto state 23
+   GREAT : shift and goto state 22
+   LESSEQ : shift and goto state 21
+   GREATEQ : shift and goto state 20
+   EQUAL : shift and goto state 19
+
+state 39
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+   expr --> expr EQUAL expr .    (rule 22)
+
+   *default* : reduce using rule 22
+
+state 40
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr GREATEQ expr .    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 21
+
+state 41
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr LESSEQ expr .    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 20
+
+state 42
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr GREAT expr .    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 19
+
+state 43
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr LESS expr .    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 18
+
+state 44
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr EXPT expr .    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 17
+
+state 45
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr MOD expr .    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 16
+
+state 46
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr DIV expr .    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 15
+
+state 47
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr / expr .    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 12
+
+state 48
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr * expr .    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 11
+
+state 49
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr - expr .    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 10
+   EQUAL : shift and goto state 19
+   GREATEQ : shift and goto state 20
+   LESSEQ : shift and goto state 21
+   GREAT : shift and goto state 22
+   LESS : shift and goto state 23
+   EXPT : shift and goto state 24
+   MOD : shift and goto state 25
+   DIV : shift and goto state 26
+   / : shift and goto state 27
+   * : shift and goto state 28
+
+state 50
+
+   expr --> expr . + expr    (rule 9)
+   expr --> expr + expr .    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+
+   *default* : reduce using rule 9
+   EQUAL : shift and goto state 19
+   GREATEQ : shift and goto state 20
+   LESSEQ : shift and goto state 21
+   GREAT : shift and goto state 22
+   LESS : shift and goto state 23
+   EXPT : shift and goto state 24
+   MOD : shift and goto state 25
+   DIV : shift and goto state 26
+   / : shift and goto state 27
+   * : shift and goto state 28
+
+state 51
+
+   expr --> ID LPAREN args RPAREN .    (rule 24)
+
+   *default* : reduce using rule 24
+
 state 52
 
-   args --> expr arg-rest .    (rule 27)
+   arg-rest --> COMMA . expr arg-rest    (rule 29)
 
-   *default* : reduce using rule 27
+   *default* : Error
+   ID : shift and goto state 12
+   NUM : shift and goto state 4
+   LPAREN : shift and goto state 3
+   + : shift and goto state 2
+   - : shift and goto state 1
 
 state 53
 
-   expr --> expr . + expr    (rule 8)
-   expr --> expr . - expr    (rule 9)
-   expr --> expr . * expr    (rule 10)
-   expr --> expr . / expr    (rule 11)
-   expr --> expr . DIV expr    (rule 14)
-   expr --> expr . MOD expr    (rule 15)
-   expr --> expr . EXPT expr    (rule 16)
-   expr --> expr . LESS expr    (rule 17)
-   expr --> expr . GREAT expr    (rule 18)
-   expr --> expr . LESSEQ expr    (rule 19)
-   expr --> expr . GREATEQ expr    (rule 20)
-   expr --> expr . EQUAL expr    (rule 21)
-   arg-rest --> COMMA expr . arg-rest    (rule 28)
+   args --> expr arg-rest .    (rule 28)
 
-   *default* : reduce using rule 29
-   EQUAL : shift and goto state 18
-   GREATEQ : shift and goto state 19
-   LESSEQ : shift and goto state 20
-   GREAT : shift and goto state 21
-   LESS : shift and goto state 22
-   EXPT : shift and goto state 23
-   MOD : shift and goto state 24
-   DIV : shift and goto state 25
-   / : shift and goto state 26
-   * : shift and goto state 27
-   - : shift and goto state 28
-   + : shift and goto state 29
-   COMMA : shift and goto state 51
+   *default* : reduce using rule 28
 
 state 54
 
-   arg-rest --> COMMA expr arg-rest .    (rule 28)
+   expr --> expr . + expr    (rule 9)
+   expr --> expr . - expr    (rule 10)
+   expr --> expr . * expr    (rule 11)
+   expr --> expr . / expr    (rule 12)
+   expr --> expr . DIV expr    (rule 15)
+   expr --> expr . MOD expr    (rule 16)
+   expr --> expr . EXPT expr    (rule 17)
+   expr --> expr . LESS expr    (rule 18)
+   expr --> expr . GREAT expr    (rule 19)
+   expr --> expr . LESSEQ expr    (rule 20)
+   expr --> expr . GREATEQ expr    (rule 21)
+   expr --> expr . EQUAL expr    (rule 22)
+   arg-rest --> COMMA expr . arg-rest    (rule 29)
 
-   *default* : reduce using rule 28
+   *default* : reduce using rule 30
+   EQUAL : shift and goto state 19
+   GREATEQ : shift and goto state 20
+   LESSEQ : shift and goto state 21
+   GREAT : shift and goto state 22
+   LESS : shift and goto state 23
+   EXPT : shift and goto state 24
+   MOD : shift and goto state 25
+   DIV : shift and goto state 26
+   / : shift and goto state 27
+   * : shift and goto state 28
+   - : shift and goto state 29
+   + : shift and goto state 30
+   COMMA : shift and goto state 52
+
+state 55
+
+   arg-rest --> COMMA expr arg-rest .    (rule 29)
+
+   *default* : reduce using rule 29
 
