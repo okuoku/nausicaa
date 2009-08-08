@@ -530,7 +530,6 @@
       (let* ((right-hand-side	(process-prec-directive (car lst) (+ ruleno i -1)))
 	     (rest		(cdr lst))
 	     (prod		(map encode (cons (car nonterm-def) right-hand-side))))
-
 	;;Check for undefined tokens.
 	;;
 	;;FIXME This has been already  done by ENCODE, no? (Marco Maggi;
@@ -552,54 +551,6 @@
 		  (+ i 1)
 		  (cons (cons prod (cadr rest))
 			rev-productions-and-actions))
-;;;NOTE
-;;;(Marco Maggi; Wed Aug  5, 2009)
-;;;
-;;;The  following form  generate  a fake  semantic  action whenever  the
-;;;grammar  definition  has a  right-hand  side  rule  with no  semantic
-;;;action.  I  cannot understand why  in hell the  fake form for  a rule
-;;;that  consumes 3  values from  the  stack, in  a non-terminal  called
-;;;"woppa", has the format:
-;;;
-;;;	(vector 'woppa-3 $1 $2 $3)
-;;;
-;;;if it consumes 4 values it is:
-;;;
-;;;	(vector 'woppa-4 $1 $2 $3 $4)
-;;;
-;;;and so on.  Maybe for  debugging purposes?  Anyway, I replace it with
-;;;the  sentinel  value, let's  see  what  happens.   The quoted  symbol
-;;;SENTINEL will be expanded to  the actual sentinel value when the code
-;;;is evaluated in a library or by EVAL.
-;;;
-;;;Original code:
-;;;
-;;;           (let* ((rhs-length (length rhs))
-;;; 		     (action (cons 'vector
-;;; 			       (cons (list 'quote (string->symbol
-;;; 						(string-append
-;;; 						 name
-;;; 						 "-"
-;;; 						 (number->string i))))
-;;; 				  (let loop-j ((j 1))
-;;; 				    (if (> j rhs-length)
-;;; 					'()
-;;; 				      (cons (string->symbol
-;;; 					     (string-append
-;;; 					      "$"
-;;; 					      (number->string j)))
-;;; 					    (loop-j (+ j 1)))))))
-;;;		(loop rest
-;;;		     (+ i 1)
-;;;		     (cons (cons prod action)
-;;;			   rev-productions-and-actions)))
-;;;
-;;;also the whole "let loop" for must be wrapped in:
-;;;
-;;;  (let ((name (symbol->string (car nonterm-def))))
-;;;     ---)
-;;;
-;;;Modified code:
 	  (loop rest
 		(+ i 1)
 		(cons (cons prod 'sentinel)
@@ -1618,7 +1569,6 @@
 	  (vector->list shift-table)))))
 
 (define (build-reduction-table gram/actions)
-  (write gram/actions)(newline)
   ;;Build and  return the  reduction table: A  vector of closures  to be
   ;;invoked to  reduce the current  stack of values.  GRAM/ACTIONS  is a
   ;;list of pairs;  each pair represents the right-hand  side (RHS) of a

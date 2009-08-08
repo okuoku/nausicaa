@@ -191,12 +191,12 @@
 	       (cond ((eq? category '*eoi*) ;unexpected end-of-input while trying to recover
 		      (values #f token))
 		     ((memq category sync-set) ;recovery success
-		      ;;The following  stack entry will  be processed by
+		      ;;The following stack entries will be processed by
 		      ;;REDUCE-USING-DEFAULT-ACTIONS,     causing    the
 		      ;;evaluation  of  the   semantic  action  for  the
 		      ;;"error" right-hand side rule.
-		      (stack-push! #f #f)
-		      (stack-push! #f (cdr (assq category error-actions)))
+		      (stack-push! (lexical-token-value offending-token) #f)
+		      (stack-push! 'error (cdr (assq category error-actions)))
 		      (values #t token))
 		     (else
 		      (skip-token (lexer))))))))
