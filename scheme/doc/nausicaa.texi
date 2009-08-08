@@ -36183,8 +36183,8 @@ precedence.  We want to compute one--line expressions like:
 * lalr intro simple::           Simplified parser behaviour.
 * lalr intro look::             Why the lookahead.
 * lalr intro states::           From symbol sequences to states.
-* lalr intro nonterm::          Non--terminal categories.
 * lalr intro error::            Error recovering.
+* lalr intro nonterm::          Non--terminal categories.
 @end menu
 
 @c page
@@ -36377,9 +36377,6 @@ select @false{}:
 #( S  N  A  N   *eoi*)
 @end example
 
-@noindent
-at first all the categories are terminals.
-
 Basically, the parser should recognise the subvector @samp{N A N} as
 representing a subexpression we can compute; then we want the parser to
 apply to the values @samp{1 + 2} a @dfn{semantic action} of our choice
@@ -36510,8 +36507,8 @@ pointer, which is @samp{3}.
 @subsubsection Why the lookahead
 
 
-Why do we need to look ahead at the next category?  When the situation
-is:
+Why do we need to look ahead at the next token's category?  When the
+situation is:
 
 @example
 #(#f  1  +  2  #<eof>)
@@ -36576,10 +36573,31 @@ doing another lookahead:
       p
 @end example
 
+Notice that, with a well written grammar, the parser generator can
+understand that the result of the first line is no more needed and
+remove it with a reduce action.  Starting from the above stacks, the
+lookahead returns @samp{T} and the action is shift:
+
+@example
+#(#f  7  #\newline  4  /  5  #\newline  #<eof>  #f #f #f #f)
+#( S  N  T          N  M  N  T           *eoi*  #f #f #f #f)
+         |
+         p
+@end example
+
 @noindent
-then it can shift and go on.  Notice that, with a well written grammar,
-the parser generator can understand that the result of the first line is
-no more needed and remove it with a reduce action.
+now the lookahead returns @samp{N} and the action can be a reduction
+which puts the stacks in the following state:
+
+@example
+#(#f  4  /  5  #\newline  #<eof>  #f #f #f #f #f #f)
+#( S  N  M  N  T           *eoi*  #f #f #f #f #f #f)
+   |
+   p
+@end example
+
+@noindent
+parser is ready to start a new line.
 
 @c page
 @node lalr intro states
@@ -36588,8 +36606,9 @@ no more needed and remove it with a reduce action.
 
 We have seen that parser searches the grammar for an action associated
 to a sequence of category symbols; this is inefficient.  We can
-represent the grammar with a directed graph, having @samp{S} as single
-source and the @samp{*eoi*} terminal as single sink.
+represent the grammar with a directed graph, having a single source and
+a single sink, in which every lookahead and every reduction causes a
+transaction from one node to the other.
 
 There are many possible expressions and many possible paths in the
 graph; for example, the following expressions:
@@ -36613,156 +36632,108 @@ N M N *eoi*
 @end example
 
 @noindent
-which in turn are represented by the following graph, showing the
-initial lookahead and the shift actions:
+which in turn are represented by the following graph, in which every
+node has a number and every terminal symbol (@samp{N}, @samp{A},
+@samp{M}, @dots{}) has the associated action between parenthesis
+(@samp{s} for shift, @samp{r} for reduce, @samp{a} for accept):
 
 @example
-S ==> N --> *eoi*
-      |
-      |---> A --> N
-      |     |
-      |      ---> O --> N --> M --> N --> C
-      |
-       ---> M --> N
+       11 o finish
+          ^
+          |
+          |*eoi*(a)
+ 0   N(s) |
+  o ----> o <------------+------------------------------
+start    1|              |                              |
+          |              |*eoi*(r)                      |
+          | A(s)    N(s) |           *eoi*(r)           |
+          +-----> o ---> o <-------------------------   |
+          |      2|      3                           |  |
+          |       |                                  |  |
+          |       | O(s)   N(s)   M(s)   N(s)   C(s) |  |
+          |        ----> o ---> o ---> o ---> o ---> o  |
+          |              4      5      6      7      8  |
+          |                                             |
+          | M(s)    N(s)      *eoi*(r)                  |
+           -----> o ---> o -----------------------------
+                  9      10
 @end example
 
-We can represent the reductions:
-
-@example
-N A N      ++++> N
-N M N      ++++> N
-O N M N C  ++++> N
-@end example
-
-@noindent
-as follows:
-
-@example
-    *eoi*
-      ^
-      |
-S ==> N <++++++++++++++++++++++++++++++++++++++
-      |           +                            +
-      |           +                            +
-      |---> A --> N <+++++++++++++++++++++     +
-      |     |                             +    +
-      |      ---> O --> N --> M --> N --> C    +
-      |                                        +
-       ---> M --> N +++++++++++++++++++++++++++
-@end example
-
-@noindent
-the sink @samp{*eoi*} is associated to the final accept action.
-
-Starting from @samp{S}, with each shift and reduce we move our position
-in the graph to some node.  What matters to select the next action to
-perform, is just the node we enter with each lookahead; we can assign a
-name to each node, using lower case letters, to obtain the following:
-
-@example
-        [*eoi*, c]
-           ^
-           |
-[S, a] => [N, b] <+++++++++++++++++++++++
-           |               +             +
-           |               +             +
-           |--> [A, d] -> [N, e]         +
-           |     v         ^             +
-           |    [O, g]     +             +
-           |     v         +             +
-           |    [N, h]     +             +
-           |     v         +             +
-           |    [M, i]     +             +
-           |     v         +             +
-           |    [N, l] -> [C, m]         +
-           |                             +
-            --> [M, o] -> [N, p] ++++++++
-@end example
-
-@noindent
-then we can represent parsing with a sequence of states:
-
-@example
-S N *eoi*               @result{} a b c <accept>
-
-S N A N *eoi*           @result{} a b d e b c <accept>
-
-S N A O N M N C *eoi*   @result{} a b d g h i l m e b c <accept>
-
-S N M N *eoi*           @result{} a b o p b c <accept>
-@end example
-
-With this, when the parser is in the state @samp{x} and the lookahead
-returns the symbol @samp{Y}, it can search the grammar to know the next
-action and the next state.
+Starting from @samp{start}, with each shift and reduce we move our
+position in the graph to some node.  What matters to select the next
+action to perform, is just the node we are in and the category of the
+lookahead token.
 
 Let's try it with the expression @samp{1 + 2}; we add a stack for the
-states:
+current node number:
 
 @example
 #(#f   1   +   2  #<eof>)
 #( S   N   A   N   *eoi*)
-#( a  #f  #f  #f      #f)
+#( 0  #f  #f  #f      #f)
    |
    p
 @end example
 
 @noindent
-the lookahead returns @samp{N} and the grammar associates @samp{[a, N]}
-with @samp{[b, shift]}:
+the lookahead returns @samp{N} and the grammar associates @samp{[0, N]}
+with @samp{[1, shift]}:
 
 @example
 #(#f   1   +   2  #<eof>)
 #( S   N   A   N   *eoi*)
-#( a   b  #f  #f      #f)
+#( 0   1  #f  #f      #f)
        |
        p
 @end example
 
 @noindent
-the lookahead returns @samp{A} and the grammar associates @samp{[b, A]}
-with @samp{[d, shift]}:
+the lookahead returns @samp{A} and the grammar associates @samp{[1, A]}
+with @samp{[2, shift]}:
 
 @example
 #(#f   1   +   2  #<eof>)
 #( S   N   A   N   *eoi*)
-#( a   b   d  #f      #f)
+#( 0   1   2  #f      #f)
            |
            p
 @end example
 
 @noindent
-the lookahead returns @samp{N} and the grammar associates @samp{[d, N]}
-with @samp{[e, shift]}:
+the lookahead returns @samp{N} and the grammar associates @samp{[2, N]}
+with @samp{[3, shift]}:
 
 @example
 #(#f   1   +   2  #<eof>)
 #( S   N   A   N   *eoi*)
-#( a   b   d   e      #f)
+#( 0   1   2   3      #f)
                |
                p
 @end example
 
 @noindent
-the lookahead returns @samp{*eoi*} and the grammar associates @samp{[e,
-*eoi*]} with @samp{[b, reduce]}:
+the lookahead returns @samp{*eoi*} and the grammar associates @samp{[3,
+*eoi*]} with @samp{[1, reduce]}:
 
 @example
 #(#f   3  #<eof>)
 #( S   N   *eoi*)
-#( a   b      #f)
+#( 0   1      #f)
        |
        p
 @end example
 
 @noindent
-the lookahead returns @samp{*eoi*} and the grammar associates @samp{[b,
-*eoi*]} with @samp{[c, accept]}.
+the lookahead returns @samp{*eoi*} and the grammar associates @samp{[1,
+*eoi*]} with @samp{[11, accept]}.
 
-Here we can understand why the shift and lookahead actions are distinct;
-when the state is @samp{e}, there is no outgoing link to a node having
-@samp{*eoi*} as category, but still the grammar knows what action to
-take.
+@c page
+@node lalr intro error
+@subsubsection Error recovering
+
+
+
+
 
 @c page
 @node lalr intro nonterm
@@ -36772,7 +36743,7 @@ take.
 We have seen the graph representation of the grammar with tokens
 belonging to terminal categories.  But how many nodes are there in such
 a graph?  There are an infinite number of expressions, and consequently
-an infinite number of sequences of terminals i required to represent
+an infinite number of sequences of terminals is required to represent
 them.  This would make it impossible to code a parser, unless we take a
 different approach.
 
@@ -36829,17 +36800,7 @@ E M E
 @end example
 
 Let's suppose in defining the category @samp{E} we can use @samp{E}
-itself recursively; then we can write:
-
-@example
-E = N
-  = A E
-  = E A E
-  = E M E
-@end example
-
-@noindent
-and let's not forget that there are parentheses:
+itself, recursively; then we can write:
 
 @example
 E = N
@@ -36850,8 +36811,9 @@ E = N
 @end example
 
 @noindent
-with this definition involving a few symbols we can represent the whole
-set of possible expressions; this thanks to recursion of @samp{E}.
+in which we have included a rule for the parentheses; with this
+definition involving a few symbols we can represent the whole set of
+possible expressions.
 
 Categories defined this way, as sequences of the same and other
 categories, are called non--terminals for reasons we can imagine.
@@ -36908,12 +36870,6 @@ the lookahead returns @samp{*eoi*} and the grammar says to reduce to
       |
       p
 @end example
-
-@c page
-@node lalr intro error
-@subsubsection Error recovering
-
-
 
 @c page
 @node lalr tables

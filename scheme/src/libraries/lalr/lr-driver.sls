@@ -44,7 +44,7 @@
 #!r6rs
 (library (lalr lr-driver)
   (export
-    lr-driver			lalr-initial-stack-size
+    lr-driver
 
     ;; re-exports from (lalr common)
     make-source-location	source-location?
@@ -57,190 +57,157 @@
     make-lexical-token		lexical-token?
     lexical-token-value
     lexical-token-category
-    lexical-token-source
-
-    lexical-token?/end-of-input)
+    lexical-token-source)
   (import (rnrs)
     (lalr common)
-    (parameters))
+    (parameters)
+    (checks))
 
-(define lalr-initial-stack-size
-  (make-parameter 500))
+(define-syntax drop/stx
+  (syntax-rules ()
+    ((_ ?ell ?k)
+     (let loop ((ell ?ell)
+		(k   ?k))
+       (if (zero? k)
+	   ell
+	 (loop (cdr ell) (- k 1)))))))
 
 
 (define (lr-driver action-table goto-table reduction-table)
-  (lambda (lexer error-handler yycustom)
-    (let ((stack		(make-vector (lalr-initial-stack-size) 0))
-	  (stack-pointer	0)
+  (lambda (true-lexer error-handler yycustom)
+    (let ((stack-values		'(#f))
+	  (stack-states		'(0))
 	  (reuse-last-token	#f))
 
-      (define (main lookahead-token)
-	(let* ((state-index	(stack-ref stack-pointer))
-	       (category	(lexical-token-category lookahead-token))
+      (define (main lookahead)
+	(let* ((state-index	(car stack-states))
+	       (category	(lexical-token-category lookahead))
 	       (action-value	(select-action category state-index)))
-;;;(clean-stack)
-;;;(write (list 'main stack-pointer stack action-value))(newline)
-;;;(write (list 'token category action-value))(newline)
+	  (debug "~%main states ~s values ~s state= ~s category= ~s action ~s"
+		 stack-states stack-values state-index category action-value)
 	  (cond
 	   ((eq? action-value 'accept) ;success, return the value to the caller
-	    (stack-ref 1))
+	    (cadr stack-values))
 
 	   ((eq? action-value '*error*) ;syntax error in input
 	    (if (eq? category '*eoi*)
-		(error-handler "unexpected end of input" lookahead-token)
+		(error-handler "unexpected end of input" lookahead)
 	      (begin
-		(error-handler "syntax error, unexpected token" lookahead-token)
-		(let ((token (recover-from-error lookahead-token)))
-		  (if (<= 0 stack-pointer)
-		      (reduce-using-default-actions) ;recovery succeeded
-		    (set! stack-pointer 0)) ;recovery failed, TOKEN set to end--of--input
+		(error-handler "syntax error, unexpected token" lookahead)
+		(let-values (((success token) (recover-from-error lookahead)))
+		  (when success
+		    (reduce-using-default-actions))
+		  ;;If recovery fails, TOKEN is set to end--of--input
 		  (main token)))))
 
 	   ((<= 0 action-value) ;shift (= push) token on the stack
-;;;(write (list 'shift lookahead-token))(newline)
-	    (stack-push! (lexical-token-value lookahead-token) action-value)
+	    (debug "shift: ~s new-state= ~s" lookahead action-value)
+	    (stack-push! (lexical-token-value lookahead) action-value)
 	    (main (if (eq? category '*eoi*)
 		      (begin
 			(reduce-using-default-actions)
-			lookahead-token)
-		    (retrieve-token-from-lexer))))
+			lookahead)
+		    (lexer))))
 
 	   (else ;reduce using the rule at index "(- ACTION-VALUE)"
-;;;(write (list 'reduce action-value))(newline)
+	    (debug "reduce action-value= ~a" action-value)
 	    (reduce (- action-value))
-	    (main lookahead-token))))) ;we have not used the token, yet
+	    (main lookahead))))) ;we have not used the token, yet
 
-      (define (clean-stack)
-        ;;To be used for debugging  only.  Clears the unused portions of
-        ;;the stack.
-        ;;
-        (do ((i (+ 1 stack-pointer) (+ 1 i)))
-            ((>= i (vector-length stack)))
-          (vector-set! stack i #f)))
-
-      (define-syntax stack-set!	(syntax-rules ()
-				  ((_ ?offset ?value)
-				   (vector-set! stack ?offset ?value))))
-
-      (define-syntax stack-ref	(syntax-rules ()
-				  ((_ ?offset)
-				   (vector-ref stack ?offset))))
-
-      (define-syntax action-ref	(syntax-rules ()
-				  ((_ ?state)
-				   (vector-ref action-table ?state))))
-
-      (define-syntax increment!	(syntax-rules ()
-				  ((_ ?varname ?step)
-				   (set! ?varname (+ ?varname ?step)))))
-
-      (define-syntax stack-pop!	(syntax-rules ()
-				  ((_ ?used-couples)
-				   (increment! stack-pointer (* -2 ?used-couples)))))
-
-      (define-syntax stack-push! (syntax-rules ()
-				   ((_ ?first ?second)
-				    (begin
-				      (increment! stack-pointer 2)
-				      (enlarge-stack-if-needed)
-				      (stack-set! (- stack-pointer 1) ?first)
-				      (stack-set! stack-pointer       ?second)))))
-
-      (define (enlarge-stack-if-needed)
-	(let ((len (vector-length stack)))
-	  (when (>= stack-pointer len)
-	    (do ((new-stack (make-vector (* 2 len) 0))
-		 (i 0 (+ 1 i)))
-		((= i len)
-		 (set! stack new-stack))
-	      (vector-set! new-stack i (stack-ref i))))))
-
-      (define retrieve-token-from-lexer
+      (define lexer
 	(let ((last-token #f))
 	  (lambda ()
 	    (if reuse-last-token
 		(set! reuse-last-token #f)
 	      (begin
-		(set! last-token (lexer))
+		(set! last-token (true-lexer))
 		(unless (lexical-token? last-token)
 		  (error-handler "expected lexical token from lexer" last-token)
-		  (retrieve-token-from-lexer))))
-;;;(write (list 'lookahead last-token))(newline)
+		  (true-lexer))))
+	    (debug "lookahead ~s" last-token)
 	    last-token)))
 
       (define (yypushback)
 	(set! reuse-last-token #t))
 
       (define (select-action terminal-symbol state-index)
-	(let* ((action-alist (action-ref state-index))
+	(let* ((action-alist (vector-ref action-table state-index))
 	       (pair (assq terminal-symbol action-alist)))
 	  (if pair (cdr pair) (cdar action-alist))))
 
       (define (reduce reduction-table-index)
-	((vector-ref reduction-table reduction-table-index)
-	 stack stack-pointer reduce-pop-and-push yypushback yycustom))
+	(debug "reduce index ~s" reduction-table-index)
+	(apply (vector-ref reduction-table reduction-table-index)
+	       reduce-pop-and-push yypushback yycustom stack-values))
 
-      (define (reduce-pop-and-push used-couples goto-keyword client-form-result-value)
-	(stack-pop! used-couples)
-	(let* ((state-index	(stack-ref stack-pointer))
-	       (new-state-index	(cdr (assq goto-keyword
-					   (vector-ref goto-table state-index)))))
-	  (stack-push! client-form-result-value new-state-index)))
+      (define (reduce-pop-and-push used-values goto-keyword semantic-action-result yy-stack-values)
+	(debug "pop-and-push states ~s values ~s used ~s goto ~s"
+	       stack-states yy-stack-values used-values goto-keyword)
+	(set! stack-states (drop/stx stack-states used-values))
+	(set! stack-values yy-stack-values)
+	(let ((new-state-index (cdr (assq goto-keyword
+					  (vector-ref goto-table (car stack-states))))))
+	  (debug "after-reduce old-state ~s goto-keyword ~s new-state ~s "
+		 (car stack-states) goto-keyword new-state-index)
+	  (set! stack-values (cons semantic-action-result stack-values))
+	  (set! stack-states (cons new-state-index stack-states))))
 
       (define (reduce-using-default-actions)
-	(let* ((state-index	(stack-ref  stack-pointer))
-	       (actions-alist	(action-ref state-index)))
+	(debug "reducing-default states ~s values ~s state ~s"
+	       stack-states stack-values (car stack-states))
+	(let ((actions-alist (vector-ref action-table (car stack-states))))
 	  (when (= 1 (length actions-alist))
-            ;;;(assert (eq? '*default* (caar actions-alist)))
+;;;(assert (eq? '*default* (caar actions-alist)))
             (let ((default-action (cdar actions-alist)))
 	      (when (< default-action 0)
-;;;(write (list 'reducing-default default-action stack))(newline)
 		(reduce (- default-action))
 		(reduce-using-default-actions))))))
 
       (define (recover-from-error offending-token)
-;;;(write (list 'recovering offending-token stack))(newline)
         (let rewind-stack-loop ()
-	  (if (< stack-pointer 0)
-	      (make-lexical-token '*eoi* ;recovery failed, simulate end-of-input
-				  (lexical-token-source offending-token)
-				  (eof-object))
-	    (let* ((action-index (stack-ref stack-pointer))
-		   (error-entry  (assq 'error (action-ref action-index))))
-	      (if (not error-entry)
-		  (begin
-		    (increment! stack-pointer -2)
-		    (rewind-stack-loop))
-		(synchronise-stack-and-input offending-token (cdr error-entry)))))))
+	  (debug "recovering rewind states ~s values ~s offending-token ~s"
+		 stack-states stack-values offending-token)
+	  (if (null? stack-values)
+	      (begin
+		(stack-push! #f 0)
+		(values #f (make-lexical-token '*eoi* ;recovery failed, simulate end-of-input
+					       (lexical-token-source offending-token)
+					       (eof-object))))
+	    (let* ((error-entry (assq 'error (vector-ref action-table (car stack-states)))))
+	      (if error-entry
+		  (synchronise-stack-and-input offending-token (cdr error-entry))
+		(begin
+		  (set! stack-values (cdr stack-values))
+		  (set! stack-states (cdr stack-states))
+		  (rewind-stack-loop)))))))
 
        (define (synchronise-stack-and-input offending-token error-state-index)
-;;;(write (list 'recover-sync-index error-state-index))(newline)
-         (let* ((error-actions	(action-ref error-state-index))
+	 (debug "recovering-sync states ~s values ~s error-state-index ~s"
+		stack-states stack-values error-state-index)
+         (let* ((error-actions	(vector-ref action-table error-state-index))
 		(sync-set	(map car (cdr error-actions))))
-	   (increment! stack-pointer 4)
-	   (enlarge-stack-if-needed)
-	   (stack-set! (- stack-pointer 3) #f)
-	   (stack-set! (- stack-pointer 2) #f)
-;;;	   (stack-set! (- stack-pointer 2) error-state-index)
-;;;(write (list 'recover-sync offending-token stack))(newline)
 	   (let skip-token ((token offending-token))
 	     (let ((category (lexical-token-category token)))
-	       (cond ((eq? category '*eoi*) ;end-of-input while trying to recover
-		      (set! stack-pointer -1)
-		      token)
-		     ((memq category sync-set) ;
+	       (cond ((eq? category '*eoi*) ;unexpected end-of-input while trying to recover
+		      (values #f token))
+		     ((memq category sync-set) ;recovery success
 		      ;;The following  stack entry will  be processed by
 		      ;;REDUCE-USING-DEFAULT-ACTIONS,     causing    the
 		      ;;evaluation  of  the   semantic  action  for  the
 		      ;;"error" right-hand side rule.
-		      (stack-set! (- stack-pointer 1) #f)
-		      (stack-set! stack-pointer (cdr (assq category error-actions)))
-;;;(write (list 'recover-finish offending-token stack))(newline)
-		      token)
+		      (stack-push! #f #f)
+		      (stack-push! #f (cdr (assq category error-actions)))
+		      (values #t token))
 		     (else
-		      (skip-token (retrieve-token-from-lexer))))))))
+		      (skip-token (lexer))))))))
 
-      (main (retrieve-token-from-lexer)))))
+      (define-syntax stack-push! (syntax-rules ()
+				   ((_ ?value ?state)
+				    (begin
+				      (set! stack-values (cons ?value stack-values))
+				      (set! stack-states (cons ?state stack-states))))))
+
+      (main (lexer)))))
 
 
 ;;;; done

@@ -26,7 +26,6 @@
 
 (import (nausicaa)
   (lalr)
-  (lalr lr-driver) ;required only to play with LALR-INITIAL-STACK-SIZE
   (sentinel)
   (checks))
 
@@ -43,21 +42,20 @@
     '(NUMBER ID NEWLINE))
 
   (define parser-non-terminals
-    '((lines (lines line)	: (yycustom $2)
-	     (line)		: (yycustom $1))
-      (line (NEWLINE)		: #\newline
-            (NUMBER NEWLINE)	: $1
-	    (error NEWLINE)	: 'error-client-form)
-		;either a line starts with a number or newline, or it is
-		;an error; in case of error discard all the tokens until
-		;the first newline
-      ))
+    '((script	(lines)			: #f)
+      (lines	(lines line)		: (yycustom $2)
+		(line)			: (yycustom $1))
+      (line	(NEWLINE)		: #\newline
+		(NUMBER NEWLINE)	: $1
+		(error NEWLINE)		: 'error-client-form)))
+
+  (define make-parser
+    (lalr-parser :output-value #t :expect #f
+		 :terminals parser-terminals
+		 :rules parser-non-terminals))
 
   (define (doit tokens)
-    (let* ((make-parser		(lalr-parser :output-value #t
-					     :terminals parser-terminals
-					     :rules parser-non-terminals))
-	   (lexer		(lambda ()
+    (let* ((lexer		(lambda ()
 				  (if (null? tokens)
 				      eoi-token
 				    (let ((t (car tokens)))
@@ -71,18 +69,19 @@
 				  ;;(display message)(newline)
                                   (yycustom `(error-token . ,(lexical-token-value token)))))
            (parser		(make-parser)))
-      (parameterise ((lalr-initial-stack-size 10))
+      (parameterise ((debugging #f))
 	(parser lexer error-handler yycustom))
       result))
 
   (when #f
     (lalr-parser :output-port (current-output-port)
+		 :expect #f
 		 :terminals parser-terminals
 		 :rules parser-non-terminals)
     (newline)
     (newline))
 
-  (check	;correct input
+  (check
       (doit (list (make-lexical-token 'NUMBER  #f 1)
 		  (make-lexical-token 'NEWLINE #f #\newline)
 		  eoi-token))
@@ -99,7 +98,7 @@
 		  eoi-token))
     => '(2 #\newline error-client-form (error-token . alpha)))
 
-  (check 'this
+  (check
       ;;The  first ID  triggers an  error, recovery  happens,  the first
       ;;NEWLINE is correctly parsed; the second line is correct.
       (doit (list (make-lexical-token 'NUMBER  #f 1)
@@ -152,11 +151,13 @@
                 ;this is a rule with no semantic action
       ))
 
+  (define make-parser
+    (lalr-parser :output-value #t :expect #f
+		 :terminals parser-terminals
+		 :rules parser-non-terminals))
+
   (define (doit tokens)
-    (let* ((make-parser	(lalr-parser :output-value #t
-				     :terminals parser-terminals
-				     :rules parser-non-terminals))
-	   (lexer		(lambda ()
+    (let* ((lexer		(lambda ()
 				  (if (null? tokens)
 				      eoi-token
 				    (let ((t (car tokens)))
@@ -187,7 +188,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'expressions))
+(parameterise ((check-test-name 'single-expressions))
 
   ;;This is the grammar of the (lalr) documentation in Texinfo format.
 
@@ -195,9 +196,95 @@
     '(N O C T (left: A) (left: M) (nonassoc: U)))
 
   (define parser-non-terminals
-    '((script	(lines)		: (yycustom $1))
+    '((E	(N)		: $1
+		(E A E)		: ($2 $1 $3)
+		(E M E)		: ($2 $1 $3)
+		(A E (prec: U))	: ($1 $2)
+		(O E C)		: $2)))
 
-      (lines	(lines line)	: $2
+  (define make-parser
+    (lalr-parser :output-value #t :expect #f
+		 :terminals parser-terminals
+		 :rules parser-non-terminals))
+
+  (define (doit tokens)
+    (let* ((lexer		(lambda ()
+				  (let ((t (car tokens)))
+				    (set! tokens (cdr tokens))
+				    t)))
+	   (error-handler	(lambda (message token)
+				  ;;(display message)(newline)
+                                  `(error-token . ,(lexical-token-value token))))
+           (parser		(make-parser)))
+      (parser lexer error-handler #f)))
+
+  (when #f
+    (lalr-parser :output-port (current-output-port)
+		 :expect #f
+;;;		 :dump-table "/tmp/marco/p"
+		 :terminals parser-terminals
+		 :rules parser-non-terminals)
+    (newline)
+    (newline))
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'N #f 1)
+		  eoi-token))
+    => 1)
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'A #f -)
+		  (make-lexical-token 'N #f 1)
+		  eoi-token))
+    => -1)
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 1)
+		  eoi-token))
+    => 1)
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 2)
+		  eoi-token))
+    => 3)
+
+  (check	 ;correct input
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'M #f *)
+		  (make-lexical-token 'N #f 3)
+		  eoi-token))
+    => 7)
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'O #f #\()
+		  (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'C #f #\))
+		  (make-lexical-token 'M #f *)
+		  (make-lexical-token 'N #f 3)
+		  eoi-token))
+    => 9)
+
+  #t)
+
+
+(parameterise ((check-test-name 'script-expression))
+
+  ;;This is the grammar of the (lalr) documentation in Texinfo format.
+
+  (define parser-terminals
+    '(N O C T (left: A) (left: M) (nonassoc: U)))
+
+  (define parser-non-terminals
+    '((script	(lines)		: #f)
+
+      (lines	(lines line)	: (yycustom $2)
 		(line)		: (yycustom $1))
 
       (line	(T)		: #\newline
@@ -210,11 +297,13 @@
 		(A E (prec: U))	: ($1 $2)
 		(O E C)		: $2)))
 
+  (define make-parser
+    (lalr-parser :output-value #t :expect #f
+		 :terminals parser-terminals
+		 :rules parser-non-terminals))
+
   (define (doit tokens)
-    (let* ((make-parser		(lalr-parser :output-value #t
-					     :terminals parser-terminals
-					     :rules parser-non-terminals))
-	   (lexer		(lambda ()
+    (let* ((lexer		(lambda ()
 				  (let ((t (car tokens)))
 				    (set! tokens (cdr tokens))
 				    t)))
@@ -226,13 +315,13 @@
 				  ;;(display message)(newline)
                                   (yycustom `(error-token . ,(lexical-token-value token)))))
            (parser		(make-parser)))
-      (parameterise ((lalr-initial-stack-size 10))
-	(parser lexer error-handler yycustom))
+      (parser lexer error-handler yycustom)
       result))
 
   (when #f
     (lalr-parser :output-port (current-output-port)
-		 :dump-table "/tmp/marco/p"
+		 :expect #f
+;;;		 :dump-table "/tmp/marco/p"
 		 :terminals parser-terminals
 		 :rules parser-non-terminals)
     (newline)
@@ -279,7 +368,7 @@
 		  eoi-token))
     => '(9))
 
-  (check 'that	;correct input
+  (check	;correct input
       (doit (list (make-lexical-token 'O #f #\()
 		  (make-lexical-token 'N #f 1)
 		  (make-lexical-token 'A #f +)

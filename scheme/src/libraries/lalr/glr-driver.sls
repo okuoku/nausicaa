@@ -190,7 +190,7 @@
           (loop-tokens))))
 
 
-  (lambda (lexerp errorp)
+  (lambda (lexerp errorp yycustom)
     (set! ___errorp errorp)
     (initialize-lexer lexerp)
     (initialize-processes)

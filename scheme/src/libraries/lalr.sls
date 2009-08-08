@@ -128,6 +128,13 @@
     ((_ ?item ?ell)
      (sorted-list-insert ?item ?ell >))))
 
+(define error
+  (case-lambda
+   ((message)
+    (rnrs:error 'lalr-parser message))
+   ((message irritants)
+    (eval rnrs:error 'lalr-parser message irritants))))
+
 
 ;;;; bit fields
 ;;
@@ -182,9 +189,6 @@
 
 (define (lalr-parser . options)
 
-  (define (error message . irritants)
-    (eval rnrs:error 'lalr-parser message irritants))
-
   (define (main)
     (let-keywords options #f ((library-spec	:library-spec		#f)
 			      (library-imports	:library-imports	'())
@@ -228,10 +232,7 @@
 			  source-location-length
 			  make-lexical-token		lexical-token?
 			  lexical-token-value		lexical-token-category
-			  lexical-token-source		lexical-token?/end-of-input
-			  ,@(if (eq? driver-name 'lr-driver)
-				'(lalr-initial-stack-size)
-			      '())))
+			  lexical-token-source		lexical-token?/end-of-input))
 	       (code	(cond (library-spec ;generate a library
 			       (unless parser-name
 				 (assertion-violation 'lalr-parser
@@ -365,9 +366,9 @@
 
   (define (check-terminal term terms)
     (cond ((not (symbol? term))
-	   (error "invalid terminal: " term))
+	   (error "invalid terminal" term))
 	  ((member term terms)
-	   (error "duplicate definition of terminal: " term))))
+	   (error "duplicate definition of terminal" term))))
 
   (define (prec->type prec)
     (cdr (assq prec '((left:     . left)
@@ -381,7 +382,7 @@
   (unless (list? terminals)
     (error "Invalid token list: " terminals))
   (when (null? grammar)
-    (error "Grammar definition must have a non-empty list of productions" '()))
+    (error "grammar definition must have a non-empty list of productions"))
 
   ;;Validate TERMINALS and generate the values for TERMS and TERMS/PREC.
   (let check-terminals ((terminals      terminals)
@@ -409,7 +410,7 @@
 				      (cons term rev-terms)
 				      (cons (list term optype prec)
 					    rev-terms/prec))))))
-		 (error "invalid operator precedence specification: " term)))
+		 (error "invalid operator precedence specification" term)))
 	      (else
 	       (check-terminal term rev-terms)
 	       (check-terminals (cdr terminals)
@@ -907,9 +908,9 @@
 
 (define (save-shifts core)
   (let ((p (new-shift)))
-    (set-shift-number! p (core-number core))
+    (set-shift-number!  p (core-number core))
     (set-shift-nshifts! p nshifts)
-    (set-shift-shifts! p shift-set)
+    (set-shift-shifts!  p shift-set)
     (if last-shift
 	(begin
 	  (set-cdr! last-shift (list p))
@@ -1085,7 +1086,6 @@
 			    (vector-set! temp-map symbol (+ k 1))
 			    (vector-set! from-state k state1)
 			    (vector-set! to-state k state2))))))))))))))
-
 
 (define (map-goto state symbol)
   (let loop ((low (vector-ref goto-map symbol))
@@ -1602,75 +1602,100 @@
 (define build-goto-table
   (lambda ()
     `(vector
-      ,@(map
-	    (lambda (shifts)
-	      (list 'quote
-		    (if shifts
-			(let loop ((l (shift-shifts shifts)))
-			  (if (null? l)
-			      '()
-			    (let* ((state  (car l))
-				   (symbol (vector-ref acces-symbol state)))
-			      (if (< symbol nvars)
-				  (cons `(,symbol . ,state)
-					(loop (cdr l)))
-				(loop (cdr l))))))
-		      '())))
+      ,@(map (lambda (shifts)
+	       (list 'quote
+		     (if shifts
+			 (let loop ((l (shift-shifts shifts)))
+			   (if (null? l)
+			       '()
+			     (let* ((state  (car l))
+				    (symbol (vector-ref acces-symbol state)))
+			       (if (< symbol nvars)
+				   (cons `(,symbol . ,state)
+					 (loop (cdr l)))
+				 (loop (cdr l))))))
+		       '())))
 	  (vector->list shift-table)))))
 
-(define build-reduction-table
-  (lambda (gram/actions)
-    `(vector
-      '()
-      ,@(map
-	    (lambda (p)
-	      (let ((act (cdr p)))
-		`(lambda
-;;;NOTE
-;;;(Marco Maggi; Tue Aug 4, 2009)
-;;;
-;;;It seems that "___goto-table" and  "yypushback" are never used in the
-;;;reduction table closures by the generated code.  I do not see why the
-;;;client code  should access the goto  table, so I removed  it from the
-;;;formals.  There may be some  reason to pushback the current token, so
-;;;I left it.
-;;;
-;;;Original code:
-;;;
-;;; 		     ,(if (eq? driver-name 'lr-driver)
-;;; 			  '(___stack ___sp ___goto-table ___reduce-pop-and-push yypushback)
-;;; 			'(___sp ___goto-table ___reduce-pop-and-push))
-;;;
-;;;Modified code:
-;;;
- 		     ,(if (eq? driver-name 'lr-driver)
- 			  '(___stack ___sp ___reduce-pop-and-push yypushback yycustom)
- 			'(___sp ___reduce-pop-and-push yycustom))
+(define (build-reduction-table gram/actions)
+  (write gram/actions)(newline)
+  ;;Build and  return the  reduction table: A  vector of closures  to be
+  ;;invoked to  reduce the current  stack of values.  GRAM/ACTIONS  is a
+  ;;list of pairs;  each pair represents the right-hand  side (RHS) of a
+  ;;non-terminal category definition.
+  ;;
+  ;;The CDR of  each pair is the semantic action  associated to the RHS;
+  ;;for the RHS  having no semantic action: It sould  be just the simbol
+  ;;"sentinel".
+  ;;
+  ;;The CAR of each pair is a list of exact non-negative integers.
+  ;;
+  ;;The first, (caar pair), is the keyword for the goto table used after
+  ;;the reduction to find the state to move the parser in.
+  ;;
+  ;;The rest,  (cdar pair), is  a list of numbers  representing terminal
+  ;;and non-terminal symbols appearing in the definition of the RHS; the
+  ;;length of the rest is the number  of bindings $1, $2, ...  to add to
+  ;;the formals of the reduction closure.
+  ;;
+  ;;FIXME Temporarily  this function only  supports the LR  driver.  The
+  ;;GLR  driver is  easy  to  support once  other  stuff is  stabilised.
+  ;;(Marco Maggi; Sat Aug 8, 2009)
+  ;;
+  (let ((l (map (lambda (pair)
+		  (let* ((semantic-action (cdr pair))
+			 (goto-keyword	(caar pair))
+			 (rhs		(cdar pair))
+			 (val-num	(length rhs))
+			 (bindings	(let loop ((i 1) (v '()))
+					  (if (> i val-num)
+					      v
+					    (loop (+ 1 i)
+						  (cons (string->symbol
+							 (string-append "$" (number->string i)))
+							v)))))
+			 (body		(if (= 0 goto-keyword)
+					    '$1
+					  `(yy-reduce-pop-and-push ,val-num ,goto-keyword
+								   ,semantic-action
+								   yy-stack))))
+		    `(lambda (yy-reduce-pop-and-push yypushback yycustom ,@bindings . yy-stack)
+		       ,body)))
+	     gram/actions)))
+    `(vector '() ,@l)))
 
-		   ,(let* ((nt (caar p)) (rhs (cdar p)) (n (length rhs)))
-		      `(let* (,@(if act
-				    (let loop ((i 1) (l rhs))
-				      (if (pair? l)
-					  (let ((rest (cdr l)))
-					    (cons
-					     `(,(string->symbol
-						 (string-append
-						  "$"
-						  (number->string
-						   (+ (- n i) 1))))
-					       ,(if (eq? driver-name 'lr-driver)
-						    `(vector-ref ___stack (- ___sp ,(- (* i 2) 1)))
-						  `(list-ref ___sp ,(+ (* (- i 1) 2) 1))))
-					     (loop (+ i 1) rest)))
-					'()))
-				  '()))
-			 ,(if (= nt 0)
-			      '$1
-			    `(___reduce-pop-and-push ,n ,nt ,(cdr p)
-						     ,@(if (eq? driver-name 'lr-driver)
-							   '()
-							 '(___sp)))))))))
-	  gram/actions))))
+;; (define (build-reduction-table* gram/actions)
+;;   `(vector
+;;     '()
+;;     ,@(map
+;; 	  (lambda (p)
+;; 	    (let ((act (cdr p)))
+;; 	      `(lambda
+;; 		   ,(if (eq? driver-name 'lr-driver)
+;; 			'(yy-stack yy-stack-pointer yy-reduce-pop-and-push yypushback yycustom)
+;; 		      '(yy-stack-pointer yy-reduce-pop-and-push yycustom))
+
+;; 		 ,(let* ((nt (caar p)) (rhs (cdar p)) (n (length rhs)))
+;; 		    `(let (,@(if act
+;; 				 (let loop ((i 1) (l rhs))
+;; 				   (if (pair? l)
+;; 				       (let ((rest (cdr l)))
+;; 					 (cons
+;; 					  `(,(string->symbol
+;; 					      (string-append "$" (number->string (+ (- n i) 1))))
+;; 					    ,(if (eq? driver-name 'lr-driver)
+;; 						 `(vector-ref yy-stack (- yy-stack-pointer ,(- (* i 2) 1)))
+;; 					       `(list-ref yy-stack-pointer ,(+ (* (- i 1) 2) 1))))
+;; 					  (loop (+ i 1) rest)))
+;; 				     '()))
+;; 			       '()))
+;; 		       ,(if (= nt 0)
+;; 			    '$1
+;; 			  `(yy-reduce-pop-and-push ,n ,nt ,(cdr p)
+;; 						   ,@(if (eq? driver-name 'lr-driver)
+;; 							 '()
+;; 						       '(yy-stack-pointer)))))))))
+;; 	gram/actions)))
 
 
 ;;;; done
