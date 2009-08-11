@@ -471,7 +471,11 @@
       (lalr)
       (build-tables)
       (compact-action-table terms)
-      (action-table-list->alist)
+      ;;The LR  generator produces action  tables as lists  of key/value
+      ;;pairs.   The GLR generator  produces action  tables as  lists of
+      ;;key/list pairs.
+      (when (eq? 'lr-driver driver-name)
+	(action-table-list->alist))
       actions)))
 
 
@@ -1604,13 +1608,24 @@
 						  (cons (string->symbol
 							 (string-append "$" (number->string i)))
 							v)))))
-			 (body		(if (= 0 goto-keyword)
-					    '$1
-					  `(yy-reduce-pop-and-push ,val-num ,goto-keyword
-								   ,semantic-action
-								   yy-stack))))
-		    `(lambda (yy-reduce-pop-and-push yypushback yycustom ,@bindings . yy-stack)
-		       ,body)))
+			 (body	(cond ((= 0 goto-keyword)
+				       '$1)
+				      ((eq? 'lr-driver driver-name)
+				       `(yy-reduce-pop-and-push ,val-num ,goto-keyword
+								,semantic-action
+								yy-stack-values))
+				      (else ;(eq? 'glr-driver driver-name)
+				       `(yy-reduce-pop-and-push ,val-num ,goto-keyword
+								,semantic-action
+								yy-stack-states
+								yy-stack-values)))))
+		    (if (eq? 'lr-driver driver-name)
+			`(lambda (yy-reduce-pop-and-push yypushback yycustom
+							 ,@bindings . yy-stack-values)
+			   ,body)
+		      `(lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states
+						       ,@bindings . yy-stack-values)
+			 ,body))))
 	     gram/actions)))
     `(vector '() ,@l)))
 

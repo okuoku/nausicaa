@@ -61,7 +61,11 @@
 
     lexical-token?/end-of-input)
   (import (rnrs)
+    (checks)
     (lalr common))
+
+
+;;;; helpers
 
 (define-syntax drop/stx
   (syntax-rules ()
@@ -72,132 +76,142 @@
 	   ell
 	 (loop (cdr ell) (- k 1)))))))
 
-(define-syntax take-right/stx
+(define-syntax receive
   (syntax-rules ()
-    ((_ ?ell ?k)
-     (let ((ell ?ell))
-       (let loop ((lag	ell)
-		  (lead	(drop/stx ell ?k)))
-	 (if (pair? lead)
-	     (loop (cdr lag) (cdr lead))
-	   lag))))))
+    ((_ formals expression b b* ...)
+     (call-with-values
+         (lambda () expression)
+       (lambda formals b b* ...)))))
+
+
+;;;; process utilities
+;;
+;;A "process" is  a couple of stacks, one for the  state numbers and one
+;;for the  value numbers.  Every time  a shift action  is performed, one
+;;value is  pushed on both  the stacks.  Every  time a reduce  action is
+;;performed, values from both the stacks are removed and replaced with a
+;;single value.
+;;
+;;Processes are implemented  as pairs of lists; the CAR  is the stack of
+;;states, the CDR is the stack of values.
+;;
+;;Some  of the  following definitions  are  actually used  in the  code;
+;;others are here only for reference.
+;;
+
+(define make-process cons)
+(define process-states-ref car)
+(define process-values-ref cdr)
+
+(define process-top-state caar)
+(define process-top-value cadr)
+
+(define-syntax process-push
+  (syntax-rules ()
+    ((_ ?process ?state ?value)
+     (let ((process ?process))
+       (cons (cons ?state (process-states-ref process))
+	     (cons ?value (process-values-ref process)))))))
+
 
 
 (define (glr-driver action-table goto-table reduction-table)
-  (define ___atable action-table)
-  (define ___gtable goto-table)
-  (define ___rtable reduction-table)
+  (lambda (true-lexer error-handler yycustom)
+    (define reuse-last-token #f)
 
-  (define ___lexerp #f)
-  (define ___errorp #f)
+    (define (main lookahead processes shifted results)
+      (debug "main processes ~s" processes)
+      (let-values (((shifted* results) (process->shifted lookahead (car processes) results)))
+	(let ((processes (cdr processes))
+	      (shifted   (append shifted shifted*)))
+	  (debug "main: processes ~s shifted ~s" processes shifted)
+	  (if (null? processes)
+	      (if (null? shifted)
+		  results
+		(main (lexer) shifted '() results))
+	    (main lookahead processes shifted results)))))
 
-  ;; -- Input handling
+    (define (process->shifted lookahead process results)
+      ;;Perform  the  actions upon  PROCESS  until  he  and its  spawned
+      ;;processes  are  all accepted,  terminated  because  of error  or
+      ;;shifted.
+      ;;
+      (let reduce-loop ((reduced (list process))
+			(shifted '())
+			(results results))
+	(debug "process->shifted: reduced ~s, shifted ~s, results ~s" reduced shifted results)
+	(if (null? reduced)
+	    (values shifted results)
+	  (receive (reduced shifted results)
+	      (perform-actions lookahead (car reduced) results)
+	    (reduce-loop reduced shifted results)))))
 
-  (define *input* #f)
-  (define (initialize-lexer lexer)
-    (set! ___lexerp lexer)
-    (set! *input* #f))
-  (define (consume)
-    (set! *input* (___lexerp)))
+    (define (perform-actions lookahead process results)
+      (debug "perform-actions: process ~s actions ~s" process
+	     (select-actions lookahead (caar process)))
+      (do ((action-list (select-actions lookahead (process-top-state process)) (cdr action-list))
+	   (reduced '())
+	   (shifted '()))
+	  ((null? action-list)
+	   (debug "perform-actions results: ~s ~s ~s" reduced shifted results)
+	   (values reduced shifted results))
+	(let ((action (car action-list)))
+	  (debug "action ~s" action)
+	  (cond ((eq? action '*error*) ;error, discard this process
+		 #f)
+		((eq? action 'accept) ;accept, register result and discard process
+		 (set! results (cons (caar process) results)))
+		((>= action 0) ;shift, this process survives
+		 (set! shifted
+		       (cons `((,action . ,(car process)) .
+			       (,(lexical-token-value lookahead) . ,(cdr process)))
+			     shifted)))
+		(else ;reduce, this process will stay in the loop
+		 (set! reduced
+		       (cons (reduce (- action) process)
+			     reduced)))))))
 
-  (define (token-category tok)
-    (if (lexical-token? tok)
-        (lexical-token-category tok)
-      tok))
+    (define lexer
+      (let ((last-token #f))
+	(lambda ()
+	  (if reuse-last-token
+	      (set! reuse-last-token #f)
+	    (begin
+	      (set! last-token (true-lexer))
+	      (unless (lexical-token? last-token)
+		(error-handler "expected lexical token from lexer" last-token)
+		(true-lexer))))
+	  (debug "lookahead ~s" last-token)
+	  last-token)))
 
-  (define (token-attribute tok)
-    (if (lexical-token? tok)
-        (lexical-token-value tok)
-      tok))
+    (define (yypushback)
+      (set! reuse-last-token #t))
 
-  ;; -- Processes (stacks) handling
+    (define (reduce state process)
+      (apply (vector-ref reduction-table state)
+	     reduce-pop-and-push yypushback yycustom (car process) (cdr process)))
 
-  (define *processes* '())
+    (define (reduce-pop-and-push used-values goto-keyword semantic-clause-result
+				 stack-states stack-values)
+      (let* ((stack-states (drop/stx stack-states used-values))
+	     (state        (car stack-states))
+	     (new-state    (cdr (assv goto-keyword (vector-ref goto-table state)))))
+	(debug "after reduce: new-state ~s, goto-keyword ~s ~s ~s"
+	       new-state goto-keyword state (vector-ref goto-table state))
+	`((,new-state . ,stack-states) .
+	  (,semantic-clause-result . ,stack-values))))
 
-  (define (initialize-processes)
-    (set! *processes* '()))
-  (define (add-process process)
-    (set! *processes* (cons process *processes*)))
-  (define (get-processes)
-    (reverse *processes*))
+    (define (select-actions lookahead state-index)
+      (let* ((action-alist (vector-ref action-table state-index))
+	     (pair         (assq (lexical-token-category lookahead) action-alist)))
+	(if pair (cdr pair) (cdar action-alist))))
 
-  (define (for-all-processes proc)
-    (let ((processes (get-processes)))
-      (initialize-processes)
-      (for-each proc processes)))
-
-  ;; -- parses
-  (define *parses* '())
-  (define (get-parses)
-    *parses*)
-  (define (initialize-parses)
-    (set! *parses* '()))
-  (define (add-parse parse)
-    (set! *parses* (cons parse *parses*)))
-
-
-  (define (push delta new-category lvalue stack)
-    (let* ((stack     (drop/stx stack (* delta 2)))
-           (state     (car stack))
-           (new-state (cdr (assv new-category (vector-ref ___gtable state)))))
-      (cons new-state (cons lvalue stack))))
-
-  (define (reduce state stack)
-    ((vector-ref ___rtable state) stack ___gtable push))
-
-  (define (shift state symbol stack)
-    (cons state (cons symbol stack)))
-
-  (define (get-actions token action-list)
-    (let ((pair (assoc token action-list)))
-      (if pair
-          (cdr pair)
-	(cdar action-list)))) ;; get the default action
-
-
-  (define (run)
-    (let loop-tokens ()
-      (consume)
-      (let ((symbol (token-category *input*))
-            (attr   (token-attribute *input*)))
-        (for-all-processes
-         (lambda (process)
-           (let loop ((stacks (list process)) (active-stacks '()))
-             (cond ((pair? stacks)
-                    (let* ((stack   (car stacks))
-                           (state   (car stack)))
-                      (let actions-loop ((actions      (get-actions symbol (vector-ref ___atable state)))
-                                         (active-stacks active-stacks))
-                        (if (pair? actions)
-                            (let ((action        (car actions))
-                                  (other-actions (cdr actions)))
-                              (cond ((eq? action '*error*)
-                                     (actions-loop other-actions active-stacks))
-                                    ((eq? action 'accept)
-                                     (add-parse (car (take-right/stx stack 2)))
-                                     (actions-loop other-actions active-stacks))
-                                    ((>= action 0)
-                                     (let ((new-stack (shift action attr stack)))
-                                       (add-process new-stack))
-                                     (actions-loop other-actions active-stacks))
-                                    (else
-                                     (let ((new-stack (reduce (- action) stack)))
-				       (actions-loop other-actions (cons new-stack active-stacks))))))
-			  (loop (cdr stacks) active-stacks)))))
-                   ((pair? active-stacks)
-                    (loop (reverse active-stacks) '())))))))
-      (if (pair? (get-processes))
-          (loop-tokens))))
-
-
-  (lambda (lexerp errorp yycustom)
-    (set! ___errorp errorp)
-    (initialize-lexer lexerp)
-    (initialize-processes)
-    (initialize-parses)
-    (add-process '(0))
-    (run)
-    (get-parses)))
+    (main (lexer)
+	  ;;List of  processes, each process  is a pair of  stacks.  The
+	  ;;car is the stack of states, the cdr is the stack of values.
+	  '( ((0) .  (#f)) )
+	  '()
+	  '())))
 
 
 ;;;; done

@@ -132,7 +132,7 @@
 
       (define (select-action terminal-symbol state-index)
 	(let* ((action-alist (vector-ref action-table state-index))
-	       (pair (assq terminal-symbol action-alist)))
+	       (pair         (assq terminal-symbol action-alist)))
 	  (if pair (cdr pair) (cdar action-alist))))
 
       (define (reduce reduction-table-index)
@@ -140,7 +140,7 @@
 	(apply (vector-ref reduction-table reduction-table-index)
 	       reduce-pop-and-push yypushback yycustom stack-values))
 
-      (define (reduce-pop-and-push used-values goto-keyword semantic-action-result yy-stack-values)
+      (define (reduce-pop-and-push used-values goto-keyword semantic-clause-result yy-stack-values)
 	(debug "pop-and-push states ~s values ~s used ~s goto ~s"
 	       stack-states yy-stack-values used-values goto-keyword)
 	(set! stack-states (drop/stx stack-states used-values))
@@ -149,7 +149,7 @@
 					  (vector-ref goto-table (car stack-states))))))
 	  (debug "after-reduce old-state ~s goto-keyword ~s new-state ~s "
 		 (car stack-states) goto-keyword new-state-index)
-	  (set! stack-values (cons semantic-action-result stack-values))
+	  (set! stack-values (cons semantic-clause-result stack-values))
 	  (set! stack-states (cons new-state-index stack-states))))
 
       (define (reduce-using-default-actions)
@@ -157,7 +157,6 @@
 	       stack-states stack-values (car stack-states))
 	(let ((actions-alist (vector-ref action-table (car stack-states))))
 	  (when (= 1 (length actions-alist))
-;;;(assert (eq? '*default* (caar actions-alist)))
             (let ((default-action (cdar actions-alist)))
 	      (when (< default-action 0)
 		(reduce (- default-action))

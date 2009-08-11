@@ -137,7 +137,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'no-client-form))
+(parameterise ((check-test-name 'no-semantic-clause))
 
   (define parser-terminals
     '(NUMBER COMMA NEWLINE))
@@ -193,7 +193,7 @@
   ;;This is the grammar of the (lalr) documentation in Texinfo format.
 
   (define parser-terminals
-    '(N O C T (left: A) (left: M) (nonassoc: U)))
+    '(N O C (left: A) (left: M) (nonassoc: U)))
 
   (define parser-non-terminals
     '((E	(N)		: $1
@@ -270,6 +270,97 @@
 		  (make-lexical-token 'N #f 3)
 		  eoi-token))
     => 9)
+
+  #t)
+
+
+(parameterise ((check-test-name 'associativity))
+
+  (define parser-terminals
+    '(N (left: A) (right: M) (nonassoc: U)))
+
+  (define parser-non-terminals
+    '((E	(N)		: $1
+		(E A E)		: (yycustom $1 $2 $3)
+		(E M E)		: (yycustom $1 $2 $3)
+		(A E (prec: U))	: (yycustom $1 $2))))
+
+  (define make-parser
+    (lalr-parser :output-value #t :expect #f
+		 :terminals parser-terminals
+		 :rules parser-non-terminals))
+
+  (define (doit tokens)
+    (let* ((lexer		(lambda ()
+				  (let ((t (car tokens)))
+				    (set! tokens (cdr tokens))
+				    t)))
+	   (error-handler	(lambda (message token)
+				  ;;(display message)(newline)
+                                  `(error-token . ,(lexical-token-value token))))
+	   (yycustom		(lambda args args))
+           (parser		(make-parser)))
+      (parser lexer error-handler yycustom)))
+
+  (when #f
+    (lalr-parser :output-port (current-output-port)
+		 :expect #f
+;;;		 :dump-table "/tmp/marco/p"
+		 :terminals parser-terminals
+		 :rules parser-non-terminals)
+    (newline)
+    (newline))
+
+  (check
+      (doit (list (make-lexical-token 'N #f 1)
+		  eoi-token))
+    => 1)
+
+  (check 'that
+      (doit (list (make-lexical-token 'A #f '-)
+		  (make-lexical-token 'N #f 1)
+		  eoi-token))
+    => '(- 1))
+
+  (check
+      (doit (list (make-lexical-token 'A #f '+)
+		  (make-lexical-token 'N #f 1)
+		  eoi-token))
+    => '(+ 1))
+
+  (check
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f '+)
+		  (make-lexical-token 'N #f 2)
+		  eoi-token))
+    => '(1 + 2))
+
+  (check
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f '+)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'M #f '*)
+		  (make-lexical-token 'N #f 3)
+		  eoi-token))
+    => '(1 + (2 * 3)))
+
+  (check	;left associative
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f '+)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'A #f '+)
+		  (make-lexical-token 'N #f 3)
+		  eoi-token))
+    => '((1 + 2) + 3))
+
+  (check	;right associative
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'M #f '*)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'M #f '*)
+		  (make-lexical-token 'N #f 3)
+		  eoi-token))
+    => '(1 * (2 * 3)))
 
   #t)
 
@@ -369,6 +460,127 @@
     => '(9))
 
   (check	;correct input
+      (doit (list (make-lexical-token 'O #f #\()
+		  (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'C #f #\))
+		  (make-lexical-token 'M #f *)
+		  (make-lexical-token 'N #f 3)
+		  (make-lexical-token 'T #f #\newline)
+		  (make-lexical-token 'N #f 4)
+		  (make-lexical-token 'M #f /)
+		  (make-lexical-token 'N #f 5)
+		  (make-lexical-token 'T #f #\newline)
+		  eoi-token))
+    => '(4/5 9))
+
+  #t)
+
+
+(parameterise ((check-test-name 'glr-script-expression)
+	       (debugging #f))
+
+  ;;This is the grammar of the (lalr) documentation in Texinfo format.
+
+  (define parser-terminals
+    '(N O C T
+	(left: A)
+	(left: M)
+	(nonassoc: U)))
+
+  (define parser-non-terminals
+    '((script	(lines)		: #f)
+
+      (lines	(lines line)	: (yycustom $2)
+		(line)		: (yycustom $1))
+
+      (line	(T)		: #\newline
+		(E T)		: $1
+		(error T)	: #f)
+
+      (E	(N)		: $1
+		(E A E)		: ($2 $1 $3)
+		(E M E)		: ($2 $1 $3)
+		(A E (prec: U))	: ($1 $2)
+		(O E C)		: $2)))
+
+  (define make-parser
+    (lalr-parser :output-value #t :expect #f
+		 :parser-type 'glr
+		 :terminals parser-terminals
+		 :rules parser-non-terminals))
+
+  (define (doit tokens)
+    (let* ((lexer		(lambda ()
+				  (if (null? tokens)
+				      eoi-token
+				    (let ((t (car tokens)))
+				      (set! tokens (cdr tokens))
+				      t))))
+           (result		'())
+           (yycustom		(lambda (value)
+                                  (set! result (cons value result))
+				  'yycustom))
+	   (error-handler	(lambda (message token)
+				  ;;(display message)(newline)
+                                  (yycustom `(error-token . ,(lexical-token-value token)))))
+           (parser		(make-parser)))
+      (parser lexer error-handler yycustom)
+      result))
+
+  (when #f
+    (lalr-parser :output-port (current-output-port)
+		 :expect #f
+;;;		 :dump-table "/tmp/marco/p"
+		 :parser-type 'glr
+		 :terminals parser-terminals
+		 :rules parser-non-terminals)
+    (newline)
+    (newline))
+
+  (check 	;correct input
+      (doit (list (make-lexical-token 'T #f #\newline)
+		  eoi-token))
+    => '(#\newline))
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'T #f #\newline)
+		  eoi-token))
+    => '(1))
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'T #f #\newline)
+		  eoi-token))
+    => '(3))
+
+  (check	 ;correct input
+      (doit (list (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'M #f *)
+		  (make-lexical-token 'N #f 3)
+		  (make-lexical-token 'T #f #\newline)
+		  eoi-token))
+    => '(7))
+
+  (check	;correct input
+      (doit (list (make-lexical-token 'O #f #\()
+		  (make-lexical-token 'N #f 1)
+		  (make-lexical-token 'A #f +)
+		  (make-lexical-token 'N #f 2)
+		  (make-lexical-token 'C #f #\))
+		  (make-lexical-token 'M #f *)
+		  (make-lexical-token 'N #f 3)
+		  (make-lexical-token 'T #f #\newline)
+		  eoi-token))
+    => '(9))
+
+  (check 	;correct input
       (doit (list (make-lexical-token 'O #f #\()
 		  (make-lexical-token 'N #f 1)
 		  (make-lexical-token 'A #f +)

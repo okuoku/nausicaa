@@ -36117,7 +36117,7 @@ big tables.  Such an analyser is not portable to non--@rnrs{6} Schemes.
 @section A LALR(1) parser generator
 
 
-The @library{lalr} library is a LALR(1) parser table generator.  The
+The @library{lalr} library is a LALR(1) parser tables generator.  The
 @library{lalr lr-driver} and @library{lalr glr-driver} libraries
 generate instances of a parser using a supplied table.  The two drivers
 are not compatible, each of them requires a specifically built table.
@@ -36158,15 +36158,13 @@ at@footnote{@aurl{} last verified Tue Jul 21, 2009.}:
 
 Here we see an introduction to the behaviour of the LR driver; it is
 meant to be a tutorial for users who know nothing about parsing, and it
-has no commitment to be rigorous.
+has no commitment to be rigorous and exhaustive.  This tutorial is meant
+to be read in sequence, each section after the other as they appear.
 
 We describe the basic mechanism of the parser, in a way that is easy to
-understand.  We can think of what the actual driver in @library{lalr
-lr-driver} does as an optimised version of what we see here.
-
-Let's say we want to compute simple arithmetic expressions involving
-numbers, the operators @math{+-*/}, and parentheses to establish
-precedence.  We want to compute one--line expressions like:
+understand.  Let's say we want to compute simple arithmetic expressions
+involving numbers, the operators @math{+-*/}, and parentheses to
+establish precedence.  We want to compute one--line expressions like:
 
 @example
 10
@@ -36213,11 +36211,12 @@ same way; the same goes for every operator @math{*}.  But there is more
 of this.
 
 Scheme implements the functions @func{+}, @func{-}, @func{*}, @func{/}
-which can be applied to every number; so it is reasonable to state that:
-We are not interested in the concrete value of each number, but only in
-the fact that they are number.  We can say that all the number tokens
-are in the same @dfn{category}; let's use the Scheme symbol @samp{N} to
-indicate it.  @samp{N} is an abstraction for each number.
+which can be applied to every Scheme's number object; so it is
+reasonable to state that: We are not interested in the concrete value of
+each number, but only in the abstract fact that they are numbers.  We
+can say that all the number tokens are in the same @dfn{category}; let's
+use the Scheme symbol @samp{N} to indicate it.  @samp{N} is an
+abstraction for each number.
 
 The Scheme functions @func{+}, @func{-}, @func{*}, @func{/} are all
 applied in the same way, but the arithmetic operators @math{+-*/} are
@@ -36294,7 +36293,7 @@ values.  In contrast, the other categories are called @dfn{non--terminal
 categories} or @dfn{non--terminals}, because they are higher level
 abstractions for sequences of terminals and nested non--terminals.
 
-When we represent a terminal with a Scheme object, we need at least two
+When modeling a terminal with a Scheme object, we need at least two
 fields:
 
 @enumerate
@@ -36350,11 +36349,11 @@ O N A O N A N C C M N *eoi*
 @subsubsection What we want
 
 
-Let's take the simple expression @samp{1 + 2}, its categorised
+Let's take the simple expression @samp{1 + 2 * 3}; its categorised
 tokenisation is:
 
 @example
-[N, 1] [A, +] [N, 2] [*eoi*, #<eof>]
+[N, 1] [A, +] [N, 2] [M, *] [N, 3] [*eoi*, #<eof>]
 @end example
 
 @noindent
@@ -36362,8 +36361,8 @@ and we can imagine values and category symbols to be available in Scheme
 vectors:
 
 @example
-#(1  +  2  #<eof>)
-#(N  A  N   *eoi*)
+#(1  +  2  *  3  #<eof>)
+#(N  A  N  M  N   *eoi*)
 @end example
 
 @noindent
@@ -36373,48 +36372,72 @@ whose symbol is @samp{S} as in start, its value is not important so we
 select @false{}:
 
 @example
-#(#f  1  +  2  #<eof>)
-#( S  N  A  N   *eoi*)
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
 @end example
 
-Basically, the parser should recognise the subvector @samp{N A N} as
-representing a subexpression we can compute; then we want the parser to
-apply to the values @samp{1 + 2} a @dfn{semantic action} of our choice
-to compute a result.
+Basically, we want the following:
 
-The semantic action is just a Scheme form in which we do whatever we
-want with the three operands @samp{1}, @samp{+} and @samp{2}; for
-example we can compute the result @math{1 + 2 = 3}.  The parser
-generator should create code like this:
+@enumerate
+@item
+The parser has to recognise the subvectors @samp{N A N} and @samp{N M N}
+as representing expressions it can compute.
+
+@item
+The parser must recognise that @samp{N M N} has precedence above @samp{N
+A N}.  @samp{N M N} has to be computed first.
+
+@item
+The values @samp{2 * 3} have to be fed to a @dfn{semantic clause} of our
+choice to compute a result; the semantic clause is just a Scheme form in
+which we do whatever we want with the three operands @samp{2}, @samp{*}
+and @samp{3}.  For example, we can compute the result @math{2 * 3 = 6}.
+
+The parser generator should create code equivalent to:
 
 @example
-(let (($1   1)   ;
-      ($2   +)   ; Automatically generated preamble
-      ($3   2))  ;
+(let (($1   2)   ;
+      ($2   *)   ; Automatically generated preamble
+      ($3   3))  ;
 
-  ($2 $1 $3))    ; Our semantic action.
+  ($2 $1 $3))    ; Our semantic clause
 @end example
 
 So we want the parser to mutate the vectors as follows:
 
 @example
-#(#f  3  #<eof>  #f  #f)
-#( S  N   *eoi*  #f  #f)
+#(#f  1  +  6  #<eof>  #f #f)
+#( S  N  A  N   *eoi*  #f #f)
 @end example
 
+@item
+The parser has to recognise the subvector @samp{N A N} has representing
+a sequence it can compute; the values have to be fed to a semantic
+action; let's say it computes the result @math{1 + 6 = 7}.
+
+So we want the parser to mutate the vectors as follows:
+
+@example
+#(#f  7  #<eof>  #f #f #f #f)
+#( S  N   *eoi*  #f #f #f #f)
+@end example
+
+@item
 Finally we want the parser to recognise @samp{*eoi*} as the
 end--of--input terminal, and to finish the parsing operation returning
-the value @samp{3} it left in the vector before.
-
-We can describe all of this in terms of three basic actions: lookahead,
-shift, reduce; with the addition of two special actions: accept, error.
-We assume that the parser can consult a data structure called
-@dfn{grammar} and decide what to do.
+the value @samp{7} it left in the vector before.
+@end enumerate
 
 @c page
 @node lalr intro simple
 @subsubsection Simplified parser behaviour
 
+
+We can describe the desired behaviour of the LR driver in terms of three
+basic actions: lookahead, shift, reduce; with the addition of two
+special actions: accept, error.  We assume that the parser can consult a
+data structure called @dfn{grammar} and decide what to do.  We will
+enter some detail of how the grammar is implemented later.
 
 We scan the vectors using a variable @samp{p}, as in pointer, holding
 the index of the current element; at first @samp{p} is set to zero, so
@@ -36427,16 +36450,13 @@ it references the terminal @samp{S}:
    p
 @end example
 
-Parser searches the grammar to acquire the action associated to the
-symbol @samp{S}; it finds the action is @dfn{lookahead}, that is: To
-look at the element at index @samp{1 + p}; such element is always a
-terminal, in this case with symbol @samp{N}.
+The first action is always a @dfn{lookahead}, that is: To look at the
+element at index @samp{1 + p} and acquire its category; such element is
+always a terminal, in this case with symbol @samp{N}.
 
-The parser searches the grammar and recognises the symbol @samp{N} as
-valid; it finds that there is no action associated to @samp{N}, so it
-looks for the sequence @samp{S N}, finding that the action associated to
-it is a @dfn{shift}, that is: Increment @samp{p} by @math{1}.  The
-parser obeys:
+The parser searches the grammar for the sequence @samp{S N}: It finds
+that the action associated to it is a @dfn{shift}, that is: Increment
+@samp{p} by @math{1}.  The parser obeys:
 
 @example
 #(#f  1  +  2  #<eof>)
@@ -36449,11 +36469,11 @@ A shift action is similar to pushing a value on a stack; for this
 reason, we name the Scheme vectors @dfn{stacks} and the variable
 @samp{p} @dfn{stack pointer}.
 
-After a shift, the parser always performs a lookahead; it acquires the
-symbol @samp{A} which is recognised by the grammar as valid.  Parser
-searches the grammar for each of the sequences @samp{A}, @samp{N A},
-@samp{S N A}, finding that the action associated to @samp{N A} is a
-shift.  Parser obeys:
+After a shift, the parser always performs a lookahead, it acquires the
+symbol @samp{A}.  Parser searches the grammar for the sequences @samp{S
+N A} and @samp{N A}, in this order, stopping at the first with an action
+associated to it; if finds that @samp{S N A} has no action, but @samp{N
+A} is associated to a shift.  Parser obeys:
 
 @example
 #(#f  1  +  2  #<eof>)
@@ -36463,10 +36483,17 @@ shift.  Parser obeys:
 @end example
 
 Again after a shift, the parser performs a lookahead; it acquires the
-symbol @samp{N} which is recognised by the grammar as valid.  Parser
-searches the grammar for each of the sequences @samp{N}, @samp{A N},
-@samp{N A N}, @samp{S N A N}, finding that the action associated to
-@samp{N A N} is a shift.  Parser obeys:
+symbol @samp{N}.  Parser searches the grammar for each of the sequences:
+
+@example
+S N A N
+N A N
+A N
+@end example
+
+@noindent
+stopping at the first with an action associated to it; the action
+associated to @samp{N A N} is a shift.  Parser obeys:
 
 @example
 #(#f  1  +  2  #<eof>)
@@ -36476,15 +36503,23 @@ searches the grammar for each of the sequences @samp{N}, @samp{A N},
 @end example
 
 After the shift, parser performs a lookahead; it acquires the symbol
-@samp{*eoi*} which is recognised by the grammar as valid.  Parser
-searches the grammar for each of the sequences @samp{*eoi*}, @samp{N
-*eoi*}, @samp{A N *eoi*}, @samp{N A N *eoi*}, @samp{S N A N *eoi*},
-finding that the action associated to @samp{N A N *eoi*} is a reduce:
-Take the values associated to @samp{N A N}, that is @samp{1 + 2}, and
-use them as arguments for the semantic action the grammar associates to
-@samp{N A N *eoi*}.
+@samp{*eoi*}.  Parser searches the grammar for each of the sequences:
 
-We have established that we want the semantic actions to compute the
+@example
+S N A N *eoi*
+N A N *eoi*
+A N *eoi*
+N *eoi*
+@end example
+
+@noindent
+stopping at the first with an action associated to it; the action
+associated to @samp{N A N *eoi*} is a @dfn{reduce}: Take the values
+associated to @samp{N A N}, that is @samp{1 + 2}, and use them as
+arguments for the semantic clause the grammar associates to @samp{N A N
+*eoi*}.
+
+We have established that we want the semantic clauses to compute the
 given expression, so the result of the evaluation is @samp{3}; parser
 searches the grammar, finding that the result associated to @samp{N A N
 *eoi*} has to be of category @samp{N}; so it mutates the stacks and the
@@ -36497,10 +36532,79 @@ stack pointer as follows:
       p
 @end example
 
-After a reduce, parser always searches the grammar to decide the next
-action; it finds the next action for @samp{N A N *eoi*} is @dfn{accept},
-that is: stop parsing and return the value referenced by the stack
-pointer, which is @samp{3}.
+After a reduce, parser performs a lookahead; it acquires the symbol
+@samp{*eoi*}, again.  Parser searches the grammar for the sequences
+@samp{S N *eoi*} and @samp{N *eoi*}; it finds the action associated to
+@samp{S N *eoi*} is @dfn{accept}, that is: Stop parsing and return the
+value referenced by the stack pointer, which is @samp{3}.
+
+Let's see, more briefly, what happens when parsing:
+
+@example
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
+   |
+   p
+@end example
+
+@noindent
+everything is the same as before until:
+
+@example
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
+            |
+            p
+@end example
+
+@noindent
+in the previous example the lookahead returned @samp{*eoi*} and the
+grammar said ``reduce'' for @samp{N A N *eoi*}; here the lookahead
+returns @samp{M} and the grammar says ``shift'' for @samp{N A N M}:
+
+@example
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
+               |
+               p
+@end example
+
+@noindent
+the lookahead returns @samp{N} and the grammar says ``shift'' for
+@samp{N M N}:
+
+@example
+#(#f  1  +  2  *  3  #<eof>)
+#( S  N  A  N  M  N   *eoi*)
+                  |
+                  p
+@end example
+
+@noindent
+the lookahead returns @samp{*eoi*} and the grammar says ``reduce'' for
+@samp{N M N *eoi*}:
+
+@example
+#(#f  1  +  6  #<eof>  #f #f)
+#( S  N  A  N   *eoi*  #f #f)
+            |
+            p
+@end example
+
+@noindent
+the lookahead returns @samp{*eoi*} and the grammar says ``reduce'' for
+@samp{N A N *eoi*}:
+
+@example
+#(#f  7  #<eof>  #f #f #f #f)
+#( S  N   *eoi*  #f #f #f #f)
+      |
+      p
+@end example
+
+@noindent
+the lookahead returns @samp{*eoi*} and the grammar says ``accept'' for
+@samp{S N *eoi*}.
 
 @c page
 @node lalr intro look
@@ -36508,7 +36612,7 @@ pointer, which is @samp{3}.
 
 
 Why do we need to look ahead at the next token's category?  When the
-situation is:
+stacks are:
 
 @example
 #(#f  1  +  2  #<eof>)
@@ -36519,7 +36623,7 @@ situation is:
 
 @noindent
 we can recognise the subvector @samp{N A N} to be a reducible one
-without looking a the next category; the same goes with:
+without looking a the next category symbol; the same goes with:
 
 @example
 #(#f  1  +  2  -  3  #<eof>)
@@ -36540,7 +36644,8 @@ But let's look at:
 @noindent
 it is an error to reduce @samp{N A N}, because the following
 multiplication takes precedence over addition; we can detect the need to
-give precedence to what follows only by looking at the next category.
+give precedence to what follows only by looking at the next category
+symbol.
 
 This is not always the case.  Let's make a change to our parser, let's
 say we want to parse scripts in which every line is an arithmetic
@@ -36607,8 +36712,21 @@ parser is ready to start a new line.
 We have seen that parser searches the grammar for an action associated
 to a sequence of category symbols; this is inefficient.  We can
 represent the grammar with a directed graph, having a single source and
-a single sink, in which every lookahead and every reduction causes a
-transaction from one node to the other.
+a single sink, in which:
+
+@itemize
+@item
+Each sequence of category symbols having an action is represented by a
+state node.
+
+@item
+Every shift and every reduce causes a transaction from one node to the
+other.
+
+@item
+The lookahead determines which outgoing transaction link to take from a
+given state node.
+@end itemize
 
 There are many possible expressions and many possible paths in the
 graph; for example, the following expressions:
@@ -36633,33 +36751,33 @@ N M N *eoi*
 
 @noindent
 which in turn are represented by the following graph, in which every
-node has a number and every terminal symbol (@samp{N}, @samp{A},
-@samp{M}, @dots{}) has the associated action between parenthesis
-(@samp{s} for shift, @samp{r} for reduce, @samp{a} for accept):
+node has a number index (from @math{0} to @math{11}) and every terminal
+category symbol (@samp{N}, @samp{A}, @samp{M}, @samp{C}, @samp{O}) has
+the associated action between parenthesis (@samp{s} for shift, @samp{r}
+for reduce, @samp{a} for accept):
 
 @example
-       11 o finish
+         (11) finish
           ^
           |
           |*eoi*(a)
- 0   N(s) |
-  o ----> o <------------+------------------------------
-start    1|              |                              |
+     N(s) |
+ (0)---->(1)<------------+------------------------------
+start     |              |                              |
           |              |*eoi*(r)                      |
           | A(s)    N(s) |           *eoi*(r)           |
-          +-----> o ---> o <-------------------------   |
-          |      2|      3                           |  |
+          +----->(2)--->(3)<-------------------------   |
+          |       |                                  |  |
           |       |                                  |  |
           |       | O(s)   N(s)   M(s)   N(s)   C(s) |  |
-          |        ----> o ---> o ---> o ---> o ---> o  |
-          |              4      5      6      7      8  |
+          |        ---->(4)--->(5)--->(6)--->(7)--->(8) |
+          |                                             |
           |                                             |
           | M(s)    N(s)      *eoi*(r)                  |
-           -----> o ---> o -----------------------------
-                  9      10
+           ----->(9)--->(10)----------------------------
 @end example
 
-Starting from @samp{start}, with each shift and reduce we move our
+Starting from node @math{0}, with each shift and reduce we move our
 position in the graph to some node.  What matters to select the next
 action to perform, is just the node we are in and the category of the
 lookahead token.
@@ -36732,8 +36850,123 @@ the lookahead returns @samp{*eoi*} and the grammar associates @samp{[1,
 @subsubsection Error recovering
 
 
+Until now we have seen only examples for which, given a sequence of
+symbols @samp{S A B C} and a lookahead @samp{D}, one of the sequences:
 
+@example
+S A B C D
+A B C D
+B C D
+C D
+@end example
 
+@noindent
+has an action associated to it in the grammar; in other words, using the
+graph model: The state associated to the sequence @samp{S A B C} has an
+outgoing link associated to the lookahead @samp{D}.
+
+What happens if the lookahead is not associated to an outgoing link?  It
+means that the sequence of tokens does not comply with the defined
+grammar.  There are two possible reactions to this: Stop parsing and
+signal an error, or try to recover.
+
+Recovering makes sense only when the grammar is such that: It is
+possible to discard a subsequence of symbols as invalid, and go on
+parsing the following symbols.
+
+In the example of the single expressions parser: If the lookahead
+returns an invalid category symbol, the only possible reaction is to
+stop parsing and signal an error.  The whole expression is wrong.
+
+In the example of the script expression parser: We can discard an
+invalid line and try to parse the following ones.  Let's examine how
+this is done by the LR driver.
+
+The valid terminal categories are:
+
+@example
+N A M O C T *eoi*
+@end example
+
+@noindent
+where @samp{T} is the line terminator; examples of valid lines are:
+
+@example
+N T
+A N T
+N A N T
+N M N T
+N A N M N T
+@end example
+
+If we use a grammar describing a sequence of lines, the grammar
+``knows'' that after each line it has to reduce the stacks to the
+starting symbol; it knows that @samp{S} is the first symbol of each
+line.  For example:
+
+@example
+#(#f  1  +  2  #\newline  3  *  4  #\newline  #<eof>)
+#(S   N  A  N  T          N  M  N  T          *eoi*)
+@end example
+
+@noindent
+after parsing the first line is reduced to:
+
+@example
+#(#f  3  *  4  #\newline  #<eof>  #f #f #f)
+#(S   N  M  N  T          *eoi*   #f #f #f)
+@end example
+
+When writing the grammar specification: We associate an error action to
+the beginning of a line, and it ends up being associated to @samp{S}.
+
+Let's consider the following couple of lines, with the first being a
+wrong expression:
+
+@example
+#(#f  1  +  #\newline  3  *  4  #\newline  #<eof>)
+#(S   N  A  T          N  M  N  T          *eoi*)
+@end example
+
+@noindent
+when the stack pointer references the symbol @samp{A}, the lookahead
+returns @samp{T} and the grammar signals an error.  The parser
+decrements the pointer, ``rewinding'' the stack, in search of a symbol
+which has an error action associated to it.  It finds that @samp{S} has
+such an action, and it is associated to the symbol @samp{T}; so it
+removes all the symbols between @samp{S}, excluded, and the first
+@samp{T}, excluded:
+
+@example
+#(#f  #\newline  3  *  4  #\newline  #<eof>  #f #f)
+#(S   T          N  M  N  T           *eoi*  #f #f)
+  |
+  p
+@end example
+
+@noindent
+and it restarts parsing doing a lookahead that returns @samp{T}; the
+action is a shift:
+
+@example
+#(#f  #\newline  3  *  4  #\newline  #<eof>  #f #f)
+#(S   T          N  M  N  T           *eoi*  #f #f)
+      |
+      p
+@end example
+
+@noindent
+the lookahead returns @samp{N} and the action is a reduce:
+
+@example
+#(#f  3  *  4  #\newline  #<eof>  #f #f #f)
+#(S   N  M  N  T          *eoi*   #f #f #f)
+  |
+  p
+@end example
+
+@noindent
+we have recovered from the error.
 
 @c page
 @node lalr intro nonterm
@@ -36813,63 +37046,22 @@ E = N
 @noindent
 in which we have included a rule for the parentheses; with this
 definition involving a few symbols we can represent the whole set of
-possible expressions.
+possible expressions.  @library{lalr} allows us to do exactly this,
+using the following S--expression:
+
+@example
+(E (N)
+   (A E)
+   (E A E)
+   (E M E)
+   (O E C))
+@end example
 
 Categories defined this way, as sequences of the same and other
-categories, are called non--terminals for reasons we can imagine.
-
-@c @example
-@c     *eoi*
-@c       ^
-@c       |
-@c S ==> N <++++++++++++++++++++++++++++++++++++++
-@c       |           +                            +
-
-@c       |     N
-@c       |     ^
-@c       |     |     +                            +
-@c       |---> A --> N <+++++++++++++++++++++     +
-@c       |     |                             +    +
-@c       |      ---> O --> N --> M --> N --> C    +
-@c       |                                        +
-@c        ---> M --> N +++++++++++++++++++++++++++
-@c @end example
-
-Let's see how we can parse an expression using the non--terminal
-category; let's take:
-
-@example
-#(#f  1  +  2  *  3  #<eof>)
-#( S  N  A  N  M  N   *eoi*)
-   |
-   p
-@end example
-
-@noindent
-everything goes as usual with lookaheads and shifts until:
-
-@example
-#(#f  1  +  2  *  3  #<eof>)
-#( S  N  A  N  M  N   *eoi*)
-                  |
-                  p
-@end example
-
-@noindent
-the lookahead returns @samp{*eoi*} and the grammar says to reduce to
-@samp{E} twice:
-
-@example
-#(#f  1  +  6  #<eof>  #f #f)
-#( S  N  A  E   *eoi*  #f #f)
-            |
-            p
-
-#(#f  7  #<eof>  #f #f #f #f)
-#( S  E   *eoi*  #f #f #f #f)
-      |
-      p
-@end example
+categories, are called non--terminals for reasons we can imagine.  The
+definition of non--terminals changes nothing in the way the parser
+itself works, but it is the fundamental tool to describe the grammar.
+We can use any number of non--terminals to describe a grammar.
 
 @c page
 @node lalr tables
@@ -37252,7 +37444,7 @@ library, using a table in @samp{calc-lexer-table} to parse
   (parser lexer error-hnd))
 @end example
 
-The parser closure will return the value computed by the semantic action
+The parser closure will return the value computed by the semantic clause
 of the last expression parsed.  For example, in a line--oriented
 calculator that parses:
 
@@ -37264,7 +37456,7 @@ calculator that parses:
 
 @noindent
 the returned value is the result of parsing @samp{5 - 6}, which is the
-last line; the results computed by the semantic actions of the previous
+last line; the results computed by the semantic clauses of the previous
 lines, are discarded.  @ref{lalr grammar basics, Basics of grammar
 definition}
 
@@ -37358,7 +37550,7 @@ if the end--of--input is found.
 @menu
 * lalr grammar basics::         Basics of grammar definition.
 * lalr grammar precedence::     Operator precedence and associativity.
-* lalr grammar client::         Writing client forms.
+* lalr grammar clauses::        Writing semantic clauses.
 * lalr grammar error::          Error recovery.
 * lalr grammar conflict::       Conflicts resolution.
 @end menu
@@ -37372,7 +37564,7 @@ The grammar is defined by the list of terminal token categories and the
 list of non--terminal definitions.  Each non--terminal definition is a
 list where the first element is the non--terminal and the other elements
 are the right--hand sides (lists of grammar symbols).  In addition to
-this, each right--hand side can be followed by a client form.
+this, each right--hand side can be followed by a semantic clause.
 
 For example, consider the following (Yacc) grammar for a very simple
 expression language:
@@ -37428,9 +37620,9 @@ The non--terminal definitions are the symbols @samp{e}, @samp{t} and
 
 @noindent
 which are used to match sequences of tokens and/or right--hand side
-rules.  The rule @samp{(e + t)} has the client form @samp{(+ $1 $3)}.
+rules.  The rule @samp{(e + t)} has the semantic clause @samp{(+ $1 $3)}.
 
-In the client forms, the symbol @samp{$n} refers to the value of the
+In the semantic clauses, the symbol @samp{$n} refers to the value of the
 @math{n}-th symbol in the right--hand side rule.  For example, when the
 form @samp{(1 + 2)} is matched by the rule:
 
@@ -37439,17 +37631,17 @@ form @samp{(1 + 2)} is matched by the rule:
 @end example
 
 @noindent
-the client form is evaluated with @samp{$1} set to @samp{1}, and
-@samp{$2} set to @samp{2}; the result of the evaluation of the client
-form becomes the value of the non--terminal.
+the semantic clause is evaluated with @samp{$1} set to @samp{1}, and
+@samp{$2} set to @samp{2}; the result of the evaluation of the semantic
+clause becomes the value of the non--terminal.
 
-A rule with no client form can be written by omitting the @samp{: ---}
+A rule with no semantic clause can be written by omitting the @samp{: ---}
 part, example:
 
 @example
 (e (e + t)    : (+ $1 $3)
    (e - t)    : (- $1 $3)
-   (p)                       ;no action form
+   (p)                       ;no semantic clause
    (t)        : $1)
 @end example
 
@@ -37501,15 +37693,15 @@ precedence level of @samp{*} and @samp{/} since the formers appear first
 in the list of terminal symbols (token definitions).
 
 @c page
-@node lalr grammar client
-@subsubsection Writing client forms
+@node lalr grammar clauses
+@subsubsection Writing semantic clauses
 
 
-Client forms are Scheme forms that can do anything Scheme allows us to
+Semantic clauses are Scheme forms that can do anything Scheme allows us to
 do.  They are allowed to access the local bindings @samp{$1}, @samp{$2},
 @dots{} holding tokens in the number present in the production rule.
 
-An important limit is the environment in which the client forms are
+An important limit is the environment in which the semantic clauses are
 evaluated:
 
 @itemize
@@ -37532,7 +37724,7 @@ specifications to the evaluation environment using the
 @end itemize
 
 
-The following local bindings are accessible by the client forms.
+The following local bindings are accessible by the semantic clauses.
 
 
 @defun yypushback
@@ -37559,7 +37751,7 @@ production can be of the form
 @example
 (rulename
    ---
-   (error TERMINAL) : action-code)
+   (error TERMINAL) : semantic-clause)
 @end example
 
 @noindent
@@ -37613,7 +37805,7 @@ When speaking of ``proper state of the parser'' or ``state index'', we
 mean an exact, non--negative integer used as index in the parser tables.
 
 @item
-When speaking of ``client forms'', we mean the forms we have placed in
+When speaking of ``semantic clauses'', we mean the forms we have placed in
 the parser definition as action to take when a rule is matched.
 @end itemize
 
@@ -37634,7 +37826,7 @@ The state of the driver is stored in the following variables:
 
 @table @samp
 @item stack
-A Scheme vector to collect token values and results of client forms
+A Scheme vector to collect token values and results of semantic clauses
 evaluation.  It is dynamically enlarged when it becomes full.  Values
 are pushed and popped in couples starting at index @math{1}, with the
 element at index @math{0} always left set to @samp{0}.  @ref{lalr lr
@@ -37687,7 +37879,7 @@ couple:
 @item
 The element with lower index (always odd) is a value from the
 @samp{value} field of a @samp{lexical-token} record, or the return value
-of a client form.
+of a semantic clause.
 
 @item
 The element with higher index (always even) is an exact integer
@@ -37783,11 +37975,11 @@ The alist values are symbols or exact integers representing the
 
 
 The @var{reduction-table} argument to @func{lr-driver} is a Scheme
-vector of closures embedding the client forms coming from the parser
+vector of closures embedding the semantic clauses coming from the parser
 rules.
 
 A @dfn{reduction} operation takes couples of values from the stack and
-replaces them with the result of a client form.  For example, using
+replaces them with the result of a semantic clause.  For example, using
 bogus state indexes, the operation @math{12 + 34} matched by the grammar
 rule:
 
@@ -37818,12 +38010,12 @@ table, and invokes it
 
 
 Each closure takes values from the stack, assigns them to local
-variables @samp{$1}, @samp{$2}, @dots{} and evaluates the client form.
-The client form is supposed to use the variables @samp{$1}, @samp{$2},
+variables @samp{$1}, @samp{$2}, @dots{} and evaluates the semantic clause.
+The semantic clause is supposed to use the variables @samp{$1}, @samp{$2},
 @dots{} to compute a result.
 
 The @func{pop-and-push} function pops the used values from the stack,
-and pushes the result of the client form.  This is the @dfn{reduction}
+and pushes the result of the semantic clause.  This is the @dfn{reduction}
 process.
 
 The rule for addition:
@@ -37846,12 +38038,12 @@ generates the following reduction closure:
 
 @noindent
 in which we see the three values taken from the stack and stored in
-local variables, then the client form evaluated.  @func{___push} is a
+local variables, then the semantic clause evaluated.  @func{___push} is a
 closure that pops the three used values from the stack (the first
-argument) and pushes the client form result associating it to the
+argument) and pushes the semantic clause result associating it to the
 category @samp{4}.
 
-@var{yypushback} is a closure that allows the client form to push back
+@var{yypushback} is a closure that allows the semantic clause to push back
 the last token so that it is considered again by the parser.  Most of
 the times it makes no sense to use this closure.  Notice that, in
 general, the last token is @strong{not} the same value on the top of the
@@ -37905,7 +38097,7 @@ lexer, reuse the last token.
 
 @defun yypushback
 Signal to @func{consume} that it has to reuse the last token.  This
-operation is also available, as local binding, in the client forms.
+operation is also available, as local binding, in the semantic clauses.
 @end defun
 
 @c ------------------------------------------------------------
@@ -37933,7 +38125,7 @@ first entry in the alist.
 @defun reduce @var{reduction-index}
 Acquire the reduction closure at @var{reduction-index} in the reduction
 table and apply it to the current stack.  The reduction closure is
-expected to take values from the stack and use the client form to
+expected to take values from the stack and use the semantic clause to
 compute some result; this result is handed to
 @func{reduce-pop-and-push}.
 @end defun
@@ -37941,31 +38133,31 @@ compute some result; this result is handed to
 
 @defun reduce-pop-and-push @var{used-couples} @var{goto-keyword} @var{result-value}
 Called at the end of each reduction closure; pop from the stack the
-values used by a client form, push on the stack the result of the client
+values used by a semantic clause, push on the stack the result of the client
 form.
 
 @var{used-couples} and @var{goto-keyword} are exact integers precomputed
 by @func{lalr-parser}; @var{result-value} is the result of the
-evaluation of the client form in the reduction closure.
+evaluation of the semantic clause in the reduction closure.
 
 @var{used-couples} represents the number of couples on the stack used by
-the client form:
+the semantic clause:
 
 @itemize
 @item
-If the client form accesses only @samp{$1}, @var{used-couples} is
+If the semantic clause accesses only @samp{$1}, @var{used-couples} is
 @samp{2}.
 
 @item
-If the client form accesses @samp{$1} and @samp{$2}, @var{used-couples}
+If the semantic clause accesses @samp{$1} and @samp{$2}, @var{used-couples}
 is @samp{4}.
 
 @item
-If the client form accesses values up to @samp{$n}, @var{used-couples}
+If the semantic clause accesses values up to @samp{$n}, @var{used-couples}
 is @math{2 * n}.
 
 @item
-@var{used-couples} is @math{0} if the client form accesses no values on
+@var{used-couples} is @math{0} if the semantic clause accesses no values on
 the stack.
 @end itemize
 
@@ -37975,7 +38167,7 @@ a goto alist, and @var{goto-keyword} is used to select a new state index
 from it.  @var{result-value} and the new state index are pushed on the
 stack.
 
-For example, let's have a reduction closure whose client form is
+For example, let's have a reduction closure whose semantic clause is
 @samp{(doit $1 $2)}; @var{used-couples} is precomputed to @samp{4} and
 let's say @var{goto-keyword} is @samp{12}.  Suppose the stack looks like
 this before the reduction is applied:
@@ -37985,7 +38177,7 @@ this before the reduction is applied:
 @end example
 
 @noindent
-the client form accesses the local bindings @samp{$1}, which is set to
+the semantic clause accesses the local bindings @samp{$1}, which is set to
 @samp{B}, and @samp{$2}, which is set to @samp{C}, and returns @samp{D}
 as @var{return-value}.
 
@@ -38033,7 +38225,7 @@ return.
 
 This function allows us to apply reduction operations to the stack,
 without consuming tokens from the lexer.  It must be used with care: The
-client form in these reduction closures must consume at least one value
+semantic clause in these reduction closures must consume at least one value
 from the stack, else an infinite loop will result.
 @end defun
 

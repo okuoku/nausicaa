@@ -394,6 +394,8 @@
     ((_ "step" ?var ?step0 ?step ...)
      (syntax-violation 'do* "invalid step specification" '(?step0 ?step ...)))))
 
+;;; --------------------------------------------------------------------
+
 
 ;;;; writing and reading shared structures
 
