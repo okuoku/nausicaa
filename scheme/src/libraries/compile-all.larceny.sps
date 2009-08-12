@@ -86,6 +86,9 @@
 (compile-library "loops.sls"
 		 "loops.slfasl")
 
+(compile-library "debugging.sls"
+		 "debugging.slfasl")
+
 (compile-library "checks.sls"
 		 "checks.slfasl")
 

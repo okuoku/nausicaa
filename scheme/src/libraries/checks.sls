@@ -47,7 +47,7 @@
     ;; selecting tests
     check-test-name
 
-    ;; debugging
+    ;; re-exports from (debugging)
     debug debugging debug-print-condition)
   (import (rename (nausicaa)
 		  (display	nausicaa:display)
@@ -55,6 +55,7 @@
 		  (newline	nausicaa:newline)
 		  (pretty-print	nausicaa:pretty-print))
     (format)
+    (debugging)
     (loops))
 
 
@@ -395,33 +396,6 @@
      (parameterize ((check-test-name ?name))
        (when (eval-this-test?)
 	 (srfi:check ?expr (=> ?equal) ?expected-result))))))
-
-
-;;;; debugging
-
-(define debugging
-  (make-parameter #f))
-
-(define (debug thing . args)
-  (when (debugging)
-    (let ((port (current-error-port)))
-      (if (string? thing)
-	  (apply format port thing args)
-	(write thing port))
-      (nausicaa:newline port))))
-
-(define (debug-print-condition message exc)
-  (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
-	 message
-	 (if (who-condition? exc)
-	     (condition-who exc)
-	   'no-who)
-	 (if (message-condition? exc)
-	     (condition-message exc)
-	   #f)
-	 (if (irritants-condition? exc)
-	     (condition-irritants exc)
-	   #f)))
 
 
 ;;;; done

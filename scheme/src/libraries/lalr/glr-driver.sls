@@ -116,7 +116,7 @@
 
 
 (define (glr-driver action-table goto-table reduction-table)
-  (lambda (true-lexer error-handler yycustom)
+  (define (instance true-lexer error-handler yycustom)
     (define reuse-last-token #f)
 
     (define (main lookahead processes shifted results)
@@ -206,12 +206,13 @@
 	     (pair         (assq (lexical-token-category lookahead) action-alist)))
 	(if pair (cdr pair) (cdar action-alist))))
 
-    (main (lexer)
-	  ;;List of  processes, each process  is a pair of  stacks.  The
-	  ;;car is the stack of states, the cdr is the stack of values.
-	  '( ((0) .  (#f)) )
-	  '()
-	  '())))
+    (main (lexer) '(((0) . (#f))) '() '()))
+
+  (case-lambda
+   ((true-lexer error-handler)
+    (instance true-lexer error-handler #f))
+   ((true-lexer error-handler yycustom)
+    (instance true-lexer error-handler yycustom))))
 
 
 ;;;; done

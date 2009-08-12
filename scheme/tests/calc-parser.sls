@@ -473,78 +473,221 @@
         '())
       (vector
         '()
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values) $1)
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 1 1 $1 yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values)
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          $1)
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 1 1 $1 yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
           (yy-reduce-pop-and-push
             2
             2
             (let ((result $2))
               (when result (evaluated-expressions (cons result (evaluated-expressions))))
               result)
+            yy-stack-states
             yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $1 . yy-stack-values)
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
           (yy-reduce-pop-and-push
             1
             2
             (let ((result $1))
               (when result (evaluated-expressions (cons result (evaluated-expressions))))
               result)
+            yy-stack-states
             yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 3 $1 yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 3 $1 yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 3 #f yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 3 $1 yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 3 $1 yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 3 #f yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
           (yy-reduce-pop-and-push
             3
             4
             (begin (hashtable-set! (table-of-variables) $1 $3) #f)
+            yy-stack-states
             yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (+ $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (- $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (* $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (/ $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 5 $2 yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 5 (- $2) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (div $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (mod $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (expt $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (< $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (> $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (<= $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (>= $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (= $1 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 1 5 (hashtable-ref (table-of-variables) $1 #f) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $4 $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 4 5 (apply (eval $1 (environment '(rnrs))) $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 1 5 $1 yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 $2 yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom . yy-stack-values)
-          (yy-reduce-pop-and-push 0 6 '() yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 6 (cons $1 $2) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom $3 $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 3 7 (cons $2 $3) yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom . yy-stack-values)
-          (yy-reduce-pop-and-push 0 7 '() yy-stack-values))))))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (+ $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (- $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (* $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (/ $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 5 $2 yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 5 (- $2) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (div $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (mod $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (expt $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (< $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (> $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (<= $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (>= $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 (= $1 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push
+            1
+            5
+            (hashtable-ref (table-of-variables) $1 #f)
+            yy-stack-states
+            yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $4
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push
+            4
+            5
+            (apply (eval $1 (environment '(rnrs))) $3)
+            yy-stack-states
+            yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 1 5 $1 yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 5 $2 yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states . yy-stack-values)
+          (yy-reduce-pop-and-push 0 6 '() yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 6 (cons $1 $2) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 3 7 (cons $2 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states . yy-stack-values)
+          (yy-reduce-pop-and-push 0 7 '() yy-stack-states yy-stack-values))))))

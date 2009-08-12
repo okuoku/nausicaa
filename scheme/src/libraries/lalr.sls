@@ -73,6 +73,7 @@
     (lists)
     (parameters)
     (keywords)
+    (debugging)
     (pretty-print)
     (rnrs mutable-pairs)
     (rnrs eval))
@@ -994,7 +995,6 @@
 			    (loop2 (cdr j) (+ np2 1)))))
 		    (loop (+ i 1) np))))))))))
 
-
 (define (set-goto-map)
   (set! goto-map (make-vector (+ nvars 1) 0))
   (let ((temp-map (make-vector (+ nvars 1) 0)))
@@ -1059,7 +1059,6 @@
 	 (else
 	  (loop low (- middle 1))))))))
 
-
 (define (initialize-F)
   (set! F (make-vector ngotos #f))
   (do ((i 0 (+ 1 i)))
@@ -1104,7 +1103,6 @@
 	  (vector-set! lookback i
 		       (cons gotono (vector-ref lookback i))))))))
 
-
 (define (transpose r-arg n)
   (let ((new-end (make-vector n #f))
 	(new-R  (make-vector n #f)))
@@ -1129,8 +1127,6 @@
       (vector-set! new-R i (cdr (vector-ref new-R i))))
 
     new-R))
-
-
 
 (define (build-relations)
 
@@ -1182,8 +1178,6 @@
 	  (vector-set! includes i edges)))))
   (set! includes (transpose includes ngotos)))
 
-
-
 (define (compute-lookaheads)
   (let ((n (vector-ref lookaheads nstates)))
     (let loop ((i 0))
@@ -1195,8 +1189,6 @@
 		  (bit-union LA-i F-j token-set-size)
 		  (loop2 (cdr sp)))
 	      (loop (+ i 1))))))))
-
-
 
 (define (digraph relation)
   (define infinity (+ ngotos 2))
@@ -1247,8 +1239,8 @@
 
 ;;;; operator precedence management
 
-;; a vector of precedence descriptors where each element
-;; is of the form (terminal type precedence)
+;;A vector of  precedence descriptors where each element  is of the form
+;;(terminal type precedence).
 (define the-terminals/prec #f)   ; terminal symbols with precedence
 		; the precedence is an integer >= 0
 (define (get-symbol-precedence sym)
@@ -1263,12 +1255,12 @@
 	(cons (cons rule sym) rule-precedences)))
 
 (define (get-rule-precedence ruleno)
+  (debug "ruleno ~s rule-precedences ~s ~s" ruleno rule-precedences ritem)
   (cond
-   ((assq ruleno rule-precedences)
+   ((assv ruleno rule-precedences)
     => (lambda (p)
 	 (get-symbol-precedence (cdr p))))
-   (else
-    ;; process the rule symbols from left to right
+   (else ;process the rule symbols from left to right
     (let loop ((i    (vector-ref rrhs ruleno))
 	       (prec 0))
       (let ((item (vector-ref ritem i)))
@@ -1376,7 +1368,8 @@
 		      ;; --- reduce/reduce conflict
 		      (begin
 			(add-conflict-message
-			 "%% Reduce/Reduce conflict (reduce " (- new-action) ", reduce " (- current-action)
+			 "%% Reduce/Reduce conflict (reduce " (- new-action) ", reduce "
+			 (- current-action)
 			 ") on '" (get-symbol (+ symbol nvars)) "' in state " state)
 			(if (eq? driver-name 'glr-driver)
 			    (set-cdr! (cdr actions) (cons new-action (cddr actions)))
@@ -1392,7 +1385,8 @@
 		      ((reduce)  #f) ; well, nothing to do...
 		      ;; -- signal a conflict!
 		      (else      (add-conflict-message
-				  "%% Shift/Reduce conflict (shift " new-action ", reduce " (- current-action)
+				  "%% Shift/Reduce conflict (shift " new-action ", reduce "
+				  (- current-action)
 				  ") on '" (get-symbol (+ symbol nvars)) "' in state " state)
 				 (if (eq? driver-name 'glr-driver)
 				     (set-cdr! (cdr actions) (cons new-action (cddr actions)))
@@ -1408,53 +1402,98 @@
   (main))
 
 (define (compact-action-table terms)
-  (define (most-common-action acts)
-    (let ((accums '()))
-      (let loop ((l acts))
-	(if (pair? l)
-	    (let* ((x (cadar l))
-		   (y (assv x accums)))
-	      (if (and (number? x) (< x 0))
-		  (if y
-		      (set-cdr! y (+ 1 (cdr y)))
-		    (set! accums (cons `(,x . 1) accums))))
-	      (loop (cdr l)))))
+  ;;TERMS is the list of  terminal symbols.  "*eoi*" is always the first
+  ;;(index 0) and "error" is always the second (index 1).
+  ;;
+  ;;At this  stage: the elements  in REDUCTION-TABLE are vector,  if the
+  ;;state has a reduction, or #f.
+  ;;
+  ;;FIXME What is this compaction exactly?
+  ;;
+  (define (main)
+    (do ((i 0 (+ i 1)))
+	((= i nstates))
+      (let ((acts (vector-ref action-table i)))
+	(if (vector? (vector-ref reduction-table i))
+	    (let ((act (most-common-reduce-action acts)))
+	      (vector-set! action-table i
+			   (cons `(*default* ,(if act act '*error*))
+				 (translate-terms
+				  (filter (lambda (x)
+					    (not (and (= (length x) 2)
+						      (eq? (cadr x) act))))
+				    acts)))))
+	  (vector-set! action-table i
+		       (cons `(*default* *error*)
+			     (translate-terms acts)))))))
 
-      (let loop ((l accums) (max 0) (sym #f))
-	(if (null? l)
+  (define (most-common-reduce-action acts)
+    ;;ACTS  is  a terminal/actions  alist.   The  keywords are  integers
+    ;;representing  terminal symbols,  the values  are lists  of actions
+    ;;which  can be  integers  or symbols  (like  "accept" or  "error").
+    ;;Positive  integer  actions   represent  shifts,  negative  integer
+    ;;actions represent reduces.
+    ;;
+    ;;For the LR  driver the actions list has only  one element, for the
+    ;;GLR driver it can have  multiple elements.  Only the first element
+    ;;in the action lists is considered.
+    ;;
+    ;;Return the  reduce first-element action which is  more frequent in
+    ;;the action lists.
+    ;;
+    (let ((counters '()))
+      ;;Fill COUNTERS  with an alist action/count holding  the number of
+      ;;times the the  action appears in ACTS.  Only  reduce actions are
+      ;;considered.
+      (let loop ((acts acts))
+	(when (pair? acts)
+	  (let* ((action (cadar acts)) ;get the first action value
+		 (entry  (assv action counters)))
+	    (when (and (number? action)
+		       (< action 0))
+	      (if entry
+		  (set-cdr! entry (+ 1 (cdr entry)))
+		(set! counters (cons (cons action 1) counters))))
+	    (loop (cdr acts)))))
+      ;;Return the reduce action whose entry is maximum in COUNTERS.
+      (let loop ((counters counters)
+		 (max      0)
+		 (sym      #f))
+	(if (null? counters)
 	    sym
-	  (let ((x (car l)))
-	    (if (> (cdr x) max)
-		(loop (cdr l) (cdr x) (car x))
-	      (loop (cdr l) max sym)))))))
+	  (let* ((entry (car counters))
+		 (count (cdr entry)))
+	    (if (> count max)
+		(loop (cdr counters) count (car entry))
+	      (loop (cdr counters) max sym)))))))
 
   (define (translate-terms acts)
-    (map (lambda (act)
-	   (cons (list-ref terms (car act))
-		 (cdr act)))
+    ;;Translate   the   key-integer/integer   alist   in   ACTS   to   a
+    ;;key-symbol/integer alist,  using key-integer as index  in the list
+    ;;of symbols in TERMS.
+    ;;
+    (map (lambda (entry)
+	   (cons (list-ref terms (car entry))
+		 (cdr entry)))
       acts))
 
-  (do ((i 0 (+ i 1)))
-      ((= i nstates))
-    (let ((acts (vector-ref action-table i)))
-      (if (vector? (vector-ref reduction-table i))
-	  (let ((act (most-common-action acts)))
-	    (vector-set! action-table i
-			 (cons `(*default* ,(if act act '*error*))
-			       (translate-terms
-				(filter (lambda (x)
-					  (not (and (= (length x) 2)
-						    (eq? (cadr x) act))))
-				  acts)))))
-	(vector-set! action-table i
-		     (cons `(*default* *error*)
-			   (translate-terms acts)))))))
+  (main))
 
 (define (action-table-list->alist)
-  ;;For some unknown reason the action list is built as a list of lists,
-  ;;even though it is used as  alist.  This function is called after the
-  ;;construction is finished, to convert the list of lists into a proper
-  ;;list.  (Marco Maggi, Wed Aug 5, 2009)
+  ;;The action list for each state  is an alist with a symbol as keyword
+  ;;and a  list of integers as value.   With the LR driver,  the list of
+  ;;integers is always of length 1; with the GLR driver it can be of any
+  ;;length >= 1.
+  ;;
+  ;;This  function  is  called  only   for  the  LR  driver,  after  the
+  ;;construction  is finished,  to convert  the list  values  into their
+  ;;single integer  element.  This makes  it possible to use:
+  ;;
+  ;;	(cdr (assq KEY ALIST))
+  ;;
+  ;;to get the value rather than:
+  ;;
+  ;;	(cadr (assq KEY ALIST))
   ;;
   (do ((len (vector-length action-table))
        (i 0 (+ 1 i)))
@@ -1553,6 +1592,7 @@
       (%newline))))
 
 
+;;;; build goto and reduction table
 
 (define build-goto-table
   (lambda ()
@@ -1566,7 +1606,7 @@
 			     (let* ((state  (car l))
 				    (symbol (vector-ref acces-symbol state)))
 			       (if (< symbol nvars)
-				   (cons `(,symbol . ,state)
+				   (cons (cons symbol state)
 					 (loop (cdr l)))
 				 (loop (cdr l))))))
 		       '())))
@@ -1608,59 +1648,15 @@
 						  (cons (string->symbol
 							 (string-append "$" (number->string i)))
 							v)))))
-			 (body	(cond ((= 0 goto-keyword)
-				       '$1)
-				      ((eq? 'lr-driver driver-name)
-				       `(yy-reduce-pop-and-push ,val-num ,goto-keyword
-								,semantic-action
-								yy-stack-values))
-				      (else ;(eq? 'glr-driver driver-name)
-				       `(yy-reduce-pop-and-push ,val-num ,goto-keyword
-								,semantic-action
-								yy-stack-states
-								yy-stack-values)))))
-		    (if (eq? 'lr-driver driver-name)
-			`(lambda (yy-reduce-pop-and-push yypushback yycustom
-							 ,@bindings . yy-stack-values)
-			   ,body)
-		      `(lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states
-						       ,@bindings . yy-stack-values)
-			 ,body))))
+			 (body	(if (= 0 goto-keyword)
+				    '$1
+				  `(yy-reduce-pop-and-push ,val-num ,goto-keyword ,semantic-action
+							   yy-stack-states yy-stack-values))))
+		    `(lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states
+						     ,@bindings . yy-stack-values)
+		       ,body)))
 	     gram/actions)))
     `(vector '() ,@l)))
-
-;; (define (build-reduction-table* gram/actions)
-;;   `(vector
-;;     '()
-;;     ,@(map
-;; 	  (lambda (p)
-;; 	    (let ((act (cdr p)))
-;; 	      `(lambda
-;; 		   ,(if (eq? driver-name 'lr-driver)
-;; 			'(yy-stack yy-stack-pointer yy-reduce-pop-and-push yypushback yycustom)
-;; 		      '(yy-stack-pointer yy-reduce-pop-and-push yycustom))
-
-;; 		 ,(let* ((nt (caar p)) (rhs (cdar p)) (n (length rhs)))
-;; 		    `(let (,@(if act
-;; 				 (let loop ((i 1) (l rhs))
-;; 				   (if (pair? l)
-;; 				       (let ((rest (cdr l)))
-;; 					 (cons
-;; 					  `(,(string->symbol
-;; 					      (string-append "$" (number->string (+ (- n i) 1))))
-;; 					    ,(if (eq? driver-name 'lr-driver)
-;; 						 `(vector-ref yy-stack (- yy-stack-pointer ,(- (* i 2) 1)))
-;; 					       `(list-ref yy-stack-pointer ,(+ (* (- i 1) 2) 1))))
-;; 					  (loop (+ i 1) rest)))
-;; 				     '()))
-;; 			       '()))
-;; 		       ,(if (= nt 0)
-;; 			    '$1
-;; 			  `(yy-reduce-pop-and-push ,n ,nt ,(cdr p)
-;; 						   ,@(if (eq? driver-name 'lr-driver)
-;; 							 '()
-;; 						       '(yy-stack-pointer)))))))))
-;; 	gram/actions)))
 
 
 ;;;; done

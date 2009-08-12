@@ -34,6 +34,7 @@
   (only (char-sets categories))
   (only (strings))
   (only (vectors))
+  (only (debugging))
   (only (checks))
   (only (loops))
   (only (format))

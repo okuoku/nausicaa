@@ -74,7 +74,7 @@
 
 
 (define (lr-driver action-table goto-table reduction-table)
-  (lambda (true-lexer error-handler yycustom)
+  (define (instance true-lexer error-handler yycustom)
     (let ((stack-values		'(#f))
 	  (stack-states		'(0))
 	  (reuse-last-token	#f))
@@ -111,8 +111,11 @@
 
 	   (else ;reduce using the rule at index "(- ACTION-VALUE)"
 	    (debug "reduce action-value= ~a" action-value)
-	    (reduce (- action-value))
-	    (main lookahead))))) ;we have not used the token, yet
+	    (let-values (((states values)
+			  (reduce (- action-value) stack-states stack-values)))
+	      (set! stack-states states)
+	      (set! stack-values values))
+	    (main lookahead)))))
 
       (define lexer
 	(let ((last-token #f))
@@ -135,32 +138,35 @@
 	       (pair         (assq terminal-symbol action-alist)))
 	  (if pair (cdr pair) (cdar action-alist))))
 
-      (define (reduce reduction-table-index)
+      (define (reduce reduction-table-index stack-states stack-values)
 	(debug "reduce index ~s" reduction-table-index)
 	(apply (vector-ref reduction-table reduction-table-index)
-	       reduce-pop-and-push yypushback yycustom stack-values))
+	       reduce-pop-and-push yypushback yycustom stack-states stack-values))
 
-      (define (reduce-pop-and-push used-values goto-keyword semantic-clause-result yy-stack-values)
+      (define (reduce-pop-and-push used-values goto-keyword semantic-clause-result
+				   yy-stack-states yy-stack-values)
 	(debug "pop-and-push states ~s values ~s used ~s goto ~s"
 	       stack-states yy-stack-values used-values goto-keyword)
-	(set! stack-states (drop/stx stack-states used-values))
-	(set! stack-values yy-stack-values)
+	(set! yy-stack-states (drop/stx yy-stack-states used-values))
 	(let ((new-state-index (cdr (assq goto-keyword
-					  (vector-ref goto-table (car stack-states))))))
+					  (vector-ref goto-table (car yy-stack-states))))))
 	  (debug "after-reduce old-state ~s goto-keyword ~s new-state ~s "
-		 (car stack-states) goto-keyword new-state-index)
-	  (set! stack-values (cons semantic-clause-result stack-values))
-	  (set! stack-states (cons new-state-index stack-states))))
+		 (car yy-stack-states) goto-keyword new-state-index)
+	  (values (cons new-state-index        yy-stack-states)
+		  (cons semantic-clause-result yy-stack-values))))
 
       (define (reduce-using-default-actions)
 	(debug "reducing-default states ~s values ~s state ~s"
 	       stack-states stack-values (car stack-states))
 	(let ((actions-alist (vector-ref action-table (car stack-states))))
-	  (when (= 1 (length actions-alist))
-            (let ((default-action (cdar actions-alist)))
-	      (when (< default-action 0)
-		(reduce (- default-action))
-		(reduce-using-default-actions))))))
+	  (if (= 1 (length actions-alist))
+	      (let ((default-action (cdar actions-alist)))
+		(when (< default-action 0)
+		  (let-values (((states values)
+				(reduce (- default-action) stack-states stack-values)))
+		    (set! stack-states states)
+		    (set! stack-values values))
+		  (reduce-using-default-actions))))))
 
       (define (recover-from-error offending-token)
         (let rewind-stack-loop ()
@@ -180,25 +186,25 @@
 		  (set! stack-states (cdr stack-states))
 		  (rewind-stack-loop)))))))
 
-       (define (synchronise-stack-and-input offending-token error-state-index)
-	 (debug "recovering-sync states ~s values ~s error-state-index ~s"
-		stack-states stack-values error-state-index)
-         (let* ((error-actions	(vector-ref action-table error-state-index))
-		(sync-set	(map car (cdr error-actions))))
-	   (let skip-token ((token offending-token))
-	     (let ((category (lexical-token-category token)))
-	       (cond ((eq? category '*eoi*) ;unexpected end-of-input while trying to recover
-		      (values #f token))
-		     ((memq category sync-set) ;recovery success
-		      ;;The following stack entries will be processed by
-		      ;;REDUCE-USING-DEFAULT-ACTIONS,     causing    the
-		      ;;evaluation  of  the   semantic  action  for  the
-		      ;;"error" right-hand side rule.
-		      (stack-push! (lexical-token-value offending-token) #f)
-		      (stack-push! 'error (cdr (assq category error-actions)))
-		      (values #t token))
-		     (else
-		      (skip-token (lexer))))))))
+      (define (synchronise-stack-and-input offending-token error-state-index)
+	(debug "recovering-sync states ~s values ~s error-state-index ~s"
+	       stack-states stack-values error-state-index)
+	(let* ((error-actions	(vector-ref action-table error-state-index))
+	       (sync-set	(map car (cdr error-actions))))
+	  (let skip-token ((token offending-token))
+	    (let ((category (lexical-token-category token)))
+	      (cond ((eq? category '*eoi*) ;unexpected end-of-input while trying to recover
+		     (values #f token))
+		    ((memq category sync-set) ;recovery success
+		     ;;The following stack entries will be processed by
+		     ;;REDUCE-USING-DEFAULT-ACTIONS,     causing    the
+		     ;;evaluation  of  the   semantic  action  for  the
+		     ;;"error" right-hand side rule.
+		     (stack-push! (lexical-token-value offending-token) #f)
+		     (stack-push! 'error (cdr (assq category error-actions)))
+		     (values #t token))
+		    (else
+		     (skip-token (lexer))))))))
 
       (define-syntax stack-push! (syntax-rules ()
 				   ((_ ?value ?state)
@@ -206,7 +212,13 @@
 				      (set! stack-values (cons ?value stack-values))
 				      (set! stack-states (cons ?state stack-states))))))
 
-      (main (lexer)))))
+      (main (lexer))))
+
+  (case-lambda
+   ((true-lexer error-handler)
+    (instance true-lexer error-handler #f))
+   ((true-lexer error-handler yycustom)
+    (instance true-lexer error-handler yycustom))))
 
 
 ;;;; done
