@@ -7,10 +7,10 @@
 ;; @author    "Dominique Boucher"
 ;; @copyright "Dominique Boucher"
 ;;
-;; Simple arithmetic calculator. 
-;; 
+;; Simple arithmetic calculator.
+;;
 ;;   This program illustrates the use of the lalr-scm parser generator
-;; for Scheme. It is NOT robust, since calling a function with 
+;; for Scheme. It is NOT robust, since calling a function with
 ;; the wrong number of arguments may generate an error that will
 ;; cause the calculator to crash.
 
@@ -23,8 +23,8 @@
 (define calc-parser
   (lalr-parser
 
-   ;; --- Options 
-   ;; output a parser, called calc-parser, in a separate file - calc.yy.scm, 
+   ;; --- Options
+   ;; output a parser, called calc-parser, in a separate file - calc.yy.scm,
    (output:    calc-parser "calc.yy.scm")
    ;; output the LALR table to calc.out
    (out-table: "calc.out")
@@ -81,16 +81,16 @@
  (gambit
   (define port-line input-port-line)
   (define port-column input-port-column))
- 
+
  (chicken
-  (define (port-line port) 
+  (define (port-line port)
     (let-values (((line _) (port-position port)))
       line))
-  
+
   (define (port-column port)
     (let-values (((_ column) (port-position port)))
       column)))
- 
+
  (else
   (define (port-line port) '??)
   (define (port-column port) '??)))
@@ -213,7 +213,7 @@
        (letrec ((errorp
                  (lambda (message . args)
                    (display message)
-                   (if (and (pair? args) 
+                   (if (and (pair? args)
                             (lexical-token? (car args)))
                        (let ((token (car args)))
                          (display (or (lexical-token-value token)

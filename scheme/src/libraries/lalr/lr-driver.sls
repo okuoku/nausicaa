@@ -104,10 +104,10 @@
 	    (debug "shift: ~s new-state= ~s" lookahead action-value)
 	    (stack-push! (lexical-token-value lookahead) action-value)
 	    (main (if (eq? category '*eoi*)
-		      (begin
-			(reduce-using-default-actions)
-			lookahead)
-		    (lexer))))
+		      lookahead
+		    (begin
+		      (reduce-using-default-actions)
+		      (lexer)))))
 
 	   (else ;reduce using the rule at index "(- ACTION-VALUE)"
 	    (debug "reduce action-value= ~a" action-value)
@@ -145,23 +145,23 @@
 
       (define (reduce-pop-and-push used-values goto-keyword semantic-clause-result
 				   yy-stack-states yy-stack-values)
-	(debug "pop-and-push states ~s values ~s used ~s goto ~s"
-	       stack-states yy-stack-values used-values goto-keyword)
+;;;	(debug "pop-and-push states ~s values ~s used ~s goto ~s"
+;;;	       stack-states yy-stack-values used-values goto-keyword)
 	(set! yy-stack-states (drop/stx yy-stack-states used-values))
 	(let ((new-state-index (cdr (assq goto-keyword
 					  (vector-ref goto-table (car yy-stack-states))))))
-	  (debug "after-reduce old-state ~s goto-keyword ~s new-state ~s "
-		 (car yy-stack-states) goto-keyword new-state-index)
+;;;	  (debug "after-reduce old-state ~s goto-keyword ~s new-state ~s "
+;;;		 (car yy-stack-states) goto-keyword new-state-index)
 	  (values (cons new-state-index        yy-stack-states)
 		  (cons semantic-clause-result yy-stack-values))))
 
       (define (reduce-using-default-actions)
-	(debug "reducing-default states ~s values ~s state ~s"
-	       stack-states stack-values (car stack-states))
 	(let ((actions-alist (vector-ref action-table (car stack-states))))
 	  (if (= 1 (length actions-alist))
 	      (let ((default-action (cdar actions-alist)))
 		(when (< default-action 0)
+		  (debug "reducing-default from state ~s using action ~s"
+			 (car stack-states) default-action)
 		  (let-values (((states values)
 				(reduce (- default-action) stack-states stack-values)))
 		    (set! stack-states states)
@@ -212,6 +212,7 @@
 				      (set! stack-values (cons ?value stack-values))
 				      (set! stack-states (cons ?state stack-states))))))
 
+(debugging #t)
       (main (lexer))))
 
   (case-lambda
