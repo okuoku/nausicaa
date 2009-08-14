@@ -1869,7 +1869,6 @@
 
   (define (___run)
     (let loop ()
-;;;(newline)(write (list 'loop ___input))(newline)
       (if ___input
           (let* ((state (vector-ref ___stack ___sp))
                  (i     (___category ___input))
@@ -1902,14 +1901,12 @@
 
                   ;; Shift current token on top of the stack
                   ((>= act 0)
-;;;(write (list 'shift))(newline)
                    (___shift act attr)
                    (set! ___input (if (eq? i '*eoi*) '*eoi* #f))
                    (loop))
 
                   ;; Reduce by rule (- act)
                   (else
-;;;(write (list 'reduce act))(newline)
                    (___reduce (- act))
                    (loop))))
 
@@ -1919,17 +1916,9 @@
                  (acts   (vector-ref ___atable state))
                  (defact (if (pair? acts) (cadar acts) #f)))
             (if (and (= 1 (length acts)) (< defact 0))
-                (begin
-;;;		  (write (list 'reduce-no defact))(newline)
-		  (___reduce (- defact)))
+		(___reduce (- defact))
                 (___consume))
             (loop)))))
-
-;;;;*** DEBUGGING
-;;   (pretty-print action-table)(newline)
-;;   (pretty-print goto-table)(newline)
-;;   (pretty-print reduction-table)(newline)
-;;;;***
 
   (lambda (lexerp errorp)
     (set! ___errorp errorp)

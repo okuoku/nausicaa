@@ -43,7 +43,7 @@
   (only (random strings))
   (only (random distributions))
   (only (random borosh))
-  (only (compare))
+  (only (comparisons))
   (only (arrays))
 
   (only (scmobj))

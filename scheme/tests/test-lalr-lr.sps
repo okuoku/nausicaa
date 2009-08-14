@@ -286,7 +286,7 @@
 		(A E (prec: U))	: (list $1 $2))))
 
   (define make-parser
-    (parameterise ((debugging	#t))
+    (parameterise ((debugging	#f))
       (lalr-parser :output-value #t :expect 0
 		   :terminals parser-terminals
 		   :rules parser-non-terminals)))

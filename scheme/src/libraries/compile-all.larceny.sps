@@ -107,8 +107,8 @@
 (compile-library "random/distributions.sls"
 		 "random/distributions.slfasl")
 
-(compile-library "compare.sls"
-		 "compare.slfasl")
+(compile-library "comparisons.sls"
+		 "comparisons.slfasl")
 
 (compile-library "arrays.sls"
 		 "arrays.slfasl")

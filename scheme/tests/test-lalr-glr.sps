@@ -64,7 +64,7 @@
 		(O E C)		: $2)))
 
   (define make-parser
-    (parameterise ((debugging #t))
+    (parameterise ((debugging #f))
       (lalr-parser :output-value #t :expect #f
 		   :parser-type 'glr
 		   :terminals parser-terminals

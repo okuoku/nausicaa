@@ -32,9 +32,9 @@
     make-address-lexer		address->tokens
 
     ;; parsers
-    address-parse-domain
-    address-parse-local-part
-    address-parse-addr-spec
+;;     address-parse-domain
+;;     address-parse-local-part
+;;     address-parse-addr-spec
 
     ;; domain data type
     make-domain			domain?
@@ -62,6 +62,8 @@
     (strings))
 
 
+;;;; lexer
+
 (define (address->tokens . options)
   (let ((lexer		(apply make-address-lexer options))
 	(list-of-tokens	'()))
@@ -204,85 +206,6 @@
 
 ;;;; parser helpers
 
-(define proc-name
-  ;;Set  to the  current parser  function name.   It is  used  by helper
-  ;;functions to report errors.
-  ;;
-  (make-parameter #f))
-
-(define parsing-object-descr
-  ;;Set to  a string describing  the address component we  are currently
-  ;;parsing.  It is used by helper functions to report errors.
-  ;;
-  (make-parameter #f))
-
-(define (assert-expected-token token token-type token-pred token-type-descr)
-  ;;Assert that  TOKEN is of  type TOKEN-TYPE and  satisfies TOKEN-PRED.
-  ;;If not raise an assertion violation.
-  ;;
-  (assert-token token)
-  (unless (and (eq? token-type (car token))
-	       (token-pred (cdr token)))
-    (assertion-violation (proc-name)
-      (string-append "expected " token-type-descr " while parsing " (parsing-object-descr))
-      token)))
-
-(define (assert-token token)
-  ;;Assert that TOKEN is true.  If not raise an assertion violation.
-  ;;
-  (unless token
-    (assertion-violation (proc-name)
-      (string-append "found end of address while parsing " (parsing-object-descr)))))
-
-
-;;;; parser functions
-
-(define (address-parse-domain lexer)
-  (parameterise ((proc-name		'address-parse-domain)
-		 (parsing-object-descr	"address domain"))
-    (parse-dotted-strings lexer make-domain "subdomain string")))
-
-(define (address-parse-local-part lexer)
-  (parameterise ((proc-name		'address-parse-local-part)
-		 (parsing-object-descr	"address local part"))
-    (parse-dotted-strings lexer make-local-part "local part string")))
-
-(define (parse-dotted-strings lexer make-object atom-descr)
-  ;;Parse a sequence of tokens:
-  ;;
-  ;;	atom (character atom)*
-  ;;
-  ;;in which the characters are dots.
-  ;;
-  (let ((token-first (lexer)))
-    (assert-expected-token token-first 'atom string? atom-descr)
-    (let loop ((list-of-strings (list (cdr token-first))))
-      (let ((token-dot (lexer)))
-	(if (not token-dot)
-	    (make-object (reverse list-of-strings))
-	  (begin
-	    (assert-expected-token token-dot 'character
-				   (lambda (obj) (char=? #\. obj))
-				   "dot separator")
-	    (let ((token-atom (lexer)))
-	      (assert-expected-token token-atom 'atom string? atom-descr)
-	      (loop (cons (cdr token-atom) list-of-strings)))))))))
-
-(define (address-parse-addr-spec lexer)
-  ;;Parse the sequence:
-  ;;
-  ;;	local-part #\@ domain
-  ;;
-  (parameterise ((proc-name		'address-parse-addr-spec)
-		 (parsing-object-descr	"addr spec"))
-    (let ((domain (address-parse-domain lexer)))
-      (write domain)(newline)
-      (assert-expected-token (lexer) 'character
-			     (lambda (obj) (char=? #\@ obj))
-			     "at separator")
-      (let ((local-part (address-parse-local-part lexer)))
-	(make-addr-spec (make-local-part local-part)
-			(make-domain     domain))))))
 
 
 ;;;; done

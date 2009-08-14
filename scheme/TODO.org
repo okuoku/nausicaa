@@ -111,6 +111,10 @@
 
   Do it.
 
+* email
+
+  Implement the (email addresses) library using (lalr).
+
 * gcc
 
   Do a library  that runs GCC on files under  (by default) TMPDIR.  Make

@@ -212,7 +212,6 @@
 				      (set! stack-values (cons ?value stack-values))
 				      (set! stack-states (cons ?state stack-states))))))
 
-(debugging #t)
       (main (lexer))))
 
   (case-lambda

@@ -65,9 +65,9 @@
     (tokenise-string "ciao\"")
   => '("ciao"))
 
-(check ;a string with utf-8 character
-    (tokenise-string "cioé\"")
-  => '("cioé"))
+;; (check ;a string with utf-8 character
+;;     (tokenise-string "cio\"")
+;;   => '("cio"))
 
 (check ;nested double quotes
     (tokenise-string "ciao \\\"hello\\\" salut\"")
@@ -332,73 +332,73 @@
 
 ;;;; parser, domain
 
-(define (parse-domain string)
-  (call-with-string-output-port
-      (lambda (port)
-	(domain-display (address-parse-domain (make-address-lexer :string string))
-			port))))
+;; (define (parse-domain string)
+;;   (call-with-string-output-port
+;;       (lambda (port)
+;; 	(domain-display (address-parse-domain (make-address-lexer :string string))
+;; 			port))))
 
-(check
-    (parse-domain "alpha")
-  => "#<domain -- alpha>")
+;; (check
+;;     (parse-domain "alpha")
+;;   => "#<domain -- alpha>")
 
-(check
-    (parse-domain "alpha.beta.delta")
-  => "#<domain -- alpha.beta.delta>")
+;; (check
+;;     (parse-domain "alpha.beta.delta")
+;;   => "#<domain -- alpha.beta.delta>")
 
-(check
-    (guard (exc (else (condition-message exc)))
-      (parse-domain "alpha."))
-  => "found end of address while parsing address domain")
+;; (check
+;;     (guard (exc (else (condition-message exc)))
+;;       (parse-domain "alpha."))
+;;   => "found end of address while parsing address domain")
 
-(check
-    (guard (exc (else (condition-message exc)))
-      (parse-domain "alpha.beta."))
-  => "found end of address while parsing address domain")
+;; (check
+;;     (guard (exc (else (condition-message exc)))
+;;       (parse-domain "alpha.beta."))
+;;   => "found end of address while parsing address domain")
 
 
 
 ;;;; parser, local part
 
-(define (parse-local-part string)
-  (call-with-string-output-port
-      (lambda (port)
-	(local-part-display (address-parse-local-part (make-address-lexer :string string))
-			    port))))
+;; (define (parse-local-part string)
+;;   (call-with-string-output-port
+;;       (lambda (port)
+;; 	(local-part-display (address-parse-local-part (make-address-lexer :string string))
+;; 			    port))))
 
-(check
-    (parse-local-part "alpha")
-  => "#<local-part -- alpha>")
+;; (check
+;;     (parse-local-part "alpha")
+;;   => "#<local-part -- alpha>")
 
-(check
-    (parse-local-part "alpha.beta.delta")
-  => "#<local-part -- alpha.beta.delta>")
+;; (check
+;;     (parse-local-part "alpha.beta.delta")
+;;   => "#<local-part -- alpha.beta.delta>")
 
-(check
-    (guard (exc (else (condition-message exc)))
-      (parse-local-part "alpha."))
-  => "found end of address while parsing address local part")
+;; (check
+;;     (guard (exc (else (condition-message exc)))
+;;       (parse-local-part "alpha."))
+;;   => "found end of address while parsing address local part")
 
-(check
-    (guard (exc (else (condition-message exc)))
-      (parse-local-part "alpha.beta."))
-  => "found end of address while parsing address local part")
+;; (check
+;;     (guard (exc (else (condition-message exc)))
+;;       (parse-local-part "alpha.beta."))
+;;   => "found end of address while parsing address local part")
 
 
 
 ;;;; parser, addr-spec
 
-(define (parse-addr-spec string)
-  (call-with-string-output-port
-      (lambda (port)
-	(addr-spec-display (address-parse-addr-spec (make-address-lexer :string string))
-			   port))))
+;; (define (parse-addr-spec string)
+;;   (call-with-string-output-port
+;;       (lambda (port)
+;; 	(addr-spec-display (address-parse-addr-spec (make-address-lexer :string string))
+;; 			   port))))
 
-(write    (address->tokens :string "marcomaggi@gna.org"))(newline)
+;; (write    (address->tokens :string "marcomaggi@gna.org"))(newline)
 
-(check
-    (parse-addr-spec "marcomaggi@gna.org")
-  => "#<addr-spec -- marcomaggi@gna.org>")
+;; (check
+;;     (parse-addr-spec "marcomaggi@gna.org")
+;;   => "#<addr-spec -- marcomaggi@gna.org>")
 
 
 ;;;; done
