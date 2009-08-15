@@ -762,6 +762,7 @@ The @library{nausicaa} language
 
 * naulib features::             Feature--based conditional expansion.
 * naulib funcs::                Functions.
+* naulib pretty::               Pretty printing.
 * naulib macros::               Syntactic abstractions.
 * naulib parameters::           Paremeter objects.
 * naulib shared::               External representation for data
@@ -777,13 +778,17 @@ More libraries
 * vectors::                     Vectors library.
 * arrays::                      Multidimensional arrays.
 * comparisons::                 Comparison functions.
+* loops::                       Loop constructs.
 * random::                      Sources of random bits.
 * format::                      Formatting strings.
 * checks::                      Lightweight testing.
+* debugging::                   Debugging utilities.
 * queues::                      Simple queue.
 * object-properties::           Object properties.
 * cleanup-handlers::            Cleaning up.
 * combinators::                 Combinators.
+* compensations::               Compensation stacks.
+* deferred exceptions::         Deferred exceptions.
 * keywords::                    Keyword values.
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
@@ -795,6 +800,7 @@ More libraries
 * csv::                         Comma--separated value (@acronym{CSV}) utilities.
 * schelog::                     Programming in Schelog.
 * email addresses::             Email address processing.
+* infix::                       Infix notation utilities.
 
 Low level libraries
 
@@ -918,7 +924,18 @@ Comparison functions
 * comparisons cons::            Constructing compare procedures.
 * comparisons branch::          Branching.
 * comparisons pred::            Predicates.
+* comparisons minmax::          Minimum and maximum values.
 * comparisons debug::           Debugging procedure.
+
+Loop constructs
+
+* loops intro::                 Introduction.
+* loops comprehensions::        Comprehensions.
+* loops qualifiers::            Qualifiers.
+* loops generators::            Generators.
+* loops suggest::               Suggestions for application
+                                specific extensions.
+* loops design::                Design rationale.
 
 Sources of random bits
 
@@ -976,6 +993,17 @@ Lightweight testing
 * checks select::               Selecting tests to be run.
 * checks eval::                 Evaluating code.
 * checks result::               Handling multiple results.
+
+Compensation stacks
+
+* compensations usage::         Basic compensations usage.
+* compensations api::           Compensations @api{}.
+
+Deferred exceptions
+
+* deferred exceptions intro::   Introduction.
+* deferred exceptions usage::   Usage examples.
+* deferred exceptions api::     Programming interface.
 
 A simple object system
 
@@ -1078,7 +1106,6 @@ A LALR(1) parser generator
 * lalr lexer::                  Describing tokens.
 * lalr parser::                 Running the parser.
 * lalr grammar::                Defining the grammar.
-* lalr lr::                     The LR parser.
 * lalr glr::                    Generalised LR parsing.
 
 Introduction to the LR parser
@@ -1104,14 +1131,6 @@ Defining the parser
 * lalr grammar clauses::        Writing semantic clauses.
 * lalr grammar error::          Error recovery.
 * lalr grammar conflict::       Conflicts resolution.
-
-The LR parser
-
-* lalr lr state::               The internal state variables.
-* lalr lr stack::               The stack.
-* lalr lr action::              The action table.
-* lalr lr reduce::              The reduction table.
-* lalr lr api::                 Local functions and macros.
 
 Comma--separated value (@acronym{CSV}) utilities
 
@@ -1142,6 +1161,11 @@ Object classes
 * email addresses mailbox::             Mailbox.
 * email addresses group::               Group of mailboxes.
 * email addresses address::             Address.
+
+Infix notation utilities
+
+* infix strings::               Converting strings.
+* infix sexp::                  Converting S--expressions.
 
 Knuth-Morris-Pratt searching
 
@@ -27759,8 +27783,8 @@ when the first value has been computed.
 @end deffn
 
 
-@deffn Syntax fold-ec  @var{x0} @var{qualifier*} @var{expression} @var{f2})
-@deffnx Syntax fold3-ec @var{x0} @var{qualifier*} @var{expression} @var{f1} @var{f2})
+@deffn Syntax fold-ec @var{x0} @var{qualifier*} @var{expression} @var{f2}
+@deffnx Syntax fold3-ec @var{x0} @var{qualifier*} @var{expression} @var{f1} @var{f2}
 Reduce the sequence @var{x}[0], @var{x}[1], @dots{}, @var{x}[n-1] of
 values obtained by evaluating @var{expression} once for each binding as
 specified by @var{qualifier*}.  The arguments @var{x0}, @var{f2}, and
@@ -36576,14 +36600,14 @@ real            @{truereal@}|@{integer@}
 imag            (@{decint@}|@{real@})i
 
 nan             \-nan\.0|\+nan\.0|nan\.0
-inf             \-inf\.0|\+inf\.0|inf\.0
+pinf            \+inf\.0|inf\.0
+minf            \-inf\.0
 
 initial         [a-zA-Z_]
-subsequent      @{initial@}|[0-9.@@]
+subsequent      @{initial@}|[0-9\.@!$&:<=>?~\-]
 symbol          @{initial@}@{subsequent@}*
 
-cmpoperator     (<=|>=)
-operator        [\+\-*/%\^\\<>=]
+operator        <=|>=|//|[\+\-*/%\^<>=]
 
 comma           ,
 
@@ -36591,34 +36615,34 @@ oparen          \(
 cparen          \)
 
 %%
-@{blanks@}      ;; skip blanks, tabs and newlines
-@{imag@}        (string->number (string-append "+" yytext))
-@{real@}        (string->number yytext)
-@{nan@}         (string->number yytext)
-@{inf@}         (string->number yytext)
-@{operator@}    (case (string-ref yytext 0)
-                  ((#\+) +)
-                  ((#\-) -)
-                  ((#\*) *)
-                  ((#\/) /)
-                  ((#\%) mod)
-                  ((#\^) expt)
-                  ((#\\) div)
-                  ((#\=) =)
-                  ((#\<) <)
-                  ((#\>) >))
-@{cmpoperator@} (cond
-                  ((string=? yytext "<=") <=)
-                  ((string=? yytext ">=") >=))
-@{symbol@}      (string->symbol yytext)
-@{comma@}       (begin cons)
+@{blanks@}        ;; skip blanks, tabs and newlines
+@{imag@}          (string->number (string-append "+" yytext))
+@{real@}          (string->number yytext)
+@{nan@}           +nan.0
+@{pinf@}          +inf.0
+@{minf@}          -inf.0
+@{operator@}      (case (string->symbol yytext)
+                    ((+) '+)
+                    ((-) '-)
+                    ((*) '*)
+                    ((/) '/)
+                    ((%) 'mod)
+                    ((^) 'expt)
+                    ((//) 'div)
+                    ((=) '=)
+                    ((<) '<)
+                    ((>) '>)
+                    ((<=) '<=)
+                    ((>=) '>=))
+@{symbol@}        (string->symbol yytext)
+@{comma@}         'cons
 
-@{oparen@}      (begin #\()
-@{cparen@}      (begin #\))
+@{oparen@}        #\(
+@{cparen@}        #\)
 
-<<EOF>>       (eof-object)
-<<ERROR>>     (assertion-violation #f
-                "invalid lexer token" yytext)
+<<EOF>>         (eof-object)
+<<ERROR>>       (assertion-violation #f
+                  "invalid lexer token")
 @end smallexample
 
 Let's say the file is called @file{calc.l}, then the table for this
@@ -36674,11 +36698,10 @@ fact that: When the input reaches the end, the lexer closure returns the
       (set! out (cons token out))))))
 
 (tokenize calc-table "1*(2/3)")
-@result{} `(1 ,* #\( 2 ,/ 3 #\))
+@result{} (1 * #\( 2 / 3 #\))
 
 (tokenize calc-table "fun(1+a, sin(2), 3, 4)")
-@result{} `(fun #\( 1 ,+ a ,cons
-     sin #\( 2 #\) ,cons 3 ,cons 4 #\))
+@result{} (fun #\( 1 + a cons sin #\( 2 #\) cons 3 cons 4 #\))
 @end example
 
 @c page
@@ -37594,7 +37617,6 @@ at@footnote{@aurl{} last verified Tue Jul 21, 2009.}:
 * lalr lexer::                  Describing tokens.
 * lalr parser::                 Running the parser.
 * lalr grammar::                Defining the grammar.
-* lalr lr::                     The LR parser.
 * lalr glr::                    Generalised LR parsing.
 @end menu
 
@@ -38785,7 +38807,7 @@ category @func{eq?} to the symbol @samp{*eoi*}.
 
 
 Location records are not used by the parser itself; they are meant to
-store informations about the position of a token in the input stream to
+store informations about the position of a token in the input stream, to
 be displayed in case of error.  Location records are produced by the
 lexer and either discarded, or consumed by the parser's error handler.
 
@@ -38814,7 +38836,7 @@ the start of the input.  By convention: Line and column numbers start
 from @math{1}, the offset starts from @math{0}.
 
 When the value of these counters is not known, by convention, they
-should be set to @false{}.
+should be set to @false{} or @samp{+nan.0}.
 
 Notice that these values match the local bindings @samp{yyline},
 @samp{yycolumn} and @samp{yyoffset} available to the lexer actions of
@@ -38864,9 +38886,10 @@ closure we do:
 (define parser (make-calc-parser))
 @end example
 
-The @func{parser} function accepts two arguments, the lexer closure and
-an error handler procedure.  When invoked, it consumes tokens from the
-lexer until the end of input is found or an unrecoverable error occurs.
+The @func{parser} function accepts two or three arguments: the lexer
+closure, an error handler procedure, a custom value.  When invoked, it
+consumes tokens from the lexer until the end of input is found or an
+unrecoverable error occurs.
 
 To invoke @func{parser} with a lexer generated by the @library{silex}
 library, using a table in @samp{calc-lexer-table} to parse
@@ -38876,12 +38899,13 @@ library, using a table in @samp{calc-lexer-table} to parse
 (let* ((IS        (lexer-make-IS :string @var{input-string}
                                  :counters 'all))
        (lexer     (lexer-make-lexer calc-lexer-table IS))
-       (error-hnd (lambda (message token) ---)))
-  (parser lexer error-hnd))
+       (error-hnd (lambda (message token) ---))
+       (yycustom  #f))
+  (parser lexer error-hnd yycustom))
 @end example
 
 The parser closure will return the value computed by the semantic clause
-of the last expression parsed.  For example, in a line--oriented
+of the outer parser non--terminal.  For example, in a line--oriented
 calculator that parses:
 
 @example
@@ -38895,11 +38919,6 @@ the returned value is the result of parsing @samp{5 - 6}, which is the
 last line; the results computed by the semantic clauses of the previous
 lines, are discarded.  @ref{lalr grammar basics, Basics of grammar
 definition}
-
-The only way to allow the parser closure to make accessible the result
-of each ``outer'' expression, is to give it access to some state defined
-outside of the parser; we can do this using parameters or the
-@samp{yycustom} local binding.
 
 @c ------------------------------------------------------------
 
@@ -38921,7 +38940,7 @@ with no obstacles.
 
 It must be a function accepting two arguments: an error message as
 Scheme string, the lexical token that caused the error.  Its return
-value of does not matter for the parser itself.
+value does not matter for the parser itself.
 
 If the error procedure returns, the parser closure attempts to recover
 from the error and to resume parsing.  If it raises an exception parsing
@@ -38957,7 +38976,8 @@ Parsing stops and the return value of the parser closure is the return
 value of the error procedure, if any.
 
 @item
-The stream of tokens returned by the lexer violates parser's grammar.
+When the stream of tokens returned by the lexer violates parser's
+grammar.
 
 @itemize -
 @item
@@ -39133,9 +39153,10 @@ in the list of terminal symbols (token definitions).
 @subsubsection Writing semantic clauses
 
 
-Semantic clauses are Scheme forms that can do anything Scheme allows us to
-do.  They are allowed to access the local bindings @samp{$1}, @samp{$2},
-@dots{} holding tokens in the number present in the production rule.
+Semantic clauses are Scheme forms that can do anything Scheme allows us
+to do.  They are allowed to access the local bindings @samp{$1},
+@samp{$2}, @dots{} bound to values in the same number of the symbols of
+the production rule.
 
 An important limit is the environment in which the semantic clauses are
 evaluated:
@@ -39143,7 +39164,7 @@ evaluated:
 @itemize
 @item
 If we have instructed @func{lalr-parser} to generate a @func{define}
-form, we can take the form and place in our code; in this case the
+form, we can take the form and place it in our code; in this case the
 environment is the one active at that position.
 
 @item
@@ -39164,16 +39185,16 @@ The following local bindings are accessible by the semantic clauses.
 
 
 @defun yypushback
-If evaluated, tell the parser closure to reuse the last token rather
-than to retrieve a new one from the lexer.  This is may be useful to
-handle some corner cases in the grammar definition.
+If evaluated, tell the parser closure to reuse the last token (as
+lookahead) rather than to retrieve a new one from the lexer.  This may
+be useful to handle some corner cases in the grammar definition.
 @end defun
 
 
 @defvar yycustom
 This is the custom value we give as @var{yycustom} argument to the
 parser function.  It can be any value, from a closure to a constant, to
-continuation function.
+continuation.
 @end defvar
 
 @c page
@@ -39185,15 +39206,15 @@ continuation function.
 production can be of the form
 
 @example
-(rulename
+(non-terminal
    ---
    (error TERMINAL) : semantic-clause)
 @end example
 
 @noindent
-there can be several such productions for a single rulename.  This will
-cause the parser to skip all the tokens produced by the lexer that are
-different than the given @samp{TERMINAL}.
+there can be several such productions for a single non--terminal.  This
+will cause the parser to skip all the tokens produced by the lexer that
+are different from the given @samp{TERMINAL}.
 
 For a C--like language, one can synchronize on semicolons and closing
 curly brackets by writing error rules like these:
@@ -39215,486 +39236,6 @@ Conflicts in the grammar are handled in a conventional way.  In the
 absence of precedence directives, Shift/Reduce conflicts are resolved by
 shifting, and Reduce/Reduce conflicts are resolved by choosing the rule
 listed first in the grammar definition.
-
-@c page
-@node lalr lr
-@subsection The LR parser
-
-
-We discuss the internals of the @library{lalr lr-driver} library; this
-is useful for developers.  These notes come from reverse engineering the
-code, so there may be errors here and there.
-
-All the parser tables are Scheme vectors, and they are used as arguments
-for the @func{lr-driver} function.  Everything discussed here is related
-to the single function @func{lr-driver} which is the core of the
-library.
-
-@itemize
-@item
-When speaking of ``local functions'' and ``local macros'', we mean
-functions and macros declared in the body of the closure returned by
-@func{lr-driver}.
-
-@item
-When speaking of ``proper state of the parser'' or ``state index'', we
-mean an exact, non--negative integer used as index in the parser tables.
-
-@item
-When speaking of ``semantic clauses'', we mean the forms we have placed in
-the parser definition as action to take when a rule is matched.
-@end itemize
-
-@menu
-* lalr lr state::               The internal state variables.
-* lalr lr stack::               The stack.
-* lalr lr action::              The action table.
-* lalr lr reduce::              The reduction table.
-* lalr lr api::                 Local functions and macros.
-@end menu
-
-@c page
-@node lalr lr state
-@subsubsection The internal state variables
-
-
-The state of the driver is stored in the following variables:
-
-@table @samp
-@item stack
-A Scheme vector to collect token values and results of semantic clauses
-evaluation.  It is dynamically enlarged when it becomes full.  Values
-are pushed and popped in couples starting at index @math{1}, with the
-element at index @math{0} always left set to @samp{0}.  @ref{lalr lr
-stack, The stack}
-
-@item stack-pointer
-The index of the last used element in the stack vector.  Usually set to
-a non--negative integer, it is set to @samp{-1} while recovering from a
-parsing error to signal a special condition.
-
-@item token
-The last token read from the lexer.  It is set to records of type
-@samp{lexical-token}, but while applying reduction rules it can be set
-to @false{}.
-
-@item reuse-token
-A boolean value used only by the functions @func{consume} and
-@func{yypushback}.  If true, the next invocation of @func{consume} sets
-@samp{token} to the last token from the lexer.  By default set to
-@false{}, it is set to @true{} bay @func{yypushback}.  It is rarely
-used.
-@end table
-
-
-@deffn Parameter lalr-initial-stack-size
-Set to an exact positive integers, determines the initial size of the
-internal stack.  The default is @math{500}.
-@end deffn
-
-@c page
-@node lalr lr stack
-@subsubsection The stack
-
-
-Processing of input tokens and rules is performed on the @samp{stack}
-state variable, using the @samp{stack-pointer} state variable to
-indicate the last used value.  These are the rules to handle the stack:
-
-@enumerate
-@item
-The element at index @math{0} is always set to @samp{0}.  The integer
-@samp{0} represents a specific proper state of the parser, selecting the
-elements of index @math{0} in the parser tables.
-
-@item
-Values are pushed to and popped from the stack in couples.  In each
-couple:
-
-@itemize -
-@item
-The element with lower index (always odd) is a value from the
-@samp{value} field of a @samp{lexical-token} record, or the return value
-of a semantic clause.
-
-@item
-The element with higher index (always even) is an exact integer
-representing a proper parser state.
-@end itemize
-
-@item
-Pushing a couple goes like this:
-
-@example
-(set! stack-pointer (+ 2 stack-pointer))
-(enlarge-stack-if-needed)
-(vector-set! stack (- stack-pointer 1) @var{value})
-(vector-set! stack stack-pointer       @var{state-index})
-@end example
-
-@noindent
-which, using the local macros, can be written also:
-
-@example
-(increment! stack-pointer 2)
-(enlarge-stack-if-needed)
-(stack-set! (- stack-pointer 1) @var{value})
-(stack-set! stack-pointer       @var{state-index})
-@end example
-
-@noindent
-and also:
-
-@example
-(stack-push! @var{value} @var{state-index})
-@end example
-
-@noindent
-the call to @func{enlarge-stack-if-needed} reallocates the stack vector
-if it becomes full.
-
-@item
-Popping a single couple, using local macros, goes like this:
-
-@example
-(increment! stack-pointer -2)
-@end example
-
-@noindent
-popping a number of couples equal to @var{num} goes like this:
-
-@example
-(increment! stack-pointer (* -2 @var{num}))
-@end example
-
-@noindent
-which can be written also:
-
-@example
-(stack-pop! @var{num})
-@end example
-@end enumerate
-
-@c page
-@node lalr lr action
-@subsubsection The action table
-
-
-The @var{action-table} argument to @func{lr-driver} is a Scheme vector
-of association lists (alists).  Indexes in the vector are called
-@dfn{action indexes}, and they represent a state of the parser.
-
-The alist keywords are the symbols listed in the @samp{:terminals}
-option to @func{lalr-parser}, or one among:
-
-@table @samp
-@item *default*
-Selecting the default action.
-
-@item *eoi*
-Selecting the action to be taken at end--of--input.
-
-@item *error*
-Selecting the action to be taken when an error is detected.
-@end table
-
-
-The alist values are symbols or exact integers representing the
-``action'' to be taken.
-
-
-
-
-@c page
-@node lalr lr reduce
-@subsubsection The reduction table
-
-
-The @var{reduction-table} argument to @func{lr-driver} is a Scheme
-vector of closures embedding the semantic clauses coming from the parser
-rules.
-
-A @dfn{reduction} operation takes couples of values from the stack and
-replaces them with the result of a semantic clause.  For example, using
-bogus state indexes, the operation @math{12 + 34} matched by the grammar
-rule:
-
-@example
-(expr + expr)   : (+ $1 $3)
-@end example
-
-@noindent
-is performed as follows:
-
-@enumerate
-@item
-The tokens are pushed on the stack (remember that the element at index
-@math{0} is alway @samp{0}):
-
-@example
-#(0   12 1   + 2   34 3)
-@end example
-
-@item
-the state index @samp{3} tells the parses that we can apply the
-reduction rule at index @math{3} in the reduction table.
-
-@item
-The parser acquires the element at index @math{3} from the reduction
-table, and invokes it
-@end enumerate
-
-
-Each closure takes values from the stack, assigns them to local
-variables @samp{$1}, @samp{$2}, @dots{} and evaluates the semantic clause.
-The semantic clause is supposed to use the variables @samp{$1}, @samp{$2},
-@dots{} to compute a result.
-
-The @func{pop-and-push} function pops the used values from the stack,
-and pushes the result of the semantic clause.  This is the @dfn{reduction}
-process.
-
-The rule for addition:
-
-@example
-(expr + expr)   : (+ $1 $3)
-@end example
-
-@noindent
-involves three values, two @samp{expr} and the terminal @samp{+}.  It
-generates the following reduction closure:
-
-@example
-(lambda (___stack ___sp ___push yypushback)
-   (let* (($3 (vector-ref ___stack (- ___sp 1)))
-          ($2 (vector-ref ___stack (- ___sp 3)))
-          ($1 (vector-ref ___stack (- ___sp 5))))
-     (___push 3 4 (+ $1 $3))))
-@end example
-
-@noindent
-in which we see the three values taken from the stack and stored in
-local variables, then the semantic clause evaluated.  @func{___push} is a
-closure that pops the three used values from the stack (the first
-argument) and pushes the semantic clause result associating it to the
-category @samp{4}.
-
-@var{yypushback} is a closure that allows the semantic clause to push back
-the last token so that it is considered again by the parser.  Most of
-the times it makes no sense to use this closure.  Notice that, in
-general, the last token is @strong{not} the same value on the top of the
-stack.
-
-@c page
-@node lalr lr api
-@subsubsection Local functions and macros
-
-
-This is the documentation of the local functions and macros in the body
-of the parser closure.
-
-@c ------------------------------------------------------------
-
-@subsubheading Stack handling
-
-
-@deffn Macro stack-set! @var{offset} @var{value}
-Store @var{value} at @var{offset} on the stack vector.
-@end deffn
-
-
-@deffn Macro stack-ref @var{offset}
-Return the value at @var{offset} in the stack vector.
-@end deffn
-
-
-@deffn Macro stack-push! @var{first} @var{second}
-Push @var{first} and @var{second} on the stack, in this order.
-Increment @samp{stack-pointer} by @math{2}.  Call
-@func{enlarge-stack-if-needed}.
-@end deffn
-
-
-@defun enlarge-stack-if-needed
-If the stack is full, reallocate it doubling its size.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Consuming tokens
-
-
-@defun consume
-By default, invoke the lexer function to acquire the next token.  If the
-state variable @samp{reuse-last-token} is true: Rather than calling the
-lexer, reuse the last token.
-@end defun
-
-
-@defun yypushback
-Signal to @func{consume} that it has to reuse the last token.  This
-operation is also available, as local binding, in the semantic clauses.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Action table handling
-
-
-@deffn Macro action-ref @var{state-index}
-Return the action alist at @var{state-index} in the action table vector.
-@end deffn
-
-
-@defun select-action @var{terminal-symbol} @var{state-index}
-Search the actions alist associated to @var{state-index} for an entry
-having keyword @var{terminal-symbol}.  If it is found, return the
-entry's value; else return the value of the default entry, which is the
-first entry in the alist.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Reduction operations
-
-
-@defun reduce @var{reduction-index}
-Acquire the reduction closure at @var{reduction-index} in the reduction
-table and apply it to the current stack.  The reduction closure is
-expected to take values from the stack and use the semantic clause to
-compute some result; this result is handed to
-@func{reduce-pop-and-push}.
-@end defun
-
-
-@defun reduce-pop-and-push @var{used-couples} @var{goto-keyword} @var{result-value}
-Called at the end of each reduction closure; pop from the stack the
-values used by a semantic clause, push on the stack the result of the client
-form.
-
-@var{used-couples} and @var{goto-keyword} are exact integers precomputed
-by @func{lalr-parser}; @var{result-value} is the result of the
-evaluation of the semantic clause in the reduction closure.
-
-@var{used-couples} represents the number of couples on the stack used by
-the semantic clause:
-
-@itemize
-@item
-If the semantic clause accesses only @samp{$1}, @var{used-couples} is
-@samp{2}.
-
-@item
-If the semantic clause accesses @samp{$1} and @samp{$2}, @var{used-couples}
-is @samp{4}.
-
-@item
-If the semantic clause accesses values up to @samp{$n}, @var{used-couples}
-is @math{2 * n}.
-
-@item
-@var{used-couples} is @math{0} if the semantic clause accesses no values on
-the stack.
-@end itemize
-
-@var{goto-keyword} is a keyword in the alists from the goto table.
-After popping the used values, the parser state index is used to acquire
-a goto alist, and @var{goto-keyword} is used to select a new state index
-from it.  @var{result-value} and the new state index are pushed on the
-stack.
-
-For example, let's have a reduction closure whose semantic clause is
-@samp{(doit $1 $2)}; @var{used-couples} is precomputed to @samp{4} and
-let's say @var{goto-keyword} is @samp{12}.  Suppose the stack looks like
-this before the reduction is applied:
-
-@example
-#(0   A 1   B 2   C 3)
-@end example
-
-@noindent
-the semantic clause accesses the local bindings @samp{$1}, which is set to
-@samp{B}, and @samp{$2}, which is set to @samp{C}, and returns @samp{D}
-as @var{return-value}.
-
-After popping the used values the stack looks like this:
-
-@example
-#(0   A 1)
-@end example
-
-@noindent
-the state index @samp{1} is used to select a goto alist, and the
-@var{goto-keyword} @samp{12} is used to select the new state index,
-let's say it is @samp{24}.
-
-After pushing the results the stack looks like this:
-
-@example
-#(0   A 1   D 24)
-@end example
-@end defun
-
-
-@defun reduce-using-default-action
-Acquire the action alist associated to the current parser state index;
-take its default entry, which is the first in the alist and has keyword
-@samp{*default*}:
-
-@itemize
-@item
-If the default action value is an exact negative integer @samp{neg-idx},
-use it to apply a reduction to the stack by evaluating:
-
-@example
-(reduce (- neg-idx))
-@end example
-
-@noindent
-then call @func{reduce-using-default-action} recursively to try another
-default reduction.
-
-@item
-If the default action value is not a negative integer, do nothing and
-return.
-@end itemize
-
-This function allows us to apply reduction operations to the stack,
-without consuming tokens from the lexer.  It must be used with care: The
-semantic clause in these reduction closures must consume at least one value
-from the stack, else an infinite loop will result.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Error recovery
-
-
-@defun recover @var{token}
-Called whenever the lexer returns token non--compliant to the defined
-parser grammar.
-
-The error recovery strategy is to pop couples from the stack until a
-parser state index is found whose actions alist has an entry with
-@samp{error} keyword.  This entry was generated by a @samp{error} rule
-in the parser definition.
-
-If no @samp{error} entry is found, the stack is rewind until it is
-empty; this triggers the
-
-If this entry is found, its value is a new state index
-@end defun
-
-
-@c ------------------------------------------------------------
-
-@subsubheading Miscellaneous
-
-
-@deffn Macro increment! @var{variable-name} @var{step}
-Increment the exact integer in @var{variable-name} by @var{step}, and
-store the result back in @var{variable-name}.
-@end deffn
 
 @c page
 @node lalr glr

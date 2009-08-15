@@ -39,7 +39,7 @@
 ;;;; helpers
 
 (define unknown-location
-  (make-source-location #f +nan.0 +nan.0 +nan.0 0))
+  (make-source-location #f #f #f #f 0))
 
 (define eoi-token
   (make-lexical-token '*eoi* unknown-location (eof-object)))

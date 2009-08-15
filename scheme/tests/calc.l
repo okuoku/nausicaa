@@ -61,14 +61,14 @@ real		{truereal}|{integer}
 imag		({decint}|{real})i
 
 nan             \-nan\.0|\+nan\.0|nan\.0
-inf             \-inf\.0|\+inf\.0|inf\.0
+pinf            \+inf\.0|inf\.0
+minf            \-inf\.0
 
 initial         [a-zA-Z_]
-subsequent      {initial}|[0-9.@]
+subsequent      {initial}|[0-9\.@!$&:<=>?~\-]
 symbol          {initial}{subsequent}*
 
-cmpoperator	(<=|>=)
-operator	[\+\-*/%\^\\<>=]
+operator	<=|>=|//|[\+\-*/%\^<>=]
 
 comma		,
 
@@ -79,29 +79,29 @@ cparen		\)
 {blanks}	;; skip blanks, tabs and newlines
 {imag}		(string->number (string-append "+" yytext))
 {real}		(string->number yytext)
-{nan}		(string->number yytext)
-{inf}		(string->number yytext)
-{operator}	(case (string-ref yytext 0)
-		  ((#\+) +)
-		  ((#\-) -)
-		  ((#\*) *)
-		  ((#\/) /)
-		  ((#\%) mod)
-		  ((#\^) expt)
-		  ((#\\) div)
-		  ((#\=) =)
-		  ((#\<) <)
-		  ((#\>) >))
-{cmpoperator}	(cond
-                  ((string=? yytext "<=") <=)
-                  ((string=? yytext ">=") >=))
+{nan}		+nan.0
+{pinf}		+inf.0
+{minf}		-inf.0
+{operator}	(case (string->symbol yytext)
+		  ((+) '+)
+		  ((-) '-)
+		  ((*) '*)
+		  ((/) '/)
+		  ((%) 'mod)
+		  ((^) 'expt)
+		  ((//) 'div)
+		  ((=) '=)
+		  ((<) '<)
+		  ((>) '>)
+		  ((<=) '<=)
+		  ((>=) '>=))
 {symbol}	(string->symbol yytext)
-{comma}		(begin cons)
+{comma}		'cons
 
-{oparen}	(begin #\()
-{cparen}	(begin #\))
+{oparen}	#\(
+{cparen}	#\)
 
 <<EOF>>		(eof-object)
 <<ERROR>>	(assertion-violation #f
-                  "invalid lexer token" yytext)
+                  "invalid lexer token")
 

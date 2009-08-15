@@ -35,12 +35,8 @@
 (define (test-calc table)
 
   (define (tokenize string)
-    (let* ((IS				(lexer-make-IS :string string :counters 'line))
-	   (lexer			(lexer-make-lexer table IS))
-;; 	   (lexer-get-line		(lexer-get-func-line IS))
-;; 	   (lexer-getc			(lexer-get-func-getc IS))
-;; 	   (lexer-ungetc		(lexer-get-func-ungetc IS))
-	   )
+    (let* ((IS		(lexer-make-IS :string string :counters 'line))
+	   (lexer	(lexer-make-lexer table IS)))
       (do ((token (lexer) (lexer))
 	   (out   '()))
 	  ((eof-object? token)
@@ -50,14 +46,14 @@
 ;;; integers
 
   (check (tokenize "1")		=> '(1))
-  (check (tokenize "-1")	=> `(,- 1))
-  (check (tokenize "+1")	=> `(,+ 1))
+  (check (tokenize "-1")	=> '(- 1))
+  (check (tokenize "+1")	=> '(+ 1))
 
 ;;; reals
 
   (check (tokenize "1.1")	=> '(1.1))
-  (check (tokenize "-1.1")	=> `(,- 1.1))
-  (check (tokenize "+1.1")	=> `(,+ 1.1))
+  (check (tokenize "-1.1")	=> '(- 1.1))
+  (check (tokenize "+1.1")	=> '(+ 1.1))
   (check (tokenize "1.1e10")	=> '(1.1e10))
   (check (tokenize "1.1E10")	=> '(1.1e10))
   (check (tokenize "1.1e-10")	=> '(1.1e-10))
@@ -68,17 +64,17 @@
   (check (tokenize "1E-10")	=> '(1e-10))
 
   (check (tokenize ".0")	=> '(0.0))
-  (check (tokenize "-.0")	=> `(,- 0.0))
+  (check (tokenize "-.0")	=> '(- 0.0))
   (check (tokenize "0.")	=> '(0.0))
 
 ;;; complexes
 
   (check (tokenize "1i")	=> '(+1i))
-  (check (tokenize "-1i")	=> `(,- +1i))
-  (check (tokenize "+1.1i")	=> `(,+ +1.1i))
-  (check (tokenize "-1.1i")	=> `(,- +1.1i))
-  (check (tokenize "+.1i")	=> `(,+ +0.1i))
-  (check (tokenize "-.1i")	=> `(,- +0.1i))
+  (check (tokenize "-1i")	=> '(- +1i))
+  (check (tokenize "+1.1i")	=> '(+ +1.1i))
+  (check (tokenize "-1.1i")	=> '(- +1.1i))
+  (check (tokenize "+.1i")	=> '(+ +0.1i))
+  (check (tokenize "-.1i")	=> '(- +0.1i))
 
 ;;; nan and infinity
 
@@ -89,63 +85,63 @@
 
 ;;; arithmetic operators
 
-  (check (tokenize "1+2")	=> `(1 ,+ 2))
-  (check (tokenize "1+2+3")	=> `(1 ,+ 2 ,+ 3))
-  (check (tokenize "1+2-3")	=> `(1 ,+ 2 ,- 3))
-  (check (tokenize "1+(2+3)")	=> `(1 ,+ #\( 2 ,+ 3 #\)))
-  (check (tokenize "1+(2-3)")	=> `(1 ,+ #\( 2 ,- 3 #\)))
+  (check (tokenize "1+2")	=> '(1 + 2))
+  (check (tokenize "1+2+3")	=> '(1 + 2 + 3))
+  (check (tokenize "1+2-3")	=> '(1 + 2 - 3))
+  (check (tokenize "1+(2+3)")	=> '(1 + #\( 2 + 3 #\)))
+  (check (tokenize "1+(2-3)")	=> '(1 + #\( 2 - 3 #\)))
 
-  (check (tokenize "1*1")	=> `(1 ,* 1))
-  (check (tokenize "1*2*3")	=> `(1 ,* 2 ,* 3))
-  (check (tokenize "1*2/3")	=> `(1 ,* 2 ,/ 3))
-  (check (tokenize "1*(2*3)")	=> `(1 ,* #\( 2 ,* 3 #\)))
-  (check (tokenize "1*(2/3)")	=> `(1 ,* #\( 2 ,/ 3 #\)))
+  (check (tokenize "1*1")	=> '(1 * 1))
+  (check (tokenize "1*2*3")	=> '(1 * 2 * 3))
+  (check (tokenize "1*2/3")	=> '(1 * 2 / 3))
+  (check (tokenize "1*(2*3)")	=> '(1 * #\( 2 * 3 #\)))
+  (check (tokenize "1*(2/3)")	=> '(1 * #\( 2 / 3 #\)))
 
-  (check (tokenize "1\\3")	=> `(1 ,div 3))
-  (check (tokenize "1%3")	=> `(1 ,mod 3))
-  (check (tokenize "1^3")	=> `(1 ,expt 3))
+  (check (tokenize "1//3")	=> '(1 div 3))
+  (check (tokenize "1%3")	=> '(1 mod 3))
+  (check (tokenize "1^3")	=> '(1 expt 3))
 
 ;;; functions
 
-  (check (tokenize "sin(1.1)")		=> `(sin #\( 1.1 #\)))
-  (check (tokenize "cos(sin(1.1))")	=> `(cos #\( sin #\( 1.1 #\) #\)))
-  (check (tokenize "cos(sin(1.1)+4)")	=> `(cos #\( sin #\( 1.1 #\) ,+ 4 #\)))
-  (check (tokenize "fun(1.1, 2)")	=> `(fun #\( 1.1 ,cons 2 #\)))
+  (check (tokenize "sin(1.1)")		=> '(sin #\( 1.1 #\)))
+  (check (tokenize "cos(sin(1.1))")	=> '(cos #\( sin #\( 1.1 #\) #\)))
+  (check (tokenize "cos(sin(1.1)+4)")	=> '(cos #\( sin #\( 1.1 #\) + 4 #\)))
+  (check (tokenize "fun(1.1, 2)")	=> '(fun #\( 1.1 cons 2 #\)))
 
   (check (tokenize "fun(1, 2, 3, 4)")
-    => `(fun #\( 1 ,cons 2 ,cons 3 ,cons 4 #\)))
+    => '(fun #\( 1 cons 2 cons 3 cons 4 #\)))
 
   (check (tokenize "fun(1+a, sin(2), 3, 4)")
-    => `(fun #\( 1 ,+ a ,cons sin #\( 2 #\) ,cons 3 ,cons 4 #\)))
+    => '(fun #\( 1 + a cons sin #\( 2 #\) cons 3 cons 4 #\)))
 
   (check
       (tokenize "fun(1+a, sin(2), 3*g, 4+a+f+r+t)")
-    => `(fun #\( 1 ,+ a ,cons sin #\( 2 #\) ,cons 3 ,* g ,cons 4 ,+ a ,+ f ,+ r ,+ t #\)))
+    => '(fun #\( 1 + a cons sin #\( 2 #\) cons 3 * g cons 4 + a + f + r + t #\)))
 
   (check
       (tokenize "fun(1+a, sin(2), fun(1, fun(5, 5), fun(1, 2)), 4)")
-    => `(fun #\( 1 ,+ a ,cons sin #\( 2 #\) ,cons fun #\( 1 ,cons
-	     fun #\( 5 ,cons 5 #\) ,cons fun #\( 1 ,cons 2 #\) #\) ,cons 4 #\)))
+    => '(fun #\( 1 + a cons sin #\( 2 #\) cons fun #\( 1 cons
+	     fun #\( 5 cons 5 #\) cons fun #\( 1 cons 2 #\) #\) cons 4 #\)))
 
   (check
       (tokenize "1+23e-45+678.9e12*(4113+23i) / sin 545 + tan(1, 2)")
-    => `(1 ,+ 23e-45 ,+ 678.9e12 ,* #\( 4113 ,+ +23i #\)
-	   ,/ sin 545 ,+ tan #\( 1 ,cons 2 #\)))
+    => '(1 + 23e-45 + 678.9e12 * #\( 4113 + +23i #\)
+	   / sin 545 + tan #\( 1 cons 2 #\)))
 
-  (check (tokenize "1 < 3")	=> `(1 ,< 3))
-  (check (tokenize "1 > 3")	=> `(1 ,> 3))
-  (check (tokenize "1 <= 3")	=> `(1 ,<= 3))
-  (check (tokenize "1 >= 3")	=> `(1 ,>= 3))
-  (check (tokenize "1 = 3")	=> `(1 ,= 3))
+  (check (tokenize "1 < 3")	=> '(1 < 3))
+  (check (tokenize "1 > 3")	=> '(1 > 3))
+  (check (tokenize "1 <= 3")	=> '(1 <= 3))
+  (check (tokenize "1 >= 3")	=> '(1 >= 3))
+  (check (tokenize "1 = 3")	=> '(1 = 3))
 
 ;;; variables
 
-  (check (tokenize "a * 1.1")		=> `(a ,* 1.1))
-  (check (tokenize "(a * b) / c")	=> `(#\( a ,* b #\) ,/ c))
-  (check (tokenize "a * (b / c)")	=> `(a ,* #\( b ,/ c #\)))
+  (check (tokenize "a * 1.1")		=> '(a * 1.1))
+  (check (tokenize "(a * b) / c")	=> '(#\( a * b #\) / c))
+  (check (tokenize "a * (b / c)")	=> '(a * #\( b / c #\)))
 
   (check (tokenize "cos(a) * (tan(b) / c)")
-    => `(cos #\( a #\) ,* #\( tan #\( b #\) ,/ c #\)))
+    => '(cos #\( a #\) * #\( tan #\( b #\) / c #\)))
 
   )
 

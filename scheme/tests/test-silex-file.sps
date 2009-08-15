@@ -69,7 +69,7 @@
 	  ((eof-object? token)
 	   (reverse out))
 	(set! out (cons token out)))
-    => `(1 ,+ 2 ,+ 3)))
+    => '(1 + 2 + 3)))
 
 (check-report)
 
