@@ -24,11 +24,10 @@
 ;;;
 
 
-;;;; setup
-
 (import (nausicaa)
   (foreign)
-  (checks))
+  (checks)
+  (compensations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing ffi\n")

@@ -23,12 +23,10 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
 (import (nausicaa)
-  (checks))
+  (checks)
+  (deferred-exceptions))
 
 (check-set-mode! 'report-failed)
 (display "*** testing deferred exceptions\n")

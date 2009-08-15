@@ -366,7 +366,7 @@ Copyright @copyright{} 1999 John David Stone.@*
 Copyright @copyright{} 1999, 2002 Marc Feeley.@*
 Copyright @copyright{} 2001, 2009 Danny Dube'@*
 Copyright @copyright{} 2002 Dr. Mirko Luedde.@*
-Copyright @copyright{} 2002, 2005, 2006 Sebastian Egner.@*
+Copyright @copyright{} 2002, 2003, 2005, 2006 Sebastian Egner.@*
 Copyright @copyright{} 2003 Ray Dillinger.@*
 Copyright @copyright{} 2003 Taylor Campbell.@*
 Copyright @copyright{} 2005 Jens Axel Soegaard.@*
@@ -458,7 +458,6 @@ Indexes
 
 Overview of the distribution
 
-* overview copying::            Copying this document.
 * overview implementation::     Supported implementations.
 * overview porting::            On writing portable code.
 * overview libraries::          Other libraries.
@@ -769,20 +768,6 @@ The @library{nausicaa} language
                                 with shared structure.
 * naulib environment::          Accessing environment variables.
 * naulib unimplemented::        Unimplemented error condition.
-* naulib lang::                 Simple language extensions.
-* naulib compensations::        Compensation stacks.
-* naulib deferred exceptions::  Deferred exceptions.
-
-Compensation stacks
-
-* naulib compensations usage::  Basic compensations usage.
-* naulib compensations api::    Compensations @api{}.
-
-Deferred exceptions
-
-* naulib deferred exceptions intro::    Introduction.
-* naulib deferred exceptions usage::    Usage examples.
-* naulib deferred exceptions api::      Programming interface.
 
 More libraries
 
@@ -991,7 +976,6 @@ Lightweight testing
 * checks select::               Selecting tests to be run.
 * checks eval::                 Evaluating code.
 * checks result::               Handling multiple results.
-* checks debug::                Printing debug messages.
 
 A simple object system
 
@@ -1296,18 +1280,11 @@ conflicts may arise.
 
 
 @menu
-* overview copying::            Copying this document.
 * overview implementation::     Supported implementations.
 * overview porting::            On writing portable code.
 * overview libraries::          Other libraries.
 * overview binfmt::             Launching Scheme programs directly.
 @end menu
-
-@c page
-@node overview copying
-@section Copying this document
-
-@insertcopying
 
 @c page
 @node overview implementation
@@ -18236,15 +18213,13 @@ revised implementations of @srfi{} specifications that were voted to the
 @menu
 * naulib features::             Feature--based conditional expansion.
 * naulib funcs::                Functions.
+* naulib pretty::               Pretty printing.
 * naulib macros::               Syntactic abstractions.
 * naulib parameters::           Paremeter objects.
 * naulib shared::               External representation for data
                                 with shared structure.
 * naulib environment::          Accessing environment variables.
 * naulib unimplemented::        Unimplemented error condition.
-* naulib lang::                 Simple language extensions.
-* naulib compensations::        Compensation stacks.
-* naulib deferred exceptions::  Deferred exceptions.
 @end menu
 
 @c page
@@ -18422,13 +18397,6 @@ can only be a real number.
 @end defun
 
 
-@defun pretty-print @var{obj}
-@defunx pretty-print @var{obj} @var{port}
-Print a human readable representation of @var{obj} to @var{port} or the
-return value of @func{current-output-port}.
-@end defun
-
-
 @defun {symbol*->string} @var{obj}
 Convert the symbol or string @var{obj} to a string.  If @var{obj} is a
 string return it, else apply @func{symbol->string} to it and return the
@@ -18443,8 +18411,27 @@ symbol: Raise an assertion violation.
 @end defun
 
 @c page
+@node naulib pretty
+@section Pretty printing
+
+
+The following bindings are exported by the @library{pretty-print}
+library and re--exported by the @library{nausicaa} library.
+
+
+@defun pretty-print @var{obj}
+@defunx pretty-print @var{obj} @var{port}
+Print a human readable representation of @var{obj} to @var{port} or the
+return value of @func{current-output-port}.
+@end defun
+
+@c page
 @node naulib macros
 @section Syntactic abstractions
+
+
+The following bindings are exported by the @library{language-extensions}
+library and re--exported by the @library{nausicaa} library.
 
 
 @deffn Syntax and-let* @var{formals} . @var{body}
@@ -18668,10 +18655,131 @@ Like @func{do}, but bind the variables as in @func{let*} rather than as
 in @func{let}.  The @meta{step} form is optional.
 @end deffn
 
+@c ------------------------------------------------------------
+
+@deffn Syntax dotimes (@var{varname} @var{exclusive-count}) @var{form} ...
+@deffnx Syntax dotimes (@var{varname} @var{exclusive-count} @var{result}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to an
+integer from zero inclusive to @var{exclusive-count}.  Return
+@var{result}, or @false{} if @var{result} is not given.
+
+Example:
+
+@example
+(dotimes (i 100)
+  (display i)
+  (newline))
+@end example
+
+@noindent
+prints the integers in the range @code{[0, 99]}.
+@end deffn
+
+
+@deffn Syntax dolist (@var{varname} @var{list}) @var{form} ...
+@deffnx Syntax dolist (@var{varname} @var{list} @var{result}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to the
+elements from @var{list}.  Return @var{result}, or @false{} if
+@var{result} is not given.
+
+Example:
+
+@example
+(dolist (elm '(1 2 3))
+  (display elm)
+  (newline))
+@end example
+
+@noindent
+prints 1, 2, 3.
+@end deffn
+
+
+@deffn Syntax loop-upon-list (@var{varname} @var{list}) (break-when @var{test}) @var{form} ...
+@deffnx Syntax loop-upon-list (@var{varname} @var{list} @var{result}) (break-when @var{test}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to the
+elements from @var{list}.  Return @var{result}, or @false{} if
+@var{result} is not given.  The loop is broken if @var{test} evaluates
+to true.
+
+Example:
+
+@example
+(loop-upon-list (i '(1 2 3 4) 'retval)
+    (break-when (= i 3))
+  (display i)
+  (newline))
+@end example
+
+@noindent
+prints @code{1} and @code{2}, then returns @code{retval}.
+@end deffn
+
+
+@deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
+@deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
+Evaluate the @var{form}s in the @code{by} and @code{else-by} clauses, in
+sequence, until @var{test} evaluates to true.  If the first evaluation
+of @var{test} gives true: no @var{form}s are evaluated.  If neither the
+@code{by} nor the @code{else-by} forms succeed in making @var{test}
+true: the @var{form}s in the @code{else} clause are evaluated.
+
+Return the value of the last @var{form} in the clause that made
+@var{test} true, or the value in the last @var{form} in the @code{else}
+clause, or @false{} if the first evaluation of @var{test} was true and
+no @var{form}s were evaluated.
+
+Examples:
+
+@example
+(let ((i #f))
+  (ensure (= i 1)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+=> 123
+
+(let ((i #f))
+  (ensure (= i 2)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+=> 456
+
+(let ((i #f))
+  (ensure (= i 3)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+=> 789
+@end example
+@end deffn
 
 @c page
 @node naulib parameters
 @section Paremeter objects
+
+
+The following bindings are exported by the @library{parameters}
+library and re--exported by the @library{nausicaa} library.
 
 
 @defun make-parameter @var{init}
@@ -18897,6 +19005,10 @@ apply.
 @section Unimplemented error condition
 
 
+The following bindings are exported by the @library{unimplemented}
+library and re--exported by the @library{nausicaa} library.
+
+
 @deftp Condition &unimplemented
 The type of condition used to signal unimplemented features.  It is
 defined as:
@@ -18924,462 +19036,6 @@ Raise a composite condition embedding a condition of type
 @end defun
 
 @c page
-@node naulib lang
-@section Simple language extensions
-
-
-@deffn Syntax dotimes (@var{varname} @var{exclusive-count}) @var{form} ...
-@deffnx Syntax dotimes (@var{varname} @var{exclusive-count} @var{result}) @var{form} ...
-Loop evaluating the @var{form}s and assigning @var{varname} to an
-integer from zero inclusive to @var{exclusive-count}.  Return
-@var{result}, or @false{} if @var{result} is not given.
-
-Example:
-
-@example
-(dotimes (i 100)
-  (display i)
-  (newline))
-@end example
-
-@noindent
-prints the integers in the range @code{[0, 99]}.
-@end deffn
-
-
-@deffn Syntax dolist (@var{varname} @var{list}) @var{form} ...
-@deffnx Syntax dolist (@var{varname} @var{list} @var{result}) @var{form} ...
-Loop evaluating the @var{form}s and assigning @var{varname} to the
-elements from @var{list}.  Return @var{result}, or @false{} if
-@var{result} is not given.
-
-Example:
-
-@example
-(dolist (elm '(1 2 3))
-  (display elm)
-  (newline))
-@end example
-
-@noindent
-prints 1, 2, 3.
-@end deffn
-
-
-@deffn Syntax loop-upon-list (@var{varname} @var{list}) (break-when @var{test}) @var{form} ...
-@deffnx Syntax loop-upon-list (@var{varname} @var{list} @var{result}) (break-when @var{test}) @var{form} ...
-Loop evaluating the @var{form}s and assigning @var{varname} to the
-elements from @var{list}.  Return @var{result}, or @false{} if
-@var{result} is not given.  The loop is broken if @var{test} evaluates
-to true.
-
-Example:
-
-@example
-(loop-upon-list (i '(1 2 3 4) 'retval)
-    (break-when (= i 3))
-  (display i)
-  (newline))
-@end example
-
-@noindent
-prints @code{1} and @code{2}, then returns @code{retval}.
-@end deffn
-
-
-@deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
-@deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
-Evaluate the @var{form}s in the @code{by} and @code{else-by} clauses, in
-sequence, until @var{test} evaluates to true.  If the first evaluation
-of @var{test} gives true: no @var{form}s are evaluated.  If neither the
-@code{by} nor the @code{else-by} forms succeed in making @var{test}
-true: the @var{form}s in the @code{else} clause are evaluated.
-
-Return the value of the last @var{form} in the clause that made
-@var{test} true, or the value in the last @var{form} in the @code{else}
-clause, or @false{} if the first evaluation of @var{test} was true and
-no @var{form}s were evaluated.
-
-Examples:
-
-@example
-(let ((i #f))
-  (ensure (= i 1)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-=> 123
-
-(let ((i #f))
-  (ensure (= i 2)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-=> 456
-
-(let ((i #f))
-  (ensure (= i 3)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-=> 789
-@end example
-@end deffn
-
-@c page
-@node naulib compensations
-@section Compensation stacks
-
-
-This section describes a form that implements compensation stacks:
-syntactic sugar that allows us to write code that allocates a resource
-near the code that releases it in case of error.
-
-@quotation
-Compensation stacks are described in: @emph{Finding and Preventing
-Run-Time Error Handling Mistakes}, by Westley Weimer, George C. Necula,
-2004.  In Proceedings of the @acronym{ACM} Conference on
-Object--Oriented Programming, Systems, Languages, and Applications.
-@end quotation
-
-@menu
-* naulib compensations usage::  Basic compensations usage.
-* naulib compensations api::    Compensations @api{}.
-@end menu
-
-@c page
-@node naulib compensations usage
-@subsection Basic compensations usage
-
-
-A @dfn{compensation} is a chunk of code that undoes a resource
-allocation performed in another chunk, example:
-
-@example
-(define port
-  (open-file-input-port "/tmp/proof.1"))
-@end example
-
-@noindent
-must be ''compensated'' by:
-
-@example
-(close-port port)
-@end example
-
-@noindent
-with the compensations stack such code can be written:
-
-@example
-(with-compensations
-  (letrec
-      ((port (compensate
-                 (open-file-input-port "/tmp/proof.1")
-               (with
-                 (close-port port)))))
-    (make-use-of port)))
-@end example
-
-Compensation forms are embedded in a closure and pushed on a stack, so
-that, in case of error, it is possible to evaluate them in
-allocation--reversed order.
-
-A form that makes use of a compensation stack looks like this:
-
-@example
-(with-compensations
-    (compensate
-        ALLOC-FORMS-1
-      (with FREE-FORMS-1))
-    (compensate
-        ALLOC-FORMS-2
-      (with FREE-FORMS-2))
-  BODY-FORMS)
-@end example
-
-@noindent
-both @func{with-compensations} and @func{compensate} are syntaxes.  If
-no error occurs the order of evaluation is:
-
-@example
-ALLOC-FORMS-1
-ALLOC-FORMS-2
-BODY-FORMS
-FREE-FORMS-2
-FREE-FORMS-1
-@end example
-
-@noindent
-if an error occurs in @code{BODY-FORMS}, the order of evaluation is:
-
-@example
-ALLOC-FORMS-1
-ALLOC-FORMS-2
-BODY-FORMS
-FREE-FORMS-2
-FREE-FORMS-1
-@end example
-
-@noindent
-if an error occurs in @code{ALLOC-FORMS-2}, the order of evaluation is:
-
-@example
-ALLOC-FORMS-1
-ALLOC-FORMS-2
-FREE-FORMS-1
-@end example
-
-@noindent
-if an error occurs in @code{ALLOC-FORMS-1}, the order of evaluation is:
-
-@example
-ALLOC-FORMS-1
-@end example
-
-@noindent
-if an error occurs in @code{FREE-FORMS-1}, the order of evaluation is:
-
-@example
-ALLOC-FORMS-1
-ALLOC-FORMS-2
-BODY-FORMS
-FREE-FORMS-2
-FREE-FORMS-1
-@end example
-
-@noindent
-if an error occurs in @code{FREE-FORMS-2}, the order of evaluation is:
-
-@example
-ALLOC-FORMS-1
-ALLOC-FORMS-2
-BODY-FORMS
-FREE-FORMS-2
-FREE-FORMS-1
-@end example
-
-So @func{with-compensations} tries to evaluate all the free forms,
-despite errors.  Of course if an error occurs in the middle of a set of
-forms:
-
-@example
-(first-form)   ;evaluated
-(raise 'here)
-(third-form)   ;not evaluated
-@end example
-
-@noindent
-the forms before the error are evaluated, while the forms after the
-error are not.
-
-A variant of @func{with-compensations} exists to evaluate the
-compensation forms only in case of error:
-
-@example
-(with-compensations/on-error
-    (compensate
-        ALLOC-FORMS-1
-      (with FREE-FORMS-1))
-    (compensate
-        ALLOC-FORMS-2
-      (with FREE-FORMS-2))
-  BODY-FORMS)
-@end example
-
-@noindent
-if no error occurs the order of evaluation is:
-
-@example
-ALLOC-FORMS-1
-ALLOC-FORMS-2
-BODY-FORMS
-@end example
-
-@noindent
-while if an error occurs the evaluation is equal to the cases of
-@func{with-compensations}.  The ``on error'' variant is useful in
-constructors and initialisation functions, where we want to run the
-compensations only if an error occurs; if no error is raised, we just
-want the constructor to return.
-
-@c page
-@node naulib compensations api
-@subsection Compensations @api{}
-
-
-@deffn Syntax compensate @var{alloc-form0} @var{alloc-form} @dots{} (with @var{release-form0} @var{release-form} @dots{})
-Evaluate all the @var{alloc-form}s and, if no error occurs, push a
-closure holding the @var{release-form}s on the current compensations
-stack.  Return the return value of the last @var{alloc-form}.
-@end deffn
-
-
-@deffn Syntax with-compensations @var{form} @dots{}
-@deffnx Syntax with-compensations/on-error @var{form} @dots{}
-Initialise a new local compensations stack, then evaluate all the
-@var{form}s.  If no error occurs, return the return value of the last
-@var{form}.
-
-@func{with-compensations} always invokes @func{run-compensations} after
-the @var{form}s have been evaluated.
-
-@func{with-compensations/on-error} invokes @func{run-compensations}
-after the @var{form}s have been evaluated only if an exception was
-raised.
-@end deffn
-
-
-@defun run-compensation
-Evaluate all the compensation forms that are in the current stack, in
-last in/first out order.  The compensations are evaluated in the body of
-a @func{defer-exceptions}, so exceptions raised are handled as described
-in @ref{naulib deferred exceptions}.
-@end defun
-
-
-@deffn Syntax push-compensation @var{release-form0} @var{release-form} ...
-Push a closure holding the @var{release-form}s on the current
-compensations stack.
-@end deffn
-
-
-@c page
-@node naulib deferred exceptions
-@section Deferred exceptions
-
-
-@menu
-* naulib deferred exceptions intro::    Introduction.
-* naulib deferred exceptions usage::    Usage examples.
-* naulib deferred exceptions api::      Programming interface.
-@end menu
-
-@c page
-@node naulib deferred exceptions intro
-@subsection Introduction
-
-
-When a non--continuable exception is raised: the stack unwinds and some
-mechanism is needed to release allocated resources that cannot be simply
-garbage collected.  Some mechanism requires asynchronous evaluation of
-cleanup code (guardians, for example), other mechanisms require
-synchronous evaluation of cleanup code (@ref{naulib compensations}, for
-example).
-
-With synchronous cleanup code: what happens if the cleanup code itself
-raises an exception?  If this @emph{second level} exception is left
-going: it replaces the original one (@emph{first level}), which is lost:
-
-@example
-(import (scheme))
-
-(with-exception-handler
-    (lambda (e)
-      (raise 'second))
-  (lambda ()
-    (raise 'first)))
-@end example
-
-@noindent
-outputs:
-
-@example
-Unhandled exception:
- Non-condition object: second
-@end example
-
-@noindent
-@code{first} is never reported.  We rarely want this.
-
-This section describes a form that can be used to save informations
-about second level exceptions, for the case in which it is fine to try
-to go on reporting the first level error.  With this form: second level
-exceptions can be reported later to the user or logged to a file or
-whatever.
-
-This mechanism is automatically used by compensation stacks, which are
-the reference use case (@ref{naulib compensations}).
-
-@c page
-@node naulib deferred exceptions usage
-@subsection Usage examples
-
-
-A form that uses deferred exceptions looks like this:
-
-@example
-(with-deferred-exceptions-handler
-    (lambda (exc)
-      (handle-the-exception exc))
-  (lambda ()
-    (before-do-something)
-    (before-do-something)
-    (defer-exceptions
-      (do-something)
-      (do-something))
-    (after-do-something)
-    (after-do-something)))
-@end example
-
-@noindent
-if the forms in the @func{defer-exceptions} raise an exception: the
-exception value is saved and evaluation goes on for the
-@code{(after-do-something)} forms.  Then the @func{lambda} is applied to
-the exception value.
-
-Any number of @func{defer-exceptions} can be put in the same
-@func{with-deferred-exceptions}.
-
-@c page
-@node naulib deferred exceptions api
-@subsection Programming interface
-
-
-@deffn Syntax defer-exceptions @var{form} @dots{}
-Evaluate all the @var{form}s as in the body of a @func{begin}.
-
-If an exception is raised: its value is added to the list of exceptions
-in the dynamic environment of the current deferred exception handler.
-
-If @func{defer-exception} appears outside of a
-@func{with-deferred-exception-handler} form: the exceptions are silently
-discarded.
-@end deffn
-
-
-@deffn Syntax with-deferred-exceptions-handler @var{handler} @var{thunk}
-Setup a deferred exception handler dynamic environment, in which
-@var{handler} is the exceptions handler, for the evaluation of
-@var{thunk}.  If a deferred exception is raised
-@func{run-deferred-exceptions-handler} is invoked.
-@end deffn
-
-
-@defun run-deferred-exceptions-handler
-Apply the current deferred exceptions handler to each deferred exception
-value in the current list.  If the handler raises an exception: it is
-silently ignored.
-@end defun
-
-@c page
 @node more
 @chapter More libraries
 
@@ -19391,13 +19047,17 @@ silently ignored.
 * vectors::                     Vectors library.
 * arrays::                      Multidimensional arrays.
 * comparisons::                 Comparison functions.
+* loops::                       Loop constructs.
 * random::                      Sources of random bits.
 * format::                      Formatting strings.
 * checks::                      Lightweight testing.
+* debugging::                   Debugging utilities.
 * queues::                      Simple queue.
 * object-properties::           Object properties.
 * cleanup-handlers::            Cleaning up.
 * combinators::                 Combinators.
+* compensations::               Compensation stacks.
+* deferred exceptions::         Deferred exceptions.
 * keywords::                    Keyword values.
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
@@ -19409,6 +19069,7 @@ silently ignored.
 * csv::                         Comma--separated value (@acronym{CSV}) utilities.
 * schelog::                     Programming in Schelog.
 * email addresses::             Email address processing.
+* infix::                       Infix notation utilities.
 
 Low level libraries
 
@@ -27914,6 +27575,1414 @@ selection from the two arguments of the previous call to @var{compare1}.
 @end defun
 
 @c page
+@node loops
+@section Loop constructs
+
+
+The @library{loops} library provides extensions to the Scheme language
+to loop over general sequences of values.
+
+@menu
+* loops intro::                 Introduction.
+* loops comprehensions::        Comprehensions.
+* loops qualifiers::            Qualifiers.
+* loops generators::            Generators.
+* loops suggest::               Suggestions for application
+                                specific extensions.
+* loops design::                Design rationale.
+@end menu
+
+@c page
+@node loops intro
+@subsection Introduction
+
+
+An eager comprehension is a convenient notation for one or more nested
+or parallel loops generating a sequence of values, and accumulating this
+sequence into a result.  In its most simple form, a comprehension looks
+like this:
+
+@example
+(list-ec (: i 5)
+  (* i i))
+@result{} (0 1 4 9 16)
+@end example
+
+@noindent
+where @var{i} is a local variable that is sequentially bound to the
+values 0, 1, @dots{}, 4, and the squares of these numbers are collected
+in a list.  The following example illustrates most conventions with
+respect to nesting and syntax:
+
+@example
+(list-ec (: n 1 4)
+         (: i n)
+  (list n i))
+@result{} ((1 0) (2 0) (2 1)
+    (3 0) (3 1) (3 2))
+@end example
+
+@noindent
+the variable @var{n} is first bound to 1 then to 2 and finally to 3, and
+for each binding of @var{n} the variable @var{i} is bound to the values
+0, 1, ..., @var{n}-1 in turn.  The expression @code{(list n i)}
+constructs a two--element list for each binding, and the comprehension
+@func{list-ec} collects all these results in a list.
+
+@c page
+@node loops comprehensions
+@subsection Comprehensions
+
+
+@deffn Syntax do-ec @var{qualifier*} @var{command}
+Evaluate the @var{command} exactly once for each binding in the sequence
+defined by the qualifiers.  If there are no qualifiers @var{command} is
+evaluated exactly once.  The expression is evaluated for its
+side--effects only.  The result of the comprehension is unspecified.
+@end deffn
+
+
+@deffn Syntax list-ec @var{qualifier*} @var{expression}
+The list of values obtained by evaluating @var{expression} once for each
+binding in the sequence defined by the qualifiers.  If there are no
+qualifiers the result is the list with the value of @var{expression}.
+@end deffn
+
+
+@deffn Syntax append-ec @var{qualifier*} @var{expression}
+The list obtained by appending all values of @var{expression}, which
+must all be lists.  Think of it as:
+
+@example
+(apply append (list-ec @var{qualifier*} @var{expression}))
+@end example
+@end deffn
+
+
+@deffn Syntax string-ec @var{qualifier*} @var{expression}
+The string of all values of @var{expression}.  Think of it as:
+
+@example
+(list->string (list-ec @var{qualifier*} @var{expression}))
+@end example
+@end deffn
+
+
+@deffn Syntax string-append-ec @var{qualifier*} @var{expression}
+The string obtained by appending all values of @var{expression}, which
+must all be strings.  Think of it as:
+
+@example
+(apply string-append (list-ec @var{qualifier*} @var{expression}))
+@end example
+@end deffn
+
+
+@deffn Syntax vector-ec @var{qualifier*} @var{expression}
+The vector of all values of @var{expression}.  Think of it as:
+
+@example
+(list->vector (list-ec @var{qualifier*} @var{expression}))
+@end example
+@end deffn
+
+
+@deffn Syntax vector-of-length-ec @var{k} @var{qualifier*} @var{expression}
+The vector of all values of @var{expression}, of which there must be
+exactly @var{k}.  This comprehension behaves like @func{vector-ec} but
+can be implemented more efficiently.
+@end deffn
+
+
+@deffn Syntax sum-ec @var{qualifier*} @var{expression}
+The sum of all values of @var{expression}.  Think of it as:
+
+@example
+(apply + (list-ec @var{qualifier*} @var{expression}))
+@end example
+@end deffn
+
+
+@deffn Syntax product-ec @var{qualifier*} @var{expression}
+The product of all values of @var{expression}.  Think of it as:
+
+@example
+(apply * (list-ec @var{qualifier*} @var{expression}))
+@end example
+@end deffn
+
+
+@deffn Syntax min-ec @var{qualifier*} @var{expression}
+@deffnx Syntax max-ec @var{qualifier*} @var{expression}
+The minimum and maximum of all values of @var{expression}.  The sequence
+of values must be non-empty.  Think of these as
+
+@example
+(apply min (list-ec @var{qualifier*} @var{expression}))
+(apply max (list-ec @var{qualifier*} @var{expression}))
+@end example
+
+If you want to return a default value in case the sequence is empty you
+may want to consider:
+
+@example
+(fold3-ec 'infinity @var{qualifier*} @var{expression} min min)
+@end example
+@end deffn
+
+
+@deffn Syntax any?-ec @var{qualifier*} @var{test}
+Tests whether any value of @var{test} in the sequence of bindings
+specified by the qualifiers is non--@false{}.  If this is the case,
+@true{} is returned, otherwise @false{}.  If there are no bindings at
+all, in the sequence specified by the qualifiers, then the result is
+@false{}.  The enumeration of values stops after the first non--@false{}
+encountered.
+@end deffn
+
+
+@deffn Syntax every?-ec @var{qualifier*} @var{test}
+Tests whether all values of @var{test} are non--@false{}.  If this is
+the case, @true{} is returned, otherwise @false{}.  If the sequence is
+empty the result is @true{}.  Enumeration stops after the first
+@false{}.
+@end deffn
+
+
+@deffn Syntax first-ec @var{default} @var{qualifier*} @var{expression}
+@deffnx Syntax last-ec  @var{default} @var{qualifier*} @var{expression}
+The first or last value of @var{expression} in the sequence of bindings
+specified by the qualifiers.  Before enumeration, the result is
+initialized with the value of @var{default}; so this will be the result
+if the sequence is empty.  Enumeration is terminated in @func{first-ec}
+when the first value has been computed.
+@end deffn
+
+
+@deffn Syntax fold-ec  @var{x0} @var{qualifier*} @var{expression} @var{f2})
+@deffnx Syntax fold3-ec @var{x0} @var{qualifier*} @var{expression} @var{f1} @var{f2})
+Reduce the sequence @var{x}[0], @var{x}[1], @dots{}, @var{x}[n-1] of
+values obtained by evaluating @var{expression} once for each binding as
+specified by @var{qualifier*}.  The arguments @var{x0}, @var{f2}, and
+@var{f1}, all syntactically equivalent to @var{expression}, specify the
+reduction process.
+
+The reduction process for @func{fold-ec} is defined as follows.  A
+reduction variable @var{x} is initialized to the value of @var{x0}, and
+for each @var{k} in @code{@{0, ..., n-1@}} the command:
+
+@example
+(set! x (f2 x[k] x))
+@end example
+
+@noindent
+is evaluated.  Finally, @var{x} is returned as the value of the
+comprehension.
+
+The reduction process for @func{fold3-ec} is different.  If and only if
+@code{n = 0}, i.e. the sequence is empty, then @var{x0} is evaluated and
+returned as the value of the comprehension.  Otherwise, a reduction
+variable @var{x} is initialized to the value of @code{(f1 x[0])}, and
+for each @var{k} in @code{@{1, ..., n-1@}} the command:
+
+@example
+(set! x (f2 x[k] x))
+@end example
+
+@noindent
+is evaluated.  Finally, @var{x} is returned as the value of the
+comprehension.
+
+As the order of the arguments suggests, @var{x0} is evaluated outside
+the scope of the qualifiers, whereas the reduction expressions involving
+@var{f1} and @var{f2} are inside the scope of the qualifiers (so they
+may depend on any variable introduced by the qualifiers).  Note that
+@var{f2} is evaluated repeatedly, with any side--effect or overhead this
+might have.
+
+The main purpose of these comprehensions is implementing other
+comprehensions as special cases.  They are generalizations of the
+procedures @func{fold} and @func{reduce} in the sense of @ansrfi{1}.
+(Concerning naming and argument order, please refer to the discussion
+archive of @ansrfi{1}, in particular the posting [Folds].)  Note that
+@func{fold3-ec} is defined such that @var{x0} is only evaluated in case
+the sequence is empty.  This allows raising an error for the empty
+sequence, as in the example definition of @func{min-ec} below.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Application--specific comprehension
+
+
+An important aspect of this @srfi{} is a modular mechanism to define
+application--specific comprehensions.  To create a new comprehension a
+hygienic macro with that name is defined.  The macro transforms the new
+comprehension patterns into instances of @func{do-ec}, which is the most
+fundamental eager comprehension, or any other comprehension already
+defined.  For example, the following code defines @func{list-ec} and
+@func{min-ec} in terms of @func{fold-ec} and @func{fold3-ec}:
+
+@example
+(define-syntax list-ec
+  (syntax-rules ()
+    [(list-ec etc1 etc ...)
+     (reverse (fold-ec '() etc1 etc ... cons))]))
+
+(define-syntax min-ec
+  (syntax-rules ()
+    [(min-ec etc1 etc ...)
+     (fold3-ec (min) etc1 etc ... min min)]))
+@end example
+
+Note that the pattern @code{@var{etc1} ...} matches the syntax
+@var{qualifier*} @var{expression} without separate access to
+@var{qualifier*} and @var{expression}.  In order to define a
+comprehension that does need explicit access to the @var{expression}
+part, the following method is used.
+
+First, all qualifiers are collected into a nested--qualifier, and then
+the ``exactly one qualifier'' case is implemented.  For illustration,
+the following code defines @func{fold3-ec} in terms of @func{do-ec}:
+
+@example
+(define-syntax fold3-ec
+  (syntax-rules (nested)
+    [(fold3-ec x0 (nested q1 ...) q etc1 etc2 etc3 etc ...)
+     (fold3-ec x0 (nested q1 ... q) etc1 etc2 etc3 etc ...)]
+    [(fold3-ec x0 q1 q2 etc1 etc2 etc3 etc ...)
+     (fold3-ec x0 (nested q1 q2) etc1 etc2 etc3 etc ...)]
+    [(fold3-ec x0 expression f1 f2)
+     (fold3-ec x0 (nested) expression f1 f2)]
+
+    [(fold3-ec x0 qualifier expression f1 f2)
+     (let ([result #f]
+           [empty  #t])
+       (do-ec qualifier
+         (let ([value expression]) ; don't duplicate code
+           (if empty
+               (begin
+                 (set! result (f1 value))
+                 (set! empty #f))
+             (set! result (f2 value result)))))
+       (if empty x0 result))]))
+@end example
+
+Finally, observe that the newly defined @func{fold3-ec} comprehension
+inherits all types of qualifiers supported by @func{do-ec}, including
+all application--specific generators; no further definitions are
+necessary.
+
+
+
+@c page
+@node loops qualifiers
+@subsection Qualifiers
+
+
+This section defines the syntax @var{qualifier}.  The nesting of
+qualifiers is from left (outer) to right (inner).  In other words, the
+rightmost generator spins fastest.  The nesting also defines the scope
+of the variables introduced by the generators.  This implies that inner
+generators may depend on the variables of outer generators.  The
+sequence of enumeration of values is strictly depth first.  These
+conventions are illustrated by the first example.
+
+The syntax @var{qualifier} consists of the following alternatives.
+
+@deffn Qualifier @var{generator}
+Enumerate a sequence of bindings of one or more variables.  The scope of
+the variables starts at the generator and extends over all subsequent
+qualifiers and expressions in the comprehension.  @ref{loops generators,
+Generators}
+@end deffn
+
+
+@deffn Qualifier if @var{test}
+Filters the sequence of bindings by testing if @var{test} evaluates to
+non--@false{}.  Only for those bindings for which this is the case, the
+subsequent qualifiers of the comprehension are evaluated.
+@end deffn
+
+
+@deffn Qualifier not @var{test}
+@deffnx Qualifier and @var{test}*
+@deffnx Qualifier or @var{test}*
+Abbreviated notations for filters of the form @code{(if (not
+@var{test}))}, @code{(if (and @var{test}*))}, and @code{(if (or
+@var{test}*))}.  These represent frequent cases of filters.
+@end deffn
+
+
+@deffn Qualifier begin @var{sequence}
+Evaluate @var{sequence}, consisting of @code{@var{command}*
+@var{expression}}, once for each binding of the variables defined by the
+previous qualifiers in the comprehension.  Using this qualifier, side
+effects can be inserted into the body of a comprehension.
+@end deffn
+
+
+@deffn Qualifier nested @var{qualifier}*
+A syntactic construct to group qualifiers.  The meaning of a qualifier
+according to the @func{nested} syntax is the same as inserting
+@var{qualifier}* into the enclosing comprehension.  This construct can
+be used to reduce comprehensions with several qualifiers into a form
+with exactly one qualifier.
+@end deffn
+
+
+
+@c page
+@node loops generators
+@subsection Generators
+
+
+This section defines the syntax @var{generator}.  Each generator defines
+a sequence of bindings through which one or more variables are run.  The
+scope of the variables begins after the closing parenthesis of the
+generator expression and extends to the end of the comprehension it is
+part of.
+
+The variables defined by the generators are specified using the syntax:
+
+@example
+<vars> --> <variable1> [ (index <variable2>) ]
+@end example
+
+@noindent
+where @var{variable1} runs through the values in the sequence defined by
+the generator, and the optional @var{variable2} is an exact
+integer--valued index variable counting the values (starting from 0).
+The names of the variables must be distinct.  The following example
+illustrates the index variable:
+
+@example
+(list-ec (: x (index i) "abc")
+   (list x i))
+=> ((#\a 0) (#\b 1) (#\c 2))
+@end example
+
+Unless defined otherwise, all generators make sure that the expressions
+provided for their syntactic arguments are evaluated exactly once,
+before enumeration begins.  Moreover, it may be assumed that the
+generators do not copy the code provided for their arguments, because
+that could lead to exponential growth in code size.  Finally, it is
+possible to assign a value to the variables defined by a generator, but
+the effect of this assignment is unspecified.
+
+The syntax @var{generator} consists of the following alternatives.
+
+@ignore
+(Tue Oct 28, 2008, Info version 4.8) The ':' is not recognised by the
+function index code as a valid function name.  No error is generated
+when compiling this document, but the index reference does not work.
+@end ignore
+@deffn Generator {:} @var{vars} @var{arg1} @var{arg}*
+First the expressions @var{arg1} @var{arg}* are evaluated into
+@code{@var{a}[1]}, @code{@var{a}[2]}, @dots{}, @code{@var{a}[n]} and
+then a global dispatch procedure is used to dispatch on the number and
+types of the arguments and run the resulting generator.  Initially
+(after loading the @srfi{}), the following cases are recognized:
+
+@example
+:list           if      for all i in @{1..n@}: (list? a[i])
+
+:string         if      for all i in @{1..n@}: (string? a[i])
+
+:vector         if      for all i in @{1..n@}: (vector? a[i])
+
+:range          if      n in @{1..3@} and for all i in @{1..n@}:
+                        (integer? a[i]) and (exact? a[i])
+
+:real-range     if      n in @{1..3@} and for all i in @{1..n@}:
+                        (real? a[i])
+
+:char-range     if      n = 2 and for all i in @{1, 2@}:
+                        (char? a[i])
+
+:port           if      n in @{1, 2@} and (input-port? a[1])
+                        and (procedure? a[2])
+@end example
+
+The current dispatcher can be retrieved as @code{(:-dispatch-ref)}, a
+new dispatcher @var{d} can be installed by @code{(:-dispatch-set! d)}
+yielding an unspecified result, and a copy of the initial dispatcher can
+be obtained as @code{(make-initial-:-dispatch)}.  Please refer to the
+section below for recommendation how to add cases to the dispatcher.
+@end deffn
+
+
+@deffn Generator {:list} @var{vars} @var{arg1} @var{arg}*
+@deffnx Generator {:string} @var{vars} @var{arg1} @var{arg}*
+@deffnx Generator {:vector} @var{vars} @var{arg1} @var{arg}*
+Run through one or more lists, strings, or vectors.  First all
+expressions in @var{arg1} @code{@var{arg}*} are evaluated and then all
+elements of the resulting values are enumerated from left to right.  One
+can think of it as first appending all arguments and then enumerating
+the combined object.  As a clarifying example, consider:
+
+@example
+(list-ec (:string c (index i) "a" "b")
+  (cons c i))
+=> ((#\a . 0)
+    (#\b . 1))
+@end example
+@end deffn
+
+
+@deffn Generator {:integers} @var{vars}
+Runs through the sequence @code{0}, @code{1}, @code{2}, @dots{} of
+non--negative integers.  This is most useful in combination with
+@code{:parallel}, @code{:while}, and @code{:until} or with a non--local
+exit in the body of the comprehension.
+@end deffn
+
+
+@deffn Generator {:range} @var{vars} @var{stop}
+@deffnx Generator {:range} @var{vars} @var{start} @var{stop}
+@deffnx Generator {:range} @var{vars} @var{start} @var{stop} @var{step}
+Runs through a range of exact rational numbers.
+
+The form @code{(:range @var{vars} @var{stop})} evaluates the expression
+@var{stop}, which must result in an exact integer @var{n}, and runs
+through the finite sequence @code{0}, @code{1}, @code{2}, @dots{},
+@code{@var{n}-1}.  If @var{n} is zero or negative the sequence is empty.
+
+The form @code{(:range @var{vars} @var{start} @var{stop})} evaluates the
+expressions @var{start} and @var{stop}, which must result in exact
+integers @var{a} and @var{b}, and runs through the finite sequence
+@var{a}, @code{@var{a}+1}, @code{@var{a}+2}, @dots{}, @code{@var{b}-1}.
+If @var{b} is less or equal @var{a} then the sequence is empty.
+
+The form @code{(:range @var{vars} @var{start} @var{stop} @var{step})}
+first evaluates the expressions @var{start}, @var{stop}, and @var{step},
+which must result in exact integers @var{a}, @var{b}, and @var{s} such
+that @var{s} is unequal to zero.  Then the sequence @var{a},
+@code{@var{a} + @var{s}}, @code{@var{a} + 2 @var{s}}, @dots{},
+@code{@var{a} + (@var{n}-1) @var{s}} is enumerated where @code{@var{n} =
+ceil((@var{b}-@var{a})/@var{s})}.  In other words, the sequence starts
+at @var{a}, increments by @var{s}, and stops when the next value would
+reach or cross @var{b}.  If @var{n} is zero or negative the sequence is
+empty.
+@end deffn
+
+
+@deffn Generator {:real-range} @var{vars} @var{stop}
+@deffnx Generator {:real-range} @var{vars} @var{start} @var{stop}
+@deffnx Generator {:real-range} @var{vars} @var{start} @var{stop} @var{step}
+Runs through a range of real numbers using an explicit index variable.
+This form of range enumeration avoids accumulation of rounding errors
+and is the one to use if any of the numbers defining the range is
+inexact, not an integer, or a bignum of large magnitude.
+
+Providing default value @code{0} for @var{start} and @code{1} for
+@var{step}, the generator first evaluates @var{start}, @var{stop}, and
+@var{step}, which must result in reals @var{a}, @var{b}, and @var{s}
+such that @code{@var{n} = (@var{b}-@var{a})/@var{s}} is also
+representable as a real.  Then the sequence @code{0}, @code{1},
+@code{2}, @dots{} is enumerated while the current value @var{i} is less
+than @var{n}, and the variable in @var{vars} is bound to the value
+@code{@var{a} + @var{i} @var{s}}.  If any of the values @var{a},
+@var{b}, or @var{s} is non--exact then all values in the sequence are
+non--exact.
+@end deffn
+
+
+@deffn Generator {:char-range} @var{vars} @var{min} @var{max}
+Run through a range of characters.  First @var{min} and @var{max} are
+evaluated, which must result in two characters @var{a} and @var{b}.
+Then the sequence of characters @var{a}, @code{@var{a}+1},
+@code{@var{a}+2}, @dots{}, @var{b} is enumerated in the order defined by
+@func{char<=?} in the sense of @rnrs{5} Section 6.3.4.  If @var{b} is
+smaller than @var{a} then the sequence is empty.  (Note that @var{b} is
+included in the sequence.)
+@end deffn
+
+
+@deffn Generator {:port} @var{vars} @var{port}
+@deffnx Generator {:port} @var{vars} @var{port} @var{read-proc}
+Read from the port until the eof--object is read.  Providing the default
+read for @var{read-proc}, the generator first evaluates @var{port} and
+@var{read-proc}, which must result in an input port @var{p} and a
+procedure @var{r}.  Then the variable is run through the sequence
+obtained by @code{(@var{r} @var{p})} while the result does not satisfy
+@func{eof-object?}.
+@end deffn
+
+
+@deffn Generator {:dispatched} @var{vars} @var{dispatch} @var{arg1} @var{arg}*
+Runs the variables through a sequence defined by @var{dispatch} and
+@var{arg1} @var{arg}*.  The purpose of @code{:dispatched} is
+implementing dispatched generators, in particular the predefined
+dispatching generator @code{:}.
+
+The working of @code{:dispatched} is as follows.  First @var{dispatch}
+and @var{arg1} @var{arg}* are evaluated, resulting in a procedure
+@var{d} (the ``dispatcher'') and the values @code{@var{a}[1]},
+@code{@var{a}[2]}, @dots{}, @code{@var{a}[n]}.  Then:
+
+@example
+(d (list a[1] a[2] ... a[n]))
+@end example
+
+@noindent
+is evaluated, resulting in a value @var{g}.  If @var{g} is not a
+procedure then the dispatcher did not recognize the argument list and an
+error is raised.  Otherwise the ``generator procedure'' @var{g} is used
+to run @var{vars} through a sequence of values.
+
+The sequence defined by @var{g} is obtained by repeated evaluation of
+@code{(@var{g} @var{empty})} until the result is @var{empty}.  In other
+words, @var{g} indicates the end of the sequence by returning its only
+argument, for which the caller has provided an object distinct from
+anything @var{g} can produce.  (Generator procedures are state based,
+they are no such noble things as streams in the sense of @ansrfi{41}.)
+
+The definition of dispatchers is greatly simplified by the macro
+@code{:generator-proc} that constructs a generator procedure from a
+typed generator.  Let @code{(@var{g} @var{var} @var{arg1} @var{arg}
+...)} be an instance of the @var{generator} syntax, for example an
+application--specific typed generator, with a single variable @var{var}
+and no index variable.  Then:
+
+@example
+(:generator-proc (g arg1 arg ...))
+=> g
+@end example
+
+@noindent
+where the generator procedure @var{g} runs through the list:
+
+@example
+(list-ec (g var arg1 arg ...) var)
+@end example
+
+In order to define a new dispatching generator (say @code{:my}) first a
+dispatching procedure (say @code{:my-dispatch}) is defined.  The
+dispatcher will be called with a single (!) argument containing the list
+of all values to dispatch on.  To enable informative error messages, the
+dispatcher should return a descriptive object (e.g.  a symbol for the
+module name) when it is called with the empty list.  Otherwise (if there
+is at least one value to dispatch on), the dispatcher must either return
+a generator procedure or @false{} (which means: no interest).  As an
+example, the following skeleton code defines a dispatcher similar to the
+initial dispatcher of @code{:}:
+
+@example
+(define (:my-dispatch args)
+  (case (length args)
+    [(0) 'SRFI-NN]
+    [(1) (let ([a1 (car args)])
+           (cond
+            [(list? a1)
+             (:generator-proc (:list a1))]
+            [(string? a1)
+             (:generator-proc (:string a1))]
+            ...more unary cases...
+            [else
+             #f]))]
+    [(2) (let ([a1 (car args)]
+               [a2 (cadr args)])
+           (cond
+            [(and (list? a1) (list? a2))
+             (:generator-proc (:list a1 a2))]
+            ...more binary cases...
+            [else
+             #f]))]
+    ...more arity cases...
+    [else
+     (cond
+      [(every?-ec (:list a args) (list? a))
+       (:generator-proc (:list (apply append args)))]
+      ...more large variable arity cases...
+      [else
+       #f])]))
+@end example
+
+Once the dispatcher has been defined, the following macro implements the
+new dispatching generator:
+
+@example
+(define-syntax :my
+  (syntax-rules (index)
+    [(:my cc var (index i) arg1 arg ...)
+     (:dispatched cc var (index i) :my-dispatch arg1 arg ...)]
+    [(:my cc var arg1 arg ...)
+     (:dispatched cc var :my-dispatch arg1 arg ...)]))
+@end example
+
+This method of extension yields complete control of the dispatching
+process.  Other modules can only add cases to @code{:my} if they have
+access to @code{:my-dispatch}.
+
+Extending the predefined dispatched generator.  An alternative to adding
+a new dispatched generator is to extend the predefined generator
+@code{:}.  Technically, extending @code{:} means installing a new global
+dispatching procedure using @code{:-dispatch-set!} as described above.
+In most cases, however, the already installed dispatcher should be
+extended by new cases.  The following procedure is a utility for doing
+so:
+
+@example
+(dispatch-union d1 d2)
+=> d
+@end example
+
+@noindent
+where the new dispatcher @var{d} recognizes the union of the cases
+recognized by the dispatchers @var{d1} and @var{d2}.  The new dispatcher
+always tries both component dispatchers and raises an error in case of
+conflict.  The identification returned by @code{(d)} is the
+concatenation of the component identifications @code{(d1)} and
+@code{(d2)}, enclosed in lists if necessary.  For illustration, consider
+the following code:
+
+@example
+(define (example-dispatch args)
+  (cond
+   [(null? args)
+    'example]
+   [(and (= (length args) 1) (symbol? (car args)) )
+    (:generator-proc (:string (symbol->string (car args))))]
+   [else
+    #f]))
+
+(:-dispatch-set! (dispatch-union (:-dispatch-ref) example-dispatch))
+@end example
+
+After evaluation of this code, the following example will work:
+
+@example
+(list-ec (: c 'abc)
+  c)
+=> (#\a #\b #\c)
+@end example
+
+Adding cases to @code{:} is particularly useful for frequent cases of
+interactive input.  Be warned, however, that the advantage of global
+extension also carries the danger of conflicts, unexpected
+side--effects, and slow dispatching.
+@end deffn
+
+
+@deffn Generator :do (@var{lb}*) @var{ne1?} (@var{ls}*)
+@deffnx Generator :do (let (@var{ob}*) @var{oc}*) (@var{lb}*) @var{ne1?} (let (@var{ib}*) @var{ic}*) @var{ne2?} (@var{ls}*)
+Defines a generator in terms of a named--@func{let}, optionally
+decorated with inner and outer lets.  This generator is for defining
+other generators.  (In fact, the reference implementation transforms any
+other generator into an instance of fully decorated @code{:do}.)
+
+The generator is a compromise between expressive power (more flexible
+loops) and fixed structure (necessary for merging and modifying
+generators).
+
+In the fully decorated form, the syntactic variables @var{ob} (outer
+binding), @var{oc} (outer command), @var{lb} (loop binding), @var{ne1?}
+(not-end1?), @var{ib} (inner binding), @var{ic} (inner command),
+@var{ne2?}  (not-end2?), and @var{ls} (loop step) define the following
+loop skeleton:
+
+@example
+(let (@var{ob}*)
+  @var{oc}*
+  (let loop (@var{lb}*)
+    (if @var{ne1?}
+        (let (@var{ib}*)
+          @var{ic}*
+          payload
+          (if @var{ne2?}
+              (loop @var{ls}*) )))))
+@end example
+
+@noindent
+where @code{@var{oc}*} and @code{@var{ic}*} are syntactically equivalent
+to @var{command}*, i.e. they do not begin with a @var{definition}.  The
+latter requirement allows the code generator to produce more efficient
+code for special cases by removing empty @func{let}--expressions
+altogether.
+@end deffn
+
+
+@deffn Generator :let @var{vars} @var{expression}
+Run through the sequence consisting of the value of @var{expression},
+only.  This is the same as:
+
+@example
+(:list @var{vars} (list @var{expression}))
+@end example
+
+If an index variable is specified, its value is @code{0}.  The
+@code{:let} generator can be used to introduce an intermediate variable
+depending on outer generators.
+@end deffn
+
+
+@deffn Generator :parallel @var{generator}*
+Run several generators in parallel.  This means that the next binding
+in the sequence is obtained by advancing each generator in
+@code{@var{generator}*} by one step.  The parallel generator terminates
+when any of its component generators terminate.  The generators share a
+common scope for the variables they introduce.  This implies that the
+names of the variables introduced by the various generators must be
+distinct.
+@end deffn
+
+
+@deffn Generator :while @var{generator} @var{expression}
+Run @var{generator} while @var{expression} evaluates to non--@false{}.
+The guarding expression is included in the scope of the variables
+introduced by the generator.
+
+Note the distinction between the filter @code{if} and the modified
+generator expressed by @code{:while}.
+@end deffn
+
+
+@deffn Generator :until @var{generator} @var{expression}
+Run @var{generator} until after @var{expression} has evaluated to
+non--@false{}.  The guarding expression is included in the scope of the
+variables introduced by the generator.
+
+Note the distinction between @code{:while}, stopping at a certain
+condition, and @code{:until}, stopping after a certain condition has
+occurred.  The latter implies that the binding that has triggered
+termination has been processed by the comprehension.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Application specific typed generator
+
+
+An important aspect of this @srfi{} is a modular mechanism to define
+new typed generators.  To define a new typed generator a hygienic
+referentially transparent macro of the same name is defined to transform
+the generator pattern into an instance of the @code{:do-generator}.  The
+extension is fully modular, meaning that no other macro has to be
+modified to add the new generator.  This is achieved by defining the new
+macro in Continuation Passing Style.
+
+Technically, this works as follows.  Assume the generator syntax:
+
+@example
+(:mygen @var{var} @var{arg})
+@end example
+
+@noindent
+is to be implemented, for example running the variable @var{var} through
+the list @code{(reverse @var{arg})}.  The following definition
+implements @code{:mygen} in terms of @code{:list} using the additional
+syntactic variable @var{cc} (read current continuation):
+
+@example
+(define-syntax :mygen
+  (syntax-rules ()
+    [(:mygen cc var arg)
+     (:list cc var (reverse arg))]))
+@end example
+
+After this definition, any comprehension will accept the @code{:mygen}
+generator and produce the proper code for it.  This works as follows.
+When a comprehension sees something of the form @code{(@var{g} @var{arg}
+...)} in the position of a @var{qualifier} then it will transform the
+entire comprehension into:
+
+@example
+(@var{g} (continue ...) @var{arg} ...)
+@end example
+
+This effectively ``transfers control'' to the macro @var{g}, for example
+@code{:mygen}.  The macro @var{g} has full control of the
+transformation, but eventually it should transform the expression into:
+
+@example
+(:do (continue ...)  etc ...)
+@end example
+
+In the @code{:mygen} example this is done by the @code{:list-macro}.
+The macro @code{:do} finally transforms into:
+
+@example
+(continue ... (:do etc ...))
+@end example
+
+As @code{continue} has been chosen by the macro implementing the
+comprehension, it can regain control and proceed with other qualifiers.
+
+In order to ensure consistency of new generators with the ones defined
+in this @srfi{}, a few conventions are in order.  Firstly, the
+generator patterns begin with one or more variables followed by
+arguments defining the sequence.  Secondly, each generator except
+@code{:do} can handle an optional index variable.  This is most easily
+implemented using @code{:parallel} together with @code{:integers}.  In
+case the payload generator needs an index anyhow (e.g. @code{:vector})
+it is more efficient to add an index variable if none is given and to
+implement the indexed case.  Finally, make sure that no syntactic
+variable of the generator pattern ever gets duplicated in the code (to
+avoid exponential code size in nested application), and introduce
+sufficient intermediate variables to make sure expressions are evaluated
+at the correct time.
+
+
+
+@c page
+@node loops suggest
+@subsection Suggestions for application specific extensions
+
+
+@subsubheading Arrays in the sense of @ansrfi{25}
+
+In order to create an array from a sequence of elements, a comprehension
+with the following syntax would be useful:
+
+@example
+(array-ec @var{shape} @var{qualifier}* @var{expression})
+@end example
+
+The comprehension constructs a new array of the given shape by filling
+it row--major with the sequence of elements as specified by the
+qualifiers.  On the generator side, it would be most useful to have a
+generator of the form:
+
+@example
+(:array @var{vars} @var{arg})
+@end example
+
+@noindent
+running through the elements of the array in row--major.  For the
+optional index variable, the extension @code{(index @var{k1} @var{k}*)}
+could be defined where @var{k1} @code{@var{k}*} are variable names
+indexing the various dimensions.
+
+@c ------------------------------------------------------------
+
+@subsubheading Random Numbers in the sense of @ansrfi{27}
+
+In order to create a vector or list of random numbers, it would be
+convenient to have generators of the following form:
+
+@example
+(:random-integer [ @var{range} [ @var{number} ] ] )
+(:random-real    [ @var{number} ] )
+@end example
+
+@noindent
+where @var{range} (default 2) indicates the range of the integers and
+@var{number} (default infinity) specifies how many elements are to be
+generated.  Derived from these basic generators, one could define
+several other generators for other distributions (e.g. Gaussian).
+
+@c ------------------------------------------------------------
+
+@subsubheading Bitstrings in the sense of @ansrfi{33}
+
+As eager comprehensions are efficient, they can be useful for operations
+involving strings of bits.  It could be useful to have the following
+comprehension:
+
+@example
+(bitwise-ec @var{qualifier}* @var{expression})
+@end example
+
+@noindent
+which constructs an integer from bits obtained as values of
+@var{expression} in the ordering defined by @ansrfi{33}.  In other words,
+if the sequence of values is @code{@var{x}[0]}, @code{@var{x}[1]},
+@dots{}, @code{@var{x}[n-1]} then the result is:
+
+@example
+x[0] + x[1] 2 + ... + x[n-1] 2^(n-1)
+@end example
+
+On the generator side, a generator of the form:
+
+@example
+(:bitwise @var{vars} @var{arg1} @var{arg}*)
+@end example
+
+@noindent
+runs through the sequence of bits obtained by appending the binary
+digits of the integers @var{arg1} @var{arg}*.
+
+@c ------------------------------------------------------------
+
+@subsubheading Streams in the sense of @ansrfi{41}
+
+It is possible to ``lazify'' the eager comprehension @func{list-ec},
+constructing a stream in the sense of @ansrfi{41}.  Clearly, such a
+comprehension (@func{stream-ec}) is not eager at all since it only runs
+the loops when results are requested.  It is also possible to define a
+@code{:stream} generator with the same @api{} as @code{:list} but
+running through streams instead of lists.
+
+For what is worth, the file @file{srfi40-ec.scm} implements
+@code{:stream} and @func{stream-ec} and gives an example.  The
+implementation makes substantial use of
+@func{call-with-current-continuation} to run the loop only when
+necessary.  In some implementations of Scheme this may involve
+considerable overhead.
+
+@c ------------------------------------------------------------
+
+@subsubheading Reading Text Files
+
+Eager comprehensions can also be used to process files.  However, bear
+in mind that an eager comprehension wants to read and process the entire
+file right away.  Nevertheless, these generators would be useful for
+reading through the lines of a file or through the characters of a file:
+
+@example
+(:lines-of-file @var{vars} @var{file})
+(:chars-of-file @var{vars} [ (line @var{variable1}) ] [ (column @var{variable2}) ] @var{file})
+@end example
+
+Here @var{file} is either an input port or a string interpreted as a
+filename.  In a similar fashion, generators reading from sockets defined
+by @aurl{}s or other communication facilities could be defined.
+
+@c ------------------------------------------------------------
+
+@subsubheading The Scheme shell Scsh
+
+In the Scheme--shell, Scsh, it could be useful to have certain
+comprehensions and generators.  Candidates for comprehensions are
+@func{begin-ec}, @func{|-ec}, @func{||-ec}, and @func{&&-ec}.
+
+Concerning generators, it might be useful to have @code{:directory}
+running through the records of a directory, and maybe a sophisticated
+@code{:file-match-generator} could enumerate file record in a directory
+structure.  Optional variables of the generators could give convenient
+access frequent components of the file records (e.g. the filename).
+Another candidate is @code{:env} to run through the environment
+associations.  It is left to other authors and other @srfi{}s to define
+a useful set of comprehensions and generators for Scsh.
+
+@c page
+@node loops design
+@subsection Design rationale
+
+
+@subsubheading What is the difference between eager and lazy comprehensions?
+
+A lazy comprehension, for example @func{stream-of} in the sense of
+@ansrfi{41}, constructs an object representing a sequence of values.  They
+are actually produced only at the time they are needed.  An eager
+comprehension, on the other hand, is an instruction to run through a
+certain sequence of values and do something with it, for example as in
+@func{do-ec}.  In other words, it is nothing more sophisticated than a
+loop, potentially with a more convenient notation.  This also explains
+why @func{stream-of} is the most fundamental lazy comprehension, and all
+others can be formulated in terms of it, whereas the most fundamental
+eager comprehension is @func{do-ec}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why the @code{[@var{outer} .. @var{inner} | @var{expr}]} order of qualifiers?
+
+In principle, there are six possible orders in which the qualifiers and
+the expression of a comprehension can be written.  We denote the
+different conventions with a pattern in which @var{expr} denotes the
+expression over which the comprehension ranges, @var{inner} denotes the
+generator spinning fastest, and @var{outer} denotes the generator
+spinning slowest.  For example, Haskell and Python use:
+
+@example
+[@var{expr} | @var{outer} .. @var{inner}]
+@end example
+
+Probably with sufficient persistence, instances for any of the
+conventions can be found on the Internet.  In addition, there is the
+common mathematical notation @code{@{f(x) | x in X@}}.
+
+It is important to understand that the notational convention does not
+only determine the order of enumeration but also the scope of the
+variables introduced by the generators.  The scope of @var{inner}
+includes @var{expr}, and the scope of @var{outer} should include
+@var{inner} to allow @var{inner} generators to depend on @var{outer}
+generators.  Eventually, the choice for a particular syntactic
+convention is largely a matter of personal preferences.  However, there
+are a few considerations that went into the choice made for this
+@srfi{}:
+
+@enumerate
+@item
+The mathematical notation is universally known and widely used.
+However, the mathematical notation denotes a set of comprehensions in
+which the order of the qualifiers is either irrelevant or must be
+deduced from the context.  For the purpose of eager comprehensions as a
+programming language construct, the order does matter and a simple
+convention is a plus.  For these reasons, the mathematical notation as
+such is undesirable, but its widespread use is in favor of:
+
+@example
+[@var{expr} | @var{inner} .. @var{outer}]
+@end example
+
+@noindent
+and:
+
+@example
+[@var{expr} | @var{outer} .. @var{inner}]
+@end example
+
+@item
+It is desirable to have the scope of the variables increase into one
+direction, as in:
+
+@example
+[@var{expr} | @var{inner} .. @var{outer}]
+@end example
+
+@noindent
+and:
+
+@example
+[@var{outer} .. @var{inner} | @var{expr}]
+@end example
+
+@noindent
+and not change direction, as in:
+
+@example
+[@var{expr} | @var{outer} .. @var{inner}]
+@end example
+
+@noindent
+where @var{expr} is in the scope of @var{inner} but @var{outer} is not.
+This is even more important if the syntax in Scheme does not explicitly
+contain the @code{|} separator.
+
+@item
+More complicated comprehensions with several nested generators
+eventually look like nested loops and Scheme always introduces them
+@var{outer} @dots{} @var{inner} as in @func{do} and named @func{let}.
+This is in favor of:
+
+@example
+[@var{expr} | @var{outer} .. @var{inner}]
+@end example
+
+@noindent
+and:
+
+@example
+[@var{outer} .. @var{inner} | @var{expr}]
+@end example
+
+Shorter comprehensions may look more naturally the other way around.
+@end enumerate
+
+Regarding these contradicting preferences, I regard linearity in scoping
+(point 2) most important, followed by readability for more complicated
+comprehensions (point 3).  This leads to:
+
+@example
+[@var{outer} .. @var{inner} | @var{expr}]
+@end example
+
+An example in Scheme syntax is:
+
+@example
+(list-ec (: x 10) (: y x) (f x y))
+@end example
+
+@noindent
+which looks acceptable to me even without similarity to the mathematical
+notation.  As a downside, the convention clashes with other the
+convention used in other languages (e.g. Haskell and Python).
+
+@c ------------------------------------------------------------
+
+@subsubheading You forgot @emph{choose your favorite here}--@code{ec!}
+
+I tried to construct a reasonably useful set of tools according to what
+@rnrs{5} specifies.  Nevertheless, the choice about what to include and
+what to leave out is a matter of personal preference.
+
+When ``packing the toolbox'' I went for travelling light; this @srfi{}
+does not include everything imaginable or even everything useful.  I
+oriented myself at the standard procedures of @rnrs{5}, with a few
+omissions and additions.  A notable omission are @func{gcd-ec} and
+@func{lcm-ec} because they are one--liners, and more severely, of
+questionable value in practice.  Notable additions are @func{fold-ec}
+and @func{fold3-ec}, providing a mechanism to define lots of useful
+one--liners.  The other notable addition is @func{first-ec}, which is
+the fundamental ``early stopping'' comprehension.  It is used to define
+@func{any?-ec} and @func{every?-ec} which are among the most frequent
+comprehensions.
+
+Concerning the generators, the same principle has been used.  Additions
+include @code{:range} and friends because they are universally needed,
+and @code{:dispatched} which is primarily intended for implementing
+@code{:}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is the order of enumeration specified?
+
+For the purpose of this @srfi{}, every generator runs through its
+sequence of bindings in a well specified order, and nested generators
+run through the Cartesian product in the order of nested loops.  The
+purpose of this definition is making the sequence as easily predictable
+as possible.  On the other hand, many mechanisms for lazy comprehensions
+do not specify the order in which the elements are enumerated.  When it
+comes to infinite streams, this has the great advantage that a
+comprehension may interleave an inner and an outer enumeration, a method
+also known as ``dove--tailing'' or ``diagonalizing''.  Interleaving
+ensures that any value of the resulting stream is produced after a
+finite amount of time, even if one or more inner streams are infinite.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why both typed and dispatching generators?
+
+The reason for typed generators is runtime efficiency.  In fact, the
+code produced by @code{:range} and others will run as fast as a
+hand--coded @func{do} loop.  The primary purpose of the dispatching
+generator is convenience.  It comes at the price of reduced runtime
+performance, both for loop iteration and startup.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why the @func{something-ec} and @code{:type} naming?
+
+The purpose of the @code{:type} convention is to keep many common
+comprehensions down to one--liners.  In my opinion, the fundamental
+nature of eager comprehensions justifies a single character naming
+convention.  The @func{something-ec} convention is primarily intended to
+stay away from the widely used @func{something-of}.  It reduces
+confusion and conflict with related mechanisms.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why combine variable binding and sequence definition?
+
+The generators of this @srfi{} do two different things with a single
+syntactic construct: They define a sequence of values to enumerate and
+they specify a variable (within a certain scope) to run through that
+sequence.  An alternative is to separate the two, for example as it has
+been done in @ansrfi{41}.
+
+The reason for combining sequence definition and enumeration for the
+purpose of this @srfi{} is threefold.  Firstly, sequences of values are
+not explicitly represented as objects in the typed generators; the
+generators merely manipulate an internal state.  Secondly, this @srfi{}
+aims at a most concise notation for common comprehensions and reduces
+syntax to the naked minimum.  Thirdly, this @srfi{} aims at the highest
+possible performance for typed generators, which is achieved if the
+state being manipulated is represented by the loop variable itself.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is @code{(: @var{vars})} illegal?
+
+It is reasonable and easy to define:
+
+@example
+(: @var{vars})
+@end example
+
+@noindent
+as:
+
+@example
+(:integers @var{vars})
+@end example
+
+@noindent
+enumerating the non--negative integers.  However, it turned out that a
+frequent mistake in using the eager comprehensions is to forget either
+the variable or an argument for the enumeration.  As this would lead to
+an infinite loop (not always equally pleasant in interactive sessions),
+it is not allowed.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is there no @code{:sequential}?
+
+Just like @code{:parallel} enumerates generators in parallel, a
+@code{:sequential} generator could enumerate a concatenation of several
+generator, starting the next one when the previous has finished.  The
+reason for not having such a qualifier is that the generators should use
+all the same variable name and there is no hygienic and referentially
+transparent way of enforcing this (or even knowing the variable).
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is there no general @func{let} qualifier?
+
+It is easy to add @func{let}, @func{let*}, and @func{letrec} as cases to
+@var{qualifier}.  This would allow more sophisticated local variables
+and expressions than possible with:
+
+@example
+(:let @var{vars} @var{expression})
+@end example
+
+@noindent
+and:
+
+@example
+(begin @var{sequence}*)
+@end example
+
+In particular, a local @var{definition} in the sense of @rnrs{5} Section
+7.1.5 would be possible.
+
+There are two reasons for not including @func{let} and friends as
+qualifiers.  The first reason concerns readability.  A qualifier of the
+form:
+
+@example
+(let (@var{binding-spec}*) @var{body})
+@end example
+
+@noindent
+only makes sense if the scope of the new variables ends at the end of
+the comprehension, and not already after @var{body}.  The similarity
+with ordinary @func{let} expressions would be very confusing.  The
+second reason concerns the design rationale.  If sophisticated
+@func{let} qualifiers involving recursion or local definitions are
+needed, it is likely that eager comprehensions are being overused.  In
+that case it might be better to define a procedure for the task.  So
+including an invitation to overuse the mechanism would be a serious
+violation of the Keep It Simple and Stupid principle.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is there no @code{:nested} generator?
+
+The specification above defines nested as a qualifier but
+@code{:parallel} as a generator.  In particular, this makes it
+impossible to make parallel generators from nested ones.
+
+This design simply reflects an implementability limitation.  All
+component generators of @code{:parallel} are transformed into
+@code{:do-generators} and these can be merged into a parallel generator.
+However, nested generators cannot be merged easily without losing the
+type of the generator, which would seriously hurt modularity and
+performance.
+
+@c ------------------------------------------------------------
+
+@subsubheading Is @func{any?-ec} eager?
+
+Yes, it is still eager because it immediately starts to run through the
+sequence.
+
+In fact, the reference implementation makes sure @func{first-ec},
+@func{any?-ec}, and @func{every?-ec} execute efficiently so they can be
+used conveniently as in:
+
+@example
+(every?-ec (:list x my-list) (pred? x))
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Why this whole @code{:dispatched} business?
+
+It is specified above that the dispatching generator, called @code{:},
+is just a special case of @code{:dispatched} using a global dispatching
+procedure.  Alternatively, a simple fixed global mechanism to extend
+@code{:} could have been used.  This is much simpler but does not
+support the definition of new dispatched generators.
+
+The purpose of @code{:dispatched} and its utilities
+(@code{:generator-proc} and @func{dispatch-union}) is the following.
+Assume @code{:} is to be used inside a module but it is essential that
+no other module can spoil it, e.g. by installing a very slow dispatcher.
+The recommended way to proceed in this case is to define a local copy of
+the original dispatching generator @code{:}, for example with the
+following code:
+
+@example
+(define :my-dispatch
+  (make-initial-:-dispatch))
+
+(define-syntax :my
+  (syntax-rules (index)
+    [(:my cc var (index i) arg1 arg ...)
+     (:dispatched cc var (index i) :my-dispatch arg1 arg ...)]
+    [(:my cc var arg1 arg ...)
+     (:dispatched cc var :my-dispatch arg1 arg ...)]))
+@end example
+
+@noindent
+and to use the new generator @code{:my} instead of @code{:}.
+
+An alternative for the dispatching mechanism as defined in this @srfi{}
+is the use of parameter objects in the sense of @ansrfi{39}.  The
+dispatching generator would then access a dynamically scoped variable to
+find the dispatcher, allowing full control over dispatching.  However,
+this approach does not solve the dilemma that it is sometimes useful
+that @code{:} is global and sometimes undesired.  The approach specified
+for this @srfi{} addresses this dilemma by offering options.
+
+Another alternative for dealing with the dispatching problem is adding
+an optional argument to the syntax of @code{:} through which the
+dispatcher can be passed explicitly.  However, as @code{:} has variable
+arity and the identifier for the variable cannot be distinguished from
+any value for a dispatcher, this is syntactically problematic.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is there no local mechanism for adding to @code{:}?
+
+According to @rnrs{5} Section 7.1.6 macros can only be defined at the
+level of the @code{<program>} syntax.  This implies that the scope of
+typed generators cannot easily be limited to local scopes.  As typed and
+dispatched generators go together, there is also no strong need for a
+limited scope of dispatched generators either.  Furthermore, locally
+extendable dispatchers are another major headache to those trying to
+understand other people's code.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why are dispatchers unary?
+
+As defined in @code{:dispatched}, a dispatching procedure is called with
+a single argument being the list of values to dispatch on.  An
+alternative is to apply the dispatcher to the list of values to dispatch
+on, which would be more natural in Scheme.
+
+The reason for not using apply is a minor improvement in efficiency.
+Every time @var{apply} is used on a procedure of variable arity, an
+object containing the argument list is allocated on the heap.  As a
+dispatcher may call many other dispatchers, this will add to the
+overhead of dispatching, which is relevant in inner loops.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why are there two fold comprehensions?
+
+The reason for having two fold comprehensions (@func{fold-ec} and
+@func{fold3-ec}) is efficiency.
+
+Clearly, the more general construction is @func{fold3-ec} as it allows
+individual treatment of the empty sequence case and the singleton
+sequence case.  However, this comes at the price of more book--keeping
+as can be seen from the implementation example.  As the overhead is
+located within inner loops, it makes sense to define another fold
+comprehension for the case where the added flexibility is not needed.
+This is @func{fold-ec}.
+
+The names @func{fold-ec} and @func{fold3-ec} have been chosen for the
+comprehensions in order to stay clear any other 'fold' that may be
+around.
+
+@c ------------------------------------------------------------
+
+@subsubheading Why is @code{:char-range} not defined by @func{integer->char}?
+
+The definition of @code{:char-range} specifies a sequence of adjacent
+characters ordered by @code{char<=?}.  The reason for not using
+@func{char->integer} and @func{integer->char} is the fact that @rnrs{5}
+Section 6.3.4 leaves it to the implementation whether the integers
+representing characters are consecutive or not.  In effect, this
+underspecification is inherited by @code{:char-range}.
+
+@c page
 @node random
 @section Sources of random bits
 
@@ -30651,7 +31720,8 @@ originating format, or similar.
 
 
 The @library{checks} library provides a simple mechanism for testing
-Scheme programs.  As a most primitive example, the expression:
+Scheme programs.  This library re--exports all the bindings from the
+@library{debugging} library.  As a primitive example, the expression:
 
 @example
 (check (+ 1 1) => 3)
@@ -30673,9 +31743,7 @@ by printing a message of the form:
 * checks select::               Selecting tests to be run.
 * checks eval::                 Evaluating code.
 * checks result::               Handling multiple results.
-* checks debug::                Printing debug messages.
 @end menu
-
 
 @c page
 @node checks select
@@ -30903,8 +31971,13 @@ Return the current value of the implicit variable defined by
 
 
 @c page
-@node checks debug
-@subsection Printing debug messages
+@node debugging
+@section Debugging utilities
+
+
+The @library{debugging} library provide simple utilities to help
+debugging.  All the following bindings are re--exported by the
+@library{checks} library.
 
 
 @deffn Parameter debugging
@@ -31252,6 +32325,343 @@ The S combinator:
        (?x Z (?y Z))))))
 @end example
 @end deffn
+
+@c page
+@node compensations
+@section Compensation stacks
+
+
+This section describes a form that implements compensation stacks:
+syntactic sugar that allows us to write code that allocates a resource
+near the code that releases it in case of error.
+
+@quotation
+Compensation stacks are described in: @emph{Finding and Preventing
+Run-Time Error Handling Mistakes}, by Westley Weimer, George C. Necula,
+2004.  In Proceedings of the @acronym{ACM} Conference on
+Object--Oriented Programming, Systems, Languages, and Applications.
+@end quotation
+
+@menu
+* compensations usage::         Basic compensations usage.
+* compensations api::           Compensations @api{}.
+@end menu
+
+@c page
+@node compensations usage
+@subsection Basic compensations usage
+
+
+A @dfn{compensation} is a chunk of code that undoes a resource
+allocation performed in another chunk, example:
+
+@example
+(define port
+  (open-file-input-port "/tmp/proof.1"))
+@end example
+
+@noindent
+must be ''compensated'' by:
+
+@example
+(close-port port)
+@end example
+
+@noindent
+with the compensations stack such code can be written:
+
+@example
+(with-compensations
+  (letrec
+      ((port (compensate
+                 (open-file-input-port "/tmp/proof.1")
+               (with
+                 (close-port port)))))
+    (make-use-of port)))
+@end example
+
+Compensation forms are embedded in a closure and pushed on a stack, so
+that, in case of error, it is possible to evaluate them in
+allocation--reversed order.
+
+A form that makes use of a compensation stack looks like this:
+
+@example
+(with-compensations
+    (compensate
+        ALLOC-FORMS-1
+      (with FREE-FORMS-1))
+    (compensate
+        ALLOC-FORMS-2
+      (with FREE-FORMS-2))
+  BODY-FORMS)
+@end example
+
+@noindent
+both @func{with-compensations} and @func{compensate} are syntaxes.  If
+no error occurs the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{BODY-FORMS}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{ALLOC-FORMS-2}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{ALLOC-FORMS-1}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{FREE-FORMS-1}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+@noindent
+if an error occurs in @code{FREE-FORMS-2}, the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+FREE-FORMS-2
+FREE-FORMS-1
+@end example
+
+So @func{with-compensations} tries to evaluate all the free forms,
+despite errors.  Of course if an error occurs in the middle of a set of
+forms:
+
+@example
+(first-form)   ;evaluated
+(raise 'here)
+(third-form)   ;not evaluated
+@end example
+
+@noindent
+the forms before the error are evaluated, while the forms after the
+error are not.
+
+A variant of @func{with-compensations} exists to evaluate the
+compensation forms only in case of error:
+
+@example
+(with-compensations/on-error
+    (compensate
+        ALLOC-FORMS-1
+      (with FREE-FORMS-1))
+    (compensate
+        ALLOC-FORMS-2
+      (with FREE-FORMS-2))
+  BODY-FORMS)
+@end example
+
+@noindent
+if no error occurs the order of evaluation is:
+
+@example
+ALLOC-FORMS-1
+ALLOC-FORMS-2
+BODY-FORMS
+@end example
+
+@noindent
+while if an error occurs the evaluation is equal to the cases of
+@func{with-compensations}.  The ``on error'' variant is useful in
+constructors and initialisation functions, where we want to run the
+compensations only if an error occurs; if no error is raised, we just
+want the constructor to return.
+
+@c page
+@node compensations api
+@subsection Compensations @api{}
+
+
+@deffn Syntax compensate @var{alloc-form0} @var{alloc-form} @dots{} (with @var{release-form0} @var{release-form} @dots{})
+Evaluate all the @var{alloc-form}s and, if no error occurs, push a
+closure holding the @var{release-form}s on the current compensations
+stack.  Return the return value of the last @var{alloc-form}.
+@end deffn
+
+
+@deffn Syntax with-compensations @var{form} @dots{}
+@deffnx Syntax with-compensations/on-error @var{form} @dots{}
+Initialise a new local compensations stack, then evaluate all the
+@var{form}s.  If no error occurs, return the return value of the last
+@var{form}.
+
+@func{with-compensations} always invokes @func{run-compensations} after
+the @var{form}s have been evaluated.
+
+@func{with-compensations/on-error} invokes @func{run-compensations}
+after the @var{form}s have been evaluated only if an exception was
+raised.
+@end deffn
+
+
+@defun run-compensation
+Evaluate all the compensation forms that are in the current stack, in
+last in/first out order.  The compensations are evaluated in the body of
+a @func{defer-exceptions}, so exceptions raised are handled as described
+in @ref{deferred exceptions}.
+@end defun
+
+
+@deffn Syntax push-compensation @var{release-form0} @var{release-form} ...
+Push a closure holding the @var{release-form}s on the current
+compensations stack.
+@end deffn
+
+@c page
+@node deferred exceptions
+@section Deferred exceptions
+
+
+The @library{deferred-exceptions} library implements a mechanism to
+handle nested exceptions.
+
+@menu
+* deferred exceptions intro::   Introduction.
+* deferred exceptions usage::   Usage examples.
+* deferred exceptions api::     Programming interface.
+@end menu
+
+@c page
+@node deferred exceptions intro
+@subsection Introduction
+
+
+When a non--continuable exception is raised: the stack unwinds and some
+mechanism is needed to release allocated resources that cannot be simply
+garbage collected.  Some mechanism requires asynchronous evaluation of
+cleanup code (guardians, for example), other mechanisms require
+synchronous evaluation of cleanup code (@ref{compensations}, for
+example).
+
+With synchronous cleanup code: what happens if the cleanup code itself
+raises an exception?  If this @emph{second level} exception is left
+going: it replaces the original one (@emph{first level}), which is lost:
+
+@example
+(import (scheme))
+
+(with-exception-handler
+    (lambda (e)
+      (raise 'second))
+  (lambda ()
+    (raise 'first)))
+@end example
+
+@noindent
+outputs:
+
+@example
+Unhandled exception:
+ Non-condition object: second
+@end example
+
+@noindent
+@code{first} is never reported.  We rarely want this.
+
+This section describes a form that can be used to save informations
+about second level exceptions, for the case in which it is fine to try
+to go on reporting the first level error.  With this form: second level
+exceptions can be reported later to the user or logged to a file or
+whatever.
+
+This mechanism is automatically used by compensation stacks, which are
+the reference use case (@ref{compensations}).
+
+@c page
+@node deferred exceptions usage
+@subsection Usage examples
+
+
+A form that uses deferred exceptions looks like this:
+
+@example
+(with-deferred-exceptions-handler
+    (lambda (exc)
+      (handle-the-exception exc))
+  (lambda ()
+    (before-do-something)
+    (before-do-something)
+    (defer-exceptions
+      (do-something)
+      (do-something))
+    (after-do-something)
+    (after-do-something)))
+@end example
+
+@noindent
+if the forms in the @func{defer-exceptions} raise an exception: the
+exception value is saved and evaluation goes on for the
+@code{(after-do-something)} forms.  Then the @func{lambda} is applied to
+the exception value.
+
+Any number of @func{defer-exceptions} can be put in the same
+@func{with-deferred-exceptions}.
+
+@c page
+@node deferred exceptions api
+@subsection Programming interface
+
+
+@deffn Syntax defer-exceptions @var{form} @dots{}
+Evaluate all the @var{form}s as in the body of a @func{begin}.
+
+If an exception is raised: its value is added to the list of exceptions
+in the dynamic environment of the current deferred exception handler.
+
+If @func{defer-exception} appears outside of a
+@func{with-deferred-exception-handler} form: the exceptions are silently
+discarded.
+@end deffn
+
+
+@deffn Syntax with-deferred-exceptions-handler @var{handler} @var{thunk}
+Setup a deferred exception handler dynamic environment, in which
+@var{handler} is the exceptions handler, for the evaluation of
+@var{thunk}.  If a deferred exception is raised
+@func{run-deferred-exceptions-handler} is invoked.
+@end deffn
+
+
+@defun run-deferred-exceptions-handler
+Apply the current deferred exceptions handler to each deferred exception
+value in the current list.  If the handler raises an exception: it is
+silently ignored.
+@end defun
 
 @c page
 @node keywords
@@ -40026,6 +41436,45 @@ second component is the rest of @var{token-list}.
 @end deffn
 
 @c page
+@node infix
+@section Infix notation utilities
+
+
+The @library{infix} library provides utilities to convert infix notation
+expressions to prefix notation expressions.  The library is built upon
+@library{silex lexer} and @library{lalr lr-driver}.
+
+@menu
+* infix strings::               Converting strings.
+@end menu
+
+@c page
+@node infix strings
+@subsection Converting strings
+
+
+@defun infix-string->sexpr @var{expr-string}
+Return the prefix S--expression corresponding to @var{expr-string}.
+Examples:
+
+@example
+(infix-string->sexpr "1*2-3")   @result{} (- (* 1 2) 3)
+(infix-string->sexpr "1\\3")    @result{} (div 1 3)
+(infix-string->sexpr "1%3")     @result{} (mod 1 3)
+(infix-string->sexpr "1^3")     @result{} (expt 1 3)
+
+(infix-string->sexpr "cos(sin(1.1)+4)")
+@result{} (cos (+ (sin 1.1) 4))
+
+(infix-string->sexpr "fun(1, 2, 3, 4)")
+@result{} (fun 1 2 3 4)
+
+(infix-string->sexpr "cos(a) * (tan(b) / c)")
+@result{} (* (cos a) (/ (tan b) c))
+@end example
+@end defun
+
+@c page
 @node kmp
 @section Knuth-Morris-Pratt searching
 
@@ -41968,7 +43417,7 @@ at the end of the world, if we feel like it, we can do:
 @subsection Compensations
 
 
-@ref{naulib compensations} for details about compensations.
+@ref{compensations} for details about compensations.
 
 
 @defun malloc/compensated @var{number-of-bytes}
@@ -44961,6 +46410,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @c ------------------------------------------------------------
 
+@subsubheading @ansrfi{42}: Eager comprehensions
+
+Copyright @copyright{} 2003 Sebastian Egner.  All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+@c ------------------------------------------------------------
+
 @subsubheading @ansrfi{43}: Vectors library
 
 Copyright @copyright{} 2003 Taylor Campbell.  All rights reserved.
@@ -44986,7 +46460,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @c ------------------------------------------------------------
 
-@subsubheading @ansrfi{67}: Comparison functions
+@subsubheading @ansrfi{67}: Compare procedures
 
 Copyright @copyright{} 2005 Sebastian Egner @email{sebastian.egner@@philips.com}@*
 Copyright @copyright{} 2005 Jens Axel Soegaard @email{jensaxel@@soegaard.net}.

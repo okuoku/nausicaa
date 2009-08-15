@@ -31,12 +31,21 @@
   Import the documentation from srfi.
   Finish testing, review and documentation.
 
+* comparisons
+
+  * Finish testing
+
+* args-fold
+
+  Port it from srfi to scheme projects.
+
 * streams
 
-  Import it.
+  Port it from srfi to scheme projects.
 
 * time
 
+  Port it from srfi to scheme projects.
   Rewrite?
 
 * strings

@@ -26,8 +26,12 @@ cleanup-handlers.sls
 combinators.sls
 ---------------
 
-compare.sls
------------
+comparisons.sls
+---------------
+
+This library is derived from  the reference implementation of SRFI-67 by
+Sebastian Egner and Jens Axel Soegaard.
+
 
 foreign.sls
 -----------

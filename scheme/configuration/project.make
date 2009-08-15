@@ -174,11 +174,11 @@ endif
 
 #page
 ## --------------------------------------------------------------------
-## Special rules: SILex test lexers building.
+## Special rules: SILex lexers building.
 ## --------------------------------------------------------------------
 
-SILEX_PROGRAMS	= $(wildcard $(srcdir)/tests/make-silex-*.sps)
-SILEX_LIBPATH	= $(abspath $(srcdir)/tests):$(abspath $(fasl_BUILDDIR))
+SILEX_TEST_PROGRAMS	= $(wildcard $(srcdir)/tests/make-silex-*.sps)
+SILEX_LIBPATH		= $(abspath $(srcdir)/tests):$(abspath $(fasl_BUILDDIR))
 
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 SILEX_ENV	= YPSILON_SITELIB=$(SILEX_LIBPATH):$(YPSILON_SITELIB)
@@ -194,10 +194,13 @@ SILEX_ENV	= LARCENY_LIBPATH=$(SILEX_LIBPATH):$(LARCENY_LIBPATH)
 SILEX_RUNNER	= $(SILEX_ENV) $(LARCENY) -r6rs -program
 endif
 
-.PHONY: silex
+.PHONY: silex silex-test silex-custom
 
-silex:
-	$(foreach f, $(SILEX_PROGRAMS),(cd $(srcdir)/tests && $(SILEX_RUNNER) $(f));)
+silex: silex-test
+
+silex-test:
+	$(foreach f, $(SILEX_TEST_PROGRAMS),\
+		(cd $(srcdir)/tests && $(SILEX_RUNNER) $(f));)
 
 #page
 ## --------------------------------------------------------------------
@@ -252,6 +255,32 @@ endif
 
 csv:
 	cd $(srcdir)/src/libraries/csv && $(CSV_RUNNER) $(CSV_PROGRAM)
+
+#page
+## --------------------------------------------------------------------
+## Special rules: Infix lexer and parser building.
+## --------------------------------------------------------------------
+
+INFIX_LIBPATH	= $(abspath $(fasl_BUILDDIR))
+
+ifeq (yes,$(nausicaa_ENABLE_YPSILON))
+INFIX_ENV	= YPSILON_SITELIB=$(INFIX_LIBPATH):$(YPSILON_SITELIB)
+INFIX_RUNNER	= $(INFIX_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
+INFIX_ENV	= IKARUS_LIBRARY_PATH=$(INFIX_LIBPATH):$(IKARUS_LIBRARY_PATH)
+INFIX_RUNNER	= $(INFIX_ENV) $(IKARUS) --r6rs-script
+else ifeq (yes,$(nausicaa_ENABLE_MOSH))
+INFIX_ENV	= MOSH_LOADPATH=$(INFIX_LIBPATH):$(MOSH_LOADPATH)
+INFIX_RUNNER	= $(INFIX_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
+INFIX_ENV	= LARCENY_LIBPATH=$(INFIX_LIBPATH):$(LARCENY_LIBPATH)
+INFIX_RUNNER	= $(INFIX_ENV) $(LARCENY) -r6rs -program
+endif
+
+.PHONY: infix
+
+infix:
+	cd $(srcdir)/src/libraries/infix && $(INFIX_RUNNER) make-tables.sps
 
 #page
 ## --------------------------------------------------------------------

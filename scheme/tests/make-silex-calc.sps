@@ -31,6 +31,33 @@
   (silex))
 
 
+;;;
+;;;Part of: Nausicaa/Scheme
+;;;Contents: calculator lexer
+;;;Date: Sat Aug 15, 2009
+;;;
+;;;Abstract
+;;;
+;;;	The lexer table is derived  from the lexer in Guile-Arith by Ian
+;;;	Grant <iang@pobox.com>.
+;;;
+;;;Copyright (c) 2007, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (C) 2000 The Free Software Foundation
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
 (define l "
 blanks		[ \\9\\10\\13]+
 
@@ -50,7 +77,7 @@ nan             \\-nan\\.0|\\+nan\\.0|nan\\.0
 inf             \\-inf\\.0|\\+inf\\.0|inf\\.0
 
 initial         [a-zA-Z_]
-subsequent      {initial}|[0-9.@]
+subsequent      {initial}|[0-9\\.@!$&:<=>?~\\-]
 symbol          {initial}{subsequent}*
 
 cmpoperator	(<=|>=)

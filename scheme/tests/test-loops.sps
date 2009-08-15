@@ -37,37 +37,7 @@
 (display "*** testing loops\n")
 
 
-(define (my-equal? x y)
-  (cond
-   ((or (boolean? x)
-        (null? x)
-        (symbol? x)
-        (char? x)
-        (input-port? x)
-        (output-port? x) )
-    (eqv? x y) )
-   ((string? x)
-    (and (string? y) (string=? x y)) )
-   ((vector? x)
-    (and (vector? y)
-         (my-equal? (vector->list x) (vector->list y)) ))
-   ((pair? x)
-    (and (pair? y)
-         (my-equal? (car x) (car y))
-         (my-equal? (cdr x) (cdr y)) ))
-   ((real? x)
-    (and (real? y)
-         (eqv? (exact? x) (exact? y))
-         (if (exact? x)
-             (= x y)
-	   (< (abs (- x y)) (/ 1 (expt 10 6))) ))) ; will do here
-   (else
-    (error "unrecognized type" x) )))
-
-
-		; ==========================================================================
-		; do-ec
-		; ==========================================================================
+;;;; do-ec
 
 (check
     (let ((x 0)) (do-ec (set! x (+ x 1))) x)
@@ -81,10 +51,8 @@
     (let ((x 0)) (do-ec (:range n 10) (:range k n) (set! x (+ x 1))) x)
   => 45)
 
-
-		; ==========================================================================
-		; list-ec and basic qualifiers
-		; ==========================================================================
+
+;;;; list-ec and basic qualifiers
 
 (check (list-ec 1) => '(1))
 
@@ -123,10 +91,8 @@
     (list-ec (nested (:range n 3) (:range k n)) k)
   => '(0 0 1) )
 
-
-		; ==========================================================================
-		; Other comprehensions
-		; ==========================================================================
+
+;;;; other comprehensions
 
 (check (append-ec '(a b)) => '(a b))
 (check (append-ec (:range i 0) '(a b)) => '())
@@ -216,10 +182,8 @@
     (fold3-ec 'infinity (:range i 0) i min min)
   => 'infinity )
 
-
-		; ==========================================================================
-		; Typed generators
-		; ==========================================================================
+
+;;;; typed generators
 
 (check (list-ec (:list x '()) x) => '())
 (check (list-ec (:list x '(1)) x) => '(1))
@@ -283,10 +247,8 @@
 	(lambda (port) (list-ec (:port x port) x)) ))
   => (list-ec (:range n 10) n) )
 
-
-		; ==========================================================================
-		; The special generators :do :let :parallel :while :until
-		; ==========================================================================
+
+;;;; the special generators :do :let :parallel :while :until
 
 (check (list-ec (:do ((i 0)) (< i 4) ((+ i 1))) i) => '(0 1 2 3))
 
@@ -390,9 +352,8 @@
       n)
   => 5)
 
-		; ==========================================================================
-		; The dispatching generator
-		; ==========================================================================
+
+;;;; the dispatching generator
 
 (check (list-ec (: c '(a b)) c) => '(a b))
 (check (list-ec (: c '(a b) '(c d)) c) => '(a b c d))
@@ -433,10 +394,8 @@
 	(lambda (port) (list-ec (: x port) x)) ))
   => (list-ec (:range n 10) n) )
 
-
-		; ==========================================================================
-		; With index variable
-		; ==========================================================================
+
+;;;; with index variable
 
 (check (list-ec (:list c (index i) '(a b)) (list c i)) => '((a 0) (b 1)))
 (check (list-ec (:string c (index i) "a") (list c i)) => '((#\a 0)))
@@ -467,10 +426,8 @@
 	(lambda (port) (list-ec (: x (index i) port) (list x i))) ))
   => '((0 0) (1 1) (2 2) (3 3) (4 4) (5 5) (6 6) (7 7) (8 8) (9 9)) )
 
-
-		; ==========================================================================
-		; The examples from the SRFI document
-		; ==========================================================================
+
+;;;; the examples from the SRFI document
 
 		; from Abstract
 
@@ -490,10 +447,8 @@
     (list-ec (:string c (index i) "a" "b") (cons c i))
   => '((#\a . 0) (#\b . 1)) )
 
-
-		; ==========================================================================
-		; Little Shop of Horrors
-		; ==========================================================================
+
+;;;; little shop of horrors
 
 (check (list-ec (:range x 5) (:range x x) x) => '(0 0 1 0 1 2 0 1 2 3))
 
@@ -505,10 +460,8 @@
 	     (list x i))
   => '((0 10) (1 9) (2 8) (3 7) (4 6)) )
 
-
-		; ==========================================================================
-		; Less artificial examples
-		; ==========================================================================
+
+;;;; less artificial examples
 
 (define (factorial n) ; n * (n-1) * .. * 1 for n >= 0
   (product-ec (:range k 2 (+ n 1)) k) )

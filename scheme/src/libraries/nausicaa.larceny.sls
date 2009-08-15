@@ -785,14 +785,6 @@
     ;; simple syntaxes
     dotimes dolist loop-upon-list ensure
 
-    ;; deferred exceptions
-    with-deferred-exceptions-handler
-    defer-exceptions run-deferred-exceptions-handler
-
-    ;; compensations
-    with-compensations with-compensations/on-error
-    compensate run-compensations push-compensation
-
     ;; miscellaneous
     symbol*->string symbol->string/maybe do*
 

@@ -29,7 +29,8 @@
   (foreign memory)
   (peekers-and-pokers)
   (foreign ffi sizeof)
-  (format))
+  (format)
+  (compensations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory\n")

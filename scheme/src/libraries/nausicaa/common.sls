@@ -176,14 +176,6 @@
     ;; simple syntaxes
     dotimes dolist loop-upon-list ensure
 
-    ;; deferred exceptions
-    with-deferred-exceptions-handler
-    defer-exceptions run-deferred-exceptions-handler
-
-    ;; compensations
-    with-compensations with-compensations/on-error
-    compensate run-compensations push-compensation
-
     ;; miscellaneous
     symbol*->string symbol->string/maybe)
   (import (rename (rnrs)
@@ -192,11 +184,13 @@
 		  (nan?		rnrs:nan?)
 		  (=		rnrs:=))
     (parameters)
+    (language-extensions)
+    (unimplemented)
     (rnrs mutable-pairs)
     (rnrs mutable-strings))
 
 
-;;;; extension for finite?, infinite?, nan?
+;;;; extensions of numeric functions
 
 (define (finite? num)
   (if (complex? num)
@@ -231,170 +225,6 @@
     (rnrs:= obj obj))
    ((obj . objs)
     (apply rnrs:= obj objs))))
-
-
-;;;; syntactic absractions
-
-(define-syntax and-let*
-  (lambda (stx)
-    (define (get-id c)
-      (syntax-case c () [(var expr) #'var] [_ #f]))
-    (syntax-case stx ()
-      [(_ (clause* ...) body* ...)
-       (for-all identifier? (filter values (map get-id #'(clause* ...))))
-       #'(and-let*-core #t (clause* ...) body* ...)])))
-
-(define-syntax and-let*-core
-  (lambda (stx)
-    (syntax-case stx ()
-      [(kw _ ([var expr] clause* ...) body* ...)
-       #'(let ([var expr])
-	   (if var
-               (kw var (clause* ...) body* ...)
-	     #f))]
-      [(kw _ ([expr] clause* ...) body* ...)
-       #'(let ([t expr])
-	   (if t
-               (kw t (clause* ...) body* ...)
-	     #f))]
-      [(kw _ (id clause* ...) body* ...)
-       (or (identifier? #'id)
-	   (syntax-violation #f "invalid clause" stx #'id))
-       #'(if id
-             (kw id (clause* ...) body* ...)
-	   #f)]
-      [(kw last () body* ...)
-       (if (positive? (length #'(body* ...)))
-           #'(begin body* ...)
-	 #'last)])))
-
-;;; --------------------------------------------------------------------
-
-;;;This  syntax  comes  from  the  R6RS original  document,  Appendix  A
-;;;``Formal semantics''.
-(define-syntax begin0
-  (syntax-rules ()
-    ((_ ?expr0 ?expr ...)
-     (call-with-values
-	 (lambda () ?expr0)
-       (lambda x
-	 ?expr ...
-	 (apply values x))))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax receive
-  (syntax-rules ()
-    ((_ formals expression b b* ...)
-     (call-with-values
-         (lambda () expression)
-       (lambda formals b b* ...)))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax recursion
-  (syntax-rules ()
-    ((_ (?name . ?variables) . ?body)
-     (letrec ((?name (lambda ?variables . ?body))) ?name))
-    ((_ ?name ?expr)
-     (letrec ((?name ?expr)) ?name))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax internal-cut
-  (syntax-rules (<> <...>)
-    ((internal-cut (?slot-name ...) (?proc ?arg ...))
-     (lambda (?slot-name ...) ((begin ?proc) ?arg ...)))
-    ((internal-cut (?slot-name ...) (?proc ?arg ...) <...>)
-     (lambda (?slot-name ... . rest-slot) (apply ?proc ?arg ... rest-slot)))
-    ((internal-cut (?slot-name ...)	(?position ...)		<>   . ?se)
-     (internal-cut (?slot-name ... x)	(?position ... x)	     . ?se))
-    ((internal-cut (?slot-name ...)	(?position ...)		?nse . ?se)
-     (internal-cut (?slot-name ...)	(?position ... ?nse)	     . ?se))))
-
-(define-syntax internal-cute
-  (syntax-rules (<> <...>)
-    ((internal-cute (?slot-name ...) ?nse-bindings (?proc ?arg ...))
-     (let ?nse-bindings (lambda (?slot-name ...) (?proc ?arg ...))))
-    ((internal-cute (?slot-name ...) ?nse-bindings (?proc ?arg ...) <...>)
-     (let ?nse-bindings (lambda (?slot-name ... . x) (apply ?proc ?arg ... x))))
-    ((internal-cute (?slot-name ...)   ?nse-bindings  (?position ...)   <>  . se)
-     (internal-cute (?slot-name ... x) ?nse-bindings  (?position ... x)     . se))
-    ((internal-cute ?slot-names        ?nse-bindings  (?position ...)   nse . se)
-     (internal-cute ?slot-names ((x nse) . ?nse-bindings) (?position ... x) . se))))
-
-(define-syntax cut
-  (syntax-rules ()
-    ((cut . slots-or-exprs)
-     (internal-cut () () . slots-or-exprs))))
-
-(define-syntax cute
-  (syntax-rules ()
-    ((cute . slots-or-exprs)
-     (internal-cute () () () . slots-or-exprs))))
-
-;;; --------------------------------------------------------------------
-
-(define-syntax do*
-  ;;Like DO,  but binds  the iteration variables  like LET*  rather than
-  ;;like LET.   Notice the "quoting"  of the ellipsis in  the LET-SYNTAX
-  ;;expressions.
-  (syntax-rules ()
-    ((_ ((?var ?init ?step ...) ...)
-	(?test ?expr ...)
-	?form ...)
-     (let-syntax ((the-expr (syntax-rules ()
-			      ((_)
-			       (values))
-			      ((_ ?-expr0 ?-expr (... ...))
-			       (begin ?-expr0 ?-expr (... ...)))))
-		  (the-step (syntax-rules ()
-			      ((_ ?-var)
-			       ?-var)
-			      ((_ ?-var ?-step)
-			       ?-step)
-			      ((_ ?-var ?-step0 ?-step (... ...))
-			       (syntax-violation 'do*
-						 "invalid step specification"
-						 '(?-step0 ?-step (... ...)))))))
-       (let* ((?var ?init) ...)
-	 (let loop ((?var ?var) ...)
-	   (if ?test
-	       (the-expr ?expr ...)
-	     (begin
-	       ?form ...
-	       (loop (the-step ?var ?step ...) ...)))))))))
-
-;;;This is an old version.
-#;(define-syntax do*
-  (syntax-rules ()
-    ((_ ((?var ?init ?step ...) ...)
-	(?test ?expr ...)
-	?form ...)
-     (let* ((?var ?init) ...)
-       (let loop ((?var ?var) ...)
-	 (if ?test
-	     (do* "expr" ?expr ...)
-	   (loop (do* "step" ?var ?step ...) ...)))))
-
-    ;;What follows is a trick to  allow "?expr ..."  to be missing and
-    ;;have a clean exit expression.  The trick is derived from a trick
-    ;;in the R5RS specification.
-    ((_ "expr")
-     (values))
-    ((_ "expr" ?expr0 ?expr ...)
-     (begin ?expr0 ?expr ...))
-
-    ;;What follows is a trick to allow "?step ..." to be missing.  The
-    ;;trick is from the R5RS specification.
-    ((_ "step" ?var)
-     ?var)
-    ((_ "step" ?var ?step)
-     ?step)
-    ((_ "step" ?var ?step0 ?step ...)
-     (syntax-violation 'do* "invalid step specification" '(?step0 ?step ...)))))
-
-;;; --------------------------------------------------------------------
 
 
 ;;;; writing and reading shared structures
@@ -645,187 +475,6 @@
 		       (vector-set! obj i (unthunk elt))
 		     (fill-in-parts elt))))))))
     obj))
-
-
-;;;; unimplemented exception
-
-(define-condition-type &unimplemented &error
-  make-unimplemented-condition
-  unimplemented-condition?)
-
-(define raise-unimplemented-error
-  (case-lambda
-   ((who)
-    (raise-unimplemented-error who "feature not implemented or not available" #f))
-   ((who message)
-    (raise-unimplemented-error who message #f))
-   ((who message . irritants)
-    (raise (let ((c (condition (make-who-condition who)
-			       (make-message-condition message)
-			       (make-unimplemented-condition))))
-	     (if irritants
-		 (condition c (make-irritants-condition irritants))
-	       c))))))
-
-
-;;;; simple language extensions
-
-(define-syntax dotimes
-  (syntax-rules ()
-    ((_ (?varname ?exclusive-count) ?form0 ?form ...)
-     (dotimes (?varname ?exclusive-count #f) ?form0 ?form ...))
-    ((_ (?varname ?exclusive-count ?result) ?form0 ?form ...)
-     (do ((?varname 0 (+ 1 ?varname)))
-	 ((>= ?varname ?exclusive-count)
-	  ?result)
-       ?form0 ?form ...))))
-
-(define-syntax dolist
-  (syntax-rules ()
-    ((_ (?varname ?list) ?form0 ?form ...)
-     (dolist (?varname ?list #f) ?form0 ?form ...))
-    ((_ (?varname ?list ?result) ?form0 ?form ...)
-     (let ((ell ?list))
-       (let loop ((?varname (car ell))
-		  (the-list (cdr ell)))
-	 ?form0 ?form ...
-	 (if (null? the-list)
-	     ?result
-	   (loop (car the-list) (cdr the-list))))))))
-
-(define-syntax loop-upon-list
-  (syntax-rules (break-when)
-    ((_ (?varname ?list) (break-when ?condition) ?form0 ?form ...)
-     (loop-upon-list (?varname ?list #f) (break-when ?condition) ?form0 ?form ...))
-    ((_ (?varname ?list ?result) (break-when ?condition) ?form0 ?form ...)
-     (let ((exit	(lambda () #f ?result))
-	   (ell		?list))
-       (let loop ((ell		(cdr ell))
-		  (?varname	(car ell)))
-	 (if ?condition
-	     (exit)
-	   (begin
-	     ?form0 ?form ...
-	     (if (null? ell)
-		 (exit)
-	       (loop (cdr ell) (car ell))))))))))
-
-(define-syntax ensure
-  (syntax-rules (by else else-by)
-    ((_ ?condition
-	(by ?by-form0 ?by-form ...)
-	(else-by ?else-by-form0 ?else-by-form ...) ...
-	(else ?else-form0 ?else-form ...))
-     (let ((retval #f))
-       (loop-upon-list
-	   (expr (list (lambda () ?by-form0 ?by-form ...)
-		       (lambda () ?else-by-form0 ?else-by-form ...)
-		       ...
-		       (lambda () ?else-form0 ?else-form ...))
-		 retval)
-	   (break-when ?condition)
-	 (set! retval (expr)))))))
-
-;;Define a macro with the function-like form.
-;; (define-syntax define-as-syntax
-;;   (syntax-rules ()
-;;     ((_ (?name ?arg ...) ?form0 ?form ...)
-;;      (define-syntax ?name
-;;        (syntax-rules ()
-;; 	 ((?name ?arg ...)
-;; 	  ?form0 ?form ...))))))
-
-
-;;;; deferred exceptions
-
-(define deferred-exceptions
-  (make-parameter #f))
-
-(define deferred-exceptions-handler
-  (make-parameter #f))
-
-(define (run-deferred-exceptions-handler)
-  (unless (null? (deferred-exceptions))
-    (for-each
-	(lambda (exc)
-	  (guard (exc (else #f))
-	    ((deferred-exceptions-handler) exc)))
-      (deferred-exceptions))
-    (deferred-exceptions '())))
-
-(define-syntax defer-exceptions
-  (syntax-rules ()
-    ((_ ?form0 ?form ...)
-     (guard (exc (else
-		  (let ((e (deferred-exceptions)))
-		    (and e (deferred-exceptions (cons exc e))))))
-       ?form0 ?form ...))))
-
-(define-syntax with-deferred-exceptions-handler
-  (syntax-rules ()
-    ((_ ?handler ?thunk)
-     (parameterize ((deferred-exceptions '())
-		    (deferred-exceptions-handler ?handler))
-       (dynamic-wind
-	   (lambda () #f)
-	   ?thunk
-	   (lambda () (run-deferred-exceptions-handler)))))))
-
-
-
-;;;; compensations
-
-(define compensations
-  (make-parameter #f))
-
-(define (run-compensations)
-  (when (compensations)
-    (for-each
-	(lambda (closure)
-	  (defer-exceptions
-	    (closure)))
-      (compensations))
-    (compensations '())))
-
-(define-syntax with-compensations/on-error
-  (syntax-rules ()
-    ((_ ?form0 ?form ...)
-     (parameterize ((compensations '()))
-       (with-exception-handler
-	   (lambda (exc)
-	     (run-compensations)
-	     (raise exc))
-	 (lambda ()
-	   ?form0 ?form ...))))))
-
-(define-syntax with-compensations
-  (syntax-rules ()
-    ((_ ?form0 ?form ...)
-     (parameterize ((compensations '()))
-       (dynamic-wind
-	   (lambda () #f)
-	   (lambda () ?form0 ?form ...)
-	   (lambda () (run-compensations)))))))
-
-(define-syntax push-compensation
-  (syntax-rules ()
-    ((_ ?release0 ?release ...)
-     (begin
-       (compensations (cons (lambda () ?release0 ?release ...)
-			    (compensations)))))))
-
-(define-syntax compensate
-  (syntax-rules (begin with)
-    ((_ (begin ?alloc0 ?alloc ...) (with ?release0 ?release ...))
-     (begin0
-	 (begin ?alloc0 ?alloc ...)
-       (push-compensation ?release0 ?release ...)))
-
-    ((_ (begin ?alloc0 ?alloc ...) ?allocn ?form ...)
-     (compensate (begin ?alloc0 ?alloc ... ?allocn) ?form ...))
-
-    ((_ ?alloc ?form ...)
-     (compensate (begin ?alloc) ?form ...))))
 
 
 ;;;; miscellaneous definitions

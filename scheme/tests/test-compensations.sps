@@ -25,9 +25,9 @@
 
 
 
-
 (import (nausicaa)
-  (checks))
+  (checks)
+  (compensations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing compensations\n")

@@ -35,6 +35,12 @@
 (compile-library "pretty-print.larceny.sls"
 		 "pretty-print.larceny.slfasl")
 
+(compile-library "language-extensions.sls"
+		 "language-extensions.slfasl")
+
+(compile-library "unimplemented.sls"
+		 "unimplemented.slfasl")
+
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")
 
@@ -120,6 +126,12 @@
 
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")
+
+(compile-library "deferred-exceptions.sls"
+		 "deferred-exceptions.slfasl")
+
+(compile-library "compensations.sls"
+		 "compensations.slfasl")
 
 (compile-library "object-properties.sls"
 		 "object-properties.slfasl")

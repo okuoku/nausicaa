@@ -23,8 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
+#!r6rs
 (library (foreign memory)
   (export
     ;;memory functions
@@ -169,6 +169,7 @@
   (import (nausicaa)
     (foreign memory compat)
     (foreign ffi sizeof)
+    (compensations)
     (format))
 
 

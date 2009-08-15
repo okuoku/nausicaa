@@ -48,7 +48,8 @@
   (import (nausicaa)
     (foreign ffi)
     (foreign ffi sizeof)
-    (foreign memory))
+    (foreign memory)
+    (compensations))
 
 
 ;;;; inspection

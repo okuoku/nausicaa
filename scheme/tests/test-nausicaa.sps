@@ -24,8 +24,6 @@
 ;;;
 
 
-;;;; setup
-
 (import (nausicaa)
   (checks))
 
@@ -137,13 +135,8 @@
 
 ;;; --------------------------------------------------------------------
 
-(check
-    (equal? 1 2)
-  => #f)
-
-(check
-    (equal? 1 1)
-  => #t)
+(check (equal? 1 2) => #f)
+(check (equal? 1 1) => #t)
 
 (check (equal? +nan.0 +nan.0)	=> #t)
 (check (equal? +nan.0 -nan.0)	=> #t)
@@ -167,9 +160,9 @@
 
 ;;; --------------------------------------------------------------------
 
-(check (max 1 +nan.0) => 1.0)
-(check (nan? (min 1 +nan.0)) => #t)
-(check (* 0 +nan.0) => +nan.0)
+(check-for-true (nan? (max 1 +nan.0)))
+(check-for-true (nan? (min 1 +nan.0)))
+(check-for-true (nan? (* 0 +nan.0)))
 
 ;;; --------------------------------------------------------------------
 

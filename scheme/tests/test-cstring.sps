@@ -23,14 +23,12 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
 (import (nausicaa)
   (checks)
   (foreign memory)
-  (foreign cstring))
+  (foreign cstring)
+  (compensations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing cstring\n")

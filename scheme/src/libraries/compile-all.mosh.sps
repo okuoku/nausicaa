@@ -24,8 +24,12 @@
 ;;;
 
 (import
-    (only (nausicaa))
+    (only (language-extensions))
+  (only (unimplemented))
   (only (parameters))
+  (only (pretty-print))
+  (only (nausicaa common))
+  (only (nausicaa))
   (only (lists))
   (only (one-dimension-cc))
   (only (one-dimension-co))
@@ -48,6 +52,8 @@
 
   (only (scmobj))
 
+  (only (deferred-exceptions))
+  (only (compensations))
   (only (object-properties))
   (only (cleanup-handlers))
   (only (queues))
