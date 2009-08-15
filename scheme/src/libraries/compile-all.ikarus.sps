@@ -77,6 +77,12 @@
   (only (csv unquoted-data-comma-lexer))
   (only (csv))
 
+  (only (infix string-lexer))
+  (only (infix sexp-parser))
+  (only (infix string-parser))
+  (only (infix))
+  (only (infix syntax))
+
   (only (foreign))
   (only (foreign guarded-malloc))
   (only (peekers-and-pokers))

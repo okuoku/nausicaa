@@ -41446,6 +41446,7 @@ expressions to prefix notation expressions.  The library is built upon
 
 @menu
 * infix strings::               Converting strings.
+* infix sexp::                  Converting S--expressions.
 @end menu
 
 @c page
@@ -41453,7 +41454,7 @@ expressions to prefix notation expressions.  The library is built upon
 @subsection Converting strings
 
 
-@defun infix-string->sexpr @var{expr-string}
+@defun infix-string->sexp @var{expr-string}
 Return the prefix S--expression corresponding to @var{expr-string}.  The
 S--expression can be used directly for some symbolic interpretation or
 evaluated with @func{eval}.  @ref{stdlib eval, Evaluation}
@@ -41477,6 +41478,13 @@ Examples:
 @end example
 @end defun
 
+Some interpretation rules:
+
+@itemize
+@item
+Blank characters are ignored.
+
+@item
 Symbols in @var{expr-string} must match the following @library{silex}
 regular expression:
 
@@ -41489,6 +41497,7 @@ symbol          @{initial@}@{subsequent@}*
 @noindent
 @ref{silex syntax, Syntax of the specification}.
 
+@item
 The following binary, infix operators are supported, in order of
 increasing precedence from left to right:
 
@@ -41501,6 +41510,106 @@ remember that the Scheme comparison operators are meant to return a
 boolean value, rather than a number object.  @samp{//} stands for
 @func{div}, @samp{%} stands for @func{mod}, @samp{^} stands for
 @func{expt}.
+
+@item
+Every symbol which is not an operator is interpreted as variable
+reference or function call.  If the first non--blank character following
+the symbol is an open parenthesis, it is interpreted as function call.
+@end itemize
+
+@c page
+@node infix sexp
+@subsection Converting S--expressions
+
+
+The function @func{infix->prefix} is exported by @library{infix}, but
+the macro @func{infix->prefix*} is exported by @library{infix syntax}.
+
+
+@defun infix->prefix @var{sexp}
+Convert the infix S--expression @var{sexp} into a prefix S--expression.
+The S--expression can be used directly for some symbolic interpretation
+or evaluated with @func{eval}.  @ref{stdlib eval, Evaluation}
+
+Examples:
+
+@example
+(infix->prefix '(1 + 2 + 3))    @result{} '(+ (+ 1 2) 3))
+(infix->prefix '(1 + 2 - 3))    @result{} '(- (+ 1 2) 3))
+(infix->prefix '(1 + (2 + 3)))  @result{} '(+ 1 (+ 2 3)))
+(infix->prefix '(1 + (2 - 3)))  @result{} '(+ 1 (- 2 3)))
+
+(infix->prefix '(cos (sin (1.1))))
+@result{} '(cos (sin 1.1)))
+
+(infix->prefix '(cos (sin (1.1) + 4)))
+@result{} '(cos (+ (sin 1.1) 4)))
+
+(infix->prefix '(fun (1.1 2)))
+@result{} '(fun 1.1 2))
+
+(infix->prefix '(fun (1 2 3 4)))
+@result{} '(fun 1 2 3 4))
+@end example
+@end defun
+
+
+@deffn Syntax infix->prefix* @var{sexp}
+Like @func{infix->prefix} but evaluates the result on the spot.  The
+syntax allows us to evaluated forms like:
+
+@example
+(* (cos 1) (/ (tan 2) 3))
+@result{} -0.39352735884466783
+
+(let ((a 1)
+      (b 2)
+      (c 3))
+  (infix->prefix* ((cos (a)) * ((tan (b)) / c))))
+@result{} -0.39352735884466783
+@end example
+
+This macro is exported by @library{infix syntax}.
+@end deffn
+
+
+Some interpretation rules:
+
+@itemize
+@item
+The following binary, infix operators are supported, in order of
+increasing precedence from left to right:
+
+@example
++ - * / // % ^ < > <= >= =
+@end example
+
+@noindent
+remember that the Scheme comparison operators are meant to return a
+boolean value, rather than a number object.  @samp{//} stands for
+@func{div}, @samp{%} stands for @func{mod}, @samp{^} stands for
+@func{expt}.
+
+@item
+The elements of the S--expression can be numbers, symbols, procedures,
+all ``the other'' values.
+
+@item
+Symbols which are not operators are interpreted as variable references
+or function calls.  If a symbol is followed by a list, it is a function
+call.
+
+@item
+Function calls with one or more arguments require the arguments to be
+grouped in a list.  There is no special separator in the list of
+arguments.
+
+@item
+Procedures are treated like non--operator symbols.
+
+@item
+Numbers and all ``the other'' values are just put there.
+@end itemize
 
 @c page
 @node kmp

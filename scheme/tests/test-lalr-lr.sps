@@ -277,7 +277,9 @@
 (parameterise ((check-test-name 'associativity))
 
   (define parser-terminals
-    '(N (left: A) (right: M) (nonassoc: U)))
+    '(N (left: A)
+	(right: M)
+	(nonassoc: U)))
 
   (define parser-non-terminals
     '((E	(N)		: $1

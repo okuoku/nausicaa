@@ -10,28 +10,24 @@
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;;This  program  is free  software:  you  can redistribute  it
-;;;and/or modify it  under the terms of the  GNU General Public
-;;;License as published by the Free Software Foundation, either
-;;;version  3 of  the License,  or (at  your option)  any later
-;;;version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
-
 
 
 (library (infix)
   (export
-    infix-string->sexpr
+    infix-string->sexp
     infix->prefix)
   (import (rnrs)
     (silex lexer)
@@ -68,15 +64,15 @@
     token))
 
 
-(define (infix-string->sexpr string)
+(define (infix-string->sexp string)
   (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	 (lexer		(lexer-make-lexer infix-string-lexer-table IS))
 	 (parser	(make-infix-string-parser)))
     (parser lexer error-handler #f)))
 
 
-(define (infix->prefix sexpr)
-  (let* ((tokens	(infix-sexpr->tokens sexpr))
+(define (infix->prefix sexp)
+  (let* ((tokens	(infix-sexp->tokens sexp))
 	 (lexer		(lambda ()
 			  (if (null? tokens)
 			      eoi-token
@@ -86,10 +82,10 @@
 	 (parser	(make-infix-sexp-parser)))
     (parser lexer error-handler #f)))
 
-(define (infix-sexpr->tokens expr)
-  (reverse (%infix-sexpr->tokens expr)))
+(define (infix-sexp->tokens expr)
+  (reverse (%infix-sexp->tokens expr)))
 
-(define (%infix-sexpr->tokens expr)
+(define (%infix-sexp->tokens expr)
   (do ((result '())
        (expr	(if (pair? expr) expr (list expr)) (cdr expr)))
       ((null? expr)
@@ -122,8 +118,10 @@
 			 result)))
 	    ((pair? atom)
 	     (set! result
+		   ;;Parentheses  in reverse  order  because the  RESULT
+		   ;;will be reversed!!!
 		   (append ell-rparen-token
-			   (%infix-sexpr->tokens atom)
+			   (%infix-sexp->tokens atom)
 			   ell-lparen-token
 			   result)))
 	    (else

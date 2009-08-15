@@ -154,11 +154,18 @@
 (compile-library "irregex.sls"
 		 "irregex.slfasl")
 
+(compile-library "pregexp.sls"
+		 "pregexp.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (compile-library "silex/lexer.sls"
 		 "silex/lexer.slfasl")
 
 (compile-library "silex.sls"
 		 "silex.slfasl")
+
+;;; --------------------------------------------------------------------
 
 (compile-library "lalr/common.sls"
  		 "lalr/common.slfasl")
@@ -172,6 +179,8 @@
 (compile-library "lalr.sls"
  		 "lalr.slfasl")
 
+;;; --------------------------------------------------------------------
+
 (compile-library "csv/strings-lexer.sls"
  		 "csv/strings-lexer.slfasl")
 
@@ -183,6 +192,23 @@
 
 (compile-library "csv.sls"
  		 "csv.slfasl")
+
+;;; --------------------------------------------------------------------
+
+(compile-library "infix/string-lexer.sls"
+ 		 "infix/string-lexer.slfasl")
+
+(compile-library "infix/sexp-parser.sls"
+ 		 "infix/sexp-parser.slfasl")
+
+(compile-library "infix/string-parser.sls"
+ 		 "infix/string-parser.slfasl")
+
+(compile-library "infix.sls"
+ 		 "infix.slfasl")
+
+(compile-library "infix/syntax.sls"
+ 		 "infix/syntax.slfasl")
 
 ;;; --------------------------------------------------------------------
 
