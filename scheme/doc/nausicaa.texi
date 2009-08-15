@@ -38688,18 +38688,11 @@ driver's library @library{lalr lr-driver} or @library{lalr glr-driver},
 @subsection Describing tokens
 
 
-The parser closure accepts as argument a lexer closure which, when
-invoked with no arguments, must return the next token from the input.
-Tokens are described using records of type @samp{lexical-token}.  The
-current position in the input stream is described using records of type
+The parser closure accepts as argument a lexer closure which, invoked
+with no arguments, must return the next token from the input.  Tokens
+are described using records of type @samp{lexical-token}.  The current
+position in the input stream is described using records of type
 @samp{source-location}.
-
-@quotation
-In the original Larl-scm code the lexer could return both
-@samp{lexical-token} records and Scheme symbols; the use of raw symbols
-is more efficient, but they do not carry informations on their location
-in the source input.
-@end quotation
 
 @menu
 * lalr lexer records::          Lexical token records.
@@ -38710,10 +38703,6 @@ in the source input.
 @node lalr lexer records
 @subsubsection Lexical token records
 
-
-Token records are used to generate instances of terminal symbols in the
-parser grammar.  Instances of non--terminal symbols are generated
-internally by the parser as result of a reduction operation.
 
 The following bindings are exported by the @library{lalr common}
 library, and are re--exported by @library{lalr}, @library{lalr

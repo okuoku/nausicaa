@@ -128,12 +128,12 @@
 
 ;;; complexes
 
-  (check (doit "1i\n")		=> +1i)
-  (check (doit "-1i\n")		=> -1i)
-  (check (doit "+1.1i\n")	=> +1.1i)
-  (check (doit "-1.1i\n")	=> -1.1i)
-  (check (doit "+.1i\n")	=> +0.1i)
-  (check (doit "-.1i\n")	=> -0.1i)
+  (check (doit "1i\n")		(=> =) +1i)
+  (check (doit "-1i\n")		(=> =) -1i)
+  (check (doit "+1.1i\n")	(=> =) +1.1i)
+  (check (doit "-1.1i\n")	(=> =) -1.1i)
+  (check (doit "+.1i\n")	(=> =) +0.1i)
+  (check (doit "-.1i\n")	(=> =) -0.1i)
 
 ;;; nan and infinity
 

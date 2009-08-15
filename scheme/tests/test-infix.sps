@@ -62,12 +62,12 @@
 
 ;;; complexes
 
-  (check (infix-string->sexp "1i")	=> +1i)
-  (check (infix-string->sexp "-1i")	=> -1i)
-  (check (infix-string->sexp "+1.1i")	=> +1.1i)
-  (check (infix-string->sexp "-1.1i")	=> -1.1i)
-  (check (infix-string->sexp "+.1i")	=> +0.1i)
-  (check (infix-string->sexp "-.1i")	=> -0.1i)
+  (check (infix-string->sexp "1i")	(=> =) +1i)
+  (check (infix-string->sexp "-1i")	(=> =) -1i)
+  (check (infix-string->sexp "+1.1i")	(=> =) +1.1i)
+  (check (infix-string->sexp "-1.1i")	(=> =) -1.1i)
+  (check (infix-string->sexp "+.1i")	(=> =) +0.1i)
+  (check (infix-string->sexp "-.1i")	(=> =) -0.1i)
 
 ;;; nan and infinity
 

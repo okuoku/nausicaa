@@ -27,7 +27,7 @@
 (library (infix syntax)
   (export infix->prefix*)
   (import (rnrs)
-    (infix))
+    (for (infix) expand))
 
   (define-syntax infix->prefix*
     (lambda (stx)
