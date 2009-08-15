@@ -393,7 +393,7 @@ endif
 # The variable  "name" is available to  the user on the  command line of
 # "make": It selects specific proofs.
 ifneq ($(strip $(name)),)
-nau_proof_ENV		+= CHECK_PROOF_NAME=$(name)
+nau_proof_ENV		+= CHECK_TEST_NAME=$(name)
 endif
 
 # Here we include the build directory but not the source directory.  The
