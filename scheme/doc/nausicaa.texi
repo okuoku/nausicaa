@@ -41454,7 +41454,10 @@ expressions to prefix notation expressions.  The library is built upon
 
 
 @defun infix-string->sexpr @var{expr-string}
-Return the prefix S--expression corresponding to @var{expr-string}.
+Return the prefix S--expression corresponding to @var{expr-string}.  The
+S--expression can be used directly for some symbolic interpretation or
+evaluated with @func{eval}.  @ref{stdlib eval, Evaluation}
+
 Examples:
 
 @example
@@ -41473,6 +41476,31 @@ Examples:
 @result{} (* (cos a) (/ (tan b) c))
 @end example
 @end defun
+
+Symbols in @var{expr-string} must match the following @library{silex}
+regular expression:
+
+@example
+initial         [a-zA-Z_]
+subsequent      @{initial@}|[0-9\.@@!$&:<=>?~\-]
+symbol          @{initial@}@{subsequent@}*
+@end example
+
+@noindent
+@ref{silex syntax, Syntax of the specification}.
+
+The following binary, infix operators are supported, in order of
+increasing precedence from left to right:
+
+@example
++ - * / // % ^ < > <= >= =
+@end example
+
+@noindent
+remember that the Scheme comparison operators are meant to return a
+boolean value, rather than a number object.  @samp{//} stands for
+@func{div}, @samp{%} stands for @func{mod}, @samp{^} stands for
+@func{expt}.
 
 @c page
 @node kmp

@@ -47,7 +47,7 @@ initial         [a-zA-Z_]
 subsequent      {initial}|[0-9\.@!$&:<=>?~\-]
 symbol          {initial}{subsequent}*
 
-operator	(<=|>=)|[\+\-*/%\^\\<>=]
+operator	(<=|>=|//)|[\+\-*/%\^<>=]
 
 comma		,
 
@@ -82,13 +82,21 @@ cparen		\)
 {operator}	(let ((position (make-source-location #f yyline yycolumn yyoffset
 						      (string-length yytext)))
                       (symbol	(string->symbol yytext)))
+                  ;;These must be different categories to let us specify
+                  ;;their precedence in the grammar.
 		  (case symbol
-		    ((+)	(make-lexical-token 'ADD position '+))
-		    ((-)	(make-lexical-token 'SUB position '-))
-		    ((%)	(make-lexical-token 'OPERATOR position 'mod))
-		    ((^)	(make-lexical-token 'OPERATOR position 'expt))
-		    ((\x5C;)	(make-lexical-token 'OPERATOR position 'div))
-                    (else	(make-lexical-token 'OPERATOR position symbol))))
+		    ((+)	(make-lexical-token 'ADD	position '+))
+		    ((-)	(make-lexical-token 'SUB	position '-))
+		    ((*)	(make-lexical-token 'MUL	position '*))
+		    ((/)	(make-lexical-token 'DIV	position '/))
+		    ((%)	(make-lexical-token 'MOD	position 'mod))
+		    ((^)	(make-lexical-token 'EXPT	position 'expt))
+		    ((//)	(make-lexical-token 'DIV0	position 'div))
+		    ((<)	(make-lexical-token 'LT		position '<))
+		    ((>)	(make-lexical-token 'GT		position '>))
+		    ((<=)	(make-lexical-token 'LE		position '<=))
+		    ((>=)	(make-lexical-token 'GE		position '>=))
+		    ((=)	(make-lexical-token 'EQ		position '=))))
 
 {symbol}	(make-lexical-token 'ID
 				    (make-source-location #f yyline yycolumn yyoffset

@@ -30,30 +30,104 @@
 
 
 (library (infix)
-  (export infix-string->sexpr)
+  (export
+    infix-string->sexpr
+    infix->prefix)
   (import (rnrs)
     (silex lexer)
     (infix string-lexer)
+    (infix sexp-parser)
     (infix string-parser))
+
+
+;;;; helpers
+
+(define unknown-location
+  (make-source-location #f +nan.0 +nan.0 +nan.0 0))
+
+(define eoi-token
+  (make-lexical-token '*eoi* unknown-location (eof-object)))
+
+(define ell-lparen-token
+  (list (make-lexical-token 'LPAREN unknown-location #\()))
+
+(define ell-rparen-token
+  (list (make-lexical-token 'RPAREN unknown-location #\))))
+
+(define (error-handler message token)
+  (error #f
+    (if (not (lexical-token? token))
+	message
+      (let* ((position	(lexical-token-source token))
+	     (line	(source-location-line position))
+	     (column	(source-location-column position)))
+	(string-append
+	 message
+	 " line " (if line (number->string line) "unknown")
+	 " column " (if column (number->string column) "unknown"))))
+    token))
 
 
 (define (infix-string->sexpr string)
   (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	 (lexer		(lexer-make-lexer infix-string-lexer-table IS))
-	 (parser	(make-infix-string-parser))
-	 (error-handler	(lambda (message token)
-			  (error #f
-			    (if (not (lexical-token? token))
-				message
-			      (let* ((position	(lexical-token-source token))
-				     (line	(source-location-line position))
-				     (column	(source-location-column position)))
-				(string-append
-				 message
-				 " line " (if line (number->string line) "unknown")
-				 " column " (if column (number->string column) "unknown"))))
-			    token))))
+	 (parser	(make-infix-string-parser)))
     (parser lexer error-handler #f)))
+
+
+(define (infix->prefix sexpr)
+  (let* ((tokens	(infix-sexpr->tokens sexpr))
+	 (lexer		(lambda ()
+			  (if (null? tokens)
+			      eoi-token
+			    (let ((t (car tokens)))
+			      (set! tokens (cdr tokens))
+			      t))))
+	 (parser	(make-infix-sexp-parser)))
+    (parser lexer error-handler #f)))
+
+(define (infix-sexpr->tokens expr)
+  (reverse (%infix-sexpr->tokens expr)))
+
+(define (%infix-sexpr->tokens expr)
+  (do ((result '())
+       (expr	(if (pair? expr) expr (list expr)) (cdr expr)))
+      ((null? expr)
+       result)
+    (let ((atom (car expr)))
+      (cond ((number? atom)
+	     (set! result
+		   (cons (make-lexical-token 'NUM unknown-location atom)
+			 result)))
+	    ((symbol? atom)
+	     (set! result
+		   (cons (case atom
+			   ((+)	(make-lexical-token 'ADD	unknown-location '+))
+			   ((-)	(make-lexical-token 'SUB	unknown-location '-))
+			   ((*)	(make-lexical-token 'MUL	unknown-location '*))
+			   ((/)	(make-lexical-token 'DIV	unknown-location '/))
+			   ((%)	(make-lexical-token 'MOD	unknown-location 'mod))
+			   ((^)	(make-lexical-token 'EXPT	unknown-location 'expt))
+			   ((//) (make-lexical-token 'DIV0	unknown-location 'div))
+			   ((<)	(make-lexical-token 'LT		unknown-location '<))
+			   ((>)	(make-lexical-token 'GT		unknown-location '>))
+			   ((<=) (make-lexical-token 'LE	unknown-location '<=))
+			   ((>=) (make-lexical-token 'GE	unknown-location '>=))
+			   ((=)	(make-lexical-token 'EQ		unknown-location '=))
+			   (else (make-lexical-token 'ID	unknown-location atom)))
+			 result)))
+	    ((procedure? atom)
+	     (set! result
+		   (cons (make-lexical-token 'ID unknown-location atom)
+			 result)))
+	    ((pair? atom)
+	     (set! result
+		   (append ell-rparen-token
+			   (%infix-sexpr->tokens atom)
+			   ell-lparen-token
+			   result)))
+	    (else
+	     (make-lexical-token 'NUM unknown-location atom))))))
 
 
 ;;;; done

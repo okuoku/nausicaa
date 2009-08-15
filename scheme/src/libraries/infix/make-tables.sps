@@ -44,25 +44,81 @@
  :library-spec		'(infix string-parser)
 ;;; :library-imports	'((rnrs eval))
 
- :terminals	'(ID NUM LPAREN RPAREN NEWLINE COMMA
-		     (left: ADD SUB OPERATOR)
+ :terminals	'(ID NUM LPAREN RPAREN COMMA
+		     (left: ADD SUB)
+		     (left: MUL DIV DIV0)
+		     (left: MOD)
+		     (left: EXPT)
+		     (left: LT GT LE GE EQ)
 		     (nonassoc: UADD)
 		     (nonassoc: USUB))
 
- :rules	'((expr     (expr ADD expr)		: (list $2 $1 $3)
-		    (expr SUB expr)		: (list $2 $1 $3)
-		    (expr OPERATOR expr)	: (list $2 $1 $3)
-		    (ADD expr (prec: UADD))	: $2
-		    (SUB expr (prec: USUB))	: (- $2)
-		    (ID)			: $1
-		    (ID LPAREN args RPAREN)	: (cons $1 $3)
-		    (NUM)			: $1
-		    (LPAREN expr RPAREN)	: $2)
+ :rules	'((expr		(expr ADD expr)		: (list $2 $1 $3)
+			(expr SUB expr)		: (list $2 $1 $3)
+			(expr DIV expr)		: (list $2 $1 $3)
+			(expr MUL expr)		: (list $2 $1 $3)
 
-	  (args     ()				: '()
-		    (expr arg-rest)		: (cons $1 $2))
+			(expr DIV0 expr)		: (list $2 $1 $3)
+			(expr MOD expr)		: (list $2 $1 $3)
+			(expr EXPT expr)		: (list $2 $1 $3)
+			(expr LT expr)		: (list $2 $1 $3)
+			(expr GT expr)		: (list $2 $1 $3)
+			(expr LE expr)		: (list $2 $1 $3)
+			(expr GE expr)		: (list $2 $1 $3)
+			(expr EQ expr)		: (list $2 $1 $3)
+			(ADD expr (prec: UADD))	: $2
+			(SUB expr (prec: USUB))	: (- $2)
+			(ID)			: $1
+			(ID LPAREN args RPAREN)	: (cons $1 $3)
+			(NUM)			: $1
+			(LPAREN expr RPAREN)	: $2)
 
-	  (arg-rest (COMMA expr arg-rest)	: (cons $2 $3)
-		    ()				: '())))
+	  (args		()			: '()
+			(expr arg-rest)		: (cons $1 $2))
+
+	  (arg-rest	(COMMA expr arg-rest)	: (cons $2 $3)
+			()			: '())))
+
+(lalr-parser
+
+ :output-file		"sexp-parser.sls"
+ :parser-name		'make-infix-sexp-parser
+ :library-spec		'(infix sexp-parser)
+;;; :library-imports	'((rnrs eval))
+
+ :terminals	'(ID NUM LPAREN RPAREN
+		     (left: ADD SUB)
+		     (left: MUL DIV DIV0)
+		     (left: MOD)
+		     (left: EXPT)
+		     (left: LT GT LE GE EQ)
+		     (nonassoc: UADD)
+		     (nonassoc: USUB))
+
+ :rules	'((expr		(expr ADD expr)		: (list $2 $1 $3)
+			(expr SUB expr)		: (list $2 $1 $3)
+			(expr DIV expr)		: (list $2 $1 $3)
+			(expr MUL expr)		: (list $2 $1 $3)
+
+			(expr DIV0 expr)		: (list $2 $1 $3)
+			(expr MOD expr)		: (list $2 $1 $3)
+			(expr EXPT expr)		: (list $2 $1 $3)
+			(expr LT expr)		: (list $2 $1 $3)
+			(expr GT expr)		: (list $2 $1 $3)
+			(expr LE expr)		: (list $2 $1 $3)
+			(expr GE expr)		: (list $2 $1 $3)
+			(expr EQ expr)		: (list $2 $1 $3)
+			(ADD expr (prec: UADD))	: $2
+			(SUB expr (prec: USUB))	: (- $2)
+			(ID)			: $1
+			(ID LPAREN args RPAREN)	: (cons $1 $3)
+			(NUM)			: $1
+			(LPAREN expr RPAREN)	: $2)
+
+	  (args		()			: '()
+			(expr arg-rest)		: (cons $1 $2))
+
+	  (arg-rest	(expr arg-rest)		: (cons $1 $2)
+			()			: '())))
 
 ;;; end of file
