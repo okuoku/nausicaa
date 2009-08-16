@@ -24,31 +24,32 @@
 ;;;
 
 (import (rnrs)
-  (silex))
+  (prefix (silex) silex:))
 
-(lex :input-file "address-strings.l"
-     :output-file "address-strings-lexer.sls"
-     :library-spec '(email address-strings-lexer)
-     :table-name 'email-address-strings-table
-     :counters 'all)
+
+(silex:lex silex::input-file "address-strings.l"
+	   silex::output-file "address-strings-lexer.sls"
+	   silex::library-spec '(email address-strings-lexer)
+	   silex::table-name 'email-address-strings-table
+	   silex::counters 'all)
 
-(lex :input-file "address-comments.l"
-     :output-file "address-comments-lexer.sls"
-     :library-spec '(email address-comments-lexer)
-     :table-name 'email-address-comments-table
-     :counters 'all)
+(silex:lex silex::input-file "address-comments.l"
+	   silex::output-file "address-comments-lexer.sls"
+	   silex::library-spec '(email address-comments-lexer)
+	   silex::table-name 'email-address-comments-table
+	   silex::counters 'all)
 
-(lex :input-file "address-domain-literals.l"
-     :output-file "address-domain-literals-lexer.sls"
-     :library-spec '(email address-domain-literals-lexer)
-     :table-name 'email-address-domain-literals-table
-     :counters 'all)
+(silex:lex silex::input-file "address-domain-literals.l"
+	   silex::output-file "address-domain-literals-lexer.sls"
+	   silex::library-spec '(email address-domain-literals-lexer)
+	   silex::table-name 'email-address-domain-literals-table
+	   silex::counters 'all)
 
-(lex :input-file "address-lexer.l"
-     :output-file "address-lexer.sls"
-     :library-spec '(email address-lexer)
-     :table-name 'email-address-table
-     :counters 'all)
+(silex:lex silex::input-file "address-lexer.l"
+	   silex::output-file "address-lexer.sls"
+	   silex::library-spec '(email address-lexer)
+	   silex::table-name 'email-address-table
+	   silex::counters 'all)
 
 
 ;;; end of file

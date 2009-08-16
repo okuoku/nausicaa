@@ -551,6 +551,13 @@
 	     j)
   => '(1 3 5))
 
+(check
+    (list-ec (:string c (index i) "ciao" "mamma")
+	     (cons c i))
+  => '((#\c . 0) (#\i . 1) (#\a . 2) (#\o . 3)
+       (#\m . 4) (#\a . 5) (#\m . 6) (#\m . 7) (#\a . 8)))
+
+
 
 ;;;; less artificial examples
 
