@@ -1,31 +1,33 @@
-;;; <PLAINTEXT>
-;;; Examples for Eager Comprehensions in [outer..inner|expr]-Convention
-;;; ===================================================================
+;;;Tests for (loops)
 ;;;
-;;; sebastian.egner@philips.com, Eindhoven, The Netherlands, 26-Dec-2007.
-;;; Scheme R5RS (incl. macros), SRFI-23 (error).
+;;;sebastian.egner@philips.com, Eindhoven, The Netherlands, 25-Apr-2005
+;;;Copyright (c) 2008 Derick Eddington
+;;;Nausicaa integration by Marco Maggi <marcomaggi@gna.org>
 ;;;
-;;; Running the examples in Scheme48 (version 1.1):
-;;;   ,open srfi-23
-;;;   ,load ec.scm
-;;;   (define my-open-output-file open-output-file)
-;;;   (define my-call-with-input-file call-with-input-file)
-;;;   ,load examples.scm
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
 ;;;
-;;; Running the examples in PLT/DrScheme (version 317):
-;;;   (load "ec.scm")
-;;;   (define (my-open-output-file filename)
-;;;     (open-output-file filename 'replace 'text) )
-;;;   (define (my-call-with-input-file filename thunk)
-;;;     (call-with-input-file filename thunk 'text) )
-;;;   (load "examples.scm")
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
 ;;;
-;;; Running the examples in SCM (version 5d7):
-;;;   (require 'macro) (require 'record)
-;;;   (load "ec.scm")
-;;;   (define my-open-output-file open-output-file)
-;;;   (define my-call-with-input-file call-with-input-file)
-;;;   (load "examples.scm")
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
+;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
 
 
 (import (rnrs)
@@ -42,6 +44,10 @@
 (check
     (let ((x 0)) (do-ec (set! x (+ x 1))) x)
   => 1)
+
+(check
+    (let ((x 0)) (do-ec (:range i 0) (set! x (+ x 1))) x)
+  => 0)
 
 (check
     (let ((x 0)) (do-ec (:range i 10) (set! x (+ x 1))) x)
@@ -128,6 +134,7 @@
 (check (product-ec 1) => 1)
 (check (product-ec (:range i 1 0) i) => 1)
 (check (product-ec (:range i 1 1) i) => 1)
+(check (product-ec (:range i 9 9) i) => 1)
 (check (product-ec (:range i 1 2) i) => 1)
 (check (product-ec (:range i 1 3) i) => 2)
 (check (product-ec (:range i 1 4) i) => 6)
@@ -173,6 +180,16 @@
   => 285 )
 
 (check
+    (let ((sum-sqr (lambda (x result) (+ result (* x x)))))
+      (fold-ec 0 (:range i 1 5) i sum-sqr) )
+  => (+ 1 (* 2 2) (* 3 3) (* 4 4)) )
+
+(check
+    (let ((sum-sqr (lambda (x result) (+ result (* x x)))))
+      (fold-ec 0 (:range i 1 5) i sum-sqr) )
+  => 30)
+
+(check
     (let ((minus-1 (lambda (x) (- x 1)))
 	  (sum-sqr (lambda (x result) (+ result (* x x)))))
       (fold3-ec (error "wrong") (:range i 10) i minus-1 sum-sqr) )
@@ -181,6 +198,22 @@
 (check
     (fold3-ec 'infinity (:range i 0) i min min)
   => 'infinity )
+
+(check
+    (let ((sum-sqr (lambda (x result) (+ result (* x x)))))
+      (fold3-ec 1234 (:range i 2 5)
+		i
+		(lambda (x) x)
+		sum-sqr))
+  => 27)
+
+(check
+    (let ((sum-sqr (lambda (x result) (+ result (* x x)))))
+      (fold3-ec 1234 (:range i 2 2)
+		i
+		(lambda (x) x)
+		sum-sqr))
+  => 1234)
 
 
 ;;;; typed generators
@@ -231,7 +264,10 @@
 
 (check
     (begin
-      (let ((f (open-file-output-port "tmp1" (file-options no-fail) (buffer-mode block) (native-transcoder))))
+      (let ((f (open-file-output-port "tmp1"
+				      (file-options no-fail)
+				      (buffer-mode block)
+				      (native-transcoder))))
 	(do-ec (:range n 10) (begin (write n f) (newline f)))
 	(close-output-port f))
       (call-with-input-file "tmp1"
@@ -240,7 +276,10 @@
 
 (check
     (begin
-      (let ((f (open-file-output-port "tmp1" (file-options no-fail) (buffer-mode block) (native-transcoder))))
+      (let ((f (open-file-output-port "tmp1"
+				      (file-options no-fail)
+				      (buffer-mode block)
+				      (native-transcoder))))
 	(do-ec (:range n 10) (begin (write n f) (newline f)))
 	(close-output-port f))
       (call-with-input-file "tmp1"
@@ -322,7 +361,8 @@
 
 (check
     (let ((n 0))
-      (do-ec (:while (:range i 1 10) (begin (set! n (+ n 1)) (< i 5)))
+      (do-ec (:while (:range i 1 10)
+		     (begin (set! n (+ n 1)) (< i 5)))
 	     (if #f #f))
       n)
   => 5)
@@ -460,6 +500,57 @@
 	     (list x i))
   => '((0 10) (1 9) (2 8) (3 7) (4 6)) )
 
+(check
+    (list-ec (:range i 10)
+	     (if (even? i))
+	     i)
+  => '(0 2 4 6 8))
+
+(check
+    (list-ec (:range i 5)
+	     (if (even? i))
+	     (:let j (+ 1 i))
+	     j)
+  => '(1 3 5))
+
+(check
+    (let* ((ans '())
+	   (ell (list-ec (:range i 5)
+			 (begin
+			   (set! ans (cons i ans)))
+			 i)))
+      (list ans ell))
+  => '((4 3 2 1 0) (0 1 2 3 4)))
+
+(check
+    (list-ec (nested (:range i 5)
+		     (if (even? i))
+		     (:let j (+ 1 i)))
+	     j)
+  => '(1 3 5))
+
+(check
+    (list-ec (:range i 5)
+	     (nested (if (even? i))
+		     (:let j (+ 1 i)))
+	     j)
+  => '(1 3 5))
+
+(check
+    (list-ec (:range i 5)
+	     (if (even? i))
+	     (nested (:let j (+ 1 i)))
+	     j)
+  => '(1 3 5))
+
+(check
+    (list-ec (:range i 5)
+	     (if (even? i))
+	     (:let j (+ 1 i))
+	     (nested)
+	     j)
+  => '(1 3 5))
+
 
 ;;;; less artificial examples
 
@@ -558,7 +649,10 @@
 
 (check
     (begin
-      (let ((f (open-file-output-port "tmp1" (file-options no-fail) (buffer-mode block) (native-transcoder))))
+      (let ((f (open-file-output-port "tmp1"
+				      (file-options no-fail)
+				      (buffer-mode block)
+				      (native-transcoder))))
 	(do-ec (:range n 10) (begin (write n f) (newline f)))
 	(close-output-port f))
       (read-lines "tmp1") )

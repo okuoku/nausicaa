@@ -61,7 +61,7 @@
 
     lexical-token?/end-of-input)
   (import (rnrs)
-    (checks)
+    (debugging)
     (lalr common))
 
 

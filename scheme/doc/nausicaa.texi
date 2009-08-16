@@ -27658,106 +27658,340 @@ constructs a two--element list for each binding, and the comprehension
 @subsection Comprehensions
 
 
-@deffn Syntax do-ec @var{qualifier*} @var{command}
+@menu
+* loops comprehensions do::     Simple loops.
+* loops comprehensions list::   List accumulator loops.
+* loops comprehensions string:: String accumulator loops.
+* loops comprehensions vector:: Vector accumulator loops.
+* loops comprehensions arith::  Arithmetic accumulator loops.
+* loops comprehensions search:: Searching loops.
+* loops comprehensions fold::   Folding loops.
+* loops comprehensions define:: Defining new comprehensions.
+@end menu
+
+@c page
+@node loops comprehensions do
+@subsubsection Simple loops
+
+
+@deffn Syntax do-ec @meta{qualifier} ... @var{command}
 Evaluate the @var{command} exactly once for each binding in the sequence
 defined by the qualifiers.  If there are no qualifiers @var{command} is
 evaluated exactly once.  The expression is evaluated for its
 side--effects only.  The result of the comprehension is unspecified.
+
+@example
+(let ((x 0))
+  (do-ec                ;no qualifiers
+    (set! x (+ x 1)))
+  x)
+@result{} 1
+
+(let ((x 0))
+  (do-ec (:range i 10)  ;i from 0 to 9
+    (set! x (+ x 1)))
+  x)
+@result{} 10
+
+(let ((x 0))
+  (do-ec (:range i 0)   ;loops zero times
+    (set! x (+ x 1)))
+  x)
+@result{} 0
+
+(let ((x 0))
+  (do-ec (:range n 10)  ;n from 0 to 9
+         (:range k n)   ;k from 0 to n
+    (set! x (+ x 1)))
+  x)
+@result{} 45
+@end example
 @end deffn
 
+@c page
+@node loops comprehensions list
+@subsubsection List accumulator loops
 
-@deffn Syntax list-ec @var{qualifier*} @var{expression}
+
+@deffn Syntax list-ec @meta{qualifier} ... @var{expression}
 The list of values obtained by evaluating @var{expression} once for each
 binding in the sequence defined by the qualifiers.  If there are no
 qualifiers the result is the list with the value of @var{expression}.
+
+@example
+(list-ec                ;no qualifiers
+  1)
+@result{} (1)
+
+(list-ec (:range i 4)   ;i from 0 to 3
+  i)
+@result{} (0 1 2 3)
+
+(list-ec (:range n 3)
+         (:range k (+ n 1))
+  (list n k))
+@result{} ((0 0)
+    (1 0) (1 1)
+    (2 0) (2 1) (2 2))
+@end example
 @end deffn
 
 
-@deffn Syntax append-ec @var{qualifier*} @var{expression}
+@deffn Syntax append-ec @meta{qualifier} ... @var{expression}
 The list obtained by appending all values of @var{expression}, which
 must all be lists.  Think of it as:
 
 @example
-(apply append (list-ec @var{qualifier*} @var{expression}))
+(apply append (list-ec @meta{qualifier} ... @var{expression}))
+@end example
+
+Examples:
+
+@example
+(append-ec              ;no qualifiers
+  '(a b))
+@result{} (a b)
+
+(append-ec (:range i 0) ;loops zero times
+  '(a b))
+@result{} '()
+
+(append-ec (:range i 1)
+  '(a b))
+@result{} (a b)
+
+(append-ec (:range i 2)
+  '(a b))
+@result{} '(a b a b)
 @end example
 @end deffn
 
+@c page
+@node loops comprehensions string
+@subsubsection String accumulator loops
 
-@deffn Syntax string-ec @var{qualifier*} @var{expression}
+
+@deffn Syntax string-ec @meta{qualifier} ... @var{expression}
 The string of all values of @var{expression}.  Think of it as:
 
 @example
-(list->string (list-ec @var{qualifier*} @var{expression}))
+(list->string (list-ec @meta{qualifier} ... @var{expression}))
+@end example
+
+Examples:
+
+@example
+(string-ec              ;no qualifiers
+  #\a)
+@result{} (string #\a)
+
+(string-ec (:range i 0)
+  #\a)
+@result{} ""
+
+(string-ec (:range i 1)
+  #\a)
+@result{} "a"
+
+(string-ec (:range i 2)
+  #\a)
+@result{} "aa"
 @end example
 @end deffn
 
 
-@deffn Syntax string-append-ec @var{qualifier*} @var{expression}
+@deffn Syntax string-append-ec @meta{qualifier} ... @var{expression}
 The string obtained by appending all values of @var{expression}, which
 must all be strings.  Think of it as:
 
 @example
-(apply string-append (list-ec @var{qualifier*} @var{expression}))
+(apply string-append (list-ec @meta{qualifier} ... @var{expression}))
+@end example
+
+Examples:
+
+@example
+(string-append-ec
+  "ab")
+@result{} "ab"
+
+(string-append-ec (:range i 0)
+  "ab")
+@result{} ""
+
+(string-append-ec (:range i 1)
+  "ab")
+@result{} "ab"
+
+(string-append-ec (:range i 2)
+  "ab")
+@result{} "abab"
 @end example
 @end deffn
 
+@c page
+@node loops comprehensions vector
+@subsubsection Vector accumulator loops
 
-@deffn Syntax vector-ec @var{qualifier*} @var{expression}
+
+@deffn Syntax vector-ec @meta{qualifier} ... @var{expression}
 The vector of all values of @var{expression}.  Think of it as:
 
 @example
-(list->vector (list-ec @var{qualifier*} @var{expression}))
+(list->vector (list-ec @meta{qualifier} ... @var{expression}))
+@end example
+
+Examples:
+
+@example
+(vector-ec              ;no qualifiers
+  1)
+@result{} (vector 1)
+
+(vector-ec (:range i 0)
+  i)
+@result{} (vector)
+
+(vector-ec (:range i 1)
+  i)
+@result{} (vector 0)
+
+(vector-ec (:range i 2)
+  i)
+@result{} (vector 0 1)
 @end example
 @end deffn
 
 
-@deffn Syntax vector-of-length-ec @var{k} @var{qualifier*} @var{expression}
+@deffn Syntax vector-of-length-ec @var{k} @meta{qualifier} ... @var{expression}
 The vector of all values of @var{expression}, of which there must be
 exactly @var{k}.  This comprehension behaves like @func{vector-ec} but
 can be implemented more efficiently.
+
+@example
+(vector-of-length-ec 1
+  1)
+@result{} (vector 1)
+
+(vector-of-length-ec 0 (:range i 0)
+  i)
+@result{} (vector)
+
+(vector-of-length-ec 1 (:range i 1)
+  i)
+@result{} (vector 0)
+
+(vector-of-length-ec 2 (:range i 2)
+  i)
+@result{} (vector 0 1)
+@end example
 @end deffn
 
+@c page
+@node loops comprehensions arith
+@subsubsection Arithmetic accumulator loops
 
-@deffn Syntax sum-ec @var{qualifier*} @var{expression}
+
+@deffn Syntax sum-ec @meta{qualifier} ... @var{expression}
 The sum of all values of @var{expression}.  Think of it as:
 
 @example
-(apply + (list-ec @var{qualifier*} @var{expression}))
+(apply + (list-ec @meta{qualifier} ... @var{expression}))
+@end example
+
+Examples:
+
+@example
+(sum-ec                 ;no qualifiers
+  1)
+@result{} 1
+
+(sum-ec (:range i 0)
+  i)
+@result{} 0
+
+(sum-ec (:range i 1)
+  i)
+@result{} 0
+
+(sum-ec (:range i 2)
+  i)
+@result{} 1
+
+(sum-ec (:range i 3)
+  i)
+@result{} 3
 @end example
 @end deffn
 
 
-@deffn Syntax product-ec @var{qualifier*} @var{expression}
+@deffn Syntax product-ec @meta{qualifier} ... @var{expression}
 The product of all values of @var{expression}.  Think of it as:
 
 @example
-(apply * (list-ec @var{qualifier*} @var{expression}))
+(apply * (list-ec @meta{qualifier} ... @var{expression}))
+@end example
+
+Examples:
+
+@example
+(product-ec             ;no qualifiers
+  1)
+@result{} 1
+
+(product-ec (:range i 1 0)      ;i from 1 to 1
+  i)
+@result{} 1
+
+(product-ec (:range i 1 1)      ;loop zero times
+  i)
+@result{} 1
+
+(product-ec (:range i 9 9)      ;loop zero times
+  i)
+@result{} 1
+
+(product-ec (:range i 1 2)      ;i from 1 to 1
+  i)
+@result{} 1
+
+(product-ec (:range i 1 3)      ;i from 1 to 2
+  i)
+@result{} 2
+
+(product-ec (:range i 1 4)      ;i from 1 to 3
+  i)
+@result{} 6
 @end example
 @end deffn
 
 
-@deffn Syntax min-ec @var{qualifier*} @var{expression}
-@deffnx Syntax max-ec @var{qualifier*} @var{expression}
+@deffn Syntax min-ec @meta{qualifier} ... @var{expression}
+@deffnx Syntax max-ec @meta{qualifier} ... @var{expression}
 The minimum and maximum of all values of @var{expression}.  The sequence
 of values must be non-empty.  Think of these as
 
 @example
-(apply min (list-ec @var{qualifier*} @var{expression}))
-(apply max (list-ec @var{qualifier*} @var{expression}))
+(apply min (list-ec @meta{qualifier} ... @var{expression}))
+(apply max (list-ec @meta{qualifier} ... @var{expression}))
 @end example
 
-If you want to return a default value in case the sequence is empty you
+If we want to return a default value in case the sequence is empty we
 may want to consider:
 
 @example
-(fold3-ec 'infinity @var{qualifier*} @var{expression} min min)
+(fold3-ec 'infinity @meta{qualifier} ... @var{expression} min min)
 @end example
 @end deffn
 
+@c page
+@node loops comprehensions search
+@subsubsection Searching loops
 
-@deffn Syntax any?-ec @var{qualifier*} @var{test}
+
+@deffn Syntax any?-ec @meta{qualifier} ... @var{test}
 Tests whether any value of @var{test} in the sequence of bindings
-specified by the qualifiers is non--@false{}.  If this is the case,
+specified by the qualifiers is non--@false{}.  If this is the case:
 @true{} is returned, otherwise @false{}.  If there are no bindings at
 all, in the sequence specified by the qualifiers, then the result is
 @false{}.  The enumeration of values stops after the first non--@false{}
@@ -27765,16 +27999,16 @@ encountered.
 @end deffn
 
 
-@deffn Syntax every?-ec @var{qualifier*} @var{test}
+@deffn Syntax every?-ec @meta{qualifier} ... @var{test}
 Tests whether all values of @var{test} are non--@false{}.  If this is
-the case, @true{} is returned, otherwise @false{}.  If the sequence is
+the case: @true{} is returned, otherwise @false{}.  If the sequence is
 empty the result is @true{}.  Enumeration stops after the first
 @false{}.
 @end deffn
 
 
-@deffn Syntax first-ec @var{default} @var{qualifier*} @var{expression}
-@deffnx Syntax last-ec  @var{default} @var{qualifier*} @var{expression}
+@deffn Syntax first-ec @var{default} @meta{qualifier} ... @var{expression}
+@deffnx Syntax last-ec  @var{default} @meta{qualifier} ... @var{expression}
 The first or last value of @var{expression} in the sequence of bindings
 specified by the qualifiers.  Before enumeration, the result is
 initialized with the value of @var{default}; so this will be the result
@@ -27782,40 +28016,86 @@ if the sequence is empty.  Enumeration is terminated in @func{first-ec}
 when the first value has been computed.
 @end deffn
 
+@c page
+@node loops comprehensions fold
+@subsubsection Folding loops
 
-@deffn Syntax fold-ec @var{x0} @var{qualifier*} @var{expression} @var{f2}
-@deffnx Syntax fold3-ec @var{x0} @var{qualifier*} @var{expression} @var{f1} @var{f2}
-Reduce the sequence @var{x}[0], @var{x}[1], @dots{}, @var{x}[n-1] of
-values obtained by evaluating @var{expression} once for each binding as
-specified by @var{qualifier*}.  The arguments @var{x0}, @var{f2}, and
-@var{f1}, all syntactically equivalent to @var{expression}, specify the
-reduction process.
+
+@deffn Syntax fold-ec @var{x0} @meta{qualifier} ... @var{expression} @var{f2}
+@deffnx Syntax fold3-ec @var{x0} @meta{qualifier} ... @var{expression} @var{f1} @var{f2}
+Reduce the sequence @math{x[1], x[2], @dots{}, x[n-1]} of values
+obtained by evaluating @var{expression} once for each binding as
+specified by the @meta{qualifier} syntaxes.  The arguments @var{x0},
+@var{f2} and @var{f1}, all syntactically equivalent to @var{expression},
+specify the reduction process.
+
+@example
+(define (f2 expr knil)
+  (+ knil (* expr expr)))
+
+(fold-ec 0              ;knil
+         (:range k 1 5) ;qualifier, k from 1 to 4
+  k                     ;expression
+  f2)
+@result{} 30 ;(+ 0 (* 1 1) (* 2 2) (* 3 3) (* 4 4))
+@end example
 
 The reduction process for @func{fold-ec} is defined as follows.  A
 reduction variable @var{x} is initialized to the value of @var{x0}, and
-for each @var{k} in @code{@{0, ..., n-1@}} the command:
+for each @math{k \in @{1, ..., n-1@}} the command:
 
 @example
-(set! x (f2 x[k] x))
+(set! x[k+1] (f2 x[k] x[k-1]))
 @end example
 
 @noindent
-is evaluated.  Finally, @var{x} is returned as the value of the
+is evaluated.  Finally, @math{x[n]} is returned as the value of the
 comprehension.
 
-The reduction process for @func{fold3-ec} is different.  If and only if
-@code{n = 0}, i.e. the sequence is empty, then @var{x0} is evaluated and
-returned as the value of the comprehension.  Otherwise, a reduction
-variable @var{x} is initialized to the value of @code{(f1 x[0])}, and
-for each @var{k} in @code{@{1, ..., n-1@}} the command:
+The reduction process for @func{fold3-ec} is different:
+
+@enumerate
+@item
+If and only if the sequence is empty: @var{x0} is evaluated and returned
+as the value of the comprehension.
+
+@item
+If the sequence in non--empty: A reduction variable @var{x} is
+initialized to the value of @code{(f1 x[1])}, and for each @math{k \in
+@{2, ..., n-1@}} the command:
 
 @example
-(set! x (f2 x[k] x))
+(set! x[k+1] (f2 x[k] x[k-1]))
 @end example
 
 @noindent
-is evaluated.  Finally, @var{x} is returned as the value of the
+is evaluated; finally, @math{x[n]} is returned as the value of the
 comprehension.
+@end enumerate
+
+Example:
+
+@example
+(define (f2 expr knil)
+  (+ knil (* expr expr)))
+
+(define (f1 x)
+  x)
+
+(fold3-ec 1234                  ;never used
+          (:range k 2 5)        ;k from 2 to 4
+  k                             ;expression
+  f1
+  f2)
+@result{} 27 ;(+ (f1 2) (* 3 3) (* 4 4))
+
+(fold3-ec 1234
+          (:range k 2 2)        ;loop zero times
+  k
+  f1
+  f2)
+@result{} 1234
+@end example
 
 As the order of the arguments suggests, @var{x0} is evaluated outside
 the scope of the qualifiers, whereas the reduction expressions involving
@@ -27826,44 +28106,42 @@ might have.
 
 The main purpose of these comprehensions is implementing other
 comprehensions as special cases.  They are generalizations of the
-procedures @func{fold} and @func{reduce} in the sense of @ansrfi{1}.
-(Concerning naming and argument order, please refer to the discussion
-archive of @ansrfi{1}, in particular the posting [Folds].)  Note that
+procedures @func{fold-left} and @func{reduce}.  Note that
 @func{fold3-ec} is defined such that @var{x0} is only evaluated in case
 the sequence is empty.  This allows raising an error for the empty
-sequence, as in the example definition of @func{min-ec} below.
+sequence.
 @end deffn
 
-@c ------------------------------------------------------------
+@c page
+@node loops comprehensions define
+@subsubsection Defining new comprehensions
 
-@subsubheading Application--specific comprehension
 
+To create a new comprehension a hygienic macro with that name is
+defined.  The macro transforms the new comprehension patterns into
+instances of @func{do-ec}, which is the most fundamental eager
+comprehension, or any other comprehension already defined.
 
-An important aspect of this @srfi{} is a modular mechanism to define
-application--specific comprehensions.  To create a new comprehension a
-hygienic macro with that name is defined.  The macro transforms the new
-comprehension patterns into instances of @func{do-ec}, which is the most
-fundamental eager comprehension, or any other comprehension already
-defined.  For example, the following code defines @func{list-ec} and
-@func{min-ec} in terms of @func{fold-ec} and @func{fold3-ec}:
+For example, the following code defines @func{list-ec} and @func{min-ec}
+in terms of @func{fold-ec} and @func{fold3-ec}:
 
 @example
 (define-syntax list-ec
   (syntax-rules ()
-    [(list-ec etc1 etc ...)
-     (reverse (fold-ec '() etc1 etc ... cons))]))
+    ((_ ?etc1 ?etc ...)
+     (reverse (fold-ec '() ?etc1 ?etc ... cons)))))
 
 (define-syntax min-ec
   (syntax-rules ()
-    [(min-ec etc1 etc ...)
-     (fold3-ec (min) etc1 etc ... min min)]))
+    ((_ ?etc1 ?etc ...)
+     (fold3-ec (min) ?etc1 ?etc ... min min))))
 @end example
 
-Note that the pattern @code{@var{etc1} ...} matches the syntax
-@var{qualifier*} @var{expression} without separate access to
-@var{qualifier*} and @var{expression}.  In order to define a
-comprehension that does need explicit access to the @var{expression}
-part, the following method is used.
+Note that the pattern @samp{?etc1 ...} matches @var{qualifier*} and
+@var{expression} without separate access to @var{qualifier*} and
+@var{expression}.  In order to define a comprehension that does need
+explicit access to the @var{expression} part, the following method is
+used.
 
 First, all qualifiers are collected into a nested--qualifier, and then
 the ``exactly one qualifier'' case is implemented.  For illustration,
@@ -27872,24 +28150,27 @@ the following code defines @func{fold3-ec} in terms of @func{do-ec}:
 @example
 (define-syntax fold3-ec
   (syntax-rules (nested)
-    [(fold3-ec x0 (nested q1 ...) q etc1 etc2 etc3 etc ...)
-     (fold3-ec x0 (nested q1 ... q) etc1 etc2 etc3 etc ...)]
-    [(fold3-ec x0 q1 q2 etc1 etc2 etc3 etc ...)
-     (fold3-ec x0 (nested q1 q2) etc1 etc2 etc3 etc ...)]
-    [(fold3-ec x0 expression f1 f2)
-     (fold3-ec x0 (nested) expression f1 f2)]
 
-    [(fold3-ec x0 qualifier expression f1 f2)
-     (let ([result #f]
-           [empty  #t])
+    ((fold3-ec x0 (nested q1 ...) q etc1 etc2 etc3 etc ...)
+     (fold3-ec x0 (nested q1 ... q) etc1 etc2 etc3 etc ...))
+
+    ((fold3-ec x0 q1 q2 etc1 etc2 etc3 etc ...)
+     (fold3-ec x0 (nested q1 q2) etc1 etc2 etc3 etc ...))
+
+    ((fold3-ec x0 expression f1 f2)
+     (fold3-ec x0 (nested) expression f1 f2))
+
+    ((fold3-ec x0 qualifier expression f1 f2)
+     (let ((result #f)
+           (empty  #t))
        (do-ec qualifier
-         (let ([value expression]) ; don't duplicate code
+         (let ((value expression)) ; don't duplicate code
            (if empty
                (begin
                  (set! result (f1 value))
                  (set! empty #f))
              (set! result (f2 value result)))))
-       (if empty x0 result))]))
+       (if empty x0 result)))))
 @end example
 
 Finally, observe that the newly defined @func{fold3-ec} comprehension
@@ -27897,71 +28178,123 @@ inherits all types of qualifiers supported by @func{do-ec}, including
 all application--specific generators; no further definitions are
 necessary.
 
-
-
 @c page
 @node loops qualifiers
 @subsection Qualifiers
 
 
-This section defines the syntax @var{qualifier}.  The nesting of
+This section defines the syntax @meta{qualifier}.  The nesting of
 qualifiers is from left (outer) to right (inner).  In other words, the
-rightmost generator spins fastest.  The nesting also defines the scope
-of the variables introduced by the generators.  This implies that inner
-generators may depend on the variables of outer generators.  The
+rightmost generator ``spins faster''.  The nesting also defines the
+region of the variables introduced by the generators.  This implies that
+inner generators may depend on the variables of outer generators.  The
 sequence of enumeration of values is strictly depth first.  These
 conventions are illustrated by the first example.
 
-The syntax @var{qualifier} consists of the following alternatives.
+The syntax @meta{qualifier} consists of the following alternatives.
 
-@deffn Qualifier @var{generator}
-Enumerate a sequence of bindings of one or more variables.  The scope of
-the variables starts at the generator and extends over all subsequent
+@deffn {Qualifier Syntax} @meta{generator}
+Enumerate a sequence of bindings of one or more variables.  The region
+of the variables starts at the generator and extends over all subsequent
 qualifiers and expressions in the comprehension.  @ref{loops generators,
 Generators}
 @end deffn
 
 
-@deffn Qualifier if @var{test}
-Filters the sequence of bindings by testing if @var{test} evaluates to
+@deffn {Qualifier Syntax} if @var{test}
+Filter the sequence of bindings by testing if @var{test} evaluates to
 non--@false{}.  Only for those bindings for which this is the case, the
 subsequent qualifiers of the comprehension are evaluated.
+
+@example
+(list-ec (:range i 10)
+         (if (even? i))
+  i)
+@result{} (0 2 4 6 8)
+
+(list-ec (:range i 5)
+         (if (even? i))
+         (:let j (+ 1 i))
+  j)
+@result{} (1 3 5)
+@end example
 @end deffn
 
 
-@deffn Qualifier not @var{test}
-@deffnx Qualifier and @var{test}*
-@deffnx Qualifier or @var{test}*
-Abbreviated notations for filters of the form @code{(if (not
-@var{test}))}, @code{(if (and @var{test}*))}, and @code{(if (or
-@var{test}*))}.  These represent frequent cases of filters.
+@deffn {Qualifier Syntax} not @var{test}
+@deffnx {Qualifier Syntax} and @var{test} ...
+@deffnx {Qualifier Syntax} or @var{test} ...
+Abbreviated notations for filters of the form:
+
+@example
+(if (not @var{test}))
+(if (and @var{test} ...))
+(if (or  @var{test} ...))
+@end example
 @end deffn
 
 
-@deffn Qualifier begin @var{sequence}
-Evaluate @var{sequence}, consisting of @code{@var{command}*
+@deffn {Qualifier Syntax} begin @var{sequence}
+Evaluate @var{sequence}, consisting of @samp{@var{command} ...
 @var{expression}}, once for each binding of the variables defined by the
 previous qualifiers in the comprehension.  Using this qualifier, side
 effects can be inserted into the body of a comprehension.
+
+@example
+(let* ((ans '())
+       (ell (list-ec (:range i 5)
+                     (begin
+                       (set! ans (cons i ans)))
+                     i)))
+  (list ans ell))
+@result{} ((4 3 2 1 0)
+    (0 1 2 3 4))
+@end example
 @end deffn
 
 
-@deffn Qualifier nested @var{qualifier}*
+@deffn {Qualifier Syntax} nested @meta{qualifier} ...
 A syntactic construct to group qualifiers.  The meaning of a qualifier
-according to the @func{nested} syntax is the same as inserting
-@var{qualifier}* into the enclosing comprehension.  This construct can
-be used to reduce comprehensions with several qualifiers into a form
-with exactly one qualifier.
+according to the @samp{nested} syntax is the same as inserting the
+@meta{qualifier} syntaxes into the enclosing comprehension.
+
+This construct can be used to reduce comprehensions with several
+qualifiers into a form with exactly one qualifier.
+
+@example
+(list-ec (nested (:range i 5)
+                 (if (even? i))
+                 (:let j (+ 1 i)))
+  j)
+@result{} (1 3 5)
+
+(list-ec (:range i 5)
+         (nested (if (even? i))
+                 (:let j (+ 1 i)))
+  j)
+@result{} (1 3 5)
+
+(list-ec (:range i 5)
+         (if (even? i))
+         (nested (:let j (+ 1 i)))
+  j)
+@result{} (1 3 5)
+
+(list-ec (:range i 5)
+         (if (even? i))
+         (:let j (+ 1 i))
+         (nested)
+  j)
+@result{} (1 3 5)
+@end example
 @end deffn
-
-
 
 @c page
 @node loops generators
 @subsection Generators
 
 
-This section defines the syntax @var{generator}.  Each generator defines
+This section defines the syntax @meta{generator}.  Each generator defines
 a sequence of bindings through which one or more variables are run.  The
 scope of the variables begins after the closing parenthesis of the
 generator expression and extends to the end of the comprehension it is
@@ -27994,7 +28327,7 @@ that could lead to exponential growth in code size.  Finally, it is
 possible to assign a value to the variables defined by a generator, but
 the effect of this assignment is unspecified.
 
-The syntax @var{generator} consists of the following alternatives.
+The syntax @meta{generator} consists of the following alternatives.
 
 @ignore
 (Tue Oct 28, 2008, Info version 4.8) The ':' is not recognised by the
@@ -28165,7 +28498,7 @@ they are no such noble things as streams in the sense of @ansrfi{41}.)
 The definition of dispatchers is greatly simplified by the macro
 @code{:generator-proc} that constructs a generator procedure from a
 typed generator.  Let @code{(@var{g} @var{var} @var{arg1} @var{arg}
-...)} be an instance of the @var{generator} syntax, for example an
+...)} be an instance of the @meta{generator} syntax, for example an
 application--specific typed generator, with a single variable @var{var}
 and no index variable.  Then:
 
@@ -28341,19 +28674,19 @@ depending on outer generators.
 @end deffn
 
 
-@deffn Generator :parallel @var{generator}*
-Run several generators in parallel.  This means that the next binding
-in the sequence is obtained by advancing each generator in
-@code{@var{generator}*} by one step.  The parallel generator terminates
-when any of its component generators terminate.  The generators share a
-common scope for the variables they introduce.  This implies that the
-names of the variables introduced by the various generators must be
-distinct.
+@deffn Generator :parallel @meta{generator} ...
+Run several generators in parallel.  This means that the next binding in
+the sequence is obtained by advancing each generator in
+@samp{@meta{generator} ...} by one step.  The parallel generator
+terminates when any of its component generators terminate.  The
+generators share a common scope for the variables they introduce.  This
+implies that the names of the variables introduced by the various
+generators must be distinct.
 @end deffn
 
 
-@deffn Generator :while @var{generator} @var{expression}
-Run @var{generator} while @var{expression} evaluates to non--@false{}.
+@deffn Generator :while @meta{generator} @var{expression}
+Run @meta{generator} while @var{expression} evaluates to non--@false{}.
 The guarding expression is included in the scope of the variables
 introduced by the generator.
 
@@ -28362,8 +28695,8 @@ generator expressed by @code{:while}.
 @end deffn
 
 
-@deffn Generator :until @var{generator} @var{expression}
-Run @var{generator} until after @var{expression} has evaluated to
+@deffn Generator :until @meta{generator} @var{expression}
+Run @meta{generator} until after @var{expression} has evaluated to
 non--@false{}.  The guarding expression is included in the scope of the
 variables introduced by the generator.
 
@@ -28408,7 +28741,7 @@ syntactic variable @var{cc} (read current continuation):
 After this definition, any comprehension will accept the @code{:mygen}
 generator and produce the proper code for it.  This works as follows.
 When a comprehension sees something of the form @code{(@var{g} @var{arg}
-...)} in the position of a @var{qualifier} then it will transform the
+...)} in the position of a @meta{qualifier} then it will transform the
 entire comprehension into:
 
 @example
@@ -28460,7 +28793,7 @@ In order to create an array from a sequence of elements, a comprehension
 with the following syntax would be useful:
 
 @example
-(array-ec @var{shape} @var{qualifier}* @var{expression})
+(array-ec @var{shape} @meta{qualifier}* @var{expression})
 @end example
 
 The comprehension constructs a new array of the given shape by filling
@@ -28505,7 +28838,7 @@ involving strings of bits.  It could be useful to have the following
 comprehension:
 
 @example
-(bitwise-ec @var{qualifier}* @var{expression})
+(bitwise-ec @meta{qualifier}* @var{expression})
 @end example
 
 @noindent
@@ -28836,7 +29169,7 @@ transparent way of enforcing this (or even knowing the variable).
 @subsubheading Why is there no general @func{let} qualifier?
 
 It is easy to add @func{let}, @func{let*}, and @func{letrec} as cases to
-@var{qualifier}.  This would allow more sophisticated local variables
+@meta{qualifier}.  This would allow more sophisticated local variables
 and expressions than possible with:
 
 @example
@@ -31826,7 +32159,6 @@ Holds the name of the current test or tests.  Must be set to @false{}, a
 string or a symbol.
 @end deffn
 
-
 @c page
 @node checks eval
 @subsection Evaluating code
@@ -31851,18 +32183,18 @@ select, Selecting tests to be run}.
 @end deffn
 
 
-@deffn Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected} (@var{argument*})
-@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected} (@var{argument*})
-@deffnx Syntax check-ec @var{qualifier*} @var{expr} (=> @var{equal}) @var{expected}
-@deffnx Syntax check-ec @var{qualifier*} @var{expr} => @var{expected}
+@deffn Syntax check-ec @meta{qualifier} ... @var{expr} (=> @var{equal}) @var{expected} (@var{argument*})
+@deffnx Syntax check-ec @meta{qualifier} ... @var{expr} => @var{expected} (@var{argument*})
+@deffnx Syntax check-ec @meta{qualifier} ... @var{expr} (=> @var{equal}) @var{expected}
+@deffnx Syntax check-ec @meta{qualifier} ... @var{expr} => @var{expected}
 An eager comprehension for executing a parametric sequence of checks.
 To use this syntax we have to import the @library{loops} library.
 
-Enumerate the sequence of bindings specified by @var{qualifier*}.  For
-each binding evaluate @var{equal} and @var{expected} in unspecified
-order. Then evaluate @var{expr} and compare the value obtained to the
-value of @var{expected} using the value of @var{equal} as predicate,
-which is @func{equal?} when omitted.
+Enumerate the sequence of bindings specified by the @meta{qualifier}
+syntaxes.  For each binding evaluate @var{equal} and @var{expected} in
+unspecified order. Then evaluate @var{expr} and compare the value
+obtained to the value of @var{expected} using the value of @var{equal}
+as predicate, which is @func{equal?} when omitted.
 
 The comprehension stops after the first failed check, if there is any.
 Then a report is printed according to the current mode setting (see
@@ -31875,7 +32207,7 @@ informative message with the argument values.  Use @var{argument*} to
 list the relevant free variables of @var{expr} (see examples) that you
 want to have printed.
 
-A @var{qualifier} is any qualifier of an eager comprehension.
+A @meta{qualifier} is any qualifier of an eager comprehension.
 
 Examples:
 
@@ -40970,9 +41302,10 @@ second component is the rest of @var{token-list}.
 @section Infix notation utilities
 
 
-The @library{infix} library provides utilities to convert infix notation
-expressions to prefix notation expressions.  The library is built upon
-@library{silex lexer} and @library{lalr lr-driver}.
+The @library{infix} and @library{infix syntax} libraries provide
+utilities to convert infix notation expressions to prefix notation
+expressions.  The library is built upon @library{silex lexer} and
+@library{lalr lr-driver}.
 
 @menu
 * infix strings::               Converting strings.
@@ -41086,7 +41419,7 @@ Examples:
 
 @deffn Syntax infix->prefix* @var{sexp}
 Like @func{infix->prefix} but evaluates the result on the spot.  The
-syntax allows us to evaluated forms like:
+syntax allows us to evaluate forms like:
 
 @example
 (* (cos 1) (/ (tan 2) 3))

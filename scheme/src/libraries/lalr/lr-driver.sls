@@ -60,8 +60,7 @@
     lexical-token-source)
   (import (rnrs)
     (lalr common)
-    (parameters)
-    (checks))
+    (debugging))
 
 (define-syntax drop/stx
   (syntax-rules ()
