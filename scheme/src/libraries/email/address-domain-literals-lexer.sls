@@ -1,7 +1,7 @@
 (library (email address-domain-literals-lexer)
   (export
     email-address-domain-literals-table)
-  (import (rnrs) (silex lexer))
+  (import (rnrs) (silex lexer)(lalr lr-driver))
 
 ;
 ; Table generated from the file address-domain-literals.l by SILex 1.0
@@ -12,41 +12,55 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(assertion-violation #f
-                          "found end of input while parsing domain literal")
+       			(make-lexical-token
+			 '*eoi*
+			 (make-source-location #f yyline yycolumn yyoffset 0)
+			 (eof-object))
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(assertion-violation #f
-			  (string-append "invalid character in domain literal at line "
-                                         (number->string yyline)
-					 " column "
-					 (number->string yycolumn)
-					 " offset "
-					 (number->string yyoffset)))
+         		(make-lexical-token
+			 'INVALID-VALUE
+			 (make-source-location #f yyline yycolumn yyoffset
+					       (string-length yytext))
+			 yytext)
+
+;;; end of file
        ))
    (vector
-    #f
+    #t
     (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-              		(begin #f)
+      (lambda (yytext yyline yycolumn yyoffset)
+              		(make-lexical-token
+			 'DOMAIN-LITERAL-CLOSE
+			 (make-source-location #f yyline yycolumn yyoffset
+			                       (string-length yytext))
+			 yytext)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-			(substring yytext 1 (string-length yytext))
+         		(let ((num (string->number yytext)))
+			  (make-lexical-token
+			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER 'INVALID-VALUE)
+			   (make-source-location #f yyline yycolumn yyoffset
+						 (string-length yytext))
+			   yytext))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-			(begin yytext)
+     			(make-lexical-token
+			 'DOT
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
         )))
    'decision-trees
    0
    0
-   '#((92 (91 1 err) (93 2 (94 3 1))) (91 1 (94 err 1)) (92 (91 err 4) (=
-    93 4 err)) err err)
-   '#((#f . #f) (2 . 2) (2 . 2) (0 . 0) (1 . 1))))
+   '#((48 (= 46 1 err) (93 (58 2 err) (94 3 err))) err (48 err (58 2 err))
+    err)
+   '#((#f . #f) (2 . 2) (1 . 1) (0 . 0))))
 
 ) ; end of library
 

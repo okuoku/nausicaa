@@ -351,7 +351,12 @@ This document describes version @version{} of @value{PACKAGE}, a set of
 Scheme libraries defining a slightly modified @rnrs{6} Scheme language
 and augmenting the features of the base and standard @rnrs{6} libraries.
 
-Development of Nausicaa takes place at:
+The project home page of Nausicaa is at:
+
+@center @url{http://marcomaggi.github.com/nausicaa.html}
+
+@noindent
+development of Nausicaa takes place at:
 
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
@@ -433,8 +438,44 @@ the list of original documents and their authors.
 * baselib::                     Base library.
 * stdlib::                      Standard libraries.
 * naulib::                      The @library{nausicaa} language.
-* more::                        More libraries.
+
+More libraries
+
+* lists::                       Lists library.
+* char-sets::                   Character sets library.
+* strings::                     Strings library.
+* vectors::                     Vectors library.
+* arrays::                      Multidimensional arrays.
+* comparisons::                 Comparison functions.
+* loops::                       Loop constructs.
+* random::                      Sources of random bits.
+* format::                      Formatting strings.
+* checks::                      Lightweight testing.
+* debugging::                   Debugging utilities.
+* queues::                      Simple queue.
+* object-properties::           Object properties.
+* cleanup-handlers::            Cleaning up.
+* combinators::                 Combinators.
+* compensations::               Compensation stacks.
+* deferred exceptions::         Deferred exceptions.
+* keywords::                    Keyword values.
+* sentinel::                    The sentinel value.
+* variables::                   Defining storage locations.
+* scmobj::                      A simple object system.
+* irregex::                     IrRegular expressions.
+* pregexp::                     Portable regular expressions for Scheme.
+* silex::                       A lexical analyser generator.
+* lalr::                        A LALR(1) parser generator.
+* csv::                         Comma--separated value (@acronym{CSV}) utilities.
+* schelog::                     Programming in Schelog.
+* email addresses::             Email address processing.
+* infix::                       Infix notation utilities.
 * foreign::                     Foreign functions interface.
+
+Low level libraries
+
+* kmp::                         Knuth--Morris--Pratt searching.
+* one-dimension::               One dimensional extended ranges.
 
 Appendices
 
@@ -769,43 +810,6 @@ The @library{nausicaa} language
                                 with shared structure.
 * naulib environment::          Accessing environment variables.
 * naulib unimplemented::        Unimplemented error condition.
-
-More libraries
-
-* lists::                       Lists library.
-* char-sets::                   Character sets library.
-* strings::                     Strings library.
-* vectors::                     Vectors library.
-* arrays::                      Multidimensional arrays.
-* comparisons::                 Comparison functions.
-* loops::                       Loop constructs.
-* random::                      Sources of random bits.
-* format::                      Formatting strings.
-* checks::                      Lightweight testing.
-* debugging::                   Debugging utilities.
-* queues::                      Simple queue.
-* object-properties::           Object properties.
-* cleanup-handlers::            Cleaning up.
-* combinators::                 Combinators.
-* compensations::               Compensation stacks.
-* deferred exceptions::         Deferred exceptions.
-* keywords::                    Keyword values.
-* sentinel::                    The sentinel value.
-* variables::                   Defining storage locations.
-* scmobj::                      A simple object system.
-* irregex::                     IrRegular expressions.
-* pregexp::                     Portable regular expressions for Scheme.
-* silex::                       A lexical analyser generator.
-* lalr::                        A LALR(1) parser generator.
-* csv::                         Comma--separated value (@acronym{CSV}) utilities.
-* schelog::                     Programming in Schelog.
-* email addresses::             Email address processing.
-* infix::                       Infix notation utilities.
-
-Low level libraries
-
-* kmp::                         Knuth--Morris--Pratt searching.
-* one-dimension::               One dimensional extended ranges.
 
 List library
 
@@ -1146,10 +1150,12 @@ Describing tokens
 
 Defining the parser
 
-* lalr grammar basics::         Basics of grammar definition.
+* lalr grammar intro::          Introduction to grammar definition.
+* lalr grammar basics::         Dummy example grammar definitions.
 * lalr grammar precedence::     Operator precedence and associativity.
 * lalr grammar clauses::        Writing semantic clauses.
 * lalr grammar error::          Error recovery.
+* lalr grammar eoi::            Handling end--of--input.
 * lalr grammar conflict::       Conflicts resolution.
 
 Comma--separated value (@acronym{CSV}) utilities
@@ -1186,23 +1192,6 @@ Infix notation utilities
 
 * infix strings::               Converting strings.
 * infix sexp::                  Converting S--expressions.
-
-Knuth-Morris-Pratt searching
-
-* kmp intro::                   Introduction.
-* kmp conv::                    Conventions.
-* kmp vector::                  The restart vector.
-* kmp step::                    Single step of the search.
-* kmp partial::                 Partial search.
-* kmp full::                    Full sequence search.
-
-One dimensional extended ranges
-
-* one-dimension intro::         Data types and conventions.
-* one-dimension make::          Constructors.
-* one-dimension pred::          Predicates.
-* one-dimension inspect::       Inspection.
-* one-dimension ops::           Operations.
 
 Foreign functions interface
 
@@ -1260,6 +1249,23 @@ C language system errors
 * errno values::                Error codes.
 * errno conversion::            Conversion of error codes.
 * errno condition::             Raising exceptions.
+
+Knuth-Morris-Pratt searching
+
+* kmp intro::                   Introduction.
+* kmp conv::                    Conventions.
+* kmp vector::                  The restart vector.
+* kmp step::                    Single step of the search.
+* kmp partial::                 Partial search.
+* kmp full::                    Full sequence search.
+
+One dimensional extended ranges
+
+* one-dimension intro::         Data types and conventions.
+* one-dimension make::          Constructors.
+* one-dimension pred::          Predicates.
+* one-dimension inspect::       Inspection.
+* one-dimension ops::           Operations.
 
 Miscellaneous notes on everything
 
@@ -1435,20 +1441,10 @@ implementations, the Nausicaa distribution is concerned to provide a
 good base of features and interfaces to foreign libraries (mostly coded
 in the C language).
 
-With these purposes, @value{PACKAGE} installs libraries implementing and
-extending some of the @srfi{}s that were voted to @emph{final} status,
-and providing a unified @api{} to the foreign functions interfaces of
-the underlying implementations.
-
-These specifications are described in the chapters:
-
-@itemize -
-@item
-@ref{more,More libraries}
-
-@item
-@ref{foreign,Foreign functions interface}
-@end itemize
+With these purposes, @value{PACKAGE} installs libraries implementing,
+reimplementing or extending some of the @srfi{}s that were voted to
+@emph{final} status, and providing a unified @api{} to the foreign
+functions interfaces of the underlying implementations.
 
 @c page
 @node overview binfmt
@@ -19080,50 +19076,8 @@ Raise a composite condition embedding a condition of type
 @end defun
 
 @c page
-@node more
-@chapter More libraries
-
-
-@menu
-* lists::                       Lists library.
-* char-sets::                   Character sets library.
-* strings::                     Strings library.
-* vectors::                     Vectors library.
-* arrays::                      Multidimensional arrays.
-* comparisons::                 Comparison functions.
-* loops::                       Loop constructs.
-* random::                      Sources of random bits.
-* format::                      Formatting strings.
-* checks::                      Lightweight testing.
-* debugging::                   Debugging utilities.
-* queues::                      Simple queue.
-* object-properties::           Object properties.
-* cleanup-handlers::            Cleaning up.
-* combinators::                 Combinators.
-* compensations::               Compensation stacks.
-* deferred exceptions::         Deferred exceptions.
-* keywords::                    Keyword values.
-* sentinel::                    The sentinel value.
-* variables::                   Defining storage locations.
-* scmobj::                      A simple object system.
-* irregex::                     IrRegular expressions.
-* pregexp::                     Portable regular expressions for Scheme.
-* silex::                       A lexical analyser generator.
-* lalr::                        A LALR(1) parser generator.
-* csv::                         Comma--separated value (@acronym{CSV}) utilities.
-* schelog::                     Programming in Schelog.
-* email addresses::             Email address processing.
-* infix::                       Infix notation utilities.
-
-Low level libraries
-
-* kmp::                         Knuth--Morris--Pratt searching.
-* one-dimension::               One dimensional extended ranges.
-@end menu
-
-@c page
 @node lists
-@section List library
+@chapter List library
 
 
 The @library{lists} and @library{lists stx} libraries implement a
@@ -19164,7 +19118,7 @@ documentation!
 
 @c page
 @node lists intro
-@subsection Introduction
+@section Introduction
 
 
 Scheme does not properly have a list type, just as the C language does
@@ -19278,7 +19232,7 @@ call.
 
 @c page
 @node lists conventions
-@subsection Conventions
+@section Conventions
 
 
 All the functions are exported by the @library{lists} library, while all
@@ -19332,7 +19286,7 @@ Any value, this includes dotted lists.
 
 @c page
 @node lists cons
-@subsection Constructors
+@section Constructors
 
 
 @cindex List constructors
@@ -19427,7 +19381,7 @@ The resulting list is built in reverse, starting from the last element.
 
 @c page
 @node lists pred
-@subsection Predicates
+@section Predicates
 
 
 @defun not-pair? @var{obj}
@@ -19480,7 +19434,7 @@ Return two values being the return values of @func{and-null?} and
 
 @c page
 @node lists compar
-@subsection Comparison
+@section Comparison
 
 
 @defun list=? @var{item=} @var0{ell} ...
@@ -19553,7 +19507,7 @@ Examples:
 
 @c page
 @node lists select
-@subsection Selectors
+@section Selectors
 
 
 @cindex List selectors
@@ -19744,7 +19698,7 @@ finite list @var{pair}.
 
 @c page
 @node lists misc
-@subsection Length, append, concatenate, reverse, zip and count
+@section Length, append, concatenate, reverse, zip and count
 
 
 @cindex List length
@@ -19946,7 +19900,7 @@ At least one of the argument lists must be finite:
 
 @c page
 @node lists fold
-@subsection Fold, unfold and map
+@section Fold, unfold and map
 
 
 @cindex List fold, unfold and map
@@ -19969,7 +19923,7 @@ operator.
 
 @c page
 @node lists fold examples
-@subsubsection Folding usage examples
+@subsection Folding usage examples
 
 
 In the single list argument case, for a list of @math{4} elements, the
@@ -20147,7 +20101,7 @@ argument case:
 
 @c page
 @node lists fold rnrs
-@subsubsection Folding with @rnrs{6} style
+@subsection Folding with @rnrs{6} style
 
 
 Exactly as with the @func{fold-left} and @func{fold-right} functions
@@ -20186,7 +20140,7 @@ arguments are involved.
 
 @c page
 @node lists fold traditional
-@subsubsection Folding with traditional style
+@subsection Folding with traditional style
 
 
 The functions @func{fold} and @func{fold*} are similar to
@@ -20215,7 +20169,7 @@ syntax may be a little faster than the function when multiple
 
 @c page
 @node lists fold derived
-@subsubsection Derived folding
+@subsection Derived folding
 
 
 @deffn Function and-fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
@@ -20256,7 +20210,7 @@ and it can be used to implement predicates for ordering like @func{<}:
 
 @c page
 @node lists fold pair
-@subsubsection Folding pairs
+@subsection Folding pairs
 
 
 @defun pair-fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
@@ -20353,7 +20307,7 @@ Examples:
 
 @c page
 @node lists fold reduce
-@subsubsection Reducing
+@subsection Reducing
 
 
 @deffn Function reduce @var{f} @var{ridentity} @var{list}
@@ -20437,7 +20391,7 @@ in other words, we compute @code{(fold* f ridentity list)}.
 
 @c page
 @node lists fold unfold
-@subsubsection Unfolding
+@subsection Unfolding
 
 
 @deffn Function unfold @var{stop?} @var{map-to-elm} @var{seed-step} @var{first-seed}
@@ -20634,7 +20588,7 @@ interested readers are invited to communicate it to the author.
 
 @c page
 @node lists fold map
-@subsubsection Mapping
+@subsection Mapping
 
 
 @deffn Function map* @var{proc} @var{clist1} @var{clist2} ...
@@ -20840,7 +20794,7 @@ At least one of the list arguments must be finite.
 
 @c page
 @node lists filter
-@subsection Filtering and partitioning
+@section Filtering and partitioning
 
 
 @cindex List filtering
@@ -20915,7 +20869,7 @@ construct the result lists.
 
 @c page
 @node lists search
-@subsection Searching
+@section Searching
 
 
 @cindex List searching
@@ -21210,7 +21164,7 @@ Note that fully general list searching may be performed with the
 
 @c page
 @node lists delete
-@subsection Deletion
+@section Deletion
 
 
 @cindex List deletion
@@ -21293,7 +21247,7 @@ cons cells in its argument list to construct the result.
 
 @c page
 @node lists sorted
-@subsection Utilities for sorted lists
+@section Utilities for sorted lists
 
 
 @defun sorted-list-insert @var{item} @var{list} @var{item>}
@@ -21358,7 +21312,7 @@ the ones from @var{list1} are added to the result.  Examples:
 
 @c page
 @node lists alist
-@subsection Association lists
+@section Association lists
 
 
 @cindex List, association lists
@@ -21476,7 +21430,7 @@ cells from the alist parameter to construct the result.
 
 @c page
 @node lists circ
-@subsection Circular lists
+@section Circular lists
 
 
 @subsubheading Constructors
@@ -21537,7 +21491,7 @@ arguments have different length, return @false{}.
 
 @c page
 @node lists set
-@subsection Set operations on lists
+@section Set operations on lists
 
 
 @cindex List set operations
@@ -21835,7 +21789,7 @@ the cons cells in the first list parameter to construct its answer.
 
 @c page
 @node lists low
-@subsection Low level utilities
+@section Low level utilities
 
 
 The following bindings are exported by @library{lists low}.
@@ -22093,7 +22047,7 @@ which is the same of doing:
 
 @c page
 @node char-sets
-@section Character sets
+@chapter Character sets
 
 
 The @library{char-sets} library handles sets of characters.
@@ -22115,7 +22069,7 @@ character components.  @ref{stdlib unicode,Unicode}.
 
 @c page
 @node char-sets intro
-@subsection Introduction
+@section Introduction
 
 
 In the following procedure specifications:
@@ -22154,7 +22108,7 @@ character sets.
 
 @c page
 @node char-sets make
-@subsection Constructors
+@section Constructors
 
 
 @defvar char-set-lower-bound
@@ -22203,7 +22157,7 @@ The returned set may share some structure with the arguments.
 
 @c page
 @node char-sets pred
-@subsection Predicates
+@section Predicates
 
 
 @defun char-set? @var{obj}
@@ -22248,7 +22202,7 @@ each other or strict supersets of each other.
 
 @c page
 @node char-sets inspect
-@subsection Inspection
+@section Inspection
 
 
 @defun char-set-size @var{cs}
@@ -22266,7 +22220,7 @@ generates @var{cs}.  When not given, @var{port} defaults to
 
 @c page
 @node char-sets ops
-@subsection Operations
+@section Operations
 
 
 @defun char-set-intersection @var{cs0} @var{cs} ...
@@ -22345,7 +22299,7 @@ Return a new character set holding all the characters in @var{string}.
 
 @c page
 @node char-sets sets
-@subsection Predefined character sets
+@section Predefined character sets
 
 
 Several character sets are predefined for convenience by
@@ -22364,7 +22318,7 @@ satisfy the simplest needs.
 
 @c page
 @node char-sets sets intro
-@subsubsection Introduction
+@subsection Introduction
 
 
 Unicode assigns a single number to each code element defined by the
@@ -22409,7 +22363,7 @@ verified Tue Jun 23, 2009.}:
 
 @c page
 @node char-sets sets how
-@subsubsection How predefined sets were defined
+@subsection How predefined sets were defined
 
 
 The following methods were employed to define the character sets.
@@ -22557,7 +22511,7 @@ ranges, is (reformatted to look human readable):
 
 @c page
 @node char-sets sets basic
-@subsubsection Basic character sets
+@subsection Basic character sets
 
 
 The following character sets are defined and exported by the
@@ -22575,7 +22529,7 @@ The empty set.
 
 @c page
 @node char-sets sets ascii
-@subsubsection Sets of @ascii{} characters
+@subsection Sets of @ascii{} characters
 
 
 The following character sets are defined and exported by the
@@ -22719,7 +22673,7 @@ Sets of vowels and consonants.  Notice that lower case vowels are:
 
 @c page
 @node char-sets sets blocks
-@subsubsection Sets corresponding to Unicode blocks
+@subsection Sets corresponding to Unicode blocks
 
 
 The following character sets are defined and exported by the
@@ -22900,7 +22854,7 @@ These are the character sets corresponding to the ranges defined in the
 
 @c page
 @node char-sets sets categories
-@subsubsection Sets corresponding to Unicode general categories
+@subsection Sets corresponding to Unicode general categories
 
 
 The following character sets are defined and exported by the
@@ -22949,7 +22903,7 @@ One set for each general category defined by the Unicode Standard.
 
 @c page
 @node strings
-@section Strings library
+@chapter Strings library
 
 
 The @library{strings} library extends the string operations available in
@@ -22980,7 +22934,7 @@ low level interface with the same functionalities.
 
 @c page
 @node strings intro
-@subsection Introduction
+@section Introduction
 
 
 @subsubheading Library organisation
@@ -23057,7 +23011,7 @@ that are meant to be mutated.
 
 @c page
 @node strings convention
-@subsection Interface conventions
+@section Interface conventions
 
 
 The following naming convention holds:
@@ -23194,7 +23148,7 @@ table:
 
 @c page
 @node strings views
-@subsection Views over strings
+@section Views over strings
 
 
 String views are syntactic sugar to allow substring specification with
@@ -23305,7 +23259,7 @@ obvious.
 
 @c page
 @node strings cons
-@subsection Constructors
+@section Constructors
 
 
 @defun string-concatenate @var{string-list}
@@ -23341,7 +23295,7 @@ applied to the indices is not specified.
 
 @c page
 @node strings pred
-@subsection Predicates
+@section Predicates
 
 
 @defun string-null? @var{obj}
@@ -23390,7 +23344,7 @@ boolean (@true{} or @false{}), but a general value.
 
 @c page
 @node strings compar
-@subsection Comparison
+@section Comparison
 
 
 @deffn Function %string-compare @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
@@ -23554,7 +23508,7 @@ the end of @var{str2}: Return @true{}.
 
 @c page
 @node strings map
-@subsection Mapping functions
+@section Mapping functions
 
 
 @defun string-map @var{proc} @var{str0} @var{str} ...
@@ -23656,7 +23610,7 @@ and correct.
 
 @c page
 @node strings case
-@subsection Case mapping
+@section Case mapping
 
 
 @deffn Function %string-titlecase*! @var{str} @var{start} @var{past}
@@ -23708,7 +23662,7 @@ and do not alter their s parameter.  @func{string-upcase!} and
 
 @c page
 @node strings fold
-@subsection Fold and unfold
+@section Fold and unfold
 
 
 @defun string-fold-left @var{kons} @var{knil} @var{str0} @var{str} ...
@@ -24034,7 +23988,7 @@ The final string constructed does not share storage with either
 
 @c page
 @node strings select
-@subsection Selection
+@section Selection
 
 
 @deffn Macro substring* @var{S}
@@ -24111,7 +24065,7 @@ string.
 
 @c page
 @node strings pad
-@subsection Padding and trimming
+@section Padding and trimming
 
 
 @deffn Function %string-pad @var{requested-len} @var{fill-char} @var{str} @var{start} @var{past}
@@ -24168,7 +24122,7 @@ Always return a newly allocated string.
 
 @c page
 @node strings prefix
-@subsection Prefixes and suffixes
+@section Prefixes and suffixes
 
 
 @deffn Function %string-prefix-length @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
@@ -24210,7 +24164,7 @@ that the empty string is @strong{not} a suffix of every string.
 
 @c page
 @node strings search
-@subsection Searching
+@section Searching
 
 
 @deffn Function %string-index @var{char/char-set/pred} @var{str} @var{start} @var{past}
@@ -24288,7 +24242,7 @@ occurs.
 
 @c page
 @node strings filter
-@subsection Filtering and deleting
+@section Filtering and deleting
 
 
 @deffn Function %string-filter @var{char/char-set/pred} @var{str} @var{start} @var{past}
@@ -24332,7 +24286,7 @@ Always return a newly allocated string.
 
 @c page
 @node strings list
-@subsection List and string conversion
+@section List and string conversion
 
 
 @deffn Function %string->list* @var{str} @var{start} @var{past}
@@ -24443,7 +24397,7 @@ Examples:
 
 @c page
 @node strings replicate
-@subsection Replicate and rotate
+@section Replicate and rotate
 
 
 @deffn Function %xsubstring @var{from} @var{to} @var{str} @var{start} @var{past}
@@ -24533,7 +24487,7 @@ copy a string on top of itself.
 
 @c page
 @node strings mutate
-@subsection Mutators
+@section Mutators
 
 
 @defun string-swap! @var{str} @var{i} @var{j}
@@ -24549,7 +24503,7 @@ string.
 
 @c page
 @node strings misc
-@subsection Miscellaneous functions
+@section Miscellaneous functions
 
 
 @deffn Function %string-replace @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
@@ -24570,7 +24524,7 @@ the in--place side--effecting variant.
 
 @c page
 @node vectors
-@section Vectors library
+@chapter Vectors library
 
 
 The @library{vectors} library extends the vector operations available in
@@ -24599,7 +24553,7 @@ low level interface with the same functionalities.
 
 @c page
 @node vectors intro
-@subsection Introduction
+@section Introduction
 
 
 @subsubheading Library organisation
@@ -24649,7 +24603,7 @@ that are meant to be mutated.
 
 @c page
 @node vectors convention
-@subsection Interface conventions
+@section Interface conventions
 
 
 In order to simplify text in this documentation section, the values of a
@@ -24761,7 +24715,7 @@ non--terminal subform of a begin expression.
 
 @c page
 @node vectors views
-@subsection Views over vectors
+@section Views over vectors
 
 
 Vector views are syntactic sugar to allow subvector specification with
@@ -24869,7 +24823,7 @@ obvious.
 
 @c page
 @node vectors cons
-@subsection Constructors
+@section Constructors
 
 
 @defun vector-concatenate @var{vector-list}
@@ -24921,7 +24875,7 @@ order, to produce the corresponding vector element.
 
 @c page
 @node vectors pred
-@subsection Predicates
+@section Predicates
 
 
 @defun vector-null? @var{obj}
@@ -24962,7 +24916,7 @@ to indicate that they do not return a simple boolean (@true{} or
 
 @c page
 @node vectors compar
-@subsection Comparison
+@section Comparison
 
 
 @deffn Function %vector-compare @var{item=} @var{item<} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
@@ -25085,7 +25039,7 @@ equal to, the second; @false{} otherwise.
 
 @c page
 @node vectors fold
-@subsection Fold and unfold
+@section Fold and unfold
 
 
 @menu
@@ -25097,7 +25051,7 @@ equal to, the second; @false{} otherwise.
 
 @c page
 @node vectors fold rnrs
-@subsubsection Folding with @rnrs{6} style
+@subsection Folding with @rnrs{6} style
 
 
 @deffn Function vector-fold-left @var{combine} @var{knil} @var{vec0} @var{vec} ...
@@ -25269,7 +25223,7 @@ and it can be used to implement predicates for ordering like @func{<}:
 
 @c page
 @node vectors fold sub
-@subsubsection Folding over subvectors
+@subsection Folding over subvectors
 
 
 @deffn Function %subvector-fold-left @var{combine} @var{knil} @var{vec} @var{start} @var{past}
@@ -25317,7 +25271,7 @@ the right--fold iterator builds the return value as:
 
 @c page
 @node vectors fold unfold
-@subsubsection Unfolding vectors
+@subsection Unfolding vectors
 
 
 @defun vector-unfold @var{stop?} @var{seed->item} @var{make-seed} @var{first-seed}
@@ -25510,7 +25464,7 @@ The final vector constructed does not share storage with either
 
 @c page
 @node vectors fold map
-@subsubsection Mapping functions
+@subsection Mapping functions
 
 
 All the functions described here map their @var{proc} function argument
@@ -25657,7 +25611,7 @@ as a syntax.
 
 @c page
 @node vectors select
-@subsection Selection
+@section Selection
 
 
 @deffn Function %vector-copy @var{vec} @var{start} @var{past}
@@ -25722,7 +25676,7 @@ vector.
 
 @c page
 @node vectors pad
-@subsection Padding and trimming
+@section Padding and trimming
 
 
 @deffn Function %vector-pad @var{requested-len} @var{fill-item} @var{vec} @var{start} @var{past}
@@ -25763,7 +25717,7 @@ Always return a newly allocated vector.
 
 @c page
 @node vectors prefix
-@subsection Prefixes and suffixes
+@section Prefixes and suffixes
 
 
 @deffn Function %vector-prefix-length @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
@@ -25797,7 +25751,7 @@ that the empty vector is @strong{not} a suffix of every vector.
 
 @c page
 @node vectors search
-@subsection Searching
+@section Searching
 
 
 @deffn Function %vector-index @var{pred} @var{vec} @var{start} @var{past}
@@ -25867,7 +25821,7 @@ An example @var{cmp} might be:
 
 @c page
 @node vectors filter
-@subsection Filtering and deleting
+@section Filtering and deleting
 
 
 @deffn Function %vector-filter @var{pred} @var{vec} @var{start} @var{past}
@@ -25887,7 +25841,7 @@ allocated vector.
 
 @c page
 @node vectors list
-@subsection List and vector conversion
+@section List and vector conversion
 
 
 @deffn Function %vector->list* @var{vec} @var{start} @var{past}
@@ -25917,7 +25871,7 @@ result.
 
 @c page
 @node vectors replicate
-@subsection Replicate and rotate
+@section Replicate and rotate
 
 
 @deffn Function %xsubvector @var{from} @var{to} @var{vec} @var{start} @var{past}
@@ -26026,7 +25980,7 @@ copy a vector on top of itself.
 
 @c page
 @node vectors mutate
-@subsection Mutators
+@section Mutators
 
 
 @defun vector-swap! @var{vec} @var{i} @var{j}
@@ -26042,7 +25996,7 @@ vector.
 
 @c page
 @node vectors misc
-@subsection Miscellaneous functions
+@section Miscellaneous functions
 
 
 @deffn Function %vector-replace @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
@@ -26063,7 +26017,7 @@ the in--place side--effecting variant.
 
 @c page
 @node arrays
-@section Multidimensional arrays
+@chapter Multidimensional arrays
 
 
 The @library{arrays} library implements mutidimensional arrays on top of
@@ -26080,7 +26034,7 @@ built--in Scheme vectors.
 
 @c page
 @node arrays conventions
-@subsection Arguments conventions
+@section Arguments conventions
 
 
 In the documentation of @library{arrays} we call:
@@ -26131,7 +26085,7 @@ Can be any value.
 
 @c page
 @node arrays layout
-@subsection Layout of elements in the vector
+@section Layout of elements in the vector
 
 
 Filling the underlying vector with integers representing the index of
@@ -26246,7 +26200,7 @@ followind function will compute and return the list of factors:
 
 @c page
 @node arrays position
-@subsection Specifying the coordinates of elements
+@section Specifying the coordinates of elements
 
 
 Elements' position in arrays are represented by built--in Scheme vector,
@@ -26309,7 +26263,7 @@ current output port.
 
 @c page
 @node arrays shape
-@subsection Specifying the shape of arrays
+@section Specifying the shape of arrays
 
 
 Values of type @code{shape} represent the shape of an array, that is:
@@ -26466,7 +26420,7 @@ current output port.
 
 @c page
 @node arrays array
-@subsection Dealing with arrays
+@section Dealing with arrays
 
 
 Values of type @code{array} represent an array, a collection of values
@@ -26581,7 +26535,7 @@ output port.
 
 @c page
 @node comparisons
-@section Comparison functions
+@chapter Comparison functions
 
 
 The @library{comparisons} library implements an infrastructure for
@@ -26611,7 +26565,7 @@ the integer range @math{[0, n)} can be written as @code{(<=/<? 0 i n)}.
 
 @c page
 @node comparisons intro
-@subsection Introduction
+@section Introduction
 
 
 The @library{comparisons} library defines a mechanism for comparing
@@ -26696,7 +26650,7 @@ definition of a (potentially recursive) comparison procedure.
 
 @c page
 @node comparisons examples
-@subsection Examples
+@section Examples
 
 
 Assume there is a type @samp{length} representing physical length;  the
@@ -26817,7 +26771,7 @@ case.
 
 @c page
 @node comparisons conventions
-@subsection Terminology and conventions
+@section Terminology and conventions
 
 
 A @dfn{comparison procedure} is a Scheme procedure of two arguments
@@ -26838,7 +26792,7 @@ an error in case the arguments are not of this type.
 
 @c page
 @node comparisons atoms
-@subsection Comparing atoms
+@section Comparing atoms
 
 
 This section describes comparison procedures for most of the atomic
@@ -26920,7 +26874,7 @@ Return @samp{+nan.0}.
 
 @c page
 @node comparisons sequence
-@subsection Comparing lists and vectors
+@section Comparing lists and vectors
 
 
 This section describes comparison procedures for Scheme lists, vectors
@@ -27029,7 +26983,7 @@ In the following examples the difference shows:
 
 @c page
 @node comparisons pair
-@subsection Comparing pairs and improper lists
+@section Comparing pairs and improper lists
 
 
 This section describes comparison procedures for Scheme pairs and
@@ -27094,7 +27048,7 @@ The binary form uses @func{default-compare} as @var{compare}.
 
 @c page
 @node comparisons default
-@subsection The default compare procedure
+@section The default compare procedure
 
 
 It is convenient to have a compare procedure readily available for
@@ -27118,7 +27072,7 @@ vectors) is unspecified.
 
 @c page
 @node comparisons cons
-@subsection Constructing compare procedures
+@section Constructing compare procedures
 
 
 The syntactic extensions defined in this section are the primary
@@ -27264,7 +27218,7 @@ no clauses left (or there are no clauses to begin with), the result is
 
 @c page
 @node comparisons branch
-@subsection Branching
+@section Branching
 
 
 The facilities described in this section provide a mechanism for using a
@@ -27329,7 +27283,7 @@ The branch is chosen according to the following table:
 
 @c page
 @node comparisons pred
-@subsection Predicates
+@section Predicates
 
 
 @defun =? [@var{compare}] [@var{x} @var{y}]
@@ -27551,7 +27505,7 @@ coarser than the total ordering, and it may also be cheaper.
 
 @c page
 @node comparisons minmax
-@subsection Minimum and maximum values
+@section Minimum and maximum values
 
 
 @defun min-compare @var{compare} @var{x1} ...
@@ -27596,7 +27550,7 @@ average of the @math{(n/2 - 1)}-th and @math{n/2}-th largest elements if
 
 @c page
 @node comparisons debug
-@subsection Debugging procedure
+@section Debugging procedure
 
 
 @defun debug-compare @var{compare}
@@ -27620,7 +27574,7 @@ selection from the two arguments of the previous call to @var{compare1}.
 
 @c page
 @node loops
-@section Loop constructs
+@chapter Loop constructs
 
 
 The @library{loops} library provides extensions to the Scheme language
@@ -27635,7 +27589,7 @@ to loop over general sequences of values.
 
 @c page
 @node loops intro
-@subsection Introduction
+@section Introduction
 
 
 An eager comprehension is a convenient notation for one or more nested
@@ -27672,7 +27626,7 @@ constructs a two--element list for each binding, and the comprehension
 
 @c page
 @node loops comprehensions
-@subsection Comprehensions
+@section Comprehensions
 
 
 @menu
@@ -27688,7 +27642,7 @@ constructs a two--element list for each binding, and the comprehension
 
 @c page
 @node loops comprehensions do
-@subsubsection Simple loops
+@subsection Simple loops
 
 
 @deffn Syntax do-ec @meta{qualifier} ... @var{command}
@@ -27727,7 +27681,7 @@ side--effects only.  The result of the comprehension is unspecified.
 
 @c page
 @node loops comprehensions list
-@subsubsection List accumulator loops
+@subsection List accumulator loops
 
 
 @deffn Syntax list-ec @meta{qualifier} ... @var{expression}
@@ -27785,7 +27739,7 @@ Examples:
 
 @c page
 @node loops comprehensions string
-@subsubsection String accumulator loops
+@subsection String accumulator loops
 
 
 @deffn Syntax string-ec @meta{qualifier} ... @var{expression}
@@ -27848,7 +27802,7 @@ Examples:
 
 @c page
 @node loops comprehensions vector
-@subsubsection Vector accumulator loops
+@subsection Vector accumulator loops
 
 
 @deffn Syntax vector-ec @meta{qualifier} ... @var{expression}
@@ -27906,7 +27860,7 @@ can be implemented more efficiently.
 
 @c page
 @node loops comprehensions arith
-@subsubsection Arithmetic accumulator loops
+@subsection Arithmetic accumulator loops
 
 
 @deffn Syntax sum-ec @meta{qualifier} ... @var{expression}
@@ -28003,7 +27957,7 @@ may want to consider:
 
 @c page
 @node loops comprehensions search
-@subsubsection Searching loops
+@subsection Searching loops
 
 
 @deffn Syntax any?-ec @meta{qualifier} ... @var{test}
@@ -28035,7 +27989,7 @@ when the first value has been computed.
 
 @c page
 @node loops comprehensions fold
-@subsubsection Folding loops
+@subsection Folding loops
 
 
 @deffn Syntax fold-ec @var{x0} @meta{qualifier} ... @var{expression} @var{f2}
@@ -28131,7 +28085,7 @@ sequence.
 
 @c page
 @node loops comprehensions define
-@subsubsection Defining new comprehensions
+@subsection Defining new comprehensions
 
 
 To create a new comprehension a hygienic macro with that name is
@@ -28197,7 +28151,7 @@ necessary.
 
 @c page
 @node loops qualifiers
-@subsection Qualifiers
+@section Qualifiers
 
 
 This section defines the syntax @meta{qualifier}.  The nesting of
@@ -28308,7 +28262,7 @@ qualifiers into a form with exactly one qualifier.
 
 @c page
 @node loops generators
-@subsection Generators
+@section Generators
 
 
 @menu
@@ -28325,7 +28279,7 @@ qualifiers into a form with exactly one qualifier.
 
 @c page
 @node loops generators intro
-@subsubsection Introduction to generators
+@subsection Introduction to generators
 
 
 This section defines the syntax @meta{generator}.  Each generator defines
@@ -28371,7 +28325,7 @@ generator, but the effect of this assignment is unspecified; example:
 
 @c page
 @node loops generators do
-@subsubsection Loop generators
+@subsection Loop generators
 
 
 @deffn {Generator Syntax} :do (@meta{lb} ...) @meta{ne1?} (@meta{ls} ...)
@@ -28438,7 +28392,7 @@ produce more efficient code for special cases by removing empty
 
 @c page
 @node loops generators typed
-@subsubsection Typed generators
+@subsection Typed generators
 
 
 @deffn {Generator Syntax} {:list} @var{vars} @var{arg0} @var{arg} ...
@@ -28553,7 +28507,7 @@ sure expressions are evaluated at the correct time.
 
 @c page
 @node loops generators ranges
-@subsubsection Range generators
+@subsection Range generators
 
 
 @deffn {Generator Syntax} {:range} @var{vars} @var{stop}
@@ -28617,7 +28571,7 @@ included in the sequence.
 
 @c page
 @node loops generators port
-@subsubsection Port generators
+@subsection Port generators
 
 
 @deffn {Generator Syntax} {:port} @var{vars} @var{port}
@@ -28632,7 +28586,7 @@ satisfy @func{eof-object?}.
 
 @c page
 @node loops generators dispatch
-@subsubsection Dispatched generators
+@subsection Dispatched generators
 
 
 @deffn {Generator Syntax} {:} @var{vars} @var{arg0} @var{arg} ...
@@ -28864,7 +28818,7 @@ side--effects, and slow dispatching.
 
 @c page
 @node loops generators let
-@subsubsection Let generators
+@subsection Let generators
 
 
 @deffn {Generator Syntax} :let @var{vars} @var{expression}
@@ -28882,7 +28836,7 @@ depending on outer generators.
 
 @c page
 @node loops generators parallel
-@subsubsection Parallel generators
+@subsection Parallel generators
 
 
 @deffn {Generator Syntax} :parallel @meta{generator} ...
@@ -28896,7 +28850,7 @@ the various generators must be distinct.
 
 @c page
 @node loops generators cond
-@subsubsection Conditional generators
+@subsection Conditional generators
 
 
 @deffn {Generator Syntax} :while @meta{generator} @var{expression}
@@ -28922,7 +28876,7 @@ termination has been processed by the comprehension.
 
 @c page
 @node random
-@section Sources of random bits
+@chapter Sources of random bits
 
 
 The @library{random} library provides an @api{} to access sources of
@@ -28944,7 +28898,7 @@ generators and utilities.
 
 @c page
 @node random intro
-@subsection Introduction
+@section Introduction
 
 
 There are three different ways to use the interface, with varying
@@ -28986,7 +28940,7 @@ discrete structures, such as permutations or graphs.
 
 @c page
 @node random prng
-@subsection Notes on the algorithms
+@section Notes on the algorithms
 
 
 Pseudo--random number generators (@acronym{PRNG}s) are algorithms that
@@ -29013,7 +28967,7 @@ to help people new to the @acronym{PRNG} algorithms.
 
 @c page
 @node random prng lcg
-@subsubsection Linear congruential generators
+@subsection Linear congruential generators
 
 
 One of the most common @acronym{PRNG} is the @dfn{linear congruential
@@ -29051,7 +29005,7 @@ sequence have a far shorter period than the sequence as a whole if
 
 @c page
 @node random prng mwc
-@subsubsection Multiply with carry
+@subsection Multiply with carry
 
 
 Multiply--with--carry (@acronym{MWC}) is a method invented by George
@@ -29122,7 +29076,7 @@ N(1)   = N'
 
 @c page
 @node random prng csprng
-@subsubsection Cryptographically secure @acronym{PRNG}
+@subsection Cryptographically secure @acronym{PRNG}
 
 
 A cryptographically secure pseudo--random number generator
@@ -29142,7 +29096,7 @@ June 6, 2009).}.
 
 @c page
 @node random prng integers
-@subsubsection Generating integers in a specified range
+@subsection Generating integers in a specified range
 
 
 In applications using a randomness source, it happens to need a
@@ -29250,7 +29204,7 @@ loop:
 
 @c page
 @node random prng reals
-@subsubsection Generating real numbers
+@subsection Generating real numbers
 
 
 We want a sample @math{X} from the discrete range of representable
@@ -29334,7 +29288,7 @@ X = (1 + N') / (1 + M')
 
 @c page
 @node random numbers
-@subsection Simple random numbers
+@section Simple random numbers
 
 
 @defvr {Constant} default-random-source
@@ -29363,7 +29317,7 @@ X < 1}.
 
 @c page
 @node random source
-@subsection Randomness sources
+@section Randomness sources
 
 
 @deffn Parameter random-source-maker
@@ -29478,7 +29432,7 @@ Generating real numbers}, for details.
 
 @c page
 @node random mrg32k3a
-@subsection L'Ecuyer's MRG32k3a generator
+@section L'Ecuyer's MRG32k3a generator
 
 
 The default randomness source of @library{random} is Pierre L'Ecuyer's
@@ -29559,7 +29513,7 @@ B3 = 3542344109
 
 @c page
 @node random device
-@subsection Device--based random numbers
+@section Device--based random numbers
 
 
 In Unix--like operating systems, @file{/dev/random} is a special file
@@ -29624,7 +29578,7 @@ reading bytes from @file{/dev/urandom}.
 
 @c page
 @node random utils
-@subsection Utilities
+@section Utilities
 
 
 @menu
@@ -29636,7 +29590,7 @@ reading bytes from @file{/dev/urandom}.
 
 @c page
 @node random utils misc
-@subsubsection Miscellaneous utility functions
+@subsection Miscellaneous utility functions
 
 
 The following bindings are exported by the @library{random} library.
@@ -29707,7 +29661,7 @@ vector of length @var{n} for the images of the points.
 
 @c page
 @node random utils lists
-@subsubsection Specialised list functions
+@subsection Specialised list functions
 
 
 The auxiliary library @library{random lists} exports bindings
@@ -29742,7 +29696,7 @@ from @var{source}.
 
 @c page
 @node random utils vectors
-@subsubsection Specialised vector functions
+@subsection Specialised vector functions
 
 
 The auxiliary library @library{random vectors} exports bindings
@@ -29832,7 +29786,7 @@ the sum between the elements.
 
 @c page
 @node random utils strings
-@subsubsection Specialised string functions
+@subsection Specialised string functions
 
 
 The auxiliary library @library{random strings} exports bindings
@@ -29898,7 +29852,7 @@ of @var{str}, using randomness from @var{source}.
 
 @c page
 @node random generators
-@subsection Auxiliary generators
+@section Auxiliary generators
 
 
 @menu
@@ -29911,7 +29865,7 @@ of @var{str}, using randomness from @var{source}.
 
 @c page
 @node random generators mersenne
-@subsubsection The Mersenne twister
+@subsection The Mersenne twister
 
 
 The Mersenne twister is a pseudorandom number generator developed in
@@ -29958,7 +29912,7 @@ seeds.  @ref{random mrg32k3a, L'Ecuyer's MRG32k3a generator}
 
 @c page
 @node random generators marsaglia
-@subsubsection George Marsaglia's generators
+@subsection George Marsaglia's generators
 
 
 The generators described here were posted by George Marsaglia in a
@@ -30330,7 +30284,7 @@ With this seeding it is known that the millionth integer is
 
 @c page
 @node random generators bbs
-@subsubsection Blum--Blum--Shub generator
+@subsection Blum--Blum--Shub generator
 
 
 Blum--Blum--Shub is a @acronym{PRNG} proposed in:
@@ -30441,7 +30395,7 @@ modulo @math{2}.
 
 @c page
 @node random generators borosh
-@subsubsection Borosh generator
+@subsection Borosh generator
 
 
 This generator is called @dfn{Borosh--Niederreiter}.  It was taken from:
@@ -30488,7 +30442,7 @@ N' = (A * N) mod M
 
 @c page
 @node random generators cmrg
-@subsubsection Combined multiple recursive generator
+@subsection Combined multiple recursive generator
 
 
 This is a combined multiple recursive generator.  The algorithm was
@@ -30574,7 +30528,7 @@ generator until it is @math{0 < X < M1} and @math{0 < Y < M2}.
 
 @c page
 @node random dist
-@subsection Random numbers from known distributions
+@section Random numbers from known distributions
 
 
 The following functions are exported by the @library{random
@@ -30596,7 +30550,7 @@ random numbers using randomness from @var{source}.
 
 @c page
 @node format
-@section Formatting strings
+@chapter Formatting strings
 
 
 @menu
@@ -30611,7 +30565,7 @@ random numbers using randomness from @var{source}.
 
 @c page
 @node format overview
-@subsection Overview of the package
+@section Overview of the package
 
 
 This package is a distribution of the @func{format} function written by
@@ -30629,7 +30583,7 @@ library.
 
 @c page
 @node format output
-@subsection Formatted Output
+@section Formatted Output
 
 
 A format string is generally more compact and easier than using just the
@@ -30696,7 +30650,7 @@ empty to keep its default value when supplying later parameters.
 
 @c page
 @node format escape values
-@subsection Escape sequences for generic values
+@section Escape sequences for generic values
 
 
 @deffn Escape ~a
@@ -30813,7 +30767,7 @@ More examples:
 
 @c page
 @node format escape char
-@subsection Escape sequences for characters
+@section Escape sequences for characters
 
 
 @deffn Escape ~c
@@ -30842,7 +30796,7 @@ code.
 
 @c page
 @node format escape integers
-@subsection Escape sequences for integers
+@section Escape sequences for integers
 
 
 @deffn Escape ~d
@@ -30933,7 +30887,7 @@ described for @code{~d} above.
 
 @c page
 @node format escape flonums
-@subsection Escape sequences for flonums
+@section Escape sequences for flonums
 
 
 @menu
@@ -30944,7 +30898,7 @@ described for @code{~d} above.
 
 @c page
 @node format escape flonums fixed
-@subsubsection Fixed point format
+@subsection Fixed point format
 
 
 @deffn Escape @code{~f}
@@ -31023,7 +30977,7 @@ printed instead of the value.
 
 @c page
 @node format escape flonums exponent
-@subsubsection Exponential format
+@subsection Exponential format
 
 
 @deffn Escape ~e
@@ -31123,7 +31077,7 @@ output would exceed @var{width} then instead that many
 
 @c page
 @node format escape flonums eng
-@subsubsection Engineering format
+@subsection Engineering format
 
 
 @deffn Escape @code{~g}
@@ -31132,7 +31086,7 @@ output would exceed @var{width} then instead that many
 
 @c page
 @node format escape complex
-@subsection Escape sequences for complex numbers
+@section Escape sequences for complex numbers
 
 
 @deffn Escape ~i
@@ -31654,7 +31608,7 @@ originating format, or similar.
 
 @c page
 @node checks
-@section Lightweight testing
+@chapter Lightweight testing
 
 
 The @library{checks} library provides a simple mechanism for testing
@@ -31685,7 +31639,7 @@ by printing a message of the form:
 
 @c page
 @node checks select
-@subsection Selecting tests to be run
+@section Selecting tests to be run
 
 
 As usage example, let's assume that the system environment variable
@@ -31742,7 +31696,7 @@ string or a symbol.
 
 @c page
 @node checks eval
-@subsection Evaluating code
+@section Evaluating code
 
 
 @deffn Syntax check @var{expr} (=> @var{equal}) @var{expected}
@@ -31882,7 +31836,7 @@ select, Selecting tests to be run}.
 
 @c page
 @node checks result
-@subsection Handling multiple results
+@section Handling multiple results
 
 
 @deffn Syntax with-result @var{form0} @var{form} ...
@@ -31909,7 +31863,7 @@ Return the current value of the implicit variable defined by
 
 @c page
 @node debugging
-@section Debugging utilities
+@chapter Debugging utilities
 
 
 The @library{debugging} library provide simple utilities to help
@@ -31939,7 +31893,7 @@ to print @var{exc}, which must be a Scheme condition value.
 
 @c page
 @node queues
-@section Simple queue
+@chapter Simple queue
 
 
 The functions in this section are exported by the @library{queues}
@@ -32047,7 +32001,7 @@ modifies the queue @var{list} then it must either maintain
 
 @c page
 @node object-properties
-@section Object properties
+@chapter Object properties
 
 
 An @dfn{object property} is a convenient interface to an @func{eq?}
@@ -32128,7 +32082,7 @@ The following will evaluate successfully:
 
 @c page
 @node cleanup-handlers
-@section Cleaning up
+@chapter Cleaning up
 
 
 On Scheme implementations that provide guardians (like Ikarus) there is
@@ -32198,7 +32152,7 @@ instead.
 
 @c page
 @node combinators
-@section Combinators
+@chapter Combinators
 
 
 The following combinators are exported by @library{combinators}.
@@ -32265,7 +32219,7 @@ The S combinator:
 
 @c page
 @node compensations
-@section Compensation stacks
+@chapter Compensation stacks
 
 
 This section describes a form that implements compensation stacks:
@@ -32286,7 +32240,7 @@ Object--Oriented Programming, Systems, Languages, and Applications.
 
 @c page
 @node compensations usage
-@subsection Basic compensations usage
+@section Basic compensations usage
 
 
 A @dfn{compensation} is a chunk of code that undoes a resource
@@ -32441,7 +32395,7 @@ want the constructor to return.
 
 @c page
 @node compensations api
-@subsection Compensations @api{}
+@section Compensations @api{}
 
 
 @deffn Syntax compensate @var{alloc-form0} @var{alloc-form} @dots{} (with @var{release-form0} @var{release-form} @dots{})
@@ -32481,7 +32435,7 @@ compensations stack.
 
 @c page
 @node deferred exceptions
-@section Deferred exceptions
+@chapter Deferred exceptions
 
 
 The @library{deferred-exceptions} library implements a mechanism to
@@ -32495,7 +32449,7 @@ handle nested exceptions.
 
 @c page
 @node deferred exceptions intro
-@subsection Introduction
+@section Introduction
 
 
 When a non--continuable exception is raised: the stack unwinds and some
@@ -32541,7 +32495,7 @@ the reference use case (@ref{compensations}).
 
 @c page
 @node deferred exceptions usage
-@subsection Usage examples
+@section Usage examples
 
 
 A form that uses deferred exceptions looks like this:
@@ -32571,7 +32525,7 @@ Any number of @func{defer-exceptions} can be put in the same
 
 @c page
 @node deferred exceptions api
-@subsection Programming interface
+@section Programming interface
 
 
 @deffn Syntax defer-exceptions @var{form} @dots{}
@@ -32602,7 +32556,7 @@ silently ignored.
 
 @c page
 @node keywords
-@section Keyword values
+@chapter Keyword values
 
 
 The @library{keywords} library implements a type of value,
@@ -32719,7 +32673,7 @@ Example:
 
 @c page
 @node sentinel
-@section The sentinel value
+@chapter The sentinel value
 
 
 The @library{sentinel} library defines a unique value and a predicate to
@@ -32773,7 +32727,7 @@ signal the end of the iteration:
 
 @c page
 @node variables
-@section Defining storage locations
+@chapter Defining storage locations
 
 
 The @library{variables} library provides a way to define simple storage
@@ -32851,7 +32805,7 @@ The difference between @func{define-syntax} and @func{define}, is that
 
 @c page
 @node scmobj
-@section A simple object system
+@chapter A simple object system
 
 
 The @library{scmobj} library defines an object system for Scheme that
@@ -32881,7 +32835,7 @@ sophisticated object systems.
 
 @c page
 @node scmobj overview
-@subsection Overview of the library
+@section Overview of the library
 
 
 @library{scmobj} objects, that is classes and instances, are association
@@ -32947,7 +32901,7 @@ Notice that the symbol @code{:class} is @strong{not} included.
 
 @c page
 @node scmobj example
-@subsection Objects layout examples
+@section Objects layout examples
 
 
 In the following it is not always convenient to show the full layout; to
@@ -33086,7 +33040,7 @@ has layout:
 
 @c page
 @node scmobj class
-@subsection Classes
+@section Classes
 
 
 @menu
@@ -33102,7 +33056,7 @@ has layout:
 
 @c page
 @node scmobj class make
-@subsubsection Making classes
+@subsection Making classes
 
 
 @deffn Syntax make-class @var{list-of-superclasses} . @var{class-slots}
@@ -33194,7 +33148,7 @@ Defining classes using @func{define-class}:
 
 @c page
 @node scmobj class chart
-@subsubsection A chart for predefined classes
+@subsection A chart for predefined classes
 
 
 @example
@@ -33239,7 +33193,7 @@ Defining classes using @func{define-class}:
 
 @c page
 @node scmobj class core
-@subsubsection Core class types
+@subsection Core class types
 
 
 @deftp {Class} <class>
@@ -33253,7 +33207,7 @@ The base class built--in Scheme values.
 
 @c page
 @node scmobj class list
-@subsubsection List types
+@subsection List types
 
 
 @deftp Class <pair>
@@ -33282,7 +33236,7 @@ Class for values that satisfy @func{proper-list?}.
 
 @c page
 @node scmobj class compound
-@subsubsection Non--list compound data types
+@subsection Non--list compound data types
 
 
 @deftp Class <vector>
@@ -33306,7 +33260,7 @@ Class for values that satisfy @func{record?}.
 
 @c page
 @node scmobj class numeric
-@subsubsection Numeric data types
+@subsection Numeric data types
 
 
 @deftp Class <number>
@@ -33360,7 +33314,7 @@ Class for values that satisfy @func{flonum?}.
 
 @c page
 @node scmobj class port
-@subsubsection Port types
+@subsection Port types
 
 
 The following classes for input/output ports are predefined.
@@ -33401,7 +33355,7 @@ inheritance:
 
 @c page
 @node scmobj class misc
-@subsubsection Miscellaneous types
+@subsection Miscellaneous types
 
 
 @deftp {Class} <condition>
@@ -33410,7 +33364,7 @@ Class for values that satisfy @func{condition?}.
 
 @c page
 @node scmobj instance
-@subsection Instances
+@section Instances
 
 
 @deffn Macro make @var{class-object} . @var{init-slots}
@@ -33450,7 +33404,7 @@ Instantiate a class with superclasses, initialising all the slots:
 
 @c page
 @node scmobj inspect
-@subsection Inspecting classes and instances
+@section Inspecting classes and instances
 
 
 @defun class? @var{obj}
@@ -33511,7 +33465,7 @@ excluding the slots of its superclasses.
 
 @c page
 @node scmobj slot
-@subsection Accessing slots
+@section Accessing slots
 
 
 @defun slot-ref @var{object} @var{slot-name}
@@ -33613,7 +33567,7 @@ and closure accessors are also possible:
 
 @c page
 @node scmobj generic
-@subsection Generic functions and methods
+@section Generic functions and methods
 
 
 @dfn{Generic functions} are procedures that can be specialized to the
@@ -33633,7 +33587,7 @@ classes is chosen.
 
 @c page
 @node scmobj generic application
-@subsubsection How generic functions and methods are invoked
+@subsection How generic functions and methods are invoked
 
 
 @library{scmobj} allows the definition of four kinds of methods:
@@ -33784,7 +33738,7 @@ specific, and then will start the application of @code{:before},
 
 @c page
 @node scmobj generic dispatching
-@subsubsection How methods are dispatched
+@subsection How methods are dispatched
 
 
 Here we attempt the formulation of the rules by which methods are
@@ -33872,7 +33826,7 @@ Then @var{B} is more specific than @var{A}.
 
 @c page
 @node scmobj generic define
-@subsubsection Defining generic functions and methods
+@subsection Defining generic functions and methods
 
 
 @deffn Macro define-generic @var{name}
@@ -33936,7 +33890,7 @@ When the method qualifier is not present, it defaults to
 
 @c page
 @node scmobj generic next
-@subsubsection Invoking the next method
+@subsection Invoking the next method
 
 
 @defun call-next-method
@@ -33956,7 +33910,7 @@ It can be invoked by any kind of method.
 
 @c page
 @node scmobj generic examples
-@subsubsection Examples of method dispatching.
+@subsection Examples of method dispatching.
 
 
 Here we show with some examples what we have to expect from the
@@ -34385,7 +34339,7 @@ then the graph is flattened and visited in preorder.
 
 @c page
 @node irregex
-@section IrRegular expressions
+@chapter IrRegular expressions
 
 
 The @library{irregex} library is an implementation of regular
@@ -34421,7 +34375,7 @@ downloaded from:
 
 @c page
 @node irregex conventions
-@subsection Conventions
+@section Conventions
 
 
 In the documentation of the @library{irregex} functions, the following
@@ -34457,7 +34411,7 @@ Can be any value.
 
 @c page
 @node irregex pred
-@subsection Predicates
+@section Predicates
 
 
 @defun {irregex?} @var{obj}
@@ -34474,7 +34428,7 @@ disjoint from all the other Scheme types.
 
 @c page
 @node irregex compile
-@subsection Compiling regular expressions
+@section Compiling regular expressions
 
 
 @defun irregex @var{pcre/sre} @var{options} ...
@@ -34535,7 +34489,7 @@ make the compiled expression any faster or smaller at the moment.
 
 @c page
 @node irregex match
-@subsection Match objects
+@section Match objects
 
 
 @defun irregex-search @var{irx} @var{str}
@@ -34618,7 +34572,7 @@ first 1, etc.  The default is index 0.  Examples:
 
 @c page
 @node irregex replace
-@subsection Replacing substrings
+@section Replacing substrings
 
 
 @defun irregex-replace @var{irx} @var{str} [@var{replacements} ...]
@@ -34644,7 +34598,7 @@ Examples:
 
 @c page
 @node irregex chunk
-@subsection Chunked string matching
+@section Chunked string matching
 
 
 It's often desirable to perform regular expression matching over
@@ -34769,7 +34723,7 @@ Chunked version of @func{irregex-fold}.
 
 @c page
 @node irregex misc
-@subsection Miscellaneous functions
+@section Miscellaneous functions
 
 
 @defun irregex-fold @var{irx} @var{kons} @var{knil} @var{str} [@var{finish} @var{start} @var{past}]
@@ -34840,7 +34794,7 @@ possible.
 
 @c page
 @node irregex pcre
-@subsection Supported @acronym{PCRE} syntax
+@section Supported @acronym{PCRE} syntax
 
 
 Since the @acronym{PCRE} syntax is so overwhelming complex, it's easier
@@ -34912,7 +34866,7 @@ the @acronym{SRE} equivalent:
 
 @c page
 @node irregex sre
-@subsection Extended @acronym{SRE} Syntax
+@section Extended @acronym{SRE} Syntax
 
 
 Scheme Regular Expressions were proposed by Olin Shivers.  The original
@@ -34931,7 +34885,7 @@ request for coments is available at:
 
 @c page
 @node irregex sre syntax
-@subsubsection Syntax tables
+@subsection Syntax tables
 
 
 The following tables summarizes the @acronym{SRE} syntax, with detailed
@@ -35010,7 +34964,7 @@ commit                            ; don't backtrack beyond this (i.e. cut)
 
 @c page
 @node irregex sre basic
-@subsubsection Basic patterns
+@subsection Basic patterns
 
 
 The simplest @acronym{SRE} is a literal string, which matches that
@@ -35075,7 +35029,7 @@ operator:
 
 @c page
 @node irregex sre repetition
-@subsubsection Repetition patterns
+@subsection Repetition patterns
 
 
 There are several ways to control the number of times a pattern is
@@ -35183,7 +35137,7 @@ to use a backtracking engine, and can't rely on efficient execution.
 
 @c page
 @node irregex sre char-sets
-@subsubsection Character sets
+@subsection Character sets
 
 
 Perhaps more common than matching specific strings is matching any of a
@@ -35245,7 +35199,7 @@ extended by the @code{&} set intersection, @code{-} set difference, and
 
 @c page
 @node irregex sre assertion
-@subsubsection Assertion patterns
+@subsection Assertion patterns
 
 
 It can be useful to assert something about the area around a pattern,
@@ -35293,7 +35247,7 @@ unlikely to be compiled efficiently.
 
 @c page
 @node irregex sre utility
-@subsubsection Utility patterns
+@subsection Utility patterns
 
 
 The following utility regular expressions are also provided for common
@@ -35372,7 +35326,7 @@ increases in complexity it's probably better to use a real parser.
 
 @c page
 @node pregexp
-@section Portable regular expressions for Scheme
+@chapter Portable regular expressions for Scheme
 
 
 The @library{pregexp} library implements regular expressions parsing
@@ -35396,7 +35350,7 @@ the Nausicaa distribution.
 
 @c page
 @node pregexp intro
-@subsection Introduction
+@section Introduction
 
 
 A @dfn{regexp} is a string that describes a pattern.  A regexp matcher
@@ -35442,7 +35396,7 @@ recursive procedures to navigate.
 
 @c page
 @node pregexp api
-@subsection Interface procedures
+@section Interface procedures
 
 
 @defun pregexp @var{urex}
@@ -35604,7 +35558,7 @@ mix of regexp strings and verbatim strings.
 
 @c page
 @node pregexp syntax
-@subsection The regexp pattern language
+@section The regexp pattern language
 
 
 Here is a complete description of the regexp pattern language recognized
@@ -35622,7 +35576,7 @@ by the pregexp procedures.
 
 @c page
 @node pregexp syntax basic
-@subsubsection Basic assertions
+@subsection Basic assertions
 
 
 The assertions @code{^} and @code{$} identify the beginning and the end
@@ -35666,7 +35620,7 @@ The @code{an} that doesn't end in a word boundary is matched.
 
 @c page
 @node pregexp syntax chars
-@subsubsection Characters and character classes
+@subsection Characters and character classes
 
 
 Typically a character in the regexp matches the same character in the
@@ -35836,7 +35790,7 @@ the class containing all characters except the letters.
 
 @c page
 @node pregexp syntax quantifiers
-@subsubsection Quantifiers
+@subsection Quantifiers
 
 
 The quantifiers @code{*}, @code{+}, and @code{?} match respectively:
@@ -35923,7 +35877,7 @@ metacharacter @code{?}.
 
 @c page
 @node pregexp syntax clusters
-@subsubsection Clusters
+@subsection Clusters
 
 
 Clustering, i.e., enclosure within parens @code{(...)}, identifies the
@@ -36148,7 +36102,7 @@ not be differently cased.
 
 @c page
 @node pregexp syntax alternation
-@subsubsection Alternation
+@subsection Alternation
 
 
 You can specify a list of alternate subpatterns by separating them by
@@ -36210,7 +36164,7 @@ match.
 
 @c page
 @node pregexp syntax backtrack
-@subsubsection Backtracking
+@subsection Backtracking
 
 
 We've already seen that greedy quantifiers match the maximal number of
@@ -36269,7 +36223,7 @@ more @code{a}'s followed by something that is definitely non--@code{a}.
 
 @c page
 @node pregexp syntax look
-@subsubsection Looking ahead and behind
+@subsection Looking ahead and behind
 
 
 We can have assertions in our pattern that look ahead or behind to
@@ -36356,7 +36310,7 @@ confusing.
 
 @c page
 @node pregexp example
-@subsection An extended example
+@section An extended example
 
 
 Here's an extended example@footnote{From: Jeffrey E. F. Friedl,
@@ -36465,7 +36419,7 @@ The regexp @code{ip-re} will match all and only valid @ip{} addresses.
 
 @c page
 @node silex
-@section A lexical analyser generator
+@chapter A lexical analyser generator
 
 
 The @library{silex} library generates a lexical analyser table from a
@@ -36491,7 +36445,7 @@ original code is available at@footnote{@aurl{} last verified Mon Aug 3,
 
 @c page
 @node silex example
-@subsection A lexer example for a calculator
+@section A lexer example for a calculator
 
 
 The following is a lexer specification file that can be used to tokenise
@@ -36619,7 +36573,7 @@ fact that: When the input reaches the end, the lexer closure returns the
 
 @c page
 @node silex tables
-@subsection Creating lexer tables
+@section Creating lexer tables
 
 
 The following bindings, keywords included, are exported by the
@@ -36801,7 +36755,7 @@ counters rather than to configure them at run time.
 
 @c page
 @node silex input
-@subsection Input systems
+@section Input systems
 
 
 An input system provides the buffering, the line counting and similar
@@ -36925,7 +36879,7 @@ It is not possible to replace characters in the input system.
 
 @c page
 @node silex lexer
-@subsection Building and using lexical analysers
+@section Building and using lexical analysers
 
 
 Each lexer is associated to a lexer table and an input system.  Any
@@ -36945,7 +36899,7 @@ its input.
 
 @c page
 @node silex syntax
-@subsection Syntax of the specification
+@section Syntax of the specification
 
 
 A specification for a lexical analyser contains two parts: the
@@ -36985,7 +36939,7 @@ entire line when writing a regular expression matching a semicolon.
 
 @c page
 @node silex syntax macros
-@subsubsection Macro definitions part
+@subsection Macro definitions part
 
 
 The first part of a specification contains zero or more macro
@@ -37009,7 +36963,7 @@ We end the macro definitions part with @code{%%}.
 
 @c page
 @node silex syntax rules
-@subsubsection Rules part
+@subsection Rules part
 
 
 The rules part contains the rules up to the end of the specification.
@@ -37032,7 +36986,7 @@ In that case, a default action is supplied.
 
 @c page
 @node silex syntax regexp atomic
-@subsubsection Atomic regular expressions
+@subsection Atomic regular expressions
 
 
 The following constructs are regular expressions:
@@ -37108,7 +37062,7 @@ is @strong{not} enumerated in @var{list of characters}.
 
 @c page
 @node silex syntax regexp compose
-@subsubsection Composing regular expressions
+@subsection Composing regular expressions
 
 
 Suppose @var{r} and @var{s} are regular expressions.  Then the following
@@ -37167,7 +37121,7 @@ precedence.
 
 @c page
 @node silex syntax regexp marker
-@subsubsection Markers
+@subsection Markers
 
 
 The remaining ``expressions'' would better be called @dfn{markers}.
@@ -37198,7 +37152,7 @@ It can be used under the same conditions as @code{<<EOF>>}.
 
 @c page
 @node silex syntax regexp space
-@subsubsection White spaces in regular expressions
+@subsection White spaces in regular expressions
 
 
 White space ends the regular expressions.  In order to include white
@@ -37207,7 +37161,7 @@ placed in a string.
 
 @c page
 @node silex syntax sample
-@subsubsection An example of a specification file
+@subsection An example of a specification file
 
 
 Here is an example of a SILex specification file.  The file is
@@ -37258,7 +37212,7 @@ $^                                 ; @r{No special meaning}
 
 @c page
 @node silex semantics
-@subsection Semantics of the specification
+@section Semantics of the specification
 
 
 An important part of the semantics of a specification is described with
@@ -37274,7 +37228,7 @@ method follows.
 
 @c page
 @node silex semantics action
-@subsubsection Evaluation of the actions
+@subsection Evaluation of the actions
 
 
 @vindex yycontinue
@@ -37395,7 +37349,7 @@ action associated with each rule.
 
 @c page
 @node silex semantics rules
-@subsubsection Matching the rules
+@subsection Matching the rules
 
 
 Each time the analyser is asked to return a token, it tries to match a
@@ -37456,7 +37410,7 @@ extended each time it is necessary.
 
 @c page
 @node silex format
-@subsection Tables output format
+@section Tables output format
 
 
 The @library{silex} library provides three different encodings of the
@@ -37497,7 +37451,7 @@ big tables.  Such an analyser is not portable to non--@rnrs{6} Schemes.
 
 @c page
 @node lalr
-@section A LALR(1) parser generator
+@chapter A LALR(1) parser generator
 
 
 The @library{lalr} library is a LALR(1) parser tables generator.  The
@@ -37535,7 +37489,7 @@ at@footnote{@aurl{} last verified Tue Jul 21, 2009.}:
 
 @c page
 @node lalr intro
-@subsection Introduction to the LR parser
+@section Introduction to the LR parser
 
 
 Here we see an introduction to the behaviour of the LR driver; it is
@@ -37569,7 +37523,7 @@ establish precedence.  We want to compute one--line expressions like:
 
 @c page
 @node lalr intro tokens
-@subsubsection Splitting expressions in semantic tokens
+@subsection Splitting expressions in semantic tokens
 
 
 The first step is to split the expression in @dfn{tokens}, that is basic
@@ -37728,7 +37682,7 @@ O N A O N A N C C M N *eoi*
 
 @c page
 @node lalr intro want
-@subsubsection What we want
+@subsection What we want
 
 
 Let's take the simple expression @samp{1 + 2 * 3}; its categorised
@@ -37812,7 +37766,7 @@ the value @samp{7} it left in the vector before.
 
 @c page
 @node lalr intro simple
-@subsubsection Simplified parser behaviour
+@subsection Simplified parser behaviour
 
 
 We can describe the desired behaviour of the LR driver in terms of three
@@ -37990,7 +37944,7 @@ the lookahead returns @samp{*eoi*} and the grammar says ``accept'' for
 
 @c page
 @node lalr intro look
-@subsubsection Why the lookahead
+@subsection Why the lookahead
 
 
 Why do we need to look ahead at the next token's category?  When the
@@ -38088,7 +38042,7 @@ parser is ready to start a new line.
 
 @c page
 @node lalr intro states
-@subsubsection From symbol sequences to states
+@subsection From symbol sequences to states
 
 
 We have seen that parser searches the grammar for an action associated
@@ -38229,7 +38183,7 @@ the lookahead returns @samp{*eoi*} and the grammar associates @samp{[1,
 
 @c page
 @node lalr intro error
-@subsubsection Error recovering
+@subsection Error recovering
 
 
 Until now we have seen only examples for which, given a sequence of
@@ -38352,7 +38306,7 @@ we have recovered from the error.
 
 @c page
 @node lalr intro nonterm
-@subsubsection Non--terminal categories
+@subsection Non--terminal categories
 
 
 We have seen the graph representation of the grammar with tokens
@@ -38447,7 +38401,7 @@ We can use any number of non--terminals to describe a grammar.
 
 @c page
 @node lalr tables
-@subsection Creating parser tables
+@section Creating parser tables
 
 
 The following bindings, keywords included, are exported by the
@@ -38620,7 +38574,7 @@ driver's library @library{lalr lr-driver} or @library{lalr glr-driver},
 
 @c page
 @node lalr lexer
-@subsection Describing tokens
+@section Describing tokens
 
 
 The parser closure accepts as argument a lexer closure which, invoked
@@ -38636,7 +38590,7 @@ position in the input stream is described using records of type
 
 @c page
 @node lalr lexer records
-@subsubsection Lexical token records
+@subsection Lexical token records
 
 
 The following bindings are exported by the @library{lalr common}
@@ -38705,8 +38659,9 @@ called again and again; it can do:
   (make-lexical-token '*eoi* position (eof-object)))
 @end example
 
-@noindent
-it is useful to have a predicate that recognises this special token.
+When the lexer closure has to signal a lexer error (an invalid character
+from the input source), it must return a token with category
+@samp{*lexer-error*}.
 
 
 @defun lexical-token?/end-of-input @var{obj}
@@ -38714,9 +38669,21 @@ Return true if @var{obj} is an instance of @samp{lexical-token} having
 category @func{eq?} to the symbol @samp{*eoi*}.
 @end defun
 
+
+@defun lexical-token?/lexer-error @var{obj}
+Return true if @var{obj} is an instance of @samp{lexical-token} having
+category @func{eq?} to the symbol @samp{*lexer-error*}.
+@end defun
+
+
+@defun lexical-token?/special @var{obj}
+Return true if @var{obj} is an instance of @samp{lexical-token} having
+category @func{eq?} to the symbol @samp{*eoi*} or @samp{*lexer-error*}.
+@end defun
+
 @c page
 @node lalr lexer location
-@subsubsection Source location records
+@subsection Source location records
 
 
 Location records are not used by the parser itself; they are meant to
@@ -38780,7 +38747,7 @@ Getters for the fields of a @samp{source-location} record.
 
 @c page
 @node lalr parser
-@subsection Running the parser
+@section Running the parser
 
 
 Here we suppose to have used @func{lalr-parser} to generate a proper
@@ -38913,20 +38880,22 @@ if the end--of--input is found.
 
 @c page
 @node lalr grammar
-@subsection Defining the parser
+@section Defining the parser
 
 
 @menu
-* lalr grammar basics::         Basics of grammar definition.
+* lalr grammar intro::          Introduction to grammar definition.
+* lalr grammar basics::         Dummy example grammar definitions.
 * lalr grammar precedence::     Operator precedence and associativity.
 * lalr grammar clauses::        Writing semantic clauses.
 * lalr grammar error::          Error recovery.
+* lalr grammar eoi::            Handling end--of--input.
 * lalr grammar conflict::       Conflicts resolution.
 @end menu
 
 @c page
-@node lalr grammar basics
-@subsubsection Basics of grammar definition
+@node lalr grammar intro
+@subsection Introduction to grammar definition
 
 
 The grammar is defined by the list of terminal token categories and the
@@ -38975,11 +38944,10 @@ the same grammar, written with @library{lalr}, would look like this:
 @end example
 
 Here the symbols @samp{ID}, @samp{+}, @samp{-}, @samp{*}, @samp{/}
-represent the terminal token categories, each token returned by the
-lexer must belong to one of these.
-
-The non--terminal definitions are the symbols @samp{e}, @samp{t} and
-@samp{f}; the right--hand sides of @samp{e} are the rules:
+represent the terminal token categories; each token returned by the
+lexer closure must belong to one of these.  The non--terminal
+definitions are the symbols @samp{e}, @samp{t} and @samp{f}; the
+right--hand sides of @samp{e} are the rules:
 
 @example
 (e + t)
@@ -38993,7 +38961,7 @@ rules.  The rule @samp{(e + t)} has the semantic clause @samp{(+ $1 $3)}.
 
 In the semantic clauses, the symbol @samp{$n} refers to the value of the
 @math{n}-th symbol in the right--hand side rule.  For example, when the
-form @samp{(1 + 2)} is matched by the rule:
+sequence of tokens @samp{1 + 2} is matched by the rule:
 
 @example
 (e + t)    : (+ $1 $3)
@@ -39019,8 +38987,400 @@ when such a rule matches a sequence of values, it generates the sentinel
 value.  @ref{sentinel, The sentinel value}
 
 @c page
+@node lalr grammar basics
+@subsection Dummy example grammar definitions
+
+
+In this section we examine some dummy parser definitions to understand
+some basic mechanism.
+
+@menu
+* lalr grammar basics helpers:: Helper definitions.
+* lalr grammar basics single::  Single token parser.
+@end menu
+
+@c page
+@node lalr grammar basics helpers
+@subsubsection Helper definitions
+
+
+In the examples below we will use these helpers:
+
+@example
+(define eoi-token
+  (make-lexical-token '*eoi* #f (eof-object)))
+
+(define (make-lexer list-of-tokens)
+  ;;Return a lexer closure  drawing tokens
+  ;;from LIST-OF-TOKENS.  When the list is
+  ;;empty, return the EOI-TOKEN.
+  ;;
+  (lambda ()
+    (if (null? list-of-tokens)
+        eoi-token
+      (begin0
+          (car list-of-tokens)
+        (set! list-of-tokens (cdr list-of-tokens))))))
+
+(define (error-handler message token)
+  (cons message (lexical-token-value token)))
+@end example
+
+@noindent
+we see that the error handler does not raise an exception, so the parser
+is allowed to attempt a recovery after an error.
+
+@c page
+@node lalr grammar basics single
+@subsubsection Single token parser
+
+
+The following example defines a parser accepting only a single token of
+category @samp{A}, which must be followed by the end--of--input
+@samp{*eoi*}.  Every other input sequence causes an error; this includes
+an @samp{*eoi*} token alone.
+
+@example
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (A) : $1))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+
+;;Parse the sequence: A *eoi*
+(example (make-lexical-token 'A #f 1))
+@result{} 1
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} ("unexpected end of input" . (eof-object))
+@end example
+
+@noindent
+the following test raises an error:
+
+@example
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2)
+         (make-lexical-token 'A #f 3)))
+@result{} ("unexpected end of input" . (eof-object))
+@end example
+
+@noindent
+we will come back to this test when describing the error recovery
+mechanism.  @ref{lalr grammar error, Error recovery}
+
+@c ------------------------------------------------------------
+
+@subsubheading Accepting @samp{*eoi*} alone
+
+The following parser defines a grammar which accepts the sequence
+@samp{A *eoi*}, but accepts also @samp{*eoi*} alone.
+
+@example
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (A) : $1)
+                                     ()  : 0)))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+
+;;Parse the sequence: A *eoi*
+(example (make-lexical-token 'A #f 1))
+@result{} 1
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
+@end example
+
+When the input is a single @samp{*eoi*} token: The parser returns the
+value of the semantic action in @samp{() : 0}.  When the input is the
+sequence @samp{A *eoi*}: The parser returns the value of the semantic
+action in @samp{(A) : $1}.  Let's understand why.
+
+Using the reasoning of the introduction (@pxref{lalr intro}), we can
+imagine the tokens of the sequence @samp{A *eoi*} on the following
+stacks:
+
+@example
+#(#f  1  #<eof>)
+#(S   A   *eoi*)
+  |
+  p
+@end example
+
+@noindent
+the first lookahead returns @samp{A} and the action is shift, we
+``enter'' the right--hand side rule @samp{(A)}:
+
+@example
+#(#f  1  #<eof>)
+#(S   A   *eoi*)
+      |
+      p
+@end example
+
+@noindent
+the second lookahead returns @samp{*eoi*} and the action is reduce, we
+``leave'' the right--hand side rule @samp{(A)}; one couple is popped
+from the stack and one couple is pushed:
+
+@example
+#(#f  1  #<eof>)
+#(S   e   *eoi*)
+      |
+      p
+@end example
+
+@noindent
+the value has not changed because the semantic clause is just @samp{$1}
+which is @samp{1} itself; the third lookahead returns @samp{*eoi*} and
+the action is accept (the value @samp{1}).
+
+We can imagine the tokens of the sequence @samp{*eoi*} on the following
+stacks:
+
+@example
+#(#f  #<eof>)
+#(S   *eoi*)
+  |
+  p
+@end example
+
+@noindent
+the first lookahead returns @samp{*eoi*} and the action is reduce, we
+enter an leave the right--hand side rule @samp{()} in a single step; no
+couples are popped from the stacks, but a couple is pushed:
+
+@example
+#(#f  0  #<eof>)
+#(S   e   *eoi*)
+      |
+      p
+@end example
+
+@noindent
+we see the result of the semantic clause; the second lookahead returns
+@samp{*eoi*} and the action is accept (the value @samp{0}).
+
+@c ------------------------------------------------------------
+
+@subsubheading Accepting fixed sequences
+
+The following parser defines a grammar which accepts the following fixed
+sequences:
+
+@example
+*eoi*
+A *eoi*
+A A *eoi*
+A A A *eoi*
+@end example
+
+@noindent
+the return value of the parser is the list of values from the tokens.
+
+@example
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (A)     : (list $1)
+                                     (A A)   : (list $1 $2)
+                                     (A A A) : (list $1 $2 $3)
+                                     ()      : 0))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+
+;;Parse the sequence: A *eoi*
+(example (make-lexical-token 'A #f 1))
+@result{} (1)
+
+;;Parse the sequence: A A *eoi*
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2))
+@result{} (1 2)
+
+;;Parse the sequence: A A A *eoi*
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2)
+         (make-lexical-token 'A #f 3))
+@result{} (1 2 3)
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Accepting a sequence of arbitrary length
+
+The following parser defines a grammar which accepts a sequence of
+@samp{A} tokens of any length; it also accepts @samp{*eoi*} alone.
+
+@example
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (e A) : $2
+                                     (A)   : $1
+                                     ()    : 0))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
+
+;;Parse the sequence: A *eoi*
+(example (make-lexical-token 'A #f 1))
+@result{} 1
+
+;;Parse the sequence: A A A *eoi*
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2)
+         (make-lexical-token 'A #f 3))
+@result{} 3
+@end example
+
+@noindent
+in the last test example, notice that the parser's return value is the
+value of the last parsed token (@samp{3}), while the other values are
+discarded.  This is because the whole sequence matches the right--hand
+side rule @samp{(e A)} and its semantic clause is @samp{$2}, which is
+the value of the token matching the last terminal @samp{A}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Returning all the values from an arbitrary sequence
+
+If we want all the values in the sequence we can use the following
+parser:
+
+@example
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (e A) : (cons $2 $1)
+                                     (A)   : (list $1)
+                                     ()    : 0))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
+
+;;Parse the sequence: A *eoi*
+(example (make-lexical-token 'A #f 1))
+@result{} (1)
+
+;;Parse the sequence: A A *eoi*
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2))
+@result{} (2 1)
+
+;;Parse the sequence: A A A *eoi*
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2)
+         (make-lexical-token 'A #f 3))
+@result{} (3 2 1)
+@end example
+
+@noindent
+we notice that the values are returned in reverse order; this is
+because, making the semantic clauses explicit, the following are
+equivalent:
+
+@example
+(cons 2 (list 1))
+
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2))
+@end example
+
+@noindent
+and also the following:
+
+@example
+(cons 3 (cons 2 (list 1)))
+
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2)
+         (make-lexical-token 'A #f 3))
+@end example
+
+@noindent
+in more detail, when parsing the sequence @samp{A A *eoi*} we can
+imagine the following stacks:
+
+@example
+#(#f  1  2  #<eof>)
+#(S   A  A   *eoi*)
+  |
+  p
+@end example
+
+@noindent
+the first lookahead returns @samp{A} and the action is shift:
+
+@example
+#(#f  1  2  #<eof>)
+#(S   A  A   *eoi*)
+      |
+      p
+@end example
+
+@noindent
+the second lookahead returns @samp{A} and the action is reduce:
+
+@example
+#(#f  (1)  2  #<eof>)
+#(S    e   A   *eoi*)
+       |
+       p
+@end example
+
+@noindent
+the third lookahead returns @samp{A} and the action is shift:
+
+@example
+#(#f  (1)  2  #<eof>)
+#(S    e   A   *eoi*)
+           |
+           p
+@end example
+
+@noindent
+the fourth lookahead returns @samp{A} and the action is reduce:
+
+@example
+#(#f  (2 . (1))  #<eof>  #f)
+#(S    e          *eoi*  #f)
+       |
+       p
+@end example
+
+@noindent
+and we know that @samp{(2 . (1))} is @samp{(2 1)}; the fifth lookahead
+returns @samp{*eoi*} and the action is accept.
+
+@c page
 @node lalr grammar precedence
-@subsubsection Operator precedence and associativity
+@subsection Operator precedence and associativity
 
 
 The above grammar implicitly handles operator precedences.  It is also
@@ -39063,7 +39423,7 @@ in the list of terminal symbols (token definitions).
 
 @c page
 @node lalr grammar clauses
-@subsubsection Writing semantic clauses
+@subsection Writing semantic clauses
 
 
 Semantic clauses are Scheme forms that can do anything Scheme allows us
@@ -39112,37 +39472,209 @@ continuation.
 
 @c page
 @node lalr grammar error
-@subsubsection Error recovery
+@subsection Error recovery
+
+
+@menu
+* lalr grammar error intro::    Introduction to error recovery.
+* lalr grammar error single::   Dummy example: Single token parser.
+@end menu
+
+@c page
+@node lalr grammar error intro
+@subsubsection Introduction to error recovery
 
 
 @library{lalr} implements a very simple error recovery strategy.  A
-production can be of the form
+production can be of the form:
 
 @example
 (non-terminal
-   ---
+   ---                  ;right-hand side rules
    (error TERMINAL) : semantic-clause)
 @end example
 
-@noindent
-there can be several such productions for a single non--terminal.  This
-will cause the parser to skip all the tokens produced by the lexer that
-are different from the given @samp{TERMINAL}.
+If, while parsing the right--hand side rules for @samp{non-terminal},
+the lookahead returns an invalid category: The parser resets the state
+associated with the parsing of the rule and skips all the tokens
+returned by the lexer until one with category @samp{TERMINAL} is found.
+The @samp{TERMINAL} token is also discarded and parsing continues with a
+new lookahead.
 
-For a C--like language, one can synchronize on semicolons and closing
+There can be several such productions for a single non--terminal: For a
+C--like language, we could ``synchronise'' on semicolons and closing
 curly brackets by writing error rules like these:
 
 @example
 (stmt
    (expression SEMICOLON)   : ---
    (LBRACKET stmt RBRACKET) : ---
-   (error SEMICOLON)
-   (error RBRACKET))
+   (error SEMICOLON)            ;empty semantic claus
+   (error RBRACKET))            ;empty semantic claus
 @end example
+
+@noindent
+if an error occurs, the parser will discard its internal state up to,
+and including, the first token that started the @samp{stmt}
+non--terminal (@samp{LBRACKET} or the first of @samp{expression}).
+
+@c page
+@node lalr grammar error single
+@subsubsection Dummy example: Single token parser
+
+
+Let's consider the following parser which accepts as input only the
+sequence: @samp{A}, @samp{*eoi*}.  @ref{lalr grammar basics single,
+Single token parser}
+
+@example
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (A) : $1))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+@end example
+
+We have already examined the correct usage of this grammar; we can now
+understand what happens in the following test:
+
+@example
+(example (make-lexical-token 'A #f 1)
+         (make-lexical-token 'A #f 2)
+         (make-lexical-token 'A #f 3)))
+@result{} ("unexpected end of input" . (eof-object))
+@end example
+
+@noindent
+following the reasoning exposed in the introduction (@pxref{lalr
+intro}), we can imagine the input tokens on the following stacks:
+
+@example
+#(#f  1  2  3  #<eof>)
+#(S   A  A  A   *eoi*)
+  |
+  p
+@end example
+
+@enumerate
+@item
+The first lookahead returns @samp{A} and the action is a shift:
+
+@example
+#(#f  1  2  3  #<eof>)
+#(S   A  A  A   *eoi*)
+      |
+      p
+@end example
+
+@item
+The second lookahead returns @samp{A} and the action is a reduce, which
+changes nothing because there is only one token and the semantic action
+is @samp{$1}:
+
+@example
+#(#f  1  2  3  #<eof>)
+#(S   A  A  A   *eoi*)
+      |
+      p
+@end example
+
+@item
+The third lookahead returns @samp{A} and the action is error because
+only @samp{*eoi*} is acceptable now.  The error handler is invoked and
+its return value discarded.
+
+The parser attempts to recover from the error; we already know that the
+recovery will fail, because we have not included any @samp{error}
+right--hand side rule in the grammar.
+
+@item
+The first operation of recovery is to reset the current parser state
+removing everything related to this right--hand side rule:
+
+@example
+#(#f  2  3  #<eof>  #f)
+#(S   A  A   *eoi*  #f)
+  |
+  p
+
+@end example
+
+@item
+The parser detects the fact that the stack has been fully rewind, so it
+just stops reading tokens from the lexer and imposes a @samp{*eoi*}
+token as lookahead.
+
+@item
+The end--of--input token is invalid as initial state, so an ``unexpected
+end--of--input error'' is generated; the error handler is invoked and
+its return value becomes the return value of the parser closure.
+@end enumerate
+
+@c page
+@node lalr grammar eoi
+@subsection Handling end--of--input
+
+
+When the end--of--input token (category @samp{*eoi*}) comes from the
+lexer, it has to be in the correct position else an error occurs.  When
+an unexpected end--of--input occurs: The supplied error handler is
+invoked, and its return value becomes the return value of the parser
+closure.
+
+In the examples below we will use these helpers:
+
+@example
+(define eoi-token
+  (make-lexical-token '*eoi* #f (eof-object)))
+
+(define (make-lexer list-of-tokens)
+  ;;Return a lexer closure  drawing tokens
+  ;;from LIST-OF-TOKENS.  When the list is
+  ;;empty, return the EOI-TOKEN.
+  ;;
+  (lambda ()
+    (if (null? list-of-tokens)
+        eoi-token
+      (begin0
+          (car list-of-tokens)
+        (set! list-of-tokens (cdr list-of-tokens))))))
+
+(define (error-handler message token)
+  (cons message (lexical-token-value token)))
+@end example
+
+The following grammar accepts terminals of category @samp{A} as input
+and nothing else; each valid token can be followed by a @samp{*eoi*}
+token, but @samp{*eoi*} cannot be the first token:
+
+@example
+(define (doit . list-of-tokens)
+  (let* ((lexer          (make-lexer list-of-tokens))
+         (terminals      '(A))
+         (non-terminals  '((e (A) : $1)))
+         (make-parser    (lalr-parser :output-value #t
+                                      :expect #f
+                                      :terminals terminals
+                                      :rules non-terminals))
+         (parser         (make-parser)))
+    (parser lexer error-handler)))
+
+(doit (make-lexical-token 'A #f 1)
+      eoi-token)
+@result{}
+
+(doit eoi-token)
+@result{} `("unexpected end of input" . ,(eof-object))
+@end example
+
 
 @c page
 @node lalr grammar conflict
-@subsubsection Conflicts resolution
+@subsection Conflicts resolution
 
 
 Conflicts in the grammar are handled in a conventional way.  In the
@@ -39152,7 +39684,7 @@ listed first in the grammar definition.
 
 @c page
 @node lalr glr
-@subsection Generalised LR parsing
+@section Generalised LR parsing
 
 
 GLR parsing (which stands for Generalized LR parsing) is an extension of
@@ -39176,7 +39708,7 @@ distribution).
 
 @c page
 @node csv
-@section Comma--separated value (@acronym{CSV}) utilities
+@chapter Comma--separated value (@acronym{CSV}) utilities
 
 
 The @library{csv} library provides lexers and parsers to read data from
@@ -39191,7 +39723,7 @@ lexers that can be customised to fit specific needs.
 
 @c page
 @node csv lexer
-@subsection Low level tokenisation
+@section Low level tokenisation
 
 
 The @library{csv} library is built upon the @library{silex} library, and
@@ -39261,7 +39793,7 @@ This table can be rebuilt from the source @file{strings.l} in the
 
 @c page
 @node csv lexer strings
-@subsubsection Tokenising strings
+@subsection Tokenising strings
 
 
 The @library{csv} library defines strings in a @csv{} file as sequences
@@ -39356,7 +39888,7 @@ notice that the input system has to be created with @samp{:counters
 
 @c page
 @node csv lexer unquoted-data
-@subsubsection Tokenising unquoted data
+@subsection Tokenising unquoted data
 
 
 The @library{csv} library defines unquoted data as everything that is
@@ -39424,7 +39956,7 @@ We can take advantage of this to tokenise unquoted data as follows:
 
 @c page
 @node csv lexer full
-@subsubsection Full parsing
+@subsection Full parsing
 
 
 Here we see how the high level parsers are implemented.  The following
@@ -39570,7 +40102,7 @@ The following is a variant that allows to specify, via the
 
 @c page
 @node csv parser
-@subsection High level parsing
+@section High level parsing
 
 
 @defun csv->list @var{port} @var{separators}
@@ -39595,7 +40127,7 @@ Like @func{csv->list}, but use only the comma as field separator.
 
 @c page
 @node schelog
-@section Programming in Schelog
+@chapter Programming in Schelog
 
 
 The @library{schelog} library is an embedding of Prolog--style logic
@@ -39619,7 +40151,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog simple
-@c @subsection Simple goals and queries
+@c @section Simple goals and queries
 
 
 @c Schelog objects are the same as Scheme objects.  However, there are two
@@ -39676,7 +40208,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog predicates
-@c @subsection Predicates
+@c @section Predicates
 
 
 @c More interesting goals are created by applying a special kind of Schelog
@@ -39715,7 +40247,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog predicates facts
-@c @subsubsection Predicates introducing facts
+@c @subsection Predicates introducing facts
 
 
 @c Users can create their own predicates using the Schelog form
@@ -39756,7 +40288,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog predicates rules
-@c @subsubsection Predicates with rules
+@c @subsection Predicates with rules
 
 
 @c Predicates can be more complicated than the above bald recitation of
@@ -39796,7 +40328,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog predicates goals
-@c @subsubsection Solving goals
+@c @subsection Solving goals
 
 
 @c The above queries are yes/no questions.  Logic programming allows more:
@@ -39856,7 +40388,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog predicates extra
-@c @subsubsection Asserting extra clauses
+@c @subsection Asserting extra clauses
 
 
 @c We can add more clauses to a predicate after it has already been defined
@@ -39911,7 +40443,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog predicates local
-@c @subsubsection Local variables
+@c @subsection Local variables
 
 
 @c The local logic variables of @func{%rel} and @func{%which} expressions
@@ -39944,7 +40476,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog scheme
-@c @subsection Using Scheme expressions
+@c @section Using Scheme expressions
 
 
 @c The arguments of Schelog predicates can be any Scheme objects.  In
@@ -40010,7 +40542,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog scheme constructor
-@c @subsubsection Constructors
+@c @subsection Constructors
 
 
 @c We can use constructors (Scheme procedures for creating structures) to
@@ -40056,7 +40588,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog scheme is
-@c @subsubsection The @func{%is} procedure
+@c @subsection The @func{%is} procedure
 
 
 @c The above is a very inefficient way to do arithmetic, especially when
@@ -40116,7 +40648,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog scheme lexical
-@c @subsubsection Lexical scoping
+@c @subsection Lexical scoping
 
 
 @c One can use Scheme's lexical scoping to enhance predicate definition.
@@ -40151,7 +40683,7 @@ The original code is available at:
 
 @c @c page
 @c @node schelog scheme type
-@c @subsubsection Type predicates
+@c @subsection Type predicates
 
 
 @c Schelog provides a couple of predicates that let the user probe the type
@@ -40181,7 +40713,7 @@ The original code is available at:
 
 @c page
 @node email addresses
-@section Parsing email addresses
+@chapter Parsing email addresses
 
 
 The @library{email addresses} library implements a lexer and parser for
@@ -40196,7 +40728,7 @@ email addresses.  The parser tries to be compliant to @rfc{} 822 format.
 
 @c page
 @node email addresses components
-@subsection Parsed components
+@section Parsed components
 
 
 The following is an overview of an email address' components.
@@ -40307,7 +40839,7 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 
 @c page
 @node email addresses class
-@subsection Object classes
+@section Object classes
 
 
 @menu
@@ -40324,7 +40856,7 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 
 @c page
 @node email addresses elements
-@subsubsection Elements
+@subsection Elements
 
 
 @subsubheading Class definition
@@ -40393,7 +40925,7 @@ resulting string.
 
 @c page
 @node email addresses domain
-@subsubsection Domain
+@subsection Domain
 
 
 @subsubheading Class definition
@@ -40414,7 +40946,7 @@ in @var{o} joined with a dot.
 
 @c page
 @node email addresses local-part
-@subsubsection Local part
+@subsection Local part
 
 
 @subsubheading Class definition
@@ -40436,7 +40968,7 @@ in @var{o} joined with a dot.
 
 @c page
 @node email addresses addr-spec
-@subsubsection Address specification
+@subsection Address specification
 
 
 @subsubheading Class definition
@@ -40511,7 +41043,7 @@ resulting string.
 
 @c page
 @node email addresses route
-@subsubsection Route
+@subsection Route
 
 
 @subsubheading Class definition
@@ -40550,7 +41082,7 @@ resulting string.
 
 @c page
 @node email addresses route-address
-@subsubsection Route address
+@subsection Route address
 
 
 @subsubheading Class definition
@@ -40609,7 +41141,7 @@ Accessor for the @class{route} slot.
 
 @c page
 @node email addresses mailbox
-@subsubsection Mailbox
+@subsection Mailbox
 
 
 @subsubheading Class definition
@@ -40669,7 +41201,7 @@ Display to @var{p} the string representation of @var{o}.
 
 @c page
 @node email addresses group
-@subsubsection Group of mailboxes
+@subsection Group of mailboxes
 
 
 @subsubheading Class definition
@@ -40712,7 +41244,7 @@ Display to @var{p} the string representation of @var{o}.
 
 @c page
 @node email addresses address
-@subsubsection Address
+@subsection Address
 
 
 @subsubheading Class definition
@@ -40741,7 +41273,7 @@ Display to @var{p} the string representation of @var{o}.
 
 @c page
 @node email addresses lexer
-@subsection Splitting an address into tokens
+@section Splitting an address into tokens
 
 
 @defun email-address-lexer @var{address-string}
@@ -40792,7 +41324,7 @@ Examples:
 
 @c page
 @node email addresses parser
-@subsection Parsing tokens
+@section Parsing tokens
 
 
 @subsubheading Parsing domains and local parts
@@ -40875,7 +41407,7 @@ second component is the rest of @var{token-list}.
 
 @c page
 @node infix
-@section Infix notation utilities
+@chapter Infix notation utilities
 
 
 The @library{infix} and @library{infix syntax} libraries provide
@@ -40890,7 +41422,7 @@ expressions.  The library is built upon @library{silex lexer} and
 
 @c page
 @node infix strings
-@subsection Converting strings
+@section Converting strings
 
 
 @defun infix-string->sexp @var{expr-string}
@@ -40958,7 +41490,7 @@ the symbol is an open parenthesis, it is interpreted as function call.
 
 @c page
 @node infix sexp
-@subsection Converting S--expressions
+@section Converting S--expressions
 
 
 The function @func{infix->prefix} is exported by @library{infix}, but
@@ -41049,1124 +41581,6 @@ Procedures are treated like non--operator symbols.
 @item
 Numbers and all ``the other'' values are just put there.
 @end itemize
-
-@c page
-@node kmp
-@section Knuth-Morris-Pratt searching
-
-
-The Knuth--Morris--Pratt (@acronym{KMP}) sequence--search algorithm is a
-method of rapidly scanning a sequence of values for the occurrence of
-some fixed pattern.  It has the advantage of never requiring
-backtracking; hence, it is useful for searching sequences that do not
-support backtracking or random--access, such as input ports.
-
-For an explanation of the algorithm:
-
-@center @url{http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm}
-
-The following routines package up the initialisation and searching
-phases of the algorithm for general use in the library
-@library{knuth-morris-pratt}.  They also support searching through
-sequences that arrive in buffered chunks, in that intermediate search
-state can be carried across applications of the search loop from the end
-of one buffer application to the next.
-
-A second critical property of @acronym{KMP} search is that it requires
-the allocation of auxiliary memory proportional to the length of the
-pattern, but constant in the size of the value type.  Alternate
-searching algorithms frequently require the construction of a table with
-an entry for every possible value, which can be prohibitively expensive,
-for example, in a 16-bit or 32-bit character representation.
-
-The algorithm is especially suited to search patterns of characters in
-text, so many examples are given for strings.  However the library
-supports searching any values in any sequence.
-
-@menu
-* kmp intro::                   Introduction.
-* kmp conv::                    Conventions.
-* kmp vector::                  The restart vector.
-* kmp step::                    Single step of the search.
-* kmp partial::                 Partial search.
-* kmp full::                    Full sequence search.
-@end menu
-
-@c page
-@node kmp intro
-@subsection Introduction
-
-
-When searching for a pattern string in a text string:
-
-@example
-(define pattern "ciao")
-(define text    "Oh, ciao!")
-@end example
-
-@noindent
-we start looking for the first char in the pattern:
-
-@example
-(define match-start
-  (let loop ((i 0))
-    (if (char=? (string-ref text i)
-                (string-ref pattern 0))
-        i
-      (loop (+ 1 i)))))
-@result{} 3
-@end example
-
-@noindent
-now that we know a match for the first char, we go on looking for the
-full pattern:
-
-@example
-(define match-past
-  (let loop ((pi 1)                     ;; pattern index
-             (ti (+ 1 match-start)))    ;; text index
-    (cond
-     ((= pi (string-length pattern)) pi)    ;; found
-     ((= ti (string-length text))    #f)    ;; not found
-     (else
-      (if (char=? (string-ref ti text)
-                  (string-ref pi pattern))
-          (loop (+ 1 pi) (+ 1 ti))
-        #f)))))                             ;; not found
-@end example
-
-@noindent
-we have the following possible outcomes:
-
-@itemize
-@item
-@code{match-past} is true: We have found a match in the substring
-@code{[match-start, match-past)} of @code{text}.
-
-@item
-@code{match-past} is false: We have to restart matching @code{pattern}
-from character @code{(+ 1 match-start)} of @code{text}.
-@end itemize
-
-The action ``restart matching'' involves backtracking (to go back) in
-the @code{text} string; this can be avoided if we do the following
-considerations.
-
-@itemize
-@item
-Let's say we have to perform the search:
-
-@example
-(define pattern "ciao mamma")
-(define text    "Oh, ciao papa e ciao mamma!")
-
-;;               0123456789012345678901234567
-;;               0         1         2
-@end example
-
-@noindent
-we notice that the first char @code{c} is never repeated in the pattern;
-so after we have matched the first occurrence of @code{"ciao "} in the
-substring @math{[4, 9)} of @code{text}, we do not need to restart from
-index @math{5}, we just try to match @code{pattern} from index @math{10}
-of @code{text}.
-
-@item
-Let's say we have to perform the search:
-
-@example
-(define pattern "ciao ciao mamma")
-(define text    "Oh, ciao ciao ciao mamma!")
-
-;;               01234567890123456789012345
-;;               0         1         2
-@end example
-
-@noindent
-after we have matched the first occurrence of @code{"ciao ciao "} in the
-substring @math{[4, 14)} of @code{text}, we find a @code{c} rather than
-a @code{m}; we could restart matching @code{pattern} from index
-@math{5}, but we notice that we already have matched substring @math{[0,
-5)} of @code{pattern} in substring @math{[9, 14)} of @code{text}; so we
-can avoid backtracking and go on matching index @math{5} of
-@code{pattern} with index @math{14} of @code{text}.
-@end itemize
-
-Summary: We can implement an efficient algorithm if we precompute where
-to restart from, after a partial match.  Of course, since the algorithm
-needs no backtracking, we can also search for multiple patterns in
-``parallel''.
-
-
-@c page
-@node kmp conv
-@subsection Conventions
-
-
-The following conventions for arguments documentation hold:
-
-@table @var
-@item @var{pattern}
-It is the sequence of elements to search for.  It must support random
-access by indexing.
-
-@item @var{pattern-start}
-@itemx @var{pattern-past}
-The half--open range of elements in @var{pattern} to search for.
-@var{pattern-start} is the index of the first (included) element;
-@var{pattern-past} is the index of the last (excluded) element.
-
-@item @var{text}
-It is a fixed sequence in which to do the search.  It must support
-random access by indexing.
-
-@item @var{text-start}
-@itemx @var{text-past}
-The half--open range of elements in @var{text} in which to do the
-search.  @var{text-start} is the index of the first (included) element;
-@var{text-past} is the index of the last (excluded) element.
-
-@item item=
-It is an equality function used to construct the restart vector; for
-characters it is typically @func{char=?} or @func{char-ci=?}, while for
-numbers it is @func{=}.
-
-@item item-ref
-It is an element extraction function to be applied to @var{pattern} to
-retrieve an element by index; if @var{pattern} is a string, it is
-@func{string-ref}; if @var{pattern} is a vector it is @func{vector-ref};
-if @var{pattern} is a list it is @func{list-ref}.
-
-@item restart-vector
-It is the @acronym{KMP} restart vector for @var{pattern}, as constructed
-by @func{%kmp-make-restart-vector}.
-@end table
-
-
-@c page
-@node kmp vector
-@subsection The restart vector
-
-
-@defun %kmp-make-restart-vector @var{item=} @var{item-ref} @var{pattern} @var{pattern-start} @var{pattern-past}
-Build a @dfn{restart vector}, to be used to search sequences for the
-occurrence of the selected subsequence of @var{pattern}.
-
-The definition of the restart vector @math{V} for string @math{P} is: If
-we have matched elements @math{0 ... i-1} of @math{P} against some
-search sequence @math{T}:
-@iftex
-@tex
-$$
-P[i-1] = T[k]
-P[i-2] = T[k-1]
-...
-P[0] = T[k-(i-1)]
-$$
-@end tex
-@end iftex
-@ifnottex
-
-@example
-P[i-1] = T[k]
-P[i-2] = T[k-1]
-...
-P[0] = T[k-(i-1)]
-@end example
-
-@end ifnottex
-and @math{P[i]} does not match @math{T[k]}, then reset @math{i := V[i]},
-and try again to match @math{T[k]}.  If @math{V[i] = -1}: move on to
-@math{T[k+1]} and @math{P[0]}.
-@end defun
-
-@c page
-@node kmp step
-@subsection Single step of the search
-
-
-@defun %kmp-step @var{item=} @var{item-ref} @var{restart-vector} @var{next-value-from-text} @var{next-index-in-pattern} @var{pattern} @var{pattern-start}
-This function encapsulates the work performed by one step of the
-@acronym{KMP} search.  Return the new index in the pattern; that is, how
-much of the pattern we have matched, including the given value from
-text.
-@end defun
-
-
-Searching for the pattern @code{"hello"} in the text @code{"ciao hello
-salut"} looks like this:
-
-@example
-(let* ((text          "ciao hello salut")
-       ;;              01234567890123456
-       ;;              0         1
-       (text-past     (string-length text))
-
-       (pattern       "ciao")
-       (pattern-start 0)
-       (pattern-past  (string-length pattern))
-
-       (rv            (%kmp-make-restart-vector char=? string-ref
-                         pattern pattern-start pattern-past)))
-  (let loop ((ti 0)
-             (pi pattern-start))
-    (or (and (= pi pattern-past) ti) ; found
-        (and (not (= ti text-past))  ; not found
-             (loop (+ 1 ti)
-                   (%kmp-step char=? string-ref rv
-                              (string-ref text ti)
-                              pi pattern pattern-start))))))
-@result{} 10
-@end example
-
-@noindent
-if the pattern was not found the return value is @false{}; if the
-pattern was found the return value is the index in the text of the
-character past the last matched one.
-
-Abstracting the search from a string to a generic source of characters,
-we can write the following function, whose return value is the same as
-the loop above:
-
-@example
-(define (return-match-past end-of-text? get-next-char
-                           pattern pattern-start pattern-past)
-  (let ((rv (%kmp-make-restart-vector char=? string-ref
-               pattern pattern-start pattern-past)))
-    (let loop ((ti 0)
-               (pi pattern-start))
-      (or (and (= pi pattern-past) ti) ; found
-          (and (not (end-of-text?))    ; not found
-               (loop (+ 1 ti)
-                     (%kmp-step char=? string-ref rv
-                        (get-next-char)
-                        pi pattern pattern-start)))))))
-@end example
-
-@noindent
-a usage example with a string looks like this:
-
-@example
-(let* ((text           "ciao hello salut")
-       ;;               01234567890123456
-       ;;               0         1
-       (pattern        "hello")
-       (ti             0)
-       (end-of-text?   (lambda ()
-                         (= ti (string-length text))))
-       (get-next-char  (lambda ()
-                         (begin0
-                             (string-ref text ti)
-                           (set! ti (+ 1 ti))))))
-  (return-match-past end-of-text? get-next-char
-                     pattern 0 (string-length pattern)))
-@result{} 10
-@end example
-
-@noindent
-a usage example with an input port looks like this:
-
-@example
-(let* ((text           "ciao hello salut")
-       ;;               01234567890123456
-       ;;               0         1
-       (pattern        "salut")
-       (port           (open-string-input-port text))
-       (end-of-text?   (lambda ()
-                         (eof-object? (peek-char port))))
-       (get-next-char  (lambda ()
-                         (read-char port))))
-  (return-match-past end-of-text? get-next-char
-                     pattern 0 (string-length pattern)))
-@result{} 16
-@end example
-
-@c page
-@node kmp partial
-@subsection Partial search
-
-
-@defun %kmp-partial-search @var{item=} @var{item-ref} @var{restart-vector} @var{next-index-in-pattern} @var{text} @var{text-start} @var{text-end} @var{pattern} @var{pattern-start}
-Using this function is equivalent to apply @func{%kmp-step} across the
-selected subsequence of @var{text} in search of the selected subsequence
-of @var{pattern}; the pattern is @code{(vector-length rv)} characters
-long.
-
-@itemize
-@item
-If the pattern is found: Return @math{-j} (a strictly negative integer)
-where @math{j} is the index of the value past the one that last matched
-the pattern in @var{text}.
-
-@item
-If the pattern is not found: Return the index in the restart vector (a
-non negative integer) to be used in the next call to this function.
-@end itemize
-
-This utility is designed to allow searching for occurrences of a fixed
-sequence that might extend across multiple buffers of data.  Notice
-that, in this case, when the returned value is negative: It is the index
-in the last buffer, not in the whole text.
-@end defun
-
-
-A simple one--shot search over a given string looks like the following:
-
-@example
-(let* ((text            "ciao hello salut")
-       ;;                01234567890123456
-       ;;                0         1
-       (text-start      0)
-       (text-past       (string-length text))
-
-       (pattern         "hello")
-       (pattern-start   0)
-       (pattern-past    (string-length pattern))
-
-       (restart-vector  (%kmp-make-restart-vector
-                           char=? string-ref
-                           pattern pattern-start pattern-past)))
-  (let ((i (%kmp-partial-search
-              char=? string-ref restart-vector pattern-start
-              text text-start text-past
-              pattern pattern-start)))
-    (or (<= 0 i) ;; not found
-        (- i)))) ;; found, return match past index
-@result{} 10
-@end example
-
-@noindent
-if the pattern was not found: Return @false{}.  If the pattern was
-found: Return the index in the string of the character past the one that
-matched the end of the pattern.
-
-Generalising this to a generic source of strings (represented by a list
-of strings):
-
-@smallexample
-(let* ((strings         '("ciao h " "he hel h"
-                          "ell hel" "lo salut"))
-       (end-of-data?    (lambda ()
-                          (null? strings)))
-       (get-next-chunk  (lambda ()
-                          (begin0
-                              (car strings)
-                            (set! strings (cdr strings))))))
-
-  (let* ((pattern         "hello")
-         (pattern-start   0)
-         (pattern-past    (string-length pattern))
-
-         (restart-vector  (%kmp-make-restart-vector char=? string-ref
-                             pattern pattern-start pattern-past)))
-
-    (let loop ((pi 0))
-      (and (not (end-of-data?))          ; not found
-           (let* ((buf (get-next-chunk))
-                  (pi  (%kmp-partial-search
-                          char=? string-ref
-                          restart-vector pi
-                          buf 0 (string-length buf)
-                          pattern pattern-start)))
-             (if (< pi 0)
-                 (cons buf (- pi)) ; found
-               (loop pi)))))))
-@result{} ("lo salut" . 2)
-@end smallexample
-
-@noindent
-if the pattern was not found: Return @false{}.  If the pattern was
-found: Return a cons whose car is the string chunk holding the end of
-the text that matched, and whose cdr is the index in the chunk of the
-character past the one that matched the end of the pattern.
-
-@c page
-@node kmp full
-@subsection Full sequence search
-
-
-@defun %kmp-search @var{item=} @var{item-ref} @var{text} @var{text-start} @var{text-past} @var{pattern} @var{pattern-start} @var{pattern-past}
-Search the selected subsequence of @var{text} for the selected
-subsequence of @var{pattern}.  Return the index of the @strong{first}
-value in @var{text} that matched the @strong{first} value in the
-pattern.
-
-This function is like @func{%string-contains} and
-@func{%string-contains-ci}, in facts those are implemented as:
-
-@smallexample
-(define (%string-contains text text-beg text-past
-                          pattern pattern-beg pattern-past)
-  (%kmp-search char=? string-ref
-               text text-beg text-past
-               pattern pattern-beg pattern-past))
-
-(define (%string-contains-ci text text-beg text-past
-                             pattern pattern-beg pattern-past)
-  (%kmp-search char-ci=? string-ref
-               text text-beg text-past
-               pattern pattern-beg pattern-past))
-@end smallexample
-@end defun
-
-@c page
-@node one-dimension
-@section One dimensional extended ranges
-
-
-The one--dimension libraries implement low level operations over
-generalised ranges of a coordinate.  They can be used to operate on
-ranges of numbers or characters or whatever objects upon which we can
-define an ordering.  There are two versions of the library:
-
-@table @library
-@item one-dimension-co
-Represents domains of values using disjoint half--open ranges; each
-range has a lower--included and an upper--excluded limit.
-
-@item one-dimension-cc
-Represents domains of values using disjoint double--closed ranges; each
-range has a lower--included and an upper--included limit.
-@end table
-
-Both the libraries have the same interface, meaning that the functions
-names and arguments are the same; the only difference in semantics is
-that @library{one-dimension-co} interprets argument ranges as
-half--open, while @library{one-dimension-cc} interprets argument ranges
-as double--closed.  @library{one-dimension-cc} is the backbone of the
-@library{char-sets} library.
-
-@menu
-* one-dimension intro::         Data types and conventions.
-* one-dimension make::          Constructors.
-* one-dimension pred::          Predicates.
-* one-dimension inspect::       Inspection.
-* one-dimension ops::           Operations.
-@end menu
-
-@c page
-@node one-dimension intro
-@subsection Data types and conventions
-
-
-A @dfn{range} is a pair representing a half--open interval of items.
-The car of the pair if the included lower--limit, called @var{start};
-the cdr is the excluded upper--limit, called @var{past}, or the included
-upper--limit, called @var{last}.  Empty ranges are @strong{not} valid.
-
-A @dfn{domain} is a sorted list of ranges.  Empty domains are empty
-lists.  Ranges in a domain do not overlap and are not contiguous.  A
-domain of half--open ranges has the following format:
-
-@example
-((start1 . past1) (start2 . past2) (start3 . past3) ...)
-@end example
-
-@noindent
-with the constraints:
-
-@example
-start1 < past1 < start2 < past2 < start3 < past3 < ...
-@end example
-
-@noindent
-a domain of double--closed ranges has the following format:
-
-@example
-((start1 . last1) (start2 . last2) (start3 . last3) ...)
-@end example
-
-@noindent
-with the constraints:
-
-@example
-start1 <= last1 < start2 <= last2 < start3 <= last3 < ...
-@end example
-
-The range and domain functions accept the following arguments:
-
-@table @var
-@item obj
-Any object.
-
-@item item
-An object that satisfies the @var{item?} predicate of the selected type.
-
-@item range
-A valid range according to @func{%range?}.
-
-@item domain
-A valid domain according to @func{%domain?}.
-
-@item start
-The included left--limit of a range.
-
-@item past
-The excluded lower--limit of a range.
-
-@item last
-The included upper--limit of a range.
-
-@item item?
-A unary predicate returning @true{} if the argument is a valid item.
-For integers it can be @func{integer?}, while for characters it can be
-@func{char?}.
-
-If we need to exclude some range of values, we can do it by properly
-define this function.  For example, to exclude the integers in the
-half--open range @math{[10, 23)} we can use:
-
-@example
-(lambda (n)
-  (and (integer? n)
-       (<= 10  n)
-       (<   n 23)))
-@end example
-
-@item item=?
-An n--ary predicate returning @true{} if the all the arguments are
-equal.  @func{char=?} is an example of such a function.
-
-@item item<?
-An n--ary predicate returning @true{} if the all the arguments, in the
-given order, are in strict increasing order.  @func{char<?} is an
-example of such a function.
-
-@item item<=?
-An n--ary predicate returning @true{} if the all the arguments, in the
-given order, are in non--strict increasing order.  @func{char<=?} is an
-example of such a function.
-
-@item item-min
-An n--ary function returning the minimum between its arguments.  For
-numbers it can be @func{min}, for characters we can use:
-
-@example
-(lambda (a b) (if (char<? a b) a b))
-@end example
-
-@item item-max
-An n--ary function returning the maximum between its arguments.  For
-numbers it can be @func{max}, for characters we can use:
-
-@example
-(lambda (a b) (if (char<? a b) b a))
-@end example
-
-@item item-prev
-A binary function accepting an item and a range, or false, as arguments.
-The second argument can be @false{}, meaning that no range is specified,
-or a pair whose car is the left--limit and whose cdr is the
-right--limit; when the range is true, it is guaranteed that the item is
-inside the range.
-
-This function must return the value previous to item inside the range;
-if it is not possible to compute the previous value, because the lower
-bound has been reached: The function must return @false{}.
-
-For integers it can be:
-
-@example
-(lambda (x range)       ; with both (one-dimension-cc)
-  (let ((x (- x 1)))    ; and (one-dimension-co)
-    (if range
-        (and (<= (car range) x)
-             x)
-      x)))
-@end example
-
-@noindent
-for characters it can be:
-
-@example
-(lambda (ch range)      ; with (one-dimension-cc)
-  (let* ((x  (- (char->integer ch) 1)))
-    (and (number-in-range? x)
-         (let ((ch (integer->char x)))
-           (if range
-               (and (<= x (char->integer (car range)))
-                    ch)
-             ch)))))
-
-(define (number-in-range? x)
-  (or (and (<= 0 x)
-           (<  x #xD800))
-      (and (<  #xDFFF x)
-           (<= x #x10FFFF))))
-@end example
-
-@item item-next
-A binary function accepting an item and a range, or false, as arguments.
-The second argument can be @false{}, meaning that no range is specified,
-or a pair whose car is the left--limit and whose cdr is the
-right--limit; when the range is true, it is guaranteed that the item is
-inside the range.
-
-This function must return the value next to item inside the range; if it
-is not possible to compute the next value, because the upper bound has
-been reached: The function must return @false{}.
-
-For integers it can be:
-
-@example
-(lambda (x range)       ; with (one-dimension-cc)
-  (let ((x (+ 1 x)))
-    (if range
-        (and (<= x (cdr range))
-             x)
-      x)))
-
-(lambda (x range)       ; with (one-dimension-co)
-  (let ((x (+ 1 x)))
-    (if range
-        (and (< x (cdr range))
-             x)
-      x)))
-@end example
-
-@noindent
-for characters it can be:
-
-@example
-(lambda (ch range)      ; with (one-dimension-cc)
-  (let* ((x  (+ 1 (char->integer c))))
-    (and (number-in-range? x)
-         (let ((ch (integer->char x)))
-           (if range
-               (and (<= x (char->integer (cdr range)))
-                    ch)
-             ch)))))
-
-(define (number-in-range? x)
-  (or (and (<= 0 x)
-           (<  x #xD800))
-      (and (<  #xDFFF x)
-           (<= x #x10FFFF))))
-@end example
-
-@item item-minus
-A binary function:
-
-@itemize
-@item
-For half--open ranges: It must return the number of items between the
-first argument included and the second argument excluded.
-
-@item
-For double--closed ranges: It must return the number of items between
-the first argument included and the second argument included.
-@end itemize
-
-The arithmetic @func{-} applied to integers is an example of such a
-function for half--open ranges; for characters and double--closed ranges
-we can use:
-
-@example
-(lambda (past start)
-  (+ 1 (- (char->integer past)
-          (char->integer start))))
-@end example
-
-@item item-copy
-A unary function returning a copy of an item.  For ranges holding atomic
-values (like characters or integers) it is fine to use @code{(lambda (x)
-x)}.
-
-@item type
-A record used as type descriptor for collected items.  It is used as
-first arguments to all almost all the functions.  Type descriptors are
-built by @func{%make-type-descriptor}.
-@end table
-
-@c page
-@node one-dimension make
-@subsection Constructors
-
-
-@defun %make-type-descriptor @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-min} @var{item-max} @var{item-prev} @var{item-next} @var{item-minus} @var{item-copy}
-Build and return a new type descriptor.
-@end defun
-
-
-@defun %make-range @var{type} @var{start} @var{past}
-@defunx %make-range @var{type} @var{start} @var{last}
-Compose @var{start} and @var{past}/@var{last} into a range.  This
-function validates the arguments to make sure the resulting range is
-valid.
-@end defun
-
-
-@defun %range-copy @var{type} @var{range}
-Return a clone of @var{range}.
-@end defun
-
-
-@defun %make-domain @var{type} @var{item/range} ...
-Build and return a new domain.  The list of @var{item/range} may be the
-empty list or a mixed list of items and ranges.  See
-@func{%domain-add-item} and @func{%domain-add-range} for details.
-@end defun
-
-
-@defun %domain-copy @var{type} @var{domain}
-Return a newly allocated domain holding a copy of @var{domain}.
-@end defun
-
-
-@defun %domain-add-item @var{type} @var{domain} @var{obj}
-Add the single value @var{obj} to @var{domain}, return the new domain.
-The returned domain may share some structure with @var{domain}.  If
-@var{obj} does not satisfy the @var{item?} function of @var{type}: An
-assertion violation is raised.
-
-@var{obj} is interpreted as lower limit of a range and the
-@var{item-next} function of @var{type} is used to generate the
-corresponding upper limit.  If generating the next item fails: An
-assertion violation is raised.
-@end defun
-
-
-@defun %domain-add-range @var{type} @var{domain} @var{range}
-Add @var{range} to @var{domain}, return the new domain.  The returned
-domain may share some structure with @var{domain}.
-
-@var{range} is a pair of items; it is interpreted as double--closed
-range by @library{one-dimension-cc} and as half--open range by
-@library{one-dimensionc-co}.
-@end defun
-
-@c page
-@node one-dimension pred
-@subsection Predicates
-
-
-@subsubheading Range predicates
-
-
-@defun %range? @var{type} @var{obj}
-Return @true{} if @var{obj} is a valid range.
-@end defun
-
-
-@defun %range-contains? @var{type} @var{range} @var{obj}
-Return @true{} if @var{obj} is a member of @var{range}.
-@end defun
-
-
-@defun %range=? @var{type} @var{range-a} @var{range-b}
-Return @true{} if the ranges are equal.
-@end defun
-
-
-@defun %range<? @var{type} @var{range-a} @var{range-b}
-Return @true{} if @var{range-a} has all members less than all members of
-@var{range-b}.
-@end defun
-
-
-@defun %range<=? @var{type} @var{range-a} @var{range-b}
-Return @true{} if @var{range-a} has all members less than, or equal to,
-all members of @var{range-b}.
-@end defun
-
-
-@defun %range-start<? @var{type} @var{range-a} @var{range-b}
-Return @true{} if the start of @var{range-a} is less than the start of
-@var{range-b}.
-@end defun
-
-
-@defun %range-start<=? @var{type} @var{range-a} @var{range-b}
-Return @true{} if the start of @var{range-a} is less than, or equal to,
-the start of @var{range-b}.
-@end defun
-
-
-@defun %range-past<? @var{type} @var{range-a} @var{range-b}
-@defunx %range-last<? @var{type} @var{range-a} @var{range-b}
-Return @true{} if the past/last of @var{range-a} is less than the past
-of @var{range-b}.
-@end defun
-
-
-@defun %range-last<=? @var{type} @var{range-a} @var{range-b}
-@defunx %range-past<=? @var{type} @var{range-a} @var{range-b}
-Return @true{} if the past/last of @var{range-a} is less than, or equal
-to, the past of @var{range-b}.
-@end defun
-
-
-@defun %range-contiguous? @var{type} @var{range-a} @var{range-b}
-Return @true{} if @var{range-a} and @var{range-b} are contiguous.  It
-does not matter which range has start less than the other.
-@end defun
-
-
-@defun %range-overlapping? @var{type} @var{range-a} @var{range-b}
-Return @true{} if the ranges have some elements in common.
-@end defun
-
-
-@defun %range-superset? @var{type} @var{range-a} @var{range-b}
-@defunx %range-superset?/strict @var{type} @var{range-a} @var{range-b}
-Return @true{} if @var{range-a} is a superset or a strict superset of
-@var{range-a}.
-@end defun
-
-
-@defun %range-subset? @var{type} @var{range-a} @var{range-b}
-@defunx %range-subset?/strict @var{type} @var{range-a} @var{range-b}
-Return @true{} if @var{range-a} is a subset or a strict subset of
-@var{range-a}.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Domain predicates
-
-
-@defun %domain? @var{type} @var{domain}
-Return true if @var{domain} is a valid domain.
-@end defun
-
-
-@defun %domain-empty? @var{domain}
-Return true if the domain is empty.
-@end defun
-
-
-@defun %domain-contains? @var{type} @var{domain} @var{obj}
-Return true if @var{obj} is an element of @var{domain}.
-@end defun
-
-
-@defun %domain=? @var{type} @var{domain-a} @var{domain-b}
-Return true if the arguments represent the same domain.
-@end defun
-
-
-@defun %domain<? @var{type} @var{domain-a} @var{domain-b}
-Return true if all the elements of @var{domain-a} are strictly less than
-all the elements of @var{domain-b}.  Empty domains cannot be ordered, so
-if an argument is empty the return value is @false{}.
-@end defun
-
-
-@defun %domain-subset? @var{type} @var{domain-a} @var{domain-b}
-@defunx %domain-subset?/strict @var{type} @var{domain-a} @var{domain-b}
-Return @true{} if @var{domain-a} is a subset or strict subset of
-@var{domain-b}.
-@end defun
-
-
-@defun %domain-superset? @var{type} @var{domain-a} @var{domain-b}
-@defunx %domain-superset?/strict @var{type} @var{domain-a} @var{domain-b}
-Return @true{} if @var{domain-a} is a superset or strict superset of
-@var{domain-b}.
-@end defun
-
-
-@c page
-@node one-dimension inspect
-@subsection Inspection
-
-
-@defun %range-length @var{type} @var{range}
-Return the number of items in the range.
-@end defun
-
-
-@defun %domain-size @var{type} @var{domain}
-Return the number of items in the domain.
-@end defun
-
-@c page
-@node one-dimension ops
-@subsection Operations
-
-
-@subsubheading Set operations
-
-
-@defun %range-intersection @var{type} @var{range-a} @var{range-b}
-Return a range representing the intersection of the argument ranges.  It
-does not matter which range has start less than the other.
-
-Intersection is a closed operation on the space of ranges: The
-intersection of two ranges is a range (possibly empty).  If the ranges
-are not overlapping return @false{} to represent the empty range.
-@end defun
-
-
-@defun %range-union @var{type} @var{range-a} @var{range-b}
-Return two values representing the union of the argument ranges.  It
-does not matter which range has start less than the other.
-
-Union is @strong{not} a closed operation on the space of ranges: The
-union of two contiguous or overlapping ranges is a single range, but the
-union of two disjoint ranges is the set holding the two argument ranges.
-
-If the argument ranges are disjoint and non--contiguous: Return two
-values being @var{range-a} and @var{range-b}.  If the argument ranges
-are contiguous or overlapping: Return two values being @false{} and a
-new range representing the union.
-
-This function should be called like this:
-
-@example
-(let-values (((head tail) (%range-union type r-a r-b)))
-  (when head ---)
-  (when tail ---))
-@end example
-@end defun
-
-
-@defun %range-difference @var{type} @var{range-a} @var{range-b}
-Return two values representing the difference between the argument
-ranges; the difference is the set of elements present in one range and
-not in the other.  It does not matter which range has start less than
-the other.
-
-Difference is @strong{not} a closed operation on the space of ranges: In
-genreral the result is a couple of ranges.  The first one represents
-values which are all less than the values in the second one.  Both the
-returned values can be @false{}.
-
-This function should be called like this:
-
-@example
-(let-values (((head tail) (%range-difference type r-a r-b)))
-  (when head ---)
-  (when tail ---))
-@end example
-@end defun
-
-
-@defun %range-in-first-only @var{type} @var{range-a} @var{range-b}
-Return two values representing the elements of @var{range-a} that are
-not in @var{range-b}.
-
-This operation is @strong{not} a closed operation on the space of
-ranges: In genreral the result is a couple of ranges.  The first one
-represents values which are all less than the values in the second one.
-Both the returned values can be @false{}.
-
-This function should be called like this:
-
-@example
-(let-values (((head tail) (%range-in-first-only type r-a r-b)))
-  (when head ---)
-  (when tail ---))
-@end example
-@end defun
-
-
-@defun %domain-intersection @var{type} @var{domain-a} @var{domain-b}
-Return a new domain representing the intersection of the arguments.  The
-intersection is the set of values present in both the arguments.
-
-The returned value may share some structure with the arguments.
-@end defun
-
-
-@defun %domain-union @var{type} @var{domain-a} @var{domain-b}
-Return a new domain representing the union of the arguments.  The union
-is the set of values present in one and/or the other argument.
-
-The returned value may share some structure with the arguments.
-@end defun
-
-
-@defun %domain-difference @var{type} @var{domain-a} @var{domain-b}
-Return a new domain representing the difference of the arguments.  The
-difference is the set of values present in one or the other argument.
-
-The returned value may share some structure with the arguments.
-@end defun
-
-
-@defun %domain-complement @var{type} @var{domain} @var{domain-universe}
-Return a new domain representing the complement of @var{domain} in the
-space defined by @var{domain-universe}.  The returned value holds all
-the items from @var{domain-universe} that are not in @var{domain}.
-
-The returned value may share some structure with the arguments.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading List operations
-
-
-@defun %range-for-each @var{type} @var{proc} @var{range}
-Apply @var{proc} to each value in the range.
-@end defun
-
-
-@defun %range-every @var{type} @var{proc} @var{range}
-Apply @var{proc} to each value in the range and return true if all the
-return values are true.  The application stops at the first @false{}
-return value.
-@end defun
-
-
-@defun %range-any @var{type} @var{proc} @var{range}
-Apply @var{proc} to each value in the range and return true if at least
-one of the returned values is true.  The application stops at the first
-true return value.
-@end defun
-
-
-@defun %range-fold @var{type} @var{kons} @var{knil} @var{range}
-Fold @var{kons} over the values in the range.
-@end defun
-
-
-@defun %range->list @var{type} @var{range}
-Return a list holding all the elements in the range.
-@end defun
-
-
-@defun %domain-for-each @var{type} @var{proc} @var{domain}
-Apply @var{proc} to each element of @var{domain}.
-@end defun
-
-
-@defun %domain-every @var{type} @var{proc} @var{domain}
-Apply @var{proc} to each value in the domain and return true if all the
-return values are true.  The application stops at the first @false{}
-return value.
-@end defun
-
-
-@defun %domain-any @var{type} @var{proc} @var{domain}
-Apply @var{proc} to each value in the domain and return true if at least
-one of the returned values is true.  The application stops at the first
-true return value.
-@end defun
-
-
-@defun %domain-fold @var{type} @var{kons} @var{knil} @var{domain}
-Fold @var{kons} over the values in the domain.
-@end defun
-
-
-@defun %domain->list @var{type} @var{domain}
-Return a list holding all the elements in the domain.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Miscellaneous operations
-
-
-@defun %range-concatenate @var{type} @var{range-a} @var{range-b}
-Concatenate the ranges and return the resulting range.  It does not
-matter which range has start less than the other.  It makes sense to
-apply this function to ranges that satisfy @func{%range-contiguous?}.
-
-The returned range may share some value with the original ranges.
-@end defun
 
 @c page
 @node foreign
@@ -44591,6 +44005,1124 @@ is equivalent to:
              (make-errno-condition* errno)
              (make-irritants-condition pathname)))
 @end example
+@end defun
+
+@c page
+@node kmp
+@chapter Knuth-Morris-Pratt searching
+
+
+The Knuth--Morris--Pratt (@acronym{KMP}) sequence--search algorithm is a
+method of rapidly scanning a sequence of values for the occurrence of
+some fixed pattern.  It has the advantage of never requiring
+backtracking; hence, it is useful for searching sequences that do not
+support backtracking or random--access, such as input ports.
+
+For an explanation of the algorithm:
+
+@center @url{http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm}
+
+The following routines package up the initialisation and searching
+phases of the algorithm for general use in the library
+@library{knuth-morris-pratt}.  They also support searching through
+sequences that arrive in buffered chunks, in that intermediate search
+state can be carried across applications of the search loop from the end
+of one buffer application to the next.
+
+A second critical property of @acronym{KMP} search is that it requires
+the allocation of auxiliary memory proportional to the length of the
+pattern, but constant in the size of the value type.  Alternate
+searching algorithms frequently require the construction of a table with
+an entry for every possible value, which can be prohibitively expensive,
+for example, in a 16-bit or 32-bit character representation.
+
+The algorithm is especially suited to search patterns of characters in
+text, so many examples are given for strings.  However the library
+supports searching any values in any sequence.
+
+@menu
+* kmp intro::                   Introduction.
+* kmp conv::                    Conventions.
+* kmp vector::                  The restart vector.
+* kmp step::                    Single step of the search.
+* kmp partial::                 Partial search.
+* kmp full::                    Full sequence search.
+@end menu
+
+@c page
+@node kmp intro
+@section Introduction
+
+
+When searching for a pattern string in a text string:
+
+@example
+(define pattern "ciao")
+(define text    "Oh, ciao!")
+@end example
+
+@noindent
+we start looking for the first char in the pattern:
+
+@example
+(define match-start
+  (let loop ((i 0))
+    (if (char=? (string-ref text i)
+                (string-ref pattern 0))
+        i
+      (loop (+ 1 i)))))
+@result{} 3
+@end example
+
+@noindent
+now that we know a match for the first char, we go on looking for the
+full pattern:
+
+@example
+(define match-past
+  (let loop ((pi 1)                     ;; pattern index
+             (ti (+ 1 match-start)))    ;; text index
+    (cond
+     ((= pi (string-length pattern)) pi)    ;; found
+     ((= ti (string-length text))    #f)    ;; not found
+     (else
+      (if (char=? (string-ref ti text)
+                  (string-ref pi pattern))
+          (loop (+ 1 pi) (+ 1 ti))
+        #f)))))                             ;; not found
+@end example
+
+@noindent
+we have the following possible outcomes:
+
+@itemize
+@item
+@code{match-past} is true: We have found a match in the substring
+@code{[match-start, match-past)} of @code{text}.
+
+@item
+@code{match-past} is false: We have to restart matching @code{pattern}
+from character @code{(+ 1 match-start)} of @code{text}.
+@end itemize
+
+The action ``restart matching'' involves backtracking (to go back) in
+the @code{text} string; this can be avoided if we do the following
+considerations.
+
+@itemize
+@item
+Let's say we have to perform the search:
+
+@example
+(define pattern "ciao mamma")
+(define text    "Oh, ciao papa e ciao mamma!")
+
+;;               0123456789012345678901234567
+;;               0         1         2
+@end example
+
+@noindent
+we notice that the first char @code{c} is never repeated in the pattern;
+so after we have matched the first occurrence of @code{"ciao "} in the
+substring @math{[4, 9)} of @code{text}, we do not need to restart from
+index @math{5}, we just try to match @code{pattern} from index @math{10}
+of @code{text}.
+
+@item
+Let's say we have to perform the search:
+
+@example
+(define pattern "ciao ciao mamma")
+(define text    "Oh, ciao ciao ciao mamma!")
+
+;;               01234567890123456789012345
+;;               0         1         2
+@end example
+
+@noindent
+after we have matched the first occurrence of @code{"ciao ciao "} in the
+substring @math{[4, 14)} of @code{text}, we find a @code{c} rather than
+a @code{m}; we could restart matching @code{pattern} from index
+@math{5}, but we notice that we already have matched substring @math{[0,
+5)} of @code{pattern} in substring @math{[9, 14)} of @code{text}; so we
+can avoid backtracking and go on matching index @math{5} of
+@code{pattern} with index @math{14} of @code{text}.
+@end itemize
+
+Summary: We can implement an efficient algorithm if we precompute where
+to restart from, after a partial match.  Of course, since the algorithm
+needs no backtracking, we can also search for multiple patterns in
+``parallel''.
+
+
+@c page
+@node kmp conv
+@section Conventions
+
+
+The following conventions for arguments documentation hold:
+
+@table @var
+@item @var{pattern}
+It is the sequence of elements to search for.  It must support random
+access by indexing.
+
+@item @var{pattern-start}
+@itemx @var{pattern-past}
+The half--open range of elements in @var{pattern} to search for.
+@var{pattern-start} is the index of the first (included) element;
+@var{pattern-past} is the index of the last (excluded) element.
+
+@item @var{text}
+It is a fixed sequence in which to do the search.  It must support
+random access by indexing.
+
+@item @var{text-start}
+@itemx @var{text-past}
+The half--open range of elements in @var{text} in which to do the
+search.  @var{text-start} is the index of the first (included) element;
+@var{text-past} is the index of the last (excluded) element.
+
+@item item=
+It is an equality function used to construct the restart vector; for
+characters it is typically @func{char=?} or @func{char-ci=?}, while for
+numbers it is @func{=}.
+
+@item item-ref
+It is an element extraction function to be applied to @var{pattern} to
+retrieve an element by index; if @var{pattern} is a string, it is
+@func{string-ref}; if @var{pattern} is a vector it is @func{vector-ref};
+if @var{pattern} is a list it is @func{list-ref}.
+
+@item restart-vector
+It is the @acronym{KMP} restart vector for @var{pattern}, as constructed
+by @func{%kmp-make-restart-vector}.
+@end table
+
+
+@c page
+@node kmp vector
+@section The restart vector
+
+
+@defun %kmp-make-restart-vector @var{item=} @var{item-ref} @var{pattern} @var{pattern-start} @var{pattern-past}
+Build a @dfn{restart vector}, to be used to search sequences for the
+occurrence of the selected subsequence of @var{pattern}.
+
+The definition of the restart vector @math{V} for string @math{P} is: If
+we have matched elements @math{0 ... i-1} of @math{P} against some
+search sequence @math{T}:
+@iftex
+@tex
+$$
+P[i-1] = T[k]
+P[i-2] = T[k-1]
+...
+P[0] = T[k-(i-1)]
+$$
+@end tex
+@end iftex
+@ifnottex
+
+@example
+P[i-1] = T[k]
+P[i-2] = T[k-1]
+...
+P[0] = T[k-(i-1)]
+@end example
+
+@end ifnottex
+and @math{P[i]} does not match @math{T[k]}, then reset @math{i := V[i]},
+and try again to match @math{T[k]}.  If @math{V[i] = -1}: move on to
+@math{T[k+1]} and @math{P[0]}.
+@end defun
+
+@c page
+@node kmp step
+@section Single step of the search
+
+
+@defun %kmp-step @var{item=} @var{item-ref} @var{restart-vector} @var{next-value-from-text} @var{next-index-in-pattern} @var{pattern} @var{pattern-start}
+This function encapsulates the work performed by one step of the
+@acronym{KMP} search.  Return the new index in the pattern; that is, how
+much of the pattern we have matched, including the given value from
+text.
+@end defun
+
+
+Searching for the pattern @code{"hello"} in the text @code{"ciao hello
+salut"} looks like this:
+
+@example
+(let* ((text          "ciao hello salut")
+       ;;              01234567890123456
+       ;;              0         1
+       (text-past     (string-length text))
+
+       (pattern       "ciao")
+       (pattern-start 0)
+       (pattern-past  (string-length pattern))
+
+       (rv            (%kmp-make-restart-vector char=? string-ref
+                         pattern pattern-start pattern-past)))
+  (let loop ((ti 0)
+             (pi pattern-start))
+    (or (and (= pi pattern-past) ti) ; found
+        (and (not (= ti text-past))  ; not found
+             (loop (+ 1 ti)
+                   (%kmp-step char=? string-ref rv
+                              (string-ref text ti)
+                              pi pattern pattern-start))))))
+@result{} 10
+@end example
+
+@noindent
+if the pattern was not found the return value is @false{}; if the
+pattern was found the return value is the index in the text of the
+character past the last matched one.
+
+Abstracting the search from a string to a generic source of characters,
+we can write the following function, whose return value is the same as
+the loop above:
+
+@example
+(define (return-match-past end-of-text? get-next-char
+                           pattern pattern-start pattern-past)
+  (let ((rv (%kmp-make-restart-vector char=? string-ref
+               pattern pattern-start pattern-past)))
+    (let loop ((ti 0)
+               (pi pattern-start))
+      (or (and (= pi pattern-past) ti) ; found
+          (and (not (end-of-text?))    ; not found
+               (loop (+ 1 ti)
+                     (%kmp-step char=? string-ref rv
+                        (get-next-char)
+                        pi pattern pattern-start)))))))
+@end example
+
+@noindent
+a usage example with a string looks like this:
+
+@example
+(let* ((text           "ciao hello salut")
+       ;;               01234567890123456
+       ;;               0         1
+       (pattern        "hello")
+       (ti             0)
+       (end-of-text?   (lambda ()
+                         (= ti (string-length text))))
+       (get-next-char  (lambda ()
+                         (begin0
+                             (string-ref text ti)
+                           (set! ti (+ 1 ti))))))
+  (return-match-past end-of-text? get-next-char
+                     pattern 0 (string-length pattern)))
+@result{} 10
+@end example
+
+@noindent
+a usage example with an input port looks like this:
+
+@example
+(let* ((text           "ciao hello salut")
+       ;;               01234567890123456
+       ;;               0         1
+       (pattern        "salut")
+       (port           (open-string-input-port text))
+       (end-of-text?   (lambda ()
+                         (eof-object? (peek-char port))))
+       (get-next-char  (lambda ()
+                         (read-char port))))
+  (return-match-past end-of-text? get-next-char
+                     pattern 0 (string-length pattern)))
+@result{} 16
+@end example
+
+@c page
+@node kmp partial
+@section Partial search
+
+
+@defun %kmp-partial-search @var{item=} @var{item-ref} @var{restart-vector} @var{next-index-in-pattern} @var{text} @var{text-start} @var{text-end} @var{pattern} @var{pattern-start}
+Using this function is equivalent to apply @func{%kmp-step} across the
+selected subsequence of @var{text} in search of the selected subsequence
+of @var{pattern}; the pattern is @code{(vector-length rv)} characters
+long.
+
+@itemize
+@item
+If the pattern is found: Return @math{-j} (a strictly negative integer)
+where @math{j} is the index of the value past the one that last matched
+the pattern in @var{text}.
+
+@item
+If the pattern is not found: Return the index in the restart vector (a
+non negative integer) to be used in the next call to this function.
+@end itemize
+
+This utility is designed to allow searching for occurrences of a fixed
+sequence that might extend across multiple buffers of data.  Notice
+that, in this case, when the returned value is negative: It is the index
+in the last buffer, not in the whole text.
+@end defun
+
+
+A simple one--shot search over a given string looks like the following:
+
+@example
+(let* ((text            "ciao hello salut")
+       ;;                01234567890123456
+       ;;                0         1
+       (text-start      0)
+       (text-past       (string-length text))
+
+       (pattern         "hello")
+       (pattern-start   0)
+       (pattern-past    (string-length pattern))
+
+       (restart-vector  (%kmp-make-restart-vector
+                           char=? string-ref
+                           pattern pattern-start pattern-past)))
+  (let ((i (%kmp-partial-search
+              char=? string-ref restart-vector pattern-start
+              text text-start text-past
+              pattern pattern-start)))
+    (or (<= 0 i) ;; not found
+        (- i)))) ;; found, return match past index
+@result{} 10
+@end example
+
+@noindent
+if the pattern was not found: Return @false{}.  If the pattern was
+found: Return the index in the string of the character past the one that
+matched the end of the pattern.
+
+Generalising this to a generic source of strings (represented by a list
+of strings):
+
+@smallexample
+(let* ((strings         '("ciao h " "he hel h"
+                          "ell hel" "lo salut"))
+       (end-of-data?    (lambda ()
+                          (null? strings)))
+       (get-next-chunk  (lambda ()
+                          (begin0
+                              (car strings)
+                            (set! strings (cdr strings))))))
+
+  (let* ((pattern         "hello")
+         (pattern-start   0)
+         (pattern-past    (string-length pattern))
+
+         (restart-vector  (%kmp-make-restart-vector char=? string-ref
+                             pattern pattern-start pattern-past)))
+
+    (let loop ((pi 0))
+      (and (not (end-of-data?))          ; not found
+           (let* ((buf (get-next-chunk))
+                  (pi  (%kmp-partial-search
+                          char=? string-ref
+                          restart-vector pi
+                          buf 0 (string-length buf)
+                          pattern pattern-start)))
+             (if (< pi 0)
+                 (cons buf (- pi)) ; found
+               (loop pi)))))))
+@result{} ("lo salut" . 2)
+@end smallexample
+
+@noindent
+if the pattern was not found: Return @false{}.  If the pattern was
+found: Return a cons whose car is the string chunk holding the end of
+the text that matched, and whose cdr is the index in the chunk of the
+character past the one that matched the end of the pattern.
+
+@c page
+@node kmp full
+@section Full sequence search
+
+
+@defun %kmp-search @var{item=} @var{item-ref} @var{text} @var{text-start} @var{text-past} @var{pattern} @var{pattern-start} @var{pattern-past}
+Search the selected subsequence of @var{text} for the selected
+subsequence of @var{pattern}.  Return the index of the @strong{first}
+value in @var{text} that matched the @strong{first} value in the
+pattern.
+
+This function is like @func{%string-contains} and
+@func{%string-contains-ci}, in facts those are implemented as:
+
+@smallexample
+(define (%string-contains text text-beg text-past
+                          pattern pattern-beg pattern-past)
+  (%kmp-search char=? string-ref
+               text text-beg text-past
+               pattern pattern-beg pattern-past))
+
+(define (%string-contains-ci text text-beg text-past
+                             pattern pattern-beg pattern-past)
+  (%kmp-search char-ci=? string-ref
+               text text-beg text-past
+               pattern pattern-beg pattern-past))
+@end smallexample
+@end defun
+
+@c page
+@node one-dimension
+@chapter One dimensional extended ranges
+
+
+The one--dimension libraries implement low level operations over
+generalised ranges of a coordinate.  They can be used to operate on
+ranges of numbers or characters or whatever objects upon which we can
+define an ordering.  There are two versions of the library:
+
+@table @library
+@item one-dimension-co
+Represents domains of values using disjoint half--open ranges; each
+range has a lower--included and an upper--excluded limit.
+
+@item one-dimension-cc
+Represents domains of values using disjoint double--closed ranges; each
+range has a lower--included and an upper--included limit.
+@end table
+
+Both the libraries have the same interface, meaning that the functions
+names and arguments are the same; the only difference in semantics is
+that @library{one-dimension-co} interprets argument ranges as
+half--open, while @library{one-dimension-cc} interprets argument ranges
+as double--closed.  @library{one-dimension-cc} is the backbone of the
+@library{char-sets} library.
+
+@menu
+* one-dimension intro::         Data types and conventions.
+* one-dimension make::          Constructors.
+* one-dimension pred::          Predicates.
+* one-dimension inspect::       Inspection.
+* one-dimension ops::           Operations.
+@end menu
+
+@c page
+@node one-dimension intro
+@section Data types and conventions
+
+
+A @dfn{range} is a pair representing a half--open interval of items.
+The car of the pair if the included lower--limit, called @var{start};
+the cdr is the excluded upper--limit, called @var{past}, or the included
+upper--limit, called @var{last}.  Empty ranges are @strong{not} valid.
+
+A @dfn{domain} is a sorted list of ranges.  Empty domains are empty
+lists.  Ranges in a domain do not overlap and are not contiguous.  A
+domain of half--open ranges has the following format:
+
+@example
+((start1 . past1) (start2 . past2) (start3 . past3) ...)
+@end example
+
+@noindent
+with the constraints:
+
+@example
+start1 < past1 < start2 < past2 < start3 < past3 < ...
+@end example
+
+@noindent
+a domain of double--closed ranges has the following format:
+
+@example
+((start1 . last1) (start2 . last2) (start3 . last3) ...)
+@end example
+
+@noindent
+with the constraints:
+
+@example
+start1 <= last1 < start2 <= last2 < start3 <= last3 < ...
+@end example
+
+The range and domain functions accept the following arguments:
+
+@table @var
+@item obj
+Any object.
+
+@item item
+An object that satisfies the @var{item?} predicate of the selected type.
+
+@item range
+A valid range according to @func{%range?}.
+
+@item domain
+A valid domain according to @func{%domain?}.
+
+@item start
+The included left--limit of a range.
+
+@item past
+The excluded lower--limit of a range.
+
+@item last
+The included upper--limit of a range.
+
+@item item?
+A unary predicate returning @true{} if the argument is a valid item.
+For integers it can be @func{integer?}, while for characters it can be
+@func{char?}.
+
+If we need to exclude some range of values, we can do it by properly
+define this function.  For example, to exclude the integers in the
+half--open range @math{[10, 23)} we can use:
+
+@example
+(lambda (n)
+  (and (integer? n)
+       (<= 10  n)
+       (<   n 23)))
+@end example
+
+@item item=?
+An n--ary predicate returning @true{} if the all the arguments are
+equal.  @func{char=?} is an example of such a function.
+
+@item item<?
+An n--ary predicate returning @true{} if the all the arguments, in the
+given order, are in strict increasing order.  @func{char<?} is an
+example of such a function.
+
+@item item<=?
+An n--ary predicate returning @true{} if the all the arguments, in the
+given order, are in non--strict increasing order.  @func{char<=?} is an
+example of such a function.
+
+@item item-min
+An n--ary function returning the minimum between its arguments.  For
+numbers it can be @func{min}, for characters we can use:
+
+@example
+(lambda (a b) (if (char<? a b) a b))
+@end example
+
+@item item-max
+An n--ary function returning the maximum between its arguments.  For
+numbers it can be @func{max}, for characters we can use:
+
+@example
+(lambda (a b) (if (char<? a b) b a))
+@end example
+
+@item item-prev
+A binary function accepting an item and a range, or false, as arguments.
+The second argument can be @false{}, meaning that no range is specified,
+or a pair whose car is the left--limit and whose cdr is the
+right--limit; when the range is true, it is guaranteed that the item is
+inside the range.
+
+This function must return the value previous to item inside the range;
+if it is not possible to compute the previous value, because the lower
+bound has been reached: The function must return @false{}.
+
+For integers it can be:
+
+@example
+(lambda (x range)       ; with both (one-dimension-cc)
+  (let ((x (- x 1)))    ; and (one-dimension-co)
+    (if range
+        (and (<= (car range) x)
+             x)
+      x)))
+@end example
+
+@noindent
+for characters it can be:
+
+@example
+(lambda (ch range)      ; with (one-dimension-cc)
+  (let* ((x  (- (char->integer ch) 1)))
+    (and (number-in-range? x)
+         (let ((ch (integer->char x)))
+           (if range
+               (and (<= x (char->integer (car range)))
+                    ch)
+             ch)))))
+
+(define (number-in-range? x)
+  (or (and (<= 0 x)
+           (<  x #xD800))
+      (and (<  #xDFFF x)
+           (<= x #x10FFFF))))
+@end example
+
+@item item-next
+A binary function accepting an item and a range, or false, as arguments.
+The second argument can be @false{}, meaning that no range is specified,
+or a pair whose car is the left--limit and whose cdr is the
+right--limit; when the range is true, it is guaranteed that the item is
+inside the range.
+
+This function must return the value next to item inside the range; if it
+is not possible to compute the next value, because the upper bound has
+been reached: The function must return @false{}.
+
+For integers it can be:
+
+@example
+(lambda (x range)       ; with (one-dimension-cc)
+  (let ((x (+ 1 x)))
+    (if range
+        (and (<= x (cdr range))
+             x)
+      x)))
+
+(lambda (x range)       ; with (one-dimension-co)
+  (let ((x (+ 1 x)))
+    (if range
+        (and (< x (cdr range))
+             x)
+      x)))
+@end example
+
+@noindent
+for characters it can be:
+
+@example
+(lambda (ch range)      ; with (one-dimension-cc)
+  (let* ((x  (+ 1 (char->integer c))))
+    (and (number-in-range? x)
+         (let ((ch (integer->char x)))
+           (if range
+               (and (<= x (char->integer (cdr range)))
+                    ch)
+             ch)))))
+
+(define (number-in-range? x)
+  (or (and (<= 0 x)
+           (<  x #xD800))
+      (and (<  #xDFFF x)
+           (<= x #x10FFFF))))
+@end example
+
+@item item-minus
+A binary function:
+
+@itemize
+@item
+For half--open ranges: It must return the number of items between the
+first argument included and the second argument excluded.
+
+@item
+For double--closed ranges: It must return the number of items between
+the first argument included and the second argument included.
+@end itemize
+
+The arithmetic @func{-} applied to integers is an example of such a
+function for half--open ranges; for characters and double--closed ranges
+we can use:
+
+@example
+(lambda (past start)
+  (+ 1 (- (char->integer past)
+          (char->integer start))))
+@end example
+
+@item item-copy
+A unary function returning a copy of an item.  For ranges holding atomic
+values (like characters or integers) it is fine to use @code{(lambda (x)
+x)}.
+
+@item type
+A record used as type descriptor for collected items.  It is used as
+first arguments to all almost all the functions.  Type descriptors are
+built by @func{%make-type-descriptor}.
+@end table
+
+@c page
+@node one-dimension make
+@section Constructors
+
+
+@defun %make-type-descriptor @var{item?} @var{item=?} @var{item<?} @var{item<=?} @var{item-min} @var{item-max} @var{item-prev} @var{item-next} @var{item-minus} @var{item-copy}
+Build and return a new type descriptor.
+@end defun
+
+
+@defun %make-range @var{type} @var{start} @var{past}
+@defunx %make-range @var{type} @var{start} @var{last}
+Compose @var{start} and @var{past}/@var{last} into a range.  This
+function validates the arguments to make sure the resulting range is
+valid.
+@end defun
+
+
+@defun %range-copy @var{type} @var{range}
+Return a clone of @var{range}.
+@end defun
+
+
+@defun %make-domain @var{type} @var{item/range} ...
+Build and return a new domain.  The list of @var{item/range} may be the
+empty list or a mixed list of items and ranges.  See
+@func{%domain-add-item} and @func{%domain-add-range} for details.
+@end defun
+
+
+@defun %domain-copy @var{type} @var{domain}
+Return a newly allocated domain holding a copy of @var{domain}.
+@end defun
+
+
+@defun %domain-add-item @var{type} @var{domain} @var{obj}
+Add the single value @var{obj} to @var{domain}, return the new domain.
+The returned domain may share some structure with @var{domain}.  If
+@var{obj} does not satisfy the @var{item?} function of @var{type}: An
+assertion violation is raised.
+
+@var{obj} is interpreted as lower limit of a range and the
+@var{item-next} function of @var{type} is used to generate the
+corresponding upper limit.  If generating the next item fails: An
+assertion violation is raised.
+@end defun
+
+
+@defun %domain-add-range @var{type} @var{domain} @var{range}
+Add @var{range} to @var{domain}, return the new domain.  The returned
+domain may share some structure with @var{domain}.
+
+@var{range} is a pair of items; it is interpreted as double--closed
+range by @library{one-dimension-cc} and as half--open range by
+@library{one-dimensionc-co}.
+@end defun
+
+@c page
+@node one-dimension pred
+@section Predicates
+
+
+@subsubheading Range predicates
+
+
+@defun %range? @var{type} @var{obj}
+Return @true{} if @var{obj} is a valid range.
+@end defun
+
+
+@defun %range-contains? @var{type} @var{range} @var{obj}
+Return @true{} if @var{obj} is a member of @var{range}.
+@end defun
+
+
+@defun %range=? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the ranges are equal.
+@end defun
+
+
+@defun %range<? @var{type} @var{range-a} @var{range-b}
+Return @true{} if @var{range-a} has all members less than all members of
+@var{range-b}.
+@end defun
+
+
+@defun %range<=? @var{type} @var{range-a} @var{range-b}
+Return @true{} if @var{range-a} has all members less than, or equal to,
+all members of @var{range-b}.
+@end defun
+
+
+@defun %range-start<? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the start of @var{range-a} is less than the start of
+@var{range-b}.
+@end defun
+
+
+@defun %range-start<=? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the start of @var{range-a} is less than, or equal to,
+the start of @var{range-b}.
+@end defun
+
+
+@defun %range-past<? @var{type} @var{range-a} @var{range-b}
+@defunx %range-last<? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the past/last of @var{range-a} is less than the past
+of @var{range-b}.
+@end defun
+
+
+@defun %range-last<=? @var{type} @var{range-a} @var{range-b}
+@defunx %range-past<=? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the past/last of @var{range-a} is less than, or equal
+to, the past of @var{range-b}.
+@end defun
+
+
+@defun %range-contiguous? @var{type} @var{range-a} @var{range-b}
+Return @true{} if @var{range-a} and @var{range-b} are contiguous.  It
+does not matter which range has start less than the other.
+@end defun
+
+
+@defun %range-overlapping? @var{type} @var{range-a} @var{range-b}
+Return @true{} if the ranges have some elements in common.
+@end defun
+
+
+@defun %range-superset? @var{type} @var{range-a} @var{range-b}
+@defunx %range-superset?/strict @var{type} @var{range-a} @var{range-b}
+Return @true{} if @var{range-a} is a superset or a strict superset of
+@var{range-a}.
+@end defun
+
+
+@defun %range-subset? @var{type} @var{range-a} @var{range-b}
+@defunx %range-subset?/strict @var{type} @var{range-a} @var{range-b}
+Return @true{} if @var{range-a} is a subset or a strict subset of
+@var{range-a}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Domain predicates
+
+
+@defun %domain? @var{type} @var{domain}
+Return true if @var{domain} is a valid domain.
+@end defun
+
+
+@defun %domain-empty? @var{domain}
+Return true if the domain is empty.
+@end defun
+
+
+@defun %domain-contains? @var{type} @var{domain} @var{obj}
+Return true if @var{obj} is an element of @var{domain}.
+@end defun
+
+
+@defun %domain=? @var{type} @var{domain-a} @var{domain-b}
+Return true if the arguments represent the same domain.
+@end defun
+
+
+@defun %domain<? @var{type} @var{domain-a} @var{domain-b}
+Return true if all the elements of @var{domain-a} are strictly less than
+all the elements of @var{domain-b}.  Empty domains cannot be ordered, so
+if an argument is empty the return value is @false{}.
+@end defun
+
+
+@defun %domain-subset? @var{type} @var{domain-a} @var{domain-b}
+@defunx %domain-subset?/strict @var{type} @var{domain-a} @var{domain-b}
+Return @true{} if @var{domain-a} is a subset or strict subset of
+@var{domain-b}.
+@end defun
+
+
+@defun %domain-superset? @var{type} @var{domain-a} @var{domain-b}
+@defunx %domain-superset?/strict @var{type} @var{domain-a} @var{domain-b}
+Return @true{} if @var{domain-a} is a superset or strict superset of
+@var{domain-b}.
+@end defun
+
+
+@c page
+@node one-dimension inspect
+@section Inspection
+
+
+@defun %range-length @var{type} @var{range}
+Return the number of items in the range.
+@end defun
+
+
+@defun %domain-size @var{type} @var{domain}
+Return the number of items in the domain.
+@end defun
+
+@c page
+@node one-dimension ops
+@section Operations
+
+
+@subsubheading Set operations
+
+
+@defun %range-intersection @var{type} @var{range-a} @var{range-b}
+Return a range representing the intersection of the argument ranges.  It
+does not matter which range has start less than the other.
+
+Intersection is a closed operation on the space of ranges: The
+intersection of two ranges is a range (possibly empty).  If the ranges
+are not overlapping return @false{} to represent the empty range.
+@end defun
+
+
+@defun %range-union @var{type} @var{range-a} @var{range-b}
+Return two values representing the union of the argument ranges.  It
+does not matter which range has start less than the other.
+
+Union is @strong{not} a closed operation on the space of ranges: The
+union of two contiguous or overlapping ranges is a single range, but the
+union of two disjoint ranges is the set holding the two argument ranges.
+
+If the argument ranges are disjoint and non--contiguous: Return two
+values being @var{range-a} and @var{range-b}.  If the argument ranges
+are contiguous or overlapping: Return two values being @false{} and a
+new range representing the union.
+
+This function should be called like this:
+
+@example
+(let-values (((head tail) (%range-union type r-a r-b)))
+  (when head ---)
+  (when tail ---))
+@end example
+@end defun
+
+
+@defun %range-difference @var{type} @var{range-a} @var{range-b}
+Return two values representing the difference between the argument
+ranges; the difference is the set of elements present in one range and
+not in the other.  It does not matter which range has start less than
+the other.
+
+Difference is @strong{not} a closed operation on the space of ranges: In
+genreral the result is a couple of ranges.  The first one represents
+values which are all less than the values in the second one.  Both the
+returned values can be @false{}.
+
+This function should be called like this:
+
+@example
+(let-values (((head tail) (%range-difference type r-a r-b)))
+  (when head ---)
+  (when tail ---))
+@end example
+@end defun
+
+
+@defun %range-in-first-only @var{type} @var{range-a} @var{range-b}
+Return two values representing the elements of @var{range-a} that are
+not in @var{range-b}.
+
+This operation is @strong{not} a closed operation on the space of
+ranges: In genreral the result is a couple of ranges.  The first one
+represents values which are all less than the values in the second one.
+Both the returned values can be @false{}.
+
+This function should be called like this:
+
+@example
+(let-values (((head tail) (%range-in-first-only type r-a r-b)))
+  (when head ---)
+  (when tail ---))
+@end example
+@end defun
+
+
+@defun %domain-intersection @var{type} @var{domain-a} @var{domain-b}
+Return a new domain representing the intersection of the arguments.  The
+intersection is the set of values present in both the arguments.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+
+@defun %domain-union @var{type} @var{domain-a} @var{domain-b}
+Return a new domain representing the union of the arguments.  The union
+is the set of values present in one and/or the other argument.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+
+@defun %domain-difference @var{type} @var{domain-a} @var{domain-b}
+Return a new domain representing the difference of the arguments.  The
+difference is the set of values present in one or the other argument.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+
+@defun %domain-complement @var{type} @var{domain} @var{domain-universe}
+Return a new domain representing the complement of @var{domain} in the
+space defined by @var{domain-universe}.  The returned value holds all
+the items from @var{domain-universe} that are not in @var{domain}.
+
+The returned value may share some structure with the arguments.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading List operations
+
+
+@defun %range-for-each @var{type} @var{proc} @var{range}
+Apply @var{proc} to each value in the range.
+@end defun
+
+
+@defun %range-every @var{type} @var{proc} @var{range}
+Apply @var{proc} to each value in the range and return true if all the
+return values are true.  The application stops at the first @false{}
+return value.
+@end defun
+
+
+@defun %range-any @var{type} @var{proc} @var{range}
+Apply @var{proc} to each value in the range and return true if at least
+one of the returned values is true.  The application stops at the first
+true return value.
+@end defun
+
+
+@defun %range-fold @var{type} @var{kons} @var{knil} @var{range}
+Fold @var{kons} over the values in the range.
+@end defun
+
+
+@defun %range->list @var{type} @var{range}
+Return a list holding all the elements in the range.
+@end defun
+
+
+@defun %domain-for-each @var{type} @var{proc} @var{domain}
+Apply @var{proc} to each element of @var{domain}.
+@end defun
+
+
+@defun %domain-every @var{type} @var{proc} @var{domain}
+Apply @var{proc} to each value in the domain and return true if all the
+return values are true.  The application stops at the first @false{}
+return value.
+@end defun
+
+
+@defun %domain-any @var{type} @var{proc} @var{domain}
+Apply @var{proc} to each value in the domain and return true if at least
+one of the returned values is true.  The application stops at the first
+true return value.
+@end defun
+
+
+@defun %domain-fold @var{type} @var{kons} @var{knil} @var{domain}
+Fold @var{kons} over the values in the domain.
+@end defun
+
+
+@defun %domain->list @var{type} @var{domain}
+Return a list holding all the elements in the domain.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Miscellaneous operations
+
+
+@defun %range-concatenate @var{type} @var{range-a} @var{range-b}
+Concatenate the ranges and return the resulting range.  It does not
+matter which range has start less than the other.  It makes sense to
+apply this function to ranges that satisfy @func{%range-contiguous?}.
+
+The returned range may share some value with the original ranges.
 @end defun
 
 @c page

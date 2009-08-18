@@ -56,7 +56,9 @@
     lexical-token-category
     lexical-token-source
 
-    lexical-token?/end-of-input)
+    lexical-token?/end-of-input
+    lexical-token?/lexer-error
+    lexical-token?/special)
   (import (rnrs))
 
 
@@ -76,6 +78,14 @@
 (define (lexical-token?/end-of-input obj)
   (and (lexical-token? obj)
        (eq? '*eoi* (lexical-token-category obj))))
+
+(define (lexical-token?/lexer-error obj)
+  (and (lexical-token? obj)
+       (eq? '*lexer-error* (lexical-token-category obj))))
+
+(define (lexical-token?/special obj)
+  (and (lexical-token? obj)
+       (memq (lexical-token-category obj) '(*eoi* *lexer-error*))))
 
 
 ;;;; done

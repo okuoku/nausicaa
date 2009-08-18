@@ -35,35 +35,56 @@ proper-newline		[\13\10]+[\9\32]+
 
 space			[\9\32]+
 
-open-comment		\(
-open-quoted-text	\"
-open-domain-literal	\[
-;;;domain-literal		\[.+\]
+start-comment		\(
+start-quoted-text	\"
+start-domain-literal	\[
 
 %%
 
 {proper-newline}	;ignore it
 {space}			;ignore it
 
-{atom}			(cons 'atom yytext)
-{character}		(cons 'character (string-ref yytext 0))
+{atom}			(make-lexical-token
+			 'ATOM
+			 (make-source-location #f yyline yycolumn yyoffset
+					       (string-length yytext))
+			 yytext)
+{character}		(let ((ch (string-ref yytext 0)))
+			  (make-lexical-token
+			   (case ch
+			     ((#\@) 'AT)
+			     ((#\.) 'DOT)
+			     ((#\,) 'COMMA)
+			     ((#\:) 'COLON)
+			     ((#\;) 'SEMICOLON)
+			     ((#\<) 'ANGLE-OPEN)
+			     ((#\>) 'ANGLE-CLOSE))
+			   (make-source-location #f yyline yycolumn yyoffset ch)
+			   ch))
 
-{open-comment}		(begin 'comment)
-{open-quoted-text}	(begin 'quoted-text)
-{open-domain-literal}	(begin 'domain-literal)
+{start-comment}		(make-lexical-token
+			 'COMMENT-OPEN
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
 
-;; {domain-literal}	(cons 'domain-literal
-;; 			      ;;Strip the square brackets.
-;; 			      (let ((len (string-length yytext)))
-;; 				(substring yytext 1 (- len 1))))
+{start-quoted-text}	(make-lexical-token
+			 'QUOTED-TEXT-OPEN
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
 
-<<EOF>>			(begin #f)
+{start-domain-literal}	(make-lexical-token
+			 'DOMAIN-LITERAL-OPEN
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
 
-<<ERROR>>		(assertion-violation #f
-			  (string-append "invalid token in email address text at line "
-                                         (number->string yyline)
-					 " column "
-					 (number->string yycolumn)
-					 " offset "
-					 (number->string yyoffset)))
+<<EOF>>			(make-lexical-token
+			 '*eoi*
+			 (make-source-location #f yyline yycolumn yyoffset 0)
+			 (eof-object))
 
+<<ERROR>>		(make-lexical-token
+			 'INVALID-CHARACTER
+			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+			 yytext)
+
+;;; end of file

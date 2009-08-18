@@ -1,13 +1,13 @@
-(library (email address-comments-lexer)
+(library (email address-quoted-string-lexer)
   (export
-    email-address-comments-table)
+    email-address-quoted-string-table)
   (import (rnrs) (silex lexer)(lalr lr-driver))
 
 ;
-; Table generated from the file address-comments.l by SILex 1.0
+; Table generated from the file address-quoted-string.l by SILex 1.0
 ;
 
-(define email-address-comments-table
+(define email-address-quoted-string-table
   (vector
    'all
    (lambda (yycontinue yygetc yyungetc)
@@ -21,7 +21,8 @@
      (lambda (yytext yyline yycolumn yyoffset)
          		(make-lexical-token
 			 'INVALID-CHARACTER
-			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+			 (make-source-location #f yyline yycolumn yyoffset
+					       (string-length yytext))
 			 yytext)
 
 ;;; end of file
@@ -30,23 +31,18 @@
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-                  	(quote COMMENT-OPEN)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-                	(quote COMMENT-CLOSE)
+              		'QUOTED-STRING-CLOSE
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                	yytext
+               		yytext
         )))
    'decision-trees
    0
    0
-   '#((41 (40 1 3) (42 2 1)) (40 1 (42 err 1)) err err)
-   '#((#f . #f) (2 . 2) (1 . 1) (0 . 0))))
+   '#((35 (34 1 3) (= 92 2 1)) (35 (34 1 err) (= 92 2 1)) (= 92 2 1) err)
+   '#((#f . #f) (1 . 1) (1 . 1) (0 . 0))))
 
 ) ; end of library
 

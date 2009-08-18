@@ -1,7 +1,7 @@
 (library (email address-lexer)
   (export
     email-address-table)
-  (import (rnrs) (silex lexer))
+  (import (rnrs) (silex lexer)(lalr lr-driver))
 
 ;
 ; Table generated from the file address-lexer.l by SILex 1.0
@@ -12,17 +12,19 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(begin #f)
+       			(make-lexical-token
+			 '*eoi*
+			 (make-source-location #f yyline yycolumn yyoffset 0)
+			 (eof-object))
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(assertion-violation #f
-			  (string-append "invalid token in email address text at line "
-                                         (number->string yyline)
-					 " column "
-					 (number->string yycolumn)
-					 " offset "
-					 (number->string yyoffset)))
+         		(make-lexical-token
+			 'INVALID-CHARACTER
+			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+			 yytext)
+
+;;; end of file
        ))
    (vector
     #f
@@ -41,32 +43,51 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-      			(cons 'atom yytext)
+      			(make-lexical-token
+			 'ATOM
+			 (make-source-location #f yyline yycolumn yyoffset
+					       (string-length yytext))
+			 yytext)
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-           		(cons 'character (string-ref yytext 0))
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-              		(begin 'comment)
-        ))
-    #f
-    (lambda (yycontinue yygetc yyungetc)
-      (lambda (yyline yycolumn yyoffset)
-                  	(begin 'quoted-text)
+           		(let ((ch (string-ref yytext 0)))
+			  (make-lexical-token
+			   (case ch
+			     ((#\@) 'AT)
+			     ((#\.) 'DOT)
+			     ((#\,) 'COMMA)
+			     ((#\:) 'COLON)
+			     ((#\;) 'SEMICOLON)
+			     ((#\<) 'ANGLE-OPEN)
+			     ((#\>) 'ANGLE-CLOSE))
+			   (make-source-location #f yyline yycolumn yyoffset ch)
+			   ch))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-                     	(begin 'domain-literal)
-
-;; {domain-literal}	(cons 'domain-literal
-;; 			      ;;Strip the square brackets.
-;; 			      (let ((len (string-length yytext)))
-;; 				(substring yytext 1 (- len 1))))
+               		(make-lexical-token
+			 'COMMENT-OPEN
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+                   	(make-lexical-token
+			 'QUOTED-TEXT-OPEN
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
+        ))
+    #t
+    (lambda (yycontinue yygetc yyungetc)
+      (lambda (yytext yyline yycolumn yyoffset)
+                      	(make-lexical-token
+			 'DOMAIN-LITERAL-OPEN
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
         )))
    'decision-trees
    0

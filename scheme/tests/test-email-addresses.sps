@@ -28,306 +28,319 @@
 (import (nausicaa)
   (email addresses)
   (silex lexer)
-  (email address-strings-lexer)
+  (email address-quoted-string-lexer)
   (email address-comments-lexer)
   (email address-domain-literals-lexer)
   (email address-lexer)
   (checks)
+  (lalr common)
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")
 
 
-;;;; quoted text lexer
+(parameterise ((check-test-name 'quoted-string-lexer))
 
-(define (tokenise-string string)
-  (let* ((IS	(lexer-make-IS :string string :counters 'all))
-	 (lexer	(lexer-make-lexer email-address-strings-table IS)))
-    (do ((token (lexer) (lexer))
-	 (out   '()))
-	((not token)
-	 (reverse out))
-      (set! out (cons token out)))))
-
-;;; --------------------------------------------------------------------
-
-(check ;empty string
-    (guard (exc (else (condition-message exc)))
-      (tokenise-string ""))
-  => "found end of input while parsing quoted text")
-
-(check ;empty string
-    (tokenise-string "\"")
-  => '())
-
-(check ;a string
-    (tokenise-string "ciao\"")
-  => '("ciao"))
-
-;; (check ;a string with utf-8 character
-;;     (tokenise-string "cio\"")
-;;   => '("cio"))
-
-(check ;nested double quotes
-    (tokenise-string "ciao \\\"hello\\\" salut\"")
-  => '("ciao \\\"hello\\\" salut"))
-
-(check ;a string
-    (guard (exc (else (condition-message exc)))
-      (tokenise-string "ciao"))
-  => "found end of input while parsing quoted text")
-
-
-;;;; comments lexer
-
-(define (tokenise-comment string)
-  (let ((IS (lexer-make-IS :string string :counters 'all)))
-    (define (accumulate)
-      (let ((lexer (lexer-make-lexer email-address-comments-table IS)))
-  	(do ((token (lexer) (lexer))
-	     (result ""))
-	    ((not token)
-	     result)
-	  (set! result (string-append result
-				      (if (eq? token 'comment)
-					  (string-append "(" (accumulate) ")")
-					token))))))
-    (cons 'comment (accumulate))))
+  (define (tokenise-string string)
+    ;;This  is just  a  lexer, it  does  not check  for the  terminating
+    ;;double-quote.
+    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+	   (lexer	(lexer-make-lexer email-address-quoted-string-table IS))
+	   (out		'()))
+      (do ((token (lexer) (lexer)))
+	  ((lexical-token?/end-of-input token)
+	   (reverse out))
+	(set! out (cons token out)))))
 
 ;;; --------------------------------------------------------------------
 
-(check
-    (tokenise-comment "ciao)")
-  => '(comment . "ciao"))
+  (check	;empty string
+      (tokenise-string "")
+    => '())
 
-(check
-    (tokenise-comment "ciao (hello) salut)")
-  => '(comment . "ciao (hello) salut"))
+  (check	;empty string
+      (tokenise-string "\"")
+    => '(QUOTED-STRING-CLOSE))
 
-(check
-    (tokenise-comment "((ciao (hello) salut)))")
-  => '(comment . "((ciao (hello) salut))"))
+  (check	;a string
+      (tokenise-string "ciao")
+    => '("ciao"))
 
-(check
-    (tokenise-comment "((ciao (((((()))))) salut)))")
-  => '(comment . "((ciao (((((()))))) salut))"))
+  (check	;a string
+      (tokenise-string "ciao\"")
+    => '("ciao" QUOTED-STRING-CLOSE))
+
+  (check	;a string
+      (tokenise-string "\\a\"")
+    => '("\\a" QUOTED-STRING-CLOSE))
+
+  (check ;a string with utf-8 character
+      (tokenise-string "cioé\"")
+    => '("cioé" QUOTED-STRING-CLOSE))
+
+  (check	;nested double quotes
+      (tokenise-string "ciao \\\"hello\\\" salut\"")
+    => '("ciao \\\"hello\\\" salut"  QUOTED-STRING-CLOSE))
+
+  #t)
 
 
-;;;; domain literals lexer
+(parameterise ((check-test-name 'comment-lexer))
 
-(define (tokenise-domain-literal string)
-  (let ((IS (lexer-make-IS :string string :counters 'all)))
-    (let ((lexer (lexer-make-lexer email-address-domain-literals-table IS)))
-      (do ((token (lexer) (lexer))
-	   (dtext  ""))
-	  ((not token)
-	   (cons 'domain-literal dtext))
-	(set! dtext (string-append dtext token))))))
+  (define (tokenise-comment string)
+    ((recursion (lex IS)
+       (let ((lexer (lexer-make-lexer email-address-comments-table IS))
+	     (text  ""))
+	 (do ((token  (lexer) (lexer)))
+	     ((eq? token 'COMMENT-CLOSE)
+	      text)
+	   (set! text (string-append
+		       text
+		       (if (eq? token 'COMMENT-OPEN)
+			   (string-append "(" (lex IS) ")")
+			 token))))))
+     (lexer-make-IS :string string :counters 'all)))
 
 ;;; --------------------------------------------------------------------
 
-(check
-    (tokenise-domain-literal "]")
-  => '(domain-literal . ""))
+  (check
+      (tokenise-comment "ciao)")
+    => "ciao")
 
-(check
-    (tokenise-domain-literal "ciao]")
-  => '(domain-literal . "ciao"))
+  (check
+      (tokenise-comment "ciao (hello) salut)")
+    => "ciao (hello) salut")
 
-(check
-    (tokenise-domain-literal "cia\\]o]")
-  => '(domain-literal . "cia]o"))
+  (check
+      (tokenise-comment "((ciao (hello) salut)))")
+    => "((ciao (hello) salut))")
 
-(check
-    (tokenise-domain-literal "cia\\[o]")
-  => '(domain-literal . "cia[o"))
+  (check
+      (tokenise-comment "((ciao (((((()))))) salut)))")
+    => "((ciao (((((()))))) salut))")
 
-(check
-    (tokenise-domain-literal "\\[ciao\\]]")
-  => '(domain-literal . "[ciao]"))
+  #t)
 
 
-;;;; full address lexer, list
+(parameterise ((check-test-name 'domain-literal-lexer))
 
-(check
-    (address->tokens :string "simons@rhein.de")
-  => '((atom . "simons")
-       (character . #\@)
-       (atom . "rhein")
-       (character . #\.)
-       (atom . "de")))
+  (define (tokenise-domain-literal string)
+    (let* ((IS    (lexer-make-IS :string string :counters 'all))
+	   (lexer (lexer-make-lexer email-address-domain-literals-table IS)))
+      (let loop ((token (lexer))
+		 (toks  '()))
+	(if (lexical-token?/end-of-input token)
+	    (reverse toks)
+	  (loop (lexer) (cons token toks))))))
 
-(check
-    (address->tokens :string "<simons@rhein.de>")
-  => '((character . #\<)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "rhein")
-       (character . #\.)
-       (atom . "de")
-       (character . #\>)))
+;;; --------------------------------------------------------------------
 
-(check
-    (address->tokens :string "\"Peter Simons\" <simons@rhein.de>")
-  => '((quoted-text . "Peter Simons")
-       (character . #\<)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "rhein")
-       (character . #\.)
-       (atom . "de")
-       (character . #\>)))
+  (check
+      (map lexical-token-category (tokenise-domain-literal "]"))
+    => '(DOMAIN-LITERAL-CLOSE))
 
-(check
-    (address->tokens :string "Peter Simons <simons@rhein.de>")
-  => '((atom . "Peter")
-       (atom . "Simons")
-       (character . #\<)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "rhein")
-       (character . #\.)
-       (atom . "de")
-       (character . #\>)))
+  (check
+      (map lexical-token-category (tokenise-domain-literal "123]"))
+    => '(DOMAIN-LITERAL-INTEGER DOMAIN-LITERAL-CLOSE))
 
-(check
-    (address->tokens :string "testing my parser : peter.simons@gmd.de,
+  (check
+      (map lexical-token-category (tokenise-domain-literal ".123]"))
+    => '(DOT DOMAIN-LITERAL-INTEGER DOMAIN-LITERAL-CLOSE))
+
+  (check
+      (map lexical-token-category (tokenise-domain-literal "1.2.3.4]"))
+    => '(DOMAIN-LITERAL-INTEGER
+	 DOT DOMAIN-LITERAL-INTEGER
+	 DOT DOMAIN-LITERAL-INTEGER
+	 DOT DOMAIN-LITERAL-INTEGER
+	 DOMAIN-LITERAL-CLOSE))
+
+  #t)
+
+
+(parameterise ((check-test-name 'lexer))
+
+  (check
+      (address->tokens :string "simons@rhein.de")
+    => '((atom . "simons")
+	 (character . #\@)
+	 (atom . "rhein")
+	 (character . #\.)
+	 (atom . "de")))
+
+  (check
+      (address->tokens :string "<simons@rhein.de>")
+    => '((character . #\<)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "rhein")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\>)))
+
+  (check
+      (address->tokens :string "\"Peter Simons\" <simons@rhein.de>")
+    => '((quoted-text . "Peter Simons")
+	 (character . #\<)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "rhein")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\>)))
+
+  (check
+      (address->tokens :string "Peter Simons <simons@rhein.de>")
+    => '((atom . "Peter")
+	 (atom . "Simons")
+	 (character . #\<)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "rhein")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\>)))
+
+  (check
+      (address->tokens :string "testing my parser : peter.simons@gmd.de,
             (peter.)simons@rhein.de ,,,,,
          testing my parser <simons@ieee.org>,
          it rules <@peti.gmd.de,@listserv.gmd.de:simons @ cys .de>
          ;
          ,
          peter.simons@acm.org")
-  => '((atom . "testing")
-       (atom . "my")
-       (atom . "parser")
-       (character . #\:)
-       (atom . "peter")
-       (character . #\.)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "gmd")
-       (character . #\.)
-       (atom . "de")
-       (character . #\,)
-       (comment . "peter.")
-       (atom . "simons")
-       (character . #\@)
-       (atom . "rhein")
-       (character . #\.)
-       (atom . "de")
-       (character . #\,)
-       (character . #\,)
-       (character . #\,)
-       (character . #\,)
-       (character . #\,)
-       (atom . "testing")
-       (atom . "my")
-       (atom . "parser")
-       (character . #\<)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "ieee")
-       (character . #\.)
-       (atom . "org")
-       (character . #\>)
-       (character . #\,)
-       (atom . "it")
-       (atom . "rules")
-       (character . #\<)
-       (character . #\@)
-       (atom . "peti")
-       (character . #\.)
-       (atom . "gmd")
-       (character . #\.)
-       (atom . "de")
-       (character . #\,)
-       (character . #\@)
-       (atom . "listserv")
-       (character . #\.)
-       (atom . "gmd")
-       (character . #\.)
-       (atom . "de")
-       (character . #\:)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "cys")
-       (character . #\.)
-       (atom . "de")
-       (character . #\>)
-       (character . #\;)
-       (character . #\,)
-       (atom . "peter")
-       (character . #\.)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "acm")
-       (character . #\.)
-       (atom . "org")))
+    => '((atom . "testing")
+	 (atom . "my")
+	 (atom . "parser")
+	 (character . #\:)
+	 (atom . "peter")
+	 (character . #\.)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "gmd")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\,)
+	 (comment . "peter.")
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "rhein")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\,)
+	 (character . #\,)
+	 (character . #\,)
+	 (character . #\,)
+	 (character . #\,)
+	 (atom . "testing")
+	 (atom . "my")
+	 (atom . "parser")
+	 (character . #\<)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "ieee")
+	 (character . #\.)
+	 (atom . "org")
+	 (character . #\>)
+	 (character . #\,)
+	 (atom . "it")
+	 (atom . "rules")
+	 (character . #\<)
+	 (character . #\@)
+	 (atom . "peti")
+	 (character . #\.)
+	 (atom . "gmd")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\,)
+	 (character . #\@)
+	 (atom . "listserv")
+	 (character . #\.)
+	 (atom . "gmd")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\:)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "cys")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\>)
+	 (character . #\;)
+	 (character . #\,)
+	 (atom . "peter")
+	 (character . #\.)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "acm")
+	 (character . #\.)
+	 (atom . "org")))
 
-(check
-    (address->tokens :string "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
-  => '((atom . "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?=")
-       (character . #\<)
-       (atom . "fandom")
-       (character . #\@)
-       (atom . "spamme")
-       (character . #\.)
-       (atom . "telefonica")
-       (character . #\.)
-       (atom . "net")
-       (character . #\>)))
+  (check
+      (address->tokens :string "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
+    => '((atom . "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?=")
+	 (character . #\<)
+	 (atom . "fandom")
+	 (character . #\@)
+	 (atom . "spamme")
+	 (character . #\.)
+	 (atom . "telefonica")
+	 (character . #\.)
+	 (atom . "net")
+	 (character . #\>)))
 
-(check
-    (address->tokens :string "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
-  => '((atom . "=?iso-8859-1?q?Ulrich_Sch=F6bel?=")
-       (character . #\<)
-       (atom . "ulrich")
-       (character . #\@)
-       (atom . "outvert")
-       (character . #\.)
-       (atom . "com")
-       (character . #\>)))
+  (check
+      (address->tokens :string "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
+    => '((atom . "=?iso-8859-1?q?Ulrich_Sch=F6bel?=")
+	 (character . #\<)
+	 (atom . "ulrich")
+	 (character . #\@)
+	 (atom . "outvert")
+	 (character . #\.)
+	 (atom . "com")
+	 (character . #\>)))
 
-(check
-    (address->tokens :string " \"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
-  => '((quoted-text . "Steve Redler IV, Tcl2006 Conference Program Chair")
-       (character . #\<)
-       (atom . "steve")
-       (character . #\@)
-       (atom . "sr-tech")
-       (character . #\.)
-       (atom . "com")
-       (character . #\>)))
+  (check
+      (address->tokens :string " \"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
+    => '((quoted-text . "Steve Redler IV, Tcl2006 Conference Program Chair")
+	 (character . #\<)
+	 (atom . "steve")
+	 (character . #\@)
+	 (atom . "sr-tech")
+	 (character . #\.)
+	 (atom . "com")
+	 (character . #\>)))
 
-(check
-    (address->tokens :string "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
-  => '((quoted-text . "Peter Simons")
-       (comment . "Peter Simons")
-       (character . #\<)
-       (atom . "simons")
-       (character . #\@)
-       (atom . "rhein")
-       (character . #\.)
-       (atom . "de")
-       (character . #\>)))
+  (check
+      (address->tokens :string "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
+    => '((quoted-text . "Peter Simons")
+	 (comment . "Peter Simons")
+	 (character . #\<)
+	 (atom . "simons")
+	 (character . #\@)
+	 (atom . "rhein")
+	 (character . #\.)
+	 (atom . "de")
+	 (character . #\>)))
 
 
-(check
-    (address->tokens :string "simons@[rhein].de")
-  => '((atom . "simons")
-       (character . #\@)
-       (domain-literal . "rhein")
-       (character . #\.)
-       (atom . "de")))
+  (check
+      (address->tokens :string "simons@[rhein].de")
+    => '((atom . "simons")
+	 (character . #\@)
+	 (domain-literal . "rhein")
+	 (character . #\.)
+	 (atom . "de")))
 
-;; ------------------------------------------------------------
+  ;; ------------------------------------------------------------
 
-(check
-    (guard (exc (else (condition-message exc)))
-      (address->tokens :string "simons[@rhein.de"))
-  => "found end of input while parsing domain literal")
+  (check
+      (guard (exc (else (condition-message exc)))
+	(address->tokens :string "simons[@rhein.de"))
+    => "found end of input while parsing domain literal")
+
+  #t)
 
 
 ;;;; parser, domain

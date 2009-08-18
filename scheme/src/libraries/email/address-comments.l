@@ -34,19 +34,20 @@ commented-text		[^\(\)]+
 
 %%
 
-{start-of-comment}	(begin 'comment)
-{end-of-comment}	(begin #f)
-{commented-text}	(begin yytext)
+{start-of-comment}	(quote COMMENT-OPEN)
 
-<<EOF>>			(assertion-violation #f
-                          "found end of input while parsing comment")
+{end-of-comment}	(quote COMMENT-CLOSE)
 
-<<ERROR>>		(assertion-violation #f
-			  (string-append "invalid character in comment at line "
-                                         (number->string yyline)
-					 " column "
-					 (number->string yycolumn)
-					 " offset "
-					 (number->string yyoffset))
-			  yytext)
+{commented-text}	yytext
 
+<<EOF>>			(make-lexical-token
+			 '*eoi*
+			 (make-source-location #f yyline yycolumn yyoffset 0)
+			 (eof-object))
+
+<<ERROR>>		(make-lexical-token
+			 'INVALID-CHARACTER
+			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
+			 yytext)
+
+;;; end of file

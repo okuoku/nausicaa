@@ -28,23 +28,23 @@
 ;;;
 
 double-quote		\"
-quoted-text		([^\"]+|\\\")+
+quoted-string		([^\"]+|\\\")+
 
 %%
 
-{double-quote}		(begin #f)
-{quoted-text}		(begin yytext)
+{double-quote}		'QUOTED-STRING-CLOSE
 
-<<EOF>>			(assertion-violation #f
-                          "found end of input while parsing quoted text")
+{quoted-string}		yytext
 
-<<ERROR>>		(assertion-violation #f
-			  (string-append "invalid character in quoted text at line "
-                                         (number->string yyline)
-					 " column "
-					 (number->string yycolumn)
-					 " offset "
-					 (number->string yyoffset))
-			  yytext)
+<<EOF>>			(make-lexical-token
+			 '*eoi*
+			 (make-source-location #f yyline yycolumn yyoffset 0)
+			 (eof-object))
+
+<<ERROR>>		(make-lexical-token
+			 'INVALID-CHARACTER
+			 (make-source-location #f yyline yycolumn yyoffset
+					       (string-length yytext))
+			 yytext)
 
 ;;; end of file

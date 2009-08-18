@@ -27,28 +27,39 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-quoted-open-bracket	\\\[
-quoted-close-bracket	\\\]
-backslash		\\
 end-of-dtext		\]
-dtext			[^\[\]\\]+
+integer			[0-9]+
+dot			\.
 
 %%
 
-{end-of-dtext}		(begin #f)
-{quoted-open-bracket}|{quoted-close-bracket}
-			(substring yytext 1 (string-length yytext))
-{backslash}|{dtext}
-			(begin yytext)
+{end-of-dtext}		(make-lexical-token
+			 'DOMAIN-LITERAL-CLOSE
+			 (make-source-location #f yyline yycolumn yyoffset
+			                       (string-length yytext))
+			 yytext)
 
-<<EOF>>			(assertion-violation #f
-                          "found end of input while parsing domain literal")
+{integer}		(let ((num (string->number yytext)))
+			  (make-lexical-token
+			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER 'INVALID-VALUE)
+			   (make-source-location #f yyline yycolumn yyoffset
+						 (string-length yytext))
+			   yytext))
 
-<<ERROR>>		(assertion-violation #f
-			  (string-append "invalid character in domain literal at line "
-                                         (number->string yyline)
-					 " column "
-					 (number->string yycolumn)
-					 " offset "
-					 (number->string yyoffset)))
+{dot}			(make-lexical-token
+			 'DOT
+			 (make-source-location #f yyline yycolumn yyoffset 1)
+			 yytext)
 
+<<EOF>>			(make-lexical-token
+			 '*eoi*
+			 (make-source-location #f yyline yycolumn yyoffset 0)
+			 (eof-object))
+
+<<ERROR>>		(make-lexical-token
+			 'INVALID-VALUE
+			 (make-source-location #f yyline yycolumn yyoffset
+					       (string-length yytext))
+			 yytext)
+
+;;; end of file

@@ -54,7 +54,8 @@
     )
   (import (rnrs)
     (silex lexer)
-    (email address-strings-lexer)
+    (lalr common)
+    (email address-quoted-string-lexer)
     (email address-comments-lexer)
     (email address-domain-literals-lexer)
     (email address-lexer)
@@ -62,57 +63,102 @@
     (strings))
 
 
+;;;; helpers
+
+(define %at-string		"@")
+(define %colon-string		":")
+(define %comma-string		",")
+(define %dot-string		".")
+(define %semicolon-string	";")
+(define %space-string		" ")
+
+
 ;;;; lexer
 
-(define (address->tokens . options)
-  (let ((lexer		(apply make-address-lexer options))
+(define (make-address-lexer IS)
+  (let ((lexers		(list (lexer-make-lexer email-address-table IS)))
+	(dispatchers	'()))
+
+    (define (push-lexer-and-dispatcher lex disp)
+      (set! dispatchers (cons disp dispatchers))
+      (set! lexers      (cons lex lexers)))
+
+    (define (pop-lexer-and-dispatcher)
+      (set! dispatchers (cdr dispatchers))
+      (set! lexers      (cdr lexers)))
+
+    (define (main-dispatch lexer)
+      (let ((token (lexer)))
+	(case (lexical-token-category token)
+	  ((QUOTED-STRING-OPEN)
+	   (lex-quoted-string-token IS))
+	  ((COMMENT-OPEN)
+	   (lex-comment-token IS))
+	  ((DOMAIN-LITERAL-OPEN)
+	   (push-lexer-and-dispatcher (lexer-make-lexer email-address-domain-literals-table IS)
+				      domain-literal-dispatch)
+	   token)
+	  (else
+	   token))))
+
+    (define (domain-literal-dispatch lexer)
+      (let ((token (lexer)))
+	(when (eq? 'DOMAIN-LITERAL-CLOSE (lexical-token-category token))
+	  (push-lexer-and-dispatcher))
+	token))
+
+    (define (lex-comment-token IS opening-token)
+      ;;To be called after the lexer returned a "COMMENT-OPEN" lexical
+      ;;token, which must be in OPENING-TOKEN.
+      ;;
+      ;;Accumulate  the text  of  the comment  into  a single  string,
+      ;;including the nested comments.   Return the whole comment as a
+      ;;string.
+      ;;
+      (let ((lexer (lexer-make-lexer email-address-comments-table IS))
+	    (text  ""))
+	(do ((token  (lexer) (lexer)))
+	    ((eq? token 'COMMENT-CLOSE)
+	     text)
+	  (set! text (string-append
+		      text
+		      (if (eq? token 'COMMENT-OPEN)
+			  (string-append "(" (lex-comment-token IS) ")")
+			token))))))
+
+    (define (lex-quoted-string-token IS opening-token)
+      ;;To  be called  after the  lexer returned  a "QUOTED-STRING-OPEN"
+      ;;lexical token, which must be in OPENING-TOKEN.
+      ;;
+      ;;Accumulate the quoted text into  a string.  Return a new lexical
+      ;;token record with category QUOTED-STRING.
+      ;;
+      (let ((lexer (lexer-make-lexer email-address-quoted-string-table IS))
+	    (text  ""))
+	(do ((token (lexer) (lexer)))
+	    ((eq? token 'QUOTED-STRING-CLOSE)
+	     (let ((pos (lexical-token-source opening-token)))
+	       (make-lexical-token 'QUOTED-STRING
+				   (make-source-location
+				    (source-location-input  pos)
+				    (source-location-line   pos)
+				    (source-location-column pos)
+				    (source-location-offset pos)
+				    (string-length text))
+				   text))
+	     (set! text (string-append text token))))))
+
+    (set! dispatchers (list main-dispatch))
+    (lambda ()
+      ((car dispatchers) (car lexers)))))
+
+(define (address->tokens IS)
+  (let ((lexer		(make-address-lexer IS))
 	(list-of-tokens	'()))
     (do ((token (lexer) (lexer)))
 	((not token)
 	 (reverse list-of-tokens))
       (set! list-of-tokens (cons token list-of-tokens)))))
-
-(define (make-address-lexer . options)
-  (let* ((IS	(apply lexer-make-IS (append (list :counters 'all) options)))
-	 (lexer	(lexer-make-lexer email-address-table IS)))
-    (lambda ()
-      (lex-dispatch-token (lexer) IS))))
-
-;;; --------------------------------------------------------------------
-
-(define (lex-dispatch-token token IS)
-  (define (lex-comment-token IS)
-    (let ((lexer (lexer-make-lexer email-address-comments-table IS)))
-      (do ((token  (lexer) (lexer))
-	   (result ""))
-	  ((not token)
-	   (cons 'comment result))
-	(set! result (string-append result
-				    (if (eq? token 'comment)
-					(string-append "(" (lex-comment-token IS) ")")
-				      token))))))
-
-  (define (lex-quoted-text-token IS)
-    (let ((lexer (lexer-make-lexer email-address-strings-table IS)))
-      (do ((token (lexer) (lexer))
-	   (text  ""))
-	  ((not token)
-	   (cons 'quoted-text text))
-	(set! text (string-append text token)))))
-
-  (define (lex-domain-literal-token IS)
-    (let ((lexer (lexer-make-lexer email-address-domain-literals-table IS)))
-      (do ((token (lexer) (lexer))
-	   (dtext  ""))
-	  ((not token)
-	   (cons 'domain-literal dtext))
-	(set! dtext (string-append dtext token)))))
-
-  (case token
-    ((quoted-text)	(lex-quoted-text-token IS))
-    ((comment)		(lex-comment-token IS))
-    ((domain-literal)	(lex-domain-literal-token IS))
-    (else		token)))
 
 
 ;;;; address domain record
@@ -126,7 +172,7 @@
     (domain-display domain (current-output-port)))
    ((domain port)
     (display (string-append "#<domain -- "
-			    (string-join (domain-subdomains domain) ".")
+			    (string-join (domain-subdomains domain) %dot-string)
 			    ">")
 	     port))))
 
@@ -140,7 +186,50 @@
     (display ")" port))))
 
 (define (domain->string domain)
-  (string-join (domain-subdomains domain) "."))
+  (string-join (domain-subdomains domain) %dot-string))
+
+
+;;;; address domain-literal record
+
+(define-record-type domain-literal
+  (fields (immutable decimal-1)
+	  (immutable decimal-2)
+	  (immutable decimal-3)
+	  (immutable decimal-4)))
+
+(define domain-literal-display
+  (case-lambda
+   ((domain)
+    (domain-literal-display domain (current-output-port)))
+   ((domain port)
+    (display (string-append "#<domain-literal -- ["
+			    (domain-literal->string domain)
+			    "]>")
+	     port))))
+
+(define domain-literal-write
+  (case-lambda
+   ((domain)
+    (domain-literal-display domain (current-output-port)))
+   ((domain port)
+    (display "(make-domain-literal " port)
+    (domain-literal-decimal-1 domain)
+    %space-string
+    (domain-literal-decimal-2 domain)
+    %space-string
+    (domain-literal-decimal-3 domain)
+    %space-string
+    (domain-literal-decimal-4 domain)
+    (display ")" port))))
+
+(define (domain-literal->string domain)
+  (string-append (domain-literal-decimal-1 domain)
+		 %dot-string
+		 (domain-literal-decimal-2 domain)
+		 %dot-string
+		 (domain-literal-decimal-3 domain)
+		 %dot-string
+		 (domain-literal-decimal-4 domain)))
 
 
 ;;;; address local part record
@@ -154,7 +243,7 @@
     (local-part-display local-part (current-output-port)))
    ((local-part port)
     (display (string-append "#<local-part -- "
-			    (string-join (local-part-subparts local-part) ".")
+			    (string-join (local-part-subparts local-part) %dot-string)
 			    ">")
 	     port))))
 
@@ -168,7 +257,7 @@
     (display ")" port))))
 
 (define (local-part->string local-part)
-  (string-join (local-part-subparts local-part) "."))
+  (string-join (local-part-subparts local-part) %dot-string))
 
 
 ;;;; address addr-spec record
