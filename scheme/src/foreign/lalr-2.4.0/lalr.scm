@@ -3,6 +3,23 @@
 ;;;
 ;;
 
+(define-syntax when
+  (syntax-rules ()
+    ((_ ?expr ?body ...)
+     (if ?expr
+	 (let () ?body ...)
+       #f))))
+
+(define debugging #f)
+
+(define (debug message . args)
+  (when debugging
+    (display message)
+    (display " ")
+    (pretty-print args)))
+
+;;; --------------------------------------------------------------------
+
 (cond-expand
 
  ;; -- Gambit-C
@@ -1688,8 +1705,14 @@
     (set-expected-conflicts! options)
     (set-driver-name! options)
     (let* ((gram/actions (gen-tables! tokens rules))
-	   (code         `(,driver-name ',action-table ,(build-goto-table) ,(build-reduction-table gram/actions))))
+	   (code         `(,driver-name ',action-table
+					,(build-goto-table)
+					,(build-reduction-table gram/actions))))
 
+      (when debugging
+	(pretty-print action-table)
+	(pretty-print (build-goto-table))
+	(pretty-print (build-reduction-table gram/actions)))
       (output-table! options)
       (output-parser! options code)
       code))
@@ -1763,7 +1786,8 @@
 ;;;
 
 
-(define *max-stack-size* 500)
+(define *max-stack-size* 10)
+;;;(define *max-stack-size* 500)
 
 (define (lr-driver action-table goto-table reduction-table)
   (define ___atable action-table)
@@ -1815,13 +1839,17 @@
       (vector-set! ___stack (- ___sp 1) lvalue)))
 
   (define (___reduce st)
-    ((vector-ref ___rtable st) ___stack ___sp ___gtable ___push ___pushback))
+    (debug "reduce with" st ___stack)
+    ((vector-ref ___rtable st) ___stack ___sp ___gtable ___push ___pushback)
+    (debug "reduce done" st ___stack))
 
   (define (___shift token attribute)
+    (debug "shift     " token attribute ___stack)
     (set! ___sp (+ ___sp 2))
     (___checkstack)
     (vector-set! ___stack (- ___sp 1) attribute)
-    (vector-set! ___stack ___sp token))
+    (vector-set! ___stack ___sp token)
+    (debug "shift done" token attribute ___stack))
 
   (define (___action x l)
     (let ((y (assoc x l)))
@@ -1869,6 +1897,7 @@
 
   (define (___run)
     (let loop ()
+      (debug "*** main loop" ___sp ___stack)
       (if ___input
           (let* ((state (vector-ref ___stack ___sp))
                  (i     (___category ___input))
@@ -1881,10 +1910,12 @@
 
                   ;; Input succesfully parsed
                   ((eq? act 'accept)
+		   (debug "accepting" ___input (vector-ref ___stack 1) ___stack)
                    (vector-ref ___stack 1))
 
                   ;; Syntax error in input
                   ((eq? act '*error*)
+		   (debug "error token" ___input)
                    (if (eq? i '*eoi*)
                        (begin
                          (___errorp "Syntax error: unexpected end of input")
