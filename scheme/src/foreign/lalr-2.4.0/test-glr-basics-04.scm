@@ -17,16 +17,27 @@
 
 (check
     (doit)
-  => 0)
+  => '(0))
 
 (check
+    ;;Two  results because  there  is a  shift/reduce  conflict, so  two
+    ;;processes are generated.
     (doit (make-lexical-token 'A #f 1))
-  => 1)
+  => '(1 1))
 
 (check
+    ;;Two  results because  there  is a  shift/reduce  conflict, so  two
+    ;;processes are generated.  Notice that the rules:
+    ;;
+    ;;  (e A) (A)
+    ;;
+    ;;generate only one  conflict when the second "A"  comes.  The third
+    ;;"A" comes when  the state is inside the rule "(e  A)", so there is
+    ;;no conflict.
+    ;;
     (doit (make-lexical-token 'A #f 1)
 	  (make-lexical-token 'A #f 2)
 	  (make-lexical-token 'A #f 3))
-  => 3)
+  => '(3 3))
 
 ;;; end of file

@@ -93,7 +93,7 @@
       (cons r *error*))
   => '(((recover #f #f)
 	(line 2 #\newline))
-       error-handler "Syntax error: unexpected token : " . BAD))
+       (error-handler "Syntax error: unexpected token : " . BAD)))
 
 
 (check
@@ -110,7 +110,7 @@
       (cons r *error*))
   => '(((recover #f #f)
 	(line 2 #\newline))
-       error-handler "Syntax error: unexpected token : " . BAD))
+       (error-handler "Syntax error: unexpected token : " . BAD)))
 
 ;;; --------------------------------------------------------------------
 ;;; Failed error recovery.
@@ -119,7 +119,7 @@
     ;;End-of-input is found after NUMBER.
     (let ((r (doit (make-lexical-token 'NUMBER  #f 1))))
       (cons r *error*))
-  => '(#f error-handler "Syntax error: unexpected end of input"))
+  => '(#f (error-handler "Syntax error: unexpected end of input")))
 
 (check
     ;;The BAD triggers  the error, the stack is rewind  up to the start,
@@ -131,7 +131,7 @@
 		   (make-lexical-token 'BAD     #f 'beta)
 		   (make-lexical-token 'BAD     #f 'delta))))
       (cons r *error*))
-  => '(0 error-handler "Syntax error: unexpected token : " . BAD))
+  => '(0 (error-handler "Syntax error: unexpected token : " . BAD)))
 
 (check
     ;;The BAD triggers  the error, the stack is rewind  up to the start,
@@ -140,6 +140,6 @@
     ;;after the start.
     (let ((r (doit (make-lexical-token 'BAD #f 'alpha))))
       (cons r *error*))
-  => '(0 error-handler "Syntax error: unexpected token : " . BAD))
+  => '(0 (error-handler "Syntax error: unexpected token : " . BAD)))
 
 ;;; end of file

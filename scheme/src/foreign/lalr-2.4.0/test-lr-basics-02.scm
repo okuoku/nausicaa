@@ -28,6 +28,6 @@
 		   (make-lexical-token 'A #f 2)
 		   (make-lexical-token 'A #f 3))))
       (cons r *error*))
-  => '(0 error-handler "Syntax error: unexpected token : " . A))
+  => '(0 (error-handler "Syntax error: unexpected token : " . A)))
 
 ;;; end of file

@@ -15,20 +15,16 @@
 
 (check
     (doit)
-  => 0)
+  => '(0))
 
 (check
     (doit (make-lexical-token 'A #f 1))
-  => 1)
+  => '(1))
 
 (check
-    ;;Parse correctly the first A  and reduce it.  The second A triggers
-    ;;an  error which  empties  the  stack and  consumes  all the  input
-    ;;tokens.  Finally, the end-of-input token is correctly parsed.
-    (let ((r (doit (make-lexical-token 'A #f 1)
-		   (make-lexical-token 'A #f 2)
-		   (make-lexical-token 'A #f 3))))
-      (cons r *error*))
-  => '(0 error-handler "Syntax error: unexpected token : " . A))
+    (doit (make-lexical-token 'A #f 1)
+	  (make-lexical-token 'A #f 2)
+	  (make-lexical-token 'A #f 3))
+  => '())
 
 ;;; end of file

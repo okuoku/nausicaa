@@ -20,7 +20,7 @@
 (check
     (let ((r (doit)))
       (cons r *error*))
-  => '(#f error-handler "Syntax error: unexpected end of input"))
+  => '(#f (error-handler "Syntax error: unexpected end of input")))
 
 (check
     ;;Parse correctly the first A  and reduce it.  The second A triggers
@@ -31,6 +31,8 @@
 		   (make-lexical-token 'A #f 2)
 		   (make-lexical-token 'A #f 3))))
       (cons r *error*))
-  => '(#f error-handler "Syntax error: unexpected end of input"))
+  => '(#f
+       (error-handler "Syntax error: unexpected end of input")
+       (error-handler "Syntax error: unexpected token : " . A)))
 
 ;;; end of file

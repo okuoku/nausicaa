@@ -34,7 +34,7 @@
     (let ((r (doit (make-lexical-token 'A #f 1)
 		   (make-lexical-token 'C #f 3))))
       (cons r *error*))
-  => '(error-form error-handler "Syntax error: unexpected token : " . C))
+  => '(error-form (error-handler "Syntax error: unexpected token : " . C)))
 
 (check
     ;;Error, recovery, correct parse of "A B".
@@ -43,6 +43,7 @@
 		   (make-lexical-token 'A #f 1)
 		   (make-lexical-token 'B #f 2))))
       (cons r *error*))
-  => '((1 2) error-handler "Syntax error: unexpected token : " . C))
+  => '((1 2)
+       (error-handler "Syntax error: unexpected token : " . C)))
 
 ;;; end of file
