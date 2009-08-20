@@ -73,7 +73,7 @@
     (lists)
     (parameters)
     (keywords)
-    (debugging)
+;;;    (debugging)
     (pretty-print)
     (rnrs mutable-pairs)
     (rnrs eval))
@@ -1255,7 +1255,7 @@
 	(cons (cons rule sym) rule-precedences)))
 
 (define (get-rule-precedence ruleno)
-  (debug "ruleno ~s rule-precedences ~s ~s" ruleno rule-precedences ritem)
+;;;  (debug "ruleno ~s rule-precedences ~s ~s" ruleno rule-precedences ritem)
   (cond
    ((assv ruleno rule-precedences)
     => (lambda (p)

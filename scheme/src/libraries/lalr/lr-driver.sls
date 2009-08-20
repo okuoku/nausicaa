@@ -96,7 +96,7 @@
 	  (if (eq? '*lexer-error* category)
 	      (main (attempt-error-recovery lookahead))
 	    (let ((action (select-action category (current-state))))
-	      (debug "~%main states ~s values ~s lookahead-category=~s action ~s"
+	      (debug "~%*** main states ~s values ~s lookahead-category=~s action ~s"
 		     stack-states stack-values category action)
 	      (cond ((eq? action 'accept) ;success, end of parse
 		     (cadr stack-values)) ;return the value to the caller
@@ -116,7 +116,6 @@
 			       (lexer)))))
 
 		    (else ;reduce using the rule at index "(- ACTION)"
-		     (debug "reduce action= ~a" action)
 		     (reduce (- action))
 		     (main lookahead)))))))
 
@@ -172,14 +171,14 @@
 
 	(define (%main)
 	  (error-handler "syntax error, unexpected token" lookahead)
-	  (let ((token (rewind-stack)))
+	  (let ((token (synchronise-parser/rewind-stack)))
 	    ;;If recovery succeeds: TOKEN  is set to the next lookahead.
 	    ;;If recovery fails: TOKEN is set to end--of--input.
 	    (unless (eq? '*eoi* (lexical-token-category token))
 	      (reduce-using-default-actions))
 	    token))
 
-	(define (rewind-stack)
+	(define (synchronise-parser/rewind-stack)
 	  (if (null? stack-values)
 	      (begin ;recovery failed, simulate end-of-input
 		(stack-push! 0 #f) ;restore start stacks state
@@ -188,24 +187,26 @@
 				    (eof-object)))
 	    (let* ((entry (state-entry-with-error-action (current-state))))
 	      (if entry
-		  (synchronise-lexer (cdr entry))
+		  (synchronise-lexer/skip-tokens (cdr entry))
 		(begin
 		  (stack-pop!)
-		  (rewind-stack))))))
+		  (synchronise-parser/rewind-stack))))))
 
 	(define-inline (state-entry-with-error-action state-index)
 	  (assq 'error (vector-ref action-table state-index)))
 
-	(define (synchronise-lexer error-state-index)
-	  (debug "recovering-sync states ~s values ~s error-state-index ~s"
+	(define (synchronise-lexer/skip-tokens error-state-index)
+	  (debug "sync-lexer/skip-tokens states ~s values ~s error-state-index ~s"
 		 stack-states stack-values error-state-index)
-	  (let* ((error-actions	(vector-ref action-table error-state-index))
-		 (sync-set	(map car (cdr error-actions))))
+	  (let* ((error-actions	   (vector-ref action-table error-state-index))
+		 (error-categories (map car (cdr error-actions))))
 	    (let skip-token ((token lookahead))
 	      (let ((category (lexical-token-category token)))
 		(cond ((eq? category '*eoi*) ;unexpected end-of-input while trying to recover
+		       (debug "eoi while skipping")
 		       token)
-		      ((memq category sync-set) ;recovery success
+		      ((memq category error-categories) ;recovery success
+		       (debug "skipping found sync token ~s" token)
 		       ;;The following  stack entries will  be processed
 		       ;;by  REDUCE-USING-DEFAULT-ACTIONS,  causing  the
 		       ;;evaluation  of  the  semantic  action  for  the
@@ -218,6 +219,7 @@
 				    (lexical-token-value token))
 		       (lexer))
 		      (else
+		       (debug "skip token ~s" token)
 		       (skip-token (lexer))))))))
 
 	(%main))

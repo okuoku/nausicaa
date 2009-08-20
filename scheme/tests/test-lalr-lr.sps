@@ -238,43 +238,6 @@
   #t)
 
 
-(parameterise ((check-test-name 'end-of-input))
-
-;;;Test end-of-input handling.
-
-  (define (error-handler message token)
-    (cons message (lexical-token-value token)))
-
-  (define (doit-1 . tokens)
-    ;;Test a grammar that does NOT accept EOI as first token.
-    (let* ((lexer		(make-lexer tokens))
-	   (terminals		'(A))
-	   (non-terminals	'((e (A) : $1)))
-	   (make-parser		(lalr-parser :output-value #t
-					     :expect #f
-					     :terminals terminals
-					     :rules non-terminals))
-           (parser		(make-parser)))
-      (parser lexer error-handler)))
-
-  (check
-      (doit-1 (make-lexical-token 'A #f 1))
-    => 1)
-
-  (check
-      (doit-1 (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'A #f 2)
-	      (make-lexical-token 'A #f 3))
-    => 1)
-
-  (check
-      (doit-1)
-    => `("unexpected end of input" . ,(eof-object)))
-
-
-  #t)
-
-
 (parameterise ((check-test-name 'error-recovery-1))
 
 ;;;Test error recovery with a terminator terminal.
@@ -295,15 +258,12 @@
 		;;be the result of the offending line.
 		(error NEWLINE)		: (list 'recover $1 $2))))
 
-
-  (define make-parser
-    (lalr-parser :output-value #t :expect #f
-		 :terminals terminals
-		 :rules non-terminals))
-
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))
 	   (error-handler	(make-error-handler (lambda x x)))
+	   (make-parser		(lalr-parser :output-value #t :expect #f
+					     :terminals terminals
+					     :rules non-terminals))
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
@@ -382,7 +342,7 @@
 
   (check
       ;;The first  BAD triggers an error, recovery  happens skipping the
-      ;;second and third BADs, the  first NEWLINE is correctly parsed as
+      ;;second  and  third  BADs,  the  first  NEWLINE  is  detected  as
       ;;synchronisation token; the second line is correct.
       (doit (make-lexical-token 'NUMBER  #f 1)
 	    (make-lexical-token 'BAD     #f 'alpha)
@@ -395,38 +355,33 @@
 	 (line 2 #\newline)))
 
 ;;; --------------------------------------------------------------------
-;;; Unexpected end-of-input.   The return value  is the return  value of
-;;; the error handler.
+;;; Failed error recovery.
 
   (check
-      ;;The first  BAD triggers an error, recovery  happens skipping the
-      ;;second  and third BADs;  end-of-input is  found while  trying to
-      ;;recover.
+      ;;End-of-input is found after NUMBER.
       (doit (make-lexical-token 'NUMBER  #f 1))
     => `((error-handler . ,(eof-object))))
 
   (check
-      ;;The first  BAD triggers an error, recovery  happens skipping the
-      ;;second  and third BADs;  end-of-input is  found while  trying to
-      ;;recover.
-      (doit (make-lexical-token 'NUMBER  #f 1)
-	    (make-lexical-token 'BAD     #f 'alpha)
-	    (make-lexical-token 'BAD     #f 'beta)
-	    (make-lexical-token 'BAD     #f 'delta))
-    => `((error-handler . ,(eof-object))))
+      ;;The BAD triggers the error, the stack is rewind up to the start,
+      ;;then end-of-input happens while  trying to skip tokens until the
+      ;;synchronisation  one is  found.  End-of-input  is  an acceptable
+      ;;token after the start.
+      (parameterise ((debugging #f))
+	(doit (make-lexical-token 'NUMBER  #f 1)
+	      (make-lexical-token 'BAD     #f 'alpha)
+	      (make-lexical-token 'BAD     #f 'beta)
+	      (make-lexical-token 'BAD     #f 'delta)))
+    => '())
 
-;;   (check
-;;       ;;Unexpected  end-of-input   after  the  NUMBER   (a  newline  was
-;;       ;;expected),  it  triggers an  error,  end-of-input happens  while
-;;       ;;trying to recover.
-;;       (doit (make-lexical-token 'NUMBER  #f 1))
-;;     => `((error-token . ,(eof-object))))
-
-;;   (check
-;;       ;;The BAD triggers the  error, then unexpected end-of-input happens
-;;       ;;while trying to recover.
-;;       (doit (make-lexical-token 'BAD #f 'alpha))
-;;     => `((error-token . ,(eof-object)) (error-token . alpha)))
+  (check 'this
+      ;;The BAD triggers the error, the stack is rewind up to the start,
+      ;;then end-of-input happens while  trying to skip tokens until the
+      ;;synchronisation  one is  found.  End-of-input  is  an acceptable
+      ;;token after the start.
+      (parameterise ((debugging #f))
+	(doit (make-lexical-token 'BAD #f 'alpha)))
+    => '())
 
   #t)
 
@@ -450,16 +405,20 @@
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
+;;; --------------------------------------------------------------------
+;;; No error, just grammar tests.
+
   (check
-      ;;No error, just a grammar test.
       (doit (make-lexical-token 'A #f 1)
 	    (make-lexical-token 'B #f 2))
     => '(1 2))
 
   (check
-      ;;No error, just a grammar test.
       (doit (make-lexical-token 'C #f 3))
     => '3)
+
+;;; --------------------------------------------------------------------
+;;; Successful error recovery.
 
   (check
       ;;Error, recovery, eoi.
@@ -469,11 +428,12 @@
     => '(error 3))
 
   (check
-      ;;Error, recovery, correct parse.
+    ;;Error, recovery, correct parse.
+    (parameterise ((debugging #f))
       (doit (make-lexical-token 'A #f 1)
 	    (make-lexical-token 'C #f 3)
 	    (make-lexical-token 'A #f 1)
-	    (make-lexical-token 'B #f 2))
+	    (make-lexical-token 'B #f 2)))
     => '(1 2))
 
   #t)
@@ -481,35 +441,41 @@
 
 (parameterise ((check-test-name 'lexer-error))
 
+;;;Test the lexer returning a non-token value.
+
   (define make-parser
     (lalr-parser :output-value #t :expect #f
 		 :terminals '(A B C)
-		 :rules '((alpha (A B)	: (list $1 $2)
-				 (C)
-				 (error C)))))
+		 :rules '((alpha (A B)		: (list $1 $2)
+				 (C)		: $1
+				 (error C)	: (list $1 $2)))))
 
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))
            (result		'())
 	   (yycustom		(lambda args args))
-	   (error-handler	(make-error-handler yycustom))
+	   (error-handler	(lambda (message token)
+				  (error #f message token)))
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
-  (check	;no error, just a grammar test
+;;; --------------------------------------------------------------------
+;;; No error, just grammar tests.
+
+  (check
       (doit (make-lexical-token 'A #f 1)
 	    (make-lexical-token 'B #f 2))
     => '(1 2))
 
-  (check	;error, recovery, eoi
-      (parameterise ((debugging #t))
-	(doit (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'C #f 2)
-	      ;; 	    (make-lexical-token 'A #f 1)
-	      ;; 	    (make-lexical-token 'B #f 2))
-	      ))
-    => '())
+;;; --------------------------------------------------------------------
 
+  (check
+      (guard (exc (else (cons (condition-message exc)
+			      (condition-irritants exc))))
+	(doit (make-lexical-token 'A #f 1)
+	      (make-lexical-token 'B #f 2)
+	      123))
+    => '("expected lexical token from lexer" 123))
 
   #t)
 
