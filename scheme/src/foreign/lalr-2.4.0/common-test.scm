@@ -26,11 +26,11 @@
        (set! *error* '())
        (when (not (?equal result expected))
 	 (display "Failed test: \n")
-	 (write (quote ?expr))(newline)
+	 (pretty-print (quote ?expr))(newline)
 	 (display "\tresult was: ")
-	 (write result)(newline)
+	 (pretty-print result)(newline)
 	 (display "\texpected: ")
-	 (write expected)(newline))))))
+	 (pretty-print expected)(newline))))))
 
 ;;; --------------------------------------------------------------------
 

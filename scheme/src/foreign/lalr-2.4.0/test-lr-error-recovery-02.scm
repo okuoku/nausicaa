@@ -17,24 +17,24 @@
 ;;; --------------------------------------------------------------------
 ;;; No error, just grammar tests.
 
-;; (check
-;;     (doit (make-lexical-token 'A #f 1)
-;; 	  (make-lexical-token 'B #f 2))
-;;   => '(1 2))
+(check
+    (doit (make-lexical-token 'A #f 1)
+	  (make-lexical-token 'B #f 2))
+  => '(1 2))
 
-;; (check
-;;     (doit (make-lexical-token 'C #f 3))
-;;   => '3)
+(check
+    (doit (make-lexical-token 'C #f 3))
+  => '3)
 
 ;;; --------------------------------------------------------------------
 ;;; Successful error recovery.
 
-;; (check
-;;     ;;Error, recovery, end-of-input.
-;;     (let ((r (doit (make-lexical-token 'A #f 1)
-;; 		   (make-lexical-token 'C #f 3))))
-;;       (cons r *error*))
-;;   => '(error-form error-handler "Syntax error: unexpected token : " . C))
+(check
+    ;;Error, recovery, end-of-input.
+    (let ((r (doit (make-lexical-token 'A #f 1)
+		   (make-lexical-token 'C #f 3))))
+      (cons r *error*))
+  => '(error-form error-handler "Syntax error: unexpected token : " . C))
 
 (check
     ;;Error, recovery, correct parse of "A B".
