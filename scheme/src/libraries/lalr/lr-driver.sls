@@ -59,7 +59,9 @@
     lexical-token-category
     lexical-token-source
 
-    lexical-token?/end-of-input)
+    lexical-token?/end-of-input
+    lexical-token?/lexer-error
+    lexical-token?/special)
   (import (rnrs)
     (lalr common)
     (debugging))
@@ -148,9 +150,9 @@
 
 	(define (reduce-pop-and-push used-values goto-keyword semantic-clause-result
 				     yy-stack-states yy-stack-values)
-	  (set! yy-stack-states (drop/stx yy-stack-states used-values))
-	  (let ((new-state-index (cdr (assq goto-keyword
-					    (vector-ref goto-table (car yy-stack-states))))))
+	  (let* ((yy-stack-states (drop/stx yy-stack-states used-values))
+		 (new-state-index (cdr (assq goto-keyword
+					     (vector-ref goto-table (car yy-stack-states))))))
 	    ;;This is NOT a call to STACK-PUSH!
 	    (set! stack-states (cons new-state-index        yy-stack-states))
 	    (set! stack-values (cons semantic-clause-result yy-stack-values))))

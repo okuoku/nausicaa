@@ -377,6 +377,7 @@ Copyright @copyright{} 2003 Taylor Campbell.@*
 Copyright @copyright{} 2005 Jens Axel Soegaard.@*
 Copyright @copyright{} 2005-2009 Alex Shinn.@*
 Copyright @copyright{} 2008 Taro Minowa (Higepon).
+Copyright @copyright{} 2005-2008 Dominique Boucher
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -37472,11 +37473,10 @@ fact, much of the code is a direct translation from C to Scheme of the
 Bison sources.
 
 The library is a port to @rnrs{6} Scheme of Lalr-scm by Dominique
-Boucher.  The original code and additional documentation are available
-at@footnote{@aurl{} last verified Tue Jul 21, 2009.}:
+Boucher.  The original is available at@footnote{@aurl{} last verified
+Tue Jul 21, 2009.}:
 
-@center @url{http://code.google.com/p/lalr-scm/}@*
-@center @url{http://www.iro.umontreal.ca/~boucherd/Lalr/documentation/lalr.html}
+@center @url{http://code.google.com/p/lalr-scm/}
 
 @menu
 * lalr intro::                  Introduction to the LR parser.

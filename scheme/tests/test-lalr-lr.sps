@@ -60,12 +60,13 @@
 
 (define (debug:print-tables doit? terminals non-terminals)
   (when doit?
-    (lalr-parser :output-port (current-output-port)
-		 :expect #f
-		 :terminals terminals
-		 :rules non-terminals)
-    (newline (current-output-port))
-    (newline (current-output-port))))
+    (let ((port (current-output-port)))
+      (lalr-parser :output-port port
+		   :expect #f
+		   :terminals terminals
+		   :rules non-terminals)
+      (newline port)
+      (newline port))))
 
 
 (parameterise ((check-test-name 'basics))

@@ -66,7 +66,9 @@
     lexical-token-category
     lexical-token-source
 
-    lexical-token?/end-of-input)
+    lexical-token?/end-of-input
+    lexical-token?/lexer-error
+    lexical-token?/special)
   (import (rename (rnrs)
 		  (error rnrs:error))
     (lalr common)
@@ -233,7 +235,8 @@
 			  source-location-length
 			  make-lexical-token		lexical-token?
 			  lexical-token-value		lexical-token-category
-			  lexical-token-source		lexical-token?/end-of-input))
+			  lexical-token-source		lexical-token?/end-of-input
+			  lexical-token?/lexer-error	lexical-token?/special))
 	       (code	(cond (library-spec ;generate a library
 			       (unless parser-name
 				 (assertion-violation 'lalr-parser

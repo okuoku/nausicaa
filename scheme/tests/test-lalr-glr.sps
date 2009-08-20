@@ -32,30 +32,242 @@
 (check-set-mode! 'report-failed)
 (display "*** testing lalr GLR driver \n")
 
+
+;;;; helpers
+
 (define eoi-token
   (make-lexical-token '*eoi* #f (eof-object)))
 
+(define (make-lexer list-of-tokens)
+  ;;Return a lexer closure  drawing tokens from the list LIST-OF-TOKENS.
+  ;;When the list is empty, return the EOI-TOKEN.
+  ;;
+  (lambda ()
+    (if (null? list-of-tokens)
+	eoi-token
+      (begin0
+	  (car list-of-tokens)
+	(set! list-of-tokens (cdr list-of-tokens))))))
+
+(define (make-error-handler yycustom)
+  ;;Return  an error  handler closure  that calls  YYCUSTOM with  a pair
+  ;;describing the offending token.  To just return the pair invoke as:
+  ;;
+  ;;	(make-error-handler (lambda x x))
+  ;;
+  (lambda (message token)
+    (yycustom `(error-handler . ,(lexical-token-value token)))))
+
+(define (debug:print-tables doit? terminals non-terminals)
+  (when doit?
+    (let ((port (current-output-port)))
+      (lalr-parser :output-port port
+		   :expect #f
+		   :parser-type 'glr
+		   :terminals terminals
+		   :rules non-terminals)
+      (newline port)
+      (newline port))))
+
 
-(parameterise ((check-test-name 'glr-script-expression)
-	       (debugging #f))
+(parameterise ((check-test-name 'basics))
 
-  ;;This is the grammar of the (lalr) documentation in Texinfo format.
+;;;Test very basic grammars.
 
-  (define parser-terminals
+  (define (error-handler message token)
+    (cons message (lexical-token-value token)))
+
+  (define (doit-1 . tokens)
+    ;;A grammar that only accept a single terminal as input.
+    (let* ((lexer		(make-lexer tokens))
+	   (make-parser		(lalr-parser :output-value #t
+					     :parser-type 'glr
+					     :expect #f
+					     :terminals '(A)
+					     :rules '((e (A) : $1))))
+           (parser		(make-parser)))
+      (parser lexer error-handler)))
+
+  (define (doit-2 . tokens)
+    ;;A grammar that only accept a single terminal or the EOI.
+    (let* ((lexer		(make-lexer tokens))
+	   (make-parser		(lalr-parser :output-value #t
+					     :parser-type 'glr
+					     :expect 0
+					     :terminals '(A)
+					     :rules '((e (A) : $1
+							 ()  : 0))))
+           (parser		(make-parser)))
+      (parser lexer error-handler)))
+
+  (define (doit-3 . tokens)
+    ;;A grammar that accepts fixed sequences of a single terminal or the
+    ;;EOI.
+    (let* ((lexer		(make-lexer tokens))
+	   (make-parser		(lalr-parser :output-value #t
+					     :parser-type 'glr
+					     :expect #f
+					     :terminals '(A)
+					     :rules '((e (A)     : (list $1)
+							 (A A)   : (list $1 $2)
+							 (A A A) : (list $1 $2 $3)
+							 ()      : 0))))
+           (parser		(make-parser)))
+      (parser lexer error-handler)))
+
+  (define (doit-4 . tokens)
+    ;;A grammar accepting a sequence  of equal tokens.  The return value
+    ;;is the value of the last parsed token.
+    (let* ((lexer		(make-lexer tokens))
+	   (make-parser		(lalr-parser :output-value #t
+					     :parser-type 'glr
+					     :expect #f
+					     :terminals '(A)
+					     :rules '((e (e A) : $2
+							 (A)   : $1
+							 ()    : 0))))
+           (parser		(make-parser)))
+      (parser lexer error-handler)))
+
+  (define (doit-5 . tokens)
+    ;;A grammar accepting a sequence  of equal tokens.  The return value
+    ;;is the list of values.
+    (let* ((lexer		(make-lexer tokens))
+	   (make-parser		(lalr-parser :output-value #t
+					     :parser-type 'glr
+					     :expect #f
+					     :terminals '(A)
+					     :rules '((e (e A) : (cons $2 $1)
+							 (A)   : (list $1)
+							 ()    : 0))))
+           (parser		(make-parser)))
+      (parser lexer error-handler)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit-1 (make-lexical-token 'A #f 1))
+    => '(1))
+
+  (check
+      (doit-1)
+    => `())
+
+  (check
+    ;;Parse correctly the first A  and reduce it.  The second A triggers
+    ;;an  error which  empties  the  stack and  consumes  all the  input
+    ;;tokens.  Finally, an unexpected end-of-input error is returned.
+      (doit-1 (make-lexical-token 'A #f 1)
+	      (make-lexical-token 'A #f 2)
+	      (make-lexical-token 'A #f 3))
+    => `())
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (parameterise ((debugging #f))
+	(doit-2))
+    => '(0))
+
+  (check
+      (doit-2 (make-lexical-token 'A #f 1))
+    => '(1))
+
+  (check
+    ;;Parse correctly the first A  and reduce it.  The second A triggers
+    ;;an  error which  empties  the  stack and  consumes  all the  input
+    ;;tokens.  Finally, an unexpected end-of-input error is returned.
+      (parameterise ((debugging #f))
+	(doit-1 (make-lexical-token 'A #f 1)
+		(make-lexical-token 'A #f 2)
+		(make-lexical-token 'A #f 3)))
+    => `())
+
+;;; --------------------------------------------------------------------
+
+  (check
+    (parameterise ((debugging #f))
+      (doit-3 (make-lexical-token 'A #f 1)))
+    => '(1))
+
+  (check
+      (doit-3 (make-lexical-token 'A #f 1)
+	      (make-lexical-token 'A #f 2))
+    => '(1 2))
+
+  (check
+      (doit-3 (make-lexical-token 'A #f 1)
+	      (make-lexical-token 'A #f 2)
+	      (make-lexical-token 'A #f 3))
+    => '(1 2 3))
+
+  (check
+      (doit-3)
+    => '(0))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit-4)
+    => '(0))
+
+  (check
+      (doit-4 (make-lexical-token 'A #f 1))
+    => '(1))
+
+  (check
+      (doit-4 (make-lexical-token 'A #f 1)
+	      (make-lexical-token 'A #f 2)
+	      (make-lexical-token 'A #f 3))
+    => '(3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit-5)
+    => '(0))
+
+  (check
+      (doit-5 (make-lexical-token 'A #f 1))
+    => '(1))
+
+  (check
+      (doit-5 (make-lexical-token 'A #f 1)
+	      (make-lexical-token 'A #f 2))
+    => '(2 1))
+
+  (check
+      (doit-5 (make-lexical-token 'A #f 1)
+	      (make-lexical-token 'A #f 2)
+	      (make-lexical-token 'A #f 3))
+    => '(3 2 1))
+
+  #t)
+
+
+
+
+
+
+(parameterise ((check-test-name 'script-expression))
+
+;;;This is the grammar of the (lalr) documentation in Texinfo format.
+
+  (define terminals
     '(N O C T
 	(left: A)
 	(left: M)
 	(nonassoc: U)))
 
-  (define parser-non-terminals
-    '((script	(lines)		: #f)
+  (define non-terminals
+    '((script	(lines)		: (reverse $1))
 
-      (lines	(lines line)	: (yycustom $2)
-		(line)		: (yycustom $1))
+      (lines	(lines line)	: (cons $2 $2)
+		(line)		: (list $1))
 
       (line	(T)		: #\newline
 		(E T)		: $1
-		(error T)	: #f)
+		(error T)	: (list 'error-clause $2))
 
       (E	(N)		: $1
 		(E A E)		: ($2 $1 $3)
@@ -63,97 +275,72 @@
 		(A E (prec: U))	: ($1 $2)
 		(O E C)		: $2)))
 
-  (define make-parser
-    (parameterise ((debugging #f))
-      (lalr-parser :output-value #t :expect #f
-		   :parser-type 'glr
-		   :terminals parser-terminals
-		   :rules parser-non-terminals)))
+  (define (doit . tokens)
+    (let* ((lexer	(make-lexer tokens))
+	   (make-parser (lalr-parser :output-value #t :expect #f
+				     :parser-type 'glr
+				     :terminals terminals
+				     :rules non-terminals))
+           (parser	(make-parser)))
+      (parser lexer (make-error-handler (lambda x x)))))
 
-  (define (doit tokens)
-    (let* ((lexer		(lambda ()
-				  (if (null? tokens)
-				      eoi-token
-				    (let ((t (car tokens)))
-				      (set! tokens (cdr tokens))
-				      t))))
-           (result		'())
-           (yycustom		(lambda (value)
-                                  (set! result (cons value result))
-				  'yycustom))
-	   (error-handler	(lambda (message token)
-				  ;;(display message)(newline)
-                                  (yycustom `(error-token . ,(lexical-token-value token)))))
-           (parser		(make-parser)))
-      (parser lexer error-handler yycustom)
-      result))
+  (debug:print-tables #f terminals non-terminals)
 
-  (when #f
-    (lalr-parser :output-port (current-output-port)
-		 :expect #f
-;;;		 :dump-table "/tmp/marco/p"
-		 :parser-type 'glr
-		 :terminals parser-terminals
-		 :rules parser-non-terminals)
-    (newline)
-    (newline))
+;;; --------------------------------------------------------------------
+;;; Correct input.
 
-  (check 	;correct input
-      (doit (list (make-lexical-token 'T #f #\newline)
-		  eoi-token))
-    => '(#\newline))
+  (check
+      (parameterise ((debugging #f))
+	(doit (make-lexical-token 'T #f #\newline)))
+    => '((#\newline)))
 
   (check	;correct input
-      (doit (list (make-lexical-token 'N #f 1)
-		  (make-lexical-token 'T #f #\newline)
-		  eoi-token))
-    => '(1))
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'T #f #\newline))
+    => '((1)))
 
   (check	;correct input
-      (doit (list (make-lexical-token 'N #f 1)
-		  (make-lexical-token 'A #f +)
-		  (make-lexical-token 'N #f 2)
-		  (make-lexical-token 'T #f #\newline)
-		  eoi-token))
-    => '(3))
+      (doit  (make-lexical-token 'N #f 1)
+	     (make-lexical-token 'A #f +)
+	     (make-lexical-token 'N #f 2)
+	     (make-lexical-token 'T #f #\newline))
+    => '((3)))
 
   (check	 ;correct input
-      (doit (list (make-lexical-token 'N #f 1)
-		  (make-lexical-token 'A #f +)
-		  (make-lexical-token 'N #f 2)
-		  (make-lexical-token 'M #f *)
-		  (make-lexical-token 'N #f 3)
-		  (make-lexical-token 'T #f #\newline)
-		  eoi-token))
-    => '(7))
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f +)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'M #f *)
+	    (make-lexical-token 'N #f 3)
+	    (make-lexical-token 'T #f #\newline))
+    => '((7)))
 
   (check	;correct input
-      (doit (list (make-lexical-token 'O #f #\()
-		  (make-lexical-token 'N #f 1)
-		  (make-lexical-token 'A #f +)
-		  (make-lexical-token 'N #f 2)
-		  (make-lexical-token 'C #f #\))
-		  (make-lexical-token 'M #f *)
-		  (make-lexical-token 'N #f 3)
-		  (make-lexical-token 'T #f #\newline)
-		  eoi-token))
-    => '(9))
+      (doit  (make-lexical-token 'O #f #\()
+	     (make-lexical-token 'N #f 1)
+	     (make-lexical-token 'A #f +)
+	     (make-lexical-token 'N #f 2)
+	     (make-lexical-token 'C #f #\))
+	     (make-lexical-token 'M #f *)
+	     (make-lexical-token 'N #f 3)
+	     (make-lexical-token 'T #f #\newline))
+    => '((9)))
 
-  (check 	;correct input
-      (doit (list (make-lexical-token 'O #f #\()
-		  (make-lexical-token 'N #f 1)
-		  (make-lexical-token 'A #f +)
-		  (make-lexical-token 'N #f 2)
-		  (make-lexical-token 'C #f #\))
-		  (make-lexical-token 'M #f *)
-		  (make-lexical-token 'N #f 3)
-		  (make-lexical-token 'T #f #\newline)
-		  (make-lexical-token 'N #f 4)
-		  (make-lexical-token 'M #f /)
-		  (make-lexical-token 'N #f 5)
-		  (make-lexical-token 'T #f #\newline)
-		  eoi-token))
-    => '(4/5 9))
+  (check  	;correct input
+    (parameterise ((debugging #f))
+      (doit (make-lexical-token 'O #f #\()
+	    (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f +)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'C #f #\))
+	    (make-lexical-token 'M #f *)
+	    (make-lexical-token 'N #f 3)
+	    (make-lexical-token 'T #f #\newline)
+	    (make-lexical-token 'N #f 4)
+	    (make-lexical-token 'M #f /)
+	    (make-lexical-token 'N #f 5)
+	    (make-lexical-token 'T #f #\newline)))
+    => '((4/5 9)))
 
   #t)
 
