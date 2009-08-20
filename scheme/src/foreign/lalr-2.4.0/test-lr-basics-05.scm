@@ -2,15 +2,16 @@
 ;;
 ;;A grammar  accepting a sequence  of equal tokens of  arbitrary length.
 ;;The return value is the list of values.
+;;
 
 (load "common-test.scm")
 
 (define (doit . tokens)
-  (let ((make-parser (lalr-parser (expect: 0)
-				  (A)
-				  (e (e A) : (cons $2 $1)
-				     (A)   : (list $1)
-				     ()    : 0))))
+  (let ((parser (lalr-parser (expect: 0)
+			     (A)
+			     (e (e A) : (cons $2 $1)
+				(A)   : (list $1)
+				()    : 0))))
     (parser (make-lexer tokens) error-handler)))
 
 (check

@@ -7,11 +7,11 @@
 (load "common-test.scm")
 
 (define (doit . tokens)
-  (let ((make-parser (lalr-parser (expect: 0)
-				  (A)
-				  (e (e A) : $2
-				     (A)   : $1
-				     ()    : 0))))
+  (let ((parser (lalr-parser (expect: 0)
+			     (A)
+			     (e (e A) : $2
+				(A)   : $1
+				()    : 0))))
     (parser (make-lexer tokens) error-handler)))
 
 (check

@@ -1807,7 +1807,8 @@
   (define (___consume)
     (set! ___input (if ___reuse-input ___curr-input (___lexerp)))
     (set! ___reuse-input #f)
-    (set! ___curr-input ___input))
+    (set! ___curr-input ___input)
+    (debug "\nlookahead" ___input))
 
   (define (___pushback)
     (set! ___reuse-input #t))
@@ -1830,18 +1831,20 @@
         (___growstack)))
 
   (define (___push delta new-category lvalue)
+    (debug "right after reduce" 'goto-keyword new-category 'stack-pointer ___sp 'stack: ___stack)
     (set! ___sp (- ___sp (* delta 2)))
     (let* ((state     (vector-ref ___stack ___sp))
            (new-state (cdr (assoc new-category (vector-ref ___gtable state)))))
+      (debug "after reduce" 'goto-state new-state 'with-value lvalue)
       (set! ___sp (+ ___sp 2))
       (___checkstack)
       (vector-set! ___stack ___sp new-state)
       (vector-set! ___stack (- ___sp 1) lvalue)))
 
   (define (___reduce st)
-    (debug "reduce with" st ___stack)
+    (debug "reduce with" 'stack-pointer ___sp 'reduce-index st 'stack: ___stack)
     ((vector-ref ___rtable st) ___stack ___sp ___gtable ___push ___pushback)
-    (debug "reduce done" st ___stack))
+    (debug "reduce done" 'stack-pointer ___sp 'stack: ___stack))
 
   (define (___shift token attribute)
     (debug "shift     " token attribute ___stack)
@@ -1897,7 +1900,7 @@
 
   (define (___run)
     (let loop ()
-      (debug "*** main loop" ___sp ___stack)
+      (debug "*** main loop" 'state: ___sp 'stack: ___stack)
       (if ___input
           (let* ((state (vector-ref ___stack ___sp))
                  (i     (___category ___input))
@@ -1915,7 +1918,7 @@
 
                   ;; Syntax error in input
                   ((eq? act '*error*)
-		   (debug "error token" ___input)
+		   (debug "error by token" ___input)
                    (if (eq? i '*eoi*)
                        (begin
                          (___errorp "Syntax error: unexpected end of input")

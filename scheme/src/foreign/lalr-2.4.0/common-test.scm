@@ -6,6 +6,8 @@
 
 (load "lalr.scm")
 
+(define *error* '())
+
 (define-syntax when
   (syntax-rules ()
     ((_ ?expr ?body ...)
@@ -21,6 +23,7 @@
     ((_ ?expr (=> ?equal) ?expected-result)
      (let ((result	?expr)
 	   (expected	?expected-result))
+       (set! *error* '())
        (when (not (?equal result expected))
 	 (display "Failed test: \n")
 	 (write (quote ?expr))(newline)
@@ -50,12 +53,10 @@
 	t))))
 
 (define (error-handler message . args)
-  (display "error handler: ")
-  (display message)
-  (newline)
-  (when (< 0 (length args))
-    (pretty-print args)
-    (newline))
+  (set! *error* (cons `(error-handler ,message . ,(if (pair? args)
+						      (lexical-token-category (car args))
+						    '()))
+		      *error*))
   (cons message args))
 
 ;;; end of file
