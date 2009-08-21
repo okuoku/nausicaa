@@ -35,7 +35,7 @@
 
     (rename (shared-errno errno)))
   (import (rnrs)
-    (except (mosh ffi))
+    (mosh ffi)
     (foreign ffi sizeof)
     (parameters))
 
