@@ -1255,15 +1255,15 @@
 	       (append-reverse (cons item result) ell)))))))
 
 (define (sorted-list-insert/uniq item ell item< item>)
-  (let loop ((result '())
-	     (ell    ell))
-    (if (null? ell)
-	(append-reverse (cons item result) ell)
-      (let ((x (car ell)))
+  (let loop ((reversed-head '())
+	     (tail          ell))
+    (if (null? tail)
+	(append-reverse (cons item reversed-head) tail)
+      (let ((x (car tail)))
 	(cond ((item< item x)
-	       (append-reverse (cons item result) ell))
+	       (append-reverse (cons item reversed-head) tail))
 	      ((item> item x)
-	       (loop (cons x result) (cdr ell)))
+	       (loop (cons x reversed-head) (cdr tail)))
 	      (else
 	       ell))))))
 
