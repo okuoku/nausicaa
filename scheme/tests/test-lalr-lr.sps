@@ -375,7 +375,7 @@
 	      (make-lexical-token 'BAD     #f 'delta)))
     => '())
 
-  (check 'this
+  (check
       ;;The BAD triggers the error, the stack is rewind up to the start,
       ;;then end-of-input happens while  trying to skip tokens until the
       ;;synchronisation  one is  found.  End-of-input  is  an acceptable

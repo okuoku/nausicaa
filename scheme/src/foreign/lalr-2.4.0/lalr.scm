@@ -524,12 +524,9 @@
       (set-core-acc-sym! p #f)
       (set-core-nitems! p 1)
       (set-core-items! p '(0))
-
       (set! first-state (list p))
       (set! last-state first-state)
       (set! nstates 1)))
-
-
 
   (define (generate-states)
     (allocate-storage)
@@ -633,16 +630,16 @@
 
   (define (save-shifts core)
     (let ((p (new-shift)))
-      (set-shift-number! p (core-number core))
+      (set-shift-number!  p (core-number core))
       (set-shift-nshifts! p nshifts)
-      (set-shift-shifts! p shift-set)
+      (set-shift-shifts!  p shift-set)
       (if last-shift
 	  (begin
 	    (set-cdr! last-shift (list p))
 	    (set! last-shift (cdr last-shift)))
-	  (begin
-	    (set! first-shift (list p))
-	    (set! last-shift first-shift)))))
+	(begin
+	  (set! first-shift (list p))
+	  (set! last-shift first-shift)))))
 
   (define (save-reductions core itemset)
     (let ((rs (let loop ((l itemset))
@@ -1126,36 +1123,35 @@
 
     (set! action-table (make-vector nstates '()))
 
-    (do ((i 0 (+ i 1)))			; i = state
+    (do ((i 0 (+ i 1)))	; i = state
 	((= i nstates))
       (let ((red (vector-ref reduction-table i)))
 	(if (and red (>= (red-nreds red) 1))
 	    (if (and (= (red-nreds red) 1) (vector-ref consistent i))
 		(add-action-for-all-terminals i (- (car (red-rules red))))
-		(let ((k (vector-ref lookaheads (+ i 1))))
-		  (let loop ((j (vector-ref lookaheads i)))
-		    (if (< j k)
-			(let ((rule (- (vector-ref LAruleno j)))
-			      (lav  (vector-ref LA j)))
-			  (let loop2 ((token 0) (x (vector-ref lav 0)) (y 1) (z 0))
-			    (if (< token nterms)
-				(begin
-				  (let ((in-la-set? (modulo x 2)))
-				    (if (= in-la-set? 1)
-					(add-action i token rule)))
-				  (if (= y (BITS-PER-WORD))
-				      (loop2 (+ token 1)
-					     (vector-ref lav (+ z 1))
-					     1
-					     (+ z 1))
-				      (loop2 (+ token 1) (quotient x 2) (+ y 1) z)))))
-			  (loop (+ j 1)))))))))
-
+	      (let ((k (vector-ref lookaheads (+ i 1))))
+		(let loop ((j (vector-ref lookaheads i)))
+		  (if (< j k)
+		      (let ((rule (- (vector-ref LAruleno j)))
+			    (lav  (vector-ref LA j)))
+			(let loop2 ((token 0) (x (vector-ref lav 0)) (y 1) (z 0))
+			  (if (< token nterms)
+			      (begin
+				(let ((in-la-set? (modulo x 2)))
+				  (if (= in-la-set? 1)
+				      (add-action i token rule)))
+				(if (= y (BITS-PER-WORD))
+				    (loop2 (+ token 1)
+					   (vector-ref lav (+ z 1))
+					   1
+					   (+ z 1))
+				  (loop2 (+ token 1) (quotient x 2) (+ y 1) z)))))
+			(loop (+ j 1)))))))))
       (let ((shiftp (vector-ref shift-table i)))
 	(if shiftp
 	    (let loop ((k (shift-shifts shiftp)))
 	      (if (pair? k)
-		  (let* ((state (car k))
+		  (let* ((state  (car k))
 			 (symbol (vector-ref acces-symbol state)))
 		    (if (>= symbol nvars)
 			(add-action i (- symbol nvars) state))
@@ -1443,13 +1439,13 @@
     (let loop ((l1 lst))
       (if (null? l1)
 	  (cons elem l1)
-	  (let ((x (car l1)))
-	    (cond ((< elem x)
-		   (cons elem l1))
-		  ((> elem x)
-		   (cons x (loop (cdr l1))))
-		  (else
-		   l1))))))
+	(let ((x (car l1)))
+	  (cond ((< elem x)
+		 (cons elem l1))
+		((> elem x)
+		 (cons x (loop (cdr l1))))
+		(else
+		 l1))))))
 
   (define (lalr-filter p lst)
     (let loop ((l lst))

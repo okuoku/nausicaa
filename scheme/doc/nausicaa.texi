@@ -21265,7 +21265,7 @@ added before the item from @var{list}.
 @end defun
 
 
-@defun sorted-list-insert @var{item} @var{list} @var{item<} @var{item>}
+@defun sorted-list-insert/uniq @var{item} @var{list} @var{item<} @var{item>}
 Like @func{sorted-list-insert}, buth if @var{item} is equal to one of
 the items in @var{list}: @var{item} is discarded, and @var{list} it self
 is returned.

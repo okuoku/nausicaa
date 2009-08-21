@@ -78,7 +78,8 @@
 ;;;    (debugging)
     (pretty-print)
     (rnrs mutable-pairs)
-    (rnrs eval))
+    (rnrs eval)
+    (rnrs  r5rs))
 
 
 ;;;; Keyword options for the LALR-PARSER function.
@@ -129,7 +130,7 @@
 (define-syntax sorted-list-of-numbers-insert
   (syntax-rules ()
     ((_ ?item ?ell)
-     (sorted-list-insert ?item ?ell >))))
+     (sorted-list-insert/uniq ?item ?ell < >))))
 
 (define error
   (case-lambda
@@ -677,39 +678,37 @@
 
   ;; -- initialization
   (let loop ((i 0))
-    (if (< i nvars)
-	(let loop2 ((sp (vector-ref derives i)))
-	  (if (null? sp)
-	      (loop (+ i 1))
-	    (let ((sym (vector-ref ritem (vector-ref rrhs (car sp)))))
-	      (if (< -1 sym nvars)
-		  (vector-set! firsts i
-			       (sorted-list-of-numbers-insert sym (vector-ref firsts i))))
-	      (loop2 (cdr sp)))))))
+    (when (< i nvars)
+      (let loop2 ((sp (vector-ref derives i)))
+	(if (null? sp)
+	    (loop (+ i 1))
+	  (let ((sym (vector-ref ritem (vector-ref rrhs (car sp)))))
+	    (when (< -1 sym nvars)
+	      (vector-set! firsts i (sorted-list-of-numbers-insert sym (vector-ref firsts i))))
+	    (loop2 (cdr sp)))))))
 
   ;; -- reflexive and transitive closure
   (let loop ((continue #t))
-    (if continue
-	(let loop2 ((i 0) (cont #f))
-	  (if (>= i nvars)
-	      (loop cont)
-	    (let* ((x (vector-ref firsts i))
-		   (y (let loop3 ((l x) (z x))
-			(if (null? l)
-			    z
-			  (loop3 (cdr l)
-				 (union-of-sorted-lists-of-numbers (vector-ref firsts (car l)) z))))))
-	      (if (equal? x y)
-		  (loop2 (+ i 1) cont)
-		(begin
-		  (vector-set! firsts i y)
-		  (loop2 (+ i 1) #t))))))))
+    (when continue
+      (let loop2 ((i 0) (cont #f))
+	(if (>= i nvars)
+	    (loop cont)
+	  (let* ((x (vector-ref firsts i))
+		 (y (let loop3 ((l x) (z x))
+		      (if (null? l)
+			  z
+			(loop3 (cdr l)
+			       (union-of-sorted-lists-of-numbers (vector-ref firsts (car l)) z))))))
+	    (if (equal? x y)
+		(loop2 (+ i 1) cont)
+	      (begin
+		(vector-set! firsts i y)
+		(loop2 (+ i 1) #t))))))))
 
   (let loop ((i 0))
-    (if (< i nvars)
-	(begin
-	  (vector-set! firsts i (sorted-list-of-numbers-insert i (vector-ref firsts i)))
-	  (loop (+ i 1))))))
+    (when (< i nvars)
+      (vector-set! firsts i (sorted-list-of-numbers-insert i (vector-ref firsts i)))
+      (loop (+ i 1)))))
 
 (define (set-fderives)
   (set! fderives (make-vector nvars #f))
@@ -764,11 +763,10 @@
   (set-fderives)
   ;;Initialize states.
   (let ((p (new-core)))
-    (set-core-number! p 0)
+    (set-core-number!  p 0)
     (set-core-acc-sym! p #f)
-    (set-core-nitems! p 1)
-    (set-core-items! p '(0))
-
+    (set-core-nitems!  p 1)
+    (set-core-items!   p '(0))
     (set! first-state (list p))
     (set! last-state first-state)
     (set! nstates 1))
@@ -779,8 +777,8 @@
 	(save-reductions x is)
 	(new-itemsets is)
 	(append-states)
-	(if (> nshifts 0)
-	    (save-shifts x))
+	(when (> nshifts 0)
+	  (save-shifts x))
 	(loop (cdr this-state))))))
 
 (define (new-itemsets itemset)
@@ -1295,37 +1293,32 @@
     (do ((i 0 (+ i 1)))	; i = state
 	((= i nstates))
       (let ((red (vector-ref reduction-table i)))
-	(if (and red (>= (red-nreds red) 1))
-	    (if (and (= (red-nreds red) 1) (vector-ref consistent i))
-		(add-action-for-all-terminals i (- (car (red-rules red))))
-	      (let ((k (vector-ref lookaheads (+ i 1))))
-		(let loop ((j (vector-ref lookaheads i)))
-		  (if (< j k)
-		      (let ((rule (- (vector-ref LAruleno j)))
-			    (lav  (vector-ref LA j)))
-			(let loop2 ((token 0) (x (vector-ref lav 0)) (y 1) (z 0))
-			  (if (< token nterms)
-			      (begin
-				(let ((in-la-set? (mod x 2)))
-				  (if (= in-la-set? 1)
-				      (add-action i token rule)))
-				(if (= y (lalr-bits-per-word))
-				    (loop2 (+ token 1)
-					   (vector-ref lav (+ z 1))
-					   1
-					   (+ z 1))
-				  (loop2 (+ token 1) (div x 2) (+ y 1) z)))))
-			(loop (+ j 1)))))))))
-
+	(when (and red (>= (red-nreds red) 1))
+	  (if (and (= (red-nreds red) 1) (vector-ref consistent i))
+	      (add-action-for-all-terminals i (- (car (red-rules red))))
+	    (let ((k (vector-ref lookaheads (+ i 1))))
+	      (let loop ((j (vector-ref lookaheads i)))
+		(when (< j k)
+		  (let ((rule (- (vector-ref LAruleno j)))
+			(lav  (vector-ref LA j)))
+		    (let loop2 ((token 0) (x (vector-ref lav 0)) (y 1) (z 0))
+		      (when (< token nterms)
+			(let ((in-la-set? (mod x 2)))
+			  (when (= in-la-set? 1)
+			    (add-action i token rule)))
+			(if (= y (lalr-bits-per-word))
+			    (loop2 (+ token 1) (vector-ref lav (+ z 1)) 1 (+ z 1))
+			  (loop2 (+ token 1) (div x 2) (+ y 1) z))))
+		    (loop (+ j 1)))))))))
       (let ((shiftp (vector-ref shift-table i)))
-	(if shiftp
-	    (let loop ((k (shift-shifts shiftp)))
-	      (if (pair? k)
-		  (let* ((state (car k))
-			 (symbol (vector-ref acces-symbol state)))
-		    (if (>= symbol nvars)
-			(add-action i (- symbol nvars) state))
-		    (loop (cdr k))))))))
+	(when shiftp
+	  (let loop ((k (shift-shifts shiftp)))
+	    (if (pair? k)
+		(let* ((state (car k))
+		       (symbol (vector-ref acces-symbol state)))
+		  (when (>= symbol nvars)
+		    (add-action i (- symbol nvars) state))
+		  (loop (cdr k))))))))
 
     (add-action final-state 0 'accept)
     (log-conflicts))
@@ -1424,7 +1417,7 @@
 				 (translate-terms
 				  (filter (lambda (x)
 					    (not (and (= (length x) 2)
-						      (eq? (cadr x) act))))
+						      (eqv? (cadr x) act))))
 				    acts)))))
 	  (vector-set! action-table i
 		       (cons `(*default* *error*)
@@ -1469,6 +1462,16 @@
 	    (if (> count max)
 		(loop (cdr counters) count (car entry))
 	      (loop (cdr counters) max sym)))))))
+
+;;   (define (lalr-filter p lst)
+;;     (let loop ((l lst))
+;;       (if (null? l)
+;; 	  '()
+;; 	(let ((x (car l))
+;; 	      (y (cdr l)))
+;; 	  (if (p x)
+;; 	      (cons x (loop y))
+;; 	    (loop y))))))
 
   (define (translate-terms acts)
     ;;Translate   the   key-integer/integer   alist   in   ACTS   to   a

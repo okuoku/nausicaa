@@ -139,9 +139,16 @@
 					     :terminals '(A)
 					     :rules '((e (e A) : (cons $2 $1)
 							 (A)   : (list $1)
-							 ()    : 0))))
+							 ()    : (list 0)))))
            (parser		(make-parser)))
       (parser lexer error-handler)))
+
+  (debug:print-tables #f
+		      '(A)
+		      '((e (A)     : (list $1)
+			   (A A)   : (list $1 $2)
+			   (A A A) : (list $1 $2 $3)
+			   ()      : 0)))
 
 ;;; --------------------------------------------------------------------
 
@@ -178,7 +185,7 @@
     ;;an  error which  empties  the  stack and  consumes  all the  input
     ;;tokens.  Finally, an unexpected end-of-input error is returned.
       (parameterise ((debugging #f))
-	(doit-1 (make-lexical-token 'A #f 1)
+	(doit-2 (make-lexical-token 'A #f 1)
 		(make-lexical-token 'A #f 2)
 		(make-lexical-token 'A #f 3)))
     => `())
@@ -188,18 +195,18 @@
   (check
     (parameterise ((debugging #f))
       (doit-3 (make-lexical-token 'A #f 1)))
-    => '(1))
+    => '((1)))
 
   (check
       (doit-3 (make-lexical-token 'A #f 1)
 	      (make-lexical-token 'A #f 2))
-    => '(1 2))
+    => '((1 2)))
 
   (check
       (doit-3 (make-lexical-token 'A #f 1)
 	      (make-lexical-token 'A #f 2)
 	      (make-lexical-token 'A #f 3))
-    => '(1 2 3))
+    => '((1 2 3)))
 
   (check
       (doit-3)
@@ -212,41 +219,51 @@
     => '(0))
 
   (check
+      ;;Two  results because there  is a  shift/reduce conflict,  so two
+      ;;processes are generated.
       (doit-4 (make-lexical-token 'A #f 1))
-    => '(1))
+    => '(1 1))
 
   (check
+      ;;Two  results because there  is a  shift/reduce conflict,  so two
+      ;;processes are generated.  Notice that the rules:
+      ;;
+      ;;  (e A) (A)
+      ;;
+      ;;generate only one conflict when the second "A" comes.  The third
+      ;;"A" comes when the state is inside the rule "(e A)", so there is
+      ;;no conflict.
+      ;;
       (doit-4 (make-lexical-token 'A #f 1)
 	      (make-lexical-token 'A #f 2)
 	      (make-lexical-token 'A #f 3))
-    => '(3))
+    => '(3 3))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (doit-5)
-    => '(0))
+    => '((0)))
 
   (check
       (doit-5 (make-lexical-token 'A #f 1))
-    => '(1))
+    => '((1 0)
+	 (1)))
 
   (check
       (doit-5 (make-lexical-token 'A #f 1)
 	      (make-lexical-token 'A #f 2))
-    => '(2 1))
+    => '((2 1 0)
+	 (2 1)))
 
   (check
       (doit-5 (make-lexical-token 'A #f 1)
 	      (make-lexical-token 'A #f 2)
 	      (make-lexical-token 'A #f 3))
-    => '(3 2 1))
+    => '((3 2 1 0)
+	 (3 2 1)))
 
   #t)
-
-
-
-
 
 
 (parameterise ((check-test-name 'script-expression))
@@ -262,7 +279,7 @@
   (define non-terminals
     '((script	(lines)		: (reverse $1))
 
-      (lines	(lines line)	: (cons $2 $2)
+      (lines	(lines line)	: (cons $2 $1)
 		(line)		: (list $1))
 
       (line	(T)		: #\newline
@@ -313,7 +330,18 @@
 	    (make-lexical-token 'M #f *)
 	    (make-lexical-token 'N #f 3)
 	    (make-lexical-token 'T #f #\newline))
-    => '((7)))
+    => '((9)
+	 (7)))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f *)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f +)
+	    (make-lexical-token 'N #f 3)
+	    (make-lexical-token 'T #f #\newline))
+    => '((5)
+	 (5)))
 
   (check	;correct input
       (doit  (make-lexical-token 'O #f #\()
@@ -340,7 +368,7 @@
 	    (make-lexical-token 'M #f /)
 	    (make-lexical-token 'N #f 5)
 	    (make-lexical-token 'T #f #\newline)))
-    => '((4/5 9)))
+    => '((9 4/5)))
 
   #t)
 
