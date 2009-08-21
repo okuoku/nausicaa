@@ -34,7 +34,6 @@
 (display "*** testing cstring\n")
 
 
-
 (parameterize ((check-test-name 'inspection))
 
   (check
@@ -107,7 +106,6 @@
   )
 
 
-
 (parameterize ((check-test-name 'conversion))
 
   (check
@@ -159,7 +157,6 @@
 
 
 
-
 (parameterize ((check-test-name 'operations))
 
   (check
@@ -193,7 +190,6 @@
 )
 
 
-
 (parameterize ((check-test-name 'argv))
 
   (check

@@ -395,7 +395,9 @@
   (define make-parser
     (lalr-parser :output-value #t :expect #f
 		 :terminals '(A B C)
-		 :rules '((alpha (A B)		: (list $1 $2)
+		 :rules '((alphas (alpha)		: $1
+				  (alphas alpha)	: $2)
+			  (alpha (A B)		: (list $1 $2)
 				 (C)		: $1
 				 (error C)	: (list $1 $2)))))
 

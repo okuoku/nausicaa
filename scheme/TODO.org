@@ -113,12 +113,11 @@
 
 * silex
 
-  Test some tokenisation  from a string including a  tab char.  There is
-  some problem somewhere.
+  Done?
 
 * lalr
 
-  Do it.
+  Finish documentation improvements.
 
 * email
 

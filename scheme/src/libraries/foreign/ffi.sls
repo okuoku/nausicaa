@@ -24,8 +24,6 @@
 ;;;
 
 
-;;;; Setup.
-
 (library (foreign ffi)
   (export
 

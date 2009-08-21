@@ -9,6 +9,8 @@
 (define (doit . tokens)
   (let ((parser (lalr-parser (expect: 0)
 			     (A B C)
+			     (alphas (alpha)		: $1
+				     (alphas alpha)	: $2)
 			     (alpha (A B)	: (list $1 $2)
 				    (C)		: $1
 				    (error C)	: 'error-form))))
