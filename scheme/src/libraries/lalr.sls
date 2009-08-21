@@ -72,14 +72,11 @@
   (import (rename (rnrs)
 		  (error rnrs:error))
     (lalr common)
-    (lists)
-    (parameters)
     (keywords)
 ;;;    (debugging)
     (pretty-print)
     (rnrs mutable-pairs)
-    (rnrs eval)
-    (rnrs  r5rs))
+    (rnrs eval))
 
 
 ;;;; Keyword options for the LALR-PARSER function.
@@ -140,21 +137,71 @@
     (eval rnrs:error 'lalr-parser message irritants))))
 
 
+;;;; list utilities
+;;
+;;These make this library independent from (lists).
+;;
+
+(define (list-index pred lis1)
+  (let lp ((lis lis1) (n 0))
+    (and (not (null? lis))
+	 (if (pred (car lis))
+	     n
+	   (lp (cdr lis) (+ n 1))))))
+
+(define (sorted-list-insert/uniq item ell item< item>)
+  (let loop ((reversed-head '())
+	     (tail          ell))
+    (if (null? tail)
+	(append-reverse (cons item reversed-head) tail)
+      (let ((x (car tail)))
+	(cond ((item< item x)
+	       (append-reverse (cons item reversed-head) tail))
+	      ((item> item x)
+	       (loop (cons x reversed-head) (cdr tail)))
+	      (else
+	       ell))))))
+
+(define (union-of-sorted-lists/uniq ell1 ell2 item< item>)
+  (let loop ((result '())
+	     (ell1 ell1)
+	     (ell2 ell2))
+    (cond ((null? ell1)    (append-reverse result ell2))
+	  ((null? ell2)    (append-reverse result ell1))
+	  (else
+	   (let ((x (car ell1))
+		 (y (car ell2)))
+	     (cond
+	      ((item> x y)
+	       (loop (cons y result) ell1 (cdr ell2)))
+	      ((item< x y)
+	       (loop (cons x result) (cdr ell1) ell2))
+	      (else
+	       (loop result (cdr ell1) ell2))))))))
+
+(define (append-reverse rev-head tail)
+  (let lp ((rev-head rev-head)
+	   (tail tail))
+    (if (null? rev-head)
+	tail
+      (lp (cdr rev-head) (cons (car rev-head) tail)))))
+
+
 ;;;; bit fields
 ;;
 ;;The following functions handle Scheme vectors whose elements are exact
 ;;integer  numbers.  Each  integer number  is used  as a  "word" holding
-;;bits: It  is meant to  hold at least (LALR-BITS-PER-WORD)  bits.  This
+;;bits: It  is meant to  hold at least LALR-BITS-PER-WORD  bits.  This
 ;;value is configurable.
 ;;
 ;;The whole vector  is a bit field split into words;  let's say the bits
 ;;per integer are 30, then the first 30 bits are in the word at index 0,
 ;;the next 30 bits are in the word at index 1, and so on.
 ;;
-;;The library always  use bit fields/vector of fixed  size.  The size is
+;;The library always uses bit  fields/vector of fixed size.  The size is
 ;;computed with an equivalent of:
 ;;
-;;  (define token-set-size (+ 1 (div nterms (lalr-bits-per-word))))
+;;  (define token-set-size (+ 1 (div nterms lalr-bits-per-word)))
 ;;
 ;;in the body of LALR-PARSER.
 ;;
@@ -167,8 +214,7 @@
 ;;which is faster with a single integer.
 ;;
 
-(define lalr-bits-per-word
-  (make-parameter 30))
+(define lalr-bits-per-word 30)
 
 (define (new-set nelem)
   (make-vector nelem 0))
@@ -176,7 +222,7 @@
 (define (set-bit bit-field bit-index)
   ;;Interpret V as vector of numbers, which in turn are bit fields.
   ;;
-  (let* ((nbits		(lalr-bits-per-word))
+  (let* ((nbits		lalr-bits-per-word)
 	 (word-index	(div  bit-index nbits))
 	 (word		(expt 2 (mod bit-index nbits))))
     (vector-set! bit-field word-index
@@ -264,41 +310,21 @@
 
 ;;;; macro pour les structures de donnees
 
-(define (new-core)              (make-vector 4 0))
-(define (set-core-number! c n)  (vector-set! c 0 n))
-(define (set-core-acc-sym! c s) (vector-set! c 1 s))
-(define (set-core-nitems! c n)  (vector-set! c 2 n))
-(define (set-core-items! c i)   (vector-set! c 3 i))
-(define (core-number c)         (vector-ref c 0))
-(define (core-acc-sym c)        (vector-ref c 1))
-(define (core-nitems c)         (vector-ref c 2))
-(define (core-items c)          (vector-ref c 3))
+(define-record-type core
+  (fields (mutable number)
+	  (mutable acc-sym)
+	  (mutable nitems)
+	  (mutable items)))
 
-(define (new-shift)              (make-vector 3 0))
-(define (set-shift-number! c x)  (vector-set! c 0 x))
-(define (set-shift-nshifts! c x) (vector-set! c 1 x))
-(define (set-shift-shifts! c x)  (vector-set! c 2 x))
-(define (shift-number s)         (vector-ref s 0))
-(define (shift-nshifts s)        (vector-ref s 1))
-(define (shift-shifts s)         (vector-ref s 2))
+(define-record-type shift
+  (fields (mutable number)
+	  (mutable nshifts)
+	  (mutable shifts)))
 
-(define (new-red)                (make-vector 3 0))
-(define (set-red-number! c x)    (vector-set! c 0 x))
-(define (set-red-nreds! c x)     (vector-set! c 1 x))
-(define (set-red-rules! c x)     (vector-set! c 2 x))
-(define (red-number c)           (vector-ref c 0))
-(define (red-nreds c)            (vector-ref c 1))
-(define (red-rules c)            (vector-ref c 2))
-
-(define (vector-map f v)
-  (let ((n (- (vector-length v) 1)))
-    (let loop ((low 0)
-	       (high n))
-      (if (= low high)
-	  (vector-set! v low (f (vector-ref v low) low))
-	(let ((middle (div (+ low high) 2)))
-	  (loop low middle)
-	  (loop (+ middle 1) high))))))
+(define-record-type red
+  (fields (mutable number)
+	  (mutable nreds)
+	  (mutable rules)))
 
 
 ;;;; state variables
@@ -762,11 +788,7 @@
   (set! red-set		(make-vector (+ nrules 1) 0))
   (set-fderives)
   ;;Initialize states.
-  (let ((p (new-core)))
-    (set-core-number!  p 0)
-    (set-core-acc-sym! p #f)
-    (set-core-nitems!  p 1)
-    (set-core-items!   p '(0))
+  (let ((p (make-core 0 #f 1 '(0))))
     (set! first-state (list p))
     (set! last-state first-state)
     (set! nstates 1))
@@ -839,12 +861,8 @@
 (define (new-state sym)
   (let* ((isp  (vector-ref kernel-base sym))
 	 (n    (length isp))
-	 (p    (new-core)))
-    (set-core-number! p nstates)
-    (set-core-acc-sym! p sym)
+	 (p    (make-core nstates sym n isp)))
     (if (= sym nvars) (set! final-state nstates))
-    (set-core-nitems! p n)
-    (set-core-items! p isp)
     (set-cdr! last-state (list p))
     (set! last-state (cdr last-state))
     (set! nstates (+ nstates 1))
@@ -864,10 +882,7 @@
 ;;;;
 
 (define (save-shifts core)
-  (let ((p (new-shift)))
-    (set-shift-number!  p (core-number core))
-    (set-shift-nshifts! p nshifts)
-    (set-shift-shifts!  p shift-set)
+  (let ((p (make-shift (core-number core) nshifts shift-set)))
     (if last-shift
 	(begin
 	  (set-cdr! last-shift (list p))
@@ -885,10 +900,10 @@
 		      (cons (- item) (loop (cdr l)))
 		    (loop (cdr l))))))))
     (if (pair? rs)
-	(let ((p (new-red)))
-	  (set-red-number! p (core-number core))
-	  (set-red-nreds!  p (length rs))
-	  (set-red-rules!  p rs)
+	(let ((p (make-red 0 0 0)))
+	  (red-number-set! p (core-number core))
+	  (red-nreds-set!  p (length rs))
+	  (red-rules-set!  p rs)
 	  (if last-reduction
 	      (begin
 		(set-cdr! last-reduction (list p))
@@ -901,7 +916,7 @@
 ;;;;
 
 (define (lalr)
-  (set! token-set-size (+ 1 (div nterms (lalr-bits-per-word))))
+  (set! token-set-size (+ 1 (div nterms lalr-bits-per-word)))
   (set-accessing-symbol)
   (set-shift-table)
   (set-reduction-table)
@@ -988,7 +1003,8 @@
 		  (loop (+ i 1) np)
 		(let ((rp (vector-ref reduction-table i)))
 		  (if rp
-		      (let loop2 ((j (red-rules rp)) (np2 np))
+		      (let loop2 ((j   (red-rules rp))
+				  (np2 np))
 			(if (null? j)
 			    (loop (+ i 1) np2)
 			  (begin
@@ -1247,8 +1263,8 @@
 (define (get-symbol-precedence sym)
   (caddr (vector-ref the-terminals/prec sym)))
 		; the operator type is either 'none, 'left, 'right, or 'nonassoc
-(define (get-symbol-assoc sym)
-  (cadr (vector-ref the-terminals/prec sym)))
+(define (get-symbol-assoc encoded-terminal-symbol)
+  (cadr (vector-ref the-terminals/prec encoded-terminal-symbol)))
 
 (define rule-precedences '())
 (define (add-rule-precedence! rule sym)
@@ -1294,19 +1310,23 @@
 	((= i nstates))
       (let ((red (vector-ref reduction-table i)))
 	(when (and red (>= (red-nreds red) 1))
-	  (if (and (= (red-nreds red) 1) (vector-ref consistent i))
+	  (if (and (= 1 (red-nreds red))
+		   (vector-ref consistent i))
 	      (add-action-for-all-terminals i (- (car (red-rules red))))
 	    (let ((k (vector-ref lookaheads (+ i 1))))
 	      (let loop ((j (vector-ref lookaheads i)))
 		(when (< j k)
 		  (let ((rule (- (vector-ref LAruleno j)))
 			(lav  (vector-ref LA j)))
-		    (let loop2 ((token 0) (x (vector-ref lav 0)) (y 1) (z 0))
+		    (let loop2 ((token 0)
+				(x (vector-ref lav 0))
+				(y 1)
+				(z 0))
 		      (when (< token nterms)
 			(let ((in-la-set? (mod x 2)))
 			  (when (= in-la-set? 1)
 			    (add-action i token rule)))
-			(if (= y (lalr-bits-per-word))
+			(if (= y lalr-bits-per-word)
 			    (loop2 (+ token 1) (vector-ref lav (+ z 1)) 1 (+ z 1))
 			  (loop2 (+ token 1) (div x 2) (+ y 1) z))))
 		    (loop (+ j 1)))))))))
@@ -1323,77 +1343,100 @@
     (add-action final-state 0 'accept)
     (log-conflicts))
 
-  (define (resolve-conflict sym rule)
-    (let ((sym-prec   (get-symbol-precedence sym))
-	  (sym-assoc  (get-symbol-assoc sym))
-	  (rule-prec  (get-rule-precedence rule)))
-      (cond
-       ((> sym-prec rule-prec)     'shift)
-       ((< sym-prec rule-prec)     'reduce)
-       ((eq? sym-assoc 'left)      'reduce)
-       ((eq? sym-assoc 'right)     'shift)
-       (else                       'none))))
-
-  (define conflict-messages '())
-
-  (define (add-conflict-message . l)
-    (set! conflict-messages (cons l conflict-messages)))
-
-  (define (log-conflicts)
-    (when (and expected-conflicts
-	       (> (length conflict-messages) expected-conflicts))
-      (for-each
-	  (lambda (message)
-	    (for-each (lambda (s)
-			(display s (current-error-port)))
-	      message)
-	    (newline (current-error-port)))
-	conflict-messages)))
-
   (define (add-action state symbol new-action)
-    ;;Add an action to the action table.
+    ;;Try to  add a single action  NEW-ACTION to the  entry with keyword
+    ;;SYMBOL in  the alist  at index STATE  of the  vector ACTION-TABLE.
+    ;;The first time this function  is called ACTION-TABLE is empty: All
+    ;;its elements are null.
+    ;;
+    ;;STATE is a non-negative exact  integer representing a state of the
+    ;;parser.  SYMBOL is a non-negative exact integer which is mapped to
+    ;;a  terminal; the  higher  the value,  the  higher the  precedence.
+    ;;NEW-ACTION is an  exact integer representing an action  to take to
+    ;;move from a state to the  next; zero means accept and should never
+    ;;be  used here,  positive  actions are  shift operations,  negative
+    ;;actions are reduce operations.
+    ;;
+    ;;The LR  driver has a single  action for each entry  in the alists;
+    ;;conflicts  between actions are  solved here.   The GLR  driver may
+    ;;have multiple  actions for each  entry, a "conflict" is  solved by
+    ;;adding both the actions.  If NEW-ACTION is already in the selected
+    ;;alist, nothing happens.
+    ;;
+    ;;For  the LR  driver:  in  case of  a  reduce/reduce conflict,  the
+    ;;reduction rule with the higher  absolute number wins; in case of a
+    ;;shift/reduce conflict, the action is shift.
     ;;
     (let* ((state-actions (vector-ref action-table state))
 	   (actions       (assv symbol state-actions)))
-      (if (pair? actions)
-	  (let ((current-action (cadr actions)))
-	    (if (not (= new-action current-action))
-		;; -- there is a conflict
-		(begin
-		  (if (and (<= current-action 0) (<= new-action 0))
-		      ;; --- reduce/reduce conflict
-		      (begin
-			(add-conflict-message
-			 "%% Reduce/Reduce conflict (reduce " (- new-action) ", reduce "
-			 (- current-action)
-			 ") on '" (get-symbol (+ symbol nvars)) "' in state " state)
+      (if (not actions)
+	  ;;Add a new entry to the alist.
+	  (vector-set! action-table state (cons (list symbol new-action) state-actions))
+	(let ((top-action (cadr actions)))
+	  (unless (= new-action top-action)
+	    ;;There is a conflict.
+	    (cond ((and (<= top-action 0) (<= new-action 0)) ;reduce/reduce conflict
+		   (add-reduce/reduce-conflict-message new-action top-action symbol state)
+		   (if (eq? driver-name 'glr-driver)
+		       (set-cdr! (cdr actions) (cons new-action (cddr actions)))
+		     (set-car! (cdr actions) (max top-action new-action))))
+		  (else ;shift/reduce conflict
+		   (let ((solution (resolve-conflict symbol (- top-action))))
+		     (case solution
+		       ((reduce)
+			#f)
+		       (else
 			(if (eq? driver-name 'glr-driver)
 			    (set-cdr! (cdr actions) (cons new-action (cddr actions)))
-			  (set-car! (cdr actions) (max current-action new-action))))
-		    ;; --- shift/reduce conflict
-		    ;; can we resolve the conflict using precedences?
-		    (case (resolve-conflict symbol (- current-action))
-		      ;; -- shift
-		      ((shift)   (if (eq? driver-name 'glr-driver)
-				     (set-cdr! (cdr actions) (cons new-action (cddr actions)))
-				   (set-car! (cdr actions) new-action)))
-		      ;; -- reduce
-		      ((reduce)  #f) ; well, nothing to do...
-		      ;; -- signal a conflict!
-		      (else      (add-conflict-message
-				  "%% Shift/Reduce conflict (shift " new-action ", reduce "
-				  (- current-action)
-				  ") on '" (get-symbol (+ symbol nvars)) "' in state " state)
-				 (if (eq? driver-name 'glr-driver)
-				     (set-cdr! (cdr actions) (cons new-action (cddr actions)))
-				   (set-car! (cdr actions) new-action))))))))
+			  (set-car! (cdr actions) new-action))
+			(unless (eq? 'shift solution)
+			  (add-shift/reduce-conflict-message
+			   new-action top-action symbol state))))))))))))
 
-	(vector-set! action-table state (cons (list symbol new-action) state-actions)))))
+  (define (resolve-conflict symbol reduction-rule)
+    (let ((sym-prec   (get-symbol-precedence symbol))
+	  (rule-prec  (get-rule-precedence   reduction-rule)))
+      (cond ((> sym-prec rule-prec) 'shift)
+	    ((< sym-prec rule-prec) 'reduce)
+	    (else (case (get-symbol-assoc symbol)
+		    ((left)
+		     'reduce)
+		    ((right none nonassoc)
+		     'shift)
+		    (else ;this should never happen
+		     (assertion-violation 'lalr-parser
+		       "invalid association symbol"
+		       (get-symbol-assoc symbol))))))))
 
   (define (add-action-for-all-terminals state action)
     (do ((i 1 (+ i 1)))
 	((= i nterms))
       (add-action state i action)))
+
+  (define conflict-messages '())
+
+  (define (log-conflicts)
+    (when (and expected-conflicts
+	       (> (length conflict-messages) expected-conflicts))
+      (for-each (lambda (message)
+		  (for-each (lambda (s)
+			      (display s (current-error-port)))
+		    message)
+		  (newline (current-error-port)))
+	conflict-messages)))
+
+  (define (add-reduce/reduce-conflict-message  new-action top-action symbol state)
+    (add-conflict-message "%% Reduce/Reduce conflict "
+			  "(reduce " (- new-action) ", reduce " (- top-action) ") on '"
+			  (get-symbol (+ symbol nvars)) "' in state " state))
+
+  (define (add-shift/reduce-conflict-message new-action top-action symbol state)
+    (add-conflict-message "%% Shift/Reduce conflict "
+			  "(shift " new-action ", reduce " (- top-action) ") on '"
+			  (get-symbol (+ symbol nvars)) "' in state " state))
+
+  (define (add-conflict-message . l)
+    (set! conflict-messages (cons l conflict-messages)))
 
   (main))
 
@@ -1410,7 +1453,7 @@
     (do ((i 0 (+ i 1)))
 	((= i nstates))
       (let ((acts (vector-ref action-table i)))
-	(if (vector? (vector-ref reduction-table i))
+	(if (red? (vector-ref reduction-table i))
 	    (let ((act (most-common-reduce-action acts)))
 	      (vector-set! action-table i
 			   (cons `(*default* ,(if act act '*error*))
@@ -1420,7 +1463,7 @@
 						      (eqv? (cadr x) act))))
 				    acts)))))
 	  (vector-set! action-table i
-		       (cons `(*default* *error*)
+		       (cons '(*default* *error*)
 			     (translate-terms acts)))))))
 
   (define (most-common-reduce-action acts)
@@ -1463,16 +1506,6 @@
 		(loop (cdr counters) count (car entry))
 	      (loop (cdr counters) max sym)))))))
 
-;;   (define (lalr-filter p lst)
-;;     (let loop ((l lst))
-;;       (if (null? l)
-;; 	  '()
-;; 	(let ((x (car l))
-;; 	      (y (cdr l)))
-;; 	  (if (p x)
-;; 	      (cons x (loop y))
-;; 	    (loop y))))))
-
   (define (translate-terms acts)
     ;;Translate   the   key-integer/integer   alist   in   ACTS   to   a
     ;;key-symbol/integer alist,  using key-integer as index  in the list
@@ -1487,13 +1520,13 @@
 
 (define (action-table-list->alist)
   ;;The action list for each state  is an alist with a symbol as keyword
-  ;;and a  list of integers as value.   With the LR driver,  the list of
+  ;;and a  list of integers  as value.  With  the LR driver the  list of
   ;;integers is always of length 1; with the GLR driver it can be of any
   ;;length >= 1.
   ;;
-  ;;This  function  is  called  only   for  the  LR  driver,  after  the
-  ;;construction  is finished,  to convert  the list  values  into their
-  ;;single integer  element.  This makes  it possible to use:
+  ;;This function  is called  only for the  LR driver, after  the action
+  ;;table  construction is  finished, to  convert the  list  values into
+  ;;their single integer element.  This makes it possible to use:
   ;;
   ;;	(cdr (assq KEY ALIST))
   ;;

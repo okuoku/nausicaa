@@ -1,14 +1,6 @@
-;;; test-lr-associativity-01.scm --
+;;; test-lr-associativity-04.scm --
 ;;
-;;Show  how  to use  left  and  right  associativity.  Notice  that  the
-;;terminal  M is  declared  as right  associative;  this influences  the
-;;binding  of values to  the $n  symbols in  the semantic  clauses.  The
-;;semantic clause in the rule:
-;;
-;;  (E M E M E)     : (list $1 $2 (list $3 $4 $5))
-;;
-;;looks like it is right-associated,  and it is because we have declared
-;;M as "right:".
+;;Show how to use associativity.
 ;;
 
 (load "common-test.scm")
@@ -17,13 +9,18 @@
   (let ((parser (lalr-parser
 		 (expect: 0)
 		 (N (left: A)
-		    (right: M)
-		    (nonassoc: U))
+		    (left: M))
 		 (E	(N)		: $1
+
 			(E A E)         : (list $1 $2 $3)
+			(E A E A E)     : (list (list $1 $2 $3) $4 $5)
+
 			(E M E)         : (list $1 $2 $3)
 			(E M E M E)     : (list $1 $2 (list $3 $4 $5))
-			(A E (prec: U))	: (list '- $2)))))
+
+			(E A E M E)     : (list $1 $2 $3 $4 $5)
+			(E M E A E)     : (list $1 $2 $3 $4 $5)
+			))))
     (parser (make-lexer tokens) error-handler)))
 
 ;;; --------------------------------------------------------------------
@@ -44,11 +41,6 @@
 	  (make-lexical-token 'M #f '*)
 	  (make-lexical-token 'N #f 2))
   => '(1 * 2))
-
-(check
-    (doit (make-lexical-token 'A #f '-)
-	  (make-lexical-token 'N #f 1))
-  => '(- 1))
 
 ;;; --------------------------------------------------------------------
 ;;; Precedence.
@@ -86,6 +78,6 @@
 	  (make-lexical-token 'N #f 2)
 	  (make-lexical-token 'M #f '*)
 	  (make-lexical-token 'N #f 3))
-  => '(1 * (2 * 3)))
+  => '((1 * 2) * 3))
 
 ;;; end of file

@@ -594,22 +594,17 @@
 
 (parameterise ((check-test-name 'associativity))
 
-  (define terminals
-    '(N (left: A)
-	(right: M)
-	(nonassoc: U)))
-
-  (define non-terminals
-    '((E	(N)		: $1
-		(E A E)		: (list $1 $2 $3)
-		(E M E)		: (list $1 $2 $3)
-		(A E (prec: U))	: (list $1 $2))))
-
   (define make-parser
     (parameterise ((debugging	#f))
       (lalr-parser :output-value #t :expect 0
-		   :terminals terminals
-		   :rules non-terminals)))
+		   :terminals '(N (left: A)
+				  (right: M)
+				  (nonassoc: U))
+		   :rules '((E	(N)		: $1
+				(E A E)		: (list $1 $2 $3)
+				(E M E)		: (list $1 $2 $3)
+				(E M E M E)	: (list $1 $2 (list $3 $4 $5))
+				(A E (prec: U))	: (list $1 $2))))))
 
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))
@@ -617,7 +612,15 @@
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
-  (debug:print-tables #f terminals non-terminals)
+  (debug:print-tables #f
+		      '(N (left: A)
+			  (left: M)
+			  (nonassoc: U))
+		      '((E	(N)		: $1
+				(E A E)		: (list $1 $2 $3)
+				(E M E)		: (list $1 $2 $3)
+				(E M E M E)	: (list $1 $2 (list $3 $4 $5))
+				(A E (prec: U))	: (list $1 $2))))
 
   (check
       (doit (make-lexical-token 'N #f 1))
@@ -647,6 +650,14 @@
 	    (make-lexical-token 'N #f 3))
     => '(1 + (2 * 3)))
 
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 3))
+    => '((1 * 2) + 3))
+
   (check	;left associative
       (doit (make-lexical-token 'N #f 1)
 	    (make-lexical-token 'A #f '+)
@@ -655,12 +666,13 @@
 	    (make-lexical-token 'N #f 3))
     => '((1 + 2) + 3))
 
-  (check	;right associative
-      (doit (make-lexical-token 'N #f 1)
-	    (make-lexical-token 'M #f '*)
-	    (make-lexical-token 'N #f 2)
-	    (make-lexical-token 'M #f '*)
-	    (make-lexical-token 'N #f 3))
+  (check 'this	;right associative
+      (parameterise ((debugging #f))
+	(doit (make-lexical-token 'N #f 1)
+	      (make-lexical-token 'M #f '*)
+	      (make-lexical-token 'N #f 2)
+	      (make-lexical-token 'M #f '*)
+	      (make-lexical-token 'N #f 3)))
     => '(1 * (2 * 3)))
 
   #t)

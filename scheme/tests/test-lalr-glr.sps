@@ -334,14 +334,13 @@
 	 (7)))
 
   (check
-      (doit (make-lexical-token 'N #f 1)
+      (doit (make-lexical-token 'N #f 10)
 	    (make-lexical-token 'M #f *)
 	    (make-lexical-token 'N #f 2)
 	    (make-lexical-token 'A #f +)
 	    (make-lexical-token 'N #f 3)
 	    (make-lexical-token 'T #f #\newline))
-    => '((5)
-	 (5)))
+    => '((23)))
 
   (check	;correct input
       (doit  (make-lexical-token 'O #f #\()
