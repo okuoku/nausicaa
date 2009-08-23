@@ -55,11 +55,12 @@
   (import (rnrs)
     (silex lexer)
     (lalr common)
-    (email address-quoted-string-lexer)
-    (email address-comments-lexer)
-    (email address-domain-literals-lexer)
-    (email address-lexer)
-    (parameters)
+    (email addresses quoted-text-lexer)
+    (email addresses comments-lexer)
+    (email addresses domain-literals-lexer)
+    (email addresses lexer)
+;;;    (email addresses parser)
+    (debugging)
     (strings))
 
 
@@ -72,30 +73,30 @@
 (define %semicolon-string	";")
 (define %space-string		" ")
 
-
-;;;; lexer
+(define-syntax define-inline
+  (syntax-rules ()
+    ((_ (?name ?arg ...) ?form0 ?form ...)
+     (define-syntax ?name
+       (syntax-rules ()
+	 ((_ ?arg ...)
+	  (begin ?form0 ?form ...)))))))
 
+
 (define (make-address-lexer IS)
-  (let ((lexers		(list (lexer-make-lexer email-address-table IS)))
+  (let ((lexers		(list (lexer-make-lexer address-table IS)))
 	(dispatchers	'()))
 
-    (define (push-lexer-and-dispatcher lex disp)
-      (set! dispatchers (cons disp dispatchers))
-      (set! lexers      (cons lex lexers)))
-
-    (define (pop-lexer-and-dispatcher)
-      (set! dispatchers (cdr dispatchers))
-      (set! lexers      (cdr lexers)))
-
     (define (main-dispatch lexer)
+      (debug "main-dispatch enter")
       (let ((token (lexer)))
+	(debug "main-dispactch token: ~s" token)
 	(case (lexical-token-category token)
-	  ((QUOTED-STRING-OPEN)
-	   (lex-quoted-string-token IS))
+	  ((QUOTED-TEXT-OPEN)
+	   (lex-quoted-text-token IS token))
 	  ((COMMENT-OPEN)
-	   (lex-comment-token IS))
+	   (lex-comment-token IS token))
 	  ((DOMAIN-LITERAL-OPEN)
-	   (push-lexer-and-dispatcher (lexer-make-lexer email-address-domain-literals-table IS)
+	   (push-lexer-and-dispatcher (lexer-make-lexer domain-literals-table IS)
 				      domain-literal-dispatch)
 	   token)
 	  (else
@@ -103,9 +104,12 @@
 
     (define (domain-literal-dispatch lexer)
       (let ((token (lexer)))
-	(when (eq? 'DOMAIN-LITERAL-CLOSE (lexical-token-category token))
-	  (push-lexer-and-dispatcher))
-	token))
+	(case (lexical-token-category token)
+	  ((DOMAIN-LITERAL-CLOSE *lexer-error*)
+	   (pop-lexer-and-dispatcher)
+	   token)
+	  (else
+	   token))))
 
     (define (lex-comment-token IS opening-token)
       ;;To be called after the lexer returned a "COMMENT-OPEN" lexical
@@ -115,50 +119,68 @@
       ;;including the nested comments.   Return the whole comment as a
       ;;string.
       ;;
-      (let ((lexer (lexer-make-lexer email-address-comments-table IS))
-	    (text  ""))
+      (let* ((lexer	(lexer-make-lexer comments-table IS))
+	     (text  ""))
 	(do ((token  (lexer) (lexer)))
 	    ((eq? token 'COMMENT-CLOSE)
-	     text)
+	     (make-lexical-token 'COMMENT
+				 (make-source-location #f
+						       ((lexer-get-func-line   IS))
+						       ((lexer-get-func-column IS))
+						       ((lexer-get-func-offset IS))
+						       (string-length text))
+				 text))
 	  (set! text (string-append
 		      text
 		      (if (eq? token 'COMMENT-OPEN)
 			  (string-append "(" (lex-comment-token IS) ")")
 			token))))))
 
-    (define (lex-quoted-string-token IS opening-token)
-      ;;To  be called  after the  lexer returned  a "QUOTED-STRING-OPEN"
+    (define (lex-quoted-text-token IS opening-token)
+      ;;To  be  called after  the  lexer  returned a  "QUOTED-TEXT-OPEN"
       ;;lexical token, which must be in OPENING-TOKEN.
       ;;
       ;;Accumulate the quoted text into  a string.  Return a new lexical
-      ;;token record with category QUOTED-STRING.
+      ;;token record with category QUOTED-TEXT.
       ;;
-      (let ((lexer (lexer-make-lexer email-address-quoted-string-table IS))
+      (let ((lexer (lexer-make-lexer quoted-text-table IS))
 	    (text  ""))
 	(do ((token (lexer) (lexer)))
-	    ((eq? token 'QUOTED-STRING-CLOSE)
+	    ((eq? token 'QUOTED-TEXT-CLOSE)
 	     (let ((pos (lexical-token-source opening-token)))
-	       (make-lexical-token 'QUOTED-STRING
+	       (make-lexical-token 'QUOTED-TEXT
 				   (make-source-location
 				    (source-location-input  pos)
 				    (source-location-line   pos)
 				    (source-location-column pos)
 				    (source-location-offset pos)
 				    (string-length text))
-				   text))
-	     (set! text (string-append text token))))))
+				   text)))
+	  (set! text (string-append text token)))))
+
+    (define-inline (push-lexer-and-dispatcher lex disp)
+      (set! dispatchers (cons disp dispatchers))
+      (set! lexers      (cons lex lexers)))
+
+    (define-inline (pop-lexer-and-dispatcher)
+      (set! dispatchers (cdr dispatchers))
+      (set! lexers      (cdr lexers)))
 
     (set! dispatchers (list main-dispatch))
     (lambda ()
+      (debug "enter lexer")
       ((car dispatchers) (car lexers)))))
 
+
+;;;; utilities
+
 (define (address->tokens IS)
-  (let ((lexer		(make-address-lexer IS))
-	(list-of-tokens	'()))
-    (do ((token (lexer) (lexer)))
-	((not token)
-	 (reverse list-of-tokens))
-      (set! list-of-tokens (cons token list-of-tokens)))))
+  (let ((lexer (make-address-lexer IS)))
+    (let loop ((token		(lexer))
+	       (list-of-tokens	'()))
+      (if (lexical-token?/end-of-input token)
+	  (reverse list-of-tokens)
+	(loop (lexer) (cons token list-of-tokens))))))
 
 
 ;;;; address domain record

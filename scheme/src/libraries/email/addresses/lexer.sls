@@ -1,13 +1,13 @@
-(library (email address-lexer)
+(library (email addresses lexer)
   (export
-    email-address-table)
+    address-table)
   (import (rnrs) (silex lexer)(lalr lr-driver))
 
 ;
-; Table generated from the file address-lexer.l by SILex 1.0
+; Table generated from the file lexer.l by SILex 1.0
 ;
 
-(define email-address-table
+(define address-table
   (vector
    'all
    (lambda (yycontinue yygetc yyungetc)
@@ -20,7 +20,7 @@
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
          		(make-lexical-token
-			 'INVALID-CHARACTER
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
 			 yytext)
 

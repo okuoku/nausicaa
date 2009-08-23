@@ -1,5 +1,5 @@
-(library (email addresse-parser)
-  (export make-email-address-parser
+(library (email addresses parser)
+  (export make-parser
           make-source-location
           source-location?
           source-location-line
@@ -12,9 +12,11 @@
           lexical-token-value
           lexical-token-category
           lexical-token-source
-          lexical-token?/end-of-input)
+          lexical-token?/end-of-input
+          lexical-token?/lexer-error
+          lexical-token?/special)
   (import (rnrs) (lalr lr-driver) (lalr common) (sentinel))
-  (define (make-email-address-parser)
+  (define (make-parser)
     (lr-driver
       '#(((*default* . -4) (ATOM . 1))
          ((*default* . -4) (ATOM . 1))

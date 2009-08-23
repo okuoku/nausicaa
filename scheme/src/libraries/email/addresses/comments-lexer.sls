@@ -1,13 +1,13 @@
-(library (email address-comments-lexer)
+(library (email addresses comments-lexer)
   (export
-    email-address-comments-table)
+    comments-table)
   (import (rnrs) (silex lexer)(lalr lr-driver))
 
 ;
-; Table generated from the file address-comments.l by SILex 1.0
+; Table generated from the file comments.l by SILex 1.0
 ;
 
-(define email-address-comments-table
+(define comments-table
   (vector
    'all
    (lambda (yycontinue yygetc yyungetc)
@@ -20,7 +20,7 @@
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
          		(make-lexical-token
-			 'INVALID-CHARACTER
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
 			 yytext)
 

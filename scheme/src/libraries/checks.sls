@@ -149,7 +149,7 @@
   (display " => "))
 
 (define (check:report-actual-result actual-result)
-  (write actual-result)
+  (pretty-print actual-result)
   (display " ; "))
 
 (define (check:report-correct cases)

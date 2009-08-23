@@ -307,7 +307,7 @@ endif
 .PHONY: email
 
 email:
-	cd $(srcdir)/src/libraries/email && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
+	cd $(srcdir)/src/libraries/email/addresses && $(EMAIL_RUNNER) $(EMAIL_PROGRAM)
 
 
 

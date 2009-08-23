@@ -41,7 +41,7 @@ dot			\.
 
 {integer}		(let ((num (string->number yytext)))
 			  (make-lexical-token
-			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER 'INVALID-VALUE)
+			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER '*lexer-error*)
 			   (make-source-location #f yyline yycolumn yyoffset
 						 (string-length yytext))
 			   yytext))
@@ -57,7 +57,7 @@ dot			\.
 			 (eof-object))
 
 <<ERROR>>		(make-lexical-token
-			 'INVALID-VALUE
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset
 					       (string-length yytext))
 			 yytext)

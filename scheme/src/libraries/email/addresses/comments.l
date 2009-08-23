@@ -46,7 +46,7 @@ commented-text		[^\(\)]+
 			 (eof-object))
 
 <<ERROR>>		(make-lexical-token
-			 'INVALID-CHARACTER
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
 			 yytext)
 

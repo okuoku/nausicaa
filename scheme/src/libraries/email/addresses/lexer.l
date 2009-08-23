@@ -25,7 +25,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-atom			[^\(\"\[<>@,;:\.\9\32\10\13]+
+atom			[^\(\"\[<>@,;:\.\9\10\13\32]+
 character		[<>@,;:\.]
 
 ;;We accept  any sequence  of CR and  LF char  as a valid  newline, even
@@ -83,7 +83,7 @@ start-domain-literal	\[
 			 (eof-object))
 
 <<ERROR>>		(make-lexical-token
-			 'INVALID-CHARACTER
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
 			 yytext)
 

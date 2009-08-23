@@ -1,13 +1,13 @@
-(library (email address-domain-literals-lexer)
+(library (email addresses domain-literals-lexer)
   (export
-    email-address-domain-literals-table)
+    domain-literals-table)
   (import (rnrs) (silex lexer)(lalr lr-driver))
 
 ;
-; Table generated from the file address-domain-literals.l by SILex 1.0
+; Table generated from the file domain-literals.l by SILex 1.0
 ;
 
-(define email-address-domain-literals-table
+(define domain-literals-table
   (vector
    'all
    (lambda (yycontinue yygetc yyungetc)
@@ -20,7 +20,7 @@
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
          		(make-lexical-token
-			 'INVALID-VALUE
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset
 					       (string-length yytext))
 			 yytext)
@@ -42,7 +42,7 @@
       (lambda (yytext yyline yycolumn yyoffset)
          		(let ((num (string->number yytext)))
 			  (make-lexical-token
-			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER 'INVALID-VALUE)
+			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER '*lexer-error*)
 			   (make-source-location #f yyline yycolumn yyoffset
 						 (string-length yytext))
 			   yytext))

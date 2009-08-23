@@ -79,10 +79,10 @@
   (define (doit-1 . tokens)
     ;;A grammar that only accept a single terminal as input.
     (let* ((lexer		(make-lexer tokens))
-	   (make-parser		(lalr-parser :output-value #t
-					     :expect #f
-					     :terminals '(A)
-					     :rules '((e (A) : $1))))
+	   (make-parser		(make-lalr-parser :output-value #t
+						  :expect #f
+						  :terminals '(A)
+						  :rules '((e (A) : $1))))
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
@@ -594,19 +594,25 @@
   #t)
 
 
-(parameterise ((check-test-name 'associativity))
+(parameterise ((check-test-name 'associativity-1))
+
+;;;Expression language  with no associativity  attributes.  The conflict
+;;;resolution rules:
+;;;
+;;; Shift/Reduce	-> Shift
+;;; Reduce/Reduce	-> the Reduce that comes first in the grammar
+;;;
 
   (define make-parser
-    (parameterise ((debugging	#f))
-      (lalr-parser :output-value #t :expect 0
-		   :terminals '(N (left: A)
-				  (right: M)
-				  (nonassoc: U))
-		   :rules '((E	(N)		: $1
-				(E A E)		: (list $1 $2 $3)
-				(E M E)		: (list $1 $2 $3)
-				(E M E M E)	: (list $1 $2 (list $3 $4 $5))
-				(A E (prec: U))	: (list $1 $2))))))
+    (lalr-parser
+     :output-value #t :expect 0
+     :terminals '(N A B M D)
+
+     :rules '((E (E A E)	: (list $2 $1 $3)
+		 (E B E)	: (list $2 $1 $3)
+		 (E M E A E)	: (list $2 $1 $3)
+		 (E D E B E)	: (list $2 $1 $3)
+		 (N)		: $1))))
 
   (define (doit . tokens)
     (let* ((lexer		(make-lexer tokens))
@@ -614,24 +620,12 @@
            (parser		(make-parser)))
       (parser lexer error-handler)))
 
-  (debug:print-tables #f
-		      '(N (left: A)
-			  (left: M)
-			  (nonassoc: U))
-		      '((E	(N)		: $1
-				(E A E)		: (list $1 $2 $3)
-				(E M E)		: (list $1 $2 $3)
-				(E M E M E)	: (list $1 $2 (list $3 $4 $5))
-				(A E (prec: U))	: (list $1 $2))))
+;;; --------------------------------------------------------------------
+;;; Grammar tests, no associativity.
 
   (check
       (doit (make-lexical-token 'N #f 1))
     => 1)
-
-  (check
-      (doit (make-lexical-token 'A #f '-)
-	    (make-lexical-token 'N #f 1))
-    => '(- 1))
 
   (check
       (doit (make-lexical-token 'A #f '+)
@@ -639,10 +633,44 @@
     => '(+ 1))
 
   (check
+      (doit (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 1))
+    => '(- 1))
+
+  (check
       (doit (make-lexical-token 'N #f 1)
 	    (make-lexical-token 'A #f '+)
 	    (make-lexical-token 'N #f 2))
-    => '(1 + 2))
+    => '(+ 1 2))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 2))
+    => '(- 1 2))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 2))
+    => '(* 1 2))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 2))
+    => '(/ 1 2))
+
+;;; --------------------------------------------------------------------
+;;; Operator precedence.
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 3))
+    => '(+ 1 (- 2 3)))
 
   (check
       (doit (make-lexical-token 'N #f 1)
@@ -650,7 +678,43 @@
 	    (make-lexical-token 'N #f 2)
 	    (make-lexical-token 'M #f '*)
 	    (make-lexical-token 'N #f 3))
-    => '(1 + (2 * 3)))
+    => '(+ 1 (* 2 3)))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 3))
+    => '(+ 1 (/ 2 3)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'M #f '+)
+	    (make-lexical-token 'N #f 3))
+    => '(- 1 (+ 2 3)))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 3))
+    => '(- 1 (* 2 3)))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 3))
+    => '(- 1 (/ 2 3)))
+
+;;; --------------------------------------------------------------------
 
   (check
       (doit (make-lexical-token 'N #f 1)
@@ -658,7 +722,52 @@
 	    (make-lexical-token 'N #f 2)
 	    (make-lexical-token 'A #f '+)
 	    (make-lexical-token 'N #f 3))
-    => '((1 * 2) + 3))
+    => '(+ (* 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 3))
+    => '(- (* 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f '/)
+	    (make-lexical-token 'N #f 3))
+    => '(/ (* 1 2) 3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 3))
+    => '(+ (/ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 3))
+    => '(- (/ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'B #f '*)
+	    (make-lexical-token 'N #f 3))
+    => '(* (/ 1 2) 3))
+
+;;; --------------------------------------------------------------------
+;;; Associativity.
 
   (check	;left associative
       (doit (make-lexical-token 'N #f 1)
@@ -666,16 +775,714 @@
 	    (make-lexical-token 'N #f 2)
 	    (make-lexical-token 'A #f '+)
 	    (make-lexical-token 'N #f 3))
-    => '((1 + 2) + 3))
+    => '(+ (+ 1 2) 3))
 
-  (check 'this	;right associative
-      (parameterise ((debugging #f))
-	(doit (make-lexical-token 'N #f 1)
-	      (make-lexical-token 'M #f '*)
-	      (make-lexical-token 'N #f 2)
-	      (make-lexical-token 'M #f '*)
-	      (make-lexical-token 'N #f 3)))
-    => '(1 * (2 * 3)))
+  (check	;left associative
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 3))
+    => '(- (- 1 2) 3))
+
+  (check	;right associative
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 3))
+    => '(* 1 (* 2 3)))
+
+  (check	;right associative
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'D #f '/)
+	    (make-lexical-token 'N #f 3))
+    => '(/ 1 (/ 2 3)))
+
+  (check	;left associative
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 3)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 4))
+    => '(+ (+ (+ 1 2) 3) 4))
+
+  (check	;left associative
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 3)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 4)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 5)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 6))
+    => '(+ (+ (+ (+ (+ 1 2) 3) 4) 5) 6))
+
+  (check	;right associative
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 3)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 4))
+    => '(* 1 (* 2 (* 3 4))))
+
+  (check	;right associative
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 3)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 4)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 5)
+	    (make-lexical-token 'M #f '*)
+	    (make-lexical-token 'N #f 6))
+    => '(* 1 (* 2 (* 3 (* 4 (* 5 6))))))
+
+;;; --------------------------------------------------------------------
+;;; Non associativity.
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 3))
+    => '(+ (+ 1 2) (+ 3)))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 3))
+    => '(+ (+ 1 2) (- 3)))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 3))
+    => '(- (+ 1 2) (+ 3)))
+
+  (check
+      (doit (make-lexical-token 'N #f 1)
+	    (make-lexical-token 'A #f '+)
+	    (make-lexical-token 'N #f 2)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'B #f '-)
+	    (make-lexical-token 'N #f 3))
+    => '(- (+ 1 2) (- 3)))
+
+  #t)
+
+
+(parameterise ((check-test-name 'associativity-2))
+
+;;;Fully working test of associativity.
+
+  (define make-parser
+    (lalr-parser
+     :output-value #t :expect 0
+     :terminals '(NUM (left:     ADD SUB)
+		      (right:    MUL DIV)
+		      (nonassoc: UNARY))
+
+     :rules '((EXPR (EXPR ADD EXPR)          : (list $2 $1 $3)
+		    (EXPR SUB EXPR)          : (list $2 $1 $3)
+		    (EXPR MUL EXPR)          : (list $2 $1 $3)
+		    (EXPR DIV EXPR)          : (list $2 $1 $3)
+		    (NUM)                    : $1
+		    (ADD NUM (prec: UNARY))  : (list $1 $2)
+		    (SUB NUM (prec: UNARY))  : (list $1 $2)))))
+
+  (define (doit . tokens)
+    (let* ((lexer		(make-lexer tokens))
+	   (error-handler	(make-error-handler (lambda x x)))
+           (parser		(make-parser)))
+      (parser lexer error-handler)))
+
+;;; --------------------------------------------------------------------
+;;; Grammar tests, no associativity.
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1))
+    => 1)
+
+  (check
+      (doit (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 1))
+    => '(+ 1))
+
+  (check
+      (doit (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 1))
+    => '(- 1))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2))
+    => '(+ 1 2))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2))
+    => '(- 1 2))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2))
+    => '(* 1 2))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2))
+    => '(/ 1 2))
+
+;;; --------------------------------------------------------------------
+;;; Operator precedence.
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (+ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ 1 (* 2 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ 1 (/ 2 3)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- 1 (+ 2 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- 1 (* 2 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- 1 (/ 2 3)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (* 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (* 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(/ (* 1 2) 3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (/ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (/ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(* (/ 1 2) 3))
+
+;;; --------------------------------------------------------------------
+;;; Associativity.
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (+ 1 2) 3))
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (- 1 2) 3))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(* 1 (* 2 3)))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(/ 1 (/ 2 3)))
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 4))
+    => '(+ (+ (+ 1 2) 3) 4))
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 4)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 5)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 6))
+    => '(+ (+ (+ (+ (+ 1 2) 3) 4) 5) 6))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 4))
+    => '(* 1 (* 2 (* 3 4))))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 4)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 5)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 6))
+    => '(* 1 (* 2 (* 3 (* 4 (* 5 6))))))
+
+;;; --------------------------------------------------------------------
+;;; Non associativity.
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (+ 1 2) (+ 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (+ 1 2) (- 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (+ 1 2) (+ 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (+ 1 2) (- 3)))
+
+  #t)
+
+
+#;(parameterise ((check-test-name 'associativity-3))
+
+  (define make-parser
+    (lalr-parser
+     :output-value #t :expect 0
+     :terminals '(NUM ADD SUB MUL DIV)
+
+     :rules '((EXPR (EXPR ADD EXPR)          : (list $2 $1 $3)
+;		    (EXPR ADD EXPR ADD EXPR) : (list $1 $2 $3 $4 $5)
+
+		    (EXPR SUB EXPR)          : (list $2 $1 $3)
+;		    (EXPR SUB EXPR SUB EXPR) : (list $1 $2 $3 $4 $5)
+
+		    (EXPR MUL EXPR)          : (list $2 $1 $3)
+;		    (EXPR MUL EXPR MUL EXPR) : (list $1 $2 $3 $4 $5)
+
+		    (EXPR DIV EXPR)          : (list $2 $1 $3)
+;		    (EXPR DIV EXPR DIV EXPR) : (list $1 $2 $3 $4 $5)
+
+		    (NUM)                    : $1
+		    (ADD NUM (prec: UNARY))  : (list $1 $2)
+		    (SUB NUM (prec: UNARY))  : (list $1 $2)))))
+
+  (define (doit . tokens)
+    (let* ((lexer		(make-lexer tokens))
+	   (error-handler	(make-error-handler (lambda x x)))
+           (parser		(make-parser)))
+      (parser lexer error-handler)))
+
+;;; --------------------------------------------------------------------
+;;; Grammar tests, no associativity.
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1))
+    => 1)
+
+  (check
+      (doit (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 1))
+    => '(+ 1))
+
+  (check
+      (doit (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 1))
+    => '(- 1))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2))
+    => '(+ 1 2))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2))
+    => '(- 1 2))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2))
+    => '(* 1 2))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2))
+    => '(/ 1 2))
+
+;;; --------------------------------------------------------------------
+;;; Operator precedence.
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (+ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ 1 (* 2 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ 1 (/ 2 3)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- 1 (+ 2 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- 1 (* 2 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- 1 (/ 2 3)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (* 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (* 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(/ (* 1 2) 3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (/ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (/ 1 2) 3))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(* (/ 1 2) 3))
+
+;;; --------------------------------------------------------------------
+;;; Associativity.
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (+ 1 2) 3))
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (- 1 2) 3))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3))
+    => '(* 1 (* 2 3)))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'DIV #f '/)
+	    (make-lexical-token 'NUM #f 3))
+    => '(/ 1 (/ 2 3)))
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 4))
+    => '(+ (+ (+ 1 2) 3) 4))
+
+  (check	;left associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 4)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 5)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 6))
+    => '(+ (+ (+ (+ (+ 1 2) 3) 4) 5) 6))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 4))
+    => '(* 1 (* 2 (* 3 4))))
+
+  (check	;right associative
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 3)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 4)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 5)
+	    (make-lexical-token 'MUL #f '*)
+	    (make-lexical-token 'NUM #f 6))
+    => '(* 1 (* 2 (* 3 (* 4 (* 5 6))))))
+
+;;; --------------------------------------------------------------------
+;;; Non associativity.
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (+ 1 2) (+ 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(+ (+ 1 2) (- 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (+ 1 2) (+ 3)))
+
+  (check
+      (doit (make-lexical-token 'NUM #f 1)
+	    (make-lexical-token 'ADD #f '+)
+	    (make-lexical-token 'NUM #f 2)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'SUB #f '-)
+	    (make-lexical-token 'NUM #f 3))
+    => '(- (+ 1 2) (- 3)))
 
   #t)
 

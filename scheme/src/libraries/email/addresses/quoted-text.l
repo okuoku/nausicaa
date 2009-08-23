@@ -28,13 +28,13 @@
 ;;;
 
 double-quote		\"
-quoted-string		([^\"]+|\\\")+
+quoted-text		([^\"]+|\\\")+
 
 %%
 
-{double-quote}		'QUOTED-STRING-CLOSE
+{double-quote}		'QUOTED-TEXT-CLOSE
 
-{quoted-string}		yytext
+{quoted-text}		yytext
 
 <<EOF>>			(make-lexical-token
 			 '*eoi*
@@ -42,7 +42,7 @@ quoted-string		([^\"]+|\\\")+
 			 (eof-object))
 
 <<ERROR>>		(make-lexical-token
-			 'INVALID-CHARACTER
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset
 					       (string-length yytext))
 			 yytext)

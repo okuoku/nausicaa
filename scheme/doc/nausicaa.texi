@@ -38409,6 +38409,7 @@ The following bindings, keywords included, are exported by the
 
 
 @defun lalr-parser @var{keyword} @var{value} ...
+@defunx make-lalr-parser @var{keyword} @var{value} ...
 Generate a parser table to be used by the LR or GLR drivers.  The
 behaviour of this function is configured with the
 @var{keyword}/@var{value} couples used as arguments; see below for the
@@ -38891,6 +38892,7 @@ if the end--of--input is found.
 * lalr grammar error::          Error recovery.
 * lalr grammar eoi::            Handling end--of--input.
 * lalr grammar conflict::       Conflicts resolution.
+* lalr grammar assoc::          Associativity of binary operators.
 @end menu
 
 @c page
@@ -39681,6 +39683,159 @@ Conflicts in the grammar are handled in a conventional way.  In the
 absence of precedence directives, Shift/Reduce conflicts are resolved by
 shifting, and Reduce/Reduce conflicts are resolved by choosing the rule
 listed first in the grammar definition.
+
+@c page
+@node lalr grammar assoc
+@subsection Associativity of binary operators
+
+
+It is possible to specify an associativity attribute for every terminal
+symbol; available attributes are: left, right, nonassoc.  The following
+example specifies terminals with associativity:
+
+@example
+:terminals '(A               ;no associativity specified
+             (left:     B)   ;left associative
+             (right:    C)   ;right associative
+             (nonassoc: D)   ;non associative
+@end example
+
+It makes sense to consider associativity only for terminals describing
+binary operators.  For example, the arithmetic operations @math{+},
+@math{-}, @math{*}, @math{/} are binary operators which can be described
+by a grammar like:
+
+@example
+(lalr-parser
+
+  :terminals '(NUM ADD SUB MUL DIV)
+
+  :rules '((EXPR (EXPR ADD EXPR) : (+ $1 $2)
+                 (EXPR SUB EXPR) : (- $1 $2)
+                 (EXPR MUL EXPR) : (* $1 $2)
+                 (EXPR DIV EXPR) : (/ $1 $2)
+                 (NUM)           : $1))
+
+  ---) ;other options
+@end example
+
+@noindent
+we see that @samp{ADD} is a binary operator because its right--hand side
+rule has the format @samp{(EXPR ADD EXPR)}: The operator in the middle,
+one operand to the left and one operand to the right.
+
+When an expression has one of the patterns (different operators):
+
+@example
+1 + 2 * 3       1 - 2 * 3
+1 + 2 / 3       1 - 2 / 3
+1 + 2 - 3       1 - 2 + 3
+
+1 * 2 + 3       1 / 2 + 3
+1 * 2 - 3       1 / 2 - 3
+1 * 2 / 3       1 / 2 * 3
+@end example
+
+@noindent
+the operators precedence establishes the order of computation:
+
+@example
+1 + (2 * 3)     1 - (2 * 3)
+1 + (2 / 3)     1 - (2 / 3)
+1 + (2 - 3)     (1 - 2) + 3
+
+(1 * 2) + 3     (1 / 2) + 3
+(1 * 2) - 3     (1 / 2) - 3
+1 * (2 / 3)     (1 / 2) * 3
+@end example
+
+@noindent
+but when an expression has one of the patterns (the same operator
+appears twice):
+
+@example
+1 + 2 + 3       1 - 2 - 3
+1 * 2 * 3       1 / 2 / 3
+@end example
+
+@noindent
+what is the order of computation?  This is where the associativity
+attribute may be used.  Left associativity means:
+
+@example
+(1 + 2) + 3     (1 - 2) - 3
+(1 * 2) * 3     (1 / 2) / 3
+@end example
+
+@noindent
+right associativity means:
+
+@example
+1 + (2 + 3)     1 - (2 - 3)
+1 * (2 * 3)     1 / (2 / 3)
+@end example
+
+@noindent
+while, mathematically, it makes no difference with the arithmetic
+operations, there are cases in which grouping matters.
+
+We have to understand that, with the following grammar:
+
+@example
+((EXPR (EXPR ADD EXPR) : (+ $1 $2)
+       (EXPR SUB EXPR) : (- $1 $2)
+       (EXPR MUL EXPR) : (* $1 $2)
+       (EXPR DIV EXPR) : (/ $1 $2)
+       (NUM)           : $1))
+@end example
+
+@noindent
+the associativity attribute is @strong{not} considered; when a sequence
+of tokens like:
+
+@example
+EXPR ADD EXPR ADD EXPR
+@end example
+
+@noindent
+is parsed, the first @samp{EXPR ADD EXPR} matches a right--hand side
+rule and so a reduce action is taken, which is equivalent to left
+association:
+
+@example
+(EXPR ADD EXPR) ADD EXPR
+@end example
+
+@noindent
+with right--hand side rules like the above ones, it is impossible to
+obtain right associativity.
+
+A parser that makes use of associativity must look like:
+
+@example
+(lalr-parser
+
+  :terminals '(NUM (left:  ADD SUB)
+                   (right: MUL DIV)
+                   (nonassoc: NEG))
+
+  :rules '((EXPR (EXPR ADD EXPR)          : ($1 $2)
+                 (EXPR ADD EXPR ADD EXPR) : ($1 $2)
+
+                 (EXPR SUB EXPR)          : ($1 $2)
+                 (EXPR SUB EXPR SUB EXPR) : ($1 $2)
+
+                 (EXPR MUL EXPR)          : ($1 $2)
+                 (EXPR MUL EXPR MUL EXPR) : ($1 $2)
+
+                 (EXPR DIV EXPR)          : ($1 $2)
+                 (EXPR DIV EXPR DIV EXPR) : ($1 $2)
+
+                 (NUM)                    : $1
+                 (SUB NUM (prec: NEG))    : (- $2)))
+
+  ---) ;other options
+@end example
 
 @c page
 @node lalr glr

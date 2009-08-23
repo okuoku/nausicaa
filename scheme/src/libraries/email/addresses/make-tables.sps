@@ -28,40 +28,40 @@
   (lalr))
 
 
-(silex:lex silex::input-file		"address-quoted-string.l"
-	   silex::output-file		"address-quoted-string-lexer.sls"
-	   silex::library-spec		'(email address-quoted-string-lexer)
+(silex:lex silex::input-file		"quoted-text.l"
+	   silex::output-file		"quoted-text-lexer.sls"
+	   silex::library-spec		'(email addresses quoted-text-lexer)
 	   silex::library-imports	'((lalr lr-driver))
-	   silex::table-name		'email-address-quoted-string-table
+	   silex::table-name		'quoted-text-table
 	   silex::counters		'all)
 
-(silex:lex silex::input-file		"address-comments.l"
-	   silex::output-file		"address-comments-lexer.sls"
-	   silex::library-spec		'(email address-comments-lexer)
+(silex:lex silex::input-file		"comments.l"
+	   silex::output-file		"comments-lexer.sls"
+	   silex::library-spec		'(email addresses comments-lexer)
 	   silex::library-imports	'((lalr lr-driver))
-	   silex::table-name		'email-address-comments-table
+	   silex::table-name		'comments-table
 	   silex::counters		'all)
 
-(silex:lex silex::input-file		"address-domain-literals.l"
-	   silex::output-file		"address-domain-literals-lexer.sls"
-	   silex::library-spec		'(email address-domain-literals-lexer)
+(silex:lex silex::input-file		"domain-literals.l"
+	   silex::output-file		"domain-literals-lexer.sls"
+	   silex::library-spec		'(email addresses domain-literals-lexer)
 	   silex::library-imports	'((lalr lr-driver))
-	   silex::table-name		'email-address-domain-literals-table
+	   silex::table-name		'domain-literals-table
 	   silex::counters		'all)
 
-(silex:lex silex::input-file		"address-lexer.l"
-	   silex::output-file		"address-lexer.sls"
-	   silex::library-spec		'(email address-lexer)
+(silex:lex silex::input-file		"lexer.l"
+	   silex::output-file		"lexer.sls"
+	   silex::library-spec		'(email addresses lexer)
 	   silex::library-imports	'((lalr lr-driver))
-	   silex::table-name		'email-address-table
+	   silex::table-name		'address-table
 	   silex::counters		'all)
 
 
 (lalr-parser
 
- :output-file		"addresses-parser.sls"
- :parser-name		'make-email-address-parser
- :library-spec		'(email addresse-parser)
+ :output-file		"parser.sls"
+ :parser-name		'make-parser
+ :library-spec		'(email addresses parser)
 
  :terminals	'(DOT AT COMMA COLON SEMICOLON ATOM
 		      ANGLE-OPEN ANGLE-CLOSE
@@ -122,6 +122,5 @@
 			()				: '())
 
    ))
-
 
 ;;; end of file

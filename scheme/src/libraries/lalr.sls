@@ -45,6 +45,7 @@
 (library (lalr)
   (export
     lalr-parser
+    (rename (lalr-parser make-lalr-parser))
 
     :library-spec		:library-imports
     :parser-type		:parser-name
@@ -214,7 +215,7 @@
 ;;which is faster with a single integer.
 ;;
 
-(define lalr-bits-per-word 30)
+(define lalr-bits-per-word (fixnum-width))
 
 (define (new-set nelem)
   (make-vector nelem 0))

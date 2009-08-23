@@ -1,13 +1,13 @@
-(library (email address-quoted-string-lexer)
+(library (email addresses quoted-text-lexer)
   (export
-    email-address-quoted-string-table)
+    quoted-text-table)
   (import (rnrs) (silex lexer)(lalr lr-driver))
 
 ;
-; Table generated from the file address-quoted-string.l by SILex 1.0
+; Table generated from the file quoted-text.l by SILex 1.0
 ;
 
-(define email-address-quoted-string-table
+(define quoted-text-table
   (vector
    'all
    (lambda (yycontinue yygetc yyungetc)
@@ -20,7 +20,7 @@
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
          		(make-lexical-token
-			 'INVALID-CHARACTER
+			 '*lexer-error*
 			 (make-source-location #f yyline yycolumn yyoffset
 					       (string-length yytext))
 			 yytext)
@@ -31,12 +31,12 @@
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-              		'QUOTED-STRING-CLOSE
+              		'QUOTED-TEXT-CLOSE
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-               		yytext
+             		yytext
         )))
    'decision-trees
    0
