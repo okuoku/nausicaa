@@ -1,7 +1,7 @@
 (library (email addresses lexer)
   (export
     address-table)
-  (import (rnrs) (silex lexer)(lalr lr-driver))
+  (import (rnrs) (silex lexer)(lalr lr-driver)(email addresses common))
 
 ;
 ; Table generated from the file lexer.l by SILex 1.0
@@ -30,13 +30,13 @@
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-                	;ignore it
+     			;ignore it
         (yycontinue)
         ))
     #f
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yyline yycolumn yyoffset)
-       			;ignore it
+    			;ignore it
 
         (yycontinue)
         ))
@@ -92,14 +92,14 @@
    'decision-trees
    0
    0
-   '#((44 (32 (11 (9 5 (10 6 7)) (= 13 7 5)) (35 (33 6 (34 5 2)) (= 40 3
-    5))) (62 (47 (= 45 5 4) (58 5 (61 4 5))) (65 (= 63 5 4) (= 91 1 5))))
-    err err err err (44 (32 (11 (9 5 err) (= 13 err 5)) (35 (= 33 5 err) (=
-    40 err 5))) (62 (47 (= 45 5 err) (58 5 (61 err 5))) (65 (= 63 5 err) (=
-    91 err 5)))) (10 (9 err 6) (= 32 6 err)) (13 (10 (9 err 8) (11 7 err))
-    (32 (14 7 err) (33 8 err))) (10 (9 err 8) (= 32 8 err)))
+   '#((45 (33 (13 (= 9 6 err) (14 7 (32 err 6))) (40 (= 34 2 5) (42 (41 3
+    err) (44 5 4)))) (63 (58 (= 46 4 5) (= 61 5 4)) (91 (= 64 4 5) (94 (92
+    1 err) (127 5 err))))) err err err err (47 (40 (34 (33 err 5) (35 err
+    5)) (44 (42 err 5) (= 45 5 err))) (64 (61 (58 5 err) (= 62 err 5)) (91
+    (65 err 5) (94 err (127 5 err))))) (10 (9 err 6) (= 32 6 err)) (= 10 8
+    err) (10 (9 err 9) (= 32 9 err)) (10 (9 err 9) (= 32 9 err)))
    '#((#f . #f) (6 . 6) (5 . 5) (4 . 4) (3 . 3) (2 . 2) (1 . 1) (#f . #f)
-    (0 . 0))))
+    (#f . #f) (0 . 0))))
 
 ) ; end of library
 

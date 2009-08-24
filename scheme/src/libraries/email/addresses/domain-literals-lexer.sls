@@ -1,7 +1,7 @@
 (library (email addresses domain-literals-lexer)
   (export
     domain-literals-table)
-  (import (rnrs) (silex lexer)(lalr lr-driver))
+  (import (rnrs) (silex lexer)(lalr lr-driver)(email addresses common))
 
 ;
 ; Table generated from the file domain-literals.l by SILex 1.0
@@ -31,21 +31,23 @@
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-              		(make-lexical-token
-			 'DOMAIN-LITERAL-CLOSE
-			 (make-source-location #f yyline yycolumn yyoffset
-			                       (string-length yytext))
-			 yytext)
+              		(let ((yytext1 (unquote-string yytext)))
+			  (make-lexical-token
+			   'DOMAIN-LITERAL-CLOSE
+			   (make-source-location #f yyline yycolumn yyoffset
+						 (string-length yytext))
+			   yytext1))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-         		(let ((num (string->number yytext)))
+         		(let* ((yytext1 (unquote-string yytext))
+			       (num     (string->number yytext1)))
 			  (make-lexical-token
 			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER '*lexer-error*)
 			   (make-source-location #f yyline yycolumn yyoffset
 						 (string-length yytext))
-			   yytext))
+			   yytext1))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
@@ -58,9 +60,9 @@
    'decision-trees
    0
    0
-   '#((48 (= 46 1 err) (93 (58 2 err) (94 3 err))) err (48 err (58 2 err))
-    err)
-   '#((#f . #f) (2 . 2) (1 . 1) (0 . 0))))
+   '#((58 (47 (46 err 1) (48 err 2)) (93 (92 err 3) (94 4 err))) err (58
+    (48 err 2) (= 92 3 err)) (58 (48 err 2) (= 92 3 err)) err)
+   '#((#f . #f) (2 . 2) (1 . 1) (#f . #f) (0 . 0))))
 
 ) ; end of library
 

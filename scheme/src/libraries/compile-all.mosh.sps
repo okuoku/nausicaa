@@ -83,6 +83,13 @@
   (only (infix))
   (only (infix syntax))
 
+  (only (email addresses quoted-text-lexer))
+  (only (email addresses comments-lexer))
+  (only (email addresses domain-literals-lexer))
+  (only (email addresses lexer))
+;;;  (only (email addresses parser))
+  (only (email addresses))
+
   (only (foreign))
 ;;;  (only (guarded-malloc))
   (only (peekers-and-pokers))

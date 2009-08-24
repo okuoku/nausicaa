@@ -31,13 +31,52 @@
   (email addresses quoted-text-lexer)
   (email addresses comments-lexer)
   (email addresses domain-literals-lexer)
+  (email addresses common)
   (email addresses lexer)
+  (email addresses parser)
   (silex lexer)
   (lalr common)
   (rnrs mutable-strings))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")
+
+
+(parameterise ((check-test-name		'common))
+
+  (check
+      (unquote-string "")
+    => "")
+
+  (check
+      (unquote-string "\\")
+    => "\\")
+
+  (check
+      (unquote-string "\\\\")
+    => "\\")
+
+  (check
+      (unquote-string "\\\\\\")
+    => "\\\\")
+
+  (check
+      (unquote-string "ciao")
+    => "ciao")
+
+  (check
+      (unquote-string "ci\\ao")
+    => "ciao")
+
+  (check
+      (unquote-string "\\c\\i\\a\\o")
+    => "ciao")
+
+  (check
+      (unquote-string "ciao\\")
+    => "ciao\\")
+
+  #t)
 
 
 (parameterise ((check-test-name 'quoted-text-lexer))
@@ -71,17 +110,20 @@
       (tokenise-string "ciao\"")
     => '("ciao" QUOTED-TEXT-CLOSE))
 
-  (check	;a string
+  (check
+      ;;A string with a quoted character in it.  The quoting is removed.
       (tokenise-string "\\a\"")
-    => '("\\a" QUOTED-TEXT-CLOSE))
+    => '("a" QUOTED-TEXT-CLOSE))
 
   (check ;a string with utf-8 character
       (tokenise-string "cioé\"")
     => '("cioé" QUOTED-TEXT-CLOSE))
 
-  (check	;nested double quotes
+  (check
+      ;;Nested double quotes.  The Scheme string "\\\"" is seen as \" by
+      ;;the lexer and the backslash quoting character is removed.
       (tokenise-string "ciao \\\"hello\\\" salut\"")
-    => '("ciao \\\"hello\\\" salut"  QUOTED-TEXT-CLOSE))
+    => '("ciao \"hello\" salut"  QUOTED-TEXT-CLOSE))
 
   #t)
 
@@ -167,6 +209,10 @@
 		 (lexical-token-value    token)))
       (address->tokens (lexer-make-IS :string string :counters 'all))))
 
+  (check	;a folding white space
+      (doit "\r\n ")
+    => '())
+
   (check
     (parameterise ((debugging #f))
       (doit "simons@rhein.de"))
@@ -210,7 +256,8 @@
 	 (ANGLE-CLOSE . #\>)))
 
   (check
-      (doit "Peter Simons <sim(him)ons@rhein.de>")
+      (parameterise ((debugging #f))
+	(doit "Peter Simons\r\n <simons@rhein.de>"))
     => '((ATOM . "Peter")
 	 (ATOM . "Simons")
 	 (ANGLE-OPEN . #\<)
@@ -222,13 +269,29 @@
 	 (ANGLE-CLOSE . #\>)))
 
   (check
-      (doit "testing my parser : peter.simons@gmd.de,
-            (peter.)simons@rhein.de ,,,,,
-         testing my parser <simons@ieee.org>,
-         it rules <@peti.gmd.de,@listserv.gmd.de:simons @ cys .de>
-         ;
-         ,
-         peter.simons@acm.org")
+      (parameterise ((address-lexer-allows-comments #t))
+	(doit "Peter Simons <sim(him)ons@rhein.de>"))
+    => '((ATOM . "Peter")
+	 (ATOM . "Simons")
+	 (ANGLE-OPEN . #\<)
+	 (ATOM . "sim")
+	 (COMMENT . "him")
+	 (ATOM . "ons")
+	 (AT . #\@)
+	 (ATOM . "rhein")
+	 (DOT . #\.)
+	 (ATOM . "de")
+	 (ANGLE-CLOSE . #\>)))
+
+  (check
+      (parameterise ((address-lexer-allows-comments #t))
+	(doit "testing my parser : peter.simons@gmd.de,\r
+            (peter.)simons@rhein.de ,,,,,\r
+         testing my parser <simons@ieee.org>,\r
+         it rules <@peti.gmd.de,@listserv.gmd.de:simons @ cys .de>\r
+         ;\r
+         ,\r
+         peter.simons@acm.org"))
     => '((ATOM . "testing")
 	 (ATOM . "my")
 	 (ATOM . "parser")
@@ -332,7 +395,8 @@
 	 (ANGLE-CLOSE . #\>)))
 
   (check
-      (doit "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
+      (parameterise ((address-lexer-allows-comments #t))
+	(doit "\"Peter Simons\" (Peter Simons) <simons@rhein.de>"))
     => '((QUOTED-TEXT . "Peter Simons")
 	 (COMMENT . "Peter Simons")
 	 (ANGLE-OPEN . #\<)
@@ -343,8 +407,8 @@
 	 (ATOM . "de")
 	 (ANGLE-CLOSE . #\>)))
 
-  (check 'this
-      (doit "simons@[1.2.3.4].de")
+  (check
+      (doit "simons@[1.2.3.4]")
     => '((ATOM . "simons")
 	 (AT . #\@)
 	 (DOMAIN-LITERAL-OPEN . "[")
@@ -355,82 +419,237 @@
 	 (DOMAIN-LITERAL-INTEGER . "3")
 	 (DOT . ".")
 	 (DOMAIN-LITERAL-INTEGER . "4")
-	 (DOMAIN-LITERAL-CLOSE . "]")
-	 (DOT . #\.)
-	 (ATOM . "de")))
+	 (DOMAIN-LITERAL-CLOSE . "]")))
 
   #t)
 
 
-;;;; parser, domain
+;;;; domain data type
 
-;; (define (parse-domain string)
-;;   (call-with-string-output-port
-;;       (lambda (port)
-;; 	(domain-display (address-parse-domain (make-address-lexer :string string))
-;; 			port))))
+(check
+    (domain? (make-domain #f '("alpha" "beta")))
+  => #t)
 
-;; (check
-;;     (parse-domain "alpha")
-;;   => "#<domain -- alpha>")
+(check
+    (domain->string (make-domain #f '("alpha" "beta" "gamma")))
+  => "alpha.beta.gamma")
 
-;; (check
-;;     (parse-domain "alpha.beta.delta")
-;;   => "#<domain -- alpha.beta.delta>")
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (domain-display (make-domain #f '("alpha" "beta" "gamma")) port)
+      (getter))
+  => "#<domain -- alpha.beta.gamma>")
 
-;; (check
-;;     (guard (exc (else (condition-message exc)))
-;;       (parse-domain "alpha."))
-;;   => "found end of address while parsing address domain")
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (domain-write (make-domain #f '("alpha" "beta" "gamma")) port)
+      (getter))
+  => "(make-domain #f (quote (\"alpha\" \"beta\" \"gamma\")))")
 
-;; (check
-;;     (guard (exc (else (condition-message exc)))
-;;       (parse-domain "alpha.beta."))
-;;   => "found end of address while parsing address domain")
+;;; --------------------------------------------------------------------
 
+(check
+    (domain? (make-domain #t '("1" "2" "3" "4")))
+  => #t)
 
-
-;;;; parser, local part
+(check
+    (domain->string (make-domain #t '("1" "2" "3" "4")))
+  => "[1.2.3.4]")
 
-;; (define (parse-local-part string)
-;;   (call-with-string-output-port
-;;       (lambda (port)
-;; 	(local-part-display (address-parse-local-part (make-address-lexer :string string))
-;; 			    port))))
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (domain-display (make-domain #t '("1" "2" "3" "4")) port)
+      (getter))
+  => "#<domain -- [1.2.3.4]>")
 
-;; (check
-;;     (parse-local-part "alpha")
-;;   => "#<local-part -- alpha>")
-
-;; (check
-;;     (parse-local-part "alpha.beta.delta")
-;;   => "#<local-part -- alpha.beta.delta>")
-
-;; (check
-;;     (guard (exc (else (condition-message exc)))
-;;       (parse-local-part "alpha."))
-;;   => "found end of address while parsing address local part")
-
-;; (check
-;;     (guard (exc (else (condition-message exc)))
-;;       (parse-local-part "alpha.beta."))
-;;   => "found end of address while parsing address local part")
-
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (domain-write (make-domain #t '("1" "2" "3" "4")) port)
+      (getter))
+  => "(make-domain #t (quote (\"1\" \"2\" \"3\" \"4\")))")
 
 
-;;;; parser, addr-spec
+;;;; local-part data type
 
-;; (define (parse-addr-spec string)
-;;   (call-with-string-output-port
-;;       (lambda (port)
-;; 	(addr-spec-display (address-parse-addr-spec (make-address-lexer :string string))
-;; 			   port))))
+(check
+    (local-part? (make-local-part '("alpha" "beta")))
+  => #t)
 
-;; (write    (address->tokens :string "marcomaggi@gna.org"))(newline)
+(check
+    (local-part->string (make-local-part '("alpha" "beta" "gamma")))
+  => "alpha.beta.gamma")
 
-;; (check
-;;     (parse-addr-spec "marcomaggi@gna.org")
-;;   => "#<addr-spec -- marcomaggi@gna.org>")
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (local-part-display (make-local-part '("alpha" "beta" "gamma")) port)
+      (getter))
+  => "#<local-part -- alpha.beta.gamma>")
+
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (local-part-write (make-local-part '("alpha" "beta" "gamma")) port)
+      (getter))
+  => "(make-local-part (quote (\"alpha\" \"beta\" \"gamma\")))")
+
+
+;;;; addr-spec data type
+
+(check
+    (addr-spec? (make-addr-spec (make-local-part '("alpha" "beta"))
+				(make-domain #f '("delta" "org"))))
+  => #t)
+
+(check
+    (addr-spec->string (make-addr-spec (make-local-part '("alpha" "beta"))
+				       (make-domain #f '("delta" "org"))))
+  => "alpha.beta@delta.org")
+
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (addr-spec-display (make-addr-spec (make-local-part '("alpha" "beta"))
+					 (make-domain #f '("delta" "org"))) port)
+      (getter))
+  => "#<addr-spec -- alpha.beta@delta.org>")
+
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (addr-spec-write (make-addr-spec (make-local-part '("alpha" "beta"))
+				       (make-domain #f '("delta" "org"))) port)
+      (getter))
+  => "(make-addr-spec (make-local-part (quote (\"alpha\" \"beta\"))) (make-domain #f (quote (\"delta\" \"org\"))))")
+
+
+;;;; route data type
+
+(check
+    (route? (make-route (list (make-domain #f '("alpha" "org"))
+			      (make-domain #t '("1" "2" "3" "4"))
+			      (make-domain #f '("beta" "com")))))
+  => #t)
+
+(check
+    (route->string (make-route (list (make-domain #f '("alpha" "org"))
+				     (make-domain #t '("1" "2" "3" "4"))
+				     (make-domain #f '("beta" "com")))))
+  => "alpha.org,[1.2.3.4],beta.com")
+
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (route-display (make-route (list (make-domain #f '("alpha" "org"))
+				       (make-domain #t '("1" "2" "3" "4"))
+				       (make-domain #f '("beta" "com"))))
+		     port)
+      (getter))
+  => "#<route -- alpha.org,[1.2.3.4],beta.com>")
+
+(check
+    (let-values (((port getter) (open-string-output-port)))
+      (route-write (make-route (list (make-domain #f '("alpha" "org"))
+				     (make-domain #t '("1" "2" "3" "4"))
+				     (make-domain #f '("beta" "com"))))
+		   port)
+      (getter))
+  => "(make-route (list (make-domain #f (quote (\"alpha\" \"org\"))) (make-domain #t (quote (\"1\" \"2\" \"3\" \"4\"))) (make-domain #f (quote (\"beta\" \"com\"))) ))")
+
+
+;;;; mailbox data type
+
+(let ((the-route	(make-route (list (make-domain #f '("alpha" "org"))
+					  (make-domain #t '("1" "2" "3" "4"))
+					  (make-domain #f '("beta" "com")))))
+      (the-phrase	"the phrase")
+      (the-addr-spec	(make-addr-spec (make-local-part '("alpha" "beta"))
+					(make-domain #f '("delta" "org")))))
+
+  (check
+      (mailbox? (make-mailbox the-phrase the-route the-addr-spec))
+    => #t)
+
+  (check
+      (mailbox->string (make-mailbox the-phrase the-route the-addr-spec))
+    => "\"the phrase\" <alpha.org,[1.2.3.4],beta.com:alpha.beta@delta.org>")
+
+  (check
+      (let-values (((port getter) (open-string-output-port)))
+	(mailbox-display (make-mailbox the-phrase the-route the-addr-spec) port)
+	(getter))
+    => "#<mailbox -- \"the phrase\" <alpha.org,[1.2.3.4],beta.com:alpha.beta@delta.org>>")
+
+  (check
+      (let-values (((port getter) (open-string-output-port)))
+	(mailbox-write (make-mailbox the-phrase the-route the-addr-spec) port)
+	(getter))
+    => "(make-mailbox \"the phrase\" (make-route (list (make-domain #f (quote (\"alpha\" \"org\"))) (make-domain #t (quote (\"1\" \"2\" \"3\" \"4\"))) (make-domain #f (quote (\"beta\" \"com\"))) )) (make-addr-spec (make-local-part (quote (\"alpha\" \"beta\"))) (make-domain #f (quote (\"delta\" \"org\")))))")
+
+  #t)
+
+
+(parameterise ((check-test-name 'parser))
+
+  (define (doit string)
+    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+	   (lexer	(make-address-lexer IS))
+	   (parser	(make-address-parser))
+	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
+	   (result	(parser lexer handler)))
+      (let ((first (car result)))
+	(cond ((mailbox? first)	(mailbox->string first))
+	      ((group?   first)	(group->string first))
+	      (else		result)))))
+
+  (check
+      (doit "simons@rhein.de")
+    => "<simons@rhein.de>")
+
+  (check
+      (doit "<simons@rhein.de>")
+    => "<simons@rhein.de>")
+
+  (parameterise ((debugging #f))
+    (check
+	(doit "Peter Simons <simons@rhein.de>")
+      => "\"Peter Simons\" <simons@rhein.de>"))
+
+  (parameterise ((debugging #f))
+    (check
+	(doit "\"Peter Simons\" <simons@rhein.de>")
+      => "\"Peter Simons\" <simons@rhein.de>"))
+
+  (check
+      (doit "Peter Simons\r\n <simons@rhein.de>")
+    => "\"Peter Simons\" <simons@rhein.de>")
+
+  (check
+      (doit "testing my parser : peter.simons@gmd.de,\r
+            (peter.)simons@rhein.de ,,,,,\r
+         testing my parser <simons@ieee.org>,\r
+         it rules <@peti.gmd.de,@listserv.gmd.de:simons @ cys .de>\r
+         ;\r
+         ,\r
+         peter.simons@acm.org")
+    => "\"testing my parser\" : <peter.simons@gmd.de>, <simons@rhein.de>, \"testing my parser\" <simons@ieee.org>, \"it rules\" <@peti.gmd.de,@listserv.gmd.de:simons@cys.de>;, <peter.simons@acm.org>")
+
+  (check
+      (doit "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
+    => "\"=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?=\" <fandom@spamme.telefonica.net>")
+
+  (check
+      (doit "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
+    => "\"=?iso-8859-1?q?Ulrich_Sch=F6bel?=\" <ulrich@outvert.com>")
+
+  (check
+      (doit " \"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
+    => "\"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
+
+  (check
+      (doit "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
+    => "\"Peter Simons\" <simons@rhein.de>")
+
+  (check
+      (doit "simons@[1.2.3.4]")
+    => "<simons@[1.2.3.4]>")
+
+  #t)
 
 
 ;;;; done

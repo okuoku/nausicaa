@@ -25,15 +25,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-atom			[^\(\"\[<>@,;:\.\9\10\13\32]+
+;;US-ASCII control  characters that do not include  the carriage return,
+;;line feed, and white space characters.
+NO-WS-CTL		[\1-\8\11\12\14-\31\127]
+
+;;See RFC 2822 section "3.2.3. Folding white space and comments".
+FWS			\13\10[\9\32]+
+
+WS			[\9\32]+
+
+;;Characters excluding CR and LF.
+text-part		[\1-\9\11\12\14-\127]
+obs-text		.
+
+;;See RFC 2822 section "3.2.4. Atom".
+atom			[0-9A-Za-z!#\$%&'\*\+\-/=\?\^_`\{\|\}~]+
+
 character		[<>@,;:\.]
-
-;;We accept  any sequence  of CR and  LF char  as a valid  newline, even
-;;tough  the RFC wants  CR+LF.  After  the newline  it is  mandatory the
-;;presence of a space.
-proper-newline		[\13\10]+[\9\32]+
-
-space			[\9\32]+
 
 start-comment		\(
 start-quoted-text	\"
@@ -41,14 +49,15 @@ start-domain-literal	\[
 
 %%
 
-{proper-newline}	;ignore it
-{space}			;ignore it
+{FWS}			;ignore it
+{WS}			;ignore it
 
 {atom}			(make-lexical-token
 			 'ATOM
 			 (make-source-location #f yyline yycolumn yyoffset
 					       (string-length yytext))
 			 yytext)
+
 {character}		(let ((ch (string-ref yytext 0)))
 			  (make-lexical-token
 			   (case ch

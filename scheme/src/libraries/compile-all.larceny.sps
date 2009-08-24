@@ -212,6 +212,26 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "email/addresses/quoted-text-lexer.sls"
+		 "email/addresses/quoted-text-lexer.slfasl")
+
+(compile-library "email/addresses/comments-lexer.sls"
+		 "email/addresses/comments-lexer.slfasl")
+
+(compile-library "email/addresses/domain-literals-lexer.sls"
+		 "email/addresses/domain-literals-lexer.slfasl")
+
+(compile-library "email/addresses/lexer.sls"
+		 "email/addresses/lexer.slfasl")
+
+;; (compile-library "email/addresses/parser.sls"
+;; 		 "email/addresses/parser.slfasl")
+
+(compile-library "email/addresses.sls"
+		 "email/addresses.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (compile-library "foreign/ffi/sizeof.sls"
 		 "foreign/ffi/sizeof.slfasl")
 

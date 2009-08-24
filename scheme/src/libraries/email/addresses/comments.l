@@ -38,7 +38,7 @@ commented-text		[^\(\)]+
 
 {end-of-comment}	(quote COMMENT-CLOSE)
 
-{commented-text}	yytext
+{commented-text}	(unquote-string yytext)
 
 <<EOF>>			(make-lexical-token
 			 '*eoi*

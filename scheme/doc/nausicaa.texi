@@ -469,7 +469,7 @@ More libraries
 * lalr::                        A LALR(1) parser generator.
 * csv::                         Comma--separated value (@acronym{CSV}) utilities.
 * schelog::                     Programming in Schelog.
-* email addresses::             Email address processing.
+* email::                       Email processing.
 * infix::                       Infix notation utilities.
 * foreign::                     Foreign functions interface.
 
@@ -1158,6 +1158,17 @@ Defining the parser
 * lalr grammar error::          Error recovery.
 * lalr grammar eoi::            Handling end--of--input.
 * lalr grammar conflict::       Conflicts resolution.
+* lalr grammar assoc::          Associativity of binary operators.
+
+Dummy example grammar definitions
+
+* lalr grammar basics helpers:: Helper definitions.
+* lalr grammar basics single::  Single token parser.
+
+Error recovery
+
+* lalr grammar error intro::    Introduction to error recovery.
+* lalr grammar error single::   Dummy example: Single token parser.
 
 Comma--separated value (@acronym{CSV}) utilities
 
@@ -1169,6 +1180,10 @@ Low level tokenisation
 * csv lexer strings::           Tokenising strings.
 * csv lexer unquoted-data::     Tokenising unquoted data.
 * csv lexer full::              Full parsing.
+
+Email processing
+
+* email addresses::             Parsing email addresses.
 
 Parsing email addresses
 
@@ -40867,12 +40882,26 @@ The original code is available at:
 @c predicates, can be thus imported.
 
 @c page
+@node email
+@chapter Email processing
+
+
+@menu
+* email addresses::             Parsing email addresses.
+@end menu
+
+@c page
 @node email addresses
-@chapter Parsing email addresses
+@section Parsing email addresses
 
 
 The @library{email addresses} library implements a lexer and parser for
-email addresses.  The parser tries to be compliant to @rfc{} 822 format.
+email addresses.  The parser tries to be compliant to @rfc{} 2822
+``Internet Message Format'' (@url{http://www.ietf.org/rfc/rfc2822.txt}).
+
+This library would not exist without the work Peter Simons did for the
+C++ library in @samp{librfc822} (@url{http://cryp.to/librfc2822/},
+@aurl{} last verified Mon Aug 24, 2009).
 
 @menu
 * email addresses components::  Parsed components.
@@ -40883,7 +40912,7 @@ email addresses.  The parser tries to be compliant to @rfc{} 822 format.
 
 @c page
 @node email addresses components
-@section Parsed components
+@subsection Parsed components
 
 
 The following is an overview of an email address' components.
@@ -40994,7 +41023,7 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 
 @c page
 @node email addresses class
-@section Object classes
+@subsection Object classes
 
 
 @menu
@@ -41011,7 +41040,7 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 
 @c page
 @node email addresses elements
-@subsection Elements
+@subsubsection Elements
 
 
 @subsubheading Class definition
@@ -41080,7 +41109,7 @@ resulting string.
 
 @c page
 @node email addresses domain
-@subsection Domain
+@subsubsection Domain
 
 
 @subsubheading Class definition
@@ -41101,7 +41130,7 @@ in @var{o} joined with a dot.
 
 @c page
 @node email addresses local-part
-@subsection Local part
+@subsubsection Local part
 
 
 @subsubheading Class definition
@@ -41123,7 +41152,7 @@ in @var{o} joined with a dot.
 
 @c page
 @node email addresses addr-spec
-@subsection Address specification
+@subsubsection Address specification
 
 
 @subsubheading Class definition
@@ -41198,7 +41227,7 @@ resulting string.
 
 @c page
 @node email addresses route
-@subsection Route
+@subsubsection Route
 
 
 @subsubheading Class definition
@@ -41237,7 +41266,7 @@ resulting string.
 
 @c page
 @node email addresses route-address
-@subsection Route address
+@subsubsection Route address
 
 
 @subsubheading Class definition
@@ -41296,7 +41325,7 @@ Accessor for the @class{route} slot.
 
 @c page
 @node email addresses mailbox
-@subsection Mailbox
+@subsubsection Mailbox
 
 
 @subsubheading Class definition
@@ -41356,7 +41385,7 @@ Display to @var{p} the string representation of @var{o}.
 
 @c page
 @node email addresses group
-@subsection Group of mailboxes
+@subsubsection Group of mailboxes
 
 
 @subsubheading Class definition
@@ -41399,7 +41428,7 @@ Display to @var{p} the string representation of @var{o}.
 
 @c page
 @node email addresses address
-@subsection Address
+@subsubsection Address
 
 
 @subsubheading Class definition
@@ -41428,7 +41457,7 @@ Display to @var{p} the string representation of @var{o}.
 
 @c page
 @node email addresses lexer
-@section Splitting an address into tokens
+@subsection Splitting an address into tokens
 
 
 @defun email-address-lexer @var{address-string}
@@ -41479,7 +41508,7 @@ Examples:
 
 @c page
 @node email addresses parser
-@section Parsing tokens
+@subsection Parsing tokens
 
 
 @subsubheading Parsing domains and local parts

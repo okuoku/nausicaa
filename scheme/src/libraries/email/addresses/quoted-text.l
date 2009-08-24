@@ -34,7 +34,7 @@ quoted-text		([^\"]+|\\\")+
 
 {double-quote}		'QUOTED-TEXT-CLOSE
 
-{quoted-text}		yytext
+{quoted-text}		(unquote-string yytext)
 
 <<EOF>>			(make-lexical-token
 			 '*eoi*

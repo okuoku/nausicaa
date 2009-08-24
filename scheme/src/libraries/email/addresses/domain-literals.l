@@ -27,24 +27,37 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;A  close-bracket  quoted with  a  backslash  is  invalid in  a  domain
+;;literal.  We  match only  the single close-bracket  here; if  a quoted
+;;close-bracket comes the <<ERROR>> rule is used.
 end-of-dtext		\]
-integer			[0-9]+
+
+;;This  is a  sequence of  decimal numbers,  optionally prefixed  with a
+;;backslash as quoting character.  The  last character must be a decimal
+;;number.
+integer			[\\0-9]*[0-9]+
+
+;;A dot  quoted with  a backslash  is invalid in  a domain  literal.  We
+;;match only  the single dot here;  if a quoted dot  comes the <<ERROR>>
+;;rule is used.
 dot			\.
 
 %%
 
-{end-of-dtext}		(make-lexical-token
-			 'DOMAIN-LITERAL-CLOSE
-			 (make-source-location #f yyline yycolumn yyoffset
-			                       (string-length yytext))
-			 yytext)
+{end-of-dtext}		(let ((yytext1 (unquote-string yytext)))
+			  (make-lexical-token
+			   'DOMAIN-LITERAL-CLOSE
+			   (make-source-location #f yyline yycolumn yyoffset
+						 (string-length yytext))
+			   yytext1))
 
-{integer}		(let ((num (string->number yytext)))
+{integer}		(let* ((yytext1 (unquote-string yytext))
+			       (num     (string->number yytext1)))
 			  (make-lexical-token
 			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER '*lexer-error*)
 			   (make-source-location #f yyline yycolumn yyoffset
 						 (string-length yytext))
-			   yytext))
+			   yytext1))
 
 {dot}			(make-lexical-token
 			 'DOT
