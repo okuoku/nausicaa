@@ -27,7 +27,7 @@
 
 (import (nausicaa)
   (infix)
-  (infix syntax)
+  (for (rename (infix syntax) (infix->prefix* ifx)) expand)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -224,7 +224,12 @@
   (check (infix->prefix '(fun (1.1 2)))		=> '(fun 1.1 2))
   (check (infix->prefix '(fun (1 2 3 4)))	=> '(fun 1 2 3 4))
 
+  (check (infix->prefix 'fun '(1 2 3 4))	=> '(fun 1 2 3 4))
+
   (check (infix->prefix '(fun ((1 + a) (sin ( 2 )) 3 4)))
+    => '(fun (+ 1 a) (sin 2) 3 4))
+
+  (check (infix->prefix 'fun '((1 + a) (sin ( 2 )) 3 4))
     => '(fun (+ 1 a) (sin 2) 3 4))
 
   (check
@@ -242,8 +247,12 @@
 	     4))
 
   (check
-      (infix->prefix '(1 + 23e-45 + 678.9e12 * (4113 + +23i) / (sin (545)) + (atan (1 2))))
-    => '(+ (+ (+ 1 23e-45) (/ (* 678.9e12 (+ 4113 +23i)) (sin 545))) (atan 1 2)))
+      (infix->prefix '(1 + 23e-45 + 0.06789e2 * (4113 + +23i) / (sin (0.5)) + (atan (0.1 0.2))))
+    => '(+ (+ (+ 1 23e-45) (/ (* 0.06789e2 (+ 4113 +23i)) (sin 0.5))) (atan 0.1 0.2)))
+
+  (check
+      (infix->prefix 1 '+ 23e-4 '+ 0.006789e2 '* '(4113 + +23i) '/ 'sin '(0.5) '+ 'atan '(0.1 0.2))
+    => '(+ (+ (+ 1 23e-4) (/ (* 0.006789e2 (+ 4113 +23i)) (sin 0.5))) (atan 0.1 0.2)))
 
   (check (infix->prefix '(1 < 3))	=> '(<  1 3))
   (check (infix->prefix '(1 > 3))	=> '(>  1 3))
@@ -267,98 +276,98 @@
 
 ;;; integers
 
-  (check (infix->prefix* 1)	=> 1)
-  (check (infix->prefix* -1)	=> -1)
-  (check (infix->prefix* +1)	=> 1)
+  (check (ifx 1)	=> 1)
+  (check (ifx -1)	=> -1)
+  (check (ifx +1)	=> 1)
 
 ;;; reals
 
-  (check (infix->prefix* 1.1)		=> 1.1)
-  (check (infix->prefix* -1.1)		=> -1.1)
-  (check (infix->prefix* +1.1)		=> +1.1)
-  (check (infix->prefix* 1.1e10)	=> 1.1e10)
-  (check (infix->prefix* 1.1E10)	=> 1.1e10)
-  (check (infix->prefix* 1.1e-10)	=> 1.1e-10)
-  (check (infix->prefix* 1.1E-10)	=> 1.1e-10)
-  (check (infix->prefix* 1e10)		=> 1e10)
-  (check (infix->prefix* 1E10)		=> 1e10)
-  (check (infix->prefix* 1e-10)		=> 1e-10)
-  (check (infix->prefix* 1E-10)		=> 1e-10)
+  (check (ifx 1.1)	=> 1.1)
+  (check (ifx -1.1)	=> -1.1)
+  (check (ifx +1.1)	=> +1.1)
+  (check (ifx 1.1e10)	=> 1.1e10)
+  (check (ifx 1.1E10)	=> 1.1e10)
+  (check (ifx 1.1e-10)	=> 1.1e-10)
+  (check (ifx 1.1E-10)	=> 1.1e-10)
+  (check (ifx 1e10)	=> 1e10)
+  (check (ifx 1E10)	=> 1e10)
+  (check (ifx 1e-10)	=> 1e-10)
+  (check (ifx 1E-10)	=> 1e-10)
 
-  (check (infix->prefix* .0)	=> 0.0)
-  (check (infix->prefix* -.0)	=> -0.0)
-  (check (infix->prefix* 0.)	=> 0.0)
+  (check (ifx .0)	=> 0.0)
+  (check (ifx -.0)	=> -0.0)
+  (check (ifx 0.)	=> 0.0)
 
 ;;; complexes
 
-  (check (infix->prefix* +1i)	=> +1i)
-  (check (infix->prefix* -1i)	=> -1i)
-  (check (infix->prefix* +1.1i)	=> +1.1i)
-  (check (infix->prefix* -1.1i)	=> -1.1i)
-  (check (infix->prefix* +.1i)	=> +0.1i)
-  (check (infix->prefix* -.1i)	=> -0.1i)
+  (check (ifx +1i)	=> +1i)
+  (check (ifx -1i)	=> -1i)
+  (check (ifx +1.1i)	=> +1.1i)
+  (check (ifx -1.1i)	=> -1.1i)
+  (check (ifx +.1i)	=> +0.1i)
+  (check (ifx -.1i)	=> -0.1i)
 
 ;;; nan and infinity
 
-  (check (infix->prefix* +nan.0)	=> +nan.0)
-  (check (infix->prefix* -nan.0)	=> +nan.0)
-  (check (infix->prefix* +inf.0)	=> +inf.0)
-  (check (infix->prefix* -inf.0)	=> -inf.0)
+  (check (ifx +nan.0)	=> +nan.0)
+  (check (ifx -nan.0)	=> +nan.0)
+  (check (ifx +inf.0)	=> +inf.0)
+  (check (ifx -inf.0)	=> -inf.0)
 
 ;;; arithmetic operators
 
-  (check (infix->prefix* 1 + 2)		=> (+ 1 2))
-  (check (infix->prefix* (1 + 2 + 3))	=> (+ (+ 1 2) 3))
-  (check (infix->prefix* (1 + 2 - 3))	=> (- (+ 1 2) 3))
-  (check (infix->prefix* (1 + (2 + 3)))	=> (+ 1 (+ 2 3)))
-  (check (infix->prefix* (1 + (2 - 3)))	=> (+ 1 (- 2 3)))
+  (check (ifx 1 + 2)		=> (+ 1 2))
+  (check (ifx 1 + 2 + 3)	=> (+ (+ 1 2) 3))
+  (check (ifx 1 + 2 - 3)	=> (- (+ 1 2) 3))
+  (check (ifx 1 + (2 + 3))	=> (+ 1 (+ 2 3)))
+  (check (ifx 1 + (2 - 3))	=> (+ 1 (- 2 3)))
 
-  (check (infix->prefix* (1 * 1))	=> (* 1 1))
-  (check (infix->prefix* (1 * 2 * 3))	=> (* (* 1 2) 3))
-  (check (infix->prefix* (1 * 2 / 3))	=> (/ (* 1 2) 3))
-  (check (infix->prefix* (1 * (2 * 3)))	=> (* 1 (* 2 3)))
-  (check (infix->prefix* (1 * (2 / 3)))	=> (* 1 (/ 2 3)))
+  (check (ifx 1 * 1)		=> (* 1 1))
+  (check (ifx 1 * 2 * 3)	=> (* (* 1 2) 3))
+  (check (ifx 1 * 2 / 3)	=> (/ (* 1 2) 3))
+  (check (ifx 1 * (2 * 3))	=> (* 1 (* 2 3)))
+  (check (ifx 1 * (2 / 3))	=> (* 1 (/ 2 3)))
 
-  (check (infix->prefix* (1 + 2 * 3))	=> (+ 1 (* 2 3)))
-  (check (infix->prefix* (1 - 2 * 3))	=> (- 1 (* 2 3)))
-  (check (infix->prefix* (1 + 2 / 3))	=> (+ 1 (/ 2 3)))
-  (check (infix->prefix* (1 - 2 / 3))	=> (- 1 (/ 2 3)))
+  (check (ifx 1 + 2 * 3)	=> (+ 1 (* 2 3)))
+  (check (ifx 1 - 2 * 3)	=> (- 1 (* 2 3)))
+  (check (ifx 1 + 2 / 3)	=> (+ 1 (/ 2 3)))
+  (check (ifx 1 - 2 / 3)	=> (- 1 (/ 2 3)))
 
-  (check (infix->prefix* (1 * 2 + 3))	=> (+ (* 1 2) 3))
-  (check (infix->prefix* (1 * 2 - 3))	=> (- (* 1 2) 3))
-  (check (infix->prefix* (1 / 2 + 3))	=> (+ (/ 1 2) 3))
-  (check (infix->prefix* (1 / 2 - 3))	=> (- (/ 1 2) 3))
+  (check (ifx 1 * 2 + 3)	=> (+ (* 1 2) 3))
+  (check (ifx 1 * 2 - 3)	=> (- (* 1 2) 3))
+  (check (ifx 1 / 2 + 3)	=> (+ (/ 1 2) 3))
+  (check (ifx 1 / 2 - 3)	=> (- (/ 1 2) 3))
 
-  (check (infix->prefix* (1 // 3))	=> (div 1 3))
-  (check (infix->prefix* (1 % 3))	=> (mod 1 3))
-  (check (infix->prefix* (1 ^ 3))	=> (expt 1 3))
+  (check (ifx 1 // 3)		=> (div 1 3))
+  (check (ifx 1 % 3)		=> (mod 1 3))
+  (check (ifx 1 ^ 3)		=> (expt 1 3))
 
 ;;; functions
 
-  (check (infix->prefix* (sin (1.1)))	=> (sin 1.1))
+  (check (ifx sin (1.1))		=> (sin 1.1))
 
-  (check (infix->prefix* (cos (sin (1.1))))	=> (cos (sin 1.1)))
-  (check (infix->prefix* (cos (sin (1.1) + 4)))	=> (cos (+ (sin 1.1) 4)))
+  (check (ifx cos (sin (1.1)))		=> (cos (sin 1.1)))
+  (check (ifx cos (sin (1.1) + 4))	=> (cos (+ (sin 1.1) 4)))
 
   (check
-      (infix->prefix* (1 + 23e-45 + 678.9e12 * (4113 + +23i) / (sin (545)) + (atan (1 2))))
-    => (+ (+ (+ 1 23e-45) (/ (* 678.9e12 (+ 4113 +23i)) (sin 545))) (atan 1 2)))
+      (ifx 1 + 23e-45 + 0.006789e2 * (4.113 + +23i) / sin (0.5) + atan (0.1 0.2))
+    => (+ (+ (+ 1 23e-45) (/ (* 0.006789e2 (+ 4.113 +23i)) (sin 0.5))) (atan 0.1 0.2)))
 
-  (check (infix->prefix* (1 < 3))	=> (<  1 3))
-  (check (infix->prefix* (1 > 3))	=> (>  1 3))
-  (check (infix->prefix* (1 <= 3))	=> (<= 1 3))
-  (check (infix->prefix* (1 >= 3))	=> (>= 1 3))
-  (check (infix->prefix* (1 = 3))	=> (=  1 3))
+  (check (ifx 1 < 3)	=> (<  1 3))
+  (check (ifx 1 > 3)	=> (>  1 3))
+  (check (ifx 1 <= 3)	=> (<= 1 3))
+  (check (ifx 1 >= 3)	=> (>= 1 3))
+  (check (ifx 1 = 3)	=> (=  1 3))
 
 ;;; variables
 
   (let ((a 1) (b 2) (c 3))
-    (check (infix->prefix* (a * 1.1))		=> (* a 1.1))
-    (check (infix->prefix* ((a * b) / c))	=> (/ (* a b) c))
-    (check (infix->prefix* (a * (b / c)))	=> (* a (/ b c)))
+    (check (ifx a * 1.1)	=> (* a 1.1))
+    (check (ifx (a * b) / c)	=> (/ (* a b) c))
+    (check (ifx a * (b / c))	=> (* a (/ b c)))
 
-    (check (infix->prefix* ((cos (a)) * ((tan (b)) / c)))
-      => (* (cos a) (/ (tan b) c))))
+    (check (ifx cos (a) * tan (b) / c)
+      => (/ (* (cos a) (tan b)) c)))
 
   #t)
 

@@ -71,7 +71,7 @@
     (parser lexer error-handler #f)))
 
 
-(define (infix->prefix sexp)
+(define (infix->prefix . sexp)
   (let* ((tokens	(infix-sexp->tokens sexp))
 	 (lexer		(lambda ()
 			  (if (null? tokens)

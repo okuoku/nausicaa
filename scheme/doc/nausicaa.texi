@@ -41596,7 +41596,7 @@ second component is the rest of @var{token-list}.
 
 The @library{infix} and @library{infix syntax} libraries provide
 utilities to convert infix notation expressions to prefix notation
-expressions.  The library is built upon @library{silex lexer} and
+expressions.  The libraries are built upon @library{silex lexer} and
 @library{lalr lr-driver}.
 
 @menu
@@ -41679,52 +41679,104 @@ the symbol is an open parenthesis, it is interpreted as function call.
 
 The function @func{infix->prefix} is exported by @library{infix}, but
 the macro @func{infix->prefix*} is exported by @library{infix syntax}.
-
-
-@defun infix->prefix @var{sexp}
-Convert the infix S--expression @var{sexp} into a prefix S--expression.
-The S--expression can be used directly for some symbolic interpretation
-or evaluated with @func{eval}.  @ref{stdlib eval, Evaluation}
-
-Examples:
+When there is no conflict, it is friendly to import these bindings with:
 
 @example
-(infix->prefix '(1 + 2 + 3))    @result{} '(+ (+ 1 2) 3))
-(infix->prefix '(1 + 2 - 3))    @result{} '(- (+ 1 2) 3))
-(infix->prefix '(1 + (2 + 3)))  @result{} '(+ 1 (+ 2 3)))
-(infix->prefix '(1 + (2 - 3)))  @result{} '(+ 1 (- 2 3)))
+(import (rnrs)
+  (rename (infix)        (infix->prefix  infix))
+  (rename (infix syntax) (infix->prefix* infix*)))
+@end example
+
+@noindent
+or shorter:
+
+@example
+(import (rnrs)
+  (rename (infix)        (infix->prefix  ifx))
+  (rename (infix syntax) (infix->prefix* ifx*)))
+@end example
+
+@noindent
+consider that often only @library{infix syntax} is needed at expansion
+time:
+
+@example
+(import (rnrs)
+  (for (rename (infix syntax) (infix->prefix* ifx)) expand))
+@end example
+
+
+@defun infix->prefix @var{sexp-atom} ...
+Convert the infix S--expression composed of the sequence of
+@var{sexp-atom} arguments into a prefix S--expression.  The
+S--expression can be used directly for some symbolic interpretation or
+evaluated with @func{eval}.  @ref{stdlib eval, Evaluation}
+
+The simplest way to use the function is to apply it to a single
+S--expression:
+
+@example
+(infix->prefix '(1 + 2 + 3))    @result{} '(+ (+ 1 2) 3)
+(infix->prefix '(1 + 2 - 3))    @result{} '(- (+ 1 2) 3)
+(infix->prefix '(1 + (2 + 3)))  @result{} '(+ 1 (+ 2 3))
+(infix->prefix '(1 + (2 - 3)))  @result{} '(+ 1 (- 2 3))
 
 (infix->prefix '(cos (sin (1.1))))
-@result{} '(cos (sin 1.1)))
+@result{} '(cos (sin 1.1))
 
 (infix->prefix '(cos (sin (1.1) + 4)))
-@result{} '(cos (+ (sin 1.1) 4)))
+@result{} '(cos (+ (sin 1.1) 4))
 
 (infix->prefix '(fun (1.1 2)))
-@result{} '(fun 1.1 2))
+@result{} '(fun 1.1 2)
 
 (infix->prefix '(fun (1 2 3 4)))
-@result{} '(fun 1 2 3 4))
+@result{} '(fun 1 2 3 4)
+@end example
+
+@noindent
+while applying it to multiple arguments looks like:
+
+@example
+(infix->prefix 1 '+ 2 '+ 3)     @result{} '(+ (+ 1 2) 3)
 @end example
 @end defun
 
 
-@deffn Syntax infix->prefix* @var{sexp}
-Like @func{infix->prefix} but evaluates the result on the spot.  The
-syntax allows us to evaluate forms like:
+@deffn Syntax infix->prefix* @var{sexp-atom} ...
+Like @func{infix->prefix} but evaluates the result on the spot, in the
+lexical context of the macro use.  The syntax allows us to evaluate
+forms like:
 
 @example
-(* (cos 1) (/ (tan 2) 3))
+(/ (* (cos a) (tan b)) c)
 @result{} -0.39352735884466783
 
-(let ((a 1)
-      (b 2)
-      (c 3))
-  (infix->prefix* ((cos (a)) * ((tan (b)) / c))))
+(let ((a 1) (b 2) (c 3))
+  (infix->prefix* cos (a) * tan (b) / c))
 @result{} -0.39352735884466783
 @end example
 
 This macro is exported by @library{infix syntax}.
+@end deffn
+
+
+@deffn Syntax infix->prefix*/context @var{context-identifier} @var{sexp-atom} ...
+This is the core of @func{infix->prefix*}; it does the same things, but
+allows the expansion of the expression to take place in the lexical
+context of the identifier @var{context-identifier}, rather than in the
+lexical context of the use of @func{infix->prefix*}.
+
+This syntax is useful to define syntaxes making use of the infix
+transformation; @func{infix->prefix*} itself is implemented as:
+
+@example
+(define-syntax infix->prefix*
+  (lambda (stx)
+    (syntax-case stx ()
+       ((k . ?infix)
+       (syntax (infix->prefix*/context k ?infix))))))
+@end example
 @end deffn
 
 

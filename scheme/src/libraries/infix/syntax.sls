@@ -25,7 +25,7 @@
 ;;;
 
 (library (infix syntax)
-  (export infix->prefix*)
+  (export infix->prefix* infix->prefix*/context)
   (import (rnrs)
     (for (infix) expand))
 
@@ -33,9 +33,22 @@
     (lambda (stx)
       (syntax-case stx ()
 	((k . ?infix)
-	 (let ((prefix (infix->prefix (syntax->datum (syntax ?infix)))))
-	   (with-syntax ((?prefix (datum->syntax (syntax k) prefix)))
-	     (syntax ?prefix)))))))
+	 (syntax (infix->prefix*/context k ?infix))))))
+
+  (define-syntax infix->prefix*/context
+    (lambda (stx)
+      (syntax-case stx ()
+	((k ?context-identifier . ?infix)
+	 (datum->syntax (syntax ?context-identifier)
+			(infix->prefix (syntax->datum (syntax ?infix))))))))
+
+;;   (define-syntax infix->prefix*
+;;     (lambda (stx)
+;;       (syntax-case stx ()
+;; 	((k . ?infix)
+;; 	 (let ((prefix (infix->prefix (syntax->datum (syntax ?infix)))))
+;; 	   (with-syntax ((?prefix (datum->syntax (syntax k) prefix)))
+;; 	     (syntax ?prefix)))))))
   )
 
 ;;; end of file
