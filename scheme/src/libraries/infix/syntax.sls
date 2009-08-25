@@ -41,14 +41,6 @@
 	((k ?context-identifier . ?infix)
 	 (datum->syntax (syntax ?context-identifier)
 			(infix->prefix (syntax->datum (syntax ?infix))))))))
-
-;;   (define-syntax infix->prefix*
-;;     (lambda (stx)
-;;       (syntax-case stx ()
-;; 	((k . ?infix)
-;; 	 (let ((prefix (infix->prefix (syntax->datum (syntax ?infix)))))
-;; 	   (with-syntax ((?prefix (datum->syntax (syntax k) prefix)))
-;; 	     (syntax ?prefix)))))))
   )
 
 ;;; end of file

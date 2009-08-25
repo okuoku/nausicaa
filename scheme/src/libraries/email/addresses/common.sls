@@ -99,6 +99,14 @@
 	  (set! ch (string-ref string i)))
 	(put-char port ch)))))
 
+(define (display-name->string display-name)
+  ;;Return  a   string  representation  of   DISPLAY-NAME  suitable  for
+  ;;composing a string representation of address.
+  ;;
+  (if (string-any #\, display-name)
+      (string-append %double-quote-string display-name %double-quote-string)
+    display-name))
+
 
 ;;;; address domain record
 
@@ -246,7 +254,7 @@
     (mailbox-write self (current-output-port)))
    ((self port)
     (display "(make-mailbox " port)
-    (write (mailbox-display-name self) port)
+    (write (display-name->string (mailbox-display-name self)) port)
     (display %space-string port)
     (let ((route (mailbox-route self)))
       (when route
@@ -258,9 +266,7 @@
 (define (mailbox->string self)
   (let ((display-name (mailbox-display-name self)))
     (string-append (if display-name
-		       (string-append %double-quote-string
-				      display-name
-				      %double-quote-string
+		       (string-append (display-name->string display-name)
 				      %space-string)
 		     %empty-string)
 		   %open-angle-string
@@ -294,20 +300,19 @@
     (group-display self (current-output-port)))
    ((self port)
     (display "(make-group " port)
-    (write (group-display-name self) port)
+    (write (display-name->string (group-display-name self)) port)
     (map (lambda (mbox)
 	   (mailbox-write mbox port)
 	   (newline port))
       (group-mailboxes self))
-    (display %close-angle-string port))))
+    (display ")" port))))
 
 (define (group->string self)
-  (string-append %double-quote-string
-		 (group-display-name self)
-		 %double-quote-string
-		 %space-string %colon-string
+  (string-append (display-name->string (group-display-name self))
+		 %colon-string %space-string
 		 (string-join (map mailbox->string (group-mailboxes self)) ", ")
-		 %colon-string))
+		 %semicolon-string))
+
 
 ;;;; done
 

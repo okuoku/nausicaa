@@ -70,8 +70,8 @@
     (email addresses domain-literals-lexer)
     (email addresses lexer)
     (email addresses parser)
-    (parameters)
-    (debugging))
+;;;    (debugging)
+    (parameters))
 
 
 ;;;; helpers
@@ -90,9 +90,7 @@
 	(dispatchers	'()))
 
     (define (main-dispatch lexer)
-      (debug "main-dispatch enter")
       (let ((token (lexer)))
-	(debug "main-dispactch token: ~s" token)
 	(case (lexical-token-category token)
 	  ((QUOTED-TEXT-OPEN)
 	   (lex-quoted-text-token IS token))
@@ -174,7 +172,6 @@
 
     (set! dispatchers (list main-dispatch))
     (lambda ()
-      (debug "enter lexer")
       ((car dispatchers) (car lexers)))))
 
 (define address-lexer-allows-comments

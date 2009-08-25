@@ -18,81 +18,83 @@
   (import (rnrs) (lalr lr-driver) (lalr common) (sentinel) (email addresses common) (strings))
   (define (make-address-parser)
     (lr-driver
-      '#(((*default* . -34) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2) (ATOM . 3))
-         ((*default* . -31))
+      '#(((*default* . -36) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2) (ATOM . 3))
+         ((*default* . -33))
          ((*default* . *error*) (AT . 13) (ATOM . 12))
-         ((*default* . -34) (DOT . 17) (ATOM . 16) (AT . -29))
+         ((*default* . -36) (DOT . 17) (ATOM . 16) (AT . -31))
+         ((*default* . -34))
          ((*default* . -32))
-         ((*default* . -30))
          ((*default* . *error*) (COLON . 21) (ANGLE-OPEN . 20))
          ((*default* . *error*) (AT . 22))
-         ((*default* . -12))
-         ((*default* . -6) (COMMA . 23))
-         ((*default* . -6) (COMMA . 23))
+         ((*default* . -18))
+         ((*default* . -7) (COMMA . 23))
+         ((*default* . -7) (COMMA . 23))
          ((*default* . *error*) (*eoi* . 26))
-         ((*default* . -29) (DOT . 17))
+         ((*default* . -31) (DOT . 17))
          ((*default* . *error*) (DOMAIN . 27))
          ((*default* . *error*) (ANGLE-CLOSE . 28))
          ((*default* . *error*) (COLON . 29))
-         ((*default* . -34) (ATOM . 16))
+         ((*default* . -36) (ATOM . 16))
          ((*default* . *error*) (ATOM . 30))
-         ((*default* . -33))
-         ((*default* . -27))
+         ((*default* . -35))
+         ((*default* . -29))
          ((*default* . *error*) (AT . 13) (ATOM . 12))
-         ((*default* . -34) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2) (ATOM . 3) (SEMICOLON . 33))
+         ((*default* . -36) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2) (ATOM . 3) (SEMICOLON . 33))
          ((*default* . *error*) (ATOM . 38) (DOMAIN-LITERAL-OPEN . 37))
-         ((*default* . -34) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2) (ATOM . 3))
+         ((*default* . -7) (COMMA . 23) (ATOM . 3) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2) (COLON . -36))
          ((*default* . -3))
          ((*default* . -2))
          ((*default* . -1) (*eoi* . accept))
-         ((*default* . -19) (COMMA . 44))
-         ((*default* . -13))
-         ((*default* . *error*) (ATOM . 12))
-         ((*default* . -29) (DOT . 17))
-         ((*default* . *error*) (ANGLE-CLOSE . 48))
-         ((*default* . *error*) (COLON . 49))
-         ((*default* . -7))
-         ((*default* . *error*) (ANGLE-OPEN . 20))
-         ((*default* . -11) (COMMA . 50))
-         ((*default* . *error*) (SEMICOLON . 52))
-         ((*default* . *error*) (DOMAIN-LITERAL-INTEGER . 53))
-         ((*default* . -25) (DOT . 54))
-         ((*default* . -22))
-         ((*default* . -21))
-         ((*default* . -20))
-         ((*default* . -6) (COMMA . 23))
-         ((*default* . -6) (COMMA . 23))
-         ((*default* . *error*) (AT . 58))
+         ((*default* . -21) (COMMA . 45))
          ((*default* . -17))
-         ((*default* . *error*) (ANGLE-CLOSE . 59))
-         ((*default* . -28))
+         ((*default* . *error*) (ATOM . 12))
+         ((*default* . -31) (DOT . 17))
+         ((*default* . *error*) (ANGLE-CLOSE . 49))
+         ((*default* . *error*) (COLON . 50))
+         ((*default* . -8))
+         ((*default* . *error*) (ANGLE-OPEN . 20))
+         ((*default* . -13) (COMMA . 51))
+         ((*default* . *error*) (SEMICOLON . 53))
+         ((*default* . *error*) (DOMAIN-LITERAL-INTEGER . 54))
+         ((*default* . -27) (DOT . 55))
+         ((*default* . -24))
+         ((*default* . -23))
+         ((*default* . -22))
+         ((*default* . -7) (COMMA . 23))
+         ((*default* . -7) (COMMA . 23))
+         ((*default* . -6))
+         ((*default* . *error*) (AT . 59))
+         ((*default* . -19))
+         ((*default* . *error*) (ANGLE-CLOSE . 60))
+         ((*default* . -30))
          ((*default* . -15))
          ((*default* . *error*) (ATOM . 12))
-         ((*default* . -34) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2) (ATOM . 3))
+         ((*default* . -13) (COMMA . 51) (ATOM . 3) (QUOTED-TEXT . 1) (ANGLE-OPEN . 2))
+         ((*default* . -10))
          ((*default* . -9))
-         ((*default* . -8))
-         ((*default* . *error*) (DOT . 62))
-         ((*default* . *error*) (ATOM . 63))
-         ((*default* . -23))
+         ((*default* . *error*) (DOT . 64))
+         ((*default* . *error*) (ATOM . 65))
+         ((*default* . -25))
          ((*default* . -5))
          ((*default* . -4))
-         ((*default* . *error*) (DOMAIN . 64))
-         ((*default* . -14))
-         ((*default* . *error*) (ANGLE-CLOSE . 65))
-         ((*default* . -11) (COMMA . 50))
-         ((*default* . *error*) (DOMAIN-LITERAL-INTEGER . 67))
-         ((*default* . -25) (DOT . 54))
-         ((*default* . -19) (COMMA . 44))
+         ((*default* . *error*) (DOMAIN . 66))
          ((*default* . -16))
-         ((*default* . -10))
-         ((*default* . *error*) (DOT . 70))
-         ((*default* . -24))
-         ((*default* . -18))
-         ((*default* . *error*) (DOMAIN-LITERAL-INTEGER . 71))
+         ((*default* . *error*) (ANGLE-CLOSE . 67))
+         ((*default* . -13) (COMMA . 51))
+         ((*default* . -12))
+         ((*default* . *error*) (DOMAIN-LITERAL-INTEGER . 69))
+         ((*default* . -27) (DOT . 55))
+         ((*default* . -21) (COMMA . 45))
+         ((*default* . -14))
+         ((*default* . -11))
          ((*default* . *error*) (DOT . 72))
+         ((*default* . -26))
+         ((*default* . -20))
          ((*default* . *error*) (DOMAIN-LITERAL-INTEGER . 73))
-         ((*default* . *error*) (DOMAIN-LITERAL-CLOSE . 74))
-         ((*default* . -26)))
+         ((*default* . *error*) (DOT . 74))
+         ((*default* . *error*) (DOMAIN-LITERAL-INTEGER . 75))
+         ((*default* . *error*) (DOMAIN-LITERAL-CLOSE . 76))
+         ((*default* . -28)))
       (vector
         '((18 . 4) (17 . 5) (16 . 6) (14 . 7) (9 . 8) (6 . 9) (3 . 10) (1 . 11))
         '()
@@ -117,48 +119,50 @@
         '((14 . 7) (9 . 31) (7 . 32))
         '((18 . 4) (17 . 5) (16 . 34) (14 . 7) (9 . 8) (6 . 35) (4 . 36))
         '((13 . 39) (11 . 40) (10 . 41))
-        '((18 . 4) (17 . 5) (16 . 6) (14 . 7) (9 . 8) (6 . 42) (3 . 43))
+        '((18 . 4) (17 . 5) (16 . 6) (14 . 7) (9 . 8) (6 . 42) (3 . 43) (2 . 44))
         '()
         '()
         '()
-        '((8 . 45))
+        '((8 . 46))
         '()
-        '((14 . 7) (9 . 46))
-        '((15 . 47))
-        '()
-        '()
-        '()
-        '()
-        '((5 . 51))
-        '()
-        '()
-        '((12 . 55))
+        '((14 . 7) (9 . 47))
+        '((15 . 48))
         '()
         '()
         '()
-        '((2 . 56))
+        '()
+        '((5 . 52))
+        '()
+        '()
+        '((12 . 56))
+        '()
+        '()
+        '()
         '((2 . 57))
-        '()
-        '()
-        '()
-        '()
-        '()
-        '((14 . 7) (9 . 60))
-        '((18 . 4) (17 . 5) (16 . 34) (14 . 7) (9 . 8) (6 . 61))
+        '((2 . 58))
         '()
         '()
         '()
         '()
         '()
         '()
+        '((14 . 7) (9 . 61))
+        '((18 . 4) (17 . 5) (16 . 34) (14 . 7) (9 . 8) (6 . 62) (5 . 63))
         '()
         '()
         '()
         '()
-        '((5 . 66))
         '()
-        '((12 . 68))
-        '((8 . 69))
+        '()
+        '()
+        '()
+        '()
+        '()
+        '((5 . 68))
+        '()
+        '()
+        '((12 . 70))
+        '((8 . 71))
         '()
         '()
         '()
@@ -197,6 +201,8 @@
                   .
                   yy-stack-values)
           (yy-reduce-pop-and-push 3 2 (cons $2 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 2 $2 yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states . yy-stack-values)
           (yy-reduce-pop-and-push 0 2 '() yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push
@@ -219,7 +225,7 @@
                   $1
                   .
                   yy-stack-values)
-          (yy-reduce-pop-and-push 4 3 (make-group $1 $2) yy-stack-states yy-stack-values))
+          (yy-reduce-pop-and-push 4 3 (make-group $1 $3) yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
           (yy-reduce-pop-and-push 2 4 (cons $1 $2) yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push
@@ -231,21 +237,35 @@
                   $1
                   .
                   yy-stack-values)
-          (yy-reduce-pop-and-push 3 5 (cons $1 $2) yy-stack-states yy-stack-values))
+          (yy-reduce-pop-and-push 3 5 (cons $2 $3) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 2 5 $2 yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states . yy-stack-values)
           (yy-reduce-pop-and-push 0 5 '() yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 1 6 (make-mailbox #f #f $1) yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push
                   yypushback
                   yycustom
                   yy-stack-states
+                  $6
+                  $5
+                  $4
                   $3
                   $2
                   $1
                   .
                   yy-stack-values)
-          (yy-reduce-pop-and-push 3 6 (make-mailbox #f #f $2) yy-stack-states yy-stack-values))
+          (yy-reduce-pop-and-push 6 6 (make-mailbox $1 $3 $5) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push
+                  yypushback
+                  yycustom
+                  yy-stack-states
+                  $4
+                  $3
+                  $2
+                  $1
+                  .
+                  yy-stack-values)
+          (yy-reduce-pop-and-push 4 6 (make-mailbox $1 #f $3) yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push
                   yypushback
                   yycustom
@@ -262,26 +282,14 @@
                   yypushback
                   yycustom
                   yy-stack-states
-                  $4
                   $3
                   $2
                   $1
                   .
                   yy-stack-values)
-          (yy-reduce-pop-and-push 4 6 (make-mailbox $1 #f $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-                  yypushback
-                  yycustom
-                  yy-stack-states
-                  $6
-                  $5
-                  $4
-                  $3
-                  $2
-                  $1
-                  .
-                  yy-stack-values)
-          (yy-reduce-pop-and-push 6 6 (make-mailbox $1 $3 $5) yy-stack-states yy-stack-values))
+          (yy-reduce-pop-and-push 3 6 (make-mailbox #f #f $2) yy-stack-states yy-stack-values))
+        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
+          (yy-reduce-pop-and-push 1 6 (make-mailbox #f #f $1) yy-stack-states yy-stack-values))
         (lambda (yy-reduce-pop-and-push
                   yypushback
                   yycustom

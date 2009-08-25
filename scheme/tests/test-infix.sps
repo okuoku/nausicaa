@@ -27,7 +27,7 @@
 
 (import (nausicaa)
   (infix)
-  (for (rename (infix syntax) (infix->prefix* ifx)) expand)
+  (rename (infix syntax) (infix->prefix* ifx))
   (checks))
 
 (check-set-mode! 'report-failed)

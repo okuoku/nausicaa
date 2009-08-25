@@ -81,6 +81,7 @@
 						: (cons $2 $3)
 			(COMMA mailbox address-rest)
 						: (cons $2 $3)
+			(COMMA address-rest)	: $2
 			()			: '())
 
 ;;; --------------------------------------------------------------------
@@ -88,27 +89,29 @@
    (group		(display-name COLON SEMICOLON)
 						: (make-group $1 '())
 			(display-name COLON mailbox-list SEMICOLON)
-						: (make-group $1 $2))
+						: (make-group $1 $3))
 
 ;;; --------------------------------------------------------------------
 
    (mailbox-list	(mailbox mailbox-list-rest)
 						: (cons $1 $2))
    (mailbox-list-rest	(COMMA mailbox mailbox-list-rest)
-						: (cons $1 $2)
+						: (cons $2 $3)
+			(COMMA mailbox-list-rest)
+						: $2
 			()			: '())
 
 ;;; --------------------------------------------------------------------
 
-   (mailbox		(addr-spec)		: (make-mailbox #f #f $1)
-			(ANGLE-OPEN addr-spec ANGLE-CLOSE)
-						: (make-mailbox #f #f $2)
-			(ANGLE-OPEN route COLON addr-spec ANGLE-CLOSE)
-						: (make-mailbox #f $2 $4)
+   (mailbox		(display-name ANGLE-OPEN route COLON addr-spec ANGLE-CLOSE)
+						: (make-mailbox $1 $3 $5)
 			(display-name ANGLE-OPEN addr-spec ANGLE-CLOSE)
 						: (make-mailbox $1 #f $3)
-			(display-name ANGLE-OPEN route COLON addr-spec ANGLE-CLOSE)
-						: (make-mailbox $1 $3 $5))
+			(ANGLE-OPEN route COLON addr-spec ANGLE-CLOSE)
+						: (make-mailbox #f $2 $4)
+			(ANGLE-OPEN addr-spec ANGLE-CLOSE)
+						: (make-mailbox #f #f $2)
+			(addr-spec)		: (make-mailbox #f #f $1))
 
 ;;; --------------------------------------------------------------------
 

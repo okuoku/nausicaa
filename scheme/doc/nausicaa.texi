@@ -41697,13 +41697,7 @@ or shorter:
 @end example
 
 @noindent
-consider that often only @library{infix syntax} is needed at expansion
-time:
-
-@example
-(import (rnrs)
-  (for (rename (infix syntax) (infix->prefix* ifx)) expand))
-@end example
+consider that often only @library{infix syntax} is needed.
 
 
 @defun infix->prefix @var{sexp-atom} ...
