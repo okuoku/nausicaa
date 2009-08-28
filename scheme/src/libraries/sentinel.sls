@@ -23,14 +23,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
+#!r6rs
 (library (sentinel)
-  (export sentinel sentinel?)
+  (export sentinel sentinel? make-sentinel)
   (import (rnrs))
-  (define-record-type (:sentinel :sentinel-make sentinel?)
+  (define-record-type (:sentinel make-sentinel sentinel?)
     (opaque #t)
     (sealed #t)
     (nongenerative))
-  (define sentinel (:sentinel-make)))
+  (define sentinel (make-sentinel)))
 
 ;;; end of file

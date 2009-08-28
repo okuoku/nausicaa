@@ -66,6 +66,19 @@
 	    (loop (cons v res))))))
   => '(5 4 3 2 1))
 
+(let ((s (make-sentinel)))
+  (check
+      (sentinel? s)
+    => #t)
+
+  (check
+      (eq? s s)
+    => #t)
+
+  (check
+      (eq? s sentinel)
+    => #f))
+
 
 ;;;; done
 
