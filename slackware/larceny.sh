@@ -76,7 +76,7 @@ pkglibexecdir=${DESTDIR}${prefix}/libexec/${NAME}/${VERSION}
 ## Building.
 
 if false ; then
-    export LARCENYLIBPATH=
+    export LARCENY_LIBPATH=
     echo "
 (load \"setup.sch\")
 (setup 'scheme: 'larceny 'host: 'linux86 'sassy 'string-rep: 'flat4)
