@@ -72,6 +72,15 @@
     => '(1 2 #\c 4))
 
   (check
+      (let-keywords '() #f
+		    ((a :a #\a)
+		     (b :b #\b)
+		     (c :c #\c)
+		     (d :d #\d))
+	(list a b c d))
+    => '(#\a #\b #\c #\d))
+
+  (check
       (let-keywords (list :a 1 :b 2 :k 999 :d 4) #t
 	  ((a :a #\a)
 	   (b :b #\b)
