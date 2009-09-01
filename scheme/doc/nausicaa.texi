@@ -463,6 +463,7 @@ More libraries
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
 * scmobj::                      A simple object system.
+* sexp::                        Handling symbolic expressions.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * silex::                       A lexical analyser generator.
@@ -1194,7 +1195,6 @@ Parsing email addresses
 
 Object classes
 
-* email addresses elements::            Elements.
 * email addresses domain::              Domain.
 * email addresses local-part::          Local part.
 * email addresses addr-spec::           Address specification.
@@ -11580,7 +11580,8 @@ returns @false{}, then @func{eqv?} returns @false{}.
 
 The syntactic layer is provided by the @rsixlibrary{records syntactic}
 library.  Some details of the specification are explained in terms of
-the specification of the procedural layer below.
+the specification of the procedural layer.  @ref{stdlib records
+procedural layer, Procedural layer}
 
 The record--type--defining form @func{define-record-type} is a
 definition and can appear anywhere any other @meta{definition} can
@@ -12572,7 +12573,7 @@ exception.  Any procedure accepting one argument may serve as an
 exception handler and any object may be used to represent an exception.
 
 The system maintains the current exception handler as part of the
-dynamic environment of the program; @ref{lang basic dynamic extent}.
+dynamic environment of the program (@pref{lang basic dynamic extent}).
 
 When a program begins its execution, the current exception handler is
 expected to handle all @code{&serious} conditions by interrupting
@@ -32741,6 +32742,17 @@ signal the end of the iteration:
 @result{} (5 4 3 2 1)
 @end example
 
+
+@defun make-sentinel
+Return a new sentinel value.  @func{sentinel?} will return @true{} when
+applied to such a value, but new sentinel values are meant to be checked
+with @func{eq?}.
+
+New sentinels can be used in situations where a unique terminator is
+needed: When we need to distinguish @samp{sentinel} from a temporary
+sentinel we need for a specific operation.
+@end defun
+
 @c page
 @node variables
 @chapter Defining storage locations
@@ -33243,11 +33255,6 @@ Class for values that satisfy @func{circular-list?}.
 
 @deftp Class <dotted-list>
 Class for values that satisfy @func{dotted-list?}.
-@end deftp
-
-
-@deftp Class <proper-list>
-Class for values that satisfy @func{proper-list?}.
 @end deftp
 
 @c page
@@ -34352,6 +34359,84 @@ list with classes in the middle at the center:
 @noindent
 then the graph is flattened and visited in preorder.
 @end itemize
+
+@c page
+@node sexp
+@chapter Handling symbolic expressions
+
+
+The @library{sexp} library implements symbolic expressions
+(S--expressions or @dfn{sexp}) matching procedures.
+
+@menu
+* sexp match::                  Plain matching.
+* sexp transform::              Transforming S--expressions.
+@end menu
+
+@c page
+@node sexp match
+@section Plain matching
+
+
+@defun sexp-match @var{pattern} @var{form}
+Recursively match every element in the sexp @var{pattern} with the
+corresponding element in the sexp @var{form}.  Return an alist whose
+entries represent the bindings between variables from @var{pattern} and
+values from @var{form}.
+
+If a mismatch between @var{pattern} and @var{form} is detected, an error
+is raised using the mismatching tokens from @var{pattern} (first) and
+from @var{form} (second) as irritants.
+
+The syntax of @var{pattern} is:
+
+@itemize
+@item
+@samp{?V} matches any expression and binds it to the variable @samp{?V}.
+
+@item
+@samp{(!or E ...)} matches one of the expressions @var{E}.
+
+@item
+@samp{(!and E ...)} matches all of the expressions @var{E}.
+
+@item
+@samp{(!any E)} matches a list of @var{E} repeated any number of times
+or the single atom @var{E}.
+
+@item
+@samp{(!one E)} matches a list of @var{E} repeated one or more times or
+the single atom @var{E}.
+
+@item
+A procedure from @var{pattern} is applied to the token from @var{form}
+and it matches if the result is true.
+
+@item
+Everything else is matched using @func{eqv?}.
+@end itemize
+@end defun
+
+@c page
+@node sexp transform
+@section Transforming S--expressions
+
+
+@defun make-sexp-transformer @var{pattern} @var{output}
+Return a function that takes a sexp, matches it to the @var{pattern}
+sexp, extracts bindings for the variables, and returns a copy of
+@var{output} with the variables substituted by their values.
+
+See @func{sexp-match} for the syntax of @var{pattern}.
+@end defun
+
+
+@defun sexp-substitute-bindings @var{output} @var{bindings-alist}
+Build and return a copy of @var{output} in which the occurrences of the
+keywords in @var{bindings-alist} are substituted with their values.  The
+keywords are meant to be symbols whose first character is @samp{?}.
+@end defun
+
 
 @c page
 @node irregex
@@ -41027,7 +41112,6 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 
 
 @menu
-* email addresses elements::            Elements.
 * email addresses domain::              Domain.
 * email addresses local-part::          Local part.
 * email addresses addr-spec::           Address specification.
@@ -41039,93 +41123,58 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 @end menu
 
 @c page
-@node email addresses elements
-@subsubsection Elements
-
-
-@subsubheading Class definition
-
-
-@deftp {@acronym{GOOPS} class} <elements>
-A wrapper for a list. Elements are stored in reversed order. Public
-slots:
-
-@table @code
-@item ell
-holds the list; the initialisation value is the empty list.
-@end table
-@end deftp
-
-
-@subsubheading Predicates
-
-
-@deffn {Generic Function} null? (@var{o} <elements>)
-Return @true{} if the list is empty.
-@end deffn
-
-
-@subsubheading Adding elements
-
-
-@deffn {Generic Function} append (@var{o} <elements>) (@var{part} <string>)
-Add @var{part} to the beginning of the list.
-@end deffn
-
-
-@deffn {Generic Function} append (@var{o} <elements>) (@var{parts} <list>)
-Invoke @func{append} on @var{o} and each of the elements of
-@var{parts} reversed.
-@end deffn
-
-
-@deffn {Generic Function} append (@var{o} <elements>) (@var{parts} <elements>)
-Add all the elements of @var{parts} to the list in @var{o}.
-@end deffn
-
-
-@subsubheading Getting elements
-
-
-@deffn {Generic Function} elements (@var{o} <elements>)
-Return the list of @var{o} in correct order.
-@end deffn
-
-
-@deffn {Generic Function} string-elements (@var{o} <elements>)
-Return the list of @var{o} in correct order, converting all the elements
-to a string with an invocation to @func{any->string}.
-@end deffn
-
-
-@subsubheading Conversion
-
-
-@deffn {Generic Funcion} any->string (@var{o} <elements>)
-Display @var{o} into a string port (using @func{display}); if the
-resulting string has zero length: return @false{}, else return the
-resulting string.
-@end deffn
-
-@c page
 @node email addresses domain
 @subsubsection Domain
 
 
-@subsubheading Class definition
+@deftp {Record Type} domain
+Represent the domain portion of an address specification.  The fields
+are:
 
+@table @code
+@item literal?
+A boolean, true if the domain is composed of four numeric components.
 
-@deftp {@acronym{GOOPS} class} <domain> (<elements>)
-Holds the list of sub--domain strings.
+@item subdomains
+The list of strings representing the domain components.
+@end table
 @end deftp
 
 
-@subsubheading Output
+@defun domain? @var{obj}
+@defunx domain?/or-false @var{obj}
+Return @true{} if @var{obj} is a record of type @samp{domain}.  The
+@samp{/or-false} variant also returns @true{} if @var{obj} is @false{}.
+@end defun
 
 
-@deffn {Generic Function} display (@var{o} <domain>) (@var{p} <port>)
-Display to @var{p} the string representation of @var{o}: all the strings
-in @var{o} joined with a dot.
+@defun assert-domain? @var{obj}
+@defunx assert-domain?/or-false @var{obj}
+Raise an exception if @var{obj} is not a record of type @samp{domain} or
+the values in the fields are invalid.  The @samp{/or-false} variant
+allows @var{obj} to be @false{}.
+@end defun
+
+
+@deffn domain->string @var{domain}
+Return the string representation of @var{domain}: The subdomain strings
+are joined with a dot; if @var{domain} represents a literal domain
+@end deffn
+
+
+@deffn domain-display @var{domain}
+@deffnx domain-display @var{domain} @var{port}
+Print a string representation of the domain to @var{port} or the current
+output port if @var{port} is not supplied.  The representation is human
+readable and is
+@end deffn
+
+
+@deffn domain-write @var{domain}
+@deffnx domain-write @var{domain} @var{port}
+Print a string representation of the domain to @var{port} or the current
+output port if @var{port} is not supplied.  The representation is such
+that it can be read back with @func{read}.
 @end deffn
 
 @c page
