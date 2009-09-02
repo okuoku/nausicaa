@@ -26,7 +26,8 @@
 
 (import (nausicaa)
   (checks)
-  (sexp))
+  (sexp)
+  (sentinel))
 
 (check-set-mode! 'report-failed)
 (display "*** testing sexp\n")
@@ -34,10 +35,10 @@
 (define-syntax catch-error
   (syntax-rules ()
     ((_ ?form ...)
-     (guard (E ((sexp-mismatch-condition? E)
-		`((message . ,(condition-message      E))
-		  (pattern . ,(condition-sexp-mismatch-pattern E))
-		  (form    . ,(condition-sexp-mismatch-form    E)))))
+     (guard (E ((sexp-mismatch? E)
+		`((message . ,(condition-message     E))
+		  (pattern . ,(sexp-mismatch-pattern E))
+		  (form    . ,(sexp-mismatch-form    E)))))
        ?form ...))))
 
 
@@ -88,7 +89,7 @@
 
 (parameterise ((check-test-name 'var))
 
-  (with-sexp-variables (?v)
+  (let-sexp-variables ((?v 1))
 
     (check
 	(sexp-match `(,(sexp-var ?v))
@@ -177,7 +178,7 @@
   (check (sexp-match `(,(sexp-or* a b c) d) '(b d)) => '())
   (check (sexp-match `(,(sexp-or* a b c) d) '(c d)) => '())
 
-  (with-sexp-variables (?d)
+  (let-sexp-variables ((?d sentinel))
     (check (sexp-match `(,(sexp-or* a b c) ,(sexp-var ?d)) '(a d)) => `((,?d . d)))
     (check (sexp-match `(,(sexp-or* a b c) ,(sexp-var ?d)) '(b d)) => `((,?d . d)))
     (check (sexp-match `(,(sexp-or* a b c) ,(sexp-var ?d)) '(c d)) => `((,?d . d)))
@@ -187,7 +188,7 @@
   (check (sexp-match `(a ,(sexp-or* b1 b2 b3) c) '(a b2 c)) => '())
   (check (sexp-match `(a ,(sexp-or* b1 b2 b3) c) '(a b3 c)) => '())
 
-  (with-sexp-variables (?b2)
+  (let-sexp-variables ((?b2 sentinel))
     ;;Here  "b3" can never  be matched  literally because  "?b2" matches
     ;;everything.
     (check (sexp-match `(a ,(sexp-or 'b1 (sexp-var ?b2) 'b3) c) '(a b1 c)) => `())
@@ -217,9 +218,9 @@
   (check
       ;;The pattern  is the  closure returned by  SEXP-OR, so  we cannot
       ;;include it in the expected result.
-      (guard (E ((sexp-mismatch-condition? E)
-		 `((message . ,(condition-message      E))
-		   (form    . ,(condition-sexp-mismatch-form    E)))
+      (guard (E ((sexp-mismatch? E)
+		 `((message . ,(condition-message  E))
+		   (form    . ,(sexp-mismatch-form E)))
 		 ))
 	(sexp-match `(,(sexp-or)) '()))
     => '((message . "S-expressions mismatch")
@@ -260,7 +261,8 @@
   (check (sexp-match `(,(sexp-and* a a a))       '(a))   => '())
   (check (sexp-match `(,(sexp-and* (a) (a) (a))) '((a))) => '())
 
-  (with-sexp-variables (?x ?y)
+  (let-sexp-variables ((?x sentinel)
+		       (?y sentinel))
     (check
 	(sexp-match `(,(sexp-and 'a (sexp-var ?y)))
 		    '(a))
@@ -334,7 +336,8 @@
   		  '((a) (b) (c) (a) (b) (c) d))
     => '())
 
-  (with-sexp-variables (?a ?b ?c ?d)
+  (let-sexp-variables ((?a sentinel) (?b sentinel)
+		       (?c sentinel) (?d sentinel))
     (check
 	(sexp-match `(doit ,(sexp-any (sexp-or `(alpha ,(sexp-var ?a))
 					       `(beta ,(sexp-any (sexp-or `(delta ,(sexp-var ?b))
@@ -385,7 +388,8 @@
   		  '((a) (b) (c) (a) (b) (c) d))
    => '())
 
-  (with-sexp-variables (?a ?b ?c ?d)
+  (let-sexp-variables ((?a sentinel) (?b sentinel)
+		       (?c sentinel) (?d sentinel))
     (check
 	(sexp-match `(doit ,(sexp-one (sexp-or `(alpha ,(sexp-var ?a))
 					       `(beta ,(sexp-one (sexp-or `(delta ,(sexp-var ?b))
@@ -429,9 +433,40 @@
   #t)
 
 
+(parameterise ((check-test-name 'ops-examples))
+
+  (define (match-nothing form)
+    (values '() form))
+
+  (define (sexp-symbol symbol)
+    (lambda (form)
+      (cond ((null? form)
+	     (sexp-mismatch-error #f symbol form))
+	    ((eq? symbol (car form))
+	     (values '() (cdr form)))
+	    (else
+	     (sexp-mismatch-error #f symbol form)))))
+
+  (check (sexp-match `(a b ,match-nothing) '(a b)) => '())
+  (check (sexp-match `(,match-nothing)     '())    => '())
+
+  (check
+      (sexp-match `(a b ,(sexp-symbol 'alpha))
+		  '(a b alpha))
+    => '())
+
+  (check
+      (sexp-match `(,(sexp-symbol 'alpha) ,(sexp-symbol 'beta))
+		  '(alpha beta))
+    => '())
+
+  #t)
+
+
 (parameterise ((check-test-name 'transform))
 
-  (with-sexp-variables (?a ?b ?c ?d)
+  (let-sexp-variables ((?a sentinel) (?b sentinel)
+		       (?c sentinel) (?d sentinel))
     (let ((f (make-sexp-transformer
 	      `(doit ,(sexp-one (sexp-or `(alpha ,(sexp-var ?a))
 					 `(beta ,(sexp-one (sexp-or `(delta ,(sexp-var ?b))
@@ -462,13 +497,21 @@
 
       #f))
 
-  (with-sexp-variables (?c ?d)
+  (let-sexp-variables ((?c sentinel)
+		       (?d sentinel)
+		       (?e 123))
     (let ((f (make-sexp-transformer `(a (b ,(sexp-var ?c)))
 				    `(out ,?d))))
-      (check
+      (check ;unbound, raise an error
 	  (guard (E (else (condition-message E)))
 	    (f '(a (b 1))))
 	=> "unbound variable \"?d\" in output S-expression"))
+
+    (let ((f (make-sexp-transformer `(a b)
+				    `(out ,?e))))
+      (check ;unbound, use the default
+	  (f '(a b))
+	=> `(out 123)))
 
     (let ((f (make-sexp-transformer `(a ,(sexp-or `(b ,(sexp-var ?c))
 						  `(d ,(sexp-var ?d))))
@@ -486,6 +529,34 @@
 	=> `((message   . "unbound variable \"?d\" in output S-expression")
 	     ;;Remember that the irritants is a list.
 	     (irritants . ((out ,?d)))))))
+
+  (let ()
+
+    (define trans
+      (let-sexp-variables ((?a 10)
+			   (?b 20))
+	(make-sexp-transformer
+	 `(doit ,(sexp-any (sexp-or `(alpha ,(sexp-var ?a))
+				    `(beta  ,(sexp-var ?b)))))
+	 `(doit ,?a ,?b))))
+
+    (check
+	(trans '(doit (alpha 1) (beta 2)))
+      => '(doit 1 2))
+
+    (check
+	(trans '(doit (alpha 1)))
+      => '(doit 1 20))
+
+    (check
+	(trans '(doit (beta 2)))
+      => '(doit 10 2))
+
+    (check
+	(trans '(doit))
+      => '(doit 10 20))
+
+    #f)
 
   #t)
 

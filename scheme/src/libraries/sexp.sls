@@ -34,14 +34,16 @@
     sexp-match sexp-match?
     sexp-var sexp-pred sexp-or sexp-or* sexp-and sexp-and*
     sexp-any sexp-any* sexp-one sexp-one*
-    with-sexp-variables sexp-variable sexp-variable? sexp-variable-name
+    let-sexp-variables sexp-variable sexp-variable?
+    sexp-variable-name sexp-variable-default
     make-sexp-transformer sexp-substitute-bindings
 
     ;; conditions
     sexp-mismatch-error
-    make-sexp-mismatch-condition sexp-mismatch-condition?
-    condition-sexp-mismatch-pattern condition-sexp-mismatch-form)
-  (import (rnrs))
+    &sexp-mismatch make-sexp-mismatch sexp-mismatch?
+    sexp-mismatch-pattern sexp-mismatch-form)
+  (import (rnrs)
+    (sentinel))
 
 (define-syntax form-car
   (syntax-rules ()
@@ -55,26 +57,27 @@
 
 
 (define-record-type sexp-variable
-  (fields (immutable name)))
+  (fields (immutable name)
+	  (immutable default)))
 
-(define-syntax with-sexp-variables
+(define-syntax let-sexp-variables
   (syntax-rules ()
-    ((_ (?var ...) ?form0 ?form ...)
-     (let ((?var (make-sexp-variable (quote ?var))) ...) ?form0 ?form ...))))
+    ((_ ((?var ?default) ...) ?form0 ?form ...)
+     (let ((?var (make-sexp-variable (quote ?var) ?default)) ...) ?form0 ?form ...))))
 
-(define-condition-type &sexp-mismatch-condition
+(define-condition-type &sexp-mismatch
   &assertion
-  make-sexp-mismatch-condition
-  sexp-mismatch-condition?
-  (pattern condition-sexp-mismatch-pattern)
-  (form    condition-sexp-mismatch-form))
+  make-sexp-mismatch
+  sexp-mismatch?
+  (pattern sexp-mismatch-pattern)
+  (form    sexp-mismatch-form))
 
 (define-syntax sexp-mismatch-error
   ;;Being a syntax it yields a better stack trace?
   ;;
   (syntax-rules ()
     ((_ ?who ?pattern ?form)
-     (raise (condition (make-sexp-mismatch-condition ?pattern ?form)
+     (raise (condition (make-sexp-mismatch ?pattern ?form)
 		       (make-who-condition ?who)
 		       (make-message-condition "S-expressions mismatch"))))))
 
@@ -109,7 +112,7 @@
 	 (sexp-mismatch-error 'sexp-match pattern form))))
 
 (define (sexp-match? pattern form)
-  (guard (C ((sexp-mismatch-condition? C) #f))
+  (guard (C ((sexp-mismatch? C) #f))
     (sexp-match pattern form)
     #t))	;enforce a boolean as return value
 
@@ -141,7 +144,7 @@
       (let loop ((alts alternatives))
 	(if (null? alts)
 	    (sexp-mismatch-error 'sexp-or (cons 'sexp-or alternatives) form-token)
-	  (guard (E ((sexp-mismatch-condition? E)
+	  (guard (E ((sexp-mismatch? E)
 		     (loop (cdr alts))))
 	    (values (sexp-match (list (car alts)) (list form-token))
 		    (form-cdr form))))))))
@@ -174,7 +177,7 @@
 		 (form     form))
 	(if (null? form)
 	    (values bindings form)
-	  (guard (E ((sexp-mismatch-condition? E)
+	  (guard (E ((sexp-mismatch? E)
 		     (values bindings form)))
 	    (loop (append bindings (sexp-match pattern (list (form-car form))))
 		  (form-cdr form))))))))
@@ -189,7 +192,7 @@
 		 (form     (form-cdr form)))
 	(if (null? form)
 	    (values bindings form)
-	  (guard (E ((sexp-mismatch-condition? E)
+	  (guard (E ((sexp-mismatch? E)
 		     (values bindings form)))
 	    (loop (append bindings (sexp-match pattern (list (form-car form))))
 		  (form-cdr form))))))))
@@ -207,13 +210,13 @@
 
 (define-syntax sexp-any*
   (syntax-rules ()
-    ((_ ?alternative ...)
-     (sexp-any (quote ?alternative) ...))))
+    ((_ ?pattern)
+     (sexp-any (quote ?pattern)))))
 
 (define-syntax sexp-one*
   (syntax-rules ()
-    ((_ ?alternative ...)
-     (sexp-one (quote ?alternative) ...))))
+    ((_ ?pattern)
+     (sexp-one (quote ?pattern)))))
 
 
 (define (make-sexp-transformer pattern output)
@@ -227,13 +230,16 @@
 	   (cons (recur (car sexp)) (recur (cdr sexp))))
 	  ((sexp-variable? sexp)
 	   (let ((p (assq sexp bindings-alist)))
-	     (if p
-		 (cdr p)
-	       (assertion-violation #f
-		 (string-append "unbound variable \""
-				(symbol->string (sexp-variable-name sexp))
-				"\" in output S-expression")
-		 output))))
+	     (cond (p
+		    (cdr p))
+		   ((not (sentinel? (sexp-variable-default sexp)))
+		    (sexp-variable-default sexp))
+		   (else
+		    (assertion-violation #f
+		      (string-append "unbound variable \""
+				     (symbol->string (sexp-variable-name sexp))
+				     "\" in output S-expression")
+		      output)))))
 	  (else sexp))))
 
 

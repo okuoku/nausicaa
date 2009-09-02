@@ -464,6 +464,7 @@ More libraries
 * variables::                   Defining storage locations.
 * scmobj::                      A simple object system.
 * sexp::                        Handling symbolic expressions.
+* matches::                     Pattern matching.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
 * silex::                       A lexical analyser generator.
@@ -1060,6 +1061,12 @@ Generic functions and methods
 * scmobj generic define::       Defining generic functions and methods.
 * scmobj generic next::         Invoking the next method.
 * scmobj generic examples::     Examples of method dispatching.
+
+Handling symbolic expressions
+
+* sexp match::                  Plain matching.
+* sexp operators::              Matching operators.
+* sexp transform::              Transforming S--expressions.
 
 IrRegular expressions
 
@@ -12573,7 +12580,7 @@ exception.  Any procedure accepting one argument may serve as an
 exception handler and any object may be used to represent an exception.
 
 The system maintains the current exception handler as part of the
-dynamic environment of the program (@pref{lang basic dynamic extent}).
+dynamic environment of the program (@pxref{lang basic dynamic extent}).
 
 When a program begins its execution, the current exception handler is
 expected to handle all @code{&serious} conditions by interrupting
@@ -18869,6 +18876,7 @@ Examples:
 
 @deffn Syntax parameterize ((@var{expr1} @var{expr2}) ...) . @var{body}
 @deffnx Syntax parameterise ((@var{expr1} @var{expr2}) ...) . @var{body}
+@deffnx Syntax parametrise ((@var{expr1} @var{expr2}) ...) . @var{body}
 The expressions @var{expr1} and @var{expr2} are evaluated in an
 unspecified order.  The value of the @var{expr1} expressions must be
 parameter objects.  For each @var{expr1} expression and in an
@@ -34365,11 +34373,12 @@ then the graph is flattened and visited in preorder.
 @chapter Handling symbolic expressions
 
 
-The @library{sexp} library implements symbolic expressions
-(S--expressions or @dfn{sexp}) matching procedures.
+The @library{sexp} library implements matching procedures for symbolic
+expressions (S--expressions or @dfn{sexp}).
 
 @menu
 * sexp match::                  Plain matching.
+* sexp operators::              Matching operators.
 * sexp transform::              Transforming S--expressions.
 @end menu
 
@@ -34378,65 +34387,593 @@ The @library{sexp} library implements symbolic expressions
 @section Plain matching
 
 
+Let's start with some example of sexp matching:
+
+@example
+(let ((pattern '(a 1 #t))
+      (form    '(a 1 #t))
+  (sexp-match pattern form))
+@result{} ()
+
+(sexp-match '(a b) '(a c))
+@error{} mismatch between B and C
+
+(sexp-match `(a ,(sexp-pred integer?))
+            '(a 1))
+@result{} ()
+
+(sexp-match `(a ,(sexp-pred integer?))
+            '(a b))
+@error{} mismatch between INTEGER? and B
+@end example
+
+@noindent
+the @library{sexp} library defines several @dfn{matching operators}, and
+custom ones can be easily coded.  @ref{sexp operators, Matching
+operators}
+
+
 @defun sexp-match @var{pattern} @var{form}
-Recursively match every element in the sexp @var{pattern} with the
-corresponding element in the sexp @var{form}.  Return an alist whose
-entries represent the bindings between variables from @var{pattern} and
-values from @var{form}.
+Recursively match elements in the sexp template @var{pattern} with
+elements in the sexp @var{form}.  Return an alist whose entries
+represent the bindings between variables from @var{pattern} and values
+from @var{form}, or null if no bindings where defined.
 
 If a mismatch between @var{pattern} and @var{form} is detected, an error
-is raised using the mismatching tokens from @var{pattern} (first) and
-from @var{form} (second) as irritants.
+is raised with condition of type @samp{&sexp-mismatch}.
 
-The syntax of @var{pattern} is:
+@var{pattern} must be a sexp template with the following constraints and
+semantics meaning:
 
 @itemize
 @item
-@samp{?V} matches any expression and binds it to the variable @samp{?V}.
+@var{pattern} must be null or a proper list.  If it is null, it can
+match only a null @var{form}.
 
 @item
-@samp{(!or E ...)} matches one of the expressions @var{E}.
+If an element of @var{pattern} is a pair, it must be the first pair in a
+proper list; the list is interpreted as a nested sexp pattern.
 
 @item
-@samp{(!and E ...)} matches all of the expressions @var{E}.
+If an element of @var{pattern} is a procedure, it must be a matching
+operator.  @ref{sexp operators, Matching operators}
 
 @item
-@samp{(!any E)} matches a list of @var{E} repeated any number of times
-or the single atom @var{E}.
+Every other element is compared to the elements of @var{form} using
+@func{eqv?}.
+@end itemize
+
+@var{form} must be a sexp whose elements have the following constraints
+and semantics meaning:
+
+@itemize
+@item
+@var{form} must be null or a proper list.  If it is null, it can be
+matched both by a null @var{pattern} and by a @var{pattern} holding an
+appropriate matching operator.
 
 @item
-@samp{(!one E)} matches a list of @var{E} repeated one or more times or
-the single atom @var{E}.
+If an element of @var{form} is a pair, it is @strong{not} mandatory for
+it to be the first pair in a proper list.  A proper list in @var{form}
+can be matched by a proper list in @var{pattern}.  In general, whether a
+pair in @var{form} will be matched or not depends on the operators in
+@var{pattern}.
 
 @item
-A procedure from @var{pattern} is applied to the token from @var{form}
-and it matches if the result is true.
-
-@item
-Everything else is matched using @func{eqv?}.
+Every other element is compared to the elements of @var{form} using
+@func{eqv?}.  Notice that the behaviour of @func{eqv?} with respect to
+procedures is undefined in @rnrs{6}; it appears there is no safe way to
+match a procedure in @var{form}.
 @end itemize
 @end defun
+
+
+@deffn Syntax sexp-mismatch-error @var{who} @var{pattern} @var{form}
+Raise a non--continuable exception with condition of type
+@samp{&sexp-mismatch}.  All the arguments are evaluated only once.
+@end deffn
+
+
+@deftp {Condition Type} &sexp-mismatch
+Type of condition used to signal a sexp mismatch.  It is derived from
+@samp{&assertion}.
+@end deftp
+
+
+@defun make-sexp-mismatch @var{pattern-token} @var{form-token}
+Return a new condition object of type @samp{&sexp-mismatch}.
+@var{pattern-token} must be a value representing the portion of sexp
+pattern which failed to match.  @var{form-token} must be a value
+representing the portion of sexp form which failed to match.
+@end defun
+
+@defun sexp-mismatch? @var{obj}
+Return @true{} if @var{obj} is a condition object of type
+@samp{&sexp-mismatch}.
+@end defun
+
+
+@defun sexp-mismatch-pattern @var{obj}
+@defunx sexp-mismatch-form @var{obj}
+Accessors for the fields of a @samp{&sexp-mismatch} condition object.
+@end defun
+
+@c page
+@node sexp operators
+@section Matching operators
+
+
+A @dfn{matching operator} is a function (usually a closure) which is
+applied to a sexp form with the purpose of matching zero, one or more
+elements in it.
+
+@itemize
+@item
+If successful, it must return two values: the alist of bindings defined
+by the matching (see variables matching below), which can be null; the
+tail of the form still to match.
+
+@item
+If a mismatch is detected, it must raise a @samp{&sexp-mismatch}
+condition.
+@end itemize
+
+An operator which matches nothing and returns the whole form looks like
+this:
+
+@example
+(define (match-nothing form)
+  (values '() form))
+@end example
+
+@noindent
+and it can be used as follows:
+
+@example
+(sexp-match `(a b ,match-nothing) '(a b))
+@result{} ()
+
+(sexp-match `(,match-nothing) '())
+@result{} ()
+@end example
+
+An operator which matches the symbol @samp{alpha} looks like this:
+
+@example
+(define (alpha-op form)
+  (cond ((null? form)
+         (sexp-mismatch-error #f 'alpha form))
+        ((eq? 'alpha (car form))
+         (values '() (cdr form)))
+        (else
+         (sexp-mismatch-error #f 'alpha form))))
+@end example
+
+@noindent
+it can be parametrised with a symbol argument like:
+
+@example
+(define (sexp-symbol symbol)
+  (lambda (form)
+    (cond ((null? form)
+           (sexp-mismatch-error #f symbol form))
+          ((eq? symbol (car form))
+           (values '() (cdr form)))
+          (else
+           (sexp-mismatch-error #f symbol form)))))
+@end example
+
+@noindent
+and it can be used as follows:
+
+@example
+(sexp-match `(a b ,(sexp-symbol 'alpha))
+            '(a b alpha))
+@result{} ()
+
+(sexp-match `(,(sexp-symbol 'alpha) ,(sexp-symbol 'beta))
+            '(alpha beta))
+@result{} ()
+@end example
+
+@noindent
+in the last example, the first operator's closure is invoked with:
+
+@example
+form @equiv{} (alpha beta)
+@end example
+
+@noindent
+and the second operator's closure is invoked with:
+
+@example
+form @equiv{} (beta)
+@end example
+
+An operator can consume any number of tokens from its form argument.
+
+@c ------------------------------------------------------------
+
+@subsubheading Variable matching
+
+To extract a value from a sexp form we use @dfn{variables matching}
+operators.  It works like this:
+
+@example
+(define ?alpha (make-sexp-variable '?alpha 1))
+(define ?beta  (make-sexp-variable '?beta  2))
+
+(sexp-match `(,(sexp-var ?alpha) ,(sexp-var ?beta))
+            '(91 92))
+@result{} ((#<record sexp-variable ?alpha> . 91)
+    (#<record sexp-variable ?beta>  . 92))
+@end example
+
+@noindent
+the resulting alist of bindings can be inspected with @func{assq} using
+the @samp{sexp-variable} records as keys.  A variable matching operator
+matches any value but null.
+
+
+@defun sexp-var @var{variable}
+Used to extract a value from a form, return a matching operator.
+@var{variable} must be a record of type @samp{sexp-variable}.
+@end defun
+
+
+@deftp {Record Type} sexp-variable
+Record type used to assign a name to values from sexp forms.  It has the
+following, immutable, fields
+
+@table @samp
+@item name
+The public name of the variable, to be used for debugging purposes.
+
+@item default
+A default value for the variable in case the sexp form does no bind it.
+When using a transformer the sentinel value has a special meaning.
+@pxref{sentinel, The sentinel value}
+@end table
+@end deftp
+
+
+@defun make-sexp-variable @var{name} @var{default}
+Build and return a new @samp{sexp-variable} record.
+@end defun
+
+
+@defun sexp-variable? @var{obj}
+Return @true{} if @var{obj} is a record of type @samp{sexp-variable}.
+@end defun
+
+
+@defun sexp-variable-name @var{obj}
+@defunx sexp-variable-default @var{obj}
+Accessors for the fields of a @samp{sexp-variable} record.
+@end defun
+
+
+@deffn Syntax let-sexp-variables ((@var{name} @var{default}) ...) @var{form0} @var{form} ...
+Similar to @func{let} build a set of @samp{sexp-variable} records and
+bind them to @var{name}.  The forms are evaluated in the current
+environment extended with the variables bindings.
+
+The example above can be rewritten:
+
+@example
+(let-sexp-variables ((?alpha 1)
+                     (?beta  2))
+  (sexp-match `(,(sexp-var ?alpha) ,(sexp-var ?beta))
+              '(91 92)))
+@result{} ((#<record sexp-variable ?alpha> . 91)
+    (#<record sexp-variable ?beta>  . 92))
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Predicate matching
+
+A @dfn{predicate matching} operator can be used to match any value from
+a sexp form.
+
+@example
+(sexp-match `(,(sexp-pred integer?)) '(123))
+@result{} ()
+
+(sexp-match `(,(sexp-pred null?)) '())
+@result{} ()
+
+(sexp-match `(((,(sexp-pred positive?)))) '(((123))))
+@result{} ()
+@end example
+
+@noindent
+a predicate matching operator matches any value for which the predicate
+returns true.
+
+@defun sexp-pred @var{pred}
+Used to match a value using a Scheme predicate procedure.  @var{pred}
+must be a procedure returning true or @false{}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Logic matching
+
+
+@deffn Function sexp-or @var{pattern-token} ...
+@deffnx Syntax sexp-or* @var{pattern-token} ...
+Return an operator which attempts to match the car of the form with each
+@var{pattern-token}, halting at the first positive match.  The match of
+the operator is positive if at least one of the alternatives does match.
+
+@func{sexp-or*} behaves like @func{sexp-or}, but quotes each of its
+arguments.
+
+@example
+(sexp-match `(,(sexp-or 'a 'b 'c)) '(a)) @result{} '()
+(sexp-match `(,(sexp-or 'a 'b 'c)) '(b)) @result{} '()
+(sexp-match `(,(sexp-or 'a 'b 'c)) '(c)) @result{} '()
+
+(sexp-match `(,(sexp-or* a b c)) '(a)) @result{} '()
+(sexp-match `(,(sexp-or* a b c)) '(b)) @result{} '()
+(sexp-match `(,(sexp-or* a b c)) '(c)) @result{} '()
+@end example
+
+Notice that the arguments of @func{sexp-or} must be pattern tokens, not
+pattern sexps:
+
+@example
+(sexp-match `(,(sexp-or* (a) (b) (c))) '((a))) @result{} '()
+(sexp-match `(,(sexp-or* (a) (b) (c))) '((b))) @result{} '()
+(sexp-match `(,(sexp-or* (a) (b) (c))) '((c))) @result{} '()
+@end example
+
+If @func{sexp-or} invoked with no arguments, it returns an operator
+which matches nothing and always raises a sexp mismatch error; this is
+consistent with @code{(or)} returning @false{} in @rnrs{6}.
+@end deffn
+
+
+@deffn Function sexp-and @var{pattern-token} ...
+@deffnx Syntax sexp-and* @var{pattern-token} ...
+Return an operator which attempts to match the car of the form with each
+@var{pattern-token}, halting at the first mismatch.  The match of the
+operator is positive if all the alternatives do match.
+
+@func{sexp-and*} behaves like @func{sexp-and}, but quotes each of its
+arguments.
+
+@example
+(sexp-match `(,(sexp-and* a)) '(a))      @result{} '()
+(sexp-match `(,(sexp-and) b)  '(a b))    @result{} '())
+
+(let-sexp-variables ((?v 0))
+  (sexp-match `(,(sexp-and (sexp-pred integer?)
+                           (sexp-var ?v)))
+              '(123)))
+@result{} ((#<record sexp-variable ?v> . 123))
+@end example
+
+If @func{sexp-and} invoked with no arguments, it returns an operator
+which always matches a single token; this is consistent with
+@code{(and)} returning @true{} in @rnrs{6}.
+@end deffn
+
+
+@deffn Function sexp-any @var{pattern-token}
+@deffnx Syntax sexp-any* @var{pattern-token}
+Return an operator which attempts to match every sexp in the form with
+@var{pattern-token}, halting at the first mismatch.  It is fine if
+@var{pattern-token} does not match the car of the form.
+
+@func{sexp-any*} behaves like @func{sexp-any}, but quotes its argument.
+
+@example
+(sexp-match `(,(sexp-any* a)) '())      @result{} '()
+(sexp-match `(,(sexp-any* a)) '(a))     @result{} '()
+(sexp-match `(,(sexp-any* a)) '(a a))   @result{} '()
+(sexp-match `(,(sexp-any* a)) '(a a a)) @result{} '()
+
+(sexp-match `(,(sexp-any* a) b) '(b))           @result{} '()
+(sexp-match `(,(sexp-any* a) b) '(a b))         @result{} '()
+(sexp-match `(,(sexp-any* a) b) '(a a b))       @result{} '()
+(sexp-match `(,(sexp-any* a) b) '(a a a b))     @result{} '()
+@end example
+@end deffn
+
+
+@deffn Function sexp-one @var{pattern-token}
+@deffnx Syntax sexp-one* @var{pattern-token}
+Like @func{sexp-any}, but @var{pattern-token} must match at least the
+car of the form.
+@end deffn
 
 @c page
 @node sexp transform
 @section Transforming S--expressions
 
 
+A sexp transformer is used to match a sexp with a pattern, extracting
+variable values from it.  The position of the ``variables'' in the sexp
+form is marked by records of type @samp{sexp-variable}.
+
+Here is an example:
+
+@example
+(define trans
+  (let-sexp-variables ((?a sentinel)
+                       (?b sentinel))
+    (make-sexp-transformer `(doit (alpha ,(sexp-var ?a))
+                                  (beta  ,(sexp-var ?b)))
+                           `(doit ,?a ,?b))))
+
+(trans '(doit (alpha 1) (beta 2)))
+@result{} (doit 1 2)
+@end example
+
+@noindent
+and here is an example making use of the default values for unbound
+variables:
+
+@example
+(define trans
+  (let-sexp-variables ((?a 10)
+                       (?b 20))
+    (make-sexp-transformer
+      `(doit ,(sexp-any (sexp-or `(alpha ,(sexp-var ?a))
+                                 `(beta  ,(sexp-var ?b)))))
+      `(doit ,?a ,?b))))
+
+(trans '(doit (alpha 1) (beta 2)))
+@result{} (doit 1 2)
+
+(trans '(doit (alpha 1)))
+@result{} (doit 1 20)
+
+(trans '(doit (beta 2)))
+@result{} (doit 10 2)
+
+(trans '(doit))
+@result{} (doit 10 20)
+@end example
+
+
 @defun make-sexp-transformer @var{pattern} @var{output}
 Return a function that takes a sexp, matches it to the @var{pattern}
-sexp, extracts bindings for the variables, and returns a copy of
-@var{output} with the variables substituted by their values.
+sexp, extracts bindings for the variables, and returns a copy of the
+sexp @var{output} with the variables substituted by their values.
+
+If a variable referenced by @var{output} is left undefined by the
+bindings:
+
+@itemize
+@item
+If the variable has default value set to the sentinel, an error is
+raised.
+
+@item
+If the variable has default value different from the sentinel, the
+default value is substituted.
+@end itemize
 
 See @func{sexp-match} for the syntax of @var{pattern}.
 @end defun
 
 
 @defun sexp-substitute-bindings @var{output} @var{bindings-alist}
-Build and return a copy of @var{output} in which the occurrences of the
-keywords in @var{bindings-alist} are substituted with their values.  The
-keywords are meant to be symbols whose first character is @samp{?}.
+Build and return a copy of the sexp @var{output} in which the
+occurrences of the keywords in @var{bindings-alist} are substituted with
+their values.  The keywords are meant to be records of type
+@samp{sexp-variable}.
 @end defun
 
+@c page
+@node matches
+@chapter Pattern matching
+
+
+The @library{matches} library implements @dfn{pattern matching}, also
+known as @dfn{destructuring bind}.
+
+The library is derived from @file{match.scm} by Alex Shinn, who placed
+it in the Public Domain.
+
+@menu
+* matches intro::               Introduction.
+* matches match::               Basic pattern matching.
+@end menu
+
+@c page
+@node matches intro
+@section Introduction
+
+
+@library{matches} is a simple generative pattern matcher; each pattern
+is expanded into the required tests, calling a failure continuation if
+the tests fail.  This makes the logic easy to follow and extend, but
+produces sub-optimal code in cases where you have many similar clauses
+due to repeating the same tests.
+
+Nonetheless a smart compiler should be able to remove the redundant
+tests.  For ``match let'' and ``destructuring bind'' type uses there is
+no performance hit.
+
+
+@c page
+@node matches match
+@section Basic pattern matching
+
+
+@deffn Syntax match @var{expr} @var{clause} ...
+Match the expression @var{expr} against the @var{clause} arguments;
+each clause is one of:
+
+@example
+(pattern form0 form ...)
+(pattern (=> next) form0 form ...)
+@end example
+
+@samp{expr} is evaluated, and matched against each @samp{pattern} in
+turn; the first to succeed causes the corresponding body @samp{form}
+elements to be evaluated as in @func{begin}, and the remaining patterns
+are ignored.  However, if the @samp{next} identifier is labeled, it may
+be used as a continuation to continue matching, allowing for additional
+runtime tests on the pattern.
+
+The syntax for the patterns is:
+
+@table @samp
+@item pattern-var
+Matches anything and binds @samp{pattern-var} to it.
+
+@item *
+Matches anything.
+
+@item literal
+Matches with @func{equal?}.
+
+@item (quote sexp)
+An S--expression.
+
+@item (quote symbol)
+A symbol (special case of S--expression).
+
+@item (pattern1 ... patternN)
+List of @math{n} elements.
+
+@item (pattern1 ... patternN . patternN+1)
+List of @math{n} or more elements.
+
+@item (pattern1 ... patternN patternN+1 ___)
+List of @math{n} or more elements, each element of remainder must match
+@samp{patternN+1}.
+
+@item #(pattern1 ... patternN)
+Vector of @math{n} elements.
+
+@item #(pattern1 ... patternN patternN+1 ___)
+Vector of @math{n} or more, each element of remainder must match
+@samp{patternN+1}.
+
+@item (and pattern ...)
+If all of @samp{pattern} match.
+
+@item (or pattern ...)
+If any of @samp{pattern} match.
+
+@item (not pattern ...)
+If all @samp{pattern} don't match at all.
+
+@item (? pred pattern ...)
+If @samp{pred} is true and all @samp{pattern} match.
+
+@item ($ proc pattern)
+If @samp{pattern} matches the result of applying @samp{proc} to the
+expression.
+@end table
+@end deffn
 
 @c page
 @node irregex
