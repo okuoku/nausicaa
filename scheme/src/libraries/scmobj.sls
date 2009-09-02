@@ -472,7 +472,6 @@
     (cond
      ((circular-list value)	<circular-list>)
      ((dotted-list? value)	<dotted-list>)
-     ((list? value)		<proper-list>)
      ((list? value)		<list>)
      ((pair? value)		<pair>)
      (else #f)))

@@ -110,7 +110,7 @@
       ((_ ?options ?allow-unknown ((?name ?key ?default) ...) ?form0 ?form ...)
        (let* ((?name ?default) ...)
 	 (%parse-keywords ?options ?allow-unknown
-			  `((?key . ,(lambda (v) (set! ?name v))) ...))
+			  `((,?key . ,(lambda (v) (set! ?name v))) ...))
 	 ?form0 ?form ...)))))
 
 ;;; end of file
