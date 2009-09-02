@@ -27,7 +27,10 @@
 #!r6rs
 (library (parameters)
   (export
-    (rename (make-this-parameter make-parameter) (parameterize-this parameterize)))
+    (rename (make-this-parameter make-parameter)
+	    (parameterize-this parameterize)
+	    (parameterize-this parameterise)
+	    (parameterize-this parametrise)))
   (import (rnrs)
     (primitives make-parameter parameterize))
 

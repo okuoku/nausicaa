@@ -26,7 +26,9 @@
 
 #!r6rs
 (library (parameters)
-  (export make-parameter parameterize (rename (parameterize parameterise)))
+  (export make-parameter parameterize
+	  (rename (parameterize parameterise)
+		  (parameterize parametrise)))
   (import (only (system) make-parameter parameterize)))
 
 ;;; end of file
