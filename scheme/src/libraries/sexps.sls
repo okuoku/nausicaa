@@ -29,7 +29,7 @@
 
 
 #!r6rs
-(library (sexp)
+(library (sexps)
   (export
     sexp-match sexp-match?
     sexp-var sexp-pred sexp-or sexp-or* sexp-and sexp-and*
@@ -101,7 +101,7 @@
 			      (sexp-match (cdr pattern) form-rest)))))
 
 		 (else
-		  (if (eqv? pattern-token form-token)
+		  (if (equal? pattern-token form-token)
 		      (sexp-match (cdr pattern) (form-cdr form))
 		    (sexp-mismatch-error 'sexp-match pattern-token form-token))))))
 

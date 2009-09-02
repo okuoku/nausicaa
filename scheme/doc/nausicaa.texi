@@ -463,7 +463,7 @@ More libraries
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
 * scmobj::                      A simple object system.
-* sexp::                        Handling symbolic expressions.
+* sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
@@ -1064,9 +1064,14 @@ Generic functions and methods
 
 Handling symbolic expressions
 
-* sexp match::                  Plain matching.
-* sexp operators::              Matching operators.
-* sexp transform::              Transforming S--expressions.
+* sexps match::                 Plain matching.
+* sexps operators::             Matching operators.
+* sexps transform::             Transforming S--expressions.
+
+Pattern matching
+
+* matches intro::               Introduction.
+* matches match::               Basic pattern matching.
 
 IrRegular expressions
 
@@ -34369,21 +34374,21 @@ then the graph is flattened and visited in preorder.
 @end itemize
 
 @c page
-@node sexp
+@node sexps
 @chapter Handling symbolic expressions
 
 
-The @library{sexp} library implements matching procedures for symbolic
+The @library{sexps} library implements matching procedures for symbolic
 expressions (S--expressions or @dfn{sexp}).
 
 @menu
-* sexp match::                  Plain matching.
-* sexp operators::              Matching operators.
-* sexp transform::              Transforming S--expressions.
+* sexps match::                 Plain matching.
+* sexps operators::             Matching operators.
+* sexps transform::             Transforming S--expressions.
 @end menu
 
 @c page
-@node sexp match
+@node sexps match
 @section Plain matching
 
 
@@ -34408,8 +34413,8 @@ Let's start with some example of sexp matching:
 @end example
 
 @noindent
-the @library{sexp} library defines several @dfn{matching operators}, and
-custom ones can be easily coded.  @ref{sexp operators, Matching
+the @library{sexps} library defines several @dfn{matching operators},
+and custom ones can be easily coded.  @ref{sexps operators, Matching
 operators}
 
 
@@ -34436,11 +34441,11 @@ proper list; the list is interpreted as a nested sexp pattern.
 
 @item
 If an element of @var{pattern} is a procedure, it must be a matching
-operator.  @ref{sexp operators, Matching operators}
+operator.  @ref{sexps operators, Matching operators}
 
 @item
 Every other element is compared to the elements of @var{form} using
-@func{eqv?}.
+@func{equal?}.
 @end itemize
 
 @var{form} must be a sexp whose elements have the following constraints
@@ -34499,7 +34504,7 @@ Accessors for the fields of a @samp{&sexp-mismatch} condition object.
 @end defun
 
 @c page
-@node sexp operators
+@node sexps operators
 @section Matching operators
 
 
@@ -34791,7 +34796,7 @@ car of the form.
 @end deffn
 
 @c page
-@node sexp transform
+@node sexps transform
 @section Transforming S--expressions
 
 
