@@ -33,11 +33,18 @@
 (check-set-mode! 'report-failed)
 (display "*** testing matches\n")
 
-(define-syntax catch-error
+(define-syntax catch-syntax-error
   (syntax-rules ()
     ((_ ?body)
      (guard (E (else `((message   . ,(condition-message E))
 		       (form      . ,(syntax-violation-form E)))))
+       ?body))))
+
+(define-syntax catch-mismatch-error
+  (syntax-rules ()
+    ((_ ?body)
+     (guard (E (else `((message   . ,(condition-message E))
+		       (expr      . ,(match-mismatch-expression E)))))
        ?body))))
 
 
@@ -65,8 +72,8 @@
 
   ;;Why this raises a "duplicate pattern variables" error?
   #;(let-syntax ((doit (syntax-rules ()
-		       ((_ ('beta ('delta ?num)))
-			?num))))
+  ((_ ('beta ('delta ?num)))
+  ?num))))
 
     (check
 	(doit ('beta ('delta 123)))
@@ -80,48 +87,48 @@
 (parameterise ((check-test-name 'errors))
 
   (check
-      (catch-error (match))
+      (catch-syntax-error (match))
     => '((message . "missing match expression")
 	 (form    . (match))))
 
   (check
-      (catch-error (match 123))
+      (catch-syntax-error (match 123))
     => '((message . "missing match clause")
 	 (form    . (match 123))))
 
   (check
-      (catch-error (match 28 (29 'ok)))
+      (catch-mismatch-error (match 28 (29 'ok)))
     => '((message . "no matching pattern")
-	 (form    . 28)))
+	 (expr    . 28)))
 
   (check
-      (catch-error (match 28 (28)))
-    => '((message . "no body in match clause")
-	 (form    . (28))))
-
-  (check
-      (catch-error (match 28 (28 (=> fail))))
+      (catch-syntax-error (match 28 (28 (=> fail))))
     => '((message . "no body in match clause")
 	 (form    . (28 (=> fail)))))
 
   (check
-      (catch-error (match 28
-			  ((a ... b ... c)
-			   'fail)))
+      (catch-syntax-error (match 28
+			    ((a ... b ... c)
+			     'fail)))
     => '((message . "multiple ellipsis patterns not allowed at same level")
 	 (form    . (... c))))
 
   (check
-      (catch-error (match 28
-			  ((a ... b ...)
-			   'fail)))
+      (catch-syntax-error (match 28
+			    ((a ... b ...)
+			     'fail)))
     => '((message . "multiple ellipsis patterns not allowed at same level")
 	 (form    . (...))))
+
+  (check
+      (catch-syntax-error (match 28 (28)))
+    => '((message . "no body in match clause")
+	 (form    . (28))))
 
   #t)
 
 
-(parameterise ((check-test-name 'basics))
+(parameterise ((check-test-name 'wildcard))
 
   (check
       (match 'any (* 'ok))
@@ -129,9 +136,14 @@
 
   (check
       (match '(1 2)
- 	     ((* *)
- 	      'ok))
+	((* *)
+	 'ok))
     => 'ok)
+
+  #t)
+
+
+(parameterise ((check-test-name 'variables))
 
   (check
       (match 'ok (x x))
@@ -161,68 +173,109 @@
 	(f 1))
     => 1)
 
+  (check
+      (match '(1 2 3)
+	(alpha (list alpha alpha alpha)))
+    => '((1 2 3) (1 2 3) (1 2 3)))
+
+  (check	;duplicate symbols pass
+      (match '(ok . ok)
+	((x . x) x))
+    => 'ok)
+
+  (check	;duplicate symbols fail
+      (match '(ok . bad)
+	((x . x) 'bad)
+	(else    'ok))
+    => 'ok)
+
+  #t)
+
+
+(parameterise ((check-test-name 'literals))
+
   (check	;number
       (match 28 (28 'ok))
     => 'ok)
 
   (check	;string
       (match "good"
-	     ("bad" 'fail)
-	     ("good" 'ok))
+	("bad" 'fail)
+	("good" 'ok))
     => 'ok)
 
   (check	;string
       (match "bad"
-	     ("bad" 'bad)
-	     ("good" 'ok))
+	("bad" 'bad)
+	("good" 'ok))
     => 'bad)
 
   (check	;literal symbol
       (match 'good
-	     ('bad 'fail)
-	     ('good 'ok))
+	('bad 'fail)
+	('good 'ok))
     => 'ok)
+
+  #t)
+
+
+(parameterise ((check-test-name 'lists))
 
   (check	;null
       (match '()
-	     (() 'ok))
+	(() 'ok))
     => 'ok)
 
   (check	;pair
       (match '(ok)
-	     ((x) x))
+	((x) x))
     => 'ok)
 
   (check	;list
       (match '(alpha (beta (delta 123)))
-	     ((alpha (beta (delta x))) x))
+	((alpha (beta (delta x))) x))
     => 123)
 
-  (check	;sexp
+  #t)
+
+
+(parameterise ((check-test-name 'quoted))
+
+  (check	;quoted sexp
       (match '(alpha (beta (delta 123)))
-	     ('(alpha (beta (delta 123))) 1))
+	('(alpha (beta (delta 123))) 1))
     => 1)
 
-  (check	;sexp
+  (check	;quoted symbols
       (match '(alpha (beta (delta 123)))
-	     (('alpha ('beta ('delta x))) x))
+	(('alpha ('beta ('delta x))) x))
     => 123)
 
   (check	;sexp
       (match '(alpha (beta (delta 123)))
-	     (('alpha (or ('beta ('delta x))
-			  ('gamma ('delta x)))) x))
+	(('alpha (or ('beta ('delta x))
+		     ('gamma ('delta x)))) x))
     => 123)
 
   (check	;sexp
       (match '(alpha (gamma (delta 123)))
-	     (('alpha (or ('beta ('delta x))
-			  ('gamma ('delta x)))) x))
+	(('alpha (or ('beta ('delta x))
+		     ('gamma ('delta x)))) x))
     => 123)
 
-  (check	;vector
+  #t)
+
+
+(parameterise ((check-test-name 'vector))
+
+  (check
+      (match '#()
+	(#() 'ok))
+    => 'ok)
+
+  (check
       (match '#(ok)
-	     (#(x) x))
+	(#(x) x))
     => 'ok)
 
   #t)
@@ -237,23 +290,23 @@
 
   (check
       (match (make-color 1 2 3)
-	     ((? color?)
-	      'ok))
+	((? color?)
+	 'ok))
     => 'ok)
 
   (check
       (match (make-color 1 2 3)
-	     ((? color? ($ color-red x))
-	      x))
+	((? color? ($ color-red x))
+	 x))
     => 1)
 
   (check
       (match (make-color 1 2 3)
-	     ((? color?
-		 ($ color-red   x)
-		 ($ color-green y)
-		 ($ color-blue  z))
-	      (list x y z)))
+	((? color?
+	    ($ color-red   x)
+	    ($ color-green y)
+	    ($ color-blue  z))
+	 (list x y z)))
     => '(1 2 3))
 
   #t)
@@ -263,54 +316,54 @@
 
   (check	;and empty
       (match '(o k)
-	     ((and) 'ok))
+	((and) 'ok))
     => 'ok)
 
   (check	;and single
       (match 'ok
-	     ((and x) x))
+	((and x) x))
     => 'ok)
 
   (check	;and double
       (match 'ok
-	     ((and (? symbol?) y)
-	      'ok))
+	((and (? symbol?) y)
+	 'ok))
     => 'ok)
 
 ;;; --------------------------------------------------------------------
 
   (check	;or empty
       (match '(o k)
-	     ((or) 'fail)
-	     (else 'ok))
+	((or) 'fail)
+	(else 'ok))
     => 'ok)
 
   (check	;or single
       (match 'ok
-	     ((or x) 'ok))
+	((or x) 'ok))
     => 'ok)
 
   (check	;or double
       (match 'ok
-	     ((or (? symbol? y) y) y))
+	((or (? symbol? y) y) y))
     => 'ok)
 
 ;;; --------------------------------------------------------------------
 
   (check	;not
       (match 28
-	     ((not (a . b)) 'ok))
+	((not (a . b)) 'ok))
     => 'ok)
 
   (check	;not
       (match 28
-	     ((not 28) 'fail)
-	     (*        'ok))
+	((not 28) 'fail)
+	(*        'ok))
     => 'ok)
 
   (check
-      (catch-error (match '()
-			  ((not) 'fail)))
+      (catch-syntax-error (match '()
+			    ((not) 'fail)))
     => '((message . "empty NOT form in pattern")
 	 (form    . (not))))
 
@@ -321,13 +374,13 @@
 
   (check	;pred
       (match 28
-	     ((? number?) 'ok))
+	((? number?) 'ok))
     => 'ok)
 
   (check	;named pred
       (match 28
-	     ((? number? x)
-	      (+ 1 x)))
+	((? number? x)
+	 (+ 1 x)))
     => 29)
 
   #t)
@@ -338,33 +391,15 @@
   (check
       (let ((f (lambda (x) (+ 1 x))))
 	(match 1
-	       (($ f x)
-		'ok)
-	       (x x)))
+	  (($ f x) 'ok)))
     => 'ok)
 
   (check
       (match 1
-	     (($ (lambda (x) (+ 1 x)) x)
-	      x)
-	     (y y))
+	(($ (lambda (x) (+ 1 x)) x)
+	 x)
+	(y y))
     => 2)
-
-  #t)
-
-
-(parameterise ((check-test-name 'misc))
-
-  (check	;duplicate symbols pass
-      (match '(ok . ok)
-	     ((x . x) x))
-    => 'ok)
-
-  (check	;duplicate symbols fail
-      (match '(ok . bad)
-	     ((x . x) 'bad)
-	     (else 'ok))
-    => 'ok)
 
   #t)
 
@@ -373,73 +408,73 @@
 
   (check
       (match '()
-	     ((x ...)
-	      x))
+	((x ...)
+	 x))
     => '())
 
   (check
       (match '(a b c d)
-	     ((x ...)
-	      x))
+	((x ...)
+	 x))
     => '(a b c d))
 
   (check
       (match '(a b c d)
-	     ((x ... y)
-	      (list x y)))
+	((x ... y)
+	 (list x y)))
     => '((a b c) d))
 
   (check
       (match '(a b c d)
-	     ((x ... y z)
-	      (list x y z)))
+	((x ... y z)
+	 (list x y z)))
     => '((a b) c d))
 
   (check
       (match '(a b c d)
-	     ((x ... y z w)
-	      (list x y z w)))
+	((x ... y z w)
+	 (list x y z w)))
     => '((a) b c d))
 
   (check
       (match '(a b c d)
-	     ((x ... y z w v)
-	      (list x y z w v)))
+	((x ... y z w v)
+	 (list x y z w v)))
     => '(() a b c d))
 
   (check
       (match '(a b c d)
-	     ((x ... (y ...))
-	      (list x y)))
+	((x ... (y ...))
+	 (list x y)))
     => '((a b c) d))
 
   (check
       (match '(a b (c d))
-	     ((x ... (y ...))
-	      (list x y)))
+	((x ... (y ...))
+	 (list x y)))
     => '((a b) (c d)))
 
   (check
       (match '(a b #(c d))
-	     ((x ... #(y ...))
-	      (list x y)))
+	((x ... #(y ...))
+	 (list x y)))
     => '((a b) (c d)))
 
-;;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FIXME
+  ;;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FIXME
   ;;
-;;   (check
-;;       (match '#(a b #(c d))
-;; 	     (#(x ... #(y ...))
-;; 	      (list x y)))
-;;     => '((a b) (c d)))
+  ;;   (check
+  ;;       (match '#(a b #(c d))
+  ;; 	     (#(x ... #(y ...))
+  ;; 	      (list x y)))
+  ;;     => '((a b) (c d)))
 
-;;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FIXME
-;;
-;;   (check
-;;       (match '#(a b #(c d))
-;; 	     ((x ... #(y ...))
-;; 	      (list x y)))
-;;     => '((a b) (c d)))
+  ;;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FIXME
+  ;;
+  ;;   (check
+  ;;       (match '#(a b #(c d))
+  ;; 	     ((x ... #(y ...))
+  ;; 	      (list x y)))
+  ;;     => '((a b) (c d)))
 
   (check
       ;;The "x"  in the  body is  bound to the  *list* of  elements that
@@ -447,25 +482,25 @@
       (match '((a . 1)
   	       (b . 2)
   	       (c . 3))
-  	     (((x . y) ...)
-  	      (list x y)))
+	(((x . y) ...)
+	 (list x y)))
     => '((a b c)
 	 (1 2 3)))
 
   (check
       (match '#(1 2 3 (a . 1) (b . 2) (c . 3))
-	     (#(a b c (hd . tl) ...)
-	      (list a b c hd tl)))
+	(#(a b c (hd . tl) ...)
+	 (list a b c hd tl)))
     => '(1 2 3 (a b c) (1 2 3)))
 
   (check
       (match '(1 2 3)
-	     (((? odd? n) ...) ;does not match, not all odd
-	      n)
-	     (((? even? n) ...) ;does not match, not all even
-	      n)
-	     (((? number? n) ...) ;does match, all numbers
-	      n))
+	(((? odd? n) ...) ;does not match, not all odd
+	 n)
+	(((? even? n) ...) ;does not match, not all even
+	 n)
+	(((? number? n) ...) ;does match, all numbers
+	 n))
     => '(1 2 3))
 
   #t)
@@ -475,9 +510,9 @@
 
   (check	;failure continuation
       (match '(1 2)
-	     ((a . b) (=> next)
-	      (if (even? a) 'fail (next)))
-	     ((a . b) 'ok))
+	((a . b) (=> next)
+	 (if (even? a) 'fail (next)))
+	((a . b) 'ok))
     => 'ok)
 
   #t)
@@ -488,14 +523,14 @@
   (check	;let
       (match-let ((x 'ok)
 		  (y '(o k)))
-		 y)
+	y)
     => '(o k))
 
   (check	;let*
       (match-let* ((x 'f)
 		   (y 'o)
 		   ((z w) (list y x)))
-		  (list x y z w))
+	(list x y z w))
     => '(f o o f))
 
   (check
@@ -506,25 +541,51 @@
   #t)
 
 
-(parameterise ((check-test-name 'misc))
+(parameterise ((check-test-name 'getter-setter))
+
+  (check
+      (match 2
+	((get! two)
+	 (two)))
+    => 2)
+
+  (check
+      (match '(2)
+	((get! two)
+	 (two)))
+    => '(2))
+
+  (check
+      (match '(2)
+	(((get! two))
+	 (two)))
+    => 2)
+
+  (check
+      (match '(1 2 3)
+	((* (get! two) *)
+	 (two)))
+    => 2)
 
   (check	;getter car
       (match '(1 . 2)
-	     (((get! a) . b)
-	      (list (a) b)))
+	(((get! a) . b)
+	 (list (a) b)))
     => '(1 2))
 
   (check	;getter cdr
       (match '(1 . 2)
-	     ((a . (get! b))
-	      (list a (b))))
+	((a . (get! b))
+	 (list a (b))))
     => '(1 2))
 
   (check	;getter vector
       (match '#(1 2 3)
-	     (#((get! a) b c)
-	      (list (a) b c)))
+	(#((get! a) b c)
+	 (list (a) b c)))
     => '(1 2 3))
+
+;;; --------------------------------------------------------------------
 
   (check	;setter car
       (let ((x '(1 . 2)))

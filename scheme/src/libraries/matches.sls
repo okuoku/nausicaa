@@ -30,9 +30,13 @@
 (library (matches)
   (export
     match match-lambda match-lambda*
-    match-let match-letrec match-named-let match-let*)
+    match-let match-letrec match-named-let match-let*
+
+    match-mismatch-error
+    &match-mismatch make-match-mismatch match-mismatch? match-mismatch-expression)
   (import (rnrs)
-    (rnrs mutable-pairs))
+    (rnrs mutable-pairs)
+    (conditions))
 
 
 ;;;; helpers
@@ -82,6 +86,20 @@
     ((_ expr ids ...) expr)))
 
 
+(define-condition-type &match-mismatch
+  &mismatch
+  make-match-mismatch
+  match-mismatch?
+  (expr match-mismatch-expression))
+
+(define-syntax match-mismatch-error
+  (syntax-rules ()
+    ((_ ?who ?expr)
+     (raise (condition (make-match-mismatch ?expr)
+		       (make-who-condition ?who)
+		       (make-message-condition "no matching pattern"))))))
+
+
 (define-syntax match
   ;;The basic interface.  Perform some basic syntax validation, bind the
   ;;expression to match to a temporary  variable (if it is not an atom),
@@ -113,21 +131,48 @@
 
 
 (define-syntax next-clause
-  ;;Match  a full  pattern from  the  first clause;  if matching  fails,
-  ;;invoke a thunk that attempts to  match the second clause or raise an
-  ;;error  if no  other  clauses are  present.   To be  called with  the
-  ;;following arguments:
+  ;;Match an expression against the  full pattern from the first clause;
+  ;;if matching fails, invoke a  thunk that attempts to match the second
+  ;;clause or  raise an error  if no other  clauses are present.   To be
+  ;;called with the following arguments:
   ;;
   ;;EXPR	- the expression to match
-  ;;GETTER	- the getter
-  ;;SETTER	- the setter
-  ;;CLAUSE ...	- the match clauses
+  ;;GETTER	- the getter form
+  ;;SETTER	- the setter form
+  ;;CLAUSE ...	- one or more match clauses
+  ;;
+  ;;The EXPR value must be the name of a temporary variable to which the
+  ;;expression to match  is bound, or the expression itself  if it is an
+  ;;atom.  EXPR is meant to be evaluated multiple times in the expansion
+  ;;of the macros.
+  ;;
+  ;;The GETTER  must be a form  which, when evaluated,  returns the full
+  ;;expression;  the getter  can be  EXPR itself.   It is  used  only by
+  ;;DISPATCH-PATTERN when  the pattern  has the form  "(get! <getter>)",
+  ;;where <getter> is a symbol; the usage looks like this:
+  ;;
+  ;;	(let ((<getter> (lambda () GETTER)))
+  ;;	  BODY)
+  ;;
+  ;;and the  thunk bound to  <getter> is supposed  to be invoked  in the
+  ;;BODY.
+  ;;
+  ;;The  SETTER  must  be an  "incomplete"  form;  it  is used  only  by
+  ;;DISPATCH-PATTERN when  the pattern  has the form  "(set! <setter>)",
+  ;;where <setter> is a symbol; the usage looks like this:
+  ;;
+  ;;	(let ((<setter> (lambda (x) (?setter ... x)))) BODY)
+  ;;
+  ;;and  the the  accessor function  bound to  <setter> is  meant  to be
+  ;;invoked by  the BODY.  The SETTER  form with X appended  is meant to
+  ;;result to  a form  which, when  evaluated, sets the  value X  in the
+  ;;expression.
   ;;
   (syntax-rules (=>)
 
     ;;no more clauses
     ((_ ?expr ?getter ?setter)
-     (syntax-violation 'match "no matching pattern" ?expr))
+     (match-mismatch-error 'match ?expr))
 
     ((_ ?expr ?getter ?setter (?pattern (=> ?failure) . ?body) . ?other-clauses)
      (let ((?failure (lambda ()
@@ -156,6 +201,8 @@
   ;;IDENTIFIERS		- the list of identifiers bound in the pattern
   ;;			  so far
   ;;
+  ;;See NEXT-CLAUSE for the meaning of EXPR, GETTER and SETTER.
+  ;;
   ;;The  failure  continuation is  invoked  when  matching EXPR  against
   ;;PATTERN fails;  the continuation is  meant to invoke  NEXT-CLAUSE to
   ;;match  EXPR against  the next  clause.  The  FAILURE-KONT must  be a
@@ -167,14 +214,16 @@
   ;;
   (syntax-rules ()
 
-    ((_ ?expr (?p ?q . ?rest) ?getter ?setter ?success-kont ?failure-kont ?identifiers)
-     (if-ellipsis ?q
-		  (extract-vars ?p
-				(ellipsis-pattern ?expr ?p ?rest ?getter ?setter
-						  ?success-kont ?failure-kont
-						  ?identifiers)
+    ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
+	?getter ?setter ?success-kont ?failure-kont ?identifiers)
+     (if-ellipsis ?second-pattern
+		  (extract-vars ?pattern
+				(ellipsis-pattern ?expr ?pattern ?pattern-rest
+						  ?getter ?setter
+						  ?success-kont ?failure-kont ?identifiers)
 				?identifiers ())
-		  (dispatch-pattern ?expr (?p ?q . ?rest) ?getter ?setter
+		  (dispatch-pattern ?expr (?pattern ?second-pattern . ?pattern-rest)
+				    ?getter ?setter
 				    ?success-kont ?failure-kont ?identifiers)))
 
     ((_ . ?x)
@@ -193,8 +242,14 @@
      (if (null? v) (sk ... i) fk))
 
     ;;the pattern is a quoted sexp
-    ((_ v (quote p) g s (sk ...) fk i)
-     (if (equal? v 'p) (sk ... i) fk))
+    ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
+     (if-identifier ?pattern
+		    (if (eq? ?expr (quote ?pattern))
+			(?success-kont ... ?identifiers)
+		      ?failure-kont)
+		    (if (equal? ?expr (quote ?pattern))
+			(?success-kont ... ?identifiers)
+		      ?failure-kont)))
 
     ;;the pattern is a quasiquoted sexp
     ((_ v (quasiquote p) g s sk fk i)
@@ -236,14 +291,14 @@
      (syntax-violation 'match "empty NOT form in pattern" '(not)))
 
     ;;the pattern is a getter
-    ((_ v (get! getter) g s (sk ...) fk i)
-     (let ((getter (lambda () g)))
-       (sk ... i)))
+    ((_ v (get! getter) ?getter s (?success-kont ...) fk ?identifiers)
+     (let ((getter (lambda () ?getter)))
+       (?success-kont ... ?identifiers)))
 
     ;;the pattern is a setter
-    ((_ v (set! setter) g (s ...) (sk ...) fk i)
-     (let ((setter (lambda (x) (s ... x))))
-       (sk ... i)))
+    ((_ v (set! setter) g (?setter ...) (?success-kont ...) fk ?identifiers)
+     (let ((setter (lambda (x) (?setter ... x))))
+       (?success-kont ... ?identifiers)))
 
     ;;the pattern is a predicate
     ((_ v (? pred p ...) g s sk fk i)
@@ -527,7 +582,7 @@
     ((_ (quote x) (k ...) i v)
      (k ... v))
     ((_ (quasiquote x) k i v)
-     (match-extract-quasiquote-vars x k i v (#t)))
+     (extract-quasiquote-vars x k i v (#t)))
     ((_ (and . p) k i v)
      (extract-vars p k i v))
     ((_ (or . p) k i v)
@@ -564,29 +619,29 @@
     ((_ p k i v ((v2 v2-ls) ...))
      (extract-vars p k (v2 ... . i) ((v2 v2-ls) ... . v)))))
 
-(define-syntax match-extract-quasiquote-vars
+(define-syntax extract-quasiquote-vars
   (syntax-rules (quasiquote unquote unquote-splicing)
     ((_ (quasiquote x) k i v d)
-     (match-extract-quasiquote-vars x k i v (#t . d)))
+     (extract-quasiquote-vars x k i v (#t . d)))
     ((_ (unquote-splicing x) k i v d)
-     (match-extract-quasiquote-vars (unquote x) k i v d))
+     (extract-quasiquote-vars (unquote x) k i v d))
     ((_ (unquote x) k i v (#t))
      (extract-vars x k i v))
     ((_ (unquote x) k i v (#t . d))
-     (match-extract-quasiquote-vars x k i v d))
+     (extract-quasiquote-vars x k i v d))
     ((_ (x . y) k i v (#t . d))
-     (match-extract-quasiquote-vars
+     (extract-quasiquote-vars
       x
-      (match-extract-quasiquote-vars-step y k i v d) i ()))
+      (extract-quasiquote-vars-step y k i v d) i ()))
     ((_ #(x ...) k i v (#t . d))
-     (match-extract-quasiquote-vars (x ...) k i v d))
+     (extract-quasiquote-vars (x ...) k i v d))
     ((_ x (k ...) i v (#t . d))
      (k ... v))))
 
-(define-syntax match-extract-quasiquote-vars-step
+(define-syntax extract-quasiquote-vars-step
   (syntax-rules ()
     ((_ x k i v d ((v2 v2-ls) ...))
-     (match-extract-quasiquote-vars x k (v2 ... . i)
+     (extract-quasiquote-vars x k (v2 ... . i)
 				    ((v2 v2-ls) ... . v) d))))
 
 
