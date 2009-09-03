@@ -257,6 +257,12 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c ------------------------------------------------------------
 
+@macro cmeta{THING}
+<\THING\>
+@end macro
+
+@c ------------------------------------------------------------
+
 @macro hyper{THING}
 <\THING\>
 @end macro
@@ -442,6 +448,7 @@ the list of original documents and their authors.
 
 More libraries
 
+* conditions::                  Predefined condition types.
 * lists::                       Lists library.
 * char-sets::                   Character sets library.
 * strings::                     Strings library.
@@ -2476,7 +2483,7 @@ The formal syntax for Scheme is written in an extended @acronym{BNF}.
 Non--terminals are written using angle brackets.  Case is insignificant
 for non--terminal names.
 
-All spaces in the grammar are for legibility.  @meta{Empty} stands for
+All spaces in the grammar are for legibility.  @meta{empty} stands for
 the empty string.
 
 The following extensions to @acronym{BNF} are used to make the
@@ -2535,10 +2542,10 @@ For example, @code{#x1A} and @code{#X1a} are equivalent.  The identifier
 
 
 @noindent
-@meta{Interlexeme space} may occur on either side of any lexeme, but not
+@meta{interlexeme space} may occur on either side of any lexeme, but not
 within a lexeme.
 
-@meta{Identifier}s, @code{.}, @meta{number}s, @meta{character}s, and
+@meta{Identifier}s, @samp{.}, @meta{number}s, @meta{character}s, and
 @meta{boolean}s, must be terminated by a @meta{delimiter} or by the end
 of the input.
 
@@ -19069,7 +19076,6 @@ apply.
 @end example
 @end deffn
 
-
 @c page
 @node naulib unimplemented
 @section Unimplemented error condition
@@ -19103,6 +19109,40 @@ Raise a composite condition embedding a condition of type
 @code{feature not implemented or not available}.
 
 @var{irritants} is used for the @code{&irritants} component.
+@end defun
+
+@c page
+@node conditions
+@chapter Predefined condition types
+
+
+The @library{conditions} library defines a set of condition types to be
+used by the Nausicaa libraries.  It re--exports all the bindings from
+the @library{unimplemented} library.
+
+@menu
+* conditions mismatch::         General mismatch error.
+@end menu
+
+@c page
+@node conditions mismatch
+@section General mismatch error
+
+
+@deftp {Condition Type} &mismatch
+Signal a mismatch between two values.  It is derived from
+@samp{&assertion}.
+@end deftp
+
+
+@defun make-mismatch-condition
+Build and return a new @samp{&mismatch} condition object.
+@end defun
+
+
+@defun mismatch-condition? @var{obj}
+Return @true{} if @var{obj} is a condition of object of type
+@samp{&mismatch}.
 @end defun
 
 @c page
@@ -34474,8 +34514,9 @@ match a procedure in @var{form}.
 
 
 @deffn Syntax sexp-mismatch-error @var{who} @var{pattern} @var{form}
-Raise a non--continuable exception with condition of type
-@samp{&sexp-mismatch}.  All the arguments are evaluated only once.
+Raise a non--continuable exception with conditions of type
+@samp{&sexp-mismatch}, @samp{&message}, @samp{&who}.  All the arguments
+are evaluated only once.
 @end deffn
 
 
@@ -34888,6 +34929,8 @@ it in the Public Domain.
 @menu
 * matches intro::               Introduction.
 * matches match::               Basic pattern matching.
+* matches condition::           Mismatch error condition.
+* matches syntax::              The pattern syntax.
 @end menu
 
 @c page
@@ -34977,8 +35020,274 @@ If @samp{pred} is true and all @samp{pattern} match.
 @item ($ proc pattern)
 If @samp{pattern} matches the result of applying @samp{proc} to the
 expression.
+
+@item (get! <symbol>)
+Match anything and bind to @meta{symbol} a thunk which, when evaluated,
+returns the matched element itself.
+
+@item (set! <symbol>)
+Match anything and bind to @meta{symbol} a function which, when applied
+to a value, replaces the expression with that value.  This involves the
+use of @func{set-car!}, @func{set-cdr!} and other mutators.
 @end table
 @end deffn
+
+@c page
+@node matches condition
+@section Mismatch error condition
+
+
+When the expansion of @func{match}, or one of its derivatives, detects a
+mismatch between the expression and all the patterns in the clauses, an
+error is raised with condition type @samp{&match-mismatch}.
+
+
+@deftp {Condition Type} &match-mismatch
+Raised to signal an expression/pattern mismatch while evaluating the
+expansion of @func{match}; it is derived from @samp{&assertion}.  There
+is only one field, @samp{expression}, which holds the mismatched
+expression.
+@end deftp
+
+
+@defun make-match-mismatch @var{expression}
+Build and return a condition of type @samp{&match-mismatch}.
+@end defun
+
+
+@defun match-mismatch? @var{obj}
+Return @true{} if @var{obj} is a condition of type
+@samp{&match-mismatch}.
+@end defun
+
+
+@defun match-mismatch-expression @var{obj}
+Accessor for the @samp{expression} field of a @samp{&match-mismatch}
+condition object.
+@end defun
+
+
+@deffn Syntax match-mismatch-error @var{who} @var{expression}
+Raise a non--continuable exception with condition types:
+@samp{&match-mismatch}, @samp{&message}, @samp{&who}.  All the arguments
+are evaluated only once.
+@end deffn
+
+@c page
+@node matches syntax
+@section The pattern syntax
+
+
+In this section we describe the syntax of the patterns and give examples
+of expansion for the @func{match} macro.  The full expansion can be
+quite big, with several nested @func{let} forms; for this reason, when
+convenient, we show only a smaller but conceptually equivalent
+expansion.
+
+While expanding, the @func{match} macro introduces unique identifier
+symbols bound to expressions; there is no way to directly reference
+these identifiers in the body of a clause.  They are indicated here with
+@samp{expr}, @samp{expr1}, @samp{expr2}, @dots{}
+
+@menu
+* matches syntax wildcard::     Matching anything with blind semantic
+                                action.
+* matches syntax variables::    Pattern variables.
+* matches syntax literal::      Matching literal values.
+* matches syntax getter::       Getting values out of the expression.
+* matches syntax setter::       Mutating the expression's value.
+@end menu
+
+@c page
+@node matches syntax wildcard
+@subsection Mathing anything with blind semantic action
+
+
+The wildcard pattern @samp{*} matches any expression and, when used
+alone, it only allows the evaluation of code independent from the
+expression itself.  A wildcard pattern usage looks like this:
+
+@example
+(match '(1 2 3)
+  (*                    ;pattern
+   'ok))                ;body
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 2 3)))
+  'ok)
+@result{} ok
+@end example
+
+@noindent
+where @samp{expr} is a unique identifier symbol introduced by the
+expansion of @func{match}; there is no way to reference such an
+identifier in the body of a clause.
+
+We understand that it does not matter what the expression is, because
+the body of the wildcard pattern will always ignore it.
+
+@c page
+@node matches syntax variables
+@subsection Pattern variables
+
+
+Pattern variables match any expression and bind them to a known
+identifier symbol.  A pattern variable usage looks like this:
+
+@example
+(match '(1 2 3)
+  (alpha                ;pattern
+   alpha))              ;body
+@result{} (1 2 3)
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '(1 2 3)))
+  (let ((alpha expr))
+    alpha))
+@result{} (1 2 3)
+@end example
+
+We understand that it does not matter what the expression is, because
+@func{match} just binds it to the selected identifier.  We can reference
+the identifier any number of times:
+
+@example
+(match '(1 2 3)
+  (alpha                        ;pattern
+   (list alpha alpha alpha)))   ;body
+@result{} ((1 2 3) (1 2 3) (1 2 3))
+@end example
+
+@noindent
+which expands to:
+
+@example
+(let ((expr '(1 2 3)))
+  (let ((alpha expr))
+    (list alpha alpha alpha)))
+@result{} ((1 2 3) (1 2 3) (1 2 3))
+@end example
+
+@c page
+@node matches syntax literal
+@subsection Matching literal values
+
+
+Literal values can be matched by simply putting them in the pattern.
+The usage of a literal matcher for the number @samp{123} looks like
+this:
+
+@example
+(match 123
+  (123 'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr 123))
+  (if (equal? expr 123)
+      'ok
+   ))
+@end example
+
+
+@c page
+@node matches syntax getter
+@subsection Getting values out of the expression
+
+
+A getter expression matcher looks like this:
+
+@example
+(match 2
+  ((get! two)
+   (two)))
+@result{} 2
+@end example
+
+@noindent
+we can think of it as if @func{match} expands to:
+
+@example
+(let ((expr 2))
+  (let ((two (lambda () expr)))
+    (two)))
+=> 2
+@end example
+
+@noindent
+so the @samp{(get! two)} pattern instructs @func{match} to define a
+thunk that can be used to retrieve the expression itself.  We understand
+that the single argument @meta{getter} in the abstract pattern
+@samp{(get! @cmeta{getter})} must be an indentifier.  We can evaluate
+the thunk any number of times.
+
+Let's look at another example:
+
+@example
+(match '(1 2 3)
+  ((* (get! two) *)
+   (two)))
+@result{} 2
+@end example
+
+@noindent
+the @samp{*} wildcards match @samp{1} and @samp{3}, but expand to
+nothing in the body; we can think of this as if it expands to:
+
+@example
+(let ((expr '(1 2 3)))
+  (let ((expr1 (car (cdr expr))))
+    (let ((two (lambda () expr1)))
+      (two))))
+@result{} 2
+@end example
+
+Let's modify this example to bind the other values, too:
+
+@example
+(match '(1 2 3)
+  ((alpha (get! two) beta)
+   (list alpha (two) beta)))
+@result{} '(1 2 3)
+@end example
+
+@noindent
+we can think of this as if it expands to:
+
+@example
+(let ((expr '(1 2 3)))
+  (let ((expr1 (car expr))
+        (expr2 (cdr expr)))
+    (let ((alpha expr1))
+      (let ((expr3 (car expr2))
+            (expr4 (cdr expr2)))
+        (let ((two (lambda () expr3)))
+          (let ((expr5 (car expr4))
+                (expr6 (cdr expr4)))
+            (let ((beta expr5))
+              (list alpha (two) beta))))))))
+@result{} '(1 2 3)
+@end example
+
+@c page
+@node matches syntax setter
+@subsection Mutating the expression's value
+
+
+
 
 @c page
 @node irregex

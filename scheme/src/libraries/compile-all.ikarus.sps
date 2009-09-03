@@ -26,6 +26,7 @@
 (import
     (only (language-extensions))
   (only (unimplemented))
+  (only (conditions))
   (only (parameters))
   (only (pretty-print))
   (only (nausicaa common))

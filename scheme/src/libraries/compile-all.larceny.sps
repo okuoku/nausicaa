@@ -29,6 +29,12 @@
 (compile-library "nausicaa/registry.sls"
 		 "nausicaa/registry.slfasl")
 
+(compile-library "unimplemented.sls"
+		 "unimplemented.slfasl")
+
+(compile-library "conditions.sls"
+		 "conditions.slfasl")
+
 (compile-library "parameters.larceny.sls"
 		 "parameters.larceny.slfasl")
 
@@ -37,9 +43,6 @@
 
 (compile-library "language-extensions.sls"
 		 "language-extensions.slfasl")
-
-(compile-library "unimplemented.sls"
-		 "unimplemented.slfasl")
 
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")
