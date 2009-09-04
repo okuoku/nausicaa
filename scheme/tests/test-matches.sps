@@ -240,7 +240,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'vector))
+(parameterise ((check-test-name 'vectors))
 
   (check
       (match '#()
@@ -251,6 +251,28 @@
       (match '#(ok)
 	(#(x) x))
     => 'ok)
+
+  (check
+      (match '#(1 2 3 4)
+	(#(x ...) x))
+    => '(1 2 3 4))
+
+  (check
+      (match '#(1 2 3 4)
+	(#(1 2 3 4) 'ok))
+    => 'ok)
+
+  (check
+      (match 1
+	(#(1 2 3 4)	'ok)
+	(*		'fail))
+    => 'fail)
+
+  (check
+      (match '#(1 2)
+	(#(1 2 3 4)	'ok)
+	(*		'fail))
+    => 'fail)
 
   #t)
 
@@ -537,6 +559,24 @@
 
   (check
       (match '(a b c d)
+	((x y ...)
+	 (list x y)))
+    => '(a (b c d)))
+
+  (check
+      (match '#(a b c d)
+	(#(x ...)
+	 x))
+    => '(a b c d))
+
+  (check
+      (match '#(a b c d)
+	(#(x y ...)
+	 (list x y)))
+    => '(a (b c d)))
+
+  (check
+      (match '(a b c d)
 	((x ... y)
 	 (list x y)))
     => '((a b c) d))
@@ -577,19 +617,12 @@
 	 (list x y)))
     => '((a b) (c d)))
 
-  ;;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FIXME
+  ;;FIXME  Currently ellipsis  are allowed  only  as last  element in  a
+  ;;pattern vector.
   ;;
   ;;   (check
   ;;       (match '#(a b #(c d))
   ;; 	     (#(x ... #(y ...))
-  ;; 	      (list x y)))
-  ;;     => '((a b) (c d)))
-
-  ;;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FIXME
-  ;;
-  ;;   (check
-  ;;       (match '#(a b #(c d))
-  ;; 	     ((x ... #(y ...))
   ;; 	      (list x y)))
   ;;     => '((a b) (c d)))
 
@@ -649,23 +682,149 @@
 
 (parameterise ((check-test-name 'extensions))
 
-  (check	;let
+  (check
+      (match-let ()
+	1)
+    => 1)
+
+  (check
+      (match-let ((x 1))
+	x)
+    => 1)
+
+  (check
+      (match-let ((* 1))
+	*)
+    => 1)
+
+  (check
+      (match-let ((* 1))
+	1)
+    => 1)
+
+  (check
       (match-let ((x 'ok)
 		  (y '(o k)))
 	y)
     => '(o k))
 
-  (check	;let*
+  (check
+      (match-let (((x . y) '(1 . 2))
+		  (z       3))
+	(list x y z))
+    => '(1 2 3))
+
+  (check
+      (match-let (((? number?  x) 1)
+		  ((? integer? y) 2))
+	x)
+    => 1)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (match-let* ()
+	1)
+    => 1)
+
+  (check
+      (match-let* ((x 1))
+	x)
+    => 1)
+
+  (check
+      (match-let* ((* 1))
+	1)
+    => 1)
+
+  (check
+      (match-let* ((x 'ok)
+		   (y '(o k)))
+	y)
+    => '(o k))
+
+  (check
+      (match-let* (((x . y) '(1 . 2))
+		   (z       3))
+	(list x y z))
+    => '(1 2 3))
+
+  (check
+      (match-let* (((? number?  x) 1)
+		   ((? integer? y) 2))
+	x)
+    => 1)
+
+  (check
       (match-let* ((x 'f)
 		   (y 'o)
 		   ((z w) (list y x)))
 	(list x y z w))
     => '(f o o f))
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (match-letrec ()
+		    1)
+    => 1)
+
+  (check
+      (match-letrec ((x 1))
+		    x)
+    => 1)
+
+  (check
+      (match-letrec ((* 1))
+		    1)
+    => 1)
+
+  (check
+      (match-letrec ((x 'ok)
+		     (y '(o k)))
+		    y)
+    => '(o k))
+
+  (check
+      (match-letrec (((x . y) '(1 . 2))
+		     (z       3))
+		    (list x y z))
+    => '(1 2 3))
+
+  (check
+      (match-letrec (((? number?  x) 1)
+		     ((? integer? y) 2))
+		    x)
+    => 1)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((f (match-lambda ((x y) (+ x y)))))
+	(f '(1 2)))
+    => 3)
+
   (check
       (let ((f (match-lambda* ((x y) (+ x y)))))
 	(f 1 2))
     => 3)
+
+  (let ()
+    (match-define one
+      ((x y) (+ x y)))
+
+    (match-define* two
+      ((x y) (+ x y)))
+
+    (check
+	(one '(1 2))
+      => 3)
+
+    (check
+	(two 1 2)
+      => 3)
+
+    )
 
   #t)
 

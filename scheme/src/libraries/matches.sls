@@ -29,7 +29,7 @@
 #!r6rs
 (library (matches)
   (export
-    match match-lambda match-lambda*
+    match match-lambda match-lambda* match-define match-define*
     match-let match-letrec match-named-let match-let*
 
     match-mismatch-error
@@ -350,12 +350,10 @@
 
     ;;the pattern is a vector
     ((_ ?expr #(?pattern ...) g s sk fk i)
-     (if (vector? ?expr)
-	 (match-vector ?expr
-		       0		;index of the first element
-		       ()
-		       (?pattern ...) sk fk i)
-       fk))
+     (match-vector ?expr
+		   0  ;index of the first element
+		   () ;list of index patterns
+		   (?pattern ...) sk fk i))
 
     ;;the pattern is the wildcard
     ((_ v * g s (sk ...) fk i)
@@ -474,41 +472,81 @@
 				 ?failure-kont)))))))))
 
 
+;;;The vector pattern (without ellipsis):
+;;;
+;;;	(match expr
+;;;	  (#(a b c) 'ok))
+;;;
+;;;is expanded to:
+;;;
+;;;	(match-vector expr 0
+;;;			   ()
+;;;			   (a b c)
+;;;			   success failure identifiers)
+;;;
+;;;where "0" is the index of the first element; then it is expanded to:
+;;;
+;;;	(match-vector-fixed-length expr 3
+;;;					((a 0) (b 1) (c 2))
+;;;					()
+;;;					success failure identifiers)
+;;;
+;;;where  "((a 0)  (b 1)  (c 1))"  are the  patterns coupled  with their
+;;;indexes in the  vector (index patterns) and "3" is  the length of the
+;;;vector.
+;;;
+
 (define-syntax match-vector
   ;;Vector patterns are just more of the same, with the slight exception
   ;;that we pass around the current vector index being matched.
   ;;
-  (syntax-rules (___)
-    ((_ v n pats (p q) sk fk i)
-     (if-ellipsis q
-		  (match-vector-ellipsis v n pats p sk fk i)
-		  (match-vector-two v n pats (p q) sk fk i)))
-    ((_ v n pats (p ___) sk fk i)
-     (match-vector-ellipsis v n pats p sk fk i))
-    ((_ . x)
-     (match-vector-two . x))))
-
-(define-syntax match-vector-two
-  ;;Check the exact vector length, then check each element in turn.
-  ;;
   (syntax-rules ()
-    ((_ v n ((pat index) ...) () sk fk i)
-     (if (vector? v)
-	 (let ((len (vector-length v)))
-	   (if (= len n)
-	       (match-vector-step v ((pat index) ...) sk fk i)
+
+    ;;Detect if the last pattern in the vector is an ellipsis.
+    ;;
+    ;;FIXME Currently the ellipsis can appear only as the last element.
+    ((_ v ?next-index ?index-patterns (p q) sk fk i)
+     (if-ellipsis q
+		  (match-vector-ellipsis     v ?next-index ?index-patterns p     sk fk i)
+		  (match-vector-fixed-length v ?next-index ?index-patterns (p q) sk fk i)))
+
+    ;;Convert all  the patterns into index patterns,  finally expand the
+    ;;matching code.
+    ((_ . ?all)
+     (match-vector-fixed-length . ?all))))
+
+(define-syntax match-vector-fixed-length
+  (syntax-rules ()
+
+    ;;All the patterns have been converted to index patterns.  Check the
+    ;;exact vector length, then match each element in turn.
+    ((_ ?expr ?vector-len ((?pattern ?index) ...) () sk fk i)
+     (if (vector? ?expr)
+	 (let ((len (vector-length ?expr)))
+	   (if (= len ?vector-len)
+	       (match-vector-index-pattern ?expr ((?pattern ?index) ...) sk fk i)
 	     fk))
        fk))
-    ((_ v n (pats ...) (p . q) sk fk i)
-     (match-vector v (+ n 1) (pats ... (p n)) q sk fk i))))
 
-(define-syntax match-vector-step
+    ;;Convert the next pattern into an index pattern.
+    ((_ ?expr ?next-index (?index-pattern ...) (?pattern . ?pattern-rest) sk fk i)
+     (match-vector ?expr (+ ?next-index 1)
+		   (?index-pattern ... (?pattern ?next-index))
+		   ?pattern-rest sk fk i))))
+
+(define-syntax match-vector-index-pattern
   (syntax-rules ()
-    ((_ v () (sk ...) fk i) (sk ... i))
-    ((_ v ((pat index) . rest) sk fk i)
-     (let ((w (vector-ref v index)))
-       (next-pattern w pat (vector-ref v index) (vector-set! v index)
-		     (match-vector-step v rest sk fk)
+
+    ;;No patterns, success.
+    ((_ v () (sk ...) fk i)
+     (sk ... i))
+
+    ;;Match an element, then match recursively the next one.
+    ((_ ?expr ((?pattern ?index) . ?rest) sk fk i)
+     (let ((item (vector-ref ?expr ?index)))
+       (next-pattern item ?pattern
+		     (vector-ref ?expr ?index) (vector-set! ?expr ?index)
+		     (match-vector-index-pattern ?expr ?rest sk fk)
 		     fk i)))))
 
 (define-syntax match-vector-ellipsis
@@ -516,29 +554,42 @@
   ;;length is at least the required length.
   ;;
   (syntax-rules ()
-    ((_ v n ((pat index) ...) p sk fk i)
-     (if (vector? v)
-	 (let ((len (vector-length v)))
-	   (if (>= len n)
-	       (match-vector-step v ((pat index) ...)
-				  (match-vector-tail v p n len sk fk)
-				  fk i)
+    ;;The ?TAIL-PATTERN is the one that must match all the tail items in
+    ;;the vector.
+    ((_ ?expr ?pattern-vector-len ((?pattern ?index) ...) ?tail-pattern sk fk i)
+     (if (vector? ?expr)
+	 (let ((expr-vector-len (vector-length ?expr)))
+	   (if (>= expr-vector-len ?pattern-vector-len)
+	       (match-vector-index-pattern ?expr ((?pattern ?index) ...)
+					   (match-vector-tail ?expr ?tail-pattern
+							      ?pattern-vector-len
+							      expr-vector-len sk fk)
+					   fk i)
 	     fk))
        fk))))
 
 (define-syntax match-vector-tail
   (syntax-rules ()
-    ((_ v p n len sk fk i)
-     (extract-vars p (match-vector-tail-two v p n len sk fk i) i ()))))
+    ((_ v ?tail-pattern ?pattern-vector-len ?expr-vector-len sk fk i)
+     (extract-vars ?tail-pattern
+		   (match-vector-tail-two v ?tail-pattern
+					  ?pattern-vector-len
+					  ?expr-vector-len sk fk i)
+		   i ()))))
 
 (define-syntax match-vector-tail-two
   (syntax-rules ()
-    ((_ v p n len (sk ...) fk i ((id id-ls) ...))
-     (let loop ((j n) (id-ls '()) ...)
-       (if (>= j len)
-	   (let ((id (reverse id-ls)) ...) (sk ... i))
-         (let ((w (vector-ref v j)))
-           (next-pattern w p (vector-ref v j) (vetor-set! v j)
+    ((_ v ?tail-pattern ?pattern-vector-len ?expr-vector-len (sk ...) fk i ((id id-ls) ...))
+     (let loop ((j     ?pattern-vector-len)
+		(id-ls '())
+		...)
+       (if (>= j ?expr-vector-len)
+	   (let ((id (reverse id-ls))
+		 ...)
+	     (sk ... i))
+         (let ((item (vector-ref v j)))
+           (next-pattern item ?tail-pattern
+			 (vector-ref v j) (vetor-set! v j)
 			 (match-drop-ids (loop (+ j 1) (cons id id-ls) ...))
 			 fk i)))))))
 
@@ -599,13 +650,23 @@
 
 ;;;; gimme some sugar baby
 
+(define-syntax match-define
+  (syntax-rules ()
+    ((_ ?name ?clause ...)
+     (define ?name (match-lambda ?clause ...)))))
+
+(define-syntax match-define*
+  (syntax-rules ()
+    ((_ ?name ?clause ...)
+     (define ?name (match-lambda* ?clause ...)))))
+
 (define-syntax match-lambda
   (syntax-rules ()
-    ((_ clause ...) (lambda (expr) (match expr clause ...)))))
+    ((_ ?clause ...) (lambda (expr) (match expr ?clause ...)))))
 
 (define-syntax match-lambda*
   (syntax-rules ()
-    ((_ clause ...) (lambda expr (match expr clause ...)))))
+    ((_ ?clause ...) (lambda expr (match expr ?clause ...)))))
 
 (define-syntax match-let
   (syntax-rules ()
@@ -614,27 +675,13 @@
     ((_ loop . rest)
      (match-named-let loop () . rest))))
 
-(define-syntax match-letrec
+(define-syntax match-let*
   (syntax-rules ()
-    ((_ vars . body)
-     (match-let/helper letrec () () vars . body))))
-
-(define-syntax match-let/helper
-  (syntax-rules ()
-    ((_ let ((var expr) ...) () () . body)
-     (let ((var expr) ...) . body))
-    ((_ let ((var expr) ...) ((pat tmp) ...) () . body)
-     (let ((var expr) ...)
-       (match-let* ((pat tmp) ...)
-		   . body)))
-    ((_ let (v ...) (p ...) (((a . b) expr) . rest) . body)
-     (match-let/helper
-      let (v ... (tmp expr)) (p ... ((a . b) tmp)) rest . body))
-    ((_ let (v ...) (p ...) ((#(a ...) expr) . rest) . body)
-     (match-let/helper
-      let (v ... (tmp expr)) (p ... (#(a ...) tmp)) rest . body))
-    ((_ let (v ...) (p ...) ((a expr) . rest) . body)
-     (match-let/helper let (v ... (a expr)) (p ...) rest . body))))
+    ((_ () . ?body)
+     (begin . ?body))
+    ((_ ((?pattern ?expr) . ?rest) . ?body)
+     (match ?expr
+       (?pattern (match-let* ?rest . ?body))))))
 
 (define-syntax match-named-let
   (syntax-rules ()
@@ -645,12 +692,62 @@
     ((_ loop (v ...) ((pat expr) . rest) . body)
      (match-named-let loop (v ... (pat expr tmp)) rest . body))))
 
-(define-syntax match-let*
+(define-syntax match-letrec
   (syntax-rules ()
-    ((_ () . body)
-     (begin . body))
-    ((_ ((pat expr) . rest) . body)
-     (match expr (pat (match-let* rest . body))))))
+    ((_ vars . body)
+     (match-let/helper letrec () () vars . body))))
+
+(define-syntax match-let/helper
+  ;;To be called with the following arguments:
+  ;;
+  ;;LET		- The identifier of the selected LET form, LET
+  ;;		  or LETREC.
+  ;;
+  ;;BINDINGS	- The list of bindings for the outer LET form
+  ;;		  accumulated so far.
+  ;;
+  ;;CLAUSES	- The list of clauses accumulated so far.
+  ;;
+  ;;BODY	- The body to be evaluated if all the patterns
+  ;;		  match all the expressions.
+  ;;
+  (syntax-rules ()
+
+    ;;Possible initial and  final form, no more clauses  nor patterns to
+    ;;process.  This rule matches only if the original syntax defined no
+    ;;clauses, only simple bindings.
+    ((_ ?let ((?var ?expr) ...) () () . ?body)
+     (?let ((?var ?expr) ...) . ?body))
+
+    ;;Possible  final  form,  no   more  clauses  but  patterns.   Start
+    ;;MATCH-LET* recursion to nest pattern matchers.
+    ((_ ?let ((?var ?expr) ...) ((?pattern ?tmp-var) ...) () . ?body)
+     (?let ((?var ?expr) ...)
+       (match-let* ((?pattern ?tmp-var) ...) . ?body)))
+
+    ;;Possible initial form: the pattern  in the first clause is a pair.
+    ;;Generate a temporary  variable TMP for the expression  and add the
+    ;;pair  pattern to  the list  of  patterns.  Notice  that this  also
+    ;;matches the special patterns ?, $, get!, set!.
+    ((_ ?let (?binding ...) (?pattern ...) (((?a . ?b) ?expr) . ?rest) . ?body)
+     (match-let/helper ?let (?binding ... (tmp ?expr))
+		       (?pattern ... ((?a . ?b) tmp))
+		       ?rest . ?body))
+
+    ;;Possible  initial form:  the  pattern  in the  first  clause is  a
+    ;;vector.  Generate a temporary  variable TMP for the expression and
+    ;;add the vector pattern to the list of patterns.
+    ((_ ?let (?binding ...) (?pattern ...) ((#(?a ...) ?expr) . ?rest) . ?body)
+     (match-let/helper ?let (?binding ... (tmp ?expr))
+		       (?pattern ... (#(?a ...) tmp))
+		       ?rest . ?body))
+
+    ;;Possible initial form: the first clause is a list of two elements;
+    ;;add the first clause to the list of bindings.
+    ((_ ?let (?binding ...) (?pattern ...) ((?a ?expr) . ?rest) . ?body)
+     (match-let/helper ?let (?binding ... (?a ?expr))
+		       (?pattern ...)
+		       ?rest . ?body))))
 
 
 ;;;; done

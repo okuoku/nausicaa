@@ -34923,9 +34923,6 @@ their values.  The keywords are meant to be records of type
 The @library{matches} library implements @dfn{pattern matching}, also
 known as @dfn{destructuring bind}.
 
-The library is derived from @file{match.scm} by Alex Shinn, who placed
-it in the Public Domain.
-
 @menu
 * matches intro::               Introduction.
 * matches match::               Basic pattern matching.
@@ -34948,27 +34945,27 @@ Nonetheless a smart compiler should be able to remove the redundant
 tests.  For ``match let'' and ``destructuring bind'' type uses there is
 no performance hit.
 
-
 @c page
 @node matches match
 @section Basic pattern matching
 
 
-@deffn Syntax match @var{expr} @var{clause} ...
-Match the expression @var{expr} against the @var{clause} arguments;
+@deffn Syntax match @var{sexp} @var{clause} ...
+@deffnx {Auxiliary Syntax} =>
+Match the S--expression @var{sexp} against the @var{clause} arguments;
 each clause is one of:
 
 @example
-(pattern form0 form ...)
-(pattern (=> next) form0 form ...)
+(@cmeta{pattern} . @cmeta{body})
+(@cmeta{pattern} (=> next) . @cmeta{body})
 @end example
 
-@samp{expr} is evaluated, and matched against each @samp{pattern} in
-turn; the first to succeed causes the corresponding body @samp{form}
-elements to be evaluated as in @func{begin}, and the remaining patterns
-are ignored.  However, if the @samp{next} identifier is labeled, it may
-be used as a continuation to continue matching, allowing for additional
-runtime tests on the pattern.
+@var{expr} is evaluated and matched against each @meta{pattern} in turn;
+the first to succeed causes the corresponding @meta{body} forms to be
+evaluated as in @func{begin}, and the remaining patterns are ignored.
+However, if the @samp{next} identifier is labeled, it may be used as a
+continuation to continue matching, allowing for additional runtime tests
+on the pattern.
 
 The syntax for the patterns is:
 
@@ -34985,48 +34982,129 @@ A literal S--expression.
 @item pattern-var
 Matches anything and binds @samp{pattern-var} to it.
 
-@item (pattern1 ... patternN)
+@item (pattern1 --- patternN)
 Proper list of @math{n} elements.
 
-@item (pattern1 ... patternN . patternN+1)
+@item (pattern1 --- patternN . patternN+1)
 Improper list of @math{n} or more elements.
 
-@item (pattern1 ... patternN patternN+1 ...)
-List of @math{n} or more elements, each element of remainder must match
-@samp{patternN+1}.
+@item (pattern1 --- patternN patternN+1 ...)
+List of @math{n} or more elements with terminating ellipsis; each
+element of remainder must match @samp{patternN+1}.
 
-@item #(pattern1 ... patternN)
+@item #(pattern1 --- patternN)
 Vector of @math{n} elements.
 
-@item #(pattern1 ... patternN patternN+1 ...)
-Vector of @math{n} or more, each element of remainder must match
-@samp{patternN+1}.
+@item #(pattern1 --- patternN patternN+1 ...)
+Vector of @math{n} or more elements with terminating ellipsis; each
+element of remainder must match @samp{patternN+1}.
 
-@item (and pattern ...)
+@item (and pattern ---)
 If all of @samp{pattern} match.
 
-@item (or pattern ...)
+@item (or pattern ---)
 If any of @samp{pattern} match.
 
-@item (not pattern ...)
+@item (not pattern ---)
 If all @samp{pattern} don't match at all.
 
-@item (? pred pattern ...)
+@item (? pred pattern ---)
 If @samp{pred} is true and all @samp{pattern} match.
 
 @item ($ proc pattern)
 If @samp{pattern} matches the result of applying @samp{proc} to the
 expression.
 
-@item (get! <symbol>)
+@item (get! @cmeta{symbol})
 Match anything and bind to @meta{symbol} a thunk which, when evaluated,
 returns the matched element itself.
 
-@item (set! <symbol>)
+@item (set! @cmeta{symbol})
 Match anything and bind to @meta{symbol} a function which, when applied
 to a value, replaces the expression with that value.  This involves the
 use of @func{set-car!}, @func{set-cdr!} and other mutators.
 @end table
+@end deffn
+
+
+@deffn Syntax match-let ((@meta{pattern} @meta{expression}) ...) . @meta{body}
+@deffnx Syntax match-let @meta{variable} ((@meta{pattern} @meta{expression}) ...) . @meta{body}
+@deffnx Syntax match-let* ((@meta{pattern} @meta{expression}) ...) . @meta{body}
+@deffnx Syntax match-letrec ((@meta{pattern} @meta{expression}) ...) . @meta{body}
+Match each @cmeta{expression} against each @meta{pattern} and, if all
+the matches are successful, evaluate @cmeta{body} in the resulting
+environment.  If a pattern does not match, a mismatch error is raised;
+these syntaxes are meant to provide destructuring, not to test if an
+S--expression matches a pattern.
+
+@example
+(match-let ((x 1))
+  x)
+@result{} 1
+
+(match-let (((x . y) '(1 . 2))
+            (z       3))
+  (list x y z))
+@result{} (1 2 3)
+@end example
+
+These syntaxes are matching extensions of the corresponding @rnrs{6}
+@func{let} syntaxes.  Notice that:
+
+@example
+(match-let ((* 1))
+  *)
+@result{} 1
+@end example
+
+@noindent
+normal binding of variables takes precedence over pattern matching.
+@end deffn
+
+
+@deffn Syntax match-lambda @meta{clause} ...
+@deffnx Syntax match-lambda* @meta{clause} ...
+Define a @func{lambda} which matches its arguments against a set of
+patterns.
+
+@example
+(match-lambda @cmeta{clause} ...) @equiv{}
+  (lambda (expr) (match expr @meta{clause} ...))
+
+(match-lambda* @cmeta{clause} ...) @equiv{}
+  (lambda expr (match expr @meta{clause} ...))
+@end example
+@end deffn
+
+
+@deffn Syntax match-lambda @var{name} @meta{clause} ...
+@deffnx Syntax match-lambda* @var{name} @meta{clause} ...
+Define a @func{lambda} which matches its arguments against a set of
+patterns, binding it to @var{name}.
+
+@example
+(match-define @cmeta{name} @cmeta{clause} ...) @equiv{}
+  (define @cmeta{name} (match-lambda @cmeta{clause} ...))
+
+(match-define* @cmeta{name} @cmeta{clause} ...) @equiv{}
+  (define @cmeta{name} (match-lambda* @cmeta{clause} ...))
+@end example
+
+Examples:
+
+@example
+(match-define one
+  ((x y) (+ x y)))
+
+(one '(1 2))
+@result{} 3
+
+(match-define* two
+  ((x y) (+ x y)))
+
+(two 1 2)
+@result{} 3
+@end example
 @end deffn
 
 @c page
@@ -35093,6 +35171,7 @@ these identifiers in the body of a clause.  They are indicated here with
 * matches syntax clauses::      Multiple clauses.
 * matches syntax quoted::       Matching quoted S--expressions.
 * matches syntax lists::        Matching pairs and lists.
+* matches syntax vectors::      Matching vectors.
 * matches syntax variables::    Pattern variables.
 * matches syntax pred::         Matching with predicates.
 * matches syntax accessor::     Matching with accessor procedure.
@@ -35101,6 +35180,8 @@ these identifiers in the body of a clause.  They are indicated here with
 * matches syntax getter::       Getting values out of the expression.
 * matches syntax setter::       Mutating the expression's value.
 * matches syntax continuation:: Continuing after mismatch.
+* matches syntax ellipsis::     Matching an arbitrary number of
+                                subexpressions.
 * matches syntax macros::       Impossibility of using macros as
                                 patterns.
 @end menu
@@ -35116,8 +35197,7 @@ expression itself.  A wildcard pattern usage looks like this:
 
 @example
 (match '(1 2 3)
-;; pattern  body
-  (*        'ok))
+  (* 'ok))
 @result{} ok
 @end example
 
@@ -35147,8 +35227,7 @@ of a literal matcher for the number @samp{123} looks like this:
 
 @example
 (match 123
-;; pattern  body
-  (123      'ok))
+  (123 'ok))
 @result{} ok
 @end example
 
@@ -35289,8 +35368,8 @@ we can think of it as expanding to:
 @subsection Matching pairs and lists
 
 
-Pairs and lists in expressions can be matched only by pairs and lists in
-the pattern.  The usage of a pair matcher looks like this:
+Pairs and lists in expressions can be matched by pairs and lists in the
+pattern.  The usage of a pair matcher looks like this:
 
 @example
 (match '(1 . 2)
@@ -35388,6 +35467,47 @@ we can think of it as expanding to:
 @end example
 
 @c page
+@node matches syntax vectors
+@subsection Matching vectors
+
+
+Vectors in expressions can be matched by vectors in the pattern.  The
+usage of a vector matcher looks like this:
+
+@example
+(match '#(1 2)
+  (#(1 2) 'ok))
+@result{} ok
+@end example
+
+@noindent
+we can think of it as expanding to:
+
+@example
+(let ((expr '#(ok)))
+  (if (vector? expr)
+      (let ((len (vector-length expr)))
+        (if (= len 2)
+            (let ((expr1 (vector-ref expr 0)))
+              (if (equal? expr1 1)
+                  (let ((expr2 (vector-ref expr 1)))
+                    (if (equal? expr2 2)
+                        'ok
+                      (check-mismatch-error 'match expr2)))
+                (check-mismatch-error 'match expr1)))
+          (check-mismatch-error 'match expr)))
+    (match-mismatch-error 'match expr)))
+@end example
+
+An empty vector pattern matches an empty expression pattern:
+
+@example
+(match '#()
+  (#() 'ok))
+@result{} ok
+@end example
+
+@c page
 @node matches syntax variables
 @subsection Pattern variables
 
@@ -35397,7 +35517,6 @@ identifier symbol.  A pattern variable usage looks like this:
 
 @example
 (match '(1 2 3)
-;; pattern  body
   (alpha    alpha))
 @result{} (1 2 3)
 @end example
@@ -35486,7 +35605,7 @@ we can think of it as expanding to:
 @example
 (let ((expr 123))
   (if (integer? expr)
-      ok
+      'ok
     (match-mismatch-error 'match expr)))
 @end example
 
@@ -35585,12 +35704,12 @@ A notable use of this pattern is to access record fields:
 @subsection Logic alternatives and negation
 
 
-We can compose pattern using a logical AND or a logical OR.  We can also
-negate the matching of a pattern.
+We can compose patterns using a logical AND or a logical OR.  We can
+also negate the matching of a pattern.
 
 @c ------------------------------------------------------------
 
-@subsubheading Conjunction of patterns
+@subsubheading Logical conjunction
 
 A logical AND pattern usage looks like this:
 
@@ -35629,7 +35748,7 @@ equivalent to the wildcard @samp{*}:
 
 @c ------------------------------------------------------------
 
-@subsubheading Disjunction of pattern
+@subsubheading Logical disjunction
 
 A logical OR pattern usage looks like this:
 
@@ -35667,9 +35786,9 @@ the @samp{success} procedure is the ``success continuation''; it takes
 as arguments one value for each of the pattern variables in each of the
 @samp{or} alternative patterns.  All the pattern variables defined in an
 @samp{or} alternative must be defined in all the other, else an error
-will occur.  (The @samp{success} identifier is introduce by @func{match}
-whil expanding, so it cannot be referenced directly in the body of a
-clause.)
+will occur.  (The @samp{success} identifier is introduced by
+@func{match} while expanding, so it cannot be referenced directly in the
+body of a clause.)
 
 The above example is correct because @samp{x} is defined in both the
 alternative patterns, the following example is wrong:
@@ -35697,7 +35816,7 @@ because it expands to:
         (match-mismatch-error 'match expr)))))
 @end example
 
-An empty @samp{or} pattern matches nothing:
+An empty @samp{or} pattern matches nothing, it always fails:
 
 @example
 (match 123
@@ -35707,7 +35826,7 @@ An empty @samp{or} pattern matches nothing:
 
 @c ------------------------------------------------------------
 
-@subsubheading Negated pattern matching
+@subsubheading Logical negation
 
 A logical NOT pattern usage looks like this:
 
@@ -35765,13 +35884,12 @@ The patterns in the clauses are like quoted S--expressions:
 
 @noindent
 the @samp{x} in the pattern is a pattern variable which shadows the
-outer @samp{x} binding.  The same ``shadowing'' happens for all the
-elements of a pattern form.
+outer @samp{x} binding.
 
 Despite this, we can insert a runtime value in the pattern matching
 forms using @samp{quasiquote} forms; only single values can be inserted
-like this, the pattern specification remains unchanged.  A
-@samp{quasiquote} pattern usage looks like this:
+like this (rather than chunks of patterns), the pattern specification
+remains unchanged.  A @samp{quasiquote} pattern usage looks like this:
 
 @example
 (let ((x 1))
@@ -35869,8 +35987,7 @@ Let's look at another example:
 @end example
 
 @noindent
-the @samp{*} wildcards match @samp{1} and @samp{3}, but expand to
-nothing in the body; we can think of this as expanding to:
+we can think of this as expanding to:
 
 @example
 (let ((expr '(1 2 3)))
@@ -36015,6 +36132,81 @@ we can think of it as expanding to:
         x
       (next))))
 @end example
+
+@c page
+@node matches syntax ellipsis
+@subsection Matching an arbitrary number of subexpressions
+
+
+The special ellipsis pattern @samp{...} can be used to match an
+arbitrary number of subexpressions against the same pattern.  A usage of
+ellipsis in a list looks like:
+
+@example
+(match '(a b c d)
+  ((x ...)
+   x))
+@result{} (a b c d)
+
+(match '(a b c d)
+  ((x y ...)
+   (list x y)))
+@result{} (a (b c d))
+@end example
+
+@noindent
+all the elements of the list expression are matched against the pattern
+variable @samp{x}, which is bound to the list of matched expressions.
+The same happens with vector patterns:
+
+@example
+(match '#(a b c d)
+  (#(x ...)
+   x))
+@result{} (a b c d)
+
+(match '#(a b c d)
+  (#(x y ...)
+   (list x y)))
+@result{} (a (b c d))
+@end example
+
+Currently (Fri Sep 4, 2009) the ellipsis can appear only as last element
+of a pattern vector; instead, other patterns can appear after an
+ellipsis in a list pattern, but only one ellipsis is allowed in a list
+pattern.
+
+@example
+(match '(a b c d)
+  ((x ... y z)
+   (list x y z)))
+@result{} ((a b) c d)
+
+(match '(a b c d)
+  ((x ... y z w v)
+   (list x y z w v)))
+@result{} (() a b c d)
+
+(match '(a b (c d))
+  ((x ... (y ...))
+   (list x y)))
+@result{} ((a b) (c d))
+
+(match '(a b #(c d))
+  ((x ... #(y ...))
+   (list x y)))
+@result{} ((a b) (c d))
+
+(match '(1 2 3)
+  (((? odd? n) ...)     ;no match, not all odd
+   n)
+  (((? even? n) ...)    ;no match, not all even
+   n)
+  (((? number? n) ...)  ;match, all numbers
+   n))
+@result{} (1 2 3)
+@end example
+
 
 
 @c page
