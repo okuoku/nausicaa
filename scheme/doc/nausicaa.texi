@@ -367,7 +367,7 @@ development of Nausicaa takes place at:
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
 @noindent
-Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}.@*
+Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR}.@*
 Copyright @copyright{} 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 Free Software Foundation.@*
 Copyright @copyright{} 1996, 1999-2005 Dorai Sitaram.@*
@@ -382,8 +382,8 @@ Copyright @copyright{} 2003 Ray Dillinger.@*
 Copyright @copyright{} 2003 Taylor Campbell.@*
 Copyright @copyright{} 2005 Jens Axel Soegaard.@*
 Copyright @copyright{} 2005-2009 Alex Shinn.@*
-Copyright @copyright{} 2008 Taro Minowa (Higepon).
-Copyright @copyright{} 2005-2008 Dominique Boucher
+Copyright @copyright{} 2008 Taro Minowa (Higepon).@*
+Copyright @copyright{} 2005-2008 Dominique Boucher.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -398,7 +398,8 @@ entitled ``@gnu{} Free Documentation License''.
 This document embeds an unofficial assemblage of several documents
 reformatted in Texinfo; the reformatting author and maintainer is
 @value{AUTHOR} @value{AUTHOR_EMAIL}.  See the appendix ``Credits'' for
-the list of original documents and their authors.
+the list of original documents and their authors.  See also the
+@file{README} and @file{CREDITS} files for additional attributions.
 @end copying
 
 @c page
@@ -18287,7 +18288,7 @@ revised implementations of @srfi{} specifications that were voted to the
 
 
 @menu
-* naulib features::             Feature--based conditional expansion.
+* naulib features::             Feature-based conditional expansion.
 * naulib funcs::                Functions.
 * naulib pretty::               Pretty printing.
 * naulib macros::               Syntactic abstractions.
