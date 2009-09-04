@@ -776,7 +776,7 @@
     get-environment-variables
 
     ;; parameters
-    make-parameter parameterize (rename (parameterize parameterise))
+    make-parameter parameterize parameterise parametrise
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?

@@ -771,7 +771,7 @@
 	    (process-environment->alist get-environment-variables))
 
     ;; parameters
-    parameterize parameterise make-parameter
+    parameterize parameterise parametrise make-parameter
 
     ;; unimplemented condition
     &unimplemented unimplemented-condition?
