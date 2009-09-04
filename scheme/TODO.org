@@ -61,6 +61,12 @@
 
   Implement the syntaxes for map and /with-index?
 
+  Visit the following Wikipedia pages:
+  http://en.wikipedia.org/wiki/Edit_distance
+  http://en.wikipedia.org/wiki/Levenshtein_distance
+  http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
+
+
 * vectors
 
   Finished.
