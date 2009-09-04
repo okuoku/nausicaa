@@ -33,6 +33,16 @@
 (check-set-mode! 'report-failed)
 (display "*** testing matches\n")
 
+(define-syntax catch-error
+  (syntax-rules ()
+    ((_ ?body)
+     (guard (E ((irritants-condition? E)
+		`((message   . ,(condition-message E))
+		  (irritants . ,(condition-irritants E))))
+	       (else
+		#t))
+       ?body))))
+
 (define-syntax catch-syntax-error
   (syntax-rules ()
     ((_ ?body)
@@ -48,43 +58,7 @@
        ?body))))
 
 
-(parameterise ((check-test-name 'mechanism))
-
-  (let-syntax ((doit (syntax-rules ()
-		       ((_ (beta (delta ?num)))
-			?num))))
-
-    (check
-	(doit (beta (delta 123)))
-      => 123)
-
-    #f)
-
-  (let-syntax ((doit (syntax-rules (beta delta)
-		       ((_ (beta (delta ?num)))
-			?num))))
-
-    (check
-	(doit (beta (delta 123)))
-      => 123)
-
-    #f)
-
-  ;;Why this raises a "duplicate pattern variables" error?
-  #;(let-syntax ((doit (syntax-rules ()
-  ((_ ('beta ('delta ?num)))
-  ?num))))
-
-    (check
-	(doit ('beta ('delta 123)))
-      => 123)
-
-    #f)
-
-  #t)
-
-
-(parameterise ((check-test-name 'errors))
+(parametrise ((check-test-name 'errors))
 
   (check
       (catch-syntax-error (match))
@@ -309,6 +283,13 @@
 	 (list x y z)))
     => '(1 2 3))
 
+  (check
+      (match (make-color 1 2 3)
+	((? color?
+	    ($ color-red (? zero?))) 'ok)
+	(* 'fail))
+    => 'fail)
+
   #t)
 
 
@@ -345,8 +326,35 @@
 
   (check	;or double
       (match 'ok
-	((or (? symbol? y) y) y))
+	((or (? symbol? y)
+	     y)
+	 y))
     => 'ok)
+
+  (check
+      (match 'ok
+	((or (? integer? x)
+	     (? symbol?  x))
+	 x))
+    => 'ok)
+
+  (check
+      (guard (E (else #t))
+	(eval '(match 123
+		 ((or (? integer? x)
+		      (? symbol?  y))
+		  y))
+	      (environment '(rnrs) '(matches))))
+    => #t)
+
+  (check
+      (guard (E (else #t))
+	(eval '(match 123
+		 ((or (? integer? x)
+		      (? symbol?  y))
+		  x))
+	      (environment '(rnrs) '(matches))))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
@@ -360,6 +368,20 @@
 	((not 28) 'fail)
 	(*        'ok))
     => 'ok)
+
+  (check
+      (match 123
+	((not (? symbol?))
+	 'ok))
+    => 'ok)
+
+  (check
+      (guard (E (else #t))
+	(eval '(match 123
+		 ((not (? symbol? x))
+		  x)) ; unbound identifier
+	      (environment '(rnrs) '(matches))))
+    => #t)
 
   (check
       (catch-syntax-error (match '()
@@ -377,11 +399,23 @@
 	((? number?) 'ok))
     => 'ok)
 
-  (check	;named pred
+  (check
       (match 28
 	((? number? x)
 	 (+ 1 x)))
     => 29)
+
+  (check
+      (match 28
+	((? number? (? integer? x))
+	 (+ 1 x)))
+    => 29)
+
+  (check
+      (match 28
+	((? number? x y z)
+	 (list x y z)))
+    => '(28 28 28))
 
   #t)
 
@@ -400,6 +434,89 @@
 	 x)
 	(y y))
     => 2)
+
+  #t)
+
+
+(parameterise ((check-test-name 'quasiquote))
+
+  (check
+      (let ((x 1))
+	(match 1
+	  (`,x 'ok)
+	  (*   'fail)))
+    => 'ok)
+
+  (check
+      (let ((x 2))
+	(match '(1 2 3)
+	  ((* `,x y) y)
+	  (*         'fail)))
+    => 3)
+
+  (check
+      (let ((x 10))
+	(match '(1 2 3)
+	  ((* `,(- x 8) y)
+	   y)
+	  (*
+	   'fail)))
+    => 3)
+
+  (check
+      (let ((x '(2 3)))
+	(match '(1 2 3 4)
+	  (`(1 ,@x 4)	'ok)
+	  (*		'fail)))
+    => 'ok)
+
+  (check
+      (let ((pred number?))
+	(match 28
+	  ((? `,pred) 'ok)))
+    => 'ok)
+
+  (check
+      (let ((f (lambda (x) (+ 1 x))))
+	(match 2
+	  (($ `,f x) x)))
+    => 3)
+
+  #t)
+
+
+(parameterise ((check-test-name 'expand))
+
+  (define-syntax it
+    (syntax-rules ()
+      ((_ ?var)
+       (* ?var *))))
+
+  (check
+      (match '(1 2 3)
+	((it x) x)
+	(*      'fail))
+    => 'fail)
+
+  (check
+      (let-syntax ((it (syntax-rules ()
+			 ((_ ?var)
+			  (* ?var *)))))
+	(match '(1 2 3)
+	  ((it x) x)
+	  (*      'fail)))
+    => 'fail)
+
+  (check
+      (let-syntax ((one (syntax-rules ()
+			  ((_)
+			   1)))
+		   (two (syntax-rules ()
+			  ((_ ?v)
+			   (quote ?v)))))
+	(two (one)))
+    => '(one))
+
 
   #t)
 
@@ -508,12 +625,24 @@
 
 (parameterise ((check-test-name 'continuation))
 
-  (check	;failure continuation
+  (check
       (match '(1 2)
-	((a . b) (=> next)
+	((a . b)
+	 (=> next)
 	 (if (even? a) 'fail (next)))
-	((a . b) 'ok))
+	((a . b)
+	 'ok))
     => 'ok)
+
+  (check
+      (match 3
+	((? positive? x)
+	 (=> next)
+	 (if (even? x)
+	     x
+	   (next)))
+	(* 0))
+    => 0)
 
   #t)
 
@@ -587,9 +716,32 @@
 
 ;;; --------------------------------------------------------------------
 
+  (check
+      (let ((x 1))
+	(match x
+	  ((set! doit)
+	   (doit 3)))
+	x)
+    => 3)
+
+  (check
+      (catch-error (eval '(match 1
+			    ((and (set! doit)
+				  x)
+			     (doit 3)
+			     x))
+			 (environment '(rnrs) '(matches))))
+    => #t)
+
   (check	;setter car
       (let ((x '(1 . 2)))
 	(match x (((set! a) . b) (a 3)))
+	x)
+    => '(3 . 2))
+
+  (check	;setter car
+      (let ((x '(1 . 2)))
+	(match x (((set! a) . *) (a 3)))
 	x)
     => '(3 . 2))
 

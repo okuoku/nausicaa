@@ -252,8 +252,11 @@
 		      ?failure-kont)))
 
     ;;the pattern is a quasiquoted sexp
-    ((_ v (quasiquote p) g s sk fk i)
-     (match-quasiquote v p g s sk fk i))
+    ((_ ?expr (quasiquote ?pattern) g s (sk ...) fk (id ...))
+     (let ((pattern (quasiquote ?pattern)))
+       (if (equal? ?expr pattern)
+	   (sk ... (id ...))
+	 fk)))
 
     ;;the pattern is the empty AND
     ((_ v (and) g s (sk ...) fk i)
@@ -264,12 +267,12 @@
      (next-pattern v p g s sk fk i))
 
     ;;the pattern is a non-empty AND
-    ((_ v (and p q ...) g s sk fk i)
-     (next-pattern v p g s (next-pattern v (and q ...) g s sk fk) fk i))
+    ((_ ?expr (and p q ...) g s sk fk i)
+     (next-pattern ?expr p g s (next-pattern ?expr (and q ...) g s sk fk) fk i))
 
     ;;the pattern is an empty OR
-    ((_ v (or) g s sk fk i)
-     fk)
+    ((_ v (or) g s sk ?failure-kont i)
+     ?failure-kont)
 
     ;;the pattern is a single-clause OR
     ((_ v (or p) g s sk fk i)
@@ -300,13 +303,26 @@
      (let ((setter (lambda (x) (?setter ... x))))
        (?success-kont ... ?identifiers)))
 
-    ;;the pattern is a predicate
-    ((_ v (? pred p ...) g s sk fk i)
-     (if (pred v)
-	 (next-pattern v (and p ...) g s sk fk i)
-       fk))
+    ;;the pattern is a quasiquoted predicate
+    ((_ ?expr (? (quasiquote ?predicate) ?pattern ...) g s sk ?failure-kont i)
+     (let ((predicate (quasiquote ?predicate)))
+       (if (predicate ?expr)
+	   (next-pattern ?expr (and ?pattern ...) g s sk ?failure-kont i)
+	 ?failure-kont)))
 
-    ;;the pattern is a transformed expression matcher
+    ;;the pattern is a predicate
+    ((_ ?expr (? ?predicate ?pattern ...) g s sk ?failure-kont i)
+     (if (?predicate ?expr)
+	 (next-pattern ?expr (and ?pattern ...) g s sk ?failure-kont i)
+       ?failure-kont))
+
+    ;;the pattern is an accessor matcher with quasiquoted procedure
+    ((_ ?expr ($ (quasiquote ?proc) ?pattern) g s sk fk i)
+     (let ((proc (quasiquote ?proc)))
+       (let ((expr1 (proc ?expr)))
+	 (next-pattern expr1 ?pattern g s sk fk i))))
+
+    ;;the pattern is an accessor matcher
     ((_ ?expr ($ ?proc ?pattern) g s sk fk i)
      (let ((expr1 (?proc ?expr)))
        (next-pattern expr1 ?pattern g s sk fk i)))
@@ -333,9 +349,12 @@
        ?failure-kont))
 
     ;;the pattern is a vector
-    ((_ v #(p ...) g s sk fk i)
-     (if (vector? v)
-	 (match-vector v 0 () (p ...) sk fk i)
+    ((_ ?expr #(?pattern ...) g s sk fk i)
+     (if (vector? ?expr)
+	 (match-vector ?expr
+		       0		;index of the first element
+		       ()
+		       (?pattern ...) sk fk i)
        fk))
 
     ;;the pattern is the wildcard
@@ -363,8 +382,8 @@
 
 (define-syntax generate-or
   ;;Generating OR clauses just involves binding the success continuation
-  ;;into a thunk  which takes the identifiers common  to each OR clause,
-  ;;and trying each clause, calling the thunk as soon as we succeed.
+  ;;into a  thunk which takes the  identifiers from each  OR clause, and
+  ;;trying each clause, calling the thunk as soon as we succeed.
   ;;
   (syntax-rules ()
     ((_ v p g s (sk ...) fk (i ...) ((id id-ls) ...))
@@ -455,46 +474,6 @@
 				 ?failure-kont)))))))))
 
 
-(define-syntax match-quasiquote
-  (syntax-rules (unquote unquote-splicing quasiquote)
-    ((_ v (unquote p) g s sk fk i)
-     (next-pattern v p g s sk fk i))
-    ((_ v ((unquote-splicing p) . rest) g s sk fk i)
-     (if (pair? v)
-	 (next-pattern v
-		       (p . tmp)
-		       (match-quasiquote tmp rest g s sk fk)
-		       fk
-		       i)
-       fk))
-    ((_ v (quasiquote p) g s sk fk i . depth)
-     (match-quasiquote v p g s sk fk i #f . depth))
-    ((_ v (unquote p) g s sk fk i x . depth)
-     (match-quasiquote v p g s sk fk i . depth))
-    ((_ v (unquote-splicing p) g s sk fk i x . depth)
-     (match-quasiquote v p g s sk fk i . depth))
-    ((_ v (p . q) g s sk fk i . depth)
-     (if (pair? v)
-	 (let ((w (car v)) (x (cdr v)))
-	   (match-quasiquote
-	    w p g s
-	    (match-quasiquote-step x q g s sk fk depth)
-	    fk i . depth))
-       fk))
-    ((_ v #(elt ...) g s sk fk i . depth)
-     (if (vector? v)
-	 (let ((ls (vector->list v)))
-	   (match-quasiquote ls (elt ...) g s sk fk i . depth))
-       fk))
-    ((_ v x g s sk fk i . depth)
-     (next-pattern v 'x g s sk fk i))))
-
-(define-syntax match-quasiquote-step
-  (syntax-rules ()
-    ((_ x q g s sk fk depth i)
-     (match-quasiquote x q g s sk fk i . depth))))
-
-
 (define-syntax match-vector
   ;;Vector patterns are just more of the same, with the slight exception
   ;;that we pass around the current vector index being matched.
@@ -574,15 +553,13 @@
   ;;
   ;; (extract-vars pattern continuation (ids ...) (new-vars ...))
   ;;
-  (syntax-rules (* ___ ? $ quote quasiquote and or not get! set!)
+  (syntax-rules (* ? $ quote quasiquote and or not get! set!)
     ((_ (? pred . p) k i v)
      (extract-vars p k i v))
-    ((_ ($ rec . p) k i v)
+    ((_ ($ accessor p) k i v)
      (extract-vars p k i v))
     ((_ (quote x) (k ...) i v)
      (k ... v))
-    ((_ (quasiquote x) k i v)
-     (extract-quasiquote-vars x k i v (#t)))
     ((_ (and . p) k i v)
      (extract-vars p k i v))
     ((_ (or . p) k i v)
@@ -619,31 +596,6 @@
     ((_ p k i v ((v2 v2-ls) ...))
      (extract-vars p k (v2 ... . i) ((v2 v2-ls) ... . v)))))
 
-(define-syntax extract-quasiquote-vars
-  (syntax-rules (quasiquote unquote unquote-splicing)
-    ((_ (quasiquote x) k i v d)
-     (extract-quasiquote-vars x k i v (#t . d)))
-    ((_ (unquote-splicing x) k i v d)
-     (extract-quasiquote-vars (unquote x) k i v d))
-    ((_ (unquote x) k i v (#t))
-     (extract-vars x k i v))
-    ((_ (unquote x) k i v (#t . d))
-     (extract-quasiquote-vars x k i v d))
-    ((_ (x . y) k i v (#t . d))
-     (extract-quasiquote-vars
-      x
-      (extract-quasiquote-vars-step y k i v d) i ()))
-    ((_ #(x ...) k i v (#t . d))
-     (extract-quasiquote-vars (x ...) k i v d))
-    ((_ x (k ...) i v (#t . d))
-     (k ... v))))
-
-(define-syntax extract-quasiquote-vars-step
-  (syntax-rules ()
-    ((_ x k i v d ((v2 v2-ls) ...))
-     (extract-quasiquote-vars x k (v2 ... . i)
-				    ((v2 v2-ls) ... . v) d))))
-
 
 ;;;; gimme some sugar baby
 
@@ -664,7 +616,8 @@
 
 (define-syntax match-letrec
   (syntax-rules ()
-    ((_ vars . body) (match-let/helper letrec () () vars . body))))
+    ((_ vars . body)
+     (match-let/helper letrec () () vars . body))))
 
 (define-syntax match-let/helper
   (syntax-rules ()
