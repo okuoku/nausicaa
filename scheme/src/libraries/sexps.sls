@@ -43,7 +43,8 @@
     &sexp-mismatch make-sexp-mismatch sexp-mismatch?
     sexp-mismatch-pattern sexp-mismatch-form)
   (import (rnrs)
-    (sentinel))
+    (sentinel)
+    (conditions))
 
 (define-syntax form-car
   (syntax-rules ()
@@ -66,7 +67,7 @@
      (let ((?var (make-sexp-variable (quote ?var) ?default)) ...) ?form0 ?form ...))))
 
 (define-condition-type &sexp-mismatch
-  &assertion
+  &mismatch
   make-sexp-mismatch
   sexp-mismatch?
   (pattern sexp-mismatch-pattern)
