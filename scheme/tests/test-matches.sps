@@ -926,6 +926,42 @@
   #t)
 
 
+(parametrise ((check-test-name 'getter-setter))
+
+  #;(check
+      (let ((init-value		1)
+	    (init-thunk		2)
+	    (accessor		3)
+	    (accessor-before	4)
+	    (accessor-after	5)
+	    (mutator		6)
+	    (mutator-before	7)
+	    (mutator-after	8))
+	(match '((init-value 91)
+		 (init-thunk 92))
+	  (((or ('init-value		init-value)
+ 		('init-thunk		init-thunk)
+ 		('accessor		accessor)
+ 		('accessor-before	accessor-before)
+ 		('accessor-after	accessor-after)
+ 		('mutator		mutator)
+		('mutator-before	mutator-before)
+		('mutator-after		mutator-after))
+	    ...)
+	   (list init-value
+		 init-thunk
+		 accessor
+		 accessor-before
+		 accessor-after
+		 mutator
+		 mutator-before
+		 mutator-after))))
+    => '(1 2 3 4 5 6 7 8))
+
+
+    #t)
+
+
 ;;;; done
 
 (check-report)
