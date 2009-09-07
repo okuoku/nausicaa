@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: ScmObj
-;;;Contents: tests for ScmObj
-;;;Date: Tue Nov 11, 2008
+;;;Part of: Nausicaa/Scheme
+;;;Contents: usage tests for (nos)
+;;;Date: Wed Aug 26, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -27,56 +27,189 @@
 (import (nausicaa)
   (lists)
   (checks)
-  (scmobj)
-  (scmobj utils))
+  (nos))
 
 (check-set-mode! 'report-failed)
-(display "*** testing scmobj \n")
+(display "*** testing NOS\n")
 
 
-;;;; layout printing
+(parameterise ((check-test-name 'definition-slot))
 
-(define-class <biologic>)
-(define-class <fruit> (<biologic>))
-(define-class <apple> (<fruit>) :variety :colour :quality)
-(define-class <price> () :tag)
-(define-class <priced-apple> (<apple> <price>))
+  (check
+      (let ((S (make-slot (init-value 123))))
+	;;((slot-init-thunk S))
+	#t)
+    => 123)
 
-(define o (make <apple>
-            :variety 'renetta
-            :colour  'green
-            :quality 'high))
+;;   (check
+;;       (let ((S (make-slot (init-thunk (lambda () (+ 1 2))))))
+;; 	((slot-init-thunk S)))
+;;     => 3)
 
-(define p (make <priced-apple>
-            :variety 'renetta
-            :colour  'green
-            :quality 'high
-            :tag 100))
+;;; --------------------------------------------------------------------
 
+;;   (parameterise ((debugging #t))
+;;     (check
+;; 	(let ((a #f) (b #f) (c #f))
+;; 	  (define S
+;; 	    (make-slot :init-value 12
+;; 		       :mutator		(lambda (object value)
+;; 					  (set! a 1))
+;; 		       :mutator-before	(lambda (object value)
+;; 					  (set! b 2))
+;; 		       :mutator-after	(lambda (object value)
+;; 					  (set! c 3))))
+;; 	  ((slot-mutator S) S (slot-init-thunk S))
+;; 	  (list a b c))
+;;       => '(1 2 3)))
 
-;; (printf "\nthis is <class>\n")
-;; (pretty-print <class>)
+;;   (check
+;;       (let ((a #f) (c #f))
+;; 	(define S
+;; 	  (make-slot :init-value 12
+;; 		     :mutator		(lambda (object value)
+;; 					  (set! a 1))
+;; 		     :mutator-after	(lambda (object value)
+;; 					  (set! c 3))))
+;; 	((slot-mutator S) S (slot-init-thunk S))
+;; 	(list a c))
+;;     => '(1 3))
 
-;; (printf "\nthis is <biologic>\n")
-;; (pretty-print <biologic>)
+;;   (check
+;;       (let ((a #f) (b #f))
+;; 	(define S
+;; 	  (make-slot :init-value 12
+;; 		     :mutator		(lambda (object value)
+;; 					  (set! a 1))
+;; 		     :mutator-before	(lambda (object value)
+;; 					  (set! b 2))))
+;; 	((slot-mutator S) S (slot-init-thunk S))
+;; 	(list a b))
+;;     => '(1 2))
 
-;; (printf "\nthis is <fruit>\n")
-;; (pretty-print <fruit>)
+;; ;;; --------------------------------------------------------------------
 
-;; (printf "\nthis is <apple>\n")
-;; (pretty-print <apple>)
+;;   (check
+;;       (let ((a #f) (b #f) (c #f))
+;; 	(define S
+;; 	  (make-slot :init-value 9
+;; 		     :accessor		(lambda (object)
+;; 					  (set! a 1)
+;; 					  9)
+;; 		     :accessor-before	(lambda (object)
+;; 					  (set! b 2))
+;; 		     :accessor-after	(lambda (object)
+;; 					  (set! c 3))))
+;; 	(let ((v ((slot-accessor S) S)))
+;; 	  (list v a b c)))
+;;     => '(9 1 2 3))
 
-;; (printf "\nthis is o\n")
-;; (pretty-print o)
+;;   (check
+;;       (let ((a #f) (c #f))
+;; 	(define S
+;; 	  (make-slot :init-value 9
+;; 		     :accessor		(lambda (object)
+;; 					  (set! a 1)
+;; 					  9)
+;; 		     :accessor-after	(lambda (object)
+;; 					  (set! c 3))))
+;; 	(let ((v ((slot-accessor S) S)))
+;; 	  (list v a c)))
+;;     => '(9 1 3))
 
-;; (printf "\nthis is <priced-apple>\n")
-;; (pretty-print <priced-apple>)
+;;   (check
+;;       (let ((a #f) (b #f))
+;; 	(define S
+;; 	  (make-slot :init-value 9
+;; 		     :accessor		(lambda (object)
+;; 					  (set! a 1)
+;; 					  9)
+;; 		     :accessor-before	(lambda (object)
+;; 					  (set! b 2))))
+;; 	(let ((v ((slot-accessor S) S)))
+;; 	  (list v a b)))
+;;     => '(9 1 2))
 
-;; (printf "\nthis is p\n")
-;; (pretty-print p)
+  #f)
 
 
-(parameterise ((check-test-name 'class-basic))
+#;(parameterise ((check-test-name 'definition-class-slot))
+
+  (define-record-type (<one> make-one one?)
+    (fields (mutable it)))
+
+  (check
+      (let* ((L (lambda x x))
+	     (S (make-slot alpha))
+	     (C (make-class-slot S L L)))
+	(class-slot-name C))
+    => 'alpha)
+
+  (check
+      (let* ((L (lambda x x))
+	     (S (make-slot alpha :init-value 123))
+	     (C (make-class-slot S L L)))
+	(class-slot-init-value C))
+    => 123)
+
+  (check
+      (let* ((S (make-slot it :init-value 123))
+	     (C (make-class-slot S <one>-it <one>-it-set!))
+	     (O (make-one (class-slot-init-value C))))
+	((class-slot-getter C) O))
+    => 123)
+  (check
+      (let* ((S (make-slot it :init-value 123))
+	     (C (make-class-slot S <one>-it <one>-it-set!))
+	     (O (make-one (class-slot-init-value C))))
+	((class-slot-mutator C) O 456)
+	((class-slot-getter  C) O))
+    => 456)
+
+  #f)
+
+
+#;(parameterise ((check-test-name 'class))
+
+  (define-record-type (<class> make-class class?)
+    (fields (immutable slots	class-slots)))
+
+  (define-record-type <instance>
+    (fields (immutable class	instance-class)))
+
+  (define-record-type (<one> make-one one?)
+    (parent <instance>)
+    (fields (mutable a)
+	    (mutable b)))
+
+  (define slots
+    (make-slots-collection (make-class-slot (make-slot a :init-value 1)
+					    <one>-a <one>-a-set!)
+			   (make-class-slot (make-slot b :init-value 2)
+					    <one>-b <one>-b-set!)))
+  (define class (make-class slots))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((O (make-one class
+			 (class-slot-init-value (slots-collection-ref slots 'a))
+			 (class-slot-init-value (slots-collection-ref slots 'b)))))
+	((class-slot-getter  C) O))
+    => 1)
+
+  (check
+      (let ((O (make-one class
+			 (class-slot-init-value (slots-collection-ref slots 'a))
+			 (class-slot-init-value (slots-collection-ref slots 'b)))))
+	((class-slot-mutator C) O 456)
+	((class-slot-getter  C) O))
+    => 456)
+
+  #t)
+
+
+#;(parameterise ((check-test-name 'class-basic))
 
   (check
       (class-of <class>)
@@ -103,7 +236,7 @@
     => #t)
 
   (check
-      (instance? <class>)
+      (object? <class>)
     => #t)
 
   (check
@@ -137,7 +270,7 @@
     => #t)
 
   (check
-      (instance? <builtin-class>)
+      (object? <builtin-class>)
     => #t)
 
   (check
@@ -176,1065 +309,716 @@
 ;; <number>
 
 
-(parameterise ((check-test-name 'class-simple-inheritance))
+#;(parameterise ((check-test-name 'class-simple-inheritance))
 
-  (let* ((<one> (make-class () :a :b :c))
-	 (<two> (make-class (<one>) :d :e :f))
-	 (<three> (make-class (<two>) :g :h :i)))
-
-    (check
-	(class? <one>)
-      => #t)
-    (check
-	(class? <two>)
-      => #t)
-    (check
-	(class? <three>)
-      => #t)
-
-    (check
-	(instance? <one>)
-      => #t)
-    (check
-	(instance? <two>)
-      => #t)
-    (check
-	(instance? <three>)
-      => #t)
-
-    (check
-	(class-of <one>)
-      => <class>)
-    (check
-	(class-of <two>)
-      => <class>)
-    (check
-	(class-of <three>)
-      => <class>)
-
-    (check
-	(class-definition-name <one>)
-      => ':uninitialised)
-
-    (check
-	(class-definition-name <two>)
-      => ':uninitialised)
-
-    (check
-	(class-definition-name <three>)
-      => ':uninitialised)
-
-    (check
-	(class-precedence-list <one>)
-      => '())
-    (check
-	(class-precedence-list <two>)
-      => (list <one>))
-    (check
-	(class-precedence-list <three>)
-      => (list <two> <one>))
-
-    (check
-	(class-slots <one>)
-      => '(:a :b :c))
-    (check
-	(class-slots <two>)
-      => '(:d :e :f :a :b :c))
-    (check
-	(class-slots <three>)
-      => '(:g :h :i :d :e :f :a :b :c))
-
-    (check
-	(class-direct-slots <one>)
-      => '(:a :b :c))
-    (check
-	(class-direct-slots <two>)
-      => '(:d :e :f))
-    (check
-	(class-direct-slots <three>)
-      => '(:g :h :i))
-
-    (check
-	(is-a? <one> <class>)
-      => #t)
-    (check
-	(is-a? <two> <class>)
-      => #t)
-    (check
-	(is-a? <three> <class>)
-      => #t)
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-    (define-class <one> () :a :b :c)
-    (define-class <two> (<one>) :d :e :f)
-    (define-class <three> (<two>) :g :h :i)
-
-    (check
-	(class? <one>)
-      => #t)
-    (check
-	(class? <two>)
-      => #t)
-    (check
-	(class? <three>)
-      => #t)
-
-    (check
-	(instance? <one>)
-      => #t)
-    (check
-	(instance? <two>)
-      => #t)
-    (check
-	(instance? <three>)
-      => #t)
-
-    (check
-	(class-of <one>)
-      => <class>)
-    (check
-	(class-of <two>)
-      => <class>)
-    (check
-	(class-of <three>)
-      => <class>)
-
-    (check
-	(class-definition-name <one>)
-      => '<one>)
-    (check
-	(class-definition-name <two>)
-      => '<two>)
-    (check
-	(class-definition-name <three>)
-      => '<three>)
-
-    (check
-	(class-precedence-list <one>)
-      => '())
-    (check
-	(class-precedence-list <two>)
-      => (list <one>))
-    (check
-	(class-precedence-list <three>)
-      => (list <two> <one>))
-
-    (check
-	(class-slots <one>)
-      => '(:a :b :c))
-    (check
-	(class-slots <two>)
-      => '(:d :e :f :a :b :c))
-    (check
-	(class-slots <three>)
-      => '(:g :h :i :d :e :f :a :b :c))
-
-    (check
-	(is-a? <one> <class>)
-      => #t)
-    (check
-	(is-a? <two> <class>)
-      => #t)
-    (check
-	(is-a? <three> <class>)
-      => #t)
-    )
-
-  )
-
-
-(parameterise ((check-test-name 'class-multiple-inheritance))
-
-  (let ()
-    (define-class <a> () :a)
-    (define-class <b> () :b)
-    (define-class <c> () :c)
-    (define-class <d> () :d)
-    (define-class <e> () :e)
-
-    (define-class <pp> (<a> <b>))
-    (define-class <qq> (<c> <d>))
-    (define-class <rr> (<pp> <e> <qq>))
-
-    (check
-	(every class? (list <pp> <qq> <rr>))
-      => #t)
-    (check
-	(every instance? (list <pp> <qq> <rr>))
-      => #t)
-
-    (check
-	(list
-	 (class-of <pp>)
-	 (class-of <qq>)
-	 (class-of <rr>))
-      => (list <class> <class> <class>))
-
-    (check
-	(class-precedence-list <pp>)
-      => (list <a> <b>))
-    (check
-	(class-precedence-list <qq>)
-      => (list <c> <d>))
-    (check
-	(class-precedence-list <rr>)
-      => (list <pp> <a> <b> <e> <qq> <c> <d>))
-
-    (check
-	(class-slots <pp>)
-      => '(:a :b))
-    (check
-	(class-slots <qq>)
-      => '(:c :d))
-    (check
-	(class-slots <rr>)
-      => '(:a :b :e :c :d))
-
-    (check
-	(is-a? <pp> <class>)
-      => #t)
-    (check
-	(is-a? <qq> <class>)
-      => #t)
-    (check
-	(is-a? <rr> <class>)
-      => #t)
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-    (define-class <a> () :a)
-    (define-class <b> () :b)
-    (define-class <c> () :c)
-    (define-class <d> () :d)
-    (define-class <e> () :e)
-
-    (define-class <pp> (<a> <b>) :pp)
-    (define-class <qq> (<c> <d>) :qq)
-    (define-class <rr> (<pp> <e> <qq>) :rr)
-
-    (check
-	(every class? (list <pp> <qq> <rr>))
-      => #t)
-    (check
-	(every instance? (list <pp> <qq> <rr>))
-      => #t)
-
-    (check
-	(list
-	 (class-of <pp>)
-	 (class-of <qq>)
-	 (class-of <rr>))
-      => (list <class> <class> <class>))
-
-    (check
-	(class-precedence-list <pp>)
-      => (list <a> <b>))
-    (check
-	(class-precedence-list <qq>)
-      => (list <c> <d>))
-    (check
-	(class-precedence-list <rr>)
-      => (list <pp> <a> <b> <e> <qq> <c> <d>))
-
-    (check
-	(class-slots <pp>)
-      => '(:pp :a :b))
-    (check
-	(class-slots <qq>)
-      => '(:qq :c :d))
-    (check
-	(class-slots <rr>)
-      => '(:rr :pp :a :b :e :qq :c :d))
-
-    (check
-	(is-a? <pp> <class>)
-      => #t)
-    (check
-	(is-a? <qq> <class>)
-      => #t)
-    (check
-	(is-a? <rr> <class>)
-      => #t)
-
-    )
-
-  )
-
-
-(parameterise ((check-test-name 'instance-slot-access))
-
-  (let* ((<one>	(make-class () :a :b :c))
-	 (o	(make <one> :a 1 :b 2 :c 3)))
-    (check
-	(instance? o)
-      => #t)
-    (check
-	(is-a? o <one>)
-      => #t)
-
-    (check
-	(list (slot-ref o ':b)
-	      (slot-ref o ':a)
-	      (slot-ref o ':c))
-      => '(2 1 3))
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-    (define-class <one> ()
-      :a :b :c)
-    (define o (make <one>
-		:a 1 :b 2 :c 3))
-    (check
-	(instance? o)
-      => #t)
-    (check
-	(is-a? o <one>)
-      => #t)
-
-    (check
-	(list (slot-ref o ':b)
-	      (slot-ref o ':a)
-	      (slot-ref o ':c))
-      => '(2 1 3))
-    )
-
-  )
-
-
-(parameterise ((check-test-name 'instance-inheritance-slot-access))
-
-  (let* ((<one>		(make-class () :a :b :c))
-	 (<two>		(make-class (<one>) :d :e :f))
-	 (<three>	(make-class (<two>) :g :h :i))
-	 (o		(make <three>
-			  :a 1 :b 2 :c 3
-			  :d 4 :e 5 :f 6
-			  :g 7 :h 8 :i 9)))
-
-    (check
-	(subclass? <one> <class>)
-      => #f)
-    (check
-	(subclass? <two> <one>)
-      => #t)
-    (check
-	(subclass? <three> <two>)
-      => #t)
-    (check
-	(subclass? <three> <one>)
-      => #t)
-    (check
-	(subclass? <one> <three>)
-      => #f)
-
-    (check
-	(is-a? <one> <class>)
-      => #t)
-    (check
-	(is-a? <two> <class>)
-      => #t)
-    (check
-	(is-a? <three> <class>)
-      => #t)
-
-    (check
-	(is-a? o <three>)
-      => #t)
-    (check
-	(is-a? o <two>)
-      => #t)
-
-    (check
-	(map (lambda (s)
-	       (slot-ref o s))
-	  '(:b :d :i))
-      => '(2 4 9))
-
-    (check
-	(map class-definition-name (class-precedence-list <three>))
-      => `(:uninitialised :uninitialised))
-
-    )
-
-;;; --------------------------------------------------------------------
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
 
   (check
-      (let ()
-	(define-class <one> () :a :b :c)
-	(define-class <two> (<one>) :d :e :f)
-	(define-class <three> (<two>) :g :h :i)
+      (class? <one>)
+    => #t)
+  (check
+      (class? <two>)
+    => #t)
+  (check
+      (class? <three>)
+    => #t)
 
-	(define o (make <three>
-		    :a 1 :b 2 :c 3
-		    :d 4 :e 5 :f 6
-		    :g 7 :h 8 :i 9))
-	(list (slot-ref o ':b)
-	      (slot-ref o ':d)
-	      (slot-ref o ':i))
-	)
+  (check
+      (object? <one>)
+    => #t)
+  (check
+      (object? <two>)
+    => #t)
+  (check
+      (object? <three>)
+    => #t)
+
+  (check
+      (class-of <one>)
+    => <class>)
+  (check
+      (class-of <two>)
+    => <class>)
+  (check
+      (class-of <three>)
+    => <class>)
+
+  (check
+      (class-definition-name <one>)
+    => ':uninitialised)
+
+  (check
+      (class-definition-name <two>)
+    => ':uninitialised)
+
+  (check
+      (class-definition-name <three>)
+    => ':uninitialised)
+
+  (check
+      (class-precedence-list <one>)
+    => '())
+  (check
+      (class-precedence-list <two>)
+    => (list <one>))
+  (check
+      (class-precedence-list <three>)
+    => (list <two> <one>))
+
+  (check
+      (class-slots <one>)
+    => '(:a :b :c))
+  (check
+      (class-slots <two>)
+    => '(:d :e :f :a :b :c))
+  (check
+      (class-slots <three>)
+    => '(:g :h :i :d :e :f :a :b :c))
+
+  (check
+      (class-direct-slots <one>)
+    => '(:a :b :c))
+  (check
+      (class-direct-slots <two>)
+    => '(:d :e :f))
+  (check
+      (class-direct-slots <three>)
+    => '(:g :h :i))
+
+  (check
+      (is-a? <one> <class>)
+    => #t)
+  (check
+      (is-a? <two> <class>)
+    => #t)
+  (check
+      (is-a? <three> <class>)
+    => #t)
+
+  #t)
+
+
+#;(parameterise ((check-test-name 'instance-slot-access))
+
+  (define-class <one> () :a :b :c)
+
+  (define o
+    (make <one> :a 1 :b 2 :c 3))
+
+  (check
+      (object? o)
+    => #t)
+
+  (check
+      (is-a? o <one>)
+    => #t)
+
+  (check
+      (list (slot-ref o ':b)
+	    (slot-ref o ':a)
+	    (slot-ref o ':c))
+    => '(2 1 3))
+
+  #t)
+
+
+#;(parameterise ((check-test-name 'instance-inheritance-slot-access-1))
+
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three>	(<two>) :g :h :i)
+  (define o
+    (make <three>
+      :a 1 :b 2 :c 3
+      :d 4 :e 5 :f 6
+      :g 7 :h 8 :i 9))
+
+  (check
+      (subclass? <one> <class>)
+    => #f)
+  (check
+      (subclass? <two> <one>)
+    => #t)
+  (check
+      (subclass? <three> <two>)
+    => #t)
+  (check
+      (subclass? <three> <one>)
+    => #t)
+  (check
+      (subclass? <one> <three>)
+    => #f)
+
+  (check
+      (is-a? <one> <class>)
+    => #t)
+  (check
+      (is-a? <two> <class>)
+    => #t)
+  (check
+      (is-a? <three> <class>)
+    => #t)
+
+  (check
+      (is-a? o <three>)
+    => #t)
+  (check
+      (is-a? o <two>)
+    => #t)
+
+  (check
+      (map (lambda (s)
+	     (slot-ref o s))
+	'(:b :d :i))
     => '(2 4 9))
 
   (check
-      (let ()
-	(define-class <one> () :a :b :c)
-	(define-class <two> (<one>) :d :e :f)
-	(define-class <three> (<two>) :g :h :i)
+      (map class-definition-name (class-precedence-list <three>))
+    => `(:uninitialised :uninitialised))
 
-	(list (subclass? <one> <class>)
-	      (subclass? <two> <one>)
-	      (subclass? <three> <two>)
-	      (subclass? <three> <one>)
-	      (subclass? <one> <three>)))
+  #t)
+
+
+#;(parameterise ((check-test-name 'instance-inheritance-slot-access-2))
+
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
+
+  (define o (make <three>
+	      :a 1 :b 2 :c 3
+	      :d 4 :e 5 :f 6
+	      :g 7 :h 8 :i 9))
+
+  (check
+      (list (slot-ref o ':b)
+	    (slot-ref o ':d)
+	    (slot-ref o ':i))
+    => '(2 4 9))
+
+  #t)
+
+
+#;(parameterise ((check-test-name 'class-inspection-1))
+
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
+
+  (check
+      (list (subclass? <one> <class>)
+	    (subclass? <two> <one>)
+	    (subclass? <three> <two>)
+	    (subclass? <three> <one>)
+	    (subclass? <one> <three>))
     => '(#f #t #t #t #f))
 
-  (let ()
-    (define-class <one> () :a :b :c)
-    (define-class <two> (<one>) :d :e :f)
-    (define-class <three> (<two>) :g :h :i)
-
-    (check
-	(map class-definition-name (class-precedence-list <three>))
-      => '(<two> <one>)))
-
-  )
+  #t)
 
 
-(parameterise ((check-test-name 'generic-simple-inheritance))
+#;(parameterise ((check-test-name 'class-inspection-2))
 
-  (let ()
-    (define-class <one> () :a :b :c)
-    (define-class <two> (<one>) :d :e :f)
-    (define-class <three> (<two>) :g :h :i)
+  (define-class <one> () :a :b :c)
+  (define-class <two> (<one>) :d :e :f)
+  (define-class <three> (<two>) :g :h :i)
 
-    (define-generic alpha)
+  (check
+      (map class-definition-name (class-precedence-list <three>))
+    => '(<two> <one>))
 
-    (define-method alpha ((o <one>))
-      (slot-ref o ':a))
-
-    (define-method alpha ((o <two>))
-      (slot-ref o ':d))
-
-    (define-method alpha ((o <three>))
-      (slot-ref o ':g))
-
-    (let ((a (make <one> :a 1))
-	  (b (make <two> :d 2))
-	  (c (make <three> :g 3)))
-      (check (alpha a) => 1)
-      (check (alpha b) => 2)
-      (check (alpha c) => 3))
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-    ;;This tests overwriting an existing method function.
-
-    (define-class <one> () :a :b :c)
-    (define-class <two> (<one>) :d :e :f)
-
-    (define-generic alpha)
-
-    (define-method alpha ((o <one>))
-      (slot-ref o ':a))
-
-    (define-method alpha ((o <one>))
-      (slot-ref o ':b))
-
-    (let ((o (make <two> :a 1 :b 2)))
-      (check (alpha o) => 2))
-    )
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-    ;;Built in classes.
-
-    (define-generic alpha)
-
-    (define-method alpha ((o <fixnum>))		'<fixnum>)
-    (define-method alpha ((o <flonum>))		'<flonum>)
-    (define-method alpha ((o <integer>))	'<integer>)
-    (define-method alpha ((o <real>))		'<real>)
-    (define-method alpha ((o <complex>))	'<complex>)
-    (define-method alpha ((o <number>))		'<number>)
-
-    (check (class-definition-name (class-of 12))		=> '<fixnum>)
-    (check (class-definition-name (class-of 1.2))		=> (cond-expand
-								    (mosh '<rational-valued>)
-								    (else '<rational>)))
-    (check (class-definition-name (class-of (expt 12 12)))	=> '<integer>)
-    (check (class-definition-name (class-of 1.2+3.4i))		=> '<complex>)
-
-    ;;Here remember  that we  are using the  methods above,  we are
-    ;;*not* applying CLASS-OF.
-    (check (alpha 12) => '<fixnum>)
-    (check (alpha (expt 12 12)) => '<integer>)
-    (check (alpha 2/3) => '<real>)
-    (check (alpha 1.2+3.4i) => '<complex>)
-    )
-
-  )
+  #t)
 
 
-(parameterise ((check-test-name 'generic-next-method))
+;; (parameterise ((check-test-name 'generic-simple-inheritance))
 
-  (let ()
-    (define-class <one> () :a :b :c)
-    (define-class <two> (<one>) :d :e :f)
-    (define-class <three> (<two>) :g :h :i)
+;;   (let ()
+;;     (define-class <one> () :a :b :c)
+;;     (define-class <two> (<one>) :d :e :f)
+;;     (define-class <three> (<two>) :g :h :i)
 
-    (define-generic alpha)
+;;     (define-generic alpha)
 
-    (define-method alpha ((o <one>))
-      (slot-ref o ':a))
+;;     (define-method alpha ((o <one>))
+;;       (slot-ref o ':a))
 
-    (define-method alpha ((o <two>))
-      (cons (slot-ref o ':d)
-	    (call-next-method)))
+;;     (define-method alpha ((o <two>))
+;;       (slot-ref o ':d))
 
-    (define-method alpha ((o <three>))
-      (cons (slot-ref o ':g)
-	    (call-next-method)))
+;;     (define-method alpha ((o <three>))
+;;       (slot-ref o ':g))
 
-    (let ((a (make <one>
-	       :a 1))
-	  (b (make <two>
-	       :a 1 :d 2))
-	  (c (make <three>
-	       :a 1 :d 2 :g 3)))
-      (check (alpha a) => 1)
-      (check (alpha b) => '(2 . 1))
-      (check (alpha c) => '(3 . (2 . 1)))
-      )
-    #t)
+;;     (let ((a (make <one> :a 1))
+;; 	  (b (make <two> :d 2))
+;; 	  (c (make <three> :g 3)))
+;;       (check (alpha a) => 1)
+;;       (check (alpha b) => 2)
+;;       (check (alpha c) => 3))
+;;     )
 
-  )
+;; ;;; --------------------------------------------------------------------
 
-
-(parameterise ((check-test-name 'generic-multiple-inheritance))
+;;   (let ()
+;;     ;;This tests overwriting an existing method function.
 
-  (let ()
-    (define-class <a> () :a)
-    (define-class <b> () :b)
-    (define-class <c> () :c)
-    (define-class <d> () :d)
-    (define-class <e> () :e)
+;;     (define-class <one> () :a :b :c)
+;;     (define-class <two> (<one>) :d :e :f)
 
-    (define-class <pp> (<a> <b>))
-    (define-class <qq> (<c> <d>))
-    (define-class <rr> (<pp> <e> <qq>))
+;;     (define-generic alpha)
 
-    (define pp (make <pp> :a 1 :b 2))
-    (define qq (make <qq> :c 3 :d 4))
-    (define rr (make <rr> :a 10 :b 20 :c 30 :d 40))
+;;     (define-method alpha ((o <one>))
+;;       (slot-ref o ':a))
 
-    (check (slot-ref pp ':a) => 1)
-    (check (slot-ref qq ':d) => 4)
-    (check (slot-ref rr ':d) => 40)
+;;     (define-method alpha ((o <one>))
+;;       (slot-ref o ':b))
 
-    (check
-	(map class-definition-name (class-precedence-list <rr>))
-      => '(<pp> <a> <b> <e> <qq> <c> <d>))
+;;     (let ((o (make <two> :a 1 :b 2)))
+;;       (check (alpha o) => 2))
+;;     )
 
-    (let ()
+;; ;;; --------------------------------------------------------------------
 
-      (define-generic alpha)
-      (define-generic beta)
-      (define-generic delta)
+;;   (let ()
+;;     ;;Built in classes.
 
-      (define-method alpha ((o <pp>)) '<pp>)
-      (define-method alpha ((o <e>))  '<e>)
-      (check (alpha rr) => '<pp>)
+;;     (define-generic alpha)
 
-      ;;Call the first in the list of multiple inheritance.
-      (define-method beta ((o <c>)) '<c>)
-      (define-method beta ((o <d>)) '<d>)
-      (check (beta qq) => '<c>)
+;;     (define-method alpha ((o <fixnum>))		'<fixnum>)
+;;     (define-method alpha ((o <flonum>))		'<flonum>)
+;;     (define-method alpha ((o <integer>))	'<integer>)
+;;     (define-method alpha ((o <real>))		'<real>)
+;;     (define-method alpha ((o <complex>))	'<complex>)
+;;     (define-method alpha ((o <number>))		'<number>)
 
-      ;;Call the second in the list of multiple inheritance.
-      (define-method delta ((o <b>)) '<b>)
-      (check (delta pp) => '<b>)
+;;     (check (class-definition-name (class-of 12))		=> '<fixnum>)
+;;     (check (class-definition-name (class-of 1.2))		=> (cond-expand
+;; 								    (mosh '<rational-valued>)
+;; 								    (else '<rational>)))
+;;     (check (class-definition-name (class-of (expt 12 12)))	=> '<integer>)
+;;     (check (class-definition-name (class-of 1.2+3.4i))		=> '<complex>)
 
-      ))
+;;     ;;Here remember  that we  are using the  methods above,  we are
+;;     ;;*not* applying CLASS-OF.
+;;     (check (alpha 12) => '<fixnum>)
+;;     (check (alpha (expt 12 12)) => '<integer>)
+;;     (check (alpha 2/3) => '<real>)
+;;     (check (alpha 1.2+3.4i) => '<complex>)
+;;     )
 
-  )
+;;   )
 
 
-(parameterise ((check-test-name 'generic-application-protocol))
+;; (parameterise ((check-test-name 'generic-next-method))
 
-  ;;The following hierarchy has  single and multiple inheritance, but NO
-  ;;diamond inheritance.
-  (define-class <a> () :a)
-  (define-class <b> () :b)
-  (define-class <c> () :c)
-  (define-class <d> () :d)
-  (define-class <e> () :e)
+;;   (let ()
+;;     (define-class <one> () :a :b :c)
+;;     (define-class <two> (<one>) :d :e :f)
+;;     (define-class <three> (<two>) :g :h :i)
 
-  (define-class <pp> (<a> <b>))
-  (define-class <qq> (<c> <d>))
-  (define-class <rr> (<pp> <e> <qq>))
+;;     (define-generic alpha)
 
-  (define pp (make <pp> :a 1 :b 2))
-  (define qq (make <qq> :c 3 :d 4))
-  (define rr (make <rr> :a 10 :b 20 :c 30 :d 40))
+;;     (define-method alpha ((o <one>))
+;;       (slot-ref o ':a))
 
-  ;;The   following   hierarchy  has   single,   multiple  and   diamond
-  ;;inheritance.
-  (define-class <t> () :t)
-  (define-class <x> (<t>) :x)
-  (define-class <y> (<x>) :y)
-  (define-class <w> (<x>) :w)
-  (define-class <z> (<y> <w>))
+;;     (define-method alpha ((o <two>))
+;;       (cons (slot-ref o ':d)
+;; 	    (call-next-method)))
 
-  (define z (make <z> :t 0 :x 1 :y 2 :w 3))
+;;     (define-method alpha ((o <three>))
+;;       (cons (slot-ref o ':g)
+;; 	    (call-next-method)))
 
-  ;;Yet another hierarchy with single, multiple and diamond inheritance.
-  (define-class <0> () :0)
-  (define-class <1> (<0>) :1)
-  (define-class <2> (<1>) :2)
-  (define-class <3> (<1>) :3)
-  (define-class <4> (<3>) :4)
-  (define-class <5> (<4> <2>))
+;;     (let ((a (make <one>
+;; 	       :a 1))
+;; 	  (b (make <two>
+;; 	       :a 1 :d 2))
+;; 	  (c (make <three>
+;; 	       :a 1 :d 2 :g 3)))
+;;       (check (alpha a) => 1)
+;;       (check (alpha b) => '(2 . 1))
+;;       (check (alpha c) => '(3 . (2 . 1)))
+;;       )
+;;     #t)
 
-  (define n (make <5> :0 0 :1 1 :2 2 :3 3 :4 4))
-
-;;; --------------------------------------------------------------------
-;;; Raise an  error if a ":before"  or ":after" method  invokes the next
-;;; method.
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha ((o <a>)) 1)
-	(define-method alpha :before ((o <a>)) (call-next-method))
-	(guard (exc (else (condition? exc)))
-	  (alpha pp)))
-    => #t)
-
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha ((o <a>)) 1)
-	(define-method alpha :after ((o <a>)) (call-next-method))
-	(guard (exc (else (condition? exc)))
-	  (alpha pp)))
-    => #t)
-
-;;; --------------------------------------------------------------------
-;;; Raise an error if we invoke  a next method from a ":primary" method,
-;;; when no next method is available.
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha ((o <a>)) (call-next-method))
-	;;(alpha pp)
-	(guard (exc (else (condition? exc)))
-	  (alpha pp))
-	)
-    => #t)
-
-;;; --------------------------------------------------------------------
-;;; Raise  an error  if we  invoke a  method when  no  ":primary" method
-;;; exists.
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <a>)) (call-next-method))
-	;;(alpha pp)
-	(guard (exc (else (condition? exc)))
-	  (alpha pp))
-	)
-    => #t)
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :primary ((o <a>)) (call-next-method))
-	;;(alpha pp)
-	(guard (exc (else (condition? exc)))
-	  (alpha pp))
-	)
-    => #t)
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around  ((o <a>)) (call-next-method))
-	(define-method alpha :primary ((o <a>)) (call-next-method))
-	;;(alpha pp)
-	(guard (exc (else (condition? exc)))
-	  (alpha pp))
-	)
-    => #t)
-
-;;; --------------------------------------------------------------------
-;;; Call ":around"  methods before ":primary"  methods.  Call ":primary"
-;;; methods after all the ":around" methods have been consumed.
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <a>))  1)
-	(define-method alpha :primary ((o <a>)) 2)
-	(alpha pp)
-	)
-    => 1)
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <pp>))  (cons 1 (call-next-method)))
-	(define-method alpha :around ((o <a>))   2)
-	(define-method alpha :primary ((o <pp>)) 3)
-	(alpha pp)
-	)
-    => '(1 . 2))
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <pp>))  (cons 1 (call-next-method)))
-	(define-method alpha :around ((o <a>))   (cons 2 (call-next-method)))
-	(define-method alpha :primary ((o <pp>)) 3)
-	(alpha pp)
-	)
-    => '(1 2 . 3))
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <pp>))  (cons 1 (call-next-method)))
-	(define-method alpha :around ((o <a>))   (cons 2 (call-next-method)))
-	(define-method alpha :primary ((o <pp>)) (cons 3 (call-next-method)))
-	(define-method alpha :primary ((o <a>))  4)
-	(alpha pp)
-	)
-    => '(1 2 3 . 4))
-
-;;; --------------------------------------------------------------------
-;;; Apply all the ":around" methods  first, then all the ":before", then
-;;; a ":primary" method, then all the ":after" methods.
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <rr>))		(cons 1 (call-next-method)))
-	(define-method alpha :around ((o <pp>))		(cons 2 (call-next-method)))
-	(define-method alpha :around ((o <a>))		(cons 3 (call-next-method)))
-	(define-method alpha :around ((o <b>))		(cons 4 (call-next-method)))
-	(define-method alpha :around ((o <e>))		(cons 5 (call-next-method)))
-	(define-method alpha :before ((o <rr>))		(add-result 1))
-	(define-method alpha :before ((o <pp>))		(add-result 2))
-	(define-method alpha :before ((o <a>))		(add-result 3))
-	(define-method alpha :before ((o <b>))		(add-result 4))
-	(define-method alpha :before ((o <e>))		(add-result 5))
-	(define-method alpha :after ((o <rr>))		(add-result 10))
-	(define-method alpha :after ((o <pp>))		(add-result 9))
-	(define-method alpha :after ((o <a>))		(add-result 8))
-	(define-method alpha :after ((o <b>))		(add-result 7))
-	(define-method alpha :after ((o <e>))		(add-result 6))
-	(define-method alpha :primary ((o <rr>))	(cons 6 (call-next-method)))
-	(define-method alpha :primary ((o <pp>))	(cons 7 (call-next-method)))
-	(define-method alpha :primary ((o <a>))		(cons 8 (call-next-method)))
-	(define-method alpha :primary ((o <b>))		(cons 9 (call-next-method)))
-	(define-method alpha :primary ((o <e>))		10)
-	(with-result (alpha rr))
-	)
-    => '((1 2 3 4 5 6 7 8 9 . 10) (1 2 3 4 5 6 7 8 9 10)))
-
-;;; --------------------------------------------------------------------
-;;; Apply all the methods to a hierarchy having diamond inheritance.
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <z>))		(cons 1 (call-next-method)))
-	(define-method alpha :around ((o <y>))		(cons 2 (call-next-method)))
-	(define-method alpha :around ((o <w>))		(cons 3 (call-next-method)))
-	(define-method alpha :around ((o <x>))		(cons 4 (call-next-method)))
-	(define-method alpha :around ((o <t>))		(cons 5 (call-next-method)))
-	(define-method alpha :primary ((o <z>))		(cons 6 (call-next-method)))
-	(define-method alpha :primary ((o <y>))		(cons 7 (call-next-method)))
-	(define-method alpha :primary ((o <w>))		(cons 8 (call-next-method)))
-	(define-method alpha :primary ((o <x>))		(cons 9 (call-next-method)))
-	(define-method alpha :primary ((o <t>))		10)
-	(define-method alpha :before ((o <z>))		(add-result 1))
-	(define-method alpha :before ((o <y>))		(add-result 2))
-	(define-method alpha :before ((o <w>))		(add-result 3))
-	(define-method alpha :before ((o <x>))		(add-result 4))
-	(define-method alpha :before ((o <t>))		(add-result 5))
-	(define-method alpha :after ((o <z>))		(add-result 10))
-	(define-method alpha :after ((o <y>))		(add-result 9))
-	(define-method alpha :after ((o <w>))		(add-result 8))
-	(define-method alpha :after ((o <x>))		(add-result 7))
-	(define-method alpha :after ((o <t>))		(add-result 6))
-	(with-result (alpha z))
-	)
-    => '((1 2 3 4 5 6 7 8 9 . 10) (1 2 3 4 5 6 7 8 9 10)))
-
-;;; --------------------------------------------------------------------
-;;; Apply all the methods to a hierarchy having diamond inheritance.
-  (check
-      (let ()
-	(define-generic alpha)
-	(define-method alpha :around ((o <5>))		(cons 1 (call-next-method)))
-	(define-method alpha :around ((o <4>))		(cons 2 (call-next-method)))
-	(define-method alpha :around ((o <3>))		(cons 3 (call-next-method)))
-	(define-method alpha :around ((o <2>))		(cons 4 (call-next-method)))
-	(define-method alpha :around ((o <1>))		(cons 5 (call-next-method)))
-	(define-method alpha :around ((o <0>))		(cons 6 (call-next-method)))
-
-	(define-method alpha :primary ((o <5>))		(cons 7 (call-next-method)))
-	(define-method alpha :primary ((o <4>))		(cons 8 (call-next-method)))
-	(define-method alpha :primary ((o <3>))		(cons 9 (call-next-method)))
-	(define-method alpha :primary ((o <2>))		(cons 10 (call-next-method)))
-	(define-method alpha :primary ((o <1>))		(cons 11 (call-next-method)))
-	(define-method alpha :primary ((o <0>))		12)
-
-	(define-method alpha :before ((o <5>))		(add-result 1))
-	(define-method alpha :before ((o <4>))		(add-result 2))
-	(define-method alpha :before ((o <3>))		(add-result 3))
-	(define-method alpha :before ((o <2>))		(add-result 4))
-	(define-method alpha :before ((o <1>))		(add-result 5))
-	(define-method alpha :before ((o <0>))		(add-result 6))
-
-  	(define-method alpha :after ((o <5>))		(add-result 12))
-	(define-method alpha :after ((o <4>))		(add-result 11))
-	(define-method alpha :after ((o <3>))		(add-result 10))
-	(define-method alpha :after ((o <2>))		(add-result 9))
-	(define-method alpha :after ((o <1>))		(add-result 8))
-	(define-method alpha :after ((o <0>))		(add-result 7))
-
-	(with-result (alpha n))
-	)
-    => '((1 2 3 4 5 6 7 8 9 10 11 . 12)
-	 (1 2 3 4 5 6 7 8 9 10 11 12)))
-
-  )
+;;   )
 
 
-(parameterise ((check-test-name 'generic-specificity))
+;; (parameterise ((check-test-name 'generic-application-protocol))
 
-  (define-class <a> () :a)
-  (define-class <b> () :b)
-  (define-class <c> () :c)
-  (define-class <d> () :d)
+;;   ;;The following hierarchy has  single and multiple inheritance, but NO
+;;   ;;diamond inheritance.
+;;   (define-class <a> () :a)
+;;   (define-class <b> () :b)
+;;   (define-class <c> () :c)
+;;   (define-class <d> () :d)
+;;   (define-class <e> () :e)
 
-  (define-class <1> (<a>))
-  (define-class <2> (<b>))
-  (define-class <3> (<c>))
-  (define-class <4> (<d>))
+;;   (define-class <pp> (<a> <b>))
+;;   (define-class <qq> (<c> <d>))
+;;   (define-class <rr> (<pp> <e> <qq>))
 
-  (define a (make <a> :a 1))
-  (define b (make <b> :b 2))
-  (define c (make <c> :c 3))
-  (define d (make <d> :d 4))
+;;   (define pp (make <pp> :a 1 :b 2))
+;;   (define qq (make <qq> :c 3 :d 4))
+;;   (define rr (make <rr> :a 10 :b 20 :c 30 :d 40))
 
-  (define n1 (make <1> :a 1))
-  (define n2 (make <2> :b 2))
-  (define n3 (make <3> :c 3))
-  (define n4 (make <4> :d 4))
+;;   ;;The   following   hierarchy  has   single,   multiple  and   diamond
+;;   ;;inheritance.
+;;   (define-class <t> () :t)
+;;   (define-class <x> (<t>) :x)
+;;   (define-class <y> (<x>) :y)
+;;   (define-class <w> (<x>) :w)
+;;   (define-class <z> (<y> <w>))
 
-;;; --------------------------------------------------------------------
-;;; Two levels specificity.
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 2)
-    (check (alpha n1 n2 n3) => 1)
-    (check (alpha  a n2 n3) => 2)
-    (check (alpha n1  b n3) => 2)
-    (check (alpha n1 n2  c) => 2)
-    (check (alpha  a  b  c) => 2)
-    )
+;;   (define z (make <z> :t 0 :x 1 :y 2 :w 3))
 
-;;; --------------------------------------------------------------------
-;;; Mixed levels specificity.
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
-    (define-method (alpha (p <1>) (q <b>) (r <3>)) 2)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
-    (check (alpha n1 n2 n3) => 1)
-    (check (alpha  a n2 n3) => 3)
-    (check (alpha n1  b n3) => 2)
-    (check (alpha n1 n2  c) => 3)
-    (check (alpha  a  b  c) => 3)
-    )
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
-    (define-method (alpha (p <1>) (q <b>) (r <c>)) 2)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
-    (check (alpha n1 n2 n3) => 1)
-    (check (alpha  a n2 n3) => 3)
-    (check (alpha n1  b n3) => 2)
-    (check (alpha n1 n2  c) => 2)
-    (check (alpha  a  b  c) => 3)
-    )
+;;   ;;Yet another hierarchy with single, multiple and diamond inheritance.
+;;   (define-class <0> () :0)
+;;   (define-class <1> (<0>) :1)
+;;   (define-class <2> (<1>) :2)
+;;   (define-class <3> (<1>) :3)
+;;   (define-class <4> (<3>) :4)
+;;   (define-class <5> (<4> <2>))
 
-;;; --------------------------------------------------------------------
-;;; Overwriting existing method.
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>)) 123)
-    (define-method (alpha (p <1>)) 456)
-    (check (alpha n1) => 456))
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>) . rest) 123)
-    (define-method (alpha (p <1>) . rest) 456)
-    (check (alpha n1) => 456))
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>)) 123)
-    (define-method (alpha (p <1>) . rest) 456)
-    (check (alpha n1) => 123)
-    (check (alpha n1 10) => 456))
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>) . rest) 456)
-    (define-method (alpha (p <1>)) 123)
-    (check (alpha n1) => 123)
-    (check (alpha n1 10) => 456))
+;;   (define n (make <5> :0 0 :1 1 :2 2 :3 3 :4 4))
 
-;;; --------------------------------------------------------------------
-;;; Rest arguments.
-  (let ()
-    (define-generic alpha)
-    (define-method alpha ((p <1>))		   1)
-    (define-method alpha ((p <a>) . rest)	   2)
-    (define-method alpha ((p <1>) . rest)	   3)
-    (define-method alpha ((p <1>) (q <2>) . rest)  4)
-    (define-method alpha ((p <a>) (q <b>) (r <c>)) 5)
-    (check (alpha n1 n2 n3) => 5)
-    (check (alpha  a n2 n3) => 5)
-    (check (alpha n1  b n3) => 5)
-    (check (alpha n1 n2  c) => 5)
-    (check (alpha  a  b  c) => 5)
-    (check (alpha n1 n2)    => 4)
-    (check (alpha n1 n2  9) => 4)
-    (check (alpha  a)       => 2)
-    (check (alpha  a 123)   => 2)
-    (check (alpha  a 123 4) => 2)
-    (check (alpha n1)       => 1)
-    (check (alpha n1 123)   => 3)
-    (check (alpha n1 123 4) => 3)
-    #f)
-  (let ()
-    (define-generic alpha)
-    (define-method (alpha (p <1>))		   1)
-    (define-method (alpha (p <a>) . rest)	   2)
-    (define-method (alpha (p <1>) . rest)	   3)
-    (define-method (alpha (p <1>) (q <2>) . rest)  4)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 5)
-    (check (alpha n1 n2 n3) => 5)
-    (check (alpha  a n2 n3) => 5)
-    (check (alpha n1  b n3) => 5)
-    (check (alpha n1 n2  c) => 5)
-    (check (alpha  a  b  c) => 5)
-    (check (alpha n1 n2)    => 4)
-    (check (alpha n1 n2  9) => 4)
-    (check (alpha  a)       => 2)
-    (check (alpha  a 123)   => 2)
-    (check (alpha  a 123 4) => 2)
-    (check (alpha n1)       => 1)
-    (check (alpha n1 123)   => 3)
-    (check (alpha n1 123 4) => 3)
-    #f)
+;; ;;; --------------------------------------------------------------------
+;; ;;; Raise an  error if a ":before"  or ":after" method  invokes the next
+;; ;;; method.
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha ((o <a>)) 1)
+;; 	(define-method alpha :before ((o <a>)) (call-next-method))
+;; 	(guard (exc (else (condition? exc)))
+;; 	  (alpha pp)))
+;;     => #t)
 
-  )
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha ((o <a>)) 1)
+;; 	(define-method alpha :after ((o <a>)) (call-next-method))
+;; 	(guard (exc (else (condition? exc)))
+;; 	  (alpha pp)))
+;;     => #t)
+
+;; ;;; --------------------------------------------------------------------
+;; ;;; Raise an error if we invoke  a next method from a ":primary" method,
+;; ;;; when no next method is available.
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha ((o <a>)) (call-next-method))
+;; 	;;(alpha pp)
+;; 	(guard (exc (else (condition? exc)))
+;; 	  (alpha pp))
+;; 	)
+;;     => #t)
+
+;; ;;; --------------------------------------------------------------------
+;; ;;; Raise  an error  if we  invoke a  method when  no  ":primary" method
+;; ;;; exists.
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <a>)) (call-next-method))
+;; 	;;(alpha pp)
+;; 	(guard (exc (else (condition? exc)))
+;; 	  (alpha pp))
+;; 	)
+;;     => #t)
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :primary ((o <a>)) (call-next-method))
+;; 	;;(alpha pp)
+;; 	(guard (exc (else (condition? exc)))
+;; 	  (alpha pp))
+;; 	)
+;;     => #t)
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around  ((o <a>)) (call-next-method))
+;; 	(define-method alpha :primary ((o <a>)) (call-next-method))
+;; 	;;(alpha pp)
+;; 	(guard (exc (else (condition? exc)))
+;; 	  (alpha pp))
+;; 	)
+;;     => #t)
+
+;; ;;; --------------------------------------------------------------------
+;; ;;; Call ":around"  methods before ":primary"  methods.  Call ":primary"
+;; ;;; methods after all the ":around" methods have been consumed.
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <a>))  1)
+;; 	(define-method alpha :primary ((o <a>)) 2)
+;; 	(alpha pp)
+;; 	)
+;;     => 1)
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <pp>))  (cons 1 (call-next-method)))
+;; 	(define-method alpha :around ((o <a>))   2)
+;; 	(define-method alpha :primary ((o <pp>)) 3)
+;; 	(alpha pp)
+;; 	)
+;;     => '(1 . 2))
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <pp>))  (cons 1 (call-next-method)))
+;; 	(define-method alpha :around ((o <a>))   (cons 2 (call-next-method)))
+;; 	(define-method alpha :primary ((o <pp>)) 3)
+;; 	(alpha pp)
+;; 	)
+;;     => '(1 2 . 3))
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <pp>))  (cons 1 (call-next-method)))
+;; 	(define-method alpha :around ((o <a>))   (cons 2 (call-next-method)))
+;; 	(define-method alpha :primary ((o <pp>)) (cons 3 (call-next-method)))
+;; 	(define-method alpha :primary ((o <a>))  4)
+;; 	(alpha pp)
+;; 	)
+;;     => '(1 2 3 . 4))
+
+;; ;;; --------------------------------------------------------------------
+;; ;;; Apply all the ":around" methods  first, then all the ":before", then
+;; ;;; a ":primary" method, then all the ":after" methods.
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <rr>))		(cons 1 (call-next-method)))
+;; 	(define-method alpha :around ((o <pp>))		(cons 2 (call-next-method)))
+;; 	(define-method alpha :around ((o <a>))		(cons 3 (call-next-method)))
+;; 	(define-method alpha :around ((o <b>))		(cons 4 (call-next-method)))
+;; 	(define-method alpha :around ((o <e>))		(cons 5 (call-next-method)))
+;; 	(define-method alpha :before ((o <rr>))		(add-result 1))
+;; 	(define-method alpha :before ((o <pp>))		(add-result 2))
+;; 	(define-method alpha :before ((o <a>))		(add-result 3))
+;; 	(define-method alpha :before ((o <b>))		(add-result 4))
+;; 	(define-method alpha :before ((o <e>))		(add-result 5))
+;; 	(define-method alpha :after ((o <rr>))		(add-result 10))
+;; 	(define-method alpha :after ((o <pp>))		(add-result 9))
+;; 	(define-method alpha :after ((o <a>))		(add-result 8))
+;; 	(define-method alpha :after ((o <b>))		(add-result 7))
+;; 	(define-method alpha :after ((o <e>))		(add-result 6))
+;; 	(define-method alpha :primary ((o <rr>))	(cons 6 (call-next-method)))
+;; 	(define-method alpha :primary ((o <pp>))	(cons 7 (call-next-method)))
+;; 	(define-method alpha :primary ((o <a>))		(cons 8 (call-next-method)))
+;; 	(define-method alpha :primary ((o <b>))		(cons 9 (call-next-method)))
+;; 	(define-method alpha :primary ((o <e>))		10)
+;; 	(with-result (alpha rr))
+;; 	)
+;;     => '((1 2 3 4 5 6 7 8 9 . 10) (1 2 3 4 5 6 7 8 9 10)))
+
+;; ;;; --------------------------------------------------------------------
+;; ;;; Apply all the methods to a hierarchy having diamond inheritance.
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <z>))		(cons 1 (call-next-method)))
+;; 	(define-method alpha :around ((o <y>))		(cons 2 (call-next-method)))
+;; 	(define-method alpha :around ((o <w>))		(cons 3 (call-next-method)))
+;; 	(define-method alpha :around ((o <x>))		(cons 4 (call-next-method)))
+;; 	(define-method alpha :around ((o <t>))		(cons 5 (call-next-method)))
+;; 	(define-method alpha :primary ((o <z>))		(cons 6 (call-next-method)))
+;; 	(define-method alpha :primary ((o <y>))		(cons 7 (call-next-method)))
+;; 	(define-method alpha :primary ((o <w>))		(cons 8 (call-next-method)))
+;; 	(define-method alpha :primary ((o <x>))		(cons 9 (call-next-method)))
+;; 	(define-method alpha :primary ((o <t>))		10)
+;; 	(define-method alpha :before ((o <z>))		(add-result 1))
+;; 	(define-method alpha :before ((o <y>))		(add-result 2))
+;; 	(define-method alpha :before ((o <w>))		(add-result 3))
+;; 	(define-method alpha :before ((o <x>))		(add-result 4))
+;; 	(define-method alpha :before ((o <t>))		(add-result 5))
+;; 	(define-method alpha :after ((o <z>))		(add-result 10))
+;; 	(define-method alpha :after ((o <y>))		(add-result 9))
+;; 	(define-method alpha :after ((o <w>))		(add-result 8))
+;; 	(define-method alpha :after ((o <x>))		(add-result 7))
+;; 	(define-method alpha :after ((o <t>))		(add-result 6))
+;; 	(with-result (alpha z))
+;; 	)
+;;     => '((1 2 3 4 5 6 7 8 9 . 10) (1 2 3 4 5 6 7 8 9 10)))
+
+;; ;;; --------------------------------------------------------------------
+;; ;;; Apply all the methods to a hierarchy having diamond inheritance.
+;;   (check
+;;       (let ()
+;; 	(define-generic alpha)
+;; 	(define-method alpha :around ((o <5>))		(cons 1 (call-next-method)))
+;; 	(define-method alpha :around ((o <4>))		(cons 2 (call-next-method)))
+;; 	(define-method alpha :around ((o <3>))		(cons 3 (call-next-method)))
+;; 	(define-method alpha :around ((o <2>))		(cons 4 (call-next-method)))
+;; 	(define-method alpha :around ((o <1>))		(cons 5 (call-next-method)))
+;; 	(define-method alpha :around ((o <0>))		(cons 6 (call-next-method)))
+
+;; 	(define-method alpha :primary ((o <5>))		(cons 7 (call-next-method)))
+;; 	(define-method alpha :primary ((o <4>))		(cons 8 (call-next-method)))
+;; 	(define-method alpha :primary ((o <3>))		(cons 9 (call-next-method)))
+;; 	(define-method alpha :primary ((o <2>))		(cons 10 (call-next-method)))
+;; 	(define-method alpha :primary ((o <1>))		(cons 11 (call-next-method)))
+;; 	(define-method alpha :primary ((o <0>))		12)
+
+;; 	(define-method alpha :before ((o <5>))		(add-result 1))
+;; 	(define-method alpha :before ((o <4>))		(add-result 2))
+;; 	(define-method alpha :before ((o <3>))		(add-result 3))
+;; 	(define-method alpha :before ((o <2>))		(add-result 4))
+;; 	(define-method alpha :before ((o <1>))		(add-result 5))
+;; 	(define-method alpha :before ((o <0>))		(add-result 6))
+
+;;   	(define-method alpha :after ((o <5>))		(add-result 12))
+;; 	(define-method alpha :after ((o <4>))		(add-result 11))
+;; 	(define-method alpha :after ((o <3>))		(add-result 10))
+;; 	(define-method alpha :after ((o <2>))		(add-result 9))
+;; 	(define-method alpha :after ((o <1>))		(add-result 8))
+;; 	(define-method alpha :after ((o <0>))		(add-result 7))
+
+;; 	(with-result (alpha n))
+;; 	)
+;;     => '((1 2 3 4 5 6 7 8 9 10 11 . 12)
+;; 	 (1 2 3 4 5 6 7 8 9 10 11 12)))
+
+;;   )
 
 
-(parameterise ((check-test-name 'slot-accessors))
+;; (parameterise ((check-test-name 'generic-specificity))
 
-  (let ()
-    (define-class <alpha> () :a :b :c)
-    (define o (make <alpha>
-		:a '(1 2 3)
-		:b '(4 5 6)
-		:c '(7 8 9)))
+;;   (define-class <a> () :a)
+;;   (define-class <b> () :b)
+;;   (define-class <c> () :c)
+;;   (define-class <d> () :d)
 
-    (prepend-to-slot o ':a 10)
-    (prepend-to-slot o ':b 20)
-    (append-to-slot o ':c 40)
+;;   (define-class <1> (<a>))
+;;   (define-class <2> (<b>))
+;;   (define-class <3> (<c>))
+;;   (define-class <4> (<d>))
 
-    (check
-	(slot-ref o ':a)
-      => '(10 1 2 3))
+;;   (define a (make <a> :a 1))
+;;   (define b (make <b> :b 2))
+;;   (define c (make <c> :c 3))
+;;   (define d (make <d> :d 4))
 
-    (check
-	(slot-ref o ':b)
-      => '(20 4 5 6))
+;;   (define n1 (make <1> :a 1))
+;;   (define n2 (make <2> :b 2))
+;;   (define n3 (make <3> :c 3))
+;;   (define n4 (make <4> :d 4))
 
-    (check
-	(slot-ref o ':c)
-      => '(7 8 9 40)))
+;; ;;; --------------------------------------------------------------------
+;; ;;; Two levels specificity.
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
+;;     (define-method (alpha (p <a>) (q <b>) (r <c>)) 2)
+;;     (check (alpha n1 n2 n3) => 1)
+;;     (check (alpha  a n2 n3) => 2)
+;;     (check (alpha n1  b n3) => 2)
+;;     (check (alpha n1 n2  c) => 2)
+;;     (check (alpha  a  b  c) => 2)
+;;     )
 
-  (let ()
-    (define-class <alpha> () :a :b :c)
-    (define o (make <alpha>
-		:a '(1 2 3)
-		:b '(4 5 6)
-		:c '(7 8 9)))
+;; ;;; --------------------------------------------------------------------
+;; ;;; Mixed levels specificity.
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
+;;     (define-method (alpha (p <1>) (q <b>) (r <3>)) 2)
+;;     (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
+;;     (check (alpha n1 n2 n3) => 1)
+;;     (check (alpha  a n2 n3) => 3)
+;;     (check (alpha n1  b n3) => 2)
+;;     (check (alpha n1 n2  c) => 3)
+;;     (check (alpha  a  b  c) => 3)
+;;     )
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
+;;     (define-method (alpha (p <1>) (q <b>) (r <c>)) 2)
+;;     (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
+;;     (check (alpha n1 n2 n3) => 1)
+;;     (check (alpha  a n2 n3) => 3)
+;;     (check (alpha n1  b n3) => 2)
+;;     (check (alpha n1 n2  c) => 2)
+;;     (check (alpha  a  b  c) => 3)
+;;     )
 
-    (with-slots-set! o (:a :b) (10 20))
-    (with-slots-set! o '(:c) '(30))
+;; ;;; --------------------------------------------------------------------
+;; ;;; Overwriting existing method.
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>)) 123)
+;;     (define-method (alpha (p <1>)) 456)
+;;     (check (alpha n1) => 456))
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>) . rest) 123)
+;;     (define-method (alpha (p <1>) . rest) 456)
+;;     (check (alpha n1) => 456))
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>)) 123)
+;;     (define-method (alpha (p <1>) . rest) 456)
+;;     (check (alpha n1) => 123)
+;;     (check (alpha n1 10) => 456))
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>) . rest) 456)
+;;     (define-method (alpha (p <1>)) 123)
+;;     (check (alpha n1) => 123)
+;;     (check (alpha n1 10) => 456))
 
-    (check
-	(slot-ref o ':a)
-      => 10)
-    (check
-	(slot-ref o ':b)
-      => 20)
-    (check
-	(slot-ref o ':c)
-      => 30)
+;; ;;; --------------------------------------------------------------------
+;; ;;; Rest arguments.
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method alpha ((p <1>))		   1)
+;;     (define-method alpha ((p <a>) . rest)	   2)
+;;     (define-method alpha ((p <1>) . rest)	   3)
+;;     (define-method alpha ((p <1>) (q <2>) . rest)  4)
+;;     (define-method alpha ((p <a>) (q <b>) (r <c>)) 5)
+;;     (check (alpha n1 n2 n3) => 5)
+;;     (check (alpha  a n2 n3) => 5)
+;;     (check (alpha n1  b n3) => 5)
+;;     (check (alpha n1 n2  c) => 5)
+;;     (check (alpha  a  b  c) => 5)
+;;     (check (alpha n1 n2)    => 4)
+;;     (check (alpha n1 n2  9) => 4)
+;;     (check (alpha  a)       => 2)
+;;     (check (alpha  a 123)   => 2)
+;;     (check (alpha  a 123 4) => 2)
+;;     (check (alpha n1)       => 1)
+;;     (check (alpha n1 123)   => 3)
+;;     (check (alpha n1 123 4) => 3)
+;;     #f)
+;;   (let ()
+;;     (define-generic alpha)
+;;     (define-method (alpha (p <1>))		   1)
+;;     (define-method (alpha (p <a>) . rest)	   2)
+;;     (define-method (alpha (p <1>) . rest)	   3)
+;;     (define-method (alpha (p <1>) (q <2>) . rest)  4)
+;;     (define-method (alpha (p <a>) (q <b>) (r <c>)) 5)
+;;     (check (alpha n1 n2 n3) => 5)
+;;     (check (alpha  a n2 n3) => 5)
+;;     (check (alpha n1  b n3) => 5)
+;;     (check (alpha n1 n2  c) => 5)
+;;     (check (alpha  a  b  c) => 5)
+;;     (check (alpha n1 n2)    => 4)
+;;     (check (alpha n1 n2  9) => 4)
+;;     (check (alpha  a)       => 2)
+;;     (check (alpha  a 123)   => 2)
+;;     (check (alpha  a 123 4) => 2)
+;;     (check (alpha n1)       => 1)
+;;     (check (alpha n1 123)   => 3)
+;;     (check (alpha n1 123 4) => 3)
+;;     #f)
 
-    (check
-	(with-slots-ref o '(:a :b))
-      => '(10 20))
-    (check
-	(with-slots-ref o '(:a :c))
-      => '(10 30))
-    )
-
-  )
-
-
-;;; with slots
-
-(let ()
-  (define-class <alpha> () :a :b :c)
-  (define A (make <alpha>
-	      :a 1 :b 2 :c 3))
-  (define B (make <alpha>
-	      :a 4 :b 5 :c 6))
-  (define C (make <alpha>
-	      :a 7 :b 8 :c 9))
-
-  (with-slots ()
-    (check
-	(slot-ref A ':a)
-      => 1))
-
-  (with-slots (((d e f) (:a :b :c) A))
-    (check
-	(list d e f)
-      => '(1 2 3)))
-
-  (with-slots (((d e f) (:a :b :c) A)
-	       ((g h i) (:a :b :c) B))
-    (check
-	(list d e f g h i)
-      => '(1 2 3 4 5 6)))
-
-  (with-slots (((d e f) (:a :b :c) A)
-	       ((g h i) (:a :b :c) B)
-	       ((l m n) (:a :b :c) C))
-    (check
-	(list d e f g h i l m n)
-      => '(1 2 3 4 5 6 7 8 9)))
-  )
+;;   )
 
 
 ;;;; done
