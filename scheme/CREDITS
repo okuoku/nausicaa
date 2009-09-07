@@ -106,18 +106,13 @@ matches.sls
 The library is derived from "match.scm" by Alex Shinn, who placed it in
 the Public Domain.
 
-nausicaa.ikarus.sls
--------------------
 
-nausicaa.larceny.sls
---------------------
+nausicaa.*.sls
+--------------
 
+Written by Marco Maggi.  COND-EXPAND implementation from the R6RS SRFI
+port by Derick Eddington.
 
-nausicaa.mosh.sls
------------------
-
-nausicaa.ypsilon.sls
---------------------
 
 nausicaa/common.sls
 -------------------
@@ -128,35 +123,37 @@ nausicaa/registry.sls
 object-properties.sls
 ---------------------
 
+Written by Marco Maggi from the similar interface in Guile.
+
 
 one-dimension-cc.sls
---------------------
-
-
-
 one-dimension-co.sls
 --------------------
 
-parameters.ikarus.sls
----------------------
-
-parameters.larceny.sls
-----------------------
+Written by Marco Maggi.
 
 
-parameters.mosh.sls
--------------------
+packrat.sls
+-----------
 
-parameters.ypsilon.sls
-----------------------
+Original code  by Tony Garnock-Jones and  LShift Ltd.  Port  to R6RS and
+Nausicaa integration by  Marco Maggi.  Distributed under the  terms of a
+BSD  like license.   The original  code works  with MzScheme  and  it is
+distrubuted  at   <http://dev.lshift.net/tonyg/json-scheme/>  (URL  last
+verified Sun Sep 6, 2009).
+
+
+parameters.sls
+parameters.*.sls
+----------------
 
 pregexp.sls
 -----------
 
-This library is based upon  "pregexp" by Dorai Sitaram.  It was modified
-to work  with R6RS Scheme implementations  and to fit  into the Nausicaa
-distribution.  The original code is  available at (URL last verified Sun
-Jul 12, 2009): <http://evalwhen.com/pregexp/index.html>.
+This library is based upon "pregexp" by Dorai Sitaram.  It was modified
+by Marco Maggi to work with R6RS Scheme implementations and to fit into
+the Nausicaa distribution.  The original code is available at (URL last
+verified Sun Jul 12, 2009): <http://evalwhen.com/pregexp/index.html>.
 
 
 queues.sls
@@ -183,6 +180,7 @@ It is  called "Borosh  - Niederreiter".  The  original code is  by Carlo
 Perassi and Heiko  Bauke.  The Scheme code was  converted by Marco Maggi
 from a C language version from the GNU Scientific Library release 1.12.
 
+
 random/marsaglia.sls
 --------------------
 
@@ -191,11 +189,13 @@ generators for  the C language.  The  original is in  the Public Domain.
 The code was posted by George Marsaglia in a thread on sci.stat.math and
 sci.crypt starting on January, 12 1999.
 
+
 random/mersenne.sls
 -------------------
 
 Derived from an original  C language implementation by Michael Brundage.
 Ported to Scheme by Marco Maggi.
+
 
 random/cmrg.sls
 -----------------
@@ -216,8 +216,9 @@ original code is available at:
 (last checked  Thu Nov 13, 2008).   Marco Maggi overhauled  a little the
 original code to make it work with R6RS libraries.
 
+
 silex.sls
-silex/multilex.sls
+silex/*.l
 ------------------
 
 ``SILex'' stands  for ``Scheme Implementation of Lex''.   It generates a
