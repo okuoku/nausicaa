@@ -29,6 +29,12 @@
 (compile-library "nausicaa/registry.sls"
 		 "nausicaa/registry.slfasl")
 
+(compile-library "profiling/compat.larceny.sls"
+		 "profiling/compat.larceny.slfasl")
+
+(compile-library "profiling.sls"
+		 "profiling.slfasl")
+
 (compile-library "unimplemented.sls"
 		 "unimplemented.slfasl")
 
@@ -126,6 +132,9 @@
 
 (compile-library "sentinel.sls"
 		 "sentinel.slfasl")
+
+(compile-library "scmobj/utils.sls"
+		 "scmobj/utils.slfasl")
 
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")

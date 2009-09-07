@@ -25,6 +25,7 @@
 
 (import
     (only (language-extensions))
+  (only (profiling))
   (only (unimplemented))
   (only (conditions))
   (only (parameters))
