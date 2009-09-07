@@ -26,7 +26,7 @@
 
 (import (nausicaa)
   (checks)
-  (sexp)
+  (sexps)
   (sentinel))
 
 (check-set-mode! 'report-failed)
