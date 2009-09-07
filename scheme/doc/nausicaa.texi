@@ -41857,19 +41857,200 @@ distribution).
 
 
 The @library{packrat} library implements parsing combinators using the
-@dfn{packrat parsing} algorithm.  Packrat parsing is a memoizing,
-backtracking recursive--descent parsing technique that runs in time and
-space linear in the size of the input text.  The technique was
-originally discovered by Alexander Birman in 1970, and Bryan Ford took
-up the idea for his master's thesis in 2002.
+@dfn{packrat parsing} algorithm: A memoizing, backtracking
+recursive--descent parsing technique that runs in time and space linear
+in the size of the input text.  The technique was originally discovered
+by Alexander Birman in 1970; Bryan Ford took up the idea for his
+master's thesis in 2002.
+
+The library makes use of the same token description record types used by
+@library{lalr}; the same lexer can be used with @library{lalr} and
+@library{packrat}.  @ref{lalr lexer, Describing tokens}
 
 @menu
+* packrat calc::                Calculator example.
 * packrat records::             Data structures.
 * packrat combinators::         Combinators.
 * packrat macro::               The @func{packrat-parser} macro.
 * packrat generators::          Generators.
-* packrat calc::                Calculator example.
 @end menu
+
+@c page
+@node packrat calc
+@section Calculator example
+
+
+The following example implements a simple arithmetics calculator.  First
+let's see an S--expressions lexer; the parser expects a lexer closure
+returning records of type @samp{lexical-token} having terminal category
+symbols in the set:
+
+@example
+NUMBER OPEN-PAREN CLOSE-PAREN + - * /
+@end example
+
+@noindent
+each token must be a pair whose car is the terminal symbol and whose cdr
+is the semantic value.  The lexer first converts an S--expression in a
+list of pairs:
+
+@example
+(define (sexp->tokens sexp)
+  (define (lexer sexp)
+    (let loop ((sexp   (if (pair? sexp)
+                           sexp
+                         (list sexp)))
+               (result '()))
+      (if (null? sexp)
+          result
+        (let ((atom (car sexp)))
+          (loop (cdr sexp)
+                (cond ((number? atom)
+                       `((NUMBER . ,atom) . ,result))
+                      ((memq atom '(+ - * /))
+                       `((,atom) . ,result))
+                      ((pair? atom)
+                       (append '((CLOSE-PAREN))
+                               (lexer atom)
+                               '((OPEN-PAREN))
+                               result))
+                      (else
+                       (error #f "invalid token" atom))))))))
+  (reverse (lexer sexp)))
+@end example
+
+@noindent
+it converts S--expressions like this:
+
+@example
+(sexp->tokens '(1 + 2 + 3))
+@result{} ((NUMBER . 1)
+    (+)
+    (NUMBER . 2)
+    (+)
+    (NUMBER . 3))
+
+(sexp->tokens '((1 + 2) * 3))
+@result{} ((OPEN-PAREN)
+    (NUMBER . 1)
+    (+)
+    (NUMBER . 2)
+    (CLOSE-PAREN)
+    (*)
+    (NUMBER . 3))
+@end example
+
+@noindent
+notice that @samp{(NUMBER . 3)} is a token representation with terminal
+category @samp{NUMBER} and semantic value @samp{3}; also, @samp{(+)} is
+a token representation with terminal category @samp{+} and semantic
+value null.
+
+Then let's see the lexer closure generator; it takes an S--expression
+and returns a thunk which, when evaluated, returns records of type
+@samp{lexical-token}.  The source position field is set to @false{},
+because for an S--expression there is no such information available.
+
+@example
+(define (make-lexer-closure sexp)
+  (let ((stream (sexp->tokens sexp)))
+    (lambda ()
+      (if (null? stream)
+          (make-lexical-token '*eoi* #f (eof-object))
+        (let ((token (car stream)))
+          (set! stream (cdr stream))
+          (make-lexical-token (car token) #f
+                              (cdr token)))))))
+@end example
+
+Finally the parser definition; it defines the following nonterminal
+symbols:
+
+@table @samp
+@item expr
+It is the start symbol and represents a general arithmetic expression.
+
+@item mul-expr
+It represents a multiplication a division or a subexpression.  It is
+subordinate to @samp{expr} to allow multiplication and division to have
+precedence over addition and subtraction.  Also, it allows parenthesised
+subexpressions to be evaluated first.
+
+@item simple
+It represents subexpressions.  It includes: simple numbers; negated
+expressions; expressions preceeded by a standalone plus sign;
+parenthesised subexpressions.
+@end table
+
+The @func{packrat-parser} macro returns a parser function which can be
+used any number of times to parse S--expressions.
+
+@example
+(define calc
+  (packrat-parser
+    expr
+
+    (expr     ((a <- mul-expr '+ b <- expr)
+               (+ a b))
+              ((a <- mul-expr '- b <- expr)
+               (- a b))
+              ((a <- mul-expr)
+               a))
+
+    (mul-expr ((a <- simple '* b <- simple)
+               (* a b))
+              ((a <- simple '/ b <- simple)
+               (/ a b))
+              ((a <- simple)
+               a))
+
+    (simple   ((a <- 'NUMBER)
+               a)
+              (('+ a <- expr)
+               a)
+              (('- a <- expr)
+               (- a))
+              (('OPEN-PAREN a <- expr 'CLOSE-PAREN)
+               a))))
+@end example
+
+@noindent
+typical usage of the interface is represented by the following function:
+
+@example
+(define (doit sexp)
+  (let* ((lexer   (make-lexer-closure sexp))
+         (result  (calc (base-generator->results lexer))))
+    (if (parse-result-successful? result)
+        (parse-result-semantic-value result)
+      (parse-result-error result))))
+@end example
+
+@noindent
+it works like this:
+
+@example
+(doit 1)
+@result{} 1
+
+(doit '(+ 1))
+@result{} 1
+
+(doit '(- 1))
+@result{} -1
+
+(doit '(- - + + - + 1))
+@result{} -1
+
+(doit '(1 * 2 - 3))
+@result{} -1
+
+(doit '((1 + 2) * 3))
+@result{} 9
+
+(parse-error? (doit '(+ *)))
+@result{} #t
+@end example
 
 @c page
 @node packrat records
@@ -41877,26 +42058,131 @@ up the idea for his master's thesis in 2002.
 
 
 This section describes the data structures that make up the core of the
-packrat parsing algorithm, and some of the low-level procedures that
+Packrat parsing algorithm, and some of the low-level procedures that
 operate on them.
 
 @menu
+* packrat records error::       Parse error.
 * packrat records result::      Parse result.
 * packrat records results::     Parse results.
-* packrat records error::       Parse error.
-* packrat records position::    Parse position.
 @end menu
+
+@c page
+@node packrat records error
+@subsection Parse error
+
+
+@deftp {Record Type} parse-error
+Represents error informations collected from attempted parses.  Hold the
+following immutable fields.
+
+@table @samp
+@item position
+A record of type @samp{source-location} or @false{} if the position is
+unknown.
+
+@item expected
+A list of Scheme symbols representing the terminal symbols that where
+expected at the input stream position.
+
+@item messages
+A list of free format Scheme strings describing the error.
+@end table
+@end deftp
+
+
+@defun parse-error? @var{obj}
+Return @true{} if @var{obj} is a record of type @samp{parse-error}.
+@end defun
+
+
+@defun parse-error-empty? @var{parse-error}
+Return @true{} if @var{parse-error} contains no expected tokens and no
+general error messages.
+@end defun
+
+
+@defun parse-error-position @var{parse-error}
+@defunx parse-error-expected @var{parse-error}
+@defunx parse-error-messages @var{parse-error}
+Accessors for the fields of @var{parse-error}.
+@end defun
+
+
+@defun make-parse-error/expected @var{parse-position} @var{expected-terminal-category}
+Build and return an ``expected token'' @var{parse-error} record from the
+arguments.
+@end defun
+
+
+@defun make-parse-error/message @var{parse-position} @var{error-message-string}
+Build and return a ``general error message'' @samp{parse-error} record.
+@end defun
+
+
+@defun merge-parse-errors @vari{parse-error} @varii{parse-error}
+Merge two @samp{parse-error} records and return the resulting
+@samp{parse-error} record, which can be a new record or one among
+@vari{parse-error} and @varii{parse-error}.
+
+These are the merging rules:
+
+@enumerate
+@item
+If @vari{parse-error} or @varii{parse-error} is @false{}, the other is
+returned.
+
+@item
+If one record represents a position earlier in the input stream than the
+other, then that record is returned.
+
+@item
+If both the records represent the same position: The ``expected
+terminals'' sets are joined and the error message lists are appended.
+@end enumerate
+
+The standard parsing combinators call this function as appropriate to
+propagate error informations through the parsing.
+@end defun
 
 @c page
 @node packrat records result
 @subsection Parse result
 
 
-A @samp{parse-result} record describes the results of an attempt at a
-parse at a particular position in the input stream.  It can either
-record a successful parse, in which case it contains an associated
-semantic--value, or a failed parse, in which case it contains a
-@samp{parse-error} structure.
+@deftp {Record Type} parse-result
+Describes the result of parsing at a position in the input stream.  It
+can either record a successful parse, in which case it contains an
+associated semantic value, or a failed parse, in which case it contains
+a @samp{parse-error} record.  It has the following immutable fields.
+
+@table @samp
+@item successful?
+Set to @true{} if the record represents a successful parse.
+
+@item semantic-value
+Holds the semantic value resulting from a successful parse.  Set to
+@false{} if the parse operation generated an error.
+
+@item next
+Holds a @samp{parse-results} record representing the token stream to use
+for the next parse operation.  Set to @false{} when the end of input is
+found or an error occurred in the last parse operation.
+
+For example, given an input stream @math{(a, b, c, d, e)}: If parsing
+completed successfully consuming @math{(a, b, c)}, then the value of
+this field represents all possible parses of the @math{(d, e)} suffix.
+
+@item error
+Holds a @samp{parse-error} record describing the error generated by the
+last parse operation.  It may be set to @false{} if no error occurred.
+
+It is meaningful to check this field only if @samp{successful?} is set
+to @false{}: It may be set to a @samp{parse-error} record for internal
+implementation reasons (propagating errors upwards for improved
+error--reporting).
+@end table
+@end deftp
 
 
 @defun parse-result? @var{obj}
@@ -41905,81 +42191,52 @@ Return @true{} if @var{obj} is a record of type @samp{parse-result}.
 
 
 @defun parse-result-successful? @var{parse-result}
-Return @true{} if @var{parse-result} represents a successful parse.
+@defunx parse-result-semantic-value @var{parse-result}
+@defunx parse-result-next @var{parse-result}
+@defunx parse-result-error @var{parse-result}
+Accessors for the fields of @var{parse-result}.
 @end defun
 
 
-@defun parse-result-semantic-value @var{parse-result}
-If @var{parse-result} represents a successful parse, return the
-associated semantic--value; else return @false{}.
+@defun make-parse-result/success @var{semantic-value} @var{next-parse-results}
+Build and return a @samp{parse-result} record representing a successful
+parse.
 @end defun
 
 
-@defun parse-result-next @var{parse-result}
-If the argument represents a successful parse, return a
-@samp{parse-results} record representing the parsed input stream
-starting immediately after the parse this @samp{parse-result}
-represents.
+@defun make-parse-result/expected @var{parse-position} @var{expected-symbol}
+Build and return a @samp{parse-result} record representing a failed
+parse.  @var{parse-position} and @var{expected-symbol} are used to
+construct a a @samp{parse-error} record reporting that a particular
+terminal category was expected at the given @var{parse-position}.
 
-For instance, given an input stream @math{[a, b, c, d, e]}, if
-@var{parse-result} had completed successfully, consuming the @math{[a,
-b, c]} prefix of the input stream and producing some semantic value,
-then the @samp{parse-results} returned by @func{parse-result-next} would
-represent all possible parses starting from the @math{[d, e]} suffix of
-the input stream.
+The @samp{*eoi*} symbol can be used as @var{expected-symbol} value to
+signal that end--of--input was expected.
 @end defun
 
 
-@defun parse-result-error @var{parse-result}
-If the argument represents a failed parse, this function returns a
-@samp{parse-error} structure; otherwise, it may return a
-@samp{parse-error} structure for internal implementation reasons (to do
-with propagating errors upwards for improved error--reporting) or it may
-return @false{}.
-@end defun
-
-
-@defun make-result @var{semantic-value} @var{next-parse-results}
-Build and return an instance of @samp{parse-result} representing a
-successful parse.  The first argument is used as the semantic value to
-include with the new @samp{parse-result}; the second argument should be
-a @samp{parse-results} structure representing the location in the input
-stream from which to continue parsing.
-@end defun
-
-
-@defun make-expected-result @var{parse-position} @var{object}
-Build and return an instance of @samp{parse-result} representing a
-failed parse.  @var{parse-position} and @var{object} are used to
-construct a variant of a @samp{parse-error} record for inclusion in the
-@samp{parse-result} that reports that a particular kind of value was
-expected at the given @samp{parse-position}.
-@end defun
-
-
-@defun make-message-result @var{parse-position} @var{string}
-Build and return an instance of @samp{parse-result} representing a
-failed parse.  @samp{parse-position} and @var{string} are used to
-construct a variant of a @samp{parse-error} record for inclusion in the
-@samp{parse-result} that reports a general error message at the given
+@defun make-parse-result/message @var{parse-position} @var{string}
+Build and return a @samp{parse-result} record representing a failed
+parse.  @samp{parse-position} and @var{string} are used to construct a
+@samp{parse-error} record reporting a general error message at the given
 parse position.
 @end defun
 
 
-@defun merge-result-errors @var{parse-result} @var{parse-error}
-Propagate error information through a particular parse result.
-@var{parse-result} is combined with @var{parse-error}, and the resulting
-@samp{parse-error} structure is returned embedded in the error field of
-a copy of the first argument.
+@defun make-parse-result/merge-errors @var{parse-result} @var{parse-error}
+Build and return a @samp{parse-result} record representing a failed
+parse, propagating error informations.  The returned record has fields
+equal to the fields of @var{parse-result} with the exception of
+@samp{error}.  To produce the error record, the @samp{error} field of
+@var{parse-result} is combined with @var{parse-error} using
+@func{merge-parse-errors}.
 @end defun
 
 
 @defun parse-error->parse-result @var{parse-error}
 Build a @samp{parse-result} record representing a parse that failed for
-the reason specified by the @samp{parse-error} supplied.  Called by
-@func{make-expected-result} and @func{make-message-result}.
+the reason described by @var{parse-error}.
 @end defun
-
 
 @c page
 @node packrat records results
@@ -42108,118 +42365,6 @@ the caller.
 @end defun
 
 @c page
-@node packrat records error
-@subsection Parse error
-
-
-@deftp {Record Type} parse-error
-Represents error informations collected from attempted parses.  Hold the
-following immutable fields.
-
-@table @samp
-@item position
-A record of type @samp{parse-position} or @false{} if the position is
-unknown.
-
-@item expected
-A list of ``expected token'' messages.
-
-@item messages
-A list of free format strings.
-@end table
-@end deftp
-
-
-@defun parse-error? @var{obj}
-Return @true{} if @var{obj} is a record of type @samp{parse-error}.
-@end defun
-
-
-@defun parse-error-position @var{parse-error}
-Retrieve the @samp{parse-position} in the input stream that
-@var{parse-error} is describing.  A @false{} result indicates an unknown
-position.
-@end defun
-
-
-@defun parse-error-expected @var{parse-error}
-Retrieve the set (represented as a list) of token class identifiers that
-could have allowed the parse to continue from this point.
-@end defun
-
-
-@defun parse-error-messages @var{parse-error}
-Retrieve the list of error messages associated with @var{parse-error}.
-@end defun
-
-
-@defun make-error-expected @var{parse-position} @var{object}
-Build and return an ``expected token'' @var{parse-error} record from the
-arguments.
-@end defun
-
-
-@defun make-error-message @var{parse-position} @var{string}
-Build and return a ``general error message'' @samp{parse-error} record.
-@end defun
-
-
-@defun parse-error-empty? @var{parse-error}
-Return @true{} if @var{parse-error} contains no expected tokens, and no
-general error messages; otherwise return @false{}.
-@end defun
-
-
-@defun merge-parse-errors @vari{parse-error} @varii{parse-error}
-Merges two @samp{parse-error} records.  If one record represents a
-position earlier in the input stream than the other, then that record is
-returned; if they both represent the same position, the ``expected
-token'' sets are unioned and the general message lists are appended to
-form a new @samp{parse-error} record at the same position.  The standard
-parsing combinators call this function as appropriate to propagate error
-information through the parse.
-@end defun
-
-@c page
-@node packrat records position
-@subsection Parse position
-
-
-@deftp {Record Type} parse-position
-Represent a character location in an input stream.  Hold the following
-immutable fields.
-
-@table @samp
-@item file
-The filename from which the input stream draws tokens.  May be @false{}
-if the filename is unknown or not appropriate for the input stream the
-@samp{parse-position} is indexing into.
-
-@item line
-The current line counter.  Line numbers begin at @samp{1}.
-
-@item column
-The current column counter.  Column numbers begin at @math{0}.
-@end table
-@end deftp
-
-
-@defun make-parse-position @var{filename} @var{linenumber} @var{columnnumber}
-Build and return an new @samp{parse-position} record.
-@end defun
-
-
-@defun parse-position? @var{obj}
-Return @true{} if @var{obj} is a record of type @samp{parse-position}.
-@end defun
-
-
-@defun parse-position-file @var{parse-position}
-@defunx parse-position-line @var{parse-position}
-@defunx parse-position-column @var{parse-position}
-Field accessors.
-@end defun
-
 
 @defun top-parse-position @var{string-or-false}
 Build and return @samp{parse-position} representing the very beginning
@@ -42492,92 +42637,6 @@ step of the way.
           (set! stream (cdr stream))
           (values #f base-token))))))
 @end example
-
-@c page
-@node packrat calc
-@section Calculator example
-
-
-It implements a simple calculator, supporting addition, multiplication,
-and grouping operators.  The parser expects an input stream of
-base--tokens with token class identifiers drawn from the set @samp{(num
-oparen cparen + *)} .
-
-@example
-(define calc (packrat-parser expr
-
-  (expr   ((a <- mulexp '+ b <- mulexp)
-           (+ a b))
-          ((a <- mulexp)
-           a))
-
-  (mulexp ((a <- simple '* b <- simple)
-           (* a b))
-          ((a <- simple)
-           a))
-
-  (simple ((a <- 'NUM)
-           a)
-          (('OPAREN a <- expr 'CPAREN)
-           a))))
-@end example
-
-This session uses the definitions of
-@func{generator}
-and
-@func{calc}
-from sections
-
-> (define calc [...])
-\layout LyX-Code
-
-> (define g (generator
-\layout LyX-Code
-
-    '((num .
- 1) (+) (num .
- 2) (*) (num .
- 3))))
-\layout LyX-Code
-
-> (define r (calc (base-generator->results g)))
-\layout LyX-Code
-
-> (parse-result-successful? r)
-\layout LyX-Code
-
-#t
-\layout LyX-Code
-
-> (parse-result-semantic-value r)
-\layout LyX-Code
-
-7
-\layout LyX-Code
-
-> (define g (generator
-\layout LyX-Code
-
-    '((oparen) (num .
- 1) (+) (num .
- 2) (cparen) (*) (num .
- 3))))
-\layout LyX-Code
-
-> (define r (calc (base-generator->results g)))
-\layout LyX-Code
-
-> (parse-result-successful? r)
-\layout LyX-Code
-
-#t
-\layout LyX-Code
-
-> (parse-result-semantic-value r)
-\layout LyX-Code
-
-9
-\layout LyX-Code
 
 @c page
 @node csv
