@@ -282,7 +282,7 @@ endif
 ifdef LIBPATH
 nau_test_custom_LIBPATH	= $(LIBPATH):
 endif
-nau_test_PATH		= $(nau_test_custom_LIBPATH)$(fasl_BUILDDIR):$(srcdir)/tests
+nau_test_PATH		= $(nau_test_custom_LIBPATH)$(fasl_BUILDDIR):$(nau_test_SRCDIR)
 
 .PHONY: tests test check
 
@@ -293,16 +293,27 @@ tests test check:
 
 nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
-nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
-#nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
+#nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
 nau_itest_RUN		= $(nau_itest_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
 
-.PHONY: itest itests icheck
+nau_itest_installed_ENV	= IKARUS_LIBRARY_PATH=$(nau_test_SRCDIR):$(IKARUS_LIBRARY_PATH)
+nau_itest_installed_RUN	= $(nau_itest_installed_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
+
+.PHONY: itest itests icheck itest-installed
 
 itest itests icheck:
 ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f);)
+endif
+
+itest-installed:
+	@echo Running tests with installed Ikarus libraries
+	@echo $(nau_itest_installed_ENV)
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_installed_RUN) $(f);)
 endif
 
 test tests check: itest
@@ -315,12 +326,23 @@ nau_ltest_ENV		+= $(nau_test_ENV)
 nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
 nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
 
-.PHONY: ltest ltests lcheck
+nau_ltest_installed_ENV	= LARCENY_LIBPATH=$(nau_test_SRCDIR):$(LARCENY_LIBPATH)
+nau_ltest_installed_RUN	= $(nau_ltest_installed_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
+
+.PHONY: ltest ltests lcheck ltest-installed
 
 ltest ltests lcheck:
 ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f);)
+endif
+
+ltest-installed:
+	@echo Running tests with installed Larceny libraries
+	@echo $(nau_ltest_installed_ENV)
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_installed_RUN) $(f);)
 endif
 
 test tests check: ltest
@@ -337,12 +359,23 @@ nau_mtest_ENV		+= $(nau_test_ENV)
 nau_mtest_PROGRAM	= $(MOSH)
 nau_mtest_RUN		= $(nau_mtest_ENV) $(nau_TIME_TESTS) $(nau_mtest_PROGRAM)
 
-.PHONY: mtest mtests mcheck
+nau_mtest_installed_ENV	= MOSH_LOADPATH=$(nau_test_SRCDIR):$(MOSH_LOADPATH)
+nau_mtest_installed_RUN	= $(nau_mtest_installed_ENV) $(nau_TIME_TESTS) $(nau_mtest_PROGRAM)
+
+.PHONY: mtest mtests mcheck mtest-installed
 
 mtest mtests mcheck:
 ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_RUN) $(f);)
+endif
+
+mtest-installed:
+	@echo Running tests with installed Mosh libraries
+	@echo $(nau_mtest_installed_ENV)
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_installed_RUN) $(f);)
 endif
 
 test tests check: mtest
@@ -355,12 +388,23 @@ nau_ytest_ENV		+= $(nau_test_ENV)
 nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
 nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_TIME_TESTS) $(nau_ytest_PROGRAM)
 
-.PHONY: ytest ytests ycheck
+nau_ytest_installed_ENV	= YPSILON_SITELIB=$(nau_test_SRCDIR):$(YPSILON_SITELIB)
+nau_ytest_installed_RUN	= $(nau_ytest_installed_ENV) $(nau_TIME_TESTS) $(nau_ytest_PROGRAM)
+
+.PHONY: ytest ytests ycheck ytest-installed
 
 ytest ytests ycheck:
 ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_RUN) $(f);)
+endif
+
+ytest-installed:
+	@echo Running tests with installed Ypsilon libraries
+	@echo $(nau_ytest_installed_ENV)
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_installed_RUN) $(f);)
 endif
 
 test tests check: ytest
