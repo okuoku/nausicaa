@@ -383,7 +383,9 @@ Copyright @copyright{} 2003 Taylor Campbell.@*
 Copyright @copyright{} 2005 Jens Axel Soegaard.@*
 Copyright @copyright{} 2005-2009 Alex Shinn.@*
 Copyright @copyright{} 2008 Taro Minowa (Higepon).@*
-Copyright @copyright{} 2005-2008 Dominique Boucher.
+Copyright @copyright{} 2005-2008 Dominique Boucher.@*
+Copyright @copyright{} 2004, 2005 Tony Garnock-Jones @email{tonyg@@kcbbs.gen.nz}@*
+Copyright @copyright{} 2005 LShift Ltd. @email{query@@lshift.net}
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -432,7 +434,6 @@ the list of original documents and their authors.  See also the
 @syncodeindex fn cp
 @end ignore
 
-
 @c page
 @ifnottex
 @node Top
@@ -477,6 +478,7 @@ More libraries
 * pregexp::                     Portable regular expressions for Scheme.
 * silex::                       A lexical analyser generator.
 * lalr::                        A LALR(1) parser generator.
+* packrat::                     Packrat parser.
 * csv::                         Comma--separated value (@acronym{CSV}) utilities.
 * schelog::                     Programming in Schelog.
 * email::                       Email processing.
@@ -10785,8 +10787,11 @@ of the list, @func{find} returns @false{}.  @var{proc} is always called
 in the same dynamic environment as @func{find} itself.
 
 @example
-(find even? '(3 1 4 1 5 9))             @result{} 4
-(find even? '(3 1 5 1 5 9))             @result{} #f
+(find even? '(3 1 4 1 5 9))
+@result{} 4
+
+(find even? '(3 1 5 1 5 9))
+@result{} #f
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10806,8 +10811,8 @@ accept @math{n} arguments and return a single value.  @var{proc} should
 not mutate the @var{list} arguments.
 
 For natural numbers @math{i = 0, 1, @dots{}}, the @func{for-all}
-procedure successively applies @var{proc} to arguments @emph{x_i^1
-@dots{} x_i^n}, where @emph{x_i^j} is the @emph{i}th element of
+procedure successively applies @var{proc} to arguments @math{x_i^1
+@dots{} x_i^n}, where @math{x_i^j} is the @math{i}-th element of
 @var{listj}, until @false{} is returned.
 
 If @var{proc} returns true values for all but the last element of
@@ -10823,32 +10828,56 @@ procedure applies @var{proc} successively to arguments @math{x_i^1
 @var{listj}, until a true value is returned.
 
 If @var{proc} returns @false{} for all but the last elements of the
-@var{list}s, @code{exists} performs a tail call of @var{proc} on the
+@var{list}s, @func{exists} performs a tail call of @var{proc} on the
 @emph{k}th elements, where @emph{k} is the length of @vari{list}.  If
-@var{proc} returns a true value on any set of elements, @code{ exists}
+@var{proc} returns a true value on any set of elements, @func{exists}
 returns that value after the first such application of @var{proc}.  If
-the @var{list}s are all empty, @code{exists} returns @false{}.
+the @var{list}s are all empty, @func{exists} returns @false{}.
 
 @var{proc} is always called in the same dynamic environment as
 @func{for-all} or, respectively, @func{exists} itself.
 
 @example
-(for-all even? '(3 1 4 1 5 9))          @result{} #f
-(for-all even? '(3 1 4 1 5 9 . 2))      @result{} #f
-(for-all even? '(2 4 14))               @result{} #t
-(for-all even? '(2 4 14 . 9))           @result{} exception &assertion
-(for-all (lambda (n) (and (even? n) n))
-         '(2 4 14))                     @result{} 14
-(for-all < '(1 2 3) '(2 3 4))           @result{} #t
-(for-all < '(1 2 4) '(2 3 4))           @result{} #f
+(for-all even? '(3 1 4 1 5 9))
+@result{} #f
 
-(exists even? '(3 1 4 1 5 9))           @result{} #t
-(exists even? '(3 1 1 5 9))             @result{} #f
-(exists even? '(3 1 1 5 9 . 2))         @result{} exception &assertion
+(for-all even? '(3 1 4 1 5 9 . 2))
+@result{} #f
+
+(for-all even? '(2 4 14))
+@result{} #t
+
+(for-all even? '(2 4 14 . 9))
+@error{} exception &assertion
+
+(for-all (lambda (n) (and (even? n) n))
+         '(2 4 14))
+@result{} 14
+
+(for-all < '(1 2 3) '(2 3 4))
+@result{} #t
+
+(for-all < '(1 2 4) '(2 3 4))
+@result{} #f
+
+(exists even? '(3 1 4 1 5 9))
+@result{} #t
+
+(exists even? '(3 1 1 5 9))
+@result{} #f
+
+(exists even? '(3 1 1 5 9 . 2))
+@error{} exception &assertion
+
 (exists (lambda (n) (and (even? n) n))
-        '(2 1 4 14))                    @result{} 2
-(exists < '(1 2 4) '(2 3 4))            @result{} #t
-(exists > '(1 2 3) '(2 3 4))            @result{} #f
+        '(2 1 4 14))
+@result{} 2
+
+(exists < '(1 2 4) '(2 3 4))
+@result{} #t
+
+(exists > '(1 2 3) '(2 3 4))
+@result{} #f
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10886,10 +10915,11 @@ or @func{partitions}, the return values returned by earlier returns are
 not mutated.
 
 @example
-(filter even? '(3 1 4 1 5 9 2 6))       @result{} (4 2 6)
+(filter even? '(3 1 4 1 5 9 2 6))
+@result{} (4 2 6)
 
-(partition even? '(3 1 4 1 5 9 2 6))    @result{} (4 2 6) (3 1 1 5 9)
-                                           ; two values
+(partition even? '(3 1 4 1 5 9 2 6))
+@result{} (4 2 6) (3 1 1 5 9)   ; two values
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -10921,29 +10951,34 @@ reached; then the accumulator value is returned.
 @func{fold-left} itself.
 
 @example
-(fold-left + 0 '(1 2 3 4 5))            @result{} 15
+(fold-left + 0 '(1 2 3 4 5))
+@result{} 15
 
 (fold-left (lambda (a e)
              (cons e a))
            '()
-           '(1 2 3 4 5))                @result{} (5 4 3 2 1)
+           '(1 2 3 4 5))
+@result{} (5 4 3 2 1)
 
 (fold-left (lambda (count x)
              (if (odd? x)
                  (+ count 1)
                count))
            0
-           '(3 1 4 1 5 9 2 6 5 3))      @result{} 7
+           '(3 1 4 1 5 9 2 6 5 3))
+@result{} 7
 
 (fold-left (lambda (max-len s)
              (max max-len (string-length s)))
            0
            '("longest" "long" "longer"))
-                                        @result{} 7
+@result{} 7
 
-(fold-left cons '(q) '(a b c))          @result{} ((((q) . a) . b) . c)
+(fold-left cons '(q) '(a b c))
+@result{} ((((q) . a) . b) . c)
 
-(fold-left + 0 '(1 2 3) '(4 5 6))       @result{} 21
+(fold-left + 0 '(1 2 3) '(4 5 6))
+@result{} 21
 @end example
 
 @strong{Implementation responsibilities:} The implementation should
@@ -10977,19 +11012,23 @@ returned.
 @func{fold-right} itself.
 
 @example
-(fold-right + 0 '(1 2 3 4 5))                   @result{} 15
+(fold-right + 0 '(1 2 3 4 5))
+@result{} 15
 
-(fold-right cons '() '(1 2 3 4 5))              @result{} (1 2 3 4 5)
+(fold-right cons '() '(1 2 3 4 5))
+@result{} (1 2 3 4 5)
 
 (fold-right (lambda (x l)
               (if (odd? x) (cons x l) l))
             '()
             '(3 1 4 1 5 9 2 6 5))
-                                                @result{} (3 1 1 5 9 5)
+@result{} (3 1 1 5 9 5)
 
-(fold-right cons '(q) '(a b c))                 @result{} (a b c q)
+(fold-right cons '(q) '(a b c))
+@result{} (a b c q)
 
-(fold-right + 0 '(1 2 3) '(4 5 6))              @result{} 21
+(fold-right + 0 '(1 2 3) '(4 5 6))
+@result{} 21
 @end example
 
 @strong{Implementation responsibilities:} The implementation should
@@ -11025,13 +11064,17 @@ the input list.  If multiple returns occur from @func{remp}, the return
 values returned by earlier returns are not mutated.
 
 @example
-(remp even? '(3 1 4 1 5 9 2 6 5))       @result{} (3 1 1 5 9 5)
+(remp even? '(3 1 4 1 5 9 2 6 5))
+@result{} (3 1 1 5 9 5)
 
-(remove 1 '(3 1 4 1 5 9 2 6 5))         @result{} (3 4 5 9 2 6 5)
+(remove 1 '(3 1 4 1 5 9 2 6 5))
+@result{} (3 4 5 9 2 6 5)
 
-(remv 1 '(3 1 4 1 5 9 2 6 5))           @result{} (3 4 5 9 2 6 5)
+(remv 1 '(3 1 4 1 5 9 2 6 5))
+@result{} (3 4 5 9 2 6 5)
 
-(remq 'foo '(bar foo baz))              @result{} (bar baz)
+(remq 'foo '(bar foo baz))
+@result{} (bar baz)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -11066,15 +11109,29 @@ returned.  The @func{member} procedure uses @func{equal?} to compare
 @func{eqv?} and @func{memq} uses @func{eq?}.
 
 @example
-(memp even? '(3 1 4 1 5 9 2 6 5))       @result{} (4 1 5 9 2 6 5)
+(memp even? '(3 1 4 1 5 9 2 6 5))
+@result{} (4 1 5 9 2 6 5)
 
-(memq 'a '(a b c))                      @result{} (a b c)
-(memq 'b '(a b c))                      @result{} (b c)
-(memq 'a '(b c d))                      @result{} #f
-(memq (list 'a) '(b (a) c))             @result{} #f
-(member (list 'a) '(b (a) c))           @result{} ((a) c)
-(memq 101 '(100 101 102))               @result{} unspecified
-(memv 101 '(100 101 102))               @result{} (101 102)
+(memq 'a '(a b c))
+@result{} (a b c)
+
+(memq 'b '(a b c))
+@result{} (b c)
+
+(memq 'a '(b c d))
+@result{} #f
+
+(memq (list 'a) '(b (a) c))
+@result{} #f
+
+(member (list 'a) '(b (a) c))
+@result{} ((a) c)
+
+(memq 101 '(100 101 102))
+@result{} unspecified
+
+(memv 101 '(100 101 102))
+@result{} (101 102)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -11122,17 +11179,34 @@ check whether @var{proc} is an appropriate argument before applying it.
 @example
 (define d '((3 a) (1 b) (4 c)))
 
-(assp even? d)                                  @result{} (4 c)
-(assp odd? d)                                   @result{} (3 a)
+(assp even? d)
+@result{} (4 c)
+
+(assp odd? d)
+@result{} (3 a)
 
 (define e '((a 1) (b 2) (c 3)))
-(assq 'a e)                                     @result{} (a 1)
-(assq 'b e)                                     @result{} (b 2)
-(assq 'd e)                                     @result{} #f
-(assq (list 'a) '(((a)) ((b)) ((c))))           @result{} #f
-(assoc (list 'a) '(((a)) ((b)) ((c))))          @result{} ((a))
-(assq 5 '((2 3) (5 7) (11 13)))                 @result{} unspecified
-(assv 5 '((2 3) (5 7) (11 13)))                 @result{} (5 7)
+
+(assq 'a e)
+@result{} (a 1)
+
+(assq 'b e)
+@result{} (b 2)
+
+(assq 'd e)
+@result{} #f
+
+(assq (list 'a) '(((a)) ((b)) ((c))))
+@result{} #f
+
+(assoc (list 'a) '(((a)) ((b)) ((c))))
+@result{} ((a))
+
+(assq 5 '((2 3) (5 7) (11 13)))
+@result{} unspecified
+
+(assv 5 '((2 3) (5 7) (11 13)))
+@result{} (5 7)
 @end example
 @end deffn
 
@@ -11145,12 +11219,16 @@ and whose last cdr is @var{obj}.  If called with only one argument,
 @func{cons*} returns that argument.
 
 @example
-(cons* 1 2 '(3 4 5))            @result{} (1 2 3 4 5)
-(cons* 1 2 3)                   @result{} (1 2 . 3)
-(cons* 1)                       @result{} 1
+(cons* 1 2 '(3 4 5))
+@result{} (1 2 3 4 5)
+
+(cons* 1 2 3)
+@result{} (1 2 . 3)
+
+(cons* 1)
+@result{} 1
 @end example
 @end deffn
-
 
 @c page
 @node stdlib sorting
@@ -11187,8 +11265,8 @@ sorted, but the pairing of arguments and the sequencing of calls to
 earlier returns are not mutated.
 
 @example
-(list-sort < '(3 5 2 1))                @result{} (1 2 3 5)
-(vector-sort < '#(3 5 2 1))             @result{} #(1 2 3 5)
+(list-sort < '(3 5 2 1))        @result{} (1 2 3 5)
+(vector-sort < '#(3 5 2 1))     @result{} #(1 2 3 5)
 @end example
 
 @strong{Implementation responsibilities:} The implementation must check
@@ -11256,8 +11334,8 @@ The final @hyper{expression} is in tail context if the @func{when} or
 
 @example
 (when (> 3 2) 'greater)         @result{} greater
-(when (< 3 2) 'greater)         @result{} unspecified
-(unless (> 3 2) 'less)          @result{} unspecified
+(when (< 3 2) 'greater)         @result{} #<unspecified>
+(unless (> 3 2) 'less)          @result{} #<unspecified>
 (unless (< 3 2) 'less)          @result{} less
 @end example
 
@@ -41774,6 +41852,734 @@ for interactive parsers (like the calculator example that comes with the
 distribution).
 
 @c page
+@node packrat
+@chapter Packrat parser
+
+
+The @library{packrat} library implements parsing combinators using the
+@dfn{packrat parsing} algorithm.  Packrat parsing is a memoizing,
+backtracking recursive--descent parsing technique that runs in time and
+space linear in the size of the input text.  The technique was
+originally discovered by Alexander Birman in 1970, and Bryan Ford took
+up the idea for his master's thesis in 2002.
+
+@menu
+* packrat records::             Data structures.
+* packrat combinators::         Combinators.
+* packrat macro::               The @func{packrat-parser} macro.
+* packrat generators::          Generators.
+* packrat calc::                Calculator example.
+@end menu
+
+@c page
+@node packrat records
+@section Data structures
+
+
+This section describes the data structures that make up the core of the
+packrat parsing algorithm, and some of the low-level procedures that
+operate on them.
+
+@menu
+* packrat records result::      Parse result.
+* packrat records results::     Parse results.
+* packrat records error::       Parse error.
+* packrat records position::    Parse position.
+@end menu
+
+@c page
+@node packrat records result
+@subsection Parse result
+
+
+A @samp{parse-result} record describes the results of an attempt at a
+parse at a particular position in the input stream.  It can either
+record a successful parse, in which case it contains an associated
+semantic--value, or a failed parse, in which case it contains a
+@samp{parse-error} structure.
+
+
+@defun parse-result? @var{obj}
+Return @true{} if @var{obj} is a record of type @samp{parse-result}.
+@end defun
+
+
+@defun parse-result-successful? @var{parse-result}
+Return @true{} if @var{parse-result} represents a successful parse.
+@end defun
+
+
+@defun parse-result-semantic-value @var{parse-result}
+If @var{parse-result} represents a successful parse, return the
+associated semantic--value; else return @false{}.
+@end defun
+
+
+@defun parse-result-next @var{parse-result}
+If the argument represents a successful parse, return a
+@samp{parse-results} record representing the parsed input stream
+starting immediately after the parse this @samp{parse-result}
+represents.
+
+For instance, given an input stream @math{[a, b, c, d, e]}, if
+@var{parse-result} had completed successfully, consuming the @math{[a,
+b, c]} prefix of the input stream and producing some semantic value,
+then the @samp{parse-results} returned by @func{parse-result-next} would
+represent all possible parses starting from the @math{[d, e]} suffix of
+the input stream.
+@end defun
+
+
+@defun parse-result-error @var{parse-result}
+If the argument represents a failed parse, this function returns a
+@samp{parse-error} structure; otherwise, it may return a
+@samp{parse-error} structure for internal implementation reasons (to do
+with propagating errors upwards for improved error--reporting) or it may
+return @false{}.
+@end defun
+
+
+@defun make-result @var{semantic-value} @var{next-parse-results}
+Build and return an instance of @samp{parse-result} representing a
+successful parse.  The first argument is used as the semantic value to
+include with the new @samp{parse-result}; the second argument should be
+a @samp{parse-results} structure representing the location in the input
+stream from which to continue parsing.
+@end defun
+
+
+@defun make-expected-result @var{parse-position} @var{object}
+Build and return an instance of @samp{parse-result} representing a
+failed parse.  @var{parse-position} and @var{object} are used to
+construct a variant of a @samp{parse-error} record for inclusion in the
+@samp{parse-result} that reports that a particular kind of value was
+expected at the given @samp{parse-position}.
+@end defun
+
+
+@defun make-message-result @var{parse-position} @var{string}
+Build and return an instance of @samp{parse-result} representing a
+failed parse.  @samp{parse-position} and @var{string} are used to
+construct a variant of a @samp{parse-error} record for inclusion in the
+@samp{parse-result} that reports a general error message at the given
+parse position.
+@end defun
+
+
+@defun merge-result-errors @var{parse-result} @var{parse-error}
+Propagate error information through a particular parse result.
+@var{parse-result} is combined with @var{parse-error}, and the resulting
+@samp{parse-error} structure is returned embedded in the error field of
+a copy of the first argument.
+@end defun
+
+
+@defun parse-error->parse-result @var{parse-error}
+Build a @samp{parse-result} record representing a parse that failed for
+the reason specified by the @samp{parse-error} supplied.  Called by
+@func{make-expected-result} and @func{make-message-result}.
+@end defun
+
+
+@c page
+@node packrat records results
+@subsection Parse results
+
+
+A @samp{parse-results} record notionally describes all possible parses
+that can be attempted from a particular point in an input stream, and
+the results of those parses.  It contains a @samp{parse-position}
+record, which corresponds to the position in the input stream that this
+@samp{parse-results} represents, and a map associating ``key objects''
+with instances of @samp{parse-result}.
+
+Atomic input objects (known as ``base values''; usually either
+characters or token/semantic--value pairs) are represented specially in
+the @samp{parse-results} data structure, as an optimisation: the two
+fields @samp{base} and @samp{next} represent the implicit successful
+parse of a base value at the current position.
+
+The @samp{base} field contains a pair of a token--class--identifier and
+a semantic value unless the @samp{parse-results} data structure as a
+whole is representing the end of the input stream, in which case it will
+contain @false{}.
+
+
+@defun parse-results? @var{obj}
+Return @true{} if @var{obj} is a record of type @samp{parse-results}.
+@end defun
+
+
+@defun parse-results-position @var{parse-results}
+Return the @samp{parse-position} corresponding to the argument.  An
+unknown position is represented by @false{}.
+@end defun
+
+
+@defun parse-results-base @var{parse-results}
+If the argument corresponds to the end of the input stream, this
+function returns @false{}; otherwise, it returns a pair, where the car
+is to be interpreted as a base lexical token class identifier (for
+instance ``symbol'', ``string'', ``number'') and the cdr is to be
+interpreted as the semantic value of the token.
+@end defun
+
+
+@defun parse-results-token-kind @var{parse-results}
+Return the car (the token class identifier) of the result of
+@func{parse-results-base}, if that result is a pair; otherwise return
+@false{}.
+@end defun
+
+
+@defun parse-results-token-value @var{parse-results}
+Return the cdr (the semantic value) of the result of
+@func{parse-results-base}, if that result is a pair; otherwise return
+@false{}.
+@end defun
+
+
+@defun parse-results-next @var{parse-results}
+Return the @samp{parse-results} record representing the position in the
+input stream immediately after the argument's base token.
+
+For instance, if the base tokens used represented characters, then this
+function would return the @samp{parse-results} representing the next
+character position; or, if the base tokens represented lexemes, then
+this function would return a representation of the results obtainable
+starting from the next lexeme position.
+
+If there is no next position, return @false{} (that is, if the argument
+represents the final possible position before the end--of--stream).
+@end defun
+
+
+@defun base-generator->results @var{generator-function}
+Set up an initial input stream of base tokens.  The argument is to be a
+thunk returning multiple values, the first of which is to be a
+@samp{parse-position} record or @false{}, and the second of which is to
+be a base token, that is a pair of a token class identifier and a
+semantic value.  The argument is called every time the parser needs to
+read a fresh base token from the input stream.
+@end defun
+
+
+@defun prepend-base @var{parse-position} @var{base-value} @var{parse-results}
+Prepend a base token to a particular @samp{parse-results}.  This can be
+useful when implementing extensible parsers: using this function in a
+suitable loop, it is possible to splice together two streams of input.
+
+For instance, if @samp{r} is a @samp{parse-results} representing parses
+over the input token stream @samp{'((b . 2) (c . 3))}, then the result
+of the call:
+
+@example
+(prepend-base #f '(a . 1) r)
+@end example
+
+@noindent
+is a new @samp{parse-results} representing parses over the input stream
+@samp{'((a . 1) (b . 2) (c . 3))}.
+
+@var{parse-position} should be either a @samp{parse-position}
+representing the location of the base token being prepended, or @false{}
+if the input position of the base token is unknown.
+@end defun
+
+
+@defun prepend-semantic-value @var{parse-position} @var{key-object} @var{semantic-value} @var{parse-results}
+This function is similar to @func{prepend-base}, but prepends an already
+computed semantic value to a @samp{parse-results}, again primarily for
+use in implementing extensible parsers.  The resulting
+@samp{parse-results} is assigned the given @var{parse-position}, and has
+an entry in its result map associating the given @var{key-object} with
+the given @var{semantic-value} and input @var{parse-results}.
+@end defun
+
+
+@defun results->result @var{parse-results} @var{key-object} @var{result-thunk}
+The the central function driving the parsing process.  Examine the
+result map in @var{parse-results}, searching for an entry matching the
+given @var{key-object}.  If such an entry is found, the
+@samp{parse-result} structure associated with the key is returned;
+otherwise @var{result-thunk} is called, and the resulting
+@samp{parse-result} is both stored into the result map and returned to
+the caller.
+@end defun
+
+@c page
+@node packrat records error
+@subsection Parse error
+
+
+@deftp {Record Type} parse-error
+Represents error informations collected from attempted parses.  Hold the
+following immutable fields.
+
+@table @samp
+@item position
+A record of type @samp{parse-position} or @false{} if the position is
+unknown.
+
+@item expected
+A list of ``expected token'' messages.
+
+@item messages
+A list of free format strings.
+@end table
+@end deftp
+
+
+@defun parse-error? @var{obj}
+Return @true{} if @var{obj} is a record of type @samp{parse-error}.
+@end defun
+
+
+@defun parse-error-position @var{parse-error}
+Retrieve the @samp{parse-position} in the input stream that
+@var{parse-error} is describing.  A @false{} result indicates an unknown
+position.
+@end defun
+
+
+@defun parse-error-expected @var{parse-error}
+Retrieve the set (represented as a list) of token class identifiers that
+could have allowed the parse to continue from this point.
+@end defun
+
+
+@defun parse-error-messages @var{parse-error}
+Retrieve the list of error messages associated with @var{parse-error}.
+@end defun
+
+
+@defun make-error-expected @var{parse-position} @var{object}
+Build and return an ``expected token'' @var{parse-error} record from the
+arguments.
+@end defun
+
+
+@defun make-error-message @var{parse-position} @var{string}
+Build and return a ``general error message'' @samp{parse-error} record.
+@end defun
+
+
+@defun parse-error-empty? @var{parse-error}
+Return @true{} if @var{parse-error} contains no expected tokens, and no
+general error messages; otherwise return @false{}.
+@end defun
+
+
+@defun merge-parse-errors @vari{parse-error} @varii{parse-error}
+Merges two @samp{parse-error} records.  If one record represents a
+position earlier in the input stream than the other, then that record is
+returned; if they both represent the same position, the ``expected
+token'' sets are unioned and the general message lists are appended to
+form a new @samp{parse-error} record at the same position.  The standard
+parsing combinators call this function as appropriate to propagate error
+information through the parse.
+@end defun
+
+@c page
+@node packrat records position
+@subsection Parse position
+
+
+@deftp {Record Type} parse-position
+Represent a character location in an input stream.  Hold the following
+immutable fields.
+
+@table @samp
+@item file
+The filename from which the input stream draws tokens.  May be @false{}
+if the filename is unknown or not appropriate for the input stream the
+@samp{parse-position} is indexing into.
+
+@item line
+The current line counter.  Line numbers begin at @samp{1}.
+
+@item column
+The current column counter.  Column numbers begin at @math{0}.
+@end table
+@end deftp
+
+
+@defun make-parse-position @var{filename} @var{linenumber} @var{columnnumber}
+Build and return an new @samp{parse-position} record.
+@end defun
+
+
+@defun parse-position? @var{obj}
+Return @true{} if @var{obj} is a record of type @samp{parse-position}.
+@end defun
+
+
+@defun parse-position-file @var{parse-position}
+@defunx parse-position-line @var{parse-position}
+@defunx parse-position-column @var{parse-position}
+Field accessors.
+@end defun
+
+
+@defun top-parse-position @var{string-or-false}
+Build and return @samp{parse-position} representing the very beginning
+of an input stream.  @var{string-or-false} is handed to
+@func{make-parse-position} as the @var{filename} parameter.
+@end defun
+
+
+@defun update-parse-position @var{parse-position} @var{character}
+Given a position, and the character occurring at that position, return
+the position of the next character in the input stream.  Most characters
+simply increment the column number.  Exceptions to this rule are:
+@samp{#\return}, which resets the column number to zero;
+@samp{#\newline}, which both resets the column number to zero and
+increments the line number; @samp{#\tab}, which increments the column
+number to the nearest multiple of eight, just as a terminal with an
+eight--column tab stop setting might do.
+@end defun
+
+
+@defun parse-position->string @var{parse-position}
+Convert a @samp{parse-position} record into an @samp{emacs}--compatible
+display format.  If the filename in @var{parse-position} is unknown, the
+string @samp{<??>} is used in its place.
+
+The result is of the form:
+
+@example
+filename:linenumber:columnnumber
+@end example
+
+@noindent
+for example @samp{main.c:33:7}.
+@end defun
+
+
+@defun parse-position>? @vari{parse-position} @varii{parse-position}
+Return @true{} if the first argument is more advanced in the input
+stream than the second.  Either or both positions may be @false{},
+representing unknown positions; an unknown position is considered to be
+less advanced in the input stream than any known position.  Note that
+the filename associated with each @samp{parse-position} is completely
+ignored; it is the caller's responsibility to ensure the two positions
+are associated with the same input stream.
+@end defun
+
+@c page
+@node packrat combinators
+@section Combinators
+
+
+Parsing combinators are functions taking a @samp{parse-results}
+structure and returning a @samp{parse-result} structure.  Each
+combinator attempts to parse the input stream in some manner; the result
+of the combinator is either a successful parse with an associated
+semantic value, or a failed parse with an assocated error record.
+
+This section describes the procedures that produce the mid--level
+parsing combinators provided as part of the library.
+
+The type of a parser combinator, written in ML--like notation, would be
+
+@example
+parse-results -> parse-result
+@end example
+
+
+@defun packrat-check-base @var{kind-object} @var{semantic-value-acceptor}
+Return a combinator which, if the next base token has token class
+identifier equal to @var{kind-object}, calls
+@var{semantic-value-acceptor} with the semantic value of the next base
+token.  The result of this call should be another parser combinator,
+which is applied to the @samp{parse-results} representing the remainder
+of the input stream.
+
+The type of the semantic value acceptor, written in ML--like notation,
+would be:
+
+@example
+semanticValue -> parserCombinator
+@end example
+
+@noindent
+or, more fully expanded,
+
+@example
+semanticValue -> parse-results -> parse-result
+@end example
+
+These types recall the types of functions that work with monads (and, of
+course, in languages like Haskell, it is the norm to implement parser
+combinators and related code in a monadic style).
+@end defun
+
+
+@defun packrat-check @var{combinator} @var{semantic-value-acceptor}
+Return a combinator which attempts to parse using @var{combinator}, and
+if the parse is successful, hands the resulting semantic value to
+@var{semantic-value-acceptor} (which has the same type as the
+@var{semantic-value-acceptors} passed to @func{packrat-check-base}) and
+continues parsing using the resulting combinator.
+@end defun
+
+
+@defun packrat-or @vari{combinator} @varii{combinator}
+Return a combinator which attempts to parse using @vari{combinator},
+only trying @varii{combinator} if the first fails.  This is the basic
+combinator used to implement a choice among alternatives.
+@end defun
+
+
+@defun packrat-unless @var{string} @vari{combinator} @varii{combinator}
+Return a combinator which first tries @vari{combinator}; if it fails,
+the @varii{combinator} is tried; otherwise an error message containing
+the given string is returned as the result.
+
+This can be used to assert that a particular sequence of tokens does
+@strong{not} occur at the current position before continuing on.
+@end defun
+
+@c page
+@node packrat macro
+@section The @func{packrat-parser} macro
+
+
+@deffn Syntax packrat-parser @var{result-expr} @var{nonterminal-definition} ...
+Provide syntactic sugar for building complex parser combinators from
+simpler combinators.  Each nonterminal definition must be like this:
+
+@example
+@cmeta{nonterminal-definition} @equiv{} (@cmeta{nonterminal-id} (@cmeta{sequence} @cmeta{body-expr}+)*)
+
+@cmeta{sequence} @equiv{} (@cmeta{part}*)
+
+@cmeta{part} @equiv{} (! @cmeta{part}*)
+  |  (/ @cmeta{sequence}*)
+  |  @cmeta{var} <- (quote @cmeta{kind-object})
+  |  @cmeta{var} <- :@
+  |  @cmeta{var} <- @cmeta{nonterminal-id}
+  |  (quote @cmeta{kind-object})
+  |  @cmeta{nonterminal-id}
+@end example
+
+Each @var{nonterminal-definition} expands into a parser combinator.  The
+collection of defined nonterminal parser-combinators expands to a
+@func{begin} containing an internal definition for each nonterminal.
+
+The result of the whole @func{packrat-parser} form is
+@meta{result-expr}.  Since @func{begin} forms within @func{begin} forms
+are flattened out in Scheme, @meta{result-expr} can be used to introduce
+hand--written parser combinators which can call (and can be called by)
+the nonterminal definitions built in the rest of the parser definition.
+
+Each nonterminal definition expands into:
+
+@example
+(define (<nonterminal-id> results)
+  (results->result results 'nonterminal-id
+    (lambda ()
+      (@cmeta{...} results))))
+@end example
+
+@noindent
+where @meta{...}  is the expanded alternation--of--sequences combinator
+formed from the body of the nonterminal definition.
+
+An alternation (either implicit in the main body of a nonterminal
+definition, or introduced via a @meta{part} of the form @samp{(/
+<sequence> ...)}) expands to:
+
+@example
+(packrat-or @cmeta{expansion-of-first-alternative}
+            (packrat-or @cmeta{expansion-of-second-alternative}
+                        ...))
+@end example
+
+@noindent
+this causes each alternative to be tried in turn, in left--to--right
+order of occurrence.
+
+Whereever a @meta{part} of the form @samp{@cmeta{var} <- ...} occurs, a
+variable binding for @meta{var} is made available in the
+@meta{body-expr}s that make up each arm of a nonterminal definition.
+The variable will be bound to the semantic value resulting from parsing
+according to the parser definition to the right of the arrow (the
+@samp{...} above).
+
+The @samp{(! @meta{part} ...)} syntax expands into an invocation of
+@func{packrat-unless}.
+
+The @samp{:@@} syntax in @samp{@cmeta{var} <- @@} causes @meta{var} to
+be bound to the @samp{parse-position} at that point in the input stream.
+This can be used for annotating abstract syntax trees with location
+information.
+
+@meta{part}s of the form @samp{(quote @cmeta{kind-object})} expand into
+invocations of @func{packrat-check-base}; those of the form
+@meta{nonterminal-id} expand into invocations of @func{packrat-check},
+with the procedure associated with the named nonterminal passed in as
+the combinator argument.
+@end deffn
+
+@c page
+@node packrat generators
+@section Generators
+
+
+@subsubheading A base--generator for an input stream of characters
+
+This generator reads characters from a Scheme port, maintaining an input
+position and producing base tokens with each character in both token
+class identifier and semantic value position.  When using a
+@samp{parse-results} record over an input stream built from this
+generator, the functions @func{parse-results-token-kind} and
+@func{parse-results-token-value} will both return the same character.
+To use the generator, pass the result of the @func{generator} function
+to @func{base-generator->results}.
+
+@example
+(define (generator filename port)
+  (let ((ateof  #f)
+        (pos    (top-parse-position filename)))
+    (lambda ()
+      (if ateof
+          (values pos #f)
+        (let ((ch (read-char port)))
+          (if (eof-object? ch)
+              (begin
+                (set! ateof #t)
+                (values pos #f))
+            (let ((old-pos pos))
+              (set! pos (update-parse-position pos ch))
+              (values old-pos (cons ch ch)))))))))
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading A base--generator for a higher--level input stream of lexemes/tokens
+
+This generator sketches the construction of more complicated lexeme or
+token--based substrates for the packrat parser combinators.  It reads
+tokens from a precomputed list of token--class/semantic--value pairs:
+
+@example
+;; Represent the expression: (1 + 2) * 3
+(define lexer
+  (make-generator '((OPAREN)
+                    (NUM . 1)
+                    (+)
+                    (NUM . 2)
+                    (CPAREN)
+                    (*)
+                    (NUM . 3))))
+@end example
+
+@noindent
+in a more realistic situation, the list of lexemes would be computed on
+demand.  Since we're drawing from a list, with no real position
+information available, we return @false{} as the first of the two values
+expected from the generator, to indicate ``unknown location'' at every
+step of the way.
+
+@example
+(define (make-generator tokens)
+  (let ((stream tokens))
+    (lambda ()
+      (if (null? stream)
+          (values #f #f)
+        (let ((base-token (car stream)))
+          (set! stream (cdr stream))
+          (values #f base-token))))))
+@end example
+
+@c page
+@node packrat calc
+@section Calculator example
+
+
+It implements a simple calculator, supporting addition, multiplication,
+and grouping operators.  The parser expects an input stream of
+base--tokens with token class identifiers drawn from the set @samp{(num
+oparen cparen + *)} .
+
+@example
+(define calc (packrat-parser expr
+
+  (expr   ((a <- mulexp '+ b <- mulexp)
+           (+ a b))
+          ((a <- mulexp)
+           a))
+
+  (mulexp ((a <- simple '* b <- simple)
+           (* a b))
+          ((a <- simple)
+           a))
+
+  (simple ((a <- 'NUM)
+           a)
+          (('OPAREN a <- expr 'CPAREN)
+           a))))
+@end example
+
+This session uses the definitions of
+@func{generator}
+and
+@func{calc}
+from sections
+
+> (define calc [...])
+\layout LyX-Code
+
+> (define g (generator
+\layout LyX-Code
+
+    '((num .
+ 1) (+) (num .
+ 2) (*) (num .
+ 3))))
+\layout LyX-Code
+
+> (define r (calc (base-generator->results g)))
+\layout LyX-Code
+
+> (parse-result-successful? r)
+\layout LyX-Code
+
+#t
+\layout LyX-Code
+
+> (parse-result-semantic-value r)
+\layout LyX-Code
+
+7
+\layout LyX-Code
+
+> (define g (generator
+\layout LyX-Code
+
+    '((oparen) (num .
+ 1) (+) (num .
+ 2) (cparen) (*) (num .
+ 3))))
+\layout LyX-Code
+
+> (define r (calc (base-generator->results g)))
+\layout LyX-Code
+
+> (parse-result-successful? r)
+\layout LyX-Code
+
+#t
+\layout LyX-Code
+
+> (parse-result-semantic-value r)
+\layout LyX-Code
+
+9
+\layout LyX-Code
+
+@c page
 @node csv
 @chapter Comma--separated value (@acronym{CSV}) utilities
 
@@ -48796,6 +49602,32 @@ SILex is free software; you can redistribute it and/or modify it under
 the terms of the @gnu{} General Public License as published by the Free
 Software Foundation; either version 2 of the License, or (at your
 option) any later version.
+
+@c ------------------------------------------------------------
+
+@subsubheading Packrat parser
+
+Copyright @copyright{} 2004, 2005 Tony Garnock-Jones @email{tonyg@@kcbbs.gen.nz}@*
+Copyright @copyright{} 2005 LShift Ltd. @email{query@@lshift.net}
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @c page
 @c ------------------------------------------------------------
