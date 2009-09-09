@@ -128,16 +128,21 @@
 (compile-library "arrays.sls"
 		 "arrays.slfasl")
 
-;;; --------------------------------------------------------------------
-
 (compile-library "sentinel.sls"
 		 "sentinel.slfasl")
+
+;;; --------------------------------------------------------------------
+
+(compile-library "records.sls"
+		 "records.slfasl")
 
 (compile-library "scmobj/utils.sls"
 		 "scmobj/utils.slfasl")
 
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")
+
+;;; --------------------------------------------------------------------
 
 (compile-library "deferred-exceptions.sls"
 		 "deferred-exceptions.slfasl")
@@ -171,6 +176,14 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "parser-tools/source-location.sls"
+ 		 "parser-tools/source-location.slfasl")
+
+(compile-library "parser-tools/lexical-token.sls"
+ 		 "parser-tools/lexical-token.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (compile-library "silex/lexer.sls"
 		 "silex/lexer.slfasl")
 
@@ -178,9 +191,6 @@
 		 "silex.slfasl")
 
 ;;; --------------------------------------------------------------------
-
-(compile-library "lalr/common.sls"
- 		 "lalr/common.slfasl")
 
 (compile-library "lalr/lr-driver.sls"
  		 "lalr/lr-driver.slfasl")

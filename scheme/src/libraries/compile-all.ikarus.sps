@@ -52,6 +52,7 @@
   (only (comparisons))
   (only (arrays))
 
+  (only (records))
   (only (scmobj))
 
   (only (deferred-exceptions))
@@ -66,10 +67,12 @@
   (only (irregex))
   (only (pregexp))
 
+  (only (parser-tools source-location))
+  (only (parser-tools lexical-token))
+
   (only (silex lexer))
   (only (silex))
 
-  (only (lalr common))
   (only (lalr lr-driver))
   (only (lalr glr-driver))
   (only (lalr))
