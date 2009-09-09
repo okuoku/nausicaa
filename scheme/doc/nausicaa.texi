@@ -471,11 +471,13 @@ More libraries
 * keywords::                    Keyword values.
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
+* records::                     Record utilities.
 * scmobj::                      A simple object system.
 * sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
 * irregex::                     IrRegular expressions.
 * pregexp::                     Portable regular expressions for Scheme.
+* parser-tools::                Lexer and parser utilities.
 * silex::                       A lexical analyser generator.
 * lalr::                        A LALR(1) parser generator.
 * packrat::                     Packrat parser.
@@ -814,7 +816,7 @@ Hashtables
 
 The @library{nausicaa} language
 
-* naulib features::             Feature--based conditional expansion.
+* naulib features::             Feature-based conditional expansion.
 * naulib funcs::                Functions.
 * naulib pretty::               Pretty printing.
 * naulib macros::               Syntactic abstractions.
@@ -823,6 +825,10 @@ The @library{nausicaa} language
                                 with shared structure.
 * naulib environment::          Accessing environment variables.
 * naulib unimplemented::        Unimplemented error condition.
+
+Predefined condition types
+
+* conditions mismatch::         General mismatch error.
 
 List library
 
@@ -1082,6 +1088,30 @@ Pattern matching
 
 * matches intro::               Introduction.
 * matches match::               Basic pattern matching.
+* matches condition::           Mismatch error condition.
+* matches syntax::              The pattern syntax.
+
+The pattern syntax
+
+* matches syntax wildcard::     Matching anything with blind semantic
+                                action.
+* matches syntax literal::      Matching literal values.
+* matches syntax clauses::      Multiple clauses.
+* matches syntax quoted::       Matching quoted S--expressions.
+* matches syntax lists::        Matching pairs and lists.
+* matches syntax vectors::      Matching vectors.
+* matches syntax variables::    Pattern variables.
+* matches syntax pred::         Matching with predicates.
+* matches syntax accessor::     Matching with accessor procedure.
+* matches syntax logic::        Logic alternatives and negation.
+* matches syntax quasiquote::   Matching quasiquotation.
+* matches syntax getter::       Getting values out of the expression.
+* matches syntax setter::       Mutating the expression's value.
+* matches syntax continuation:: Continuing after mismatch.
+* matches syntax ellipsis::     Matching an arbitrary number of
+                                subexpressions.
+* matches syntax macros::       Impossibility of using macros as
+                                patterns.
 
 IrRegular expressions
 
@@ -1120,6 +1150,11 @@ The regexp pattern language
 * pregexp syntax alternation::  Alternation.
 * pregexp syntax backtrack::    Backtracking.
 * pregexp syntax look::         Looking ahead and behind.
+
+Lexer and parser utilities
+
+* parser-tools token::          Lexical token records.
+* parser-tools location::       Source location records.
 
 A lexical analyser generator
 
@@ -1167,11 +1202,6 @@ Introduction to the LR parser
 * lalr intro error::            Error recovering.
 * lalr intro nonterm::          Non--terminal categories.
 
-Describing tokens
-
-* lalr lexer records::          Lexical token records.
-* lalr lexer location::         Source location records.
-
 Defining the parser
 
 * lalr grammar intro::          Introduction to grammar definition.
@@ -1192,6 +1222,20 @@ Error recovery
 
 * lalr grammar error intro::    Introduction to error recovery.
 * lalr grammar error single::   Dummy example: Single token parser.
+
+Packrat parser
+
+* packrat calc::                Calculator example.
+* packrat records::             Data structures.
+* packrat combinators::         Combinators.
+* packrat macro::               The @func{packrat-parser} macro.
+* packrat generators::          Generators.
+
+Data structures
+
+* packrat records error::       Parse error.
+* packrat records result::      Parse result.
+* packrat records results::     Parse results.
 
 Comma--separated value (@acronym{CSV}) utilities
 
@@ -32964,6 +33008,49 @@ The difference between @func{define-syntax} and @func{define}, is that
 @end deffn
 
 @c page
+@node records
+@chapter Record utilities
+
+
+The following bindings are exported by the @library{records} library.
+In the following descriptions, the argument @var{rtd} is a record type
+desriptor.
+
+
+@deffn Function record-precedence-list @var{rtd}
+@deffnx Syntax record-precedence-list @var{record-name}
+Return the list of record type descriptors which are parents of
+@var{rtd}.  The first element of the list is @var{rtd} itself, followed
+by its parent, then the parent of the parent and so on.  The syntax
+takes a record name as argument.
+
+@example
+(define-record-type <alpha>)
+
+(define-record-type <beta>
+  (parent <alpha>))
+
+(define-record-type <gamma>
+  (parent <beta>))
+
+(record-precedence-list (record-type-descriptor <alpha>))
+@equiv{} (record-precedence-list* <alpha>)
+@equiv{} (list (record-type-descriptor <alpha>))
+
+(record-precedence-list (record-type-descriptor <beta>))
+@equiv{} (record-precedence-list* <beta>)
+@equiv{} (list (record-type-descriptor <beta>)
+         (record-type-descriptor <alpha>))
+
+(record-precedence-list (record-type-descriptor <gamma>))
+@equiv{} (record-precedence-list* <gamma>)
+@equiv{} (list (record-type-descriptor <gamma>)
+         (record-type-descriptor <beta>)
+         (record-type-descriptor <alpha>))
+@end example
+@end deffn
+
+@c page
 @node scmobj
 @chapter A simple object system
 
@@ -38409,6 +38496,361 @@ The regexp @code{ip-re} will match all and only valid @ip{} addresses.
 @end example
 
 @c page
+@node parser-tools
+@chapter Lexer and parser utilities
+
+
+A set of libraries provides basic tools to implement lexers, parsers and
+the interface between them.  These tools are meant to be used by all the
+lexers and parsers distributed with @value{PACKAGE}.
+
+@menu
+* parser-tools location::       Source location records.
+* parser-tools token::          Lexical token records.
+@end menu
+
+@c page
+@node parser-tools location
+@section Source location records
+
+
+Location records are meant to store informations about the position of a
+token in the input stream; they should be produced by the lexer and
+either discarded or consumed by the parser's error handler.  All the
+bindings are exported by the @library{parser-tools source-location}
+library.
+
+It is cleaner to implement the parser in such a way that location
+records are used only by client--supplied error handlers, not by the
+parser itself.  The parser should handle the location as an opaque
+value, possibly @false{} when there is no consistent way to track the
+source location.
+
+@menu
+* parser-tools location type::          The record type.
+* parser-tools location makers::        Building records.
+* parser-tools location pred::          Predicates.
+* parser-tools location cmp::           Comparison functions.
+* parser-tools location update::        Updating the location.
+@end menu
+
+@c page
+@node parser-tools location type
+@subsection Type, makers, accessors
+
+
+@deffn {Record Type} source-location
+References the position of the next character to parse in the input
+stream, which is the position of the first char in the next token
+produced by the lexer.  All the fields in a @samp{source-location}
+record are immutable; they are:
+
+@table @samp
+@item input
+Describes the source of the input.  It can be any Scheme value, for
+example a string representing the pathname of an input file.  Set to
+@false{} if the source is unknown.
+
+@item line
+@itemx column
+@itemx offset
+Counters for the line number, column number and character offset from
+the start of the input.  By convention: Line and column numbers start
+from @math{1}, the offset starts from @math{0}.
+
+When the value of these counters is not known, by convention, they
+should be set to @samp{+nan.0}, so that they are still numbers.
+
+Notice that these values match the local bindings @samp{yyline},
+@samp{yycolumn} and @samp{yyoffset} available to the lexer actions of
+the @library{silex} library.  @ref{silex semantics action, Evaluation of
+the actions}
+@end table
+@end deffn
+
+
+@defun source-location-input @var{loc}
+@defunx source-location-line @var{loc}
+@defunx source-location-column @var{loc}
+@defunx source-location-offset @var{loc}
+Accessors for the fields of a @samp{source-location} record.
+@end defun
+
+@c page
+@node parser-tools location makers
+@subsection Building records
+
+
+@defun make-source-location @var{input} @var{line} @var{colum} @var{offset}
+Build and return a record of type @samp{source-location}.
+@end defun
+
+
+@defun make-source-location/start @var{input-spec}
+Build and return @samp{source-location} representing the very beginning
+of an input stream.  The line and column counters are set to @math{1},
+the offset counter is set to @math{0}; @var{input-spec} is stored in the
+@samp{input} field.
+@end defun
+
+@c page
+@node parser-tools location pred
+@subsection Predicates
+
+
+@defun source-location? @var{obj}
+@defunx source-location?/or-false @var{obj}
+Return true if @var{obj} is a record of type @samp{source-location}.
+The second variant accepts @false{}, too.
+@end defun
+
+
+@defun source-location?/start @var{obj}
+@defunx source-location?/start/or-false @var{obj}
+Return true if @var{obj} is a record of type @samp{source-location} and
+it represents the first possible location: Column and line counters set
+to @math{1}.  The offset counter is ignored.  The second variant accepts
+@false{}, too.
+@end defun
+
+
+@defun source-location->string @var{loc}
+Return a string representation of @var{loc}, which must be a record of
+type @samp{source-location} or @false{}.  If @var{loc} is @false{}, the
+return value is the string @samp{<??>}; else the result is of the form:
+
+@example
+<input>:line:column
+@end example
+
+@noindent
+for example @samp{main.c:33:7}.  @meta{input} is a string produced with:
+
+@example
+(call-with-string-output-port
+  (lambda (port)
+    (display (source-location-input @var{loc}) port)))
+@end example
+
+Notice that the use of this function is not mandatory at all; the use of
+client defined values for the @samp{input} field is encouraged, which
+means that a specialised ``to string'' function can be used.
+@end defun
+
+@c page
+@node parser-tools location cmp
+@subsection Comparison functions
+
+
+The following comparison functions establish an ordering in the space of
+the @samp{source-location} records and @false{}; the bindings are
+exported by the @library{parser-tools source-location} library.  By
+definition:
+
+@itemize
+@item
+A @samp{source-location} record is greater than @false{}.
+
+@item
+When the arguments of a comparision function application are both
+@false{}, the result is @false{}.
+@end itemize
+
+
+@defun parse-position>? @vari{parse-position} @varii{parse-position}
+Return @true{} if the first argument is more advanced in the input
+stream than the second.  Either or both positions may be @false{},
+representing unknown positions; an unknown position is considered to be
+less advanced in the input stream than any known position.  Note that
+the filename associated with each @samp{parse-position} is completely
+ignored; it is the caller's responsibility to ensure the two positions
+are associated with the same input stream.
+@end defun
+
+@c page
+@node parser-tools location update
+@subsection Updating the location
+
+
+The following bindings are exported by the @library{parser-tools
+source-location} library.
+
+
+@defun source-location-update @var{location} @var{char/token-length}
+If @var{location} is @false{}, the return value is @false{}.  If
+@var{location} is a @samp{source-location} record, build and return a
+new @samp{source-location} record representing the position of the next
+char to be parsed in the input stream, starting from @var{location} and
+updated with @var{char/token-length}.
+
+@itemize
+@item
+If @var{char/token-length} is an exact integer, it is interpreted as
+token length.  The column and offset counters from @var{location} are
+incremented by that amount.
+
+@item
+If @var{char/token-length} is the @samp{#\return} character the action
+depends upon the value of the @samp{source-location-honor-return}
+parameter: if it is true, the column counter is set to @math{1} and the
+offset counter is incremented by @math{1}; if it is @false{}, the column
+and offset counters are incremented by @math{1}.
+
+@item
+If @var{char/token-length} is the @samp{#\newline} character: The line
+counter is incremented by @math{1}, the column counter is set to
+@math{1} and the offset counter is incremented by @math{1}.
+
+@item
+If @var{char/token-length} is the @samp{#\tab} character: The offset
+counter is incremented by @math{1} and the column counter is set to the
+result of:
+
+@example
+((source-location-tab-function)
+    (source-location-column @var{location}))
+@end example
+
+@noindent
+that is, the current procedure in the
+@samp{source-location-tab-function} parameter is applied to the column
+counter to produce the next column counter's value.
+@end itemize
+@end defun
+
+
+@deffn Parameter source-location-tab-function
+Hold a function used to produce the next column counter's value given
+the current column counter.  By default it is set to
+@func{source-location-tab-function/8chars}.
+@end deffn
+
+
+@defun source-location-tab-function/8chars @var{column}
+Return the smallest multiple of @math{8} which is greater than
+@var{column}.
+@end defun
+
+
+@defun source-location-tab-function/tab-table @var{column}
+Produce the next column counter's value drawing it from the list of
+horizontal tabulation offsets in the @samp{source-location-tab-table}
+parameter.  The returned value is the smallest offset which is greater
+than @var{column}.  If the list is null or all the offsets are smaller
+than @var{column}, @func{source-location-tab-function/8chars} is used to
+compute the return value.
+@end defun
+
+
+@deffn Parameter source-location-tab-table
+Hold a list of horizontal tabulation offsets, sorted in increasing
+order.  The default value is null.
+@end deffn
+
+
+@deffn Parameter source-location-honor-return
+Hold a boolean value which causes @func{source-location-update} to honor
+a @samp{#\return} character or not.
+@end deffn
+
+@c page
+@node parser-tools token
+@section Lexical token records
+
+
+The following bindings are exported by the @library{parser-tools
+lexical-token} library.
+
+
+@defun make-lexical-token @var{category} @var{source} @var{value} @var{length}
+Build and return a new record of type @samp{lexical-token}; all the
+fields in a @samp{lexical-token} record are immutable.  The arguments,
+and fields of the record, are:
+
+@table @samp
+@item category
+Represents the grammar's terminal symbol to which this token belongs; it
+must be a Scheme symbol among the ones specified by the
+@samp{:terminals} option to @func{lalr-parser}.  @ref{lalr grammar,
+Defining the parser}
+
+@item source
+Represents the location in the input from which the token was built; it
+must be an instance of @samp{source-location} record.
+
+@item value
+Represents the semantic value associated with the token.  It can be any
+Scheme value.
+
+@item length
+It is meant to be the length of the string which generated the token.
+When the token represents the end--of--input, this field can be set to
+zero.
+@end table
+
+For example, when the lexer tokenises the number @math{123}, it can
+build a record with:
+
+@example
+(let ((position ---))
+  (make-lexical-token 'NUMBER position 123))
+@end example
+
+@noindent
+while when tokenising a string it can do:
+
+@example
+(let ((position ---))
+  (make-lexical-token 'STRING position "some text"))
+@end example
+@end defun
+
+
+@defun lexical-token? @var{obj}
+Return true if @var{obj} is an instance of @samp{lexical-token}.
+@end defun
+
+
+@defun lexical-token-category @var{tok}
+@defunx lexical-token-source @var{tok}
+@defunx lexical-token-value @var{tok}
+@defunx lexical-token-length @var{loc}
+Getters for the fields of @samp{lexical-token} records.
+@end defun
+
+
+When the lexer closure has to signal the end--of--input, it must return
+a token with category @samp{*eoi*}, and continue to return it if it is
+called again and again; it can do:
+
+@example
+(let ((position ---))
+  (make-lexical-token '*eoi* position (eof-object)))
+@end example
+
+When the lexer closure has to signal a lexer error (an invalid character
+from the input source), it must return a token with category
+@samp{*lexer-error*}.
+
+
+@defun lexical-token?/end-of-input @var{obj}
+Return true if @var{obj} is an instance of @samp{lexical-token} having
+category @func{eq?} to the symbol @samp{*eoi*}.
+@end defun
+
+
+@defun lexical-token?/lexer-error @var{obj}
+Return true if @var{obj} is an instance of @samp{lexical-token} having
+category @func{eq?} to the symbol @samp{*lexer-error*}.
+@end defun
+
+
+@defun lexical-token?/special @var{obj}
+Return true if @var{obj} is an instance of @samp{lexical-token} having
+category @func{eq?} to the symbol @samp{*eoi*} or @samp{*lexer-error*}.
+@end defun
+
+@c page
 @node silex
 @chapter A lexical analyser generator
 
@@ -40574,167 +41016,9 @@ are described using records of type @samp{lexical-token}.  The current
 position in the input stream is described using records of type
 @samp{source-location}.
 
-@menu
-* lalr lexer records::          Lexical token records.
-* lalr lexer location::         Source location records.
-@end menu
-
-@c page
-@node lalr lexer records
-@subsection Lexical token records
-
-
-The following bindings are exported by the @library{lalr common}
-library, and are re--exported by @library{lalr}, @library{lalr
-lr-driver}, @library{lalr glr-driver} and by the Scheme libraries
-generated by @func{lalr-parser}.
-
-
-@defun make-lexical-token @var{category} @var{source} @var{value}
-Build and return a new record of type @samp{lexical-token}; all the
-fields in a @samp{lexical-token} record are immutable.  The arguments,
-and fields of the record, are:
-
-@table @var
-@item category
-Represents the grammar's terminal symbol to which this token belongs; it
-must be a Scheme symbol among the ones specified by the
-@samp{:terminals} option to @func{lalr-parser}.  @ref{lalr grammar,
-Defining the parser}
-
-@item source
-Represents the location in the input from which the token was built; it
-must be an instance of @samp{source-location} record.
-
-@item value
-Represents the semantic value associated with the token.  It can be any
-Scheme value.
-@end table
-
-For example, when the lexer tokenises the number @math{123}, it can
-build a record with:
-
-@example
-(let ((position ---))
-  (make-lexical-token 'NUMBER position 123))
-@end example
-
-@noindent
-while when tokenising a string it can do:
-
-@example
-(let ((position ---))
-  (make-lexical-token 'STRING position "some text"))
-@end example
-@end defun
-
-
-@defun lexical-token? @var{obj}
-Return true if @var{obj} is an instance of @samp{lexical-token}.
-@end defun
-
-
-@defun lexical-token-category @var{tok}
-@defunx lexical-token-source @var{tok}
-@defunx lexical-token-value @var{tok}
-Getters for the fields of @samp{lexical-token} records.
-@end defun
-
-
-When the lexer closure has to signal the end--of--input, it must return
-a token with category @samp{*eoi*}, and continue to return it if it is
-called again and again; it can do:
-
-@example
-(let ((position ---))
-  (make-lexical-token '*eoi* position (eof-object)))
-@end example
-
-When the lexer closure has to signal a lexer error (an invalid character
-from the input source), it must return a token with category
-@samp{*lexer-error*}.
-
-
-@defun lexical-token?/end-of-input @var{obj}
-Return true if @var{obj} is an instance of @samp{lexical-token} having
-category @func{eq?} to the symbol @samp{*eoi*}.
-@end defun
-
-
-@defun lexical-token?/lexer-error @var{obj}
-Return true if @var{obj} is an instance of @samp{lexical-token} having
-category @func{eq?} to the symbol @samp{*lexer-error*}.
-@end defun
-
-
-@defun lexical-token?/special @var{obj}
-Return true if @var{obj} is an instance of @samp{lexical-token} having
-category @func{eq?} to the symbol @samp{*eoi*} or @samp{*lexer-error*}.
-@end defun
-
-@c page
-@node lalr lexer location
-@subsection Source location records
-
-
-Location records are not used by the parser itself; they are meant to
-store informations about the position of a token in the input stream, to
-be displayed in case of error.  Location records are produced by the
-lexer and either discarded, or consumed by the parser's error handler.
-
-The following bindings are exported by the @library{lalr common}
-library, and are re--exported by @library{lalr}, @library{lalr
-lr-driver}, @library{lalr glr-driver} and by the Scheme libraries
-generated by @func{lalr-parser}.
-
-
-@defun make-source-location @var{input} @var{line} @var{colum} @var{offset} @var{length}
-Build and return a record of type @samp{source-location}; all the fields
-in a @samp{source-location} record are immutable.  The arguments, and
-fields of the record, are:
-
-@table @var
-@item input
-Describes the source of the input.  It can be any Scheme value, for
-example a string representing the pathname of an input file.  If the
-source is unknown, it can be @false{}.
-
-@item line
-@itemx column
-@itemx offset
-Counters for the line number, column number and character offset from
-the start of the input.  By convention: Line and column numbers start
-from @math{1}, the offset starts from @math{0}.
-
-When the value of these counters is not known, by convention, they
-should be set to @false{} or @samp{+nan.0}.
-
-Notice that these values match the local bindings @samp{yyline},
-@samp{yycolumn} and @samp{yyoffset} available to the lexer actions of
-the @library{silex} library.  @ref{silex semantics action, Evaluation of
-the actions}
-
-@item length
-It is meant to be the length of the string which generated the token.
-When the token represents the end--of--input, this field can be set to
-zero.
-@end table
-@end defun
-
-
-@defun source-location? @var{obj}
-Return true if @var{obj} is an instance of @samp{source-location}
-record.
-@end defun
-
-
-@defun source-location-input @var{loc}
-@defunx source-location-line @var{loc}
-@defunx source-location-column @var{loc}
-@defunx source-location-offset @var{loc}
-@defunx source-location-length @var{loc}
-Getters for the fields of a @samp{source-location} record.
-@end defun
+The @samp{lexical-token} and @samp{source-location} record types are
+defined by @library{parser-tools lexical-token} and
+@library{parser-tools source-location}.
 
 @c page
 @node lalr parser
@@ -40797,7 +41081,8 @@ definition}
 
 The lexer closure must be a thunk invoked each time the parser needs to
 lookahead in the token stream.  Its return value must be a record of
-type @samp{lexical-token}.  @ref{lalr lexer, Describing tokens}
+type @samp{lexical-token}.  @ref{parser-tools token, Lexical token
+records}
 
 Once the end of input is found, the lexical analyser must return a
 lexical token with category @samp{*eoi*} each time it is invoked.
@@ -41863,9 +42148,9 @@ in the size of the input text.  The technique was originally discovered
 by Alexander Birman in 1970; Bryan Ford took up the idea for his
 master's thesis in 2002.
 
-The library makes use of the same token description record types used by
-@library{lalr}; the same lexer can be used with @library{lalr} and
-@library{packrat}.  @ref{lalr lexer, Describing tokens}
+The library makes use of the @samp{lexical-token} and
+@samp{source-location} record types.  @ref{parser-tools, Lexer and
+parser utilities}
 
 @menu
 * packrat calc::                Calculator example.
@@ -42362,53 +42647,6 @@ given @var{key-object}.  If such an entry is found, the
 otherwise @var{result-thunk} is called, and the resulting
 @samp{parse-result} is both stored into the result map and returned to
 the caller.
-@end defun
-
-@c page
-
-@defun top-parse-position @var{string-or-false}
-Build and return @samp{parse-position} representing the very beginning
-of an input stream.  @var{string-or-false} is handed to
-@func{make-parse-position} as the @var{filename} parameter.
-@end defun
-
-
-@defun update-parse-position @var{parse-position} @var{character}
-Given a position, and the character occurring at that position, return
-the position of the next character in the input stream.  Most characters
-simply increment the column number.  Exceptions to this rule are:
-@samp{#\return}, which resets the column number to zero;
-@samp{#\newline}, which both resets the column number to zero and
-increments the line number; @samp{#\tab}, which increments the column
-number to the nearest multiple of eight, just as a terminal with an
-eight--column tab stop setting might do.
-@end defun
-
-
-@defun parse-position->string @var{parse-position}
-Convert a @samp{parse-position} record into an @samp{emacs}--compatible
-display format.  If the filename in @var{parse-position} is unknown, the
-string @samp{<??>} is used in its place.
-
-The result is of the form:
-
-@example
-filename:linenumber:columnnumber
-@end example
-
-@noindent
-for example @samp{main.c:33:7}.
-@end defun
-
-
-@defun parse-position>? @vari{parse-position} @varii{parse-position}
-Return @true{} if the first argument is more advanced in the input
-stream than the second.  Either or both positions may be @false{},
-representing unknown positions; an unknown position is considered to be
-less advanced in the input stream than any known position.  Note that
-the filename associated with each @samp{parse-position} is completely
-ignored; it is the caller's responsibility to ensure the two positions
-are associated with the same input stream.
 @end defun
 
 @c page
