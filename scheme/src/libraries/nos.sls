@@ -67,13 +67,13 @@
     is-a? class-of subclass?
     define-generic define-method  add-method
     call-next-method next-method?)
-  (import (rnrs)
+  (import (nausicaa)
     (language-extensions)
     (rnrs mutable-pairs (6))
-    (keywords)
+;;    (keywords)
     (lists)
     (parameters)
-    (pretty-print)
+;;    (pretty-print)
     (records))
 
 
@@ -238,79 +238,101 @@
   (sealed #t)
   (nongenerative))
 
-(define :method-adder (make-special-argument))
+(define :method-adder
+  (make-special-argument))
+
+(define :method-alist
+  (make-special-argument))
+
+#;(define-syntax define-generic
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?name)
+       (let ((gf (make-generic-function)))
+	 (with-syntax ((?gf gf))
+	   (syntax (define ?name ?gf))))))))
 
 (define-syntax define-generic
   (syntax-rules ()
     ((_ ?name)
      (define ?name (make-generic-function)))))
 
-(define-syntax make-generic-function
-  (syntax-rules ()
-    ((_)
-     (let* ((method-alist '())
-	    (method-adder (lambda (signature has-rest closure)
-			    (set! method-alist
-				  (%add-method-to-method-alist method-alist
-							       signature has-rest closure)))))
-       (lambda args
-	 (if (and (pair? args)
-		  (special-argument? (car args)))
-	     (let ((arg (car args)))
-	       (cond ((eq? (car args) :method-adder)
-		      method-adder)
-		     (else
-		      (assertion-violation #f
-			"internal error with invalid special argument"
-			arg))))
-	   (let-syntax ((apply-function/stx (syntax-rules ()
-					      ((_ ?closure)
-					       (apply ?closure args))))
-			(consume-closure (syntax-rules ()
-					   ((_ ?closure-list)
-					    (begin0
-						(car ?closure-list)
-					      (set! ?closure-list (cdr ?closure-list)))))))
-	     (letrec* ((signature
-			(map class-of args))
+(define (make-generic-function)
+  (let* ((method-alist	'())
+	 (cache		#f)
+	 (method-adder	(lambda (signature has-rest closure)
+			  (set! method-alist
+				(%add-method-to-method-alist method-alist
+							     signature has-rest closure)))))
+    (lambda args
+      (if (and (pair? args)
+      	       (special-argument? (car args)))
+      	  (let ((arg (car args)))
+      	    (cond ((eq? arg :method-adder)
+		   (when cache
+		     (hashtable-clear! cache))
+      		   method-adder)
+		  ((eq? arg :method-alist)
+      		   method-alist)
+      		  (else
+      		   (assertion-violation #f
+      		     "internal error with invalid special argument"
+      		     arg))))
+	(let-syntax ((apply-function/stx (syntax-rules ()
+					   ((_ ?closure)
+					    (apply ?closure args))))
+		     (consume-closure (syntax-rules ()
+					((_ ?closure-list)
+					 (begin0
+					     (car ?closure-list)
+					   (set! ?closure-list (cdr ?closure-list)))))))
+	  (letrec* ((signature
+		     (map class-of args))
 
-		       (applicable-methods
-			(%compute-applicable-methods signature method-alist))
-
-		       (method-called?  #f)
-
-		       (is-a-next-method-available?
-			(lambda ()
-			  (null? applicable-methods)))
-
-		       (apply-function
-			(lambda (f) (apply-function/stx f)))
-
-		       (call-methods
-			(lambda ()
-			  (cond
-			   (method-called?
-			    ;;We enter here only  if a method has been
-			    ;;called  and,  in  its  body, a  call  to
-			    ;;CALL-NEXT-METHOD is evaluated.
-			    (when (null? applicable-methods)
-			      (assertion-violation #f
-				"called next method but no more methods available"))
-			    (apply-function/stx (consume-closure applicable-methods)))
-
-			   ((null? applicable-methods)
-			    ;;Raise an error if no applicable methods.
-			    (assertion-violation #f
-			      "no method defined for these argument classes"
-			      (map record-type-name signature)))
-
+		    (applicable-methods
+		     (cond ((and cache (hashtable-ref cache signature #f))
+			    => (lambda (methods) methods))
 			   (else
-			    ;;Apply the methods.
-			    (set! method-called? #t)
-			    (apply-function/stx (consume-closure applicable-methods)))))))
-	       (parameterize ((next-method-func-parm call-methods)
-			      (next-method-pred-parm is-a-next-method-available?))
-		 (call-methods))))))))))
+			    (let ((methods (%compute-applicable-methods signature method-alist)))
+			      (unless cache
+				(set! cache (make-hashtable equal-hash equal?)))
+			      (hashtable-set! cache signature methods)
+			      methods))))
+
+		    (method-called?  #f)
+
+		    (is-a-next-method-available?
+		     (lambda ()
+		       (null? applicable-methods)))
+
+		    (apply-function
+		     (lambda (f) (apply-function/stx f)))
+
+		    (call-methods
+		     (lambda ()
+		       (cond
+			(method-called?
+			 ;;We enter here only  if a method has been
+			 ;;called  and,  in  its  body, a  call  to
+			 ;;CALL-NEXT-METHOD is evaluated.
+			 (when (null? applicable-methods)
+			   (assertion-violation #f
+			     "called next method but no more methods available"))
+			 (apply-function/stx (consume-closure applicable-methods)))
+
+			((null? applicable-methods)
+			 ;;Raise an error if no applicable methods.
+			 (assertion-violation #f
+			   "no method defined for these argument classes"
+			   (map record-type-name signature)))
+
+			(else
+			 ;;Apply the methods.
+			 (set! method-called? #t)
+			 (apply-function/stx (consume-closure applicable-methods)))))))
+	    (parameterize ((next-method-func-parm call-methods)
+			   (next-method-pred-parm is-a-next-method-available?))
+	      (call-methods))))))))
 
 
 ;;;; syntaxes to define and add methods

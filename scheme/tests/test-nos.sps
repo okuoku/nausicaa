@@ -120,7 +120,8 @@
       (<one>-b o))
 
     (let ((o (make-<two> 1 2 3 4 5 6)))
-      (check (alpha o) => 2))
+      (check (alpha o) => 2)
+      (check (alpha o) => 2)) ;this exercises the cache
     #t)
 
 ;;; --------------------------------------------------------------------
