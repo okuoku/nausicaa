@@ -38,8 +38,10 @@
     ;;Built in classes.
     <class> <builtin-class>
 
-    <circular-list> <dotted-list> <proper-list> <list> <pair>
-    <vector> <bytevector> <hashtable> <record> <condition>
+    <circular-list> <dotted-list> <list> <pair>
+    <string> <char>
+    <vector> <bytevector> <hashtable>
+    <record> <condition>
     <binary-port> <textual-port> <input-port> <output-port> <port>
     <fixnum> <flonum> <integer> <integer-valued>
     <rational> <rational-valued> <real> <real-valued>
@@ -222,7 +224,7 @@
 	      (every symbol? v)))))
 
 
-;;;; built in classes
+;;;; base classes
 
 ;;Not all the Scheme implementations support the #0 syntax.
 ;;
@@ -258,7 +260,8 @@
     (:slots . ())
     (:direct-slots . ())))
 
-;;; --------------------------------------------------------------------
+
+;;;; built in classes
 
 (define-syntax define-builtin-class
   (syntax-rules ()
@@ -278,7 +281,8 @@
 (define-builtin-class <list>		<pair>)
 (define-builtin-class <circular-list>	<list>)
 (define-builtin-class <dotted-list>	<list>)
-(define-builtin-class <proper-list>	<list>)
+(define-builtin-class <string>)
+(define-builtin-class <char>)
 (define-builtin-class <vector>)
 (define-builtin-class <hashtable>)
 
@@ -300,7 +304,7 @@
 (define-builtin-class <flonum>		<real>)
 (define-builtin-class <rational>	<rational-valued>)
 (define-builtin-class <integer-valued>	<rational-valued>)
-(define-builtin-class <integer>		<integer-valued>)
+(define-builtin-class <integer>		<rational>)
 (define-builtin-class <fixnum>		<integer>)
 
 ;;Other possible classes that require more library loading:
@@ -428,6 +432,11 @@
 	;;
  	((eq? c1 #t) #f)
  	((eq? c2 #t) #t)
+	;;We  want this  predicate to  return a  boolean, so  we  do the
+	;;following rather than:
+	;;
+	;;  (else (memq c2 (class-precedence-list c1)))
+	;;
 	((memq c2 (class-precedence-list c1)) #t)
 	(else #f)))
 
@@ -523,8 +532,9 @@
 
 (define (%add-method-to-method-alist method-alist signature has-rest function)
   ;;Helper function that adds a  method's entry to the appropriate alist
-  ;;of methods.  It is used  in the expansion of the METHOD-ADDER syntax
-  ;;below.  Return the method table (possibly modified).
+  ;;of   methods.     It   is   used    in   the   expansion    of   the
+  ;;%ADD-METHOD-TO-GENERIC-FUNCTION  syntax  below.   Return the  method
+  ;;table (possibly modified).
   ;;
   ;;Each entry in the alist has the format:
   ;;
@@ -540,22 +550,32 @@
   ;;function is overwritten with the new one.
   (let ((key (cons has-rest signature)))
     (cond ((find (lambda (entry)
-		;Test  that  the keys  have  equal  length  and all  the
-		;elements are  EQ?.  This  is more than  SRFI-1's EVERY,
-		;because EVERY does not test for equal length.
-		   (let loop ((key1 key)
-			      (key2 (car entry)))
-		     (cond ((null? key1) (null? key2))
-			   ((null? key2) (null? key1))
-			   ((eq? (car key1) (car key2))
-			    (loop (cdr key1) (cdr key2)))
-			   (else #f))))
+		   (for-all* eq? key (car entry)))
 		 method-alist)
 	   => (lambda (entry) ;overwrite an existent function
 		(set-cdr! entry function)
 		method-alist))
 	  (else
 	   (alist-cons key function method-alist)))))
+
+(define-syntax for-all*
+  ;;Test that the lists have equal  length and all the elements are EQ?.
+  ;;This is  more than SRFI-1's EVERY,  because EVERY does  not test for
+  ;;equal length.  It is not like R6RS's FOR-ALL, because FOR-ALL raises
+  ;;an error if the length is different.
+  ;;
+  (syntax-rules ()
+    ((_ ?eq ?ell1 ?ell2)
+     (let loop ((ell1 ?ell1)
+		(ell2 ?ell2))
+       (cond ((null? ell1)
+	      (null? ell2))
+	     ((null? ell2)
+	      (null? ell1))
+	     ((?eq (car ell1) (car ell2))
+	      (loop (cdr ell1) (cdr ell2)))
+	     (else #f))))))
+
 
 (define-syntax define-generic
   (syntax-rules ()
@@ -570,113 +590,110 @@
        (hashtable-set! *generic-functions* interface-procedure generic-object)
        interface-procedure))))
 
-(define-syntax create-generic-procedure
-  (syntax-rules ()
-    ((_)
-     (let ((primary-method-alist '())
-	   (before-method-alist  '())
-	   (after-method-alist   '())
-	   (around-method-alist  '()))
-       (let-syntax ((method-adder (syntax-rules ()
-				    ((_ ?method-alist)
-				     (lambda (signature has-rest function)
-				       (set! ?method-alist
-					     (%add-method-to-method-alist
-					      ?method-alist signature has-rest function)))))))
-	 (make <generic>
-	   :add-primary-method (method-adder primary-method-alist)
-	   :add-before-method  (method-adder before-method-alist)
-	   :add-after-method   (method-adder after-method-alist)
-	   :add-around-method  (method-adder around-method-alist)
-	   :interface-procedure
-	   (lambda args
-	     (let-syntax ((apply-function/stx (syntax-rules ()
-						((_ ?closure)
-						 (apply ?closure args))))
-			  (consume-closure (syntax-rules ()
-					    ((_ ?closure-list)
-					     (begin0
-						 (car ?closure-list)
-					       (set! ?closure-list (cdr ?closure-list)))))))
-	       (letrec* ((signature
-			  (map class-of args))
+(define (create-generic-procedure)
+  (let ((primary-method-alist '())
+	(before-method-alist  '())
+	(after-method-alist   '())
+	(around-method-alist  '()))
+    (let-syntax ((method-adder (syntax-rules ()
+				 ((_ ?method-alist)
+				  (lambda (signature has-rest function)
+				    (set! ?method-alist
+					  (%add-method-to-method-alist
+					   ?method-alist signature has-rest function)))))))
+      (make <generic>
+	:add-primary-method (method-adder primary-method-alist)
+	:add-before-method  (method-adder before-method-alist)
+	:add-after-method   (method-adder after-method-alist)
+	:add-around-method  (method-adder around-method-alist)
+	:interface-procedure
+	(lambda args
+	  (let-syntax ((apply-function/stx (syntax-rules ()
+					     ((_ ?closure)
+					      (apply ?closure args))))
+		       (consume-closure (syntax-rules ()
+					  ((_ ?closure-list)
+					   (begin0
+					       (car ?closure-list)
+					     (set! ?closure-list (cdr ?closure-list)))))))
+	    (letrec* ((signature
+		       (map class-of args))
 
-			 (applicable-primary-closures
-			  (%compute-applicable-methods signature primary-method-alist))
+		      (applicable-primary-closures
+		       (%compute-applicable-methods signature primary-method-alist))
 
-			 (applicable-before-closures
-			  (%compute-applicable-methods signature before-method-alist))
+		      (applicable-before-closures
+		       (%compute-applicable-methods signature before-method-alist))
 
-			 (applicable-after-closures
-			  (reverse ;!!! yes!
-			   (%compute-applicable-methods signature after-method-alist)))
+		      (applicable-after-closures
+		       (reverse ;!!! yes!
+			(%compute-applicable-methods signature after-method-alist)))
 
-			 (applicable-around-closures
-			  (%compute-applicable-methods signature around-method-alist))
+		      (applicable-around-closures
+		       (%compute-applicable-methods signature around-method-alist))
 
-			 (primary-method-called?  #f)
-			 (reject-recursive-calls? #f)
+		      (primary-method-called?  #f)
+		      (reject-recursive-calls? #f)
 
-			 (is-a-next-method-available?
-			  (lambda ()
-			    (not (if primary-method-called?
-				     (null? applicable-primary-closures)
-				   (and (null? applicable-around-closures)
-					(null? applicable-primary-closures))))))
+		      (is-a-next-method-available?
+		       (lambda ()
+			 (not (if primary-method-called?
+				  (null? applicable-primary-closures)
+				(and (null? applicable-around-closures)
+				     (null? applicable-primary-closures))))))
 
-			 (apply-function
-			  (lambda (f) (apply-function/stx f)))
+		      (apply-function
+		       (lambda (f) (apply-function/stx f)))
 
-			 (call-methods
-			  (lambda ()
-			    (cond
-			     (reject-recursive-calls?
-			      ;;Raise  an   error  if  a   ":before"  or
-			      ;;":after" method invokes the next method.
-			      (assertion-violation 'call-methods
-				":before or :after methods are forbidden to call the next method"))
+		      (call-methods
+		       (lambda ()
+			 (cond
+			  (reject-recursive-calls?
+			   ;;Raise  an   error  if  a   ":before"  or
+			   ;;":after" method invokes the next method.
+			   (assertion-violation 'call-methods
+			     ":before or :after methods are forbidden to call the next method"))
 
-			     (primary-method-called?
-			      ;;We enter  here only if  a primary method
-			      ;;has been called and, in its body, a call
-			      ;;to CALL-NEXT-METHOD is evaluated.
-			      (when (null? applicable-primary-closures)
-				(assertion-violation 'call-methods
-				  "called next method but no more :primary methods available"))
-			      (apply-function/stx (consume-closure applicable-primary-closures)))
+			  (primary-method-called?
+			   ;;We enter  here only if  a primary method
+			   ;;has been called and, in its body, a call
+			   ;;to CALL-NEXT-METHOD is evaluated.
+			   (when (null? applicable-primary-closures)
+			     (assertion-violation 'call-methods
+			       "called next method but no more :primary methods available"))
+			   (apply-function/stx (consume-closure applicable-primary-closures)))
 
-			     ((null? applicable-primary-closures)
-			      ;;Raise   an  error  if   no  applicable
-			      ;;methods.
-			      (assertion-violation 'call-methods
-				"no method defined for these argument classes"
-				(map (lambda (o) (class-definition-name (class-of o)))
-				  args)))
+			  ((null? applicable-primary-closures)
+			   ;;Raise   an  error  if   no  applicable
+			   ;;methods.
+			   (assertion-violation 'call-methods
+			     "no method defined for these argument classes"
+			     (map class-definition-name signature)))
 
-			     ((not (null? applicable-around-closures))
-			      ;;If around  methods exist: we  apply them
-			      ;;first.   It is  expected that  an around
-			      ;;method   invokes   CALL-NEXT-METHOD   to
-			      ;;evaluate the primary methods.
-			      (apply-function/stx (consume-closure applicable-around-closures)))
+			  ((not (null? applicable-around-closures))
+			   ;;If around  methods exist: we  apply them
+			   ;;first.   It is  expected that  an around
+			   ;;method   invokes   CALL-NEXT-METHOD   to
+			   ;;evaluate the primary methods.
+			   (apply-function/stx (consume-closure applicable-around-closures)))
 
-			     (else
-			      ;;Apply  the  methods: before,  primary,
-			      ;;after.  Return the return value of the
-			      ;;primary.
-			      (set! reject-recursive-calls? #t)
-			      (for-each apply-function
-				applicable-before-closures)
-			      (set! reject-recursive-calls? #f)
-			      (set! primary-method-called? #t)
-			      (begin0
-				  (apply-function/stx (consume-closure applicable-primary-closures))
-				(set! reject-recursive-calls? #t)
-				(for-each apply-function
-				  applicable-after-closures)))))))
-		 (parameterize ((next-method-func-parm call-methods)
-				(next-method-pred-parm is-a-next-method-available?))
-		   (call-methods)))))))))))
+			  (else
+			   ;;Apply  the  methods: before,  primary,
+			   ;;after.  Return the return value of the
+			   ;;primary.
+			   (set! reject-recursive-calls? #t)
+			   (for-each apply-function
+			     applicable-before-closures)
+			   (set! reject-recursive-calls? #f)
+			   (set! primary-method-called? #t)
+			   (begin0
+			       (apply-function/stx (consume-closure applicable-primary-closures))
+			     (set! reject-recursive-calls? #t)
+			     (for-each apply-function
+			       applicable-after-closures)))))))
+	      (parameterize ((next-method-func-parm call-methods)
+			     (next-method-pred-parm is-a-next-method-available?))
+		(call-methods)))))))))
 
 
 ;;;; methods dispatching
@@ -770,25 +787,6 @@
 ;;;; methods
 
 (define-syntax define-method
-  ;;Define a new method.  The pattern matching has tree phases:
-  ;;
-  ;;1. The method is recognised as primary, before, after or around.
-  ;;
-  ;;2. The  method arguments are accumulated  in a list  of "with class"
-  ;;   and a list of "without class".
-  ;;
-  ;;3. The method is added  to the appropriate collection in the generic
-  ;;   function.
-  ;;
-  ;;The ?QUALIFIER pattern variable is one of the literals:
-  ;;
-  ;;     :primary
-  ;;     :before
-  ;;     :after
-  ;;     :around
-  ;;
-  ;;it  defaults to ":primary".
-  ;;
   (syntax-rules (:primary :before :after :around)
     ((_ (?generic-function . ?args) . ?body)
      (%collect-classes-and-arguments ?generic-function :primary ?args () () . ?body))
@@ -853,30 +851,6 @@
 	     (else
 	      (syntax-violation 'define-method "bad method qualifier" qualifier))))
 	 ?generic-function (list ?class ...) ?has-rest ?closure))))))
-
-;;The  following  exists only  for  reference on  "how  to  do it".   It
-;;produces the slot name using a subfunction.  All the nested forms LET,
-;;WITH-SYNTAX and DATUM->SYNTAX are needed to make it work.  It does not
-;;make the code more readable, so the version above is preferred.
-;;
-#;(define-syntax %add-method
-  (lambda (stx)
-    (define (qualifier->slot-name qualifier)
-      (case qualifier
-	((:primary)	':add-primary-method)
-	((:before)	':add-before-method)
-	((:after)	':add-after-method)
-	((:around)	':add-around-method)
-	(else
-	 (syntax-violation 'add-method "bad method qualifier" qualifier))))
-    (syntax-case stx (:primary :before :after :around)
-      ((k ?generic-function ?qualifier (?class ...) (?arg ...) . ?body)
-       (let ((qualifier (syntax->datum (syntax ?qualifier))))
-	 (with-syntax ((?slot-name (datum->syntax (syntax k)
-						  (qualifier->slot-name qualifier))))
-	   (syntax
-	    (%add-method-to-generic-function (quote ?slot-name)
-					     ?generic-function (list ?class ...) ?closure))))))))
 
 (define-syntax %add-method-to-generic-function
   ;;Extract  the <generic> object  associated to  ?GENERIC-FUNCTION from
