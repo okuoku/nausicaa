@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: keyword values for Nausicaa Object System
-;;;Date: Wed Aug 26, 2009
+;;;Contents: NOS record types for special lists
+;;;Date: Fri Sep 11, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -25,25 +25,22 @@
 ;;;
 
 
-(library (nos keywords)
+(library (nos lists)
   (export
-    :init-value		:init-thunk
-    :accessor		:accessor-before	:accessor-after
-    :mutator		:mutator-before		:mutator-after)
+    <circular-list>	<circular-list>?
+    <dotted-list>	<dotted-list>?
+    list-record-type-of)
   (import (rnrs)
-    (keywords))
+    (nos)
+    (lists))
 
-  (define-keyword :init-value)
-  (define-keyword :init-thunk)
+  (define-builtin <circular-list>	<pair>		circular-list?)
+  (define-builtin <dotted-list>		<pair>		dotted-list?)
 
-  (define-keyword :mutator)
-  (define-keyword :mutator-before)
-  (define-keyword :mutator-after)
-
-  (define-keyword :accessor)
-  (define-keyword :accessor-before)
-  (define-keyword :accessor-after)
-
-  )
+  (define (list-record-type-of obj)
+    (and (pair? obj)
+	 (cond ((circular-list?	obj)	(record-type-descriptor <circular-list>))
+	       ((dotted-list?	obj)	(record-type-descriptor <dotted-list>))
+	       (else #f)))))
 
 ;;; end of file

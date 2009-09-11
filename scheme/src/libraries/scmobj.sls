@@ -48,7 +48,7 @@
     <complex> <number>
 
     ;; Constructors.
-    define-class define-generic define-method
+    define-class define-generic declare-method
     make-class make make-generic-function add-method
 
     ;;Class inspection.
@@ -279,8 +279,8 @@
 
 (define-builtin-class <pair>)
 (define-builtin-class <list>		<pair>)
-(define-builtin-class <circular-list>	<list>)
-(define-builtin-class <dotted-list>	<list>)
+(define-builtin-class <circular-list>	<pair>)
+(define-builtin-class <dotted-list>	<pair>)
 (define-builtin-class <string>)
 (define-builtin-class <char>)
 (define-builtin-class <vector>)
@@ -449,41 +449,36 @@
 
    ((number? value)
     ;;Order does matter here!!!
-    (cond
-     ((fixnum?		value)	<fixnum>)
-     ((integer?		value)	<integer>)
-     ((rational?	value)	<rational>)
-     ((integer-valued?	value)	<integer-valued>)
-     ((rational-valued? value)	<rational-valued>)
-     ((flonum?		value)	<flonum>)
-     ((real?		value)	<real>)
-     ((real-valued?	value)	<real-valued>)
-     ((complex?		value)	<complex>)
-     ((number?		value)	<number>)
-     (else #f)))
+    (cond ((fixnum?		value)	<fixnum>)
+	  ((integer?		value)	<integer>)
+	  ((rational?		value)	<rational>)
+	  ((integer-valued?	value)	<integer-valued>)
+	  ((rational-valued?	value)	<rational-valued>)
+	  ((flonum?		value)	<flonum>)
+	  ((real?		value)	<real>)
+	  ((real-valued?	value)	<real-valued>)
+	  ((complex?		value)	<complex>)
+	  (else			<number>)))
    ((vector?	value)		<vector>)
    ((hashtable? value)		<hashtable>)
    ((port? value)
-    (cond
-     ;;Order here is arbitrary.
-     ((input-port? value)	<input-port>)
-     ((output-port? value)	<output-port>)
-     ((binary-port? value)	<binary-port>)
-     ((textual-port? value)	<textual-port>)
-     ((port? value)		<port>)
-     (else #f)))
+    ;;Order here is arbitrary.
+    (cond ((input-port?		value)	<input-port>)
+	  ((output-port?	value)	<output-port>)
+	  ((binary-port?	value)	<binary-port>)
+	  ((textual-port?	value)	<textual-port>)
+	  (else				<port>)))
    ((condition? value)		<condition>)
    ((record? value)		<record>)
    ((bytevector? value)		<bytevector>)
    ((pair? value)
     ;;Order does matter  here!!!  Better leave these at  the end because
     ;;qualifying a long list can be time-consuming.
-    (cond
-     ((circular-list value)	<circular-list>)
-     ((dotted-list? value)	<dotted-list>)
-     ((list? value)		<list>)
-     ((pair? value)		<pair>)
-     (else #f)))
+    (cond ((list? value)		<list>)
+	  ((circular-list value)	<circular-list>)
+	  ((dotted-list? value)		<dotted-list>)
+	  ;;A pair is always a dotted list, so we never come down here.
+	  (else				<pair>)))
    (else			#f)))
 
 
@@ -582,13 +577,11 @@
     ((_ ?name)
      (define ?name (make-generic-function)))))
 
-(define-syntax make-generic-function
-  (syntax-rules ()
-    ((make-generic-function)
-     (let* ((generic-object       (create-generic-procedure))
-            (interface-procedure  (slot-ref generic-object ':interface-procedure)))
-       (hashtable-set! *generic-functions* interface-procedure generic-object)
-       interface-procedure))))
+(define (make-generic-function)
+  (let* ((generic-object       (create-generic-procedure))
+	 (interface-procedure  (slot-ref generic-object ':interface-procedure)))
+    (hashtable-set! *generic-functions* interface-procedure generic-object)
+    interface-procedure))
 
 (define (create-generic-procedure)
   (let ((primary-method-alist '())
@@ -786,7 +779,7 @@
 
 ;;;; methods
 
-(define-syntax define-method
+(define-syntax declare-method
   (syntax-rules (:primary :before :after :around)
     ((_ (?generic-function . ?args) . ?body)
      (%collect-classes-and-arguments ?generic-function :primary ?args () () . ?body))
@@ -849,7 +842,7 @@
 	     ((:after)		':add-after-method)
 	     ((:around)		':add-around-method)
 	     (else
-	      (syntax-violation 'define-method "bad method qualifier" qualifier))))
+	      (syntax-violation 'declare-method "bad method qualifier" qualifier))))
 	 ?generic-function (list ?class ...) ?has-rest ?closure))))))
 
 (define-syntax %add-method-to-generic-function
