@@ -33017,9 +33017,19 @@ The following bindings are exported by the @library{records} library.
 In the following descriptions, the argument @var{rtd} is a record type
 desriptor.
 
+@menu
+* records parents::             Records parents list.
+* records makers::              Automatically generated makers.
+* records fields::              Binding accessors and mutators.
+@end menu
+
+@c page
+@node records parents
+@section Records parents list
+
 
 @deffn Function record-precedence-list @var{rtd}
-@deffnx Syntax record-precedence-list @var{record-name}
+@deffnx Syntax record-precedence-list* @var{record-name}
 Return the list of record type descriptors which are parents of
 @var{rtd}.  The first element of the list is @var{rtd} itself, followed
 by its parent, then the parent of the parent and so on.  The syntax
@@ -33049,6 +33059,415 @@ takes a record name as argument.
          (record-type-descriptor <beta>)
          (record-type-descriptor <alpha>))
 @end example
+@end deffn
+
+@c page
+@node records makers
+@section Automatically generated makers
+
+
+@defun make-record-maker @var{rtd}
+@defunx make-record-maker @var{rtd} @var{init-obj}
+Build and return a thunk which, when evaluated, returns a new record of
+type @var{rtd}.  All the fields are initialised to @var{init-obj}, which
+defaults to @false{}.
+@end defun
+
+
+@deffn Macro make-record-maker* @var{record-name}
+@deffnx Macro make-record-maker* @var{record-name} @var{init-obj}
+Wrapper for @func{make-record-maker} which takes a record name as
+argument rather than a record type descriptor.
+
+@example
+(make-record-maker* <alpha>)
+@equiv{} (make-record-maker (record-type-descriptor <alpha>))
+@end example
+@end deffn
+
+
+Example:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)
+          (mutable c)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable d)
+          (mutable e)
+          (mutable f)))
+
+(define-record-type <gamma>
+  (parent <beta>)
+  (fields (mutable g)
+          (mutable h)
+          (mutable i)))
+
+(define maker
+  (make-record-maker* <gamma> 1))
+
+(define obj (maker))
+
+(<gamma>? obj)
+@result{} #t
+
+(list (<alpha>-a obj) (<alpha>-b obj) (<alpha>-c obj)
+      (<beta>-d  obj) (<beta>-e  obj) (<beta>-f  obj)
+      (<gamma>-g obj) (<gamma>-h obj) (<gamma>-i obj))
+@result{} (1 1 1  1 1 1  1 1 1)
+@end example
+
+@c page
+@node records fields
+@section Binding accessors and mutators
+
+
+All the following macros accept as argument the record name of a record
+type.  For the macros to behave correctly, the record type definitions
+must be available at expand time; this means the definitions have to be
+put into a separate library:
+
+@example
+(library (record-types)
+  (export <alpha> <beta>)
+  (import (rnrs))
+
+  (define-record-type <alpha>
+    (fields (mutable a)
+            (mutable b)))
+
+  (define-record-type <beta>
+    (parent <alpha>)
+    (fields (mutable c)
+            (mutable d))))
+@end example
+
+@noindent
+and loaded appropriately:
+
+@example
+(import (rnrs)
+  (records)
+  (for (record-types) expand run))
+@end example
+
+@noindent
+in the program or library making use of the macros.
+
+
+@deffn Syntax define-record-accessors @var{record-name}
+@deffnx Syntax define-record-accessors @var{record-name} @var{context-identifier}
+Acquire the record type descriptor whose name is @var{record-name} and
+bind its accessors to automatically generated names.  If the record
+types hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (mutable d)))
+@end example
+
+@noindent
+the macro use:
+
+@example
+(define-record-accessors <beta>)
+@end example
+
+@noindent
+defines:
+
+@example
+(define <beta>-a #<accessor of a in <alpha>>)
+(define <beta>-b #<accessor of b in <alpha>>)
+(define <beta>-c #<accessor of c in <beta>>)
+(define <beta>-d #<accessor of d in <beta>>)
+@end example
+
+@noindent
+the accessor names are formed by joining @var{record-name} and the field
+name, using a single dash character as separator.
+
+The optional @var{context-identifier} must be an identifier used to
+represent the lexical context in which the accessors are bound; it
+defaults to @var{record-name}.  It is useful to expand this macro in
+another macro expansion.
+@end deffn
+
+
+@deffn Syntax define-record-mutators @var{record-name}
+@deffnx Syntax define-record-mutators @var{record-name} @var{context-identifier}
+Acquire the record type descriptor whose name is @var{record-name} and
+bind its mutators to automatically generated names.  If the record types
+hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (mutable d)))
+@end example
+
+@noindent
+the macro use:
+
+@example
+(define-record-mutators <beta>)
+@end example
+
+@noindent
+defines:
+
+@example
+(define <beta>-a-set! #<mutator of a in <alpha>>)
+(define <beta>-b-set! #<mutator of b in <alpha>>)
+(define <beta>-c-set! #<mutator of c in <beta>>)
+(define <beta>-d-set! #<mutator of d in <beta>>)
+@end example
+
+@noindent
+the mutator names are formed by joining @var{record-name}, the field
+name and @samp{set!}, using a single dash character as separator; if a
+field is immutable, no definition is generated.
+
+The optional @var{context-identifier} must be an identifier used to
+represent the lexical context in which the mutators are bound; it
+defaults to @var{record-name}.  It is useful to expand this macro in
+another macro expansion.
+@end deffn
+
+
+@deffn Syntax define-record-accessors/this @var{record-name}
+@deffnx Syntax define-record-mutators/this @var{record-name}
+@deffnx Syntax define-record-accessors/this @var{record-name} @var{context-identifier}
+@deffnx Syntax define-record-mutators/this @var{record-name} @var{context-identifier}
+Like the above syntaxes, but bind only the accessors and mutators of the
+record type itself, @strong{not} the ones of its parents.
+@end deffn
+
+
+@deffn Syntax define-record-accessors/parents @var{record-name}
+@deffnx Syntax define-record-mutators/parents @var{record-name}
+@deffnx Syntax define-record-accessors/parents @var{record-name} @var{context-identifier}
+@deffnx Syntax define-record-mutators/parents @var{record-name} @var{context-identifier}
+Like the above syntaxes, but bind only the accessors and mutators of the
+parents of the record type, @strong{not} the ones of the record itself.
+@end deffn
+
+
+@deffn Syntax define-record-accessors/mutators @var{record-name}
+@deffnx Syntax define-record-accessors/mutators @var{record-name} @var{context-identifier}
+Acquire the record type descriptor whose name is @var{record-name} and
+use its accessors and mutators in automatically generated definitions
+for accessor/mutator functions.  If the record types hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (immutable d)))
+@end example
+
+@noindent
+the macro use:
+
+@example
+(define-record-accessors/mutators <beta>)
+@end example
+
+@noindent
+defines:
+
+@example
+(define <beta>-a
+  (case-lambda
+    ((o)
+     (#<accessor of a in <alpha>> o))
+    ((o v)
+     (#<mutator of a in <alpha>> o v))))
+
+(define <beta>-b
+  (case-lambda
+    ((o)
+     (#<accessor of b in <alpha>> o))
+    ((o v)
+     (#<mutator of b in <alpha>> o v))))
+
+(define <beta>-c
+  (case-lambda
+    ((o)
+     (#<accessor of c in <beta>> o))
+    ((o v)
+     (#<mutator of c in <beta>> o v))))
+
+(define <beta>-d #<accessor of d in <beta>>)
+@end example
+
+@noindent
+the accessor/mutator names are formed by joining @var{record-name} and
+the field name, using a single dash character as separator; if a field
+is immutable, only the accessor is generated.
+
+The optional @var{context-identifier} must be an identifier used to
+represent the lexical context in which the accessors are bound; it
+defaults to @var{record-name}.  It is useful to expand this macro in
+another macro expansion.
+@end deffn
+
+
+@deffn Syntax with-record-accessors @var{record-name} (@var{field-name} ...) @var{form0} @var{form} ...
+Acquire the record type descriptor whose name is @var{record-name} and
+bind its accessors to automatically generated names; in the extent of
+these bindings, evaluate the forms.  If the record types hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (mutable d)))
+@end example
+
+@noindent
+the macro use:
+
+@example
+(with-record-accessors <beta>
+    (a b c d)
+  (do-something))
+@end example
+
+@noindent
+expands to:
+
+@example
+(let ((<beta>-a #<accessor of a in <alpha>>)
+      (<beta>-b #<accessor of b in <alpha>>)
+      (<beta>-c #<accessor of c in <beta>>)
+      (<beta>-d #<accessor of d in <beta>>))
+  (do-something))
+@end example
+
+@noindent
+the accessor names are formed by joining @var{record-name} and the field
+name, using a single dash character as separator.
+@end deffn
+
+
+@deffn Syntax with-record-mutators @var{record-name} (@var{field-name} ...) @var{form0} @var{form} ...
+Acquire the record type descriptor whose name is @var{record-name} and
+bind its mutators to automatically generated names; in the extent of
+these bindings, evaluate the forms.  If the record types hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (immutable d)))
+@end example
+
+@noindent
+the macro use:
+
+@example
+(with-record-mutators <beta>
+    (a b c)
+  (do-something))
+@end example
+
+@noindent
+expands to:
+
+@example
+(let ((<beta>-a-set! #<mutator of a in <alpha>>)
+      (<beta>-b-set! #<mutator of b in <alpha>>)
+      (<beta>-c-set! #<mutator of c in <beta>>))
+  (do-something))
+@end example
+
+@noindent
+the mutator names are formed by joining @var{record-name}, the field
+name and @samp{set!}, using a single dash character as separator.  It is
+an assertion violation to attempt mutator access for an immutable field.
+@end deffn
+
+
+@deffn Syntax with-record-accessors/mutators @var{record-name} (@var{field-name} ...) @var{form0} @var{form} ...
+Acquire the record type descriptor whose name is @var{record-name} and
+bind accessor/mutator procedures to automatically generated names; in
+the extent of these bindings, evaluate the forms.  If the record types
+hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (immutable d)))
+@end example
+
+@noindent
+the macro use:
+
+@example
+(with-record-accessors/mutators <beta>
+    (a b c d)
+  (do-something))
+@end example
+
+@noindent
+expands to:
+
+@example
+(let ((<beta>-a (case-lambda
+                  ((o)
+                   (#<accessor of a in <alpha>> o))
+                  ((o v)
+                   (#<mutator of a in <alpha>> o v))))
+      (<beta>-b (case-lambda
+                  ((o)
+                   (#<accessor of b in <alpha>> o))
+                  ((o v)
+                   (#<mutator of b in <alpha>> o v))))
+      (<beta>-c (case-lambda
+                  ((o)
+                   (#<accessor of c in <beta>> o))
+                  ((o v)
+                   (#<mutator of c in <beta>> o v))))
+      (<beta>-d #<accessor of d in <beta>>))
+  (do-something))
+@end example
+
+@noindent
+the accessor/mutator names are formed by joining @var{record-name} and
+the field name, using a single dash character as separator; if a field
+is immutable, a simple accessor is bound.
 @end deffn
 
 @c page
@@ -34045,7 +34464,7 @@ tuple.
 @subsubheading Specificity
 
 Now we can understand how to determine which one, among two applicable
-methods, is more spefiic for a tuple of arguments.  Let's call the
+methods, is more specific for a tuple of arguments.  Let's call the
 methods @var{A} and @var{B}.  Notice that it is impossible for two
 distinct methods, in the same generic function, to have the same
 signature and the same support for rest arguments.
@@ -34109,6 +34528,9 @@ Build and return a new generic function.
 @deffnx Macro declare-method @var{generic} :after (@var{arg-spec} ...) . @var{body}
 @deffnx Macro declare-method @var{generic} :around (@var{arg-spec} ...) . @var{body}
 Add a new method to an already existent generic function, @var{generic}.
+A declaration is @strong{not} a definition.  @ref{baselib definitions,
+Definitions}
+
 The qualifier specifies the kind of method; when the qualifier is not
 present, it defaults to @code{:primary}.
 
@@ -34202,7 +34624,7 @@ and the full class precedence list for @class{c} is:
 
 @example
 (cons <c> (class-precedence-list <c>))
-=> '(%c %two %one %top)
+@result{} (%c %two %one %top)
 @end example
 
 @noindent
@@ -34220,7 +34642,7 @@ the signature is @emph{more specific} than the method with @class{one}
 in the signature:
 
 @example
-(doit (make <c>)) => 'two
+(doit (make <c>)) @result{} two
 @end example
 
 @c ------------------------------------------------------------
@@ -34252,7 +34674,7 @@ and given the order in which the classes where handed to
 
 @example
 (cons <c> (class-precedence-list <c>))
-=> '(%c %two %one %top)
+@result{} (%c %two %one %top)
 @end example
 
 @noindent
@@ -34270,7 +34692,7 @@ the signature is @emph{more specific} than the method with @class{one}
 in the signature:
 
 @example
-(doit (make <c>)) => 'two
+(doit (make <c>)) @result{} two
 @end example
 
 Another multiple inheritance example:
@@ -34298,7 +34720,7 @@ and given the order in which the classes where handed to
 
 @example
 (cons <c> (class-precedence-list <c>))
-=> '(%c %three %two %one %top)
+@result{} (%c %three %two %one %top)
 @end example
 
 @noindent
@@ -34316,7 +34738,7 @@ the signature is @emph{more specific} than the method with @class{one}
 in the signature:
 
 @example
-(doit (make <c>)) => 'two
+(doit (make <c>)) @result{} two
 @end example
 
 @c ------------------------------------------------------------
@@ -34337,7 +34759,7 @@ Let's look at this:
 @end example
 
 @noindent
-this will result in a ``no method defined for these argument classes''
+this will result in a ``no method defined for these argument classes'
 error because a value of class @class{c} is @strong{not} a value of
 class @class{one}.  For a method to be applicable: the class from the
 signature of the method has to be in in the class list of the argument,
@@ -34444,8 +34866,8 @@ kinds of methods; it makes use of the @func{with-result} and
 (declare-method alpha :primary ((o <e>))  10)
 
 (with-result (alpha rr))
-@result{} '((1 2 3 4 5 6 7 8 9 . 10)
-     (1 2 3 4 5 6 7 8 9 10))
+@result{} ((1 2 3 4 5 6 7 8 9 . 10)
+    (1 2 3 4 5 6 7 8 9 10))
 @end example
 
 @noindent
@@ -34501,8 +34923,8 @@ and let's define and apply all the kinds of methods:
 (declare-method alpha :after ((o <t>))   (add-result 6))
 
 (with-result (alpha z))
-@result{} '((1 2 3 4 5 6 7 8 9 . 10)
-     (1 2 3 4 5 6 7 8 9 10))
+@result{} ((1 2 3 4 5 6 7 8 9 . 10)
+    (1 2 3 4 5 6 7 8 9 10))
 @end example
 
 Here is yet another example with diamond inheritance:
@@ -34558,8 +34980,8 @@ and let's define and apply all the kinds of methods:
 (declare-method alpha :after ((o <0>))   (add-result 7))
 
 (with-result (alpha n))
-@result{} '((1 2 3 4 5 6 7 8 9 10 11 . 12)
-     (1 2 3 4 5 6 7 8 9 10 11 12)))
+@result{} ((1 2 3 4 5 6 7 8 9 10 11 . 12)
+    (1 2 3 4 5 6 7 8 9 10 11 12)))
 @end example
 
 We can conclude that, when it comes to method application:
@@ -34578,7 +35000,7 @@ list with classes in the middle at the center:
   -- <x> --
  |         |
  v         v
-<y>       <w>       =>   (<z> <y> <w> <x>)
+<y>       <w>       @result{}   (<z> <y> <w> <x>)
  |         |
   -> <z> <-
 
@@ -34586,7 +35008,7 @@ list with classes in the middle at the center:
  |             |
  v             |
 <3>            |
- |             |    =>  (<5> <4> <3> <2> <1>)
+ |             |    @result{}  (<5> <4> <3> <2> <1>)
  v             v
 <4>           <2>
  |             |
@@ -34607,6 +35029,523 @@ that barely wraps @rnrs{6} records.  It has two components: a protocol
 for the definition of record types; a generic functions infrastructure
 providing method dispatching.
 
+@menu
+* nos builtin::                 Record type descriptors for builtins.
+* nos records::                 Handling record types.
+* nos methods::                 Multimethod dispatching.
+@end menu
+
+@c page
+@node nos builtin
+@section Record type descriptors for builtin values
+
+
+A record is described by its record type descriptor (@acronym{RTD});
+when dispatching multimethods, it is convenient to use the record type
+descriptor to represent the ``class'' of a record.
+
+Builtin Scheme values have no @acronym{RTD}, so @library{nos} assigns a
+conventional one to them.  The only purpose of a conventional
+@acronym{RTD} is to be used in multimethod dispatching.
+
+@menu
+* nos builtin chart::           A chart for predefined @acronym{rtd}s.
+* nos builtin rtd::             Conventional @acronym{rtd}s.
+@end menu
+
+@c page
+@node nos builtin chart
+@subsection A chart for predefined classes
+
+
+@example
+                                 -> <input-port>
+                                |
+                                +-> <output-port>
+                                |
+                                +-> <binary-port>
+                                |
+                   --> <port> --+-> <textual-port>
+                  |
+                  +--> <record> --> <condition>
+                  |
+                  +--> <string>
+                  |
+                  +--> <char>
+                  |
+<builtin>---------+-------+---------+-----------+
+   |              |       |         |           |
+   v              v       v         v           v
+<number>        <pair> <vector> <bytevector> <hashtable>
+   |              |
+   v              v
+<complex>       <list>
+   |
+   v
+<real-valued>
+   |
+   v
+<real> ------> <flonum>
+   |
+   v
+<rational-valued>
+   |         |
+   v         v
+<rational> <integer-valued>
+   |
+   v
+<integer>
+   |
+   v
+<fixnum>
+@end example
+
+@c page
+@node nos builtin rtd
+@subsection Conventional @acronym{rtd}
+
+
+The @library{nos} library exports the following record type names, which
+can be used to access the conventional record type descriptors through
+@func{recort-type-descriptor}.  @ref{stdlib records syntactic layer,
+Syntactic Layer}
+
+
+@deftp {Record Type Name} <builtin>
+The parent of all the conventional @acronym{RTD}s.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading List types
+
+
+@deftp {Record Type Name} <pair>
+Type for values satisfying @func{pair?}.
+@end deftp
+
+
+@deftp {Record Type Name} <list>
+Type for values satisfying @func{list?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Non--list compound data types
+
+
+@deftp {Record Type Name} <vector>
+Type for values satisfying @func{vector?}.
+@end deftp
+
+
+@deftp {Record Type Name} <bytevector>
+Type for values satisfying @func{bytevector?}.
+@end deftp
+
+
+@deftp {Record Type Name} <hashtable>
+Type for values satisfying @func{hashtable?}.
+@end deftp
+
+
+@deftp {Record Type Name} <record>
+Type for values satisfying @func{record?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Numeric data types
+
+
+@deftp {Record Type Name} <number>
+Type for values satisfying @func{number?}.
+@end deftp
+
+
+@deftp {Record Type Name} <complex>
+Type for values satisfying @func{complex?}.
+@end deftp
+
+
+@deftp {Record Type Name} <real-valued>
+Type for values satisfying @func{real-valued?}.
+@end deftp
+
+
+@deftp {Record Type Name} <real>
+Type for values satisfying @func{real?}.
+@end deftp
+
+
+@deftp {Record Type Name} <rational>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp {Record Type Name} <rational-valued>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp {Record Type Name} <integer-valued>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp {Record Type Name} <integer>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp {Record Type Name} <fixnum>
+Type for values satisfying @func{fixnum?}.
+@end deftp
+
+
+@deftp {Record Type Name} <flonum>
+Type for values satisfying @func{flonum?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Port types
+
+The binary/textual attributes are not mututally exclusive with the
+input/output attributes.
+
+
+@deftp {Record Type Name} <port>
+Type for values satisfying @func{port?}.
+@end deftp
+
+
+@deftp {Record Type Name} <input-port>
+Type for values satisfying @func{input-port?}.
+@end deftp
+
+
+@deftp {Record Type Name} <output-port>
+Type for values satisfying @func{output-port?}.
+@end deftp
+
+
+@deftp {Record Type Name} <textual-port>
+Type for values satisfying @func{textual-port?}.
+@end deftp
+
+
+@deftp {Record Type Name} <binary-port>
+Type for values satisfying @func{binary-port?}.
+@end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Miscellaneous types
+
+
+@deftp {Record Type Name} <condition>
+Type for values satisfying @func{condition?}.
+@end deftp
+
+
+@deftp {Record Type Name} <string>
+Type for values satisfying @func{string?}.
+@end deftp
+
+
+@deftp {Record Type Name} <char>
+Type for values satisfying @func{char?}.
+@end deftp
+
+@c page
+@node nos records
+@section Handling record types
+
+
+@defun record-type-of @var{obj}
+Return the record type descriptor associated to @var{obj}.  If @var{obj}
+is a record, its record type descriptor is returned; if @var{obj} is a
+builtin Scheme value, a conventional record type descriptor is returned.
+@ref{nos builtin, Record type descriptors for builtin values}
+@end defun
+
+
+@defun record-is-a? @var{obj} @var{rtd}
+Return true if @var{obj} is a value of type @var{rtd}.  @var{obj} can be
+a record or a builtin Scheme type.  This function makes use of
+@func{record-type-of}.
+@end defun
+
+
+@defun record-subtype? @vari{rtd} @varii{rtd}
+Return true if @vari{rtd} is @func{eq?} to @varii{rtd} or it is in the
+list of parents of @varii{rtd}.
+@end defun
+
+@c page
+@node nos methods
+@section Multimethod dispatching
+
+
+@dfn{Generic functions} are procedures that can be specialized to the
+(conventional) record types of their arguments.  Each specialisation of
+a generic function is called @dfn{method}.  When applying a generic
+function to a set of arguments, the most specific method with respect to
+the arguments' types is chosen.
+
+@menu
+* nos methods application::     How generic functions and methods
+                                are invoked.
+* nos methods dispatching::     How methods are dispatched.
+* nos methods define::          Defining generic functions and methods.
+* nos methods next::            Invoking the next method.
+* nos methods examples::        Examples of method dispatching.
+@end menu
+
+@c page
+@node nos methods application
+@subsection How generic functions and methods are invoked
+
+
+In contrast with @library{scmobj}, @library{nos} only allows the
+definition primary methods.  When a generic function is applied to a
+tuple of arguments, the following happens:
+
+@enumerate
+@item
+For each argument in the tuple a record type is determined.  The tuple
+of types is called @dfn{signature}.  Each generic function maintains an
+internal collection in which every method's closure is associated to a
+signature.
+
+@item
+The internal collection is queried for all the methods applicable to the
+tuple of arguments, using the signature as search key.
+
+@item
+The list of applicable methods is sorted from the more specific to the
+least specific for the signature.  From now on the list of sorted,
+applicable methods is handled as a stack.
+
+@item
+Pop the next method from the stack and apply its closure to the tuple of
+arguments.  The return value of this application becomes the return
+value of the generic function application.  If the function calls the
+next method, recurse to step 4.
+@end enumerate
+
+@c page
+@node nos methods dispatching
+@subsection How methods are dispatched
+
+
+Here we attempt the formulation of the rules of method dispatching.  A
+method is identified by a triplet of values: a list of classes, called
+signature, representing the classes or expected arguments; a boolean
+value telling if the closure accepts rest arguments; the closure.
+
+@c ------------------------------------------------------------
+
+@subsubheading Applicability
+
+First we need to understand when a method is applicable to a tuple of
+arguments.  Given a tuple of arguments, a method supporting no rest
+arguments is applicable to it if:
+
+@enumerate
+@item
+The length of the signature is equal to the length of the arguments'
+tuple.
+
+@item
+Position by position, the @acronym{RTD} in the signature is @func{eq?}
+to the @acronym{RTD} of the argument, or it is in the parent
+@acronym{RTD} list of the argument.
+@end enumerate
+
+@noindent
+a method supporting rest arguments is applicable to it if:
+
+@enumerate
+@item
+The length of the signature is less than or equal to the length of the
+arguments' tuple.
+
+@item
+Position by position, up to the last element in the signature, the
+@acronym{RTD} in the signature is @func{eq?} to the @acronym{RTD} of the
+argument, or it is in the parent @acronym{RTD} list of the argument.
+@end enumerate
+
+@c ------------------------------------------------------------
+
+@subsubheading Specificity
+
+Now we can understand how to determine which one, among two applicable
+methods, is more specific for a tuple of arguments.  Let's call the
+methods @var{A} and @var{B}.
+
+Notice that it is impossible for two distinct methods, in the same
+generic function, to have the same signature and the same support for
+rest arguments.
+
+Also, records support only single inheritance, so if two methods are
+applicable the homologous @acronym{RTD}s in their signatures are
+@func{eq?} or subtypes.
+
+@enumerate
+@item
+If both @var{A} and @var{B} support rest arguments: The one with the
+longest signature is more specific.
+
+@item
+The @acronym{RTD}s in the signatures are compared in couples, position
+by position from the beginning to the end.
+
+@enumerate a
+@item
+If the @acronym{RTD}s are @func{eq?}, the next couple is inspected.
+
+@item
+If the @acronym{RTD} from @var{A} is a subtype of the one from @var{B}:
+@var{A} is more specific than @var{B}.
+@end enumerate
+
+@item
+If the methods' signatures have the same length, and, position by
+position, the @acronym{RTD}s of @var{A} are @func{eq?} to the
+@acronym{RTD}s of @var{B}, but @var{A} supports rest arguments while
+@var{B} does not: Then @var{B} is more specific than @var{A}.
+@end enumerate
+
+@c page
+@node nos methods define
+@subsection Defining generic functions and methods
+
+
+The number of arguments (arity) of a generic function is undefined:
+Every method can have a different number of arguments.
+
+
+@deffn Macro define-generic @var{name}
+Define a new generic function and bind it to @var{name}.
+@end deffn
+
+
+@defun make-generic-function
+Build and return a new generic function.
+@end defun
+
+
+@deffn Macro declare-method @var{generic} (@var{arg-spec} ...) . @var{body}
+@deffnx Macro declare-method (@var{generic} @var{arg-spec} ...) . @var{body}
+Add a new method to an already existent generic function, @var{generic};
+a declaration is @strong{not} a definition.  @ref{baselib definitions,
+Definitions}
+
+The list of @var{arg-spec} specifies the @acronym{RTD}s of the arguments
+for which this method specialises the generic function.  Notice that
+rest arguments are supported and specified with the usual syntax.  An
+@var{arg-spec} can be:
+
+@table @code
+@item (@var{arg} @var{record-name})
+Where @var{arg} is the formal name of the argument and @var{record-name}
+the (conventional) record name of expected values.
+
+@item @var{arg}
+Where @var{arg} is the formal name of the argument.  In this case the
+@acronym{RTD} defaults to the conventional @true{}, which is interpreted
+as parent of every other @acronym{RTD}.
+@end table
+
+If a method is defined with the same signature, and support for rest
+arguments, of an already registered method: The old method is
+overwritten by the new one.  Two methods having, position by position,
+arguments of the same @acronym{RTD}, but such that one supports rest
+arguments and the other does not, are different.
+@end deffn
+
+
+@deffn Macro add-method @var{generic} @var{signature} @var{has-rest} @var{closure}
+Add a new method to an already existent generic function, @var{generic}.
+@var{signature} must be a list of record names for which this method
+specialises the generic function.  @var{closure} must be the method's
+closure.  @var{has-rest} must be @true{} or @false{}, when @true{} it
+means that the closure supports rest arguments.
+@end deffn
+
+@c page
+@node nos methods next
+@subsection Invoking the next method
+
+
+@defun call-next-method
+Call the next most specific method.
+@end defun
+
+
+@defun next-method?
+Return true if a next method is available.
+@end defun
+
+@c page
+@node nos methods examples
+@subsection Examples of method dispatching.
+
+
+Here we show with some examples what we have to expect from the
+multimethod dispatching of @library{nos}.  In the following examples the
+string @code{%apple} is written in place of the value bound to the
+symbol @class{apple}.
+
+Let's examine this example:
+
+@example
+(define-record-type <top>)
+(define-record-type <one> (parent <top>))
+(define-record-type <two> (parent <one>))
+(define-record-type <c>   (parent <two>))
+@end example
+
+@noindent
+the record hierarchy is:
+
+@example
+<top> -> <one> -> <two> -> <c>
+@end example
+
+@noindent
+and the full record precedence list for @class{c} is:
+
+@example
+(record-precedence-list* <c>)
+@result{} (%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(declare-method (doit (o <one>)) 'one)
+(declare-method (doit (o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of type @class{c}: the method with @class{two} in the
+signature is @emph{more specific} than the method with @class{one} in
+the signature:
+
+@example
+(doit (make <c>)) @result{} two
+@end example
+
+@noindent
+also the method with @class{one} in the signature is the ``next method''
+of the method with @class{two} in the signature, we can call it using
+@func{call-next-method}.
 
 @c page
 @node sexps
