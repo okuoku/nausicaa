@@ -54,6 +54,7 @@
 
   (only (records))
   (only (scmobj))
+  (only (nos))
 
   (only (deferred-exceptions))
   (only (compensations))
@@ -66,6 +67,9 @@
   (only (keywords))
   (only (irregex))
   (only (pregexp))
+
+  (only (sexps))
+  (only (sexps syntax))
 
   (only (parser-tools source-location))
   (only (parser-tools lexical-token))

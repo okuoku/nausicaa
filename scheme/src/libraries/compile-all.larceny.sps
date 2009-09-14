@@ -142,6 +142,9 @@
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")
 
+(compile-library "nos.sls"
+		 "nos.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (compile-library "deferred-exceptions.sls"
@@ -173,6 +176,14 @@
 
 (compile-library "pregexp.sls"
 		 "pregexp.slfasl")
+
+;;; --------------------------------------------------------------------
+
+(compile-library "sexps.sls"
+		 "sexps.slfasl")
+
+(compile-library "sexps/syntax.sls"
+		 "sexps/syntax.slfasl")
 
 ;;; --------------------------------------------------------------------
 
