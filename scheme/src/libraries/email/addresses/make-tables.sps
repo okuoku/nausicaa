@@ -32,7 +32,9 @@
 	   silex::output-file		"quoted-text-lexer.sls"
 	   silex::library-spec		'(email addresses quoted-text-lexer)
 	   silex::library-imports	'((lalr lr-driver)
-					  (email addresses common))
+					  (email addresses common)
+					  (parser-tools lexical-token)
+					  (parser-tools source-location))
 	   silex::table-name		'quoted-text-table
 	   silex::counters		'all)
 
@@ -40,7 +42,9 @@
 	   silex::output-file		"comments-lexer.sls"
 	   silex::library-spec		'(email addresses comments-lexer)
 	   silex::library-imports	'((lalr lr-driver)
-					  (email addresses common))
+					  (email addresses common)
+					  (parser-tools lexical-token)
+					  (parser-tools source-location))
 	   silex::table-name		'comments-table
 	   silex::counters		'all)
 
@@ -48,7 +52,9 @@
 	   silex::output-file		"domain-literals-lexer.sls"
 	   silex::library-spec		'(email addresses domain-literals-lexer)
 	   silex::library-imports	'((lalr lr-driver)
-					  (email addresses common))
+					  (email addresses common)
+					  (parser-tools lexical-token)
+					  (parser-tools source-location))
 	   silex::table-name		'domain-literals-table
 	   silex::counters		'all)
 
@@ -56,7 +62,9 @@
 	   silex::output-file		"lexer.sls"
 	   silex::library-spec		'(email addresses lexer)
 	   silex::library-imports	'((lalr lr-driver)
-					  (email addresses common))
+					  (email addresses common)
+					  (parser-tools lexical-token)
+					  (parser-tools source-location))
 	   silex::table-name		'address-table
 	   silex::counters		'all)
 
@@ -68,7 +76,7 @@
  :library-spec		'(email addresses parser)
  :library-imports	'((email addresses common) (strings))
 
- :terminals	'(DOT AT COMMA COLON SEMICOLON ATOM
+ :terminals	'(DOT COMMA COLON SEMICOLON ATOM AT
 		      ANGLE-OPEN ANGLE-CLOSE
 		      DOMAIN
 		      DOMAIN-LITERAL-OPEN DOMAIN-LITERAL-CLOSE DOMAIN-LITERAL-INTEGER
@@ -76,7 +84,8 @@
 
  :rules
  '((address		(group address-rest)	: (cons $1 $2)
-			(mailbox address-rest)	: (cons $1 $2))
+			(mailbox address-rest)	: (cons $1 $2)
+			(address-rest)		: $1)
    (address-rest	(COMMA group address-rest)
 						: (cons $2 $3)
 			(COMMA mailbox address-rest)
@@ -94,7 +103,8 @@
 ;;; --------------------------------------------------------------------
 
    (mailbox-list	(mailbox mailbox-list-rest)
-						: (cons $1 $2))
+						: (cons $1 $2)
+			(mailbox-list-rest)	: $1)
    (mailbox-list-rest	(COMMA mailbox mailbox-list-rest)
 						: (cons $2 $3)
 			(COMMA mailbox-list-rest)
@@ -107,7 +117,7 @@
 						: (make-mailbox $1 $3 $5)
 			(display-name ANGLE-OPEN addr-spec ANGLE-CLOSE)
 						: (make-mailbox $1 #f $3)
-			(ANGLE-OPEN route COLON addr-spec ANGLE-CLOSE)
+			(ANGLE-OPEN route addr-spec ANGLE-CLOSE)
 						: (make-mailbox #f $2 $4)
 			(ANGLE-OPEN addr-spec ANGLE-CLOSE)
 						: (make-mailbox #f #f $2)
@@ -118,7 +128,7 @@
    (route		(AT DOMAIN route-rest)	: (make-route (cons $2 $3)))
    (route-rest		(COMMA AT DOMAIN route-rest)
 						: (cons $3 $4)
-			()			: '())
+			(COLON)			: '())
 
 ;;; --------------------------------------------------------------------
 

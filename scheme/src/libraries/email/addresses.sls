@@ -29,11 +29,12 @@
   (export
 
     ;; lexers
-    make-address-lexer		address->tokens
-    address-lexer-allows-comments
+    make-address-lexer		address->tokens		 address-lexer-allows-comments
+    make-address-parser
 
     ;; domain data type
-    make-domain			domain?
+    make-domain			domain?			domain?/or-false
+    assert-domain		assert-domain/or-false
     domain-subdomains		domain-literal?
     domain-display		domain-write		domain->string
 
@@ -71,7 +72,9 @@
     (email addresses lexer)
     (email addresses parser)
 ;;;    (debugging)
-    (parameters))
+    (parameters)
+    (parser-tools lexical-token)
+    (parser-tools source-location))
 
 
 ;;;; helpers
@@ -91,7 +94,7 @@
 
     (define (main-dispatch lexer)
       (let ((token (lexer)))
-	(case (lexical-token-category token)
+	(case (<lexical-token>-category token)
 	  ((QUOTED-TEXT-OPEN)
 	   (lex-quoted-text-token IS token))
 	  ((COMMENT-OPEN)
@@ -108,7 +111,7 @@
 
     (define (domain-literal-dispatch lexer)
       (let ((token (lexer)))
-	(case (lexical-token-category token)
+	(case (<lexical-token>-category token)
 	  ((DOMAIN-LITERAL-CLOSE *lexer-error*)
 	   (pop-lexer-and-dispatcher)
 	   token)
@@ -127,13 +130,12 @@
 	     (text  ""))
 	(do ((token  (lexer) (lexer)))
 	    ((eq? token 'COMMENT-CLOSE)
-	     (make-lexical-token 'COMMENT
-				 (make-source-location #f
-						       ((lexer-get-func-line   IS))
-						       ((lexer-get-func-column IS))
-						       ((lexer-get-func-offset IS))
-						       (string-length text))
-				 text))
+	     (make-<lexical-token> 'COMMENT
+				   (make-<source-location> #f
+							   ((lexer-get-func-line   IS))
+							   ((lexer-get-func-column IS))
+							   ((lexer-get-func-offset IS)))
+				   text (string-length text)))
 	  (set! text (string-append
 		      text
 		      (if (eq? token 'COMMENT-OPEN)
@@ -151,15 +153,14 @@
 	    (text  ""))
 	(do ((token (lexer) (lexer)))
 	    ((eq? token 'QUOTED-TEXT-CLOSE)
-	     (let ((pos (lexical-token-source opening-token)))
-	       (make-lexical-token 'QUOTED-TEXT
-				   (make-source-location
-				    (source-location-input  pos)
-				    (source-location-line   pos)
-				    (source-location-column pos)
-				    (source-location-offset pos)
-				    (string-length text))
-				   text)))
+	     (let ((pos (<lexical-token>-source opening-token)))
+	       (make-<lexical-token> 'QUOTED-TEXT
+				     (make-<source-location>
+				      (<source-location>-input  pos)
+				      (<source-location>-line   pos)
+				      (<source-location>-column pos)
+				      (<source-location>-offset pos))
+				     text (string-length text))))
 	  (set! text (string-append text token)))))
 
     (define-inline (push-lexer-and-dispatcher lex disp)
@@ -184,13 +185,9 @@
   (let ((lexer (make-address-lexer IS)))
     (let loop ((token		(lexer))
 	       (list-of-tokens	'()))
-      (if (lexical-token?/special token)
+      (if (<lexical-token>?/special token)
 	  (reverse list-of-tokens)
 	(loop (lexer) (cons token list-of-tokens))))))
-
-
-;;;; parser
-
 
 
 ;;;; done

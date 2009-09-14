@@ -1,7 +1,7 @@
 (library (email addresses domain-literals-lexer)
   (export
     domain-literals-table)
-  (import (rnrs) (silex lexer)(lalr lr-driver)(email addresses common))
+  (import (rnrs) (silex lexer)(lalr lr-driver)(email addresses common)(parser-tools lexical-token)(parser-tools source-location))
 
 ;
 ; Table generated from the file domain-literals.l by SILex 1.0
@@ -12,18 +12,19 @@
    'all
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-       			(make-lexical-token
+       			(make-<lexical-token>
 			 '*eoi*
-			 (make-source-location #f yyline yycolumn yyoffset 0)
-			 (eof-object))
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 (eof-object)
+			 0)
        ))
    (lambda (yycontinue yygetc yyungetc)
      (lambda (yytext yyline yycolumn yyoffset)
-         		(make-lexical-token
+         		(make-<lexical-token>
 			 '*lexer-error*
-			 (make-source-location #f yyline yycolumn yyoffset
-					       (string-length yytext))
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			 (string-length yytext))
 
 ;;; end of file
        ))
@@ -32,30 +33,31 @@
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
               		(let ((yytext1 (unquote-string yytext)))
-			  (make-lexical-token
+			  (make-<lexical-token>
 			   'DOMAIN-LITERAL-CLOSE
-			   (make-source-location #f yyline yycolumn yyoffset
-						 (string-length yytext))
-			   yytext1))
+			   (make-<source-location> #f yyline yycolumn yyoffset)
+			   yytext1
+			   (string-length yytext)))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
          		(let* ((yytext1 (unquote-string yytext))
 			       (num     (string->number yytext1)))
-			  (make-lexical-token
+			  (make-<lexical-token>
 			   (if (< num 256) 'DOMAIN-LITERAL-INTEGER '*lexer-error*)
-			   (make-source-location #f yyline yycolumn yyoffset
-						 (string-length yytext))
-			   yytext1))
+			   (make-<source-location> #f yyline yycolumn yyoffset)
+			   yytext1
+			   (string-length yytext)))
         ))
     #t
     (lambda (yycontinue yygetc yyungetc)
       (lambda (yytext yyline yycolumn yyoffset)
-     			(make-lexical-token
+     			(make-<lexical-token>
 			 'DOT
-			 (make-source-location #f yyline yycolumn yyoffset 1)
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			 1)
         )))
    'decision-trees
    0

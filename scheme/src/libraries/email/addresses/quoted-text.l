@@ -36,15 +36,16 @@ quoted-text		([^\"]+|\\\")+
 
 {quoted-text}		(unquote-string yytext)
 
-<<EOF>>			(make-lexical-token
+<<EOF>>			(make-<lexical-token>
 			 '*eoi*
-			 (make-source-location #f yyline yycolumn yyoffset 0)
-			 (eof-object))
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 (eof-object)
+			 0)
 
-<<ERROR>>		(make-lexical-token
+<<ERROR>>		(make-<lexical-token>
 			 '*lexer-error*
-			 (make-source-location #f yyline yycolumn yyoffset
-					       (string-length yytext))
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			 (string-length yytext))
 
 ;;; end of file

@@ -31,7 +31,8 @@
     unquote-string
 
     ;; domain data type
-    make-domain			domain?
+    make-domain			domain?			domain?/or-false
+    assert-domain		assert-domain/or-false
     domain-subdomains		domain-literal?
     domain-display		domain-write		domain->string
 
@@ -57,10 +58,10 @@
     ;; group data type
     make-group			group?
     group-display-name		group-mailboxes
-    group-display		group-write		group->string
-    )
+    group-display		group-write		group->string)
   (import (rnrs)
-    (strings))
+    (strings)
+    (lists))
 
 
 ;;;; helpers
@@ -101,7 +102,7 @@
 
 (define (display-name->string display-name)
   ;;Return  a   string  representation  of   DISPLAY-NAME  suitable  for
-  ;;composing a string representation of address.
+  ;;composing the string representation of an address.
   ;;
   (if (string-any #\, display-name)
       (string-append %double-quote-string display-name %double-quote-string)
@@ -111,8 +112,24 @@
 ;;;; address domain record
 
 (define-record-type domain
-  (fields (immutable literal?)
-	  (immutable subdomains)))
+  (fields (immutable literal?)		;boolean
+	  (immutable subdomains)))	;list of strings
+
+(define (domain?/or-false obj)
+  (or (not obj) (domain? obj)))
+
+(define (assert-domain obj)
+  (assert (domain? obj))
+  (assert (boolean? (domain-literal? obj)))
+  (let ((v (domain-subdomains obj)))
+    (assert (list? v))
+    (assert (every string? v))))
+
+(define (assert-domain/or-false obj)
+  (unless (not obj)
+    (assert-domain obj)))
+
+;;; --------------------------------------------------------------------
 
 (define domain-display
   (case-lambda

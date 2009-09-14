@@ -40,14 +40,14 @@ commented-text		[^\(\)]+
 
 {commented-text}	(unquote-string yytext)
 
-<<EOF>>			(make-lexical-token
-			 '*eoi*
-			 (make-source-location #f yyline yycolumn yyoffset 0)
-			 (eof-object))
+<<EOF>>			(make-<lexical-token> '*eoi*
+					      (make-<source-location> #f yyline yycolumn yyoffset)
+					      (eof-object)
+					      0)
 
-<<ERROR>>		(make-lexical-token
-			 '*lexer-error*
-			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
-			 yytext)
+<<ERROR>>		(make-<lexical-token> '*lexer-error*
+					      (make-<source-location> #f yyline yycolumn yyoffset)
+					      yytext
+					      (string-length yytext))
 
 ;;; end of file

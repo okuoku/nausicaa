@@ -31,9 +31,8 @@
   (email addresses quoted-text-lexer)
   (email addresses comments-lexer)
   (email addresses domain-literals-lexer)
-  (email addresses common)
   (email addresses lexer)
-  (email addresses parser)
+  (parser-tools lexical-token)
   (silex lexer))
 
 (check-set-mode! 'report-failed)
@@ -49,7 +48,7 @@
 	   (lexer	(lexer-make-lexer quoted-text-table IS))
 	   (out		'()))
       (do ((token (lexer) (lexer)))
-	  ((lexical-token?/end-of-input token)
+	  ((<lexical-token>?/end-of-input token)
 	   (reverse out))
 	(set! out (cons token out)))))
 
@@ -133,26 +132,26 @@
 	   (lexer (lexer-make-lexer domain-literals-table IS)))
       (let loop ((token (lexer))
 		 (toks  '()))
-	(if (lexical-token?/end-of-input token)
+	(if (<lexical-token>?/end-of-input token)
 	    (reverse toks)
 	  (loop (lexer) (cons token toks))))))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (map lexical-token-category (tokenise-domain-literal "]"))
+      (map <lexical-token>-category (tokenise-domain-literal "]"))
     => '(DOMAIN-LITERAL-CLOSE))
 
   (check
-      (map lexical-token-category (tokenise-domain-literal "123]"))
+      (map <lexical-token>-category (tokenise-domain-literal "123]"))
     => '(DOMAIN-LITERAL-INTEGER DOMAIN-LITERAL-CLOSE))
 
   (check
-      (map lexical-token-category (tokenise-domain-literal ".123]"))
+      (map <lexical-token>-category (tokenise-domain-literal ".123]"))
     => '(DOT DOMAIN-LITERAL-INTEGER DOMAIN-LITERAL-CLOSE))
 
   (check
-      (map lexical-token-category (tokenise-domain-literal "1.2.3.4]"))
+      (map <lexical-token>-category (tokenise-domain-literal "1.2.3.4]"))
     => '(DOMAIN-LITERAL-INTEGER
 	 DOT DOMAIN-LITERAL-INTEGER
 	 DOT DOMAIN-LITERAL-INTEGER
@@ -166,8 +165,8 @@
 
   (define (doit string)
     (map (lambda (token)
-	   (cons (lexical-token-category token)
-		 (lexical-token-value    token)))
+	   (cons (<lexical-token>-category token)
+		 (<lexical-token>-value    token)))
       (address->tokens (lexer-make-IS :string string :counters 'all))))
 
   (check	;a folding white space

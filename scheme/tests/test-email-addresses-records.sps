@@ -77,6 +77,14 @@
   => #t)
 
 (check
+    (domain?/or-false (make-domain #f '("alpha" "beta")))
+  => #t)
+
+(check
+    (domain?/or-false #f)
+  => #t)
+
+(check
     (domain->string (make-domain #f '("alpha" "beta" "gamma")))
   => "alpha.beta.gamma")
 

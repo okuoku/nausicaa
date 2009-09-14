@@ -28,7 +28,6 @@
 (import (nausicaa)
   (checks)
   (email addresses)
-  (email addresses parser)
   (silex lexer)
   (strings))
 
@@ -53,27 +52,45 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
+  (check	;without agle brackets
       (doit "simons@rhein.de")
     => "<simons@rhein.de>")
 
-  (check
+  (check	;with angle brackets
       (doit "<simons@rhein.de>")
     => "<simons@rhein.de>")
 
-  (parameterise ((debugging #f))
-    (check
-	(doit "Peter Simons <simons@rhein.de>")
-      => "Peter Simons <simons@rhein.de>"))
+  (check	;with atom phrase
+      (doit "Peter Simons <simons@rhein.de>")
+    => "Peter Simons <simons@rhein.de>")
 
-  (parameterise ((debugging #f))
-    (check
-	(doit "\"Peter Simons\" <simons@rhein.de>")
-      => "Peter Simons <simons@rhein.de>"))
+  (check	;with quoted-text phrase
+      (doit "\"Peter Simons\" <simons@rhein.de>")
+    => "Peter Simons <simons@rhein.de>")
 
-  (check
+  (check	;with CRLF sequence
       (doit "Peter Simons\r\n <simons@rhein.de>")
     => "Peter Simons <simons@rhein.de>")
+
+  (check	;with weird phrase
+      (doit "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
+    => "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
+
+  (check	;with weird phrase
+      (doit "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
+    => "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
+
+  (check	;with quoted-text phrase requiring double quotes (because of comma)
+      (doit " \"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
+    => "\"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
+
+  (check	;with comment
+      (doit "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
+    => "Peter Simons <simons@rhein.de>")
+
+  (check	;with domain literal
+      (doit "simons@[1.2.3.4]")
+    => "<simons@[1.2.3.4]>")
 
   #t)
 
@@ -100,6 +117,10 @@
 	(doit "<@here.it:simons@rhein.de>"))
     => "<@here.it:simons@rhein.de>")
 
+  (check
+      (parameterise ((debugging #t))
+	(doit "<@here.it, @there.us:simons@rhein.de>"))
+    => "<@here.it,@there.us:simons@rhein.de>")
 
   #t)
 
@@ -121,9 +142,35 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check	;a group
+  (check	;display name only
+      (doit "the group:;")
+    => "the group: ;")
+
+  (check	;display name only
+      (doit "\"the group\":   ;")
+    => "the group: ;")
+
+  (check	;commas festival
+      (doit "\"the group\": ,,, ,,, ,,, , , , , , , ,,,,  ;")
+    => "the group: ;")
+
+  (check	;one mailbox
+      (doit "the group: marco.maggi@here.it;")
+    => "the group: <marco.maggi@here.it>;")
+
+  (check	;two mailboxes
       (doit "the group: marco.maggi@here.it, <marco.maggi@there.it>;")
     => "the group: <marco.maggi@here.it>, <marco.maggi@there.it>;")
+
+  (check	;three mailboxes
+      (doit "the group: marco.maggi@here.it, <marco.maggi@there.it>, \r
+	Marco Maggi <mrc.mgg@here.it>;")
+    => "the group: <marco.maggi@here.it>, <marco.maggi@there.it>, Marco Maggi <mrc.mgg@here.it>;")
+
+  (check	;three mailboxes with commas festival
+      (doit "the group: ,, marco.maggi@here.it, <marco.maggi@there.it>, ,, , , , , ,\r
+	Marco Maggi <mrc.mgg@here.it>, ,,,,,,, ,, ,,, ,;")
+    => "the group: <marco.maggi@here.it>, <marco.maggi@there.it>, Marco Maggi <mrc.mgg@here.it>;")
 
  #t)
 
@@ -144,6 +191,10 @@
       (string-join (map to-string result) ", ")))
 
 ;;; --------------------------------------------------------------------
+
+  (check	;commas festival
+      (doit ",,, , , , ,,, ,  ,, , , , , ,,,")
+    => "")
 
   (check	;a list of mailboxes
       (doit "marco.maggi@here.it, <marco.maggi@there.it>")
@@ -179,7 +230,7 @@
  , <simons@ieee.org>;")
     => "testing my parser: <peter.simons@gmd.de>, <simons@rhein.de>, <simons@ieee.org>;")
 
-  (check
+  #;(check
       (doit "testing my parser : peter.simons@gmd.de,\r
             (peter.)simons@rhein.de ,,,,,\r
          testing my parser <simons@ieee.org>,\r
@@ -188,26 +239,6 @@
          ,\r
          peter.simons@acm.org")
     => "testing my parser: <peter.simons@gmd.de>, <simons@rhein.de>, testing my parser <simons@ieee.org>, it rules <@peti.gmd.de,@listserv.gmd.de:simons@cys.de>;, <peter.simons@acm.org>")
-
-  (check
-      (doit "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
-    => "=?ISO-8859-15?Q?Andr=E9s_Garc=EDa?= <fandom@spamme.telefonica.net>")
-
-  (check
-      (doit "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
-    => "=?iso-8859-1?q?Ulrich_Sch=F6bel?= <ulrich@outvert.com>")
-
-  (check
-      (doit " \"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
-    => "\"Steve Redler IV, Tcl2006 Conference Program Chair\" <steve@sr-tech.com>")
-
-  (check
-      (doit "\"Peter Simons\" (Peter Simons) <simons@rhein.de>")
-    => "Peter Simons <simons@rhein.de>")
-
-  (check
-      (doit "simons@[1.2.3.4]")
-    => "<simons@[1.2.3.4]>")
 
   #t)
 

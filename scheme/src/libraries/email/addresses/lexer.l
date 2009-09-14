@@ -52,14 +52,14 @@ start-domain-literal	\[
 {FWS}			;ignore it
 {WS}			;ignore it
 
-{atom}			(make-lexical-token
+{atom}			(make-<lexical-token>
 			 'ATOM
-			 (make-source-location #f yyline yycolumn yyoffset
-					       (string-length yytext))
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			 (string-length yytext))
 
 {character}		(let ((ch (string-ref yytext 0)))
-			  (make-lexical-token
+			  (make-<lexical-token>
 			   (case ch
 			     ((#\@) 'AT)
 			     ((#\.) 'DOT)
@@ -68,32 +68,38 @@ start-domain-literal	\[
 			     ((#\;) 'SEMICOLON)
 			     ((#\<) 'ANGLE-OPEN)
 			     ((#\>) 'ANGLE-CLOSE))
-			   (make-source-location #f yyline yycolumn yyoffset ch)
-			   ch))
+			   (make-<source-location> #f yyline yycolumn yyoffset)
+			   ch
+			   1))
 
-{start-comment}		(make-lexical-token
+{start-comment}		(make-<lexical-token>
 			 'COMMENT-OPEN
-			 (make-source-location #f yyline yycolumn yyoffset 1)
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			 1)
 
-{start-quoted-text}	(make-lexical-token
+{start-quoted-text}	(make-<lexical-token>
 			 'QUOTED-TEXT-OPEN
-			 (make-source-location #f yyline yycolumn yyoffset 1)
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			 1)
 
-{start-domain-literal}	(make-lexical-token
+{start-domain-literal}	(make-<lexical-token>
 			 'DOMAIN-LITERAL-OPEN
-			 (make-source-location #f yyline yycolumn yyoffset 1)
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			 1)
 
-<<EOF>>			(make-lexical-token
+<<EOF>>			(make-<lexical-token>
 			 '*eoi*
-			 (make-source-location #f yyline yycolumn yyoffset 0)
-			 (eof-object))
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 (eof-object)
+			 0)
 
-<<ERROR>>		(make-lexical-token
+<<ERROR>>		(make-<lexical-token>
 			 '*lexer-error*
-			 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
-			 yytext)
+			 (make-<source-location> #f yyline yycolumn yyoffset)
+			 yytext
+			  (string-length yytext))
 
 ;;; end of file
