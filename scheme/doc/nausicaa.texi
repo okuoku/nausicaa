@@ -35639,13 +35639,15 @@ is predefined to use the following algorithm:
 @chapter Handling symbolic expressions
 
 
-The @library{sexps} library implements matching procedures for symbolic
-expressions (S--expressions or @dfn{sexp}).
+The @library{sexps} and @library{sexps syntax} libraries implement
+matching procedures and macros for symbolic expressions (S--expressions
+or @dfn{sexp}).
 
 @menu
 * sexps match::                 Plain matching.
 * sexps operators::             Matching operators.
 * sexps transform::             Transforming S--expressions.
+* sexps macro::                 Macro transformers.
 @end menu
 
 @c page
@@ -35920,10 +35922,10 @@ Accessors for the fields of a @samp{sexp-variable} record.
 @end defun
 
 
-@deffn Syntax let-sexp-variables ((@var{name} @var{default}) ...) @var{form0} @var{form} ...
-Similar to @func{let} build a set of @samp{sexp-variable} records and
-bind them to @var{name}.  The forms are evaluated in the current
-environment extended with the variables bindings.
+@deffn Syntax let-sexp-variables ((@var{var} @var{default}) ...) @var{form0} @var{form} ...
+Similar to @func{let}, build a set of @samp{sexp-variable} records and
+bind them to @var{var} identifiers.  The forms are evaluated in the
+current environment extended with the variables bindings.
 
 The example above can be rewritten:
 
@@ -36135,6 +36137,84 @@ occurrences of the keywords in @var{bindings-alist} are substituted with
 their values.  The keywords are meant to be records of type
 @samp{sexp-variable}.
 @end defun
+
+@c page
+@node sexps macro
+@section Macro transformers
+
+
+The following bindings are exported by the @library{sexps syntax}
+library.  Macros created by @func{define-sexp-macro} are meant to
+provide a friendly syntax for record constructors and the like; example:
+
+@example
+(define-record-type (<alpha> %make-<alpha> <alpha>?)
+  (fields (mutable a)
+          (mutable b)))
+
+(define-sexp-macro make-<alpha>
+  ((?a 1) (?b 2))
+  `(,(sexp-any (sexp-or `(a ,(sexp-var ?a))
+                        `(b ,(sexp-var ?b)))))
+  `(%make-<alpha> ,?a ,?b))
+
+(let ((o (make-<alpha>)))
+  (list (<alpha>-a o)
+        (<alpha>-b o)))
+@result{} (1 2)
+
+(let ((o (make-<alpha> (a 10))))
+  (list (<alpha>-a o)
+        (<alpha>-b o)))
+@result{} (10 2)
+
+(let ((o (make-<alpha> (b 20))))
+  (list (<alpha>-a o)
+        (<alpha>-b o)))
+@result{} (1 20)
+
+(let ((o (make-<alpha> (a 10)
+                       (b 20))))
+  (list (<alpha>-a o)
+        (<alpha>-b o)))
+@result{} (10 20)
+
+(let* ((the-a   10)
+       (the-b   20)
+       (o       (make-<alpha> (a the-a)
+                              (b the-b))))
+  (list (<alpha>-a o)
+        (<alpha>-b o)))
+@result{} (10 20)
+
+(let* ((x 10)
+       (y 20)
+       (o (make-<alpha> (a (+ 2 x))
+                        (b (- 2 y)))))
+  (list (<alpha>-a o)
+        (<alpha>-b o)))
+@result{} (12 -18)
+@end example
+
+@noindent
+if a sexp variable referenced in the output form is left unbound by the
+input form, and its default value is the sentinel, an assertion
+violation is raised at expand time.
+
+
+@deffn Syntax define-sexp-macro @var{name} ((@var{var} @var{default}) ...) @var{pattern} @var{output}
+Define a new macro and bind it to @var{name}.  The defined macro applies
+a transformer to its arguments and builds a processed output form, which
+is then evaluated at run time.
+
+The @var{var} and @var{default} arguments are like the ones of
+@func{let-sexp-variables}, and they define the set of variables needed
+by the output form.
+
+The @var{pattern} and @var{output} arguments are like the ones of
+@func{make-sexp-transformer}, and they are used to build the transformer
+procedure.
+@end deffn
 
 @c page
 @node matches

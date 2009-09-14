@@ -27,7 +27,9 @@
 (import (nausicaa)
   (checks)
   (sexps)
-  (sentinel))
+  (for (sexps syntax) expand run)
+  (sentinel)
+  (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing sexp\n")
@@ -465,6 +467,14 @@
 
 (parameterise ((check-test-name 'transform))
 
+  (let ((f (make-sexp-transformer '(a b c)
+				  `(1 2 3))))
+    (check
+	(f '(a b c))
+      => '(1 2 3))
+
+    #t)
+
   (let-sexp-variables ((?a sentinel) (?b sentinel)
 		       (?c sentinel) (?d sentinel))
     (let ((f (make-sexp-transformer
@@ -502,14 +512,14 @@
 		       (?e 123))
     (let ((f (make-sexp-transformer `(a (b ,(sexp-var ?c)))
 				    `(out ,?d))))
-      (check ;unbound, raise an error
+      (check	;unbound, raise an error
 	  (guard (E (else (condition-message E)))
 	    (f '(a (b 1))))
 	=> "unbound variable \"?d\" in output S-expression"))
 
     (let ((f (make-sexp-transformer `(a b)
 				    `(out ,?e))))
-      (check ;unbound, use the default
+      (check	;unbound, use the default
 	  (f '(a b))
 	=> `(out 123)))
 
@@ -557,6 +567,256 @@
       => '(doit 10 20))
 
     #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'macro))
+
+  (let ((%doit (lambda (a b c d)
+		 (list a b c d))))
+
+    (define-sexp-macro doit
+      ((?a #f) (?b #f) (?c #f) (?d #f))
+      `(,(sexp-var ?a)
+	,(sexp-var ?b)
+	,(sexp-var ?c)
+	,(sexp-var ?d))
+      `(%doit ,?a ,?b ,?c ,?d))
+
+    (check
+	(doit 1 'b 'c 'd)
+      => '(1 b c d))
+
+    (check
+	(doit 1 2 3 4)
+      => '(1 2 3 4))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((%doit (lambda (a b c d)
+		 (list a b c d))))
+
+    (define-sexp-macro doit
+      ((?a #f) (?b #f) (?c #f) (?d #f))
+      `((alpha ,(sexp-var ?a))
+	(beta  ,(sexp-var ?b)))
+      `(%doit ,?a ,?b ,?c ,?d))
+
+    (check
+	(doit (alpha 123)
+	      (beta 456))
+      => '(123 456 #f #f))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((%doit (lambda (a b c d)
+		 (list a b c d))))
+
+    (define-sexp-macro doit
+      ((?a #f) (?b #f) (?c #f) (?d #f))
+      `(,(sexp-or `(alpha ,(sexp-var ?a))
+		  `(beta  ,(sexp-var ?b))))
+      `(%doit ,?a ,?b ,?c ,?d))
+
+    (check
+	(doit (alpha 123))
+      => '(123 #f #f #f))
+
+    (check
+	(doit (beta 456))
+      => '(#f 456 #f #f))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((%doit (lambda (a b c d)
+		 (list a b c d))))
+
+    (define-sexp-macro doit
+      ((?a #f) (?b #f) (?c #f) (?d #f))
+      `(,(sexp-one (sexp-or `(alpha ,(sexp-var ?a))
+			    `(beta  ,(sexp-var ?b)))))
+      `(%doit ,?a ,?b ,?c ,?d))
+
+    (check
+	(doit (alpha 123))
+      => '(123 #f #f #f))
+
+    (check
+	(doit (beta 456))
+      => '(#f 456 #f #f))
+
+    (check
+	(doit (beta 456) (alpha 123))
+      => '(123 456 #f #f))
+
+    (check
+	(doit (alpha 123) (beta 456))
+      => '(123 456 #f #f))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((%doit (lambda (a b c d)
+		 (list a b c d))))
+
+    (define-sexp-macro doit
+      ((?a #f) (?b #f) (?c #f) (?d #f))
+      `((beta ,(sexp-one (sexp-or `(delta ,(sexp-var ?b))
+				  `(gamma ,(sexp-var ?c))))))
+      `(%doit ,?a ,?b ,?c ,?d))
+
+    (check
+	(doit (beta (delta 123)))
+      => '(#f 123 #f #f))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((%doit (lambda (a b c d)
+		 (list a b c d))))
+
+    (define-sexp-macro doit
+      ((?a #f) (?b #f) (?c #f) (?d #f))
+      `(,(sexp-one (sexp-or `(alpha ,(sexp-var ?a))
+			    `(beta ,(sexp-one (sexp-or `(delta ,(sexp-var ?b))
+						       `(gamma ,(sexp-var ?c)))))
+			    `(rho ,(sexp-var ?d)))))
+      `(%doit ,?a ,?b ,?c ,?d))
+
+    (check
+	(doit (rho 4))
+      => '(#f #f #f 4))
+
+    (check
+	(doit (rho 4)
+	      (alpha 1))
+      => '(1 #f #f 4))
+
+    (check
+	(doit (beta (delta 2)
+		    (gamma 3)))
+      => '(#f 2 3 #f))
+
+    (check
+	(doit (beta (gamma 3)
+		    (delta 2)))
+      => '(#f 2 3 #f))
+
+    (check
+	(doit (rho 4)
+	      (alpha 1)
+	      (beta (gamma 3)
+		    (delta 2)))
+      => '(1 2 3 4))
+
+    (check
+	(doit (beta (gamma 3)
+		    (delta 2))
+	      (rho 4)
+	      (alpha 1))
+      => '(1 2 3 4))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define-record-type (<alpha> %make-<alpha> <alpha>?)
+      (fields (mutable a)
+	      (mutable b)))
+
+    (define-sexp-macro make-<alpha>
+      ((?a 1) (?b 2))
+      `(,(sexp-any (sexp-or `(a ,(sexp-var ?a))
+			    `(b ,(sexp-var ?b)))))
+      `(%make-<alpha> ,?a ,?b))
+
+    (check
+	(let ((o (make-<alpha>)))
+	  (list (<alpha>-a o)
+		(<alpha>-b o)))
+      => '(1 2))
+
+    (check
+	(let ((o (make-<alpha> (a 10))))
+	  (list (<alpha>-a o)
+		(<alpha>-b o)))
+      => '(10 2))
+
+    (check
+	(let ((o (make-<alpha> (b 20))))
+	  (list (<alpha>-a o)
+		(<alpha>-b o)))
+      => '(1 20))
+
+    (check
+	(let ((o (make-<alpha> (a 10)
+			       (b 20))))
+	  (list (<alpha>-a o)
+		(<alpha>-b o)))
+      => '(10 20))
+
+    (check
+	(let ((the-a	10)
+	      (the-b	20))
+	  (let ((o (make-<alpha> (a the-a)
+				 (b the-b))))
+	    (list (<alpha>-a o)
+		  (<alpha>-b o))))
+      => '(10 20))
+
+    (check
+	(let* ((the-a	10)
+	       (the-b	20)
+	       (o	(make-<alpha> (a the-a)
+				      (b the-b))))
+	  (list (<alpha>-a o)
+		(<alpha>-b o)))
+      => '(10 20))
+
+    (check
+	(let* ((x 10)
+	       (y 20)
+	       (o (make-<alpha> (a (+ 2 x))
+				(b (- 2 y)))))
+	  (list (<alpha>-a o)
+		(<alpha>-b o)))
+      => '(12 -18))
+
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E (else `((message   . ,(condition-message E)))))
+	(eval '(let ()
+		 (define-record-type (<alpha> %make-<alpha> <alpha>?)
+		   (fields (mutable a)
+			   (mutable b)))
+
+		 (define-sexp-macro make-<alpha>
+		   ((?a 1) (?b sentinel))
+		   `(,(sexp-any (sexp-or `(a ,(sexp-var ?a))
+					 `(b ,(sexp-var ?b)))))
+		   `(%make-<alpha> ,?a ,?b))
+
+		 (make-<alpha>))
+	      (environment '(rnrs)
+			   '(sexps)
+			   '(for (sexps syntax) expand)
+			   '(sentinel))))
+    => `((message   . "unbound variable \"?b\" in output S-expression")))
 
   #t)
 
