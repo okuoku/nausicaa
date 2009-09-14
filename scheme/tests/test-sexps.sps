@@ -26,7 +26,7 @@
 
 (import (nausicaa)
   (checks)
-  (sexps)
+  (for (sexps) expand run)
   (for (sexps syntax) expand run)
   (sentinel)
   (rnrs eval))
@@ -813,7 +813,7 @@
 
 		 (make-<alpha>))
 	      (environment '(rnrs)
-			   '(sexps)
+			   '(for (sexps) expand run)
 			   '(for (sexps syntax) expand)
 			   '(sentinel))))
     => `((message   . "unbound variable \"?b\" in output S-expression")))
