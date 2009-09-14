@@ -108,7 +108,7 @@ dnl Main macros.
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAUSICAA_BEGIN],
-  [AC_SUBST([pkglibdir],[\${libdir}/scheme])
+  [AC_SUBST([pkglibdir],[\${libdir}/nausicaa])
    DS_PROGRAM([FIND],[find],[the GNU find program])
    NAUSICAA_ENABLE_TESTS
    NAUSICAA_OPTIONS
