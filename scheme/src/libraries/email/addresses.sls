@@ -64,7 +64,6 @@
     )
   (import (rnrs)
     (silex lexer)
-    (lalr common)
     (email addresses common)
     (email addresses quoted-text-lexer)
     (email addresses comments-lexer)
