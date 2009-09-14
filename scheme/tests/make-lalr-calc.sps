@@ -41,7 +41,8 @@
 (silex:lex silex::output-file "calc-parser-lexer.sls"
 	   silex::counters 'all
 	   silex::library-spec "(calc-parser-lexer)"
-	   silex::library-imports '((lalr common))
+	   silex::library-imports '((parser-tools lexical-token)
+				    (parser-tools source-location))
 	   silex::table-name 'calc-parser-lexer-table
 	   silex::input-string "
 blanks		[ \\9]+
@@ -76,76 +77,79 @@ cparen		\\)
 
 %%
 {blanks}	;; skip spaced and tabs
-{imag}		(make-lexical-token 'NUM
-				    (make-source-location #f
-							  yyline yycolumn yyoffset
-							  (string-length yytext))
-				    (string->number (string-append \"+\" yytext)))
+{imag}		(make-<lexical-token> 'NUM
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      (string->number (string-append \"+\" yytext))
+				      (string-length yytext))
 
-{real}		(make-lexical-token 'NUM
-				    (make-source-location #f
-							  yyline yycolumn yyoffset
-							  (string-length yytext))
-				    (string->number yytext))
+{real}		(make-<lexical-token> 'NUM
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      (string->number yytext)
+				      (string-length yytext))
 
-{nan}		(make-lexical-token 'NUM
-				    (make-source-location #f yyline yycolumn yyoffset
-							  (string-length yytext))
-				    +nan.0)
+{nan}		(make-<lexical-token> 'NUM
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      +nan.0
+				      (string-length yytext))
 
-{inf}		(make-lexical-token 'NUM
-				    (make-source-location #f yyline yycolumn yyoffset
-							  (string-length yytext))
-				    +inf.0)
+{inf}		(make-<lexical-token> 'NUM
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      +inf.0
+				      (string-length yytext))
 
-{operator}	(let ((position (make-source-location #f yyline yycolumn yyoffset
-						      (string-length yytext))))
+{operator}	(let ((position (make-<source-location> #f yyline yycolumn yyoffset))
+		      (len	(string-length yytext)))
 		  (case (string->symbol yytext)
-		    ((+)	(make-lexical-token '+ position '+))
-		    ((-)	(make-lexical-token '- position '-))
-		    ((*)	(make-lexical-token '* position '*))
-		    ((/)	(make-lexical-token '/ position '/))
-		    ((%)	(make-lexical-token 'MOD position mod))
-		    ((^)	(make-lexical-token 'EXPT position expt))
-		    ((\\x5C;)	(make-lexical-token 'DIV position div))
-		    ((<)	(make-lexical-token 'LESS position <))
-		    ((>)	(make-lexical-token 'GREAT position >))
-		    ((<=)	(make-lexical-token 'LESSEQ position <=))
-		    ((>=)	(make-lexical-token 'GREATEQ position >=))
-		    ((==)	(make-lexical-token 'EQUAL position =))
-		    (else       (error #f \"unknown operator\" yytext))))
+		    ((+)	(make-<lexical-token> '+ position '+ len))
+		    ((-)	(make-<lexical-token> '- position '- len))
+		    ((*)	(make-<lexical-token> '* position '* len))
+		    ((/)	(make-<lexical-token> '/ position '/ len))
+		    ((%)	(make-<lexical-token> 'MOD position mod len))
+		    ((^)	(make-<lexical-token> 'EXPT position expt len))
+		    ((\\x5C;)	(make-<lexical-token> 'DIV position div len))
+		    ((<)	(make-<lexical-token> 'LESS position < len))
+		    ((>)	(make-<lexical-token> 'GREAT position > len))
+		    ((<=)	(make-<lexical-token> 'LESSEQ position <= len))
+		    ((>=)	(make-<lexical-token> 'GREATEQ position >= len))
+		    ((==)	(make-<lexical-token> 'EQUAL position = len))
+		    (else       (error #f \"unknown operator\" yytext len))))
 
-{symbol}	(make-lexical-token 'ID
-				    (make-source-location #f yyline yycolumn yyoffset
-							  (string-length yytext))
-				    (string->symbol yytext))
+{symbol}	(make-<lexical-token> 'ID
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      (string->symbol yytext)
+				      (string-length yytext))
 
-{assign}	(make-lexical-token
-		 'ASSIGN
-		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
-		 'ASSIGN)
+{assign}	(make-<lexical-token> 'ASSIGN
+				      (make-<source-location> #f yyline yycolumn yyoffset)
+				      'ASSIGN
+				      (string-length yytext))
 
-{comma}		(make-lexical-token
+{comma}		(make-<lexical-token>
 		 'COMMA
-		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
-		 'COMMA)
-{newline}	(make-lexical-token
+		 (make-<source-location> #f yyline yycolumn yyoffset)
+		 'COMMA
+		 (string-length yytext))
+{newline}	(make-<lexical-token>
 		 'NEWLINE
-		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
-		 'NEWLINE)
-{oparen}	(make-lexical-token
+		 (make-<source-location> #f yyline yycolumn yyoffset)
+		 'NEWLINE
+		  (string-length yytext))
+{oparen}	(make-<lexical-token>
 		 'LPAREN
-		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
-		 'LPAREN)
-{cparen}	(make-lexical-token
+		 (make-<source-location> #f yyline yycolumn yyoffset)
+		 'LPAREN
+		 (string-length yytext))
+{cparen}	(make-<lexical-token>
 		 'RPAREN
-		 (make-source-location #f yyline yycolumn yyoffset (string-length yytext))
-		 'RPAREN)
+		 (make-<source-location> #f yyline yycolumn yyoffset)
+		 'RPAREN
+		 (string-length yytext))
 
-<<EOF>>		(make-lexical-token
+<<EOF>>		(make-<lexical-token>
 		 '*eoi*
-		 (make-source-location #f yyline yycolumn yyoffset 0)
-		 (eof-object))
+		 (make-<source-location> #f yyline yycolumn yyoffset)
+		 (eof-object)
+		 0)
 <<ERROR>>	(assertion-violation #f \"invalid lexer token\")
 ")
 
@@ -159,7 +163,9 @@ cparen		\\)
 
  :parser-name		'make-calc-parser
  :library-spec		'(calc-parser)
- :library-imports	'((calc-parser-helper) (rnrs eval))
+ :library-imports	'((calc-parser-helper) (rnrs eval)
+			  (parser-tools lexical-token)
+			  (parser-tools source-location))
 
  :dump-table		"calc-parser-tables.txt"
 		;output to a file the human readable LALR table

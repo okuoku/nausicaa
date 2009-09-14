@@ -1,21 +1,14 @@
 (library (calc-parser)
-  (export make-calc-parser
-          make-source-location
-          source-location?
-          source-location-line
-          source-location-input
-          source-location-column
-          source-location-offset
-          source-location-length
-          make-lexical-token
-          lexical-token?
-          lexical-token-value
-          lexical-token-category
-          lexical-token-source
-          lexical-token?/end-of-input
-          lexical-token?/lexer-error
-          lexical-token?/special)
-  (import (rnrs) (lalr lr-driver) (lalr common) (sentinel) (calc-parser-helper) (rnrs eval))
+  (export make-calc-parser)
+  (import (rnrs)
+          (lalr lr-driver)
+          (parser-tools source-location)
+          (parser-tools lexical-token)
+          (sentinel)
+          (calc-parser-helper)
+          (rnrs eval)
+          (parser-tools lexical-token)
+          (parser-tools source-location))
   (define (make-calc-parser)
     (lr-driver
       '#(((*default* . *error*) (error . 6) (ID . 5) (NUM . 4) (LPAREN . 3) (+ . 2) (- . 1))

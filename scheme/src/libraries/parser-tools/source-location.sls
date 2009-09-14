@@ -35,14 +35,14 @@
 (library (parser-tools source-location)
   (export
 
-    make-source-location	make-source-location/start
-    source-location?		source-location?/start
-    source-location?/or-false	source-location?/start/or-false
+    make-<source-location>	make-<source-location>/start
+    <source-location>?		<source-location>?/start
+    <source-location>?/or-false	<source-location>?/start/or-false
 
-    source-location-line
-    source-location-input
-    source-location-column
-    source-location-offset
+    <source-location>-line
+    <source-location>-input
+    <source-location>-column
+    <source-location>-offset
 
     source-location-update
 
@@ -59,6 +59,7 @@
 
     source-location-honor-return)
   (import (rnrs)
+    (nos)
     (parameters))
 
 
@@ -71,71 +72,60 @@
 	  (begin ?form0 ?form ...)))))))
 
 
-(define-record-type source-location
+(define-record-type <source-location>
   (fields (immutable input)
 	  (immutable line)
 	  (immutable column)
 	  (immutable offset))
   (nongenerative nausicaa:parser-tools:source-location))
 
-(define-inline (make-source-location/start input-spec)
-  (make-source-location input-spec 1 1 0))
+(define-inline (make-<source-location>/start input-spec)
+  (make-<source-location> input-spec 1 1 0))
 
-(define (source-location?/or-false obj)
+(define (<source-location>?/or-false obj)
   (or (not obj)
-      (source-location? obj)))
+      (<source-location>? obj)))
 
-(define (source-location?/start obj)
-  (and (source-location? obj)
-       (= 1 (source-location-line   obj))
-       (= 1 (source-location-column obj))))
+(define (<source-location>?/start obj)
+  (and (<source-location>? obj)
+       (= 1 (<source-location>-line   obj))
+       (= 1 (<source-location>-column obj))))
 
-(define (source-location?/start/or-false obj)
+(define (<source-location>?/start/or-false obj)
   (or (not obj)
-      (source-location?/start obj)))
-
-(define (source-location->string location)
-  (if location
-      (string-append (call-with-string-output-port
-			 (lambda (port)
-			   (display (source-location-input location port))))
-		     ":"
-		     (number->string (source-location-line   location))
-		     ":"
-		     (number->string (source-location-column location)))
-    "<??>"))
+      (<source-location>?/start obj)))
 
 
 (define (source-location=? a b)
   (cond ((not a) #f)
 	((not b) #f)
 	(else
-	 (and (= (source-location-line a)
-		 (source-location-line b))
-	      (= (source-location-column a)
-		 (source-location-column b))
-	      (= (source-location-offset a)
-		 (source-location-offset b))))))
+	 (and (= (<source-location>-line a)
+		 (<source-location>-line b))
+	      (= (<source-location>-column a)
+		 (<source-location>-column b))
+	      (= (<source-location>-offset a)
+		 (<source-location>-offset b))))))
 
 (define (source-location-point=? a b)
   (cond ((not a) #f)
 	((not b) #f)
 	(else
-	 (and (= (source-location-line a)
-		 (source-location-line b))
-	      (= (source-location-column a)
-		 (source-location-column b))))))
+	 (and (= (<source-location>-line a)
+		 (<source-location>-line b))
+	      (= (<source-location>-column a)
+		 (<source-location>-column b))))))
 
 (define (source-location-point>? a b)
   (cond ((not a) #f)
 	((not b) #t)
 	(else
-	 (let ((la (source-location-line a))
-	       (lb (source-location-line b)))
+	 (let ((la (<source-location>-line a))
+	       (lb (<source-location>-line b)))
 	   (or (> la lb)
 	       (and (= la lb)
-		    (> (source-location-column a)
-		       (source-location-column b))))))))
+		    (> (<source-location>-column a)
+		       (<source-location>-column b))))))))
 
 (define (source-location-point<? a b)
   (source-location-point>? b a))
@@ -144,10 +134,12 @@
   (cond ((not a) #f)
 	((not b) #t)
 	(else
-	 (or (>= (source-location-line a)
-		 (source-location-line b))
-	     (>= (source-location-column a)
-		 (source-location-column b))))))
+	 (let ((la (<source-location>-line a))
+	       (lb (<source-location>-line b)))
+	 (or (> la lb)
+	     (and (= la lb)
+		  (>= (<source-location>-column a)
+		      (<source-location>-column b))))))))
 
 (define (source-location-point<=? a b)
   (source-location-point>=? b a))
@@ -155,32 +147,32 @@
 
 (define (source-location-update location char/token-length)
   (and location
-       (let* ((input		(source-location-input  location))
-	      (line		(source-location-line   location))
-	      (column		(source-location-column location))
-	      (offset		(source-location-offset location)))
+       (let* ((input		(<source-location>-input  location))
+	      (line		(<source-location>-line   location))
+	      (column		(<source-location>-column location))
+	      (offset		(<source-location>-offset location)))
 	 (cond ((integer? char/token-length)
-		(make-source-location input line
-				      (+ char/token-length column)
-				      (+ char/token-length offset)))
+		(make-<source-location> input line
+					(+ char/token-length column)
+					(+ char/token-length offset)))
 
 	       ((char? char/token-length)
 		(let ((new-offset (+ 1 offset)))
 		  (case char/token-length
 		    ((#\newline)
-		     (make-source-location input (+ line 1) 1 new-offset))
+		     (make-<source-location> input (+ line 1) 1 new-offset))
 		    ((#\return)
-		     (make-source-location input line
-					   (if (source-location-honor-return)
-					       1
-					     (+ 1 column))
-					   new-offset))
+		     (make-<source-location> input line
+					     (if (source-location-honor-return)
+						 1
+					       (+ 1 column))
+					     new-offset))
 		    ((#\tab)
-		     (make-source-location input line
-					   ((source-location-tab-function) column)
-					   new-offset))
+		     (make-<source-location> input line
+					     ((source-location-tab-function) column)
+					     new-offset))
 		    (else
-		     (make-source-location input line (+ 1 column) new-offset)))))
+		     (make-<source-location> input line (+ 1 column) new-offset)))))
 	       (else
 		(assertion-violation 'source-location-update
 		  "expected character or lexical token length"
@@ -213,6 +205,20 @@
 
 (define source-location-honor-return
   (make-parameter #f))
+
+
+(define (source-location->string location)
+  (if location
+      (string-append (object->string (<source-location>-input  location))
+		     ":"
+		     (number->string (<source-location>-line   location))
+		     ":"
+		     (number->string (<source-location>-column location)))
+    "<??>"))
+
+
+(declare-method (object->string (o <source-location>))
+  (source-location->string o))
 
 
 ;;;; done

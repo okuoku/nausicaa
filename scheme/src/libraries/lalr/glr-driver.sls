@@ -43,28 +43,10 @@
 
 #!r6rs
 (library (lalr glr-driver)
-  (export
-    glr-driver
-
-    ;; re-exports from (lalr common)
-    make-source-location	source-location?
-    source-location-line
-    source-location-input
-    source-location-column
-    source-location-offset
-    source-location-length
-
-    make-lexical-token		lexical-token?
-    lexical-token-value
-    lexical-token-category
-    lexical-token-source
-
-    lexical-token?/end-of-input
-    lexical-token?/lexer-error
-    lexical-token?/special)
+  (export glr-driver)
   (import (rnrs)
-    (debugging)
-    (lalr common))
+;;;    (debugging)
+    (parser-tools lexical-token))
 
 
 ;;;; helpers
@@ -129,11 +111,11 @@
     (define results '())
 
     (define (main lookahead processes shifted)
-      (debug "~%***main processes ~s" processes)
+;;;      (debug "~%***main processes ~s" processes)
       (let* ((shifted*  (process->shifted lookahead (car processes)))
 	     (processes (cdr processes))
 	     (shifted   (append shifted shifted*)))
-	(debug "main: processes ~s shifted ~s" processes shifted)
+;;;	(debug "main: processes ~s shifted ~s" processes shifted)
 	(if (null? processes)
 	    (if (null? shifted)
 		results
@@ -148,7 +130,7 @@
       ;;
       (let reduce-loop ((reduced (list process))
 			(shifted '()))
-	(debug "process->shifted: reduced ~s, shifted ~s, results ~s" reduced shifted results)
+;;;	(debug "process->shifted: reduced ~s, shifted ~s, results ~s" reduced shifted results)
 	(if (null? reduced)
 	    shifted
 	  (receive (reduced* shifted*)
@@ -171,10 +153,10 @@
       ;;Return two values: the list  of reduced children and the list of
       ;;shifted children.
       ;;
-      (debug "perform-actions: process ~s ~s actions ~s"
-	     (process-states-ref process)
-	     (process-values-ref process)
-	     (select-actions lookahead (caar process)))
+;;;      (debug "perform-actions: process ~s ~s actions ~s"
+;;;	     (process-states-ref process)
+;;;	     (process-values-ref process)
+;;;	     (select-actions lookahead (caar process)))
       (do ((actions-list (select-actions lookahead (process-top-state-ref process))
 			 (cdr actions-list))
 	   (reduced '())
@@ -183,18 +165,18 @@
 	   (values reduced shifted))
 	(let ((action (car actions-list)))
 	  (cond ((eq? action '*error*) ;error, discard this process
-		 (debug "action ~s error" action)
+;;;		 (debug "action ~s error" action)
 		 #f)
 		((eq? action 'accept) ;accept, register result and discard this process
-		 (debug "action accept ~s" (process-accept-value-ref process))
+;;;		 (debug "action accept ~s" (process-accept-value-ref process))
 		 (set! results (cons (process-accept-value-ref process) results)))
 		((>= action 0) ;shift, this children process survives
-		 (debug "action ~s shift" action)
+;;;		 (debug "action ~s shift" action)
 		 (set! shifted
-		       (cons (process-push! process action (lexical-token-value lookahead))
+		       (cons (process-push! process action (<lexical-token>-value lookahead))
 			     shifted)))
 		(else ;reduce, this process will stay in the PROCESS->SHIFTED loop
-		 (debug "action ~s reduce" action)
+;;;		 (debug "action ~s reduce" action)
 		 (set! reduced
 		       (cons (reduce (- action) process)
 			     reduced)))))))
@@ -206,10 +188,10 @@
 	      (set! reuse-last-token #f)
 	    (begin
 	      (set! last-token (true-lexer))
-	      (unless (lexical-token? last-token)
+	      (unless (<lexical-token>? last-token)
 		(error-handler "expected lexical token from lexer" last-token)
 		(true-lexer))))
-	  (debug "~%lookahead ~s" last-token)
+;;;	  (debug "~%lookahead ~s" last-token)
 	  last-token)))
 
     (define (yypushback)
@@ -227,7 +209,7 @@
 				   yy-stack-states yy-stack-values)
 	(let* ((yy-stack-states (drop/stx yy-stack-states used-values))
 	       (new-state       (goto-state goto-keyword (car yy-stack-states))))
-	  (debug "reduce semantic clause result ~s" semantic-clause-result)
+;;;	  (debug "reduce semantic clause result ~s" semantic-clause-result)
 	  ;;This is not PROCESS-PUSH!
 	  `((,new-state              . ,yy-stack-states) .
 	    (,semantic-clause-result . ,yy-stack-values))))
@@ -239,7 +221,7 @@
 
     (define (select-actions lookahead state-index)
       (let* ((action-alist (vector-ref action-table state-index))
-	     (pair         (assq (lexical-token-category lookahead) action-alist)))
+	     (pair         (assq (<lexical-token>-category lookahead) action-alist)))
 	(if pair (cdr pair) (cdar action-alist))))
 
     (main (lexer) '(((0) . (#f))) '()))

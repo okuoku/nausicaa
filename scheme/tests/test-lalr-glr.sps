@@ -27,6 +27,7 @@
 (import (nausicaa)
   (lalr)
   (sentinel)
+  (parser-tools lexical-token)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -36,7 +37,7 @@
 ;;;; helpers
 
 (define eoi-token
-  (make-lexical-token '*eoi* #f (eof-object)))
+  (make-<lexical-token> '*eoi* #f (eof-object) 0))
 
 (define (make-lexer list-of-tokens)
   ;;Return a lexer closure  drawing tokens from the list LIST-OF-TOKENS.
@@ -49,6 +50,9 @@
 	  (car list-of-tokens)
 	(set! list-of-tokens (cdr list-of-tokens))))))
 
+(define (make-token category value)
+  (make-<lexical-token> category #f value 0))
+
 (define (make-error-handler yycustom)
   ;;Return  an error  handler closure  that calls  YYCUSTOM with  a pair
   ;;describing the offending token.  To just return the pair invoke as:
@@ -56,7 +60,7 @@
   ;;	(make-error-handler (lambda x x))
   ;;
   (lambda (message token)
-    (yycustom `(error-handler . ,(lexical-token-value token)))))
+    (yycustom `(error-handler . ,(<lexical-token>-value token)))))
 
 (define (debug:print-tables doit? terminals non-terminals)
   (when doit?
@@ -75,7 +79,7 @@
 ;;;Test very basic grammars.
 
   (define (error-handler message token)
-    (cons message (lexical-token-value token)))
+    (cons message (<lexical-token>-value token)))
 
   (define (doit-1 . tokens)
     ;;A grammar that only accept a single terminal as input.
@@ -153,7 +157,7 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (doit-1 (make-lexical-token 'A #f 1))
+      (doit-1 (make-token 'A 1))
     => '(1))
 
   (check
@@ -164,9 +168,9 @@
     ;;Parse correctly the first A  and reduce it.  The second A triggers
     ;;an  error which  empties  the  stack and  consumes  all the  input
     ;;tokens.  Finally, an unexpected end-of-input error is returned.
-      (doit-1 (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'A #f 2)
-	      (make-lexical-token 'A #f 3))
+      (doit-1 (make-token 'A 1)
+	      (make-token 'A 2)
+	      (make-token 'A 3))
     => `())
 
 ;;; --------------------------------------------------------------------
@@ -177,7 +181,7 @@
     => '(0))
 
   (check
-      (doit-2 (make-lexical-token 'A #f 1))
+      (doit-2 (make-token 'A 1))
     => '(1))
 
   (check
@@ -185,27 +189,27 @@
     ;;an  error which  empties  the  stack and  consumes  all the  input
     ;;tokens.  Finally, an unexpected end-of-input error is returned.
       (parameterise ((debugging #f))
-	(doit-2 (make-lexical-token 'A #f 1)
-		(make-lexical-token 'A #f 2)
-		(make-lexical-token 'A #f 3)))
+	(doit-2 (make-token 'A 1)
+		(make-token 'A 2)
+		(make-token 'A 3)))
     => `())
 
 ;;; --------------------------------------------------------------------
 
   (check
     (parameterise ((debugging #f))
-      (doit-3 (make-lexical-token 'A #f 1)))
+      (doit-3 (make-token 'A 1)))
     => '((1)))
 
   (check
-      (doit-3 (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'A #f 2))
+      (doit-3 (make-token 'A 1)
+	      (make-token 'A 2))
     => '((1 2)))
 
   (check
-      (doit-3 (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'A #f 2)
-	      (make-lexical-token 'A #f 3))
+      (doit-3 (make-token 'A 1)
+	      (make-token 'A 2)
+	      (make-token 'A 3))
     => '((1 2 3)))
 
   (check
@@ -221,7 +225,7 @@
   (check
       ;;Two  results because there  is a  shift/reduce conflict,  so two
       ;;processes are generated.
-      (doit-4 (make-lexical-token 'A #f 1))
+      (doit-4 (make-token 'A 1))
     => '(1 1))
 
   (check
@@ -234,9 +238,9 @@
       ;;"A" comes when the state is inside the rule "(e A)", so there is
       ;;no conflict.
       ;;
-      (doit-4 (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'A #f 2)
-	      (make-lexical-token 'A #f 3))
+      (doit-4 (make-token 'A 1)
+	      (make-token 'A 2)
+	      (make-token 'A 3))
     => '(3 3))
 
 ;;; --------------------------------------------------------------------
@@ -246,20 +250,20 @@
     => '((0)))
 
   (check
-      (doit-5 (make-lexical-token 'A #f 1))
+      (doit-5 (make-token 'A 1))
     => '((1 0)
 	 (1)))
 
   (check
-      (doit-5 (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'A #f 2))
+      (doit-5 (make-token 'A 1)
+	      (make-token 'A 2))
     => '((2 1 0)
 	 (2 1)))
 
   (check
-      (doit-5 (make-lexical-token 'A #f 1)
-	      (make-lexical-token 'A #f 2)
-	      (make-lexical-token 'A #f 3))
+      (doit-5 (make-token 'A 1)
+	      (make-token 'A 2)
+	      (make-token 'A 3))
     => '((3 2 1 0)
 	 (3 2 1)))
 
@@ -308,65 +312,65 @@
 
   (check
       (parameterise ((debugging #f))
-	(doit (make-lexical-token 'T #f #\newline)))
+	(doit (make-token 'T #\newline)))
     => '((#\newline)))
 
   (check	;correct input
-      (doit (make-lexical-token 'N #f 1)
-	    (make-lexical-token 'T #f #\newline))
+      (doit (make-token 'N 1)
+	    (make-token 'T #\newline))
     => '((1)))
 
   (check	;correct input
-      (doit  (make-lexical-token 'N #f 1)
-	     (make-lexical-token 'A #f +)
-	     (make-lexical-token 'N #f 2)
-	     (make-lexical-token 'T #f #\newline))
+      (doit  (make-token 'N 1)
+	     (make-token 'A +)
+	     (make-token 'N 2)
+	     (make-token 'T #\newline))
     => '((3)))
 
   (check	 ;correct input
-      (doit (make-lexical-token 'N #f 1)
-	    (make-lexical-token 'A #f +)
-	    (make-lexical-token 'N #f 2)
-	    (make-lexical-token 'M #f *)
-	    (make-lexical-token 'N #f 3)
-	    (make-lexical-token 'T #f #\newline))
+      (doit (make-token 'N 1)
+	    (make-token 'A +)
+	    (make-token 'N 2)
+	    (make-token 'M *)
+	    (make-token 'N 3)
+	    (make-token 'T #\newline))
     => '((9)
 	 (7)))
 
   (check
-      (doit (make-lexical-token 'N #f 10)
-	    (make-lexical-token 'M #f *)
-	    (make-lexical-token 'N #f 2)
-	    (make-lexical-token 'A #f +)
-	    (make-lexical-token 'N #f 3)
-	    (make-lexical-token 'T #f #\newline))
+      (doit (make-token 'N 10)
+	    (make-token 'M *)
+	    (make-token 'N 2)
+	    (make-token 'A +)
+	    (make-token 'N 3)
+	    (make-token 'T #\newline))
     => '((23)))
 
   (check	;correct input
-      (doit  (make-lexical-token 'O #f #\()
-	     (make-lexical-token 'N #f 1)
-	     (make-lexical-token 'A #f +)
-	     (make-lexical-token 'N #f 2)
-	     (make-lexical-token 'C #f #\))
-	     (make-lexical-token 'M #f *)
-	     (make-lexical-token 'N #f 3)
-	     (make-lexical-token 'T #f #\newline))
+      (doit  (make-token 'O #\()
+	     (make-token 'N 1)
+	     (make-token 'A +)
+	     (make-token 'N 2)
+	     (make-token 'C #\))
+	     (make-token 'M *)
+	     (make-token 'N 3)
+	     (make-token 'T #\newline))
     => '((9)))
 
   (check  	;correct input
     (parameterise ((debugging #f))
-      (doit (make-lexical-token 'O #f #\()
-	    (make-lexical-token 'N #f 1)
-	    (make-lexical-token 'A #f +)
-	    (make-lexical-token 'N #f 2)
-	    (make-lexical-token 'C #f #\))
-	    (make-lexical-token 'M #f *)
-	    (make-lexical-token 'N #f 3)
-	    (make-lexical-token 'T #f #\newline)
-	    (make-lexical-token 'N #f 4)
-	    (make-lexical-token 'M #f /)
-	    (make-lexical-token 'N #f 5)
-	    (make-lexical-token 'T #f #\newline)))
+      (doit (make-token 'O #\()
+	    (make-token 'N 1)
+	    (make-token 'A +)
+	    (make-token 'N 2)
+	    (make-token 'C #\))
+	    (make-token 'M *)
+	    (make-token 'N 3)
+	    (make-token 'T #\newline)
+	    (make-token 'N 4)
+	    (make-token 'M /)
+	    (make-token 'N 5)
+	    (make-token 'T #\newline)))
     => '((9 4/5)))
 
   #t)

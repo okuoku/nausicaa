@@ -34,6 +34,8 @@
   (calc-parser)
   (calc-parser-helper)
   (calc-parser-lexer)
+  (parser-tools lexical-token)
+  (parser-tools source-location)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -41,11 +43,11 @@
 
 (define (error-handler message token)
   (error #f
-    (if (not (lexical-token? token))
+    (if (not (<lexical-token>? token))
 	message
-      (let* ((position	(lexical-token-source token))
-	     (line	(source-location-line position))
-	     (column	(source-location-column position)))
+      (let* ((position	(<lexical-token>-source token))
+	     (line	(<source-location>-line position))
+	     (column	(<source-location>-column position)))
 	(string-append message
 		       " line " (if line (number->string line) "unknown")
 		       " column " (if column (number->string column) "unknown"))))

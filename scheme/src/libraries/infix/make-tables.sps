@@ -32,7 +32,9 @@
 (sil:lex sil::input-file	"string-lexer.l"
 	 sil::output-file	"string-lexer.sls"
 	 sil::library-spec	"(infix string-lexer)"
-	 sil::library-imports	'((lalr lr-driver))
+	 sil::library-imports	'((lalr lr-driver)
+				  (parser-tools lexical-token)
+				  (parser-tools source-location))
 	 sil::table-name	'infix-string-lexer-table
 	 sil::lexer-format	'code
 	 sil::counters		'all)

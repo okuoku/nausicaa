@@ -33,30 +33,30 @@
     (silex lexer)
     (infix string-lexer)
     (infix sexp-parser)
-    (infix string-parser))
+    (infix string-parser)
+    (parser-tools lexical-token)
+    (parser-tools source-location))
 
 
 ;;;; helpers
 
-(define unknown-location
-  (make-source-location #f #f #f #f 0))
-
 (define eoi-token
-  (make-lexical-token '*eoi* unknown-location (eof-object)))
+  (make-<lexical-token> '*eoi* #f (eof-object) 0))
 
 (define ell-lparen-token
-  (list (make-lexical-token 'LPAREN unknown-location #\()))
+  (list (make-<lexical-token> 'LPAREN #f #\( 0)))
 
 (define ell-rparen-token
-  (list (make-lexical-token 'RPAREN unknown-location #\))))
+  (list (make-<lexical-token> 'RPAREN #f #\) 0)))
 
 (define (error-handler message token)
   (error #f
-    (if (not (lexical-token? token))
+    (if (or (not (<lexical-token>? token))
+	    (not (<lexical-token>-source token)))
 	message
-      (let* ((position	(lexical-token-source token))
-	     (line	(source-location-line position))
-	     (column	(source-location-column position)))
+      (let* ((position	(<lexical-token>-source token))
+	     (line	(<source-location>-line position))
+	     (column	(<source-location>-column position)))
 	(string-append
 	 message
 	 " line " (if line (number->string line) "unknown")
@@ -93,28 +93,28 @@
     (let ((atom (car expr)))
       (cond ((number? atom)
 	     (set! result
-		   (cons (make-lexical-token 'NUM unknown-location atom)
+		   (cons (make-<lexical-token> 'NUM #f atom 0)
 			 result)))
 	    ((symbol? atom)
 	     (set! result
 		   (cons (case atom
-			   ((+)	(make-lexical-token 'ADD	unknown-location '+))
-			   ((-)	(make-lexical-token 'SUB	unknown-location '-))
-			   ((*)	(make-lexical-token 'MUL	unknown-location '*))
-			   ((/)	(make-lexical-token 'DIV	unknown-location '/))
-			   ((%)	(make-lexical-token 'MOD	unknown-location 'mod))
-			   ((^)	(make-lexical-token 'EXPT	unknown-location 'expt))
-			   ((//) (make-lexical-token 'DIV0	unknown-location 'div))
-			   ((<)	(make-lexical-token 'LT		unknown-location '<))
-			   ((>)	(make-lexical-token 'GT		unknown-location '>))
-			   ((<=) (make-lexical-token 'LE	unknown-location '<=))
-			   ((>=) (make-lexical-token 'GE	unknown-location '>=))
-			   ((=)	(make-lexical-token 'EQ		unknown-location '=))
-			   (else (make-lexical-token 'ID	unknown-location atom)))
+			   ((+)	(make-<lexical-token> 'ADD	#f '+ 0))
+			   ((-)	(make-<lexical-token> 'SUB	#f '- 0))
+			   ((*)	(make-<lexical-token> 'MUL	#f '* 0))
+			   ((/)	(make-<lexical-token> 'DIV	#f '/ 0))
+			   ((%)	(make-<lexical-token> 'MOD	#f 'mod 0))
+			   ((^)	(make-<lexical-token> 'EXPT	#f 'expt 0))
+			   ((//) (make-<lexical-token> 'DIV0	#f 'div 0))
+			   ((<)	(make-<lexical-token> 'LT	#f '< 0))
+			   ((>)	(make-<lexical-token> 'GT	#f '> 0))
+			   ((<=) (make-<lexical-token> 'LE	#f '<= 0))
+			   ((>=) (make-<lexical-token> 'GE	#f '>= 0))
+			   ((=)	(make-<lexical-token> 'EQ	#f '= 0))
+			   (else (make-<lexical-token> 'ID	#f atom 0)))
 			 result)))
 	    ((procedure? atom)
 	     (set! result
-		   (cons (make-lexical-token 'ID unknown-location atom)
+		   (cons (make-<lexical-token> 'ID #f atom 0)
 			 result)))
 	    ((pair? atom)
 	     (set! result
@@ -125,7 +125,7 @@
 			   ell-lparen-token
 			   result)))
 	    (else
-	     (make-lexical-token 'NUM unknown-location atom))))))
+	     (make-<lexical-token> 'NUM #f atom 0))))))
 
 
 ;;;; done

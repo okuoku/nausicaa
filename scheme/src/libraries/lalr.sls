@@ -18,8 +18,8 @@
 ;;;	In fact,  much of  the code  is a direct  translation from  C to
 ;;;	Scheme of the Bison sources.
 ;;;
-;;;	The library is  a port to @rnrs{6} Scheme of  Lalr-scm by .  The
-;;;	original code is available at:
+;;;	The  library  is  a  port  to @rnrs{6}  Scheme  of  Lalr-scm  by
+;;;	Dominique Boucher.  The original code is available at:
 ;;;
 ;;;			<http://code.google.com/p/lalr-scm/>
 ;;;
@@ -52,32 +52,16 @@
     :output-value		:output-port
     :output-file		:dump-table
     :expect			:terminals
-    :rules
-
-    ;; re-exports from (lalr common)
-    make-source-location	source-location?
-    source-location-line
-    source-location-input
-    source-location-column
-    source-location-offset
-    source-location-length
-
-    make-lexical-token		lexical-token?
-    lexical-token-value
-    lexical-token-category
-    lexical-token-source
-
-    lexical-token?/end-of-input
-    lexical-token?/lexer-error
-    lexical-token?/special)
+    :rules)
   (import (rename (rnrs)
 		  (error rnrs:error))
-    (lalr common)
-    (keywords)
 ;;;    (debugging)
-    (pretty-print)
     (rnrs mutable-pairs)
-    (rnrs eval))
+    (rnrs eval)
+    (parser-tools source-location)
+    (parser-tools lexical-token)
+    (keywords)
+    (pretty-print))
 
 
 ;;;; Keyword options for the LALR-PARSER function.
@@ -273,18 +257,13 @@
 	(when dump-table
 	  (with-output-to-new-file dump-table debug:print-states))
 
-	(let* ((imports	(append `((rnrs) (lalr ,driver-name) (lalr common) (sentinel))
+	(let* ((imports	(append `((rnrs)
+				  (lalr ,driver-name)
+				  (parser-tools source-location)
+				  (parser-tools lexical-token)
+				  (sentinel))
 				library-imports))
-	       (exports	`(,parser-name
-			  ;; re-exports from (lalr common)
-			  make-source-location		source-location?
-			  source-location-line		source-location-input
-			  source-location-column	source-location-offset
-			  source-location-length
-			  make-lexical-token		lexical-token?
-			  lexical-token-value		lexical-token-category
-			  lexical-token-source		lexical-token?/end-of-input
-			  lexical-token?/lexer-error	lexical-token?/special))
+	       (exports	`(,parser-name))
 	       (code	(cond (library-spec ;generate a library
 			       (unless parser-name
 				 (assertion-violation 'lalr-parser

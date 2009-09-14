@@ -33,44 +33,39 @@
 #!r6rs
 (library (parser-tools lexical-token)
   (export
-    make-lexical-token		lexical-token?
-    lexical-token-value
-    lexical-token-category
-    lexical-token-source
+    make-<lexical-token>
+    <lexical-token>?
+    <lexical-token>-value
+    <lexical-token>-category
+    <lexical-token>-source
 
-    lexical-token?/end-of-input
-    lexical-token?/lexer-error
-    lexical-token?/special
-    lexical-token-category/or-false)
+    <lexical-token>?/end-of-input
+    <lexical-token>?/lexer-error
+    <lexical-token>?/special)
   (import (rnrs))
 
 
-(define-record-type lexical-token
+(define-record-type <lexical-token>
   (fields (immutable category)
 	  (immutable source)
 	  (immutable value)
 	  (immutable length))
   (nongenerative nausicaa:parser-tools:lexical-token))
 
-(define (lexical-token?/end-of-input obj)
-  (and (lexical-token? obj)
-       (eq? '*eoi* (lexical-token-category obj))))
+(define (make-<lexical-token>/end-of-input location)
+  (make-<lexical-token> '*eoi* location (eof-object) 0))
 
-(define (lexical-token?/lexer-error obj)
-  (and (lexical-token? obj)
-       (eq? '*lexer-error* (lexical-token-category obj))))
+(define (<lexical-token>?/end-of-input obj)
+  (and (<lexical-token>? obj)
+       (eq? '*eoi* (<lexical-token>-category obj))))
 
-(define (lexical-token?/special obj)
-  (and (lexical-token? obj)
-       (memq (lexical-token-category obj) '(*eoi* *lexer-error*))))
+(define (<lexical-token>?/lexer-error obj)
+  (and (<lexical-token>? obj)
+       (eq? '*lexer-error* (<lexical-token>-category obj))))
 
-(define (lexical-token-category/or-false token)
-  ;;Return the token category, or #f  if TOKEN is #f or the end-of-input
-  ;;marker.
-  ;;
-  (and token
-       (let ((category (lexical-token-category token)))
-	 (and (not (eq? '*eoi* category)) category))))
+(define (<lexical-token>?/special obj)
+  (and (<lexical-token>? obj)
+       (memq (<lexical-token>-category obj) '(*eoi* *lexer-error*))))
 
 
 ;;;; done
