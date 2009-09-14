@@ -1,30 +1,19 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: LALR(1) parser generator
+;;;Contents: lexical token record
 ;;;Date: Tue Jul 21, 2009
 ;;;
 ;;;Abstract
 ;;;
-;;;	This library  is a LALR(1)  parser generator written  in Scheme.
-;;;	It implements an efficient algorithm for computing the lookahead
-;;;	sets.  The  algorithm is the  same as used  in GNU Bison  and is
-;;;	described in:
+;;;	The  LEXICAL-TOKEN record  type describes  tokens produced  by a
+;;;	lexer and consumed  by a parser.  It is meant to  be used by all
+;;;	the parser libraries distributed with Nausicaa.
 ;;;
-;;;	   F.  DeRemer  and  T.  Pennello.  ``Efficient  Computation  of
-;;;	   LALR(1)  Look-Ahead Set''.   TOPLAS, vol.  4, no.  4, october
-;;;	   1982.
-;;;
-;;;	As a consequence, it is not written in a fully functional style.
-;;;	In fact,  much of  the code  is a direct  translation from  C to
-;;;	Scheme of the Bison sources.
-;;;
-;;;	The library is  a port to @rnrs{6} Scheme of  Lalr-scm by .  The
-;;;	original code is available at:
-;;;
-;;;			<http://code.google.com/p/lalr-scm/>
-;;;
+;;;Copyright (c) 2009 Marco Maggi
 ;;;Copyright (c) 2005-2008 Dominique Boucher
-;;;Port to R6RS and Nausicaa integration by Marco Maggi.
+;;;
+;;;Original  code  by Dominique  Boucher.   Port  to  R6RS and  Nausicaa
+;;;integration by Marco Maggi.
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -42,15 +31,8 @@
 
 
 #!r6rs
-(library (lalr common)
+(library (parser-tools lexical-token)
   (export
-    make-source-location	source-location?
-    source-location-line
-    source-location-input
-    source-location-column
-    source-location-offset
-    source-location-length
-
     make-lexical-token		lexical-token?
     lexical-token-value
     lexical-token-category
@@ -58,22 +40,17 @@
 
     lexical-token?/end-of-input
     lexical-token?/lexer-error
-    lexical-token?/special)
+    lexical-token?/special
+    lexical-token-category/or-false)
   (import (rnrs))
 
 
-
-(define-record-type (lexical-token make-lexical-token lexical-token?)
-  (fields (immutable category lexical-token-category)
-	  (immutable source   lexical-token-source)
-	  (immutable value    lexical-token-value)))
-
-(define-record-type (source-location make-source-location source-location?)
-  (fields (immutable input   source-location-input)
-	  (immutable line    source-location-line)
-	  (immutable column  source-location-column)
-	  (immutable offset  source-location-offset)
-	  (immutable length  source-location-length)))
+(define-record-type lexical-token
+  (fields (immutable category)
+	  (immutable source)
+	  (immutable value)
+	  (immutable length))
+  (nongenerative nausicaa:parser-tools:lexical-token))
 
 (define (lexical-token?/end-of-input obj)
   (and (lexical-token? obj)
@@ -86,6 +63,14 @@
 (define (lexical-token?/special obj)
   (and (lexical-token? obj)
        (memq (lexical-token-category obj) '(*eoi* *lexer-error*))))
+
+(define (lexical-token-category/or-false token)
+  ;;Return the token category, or #f  if TOKEN is #f or the end-of-input
+  ;;marker.
+  ;;
+  (and token
+       (let ((category (lexical-token-category token)))
+	 (and (not (eq? '*eoi* category)) category))))
 
 
 ;;;; done

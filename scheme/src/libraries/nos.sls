@@ -159,9 +159,9 @@
 	 (memq rtd2 (record-parent-list rtd1)))))
 
 (define (record-type-of obj)
-  ;;Return the record type descriptor associated  to OBJ or #f if OBJ is
-  ;;not  recognised.   The  order  of  the  tests  is  important.   More
-  ;;specialised types must come first.
+  ;;Return the  record type  descriptor associated to  OBJ, if obj  is a
+  ;;RECORD; else  return the RTD  of <top>.  The  order of the  tests is
+  ;;important.  More specialised types must come first.
   ;;
   (cond ((record? obj)
 	 (record-rtd obj))
@@ -197,7 +197,7 @@
 	 ;;qualifying a long list can be time-consuming.
 	 (cond ((list?	obj)	(record-type-descriptor <list>))
 	       (else		(record-type-descriptor <pair>))))
-	(else #f)))
+	(else <top>-rtd)))
 
 
 ;;;; next method implementation
