@@ -94,6 +94,17 @@ format.sls
 knuth-morris-pratt.sls
 ----------------------
 
+lalr.sls
+lalr/lr-driver.sls
+lalr/glr-driver.sls
+-------------------
+
+A LALR(1) parser generator written in  Scheme.  The library is a port to
+R6RS of Lalr-scm  by Dominique Boucher.  The original  code is available
+at:  <http://code.google.com/p/lalr-scm/>.  Port  to  R6RS and  Nausicaa
+integration by Marco Maggi.
+
+
 lists.sls
 ---------
 
@@ -146,6 +157,15 @@ verified Sun Sep 6, 2009).
 parameters.sls
 parameters.*.sls
 ----------------
+
+parser-tools/source-location.sls
+parser-tools/lexical-token.sls
+------------------------------
+
+The  code is  derived from  Lalr-scm  by Dominique  Boucher and  Packrat
+Parser by Tony Garnock-Jones and  LShift Ltd.  Port to R6RS and Nausicaa
+integration by Marco Maggi.
+
 
 pregexp.sls
 -----------
