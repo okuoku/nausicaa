@@ -1049,6 +1049,12 @@ Deferred exceptions
 * deferred exceptions usage::   Usage examples.
 * deferred exceptions api::     Programming interface.
 
+Record utilities
+
+* records parents::             Records parents list.
+* records makers::              Automatically generated makers.
+* records fields::              Binding accessors and mutators.
+
 A simple object system
 
 * scmobj overview::             Overview of the library.
@@ -1078,6 +1084,26 @@ Generic functions and methods
 * scmobj generic define::       Defining generic functions and methods.
 * scmobj generic next::         Invoking the next method.
 * scmobj generic examples::     Examples of method dispatching.
+
+Nausicaa Object System
+
+* nos builtin::                 Record type descriptors for builtins.
+* nos records::                 Handling record types.
+* nos methods::                 Multimethod dispatching.
+
+Record type descriptors for builtin values
+
+* nos builtin chart::           A chart for predefined @acronym{rtd}s.
+* nos builtin rtd::             Conventional @acronym{rtd}s.
+
+Multimethod dispatching
+
+* nos methods application::     How generic functions and methods
+                                are invoked.
+* nos methods dispatching::     How methods are dispatched.
+* nos methods define::          Defining generic functions and methods.
+* nos methods next::            Invoking the next method.
+* nos methods examples::        Examples of method dispatching.
 
 Handling symbolic expressions
 
@@ -1154,8 +1180,16 @@ The regexp pattern language
 
 Lexer and parser utilities
 
-* parser-tools token::          Lexical token records.
 * parser-tools location::       Source location records.
+* parser-tools token::          Lexical token records.
+
+Source location records
+
+* parser-tools location type::          The record type.
+* parser-tools location makers::        Building records.
+* parser-tools location pred::          Predicates.
+* parser-tools location cmp::           Comparison functions.
+* parser-tools location update::        Updating the location.
 
 A lexical analyser generator
 
@@ -35024,10 +35058,11 @@ then the graph is flattened and visited in preorder.
 @chapter Nausicaa Object System
 
 
-The system is defined by the @library{nos} library; it is a basic system
-that barely wraps @rnrs{6} records.  It has two components: a protocol
-for the definition of record types; a generic functions infrastructure
-providing method dispatching.
+The @library{nos} library is a basic object system that barely wraps
+@rnrs{6} records; it is especially useful in conjunction with the
+@library{records} library.  It has two components: a protocol for the
+definition of record types; a generic functions infrastructure providing
+method dispatching.
 
 @menu
 * nos builtin::                 Record type descriptors for builtins.
@@ -35107,12 +35142,18 @@ conventional one to them.  The only purpose of a conventional
 
 The @library{nos} library exports the following record type names, which
 can be used to access the conventional record type descriptors through
-@func{recort-type-descriptor}.  @ref{stdlib records syntactic layer,
+@func{record-type-descriptor}.  @ref{stdlib records syntactic layer,
 Syntactic Layer}
 
 
+@deftp {Record Type Name} <top>
+Conventional parent of all the record types.
+@end deftp
+
+
 @deftp {Record Type Name} <builtin>
-The parent of all the conventional @acronym{RTD}s.
+The parent of all the conventional @acronym{RTD}s, with the exception of
+@class{top}.
 @end deftp
 
 @c ------------------------------------------------------------
@@ -35265,9 +35306,9 @@ Type for values satisfying @func{char?}.
 
 @defun record-type-of @var{obj}
 Return the record type descriptor associated to @var{obj}.  If @var{obj}
-is a record, its record type descriptor is returned; if @var{obj} is a
-builtin Scheme value, a conventional record type descriptor is returned.
-@ref{nos builtin, Record type descriptors for builtin values}
+is a record, its proper record type descriptor is returned; if @var{obj}
+is a builtin Scheme value, a conventional record type descriptor is
+returned.  @ref{nos builtin, Record type descriptors for builtin values}
 @end defun
 
 
@@ -35288,7 +35329,7 @@ list of parents of @varii{rtd}.
 @section Multimethod dispatching
 
 
-@dfn{Generic functions} are procedures that can be specialized to the
+@dfn{Generic functions} are procedures that can be specialised to the
 (conventional) record types of their arguments.  Each specialisation of
 a generic function is called @dfn{method}.  When applying a generic
 function to a set of arguments, the most specific method with respect to
@@ -35301,6 +35342,7 @@ the arguments' types is chosen.
 * nos methods define::          Defining generic functions and methods.
 * nos methods next::            Invoking the next method.
 * nos methods examples::        Examples of method dispatching.
+* nos methods predefined::      Predefined generic functions.
 @end menu
 
 @c page
@@ -35309,7 +35351,7 @@ the arguments' types is chosen.
 
 
 In contrast with @library{scmobj}, @library{nos} only allows the
-definition primary methods.  When a generic function is applied to a
+definition of primary methods.  When a generic function is applied to a
 tuple of arguments, the following happens:
 
 @enumerate
@@ -35320,8 +35362,8 @@ internal collection in which every method's closure is associated to a
 signature.
 
 @item
-The internal collection is queried for all the methods applicable to the
-tuple of arguments, using the signature as search key.
+The internal collection of methods is queried for all the methods
+applicable to the tuple of arguments, using the signature as search key.
 
 @item
 The list of applicable methods is sorted from the more specific to the
@@ -35341,9 +35383,10 @@ next method, recurse to step 4.
 
 
 Here we attempt the formulation of the rules of method dispatching.  A
-method is identified by a triplet of values: a list of classes, called
-signature, representing the classes or expected arguments; a boolean
-value telling if the closure accepts rest arguments; the closure.
+method is identified by a triplet of values: a list of @acronym{RTD}s,
+called signature, representing the classes or expected arguments; a
+boolean value telling if the closure accepts rest arguments; the
+closure.
 
 @c ------------------------------------------------------------
 
@@ -35360,8 +35403,7 @@ tuple.
 
 @item
 Position by position, the @acronym{RTD} in the signature is @func{eq?}
-to the @acronym{RTD} of the argument, or it is in the parent
-@acronym{RTD} list of the argument.
+to the @acronym{RTD} of the argument or it is one of its parents.
 @end enumerate
 
 @noindent
@@ -35375,7 +35417,7 @@ arguments' tuple.
 @item
 Position by position, up to the last element in the signature, the
 @acronym{RTD} in the signature is @func{eq?} to the @acronym{RTD} of the
-argument, or it is in the parent @acronym{RTD} list of the argument.
+argument or it is one of its parents.
 @end enumerate
 
 @c ------------------------------------------------------------
@@ -35428,7 +35470,7 @@ The number of arguments (arity) of a generic function is undefined:
 Every method can have a different number of arguments.
 
 
-@deffn Macro define-generic @var{name}
+@deffn Syntax define-generic @var{name}
 Define a new generic function and bind it to @var{name}.
 @end deffn
 
@@ -35438,8 +35480,22 @@ Build and return a new generic function.
 @end defun
 
 
-@deffn Macro declare-method @var{generic} (@var{arg-spec} ...) . @var{body}
-@deffnx Macro declare-method (@var{generic} @var{arg-spec} ...) . @var{body}
+@deffn Syntax define-generic/merge @var{name} @var{generic0} @var{generic} ...
+Define a new generic function and bind it to @var{name}.  The internal
+collection of methods holds the union of the method collections from the
+@var{generic} arguments, which must be generic functions.
+
+The union is performed visiting arguments from left to right; when two
+methods have the same signature and the same support for rest arguments,
+the one from the leftmost generic function has precedence.
+
+Merging methods is useful when two different libraries export generic
+functions bound to the same identifier.
+@end deffn
+
+
+@deffn Syntax declare-method @var{generic} (@var{arg-spec} ...) . @var{body}
+@deffnx Syntax declare-method (@var{generic} @var{arg-spec} ...) . @var{body}
 Add a new method to an already existent generic function, @var{generic};
 a declaration is @strong{not} a definition.  @ref{baselib definitions,
 Definitions}
@@ -35456,8 +35512,9 @@ the (conventional) record name of expected values.
 
 @item @var{arg}
 Where @var{arg} is the formal name of the argument.  In this case the
-@acronym{RTD} defaults to the conventional @true{}, which is interpreted
-as parent of every other @acronym{RTD}.
+@acronym{RTD} defaults to the conventional @class{top}, which is
+interpreted as parent of every other @acronym{RTD} (and so it has the
+least specificity).
 @end table
 
 If a method is defined with the same signature, and support for rest
@@ -35468,7 +35525,7 @@ arguments and the other does not, are different.
 @end deffn
 
 
-@deffn Macro add-method @var{generic} @var{signature} @var{has-rest} @var{closure}
+@deffn Syntax add-method @var{generic} @var{signature} @var{has-rest} @var{closure}
 Add a new method to an already existent generic function, @var{generic}.
 @var{signature} must be a list of record names for which this method
 specialises the generic function.  @var{closure} must be the method's
@@ -35503,7 +35560,6 @@ symbol @class{apple}.
 Let's examine this example:
 
 @example
-(define-record-type <top>)
 (define-record-type <one> (parent <top>))
 (define-record-type <two> (parent <one>))
 (define-record-type <c>   (parent <two>))
@@ -35539,13 +35595,44 @@ signature is @emph{more specific} than the method with @class{one} in
 the signature:
 
 @example
-(doit (make <c>)) @result{} two
+(doit (make-<c>)) @result{} two
 @end example
 
 @noindent
 also the method with @class{one} in the signature is the ``next method''
 of the method with @class{two} in the signature, we can call it using
 @func{call-next-method}.
+
+The following example shows a call to the next method:
+
+@example
+(define-generic fluff)
+
+(declare-method (fluff (o <one>))
+  'one)
+
+(declare-method (fluff (o <two>))
+  (cons 'two (call-next-method)))
+
+(define o (make-<c>))
+
+(fluff o)
+@result{} (two . one)
+@end example
+
+@c page
+@node nos methods predefined
+@subsection Predefined generic functions
+
+
+@deffn {Generic Function} object->string @var{obj}
+Return a string representation for @var{obj}.  A non--specialised method
+is predefined to use the following algorithm:
+
+@example
+
+@end example
+@end deffn
 
 @c page
 @node sexps

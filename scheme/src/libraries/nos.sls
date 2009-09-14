@@ -1,6 +1,5 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: Nausicaa Object System
 ;;;Date: Wed Aug 26, 2009
@@ -32,180 +31,172 @@
 (library (nos)
   (export
 
-    <builtin>	<builtin>?
+    <top> <builtin>
+    <pair> <list>
+    <char> <string> <vector> <bytevector> <hashtable>
+    <record> <condition>
+    <port> <binary-port> <input-port> <output-port> <textual-port>
+    <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
+    <real> <real-valued> <complex> <number>
 
-    <pair>		<pair>?
-    <list>		<list>?
-    <circular-list>	<circular-list>?
-    <dotted-list>	<dotted-list>?
+    record-type-of record-is-a? record-subtype?
+    define-generic declare-method add-method define-generic/merge
+    call-next-method next-method?
 
-    <char>		<char>?
-    <string>		<string>?
-    <vector>		<vector>?
-    <bytevector>	<bytevector>?
-    <hashtable>		<hashtable>?
-
-    <record>		<record>?
-    <condition>		<condition>?
-
-    <port>		<port>?
-    <binary-port>	<binary-port>?
-    <input-port>	<input-port>?
-    <output-port>	<output-port>?
-    <textual-port>	<textual-port>?
-    <fixnum>		<fixnum>?
-    <flonum>		<flonum>?
-    <integer>		<integer>?
-    <integer-valued>	<integer-valued>?
-    <rational>		<rational>?
-    <rational-valued>	<rational-valued>?
-    <real>		<real>?
-    <real-valued>	<real-valued>?
-    <complex>		<complex>?
-    <number>		<number>?
-
-    is-a? class-of subclass?
-    define-generic define-method  add-method
-    call-next-method next-method?)
+    object->string)
   (import (nausicaa)
-    (language-extensions)
     (rnrs mutable-pairs (6))
-;;    (keywords)
-    (lists)
     (parameters)
-;;    (pretty-print)
     (records))
 
 
 ;;;; helpers
 
 (define-syntax position
+  ;;This is a specialised version of LIST-INDEX from (lists): Return the
+  ;;zero-based index  of ?ITEM in  ?ELL.  It is  a macro in  a desperate
+  ;;attempt to gain some CPU cycle.
+  ;;
+  ;;?ELL is evaluated only once, ?ITEM is evaluated multiple times.
+  ;;
   (syntax-rules ()
-    ((_ ?element ?list)
-     (list-index (lambda (elm)
-		   (eq? ?element elm))
-       ?list))))
+    ((_ ?item ?ell)
+     (let loop ((ell   ?ell)
+		(index 0))
+       (and (not (null? ell))
+	    (if (eq? ?item (car ell))
+		index
+	      (loop (cdr ell) (+ 1 index))))))))
+
+(define-syntax take-left
+  (syntax-rules ()
+    ((_ ?dotted ?k)
+     (let loop ((ret    '())
+		(dotted ?dotted)
+		(k      ?k))
+       (if (= 0 k)
+	   (reverse ret)
+	 (loop (cons (car dotted) ret)
+	       (cdr dotted)
+	       (- k 1)))))))
+
+(define-syntax for-all*
+  ;;Test that the lists have equal  length and all the elements are EQ?;
+  ;;return true or false.
+  ;;
+  ;;This is  more than SRFI-1's EVERY,  because EVERY does  not test for
+  ;;equal length.  It is not like R6RS's FOR-ALL, because FOR-ALL raises
+  ;;an error if the length is different.
+  ;;
+  (syntax-rules ()
+    ((_ ?eq ?ell1 ?ell2)
+     (let loop ((ell1 ?ell1)
+		(ell2 ?ell2))
+       (cond ((null? ell1)
+	      (null? ell2))
+	     ((null? ell2)
+	      (null? ell1))
+	     ((?eq (car ell1) (car ell2))
+	      (loop (cdr ell1) (cdr ell2)))
+	     (else #f))))))
+
+(define-syntax list-copy
+  (syntax-rules ()
+    ((_ ?ell)
+     (let loop ((ell ?ell))
+       (if (pair? ell)
+	   (cons (car ell) (loop (cdr ell)))
+	 ell)))))
 
 
+(define-record-type <top>
+  (nongenerative nausicaa:nos:<top>))
+
 (define-record-type <builtin>
+  (parent <top>)
   (nongenerative nausicaa:nos:<builtin>))
 
-(define-syntax define-builtin
-  (lambda (stx)
-    (syntax-case stx ()
-      ((k ?name ?parent ?builtin-pred)
-       (let ((name (symbol->string (syntax->datum (syntax ?name)))))
-	 (with-syntax ((?record-make (datum->syntax (syntax k)
-						    (string->symbol (string-append ":make-" name))))
-		       (?record-pred (datum->syntax (syntax k)
-						    (string->symbol (string-append ":" name))))
-		       (?pred (datum->syntax (syntax k)
-					     (string->symbol (string-append name "?")))))
-	   (syntax
-	    (begin
-	      (define-record-type (?name ?record-make ?record-pred)
-		(parent ?parent))
-	      (define ?pred ?builtin-pred)))))))))
+(define-record-type <pair>		(parent <builtin>))
+(define-record-type <list>		(parent <pair>))
+(define-record-type <char>		(parent <builtin>))
+(define-record-type <string>		(parent <builtin>))
+(define-record-type <vector>		(parent <builtin>))
+(define-record-type <bytevector>	(parent <builtin>))
+(define-record-type <hashtable>		(parent <builtin>))
 
-(define-builtin <pair>		<builtin>	pair?)
-(define-builtin <list>		<pair>		list?)
-(define-builtin <circular-list>	<list>		circular-list?)
-(define-builtin <dotted-list>	<list>		dotted-list?)
-(define-builtin <char>		<builtin>	char?)
-(define-builtin <string>	<builtin>	string?)
-(define-builtin <vector>	<builtin>	vector?)
-(define-builtin <bytevector>	<builtin>	bytevector?)
-(define-builtin <hashtable>	<builtin>	hashtable?)
+(define-record-type <record>		(parent <builtin>))
+(define-record-type <condition>		(parent <record>))
 
-(define-builtin <record>	<builtin>		record?)
-(define-builtin <condition>	<record>		condition?)
+(define-record-type <port>		(parent <builtin>))
+(define-record-type <input-port>	(parent <port>))
+(define-record-type <output-port>	(parent <port>))
+(define-record-type <binary-port>	(parent <port>))
+(define-record-type <textual-port>	(parent <port>))
 
-(define-builtin <port>		<builtin>		port?)
-(define-builtin <input-port>	<port>			input-port?)
-(define-builtin <output-port>	<port>			output-port?)
-(define-builtin <binary-port>	<port>			binary-port?)
-(define-builtin <textual-port>	<port>			textual-port?)
-
-(define-builtin <number>	<builtin>		number?)
-(define-builtin <complex>	<number>		complex?)
-(define-builtin <real-valued>	<complex>		real-valued?)
-(define-builtin <real>		<real-valued>		real?)
-(define-builtin <rational-valued> <real>		rational-valued?)
-(define-builtin <flonum>	<real>			flonum?)
-(define-builtin <rational>	<rational-valued>	rational?)
-(define-builtin <integer-valued> <rational-valued>	integer-valued?)
-(define-builtin <integer>	<integer-valued>	integer?)
-(define-builtin <fixnum>	<integer>		fixnum?)
-
-;;Other possible classes that require more library loading:
-;;
-;;	<stream>	stream?
-;;
+(define-record-type <number>		(parent <builtin>))
+(define-record-type <complex>		(parent <number>))
+(define-record-type <real-valued>	(parent <complex>))
+(define-record-type <real>		(parent <real-valued>))
+(define-record-type <rational-valued>	(parent <real>))
+(define-record-type <flonum>		(parent <real>))
+(define-record-type <rational>		(parent <rational-valued>))
+(define-record-type <integer-valued>	(parent <rational-valued>))
+(define-record-type <integer>		(parent <integer-valued>))
+(define-record-type <fixnum>		(parent <integer>))
 
 
-;;;; class inspection
+(define (record-is-a? obj class-rtd)
+  (eq? class-rtd (record-type-of obj)))
 
-(define (is-a? obj class-rtd)
-  (and (record? obj)
-       ((record-predicate class-rtd) obj)))
+(define <top>-rtd
+  (record-type-descriptor <top>))
 
-#;(define (subclass? rtd1 rtd2)
-  (cond ((eq? rtd1 rtd2) #t)
- 	;; ((eq? rtd1 #t) #f)
- 	;; ((eq? rtd2 #t) #t)
+(define (record-subtype? rtd1 rtd2)
+  (cond ((eq? rtd1 rtd2)	#t)
+	((eq? rtd1 <top>-rtd)   #f)
+   	((eq? rtd2 <top>-rtd)   #t)
 	(else
-	 (memq rtd2 (record-precedence-list rtd1)) #t)))
+	 (memq rtd2 (record-parent-list rtd1)))))
 
-(define (subclass? rtd1 rtd2)
-  (cond ((eq? rtd1 rtd2) #t)
-	((eq? rtd1 #t) #f)
-   	((eq? rtd2 #t) #t)
-	(else
-	 (memq rtd2 (record-precedence-list rtd1)))))
+(define (record-type-of obj)
+  ;;Return the record type descriptor associated  to OBJ or #f if OBJ is
+  ;;not  recognised.   The  order  of  the  tests  is  important.   More
+  ;;specialised types must come first.
+  ;;
+  (cond ((record? obj)
+	 (record-rtd obj))
 
-;; (define (subclass? rtd1 rtd2)
-;;   (memq rtd2 (record-precedence-list rtd1)))
-
-(define (class-of value)
-  (cond ((record? value)
-	 (record-rtd value))
-
-	((number? value)
+	((number? obj)
 	 ;;Order does matter here!!!
-	 (cond ((fixnum?		value)	(record-type-descriptor <fixnum>))
-	       ((integer?		value)	(record-type-descriptor <integer>))
-	       ((rational?		value)	(record-type-descriptor <rational>))
-	       ((integer-valued?	value)	(record-type-descriptor <integer-valued>))
-	       ((rational-valued?	value)	(record-type-descriptor <rational-valued>))
-	       ((flonum?		value)	(record-type-descriptor <flonum>))
-	       ((real?			value)	(record-type-descriptor <real>))
-	       ((real-valued?		value)	(record-type-descriptor <real-valued>))
-	       ((complex?		value)	(record-type-descriptor <complex>))
-	       ((number?		value)	(record-type-descriptor <number>))
-	       (else #f)))
-	((char?		value)		(record-type-descriptor <char>))
-	((string?	value)		(record-type-descriptor <string>))
-	((vector?	value)		(record-type-descriptor <vector>))
-	((hashtable?	value)		(record-type-descriptor <hashtable>))
-	((port? value)
+	 (cond ((fixnum?		obj)	(record-type-descriptor <fixnum>))
+	       ((integer?		obj)	(record-type-descriptor <integer>))
+	       ((rational?		obj)	(record-type-descriptor <rational>))
+	       ((integer-valued?	obj)	(record-type-descriptor <integer-valued>))
+	       ((rational-valued?	obj)	(record-type-descriptor <rational-valued>))
+	       ((flonum?		obj)	(record-type-descriptor <flonum>))
+	       ((real?			obj)	(record-type-descriptor <real>))
+	       ((real-valued?		obj)	(record-type-descriptor <real-valued>))
+	       ((complex?		obj)	(record-type-descriptor <complex>))
+	       (else				(record-type-descriptor <number>))))
+	((char?		obj)		(record-type-descriptor <char>))
+	((string?	obj)		(record-type-descriptor <string>))
+	((vector?	obj)		(record-type-descriptor <vector>))
+	((hashtable?	obj)		(record-type-descriptor <hashtable>))
+	((port?		obj)
 	 ;;Order here is arbitrary.
-	 (cond ((input-port?	value)	(record-type-descriptor <input-port>))
-	       ((output-port?	value)	(record-type-descriptor <output-port>))
-	       ((binary-port?	value)	(record-type-descriptor <binary-port>))
-	       ((textual-port?	value)	(record-type-descriptor <textual-port>))
-	       ((port?		value)	(record-type-descriptor <port>))
-	       (else #f)))
-	((condition?	value)		(record-type-descriptor <condition>))
-	((record?	value)		(record-type-descriptor <record>))
-	((bytevector?	value)		(record-type-descriptor <bytevector>))
-	((pair?		value)
+	 (cond ((input-port?	obj)	(record-type-descriptor <input-port>))
+	       ((output-port?	obj)	(record-type-descriptor <output-port>))
+	       ((binary-port?	obj)	(record-type-descriptor <binary-port>))
+	       ((textual-port?	obj)	(record-type-descriptor <textual-port>))
+	       (else			(record-type-descriptor <port>))))
+	((condition?	obj)		(record-type-descriptor <condition>))
+	((record?	obj)		(record-type-descriptor <record>))
+	((bytevector?	obj)		(record-type-descriptor <bytevector>))
+	((pair?		obj)
 	 ;;Order does matter  here!!!  Better leave these at  the end because
 	 ;;qualifying a long list can be time-consuming.
-	 (cond ((circular-list	value)	(record-type-descriptor <circular-list>))
-	       ((dotted-list?	value)	(record-type-descriptor <dotted-list>))
-	       ((list?		value)	(record-type-descriptor <list>))
-	       ((pair?		value)	(record-type-descriptor <pair>))
-	       (else #f)))
+	 (cond ((list?	obj)	(record-type-descriptor <list>))
+	       (else		(record-type-descriptor <pair>))))
 	(else #f)))
 
 
@@ -244,18 +235,19 @@
 (define :method-alist
   (make-special-argument))
 
-#;(define-syntax define-generic
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?name)
-       (let ((gf (make-generic-function)))
-	 (with-syntax ((?gf gf))
-	   (syntax (define ?name ?gf))))))))
+(define :method-alist-set!
+  (make-special-argument))
 
 (define-syntax define-generic
   (syntax-rules ()
     ((_ ?name)
      (define ?name (make-generic-function)))))
+
+(define-syntax define-generic/merge
+  (syntax-rules ()
+    ((_ ?name ?gf0 ?gf ...)
+     (define ?name
+       (merge-generic-functions ?gf0 ?gf ...)))))
 
 (define (make-generic-function)
   (let* ((method-alist	'())
@@ -274,6 +266,10 @@
       		   method-adder)
 		  ((eq? arg :method-alist)
       		   method-alist)
+		  ((eq? arg :method-alist-set!)
+		   (when cache
+		     (hashtable-clear! cache))
+      		   (set! method-alist (cadr args)))
       		  (else
       		   (assertion-violation #f
       		     "internal error with invalid special argument"
@@ -287,7 +283,7 @@
 					     (car ?closure-list)
 					   (set! ?closure-list (cdr ?closure-list)))))))
 	  (letrec* ((signature
-		     (map class-of args))
+		     (map record-type-of args))
 
 		    (applicable-methods
 		     (cond ((and cache (hashtable-ref cache signature #f))
@@ -337,14 +333,14 @@
 
 ;;;; syntaxes to define and add methods
 
-(define-syntax define-method
+(define-syntax declare-method
   ;;Define a new method and store it in the given generic function.
   ;;
   (syntax-rules ()
 
     ;;This is for the syntax:
     ;;
-    ;;	(define-method (doit (a <alpha>) (b <beta>))
+    ;;	(declare-method (doit (a <alpha>) (b <beta>))
     ;;	  ---)
     ;;
     ((_ (?generic-function . ?args) . ?body)
@@ -352,18 +348,11 @@
 
     ;;This is for the syntax:
     ;;
-    ;;	(define-method doit ((a <alpha>) (b <beta>))
+    ;;	(declare-method doit ((a <alpha>) (b <beta>))
     ;;	  ---)
     ;;
     ((_ ?generic-function ?args . ?body)
      (%collect-classes-and-arguments ?generic-function ?args () () . ?body))))
-
-(define-syntax add-method
-  (syntax-rules ()
-    ((_ ?generic-function (?record-name ...) ?has-rest ?closure)
-     ((?generic-function :method-adder)
-      (list (record-type-descriptor ?record-name) ...)	;this is the signature
-      ?has-rest ?closure))))
 
 (define-syntax %collect-classes-and-arguments
   ;;Analyse the list  of method arguments collecting a  list of names, a
@@ -385,7 +374,7 @@
      ;;Matches the  form when the next  argument to be  processed has no
      ;;class.
      (%collect-classes-and-arguments ?generic-function ?args
-				     (?record-name ... #t)
+				     (?record-name ... <top>)
 				     (?arg-name    ... ?next-arg-name)
 				     . ?body))
 
@@ -404,6 +393,13 @@
      (add-method ?generic-function (?record-name ...)
 		 #t ;means rest argument is present
 		 (lambda (?arg-name ... . ?rest-name) . ?body)))))
+
+(define-syntax add-method
+  (syntax-rules ()
+    ((_ ?generic-function (?record-name ...) ?has-rest ?closure)
+     ((?generic-function :method-adder)
+      (list (record-type-descriptor ?record-name) ...)	;this is the signature
+      ?has-rest ?closure))))
 
 
 ;;;; method alists
@@ -455,24 +451,6 @@
 	  (else
 	   (method-alist-cons key closure method-alist)))))
 
-(define-syntax for-all*
-  ;;Test that the lists have equal  length and all the elements are EQ?.
-  ;;This is  more than SRFI-1's EVERY,  because EVERY does  not test for
-  ;;equal length.  It is not like R6RS's FOR-ALL, because FOR-ALL raises
-  ;;an error if the length is different.
-  ;;
-  (syntax-rules ()
-    ((_ ?eq ?ell1 ?ell2)
-     (let loop ((ell1 ?ell1)
-		(ell2 ?ell2))
-       (cond ((null? ell1)
-	      (null? ell2))
-	     ((null? ell2)
-	      (null? ell1))
-	     ((?eq (car ell1) (car ell2))
-	      (loop (cdr ell1) (cdr ell2)))
-	     (else #f))))))
-
 
 ;;;; methods dispatching
 
@@ -504,12 +482,12 @@
      ;;If SIGNATURE has  the same length of the  call signature, test it
      ;;for applicability.
      ((= call-len len)
-      (every subclass? call-signature signature))
+      (for-all* record-subtype? call-signature signature))
 
      ;;If  the closure  supports rest  arguments, compare  only  as much
      ;;record types as there are in SIGNATURE.
      ((and has-rest (> call-len len))
-      (every subclass? (take-left call-signature len) signature))
+      (for-all* record-subtype? (take-left call-signature len) signature))
 
      ;;This method is not applicable.
      (else #f))))
@@ -518,6 +496,7 @@
   ;;Return true if METHOD1 is more specific than METHOD2 with respect to
   ;;CALL-SIGNATURE.   This  function   must  be  applied  to  applicable
   ;;methods.  The longest signature is more specific, by definition.
+  ;;
   (let* ((signature1	(cdar method1))
 	 (signature2	(cdar method2))
 	 (len1		(length signature1))
@@ -535,22 +514,73 @@
 		 ;;supports  rest arguments and  METHOD1 does  not, then
 		 ;;METHOD1  is  more  specific.   This test  reduces  to
 		 ;;testing if METHOD2 supports rest arguments.
-		 (caar method2)
+		 (method-entry-accept-rest? method2)
 
 	       (let ((class1 (car signature1))
 		     (class2 (car signature2)))
 		 (cond
 		  ((eq? class1 class2)
 		   (loop (cdr signature1) (cdr signature2) (cdr call-signature)))
-		  ((subclass? class1 class2) #t)
-		  ((subclass? class2 class1) #f)
-		  (else
-		   (let* ((c (car call-signature))
-			  (cpl (if (eq? c #t)
-				   '()
-				 (record-precedence-list c))))
-		     (< (position class1 cpl)
-			(position class2 cpl))))))))))))
+		  ((record-subtype? class1 class2) #t)
+		  (else #f)))))))))
+
+
+;;;; merging
+
+(define (merge-generic-functions gf . generics)
+  (let ((ma  (merge-method-alists (gf :method-alist)
+				  (map (lambda (gf)
+					 (gf :method-alist))
+				    generics)))
+	(new (make-generic-function)))
+    (new :method-alist-set! ma)
+    new))
+
+(define-syntax merge-method-alists
+  (syntax-rules ()
+    ((_ ?ma ?method-alists)
+     (let loop ((ma		(list-copy ?ma))
+		(method-alists	?method-alists))
+       (if (null? method-alists)
+	   ma
+	 (loop (merge-two-method-alists ma (car method-alists))
+	       (cdr method-alists)))))))
+
+(define-syntax merge-two-method-alists
+  ;;Merge ?MA1 into ?MA and return a new alist.
+  ;;
+  (syntax-rules ()
+    ((_ ?ma ?ma1)
+     (let loop ((ma  ?ma)
+		(ma1 ?ma1))
+       (if (null? ma1)
+	   ma
+	 (loop (maybe-merge-method (car ma1) ma) (cdr ma1)))))))
+
+(define-syntax maybe-merge-method
+  ;;Add CANDIDATE-METHOD-ENTRY to METHOD-ALIST and return the new alist.
+  ;;Adding happens  only if  a method with  the same signature  and rest
+  ;;arguments support does not already exist in METHOD-ALIST.
+  ;;
+  (syntax-rules ()
+    ((_ ?candidate-method-entry ?method-alist)
+     (let* ((candidate-method-entry	?candidate-method-entry)
+	    (method-alist		?method-alist)
+	    (key			(method-entry-key candidate-method-entry)))
+       (unless (find (lambda (method-entry)
+		       (for-all* eq? key (method-entry-key method-entry)))
+		     method-alist)
+	 (cons candidate-method-entry method-alist))))))
+
+
+;;;; predefined generic functions
+
+(define-generic object->string)
+
+(declare-method (object->string o)
+  (call-with-string-output-port
+   (lambda (port)
+     (display o port))))
 
 
 ;;;; done

@@ -28,32 +28,60 @@
   (lists)
   (checks)
   (nos)
+  (keywords)
   (matches))
 
 (check-set-mode! 'report-failed)
 (display "*** testing NOS\n")
 
 
-(parametrise ((check-test-name 'definition))
+(parametrise ((check-test-name 'definition-experiments))
 
-  (define-record-type <a>
-    (fields (mutable	alpha)
-	    (immutable	beta))
-    (protocol (lambda (maker)
-		(lambda args
-		  (let ((alpha #f)
-			(beta  #f))
-		    (for-each (match-lambda
-			       (('alpha x) (set! alpha x))
-			       (('beta  x) (set! beta  x)))
-		      args)
-		    (maker alpha beta))))))
+  (let ()
+    (define-record-type <a>
+      (fields (mutable	alpha)
+	      (immutable	beta))
+      (protocol (lambda (maker)
+		  (lambda args
+		    (let ((alpha #f)
+			  (beta  #f))
+		      (for-each (match-lambda
+				 (('alpha x) (set! alpha x))
+				 (('beta  x) (set! beta  x)))
+			args)
+		      (maker alpha beta))))))
 
-  (check
-      (let ((a (make-<a> '(alpha 1) '(beta  2))))
-	(list (<a>-alpha a)
-	      (<a>-beta  a)))
-    => '(1 2))
+    (check
+	(let ((a (make-<a> '(alpha 1) '(beta  2))))
+	  (list (<a>-alpha a)
+		(<a>-beta  a)))
+      => '(1 2))
+
+    #t)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define-record-type <a>
+      (fields (mutable alpha)
+	      (immutable beta)))
+
+    (define-keyword :alpha)
+    (define-keyword :beta)
+
+    (define (make-<a>* . options)
+      (let-keywords options #f ((alpha	:alpha	#f)
+				(beta	:beta	#f))
+	(make-<a> alpha beta)))
+
+    (check
+	(let ((a (make-<a>* :alpha 1 :beta 2)))
+	  (list (<a>-alpha a)
+		(<a>-beta  a)))
+      => '(1 2))
+
+    #t)
 
   #t)
 
@@ -78,13 +106,13 @@
 
     (define-generic alpha)
 
-    (define-method alpha ((o <one>))
+    (declare-method alpha ((o <one>))
       (<one>-a o))
 
-    (define-method alpha ((o <two>))
+    (declare-method alpha ((o <two>))
       (<two>-d o))
 
-    (define-method alpha ((o <three>))
+    (declare-method alpha ((o <three>))
       (<three>-g o))
 
     (let ((a (make-<one> 1 10 100))
@@ -113,10 +141,10 @@
 
     (define-generic alpha)
 
-    (define-method alpha ((o <one>))
+    (declare-method alpha ((o <one>))
       (<one>-a o))
 
-    (define-method alpha ((o <one>))
+    (declare-method alpha ((o <one>))
       (<one>-b o))
 
     (let ((o (make-<two> 1 2 3 4 5 6)))
@@ -131,12 +159,12 @@
 
     (define-generic alpha)
 
-    (define-method alpha ((o <fixnum>))		'<fixnum>)
-    (define-method alpha ((o <flonum>))		'<flonum>)
-    (define-method alpha ((o <integer>))	'<integer>)
-    (define-method alpha ((o <real>))		'<real>)
-    (define-method alpha ((o <complex>))	'<complex>)
-    (define-method alpha ((o <number>))		'<number>)
+    (declare-method alpha ((o <fixnum>))		'<fixnum>)
+    (declare-method alpha ((o <flonum>))		'<flonum>)
+    (declare-method alpha ((o <integer>))	'<integer>)
+    (declare-method alpha ((o <real>))		'<real>)
+    (declare-method alpha ((o <complex>))	'<complex>)
+    (declare-method alpha ((o <number>))		'<number>)
 
     ;;Here remember  that we are using  the methods above,  we are *not*
     ;;applying CLASS-OF.
@@ -169,14 +197,14 @@
 
   (define-generic alpha)
 
-  (define-method (alpha (o <one>))
+  (declare-method (alpha (o <one>))
     (<one>-a o))
 
-  (define-method alpha ((o <two>))
+  (declare-method alpha ((o <two>))
     (cons (<two>-d o)
 	  (call-next-method)))
 
-  (define-method alpha ((o <three>))
+  (declare-method alpha ((o <three>))
     (cons (<three>-g o)
 	  (call-next-method)))
 
@@ -227,8 +255,8 @@
 ;;; Two levels specificity.
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 2)
+    (declare-method (alpha (p <1>) (q <2>) (r <3>)) 1)
+    (declare-method (alpha (p <a>) (q <b>) (r <c>)) 2)
     (check (alpha n1 n2 n3) => 1)
     (check (alpha  a n2 n3) => 2)
     (check (alpha n1  b n3) => 2)
@@ -240,9 +268,9 @@
 ;;; Mixed levels specificity.
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
-    (define-method (alpha (p <1>) (q <b>) (r <3>)) 2)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
+    (declare-method (alpha (p <1>) (q <2>) (r <3>)) 1)
+    (declare-method (alpha (p <1>) (q <b>) (r <3>)) 2)
+    (declare-method (alpha (p <a>) (q <b>) (r <c>)) 3)
     (check (alpha n1 n2 n3) => 1)
     (check (alpha  a n2 n3) => 3)
     (check (alpha n1  b n3) => 2)
@@ -251,9 +279,9 @@
     )
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>) (q <2>) (r <3>)) 1)
-    (define-method (alpha (p <1>) (q <b>) (r <c>)) 2)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 3)
+    (declare-method (alpha (p <1>) (q <2>) (r <3>)) 1)
+    (declare-method (alpha (p <1>) (q <b>) (r <c>)) 2)
+    (declare-method (alpha (p <a>) (q <b>) (r <c>)) 3)
     (check (alpha n1 n2 n3) => 1)
     (check (alpha  a n2 n3) => 3)
     (check (alpha n1  b n3) => 2)
@@ -265,24 +293,24 @@
 ;;; Overwriting existing method.
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>)) 123)
-    (define-method (alpha (p <1>)) 456)
+    (declare-method (alpha (p <1>)) 123)
+    (declare-method (alpha (p <1>)) 456)
     (check (alpha n1) => 456))
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>) . rest) 123)
-    (define-method (alpha (p <1>) . rest) 456)
+    (declare-method (alpha (p <1>) . rest) 123)
+    (declare-method (alpha (p <1>) . rest) 456)
     (check (alpha n1) => 456))
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>)) 123)
-    (define-method (alpha (p <1>) . rest) 456)
+    (declare-method (alpha (p <1>)) 123)
+    (declare-method (alpha (p <1>) . rest) 456)
     (check (alpha n1) => 123)
     (check (alpha n1 10) => 456))
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>) . rest) 456)
-    (define-method (alpha (p <1>)) 123)
+    (declare-method (alpha (p <1>) . rest) 456)
+    (declare-method (alpha (p <1>)) 123)
     (check (alpha n1) => 123)
     (check (alpha n1 10) => 456))
 
@@ -290,11 +318,11 @@
 ;;; Rest arguments.
   (let ()
     (define-generic alpha)
-    (define-method alpha ((p <1>))		   1)
-    (define-method alpha ((p <a>) . rest)	   2)
-    (define-method alpha ((p <1>) . rest)	   3)
-    (define-method alpha ((p <1>) (q <2>) . rest)  4)
-    (define-method alpha ((p <a>) (q <b>) (r <c>)) 5)
+    (declare-method alpha ((p <1>))		   1)
+    (declare-method alpha ((p <a>) . rest)	   2)
+    (declare-method alpha ((p <1>) . rest)	   3)
+    (declare-method alpha ((p <1>) (q <2>) . rest)  4)
+    (declare-method alpha ((p <a>) (q <b>) (r <c>)) 5)
     (check (alpha n1 n2 n3) => 5)
     (check (alpha  a n2 n3) => 5)
     (check (alpha n1  b n3) => 5)
@@ -311,11 +339,11 @@
     #f)
   (let ()
     (define-generic alpha)
-    (define-method (alpha (p <1>))		   1)
-    (define-method (alpha (p <a>) . rest)	   2)
-    (define-method (alpha (p <1>) . rest)	   3)
-    (define-method (alpha (p <1>) (q <2>) . rest)  4)
-    (define-method (alpha (p <a>) (q <b>) (r <c>)) 5)
+    (declare-method (alpha (p <1>))		   1)
+    (declare-method (alpha (p <a>) . rest)	   2)
+    (declare-method (alpha (p <1>) . rest)	   3)
+    (declare-method (alpha (p <1>) (q <2>) . rest)  4)
+    (declare-method (alpha (p <a>) (q <b>) (r <c>)) 5)
     (check (alpha n1 n2 n3) => 5)
     (check (alpha  a n2 n3) => 5)
     (check (alpha n1  b n3) => 5)
@@ -329,6 +357,84 @@
     (check (alpha n1)       => 1)
     (check (alpha n1 123)   => 3)
     (check (alpha n1 123 4) => 3)
+    #f)
+
+  #t)
+
+
+(parameterise ((check-test-name 'generic-merge))
+
+  (let ()
+    (define-record-type <one>
+      (fields (mutable a)
+	      (mutable b)
+	      (mutable c)))
+    (define-record-type <two>
+      (parent <one>)
+      (fields (mutable d)
+	      (mutable e)
+	      (mutable f)))
+    (define-record-type <three>
+      (parent <two>)
+      (fields (mutable g)
+	      (mutable h)
+	      (mutable i)))
+
+    (define-generic alpha)
+    (define-generic beta)
+
+    (declare-method (alpha (o <one>))
+      'alpha-one)
+
+    (declare-method (alpha (o <two>))
+      'alpha-two)
+
+    (declare-method (beta (o <three>))
+      'beta-three)
+
+    (let ()
+      (define-generic/merge gamma alpha beta)
+
+      (let ((a (make-<one> 1 10 100))
+	    (b (make-<two> 0 0 0 2 20 200))
+	    (c (make-<three> 0 0 0 0 0 0 3 30 300)))
+	(check (gamma a) => 'alpha-one)
+	(check (gamma b) => 'alpha-two)
+	(check (gamma c) => 'beta-three)
+	#t))
+    #t)
+  #t)
+
+
+(parametrise ((check-test-name 'predefined))
+
+  (define-record-type <alpha>
+    (fields (immutable the-string)))
+
+  (define-record-type <beta>
+    (fields (immutable the-string)))
+
+  (check
+      (object->string 123)
+    => "123")
+
+  (let ((a (make-<alpha> "alpha"))
+	(b (make-<beta>  "beta")))
+
+    (declare-method (object->string (o <alpha>))
+      (<alpha>-the-string o))
+
+    (declare-method (object->string (o <beta>))
+      (<beta>-the-string o))
+
+    (check
+	(object->string a)
+      => "alpha")
+
+    (check
+	(object->string b)
+      => "beta")
+
     #f)
 
   #t)
