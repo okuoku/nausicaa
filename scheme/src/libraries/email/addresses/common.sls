@@ -31,35 +31,41 @@
     unquote-string
 
     ;; domain data type
-    make-domain			domain?			domain?/or-false
-    assert-domain		assert-domain/or-false
-    domain-subdomains		domain-literal?
-    domain-display		domain-write		domain->string
+    make-<domain>
+    <domain>?			<domain>?/or-false
+    assert-<domain>		assert-<domain>/or-false
+    <domain>-subdomains		<domain>-literal?
 
     ;; local part data type
-    make-local-part		local-part?
-    local-part-subparts
-    local-part-display		local-part-write	local-part->string
+    make-<local-part>
+    <local-part>?
+    <local-part>-subparts
 
     ;; addr-spec data type
-    make-addr-spec		addr-spec?
-    addr-spec-local-part	addr-spec-domain
-    addr-spec-display		addr-spec-write		addr-spec->string
+    make-<addr-spec>
+    <addr-spec>?
+    <addr-spec>-local-part
+    <addr-spec>-domain
 
     ;; route data type
-    make-route			route?			route-domains
-    route-display		route-write		route->string
+    make-<route>
+    <route>?
+    <route>-domains
 
     ;; route address data type
-    make-mailbox		mailbox?
-    mailbox-display-name	mailbox-route		mailbox-addr-spec
-    mailbox-display		mailbox-write		mailbox->string
+    make-<mailbox>
+    <mailbox>?
+    <mailbox>-display-name
+    <mailbox>-route
+    <mailbox>-addr-spec
 
     ;; group data type
-    make-group			group?
-    group-display-name		group-mailboxes
-    group-display		group-write		group->string)
+    make-<group>
+    <group>?
+    <group>-display-name
+    <group>-mailboxes)
   (import (rnrs)
+    (nos)
     (strings)
     (lists))
 
@@ -111,223 +117,120 @@
 
 ;;;; address domain record
 
-(define-record-type domain
+(define-record-type <domain>
   (fields (immutable literal?)		;boolean
 	  (immutable subdomains)))	;list of strings
 
-(define (domain?/or-false obj)
-  (or (not obj) (domain? obj)))
+(define (<domain>?/or-false obj)
+  (or (not obj) (<domain>? obj)))
 
-(define (assert-domain obj)
-  (assert (domain? obj))
-  (assert (boolean? (domain-literal? obj)))
-  (let ((v (domain-subdomains obj)))
+(define (assert-<domain> obj)
+  (assert (<domain>? obj))
+  (assert (boolean? (<domain>-literal? obj)))
+  (let ((v (<domain>-subdomains obj)))
     (assert (list? v))
-    (assert (every string? v))))
+    (assert (for-all string? v))))
 
-(define (assert-domain/or-false obj)
+(define (assert-<domain>/or-false obj)
   (unless (not obj)
-    (assert-domain obj)))
+    (assert-<domain> obj)))
 
-;;; --------------------------------------------------------------------
+
+;;;; address local part record
 
-(define domain-display
-  (case-lambda
-   ((self)
-    (domain-display self (current-output-port)))
-   ((self port)
-    (display (string-append "#<domain -- " (domain->string self) %close-angle-string)
-	     port))))
+(define-record-type <local-part>
+  (fields (immutable subparts)))
 
-(define domain-write
-  (case-lambda
-   ((self)
-    (domain-display self (current-output-port)))
-   ((self port)
-    (display (if (domain-literal? self)
-		 "(make-domain #t (quote "
-	       "(make-domain #f (quote ") port)
-    (write (domain-subdomains self) port)
-    (display %double-close-paren-string port))))
 
-(define (domain->string self)
-  (let ((str (string-join (domain-subdomains self) %dot-string)))
-    (if (domain-literal? self)
+
+;;;; address <addr-spec> record
+
+(define-record-type <addr-spec>
+  (fields (immutable local-part)
+	  (immutable domain)))
+
+
+
+;;;; route record
+
+(define-record-type <route>
+  (fields (immutable domains)))
+
+
+
+;;;; mailbox record
+
+(define-record-type <mailbox>
+  (fields (immutable display-name) ;string or #f
+	  (immutable route)	   ;route record or #f
+	  (immutable addr-spec)))  ;addr-spec record
+
+
+
+;;;; group record
+
+(define-record-type <group>
+  (fields (immutable display-name)
+	  (immutable mailboxes)))
+
+
+
+;;;; NOS stuff
+
+(declare-method (object->string (o <domain>))
+  (let ((str (string-join (<domain>-subdomains o) %dot-string)))
+    (if (<domain>-literal? o)
 	(string-append %open-bracket-string
 		       str
 		       %close-bracket-string)
       str)))
 
-
-;;;; address local part record
+(declare-method (object->string (o <local-part>))
+  (string-join (<local-part>-subparts o) %dot-string))
 
-(define-record-type local-part
-  (fields (immutable subparts)))
-
-(define local-part-display
-  (case-lambda
-   ((self)
-    (local-part-display self (current-output-port)))
-   ((self port)
-    (display (string-append "#<local-part -- "
-			    (string-join (local-part-subparts self) %dot-string)
-			    %close-angle-string)
-	     port))))
-
-(define local-part-write
-  (case-lambda
-   ((self)
-    (local-part-display self (current-output-port)))
-   ((self port)
-    (display "(make-local-part (quote " port)
-    (write (local-part-subparts self) port)
-    (display %double-close-paren-string port))))
-
-(define (local-part->string self)
-  (string-join (local-part-subparts self) %dot-string))
-
-
-;;;; address addr-spec record
-
-(define-record-type addr-spec
-  (fields (immutable local-part)
-	  (immutable domain)))
-
-(define addr-spec-display
-  (case-lambda
-   ((addr-spec)
-    (addr-spec-display addr-spec (current-output-port)))
-   ((addr-spec port)
-    (display (string-append "#<addr-spec -- "
-			    (addr-spec->string addr-spec)
-			    %close-angle-string)
-	     port))))
-
-(define addr-spec-write
-  (case-lambda
-   ((addr-spec)
-    (addr-spec-display addr-spec (current-output-port)))
-   ((addr-spec port)
-    (display "(make-addr-spec " port)
-    (local-part-write (addr-spec-local-part addr-spec) port)
-    (display %space-string port)
-    (domain-write (addr-spec-domain addr-spec) port)
-    (display %close-paren-string port))))
-
-(define (addr-spec->string addr-spec)
-  (string-append (local-part->string (addr-spec-local-part addr-spec))
+(declare-method (object->string (o <addr-spec>))
+  (string-append (object->string (<addr-spec>-local-part o))
 		 %at-string
-		 (domain->string (addr-spec-domain addr-spec))))
+		 (object->string (<addr-spec>-domain o))))
 
-
-;;;; route record
+(declare-method (object->string (o <route>))
+  (call-with-string-output-port
+      (lambda (port)
+	(define (%display thing)
+	  (display thing port))
+	(define (display-domain dom)
+	  (unless (<domain>-literal? dom)
+	    (%display %at-string))
+	  (%display (object->string dom)))
+	(let ((domains (<route>-domains o)))
+	  (unless (null? domains)
+	    (display-domain (car domains))
+	    (let loop ((domains (cdr domains)))
+	      (unless (null? domains)
+		(let ((dom (car domains)))
+		  (%display %comma-string)
+		  (display-domain dom)
+		  (loop (cdr domains))))))))))
 
-(define-record-type route
-  (fields (immutable domains)))
-
-(define route-display
-  (case-lambda
-   ((self)
-    (route-display self (current-output-port)))
-   ((self port)
-    (display (string-append "#<route -- " (route->string self) %close-angle-string) port))))
-
-(define route-write
-  (case-lambda
-   ((self)
-    (route-display self (current-output-port)))
-   ((self port)
-    (display "(make-route (list " port)
-    (map (lambda (dom)
-	   (domain-write dom port)
-	   (display " " port))
-      (route-domains self))
-    (display "))" port))))
-
-(define (route->string self)
-  (string-join (map domain->string (route-domains self)) %comma-string))
-
-
-;;;; mailbox record
-
-(define-record-type mailbox
-  (fields (immutable display-name) ;string or #f
-	  (immutable route)	   ;route record or #f
-	  (immutable addr-spec)))  ;addr-spec record
-
-(define mailbox-display
-  (case-lambda
-   ((self)
-    (mailbox-display self (current-output-port)))
-   ((self port)
-    (display (string-append "#<mailbox -- "
-			    (mailbox->string self)
-			    %close-angle-string)
-	     port))))
-
-(define mailbox-write
-  (case-lambda
-   ((self)
-    (mailbox-write self (current-output-port)))
-   ((self port)
-    (display "(make-mailbox " port)
-    (write (display-name->string (mailbox-display-name self)) port)
-    (display %space-string port)
-    (let ((route (mailbox-route self)))
-      (when route
-	(route-write route port)))
-    (display %space-string port)
-    (addr-spec-write (mailbox-addr-spec self) port)
-    (display %close-paren-string port))))
-
-(define (mailbox->string self)
-  (let ((display-name (mailbox-display-name self)))
+(declare-method (object->string (o <mailbox>))
+  (let ((display-name (<mailbox>-display-name o)))
     (string-append (if display-name
-		       (string-append (display-name->string display-name)
-				      %space-string)
+		       ;;Take care of quoting  the phrase if it contains
+		       ;;a comma.
+		       (string-append (display-name->string display-name) %space-string)
 		     %empty-string)
 		   %open-angle-string
-		   (let ((route (mailbox-route self)))
+		   (let ((route (<mailbox>-route o)))
 		     (if route
-			 (string-append (route->string route) %colon-string)
-		       ""))
-		   (addr-spec->string (mailbox-addr-spec self))
+			 (string-append (object->string route) %colon-string)
+		       %empty-string))
+		   (object->string (<mailbox>-addr-spec o))
 		   %close-angle-string)))
 
-
-;;;; group record
-
-(define-record-type group
-  (fields (immutable display-name)
-	  (immutable mailboxes)))
-
-(define group-display
-  (case-lambda
-   ((self)
-    (group-display self (current-output-port)))
-   ((self port)
-    (display (string-append "#<group -- "
-			    (group->string self)
-			    %close-angle-string)
-	     port))))
-
-(define group-write
-  (case-lambda
-   ((self)
-    (group-display self (current-output-port)))
-   ((self port)
-    (display "(make-group " port)
-    (write (display-name->string (group-display-name self)) port)
-    (map (lambda (mbox)
-	   (mailbox-write mbox port)
-	   (newline port))
-      (group-mailboxes self))
-    (display ")" port))))
-
-(define (group->string self)
-  (string-append (display-name->string (group-display-name self))
+(declare-method (object->string (o <group>))
+  (string-append (object->string (<group>-display-name o))
 		 %colon-string %space-string
-		 (string-join (map mailbox->string (group-mailboxes self)) ", ")
+		 (string-join (map object->string (<group>-mailboxes o)) ", ")
 		 %semicolon-string))
 
 

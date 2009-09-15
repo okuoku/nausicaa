@@ -27,7 +27,8 @@
 
 (import (nausicaa)
   (checks)
-  (email addresses common))
+  (email addresses common)
+  (nos))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses records\n")
@@ -73,167 +74,87 @@
 ;;;; domain data type
 
 (check
-    (domain? (make-domain #f '("alpha" "beta")))
+    (<domain>? (make-<domain> #f '("alpha" "beta")))
   => #t)
 
 (check
-    (domain?/or-false (make-domain #f '("alpha" "beta")))
+    (<domain>?/or-false (make-<domain> #f '("alpha" "beta")))
   => #t)
 
 (check
-    (domain?/or-false #f)
+    (<domain>?/or-false #f)
   => #t)
 
 (check
-    (domain->string (make-domain #f '("alpha" "beta" "gamma")))
+    (object->string (make-<domain> #f '("alpha" "beta" "gamma")))
   => "alpha.beta.gamma")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (domain-display (make-domain #f '("alpha" "beta" "gamma")) port)
-      (getter))
-  => "#<domain -- alpha.beta.gamma>")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (domain-write (make-domain #f '("alpha" "beta" "gamma")) port)
-      (getter))
-  => "(make-domain #f (quote (\"alpha\" \"beta\" \"gamma\")))")
 
 ;;; --------------------------------------------------------------------
 
 (check
-    (domain? (make-domain #t '("1" "2" "3" "4")))
+    (<domain>? (make-<domain> #t '("1" "2" "3" "4")))
   => #t)
 
 (check
-    (domain->string (make-domain #t '("1" "2" "3" "4")))
+    (object->string (make-<domain> #t '("1" "2" "3" "4")))
   => "[1.2.3.4]")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (domain-display (make-domain #t '("1" "2" "3" "4")) port)
-      (getter))
-  => "#<domain -- [1.2.3.4]>")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (domain-write (make-domain #t '("1" "2" "3" "4")) port)
-      (getter))
-  => "(make-domain #t (quote (\"1\" \"2\" \"3\" \"4\")))")
 
 
 ;;;; local-part data type
 
 (check
-    (local-part? (make-local-part '("alpha" "beta")))
+    (<local-part>? (make-<local-part> '("alpha" "beta")))
   => #t)
 
 (check
-    (local-part->string (make-local-part '("alpha" "beta" "gamma")))
+    (object->string (make-<local-part> '("alpha" "beta" "gamma")))
   => "alpha.beta.gamma")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (local-part-display (make-local-part '("alpha" "beta" "gamma")) port)
-      (getter))
-  => "#<local-part -- alpha.beta.gamma>")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (local-part-write (make-local-part '("alpha" "beta" "gamma")) port)
-      (getter))
-  => "(make-local-part (quote (\"alpha\" \"beta\" \"gamma\")))")
 
 
 ;;;; addr-spec data type
 
 (check
-    (addr-spec? (make-addr-spec (make-local-part '("alpha" "beta"))
-				(make-domain #f '("delta" "org"))))
+    (<addr-spec>? (make-<addr-spec> (make-<local-part> '("alpha" "beta"))
+				    (make-<domain> #f '("delta" "org"))))
   => #t)
 
 (check
-    (addr-spec->string (make-addr-spec (make-local-part '("alpha" "beta"))
-				       (make-domain #f '("delta" "org"))))
+    (object->string (make-<addr-spec> (make-<local-part> '("alpha" "beta"))
+				      (make-<domain> #f '("delta" "org"))))
   => "alpha.beta@delta.org")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (addr-spec-display (make-addr-spec (make-local-part '("alpha" "beta"))
-					 (make-domain #f '("delta" "org"))) port)
-      (getter))
-  => "#<addr-spec -- alpha.beta@delta.org>")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (addr-spec-write (make-addr-spec (make-local-part '("alpha" "beta"))
-				       (make-domain #f '("delta" "org"))) port)
-      (getter))
-  => "(make-addr-spec (make-local-part (quote (\"alpha\" \"beta\"))) (make-domain #f (quote (\"delta\" \"org\"))))")
 
 
 ;;;; route data type
 
 (check
-    (route? (make-route (list (make-domain #f '("alpha" "org"))
-			      (make-domain #t '("1" "2" "3" "4"))
-			      (make-domain #f '("beta" "com")))))
+    (<route>? (make-<route> (list (make-<domain> #f '("alpha" "org"))
+				  (make-<domain> #t '("1" "2" "3" "4"))
+				  (make-<domain> #f '("beta" "com")))))
   => #t)
 
 (check
-    (route->string (make-route (list (make-domain #f '("alpha" "org"))
-				     (make-domain #t '("1" "2" "3" "4"))
-				     (make-domain #f '("beta" "com")))))
-  => "alpha.org,[1.2.3.4],beta.com")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (route-display (make-route (list (make-domain #f '("alpha" "org"))
-				       (make-domain #t '("1" "2" "3" "4"))
-				       (make-domain #f '("beta" "com"))))
-		     port)
-      (getter))
-  => "#<route -- alpha.org,[1.2.3.4],beta.com>")
-
-(check
-    (let-values (((port getter) (open-string-output-port)))
-      (route-write (make-route (list (make-domain #f '("alpha" "org"))
-				     (make-domain #t '("1" "2" "3" "4"))
-				     (make-domain #f '("beta" "com"))))
-		   port)
-      (getter))
-  => "(make-route (list (make-domain #f (quote (\"alpha\" \"org\"))) (make-domain #t (quote (\"1\" \"2\" \"3\" \"4\"))) (make-domain #f (quote (\"beta\" \"com\"))) ))")
+    (object->string (make-<route> (list (make-<domain> #f '("alpha" "org"))
+					(make-<domain> #t '("1" "2" "3" "4"))
+					(make-<domain> #f '("beta" "com")))))
+  => "@alpha.org,[1.2.3.4],@beta.com")
 
 
 ;;;; mailbox data type
 
-(let ((the-route	(make-route (list (make-domain #f '("alpha" "org"))
-					  (make-domain #t '("1" "2" "3" "4"))
-					  (make-domain #f '("beta" "com")))))
+(let ((the-route	(make-<route> (list (make-<domain> #f '("alpha" "org"))
+					    (make-<domain> #t '("1" "2" "3" "4"))
+					    (make-<domain> #f '("beta" "com")))))
       (the-phrase	"the phrase")
-      (the-addr-spec	(make-addr-spec (make-local-part '("alpha" "beta"))
-					(make-domain #f '("delta" "org")))))
+      (the-addr-spec	(make-<addr-spec> (make-<local-part> '("alpha" "beta"))
+					  (make-<domain> #f '("delta" "org")))))
 
   (check
-      (mailbox? (make-mailbox the-phrase the-route the-addr-spec))
+      (<mailbox>? (make-<mailbox> the-phrase the-route the-addr-spec))
     => #t)
 
   (check
-      (mailbox->string (make-mailbox the-phrase the-route the-addr-spec))
-    => "the phrase <alpha.org,[1.2.3.4],beta.com:alpha.beta@delta.org>")
-
-  (check
-      (let-values (((port getter) (open-string-output-port)))
-	(mailbox-display (make-mailbox the-phrase the-route the-addr-spec) port)
-	(getter))
-    => "#<mailbox -- the phrase <alpha.org,[1.2.3.4],beta.com:alpha.beta@delta.org>>")
-
-  (check
-      (let-values (((port getter) (open-string-output-port)))
-	(mailbox-write (make-mailbox the-phrase the-route the-addr-spec) port)
-	(getter))
-    => "(make-mailbox \"the phrase\" (make-route (list (make-domain #f (quote (\"alpha\" \"org\"))) (make-domain #t (quote (\"1\" \"2\" \"3\" \"4\"))) (make-domain #f (quote (\"beta\" \"com\"))) )) (make-addr-spec (make-local-part (quote (\"alpha\" \"beta\"))) (make-domain #f (quote (\"delta\" \"org\")))))")
+      (object->string (make-<mailbox> the-phrase the-route the-addr-spec))
+    => "the phrase <@alpha.org,[1.2.3.4],@beta.com:alpha.beta@delta.org>")
 
   #t)
 

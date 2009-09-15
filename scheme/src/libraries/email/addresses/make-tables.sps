@@ -78,7 +78,6 @@
 
  :terminals	'(DOT COMMA COLON SEMICOLON ATOM AT
 		      ANGLE-OPEN ANGLE-CLOSE
-		      DOMAIN
 		      DOMAIN-LITERAL-OPEN DOMAIN-LITERAL-CLOSE DOMAIN-LITERAL-INTEGER
 		      QUOTED-TEXT)
 
@@ -96,9 +95,9 @@
 ;;; --------------------------------------------------------------------
 
    (group		(display-name COLON SEMICOLON)
-						: (make-group $1 '())
+						: (make-<group> $1 '())
 			(display-name COLON mailbox-list SEMICOLON)
-						: (make-group $1 $3))
+						: (make-<group> $1 $3))
 
 ;;; --------------------------------------------------------------------
 
@@ -113,33 +112,33 @@
 
 ;;; --------------------------------------------------------------------
 
-   (mailbox		(display-name ANGLE-OPEN route COLON addr-spec ANGLE-CLOSE)
-						: (make-mailbox $1 $3 $5)
+   (mailbox		(display-name ANGLE-OPEN route addr-spec ANGLE-CLOSE)
+						: (make-<mailbox> $1 $3 $4)
 			(display-name ANGLE-OPEN addr-spec ANGLE-CLOSE)
-						: (make-mailbox $1 #f $3)
+						: (make-<mailbox> $1 #f $3)
 			(ANGLE-OPEN route addr-spec ANGLE-CLOSE)
-						: (make-mailbox #f $2 $4)
+						: (make-<mailbox> #f $2 $3)
 			(ANGLE-OPEN addr-spec ANGLE-CLOSE)
-						: (make-mailbox #f #f $2)
-			(addr-spec)		: (make-mailbox #f #f $1))
+						: (make-<mailbox> #f #f $2)
+			(addr-spec)		: (make-<mailbox> #f #f $1))
 
 ;;; --------------------------------------------------------------------
 
-   (route		(AT DOMAIN route-rest)	: (make-route (cons $2 $3)))
-   (route-rest		(COMMA AT DOMAIN route-rest)
+   (route		(AT domain route-rest)	: (make-<route> (cons $2 $3)))
+   (route-rest		(COMMA AT domain route-rest)
 						: (cons $3 $4)
 			(COLON)			: '())
 
 ;;; --------------------------------------------------------------------
 
-   (addr-spec		(local-part AT domain)	: (make-addr-spec $1 $3))
+   (addr-spec		(local-part AT domain)	: (make-<addr-spec> $1 $3))
 
 ;;; --------------------------------------------------------------------
 
    (domain		(domain-ref)		: $1
 			(domain-literal)	: $1)
 
-   (domain-ref		(ATOM domain-ref-rest)	: (make-domain #f (cons $1 $2)))
+   (domain-ref		(ATOM domain-ref-rest)	: (make-<domain> #f (cons $1 $2)))
    (domain-ref-rest	(DOT ATOM domain-ref-rest)
 						: (cons $2 $3)
 			()			: '())
@@ -152,12 +151,12 @@
 			 DOMAIN-LITERAL-INTEGER DOT
 			 DOMAIN-LITERAL-INTEGER
 			 DOMAIN-LITERAL-CLOSE)
-						: (make-domain #t (list $2 $4 $6 $8)))
+						: (make-<domain> #t (list $2 $4 $6 $8)))
 
 ;;; --------------------------------------------------------------------
 
 
-   (local-part		(ATOM local-part-rest)	: (make-local-part (cons $1 $2)))
+   (local-part		(ATOM local-part-rest)	: (make-<local-part> (cons $1 $2)))
    (local-part-rest	(DOT ATOM local-part-rest)
 						: (cons $2 $3)
 			()			: '())

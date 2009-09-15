@@ -1297,20 +1297,18 @@ Email processing
 Parsing email addresses
 
 * email addresses components::  Parsed components.
-* email addresses class::       Object classes.
+* email addresses types::       Record types.
 * email addresses lexer::       Splitting an address into tokens.
 * email addresses parser::      Splitting an address into logical units.
 
-Object classes
+Record types
 
 * email addresses domain::              Domain.
 * email addresses local-part::          Local part.
 * email addresses addr-spec::           Address specification.
 * email addresses route::               Route.
-* email addresses route-address::       Route address.
 * email addresses mailbox::             Mailbox.
 * email addresses group::               Group of mailboxes.
-* email addresses address::             Address.
 
 Infix notation utilities
 
@@ -44951,12 +44949,12 @@ email addresses.  The parser tries to be compliant to @rfc{} 2822
 ``Internet Message Format'' (@url{http://www.ietf.org/rfc/rfc2822.txt}).
 
 This library would not exist without the work Peter Simons did for the
-C++ library in @samp{librfc822} (@url{http://cryp.to/librfc2822/},
-@aurl{} last verified Mon Aug 24, 2009).
+C++ library @samp{librfc822} (@url{http://cryp.to/librfc2822/}, @aurl{}
+last verified Mon Aug 24, 2009).
 
 @menu
 * email addresses components::  Parsed components.
-* email addresses class::       Object classes.
+* email addresses types::       Record types.
 * email addresses lexer::       Splitting an address into tokens.
 * email addresses parser::      Splitting an address into logical units.
 @end menu
@@ -44982,11 +44980,11 @@ alpha.beta.gamma
 @end example
 
 @item Domain literal
-A string enclosed in square brackets:
+A dotted quad enclosed in square brackets:
 
 @example
-[100.200.300.400]
-domain literal @result{} 100.200.300.400
+[101.102.103.104]
+domain literal @result{} 101.102.103.104
 @end example
 
 @item Local part
@@ -45073,19 +45071,21 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 @end table
 
 @c page
-@node email addresses class
-@subsection Object classes
+@node email addresses types
+@subsection Record types
 
+
+All the record types defined by @library{email addresses} are meant to
+be handled with the facilities of the @library{nos} library.  @ref{nos,
+Nausicaa Object System}
 
 @menu
 * email addresses domain::              Domain.
 * email addresses local-part::          Local part.
 * email addresses addr-spec::           Address specification.
 * email addresses route::               Route.
-* email addresses route-address::       Route address.
 * email addresses mailbox::             Mailbox.
 * email addresses group::               Group of mailboxes.
-* email addresses address::             Address.
 @end menu
 
 @c page
@@ -45093,9 +45093,9 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 @subsubsection Domain
 
 
-@deftp {Record Type} domain
-Represent the domain portion of an address specification.  The fields
-are:
+@deftp {Record Type} <domain>
+Represent the domain portion of an address specification.  Fields
+description:
 
 @table @code
 @item literal?
@@ -45107,40 +45107,31 @@ The list of strings representing the domain components.
 @end deftp
 
 
-@defun domain? @var{obj}
-@defunx domain?/or-false @var{obj}
-Return @true{} if @var{obj} is a record of type @samp{domain}.  The
+@defun <domain>-literal? @var{dom}
+@defunx <domain>-subdomains @var{dom}
+Field accessors.
+@end defun
+
+
+@defun <domain>? @var{obj}
+@defunx <domain>?/or-false @var{obj}
+Return @true{} if @var{obj} is a record of type @class{domain}.  The
 @samp{/or-false} variant also returns @true{} if @var{obj} is @false{}.
 @end defun
 
 
-@defun assert-domain? @var{obj}
-@defunx assert-domain?/or-false @var{obj}
-Raise an exception if @var{obj} is not a record of type @samp{domain} or
-the values in the fields are invalid.  The @samp{/or-false} variant
+@defun assert-<domain>? @var{obj}
+@defunx assert-<domain>?/or-false @var{obj}
+Raise an exception if @var{obj} is not a record of type @class{domain}
+or the values in the fields are invalid.  The @samp{/or-false} variant
 allows @var{obj} to be @false{}.
 @end defun
 
 
-@deffn domain->string @var{domain}
-Return the string representation of @var{domain}: The subdomain strings
-are joined with a dot; if @var{domain} represents a literal domain
-@end deffn
-
-
-@deffn domain-display @var{domain}
-@deffnx domain-display @var{domain} @var{port}
-Print a string representation of the domain to @var{port} or the current
-output port if @var{port} is not supplied.  The representation is human
-readable and is
-@end deffn
-
-
-@deffn domain-write @var{domain}
-@deffnx domain-write @var{domain} @var{port}
-Print a string representation of the domain to @var{port} or the current
-output port if @var{port} is not supplied.  The representation is such
-that it can be read back with @func{read}.
+@deffn {NOS Method} object->string (@var{o} <domain>)
+Return the string representation of @var{o}: The subdomain strings are
+joined with a dot; if @var{o} represents a literal domain, the string is
+enclosed in square parentheses.
 @end deffn
 
 @c page
@@ -45148,21 +45139,25 @@ that it can be read back with @func{read}.
 @subsubsection Local part
 
 
-@subsubheading Class definition
+@deftp {Record Type} <local-part>
+Holds a list of local part strings.  The local part is a single string,
+but for parsing reasons it is accumulated as a list of strings.  Fields
+description:
 
-
-@deftp {@acronym{GOOPS} class} <local-part> (<elements>)
-Holds a list of local part strings. The local part is a single string,
-but for parsing reasons it is accumulated as a list of strings.
+@table @samp
+@item subparts
+A list of strings.
+@end table
 @end deftp
 
 
-@subsubheading Output
+@defun <local-part>-subparts @var{lp}
+Field accessor.
+@end defun
 
 
-@deffn {Generic Function} display (@var{o} <local-part>) (@var{p} <port>)
-Display to @var{p} the string representation of @var{o}: all the strings
-in @var{o} joined with a dot.
+@deffn {NOS Method} object->string (@var{o} <local-part>)
+Return the string representation of @var{o}.
 @end deffn
 
 @c page
@@ -45170,74 +45165,28 @@ in @var{o} joined with a dot.
 @subsubsection Address specification
 
 
-@subsubheading Class definition
-
-
-@deftp {@acronym{GOOPS} class} <addr-spec>
-Holds an address specification: a local part and a domain. Public slots:
+@deftp {Record Type} <addr-spec>
+Holds an address specification: a local part and a domain.  Fields
+description:
 
 @table @code
 @item local-part
-holds a @class{local-part}; the initialisation value is @false{};
+Holds a @class{local-part} record.
 
 @item domain
-holds a @class{domain}; the initialisation value is @false{}.
+Holds a @class{domain} record.
 @end table
-
 @end deftp
 
 
-@subsubheading Predicates
+@defun <addr-spec>-local-part @var{as}
+@defunx <addr-spec>-domain @var{as}
+Field accessors.
+@end defun
 
 
-@deffn {Generic Function} null? (@var{o} <addr-spec>)
-Return @true{} if both the local part and the domain are @false{} or
-@func{null?} applied on them returns @true{}.
-@end deffn
-
-
-@subsubheading Getters
-
-
-@deffn {Generic Function} elements (@var{o} <addr-spec>)
-Return a list of two elements: a @class{local-part} and a @class{domain}
-instance.
-@end deffn
-
-
-@deffn {Generic Function} string-elements (@var{o} <addr-spec>)
-Return a list of two strings: the representations of the local part and
-the domain.
-@end deffn
-
-
-@subsubheading Accessors
-
-
-@deffn {Generic Function} local-part (@var{o} <addr-spec>)
-Accessor for the @class{local-part} slot.
-@end deffn
-
-@deffn {Generic Function} domain (@var{o} <addr-spec>)
-Accessor for the @class{domain} slot.
-@end deffn
-
-
-@subsubheading Output
-
-
-@deffn {Generic Function} display (@var{o} <addr-spec>) (@var{p} <port>)
-Display to @var{p} the string representation of @var{o}.
-@end deffn
-
-
-@subsubheading Conversion
-
-
-@deffn {Generic Function} any->string (@var{o} <addr-spec>)
-Display @var{o} into a string port (using @func{display}); if the
-resulting string has zero length: return @false{}, else return the
-resulting string.
+@deffn {NOS Method} object->string (@var{o} <addr-spec>)
+Return the string representation of @var{o}.
 @end deffn
 
 @c page
@@ -45245,97 +45194,19 @@ resulting string.
 @subsubsection Route
 
 
-@subsubheading Class definition
-
-
-@deftp {@acronym{GOOPS} class} <route> (<elements>)
+@deftp {Record Type} <route>
 Holds a list of domains to be used to route the message to the final
-destination.
-@end deftp
+destination.  Fields description:
 
-
-@subsubheading Output
-
-
-@deffn {Generic Function} display (@var{o} <route>) (@var{p} <port>)
-Print to @var{p} the string representation of @var{o}.
-@end deffn
-
-
-@subsubheading Appending
-
-
-@deffn {Generic Function} append (@var{o} <route>) (@var{s} <domain>)
-Append a domain to the list in @var{o}.
-@end deffn
-
-
-@subsubheading Conversion
-
-
-@deffn {Generic Function} any->string (@var{o} <route>)
-Display @var{o} into a string port (using @func{display}); if the
-resulting string has zero length: return @false{}, else return the
-resulting string.
-@end deffn
-
-@c page
-@node email addresses route-address
-@subsubsection Route address
-
-
-@subsubheading Class definition
-
-
-@deftp {@acronym{GOOPS} class} <route-address> (<addr-spec>)
-Adds a @class{route} to @class{addr-spec}. Public slots:
-
-@table @code
-@item route
-holds the @class{route} object; the initialisation value is @false{};
-@item addr-spec
-a virtual slots that allows the existence of the @func{addr-spec}
-accessor.
+@table @samp
+@item domains
+A list of @class{domain} records.
 @end table
 @end deftp
 
 
-@subsubheading Output
-
-
-@deffn {Generic Function} display (@var{o} <route-address>) (@var{p} <port>)
-Display to @var{p} the string representation of @var{o}.
-@end deffn
-
-
-@subsubheading Getters
-
-
-@deffn {Generic Function} elements (@var{o} <route-address>)
-Return a list of two elements: a @class{route} and an @class{addr-spec}
-instance. If the route is not set: @false{} is returned in place of the
-instance.
-@end deffn
-
-
-@deffn {Generic Function} string-elements (@var{o} <route-address>)
-Return a list of two strings: the representations of the route and the
-addr--spec. If the route is not set: @false{} is returned in place of
-the string.
-@end deffn
-
-
-@subsubheading Accessors
-
-
-@deffn {Generic Function} addr-spec (@var{o} <route-address>)
-Accessor for the @class{addr-spec} slot. Gets and sets an
-@class{addr-spec} from to @var{o}.
-@end deffn
-
-
-@deffn {Generic Function} route (@var{o} <route-address>)
-Accessor for the @class{route} slot.
+@deffn {NOS Method} object->string (@var{o} <route>)
+Return the string representation of @var{o}.
 @end deffn
 
 @c page
@@ -45343,59 +45214,31 @@ Accessor for the @class{route} slot.
 @subsubsection Mailbox
 
 
-@subsubheading Class definition
-
-
-@deftp {@acronym{GOOPS} class} <mailbox> (<route-address>)
-Adds a phrase to a @class{route-address}. Public slots:
+@deftp {Record Type} <mailbox>
+Hold a mailbox specification.  Fields description:
 
 @table @code
-@item phrase
-holds the phrase string; the initialisation value is @false{};
+@item display-name
+Holds the phrase string.
 
-@item route-address
-virtual allocation slot that allows the existence of the
-@func{route-address} accessor.
+@item route
+Holds @false{} or a @class{route} record.
+
+@item addr-spec
+Holds an @class{addr-spec} record.
 @end table
 @end deftp
 
 
-@subsubheading Getters
+@defun <mailbox>-display-name @var{mb}
+@defunx <mailbox>-route @var{mb}
+@defunx <mailbox>-addr-spec @var{mb}
+Field accessors.
+@end defun
 
 
-@deffn {Generic Function} elements (@var{o} <mailbox>)
-Return a list: the phrase's string, a @class{route} object, an
-@class{addr-spec} object. If the phrase is not set: @false{} is returned
-in place of the string.
-@end deffn
-
-
-@deffn {Generic Function} string-elements (@var{o} <mailbox>)
-Return a list of strings: the phrase string, the @class{route}
-representation, the @class{addr-spec} representation. If the phrase is
-not set: @false{} is returned in place of the string.
-@end deffn
-
-
-@subsubheading Accessors
-
-
-@deffn {Generic Function} phrase (@var{o} <mailbox>)
-Accessor for the phrase slot.
-@end deffn
-
-
-@deffn {Generic Function} route-address (@var{o} <mailbox>)
-Accessor for the route address slot. Sets/gets a @class{route-address}
-object to/from @var{o}.
-@end deffn
-
-
-@subsubheading Output
-
-
-@deffn {Generic Function} display (@var{o} <mailbox>) (@var{p} <port>)
-Display to @var{p} the string representation of @var{o}.
+@deffn {NOS Method} object->string (@var{o} <mailbox>)
+Return the string representation of @var{o}.
 @end deffn
 
 @c page
@@ -45403,71 +45246,27 @@ Display to @var{p} the string representation of @var{o}.
 @subsubsection Group of mailboxes
 
 
-@subsubheading Class definition
+@deftp {Record Type} <group>
+Holds a list of mailboxes and a phrase.  Fields description:
 
+@table @samp
+@item display-name
+Holds the phrase string.
 
-@deftp {@acronym{GOOPS} class} <group> (<elements>)
-Holds a list of mailboxes and a phrase.
+@item mailboxes
+Holds a list of @class{mailbox} records.
+@end table
 @end deftp
 
 
-@subsubheading Getters
+@defun <group>-display-name @var{gr}
+@defunx <group>-mailboxes @var{gr}
+Field accessors.
+@end defun
 
 
-@deffn {Generic Function} elements (@var{o} <group>)
-Return a list of elements: the phrase or @false{} if the phrase is not
-set; one @class{mailbox} instance for each mailbox in the list.
-@end deffn
-
-
-@deffn {Generic Function} string-elements (@var{o} <group>)
-Return a list of strings: the phrase or @false{} if the phrase is not
-set; a string representation for each mailbox.
-@end deffn
-
-
-@subsubheading Modifiers
-
-
-@deffn {Generic Function} append (@var{o} <group>) (@var{s} <mailbox>)
-Add a mailbox to the list.
-@end deffn
-
-
-@subsubheading Output
-
-
-@deffn {Generic Function} display (@var{o} <group>) (@var{p} <port>)
-Display to @var{p} the string representation of @var{o}.
-@end deffn
-
-@c page
-@node email addresses address
-@subsubsection Address
-
-
-@subsubheading Class definition
-
-
-@deftp {@acronym{GOOPS} Class} <address> (<elements>)
-Holds a list of mailboxes and groups.
-@end deftp
-
-
-@subsubheading Modifiers
-
-
-@deffn {Generic Function} append (@var{o} <address>) (@var{s} <mailbox>)
-@deffnx {Generic Function} append (@var{o} <address>) (@var{s} <group>)
-Add a mailbox or group to the list.
-@end deffn
-
-
-@subsubheading Output
-
-
-@deffn {Generic Function} display (@var{o} <address>) (@var{p} <port>)
-Display to @var{p} the string representation of @var{o}.
+@deffn {NOS Method} object->string (@var{o} <group>)
+Return the string representation of @var{o}.
 @end deffn
 
 @c page
@@ -45475,134 +45274,159 @@ Display to @var{p} the string representation of @var{o}.
 @subsection Splitting an address into tokens
 
 
-@defun email-address-lexer @var{address-string}
-Converts a string in @rfc{} 822 format into a list of pairs whose car is
-the token type and whose cdr is the token string.
+The lexer for the @library{email addresses} library is built upon the
+@library{silex} lexer.  @ref{silex, A lexical analyser generator}
 
-Token types are symbols: @samp{character}, @samp{atom},
-@samp{quoted-string}, @samp{domain-literal}.
 
-If an invalid substring is found, an exception is raised with key
-@samp{syntax-error}.
+@defun make-address-lexer @var{IS}
+Return an email address lexer closure drawing tokens from the input
+system @var{IS}.  The input system must have been created using the
+@library{silex} library.
 @end defun
 
 
-Examples:
+@deffn Parameter address-lexer-allows-comments
+If set to true when @func{make-address-lexer} is invoked, the lexer
+closure returns also comment tokens; else comment tokens are silently
+discarded.
+@end deffn
 
-@example
-(email-address-lexer "<simons@@rhein.de>")
--> ((character . "<")
-    (atom      . "simons")
-    (character . "@@")
-    (atom      . "rhein")
-    (character . ".")
-    (atom      . "de")
-    (character . ">"))
 
-(email-address-lexer "\"Peter Simons\" <simons@@rhein.de>")
--> '((quoted-string . "Peter Simons")
-     (character     . "<")
-     (atom          . "simons")
-     (character     . "@@")
-     (atom          . "rhein")
-     (character     . ".")
-     (atom          . "de")
-     (character     . ">"))
+@defun address->tokens @var{IS}
+Wrapper for @func{make-address-lexer} which reads all the tokens and
+returns them as a list.
+@end defun
 
-;; comments are removed
-(email-address-lexer "\"Peter Simons\" (Peter Simons) <simons@@rhein.de>")
--> ((quoted-string . "Peter Simons")
-    (character     . "<")
-    (atom          . "simons")
-    (character     . "@@")
-    (atom          . "rhein")
-    (character     . ".")
-    (atom          . "de")
-    (character     . ">"))
-@end example
+
+The lexer closure is a thunk returning @class{lexical-token} records
+with the following categories:
+
+@table @samp
+@item DOT
+@itemx COMMA
+@itemx COLON
+@itemx SEMICOLON
+@itemx AT
+Represent the named character; the semantic value is the character
+itself.
+
+@item ANGLE-OPEN
+@itemx ANGLE-CLOSE
+Represent the @samp{#\<} and @samp{#\>} characters; the semantic value
+is the character itself.
+
+@item ATOM
+The component of local parts and domains; the semantic value is the
+string.  See @acronym{RFC} 2822 section ``3.2.4 Atom''.
+
+@item DOMAIN-LITERAL-OPEN
+The opening of a domain literal; the semantic value is a string
+containing the single character @samp{[}.
+
+@item DOMAIN-LITERAL-CLOSE
+The closing of a domain literal; the semantic value is a string
+containing the single character @samp{]}.
+
+@item DOMAIN-LITERAL-INTEGER
+A component of domain literal; the semantic value is an integer number
+between @math{0} included and @math{256} excluded.
+
+@item QUOTED-TEXT
+A quoted text element; the semantic value is the string.
+@end table
 
 @c page
 @node email addresses parser
 @subsection Parsing tokens
 
 
-@subsubheading Parsing domains and local parts
+The parser for the @library{email addresses} library is built upon the
+@library{lalr} parser generator and makes use of the @library{lalr
+lr-driver} driver.  @ref{lalr, A LALR(1) parser generator}
 
 
-@deffn {Scheme Function} email-address-parse-domain @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is a @class{domain} object and whose
-second component is the rest of @var{token-list}.
-@end deffn
+@defun make-address-parser
+Return a new parser closure, to be used as explained in @ref{lalr
+parser, Running the parser}.  If the parsing completes successfully, the
+return value of the closure is a list of @class{mailbox} and or
+@class{group} records.  @ref{email addresses types, Record types}
+@end defun
 
 
-@deffn {Scheme Function} email-address-parse-local-part @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is a @class{local-part} object and whose
-second component is the rest of @var{token-list}.
-@end deffn
+Given the helper functions:
 
+@example
+(import (rnrs)
+  (email addresses)
+  (silex)
+  (nos))
 
-@subsubheading Parsing address specifications
+(define (error-handler message token)
+  (error #f message token))
 
+(define (doit string)
+  (let* ((IS      (lexer-make-IS :string string
+                                 :counters 'all))
+         (lexer   (make-address-lexer IS))
+         (parser  (make-address-parser)))
+    (parser lexer error-handler)))
+@end example
 
-@deffn {Scheme Function} email-address-parse-addr-spec @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is an @class{addr-spec} object and whose
-second component is the rest of @var{token-list}.
-@end deffn
+@noindent
+here is an example of parsing a list of mailboxes:
 
+@example
+(define result
+  (doit "marco.maggi@@here.it, <marco.maggi@@there.it>"))
 
-@deffn {Scheme Function} email-address-parse-route @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is a @class{route} object and whose second
-component is the rest of @var{token-list}.
-@end deffn
+(length result)
+@result{} 2
 
+(<mailbox>? (car result))
+@result{} #t
 
-@deffn {Scheme Function} email-address-parse-route-address @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is an @class{route-address} object and
-whose second component is the rest of @var{token-list}.
-@end deffn
+(<mailbox>? (cadr result))
+@result{} #t
 
+(object->string (car result))
+@result{} "<marco.maggi@@here.it>"
 
-@subsubheading Parsing mailboxes
+(object->string (cadr result))
+@result{} "<marco.maggi@@there.it>"
+@end example
 
+@noindent
+and here an example of parsing a group:
 
-@deffn {Generic Function} email-address-parse-mailbox @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is an @class{mailbox} object and whose
-second component is the rest of @var{token-list}.
-@end deffn
+@example
+(define result
+  (doit "the group: marco.maggi@@here.it, <marco.maggi@@there.it>, \r
+Marco Maggi <mrc.mgg@@here.it>;"))
 
+(length result)
+@result{} 1
 
-@deffn {Generic Function} email-address-parse-mailbox @var{token-list} [@var{phrase}]
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is an @class{group} object and whose
-second component is the rest of @var{token-list}.
+(<group>? (car result))
+@result{} #t
 
-Note: the group can have a phrase at the beginning; the phrase is not
-parsed here, it is accumulated by the address parsers and handed to this
-function with the optional @var{phrase} parameter.
-@end deffn
+(let* ((group       (car result))
+       (mailboxes   (<group>-mailboxes group)))
 
+  (length mailboxes)
+  @result{} 3
 
-@deffn {Generic Function} email-address-parse-mailbox-or-group @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is an @class{mailbox} or @class{group}
-object and whose second component is the rest of @var{token-list}.
-@end deffn
+  (<group>-display-name group)
+  @result{} "the group"
 
+  (object->string (car mailboxes))
+  @result{} "<marco.maggi@@here.it>"
 
-@subsubheading Parsing addresses
+  (object->string (cadr mailboxes))
+  @result{} "<marco.maggi@@there.it>"
 
-
-@deffn {Generic Function} email-address-parse-address @var{token-list}
-Parse the first elements of @var{token-list}. Return a @func{values}
-@acronym{SMOB} whose first component is an @class{address} object and whose
-second component is the rest of @var{token-list}.
-@end deffn
+  (object->string (<mailbox>-addr-spec (caddr mailboxes))))
+  @result{} "mrc.mgg@@here.it"
+@end example
 
 @c page
 @node infix

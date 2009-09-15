@@ -33,35 +33,35 @@
     make-address-parser
 
     ;; domain data type
-    make-domain			domain?			domain?/or-false
-    assert-domain		assert-domain/or-false
-    domain-subdomains		domain-literal?
-    domain-display		domain-write		domain->string
+    make-<domain>
+    <domain>?			<domain>?/or-false
+    assert-<domain>		assert-<domain>/or-false
+    <domain>-subdomains		<domain>-literal?
 
     ;; local part data type
-    make-local-part		local-part?
-    local-part-subparts
-    local-part-display		local-part-write	local-part->string
+    make-<local-part>
+    <local-part>?
+    <local-part>-subparts
 
     ;; addr-spec data type
-    make-addr-spec		addr-spec?
-    addr-spec-local-part	addr-spec-domain
-    addr-spec-display		addr-spec-write		addr-spec->string
+    make-<addr-spec>
+    <addr-spec>?
+    <addr-spec>-local-part	<addr-spec>-domain
 
     ;; route data type
-    make-route			route?			route-domains
-    route-display		route-write		route->string
+    make-<route>
+    <route>?
+    <route>-domains
 
     ;; route address data type
-    make-mailbox		mailbox?
-    mailbox-display-name	mailbox-route		mailbox-addr-spec
-    mailbox-display		mailbox-write		mailbox->string
+    make-<mailbox>
+    <mailbox>?
+    <mailbox>-display-name	<mailbox>-route		<mailbox>-addr-spec
 
     ;; group data type
-    make-group			group?
-    group-display-name		group-mailboxes
-    group-display		group-write		group->string
-    )
+    make-<group>
+    <group>?
+    <group>-display-name	<group>-mailboxes)
   (import (rnrs)
     (silex lexer)
     (email addresses common)
@@ -89,7 +89,8 @@
 
 (define (make-address-lexer IS)
   (let ((lexers		(list (lexer-make-lexer address-table IS)))
-	(dispatchers	'()))
+	(dispatchers	'())
+	(allow-comments	(address-lexer-allows-comments)))
 
     (define (main-dispatch lexer)
       (let ((token (lexer)))
@@ -98,7 +99,7 @@
 	   (lex-quoted-text-token IS token))
 	  ((COMMENT-OPEN)
 	   (let ((comment-token (lex-comment-token IS token)))
-	     (if (address-lexer-allows-comments)
+	     (if allow-comments
 		 comment-token
 	       (main-dispatch lexer))))
 	  ((DOMAIN-LITERAL-OPEN)

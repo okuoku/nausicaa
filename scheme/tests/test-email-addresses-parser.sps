@@ -29,7 +29,8 @@
   (checks)
   (email addresses)
   (silex lexer)
-  (strings))
+  (strings)
+  (nos))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")
@@ -37,18 +38,13 @@
 
 (parameterise ((check-test-name 'simple-mailboxes))
 
-  (define (to-string thing)
-    (cond ((mailbox? thing)	(mailbox->string thing))
-	  ((group?   thing)	(group->string thing))
-	  (else			thing)))
-
   (define (doit string)
     (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map to-string result) ", ")))
+      (string-join (map object->string result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
@@ -97,18 +93,13 @@
 
 (parameterise ((check-test-name 'route-mailboxes))
 
-  (define (to-string thing)
-    (cond ((mailbox? thing)	(mailbox->string thing))
-	  ((group?   thing)	(group->string thing))
-	  (else			thing)))
-
   (define (doit string)
     (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map to-string result) ", ")))
+      (string-join (map object->string result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
@@ -127,18 +118,13 @@
 
 (parameterise ((check-test-name 'groups))
 
-  (define (to-string thing)
-    (cond ((mailbox? thing)	(mailbox->string thing))
-	  ((group?   thing)	(group->string thing))
-	  (else			thing)))
-
   (define (doit string)
     (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map to-string result) ", ")))
+      (string-join (map object->string result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
@@ -177,18 +163,13 @@
 
 (parameterise ((check-test-name 'complex-addresses))
 
-  (define (to-string thing)
-    (cond ((mailbox? thing)	(mailbox->string thing))
-	  ((group?   thing)	(group->string thing))
-	  (else			thing)))
-
   (define (doit string)
     (let* ((IS		(lexer-make-IS :string string :counters 'all))
 	   (lexer	(make-address-lexer IS))
 	   (parser	(make-address-parser))
 	   (handler	(lambda (msg tok) (list 'error-handler msg tok)))
 	   (result	(parser lexer handler)))
-      (string-join (map to-string result) ", ")))
+      (string-join (map object->string result) ", ")))
 
 ;;; --------------------------------------------------------------------
 
@@ -240,6 +221,85 @@
          peter.simons@acm.org")
     => "testing my parser: <peter.simons@gmd.de>, <simons@rhein.de>, testing my parser <simons@ieee.org>, it rules <@peti.gmd.de,@listserv.gmd.de:simons@cys.de>;, <peter.simons@acm.org>")
 
+  #t)
+
+
+(parametrise ((check-test-name 'examples))
+
+  (define (error-handler message token)
+    (error #f message token))
+
+  (define (doit string)
+    (let* ((IS      (lexer-make-IS :string string
+				   :counters 'all))
+	   (lexer   (make-address-lexer IS))
+	   (parser  (make-address-parser)))
+      (parser lexer error-handler)))
+
+;;; --------------------------------------------------------------------
+
+  (let ((result (doit "marco.maggi@here.it, <marco.maggi@there.it>")))
+
+    (check
+	(length result)
+      => 2)
+
+    (check
+	(<mailbox>? (car result))
+      => #t)
+
+    (check
+	(<mailbox>? (cadr result))
+      => #t)
+
+    (check
+	(object->string (car result))
+      => "<marco.maggi@here.it>")
+
+    (check
+	(object->string (cadr result))
+      => "<marco.maggi@there.it>")
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((result (doit "the group: marco.maggi@here.it, <marco.maggi@there.it>, \r
+	Marco Maggi <mrc.mgg@here.it>;")))
+
+    (check
+	(length result)
+      => 1)
+
+    (check
+	(<group>? (car result))
+      => #t)
+
+    (let* ((group	(car result))
+	   (mailboxes	(<group>-mailboxes group)))
+
+      (check
+	  (length mailboxes)
+	=> 3)
+
+      (check
+	  (<group>-display-name group)
+	=> "the group")
+
+      (check
+	  (object->string (car mailboxes))
+	=> "<marco.maggi@here.it>")
+
+      (check
+	  (object->string (cadr mailboxes))
+	=> "<marco.maggi@there.it>")
+
+      (check
+	  (object->string (<mailbox>-addr-spec (caddr mailboxes)))
+	=> "mrc.mgg@here.it")
+
+      #f)
+    #f)
   #t)
 
 
