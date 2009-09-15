@@ -152,7 +152,7 @@
 	    (text  ""))
 	(do ((token (lexer) (lexer)))
 	    ((eq? token 'QUOTED-TEXT-CLOSE)
-	     (let ((pos (<lexical-token>-source opening-token)))
+	     (let ((pos (<lexical-token>-location opening-token)))
 	       (make-<lexical-token> 'QUOTED-TEXT
 				     (make-<source-location>
 				      (<source-location>-input  pos)

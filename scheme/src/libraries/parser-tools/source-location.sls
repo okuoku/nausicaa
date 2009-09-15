@@ -45,6 +45,7 @@
     <source-location>-offset
 
     source-location-update
+    source-location->string
 
     source-location=?
 

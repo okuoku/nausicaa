@@ -45,7 +45,7 @@
   (error #f
     (if (not (<lexical-token>? token))
 	message
-      (let* ((position	(<lexical-token>-source token))
+      (let* ((position	(<lexical-token>-location token))
 	     (line	(<source-location>-line position))
 	     (column	(<source-location>-column position)))
 	(string-append message

@@ -34,10 +34,15 @@
 (library (parser-tools lexical-token)
   (export
     make-<lexical-token>
+    make-<lexical-token>/end-of-input
+    make-<lexical-token>/lexer-error
+
     <lexical-token>?
+
     <lexical-token>-value
     <lexical-token>-category
-    <lexical-token>-source
+    <lexical-token>-location
+    <lexical-token>-length
 
     <lexical-token>?/end-of-input
     <lexical-token>?/lexer-error
@@ -47,13 +52,16 @@
 
 (define-record-type <lexical-token>
   (fields (immutable category)
-	  (immutable source)
+	  (immutable location)
 	  (immutable value)
 	  (immutable length))
   (nongenerative nausicaa:parser-tools:lexical-token))
 
 (define (make-<lexical-token>/end-of-input location)
   (make-<lexical-token> '*eoi* location (eof-object) 0))
+
+(define (make-<lexical-token>/lexer-error location value length)
+  (make-<lexical-token> '*lexer-error* location (eof-object) 0))
 
 (define (<lexical-token>?/end-of-input obj)
   (and (<lexical-token>? obj)

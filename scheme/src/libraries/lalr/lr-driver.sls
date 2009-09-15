@@ -167,7 +167,7 @@
 	      (begin ;recovery failed, simulate end-of-input
 		(stack-push! 0 #f) ;restore start stacks state
 		(make-<lexical-token> '*eoi*
-				      (<lexical-token>-source lookahead)
+				      (<lexical-token>-location lookahead)
 				      (eof-object)
 				      #f))
 	    (let* ((entry (state-entry-with-error-action (current-state))))

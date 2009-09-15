@@ -42,23 +42,6 @@
 (library (packrat)
   (export
 
-    ;; lexical token
-    make-lexical-token		lexical-token?
-    lexical-token-value
-    lexical-token-category
-    lexical-token-source
-
-    ;; source location
-    make-source-location source-location?
-    source-location-input
-    source-location-line
-    source-location-column
-    source-location-offset
-    source-location-length
-
-    source-location>?
-    top-source-location update-source-location source-location->string
-
     ;; parsing error
     make-parse-error parse-error?
     parse-error-position parse-error-expected parse-error-messages parse-error->list
@@ -101,7 +84,9 @@
     packrat-list-results)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (lists))
+    (lists)
+    (parser-tools lexical-token)
+    (parser-tools source-location))
 
 
 ;;; helpers
@@ -112,13 +97,14 @@
       (set! counter (+ 1 counter))
       (string->symbol (string-append "gensym-" (number->string counter))))))
 
-(define-syntax define-inline
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((_ ?arg ...)
-	  (begin ?form0 ?form ...)))))))
+(define (<lexical-token>-category/or-false token)
+  ;;Return the token category, or #f  if TOKEN is #f or the end-of-input
+  ;;marker.
+  ;;
+  (and token
+       (let ((category (<lexical-token>-category token)))
+	 (and (not (eq? '*eoi* category)) category))))
+
 
 
 (define-record-type parse-error
@@ -145,10 +131,10 @@
 	(else
 	 (let ((p1 (parse-error-position e1))
 	       (p2 (parse-error-position e2)))
-	   (cond ((or (source-location>? p1 p2)
+	   (cond ((or (source-location-point>? p1 p2)
 		      (parse-error-empty? e2))
 		  e1)
-		 ((or (source-location>? p2 p1)
+		 ((or (source-location-point>? p2 p1)
 		      (parse-error-empty? e1))
 		  e2)
 		 (else
@@ -220,8 +206,8 @@
   ;;Note: applies first next-generator, to get first result
   (define (results-generator)
     (let* ((token	(lexer))
-	   (position	(lexical-token-source token)))
-      (if (eoi-token? token)
+	   (position	(<lexical-token>-location token)))
+      (if (<lexical-token>?/end-of-input token)
 	  (make-parse-results/end-of-input position)
 	(make-parse-results/success position token results-generator))))
   (results-generator))
@@ -249,87 +235,19 @@
       next)))
 
 (define (parse-results-token-kind results)
-  (lexical-token-category/or-false (parse-results-base results)))
+  (<lexical-token>-category/or-false (parse-results-base results)))
 
 (define (parse-results-token-value results)
   (let ((token (parse-results-base results)))
-    (and (not-eoi-token? token)
-	 (lexical-token-value token))))
-
-
-(define-record-type (lexical-token make-lexical-token lexical-token?)
-  (fields (immutable category lexical-token-category)
-	  (immutable source   lexical-token-source)
-	  (immutable value    lexical-token-value))
-  (nongenerative nausicaa:lexical-token))
-
-(define-record-type (source-location make-source-location source-location?)
-  (fields (immutable input   source-location-input)
-	  (immutable line    source-location-line)
-	  (immutable column  source-location-column)
-	  (immutable offset  source-location-offset)
-	  (immutable length  source-location-length))
-  (nongenerative nausicaa:source-location))
-
-(define-inline (eoi-token? token)
-  (eq? '*eoi* (lexical-token-category token)))
-
-(define-inline (not-eoi-token? token)
-  (not (eoi-token? token)))
-
-(define (lexical-token-category/or-false token)
-  ;;Return the token category, or #f  if TOKEN is #f or the end-of-input
-  ;;marker.
-  ;;
-  (and token
-       (let ((category (lexical-token-category token)))
-	 (and (not (eq? '*eoi* category)) category))))
-
-(define (source-location>? a b)
-  (cond ((not a) #f)
-	((not b) #t)
-	(else
-	 (let ((la (source-location-line a))
-	       (lb (source-location-line b)))
-	   (or (> la lb)
-	       (and (= la lb)
-		    (> (source-location-column a)
-		       (source-location-column b))))))))
-
-(define (source-location->string pos)
-  (if (not pos)
-      "<??>"
-    (string-append (source-location-input pos)
-		   ":"
-		   (number->string (source-location-line   pos))
-		   ":"
-		   (number->string (source-location-column pos)))))
-
-(define (top-source-location input-spec)
-  (make-source-location input-spec 1 0 0 0))
-
-(define (update-source-location pos ch)
-  (if (not pos)
-      #f
-    (let ((input	(source-location-input  pos))
-	  (line		(source-location-line   pos))
-	  (column	(source-location-column pos)))
-      (case ch
-	((#\return)
-	 (make-source-location input line 0))
-	((#\newline)
-	 (make-source-location input (+ line 1) 0))
-	((#\tab)
-	 (make-source-location input line (* (div (+ column 8) 8) 8)))
-	(else
-	 (make-source-location input line (+ column 1)))))))
+    (and (not (<lexical-token>?/end-of-input token))
+	 (<lexical-token>-value token))))
 
 
 (define (packrat-check-base token-kind k)
   (lambda (results)
     (let ((token (parse-results-base results)))
-      (if (eq? (lexical-token-category/or-false token) token-kind)
-	  ((k (lexical-token-value token)) (parse-results-next results))
+      (if (eq? (<lexical-token>-category/or-false token) token-kind)
+	  ((k (<lexical-token>-value token)) (parse-results-next results))
 	(make-parse-result/expected (parse-results-position results)
 				    (if (not token-kind)
 					'*eoi*
@@ -641,8 +559,8 @@
      '()
      (lambda (bindings results ks kf)
        (let ((token (parse-results-base results)))
-	 (if (eq? (lexical-token-category/or-false token) token)
-	     (ks bindings (make-parse-result/success (lexical-token-value token)
+	 (if (eq? (<lexical-token>-category/or-false token) token)
+	     (ks bindings (make-parse-result/success (<lexical-token>-value token)
 						     (parse-results-next results)))
 	   (kf (make-parse-error/expected (parse-results-position results)
 					  (if (not token)
@@ -766,7 +684,7 @@
 (define (packrat-port-results filename p)
   (base-generator->results
    (let ((ateof #f)
-         (pos   (top-source-location filename)))
+         (pos   (make-<source-location>/start filename)))
      (lambda ()
        (if ateof
            (values pos #f)
@@ -776,20 +694,20 @@
 		 (set! ateof #t)
 		 (values pos #f))
 	     (let ((old-pos pos))
-	       (set! pos (update-source-location pos x))
+	       (set! pos (source-location-update pos x))
 	       (values old-pos (cons x x))))))))))
 
 (define (packrat-string-results filename s)
   (base-generator->results
    (let ((idx 0)
          (len (string-length s))
-         (pos (top-source-location filename)))
+         (pos (make-<source-location>/start filename)))
      (lambda ()
        (if (= idx len)
            (values pos #f)
 	 (let ((x (string-ref s idx))
 	       (old-pos pos))
-	   (set! pos (update-source-location pos x))
+	   (set! pos (source-location-update pos x))
 	   (set! idx (+ idx 1))
 	   (values old-pos (cons x x))))))))
 

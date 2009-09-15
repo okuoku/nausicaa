@@ -35,7 +35,8 @@
 
 (import (nausicaa)
   (checks)
-  (packrat))
+  (packrat)
+  (parser-tools lexical-token))
 
 (check-set-mode! 'report-failed)
 (display "*** testing packrat\n")
@@ -47,10 +48,10 @@
     (let ((stream tokens))
       (lambda ()
 	(if (null? stream)
-	    (make-lexical-token '*eoi* #f (eof-object))
+	    (make-<lexical-token> '*eoi* #f (eof-object) 0)
 	  (let ((token (car stream)))
 	    (set! stream (cdr stream))
-	    (make-lexical-token (car token) #f (cdr token)))))))
+	    (make-<lexical-token> (car token) #f (cdr token) 0))))))
 
   (define calc
     (packrat-parser expr
@@ -277,10 +278,10 @@
     (let ((stream (sexp->tokens sexp)))
       (lambda ()
 	(if (null? stream)
-	    (make-lexical-token '*eoi* #f (eof-object))
+	    (make-<lexical-token> '*eoi* #f (eof-object) 0)
 	  (let ((token (car stream)))
 	    (set! stream (cdr stream))
-	    (make-lexical-token (car token) #f (cdr token)))))))
+	    (make-<lexical-token> (car token) #f (cdr token) 0))))))
 
   (define calc
     (packrat-parser expr

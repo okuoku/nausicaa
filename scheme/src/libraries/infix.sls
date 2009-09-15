@@ -52,9 +52,9 @@
 (define (error-handler message token)
   (error #f
     (if (or (not (<lexical-token>? token))
-	    (not (<lexical-token>-source token)))
+	    (not (<lexical-token>-location token)))
 	message
-      (let* ((position	(<lexical-token>-source token))
+      (let* ((position	(<lexical-token>-location token))
 	     (line	(<source-location>-line position))
 	     (column	(<source-location>-column position)))
 	(string-append
