@@ -181,5 +181,7 @@
 
 * nos
 
+  Write the documentation section about the record type protocol.
+
   Profile and improve method dispatching.
 

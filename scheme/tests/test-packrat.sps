@@ -53,42 +53,42 @@
 	    (set! stream (cdr stream))
 	    (make-<lexical-token> (car token) #f (cdr token) 0))))))
 
-  (define calc
-    (packrat-parser expr
+  (define calc-parser
+    (make-packrat-parser expr
 
-		    (expr   ((a <- mul-expr '+ b <- expr)
-			     (+ a b))
-			    ((a <- mul-expr '- b <- expr)
-			     (- a b))
-			    ((a <- mul-expr)
-			     a))
+			 (expr   ((a <- mul-expr '+ b <- expr)
+				  (+ a b))
+				 ((a <- mul-expr '- b <- expr)
+				  (- a b))
+				 ((a <- mul-expr)
+				  a))
 
-		    (mul-expr ((a <- simple '* b <- simple)
-			     (* a b))
-			    ((a <- simple '/ b <- simple)
-			     (/ a b))
-			    ((a <- simple)
-			     a))
+			 (mul-expr ((a <- simple '* b <- simple)
+				    (* a b))
+				   ((a <- simple '/ b <- simple)
+				    (/ a b))
+				   ((a <- simple)
+				    a))
 
-		    (simple ((a <- 'NUM)
-			     a)
-			    (('+ a <- 'NUM)
-			     a)
-			    (('+ a <- simple)
-			     a)
-			    (('- a <- 'NUM)
-			     (- a))
-			    (('- a <- simple)
-			     (- a))
-			    (('OPAREN a <- expr 'CPAREN)
-			     a))))
+			 (simple ((a <- 'NUM)
+				  a)
+				 (('+ a <- 'NUM)
+				  a)
+				 (('+ a <- simple)
+				  a)
+				 (('- a <- 'NUM)
+				  (- a))
+				 (('- a <- simple)
+				  (- a))
+				 (('OPAREN a <- expr 'CPAREN)
+				  a))))
 
   (define (doit . tokens)
     (let* ((lexer	(make-lexer-closure tokens))
-	   (result	(calc (base-generator->results lexer))))
-      (if (parse-result-successful? result)
-	  (parse-result-semantic-value result)
-	(parse-result-error result))))
+	   (result	(calc-parser (initialise-parser-state lexer))))
+      (if (<parse-result>-successful? result)
+	  (<parse-result>-semantic-value result)
+	(<parse-result>-error result))))
 
 ;;; --------------------------------------------------------------------
 
@@ -283,8 +283,8 @@
 	    (set! stream (cdr stream))
 	    (make-<lexical-token> (car token) #f (cdr token) 0))))))
 
-  (define calc
-    (packrat-parser expr
+  (define calc-parser
+    (make-packrat-parser expr
 
 		    (expr   ((a <- mul-expr '+ b <- expr)
 			     (+ a b))
@@ -311,10 +311,10 @@
 
   (define (doit sexp)
     (let* ((lexer	(make-lexer-closure sexp))
-	   (result	(calc (base-generator->results lexer))))
-      (if (parse-result-successful? result)
-	  (parse-result-semantic-value result)
-	(parse-result-error result))))
+	   (result	(calc-parser (initialise-parser-state lexer))))
+      (if (<parse-result>-successful? result)
+	  (<parse-result>-semantic-value result)
+	(<parse-result>-error result))))
 
 ;;; --------------------------------------------------------------------
 
@@ -431,69 +431,10 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (parse-error? (doit '(+ *)))
+      (<parse-error>? (doit '(+ *)))
     => #t)
 
   #t)
-
-
-
-;; (define (x)
-;;   (sc-expand
-;;    '(packrat-parser expr
-;; 		    (expr ((a <- mul-expr '+ b <- mul-expr)
-;; 			   (+ a b))
-;; 			  ((a <- mul-expr) a))
-;; 		    (mul-expr ((a <- simple '* b <- simple)
-;; 			     (* a b))
-;; 			    ((a <- simple) a))
-;; 		    (simple ((a <- 'num) a)
-;; 			    (('oparen a <- expr 'cparen) a)))))
-
-;; (let ((p ((packrat-parse `((expr (/ (a <- mul-expr '+ b <- mul-expr ,(packrat-lambda (a b) (+ a b)))
-;; 				    mul-expr))
-;; 			   (mul-expr (/ (a <- simple '* b <- simple ,(packrat-lambda (a b) (* a b)))
-;; 				      simple))
-;; 			   (simple (/ 'num
-;; 				      ('oparen a <- expr 'cparen ,(packrat-lambda (a) a))))))
-;; 	  'expr)))
-;;   (try-packrat-parse-pattern
-;;    p '()
-;;    (packrat-list-results '((oparen) (num . 1) (+) (num . 2) (cparen) (*) (num . 3)))
-;;    (lambda (bindings result) (values bindings (parse-result-semantic-value result)))
-;;    (lambda (err)
-;;      (list 'parse-error
-;; 	   (parse-position->string (parse-error-position err))
-;; 	   (parse-error-expected err)
-;; 	   (parse-error-messages err)))))
-
-;; (define expr-parse
-;;   (let ((p ((packrat-parse `((toplevel (e <- expr #f ,(packrat-lambda (e) e)))
-;; 			     (expr (/ (a <- mul-expr "+"ws b <- expr
-;; 					 ,(packrat-lambda (a b) (+ a b)))
-;; 				      mul-expr))
-;; 			     (mul-expr (/ (a <- simple "*"ws b <- mul-expr
-;; 					   ,(packrat-lambda (a b) (* a b)))
-;; 					simple))
-;; 			     (simple (/ num
-;; 					("("ws a <- expr ")"ws
-;; 					 ,(packrat-lambda (a) a))))
-;; 			     (num ((d <- digit)+ ws
-;; 				   ,(packrat-lambda (d) (string->number (list->string d)))))
-;; 			     (ws (#\ *))
-;; 			     (digit (/: "0123456789"))))
-;; 	    'toplevel)))
-;;     (lambda (str)
-;;       (try-packrat-parse-pattern
-;;        p '()
-;;        (packrat-string-results "<str>" str)
-;;        (lambda (bindings result)
-;; 	 (values bindings (parse-result-semantic-value result)))
-;;        (lambda (err)
-;; 	 (list 'parse-error
-;; 	       (parse-position->string (parse-error-position err))
-;; 	       (parse-error-expected err)
-;; 	       (parse-error-messages err)))))))
 
 
 ;;;; done
