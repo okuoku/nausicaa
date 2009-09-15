@@ -18,14 +18,12 @@ Topics
 1. Introduction
 ---------------
 
-This is a set of Scheme libraries defining an augmented R6RS
-Scheme  language.  It  attempts to  make  self-defining R6RS
-Scheme implementations more R6RS  compliant, in the sense of
-"programs that work".
+This package distributes a  set of Scheme libraries defining
+an   augmented  R6RS   Scheme   language  and   implementing
+miscellaneous core features for a Scheme system.
 
-  Additionally: some functions  from the SRFI collection are
-exported  by  default,  and  a  common API  to  the  foreign
-function interfaces is defined.
+  For  a general introduction  of the  Nausicaa distribution
+see the file "README.nausicaa".
 
 
 2. License
@@ -78,6 +76,16 @@ to install the files under a temporary location; example:
 described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
 
+  There are  special makefile  rules to rebuild  source code
+files, mostly lexer and parser tables:
+
+silex	- rebuild the tests for the (silex) lexer
+lalr	- rebuild the tests for the (lalr) parser
+csv	- rebuild the tables for the (csv) library
+infix	- rebuild the tables for the (infix) library
+email	- rebuild the tables for the email libraries
+
+
 5. Testing
 ----------
 
@@ -125,18 +133,19 @@ beware that the execution of these tests may take minutes.
 A. Credits
 ----------
 
-The stuff was assembled and written by Marco Maggi.
+The stuff  was assembled and partly written  by Marco Maggi;
+see the  "CREDITS" file for  a detailed list of  authors and
+maintainers.
 
   The  original  SRFI code  is  the  work  of many  authors,
 reference of which you can find the at the top of the source
 code files.
 
-  The SRFI implementations are a checkout of the development
+  The SRFI  implementations are  a based on  the development
 version  at Launchpad  (see Resources)  by  Derick Eddington
-(https://launchpad.net/~derick-eddington).
-
-  Upon inclusion  into Nausicaa further  modifications where
-done to the SRFI code.
+(https://launchpad.net/~derick-eddington).   Upon  inclusion
+into Nausicaa  further modifications where done  to the SRFI
+code.
 
   The  "tests/r6rs"  subdirectory  holds R6RS  compatibility
 tests gathered  from the PLT  Scheme repository (Thu  Jan 1,
@@ -158,11 +167,10 @@ The original SRFI documents are available at:
 
 		 <http://srfi.schemers.org>
 
-  The  development version  of SRFI  for R6RS/Ikarus  can be
-found at:
+the  development  version  of  the  SRFIs  for  R6RS  Scheme
+implementations can be found at:
 
-<https://code.launchpad.net/~ikarus-libraries-team/ikarus-libraries/srfi>
-       <http://code.launchpad.net/ikarus-libraries/>
+       <http://code.launchpad.net/scheme-libraries/>
 
 
 ### end of file
