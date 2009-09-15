@@ -136,11 +136,11 @@
 (compile-library "records.sls"
 		 "records.slfasl")
 
-(compile-library "scmobj/utils.sls"
-		 "scmobj/utils.slfasl")
-
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")
+
+(compile-library "scmobj/utils.sls"
+		 "scmobj/utils.slfasl")
 
 (compile-library "nos.sls"
 		 "nos.slfasl")
@@ -245,6 +245,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "email/addresses/common.sls"
+ 		 "email/addresses/common.slfasl")
+
 (compile-library "email/addresses/quoted-text-lexer.sls"
 		 "email/addresses/quoted-text-lexer.slfasl")
 
@@ -257,8 +260,8 @@
 (compile-library "email/addresses/lexer.sls"
 		 "email/addresses/lexer.slfasl")
 
-;; (compile-library "email/addresses/parser.sls"
-;; 		 "email/addresses/parser.slfasl")
+(compile-library "email/addresses/parser.sls"
+ 		 "email/addresses/parser.slfasl")
 
 (compile-library "email/addresses.sls"
 		 "email/addresses.slfasl")
