@@ -1192,6 +1192,13 @@ Source location records
 * parser-tools location pred::          Predicates.
 * parser-tools location cmp::           Comparison functions.
 * parser-tools location update::        Updating the location.
+* parser-tools location misc::          Miscellaneous functions.
+
+Lexical token records
+
+* parser-tools token type::     The record type.
+* parser-tools token maker::    Record makers.
+* parser-tools token pred::     Predicates.
 
 A lexical analyser generator
 
@@ -1242,23 +1249,21 @@ Introduction to the LR parser
 Defining the parser
 
 * lalr grammar intro::          Introduction to grammar definition.
-* lalr grammar basics::         Dummy example grammar definitions.
 * lalr grammar precedence::     Operator precedence and associativity.
 * lalr grammar clauses::        Writing semantic clauses.
 * lalr grammar error::          Error recovery.
-* lalr grammar eoi::            Handling end--of--input.
 * lalr grammar conflict::       Conflicts resolution.
-* lalr grammar assoc::          Associativity of binary operators.
-
-Dummy example grammar definitions
-
-* lalr grammar basics helpers:: Helper definitions.
-* lalr grammar basics single::  Single token parser.
+* lalr grammar examples::       Dummy examples of grammar definitions.
 
 Error recovery
 
 * lalr grammar error intro::    Introduction to error recovery.
 * lalr grammar error single::   Dummy example: Single token parser.
+
+Dummy examples of grammar definitions
+
+* lalr grammar examples helpers:: Helper definitions.
+* lalr grammar examples single::  Single token parser.
 
 Packrat parser
 
@@ -36146,8 +36151,17 @@ their values.  The keywords are meant to be records of type
 
 
 The following bindings are exported by the @library{sexps syntax}
-library.  Macros created by @func{define-sexp-macro} are meant to
-provide a friendly syntax for record constructors and the like; example:
+library.  Notice that to use it we may need to import the libraries with
+the following specifications:
+
+@example
+(for (sexps)        expand run)
+(for (sexps syntax) expand run)
+(for (sentinel)     expand run)
+@end example
+
+Macros created by @func{define-sexp-macro} are meant to provide a
+friendly syntax for record constructors and the like; example:
 
 @example
 (define-record-type (<alpha> %make-<alpha> <alpha>?)
@@ -41107,7 +41121,7 @@ The algorithm is the same used in @gnu{} Bison and it is described in:
 
 @quotation
 F. DeRemer and T. Pennello.  ``Efficient Computation of LALR(1)
-Look-Ahead Set''.  TOPLAS, vol. 4, no. 4, october 1982.
+Look--Ahead Set''.  TOPLAS, vol. 4, no. 4, october 1982.
 @end quotation
 
 @noindent
@@ -41116,8 +41130,8 @@ fact, much of the code is a direct translation from C to Scheme of the
 Bison sources.
 
 The library is a port to @rnrs{6} Scheme of Lalr-scm by Dominique
-Boucher.  The original is available at@footnote{@aurl{} last verified
-Tue Jul 21, 2009.}:
+Boucher.  The original source is available at@footnote{@aurl{} last
+verified Tue Jul 21, 2009.}:
 
 @center @url{http://code.google.com/p/lalr-scm/}
 
@@ -41135,10 +41149,10 @@ Tue Jul 21, 2009.}:
 @section Introduction to the LR parser
 
 
-Here we see an introduction to the behaviour of the LR driver; it is
-meant to be a tutorial for users who know nothing about parsing, and it
-has no commitment to be rigorous and exhaustive.  This tutorial is meant
-to be read in sequence, each section after the other as they appear.
+This section introduces the behaviour of the LR driver; it is meant to
+be a tutorial for users who know nothing about parsing, and it has no
+commitment to being rigorous and exhaustive.  This tutorial is meant to
+be read in sequence, each section after the other as they appear.
 
 We describe the basic mechanism of the parser, in a way that is easy to
 understand.  Let's say we want to compute simple arithmetic expressions
@@ -41170,8 +41184,8 @@ establish precedence.  We want to compute one--line expressions like:
 
 
 The first step is to split the expression in @dfn{tokens}, that is basic
-elements which have a semantic meaning.  In @samp{3 * 4 - 5} there are
-five of them:
+elements having a semantic meaning.  In @samp{3 * 4 - 5} there are five
+of them:
 
 @example
 3       -> number
@@ -41186,7 +41200,7 @@ decide what the lexer has to do if we do not define the parser grammar
 first.
 
 We can be sure that we want to deal with every number @math{3} in the
-same way; the same goes for every operator @math{*}.  But there is more
+same way, the same goes for every operator @math{*}.  But there is more
 of this.
 
 Scheme implements the functions @func{+}, @func{-}, @func{*}, @func{/}
@@ -41212,7 +41226,7 @@ The operators @math{+} and @math{-} are in a category; the operators
 @math{*} and @math{/} are in another category.
 
 @item
-Each operators has its own category.
+Each operator has its own category.
 @end itemize
 
 Putting all the tokens equal to each other in the same category is
@@ -41267,10 +41281,11 @@ O N A O N A N C C M N
 
 The categories defined so far are not the only ones with which an LR
 parser is concerned; we call them @dfn{terminal categories} or
-@dfn{terminals}, because they are direct abstractions of concrete
-values.  In contrast, the other categories are called @dfn{non--terminal
-categories} or @dfn{non--terminals}, because they are higher level
-abstractions for sequences of terminals and nested non--terminals.
+@dfn{terminal symbols} or just @dfn{terminals}, because they are direct
+abstractions of concrete values.  In contrast, the other categories are
+called @dfn{non--terminal categories} or @dfn{non--terminal symbols} or
+just @dfn{non--terminals}, because they are higher level abstractions
+for sequences of terminals and nested non--terminals.
 
 When modeling a terminal with a Scheme object, we need at least two
 fields:
@@ -41295,12 +41310,11 @@ Parenthesis tokens with the Scheme characters @samp{#\(} and @samp{#\)}.
 @end enumerate
 
 Experience shows that it is useful to define yet another token: The
-end--of-input.  It is used by the lexer to signal the end of input
-condition, and also by the parser in some special situation.  We need to
-define a new terminal category for this, let's call it @samp{*eoi*}.
-The concrete value of this terminal is not important, we can just select
-@samp{(eof-object)}; in what follows we will display it as
-@samp{#<eof>}.
+end--of-input; it is used by the lexer to signal the no more tokens are
+available.  We need to define a new terminal category for this, let's
+call it @samp{*eoi*}.  The concrete value of this terminal is not
+important, we can just select @samp{(eof-object)}; in what follows we
+will display it as @samp{#<eof>}.
 
 Putting all together, given the input expression:
 
@@ -41328,8 +41342,7 @@ O N A O N A N C C M N *eoi*
 @subsection What we want
 
 
-Let's take the simple expression @samp{1 + 2 * 3}; its categorised
-tokenisation is:
+Let's take the simple expression @samp{1 + 2 * 3}; its tokenisation is:
 
 @example
 [N, 1] [A, +] [N, 2] [M, *] [N, 3] [*eoi*, #<eof>]
@@ -41375,11 +41388,11 @@ and @samp{3}.  For example, we can compute the result @math{2 * 3 = 6}.
 The parser generator should create code equivalent to:
 
 @example
-(let (($1   2)   ;
+(let (($3   2)   ;
       ($2   *)   ; Automatically generated preamble
-      ($3   3))  ;
+      ($1   3))  ;
 
-  ($2 $1 $3))    ; Our semantic clause
+  ($2 $3 $1))    ; Client-supplied semantic clause
 @end example
 
 So we want the parser to mutate the vectors as follows:
@@ -41415,12 +41428,12 @@ the value @samp{7} it left in the vector before.
 We can describe the desired behaviour of the LR driver in terms of three
 basic actions: lookahead, shift, reduce; with the addition of two
 special actions: accept, error.  We assume that the parser can consult a
-data structure called @dfn{grammar} and decide what to do.  We will
-enter some detail of how the grammar is implemented later.
+data structure called @dfn{grammar} and decide what to do, we can think
+of it as an associative container.
 
-We scan the vectors using a variable @samp{p}, as in pointer, holding
-the index of the current element; at first @samp{p} is set to zero, so
-it references the terminal @samp{S}:
+We scan the vectors using a variable @samp{p} (as in ``pointer'')
+holding the index of the current element; at first @samp{p} is set to
+zero, so it references the terminal @samp{S}:
 
 @example
 #(#f  1  +  2  #<eof>)
@@ -41602,7 +41615,7 @@ stacks are:
 
 @noindent
 we can recognise the subvector @samp{N A N} to be a reducible one
-without looking a the next category symbol; the same goes with:
+without looking a the next token's category; the same goes with:
 
 @example
 #(#f  1  +  2  -  3  #<eof>)
@@ -41623,8 +41636,8 @@ But let's look at:
 @noindent
 it is an error to reduce @samp{N A N}, because the following
 multiplication takes precedence over addition; we can detect the need to
-give precedence to what follows only by looking at the next category
-symbol.
+give precedence to what follows only by looking at the next token's
+category.
 
 This is not always the case.  Let's make a change to our parser, let's
 say we want to parse scripts in which every line is an arithmetic
@@ -41689,14 +41702,14 @@ parser is ready to start a new line.
 
 
 We have seen that parser searches the grammar for an action associated
-to a sequence of category symbols; this is inefficient.  We can
-represent the grammar with a directed graph, having a single source and
-a single sink, in which:
+to a sequence of categories; this is inefficient.  We can represent the
+grammar with a directed graph, having a single source and a single sink,
+in which:
 
 @itemize
 @item
-Each sequence of category symbols having an action is represented by a
-state node.
+Each sequence of categories having an action is represented by a
+state--node.
 
 @item
 Every shift and every reduce causes a transaction from one node to the
@@ -41704,7 +41717,7 @@ other.
 
 @item
 The lookahead determines which outgoing transaction link to take from a
-given state node.
+given node.
 @end itemize
 
 There are many possible expressions and many possible paths in the
@@ -41730,10 +41743,10 @@ N M N *eoi*
 
 @noindent
 which in turn are represented by the following graph, in which every
-node has a number index (from @math{0} to @math{11}) and every terminal
-category symbol (@samp{N}, @samp{A}, @samp{M}, @samp{C}, @samp{O}) has
-the associated action between parenthesis (@samp{s} for shift, @samp{r}
-for reduce, @samp{a} for accept):
+node has a numeric index (from @math{0} to @math{11}) and every terminal
+category (@samp{N}, @samp{A}, @samp{M}, @samp{C}, @samp{O}) has the
+associated action between parenthesis (@samp{s} for shift, @samp{r} for
+reduce, @samp{a} for accept):
 
 @example
          (11) finish
@@ -41813,9 +41826,9 @@ the lookahead returns @samp{*eoi*} and the grammar associates @samp{[3,
 *eoi*]} with @samp{[1, reduce]}:
 
 @example
-#(#f   3  #<eof>)
-#( S   N   *eoi*)
-#( 0   1      #f)
+#(#f   3  #<eof>  #f  #f)
+#( S   N   *eoi*  #f  #f)
+#( 0   1      #f  #f  #f)
        |
        p
 @end example
@@ -41830,7 +41843,8 @@ the lookahead returns @samp{*eoi*} and the grammar associates @samp{[1,
 
 
 Until now we have seen only examples for which, given a sequence of
-symbols @samp{S A B C} and a lookahead @samp{D}, one of the sequences:
+symbols @samp{S A B C} and a lookahead @samp{D}, at least one of the
+sequences:
 
 @example
 S A B C D
@@ -41841,8 +41855,25 @@ C D
 
 @noindent
 has an action associated to it in the grammar; in other words, using the
-graph model: The state associated to the sequence @samp{S A B C} has an
-outgoing link associated to the lookahead @samp{D}.
+graph model:
+
+@itemize
+@item
+The state associated to the sequence @samp{S A B C} has an
+outgoing link associated to the lookahead @samp{D}, or
+
+@item
+The state associated to the sequence @samp{A B C} has an outgoing link
+associated to the lookahead @samp{D}, or
+
+@item
+The state associated to the sequence @samp{B C} has an outgoing link
+associated to the lookahead @samp{D}, or
+
+@item
+The state associated to the sequence @samp{C} has an outgoing link
+associated to the lookahead @samp{D}.
+@end itemize
 
 What happens if the lookahead is not associated to an outgoing link?  It
 means that the sequence of tokens does not comply with the defined
@@ -41959,7 +41990,7 @@ an infinite number of sequences of terminals is required to represent
 them.  This would make it impossible to code a parser, unless we take a
 different approach.
 
-We start by noticing that if the following sequences of terminals
+We start by noticing that, if the following sequences of terminals
 represent expressions:
 
 @example
@@ -41985,14 +42016,14 @@ N M  N A N
 N M  N M N
 @end example
 
-Let's define a new category indicated by the symbol @samp{E} which
-represents the basic expression:
+Let's define a new category, indicated by the Scheme symbol @samp{E},
+which represents the basic expressions:
 
 @example
-E = N
-  = A N
-  = N A N
-  = N M N
+E @equiv{} N
+  @equiv{} A N
+  @equiv{} N A N
+  @equiv{} N M N
 @end example
 
 @noindent
@@ -42015,11 +42046,11 @@ Let's suppose in defining the category @samp{E} we can use @samp{E}
 itself, recursively; then we can write:
 
 @example
-E = N
-  = A E
-  = E A E
-  = E M E
-  = O E C
+E @equiv{} N
+  @equiv{} A E
+  @equiv{} E A E
+  @equiv{} E M E
+  @equiv{} O E C
 @end example
 
 @noindent
@@ -42183,16 +42214,16 @@ used for the @samp{:parser-name} option:
 
 @example
 (library @var{spec}
-  (export @var{name}
-          ---) ; other bindings from (lalr common)
-  (import (rnrs) (lalr lr-driver) (lalr common))
+  (export @var{name})
+  (import (rnrs)
+          (lalr lr-driver)
+          (parser-tools source-location)
+          (parser-tools lexical-token)
+          (sentinel))
   (define (@var{name})
     (lr-driver <action-table> <goto-table>
                <reduction-table>)))
 @end example
-
-Notice that all the bindings exported by @library{lalr common} are
-re--exported by the generated library.
 @end deffn
 
 
@@ -42200,7 +42231,8 @@ re--exported by the generated library.
 Instruct @func{lalr-parser} to add @var{imports} to the list of Scheme
 libraries required by the parser definition.  @var{imports} must be a
 list of library specifications; for example, if the parser definition
-requires the @library{alpha} and @library{beta} libraries, we must use:
+(meaning the semantic actions) requires the @library{alpha} and
+@library{beta} libraries, we must use:
 
 @example
 :library-imports '((alpha) (beta))
@@ -42212,8 +42244,14 @@ environment argument (if @samp{:output-value} is used).  The imports are
 ignored when the output is a @func{define} form.
 
 By default, the import list always includes @samp{(rnrs)}, the selected
-driver's library @library{lalr lr-driver} or @library{lalr glr-driver},
-@library{lalr common} and @library{sentinel}.
+driver's library @library{lalr lr-driver} or @library{lalr glr-driver}
+and the following libraries:
+
+@example
+(parser-tools source-location)
+(parser-tools lexical-token)
+(sentinel)
+@end example
 @end deffn
 
 @c page
@@ -42223,13 +42261,18 @@ driver's library @library{lalr lr-driver} or @library{lalr glr-driver},
 
 The parser closure accepts as argument a lexer closure which, invoked
 with no arguments, must return the next token from the input.  Tokens
-are described using records of type @samp{lexical-token}.  The current
+are described using records of type @class{lexical-token}.  The current
 position in the input stream is described using records of type
-@samp{source-location}.
+@class{source-location}.  @ref{parser-tools} for the definition of these
+record types.
 
-The @samp{lexical-token} and @samp{source-location} record types are
-defined by @library{parser-tools lexical-token} and
-@library{parser-tools source-location}.
+Once the lexer closure finds the end of input, it must return a token
+with category @samp{*eoi*}; it must continue to return such a token if
+invoked multiple times.
+
+If the lexer closure finds a lexer error in the input, it must return a
+token with category @samp{*lexer-error*}; lexer errors are
+unrecoverable.
 
 @c page
 @node lalr parser
@@ -42271,20 +42314,7 @@ library, using a table in @samp{calc-lexer-table} to parse
 @end example
 
 The parser closure will return the value computed by the semantic clause
-of the outer parser non--terminal.  For example, in a line--oriented
-calculator that parses:
-
-@example
-1 + 2
-3 * 4
-5 - 6
-@end example
-
-@noindent
-the returned value is the result of parsing @samp{5 - 6}, which is the
-last line; the results computed by the semantic clauses of the previous
-lines, are discarded.  @ref{lalr grammar basics, Basics of grammar
-definition}
+of the outer non--terminal, the @dfn{start symbol}.
 
 @c ------------------------------------------------------------
 
@@ -42292,11 +42322,16 @@ definition}
 
 The lexer closure must be a thunk invoked each time the parser needs to
 lookahead in the token stream.  Its return value must be a record of
-type @samp{lexical-token}.  @ref{parser-tools token, Lexical token
+type @class{lexical-token}.  @ref{parser-tools token, Lexical token
 records}
 
-Once the end of input is found, the lexical analyser must return a
-lexical token with category @samp{*eoi*} each time it is invoked.
+Once the lexer closure finds the end of input, it must return a token
+with category @samp{*eoi*}; it must continue to return such a token if
+invoked multiple times.
+
+If the lexer closure finds a lexer error in the input, it must return a
+token with category @samp{*lexer-error*}; lexer errors are
+unrecoverable.
 
 If the lexer raises an exception, it will go through the parser closure
 with no obstacles.
@@ -42318,11 +42353,12 @@ A simple error procedure raising an exception looks like this:
 @example
 (define (error-handler message token)
   (error #f
-    (if (not (lexical-token? token))
+    (if (or (not (<lexical-token>? token))
+            (not (<lexical-token>-location token)))
         message
-      (let* ((position  (lexical-token-source   token))
-             (line      (source-location-line   position))
-             (column    (source-location-column position)))
+      (let* ((position  (<lexical-token>-source   token))
+             (line      (<source-location>-line   position))
+             (column    (<source-location>-column position)))
         (string-append message
           " line "
           (if line   (number->string line)   "unknown")
@@ -42331,12 +42367,17 @@ A simple error procedure raising an exception looks like this:
     token))
 @end example
 
+@noindent
+notice how the handler detects if the @samp{location} field of the
+@class{lexical-token} record is @false{} or a @class{source-location}
+record.
+
 The error procedure is invoked:
 
 @itemize
 @item
 When an invalid value is returned by the lexer.  If the value is not a
-@samp{lexical-token} record, the error procedure is invoked with the
+@class{lexical-token} record, the error procedure is invoked with the
 offending value as second argument.
 
 Parsing stops and the return value of the parser closure is the return
@@ -42349,7 +42390,7 @@ grammar.
 @itemize -
 @item
 If the error is an unexpected end--of--input, the second argument is a
-@samp{lexical-token} record with @samp{*eoi*} in the category field.
+@class{lexical-token} record with @samp{*eoi*} in the category field.
 
 Parsing stops and the return value of the parser closure is the return
 value of the error procedure, if any.
@@ -42372,13 +42413,11 @@ if the end--of--input is found.
 
 @menu
 * lalr grammar intro::          Introduction to grammar definition.
-* lalr grammar basics::         Dummy example grammar definitions.
 * lalr grammar precedence::     Operator precedence and associativity.
 * lalr grammar clauses::        Writing semantic clauses.
 * lalr grammar error::          Error recovery.
-* lalr grammar eoi::            Handling end--of--input.
 * lalr grammar conflict::       Conflicts resolution.
-* lalr grammar assoc::          Associativity of binary operators.
+* lalr grammar examples::       Dummy examples of grammar definitions.
 @end menu
 
 @c page
@@ -42444,8 +42483,8 @@ right--hand sides of @samp{e} are the rules:
 @end example
 
 @noindent
-which are used to match sequences of tokens and/or right--hand side
-rules.  The rule @samp{(e + t)} has the semantic clause @samp{(+ $1 $3)}.
+which are used to match sequences of terminals and non--terminals.  The
+rule @samp{(e + t)} has the semantic clause @samp{(+ $1 $3)}.
 
 In the semantic clauses, the symbol @samp{$n} refers to the value of the
 @math{n}-th symbol in the right--hand side rule.  For example, when the
@@ -42456,9 +42495,9 @@ sequence of tokens @samp{1 + 2} is matched by the rule:
 @end example
 
 @noindent
-the semantic clause is evaluated with @samp{$1} set to @samp{1}, and
-@samp{$2} set to @samp{2}; the result of the evaluation of the semantic
-clause becomes the value of the non--terminal.
+the semantic clause is evaluated with @samp{$1} bound to @samp{1}, and
+@samp{$2} bound to @samp{2}; the result of the evaluation of the
+semantic clause becomes the value of the non--terminal @samp{e}.
 
 A rule with no semantic clause can be written by omitting the @samp{: ---}
 part, example:
@@ -42471,410 +42510,19 @@ part, example:
 @end example
 
 @noindent
-when such a rule matches a sequence of values, it generates the sentinel
-value.  @ref{sentinel, The sentinel value}
-
-@c page
-@node lalr grammar basics
-@subsection Dummy example grammar definitions
-
-
-In this section we examine some dummy parser definitions to understand
-some basic mechanism.
-
-@menu
-* lalr grammar basics helpers:: Helper definitions.
-* lalr grammar basics single::  Single token parser.
-@end menu
-
-@c page
-@node lalr grammar basics helpers
-@subsubsection Helper definitions
-
-
-In the examples below we will use these helpers:
-
-@example
-(define eoi-token
-  (make-lexical-token '*eoi* #f (eof-object)))
-
-(define (make-lexer list-of-tokens)
-  ;;Return a lexer closure  drawing tokens
-  ;;from LIST-OF-TOKENS.  When the list is
-  ;;empty, return the EOI-TOKEN.
-  ;;
-  (lambda ()
-    (if (null? list-of-tokens)
-        eoi-token
-      (begin0
-          (car list-of-tokens)
-        (set! list-of-tokens (cdr list-of-tokens))))))
-
-(define (error-handler message token)
-  (cons message (lexical-token-value token)))
-@end example
-
-@noindent
-we see that the error handler does not raise an exception, so the parser
-is allowed to attempt a recovery after an error.
-
-@c page
-@node lalr grammar basics single
-@subsubsection Single token parser
-
-
-The following example defines a parser accepting only a single token of
-category @samp{A}, which must be followed by the end--of--input
-@samp{*eoi*}.  Every other input sequence causes an error; this includes
-an @samp{*eoi*} token alone.
-
-@example
-(define (example . tokens)
-  (let* ((lexer        (make-lexer tokens))
-         (make-parser  (lalr-parser
-                         :output-value #t
-                         :terminals '(A)
-                         :rules '((e (A) : $1))))
-         (parser       (make-parser)))
-    (parser lexer error-handler)))
-
-;;Parse the sequence: A *eoi*
-(example (make-lexical-token 'A #f 1))
-@result{} 1
-
-;;Parse the sequence: *eoi*
-(example)
-@result{} ("unexpected end of input" . (eof-object))
-@end example
-
-@noindent
-the following test raises an error:
-
-@example
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2)
-         (make-lexical-token 'A #f 3)))
-@result{} ("unexpected end of input" . (eof-object))
-@end example
-
-@noindent
-we will come back to this test when describing the error recovery
-mechanism.  @ref{lalr grammar error, Error recovery}
-
-@c ------------------------------------------------------------
-
-@subsubheading Accepting @samp{*eoi*} alone
-
-The following parser defines a grammar which accepts the sequence
-@samp{A *eoi*}, but accepts also @samp{*eoi*} alone.
-
-@example
-(define (example . tokens)
-  (let* ((lexer        (make-lexer tokens))
-         (make-parser  (lalr-parser
-                         :output-value #t
-                         :terminals '(A)
-                         :rules '((e (A) : $1)
-                                     ()  : 0)))
-         (parser       (make-parser)))
-    (parser lexer error-handler)))
-
-;;Parse the sequence: A *eoi*
-(example (make-lexical-token 'A #f 1))
-@result{} 1
-
-;;Parse the sequence: *eoi*
-(example)
-@result{} 0
-@end example
-
-When the input is a single @samp{*eoi*} token: The parser returns the
-value of the semantic action in @samp{() : 0}.  When the input is the
-sequence @samp{A *eoi*}: The parser returns the value of the semantic
-action in @samp{(A) : $1}.  Let's understand why.
-
-Using the reasoning of the introduction (@pxref{lalr intro}), we can
-imagine the tokens of the sequence @samp{A *eoi*} on the following
-stacks:
-
-@example
-#(#f  1  #<eof>)
-#(S   A   *eoi*)
-  |
-  p
-@end example
-
-@noindent
-the first lookahead returns @samp{A} and the action is shift, we
-``enter'' the right--hand side rule @samp{(A)}:
-
-@example
-#(#f  1  #<eof>)
-#(S   A   *eoi*)
-      |
-      p
-@end example
-
-@noindent
-the second lookahead returns @samp{*eoi*} and the action is reduce, we
-``leave'' the right--hand side rule @samp{(A)}; one couple is popped
-from the stack and one couple is pushed:
-
-@example
-#(#f  1  #<eof>)
-#(S   e   *eoi*)
-      |
-      p
-@end example
-
-@noindent
-the value has not changed because the semantic clause is just @samp{$1}
-which is @samp{1} itself; the third lookahead returns @samp{*eoi*} and
-the action is accept (the value @samp{1}).
-
-We can imagine the tokens of the sequence @samp{*eoi*} on the following
-stacks:
-
-@example
-#(#f  #<eof>)
-#(S   *eoi*)
-  |
-  p
-@end example
-
-@noindent
-the first lookahead returns @samp{*eoi*} and the action is reduce, we
-enter an leave the right--hand side rule @samp{()} in a single step; no
-couples are popped from the stacks, but a couple is pushed:
-
-@example
-#(#f  0  #<eof>)
-#(S   e   *eoi*)
-      |
-      p
-@end example
-
-@noindent
-we see the result of the semantic clause; the second lookahead returns
-@samp{*eoi*} and the action is accept (the value @samp{0}).
-
-@c ------------------------------------------------------------
-
-@subsubheading Accepting fixed sequences
-
-The following parser defines a grammar which accepts the following fixed
-sequences:
-
-@example
-*eoi*
-A *eoi*
-A A *eoi*
-A A A *eoi*
-@end example
-
-@noindent
-the return value of the parser is the list of values from the tokens.
-
-@example
-(define (example . tokens)
-  (let* ((lexer        (make-lexer tokens))
-         (make-parser  (lalr-parser
-                         :output-value #t
-                         :terminals '(A)
-                         :rules '((e (A)     : (list $1)
-                                     (A A)   : (list $1 $2)
-                                     (A A A) : (list $1 $2 $3)
-                                     ()      : 0))))
-         (parser       (make-parser)))
-    (parser lexer error-handler)))
-
-;;Parse the sequence: A *eoi*
-(example (make-lexical-token 'A #f 1))
-@result{} (1)
-
-;;Parse the sequence: A A *eoi*
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2))
-@result{} (1 2)
-
-;;Parse the sequence: A A A *eoi*
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2)
-         (make-lexical-token 'A #f 3))
-@result{} (1 2 3)
-
-;;Parse the sequence: *eoi*
-(example)
-@result{} 0
-@end example
-
-@c ------------------------------------------------------------
-
-@subsubheading Accepting a sequence of arbitrary length
-
-The following parser defines a grammar which accepts a sequence of
-@samp{A} tokens of any length; it also accepts @samp{*eoi*} alone.
-
-@example
-(define (example . tokens)
-  (let* ((lexer        (make-lexer tokens))
-         (make-parser  (lalr-parser
-                         :output-value #t
-                         :terminals '(A)
-                         :rules '((e (e A) : $2
-                                     (A)   : $1
-                                     ()    : 0))))
-         (parser       (make-parser)))
-    (parser lexer error-handler)))
-
-;;Parse the sequence: *eoi*
-(example)
-@result{} 0
-
-;;Parse the sequence: A *eoi*
-(example (make-lexical-token 'A #f 1))
-@result{} 1
-
-;;Parse the sequence: A A A *eoi*
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2)
-         (make-lexical-token 'A #f 3))
-@result{} 3
-@end example
-
-@noindent
-in the last test example, notice that the parser's return value is the
-value of the last parsed token (@samp{3}), while the other values are
-discarded.  This is because the whole sequence matches the right--hand
-side rule @samp{(e A)} and its semantic clause is @samp{$2}, which is
-the value of the token matching the last terminal @samp{A}.
-
-@c ------------------------------------------------------------
-
-@subsubheading Returning all the values from an arbitrary sequence
-
-If we want all the values in the sequence we can use the following
-parser:
-
-@example
-(define (example . tokens)
-  (let* ((lexer        (make-lexer tokens))
-         (make-parser  (lalr-parser
-                         :output-value #t
-                         :terminals '(A)
-                         :rules '((e (e A) : (cons $2 $1)
-                                     (A)   : (list $1)
-                                     ()    : 0))))
-         (parser       (make-parser)))
-    (parser lexer error-handler)))
-
-;;Parse the sequence: *eoi*
-(example)
-@result{} 0
-
-;;Parse the sequence: A *eoi*
-(example (make-lexical-token 'A #f 1))
-@result{} (1)
-
-;;Parse the sequence: A A *eoi*
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2))
-@result{} (2 1)
-
-;;Parse the sequence: A A A *eoi*
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2)
-         (make-lexical-token 'A #f 3))
-@result{} (3 2 1)
-@end example
-
-@noindent
-we notice that the values are returned in reverse order; this is
-because, making the semantic clauses explicit, the following are
-equivalent:
-
-@example
-(cons 2 (list 1))
-
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2))
-@end example
-
-@noindent
-and also the following:
-
-@example
-(cons 3 (cons 2 (list 1)))
-
-(example (make-lexical-token 'A #f 1)
-         (make-lexical-token 'A #f 2)
-         (make-lexical-token 'A #f 3))
-@end example
-
-@noindent
-in more detail, when parsing the sequence @samp{A A *eoi*} we can
-imagine the following stacks:
-
-@example
-#(#f  1  2  #<eof>)
-#(S   A  A   *eoi*)
-  |
-  p
-@end example
-
-@noindent
-the first lookahead returns @samp{A} and the action is shift:
-
-@example
-#(#f  1  2  #<eof>)
-#(S   A  A   *eoi*)
-      |
-      p
-@end example
-
-@noindent
-the second lookahead returns @samp{A} and the action is reduce:
-
-@example
-#(#f  (1)  2  #<eof>)
-#(S    e   A   *eoi*)
-       |
-       p
-@end example
-
-@noindent
-the third lookahead returns @samp{A} and the action is shift:
-
-@example
-#(#f  (1)  2  #<eof>)
-#(S    e   A   *eoi*)
-           |
-           p
-@end example
-
-@noindent
-the fourth lookahead returns @samp{A} and the action is reduce:
-
-@example
-#(#f  (2 . (1))  #<eof>  #f)
-#(S    e          *eoi*  #f)
-       |
-       p
-@end example
-
-@noindent
-and we know that @samp{(2 . (1))} is @samp{(2 1)}; the fifth lookahead
-returns @samp{*eoi*} and the action is accept.
+when such a rule matches a sequence of symbols, it generates the
+sentinel value.  @ref{sentinel, The sentinel value}
 
 @c page
 @node lalr grammar precedence
 @subsection Operator precedence and associativity
 
 
-The above grammar implicitly handles operator precedences.  It is also
-possible to explicitly assign precedences and associativity to terminal
-symbols and productions a la Yacc.  Here is a modified (and augmented)
-version of the grammar:
+The grammar defined in the introduction (@ref{lalr grammar intro})
+implicitly handles operator precedences.  It is also possible to
+explicitly assign precedences and associativity to terminal symbols and
+productions a la Yacc.  Here is a modified (and augmented) version of
+the grammar:
 
 @example
 (lalr-parser
@@ -42896,8 +42544,9 @@ version of the grammar:
 
 The @samp{left:} directive is used to specify a set of left--associative
 operators of the same precedence level.  The @samp{right:} directive
-specifies right--associative operators.  The @samp{nonassoc:} directive
-specifies operators that are non--associative.
+specifies right--associative operators at the same precedence level.
+The @samp{nonassoc:} directive specifies operators that are
+non--associative.
 
 Note the use of the (apparently) useless terminal @samp{uminus}.  It is
 only defined in order to assign to the penultimate rule a precedence
@@ -42907,7 +42556,7 @@ directive can only appear as the last element of a rule.
 Finally, note that precedence levels are incremented from left to right,
 i.e. the precedence level of @samp{+} and @samp{-} is less than the
 precedence level of @samp{*} and @samp{/} since the formers appear first
-in the list of terminal symbols (token definitions).
+in the list of terminal symbols.
 
 @c page
 @node lalr grammar clauses
@@ -42942,7 +42591,7 @@ specifications to the evaluation environment using the
 @end itemize
 
 
-The following local bindings are accessible by the semantic clauses.
+The following local bindings are accessible in the semantic clauses.
 
 
 @defun yypushback
@@ -42955,7 +42604,7 @@ be useful to handle some corner cases in the grammar definition.
 @defvar yycustom
 This is the custom value we give as @var{yycustom} argument to the
 parser function.  It can be any value, from a closure to a constant, to
-continuation.
+a continuation.
 @end defvar
 
 @c page
@@ -42977,33 +42626,36 @@ continuation.
 production can be of the form:
 
 @example
-(non-terminal
+(NON-TERMINAL
    ---                  ;right-hand side rules
    (error TERMINAL) : semantic-clause)
 @end example
 
-If, while parsing the right--hand side rules for @samp{non-terminal},
+If, while parsing the right--hand side rules for @samp{NON-TERMINAL},
 the lookahead returns an invalid category: The parser resets the state
 associated with the parsing of the rule and skips all the tokens
 returned by the lexer until one with category @samp{TERMINAL} is found.
 The @samp{TERMINAL} token is also discarded and parsing continues with a
 new lookahead.
 
-There can be several such productions for a single non--terminal: For a
-C--like language, we could ``synchronise'' on semicolons and closing
-curly brackets by writing error rules like these:
+The symbol @samp{error} is reserved as error recovery directive, it
+cannot be used as terminal or non--terminal.
+
+There can be several such right--hand side rules for a single
+non--terminal: For a C--like language, we could ``synchronise'' on
+semicolons and closing curly brackets by writing error rules like these:
 
 @example
-(stmt
-   (expression SEMICOLON)   : ---
-   (LBRACKET stmt RBRACKET) : ---
-   (error SEMICOLON)            ;empty semantic claus
-   (error RBRACKET))            ;empty semantic claus
+(statement
+   (expression SEMICOLON)        : ---
+   (LBRACKET statement RBRACKET) : ---
+   (error SEMICOLON)    ;empty semantic claus
+   (error RBRACKET))    ;empty semantic claus
 @end example
 
 @noindent
 if an error occurs, the parser will discard its internal state up to,
-and including, the first token that started the @samp{stmt}
+and including, the first token that started the @samp{statement}
 non--terminal (@samp{LBRACKET} or the first of @samp{expression}).
 
 @c page
@@ -43012,8 +42664,10 @@ non--terminal (@samp{LBRACKET} or the first of @samp{expression}).
 
 
 Let's consider the following parser which accepts as input only the
-sequence: @samp{A}, @samp{*eoi*}.  @ref{lalr grammar basics single,
-Single token parser}
+sequence: @samp{A}, @samp{*eoi*}; it is a corner case which is useful to
+understand.  The correct way to handle this case is to have an error
+handler that does not return; in the following the error handler
+returns, leaving the parser to handle everything.
 
 @example
 (define (example . tokens)
@@ -43026,8 +42680,9 @@ Single token parser}
     (parser lexer error-handler)))
 @end example
 
-We have already examined the correct usage of this grammar; we can now
-understand what happens in the following test:
+We have already examined the correct usage of this grammar (@ref{lalr
+grammar examples single}); we can now understand what happens in the
+following test:
 
 @example
 (example (make-lexical-token 'A #f 1)
@@ -43092,32 +42747,51 @@ removing everything related to this right--hand side rule:
 @end example
 
 @item
-The parser detects the fact that the stack has been fully rewind, so it
-just stops reading tokens from the lexer and imposes a @samp{*eoi*}
-token as lookahead.
+The parser detects the fact that the stack has been fully rewind without
+finding a non--terminal with an @samp{error} directive, so it just stops
+reading tokens from the lexer and imposes a @samp{*eoi*} token as
+lookahead.
 
 @item
-The end--of--input token is invalid as initial state, so an ``unexpected
-end--of--input error'' is generated; the error handler is invoked and
-its return value becomes the return value of the parser closure.
+The end--of--input token is invalid as lookahead from the initial state,
+so an ``unexpected end--of--input error'' is generated; the error
+handler is invoked and its return value becomes the return value of the
+parser closure.
 @end enumerate
 
 @c page
-@node lalr grammar eoi
-@subsection Handling end--of--input
+@node lalr grammar conflict
+@subsection Conflicts resolution
 
 
-When the end--of--input token (category @samp{*eoi*}) comes from the
-lexer, it has to be in the correct position else an error occurs.  When
-an unexpected end--of--input occurs: The supplied error handler is
-invoked, and its return value becomes the return value of the parser
-closure.
+Conflicts in the grammar are handled in a conventional way.  In the
+absence of precedence directives, Shift/Reduce conflicts are resolved by
+shifting, and Reduce/Reduce conflicts are resolved by choosing the rule
+listed first in the grammar definition.
 
-In the examples below we will use these helpers:
+@c page
+@node lalr grammar examples
+@subsection Dummy examples of grammar definitions
+
+
+In this section we examine some dummy parser definitions to understand
+some basic mechanism.
+
+@menu
+* lalr grammar examples helpers:: Helper definitions.
+* lalr grammar examples single::  Single token parser.
+@end menu
+
+@c page
+@node lalr grammar examples helpers
+@subsubsection Helper definitions
+
+
+In all the examples of this section we will use these helpers:
 
 @example
 (define eoi-token
-  (make-lexical-token '*eoi* #f (eof-object)))
+  (make-lexical-token '*eoi* #f (eof-object) 0))
 
 (define (make-lexer list-of-tokens)
   ;;Return a lexer closure  drawing tokens
@@ -43131,197 +42805,364 @@ In the examples below we will use these helpers:
           (car list-of-tokens)
         (set! list-of-tokens (cdr list-of-tokens))))))
 
+(define (make-token category semantic-value)
+  (make-<lexical-token> category #f semantic-value 0))
+
 (define (error-handler message token)
-  (cons message (lexical-token-value token)))
+  (cons message (<lexical-token>-value token)))
 @end example
 
-The following grammar accepts terminals of category @samp{A} as input
-and nothing else; each valid token can be followed by a @samp{*eoi*}
-token, but @samp{*eoi*} cannot be the first token:
+@noindent
+we see that the error handler does not raise an exception, so the parser
+is allowed to attempt a recovery after an error.
+
+@c page
+@node lalr grammar examples single
+@subsubsection Single token parser
+
+
+The following example defines a parser accepting only a single token of
+category @samp{A}, which must be followed by the end--of--input
+@samp{*eoi*}.  Every other input sequence causes an error; this includes
+an @samp{*eoi*} token alone.
 
 @example
-(define (doit . list-of-tokens)
-  (let* ((lexer          (make-lexer list-of-tokens))
-         (terminals      '(A))
-         (non-terminals  '((e (A) : $1)))
-         (make-parser    (lalr-parser :output-value #t
-                                      :expect #f
-                                      :terminals terminals
-                                      :rules non-terminals))
-         (parser         (make-parser)))
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (A) : $1))))
+         (parser       (make-parser)))
     (parser lexer error-handler)))
 
-(doit (make-lexical-token 'A #f 1)
-      eoi-token)
-@result{}
+;;Parse the sequence: A *eoi*
+(example (make-token 'A 1))
+@result{} 1
 
-(doit eoi-token)
-@result{} `("unexpected end of input" . ,(eof-object))
-@end example
-
-
-@c page
-@node lalr grammar conflict
-@subsection Conflicts resolution
-
-
-Conflicts in the grammar are handled in a conventional way.  In the
-absence of precedence directives, Shift/Reduce conflicts are resolved by
-shifting, and Reduce/Reduce conflicts are resolved by choosing the rule
-listed first in the grammar definition.
-
-@c page
-@node lalr grammar assoc
-@subsection Associativity of binary operators
-
-
-It is possible to specify an associativity attribute for every terminal
-symbol; available attributes are: left, right, nonassoc.  The following
-example specifies terminals with associativity:
-
-@example
-:terminals '(A               ;no associativity specified
-             (left:     B)   ;left associative
-             (right:    C)   ;right associative
-             (nonassoc: D)   ;non associative
-@end example
-
-It makes sense to consider associativity only for terminals describing
-binary operators.  For example, the arithmetic operations @math{+},
-@math{-}, @math{*}, @math{/} are binary operators which can be described
-by a grammar like:
-
-@example
-(lalr-parser
-
-  :terminals '(NUM ADD SUB MUL DIV)
-
-  :rules '((EXPR (EXPR ADD EXPR) : (+ $1 $2)
-                 (EXPR SUB EXPR) : (- $1 $2)
-                 (EXPR MUL EXPR) : (* $1 $2)
-                 (EXPR DIV EXPR) : (/ $1 $2)
-                 (NUM)           : $1))
-
-  ---) ;other options
+;;Parse the sequence: *eoi*
+(example)
+@result{} ("unexpected end of input" . (eof-object))
 @end example
 
 @noindent
-we see that @samp{ADD} is a binary operator because its right--hand side
-rule has the format @samp{(EXPR ADD EXPR)}: The operator in the middle,
-one operand to the left and one operand to the right.
-
-When an expression has one of the patterns (different operators):
+the following test raises an error:
 
 @example
-1 + 2 * 3       1 - 2 * 3
-1 + 2 / 3       1 - 2 / 3
-1 + 2 - 3       1 - 2 + 3
-
-1 * 2 + 3       1 / 2 + 3
-1 * 2 - 3       1 / 2 - 3
-1 * 2 / 3       1 / 2 * 3
+(example (make-token 'A 1)
+         (make-token 'A 2)
+         (make-token 'A 3)))
+@result{} ("unexpected end of input" . (eof-object))
 @end example
 
 @noindent
-the operators precedence establishes the order of computation:
+we will come back to this test when describing the error recovery
+mechanism.  @ref{lalr grammar error, Error recovery}
+
+@c ------------------------------------------------------------
+
+@subsubheading Accepting @samp{*eoi*} alone
+
+The following parser defines a grammar which accepts the sequence
+@samp{A *eoi*}, but also accepts @samp{*eoi*} alone.
 
 @example
-1 + (2 * 3)     1 - (2 * 3)
-1 + (2 / 3)     1 - (2 / 3)
-1 + (2 - 3)     (1 - 2) + 3
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (A) : $1)
+                                     ()  : 0)))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
 
-(1 * 2) + 3     (1 / 2) + 3
-(1 * 2) - 3     (1 / 2) - 3
-1 * (2 / 3)     (1 / 2) * 3
+;;Parse the sequence: A *eoi*
+(example (make-token 'A 1))
+@result{} 1
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
+@end example
+
+When the input is a single @samp{*eoi*} token: The parser returns the
+value of the semantic action in @samp{() : 0}.  When the input is the
+sequence @samp{A *eoi*}: The parser returns the value of the semantic
+action in @samp{(A) : $1}.  Let's understand why.
+
+Using the reasoning of the introduction (@pxref{lalr intro}), we can
+imagine the tokens of the sequence @samp{A *eoi*} on the following
+stacks:
+
+@example
+#(#f  1  #<eof>)
+#(S   A   *eoi*)
+  |
+  p
 @end example
 
 @noindent
-but when an expression has one of the patterns (the same operator
-appears twice):
+the first lookahead returns @samp{A} and the action is shift, we
+``enter'' the right--hand side rule @samp{(A)}:
 
 @example
-1 + 2 + 3       1 - 2 - 3
-1 * 2 * 3       1 / 2 / 3
+#(#f  1  #<eof>)
+#(S   A   *eoi*)
+      |
+      p
 @end example
 
 @noindent
-what is the order of computation?  This is where the associativity
-attribute may be used.  Left associativity means:
+the second lookahead returns @samp{*eoi*} and the action is reduce, we
+``leave'' the right--hand side rule @samp{(A)}; one couple is popped
+from the stack and one couple is pushed:
 
 @example
-(1 + 2) + 3     (1 - 2) - 3
-(1 * 2) * 3     (1 / 2) / 3
+#(#f  1  #<eof>)
+#(S   e   *eoi*)
+      |
+      p
 @end example
 
 @noindent
-right associativity means:
+the value has not changed because the semantic clause is just @samp{$1}
+which is @samp{1} itself; the third lookahead returns @samp{*eoi*} and
+the action is accept (the value @samp{1}).
+
+We can imagine the tokens of the sequence @samp{*eoi*} on the following
+stacks:
 
 @example
-1 + (2 + 3)     1 - (2 - 3)
-1 * (2 * 3)     1 / (2 / 3)
+#(#f  #<eof>)
+#(S   *eoi*)
+  |
+  p
 @end example
 
 @noindent
-while, mathematically, it makes no difference with the arithmetic
-operations, there are cases in which grouping matters.
-
-We have to understand that, with the following grammar:
+the first lookahead returns @samp{*eoi*} and the action is reduce, we
+enter and leave the right--hand side rule @samp{()} in a single step; no
+couples are popped from the stacks, but a couple is pushed:
 
 @example
-((EXPR (EXPR ADD EXPR) : (+ $1 $2)
-       (EXPR SUB EXPR) : (- $1 $2)
-       (EXPR MUL EXPR) : (* $1 $2)
-       (EXPR DIV EXPR) : (/ $1 $2)
-       (NUM)           : $1))
+#(#f  0  #<eof>)
+#(S   e   *eoi*)
+      |
+      p
 @end example
 
 @noindent
-the associativity attribute is @strong{not} considered; when a sequence
-of tokens like:
+we see the result of the semantic clause; the second lookahead returns
+@samp{*eoi*} and the action is accept (the value @samp{0}).
+
+@c ------------------------------------------------------------
+
+@subsubheading Accepting fixed sequences
+
+The following parser defines a grammar which accepts the following fixed
+sequences:
 
 @example
-EXPR ADD EXPR ADD EXPR
+*eoi*
+A *eoi*
+A A *eoi*
+A A A *eoi*
 @end example
 
 @noindent
-is parsed, the first @samp{EXPR ADD EXPR} matches a right--hand side
-rule and so a reduce action is taken, which is equivalent to left
-association:
+the return value of the parser is the list of values from the tokens.
 
 @example
-(EXPR ADD EXPR) ADD EXPR
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (A)     : (list $1)
+                                     (A A)   : (list $1 $2)
+                                     (A A A) : (list $1 $2 $3)
+                                     ()      : 0))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+
+;;Parse the sequence: A *eoi*
+(example (make-token 'A 1))
+@result{} (1)
+
+;;Parse the sequence: A A *eoi*
+(example (make-token 'A 1)
+         (make-token 'A 2))
+@result{} (1 2)
+
+;;Parse the sequence: A A A *eoi*
+(example (make-token 'A 1)
+         (make-token 'A 2)
+         (make-token 'A 3))
+@result{} (1 2 3)
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Accepting a sequence of arbitrary length
+
+The following parser defines a grammar which accepts a sequence of
+@samp{A} tokens of any length; it also accepts @samp{*eoi*} alone.
+
+@example
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (e A) : $2
+                                     (A)   : $1
+                                     ()    : 0))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
+
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
+
+;;Parse the sequence: A *eoi*
+(example (make-token 'A 1))
+@result{} 1
+
+;;Parse the sequence: A A A *eoi*
+(example (make-token 'A 1)
+         (make-token 'A 2)
+         (make-token 'A 3))
+@result{} 3
 @end example
 
 @noindent
-with right--hand side rules like the above ones, it is impossible to
-obtain right associativity.
+in the last test example, notice that the parser's return value is the
+value of the last parsed token (@samp{3}), while the other values are
+discarded.  This is because the whole sequence matches the right--hand
+side rule @samp{(e A)} and its semantic clause is @samp{$2}, which is
+the value of the token matching the last terminal @samp{A}.
 
-A parser that makes use of associativity must look like:
+@c ------------------------------------------------------------
+
+@subsubheading Returning all the values from an arbitrary sequence
+
+If we want all the values in the sequence we can use the following
+parser:
 
 @example
-(lalr-parser
+(define (example . tokens)
+  (let* ((lexer        (make-lexer tokens))
+         (make-parser  (lalr-parser
+                         :output-value #t
+                         :terminals '(A)
+                         :rules '((e (e A) : (cons $2 $1)
+                                     (A)   : (list $1)
+                                     ()    : 0))))
+         (parser       (make-parser)))
+    (parser lexer error-handler)))
 
-  :terminals '(NUM (left:  ADD SUB)
-                   (right: MUL DIV)
-                   (nonassoc: NEG))
+;;Parse the sequence: *eoi*
+(example)
+@result{} 0
 
-  :rules '((EXPR (EXPR ADD EXPR)          : ($1 $2)
-                 (EXPR ADD EXPR ADD EXPR) : ($1 $2)
+;;Parse the sequence: A *eoi*
+(example (make-token 'A 1))
+@result{} (1)
 
-                 (EXPR SUB EXPR)          : ($1 $2)
-                 (EXPR SUB EXPR SUB EXPR) : ($1 $2)
+;;Parse the sequence: A A *eoi*
+(example (make-token 'A 1)
+         (make-token 'A 2))
+@result{} (2 1)
 
-                 (EXPR MUL EXPR)          : ($1 $2)
-                 (EXPR MUL EXPR MUL EXPR) : ($1 $2)
-
-                 (EXPR DIV EXPR)          : ($1 $2)
-                 (EXPR DIV EXPR DIV EXPR) : ($1 $2)
-
-                 (NUM)                    : $1
-                 (SUB NUM (prec: NEG))    : (- $2)))
-
-  ---) ;other options
+;;Parse the sequence: A A A *eoi*
+(example (make-token 'A 1)
+         (make-token 'A 2)
+         (make-token 'A 3))
+@result{} (3 2 1)
 @end example
+
+@noindent
+we notice that the values are returned in reverse order; this is
+because, making the semantic clauses explicit, the following are
+equivalent:
+
+@example
+(cons 2 (list 1))
+
+(example (make-token 'A 1)
+         (make-token 'A 2))
+@end example
+
+@noindent
+and also the following:
+
+@example
+(cons 3 (cons 2 (list 1)))
+
+(example (make-token 'A 1)
+         (make-token 'A 2)
+         (make-token 'A 3))
+@end example
+
+@noindent
+in more detail, when parsing the sequence @samp{A A *eoi*} we can
+imagine the following stacks:
+
+@example
+#(#f  1  2  #<eof>)
+#(S   A  A   *eoi*)
+  |
+  p
+@end example
+
+@noindent
+the first lookahead returns @samp{A} and the action is shift:
+
+@example
+#(#f  1  2  #<eof>)
+#(S   A  A   *eoi*)
+      |
+      p
+@end example
+
+@noindent
+the second lookahead returns @samp{A} and the action is reduce:
+
+@example
+#(#f  (1)  2  #<eof>)
+#(S    e   A   *eoi*)
+       |
+       p
+@end example
+
+@noindent
+the third lookahead returns @samp{A} and the action is shift:
+
+@example
+#(#f  (1)  2  #<eof>)
+#(S    e   A   *eoi*)
+           |
+           p
+@end example
+
+@noindent
+the fourth lookahead returns @samp{A} and the action is reduce:
+
+@example
+#(#f  (2 . (1))  #<eof>  #f)
+#(S    e          *eoi*  #f)
+       |
+       p
+@end example
+
+@noindent
+and we know that @samp{(2 . (1))} is @samp{(2 1)}; the fifth lookahead
+returns @samp{*eoi*} and the action is accept.
 
 @c page
 @node lalr glr
@@ -43336,16 +43177,15 @@ the context in which the technique has been devised.
 To generate a GLR parser instead of a regular LALR parser, simply use
 the @samp{:parser-type 'glr} option with @func{lalr-parser}.
 
-GLR parsers are run in exactly the same way as regular LALR parsers.
-The only difference is that the result of the parsing is a (possibly
-empty) list of parses instead of a single parse.
+GLR parsers are run in exactly the same way as regular LALR parsers; the
+only difference is that the result of the parsing is a (possibly empty)
+list of parses instead of a single parse.
 
 Since the parsing of a phrase can lead to many potential parses, errors
 cannot be detected as easily as with deterministic LR parsing.  For this
 reason, it is advised to not put error productions in the grammar (they
 will be ignored anyway).  Moreover, GLR parsers are usually not meant
-for interactive parsers (like the calculator example that comes with the
-distribution).
+for interactive parsers.
 
 @c page
 @node packrat
