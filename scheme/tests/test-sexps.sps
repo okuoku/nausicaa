@@ -28,7 +28,7 @@
   (checks)
   (for (sexps) expand run)
   (for (sexps syntax) expand run)
-  (sentinel)
+  (for (sentinel) expand run)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
@@ -814,8 +814,8 @@
 		 (make-<alpha>))
 	      (environment '(rnrs)
 			   '(for (sexps) expand run)
-			   '(for (sexps syntax) expand)
-			   '(sentinel))))
+			   '(for (sexps syntax) expand run)
+			   '(for (sentinel) expand run))))
     => `((message   . "unbound variable \"?b\" in output S-expression")))
 
   #t)
