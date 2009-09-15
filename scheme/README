@@ -129,6 +129,15 @@ to run them all:
 
 beware that the execution of these tests may take minutes.
 
+  After the installation has been completed, it is possible
+to run the test suite against the installed libraries using
+the following makefile rules:
+
+ltest-installed		- run test for Larceny
+itest-installed		- run test for Ikarus
+mtest-installed		- run test for Mosh
+ytest-installed		- run test for Ypsilon
+
 
 A. Credits
 ----------
