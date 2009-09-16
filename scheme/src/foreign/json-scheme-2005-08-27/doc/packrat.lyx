@@ -1,0 +1,1523 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage a4wide
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+A Portable Packrat Parser Library for Scheme
+\layout Author
+
+Tony Garnock-Jones <tonyg@lshift.net>
+\layout Standard
+
+Packrat parsing is a memoizing, backtracking recursive-descent parsing technique
+ that runs in time and space linear in the size of the input text.
+ The technique was originally discovered by Alexander Birman in 1970 
+\begin_inset LatexCommand \cite{BirmanU73}
+
+\end_inset 
+
+, and Bryan Ford took up the idea for his master's thesis in 2002 
+\begin_inset LatexCommand \cite{ford02icfp,ford02packrat,ford-parsing}
+
+\end_inset 
+
+.
+ For detailed information on the technique, please see Bryan Ford's web
+ page at
+\layout Standard
+\align center 
+
+\family typewriter 
+http://pdos.csail.mit.edu/~baford/packrat/
+\layout Standard
+
+This document describes an R5RS Scheme library of parsing combinators implemente
+d using the packrat parsing algorithm.
+ The main interfaces are the 
+\family typewriter 
+packrat-parse
+\family default 
+ macro (section 
+\begin_inset LatexCommand \ref{sec:The-packrat-parser-macro}
+
+\end_inset 
+
+) and the combinators into which it expands (section 
+\begin_inset LatexCommand \ref{sec:Parsing-Combinators}
+
+\end_inset 
+
+), the 
+\family typewriter 
+base-generator->results
+\family default 
+ function (section 
+\begin_inset LatexCommand \ref{sub:(base-generator->results-<generator-function>)-}
+
+\end_inset 
+
+), and the accessors for 
+\family typewriter 
+parse-result
+\family default 
+ records (section 
+\begin_inset LatexCommand \ref{sub:parse-result}
+
+\end_inset 
+
+).
+\layout Section
+
+Data Structures
+\layout Standard
+
+This section describes the data structures that make up the core of the
+ packrat parsing algorithm, and some of the low-level procedures that operate
+ on them.
+\layout Subsection
+
+parse-result
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:parse-result}
+
+\end_inset 
+
+A parse-result record describes the results of an attempt at a parse at
+ a particular position in the input stream.
+ It can either record a successful parse, in which case it contains an associate
+d semantic-value, or a failed parse, in which case it contains a parse-error
+ structure.
+\layout Subsubsection*
+
+(parse-result? <object>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <boolean>
+\layout Standard
+
+This is a predicate which answers #t if and only if its argument is a parse-resu
+lt record.
+\layout Subsubsection*
+
+(parse-result-successful? <parse-result>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <boolean>
+\layout Standard
+
+This predicate returns #t if its argument represents a successful parse,
+ or #f if it represents a failed parse.
+\layout Subsubsection*
+
+(parse-result-semantic-value <parse-result>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <object> or #f
+\layout Standard
+
+If the argument represents a successful parse, this function returns the
+ associated semantic-value; otherwise, it will return #f.
+\layout Subsubsection*
+
+(parse-result-next <parse-result>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-results> or #f
+\layout Standard
+
+If the argument represents a successful parse, this function returns a parse-res
+ults record representing the parsed input stream starting immediately after
+ the parse this parse-results represents.
+ For instance, given an input stream [a, b, c, d, e], if the parse-result
+ given to parse-result-next had completed successfully, consuming the [a,
+ b, c] prefix of the input stream and producing some semantic value, then
+ the parse-results returned from parse-result-next would represent all possible
+ parses starting from the [d, e] suffix of the input stream.
+\layout Subsubsection*
+
+(parse-result-error <parse-result>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-error> or #f
+\layout Standard
+
+If the argument represents a failed parse, this function returns a parse-error
+ structure; otherwise, it may return a parse-error structure for internal
+ implementation reasons (to do with propagating errors upwards for improved
+ error-reporting - see section 3.2.4 of 
+\begin_inset LatexCommand \cite{ford02packrat}
+
+\end_inset 
+
+), or it may return #f.
+\layout Subsubsection*
+
+(make-result <semantic-value> <next-parse-results>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-result>
+\layout Standard
+
+This function constructs an instance of parse-result representing a successful
+ parse.
+ The first argument is used as the semantic value to include with the new
+ parse-result, and the second argument should be a parse-results structure
+ representing the location in the input stream from which to continue parsing.
+\layout Subsubsection*
+
+(make-expected-result <parse-position> <object>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-result>
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:(make-expected-result-<parse-position>-<object>)}
+
+\end_inset 
+
+This function constructs an instance of parse-result representing a failed
+ parse.
+ The parse-position in the first argument and the value in the second argument
+ are used to construct a variant of a parse-error record for inclusion in
+ the parse-result that reports that a particular kind of value was expected
+ at the given parse-position.
+\layout Subsubsection*
+
+(make-message-result <parse-position> <string>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-result>
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:(make-message-result-<parse-position>-<string>)}
+
+\end_inset 
+
+This function constructs an instance of parse-result representing a failed
+ parse.
+ The parse-position in the first argument and the string in the second argument
+ are used to construct a variant of a parse-error record for inclusion in
+ the parse-result that reports a general error message at the given parse
+ position.
+\layout Subsubsection*
+
+(merge-result-errors <parse-result> <parse-error>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-result>
+\layout Standard
+
+This function propagates error information through a particular parse result.
+ The parse-error contained in the first argument is combined with the parse-erro
+r from the second argument, and the resulting parse-error structure is returned
+ embedded in the error field of a copy of the first argument.
+\layout Subsection
+
+parse-results
+\layout Standard
+
+A parse-results record notionally describes all possible parses that can
+ be attempted from a particular point in an input stream, and the results
+ of those parses.
+ It contains a parse-position record, which corresponds to the position
+ in the input stream that this parse-results represents, and a map associating
+ 
+\begin_inset Quotes eld
+\end_inset 
+
+key objects
+\begin_inset Quotes erd
+\end_inset 
+
+ with instances of parse-result.
+\layout Standard
+
+Atomic input objects (known as 
+\begin_inset Quotes eld
+\end_inset 
+
+base values
+\begin_inset Quotes erd
+\end_inset 
+
+; usually either characters or token/semantic-value pairs) are represented
+ specially in the parse-results data structure, as an optimisation: the
+ two fields 
+\family typewriter 
+base
+\family default 
+ and 
+\family typewriter 
+next
+\family default 
+ represent the implicit successful parse of a base value at the current
+ position.
+ The 
+\family typewriter 
+base
+\family default 
+ field contains a pair of a token-class-identifier and a semantic value
+ unless the parse-results data structure as a whole is representing the
+ end of the input stream, in which case it will contain #f.
+\layout Subsubsection*
+
+(parse-results? <object>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <boolean>
+\layout Standard
+
+This is a predicate which answers #t if and only if its argument is a parse-resu
+lts record.
+\layout Subsubsection*
+
+(parse-results-position <parse-results>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-position> or #f
+\layout Standard
+
+Returns the parse-position corresponding to the argument.
+ An unknown position is represented by #f.
+\layout Subsubsection*
+
+(parse-results-base <parse-results>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ (cons <kind-object> <value-object>) or #f
+\layout Standard
+
+If the argument corresponds to the end of the input stream, this function
+ returns #f; otherwise, it returns a pair, where the car is to be interpreted
+ as a base lexical token class identifier (for instance, 
+\begin_inset Quotes eld
+\end_inset 
+
+symbol
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\begin_inset Quotes eld
+\end_inset 
+
+string
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\begin_inset Quotes eld
+\end_inset 
+
+number
+\begin_inset Quotes erd
+\end_inset 
+
+) and the cdr is to be interpreted as the semantic value of the token.
+\layout Subsubsection*
+
+(parse-results-token-kind <parse-results>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <kind-object> or #f
+\layout Standard
+
+This function returns the car (the token class identifier) of the result
+ of parse-results-base, if that result is a pair; otherwise it returns #f.
+\layout Subsubsection*
+
+(parse-results-token-value <parse-results>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <value-object> or #f
+\layout Standard
+
+This function returns the cdr (the semantic value) of the result of parse-result
+s-base, if that result is a pair; otherwise it returns #f.
+\layout Subsubsection*
+
+(parse-results-next <parse-results>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-results> or #f
+\layout Standard
+
+This function returns the parse-results record representing the position
+ in the input stream immediately after the argument's base token.
+ For instance, if the base tokens used represented characters, then this
+ function would return the parse-results representing the next character
+ position; or, if the base tokens represented lexemes, then this function
+ would return a representation of the results obtainable starting from the
+ next lexeme position.
+ The value #f is returned if there is no next position (that is, if the
+ argument represents the final possible position before the end-of-stream).
+\layout Subsubsection*
+
+(base-generator->results <generator-function>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-results>
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:(base-generator->results-<generator-function>)-}
+
+\end_inset 
+
+This function is used to set up an initial input stream of base tokens.
+ The argument is to be a nullary function returning multiple-values, the
+ first of which is to be a parse-position record or #f, and the second of
+ which is to be a base token, that is a pair of a token class identifier
+ and a semantic value.
+ The argument is called every time the parser needs to read a fresh base
+ token from the input stream.
+\layout Subsubsection*
+
+(prepend-base <parse-position> <base-value> <parse-results>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-results>
+\layout Standard
+
+This function effectively prepends a base token to a particular parse-results.
+ This can be useful when implementing extensible parsers: using this function
+ in a suitable loop, it is possible to splice together two streams of input.
+\layout Standard
+
+For instance, if 
+\family typewriter 
+r
+\family default 
+ is a parse-results representing parses over the input token stream 
+\family typewriter 
+'((b .
+ 2) (c .
+ 3))
+\family default 
+, then the result of the call
+\layout Standard
+\align center 
+
+\family typewriter 
+(prepend-base #f '(a .
+ 1) r)
+\layout Standard
+
+is a new parse-results representing parses over the input stream 
+\family typewriter 
+'((a .
+ 1) (b .
+ 2) (c .
+ 3))
+\family default 
+.
+\layout Standard
+
+The first argument to prepend-base, the parse-position, should be either
+ a parse-position representing the location of the base token being prepended,
+ or #f if the input position of the base token is unknown.
+\layout Subsubsection*
+
+(prepend-semantic-value <parse-position> <key-object> <semantic-value> <parse-re
+sults>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-results>
+\layout Standard
+
+This function is similar to prepend-base, but prepends an already-computed
+ semantic value to a parse-results, again primarily for use in implementing
+ extensible parsers.
+ The resulting parse-results is assigned the given parse-position, and has
+ an entry in its result map associating the given key-object with the given
+ semantic-value and input parse-results.
+\layout Subsubsection*
+
+(results->result <parse-results> <key-object> <result-thunk>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-result>
+\layout Standard
+
+This function is the central function that drives the parsing process.
+ It examines the result map in the parse-results given to it, searching
+ for an entry matching the given key-object.
+ If such an entry is found, the parse-result structure associated with the
+ key is returned; otherwise, the nullary result-thunk is called, and the
+ resulting parse-result is both stored into the result map and returned
+ to the caller of results->result.
+\layout Subsection
+
+parse-error
+\layout Standard
+
+Parse-error structures represent collected error information from attempted
+ parses.
+ They contain two kinds of error report, following 
+\begin_inset LatexCommand \cite{ford02packrat}
+
+\end_inset 
+
+: a collection of 
+\begin_inset Quotes eld
+\end_inset 
+
+expected token
+\begin_inset Quotes erd
+\end_inset 
+
+ messages, and a collection of free-format message strings.
+\layout Subsubsection*
+
+(parse-error? <object>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <boolean>
+\layout Standard
+
+This is a predicate which answers #t if and only if its argument is a parse-erro
+r record.
+\layout Subsubsection*
+
+(parse-error-position <parse-error>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-position> or #f
+\layout Standard
+
+Retrieves the parse-position in the input stream that this parse-error is
+ describing.
+ A #f result indicates an unknown position.
+\layout Subsubsection*
+
+(parse-error-expected <parse-error>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ (list-of <object>)
+\layout Standard
+
+Retrieves the set (represented as a list) of token class identifiers that
+ could have allowed the parse to continue from this point.
+\layout Subsubsection*
+
+(parse-error-messages <parse-error>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ (list-of <string>)
+\layout Standard
+
+Retrieves the list of error messages associated with this parse-error.
+\layout Subsubsection*
+
+(make-error-expected <parse-position> <object>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-error>
+\layout Standard
+
+Constructs an 
+\begin_inset Quotes eld
+\end_inset 
+
+expected token
+\begin_inset Quotes erd
+\end_inset 
+
+ parse-error record from its arguments.
+ Called by make-expected-result (section 
+\begin_inset LatexCommand \ref{sub:(make-expected-result-<parse-position>-<object>)}
+
+\end_inset 
+
+).
+\layout Subsubsection*
+
+(make-error-message <parse-position> <string>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-error>
+\layout Standard
+
+Constructs an 
+\begin_inset Quotes eld
+\end_inset 
+
+general error message
+\begin_inset Quotes erd
+\end_inset 
+
+ parse-error record from its arguments.
+ Called by make-message-result (section 
+\begin_inset LatexCommand \ref{sub:(make-message-result-<parse-position>-<string>)}
+
+\end_inset 
+
+).
+\layout Subsubsection*
+
+(parse-error-empty? <parse-error>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <boolean>
+\layout Standard
+
+Returns #t if its argument contains no expected tokens, and no general error
+ messages; otherwise returns #f.
+ Used internally by merge-parse-errors (section 
+\begin_inset LatexCommand \ref{sub:(merge-parse-errors-<parse-error>-<parse-error>)}
+
+\end_inset 
+
+).
+\layout Subsubsection*
+
+(merge-parse-errors <parse-error> <parse-error>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-error>
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:(merge-parse-errors-<parse-error>-<parse-error>)}
+
+\end_inset 
+
+Merges two parse-error records, following 
+\begin_inset LatexCommand \cite{ford02packrat}
+
+\end_inset 
+
+.
+ If one record represents a position earlier in the input stream than the
+ other, then that record is returned; if they both represent the same position,
+ the 
+\begin_inset Quotes eld
+\end_inset 
+
+expected token
+\begin_inset Quotes erd
+\end_inset 
+
+ sets are unioned and the general message lists are appended to form a new
+ parse-error record at the same position.
+ The standard parsing combinators call this function as appropriate to propagate
+ error information through the parse.
+\layout Subsection
+
+parse-position
+\layout Standard
+
+A parse-position record represents a character location in an input stream.
+\layout Subsubsection*
+
+(make-parse-position <filename> <linenumber> <columnnumber>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-position>
+\layout Standard
+
+Constructs a parse-position record from its arguments.
+ The given filename may be #f if the filename is unknown or not appropriate
+ for the input stream the parse-position is indexing into.
+\layout Subsubsection*
+
+(parse-position? <object>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <boolean>
+\layout Standard
+
+This is a predicate which answers #t if and only if its argument is a parse-posi
+tion record.
+\layout Subsubsection*
+
+(parse-position-file <parse-position>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <string> or #f
+\layout Standard
+
+Retrieves the filename associated with a parse-position record.
+ Returns #f if the filename is absent or not appropriate for this input
+ stream.
+\layout Subsubsection*
+
+(parse-position-line <parse-position>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <number>
+\layout Standard
+
+Retrieves the line number this parse-position represents.
+ Line numbers begin at 1; that is, all characters on the very first line
+ in a file will have line number 1.
+\layout Subsubsection*
+
+(parse-position-column <parse-position>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <number>
+\layout Standard
+
+Retrieves the column number within a line that this parse-position represents.
+ Column numbers begin at 0; that is, the very first character of the very
+ first line in a file will have line number 1 and column number 0.
+\layout Subsubsection*
+
+(top-parse-position <string>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-position>
+\layout Standard
+
+Constructs a parse-position representing the very beginning of an input
+ stream.
+ The argument is passed into make-parse-position as the 
+\begin_inset Quotes eld
+\end_inset 
+
+filename
+\begin_inset Quotes erd
+\end_inset 
+
+ parameter, and so may be either a string or #f.
+\layout Subsubsection*
+
+(update-parse-position <parse-position> <character>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <parse-position>
+\layout Standard
+
+Given a position, and the character occurring at that position, returns
+ the position of the next character in the input stream.
+ Most characters simply increment the column number.
+ Exceptions to this rule are: 
+\family typewriter 
+#
+\backslash 
+return
+\family default 
+, which resets the column number to zero; 
+\family typewriter 
+#
+\backslash 
+newline
+\family default 
+, which both resets the column number to zero and increments the line number;
+ and 
+\family typewriter 
+#
+\backslash 
+tab
+\family default 
+, which increments the column number to the nearest multiple of eight, just
+ as a terminal with an eight-column tab stop setting might do.
+\layout Subsubsection*
+
+(parse-position->string <parse-position>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <string>
+\layout Standard
+
+Converts a parse-position record into an 
+\family typewriter 
+emacs
+\family default 
+-compatible display format.
+ If the filename in the parse-position is unknown, the string 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+<??>
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+ is used in its place.
+ The result is of the form
+\layout Standard
+\align center 
+
+\family typewriter 
+filename:linenumber:columnnumber
+\layout Standard
+
+for example,
+\layout Standard
+\align center 
+
+\family typewriter 
+main.c:33:7
+\layout Subsubsection*
+
+(parse-position>? <parse-position> <parse-position>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <boolean>
+\layout Standard
+
+Returns #t if the first parse-position is more advanced in the input stream
+ than the second parse-position.
+ Either or both positions may be #f, representing unknown positions; an
+ unknown position is considered to be less advanced in the input stream
+ than any known position.
+ Note that the filename associated with each parse-position is completely
+ ignored --- it is the caller's responsibility to ensure the two positions
+ are associated with the same input stream.
+\layout Section
+
+Parsing Combinators
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:Parsing-Combinators}
+
+\end_inset 
+
+Parsing combinators are functions taking a parse-results structure and returning
+ a parse-result structure.
+ Each combinator attempts to parse the input stream in some manner, and
+ the result of the combinator is either a successful parse with an associated
+ semantic value, or a failed parse with an assocated error record.
+\layout Standard
+
+This section describes the procedures that produce the mid-level parsing
+ combinators provided as part of the library.
+\layout Standard
+
+The type of a parser combinator, written in ML-like notation, would be
+\layout Standard
+\align center 
+
+\family typewriter 
+parse-results 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ parse-result
+\layout Subsubsection*
+
+(packrat-check-base <kind-object> <semantic-value-acceptor>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <combinator>
+\layout Standard
+
+Returns a combinator which, if the next base token has token class identifier
+ equal to the first argument (
+\begin_inset Quotes eld
+\end_inset 
+
+kind-object
+\begin_inset Quotes erd
+\end_inset 
+
+), calls the second argument (
+\begin_inset Quotes eld
+\end_inset 
+
+semantic-value-acceptor
+\begin_inset Quotes erd
+\end_inset 
+
+) with the semantic value of the next base token.
+ The result of this call should be another parser combinator, which is applied
+ to the parse-results representing the remainder of the input stream.
+\layout Standard
+
+The type of the semantic value acceptor, written in ML-like notation, would
+ be
+\layout Standard
+\align center 
+
+\family typewriter 
+semanticValue 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ parserCombinator
+\layout Standard
+
+or, more fully expanded,
+\layout Standard
+\align center 
+
+\family typewriter 
+semanticValue 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ parse-results 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ parse-result
+\layout Standard
+
+These types recall the types of functions that work with monads
+\begin_inset Foot
+collapsed false
+
+\layout Standard
+
+and, of course, in languages like Haskell, it is the norm to implement parser
+ combinators and related code in a monadic style.
+\end_inset 
+
+.
+\layout Subsubsection*
+
+(packrat-check <combinator> <semantic-value-acceptor>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <combinator>
+\layout Standard
+
+Returns a combinator which attempts to parse using the first argument, and
+ if the parse is successful, hands the resulting semantic value to the semantic-
+value-acceptor (which has the same type as the semantic-value-acceptors
+ passed to packrat-check-base) and continues parsing using the resulting
+ combinator.
+\layout Subsubsection*
+
+(packrat-or <combinator> <combinator>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <combinator>
+\layout Standard
+
+Returns a combinator which attempts to parse using the first argument, only
+ trying the second argument if the first argument fails to parse the input.
+ This is the basic combinator used to implement a choice among several alternati
+ve means of parsing an input stream.
+\layout Subsubsection*
+
+(packrat-unless <string> <combinator> <combinator>) 
+\begin_inset Formula $\rightarrow$
+\end_inset 
+
+ <combinator>
+\layout Standard
+
+The combinator returned from this function first tries the first combinator
+ given.
+ If it fails, the second is tried; otherwise, an error message containing
+ the given string is returned as the result.
+ This can be used to assert that a particular sequence of tokens does not
+ occur at the current position before continuing on.
+ (This is the 
+\begin_inset Quotes eld
+\end_inset 
+
+not-followed-by
+\begin_inset Quotes erd
+\end_inset 
+
+ matcher, from section 4.1.6 of 
+\begin_inset LatexCommand \cite{ford02packrat}
+
+\end_inset 
+
+.)
+\layout Section
+
+The packrat-parser macro
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:The-packrat-parser-macro}
+
+\end_inset 
+
+The packrat-parser macro provides syntactic sugar for building complex parser
+ combinators from simpler combinators.
+ The general form of the macro, in an EBNF-like language, is:
+\layout LyX-Code
+
+(packrat-parser <result-expr> <nonterminal-definition>*)
+\layout Standard
+
+where
+\layout LyX-Code
+
+<nonterminal-definition> :==
+\layout LyX-Code
+
+  (<nonterminal-id> (<sequence> <body-expr>+)*)
+\layout LyX-Code
+
+<sequence> :== (<part>*)
+\layout LyX-Code
+
+<part> :== (! <part>*)
+\layout LyX-Code
+
+       |   (/ <sequence>*)
+\layout LyX-Code
+
+       |   <var> <- '<kind-object>
+\layout LyX-Code
+
+       |   <var> <- @
+\layout LyX-Code
+
+       |   <var> <- <nonterminal-id>
+\layout LyX-Code
+
+       |   '<kind-object>
+\layout LyX-Code
+
+       |   <nonterminal-id>
+\layout Standard
+
+Each nonterminal-definition expands into a parser-combinator.
+ The collection of defined nonterminal parser-combinators expands to a 
+\family typewriter 
+(begin)
+\family default 
+ containing an internal definition for each nonterminal.
+\layout Standard
+
+The result of the whole packrat-parser form is the 
+\family typewriter 
+<result-expr>
+\family default 
+ immediately following the 
+\family typewriter 
+packrat-parser
+\family default 
+ keyword.
+ Since 
+\family typewriter 
+(begin)
+\family default 
+ forms within 
+\family typewriter 
+(begin)
+\family default 
+ forms are flattened out in Scheme, the 
+\family typewriter 
+<result-expr>
+\family default 
+ can be used to introduce hand-written parser combinators which can call,
+ and can be called by, the nonterminal definitions built in the rest of
+ the parser definition.
+\layout Standard
+
+Each nonterminal definition expands into:
+\layout LyX-Code
+
+(define (<nonterminal-id> results)
+\layout LyX-Code
+
+  (results->result results 'nonterminal-id
+\layout LyX-Code
+
+    (lambda ()
+\layout LyX-Code
+
+      (<...> results))))
+\layout Standard
+
+where 
+\family typewriter 
+<...>
+\family default 
+ is the expanded alternation-of-sequences combinator formed from the body
+ of the nonterminal definition.
+\layout Standard
+
+An alternation (either implicit in the main body of a nonterminal definition,
+ or introduced via a 
+\family typewriter 
+<part>
+\family default 
+ of the form 
+\family typewriter 
+(/ <sequence> ...)
+\family default 
+) expands to
+\layout LyX-Code
+
+(packrat-or <expansion-of-first-alternative>
+\layout LyX-Code
+
+            (packrat-or <expansion-of-second-alternative>
+\layout LyX-Code
+
+                        ...))
+\layout Standard
+
+This causes each alternative to be tried in turn, in left-to-right order
+ of occurrence.
+\layout Standard
+
+Whereever a 
+\family typewriter 
+<part>
+\family default 
+ of the form 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+<var> <- ...
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+ occurs, a variable binding for 
+\family typewriter 
+<var>
+\family default 
+ is made available in the 
+\family typewriter 
+<body-expr>
+\family default 
+s that make up each arm of a nonterminal definition.
+ The variable will be bound to the semantic value resulting from parsing
+ according to the parser definition to the right of the arrow (the 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+...
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+ above).
+\layout Standard
+
+The 
+\family typewriter 
+(! <part> ...)
+\family default 
+ syntax expands into an invocation of packrat-unless.
+\layout Standard
+
+The 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+@
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+ syntax in 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+<var> <- @
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+ causes 
+\family typewriter 
+<var>
+\family default 
+ to be bound to the parse-position at that point in the input stream.
+ This can be used for annotating abstract syntax trees with location information.
+\layout Standard
+
+
+\family typewriter 
+<part>
+\family default 
+s of the form 
+\family typewriter 
+'<kind-object>
+\family default 
+ expand into invocations of packrat-check-base; those of the form 
+\family typewriter 
+<nonterminal-id>
+\family default 
+ expand into invocations of packrat-check, with the procedure associated
+ with the named nonterminal passed in as the combinator argument.
+\layout Section
+
+Porting the library to other Scheme implementations
+\layout Standard
+
+The library depends on R5RS Scheme's multiple-values support in only one
+ place, the interface to the procedure 
+\family typewriter 
+base-generator->results
+\family default 
+.
+ The macro 
+\family typewriter 
+packrat-parser
+\family default 
+ is implemented using R5RS 
+\family typewriter 
+syntax-rules
+\family default 
+.
+ The library also depends on these SRFIs:
+\layout Itemize
+
+SRFI-1 (lists)
+\layout Itemize
+
+SRFI-9 (records)
+\layout Itemize
+
+SRFI-6 (basic string ports) (only used in one place, for error reporting,
+ in the 
+\family typewriter 
+packrat-parser
+\family default 
+ macro)
+\layout Section
+
+Examples
+\layout Subsection
+
+A base-generator for an input stream of characters
+\layout Standard
+
+This generator reads characters from a Scheme port, maintaining an input
+ position and producing base tokens with each character in both token class
+ identifier and semantic value position.
+ When using a parse-results record over an input stream built from this
+ generator, the functions 
+\family typewriter 
+parse-results-token-kind
+\family default 
+ and 
+\family typewriter 
+parse-results-token-value
+\family default 
+ will both return the same character.
+ To use the generator, pass the result of the 
+\family typewriter 
+generator
+\family default 
+ function to 
+\family typewriter 
+base-generator->results
+\family default 
+.
+\layout LyX-Code
+
+(define (generator filename port)
+\layout LyX-Code
+
+  (let ((ateof #f)
+\layout LyX-Code
+
+        (pos (top-parse-position filename)))
+\layout LyX-Code
+
+    (lambda ()
+\layout LyX-Code
+
+      (if ateof
+\layout LyX-Code
+
+          (values pos #f)
+\layout LyX-Code
+
+          (let ((x (read-char port)))
+\layout LyX-Code
+
+            (if (eof-object? x)
+\layout LyX-Code
+
+                (begin
+\layout LyX-Code
+
+                  (set! ateof #t)
+\layout LyX-Code
+
+                  (values pos #f))
+\layout LyX-Code
+
+                (let ((old-pos pos))
+\layout LyX-Code
+
+                  (set! pos (update-parse-position pos x))
+\layout LyX-Code
+
+                  (values old-pos (cons x x)))))))))
+\layout Subsection
+
+A base-generator for a higher-level input stream of lexemes/tokens
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:A-base-generator-for}
+
+\end_inset 
+
+This generator sketches the construction of more complicated lexeme or token-bas
+ed substrates for the packrat parser combinators.
+ It reads tokens from a precomputed list of token-class/semantic-value pairs;
+ in a more realistic situation, the list of lexemes would be computed on
+ demand.
+ Since we're reading from a list, with no real position information available,
+ we return #f as the first of the two values expected from the generator,
+ to indicate 
+\begin_inset Quotes eld
+\end_inset 
+
+unknown location
+\begin_inset Quotes erd
+\end_inset 
+
+ at every step of the way.
+\layout LyX-Code
+
+(define (generator tokens)
+\layout LyX-Code
+
+  (let ((stream tokens))
+\layout LyX-Code
+
+    (lambda ()
+\layout LyX-Code
+
+      (if (null? stream)
+\layout LyX-Code
+
+          (values #f #f)
+\layout LyX-Code
+
+          (let ((base-token (car stream)))
+\layout LyX-Code
+
+            (set! stream (cdr stream))
+\layout LyX-Code
+
+            (values #f base-token))))))
+\layout Subsection
+
+A simple calculator
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:A-simple-calculator}
+
+\end_inset 
+
+This example builds on the generator from section 
+\begin_inset LatexCommand \ref{sub:A-base-generator-for}
+
+\end_inset 
+
+.
+ It implements a simple calculator, supporting addition, multiplication,
+ and grouping operators.
+ The parser expects an input stream of base-tokens with token class identifiers
+ drawn from the set 
+\family typewriter 
+(num oparen cparen + *)
+\family default 
+.
+\layout LyX-Code
+
+(define calc (packrat-parser expr
+\layout LyX-Code
+
+    (expr ((a <- mulexp '+ b <- mulexp)
+\layout LyX-Code
+
+           (+ a b))
+\layout LyX-Code
+
+          ((a <- mulexp) a))
+\layout LyX-Code
+
+    (mulexp ((a <- simple '* b <- simple)
+\layout LyX-Code
+
+             (* a b))
+\layout LyX-Code
+
+            ((a <- simple) a))
+\layout LyX-Code
+
+    (simple ((a <- 'num) a)
+\layout LyX-Code
+
+            (('oparen a <- expr 'cparen) a))))
+\layout Subsection
+
+An example calculator session
+\layout Standard
+
+This session uses the definitions of 
+\family typewriter 
+generator
+\family default 
+ and 
+\family typewriter 
+calc
+\family default 
+ from sections 
+\begin_inset LatexCommand \ref{sub:A-base-generator-for}
+
+\end_inset 
+
+ and 
+\begin_inset LatexCommand \ref{sub:A-simple-calculator}
+
+\end_inset 
+
+.
+\layout LyX-Code
+
+Welcome to MzScheme version 209, Copyright (c) 2004 PLT Scheme, Inc.
+\layout LyX-Code
+
+> (require "packrat.ss")
+\layout LyX-Code
+
+> (define (generator tokens) [...])
+\layout LyX-Code
+
+> (define calc [...])
+\layout LyX-Code
+
+> (define g (generator
+\layout LyX-Code
+
+    '((num .
+ 1) (+) (num .
+ 2) (*) (num .
+ 3))))
+\layout LyX-Code
+
+> (define r (calc (base-generator->results g)))
+\layout LyX-Code
+
+> (parse-result-successful? r)
+\layout LyX-Code
+
+#t
+\layout LyX-Code
+
+> (parse-result-semantic-value r)
+\layout LyX-Code
+
+7
+\layout LyX-Code
+
+> (define g (generator
+\layout LyX-Code
+
+    '((oparen) (num .
+ 1) (+) (num .
+ 2) (cparen) (*) (num .
+ 3))))
+\layout LyX-Code
+
+> (define r (calc (base-generator->results g)))
+\layout LyX-Code
+
+> (parse-result-successful? r)
+\layout LyX-Code
+
+#t
+\layout LyX-Code
+
+> (parse-result-semantic-value r)
+\layout LyX-Code
+
+9
+\layout LyX-Code
+
+>
+\layout Standard
+
+
+\begin_inset LatexCommand \BibTeX[plain]{packrat}
+
+\end_inset 
+
+
+\the_end
