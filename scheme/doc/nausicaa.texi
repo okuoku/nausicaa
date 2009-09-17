@@ -238,6 +238,7 @@ Revised^6 Report on the algorithmic language Scheme
 @end macro
 
 @c ------------------------------------------------------------
+@c To be used in normal text.
 
 @macro meta{THING}
 <\THING\>
@@ -256,9 +257,41 @@ Revised^6 Report on the algorithmic language Scheme
 @end macro
 
 @c ------------------------------------------------------------
+@c To be used inside @example environment and @samp directives.
 
 @macro cmeta{THING}
 <\THING\>
+@end macro
+
+@macro cmetai{THING}
+<\THING\1>
+@end macro
+
+@macro cmetaii{THING}
+<\THING\2>
+@end macro
+
+@macro cmetaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used inside argument lists.
+
+@macro ameta{THING}
+<\THING\>
+@end macro
+
+@macro ametai{THING}
+<\THING\1>
+@end macro
+
+@macro ametaii{THING}
+<\THING\2>
+@end macro
+
+@macro ametaiii{THING}
+<\THING\3>
 @end macro
 
 @c ------------------------------------------------------------
@@ -285,7 +318,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c ------------------------------------------------------------
 
-@macro var0{THING}
+@macro varo{THING}
 @var{\THING\0}
 @end macro
 
@@ -1269,7 +1302,7 @@ Packrat parser
 
 * packrat calc::                Calculator example.
 * packrat records::             Data structures.
-* packrat combinators::         Combinators.
+* packrat comb::                Combinators.
 
 Data structures
 
@@ -1279,9 +1312,9 @@ Data structures
 
 Combinators
 
-* packrat combinators intro::   Introduction to parser combinators.
-* packrat combinators middle::  Middle--level combinators.
-* packrat combinators macro::   The @func{packrat-parser} macro.
+* packrat comb intro::          Introduction to parser combinators.
+* packrat comb terminal::       Expecting a token category.
+* packrat comb macro::          The @func{packrat-parser} macro.
 
 Comma--separated value (@acronym{CSV}) utilities
 
@@ -18730,6 +18763,14 @@ original document, Appendix A ``Formal semantics''.
 This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
 @end deffn
 
+
+@deffn Syntax begin0-let ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-let (((@varo{var} ...) @varo{expr}) ((@var{var} ...) @var{expr}) ...) @varo{form} @var{form} ...
+Bind the result of @var{expr} to @var{var} as in @func{let} or
+@func{let-values}, evaluate the forms in the resulting environment, then
+return @varo{var} possibly as multiple values.
+@end deffn
+
 @c ------------------------------------------------------------
 
 @deffn Syntax receive @var{formals} @var{expression} . @var{body}
@@ -19674,7 +19715,7 @@ Return two values being the return values of @func{and-null?} and
 @section Comparison
 
 
-@defun list=? @var{item=} @var0{ell} ...
+@defun list=? @var{item=} @varo{ell} ...
 Determines list equality, given an element--equality procedure
 @var{item=}.  Proper list @vari{ell} equals proper list @varii{ell} if:
 
@@ -19688,7 +19729,7 @@ Their corresponding elements are equal, according to @var{item=}.
 
 If there are no list arguments, or only one list argument: The return
 value is @true{}.  If there are two or more list arguments they are
-compared in couples: First @var0{ell} is compared to @vari{ell}, then
+compared in couples: First @varo{ell} is compared to @vari{ell}, then
 @vari{ell} is compared to @varii{ell}, etc.  The iteration over list
 arguments stops if two list arguments are found different.
 
@@ -43195,20 +43236,30 @@ for interactive parsers.
 
 
 The @library{packrat} library implements parsing combinators using the
-@dfn{packrat parsing} algorithm: A memoizing, backtracking
-recursive--descent parsing technique that runs in time and space linear
-in the size of the input text.  The technique was originally discovered
-by Alexander Birman in 1970; Bryan Ford took up the idea for his
-master's thesis in 2002.
+@dfn{packrat parsing} algorithm: A memoizing, backtracking, recursive
+descent parsing technique that runs in time and space linear in the size
+of the input text.  When first experimenting with it, we sould import
+the library with the following directive:
+
+@example
+(import (rnrs)
+  (prefix (packrat) packrat:))
+@end example
+
+@noindent
+to avoid imported bindings name conflicts.
 
 The library makes use of the @class{lexical-token} and
 @class{source-location} record types.  @ref{parser-tools, Lexer and
 parser utilities}
 
+The technique was originally discovered by Alexander Birman in 1970;
+Bryan Ford took up the idea for his master's thesis in 2002.
+
 @menu
 * packrat calc::                Calculator example.
 * packrat records::             Data structures.
-* packrat combinators::         Combinators.
+* packrat comb::                Combinators.
 @end menu
 
 @c page
@@ -43321,7 +43372,7 @@ The @func{make-packrat-parser} macro returns a parser function which can
 be used any number of times to parse S--expressions.
 
 @example
-(define calc-parser
+(define calc-combinator
   (make-packrat-parser
     expr
 
@@ -43355,10 +43406,10 @@ typical usage of the interface is represented by the following function:
 @example
 (define (doit sexp)
   (let* ((lexer   (make-lexer-closure sexp))
-         (result  (calc (lexer->parser-state lexer))))
-    (if (parse-result-successful? result)
-        (parse-result-semantic-value result)
-      (parse-result-error result))))
+         (result  (calc-combinator (make-parser lexer))))
+    (if (<parse-result>-successful? result)
+        (<parse-result>-semantic-value result)
+      (<parse-result>-error result))))
 @end example
 
 @noindent
@@ -43383,7 +43434,7 @@ it works like this:
 (doit '((1 + 2) * 3))
 @result{} 9
 
-(parse-error? (doit '(+ *)))
+(<parse-error>? (doit '(+ *)))
 @result{} #t
 @end example
 
@@ -43592,7 +43643,7 @@ Fields description:
 @item location
 A @class{source-location} record or @false{} if the location is unknown.
 
-@item base
+@item lookahead
 Contains a pair whose car is the terminal category (a Scheme symbol) and
 whose cdr is the semantic value.  Set to @false{} to indicate no value
 or the end of the input stream.
@@ -43617,7 +43668,7 @@ Return @true{} if @var{obj} is a record of type @class{parser-state}.
 
 
 @defun <parser-state>-location @var{parser-state}
-@defunx <parser-state>-base @var{parser-state}
+@defunx <parser-state>-lookahead @var{parser-state}
 @defunx <parser-state>-next @var{parser-state}
 @defunx <parser-state>-parse-result-map @var{parser-state}
 Accessors for the record fields.
@@ -43625,24 +43676,24 @@ Accessors for the record fields.
 
 
 @defun <parser-state>-next-state @var{parser-state}
-Return a new @class{parser-state} record representing the position in the
-input stream immediately after the argument's @samp{base} token.  If
-there is no next position, return @false{} (that is, if the argument
-represents the final possible position before the end--of--stream).
+Return a new @class{parser-state} record representing the position in
+the input stream immediately after the argument's @samp{lookahead}
+token.  If there is no next position, return @false{} (that is, if the
+argument represents the final possible position before the
+end--of--stream).
 @end defun
 
 
-@defun lexer->parser-state @var{lexer-closure}
-Set up an initial input stream of base tokens.  The argument is to be a
-thunk returning @class{lexical-token} records.  The argument is called
-every time the parser needs to read a fresh token from the input stream.
+@defun make-parser @var{lexer-closure}
+Set up an initial input stream of tokens.  The argument is to be a thunk
+returning @class{lexical-token} records.  The argument is called every
+time the parser needs to read a fresh token from the input stream.
 @end defun
 
 
 @defun compute-rule-result @var{parser-state} @var{nonterminal} @var{result-thunk}
 The central function driving the parsing process: Compute the result of
 the parser rule associated to the @var{nonterminal} category.
-like this:
 
 First examine the parse result map in @var{parser-state}, searching for
 an entry matching the given @var{nonterminal} symbol; if such an entry
@@ -43690,43 +43741,47 @@ The returned @class{parser-state} is assigned the given
 @end defun
 
 @c page
-@node packrat combinators
+@node packrat comb
 @section Combinators
 
 
-The @dfn{parsing combinators} are functions taking a @samp{parser-state}
-record and returning a @samp{parse-result} record.  Each combinator
-attempts to parse the input stream in some manner; the result of the
-combinator is either a successful parse with an associated semantic
-value, or a failed parse with an associated @samp{parse-error} record.
+The @dfn{parsing combinators} are functions taking as argument a
+@class{parser-state} record and returning a @class{parse-result} record.
+Each combinator attempts to parse the input stream in some manner; the
+result of the combinator is either a successful parse with an associated
+semantic value, or a failed parse with an associated @samp{parse-error}
+record.
+
+@library{packrat} provides a set of combinator makers which can be used
+to generate commonly used combinator procedures.
 
 @menu
-* packrat combinators intro::   Introduction to parser combinators.
-* packrat combinators middle::  Middle--level combinators.
-* packrat combinators macro::   The @func{packrat-parser} macro.
+* packrat comb intro::          Introduction to parser combinators.
+* packrat comb terminal::       Expecting a token category.
+* packrat comb nonterminal::    Evaluating a non-terminal combinator.
+* packrat comb macro::          The @func{packrat-parser} macro.
 @end menu
 
 @c page
-@node packrat combinators intro
+@node packrat comb intro
 @subsection Introduction to parser combinators
 
 
 @c page
-@node packrat combinators middle
-@subsection Middle--level combinators
+@node packrat comb terminal
+@subsection Expecting a token category
 
 
-This section describes the procedures that produce the mid--level
-parsing combinators provided as part of the library.
+One of the most common operations is to verify that the next token
+belongs to a specific category.
 
 
-@defun packrat-check-base @var{terminal-category} @var{semantic-value-acceptor}
-Return a combinator which, if the next token has terminal symbol
-@func{eq?} to @var{terminal-category}, calls
-@var{semantic-value-acceptor} with the semantic value of the next token.
-The result of this call should be another parser combinator, which is
-applied to the @samp{parser-state} record representing the remainder of
-the input stream.
+@defun make-terminal-combinator @var{category} @var{acceptor}
+Return a combinator which, if the next token has category @func{eq?} to
+@var{category}, calls @var{acceptor} with its semantic value.  The
+result of this call must be a parser combinator, which is applied to the
+@class{parser-state} record representing the remainder of the input
+stream.
 
 The type of the semantic value acceptor, written in ML--like notation,
 would be:
@@ -43747,20 +43802,24 @@ course, in languages like Haskell, it is the norm to implement parser
 combinators and related code in a monadic style).
 @end defun
 
+@c page
+@node packrat comb nonterminal
+@subsection Evaluating a non-terminal combinator
 
-@defun packrat-check @var{combinator} @var{semantic-value-acceptor}
+
+@defun make-nonterminal-combinator @var{combinator} @var{acceptor}
 Return a new combinator which attempts to parse using @var{combinator},
 and if the parse is successful, hands the resulting semantic value to
-@var{semantic-value-acceptor} (which has the same type as the
-@var{semantic-value-acceptor} argument of @func{packrat-check-base}) and
-continues parsing using the resulting combinator.
+@var{acceptor} (which has the same type as the @var{acceptor} argument
+of @func{expect-terminal}) and continues parsing using the resulting
+combinator.
 
 If the parse fails, the return value of the new combinator is the return
 value of @var{combinator}.
 @end defun
 
 
-@defun packrat-or @vari{combinator} @varii{combinator}
+@defun make-or-combinator @vari{combinator} @varii{combinator}
 Return a new combinator which attempts to parse using @vari{combinator},
 only trying @varii{combinator} if the first fails.  This is the basic
 combinator used to implement a choice among alternatives.
@@ -43770,7 +43829,7 @@ a @samp{parse-error} record describing the failure.
 @end defun
 
 
-@defun packrat-unless @var{error-message} @vari{combinator} @varii{combinator}
+@defun make-unless-combinator @var{error-message} @vari{combinator} @varii{combinator}
 Return a new combinator which first tries @vari{combinator}.  If
 @vari{combinator} it @strong{succeeds}, return a new @samp{parse-result}
 record using the @var{error-message} string.  If @vari{combinator}
@@ -43781,58 +43840,59 @@ This can be used to assert that a particular sequence of tokens does
 @end defun
 
 @c page
-@node packrat combinators macro
+@node packrat comb macro
 @subsection The @func{packrat-parser} macro
 
 
-@deffn Syntax packrat-parser @var{result-expr} @var{nonterminal-definition} ...
+@deffn Syntax make-packrat-parser @ameta{start} @ameta{nonterminal-definition} ...
 Provide syntactic sugar for building complex parser combinators from
 simpler combinators.  Each nonterminal definition must be like this:
 
 @example
-@var{nonterminal-definition} @equiv{}
-    (@cmeta{nonterminal} (@cmeta{sequence} @cmeta{body-expr}+)*)
+@cmeta{nonterminal-definition} @equiv{}
+    (@cmeta{identifier} @cmeta{right-hand-side-rule}*)
+
+@cmeta{right-hand-side-rule} @equiv{}
+    (@cmeta{sequence} @cmeta{body-expr}+)
 
 @cmeta{sequence} @equiv{} (@cmeta{part}*)
 
-@cmeta{part} @equiv{} (! @cmeta{part}*)
-       |  (/ @cmeta{sequence}*)
+@cmeta{part} @equiv{} (:not @cmeta{part}*)
+       |  (:or @cmeta{sequence}*)
        |  @cmeta{var} <- (quote @cmeta{terminal})
-       |  @cmeta{var} <- :@@
-       |  @cmeta{var} <- @cmeta{nonterminal}
+       |  @cmeta{var} <- :source-location
+       |  @cmeta{var} <- @cmeta{identifier}
        |  (quote @cmeta{terminal})
-       |  @cmeta{nonterminal}
+       |  @cmeta{identifier}
 @end example
 
-Each @var{nonterminal-definition} argument expands into a parser
-combinator; the collection of non--terminal combinators expands to a
-@func{let} form containing an internal definition for each
-non--terminal.
-
-The result of the whole @func{packrat-parser} form (that is, the last
-form of the generated @func{let}) is @var{result-expr}; the simplest
-@var{result-expr} is a @meta{nonterminal} identifier, which causes the
-macro to return the combinator bound to it.
-
-Since @func{begin} forms within @func{let} forms are spliced, by making
-@meta{result-expr} a @func{begin} we can introduce hand--written parser
-combinators which can call (and can be called by) the non--terminal
-definitions built in the rest of the parser definition.  The last
-element of the nested @func{begin} must still be a @meta{nonterminal}
-identifier.
-
-Each @var{nonterminal-definition} expands into:
+Each @cmeta{nonterminal-definition} argument expands into a parser
+combinator:
 
 @example
-(define (@cmeta{nonterminal} state)
-  (compute-rule-result state (quote @cmeta{nonterminal})
+(define (@cmeta{identifier} state)
+  (compute-rule-result state (quote @cmeta{identifier})
     (lambda ()
       (@cmeta{...} state))))
 @end example
 
 @noindent
-where @meta{...}  is the expanded alternation--of--sequences combinator
+where @meta{...} is the expanded alternation--of--sequences combinator
 formed from the body of the non--terminal definition.
+
+The collection of non--terminal combinators expands to a @func{letrec}
+form containing an internal definition for each non--terminal; the last
+form in the body of the generated @func{letrec} is @meta{start}, which
+can be any expression but must evaluate to a combinator function.  The
+simplest @meta{start} is a @meta{nonterminal} identifier, which causes
+the macro to return the combinator bound to it.
+
+Since @func{begin} forms within @func{letrec} forms are flattened, by
+making @meta{start} a @func{begin} form we can introduce hand--written
+parser combinators which can call (and can be called by) the
+non--terminal definitions built in the rest of the parser definition.
+The last element of the nested @func{begin} must still be a
+@meta{nonterminal} identifier.
 
 An alternation (either implicit in the main body of a non--terminal
 definition, or introduced via a @meta{part} of the form @samp{(/
@@ -43848,26 +43908,52 @@ definition, or introduced via a @meta{part} of the form @samp{(/
 this causes each alternative to be tried in turn, in left--to--right
 order of occurrence.
 
-Whereever a @meta{part} of the form @samp{@cmeta{var} <- ...} occurs, a
-variable binding for @meta{var} is made available in the
-@meta{body-expr}s that make up each arm of a non--terminal definition.
-The variable will be bound to the semantic value resulting from parsing
-according to the parser definition to the right of the arrow (the
-@samp{...} above).
+If a @meta{part} matches the lookahead token: A lookahead operation is
+performed, generating a new state record; parsing continues with the
+next part.  If all the @meta{part} in a @meta{sequence} match the
+tokens, a @class{success} record is generated and the nested combinator
+applications return it.  The @class{success} record is registered in the
+memoized results of the state.
 
-The @samp{(! @meta{part} ...)} syntax expands into an invocation of
-@func{packrat-unless}.
+If a @meta{part} fails to match the lookahead token: An @class{error}
+record is generated and the nested combinator applications return to the
+non--terminal combinator.  The @class{error} record is registered in the
+memoized results of the state.
 
-The @samp{:@@} syntax in @samp{@cmeta{var} <- :@@} causes @meta{var} to
-be bound to the @class{source-location} record at that point in the
-input stream.  This can be used for annotating abstract syntax trees
-with location information.
+The @meta{part} elements can be of the following forms.
 
-@meta{part}s of the form @samp{(quote @cmeta{terminal})} expand into
-invocations of @func{packrat-check-base}; those of the form
-@meta{nonterminal} expand into invocations of @func{packrat-check}, with
-the procedure associated with the named non--terminal passed in as the
-combinator argument.
+@table @samp
+@item (quote @cmeta{terminal})
+Match if the lookahead token has category @func{eq?} to @meta{terminal};
+the semantic value of the lookahead token is discarded.  This
+@meta{part} makes use of a combinator generated by
+@func{make-terminal-combinator}.
+
+@item @cmeta{var} <- (quote @cmeta{terminal})
+Match if the lookahead token has category @meta{terminal}; bind its
+semantic value to @meta{var} and continue parsing; the subsequent
+combinators have access to the binding.  This @meta{part} makes use of a
+combinator generated by @func{make-terminal-combinator}.
+
+@item @cmeta{identifier}
+Apply the combinator bound to @meta{nonterminal-identifier} to the
+current parser state.  This @meta{part} makes use of a combinator
+generated by @func{make-nonterminal-combinator}.
+
+@item (:not @cmeta{fail-part} ...)
+Match if the lookahead tokens do not match the @meta{fail-part}
+elements.  This @meta{part} makes use of a combinator generated by
+@func{make-unless-combinator}.
+
+@item (:or @cmeta{alternative-part} ...)
+Match if
+
+@item @cmeta{var} <- :source-location
+Bind the @class{source-location} record in the lookahead token to
+@cmeta{var}; the subsequent combinators have access to the binding.
+This can be used for annotating abstract syntax trees with location
+information.
+@end table
 @end deffn
 
 @c page

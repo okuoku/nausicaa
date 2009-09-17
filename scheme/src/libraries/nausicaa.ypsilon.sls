@@ -789,7 +789,7 @@
     non-negative? non-positive?
 
     ;; stuff from the SRFIs
-    cond-expand and-let* receive recursion cut cute begin0
+    cond-expand and-let* receive recursion cut cute begin0 begin0-let
 
     ;; shared structures
     write-with-shared-structure

@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for simple language extensions
+;;;Contents: tests for (language-extensions)
 ;;;Date: Wed Nov 19, 2008
 ;;;
 ;;;Abstract
@@ -24,7 +24,6 @@
 ;;;
 
 
-
 (import (nausicaa)
   (checks))
 
@@ -50,7 +49,23 @@
 	(list a b)))
   => '(1 2))
 
+;;; --------------------------------------------------------------------
 
+(check
+    (begin0-let ((a 123))
+      (list 1 2 3))
+  => 123)
+
+(check
+    (begin0-let ((a 123))
+      (set! a 456))
+  => 456)
+
+(check
+    (let-values (((d e f) (begin0-let (((a b c) (values 1 2 3)))
+			    (list 'a 'b 'c))))
+      (list d e f))
+  => '(1 2 3))
 
 
 ;;;; tests for iterators
