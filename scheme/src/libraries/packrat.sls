@@ -11,10 +11,9 @@
 ;;;
 ;;;	and it works with MzScheme.
 ;;;
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2004, 2005 Tony Garnock-Jones <tonyg@kcbbs.gen.nz>
 ;;;Copyright (c) 2005 LShift Ltd. <query@lshift.net>
-;;;
-;;;Port to R6RS and Nausicaa integration by Marco Maggi.
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
 ;;;a  copy of  this  software and  associated  documentation files  (the
@@ -42,63 +41,24 @@
 (library (packrat)
   (export
 
-    ;; parsing error
-    <parse-error>		<parse-error>?
-    <parse-error>-location	<parse-error>-expected
-    <parse-error>-messages	<parse-error>-empty?
-    make-<parse-error>		make-<parse-error>/expected
-    make-<parse-error>/message
-    merge-parse-errors
+    <result>                 <result>?  <result>-state
+    <error>   make-<error>   <error>?   <error>-message
+    <success> make-<success> <success>? <success>-semantic-value
 
-    ;; parse result
-    <parse-result>		<parse-result>?
-    <parse-result>-successful?	<parse-result>-semantic-value
-    <parse-result>-next		<parse-result>-error
-    make-<parse-result>
-    make-<parse-result>/success	make-<parse-result>/expected
-    make-<parse-result>/message	make-<parse-result>/merge-errors
+    initialise-state next-state
+    pushback memoize-result
 
-    ;; parser state
-    <parser-state>		<parser-state>?
-    <parser-state>-location	<parser-state>-base
-    <parser-state>-next-state
-
-    ;; driver functions
-    initialise-parser-state	compute-rule-result
-
-    ;; miscellaneous
-    pushback-token		prepend-precomputed-parse-result
-
-    ;; middle level combinator makers
-    packrat-check-base
-    packrat-check
-    packrat-or
-    packrat-unless
-
-    ;; high level combinator makers
-    packrat-parser (rename (packrat-parser make-packrat-parser)))
+    make-terminal-combinator	make-sequence-combinator
+    make-or-combinator		make-unless-combinator
+    make-memoize-combinator	make-error-combinator
+    make-grammar-combinator)
   (import (rnrs)
     (rnrs mutable-pairs)
-    (lists)
-    (parser-tools lexical-token)
-    (parser-tools source-location))
+    (language-extensions)
+    (parser-tools lexical-token))
 
 
 ;;; helpers
-
-(define gensym
-  (let ((counter 0))
-    (lambda ()
-      (set! counter (+ 1 counter))
-      (string->symbol (string-append "gensym-" (number->string counter))))))
-
-(define (%lexical-token-category/or-false token)
-  ;;Return the token category, or #f  if TOKEN is #f or the end-of-input
-  ;;marker.
-  ;;
-  (and token
-       (let ((category (<lexical-token>-category token)))
-	 (and (not (eq? '*eoi* category)) category))))
 
 (define (object->external-representation obj)
   (call-with-string-output-port
@@ -106,265 +66,199 @@
 	(write obj port))))
 
 
-(define-record-type <parse-error>
-  (fields (immutable location)
-	  (immutable expected)
-	  (immutable messages)))
+(define-record-type <result>
+  (fields (immutable state)))
 
-(define (make-<parse-error>/expected pos expected-terminal-category)
-  (make-<parse-error> pos (list expected-terminal-category) '()))
+(define-record-type <error>
+  (parent <result>)
+  (fields (immutable message)))
 
-(define (make-<parse-error>/message pos error-message)
-  (make-<parse-error> pos '() (list error-message)))
-
-(define (<parse-error>-empty? e)
-  (and (null? (<parse-error>-expected e))
-       (null? (<parse-error>-messages e))))
-
-(define (merge-parse-errors e1 e2)
-  ;;Merge   two   <parse-error>  records   and   return  the   resulting
-  ;;<parse-error> record, which can be a  new record or one among E1 and
-  ;;E2.
-  ;;
-  (cond ((not e1) e2)
-	((not e2) e1)
-	(else
-	 (let ((p1 (<parse-error>-location e1))
-	       (p2 (<parse-error>-location e2)))
-	   (cond ((or (source-location-point>? p1 p2)
-		      (<parse-error>-empty? e2))
-		  e1)
-		 ((or (source-location-point>? p2 p1)
-		      (<parse-error>-empty? e1))
-		  e2)
-		 (else
-		  (make-<parse-error> p1
-				      (lset-union equal?
-						  (<parse-error>-expected e1)
-						  (<parse-error>-expected e2))
-				      (lset-union equal?
-						  (<parse-error>-messages e1)
-						  (<parse-error>-messages e2)))))))))
+(define-record-type <success>
+  (parent <result>)
+  (fields (immutable semantic-value)))
 
 
-(define-record-type <parse-result>
-  (fields (immutable successful?)
-	  (immutable semantic-value)
-	  (immutable next)
-	  (immutable error)))
+(define-record-type <state>
+  (fields (immutable lookahead)
+	  (mutable   next-state)
+	  (mutable   memoized-results)))
 
-(define (make-<parse-result>/success semantic-value next)
-  (make-<parse-result> #t semantic-value next #f))
+(define (initialise-state lexer)
+  (define (state-maker)
+    (make-<state> (lexer) state-maker '()))
+  (state-maker))
 
-(define (make-<parse-result>/expected position expected-terminal-category)
-  (%parse-error->parse-result (make-<parse-error>/expected position expected-terminal-category)))
+(define (next-state state)
+  (let ((state/state-maker (<state>-next-state state)))
+    (if (<state>? state/state-maker)
+	state/state-maker
+      (let ((new-state (state/state-maker)))
+	(<state>-next-state-set! state new-state)
+	new-state))))
 
-(define (make-<parse-result>/message position error-message-string)
-  (%parse-error->parse-result (make-<parse-error>/message position error-message-string)))
+(define (pushback token state)
+  (make-<state> token state '()))
 
-(define (%parse-error->parse-result parse-error)
-  (make-<parse-result> #f #f #f parse-error))
+(define (memoize-result nonterminal-category result state)
+  (<state>-memoized-results-set! (cons (cons nonterminal-category result)
+				       (<state>-memoized-results state))))
 
-(define (make-<parse-result>/merge-errors result error)
-  (make-<parse-result> (<parse-result>-successful?    result)
-		       (<parse-result>-semantic-value result)
-		       (<parse-result>-next           result)
-		       (merge-parse-errors (<parse-result>-error result) error)))
-
-
-(define-record-type <parser-state>
-  (fields (immutable location)
-	  (immutable base)
-	  (mutable next)
-	  (mutable parse-result-map)))
-
-(define (make-<parser-state>/success source-location base next-generator)
-  (make-<parser-state> source-location base next-generator '()))
-
-(define (make-<parser-state>/end-of-input source-location)
-  (make-<parser-state> source-location #f #f '()))
-
-(define (<parser-state>-next-state results)
-  (let ((next (<parser-state>-next results)))
-    (if (procedure? next)
-	(let ((next-value (next)))
-	  (<parser-state>-next-set! results next-value)
-	  next-value)
-      next)))
-
-(define (%parser-state-token-value results)
-  (let ((token (<parser-state>-base results)))
-    (and (not (<lexical-token>?/end-of-input token))
-	 (<lexical-token>-value token))))
-
-
-(define (initialise-parser-state lexer)
-  (define (results-generator)
-    (let* ((token	(lexer))
-	   (location	(<lexical-token>-location token)))
-      (if (<lexical-token>?/end-of-input token)
-	  (make-<parser-state>/end-of-input location)
-	(make-<parser-state>/success location token results-generator))))
-  (results-generator))
-
-(define (compute-rule-result results nonterminal-category result-thunk)
-  (let ((results-map (<parser-state>-parse-result-map results)))
+(define (parse-nonterminal state nonterminal-category result-computer)
+  (let ((results-alist (<state>-memoized-results state)))
     (cond
-     ((assq nonterminal-category results-map)
+     ((assq nonterminal-category results-alist)
       => (lambda (entry)
-	   (let ((parse-result (cdr entry)))
-	     (or parse-result
-		 (error #f "recursive parse rule" nonterminal-category)))))
+      	   (let ((result (cdr entry)))
+      	     (or result
+      		 (assertion-violation 'parse-nonterminal
+      		   "recursive non-terminal parse rule" nonterminal-category)))))
      (else
       (let ((entry (cons nonterminal-category #f)))
-	(<parser-state>-parse-result-map-set! results (cons entry results-map))
-	(let ((result (result-thunk)))
-	  (set-cdr! entry result)
-	  result))))))
-
-(define (pushback-token source-location lexical-token state)
-  (make-<parser-state> source-location lexical-token state '()))
-
-(define (prepend-precomputed-parse-result source-location nonterminal-category
-					  semantic-value state)
-  (make-<parser-state> source-location #f #f
-		       `(,(cons nonterminal-category
-				(make-<parse-result>/success semantic-value state)))))
+	(<state>-memoized-results-set! state (cons entry results-alist))
+	(begin0-let ((result (result-computer)))
+	  (set-cdr! entry result)))))))
 
 
 ;;;; middle-level combinator makers
 
-(define (packrat-check-base terminal-category k)
+(define (make-terminal-combinator terminal-category select-next-combinator)
   (lambda (state)
-    (let ((token (<parser-state>-base state)))
-      (if (eq? (%lexical-token-category/or-false token) terminal-category)
-	  ((k (<lexical-token>-value token)) (<parser-state>-next-state state))
-	(make-<parse-result>/expected (<parser-state>-location state)
-				      (if (not terminal-category)
-					  '*eoi*
-					terminal-category))))))
+    (let ((token (<state>-lookahead state)))
+      (if (eq? terminal-category (<lexical-token>-category token))
+	  ((select-next-combinator (<lexical-token>-value token)) (next-state state))
+	(make-<error> state (string-append "expected token with category "
+					   (symbol->string terminal-category)))))))
 
-(define (packrat-check combinator k)
+(define (make-sequence-combinator combinator select-next-combinator)
   (lambda (state)
     (let ((result (combinator state)))
-      (if (<parse-result>-successful? result)
-	  (make-<parse-result>/merge-errors ((k (<parse-result>-semantic-value result))
-					     (<parse-result>-next result))
-					    (<parse-result>-error result))
+      (if (<success>? result)
+	  ((select-next-combinator (<success>-semantic-value result)) (<result>-state result))
 	result))))
 
-(define (packrat-or combinator-1 combinator-2)
+(define (make-or-combinator combinator-1 combinator-2)
   (lambda (state)
-    (let ((result (combinator-1 state)))
-      (if (<parse-result>-successful? result)
-	  result
-	(make-<parse-result>/merge-errors (combinator-2 state)
-					  (<parse-result>-error result))))))
-
-(define (packrat-unless error-message combinator-1 combinator-2)
-  (lambda (state)
-    (let ((result (combinator-1 state)))
-      (if (<parse-result>-successful? result)
-	  (make-<parse-result>/message (<parser-state>-location state)
-				       error-message)
+    (let ((result-1 (combinator-1 state)))
+      (if (<success>? result-1)
+	  result-1
 	(combinator-2 state)))))
 
+(define (make-unless-combinator combinator-1 combinator-2)
+  (lambda (state)
+    (let ((result (combinator-1 state)))
+      (if (<success>? result)
+	  (make-<error> state "failed negation rule")
+	(combinator-2 state)))))
+
+(define (make-memoize-combinator nonterminal-category combinator)
+  (lambda (state)
+    (let ((results-alist (<state>-memoized-results state)))
+      (cond
+       ((assq nonterminal-category results-alist)
+	=> (lambda (entry)
+	     (let ((result (cdr entry)))
+	       (or result
+		   (assertion-violation 'parse-nonterminal
+		     "recursive non-terminal parse rule" nonterminal-category)))))
+       (else
+	(let ((entry (cons nonterminal-category #f)))
+	  (<state>-memoized-results-set! state (cons entry results-alist))
+	  (begin0-let ((result (combinator state)))
+	    (set-cdr! entry result))))))))
+
+(define (make-error-combinator error-message)
+  (lambda (state)
+    (make-<error> state error-message)))
+
 
-(define-syntax packrat-parser
-  ;;Define a high-level combinator using a terminal/non-terminal grammar
-  ;;definition.
+(define-syntax make-grammar-combinator
+  ;;Define  a combinator  using a  grammar definition.   This  syntax is
+  ;;explained in the documentation.
   ;;
-  ;;The subpatterns:  #f "alt", #f  "alts", are used to  distinguish the
-  ;;internal  rewriting rules  from  the first  one,  which matches  the
-  ;;client invocation of this macro.
-  ;;
-  (syntax-rules (<- ! :@ /)
-
-    ;;Matches  the  client macro  use.   Process  all the  nonterminals,
-    ;;converting each into a combinator's procedure.
-    ((_ ?start (?nonterminal (?sequence form0 form ...) ...) ...)
-     (let ()
+  (syntax-rules ()
+    ((_ ?start (?nonterminal (?sequence ?form ...) ...) ...)
+     (letrec ()
        (define (?nonterminal state)
-	 (compute-rule-result state (quote ?nonterminal)
-			      (lambda ()
-				((packrat-parser #f "alts" ?nonterminal
-						 ((begin form0 form ...) ;the semantic clause
-						  ?sequence)
-						 ...)
-				 state))))
+	 (parse-nonterminal state (quote ?nonterminal)
+			    (lambda ()
+			      ((match-rhs-rule ?nonterminal
+					       ((begin #f ?form ...) ?sequence)
+					       ...)
+			       state))))
        ...
-       ?start))
+       ?start))))
 
-    ;;All the rules below match while processing a single non-terminal's
-    ;;right-hand side rules.
+(define-syntax match-rhs-rule
+  ;;Split the  first right-hand side  rule in a  non-terminal definition
+  ;;from the others and pass it to MATCH-SEQUENCE.  Used also to process
+  ;;alternatives introduced by the ":or" grammar keyword.
+  ;;
+  (syntax-rules ()
 
-    ;;Matches the last right-hand side rule.
-    ((_ #f "alts" ?nonterminal (?semantic-clause ?sequence))
-     (packrat-parser #f "alt" ?nonterminal ?semantic-clause ?sequence))
+    ((_ ?nonterminal (?semantic-clause ?sequence))
+     (match-sequence ?nonterminal ?semantic-clause ?sequence))
 
-    ;;Matches a right-hand side rule, not the last; split the first rule
-    ;;from the other ones.
-    ((_ #f "alts" ?nonterminal (?semantic-clause ?sequence) ?rhs-rule0 ?rhs-rule ...)
-     (packrat-or (packrat-parser #f "alt"  ?nonterminal ?semantic-clause ?sequence)
-		 (packrat-parser #f "alts" ?nonterminal ?rhs-rule0 ?rhs-rule ...)))
+    ((_ ?nonterminal (?semantic-clause ?sequence) ?rhs-rule0 ?rhs-rule ...)
+     (make-or-combinator (match-sequence ?nonterminal ?semantic-clause ?sequence)
+			 (match-rhs-rule ?nonterminal ?rhs-rule0 ?rhs-rule ...)))))
 
-    ;;Matches a  single right-hand  side rule: Empty  part, so  return a
-    ;;success result.
-    ((_ #f "alt" ?nonterminal ?semantic-clause ())
+(define-syntax match-sequence
+  ;;Process  the parts  of  a sequence  in  a right-hand  side rule  and
+  ;;convert them  to a  combinator.  Every rule  below matches  a single
+  ;;part, then recurses to match the others.
+  ;;
+  (syntax-rules (<- :not :error :exception :source-location)
+
+    ;;Empty sequence, evaluate the  semantic clause and return a success
+    ;;result.
+    ((_ ?nonterminal ?semantic-clause ())
      (lambda (state)
-       (make-<parse-result>/success ?semantic-clause state)))
+       (make-<success> state ?semantic-clause)))
 
-    ;;Matches a  single right-hand side  rule: The combinator  negates a
-    ;;sequence.
-    ((_ #f "alt" ?nonterminal ?semantic-clause ((! ?fails ...) ?rhs-part ...))
-     (packrat-unless (string-append "non-terminal "
-				    (symbol->string (quote ?nonterminal))
-				    " expected to fail "
-				    (object->external-representation '(?fails ...)))
-		     (packrat-parser #f "alt" ?nonterminal #t               (?fails ...))
-		     (packrat-parser #f "alt" ?nonterminal ?semantic-clause (?rhs-part  ...))))
+    ((_ ?nonterminal ?semantic-clause (:error ?error-message))
+     (make-error-combinator ?error-message))
 
-    ;;Matches a  single right-hand side rule:  The combinator introduces
-    ;;subordinate alternatives.
-    ((_ #f "alt" ?nonterminal ?semantic-clause ((/ ?sequence ...) ?rhs-part ...))
-     (packrat-check (packrat-parser #f "alts" ?nonterminal (#t ?sequence) ...)
-		    (lambda (result)
-		      (packrat-parser #f "alt" ?nonterminal ?semantic-clause (?rhs-part ...)))))
-
-    ;;Matches  a single  right-hand side  rule: The  combinator  binds a
-    ;;quoted value to a variable.
-    ((_ #f "alt" ?nonterminal ?semantic-clause (?var <- (quote ?val) ?rhs-part ...))
-     (packrat-check-base (quote ?val)
-			 (lambda (?var)
-			   (packrat-parser #f "alt" ?nonterminal ?semantic-clause (?rhs-part ...)))))
-
-    ;;Matches  a single right-hand  side rule:  The combinato  binds the
-    ;;current input stream location.
-    ((_ #f "alt" ?nonterminal ?semantic-clause (?var <- :@ ?rhs-part ...))
+    ((_ ?nonterminal ?semantic-clause (:exception))
      (lambda (state)
-       (let ((?var (<parser-state>-location state)))
-	 ((packrat-parser #f "alt" ?nonterminal ?semantic-clause (?rhs-part ...)) state))))
+       (raise ?semantic-clause)))
 
-    ;;Matches a single right-hand  side rule: The combinator matches the
-    ;;next token against a non-terminal combinator.
-    ((_ #f "alt" ?nonterminal ?semantic-clause (?var <- ?nonterminal-identifier ?rhs-part ...))
-     (packrat-check ?nonterminal-identifier
-		    (lambda (?var)
-		      (packrat-parser #f "alt" ?nonterminal ?semantic-clause (?rhs-part ...)))))
+    ;;The first part is a sequence negation.
+    ((_ ?nonterminal ?semantic-clause ((:not ?fail-part ...) ?rhs-part ...))
+     (make-unless-combinator (match-sequence ?nonterminal #t               (?fail-part ...))
+			     (match-sequence ?nonterminal ?semantic-clause (?rhs-part  ...))))
 
-    ;;Matches a single right-hand  side rule: The combinator matches the
-    ;;next token against a terminal symbol.
-    ((_ #f "alt" ?nonterminal ?semantic-clause ((quote ?terminal-symbol) ?rhs-part ...))
-     (packrat-check-base (quote ?terminal-symbol)
-			 (lambda (dummy)
-			   (packrat-parser #f "alt" ?nonterminal ?semantic-clause (?rhs-part ...)))))
+    ;;The first part binds a quoted value.
+    ((_ ?nonterminal ?semantic-clause (?var <- (quote ?terminal) ?rhs-part ...))
+     (make-terminal-combinator (quote ?terminal)
+			       (lambda (?var)
+				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))
 
-    ;;Matches a single right-hand  side rule: The combinator matches the
-    ;;next token against a non-terminal combinator.
-    ((_ #f "alt" ?nonterminal ?semantic-clause (?nonterminal-identifier ?rhs-part ...))
-     (packrat-check ?nonterminal-identifier
-		    (lambda (dummy)
-		      (packrat-parser #f "alt" ?nonterminal ?semantic-clause (?rhs-part ...)))))))
+    ;;The first part binds the current source location.
+    ((_ ?nonterminal ?semantic-clause (?var <- :source-location ?rhs-part ...))
+     (lambda (state)
+       (let ((?var (<lexical-token>-location (<state>-lookahead state))))
+	 ((match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)) state))))
+
+    ;;The first part matches  the lookahead token against a non-terminal
+    ;;combinator and binds the result.
+    ((_ ?nonterminal ?semantic-clause (?var <- ?nonterminal-identifier ?rhs-part ...))
+     (make-sequence-combinator ?nonterminal-identifier
+			       (lambda (?var)
+				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))
+
+    ;;The  first part  matches the  lookahead token  against  a terminal
+    ;;symbol.
+    ((_ ?nonterminal ?semantic-clause ((quote ?terminal-symbol) ?rhs-part ...))
+     (make-terminal-combinator (quote ?terminal-symbol)
+			       (lambda (dummy)
+				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))
+
+    ;;The first part matches  the lookahead token against a non-terminal
+    ;;combinator.
+    ((_ ?nonterminal ?semantic-clause (?nonterminal-identifier ?rhs-part ...))
+     (make-sequence-combinator ?nonterminal-identifier
+			       (lambda (dummy)
+				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))))
 
 
 ;;;; done

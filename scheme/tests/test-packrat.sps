@@ -35,64 +35,401 @@
 
 (import (nausicaa)
   (checks)
-  (packrat)
+  (prefix (packrat) packrat:)
   (parser-tools lexical-token))
 
 (check-set-mode! 'report-failed)
 (display "*** testing packrat\n")
 
 
-(parametrise ((check-test-name 'calc-1))
+;;;; helpers
 
-  (define (make-lexer-closure tokens)
-    (let ((stream tokens))
-      (lambda ()
-	(if (null? stream)
-	    (make-<lexical-token> '*eoi* #f (eof-object) 0)
-	  (let ((token (car stream)))
-	    (set! stream (cdr stream))
-	    (make-<lexical-token> (car token) #f (cdr token) 0))))))
+(define (make-lexer-closure stream)
+  ;;Return a lexer  closure drawing tokens from STREAM,  which must be a
+  ;;list of terminal/value  pairs.  Return <lexical-token> instances and
+  ;;automatically  generate  the end-of-input  token  when  the list  is
+  ;;empty.
+  ;;
+  (lambda ()
+    (if (null? stream)
+	(make-<lexical-token> '*eoi* #f (eof-object) 0)
+      (let ((token (car stream)))
+	(set! stream (cdr stream))
+	(make-<lexical-token> (car token) #f (cdr token) 0)))))
 
-  (define calc-parser
-    (make-packrat-parser expr
+
+(parametrise ((check-test-name 'terminal))
 
-			 (expr   ((a <- mul-expr '+ b <- expr)
-				  (+ a b))
-				 ((a <- mul-expr '- b <- expr)
-				  (- a b))
-				 ((a <- mul-expr)
-				  a))
-
-			 (mul-expr ((a <- simple '* b <- simple)
-				    (* a b))
-				   ((a <- simple '/ b <- simple)
-				    (/ a b))
-				   ((a <- simple)
-				    a))
-
-			 (simple ((a <- 'NUM)
-				  a)
-				 (('+ a <- 'NUM)
-				  a)
-				 (('+ a <- simple)
-				  a)
-				 (('- a <- 'NUM)
-				  (- a))
-				 (('- a <- simple)
-				  (- a))
-				 (('OPAREN a <- expr 'CPAREN)
-				  a))))
-
-  (define (doit . tokens)
+  (define (doit start-combinator . tokens)
     (let* ((lexer	(make-lexer-closure tokens))
-	   (result	(calc-parser (initialise-parser-state lexer))))
-      (if (<parse-result>-successful? result)
-	  (<parse-result>-semantic-value result)
-	(<parse-result>-error result))))
+	   (state	(packrat:initialise-state lexer))
+	   (result	(start-combinator state)))
+      (if (packrat:<success>? result)
+	  (packrat:<success>-semantic-value result)
+	(packrat:<error>-message result))))
 
 ;;; --------------------------------------------------------------------
 
-  (check 'this
+  (let ((comb (packrat:make-terminal-combinator
+	       'A
+	       (lambda (semantic-value)
+		 (lambda (state)
+		   (packrat:make-<success> state semantic-value))))))
+
+    (check
+	(doit comb '(A . 123))
+      => 123)
+
+    (check
+	(doit comb '(ERR . #f))
+      => "expected token with category A")
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (letrec ((a (packrat:make-terminal-combinator
+	       'A
+	       (lambda (semantic-value)
+		 b)))
+	   (b (packrat:make-terminal-combinator
+	       'B
+	       (lambda (semantic-value)
+		 (lambda (state)
+		   (packrat:make-<success> state semantic-value))))))
+
+    (check
+	(doit a
+	      '(A . discarded)
+	      '(B . 123))
+      => 123)
+
+    (check
+	(doit a '(ERR . #f))
+      => "expected token with category A")
+
+    (check
+	(doit a '(A . #f) '(ERR . #f))
+      => "expected token with category B")
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((comb (packrat:make-terminal-combinator
+	       'NUMBER
+	       (lambda (semantic-value-a)
+		 (packrat:make-terminal-combinator
+		  'NUMBER
+		  (lambda (semantic-value-b)
+		    (lambda (state)
+		      (packrat:make-<success> state
+					      (+ semantic-value-a
+						 semantic-value-b)))))))))
+
+    (check
+	(doit comb
+	      '(NUMBER . 10)
+	      '(NUMBER . 5))
+      => 15)
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'sequence))
+
+  (define (doit start-combinator . tokens)
+    (let* ((lexer	(make-lexer-closure tokens))
+	   (state	(packrat:initialise-state lexer))
+	   (result	(start-combinator state)))
+      (if (packrat:<success>? result)
+	  (packrat:<success>-semantic-value result)
+	(packrat:<error>-message result))))
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define comb-a
+      (packrat:make-terminal-combinator
+       'A
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb-b
+      (packrat:make-terminal-combinator
+       'B
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb
+      (packrat:make-sequence-combinator
+       comb-a (lambda (semantic-value) comb-b)))
+
+    (check
+	(doit comb
+	      '(A . discarded)
+	      '(B . 123))
+      => 123)
+
+    (check
+	(doit comb '(ERR . #f))
+      => "expected token with category A")
+
+    (check
+	(doit comb '(A . #f) '(ERR . #f))
+      => "expected token with category B")
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define comb
+      (packrat:make-sequence-combinator
+       (packrat:make-terminal-combinator
+	'NUMBER
+	(lambda (semantic-value)
+	  (lambda (state)
+	    (packrat:make-<success> state semantic-value))))
+       (lambda (a)
+	 (packrat:make-terminal-combinator
+	  'NUMBER
+	  (lambda (b)
+	    (lambda (state)
+	      (packrat:make-<success> state (+ a b))))))))
+
+    (check
+	(doit comb
+	      '(NUMBER . 10)
+	      '(NUMBER . 5))
+      => 15)
+
+    (check
+	(doit comb '(ERR . #f))
+      => "expected token with category NUMBER")
+
+    (check
+	(doit comb '(NUMBER . #f) '(ERR . #f))
+      => "expected token with category NUMBER")
+
+    #f)
+
+  #f)
+
+
+(parametrise ((check-test-name 'alternative))
+
+  (define (doit start-combinator . tokens)
+    (let* ((lexer	(make-lexer-closure tokens))
+	   (state	(packrat:initialise-state lexer))
+	   (result	(start-combinator state)))
+      (if (packrat:<success>? result)
+	  (packrat:<success>-semantic-value result)
+	(packrat:<error>-message result))))
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define comb-a
+      (packrat:make-terminal-combinator
+       'A
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb-b
+      (packrat:make-terminal-combinator
+       'B
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb
+      (packrat:make-or-combinator comb-a comb-b))
+
+    (check
+	(doit comb '(A . 1))
+      => 1)
+
+    (check
+	(doit comb '(B . 1))
+      => 1)
+
+    (check
+	(doit comb '(ERR . #f))
+      => "expected token with category B")
+
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define comb
+      (packrat:make-or-combinator
+       (packrat:make-terminal-combinator
+	'A
+	(lambda (semantic-value)
+	  (lambda (state)
+	    (packrat:make-<success> state semantic-value))))
+       (lambda (state)
+	(packrat:make-<error> state "it is not A, dammit!"))))
+
+    (check
+	(doit comb '(A . 1))
+      => 1)
+
+    (check
+	(doit comb '(ERR . #f))
+      => "it is not A, dammit!")
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'unless))
+
+  (define (doit start-combinator . tokens)
+    (let* ((lexer	(make-lexer-closure tokens))
+	   (state	(packrat:initialise-state lexer))
+	   (result	(start-combinator state)))
+      (if (packrat:<success>? result)
+	  (packrat:<success>-semantic-value result)
+	(packrat:<error>-message result))))
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define comb-a
+      (packrat:make-terminal-combinator
+       'A
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb-b
+      (packrat:make-terminal-combinator
+       'B
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb
+      (packrat:make-unless-combinator comb-a comb-b))
+
+    (check
+	(doit comb '(A . 1))
+      => "failed negation rule")
+
+    (check
+	(doit comb '(B . 1))
+      => 1)
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'memoize))
+
+  (define (doit start-combinator . tokens)
+    (let* ((lexer	(make-lexer-closure tokens))
+	   (state	(packrat:initialise-state lexer))
+	   (result-1	(start-combinator state))
+	   (result-2	(start-combinator state))
+	   (report	(lambda (result)
+			  (if (packrat:<success>? result)
+			      (packrat:<success>-semantic-value result)
+			    (packrat:<error>-message result)))))
+      (cons (report result-1)
+	    (report result-2))))
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define comb-a
+      (packrat:make-terminal-combinator
+       'A
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb
+      (packrat:make-memoize-combinator 'this comb-a))
+
+    (check
+	(doit comb '(A . 1))
+      => '(1 . 1))
+
+    (check
+	(doit comb '(B . 1))
+      => '("expected token with category A" . "expected token with category A"))
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'calc-1))
+
+;;;Arithmetic expressions parser with pair tokens input stream.
+
+  (define (doit . stream)
+    (let* ((lexer	(make-lexer-closure stream))
+	   (result	(calc-combinator (packrat:initialise-state lexer))))
+      (if (packrat:<success>? result)
+	  (packrat:<success>-semantic-value result)
+	(packrat:<error>-message result))))
+
+  (define calc-combinator
+    (packrat:make-grammar-combinator
+
+     expr
+
+     (expr	((a <- mul-expr '+ b <- expr)
+		 (+ a b))
+		((a <- mul-expr '- b <- expr)
+		 (- a b))
+		((a <- mul-expr)
+		 a)
+		((:error "syntax error while parsing expression")))
+
+     (mul-expr	((a <- simple '* b <- simple)
+		 (* a b))
+		((a <- simple '/ b <- simple)
+		 (/ a b))
+		((a <- simple)
+		 a)
+		((:error "syntax error while parsing mul/div expression")))
+
+     (simple	((a <- 'NUM)
+		 a)
+		(('+ a <- 'NUM)
+		 a)
+		(('+ a <- simple)
+		 a)
+		(('- a <- 'NUM)
+		 (- a))
+		(('- a <- simple)
+		 (- a))
+		(('OPAREN a <- expr 'CPAREN)
+		 a)
+		((:error "syntax error while parsing simple expression")))))
+
+;;; --------------------------------------------------------------------
+
+  (check
       (doit '(NUM . 1))
     => 1)
 
@@ -254,8 +591,23 @@
 
 (parametrise ((check-test-name 'calc-2))
 
-  (define (sexp->tokens sexp)
-    (define (lexer sexp)
+;;;Arithmetic expressions parser with S-expression input stream.
+
+  (define (doit sexp)
+    (let* ((lexer	(make-lexer-closure (sexp->stream sexp)))
+	   (result	(calc-combinator (packrat:initialise-state lexer))))
+      (if (packrat:<success>? result)
+	  (packrat:<success>-semantic-value result)
+	(packrat:<error>-message result))))
+
+  (define (sexp->stream sexp)
+    ;;Convert  an S-expression  in SEXP  into a  list  of terminal/value
+    ;;pairs.  The S-expression must represent an arithmetics expression.
+    ;;The generated tokens have terminal symbols:
+    ;;
+    ;;	NUMBER OPEN-PAREN CLOSE-PAREN + - * /
+    ;;
+    (define (pair-lexer sexp)
       (let loop ((sexp   (if (pair? sexp)
 			     sexp
 			   (list sexp)))
@@ -269,57 +621,45 @@
 			((memq atom '(+ - * /))
 			 `((,atom) . ,result))
 			((pair? atom)
-			 (append '((CLOSE-PAREN)) (lexer atom) '((OPEN-PAREN)) result))
+			 (append '((CLOSE-PAREN)) (pair-lexer atom) '((OPEN-PAREN)) result))
 			(else
 			 (error #f "invalid token" atom))))))))
-    (reverse (lexer sexp)))
+    (reverse (pair-lexer sexp)))
 
-  (define (make-lexer-closure sexp)
-    (let ((stream (sexp->tokens sexp)))
-      (lambda ()
-	(if (null? stream)
-	    (make-<lexical-token> '*eoi* #f (eof-object) 0)
-	  (let ((token (car stream)))
-	    (set! stream (cdr stream))
-	    (make-<lexical-token> (car token) #f (cdr token) 0))))))
+  (define calc-combinator
+    (packrat:make-grammar-combinator
+     expr
 
-  (define calc-parser
-    (make-packrat-parser expr
+     (expr	((a <- mul-expr '+ b <- expr)
+		 (+ a b))
+		((a <- mul-expr '- b <- expr)
+		 (- a b))
+		((a <- mul-expr)
+		 a)
+		((:error "syntax error while parsing expression")))
 
-		    (expr   ((a <- mul-expr '+ b <- expr)
-			     (+ a b))
-			    ((a <- mul-expr '- b <- expr)
-			     (- a b))
-			    ((a <- mul-expr)
-			     a))
+     (mul-expr	((a <- simple '* b <- simple)
+		 (* a b))
+		((a <- simple '/ b <- simple)
+		 (/ a b))
+		((a <- simple)
+		 a)
+		((:error "syntax error while parsing mul/div expression")))
 
-		    (mul-expr ((a <- simple '* b <- simple)
-			     (* a b))
-			    ((a <- simple '/ b <- simple)
-			     (/ a b))
-			    ((a <- simple)
-			     a))
-
-		    (simple ((a <- 'NUMBER)
-			     a)
-			    (('+ a <- expr)
-			     a)
-			    (('- a <- expr)
-			     (- a))
-			    (('OPEN-PAREN a <- expr 'CLOSE-PAREN)
-			     a))))
-
-  (define (doit sexp)
-    (let* ((lexer	(make-lexer-closure sexp))
-	   (result	(calc-parser (initialise-parser-state lexer))))
-      (if (<parse-result>-successful? result)
-	  (<parse-result>-semantic-value result)
-	(<parse-result>-error result))))
+     (simple	((a <- 'NUMBER)
+		 a)
+		(('+ a <- expr)
+		 a)
+		(('- a <- expr)
+		 (- a))
+		(('OPEN-PAREN a <- expr 'CLOSE-PAREN)
+		 a)
+		((:error "syntax error while parsing simple expression")))))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (sexp->tokens '(1 + 2 + 3))
+      (sexp->stream '(1 + 2 + 3))
     => '((NUMBER . 1)
 	 (+)
 	 (NUMBER . 2)
@@ -327,7 +667,7 @@
 	 (NUMBER . 3)))
 
   (check
-      (sexp->tokens '((1 + 2) * 3))
+      (sexp->stream '((1 + 2) * 3))
     => '((OPEN-PAREN)
 	 (NUMBER . 1)
 	 (+)
@@ -431,8 +771,36 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (<parse-error>? (doit '(+ *)))
-    => #t)
+      (doit '(+ *))
+    => "syntax error while parsing expression")
+
+  #t)
+
+
+(parametrise ((check-test-name 'left-recursion))
+
+;;;This  demonstrates  that a  left-recursive  nonterminal  is a  cyclic
+;;;dependency, which leads to an infinite recursion.
+
+  (define (doit start-combinator . stream)
+    (let* ((lexer	(make-lexer-closure stream))
+	   (result	(start-combinator (packrat:initialise-state lexer))))
+      (if (packrat:<success>? result)
+	  (packrat:<success>-semantic-value result)
+	(packrat:<error>-message result))))
+
+  (define digits-combinator
+    (packrat:make-grammar-combinator digits
+				     (digits	((a <- digits b <- digit)
+						 (string-append a b)))
+				     (digit	((d <- 'NUM)
+						 d))))
+
+  ;;This goes into infinite recursion.
+  ;;
+  ;; (check
+  ;;     (doit digits-combinator '(NUM . "1"))
+  ;;   => "1")
 
   #t)
 
