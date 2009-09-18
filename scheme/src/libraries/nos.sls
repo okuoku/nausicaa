@@ -291,7 +291,7 @@
 			   (else
 			    (let ((methods (%compute-applicable-methods signature method-alist)))
 			      (unless cache
-				(set! cache (make-hashtable equal-hash equal?)))
+				(set! cache (make-hashtable signature-hash eq?)))
 			      (hashtable-set! cache signature methods)
 			      methods))))
 
@@ -571,6 +571,13 @@
 		       (for-all* eq? key (method-entry-key method-entry)))
 		     method-alist)
 	 (cons candidate-method-entry method-alist))))))
+
+
+(define (signature-hash signature)
+  (fold-left (lambda (nil rtd)
+	       (+ nil (symbol-hash (record-type-name rtd))))
+	     0
+	     signature))
 
 
 ;;;; predefined generic functions
