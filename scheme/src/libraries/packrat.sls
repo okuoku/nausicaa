@@ -41,12 +41,16 @@
 (library (packrat)
   (export
 
+    <state>   <state>?
+    <state>-lookahead
+    <state>-next-state
+    <state>-memoized-results
+
     <result>                 <result>?  <result>-state
     <error>   make-<error>   <error>?   <error>-message
-    <success> make-<success> <success>? <success>-semantic-value
+    <success> make-<success> <success>? <success>-value
 
-    initialise-state next-state
-    pushback memoize-result
+    initialise-state next-state pushback memoize-result
 
     make-terminal-combinator	make-sequence-combinator
     make-or-combinator		make-unless-combinator
@@ -58,14 +62,6 @@
     (parser-tools lexical-token))
 
 
-;;; helpers
-
-(define (object->external-representation obj)
-  (call-with-string-output-port
-      (lambda (port)
-	(write obj port))))
-
-
 (define-record-type <result>
   (fields (immutable state)))
 
@@ -75,7 +71,7 @@
 
 (define-record-type <success>
   (parent <result>)
-  (fields (immutable semantic-value)))
+  (fields (immutable value)))
 
 
 (define-record-type <state>
@@ -103,24 +99,7 @@
   (<state>-memoized-results-set! (cons (cons nonterminal-category result)
 				       (<state>-memoized-results state))))
 
-(define (parse-nonterminal state nonterminal-category result-computer)
-  (let ((results-alist (<state>-memoized-results state)))
-    (cond
-     ((assq nonterminal-category results-alist)
-      => (lambda (entry)
-      	   (let ((result (cdr entry)))
-      	     (or result
-      		 (assertion-violation 'parse-nonterminal
-      		   "recursive non-terminal parse rule" nonterminal-category)))))
-     (else
-      (let ((entry (cons nonterminal-category #f)))
-	(<state>-memoized-results-set! state (cons entry results-alist))
-	(begin0-let ((result (result-computer)))
-	  (set-cdr! entry result)))))))
-
 
-;;;; middle-level combinator makers
-
 (define (make-terminal-combinator terminal-category select-next-combinator)
   (lambda (state)
     (let ((token (<state>-lookahead state)))
@@ -133,7 +112,7 @@
   (lambda (state)
     (let ((result (combinator state)))
       (if (<success>? result)
-	  ((select-next-combinator (<success>-semantic-value result)) (<result>-state result))
+	  ((select-next-combinator (<success>-value result)) (<result>-state result))
 	result))))
 
 (define (make-or-combinator combinator-1 combinator-2)
@@ -175,23 +154,34 @@
   ;;Define  a combinator  using a  grammar definition.   This  syntax is
   ;;explained in the documentation.
   ;;
+  ;;The call to MATCH-RHS-RULE expands  to a form which, when evaluated,
+  ;;returns a combinator's function; the form:
+  ;;
+  ;;	((match-rhs-rule ---) state)
+  ;;
+  ;;is a call to the generated combinator and returns a <result>.  It is
+  ;;wrapped into  a LAMBDA to  make LETREC* happy  about non-referencing
+  ;;undefined  bindings:  this is  required  because  some expansion  of
+  ;;MATCH-RHS-RULE  is a call  to MAKE-SEQUENCE-COMBINATOR,  which takes
+  ;;the value bound to a ?NONTERMINAL identifier as argument.
+  ;;
   (syntax-rules ()
     ((_ ?start (?nonterminal (?sequence ?form ...) ...) ...)
-     (letrec ()
-       (define (?nonterminal state)
-	 (parse-nonterminal state (quote ?nonterminal)
-			    (lambda ()
-			      ((match-rhs-rule ?nonterminal
-					       ((begin #f ?form ...) ?sequence)
-					       ...)
-			       state))))
-       ...
+     (letrec* ((?nonterminal (make-memoize-combinator
+			      (quote ?nonterminal)
+			      (lambda (state)
+				((match-rhs-rule (quote ?nonterminal)
+						 ((begin #f ?form ...) ?sequence)
+						 ...)
+				 state))))
+	       ...)
        ?start))))
 
 (define-syntax match-rhs-rule
-  ;;Split the  first right-hand side  rule in a  non-terminal definition
-  ;;from the others and pass it to MATCH-SEQUENCE.  Used also to process
-  ;;alternatives introduced by the ":or" grammar keyword.
+  ;;Expand to a combinator's LAMBDA form or to a function call returning
+  ;;a combinator's function.  Split the  first right-hand side rule in a
+  ;;non-terminal   definition   from  the   others   and   pass  it   to
+  ;;MATCH-SEQUENCE.
   ;;
   (syntax-rules ()
 
@@ -203,9 +193,10 @@
 			 (match-rhs-rule ?nonterminal ?rhs-rule0 ?rhs-rule ...)))))
 
 (define-syntax match-sequence
-  ;;Process  the parts  of  a sequence  in  a right-hand  side rule  and
-  ;;convert them  to a  combinator.  Every rule  below matches  a single
-  ;;part, then recurses to match the others.
+  ;;Expand to a combinator's LAMBDA form or to a function call returning
+  ;;a  combinator's function.   Process the  parts  of a  sequence in  a
+  ;;right-hand side rule  and convert them to a  combinator.  Every rule
+  ;;below matches a single part, then recurses to match the others.
   ;;
   (syntax-rules (<- :not :error :exception :source-location)
 
@@ -220,7 +211,7 @@
 
     ((_ ?nonterminal ?semantic-clause (:exception))
      (lambda (state)
-       (raise ?semantic-clause)))
+       (raise-continuable ?semantic-clause)))
 
     ;;The first part is a sequence negation.
     ((_ ?nonterminal ?semantic-clause ((:not ?fail-part ...) ?rhs-part ...))

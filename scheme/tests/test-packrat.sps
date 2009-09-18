@@ -65,7 +65,7 @@
 	   (state	(packrat:initialise-state lexer))
 	   (result	(start-combinator state)))
       (if (packrat:<success>? result)
-	  (packrat:<success>-semantic-value result)
+	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
 ;;; --------------------------------------------------------------------
@@ -145,7 +145,7 @@
 	   (state	(packrat:initialise-state lexer))
 	   (result	(start-combinator state)))
       (if (packrat:<success>? result)
-	  (packrat:<success>-semantic-value result)
+	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
 ;;; --------------------------------------------------------------------
@@ -230,7 +230,7 @@
 	   (state	(packrat:initialise-state lexer))
 	   (result	(start-combinator state)))
       (if (packrat:<success>? result)
-	  (packrat:<success>-semantic-value result)
+	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
 ;;; --------------------------------------------------------------------
@@ -303,7 +303,7 @@
 	   (state	(packrat:initialise-state lexer))
 	   (result	(start-combinator state)))
       (if (packrat:<success>? result)
-	  (packrat:<success>-semantic-value result)
+	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
 ;;; --------------------------------------------------------------------
@@ -349,7 +349,7 @@
 	   (result-2	(start-combinator state))
 	   (report	(lambda (result)
 			  (if (packrat:<success>? result)
-			      (packrat:<success>-semantic-value result)
+			      (packrat:<success>-value result)
 			    (packrat:<error>-message result)))))
       (cons (report result-1)
 	    (report result-2))))
@@ -389,7 +389,7 @@
     (let* ((lexer	(make-lexer-closure stream))
 	   (result	(calc-combinator (packrat:initialise-state lexer))))
       (if (packrat:<success>? result)
-	  (packrat:<success>-semantic-value result)
+	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
   (define calc-combinator
@@ -402,16 +402,14 @@
 		((a <- mul-expr '- b <- expr)
 		 (- a b))
 		((a <- mul-expr)
-		 a)
-		((:error "syntax error while parsing expression")))
+		 a))
 
      (mul-expr	((a <- simple '* b <- simple)
 		 (* a b))
 		((a <- simple '/ b <- simple)
 		 (/ a b))
 		((a <- simple)
-		 a)
-		((:error "syntax error while parsing mul/div expression")))
+		 a))
 
      (simple	((a <- 'NUM)
 		 a)
@@ -424,8 +422,7 @@
 		(('- a <- simple)
 		 (- a))
 		(('OPAREN a <- expr 'CPAREN)
-		 a)
-		((:error "syntax error while parsing simple expression")))))
+		 a))))
 
 ;;; --------------------------------------------------------------------
 
@@ -586,18 +583,23 @@
 	    '(NUM . 3))
     => 9)
 
+  (check
+      (doit '(+ *))
+    => "expected token with category OPAREN")
+
   #t)
 
 
 (parametrise ((check-test-name 'calc-2))
 
-;;;Arithmetic expressions parser with S-expression input stream.
+;;;Arithmetic expressions parser  with S-expression input stream.  Makes
+;;;use of ":error" to generate error messages.
 
   (define (doit sexp)
     (let* ((lexer	(make-lexer-closure (sexp->stream sexp)))
 	   (result	(calc-combinator (packrat:initialise-state lexer))))
       (if (packrat:<success>? result)
-	  (packrat:<success>-semantic-value result)
+	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
   (define (sexp->stream sexp)
@@ -786,7 +788,7 @@
     (let* ((lexer	(make-lexer-closure stream))
 	   (result	(start-combinator (packrat:initialise-state lexer))))
       (if (packrat:<success>? result)
-	  (packrat:<success>-semantic-value result)
+	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
   (define digits-combinator
