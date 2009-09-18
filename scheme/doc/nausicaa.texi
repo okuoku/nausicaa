@@ -44129,13 +44129,17 @@ making @meta{start} a @func{begin} form we can introduce bindings to
 hand--written combinators which can call (and can be called by) the
 non--terminal combinators.
 
-Each @meta{sequence} expands into a combinator; when the combinator
-returned by @meta{start} is applied to a @class{state} record, it
+Each @meta{sequence} expands into a combinator; the @meta{sequence}
+combinators of a non--terminal combinator, are all alternatives for its
+matching.
+
+When a non--terminal combinator is applied to a @class{state} record, it
 attempts to match the input tokens against the @meta{sequence}
-combinators in its @meta{rule}.  The first @meta{rule} is tried first,
-then the second and so on, stopping at the first match.  If matching is
-successful, a @class{success} record is returned; else an @class{error}
-record is returned.
+combinators in its @meta{rule} elements.  The first @meta{rule} is tried
+first, then the second and so on, stopping at the first match.  If
+matching is successful, the @meta{semantic-clause} is evaluated to
+produce a value returned as field of a @class{success} record; else an
+@class{error} record is returned.
 
 Each @meta{part} expands to a combinator which, if successful in
 matching tokens from the input returns a @class{success} record, else
