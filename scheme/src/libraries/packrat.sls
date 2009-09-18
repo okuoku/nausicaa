@@ -73,6 +73,9 @@
   (parent <result>)
   (fields (immutable value)))
 
+(define-condition-type &left-recursion
+  &warning make-left-recursion-condition left-recursion-condition?)
+
 
 (define-record-type <state>
   (fields (immutable lookahead)
@@ -95,8 +98,8 @@
 (define (pushback token state)
   (make-<state> token state '()))
 
-(define (memoize-result nonterminal-category result state)
-  (<state>-memoized-results-set! (cons (cons nonterminal-category result)
+(define (memoize-result keyword result state)
+  (<state>-memoized-results-set! (cons (cons keyword result)
 				       (<state>-memoized-results state))))
 
 
@@ -115,13 +118,6 @@
 	  ((select-next-combinator (<success>-value result)) (<result>-state result))
 	result))))
 
-(define (make-or-combinator combinator-1 combinator-2)
-  (lambda (state)
-    (let ((result-1 (combinator-1 state)))
-      (if (<success>? result-1)
-	  result-1
-	(combinator-2 state)))))
-
 (define (make-unless-combinator combinator-1 combinator-2)
   (lambda (state)
     (let ((result (combinator-1 state)))
@@ -129,21 +125,46 @@
 	  (make-<error> state "failed negation rule")
 	(combinator-2 state)))))
 
-(define (make-memoize-combinator nonterminal-category combinator)
+(define (make-memoize-combinator keyword combinator)
   (lambda (state)
     (let ((results-alist (<state>-memoized-results state)))
       (cond
-       ((assq nonterminal-category results-alist)
+       ((assq keyword results-alist)
 	=> (lambda (entry)
 	     (let ((result (cdr entry)))
 	       (or result
-		   (assertion-violation 'parse-nonterminal
-		     "recursive non-terminal parse rule" nonterminal-category)))))
+		   (begin
+		     (set-cdr! entry
+			       (raise-continuable
+				(condition (make-message-condition
+					    "recursive parse rule with no alternatives")
+					   (make-irritants-condition (list keyword))
+					   (make-left-recursion-condition))))
+		     (cdr entry))))))
        (else
-	(let ((entry (cons nonterminal-category #f)))
+	(let ((entry (cons keyword #f)))
 	  (<state>-memoized-results-set! state (cons entry results-alist))
 	  (begin0-let ((result (combinator state)))
 	    (set-cdr! entry result))))))))
+
+(define (make-or-combinator . combinators)
+  (lambda (state)
+    (define (apply-possibly-recursive-combinator comb)
+      (with-exception-handler ;Hey, stoopid! GUARD does not call the continuation!
+	  (lambda (E)
+	    (if (left-recursion-condition? E)
+		((apply make-or-combinator (cdr combinators)) state)
+	      (raise E)))
+	(lambda ()
+	  (comb state))))
+    (let loop ((combinators combinators)
+	       (result      (make-<error> state "OR combinator with no alternatives")))
+      (if (null? combinators)
+	  result
+	(let ((result (apply-possibly-recursive-combinator (car combinators))))
+	  (if (<success>? result)
+	      result
+	    (loop (cdr combinators) result)))))))
 
 (define (make-error-combinator error-message)
   (lambda (state)
@@ -154,15 +175,15 @@
   ;;Define  a combinator  using a  grammar definition.   This  syntax is
   ;;explained in the documentation.
   ;;
-  ;;The call to MATCH-RHS-RULE expands  to a form which, when evaluated,
+  ;;The call to MATCH-RHS-RULES expands to a form which, when evaluated,
   ;;returns a combinator's function; the form:
   ;;
-  ;;	((match-rhs-rule ---) state)
+  ;;	((match-rhs-rules ---) state)
   ;;
   ;;is a call to the generated combinator and returns a <result>.  It is
   ;;wrapped into  a LAMBDA to  make LETREC* happy  about non-referencing
   ;;undefined  bindings:  this is  required  because  some expansion  of
-  ;;MATCH-RHS-RULE  is a call  to MAKE-SEQUENCE-COMBINATOR,  which takes
+  ;;MATCH-RHS-RULES is  a call to  MAKE-SEQUENCE-COMBINATOR, which takes
   ;;the value bound to a ?NONTERMINAL identifier as argument.
   ;;
   (syntax-rules ()
@@ -170,29 +191,25 @@
      (letrec* ((?nonterminal (make-memoize-combinator
 			      (quote ?nonterminal)
 			      (lambda (state)
-				((match-rhs-rule (quote ?nonterminal)
-						 ((begin #f ?form ...) ?sequence)
-						 ...)
+				((match-rhs-rules (quote ?nonterminal)
+						  ((begin #f ?form ...) ?sequence)
+						  ...)
 				 state))))
 	       ...)
        ?start))))
 
-(define-syntax match-rhs-rule
+(define-syntax match-rhs-rules
   ;;Expand to a combinator's LAMBDA form or to a function call returning
   ;;a combinator's function.  Split the  first right-hand side rule in a
   ;;non-terminal   definition   from  the   others   and   pass  it   to
   ;;MATCH-SEQUENCE.
   ;;
   (syntax-rules ()
+    ((_ ?nonterminal (?semantic-clause ?sequence) ...)
+     (make-or-combinator (match-part ?nonterminal ?semantic-clause ?sequence)
+			 ...))))
 
-    ((_ ?nonterminal (?semantic-clause ?sequence))
-     (match-sequence ?nonterminal ?semantic-clause ?sequence))
-
-    ((_ ?nonterminal (?semantic-clause ?sequence) ?rhs-rule0 ?rhs-rule ...)
-     (make-or-combinator (match-sequence ?nonterminal ?semantic-clause ?sequence)
-			 (match-rhs-rule ?nonterminal ?rhs-rule0 ?rhs-rule ...)))))
-
-(define-syntax match-sequence
+(define-syntax match-part
   ;;Expand to a combinator's LAMBDA form or to a function call returning
   ;;a  combinator's function.   Process the  parts  of a  sequence in  a
   ;;right-hand side rule  and convert them to a  combinator.  Every rule
@@ -200,8 +217,6 @@
   ;;
   (syntax-rules (<- :not :error :exception :source-location)
 
-    ;;Empty sequence, evaluate the  semantic clause and return a success
-    ;;result.
     ((_ ?nonterminal ?semantic-clause ())
      (lambda (state)
        (make-<success> state ?semantic-clause)))
@@ -213,43 +228,34 @@
      (lambda (state)
        (raise-continuable ?semantic-clause)))
 
-    ;;The first part is a sequence negation.
-    ((_ ?nonterminal ?semantic-clause ((:not ?fail-part ...) ?rhs-part ...))
-     (make-unless-combinator (match-sequence ?nonterminal #t               (?fail-part ...))
-			     (match-sequence ?nonterminal ?semantic-clause (?rhs-part  ...))))
+    ((_ ?nonterminal ?semantic-clause ((:not ?fail-part ...) ?part ...))
+     (make-unless-combinator (match-part ?nonterminal #t               (?fail-part ...))
+			     (match-part ?nonterminal ?semantic-clause (?part  ...))))
 
-    ;;The first part binds a quoted value.
-    ((_ ?nonterminal ?semantic-clause (?var <- (quote ?terminal) ?rhs-part ...))
+    ((_ ?nonterminal ?semantic-clause (?var <- (quote ?terminal) ?part ...))
      (make-terminal-combinator (quote ?terminal)
 			       (lambda (?var)
-				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))
+				 (match-part ?nonterminal ?semantic-clause (?part ...)))))
 
-    ;;The first part binds the current source location.
-    ((_ ?nonterminal ?semantic-clause (?var <- :source-location ?rhs-part ...))
+    ((_ ?nonterminal ?semantic-clause (?var <- :source-location ?part ...))
      (lambda (state)
        (let ((?var (<lexical-token>-location (<state>-lookahead state))))
-	 ((match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)) state))))
+	 ((match-part ?nonterminal ?semantic-clause (?part ...)) state))))
 
-    ;;The first part matches  the lookahead token against a non-terminal
-    ;;combinator and binds the result.
-    ((_ ?nonterminal ?semantic-clause (?var <- ?nonterminal-identifier ?rhs-part ...))
+    ((_ ?nonterminal ?semantic-clause (?var <- ?nonterminal-identifier ?part ...))
      (make-sequence-combinator ?nonterminal-identifier
 			       (lambda (?var)
-				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))
+				 (match-part ?nonterminal ?semantic-clause (?part ...)))))
 
-    ;;The  first part  matches the  lookahead token  against  a terminal
-    ;;symbol.
-    ((_ ?nonterminal ?semantic-clause ((quote ?terminal-symbol) ?rhs-part ...))
+    ((_ ?nonterminal ?semantic-clause ((quote ?terminal-symbol) ?part ...))
      (make-terminal-combinator (quote ?terminal-symbol)
 			       (lambda (dummy)
-				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))
+				 (match-part ?nonterminal ?semantic-clause (?part ...)))))
 
-    ;;The first part matches  the lookahead token against a non-terminal
-    ;;combinator.
-    ((_ ?nonterminal ?semantic-clause (?nonterminal-identifier ?rhs-part ...))
+    ((_ ?nonterminal ?semantic-clause (?nonterminal-identifier ?part ...))
      (make-sequence-combinator ?nonterminal-identifier
 			       (lambda (dummy)
-				 (match-sequence ?nonterminal ?semantic-clause (?rhs-part ...)))))))
+				 (match-part ?nonterminal ?semantic-clause (?part ...)))))))
 
 
 ;;;; done

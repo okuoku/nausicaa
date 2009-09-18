@@ -293,6 +293,19 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define comb (packrat:make-or-combinator))
+
+    (check
+	(guard (E (else (condition-message E)))
+	  (doit comb '(N . 1)))
+      => "OR combinator with no alternatives")
+
+    #f)
+
   #t)
 
 
@@ -781,9 +794,6 @@
 
 (parametrise ((check-test-name 'left-recursion))
 
-;;;This  demonstrates  that a  left-recursive  nonterminal  is a  cyclic
-;;;dependency, which leads to an infinite recursion.
-
   (define (doit start-combinator . stream)
     (let* ((lexer	(make-lexer-closure stream))
 	   (result	(start-combinator (packrat:initialise-state lexer))))
@@ -791,18 +801,51 @@
 	  (packrat:<success>-value result)
 	(packrat:<error>-message result))))
 
-  (define digits-combinator
-    (packrat:make-grammar-combinator digits
-				     (digits	((a <- digits b <- digit)
-						 (string-append a b)))
-				     (digit	((d <- 'NUM)
+;;; --------------------------------------------------------------------
+
+  (let ()
+    (define digits-comb
+      (packrat:make-grammar-combinator digits
+				       (digits	((a <- digits b <- digit)
+						 (string-append a b))
+						((d <- digit)
+						 d))
+				       (digit	((d <- 'NUM)
 						 d))))
 
-  ;;This goes into infinite recursion.
-  ;;
-  ;; (check
-  ;;     (doit digits-combinator '(NUM . "1"))
-  ;;   => "1")
+    (check
+	(doit digits-comb '(NUM . "1"))
+      => "1")
+
+    (check
+	(doit digits-comb
+	      '(NUM . "1")
+	      '(NUM . "2"))
+      => "12")
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+    (define digits-comb
+      (packrat:make-grammar-combinator digits
+				       (digits	((a <- digits b <- 'NUM)
+						 (string-append a b))
+						((d <- 'NUM)
+						 d))))
+
+    (check
+	(doit digits-comb '(NUM . "1"))
+      => "1")
+
+    (check
+	(doit digits-comb
+	      '(NUM . "1")
+	      '(NUM . "2"))
+      => "12")
+
+    #f)
 
   #t)
 

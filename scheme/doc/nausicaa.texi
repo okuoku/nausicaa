@@ -1300,9 +1300,15 @@ Dummy examples of grammar definitions
 
 Packrat parser
 
+* packrat intro::               Introduction to the algorithm.
 * packrat calc::                Calculator example.
 * packrat types::               Parser state and results.
 * packrat comb::                Combinators.
+
+Introduction to the algorithm
+
+* packrat intro state::         Handling the parser state.
+* packrat intro comb::          Combinator functions.
 
 Parser state and results
 
@@ -1318,6 +1324,7 @@ Combinators
 * packrat comb memoize::        Memozing combinators.
 * packrat comb error::          Returning error results.
 * packrat comb grammar::        The grammar combinator.
+* packrat comb left::           Handling left recursion.
 
 Comma--separated value (@acronym{CSV}) utilities
 
@@ -43241,12 +43248,17 @@ for interactive parsers.
 The @library{packrat} library implements parsing combinators using the
 Packrat parsing algorithm: A memoizing, backtracking, recursive descent
 parsing technique that runs in time and space linear in the size of the
-input text.
+input text.  There is no single value which can be named ``Packrat
+parser'', rather a parser is a collection of combinator functions
+calling each other.
 
 The library makes use of the @class{lexical-token} and
-@class{source-location} record types.  @ref{parser-tools, Lexer and
-parser utilities}.  When first experimenting with it, we sould import
-the library with the following directive:
+@class{source-location} record types, and follows their protocol for
+end--of--input and lexer errors handling.  @ref{parser-tools, Lexer and
+parser utilities}.
+
+When first experimenting with it, we sould import the library with the
+following directive:
 
 @example
 (import (rnrs)
@@ -43747,6 +43759,7 @@ to generate commonly used combinator procedures.
 * packrat comb memoize::        Memozing combinators.
 * packrat comb error::          Returning error results.
 * packrat comb grammar::        The grammar combinator.
+* packrat comb left::           Handling left recursion.
 @end menu
 
 @c page
@@ -43933,11 +43946,15 @@ we want a method to generate such a combinator with the alternative
 combinators as parameters.
 
 
-@defun make-or-combinator @vari{combinator} @varii{combinator}
-Return a new combinator which applies @vari{combinator} to the state,
-only trying @varii{combinator} if the first fails.  If both the
-combinators fail, the return value is the return value of
-@varii{combinator}.
+@defun make-or-combinator @varo{combinator} @var{combinator} ...
+Return a new combinator which applies the @var{combinator} arguments to
+the same @class{state} record, one after the other, stopping at the
+first returning a @class{success} result.  If all the combinators return
+an @class{error} result, the return value is the return value of the
+last combinator.
+
+The returned combinator has special handling of results to allow the
+parser to handle left recursive combinators.  @ref{packrat comb left}
 @end defun
 
 
@@ -44054,8 +44071,8 @@ returns it.
 @var{keyword} is the key associated to the result in the @class{state}
 record, it must be a value comparable with @func{eq?}.
 
-The memoize combinator detects a left--recursive attempt to evaluate
-@var{combinator} and in this case raises an assertion violation.
+The returned combinator has special handling of results to allow the
+parser to handle left recursive combinators.  @ref{packrat comb left}
 @end defun
 
 @c page
@@ -44223,6 +44240,36 @@ return a @class{result} record.  @ref{stdlib exceptions conditions,
 Conditions}
 @end table
 @end deffn
+
+@c page
+@node packrat comb left
+@subsection Handling left recursion
+
+
+The @library{packrat} library implements special handling of memoizing
+combinators to avoid the left recursion problem of the Packrat
+algorithm.  Let's examine the following example:
+
+@example
+(define digits-combinator
+  (make-grammar-combinator digits
+                           (digits  ((a <- digits b <- 'NUM)
+                                     (string-append a b))
+                                    ((d <- 'NUM)
+                                     d))))
+@end example
+
+@noindent
+this grammar defines a non--terminal @samp{digits} whose first
+right--hand side rule requires matching of @samp{digits} itself; the
+combinator bound to @samp{digits} is invoked once when attempting to
+match the non--terminal, and again when attempting to match the first
+rule; the two applications are on the same @class{state} record, so the
+result could be an infinite recursion.
+
+Combinators created with @func{make-memoize-combinator} and
+@func{make-or-combinator} work together to avoid this situation; this
+allows us to use left recursion when defining the grammar.
 
 @c page
 @node csv
