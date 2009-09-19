@@ -46,11 +46,13 @@
     <state>-next-state
     <state>-memoized-results
 
+    memoize-acons memoize-assq memoize-set!
+
     <result>                 <result>?  <result>-state
     <error>   make-<error>   <error>?   <error>-message
     <success> make-<success> <success>? <success>-value
 
-    initialise-state next-state pushback memoize-result
+    initialise-state next-state pushback
 
     make-terminal-combinator	make-sequence-combinator
     make-or-combinator		make-unless-combinator
@@ -59,7 +61,8 @@
   (import (rnrs)
     (rnrs mutable-pairs)
     (language-extensions)
-    (parser-tools lexical-token))
+    (parser-tools lexical-token)
+    (sentinel))
 
 
 (define-record-type <result>
@@ -74,7 +77,8 @@
   (fields (immutable value)))
 
 (define-condition-type &left-recursion
-  &warning make-left-recursion-condition left-recursion-condition?)
+  &warning make-left-recursion-condition left-recursion-condition?
+  (keyword condition-left-recursion))
 
 
 (define-record-type <state>
@@ -98,9 +102,22 @@
 (define (pushback token state)
   (make-<state> token state '()))
 
-(define (memoize-result keyword result state)
-  (<state>-memoized-results-set! (cons (cons keyword result)
-				       (<state>-memoized-results state))))
+(define-syntax memoize-acons
+  (syntax-rules ()
+    ((_ ?keyword ?result ?state)
+     (<state>-memoized-results-set! ?state
+				    (cons (cons ?keyword ?result)
+					  (<state>-memoized-results ?state))))))
+
+(define-syntax memoize-assq
+  (syntax-rules ()
+    ((_ ?keyword ?state)
+     (assq ?keyword (<state>-memoized-results ?state)))))
+
+(define-syntax memoize-set!
+  (syntax-rules ()
+    ((_ ?keyword ?result ?state)
+     (set-cdr! (memoize-assq ?keyword ?state) ?result))))
 
 
 (define (make-terminal-combinator terminal-category select-next-combinator)
@@ -125,46 +142,34 @@
 	  (make-<error> state "failed negation rule")
 	(combinator-2 state)))))
 
-(define (make-memoize-combinator keyword combinator)
-  (lambda (state)
-    (let ((results-alist (<state>-memoized-results state)))
-      (cond
-       ((assq keyword results-alist)
-	=> (lambda (entry)
-	     (let ((result (cdr entry)))
-	       (or result
-		   (begin
-		     (set-cdr! entry
-			       (raise-continuable
-				(condition (make-message-condition
-					    "recursive parse rule with no alternatives")
-					   (make-irritants-condition (list keyword))
-					   (make-left-recursion-condition))))
-		     (cdr entry))))))
-       (else
-	(let ((entry (cons keyword #f)))
-	  (<state>-memoized-results-set! state (cons entry results-alist))
-	  (begin0-let ((result (combinator state)))
-	    (set-cdr! entry result))))))))
+(define make-memoize-combinator
+  (case-lambda
+   ((combinator)
+    (make-memoize-combinator combinator (make-sentinel)))
+   ((combinator keyword)
+    (lambda (state)
+      (let ((results-alist (<state>-memoized-results state)))
+	(cond
+	 ((assq keyword results-alist)
+	  => (lambda (entry)
+	       (let ((result (cdr entry)))
+		 (or result
+		     (raise-continuable
+		      (condition (make-message-condition "left recursive combinator")
+				 (make-irritants-condition (list keyword))
+				 (make-left-recursion-condition keyword)))))))
+	 (else
+	  (let ((entry (cons keyword #f)))
+	    (<state>-memoized-results-set! state (cons entry results-alist))
+	    (begin0-let ((result (combinator state)))
+	      (set-cdr! entry result))))))))))
 
-(define (make-or-combinator . combinators)
+(define (make-or-combinator comb-1 comb-2)
   (lambda (state)
-    (define (apply-possibly-recursive-combinator comb)
-      (with-exception-handler ;Hey, stoopid! GUARD does not call the continuation!
-	  (lambda (E)
-	    (if (left-recursion-condition? E)
-		((apply make-or-combinator (cdr combinators)) state)
-	      (raise E)))
-	(lambda ()
-	  (comb state))))
-    (let loop ((combinators combinators)
-	       (result      (make-<error> state "OR combinator with no alternatives")))
-      (if (null? combinators)
+    (let ((result (comb-1 state)))
+      (if (<success>? result)
 	  result
-	(let ((result (apply-possibly-recursive-combinator (car combinators))))
-	  (if (<success>? result)
-	      result
-	    (loop (cdr combinators) result)))))))
+	(comb-2 state)))))
 
 (define (make-error-combinator error-message)
   (lambda (state)
@@ -189,10 +194,8 @@
   (syntax-rules ()
     ((_ ?start (?nonterminal (?sequence ?form ...) ...) ...)
      (letrec* ((?nonterminal (make-memoize-combinator
-			      (quote ?nonterminal)
 			      (lambda (state)
-				((match-rhs-rules (quote ?nonterminal)
-						  ((begin #f ?form ...) ?sequence)
+				((match-rhs-rules ((begin #f ?form ...) ?sequence)
 						  ...)
 				 state))))
 	       ...)
@@ -205,9 +208,12 @@
   ;;MATCH-SEQUENCE.
   ;;
   (syntax-rules ()
-    ((_ ?nonterminal (?semantic-clause ?sequence) ...)
-     (make-or-combinator (match-part ?nonterminal ?semantic-clause ?sequence)
-			 ...))))
+    ((_ (?semantic-clause ?sequence))
+     (match-part ?semantic-clause ?sequence))
+
+    ((_ (?semantic-clause ?sequence) ?rhs-rule ...)
+     (make-or-combinator (match-part ?semantic-clause ?sequence)
+			 (match-rhs-rules ?rhs-rule ...)))))
 
 (define-syntax match-part
   ;;Expand to a combinator's LAMBDA form or to a function call returning
@@ -217,45 +223,44 @@
   ;;
   (syntax-rules (<- :not :error :exception :source-location)
 
-    ((_ ?nonterminal ?semantic-clause ())
+    ((_ ?semantic-clause ())
      (lambda (state)
        (make-<success> state ?semantic-clause)))
 
-    ((_ ?nonterminal ?semantic-clause (:error ?error-message))
+    ((_ ?semantic-clause (:error ?error-message))
      (make-error-combinator ?error-message))
 
-    ((_ ?nonterminal ?semantic-clause (:exception))
+    ((_ ?semantic-clause (:exception))
      (lambda (state)
        (raise-continuable ?semantic-clause)))
 
-    ((_ ?nonterminal ?semantic-clause ((:not ?fail-part ...) ?part ...))
-     (make-unless-combinator (match-part ?nonterminal #t               (?fail-part ...))
-			     (match-part ?nonterminal ?semantic-clause (?part  ...))))
+    ((_ ?semantic-clause ((:not ?fail-part ...) ?part ...))
+     (make-unless-combinator (match-part #t               (?fail-part ...))
+			     (match-part ?semantic-clause (?part  ...))))
 
-    ((_ ?nonterminal ?semantic-clause (?var <- (quote ?terminal) ?part ...))
+    ((_ ?semantic-clause (?var <- (quote ?terminal) ?part ...))
      (make-terminal-combinator (quote ?terminal)
 			       (lambda (?var)
-				 (match-part ?nonterminal ?semantic-clause (?part ...)))))
+				 (match-part ?semantic-clause (?part ...)))))
 
-    ((_ ?nonterminal ?semantic-clause (?var <- :source-location ?part ...))
+    ((_ ?semantic-clause (?var <- :source-location ?part ...))
      (lambda (state)
        (let ((?var (<lexical-token>-location (<state>-lookahead state))))
-	 ((match-part ?nonterminal ?semantic-clause (?part ...)) state))))
+	 ((match-part ?semantic-clause (?part ...)) state))))
 
-    ((_ ?nonterminal ?semantic-clause (?var <- ?nonterminal-identifier ?part ...))
+    ((_ ?semantic-clause (?var <- ?nonterminal-identifier ?part ...))
      (make-sequence-combinator ?nonterminal-identifier
 			       (lambda (?var)
-				 (match-part ?nonterminal ?semantic-clause (?part ...)))))
+				 (match-part ?semantic-clause (?part ...)))))
 
-    ((_ ?nonterminal ?semantic-clause ((quote ?terminal-symbol) ?part ...))
+    ((_ ?semantic-clause ((quote ?terminal-symbol) ?part ...))
      (make-terminal-combinator (quote ?terminal-symbol)
 			       (lambda (dummy)
-				 (match-part ?nonterminal ?semantic-clause (?part ...)))))
+				 (match-part ?semantic-clause (?part ...)))))
 
-    ((_ ?nonterminal ?semantic-clause (?nonterminal-identifier ?part ...))
-     (make-sequence-combinator ?nonterminal-identifier
-			       (lambda (dummy)
-				 (match-part ?nonterminal ?semantic-clause (?part ...)))))))
+    ((_ ?semantic-clause (?nonterminal-identifier ?part ...))
+     (make-sequence-combinator-identifier (lambda (dummy)
+					    (match-part ?semantic-clause (?part ...)))))))
 
 
 ;;;; done

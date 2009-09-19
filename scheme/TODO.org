@@ -68,7 +68,6 @@
   http://en.wikipedia.org/wiki/Levenshtein_distance
   http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
 
-
 * vectors
 
   Finished.
@@ -189,4 +188,8 @@
   Write the documentation section about the record type protocol.
 
   Profile and improve method dispatching.
+
+* packrat
+
+  Implement the :one and :any combinators, like the ones in (sexps).
 

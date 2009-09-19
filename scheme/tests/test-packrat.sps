@@ -295,7 +295,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ()
+  #;(let ()
 
     (define comb (packrat:make-or-combinator))
 
@@ -369,7 +369,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ()
+  (let ()	;supplied keyword
 
     (define comb-a
       (packrat:make-terminal-combinator
@@ -379,7 +379,31 @@
 	   (packrat:make-<success> state semantic-value)))))
 
     (define comb
-      (packrat:make-memoize-combinator 'this comb-a))
+      (packrat:make-memoize-combinator comb-a 'this))
+
+    (check
+	(doit comb '(A . 1))
+      => '(1 . 1))
+
+    (check
+	(doit comb '(B . 1))
+      => '("expected token with category A" . "expected token with category A"))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let () ;automaticall generated keyword
+
+    (define comb-a
+      (packrat:make-terminal-combinator
+       'A
+       (lambda (semantic-value)
+	 (lambda (state)
+	   (packrat:make-<success> state semantic-value)))))
+
+    (define comb
+      (packrat:make-memoize-combinator comb-a))
 
     (check
 	(doit comb '(A . 1))
@@ -804,6 +828,7 @@
 ;;; --------------------------------------------------------------------
 
   (let ()
+
     (define digits-comb
       (packrat:make-grammar-combinator digits
 				       (digits	((a <- digits b <- digit)
@@ -814,36 +839,29 @@
 						 d))))
 
     (check
-	(doit digits-comb '(NUM . "1"))
-      => "1")
-
-    (check
-	(doit digits-comb
-	      '(NUM . "1")
-	      '(NUM . "2"))
-      => "12")
+	(guard (E (else (condition-message E)))
+	  (doit digits-comb '(NUM . "1")))
+      => "left recursive combinator")
 
     #f)
 
 ;;; --------------------------------------------------------------------
 
-  (let ()
-    (define digits-comb
+  (let ()	;test indirect recursion limitation
+
+    (define indirect-digits-comb
       (packrat:make-grammar-combinator digits
-				       (digits	((a <- digits b <- 'NUM)
+				       (digits	((a <- X b <- 'NUM)
 						 (string-append a b))
 						((d <- 'NUM)
+						 d))
+				       (X	((d <- digits)
 						 d))))
 
     (check
-	(doit digits-comb '(NUM . "1"))
-      => "1")
-
-    (check
-	(doit digits-comb
-	      '(NUM . "1")
-	      '(NUM . "2"))
-      => "12")
+	(guard (E (else (condition-message E)))
+	  (doit indirect-digits-comb '(NUM . "1")))
+      => "left recursive combinator")
 
     #f)
 
