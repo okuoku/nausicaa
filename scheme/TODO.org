@@ -9,9 +9,7 @@
 
 * lists
 
-  Review the documentation introduction.
-
-  Finish the syntaxes in (lists stx).
+  Finished(?)
 
 * char-set
 
@@ -50,6 +48,7 @@
 * time
 
   Port it from srfi to scheme projects.
+
   Rewrite?
 
 * strings
