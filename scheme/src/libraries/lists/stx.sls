@@ -55,9 +55,10 @@
     ;; miscellaneous
     concatenate/stx		concatenate!/stx
     append-reverse/stx		append-reverse!/stx
-    zip/stx			unzip1/stx
-    unzip2/stx			unzip3/stx
-    unzip4/stx			unzip5/stx
+    zip/stx			zip*/stx
+    unzip1/stx			unzip2/stx
+    unzip3/stx			unzip4/stx
+    unzip5/stx
     count/stx
     reverse!/stx
 
@@ -74,10 +75,12 @@
     (rename (map-in-order*/stx map*/stx))
     map-in-order/stx		map-in-order*/stx
     map!/stx			map*!/stx
-    for-each*/stx		pair-for-each*/stx
-    filter-map/stx
+    for-each*/stx
+    pair-for-each/stx		pair-for-each*/stx
+    filter-map/stx		filter-map*/stx
 
-    )
+    ;; searching
+    position/stx)
   (import (rnrs)
     (rnrs mutable-pairs)
     (lists low))
@@ -430,6 +433,11 @@
 	   (lp next-rev rev-head)))))))
 
 (define-syntax zip/stx
+  (syntax-rules ()
+    ((_ ?list0 ?list ...)
+     (map-in-order/stx list ?list0 ?list ...))))
+
+(define-syntax zip*/stx
   (syntax-rules ()
     ((_ ?list0 ?list ...)
      (map-in-order*/stx list ?list0 ?list ...))))
@@ -799,11 +807,11 @@
 			      (ell0   ?ell0)
 			      (ell    ?ell)
 			      ...)
-		     (pair-for-each*/stx (lambda (pair0 pair ...)
-					   (set-car! pair0 (f (car pair0)
-							      (car pair)
-							      ...)))
-					 ell0 ell ...)
+		     (pair-for-each/stx (lambda (pair0 pair ...)
+					  (set-car! pair0 (f (car pair0)
+							     (car pair)
+							     ...)))
+					ell0 ell ...)
 		     ell0))))))))
 
 
@@ -821,7 +829,8 @@
 				ell0 ?ell ...)
 	    ell0)))))))
 
-;;; --------------------------------------------------------------------
+
+;;;; side effects
 
 (define-syntax for-each*/stx
   (lambda (stx)
@@ -837,6 +846,26 @@
 				 ...)
 		       (f (car ell0) (car ell) ...)
 		       (loop (cdr ell0) (cdr ell) ...))))))))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax pair-for-each/stx
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?f ?ell0 ?ell ...)
+       (with-syntax (((ell ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((f ?f))
+		   (let loop ((ell0   ?ell0)
+			      (ell    ?ell)
+			      ...)
+		     (if (null? ell0)
+			 (unless (and (null? ell) ...)
+			   (assertion-violation 'pair-for-each/stx
+			     "expected lists of equal length"))
+		       ;; Grab the cdr now, in case PROC SET-CDR!s ELL.
+		       (let ((tail (list (cdr ell0) (cdr ell) ...)))
+			 (f ell0 ell ...)
+			 (apply loop tail)))))))))))
 
 (define-syntax pair-for-each*/stx
   (lambda (stx)
@@ -855,7 +884,33 @@
 			 (f ell0 ell ...)
 			 (apply loop tail)))))))))))
 
+
+;;;; filtering
+
 (define-syntax filter-map/stx
+  ;;Map F across L, and save up all the non-false results.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?f ?ell0 ?ell ...)
+       (with-syntax (((ell  ...) (generate-temporaries (syntax (?ell ...)))))
+	 (syntax (let ((f ?f))
+		   (let loop ((result	'())
+			      (ell0	?ell0)
+			      (ell	?ell)
+			      ...)
+		     (if (null? ell0)
+			 (if (and (null? ell) ...)
+			     (reverse result)
+			   (assertion-violation 'filter-map/stx
+			     "expected lists of equal length"))
+		       (let* ((v	(f (car ell0) (car ell) ...))
+			      (result	(if v
+					    (cons v result)
+					  result)))
+			 (loop result (cdr ell0) (cdr ell) ...)))))))))))
+
+(define-syntax filter-map*/stx
   ;;Map F across L, and save up all the non-false results.
   ;;
   (lambda (stx)
@@ -877,8 +932,18 @@
 					  result)))
 			 (loop result (cdr ell0) (cdr ell) ...)))))))))))
 
-;; (define-syntax filter-map*/stx
-;;   )
+
+;;;; searching
+
+(define-syntax position/stx
+  (syntax-rules ()
+    ((_ ?item ?ell)
+     (let loop ((ell   ?ell)
+		(index 0))
+       (and (not (null? ell))
+	    (if (eq? ?item (car ell))
+		index
+	      (loop (cdr ell) (+ 1 index))))))))
 
 
 

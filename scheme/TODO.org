@@ -11,9 +11,6 @@
 
   Review the documentation introduction.
 
-  Solve the conflict between SRFI's filter/partition and (rnrs)
-  filter/partition.
-
   Finish the syntaxes in (lists stx).
 
 * char-set

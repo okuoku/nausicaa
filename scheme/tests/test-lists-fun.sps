@@ -36,6 +36,33 @@
 (display "*** testing lists functions\n")
 
 
+(parameterise ((check-test-name 'circular))
+
+;;;Miscellaneous tests on circular lists.
+
+  (let ()
+
+    (define end  (cons  1 '()))
+    (define tail (cons* 3 2 end))
+    (define ell  (cons* 5 4 tail))
+    (set-cdr! end tail)
+
+    (check (car ell)		=> 5)
+    (check (cadr ell)		=> 4)
+    (check (caddr ell)		=> 3)
+    (check (cadddr ell)		=> 2)
+    (check (cadddr (cdr ell))	=> 1)
+    (check (cdddr (cddr ell))	=> tail)
+    (check (cadddr (cddr ell))	=> 3)
+    (check (cadddr (cdddr ell))	=> 2)
+
+    (check (circular-list? ell)	=> #t)
+
+    #f)
+
+  #t)
+
+
 (parameterise ((check-test-name 'constructors))
 
   (check
@@ -1083,16 +1110,41 @@
   (check
       (zip '(one two three)
 	   '(1 2 3)
-	   '(odd even odd even odd even odd even))
+	   '(odd even odd))
     => '((one 1 odd) (two 2 even) (three 3 odd)))
+
+  (check	;unequal length
+      (guard (E (else #t))
+	(zip '(one two three)
+	     '(1 2 3)
+	     '(odd even odd even odd even odd even)))
+    => #t)
 
   (check
       (zip '(1 2 3))
     => '((1) (2) (3)))
 
+  (check	;circular list is rejected as list of unequal length
+      (guard (E (else #t))
+	(zip '(3 1 4 1)
+	     (circular-list #f #t)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
   (check
-      (zip '(3 1 4 1)
-	   (circular-list #f #t))
+      (zip* '(one two three)
+	   '(1 2 3)
+	   '(odd even odd even odd even odd even))
+    => '((one 1 odd) (two 2 even) (three 3 odd)))
+
+  (check
+      (zip* '(1 2 3))
+    => '((1) (2) (3)))
+
+  (check
+      (zip* '(3 1 4 1)
+	    (circular-list #f #t))
     => '((3 #f)
 	 (1 #t)
 	 (4 #f)
@@ -2243,6 +2295,187 @@
 
   (check
       (let ((r '()))
+	(pair-for-each
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1 2 3))
+	r)
+    => '((3)
+	 (2 3)
+	 (1 2 3)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x y)
+	   (set! r (cons (list x y)
+			 r)))
+	 '()
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '()
+	 '()
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1))
+	r)
+    => '((1)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1 2))
+	r)
+    => '((2)
+	 (1 2)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x y)
+	   (set! r (cons (list x y)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30))
+	r)
+    => '(((3) (30))
+	 ((2 3) (20 30))
+	 ((1 2 3) (10 20 30))))
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30)
+	 '(100 200 300))
+	r)
+    => '(((3) (30) (300))
+	 ((2 3) (20 30) (200 300))
+	 ((1 2 3) (10 20 30) (100 200 300))))
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2)
+	   '(10 20 30)
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '(10 20)
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '(10 20 30)
+	   '(100 200))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '()
+	   '(10 20 30)
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '()
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '(10 20 30)
+	   '())
+	  r))
+    => #t)
+
+  (check
+      (let ((r '()))
+	(pair-for-each
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1)
+	 '(10)
+	 '(100))
+	r)
+    => '(((1) (10) (100))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((r '()))
 	(pair-for-each*
 	 (lambda (x)
 	   (set! r (cons x r)))
@@ -2505,36 +2738,36 @@
 
   (check
       (map*! +
-	    '(1 2 3)
-	    '(10 20 30))
+	     '(1 2 3)
+	     '(10 20 30))
     => '(11 22 33))
 
   (check
       (map*! +
-	    '(1 2 3)
-	    '(10 20 30)
-	    '(100 200 300))
+	     '(1 2 3)
+	     '(10 20 30)
+	     '(100 200 300))
     => '(111 222 333))
 
 ;;; Only the first list argument can be shorter!!!
   (check
       (map*! +
-	    '(1 2)
-	    '(10 20 30)
-	    '(100 200 300))
+	     '(1 2)
+	     '(10 20 30)
+	     '(100 200 300))
     => '(111 222))
 
   (check
       (map*! +
-	    '()
-	    '(10 20 30)
-	    '(100 200 300))
+	     '()
+	     '(10 20 30)
+	     '(100 200 300))
     => '())
 
   (check
       (map*! +
-	    '(3 1 4 1)
-	    (circular-list 1 0))
+	     '(3 1 4 1)
+	     (circular-list 1 0))
     => '(4 1 5 1))
 
 ;;; --------------------------------------------------------------------
@@ -2584,52 +2817,154 @@
 		  '(100 200 300))
     => '(111 222 333))
 
-  (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20)
-		  '(100 200 300))
-    => '(111 222))
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map +
+		    '(1 2 3)
+		    '(10 20)
+		    '(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map +
+		    '(1 2)
+		    '(10 20 30)
+		    '(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map +
+		    '(1 2 3)
+		    '(10 20 30)
+		    '(100 200)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map +
+		    '()
+		    '(10 20 30)
+		    '(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map +
+		    '(1 2 3)
+		    '()
+		    '(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map +
+		    '(1 2 3)
+		    '(10 20 30)
+		    '()))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map +
+		    '(3 1 4 1)
+		    (circular-list 1 0)))
+    => #t)
+
+;;; --------------------------------------------------------------------
 
   (check
-      (filter-map +
-		  '(1 2)
-		  '(10 20 30)
-		  '(100 200 300))
-    => '(111 222))
+      (filter-map*
+       (lambda (x)
+	 (and (number? x)
+	      (* x x)))
+       '(a 1 b 3 c 7))
+    => '(1 9 49))
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20 30)
-		  '(100 200))
-    => '(111 222))
-
-  (check
-      (filter-map +
-		  '()
-		  '(10 20 30)
-		  '(100 200 300))
+      (filter-map* - '())
     => '())
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '()
-		  '(100 200 300))
+      (filter-map* - '() '())
     => '())
 
   (check
-      (filter-map +
-		  '(1 2 3)
-		  '(10 20 30)
-		  '())
+      (filter-map* - '() '() '())
     => '())
 
   (check
-      (filter-map +
-		  '(3 1 4 1)
-		  (circular-list 1 0))
+      (filter-map* - '() '() '() '())
+    => '())
+
+  (check
+      (filter-map* - numbers)
+    => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+  (check
+      (filter-map* + '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (filter-map* +
+		   '(1 2 3)
+		   '(10 20 30))
+    => '(11 22 33))
+
+  (check
+      (filter-map* +
+		   '(1 2 3)
+		   '(10 20 30)
+		   '(100 200 300))
+    => '(111 222 333))
+
+  (check
+      (filter-map* +
+		   '(1 2 3)
+		   '(10 20)
+		   '(100 200 300))
+    => '(111 222))
+
+  (check
+      (filter-map* +
+		   '(1 2)
+		   '(10 20 30)
+		   '(100 200 300))
+    => '(111 222))
+
+  (check
+      (filter-map* +
+		   '(1 2 3)
+		   '(10 20 30)
+		   '(100 200))
+    => '(111 222))
+
+  (check
+      (filter-map* +
+		   '()
+		   '(10 20 30)
+		   '(100 200 300))
+    => '())
+
+  (check
+      (filter-map* +
+		   '(1 2 3)
+		   '()
+		   '(100 200 300))
+    => '())
+
+  (check
+      (filter-map* +
+		   '(1 2 3)
+		   '(10 20 30)
+		   '())
+    => '())
+
+  (check
+      (filter-map* +
+		   '(3 1 4 1)
+		   (circular-list 1 0))
     => '(4 1 5 1))
 
   )
@@ -3055,19 +3390,19 @@
   (check
       (and (any (lambda args
 		  (integer? (apply + args)))
-	     '(1) '() '())
+	     '() '() '())
 	   #t)
     => #f)
   (check
       (and (any (lambda args
 		  (integer? (apply + args)))
-	     '() '(1) '())
+	     '() '() '())
 	   #t)
     => #f)
   (check
       (and (any (lambda args
 		  (integer? (apply + args)))
-	     '() '() '(1))
+	     '() '() '())
 	   #t)
     => #f)
 
@@ -3100,6 +3435,105 @@
 	     '(1 2)
 	     '(2 2)
 	     '(1.1 3))
+	   #t)
+    => #t)
+
+  (check
+      (guard (E (else #t))
+	(any (lambda args
+	       (integer? (apply + args)))
+	  '(1 2)
+	  '(2 2)
+	  '(1.1 3)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (any* even? '())
+    => #f)
+
+  (check
+      (any* even? '(1))
+    => #f)
+
+  (check
+      (and (any* even? '(2))
+	   #t)
+    => #t)
+
+  (check
+      (and (any* even? '(1 2))
+	   #t)
+    => #t)
+
+  (check
+      (and (any* even? '(1 3 5 7 2))
+	   #t)
+    => #t)
+
+  (check
+      (any* (lambda args
+	      (integer? (apply + args)))
+	    '() '())
+    => #f)
+
+  (check
+      (any* (lambda args
+	      (integer? (apply + args)))
+	    '() '() '())
+    => #f)
+
+;;; The following are  false because when a list  is empty the predicate
+;;; is not applied at all and the return value is false.
+  (check
+      (and (any* (lambda args
+		   (integer? (apply + args)))
+		 '(1) '() '())
+	   #t)
+    => #f)
+  (check
+      (and (any* (lambda args
+		   (integer? (apply + args)))
+		 '() '(1) '())
+	   #t)
+    => #f)
+  (check
+      (and (any* (lambda args
+		   (integer? (apply + args)))
+		 '() '() '(1))
+	   #t)
+    => #f)
+
+  (check
+      (and (any* (lambda args
+		   (integer? (apply + args)))
+		 '(1) '(1.1) '(2))
+	   #t)
+    => #f)
+
+  (check
+      (and (any* (lambda args
+		   (integer? (apply + args)))
+		 '(1) '(2) '(2))
+	   #t)
+    => #t)
+
+  (check
+      (and (any* (lambda args
+		   (integer? (apply + args)))
+		 '(1 2)
+		 '(2 2.2)
+		 '(1.1 3))
+	   #t)
+    => #f)
+
+  (check
+      (and (any* (lambda args
+		   (integer? (apply + args)))
+		 '(1 2)
+		 '(2 2)
+		 '(1.1 3))
 	   #t)
     => #t)
 
@@ -3145,19 +3579,19 @@
   (check
       (and (every (lambda args
 		    (integer? (apply + args)))
-	     '(1) '() '())
+	     '() '() '())
 	   #t)
     => #t)
   (check
       (and (every (lambda args
 		    (integer? (apply + args)))
-	     '() '(1) '())
+	     '() '() '())
 	   #t)
     => #t)
   (check
       (and (every (lambda args
 		    (integer? (apply + args)))
-	     '() '() '(1))
+	     '() '() '())
 	   #t)
     => #t)
 
@@ -3190,6 +3624,105 @@
 	     '(1 2)
 	     '(2 2)
 	     '(1 3))
+	   #t)
+    => #t)
+
+  (check
+      (guard (E (else #t))
+	(every (lambda args
+		 (integer? (apply + args)))
+	  '(1 2)
+	  '(2 2 2)
+	  '(1 3)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (every* even? '())
+    => #t)
+
+  (check
+      (every* even? '(1))
+    => #f)
+
+  (check
+      (and (every* even? '(2))
+	   #t)
+    => #t)
+
+  (check
+      (and (every* even? '(1 2))
+	   #t)
+    => #f)
+
+  (check
+      (and (every* even? '(4 8 10 12))
+	   #t)
+    => #t)
+
+  (check
+      (every* (lambda args
+		(integer? (apply + args)))
+	      '() '())
+    => #t)
+
+  (check
+      (every* (lambda args
+		(integer? (apply + args)))
+	      '() '() '())
+    => #t)
+
+;;; The following are true because when a list is empty the predicate is
+;;; not applied at all and the return value is true.
+  (check
+      (and (every* (lambda args
+		     (integer? (apply + args)))
+		   '(1) '() '())
+	   #t)
+    => #t)
+  (check
+      (and (every* (lambda args
+		     (integer? (apply + args)))
+		   '() '(1) '())
+	   #t)
+    => #t)
+  (check
+      (and (every* (lambda args
+		     (integer? (apply + args)))
+		   '() '() '(1))
+	   #t)
+    => #t)
+
+  (check
+      (and (every* (lambda args
+		     (integer? (apply + args)))
+		   '(1) '(1.1) '(2))
+	   #t)
+    => #f)
+
+  (check
+      (and (every* (lambda args
+		     (integer? (apply + args)))
+		   '(1) '(2) '(2))
+	   #t)
+    => #t)
+
+  (check
+      (and (every* (lambda args
+		     (integer? (apply + args)))
+		   '(1 2)
+		   '(2 2.2)
+		   '(1 3))
+	   #t)
+    => #f)
+
+  (check
+      (and (every* (lambda args
+		     (integer? (apply + args)))
+		   '(1 2)
+		   '(2 2)
+		   '(1 3))
 	   #t)
     => #t)
 
@@ -3260,6 +3793,104 @@
 	'(1 2 3)
 	'(1.1 2.1 3))
     => 2)
+
+  (check
+      (guard (E (else #t))
+	(list-index (lambda args #f)
+	  '(1 2 3)
+	  '(1 2 3 10)
+	  '(1.1 2.1 3)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (list-index* even? '())
+    => #f)
+
+  (check
+      (list-index* even? '() '())
+    => #f)
+
+  (check
+      (list-index* even? '() '() '())
+    => #f)
+
+  (check
+      (list-index* even? '(1))
+    => #f)
+
+  (check
+      (list-index* even? '(1 3 5))
+    => #f)
+
+  (check
+      (list-index* even? '(2))
+    => 0)
+
+  (check
+      (list-index* even? '(1 2 3 5))
+    => 1)
+
+  (check
+      (list-index* (lambda args
+		     (integer? (apply + args)))
+		   '(1 2 3)
+		   '(1 2 3))
+    => 0)
+
+  (check
+      (list-index* (lambda args
+		     (integer? (apply + args)))
+		   '(1 2 3)
+		   '(1.1 2 3))
+    => 1)
+
+  (check
+      (list-index* (lambda args
+		     (integer? (apply + args)))
+		   '(1 2 3)
+		   '(1 2 3)
+		   '(1 2 3))
+    => 0)
+
+  (check
+      (list-index* (lambda args
+		     (integer? (apply + args)))
+		   '(1 2 3)
+		   '(1.1 2 3)
+		   '(1 2 3))
+    => 1)
+
+  (check
+      (list-index* (lambda args
+		     (integer? (apply + args)))
+		   '(1 2 3)
+		   '(1 2 3)
+		   '(1.1 2.1 3))
+    => 2)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (position 9 '())
+    => #f)
+
+  (check
+      (position 9 '(1))
+    => #f)
+
+  (check
+      (position 9 '(1 3 5))
+    => #f)
+
+  (check
+      (position 2 '(2))
+    => 0)
+
+  (check
+      (position 2 '(1 2 3 5))
+    => 1)
 
 ;;; --------------------------------------------------------------------
 

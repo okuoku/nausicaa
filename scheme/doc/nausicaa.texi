@@ -419,6 +419,7 @@ Copyright @copyright{} 2008 Taro Minowa (Higepon).@*
 Copyright @copyright{} 2005-2008 Dominique Boucher.@*
 Copyright @copyright{} 2004, 2005 Tony Garnock-Jones @email{tonyg@@kcbbs.gen.nz}@*
 Copyright @copyright{} 2005 LShift Ltd. @email{query@@lshift.net}
+Copyright @copyright{} 2007, 2008 Philip L. Bewig.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -489,6 +490,7 @@ More libraries
 * strings::                     Strings library.
 * vectors::                     Vectors library.
 * arrays::                      Multidimensional arrays.
+* streams::                     Streams library.
 * comparisons::                 Comparison functions.
 * loops::                       Loop constructs.
 * random::                      Sources of random bits.
@@ -894,6 +896,7 @@ Fold, unfold and map
 * lists fold reduce::           Reducing.
 * lists fold unfold::           Unfolding.
 * lists fold map::              Mapping.
+* lists fold foreach::          Producing side effects.
 
 Character sets
 
@@ -968,6 +971,24 @@ Multidimensional arrays
 * arrays position::             Specifying the coordinates of elements.
 * arrays shape::                Specifying the shape of arrays.
 * arrays array::                Dealing with arrays.
+
+Streams
+
+* streams rationale::           Rationale.
+* streams primitive::           The @library{streams primitive} library.
+* streams primitive example::   Streams primitive library example.
+* streams derived::             The @library{streams derived} library.
+* streams utilities::           Utilities.
+* streams examples::            Examples.
+
+Examples
+
+* streams examples infinite::   Infinite streams.
+* streams examples generators:: Generators and co--routines.
+* streams examples pipeline::   A pipeline of procedures.
+* streams examples persistent:: Persistent data.
+* streams examples passes::     Reducing two passes to one.
+* streams examples pitfalls::   Pitfalls.
 
 Comparison functions
 
@@ -6076,13 +6097,13 @@ the @meta{cond clause} are returned as the results of the entire
 
 If the selected @meta{cond clause} contains only the @meta{test} and no
 @meta{expression}s, then the value of the @meta{test} is returned as the
-result.  If the selected @meta{cond clause} uses the @code{=>} alternate
+result.  If the selected @meta{cond clause} uses the @samp{=>} alternate
 form, then the @meta{expression} is evaluated.  Its value must be a
 procedure.  This procedure should accept one argument; it is called on
 the value of the @meta{test} and the values returned by this procedure
 are returned by the @func{cond} expression.
 
-If all @meta{test}s evaluate to @false{}, and there is no @code{else}
+If all @meta{test}s evaluate to @false{}, and there is no @samp{else}
 clause, then the conditional expression returns unspecified values; if
 there is an @code{else} clause, then its @meta{expression}s are
 evaluated, and the values of the last one are returned.
@@ -9736,14 +9757,14 @@ allows syntactic abstractions to expand into forms containing ellipses.
 @example
 (define-syntax be-like-begin
   (syntax-rules ()
-    [(be-like-begin name)
+    ((be-like-begin name)
      (define-syntax name
        (syntax-rules ()
          ((name expr (... ...))
-          (begin expr (... ...)))))]))
+          (begin expr (... ...))))))))
 
 (be-like-begin sequence)
-(sequence 1 2 3 4) => 4
+(sequence 1 2 3 4) @result{} 4
 @end example
 
 As an example for hygienic use of auxiliary identifier, if @func{let}
@@ -9757,8 +9778,8 @@ following is not an error.
 @result{} ok
 @end example
 
-The macro transformer for @func{cond} recognizes @code{=>} as a local
-variable, and hence an expression, and not as the identifier @code{=>},
+The macro transformer for @func{cond} recognizes @samp{=>} as a local
+variable, and hence an expression, and not as the identifier @samp{=>},
 which the macro transformer treats as a syntactic keyword.  Thus the
 example expands into:
 
@@ -12533,7 +12554,7 @@ appropriate argument before applying it.
 (define make-rtd3 (record-constructor cd3))
 
 (make-rtd3 1 2 3 4 5 6 7 8 9)
-=> <record with fields initialized to 3, 5, 9, 11, 15, 17>
+@result{} #<record with fields initialized to 3, 5, 9, 11, 15, 17>
 @end example
 @end deffn
 
@@ -12837,8 +12858,8 @@ as described when it is called as a result of a call to @func{raise} or
 @deffnx {Auxiliary Syntax} {=>}
 @deffnx {Auxiliary Syntax} else
 Each @meta{cond clause} is as in the specification of @func{cond}.  (See
-report section @ref{baselib expressions derived cond}.)  @code{=>} and
-@code{else} are the same as in the @rsixlibrary{base} library.
+report section @ref{baselib expressions derived cond}.)  @samp{=>} and
+@samp{else} are the same as in the @rsixlibrary{base} library.
 
 Evaluating a @func{guard} form evaluates @meta{body} with an exception
 handler that binds the raised object to @meta{variable} and within the
@@ -17158,7 +17179,7 @@ to an escape procedure within the loop body.  (The derived
     (if (= n 0) (break ls))
     (set! ls (cons 'a ls))
     (set! n (- n 1))))
-=> (a a a)
+@result{} (a a a)
 @end example
 
 Were @code{loop} to be defined as:
@@ -18463,8 +18484,8 @@ where @func{make-promise} is defined as follows:
 The @func{null-environment} procedure returns an environment specifier
 suitable for use with @func{eval} representing an environment that is
 empty except for the (syntactic) bindings for all keywords described in
-the previous revision of this report, including bindings for @code{=>},
-@code{...}, @code{else}, and @code{_} that are the same as those in the
+the previous revision of this report, including bindings for @samp{=>},
+@samp{...}, @samp{else} and @samp{_} that are the same as those in the
 @rsixlibrary{base} library.
 @end deffn
 
@@ -18479,8 +18500,8 @@ omitting @func{load}, @func{interaction-environment},
 @func{transcript-on}, @func{transcript-off}, and @func{char-ready?}.
 
 The variable bindings have as values the procedures of the same names
-described in this report, and the keyword bindings, including @code{=>},
-@code{...}, @code{else}, and @code{_} are the same as those described in
+described in this report, and the keyword bindings, including @samp{=>},
+@samp{...}, @samp{else} and @samp{_} are the same as those described in
 this report.
 @end deffn
 
@@ -18652,7 +18673,6 @@ The @library{time} library.
 @item vectors
 The @library{vectors} library.
 @end table
-
 
 @c page
 @node naulib funcs
@@ -19037,7 +19057,7 @@ Examples:
     (else
       (set! i 3)
       789)))
-=> 123
+@result{} 123
 
 (let ((i #f))
   (ensure (= i 2)
@@ -19050,7 +19070,7 @@ Examples:
     (else
       (set! i 3)
       789)))
-=> 456
+@result{} 456
 
 (let ((i #f))
   (ensure (= i 3)
@@ -19063,7 +19083,7 @@ Examples:
     (else
       (set! i 3)
       789)))
-=> 789
+@result{} 789
 @end example
 @end deffn
 
@@ -19124,24 +19144,24 @@ With reference to the example above:
 
 @example
 (radix)
-=>  2
+@result{}  2
 
 (parameterize ((radix 16))
   (radix))
-=>  16
+@result{}  16
 
 (radix)
-=>  2
+@result{}  2
 
 (define (f n)
   (number->string n (radix)))
 
 (f 10)
-=>  "1010"
+@result{}  "1010"
 
 (parameterize ((radix 8))
   (f 10))
-=>  "12"
+@result{}  "12"
 @end example
 @end deffn
 
@@ -19369,7 +19389,7 @@ Return @true{} if @var{obj} is a condition of object of type
 
 
 The @library{lists} and @library{lists stx} libraries implement a
-collection of functions and macros to manipulate lists.  Additionally,
+collection of functions and macros to manipulate lists; additionally,
 @library{lists low} implements a collection of low level utilities.
 These libraries have two purposes: To provide a rich set of functions
 and macros and to be a source code repository from which code can be
@@ -19378,10 +19398,10 @@ macros that may make little sense in most scenarios (beside the fact
 that they are always inlined).
 
 @quotation
-@strong{Note} The @library{lists ---} libraries are derived from the
-@ansrfi{1} document and reference implementation by Olin Shivers, but
-they are @strong{not} compatible with it.  Read carefully this
-documentation!
+@strong{Note} The @library{lists ---} libraries and this section of
+documentation are derived from the @ansrfi{1} document and reference
+implementation by Olin Shivers, but they are @strong{not} compatible
+with it.  Read carefully this documentation!
 @end quotation
 
 @menu
@@ -19436,23 +19456,90 @@ list classes: proper, circular, dotted, generalised.
 
 @subsubheading Proper lists
 
-A finite, null--terminated list.  More precisely a proper list is
-defined as: A pair whose cdr is a proper list or null.  The opposite of
-proper is @dfn{improper}; everything that is not null or a proper list,
-is an improper list.
+A finite, null--terminated list; more precisely a proper list is defined
+as: A pair whose cdr is a proper list or null.  The opposite of proper
+is @dfn{improper}; everything that is not null or a proper list, is an
+improper list.
 
 @example
 (a b c)
 (32)
 @end example
 
+We can build a proper list in a single function call with @func{list},
+or we can do it in steps using @func{cons} and @func{cons*}; we can
+detect if a list is proper with @func{list?}.
+
 @c ------------------------------------------------------------
 
 @subsubheading Circular list
 
-An infinite, unterminated list.  A circular list is a value such that
+An infinite, unterminated list; a circular list is a value such that
 @func{cdr} applied any number of times always returns a pair.  The
 opposite of circular is @dfn{finite}.
+
+We can build a list having a circular tail as follows:
+
+@example
+(define end  (cons  1 '()))
+(define tail (cons* 3 2 end))
+(define ell  (cons* 5 4 tail))
+(set-cdr! end tail)
+@end example
+
+@noindent
+the list structure bound to @samp{ell} looks like this:
+
+@example
+                           cdr
+                  ----------------
+                 |                |
+     cdr    cdr  v cdr    cdr     |
+   O----->O----->O----->O----->O--
+   |      |      |      |      |
+car|   car|   car|   car|   car|
+   v      v      v      v      v
+   5      4      3      2      1
+@end example
+
+@noindent
+so that the following happens:
+
+@example
+(car ell)            @result{} 5
+(cadr ell)           @result{} 4
+(caddr ell)          @result{} 3
+(cadddr ell)         @result{} 2
+(cadddr (cdr ell))   @result{} 1
+(cdddr (cddr ell))   @result{} tail
+(cadddr (cddr ell))  @result{} 3
+(cadddr (cdddr ell)) @result{} 2
+@end example
+
+@noindent
+it is impossible to build a circular list without mutating a pair.
+Notice that the following is @strong{not} a circular list:
+
+@example
+                           car
+           --------------------
+          |                    |
+     cdr  v cdr    cdr    cdr  | cdr
+   O----->O----->O----->O----->O----->()
+   |      |      |      |
+car|   car|   car|   car|
+   v      v      v      v
+   5      4      3      2
+@end example
+
+@noindent
+it is a proper list in which the car of the last pair references one of
+the previous pairs.
+
+We can build a circular list, a ring, with @func{circular-list} and we
+can detect if a list is a ring or has a circular tail with
+@func{circular-list?}.
+
 
 @c ------------------------------------------------------------
 
@@ -19471,9 +19558,29 @@ such that @func{cdr} applied @math{n} times yields neither a pair nor
 null.  This means that, for a dotted list, either @func{null?} or
 @func{pair?} return @true{}.
 
+Users of the @library{list ---} libraries should note that dotted lists
+are not commonly used, and are considered by many Scheme programmers to
+be an ugly artifact of Scheme's lack of a true list type.  However,
+dotted lists do play a noticeable role in the syntax of Scheme, in the
+``rest'' parameters used by n--ary lambdas:
+
+@example
+(lambda (x y . rest)
+  ---)
+@end example
+
+Dotted lists are not fully supported by the list libraries; most
+procedures are defined only on proper lists.  The procedures that will
+also handle circular or dotted lists are specifically marked.  While
+this design decision restricts the domain of possible arguments one can
+pass to these procedures, it has the benefit of allowing the procedures
+to catch the error cases where programmers inadvertently pass scalar
+values to a list procedure by accident (for example, by switching the
+arguments to a procedure call).
+
 @c ------------------------------------------------------------
 
-@subsubheading Generalised list
+@subsubheading Improper list
 
 A finite, non--nil terminated list, such as:
 
@@ -19485,38 +19592,11 @@ george
 @end example
 
 @noindent
-an improper list is a value for which there exists an integer @math{n >=
+a improper list is a value for which there exists an integer @math{n >=
 0}, such that @func{cdr} applied @math{n} times yields neither a pair
 nor null.  This includes non--pair, non--null values (symbols, numbers,
 etc.), which are considered to be improper lists of length @math{0}.
 Dotted lists are improper lists.
-
-@c ------------------------------------------------------------
-
-This view is captured by the predicates @func{list?} (defined by
-@rnrs{6}), @func{improper-list?} and @func{circular-list?}  which
-partition the entire universe of Scheme values.  Additionally
-@func{dotted-list?} recognises dotted lists.
-
-This list library users should note that dotted lists are not commonly
-used, and are considered by many Scheme programmers to be an ugly
-artifact of Scheme's lack of a true list type.  However, dotted lists do
-play a noticeable role in the syntax of Scheme, in the ``rest''
-parameters used by n--ary lambdas:
-
-@example
-(lambda (x y . rest) ...)
-@end example
-
-Dotted lists are not fully supported by this list library.  Most
-procedures are defined only on proper lists, that is: finite,
-nil--terminated lists.  The procedures that will also handle circular or
-dotted lists are specifically marked.  While this design decision
-restricts the domain of possible arguments one can pass to these
-procedures, it has the benefit of allowing the procedures to catch the
-error cases where programmers inadvertently pass scalar values to a list
-procedure by accident, e.g., by switching the arguments to a procedure
-call.
 
 @c page
 @node lists conventions
@@ -19529,11 +19609,11 @@ corresponding function version, but some functions were not translated
 to macros.  Macro names always end with the suffix @samp{/stx}.
 
 It is an error to pass a circular or dotted list to a procedure not
-defined to accept such an argument.  It is an error to pass a proper or
+defined to accept such an argument; it is an error to pass a proper or
 dotted list to a procedure defined for circular lists.
 
 All the functions and macros whose main name ends with @samp{!}, are
-allowed, but not required, to alter their arguments.
+allowed to alter their arguments.
 
 The documentation of this library obeys the following conventions for
 procedure formals:
@@ -19553,7 +19633,7 @@ A pair.
 
 @item n
 @itemx i
-A natural number (an integer @math{>= 0}).
+A non--negative exact integer object.
 
 @item proc
 A procedure.
@@ -19565,11 +19645,11 @@ A procedure whose return value is treated as a boolean.
 A boolean procedure taking two arguments.
 
 @item fill
-Can be any value.  This is used to indicate values used to fill a
-compound data structure.
+Can be any value; it is used to indicate values used to fill a compound
+data structure.
 
 @item obj
-Any value, this includes dotted lists.
+Any value, including dotted lists.
 @end table
 
 @c page
@@ -19689,14 +19769,14 @@ both proper and dotted.
 @defun circular-list? @var{obj}
 @defunx circular-list?/or-null @var{obj}
 Return @true{} if @var{obj} is a circular list.  The @samp{/or-null}
-variant returns @true{} also if @var{obj} null.
+variant returns @true{} also if @var{obj} is null.
 @end defun
 
 
 @defun dotted-list? @var{obj}
 @defunx dotted-list?/or-null @var{obj}
 Return @true{} if @var{obj} is a dotted list.  The @samp{/or-null}
-variant returns @true{} also if @var{obj} null.
+variant returns @true{} also if @var{obj} is null.
 @end defun
 
 @c ------------------------------------------------------------
@@ -19821,7 +19901,7 @@ Synonyms for @func{car}, @func{cadr}, @func{caddr}, ...
 
 @example
 (third '(a b c d e))
-=> c
+@result{} c
 @end example
 @end deffn
 
@@ -19846,26 +19926,26 @@ elements of list @var{dotted}.
 
 @example
 (take-left '(a b c d e) 2)
-=> (a b)
+@result{} (a b)
 
 (drop-left '(a b c d e) 2)
-=> (c d e)
+@result{} (c d e)
 @end example
 
 @var{dotted} may be any value: a proper, circular, or dotted list:
 
 @example
 (take-left '(1 2 3 . d) 2)
-=> (1 2)
+@result{} (1 2)
 
 (drop-left '(1 2 3 . d) 2)
-=> (3 . d)
+@result{} (3 . d)
 
 (take-left '(1 2 3 . d) 3)
-=> (1 2 3)
+@result{} (1 2 3)
 
 (drop-left '(1 2 3 . d) 3)
-=> d
+@result{} d
 @end example
 
 For a legal @var{i}, @func{take-left} and @func{drop-left} partition the
@@ -19895,10 +19975,10 @@ the entire list is taken: @code{(take-left dotted (length+ dotted))}.
 
 @example
 (take-right '(a b c d e) 2)
-=> (d e)
+@result{} (d e)
 
 (drop-right '(a b c d e) 2)
-=> (a b c)
+@result{} (a b c)
 @end example
 
 The returned list may share a common tail with the argument list.
@@ -19907,16 +19987,16 @@ The returned list may share a common tail with the argument list.
 
 @example
 (take-right '(1 2 3 . d) 2)
-=> (2 3 . d)
+@result{} (2 3 . d)
 
 (drop-right '(1 2 3 . d) 2)
-=> (1)
+@result{} (1)
 
 (take-right '(1 2 3 . d) 0)
-=> d
+@result{} d
 
 (drop-right '(1 2 3 . d) 0)
-=> (1 2 3)
+@result{} (1 2 3)
 @end example
 
 For a legal @var{i}, @func{take-right} and @func{drop-right} partition
@@ -19939,33 +20019,32 @@ nothing is dropped, e.g. @code{(drop-right dotted 0)}.
 @deffnx Function drop-right! @var{dotted} @var{i}
 @deffnx Syntax take-left!/stx @var{dotted} @var{i}
 @deffnx Syntax drop-right!/stx @var{dotted} @var{i}
-@func{take!} and @func{drop-right!} are linear--update variants of
-@func{take} and @func{drop-right}: the procedure is allowed, but not
-required, to alter the argument list to produce the result.
+@func{take!} and @func{drop-right!} are like @func{take} and
+@func{drop-right}, but they are allowed to alter the argument list to
+produce the result.
 
 An error is raised if the length of the list is less than @var{i}.
 @end deffn
 
 
-@deffn Function split-at @var{x} @var{i}
-@deffnx Function split-at! @var{x} @var{i}
-@deffnx Syntax split-at/stx @var{x} @var{i}
-@deffnx Syntax split-at!/stx @var{x} @var{i}
-@func{split-at} splits the list @var{x} at index @var{i}, returning a
-list of the first @var{i} elements, and the remaining tail.  It is
+@deffn Function split-at @var{dotted} @var{i}
+@deffnx Function split-at! @var{dotted} @var{i}
+@deffnx Syntax split-at/stx @var{dotted} @var{i}
+@deffnx Syntax split-at!/stx @var{dotted} @var{i}
+@func{split-at} splits the list @var{dotted} at index @var{i}, returning
+a list of the first @var{i} elements, and the remaining tail.  It is
 equivalent to:
 
 @example
 (values (take-left x i) (drop-left x i))
 @end example
 
-@func{split-at!} is the linear--update variant.  It is allowed, but not
-required, to alter the argument list to produce the result.
+@func{split-at!} is allowed to alter the argument list to produce the
+result.
 
 @example
 (split-at '(a b c d e f g h) 3)
-=> (a b c)
-   (d e f g h)
+@result{} (a b c) (d e f g h)
 @end example
 @end deffn
 
@@ -19979,8 +20058,8 @@ required, to alter the argument list to produce the result.
 finite list @var{pair}.
 
 @example
-(last '(a b c)) => c
-(last-pair '(a b c)) => (c)
+(last '(a b c)) @result{} c
+(last-pair '(a b c)) @result{} (c)
 @end example
 @end deffn
 
@@ -19997,30 +20076,32 @@ finite list @var{pair}.
 @cindex List counting
 
 
-@defun {length+} @var{clist}
-Return the length of the argument, or @false{} if @var{clist} is a
+@defun {length+} @var{circ}
+Return the length of the argument, or @false{} if @var{circ} is a
 circular list.  The length of a proper list is a non--negative integer
 @math{n} such that @func{cdr} applied @math{n} times to the list
 produces the empty list.
 @end defun
 
 
-@defun append! @var{list1} ...
-Return a list consisting of the elements of @var{list1} followed by the
-elements of the other list parameters.  It is allowed, but not required,
-to alter cons cells in the argument lists to construct the result list.
-The last argument is never altered; the result list shares structure
-with this parameter.
+@defun append! @var{ell} ...
+Return a list consisting of the elements of @var{ell} followed by the
+elements of the other list arguments; it is allowed to alter cons cells
+in the argument lists to construct the result list.  The last argument
+is never altered; the result list shares structure with this parameter.
 
 @example
-(append! '(x) '(y))        =>  (x y)
-(append! '(a) '(b c d))    =>  (a b c d)
-(append! '(a (b)) '((c)))  =>  (a (b) (c))
-(append! '(a b) '(c . d))  =>  (a b c . d)
-(append! '() 'a)           =>  a
-(append! '(x y))           =>  (x y)
-(append!)                  =>  ()
+(append! '(x) '(y))        @result{}  (x y)
+(append! '(a) '(b c d))    @result{}  (a b c d)
+(append! '(a (b)) '((c)))  @result{}  (a (b) (c))
+(append! '(a b) '(c . d))  @result{}  (a b c . d)
+(append! '() 'a)           @result{}  a
+(append! '(x y))           @result{}  (x y)
+(append!)                  @result{}  ()
 @end example
+
+Notice that @func{append} is implemented by @rsixlibrary{base}.
+@ref{baselib lists, Pairs and lists}
 @end defun
 
 
@@ -20028,43 +20109,31 @@ with this parameter.
 @deffnx Function concatenate! @var{list-of-lists}
 @deffnx Syntax concatenate/stx @var{list-of-lists}
 @deffnx Syntax concatenate!/stx @var{list-of-lists}
-These functions append the elements of their argument together.  That
-is, @func{concatenate} returns:
+These functions append the elements of their argument together; that is,
+@func{concatenate} returns:
 
 @example
 (apply append list-of-lists)
 @end example
 
-@noindent
-or, equivalently:
-
-@example
-(reduce* append '() list-of-lists)
-@end example
-
-@func{concatenate!} is the linear--update variant, defined in terms
-of @func{append!} instead of @func{append}.
-
-Note that some Scheme implementations do not support passing more than a
-certain number (e.g. 64) of arguments to an n--ary procedure.  In these
-implementations, the @code{(apply append ...)} idiom would fail when
-applied to long lists, but concatenate would continue to function
-properly.
-
-As with @func{append} and @func{append!}, the last element of the input
-list may be any value at all.
+@func{concatenate!} is allowed to alter the arguments to build the
+result.  As with @func{append} and @func{append!}, the last element of
+the input list may be any value at all.
 @end deffn
 
 
 @defun reverse! @var{list}
 Return a newly allocated list consisting of the elements of @var{list}
-in reverse order.  It is permitted, but not required, to alter the
-argument's cons cells to produce the reversed list.
+in reverse order; it is allowed to alter the argument's cons cells to
+produce the reversed list.
 
 @example
-(reverse! '(a b c))              =>  (c b a)
-(reverse! '(a (b c) d (e (f))))  =>  ((e (f)) d (b c) a)
+(reverse! '(a b c))              @result{}  (c b a)
+(reverse! '(a (b c) d (e (f))))  @result{}  ((e (f)) d (b c) a)
 @end example
+
+Notice that @func{reverse} is implemented by @rsixlibrary{base}.
+@ref{baselib lists, Pairs and lists}
 @end defun
 
 
@@ -20078,7 +20147,7 @@ argument's cons cells to produce the reversed list.
 (append (reverse rev-head) tail)
 @end example
 
-It is provided because it is a common operation, a common
+It is provided because it is a common operation; a common
 list--processing style calls for this exact operation to transfer values
 accumulated in reverse order onto the front of another list, and because
 the implementation is significantly more efficient than the simple
@@ -20093,40 +20162,49 @@ typically a win for reasons of cache locality and eager storage
 reclamation.
 @end quotation
 
-@func{append-reverse!} is just the linear--update variant; it is
-allowed, but not required, to alter @var{rev-head}'s cons cells to
-construct the result.
+@func{append-reverse!} is allowed to alter @var{rev-head}'s cons cells
+to construct the result.
 @end deffn
 
 
-@deffn Function zip @var{clist1} @var{clist2} ...
-@deffnx Syntax zip/stx @var{clist1} @var{clist2} ...
-Defined as:
+@deffn Function zip @var{circ1} @var{circ2} ...
+@deffnx Function zip* @var{circ1} @var{circ2} ...
+@deffnx Syntax zip/stx @var{circ1} @var{circ2} ...
+@deffnx Syntax zip*/stx @var{circ1} @var{circ2} ...
+The function @func{zip} is defined as:
 
 @example
-(lambda lists (apply map list lists))
+(lambda ells (apply map list ells))
 @end example
 
-If @func{zip} is passed @var{n} lists, it returns a list as long as the
+@noindent
+while @func{zip*} is defined as:
+
+@example
+(lambda ells (apply map* list ells))
+@end example
+
+If @func{zip*} is passed @var{n} lists, it returns a list as long as the
 shortest of these lists, each element of which is an @var{n}--element
 list comprised of the corresponding elements from the parameter lists.
 
 @example
-(zip '(one two three)
-     '(1 2 3)
-     '(odd even odd even odd even odd even))
-  => ((one 1 odd) (two 2 even) (three 3 odd))
+(zip* '(one two three)
+      '(1 2 3)
+      '(odd even odd even odd even odd even))
+@result{} ((one 1 odd) (two 2 even) (three 3 odd))
 
-(zip '(1 2 3))
-  => ((1) (2) (3))
+(zip* '(1 2 3))
+@result{} ((1) (2) (3))
 @end example
 
-At least one of the argument lists must be finite:
+When applying @func{zip*}, at least one of the argument lists must be
+finite:
 
 @example
-(zip '(3 1 4 1)
-     (circular-list #f #t))
-=> ((3 #f)
+(zip* '(3 1 4 1)
+      (circular-list #f #t))
+@result{} ((3 #f)
     (1 #t)
     (4 #f)
     (1 #t))
@@ -20134,16 +20212,16 @@ At least one of the argument lists must be finite:
 @end deffn
 
 
-@deffn Function unzip1 @var{list}
-@deffnx Function unzip2 @var{list}
-@deffnx Function unzip3 @var{list}
-@deffnx Function unzip4 @var{list}
-@deffnx Function unzip5 @var{list}
-@deffnx Syntax unzip1/stx @var{list}
-@deffnx Syntax unzip2/stx @var{list}
-@deffnx Syntax unzip3/stx @var{list}
-@deffnx Syntax unzip4/stx @var{list}
-@deffnx Syntax unzip5/stx @var{list}
+@deffn Function unzip1 @var{ell}
+@deffnx Function unzip2 @var{ell}
+@deffnx Function unzip3 @var{ell}
+@deffnx Function unzip4 @var{ell}
+@deffnx Function unzip5 @var{ell}
+@deffnx Syntax unzip1/stx @var{ell}
+@deffnx Syntax unzip2/stx @var{ell}
+@deffnx Syntax unzip3/stx @var{ell}
+@deffnx Syntax unzip4/stx @var{ell}
+@deffnx Syntax unzip5/stx @var{ell}
 @func{unzip1} takes a list of lists, where every list must contain at
 least one element, and returns a list containing the initial element of
 each such list.  That is, it returns @code{(map car lists)}.
@@ -20157,14 +20235,14 @@ and so forth.
 
 @example
 (unzip2 '((1 one) (2 two) (3 three)))
-=> (1 2 3)
+@result{} (1 2 3)
    (one two three)
 @end example
 @end deffn
 
 
-@deffn Function count @var{pred} @var{clist1} ...
-@deffnx Syntax count/stx @var{pred} @var{clist1} ...
+@deffn Function count @var{pred} @var{circ} ...
+@deffnx Syntax count/stx @var{pred} @var{circ} ...
 @var{pred} is a procedure taking as many arguments as there are lists
 and returning a single value.  It is applied element--wise to the
 elements of the lists, and a count is tallied of the number of elements
@@ -20175,14 +20253,18 @@ that produce a true value.  This count is returned.
 counting stops when the shortest list expires.
 
 @example
-(count even? '(3 1 4 1 5 9 2 5 6))                => 3
-(count <     '(1 2 4 8) '(2 4 6 8 10 12 14 16))   => 3
+(count even? '(3 1 4 1 5 9 2 5 6))
+@result{} 3
+
+(count < '(1 2 4 8) '(2 4 6 8 10 12 14 16))
+@result{} 3
 @end example
 
 At least one of the argument lists must be finite:
 
 @example
-(count < '(3 1 4 1) (circular-list 1 10)) => 2
+(count < '(3 1 4 1) (circular-list 1 10))
+@result{} 2
 @end example
 @end deffn
 
@@ -20207,6 +20289,7 @@ operator.
 * lists fold reduce::           Reducing.
 * lists fold unfold::           Unfolding.
 * lists fold map::              Mapping.
+* lists fold foreach::          Producing side effects.
 @end menu
 
 @c page
@@ -20219,7 +20302,7 @@ return value of a left--folding with @rnrs{6} style, is computed as
 with:
 
 @example
-(fold-left kons knil ell) =
+(fold-left kons knil ell) @equiv{}
   (kons (kons (kons (kons knil
                           (list-ref ell 0))
                     (list-ref ell 1))
@@ -20231,7 +20314,7 @@ with:
 while with the ``traditional'' style:
 
 @example
-(fold kons knil ell) =
+(fold kons knil ell) @equiv{}
   (kons (list-ref ell 3)
         (kons (list-ref ell 2)
               (kons (list-ref ell 1)
@@ -20244,8 +20327,8 @@ the return value of a right--folding with both @rnrs{6} style and
 ``traditional'' style, is computed as with:
 
 @example
-(fold-right kons knil ell) =
-     (fold* kons knil ell) =
+(fold-right kons knil ell) @equiv{}
+     (fold* kons knil ell) @equiv{}
   (kons (list-ref ell 0)
         (kons (list-ref ell 1)
               (kons (list-ref ell 2)
@@ -20258,7 +20341,7 @@ elements, the return value of a left--folding with @rnrs{6} style, is
 computed as with:
 
 @example
-(fold-left kons knil ell0 ell1 ell2) =
+(fold-left kons knil ell0 ell1 ell2) @equiv{}
   (kons (kons (kons (kons knil
                           (list-ref ell0 0)
                           (list-ref ell1 0)
@@ -20278,7 +20361,7 @@ computed as with:
 while with the ``traditional'' style:
 
 @example
-(fold kons knil ell0 ell1 ell2) =
+(fold kons knil ell0 ell1 ell2) @equiv{}
   (kons (list-ref ell0 3)
         (list-ref ell1 3)
         (list-ref ell2 3)
@@ -20299,8 +20382,8 @@ the return value of a right--folding with both @rnrs{6} style and
 ``traditional'' style, is computed as with:
 
 @example
-(fold-right kons knil ell0 ell1 ell2) =
-     (fold* kons knil ell0 ell1 ell2) =
+(fold-right kons knil ell0 ell1 ell2) @equiv{}
+     (fold* kons knil ell0 ell1 ell2) @equiv{}
   (kons (list-ref ell0 0)
         (list-ref ell1 0)
         (list-ref ell2 0)
@@ -20338,7 +20421,7 @@ argument case:
       '(a 1 b 2 c 3))           @result{} 3
 @end example
 
-Right--folding, usage examples for @func{fold*} in the single list
+Right--folding usage examples for @func{fold*} in the single list
 argument case:
 
 @example
@@ -20408,21 +20491,21 @@ is the return value of the previous calls to @var{combine}.
 @end itemize
 
 
-@deffn Syntax fold-left/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Syntax fold-right/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffn Syntax fold-left/stx @var{combine} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Syntax fold-right/stx @var{combine} @var{knil} @var{circ1} @var{circ2} ...
 Like @func{fold-left} and @func{fold-right}, defined by @rnrs{6}, but
 implemented as syntaxes.  These syntaxes exist only for completeness.
 @end deffn
 
 
-@deffn Function fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Function fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Syntax fold-left*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Syntax fold-right*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffn Function fold-left* @var{combine} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Function fold-right* @var{combine} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Syntax fold-left*/stx @var{combine} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Syntax fold-right*/stx @var{combine} @var{knil} @var{circ1} @var{circ2} ...
 Like @func{fold-left} and @func{fold-right}, defined by @rnrs{6}, but
 accept lists of different length and stop at the end of the shortest
 list.  At least one of the list arguments must be finite.  The syntaxes
-may be a little faster than the functions when multiple @var{clist}
+may be a little faster than the functions when multiple @var{circ}
 arguments are involved.
 @end deffn
 
@@ -20436,23 +20519,23 @@ The functions @func{fold} and @func{fold*} are similar to
 @strong{last} argument of the calls to @var{kons}.
 
 
-@deffn Function fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Syntax fold/stx @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+@deffn Function fold @var{kons} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Syntax fold/stx @var{kons} @var{knil} @var{circ1} @var{circ2} ...
 Left fold the function @var{kons} over the elements of the list
 arguments.  Accept lists of different length and stop at the end of the
 shortest list.  At least one of the list arguments must be finite.  The
-syntax may be a little faster than the function when multiple
-@var{clist} arguments are involved.
+syntax may be a little faster than the function when multiple @var{circ}
+arguments are involved.
 @end deffn
 
 
-@deffn Function fold* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Syntax fold*/stx @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+@deffn Function fold* @var{kons} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Syntax fold*/stx @var{kons} @var{knil} @var{circ1} @var{circ2} ...
 Right fold the function @var{kons} over the elements of the list
 arguments.  Accept lists of different length and stop at the end of the
 shortest list.  At least one of the list arguments must be finite.  The
-syntax may be a little faster than the function when multiple
-@var{clist} arguments are involved.
+syntax may be a little faster than the function when multiple @var{circ}
+arguments are involved.
 @end deffn
 
 @c page
@@ -20460,18 +20543,18 @@ syntax may be a little faster than the function when multiple
 @subsection Derived folding
 
 
-@deffn Function and-fold-left* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Function and-fold-right* @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Syntax and-fold-left*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
-@deffnx Syntax and-fold-right*/stx @var{combine} @var{knil} @var{clist1} @var{clist2} ...
+@deffn Function and-fold-left* @var{combine} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Function and-fold-right* @var{combine} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Syntax and-fold-left*/stx @var{combine} @var{knil} @var{circ1} @var{circ2} ...
+@deffnx Syntax and-fold-right*/stx @var{combine} @var{knil} @var{circ1} @var{circ2} ...
 Like @func{fold-left*} and @func{fold-right*}, but stop the folding if
 the value returned by @var{combine} is @false{}, in which case the
 return value is @false{}.
 @end deffn
 
 
-@defun fold-left/pred @var{pred} @var{knil} @var{clist}
-Apply @var{pred} to successive couples of elements from @var{clist};
+@defun fold-left/pred @var{pred} @var{knil} @var{circ}
+Apply @var{pred} to successive couples of elements from @var{circ};
 return true if all the evaluations of @var{pred} were true.  The
 iteration stops at the first @false{} return value from @var{pred}.
 
@@ -20501,18 +20584,18 @@ and it can be used to implement predicates for ordering like @func{<}:
 @subsection Folding pairs
 
 
-@defun pair-fold @var{kons} @var{knil} @var{clist1} @var{clist2} ...
+@defun pair-fold @var{kons} @var{knil} @var{circ1} @var{circ2} ...
 Analogous to @func{fold}, but @var{kons} is applied to successive
 sublists of the lists, rather than successive elements; that is,
 @var{kons} is applied to the pairs making up the lists, giving this
 (tail) recursion:
 
 @example
-(pair-fold kons knil ell) = (let ((tail (cdr ell)))
-                              (pair-fold kons
-                                         (kons ell knil)
-                                         tail))
-(pair-fold kons knil '()) = knil
+(pair-fold kons knil ell) @equiv{} (let ((tail (cdr ell)))
+                               (pair-fold kons
+                                          (kons ell knil)
+                                          tail))
+(pair-fold kons knil '()) @equiv{} knil
 @end example
 
 For finite lists, the @var{kons} function may reliably apply
@@ -20542,17 +20625,18 @@ At least one of the list arguments must be finite.
 
 @c ------------------------------------------------------------
 
-@defun pair-fold* @var{kons} @var{knil} @var{clist1} @var{clist2} ...
-Holds the same relationship with @func{fold*} that @func{pair-fold}
-holds with @func{fold}.  Obeys the recursion:
+@defun pair-fold* @var{kons} @var{knil} @var{circ1} @var{circ2} ...
+Hold the same relationship with @func{fold*} that @func{pair-fold} holds
+with @func{fold}; obey the recursion:
 
 @example
-(pair-fold* kons knil lis) =
+(pair-fold* kons knil lis) @equiv{}
     (kons lis (pair-fold* kons knil (cdr lis)))
-(pair-fold* kons knil '()) = knil
+(pair-fold* kons knil '()) @equiv{} knil
 @end example
 
-Example:
+@noindent
+example:
 
 @example
 (pair-fold* cons '() '(a b c))
@@ -20598,14 +20682,14 @@ Examples:
 @subsection Reducing
 
 
-@deffn Function reduce @var{f} @var{ridentity} @var{list}
-@deffnx Syntax reduce/stx @var{f} @var{ridentity} @var{list}
+@deffn Function reduce @var{f} @var{ridentity} @var{ell}
+@deffnx Syntax reduce/stx @var{f} @var{ridentity} @var{ell}
 @func{reduce} is a variant of @func{fold}.  @var{ridentity} should be a
 ``right identity'' of the procedure @var{f}; that is, for any value
 @var{x} acceptable to @var{f}:
 
 @example
-(f x ridentity) = x
+(f x ridentity) @equiv{} x
 @end example
 
 @func{reduce} has the following definition:
@@ -20620,22 +20704,13 @@ in other words, we compute @code{(fold f ridentity list)}.
 
 Note that @var{ridentity} is used only in the empty--list case.
 
-You typically use @func{reduce} when applying @var{f} is expensive and
-you'd like to avoid the extra application incurred when fold applies
-@var{f} to the head of list and the identity value, redundantly
+We typically use @func{reduce} when applying @var{f} is expensive and we
+would like to avoid the extra application incurred when @func{fold}
+applies @var{f} to the head of list and the identity value, redundantly
 producing the same value passed in to @var{f}.  For example, if @var{f}
 involves searching a file directory or performing a database query, this
-can be significant.
-
-In general, however, @func{fold} is useful in many contexts where
-@func{reduce} is not (consider the examples given in the @func{fold}
-definition: only one of the five folds uses a function with a right
-identity; the other four may not be performed with @func{reduce}).
-
-@quotation
-@emph{Note:} @acronym{MIT} Scheme and Haskell flip @var{f}'s arguments
-order for their @func{reduce} and @func{fold} functions.
-@end quotation
+can be significant.  In general, however, @func{fold} is useful in many
+contexts where @func{reduce} is not.
 
 Examples:
 
@@ -20650,15 +20725,16 @@ Examples:
 @end deffn
 
 
-@deffn Function reduce* @var{f} @var{ridentity} @var{list}
-@deffnx Syntax reduce*/stx @var{f} @var{ridentity} @var{list}
+@deffn Function reduce* @var{f} @var{ridentity} @var{ell}
+@deffnx Syntax reduce*/stx @var{f} @var{ridentity} @var{ell}
 @func{reduce*} is the @func{fold*} variant of
 @func{reduce}.  It obeys the following definition:
 
 @example
-(reduce* f ridentity '()) = ridentity
-(reduce* f ridentity '(e1)) = (f e1 ridentity) = e1
-(reduce* f ridentity '(e1 e2 ...)) =
+(reduce* f ridentity '()) @equiv{} ridentity
+(reduce* f ridentity '(e1)) @equiv{} (f e1 ridentity)
+                            @equiv{} e1
+(reduce* f ridentity '(e1 e2 ...)) @equiv{}
     (f e1 (reduce f ridentity (e2 ...)))
 @end example
 
@@ -20879,8 +20955,8 @@ interested readers are invited to communicate it to the author.
 @subsection Mapping
 
 
-@deffn Function map* @var{proc} @var{clist1} @var{clist2} ...
-@deffnx Syntax map*/stx @var{proc} @var{clist1} @var{clist2} ...
+@deffn Function map* @var{proc} @varo{circ} @var{circ} ...
+@deffnx Syntax map*/stx @var{proc} @varo{circ} @var{circ} ...
 This procedure extends the @rnrs{6} specification of @func{map} to allow
 the arguments to be of unequal length; it terminates when the shortest
 list runs out of elements.
@@ -20926,10 +21002,10 @@ At least one of the list arguments must be a finite list:
 @end deffn
 
 
-@deffn Function map-in-order* @var{f} @var{clist1} @var{clist2} ...
-@deffnx Syntax map-in-order*/stx @var{f} @var{clist1} @var{clist2} ...
+@deffn Function map-in-order* @var{f} @varo{circ} @var{circ} ...
+@deffnx Syntax map-in-order*/stx @var{f} @varo{circ} @var{circ} ...
 A variant of the @func{map} procedure that guarantees to apply @var{f}
-across the elements of the @var{listi} arguments in a left--to--right
+across the elements of the @var{circ} arguments in a left--to--right
 order.  This is useful for mapping procedures that both have side
 effects and return useful values.
 
@@ -20937,35 +21013,8 @@ At least one of the list arguments must be finite.
 @end deffn
 
 
-@deffn Function for-each* @var{proc} @var{clist1} @var{clist2} ...
-@deffnx Syntax for-each*/stx @var{proc} @var{clist1} @var{clist2} ...
-This procedure extends the @rnrs{6} specification for @func{for-each} to
-allow the arguments to be of unequal length; it terminates when the
-shortest list runs out.
-
-The arguments to @func{for-each*} are like the arguments to @func{map*},
-but @func{for-each*} calls @var{proc} for its side effects rather than
-for its values.  Unlike @func{map*}, @func{for-each*} is guaranteed to
-call @var{proc} on the elements of the lists in order from the first
-element(s) to the last, and the value returned by @func{for-each*} is
-unspecified.
-
-@example
-(let ((v (make-vector 5)))
-  (for-each*
-       (lambda (i)
-         (vector-set! v i (* i i)))
-    '(0 1 2 3 4))
-  v)
-@result{} #(0 1 4 9 16)
-@end example
-
-At least one of the list arguments must be a finite list.
-@end deffn
-
-
-@defun append-map @var{f} @var{clist1} @var{clist2} ...
-@defunx append-map! @var{f} @var{clist1} @var{clist2} ...
+@defun append-map @var{f} @varo{circ} @var{circ} ...
+@defunx append-map! @var{f} @varo{circ} @var{circ} ...
 Equivalent to:
 
 @example
@@ -21010,11 +21059,10 @@ At least one of the list arguments must be a finite list.
 @end defun
 
 
-@deffn Function map! @var{f} @var{list1} @var{list2} ...
-@deffnx Syntax map!/stx @var{f} @var{list1} @var{list2} ...
-Linear--update variant of @func{map}, @func{map!} is allowed, but not
-required, to alter the cons cells of @var{list1} to construct the result
-list.
+@deffn Function map! @var{f} @varo{ell} @var{ell} ...
+@deffnx Syntax map!/stx @var{f} @varo{ell} @var{ell} ...
+Like @func{map} and @func{map/stx}, but they are allowed to alter the
+cons cells of @varo{ell} to construct the result list.
 
 The dynamic order in which the various applications of @var{f} are made
 is not specified.  In the n--ary case, all the list arguments must have
@@ -21022,21 +21070,76 @@ the same number of elements.
 @end deffn
 
 
-@deffn Function map*! @var{f} @var{list1} @var{clist2} ...
-@deffnx Syntax map*!/stx @var{f} @var{list1} @var{clist2} ...
-Linear--update variant of @func{map}, @func{map!} is allowed, but not
-required, to alter the cons cells of @var{list1} to construct the result
-list.
+@deffn Function map*! @var{f} @var{ell} @var{circ} ...
+@deffnx Syntax map*!/stx @var{f} @var{ell} @var{circ} ...
+Like @func{map*} and @func{map*!/stx}, but they are allowed to alter the
+cons cells of @var{ell} to construct the result list.
 
 The dynamic order in which the various applications of @var{f} are made
-is not specified.  In the n--ary case, @var{clist2}, @var{clist3},
-... must have at least as many elements as @var{list1}.
+is not specified.  In the n--ary case, @var{circ} ... must have at least
+as many elements as @var{ell}.
 @end deffn
 
 
-@deffn Function pair-for-each* @var{f} @var{clist1} @var{clist2} ...
-@deffnx Syntax pair-for-each*/stx @var{f} @var{clist1} @var{clist2} ...
-Like @func{for-each*}, but @var{f} is applied to successive sublists of
+@deffn Function filter-map @var{f} @varo{ell} @var{ell} ...
+@deffnx Syntax filter-map/stx @var{f} @varo{ell} @var{ell} ...
+Like @func{map}, but only true values are true:
+
+@example
+(filter-map
+    (lambda (x)
+      (and (number? x)
+           (* x x)))
+  '(a 1 b 3 c 7))
+@result{} (1 9 49)
+@end example
+
+The dynamic order in which the various applications of @var{f} are made
+is not specified.  At least one of the list arguments must be finite.
+@end deffn
+
+
+@deffn Function filter-map* @var{f} @varo{circ} @var{circ} ...
+@deffnx Syntax filter-map*/stx @var{f} @varo{circ} @var{circ} ...
+Like @func{filter-map} and @func{filter-map/stx}, but accept list
+arguments of different length.
+@end deffn
+
+@c page
+@node lists fold foreach
+@subsection Producing side effects
+
+
+@deffn Function for-each* @var{proc} @varo{circ} @var{circ} ...
+@deffnx Syntax for-each*/stx @var{proc} @varo{circ} @var{circ} ...
+This procedure extends the @rnrs{6} specification for @func{for-each} to
+allow the arguments to be of unequal length; it terminates when the
+shortest list runs out of elements.
+
+The arguments to @func{for-each*} are like the arguments to @func{map*},
+but @func{for-each*} calls @var{proc} for its side effects rather than
+for its values.  Unlike @func{map*}, @func{for-each*} is guaranteed to
+call @var{proc} on the elements of the lists in order from the first
+element(s) to the last, and the value returned by @func{for-each*} is
+unspecified.
+
+@example
+(let ((v (make-vector 5)))
+  (for-each*
+       (lambda (i)
+         (vector-set! v i (* i i)))
+    '(0 1 2 3 4))
+  v)
+@result{} #(0 1 4 9 16)
+@end example
+
+At least one of the list arguments must be a finite list.
+@end deffn
+
+
+@deffn Function pair-for-each @var{f} @varo{ell} @var{ell} ...
+@deffnx Syntax pair-for-each/stx @var{f} @varo{ell} @var{ell} ...
+Like @func{for-each}, but @var{f} is applied to successive sublists of
 the argument lists.  That is, @var{f} is applied to the cons cells of
 the lists, rather than the lists' elements.  These applications occur in
 left--to--right order.
@@ -21050,35 +21153,38 @@ is given without altering the sequence of execution.
       (display pair)
       (newline))
   '(a b c))
-; prints
-;    (a b c)
-;    (b c)
-;    (c)
+@print{} (a b c)
+@print{} (b c)
+@print{} (c)
+@end example
+
+The list arguments must have equal length.
+@end deffn
+
+
+@deffn Function pair-for-each* @var{f} @varo{circ} @var{circ} ...
+@deffnx Syntax pair-for-each*/stx @var{f} @varo{circ} @var{circ} ...
+Like @func{for-each*}, but @var{f} is applied to successive sublists of
+the argument lists.  That is, @var{f} is applied to the cons cells of
+the lists, rather than the lists' elements.  These applications occur in
+left--to--right order.
+
+The @var{f} procedure may reliably apply @func{set-cdr!} to the pairs it
+is given without altering the sequence of execution.
+
+@example
+(pair-for-each*
+    (lambda (pair)
+      (display pair)
+      (newline))
+  '(a b c))
+@print{} (a b c)
+@print{} (b c)
+@print{} (c)
 @end example
 
 At least one of the list arguments must be a finite list.
 @end deffn
-
-
-@deffn Function filter-map @var{f} @var{clist1} @var{clist2} ...
-@deffnx Syntax filter-map/stx @var{f} @var{clist1} @var{clist2} ...
-Like @func{map}, but only true values are saved.
-
-@example
-(filter-map
-    (lambda (x)
-      (and (number? x)
-           (* x x)))
-  '(a 1 b 3 c 7))
-@result{} (1 9 49)
-@end example
-
-The dynamic order in which the various applications of @var{f} are made
-is not specified.
-
-At least one of the list arguments must be finite.
-@end deffn
-
 
 @c page
 @node lists filter
@@ -21088,49 +21194,48 @@ At least one of the list arguments must be finite.
 @cindex List filtering
 
 
-@defun filter @var{pred} @var{list}
-@defunx filter! @var{pred} @var{list}
-Return all the elements of @var{list} that satisfy predicate @var{pred}.
-The list is not disordered: elements that appear in the result list
-occur in the same order as they occur in @var{list}.  The returned list
-may share a common tail with @var{list}.  The dynamic order in which the
-various applications of @var{pred} are made is not specified.
+@defun filter! @var{pred} @var{ell}
+Return all the elements of @var{ell} that satisfy the predicate
+@var{pred}.  The list is not disordered: Elements that appear in the
+result list occur in the same order as they occur in @var{ell}.  The
+returned list may share a common tail with @var{ell}.  The dynamic order
+in which the various applications of @var{pred} are made is not
+specified.
 
 @example
-(filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)
+(filter! even? '(0 7 8 8 43 -4))
+@result{} (0 8 8 -4)
 @end example
 
-@func{filter!} is the linear--update variant of @func{filter}.  It is
-allowed, but not required, to alter the cons cells in @var{list} to
-construct the result lists.
+@func{filter!} may alter the cons cells in @var{ell} to construct the
+result lists.  Notice that @func{filter} is exported by
+@rsixlibrary{list}.  @ref{stdlib list, List utilities}
 @end defun
 
 
-@defun partition @var{pred} @var{list}
-@defunx partition! @var{pred} @var{list}
-Partition the elements of @var{list} with predicate @var{pred}, and
+@defun partition! @var{pred} @var{ell}
+Partition the elements of @var{ell} with predicate @var{pred}, and
 return two values: the list of in--elements and the list of
-out--elements.  The list is not disordered: elements occur in the result
-lists in the same order as they occur in @var{list}.  The dynamic order
+out--elements.  The list is not disordered: Elements occur in the result
+lists in the same order as they occur in @var{ell}.  The dynamic order
 in which the various applications of @var{pred} are made is not
 specified.  One of the returned lists may share a common tail with
-@var{list}.
+@var{ell}.
 
 @example
-(partition symbol? '(one 2 3 four five 6))
-  => (one four five)
-     (2 3 6)
+(partition! symbol? '(one 2 3 four five 6))
+@result{} (one four five) (2 3 6)
 @end example
 
-@func{partition!} is the linear--update variant of @func{partition}.
-It is allowed, but not required, to alter the cons cells in @var{list}
-to construct the result lists.
+@func{partition!} may alter the cons cells in @var{ell} to construct the
+result lists.  Notice that @func{partition} is exported by
+@rsixlibrary{list}.  @ref{stdlib list, List utilities}
 @end defun
 
 
-@defun remove* @var{pred} @var{list}
-@defunx remove*! @var{pred} @var{list}
-Return @var{list} without the elements that satisfy predicate
+@defun remove* @var{pred} @var{ell}
+@defunx remove*! @var{pred} @var{ell}
+Return @var{ell} without the elements that satisfy predicate
 @var{pred}:
 
 @example
@@ -21140,20 +21245,21 @@ Return @var{list} without the elements that satisfy predicate
           list))
 @end example
 
-The list is not disordered: elements that appear in the result list
-occur in the same order as they occur in @var{list}.  The returned list
-may share a common tail with @var{list}.  The dynamic order in which the
+The list is not disordered: Elements that appear in the result list
+occur in the same order as they occur in @var{ell}.  The returned list
+may share a common tail with @var{ell}.  The dynamic order in which the
 various applications of pred are made is not specified.
 
 @example
-(remove* even? '(0 7 8 8 43 -4)) => (7 43)
+(remove* even? '(0 7 8 8 43 -4)) @result{} (7 43)
 @end example
 
-@func{remove*!} is the linear--update variant of @func{remove*}.  It is
-allowed, but not required, to alter the cons cells in @var{list} to
+@func{remove*!}  is allowed to alter the cons cells in @var{ell} to
 construct the result lists.
-@end defun
 
+Notice that @rsixlibrary{lists} exports @func{remove}, which accepts a
+Scheme object as first argument.  @ref{stdlib list, List utilities}
+@end defun
 
 @c page
 @node lists search
@@ -21164,124 +21270,66 @@ construct the result lists.
 @cindex Searching in lists
 
 
-The following procedures all search lists for a leftmost element
-satisfying some criteria.  This means they do not always examine the
+The following procedures search lists for the leftmost elements
+satisfying some criteria; this means they do not always examine the
 entire list; thus, there is no efficient way for them to reliably detect
 and signal an error when passed a dotted or circular list.  Here are the
 general rules describing how these procedures work when applied to
 different kinds of lists:
 
 @table @emph
-@item proper lists
+@item Proper lists
 The standard, canonical behavior happens in this case.
 
-@item dotted lists
+@item Dotted lists
 It is an error to pass these procedures a dotted list that does not
 contain an element satisfying the search criteria.  That is, it is an
 error if the procedure has to search all the way to the end of the
-dotted list.
+dotted list.  In this case the result is undefined.
 
-However, this @srfi{} does not specify anything at all about the
-behavior of these procedures when passed a dotted list containing an
-element satisfying the search criteria.  It may finish successfully,
-signal an error, or perform some third action.
-
-Different implementations may provide different functionality in this
-case; code which is compliant with this @srfi{} may not rely on any
-particular behavior.  Future @srfi{}'s may refine @ansrfi{1} to define
-specific behavior in this case.
-
-In brief, @ansrfi{1} compliant code may not pass a dotted list argument to
-these procedures.
-
-@item circular lists
+@item Circular lists
 It is an error to pass these procedures a circular list that does not
 contain an element satisfying the search criteria.  Note that the
-procedure is not required to detect this case; it may simply diverge.
-It is, however, acceptable to search a circular list if the search is
+procedures do not detect this case, they will simply diverge.  It is,
+however, acceptable to search a circular list if the search is
 successful; that is, if the list contains an element satisfying the
 search criteria.
 @end table
 
 
-@defun find-tail @var{pred} @var{clist}
-Return the first pair of @var{clist} whose car satisfies @var{pred}.  If
-no pair does, return @false{}.
-
-@func{find-tail} can be viewed as a general--predicate variant of the
-@func{member*} function.
-
-Examples:
+@defun take-while @var{pred} @var{circ}
+@defunx take-while! @var{pred} @var{circ}
+Return the longest initial prefix of @var{circ} whose elements all
+satisfy @var{pred}.  @func{take-while!} is allowed to alter the argument
+list to produce the result.
 
 @example
-(find-tail even? '(3 1 37 -8 -5 0 0)) => (-8 -5 0 0)
-(find-tail even? '(3 1 37 -5)) => #f
-
-;; MEMBER* X LIS:
-(find-tail (lambda (elt) (equal? x elt)) lis)
-@end example
-
-In the circular--list case, this procedure ``rotates'' the list.
-
-@func{find-tail} is essentially @func{drop-while}, where the sense of
-the predicate is inverted: @func{find-tail} searches until it finds an
-element satisfying the predicate; @func{drop-while} searches until it
-finds an element that doesn't satisfy the predicate.
-
-@quotation
-@emph{Note:} the @func{find} defined by @rnrs{6} has an ambiguity in its
-lookup semantics: if @func{find} returns @false{}, we cannot tell (in
-general) if it found a @false{} element that satisfied @var{pred}, or if
-it did not find any element at all.
-
-In many situations, this ambiguity cannot arise: either the list being
-searched is known not to contain any @false{} elements, or the list is
-guaranteed to have an element satisfying @var{pred}.
-
-However, in cases where this ambiguity can arise, we should use
-@func{find-tail} instead of @func{find}, @func{find-tail} has no such
-ambiguity.
-@end quotation
-@end defun
-
-
-@defun take-while @var{pred} @var{clist}
-@defunx take-while! @var{pred} @var{clist}
-Return the longest initial prefix of @var{clist} whose elements all
-satisfy the predicate @var{pred}.
-
-@func{take-while!} is the linear--update variant.  It is allowed, but
-not required, to alter the argument list to produce the result.
-
-Example:
-
-@example
-(take-while even? '(2 18 3 10 22 9)) => (2 18)
+(take-while even? '(2 18 3 10 22 9))
+@result{} (2 18)
 @end example
 @end defun
 
 
-@defun drop-while @var{pred} @var{clist}
-Drops the longest initial prefix of @var{clist} whose elements all
-satisfy the predicate @var{pred}, and returns the rest of the list.
-
-Example:
+@defun drop-while @var{pred} @var{circ}
+Drop the longest initial prefix of @var{circ} whose elements all satisfy
+@var{pred} and return the rest of the list.
 
 @example
-(drop-while even? '(2 18 3 10 22 9)) => (3 10 22 9)
+(drop-while even? '(2 18 3 10 22 9))
+@result{} (3 10 22 9)
 @end example
 
 The circular--list case may be viewed as ``rotating'' the list.
 @end defun
 
 
-@defun span @var{pred} @var{clist}
-@defunx span! @var{pred} @var{list}
-@defunx break @var{pred} @var{clist}
-@defunx break! @var{pred} @var{list}
+@defun span @var{pred} @var{circ}
+@defunx span! @var{pred} @var{ell}
+@defunx break @var{pred} @var{circ}
+@defunx break! @var{pred} @var{ell}
 @func{span} splits the list into the longest initial prefix whose
-elements all satisfy @var{pred}, and the remaining tail.  @func{break}
-inverts the sense of the predicate: the tail commences with the first
+elements all satisfy @var{pred} and the remaining tail.  @func{break}
+inverts the sense of the predicate: The tail commences with the first
 element of the input list that satisfies the predicate.
 
 In other words: @func{span} finds the intial span of elements satisfying
@@ -21295,160 +21343,205 @@ satisfying @var{pred}.
         (drop-while pred clist))
 @end example
 
-@func{span!} and @func{break!} are the linear--update variants.  They
-are allowed, but not required, to alter the argument list to produce the
-result.
-
-Examples:
+@func{span!} and @func{break!} are allowed to alter the argument list to
+produce the result.
 
 @example
 (span even? '(2 18 3 10 22 9))
-  => (2 18)
-     (3 10 22 9)
+@result{} (2 18) (3 10 22 9)
 
 (break even? '(3 1 4 1 5 9))
-  => (3 1)
-     (4 1 5 9)
+@result{} (3 1) (4 1 5 9)
 @end example
 @end defun
 
 
-@defun any @var{pred} @var{clist1} @var{clist2} ...
+@defun any @var{pred} @varo{ell} @var{ell} ...
+@defunx any* @var{pred} @varo{circ} @var{circ} ...
 Apply the predicate across the lists, returning true if the predicate
-returns true on any application.
+returns true on any application.  If there are @math{N} list arguments,
+then @var{pred} must be a procedure taking @math{N} arguments and
+returning a boolean result.  If all the list arguments are empty: The
+return value is @false{}.
 
-If there are @math{n} list arguments @var{clist1} ... @var{clistn}, then
-@var{pred} must be a procedure taking @math{n} arguments and returning a
-boolean result.
+The list arguments of @func{any} must have the same length; @func{any*}
+accepts lists of different length.
 
-The all the list arguments are empty: The return value is @false{}.
-
-@func{any} applies @var{pred} to the first elements of the @var{clisti}
-parameters.  If this application returns a true value, @func{any}
-immediately returns that value.  Otherwise, it iterates, applying pred
-to the second elements of the @var{clisti} parameters, then the third,
-and so forth.  The iteration stops when a true value is produced or one
-of the lists runs out of values; in the latter case, @func{any} returns
-@false{}.  The application of @var{pred} to the last element of the
-lists is a tail call.
+@func{any} applies @var{pred} to the first elements of the list
+arguments, if this application return true, @func{any} immediately
+returns that value; otherwise, it iterates, applying pred to the second
+elements of the lits arguments and so forth.  The iteration stops when a
+true value is produced or one of the lists runs out of values; in the
+latter case, @func{any} returns @false{}.  The application of @var{pred}
+to the last element of the lists is a tail call.
 
 Note the difference between @func{find} and @func{any}: @func{find}
 returns the element that satisfied the predicate; @func{any} returns the
 true value that the predicate produced.
 
-Like @func{every}, @func{any}'s name does not end with a question mark:
-this is to indicate that it does not return a simple boolean (@true{} or
-@false{}), but a general value.
-
-Examples:
+The identifier @func{any} does not end with a question mark: This is to
+indicate that it does not return a simple boolean (@true{} or @false{}),
+but a general value.
 
 @example
-(any integer? '(a 3 b 2.7))   => #t
-(any integer? '(a 3.1 b 2.7)) => #f
+(any integer? '(a 3 b 2.7))
+@result{} #t
+
+(any integer? '(a 3.1 b 2.7))
+@result{} #f
+
 (any < '(3 1 4 1 5)
-       '(2 7 1 8 2)) => #t
+       '(2 7 1 8 2))
+@result{} #t
 @end example
 @end defun
 
 
-@defun every @var{pred} @var{clist1} @var{clist2} ...
+@defun every @var{pred} @varo{ell} @var{ell} ...
+@defunx every* @var{pred} @varo{circ} @var{circ} ...
 Apply the predicate across the lists, returning true if the predicate
-returns true on every application.
+returns true on every application.  If there are @math{N} list
+arguments, then @var{pred} must be a procedure taking @math{N} arguments
+and returning a boolean result.  If all the list arguments are empty:
+The return value is @true{}.
 
-If there are n list arguments @var{clist1} ... @var{clistn}, then
-@var{pred} must be a procedure taking n arguments and returning a
-boolean result.
+The list arguments of @func{every} must have the same length;
+@func{every*} accepts lists of different length.
 
-The all the list arguments are empty: The return value is @true{}.
+@func{every} applies @var{pred} to the first elements of the list
+arguments, if this application returns @false{}, @func{every}
+immediately returns @false{}; otherwise, it iterates, applying
+@var{pred} to the second elements of the list arguments and so forth.
+The iteration stops when a @false{} value is produced or one of the
+lists runs out of values.  In the latter case, @func{every} returns the
+true value produced by its final application of @var{pred}.  The
+application of @var{pred} to the last element of the lists is a tail
+call.
 
-@func{every} applies @var{pred} to the first elements of the
-@var{clisti} parameters.  If this application returns @false{},
-@func{every} immediately returns @false{}.  Otherwise, it iterates,
-applying @var{pred} to the second elements of the @var{clisti}
-parameters, then the third, and so forth.  The iteration stops when a
-@false{} value is produced or one of the lists runs out of values.  In
-the latter case, @func{every} returns the true value produced by its
-final application of @var{pred}.  The application of @var{pred} to the
-last element of the lists is a tail call.
+If one of the list arguments has no elements, @func{every} simply
+returns @true{}.
 
-If one of the @var{clisti} has no elements, @func{every} simply returns
-@true{}.
-
-Like @func{any}, @func{every}'s name does not end with a question mark:
-this is to indicate that it does not return a simple boolean (@true{} or
+The identifier @func{every} does not end with a question mark: This is
+to indicate that it does not return a simple boolean (@true{} or
 @false{}), but a general value.
 @end defun
 
 
-@defun list-index @var{pred} @var{clist1} @var{clist2} ...
-Return the index of the leftmost element that satisfies @var{pred}.
+@defun list-index @var{pred} @varo{ell} @var{ell} ...
+@defunx list-index* @var{pred} @varo{circ} @var{circ} ...
+Return the index of the leftmost element that satisfies @var{pred}.  If
+there are @math{N} list arguments, then @var{pred} must be a function
+taking @math{N} arguments and returning a boolean result.
 
-If there are n list arguments, then @var{pred} must be a function taking
-n arguments and returning a boolean result.
+The list arguments of @func{list-index} must have the same length;
+@func{list-index*} accepts lists of different length.
 
-@func{list-index} applies @var{pred} to the first elements of the
-@var{clisti} parameters.  If this application returns true,
-@func{list-index} immediately returns zero.  Otherwise, it iterates,
-applying @var{pred} to the second elements of the @var{clisti}
-parameters, then the third, and so forth.  When it finds a tuple of list
-elements that cause @var{pred} to return true, it stops and returns the
-zero--based index of that position in the lists.
+@func{list-index} applies @var{pred} to the first elements of the list
+arguments, if this application returns true, @func{list-index}
+immediately returns zero; otherwise, it iterates, applying @var{pred} to
+the second elements of the list arguments and so forth.  When it finds a
+tuple of list elements that cause @var{pred} to return true, it stops
+and returns the zero--based index of that position in the lists.
 
 The iteration stops when one of the lists runs out of values; in this
 case, @func{list-index} returns @false{}.
 
-Examples:
-
 @example
-(list-index even? '(3 1 4 1 5 9)) => 2
-(list-index < '(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2)) => 1
-(list-index = '(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2)) => #f
+(list-index even? '(3 1 4 1 5 9))
+@result{} 2
+
+(list-index < '(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2))
+@result{} 1
+
+(list-index = '(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2))
+@result{} #f
 @end example
 @end defun
 
 
-@defun member* @var{x} @var{list}
-@defunx member* @var{x} @var{list} @var{=}
-Return the first sublist of @var{list} whose car is @var{x}, where the
-sublists of list are the non--empty lists returned by @code{(drop list
-i)} for @var{i} less than the length of @var{list}.  If @var{x} does not
-occur in @var{list}, then @false{} is returned.
+@defun position @var{obj} @var{ell}
+@defunx position/stx @var{obj} @var{ell}
+Return the index of the leftmost @var{obj} in @var{ell}.  If @var{obj}
+is not present in @var{ell}, return @false{}.
+@end defun
+
+
+@defun member* @var{obj} @var{ell}
+@defunx member* @var{obj} @var{ell} @var{item=}
+Return the first sublist of @var{ell} whose car is @var{obj}, where the
+sublists of @var{ell} are the non--empty lists returned by @code{(drop
+ell i)} for @var{i} less than the length of @var{ell}.  If @var{obj}
+does not occur in @var{ell}, then @false{} is returned.
 
 Examples:
 
 @example
 (member* '(a) '(b (a) c))
-=> ((a) c)
+@result{} ((a) c)
 @end example
 
 @func{member*} extends the @rnrs{6} definition of @func{member} to allow
-the client to pass in an optional equality procedure @var{=} used to
-compare keys.  @var{=} defaults to @func{equal?}.
+the client to pass in an optional equality procedure @var{item=} used to
+compare keys.  @var{item=} defaults to @func{equal?}.
 
-The comparison procedure is used to compare the elements @var{ei} of
-list to the key @var{x} in this way:
+The comparison procedure is used to compare the elements @math{Ei} of
+list to the key @var{obj} in this way:
 
 @example
 (= x ei) ; list is (E1 ... En)
 @end example
 
 @noindent
-that is, the first argument is always @var{x}, and the second argument
+that is, the first argument is always @var{obj}, and the second argument
 is one of the list elements.  Thus one can reliably find the first
 element of list that is greater than five with:
 
 @example
-(member* 5 list <)
+(member* 5 ell <)
 @end example
 
 Note that fully general list searching may be performed with the
-@func{find-tail} and @func{find} procedures:
-
-@example
-(find-tail even? list) ; Find the first elt with an even key.
-@end example
+@func{find-tail} and @func{find} procedures.
 @end defun
 
+
+@defun find-tail @var{pred} @var{circ}
+Return the first pair of @var{circ} whose car satisfies @var{pred}.  If
+no pair does, return @false{}.  @func{find-tail} can be viewed as a
+general--predicate variant of the @func{member*} function.
+
+Examples:
+
+@example
+(find-tail even? '(3 1 37 -8 -5 0 0))
+@result{} (-8 -5 0 0)
+
+(find-tail even? '(3 1 37 -5))
+@result{} #f
+@end example
+
+In the circular--list case, this procedure ``rotates'' the list.
+
+@func{find-tail} is essentially @func{drop-while}, where the sense of
+the predicate is inverted: @func{find-tail} searches until it finds an
+element satisfying the predicate; @func{drop-while} searches until it
+finds an element that doesn't satisfy the predicate.
+
+@quotation
+@emph{Note:} The @func{find} function defined by @rnrs{6} has an
+ambiguity in its lookup semantics: if @func{find} returns @false{}, we
+cannot tell (in general) if it found a @false{} element that satisfied
+@var{pred}, or if it did not find any element at all.
+
+In many situations, this ambiguity cannot arise: either the list being
+searched is known not to contain any @false{} elements, or the list is
+guaranteed to have an element satisfying @var{pred}.
+
+However, in cases where this ambiguity can arise, we should use
+@func{find-tail} instead of @func{find}, @func{find-tail} has no such
+ambiguity.
+@end quotation
+@end defun
 
 @c page
 @node lists delete
@@ -21458,78 +21551,65 @@ Note that fully general list searching may be performed with the
 @cindex List deletion
 
 
-@defun delete @var{x} @var{list} [@var{=}]
-@defunx delete! @var{x} @var{list} [@var{=}]
-Use the comparison procedure @var{=} (which defaults to @func{equal?})
-to find all elements of list that are equal to @var{x}, and delete them
-from @var{list}.  The dynamic order in which the various applications of
-@var{=} are made is not specified.
+@defun delete @var{obj} @var{ell}
+@defunx delete @var{obj} @var{ell} @var{item=}
+@defunx delete! @var{obj} @var{ell}
+@defunx delete! @var{obj} @var{ell} @var{item=}
+Use the comparison procedure @var{item=} (which defaults to
+@func{equal?})  to find all the elements of @var{ell} that are equal to
+@var{obj}, and delete them from @var{ell}.  The dynamic order in which
+the various applications of @var{item=} are made is not specified.
 
-The list is not disordered: elements that appear in the result list
-occur in the same order as they occur in the argument list.  The result
-may share a common tail with the argument list.
+The list is not disordered: Elements that appear in the result list
+occur in the same order as they occur in @var{ell}.  The result may
+share a common tail with @var{ell}.
 
 Note that fully general element deletion can be performed with the
-@func{remove} and @func{remove!} procedures:
+@func{remove} and @func{remove!} procedures.
 
-@example
-;; Delete all the even elements from LIS:
-(remove even? lis)
-@end example
-
-The comparison procedure is used in this way: @code{(= x ei)}; that is,
-@var{x} is always the first argument, and a list element is always the
+The comparison procedure is used as @code{(item= obj Ei)}, that is:
+@var{obj} is always the first argument and a list element is always the
 second argument.  The comparison procedure will be used to compare each
 element of list exactly once; the order in which it is applied to the
-various @var{ei} is not specified.  Thus, one can reliably remove all
-the numbers greater than 5 from a list with @code{(delete 5 list <)}.
+various @math{Ei} is not specified.  Thus, one can reliably remove all
+the numbers greater than 5 from a list with @code{(delete 5 ell <)}.
 
-@func{delete!} is the linear--update variant of @func{delete}.  It is
-allowed, but not required, to alter the cons cells in its argument list
-to construct the result.
+@func{delete!} is allowed to alter the cons cells in @var{ell} to
+construct the result.
 @end defun
 
 
-@defun delete-duplicates @var{list} [@var{=}]
-@defunx {delete-duplicates!} @var{list} [@var{=}]
-Remove duplicate elements from the list argument.  If there are multiple
-equal elements in @var{list}, the result list only contains the first or
+@defun delete-duplicates @var{ell}
+@defunx delete-duplicates @var{ell} @var{item=}
+@defunx {delete-duplicates!} @var{ell}
+@defunx {delete-duplicates!} @var{ell} @var{item=}
+Remove duplicate elements from @var{ell}.  If there are multiple equal
+elements in @var{ell}, the result list only contains the first or
 leftmost of these elements in the result.  The order of these surviving
 elements is the same as in the original list: @func{delete-duplicates}
 does not disorder the list (hence it is useful for ``cleaning up''
 association lists).
 
-The @var{=} parameter is used to compare the elements of the list; it
-defaults to @func{equal?}.  If @var{x} comes before @var{y} in
-@var{list}, then the comparison is performed @code{(= x y)}.  The
+The @var{item=} parameter is used to compare the elements of the list;
+it defaults to @func{equal?}.  If @math{x} comes before @math{y} in
+@var{ell}, then the comparison is performed as @code{(item= x y)}.  The
 comparison procedure will be used to compare each pair of elements in
-list no more than once; the order in which it is applied to the various
-pairs is not specified.
+@var{ell} no more than once; the order in which it is applied to the
+various pairs is not specified.
 
-Implementations of @func{delete-duplicates} are allowed to share common
-tails between argument and result lists; for example, if the list
-argument contains only unique elements, it may simply return exactly
-this list.
+The list argument may share a common tail with the returned list.
 
-Be aware that, in general, @func{delete-duplicates} runs in time O(n2)
-for n--element lists.  Uniquifying long lists can be accomplished in O(n
-lg n) time by sorting the list to bring equal elements together, then
-using a linear--time algorithm to remove equal elements.  Alternatively,
-one can use algorithms based on element--marking, with linear--time
-results.
-
-@func{delete-duplicates!} is the linear--update variant of
-@func{delete-duplicates}; it is allowed, but not required, to alter the
-cons cells in its argument list to construct the result.
+@func{delete-duplicates!}  is allowed to alter the cons cells in its
+argument list to construct the result.
 
 @example
-(delete-duplicates '(a b a c a b c z)) => (a b c z)
+(delete-duplicates '(a b a c a b c z)) @result{} (a b c z)
 
 ;; Clean up an alist:
 (delete-duplicates '((a . 3) (b . 7) (a . 9) (c . 1))
                    (lambda (x y)
                      (eq? (car x) (car y))))
-  => ((a . 3) (b . 7) (c . 1))
+@result{} ((a . 3) (b . 7) (c . 1))
 @end example
 @end defun
 
@@ -21538,30 +21618,29 @@ cons cells in its argument list to construct the result.
 @section Utilities for sorted lists
 
 
-@defun sorted-list-insert @var{item} @var{list} @var{item>}
-Build a new list holding the same arguments of @var{list}, a list sorted
-in increasing order, and @var{item} inserted in such a position that the
+@defun sorted-list-insert @var{obj} @var{ell} @var{item>}
+Build a new list holding the same arguments of @var{ell}, a list sorted
+in increasing order, and @var{obj} inserted in such a position that the
 order is preserved.  The returned list may share structure with
-@var{list}.
+@var{ell}.
 
 @var{item>} must be a predicate accepting two arguments and returning
-true if the first is greater than the second.
-
-If @var{item} is equal to one of the items in @var{list}: @var{item} is
-added before the item from @var{list}.
+true if the first is greater than the second.  If @var{obj} is equal to
+one of the items in @var{ell}: @var{obj} is added before the item from
+@var{ell}.
 @end defun
 
 
-@defun sorted-list-insert/uniq @var{item} @var{list} @var{item<} @var{item>}
-Like @func{sorted-list-insert}, buth if @var{item} is equal to one of
-the items in @var{list}: @var{item} is discarded, and @var{list} it self
-is returned.
+@defun sorted-list-insert/uniq @var{obj} @var{ell} @var{item<} @var{item>}
+Like @func{sorted-list-insert}, but if @var{obj} is equal to one of the
+items in @var{ell}: @var{obj} is discarded, and @var{ell} it self is
+returned.
 @end defun
 
 
-@defun union-of-sorted-lists @var{list1} @var{list2} @var{item<} @var{item>}
+@defun union-of-sorted-lists @var{ell1} @var{ell2} @var{item<} @var{item>}
 Build a new list representing the union of the lists arguments.
-@var{list1} and @var{list2} are interpreted as lists sorted in
+@var{ell1} and @var{ell2} are interpreted as lists sorted in
 increasing order, and the result of the union is a sorted list.  The
 returned list may share structure with the list arguments.
 
@@ -21570,14 +21649,14 @@ and returning true if the first is less than/greater than the second.
 
 When both @var{item<} and @var{item>} return @false{}, the two items are
 considered equal; in this case all the equal items are added to the
-result, in such a way that the items from @var{list1} all come before
-the items from @var{list2}.
+result, in such a way that the items from @var{ell1} all come before
+the items from @var{ell2}.
 @end defun
 
 
-@defun union-of-sorted-lists/uniq @var{list1} @var{list2} @var{item<} @var{item>}
+@defun union-of-sorted-lists/uniq @vari{ell} @varii{ell} @var{item<} @var{item>}
 Like @func{union-of-sorted-lists}, but when equal items are found only
-the ones from @var{list1} are added to the result.  Examples:
+the ones from @vari{ell} are added to the result.
 
 @example
 (union-of-sorted-lists/uniq
@@ -21586,7 +21665,7 @@ the ones from @var{list1} are added to the result.  Examples:
   < >)
 @result{} '(0 1 2 3 4 5 8 9 10 11 23)
 ;;     ^
-;; from list1
+;; from ell1
 
 (union-of-sorted-lists/uniq
   '(0 1 1   3)
@@ -21594,7 +21673,7 @@ the ones from @var{list1} are added to the result.  Examples:
   < >)
 @result{} '(0 1 1 2 3 4 5)
 ;;     ^ ^
-;; both from list1
+;; both from ell1
 @end example
 @end defun
 
@@ -21608,47 +21687,36 @@ the ones from @var{list1} are added to the result.  Examples:
 @cindex Alists
 
 
-An ``association list'' (or ``alist'') is a list of pairs.  The car of
-each pair contains a key value, and the cdr contains the associated data
-value.  They can be used to construct simple look--up tables in Scheme.
-Note that association lists are probably inappropriate for
+An @dfn{association list} (or @dfn{alist}) is a list of pairs.  The car
+of each pair contains a key value, and the cdr contains the associated
+data value.  They can be used to construct simple look--up tables in
+Scheme.  Note that association lists are probably inappropriate for
 performance--critical use on large data; in these cases, hash tables or
 some other alternative should be employed.
 
 
-@defun assoc* @var{key} @var{alist} [@var{=}]
-@defunx assq @var{key} @var{alist}
-@defunx assv @var{key} @var{alist}
-@var{alist} must be an association list: a list of pairs.  These
+@defun assoc* @var{key} @var{alist}
+@defunx assoc* @var{key} @var{alist} @var{item=}
+@var{alist} must be an association list: A list of pairs.  These
 procedures find the first pair in @var{alist} whose car field is
 @var{key}, and returns that pair.  If no pair in @var{alist} has
 @var{key} as its car, then @false{} is returned.
 
-@func{assq} uses @func{eq?} to compare @var{key} with the car fields of
-the pairs in @var{alist}, while @func{assv} uses @func{eqv?} and
-@func{assoc*} uses @func{equal?}.
-
-Example:
+The functions use @func{equal?} to compare the keys and they allow the
+client to pass in an optional equality procedure @var{item=} used to
+compare keys.  Notice that @func{assq} and @func{assv} are exported by
+@rsixlibrary{lists}.  @ref{stdlib list, List utilities}
 
 @example
-(define e '((a 1) (b 2) (c 3)))
-(assq 'a e)                            =>  (a 1)
-(assq 'b e)                            =>  (b 2)
-(assq 'd e)                            =>  #f
-(assq (list 'a) '(((a)) ((b)) ((c))))  =>  #f
-(assoc (list 'a) '(((a)) ((b)) ((c)))) =>  ((a))
-(assq 5 '((2 3) (5 7) (11 13)))    =>  *unspecified*
-(assv 5 '((2 3) (5 7) (11 13)))    =>  (5 7)
+(assoc* (list 'a) '(((a)) ((b)) ((c))))
+@result{} ((a))
 @end example
 
-@func{assoc*} allows the client to pass in an optional equality
-procedure @var{=} used to compare keys.
-
-The comparison procedure is used to compare the elements @var{ei} of
+The comparison procedure is used to compare the elements @math{Ei} of
 list to the key parameter in this way:
 
 @example
-(= key (car ei)) ; list is (E1 ... En)
+(item= key (car Ei)) ; list is (E1 ... En)
 @end example
 
 @noindent
@@ -21658,18 +21726,11 @@ of @var{alist} whose @var{key} is greater than five with @code{(assoc* 5
 alist <)}.
 
 Note that fully general alist searching may be performed with the
-@func{find-tail} and @func{find} procedures:
-
-@example
-;; Look up the first association in alist with an even key:
-(find (lambda (a)
-        (even? (car a)))
-      alist)
-@end example
+@func{find-tail} and @func{find} procedures.
 @end defun
 
 
-@defun alist-cons @var{key} @var{datum} @var{alist}
+@defun alist-cons @var{key} @var{obj} @var{alist}
 Defined as:
 
 @example
@@ -21677,8 +21738,8 @@ Defined as:
   (cons (cons key datum) alist))
 @end example
 
-Cons a new alist entry mapping @var{key} to @var{datum} onto
-@var{alist}.
+@noindent
+cons a new alist entry mapping @var{key} to @var{obj} onto @var{alist}.
 @end defun
 
 
@@ -21695,25 +21756,26 @@ forms an association as well as the spine of the list:
 @end defun
 
 
-@defun alist-delete @var{key} @var{alist} [@var{=}]
-@defunx alist-delete! @var{key} @var{alist} [@var{=}]
+@defun alist-delete @var{key} @var{alist}
+@defunx alist-delete @var{key} @var{alist} @var{item=}
+@defunx alist-delete! @var{key} @var{alist}
+@defunx alist-delete! @var{key} @var{alist} @var{item=}
 Delete all associations from @var{alist} with the given @var{key}, using
-the key-comparison procedure @var{=}, which defaults to @func{equal?}.
-The dynamic order in which the various applications of @var{=} are made
-is not specified.
+the key--comparison procedure @var{item=}, which defaults to
+@func{equal?}.  The dynamic order in which the various applications of
+@var{item=} are made is not specified.
 
-Return values may share common tails with the @var{alist} argument.  The
-alist is not disordered: elements that appear in the result alist occur
-in the same order as they occur in @var{alist}.
+The returned value may share common tail with @var{alist}.  The alist is
+not disordered: Elements that appear in the result alist occur in the
+same order as they occur in @var{alist}.
 
-The comparison procedure is used to compare the element keys @var{ki} of
-@var{alist}'s entries to the key parameter in this way: @code{(= key
-ki)}.  Thus, one can reliably remove all entries of @var{alist} whose
-key is greater than five with @code{(alist-delete 5 alist <)}.
+The comparison procedure is used to compare the element keys @math{Ki}
+of @var{alist}'s entries to the @var{key} argumentd as @code{(item= key
+Ki)}; thus, one can reliably remove all entries of @var{alist} whose key
+is greater than five with @code{(alist-delete 5 alist <)}.
 
-@func{alist-delete!} is the linear--update variant of
-@func{alist-delete}; it is allowed, but not required, to alter cons
-cells from the alist parameter to construct the result.
+@func{alist-delete!} is allowed to alter cons cells from the alist
+parameter to construct the result.
 @end defun
 
 @c page
@@ -21725,31 +21787,33 @@ cells from the alist parameter to construct the result.
 
 @deffn Function circular-list @vari{obj} @varii{obj} ...
 @deffnx Syntax circular-list/stx @vari{obj} @varii{obj} ...
-Construct a circular list of the elements.
+Construct a circular list (a ring) of the elements.
 
 @example
-(circular-list 'z 'q) @result{} (z q z q z q ...)
+(circular-list 'z 'q)
+@result{} (z q z q z q ...)
 @end example
 @end deffn
 
 
-@deffn Function list->circular-list! @var{list}
-@deffnx Syntax list->circular-list!/stx @var{list}
-Take a proper list and make it circular.  Return the circular list.
+@deffn Function list->circular-list! @var{ell}
+@deffnx Syntax list->circular-list!/stx @var{ell}
+Take a proper list and make it circular (a ring).  Return the circular
+list.
 @end deffn
 
 
-@deffn Function circular-list->list! @var{clist}
-@deffnx Function circular-list->list!/stx @var{clist}
+@deffn Function circular-list->list! @var{circ}
+@deffnx Function circular-list->list!/stx @var{circ}
 Take a circular list and ``open it'' returning a proper list.  The car
-of the returned list is the car of @var{clist}.  If @var{clist} is null,
+of the returned list is the car of @var{circ}.  If @var{circ} is null,
 return null.
 @end deffn
 
 
-@deffn Function circular-list-copy @var{clist}
-@deffnx Syntax circular-list-copy/stx @var{clist}
-Build and return a copy of @var{clist}.  If @var{clist} is null, return
+@deffn Function circular-list-copy @var{circ}
+@deffnx Syntax circular-list-copy/stx @var{circ}
+Build and return a copy of @var{circ}.  If @var{circ} is null, return
 null.
 @end deffn
 
@@ -21757,11 +21821,11 @@ null.
 
 @subsubheading Inspection
 
-@deffn Function circular-list-length @var{clist}
-@deffnx Syntax circular-list-length/stx @var{clist}
-Return the number of elements in @var{clist}.  The length of a circular
-list is a non--negative exact integer @math{n} such that: @func{cdr}
-applied @math{n} times to @var{clist}, returns the @var{clist} pair
+@deffn Function circular-list-length @var{circ}
+@deffnx Syntax circular-list-length/stx @var{circ}
+Return the number of elements in @var{circ}.  The length of a circular
+list is a non--negative exact integer @math{N} such that: @func{cdr}
+applied @math{N} times to @var{circ}, returns the @var{circ} pair
 itself.
 @end deffn
 
@@ -21769,12 +21833,12 @@ itself.
 
 @subsubheading Comparison
 
-@deffn Function circular-list= @var{=} @vari{clist} ...
-@deffnx Function circular-list=/stx @var{=} @vari{clist} @varii{clist}
-Compare the list arguments using @var{=}, return true if the lists are
-equal.  If all the list arguments are null, return @true{}.  If at least
-one list arguments i null, but not all, return @false{}.  If the list
-arguments have different length, return @false{}.
+@deffn Function circular-list= @var{item=} @var{clist} ...
+@deffnx Function circular-list=/stx @var{item=} @vari{clist} @varii{clist}
+Compare the list arguments using @var{item=}, return true if the lists
+are equal.  If all the list arguments are null, return @true{}.  If at
+least one list arguments is null, but not all, return @false{}.  If the
+list arguments have different length, return @false{}.
 @end deffn
 
 @c page
@@ -21787,91 +21851,91 @@ arguments have different length, return @false{}.
 
 
 These procedures implement operations on sets represented as lists of
-elements.  They all take an @var{=} argument used to compare elements of
-lists.  This equality procedure is required to be consistent with
-@func{eq?}.  That is, it must be the case that:
+elements.  They all take an @var{item=} argument used to compare
+elements of lists; this equality procedure is required to be consistent
+with @func{eq?}; that is, it must be the case that:
 
 @example
-(eq? x y) => (= x y)
+(eq? x y) @result{} (= x y)
 @end example
 
 Note that this implies, in turn, that two lists that are @func{eq?} are
 also set--equal by any legal comparison procedure.  This allows for
 constant--time determination of set operations on @func{eq?} lists.
 
-Be aware that these procedures typically run in time O(n * m) for n--
-and m--element list arguments.  Performance--critical applications
-operating upon large sets will probably wish to use other data
-structures and algorithms.
+Be aware that these procedures typically run in time @math{O(n * m)} for
+@math{n} and @math{m} elements list arguments.  Performance--critical
+applications operating upon large sets will probably wish to use other
+data structures and algorithms.
 
 
-@defun lset<=? @var{=} @var{list1} ...
-Return true if, and only if, every @var{listi} is a subset of
-@var{listi+1}, using @var{=} for the element--equality procedure.  List
-@var{AL} is a subset of list @var{BL} if every element in @var{AL} is
-equal to some element of @var{BL}.  When performing an element
-comparison, the @var{=} procedure's first argument is an element of
-@var{AL}, its second argument an element of @var{BL}.
-
-Examples:
+@defun lset<=? @var{item=} @var{ell} ...
+Return true if, and only if, every @var{elli} is a subset of
+@var{elli+1}.  List @var{AL} is a subset of list @var{BL} if every
+element in @var{AL} is equal to some element of @var{BL}.  When
+performing an element comparison, the @var{item=} procedure's first
+argument is an element of @var{AL}, its second argument an element of
+@var{BL}.
 
 @example
-(lset<=? eq? '(a) '(a b a) '(a b c c)) => #t
+(lset<=? eq? '(a) '(a b a) '(a b c c))
+@result{} #t
 
-(lset<=? eq?) => #t             ; Trivial cases
-(lset<=? eq? '(a)) => #t
+(lset<=? eq?)
+@result{} #t
+
+(lset<=? eq? '(a))
+@result{} #t
 @end example
 
 If invoked with all null lists, the return value is @true{}.
 @end defun
 
 
-@defun lset=? @var{=} @var{list1} @var{list2} ...
-Return true if, and only if, every @var{listi} is set--equal to
-@var{listi+1}, using @var{=} for the element--equality procedure.
-``Set--equal'' simply means that @var{listi} is a subset of
-@var{listi+1}, and @var{listi+1} is a subset of @var{listi}.  The
-@var{=} procedure's first argument is an element of @var{listi}, its
-second argument is an element of @var{listi+1}.
-
-Examples:
+@defun lset=? @var{item=} @var{ell} ...
+Return true if, and only if, every @var{elli} is set--equal to
+@var{elli+1}.  ``Set--equal'' simply means that @var{elli} is a subset
+of @var{elli+1}, and @var{elli+1} is a subset of @var{elli}.  The
+@var{item=} procedure's first argument is an element of @var{elli}, its
+second argument is an element of @var{elli+1}.
 
 @example
-(lset=? eq? '(b e a) '(a e b) '(e e b a)) => #t
+(lset=? eq? '(b e a) '(a e b) '(e e b a))
+@result{} #t
 
-(lset=? eq?) => #t               ; Trivial cases
-(lset=? eq? '(a)) => #t
+(lset=? eq?)
+@result{} #t
+
+(lset=? eq? '(a))
+@result{} #t
 @end example
 @end defun
 
 
-@defun lset-adjoin @var{=} @var{list} @var{elt1} ...
-Add the @var{elti} elements not already in the @var{list} parameter to
-the result list.  The result shares a common tail with the @var{list}
-parameter.  The new elements are added to the front of the list, but no
-guarantees are made about their order.  The @var{=} parameter is an
-equality procedure used to determine if an elti is already a member of
-list.  Its first argument is an element of @var{list}, its second is one
-of the @var{elti}.
+@defun lset-adjoin @var{item=} @varo{ell} @var{ell} ...
+Add the @math{Ei} elements from the @var{ell} ... arguments, not already
+in @varo{ell}, to the result list.  The result shares a common tail with
+the @var{ell} argument.  The new elements are added to the front of the
+list, but no guarantees are made about their order.
 
-The @var{list} parameter is always a suffix of the result; even if the
+@var{item=} is an equality procedure used to determine if an @math{Ei}
+is already a member of @varo{ell}; its first argument is an element of
+@varo{ell}, its second is one of the @math{Ei}.
+
+The @varo{ell} parameter is always a suffix of the result; even if the
 list parameter contains repeated elements, these are not reduced.
-
-Example:
 
 @example
 (lset-adjoin eq? '(a b c d c e) 'a 'e 'i 'o 'u)
-  => (u o i a b c d c e)
+@result{} (u o i a b c d c e)
 @end example
 @end defun
 
 
-@defun lset-union @var{=} @var{list1} ...
-@defunx lset-union! @var{=} @var{list1} ...
-Return the union of the lists, using @var{=} for the element--equality
-procedure.
-
-The union of lists @var{AL} and @var{BL} is constructed as follows:
+@defun lset-union @var{item=} @var{ell} ...
+@defunx lset-union! @var{item=} @var{ell} ...
+Return the union of the lists.  The union of lists @var{AL} and @var{BL}
+is constructed as follows:
 
 @enumerate
 @item
@@ -21885,174 +21949,149 @@ Otherwise, the result is initialised to be list @var{AL} (or a copy of
 @item
 Proceed through the elements of list @var{BL} in a left--to--right
 order.  If @var{b} is such an element of @var{BL}, compare every element
-@var{r} of the current result list to @var{b}: @code{(= r b)}.  If all
-comparisons fail, @var{b} is consed onto the front of the result.
+@var{r} of the current result list to @var{b}: @code{(item= r b)}.  If
+all comparisons fail, @var{b} is consed onto the front of the result.
 @end enumerate
 
-However, there is no guarantee that @var{=} will be applied to every
+However, there is no guarantee that @var{item=} will be applied to every
 pair of arguments from @var{AL} and @var{BL}.  In particular, if
 @var{AL} is @func{eq?} to @var{BL}, the operation may immediately
 terminate.
 
-In the n--ary case, the two--argument @func{list-union} operation is
-simply folded across the argument lists.
-
-Examples:
+In the @math{N}--ary case, the two--argument @func{list-union} operation
+is simply folded across the argument lists.
 
 @example
 (lset-union eq? '(a b c d e) '(a e i o u))
-  => (u o i a b c d e)
+@result{} (u o i a b c d e)
 
-;; Repeated elements in LIST1 are preserved.
-(lset-union eq? '(a a c) '(x a x)) => (x a a c)
+;; Repeated elements in the first argument are preserved.
+(lset-union eq? '(a a c) '(x a x))
+@result{} (x a a c)
 
-;; Trivial cases
-(lset-union eq?) => ()
-(lset-union eq? '(a b c)) => (a b c)
+(lset-union eq?)
+@result{} ()
+
+(lset-union eq? '(a b c))
+@result{} (a b c)
 @end example
 
-@func{lset-union!} is the linear--update variant of @func{lset-union}.
-It is allowed, but not required, to use the cons cells in the first list
-parameter to construct its answer.  @func{lset-union!} is permitted to
+@func{lset-union!} is allowed to use the cons cells in the first list
+parameter to construct its answer; @func{lset-union!} is permitted to
 recycle cons cells from any of its list arguments.
 @end defun
 
 
-@defun lset-intersection @var{=} @var{list1} @var{list2} ...
-@defunx lset-intersection! @var{=} @var{list1} ...
-Return the intersection of the lists, using @var{=} for the
-element--equality procedure.
-
-The intersection of lists @var{AL} and @var{BL} is comprised of every
-element of @var{AL} that is @var{=} to some element of @var{BL}:
-@code{(= a b)}, for @var{a} in @var{AL}, and @var{b} in @var{BL}.  Note
-this implies that an element which appears in @var{BL} and multiple
-times in list @var{AL} will also appear multiple times in the result.
+@defun lset-intersection @var{item=} @varo{ell} @var{ell} ...
+@defunx lset-intersection! @var{item=} @varo{ell} @var{ell} ...
+Return the intersection of the lists.  The intersection of lists
+@var{AL} and @var{BL} is comprised of every element of @var{AL} that is
+@var{item=} to some element of @var{BL}: @code{(item= a b)}, for @var{a}
+in @var{AL}, and @var{b} in @var{BL}.  Note this implies that an element
+which appears in @var{BL} and multiple times in list @var{AL} will also
+appear multiple times in the result.
 
 The order in which elements appear in the result is the same as they
-appear in @var{list1}; that is, @func{lset-intersection} essentially
-filters @var{list1}, without disarranging element order.  The result may
-share a common tail with @var{list1}.
+appear in @varo{ell}; that is, @func{lset-intersection} essentially
+filters @varo{ell}, without disarranging element order.  The result may
+share a common tail with @varo{ell}.
 
-In the n--ary case, the two--argument @func{list-intersection} operation
-is simply folded across the argument lists.  However, the dynamic order
-in which the applications of @var{=} are made is not specified.  The
-procedure may check an element of @var{list1} for membership in every
-other list before proceeding to consider the next element of
-@var{list1}, or it may completely intersect @var{list1} and @var{list2}
-before proceeding to @var{list3}, or it may go about its work in some
-third order.
-
-Examples:
+In the @math{N}--ary case, the two--argument @func{list-intersection}
+operation is simply folded across the argument lists.  However, the
+dynamic order in which the applications of @var{item=} are made is not
+specified.
 
 @example
 (lset-intersection eq? '(a b c d e) '(a e i o u))
-  => (a e)
+@result{} (a e)
 
-;; Repeated elements in LIST1 are preserved.
+;; Repeated elements in the first argument are preserved.
 (lset-intersection eq? '(a x y a) '(x a x z))
-  => '(a x a)
+@result{} '(a x a)
 
-(lset-intersection eq? '(a b c))        ; Trivial case
-  => (a b c)
+(lset-intersection eq? '(a b c))
+@result{} (a b c)
 @end example
 
-@func{lset-intersection!} is the linear--update variant of
-@func{lset-intersection}.  It is allowed, but not required, to use the
-cons cells in the first list parameter to construct its answer.
+@func{lset-intersection!}  is allowed to use the cons cells in the first
+list parameter to construct its answer.
 @end defun
 
 
-@defun lset-difference @var{=} @var{list1} @var{list2} ...
-@defunx lset-difference! @var{=} @var{list1} ...
-Return the difference of the lists, using @var{=} for the
-element--equality procedure: all the elements of @var{list1} that are
-not @var{=} to any element from one of the other @var{listi} parameters.
+@defun lset-difference @var{item=} @varo{ell} @var{ell} ...
+@defunx lset-difference! @var{item=} @varo{ell} @var{ell} ...
+Return the difference of the lists: All the elements of @varo{ell} that
+are not @var{item=} to any element from one of the other @var{ell}
+parameters.
 
-The @var{=} procedure's first argument is always an element of
-@var{list1}; its second is an element of one of the other @var{listi}.
-Elements that are repeated multiple times in the @var{list1} parameter
-will occur multiple times in the result.
+The @var{item=} procedure's first argument is always an element of
+@varo{ell}; its second is an element of one of the other @var{ell}.  The
+dynamic order in which the applications of @var{item=} are made is not
+specified.  Elements that are repeated multiple times in the @varo{ell}
+parameter will occur multiple times in the result.
 
 The order in which elements appear in the result is the same as they
-appear in @var{list1}; that is, @func{lset-difference} essentially
-filters @var{list1}, without disarranging element order.  The result may
-share a common tail with @var{list1}.
-
-The dynamic order in which the applications of @var{=} are made is not
-specified.  The procedure may check an element of @var{list1} for
-membership in every other list before proceeding to consider the next
-element of @var{list1}, or it may completely compute the difference of
-@var{list1} and @var{list2} before proceeding to @var{list3}, or it may
-go about its work in some third order.
+appear in @varo{ell}; that is, @func{lset-difference} essentially
+filters @varo{ell}, without disarranging element order.  The result may
+share a common tail with @varo{ell}.
 
 @example
 (lset-difference eq? '(a b c d e) '(a e i o u))
-  => (b c d)
+@result{} (b c d)
 
-(lset-difference eq? '(a b c))   ; Trivial case
-  => (a b c)
+(lset-difference eq? '(a b c))
+@result{} (a b c)
 @end example
 
-@func{lset-difference!} is the linear--update variant of
-@func{lset-difference}.  It is allowed, but not required, to use the
-cons cells in the first list parameter to construct its answer.
+@func{lset-difference!} is allowed to use the cons cells in the first
+list parameter to construct its answer.
 @end defun
 
 
-@defun lset-xor @var{=} @var{list1} ...
-@defunx lset-xor! @var{=} @var{list1} ...
-Return the exclusive--or of the sets, using @var{=} for the
-element--equality procedure.  If there are exactly two lists, this is
-all the elements that appear in exactly one of the two lists.  The
-operation is associative, and thus extends to the n--ary case, in which
-the result is a list of the elements that appear in an odd number of the
-lists.  The result may share a common tail with any of the @var{listi}
-parameters.
+@defun lset-xor @var{item=} @var{ell} ...
+@defunx lset-xor! @var{item=} @var{ell} ...
+Return the exclusive--or of the sets.  If there are exactly two lists,
+this is all the elements that appear in exactly one of the two lists.
+The operation is associative, and thus extends to the @math{N}--ary
+case, in which the result is a list of the elements that appear in an
+odd number of the lists.  The result may share a common tail with any of
+the @var{ell} parameters.
 
 More precisely, for two lists @var{AL} and @var{BL}, @var{AL} xor
 @var{BL} is a list of:
 
 @itemize
 @item
-every element @var{a} of @var{AL} such that there is no element @var{b}
-of @var{BL} such that @code{(= a b)}, and
+Every element @var{a} of @var{AL} such that there is no element @var{b}
+of @var{BL} such that @code{(item= a b)}, and
 
 @item
-every element @var{b} of @var{BL} such that there is no element @var{a}
-of @var{AL} such that @code{(= b a)}.
+Every element @var{b} of @var{BL} such that there is no element @var{a}
+of @var{AL} such that @code{(item= b a)}.
 @end itemize
 
-However, an implementation is allowed to assume that @var{=} is
-symmetric; that is, that @code{(= a b) => (= b a)}.
-
-This means, for example, that if a comparison @code{(= a b)} produces
-true for some @var{a} in @var{AL} and @var{b} in @var{BL}, both @var{a}
-and @var{b} may be removed from inclusion in the result.
-
-In the n--ary case, the binary--xor operation is simply folded across
-the lists.
-
-Examples:
+In the @math{n}--ary case, the binary--xor operation is simply folded
+across the lists.
 
 @example
 (lset-xor eq? '(a b c d e) '(a e i o u))
-  => (d c b i o u)
+@result{} (d c b i o u)
 
-;; Trivial cases.
-(lset-xor eq?) => ()
-(lset-xor eq? '(a b c d e)) => (a b c d e)
+(lset-xor eq?)
+@result{} ()
+
+(lset-xor eq? '(a b c d e))
+@result{} (a b c d e)
 @end example
 
-@func{lset-xor!} is the linear--update variant of @func{lset-xor}.  It
-is allowed, but not required, to use the cons cells in the first list
+@func{lset-xor!} is allowed to use the cons cells in the first list
 parameter to construct its answer.
 @end defun
 
 
-@defun {lset-diff+intersection} @var{=} @var{list1} @var{list2} ...
-@defunx {lset-diff+intersection!} @var{=} @var{list1} @var{list2} ...
-Return two values: the difference and the intersection of the lists.  It
+@defun {lset-diff+intersection} @var{item=} @varo{ell} @var{ell} ...
+@defunx {lset-diff+intersection!} @var{item=} @varo{ell} @var{ell} ...
+Return two values: The difference and the intersection of the lists.  It
 is equivalent to:
 
 @example
@@ -22064,15 +22103,14 @@ is equivalent to:
 @noindent
 but can be implemented more efficiently.
 
-The @var{=} procedure's first argument is an element of @var{list1}; its
-second is an element of one of the other @var{listi}.
+The @var{item=} procedure's first argument is an element of @varo{ell};
+its second is an element of one of the other @var{ell} arguments.
 
-Either of the answer lists may share a common tail with @var{list1}.
-This operation essentially partitions @var{list1}.
+Either of the returned lists may share a common tail with @varo{ell}.
+This operation essentially partitions @varo{ell}.
 
-@func{lset-diff+intersection!} is the linear--update variant of
-@func{lset-diff+intersection}.  It is allowed, but not required, to use
-the cons cells in the first list parameter to construct its answer.
+@func{lset-diff+intersection!} is allowed to use the cons cells in the
+first list argument to construct its answer.
 @end defun
 
 @c page
@@ -22083,7 +22121,7 @@ the cons cells in the first list parameter to construct its answer.
 The following bindings are exported by @library{lists low}.
 
 
-@defun %and/or-null? @var{list} ...
+@defun %and/or-null? @var{ell} ...
 This is the implementation of @func{and/or-null?}.  Return two values
 being the return values of @func{and-null?} and @func{or-null?} applied
 to the @var{list} arguments.
@@ -22171,7 +22209,6 @@ one sublist is null: The return value is null.
 @defun %cars/cdrs @var{list-of-lists}
 Given a list of sublists, return two values being the list of cars and
 the list of cdrs from @var{list-of-lists}.  If the sublists are detected
-
 not to have equal length, raise an error.
 @end defun
 
@@ -26822,6 +26859,2130 @@ output port.
 @end defun
 
 @c page
+@node streams
+@chapter Streams
+
+
+The @library{streams} library implements @dfn{streams}; sometimes called
+lazy lists, streams are a sequential data structure containing elements
+computed only on demand.  A stream is either null or is a pair with a
+stream in its cdr.  Since elements of a stream are computed only when
+accessed, streams can be infinite.  Once computed, the value of a stream
+element is cached in case it is needed again.
+
+Streams without memoization were first described by Peter Landin in
+1965.  Memoization became accepted as an essential feature of streams
+about a decade later.  Today, streams are the signature data type of
+functional programming languages such as Haskell.
+
+@menu
+* streams rationale::           Rationale.
+* streams primitive::           The @library{streams primitive} library.
+* streams primitive example::   Streams primitive library example.
+* streams derived::             The @library{streams derived} library.
+* streams utilities::           Utilities.
+* streams examples::            Examples.
+@end menu
+
+@c page
+@node streams rationale
+@section Rationale
+
+
+@cindex @srfi{} streams rationale
+
+
+Harold Abelson and Gerald Jay Sussman discuss streams at length, giving
+a strong justification for their use.  The streams they provide are
+represented as a cons pair with a promise to return a stream in its cdr;
+for instance, a stream with elements the first three counting numbers is
+represented conceptually as:
+
+@example
+(cons 1 (delay (cons 2 (delay (cons 3 (delay '()))))))
+@end example
+
+Philip Wadler, Walid Taha and David MacQueen describe such streams as
+odd because, regardless of their length, the parity of the number of
+constructors (@func{delay}, @func{cons}, @code{(quote ())}) in the
+stream is odd.
+
+The streams provided here differ from those of Abelson and Sussman,
+being represented as promises that contain a cons pair with a stream in
+its cdr; for instance, the stream with elements the first three counting
+numbers is represented conceptually as:
+
+@example
+(delay (cons 1 (delay (cons 2 (delay (cons 3 (delay '())))))))
+@end example
+
+@noindent
+this is an even stream because the parity of the number of constructors
+in the stream is even.
+
+Even streams are more complex than odd streams in both definition and
+usage, but they offer a strong benefit: they fix the off--by--one error
+of odd streams.  Wadler, Taha and MacQueen show, for instance, that an
+expression like:
+
+@example
+(stream->list 4 (stream-map / (stream-from 4 -1)))
+@end example
+
+@noindent
+evaluates to @code{(1/4 1/3 1/2 1)} using even streams but fails with a
+divide--by--zero error using odd streams, because the next element in
+the stream, which will be 1/0, is evaluated before it is accessed.  This
+extra bit of laziness is not just an interesting oddity; it is vitally
+critical in many circumstances, as will become apparent below.
+
+When used effectively, the primary benefit of streams is improved
+modularity.  Consider a process that takes a sequence of items,
+operating on each in turn.  If the operation is complex, it may be
+useful to split it into two or more procedures in which the
+partially--processed sequence is an intermediate result.  If that
+sequence is stored as a list, the entire intermediate result must reside
+in memory all at once; however, if the intermediate result is stored as
+a stream, it can be generated piecemeal, using only as much memory as
+required by a single item.  This leads to a programming style that uses
+many small operators, each operating on the sequence of items as a
+whole, similar to a pipeline of unix commands.
+
+In addition to improved modularity, streams permit a clear exposition of
+backtracking algorithms using the ``stream of successes'' technique, and
+they can be used to model generators and co--routines.  The implicit
+memoization of streams makes them useful for building persistent data
+structures, and the laziness of streams permits some multi--pass
+algorithms to be executed in a single pass.  Savvy programmers use
+streams to enhance their programs in countless ways.
+
+There is an obvious space/time trade--off between lists and streams;
+lists take more space, but streams take more time (to see why, look at
+all the type conversions in the implementation of the stream
+primitives).  Streams are appropriate when the sequence is truly
+infinite, when the space savings are needed, or when they offer a
+clearer exposition of the algorithms that operate on the sequence.
+
+
+
+@c page
+@node streams primitive
+@section The @library{streams primitive} library
+
+
+@cindex @srfi{} streams primitive library
+
+
+The @library{streams primitive} library provides two mutually--recursive
+abstract data types: An object of the @code{stream} abstract data type
+is a promise that, when forced, is either @code{stream-null} or is an
+object of type @code{stream-pair}.  An object of the @code{stream-pair}
+abstract data type contains a @code{stream-car} and a @code{stream-cdr},
+which must be a @code{stream}.  The essential feature of streams is the
+systematic suspensions of the recursive promises between the two data
+types.
+
+@example
+alpha stream
+  :: (promise stream-null)
+  |  (promise (alpha stream-pair))
+
+alpha stream-pair
+  :: (promise alpha) x (promise (alpha stream))
+@end example
+
+The object stored in the @code{stream-car} of a @code{stream-pair} is a
+promise that is forced the first time the @code{stream-car} is accessed;
+its value is cached in case it is needed again.  The object may have any
+type, and different stream elements may have different types.  If the
+@code{stream-car} is never accessed, the object stored there is never
+evaluated.  Likewise, the @code{stream-cdr} is a promise to return a
+stream, and is only forced on demand.
+
+This library provides eight operators: constructors for
+@code{stream-null} and @code{stream-pairs}, type recognizers for streams
+and the two kinds of streams, accessors for both fields of a
+@code{stream-pair}, and a lambda that creates procedures that return
+streams.
+
+
+@defun stream-null
+Return a promise that, when forced, is a single object, distinguishable
+from all other objects, that represents the null stream.
+@func{stream-null} is immutable and unique.
+@end defun
+
+
+@deffn Syntax stream-cons @var{object} @var{stream}
+A macro that accepts an object and a stream and creates a
+newly--allocated stream containing a promise that, when forced, is a
+@code{stream-pair} with the object in its @code{stream-car} and the
+stream in its @code{stream-cdr}.
+
+@func{stream-cons} must be syntactic, not procedural, because neither
+@var{object} nor @var{stream} is evaluated when @func{stream-cons} is
+called.  Since @var{stream} is not evaluated, when the
+@code{stream-pair} is created, it is not an error to call
+@func{stream-cons} with a @var{stream} argument that is not of type
+@code{stream}; however, doing so will cause an error later when the
+@code{stream-cdr} of the @code{stream-pair} is accessed.
+
+Once created, a @code{stream-pair} is immutable; there is @strong{no}
+@func{stream-set-car!} or @func{stream-set-cdr!} that modifies an
+existing @code{stream-pair}.  There is no dotted--pair or improper
+stream as with lists.
+@end deffn
+
+
+@defun stream? @var{object}
+Return @true{} if the @var{object} is a @code{stream} and @false{}
+otherwise.  If @var{object} is a @code{stream}, @func{stream?} does not
+force its promise.
+
+If @code{(stream? obj)} is @true{}, then one of @code{(stream-null?
+obj)} and @code{(stream-pair? obj)} will be @true{} and the other will
+be @false{}; if @code{(stream? obj)} is @false{}, both
+@code{(stream-null?  obj)} and @code{(stream-pair?  obj)} will be
+@false{}.
+@end defun
+
+
+@defun stream-null? @var{object}
+Return @true{} if the @var{object} is the distinguished null stream and
+@false{} otherwise.  If @var{object} is a @code{stream},
+@func{stream-null?} must force its promise in order to distinguish
+@code{stream-null} from @code{stream-pair}.
+@end defun
+
+
+@defun stream-pair? @var{object}
+Take an @var{object} and return @true{} if it is a @code{stream-pair}
+constructed by @func{stream-cons} and @false{} otherwise.  If
+@var{object} is a @code{stream}, @func{stream-pair?} must force its
+promise in order to distinguish @code{stream-null} from
+@code{stream-pair}.
+@end defun
+
+
+@defun stream-car @var{stream}
+Return the object stored in the @code{stream-car} of @var{stream}.
+@func{stream-car} signals an error if the object passed to it is not a
+@code{stream-pair}.  Calling @func{stream-car} causes the object stored
+there to be evaluated if it has not yet been; the object's value is
+cached in case it is needed again.
+@end defun
+
+
+@defun stream-cdr @var{stream}
+Return the stream stored in the @code{stream-cdr} of @var{stream}.
+@func{stream-cdr} signals an error if the object passed to it is not a
+@code{stream-pair}.  Calling @func{stream-cdr} does not force the
+promise containing the stream stored in the @code{stream-cdr} of the
+stream.
+@end defun
+
+
+@deffn Syntax stream-lambda @var{args} . @var{body}
+Create a procedure that returns a promise to evaluate the body of the
+procedure.  The last body expression to be evaluated must yield a
+stream.
+
+As with normal lambda, @var{args} may be a single variable name, in
+which case all the formal arguments are collected into a single list, or
+a list of variable names, which may be null if there are no arguments,
+proper if there are an exact number of arguments, or dotted if a fixed
+number of arguments is to be followed by zero or more arguments
+collected into a list.
+
+@var{body} must contain at least one expression, and may contain
+internal definitions preceding any expressions to be evaluated.
+@end deffn
+
+
+
+@c page
+@node streams primitive example
+@section Streams primitive library example
+
+
+@example
+(define strm123
+  (stream-cons 1
+    (stream-cons 2
+      (stream-cons 3
+        stream-null))))
+
+(stream-car strm123) => 1
+
+(stream-car (stream-cdr strm123) => 2
+
+(stream-pair?
+  (stream-cdr
+    (stream-cons (/ 1 0) stream-null))) => #f
+
+(stream? (list 1 2 3)) => #f
+
+(define iter
+  (stream-lambda (f x)
+    (stream-cons x (iter f (f x)))))
+
+(define nats (iter (lambda (x) (+ x 1)) 0))
+
+(stream-car (stream-cdr nats)) => 1
+
+(define stream-add
+  (stream-lambda (s1 s2)
+    (stream-cons
+      (+ (stream-car s1) (stream-car s2))
+      (stream-add (stream-cdr s1)
+                  (stream-cdr s2)))))
+
+(define evens (stream-add nats nats))
+
+(stream-car evens) => 0
+
+(stream-car (stream-cdr evens)) => 2
+
+(stream-car (stream-cdr (stream-cdr evens))) => 4
+@end example
+
+
+
+@c page
+@node streams derived
+@section The @library{streams derived} library
+
+
+@cindex @srfi{} streams derived library
+
+
+The @library{streams derived} library provides useful procedures and
+syntax that depend on the primitives defined in @ref{streams primitive}.
+
+
+@deffn Syntax define-stream (@var{name} @var{args}) . @var{body}
+Create a procedure that returns a @code{stream}, and may appear anywhere
+a normal @func{define} may appear, including as an internal definition,
+and may have internal definitions of its own, including other
+@func{define-streams}.  The defined procedure takes arguments in the
+same way as @func{stream-lambda}.
+
+@func{define-stream} is syntactic sugar on @func{stream-lambda}; see
+also @func{stream-let}, which is also a sugaring of
+@func{stream-lambda}.
+
+The following example is a simple version of @func{stream-map} that
+takes only a single input stream calls itself recursively:
+
+@example
+(define-stream (stream-map proc strm)
+  (if (stream-null? strm)
+      stream-null
+      (stream-cons
+        (proc (stream-car strm))
+        (stream-map proc (stream-cdr strm))))))
+@end example
+@end deffn
+
+
+@defun list->stream @var{list-of-objects}
+Return a newly--allocated @code{stream} containing in its elements the
+objects in the list.  Since the objects are given in a list, they are
+evaluated when @func{list->stream} is called, before the @code{stream}
+is created.  If the list of objects is null, as in @code{(list->stream
+'())}, the null @code{stream} is returned.  See also @func{stream}.
+
+Example:
+
+@example
+(define strm123 (list->stream '(1 2 3)))
+
+; fails with divide-by-zero error
+(define s (list->stream (list 1 (/ 1 0) -1)))
+@end example
+@end defun
+
+
+@defun port->stream [@var{port}]
+Return a newly--allocated @code{stream} containing in its elements the
+characters on the @var{port}.  If @var{port} is not given it defaults to
+the current input port.  The returned @code{stream} has finite length
+and is terminated by @code{stream-null}.
+
+It looks like one use of @func{port->stream} would be this:
+
+@example
+(define s ;wrong!
+  (with-input-from-file filename
+    (lambda () (port->stream))))
+@end example
+
+@noindent
+but that fails, because @func{with-input-from-file} is eager, and closes
+the input port prematurely, before the first character is read.  To read
+a file into a stream, use:
+
+@example
+(define-stream (file->stream filename)
+  (let ((p (open-input-file filename)))
+    (stream-let loop ((c (read-char p)))
+      (if (eof-object? c)
+          (begin (close-input-port p)
+                 stream-null)
+          (stream-cons c
+            (loop (read-char p)))))))
+@end example
+@end defun
+
+
+@deffn Syntax stream @var{object} ...
+Take zero or more objects and create a newly--allocated @code{stream}
+containing in its elements the objects, in order.  Since @func{stream}
+is syntactic, the objects are evaluated when they are accessed, not when
+the @code{stream} is created.  If no objects are given, as in
+@code{(stream)}, the null stream is returned.  See also
+@func{list->stream}.
+
+Example:
+
+@example
+(define strm123 (stream 1 2 3))
+
+; (/ 1 0) not evaluated when stream is created
+(define s (stream 1 (/ 1 0) -1))
+@end example
+@end deffn
+
+
+@defun stream->list [@var{n}] @var{stream}
+Take a natural number @var{n} and a @var{stream} and return a
+newly--allocated list containing in its elements the first @var{} items
+in the @var{stream}.  If the @var{stream} has less than @var{n} items
+all the items in the @var{stream} will be included in the returned list.
+If @var{n} is not given it defaults to infinity, which means that unless
+@var{stream} is finite @func{stream->list} will never return.
+
+Example:
+
+@example
+(stream->list 10
+  (stream-map (lambda (x) (* x x))
+    (stream-from 0)))
+  => (0 1 4 9 16 25 36 49 64 81)
+@end example
+@end defun
+
+
+@defun stream-append @var{stream} ...
+Return a newly--allocated @code{stream} containing in its elements those
+elements contained in its input streams, in order of input.  If any of
+the input streams is infinite, no elements of any of the succeeding
+input streams will appear in the output stream; thus, if @var{x} is
+infinite, @code{(stream-append x y)} is identical to @var{x}.  See also
+@func{stream-concat}.
+
+Example: quicksort can be used to sort a @code{stream}, using
+@func{stream-append} to build the output; the sort is lazy; so if only
+the beginning of the output stream is needed, the end of the stream is
+never sorted.
+
+@example
+(define-stream (qsort lt? strm)
+  (if (stream-null? strm)
+      stream-null
+      (let ((x (stream-car strm))
+            (xs (stream-cdr strm)))
+        (stream-append
+          (qsort lt?
+            (stream-filter
+              (lambda (u) (lt? u x))
+              xs))
+          (stream x)
+          (qsort lt?
+            (stream-filter
+              (lambda (u) (not (lt? u x)))
+              xs))))))
+@end example
+
+Note also that, when used in tail position as in @func{qsort},
+@func{stream-append} does not suffer the poor performance of
+@func{append} on lists.  The list version of @func{append} requires
+re--traversal of all its list arguments except the last each time it is
+called.  But @func{stream-append} is different.  Each recursive call to
+@func{stream-append} is suspended; when it is later forced, the
+preceding elements of the result have already been traversed, so
+tail--recursive loops that produce streams are efficient even when each
+element is appended to the end of the result stream.  This also implies
+that during traversal of the result only one promise needs to be kept in
+memory at a time.
+@end defun
+
+
+@defun stream-concat @var{stream}
+Take a @var{stream} consisting of one or more streams and return a
+newly--allocated stream containing all the elements of the input
+streams.  If any of the streams in the input stream is infinite, any
+remaining streams in the input stream will never appear in the output
+stream.  See also @func{stream-append}.
+
+Example:
+
+@example
+(stream->list
+  (stream-concat
+    (stream
+      (stream 1 2) (stream) (stream 3 2 1))))
+  => (1 2 3 2 1)
+@end example
+
+Example: the permutations of a finite stream can be determined by
+interleaving each element of the stream in all possible positions within
+each permutation of the other elements of the stream; @func{interleave}
+returns a stream of streams with @var{x} inserted in each possible
+position of @var{yy}:
+
+@example
+(define-stream (interleave x yy)
+  (stream-match yy
+    [() (stream (stream x))]
+    [(y .  ys)
+      (stream-append
+        (stream (stream-cons x yy))
+        (stream-map
+          (lambda (z) (stream-cons y z))
+          (interleave x ys)))]))
+
+(define-stream (perms xs)
+  (if (stream-null? xs)
+      (stream (stream))
+      (stream-concat
+        (stream-map
+          (lambda (ys)
+            (interleave (stream-car xs) ys))
+          (perms (stream-cdr xs))))))
+@end example
+@end defun
+
+
+@defun stream-constant @var{object} ...
+Take one or more objects and return a newly--allocated @code{stream}
+containing in its elements the objects, repeating the objects in
+succession forever.
+
+Example:
+
+@example
+(stream-constant 1) => 1 1 1 ...
+
+(stream-constant #t #f) => #t #f #t #f #t #f ...
+@end example
+@end defun
+
+
+@defun stream-drop @var{n} @var{stream}
+Return the suffix of the input stream that starts at the next element
+after the first @var{n} elements.  The output stream shares structure
+with the input stream; thus, promises forced in one instance of the
+stream are also forced in the other instance of the stream.  If the
+input stream has less than @var{n} elements, @func{stream-drop} returns
+the null stream.  See also @func{stream-take}.
+
+Example:
+
+@example
+(define (stream-split n strm)
+  (values (stream-take n strm)
+          (stream-drop n strm)))
+@end example
+@end defun
+
+
+@defun stream-drop-while @var{pred?} @var{stream}
+Return the suffix of the input stream that starts at the first element
+@var{x} for which @code{(pred? x)} is @false{}.  The output stream
+shares structure with the input stream.  See also
+@func{stream-take-while}.
+
+Example: @func{stream-unique} creates a new stream that retains only the
+first of any sub--sequences of repeated elements.
+
+@example
+(define-stream (stream-unique eql? strm)
+  (if (stream-null? strm)
+      stream-null
+      (stream-cons (stream-car strm)
+        (stream-unique eql?
+          (stream-drop-while
+            (lambda (x)
+              (eql? (stream-car strm) x))
+            strm)))))
+@end example
+@end defun
+
+
+@defun stream-filter @var{pred?} @var{stream}
+Return a newly--allocated stream that contains only those elements
+@var{x} of the input stream for which @code{(pred? x)} is non--@false{}.
+
+Example:
+
+@example
+(stream-filter odd? (stream-from 0))
+   => 1 3 5 7 9 ...
+@end example
+@end defun
+
+
+@defun stream-fold @var{proc} @var{base} @var{stream}
+Apply a binary procedure to @var{base} and the first element of
+@var{stream} to compute a new base, then apply the procedure to the new
+base and the next element of @var{stream} to compute a succeeding base,
+and so on, accumulating a value that is finally returned as the value of
+@func{stream-fold} when the end of the @var{stream} is reached.
+
+@var{stream} must be finite, or @func{stream-fold} will enter an
+infinite loop.  See also @func{stream-scan}, which is similar to
+@func{stream-fold}, but useful for infinite streams.
+
+For readers familiar with other functional languages, this is a
+left--fold; there is no corresponding right--fold, since right--fold
+relies on finite streams that are fully--evaluated, at which time they
+may as well be converted to a list.
+
+Example: @func{stream-fold} is often used to summarize a stream in a
+single value, for instance, to compute the maximum element of a stream.
+
+@example
+(define (stream-maximum lt? strm)
+  (stream-fold
+    (lambda (x y) (if (lt? x y) y x))
+    (stream-car strm)
+    (stream-cdr strm)))
+@end example
+
+Example: sometimes, it is useful to have @func{stream-fold} defined only
+on non--null streams:
+
+@example
+(define (stream-fold-one proc strm)
+  (stream-fold proc
+    (stream-car strm)
+    (stream-cdr strm)))
+@end example
+
+@noindent
+@func{stream-minimum} can then be defined as:
+
+@example
+(define (stream-minimum lt? strm)
+  (stream-fold-one
+    (lambda (x y) (if (lt? x y) x y))
+    strm))
+@end example
+
+Example: @func{stream-fold} can also be used to build a stream:
+
+@example
+(define-stream (isort lt? strm)
+    (define-stream (insert strm x)
+      (stream-match strm
+        [() (stream x)]
+        [(y .  ys)
+          (if (lt? y x)
+              (stream-cons y (insert ys x))
+              (stream-cons x strm))]))
+    (stream-fold insert stream-null strm))
+@end example
+@end defun
+
+
+@defun stream-for-each @var{proc} @var{stream} ...
+Apply a procedure element--wise to corresponding elements of the input
+streams for its side--effects; return nothing.  @func{stream-for-each}
+stops as soon as any of its input streams is exhausted.
+
+Example: the following procedure displays the contents of a file:
+
+@example
+(define (display-file filename)
+  (stream-for-each display
+    (file->stream filename)))
+@end example
+@end defun
+
+
+@defun stream-from @var{first} [@var{step}]
+Create a newly--allocated stream that contains @var{first} as its first
+element and increments each succeeding element by @var{step}.  If
+@var{step} is not given it defaults to @code{1}.  @var{first} and
+@var{step} may be of any numeric type.  @func{stream-from} is frequently
+useful as a generator in @func{stream-of} expressions.  See also
+@func{stream-range} for a similar procedure that creates finite streams.
+
+@func{stream-from} could be implemented as:
+
+@example
+(stream-iterate (lambda (x) (+ x step)) first)
+@end example
+
+Example:
+
+@example
+(define nats (stream-from 0)) => 0 1 2 ...
+(define odds (stream-from 1 2)) => 1 3 5 ...
+@end example
+@end defun
+
+
+@defun stream-iterate @var{proc} @var{base}
+Create a newly--allocated stream containing @var{base} in its first
+element and apply @var{proc} to each element in turn to determine the
+succeeding element.  See also @func{stream-unfold} and
+@func{stream-unfolds}.
+
+Examples:
+
+@example
+(stream-iterate (lambda (x) (+ x 1)) 0)
+  => 0 1 2 3 4 ...
+
+(stream-iterate (lambda (x) (* x 2)) 1)
+  => 1 2 4 8 16 ...
+@end example
+
+Given a seed between 0 and 232, exclusive, the following expression
+creates a stream of pseudo--random integers between 0 and 232,
+exclusive, beginning with seed, using the method described by Stephen
+Park and Keith Miller:
+
+@example
+(stream-iterate
+  (lambda (x) (modulo (* x 16807) 2147483647))
+  seed)
+@end example
+
+Example: successive of the following stream approach the value of the
+``golden ratio'' 1.618...:
+
+@example
+(stream-iterate (lambda (x) (+ 1 (/ x))) 1)
+@end example
+@end defun
+
+
+@defun stream-length @var{stream}
+Take an input stream and return the number of elements in the stream; it
+does not evaluate its elements.  @func{stream-length} may only be used
+on finite streams; it enters an infinite loop with infinite streams.
+
+Example:
+
+@example
+(stream-length strm123) => 3
+@end example
+@end defun
+
+
+@deffn Syntax stream-let @var{tag} ((@var{var} @var{expr}) ...) @var{body}
+Create a local scope that binds each variable to the value of its
+corresponding expression.  Additionally bind @var{tag} to a procedure
+which takes the bound variables as arguments and @var{body} as its
+defining expressions, binding the tag with @func{stream-lambda}.
+@var{tag} is in scope within @var{body}, and may be called recursively.
+
+When the expanded expression defined by @func{stream-let} is evaluated,
+@func{stream-let} evaluates the expressions in its body in an
+environment containing the newly--bound variables, returning the value
+of the last expression evaluated, which must yield a stream.
+
+@func{stream-let} provides syntactic sugar on @func{stream-lambda}, in
+the same manner as normal @func{let} provides syntactic sugar on normal
+@func{lambda}.  However, unlike normal @func{let}, the @var{tag} is
+required, not optional, because unnamed @func{stream-let} is
+meaningless.
+
+Example: @func{stream-member} returns the first @code{stream-pair} of
+the input @var{strm} with a @code{stream-car} @var{x} that satisfies
+@code{(eql? obj x)}, or the null stream if @var{x} is not present in
+@var{strm}.
+
+@example
+(define-stream (stream-member eql? obj strm)
+  (stream-let loop ((strm strm))
+    (cond [(stream-null? strm) strm]
+          [(eql? obj (stream-car strm)) strm]
+          [else (loop (stream-cdr strm))])))
+@end example
+@end deffn
+
+
+@defun stream-map @var{proc} @var{stream} ...
+Apply a procedure element--wise to corresponding elements of the input
+streams, returning a newly--allocated stream containing elements that
+are the results of those procedure applications.  The output stream has
+as many elements as the minimum--length input stream, and may be
+infinite.
+
+Example:
+
+@example
+(define (square x) (* x x))
+
+(stream-map square (stream 9 3)) => 81 9
+
+(define (sigma f m n)
+  (stream-fold + 0
+    (stream-map f (stream-range m (+ n 1)))))
+
+(sigma square 1 100) => 338350
+@end example
+
+In some functional languages, @func{stream-map} takes only a single
+input stream, and @func{stream-zipwith} provides a companion function
+that takes multiple input streams.
+@end defun
+
+
+@deffn Syntax stream-match @var{stream} @var{clause} ...
+Provide the syntax of pattern--matching for streams.  The input
+@var{stream} is an expression that evaluates to a stream.  @var{clause}
+arguments are of the form @code{(pattern [fender] expr)}, consisting of
+a pattern that matches a stream of a particular shape, an optional
+fender that must succeed if the pattern is to match, and an expression
+that is evaluated if the pattern matches.  There are four types of
+patterns:
+
+@table @code
+@item ()
+matches the null stream;
+
+@item (pat0 pat1 ...)
+matches a finite stream with length exactly equal to the number of
+pattern elements;
+
+@item (pat0 pat1 ...  . patrest)
+matches an infinite stream, or a finite stream with length at least as
+great as the number of pattern elements before the literal dot;
+
+@item pat
+matches an entire stream; should always appear last in the list of
+nclauses; it's not an error to appear elsewhere, but subsequent clauses
+could never match.
+@end table
+
+Each pattern element @var{pati} may be either:
+
+@table @emph
+@item an identifier
+matches any stream element; additionally, the value of the stream
+element is bound to the variable named by the identifier, which is in
+scope in the fender and expression of the corresponding clause; each
+identifier in a single pattern must be unique;
+
+@item a literal underscore
+matches any stream element, but creates no bindings.
+@end table
+
+The patterns are tested in order, left--to--right, until a matching
+pattern is found; if @var{fender} is present, it must evaluate as
+non--@false{} for the match to be successful.  Pattern variables are
+bound in the corresponding fender and expression.  Once the matching
+pattern is found, the corresponding expression is evaluated and returned
+as the result of the match.  An error is signaled if no pattern matches
+the input stream.
+
+@func{stream-match} is often used to distinguish null streams from
+non--null streams, binding head and tail:
+
+@example
+(define (len strm)
+  (stream-match strm
+    [() 0]
+    [(head .  tail) (+ 1 (len tail))]))
+@end example
+
+Fenders can test the common case where two stream elements must be
+identical; the else pattern is an identifier bound to the entire stream,
+not a keyword as in @func{cond}.
+
+@example
+(stream-match strm
+  [(x y .  _) (equal? x y) 'ok]
+  [else 'error])
+@end example
+
+A more complex example uses two nested matchers to match two different
+stream arguments; @code{(stream-merge lt? .  strms)} stably merges two
+or more streams ordered by the @var{lt?} predicate:
+
+@example
+(define-stream (stream-merge lt? .  strms)
+  (define-stream (merge xx yy)
+    (stream-match xx (() yy) ((x .  xs)
+      (stream-match yy (() xx) ((y .  ys)
+        (if (lt? y x)
+            (stream-cons y (merge xx ys))
+          (stream-cons x (merge xs yy))))))))
+  (stream-let loop ((strms strms))
+    (cond [(null? strms) stream-null]
+          [(null? (cdr strms)) (car strms)]
+          [else (merge (car strms)
+                       (apply stream-merge lt?
+                         (cdr strms)))])))
+@end example
+@end deffn
+
+
+@deffn Syntax stream-of @var{expr} @var{clause} ...
+Provide the syntax of stream comprehensions, which generate streams by
+means of looping expressions.  The result is a stream of objects of the
+type returned by @var{expr}.  There are four types of @var{clause}
+arguments:
+
+@table @code
+@item (var in stream-expr)
+loop over the elements of @var{stream-expr}, in order from the start of
+the stream, binding each element of the stream in turn to @var{var}.
+@func{stream-from} and @func{stream-range} are frequently useful as
+generators for @var{stream-expr};
+
+@item (var is expr)
+bind @var{var} to the value obtained by evaluating @var{expr};
+
+@item (pred? expr)
+include in the output stream only those elements @var{x} for which
+@code{(pred? x)} is non--@false{}.
+@end table
+
+The scope of variables bound in the stream comprehension is the clauses
+to the right of the binding clause (but not the binding clause itself)
+plus the result expression.
+
+When two or more generators are present, the loops are processed as if
+they are nested from left to right; that is, the rightmost generator
+varies fastest.  A consequence of this is that only the first generator
+may be infinite and all subsequent generators must be finite.  If no
+generators are present, the result of a stream comprehension is a stream
+containing the result expression; thus, @code{(stream-of 1)} produces a
+finite stream containing only the element @code{1}.
+
+@example
+(stream-of (* x x)
+  (x in (stream-range 0 10))
+  (even? x))
+  => 0 4 16 36 64
+
+(stream-of (list a b)
+  (a in (stream-range 1 4))
+  (b in (stream-range 1 3)))
+  => (1 1) (1 2) (2 1) (2 2) (3 1) (3 2)
+
+(stream-of (list i j)
+  (i in (stream-range 1 5))
+  (j in (stream-range (+ i 1) 5)))
+  => (1 2) (1 3) (1 4) (2 3) (2 4) (3 4)
+@end example
+@end deffn
+
+
+@defun stream-range @var{first} @var{past} [@var{step}]
+Create a newly--allocated stream that contains @var{first} as its first
+element and increments each succeeding element by @var{step}.  The
+stream is finite and ends before @var{past}, which is not an element of
+the stream.  If @var{step} is not given it defaults to @code{1} if
+@var{first} is less than @var{past} and @code{-1} otherwise.
+
+@var{first}, @var{past} and @var{step} may be of any numeric type.
+
+@func{stream-range} is frequently useful as a generator in
+@func{stream-of} expressions.  See also @func{stream-from} for a similar
+procedure that creates infinite streams.
+
+Examples:
+
+@example
+(stream-range 0 10)     => 0 1 2 3 4 5 6 7 8 9
+(stream-range 0 10 2)   => 0 2 4 6 8
+@end example
+
+Successive elements of the stream are calculated by adding @var{step} to
+@var{first}, so if any of @var{first}, @var{past} or @var{step} are
+inexact, the length of the output stream may differ from:
+
+@example
+(ceiling (- (/ (- past first) step) 1)
+@end example
+@end defun
+
+
+@defun stream-ref @var{stream} @var{n}
+Return the @var{n}-th element of @var{stream}, counting from zero.  An
+error is signaled if @var{n} is greater than or equal to the length of
+@var{stream}.
+
+Example:
+
+@example
+(define (fact n)
+  (stream-ref
+    (stream-scan * 1 (stream-from 1))
+    n))
+@end example
+@end defun
+
+
+@defun stream-reverse @var{stream}
+Return a newly--allocated stream containing the elements of the input
+@var{stream} but in reverse order.  @func{stream-reverse} may only be
+used with finite streams; it enters an infinite loop with infinite
+streams.  @func{stream-reverse} does not force evaluation of the
+elements of the stream.
+
+@example
+(define s (stream 1 (/ 1 0) -1))
+(define r (stream-reverse s))
+(stream-ref r 0)
+(stream-ref r 2)        => 1
+(stream-ref r 1)        => error: division by zero
+@end example
+@end defun
+
+
+@defun stream-scan @var{proc} @var{base} @var{stream}
+Accumulate the partial folds of an input @var{stream} into a
+newly--allocated output stream.  The output stream is the @var{base}
+followed by:
+
+@example
+(stream-fold proc base (stream-take i stream))
+@end example
+
+@noindent
+for each of the first i elements of @var{stream}.
+
+Examples:
+
+@example
+(stream-scan + 0 (stream-from 1))
+  => (stream 0 1 3 6 10 15 ...)
+
+(stream-scan * 1 (stream-from 1))
+  => (stream 1 1 2 6 24 120 ...)
+@end example
+@end defun
+
+
+@defun stream-take @var{n} @var{stream}
+Take a non--negative integer @var{n} and a @var{stream} and return a
+newly--allocated stream containing the first @var{f}n elements of the
+input stream.  If the input stream has less than @var{n} elements, so
+does the output stream.  See also @func{stream-drop}.
+
+Example: @func{merge-sort} splits a stream into two equal--length
+pieces, sorts them recursively and merges the results:
+
+@example
+(define-stream (merge-sort lt? strm)
+  (let* ([n     (quotient (stream-length strm) 2)]
+         [ts    (stream-take n strm)]
+         [ds    (stream-drop n strm)])
+    (if (zero? n)
+        strm
+      (stream-merge lt? (msort < ts) (msort < ds)))))
+@end example
+@end defun
+
+
+@defun stream-take-while @var{pred?} @var{stream}
+Take a predicate and a stream and return a newly--allocated stream
+containing those elements @var{x} that form the maximal prefix of the
+input stream for which @code{(pred? x)} is non--@false{}.  See also
+@func{stream-drop-while}.
+
+@example
+(stream-car
+  (stream-reverse
+    (stream-take-while
+      (lambda (x) (< x 1000))
+      primes)))
+  => 997
+@end example
+@end defun
+
+
+@defun stream-unfold @var{map} @var{pred?} @var{gen} @var{base}
+@func{stream-unfold} is the fundamental recursive stream constructor.
+It constructs a stream by repeatedly applying @var{gen} to successive
+values of @var{base}, in the manner of @func{stream-iterate}, then
+applying @var{map} to each of the values so generated, appending each of
+the mapped values to the output stream as long as @code{(pred? base)} is
+non--@false{}.  See also @func{stream-iterate} and
+@func{stream-unfolds}.
+
+Example: the expression below creates the finite stream:
+
+@example
+0 1 4 9 16 25 36 49 64 81
+@end example
+
+@noindent
+initially the base is @code{0}, which is less than @code{10}, so
+@var{map} squares the base and the mapped value becomes the first
+element of the output stream; then @var{gen} increments the base by
+@code{1}, so it becomes @code{1}; this is less than @code{10}, so
+@var{map} squares the new base and @code{1} becomes the second element
+of the output stream; and so on, until the base becomes @code{10}, when
+@var{pred?}  stops the recursion and @code{stream-null} ends the output
+stream.
+
+@example
+(stream-unfold
+  (lambda (x) (expt x 2)) ; map
+  (lambda (x) (< x 10))   ; pred?
+  (lambda (x) (+ x 1))    ; gen
+  0)                      ; base
+@end example
+@end defun
+
+
+@defun stream-unfolds @var{proc} @var{seed}
+Return @var{n} newly--allocated streams containing those elements
+produced by successive calls to the generator @var{proc}, which takes
+the current @var{seed} as its argument and returns @code{n+1} values:
+
+@example
+(proc seed) -> seed result0 ...  resultn-1
+@end example
+
+@noindent
+where the returned @var{seed} is the input @var{seed} to the next call
+to the generator and @var{resulti} indicates how to produce the next
+element of the ith result stream:
+
+@table @code
+@item (value)
+@var{value} is the next car of the result stream;
+
+@item #f
+no value produced by this iteration of the generator @var{proc} for the
+result stream;
+
+@item ()
+the end of the result stream.
+@end table
+
+It may require multiple calls of @var{proc} to produce the next element
+of any particular result stream.  See also @func{stream-iterate} and
+@func{stream-unfold}.
+
+@func{stream-unfolds} is especially useful when writing expressions that
+return multiple streams.  For instance, @code{(stream-partition pred?
+strm)} is equivalent to:
+
+@example
+(values
+  (stream-filter pred? strm)
+  (stream-filter
+    (lambda (x) (not (pred? x))) strm))
+@end example
+
+@noindent
+but only tests @func{pred?} once for each element of @var{strm}.
+
+Example:
+
+@example
+(define (stream-partition pred? strm)
+  (stream-unfolds
+    (lambda (s)
+      (if (stream-null? s)
+          (values s '() '())
+        (let ([a (stream-car s)]
+              [d (stream-cdr s)])
+          (if (pred? a)
+              (values d (list a) #f)
+            (values d #f (list a))))))
+    strm))
+
+(call-with-values
+  (lambda ()
+    (stream-partition odd?
+      (stream-range 1 6)))
+  (lambda (odds evens)
+    (list (stream->list odds)
+          (stream->list evens))))
+  => ((1 3 5) (2 4))
+@end example
+@end defun
+
+
+@defun stream-zip @var{stream} ...
+Take one or more input streams and return a newly--allocated stream in
+which each element is a list (not a stream) of the corresponding
+elements of the input streams.  The output stream is as long as the
+shortest input stream, if any of the input streams is finite, or is
+infinite if all the input streams are infinite.
+
+A common use of @func{stream-zip} is to add an index to a stream, as in:
+
+@example
+(stream-finds eql? obj strm)
+@end example
+
+@noindent
+which returns all the zero--based indices in @var{strm} at which
+@var{obj} appears; @code{(stream-find eql? obj strm)} returns the first
+such index, or @false{} if @var{obj} is not in @var{strm}.
+
+@example
+(define-stream (stream-finds eql? obj strm)
+  (stream-of (car x)
+    (x in (stream-zip (stream-from 0) strm))
+    (eql? obj (cadr x))))
+
+(define (stream-find eql? obj strm)
+  (stream-car
+    (stream-append
+      (stream-finds eql? obj strm)
+      (stream #f))))
+
+(stream-find char=? #\l
+  (list->stream
+    (string->list "hello")))
+  => 2
+
+(stream-find char=? #\l
+  (list->stream
+    (string->list "goodbye")))
+  => #f
+@end example
+
+@func{stream-find} is not as inefficient as it looks; although it calls
+@func{stream-finds}, which finds all matching indices, the matches are
+computed lazily, and only the first match is needed for
+@func{stream-find}.
+@end defun
+
+
+
+@c page
+@node streams utilities
+@section Utilities
+
+
+@cindex @srfi{} streams utilities
+
+
+Streams, being the signature structured data type of functional
+programming languages, find useful expression in conjunction with
+higher--order functions.  Some of these higher--order functions, and
+their relationship to streams, are described below.
+
+The identity and constant procedures are frequently useful as the
+recursive base for maps and folds; @code{(identity obj)} always returns
+@var{obj}, and @code{(const obj)} creates a procedure that takes any
+number of arguments and always returns the same @var{obj}, no matter its
+arguments:
+
+@example
+(define (identity obj) obj)
+
+(define (const obj) (lambda x obj))
+@end example
+
+Many of the stream procedures take a unary predicate that accepts an
+element of a stream and returns a boolean.  Procedure @code{(negate
+pred?)}  takes a unary predicate and returns a new unary predicate that,
+when called, returns the opposite boolean value as the original
+predicate.
+
+@example
+(define (negate pred?)
+  (lambda (x) (not (pred? x))))
+@end example
+
+@func{negate} is useful for procedures like @func{stream-take-while}
+that take a predicate, allowing them to be used in the opposite
+direction from which they were written; for instance, with the predicate
+reversed, @func{stream-take-while} becomes @func{stream-take-until}.
+@func{stream-remove} is the opposite of @func{stream-filter}:
+
+@example
+(define-stream (stream-remove pred? strm)
+  (stream-filter (negate pred?) strm))
+@end example
+
+A section is a procedure which has been partially applied to some of its
+arguments; for instance, @code{(double x)}, which returns twice its
+argument, is a partial application of the multiply operator to the
+number 2.  Sections come in two kinds:
+
+@itemize
+@item
+left sections partially apply arguments starting from the left;
+@item
+right sections partially apply arguments starting from the right;
+@end itemize
+
+@noindent
+the procedure @func{lsec} takes a procedure and some prefix of its
+arguments and returns a new procedure in which those arguments are
+partially applied; the procedure @func{rsec} takes a procedure and some
+reversed suffix of its arguments and returns a new procedure in which
+those arguments are partially applied:
+
+@example
+(define (lsec proc . args)
+  (lambda x (apply proc (append args x))))
+
+(define (rsec proc . args)
+  (lambda x
+    (apply proc (reverse (append (reverse args) (reverse x))))))
+@end example
+
+Since most of the stream procedures take a stream as their last
+(rightmost) argument, left sections are particularly useful in
+conjunction with streams.
+
+@example
+(define stream-sum (lsec stream-fold + 0))
+@end example
+
+Function composition creates a new function by partially applying
+multiple functions, one after the other.  In the simplest case there are
+only two functions, @var{f} and @var{g}, composed as @code{(compose f
+g)}; the composition can be bound to create a new function, as in:
+
+@example
+(define fg (compose f g))
+@end example
+
+@noindent
+The procedure @func{compose} takes one or more procedures and returns a
+new procedure that performs the same action as the individual procedures
+would if called in succession:
+
+@example
+(define (compose . fns)
+  (let comp ((fns fns))
+    (cond
+      [(null? fns) 'error]
+      [(null? (cdr fns)) (car fns)]
+      [else
+        (lambda args
+          (call-with-values
+            (lambda ()
+              (apply
+                (comp (cdr fns))
+                args))
+            (car fns)))])))
+@end example
+
+@func{compose} works with sections to create succinct but highly
+expressive procedure definitions.  The expression to compute the squares
+of the integers from 1 to 10 given above at @func{stream-unfold} could
+be written by composing @func{stream-map}, @func{stream-take-while}, and
+@func{stream-iterate}:
+
+@example
+([compose
+  (lsec stream-map (rsec expt 2))
+  (lsec stream-take-while (negate (rsec > 10)))
+  (lsec stream-iterate (rsec + 1))]
+ 1)
+@end example
+
+
+
+@c page
+@node streams examples
+@section Examples
+
+
+@cindex @srfi{} streams examples
+
+
+The examples below show a few of the myriad ways streams can be
+exploited, as well as a few ways they can trip the unwary user.  All the
+examples are drawn from published sources; it is instructive to compare
+the Scheme versions to the originals in other languages.
+
+@menu
+* streams examples infinite::   Infinite streams.
+* streams examples generators:: Generators and co--routines.
+* streams examples pipeline::   A pipeline of procedures.
+* streams examples persistent:: Persistent data.
+* streams examples passes::     Reducing two passes to one.
+* streams examples pitfalls::   Pitfalls.
+@end menu
+
+
+@c page
+@node streams examples infinite
+@subsection Infinite streams
+
+
+As a simple illustration of infinite streams, consider this definition
+of the natural numbers:
+
+@example
+(define nats
+  (stream-cons 0
+    (stream-map add1 nats)))
+@end example
+
+@noindent
+the recursion works because it is offset by one from the initial
+@func{stream-cons}.  Another sequence that uses the offset trick is this
+definition of the Fibonacci numbers:
+
+@example
+(define fibs
+  (stream-cons 1
+    (stream-cons 1
+      (stream-map +
+        fibs
+        (stream-cdr fibs)))))
+@end example
+
+Yet another sequence that uses the same offset trick is the Hamming
+numbers, named for the mathematician and computer scientist Richard
+Hamming, defined as all numbers that have no prime factors greater than
+5; in other words, Hamming numbers are all numbers expressible as
+
+@example
+2i x 3j x 5k
+@end example
+
+@noindent
+where @var{i}, @var{j} and @var{k} are non--negative integers.  The
+Hamming sequence starts with 1 2 3 4 5 6 8 9 10 12 and is computed
+starting with 1, taking 2, 3 and 5 times all the previous elements with
+@func{stream-map}, then merging @func{sub-streams} and eliminating
+duplicates:
+
+@example
+(define hamming
+  (stream-cons 1
+    (stream-unique =
+      (stream-merge <
+        (stream-map (lsec * 2) hamming)
+        (stream-map (lsec * 3) hamming)
+        (stream-map (lsec * 5) hamming)))))
+@end example
+
+It is possible to have an infinite stream of infinite streams. Consider
+the definition of @func{power-table}:
+
+@example
+(define power-table
+  (stream-of
+    (stream-of (expt m n)
+      (m in (stream-from 1)))
+      (n in (stream-from 2))))
+@end example
+
+@noindent
+which evaluates to an infinite stream of infinite streams:
+
+@example
+(stream
+  (stream 1 4 9 16 25 ...)
+  (stream 1 8 27 64 125 ...)
+  (stream 1 16 81 256 625 ...)
+  ...)
+@end example
+
+But even though it is impossible to display @func{power-table} in its
+entirety, it is possible to select just part of it:
+
+@example
+(stream->list 10 (stream-ref power-table 1))
+  => (1 8 27 64 125 216 343 512 729 1000)
+@end example
+
+This example clearly shows that the elements of a stream are computed
+lazily, as they are needed; @code{(stream-ref power-table 0)} is not
+computed, even when its successor is displayed, since computing it would
+enter an infinite loop.
+
+Chris Reade shows how to calculate the stream of prime numbers according
+to the sieve of Eratosthenes, using a method that eliminates multiples
+of the sifting base with addition rather than division:
+
+@example
+(define primes (let ()
+  (define-stream (next base mult strm)
+    (let ((first (stream-car strm))
+          (rest (stream-cdr strm)))
+      (cond ((< first mult)
+              (stream-cons first
+                (next base mult rest)))
+            ((< mult first)
+              (next base (+ base mult) strm))
+            (else (next base
+                    (+ base mult) rest)))))
+  (define-stream (sift base strm)
+    (next base (+ base base) strm))
+  (define-stream (sieve strm)
+    (let ((first (stream-car strm))>
+          (rest (stream-cdr strm)))
+      (stream-cons first
+        (sieve (sift first rest)))))
+  (sieve (stream-from 2))))
+@end example
+
+A final example of infinite streams is a functional pearl from Jeremy
+Gibbons, David Lester and Richard Bird that enumerates the positive
+rational numbers without duplicates:
+
+@example
+(define rats
+  (stream-iterate
+    (lambda (x)
+      (let* ((n (floor x)) (y (- x n)))
+        (/ (- n -1 y))))
+    1))
+@end example
+
+
+@c page
+@node streams examples generators
+@subsection Generators and co--routines
+
+
+It is possible to model generators and co--routines using streams.
+Consider the task, due to Carl Hewitt, of determining if two trees have
+the same sequence of leaves:
+
+@example
+(same-fringe? = '(1 (2 3)) '((1 2) 3))  => #t
+
+(same-fringe? = '(1 2 3) '(1 (3 2)))    => #f
+@end example
+
+The simplest solution is to flatten both trees into lists and compare
+them element--by--element:
+
+@example
+(define (flatten tree)
+  (cond [(null? tree) '()]
+        [(pair? (car tree))
+         (append (flatten (car tree))
+                 (flatten (cdr tree)))]
+        [else (cons (car tree)
+                    (flatten (cdr tree)))]))
+
+(define (same-fringe? eql? tree1 tree2)
+  (let loop ([t1 (flatten tree1)]
+             [t2 (flatten tree2)])
+    (cond [(and (null? t1) (null? t2)) #t]
+          [(or (null? t1) (null? t2)) #f]
+          [(not (eql? (car t1) (car t2))) #f]
+          [else (loop (cdr t1) (cdr t2))])))
+@end example
+
+That works, but requires time to flatten both trees and space to store
+the flattened versions; if the trees are large, that can be a lot of
+time and space, and if the fringes differ, much of that time and space
+is wasted.
+
+Hewitt used a generator to flatten the trees one element at a time,
+storing only the current elements of the trees and the machines needed
+to continue flattening them, so @func{same-fringe?} could stop early if
+the trees differ.  Dorai Sitaram presents both the generator solution
+and a co--routine solution, which both involve tricky calls to
+@func{call-with-current-continuation} and careful coding to keep them
+synchronized.
+
+An alternate solution flattens the two trees to streams instead of
+lists, which accomplishes the same savings of time and space, and
+involves code that looks little different than the list solution
+presented above:
+
+@example
+(define-stream (flatten tree)
+  (cond [(null? tree) stream-null]
+        [(pair? (car tree))
+         (stream-append
+           (flatten (car tree))
+           (flatten (cdr tree)))]
+        [else (stream-cons
+                (car tree)
+                (flatten (cdr tree)))]))
+
+(define (same-fringe? eql? tree1 tree2)
+  (let loop ([t1 (flatten tree1)]
+             [t2 (flatten tree2)])
+    (cond [(and (stream-null? t1)
+                (stream-null? t2)) #t]
+          [(or  (stream-null? t1)
+                (stream-null? t2)) #f]
+          [(not (eql? (stream-car t1)
+                      (stream-car t2))) #f]
+          [else (loop (stream-cdr t1)
+                      (stream-cdr t2))])))
+@end example
+
+Note that streams, a data structure, replace generators or co--routines,
+which are control structures, providing a fine example of how lazy
+streams enhance modularity.
+
+
+@c page
+@node streams examples pipeline
+@subsection A pipeline of procedures
+
+
+Another way in which streams promote modularity is enabling the use of
+many small procedures that are easily composed into larger programs, in
+the style of Unix pipelines, where streams are important because they
+allow a large dataset to be processed one item at a time.  Bird and
+Wadler provide the example of a text formatter.  Their example uses
+right--folds:
+
+@example
+(define (stream-fold-right f base strm)
+  (if (stream-null? strm)
+      base
+    (f (stream-car strm)
+       (stream-fold-right f base
+         (stream-cdr strm)))))
+
+(define (stream-fold-right-one f strm)
+  (stream-match strm
+    [(x) x]
+    [(x . xs)
+     (f x (stream-fold-right-one f xs))]))
+@end example
+
+Bird and Wadler define text as a stream of characters, and develop a
+standard package for operating on text, which they derive mathematically
+(this assumes the line--separator character is a single
+@code{#\newline}):
+
+@example
+(define (breakon a)
+  (stream-lambda (x xss)
+    (if (equal? a x)
+        (stream-append (stream (stream)) xss)
+      (stream-append
+        (stream (stream-append
+            (stream x) (stream-car xss)))
+        (stream-cdr xss)))))
+
+(define-stream (lines strm)
+  (stream-fold-right
+    (breakon #\newline)
+    (stream (stream))
+    strm))
+
+(define-stream (words strm)
+  (stream-filter stream-pair?
+    (stream-fold-right
+      (breakon #\space)
+      (stream (stream))
+      strm)))
+
+(define-stream (paras strm)
+  (stream-filter stream-pair?
+    (stream-fold-right
+      (breakon stream-null)
+      (stream (stream))
+      strm)))
+
+(define (insert a)
+  (stream-lambda (xs ys)
+    (stream-append xs (stream a) ys)))
+
+(define unlines
+  (lsec stream-fold-right-one
+    (insert #\newline)))
+
+(define unwords
+  (lsec stream-fold-right-one
+    (insert #\space)))
+
+(define unparas
+  (lsec stream-fold-right-one
+    (insert stream-null)))
+@end example
+
+These versatile procedures can be composed to count words, lines and
+paragraphs; the @func{normalize} procedure squeezes out multiple spaces
+and blank lines:
+
+@example
+(define countlines
+  (compose stream-length lines))
+
+(define countwords
+  (compose stream-length
+           stream-concat
+           (lsec stream-map words)
+           lines))
+
+(define countparas
+  (compose stream-length paras lines))
+
+(define parse
+  (compose (lsec stream-map
+             (lsec stream-map words))
+           paras
+           lines))
+
+(define unparse
+  (compose unlines
+           unparas
+           (lsec stream-map
+             (lsec stream-map unwords))))
+
+(define normalize (compose unparse parse))
+@end example
+
+More useful than normalization is text--filling, which packs as many
+words onto each line as will fit.
+
+@example
+(define (greedy m ws)
+  (- (stream-length
+       (stream-take-while (rsec <= m)
+         (stream-scan
+           (lambda (n word)
+             (+ n (stream-length word) 1))
+           -1
+           ws))) 1))
+
+(define-stream (fill m ws)
+  (if (stream-null? ws)
+      stream-null
+    (let* ([n (greedy m ws)]
+           [fstline (stream-take n ws)]
+           [rstwrds (stream-drop n ws)])
+      (stream-append
+        (stream fstline)
+        (fill m rstwrds)))))
+
+(define linewords
+  (compose stream-concat
+           (lsec stream-map words)))
+
+(define textparas
+  (compose (lsec stream-map linewords)
+           paras
+           lines))
+
+(define (filltext m strm)
+  (unparse (stream-map (lsec fill m) (textparas strm))))
+@end example
+
+To display filename in lines of @var{n} characters, say:
+
+@example
+(stream-for-each display
+  (filltext n (file->stream filename)))
+@end example
+
+Though each operator performs only a single task, they can be composed
+powerfully and expressively.  The alternative is to build a single
+monolithic procedure for each task, which would be harder and involve
+repetitive code.  Streams ensure procedures are called as needed.
+
+
+@c page
+@node streams examples persistent
+@subsection Persistent data
+
+
+Queues are one of the fundamental data structures of computer science.
+In functional languages, queues are commonly implemented using two
+lists, with the front half of the queue in one list, where the head of
+the queue can be accessed easily, and the rear half of the queue in
+reverse order in another list, where new items can easily be added to
+the end of a queue.  The standard form of such a queue holds that the
+front list can only be null if the rear list is also null:
+
+@example
+(define queue-null (cons '() '())
+
+(define (queue-null? obj)
+  (and (pair? obj) (null? (car obj))))
+
+(define (queue-check f r)
+  (if (null? f)
+      (cons (reverse r) '())
+    (cons f r)))
+
+(define (queue-snoc q x)
+  (queue-check (car q) (cons x (cdr q))))
+
+(define (queue-head q)
+  (if (null? (car q))
+      (error "empty queue: head")
+    (car (car q))))
+
+(define (queue-tail q)
+  (if (null? (car q))
+      (error "empty-head: tail")
+    (queue-check (cdr (car q)) (cdr q))))
+@end example
+
+This queue operates in amortized constant time per operation, with two
+conses per element, one when it is added to the rear list, and another
+when the rear list is reversed to become the front list.
+@func{queue-snoc} and @func{queue-head} operate in constant time;
+@func{queue-tail} operates in worst--case linear time when the front
+list is empty.
+
+Chris Okasaki points out that, if the queue is used persistently, its
+time--complexity rises from linear to quadratic since each persistent
+copy of the queue requires its own linear--time access.  The problem can
+be fixed by implementing the front and rear parts of the queue as
+streams, rather than lists, and rotating one element from rear to front
+whenever the rear list is larger than the front list:
+
+@example
+(define queue-null
+  (cons stream-null stream-null))
+
+(define (queue-null? x)
+  (and (pair? x) (stream-null (car x))))
+
+(define (queue-check f r)
+  (if (< (stream-length r) (stream-length f))
+      (cons f r)
+    (cons (stream-append f (stream-reverse r))
+          stream-null)))
+
+(define (queue-snoc q x)
+  (queue-check (car q) (stream-cons x (cdr q))))
+
+(define (queue-head q)
+  (if (stream-null? (car q))
+      (error "empty queue: head")
+    (stream-car (car q))))
+
+(define (queue-tail q)
+  (if (stream-null? (car q))
+      (error "empty queue: tail")
+    (queue-check (stream-cdr (car q)) (cdr q))))
+@end example
+
+Memoization solves the persistence problem; once a queue element has
+moved from rear to front, it needs never be moved again in subsequent
+traversals of the queue.  Thus, the linear time--complexity to access
+all elements in the queue, persistently, is restored.
+
+
+@c page
+@node streams examples passes
+@subsection Reducing two passes to one
+
+
+The final example is a lazy dictionary, where definitions and uses may
+occur in any order; in particular, uses may precede their corresponding
+definitions.  This is a common problem.
+
+Many programming languages allow procedures to be used before they are
+defined.  Macro processors must collect definitions and emit uses of
+text in order.  An assembler needs to know the address that a linker
+will subsequently give to variables.  The usual method is to make two
+passes over the data, collecting the definitions on the first pass and
+emitting the uses on the second pass.  But Chris Reade shows how streams
+allow the dictionary to be built lazily, so that only a single pass is
+needed.  Consider a stream of requests:
+
+@example
+(define requests
+  (stream
+    '(get 3)
+    '(put 1 "a")    ; use follows definition
+    '(put 3 "c")    ; use precedes definition
+    '(get 1)
+    '(get 2)
+    '(put 2 "b")    ; use precedes definition
+    '(put 4 "d")))  ; unused definition
+@end example
+
+We want a procedure that will display cab, which is the result of
+@code{(get 3)}, @code{(get 1)}, and @code{(get 2)}, in order.  We first
+separate the request stream into gets and puts:
+
+@example
+(define (get? obj) (eq? (car obj) 'get))
+
+(define-stream (gets strm)
+  (stream-map cadr (stream-filter get? strm)))
+
+(define-stream (puts strm)
+  (stream-map cdr  (stream-remove get? strm)))
+@end example
+
+Now, @func{run-dict} inserts each element of the puts stream into a lazy
+dictionary, represented as a stream of key/value pairs (an association
+stream), then looks up each element of the gets stream with
+@func{stream-assoc}:
+
+@example
+(define-stream (run-dict requests)
+  (let ([dict (build-dict (puts requests))])
+    (stream-map (rsec stream-assoc dict)
+      (gets requests))))
+
+(define (stream-assoc key dict)
+    (cond [(stream-null? dict) #f]
+          [(equal? key (car (stream-car dict)))
+           (stream-car dict)]
+          [else (stream-assoc key
+                  (stream-cdr dict))]))
+@end example
+
+@var{dict} is created in the @func{let}, but nothing is initially added
+to it.  Each time @func{stream-assoc} performs a lookup, enough of
+@var{dict} is built to satisfy the lookup, but no more.  We are assuming
+that each item is defined once and only once.  All that is left is to
+define the procedure that inserts new items into the dictionary, lazily:
+
+@example
+(define-stream (build-dict puts)
+  (if (stream-null? puts)
+      stream-null
+    (stream-cons
+      (stream-car puts)
+      (build-dict (stream-cdr puts)))))
+
+@end example
+
+Now we can run the requests and print the result:
+
+@example
+(stream-for-each display
+  (stream-map cadr (run-dict requests)))
+@end example
+
+The @code{(put 4 "d")} definition is never added to the dictionary
+because it is never needed.
+
+
+@c page
+@node streams examples pitfalls
+@subsection Pitfalls
+
+
+Programming with streams, or any lazy evaluator, can be tricky, even for
+programmers experienced in the genre.  Programming with streams is even
+worse in Scheme than in a purely functional language, because, though
+the streams are lazy, the surrounding Scheme expressions in which they
+are embedded are eager.  The impedance between lazy and eager can
+occasionally lead to astonishing results.  Thirty--two years ago,
+William Burge warned:
+
+@quotation
+Some care must be taken when a stream is produced to make sure that its
+elements are not really a list in disguise, in other words, to make sure
+that the stream elements are not materialized too soon.
+@end quotation
+
+For example, a simple version of @func{stream-map} that returns a stream
+built by applying a unary procedure to the elements of an input stream
+could be defined like this:
+
+@example
+(define-stream (stream-map proc strm) ;wrong!
+  (let loop ([strm strm])
+    (if (stream-null? strm)
+        stream-null
+      (stream-cons
+        (proc (stream-car strm))
+        (loop (stream-cdr strm))))))
+@end example
+
+That looks right.  It properly wraps the procedure in
+@func{stream-lambda}, and the two legs of the @func{if} both return
+streams, so it type--checks.  But it fails because the named @func{let}
+binds @var{loop} to a procedure using normal @func{lambda} rather than
+@func{stream-lambda}, so even though the first element of the result
+stream is lazy, subsequent elements are eager.  @func{stream-map} can be
+written using @func{stream-let}:
+
+@example
+(define-stream (stream-map proc strm)
+  (stream-let loop ([strm strm])
+    (if (stream-null? strm)
+        stream-null
+      (stream-cons
+        (proc (stream-car strm))
+        (loop (stream-cdr strm))))))
+@end example
+
+Here, @func{stream-let} assures that each element of the result stream
+is properly delayed, because each is subject to the @func{stream-lambda}
+that is implicit in @func{stream-let}, so the result is truly a stream,
+not a ``list in disguise''.  Another version of this procedure was given
+previously at the description of @func{define-stream}.
+
+Another common problem occurs when a stream--valued procedure requires
+the next stream element in its definition.  Consider this definition of
+@func{stream-unique}:
+
+@example
+(define-stream (stream-unique eql? strm) ;wrong!
+  (stream-match strm
+    [() strm]
+    [(_) strm]
+    [(a b . _)
+     (if (eql? a b)
+         (stream-unique eql?
+           (stream-cdr strm))
+       (stream-cons a
+         (stream-unique eql?
+           (stream-cdr strm))))]))
+@end example
+
+@noindent
+the @code{(a b . _)} pattern requires the value of the next stream
+element after the one being considered.  Thus, to compute the nth
+element of the stream, one must know the n+1st element, and to compute
+the n+1st element, one must know the n+2nd element, and to compute...
+The correct version, given above in the description of
+@func{stream-drop-while}, only needs the current stream element.
+
+A similar problem occurs when the stream expression uses the previous
+element to compute the current element:
+
+@example
+(define (nat n)
+  (stream-ref
+    (stream-let loop ([s (stream 0)])
+      (stream-cons (stream-car s)
+        (loop (stream (add1 (stream-car s))))))
+    n))
+@end example
+
+@noindent
+this program traverses the stream of natural numbers, building the
+stream as it goes.  The definition is correct: @code{(nat 15)} evaluates
+to 15; but it needlessly uses unbounded space because each stream
+element holds the value of the prior stream element in the binding to
+@var{s}.
+
+When traversing a stream, it is easy to write the expression in such a
+way that evaluation requires unbounded space, even when that is not
+strictly necessary.  During the discussion of @ansrfi{40}, Joe Marshall
+created this infamous procedure:
+
+@example
+(define (times3 n)
+  (stream-ref
+    (stream-filter
+      (lambda (x)
+        (zero? (modulo x n)))
+      (stream-from 0))
+    3))
+@end example
+
+@noindent
+@code{(times3 5)} evaluates to 15 and @code{(times3 #e1e9)} evaluates to
+three billion, though it takes a while.  In either case, @func{times3}
+should operate in bounded space, since each iteration mutates the
+promise that holds the next value.  But it is easy to write
+@func{times3} so that it does not operate in bounded space, as the
+follies of @ansrfi{40} showed.
+
+The common problem is that some element of the stream (often the first
+element) is bound outside the expression that is computing the stream,
+so it holds the head of the stream, which holds the second element, and
+so on.  In addition to testing the programmer, this procedure tests the
+stream primitives (it caught several errors during development) and also
+tests the underlying Scheme system (it found a bug in one
+implementation).
+
+Laziness is no defense against an infinite loop; for instance, the
+expression below never returns, because the @func{odd?} predicate never
+finds an odd stream element.
+
+@example
+(stream-null?
+  (stream-filter odd?
+    (stream-from 0 2)))
+@end example
+
+Ultimately, streams are defined as promises, which are implemented as
+thunks (lambda with no arguments).  Since a stream is a procedure,
+comparisons such as @func{eq?}, @func{eqv?} and @func{equal?} are not
+meaningful when applied to streams.  For instance, the expression
+
+@example
+(define s ((stream-lambda () stream-null)))
+@end example
+
+@noindent
+defines @var{s} as the null stream, and @code{(stream-null? s)} is
+@true{}, but @code{(eq?  s stream-null)} is @false{}.
+
+To determine if two streams are equal, it is necessary to evaluate the
+elements in their common prefixes, reporting @false{} if two elements
+ever differ and @true{} if both streams are exhausted at the same time.
+
+@example
+(define (stream-equal? eql? xs ys)
+  (cond [(and (stream-null? xs)
+              (stream-null? ys)) #t]
+        [(or (stream-null? xs)
+             (stream-null? ys)) #f]
+        [(not (eql? (stream-car xs)
+                    (stream-car ys))) #f]
+        [else (stream-equal? eql?
+                (stream-cdr xs)
+                (stream-cdr ys))]))
+@end example
+
+It is generally not a good idea to mix lazy streams with eager
+side--effects, because the order in which stream elements are evaluated
+determines the order in which the side--effects occur.  For a simple
+example, consider this side--effecting version of @func{strm123}:
+
+@example
+(define strm123-with-side-effects
+  (stream-cons (begin (display "one") 1)
+    (stream-cons (begin (display "two") 2)
+      (stream-cons (begin (display "three") 3)
+        stream-null))))
+@end example
+
+The stream has elements @code{1 2 3}.  But depending on the order in
+which stream elements are accessed, @code{"one"}, @code{"two"} and
+@code{"three"} could be printed in any order.
+
+Since the performance of streams can be very poor, normal (eager) lists
+should be preferred to streams unless there is some compelling reason to
+the contrary.  For instance, computing pythagorean triples with streams:
+
+@example
+(stream-ref
+  (stream-of (list a b c)
+    (n in (stream-from 1))
+    (a in (stream-range 1 n))
+    (b in (stream-range a n))
+    (c is (- n a b))
+    (= (+ (* a a) (* b b)) (* c c)))
+  50)
+@end example
+
+@noindent
+is about two orders of magnitude slower than the equivalent expression
+using loops:
+
+@example
+(do ([n 1 (+ n 1)]) ([> n 228])
+  (do ([a 1 (+ a 1)]) ([> a n])
+    (do ([b a (+ b 1)]) ([> b n])
+      (let ([c (- n a b)])
+        (if (= (+ (* a a) (* b b)) (* c c))
+            (display (list a b c)))))))
+@end example
+
+@c page
 @node comparisons
 @chapter Comparison functions
 
@@ -27320,16 +29481,16 @@ The binary form uses @func{default-compare} as @var{compare}.
 
 @example
 (pair-compare '() 'foo)
-=> -1
+@result{} -1
 
 (pair-compare '() '(1 . 2)))
-=> -1
+@result{} -1
 
 (pair-compare '(1 . 2) 'foo)
-=> -1
+@result{} -1
 
 (pair-compare 3 4)
-=> -1
+@result{} -1
 @end example
 @end defun
 
@@ -27618,19 +29779,19 @@ A few examples for illustration:
 
 @example
 (>? "laugh" "LOUD")
-=> #t
+@result{} #t
 
 (<? string-compare-ci "laugh" "LOUD")
-=> #t
+@result{} #t
 
 (define char<=?
   (<=? char-compare))
 
 (sort-by-less '(1 a "b") (<?))
-=> '("b" a 1)
+@result{} '("b" a 1)
 
 (sort-by-less '(1 a "b") (>?))
-=> '(1 a "b")
+@result{} '(1 a "b")
 @end example
 
 @quotation
@@ -28985,7 +31146,7 @@ and no index variable.  Then:
 
 @example
 (:generator-proc (g arg0 arg ...))
-=> g
+@result{} g
 @end example
 
 @noindent
@@ -31909,7 +34070,7 @@ Scheme programs.  This library re--exports all the bindings from the
 
 @noindent
 evaluates the expression @code{(+ 1 1)} and compares the result with the
-expected result @code{3} provided after the syntactic keyword @code{=>}.
+expected result @samp{3} provided after the syntactic keyword @samp{=>}.
 Then the outcome of this comparison is reported in human--readable form
 by printing a message of the form:
 
@@ -49662,7 +51823,7 @@ There exists a unique real @math{0} for which, for every real @math{a}:
 For every real @math{a} there is a unique other real @math{b} for which:
 
 @example
-a + b = 0  =>  a = -b
+a + b = 0  @result{}  a = -b
 @end example
 @end table
 
@@ -49689,7 +51850,7 @@ a * (b * c) = (a * b) * c
 
 @item Inverse element
 @example
-a * b = 1  =>  a = 1/b
+a * b = 1  @result{}  a = 1/b
 @end example
 @end table
 
@@ -49759,8 +51920,8 @@ like, say, @math{8}, because:
 
 @example
 4 + +\infty = 8
-=> +\infty = 8 - 4 = 4
-=> +\infty = 4  Wrong!
+@result{} +\infty = 8 - 4 = 4
+@result{} +\infty = 4  Wrong!
 @end example
 
 @noindent
@@ -49769,8 +51930,8 @@ then:
 
 @example
 4 + +\infty = +\infty
-=>  4 = +\infty - +\infty = 0
-=>  4 = 0  Wrong!
+@result{}  4 = +\infty - +\infty = 0
+@result{}  4 = 0  Wrong!
 @end example
 
 @noindent
@@ -49821,9 +51982,9 @@ computation:
 
 @example
 3 * (1 / 0) = y
-=>  3 / 0 = y
-=>  3 = y * 0 = 0
-=>  3 = 0   Wrong!
+@result{}  3 / 0 = y
+@result{}  3 = y * 0 = 0
+@result{}  3 = 0   Wrong!
 @end example
 
 @noindent
@@ -49957,7 +52118,7 @@ because, in Mathematics, @math{0 / 0} is not compliant to the axioms:
 
 @example
 (0 / 0) = y
-=>  0 * y = 0    y is not unique
+@result{}  0 * y = 0    y is not unique
 @end example
 
 Special rules were defined so that an arithmetic composition between NaN
@@ -50955,6 +53116,32 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+@c ------------------------------------------------------------
+
+@subsubheading @ansrfi{41}: Streams library
+
+Copyright @copyright{} 2007, 2008 by Philip L. Bewig.  All Rights
+Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @c ------------------------------------------------------------
 

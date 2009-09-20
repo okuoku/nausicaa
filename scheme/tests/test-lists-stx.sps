@@ -663,17 +663,42 @@
 
   (check
       (zip/stx '(one two three)
-	       '(1 2 3)
-	       '(odd even odd even odd even odd even))
+	   '(1 2 3)
+	   '(odd even odd))
     => '((one 1 odd) (two 2 even) (three 3 odd)))
+
+  (check	;unequal length
+      (guard (E (else #t))
+	(zip/stx '(one two three)
+	     '(1 2 3)
+	     '(odd even odd even odd even odd even)))
+    => #t)
 
   (check
       (zip/stx '(1 2 3))
     => '((1) (2) (3)))
 
+  (check	;circular list is rejected as list of unequal length
+      (guard (E (else #t))
+	(zip/stx '(3 1 4 1)
+	     (circular-list #f #t)))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
   (check
-      (zip/stx '(3 1 4 1)
-	       (circular-list #f #t))
+      (zip*/stx '(one two three)
+		'(1 2 3)
+		'(odd even odd even odd even odd even))
+    => '((one 1 odd) (two 2 even) (three 3 odd)))
+
+  (check
+      (zip*/stx '(1 2 3))
+    => '((1) (2) (3)))
+
+  (check
+      (zip*/stx '(3 1 4 1)
+		(circular-list #f #t))
     => '((3 #f)
 	 (1 #t)
 	 (4 #f)
@@ -1510,90 +1535,90 @@
 
 ;;; --------------------------------------------------------------------
 
-    (check
-        (map-in-order*/stx - '())
-      => '())
+  (check
+      (map-in-order*/stx - '())
+    => '())
 
-    (check
-        (map-in-order*/stx - '() '())
-      => '())
+  (check
+      (map-in-order*/stx - '() '())
+    => '())
 
-    (check
-        (map-in-order*/stx - '() '() '())
-      => '())
+  (check
+      (map-in-order*/stx - '() '() '())
+    => '())
 
-    (check
-        (map-in-order*/stx - '() '() '() '())
-      => '())
+  (check
+      (map-in-order*/stx - '() '() '() '())
+    => '())
 
-    (check
-        (map-in-order*/stx - numbers)
-      => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+  (check
+      (map-in-order*/stx - numbers)
+    => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
 
-    (check
-        (map-in-order*/stx + '(1 2 3))
-      => '(1 2 3))
+  (check
+      (map-in-order*/stx + '(1 2 3))
+    => '(1 2 3))
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(1 2 3)
   			 '(10 20 30))
-      => '(11 22 33))
+    => '(11 22 33))
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(1 2 3)
   			 '(10 20 30)
   			 '(100 200 300))
-      => '(111 222 333))
+    => '(111 222 333))
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(1 2 3)
   			 '(10 20)
   			 '(100 200 300))
-      => '(111 222))
+    => '(111 222))
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(1 2)
   			 '(10 20 30)
   			 '(100 200 300))
-      => '(111 222))
+    => '(111 222))
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(1 2 3)
   			 '(10 20 30)
   			 '(100 200))
-      => '(111 222))
+    => '(111 222))
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '()
   			 '(10 20 30)
   			 '(100 200 300))
-      => '())
+    => '())
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(1 2 3)
   			 '()
   			 '(100 200 300))
-      => '())
+    => '())
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(1 2 3)
   			 '(10 20 30)
   			 '())
-      => '())
+    => '())
 
-    (check
-        (map-in-order*/stx +
+  (check
+      (map-in-order*/stx +
   			 '(3 1 4 1)
   			 (circular-list 1 0))
-      => '(4 1 5 1))
+    => '(4 1 5 1))
 
 ;;; --------------------------------------------------------------------
 
@@ -1636,8 +1661,8 @@
     => '(111 222))
 
 
-    (check
-        (let ((r '(0 0 0)))
+  (check
+      (let ((r '(0 0 0)))
   	(for-each*/stx
   	 (lambda (e1 e2 e3)
   	   (set! r (list (+ e1 (car r))
@@ -1647,10 +1672,10 @@
   	 '(2 20 200)
   	 '(3 30 300))
   	r)
-      => '(111 222 333))
+    => '(111 222 333))
 
-    (check
-        (let ((r '(0 0 0)))
+  (check
+      (let ((r '(0 0 0)))
   	(for-each*/stx
   	 (lambda (e1 e2 e3)
   	   (set! r (list (+ e1 (car r))
@@ -1660,7 +1685,366 @@
   	 '(2 20 200)
   	 (circular-list 3 30 300))
   	r)
-      => '(111 222 333))
+    => '(111 222 333))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1 2 3))
+	r)
+    => '((3)
+	 (2 3)
+	 (1 2 3)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x y)
+	   (set! r (cons (list x y)
+			 r)))
+	 '()
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '()
+	 '()
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1))
+	r)
+    => '((1)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1 2))
+	r)
+    => '((2)
+	 (1 2)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x y)
+	   (set! r (cons (list x y)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30))
+	r)
+    => '(((3) (30))
+	 ((2 3) (20 30))
+	 ((1 2 3) (10 20 30))))
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30)
+	 '(100 200 300))
+	r)
+    => '(((3) (30) (300))
+	 ((2 3) (20 30) (200 300))
+	 ((1 2 3) (10 20 30) (100 200 300))))
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each/stx
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2)
+	   '(10 20 30)
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each/stx
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '(10 20)
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each/stx
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '(10 20 30)
+	   '(100 200))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each/stx
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '()
+	   '(10 20 30)
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each/stx
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '()
+	   '(100 200 300))
+	  r))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(let ((r '()))
+	  (pair-for-each/stx
+	   (lambda (x y z)
+	     (set! r (cons (list x y z)
+			   r)))
+	   '(1 2 3)
+	   '(10 20 30)
+	   '())
+	  r))
+    => #t)
+
+  (check
+      (let ((r '()))
+	(pair-for-each/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1)
+	 '(10)
+	 '(100))
+	r)
+    => '(((1) (10) (100))))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1 2 3))
+	r)
+    => '((3)
+	 (2 3)
+	 (1 2 3)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '()
+	 '()
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y)
+	   (set! r (cons (list x y)
+			 r)))
+	 '()
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1))
+	r)
+    => '((1)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x)
+	   (set! r (cons x r)))
+	 '(1 2))
+	r)
+    => '((2)
+	 (1 2)))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y)
+	   (set! r (cons (list x y)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30))
+	r)
+    => '(((3) (30))
+	 ((2 3) (20 30))
+	 ((1 2 3) (10 20 30))))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30)
+	 '(100 200 300))
+	r)
+    => '(((3) (30) (300))
+	 ((2 3) (20 30) (200 300))
+	 ((1 2 3) (10 20 30) (100 200 300))))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2)
+	 '(10 20 30)
+	 '(100 200 300))
+	r)
+    => '(((2) (20 30) (200 300))
+	 ((1 2) (10 20 30) (100 200 300))))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2 3)
+	 '(10 20)
+	 '(100 200 300))
+	r)
+    => '(((2 3) (20) (200 300))
+	 ((1 2 3) (10 20) (100 200 300))))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30)
+	 '(100 200))
+	r)
+    => '(((2 3) (20 30) (200))
+	 ((1 2 3) (10 20 30) (100 200))))
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '()
+	 '(10 20 30)
+	 '(100 200 300))
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2 3)
+	 '()
+	 '(100 200 300))
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1 2 3)
+	 '(10 20 30)
+	 '())
+	r)
+    => '())
+
+  (check
+      (let ((r '()))
+	(pair-for-each*/stx
+	 (lambda (x y z)
+	   (set! r (cons (list x y z)
+			 r)))
+	 '(1)
+	 '(10)
+	 '(100))
+	r)
+    => '(((1) (10) (100))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1701,26 +2085,28 @@
 		'(100 200 300))
     => '(111 222 333))
 
-;;; Only the first list argument can be shorter!!!
-  (check
-      (map!/stx +
-		'(1 2)
-		'(10 20 30)
-		'(100 200 300))
-    => '(111 222))
+  (check	;lists of different length
+      (guard (E (else #t))
+	(map!/stx +
+		  '(1 2)
+		  '(10 20 30)
+		  '(100 200 300)))
+    => #t)
 
-  (check
-      (map!/stx +
-		'()
-		'(10 20 30)
-		'(100 200 300))
-    => '())
+  (check	;lists of different length
+      (guard (E (else #t))
+	(map!/stx +
+		  '()
+		  '(10 20 30)
+		  '(100 200 300)))
+    => #t)
 
-  (check
-      (map!/stx +
-		'(3 1 4 1)
-		(circular-list 1 0))
-    => '(4 1 5 1))
+  (check	;lists of different length
+      (guard (E (else #t))
+	(map!/stx +
+		  '(3 1 4 1)
+		  (circular-list 1 0)))
+    => #t)
 
 ;;; --------------------------------------------------------------------
 
@@ -1829,52 +2215,154 @@
 		      '(100 200 300))
     => '(111 222 333))
 
-  (check
-      (filter-map/stx +
-		      '(1 2 3)
-		      '(10 20)
-		      '(100 200 300))
-    => '(111 222))
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map/stx +
+			'(1 2 3)
+			'(10 20)
+			'(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map/stx +
+			'(1 2)
+			'(10 20 30)
+			'(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map/stx +
+			'(1 2 3)
+			'(10 20 30)
+			'(100 200)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map/stx +
+			'()
+			'(10 20 30)
+			'(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map/stx +
+			'(1 2 3)
+			'()
+			'(100 200 300)))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map/stx +
+			'(1 2 3)
+			'(10 20 30)
+			'()))
+    => #t)
+
+  (check	;lists of different length
+      (guard (E (else #t))
+	(filter-map/stx +
+			'(3 1 4 1)
+			(circular-list 1 0)))
+    => #t)
+
+;;; --------------------------------------------------------------------
 
   (check
-      (filter-map/stx +
-		      '(1 2)
-		      '(10 20 30)
-		      '(100 200 300))
-    => '(111 222))
+      (filter-map*/stx
+       (lambda (x)
+	 (and (number? x)
+	      (* x x)))
+       '(a 1 b 3 c 7))
+    => '(1 9 49))
 
   (check
-      (filter-map/stx +
-		      '(1 2 3)
-		      '(10 20 30)
-		      '(100 200))
-    => '(111 222))
-
-  (check
-      (filter-map/stx +
-		      '()
-		      '(10 20 30)
-		      '(100 200 300))
+      (filter-map*/stx - '())
     => '())
 
   (check
-      (filter-map/stx +
-		      '(1 2 3)
-		      '()
-		      '(100 200 300))
+      (filter-map*/stx - '() '())
     => '())
 
   (check
-      (filter-map/stx +
-		      '(1 2 3)
-		      '(10 20 30)
-		      '())
+      (filter-map*/stx - '() '() '())
     => '())
 
   (check
-      (filter-map/stx +
-		      '(3 1 4 1)
-		      (circular-list 1 0))
+      (filter-map*/stx - '() '() '() '())
+    => '())
+
+  (check
+      (filter-map*/stx - numbers)
+    => '(0 -1 -2 -3 -4 -5 -6 -7 -8 -9))
+
+  (check
+      (filter-map*/stx + '(1 2 3))
+    => '(1 2 3))
+
+  (check
+      (filter-map*/stx +
+		       '(1 2 3)
+		       '(10 20 30))
+    => '(11 22 33))
+
+  (check
+      (filter-map*/stx +
+		       '(1 2 3)
+		       '(10 20 30)
+		       '(100 200 300))
+    => '(111 222 333))
+
+  (check
+      (filter-map*/stx +
+		       '(1 2 3)
+		       '(10 20)
+		       '(100 200 300))
+    => '(111 222))
+
+  (check
+      (filter-map*/stx +
+		       '(1 2)
+		       '(10 20 30)
+		       '(100 200 300))
+    => '(111 222))
+
+  (check
+      (filter-map*/stx +
+		       '(1 2 3)
+		       '(10 20 30)
+		       '(100 200))
+    => '(111 222))
+
+  (check
+      (filter-map*/stx +
+		       '()
+		       '(10 20 30)
+		       '(100 200 300))
+    => '())
+
+  (check
+      (filter-map*/stx +
+		       '(1 2 3)
+		       '()
+		       '(100 200 300))
+    => '())
+
+  (check
+      (filter-map*/stx +
+		       '(1 2 3)
+		       '(10 20 30)
+		       '())
+    => '())
+
+  (check
+      (filter-map*/stx +
+		       '(3 1 4 1)
+		       (circular-list 1 0))
     => '(4 1 5 1))
 
   )
@@ -2505,6 +2993,28 @@
 	'(1 2 3)
 	'(1.1 2.1 3))
     => 2)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (position/stx 9 '())
+    => #f)
+
+  (check
+      (position/stx 9 '(1))
+    => #f)
+
+  (check
+      (position/stx 9 '(1 3 5))
+    => #f)
+
+  (check
+      (position/stx 2 '(2))
+    => 0)
+
+  (check
+      (position/stx 2 '(1 2 3 5))
+    => 1)
 
 ;;; --------------------------------------------------------------------
 

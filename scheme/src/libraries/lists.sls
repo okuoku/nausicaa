@@ -67,7 +67,7 @@
     concatenate		concatenate!
     reverse!
     append-reverse	append-reverse!
-    zip
+    zip			zip*
     unzip1		unzip2			unzip3
     unzip4		unzip5
     count
@@ -87,12 +87,11 @@
     map!		map*!
     for-each*
     append-map		append-map!
-    pair-for-each*
-    filter-map
+    pair-for-each	pair-for-each*
+    filter-map		filter-map*
 
     ;; filtering
-    filter		filter!
-    partition		partition!
+    filter!		partition!
     remove*		remove*!
 
     ;;searching
@@ -101,8 +100,11 @@
     drop-while
     span		span!
     break		break!
-    any			every
-    list-index		member*
+    any			any*
+    every		every*
+    list-index		list-index*
+    member*
+    position
 
     ;; deletion
     delete		delete!
@@ -114,7 +116,6 @@
 
     ;; alists
     assoc*
-    assq		assv
     alist-cons		alist-copy
     alist-delete	alist-delete!
 
@@ -269,7 +270,9 @@
 ;;
 
 (define (circular-list? obj)
-  (let loop ((ell obj) (lag obj))
+  ;;At every iteration ELL is CDR-ed twice, LAG is CDR-ed once.
+  (let loop ((ell obj)
+	     (lag obj))
     (and (pair? ell)
 	 (let ((ell (cdr ell)))
 	   (and (pair? ell)
@@ -424,10 +427,12 @@
 (define (split-at ell k)
   (let loop ((ell ell)
 	     (k   k))
-    (if (zero? k) (values '() ell)
+    (if (zero? k)
+	(values '() ell)
       (receive (prefix suffix)
 	  (loop (cdr ell) (- k 1))
-	(values (cons (car ell) prefix) suffix)))))
+	(values (cons (car ell) prefix)
+		suffix)))))
 
 (define (split-at! x k)
   (if (zero? k) (values '() x)
@@ -448,7 +453,8 @@
 
 ;;;; miscellaneous
 
-(define (length+ x) ; Returns #f if X is circular.
+(define (length+ x)
+  ;;returns #f if X is circular.
   (let lp ((x x) (lag x) (len 0))
     (if (pair? x)
 	(let ((x   (cdr x))
@@ -509,6 +515,9 @@
 ;;; --------------------------------------------------------------------
 
 (define (zip list1 . more-lists)
+  (apply map list list1 more-lists))
+
+(define (zip* list1 . more-lists)
   (apply map* list list1 more-lists))
 
 (define (unzip1 lis)
@@ -895,7 +904,7 @@
 
    ((f ell . ells)
     (let loop ((ells (cons ell ells)))
-      (let ((tails (%cdrs* ells)))
+      (let ((tails (%cdrs ells)))
 	(when (pair? tails)
 	  (begin (apply f ells)
 		 (loop tails))))))))
@@ -920,11 +929,11 @@
 (define map!
   (case-lambda
 
-;;    ((f ell)
-;;     (pair-for-each (lambda (pair)
-;; 		     (set-car! pair (f (car pair))))
-;; 		    ell)
-;;     ell)
+   ((f ell)
+    (pair-for-each (lambda (pair)
+		     (set-car! pair (f (car pair))))
+		    ell)
+    ell)
 
    ((f ell . ells)
     (let loop ((ell  ell)
@@ -958,6 +967,34 @@
 
 ;;; Map F across L, and save up all the non-false results.
 (define filter-map
+  (case-lambda
+
+   ((f ell)
+    (let recur ((ell ell))
+      (if (null? ell)
+	  ell
+	(let ((tail (recur (cdr ell))))
+	  (cond
+	   ((f (car ell))
+	    => (lambda (x)
+		 (cons x tail)))
+	   (else
+	    tail))))))
+
+   ((f ell . ells)
+    (let recur ((ells (cons ell ells)))
+      (receive (cars cdrs)
+	  (%cars/cdrs ells)
+	(if (pair? cars)
+	    (cond
+	     ((apply f cars)
+	      => (lambda (x)
+		   (cons x (recur cdrs))))
+	     (else
+	      (recur cdrs))) ; Tail call in this arm.
+	  '()))))))
+
+(define filter-map*
   (case-lambda
 
    ((f ell)
@@ -1128,26 +1165,89 @@
 (define (break! pred lis)
   (span! (lambda (x) (not (pred x))) lis))
 
-(define (any pred lis1 . lists)
-  (if (pair? lists)
+(define any
+  (case-lambda
+   ((pred ell)
+    (and (not (null? ell))
+	 (let loop ((head (car ell)) (tail (cdr ell)))
+	   (if (null? tail)
+	       (pred head) ; Last PRED app is tail call.
+	     (or (pred head)
+		 (loop (car tail) (cdr tail)))))))
 
-      ;; N-ary case
-      (receive (heads tails) (%cars/cdrs* (cons lis1 lists))
-	(and (pair? heads)
-	     (let lp ((heads heads) (tails tails))
-	       (receive (next-heads next-tails) (%cars/cdrs* tails)
-		 (if (pair? next-heads)
-		     (or (apply pred heads) (lp next-heads next-tails))
-		     (apply pred heads)))))) ; Last PRED app is tail call.
+   ((pred ell . lists)
+    (receive (heads tails)
+	(%cars/cdrs* (cons ell lists))
+      (and (pair? heads)
+	   (let loop ((heads heads) (tails tails))
+	     (receive (next-heads next-tails)
+		 (%cars/cdrs tails)
+	       (if (pair? next-heads)
+		   (or (apply pred heads)
+		       (loop next-heads next-tails))
+		 (apply pred heads))))))))) ; Last PRED app is tail call.
 
-      ;; Fast path
-      (and (not (null? lis1))
-	   (let lp ((head (car lis1)) (tail (cdr lis1)))
-	     (if (null? tail)
-		 (pred head)		; Last PRED app is tail call.
-		 (or (pred head) (lp (car tail) (cdr tail))))))))
+(define any*
+  (case-lambda
+   ((pred ell)
+    (and (not (null? ell))
+	 (let loop ((head (car ell)) (tail (cdr ell)))
+	   (if (null? tail)
+	       (pred head) ; Last PRED app is tail call.
+	     (or (pred head)
+		 (loop (car tail) (cdr tail)))))))
+
+   ((pred ell . lists)
+    (receive (heads tails)
+	(%cars/cdrs* (cons ell lists))
+      (and (pair? heads)
+	   (let loop ((heads heads) (tails tails))
+	     (receive (next-heads next-tails)
+		 (%cars/cdrs* tails)
+	       (if (pair? next-heads)
+		   (or (apply pred heads)
+		       (loop next-heads next-tails))
+		 (apply pred heads))))))))) ; Last PRED app is tail call.
 
 (define every
+  (case-lambda
+
+   ((p ls)
+    (or (null? ls)
+	(let f ((p p) (a (car ls)) (d (cdr ls)))
+	  (cond
+	   ((pair? d)
+	    (and (p a) (f p (car d) (cdr d))))
+	   (else (p a))))))
+
+   ((p ls1 ls2)
+    (cond
+     ((and (pair? ls1) (pair? ls2))
+      (let f ((p p) (a1 (car ls1)) (d1 (cdr ls1)) (a2 (car ls2)) (d2 (cdr ls2)))
+	(cond
+	 ((or (and (pair? d1) (null? d2))
+	      (and (null? d1) (pair? d2)))
+	  (assertion-violation 'every
+	    "expected lists of equal length"))
+	 ((and (pair? d1) (pair? d2))
+	  (and (p a1 a2)
+	       (f p (car d1) (cdr d1) (car d2) (cdr d2))))
+	 (else
+	  (p a1 a2)))))
+     (else #t)))
+
+   ((pred lis1 . lists)
+    (receive (heads tails)
+	(%cars/cdrs (cons lis1 lists))
+      (or (not (pair? heads))
+	  (let loop ((heads heads) (tails tails))
+	    (receive (next-heads next-tails)
+		(%cars/cdrs tails)
+	      (if (pair? next-heads)
+		  (and (apply pred heads) (loop next-heads next-tails))
+		(apply pred heads)))))))))
+
+(define every*
   (case-lambda
 
    ((p ls)
@@ -1171,26 +1271,47 @@
    ((pred lis1 . lists)
     (receive (heads tails) (%cars/cdrs* (cons lis1 lists))
       (or (not (pair? heads))
-	  (let lp ((heads heads) (tails tails))
+	  (let loop ((heads heads) (tails tails))
 	    (receive (next-heads next-tails) (%cars/cdrs* tails)
 	      (if (pair? next-heads)
-		  (and (apply pred heads) (lp next-heads next-tails))
+		  (and (apply pred heads) (loop next-heads next-tails))
 		(apply pred heads)))))))))
 
-(define (list-index pred lis1 . lists)
-  (if (pair? lists)
-
-      ;; N-ary case
-      (let lp ((lists (cons lis1 lists)) (n 0))
-	(receive (heads tails) (%cars/cdrs* lists)
-	  (and (pair? heads)
-	       (if (apply pred heads) n
-		 (lp tails (+ n 1))))))
-
-    ;; Fast path
-    (let lp ((lis lis1) (n 0))
+(define list-index
+  (case-lambda
+   ((pred lis1)
+    (let loop ((lis lis1) (n 0))
       (and (not (null? lis))
-	   (if (pred (car lis)) n (lp (cdr lis) (+ n 1)))))))
+	   (if (pred (car lis)) n (loop (cdr lis) (+ n 1))))))
+   ((pred lis1 . lists)
+    (let loop ((lists (cons lis1 lists)) (n 0))
+      (receive (heads tails)
+	  (%cars/cdrs lists)
+	(and (pair? heads)
+	     (if (apply pred heads) n
+	       (loop tails (+ n 1)))))))))
+
+(define list-index*
+  (case-lambda
+   ((pred lis1)
+    (let loop ((lis lis1) (n 0))
+      (and (not (null? lis))
+	   (if (pred (car lis)) n (loop (cdr lis) (+ n 1))))))
+   ((pred lis1 . lists)
+    (let loop ((lists (cons lis1 lists)) (n 0))
+      (receive (heads tails)
+	  (%cars/cdrs* lists)
+	(and (pair? heads)
+	     (if (apply pred heads) n
+	       (loop tails (+ n 1)))))))))
+
+(define (position item ell)
+  (let loop ((ell   ell)
+	     (idx 0))
+    (and (not (null? ell))
+	 (if (eq? item (car ell))
+	     idx
+	   (loop (cdr ell) (+ 1 idx))))))
 
 (define member*
   (case-lambda
