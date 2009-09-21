@@ -359,6 +359,14 @@ The original version of SILex is available at:
 to R6RS and Nausicaa integration (I changed almost nothing).
 
 
+(streams)
+(streams *)
+-----------
+
+Derived from the reference implementation of SRFI 41 "Streams Library",
+by Philip L. Bewig of Saint Louis, Missouri, USA.
+
+
 (strings)
 (strings *)
 -----------
