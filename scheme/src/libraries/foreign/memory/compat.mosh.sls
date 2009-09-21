@@ -114,23 +114,6 @@
 
 ;;;; pokers
 
-;;;these are temporary!!!!!!!!!!!!!!!!!!!!!!!!
-;; (define min-s64 (- (expt 2 (- 64 1))))
-;; (define max-s64 (- (expt 2 (- 64 1)) 1))
-;; (define max-u64	(- (expt 2 64) 1))
-
-;; (define (pointer-set-c-int64! pointer index value)
-;;   (if (and (<= min-s64 value) (<= value max-s64))
-;;       (%pointer-set-c-int64! pointer index value)
-;;     (assertion-violation 'pointer-set-c-int64!
-;;       "value out of range for s64 memory poker" value)))
-
-;; (define (pointer-set-c-uint64! pointer index value)
-;;   (if (and (<= 0 value) (<= value max-u64))
-;;       (%pointer-set-c-uint64! pointer index value)
-;;     (assertion-violation 'pointer-set-c-uint64!
-;;       "value out of range for u64 memory poker" value)))
-
 (define-syntax define-signed-poker
   (syntax-rules ()
     ((_ ?name ?sizeof-data)

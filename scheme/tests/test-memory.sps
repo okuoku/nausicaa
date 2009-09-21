@@ -260,7 +260,7 @@
 		  (integer->pointer 1))
     => #t)
 
-)
+  #t)
 
 
 (parameterize ((check-test-name 'alloc))
@@ -395,7 +395,7 @@
 	    #t)))
     => #t)
 
-  )
+  #t)
 
 
 (parameterize ((check-test-name 'bytevectors))
@@ -460,10 +460,14 @@
 	=> #vu8(0 1 2 3 4 5 6 7))
 
       (check
-	(memblock->bytevector
-	 (bytevector->memblock bv malloc-block/compensated 5 2)
-	 5)
-	=> #vu8(2 3 4 5 6)))))
+	  (memblock->bytevector
+	   (bytevector->memblock bv malloc-block/compensated 5 2)
+	   5)
+	=> #vu8(2 3 4 5 6)))
+
+    #f)
+
+  #t)
 
 
 (parameterize ((check-test-name 'buffers))
@@ -601,7 +605,7 @@
 	  (memblock->bytevector (buffer-used-memblock dst))))
     => #vu8(0 1 2 3 4))
 
-  )
+  #f)
 
 
 (parameterize ((check-test-name 'buffer-alloc))
@@ -635,7 +639,7 @@
 	    (buffer-malloc 5000))))
     => '(#t 5000))
 
-  )
+  #t)
 
 
 (parameterize ((check-test-name 'refcount))
@@ -681,7 +685,7 @@
 	   #t)))
     => '(#t (freed)))
 
-  )
+  #t)
 
 
 (parameterize ((check-test-name 'pokers))
@@ -935,7 +939,7 @@
 	  (primitive-free p)))
     => 90)
 
-  )
+  #t)
 
 
 (parameterize ((check-test-name 'array))
@@ -1019,7 +1023,7 @@
 		  (peek-array-pointer a 6)))))
     => '(65 66))
 
-  )
+  #t)
 
 
 ;;;; done

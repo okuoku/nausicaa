@@ -48969,7 +48969,7 @@ Numbers and all ``the other'' values are just put there.
 Nausicaa implements a foreign functions interface towards C language
 libraries built upon the interfaces provided by the underlying Scheme
 implementations.  There is a compound library @library{foreign}, which
-exports everything.  Other libraries export only a subset of the
+exports everything; other libraries export only a subset of the
 interface.
 
 @menu
@@ -48984,19 +48984,9 @@ interface.
 @section Low level memory handling
 
 
-This section describes a low level @api{} for memory allocation and
-access.  Memory allocated with these functions is subjected to garbage
-collection.  To import the main library:
-
-@example
-(import (scheme)
-  (foreign memory))
-@end example
-
-@noindent
-other libraries are described in the relevant sections.  The
-@library{uriel foreign} library also exports bindings from
-@library{uriel memory}.
+The @library{foreign memory} library exports a low level @api{} for
+memory allocation and access.  Memory allocated with this @api{} is not
+subjected to garbage collection.
 
 @menu
 * memory conditions::           Out of memory errors.
@@ -49027,7 +49017,8 @@ Independent libraries
 
 
 @deftp Condition {&out-of-memory}
-Type of condition objects that represent a memory allocation error.
+Type of condition objects that represent a memory allocation error.  It
+is derived from @samp{&error}.
 @end deftp
 
 
@@ -49035,7 +49026,6 @@ Type of condition objects that represent a memory allocation error.
 @deffnx {Condition Predicate} out-of-memory-condition? @var{object}
 @deffnx {Field Getter} out-of-memory-number-of-bytes @var{object}
 Functions to handle out of memory condition objects.
-
 @var{number-of-bytes} is the size of the requested allocation that could
 not be satisfied.
 @end deffn
@@ -49053,8 +49043,8 @@ Example:
 
 
 @defun raise-out-of-memory @var{who} @var{number-of-bytes}
-Raise a non--continuable exception representing a memory allocation
-failure.  The following form:
+Raise a continuable exception representing a memory allocation failure.
+The following form:
 
 @example
 (raise-out-of-memory 'malloc 4096)
@@ -49064,12 +49054,17 @@ failure.  The following form:
 is equivalent to:
 
 @example
-(raise (condition (make-who-condition 'malloc)
-                  (make-message-condition "out of memory")
-                  (make-out-of-memory-condition 4096)))
+(raise-continuable
+  (condition (make-who-condition 'malloc)
+             (make-message-condition "out of memory")
+             (make-out-of-memory-condition 4096)))
 @end example
-@end defun
 
+@noindent
+functions raising this condition should be ready to accept as return
+value the requested block of memory (allocated by the exception
+handler).
+@end defun
 
 @c page
 @node memory pointers
@@ -49095,12 +49090,12 @@ the underlying Scheme implementation, @false{} otherwise.
 @end defun
 
 
-@defvar pointer-null
-Holds a null pointer: if @func{pointer->integer} is applied to it the
-result is 0.  This variable exists to hold a prebuilt null pointer to be
-used as return value of function argument, whenever it can make
+@deffn Constant pointer-null
+Holds a null pointer: If @func{pointer->integer} is applied to it the
+result is 0.  This binding exists to hold a prebuilt null pointer to be
+used as return value or function argument, whenever it can make
 algorithms simpler.
-@end defvar
+@end deffn
 
 
 @deffn Procedure pointer->integer @var{pointer}
@@ -49131,7 +49126,7 @@ implemented as:
 @example
 (define (pointer-add pointer offset)
   (integer->pointer (+ (pointer->integer pointer)
-		       offset)))
+                       offset)))
 @end example
 @end defun
 
@@ -49148,10 +49143,9 @@ integers.  Return @true{} if the integers satisfy the selected predicate
 @false{}.  @func{pointer<>?} returns @true{} if all the pointers are
 different.
 
-With the single exception of @func{pointer<>?}: all the functions return
+With the single exception of @func{pointer<>?}: All the functions return
 @true{} when applied to a single argument.
 @end defun
-
 
 @c page
 @node memory alloc
@@ -49175,7 +49169,7 @@ return a null pointer.
 @defun platform-realloc @var{pointer} @var{new-number-of-bytes}
 An interface to the system @cfunc{realloc} function.  Reallocate a block
 of memory with different size and return a pointer to it.  If an
-allocation error occurs: return a null pointer.
+allocation error occurs: Return a null pointer.
 @end defun
 
 
@@ -49183,7 +49177,7 @@ allocation error occurs: return a null pointer.
 An interface to the system @cfunc{calloc} function.  Allocate a block of
 memory and return a pointer to it.  The block is big enough to hold
 @var{count} objects each @var{element-size} wide.  Bytes in the block
-are reset to zero.  If an allocation error occurs: return a null
+are reset to zero.  If an allocation error occurs: Return a null
 pointer.
 @end defun
 
@@ -49193,9 +49187,9 @@ An interface to the system @cfunc{free} function.  Release the block of
 memory referenced by @var{pointer}.  The return value is unspecified.
 @end defun
 
+@c ------------------------------------------------------------
 
 @subsubheading Primitive functions
-
 
 The following functions perform allocation through customisable
 functions, which allow allocation logging and validation of error
@@ -49204,17 +49198,18 @@ reactions.
 
 @deffn Function primitive-malloc @var{number-of-bytes}
 @deffnx Parameter primitive-malloc-function
-@func{primitive-malloc} allocates a block of memory and return a pointer
-to it, or @false{} if an error occurs.  The allocation is performed
-using the current value of @func{primitive-malloc-function}, which must
-be a function.  The parameter is preset to @func{platform-malloc}.
+@func{primitive-malloc} allocates a block of memory and returns a
+pointer to it, or @false{} if an error occurs.  The allocation is
+performed using the current value of @func{primitive-malloc-function},
+which must be a function.  The parameter is preset to
+@func{platform-malloc}.
 @end deffn
 
 
 @deffn Function primitive-realloc @var{pointer} @var{new-number-of-bytes}
 @deffnx Parameter primitive-realloc-function
 @func{primitive-realloc} reallocates a block of memory with a new size
-and return a pointer to the new block, or @false{} if an error occurs.
+and returns a pointer to the new block, or @false{} if an error occurs.
 The allocation is performed using the current value of
 @func{primitive-realloc-function}, which must be a function.  The
 parameter is preset to @func{platform-realloc}.
@@ -49224,10 +49219,10 @@ parameter is preset to @func{platform-realloc}.
 @deffn Function primitive-calloc @var{count} @var{element-size}
 @deffnx Parameter primitive-calloc-function
 @func{primitive-calloc} allocates a block of memory (big enough to hold
-@var{count} elements of @var{element-size} each) and return a pointer to
-it, or @false{} if an error occurs.  The allocation is performed using
-the current value of @func{primitive-calloc-function}, which must be a
-function.  The parameter is preset to @func{platform-calloc}.
+@var{count} elements of @var{element-size} each) and returns a pointer
+to it, or @false{} if an error occurs.  The allocation is performed
+using the current value of @func{primitive-calloc-function}, which must
+be a function.  The parameter is preset to @func{platform-calloc}.
 @end deffn
 
 
@@ -49239,6 +49234,7 @@ which must be a function.  The parameter is preset to
 @func{platform-free}.
 @end deffn
 
+@c ------------------------------------------------------------
 
 @subsubheading Exception raising functions
 
@@ -49251,12 +49247,12 @@ Wrappers for the corresponding @code{primitive-} functions that raise an
 allocated with these functions can be freed with @func{primitive-free}.
 @end defun
 
+@c ------------------------------------------------------------
 
 @subsubheading Examples
 
-
 Care must be taken when managing memory with these low level functions:
-memory blocks will @strong{not} be garbage collected.  A method to
+Memory blocks will @strong{not} be garbage collected.  A method to
 release memory needed in a form is to use @func{dynamic-wind}:
 
 @example
@@ -49268,7 +49264,7 @@ release memory needed in a form is to use @func{dynamic-wind}:
 @end example
 
 @noindent
-another is to use a compensation:
+another is to use a compensation (@pxref{compensations}):
 
 @example
 (with-compensations
@@ -49289,7 +49285,7 @@ To test memory allocation failure we can do:
 (define (failing-alloc . args)
   pointer-null)
 
-(parameterize ((primitive-malloc-function failing-alloc))
+(parametrise ((primitive-malloc-function failing-alloc))
   (let ((p (malloc 4096)))
     ---))
 @end example
@@ -49307,13 +49303,12 @@ To log memory allocations we can do:
     (display (format "free:\t~s\n" pointer) port)
     (platform-free pointer))
 
-  (parameterize ((primitive-malloc-function logging-malloc)
-                 (primitive-free-function logging-free))
+  (parametrise ((primitive-malloc-function logging-malloc)
+                (primitive-free-function   logging-free))
     (let ((p (malloc 4096)))
       ---
       (primitive-free p))))
 @end example
-
 
 @c page
 @node memory bytevectors
@@ -49324,11 +49319,11 @@ In the implementation of the following functions:
 
 @itemize
 @item
-when copying from a bytevector to a memory block, bytes are peeked with
-@func{bytevector-u8-ref} and poked with @func{pointer-set-c-char!};
+When copying from a bytevector to a memory block, bytes are peeked with
+@func{bytevector-u8-ref} and poked with @func{pointer-set-c-char!}.
 
 @item
-when copying from a memory block to a bytevector bytes are peeked with
+When copying from a memory block to a bytevector bytes are peeked with
 @func{pointer-ref-c-unsigned-char} and poked with
 @func{bytevector-u8-set!}.
 @end itemize
@@ -49344,12 +49339,12 @@ interface function.
 Allocate a memory block using @var{malloc} and copy into it the bytes in
 @var{bvector}.  Return the pointer.
 
-If @var{number-of-bytes} is given: that number of bytes is taken as size
-of the memory block, and only that number of bytes are copied.
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the memory block, and only that number of bytes is copied.
 
-If both @var{number-of-bytes} and @var{offset} are given: that number of
+If both @var{number-of-bytes} and @var{offset} are given: That number of
 bytes is taken as size of the memory block, and only that number of
-bytes are copied starting at @var{offset} from the beginning of the
+bytes is copied starting at @var{offset} from the beginning of the
 bytevector.
 
 @var{malloc} must accept as single argument the number of bytes to
@@ -49363,14 +49358,16 @@ and not return to the caller.
 @defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes}
 @defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
 Allocate a memory block using @var{malloc} and copy into it the bytes in
-@var{bvector}.  Return a @code{memblock} record.
+@var{bvector}.  Return a @samp{memblock} record.  @ref{memory blocks,
+Memory blocks}
 
-If @var{number-of-bytes} is given: that number of bytes is taken as size
-of the memory block, and only that number of bytes are copied.
 
-If both @var{number-of-bytes} and @var{offset} are given: that number of
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the memory block, and only that number of bytes is copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: That number of
 bytes is taken as size of the memory block, and only that number of
-bytes are copied starting at @var{offset} from the beginning of the
+bytes is copied starting at @var{offset} from the beginning of the
 bytevector.
 
 @var{malloc} must accept as single argument the number of bytes to
@@ -49384,7 +49381,7 @@ and not return to the caller.
 @defunx pointer->bytevector @var{pointer} @var{number-of-bytes} @var{offset}
 Build a bytevector of length @var{number-of-bytes} and copy into it the
 bytes from the block of memory referenced by @var{pointer}.  If
-@var{offset} is given: start to read bytes at @var{offset} from
+@var{offset} is given: Start to read bytes at @var{offset} from
 @var{pointer}.
 @end defun
 
@@ -49392,24 +49389,24 @@ bytes from the block of memory referenced by @var{pointer}.  If
 @defun memblock->bytevector @var{memblock}
 @defunx memblock->bytevector @var{memblock} @var{number-of-bytes}
 @defunx memblock->bytevector @var{memblock} @var{number-of-bytes} @var{offset}
-Duplicate a @code{memblock} record into a bytevector.
+Duplicate a @samp{memblock} record into a bytevector.  @ref{memory
+blocks, Memory blocks}
 
-If @var{number-of-bytes} is given: that number of bytes is taken as size
-of the bytevector, and only that number of bytes are copied.
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the bytevector, and only that number of bytes is copied.
 
-If both @var{number-of-bytes} and @var{offset} are given: that number of
+If both @var{number-of-bytes} and @var{offset} are given: That number of
 bytes is taken as size of the bytevector, and only that number of bytes
-are copied starting at @var{offset} from the beginning of the block.
+is copied starting at @var{offset} from the beginning of the block.
 @end defun
-
 
 @c page
 @node memory blocks
 @subsection Memory blocks
 
 
-A memblock is a record that holds a pointer to an allocated memory block
-and its allocated size.
+A @samp{memblock} is a record that holds a pointer to an allocated
+memory block and its allocated size.
 
 
 @deftp {Record Type} memblock
@@ -49445,7 +49442,7 @@ Return the value of the size field in @var{mb}.
 @subsection Memory buffers
 
 
-A buffer is a record derived from a memblock that adds a field
+A @samp{buffer} is a record derived from a memblock that adds a field
 representing the number of used bytes.
 
 
@@ -49518,7 +49515,7 @@ Return the number of free bytes in @var{buf}.
 
 @defun buffer-pointer-to-free-bytes @var{buf}
 Return a pointer to the first free byte in @var{buf}.  If the buffer if
-full: the pointer references the first byte past the allocated block.
+full: The pointer references the first byte past the allocated block.
 @end defun
 
 
@@ -49601,16 +49598,16 @@ blocks.  The return value is an interface function with the following
 protocol:
 
 @table @emph
-@item when the function is invoked with zero arguments
-it retrieves a block from the set of cached blocks; if the set is empty:
-a new block is allocated with @func{calloc};
+@item When the function is invoked with zero arguments
+It retrieves a block from the set of cached blocks; if the set is empty:
+A new block is allocated with @func{calloc}.
 
-@item when the function is invoked with 1 argument
-if the argument is the symbol @code{purge}: @func{primitive-free} is
+@item When the function is invoked with 1 argument
+If the argument is the symbol @code{purge}: @func{primitive-free} is
 applied to all the blocks in the cache and the cache is reset to empty;
 
 else the argument must be a pointer previously returned by this
-interface function: if the number of blocks in the cache is less than
+interface function: If the number of blocks in the cache is less than
 @var{max-depth}, the pointer is stored in the cache, else
 @func{primitive-free} is applied to it.
 @end table
@@ -49620,10 +49617,11 @@ interface function: if the number of blocks in the cache is less than
 @defun small-blocks-cache
 @defunx small-blocks-cache @var{pointer}
 @defunx small-blocks-cache purge
-Interface function for a cache of memory blocks of size 32, 10 blocks
-deep.  This cache is meant to be used for temporary storage space of
-output values from foreign functions.  The size of 32 should be enough
-to hold all the output values of C language standard types.
+Interface function for a cache of memory blocks of size @math{32},
+@math{10} blocks deep.  This cache is meant to be used for temporary
+storage space of output values from foreign functions.  The size of
+@math{32} should be enough to hold all the output values of C language
+standard types.
 
 Blocks are allocated with @func{calloc} and reset to zero with
 @func{memset} when released, so they are guaranteed to be set to zero
@@ -49671,26 +49669,26 @@ Interface function to memblocks allocation and release.  When
 
 @table @emph
 @item a record of type @code{memblock}
-the function releases the allocated memory block;
+The function releases the allocated memory block.
 
 @item an unsigned exact integer
-the number is meant to represent the number of bytes to be allocated: a
-new @code{memblock} record is allocated and returned.
+The number is meant to represent the number of bytes to be allocated: A
+new @samp{memblock} record is allocated and returned.
 @end table
 
-Allocation and releasing of memory blocks is done, in this order:
+Allocation and release of memory blocks is done, in this order:
 
 @enumerate
 @item
-relying on @func{small-blocks-cache} if the number of bytes is less than
-or equal to the size of a small block;
+Relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block.
 
 @item
-relying on @func{page-blocks-cache} if the number of bytes is less than
-or equal to the size of a page block;
+Relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block.
 
 @item
-relying on @func{calloc} and @func{primitive-free} in all the other cases.
+Relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @end enumerate
 @end defun
 
@@ -49698,7 +49696,6 @@ relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @defun buffers-cache @var{buffer-or-size}
 Like @func{memblocks-cache} but works with records of type @code{buffer}.
 @end defun
-
 
 @c page
 @node memory factory
@@ -49712,15 +49709,15 @@ Build and return a new caching object factory.  It is a wrapper for
 interface function with the following protocol:
 
 @table @emph
-@item when the function is invoked with zero arguments
-it retrieves a block from the cache and applies @var{init-func} to it; a
-pointer to the block is returned;
+@item When the function is invoked with zero arguments
+It retrieves a block from the cache and applies @var{init-func} to it; a
+pointer to the block is returned.
 
-@item when the function is invoked with 1 argument
-if the argument is the symbol @code{purge}: the same symbol is handed to
-the block cache, causing the cache to be purged of allocated blocks;
+@item When the function is invoked with 1 argument
+If the argument is the symbol @samp{purge}: The same symbol is handed to
+the block cache, causing the cache to be purged of allocated blocks.
 
-else the argument must be a pointer previously returned by this
+Else the argument must be a pointer previously returned by this
 interface function: @func{final-func} is applied to it, then it is
 handed to the underlying block cache interface function.
 @end table
@@ -49828,15 +49825,15 @@ Allocation and releasing of memory blocks is done, in this order:
 
 @enumerate
 @item
-relying on @func{small-blocks-cache} if the number of bytes is less than
-or equal to the size of a small block;
+Relying on @func{small-blocks-cache} if the number of bytes is less than
+or equal to the size of a small block.
 
 @item
-relying on @func{page-blocks-cache} if the number of bytes is less than
-or equal to the size of a page block;
+Relying on @func{page-blocks-cache} if the number of bytes is less than
+or equal to the size of a page block.
 
 @item
-relying on @func{calloc} and @func{primitive-free} in all the other cases.
+Relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @end enumerate
 @end defun
 
@@ -49844,7 +49841,7 @@ relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @defun malloc-memblock/compensated @var{number-of-bytes}
 @defunx malloc-memblock/c @var{number-of-bytes}
 Acquire a block of memory from @func{memblocks-cache} and return a
-record of type @code{memblock}.  The appropriate invocation to
+record of type @samp{memblock}.  The appropriate invocation to
 @func{memblocks-cache}, to release the block, is added to the dynamic
 environment of the current compensations stack.
 @end defun
@@ -49853,11 +49850,10 @@ environment of the current compensations stack.
 @defun malloc-buffer/compensated @var{number-of-bytes}
 @defunx malloc-buffer/c @var{number-of-bytes}
 Acquire a block of memory from @func{buffers-cache} and return a record
-of type @code{buffer}.  The appropriate invocation to
+of type @samp{buffer}.  The appropriate invocation to
 @func{buffers-cache}, to release the block, is added to the dynamic
 environment of the current compensations stack.
 @end defun
-
 
 @c page
 @node memory buffer alloc
@@ -49868,7 +49864,7 @@ The @api{} described in this section allows us to allocate memory blocks
 contiguously from a preallocated memory block accessed through a
 @code{buffer} record.  Requested memory blocks are just marked as used
 in the status of a buffer.  When using this allocator there is no need
-to release individual blocks: releasing the buffer frees all of them.
+to release individual blocks: Releasing the buffer releases all of them.
 
 
 @deffn Parameter memory-buffer-pool

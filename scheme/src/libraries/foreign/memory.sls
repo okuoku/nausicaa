@@ -5,7 +5,7 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;	Notice that this library avoids using (uriel ffi).
+;;;	Notice that this library avoids using (foreign ffi).
 ;;;
 ;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -781,9 +781,10 @@
   (number-of-bytes out-of-memory-number-of-bytes))
 
 (define (raise-out-of-memory who number-of-bytes)
-  (raise (condition (make-who-condition who)
-		    (make-message-condition "out of memory")
-		    (make-out-of-memory-condition number-of-bytes))))
+  (raise-continuable
+   (condition (make-who-condition who)
+	      (make-message-condition "out of memory")
+	      (make-out-of-memory-condition number-of-bytes))))
 
 
 ;;;; done
