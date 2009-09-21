@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
+;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for time
 ;;;Date: Tue Jan  6, 2009
 ;;;
@@ -35,61 +35,12 @@
 ;;;SOFTWARE.
 
 
-;;;; setup
-
-;; this is for Nausicaa's implementation
-(import (r6rs)
-  (rnrs mutable-pairs (6))
-  (lang-lib)
-  (check-lib)
-  (format-lib)
-  (srfi time))
-
-;; this is for Larceny's implementation
-;; (import (r6rs)
-;;   (rnrs mutable-pairs (6))
-;;   (check-lib)
-;;   (format-lib)
-;;   (srfi :39)
-;;   (srfi :19))
-
-;; this is for Ypsilon's implementation
-;; (import (r6rs)
-;;   (rnrs mutable-pairs (6))
-;;   (check-lib)
-;;   (format-lib)
-;;   (srfi srfi-39)
-;;   (srfi srfi-19))
+(import (nausicaa)
+  (checks)
+  (times-and-dates))
 
 (check-set-mode! 'report-failed)
-(display "*** testing time\n")
-
-
-;;;; debugging
-
-(define debugging
-  (make-parameter #f))
-
-(define (debug thing . args)
-  (when (debugging)
-    (if (string? thing)
-	  (apply format (current-error-port) thing args)
-      (write thing (current-error-port)))
-    (newline (current-error-port))))
-
-(define (debug-print-condition message exc)
-  (debug "~a\nwho: ~s\nmessage: ~s\nirritants: ~s"
-	 message
-	 (if (who-condition? exc)
-	     (condition-who exc)
-	   'no-who)
-	 (if (message-condition? exc)
-	     (condition-message exc)
-	   #f)
-	 (if (irritants-condition? exc)
-	     (condition-irritants exc)
-	   #f)))
-
+(display "*** testing times and dates\n")
 
 
 ;;;; date stuff

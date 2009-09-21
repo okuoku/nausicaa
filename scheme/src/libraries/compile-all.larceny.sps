@@ -134,6 +134,9 @@
 (compile-library "sentinel.sls"
 		 "sentinel.slfasl")
 
+(compile-library "times-and-dates.sls"
+		 "times-and-dates.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (compile-library "records.sls"

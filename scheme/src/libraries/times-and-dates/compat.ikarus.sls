@@ -28,7 +28,7 @@
 ;;; OTHERWISE,  ARISING FROM, OUT  OF OR  IN CONNECTION  WITH THE
 ;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-(library (srfi time compat)
+(library (times-and-dates compat)
   (export
     host:time-resolution
     host:current-time

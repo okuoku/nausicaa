@@ -34,9 +34,8 @@
 ;;;PARTICULAR PURPOSE.
 
 
-
 #!r6rs
-(library (srfi time)
+(library (times-and-dates)
   (export
 
     ;; constants
@@ -115,9 +114,9 @@
   (import (rnrs)
     (rnrs r5rs)
     (rnrs mutable-strings)
-    (format-lib)
-    (srfi receive)
-    (srfi time compat))
+    (format)
+    (language-extensions)
+    (times-and-dates compat))
 
 
 ;;;; porting

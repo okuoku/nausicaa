@@ -52,6 +52,7 @@
   (only (random borosh))
   (only (comparisons))
   (only (arrays))
+  (only (times-and-dates))
 
   (only (records))
   (only (scmobj))

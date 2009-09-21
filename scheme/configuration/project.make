@@ -57,6 +57,7 @@ $(eval $(call nau-libraries,scmobj,scmobj))
 $(eval $(call nau-libraries,sexps,sexps))
 $(eval $(call nau-libraries,silex,silex))
 $(eval $(call nau-libraries,strings,strings))
+$(eval $(call nau-libraries,times-and-dates,times-and-dates))
 $(eval $(call nau-libraries,vectors,vectors))
 
 #page
