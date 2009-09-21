@@ -69,7 +69,7 @@
 
 ;;;; helpers
 
-(define-syntax position
+(define-syntax %position
   (syntax-rules ()
     ((_ ?element ?list)
      (list-index (lambda (elm)
@@ -773,8 +773,8 @@
 			  (cpl (if (eq? c #t)
 				   '()
 				 (cons c (slot-ref c ':class-precedence-list)))))
-		     (< (position class1 cpl)
-			(position class2 cpl))))))))))))
+		     (< (%position class1 cpl)
+			(%position class2 cpl))))))))))))
 
 
 ;;;; methods
