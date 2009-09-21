@@ -112,7 +112,6 @@
     ;; string conversion
     date->string string->date)
   (import (rnrs)
-    (rnrs r5rs)
     (rnrs mutable-strings)
     (format)
     (language-extensions)
@@ -361,7 +360,7 @@
 (define (make-time* type nanosecs secs)
   (let* ((over		(<= tm:nano nanosecs))
 	 (nanosecond	(if over
-			    (remainder nanosecs tm:nano)
+			    (mod nanosecs tm:nano)
 			  nanosecs))
 	 (second	(if over
 			    (+ secs (/ nanosecs tm:nano))
@@ -495,12 +494,12 @@
 
 (define (tm:nanoseconds->time time-type nanoseconds)
   (make-time* time-type
-             (remainder nanoseconds tm:nano)
-             (quotient  nanoseconds tm:nano)))
+             (mod nanoseconds tm:nano)
+             (div  nanoseconds tm:nano)))
 
 (define (tm:nanoseconds->values nanoseconds)
-  (values (abs (remainder nanoseconds tm:nano))
-          (quotient nanoseconds tm:nano)))
+  (values (abs (mod nanoseconds tm:nano))
+          (div nanoseconds tm:nano)))
 
 (define (tm:time-difference time1 time2 time3)
   (if (or (not (and (time? time1) (time? time2)))
@@ -535,8 +534,8 @@
 				   (time-second duration)))
 	       (nsec-plus	(+ (time-nanosecond time1)
 				   (time-nanosecond duration))))
-	   (let ((r (remainder nsec-plus tm:nano))
-		 (q (quotient  nsec-plus tm:nano)))
+	   (let ((r (mod nsec-plus tm:nano))
+		 (q (div  nsec-plus tm:nano)))
 	     (if (negative? r)
 		 (begin
 		   (set-time-second!     time3 (+ sec-plus q -1))
@@ -562,8 +561,8 @@
 			      (time-second duration)))
 	       (nsec-minus (- (time-nanosecond time1)
 			      (time-nanosecond duration))))
-	   (let ((r (remainder nsec-minus tm:nano))
-		 (q (quotient  nsec-minus tm:nano)))
+	   (let ((r (mod nsec-minus tm:nano))
+		 (q (div  nsec-minus tm:nano)))
 	     (if (negative? r)
 		 (begin
 		   (set-time-second!     time3 (- sec-minus q 1))
@@ -737,31 +736,31 @@
 
 ;;Gives the julian day which starts at noon.
 (define (tm:encode-julian-day-number day month year)
-  (let* ((a (quotient (- 14 month) 12))
+  (let* ((a (div (- 14 month) 12))
 	 (y (- (- (+ year 4800) a) (if (negative? year) -1 0)))
 	 (m (- (+ month (* 12 a)) 3)))
     (+ day
-       (quotient (+ (* 153 m) 2) 5)
+       (div (+ (* 153 m) 2) 5)
        (* 365 y)
-       (quotient y 4)
-       (- (quotient y 100))
-       (quotient y 400)
+       (div y 4)
+       (- (div y 100))
+       (div y 400)
        -32045)))
 
 ;;Gives the seconds/date/month/year.
 (define (tm:decode-julian-day-number jdn)
   (let* ((days (truncate jdn))
 	 (a (+ days 32044))
-	 (b (quotient (+ (* 4 a) 3) 146097))
-	 (c (- a (quotient (* 146097 b) 4)))
-	 (d (quotient (+ (* 4 c) 3) 1461))
-	 (e (- c (quotient (* 1461 d) 4)))
-	 (m (quotient (+ (* 5 e) 2) 153))
-	 (y (+ (* 100 b) d -4800 (quotient m 10))))
+	 (b (div (+ (* 4 a) 3) 146097))
+	 (c (- a (div (* 146097 b) 4)))
+	 (d (div (+ (* 4 c) 3) 1461))
+	 (e (- c (div (* 1461 d) 4)))
+	 (m (div (+ (* 5 e) 2) 153))
+	 (y (+ (* 100 b) d -4800 (div m 10))))
     (values	; seconds date month year
      (* (- jdn days) tm:sid)
-     (+ e (- (quotient (+ (* 153 m) 2) 5)) 1)
-     (+ m 3 (* -12 (quotient m 10)))
+     (+ e (- (div (+ (* 153 m) 2) 5)) 1)
+     (+ m 3 (* -12 (div m 10)))
      (if (>= 0 y) (- y 1) y))))
 
   ;; special thing -- ignores nanos
@@ -788,9 +787,18 @@
 
   (if (integer? r)
       "0"
-    (let ((str (number->string (exact->inexact r))))
+    ;;The following FORMAT call was originally:
+    ;;
+    ;;	((str (number->string (inexact r))))
+    ;;
+    ;;which relied on  the fact that NUMBER->STRING returns  a string in
+    ;;fixed point format  on many Scheme implementations.  Unfortunately
+    ;;implementations like Ikarus return a string in exponential format,
+    ;;which may not  have a decimal dot in  it.  This causes TM:CHAR-POS
+    ;;to return #f below, triggering an error for +.
+    (let ((str (format "~f" (inexact r))))
       (let ((ppos (tm:char-pos #\. str 0 (string-length str))))
-	(substring str  (+ ppos 1) (string-length str))))))
+	(substring str (+ ppos 1) (string-length str))))))
 
 (define (tm:local-tz-offset)
   (host:time-gmt-offset (host:current-time)))
@@ -807,10 +815,10 @@
       (receive (secs date month year)
 	  (tm:decode-julian-day-number
 	   (tm:time->julian-day-number (time-second time) offset))
-	(let* ((hours    (quotient secs (* 60 60)))
-	       (rem      (remainder secs (* 60 60)))
-	       (minutes  (quotient rem 60))
-	       (seconds  (remainder rem 60)))
+	(let* ((hours    (div secs (* 60 60)))
+	       (rem      (mod secs (* 60 60)))
+	       (minutes  (div rem 60))
+	       (seconds  (mod rem 60)))
 	  (make-date* (time-nanosecond time) seconds
 		     minutes hours
 		     date month year offset))))))
@@ -871,8 +879,8 @@
 ;;;;
 
 (define (tm:leap-year? year)
-  (or (= (modulo year 400) 0)
-      (and (= (modulo year 4) 0) (not (= (modulo year 100) 0)))))
+  (or (= (mod year 400) 0)
+      (and (= (mod year 4) 0) (not (= (mod year 100) 0)))))
 
 (define (leap-year? date)
   (tm:leap-year? (date-year date)))
@@ -904,11 +912,11 @@
 
 ;; from calendar faq
 (define (tm:week-day day month year)
-  (let* ((a (quotient (- 14 month) 12))
+  (let* ((a (div (- 14 month) 12))
 	 (y (- year a))
 	 (m (+ month (* 12 a) -2)))
-    (modulo (+ day y (quotient y 4) (- (quotient y 100))
-	       (quotient y 400) (quotient (* 31 m) 12))
+    (mod (+ day y (div y 4) (- (div y 100))
+	       (div y 400) (div (* 31 m) 12))
 	    7)))
 
 (define (date-week-day date)
@@ -921,10 +929,10 @@
 			       (date-year date)
 			       #f))
 	 (fdweek-day (date-week-day first-day)) )
-    (modulo (- day-of-week-starting-week fdweek-day) 7)))
+    (mod (- day-of-week-starting-week fdweek-day) 7)))
 
 (define (date-week-number date day-of-week-starting-week)
-  (quotient (- (date-year-day date)
+  (div (- (date-year-day date)
 	       (tm:days-before-first-week date day-of-week-starting-week))
 	    7))
 
@@ -935,7 +943,7 @@
 ;; given a 'two digit' number, find the year within 50 years +/-
 (define (tm:natural-year n)
   (let* ((current-year (date-year (current-date)))
-	 (current-century (* (quotient current-year 100) 100)))
+	 (current-century (* (div current-year 100) 100)))
     (cond
      ((>= n 100) n)
      ((<  n 0) n)
@@ -1004,7 +1012,7 @@
 (define (julian-day->time-utc jdn)
   (let ((nanosecs (* tm:nano tm:sid (- jdn tm:tai-epoch-in-jd))))
     (make-time* time-utc
-	       (remainder nanosecs tm:nano)
+	       (mod nanosecs tm:nano)
 	       (floor (/ nanosecs tm:nano)))))
 
 (define (julian-day->time-tai jdn)
@@ -1065,7 +1073,7 @@
 	new-str))))
 
 (define (tm:last-n-digits i n)
-  (abs (remainder i (expt 10 n))))
+  (abs (mod i (expt 10 n))))
 
 (define (tm:locale-abbr-weekday n)
   (vector-ref tm:locale-abbr-weekday-vector n))
@@ -1115,8 +1123,8 @@
 	((negative? offset)	(display "-" port))
 	(else			(display "+" port)))
   (if (not (= offset 0))
-      (let ((hours   (abs (quotient offset (* 60 60))))
-	    (minutes (abs (quotient (remainder offset (* 60 60)) 60))))
+      (let ((hours   (abs (div offset (* 60 60))))
+	    (minutes (abs (div (mod offset (* 60 60)) 60))))
 	(display (tm:padding hours   #\0 2) port)
 	(display (tm:padding minutes #\0 2) port))))
 

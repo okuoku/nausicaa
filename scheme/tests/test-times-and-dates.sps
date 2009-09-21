@@ -476,7 +476,7 @@
     (date->string date-1 "~e")
   => " 5")
 
-(check
+(check 'this
     (date->string date-1 "~f")
   => "02.000000001")
 
