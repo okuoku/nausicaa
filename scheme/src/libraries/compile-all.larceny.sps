@@ -92,6 +92,9 @@
 (compile-library "strings.sls"
  		 "strings.slfasl")
 
+(compile-library "streams.sls"
+ 		 "streams.slfasl")
+
 (compile-library "vectors/low.sls"
  		 "vectors/low.slfasl")
 

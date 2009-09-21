@@ -39,6 +39,7 @@
   (only (char-sets blocks))
   (only (char-sets categories))
   (only (strings))
+  (only (streams))
   (only (vectors))
   (only (debugging))
   (only (checks))
