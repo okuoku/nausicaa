@@ -1114,6 +1114,7 @@
     => '((one 1 odd) (two 2 even) (three 3 odd)))
 
   (check	;unequal length
+      ;;This should fail in Larceny, too!
       (guard (E (else #t))
 	(zip '(one two three)
 	     '(1 2 3)
