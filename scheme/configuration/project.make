@@ -60,6 +60,26 @@ $(eval $(call nau-libraries,strings,strings))
 $(eval $(call nau-libraries,times-and-dates,times-and-dates))
 $(eval $(call nau-libraries,vectors,vectors))
 
+## --------------------------------------------------------------------
+
+libdist_TMPDIR	= $(TMPDIR)/$(PKG_ID)
+libdist_DESTDIR	= $(builddir)/libdist.d
+libdist_ARCHIVE	= $(ds_archive_NAME)-$(ds_archive_VERSION)-lib.tar.$(ds_COMPRESSOR_EXT)
+libdist_ARCHIVE_PATHNAME= $(libdist_DESTDIR)/$(libdist_ARCHIVE)
+
+.PHONY: libdist
+
+libdist:
+	test -d $(libdist_DESTDIR) || $(MKDIR) $(libdist_DESTDIR)
+	$(RM_SILENT) $(libdist_TMPDIR)
+	$(MAKE) bin-install DESTDIR=$(libdist_TMPDIR)
+	yes | $(FIND) $(libdist_TMPDIR)/$(pkglibdir) \
+		-type f -and -not -name \*.sls -and -exec rm \{\} \;
+	$(TAR) --directory=$(libdist_TMPDIR)/$(pkglibdir) \
+		--create $(ds_COMPRESSOR_TAR) --verbose \
+		--file=$(libdist_ARCHIVE_PATHNAME) .
+	$(RM_SILENT) $(libdist_TMPDIR)
+
 #page
 ## ------------------------------------------------------------
 ## Binfmt scripts.
