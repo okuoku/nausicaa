@@ -30,12 +30,16 @@
 ;;;; (foreign memory)
 
     ;;allocation
-    platform-free	primitive-free		primitive-free-function
-    platform-malloc	primitive-malloc	primitive-malloc-function
-    platform-calloc	primitive-calloc	primitive-calloc-function
-    platform-realloc    primitive-realloc	primitive-realloc-function
-
+    system-free		platform-free		primitive-free
+    system-malloc	system-calloc		system-realloc
+    platform-malloc	platform-calloc		platform-realloc
+    platform-malloc*	platform-calloc*	platform-realloc*
+    primitive-malloc	primitive-calloc	primitive-realloc
     malloc		realloc			calloc
+
+    primitive-malloc-function	primitive-calloc-function
+    primitive-realloc-function	primitive-free-function
+
     memset		memmove			memcpy
     memcmp
 
@@ -86,7 +90,7 @@
 
     ;;buffer allocation
     memory-buffer-pool
-    primitive-buffer-malloc		buffer-malloc
+    primitive-malloc/buffer		malloc/buffer
 
     ;;reference counting
     malloc/refcount			malloc/rc
@@ -162,9 +166,14 @@
     array-set-c-pointer!
 
     ;;conditions
-    &out-of-memory
-    make-out-of-memory-condition	out-of-memory-condition?
-    out-of-memory-number-of-bytes	raise-out-of-memory
+    &out-of-memory			&memory-request
+    make-out-of-memory-condition	make-memory-request-condition
+    out-of-memory-condition?		memory-request-condition?
+    condition-out-of-memory/number-of-bytes
+    (rename (condition-out-of-memory/number-of-bytes
+	     condition-memory-request/number-of-bytes))
+    condition-memory-request/clean?
+    raise-out-of-memory			raise-memory-request
 
 
 ;;;; (foreign ffi)

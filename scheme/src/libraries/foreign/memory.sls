@@ -27,22 +27,35 @@
 #!r6rs
 (library (foreign memory)
   (export
-    ;;memory functions
-    platform-free	primitive-free		primitive-free-function
-    platform-malloc	primitive-malloc	primitive-malloc-function
-    platform-calloc	primitive-calloc	primitive-calloc-function
-    platform-realloc    primitive-realloc	primitive-realloc-function
 
+    ;;conditions
+    &out-of-memory			&memory-request
+    make-out-of-memory-condition	make-memory-request-condition
+    out-of-memory-condition?		memory-request-condition?
+    condition-out-of-memory/number-of-bytes
+    (rename (condition-out-of-memory/number-of-bytes
+	     condition-memory-request/number-of-bytes))
+    condition-memory-request/clean?
+    raise-out-of-memory			raise-memory-request
+
+    ;;memory functions
+    system-free		platform-free		primitive-free
+    system-malloc	system-calloc		system-realloc
+    platform-malloc	platform-calloc		platform-realloc
+    platform-malloc*	platform-calloc*	platform-realloc*
+    primitive-malloc	primitive-calloc	primitive-realloc
     malloc		realloc			calloc
-    memset		memmove			memcpy
-    memcmp
+
+    primitive-malloc-function	primitive-calloc-function
+    primitive-realloc-function	primitive-free-function
+
+    memset		memmove		memcpy		memcmp
 
     ;;pointers
     pointer?
     pointer-null		pointer-null?
     integer->pointer		pointer->integer
     pointer-diff		pointer-add
-
     pointer=?			pointer<>?
     pointer<?			pointer>?
     pointer<=?			pointer>=?
@@ -87,7 +100,7 @@
 
     ;;buffer allocation
     memory-buffer-pool
-    primitive-buffer-malloc	buffer-malloc
+    primitive-malloc/buffer	malloc/buffer
 
     ;;reference counting
     malloc/refcount		(rename (malloc/refcount malloc/rc))
@@ -99,112 +112,121 @@
     pointer-ref-c-int16			pointer-ref-c-uint16
     pointer-ref-c-int32			pointer-ref-c-uint32
     pointer-ref-c-int64			pointer-ref-c-uint64
-
     pointer-ref-c-float			pointer-ref-c-double
-    pointer-ref-c-void*
-
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
     pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
     pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
     pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-
-    pointer-ref-c-pointer
+    pointer-ref-c-pointer		pointer-ref-c-void*
 
     ;;pokers
     pointer-set-c-int8!			pointer-set-c-uint8!
     pointer-set-c-int16!		pointer-set-c-uint16!
     pointer-set-c-int32!		pointer-set-c-uint32!
     pointer-set-c-int64!		pointer-set-c-uint64!
-
     pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-void*!
-
     pointer-set-c-signed-char!		pointer-set-c-unsigned-char!
     pointer-set-c-signed-short!		pointer-set-c-unsigned-short!
     pointer-set-c-signed-int!		pointer-set-c-unsigned-int!
     pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
     pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
-
-    pointer-set-c-pointer!
+    pointer-set-c-pointer!		pointer-set-c-void*!
 
     ;;array peekers
     array-ref-c-int8			array-ref-c-uint8
     array-ref-c-int16			array-ref-c-uint16
     array-ref-c-int32			array-ref-c-uint32
     array-ref-c-int64			array-ref-c-uint64
-
     array-ref-c-float			array-ref-c-double
-    array-ref-c-void*
-
     array-ref-c-signed-char		array-ref-c-unsigned-char
     array-ref-c-signed-short		array-ref-c-unsigned-short
     array-ref-c-signed-int		array-ref-c-unsigned-int
     array-ref-c-signed-long		array-ref-c-unsigned-long
     array-ref-c-signed-long-long	array-ref-c-unsigned-long-long
-
-    array-ref-c-pointer
+    array-ref-c-void*			(rename (array-ref-c-void* array-ref-c-pointer))
 
     ;;array pokers
     array-set-c-int8!			array-set-c-uint8!
     array-set-c-int16!			array-set-c-uint16!
     array-set-c-int32!			array-set-c-uint32!
     array-set-c-int64!			array-set-c-uint64!
-
     array-set-c-float!			array-set-c-double!
-    array-set-c-void*!
-
     array-set-c-signed-char!		array-set-c-unsigned-char!
     array-set-c-signed-short!		array-set-c-unsigned-short!
     array-set-c-signed-int!		array-set-c-unsigned-int!
     array-set-c-signed-long!		array-set-c-unsigned-long!
     array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
-
-    array-set-c-pointer!
-
-    ;;conditions
-    &out-of-memory
-    make-out-of-memory-condition	out-of-memory-condition?
-    out-of-memory-number-of-bytes	raise-out-of-memory)
+    array-set-c-void*!			(rename (array-set-c-void*! array-set-c-pointer!)))
   (import (nausicaa)
     (foreign memory compat)
     (foreign ffi sizeof)
-    (compensations)
-    (format))
+    (compensations))
+
+
+;;;; conditions
+
+(define-condition-type &out-of-memory &error
+  make-out-of-memory-condition
+  out-of-memory-condition?
+  (number-of-bytes condition-out-of-memory/number-of-bytes))
+
+(define (raise-out-of-memory who number-of-bytes)
+  (raise
+   (condition (make-who-condition who)
+	      (make-message-condition "out of memory")
+	      (make-out-of-memory-condition number-of-bytes))))
+
+(define-condition-type &memory-request &out-of-memory
+  make-memory-request-condition
+  memory-request-condition?
+  (clean condition-memory-request/clean?))
+
+(define (raise-memory-request who number-of-bytes clean)
+  (raise-continuable
+   (condition (make-who-condition who)
+	      (make-message-condition "out of memory")
+	      (make-memory-request-condition number-of-bytes clean))))
 
 
 ;;;; memory allocation
 
+(define (platform-malloc* number-of-bytes)
+  (let ((p (platform-malloc number-of-bytes)))
+    (if (pointer-null? p) #f p)))
+
+(define (platform-calloc* count element-size)
+  (let ((p (platform-calloc count element-size)))
+    (if (pointer-null? p) #f p)))
+
+(define (platform-realloc* pointer new-size)
+  (let ((p (platform-realloc pointer new-size)))
+    (if (pointer-null? p) #f p)))
+
+;;; --------------------------------------------------------------------
+
 (define primitive-free-function
   (make-parameter platform-free
     (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-free-function
-	  "expected function as parameter value" func))
+      (assert (procedure? func))
       func)))
 
 (define primitive-malloc-function
-  (make-parameter platform-malloc
+  (make-parameter platform-malloc*
     (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-malloc-function
-	  "expected function as parameter value" func))
+      (assert (procedure? func))
       func)))
 
 (define primitive-realloc-function
-  (make-parameter platform-realloc
+  (make-parameter platform-realloc*
     (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-realloc-function
-	  "expected function as parameter value" func))
+      (assert (procedure? func))
       func)))
 
 (define primitive-calloc-function
-  (make-parameter platform-calloc
+  (make-parameter platform-calloc*
     (lambda (func)
-      (unless (procedure? func)
-	(assertion-violation 'primitive-calloc-function
-	  "expected function as parameter value" func))
+      (assert (procedure? func))
       func)))
 
 ;;; --------------------------------------------------------------------
@@ -213,30 +235,27 @@
   ((primitive-free-function) pointer))
 
 (define (primitive-malloc number-of-bytes)
-  (let ((p ((primitive-malloc-function) number-of-bytes)))
-    (if (pointer-null? p) #f p)))
+  ((primitive-malloc-function) number-of-bytes))
 
 (define (primitive-calloc count element-size)
-  (let ((p ((primitive-calloc-function) count element-size)))
-    (if (pointer-null? p) #f p)))
+  ((primitive-calloc-function) count element-size))
 
 (define (primitive-realloc pointer new-size)
-  (let ((p ((primitive-realloc-function) pointer new-size)))
-    (if (pointer-null? p) #f p)))
+  ((primitive-realloc-function) pointer new-size))
 
 ;;; --------------------------------------------------------------------
 
 (define (malloc number-of-bytes)
   (or (primitive-malloc number-of-bytes)
-      (raise-out-of-memory 'malloc number-of-bytes)))
+      (raise-memory-request 'malloc number-of-bytes #f)))
 
 (define (realloc pointer new-size)
   (or (primitive-realloc pointer new-size)
-      (raise-out-of-memory 'realloc new-size)))
+      (raise-memory-request 'realloc new-size #f)))
 
 (define (calloc count element-size)
   (or (primitive-calloc count element-size)
-      (raise-out-of-memory 'calloc (* count element-size))))
+      (raise-memory-request 'calloc (* count element-size) #t)))
 
 
 ;;;; records
@@ -251,14 +270,14 @@
 
 
 (define (buffer-empty? buf)
-  (= 0 (buffer-used-size buf)))
+  (zero? (buffer-used-size buf)))
 
 (define (buffer-full? buf)
   (= (memblock-size    buf)
      (buffer-used-size buf)))
 
 (define (buffer-used? buf)
-  (not (= 0 (buffer-used-size buf))))
+  (not (zero? (buffer-used-size buf))))
 
 (define (buffer-free-size buf)
   (- (memblock-size    buf)
@@ -285,9 +304,10 @@
 	(pointer	(memblock-pointer buf)))
     (when (> number-of-bytes used-size)
       (assertion-violation 'buffer-consume-bytes!
-	(format
-	    "expected buffer used size ~s <= to number of bytes to consume ~s"
-	  used-size number-of-bytes)
+	(string-append "expected buffer used size "
+		       (number->string used-size)
+		       " <= to number of bytes to consume "
+		       (number->string number-of-bytes))
 	(list buf number-of-bytes)))
     (memmove pointer
 	     (pointer-add pointer number-of-bytes)
@@ -299,9 +319,10 @@
 	(avail-len	(buffer-free-size buf)))
     (when (> copy-len avail-len)
       (assertion-violation 'buffer-push-memblock!
-	(format
-	    "expected source memblock with size ~s <= to the free size ~s in destination buffer"
-	  copy-len avail-len)
+	(string-append "expected source memblock with size "
+		       (number->string copy-len)
+		       " <= to the free size ~s in destination buffer"
+		       (number->string avail-len))
 	(list buf mb)))
     (memcpy (buffer-pointer-to-free-bytes buf)
 	    (memblock-pointer mb)
@@ -315,9 +336,10 @@
 	 (copy-size	(memblock-size    mb)))
     (when (> copy-size avail-size)
       (assertion-violation 'buffer-pop-memblock!
-	(format
-	    "expected destination memblock with size ~s <= to the used size ~s in source buffer"
-	  copy-size avail-size)
+	(string-append "expected destination memblock with size "
+		       (number->string copy-size)
+		       " <= to the used size ~s in source buffer"
+		       (number->string avail-size))
 	(list mb buf)))
     (memcpy dst-ptr src-ptr copy-size)
     (buffer-consume-bytes! buf copy-size)))
@@ -328,9 +350,10 @@
 	(p		(memblock-pointer  buf)))
     (when (> copy-size avail-size)
       (assertion-violation 'buffer-push-bytevector!
-	(format
-	    "expected source bytevector length ~s <= to the free size ~s in destination buffer"
-	  copy-size avail-size)
+	(string-append "expected source bytevector length "
+		       (number->string copy-size)
+		       " <= to the free size ~s in destination buffer"
+		       (number->string avail-size))
 	(list buf bv)))
     (do ((i 0 (+ 1 i)))
 	((= i copy-size)
@@ -343,9 +366,10 @@
 	(p		(memblock-pointer  buf)))
     (when (> copy-size avail-size)
       (assertion-violation 'buffer-pop-bytevector!
-	(format
-	    "expected destination bytevector length ~s <= to the free size ~s in source buffer"
-	  copy-size avail-size)
+	(string-append "expected destination bytevector length "
+		       (number->string copy-size)
+		       " <= to the free size ~s in source buffer"
+		       (number->string avail-size))
 	(list buf bv)))
     (do ((i 0 (+ 1 i)))
 	((= i copy-size)
@@ -547,20 +571,18 @@
 	  "expected #f or memory buffer as parameter value" obj))
       obj)))
 
-(define (primitive-buffer-malloc number-of-bytes)
+(define (primitive-malloc/buffer number-of-bytes)
   (let ((buffer (memory-buffer-pool)))
-    (unless buffer
-      (assertion-violation 'buffer-malloc
-	"attempted buffer memory allocation but no buffer was selected"))
-  (if (< number-of-bytes (buffer-free-size buffer))
-      (begin0
-	  (buffer-pointer-to-free-bytes buffer)
-	(buffer-incr-used-size! buffer number-of-bytes))
-    #f)))
+    (assert buffer)
+    (if (< number-of-bytes (buffer-free-size buffer))
+	(begin0
+	    (buffer-pointer-to-free-bytes buffer)
+	  (buffer-incr-used-size! buffer number-of-bytes))
+      #f)))
 
-(define (buffer-malloc number-of-bytes)
-  (or (primitive-buffer-malloc number-of-bytes)
-      (raise-out-of-memory 'buffer-malloc number-of-bytes)))
+(define (malloc/buffer number-of-bytes)
+  (or (primitive-malloc/buffer number-of-bytes)
+      (raise-out-of-memory 'malloc/buffer number-of-bytes)))
 
 
 ;;;; reference counting
@@ -621,7 +643,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i number-of-bytes)
 	   p)
-	(pointer-set-c-unsigned-char! p i (bytevector-u8-ref bv (+ i offset))))))))
+	(pointer-set-c-uint8! p i (bytevector-u8-ref bv (+ i offset))))))))
 
 (define bytevector->memblock
   (case-lambda
@@ -645,7 +667,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i number-of-bytes)
 	   bv)
-	(bytevector-u8-set! bv i (pointer-ref-c-unsigned-char pointer (+ i offset))))))))
+	(bytevector-u8-set! bv i (pointer-ref-c-uint8 pointer (+ i offset))))))))
 
 (define memblock->bytevector
   (case-lambda
@@ -659,132 +681,102 @@
 
 ;;;; array peekers
 
-(define-syntax define-array-peeker
-  (syntax-rules ()
-    ((_ ?name ?peeker ?strideof-data)
-     (define (?name pointer index)
-       (?peeker pointer (* index ?strideof-data))))
-    ((_ ?name ?peeker ?strideof-data ?mapper)
-     (define (?name pointer index)
-       (?mapper (?peeker pointer (* index ?strideof-data)))))))
+(let-syntax ((define-array-peeker (syntax-rules ()
+				    ((_ ?name ?peeker ?strideof-data)
+				     (define (?name pointer index)
+				       (?peeker pointer (* index ?strideof-data))))
+				    ((_ ?name ?peeker ?strideof-data ?mapper)
+				     (define (?name pointer index)
+				       (?mapper (?peeker pointer (* index ?strideof-data))))))))
+  (define-array-peeker array-ref-c-int8		pointer-ref-c-int8	1)
+  (define-array-peeker array-ref-c-int16	pointer-ref-c-int16	2)
+  (define-array-peeker array-ref-c-int32	pointer-ref-c-int32	4)
+  (define-array-peeker array-ref-c-int64	pointer-ref-c-int64	8)
 
-(define-syntax define-signed-array-peeker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) array-ref-c-int8)
-		     ((2) array-ref-c-int16)
-		     ((4) array-ref-c-int32)
-		     ((8) array-ref-c-int64))))))
+  (define-array-peeker array-ref-c-uint8	pointer-ref-c-uint8	1)
+  (define-array-peeker array-ref-c-uint16	pointer-ref-c-uint16	2)
+  (define-array-peeker array-ref-c-uint32	pointer-ref-c-uint32	4)
+  (define-array-peeker array-ref-c-uint64	pointer-ref-c-uint64	8)
 
-(define-syntax define-unsigned-array-peeker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) array-ref-c-uint8)
-		     ((2) array-ref-c-uint16)
-		     ((4) array-ref-c-uint32)
-		     ((8) array-ref-c-uint64))))))
+  (define-array-peeker array-ref-c-float	pointer-ref-c-float	strideof-float)
+  (define-array-peeker array-ref-c-double	pointer-ref-c-double	strideof-float)
+  (define-array-peeker array-ref-c-void*	pointer-ref-c-void*	strideof-pointer))
 
-(define-array-peeker array-ref-c-int8		pointer-ref-c-int8	1)
-(define-array-peeker array-ref-c-int16		pointer-ref-c-int16	2)
-(define-array-peeker array-ref-c-int32		pointer-ref-c-int32	4)
-(define-array-peeker array-ref-c-int64		pointer-ref-c-int64	8)
+(let-syntax ((define-signed-array-peeker (syntax-rules ()
+					   ((_ ?name ?sizeof-data)
+					    (define ?name (case ?sizeof-data
+							    ((1) array-ref-c-int8)
+							    ((2) array-ref-c-int16)
+							    ((4) array-ref-c-int32)
+							    ((8) array-ref-c-int64)))))))
+  (define-signed-array-peeker array-ref-c-signed-char		sizeof-char)
+  (define-signed-array-peeker array-ref-c-signed-short		sizeof-short)
+  (define-signed-array-peeker array-ref-c-signed-int		sizeof-int)
+  (define-signed-array-peeker array-ref-c-signed-long		sizeof-long)
+  (define-signed-array-peeker array-ref-c-signed-long-long	sizeof-long-long))
 
-(define-array-peeker array-ref-c-uint8		pointer-ref-c-uint8	1)
-(define-array-peeker array-ref-c-uint16		pointer-ref-c-uint16	2)
-(define-array-peeker array-ref-c-uint32		pointer-ref-c-uint32	4)
-(define-array-peeker array-ref-c-uint64		pointer-ref-c-uint64	8)
-
-(define-array-peeker array-ref-c-float		pointer-ref-c-float	strideof-float)
-(define-array-peeker array-ref-c-double		pointer-ref-c-double	strideof-float)
-(define-array-peeker array-ref-c-void*		pointer-ref-c-void*	strideof-pointer)
-
-(define-signed-array-peeker array-ref-c-signed-char		sizeof-char)
-(define-signed-array-peeker array-ref-c-signed-short		sizeof-short)
-(define-signed-array-peeker array-ref-c-signed-int		sizeof-int)
-(define-signed-array-peeker array-ref-c-signed-long		sizeof-long)
-(define-signed-array-peeker array-ref-c-signed-long-long	sizeof-long-long)
-
-(define-unsigned-array-peeker array-ref-c-unsigned-char		sizeof-char)
-(define-unsigned-array-peeker array-ref-c-unsigned-short	sizeof-short)
-(define-unsigned-array-peeker array-ref-c-unsigned-int		sizeof-int)
-(define-unsigned-array-peeker array-ref-c-unsigned-long		sizeof-long)
-(define-unsigned-array-peeker array-ref-c-unsigned-long-long	sizeof-long-long)
-
-(define array-ref-c-pointer array-ref-c-void*)
+(let-syntax ((define-unsigned-array-peeker (syntax-rules ()
+					     ((_ ?name ?sizeof-data)
+					      (define ?name (case ?sizeof-data
+							      ((1) array-ref-c-uint8)
+							      ((2) array-ref-c-uint16)
+							      ((4) array-ref-c-uint32)
+							      ((8) array-ref-c-uint64)))))))
+  (define-unsigned-array-peeker array-ref-c-unsigned-char	sizeof-char)
+  (define-unsigned-array-peeker array-ref-c-unsigned-short	sizeof-short)
+  (define-unsigned-array-peeker array-ref-c-unsigned-int	sizeof-int)
+  (define-unsigned-array-peeker array-ref-c-unsigned-long	sizeof-long)
+  (define-unsigned-array-peeker array-ref-c-unsigned-long-long	sizeof-long-long))
 
 
 ;;;; array pokers
 
-(define-syntax define-array-poker
-  (syntax-rules ()
-    ((_ ?name ?poker ?strideof-data)
-     (define (?name pointer index value)
-       (?poker pointer (* index ?strideof-data) value)))
-    ((_ ?name ?poker ?strideof-data ?mapper)
-     (define (?name pointer index value)
-       (?poker pointer (* index ?strideof-data) (?mapper value))))))
+(let-syntax ((define-array-poker (syntax-rules ()
+				   ((_ ?name ?poker ?strideof-data)
+				    (define (?name pointer index value)
+				      (?poker pointer (* index ?strideof-data) value)))
+				   ((_ ?name ?poker ?strideof-data ?mapper)
+				    (define (?name pointer index value)
+				      (?poker pointer (* index ?strideof-data) (?mapper value)))))))
+  (define-array-poker array-set-c-int8!		pointer-set-c-int8!	1)
+  (define-array-poker array-set-c-int16!	pointer-set-c-int16!	2)
+  (define-array-poker array-set-c-int32!	pointer-set-c-int32!	4)
+  (define-array-poker array-set-c-int64!	pointer-set-c-int64!	8)
 
-(define-syntax define-signed-array-poker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) array-set-c-int8!)
-		     ((2) array-set-c-int16!)
-		     ((4) array-set-c-int32!)
-		     ((8) array-set-c-int64!))))))
+  (define-array-poker array-set-c-uint8!	pointer-set-c-uint8!	1)
+  (define-array-poker array-set-c-uint16!	pointer-set-c-uint16!	2)
+  (define-array-poker array-set-c-uint32!	pointer-set-c-uint32!	4)
+  (define-array-poker array-set-c-uint64!	pointer-set-c-uint64!	8)
 
-(define-syntax define-unsigned-array-poker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) array-set-c-uint8!)
-		     ((2) array-set-c-uint16!)
-		     ((4) array-set-c-uint32!)
-		     ((8) array-set-c-uint64!))))))
+  (define-array-poker array-set-c-float!	pointer-set-c-float!	strideof-float)
+  (define-array-poker array-set-c-double!	pointer-set-c-double!	strideof-float)
+  (define-array-poker array-set-c-void*!	pointer-set-c-void*!	strideof-pointer))
 
-(define-array-poker array-set-c-int8!	pointer-set-c-int8!	1)
-(define-array-poker array-set-c-int16!	pointer-set-c-int16!	2)
-(define-array-poker array-set-c-int32!	pointer-set-c-int32!	4)
-(define-array-poker array-set-c-int64!	pointer-set-c-int64!	8)
+(let-syntax ((define-signed-array-poker (syntax-rules ()
+					  ((_ ?name ?sizeof-data)
+					   (define ?name (case ?sizeof-data
+							   ((1) array-set-c-int8!)
+							   ((2) array-set-c-int16!)
+							   ((4) array-set-c-int32!)
+							   ((8) array-set-c-int64!)))))))
+  (define-signed-array-poker array-set-c-signed-char!		sizeof-char)
+  (define-signed-array-poker array-set-c-signed-short!		sizeof-short)
+  (define-signed-array-poker array-set-c-signed-int!		sizeof-int)
+  (define-signed-array-poker array-set-c-signed-long!		sizeof-long)
+  (define-signed-array-poker array-set-c-signed-long-long!	sizeof-long-long))
 
-(define-array-poker array-set-c-uint8!	pointer-set-c-uint8!	1)
-(define-array-poker array-set-c-uint16!	pointer-set-c-uint16!	2)
-(define-array-poker array-set-c-uint32!	pointer-set-c-uint32!	4)
-(define-array-poker array-set-c-uint64!	pointer-set-c-uint64!	8)
-
-(define-array-poker array-set-c-float!	pointer-set-c-float!	strideof-float)
-(define-array-poker array-set-c-double!	pointer-set-c-double!	strideof-float)
-(define-array-poker array-set-c-void*!	pointer-set-c-void*!	strideof-pointer)
-
-(define-signed-array-poker array-set-c-signed-char!		sizeof-char)
-(define-signed-array-poker array-set-c-signed-short!		sizeof-short)
-(define-signed-array-poker array-set-c-signed-int!		sizeof-int)
-(define-signed-array-poker array-set-c-signed-long!		sizeof-long)
-(define-signed-array-poker array-set-c-signed-long-long!	sizeof-long-long)
-
-(define-unsigned-array-poker array-set-c-unsigned-char!		sizeof-char)
-(define-unsigned-array-poker array-set-c-unsigned-short!	sizeof-short)
-(define-unsigned-array-poker array-set-c-unsigned-int!		sizeof-int)
-(define-unsigned-array-poker array-set-c-unsigned-long!		sizeof-long)
-(define-unsigned-array-poker array-set-c-unsigned-long-long!	sizeof-long-long)
-
-(define array-set-c-pointer! array-set-c-void*!)
-
-
-;;;; conditions
-
-(define-condition-type &out-of-memory &error
-  make-out-of-memory-condition
-  out-of-memory-condition?
-  (number-of-bytes out-of-memory-number-of-bytes))
-
-(define (raise-out-of-memory who number-of-bytes)
-  (raise-continuable
-   (condition (make-who-condition who)
-	      (make-message-condition "out of memory")
-	      (make-out-of-memory-condition number-of-bytes))))
+(let-syntax ((define-unsigned-array-poker (syntax-rules ()
+					    ((_ ?name ?sizeof-data)
+					     (define ?name (case ?sizeof-data
+							     ((1) array-set-c-uint8!)
+							     ((2) array-set-c-uint16!)
+							     ((4) array-set-c-uint32!)
+							     ((8) array-set-c-uint64!)))))))
+  (define-unsigned-array-poker array-set-c-unsigned-char!	sizeof-char)
+  (define-unsigned-array-poker array-set-c-unsigned-short!	sizeof-short)
+  (define-unsigned-array-poker array-set-c-unsigned-int!	sizeof-int)
+  (define-unsigned-array-poker array-set-c-unsigned-long!	sizeof-long)
+  (define-unsigned-array-poker array-set-c-unsigned-long-long!	sizeof-long-long))
 
 
 ;;;; done

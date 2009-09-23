@@ -36,585 +36,13 @@
 (display "*** testing memory\n")
 
 
-(parameterize ((check-test-name 'pointers))
-
-  (check
-      (pointer-null? pointer-null)
-    => #t)
-
-  (check
-      (pointer-null? (integer->pointer 123))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer? pointer-null)
-    => #t)
-
-  (check
-      (pointer? (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer? 123)
-    => #f)
-
-  (check
-      (pointer-null? (integer->pointer 123))
-    => #f)
-
-  (check
-      (pointer->integer (integer->pointer 123))
-    => 123)
-
-  (check
-      (pointer->integer (integer->pointer 0))
-    => 0)
-
-  (check
-      (pointer-null? (integer->pointer 0))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let* ((i 123)
-	     (p (integer->pointer i)))
-	(pointer? p))
-    => #t)
-
-  (check
-      (pointer? 123)
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer-null? pointer-null)
-    => #t)
-
-  (check
-      (pointer-null? (integer->pointer 0))
-    => #t)
-
-  (check
-      (pointer-null? (integer->pointer 123))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer-diff (integer->pointer 123) (integer->pointer 120))
-    => 3)
-
-  (check
-      (pointer-diff (integer->pointer 118) (integer->pointer 120))
-    => -2)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer-add (integer->pointer 100) 23)
-    (=> pointer=?) (integer->pointer 123))
-
-  (check
-      (pointer-add (integer->pointer 100) -23)
-    (=> pointer=?) (integer->pointer 77))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer=? (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer=? (integer->pointer 123)
-		 (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer=? (integer->pointer 123)
-		 (integer->pointer 123)
-		 (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer=? (integer->pointer 123)
-		 (integer->pointer 456)
-		 (integer->pointer 456))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer<? (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer<? (integer->pointer 123)
-		 (integer->pointer 123))
-    => #f)
-
-  (check
-      (pointer<? (integer->pointer 123)
-		 (integer->pointer 456)
-		 (integer->pointer 789))
-    => #t)
-
-  (check
-      (pointer<? (integer->pointer 123)
-		 (integer->pointer 456)
-		 (integer->pointer 1))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer>? (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer>? (integer->pointer 123)
-		 (integer->pointer 123))
-    => #f)
-
-  (check
-      (pointer>? (integer->pointer 789)
-		 (integer->pointer 456)
-		 (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer>? (integer->pointer 123)
-		 (integer->pointer 456)
-		 (integer->pointer 1))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer<=? (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer<=? (integer->pointer 123)
-		  (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer<=? (integer->pointer 123)
-		  (integer->pointer 456)
-		  (integer->pointer 789))
-    => #t)
-
-  (check
-      (pointer<=? (integer->pointer 123)
-		  (integer->pointer 456)
-		  (integer->pointer 1))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer>=? (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer>=? (integer->pointer 123)
-		  (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer>=? (integer->pointer 789)
-		  (integer->pointer 456)
-		  (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer>=? (integer->pointer 123)
-		  (integer->pointer 456)
-		  (integer->pointer 1))
-    => #f)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (pointer<>? (integer->pointer 123))
-    => #f)
-
-  (check
-      (pointer<>? (integer->pointer 123)
-		  (integer->pointer 123))
-    => #f)
-
-  (check
-      (pointer<>? (integer->pointer 789)
-		  (integer->pointer 456)
-		  (integer->pointer 123))
-    => #t)
-
-  (check
-      (pointer<>? (integer->pointer 123)
-		  (integer->pointer 456)
-		  (integer->pointer 1))
-    => #t)
-
-  #t)
-
-
-(parameterize ((check-test-name 'alloc))
-
-  (define (failing-alloc . args)
-    pointer-null)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (guard (exc (else
-		   (write (condition-who exc))(newline)
-		   (write (condition-message exc))(newline)
-		   exc))
-	(let ((p (malloc 4096)))
-	  (primitive-free p)
-	  #t))
-    => #t)
-
-  (check
-      (guard (exc (else
-		   exc))
-	(let* ((p (malloc 4096))
-	       (q (realloc p 8192)))
-	  (primitive-free q)
-	  #t))
-    => #t)
-
-  (check
-      (guard (exc (else exc))
-	(let ((p (calloc 4096 4)))
-	  (primitive-free p)
-	  #t))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (guard (exc (else
-		   (list (out-of-memory-condition? exc)
-			 (out-of-memory-number-of-bytes exc))))
-	(parameterize ((primitive-malloc-function failing-alloc))
-	  (let ((p (malloc 4096)))
-	    (primitive-free p)
-	    #t)))
-    => '(#t 4096))
-
-  (check
-      (guard (exc (else
-		   (list (out-of-memory-condition? exc)
-			 (out-of-memory-number-of-bytes exc))))
-	(parameterize ((primitive-realloc-function failing-alloc))
-	  (let* ((p (malloc 4096))
-		 (q (realloc p 8192)))
-	    (primitive-free q)
-	    #t)))
-    => '(#t 8192))
-
-  (check
-      (guard (exc (else
-		   (list (out-of-memory-condition? exc)
-			 (out-of-memory-number-of-bytes exc))))
-	(parameterize ((primitive-calloc-function failing-alloc))
-	  (let ((p (calloc 4096 4)))
-	    (primitive-free p)
-	    #t)))
-    => (list #t (* 4 4096)))
-
-;;; --------------------------------------------------------------------
-
-  (check
-      (let-values (((port get-string) (open-string-output-port)))
-	(define (logging-malloc number-of-bytes)
-	  (let ((p (platform-malloc number-of-bytes)))
-	    (display (format "malloc:\t~s ~s\n" p number-of-bytes) port)
-	    p))
-
-	(define (logging-free pointer)
-	  (display (format "free:\t~s\n" pointer) port)
-	  (platform-free pointer))
-
-	(parameterize ((primitive-malloc-function logging-malloc)
-		       (primitive-free-function logging-free))
-	  (let ((p (malloc 4096)))
-	    (primitive-free p)
-	    ;;(display (get-string))
-	    #t)))
-    => #t)
-
-  (check
-      (let-values (((port get-string) (open-string-output-port)))
-	(define (logging-malloc number-of-bytes)
-	  (let ((p (platform-malloc number-of-bytes)))
-	    (display (format "malloc:\t~s ~s\n" p number-of-bytes) port)
-	    p))
-
-	(define (logging-realloc pointer new-number-of-bytes)
-	  (let ((p (platform-realloc pointer new-number-of-bytes)))
-	    (display (format "realloc:\t~s ~s ~s\n" p pointer new-number-of-bytes) port)
-	    p))
-
-	(define (logging-free pointer)
-	  (display (format "free:\t~s\n" pointer) port)
-	  (platform-free pointer))
-
-	(parameterize ((primitive-malloc-function logging-malloc)
-		       (primitive-realloc-function logging-realloc)
-		       (primitive-free-function logging-free))
-	  (let* ((p (malloc 4096))
-		 (q (realloc p 8192)))
-	    (primitive-free q)
-	    ;;(display (get-string))
-	    #t)))
-    => #t)
-
-  (check
-      (let-values (((port get-string) (open-string-output-port)))
-	(define (logging-calloc count element-size)
-	  (let ((p (platform-calloc count element-size)))
-	    (display (format "calloc:\t~s ~s ~s\n" p count element-size) port)
-	    p))
-
-	(define (logging-free pointer)
-	  (display (format "free:\t~s\n" pointer) port)
-	  (platform-free pointer))
-
-	(parameterize ((primitive-calloc-function logging-calloc)
-		       (primitive-free-function logging-free))
-	  (let ((p (calloc 4 4096)))
-	    (primitive-free p)
-	    ;;(display (get-string))
-	    #t)))
-    => #t)
-
-  #t)
-
-
-(parameterize ((check-test-name 'bytevectors))
-  (with-compensations
-    (let ((bv #vu8(0 1 2 3 4 5 6 7 8 9)))
-      (check
-	  (pointer->bytevector
-	   (bytevector->pointer bv malloc-block/compensated)
-	   10)
-	=> bv)
-
-      (check
-	  (pointer->bytevector
-	   (bytevector->pointer bv malloc-block/compensated)
-	   5)
-	=> #vu8(0 1 2 3 4))
-
-      (check
-	  (pointer->bytevector
-	   (bytevector->pointer bv malloc-block/compensated)
-	   5
-	   3)
-	=> #vu8(3 4 5 6 7))
-
-      (check
-	  (pointer->bytevector
-	   (bytevector->pointer bv malloc-block/compensated 8)
-	   8)
-	=> #vu8(0 1 2 3 4 5 6 7))
-
-      (check
-	  (pointer->bytevector
-	   (bytevector->pointer bv malloc-block/compensated 5 2)
-	   5)
-	=> #vu8(2 3 4 5 6))
-
-;;; --------------------------------------------------------------------
-
-      (check
-	  (memblock->bytevector
-	   (bytevector->memblock bv malloc-block/compensated)
-	   10)
-	=> bv)
-
-      (check
-	  (memblock->bytevector
-	   (bytevector->memblock bv malloc-block/compensated)
-	   5)
-	=> #vu8(0 1 2 3 4))
-
-      (check
-	  (memblock->bytevector
-	   (bytevector->memblock bv malloc-block/compensated)
-	   5
-	   3)
-	=> #vu8(3 4 5 6 7))
-
-      (check
-	  (memblock->bytevector
-	   (bytevector->memblock bv malloc-block/compensated 8)
-	   8)
-	=> #vu8(0 1 2 3 4 5 6 7))
-
-      (check
-	  (memblock->bytevector
-	   (bytevector->memblock bv malloc-block/compensated 5 2)
-	   5)
-	=> #vu8(2 3 4 5 6)))
-
-    #f)
-
-  #t)
-
-
-(parameterize ((check-test-name 'buffers))
-
-  (define len 4096)
-
-  (check
-      (let* ((p		(malloc len))
-	     (buf	(make-buffer p len 0)))
-	(begin0
-	    (list (buffer-size buf)
-		  (buffer-used-size buf)
-		  (buffer-free-size buf)
-		  (buffer-used? buf)
-		  (buffer-full? buf)
-		  (buffer-empty? buf))
-	  (primitive-free (buffer-pointer buf))))
-    => (list len 0 len #f #f #t))
-
-  (check
-      (let* ((p		(malloc len))
-	     (buf	(make-buffer p len 100)))
-	(begin0
-	    (list (buffer-size buf)
-		  (buffer-used-size buf)
-		  (buffer-free-size buf)
-		  (buffer-used? buf)
-		  (buffer-full? buf)
-		  (buffer-empty? buf))
-	  (primitive-free (buffer-pointer buf))))
-    => (list len 100 (- len 100) #t #f #f))
-
-  (check
-      (let* ((p		(malloc len))
-	     (buf	(make-buffer p len len)))
-	(begin0
-	    (list (buffer-size buf)
-		  (buffer-used-size buf)
-		  (buffer-free-size buf)
-		  (buffer-used? buf)
-		  (buffer-full? buf)
-		  (buffer-empty? buf))
-	  (primitive-free (buffer-pointer buf))))
-    => (list len len 0 #t #t #f))
-
-  (check
-      (with-compensations
-	(let* ((p		(malloc/c len))
-	       (buf	(make-buffer p len 100))
-	       (mb	(buffer-used-memblock buf)))
-	  (list (= 100 (memblock-size mb))
-		(pointer=? (buffer-pointer buf)
-			   (memblock-pointer mb)))))
-    => '(#t #t))
-
-  (check
-      (with-compensations
-	(let* ((p	(malloc/c len))
-	       (buf	(make-buffer p len 100))
-	       (mb	(buffer-free-memblock buf)))
-	  (list (= (- len 100) (memblock-size mb))
-		(pointer=? (pointer-add (buffer-pointer buf) 100)
-			   (memblock-pointer mb)))))
-    => '(#t #t))
-
-  (check
-      (with-compensations
-	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
-	       (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
-	       (mb3	(make-memblock (malloc/c 10) 10))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-memblock! buf mb1)
-	  (buffer-push-memblock! buf mb2)
-	  (buffer-pop-memblock! mb3 buf)
-	  (memblock->bytevector mb3)))
-    => #vu8(0 1 2 3 4 5 6 7 8 9))
-
-  (check
-      (with-compensations
-	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
-	       (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
-	       (mb3	(make-memblock (malloc/c 5) 5))
-	       (mb4	(make-memblock (malloc/c 5) 5))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-memblock! buf mb1)
-	  (buffer-push-memblock! buf mb2)
-	  (buffer-pop-memblock! mb3 buf)
-	  (buffer-pop-memblock! mb4 buf)
-	  (list (memblock->bytevector mb3)
-		(memblock->bytevector mb4))))
-    => '(#vu8(0 1 2 3 4) #vu8(5 6 7 8 9)))
-
-  (check
-      (with-compensations
-	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4 5 6 7 8 9) malloc/c))
-	       (mb2	(make-memblock (malloc/c 5) 5))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-memblock! buf mb1)
-	  (buffer-consume-bytes! buf 5)
-	  (buffer-pop-memblock! mb2 buf)
-	  (memblock->bytevector mb2)))
-    => #vu8(5 6 7 8 9))
-
-  (check
-      (with-compensations
-	(let* ((bv	#vu8(0 1 2 3 4 5 6 7 8 9))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-bytevector! buf bv)
-	  (memblock->bytevector (buffer-used-memblock buf))))
-    => #vu8(0 1 2 3 4 5 6 7 8 9))
-
-  (check
-      (with-compensations
-	(let* ((bv1	#vu8(0 1 2 3 4 5 6 7 8 9))
-	       (bv2	(make-bytevector 5))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-bytevector! buf bv1)
-	  (buffer-pop-bytevector! bv2 buf)
-	  bv2))
-    => #vu8(0 1 2 3 4))
-
-  (check
-      (with-compensations
-	(let* ((bv	#vu8(0 1 2 3 4 5 6 7 8 9))
-	       (len	4096)
-	       (src	(make-buffer (malloc/c len) len 0))
-	       (dst	(make-buffer (malloc/c 5) 5 0)))
-	  (buffer-push-bytevector! src bv)
-	  (buffer-push-buffer! dst src)
-	  (memblock->bytevector (buffer-used-memblock dst))))
-    => #vu8(0 1 2 3 4))
-
-  #f)
-
-
 (parameterize ((check-test-name 'buffer-alloc))
 
   (check
       (with-compensations
 	(parameterize ((memory-buffer-pool
 			(make-buffer (malloc/c 4096) 4096 0)))
-	  (let ((p (buffer-malloc 1000)))
+	  (let ((p (malloc/buffer 1000)))
 	    (pointer-null? p))))
     => #f)
 
@@ -622,11 +50,11 @@
       (with-compensations
 	(parameterize ((memory-buffer-pool
 			(make-buffer (malloc/c 4096) 4096 0)))
-	  (list (pointer-null? (buffer-malloc 1000))
-		(pointer-null? (buffer-malloc 1000))
-		(pointer-null? (buffer-malloc 1000))
-		(pointer-null? (buffer-malloc 1000))
-		(primitive-buffer-malloc 1000))))
+	  (list (pointer-null? (malloc/buffer 1000))
+		(pointer-null? (malloc/buffer 1000))
+		(pointer-null? (malloc/buffer 1000))
+		(pointer-null? (malloc/buffer 1000))
+		(primitive-malloc/buffer 1000))))
     => '(#f #f #f #f #f))
 
   (check
@@ -635,8 +63,8 @@
 			(make-buffer (malloc/c 4096) 4096 0)))
 	  (guard (exc (else
 		       (list (out-of-memory-condition? exc)
-			     (out-of-memory-number-of-bytes exc))))
-	    (buffer-malloc 5000))))
+			     (condition-out-of-memory/number-of-bytes exc))))
+	    (malloc/buffer 5000))))
     => '(#t 5000))
 
   #t)
@@ -683,6 +111,34 @@
 	   (pointer-acquire p)
 	   (pointer-dismiss p)
 	   #t)))
+    => '(#t (freed)))
+
+  (check	;dynamic-wind
+      (with-result
+       (define (logging-free pointer)
+	 (add-result 'freed)
+	 (platform-free pointer))
+       (parameterize ((primitive-free-function logging-free))
+	 (let ((p (malloc/rc 4096)))
+	   (dynamic-wind
+	       (lambda () (pointer-acquire p))
+	       (lambda () #t)
+	       (lambda () (pointer-release p))))))
+    => '(#t (freed)))
+
+  (check	;compensations
+      (with-result
+       (define (logging-free pointer)
+	 (add-result 'freed)
+	 (platform-free pointer))
+       (parameterize ((primitive-free-function logging-free))
+	 (with-compensations
+	   (letrec ((p (compensate
+			   (begin0-let ((p (malloc/rc 4096)))
+			     (pointer-acquire p))
+			 (with
+			  (pointer-release p)))))
+	     #t))))
     => '(#t (freed)))
 
   #t)

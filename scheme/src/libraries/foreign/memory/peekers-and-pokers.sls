@@ -24,7 +24,8 @@
 ;;;
 
 
-(library (peekers-and-pokers)
+#!r6rs
+(library (foreign memory peekers-and-pokers)
   (export
     (rename (pointer-ref-c-signed-char		peek-signed-char)
 	    (pointer-ref-c-signed-short		peek-signed-short)
@@ -40,6 +41,15 @@
 	    (pointer-ref-c-double		peek-double)
 	    (pointer-ref-c-pointer		peek-pointer)
 
+	    (pointer-ref-c-int8			peek-int8)
+	    (pointer-ref-c-int16		peek-int16)
+	    (pointer-ref-c-int32		peek-int32)
+	    (pointer-ref-c-int64		peek-int64)
+	    (pointer-ref-c-uint8		peek-uint8)
+	    (pointer-ref-c-uint16		peek-uint16)
+	    (pointer-ref-c-uint32		peek-uint32)
+	    (pointer-ref-c-uint64		peek-uint64)
+
 	    (pointer-set-c-signed-char!		poke-signed-char!)
 	    (pointer-set-c-signed-short!	poke-signed-short!)
 	    (pointer-set-c-signed-int!		poke-signed-int!)
@@ -54,6 +64,15 @@
 	    (pointer-set-c-double!		poke-double!)
 	    (pointer-set-c-pointer!		poke-pointer!)
 
+	    (pointer-set-c-int8!		poke-int8!)
+	    (pointer-set-c-int16!		poke-int16!)
+	    (pointer-set-c-int32!		poke-int32!)
+	    (pointer-set-c-int64!		poke-int64!)
+	    (pointer-set-c-uint8!		poke-uint8!)
+	    (pointer-set-c-uint16!		poke-uint16!)
+	    (pointer-set-c-uint32!		poke-uint32!)
+	    (pointer-set-c-uint64!		poke-uint64!)
+
 	    (array-ref-c-signed-char		peek-array-signed-char)
 	    (array-ref-c-signed-short		peek-array-signed-short)
 	    (array-ref-c-signed-int		peek-array-signed-int)
@@ -67,6 +86,16 @@
 	    (array-ref-c-float			peek-array-float)
 	    (array-ref-c-double			peek-array-double)
 	    (array-ref-c-pointer		peek-array-pointer)
+	    (array-ref-c-void*			peek-array-void*)
+
+	    (array-ref-c-int8			peek-array-int8)
+	    (array-ref-c-int16			peek-array-int16)
+	    (array-ref-c-int32			peek-array-int32)
+	    (array-ref-c-int64			peek-array-int64)
+	    (array-ref-c-uint8			peek-array-uint8)
+	    (array-ref-c-uint16			peek-array-uint16)
+	    (array-ref-c-uint32			peek-array-uint32)
+	    (array-ref-c-uint64			peek-array-uint64)
 
 	    (array-set-c-signed-char!		poke-array-signed-char!)
 	    (array-set-c-signed-short!		poke-array-signed-short!)
@@ -80,7 +109,17 @@
 	    (array-set-c-unsigned-long-long!	poke-array-unsigned-long-long!)
 	    (array-set-c-float!			poke-array-float!)
 	    (array-set-c-double!		poke-array-double!)
-	    (array-set-c-pointer!		poke-array-pointer!)))
+	    (array-set-c-pointer!		poke-array-pointer!)
+	    (array-set-c-pointer!		poke-array-void*!)
+
+	    (array-set-c-int8!			poke-array-int8!)
+	    (array-set-c-int16!			poke-array-int16!)
+	    (array-set-c-int32!			poke-array-int32!)
+	    (array-set-c-int64!			poke-array-int64!)
+	    (array-set-c-uint8!			poke-array-uint8!)
+	    (array-set-c-uint16!		poke-array-uint16!)
+	    (array-set-c-uint32!		poke-array-uint32!)
+	    (array-set-c-uint64!		poke-array-uint64!)))
   (import (foreign memory)))
 
 ;;; end of file

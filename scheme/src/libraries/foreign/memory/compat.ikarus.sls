@@ -25,10 +25,12 @@
 
 
 
-;;;; setup
-
+#!r6rs
 (library (foreign memory compat)
   (export
+
+    system-free				system-malloc
+    system-calloc			system-realloc
 
     platform-free			platform-malloc
     platform-calloc			platform-realloc
@@ -95,27 +97,26 @@
   (integer->pointer (+ (pointer->integer pointer)
 		       offset)))
 
-(define-syntax define-pointer-comparison
-  (syntax-rules ()
-    ((_ ?name ?func)
-     (define ?name
-       (case-lambda
-	(()
-	 #f)
-	((pointer)
-	 #t)
-	((pointer-a pointer-b)
-	 (?func (pointer->integer pointer-a)
-		(pointer->integer pointer-b)))
-	((pointer-a pointer-b . pointers)
-	 (apply ?func (map pointer->integer
-			(cons pointer-a (cons pointer-b pointers))))))))))
-
-(define-pointer-comparison pointer=? =)
-(define-pointer-comparison pointer<? <)
-(define-pointer-comparison pointer>? >)
-(define-pointer-comparison pointer<=? <=)
-(define-pointer-comparison pointer>=? >=)
+(let-syntax ((define-pointer-comparison (syntax-rules ()
+					  ((_ ?name ?func)
+					   (define ?name
+					     (case-lambda
+					      (()
+					       #f)
+					      ((pointer)
+					       #t)
+					      ((pointer-a pointer-b)
+					       (?func (pointer->integer pointer-a)
+						      (pointer->integer pointer-b)))
+					      ((pointer-a pointer-b . pointers)
+					       (apply ?func (map pointer->integer
+							      (cons* pointer-a
+								     pointer-b pointers))))))))))
+  (define-pointer-comparison pointer=? =)
+  (define-pointer-comparison pointer<? <)
+  (define-pointer-comparison pointer>? >)
+  (define-pointer-comparison pointer<=? <=)
+  (define-pointer-comparison pointer>=? >=))
 
 (define pointer<>?
   (case-lambda
@@ -125,7 +126,14 @@
     (not (apply pointer=? pointer pointers)))))
 
 
-;;;; foreign functions
+;;;; low level allocation functions
+;;
+;;For the "system-" functions we want pointers to be exact integers; for
+;;the  "platform-" functions  we want  pointers  to be  records of  type
+;;"pointer".
+;;
+;;Ikarus deals with foreign values of type "pointer" as "pointer" values.
+;;
 
 (define self (dlopen ""))
 
@@ -144,6 +152,24 @@
 (define platform-realloc
   ((make-c-callout 'pointer '(pointer signed-int))
    (dlsym self "realloc")))
+
+;;; --------------------------------------------------------------------
+
+(define (system-free pointer-integer)
+  (platform-free (integer->pointer pointer-integer)))
+
+(define (system-malloc number-of-bytes)
+  (pointer->integer (platform-malloc number-of-bytes)))
+
+(define (system-calloc count element-size)
+  (pointer->integer (platform-calloc count element-size)))
+
+(define (system-realloc pointer-integer number-of-bytes)
+  (pointer->integer (platform-realloc (integer->pointer pointer-integer)
+				      number-of-bytes)))
+
+
+;;;; low level memory operations
 
 (define memset
   ((make-c-callout 'pointer '(pointer signed-int signed-int))

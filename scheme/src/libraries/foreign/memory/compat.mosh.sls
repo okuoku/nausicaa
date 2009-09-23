@@ -24,10 +24,12 @@
 ;;;
 
 
-;;;; setup
-
+#!r6rs
 (library (foreign memory compat)
   (export
+
+    system-free				system-malloc
+    system-calloc			system-realloc
 
     platform-free			platform-malloc
     platform-calloc			platform-realloc
@@ -50,7 +52,7 @@
     pointer-ref-c-int32			pointer-ref-c-uint32
     pointer-ref-c-int64			pointer-ref-c-uint64
     pointer-ref-c-float			pointer-ref-c-double
-    pointer-ref-c-void*
+    (rename (pointer-ref-c-pointer pointer-ref-c-void*))
 
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
     pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
@@ -65,7 +67,7 @@
     pointer-set-c-int32!		pointer-set-c-uint32!
     pointer-set-c-int64!		pointer-set-c-uint64!
     pointer-set-c-float!		pointer-set-c-double!
-    pointer-set-c-void*!
+    (rename (pointer-set-c-pointer! pointer-set-c-void*!))
 
     pointer-set-c-signed-char!		pointer-set-c-unsigned-char!
     pointer-set-c-signed-short!		pointer-set-c-unsigned-short!
@@ -78,7 +80,14 @@
     (foreign ffi sizeof))
 
 
-;;;; foreign functions
+;;;; low level allocation functions
+;;
+;;For the "system-" functions we want pointers to be exact integers; for
+;;the  "platform-" functions  we want  pointers  to be  records of  type
+;;"pointer".
+;;
+;;Mosh deals with foreign values of type "void*" as "pointer" values.
+;;
 
 (define self (open-shared-library ""))
 
@@ -94,6 +103,24 @@
 (define platform-calloc
   (make-c-function self 'void* 'calloc '(int int)))
 
+;;; --------------------------------------------------------------------
+
+(define (system-free pointer-integer)
+  (platform-free (integer->pointer pointer-integer)))
+
+(define (system-malloc number-of-bytes)
+  (pointer->integer (platform-malloc number-of-bytes)))
+
+(define (system-realloc pointer-integer number-of-bytes)
+  (pointer->integer (platform-realloc (integer->pointer pointer-integer)
+				      number-of-bytes)))
+
+(define (system-calloc count element-size)
+  (pointer->integer (platform-calloc count element-size)))
+
+
+;;;; low level memory operations
+
 (define memset
   (make-c-function self 'void* 'memset '(void* int int)))
 
@@ -107,44 +134,34 @@
   (make-c-function self 'int 'memcpy '(void* void* int)))
 
 
-;;;; peekers
-
-(define pointer-ref-c-void* pointer-ref-c-pointer)
-
-
 ;;;; pokers
 
-(define-syntax define-signed-poker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) pointer-set-c-int8!)
-		     ((2) pointer-set-c-int16!)
-		     ((4) pointer-set-c-int32!)
-		     ((8) pointer-set-c-int64!))))))
+(let-syntax ((define-signed-poker (syntax-rules ()
+				    ((_ ?name ?sizeof-data)
+				     (define ?name (case ?sizeof-data
+						     ((1) pointer-set-c-int8!)
+						     ((2) pointer-set-c-int16!)
+						     ((4) pointer-set-c-int32!)
+						     ((8) pointer-set-c-int64!)))))))
+  (define-signed-poker pointer-set-c-signed-char!	sizeof-char)
+  (define-signed-poker pointer-set-c-signed-short!	sizeof-short)
+  (define-signed-poker pointer-set-c-signed-int!	sizeof-int)
+  (define-signed-poker pointer-set-c-signed-long!	sizeof-long)
+  (define-signed-poker pointer-set-c-signed-long-long!	sizeof-long-long))
 
-(define-syntax define-unsigned-poker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) pointer-set-c-uint8!)
-		     ((2) pointer-set-c-uint16!)
-		     ((4) pointer-set-c-uint32!)
-		     ((8) pointer-set-c-uint64!))))))
+(let-syntax ((define-unsigned-poker (syntax-rules ()
+				      ((_ ?name ?sizeof-data)
+				       (define ?name (case ?sizeof-data
+						       ((1) pointer-set-c-uint8!)
+						       ((2) pointer-set-c-uint16!)
+						       ((4) pointer-set-c-uint32!)
+						       ((8) pointer-set-c-uint64!)))))))
 
-(define-signed-poker pointer-set-c-signed-char!		sizeof-char)
-(define-signed-poker pointer-set-c-signed-short!	sizeof-short)
-(define-signed-poker pointer-set-c-signed-int!		sizeof-int)
-(define-signed-poker pointer-set-c-signed-long!		sizeof-long)
-(define-signed-poker pointer-set-c-signed-long-long!	sizeof-long-long)
-
-(define-unsigned-poker pointer-set-c-unsigned-char!	sizeof-char)
-(define-unsigned-poker pointer-set-c-unsigned-short!	sizeof-short)
-(define-unsigned-poker pointer-set-c-unsigned-int!	sizeof-int)
-(define-unsigned-poker pointer-set-c-unsigned-long!	sizeof-long)
-(define-unsigned-poker pointer-set-c-unsigned-long-long! sizeof-long-long)
-
-(define pointer-set-c-void*! pointer-set-c-pointer!)
+  (define-unsigned-poker pointer-set-c-unsigned-char!		sizeof-char)
+  (define-unsigned-poker pointer-set-c-unsigned-short!		sizeof-short)
+  (define-unsigned-poker pointer-set-c-unsigned-int!		sizeof-int)
+  (define-unsigned-poker pointer-set-c-unsigned-long!		sizeof-long)
+  (define-unsigned-poker pointer-set-c-unsigned-long-long!	sizeof-long-long))
 
 
 ;;;; done

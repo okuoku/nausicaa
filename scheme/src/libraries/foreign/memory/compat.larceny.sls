@@ -29,6 +29,9 @@
 (library (foreign memory compat)
   (export
 
+    system-free				system-malloc
+    system-calloc			system-realloc
+
     platform-free			platform-malloc
     platform-calloc			platform-realloc
 
@@ -49,7 +52,8 @@
     pointer-ref-c-int16			pointer-ref-c-uint16
     pointer-ref-c-int32			pointer-ref-c-uint32
     pointer-ref-c-int64			pointer-ref-c-uint64
-    pointer-ref-c-float			pointer-ref-c-double
+    (rename (void*-float-ref	pointer-ref-c-float)
+	    (void*-double-ref	pointer-ref-c-double))
     pointer-ref-c-void*
 
     pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
@@ -57,14 +61,15 @@
     pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
     pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
-    pointer-ref-c-pointer
+    (rename (pointer-ref-c-void* pointer-ref-c-pointer))
 
     ;;pokers
     pointer-set-c-int8!			pointer-set-c-uint8!
     pointer-set-c-int16!		pointer-set-c-uint16!
     pointer-set-c-int32!		pointer-set-c-uint32!
     pointer-set-c-int64!		pointer-set-c-uint64!
-    pointer-set-c-float!		pointer-set-c-double!
+    (rename (void*-float-set!	pointer-set-c-float!)
+	    (void*-double-set!	pointer-set-c-double!))
     pointer-set-c-void*!
 
     pointer-set-c-signed-char!		pointer-set-c-unsigned-char!
@@ -72,48 +77,71 @@
     pointer-set-c-signed-int!		pointer-set-c-unsigned-int!
     pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
     pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
-    pointer-set-c-pointer!)
+    (rename (pointer-set-c-void*! pointer-set-c-pointer!)))
   (import (rnrs)
-    (primitives
-     foreign-procedure
-     %peek8 %peek8u %peek16 %peek16u %peek32 %peek32u %peek-pointer
-     %poke8 %poke8u %poke16 %poke16u %poke32 %poke32u %poke-pointer
-     void*-double-set! void*-double-ref void*-float-set! void*-float-ref
-     void*? void*-rt record-constructor void*->address)
+    (primitives foreign-procedure
+		%peek8 %peek8u %peek16 %peek16u %peek32 %peek32u %peek-pointer
+		%poke8 %poke8u %poke16 %poke16u %poke32 %poke32u %poke-pointer
+		void*-double-set! void*-double-ref void*-float-set! void*-float-ref
+		void*? void*-rt record-constructor void*->address)
     (foreign ffi sizeof))
 
 
 ;;;; pointers
+;;
+;;Larceny handles pointers  records of type "void*", but  when a pointer
+;;is  internally  detected  to be  NULL  it  is  converted to  #f.   The
+;;following is a basic guide on the "void*" API:
+;;
+;; void*-rt	Bound to the record type descriptor.
+;;
+;; void*?	Return true when applied to a "void*" record.  This
+;;		predicate does NOT accept #f as valid value.
+;;
+;; void*->address
+;;		Applied to a "void*" record return an exact integer
+;;		representing the memory address.
+;;
+;; record-constructor
+;;		Applied to a record type descriptor returns the record
+;;		constructor procedure.  The record constructor is raw,
+;;		it does NOT validate its arguments.
+;;
+;;The following interface provides what is needed to export bindings for
+;;"void*" aliases to  bindings for a virtual "pointer"  type.  The macro
+;;RETVAL->POINTER  is to  be used  to convert  to a  "void*"  record the
+;;return value of the callout procedures (see below).
+;;
 
-;;NULL pointers are #f for Larceny.   But then VOID*? does not accept #f
-;;as valid.
+(define make-pointer (record-constructor void*-rt))
+
+(define pointer? void*?)
 
 (define (integer->pointer value)
-  (if (= 0 value)
-      #f
-    (begin
-      (unless (integer? value)
-	(assertion-violation 'integer->pointer
-	  "expected integer value" value))
-      ((record-constructor void*-rt) value))))
+  (if (integer? value)
+      (make-pointer value)
+    (assertion-violation 'integer->pointer
+      "expected integer value" value)))
 
 (define (pointer->integer pointer)
-  (if pointer
-      (begin
-	(unless (pointer? pointer)
-	  (assertion-violation 'pointer->integer
-	    "expected pointer value" pointer))
-	(void*->address pointer))
-    0))
+  (if (pointer? pointer)
+      (void*->address pointer)
+    (assertion-violation 'pointer->integer
+      "expected pointer value" pointer)))
 
-(define (pointer? obj)
-  (if obj (void*? obj) #t))
+(define-syntax retval->pointer
+  (syntax-rules ()
+    ((_ ?value)
+     (let ((value ?value))
+       (if (void*? value)
+	   value
+	 pointer-null)))))
 
 (define pointer-null
-  #f)
+  (make-pointer 0))
 
 (define (pointer-null? pointer)
-  (if pointer #f #t))
+  (zero? (void*->address pointer)))
 
 (define (pointer-diff pointer-1 pointer-2)
   (- (pointer->integer pointer-1)
@@ -123,27 +151,24 @@
   (integer->pointer (+ (pointer->integer pointer)
 		       offset)))
 
-(define-syntax define-pointer-comparison
-  (syntax-rules ()
-    ((_ ?name ?func)
-     (define ?name
-       (case-lambda
-	(()
-	 #f)
-	((pointer)
-	 #t)
-	((pointer-a pointer-b)
-	 (?func (pointer->integer pointer-a)
-		(pointer->integer pointer-b)))
-	((pointer-a pointer-b . pointers)
-	 (apply ?func (map pointer->integer
-			(cons pointer-a (cons pointer-b pointers))))))))))
-
-(define-pointer-comparison pointer=? =)
-(define-pointer-comparison pointer<? <)
-(define-pointer-comparison pointer>? >)
-(define-pointer-comparison pointer<=? <=)
-(define-pointer-comparison pointer>=? >=)
+(let-syntax ((define-pointer-comparison (syntax-rules ()
+					  ((_ ?name ?func)
+					   (define ?name
+					     (case-lambda
+					      (()		#f)
+					      ((pointer)	#t)
+					      ((pointer-a pointer-b)
+					       (?func (pointer->integer pointer-a)
+						      (pointer->integer pointer-b)))
+					      ((pointer-a pointer-b . pointers)
+					       (apply ?func (map pointer->integer
+							      (cons* pointer-a
+								     pointer-b pointers))))))))))
+  (define-pointer-comparison pointer=? =)
+  (define-pointer-comparison pointer<? <)
+  (define-pointer-comparison pointer>? >)
+  (define-pointer-comparison pointer<=? <=)
+  (define-pointer-comparison pointer>=? >=))
 
 (define pointer<>?
   (case-lambda
@@ -153,19 +178,50 @@
     (not (apply pointer=? pointer pointers)))))
 
 
-;;;; foreign functions
+;;;; low level allocation functions
+;;
+;;For the "system-" functions we want pointers to be exact integers; for
+;;the  "platform-" functions  we want  pointers  to be  records of  type
+;;"pointer".
+;;
+;;See above for a discussion of pointer values in Larceny.
+;;
 
 (define platform-free
   (foreign-procedure "free" '(void*) 'void))
 
 (define platform-malloc
-  (foreign-procedure "malloc" '(unsigned) 'void*))
+  (let ((f (foreign-procedure "malloc" '(unsigned) 'void*)))
+    (lambda (number-of-bytes)
+      (retval->pointer (f number-of-bytes)))))
 
 (define platform-realloc
-  (foreign-procedure "realloc" '(void* unsigned) 'void*))
+  (let ((f (foreign-procedure "realloc" '(void* unsigned) 'void*)))
+    (lambda (pointer number-of-bytes)
+      (retval->pointer (f pointer number-of-bytes)))))
 
 (define platform-calloc
-  (foreign-procedure "calloc" '(unsigned unsigned) 'void*))
+  (let ((f (foreign-procedure "calloc" '(unsigned unsigned) 'void*)))
+    (lambda (count element-size)
+      (retval->pointer (f count element-size)))))
+
+;;; --------------------------------------------------------------------
+
+(define (system-free pointer-integer)
+  (platform-free (integer->pointer pointer-integer)))
+
+(define (system-malloc number-of-bytes)
+  (pointer->integer (platform-malloc number-of-bytes)))
+
+(define (system-realloc pointer-integer number-of-bytes)
+  (pointer->integer (platform-realloc (integer->pointer pointer-integer)
+				      number-of-bytes)))
+
+(define (system-calloc count element-size)
+  (pointer->integer (platform-calloc count element-size)))
+
+
+;;;; low level memory operations
 
 (define memset
   (foreign-procedure "memset" '(void* int unsigned) 'void*))
@@ -181,11 +237,13 @@
 
 
 
-;;;; peekers
-
+;;;; low level peekers and pokers
+;;
 ;;Larceny does  not provide peekers for  64 bits values, so  we do this.
 ;;They are slow, but we rarely  need 64 bits, no?  Anyway, wadda ya want
 ;;from me?!?
+;;
+
 (define (%peek64 pointer)
   (do ((i 0 (+ 1 i))
        (p pointer (+ 1 p))
@@ -202,72 +260,6 @@
        (bytevector-u64-native-ref bv 0))
     (bytevector-u8-set! bv i (%peek8u p))))
 
-(define-syntax define-peeker
-  (syntax-rules ()
-    ((_ ?name ?peeker)
-     (define (?name pointer position)
-       (?peeker (+ position (pointer->integer pointer)))))))
-
-(define-syntax define-signed-peeker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) pointer-ref-c-int8)
-		     ((2) pointer-ref-c-int16)
-		     ((4) pointer-ref-c-int32)
-		     ((8) pointer-ref-c-int64))))))
-
-(define-syntax define-unsigned-peeker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) pointer-ref-c-uint8)
-		     ((2) pointer-ref-c-uint16)
-		     ((4) pointer-ref-c-uint32)
-		     ((8) pointer-ref-c-uint64))))))
-
-(define-peeker pointer-ref-c-int8	%peek8)
-(define-peeker pointer-ref-c-int16	%peek16)
-(define-peeker pointer-ref-c-int32	%peek32)
-(define-peeker pointer-ref-c-int64	%peek64)
-
-(define-peeker pointer-ref-c-uint8	%peek8u)
-(define-peeker pointer-ref-c-uint16	%peek16u)
-(define-peeker pointer-ref-c-uint32	%peek32u)
-(define-peeker pointer-ref-c-uint64	%peek64u)
-
-(define-signed-peeker pointer-ref-c-signed-char		sizeof-char)
-(define-signed-peeker pointer-ref-c-signed-short	sizeof-short)
-(define-signed-peeker pointer-ref-c-signed-int		sizeof-int)
-(define-signed-peeker pointer-ref-c-signed-long		sizeof-long)
-(define-signed-peeker pointer-ref-c-signed-long-long	sizeof-long-long)
-
-(define-unsigned-peeker pointer-ref-c-unsigned-char	sizeof-char)
-(define-unsigned-peeker pointer-ref-c-unsigned-short	sizeof-short)
-(define-unsigned-peeker pointer-ref-c-unsigned-int	sizeof-int)
-(define-unsigned-peeker pointer-ref-c-unsigned-long	sizeof-long)
-(define-unsigned-peeker pointer-ref-c-unsigned-long-long sizeof-long-long)
-
-(define pointer-ref-c-float void*-float-ref)
-(define pointer-ref-c-double void*-double-ref)
-(define (pointer-ref-c-void* pointer position)
-  (integer->pointer (%peek-pointer (+ position (pointer->integer pointer)))))
-
-(define pointer-ref-c-pointer pointer-ref-c-void*)
-
-
-;;;; pokers
-
-(define const:2^15 (expt 2 15))
-(define const:2^16 (expt 2 16))
-(define const:2^31 (expt 2 31))
-(define const:2^32 (expt 2 32))
-(define const:2^63 (expt 2 63))
-(define const:2^64 (expt 2 64))
-
-;;Larceny does  not provide pokers  for 64 bits  values, so we  do this.
-;;They are slow, but we rarely  need 64 bits, no?  Anyway, wadda ya want
-;;from me?!?
 (define (%poke64 pointer value)
   (do ((i 0 (+ 1 i))
        (p pointer (+ 1 p))
@@ -286,64 +278,108 @@
       ((= i 8))
     (%poke8u p (bytevector-u8-ref bv i))))
 
-(define-syntax define-poker
-  (syntax-rules ()
-    ((_ ?name ?min ?max ?poker)
-     (define (?name pointer offset value)
-       (if (and (<= ?min value) (<= value ?max))
-	   (?poker(+ offset (pointer->integer pointer)) value)
-	 (assertion-violation (quote ?name)
-	   "value out of bounds for pointer setter type" value))))))
+
+;;;; peekers
 
+(let-syntax ((define-peeker (syntax-rules ()
+			      ((_ ?name ?peeker)
+			       (define (?name pointer position)
+				 (?peeker (+ position (pointer->integer pointer))))))))
+  (define-peeker pointer-ref-c-int8	%peek8)
+  (define-peeker pointer-ref-c-int16	%peek16)
+  (define-peeker pointer-ref-c-int32	%peek32)
+  (define-peeker pointer-ref-c-int64	%peek64)
 
-(define-syntax define-signed-poker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) pointer-set-c-int8!)
-		     ((2) pointer-set-c-int16!)
-		     ((4) pointer-set-c-int32!)
-		     ((8) pointer-set-c-int64!))))))
+  (define-peeker pointer-ref-c-uint8	%peek8u)
+  (define-peeker pointer-ref-c-uint16	%peek16u)
+  (define-peeker pointer-ref-c-uint32	%peek32u)
+  (define-peeker pointer-ref-c-uint64	%peek64u))
 
-(define-syntax define-unsigned-poker
-  (syntax-rules ()
-    ((_ ?name ?sizeof-data)
-     (define ?name (case ?sizeof-data
-		     ((1) pointer-set-c-uint8!)
-		     ((2) pointer-set-c-uint16!)
-		     ((4) pointer-set-c-uint32!)
-		     ((8) pointer-set-c-uint64!))))))
+(let-syntax ((define-signed-peeker (syntax-rules ()
+				     ((_ ?name ?sizeof-data)
+				      (define ?name (case ?sizeof-data
+						      ((1) pointer-ref-c-int8)
+						      ((2) pointer-ref-c-int16)
+						      ((4) pointer-ref-c-int32)
+						      ((8) pointer-ref-c-int64)))))))
+  (define-signed-peeker pointer-ref-c-signed-char	sizeof-char)
+  (define-signed-peeker pointer-ref-c-signed-short	sizeof-short)
+  (define-signed-peeker pointer-ref-c-signed-int	sizeof-int)
+  (define-signed-peeker pointer-ref-c-signed-long	sizeof-long)
+  (define-signed-peeker pointer-ref-c-signed-long-long	sizeof-long-long))
 
-(define-poker pointer-set-c-int8!	-128 127 %poke8)
-(define-poker pointer-set-c-int16!	(- const:2^15) (- const:2^15 1) %poke16)
-(define-poker pointer-set-c-int32!	(- const:2^31) (- const:2^31 1) %poke32)
-(define-poker pointer-set-c-int64!	(- const:2^63) (- const:2^63 1) %poke64)
+(let-syntax ((define-unsigned-peeker (syntax-rules ()
+				       ((_ ?name ?sizeof-data)
+					(define ?name (case ?sizeof-data
+							((1) pointer-ref-c-uint8)
+							((2) pointer-ref-c-uint16)
+							((4) pointer-ref-c-uint32)
+							((8) pointer-ref-c-uint64)))))))
+  (define-unsigned-peeker pointer-ref-c-unsigned-char		sizeof-char)
+  (define-unsigned-peeker pointer-ref-c-unsigned-short		sizeof-short)
+  (define-unsigned-peeker pointer-ref-c-unsigned-int		sizeof-int)
+  (define-unsigned-peeker pointer-ref-c-unsigned-long		sizeof-long)
+  (define-unsigned-peeker pointer-ref-c-unsigned-long-long	sizeof-long-long))
 
-(define-poker pointer-set-c-uint8!	0 255 %poke8u)
-(define-poker pointer-set-c-uint16!	0 (- const:2^16 1) %poke16u)
-(define-poker pointer-set-c-uint32!	0 (- const:2^32 1) %poke32u)
-(define-poker pointer-set-c-uint64!	0 (- const:2^64 1) %poke64u)
+(define (pointer-ref-c-void* pointer position)
+  (integer->pointer (%peek-pointer (+ position (pointer->integer pointer)))))
 
-(define pointer-set-c-float! void*-float-set!)
-(define pointer-set-c-double! void*-double-set!)
+
+;;;; pokers
+
+(define const:2^15 (expt 2 15))
+(define const:2^16 (expt 2 16))
+(define const:2^31 (expt 2 31))
+(define const:2^32 (expt 2 32))
+(define const:2^63 (expt 2 63))
+(define const:2^64 (expt 2 64))
+
+(let-syntax ((define-poker (syntax-rules ()
+			     ((_ ?name ?min ?max ?poker)
+			      (define (?name pointer offset value)
+				(if (and (<= ?min value) (<= value ?max))
+				    (?poker (+ offset (pointer->integer pointer)) value)
+				  (assertion-violation (quote ?name)
+				    "value out of bounds for pointer setter type" value)))))))
+  (define-poker pointer-set-c-int8!	-128 127 %poke8)
+  (define-poker pointer-set-c-int16!	(- const:2^15) (- const:2^15 1) %poke16)
+  (define-poker pointer-set-c-int32!	(- const:2^31) (- const:2^31 1) %poke32)
+  (define-poker pointer-set-c-int64!	(- const:2^63) (- const:2^63 1) %poke64)
+
+  (define-poker pointer-set-c-uint8!	0 255 %poke8u)
+  (define-poker pointer-set-c-uint16!	0 (- const:2^16 1) %poke16u)
+  (define-poker pointer-set-c-uint32!	0 (- const:2^32 1) %poke32u)
+  (define-poker pointer-set-c-uint64!	0 (- const:2^64 1) %poke64u))
+
+(let-syntax ((define-signed-poker (syntax-rules ()
+				    ((_ ?name ?sizeof-data)
+				     (define ?name (case ?sizeof-data
+						     ((1) pointer-set-c-int8!)
+						     ((2) pointer-set-c-int16!)
+						     ((4) pointer-set-c-int32!)
+						     ((8) pointer-set-c-int64!)))))))
+  (define-signed-poker pointer-set-c-signed-char!	sizeof-char)
+  (define-signed-poker pointer-set-c-signed-short!	sizeof-short)
+  (define-signed-poker pointer-set-c-signed-int!	sizeof-int)
+  (define-signed-poker pointer-set-c-signed-long!	sizeof-long)
+  (define-signed-poker pointer-set-c-signed-long-long!	sizeof-long-long))
+
+(let-syntax ((define-unsigned-poker (syntax-rules ()
+				      ((_ ?name ?sizeof-data)
+				       (define ?name (case ?sizeof-data
+						       ((1) pointer-set-c-uint8!)
+						       ((2) pointer-set-c-uint16!)
+						       ((4) pointer-set-c-uint32!)
+						       ((8) pointer-set-c-uint64!)))))))
+  (define-unsigned-poker pointer-set-c-unsigned-char!		sizeof-char)
+  (define-unsigned-poker pointer-set-c-unsigned-short!		sizeof-short)
+  (define-unsigned-poker pointer-set-c-unsigned-int!		sizeof-int)
+  (define-unsigned-poker pointer-set-c-unsigned-long!		sizeof-long)
+  (define-unsigned-poker pointer-set-c-unsigned-long-long!	sizeof-long-long))
 
 (define (pointer-set-c-void*! pointer position value)
   (%poke-pointer (+ (void*->address pointer) position)
 		 (pointer->integer value)))
-
-(define-signed-poker pointer-set-c-signed-char!		sizeof-char)
-(define-signed-poker pointer-set-c-signed-short!	sizeof-short)
-(define-signed-poker pointer-set-c-signed-int!		sizeof-int)
-(define-signed-poker pointer-set-c-signed-long!		sizeof-long)
-(define-signed-poker pointer-set-c-signed-long-long!	sizeof-long-long)
-
-(define-unsigned-poker pointer-set-c-unsigned-char!	sizeof-char)
-(define-unsigned-poker pointer-set-c-unsigned-short!	sizeof-short)
-(define-unsigned-poker pointer-set-c-unsigned-int!	sizeof-int)
-(define-unsigned-poker pointer-set-c-unsigned-long!	sizeof-long)
-(define-unsigned-poker pointer-set-c-unsigned-long-long! sizeof-long-long)
-
-(define pointer-set-c-pointer! pointer-set-c-void*!)
 
 
 ;;;; done

@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: guarded memory allocation
+;;;Contents: guarded memory allocation with Ikarus Scheme
 ;;;Date: Mon Nov 24, 2008
 ;;;
 ;;;Abstract
@@ -23,9 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (foreign guarded-malloc)
-  (export
-    malloc/guarded calloc/guarded)
+(library (foreign memory guarded-malloc)
+  (export malloc/guarded calloc/guarded)
   (import (rnrs)
     (foreign memory)
     (cleanup-handlers)
@@ -36,16 +35,16 @@
   (define (block-cleanup)
     (do ((p (block-guardian) (block-guardian)))
 	((not p))
-      (primitive-free p)))
+      (p)))
 
   (define (malloc/guarded size)
     (let ((p (malloc size)))
-      (block-guardian p)
+      (block-guardian (lambda () (primitive-free p)))
       p))
 
   (define (calloc/guarded count element-size)
     (let ((p (calloc count element-size)))
-      (block-guardian p)
+      (block-guardian (lambda () (primitive-free p)))
       p))
 
   (register-cleanup-function block-cleanup))

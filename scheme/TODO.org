@@ -16,6 +16,20 @@
   Merge the one-dimension  library into char-sets to make  it faster (it
   is too slow now).
 
+* email
+
+** addresses
+
+   Scan RFC 2822 and adjust the (email addresses) library accordingly.
+
+** headers
+
+   Scan RFC 2822 and implement (email addresses) accordingly.
+
+** date
+
+   Scan RFC 2822 and implement (email date) accordingly.
+
 * foreign
 
   Move the  array peeker/pokers in  the implementation compat  files and
@@ -32,6 +46,9 @@
   Review and finish the documentation.
 
   Solve problems with Mosh.
+
+  Change the interface to use the (sexps) macros to specify formatting
+  parameters.
 
 * comparisons
 
@@ -124,12 +141,6 @@
 * lalr
 
   Finished.
-
-* email
-
-  Implement the (email headers) library using (lalr), see RFC 2822.
-
-  Implement the (email date) library using (lalr), see RFC 2822.
 
 * gcc
 
