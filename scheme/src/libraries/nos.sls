@@ -256,6 +256,29 @@
 			  (set! method-alist
 				(%add-method-to-method-alist method-alist
 							     signature has-rest closure)))))
+    (define-syntax %assert-no-methods
+      (syntax-rules ()
+	((_ ?signature)
+	 (assertion-violation #f "no method defined for the argument's classes"
+			      (map record-type-name ?signature)))
+	((_)
+	 (assertion-violation #f "no method defined for the argument's classes"))))
+
+    ;; (case-lambda
+    ;;  (()
+    ;;   (cond (method-with-no-args
+    ;; 	     (method-with-no-args))
+    ;; 	    (method-with-no-args-and-rest
+    ;; 	     (method-with-no-args-and-rest))
+    ;; 	    (else
+    ;; 	     (%assert-no-methods))))
+    ;;  ((arg)
+    ;;   (cond ((eq? arg :method-adder)
+    ;; 	     method-adder)
+    ;; 	    ((eq? arg :method-alist)
+    ;; 	     method-alist)))
+    ;;  )
+
     (lambda args
       (if (and (pair? args)
       	       (special-argument? (car args)))
@@ -271,9 +294,7 @@
 		     (hashtable-clear! cache))
       		   (set! method-alist (cadr args)))
       		  (else
-      		   (assertion-violation #f
-      		     "internal error with invalid special argument"
-      		     arg))))
+      		   (assertion-violation #f "internal error with invalid special argument" arg))))
 	(let-syntax ((apply-function/stx (syntax-rules ()
 					   ((_ ?closure)
 					    (apply ?closure args))))
@@ -306,28 +327,17 @@
 
 		    (call-methods
 		     (lambda ()
-		       (cond
-			(method-called?
-			 ;;We enter here only  if a method has been
-			 ;;called  and,  in  its  body, a  call  to
-			 ;;CALL-NEXT-METHOD is evaluated.
-			 (when (null? applicable-methods)
-			   (assertion-violation #f
-			     "called next method but no more methods available"))
-			 (apply-function/stx (consume-closure applicable-methods)))
-
-			((null? applicable-methods)
-			 ;;Raise an error if no applicable methods.
-			 (assertion-violation #f
-			   "no method defined for these argument classes"
-			   (map record-type-name signature)))
-
-			(else
-			 ;;Apply the methods.
-			 (set! method-called? #t)
-			 (apply-function/stx (consume-closure applicable-methods)))))))
-	    (parameterize ((next-method-func-parm call-methods)
-			   (next-method-pred-parm is-a-next-method-available?))
+		       (cond ((pair? applicable-methods)
+			      (unless method-called?
+				(set! method-called? #t))
+			      (apply-function/stx (consume-closure applicable-methods)))
+			     (method-called?
+			      (assertion-violation #f
+				"called next method but no more methods available"))
+			     (else
+			      (%assert-no-methods signature))))))
+	    (parametrise ((next-method-func-parm call-methods)
+			  (next-method-pred-parm is-a-next-method-available?))
 	      (call-methods))))))))
 
 
