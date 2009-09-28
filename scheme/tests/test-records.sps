@@ -154,7 +154,70 @@
   #t)
 
 
-(parametrise ((check-test-name 'fields))
+(parametrise ((check-test-name 'fields-accessor-mutator))
+
+  (let ((o (make-<gamma> 1 2 3
+			 4 5 6
+			 7 8 9)))
+
+    (define <gamma>-a (record-field-accessor* <gamma> a))
+    (define <gamma>-b (record-field-accessor* <gamma> b))
+    (define <gamma>-c (record-field-accessor* <gamma> c))
+    (define <gamma>-d (record-field-accessor* <gamma> d))
+    (define <gamma>-e (record-field-accessor* <gamma> e))
+    (define <gamma>-f (record-field-accessor* <gamma> f))
+    (define <gamma>-g (record-field-accessor* <gamma> g))
+    (define <gamma>-h (record-field-accessor* <gamma> h))
+    (define <gamma>-i (record-field-accessor* <gamma> i))
+
+    (define <gamma>-a-set! (record-field-mutator* <gamma> a))
+    (define <gamma>-c-set! (record-field-mutator* <gamma> c))
+    (define <gamma>-d-set! (record-field-mutator* <gamma> d))
+    (define <gamma>-f-set! (record-field-mutator* <gamma> f))
+    (define <gamma>-g-set! (record-field-mutator* <gamma> g))
+    (define <gamma>-i-set! (record-field-mutator* <gamma> i))
+
+    (check
+	(list (<gamma>-a o)
+	      (<gamma>-b o)
+	      (<gamma>-c o)
+	      (<gamma>-d o)
+	      (<gamma>-e o)
+	      (<gamma>-f o)
+	      (<gamma>-g o)
+	      (<gamma>-h o)
+	      (<gamma>-i o))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (<gamma>-a-set! o 10)
+    (<gamma>-c-set! o 30)
+    (<gamma>-d-set! o 40)
+    (<gamma>-f-set! o 60)
+    (<gamma>-g-set! o 70)
+    (<gamma>-i-set! o 90)
+
+    (check
+    	(list (<gamma>-a o)
+    	      (<gamma>-b o)
+    	      (<gamma>-c o)
+    	      (<gamma>-d o)
+    	      (<gamma>-e o)
+    	      (<gamma>-f o)
+    	      (<gamma>-g o)
+    	      (<gamma>-h o)
+    	      (<gamma>-i o))
+      => '(10 2 30 40 5 60 70 8 90))
+
+    (check
+	(record-field-mutator* <gamma> b)
+      => #f)
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'fields-define))
 
   (let ((o (make-<gamma> 1 2 3
 			 4 5 6
@@ -262,7 +325,7 @@
 			 4 5 6
 			 7 8 9)))
 
-    (define-record-accessors/mutators <gamma>)
+    (define-record-accessors&mutators <gamma>)
 
     (check
 	(list (<gamma>-a o)
@@ -303,6 +366,77 @@
     #f)
 
 ;;; --------------------------------------------------------------------
+
+  (let ((o (make-<gamma> 1 2 3
+			 4 5 6
+			 7 8 9)))
+
+    (define-record-accessors&mutators/this <gamma>)
+
+    (check
+	(list (<gamma>-g o)
+	      (<gamma>-h o)
+	      (<gamma>-i o))
+      => '(7 8 9))
+
+    (<gamma>-g o 70)
+    (<gamma>-i o 90)
+
+    ;;This raises an error because  B is immutable, so <GAMMA>-B is only
+    ;;an accessor, not a mutator.
+    ;;
+    ;;(<gamma>-b o 30)
+
+    (check
+    	(list (<gamma>-g o)
+    	      (<gamma>-h o)
+    	      (<gamma>-i o))
+      => '(70 8 90))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((o (make-<gamma> 1 2 3
+			 4 5 6
+			 7 8 9)))
+
+    (define-record-accessors&mutators/parents <gamma>)
+
+    (check
+	(list (<gamma>-a o)
+	      (<gamma>-b o)
+	      (<gamma>-c o)
+	      (<gamma>-d o)
+	      (<gamma>-e o)
+	      (<gamma>-f o))
+      => '(1 2 3 4 5 6))
+
+    (<gamma>-a o 10)
+    (<gamma>-c o 30)
+    (<gamma>-d o 40)
+    (<gamma>-f o 60)
+
+    ;;This raises an error because  B is immutable, so <GAMMA>-B is only
+    ;;an accessor, not a mutator.
+    ;;
+    ;;(<gamma>-b o 30)
+
+    (check
+    	(list (<gamma>-a o)
+    	      (<gamma>-b o)
+    	      (<gamma>-c o)
+    	      (<gamma>-d o)
+    	      (<gamma>-e o)
+    	      (<gamma>-f o))
+      => '(10 2 30 40 5 60))
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'fields-with))
 
   (let ((o (make-<gamma> 1 2 3
 			 4 5 6
@@ -353,7 +487,7 @@
 			 4 5 6
 			 7 8 9)))
 
-    (with-record-accessors/mutators <gamma>
+    (with-record-accessors&mutators <gamma>
 	(a b c d e f g h i)
 
       (check
@@ -400,7 +534,7 @@
 		(environment '(nausicaa)
 			     '(records)
 			     '(for (records-lib) expand run))))
-      => '((message   . "unknown field names in record type hierarchy")
+      => '((message   . "unknown field names in record type hierarchy of \"<gamma>\"")
 	   (irritants . ((dummy)))))
 
     (check
@@ -414,7 +548,7 @@
 		(environment '(nausicaa)
 			     '(records)
 			     '(for (records-lib) expand run))))
-      => '((message   . "unknown field names in record type hierarchy")
+      => '((message   . "unknown field names in record type hierarchy of \"<gamma>\"")
 	   (irritants . ((dummy)))))
 
     (check
@@ -422,13 +556,13 @@
 			  (irritants . ,(condition-irritants E)))))
 	  ;;This raises an error at  expand time, because DUMMY is not a
 	  ;;field name.
-	  (eval '(with-record-accessors/mutators <gamma>
+	  (eval '(with-record-accessors&mutators <gamma>
 		     (dummy)
 		   #t)
 		(environment '(nausicaa)
 			     '(records)
 			     '(for (records-lib) expand run))))
-      => '((message   . "unknown field names in record type hierarchy")
+      => '((message   . "unknown field names in record type hierarchy of \"<gamma>\"")
 	   (irritants . ((dummy)))))
 
     (check
@@ -442,9 +576,200 @@
 		(environment '(nausicaa)
 			     '(records)
 			     '(for (records-lib) expand run))))
-      => '((message   . "attempt to create mutator for immutable record field")
+      => '((message   . "attempt to create mutator for immutable record field of \"<gamma>\"")
 	   (irritants . (b))))
 
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'fields-identifier))
+
+  (let ((o (make-<gamma> 1 2 3
+			 4 5 6
+			 7 8 9)))
+
+    (define-record-accessors <gamma>)
+    (define-record-mutators  <gamma>)
+
+    (let-syntax ((a (identifier-syntax (<gamma>-a o)))
+		 (b (identifier-syntax (<gamma>-b o)))
+		 (c (identifier-syntax (<gamma>-c o)))
+		 (d (identifier-syntax (<gamma>-d o)))
+		 (e (identifier-syntax (<gamma>-e o)))
+		 (f (identifier-syntax (<gamma>-f o)))
+		 (g (identifier-syntax (<gamma>-g o)))
+		 (h (identifier-syntax (<gamma>-h o)))
+		 (i (identifier-syntax (<gamma>-i o))))
+      (check
+	  (list a b c d e f g h i)
+	=> '(1 2 3 4 5 6 7 8 9))
+
+      #f)
+
+    (let-syntax ((a (identifier-syntax (_		(<gamma>-a o))
+				       ((set! _ e)	(<gamma>-a-set! o e))))
+		 (b (identifier-syntax (<gamma>-b o)))
+		 (c (identifier-syntax (_		(<gamma>-c o))
+				       ((set! _ e)	(<gamma>-c-set! o e))))
+		 (d (identifier-syntax (_		(<gamma>-d o))
+				       ((set! _ e)	(<gamma>-d-set! o e))))
+		 (e (identifier-syntax (<gamma>-e o)))
+		 (f (identifier-syntax (_		(<gamma>-f o))
+				       ((set! _ e)	(<gamma>-f-set! o e))))
+		 (g (identifier-syntax (_		(<gamma>-g o))
+				       ((set! _ e)	(<gamma>-g-set! o e))))
+		 (h (identifier-syntax (<gamma>-h o)))
+		 (i (identifier-syntax (_		(<gamma>-i o))
+				       ((set! _ e)	(<gamma>-i-set! o e)))))
+      (check
+	  (begin
+	    (set! a 10)
+	    (set! c 30)
+	    (set! d 40)
+	    (set! f 60)
+	    (set! g 70)
+	    (set! i 90)
+	    (list a b c d e f g h i))
+	=> '(10 2 30 40 5 60 70 8 90))
+
+      #f)
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((o (make-<gamma> 1 2 3
+			 4 5 6
+			 7 8 9)))
+
+    (check
+	(with-record-fields ((a <gamma> o))
+	  a)
+      => 1)
+
+    (check
+	(with-record-fields (((a) <gamma> o))
+	  a)
+      => 1)
+
+    (check
+	(with-record-fields ((a <gamma> o)
+			     (b <gamma> o)
+			     (c <gamma> o)
+			     (d <gamma> o)
+			     (e <gamma> o)
+			     (f <gamma> o)
+			     (g <gamma> o)
+			     (h <gamma> o)
+			     (i <gamma> o))
+	  (list a b c d e f g h i))
+	=> '(1 2 3 4 5 6 7 8 9))
+
+    (check
+	(with-record-fields (((a b c d e f g h i) <gamma> o))
+	  (list a b c d e f g h i))
+	=> '(1 2 3 4 5 6 7 8 9))
+
+    (check
+	(with-record-fields (((a b c) <gamma> o)
+			     (d <gamma> o)
+			     (e <gamma> o)
+			     ((f g) <gamma> o)
+			     (h <gamma> o)
+			     (i <gamma> o))
+	  (list a b c d e f g h i))
+	=> '(1 2 3 4 5 6 7 8 9))
+
+    (check
+	(with-record-fields (((a b c) <gamma> o)
+			     ((d e) <gamma> o)
+			     ((f g) <gamma> o)
+			     ((h i) <gamma> o))
+	  (set! a 10)
+	  (set! c 30)
+	  (set! d 40)
+	  (set! f 60)
+	  (set! g 70)
+	  (set! i 90)
+	  (list a b c d e f g h i))
+      => '(10 2 30 40 5 60 70 8 90))
+
+    ;;Raise an  "unknown field" error.  Commented out  because the error
+    ;;is raised at expansion time, so it is not stoppable with GUARD.
+    ;;
+    #;(check
+	(with-record-fields ((ciao <gamma> o))
+	  123)
+      => #f)
+
+    ;;Raise an "attempt to mutate immutable field" error.  Commented out
+    ;;because  the error  is  raised at  expansion  time, so  it is  not
+    ;;stoppable with GUARD.
+    ;;
+    #;(check
+	(with-record-fields ((b <gamma> o))
+	  (set! b 1)
+	  b)
+      => #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((o (make-<gamma> 1 2 3
+			 4 5 6
+			 7 8 9)))
+
+    (check
+	(with-record-fields ((((augh a)) <gamma> o))
+	  augh)
+      => 1)
+
+    (check
+	(with-record-fields ((((augh a)) <gamma> o)
+			     (((bugh b)) <gamma> o)
+			     (((cugh c)) <gamma> o)
+			     (((dugh d)) <gamma> o)
+			     (((eugh e)) <gamma> o)
+			     (((fugh f)) <gamma> o)
+			     (((gugh g)) <gamma> o)
+			     (((hugh h)) <gamma> o)
+			     (((iugh i)) <gamma> o))
+	  (list augh bugh cugh dugh eugh fugh gugh hugh iugh))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+	(with-record-fields ((((ax a) (bx b) (cx c)
+			       (dx d) (ex e) (fx f)
+			       (gx g) (hx h) (ix i)) <gamma> o))
+	  (list ax bx cx dx ex fx gx hx ix))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+	(with-record-fields ((((ax a) (bx b) (cx c)) <gamma> o)
+			     (((dx d)) <gamma> o)
+			     (((ex e)) <gamma> o)
+			     (((fx f) (gx g)) <gamma> o)
+			     (((hx h)) <gamma> o)
+			     (((ix i)) <gamma> o))
+	  (list ax bx cx dx ex fx gx hx ix))
+      => '(1 2 3 4 5 6 7 8 9))
+
+     (check
+	 (with-record-fields ((((ax a) (bx b) (cx c)) <gamma> o)
+			      (((dx d) (ex e)) <gamma> o)
+			      (((fx f) (gx g)) <gamma> o)
+			      (((hx h) (ix i)) <gamma> o))
+	   (set! ax 10)
+	   (set! cx 30)
+	   (set! dx 40)
+	   (set! fx 60)
+	   (set! gx 70)
+	   (set! ix 90)
+	  (list ax bx cx dx ex fx gx hx ix))
+       => '(10 2 30 40 5 60 70 8 90))
 
     #f)
 

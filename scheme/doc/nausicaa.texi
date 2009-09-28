@@ -363,7 +363,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Scheme language for Nausicaa
+@set TITLE                      Nausicaa/Scheme
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -1142,6 +1142,14 @@ Record utilities
 * records makers::              Automatically generated makers.
 * records fields::              Binding accessors and mutators.
 
+Binding accessors and mutators
+
+* records fields intro::        Usage and conventions.
+* records fields define::       Defining bindings to accessors
+                                and mutators.
+* records fields with::         Selecting field--specific accessors
+                                and mutators.
+
 A simple object system
 
 * scmobj overview::             Overview of the library.
@@ -1443,8 +1451,17 @@ Independent libraries
 
 * guarded malloc::              Guarded memory allocation.
 
+Allocation functions
+
+* memory alloc system::         System functions.
+* memory alloc platform::       Platform functions.
+* memory alloc primitive::      Primitive functions.
+* memory alloc high::           Exception raising functions.
+* memory alloc examples::       Memory allocation examples.
+
 Direct access to memory blocks
 
+* memory access intro::         Introduction.
 * memory peekers::              Peeking values.
 * memory pokers::               Poking values.
 * memory array peekers::        Peeking values into arrays.
@@ -4235,6 +4252,8 @@ semantics for library expansion and execution.
 @findex library
 @cindex library form, the
 @cindex The library form
+@cindex Library body
+@cindex Body, library
 
 
 A library definition must have the following form:
@@ -4891,6 +4910,10 @@ top--level program defines a complete Scheme program.
 @c page
 @node lang programs syntax
 @subsection Top--level program syntax
+
+
+@cindex Top--level body
+@cindex Body, top--level
 
 
 A top--level program is a delimited piece of text, typically a file,
@@ -5867,15 +5890,15 @@ might appear outside of the @func{let} expression.
 The @meta{body} of a @func{lambda}, @func{let}, @func{let*},
 @func{let-values}, @func{let*-values}, @func{letrec}, or @func{letrec*}
 expression, or that of a definition with a body consists of zero or more
-definitions followed by one or more expressions.
+definitions followed by one or more expressions:
 
 @example
-@meta{definition} @dots{} @hyperi{expression} @hyperii{expression} @dots{}
+@cmeta{definition} @dots{} @hyperi{expression} @hyperii{expression} @dots{}
 @end example
 
-Each identifier defined by a definition is local to the @meta{body}.
-That is, the identifier is bound, and the region of the binding is the
-entire @meta{body}.
+Each identifier defined by a @meta{definition} is local to the
+@meta{body}; that is, the identifier is bound, and the region of the
+binding is the entire @meta{body}.
 
 Example:
 
@@ -36066,7 +36089,7 @@ The difference between @func{define-syntax} and @func{define}, is that
 
 The following bindings are exported by the @library{records} library.
 In the following descriptions, the argument @var{rtd} is a record type
-desriptor.
+descriptor.
 
 @menu
 * records parents::             Records parents list.
@@ -36176,10 +36199,27 @@ Example:
 @section Binding accessors and mutators
 
 
-All the following macros accept as argument the record name of a record
-type.  For the macros to behave correctly, the record type definitions
-must be available at expand time; this means the definitions have to be
-put into a separate library:
+@menu
+* records fields intro::        Usage and conventions.
+* records fields inspect::      Extracting values from record type
+                                descriptors.
+* records fields define::       Defining bindings to accessors
+                                and mutators.
+* records fields with::         Selecting field--specific accessors
+                                and mutators.
+* records fields identifier::   Accessing fields through identifier
+                                macros.
+@end menu
+
+@c page
+@node records fields intro
+@subsection Usage and conventions
+
+
+All the macros used to bind field accessors and mutators accept as
+argument the record name of a record type.  For the macros to behave
+correctly, the record type definitions must be available at expand time;
+this means the definitions have to be put into a separate library:
 
 @example
 (library (record-types)
@@ -36187,13 +36227,10 @@ put into a separate library:
   (import (rnrs))
 
   (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
+    ---)
 
   (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
+    ---))
 @end example
 
 @noindent
@@ -36208,10 +36245,141 @@ and loaded appropriately:
 @noindent
 in the program or library making use of the macros.
 
+The documentation obeys the following conventions for procedure
+arguments:
+
+@table @var
+@item rtd
+A record type descriptor.
+
+@item record-name
+A @meta{record name} as described in the documentation of
+@func{define-record-type}.  @ref{stdlib records syntactic layer,
+@func{define-record-type}}.
+
+@item field-name
+A symbol representing the definition name of a record field.
+@end table
+
+@c page
+@node records fields inspect
+@subsection Extracting values from record type descriptors
+
+
+@deffn Function record-field-accessor @var{rtd} @var{field-name}
+@deffnx Syntax record-field-accessor* @var{record-name} @var{field-name}
+Return the accessor procedure for @var{field-name} in @var{rtd}; if
+@var{rtd} has no field with the specified name, its parents are searched
+for it.  It is an assertion violation if the hierarchy of @var{rtd} has
+no field of the specified name.
+
+If the record type hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (mutable d)))
+@end example
+
+@noindent
+the macro uses:
+
+@example
+(define <beta>-a
+  (record-field-accessor (record-type-descriptor <beta>) 'a))
+(define <beta>-c
+  (record-field-accessor (record-type-descriptor <beta>) 'c))
+@end example
+
+@noindent
+are equivalent to:
+
+@example
+(define <beta>-a #<accessor of a in <alpha>>)
+(define <beta>-c #<accessor of c in <beta>>)
+@end example
+
+The syntax is a wrapper for the function:
+
+@example
+(record-field-accessor* <alpha> a) @equiv{}
+(record-field-accessor (record-type-descriptor <alpha>)
+                       (quote a))
+@end example
+@end deffn
+
+
+@deffn Function record-field-mutator @var{rtd} @var{field-name}
+@deffnx Syntax record-field-mutator* @var{record-name} @var{field-name}
+Return the mutator procedure for @var{field-name} in @var{rtd}; if
+@var{rtd} has no field with the specified name, its parents are searched
+for it.  It is an assertion violation if the hierarchy of @var{rtd} has
+no field of the specified name.  If the selected field is immutable, the
+return value is @false{}.
+
+If the record type hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (mutable d)))
+@end example
+
+@noindent
+the macro uses:
+
+@example
+(define <beta>-a
+  (record-field-mutator (record-type-descriptor <beta>) 'a))
+(define <beta>-c
+  (record-field-mutator (record-type-descriptor <beta>) 'c))
+@end example
+
+@noindent
+are equivalent to:
+
+@example
+(define <beta>-a #<mutator of a in <alpha>>)
+(define <beta>-c #<mutator of c in <beta>>)
+@end example
+
+The syntax is a wrapper for the function:
+
+@example
+(record-field-mutator* <alpha> a) @equiv{}
+(record-field-mutator (record-type-descriptor <alpha>)
+                      (quote a))
+@end example
+@end deffn
+
+@c page
+@node records fields define
+@subsection Defining bindings to accessors and mutators
+
+
+The following macros can be used as @meta{definition} element of a
+@meta{body} (@pxref{baselib bodies}); when used in a @meta{top-level
+body} or @meta{library body}, they avoid the need to export the bindings
+for accessors and mutators from the library exporting the record types.
+
+The @var{record-name} argument is always a @meta{record name} as defined
+in @ref{stdlib records syntactic layer}.  The @var{context-identifier}
+argument is always a Scheme identifier.
+
 
 @deffn Syntax define-record-accessors @var{record-name}
 @deffnx Syntax define-record-accessors @var{record-name} @var{context-identifier}
-Acquire the record type descriptor whose name is @var{record-name} and
+Acquire the record type descriptor associated to @var{record-name} and
 bind its accessors to automatically generated names.  If the record
 types hierarchy is:
 
@@ -36300,26 +36468,8 @@ another macro expansion.
 @end deffn
 
 
-@deffn Syntax define-record-accessors/this @var{record-name}
-@deffnx Syntax define-record-mutators/this @var{record-name}
-@deffnx Syntax define-record-accessors/this @var{record-name} @var{context-identifier}
-@deffnx Syntax define-record-mutators/this @var{record-name} @var{context-identifier}
-Like the above syntaxes, but bind only the accessors and mutators of the
-record type itself, @strong{not} the ones of its parents.
-@end deffn
-
-
-@deffn Syntax define-record-accessors/parents @var{record-name}
-@deffnx Syntax define-record-mutators/parents @var{record-name}
-@deffnx Syntax define-record-accessors/parents @var{record-name} @var{context-identifier}
-@deffnx Syntax define-record-mutators/parents @var{record-name} @var{context-identifier}
-Like the above syntaxes, but bind only the accessors and mutators of the
-parents of the record type, @strong{not} the ones of the record itself.
-@end deffn
-
-
-@deffn Syntax define-record-accessors/mutators @var{record-name}
-@deffnx Syntax define-record-accessors/mutators @var{record-name} @var{context-identifier}
+@deffn Syntax define-record-accessors&mutators @var{record-name}
+@deffnx Syntax define-record-accessors&mutators @var{record-name} @var{context-identifier}
 Acquire the record type descriptor whose name is @var{record-name} and
 use its accessors and mutators in automatically generated definitions
 for accessor/mutator functions.  If the record types hierarchy is:
@@ -36339,7 +36489,7 @@ for accessor/mutator functions.  If the record types hierarchy is:
 the macro use:
 
 @example
-(define-record-accessors/mutators <beta>)
+(define-record-accessors&mutators <beta>)
 @end example
 
 @noindent
@@ -36382,9 +36532,35 @@ another macro expansion.
 @end deffn
 
 
+@deffn Syntax define-record-accessors/this @var{record-name}
+@deffnx Syntax define-record-mutators/this @var{record-name}
+@deffnx Syntax define-record-accessors&mutators/this @var{record-name}
+@deffnx Syntax define-record-accessors/this @var{record-name} @var{context-identifier}
+@deffnx Syntax define-record-mutators/this @var{record-name} @var{context-identifier}
+@deffnx Syntax define-record-accessors&mutators/this @var{record-name} @var{context-identifier}
+Like the above syntaxes, but bind only the accessors and mutators of the
+record type itself, @strong{not} the ones of its parents.
+@end deffn
+
+
+@deffn Syntax define-record-accessors/parents @var{record-name}
+@deffnx Syntax define-record-mutators/parents @var{record-name}
+@deffnx Syntax define-record-accessors&mutators/parents @var{record-name}
+@deffnx Syntax define-record-accessors/parents @var{record-name} @var{context-identifier}
+@deffnx Syntax define-record-mutators/parents @var{record-name} @var{context-identifier}
+@deffnx Syntax define-record-accessors&mutators/parents @var{record-name} @var{context-identifier}
+Like the above syntaxes, but bind only the accessors and mutators of the
+parents of the record type, @strong{not} the ones of the record itself.
+@end deffn
+
+@c page
+@node records fields with
+@subsection Selecting field--specific accessors and mutators
+
+
 @deffn Syntax with-record-accessors @var{record-name} (@var{field-name} ...) @var{form0} @var{form} ...
 Acquire the record type descriptor whose name is @var{record-name} and
-bind its accessors to automatically generated names; in the extent of
+bind its accessors to automatically generated names; in the region of
 these bindings, evaluate the forms.  If the record types hierarchy is:
 
 @example
@@ -36426,7 +36602,7 @@ name, using a single dash character as separator.
 
 @deffn Syntax with-record-mutators @var{record-name} (@var{field-name} ...) @var{form0} @var{form} ...
 Acquire the record type descriptor whose name is @var{record-name} and
-bind its mutators to automatically generated names; in the extent of
+bind its mutators to automatically generated names; in the region of
 these bindings, evaluate the forms.  If the record types hierarchy is:
 
 @example
@@ -36466,10 +36642,10 @@ an assertion violation to attempt mutator access for an immutable field.
 @end deffn
 
 
-@deffn Syntax with-record-accessors/mutators @var{record-name} (@var{field-name} ...) @var{form0} @var{form} ...
+@deffn Syntax with-record-accessors&mutators @var{record-name} (@var{field-name} ...) @var{form0} @var{form} ...
 Acquire the record type descriptor whose name is @var{record-name} and
 bind accessor/mutator procedures to automatically generated names; in
-the extent of these bindings, evaluate the forms.  If the record types
+the region of these bindings, evaluate the forms.  If the record types
 hierarchy is:
 
 @example
@@ -36519,6 +36695,130 @@ expands to:
 the accessor/mutator names are formed by joining @var{record-name} and
 the field name, using a single dash character as separator; if a field
 is immutable, a simple accessor is bound.
+@end deffn
+
+@c page
+@node records fields identifier
+@subsection Accessing fields through identifier macros
+
+
+The following syntax allows access to the fields of a record using
+identifier macros; it is similar to Common Lisp's @func{with-slots}.
+@ref{baselib transformers, @func{identifier-syntax}}
+
+For example, if the record types hierarchy is:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (immutable b)))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields (mutable c)
+          (mutable d)))
+@end example
+
+@noindent
+the macro use:
+
+@example
+(let ((o (make-<beta> 1 2 3 4)))
+  (with-record-fields ((a <beta> o)
+                       (c <beta> o))
+    (set! c 9)
+    (list a c)))
+@result{} (1 9)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(let ((o (make-<beta> 1 2 3 4)))
+  (<beta>-c-set! o 9)
+  (list (<alpha>-a o)
+        (<beta>-c  o)))
+@result{} (1 9)
+@end example
+
+Another example for the record types:
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define-record-type <beta>
+  (fields (mutable c)
+          (mutable d)))
+@end example
+
+@noindent
+shows how to bind multiple identifiers for the same record:
+
+@example
+(let ((p (make-<alpha> 1 2))
+      (q (make-<beta>  3 4)))
+  (with-record-fields (((a b) <alpha> p)
+                       ((c d) <beta>  q))
+    (list a b c d)))
+@result{} (1 2 3 4)
+@end example
+
+@noindent
+and, for the same record types, the following example shows how to give
+different names to the same fields of different records:
+
+@example
+(let ((p (make-<alpha> 1 2))
+      (q (make-<alpha> 3 4)))
+  (with-record-fields ((((a1 a) (b1 b)) <alpha> p)
+                       (((a2 a) (b2 b)) <alpha> q))
+    (list a1 a2 b1 b2)))
+@result{} (1 3 2 4)
+@end example
+
+
+@deffn Syntax with-record-fields @ameta{field-bindings} @ameta{body}
+Bind the accessors and mutators of multiple records to identifier
+macros; in the region of these bindings, evaluate the @meta{body}.
+
+@meta{body} is a normal body (@pxref{baselib bodies}), while
+@meta{field-bindings} can be of one of the following forms:
+
+@example
+((((@cmeta{var-name} @cmeta{field-name}) ...) @cmeta{record name} @cmeta{expr})
+ @cmeta{field-bindings} ...)
+
+(((@cmeta{field-name} ...) @cmeta{record name} @cmeta{expr})
+ @cmeta{field-bindings} ...)
+
+((@cmeta{field-name} @cmeta{record name} @cmeta{expr})
+ @cmeta{field-bindings} ...)
+@end example
+
+@noindent
+description of elements follows:
+
+@table @meta
+@item record name
+Is the record type name as described in the definition of
+@func{define-record-type}.  @ref{stdlib records syntactic layer,
+@func{define-record-type}}
+
+@item var-name
+An identifier which is bound to the identifier syntax; when not given,
+it defaults to @meta{field-name} itself.
+
+@item field-name
+Must be a symbol representing a valid field name for the record type
+associated to @meta{record name}.
+
+@item expr
+Must be an expression evaluating to a record whose type descriptor is
+associated to @meta{record name}.  It is evaluated only once.
+@end table
 @end deffn
 
 @c page
@@ -47113,8 +47413,9 @@ the last expression in the body of the generated @func{letrec*} is
 combinator function.  The simplest @meta{start} is an @meta{identifier},
 which causes the macro to return the combinator bound to it.
 
-Since @func{begin} forms within @func{letrec*} forms are flattened: By
-making @meta{start} a @func{begin} form we can introduce bindings to
+Since @func{begin} forms within @func{letrec*} forms are flattened
+(spliced into the @meta{body}, @ref{baselib bodies}): By making
+@meta{start} a @func{begin} form we can introduce bindings to
 hand--written combinators which can call (and can be called by) the
 non--terminal combinators.
 
@@ -49519,8 +49820,13 @@ is copied starting at @var{offset} from the beginning of the block.
 @subsection Memory blocks
 
 
-A @samp{memblock} is a record that holds a pointer to an allocated
-memory block and its allocated size.
+A @samp{memblock} is a record that holds a pointer to a raw memory block
+and its size.  It is meant to reference, but not necessarily own, a
+block of raw memory filled with data; a @samp{memblock} should not be
+used to reference half--filled memory.  For example, it can reference a
+C language data structure or an array of data structures.  It is fine if
+more @samp{memblock} records reference the same block or overlapping
+blocks.
 
 
 @deftp {Record Type} memblock
@@ -49551,49 +49857,47 @@ Field accessors.
 @subsection Memory buffers
 
 
-A @samp{buffer} is a record derived from a memblock that adds a field
-representing the number of used bytes.
+@deftp {Record Type} membuffer
+A @samp{membuffer} is a record type derived from a @samp{memblock} that
+adds fields representing the number of ``used'' bytes in the block; it
+is used as a @acronym{FIFO} for bytes or multi--byte data
+types.@footnote{The reference usage of @samp{membuffer} records is as
+input and output buffers for the Zlib compression and decompression
+streams.}
+@end deftp
 
 
 @subsubheading Making
 
 
-@deftp {Record Type} buffer
-Type of record used to represent input and output buffers.  It has three
-fields: a pointer value referencing an allocated memory block; the
-number of bytes in the allocated memory block; the number of bytes
-actually holding data.
-@end deftp
-
-
-@defun make-buffer @var{pointer} @var{number-of-bytes} @var{used-size}
-Build and return a new @code{buffer} record.
+@defun make-membuffer @var{pointer} @var{number-of-bytes} @var{used-size}
+Build and return a new @samp{membuffer} record.
 @end defun
 
 
 @subsubheading Predicates
 
 
-@defun buffer? @var{obj}
-Return true if @var{obj} is a record of type @code{buffer}, return
+@defun membuffer? @var{obj}
+Return true if @var{obj} is a record of type @samp{membuffer}, return
 @false{} otherwise.
 @end defun
 
 
-@defun buffer-full? @var{buf}
-Return @true{} if all the bytes in @var{buf} are used, otherwise return
+@defun membuffer-full? @var{membuf}
+Return @true{} if all the bytes in @var{membuf} are used, otherwise return
 @false{}.
 @end defun
 
 
-@defun buffer-empty? buf
-Return @true{} if all the bytes in @var{buf} are free, otherwise return
-@false{}.
+@defun membuffer-empty? @var{membuf}
+Return @true{} if all the bytes in @var{membuf} are free, otherwise
+return @false{}.
 @end defun
 
 
-@defun buffer-used? buf
-Return @true{} if some of the bytes in @var{buf} are used, otherwise
+@defun membuffer-used? @var{membuf}
+Return @true{} if some of the bytes in @var{membuf} are used, otherwise
 return @false{}.
 @end defun
 
@@ -49601,56 +49905,56 @@ return @false{}.
 @subsubheading Inspection
 
 
-@defun buffer-pointer @var{buf}
-Return the value of the pointer field in @var{buf}.
+@defun membuffer-pointer @var{membuf}
+Return the value of the pointer field in @var{membuf}.
 @end defun
 
 
-@defun buffer-size @var{buf}
-Return the value of the size field in @var{buf}.
+@defun membuffer-size @var{membuf}
+Return the value of the size field in @var{membuf}.
 @end defun
 
 
-@defun buffer-used-size-set! @var{buf} @var{number-of-bytes}
-@defunx buffer-used-size @var{buf}
-Set or get the value of the used--size field in @var{buf}.
+@defun membuffer-used-size-set! @var{membuf} @var{number-of-bytes}
+@defunx membuffer-used-size @var{membuf}
+Set or get the value of the used--size field in @var{membuf}.
 @end defun
 
 
-@defun buffer-free-size @var{buf}
-Return the number of free bytes in @var{buf}.
+@defun membuffer-free-size @var{membuf}
+Return the number of free bytes in @var{membuf}.
 @end defun
 
 
-@defun buffer-pointer-to-free-bytes @var{buf}
-Return a pointer to the first free byte in @var{buf}.  If the buffer if
+@defun membuffer-pointer-to-free-bytes @var{membuf}
+Return a pointer to the first free byte in @var{membuf}.  If the buffer if
 full: The pointer references the first byte past the allocated block.
 @end defun
 
 
-@defun buffer-used-memblock @var{buf}
-Return a @code{memblock} record representing the used portion of
-@var{buf}.
+@defun membuffer-used-memblock @var{membuf}
+Return a @samp{memblock} record representing the used portion of
+@var{membuf}.
 @end defun
 
 
-@defun buffer-free-memblock @var{buf}
-Return a @code{memblock} record representing the free portion of
-@var{buf}.
+@defun membuffer-free-memblock @var{membuf}
+Return a @samp{memblock} record representing the free portion of
+@var{membuf}.
 @end defun
 
 
 @subsubheading Operations
 
 
-@defun buffer-incr-used-size! @var{buf} @var{size-step}
-Update the number of used bytes in @var{buf} by adding @var{size-step},
+@defun membuffer-incr-used-size! @var{membuf} @var{size-step}
+Update the number of used bytes in @var{membuf} by adding @var{size-step},
 which must be an exact integer (positive or negative).
 @end defun
 
 
-@defun buffer-consume-bytes! @var{buf} @var{number-of-bytes}
-Update the status of @var{buf} considering consumed the first
+@defun membuffer-consume-bytes! @var{membuf} @var{number-of-bytes}
+Update the status of @var{membuf} considering consumed the first
 @var{number-of-bytes} bytes.  This means that used bytes starting at
 1+@var{number-of-bytes} are shifted to the beginning of the allocated
 area, and the number of used bytes is decremented by
@@ -49658,38 +49962,38 @@ area, and the number of used bytes is decremented by
 @end defun
 
 
-@defun buffer-push-memblock! @var{buffer} @var{memblock}
+@defun membuffer-push-memblock! @var{membuf} @var{memblock}
 Copy the contents of @var{memblock} into the free area at the end of
-@var{buffer} and update the buffer's used area status.  It is an error
-if @var{buffer} has not enough free bytes to hold data from
+@var{membuf} and update the buffer's used area status.  It is an error
+if @var{membuf} has not enough free bytes to hold data from
 @var{memblock}.
 @end defun
 
 
-@defun buffer-pop-memblock! @var{memblock} @var{buffer}
-Copy from the beginning of @var{buffer} to the beginning of
+@defun membuffer-pop-memblock! @var{memblock} @var{membuf}
+Copy from the beginning of @var{membuf} to the beginning of
 @var{memblock} enough bytes to fill @var{memblock} and update the used
-area status of @var{buffer}.  It is an error if @var{buffer} has not
+area status of @var{membuf}.  It is an error if @var{membuf} has not
 enough used bytes to fill @var{memblock}.
 @end defun
 
 
-@defun buffer-push-bytevector! @var{buffer} @var{bytevector}
+@defun membuffer-push-bytevector! @var{membuf} @var{bytevector}
 Copy all the bytes from the @var{bytevector} to the free area of
-@var{buffer}.  It is an error if @var{buffer} has not enough room to
+@var{membuf}.  It is an error if @var{membuf} has not enough room to
 hold all the bytes from @var{bytevector}.
 @end defun
 
 
-@defun buffer-pop-bytevector! @var{bytevector} @var{buffer}
-Copy enough used bytes from @var{buffer} to @var{bytevector} to fill
-@var{bytevector} and update the status of @var{buffer}.  It is an error
-if @var{buffer} has not enough used bytes to fill @var{bytevector}.
+@defun membuffer-pop-bytevector! @var{bytevector} @var{membuf}
+Copy enough used bytes from @var{membuf} to @var{bytevector} to fill
+@var{bytevector} and update the status of @var{membuf}.  It is an error
+if @var{membuf} has not enough used bytes to fill @var{bytevector}.
 @end defun
 
 
-@defun buffer-push-buffer! @var{dst-buffer} @var{src-buffer}
-@defunx buffer-pop-buffer! @var{dst-buffer} @var{src-buffer}
+@defun membuffer-push-membuffer! @var{dst-buffer} @var{src-buffer}
+@defunx membuffer-pop-membuffer! @var{dst-buffer} @var{src-buffer}
 Copy as much bytes as possible from @var{src-buffer} to @var{dst-buffer}
 and update the statuses of the buffers.
 @end defun

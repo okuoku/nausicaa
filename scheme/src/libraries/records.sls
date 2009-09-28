@@ -30,18 +30,29 @@
   (export
     record-parent-list			record-parent-list*
     make-record-maker			make-record-maker*
-    define-record-accessors		define-record-mutators
-    define-record-accessors/this	define-record-mutators/this
-    define-record-accessors/parents	define-record-mutators/parents
 
-    define-record-accessors/mutators
-    ;; define-record-accessors/mutators/this
-    ;; define-record-accessors/mutators/parents
+    record-field-accessor		record-field-accessor*
+    record-field-mutator		record-field-mutator*
+
+    define-record-accessors
+    define-record-accessors/this
+    define-record-accessors/parents
+
+    define-record-mutators
+    define-record-mutators/this
+    define-record-mutators/parents
+
+    define-record-accessors&mutators
+    define-record-accessors&mutators/this
+    define-record-accessors&mutators/parents
 
     with-record-accessors
     with-record-mutators
-    with-record-accessors/mutators)
-  (import (rnrs))
+    with-record-accessors&mutators
+
+    with-record-fields)
+  (import (rnrs)
+    (for (records helpers) run expand))
 
 
 ;;;; helpers
@@ -93,538 +104,179 @@
 	(apply maker init-values))))))
 
 
-(define-syntax define-record-accessors
+(define-syntax record-field-accessor*
   (syntax-rules ()
-    ((_ ?record-name)
-     (define-record-accessors ?record-name ?record-name))
-    ((_ ?record-name ?context-identifier)
-     (let-syntax
-	 ((A (lambda (stx)
+    ((_ ?record-name ?field-name)
+     (record-field-accessor (record-type-descriptor ?record-name) (quote ?field-name)))))
 
-	       (define (make-accessors-forms kontext rtd)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let process-rtd ((rtd	rtd)
-				     (result	'()))
+(define (record-field-accessor rtd field-name)
+  (if rtd
+      (let ((idx (vector-index field-name (record-type-field-names rtd))))
+	(if idx
+	    (record-accessor rtd idx)
+	  (record-field-accessor (record-type-parent rtd) field-name)))
+    (assertion-violation 'record-field-accessor
+      "unknown field name in record type hierarchy"
+      field-name)))
+
+(define-syntax record-field-mutator*
+  (syntax-rules ()
+    ((_ ?record-name ?field-name)
+     (record-field-mutator (record-type-descriptor ?record-name) (quote ?field-name)))))
+
+(define (record-field-mutator rtd field-name)
+  (if rtd
+      (let ((idx (vector-index field-name (record-type-field-names rtd))))
+	(if idx
+	    (and (record-field-mutable? rtd idx)
+		 (record-mutator rtd idx))
+	  (record-field-mutator (record-type-parent rtd) field-name)))
+    (assertion-violation 'record-field-mutator
+      "unknown field name in record type hierarchy"
+      field-name)))
+
+
+(define-syntax %define-record-thing
+  (syntax-rules ()
+    ((_ ?-name ?-what ?-which)
+     (define-syntax ?-name
+       (syntax-rules ()
+	 ((_ ?record-name)
+	  (?-name ?record-name ?record-name))
+	 ((_ ?record-name ?context-identifier)
+	  (let-syntax
+	      ((dummy (lambda (stx)
+			(syntax-case stx ()
+			  ((_ ?kontext)
+			   (with-syntax (((DEFINES ((... ...) (... ...)))
+					  (make-define-forms (quote ?-what) (quote ?-which)
+							     (syntax ?kontext)
+							     (record-type-descriptor ?record-name))))
+			     (syntax (begin DEFINES ((... ...) (... ...))))))))))
+	    (dummy ?context-identifier))))))))
+
+(%define-record-thing define-record-accessors			accessor all)
+(%define-record-thing define-record-mutators			mutator all)
+(%define-record-thing define-record-accessors&mutators		accessor&mutator all)
+
+(%define-record-thing define-record-accessors/parents		accessor parent)
+(%define-record-thing define-record-mutators/parents		mutator parent)
+(%define-record-thing define-record-accessors&mutators/parents	accessor&mutator parent)
+
+(%define-record-thing define-record-accessors/this		accessor this)
+(%define-record-thing define-record-mutators/this		mutator this)
+(%define-record-thing define-record-accessors&mutators/this	accessor&mutator this)
+
+
+(define-syntax %define-with-record
+  (syntax-rules ()
+    ((_ ?-name ?-what)
+     (define-syntax ?-name
+       (syntax-rules ()
+	 ((_ ?record-name (?field-name (... ...)) ?form0 ?form (... ...))
+	  (let-syntax
+	      ((dummy (lambda (stx)
+			(syntax-case stx ()
+			  ((_ ?kontext)
+			   (with-syntax
+			       (((BINDINGS ((... ...) (... ...)))
+				 (make-bindings-for-with (quote ?-what) #'?kontext
+							 (record-type-descriptor ?record-name)
+							 '(?field-name (... ...))))
+				((FORMS ((... ...) (... ...)))
+				 (datum->syntax #'?kontext '(?form0 ?form (... ...)))))
+			     (syntax (let (BINDINGS ((... ...) (... ...)))
+				       FORMS ((... ...) (... ...))))))))))
+	    (dummy ?record-name))))))))
+
+(%define-with-record with-record-accessors accessor)
+(%define-with-record with-record-mutators mutator)
+(%define-with-record with-record-accessors&mutators accessor&mutator)
+
+
+(define-syntax with-record-fields
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+
+    ((_ ((((?var-name ?field-name) ...) ?record-name ?expr))
+	?form0 ?form ...)
+     (let-syntax
+	 ((dummy (lambda (stx)
+
+		   (define (%record-field-accessor rtd-name rtd field-name)
 		     (if rtd
-			 (let* ((slots	(record-type-field-names rtd))
-				(len	(vector-length slots)))
-			   (let make-def ((i    0)
-					  (defs '()))
-			     (if (= i len)
-				 (process-rtd (record-type-parent rtd)
-					      (append result defs))
-			       (make-def (+ 1 i)
-					 (cons (make-accessor kontext rtd-name rtd slots i)
-					       defs)))))
-		       result))))
+			 (let ((idx (vector-index field-name (record-type-field-names rtd))))
+			   (if idx
+			       (record-accessor rtd idx)
+			     (%record-field-accessor rtd-name (record-type-parent rtd) field-name)))
+		       (assertion-violation #f
+			 (string-append "unknown field name in record type hierarchy of \""
+					(symbol->string rtd-name) "\"")
+			 field-name)))
 
-	       (define (make-accessor kontext rtd-name rtd slots i)
-		 (let ((accessor-name (slot-name->accessor-name rtd-name (vector-ref slots i)))
-		       (accessor-proc (record-accessor rtd i)))
-		   (datum->syntax kontext `(define ,accessor-name ',accessor-proc))))
-
-	       (define (slot-name->accessor-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-" (symbol->string slot-name))))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-accessors-forms (syntax ?kontext)
-						       (record-type-descriptor ?record-name))))
-		    (syntax (begin B (... ...)))))))))
-       (A ?context-identifier)))))
-
-
-(define-syntax define-record-mutators
-  (syntax-rules ()
-    ((_ ?record-name)
-     (define-record-mutators ?record-name ?record-name))
-    ((_ ?record-name ?context-identifier)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-mutators-forms kontext rtd)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let process-rtd ((rtd	rtd)
-				     (result	'()))
+		   (define (%record-field-mutator rtd-name rtd field-name)
 		     (if rtd
-			 (let* ((slots	(record-type-field-names rtd))
-				(len	(vector-length slots)))
-			   (let make-def ((i    0)
-					  (defs '()))
-			     (if (= i len)
-				 (process-rtd (record-type-parent rtd)
-					      (append result defs))
-			       (make-def (+ 1 i)
-					 (if (record-field-mutable? rtd i)
-					     (cons (make-mutator kontext rtd-name rtd slots i) defs)
-					   defs)))))
-		       result))))
+			 (let ((idx (vector-index field-name (record-type-field-names rtd))))
+			   (cond ((not idx)
+				  (%record-field-mutator rtd-name (record-type-parent rtd) field-name))
+				 ((record-field-mutable? rtd idx)
+				  (record-mutator rtd idx))
+				 (else
+				  (lambda args
+				    (assertion-violation #f
+				      (string-append "attempt to mutate immutable field for record \""
+						     (symbol->string (record-type-name rtd)) "\"")
+				      field-name)))))
+		       (assertion-violation #f
+			 (string-append "unknown field name in record type hierarchy of \""
+					(symbol->string rtd-name) "\"")
+			 field-name)))
 
-	       (define (make-mutator kontext rtd-name rtd slots i)
-		 (let ((mutator-name (slot-name->mutator-name rtd-name (vector-ref slots i)))
-		       (mutator-proc (record-mutator rtd i)))
-		   (datum->syntax kontext `(define ,mutator-name ',mutator-proc))))
+		   (syntax-case stx ()
+		     ((_ ?kontext)
+		      (with-syntax
+			  (((EXPR)	(datum->syntax #'?kontext '(?expr)))
+			   ;; ((FIELD (... ...))
+			   ;;  (datum->syntax #'?kontext '(?field-name ...)))
+			   ((VAR (... ...))
+			    (datum->syntax #'?kontext '(?var-name ...)))
+			   ((ACCESSOR (... ...))
+			    (datum->syntax #'?kontext
+					   (list
+					    (%record-field-accessor (quote ?record-name)
+								    (record-type-descriptor ?record-name)
+								    (quote ?field-name))
+					    ...)))
+			   ((MUTATOR (... ...))
+			    (datum->syntax #'?kontext
+					   (list
+					    (%record-field-mutator  (quote ?record-name)
+								    (record-type-descriptor ?record-name)
+								    (quote ?field-name))
+					    ...)))
+			   ((FORMS (... ...))
+			    (datum->syntax #'?kontext '(?form0 ?form ...))))
+			(syntax (let ((the-record EXPR))
+				  (let-syntax
+				      ((VAR (identifier-syntax
+					     (_			('ACCESSOR the-record))
+					     ((set! _ e)	('MUTATOR the-record e))))
+				       (... ...))
+				    FORMS (... ...))))))))))
+       (dummy ?record-name)))
 
-	       (define (slot-name->mutator-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-" (symbol->string slot-name) "-set!")))
+    ((_ ((((?var-name0 ?field-name0) ...) ?record-name0 ?expr0) ?bindings ...) ?form0 ?form ...)
+     (with-record-fields ((((?var-name0 ?field-name0) ...) ?record-name0 ?expr0))
+       (with-record-fields (?bindings ...) ?form0 ?form ...)))
 
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-mutators-forms (syntax ?kontext)
-						      (record-type-descriptor ?record-name))))
-		    (syntax (begin B (... ...)))))))))
-       (A ?context-identifier)))))
+    ((_ (((?field-name0 ...) ?record-name0 ?expr0) ?bindings ...) ?form0 ?form ...)
+     (with-record-fields ((((?field-name0 ?field-name0) ...) ?record-name0 ?expr0))
+       (with-record-fields (?bindings ...) ?form0 ?form ...)))
 
-
-(define-syntax define-record-accessors/parents
-  (syntax-rules ()
-    ((_ ?record-name)
-     (define-record-accessors/parents ?record-name ?record-name))
-    ((_ ?record-name ?context-identifier)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-accessors-forms kontext rtd)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let process-rtd ((rtd	(record-type-parent rtd))
-				     (result    '()))
-		     (if rtd
-			 (let* ((slots	(record-type-field-names rtd))
-				(len	(vector-length slots)))
-			   (let make-def ((i    0)
-					  (defs '()))
-			     (if (= i len)
-				 (process-rtd (record-type-parent rtd)
-					      (append result defs))
-			       (make-def (+ 1 i)
-					 (cons (make-accessor kontext rtd-name rtd slots i)
-					       defs)))))
-		       result))))
-
-	       (define (make-accessor kontext rtd-name rtd slots i)
-		 (let ((accessor-name (slot-name->accessor-name rtd-name (vector-ref slots i)))
-		       (accessor-proc (record-accessor rtd i)))
-		   (datum->syntax kontext `(define ,accessor-name ',accessor-proc))))
-
-	       (define (slot-name->accessor-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-" (symbol->string slot-name))))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-accessors-forms (syntax ?kontext)
-						       (record-type-descriptor ?record-name))))
-		    (syntax (begin B (... ...)))))))))
-       (A ?context-identifier)))))
-
-
-(define-syntax define-record-mutators/parents
-  (syntax-rules ()
-    ((_ ?record-name)
-     (define-record-mutators/parents ?record-name ?record-name))
-    ((_ ?record-name ?context-identifier)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-mutators-forms kontext rtd)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let process-rtd ((rtd	(record-type-parent rtd))
-				     (result	'()))
-		     (if rtd
-			 (let* ((slots	(record-type-field-names rtd))
-				(len	(vector-length slots)))
-			   (let make-def ((i    0)
-					  (defs '()))
-			     (if (= i len)
-				 (process-rtd (record-type-parent rtd)
-					      (append result defs))
-			       (make-def (+ 1 i)
-					 (if (record-field-mutable? rtd i)
-					     (cons (make-mutator kontext rtd-name rtd slots i) defs)
-					   defs)))))
-		       result))))
-
-	       (define (make-mutator kontext rtd-name rtd slots i)
-		 (let ((mutator-name (slot-name->mutator-name rtd-name (vector-ref slots i)))
-		       (mutator-proc (record-mutator rtd i)))
-		   (datum->syntax kontext `(define ,mutator-name ',mutator-proc))))
-
-	       (define (slot-name->mutator-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-" (symbol->string slot-name) "-set!")))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-mutators-forms (syntax ?kontext)
-						      (record-type-descriptor ?record-name))))
-		    (syntax (begin B (... ...)))))))))
-       (A ?context-identifier)))))
-
-
-(define-syntax define-record-accessors/this
-  (syntax-rules ()
-    ((_ ?record-name)
-     (define-record-accessors/this ?record-name ?record-name))
-    ((_ ?record-name ?context-identifier)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-accessors-forms kontext rtd)
-		 (let* ((rtd-name	(symbol->string (record-type-name rtd)))
-			(slots		(record-type-field-names rtd))
-			(len		(vector-length slots)))
-		   (let make-def ((i      0)
-				  (result '()))
-		     (if (= i len)
-			 result
-		       (make-def (+ 1 i) (cons (make-accessor kontext rtd-name rtd slots i)
-					       result))))))
-
-	       (define (make-accessor kontext rtd-name rtd slots i)
-		 (let ((accessor-name (slot-name->accessor-name rtd-name (vector-ref slots i)))
-		       (accessor-proc (record-accessor rtd i)))
-		   (datum->syntax kontext `(define ,accessor-name ',accessor-proc))))
-
-	       (define (slot-name->accessor-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-" (symbol->string slot-name))))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-accessors-forms (syntax ?kontext)
-						       (record-type-descriptor ?record-name))))
-		    (syntax (begin B (... ...)))))))))
-       (A ?context-identifier)))))
-
-
-(define-syntax define-record-mutators/this
-  (syntax-rules ()
-    ((_ ?record-name)
-     (define-record-mutators/this ?record-name ?record-name))
-    ((_ ?record-name ?context-identifier)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-mutators-forms kontext rtd)
-		 (let* ((rtd-name	(symbol->string (record-type-name rtd)))
-			(slots		(record-type-field-names rtd))
-			(len		(vector-length slots)))
-		   (let make-def ((i      0)
-				  (result '()))
-		     (if (= i len)
-			 result
-		       (make-def (+ 1 i)
-				 (if (record-field-mutable? rtd i)
-				     (cons (make-mutator kontext rtd-name rtd slots i) result)
-				   result))))))
-
-	       (define (make-mutator kontext rtd-name rtd slots i)
-		 (let ((mutator-name (slot-name->mutator-name rtd-name (vector-ref slots i)))
-		       (mutator-proc (record-mutator rtd i)))
-		   (datum->syntax kontext `(define ,mutator-name ',mutator-proc))))
-
-	       (define (slot-name->mutator-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-"
-						(symbol->string slot-name) "-set!")))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-mutators-forms (syntax ?kontext)
-						      (record-type-descriptor ?record-name))))
-		    (syntax (begin B (... ...)))))))))
-       (A ?context-identifier)))))
-
-
-(define-syntax define-record-accessors/mutators
-  (syntax-rules ()
-    ((_ ?record-name)
-     (define-record-accessors/mutators ?record-name ?record-name))
-    ((_ ?record-name ?context-identifier)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-accessor/mutator-forms kontext rtd)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let process-rtd ((rtd	rtd)
-				     (result	'()))
-		     (if rtd
-			 (let* ((slots	(record-type-field-names rtd))
-				(len	(vector-length slots)))
-			   (let make-def ((i    0)
-					  (defs '()))
-			     (if (= i len)
-				 (process-rtd (record-type-parent rtd)
-					      (append result defs))
-			       (make-def (+ 1 i)
-					 (cons ((if (record-field-mutable? rtd i)
-						    make-accessor/mutator
-						  make-accessor) kontext rtd-name rtd slots i)
-					       defs)))))
-		       result))))
-
-	       (define (make-accessor kontext rtd-name rtd slots i)
-		 (let ((accessor-name	(slot-name->accessor/mutator-name rtd-name (vector-ref slots i)))
-		       (accessor-proc	(record-accessor rtd i)))
-		   (datum->syntax kontext `(define ,accessor-name ',accessor-proc))))
-
-	       (define (make-accessor/mutator kontext rtd-name rtd slots i)
-		 (let ((name		(slot-name->accessor/mutator-name rtd-name (vector-ref slots i)))
-		       (accessor-proc	(record-accessor rtd i))
-		       (mutator-proc	(record-mutator  rtd i)))
-		   (datum->syntax kontext `(define ,name
-					     (case-lambda
-					      ((o)
-					       (',accessor-proc o))
-					      ((o v)
-					       (',mutator-proc o v)))))))
-
-	       (define (slot-name->accessor/mutator-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-" (symbol->string slot-name))))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-accessor/mutator-forms (syntax ?kontext)
-							      (record-type-descriptor ?record-name))))
-		    (syntax (begin B (... ...)))))))))
-       (A ?context-identifier)))))
-
-
-(define-syntax with-record-accessors
-  (syntax-rules ()
-    ((_ ?record-name (?field-name ...) ?form0 ?form ...)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-forms kontext rtd field-names)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let loop ((rtd		rtd)
-			      (field-names	field-names)
-			      (result		'()))
-		     (cond ((null? field-names)
-			    result)
-			   (rtd
-			    (let-values (((bindings rest-fields)
-					  (process-rtd kontext rtd-name rtd field-names)))
-			      (loop (record-type-parent rtd)
-				    rest-fields
-				    (append result bindings))))
-			   (else
-			    (assertion-violation #f
-			      "unknown field names in record type hierarchy"
-			      field-names))))))
-
-	       (define (process-rtd kontext rtd-name rtd field-names)
-		 (let ((slots (record-type-field-names rtd)))
-		   (let loop ((field-names	field-names)
-			      (bindings		'())
-			      (rest-names	'()))
-		     (if (null? field-names)
-			 (values bindings rest-names)
-		       (let ((idx (vector-index (car field-names) slots)))
-			 (if idx
-			     (loop (cdr field-names)
-				   (cons (make-accessor-binding kontext rtd-name rtd slots idx)
-					 bindings)
-				   rest-names)
-			   (loop (cdr field-names)
-				 bindings
-				 (cons (car field-names) rest-names))))))))
-
-	       (define (make-accessor-binding kontext rtd-name rtd slots i)
-		 (let ((accessor-name (slot-name->accessor-name rtd-name (vector-ref slots i)))
-		       (accessor-proc (record-accessor rtd i)))
-		   (datum->syntax kontext `(,accessor-name ',accessor-proc))))
-
-	       (define (slot-name->accessor-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-" (symbol->string slot-name))))
-
-	       (define (vector-index item vec)
-		 (let ((len (vector-length vec)))
-		   (let loop ((i 0))
-		     (and (< i len)
-			  (if (eq? item (vector-ref vec i))
-			      i
-			    (loop (+ i 1)))))))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-forms (syntax ?kontext)
-					     (record-type-descriptor ?record-name)
-					     '(?field-name ...)))
-				((F (... ...))
-				 (datum->syntax (syntax ?kontext)
-						'(?form0 ?form ...))))
-		    (syntax (let (B (... ...))
-			      F (... ...)))))))))
-       (A ?record-name)))))
-
-
-(define-syntax with-record-mutators
-  (syntax-rules ()
-    ((_ ?record-name (?field-name ...) ?form0 ?form ...)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-forms kontext rtd field-names)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let loop ((rtd		rtd)
-			      (field-names	field-names)
-			      (result		'()))
-		     (cond ((null? field-names)
-			    result)
-			   (rtd
-			    (let-values (((bindings rest-fields)
-					  (process-rtd kontext rtd-name rtd field-names)))
-			      (loop (record-type-parent rtd)
-				    rest-fields
-				    (append result bindings))))
-			   (else
-			    (assertion-violation #f
-			      "unknown field names in record type hierarchy"
-			      field-names))))))
-
-	       (define (process-rtd kontext rtd-name rtd field-names)
-		 (let ((slots (record-type-field-names rtd)))
-		   (let loop ((field-names	field-names)
-			      (bindings		'())
-			      (rest-names	'()))
-		     (if (null? field-names)
-			 (values bindings rest-names)
-		       (let ((idx (vector-index (car field-names) slots)))
-			 (if idx
-			     (if (record-field-mutable? rtd idx)
-				 (loop (cdr field-names)
-				       (cons (make-mutator-binding kontext rtd-name rtd slots idx)
-					     bindings)
-				       rest-names)
-			       (assertion-violation #f
-				 "attempt to create mutator for immutable record field"
-				 (vector-ref slots idx)))
-			   (loop (cdr field-names)
-				 bindings
-				 (cons (car field-names) rest-names))))))))
-
-	       (define (make-mutator-binding kontext rtd-name rtd slots i)
-		 (let ((mutator-name (slot-name->mutator-name rtd-name (vector-ref slots i)))
-		       (mutator-proc (record-mutator rtd i)))
-		   (datum->syntax kontext `(,mutator-name ',mutator-proc))))
-
-	       (define (slot-name->mutator-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-"
-						(symbol->string slot-name) "-set!")))
-
-	       (define (vector-index item vec)
-		 (let ((len (vector-length vec)))
-		   (let loop ((i 0))
-		     (and (< i len)
-			  (if (eq? item (vector-ref vec i))
-			      i
-			    (loop (+ i 1)))))))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-forms (syntax ?kontext)
-					     (record-type-descriptor ?record-name)
-					     '(?field-name ...)))
-				((F (... ...))
-				 (datum->syntax (syntax ?kontext)
-						'(?form0 ?form ...))))
-		    (syntax (let (B (... ...))
-			      F (... ...)))))))))
-       (A ?record-name)))))
-
-
-(define-syntax with-record-accessors/mutators
-  (syntax-rules ()
-    ((_ ?record-name (?field-name ...) ?form0 ?form ...)
-     (let-syntax
-	 ((A (lambda (stx)
-
-	       (define (make-forms kontext rtd field-names)
-		 (let ((rtd-name (symbol->string (record-type-name rtd))))
-		   (let loop ((rtd		rtd)
-			      (field-names	field-names)
-			      (result		'()))
-		     (cond ((null? field-names)
-			    result)
-			   (rtd
-			    (let-values (((bindings rest-fields)
-					  (process-rtd kontext rtd-name rtd field-names)))
-			      (loop (record-type-parent rtd)
-				    rest-fields
-				    (append result bindings))))
-			   (else
-			    (assertion-violation #f
-			      "unknown field names in record type hierarchy"
-			      field-names))))))
-
-	       (define (process-rtd kontext rtd-name rtd field-names)
-		 (let ((slots (record-type-field-names rtd)))
-		   (let loop ((field-names	field-names)
-			      (bindings		'())
-			      (rest-names	'()))
-		     (if (null? field-names)
-			 (values bindings rest-names)
-		       (let ((idx (vector-index (car field-names) slots)))
-			 (if idx
-			     (loop (cdr field-names)
-				   (cons ((if (record-field-mutable? rtd idx)
-					      make-accessor/mutator-binding
-					    make-accessor-binding)
-					  kontext rtd-name rtd slots idx)
-					 bindings)
-				   rest-names)
-			   (loop (cdr field-names)
-				 bindings
-				 (cons (car field-names) rest-names))))))))
-
-	       (define (make-accessor/mutator-binding kontext rtd-name rtd slots i)
-		 (let ((name		(slot-name->accessor/mutator-name rtd-name
-									  (vector-ref slots i)))
-		       (accessor-proc	(record-accessor rtd i))
-		       (mutator-proc	(record-mutator  rtd i)))
-		   (datum->syntax kontext `(,name (case-lambda
-						   ((o)
-						    (',accessor-proc o))
-						   ((o v)
-						    (',mutator-proc o v)))))))
-
-	       (define (make-accessor-binding kontext rtd-name rtd slots i)
-		 (let ((accessor-name	(slot-name->accessor/mutator-name rtd-name
-									  (vector-ref slots i)))
-		       (accessor-proc	(record-accessor rtd i)))
-		   (datum->syntax kontext `(,accessor-name ',accessor-proc))))
-
-	       (define (slot-name->accessor/mutator-name rtd-name slot-name)
-		 (string->symbol (string-append rtd-name "-"
-						(symbol->string slot-name))))
-
-	       (define (vector-index item vec)
-		 (let ((len (vector-length vec)))
-		   (let loop ((i 0))
-		     (and (< i len)
-			  (if (eq? item (vector-ref vec i))
-			      i
-			    (loop (+ i 1)))))))
-
-	       (syntax-case stx ()
-		 ((_ ?kontext)
-		  (with-syntax (((B (... ...))
-				 (make-forms (syntax ?kontext)
-					     (record-type-descriptor ?record-name)
-					     '(?field-name ...)))
-				((F (... ...))
-				 (datum->syntax (syntax ?kontext)
-						'(?form0 ?form ...))))
-		    (syntax (let (B (... ...))
-			      F (... ...)))))))))
-       (A ?record-name)))))
+    ((_ ((?field-name0 ?record-name0 ?expr0) ?bindings ...) ?form0 ?form ...)
+     (with-record-fields ((((?field-name0 ?field-name0)) ?record-name0 ?expr0))
+       (with-record-fields (?bindings ...) ?form0 ?form ...)))))
 
 
 ;;;; done
