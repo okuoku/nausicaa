@@ -50,7 +50,7 @@
     with-record-mutators
     with-record-accessors&mutators
 
-    with-record-fields)
+    with-record-fields			with-record-fields*)
   (import (rnrs)
     (for (records helpers) run expand))
 
@@ -237,8 +237,6 @@
 		     ((_ ?kontext)
 		      (with-syntax
 			  (((EXPR)	(datum->syntax #'?kontext '(?expr)))
-			   ;; ((FIELD (... ...))
-			   ;;  (datum->syntax #'?kontext '(?field-name ...)))
 			   ((VAR (... ...))
 			    (datum->syntax #'?kontext '(?var-name ...)))
 			   ((ACCESSOR (... ...))
@@ -277,6 +275,93 @@
     ((_ ((?field-name0 ?record-name0 ?expr0) ?bindings ...) ?form0 ?form ...)
      (with-record-fields ((((?field-name0 ?field-name0)) ?record-name0 ?expr0))
        (with-record-fields (?bindings ...) ?form0 ?form ...)))))
+
+
+(define-syntax with-record-fields*
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+
+    ((_ (((?field-name ...) ?record-name ?record-id))
+	?form0 ?form ...)
+     (let-syntax
+	 ((dummy (lambda (stx)
+
+		   (define (%record-field-identifiers record-id field-names)
+		     (let ((record-id (symbol->string record-id)))
+		       (map (lambda (name)
+			      (string->symbol (string-append record-id "." (symbol->string name))))
+			 field-names)))
+
+		   (define (%record-field-accessor rtd-name rtd field-name)
+		     (if rtd
+			 (let ((idx (vector-index field-name (record-type-field-names rtd))))
+			   (if idx
+			       (record-accessor rtd idx)
+			     (%record-field-accessor rtd-name (record-type-parent rtd) field-name)))
+		       (assertion-violation #f
+			 (string-append "unknown field name in record type hierarchy of \""
+					(symbol->string rtd-name) "\"")
+			 field-name)))
+
+		   (define (%record-field-mutator rtd-name rtd field-name)
+		     (if rtd
+			 (let ((idx (vector-index field-name (record-type-field-names rtd))))
+			   (cond ((not idx)
+				  (%record-field-mutator rtd-name (record-type-parent rtd) field-name))
+				 ((record-field-mutable? rtd idx)
+				  (record-mutator rtd idx))
+				 (else
+				  (lambda args
+				    (assertion-violation #f
+				      (string-append "attempt to mutate immutable field for record \""
+						     (symbol->string (record-type-name rtd)) "\"")
+				      field-name)))))
+		       (assertion-violation #f
+			 (string-append "unknown field name in record type hierarchy of \""
+					(symbol->string rtd-name) "\"")
+			 field-name)))
+
+		   (syntax-case stx ()
+		     ((_ ?kontext)
+		      (with-syntax
+			  (((RECORD-ID)
+			    (datum->syntax #'?kontext '(?record-id)))
+			   ((VAR (... ...))
+			    (datum->syntax #'?kontext
+					   (%record-field-identifiers (quote ?record-id)
+								      '(?field-name ...))))
+			   ((ACCESSOR (... ...))
+			    (datum->syntax #'?kontext
+					   (list
+					    (%record-field-accessor (quote ?record-name)
+								    (record-type-descriptor ?record-name)
+								    (quote ?field-name))
+					    ...)))
+			   ((MUTATOR (... ...))
+			    (datum->syntax #'?kontext
+					   (list
+					    (%record-field-mutator  (quote ?record-name)
+								    (record-type-descriptor ?record-name)
+								    (quote ?field-name))
+					    ...)))
+			   ((FORMS (... ...))
+			    (datum->syntax #'?kontext '(?form0 ?form ...))))
+			(syntax (let-syntax
+				    ((VAR (identifier-syntax
+					   (_		('ACCESSOR RECORD-ID))
+					   ((set! _ e)	('MUTATOR RECORD-ID e))))
+				     (... ...))
+				  FORMS (... ...)))))))))
+       (dummy ?record-name)))
+
+    ((_ (((?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
+     (with-record-fields* (((?field-name ...) ?record-name ?record-id))
+       (with-record-fields* (?bindings ...) ?form0 ?form ...)))
+
+    ((_ ((?field-name ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
+     (with-record-fields* (((?field-name) ?record-name ?record-id))
+       (with-record-fields* (?bindings ...) ?form0 ?form ...)))))
 
 
 ;;;; done

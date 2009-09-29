@@ -773,6 +773,114 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+
+    (let ((p (make-<alpha> 1 2 3))
+	  (q (make-<alpha> 4 5 6)))
+
+      (check
+	  (with-record-fields ((((a1 a) (b1 b) (c1 c)) <alpha> p)
+			       (((a2 a) (b2 b) (c2 c)) <alpha> q))
+	    (set! a1 10)
+	    (set! a2 20)
+	    (list a1 b1 c1 a2 b2 c2))
+	=> '(10 2 3 20 5 6))
+
+      #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((o (make-<gamma> 1 2 3
+			 4 5 6
+			 7 8 9)))
+
+    (check
+	(with-record-fields* ((a <gamma> o))
+	  o.a)
+      => 1)
+
+    (check
+    	(with-record-fields* (((a) <gamma> o))
+    	  o.a)
+      => 1)
+
+    (check
+	(with-record-fields* ((a <gamma> o)
+			      (b <gamma> o)
+			      (c <gamma> o)
+			      (d <gamma> o)
+			      (e <gamma> o)
+			      (f <gamma> o)
+			      (g <gamma> o)
+			      (h <gamma> o)
+			      (i <gamma> o))
+	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+    	(with-record-fields* (((a b c d e f g h i) <gamma> o))
+    	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+    	(with-record-fields* (((a b c) <gamma> o)
+			      (d <gamma> o)
+			      (e <gamma> o)
+			      ((f g) <gamma> o)
+			      (h <gamma> o)
+			      (i <gamma> o))
+    	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+    	(with-record-fields* (((a b c) <gamma> o)
+			      ((d e) <gamma> o)
+			      ((f g) <gamma> o)
+			      ((h i) <gamma> o))
+    	  (set! o.a 10)
+    	  (set! o.c 30)
+    	  (set! o.d 40)
+    	  (set! o.f 60)
+    	  (set! o.g 70)
+    	  (set! o.i 90)
+    	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(10 2 30 40 5 60 70 8 90))
+
+    ;;Raise an  "unknown field" error.  Commented out  because the error
+    ;;is raised at expansion time, so it is not stoppable with GUARD.
+    ;;
+    #;(check
+    	(with-record-fields* ((ciao <gamma> o))
+    	  123)
+      => #f)
+
+    ;;Raise an "attempt to mutate immutable field" error.  Commented out
+    ;;because  the error  is  raised at  expansion  time, so  it is  not
+    ;;stoppable with GUARD.
+    ;;
+    #;(check
+    	(with-record-fields* ((b <gamma> o))
+    	  (set! o.b 1)
+    	  o.b)
+      => #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+    (let ((p (make-<alpha> 1 2 3))
+	  (q (make-<alpha> 4 5 6)))
+
+      (check
+	  (with-record-fields* (((a b c) <alpha> p)
+			        ((a b c) <alpha> q))
+	    (set! p.a 10)
+	    (set! q.a 20)
+	    (list p.a p.b p.c q.a q.b q.c))
+	=> '(10 2 3 20 5 6))
+
+      #f)
+
   #t)
 
 

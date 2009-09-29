@@ -142,6 +142,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "records/helpers.sls"
+		 "records/helpers.slfasl")
+
 (compile-library "records.sls"
 		 "records.slfasl")
 

@@ -852,7 +852,7 @@ Syntax--case
 
 Examples
 
-* stdlib syntax-case define-macro::     Common Lisp style macros.
+* stdlib syntax-case lisp::             Common Lisp style macros.
 
 Hashtables
 
@@ -1145,10 +1145,14 @@ Record utilities
 Binding accessors and mutators
 
 * records fields intro::        Usage and conventions.
+* records fields inspect::      Extracting values from record type
+                                descriptors.
 * records fields define::       Defining bindings to accessors
                                 and mutators.
 * records fields with::         Selecting field--specific accessors
                                 and mutators.
+* records fields identifier::   Accessing fields through identifier
+                                macros.
 
 A simple object system
 
@@ -9475,9 +9479,9 @@ expressions.
 
 Each @meta{keyword} is an identifier, and each @meta{expression} is an
 expression that evaluates, at macro--expansion time, to a
-@emph{transformer}.  Transformers may be created by @func{syntax-rules}
+@dfn{transformer}.  Transformers may be created by @func{syntax-rules}
 or @func{identifier-syntax} or by one of the other mechanisms described
-in library chapter ``@func{syntax-case}''.  It is a syntax violation for
+in @ref{stdlib syntax-case, Syntax--case}.  It is a syntax violation for
 @meta{keyword} to appear more than once in the list of keywords being
 bound.
 
@@ -9498,25 +9502,24 @@ detect if the value of @meta{expression} cannot possibly be a
 transformer.
 
 @example
-(let-syntax ([when (syntax-rules ()
+(let-syntax ((when (syntax-rules ()
                      ((when test stmt1 stmt2 ...)
                       (if test
-                          (begin stmt1
-                                 stmt2 ...))))])
-  (let ([if #t])
+                          (begin stmt1 stmt2 ...))))))
+  (let ((if #t))
     (when if (set! if 'now))
     if))
 @result{}  now
 
-(let ([x 'outer])
-  (let-syntax ([m (syntax-rules () ((m) x))])
-    (let ([x 'inner])
+(let ((x 'outer))
+  (let-syntax ((m (syntax-rules () ((m) x))))
+    (let ((x 'inner))
       (m))))
 @result{}  outer
 
 (let ()
-  (let-syntax ([def (syntax-rules ()
-                      [(def stuff ...) (define stuff ...)])])
+  (let-syntax ((def (syntax-rules ()
+                      ((def stuff ...) (define stuff ...)))))
     (def foo 42))
   foo)
 @result{} 42
@@ -9552,18 +9555,21 @@ transformer.
 
 @example
 (letrec-syntax
-    ([my-or (syntax-rules ()
-              [(my-or)    #f]
-              [(my-or e)  e]
-              [(my-or e1 e2 ...)  (let ([temp e1])
-                                    (if temp
-                                        temp
-                                     (my-or e2 ...)))])])
-  (let ([x      #f]
-        [y      7]
-        [temp   8]
-        [let    odd?]
-        [if     even?])
+    ((my-or (syntax-rules ()
+              ((my-or)
+               #f)
+              ((my-or e)
+               e)
+              ((my-or e1 e2 ...)
+               (let ((temp e1))
+                 (if temp
+                     temp
+                   (my-or e2 ...)))))))
+  (let ((x     #f)
+        (y     7)
+        (temp  8)
+        (let   odd?)
+        (if    even?))
     (my-or x (let temp) (if y) y)))
 @result{} 7
 @end example
@@ -9572,31 +9578,30 @@ The following example highlights how @func{let-syntax} and
 @func{letrec-syntax} differ.
 
 @example
-(let ([f (lambda (x) (+ x 1))])
-  (let-syntax ([f (syntax-rules ()
-                    [(f x) x])]
-               [g (syntax-rules ()
-                    [(g x) (f x)])])
+(let ((f (lambda (x) (+ x 1))))
+  (let-syntax ((f (syntax-rules ()
+                    ((f x) x)))
+               (g (syntax-rules ()
+                    ((g x) (f x)))))
     (list (f 1) (g 1))))
 @result{} (1 2)
 
-(let ([f (lambda (x) (+ x 1))])
-  (letrec-syntax ([f (syntax-rules ()
-                       [(f x) x])]
-                  [g (syntax-rules ()
-                       [(g x) (f x)])])
+(let ((f (lambda (x) (+ x 1))))
+  (letrec-syntax ((f (syntax-rules ()
+                       ((f x) x)))
+                  (g (syntax-rules ()
+                       ((g x) (f x)))))
     (list (f 1) (g 1))))
 @result{} (1 1)
 @end example
 
 The two expressions are identical except that the @func{let-syntax} form
 in the first expression is a @func{letrec-syntax} form in the second.
-In the first expression, the @code{f} occurring in @code{g} refers to
-the @func{let}-bound variable @code{f}, whereas in the second it refers
+In the first expression, the @samp{f} occurring in @samp{g} refers to
+the @func{let}--bound variable @samp{f}, whereas in the second it refers
 to the keyword @code{f} whose binding is established by the
 @func{letrec-syntax} form.
 @end deffn
-
 
 @c page
 @node baselib transformers
@@ -9607,12 +9612,9 @@ to the keyword @code{f} whose binding is established by the
 @cindex Transformers, macro
 
 
-@xref{examples macros}, for examples on macro writing.
-
-
-@deffn {Syntax @code{(expand)}} syntax-rules (@meta{literal} @dots{}) @meta{syntax rule} @dots{}
-@deffnx {Auxiliary Syntax @code{(expand)}} _
-@deffnx {Auxiliary Syntax @code{(expand)}} ...
+@deffn {Syntax (for @samp{expand})} syntax-rules (@meta{literal} @dots{}) @meta{syntax rule} @dots{}
+@deffnx {Auxiliary Syntax (for @samp{expand})} _
+@deffnx {Auxiliary Syntax (for @samp{expand})} ...
 Each @meta{literal} must be an identifier.  Each @meta{syntax rule} must
 have the following form:
 
@@ -9622,7 +9624,7 @@ have the following form:
 
 An @meta{srpattern} is a restricted form of @meta{pattern}, namely, a
 nonempty @meta{pattern} in one of four parenthesized forms below whose
-first subform is an identifier or an underscore @code{_}.  A
+first subform is an identifier or an underscore @samp{_}.  A
 @meta{pattern} is an identifier, constant, or one of the following.
 
 @example
@@ -9634,7 +9636,7 @@ first subform is an identifier or an underscore @code{_}.  A
 #(@meta{pattern} @dots{} @meta{pattern} @meta{ellipsis} @meta{pattern} @dots{})
 @end example
 
-An @meta{ellipsis} is the identifier @code{...} (three periods).
+An @meta{ellipsis} is the identifier @samp{...} (three periods).
 
 A @meta{template} is a pattern variable, an identifier that is not a
 pattern variable, a pattern datum, or one of the following.
@@ -9658,11 +9660,11 @@ hygienically according to the template.  It is a syntax violation when
 no match is found.
 
 An identifier appearing within a @meta{pattern} may be an underscore
-@code{_}, a literal identifier listed in the list of literals
-@code{(@meta{literal} @dots{})}, or an ellipsis @code{...}.  All other
-identifiers appearing within a @meta{pattern} are @emph{pattern
-variables}.  It is a syntax violation if an ellipsis or underscore
-appears in @code{(@meta{literal} @dots{})}.
+@samp{_}, an ellipsis @samp{...} or a literal identifier listed in the
+list of literals @code{(@meta{literal} @dots{})}.  All other identifiers
+appearing within a @meta{pattern} are @dfn{pattern variables}.  It is a
+syntax violation if an ellipsis or underscore appears in
+@code{(@meta{literal} @dots{})}.
 
 While the first subform of @meta{srpattern} may be an identifier, the
 identifier is not involved in the matching and is not considered a
@@ -9672,9 +9674,9 @@ Pattern variables match arbitrary input subforms and are used to refer
 to elements of the input.  It is a syntax violation if the same pattern
 variable appears more than once in a @meta{pattern}.
 
-Underscores, @code{_}, also match arbitrary input subforms but are not
-pattern variables and so cannot be used to refer to those elements.
-Multiple underscores may appear in a @meta{pattern}.
+Underscores also match arbitrary input subforms but are not pattern
+variables and so cannot be used to refer to those elements.  Multiple
+underscores may appear in a @meta{pattern}.
 
 A @meta{literal} identifier matches an input subform if and only if the
 input subform is an identifier and either both its occurrence in the
@@ -9690,7 +9692,7 @@ only if one of the following holds:
 
 @itemize
 @item
-@math{P} is an underscore (@code{_}).
+@math{P} is an underscore (@samp{_}).
 
 @item
 @math{P} is a pattern variable.
@@ -9734,7 +9736,7 @@ whose @math{n}-th cdr matches @math{P_x}.
 @end example
 
 @noindent
-where @meta{ellipsis} is the identifier @code{...}  and @math{F} is a
+where @meta{ellipsis} is the identifier @samp{...}  and @math{F} is a
 list of @math{n} elements whose first @math{k} elements match @math{P_1}
 through @math{P_k}, whose next @math{m-k} elements each match
 @math{P_e}, and whose remaining @math{n-m} elements match @math{P_(m+1)}
@@ -9748,7 +9750,7 @@ through @math{P_n}.
 @end example
 
 @noindent
-where @meta{ellipsis} is the identifier @code{...} and @math{F} is a
+where @meta{ellipsis} is the identifier @samp{...} and @math{F} is a
 list or improper list of @math{n} elements whose first @math{k} elements
 match @math{P_1} through @math{P_k}, whose next @math{m-k} elements each
 match @math{P_e}, whose next @math{n-m} elements match @math{P_(m+1)}
@@ -9774,7 +9776,7 @@ through @math{P_n}.
 @end example
 
 @noindent
-where @meta{ellipsis} is the identifier @code{...} and @math{F} is a
+where @meta{ellipsis} is the identifier @samp{...} and @math{F} is a
 vector of @math{n} or more elements whose first @math{k} elements match
 @math{P_1} through @math{P_k}, whose next @math{m-k} elements each match
 @math{P_e}, and whose remaining @math{n-m} elements match @math{P_(m+1)}
@@ -9811,7 +9813,7 @@ A template of the form @code{(@meta{ellipsis} @meta{template})} is
 identical to @meta{template}, except that ellipses within the template
 have no special meaning.  That is, any ellipses contained within
 @meta{template} are treated as ordinary identifiers.  In particular, the
-template @code{(... ...)} produces a single ellipsis, @code{...}.  This
+template @code{(... ...)} produces a single ellipsis, @samp{...}.  This
 allows syntactic abstractions to expand into forms containing ellipses.
 
 @example
@@ -9824,7 +9826,8 @@ allows syntactic abstractions to expand into forms containing ellipses.
           (begin expr (... ...))))))))
 
 (be-like-begin sequence)
-(sequence 1 2 3 4) @result{} 4
+(sequence 1 2 3 4)
+@result{} 4
 @end example
 
 As an example for hygienic use of auxiliary identifier, if @func{let}
@@ -9862,9 +9865,9 @@ which would result in an assertion violation.
 @end deffn
 
 
-@deffn {Syntax @code{(expand)}} identifier-syntax @meta{template}
-@deffnx {Syntax @code{(expand)}} identifier-syntax (@hyperi{id} @metai{template}) ((set! @hyperii{id} @meta{pattern}) @hyperii{template})
-@deffnx {Auxiliary Syntax @code{(expand)}} set!
+@deffn {Syntax (for @samp{expand})} identifier-syntax @meta{template}
+@deffnx {Syntax (for @samp{expand})} identifier-syntax (@hyperi{id} @metai{template}) ((set! @hyperii{id} @meta{pattern}) @hyperii{template})
+@deffnx {Auxiliary Syntax (for @samp{expand})} set!
 The @meta{id}s must be identifiers.  The @meta{template}s must be as for
 @func{syntax-rules}.
 
@@ -9876,28 +9879,30 @@ the binding are replaced by @meta{template}.
 (define p (cons 4 5))
 (define-syntax p.car (identifier-syntax (car p)))
 p.car           @result{} 4
-(set! p.car 15) @result{} exception &syntax
+(set! p.car 15) @error{} exception &syntax
 @end example
 
 The second, more general, form of @func{identifier-syntax} permits the
-transformer to determine what happens when @code{set!} is used.  In this
+transformer to determine what happens when @samp{set!} is used.  In this
 case, uses of the identifier by itself are replaced by
-@hyperi{template}, and uses of @code{set!} with the identifier are
+@hyperi{template}, and uses of @samp{set!} with the identifier are
 replaced by @hyperii{template}.
 
 @example
 (define p (cons 4 5))
+
 (define-syntax p.car
   (identifier-syntax
-    [_ (car p)]
-    [(set! _ e) (set-car! p e)]))
+    (_
+     (car p))
+    ((set! _ e)
+     (set-car! p e))))
+
 (set! p.car 15)
 p.car           @result{} 15
 p               @result{} (15 . 5)
 @end example
 @end deffn
-
-
 
 @c page
 @node baselib tail call
@@ -16438,9 +16443,8 @@ controlled identifier capture.
 
 Examples
 
-* stdlib syntax-case define-macro::     Common Lisp style macros.
+* stdlib syntax-case lisp::             Common Lisp style macros.
 @end menu
-
 
 @c page
 @node stdlib syntax-case hygiene
@@ -16595,12 +16599,13 @@ return a syntax object representing the output.  The transformer is
 called by the expander whenever a reference to a keyword with which it
 has been associated is found.  If the keyword appears in the car of a
 list--structured input form, the transformer receives the entire
-list--structured form, and its output replaces the entire form.  Except
-with variable transformers (see below), if the keyword is found in any
-other definition or expression context, the transformer receives a
-wrapped syntax object representing just the keyword reference, and its
+list--structured form, and its output replaces the entire form.
+
+Except with variable transformers (see below), if the keyword is found
+in any other definition or expression context, the transformer receives
+a wrapped syntax object representing just the keyword reference, and its
 output replaces just the reference.  Except with variable transformers,
-an exception with condition type @code{&syntax} is raised if the keyword
+an exception with condition type @samp{&syntax} is raised if the keyword
 appears on the left--hand side of a @func{set!} expression.
 
 
@@ -16608,7 +16613,7 @@ appears on the left--hand side of a @func{set!} expression.
 @var{proc} should accept one argument, a wrapped syntax object, and
 return a syntax object.
 
-The @func{make-variable-transformer} procedure creates a @emph{variable
+The @func{make-variable-transformer} procedure creates a @dfn{variable
 transformer}.  A variable transformer is like an ordinary transformer
 except that, if a keyword associated with a variable transformer appears
 on the left--hand side of a @func{set!} expression, an exception is not
@@ -16622,14 +16627,13 @@ it as described.  An implementation may check whether @var{proc} is an
 appropriate argument before applying it.
 @end deffn
 
-
 @c page
 @node stdlib syntax-case parsing
 @subsection Parsing input and producing output
 
 
 Transformers can destructure their input with @func{syntax-case} and
-rebuild their output with @code{syntax}.
+rebuild their output with @func{syntax}.
 
 
 @deffn Syntax syntax-case @hyper{expression} (@hyper{literal} @dots{}) @hyper{syntax-case clause} @dots{}
@@ -16657,16 +16661,16 @@ A @hyper{pattern} is an identifier, constant, or one of the following.
 #(@hyper{pattern} @dots{} @hyper{pattern} @hyper{ellipsis} @hyper{pattern} @dots{})
 @end example
 
-An @hyper{ellipsis} is the identifier ``@code{...}'' (three periods).
+An @hyper{ellipsis} is the identifier @samp{...} (three periods).
 
 An identifier appearing within a @hyper{pattern} may be an underscore
-@code{_}, a literal identifier listed in the list of literals
-@code{(@hyper{literal} @dots{})}, or an ellipsis @code{...}.  All other
-identifiers appearing within a @hyper{pattern} are @emph{pattern
+@samp{_}, an ellipsis @samp{...} or a literal identifier listed in the
+list of literals @samp{(@hyper{literal} @dots{})}.  All other
+identifiers appearing within a @hyper{pattern} are @dfn{pattern
 variables}.  It is a syntax violation if an ellipsis or underscore
-appears in @code{(@hyper{literal} @dots{})}.
+appears in @samp{(@hyper{literal} @dots{})}.
 
-@code{_} and @code{...} are the same as in the @rsixlibrary{base}
+@samp{_} and @samp{...} are the same as in the @rsixlibrary{base}
 library.
 
 Pattern variables match arbitrary input subforms and are used to refer
@@ -16686,100 +16690,100 @@ no lexical binding.
 A subpattern followed by an ellipsis can match zero or more elements of
 the input.
 
-More formally, an input form @emph{F} matches a pattern @emph{P} if and
+More formally, an input form @math{F} matches a pattern @math{P} if and
 only if one of the following holds:
 
 @itemize
 @item
-@emph{P} is an underscore (@code{_}).
+@math{P} is an underscore.
 
 @item
-@emph{P} is a pattern variable.
+@math{P} is a pattern variable.
 
 @item
-@emph{P} is a literal identifier and @emph{F} is an equivalent
+@math{P} is a literal identifier and @math{F} is an equivalent
 identifier in the sense of @func{free-identifier=?}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
 (P_1 ... P_n)
 @end example
 
 @noindent
-and @emph{F} is a list of @emph{n} elements that match @emph{P_1}
-through @emph{P_n}.
+and @math{F} is a list of @math{n} elements that match @math{P_1}
+through @math{P_n}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
 (P_1 ... P_n . P_x)
 @end example
 
 @noindent
-and @emph{F} is a list or improper list of @emph{n} or more elements
-whose first @emph{n} elements match @emph{P_1} through @emph{P_n} and
-whose @emph{n}th cdr matches @emph{P_x}.
+and @math{F} is a list or improper list of @math{n} or more elements
+whose first @math{n} elements match @math{P_1} through @math{P_n} and
+whose @math{n}th cdr matches @math{P_x}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
 (P_1 ... P_k P_e @hyper{ellipsis} P_(m+1) ... P_n)
 @end example
 
 @noindent
-where @hyper{ellipsis} is the identifier @code{...}  and @emph{F} is a
-proper list of @emph{n} elements whose first @emph{k} elements match
-@emph{P_1} through @emph{P_k}, whose next @emph{m-k} elements each match
-@emph{P_e}, and whose remaining @emph{n-m} elements match @emph{P_(m+1)}
-through @emph{P_n}.
+where @hyper{ellipsis} is the identifier @samp{...}  and @math{F} is a
+proper list of @math{n} elements whose first @math{k} elements match
+@math{P_1} through @math{P_k}, whose next @math{m-k} elements each match
+@math{P_e}, and whose remaining @math{n-m} elements match @math{P_(m+1)}
+through @math{P_n}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
 (P_1 ... P_k P_e @hyper{ellipsis} P_(m+1) ... P_n . P_x)
 @end example
 
 @noindent
-where @hyper{ellipsis} is the identifier @code{...}  and @emph{F} is a
-list or improper list of @emph{n} elements whose first @emph{k} elements
-match @emph{P_1} through @emph{P_k}, whose next @emph{m-k} elements each
-match @emph{P_e}, whose next @emph{n-m} elements match @emph{P_(m+1)}
-through @emph{P_n}, and whose @emph{n}th and final cdr matches
-@emph{P_x}.
+where @hyper{ellipsis} is the identifier @samp{...}  and @math{F} is a
+list or improper list of @math{n} elements whose first @math{k} elements
+match @math{P_1} through @math{P_k}, whose next @math{m-k} elements each
+match @math{P_e}, whose next @math{n-m} elements match @math{P_(m+1)}
+through @math{P_n}, and whose @math{n}th and final cdr matches
+@math{P_x}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
 #(P_1 ... P_n)
 @end example
 
 @noindent
-and @emph{F} is a vector of @emph{n} elements that match @emph{P_1}
-through @emph{P_n}.
+and @math{F} is a vector of @math{n} elements that match @math{P_1}
+through @math{P_n}.
 
 @item
-@emph{P} is of the form:
+@math{P} is of the form:
 
 @example
 #(P_1 ... P_k P_e @hyper{ellipsis} P_(m+1) ... P_n)
 @end example
 
 @noindent
-where @hyper{ellipsis} is the identifier @code{...}  and @emph{F} is a
-vector of @emph{n} or more elements whose first @emph{k} elements match
-@emph{P_1} through @emph{P_k}, whose next @emph{m-k} elements each match
-@emph{P_e}, and whose remaining @emph{n-m} elements match @emph{P_(m+1)}
-through @emph{P_n}.
+where @hyper{ellipsis} is the identifier @samp{...}  and @math{F} is a
+vector of @math{n} or more elements whose first @math{k} elements match
+@math{P_1} through @math{P_k}, whose next @math{m-k} elements each match
+@math{P_e}, and whose remaining @math{n-m} elements match @math{P_(m+1)}
+through @math{P_n}.
 
 @item
-@emph{P} is a pattern datum (any nonlist, nonvector, nonsymbol datum)
-and @emph{F} is equal to @emph{P} in the sense of the @func{equal?}
+@math{P} is a pattern datum (any nonlist, nonvector, nonsymbol datum)
+and @math{F} is equal to @math{P} in the sense of the @func{equal?}
 procedure.
 @end itemize
 
@@ -16806,7 +16810,7 @@ constraints beyond the basic structure of the input.
 Pattern variables contained within a clause's @hyper{pattern} are bound
 to the corresponding pieces of the input value within the clause's
 @hyper{fender} (if present) and @hyper{output expression}.  Pattern
-variables can be referenced only within @code{syntax} expressions (see
+variables can be referenced only within @func{syntax} expressions (see
 below).  Pattern variables occupy the same name space as program
 variables and keywords.
 
@@ -16821,19 +16825,18 @@ except that:
 
 @enumerate
 @item
-the values of pattern variables appearing within @hyper{template} are
-inserted into @hyper{template},
+The values of pattern variables appearing within @hyper{template} are
+inserted into @hyper{template}.
 
 @item
-contextual information associated both with the input and with the
-template is retained in the output to support lexical scoping, and
+Contextual information associated both with the input and with the
+template is retained in the output to support lexical scoping.
 
 @item
-the value of a @func{syntax} expression is a syntax object.
+The value of a @func{syntax} expression is a syntax object.
 @end enumerate
 
-@quotation
-@emph{Note:} The following sharp--quote expression:
+The following sharp--quote expression:
 
 @example
 #'@hyper{template}
@@ -16848,7 +16851,6 @@ is equivalent to:
 
 @noindent
 @ref{lang lex datum abbreviations} for the other abbreviations.
-@end quotation
 
 A @hyper{template} can be one among: a pattern variable, an identifier
 that is not a pattern variable, a pattern datum, or one of the
@@ -16863,72 +16865,72 @@ following.
 A @hyper{subtemplate} is a @hyper{template} followed by zero or more
 ellipses.
 
-The value of a @code{syntax} form is a copy of @hyper{template} in which
+The value of a @func{syntax} form is a copy of @hyper{template} in which
 the pattern variables appearing within the template are replaced with
 the input subforms to which they are bound:
 
 @itemize
 @item
-pattern data and identifiers that are not pattern variables or ellipses
-are copied directly into the output;
+Pattern data and identifiers that are not pattern variables or ellipses
+are copied directly into the output.
 
 @item
-a subtemplate followed by an ellipsis expands into zero or more
-occurrences of the subtemplate;
+A subtemplate followed by an ellipsis expands into zero or more
+occurrences of the subtemplate.
 
 @item
-pattern variables that occur in subpatterns followed by one or more
+Pattern variables that occur in subpatterns followed by one or more
 ellipses may occur only in subtemplates that are followed by (at least)
 as many ellipses:
 
 @itemize -
 @item
-these pattern variables are replaced in the output by the input subforms
-to which they are bound, distributed as specified;
+These pattern variables are replaced in the output by the input subforms
+to which they are bound, distributed as specified.
 
 @item
-if a pattern variable is followed by more ellipses in the subtemplate
+If a pattern variable is followed by more ellipses in the subtemplate
 than in the associated subpattern, the input form is replicated as
-necessary;
+necessary.
 
 @item
-the subtemplate must contain at least one pattern variable from a
+The subtemplate must contain at least one pattern variable from a
 subpattern followed by an ellipsis, and for at least one such pattern
 variable, the subtemplate must be followed by exactly as many ellipses
 as the subpattern in which the pattern variable appears (otherwise, the
 expander would not be able to determine how many times the subform
-should be repeated in the output);
+should be repeated in the output).
 @end itemize
 @end itemize
 
 @noindent
-it is a syntax violation if the above constraints are not met.
+It is a syntax violation if the above constraints are not met.
 
-A template of the form @code{(@hyper{ellipsis} @hyper{template})} is
+A template of the form @samp{(@hyper{ellipsis} @hyper{template})} is
 identical to @hyper{template}, except that ellipses within the template
 have no special meaning.  That is, any ellipses contained within
 @hyper{template} are treated as ordinary identifiers.  In particular,
-the template @code{(... ...)} produces a single ellipsis.  This allows
+the template @samp{(... ...)} produces a single ellipsis.  This allows
 macro uses to expand into forms containing ellipses.
 
 The output produced by @func{syntax} is wrapped or unwrapped according
-to the following rules.
+to the following rules:
 
 @itemize
 @item
-the copy of @code{(@hyperi{t} .  @hyperii{t})} is a pair if @hyperi{t}
-or @hyperii{t} contain any pattern variables,
+The copy of @samp{(@hyperi{t} .  @hyperii{t})} is a pair if @hyperi{t}
+or @hyperii{t} contain any pattern variables.
 
 @item
-the copy of @code{(@hyper{t} @hyper{ellipsis})} is a list if @hyper{t}
-contains any pattern variables,
+The copy of @samp{(@hyper{t} @hyper{ellipsis})} is a list if @hyper{t}
+contains any pattern variables.
 
 @item
-the copy of @code{#(@hyperi{t} ... @hypern{t})} is a vector if any of
-@hyperi{t}, @dots{}, @hypern{t} contain any pattern variables,
+The copy of @samp{#(@hyperi{t} ... @hypern{t})} is a vector if any of
+@hyperi{t}, @dots{}, @hypern{t} contain any pattern variables.
 
 @item
-the copy of any portion of @hyper{t} not containing any pattern
+The copy of any portion of @hyper{t} not containing any pattern
 variables is a wrapped syntax object.
 @end itemize
 
@@ -16938,58 +16940,111 @@ wrapped if and only if the corresponding input subforms are wrapped.
 
 
 The following definitions of @func{or} illustrate @func{syntax-case} and
-@func{syntax}.  The second is equivalent to the first but uses the
-@code{#'} prefix instead of the full @func{syntax} form.
+@func{syntax}; the second is equivalent to the first but uses the
+sharp--quote prefix instead of the full @func{syntax} form:
 
 @example
 (define-syntax or
   (lambda (x)
     (syntax-case x ()
-      [(_) (syntax #f)]
-      [(_ e) (syntax e)]
-      [(_ e1 e2 e3 ...)
-       (syntax (let ([t e1])
-                 (if t t (or e2 e3 ...))))])))
+      ((_)
+       (syntax #f))
+      ((_ e)
+       (syntax e))
+      ((_ e1 e2 e3 ...)
+       (syntax (let ((t e1))
+                 (if t t (or e2 e3 ...))))))))
 
 (define-syntax or
   (lambda (x)
     (syntax-case x ()
-      [(_) #'#f]
-      [(_ e) #'e]
-      [(_ e1 e2 e3 ...)
-       #'(let ([t e1])
-           (if t t (or e2 e3 ...)))])))
+      ((_)
+       #'#f)
+      ((_ e)
+       #'e)
+      ((_ e1 e2 e3 ...)
+       #'(let ((t e1))
+           (if t t (or e2 e3 ...)))))))
 @end example
 
-The examples below define @emph{identifier macros}, macro uses
-supporting keyword references that do not necessarily appear in the
-first position of a list--structured form.  The second example uses
+The examples below define @dfn{identifier macros}, macro uses supporting
+keyword references that do not necessarily appear in the first position
+of a list--structured form; the second example uses
 @func{make-variable-transformer} to handle the case where the keyword
-appears on the left-hand side of a @func{set!}  expression.
+appears on the left-hand side of a @func{set!} expression:
 
 @example
 (define p (cons 4 5))
 (define-syntax p.car
   (lambda (x)
     (syntax-case x ()
-      [(_ . rest) #'((car p) . rest)]
-      [_  #'(car p)])))
+
+      ((_ . rest)
+       #'((car p) . rest))
+
+      (_
+       #'(car p)))))
 
 p.car                   @result{} 4
-(set! p.car 15)         @result{} exception &syntax
+(set! p.car 15)         @error{} exception &syntax
 
 (define p (cons 4 5))
 (define-syntax p.car
   (make-variable-transformer
     (lambda (x)
       (syntax-case x (set!)
-        [(set! _ e) #'(set-car! p e)]
-        [(_ . rest) #'((car p) . rest)]
-        [_  #'(car p)]))))
+
+        ((set! _ e)
+         #'(set-car! p e))
+
+        ((_ . rest)
+         #'((car p) . rest))
+
+        (_
+         #'(car p))))))
+
 (set! p.car 15)
 
 p.car                   @result{} 15
 p                       @result{} (15 . 5)
+@end example
+
+Any @func{syntax-rules} form can be expressed with @func{syntax-case} by
+making the @func{lambda} expression and @func{syntax} expressions
+explicit, and @func{syntax-rules} may be defined in terms of
+@func{syntax-case} as follows.
+
+@example
+(define-syntax syntax-rules
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (lit ...) ((k . p) t) ...)
+       (for-all identifier? #'(lit ... k ...))
+       #'(lambda (x)
+           (syntax-case x (lit ...)
+             ((_ . p) #'t) ...))))))
+@end example
+
+The @func{identifier-syntax} form of the base library (@pxref{baselib
+transformers}) may be defined in terms of @func{syntax-case},
+@func{syntax}, and @func{make-variable-transformer} as follows.
+
+@example
+(define-syntax identifier-syntax
+  (syntax-rules (set!)
+    ((_ e)
+     (lambda (x)
+       (syntax-case x ()
+         (id (identifier? #'id) #'e)
+         ((_ x (... ...)) #'(e x (... ...))))))
+    ((_ (id exp1) ((set! var val) exp2))
+     (and (identifier? #'id) (identifier? #'var))
+     (make-variable-transformer
+       (lambda (x)
+         (syntax-case x (set!)
+           ((set! var val) #'exp2)
+           ((id x (... ...)) #'(exp1 x (... ...)))
+           (id (identifier? #'id) #'exp1)))))))
 @end example
 
 @c page
@@ -17067,13 +17122,15 @@ to a binding, i.e., both are unbound, they are considered to resolve to
 the same binding.)
 
 Operationally, two identifiers are considered equivalent by
-@func{free-identifier=?} if and only the topmost matching substitution
-for each maps to the same binding or the identifiers have the same name
-and no matching substitution.
+@func{free-identifier=?} if and only if the topmost matching
+substitution for each maps to the same binding or the identifiers have
+the same name and no matching substitution.
+@end deffn
+
 
 The @func{syntax-case} and @func{syntax-rules} forms internally use
 @func{free-identifier=?} to compare identifiers listed in the literals
-list against input identifiers.
+list against input identifiers:
 
 @example
 (let ((fred 17))
@@ -17093,55 +17150,57 @@ list against input identifiers.
 @end example
 
 The following definition of unnamed @func{let} uses
-@func{bound-identifier=?} to detect duplicate identifiers.
+@func{bound-identifier=?} to detect duplicate identifiers:
 
 @example
 (define-syntax let
   (lambda (x)
-    (define unique-ids?
-      (lambda (ls)
-        (or (null? ls)
-            (and (let notmem?
-                        ((x (car ls)) (ls (cdr ls)))
-                   (or (null? ls)
-                       (and (not (bound-identifier=?
-                                   x (car ls)))
-                            (notmem? x (cdr ls)))))
-                 (unique-ids? (cdr ls))))))
+    (define (unique-ids? ls)
+      (or (null? ls)
+          (and (let notmem? ((x  (car ls))
+                             (ls (cdr ls)))
+                 (or (null? ls)
+                     (and (not (bound-identifier=? x (car ls)))
+                          (notmem? x (cdr ls)))))
+               (unique-ids? (cdr ls)))))
     (syntax-case x ()
       ((_ ((i v) ...) e1 e2 ...)
        (unique-ids? #'(i ...))
        #'((lambda (i ...) e1 e2 ...) v ...)))))
 @end example
 
-The argument @code{#'(i ...)} to @func{unique-ids?} is guaranteed to be
-a list by the rules given in the description of @func{syntax} above.
+@noindent
+the argument @samp{#'(i ...)} to @func{unique-ids?} is guaranteed to be
+a list by the rules given in the description of @func{syntax}.
 
 With this definition of @func{let}:
 
 @example
-(let ((a 3) (a 4)) (+ a a))    @result{} exception &syntax
+(let ((a 3) (a 4))
+  (+ a a))
+@error{} exception &syntax
 @end example
 
-However,
+@noindent
+however:
 
 @example
 (let-syntax
-  ((dolet (lambda (x)
-            (syntax-case x ()
-              ((_ b)
-               #'(let ((a 3) (b 4)) (+ a b)))))))
+    ((dolet (lambda (x)
+              (syntax-case x ()
+                ((_ b)
+                 #'(let ((a 3) (b 4)) (+ a b)))))))
   (dolet a))
 @result{} 7
 @end example
 
 @noindent
-since the identifier @code{a} introduced by @func{dolet} and the
+since the identifier @samp{a} introduced by @func{dolet} and the
 identifier @code{a} extracted from the input form are not
 @func{bound-identifier=?}.
 
-Rather than including @code{else} in the literals list as before, this
-version of @func{case} explicitly tests for @code{else} using
+Rather than including @samp{else} in the literals list as before, this
+version of @func{case} explicitly tests for @samp{else} using
 @func{free-identifier=?}.
 
 @example
@@ -17166,20 +17225,19 @@ version of @func{case} explicitly tests for @code{else} using
              ...))))))
 @end example
 
-With either definition of @func{case}, @code{else} is not recognized as
-an auxiliary keyword if an enclosing lexical binding for @code{else}
+With either definition of @func{case}, @samp{else} is not recognized as
+an auxiliary keyword if an enclosing lexical binding for @samp{else}
 exists.  For example,
 
 @example
 (let ((else @false{}))
-  (case 0 (else (write "oops"))))    @result{} exception &syntax
+  (case 0 (else (write "oops"))))
+@error{} exception &syntax
 @end example
 
 @noindent
-since @code{else} is bound lexically and is therefore not the same
-@code{else} that appears in the definition of @func{case}.
-@end deffn
-
+since @samp{else} is bound lexically and is therefore not the same
+@samp{else} that appears in the definition of @func{case}.
 
 @c page
 @node stdlib syntax-case conversion
@@ -17192,13 +17250,12 @@ corresponding Scheme datum.
 
 Identifiers stripped in this manner are converted to their symbolic
 names, which can then be compared with @func{eq?}.  Thus, a predicate
-@code{symbolic-identifier=?} might be defined as follows.
+@func{symbolic-identifier=?} might be defined as follows.
 
 @example
-(define symbolic-identifier=?
-  (lambda (x y)
-    (eq? (syntax->datum x)
-         (syntax->datum y))))
+(define (symbolic-identifier=? x y)
+  (eq? (syntax->datum x)
+       (syntax->datum y)))
 @end example
 @end deffn
 
@@ -17219,7 +17276,7 @@ behave as if they were present in the input form, thus permitting the
 definition of macros that introduce visible bindings for or references
 to identifiers that do not appear explicitly in the input form.  For
 example, the following defines a @func{loop} expression that uses this
-controlled form of identifier capture to bind the variable @code{break}
+controlled form of identifier capture to bind the variable @samp{break}
 to an escape procedure within the loop body.  (The derived
 @func{with-syntax} form is like @func{let} but binds pattern variables.)
 
@@ -17228,15 +17285,15 @@ to an escape procedure within the loop body.  (The derived
   (lambda (x)
     (syntax-case x ()
       ((k e ...)
-       (with-syntax
-           ((break (datum->syntax #'k 'break)))
+       (with-syntax ((break (datum->syntax #'k 'break)))
          #'(call-with-current-continuation
              (lambda (break)
                (let f () e ... (f)))))))))
 
 (let ((n 3) (ls '()))
   (loop
-    (if (= n 0) (break ls))
+    (when (= n 0)
+      (break ls))
     (set! ls (cons 'a ls))
     (set! n (- n 1))))
 @result{} (a a a)
@@ -17255,7 +17312,7 @@ Were @code{loop} to be defined as:
 @end example
 
 @noindent
-the variable @code{break} would not be visible in @code{e ...}.
+the variable @samp{break} would not be visible in @samp{e ...}.
 
 The datum argument @var{datum} may also represent an arbitrary Scheme
 form, as demonstrated by the following definition of @func{include}.
@@ -17263,24 +17320,26 @@ form, as demonstrated by the following definition of @func{include}.
 @example
 (define-syntax include
   (lambda (x)
-    (define read-file
-      (lambda (fn k)
-        (let ((p (open-file-input-port fn)))
-          (let f ((x (get-datum p)))
-            (if (eof-object? x)
-                (begin (close-port p) '())
-                (cons (datum->syntax k x)
-                      (f (get-datum p))))))))
+
+    (define (read-file fn k)
+      (let ((p (open-file-input-port fn)))
+        (let loop ((x (get-datum p)))
+          (if (eof-object? x)
+              (begin
+                (close-port p)
+                '())
+            (cons (datum->syntax k x)
+                  (loop (get-datum p)))))))
+
     (syntax-case x ()
       ((k filename)
        (let ((fn (syntax->datum #'filename)))
-         (with-syntax (((exp ...)
-                        (read-file fn #'k)))
+         (with-syntax (((exp ...) (read-file fn #'k)))
            #'(begin exp ...)))))))
 @end example
 
 @code{(include "filename")} expands into a @func{begin} expression
-containing the forms found in the file named by @code{"filename"}.  For
+containing the forms found in the file named by @samp{"filename"}.  For
 example, if the file @file{flib.ss} contains:
 
 @example
@@ -17313,7 +17372,6 @@ context, so that identifier references and definitions within those
 expressions are scoped where the @func{include} form appears.
 @end deffn
 
-
 @c page
 @node stdlib syntax-case temporaries
 @subsection Generating lists of temporaries
@@ -17345,18 +17403,17 @@ A definition of @func{letrec} equivalent to the one using
   (lambda (x)
     (syntax-case x ()
       ((_ ((i e) ...) b1 b2 ...)
-       (with-syntax
-           (((t ...) (generate-temporaries #'(i ...))))
-         #'(let ((i <undefined>) ...)
-             (let ((t e) ...)
-               (set! i t) ...
+       (with-syntax (((T ...)
+                      (generate-temporaries #'(i ...))))
+         #'(let ((i #f) ...)
+             (let ((T e) ...)
+               (set! i T) ...
                (let () b1 b2 ...))))))))
 @end example
 
 This version uses @func{generate-temporaries} instead of recursively
 defined helper to generate the necessary temporaries.
 @end deffn
-
 
 @c page
 @node stdlib syntax-case derived
@@ -17421,8 +17478,8 @@ where appropriate.
                  #'(let ((t e0)) (if t (e1 t) rest)))
                 ((e0 e1 e2 ...)
                  #'(if e0
-                        (begin e1 e2 ...)
-                        rest)))))))))))
+                       (begin e1 e2 ...)
+                     rest)))))))))))
 @end example
 @end deffn
 
@@ -17432,7 +17489,7 @@ where appropriate.
 @deffnx {Auxiliary Syntax} unsyntax-splicing
 The @func{quasisyntax} form is similar to @func{syntax}, but it allows
 parts of the quoted text to be evaluated, in a manner similar to the
-operation of @func{quasiquote} (@ref{baselib quasiquotation}).
+operation of @func{quasiquote} (@pxref{baselib quasiquotation}).
 
 Within a @func{quasisyntax} @var{template}, subforms of @func{unsyntax}
 and @func{unsyntax-splicing} forms are evaluated, and everything else is
@@ -17447,15 +17504,17 @@ are valid only within @func{quasisyntax} expressions.
 A @func{quasisyntax} expression may be nested, with each
 @func{quasisyntax} introducing a new level of syntax quotation and each
 @func{unsyntax} or @func{unsyntax-splicing} taking away a level of
-quotation.  An expression nested within @emph{n} @func{quasisyntax}
-expressions must be within @emph{n} @emph{unsyntax} or
+quotation.  An expression nested within @math{n} @func{quasisyntax}
+expressions must be within @math{n} @func{unsyntax} or
 @func{unsyntax-splicing} expressions to be evaluated.
 
-As noted in @ref{lang lex datum abbreviations},
-@code{#`@hyper{template}} is equivalent to @code{(quasisyntax
-@hyper{template})}, @code{#,@hyper{template}} is equivalent to
-@code{(unsyntax @hyper{template})}, and @code{#,@@@hyper{template}} is
-equivalent to @code{(unsyntax-splicing @hyper{template})}.
+As noted in @ref{lang lex datum abbreviations}:
+
+@example
+#`@hyper{template}   @equiv{} (quasisyntax @hyper{template})
+#,@hyper{template}   @equiv{} (unsyntax @hyper{template})
+#,@@@hyper{template}  @equiv{} (unsyntax-splicing @hyper{template})
+@end example
 
 The @func{quasisyntax} keyword can be used in place of
 @func{with-syntax} in many cases.  For example, the definition of
@@ -17474,14 +17533,14 @@ be rewritten using @func{quasisyntax} as follows.
                      ((else e1 e2 ...)
                       #'(begin e1 e2 ...))
                      (((k ...) e1 e2 ...)
-                      #'(if (memv t '(k ...))
-                            (begin e1 e2 ...))))
+                      #'(when (memv t '(k ...))
+                          (begin e1 e2 ...))))
                    (syntax-case c1 ()
                      (((k ...) e1 e2 ...)
                       #`(if (memv t '(k ...))
                             (begin e1 e2 ...)
-                            #,(f (car cmore)
-                                  (cdr cmore))))))))))))
+                          #,(f (car cmore)
+                               (cdr cmore))))))))))))
 @end example
 
 Uses of @func{unsyntax} and @func{unsyntax-splicing} with zero or more
@@ -17495,55 +17554,12 @@ forms in the output of the @func{quasisyntax} expander.
 @quotation
 @emph{Note:} Uses of @func{unsyntax} and @func{unsyntax-splicing} with
 zero or more than one subform enable certain idioms, such as
-@code{#,@@#,@@}, which has the effect of a doubly indirect splicing when
+@samp{#,@@#,@@}, which has the effect of a doubly indirect splicing when
 used within a doubly nested and doubly evaluated @func{quasisyntax}
 expression, as with the nested @func{quasiquote} examples shown in
 section @ref{baselib quasiquotation}.
 @end quotation
 @end deffn
-
-@quotation
-@emph{Note:} Any @func{syntax-rules} form can be expressed with
-@func{syntax-case} by making the @func{lambda} expression and
-@func{syntax} expressions explicit, and @func{syntax-rules} may be
-defined in terms of @func{syntax-case} as follows.
-
-@example
-(define-syntax syntax-rules
-  (lambda (x)
-    (syntax-case x ()
-      ((_ (lit ...) ((k . p) t) ...)
-       (for-all identifier? #'(lit ... k ...))
-       #'(lambda (x)
-           (syntax-case x (lit ...)
-             ((_ . p) #'t) ...))))))
-@end example
-@end quotation
-
-@quotation
-@emph{Note:} The @func{identifier-syntax} form of the base library
-(@ref{baselib transformers}) may be defined in terms of
-@func{syntax-case}, @func{syntax}, and @func{make-variable-transformer}
-as follows.
-
-@example
-(define-syntax identifier-syntax
-  (syntax-rules (set!)
-    ((_ e)
-     (lambda (x)
-       (syntax-case x ()
-         (id (identifier? #'id) #'e)
-         ((_ x (... ...)) #'(e x (... ...))))))
-    ((_ (id exp1) ((set! var val) exp2))
-     (and (identifier? #'id) (identifier? #'var))
-     (make-variable-transformer
-       (lambda (x)
-         (syntax-case x (set!)
-           ((set! var val) #'exp2)
-           ((id x (... ...)) #'(exp1 x (... ...)))
-           (id (identifier? #'id) #'exp1)))))))
-@end example
-@end quotation
 
 @c page
 @node stdlib syntax-case violations
@@ -17560,7 +17576,7 @@ The @func{syntax-violation} procedure raises an exception, reporting a
 syntax violation.  @var{who} should describe the macro transformer that
 detected the exception.  The @var{message} argument should describe the
 violation.  @var{form} should be the erroneous source syntax object or a
-datum value representing a form. The optional @var{subform} argument
+datum value representing a form.  The optional @var{subform} argument
 should be a syntax object or datum value representing a form that more
 precisely locates the violation.
 
@@ -17577,13 +17593,13 @@ condition types:
 @itemize
 @item
 If @var{who} is not @false{} or can be inferred, the condition has
-condition type @code{&who}, with @var{who} as the value of its field.
+condition type @samp{&who}, with @var{who} as the value of its field.
 In that case, @var{who} should identify the procedure or entity that
 detected the exception.  If it is @false{}, the condition does not have
-condition type @code{&who}.
+condition type @samp{&who}.
 
 @item
-The condition has condition type @code{&message}, with @var{message} as
+The condition has condition type @samp{&message}, with @var{message} as
 the value of its field.
 
 @item
@@ -17593,9 +17609,8 @@ provided, the value of the subform field is @false{}.
 @end itemize
 @end deffn
 
-
 @c page
-@node stdlib syntax-case define-macro
+@node stdlib syntax-case lisp
 @subsection Common Lisp style macros
 
 
@@ -17609,18 +17624,83 @@ entirely and write macros in the style of old Lisp macros.  The
 @func{lisp-transformer} procedure defined below creates a transformer
 that converts its input into a datum, calls the programmer's procedure
 on this datum, and converts the result back into a syntax object scoped
-where the original macro use appeared.
+where the original macro use appeared:
 
 @example
-(define lisp-transformer
-  (lambda (p)
-    (lambda (x)
-      (syntax-case x ()
-        [(kwd . rest)
-         (datum->syntax #'kwd
-           (p (syntax->datum x)))]))))
+(define (lisp-transformer proc)
+  (lambda (stx)
+    (syntax-case stx ()
+      ((use . rest)
+       (datum->syntax #'use (proc (syntax->datum stx)))))))
 @end example
 
+This transformer can be used as follows, first create a library with the
+definition in it:
+
+@example
+(library (lisp-trans)
+  (export lisp-transformer)
+  (import (rnrs))
+
+  (define (lisp-transformer proc)
+    (lambda (stx)
+      (syntax-case stx ()
+        ((use . rest)
+         (datum->syntax #'use (proc (syntax->datum stx))))))))
+@end example
+
+@noindent
+then import the library for the @samp{expand} phase; the following
+example shows what is handed to the client procedure:
+
+@example
+(import (rnrs)
+  (for (lisp-trans) expand))
+
+(define-syntax print-it
+  (lisp-transformer (lambda (thing)
+                      (write thing)
+                      (newline)
+                      #f)))
+
+(print-it (1 2 3))
+@print{} (print-it (1 2 3))
+@end example
+
+@noindent
+notice that the macro use prints the value of @var{thing}, then returns
+@false{} which is evaulated in place of the macro use and the result is
+@false{} itself.
+
+Now we shold understand the following:
+
+@example
+(import (rnrs)
+  (for (lisp-trans) expand))
+
+(define-syntax even
+  (lisp-transformer
+    (lambda (thing)
+      `(begin
+         (write (quote ,(map even? (cadr thing))))
+         (newline)))))
+
+(even (1 2 3))
+@print{} (#f #t #f)
+@end example
+
+@noindent
+the macro use @code{(even (1 2 3))} is equivalent to:
+
+@example
+(begin
+  (write (quote (#f #t #f)))
+  (newline))
+@end example
+
+@noindent
+that is, the form returned by the client procedure is evaluated in place
+of the macro use.
 
 @c page
 @node stdlib hashtable
@@ -36702,8 +36782,9 @@ is immutable, a simple accessor is bound.
 @subsection Accessing fields through identifier macros
 
 
-The following syntax allows access to the fields of a record using
-identifier macros; it is similar to Common Lisp's @func{with-slots}.
+The syntaxes @func{with-record-fields} and @func{with-record-fields*}
+allow access to the fields of a record using identifier macros;
+@func{with-record-fields} is similar to Common Lisp's @func{with-slots}.
 @ref{baselib transformers, @func{identifier-syntax}}
 
 For example, if the record types hierarchy is:
@@ -36720,7 +36801,7 @@ For example, if the record types hierarchy is:
 @end example
 
 @noindent
-the macro use:
+the macro uses:
 
 @example
 (let ((o (make-<beta> 1 2 3 4)))
@@ -36729,10 +36810,17 @@ the macro use:
     (set! c 9)
     (list a c)))
 @result{} (1 9)
+
+(let ((o (make-<beta> 1 2 3 4)))
+  (with-record-fields* ((a <beta> o)
+                        (c <beta> o))
+    (set! o.c 9)
+    (list o.a c)))
+@result{} (1 9)
 @end example
 
 @noindent
-is equivalent to:
+are equivalent to:
 
 @example
 (let ((o (make-<beta> 1 2 3 4)))
@@ -36763,6 +36851,13 @@ shows how to bind multiple identifiers for the same record:
   (with-record-fields (((a b) <alpha> p)
                        ((c d) <beta>  q))
     (list a b c d)))
+@result{} (1 2 3 4)
+
+(let ((p (make-<alpha> 1 2))
+      (q (make-<beta>  3 4)))
+  (with-record-fields* (((a b) <alpha> p)
+                        ((c d) <beta>  q))
+    (list p.a p.b q.c q.d)))
 @result{} (1 2 3 4)
 @end example
 
@@ -36818,6 +36913,42 @@ associated to @meta{record name}.
 @item expr
 Must be an expression evaluating to a record whose type descriptor is
 associated to @meta{record name}.  It is evaluated only once.
+@end table
+@end deffn
+
+
+@deffn Syntax with-record-fields* @ameta{field-bindings} @ameta{body}
+Bind the accessors and mutators of multiple records to identifier
+macros; in the region of these bindings, evaluate the @meta{body}.
+
+@meta{body} is a normal body (@pxref{baselib bodies}), while
+@meta{field-bindings} can be of one of the following forms:
+
+@example
+(((@cmeta{field-name} ...) @cmeta{record name} @cmeta{record-id})
+ @cmeta{field-bindings} ...)
+
+((@cmeta{field-name} @cmeta{record name} @cmeta{record-id})
+ @cmeta{field-bindings} ...)
+@end example
+
+@noindent
+description of elements follows:
+
+@table @meta
+@item record name
+Is the record type name as described in the definition of
+@func{define-record-type}.  @ref{stdlib records syntactic layer,
+@func{define-record-type}}
+
+@item field-name
+Must be a symbol representing a valid field name for the record type
+associated to @meta{record name}.
+
+@item record-id
+Must be the identifier to which the record is bound; its symbol is used
+to compose the identifier syntaxes by appending a dot and the name of
+the field.
 @end table
 @end deffn
 
