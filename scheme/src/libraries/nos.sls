@@ -39,6 +39,7 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>
 
+    make is-a?
     record-type-of record-is-a? record-subtype?
     define-generic declare-method add-method define-generic/merge
     call-next-method next-method?
@@ -145,6 +146,66 @@
 (define-record-type <fixnum>		(parent <integer>))
 
 
+(define-syntax make
+  (syntax-rules ()
+    ((_ ?record-name ?arg ...)
+     (let-syntax ((dummy (lambda (stx)
+			   (syntax-case stx ()
+			     ((_ ?kontext)
+			      (with-syntax ((MAKE #'(record-constructor
+						     (record-constructor-descriptor ?record-name))))
+				(syntax (MAKE ?arg ...))))))))
+       (dummy ?record-name)))))
+
+(define-syntax is-a?
+  (syntax-rules ()
+    ((_ ?obj ?record-name)
+     (let-syntax ((dummy (lambda (stx)
+
+			   (define (%record-predicate record-name record-rtd)
+			     (case record-name
+			       ((<fixnum>)		fixnum?)
+			       ((<integer>)		integer?)
+			       ((<rational>)		rational?)
+			       ((<integer-valued>)	integer-valued?)
+			       ((<rational-valued>)	rational-valued?)
+			       ((<flonum>)		flonum?)
+			       ((<real>)		real?)
+			       ((<real-valued>)		real-valued?)
+			       ((<complex>)		complex?)
+			       ((<number>)		number?)
+
+			       ((<char>)		char?)
+			       ((<string>)		string?)
+			       ((<vector>)		vector?)
+			       ((<bytevector>)		bytevector?)
+			       ((<hashtable>)		hashtable?)
+
+			       ((<input-port>)		input-port?)
+			       ((<output-port>)		output-port?)
+			       ((<binary-port>)		(lambda (obj)
+							  (and (port? obj) (binary-port? obj))))
+			       ((<textual-port>)	(lambda (obj)
+							  (and (port? obj) (textual-port? obj))))
+			       ((<port>)		port?)
+
+			       ((<condition>)		condition?)
+			       ((<record>)		record?)
+			       ((<pair>)		pair?)
+			       ((<list>)		list?)
+
+			       (else
+				(record-predicate record-rtd))))
+
+			   (syntax-case stx ()
+			     ((_ ?kontext)
+			      (with-syntax
+				  ((PRED (%record-predicate (quote ?record-name)
+							    (record-type-descriptor ?record-name))))
+				(syntax ('PRED ?obj))))))))
+       (dummy ?record-name)))))
+
+
 (define (record-is-a? obj class-rtd)
   (eq? class-rtd (record-type-of obj)))
 
@@ -181,6 +242,7 @@
 	((char?		obj)		(record-type-descriptor <char>))
 	((string?	obj)		(record-type-descriptor <string>))
 	((vector?	obj)		(record-type-descriptor <vector>))
+	((bytevector?	obj)		(record-type-descriptor <bytevector>))
 	((hashtable?	obj)		(record-type-descriptor <hashtable>))
 	((port?		obj)
 	 ;;Order here is arbitrary.
@@ -191,7 +253,6 @@
 	       (else			(record-type-descriptor <port>))))
 	((condition?	obj)		(record-type-descriptor <condition>))
 	((record?	obj)		(record-type-descriptor <record>))
-	((bytevector?	obj)		(record-type-descriptor <bytevector>))
 	((pair?		obj)
 	 ;;Order does matter  here!!!  Better leave these at  the end because
 	 ;;qualifying a long list can be time-consuming.

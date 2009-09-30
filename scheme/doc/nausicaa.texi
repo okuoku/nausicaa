@@ -425,10 +425,10 @@ Copyright @copyright{} 2005 Jens Axel Soegaard.@*
 Copyright @copyright{} 2005-2009 Alex Shinn.@*
 Copyright @copyright{} 2008 Taro Minowa (Higepon).@*
 Copyright @copyright{} 2005-2008 Dominique Boucher.@*
-Copyright @copyright{} 2004, 2005 Tony Garnock-Jones @email{tonyg@@kcbbs.gen.nz}@*
-Copyright @copyright{} 2005 LShift Ltd. @email{query@@lshift.net}
-Copyright @copyright{} 2007, 2008 Philip L. Bewig.
-Copyright @copyright{} 2000 Will Fitzgerald.
+Copyright @copyright{} 2004, 2005 Tony Garnock-Jones@*
+Copyright @copyright{} 2005 LShift Ltd.@*
+Copyright @copyright{} 2007, 2008 Philip L. Bewig.@*
+Copyright @copyright{} 2000 Will Fitzgerald.@*
 Copyright @copyright{} 2000 Neodesic Corporation.
 
 @quotation
@@ -1739,20 +1739,20 @@ overview is neither a complete introduction to the language, nor precise
 in all respects, nor normative in any way.
 
 @menu
-* lang overview intro::                 Introduction.
-* lang overview basic types::        Basic types.
-* lang overview expressions::        Expressions.
-* lang overview variables::          Variables and binding.
-* lang overview definitions::        Definitions.
-* lang overview forms::              Forms.
-* lang overview procedures::         Procedures.
-* lang overview syntax::             Procedure calls and syntactic keywords.
-* lang overview assignment::         Assignment.
-* lang overview macros::             Derived forms and macros.
-* lang overview data::               Syntactic data and datum values.
-* lang overview continuations::      Continuations.
-* lang overview libraries::          Libraries.
-* lang overview programs::           Top--level programs.
+* lang overview intro::         Introduction.
+* lang overview basic types::   Basic types.
+* lang overview expressions::   Expressions.
+* lang overview variables::     Variables and binding.
+* lang overview definitions::   Definitions.
+* lang overview forms::         Forms.
+* lang overview procedures::    Procedures.
+* lang overview syntax::        Procedure calls and syntactic keywords.
+* lang overview assignment::    Assignment.
+* lang overview macros::        Derived forms and macros.
+* lang overview data::          Syntactic data and datum values.
+* lang overview continuations:: Continuations.
+* lang overview libraries::     Libraries.
+* lang overview programs::      Top--level programs.
 @end menu
 
 @c page
@@ -5116,11 +5116,11 @@ syntactically valid expression.
 
 
 Libraries and top--level programs can define and use new kinds of
-derived expressions and definitions called @emph{syntactic abstractions}
-or @emph{macros}.  A syntactic abstraction is created by binding a
-keyword to a @emph{macro transformer} or, simply, @emph{transformer}.
+derived expressions and definitions called @dfn{syntactic abstractions}
+or @dfn{macros}.  A syntactic abstraction is created by binding a
+keyword to a @dfn{macro transformer} or, simply, @dfn{transformer}.
 
-The transformer determines how a use of the macro (called a @emph{macro
+The transformer determines how a use of the macro (called a @dfn{macro
 use}) is transcribed into a more primitive form.
 
 Most macro uses have the form:
@@ -5131,8 +5131,8 @@ Most macro uses have the form:
 
 @noindent
 where @meta{keyword} is an identifier that uniquely determines the kind
-of form.  This identifier is called the @emph{syntactic keyword}, or
-simply @emph{keyword}.  The number of @meta{datum}s and the syntax of
+of form.  This identifier is called the @dfn{syntactic keyword}, or
+simply @dfn{keyword}.  The number of @meta{datum}s and the syntax of
 each depends on the syntactic abstraction.
 
 Macro uses can also take the form of improper lists, singleton
@@ -5188,18 +5188,25 @@ In the original document this chapter is the file "expansion.tex".
 @end ignore
 
 
-Macro uses are expanded into @emph{core forms} at the start of
-evaluation (before compilation or interpretation) by a syntax
-@emph{expander}.  The set of core forms is implementation--dependent, as
-is the representation of these forms in the expander's output.  If the
-expander encounters a syntactic abstraction, it invokes the associated
-transformer to expand the syntactic abstraction, then repeats the
-expansion process for the form returned by the transformer.  If the
-expander encounters a core form, it recursively processes its subforms
-that are in expression or definition context, if any, and reconstructs
-the form from the expanded subforms.  Information about identifier
-bindings is maintained during expansion to enforce lexical scoping for
-variables and keywords.
+Macro uses are expanded into @dfn{core forms} at the start of evaluation
+(before compilation or interpretation) by a syntax @dfn{expander}.  The
+set of core forms is implementation--dependent, as is the representation
+of these forms in the expander's output.
+
+@itemize
+@item
+If the expander encounters a syntactic abstraction, it invokes the
+associated transformer to expand the syntactic abstraction, then repeats
+the expansion process for the form returned by the transformer.
+
+@item
+If the expander encounters a core form, it recursively processes its
+subforms that are in expression or definition context, if any, and
+reconstructs the form from the expanded subforms.
+@end itemize
+
+Information about identifier bindings is maintained during expansion to
+enforce lexical scoping for variables and keywords.
 
 To handle definitions, the expander processes the initial forms in a
 @meta{body} or @meta{library body} from left to right.  How the expander
@@ -5254,9 +5261,9 @@ violate this restriction.
   (define define 17)
   (list define))
 
-(let-syntax ([def0 (syntax-rules ()
-                     [(_ x) (define x 0)])])
-  (let ([z 3])
+(let-syntax ((def0 (syntax-rules ()
+                     ((_ x) (define x 0)))))
+  (let ((z 3))
     (def0 z)
     (define def0 list)
     (list z)))
@@ -5272,13 +5279,13 @@ violate this restriction.
 The following do not violate the restriction.
 
 @example
-(let ([x 5])
+(let ((x 5))
   (define lambda list)
   (lambda x x))         @result{}  (5 5)
 
-(let-syntax ([def0 (syntax-rules ()
-                     [(_ x) (define x 0)])])
-  (let ([z 3])
+(let-syntax ((def0 (syntax-rules ()
+                     ((_ x) (define x 0)))))
+  (let ((z 3))
     (define def0 list)
     (def0 z)
     (list z)))          @result{}  (3)
@@ -5286,7 +5293,7 @@ The following do not violate the restriction.
 (let ()
   (define-syntax foo
     (lambda (e)
-      (let ([+ -]) (+ 1 2))))
+      (let ((+ -)) (+ 1 2))))
   (define + 2)
   (foo))                @result{}  -1
 @end example
@@ -5305,10 +5312,10 @@ Example:
 (lambda (x)
   (define-syntax defun
     (syntax-rules ()
-      [(_ x a e) (define x (lambda a e))]))
+      ((_ x a e) (define x (lambda a e)))))
   (defun even? (n) (or (= n 0) (odd? (- n 1))))
   (define-syntax odd?
-    (syntax-rules () [(_ n) (not (even? n))]))
+    (syntax-rules () ((_ n) (not (even? n)))))
   (odd? (if (odd? x) (* x x) x)))
 @end example
 
@@ -5347,11 +5354,12 @@ The final output is the equivalent of:
 
 @example
 (lambda (x)
-  (letrec* ([even?
-              (lambda (n)
-                (or (= n 0)
-                    (not (even? (- n 1)))))])
-    (not (even? (if (not (even? x)) (* x x) x)))))
+  (letrec* ((even? (lambda (n)
+                     (or (= n 0)
+                         (not (even? (- n 1)))))))
+    (not (even? (if (not (even? x))
+                    (* x x)
+                  x)))))
 @end example
 
 @noindent
@@ -38772,16 +38780,52 @@ Return true if @vari{rtd} is @func{eq?} to @varii{rtd} or it is in the
 list of parents of @varii{rtd}.
 @end defun
 
+
+When used together, and in conjunction with the facilities of the
+@library{records} library, the @func{is-a?} and @func{make} macros make
+it possible to use record definitions by exporting only the record names
+between libraries; the libraries exporting the record names can be
+imported only for the expand phase.  @ref{records, Record utilities}
+
+
+@deffn Syntax is-a? @ameta{expression} @ameta{record name}
+Expand to a form which applies a predicate to @meta{expression}.
+@meta{expression} is evaluated only once and can be any expression.
+@meta{record name} must be a record name as described in the definition
+of @ref{stdlib records syntactic layer, @func{define-record-type}}.
+
+The predicate returns true if the value of @meta{expression} is a record
+or builtin value whose @acronym{RTD} is associated to @meta{record
+name}.
+
+For this macro to work, the @meta{record name} must be available at
+expansion time.
+@end deffn
+
+
+@deffn Syntax make @ameta{record name} @ameta{expression} ...
+Extract the record constructor associated to the @meta{record name} and
+apply it to the @meta{expression} forms.  @meta{record name} must be a
+record name as described in the definition of @ref{stdlib records
+syntactic layer, @func{define-record-type}}.
+
+The @meta{expression} forms can be any expression and are evaluated only
+once.
+
+For this macro to work, the @meta{record name} must be available at
+expansion time.
+@end deffn
+
 @c page
 @node nos methods
 @section Multimethod dispatching
 
 
-@dfn{Generic functions} are procedures that can be specialised to the
-(conventional) record types of their arguments.  Each specialisation of
-a generic function is called @dfn{method}.  When applying a generic
-function to a set of arguments, the most specific method with respect to
-the arguments' types is chosen.
+In the context of the @library{nos} library, @dfn{generic functions} are
+procedures that can be specialised to the (conventional) record types of
+their arguments.  Each specialisation of a generic function is called
+@dfn{method}.  When applying a generic function to a set of arguments,
+the most specific method with respect to the arguments' types is chosen.
 
 @menu
 * nos methods application::     How generic functions and methods
@@ -49988,11 +50032,11 @@ Field accessors.
 @subsection Memory buffers
 
 
-@deftp {Record Type} membuffer
-A @samp{membuffer} is a record type derived from a @samp{memblock} that
+@deftp {Record Type} <membuffer>
+A @class{membuffer} is a record type derived from a @class{memblock} that
 adds fields representing the number of ``used'' bytes in the block; it
 is used as a @acronym{FIFO} for bytes or multi--byte data
-types.@footnote{The reference usage of @samp{membuffer} records is as
+types.@footnote{The reference usage of @class{membuffer} records is as
 input and output buffers for the Zlib compression and decompression
 streams.}
 @end deftp
@@ -50001,16 +50045,16 @@ streams.}
 @subsubheading Making
 
 
-@defun make-membuffer @var{pointer} @var{number-of-bytes} @var{used-size}
-Build and return a new @samp{membuffer} record.
+@defun make-<membuffer> @var{pointer} @var{number-of-bytes} @var{used-size}
+Build and return a new @class{membuffer} record.
 @end defun
 
 
 @subsubheading Predicates
 
 
-@defun membuffer? @var{obj}
-Return true if @var{obj} is a record of type @samp{membuffer}, return
+@defun <membuffer>? @var{obj}
+Return true if @var{obj} is a record of type @class{membuffer}, return
 @false{} otherwise.
 @end defun
 
