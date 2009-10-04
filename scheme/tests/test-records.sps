@@ -27,7 +27,9 @@
 
 (import (nausicaa)
   (records)
-  (for (records-lib) expand run)
+  (for (records-lib) expand)
+  (for (records-lib-2) expand)
+  (nos)
   (checks)
   (rnrs eval))
 
@@ -60,29 +62,30 @@
 	       (record-type-descriptor <alpha>)))
     #t)
 
-  (let ()
-    (define-record-type <alpha>)
-    (define-record-type <beta>
-      (parent <alpha>))
-    (define-record-type <gamma>
-      (parent <beta>))
+;;; --------------------------------------------------------------------
+
+  ;;These tests use the hierarchy from the (records-lib) library
+
+  (let ((env (environment '(rnrs) '(records-lib))))
 
     (check
 	(record-parent-list* <alpha>)
-      => (list (record-type-descriptor <alpha>)))
+      => (eval '(list (record-type-descriptor <alpha>))
+	       env))
 
     (check
 	(record-parent-list* <beta>)
-      => (list (record-type-descriptor <beta>)
-	       (record-type-descriptor <alpha>)))
+      => (eval '(list (record-type-descriptor <beta>)
+		      (record-type-descriptor <alpha>))
+	       env))
 
     (check
 	(record-parent-list* <gamma>)
-      => (list (record-type-descriptor <gamma>)
-	       (record-type-descriptor <beta>)
-	       (record-type-descriptor <alpha>)))
-
-    #t)
+      => (eval '(list (record-type-descriptor <gamma>)
+		      (record-type-descriptor <beta>)
+		      (record-type-descriptor <alpha>))
+	       env))
+    #f)
 
   #t)
 
@@ -92,22 +95,22 @@
   (let ()
     (define-record-type <alpha>
       (fields (mutable a)
-	      (mutable b)
+	      (immutable b)
 	      (mutable c)))
 
     (define-record-type <beta>
       (parent <alpha>)
       (fields (mutable d)
-	      (mutable e)
+	      (immutable e)
 	      (mutable f)))
 
     (define-record-type <gamma>
       (parent <beta>)
       (fields (mutable g)
-	      (mutable h)
+	      (immutable h)
 	      (mutable i)))
 
-    (let* ((maker	(make-record-maker* <gamma> 1))
+    (let* ((maker	(make-record-maker (record-type-descriptor <gamma>) 1))
 	   (ga		(maker)))
 
       (check
@@ -128,7 +131,7 @@
 
       #t)
 
-    (let* ((maker	(make-record-maker* <gamma>))
+    (let* ((maker	(make-record-maker (record-type-descriptor <gamma>)))
 	   (ga		(maker)))
 
       (check
@@ -148,15 +151,124 @@
 	=> '(#f #f #f  #f #f #f  #f #f #f))
 
       #t)
-
     #t)
+
+;;; --------------------------------------------------------------------
+
+;;;The following tests use the hierarchy from the (records-lib) library.
+
+  (check
+      (let ((maker (make-record-maker* <alpha>)))
+	(record? (maker)))
+    => #t)
+
+  (check
+      (let ((maker (make-record-maker* <alpha> 1)))
+	(record? (maker)))
+    => #t)
+
+  (check
+      (let* ((maker (make-record-maker* <alpha> 1))
+	     (o     (maker)))
+	(with-record-fields (((a b c) <alpha> o))
+	  (list a b c)))
+    => '(1 1 1))
+
+  (check
+      (let* ((maker (make-record-maker* <alpha>))
+	     (o     (maker)))
+	(with-record-fields (((a b c) <alpha> o))
+	  (list a b c)))
+    => '(#f #f #f))
 
   #t)
 
 
 (parametrise ((check-test-name 'fields-accessor-mutator))
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ()
+    (define-record-type <alpha>
+      (fields (mutable a)
+	      (immutable b)
+	      (mutable c)))
+
+    (define-record-type <beta>
+      (parent <alpha>)
+      (fields (mutable d)
+	      (immutable e)
+	      (mutable f)))
+
+    (define-record-type <gamma>
+      (parent <beta>)
+      (fields (mutable g)
+	      (immutable h)
+	      (mutable i)))
+
+    (let ((o (make-<gamma>
+	      1 2 3
+	      4 5 6
+	      7 8 9)))
+
+      (define <gamma>-a (record-field-accessor (record-type-descriptor <gamma>) 'a))
+      (define <gamma>-b (record-field-accessor (record-type-descriptor <gamma>) 'b))
+      (define <gamma>-c (record-field-accessor (record-type-descriptor <gamma>) 'c))
+      (define <gamma>-d (record-field-accessor (record-type-descriptor <gamma>) 'd))
+      (define <gamma>-e (record-field-accessor (record-type-descriptor <gamma>) 'e))
+      (define <gamma>-f (record-field-accessor (record-type-descriptor <gamma>) 'f))
+      (define <gamma>-g (record-field-accessor (record-type-descriptor <gamma>) 'g))
+      (define <gamma>-h (record-field-accessor (record-type-descriptor <gamma>) 'h))
+      (define <gamma>-i (record-field-accessor (record-type-descriptor <gamma>) 'i))
+
+      (define <gamma>-a-set! (record-field-mutator (record-type-descriptor <gamma>) 'a))
+      (define <gamma>-c-set! (record-field-mutator (record-type-descriptor <gamma>) 'c))
+      (define <gamma>-d-set! (record-field-mutator (record-type-descriptor <gamma>) 'd))
+      (define <gamma>-f-set! (record-field-mutator (record-type-descriptor <gamma>) 'f))
+      (define <gamma>-g-set! (record-field-mutator (record-type-descriptor <gamma>) 'g))
+      (define <gamma>-i-set! (record-field-mutator (record-type-descriptor <gamma>) 'i))
+
+      (check
+	  (list (<gamma>-a o)
+		(<gamma>-b o)
+		(<gamma>-c o)
+		(<gamma>-d o)
+		(<gamma>-e o)
+		(<gamma>-f o)
+		(<gamma>-g o)
+		(<gamma>-h o)
+		(<gamma>-i o))
+	=> '(1 2 3 4 5 6 7 8 9))
+
+      (<gamma>-a-set! o 10)
+      (<gamma>-c-set! o 30)
+      (<gamma>-d-set! o 40)
+      (<gamma>-f-set! o 60)
+      (<gamma>-g-set! o 70)
+      (<gamma>-i-set! o 90)
+
+      (check
+	  (list (<gamma>-a o)
+		(<gamma>-b o)
+		(<gamma>-c o)
+		(<gamma>-d o)
+		(<gamma>-e o)
+		(<gamma>-f o)
+		(<gamma>-g o)
+		(<gamma>-h o)
+		(<gamma>-i o))
+	=> '(10 2 30 40 5 60 70 8 90))
+
+      (check
+	  (record-field-mutator (record-type-descriptor <gamma>) 'b)
+	=> #f)
+
+      #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; These tests use the hierarchy from the (records-lib) library.
+
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -208,7 +320,7 @@
     	      (<gamma>-i o))
       => '(10 2 30 40 5 60 70 8 90))
 
-    (check
+    (check 'this
 	(record-field-mutator* <gamma> b)
       => #f)
 
@@ -219,7 +331,7 @@
 
 (parametrise ((check-test-name 'fields-define))
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -261,7 +373,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -287,7 +399,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -321,7 +433,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -367,7 +479,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -397,7 +509,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -438,7 +550,7 @@
 
 (parametrise ((check-test-name 'fields-with))
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -483,7 +595,7 @@
       #f)
     #f)
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -585,9 +697,9 @@
   #t)
 
 
-(parametrise ((check-test-name 'fields-identifier))
+(parametrise ((check-test-name 'proof-identifier))
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -638,9 +750,12 @@
       #f)
     #f)
 
-;;; --------------------------------------------------------------------
+  #t)
 
-  (let ((o (make-<gamma> 1 2 3
+
+(parametrise ((check-test-name 'fields-identifier))
+
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -696,29 +811,42 @@
 	  (list a b c d e f g h i))
       => '(10 2 30 40 5 60 70 8 90))
 
-    ;;Raise an  "unknown field" error.  Commented out  because the error
-    ;;is raised at expansion time, so it is not stoppable with GUARD.
+    ;;Raise an "unknown field" error.
     ;;
-    #;(check
-	(with-record-fields ((ciao <gamma> o))
-	  123)
-      => #f)
+    (check
+	(guard (E (else `((message   . ,(condition-message E))
+			  (irritants . ,(condition-irritants E)))))
+	  (eval '(let ((o (make <gamma> 1 2 3
+					4 5 6
+					7 8 9)))
+		   (with-record-fields ((ciao <gamma> o))
+		     123))
+		(environment '(rnrs) '(nos) '(records)
+			     '(for (records-lib) expand))))
+      => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
+	   (irritants . (ciao))))
 
-    ;;Raise an "attempt to mutate immutable field" error.  Commented out
-    ;;because  the error  is  raised at  expansion  time, so  it is  not
-    ;;stoppable with GUARD.
+    ;;Raise an "attempt to mutate immutable field" error.
     ;;
-    #;(check
-	(with-record-fields ((b <gamma> o))
-	  (set! b 1)
-	  b)
-      => #f)
+    (check
+	(guard (E (else `((message   . ,(condition-message E))
+			  (irritants . ,(condition-irritants E)))))
+	  (eval '(let ((o (make <gamma> 1 2 3
+					4 5 6
+					7 8 9)))
+		   (with-record-fields ((b <gamma> o))
+		     (set! b 1)
+		     b))
+		(environment '(rnrs) '(nos) '(records)
+			     '(for (records-lib) expand))))
+      => '((message . "attempt to mutate immutable field for record \"<alpha>\"")
+	   (irritants . (b))))
 
     #f)
 
 ;;; --------------------------------------------------------------------
 
-  (let ((o (make-<gamma> 1 2 3
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -758,25 +886,28 @@
       => '(1 2 3 4 5 6 7 8 9))
 
      (check
-	 (with-record-fields ((((ax a) (bx b) (cx c)) <gamma> o)
-			      (((dx d) (ex e)) <gamma> o)
-			      (((fx f) (gx g)) <gamma> o)
-			      (((hx h) (ix i)) <gamma> o))
-	   (set! ax 10)
-	   (set! cx 30)
-	   (set! dx 40)
-	   (set! fx 60)
-	   (set! gx 70)
-	   (set! ix 90)
-	  (list ax bx cx dx ex fx gx hx ix))
-       => '(10 2 30 40 5 60 70 8 90))
+	 (let ((count 0))
+	   (with-record-fields ((((ax a) (bx b) (cx c)) <gamma> (begin
+								  (set! count (+ 1 count))
+								  o))
+				(((dx d) (ex e)) <gamma> o)
+				(((fx f) (gx g)) <gamma> o)
+				(((hx h) (ix i)) <gamma> o))
+	     (set! ax 10)
+	     (set! cx 30)
+	     (set! dx 40)
+	     (set! fx 60)
+	     (set! gx 70)
+	     (set! ix 90)
+	     (list count ax bx cx dx ex fx gx hx ix)))
+       => '(1 10 2 30 40 5 60 70 8 90))
 
     #f)
 
 ;;; --------------------------------------------------------------------
 
-    (let ((p (make-<alpha> 1 2 3))
-	  (q (make-<alpha> 4 5 6)))
+    (let ((p (make <alpha> 1 2 3))
+	  (q (make <alpha> 4 5 6)))
 
       (check
 	  (with-record-fields ((((a1 a) (b1 b) (c1 c)) <alpha> p)
@@ -788,9 +919,12 @@
 
       #f)
 
-;;; --------------------------------------------------------------------
+    #t)
 
-  (let ((o (make-<gamma> 1 2 3
+
+(parametrise ((check-test-name 'dotted-fields-identifier))
+
+  (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
@@ -846,30 +980,43 @@
     	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
       => '(10 2 30 40 5 60 70 8 90))
 
-    ;;Raise an  "unknown field" error.  Commented out  because the error
-    ;;is raised at expansion time, so it is not stoppable with GUARD.
+    ;;Raise an "unknown field" error.
     ;;
-    #;(check
-    	(with-record-fields* ((ciao <gamma> o))
-    	  123)
-      => #f)
+    (check
+	(guard (E (else `((message   . ,(condition-message E))
+			  (irritants . ,(condition-irritants E)))))
+	  (eval '(let ((o (make <gamma> 1 2 3
+					4 5 6
+					7 8 9)))
+		   (with-record-fields* ((ciao <gamma> o))
+		     123))
+		(environment '(rnrs) '(nos) '(records)
+			     '(for (records-lib) expand run))))
+      => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
+	   (irritants . (ciao))))
 
-    ;;Raise an "attempt to mutate immutable field" error.  Commented out
-    ;;because  the error  is  raised at  expansion  time, so  it is  not
-    ;;stoppable with GUARD.
+    ;;Raise an "attempt to mutate immutable field" error.
     ;;
-    #;(check
-    	(with-record-fields* ((b <gamma> o))
-    	  (set! o.b 1)
-    	  o.b)
-      => #f)
+    (check
+	(guard (E (else `((message   . ,(condition-message E))
+			  (irritants . ,(condition-irritants E)))))
+	  (eval '(let ((o (make <gamma> 1 2 3
+					4 5 6
+					7 8 9)))
+		   (with-record-fields ((b <gamma> o))
+		     (set! b 1)
+		     b))
+		(environment '(rnrs) '(nos) '(records)
+			     '(for (records-lib) expand run))))
+      => '((message . "attempt to mutate immutable field for record \"<alpha>\"")
+	   (irritants . (b))))
 
     #f)
 
 ;;; --------------------------------------------------------------------
 
-    (let ((p (make-<alpha> 1 2 3))
-	  (q (make-<alpha> 4 5 6)))
+    (let ((p (make <alpha> 1 2 3))
+	  (q (make <alpha> 4 5 6)))
 
       (check
 	  (with-record-fields* (((a b c) <alpha> p)
@@ -881,6 +1028,161 @@
 
       #f)
 
+  #t)
+
+
+(parametrise ((check-test-name 'virtual-fields))
+
+  (let ((iota  91)
+	(theta 92))
+
+    (define (iota-ref o)
+      iota)
+
+    (define (iota-set! o v)
+      (set! iota v))
+
+    (define (theta-ref o)
+      theta)
+
+    (define (theta-set! o v)
+      (set! theta v))
+
+    (define-record-extension <gamma>
+      (fields (iota iota-ref iota-set!)
+	      (theta theta-ref theta-set!)))
+
+    ;;The following definition is to verify that DEFINE-RECORD-EXTENSION
+    ;;is a <definition> in a  <body>, so it allows other <definition> to
+    ;;appear after it.
+    (define dummy 123)
+
+    (let ((o (make <gamma>
+	       1 2 3
+	       4 5 6
+	       7 8 9)))
+
+      (check
+	  (with-virtual-fields ((iota <gamma> o))
+	    iota)
+	=> 91)
+
+      (check
+	  (with-virtual-fields (((iota theta) <gamma> o))
+	    (list iota theta))
+	=> '(91 92))
+
+      (check
+	  (with-virtual-fields (((iota theta) <gamma> o))
+	    (set! iota 5)
+	    (set! theta 6)
+	    (list iota theta))
+	=> '(5 6))
+
+      #f)
+
+    (set! iota  91)
+    (set! theta 92)
+
+    (let ((o (make <gamma>
+	       1 2 3
+	       4 5 6
+	       7 8 9)))
+
+      (check
+	  (with-virtual-fields* ((iota <gamma> o))
+	    o.iota)
+	=> 91)
+
+      (check
+	  (with-virtual-fields* (((iota theta) <gamma> o))
+	    (list o.iota o.theta))
+	=> '(91 92))
+
+      (check
+	  (with-virtual-fields* (((iota theta) <gamma> o))
+	    (set! o.iota 5)
+	    (set! o.theta 6)
+	    (list o.iota o.theta))
+	=> '(5 6))
+
+      #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; The following tests make use of the definitions in (records-lib-2).
+
+
+  (let ((o (make <beta>
+	     1 2 3
+	     4 5 6)))
+
+    (check
+	(with-virtual-fields ((def <beta> o))
+	  def)
+      => '(4 5 6))
+
+    (check
+	(with-virtual-fields (((def) <beta> o))
+	  (set! def '(90 91))
+	  def)
+      => '(90 5 91))
+
+    #f)
+
+  (let ((o (make <beta>
+	     1 2 3
+	     4 5 6)))
+
+    (check
+	(with-virtual-fields* ((def <beta> o))
+	  o.def)
+      => '(4 5 6))
+
+    (check
+	(with-virtual-fields* (((def) <beta> o))
+	  (set! o.def '(90 91))
+	  o.def)
+      => '(90 5 91))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((S "Ciao"))
+
+    (define-record-extension <string>
+      (fields (length string-length #f)
+	      (upcase string-upcase #f)
+	      (dncase string-downcase #f)))
+
+    (check
+	(with-virtual-fields ((length <string> S))
+	  length)
+      => 4)
+
+    (check
+	(with-virtual-fields (((upcase dncase) <string> S))
+	  (list upcase dncase))
+      => '("CIAO" "ciao"))
+
+    (check
+	(with-virtual-fields ((((len length)) <string> S))
+	  len)
+      => 4)
+
+    (check
+	(with-virtual-fields* ((length <string> S))
+	  S.length)
+      => 4)
+
+    (check
+	(with-virtual-fields* (((upcase dncase) <string> S))
+	  (list S.upcase S.dncase))
+      => '("CIAO" "ciao"))
+
+    #f)
   #t)
 
 

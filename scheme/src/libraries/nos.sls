@@ -48,7 +48,8 @@
   (import (nausicaa)
     (rnrs mutable-pairs (6))
     (parameters)
-    (records))
+    (records)
+    (for (nos builtins) expand run))
 
 
 ;;;; helpers
@@ -110,51 +111,15 @@
 	 ell)))))
 
 
-(define-record-type <top>
-  (nongenerative nausicaa:nos:<top>))
-
-(define-record-type <builtin>
-  (parent <top>)
-  (nongenerative nausicaa:nos:<builtin>))
-
-(define-record-type <pair>		(parent <builtin>))
-(define-record-type <list>		(parent <pair>))
-(define-record-type <char>		(parent <builtin>))
-(define-record-type <string>		(parent <builtin>))
-(define-record-type <vector>		(parent <builtin>))
-(define-record-type <bytevector>	(parent <builtin>))
-(define-record-type <hashtable>		(parent <builtin>))
-
-(define-record-type <record>		(parent <builtin>))
-(define-record-type <condition>		(parent <record>))
-
-(define-record-type <port>		(parent <builtin>))
-(define-record-type <input-port>	(parent <port>))
-(define-record-type <output-port>	(parent <port>))
-(define-record-type <binary-port>	(parent <port>))
-(define-record-type <textual-port>	(parent <port>))
-
-(define-record-type <number>		(parent <builtin>))
-(define-record-type <complex>		(parent <number>))
-(define-record-type <real-valued>	(parent <complex>))
-(define-record-type <real>		(parent <real-valued>))
-(define-record-type <rational-valued>	(parent <real>))
-(define-record-type <flonum>		(parent <real>))
-(define-record-type <rational>		(parent <rational-valued>))
-(define-record-type <integer-valued>	(parent <rational-valued>))
-(define-record-type <integer>		(parent <integer-valued>))
-(define-record-type <fixnum>		(parent <integer>))
-
-
 (define-syntax make
   (syntax-rules ()
     ((_ ?record-name ?arg ...)
      (let-syntax ((dummy (lambda (stx)
 			   (syntax-case stx ()
 			     ((_ ?kontext)
-			      (with-syntax ((MAKE #'(record-constructor
-						     (record-constructor-descriptor ?record-name))))
-				(syntax (MAKE ?arg ...))))))))
+			      (with-syntax ((MAKE (record-constructor
+						   (record-constructor-descriptor ?record-name))))
+				(syntax ('MAKE ?arg ...))))))))
        (dummy ?record-name)))))
 
 (define-syntax is-a?

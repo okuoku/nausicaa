@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: test library for (records)
-;;;Date: Sun Sep 13, 2009
+;;;Date: Sun Oct  4, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,27 +24,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (records-lib)
-  (export <alpha> <beta> <gamma>)
+(library (records-lib-2)
+  (export)
   (import (rnrs)
-    (records))
+    (records)
+    (for (records-lib) expand))
 
-  (define-record-type <alpha>
-    (fields (mutable a)
-	    (immutable b)
-	    (mutable c)))
+  (define (beta-def-ref o)
+    (with-record-fields (((d e f) <beta> o))
+      (list d e f)))
 
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable d)
-	    (immutable e)
-	    (mutable f)))
+  (define (beta-def-set! o ell)
+    (with-record-fields (((d f) <beta> o))
+      (set! d (car ell))
+      (set! f (cadr ell))))
 
-  (define-record-type <gamma>
-    (parent <beta>)
-    (fields (mutable g)
-	    (immutable h)
-	    (mutable i)))
+  (define-record-extension <beta>
+    (fields (def beta-def-ref beta-def-set!)))
 
   )
 

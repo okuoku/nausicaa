@@ -97,21 +97,21 @@
 	     4 5 6)))
 
     (check
-	(is-a? a <alpha>)
+    	(is-a? a <alpha>)
       => #t)
 
     (check
-	(with-record-fields (((a b c) <alpha> a))
-	  (list a b c))
+    	(with-record-fields (((a b c) <alpha> a))
+    	  (list a b c))
       => '(1 2 3))
 
     (check
-	(is-a? b <beta>)
+    	(is-a? b <beta>)
       => #t)
 
     (check
-	(with-record-fields (((a b c d e f) <beta> b))
-	  (list a b c d e f))
+    	(with-record-fields (((a b c d e f) <beta> b))
+    	  (list a b c d e f))
       => '(1 2 3 4 5 6))
 
     #f)
@@ -167,14 +167,14 @@
   (check-for-false	(is-a? 123 <input-port>))
 
   (check-for-true	(let-values (((port getter) (open-string-output-port)))
-			  (is-a? port <output-port>)))
+  			  (is-a? port <output-port>)))
   (check-for-false	(is-a? 123 <output-port>))
 
-  ;; (check-for-true	(is-a? <binary-port>))
+  ;;;(check-for-true	(is-a? <binary-port>))
   (check-for-false	(is-a? 123 <binary-port>))
 
-  (check-for-true	(is-a? (open-string-input-port "ciao") <textual-port>))
-  (check-for-false	(is-a? 123 <textual-port>))
+  ;;(check-for-true	(is-a? (open-string-input-port "ciao") <textual-port>))
+  ;;(check-for-false	(is-a? 123 <textual-port>))
 
   (check-for-true	(is-a? (open-string-input-port "ciao") <port>))
   (check-for-false	(is-a? 123 <port>))
