@@ -25,7 +25,7 @@
 ;;;
 
 (library (records-lib-2)
-  (export)
+  (export beta-def-ref beta-def-set!)
   (import (rnrs)
     (records)
     (for (records-lib) expand))
@@ -40,8 +40,6 @@
       (set! f (cadr ell))))
 
   (define-record-extension <beta>
-    (fields (def beta-def-ref beta-def-set!)))
-
-  )
+    (fields (def beta-def-ref beta-def-set!))))
 
 ;;; end of file

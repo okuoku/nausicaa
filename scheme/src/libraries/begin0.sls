@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: test library for (nos)
-;;;Date: Wed Sep 30, 2009
+;;;Contents: implementation of begin0
+;;;Date: Wed Oct  7, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -25,27 +25,34 @@
 ;;;
 
 
-(library (nos-lib)
-  (export <alpha> <beta> <gamma>)
+(library (begin0)
+  (export  begin0 begin0-let)
   (import (rnrs))
 
-  (define-record-type <alpha>
-    (fields (mutable a)
-	    (immutable b)
-	    (mutable c)))
+  (define-syntax begin0
+    ;;This  syntax comes  from the  R6RS original  document,  Appendix A
+    ;;``Formal semantics''.
+    (syntax-rules ()
+      ((_ ?expr0 ?expr ...)
+       (call-with-values
+	   (lambda () ?expr0)
+	 (lambda args
+	   ?expr ...
+	   (apply values args))))))
 
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable d)
-	    (immutable e)
-	    (mutable f)))
-
-  (define-record-type <gamma>
-    (parent <beta>)
-    (fields (mutable g)
-	    (immutable h)
-	    (mutable i)))
-
-  )
+  (define-syntax begin0-let
+    (syntax-rules ()
+      ((_ (((?var0 ...) ?expr0) ((?var ...) ?expr) ...) ?form0 ?form ...)
+       (let-values (((?var0 ...) ?expr0)
+		    ((?var  ...) ?expr)
+		    ...)
+	 ?form0 ?form ...
+	 (values ?var0 ...)))
+      ((_ ((?var0 ?expr0) (?var ?expr) ...) ?form0 ?form ...)
+       (let ((?var0 ?expr0)
+	     (?var  ?expr)
+	     ...)
+	 ?form0 ?form ...
+	 ?var0)))))
 
 ;;; end of file

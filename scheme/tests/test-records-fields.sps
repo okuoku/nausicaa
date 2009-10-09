@@ -26,306 +26,45 @@
 
 
 (import (nausicaa)
+  (rnrs eval)
+  (checks)
   (records)
   (for (records-lib) expand)
-  (for (records-lib-2) expand)
-  (nos)
-  (checks)
-  (rnrs eval))
+  (for (records-lib-2) expand run))
 
 (check-set-mode! 'report-failed)
-(display "*** testing records\n")
+(display "*** testing records fields\n")
 
 
-(parametrise ((check-test-name 'parent-list))
-
-  (let ()
-    (define-record-type <alpha>)
-    (define-record-type <beta>
-      (parent <alpha>))
-    (define-record-type <gamma>
-      (parent <beta>))
-
-    (check
-	(record-parent-list (record-type-descriptor <alpha>))
-      => (list (record-type-descriptor <alpha>)))
-
-    (check
-	(record-parent-list (record-type-descriptor <beta>))
-      => (list (record-type-descriptor <beta>)
-	       (record-type-descriptor <alpha>)))
-
-    (check
-	(record-parent-list (record-type-descriptor <gamma>))
-      => (list (record-type-descriptor <gamma>)
-	       (record-type-descriptor <beta>)
-	       (record-type-descriptor <alpha>)))
-    #t)
-
-;;; --------------------------------------------------------------------
-
-  ;;These tests use the hierarchy from the (records-lib) library
-
-  (let ((env (environment '(rnrs) '(records-lib))))
-
-    (check
-	(record-parent-list* <alpha>)
-      => (eval '(list (record-type-descriptor <alpha>))
-	       env))
-
-    (check
-	(record-parent-list* <beta>)
-      => (eval '(list (record-type-descriptor <beta>)
-		      (record-type-descriptor <alpha>))
-	       env))
-
-    (check
-	(record-parent-list* <gamma>)
-      => (eval '(list (record-type-descriptor <gamma>)
-		      (record-type-descriptor <beta>)
-		      (record-type-descriptor <alpha>))
-	       env))
-    #f)
-
-  #t)
-
-
-(parametrise ((check-test-name 'makers))
-
-  (let ()
-    (define-record-type <alpha>
-      (fields (mutable a)
-	      (immutable b)
-	      (mutable c)))
-
-    (define-record-type <beta>
-      (parent <alpha>)
-      (fields (mutable d)
-	      (immutable e)
-	      (mutable f)))
-
-    (define-record-type <gamma>
-      (parent <beta>)
-      (fields (mutable g)
-	      (immutable h)
-	      (mutable i)))
-
-    (let* ((maker	(make-record-maker (record-type-descriptor <gamma>) 1))
-	   (ga		(maker)))
-
-      (check
-	  (<gamma>? ga)
-	=> #t)
-
-      (check
-	  (list (<alpha>-a ga)
-		(<alpha>-b ga)
-		(<alpha>-c ga)
-		(<beta>-d ga)
-		(<beta>-e ga)
-		(<beta>-f ga)
-		(<gamma>-g ga)
-		(<gamma>-h ga)
-		(<gamma>-i ga))
-	=> '(1 1 1  1 1 1  1 1 1))
-
-      #t)
-
-    (let* ((maker	(make-record-maker (record-type-descriptor <gamma>)))
-	   (ga		(maker)))
-
-      (check
-	  (<gamma>? ga)
-	=> #t)
-
-      (check
-	  (list (<alpha>-a ga)
-		(<alpha>-b ga)
-		(<alpha>-c ga)
-		(<beta>-d ga)
-		(<beta>-e ga)
-		(<beta>-f ga)
-		(<gamma>-g ga)
-		(<gamma>-h ga)
-		(<gamma>-i ga))
-	=> '(#f #f #f  #f #f #f  #f #f #f))
-
-      #t)
-    #t)
-
-;;; --------------------------------------------------------------------
-
-;;;The following tests use the hierarchy from the (records-lib) library.
-
-  (check
-      (let ((maker (make-record-maker* <alpha>)))
-	(record? (maker)))
-    => #t)
-
-  (check
-      (let ((maker (make-record-maker* <alpha> 1)))
-	(record? (maker)))
-    => #t)
-
-  (check
-      (let* ((maker (make-record-maker* <alpha> 1))
-	     (o     (maker)))
-	(with-record-fields (((a b c) <alpha> o))
-	  (list a b c)))
-    => '(1 1 1))
-
-  (check
-      (let* ((maker (make-record-maker* <alpha>))
-	     (o     (maker)))
-	(with-record-fields (((a b c) <alpha> o))
-	  (list a b c)))
-    => '(#f #f #f))
-
-  #t)
-
-
-(parametrise ((check-test-name 'fields-accessor-mutator))
-
-  (let ()
-    (define-record-type <alpha>
-      (fields (mutable a)
-	      (immutable b)
-	      (mutable c)))
-
-    (define-record-type <beta>
-      (parent <alpha>)
-      (fields (mutable d)
-	      (immutable e)
-	      (mutable f)))
-
-    (define-record-type <gamma>
-      (parent <beta>)
-      (fields (mutable g)
-	      (immutable h)
-	      (mutable i)))
-
-    (let ((o (make-<gamma>
-	      1 2 3
-	      4 5 6
-	      7 8 9)))
-
-      (define <gamma>-a (record-field-accessor (record-type-descriptor <gamma>) 'a))
-      (define <gamma>-b (record-field-accessor (record-type-descriptor <gamma>) 'b))
-      (define <gamma>-c (record-field-accessor (record-type-descriptor <gamma>) 'c))
-      (define <gamma>-d (record-field-accessor (record-type-descriptor <gamma>) 'd))
-      (define <gamma>-e (record-field-accessor (record-type-descriptor <gamma>) 'e))
-      (define <gamma>-f (record-field-accessor (record-type-descriptor <gamma>) 'f))
-      (define <gamma>-g (record-field-accessor (record-type-descriptor <gamma>) 'g))
-      (define <gamma>-h (record-field-accessor (record-type-descriptor <gamma>) 'h))
-      (define <gamma>-i (record-field-accessor (record-type-descriptor <gamma>) 'i))
-
-      (define <gamma>-a-set! (record-field-mutator (record-type-descriptor <gamma>) 'a))
-      (define <gamma>-c-set! (record-field-mutator (record-type-descriptor <gamma>) 'c))
-      (define <gamma>-d-set! (record-field-mutator (record-type-descriptor <gamma>) 'd))
-      (define <gamma>-f-set! (record-field-mutator (record-type-descriptor <gamma>) 'f))
-      (define <gamma>-g-set! (record-field-mutator (record-type-descriptor <gamma>) 'g))
-      (define <gamma>-i-set! (record-field-mutator (record-type-descriptor <gamma>) 'i))
-
-      (check
-	  (list (<gamma>-a o)
-		(<gamma>-b o)
-		(<gamma>-c o)
-		(<gamma>-d o)
-		(<gamma>-e o)
-		(<gamma>-f o)
-		(<gamma>-g o)
-		(<gamma>-h o)
-		(<gamma>-i o))
-	=> '(1 2 3 4 5 6 7 8 9))
-
-      (<gamma>-a-set! o 10)
-      (<gamma>-c-set! o 30)
-      (<gamma>-d-set! o 40)
-      (<gamma>-f-set! o 60)
-      (<gamma>-g-set! o 70)
-      (<gamma>-i-set! o 90)
-
-      (check
-	  (list (<gamma>-a o)
-		(<gamma>-b o)
-		(<gamma>-c o)
-		(<gamma>-d o)
-		(<gamma>-e o)
-		(<gamma>-f o)
-		(<gamma>-g o)
-		(<gamma>-h o)
-		(<gamma>-i o))
-	=> '(10 2 30 40 5 60 70 8 90))
-
-      (check
-	  (record-field-mutator (record-type-descriptor <gamma>) 'b)
-	=> #f)
-
-      #f)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; These tests use the hierarchy from the (records-lib) library.
+(parametrise ((check-test-name 'fields-define))
 
   (let ((o (make <gamma> 1 2 3
 			 4 5 6
 			 7 8 9)))
 
-    (define <gamma>-a (record-field-accessor* <gamma> a))
-    (define <gamma>-b (record-field-accessor* <gamma> b))
-    (define <gamma>-c (record-field-accessor* <gamma> c))
-    (define <gamma>-d (record-field-accessor* <gamma> d))
-    (define <gamma>-e (record-field-accessor* <gamma> e))
-    (define <gamma>-f (record-field-accessor* <gamma> f))
-    (define <gamma>-g (record-field-accessor* <gamma> g))
-    (define <gamma>-h (record-field-accessor* <gamma> h))
-    (define <gamma>-i (record-field-accessor* <gamma> i))
-
-    (define <gamma>-a-set! (record-field-mutator* <gamma> a))
-    (define <gamma>-c-set! (record-field-mutator* <gamma> c))
-    (define <gamma>-d-set! (record-field-mutator* <gamma> d))
-    (define <gamma>-f-set! (record-field-mutator* <gamma> f))
-    (define <gamma>-g-set! (record-field-mutator* <gamma> g))
-    (define <gamma>-i-set! (record-field-mutator* <gamma> i))
+    (check (field-ref o 'a) => 1)
+    (check (field-ref o 'b) => 2)
+    (check (field-ref o 'c) => 3)
+    (check (field-ref o 'd) => 4)
+    (check (field-ref o 'e) => 5)
+    (check (field-ref o 'f) => 6)
+    (check (field-ref o 'g) => 7)
+    (check (field-ref o 'h) => 8)
+    (check (field-ref o 'i) => 9)
 
     (check
-	(list (<gamma>-a o)
-	      (<gamma>-b o)
-	      (<gamma>-c o)
-	      (<gamma>-d o)
-	      (<gamma>-e o)
-	      (<gamma>-f o)
-	      (<gamma>-g o)
-	      (<gamma>-h o)
-	      (<gamma>-i o))
-      => '(1 2 3 4 5 6 7 8 9))
-
-    (<gamma>-a-set! o 10)
-    (<gamma>-c-set! o 30)
-    (<gamma>-d-set! o 40)
-    (<gamma>-f-set! o 60)
-    (<gamma>-g-set! o 70)
-    (<gamma>-i-set! o 90)
+	(begin
+	  (field-set! o 'a 10)
+	  (field-ref o 'a))
+      => 10)
 
     (check
-    	(list (<gamma>-a o)
-    	      (<gamma>-b o)
-    	      (<gamma>-c o)
-    	      (<gamma>-d o)
-    	      (<gamma>-e o)
-    	      (<gamma>-f o)
-    	      (<gamma>-g o)
-    	      (<gamma>-h o)
-    	      (<gamma>-i o))
-      => '(10 2 30 40 5 60 70 8 90))
-
-    (check 'this
-	(record-field-mutator* <gamma> b)
-      => #f)
+	(begin
+	  (field-set! o 'i 90)
+	  (field-ref o 'i))
+      => 90)
 
     #f)
-
   #t)
 
 
@@ -756,8 +495,8 @@
 (parametrise ((check-test-name 'fields-identifier))
 
   (let ((o (make <gamma> 1 2 3
-			 4 5 6
-			 7 8 9)))
+		 4 5 6
+		 7 8 9)))
 
     (check
 	(with-record-fields ((a <gamma> o))
@@ -780,12 +519,12 @@
 			     (h <gamma> o)
 			     (i <gamma> o))
 	  (list a b c d e f g h i))
-	=> '(1 2 3 4 5 6 7 8 9))
+      => '(1 2 3 4 5 6 7 8 9))
 
     (check
 	(with-record-fields (((a b c d e f g h i) <gamma> o))
 	  (list a b c d e f g h i))
-	=> '(1 2 3 4 5 6 7 8 9))
+      => '(1 2 3 4 5 6 7 8 9))
 
     (check
 	(with-record-fields (((a b c) <gamma> o)
@@ -795,7 +534,7 @@
 			     (h <gamma> o)
 			     (i <gamma> o))
 	  (list a b c d e f g h i))
-	=> '(1 2 3 4 5 6 7 8 9))
+      => '(1 2 3 4 5 6 7 8 9))
 
     (check
 	(with-record-fields (((a b c) <gamma> o)
@@ -811,44 +550,53 @@
 	  (list a b c d e f g h i))
       => '(10 2 30 40 5 60 70 8 90))
 
-    ;;Raise an "unknown field" error.
-    ;;
     (check
-	(guard (E (else `((message   . ,(condition-message E))
-			  (irritants . ,(condition-irritants E)))))
-	  (eval '(let ((o (make <gamma> 1 2 3
-					4 5 6
-					7 8 9)))
-		   (with-record-fields ((ciao <gamma> o))
-		     123))
-		(environment '(rnrs) '(nos) '(records)
-			     '(for (records-lib) expand))))
-      => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
-	   (irritants . (ciao))))
-
-    ;;Raise an "attempt to mutate immutable field" error.
-    ;;
-    (check
-	(guard (E (else `((message   . ,(condition-message E))
-			  (irritants . ,(condition-irritants E)))))
-	  (eval '(let ((o (make <gamma> 1 2 3
-					4 5 6
-					7 8 9)))
-		   (with-record-fields ((b <gamma> o))
-		     (set! b 1)
-		     b))
-		(environment '(rnrs) '(nos) '(records)
-			     '(for (records-lib) expand))))
-      => '((message . "attempt to mutate immutable field for record \"<alpha>\"")
-	   (irritants . (b))))
+	(with-record-fields (((a (the-b b) c) <gamma> o)
+			     (((the-d d) e)   <gamma> o))
+	  (set! a 10)
+	  (set! c 30)
+	  (set! the-d 40)
+	  (list a the-b c the-d e))
+      => '(10 2 30 40 5))
 
     #f)
+
+  ;;Raise an "unknown field" error.
+  ;;
+  (check
+      (guard (E (else `((message   . ,(condition-message E))
+			(irritants . ,(condition-irritants E)))))
+	(eval '(let ((o (make <gamma> 1 2 3
+			      4 5 6
+			      7 8 9)))
+		 (with-record-fields ((ciao <gamma> o))
+		   123))
+	      (environment '(rnrs) '(records)
+			   '(for (records-lib) expand))))
+    => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
+	 (irritants . (ciao))))
+
+  ;;Raise an "attempt to mutate immutable field" error.
+  ;;
+  (check
+      (guard (E (else `((message   . ,(condition-message E))
+			(irritants . ,(condition-irritants E)))))
+	(eval '(let ((o (make <gamma> 1 2 3
+			      4 5 6
+			      7 8 9)))
+		 (with-record-fields ((b <gamma> o))
+		   (set! b 1)
+		   b))
+	      (environment '(rnrs) '(records)
+			   '(for (records-lib) expand))))
+    => '((message . "attempt to mutate immutable field of record \"<alpha>\" in record hierarchy of \"<gamma>\"")
+	 (irritants . (b))))
 
 ;;; --------------------------------------------------------------------
 
   (let ((o (make <gamma> 1 2 3
-			 4 5 6
-			 7 8 9)))
+		 4 5 6
+		 7 8 9)))
 
     (check
 	(with-record-fields ((((augh a)) <gamma> o))
@@ -885,41 +633,41 @@
 	  (list ax bx cx dx ex fx gx hx ix))
       => '(1 2 3 4 5 6 7 8 9))
 
-     (check
-	 (let ((count 0))
-	   (with-record-fields ((((ax a) (bx b) (cx c)) <gamma> (begin
-								  (set! count (+ 1 count))
-								  o))
-				(((dx d) (ex e)) <gamma> o)
-				(((fx f) (gx g)) <gamma> o)
-				(((hx h) (ix i)) <gamma> o))
-	     (set! ax 10)
-	     (set! cx 30)
-	     (set! dx 40)
-	     (set! fx 60)
-	     (set! gx 70)
-	     (set! ix 90)
-	     (list count ax bx cx dx ex fx gx hx ix)))
-       => '(1 10 2 30 40 5 60 70 8 90))
+    (check
+	(let ((count 0))
+	  (with-record-fields ((((ax a) (bx b) (cx c)) <gamma> (begin
+								 (set! count (+ 1 count))
+								 o))
+			       (((dx d) (ex e)) <gamma> o)
+			       (((fx f) (gx g)) <gamma> o)
+			       (((hx h) (ix i)) <gamma> o))
+	    (set! ax 10)
+	    (set! cx 30)
+	    (set! dx 40)
+	    (set! fx 60)
+	    (set! gx 70)
+	    (set! ix 90)
+	    (list count ax bx cx dx ex fx gx hx ix)))
+      => '(1 10 2 30 40 5 60 70 8 90))
 
     #f)
 
 ;;; --------------------------------------------------------------------
 
-    (let ((p (make <alpha> 1 2 3))
-	  (q (make <alpha> 4 5 6)))
+  (let ((p (make <alpha> 1 2 3))
+	(q (make <alpha> 4 5 6)))
 
-      (check
-	  (with-record-fields ((((a1 a) (b1 b) (c1 c)) <alpha> p)
-			       (((a2 a) (b2 b) (c2 c)) <alpha> q))
-	    (set! a1 10)
-	    (set! a2 20)
-	    (list a1 b1 c1 a2 b2 c2))
-	=> '(10 2 3 20 5 6))
+    (check
+	(with-record-fields ((((a1 a) (b1 b) (c1 c)) <alpha> p)
+			     (((a2 a) (b2 b) (c2 c)) <alpha> q))
+	  (set! a1 10)
+	  (set! a2 20)
+	  (list a1 b1 c1 a2 b2 c2))
+      => '(10 2 3 20 5 6))
 
-      #f)
+    #f)
 
-    #t)
+  #t)
 
 
 (parametrise ((check-test-name 'dotted-fields-identifier))
@@ -990,7 +738,7 @@
 					7 8 9)))
 		   (with-record-fields* ((ciao <gamma> o))
 		     123))
-		(environment '(rnrs) '(nos) '(records)
+		(environment '(rnrs) '(records)
 			     '(for (records-lib) expand run))))
       => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
 	   (irritants . (ciao))))
@@ -1003,12 +751,12 @@
 	  (eval '(let ((o (make <gamma> 1 2 3
 					4 5 6
 					7 8 9)))
-		   (with-record-fields ((b <gamma> o))
-		     (set! b 1)
-		     b))
-		(environment '(rnrs) '(nos) '(records)
+		   (with-record-fields* ((b <gamma> o))
+		     (set! o.b 1)
+		     o.b))
+		(environment '(rnrs) '(records)
 			     '(for (records-lib) expand run))))
-      => '((message . "attempt to mutate immutable field for record \"<alpha>\"")
+      => '((message . "attempt to mutate immutable field of record \"<alpha>\" in record hierarchy of \"<gamma>\"")
 	   (irritants . (b))))
 
     #f)
@@ -1063,21 +811,21 @@
 	       7 8 9)))
 
       (check
-	  (with-virtual-fields ((iota <gamma> o))
-	    iota)
-	=> 91)
+      	  (with-virtual-fields ((iota <gamma> o))
+      	    iota)
+      	=> 91)
 
       (check
-	  (with-virtual-fields (((iota theta) <gamma> o))
-	    (list iota theta))
-	=> '(91 92))
+      	  (with-virtual-fields (((iota theta) <gamma> o))
+      	    (list iota theta))
+      	=> '(91 92))
 
       (check
-	  (with-virtual-fields (((iota theta) <gamma> o))
-	    (set! iota 5)
-	    (set! theta 6)
-	    (list iota theta))
-	=> '(5 6))
+      	  (with-virtual-fields (((iota theta) <gamma> o))
+      	    (set! iota 5)
+      	    (set! theta 6)
+      	    (list iota theta))
+      	=> '(5 6))
 
       #f)
 
@@ -1090,21 +838,21 @@
 	       7 8 9)))
 
       (check
-	  (with-virtual-fields* ((iota <gamma> o))
-	    o.iota)
-	=> 91)
+      	  (with-virtual-fields* ((iota <gamma> o))
+      	    o.iota)
+      	=> 91)
 
       (check
-	  (with-virtual-fields* (((iota theta) <gamma> o))
-	    (list o.iota o.theta))
-	=> '(91 92))
+      	  (with-virtual-fields* (((iota theta) <gamma> o))
+      	    (list o.iota o.theta))
+      	=> '(91 92))
 
       (check
-	  (with-virtual-fields* (((iota theta) <gamma> o))
-	    (set! o.iota 5)
-	    (set! o.theta 6)
-	    (list o.iota o.theta))
-	=> '(5 6))
+      	  (with-virtual-fields* (((iota theta) <gamma> o))
+      	    (set! o.iota 5)
+      	    (set! o.theta 6)
+      	    (list o.iota o.theta))
+      	=> '(5 6))
 
       #f)
 
@@ -1119,14 +867,14 @@
 	     4 5 6)))
 
     (check
-	(with-virtual-fields ((def <beta> o))
-	  def)
+    	(with-virtual-fields ((def <beta> o))
+    	  def)
       => '(4 5 6))
 
     (check
-	(with-virtual-fields (((def) <beta> o))
-	  (set! def '(90 91))
-	  def)
+    	(with-virtual-fields (((def) <beta> o))
+    	  (set! def '(90 91))
+    	  def)
       => '(90 5 91))
 
     #f)
@@ -1136,14 +884,14 @@
 	     4 5 6)))
 
     (check
-	(with-virtual-fields* ((def <beta> o))
-	  o.def)
+    	(with-virtual-fields* ((def <beta> o))
+    	  o.def)
       => '(4 5 6))
 
     (check
-	(with-virtual-fields* (((def) <beta> o))
-	  (set! o.def '(90 91))
-	  o.def)
+    	(with-virtual-fields* (((def) <beta> o))
+    	  (set! o.def '(90 91))
+    	  o.def)
       => '(90 5 91))
 
     #f)
@@ -1154,32 +902,57 @@
 
     (define-record-extension <string>
       (fields (length string-length #f)
-	      (upcase string-upcase #f)
-	      (dncase string-downcase #f)))
+    	      (upcase string-upcase #f)
+    	      (dncase string-downcase #f)))
 
     (check
-	(with-virtual-fields ((length <string> S))
-	  length)
+    	(with-virtual-fields ((length <string> S))
+    	  length)
       => 4)
 
     (check
-	(with-virtual-fields (((upcase dncase) <string> S))
-	  (list upcase dncase))
+    	(with-virtual-fields (((length) <string> S))
+    	  length)
+      => 4)
+
+    (check
+    	(with-virtual-fields ((((len length)) <string> S))
+    	  len)
+      => 4)
+
+    (check
+    	(with-virtual-fields (((upcase dncase) <string> S))
+    	  (list upcase dncase))
       => '("CIAO" "ciao"))
 
+    #;(check
+    	(with-virtual-fields ((((up upcase) (dn dncase)) <string> S))
+    	  (list up dn))
+      => '("CIAO" "ciao"))
+
+    #;(check
+    	(with-virtual-fields ((((up upcase) dncase) <string> S))
+    	  (list up dncase))
+      => '("CIAO" "ciao"))
+
+    #;(check
+    	(with-virtual-fields (((upcase (dn dncase)) <string> S))
+    	  (list upcase dn))
+      => '("CIAO" "ciao"))
+
+    #;(check
+    	(with-virtual-fields (((length upcase dncase) <string> S))
+          (list length upcase dncase))
+      => '(4 "CIAO" "ciao"))
+
     (check
-	(with-virtual-fields ((((len length)) <string> S))
-	  len)
+    	(with-virtual-fields* ((length <string> S))
+    	  S.length)
       => 4)
 
     (check
-	(with-virtual-fields* ((length <string> S))
-	  S.length)
-      => 4)
-
-    (check
-	(with-virtual-fields* (((upcase dncase) <string> S))
-	  (list S.upcase S.dncase))
+    	(with-virtual-fields* (((upcase dncase) <string> S))
+    	  (list S.upcase S.dncase))
       => '("CIAO" "ciao"))
 
     #f)

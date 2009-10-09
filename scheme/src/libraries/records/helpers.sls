@@ -29,16 +29,13 @@
 
 (library (records helpers)
   (export
-    record-parent-list
+    record-parent-list		make-record-maker
     record-field-accessor	record-field-mutator
+    virtual-field-accessor	virtual-field-mutator
     make-define-forms		make-bindings-for-with
-    field-name->accessor-name	field-name->mutator-name
-    field-name->accessor&mutator-name
-    %record-field-accessor	%record-field-mutator
-    %record-field-identifiers
-    %virtual-field-accessor	%virtual-field-mutator
+    %record-predicate		%record-field-identifiers
     record-extension-add!
-    make-list vector-index)
+    vector-index)
   (import (rnrs))
 
 
@@ -63,48 +60,67 @@
 	       i
 	     (loop (+ i 1)))))))
 
-(define delete-duplicates
-  (case-lambda
-   ((lis)
-    (delete-duplicates lis equal?))
-   ((lis elt=)
-    (let recur ((lis lis))
-      (if (null? lis) lis
-	(let* ((x (car lis))
-	       (tail (cdr lis))
-	       (new-tail (recur (delete x tail elt=))))
-	  (if (eq? tail new-tail) lis (cons x new-tail))))))))
-
-(define delete
-  (case-lambda
-   ((x lis)
-    (delete x lis equal?))
-   ((x lis =)
-    (filter (lambda (y) (not (= x y))) lis))))
-
 
 ;;; helpers
 
-(define (field-name->accessor-name rtd-name field-name)
+(define (%field-name->accessor-name rtd-name field-name)
   ;;Given a record  type name (as symbol) and a  field name (as symbol),
   ;;return an identifier to be used as name for the field accessor.
   ;;
   (string->symbol (string-append (symbol->string rtd-name) "-"
 				 (symbol->string field-name))))
 
-(define (field-name->mutator-name rtd-name field-name)
+(define (%field-name->mutator-name rtd-name field-name)
   ;;Given a record  type name (as symbol) and a  field name (as symbol),
   ;;return an identifier to be used as name for the field mutator.
   ;;
   (string->symbol (string-append (symbol->string rtd-name) "-"
 				 (symbol->string field-name) "-set!")))
 
-(define field-name->accessor&mutator-name
+(define %field-name->accessor&mutator-name
   ;;Given a record  type name (as symbol) and a  field name (as symbol),
   ;;return an identifier  to be used as name for  the field accessor and
   ;;mutator function.
   ;;
-  field-name->accessor-name)
+  %field-name->accessor-name)
+
+(define (%record-predicate rtd)
+  ;;Return the  record type predicate  associated to RTD.   Support both
+  ;;normal record types and conventional record types.
+  ;;
+  (case (record-type-name rtd)
+    ((<fixnum>)			fixnum?)
+    ((<integer>)		integer?)
+    ((<rational>)		rational?)
+    ((<integer-valued>)		integer-valued?)
+    ((<rational-valued>)	rational-valued?)
+    ((<flonum>)			flonum?)
+    ((<real>)			real?)
+    ((<real-valued>)		real-valued?)
+    ((<complex>)		complex?)
+    ((<number>)			number?)
+
+    ((<char>)			char?)
+    ((<string>)			string?)
+    ((<vector>)			vector?)
+    ((<bytevector>)		bytevector?)
+    ((<hashtable>)		hashtable?)
+
+    ((<input-port>)		input-port?)
+    ((<output-port>)		output-port?)
+    ((<binary-port>)		(lambda (obj)
+				  (and (port? obj) (binary-port? obj))))
+    ((<textual-port>)		(lambda (obj)
+				  (and (port? obj) (textual-port? obj))))
+    ((<port>)			port?)
+
+    ((<condition>)		condition?)
+    ((<record>)			record?)
+    ((<pair>)			pair?)
+    ((<list>)			list?)
+
+    (else
+     (record-predicate rtd))))
 
 
 (define (record-parent-list rtd)
@@ -114,26 +130,65 @@
 	(loop (cons rtd cls) (record-type-parent rtd))
       (reverse cls))))
 
-(define (record-field-accessor rtd field-name)
-  (if rtd
-      (let ((idx (vector-index field-name (record-type-field-names rtd))))
-	(if idx
-	    (record-accessor rtd idx)
-	  (record-field-accessor (record-type-parent rtd) field-name)))
-    (assertion-violation 'record-field-accessor
-      "unknown field name in record type hierarchy"
-      field-name)))
+(define record-field-accessor
+  (case-lambda
+   ((rtd field-name)
+    (record-field-accessor rtd field-name (record-type-name rtd)))
+   ((rtd field-name rtd-name)
+    (if rtd
+	(let ((idx (vector-index field-name (record-type-field-names rtd))))
+	  (if idx
+	      (record-accessor rtd idx)
+	    (record-field-accessor (record-type-parent rtd) field-name rtd-name)))
+      (assertion-violation 'record-field-accessor
+	(string-append "unknown field name in record type hierarchy of \""
+		       (symbol->string rtd-name) "\"")
+	field-name)))))
 
-(define (record-field-mutator rtd field-name)
-  (if rtd
-      (let ((idx (vector-index field-name (record-type-field-names rtd))))
-	(if idx
-	    (and (record-field-mutable? rtd idx)
+(define record-field-mutator
+  (case-lambda
+   ((rtd field-name)
+    (record-field-mutator rtd field-name #t (record-type-name rtd)))
+   ((rtd field-name false-if-immutable)
+    (record-field-mutator rtd field-name false-if-immutable (record-type-name rtd)))
+   ((rtd field-name false-if-immutable rtd-name)
+    (if rtd
+	(let ((idx (vector-index field-name (record-type-field-names rtd))))
+	  (cond ((not idx)
+		 (record-field-mutator (record-type-parent rtd) field-name
+				       false-if-immutable rtd-name))
+		((record-field-mutable? rtd idx)
 		 (record-mutator rtd idx))
-	  (record-field-mutator (record-type-parent rtd) field-name)))
-    (assertion-violation 'record-field-mutator
-      "unknown field name in record type hierarchy"
-      field-name)))
+		(else
+		 (if false-if-immutable
+		     #f
+		   (lambda (dummy-a dummy-b)
+		     (assertion-violation 'record-field-mutator
+		       (string-append "attempt to mutate immutable field of record \""
+				      (symbol->string (record-type-name rtd))
+				      "\" in record hierarchy of \""
+				      (symbol->string rtd-name) "\"")
+		       field-name))))))
+      (assertion-violation 'record-field-mutator
+	(string-append "unknown field name in record type hierarchy of \""
+		       (symbol->string rtd-name) "\"")
+	field-name)))))
+
+
+(define make-record-maker
+  (case-lambda
+   ((rtd)
+    (make-record-maker rtd #f))
+   ((rtd init)
+    (let ((init-values (make-list (fold-left
+				   (lambda (sum rtd)
+				     (+ sum (vector-length (record-type-field-names rtd))))
+				   0
+				   (record-parent-list rtd))
+				  init))
+	  (maker	(record-constructor (make-record-constructor-descriptor rtd #f #f))))
+      (lambda ()
+	(apply maker init-values))))))
 
 
 (define (make-define-forms what which kontext rtd)
@@ -192,7 +247,7 @@
     ;;single DEFINE  form; it  binds the record  field accessor  for the
     ;;field at INDEX in RTD.
     ;;
-    (let ((accessor-name	(field-name->accessor&mutator-name
+    (let ((accessor-name	(%field-name->accessor&mutator-name
 				 rtd-name (vector-ref (record-type-field-names rtd) index)))
 	  (accessor-proc	(record-accessor rtd index)))
       (datum->syntax kontext `(define ,accessor-name ',accessor-proc))))
@@ -203,7 +258,7 @@
     ;;single  DEFINE form;  it binds  the record  field mutator  for the
     ;;field at INDEX in RTD.
     ;;
-    (let ((mutator-name		(field-name->mutator-name
+    (let ((mutator-name		(%field-name->mutator-name
 				 rtd-name (vector-ref (record-type-field-names rtd) index)))
 	  (mutator-proc		(record-mutator rtd index)))
       (datum->syntax kontext `(define ,mutator-name ',mutator-proc))))
@@ -214,7 +269,7 @@
     ;;single  DEFINE form;  it binds  an  accessor and  mutator for  the
     ;;record field INDEX in RTD.
     ;;
-    (let ((name			(field-name->accessor&mutator-name
+    (let ((name			(%field-name->accessor&mutator-name
 				 rtd-name (vector-ref (record-type-field-names rtd) index)))
 	  (accessor-proc	(record-accessor rtd index))
 	  (mutator-proc		(record-mutator  rtd index)))
@@ -304,7 +359,7 @@
     ;;single  binding  for a  LET  syntax;  it  binds the  record  field
     ;;accessor for the field at INDEX in RTD.
     ;;
-    (let ((accessor-name (field-name->accessor-name rtd-name
+    (let ((accessor-name (%field-name->accessor-name rtd-name
 						    (vector-ref (record-type-field-names rtd) index)))
 	  (accessor-proc (record-accessor rtd index)))
       (datum->syntax kontext `(,accessor-name ',accessor-proc))))
@@ -315,8 +370,8 @@
     ;;single binding for a LET syntax; it binds the record field mutator
     ;;for the field at INDEX in RTD.
     ;;
-    (let ((mutator-name (field-name->mutator-name rtd-name
-						  (vector-ref (record-type-field-names rtd) index)))
+    (let ((mutator-name (%field-name->mutator-name rtd-name
+						   (vector-ref (record-type-field-names rtd) index)))
 	  (mutator-proc (record-mutator rtd index)))
       (datum->syntax kontext `(,mutator-name ',mutator-proc))))
 
@@ -326,7 +381,7 @@
     ;;single  binding for a  LET syntax;  it binds  the an  accessor and
     ;;mutator closure for the field at INDEX in RTD.
     ;;
-    (let ((name		(field-name->accessor&mutator-name
+    (let ((name		(%field-name->accessor&mutator-name
 			 rtd-name (vector-ref (record-type-field-names rtd) i)))
 	  (accessor-proc	(record-accessor rtd i))
 	  (mutator-proc	(record-mutator  rtd i)))
@@ -339,8 +394,6 @@
   (main (record-type-name rtd)))
 
 
-;;;;helpers for WITH-RECORD-FIELDS and WITH-RECORD-FIELDS*
-
 (define (%record-field-identifiers record-id field-names)
   ;;Return a list  of conventional names associated to  a record binding
   ;;and  a list of  record fields.   RECORD-ID must  be a  Scheme symbol
@@ -363,65 +416,6 @@
     (map (lambda (name)
 	   (string->symbol (string-append record-id "." (symbol->string name))))
       field-names)))
-
-(define (%record-field-accessor rtd-name rtd field-name)
-  ;;Return  a function  which, when  applied to  a record  of  type RTD,
-  ;;returns the value  of the field whose name  is FIELD-NAME.  RTD must
-  ;;be a record type descriptor, FIELD-NAME must be a Scheme symbol.
-  ;;
-  ;;RTD-NAME must be a Scheme symbol representing the name of the record
-  ;;type RTD, it is used only for error messages.
-  ;;
-  (if rtd
-;;;      (let ((ext (hashtable-ref *record-extensions* rtd #f)))
-	;;; (if (and ext (assq field-name ext))
-	;;;     (cadr (assq field-name ext))
-	  (let ((idx (vector-index field-name (record-type-field-names rtd))))
-	    (if idx
-		(record-accessor rtd idx)
-	      (%record-field-accessor rtd-name (record-type-parent rtd) field-name)))
-	  ;;;))
-    (assertion-violation #f
-      (string-append "unknown field name in record type hierarchy of \""
-		     (symbol->string rtd-name) "\"")
-      field-name)))
-
-(define %record-field-mutator
-  ;;Return a function which, when applied  to a record of type RTD and a
-  ;;Scheme  object,  mutates  the  value  of the  field  whose  name  is
-  ;;FIELD-NAME.  RTD  must be a record type  descriptor, FIELD-NAME must
-  ;;be a Scheme symbol.
-  ;;
-  ;;RTD-NAME must be a Scheme symbol representing the name of the record
-  ;;type RTD, it is used only for error messages.
-  ;;
-  (case-lambda
-   ((rtd-name rtd field-name)
-    (%record-field-mutator rtd-name rtd field-name #f))
-   ((rtd-name rtd field-name false-if-not-found)
-    (if rtd
-	;;; (let ((ext (hashtable-ref *record-extensions* rtd #f)))
-	;;;   (if (and ext (assq field-name ext))
-	;;;       (caddr (assq field-name ext))
-	    (let ((idx (vector-index field-name (record-type-field-names rtd))))
-	      (cond ((not idx)
-		     (%record-field-mutator rtd-name (record-type-parent rtd) field-name
-					    false-if-not-found))
-		    ((record-field-mutable? rtd idx)
-		     (record-mutator rtd idx))
-		    (else
-		     (if false-if-not-found
-			 #f
-		       (lambda args
-			 (assertion-violation #f
-			   (string-append "attempt to mutate immutable field for record \""
-					  (symbol->string (record-type-name rtd)) "\"")
-			   field-name))))))
-      ;;;))
-      (assertion-violation #f
-	(string-append "unknown field name in record type hierarchy of \""
-		       (symbol->string rtd-name) "\"")
-	field-name)))))
 
 
 ;;;;helpers for WITH-VIRTUAL-FIELDS and WITH-VIRTUAL-FIELDS*
@@ -447,61 +441,73 @@
 	  (store-it field-table)
 	  (hashtable-set! *record-extensions* rtd field-table))))))
 
-(define (%virtual-field-accessor rtd-name rtd field-name)
-  ;;Return a syntax object expanding  to a procedure which, when applied
-  ;;to  a value  of  conventional type  RTD,  returns the  value of  the
-  ;;virtual field whose  name is FIELD-NAME.  RTD must  be a record type
-  ;;descriptor, FIELD-NAME must be a Scheme symbol.
+(define virtual-field-accessor
+  ;;Return a syntax  object expanding to a procedure  object which, when
+  ;;applied to  a value of conventional  type RTD, returns  the value of
+  ;;the virtual  field whose name is  FIELD-NAME.  RTD must  be a record
+  ;;type descriptor, FIELD-NAME must be a Scheme symbol.
   ;;
   ;;RTD-NAME must be a Scheme symbol representing the name of the record
   ;;type RTD, it is used only for error messages.
   ;;
-  (if rtd
-      (let* ((rtd-table	(hashtable-ref *record-extensions* rtd #f))
-	     (field	(and rtd-table (hashtable-ref rtd-table field-name #f))))
-	(if field
-	    (let ((proc (<virtual-field>-accessor field)))
-	      (or proc
-		  (lambda args
-		    (assertion-violation #f
-		      (string-append "attempt to access unreadable virtual field \""
-				     (symbol->string field-name)
-				     "\" for record \""
-				     (symbol->string (record-type-name rtd)) "\"")
-		      field-name))))
-	  (%virtual-field-accessor rtd-name (record-type-parent rtd) field-name)))
-    (assertion-violation #f
-      (string-append "unknown virtual field name \"" (symbol->string field-name)
-		     "\" in record type hierarchy of \"" (symbol->string rtd-name) "\"")
-      field-name)))
+  (case-lambda
+   ((rtd field-name)
+    (virtual-field-accessor rtd field-name (record-type-name rtd)))
+   ((rtd field-name rtd-name)
+    (if rtd
+	(let* ((rtd-table	(hashtable-ref *record-extensions* rtd #f))
+	       (field	(and rtd-table (hashtable-ref rtd-table field-name #f))))
+	  (if field
+	      (let ((proc (<virtual-field>-accessor field)))
+		(or proc
+		    (lambda args
+		      (assertion-violation #f
+			(string-append "attempt to access unreadable virtual field \""
+				       (symbol->string field-name)
+				       "\" for record \"" (symbol->string rtd-name) "\"")
+			field-name))))
+	    (virtual-field-accessor (record-type-parent rtd) field-name rtd-name)))
+      (assertion-violation #f
+	(string-append "unknown virtual field name \"" (symbol->string field-name)
+		       "\" in record type hierarchy of \"" (symbol->string rtd-name) "\"")
+	field-name)))))
 
-(define (%virtual-field-mutator rtd-name rtd field-name)
-  ;;Return a syntax object expanding  to a procedure which, when applied
-  ;;to a value of conventional type RTD and a Scheme object, mutates the
-  ;;value of the virtual field whose  name is FIELD-NAME.  RTD must be a
-  ;;record type descriptor, FIELD-NAME must be a Scheme symbol.
+(define virtual-field-mutator
+  ;;Return a syntax  object expanding to a procedure  object which, when
+  ;;applied to  a value  of conventional type  RTD and a  Scheme object,
+  ;;mutates the  value of  the virtual field  whose name  is FIELD-NAME.
+  ;;RTD must  be a record type  descriptor, FIELD-NAME must  be a Scheme
+  ;;symbol.
   ;;
   ;;RTD-NAME must be a Scheme symbol representing the name of the record
   ;;type RTD, it is used only for error messages.
   ;;
-  (if rtd
-      (let* ((rtd-table	(hashtable-ref *record-extensions* rtd #f))
-	     (field	(and rtd-table (hashtable-ref rtd-table field-name #f))))
-	(if field
-	    (let ((proc (<virtual-field>-mutator field)))
-	      (or proc
-		  (lambda args
-		    (assertion-violation #f
-		      (string-append "attempt to access immutable virtual field \""
-				     (symbol->string field-name)
-				     "\" for record \""
-				     (symbol->string (record-type-name rtd)) "\"")
-		      field-name))))
-	  (%virtual-field-mutator rtd-name (record-type-parent rtd) field-name)))
-    (assertion-violation #f
-      (string-append "unknown virtual field name \"" (symbol->string field-name)
-		     "\" in record type hierarchy of \"" (symbol->string rtd-name) "\"")
-      field-name)))
+  (case-lambda
+   ((rtd field-name)
+    (virtual-field-mutator rtd field-name #t (record-type-name rtd)))
+   ((rtd field-name false-if-immutable)
+    (virtual-field-mutator rtd field-name false-if-immutable (record-type-name rtd)))
+   ((rtd field-name false-if-immutable rtd-name)
+    (if rtd
+	(let* ((rtd-table	(hashtable-ref *record-extensions* rtd #f))
+	       (field	(and rtd-table (hashtable-ref rtd-table field-name #f))))
+	  (if field
+	      (let ((proc (<virtual-field>-mutator field)))
+		(or proc
+		    (if false-if-immutable
+			#f
+		      (lambda args
+			(assertion-violation #f
+			  (string-append "attempt to access immutable virtual field \""
+					 (symbol->string field-name)
+					 "\" for record \""
+					 (symbol->string (record-type-name rtd)) "\"")
+			  field-name)))))
+	    (virtual-field-mutator (record-type-parent rtd) field-name false-if-immutable rtd-name)))
+      (assertion-violation #f
+	(string-append "unknown virtual field name \"" (symbol->string field-name)
+		       "\" in record type hierarchy of \"" (symbol->string rtd-name) "\"")
+	field-name)))))
 
 
 ;;;; done

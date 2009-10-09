@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: usage tests for (nos)
+;;;Contents: usage tests for (records)
 ;;;Date: Wed Aug 26, 2009
 ;;;
 ;;;Abstract
@@ -27,171 +27,12 @@
 (import (nausicaa)
   (lists)
   (checks)
-  (nos)
   (records)
   (keywords)
-  (matches)
-  (for (nos-lib) expand))
+  (for (records-lib) expand))
 
 (check-set-mode! 'report-failed)
-(display "*** testing NOS\n")
-
-
-(parametrise ((check-test-name 'definition-experiments))
-
-  (let ()
-    (define-record-type <a>
-      (fields (mutable	alpha)
-	      (immutable	beta))
-      (protocol (lambda (maker)
-		  (lambda args
-		    (let ((alpha #f)
-			  (beta  #f))
-		      (for-each (match-lambda
-				 (('alpha x) (set! alpha x))
-				 (('beta  x) (set! beta  x)))
-			args)
-		      (maker alpha beta))))))
-
-    (check
-	(let ((a (make-<a> '(alpha 1) '(beta  2))))
-	  (list (<a>-alpha a)
-		(<a>-beta  a)))
-      => '(1 2))
-
-    #t)
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (define-record-type <a>
-      (fields (mutable alpha)
-	      (immutable beta)))
-
-    (define-keyword :alpha)
-    (define-keyword :beta)
-
-    (define (make-<a>* . options)
-      (let-keywords options #f ((alpha	:alpha	#f)
-				(beta	:beta	#f))
-	(make-<a> alpha beta)))
-
-    (check
-	(let ((a (make-<a>* :alpha 1 :beta 2)))
-	  (list (<a>-alpha a)
-		(<a>-beta  a)))
-      => '(1 2))
-
-    #t)
-
-  #t)
-
-
-(parametrise ((check-test-name	'macros))
-
-  (let ((a (make <alpha>
-	     1 2 3))
-	(b (make <beta>
-	     1 2 3
-	     4 5 6)))
-
-    (check
-    	(is-a? a <alpha>)
-      => #t)
-
-    (check
-    	(with-record-fields (((a b c) <alpha> a))
-    	  (list a b c))
-      => '(1 2 3))
-
-    (check
-    	(is-a? b <beta>)
-      => #t)
-
-    (check
-    	(with-record-fields (((a b c d e f) <beta> b))
-    	  (list a b c d e f))
-      => '(1 2 3 4 5 6))
-
-    #f)
-
-;;; --------------------------------------------------------------------
-
-  (check-for-true	(is-a? 123 <fixnum>))
-  (check-for-false	(is-a? #\a <fixnum>))
-
-  (check-for-true	(is-a? 1 <integer>))
-  (check-for-false	(is-a? 1.2 <integer>))
-
-  (check-for-true	(is-a? 1/2 <rational>))
-  (check-for-false	(is-a? 1+2i <rational>))
-
-  (check-for-true	(is-a? 1.0 <integer-valued>))
-  (check-for-false	(is-a? 1.1 <integer-valued>))
-
-  (check-for-true	(is-a? 1/2 <rational-valued>))
-  (check-for-false	(is-a? #\a <rational-valued>))
-
-  (check-for-true	(is-a? 1.1 <flonum>))
-  (check-for-false	(is-a? #\a <flonum>))
-
-  (check-for-true	(is-a? 1.1 <real>))
-  (check-for-false	(is-a? #\a <real>))
-
-  (check-for-true	(is-a? 1.1 <real-valued>))
-  (check-for-false	(is-a? #\a <real-valued>))
-
-  (check-for-true	(is-a? 1.1+2i <complex>))
-  (check-for-false	(is-a? #\a <complex>))
-
-  (check-for-true	(is-a? 1 <number>))
-  (check-for-false	(is-a? #\a <number>))
-
-  (check-for-true	(is-a? #\a <char>))
-  (check-for-false	(is-a? 1 <char>))
-
-  (check-for-true	(is-a? "ciao" <string>))
-  (check-for-false	(is-a? 123 <string>))
-
-  (check-for-true	(is-a? '#(1 2 3) <vector>))
-  (check-for-false	(is-a? "ciao" <vector>))
-
-  (check-for-true	(is-a? '#vu8(1 2 3) <bytevector>))
-  (check-for-false	(is-a? "ciao" <bytevector>))
-
-  (check-for-true	(is-a? (make-eq-hashtable) <hashtable>))
-  (check-for-false	(is-a? "ciao" <hashtable>))
-
-  (check-for-true	(is-a? (open-string-input-port "ciao") <input-port>))
-  (check-for-false	(is-a? 123 <input-port>))
-
-  (check-for-true	(let-values (((port getter) (open-string-output-port)))
-  			  (is-a? port <output-port>)))
-  (check-for-false	(is-a? 123 <output-port>))
-
-  ;;;(check-for-true	(is-a? <binary-port>))
-  (check-for-false	(is-a? 123 <binary-port>))
-
-  ;;(check-for-true	(is-a? (open-string-input-port "ciao") <textual-port>))
-  ;;(check-for-false	(is-a? 123 <textual-port>))
-
-  (check-for-true	(is-a? (open-string-input-port "ciao") <port>))
-  (check-for-false	(is-a? 123 <port>))
-
-  (check-for-true	(is-a? (make-message-condition "ciao") <condition>))
-  (check-for-false	(is-a? 123 <condition>))
-
-  (check-for-true	(is-a? (make <alpha> 1 2 3) <record>))
-  (check-for-false	(is-a? 123 <record>))
-
-  (check-for-true	(is-a? '(1 . 2) <pair>))
-  (check-for-false	(is-a? 1 <pair>))
-
-  (check-for-true	(is-a? '(1 2) <list>))
-  (check-for-false	(is-a? '(1 . 2) <list>))
-
-  #t)
+(display "*** testing records generics\n")
 
 
 (parameterise ((check-test-name 'generic-simple-inheritance))
@@ -267,15 +108,15 @@
 
     (define-generic alpha)
 
-    (declare-method alpha ((o <fixnum>))		'<fixnum>)
-    (declare-method alpha ((o <flonum>))		'<flonum>)
+    (declare-method alpha ((o <fixnum>))	'<fixnum>)
+    (declare-method alpha ((o <flonum>))	'<flonum>)
     (declare-method alpha ((o <integer>))	'<integer>)
     (declare-method alpha ((o <real>))		'<real>)
     (declare-method alpha ((o <complex>))	'<complex>)
-    (declare-method alpha ((o <number>))		'<number>)
+    (declare-method alpha ((o <number>))	'<number>)
 
     ;;Here remember  that we are using  the methods above,  we are *not*
-    ;;applying CLASS-OF.
+    ;;applying RECORD-TYPE-OF.
     (check (alpha 12)		=> '<fixnum>)
     (check (alpha (expt 12 12)) => '<integer>)
     (check (alpha 2/3)		=> '<real>)

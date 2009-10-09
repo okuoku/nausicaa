@@ -55,31 +55,6 @@
 ;;;SOFTWARE.
 
 
-;;;;copyright notice for RECEIVE
-;;;
-;;;Copyright (C) John David Stone (1999). All Rights Reserved.
-;;;
-;;;Permission is hereby granted, free of charge, to any person obtaining
-;;;a  copy of  this  software and  associated  documentation files  (the
-;;;"Software"), to  deal in the Software  without restriction, including
-;;;without limitation  the rights to use, copy,  modify, merge, publish,
-;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
-;;;permit persons to whom the Software is furnished to do so, subject to
-;;;the following conditions:
-;;;
-;;;The  above  copyright notice  and  this  permission  notice shall  be
-;;;included in all copies or substantial portions of the Software.
-;;;
-;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
-;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
-;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
-;;;NONINFRINGEMENT. IN  NO EVENT SHALL THE AUTHORS  OR COPYRIGHT HOLDERS
-;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
-;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
-;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
-;;;SOFTWARE.
-
-
 ;;;; copyright notice for the REC definition, renamed to RECURSIION
 ;;;
 ;;;Copyright (c) 2002 Dr. Mirko Luedde <Mirko.Luedde@SAP.com>
@@ -186,7 +161,9 @@
   (export
     and-let* begin0 begin0-let receive recursion cut cute do*
     dotimes dolist loop-upon-list ensure)
-  (import (rnrs))
+  (import (rnrs)
+    (begin0)
+    (receive))
 
 
 (define-syntax and-let*
@@ -223,39 +200,6 @@
 	 #'last)])))
 
 
-(define-syntax begin0
-  ;;This  syntax  comes from  the  R6RS  original  document, Appendix  A
-  ;;``Formal semantics''.
-  (syntax-rules ()
-    ((_ ?expr0 ?expr ...)
-     (call-with-values
-	 (lambda () ?expr0)
-       (lambda args
-	 ?expr ...
-	 (apply values args))))))
-
-(define-syntax begin0-let
-  (syntax-rules ()
-    ((_ (((?var0 ...) ?expr0) ((?var ...) ?expr) ...) ?form0 ?form ...)
-     (let-values (((?var0 ...) ?expr0)
-		  ((?var  ...) ?expr)
-		  ...)
-       ?form0 ?form ...
-       (values ?var0 ...)))
-    ((_ ((?var0 ?expr0) (?var ?expr) ...) ?form0 ?form ...)
-     (let ((?var0 ?expr0)
-	   (?var  ?expr)
-	   ...)
-       ?form0 ?form ...
-       ?var0))))
-
-(define-syntax receive
-  (syntax-rules ()
-    ((_ ?formals ?expression ?form0 ?form ...)
-     (call-with-values
-         (lambda () ?expression)
-       (lambda ?formals ?form0 ?form ...)))))
-
 (define-syntax recursion
   (syntax-rules ()
     ((_ (?name . ?variables) . ?body)
