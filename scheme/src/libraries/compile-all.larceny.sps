@@ -47,6 +47,12 @@
 (compile-library "pretty-print.larceny.sls"
 		 "pretty-print.larceny.slfasl")
 
+(compile-library "begin0.sls"
+		 "begin0.slfasl")
+
+(compile-library "receive.sls"
+		 "receive.slfasl")
+
 (compile-library "language-extensions.sls"
 		 "language-extensions.slfasl")
 
@@ -142,6 +148,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "records/builtins.sls"
+		 "records/builtins.slfasl")
+
 (compile-library "records/helpers.sls"
 		 "records/helpers.slfasl")
 
@@ -153,9 +162,6 @@
 
 (compile-library "scmobj/utils.sls"
 		 "scmobj/utils.slfasl")
-
-(compile-library "nos.sls"
-		 "nos.slfasl")
 
 ;;; --------------------------------------------------------------------
 

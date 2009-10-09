@@ -53,7 +53,7 @@
 
   (define (q-remove! q obj)
     (set-car! q (remove*! (lambda (o)
-			   (eq? o obj)) (car q)))
+			    (eq? o obj)) (car q)))
     (sync-q! q))
 
   (define (q-push! q obj)

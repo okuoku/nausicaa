@@ -60,24 +60,13 @@
     pointer<?			pointer>?
     pointer<=?			pointer>=?
 
-    ;;memory blocks
-    make-memblock		memblock?
-    memblock-pointer		memblock-size
-
     ;;buffers
-    make-buffer
-    (rename (memblock-pointer	buffer-pointer))
-    (rename (memblock-size	buffer-size))
-    buffer?				buffer-used?
-    buffer-full?			buffer-empty?
-    buffer-used-size			buffer-used-size-set!
-    buffer-free-size			buffer-consume-bytes!
-    buffer-used-memblock		buffer-free-memblock
-    buffer-pointer-to-free-bytes	buffer-incr-used-size!
-    buffer-push-memblock!		buffer-pop-memblock!
-    buffer-push-bytevector!		buffer-pop-bytevector!
-    buffer-push-buffer!
-    (rename (buffer-push-buffer! buffer-pop-buffer!))
+    membuffer			membuffer*
+    membuffer-used-memblock	membuffer-free-memblock!
+    membuffer-incr-used-size!	membuffer-consume-bytes!
+    membuffer-push-memblock!	membuffer-pop-memblock!
+    membuffer-push-bytevector!	membuffer-pop-bytevector!
+    membuffer-push-membuffer!
 
     ;;cached memory blocks
     make-block-cache		make-caching-object-factory
@@ -99,8 +88,8 @@
 
 
     ;;buffer allocation
-    memory-buffer-pool
-    primitive-malloc/buffer	malloc/buffer
+    memory-pool
+    primitive-malloc/mempool	malloc/mempool
 
     ;;reference counting
     malloc/refcount		(rename (malloc/refcount malloc/rc))
@@ -161,6 +150,12 @@
   (import (nausicaa)
     (foreign memory compat)
     (foreign ffi sizeof)
+    (for (foreign memory record-typedefs) expand)
+    (for (foreign memory record-extensions) expand)
+    (nos)
+    (records)
+    (sexps)
+    (sexps syntax)
     (compensations))
 
 
@@ -258,133 +253,126 @@
       (raise-memory-request 'calloc (* count element-size) #t)))
 
 
-;;;; records
+;;;; memory blocks and buffers
+;;
+;;The record type definitions for  <memblock> and <membuffer> are in the
+;;library (foreign memory record-types).
+;;
 
-(define-record-type memblock
-  (fields (immutable pointer)
-	  (immutable size)))
+(define (memblock pointer size)
+  (make <memblock>
+    pointer size))
 
-(define-record-type buffer
-  (parent memblock)
-  (fields (mutable used-size)))
+(define (membuffer pointer size)
+  (make <membuffer>
+    pointer size pointer 0))
 
+(define-sexp-macro membuffer*
+  ((?pointer pointer-null)
+   (?size    0))
+  `(,(sexp-any (sexp-or `(pointer ,(sexp-var ?pointer))
+			`(size    ,(sexp-var ?size)))))
+  `(let ((pointer ,?pointer)
+	 (size    ,?size))
+     (make <membuffer>
+       pointer size pointer 0)))
 
-(define (buffer-empty? buf)
-  (zero? (buffer-used-size buf)))
+(define (%membuffer-shift-to-beginning! buf)
+  ;;Shift  the block of  used bytes  to the  beginning of  the allocated
+  ;;block.
+  ;;
+  (with-record-fields (((pointer first-used used-size) <membuffer> buf))
+    (when (pointer<>? pointer first-used)
+      (memmove pointer first-used used-size)
+      (set! first-used pointer))))
 
-(define (buffer-full? buf)
-  (= (memblock-size    buf)
-     (buffer-used-size buf)))
+(define (membuffer-used-memblock buf)
+  (with-record-fields (((first-used used-size) <membuffer> buf))
+    (make <memblock> first-used used-size)))
 
-(define (buffer-used? buf)
-  (not (zero? (buffer-used-size buf))))
+(define (membuffer-free-memblock! buf)
+  (with-virtual-fields (((free-pointer free-size) <membuffer> buf))
+    (%membuffer-shift-to-beginning! buf)
+    (make <memblock>
+      free-pointer free-size)))
 
-(define (buffer-free-size buf)
-  (- (memblock-size    buf)
-     (buffer-used-size buf)))
+(define (membuffer-incr-used-size! buf step)
+  (with-record-fields (((used-size) <membuffer> buf))
+    (set! used-size (+ step used-size))))
 
-(define (buffer-pointer-to-free-bytes buf)
-  (pointer-add (memblock-pointer buf)
-	       (buffer-used-size buf)))
+(define (membuffer-consume-bytes! buf number-of-bytes)
+  (with-record-fields (((used-size first-used pointer) <membuffer> buf))
+    (set! used-size (- used-size number-of-bytes))
+    (set! first-used (if (pointer=? pointer first-used)
+			 pointer
+		       (pointer-add first-used number-of-bytes)))))
 
-(define (buffer-used-memblock buf)
-  (make-memblock (memblock-pointer buf)
-		 (buffer-used-size buf)))
+(define (membuffer-push-memblock! buf blk)
+  (with-record-fields* (((used-size first-used pointer) <membuffer> buf)
+			((size pointer) <memblock> blk))
+    (with-virtual-fields* (((free-pointer free-size) <membuffer> buf))
+      (when (> blk.size buf.free-size)
+	(%membuffer-shift-to-beginning! buf))
+      (if (<= blk.size buf.free-size)
+	  (begin
+	    (memcpy buf.free-pointer blk.pointer blk.size)
+	    (set! buf.used-size (+ buf.used-size blk.size)))
+	(assertion-violation 'membuffer-push-memblock!
+	  (string-append "expected source memblock with size "
+			 (number->string blk.size)
+			 " <= to the free size ~s in destination buffer"
+			 (number->string buf.free-size))
+	  (list buf blk))))))
 
-(define (buffer-free-memblock buf)
-  (make-memblock (buffer-pointer-to-free-bytes buf)
-		 (buffer-free-size  buf)))
+(define (membuffer-pop-memblock! blk buf)
+  (with-record-fields* (((first-used used-size) <membuffer> buf)
+			((pointer size)	        <memblock>  blk))
+    (if (<= blk.size buf.used-size)
+	(begin
+	  (memcpy blk.pointer buf.first-used blk.size)
+	  (membuffer-consume-bytes! buf blk.size))
+      (assertion-violation 'membuffer-pop-memblock!
+	(string-append "destination memblock has size "
+		       (number->string blk.size)
+		       " greater than the number of available bytes "
+		       (number->string buf.used-size)
+		       " in source buffer")
+	(list blk buf)))))
 
-(define (buffer-incr-used-size! buf step)
-  (buffer-used-size-set! buf
-			 (+ step (buffer-used-size buf))))
+(define (membuffer-push-bytevector! buf byv)
+  (with-record-fields* (((pointer size used-size) <membuffer> buf))
+    (with-virtual-fields* ((free-size <membuffer> buf))
+      (let-syntax ((byv.size (identifier-syntax (bytevector-length byv))))
+	(when (> byv.size buf.free-size)
+	  (set! buf.pointer (realloc buf.pointer (* 2 buf.size))))
+	(do ((i 0 (+ 1 i)))
+	    ((= i byv.size)
+	     (set! buf.used-size (+ buf.used-size byv.size))
+	     buf)
+	  (pointer-set-c-unsigned-char! buf.pointer i (bytevector-u8-ref byv i)))))))
 
-(define (buffer-consume-bytes! buf number-of-bytes)
-  (let ((used-size	(buffer-used-size buf))
-	(pointer	(memblock-pointer buf)))
-    (when (> number-of-bytes used-size)
-      (assertion-violation 'buffer-consume-bytes!
-	(string-append "expected buffer used size "
-		       (number->string used-size)
-		       " <= to number of bytes to consume "
-		       (number->string number-of-bytes))
-	(list buf number-of-bytes)))
-    (memmove pointer
-	     (pointer-add pointer number-of-bytes)
-	     number-of-bytes)
-    (buffer-incr-used-size! buf (- number-of-bytes))))
+(define (membuffer-pop-bytevector! byv buf)
+  (with-record-fields* (((pointer used-size) <membuffer> buf))
+    (let-syntax ((byv.size (identifier-syntax (bytevector-length byv))))
+      (when (> byv.size buf.used-size)
+	(assertion-violation 'membuffer-pop-bytevector!
+	  (string-append "expected destination bytevector length "
+			 (number->string byv.size)
+			 " <= to the free size ~s in source buffer"
+			 (number->string buf.used-size))
+	  (list buf byv)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i byv.size)
+	   (membuffer-consume-bytes! buf byv.size))
+	(bytevector-u8-set! byv i (pointer-ref-c-unsigned-char buf.pointer i))))))
 
-(define (buffer-push-memblock! buf mb)
-  (let ((copy-len	(memblock-size mb))
-	(avail-len	(buffer-free-size buf)))
-    (when (> copy-len avail-len)
-      (assertion-violation 'buffer-push-memblock!
-	(string-append "expected source memblock with size "
-		       (number->string copy-len)
-		       " <= to the free size ~s in destination buffer"
-		       (number->string avail-len))
-	(list buf mb)))
-    (memcpy (buffer-pointer-to-free-bytes buf)
-	    (memblock-pointer mb)
-	    copy-len)
-    (buffer-incr-used-size! buf copy-len)))
-
-(define (buffer-pop-memblock! mb buf)
-  (let* ((src-ptr	(memblock-pointer buf))
-	 (dst-ptr	(memblock-pointer mb))
-	 (avail-size	(buffer-used-size buf))
-	 (copy-size	(memblock-size    mb)))
-    (when (> copy-size avail-size)
-      (assertion-violation 'buffer-pop-memblock!
-	(string-append "expected destination memblock with size "
-		       (number->string copy-size)
-		       " <= to the used size ~s in source buffer"
-		       (number->string avail-size))
-	(list mb buf)))
-    (memcpy dst-ptr src-ptr copy-size)
-    (buffer-consume-bytes! buf copy-size)))
-
-(define (buffer-push-bytevector! buf bv)
-  (let ((copy-size	(bytevector-length bv))
-	(avail-size	(buffer-free-size  buf))
-	(p		(memblock-pointer  buf)))
-    (when (> copy-size avail-size)
-      (assertion-violation 'buffer-push-bytevector!
-	(string-append "expected source bytevector length "
-		       (number->string copy-size)
-		       " <= to the free size ~s in destination buffer"
-		       (number->string avail-size))
-	(list buf bv)))
-    (do ((i 0 (+ 1 i)))
-	((= i copy-size)
-	 (buffer-incr-used-size! buf copy-size))
-      (pointer-set-c-unsigned-char! p i (bytevector-u8-ref bv i)))))
-
-(define (buffer-pop-bytevector! bv buf)
-  (let ((copy-size	(bytevector-length bv))
-	(avail-size	(buffer-used-size  buf))
-	(p		(memblock-pointer  buf)))
-    (when (> copy-size avail-size)
-      (assertion-violation 'buffer-pop-bytevector!
-	(string-append "expected destination bytevector length "
-		       (number->string copy-size)
-		       " <= to the free size ~s in source buffer"
-		       (number->string avail-size))
-	(list buf bv)))
-    (do ((i 0 (+ 1 i)))
-	((= i copy-size)
-	 (buffer-consume-bytes! buf copy-size))
-      (bytevector-u8-set! bv i (pointer-ref-c-unsigned-char p i)))))
-
-(define (buffer-push-buffer! dst src)
-  (let* ((used-size	(memblock-size src))
-	 (free-size	(buffer-free-size dst))
-	 (copy-size	(min free-size used-size)))
-    (memcpy (buffer-pointer-to-free-bytes dst)
-	    (memblock-pointer src)
-	    copy-size)
-    (buffer-consume-bytes!  src copy-size)
-    (buffer-incr-used-size! dst copy-size)))
+(define (membuffer-push-membuffer! dst src)
+  (with-record-fields* (((pointer used-size) <membuffer> src))
+    (with-virtual-fields* (((free-pointer free-size) <membuffer> dst))
+      (let ((copy-size (min dst.free-size src.used-size)))
+	(memcpy dst.free-pointer src.pointer copy-size)
+	(membuffer-consume-bytes!  src copy-size)
+	(membuffer-incr-used-size! dst copy-size)))))
 
 
 ;;;; caching allocated memory blocks
@@ -460,43 +448,39 @@
 (define page-blocks-cache
   (make-block-cache page-blocks-size 10))
 
-(define (memblocks-cache memblock-or-size)
-  (cond
-   ((memblock? memblock-or-size)
-    (let ((size		(memblock-size    memblock-or-size))
-	  (pointer	(memblock-pointer memblock-or-size)))
-      (cond
-       ((= size small-blocks-size)
-	(small-blocks-cache pointer))
-       ((= size page-blocks-size)
-	(page-blocks-cache pointer))
-       (else
-	(primitive-free pointer)))))
-   ((<= memblock-or-size small-blocks-size)
-    (make-memblock (small-blocks-cache) small-blocks-size))
-   ((<= memblock-or-size page-blocks-size)
-    (make-memblock (page-blocks-cache) page-blocks-size))
-   (else
-    (make-memblock (malloc memblock-or-size) memblock-or-size))))
+(define (memblocks-cache memblock/size)
+  (cond ((is-a? memblock/size <memblock>)
+	 (with-record-fields (((pointer size) <memblock> memblock/size))
+	   (cond
+	    ((= size small-blocks-size)
+	     (small-blocks-cache pointer))
+	    ((= size page-blocks-size)
+	     (page-blocks-cache pointer))
+	    (else
+	     (primitive-free pointer)))))
+	((<= memblock/size small-blocks-size)
+	 (make <memblock> (small-blocks-cache) small-blocks-size))
+	((<= memblock/size page-blocks-size)
+	 (make <memblock> (page-blocks-cache) page-blocks-size))
+	(else
+	 (make <memblock> (malloc memblock/size) memblock/size))))
 
-(define (buffers-cache buffer-or-size)
-  (cond
-   ((buffer? buffer-or-size)
-    (let ((size		(memblock-size    buffer-or-size))
-	  (pointer	(memblock-pointer buffer-or-size)))
-      (case size
-       ((sall-blocks-size)
-	(small-blocks-cache pointer))
-       ((page-blocks-size)
-	(page-blocks-cache pointer))
-       (else
-	(primitive-free pointer)))))
-   ((<= buffer-or-size small-blocks-size)
-    (make-buffer (small-blocks-cache) small-blocks-size 0))
-   ((<= buffer-or-size page-blocks-size)
-    (make-buffer (page-blocks-cache) page-blocks-size 0))
-   (else
-    (make-buffer (malloc buffer-or-size) buffer-or-size 0))))
+(define (buffers-cache membuffer/size)
+  (cond ((is-a? membuffer/size <membuffer>)
+	 (with-record-fields (((pointer size) <membuffer> membuffer/size))
+	   (case size
+	     ((sall-blocks-size)
+	      (small-blocks-cache pointer))
+	     ((page-blocks-size)
+	      (page-blocks-cache pointer))
+	     (else
+	      (primitive-free pointer)))))
+	((<= membuffer/size small-blocks-size)
+	 (membuffer (small-blocks-cache) small-blocks-size 0))
+	((<= membuffer/size page-blocks-size)
+	 (membuffer (page-blocks-cache) page-blocks-size 0))
+	(else
+	 (membuffer (malloc membuffer/size) membuffer/size 0))))
 
 
 ;;;; compensated allocations
@@ -563,26 +547,27 @@
 
 ;;;; allocation in buffers
 
-(define memory-buffer-pool
+(define memory-pool
   (make-parameter #f
     (lambda (obj)
-      (unless (or (not obj) (buffer? obj))
+      (unless (or (not obj) (is-a? obj <mempool>))
 	(assertion-violation 'memory-buffer-pool
-	  "expected #f or memory buffer as parameter value" obj))
+	  "expected #f or memory pool as parameter value" obj))
       obj)))
 
-(define (primitive-malloc/buffer number-of-bytes)
-  (let ((buffer (memory-buffer-pool)))
-    (assert buffer)
-    (if (< number-of-bytes (buffer-free-size buffer))
-	(begin0
-	    (buffer-pointer-to-free-bytes buffer)
-	  (buffer-incr-used-size! buffer number-of-bytes))
-      #f)))
+(define (primitive-malloc/mempool number-of-bytes)
+  (let ((pool (memory-pool)))
+    (assert pool)
+    (with-record-fields ((next <mempool> pool))
+      (with-virtual-fields ((free-size <mempool> pool))
+	(and (< number-of-bytes free-size)
+	     (begin0
+		 next
+	       (set! next (pointer-add next number-of-bytes))))))))
 
-(define (malloc/buffer number-of-bytes)
-  (or (primitive-malloc/buffer number-of-bytes)
-      (raise-out-of-memory 'malloc/buffer number-of-bytes)))
+(define (malloc/mempool number-of-bytes)
+  (or (primitive-malloc/mempool number-of-bytes)
+      (raise-out-of-memory 'malloc/mempool number-of-bytes)))
 
 
 ;;;; reference counting
@@ -652,9 +637,9 @@
    ((bv malloc number-of-bytes)
     (bytevector->memblock bv malloc number-of-bytes 0))
    ((bv malloc number-of-bytes offset)
-    (make-memblock
-     (bytevector->pointer bv malloc number-of-bytes offset)
-     number-of-bytes))))
+    (make <memblock>
+      (bytevector->pointer bv malloc number-of-bytes offset)
+      number-of-bytes))))
 
 ;;; --------------------------------------------------------------------
 
@@ -671,12 +656,14 @@
 
 (define memblock->bytevector
   (case-lambda
-   ((mb)
-    (memblock->bytevector mb (memblock-size mb) 0))
-   ((mb number-of-bytes)
-    (memblock->bytevector mb number-of-bytes 0))
-   ((mb number-of-bytes offset)
-    (pointer->bytevector (memblock-pointer mb) number-of-bytes offset))))
+   ((blk)
+    (with-record-fields ((size <memblock> blk))
+      (memblock->bytevector blk size 0)))
+   ((blk number-of-bytes)
+    (memblock->bytevector blk number-of-bytes 0))
+   ((blk number-of-bytes offset)
+    (with-record-fields ((pointer <memblock> blk))
+      (pointer->bytevector pointer number-of-bytes offset)))))
 
 
 ;;;; array peekers

@@ -26,7 +26,10 @@
 
 (import (nausicaa)
   (checks)
+  (nos)
+  (records)
   (foreign memory)
+  (for (foreign memory record-typedefs) expand)
   (compensations))
 
 (check-set-mode! 'report-failed)
@@ -39,157 +42,173 @@
 
   (check
       (let* ((p		(malloc len))
-	     (buf	(make-buffer p len 0)))
-	(begin0
-	    (list (buffer-size buf)
-		  (buffer-used-size buf)
-		  (buffer-free-size buf)
-		  (buffer-used? buf)
-		  (buffer-full? buf)
-		  (buffer-empty? buf))
-	  (primitive-free (buffer-pointer buf))))
-    => (list len 0 len #f #f #t))
+	     (buf	(membuffer p len)))
+	(with-record-fields (((pointer size used-size) <membuffer> buf))
+	  (with-virtual-fields (((free-size full? empty?) <membuffer> buf))
+	    (begin0
+		(list (is-a? buf <membuffer>)
+		      (pointer? pointer) size used-size
+		      free-size full? empty?)
+	      (primitive-free pointer)))))
+    => (list #t #t len 0 len #f #t))
 
   (check
       (let* ((p		(malloc len))
-	     (buf	(make-buffer p len 100)))
-	(begin0
-	    (list (buffer-size buf)
-		  (buffer-used-size buf)
-		  (buffer-free-size buf)
-		  (buffer-used? buf)
-		  (buffer-full? buf)
-		  (buffer-empty? buf))
-	  (primitive-free (buffer-pointer buf))))
-    => (list len 100 (- len 100) #t #f #f))
+	     (buf	(membuffer* (pointer p)
+				    (size    len))))
+	(with-record-fields (((pointer size used-size) <membuffer> buf))
+	  (with-virtual-fields (((free-size full? empty?) <membuffer> buf))
+	    (begin0
+		(list (is-a? buf <membuffer>)
+		      (pointer? pointer) size used-size
+		      free-size full? empty?)
+	      (primitive-free pointer)))))
+    => (list #t #t len 0 len #f #t))
 
   (check
       (let* ((p		(malloc len))
-	     (buf	(make-buffer p len len)))
-	(begin0
-	    (list (buffer-size buf)
-		  (buffer-used-size buf)
-		  (buffer-free-size buf)
-		  (buffer-used? buf)
-		  (buffer-full? buf)
-		  (buffer-empty? buf))
-	  (primitive-free (buffer-pointer buf))))
-    => (list len len 0 #t #t #f))
+  	     (buf	(membuffer p len)))
+	(with-record-fields (((pointer first-used size used-size) <membuffer> buf))
+	  (with-virtual-fields (((free-size full? empty?) <membuffer> buf))
+	    (set! first-used (pointer-add first-used 100))
+	    (begin0
+		(list size used-size free-size full? empty?)
+	      (primitive-free pointer)))))
+	=> (list len 100 (- len 100) #f #f))
+
+  ;; (check
+  ;;     (let* ((p		(malloc len))
+  ;; 	     (buf	(make <membuffer> p len len)))
+  ;; 	(begin0
+  ;; 	    (list (membuffer-size buf)
+  ;; 		  (membuffer-used-size buf)
+  ;; 		  (membuffer-free-size buf)
+  ;; 		  (membuffer-used? buf)
+  ;; 		  (membuffer-full? buf)
+  ;; 		  (membuffer-empty? buf))
+  ;; 	  (primitive-free (membuffer-pointer buf))))
+  ;;   => (list len len 0 #t #t #f))
 
   #t)
 
 
-(parametrise ((check-test-name 'used-memblock))
+#;(parametrise ((check-test-name 'used-memblock))
 
   (define len 4096)
 
   (check
       (with-compensations
 	(let* ((p	(malloc/c len))
-	       (buf	(make-buffer p len 100))
-	       (mb	(buffer-used-memblock buf)))
+	       (buf	(make-membuffer p len 100))
+	       (mb	(membuffer-used-memblock buf)))
 	  (list (= 100 (memblock-size mb))
-		(pointer=? (buffer-pointer buf)
+		(pointer=? (membuffer-pointer buf)
 			   (memblock-pointer mb)))))
     => '(#t #t))
 
   (check	;full used
       (with-compensations
 	(let* ((p	(malloc/c len))
-	       (buf	(make-buffer p len len))
-	       (mb	(buffer-used-memblock buf)))
+	       (buf	(make-membuffer p len len))
+	       (mb	(membuffer-used-memblock buf)))
 	  (list (= len (memblock-size mb))
-		(pointer=? (buffer-pointer buf)
+		(pointer=? (membuffer-pointer buf)
 			   (memblock-pointer mb)))))
     => '(#t #t))
 
   #t)
 
 
-(parametrise ((check-test-name 'free-memblock))
+#;(parametrise ((check-test-name 'free-memblock))
 
   (define len 4096)
 
   (check
       (with-compensations
 	(let* ((p	(malloc/c len))
-	       (buf	(make-buffer p len 100))
-	       (mb	(buffer-free-memblock buf)))
+	       (buf	(make-membuffer p len 100))
+	       (mb	(membuffer-free-memblock buf)))
 	  (list (= (- len 100) (memblock-size mb))
-		(pointer=? (pointer-add (buffer-pointer buf) 100)
+		(pointer=? (pointer-add (membuffer-pointer buf) 100)
 			   (memblock-pointer mb)))))
     => '(#t #t))
 
   (check	;full empty
       (with-compensations
 	(let* ((p	(malloc/c len))
-	       (buf	(make-buffer p len len))
-	       (mb	(buffer-free-memblock buf)))
+	       (buf	(make-membuffer p len len))
+	       (mb	(membuffer-free-memblock buf)))
 	  (list (zero? (memblock-size mb))
-		(pointer=? (pointer-add (buffer-pointer buf) len)
+		(pointer=? (pointer-add (membuffer-pointer buf) len)
 			   (memblock-pointer mb)))))
     => '(#t #t))
 
   #t)
 
 
-(parametrise ((check-test-name 'push-pop-memblock))
+#;(parametrise ((check-test-name 'push-pop-memblock))
 
-  (check	;push twice, pop everything
+  (check
       (with-compensations
-	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
-	       (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
-	       (mb3	(make-memblock (malloc/c 10) 10))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-memblock! buf mb1)
-	  (buffer-push-memblock! buf mb2)
-	  (buffer-pop-memblock! mb3 buf)
-	  (list (memblock->bytevector mb3)
-		(buffer-empty? buf))))
+	(let (	;input memblocks
+	      (mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
+	      (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
+		;output memblock
+	      (mb3	(make-memblock (malloc/c 10) 10)))
+	  (let* ((len	4096)
+		 (buf	(make-membuffer (malloc/c len) len 0)))
+	    (membuffer-push-memblock! buf mb1)
+	    (membuffer-push-memblock! buf mb2)
+	    (membuffer-pop-memblock! mb3 buf)
+	    (list (memblock->bytevector mb3)
+		  (membuffer-empty? buf)))))
     => '(#vu8(0 1 2 3 4 5 6 7 8 9) #t))
 
-  (check	;push twice, pop twice
+  (check
       (with-compensations
-	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
-	       (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
-	       (mb3	(make-memblock (malloc/c 5) 5))
-	       (mb4	(make-memblock (malloc/c 5) 5))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-memblock! buf mb1)
-	  (buffer-push-memblock! buf mb2)
-	  (buffer-pop-memblock! mb3 buf)
-	  (buffer-pop-memblock! mb4 buf)
-	  (list (memblock->bytevector mb3)
-		(memblock->bytevector mb4)
-		(buffer-empty? buf))))
+	(let (	;input memblocks
+	      (mb1	(bytevector->memblock #vu8(0 1 2 3 4) malloc/c))
+	      (mb2	(bytevector->memblock #vu8(5 6 7 8 9) malloc/c))
+		;output memblocks
+	      (mb3	(make-memblock (malloc/c 5) 5))
+	      (mb4	(make-memblock (malloc/c 5) 5)))
+	  (let* ((len	4096)
+		 (buf	(make-membuffer (malloc/c len) len 0)))
+	    (membuffer-push-memblock! buf mb1)
+	    (membuffer-push-memblock! buf mb2)
+	    (membuffer-pop-memblock! mb3 buf)
+	    (membuffer-pop-memblock! mb4 buf)
+	    (list (memblock->bytevector mb3)
+		  (memblock->bytevector mb4)
+		  (membuffer-empty? buf)))))
     => '(#vu8(0 1 2 3 4) #vu8(5 6 7 8 9) #t))
 
-  (check	;push, consume, pop
+  (check
       (with-compensations
-	(let* ((mb1	(bytevector->memblock #vu8(0 1 2 3 4 5 6 7 8 9) malloc/c))
-	       (mb2	(make-memblock (malloc/c 5) 5))
-	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-memblock! buf mb1)
-	  (buffer-consume-bytes! buf 5)
-	  (buffer-pop-memblock! mb2 buf)
-	  (memblock->bytevector mb2)))
+	(let (	;input memblock
+	      (mb1	(bytevector->memblock #vu8(0 1 2 3 4 5 6 7 8 9) malloc/c))
+		;output memblock
+	      (mb2	(make-memblock (malloc/c 5) 5)))
+	  (let* ((len	4096)
+		 (buf	(make-membuffer (malloc/c len) len 0)))
+	    (membuffer-push-memblock! buf mb1)
+	    (membuffer-consume-bytes! buf 5)
+	    (membuffer-pop-memblock! mb2 buf)
+	    (memblock->bytevector mb2))))
     => #vu8(5 6 7 8 9))
 
   #t)
 
 
-(parametrise ((check-test-name 'push-pop-bytevector))
+#;(parametrise ((check-test-name 'push-pop-bytevector))
 
   (check	;push, get used
       (with-compensations
 	(let* ((bv	#vu8(0 1 2 3 4 5 6 7 8 9))
 	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-bytevector! buf bv)
-	  (memblock->bytevector (buffer-used-memblock buf))))
+	       (buf	(make-membuffer (malloc/c len) len 0)))
+	  (membuffer-push-bytevector! buf bv)
+	  (memblock->bytevector (membuffer-used-memblock buf))))
     => #vu8(0 1 2 3 4 5 6 7 8 9))
 
   (check	;push, pop
@@ -197,26 +216,39 @@
 	(let* ((bv1	#vu8(0 1 2 3 4 5 6 7 8 9))
 	       (bv2	(make-bytevector 5))
 	       (len	4096)
-	       (buf	(make-buffer (malloc/c len) len 0)))
-	  (buffer-push-bytevector! buf bv1)
-	  (buffer-pop-bytevector!  bv2 buf)
+	       (buf	(make-membuffer (malloc/c len) len 0)))
+	  (membuffer-push-bytevector! buf bv1)
+	  (membuffer-pop-bytevector!  bv2 buf)
 	  bv2))
     => #vu8(0 1 2 3 4))
 
   #t)
 
 
-(parametrise ((check-test-name 'push-pop-buffer))
+#;(parametrise ((check-test-name 'push-pop-buffer))
 
-  (check	;push, pop buffer
+  (check
       (with-compensations
 	(let* ((bv	#vu8(0 1 2 3 4 5 6 7 8 9))
 	       (len	4096)
-	       (src	(make-buffer (malloc/c len) len 0))
-	       (dst	(make-buffer (malloc/c 5) 5 0)))
-	  (buffer-push-bytevector! src bv)
-	  (buffer-push-buffer! dst src)
-	  (memblock->bytevector (buffer-used-memblock dst))))
+	       (src	(make-membuffer (malloc/c len) len 0))
+	       (dst	(make-membuffer (malloc/c 5) 5 0)))
+	  (membuffer-push-bytevector! src bv)
+	  (membuffer-push-membuffer! dst src)
+	  (memblock->bytevector (membuffer-used-memblock dst))))
+    => #vu8(0 1 2 3 4))
+
+  (check
+      (with-compensations
+	(let* ((bv	#vu8(0 1 2 3 4 5 6 7 8 9))
+	       (len	4096)
+	       (src	(make-membuffer (malloc/c len) len 0))
+	       (mid	(make-membuffer (malloc/c len) len 0))
+	       (dst	(make-membuffer (malloc/c 5) 5 0)))
+	  (membuffer-push-bytevector! src bv)
+	  (membuffer-push-membuffer!  mid src)
+	  (membuffer-pop-membuffer!   dst mid)
+	  (memblock->bytevector (membuffer-used-memblock dst))))
     => #vu8(0 1 2 3 4))
 
   #f)

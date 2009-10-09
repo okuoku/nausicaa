@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: record type definitions for (memory)
+;;;Contents: record type definitions for (foreign memory)
 ;;;Date: Tue Sep 29, 2009
 ;;;
 ;;;Abstract
@@ -27,9 +27,10 @@
 ;;;
 
 
-(library (foreign memory record-types)
-  (export <membuffer> <memblock>)
-  (import (rnrs))
+(library (foreign memory record-typedefs)
+  (export <membuffer> <memblock> <mempool>)
+  (import (rnrs)
+    (records))
 
   (define-record-type <memblock>
     (fields (immutable pointer)	;pointer to the allocated block
@@ -37,17 +38,13 @@
 
   (define-record-type <membuffer>
     (parent <memblock>)
-    (fields (mutable first-used) ;pointer to the first used byte
-	    (mutable used-size))) ;number of used bytes
+    (fields (mutable pointer-used)   ;pointer to the first used byte
+	    (mutable pointer-free))) ;pointer to the first tail free byte
 
+  (define-record-type <mempool>
+    (parent <memblock>)
+    (fields (mutable pointer-free))) ;pointer to the first free byte
 
-
-;;;; code
-
-
-
-;;;; done
-
-)
+  )
 
 ;;; end of file

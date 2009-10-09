@@ -56,7 +56,6 @@
 
   (only (records))
   (only (scmobj))
-  (only (nos))
 
   (only (deferred-exceptions))
   (only (compensations))

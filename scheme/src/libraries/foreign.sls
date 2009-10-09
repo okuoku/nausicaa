@@ -58,17 +58,17 @@
     memblock-pointer			memblock-size
 
     ;;buffers
-    make-buffer
-    buffer-pointer			buffer-size
-    buffer?				buffer-used?
-    buffer-full?			buffer-empty?
-    buffer-used-size			buffer-used-size-set!
-    buffer-free-size			buffer-consume-bytes!
-    buffer-used-memblock		buffer-free-memblock
-    buffer-pointer-to-free-bytes	buffer-incr-used-size!
-    buffer-push-memblock!		buffer-pop-memblock!
-    buffer-push-bytevector!		buffer-pop-bytevector!
-    buffer-push-buffer!			buffer-pop-buffer!
+    make-membuffer
+    membuffer-pointer			membuffer-size
+    membuffer?				membuffer-used?
+    membuffer-full?			membuffer-empty?
+    membuffer-used-size			membuffer-used-size-set!
+    membuffer-free-size			membuffer-consume-bytes!
+    membuffer-used-memblock		membuffer-free-memblock
+    membuffer-pointer-to-free-bytes	membuffer-incr-used-size!
+    membuffer-push-memblock!		membuffer-pop-memblock!
+    membuffer-push-bytevector!		membuffer-pop-bytevector!
+    membuffer-push-membuffer!		membuffer-pop-membuffer!
 
     ;;cached memory blocks
     make-block-cache			make-caching-object-factory
@@ -90,7 +90,7 @@
 
     ;;buffer allocation
     memory-buffer-pool
-    primitive-malloc/buffer		malloc/buffer
+    primitive-malloc/membuffer		malloc/membuffer
 
     ;;reference counting
     malloc/refcount			malloc/rc
