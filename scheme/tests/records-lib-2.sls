@@ -25,10 +25,16 @@
 ;;;
 
 (library (records-lib-2)
-  (export beta-def-ref beta-def-set!)
+  (export
+    <beta*>
+    ;beta-def-ref beta-def-set!
+    <gamma*>
+;    iota-ref iota-set! theta-ref theta-set!
+    <string*>
+    )
   (import (rnrs)
     (records)
-    (for (records-lib) expand))
+    (for (records-lib) run expand))
 
   (define (beta-def-ref o)
     (with-record-fields (((d e f) <beta> o))
@@ -39,7 +45,41 @@
       (set! d (car ell))
       (set! f (cadr ell))))
 
-  (define-record-extension <beta>
-    (fields (def beta-def-ref beta-def-set!))))
+  (define-record-extension <beta*>
+    (record <beta>)
+    (fields (def beta-def-ref beta-def-set!)))
+
+  ;;The following  definition is to  verify that DEFINE-RECORD-EXTENSION
+  ;;is a  <definition> in a <body>,  so it allows  other <definition> to
+  ;;appear after it.
+  (define dummy 123)
+
+  (define iota  91)
+  (define theta 92)
+
+  (define (iota-ref o)
+    iota)
+
+  (define (iota-set! o v)
+    (set! iota v))
+
+  (define (theta-ref o)
+    theta)
+
+  (define (theta-set! o v)
+    (set! theta v))
+
+  (define-record-extension <gamma*>
+    (record <gamma>)
+    (fields (iota iota-ref iota-set!)
+	    (theta theta-ref theta-set!)))
+
+  (define-record-extension <string*>
+    (record <string>)
+    (fields (length string-length #f)
+	    (upcase string-upcase #f)
+	    (dncase string-downcase #f)))
+
+  )
 
 ;;; end of file

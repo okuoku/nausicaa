@@ -31,11 +31,10 @@
   (export
     record-parent-list		make-record-maker
     record-field-accessor	record-field-mutator
+    make-record-extension
     virtual-field-accessor	virtual-field-mutator
     make-define-forms		make-bindings-for-with
-    %record-predicate		%record-field-identifiers
-    record-extension-add!
-    vector-index)
+    %record-predicate		%record-field-identifiers)
   (import (rnrs))
 
 
@@ -418,28 +417,24 @@
       field-names)))
 
 
-;;;;helpers for WITH-VIRTUAL-FIELDS and WITH-VIRTUAL-FIELDS*
+(define-record-type <record-extension>
+  (fields (immutable rtd)
+	  (immutable field-table)))
 
 (define-record-type <virtual-field>
   (fields (immutable name)
 	  (immutable accessor)
 	  (immutable mutator)))
 
-(define *record-extensions*
-  (make-eq-hashtable))
-
-(define (record-extension-add! rtd field-name accessor-stx mutator-stx)
-  (let-syntax
-      ((store-it (syntax-rules ()
-		   ((_ ?table)
-		    (hashtable-set! ?table field-name
-				    (make-<virtual-field> field-name accessor-stx mutator-stx))))))
-    (let ((field-table (hashtable-ref *record-extensions* rtd #f)))
-      (if field-table
-	  (store-it field-table)
-	(let ((field-table (make-eq-hashtable)))
-	  (store-it field-table)
-	  (hashtable-set! *record-extensions* rtd field-table))))))
+(define (make-record-extension rtd fields)
+  (let* ((ext   (make-<record-extension> rtd (make-eq-hashtable)))
+	 (table (<record-extension>-field-table ext)))
+    (for-each (lambda (field)
+		(let ((name (car field)))
+		  (hashtable-set! table name
+				  (make-<virtual-field> name (cadr field) (caddr field)))))
+      fields)
+    ext))
 
 (define virtual-field-accessor
   ;;Return a syntax  object expanding to a procedure  object which, when
@@ -452,11 +447,11 @@
   ;;
   (case-lambda
    ((rtd field-name)
-    (virtual-field-accessor rtd field-name (record-type-name rtd)))
+    (virtual-field-accessor rtd field-name (record-type-name (record-rtd rtd))))
    ((rtd field-name rtd-name)
     (if rtd
-	(let* ((rtd-table	(hashtable-ref *record-extensions* rtd #f))
-	       (field	(and rtd-table (hashtable-ref rtd-table field-name #f))))
+	(let* ((field-table (<record-extension>-field-table rtd))
+	       (field       (hashtable-ref field-table field-name #f)))
 	  (if field
 	      (let ((proc (<virtual-field>-accessor field)))
 		(or proc
@@ -484,13 +479,13 @@
   ;;
   (case-lambda
    ((rtd field-name)
-    (virtual-field-mutator rtd field-name #t (record-type-name rtd)))
+    (virtual-field-mutator rtd field-name #t (record-type-name (record-rtd rtd))))
    ((rtd field-name false-if-immutable)
-    (virtual-field-mutator rtd field-name false-if-immutable (record-type-name rtd)))
+    (virtual-field-mutator rtd field-name false-if-immutable (record-type-name (record-rtd rtd))))
    ((rtd field-name false-if-immutable rtd-name)
     (if rtd
-	(let* ((rtd-table	(hashtable-ref *record-extensions* rtd #f))
-	       (field	(and rtd-table (hashtable-ref rtd-table field-name #f))))
+	(let* ((field-table (<record-extension>-field-table rtd))
+	       (field       (hashtable-ref field-table field-name #f)))
 	  (if field
 	      (let ((proc (<virtual-field>-mutator field)))
 		(or proc

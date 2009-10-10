@@ -64,7 +64,7 @@
     with-record-accessors&mutators
     with-record-fields			with-record-fields*
     with-virtual-fields			with-virtual-fields*
-    with-fields				with-fields*
+    ;; with-fields				with-fields*
 
     ;; extensions
     define-record-extension
@@ -128,20 +128,11 @@
 
 
 (define-syntax define-record-extension
-  (syntax-rules (fields)
-    ((_ ?record-name (fields (?field-name ?accessor ?mutator) ...))
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   (syntax-case stx ()
-		     ((_ ?kontext)
-		      (let ((RTD (record-type-descriptor ?record-name)))
-			(record-extension-add! RTD
-					       (quote ?field-name)
-					       (datum->syntax #'?kontext '?accessor)
-					       (datum->syntax #'?kontext '?mutator))
-			...
-			(syntax (define dummy #f))))))))
-       (dummy ?record-name)))))
+  (syntax-rules (record fields)
+    ((_ ?ext-name (record ?record-name) (fields (?field-name ?accessor ?mutator) ...))
+     (define ?ext-name
+       (make-record-extension (record-type-descriptor ?record-name)
+			      `((?field-name ,?accessor ,?mutator) ...))))))
 
 
 ;;;; constructors
@@ -275,23 +266,21 @@
 
 (define-syntax virtual-field-accessor*
   (syntax-rules ()
-    ((_ ?record-name ?field-name)
+    ((_ ?ext-name ?field-name)
      (let-syntax
 	 ((dummy (lambda (stx)
-		   #`(quote #,(virtual-field-accessor (record-type-descriptor ?record-name)
-						      '?field-name)))))
+		   #`(quote #,(virtual-field-accessor ?ext-name (quote ?field-name))))))
        (dummy)))))
 
 (define-syntax virtual-field-mutator*
   (syntax-rules ()
-    ((_ ?record-name ?field-name)
-     (virtual-field-mutator* ?record-name ?field-name #f))
+    ((_ ?ext-name ?field-name)
+     (virtual-field-mutator* ?ext-name ?field-name #f))
 
-    ((_ ?record-name ?field-name ?false-if-immutable)
+    ((_ ?ext-name ?field-name ?false-if-immutable)
      (let-syntax
 	 ((dummy (lambda (stx)
-		   #`(quote #,(virtual-field-mutator (record-type-descriptor ?record-name)
-						     '?field-name ?false-if-immutable)))))
+		   #`(quote #,(virtual-field-mutator ?ext-name '?field-name ?false-if-immutable)))))
        (dummy)))))
 
 (define-syntax field-ref
@@ -365,35 +354,22 @@
 (%define-with-record with-record-accessors&mutators accessor&mutator)
 
 
-(define-syntax %sub-with-record-fields
-  (syntax-rules ()
-    ((_ ?id ?var-name ?field-name ?record-name ?form0 ?form ...)
-     (let ((accessor (record-field-accessor* ?record-name ?field-name))
-	   (mutator  (record-field-mutator*  ?record-name ?field-name #f)))
-       (let-syntax
-	   ((?var-name (identifier-syntax (_          (accessor ?id))
-					  ((set! _ e) (mutator  ?id e)))))
-	 ?form0 ?form ...)))))
-
 (define-syntax with-record-fields
   (syntax-rules ()
     ((_ () ?form0 ?form ...)
      (begin ?form0 ?form ...))
-
-    ((_ ((((?var-name ?field-name)) ?record-name ?expr))
-	?form0 ?form ...)
-     (let ((id ?expr))
-       (%sub-with-record-fields id ?var-name ?field-name ?record-name
-				?form0 ?form ...)))
 
     ((_ ((() ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
      (with-record-fields (?bindings ...) ?form0 ?form ...))
 
     ((_ ((((?var-name ?field-name) ?field-spec ...) ?record-name ?expr) ?bindings ...)
 	?form0 ?form ...)
-     (let ((the-expr ?expr))
-       (with-record-fields ((((?var-name ?field-name)) ?record-name the-expr))
-	 (with-record-fields (((?field-spec ...) ?record-name the-expr))
+     (let ((id ?expr))
+       (let-syntax
+	   ((?var-name (identifier-syntax
+			(_          ((record-field-accessor* ?record-name ?field-name)    id))
+			((set! _ e) ((record-field-mutator*  ?record-name ?field-name #f) id e)))))
+	 (with-record-fields (((?field-spec ...) ?record-name id))
 	   (with-record-fields (?bindings ...) ?form0 ?form ...)))))
 
     ((_ (((?field-name ?field-spec ...) ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
@@ -410,104 +386,109 @@
     ((_ () ?form0 ?form ...)
      (begin ?form0 ?form ...))
 
-    ((_ (((?field-name ...) ?record-name ?record-id))
-	?form0 ?form ...)
+    ((_ (((?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
      (let-syntax
 	 ((dummy (lambda (stx)
 		   (syntax-case stx ()
 		     ((_ ?kontext)
 		      (let ((RTD (record-type-descriptor ?record-name)))
 			(with-syntax
-			    (((RECORD-ID)
-			      (datum->syntax #'?kontext '(?record-id)))
+			    ((ID (datum->syntax #'?kontext '?record-id))
 			     ((VAR (... ...))
 			      (datum->syntax #'?kontext
 					     (%record-field-identifiers '?record-id '(?field-name ...))))
-			     ((ACCESSOR (... ...))
-			      `(,(record-field-accessor RTD '?field-name) ...))
-			     ((MUTATOR (... ...))
-			      `(,(record-field-mutator  RTD '?field-name #f) ...))
-			     ((FORMS (... ...))
-			      (datum->syntax #'?kontext '(?form0 ?form ...))))
+			     ((ACCESSOR (... ...)) `(,(record-field-accessor RTD '?field-name)    ...))
+			     ((MUTATOR (... ...))  `(,(record-field-mutator  RTD '?field-name #f) ...))
+			     ((FORMS (... ...))    (datum->syntax #'?kontext '(?form0 ?form ...)))
+			     ((BINDS (... ...))    (datum->syntax #'?kontext '(?bindings ...))))
 			  #'(let-syntax
-				((VAR (identifier-syntax (_          ('ACCESSOR RECORD-ID))
-							 ((set! _ e) ('MUTATOR  RECORD-ID e))))
+				((VAR (identifier-syntax (_          ('ACCESSOR ID))
+							 ((set! _ e) ('MUTATOR  ID e))))
 				 (... ...))
-			      FORMS (... ...)))))))))
+			      (with-record-fields* (BINDS (... ...)) FORMS (... ...))))))))))
        (dummy ?record-name)))
-
-    ((_ (((?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
-     (with-record-fields* (((?field-name ...) ?record-name ?record-id))
-       (with-record-fields* (?bindings ...) ?form0 ?form ...)))
 
     ((_ ((?field-name ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
      (with-record-fields* (((?field-name) ?record-name ?record-id))
        (with-record-fields* (?bindings ...) ?form0 ?form ...)))))
 
 
-#;(define-syntax %sub-with-virtual-fields
-  ;;This is a  SYNTAX-CASE (rather than a SYNTAX-RULES)  because we need
-  ;;the  macro use itself  to represent  the context  in which  "?id" is
-  ;;defined.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((use ?var-name ?field-name ?record-name ?id ?form0 ?form ...)
-       #'(let-syntax
-	     ((dummy (lambda (stx)
-		       (syntax-case stx ()
-			 ((_ ?kontext)
-			  (let ((RTD (record-type-descriptor ?record-name)))
-			    (with-syntax
-				((ID		(datum->syntax #'?kontext '?id))
-				 (VAR		(datum->syntax #'?kontext '?var-name))
-				 (ACCESSOR	(virtual-field-accessor RTD '?field-name))
-				 (MUTATOR	(virtual-field-mutator  RTD '?field-name #f))
-				 ((FORMS (... ...))
-				  (datum->syntax #'?kontext '(?form0 ?form ...))))
-			      #'(let-syntax
-				    ((VAR (identifier-syntax (_          (ACCESSOR ID))
-							     ((set! _ e) (MUTATOR  ID e)))))
-				  FORMS (... ...)))))))))
-	   (dummy use))))))
-
-(define-syntax %sub-with-virtual-fields
-  (lambda (stx)
-    (syntax-case stx ()
-      ((use ?var-name ?field-name ?record-name ?id ?form0 ?form ...)
-       (let ((RTD (syntax->datum #'?record-name)))
-	 (with-syntax
-	     ((ACCESSOR	(virtual-field-accessor RTD (syntax->datum #'?field-name)))
-	      (MUTATOR	(virtual-field-mutator  RTD (syntax->datum #'?field-name #f))))
-	   #'(let-syntax
-		 ((?var-name (identifier-syntax (_          (ACCESSOR ?id))
-						((set! _ e) (MUTATOR  ?id e)))))
-	       ?form0 ?form ...)))))))
-
 (define-syntax with-virtual-fields
   (syntax-rules ()
     ((_ () ?form0 ?form ...)
      (begin ?form0 ?form ...))
 
-    ((_ (( () ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+    ((_ ((() ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
      (with-virtual-fields (?bindings ...) ?form0 ?form ...))
 
-    ((_ (( ((?var-name ?field-name) ?field-bind ...) ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+    ((_ ((((?var-name ?field-name) ?field-spec ...) ?record-name ?expr) ?bindings ...)
+	?form0 ?form ...)
      (let ((id ?expr))
-       (%sub-with-virtual-fields ?var-name ?field-name ?record-name id
-	 (with-virtual-fields (((?field-bind ...) ?record-name id))
+       (let-syntax
+	   ((?var-name (identifier-syntax
+			(_          ((virtual-field-accessor* ?record-name ?field-name)    id))
+			((set! _ e) ((virtual-field-mutator*  ?record-name ?field-name #f) id e)))))
+	 (with-virtual-fields (((?field-spec ...) ?record-name id))
 	   (with-virtual-fields (?bindings ...) ?form0 ?form ...)))))
 
-    ((_ (( (?field-name ?field-bind ...) ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
-     (let ((id ?expr))
-       (%sub-with-virtual-fields ?field-name ?field-name ?record-name id
-         (with-virtual-fields (((?field-bind ...) ?record-name id))
-	   (with-virtual-fields (?bindings ...) ?form0 ?form ...)))))
+    ((_ (((?field-name ?field-spec ...) ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+     (with-virtual-fields ((((?field-name ?field-name) ?field-spec ...) ?record-name ?expr))
+       (with-virtual-fields (?bindings ...) ?form0 ?form ...)))
 
     ((_ ((?field-name ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
-     (let ((id ?expr))
-       (%sub-with-virtual-fields ?field-name ?field-name ?record-name id
-         (with-virtual-fields (?bindings ...) ?form0 ?form ...))))))
+     (with-virtual-fields ((((?field-name ?field-name)) ?record-name ?expr))
+       (with-virtual-fields (?bindings ...) ?form0 ?form ...)))))
+
+;; (define-syntax %sub-with-virtual-fields
+;;   ;;This is a  SYNTAX-CASE (rather than a SYNTAX-RULES)  because we need
+;;   ;;the  macro use itself  to represent  the context  in which  "?id" is
+;;   ;;defined.
+;;   ;;
+;;   (lambda (stx)
+;;     (syntax-case stx ()
+;;       ((use ?var-name ?field-name ?record-name ?id ?form0 ?form ...)
+;;        #'(let-syntax
+;; 	     ((dummy (lambda (stx)
+;; 		       (syntax-case stx ()
+;; 			 ((_ ?kontext)
+;; 			  (let ((RTD (record-type-descriptor ?record-name)))
+;; 			    (with-syntax
+;; 				((ID		(datum->syntax #'?kontext '?id))
+;; 				 (VAR		(datum->syntax #'?kontext '?var-name))
+;; 				 (ACCESSOR	(virtual-field-accessor RTD '?field-name))
+;; 				 (MUTATOR	(virtual-field-mutator  RTD '?field-name #f))
+;; 				 ((FORMS (... ...))
+;; 				  (datum->syntax #'?kontext '(?form0 ?form ...))))
+;; 			      #'(let-syntax
+;; 				    ((VAR (identifier-syntax (_          (ACCESSOR ID))
+;; 							     ((set! _ e) (MUTATOR  ID e)))))
+;; 				  FORMS (... ...)))))))))
+;; 	   (dummy use))))))
+
+;; (define-syntax with-virtual-fields
+;;   (syntax-rules ()
+;;     ((_ () ?form0 ?form ...)
+;;      (begin ?form0 ?form ...))
+
+;;     ((_ (( () ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+;;      (with-virtual-fields (?bindings ...) ?form0 ?form ...))
+
+;;     ((_ (( ((?var-name ?field-name) ?field-bind ...) ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+;;      (let ((id ?expr))
+;;        (%sub-with-virtual-fields ?var-name ?field-name ?record-name id
+;; 	 (with-virtual-fields (((?field-bind ...) ?record-name id))
+;; 	   (with-virtual-fields (?bindings ...) ?form0 ?form ...)))))
+
+;;     ((_ (( (?field-name ?field-bind ...) ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+;;      (let ((id ?expr))
+;;        (%sub-with-virtual-fields ?field-name ?field-name ?record-name id
+;;          (with-virtual-fields (((?field-bind ...) ?record-name id))
+;; 	   (with-virtual-fields (?bindings ...) ?form0 ?form ...)))))
+
+;;     ((_ ((?field-name ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+;;      (let ((id ?expr))
+;;        (%sub-with-virtual-fields ?field-name ?field-name ?record-name id
+;;          (with-virtual-fields (?bindings ...) ?form0 ?form ...))))))
 
 
 (define-syntax with-virtual-fields*
@@ -521,7 +502,7 @@
 	 ((dummy (lambda (stx)
 		   (syntax-case stx ()
 		     ((_ ?kontext)
-		      (let ((RTD (record-type-descriptor ?record-name)))
+		      (let ((RTD ?record-name))
 			(with-syntax
 			    (((RECORD-ID)
 			      (datum->syntax #'?kontext '(?record-id)))
@@ -535,8 +516,8 @@
 			     ((FORMS (... ...))
 			      (datum->syntax #'?kontext '(?form0 ?form ...))))
 			  #'(let-syntax
-				((VAR (identifier-syntax (_          (ACCESSOR RECORD-ID))
-							 ((set! _ e) (MUTATOR  RECORD-ID e))))
+				((VAR (identifier-syntax (_          ('ACCESSOR RECORD-ID))
+							 ((set! _ e) ('MUTATOR  RECORD-ID e))))
 				 (... ...))
 			      FORMS (... ...)))))))))
        (dummy ?record-name)))
@@ -550,7 +531,7 @@
        (with-virtual-fields* (?bindings ...) ?form0 ?form ...)))))
 
 
-(define-syntax %sub-with-fields
+#;(define-syntax %sub-with-fields
   ;;This is a  SYNTAX-CASE (rather than a SYNTAX-RULES)  because we need
   ;;the  macro use itself  to represent  the context  in which  "?id" is
   ;;defined.
@@ -592,7 +573,7 @@
 				      FORMS (... ...)))))))))))
 	   (dummy use))))))
 
-(define-syntax with-fields
+#;(define-syntax with-fields
   (syntax-rules ()
     ((_ () ?form0 ?form ...)
      (begin ?form0 ?form ...))
@@ -622,7 +603,7 @@
        (with-fields (?bindings ...) ?form0 ?form ...)))))
 
 
-(define-syntax %sub-with-fields*
+#;(define-syntax %sub-with-fields*
   ;;This is a  SYNTAX-CASE (rather than a SYNTAX-RULES)  because we need
   ;;the  macro use itself  to represent  the context  in which  "?id" is
   ;;defined.
@@ -668,7 +649,7 @@
 				      FORMS (... ...)))))))))))
 	   (dummy use))))))
 
-(define-syntax with-fields*
+#;(define-syntax with-fields*
   (syntax-rules ()
     ((_ () ?form0 ?form ...)
      (begin ?form0 ?form ...))

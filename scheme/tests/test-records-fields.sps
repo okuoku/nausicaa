@@ -570,7 +570,22 @@
 			      4 5 6
 			      7 8 9)))
 		 (with-record-fields ((ciao <gamma> o))
-		   123))
+		   ciao))
+	      (environment '(rnrs) '(records)
+			   '(for (records-lib) expand))))
+    => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
+	 (irritants . (ciao))))
+
+  ;;Raise an "unknown field" error.
+  ;;
+  (check
+      (guard (E (else `((message   . ,(condition-message E))
+			(irritants . ,(condition-irritants E)))))
+	(eval '(let ((o (make <gamma> 1 2 3
+			      4 5 6
+			      7 8 9)))
+		 (with-record-fields ((ciao <gamma> o))
+		   (set! ciao 1)))
 	      (environment '(rnrs) '(records)
 			   '(for (records-lib) expand))))
     => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
@@ -781,80 +796,53 @@
 
 (parametrise ((check-test-name 'virtual-fields))
 
-  (let ((iota  91)
-	(theta 92))
+  (let ((o (make <gamma>
+	     1 2 3
+	     4 5 6
+	     7 8 9)))
 
-    (define (iota-ref o)
-      iota)
+    (check
+	(with-virtual-fields ((iota <gamma*> o))
+	  iota)
+      => 91)
 
-    (define (iota-set! o v)
-      (set! iota v))
+    (check
+	(with-virtual-fields (((iota theta) <gamma*> o))
+	  (list iota theta))
+      => '(91 92))
 
-    (define (theta-ref o)
-      theta)
+    (check
+	(with-virtual-fields (((iota theta) <gamma*> o))
+	  (set! iota 5)
+	  (set! theta 6)
+	  (list iota theta))
+      => '(5 6))
 
-    (define (theta-set! o v)
-      (set! theta v))
+    #f)
 
-    (define-record-extension <gamma>
-      (fields (iota iota-ref iota-set!)
-	      (theta theta-ref theta-set!)))
+  (let ((o (make <gamma>
+	     1 2 3
+	     4 5 6
+	     7 8 9)))
 
-    ;;The following definition is to verify that DEFINE-RECORD-EXTENSION
-    ;;is a <definition> in a  <body>, so it allows other <definition> to
-    ;;appear after it.
-    (define dummy 123)
+    (check
+	(with-virtual-fields* ((iota <gamma*> o))
+	  (set! o.iota  91)
+	  o.iota)
+      => 91)
 
-    (let ((o (make <gamma>
-	       1 2 3
-	       4 5 6
-	       7 8 9)))
+    (check
+	(with-virtual-fields* (((iota theta) <gamma*> o))
+	  (set! o.theta 92)
+	  (list o.iota o.theta))
+      => '(91 92))
 
-      (check
-      	  (with-virtual-fields ((iota <gamma> o))
-      	    iota)
-      	=> 91)
-
-      (check
-      	  (with-virtual-fields (((iota theta) <gamma> o))
-      	    (list iota theta))
-      	=> '(91 92))
-
-      (check
-      	  (with-virtual-fields (((iota theta) <gamma> o))
-      	    (set! iota 5)
-      	    (set! theta 6)
-      	    (list iota theta))
-      	=> '(5 6))
-
-      #f)
-
-    (set! iota  91)
-    (set! theta 92)
-
-    (let ((o (make <gamma>
-	       1 2 3
-	       4 5 6
-	       7 8 9)))
-
-      (check
-      	  (with-virtual-fields* ((iota <gamma> o))
-      	    o.iota)
-      	=> 91)
-
-      (check
-      	  (with-virtual-fields* (((iota theta) <gamma> o))
-      	    (list o.iota o.theta))
-      	=> '(91 92))
-
-      (check
-      	  (with-virtual-fields* (((iota theta) <gamma> o))
-      	    (set! o.iota 5)
-      	    (set! o.theta 6)
-      	    (list o.iota o.theta))
-      	=> '(5 6))
-
-      #f)
+    (check
+	(with-virtual-fields* (((iota theta) <gamma*> o))
+	  (set! o.iota 5)
+	  (set! o.theta 6)
+	  (list o.iota o.theta))
+      => '(5 6))
 
     #f)
 
@@ -867,12 +855,12 @@
 	     4 5 6)))
 
     (check
-    	(with-virtual-fields ((def <beta> o))
+    	(with-virtual-fields ((def <beta*> o))
     	  def)
       => '(4 5 6))
 
     (check
-    	(with-virtual-fields (((def) <beta> o))
+    	(with-virtual-fields (((def) <beta*> o))
     	  (set! def '(90 91))
     	  def)
       => '(90 5 91))
@@ -884,12 +872,12 @@
 	     4 5 6)))
 
     (check
-    	(with-virtual-fields* ((def <beta> o))
+    	(with-virtual-fields* ((def <beta*> o))
     	  o.def)
       => '(4 5 6))
 
     (check
-    	(with-virtual-fields* (((def) <beta> o))
+    	(with-virtual-fields* (((def) <beta*> o))
     	  (set! o.def '(90 91))
     	  o.def)
       => '(90 5 91))
@@ -900,58 +888,54 @@
 
   (let ((S "Ciao"))
 
-    (define-record-extension <string>
-      (fields (length string-length #f)
-    	      (upcase string-upcase #f)
-    	      (dncase string-downcase #f)))
 
     (check
-    	(with-virtual-fields ((length <string> S))
-    	  length)
+	(with-virtual-fields ((length <string*> S))
+	  length)
       => 4)
 
     (check
-    	(with-virtual-fields (((length) <string> S))
-    	  length)
+	(with-virtual-fields (((length) <string*> S))
+	  length)
       => 4)
 
     (check
-    	(with-virtual-fields ((((len length)) <string> S))
-    	  len)
+	(with-virtual-fields ((((len length)) <string*> S))
+	  len)
       => 4)
 
     (check
-    	(with-virtual-fields (((upcase dncase) <string> S))
-    	  (list upcase dncase))
+	(with-virtual-fields (((upcase dncase) <string*> S))
+	  (list upcase dncase))
       => '("CIAO" "ciao"))
 
-    #;(check
-    	(with-virtual-fields ((((up upcase) (dn dncase)) <string> S))
-    	  (list up dn))
+    (check
+	(with-virtual-fields ((((up upcase) (dn dncase)) <string*> S))
+	  (list up dn))
       => '("CIAO" "ciao"))
 
-    #;(check
-    	(with-virtual-fields ((((up upcase) dncase) <string> S))
+    (check
+    	(with-virtual-fields ((((up upcase) dncase) <string*> S))
     	  (list up dncase))
       => '("CIAO" "ciao"))
 
-    #;(check
-    	(with-virtual-fields (((upcase (dn dncase)) <string> S))
+    (check
+    	(with-virtual-fields (((upcase (dn dncase)) <string*> S))
     	  (list upcase dn))
       => '("CIAO" "ciao"))
 
-    #;(check
-    	(with-virtual-fields (((length upcase dncase) <string> S))
+    (check
+    	(with-virtual-fields (((length upcase dncase) <string*> S))
           (list length upcase dncase))
       => '(4 "CIAO" "ciao"))
 
     (check
-    	(with-virtual-fields* ((length <string> S))
+    	(with-virtual-fields* ((length <string*> S))
     	  S.length)
       => 4)
 
     (check
-    	(with-virtual-fields* (((upcase dncase) <string> S))
+    	(with-virtual-fields* (((upcase dncase) <string*> S))
     	  (list S.upcase S.dncase))
       => '("CIAO" "ciao"))
 
