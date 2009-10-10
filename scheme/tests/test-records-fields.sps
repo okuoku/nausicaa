@@ -30,7 +30,7 @@
   (checks)
   (records)
   (for (records-lib) expand)
-  (for (records-lib-2) expand run))
+  (for (records-lib-2) expand))
 
 (check-set-mode! 'report-failed)
 (display "*** testing records fields\n")

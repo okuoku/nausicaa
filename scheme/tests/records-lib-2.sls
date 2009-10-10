@@ -25,13 +25,7 @@
 ;;;
 
 (library (records-lib-2)
-  (export
-    <beta*>
-    ;beta-def-ref beta-def-set!
-    <gamma*>
-;    iota-ref iota-set! theta-ref theta-set!
-    <string*>
-    )
+  (export <beta*> <gamma*> <string*>)
   (import (rnrs)
     (records)
     (for (records-lib) run expand))
