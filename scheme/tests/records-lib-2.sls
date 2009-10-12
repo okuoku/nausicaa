@@ -28,7 +28,7 @@
   (export <beta*> <gamma*> <string*>)
   (import (rnrs)
     (records)
-    (for (records-lib) run expand))
+    (for (records-lib) expand run))
 
   (define (beta-def-ref o)
     (with-record-fields (((d e f) <beta> o))
@@ -40,7 +40,7 @@
       (set! f (cadr ell))))
 
   (define-record-extension <beta*>
-    (record <beta>)
+    (parent <beta>)
     (fields (def beta-def-ref beta-def-set!)))
 
   ;;The following  definition is to  verify that DEFINE-RECORD-EXTENSION
@@ -64,12 +64,12 @@
     (set! theta v))
 
   (define-record-extension <gamma*>
-    (record <gamma>)
+    (parent <gamma>)
     (fields (iota iota-ref iota-set!)
 	    (theta theta-ref theta-set!)))
 
   (define-record-extension <string*>
-    (record <string>)
+    (parent <string>)
     (fields (length string-length #f)
 	    (upcase string-upcase #f)
 	    (dncase string-downcase #f)))

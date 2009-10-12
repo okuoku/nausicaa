@@ -192,6 +192,7 @@
 
 (define-record-type <record-extension>
   (fields (immutable rtd)
+	  (immutable name)
 	  (immutable field-table)))
 
 (define-record-type <virtual-field>
@@ -199,87 +200,62 @@
 	  (immutable accessor)
 	  (immutable mutator)))
 
-;;(define *record-extensions*
-;;  (make-eq-hashtable))
-
-(define (make-record-extension rtd fields)
-  (let* ((ext   (make-<record-extension> rtd (make-eq-hashtable)))
-	 (table (<record-extension>-field-table ext)))
+(define (make-record-extension rtd name fields)
+  (let* ((table (make-eq-hashtable))
+	 (ext   (make-<record-extension> rtd name table)))
     (for-each (lambda (field)
 		(let ((name (car field)))
 		  (hashtable-set! table name
 				  (make-<virtual-field> name (cadr field) (caddr field)))))
       fields)
-;;    (hashtable-set! *record-extensions* rtd ext)
     ext))
 
+(define (%extension-name obj)
+  (if (<record-extension>? obj)
+      (<record-extension>-name obj)
+    (record-type-name obj)))
+
 (define virtual-field-accessor
-  ;;Return a syntax  object expanding to a procedure  object which, when
-  ;;applied to  a value of conventional  type RTD, returns  the value of
-  ;;the virtual  field whose name is  FIELD-NAME.  RTD must  be a record
-  ;;type descriptor, FIELD-NAME must be a Scheme symbol.
-  ;;
-  ;;RTD-NAME must be a Scheme symbol representing the name of the record
-  ;;type RTD, it is used only for error messages.
-  ;;
   (case-lambda
-   ((ext field-name)
-    (virtual-field-accessor ext field-name (record-type-name (record-rtd ext))))
-   ((ext field-name ext-name)
-    (if ext
-	(let* ((field-table (<record-extension>-field-table ext))
-	       (field       (hashtable-ref field-table field-name #f)))
-	  (if field
-	      (let ((proc (<virtual-field>-accessor field)))
-		(or proc
-		    (lambda args
-		      (assertion-violation #f
-			(string-append "attempt to access unreadable virtual field \""
-				       (symbol->string field-name)
-				       "\" for record \"" (symbol->string ext-name) "\"")
-			field-name))))
-	    (virtual-field-accessor (record-type-parent ext) field-name ext-name)))
-      (assertion-violation #f
-	(string-append "unknown virtual field name \"" (symbol->string field-name)
-		       "\" in record type hierarchy of \"" (symbol->string ext-name) "\"")
-	field-name)))))
+   ((extension field-name)
+    (virtual-field-accessor extension field-name (%extension-name extension)))
+   ((extension field-name rtd-name)
+    (let* ((field-table (<record-extension>-field-table extension))
+	   (field       (hashtable-ref field-table field-name #f)))
+      (if field
+	  (let ((proc (<virtual-field>-accessor field)))
+	    (or proc
+		(lambda args
+		  (assertion-violation #f
+		    (string-append "attempt to access unreadable virtual field \""
+				   (symbol->string field-name)
+				   "\" for record \"" (symbol->string rtd-name) "\"")
+		    field-name))))
+	(record-field-accessor (<record-extension>-rtd extension) field-name rtd-name))))))
 
 (define virtual-field-mutator
-  ;;Return a syntax  object expanding to a procedure  object which, when
-  ;;applied to  a value  of conventional type  EXT and a  Scheme object,
-  ;;mutates the  value of  the virtual field  whose name  is FIELD-NAME.
-  ;;EXT must  be a record type  descriptor, FIELD-NAME must  be a Scheme
-  ;;symbol.
-  ;;
-  ;;EXT-NAME must be a Scheme symbol representing the name of the record
-  ;;type EXT, it is used only for error messages.
-  ;;
   (case-lambda
-   ((ext field-name)
-    (virtual-field-mutator ext field-name #t (record-type-name (record-rtd ext))))
-   ((ext field-name false-if-immutable)
-    (virtual-field-mutator ext field-name false-if-immutable (record-type-name (record-rtd ext))))
-   ((ext field-name false-if-immutable ext-name)
-    (if ext
-	(let* ((field-table (<record-extension>-field-table ext))
-	       (field       (hashtable-ref field-table field-name #f)))
-	  (if field
-	      (let ((proc (<virtual-field>-mutator field)))
-		(or proc
-		    (if false-if-immutable
-			#f
-		      (lambda args
-			(assertion-violation #f
-			  (string-append "attempt to access immutable virtual field \""
-					 (symbol->string field-name)
-					 "\" for record \""
-					 (symbol->string (record-type-name ext)) "\"")
-			  field-name)))))
-	    (virtual-field-mutator (record-type-parent ext) field-name false-if-immutable ext-name)))
-      (assertion-violation #f
-	(string-append "unknown virtual field name \"" (symbol->string field-name)
-		       "\" in record type hierarchy of \"" (symbol->string ext-name) "\"")
-	field-name)))))
+   ((extension field-name)
+    (virtual-field-mutator extension field-name #t (%extension-name extension)))
+   ((extension field-name false-if-immutable)
+    (virtual-field-mutator extension field-name false-if-immutable (%extension-name extension)))
+   ((extension field-name false-if-immutable rtd-name)
+    (let* ((field-table (<record-extension>-field-table extension))
+	   (field       (hashtable-ref field-table field-name #f)))
+      (if field
+	  (let ((proc (<virtual-field>-mutator field)))
+	    (or proc
+		(if false-if-immutable
+		    #f
+		  (lambda args
+		    (assertion-violation #f
+		      (string-append "attempt to access immutable virtual field \""
+				     (symbol->string field-name)
+				     "\" for record \""
+				     (symbol->string rtd-name) "\"")
+		      field-name)))))
+	(virtual-field-mutator (<record-extension>-rtd extension) field-name
+			       false-if-immutable rtd-name))))))
 
 
 (define (make-define-forms what which kontext rtd)

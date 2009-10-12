@@ -32,7 +32,8 @@
 (library (sexps)
   (export
     sexp-match sexp-match?
-    sexp-var sexp-pred sexp-or sexp-or* sexp-and sexp-and*
+    sexp-var sexp-var-rest
+    sexp-pred sexp-or sexp-or* sexp-and sexp-and*
     sexp-any sexp-any* sexp-one sexp-one*
     let-sexp-variables sexp-variable sexp-variable?
     sexp-variable-name sexp-variable-default
@@ -125,6 +126,14 @@
     (if (null? form)
 	(sexp-mismatch-error 'sexp-var (list 'sexp-var sexp-variable) form)
       (values `((,sexp-variable . ,(car form))) (cdr form)))))
+
+(define (sexp-var-rest sexp-variable)
+  ;;Match the all of FORM, binding it to SEXP-VARIABLE.
+  ;;
+  (lambda (form)
+    (if (null? form)
+	(sexp-mismatch-error 'sexp-var (list 'sexp-var sexp-variable) form)
+      (values `((,sexp-variable . ,form)) '()))))
 
 (define (sexp-pred pred)
   ;;Attempt  to  match the  car  of  FORM by  applying  PRED  to it  and

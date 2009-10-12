@@ -28,7 +28,7 @@
 (library (sexps syntax)
   (export define-sexp-macro)
   (import (rnrs)
-    (for (sexps) expand run))
+    (for (sexps) expand))
 
   (define-syntax define-sexp-macro
     (syntax-rules ()

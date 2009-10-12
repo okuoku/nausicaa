@@ -27,8 +27,8 @@
 (import (nausicaa)
   (checks)
   (for (sexps) expand run)
-  (for (sexps syntax) expand run)
-  (for (sentinel) expand run)
+  (sexps syntax)
+  (sentinel)
   (rnrs eval))
 
 (check-set-mode! 'report-failed)
@@ -112,6 +112,13 @@
 	(sexp-match `(a ,(sexp-var ?v) d)
 		    '(a (1 (2 (3 (4 5)))) d))
       => `((,?v . (1 (2 (3 (4 5)))))))
+
+;;; --------------------------------------------------------------------
+
+    (check
+	(sexp-match `(,(sexp-var-rest ?v))
+		    '(a b c d e f))
+      => `((,?v . (a b c d e f))))
 
 ;;; --------------------------------------------------------------------
 
