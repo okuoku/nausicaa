@@ -36290,7 +36290,8 @@ The difference between @func{define-syntax} and @func{define}, is that
 
 
 The @library{records} library implements a number of utility functions
-and macros to handle records.
+and macros to handle records.  It is built upon plain records, and tries
+to limit complexity.
 
 The functions will work if the record type definitions are made
 available in the @samp{run} phase; the macros will work if the record
@@ -37965,6 +37966,7 @@ Record extensions are additions to the record features defined by
 * records extensions define::   Defining record extensions.
 * records extensions access::   Virtual accessors and mutators.
 * records extensions fields::   Using virtual fields.
+* records extensions builtin::  Builtin extensions.
 @end menu
 
 @c page
@@ -37972,18 +37974,18 @@ Record extensions are additions to the record features defined by
 @subsection Defining record extensions
 
 
-@deffn Syntax define-record-extension @ameta{extension name} @ameta{extension spec}
+@deffn Syntax define-record-extension @ameta{extension name} @ameta{parent spec} @ameta{fields spec}
 @deffnx {Auxiliary Syntax} parent @ameta{record name}
 @deffnx {Auxiliary Syntax} fields (@cmeta{field name} @cmeta{accessor} @cmeta{mutator}) ...
-Define record extensions for an already defined record type descriptor.
+Define a record extension for an already defined record type descriptor.
 @meta{extension name} must be a Scheme symbol representing the name of
 the extension; this macro builds an extension object and binds it to
-@meta{extension name}.  @meta{extension spec} must have the following
-form:
+@meta{extension name}.
+
+@meta{parent spec} must have the following form:
 
 @example
 (parent @cmeta{record name})
-(fields @cmeta{virtual field spec} ...)
 @end example
 
 The @samp{parent} element specifies the record type to be extended.
@@ -37991,6 +37993,12 @@ The @samp{parent} element specifies the record type to be extended.
 definition of @ref{stdlib records syntactic layer,
 @func{define-record-type}}.  For this macro to work, @meta{record name}
 must be available at expansion time.
+
+@meta{fields spec} must have the following form:
+
+@example
+(fields @cmeta{virtual field spec} ...)
+@end example
 
 The @samp{fields} element specifies a list of virtual fields for a
 record type.  @meta{field name} must be a Scheme symbol representing a
@@ -38034,6 +38042,7 @@ then we must create a library like the following:
     ---)
 
   (define-record-extension <alpha*>
+    (parent <alpha>)
     (fields (iota  iota-ref  iota-set!)
             (theta theta-ref theta-set!))))
 @end example
@@ -38062,42 +38071,40 @@ libraries for @samp{expand}:
 
 
 The following functions and macros work exactly like their homologous
-for builtin record fields.
+for builtin record fields, but they retrieve accessors and mutators for
+virtual fields.  First they look for a virtual field in a record type
+extension object; then they look for a field in the extension's parent
+record type; then for a field in the extension's parent ancestor types.
 
 
 @defun virtual-field-accessor @var{extension} @var{field-name}
-@defunx virtual-field-accessor @var{extension} @var{field-name} @var{rtd-name}
-Return the accessor procedure of a virtual field; it is an assertion
-violation if the selected field is not found.
+Return the accessor procedure of a virtual field or record field; it is
+an assertion violation if the selected field is not found.
 
 @var{extension} must be an extension object.  @var{field-name} must be a
-Scheme symbol matching the name of a virtual field in @var{extension} or
-one of its ancestors.  The optional @var{rtd-name} must be a Scheme
-symbol, it is used only to compose error messages as extension name; it
-defaults to the name of @var{extension}.
+Scheme symbol matching the name of a virtual field in @var{extension},
+or a field in its parent record type, or a field in one of its
+ancestors.
 @end defun
 
 
 @deffn Syntax virtual-field-accessor* @ameta{extension name} @ameta{field name}
-@deffnx Syntax virtual-field-accessor* @ameta{extension name} @ameta{field name} @ameta{rtd name}
 Does the same as @func{virtual-field-accessor} but in the @samp{expand}
 phase.  @meta{extension name} must be an identifier bound to an
 extension object.  @meta{field name} must be a Scheme symbol matching
-the name of a virtual field.  The optional @meta{rtd name} must be a
-Scheme symbol, it is used only to compose error messages as extension
-name; it defaults to @meta{extension name}.
+the name of a virtual field or the name of a field of the parent record
+type or one of its ancestors.
 @end deffn
 
 
 @defun virtual-field-mutator @var{extension} @var{field-name}
 @defunx virtual-field-mutator @var{extension} @var{field-name} @var{false-if-immutable}
-@defunx virtual-field-mutator @var{extension} @var{field-name} @var{false-if-immutable} @var{rtd-name}
-Return the mutator procedure of a virtual field; it is an assertion
-violation if the selected field is not found.
+Return the mutator procedure of a virtual field or a record field; it is
+an assertion violation if the selected field is not found.
 
 @var{extension} must be an extension object.  @var{field-name} must be a
 Scheme symbol matching the name of a virtual field in @var{extension} or
-one of its ancestors.
+in the parent record type or one of its ancestors.
 
 The optional @var{false-if-immutable} decides what to do when the
 selected field is immutable:
@@ -38114,10 +38121,6 @@ invoked.
 
 @noindent
 @var{false-if-immutable} defaults to @true{}.
-
-The optional @var{rtd-name} must be a Scheme symbol, it is used only to
-compose error messages as extension name; it defaults to the name of
-@var{extension}.
 @end defun
 
 
@@ -38137,31 +38140,30 @@ has @false{} as default value.
 @subsection Using virtual fields
 
 
-The syntaxes @func{with-virtual-fields} and @func{with-virtual-fields*}
-allow access to the virtual fields of a record extension using
-identifier macros; they work exactly like @func{with-record-fields} and
-@func{with-record-fields*}.
+The syntaxes @func{with-fields} and @func{with-fields*} allow access to
+both the virtual fields of a record extension and the fields of records,
+using identifier macros; they work exactly like
+@func{with-record-fields} and @func{with-record-fields*}.
 
 
-@deffn Syntax with-virtual-fields @ameta{field bindings} @ameta{body}
-Bind the virtual fields accessors and mutators of multiple records to
-identifier macros; in the region of these bindings, evaluate the
-@meta{body}.
+@deffn Syntax with-fields @ameta{field bindings} @ameta{body}
+Bind the accessors and mutators of multiple records and record
+extensions to identifier macros; in the region of these bindings,
+evaluate the @meta{body}.
 
 @meta{body} is a normal body (@pxref{baselib bodies}), while
 @meta{field bindings} has the form:
 
 @example
-((@cmeta{bind list} @cmeta{record name} @cmeta{expression}) ...)
+((@cmeta{bind list} @cmeta{extension name} @cmeta{expression}) ...)
 @end example
 
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
+@meta{extension name} must be an identifier bound to an extension
+object.  For this macro to work, @meta{extension name} must be available
+at expansion time.
 
-@meta{expression} must be an expression evaluating to a record whose
-type descriptor is associated to @meta{record name}.  It is evaluated
+@meta{expression} must be an expression evaluating to an object whose
+type descriptor is the parent of @meta{extension name}.  It is evaluated
 only once.
 
 @meta{bind list} can be one of the forms:
@@ -38172,9 +38174,9 @@ only once.
 @end example
 
 @meta{field name} must be a Scheme symbol matching a valid virtual field
-name for the record type associated to @meta{record name} or one of its
-ancestors.  When used in the first form above, it is bound to the
-identifier syntax.
+name for the extension object or a valid field for the extension's
+parent record type or one of its ancestors.  When used in the first form
+above, it is bound to the identifier syntax.
 
 @meta{field bind} can be one of the forms:
 
@@ -38189,26 +38191,26 @@ syntax; when not given, it defaults to @meta{field name} itself.
 
 @c ------------------------------------------------------------
 
-@deffn Syntax with-virtual-fields* @ameta{field bindings} @ameta{body}
-Bind the virtual fields accessors and mutators of multiple records to
-identifier macros; in the region of these bindings, evaluate the
-@meta{body}.
+@deffn Syntax with-fields* @ameta{field bindings} @ameta{body}
+Bind the accessors and mutators of multiple records and record
+extensions to identifier macros; in the region of these bindings,
+evaluate the @meta{body}.
 
 @meta{body} is a normal body (@pxref{baselib bodies}), while
 @meta{field bindings} can be of one of the following forms:
 
 @example
-((@cmeta{bind list} @cmeta{record name} @cmeta{record-id}) ...)
+((@cmeta{bind list} @cmeta{extension name} @cmeta{record-id}) ...)
 @end example
 
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
+@meta{extension name} must be an identifier bound to an extension
+object.  For this macro to work, @meta{extension name} must be available
+at expansion time.
 
-@meta{record-id} must be the identifier to which the record is bound;
-its symbol is used to compose the identifier syntaxes by appending a dot
-and the name of the field.
+@meta{record-id} must an identifier bound to an object whose type
+descriptor is the parent of @meta{extension name}; its symbol is used to
+compose the identifier syntaxes by appending a dot and the name of the
+field.
 
 @meta{bind list} can be one of the forms:
 
@@ -38221,6 +38223,295 @@ and the name of the field.
 name for the record type associated to @meta{record name} or one of its
 ancestors.
 @end deffn
+
+@c page
+@node records extensions builtin
+@subsection Builtin extensions.
+
+
+The main reason for the existence of record extensions is to provide
+easy access to attributes of builtin ojects.
+
+@menu
+* records extensions list::  List types.
+* records extensions compound:: Non--list compound data types.
+* records extensions numeric::  Numeric data types.
+* records extensions port::     Port types.
+* records extensions misc::     Miscellaneous types.
+@end menu
+
+@c page
+@node records extensions list
+@subsubsection List types
+
+
+@deftp {Record Extension} <pair*>
+Extension of the @class{pair} record type; defines the following virtual
+fields.
+
+@table @samp
+@item car
+Access and mutate the car.
+
+@item cdr
+Access and mutate the cdr.
+@end table
+@end deftp
+
+
+@deftp {Record Extension} <list*>
+Extension of the @class{list} record type; defines the following virtual
+fields.
+
+@table @samp
+@item car
+Access and mutate the car.
+
+@item cdr
+Access and mutate the cdr.
+
+@item length
+Access the length of the list.
+@end table
+@end deftp
+
+@c page
+@node records extensions compound
+@subsubsection Non--list compound data types
+
+
+@deftp {Record Extension} <vector*>
+Extension of the @class{vector} record type; defines the following
+virtual fields.
+
+@table @samp
+@item length
+Access the length of the vector.
+@end table
+@end deftp
+
+
+@deftp {Record Extension} <bytevector*>
+Extension of the @class{vector} record type; defines the following
+virtual fields.
+
+@table @samp
+@item length
+Access the length of the bytevector.
+@end table
+@end deftp
+
+
+@deftp {Record Extension} <hashtable*>
+Extension of the @class{hashtable} record type; defines the following
+virtual fields.
+
+@table @samp
+@item size
+Access the size of the table.
+
+@item keys
+Access the keys.  Retrieving this field is like applying
+@func{hashtable-keys} to the hashtable.
+
+@item entries
+Access the keys and values.  Retrieving this fiels is like applying
+@func{hashtable-entries} to the hashtable.
+@end table
+@end deftp
+
+@c page
+@node records extensions numeric
+@subsubsection Numeric data types
+
+
+@deftp {Record Extension} <number*>
+Extension of the @class{number} record type; defines the following
+virtual fields.
+
+@table @samp
+@item exact
+Accessing this field is like applying @func{exact} to the number.
+
+@item inexact
+Accessing this field is like applying @func{inexact} to the number.
+
+@item exact?
+Accessing this field is like applying @func{exact?} to the number.
+
+@item inexact?
+Accessing this field is like applying @func{inexact?} to the number.
+
+@item zero?
+Accessing this field is like applying @func{zero?} to the number.
+
+@item positive?
+Accessing this field is like applying @func{positive?} to the number.
+
+@item negative?
+Accessing this field is like applying @func{negative?} to the number.
+
+@item odd?
+Accessing this field is like applying @func{odd?} to the number.
+
+@item even?
+Accessing this field is like applying @func{even?} to the number.
+
+@item finite?
+Accessing this field is like applying @func{finite?} to the number.
+
+@item infinite?
+Accessing this field is like applying @func{infinite?} to the number.
+
+@item nan?
+Accessing this field is like applying @func{nan?} to the number.
+
+@item real-part
+Accessing this field is like applying @func{real-part} to the number.
+
+@item imag-part
+Accessing this field is like applying @func{imag-part} to the number.
+
+@item magnitude
+Accessing this field is like applying @func{magnitude} to the number.
+
+@item angle
+Accessing this field is like applying @func{angle} to the number.
+
+@item numerator
+Accessing this field is like applying @func{numerator} to the number.
+
+@item denominator
+Accessing this field is like applying @func{denominator} to the number.
+
+@item floor
+Accessing this field is like applying @func{floor} to the number.
+
+@item ceiling
+Accessing this field is like applying @func{ceiling} to the number.
+
+@item truncate
+Accessing this field is like applying @func{truncate} to the number.
+
+@item round
+Accessing this field is like applying @func{round} to the number.
+@end table
+@end deftp
+
+@c page
+@node records extensions port
+@subsubsection Port types
+
+
+@deftp {Record Extension} <port*>
+Extension of the @class{port} record type; defines the following virtual
+fields.
+
+@table @samp
+@item transcoder
+Accessing this field is like applying @func{port-transcoder} to the port.
+
+@item textual?
+Accessing this field is like applying @func{textual-port?} to the port.
+
+@item binary?
+Accessing this field is like applying @func{binary-port?} to the port.
+
+@item has-port-position?
+Accessing this field is like applying @func{port-has-port-position?} to
+the port.
+
+@item has-set-port-position?
+Accessing this field is like applying @func{port-has-set-port-position?}
+to the port.
+
+@item port-position
+Accessing this field is like applying @func{port-position} to the port;
+mutating this field is like applying @func{set-port-position!} to the
+port.
+
+@item eof?
+Accessing this field is like applying @func{port-eof?} to the port.
+
+@item input?
+Accessing this field is like applying @func{input-port?} to the port.
+
+@item output?
+Accessing this field is like applying @func{output-port?} to the port.
+@end table
+@end deftp
+
+@c page
+@node records extensions misc
+@subsubsection Miscellaneous types
+
+
+@deftp {Record Extension} <condition*>
+Extension of the @class{condition} record type; defines the following
+virtual fields.
+
+@table @samp
+@item message
+Accessing this field is like applying @func{condition-message} to the
+condition object.
+
+@item who
+Accessing this field is like applying @func{condition-who} to the
+condition object.
+
+@item irritants
+Accessing this field is like applying @func{condition-irritants} to the
+condition object.
+@end table
+@end deftp
+
+
+@deftp {Record Extension} <string*>
+Extension of the @class{string} record type; defines the following
+virtual fields.
+
+@table @samp
+@item length
+Accessing this field is like applying @func{string-length} to the
+string.
+
+@item upcase
+Accessing this field is like applying @func{string-upcase} to the
+string.
+
+@item downcase
+Accessing this field is like applying @func{string-downcase} to the
+string.
+
+@item titlecase
+Accessing this field is like applying @func{string-titlecase} to the
+string.
+
+@item foldcase
+Accessing this field is like applying @func{string-foldcase} to the
+string.
+@end table
+@end deftp
+
+
+@deftp {Record Extension} <char*>
+Extension of the @class{char} record type; defines the following virtual
+fields.
+
+@table @samp
+@item upcase
+Accessing this field is like applying @func{char-upcase} to the char.
+
+@item downcase
+Accessing this field is like applying @func{char-downcase} to the char.
+
+@item titlecase
+Accessing this field is like applying @func{char-titlecase} to the char.
+
+@item foldcase
+Accessing this field is like applying @func{char-foldcase} to the char.
+@end table
+@end deftp
 
 @c page
 @node scmobj

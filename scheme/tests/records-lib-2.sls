@@ -25,7 +25,7 @@
 ;;;
 
 (library (records-lib-2)
-  (export <beta*> <gamma*> <string*>)
+  (export <beta*> <gamma*> <the-string*>)
   (import (rnrs)
     (records)
     (for (records-lib) expand run))
@@ -68,7 +68,7 @@
     (fields (iota iota-ref iota-set!)
 	    (theta theta-ref theta-set!)))
 
-  (define-record-extension <string*>
+  (define-record-extension <the-string*>
     (parent <string>)
     (fields (length string-length #f)
 	    (upcase string-upcase #f)

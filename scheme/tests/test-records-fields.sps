@@ -802,17 +802,22 @@
 	     7 8 9)))
 
     (check
-	(with-virtual-fields ((iota <gamma*> o))
+	(with-fields ((iota <gamma*> o))
 	  iota)
       => 91)
 
     (check
-	(with-virtual-fields (((iota theta) <gamma*> o))
+	(with-fields (((a iota) <gamma*> o))
+	  (list a iota))
+      => '(1 91))
+
+    (check
+	(with-fields (((iota theta) <gamma*> o))
 	  (list iota theta))
       => '(91 92))
 
     (check
-	(with-virtual-fields (((iota theta) <gamma*> o))
+	(with-fields (((iota theta) <gamma*> o))
 	  (set! iota 5)
 	  (set! theta 6)
 	  (list iota theta))
@@ -826,19 +831,19 @@
 	     7 8 9)))
 
     (check
-	(with-virtual-fields* ((iota <gamma*> o))
+	(with-fields* ((iota <gamma*> o))
 	  (set! o.iota  91)
 	  o.iota)
       => 91)
 
     (check
-	(with-virtual-fields* (((iota theta) <gamma*> o))
+	(with-fields* (((iota theta) <gamma*> o))
 	  (set! o.theta 92)
 	  (list o.iota o.theta))
       => '(91 92))
 
     (check
-	(with-virtual-fields* (((iota theta) <gamma*> o))
+	(with-fields* (((iota theta) <gamma*> o))
 	  (set! o.iota 5)
 	  (set! o.theta 6)
 	  (list o.iota o.theta))
@@ -855,12 +860,12 @@
 	     4 5 6)))
 
     (check
-    	(with-virtual-fields ((def <beta*> o))
+    	(with-fields ((def <beta*> o))
     	  def)
       => '(4 5 6))
 
     (check
-    	(with-virtual-fields (((def) <beta*> o))
+    	(with-fields (((def) <beta*> o))
     	  (set! def '(90 91))
     	  def)
       => '(90 5 91))
@@ -872,12 +877,12 @@
 	     4 5 6)))
 
     (check
-    	(with-virtual-fields* ((def <beta*> o))
+    	(with-fields* ((def <beta*> o))
     	  o.def)
       => '(4 5 6))
 
     (check
-    	(with-virtual-fields* (((def) <beta*> o))
+    	(with-fields* (((def) <beta*> o))
     	  (set! o.def '(90 91))
     	  o.def)
       => '(90 5 91))
@@ -890,52 +895,52 @@
 
 
     (check
-	(with-virtual-fields ((length <string*> S))
+	(with-fields ((length <the-string*> S))
 	  length)
       => 4)
 
     (check
-	(with-virtual-fields (((length) <string*> S))
+	(with-fields (((length) <the-string*> S))
 	  length)
       => 4)
 
     (check
-	(with-virtual-fields ((((len length)) <string*> S))
+	(with-fields ((((len length)) <the-string*> S))
 	  len)
       => 4)
 
     (check
-	(with-virtual-fields (((upcase dncase) <string*> S))
+	(with-fields (((upcase dncase) <the-string*> S))
 	  (list upcase dncase))
       => '("CIAO" "ciao"))
 
     (check
-	(with-virtual-fields ((((up upcase) (dn dncase)) <string*> S))
+	(with-fields ((((up upcase) (dn dncase)) <the-string*> S))
 	  (list up dn))
       => '("CIAO" "ciao"))
 
     (check
-    	(with-virtual-fields ((((up upcase) dncase) <string*> S))
+    	(with-fields ((((up upcase) dncase) <the-string*> S))
     	  (list up dncase))
       => '("CIAO" "ciao"))
 
     (check
-    	(with-virtual-fields (((upcase (dn dncase)) <string*> S))
+    	(with-fields (((upcase (dn dncase)) <the-string*> S))
     	  (list upcase dn))
       => '("CIAO" "ciao"))
 
     (check
-    	(with-virtual-fields (((length upcase dncase) <string*> S))
+    	(with-fields (((length upcase dncase) <the-string*> S))
           (list length upcase dncase))
       => '(4 "CIAO" "ciao"))
 
     (check
-    	(with-virtual-fields* ((length <string*> S))
+    	(with-fields* ((length <the-string*> S))
     	  S.length)
       => 4)
 
     (check
-    	(with-virtual-fields* (((upcase dncase) <string*> S))
+    	(with-fields* (((upcase dncase) <the-string*> S))
     	  (list S.upcase S.dncase))
       => '("CIAO" "ciao"))
 

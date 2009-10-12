@@ -202,7 +202,7 @@
 
 (define (make-record-extension rtd name fields)
   (let* ((table (make-eq-hashtable))
-	 (ext   (make-<record-extension> rtd name table)))
+	 (ext   (make-<record-extension> rtd (symbol->string name) table)))
     (for-each (lambda (field)
 		(let ((name (car field)))
 		  (hashtable-set! table name
@@ -215,31 +215,25 @@
       (<record-extension>-name obj)
     (record-type-name obj)))
 
-(define virtual-field-accessor
-  (case-lambda
-   ((extension field-name)
-    (virtual-field-accessor extension field-name (%extension-name extension)))
-   ((extension field-name rtd-name)
-    (let* ((field-table (<record-extension>-field-table extension))
-	   (field       (hashtable-ref field-table field-name #f)))
-      (if field
-	  (let ((proc (<virtual-field>-accessor field)))
-	    (or proc
-		(lambda args
-		  (assertion-violation #f
-		    (string-append "attempt to access unreadable virtual field \""
-				   (symbol->string field-name)
-				   "\" for record \"" (symbol->string rtd-name) "\"")
-		    field-name))))
-	(record-field-accessor (<record-extension>-rtd extension) field-name rtd-name))))))
+(define (virtual-field-accessor extension field-name)
+  (let* ((field-table (<record-extension>-field-table extension))
+	 (field       (hashtable-ref field-table field-name #f)))
+    (if field
+	(let ((proc (<virtual-field>-accessor field)))
+	  (or proc
+	      (lambda args
+		(assertion-violation #f
+		  (string-append "attempt to access unreadable virtual field \""
+				 (symbol->string field-name)
+				 "\" for record \"" (%extension-name extension) "\"")
+		  field-name))))
+      (record-field-accessor (<record-extension>-rtd extension) field-name))))
 
 (define virtual-field-mutator
   (case-lambda
    ((extension field-name)
-    (virtual-field-mutator extension field-name #t (%extension-name extension)))
+    (virtual-field-mutator extension field-name #t ))
    ((extension field-name false-if-immutable)
-    (virtual-field-mutator extension field-name false-if-immutable (%extension-name extension)))
-   ((extension field-name false-if-immutable rtd-name)
     (let* ((field-table (<record-extension>-field-table extension))
 	   (field       (hashtable-ref field-table field-name #f)))
       (if field
@@ -251,11 +245,9 @@
 		    (assertion-violation #f
 		      (string-append "attempt to access immutable virtual field \""
 				     (symbol->string field-name)
-				     "\" for record \""
-				     (symbol->string rtd-name) "\"")
+				     "\" for record \"" (%extension-name extension) "\"")
 		      field-name)))))
-	(virtual-field-mutator (<record-extension>-rtd extension) field-name
-			       false-if-immutable rtd-name))))))
+	(virtual-field-mutator (<record-extension>-rtd extension) field-name false-if-immutable))))))
 
 
 (define (make-define-forms what which kontext rtd)
