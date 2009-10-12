@@ -28,7 +28,7 @@
 (import (nausicaa)
   (checks)
   (email addresses common)
-  (nos))
+  (records))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses records\n")

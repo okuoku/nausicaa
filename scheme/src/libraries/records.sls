@@ -30,7 +30,8 @@
   (export
 
     ;; definitions
-    define-record-type*			define-record-extension
+    ;;define-record-type*
+    define-record-extension
 
     ;; constructors
     make

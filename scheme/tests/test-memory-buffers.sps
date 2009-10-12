@@ -26,7 +26,6 @@
 
 (import (nausicaa)
   (checks)
-  (nos)
   (records)
   (foreign memory)
   (for (foreign memory record-typedefs) expand)

@@ -152,9 +152,8 @@
     (foreign ffi sizeof)
     (for (foreign memory record-typedefs) expand)
     (for (foreign memory record-extensions) expand)
-    (nos)
     (records)
-    (sexps)
+    (for (sexps) expand run)
     (sexps syntax)
     (compensations))
 

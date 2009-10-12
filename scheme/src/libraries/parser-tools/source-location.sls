@@ -60,7 +60,7 @@
 
     source-location-honor-return)
   (import (rnrs)
-    (nos)
+    (records)
     (parameters))
 
 

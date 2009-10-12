@@ -27,7 +27,7 @@
 
 (import (nausicaa)
   (checks)
-  (nos)
+  (records)
   (parser-tools lexical-token)
   (parser-tools source-location))
 

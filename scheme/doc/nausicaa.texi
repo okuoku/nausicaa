@@ -12386,17 +12386,18 @@ library.
 
 
 @deffn Procedure make-record-type-descriptor @var{name} @var{parent} @var{uid} @var{sealed?} @var{opaque?} @var{fields}
-Return a @emph{record-type descriptor}, or @emph{rtd}, representing a
+Return a @dfn{record-type descriptor} (@acronym{RTD}) representing a
 record type distinct from all built--in types and other record types.
 
 The @var{name} argument must be a symbol.  It names the record type, and
 is intended purely for informational purposes and may be used for
 printing by the underlying Scheme system.
 
-The @var{parent} argument must be either @false{} or an rtd. If it is an
-rtd, the returned record type, @var{t}, extends the record type @var{p}
-represented by @var{parent}.  An exception with condition type
-@code{&assertion} is raised if @var{parent} is sealed (see below).
+The @var{parent} argument must be either @false{} or an @acronym{RTD}.
+If it is an @acronym{RTD}, the returned record type, @var{t}, extends
+the record type @var{p} represented by @var{parent}.  An exception with
+condition type @samp{&assertion} is raised if @var{parent} is sealed
+(see below).
 
 The @var{uid} argument must be either @false{} or a symbol.  If
 @var{uid} is a symbol, the record--creation operation is
@@ -12412,7 +12413,7 @@ If @func{make-record-type-descriptor} is called twice with the same
 @func{eqv?}, the @var{fields} arguments @func{equal?}, the @var{sealed?}
 arguments boolean--equivalent (both @false{} or both true), and the
 @var{opaque?} arguments boolean--equivalent.  If these conditions are
-not met, an exception with condition type @code{&assertion} is raised
+not met, an exception with condition type @samp{&assertion} is raised
 when the second call occurs.  If they are met, the second call returns,
 without creating a new record type, the same record--type descriptor (in
 the sense of @func{eqv?}) as the first call.
@@ -12428,9 +12429,9 @@ type is sealed, i.e., it cannot be extended.
 
 The @var{opaque?} flag must be a boolean.  If true, the record type is
 opaque.  If passed an instance of the record type, @func{record?}
-returns @false{}.  Moreover, if @code{record-rtd} (see ``Inspection''
+returns @false{}.  Moreover, if @samp{record-rtd} (see ``Inspection''
 below) is called with an instance of the record type, an exception with
-condition type @code{&assertion} is raised.  The record type is also
+condition type @samp{&assertion} is raised.  The record type is also
 opaque if an opaque parent is supplied.  If @var{opaque?} is @false{}
 and an opaque parent is not supplied, the record is not opaque.
 
@@ -12441,7 +12442,7 @@ a symbol and names the corresponding field of the record type; the names
 need not be distinct.  A field identified as mutable may be modified,
 whereas, when a program attempts to obtain a mutator for a field
 identified as immutable, an exception with condition type
-@code{&assertion} is raised.  Where field order is relevant, e.g., for
+@samp{&assertion} is raised.  Where field order is relevant, e.g., for
 record construction and field access, the fields are considered to be
 ordered as specified, although no particular order is required for the
 actual representation of a record instance.
@@ -12449,7 +12450,7 @@ actual representation of a record instance.
 The specified fields are added to the parent fields, if any, to
 determine the complete set of fields of the returned record type.  If
 @var{fields} is modified after @func{make-record-type-descriptor} has
-been called, the effect on the returned rtd is unspecified.
+been called, the effect on the returned @acronym{RTD} is unspecified.
 
 A generative record--type descriptor created by a call to
 @func{make-record-type-descriptor} is not @func{eqv?} to any
@@ -12498,8 +12499,8 @@ resulting record as shown in the simple example below:
     (p v1 v2 v3)))
 @end example
 
-Here, the call to @code{p} returns a record whose fields are initialized
-with the values of @code{v1}, @code{v2}, and @code{v3}.  The expression
+Here, the call to @var{p} returns a record whose fields are initialized
+with the values of @var{v1}, @var{v2}, and @var{v3}.  The expression
 above is equivalent to @code{(lambda (p) p)}.  Note that the procedure
 returned by @var{protocol} is otherwise unconstrained; specifically, it
 can take any number of arguments.
@@ -12508,7 +12509,7 @@ If @var{rtd} is an extension of another record type @var{parent-rtd} and
 @var{protocol} is a procedure, @var{parent-constructor-descriptor} must
 be a constructor descriptor of @var{parent-rtd} or @false{}.  If
 @var{parent-constructor-descriptor} is a constructor descriptor,
-@var{protocol} it is called by @code{record-constructor} with a single
+@var{protocol} it is called by @func{record-constructor} with a single
 argument @var{n}, which is a procedure that accepts the same number of
 arguments as the constructor of @var{parent-constructor-descriptor} and
 returns a procedure @var{p} that, when called, constructs the record
@@ -12670,7 +12671,7 @@ arguments must be a record record @var{r} of the type represented by
 @var{rtd} and an object @var{obj}.  This procedure stores @var{obj}
 within the field of @var{r} specified by @var{k}.  The @var{k} argument
 is as in @func{record-accessor}.  If @var{k} specifies an immutable
-field, an exception with condition type @code{&assertion} is raised.
+field, an exception with condition type @samp{&assertion} is raised.
 The mutator returns unspecified values.
 @end deffn
 

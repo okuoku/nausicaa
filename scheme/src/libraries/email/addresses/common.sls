@@ -65,7 +65,7 @@
     <group>-display-name
     <group>-mailboxes)
   (import (rnrs)
-    (nos)
+    (records)
     (strings)
     (lists))
 

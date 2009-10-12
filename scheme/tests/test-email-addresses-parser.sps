@@ -30,7 +30,7 @@
   (email addresses)
   (silex lexer)
   (strings)
-  (nos))
+  (records))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses\n")
