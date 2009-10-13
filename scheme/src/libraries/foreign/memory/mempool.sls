@@ -27,7 +27,10 @@
 
 (library (foreign memory mempool)
   (export
-    <mempool> make-mempool <mempool>? <mempool>-pointer-free
+    <mempool>		<mempool-rtd>
+    <mempool*>
+    make-mempool	<mempool>?
+    <mempool>-pointer-free
     <mempool>-pointer <mempool>-size
     memory-pool
     primitive-malloc/mempool	malloc/mempool)
@@ -38,7 +41,7 @@
     (foreign memory conditions)
     (foreign memory pointers)
     (for (foreign memory mempool types) expand run)
-    (for (foreign memory mempool extensions) expand))
+    (for (foreign memory mempool extensions) expand run))
 
   (define memory-pool
     (make-parameter #f

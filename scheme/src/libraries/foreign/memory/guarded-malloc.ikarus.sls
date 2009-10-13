@@ -23,12 +23,16 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 (library (foreign memory guarded-malloc)
   (export malloc/guarded calloc/guarded)
   (import (rnrs)
-    (foreign memory)
-    (cleanup-handlers)
-    (only (ikarus) make-guardian))
+    (only (foreign memory alloc)
+	  malloc calloc)
+    (only (cleanup-handlers)
+	  register-cleanup-function)
+    (only (ikarus)
+	  make-guardian))
 
   (define block-guardian (make-guardian))
 

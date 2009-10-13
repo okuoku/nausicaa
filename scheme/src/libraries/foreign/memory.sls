@@ -133,7 +133,7 @@
     peek-signed-long			peek-unsigned-long
     peek-signed-long-long		peek-unsigned-long-long
     peek-float				peek-double
-    peek-pointer
+    peek-pointer			peek-void*
 
     peek-int8				peek-uint8
     peek-int16				peek-uint16
@@ -146,7 +146,7 @@
     poke-signed-long!			poke-unsigned-long!
     poke-signed-long-long!		poke-unsigned-long-long!
     poke-float!				poke-double!
-    poke-pointer!
+    poke-pointer!			poke-void*!
 
     poke-int8!				poke-uint8!
     poke-int16!				poke-uint16!

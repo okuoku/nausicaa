@@ -91,6 +91,7 @@
 	    (pointer-ref-c-float		peek-float)
 	    (pointer-ref-c-double		peek-double)
 	    (pointer-ref-c-pointer		peek-pointer)
+	    (pointer-ref-c-pointer		peek-void*)
 
 	    (pointer-ref-c-int8			peek-int8)
 	    (pointer-ref-c-int16		peek-int16)
@@ -114,6 +115,7 @@
 	    (pointer-set-c-float!		poke-float!)
 	    (pointer-set-c-double!		poke-double!)
 	    (pointer-set-c-pointer!		poke-pointer!)
+	    (pointer-set-c-pointer!		poke-void*!)
 
 	    (pointer-set-c-int8!		poke-int8!)
 	    (pointer-set-c-int16!		poke-int16!)

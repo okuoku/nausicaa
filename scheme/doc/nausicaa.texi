@@ -51355,13 +51355,9 @@ is copied starting at @var{offset} from the beginning of the block.
 
 
 A rich set of procedures is implemented to access directly memory blocks
-referenced by @samp{pointer} values.
-
-All the bindings whose name start with @samp{pointer-ref} and
-@samp{pointer-set} are exported by @library{foreign memory} and the
-compound library @library{foreign}.  All the bindings whose name start
-with @samp{peek} and @samp{poke} are exported only by the library
-@library{foreign memory peekers-and-pokers}.
+referenced by pointer values.  The bindings described in this section
+are exported by @library{foreign memory peekers-and-pokers} and
+re--exported by @library{foreign memory}.
 
 @menu
 * memory access intro::         Introduction.
@@ -51386,7 +51382,7 @@ The names of the formal arguments follow these conventions:
 @table @var
 @item pointer
 It must be a value used to reference a memory block.  @ref{memory
-pointers} for details.
+pointers, Pointer objects}
 
 @item offset
 It must be an exact integer, a fixnum, representing the offset of a byte
@@ -51408,7 +51404,7 @@ range that is left--inclusive and right--exclusive, that is @math{[1,
 When adding an offset to a pointer: All the following functions
 @strong{do not} scale the offset to the size of the peeked value.
 Pointer arithmetics is performed with byte offsets.  @ref{memory array
-peekers}, for functions that do scale the index.
+peekers} for functions that do scale the index.
 
 
 @subsubheading Peeking fixed--size exact integers
@@ -52185,14 +52181,47 @@ to release individual blocks: Releasing the pool releases all of them.
 The following bindings are exported by @library{foreign memory mempool}.
 
 
-@deffn Parameter memory-buffer-pool
-Holds @false{} or the buffer from which memory blocks must be allocated;
-it is preset to @false{}.
+@deftp {Record Type Name} <mempool>
+@deftpx {Record Type Descriptor} <mempool-rtd>
+@deftpx {Record Extension} <mempool*>
+Record type descriptor of the memory pool object; it is derived from
+@class{memblock}.  It has the following fields:
+
+@table @samp
+@item pointer
+Pointer to the allocated block.
+
+@item size
+Number of allocated bytes.
+
+@item pointer-free
+Pointer to the first free byte in the allocated block.
+@end table
+
+The record extension has the following virtual fields:
+
+@table @samp
+@item free-size
+Number of free bytes in the memory pool.
+@end table
+@end deftp
+
+
+@defun make-mempool @var{pointer} @var{number-of-bytes}
+Build and return a new @class{mempool} record.  Notice that the
+allocated memory must be released explicitly by accessing the
+@samp{pointer} field of the record.
+@end defun
+
+
+@deffn Parameter memory-pool
+Holds @false{} or the @class{mempool} record from which memory blocks
+must be allocated; it is preset to @false{}.
 @end deffn
 
 
-@defun primitive-malloc/buffer @var{number-of-bytes}
-Allocates @var{number-of-bytes} in the current buffer pool and return a
+@defun primitive-malloc/mempool @var{number-of-bytes}
+Allocates @var{number-of-bytes} in the current memory pool and return a
 pointer to the first allocated byte, or @false{} if there is not enough
 room in the pool.
 
@@ -52202,8 +52231,8 @@ Allocation functions}
 @end defun
 
 
-@defun malloc/buffer @var{number-of-bytes}
-A wrapper for @func{primitive-malloc/buffer} that raises an
+@defun malloc/mempool @var{number-of-bytes}
+A wrapper for @func{primitive-malloc/mempool} that raises an
 @samp{&out-of-memory} exception if there is not enough room in the pool.
 @end defun
 
@@ -52211,11 +52240,37 @@ A wrapper for @func{primitive-malloc/buffer} that raises an
 Example:
 
 @example
+(import (rnrs)
+  (foreign memory)
+  (for (foreign memory mempool) expand run)
+  (records))
+
+(define pool
+  (make-mempool (malloc 4096) 4096))
+
+(parametrise ((memory-pool pool))
+  (let ((p (malloc/mempool 10))
+        (q (malloc/mempool 20)))
+    ---))
+
+(with-fields ((pointer <mempool*> pool))
+  (primitive-free pointer))
+@end example
+
+@noindent
+or using compensations:
+
+@example
+(import (rnrs)
+  (foreign memory compensate)
+  (foreign memory mempool)
+  (compensations))
+
 (with-compensations
-  (parametrise ((memory-buffer-pool
-                  (make-buffer (malloc/c 4096) 4096 0)))
-    (let ((p (malloc/buffer 10))
-          (q (malloc/buffer 20)))
+  (parametrise ((memory-pool (make-mempool (malloc/c 4096)
+                                           4096)))
+    (let ((p (malloc/mempool 10))
+          (q (malloc/mempool 20)))
       ---)))
 @end example
 
@@ -52240,7 +52295,7 @@ pointer returned by MALLOC/REFCOUNT
 the reference counter is handled as an @code{unsigned long} and it is
 located at a negative offset from the address we use to access data.
 
-The following bindings are exported by @library{foreign memory mempool}.
+The following bindings are exported by @library{foreign memory refcount}.
 
 
 @defun malloc/refcount @var{number-of-bytes}
@@ -52248,10 +52303,10 @@ The following bindings are exported by @library{foreign memory mempool}.
 @defunx malloc/rc @var{number-of-bytes}
 @defunx malloc/rc @var{number-of-bytes} @var{malloc-func}
 Allocate a block of memory wide enough to hold @var{number-of-bytes}
-using reference counting, return a @samp{pointer} record; allocate
-memory with the procedure @var{malloc-func} which defaults to
-@func{malloc}.  Return a pointer to the first byte in the data area of
-the allocated block; the reference counter is initially set to zero.
+using reference counting; return a pointer object.  Memory is allocated
+with the procedure @var{malloc-func} which defaults to @func{malloc}.
+Return a pointer to the first byte in the data area of the allocated
+block; the reference counter is initially set to zero.
 @end defun
 
 
@@ -52450,39 +52505,25 @@ and update the statuses of the buffers.
 
 
 The functions described in this section are usable only when the Scheme
-implementation provides guardians (Ikarus does, Ypsilon does not).
-
-To load the library:
-
-@example
-(import (scheme)
-  (uriel guarded-malloc))
-@end example
+implementation provides guardians (only Ikarus at present, Tue Oct 13,
+2009).  The following bindings are exported by @library{foreign memory
+guarded-malloc}.
 
 
 @defun malloc/guarded @var{number-of-bytes}
-A wrapper for @func{primitive-malloc} that:
-
-@itemize
-@item
-if the allocation is successful: registers the pointer into a guardian
-and returns it;
-
-@item
-if the allocation fails, raises an @code{&out-of-memory} condition.
-@end itemize
+A wrapper for @func{malloc} which (if the allocation is successful)
+registers the pointer into a guardian and return it.
 
 The library registers a cleanup function for the guardian in the state
-of the @library{uriel cleanup} library, so memory allocated with this
-function is released by invoking @func{uriel-cleanup}.  @strong{Do not}
-free this memory with @func{primitive-free} or any other free function.
+of the @library{cleanup-handlers} library, so memory allocated with this
+function is released by invoking @func{cleanup}.  @strong{Do not} free
+this memory with @func{primitive-free} or any other free function.
 @end defun
 
 
 @defun calloc/guarded @var{count} @var{element-size}
 Like @func{malloc/guarded} but makes use of @func{calloc}.
 @end defun
-
 
 @c page
 @node ffi
