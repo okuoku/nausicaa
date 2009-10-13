@@ -77,6 +77,14 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>
 
+    ;; bindings for builtin record type descriptors
+    <pair-rtd> <list-rtd>
+    <char-rtd> <string-rtd> <vector-rtd> <bytevector-rtd> <hashtable-rtd>
+    <record-rtd> <condition-rtd>
+    <port-rtd> <binary-port-rtd> <input-port-rtd> <output-port-rtd> <textual-port-rtd>
+    <fixnum-rtd> <flonum-rtd> <integer-rtd> <integer-valued-rtd> <rational-rtd> <rational-valued-rtd>
+    <real-rtd> <real-valued-rtd> <complex-rtd> <number-rtd>
+
     ;; builtin extensions
     <pair*> <list*>
     <vector*> <bytevector*> <hashtable*>
@@ -202,41 +210,47 @@
   ;;RECORD; else  return the RTD  of <top>.  The  order of the  tests is
   ;;important.  More specialised types must come first.
   ;;
-  (cond ((record? obj)
-	 (record-rtd obj))
+  (cond
 
-	((number? obj)
-	 ;;Order does matter here!!!
-	 (cond ((fixnum?		obj)	(record-type-descriptor <fixnum>))
-	       ((integer?		obj)	(record-type-descriptor <integer>))
-	       ((rational?		obj)	(record-type-descriptor <rational>))
-	       ((integer-valued?	obj)	(record-type-descriptor <integer-valued>))
-	       ((rational-valued?	obj)	(record-type-descriptor <rational-valued>))
-	       ((flonum?		obj)	(record-type-descriptor <flonum>))
-	       ((real?			obj)	(record-type-descriptor <real>))
-	       ((real-valued?		obj)	(record-type-descriptor <real-valued>))
-	       ((complex?		obj)	(record-type-descriptor <complex>))
-	       (else				(record-type-descriptor <number>))))
-	((char?		obj)		(record-type-descriptor <char>))
-	((string?	obj)		(record-type-descriptor <string>))
-	((vector?	obj)		(record-type-descriptor <vector>))
-	((bytevector?	obj)		(record-type-descriptor <bytevector>))
-	((hashtable?	obj)		(record-type-descriptor <hashtable>))
-	((port?		obj)
-	 ;;Order here is arbitrary.
-	 (cond ((input-port?	obj)	(record-type-descriptor <input-port>))
-	       ((output-port?	obj)	(record-type-descriptor <output-port>))
-	       ((binary-port?	obj)	(record-type-descriptor <binary-port>))
-	       ((textual-port?	obj)	(record-type-descriptor <textual-port>))
-	       (else			(record-type-descriptor <port>))))
-	((condition?	obj)		(record-type-descriptor <condition>))
-	((record?	obj)		(record-type-descriptor <record>))
-	((pair?		obj)
-	 ;;Order does matter  here!!!  Better leave these at  the end because
-	 ;;qualifying a long list can be time-consuming.
-	 (cond ((list?	obj)	(record-type-descriptor <list>))
-	       (else		(record-type-descriptor <pair>))))
-	(else (record-type-descriptor <top>))))
+   ;;This  is  here  as  a  special exception  because  in  Larceny  the
+   ;;hashtable  is a  record.  We  have  to process  it before  applying
+   ;;RECORD?
+   ((hashtable?	obj)		(record-type-descriptor <hashtable>))
+
+   ((record? obj)
+    (record-rtd obj))
+
+   ((number? obj)
+    ;;Order does matter here!!!
+    (cond ((fixnum?		obj)	(record-type-descriptor <fixnum>))
+	  ((integer?		obj)	(record-type-descriptor <integer>))
+	  ((rational?		obj)	(record-type-descriptor <rational>))
+	  ((integer-valued?	obj)	(record-type-descriptor <integer-valued>))
+	  ((rational-valued?	obj)	(record-type-descriptor <rational-valued>))
+	  ((flonum?		obj)	(record-type-descriptor <flonum>))
+	  ((real?		obj)	(record-type-descriptor <real>))
+	  ((real-valued?	obj)	(record-type-descriptor <real-valued>))
+	  ((complex?		obj)	(record-type-descriptor <complex>))
+	  (else				(record-type-descriptor <number>))))
+   ((char?		obj)		(record-type-descriptor <char>))
+   ((string?		obj)		(record-type-descriptor <string>))
+   ((vector?		obj)		(record-type-descriptor <vector>))
+   ((bytevector?	obj)		(record-type-descriptor <bytevector>))
+   ((port?		obj)
+    ;;Order here is arbitrary.
+    (cond ((input-port?		obj)	(record-type-descriptor <input-port>))
+	  ((output-port?	obj)	(record-type-descriptor <output-port>))
+	  ((binary-port?	obj)	(record-type-descriptor <binary-port>))
+	  ((textual-port?	obj)	(record-type-descriptor <textual-port>))
+	  (else				(record-type-descriptor <port>))))
+   ((condition?		obj)		(record-type-descriptor <condition>))
+   ((record?		obj)		(record-type-descriptor <record>))
+   ((pair?		obj)
+    ;;Order does matter  here!!!  Better leave these at  the end because
+    ;;qualifying a long list can be time-consuming.
+    (cond ((list?	obj)	(record-type-descriptor <list>))
+	  (else			(record-type-descriptor <pair>))))
+   (else (record-type-descriptor <top>))))
 
 
 ;;;; basic field access
@@ -459,7 +473,7 @@
 			   ((ACCESSOR (... ...))
 			    `(,(virtual-field-accessor ?extension-record '?field-name) ...))
 			   ((MUTATOR (... ...))
-			    `(,(virtual-field-mutator  ?extension-record '?field-name) ...))
+			    `(,(virtual-field-mutator  ?extension-record '?field-name #f) ...))
 			   ((FORMS (... ...))
 			    (datum->syntax #'?kontext '(?form0 ?form ...))))
 			#'(let-syntax

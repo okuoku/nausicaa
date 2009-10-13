@@ -28,7 +28,7 @@
 (import (nausicaa)
   (rnrs eval)
   (checks)
-  (records)
+  (for (records) expand run) ;the expand phase is needed to access the builtin RTDs
   (for (records-lib) expand)
   (for (records-lib-2) expand))
 
@@ -794,13 +794,95 @@
   #t)
 
 
-(parametrise ((check-test-name 'virtual-fields))
+(parametrise ((check-test-name 'virtual-fields-basic-plain))
+
+;;; The following tests make use of the definitions in (records-lib) and
+;;; (records-lib-2).
+
+;;; --------------------------------------------------------------------
+;;; Tests for various syntax forms.
+
+  (let ((o (make <gamma>
+	     1 2 3
+	     4 5 6
+	     7 8 9)))
+    (check
+	(with-fields ((a <gamma-rtd> o))
+	  a)
+      => 1)
+
+    (check
+	(with-fields (((a) <gamma-rtd> o))
+	  a)
+      => 1)
+
+    (check
+	(with-fields ((a <gamma-rtd> o) (b <gamma-rtd> o) (c <gamma-rtd> o)
+		      (d <gamma-rtd> o) (e <gamma-rtd> o) (f <gamma-rtd> o)
+		      (g <gamma-rtd> o) (h <gamma-rtd> o) (i <gamma-rtd> o))
+	  (list a b c d e f g h i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+	(with-fields (((a b c d e f g h i) <gamma-rtd> o))
+	  (list a b c d e f g h i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+	(with-fields (((a b c) <gamma-rtd> o)
+		      (d <gamma-rtd> o)
+		      (e <gamma-rtd> o)
+		      ((f g) <gamma-rtd> o)
+		      (h <gamma-rtd> o)
+		      (i <gamma-rtd> o))
+	  (list a b c d e f g h i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    #f)
 
   (let ((o (make <gamma>
 	     1 2 3
 	     4 5 6
 	     7 8 9)))
 
+    (check
+	(with-fields (((a b c) <gamma-rtd> o)
+		      ((d e) <gamma-rtd> o)
+		      ((f g) <gamma-rtd> o)
+		      ((h i) <gamma-rtd> o))
+	  (set! a 10)
+	  (set! c 30)
+	  (set! d 40)
+	  (set! f 60)
+	  (set! g 70)
+	  (set! i 90)
+	  (list a b c d e f g h i))
+      => '(10 2 30 40 5 60 70 8 90))
+
+    #f)
+
+  (let ((o (make <gamma>
+	     1 2 3
+	     4 5 6
+	     7 8 9)))
+    (check
+	(with-fields (((a (the-b b) c) <gamma-rtd> o)
+		      (((the-d d) e)   <gamma-rtd> o))
+	  (set! a 10)
+	  (set! c 30)
+	  (set! the-d 40)
+	  (list a the-b c the-d e))
+      => '(10 2 30 40 5))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; Tests the record extension.
+
+  (let ((o (make <gamma>
+	     1 2 3
+	     4 5 6
+	     7 8 9)))
     (check
 	(with-fields ((iota <gamma*> o))
 	  iota)
@@ -816,12 +898,197 @@
 	  (list iota theta))
       => '(91 92))
 
+    #f)
+
+  (let ((o (make <gamma>
+	     1 2 3
+	     4 5 6
+	     7 8 9)))
     (check
 	(with-fields (((iota theta) <gamma*> o))
 	  (set! iota 5)
 	  (set! theta 6)
 	  (list iota theta))
       => '(5 6))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  ;;Raise an "unknown field" error.
+  ;;
+  (check
+      (guard (E (else `((message   . ,(condition-message E))
+			(irritants . ,(condition-irritants E)))))
+	(eval '(let ((o (make <gamma> 1 2 3
+			      4 5 6
+			      7 8 9)))
+		 (with-fields ((ciao <gamma-rtd> o))
+		   ciao))
+	      (environment '(rnrs) '(records)
+			   '(for (records-lib) expand))))
+    => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
+	 (irritants . (ciao))))
+
+  ;;Raise an "unknown field" error.
+  ;;
+  (check
+      (guard (E (else `((message   . ,(condition-message E))
+			(irritants . ,(condition-irritants E)))))
+	(eval '(let ((o (make <gamma> 1 2 3
+			      4 5 6
+			      7 8 9)))
+		 (with-fields ((ciao <gamma-rtd> o))
+		   (set! ciao 1)))
+	      (environment '(rnrs) '(records)
+			   '(for (records-lib) expand))))
+    => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
+	 (irritants . (ciao))))
+
+  ;;Raise an "attempt to mutate immutable field" error.
+  ;;
+  (check
+      (guard (E (else `((message   . ,(condition-message E))
+			(irritants . ,(condition-irritants E)))))
+	(eval '(let ((o (make <gamma> 1 2 3
+			      4 5 6
+			      7 8 9)))
+		 (with-fields ((b <gamma-rtd> o))
+		   (set! b 1)
+		   b))
+	      (environment '(rnrs) '(records)
+			   '(for (records-lib) expand))))
+    => '((message . "attempt to mutate immutable field of record \"<alpha>\" in record hierarchy of \"<gamma>\"")
+	 (irritants . (b))))
+
+  #t)
+
+
+(parametrise ((check-test-name 'virtual-fields-basic-dotted))
+
+;;; The following tests make use of the definitions in (records-lib) and
+;;; (records-lib-2).
+
+  (let ((o (make <gamma> 1 2 3
+		 4 5 6
+		 7 8 9)))
+
+    (check
+	(with-fields* ((a <gamma-rtd> o))
+	  o.a)
+      => 1)
+
+    (check
+    	(with-fields* (((a) <gamma-rtd> o))
+    	  o.a)
+      => 1)
+
+    (check
+	(with-fields* ((a <gamma-rtd> o)
+		       (b <gamma-rtd> o)
+		       (c <gamma-rtd> o)
+		       (d <gamma-rtd> o)
+		       (e <gamma-rtd> o)
+		       (f <gamma-rtd> o)
+		       (g <gamma-rtd> o)
+		       (h <gamma-rtd> o)
+		       (i <gamma-rtd> o))
+	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+    	(with-fields* (((a b c d e f g h i) <gamma-rtd> o))
+    	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+    	(with-fields* (((a b c) <gamma-rtd> o)
+		       (d <gamma-rtd> o)
+		       (e <gamma-rtd> o)
+		       ((f g) <gamma-rtd> o)
+		       (h <gamma-rtd> o)
+		       (i <gamma-rtd> o))
+    	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(1 2 3 4 5 6 7 8 9))
+
+    (check
+    	(with-fields* (((a b c) <gamma-rtd> o)
+		       ((d e) <gamma-rtd> o)
+		       ((f g) <gamma-rtd> o)
+		       ((h i) <gamma-rtd> o))
+    	  (set! o.a 10)
+    	  (set! o.c 30)
+    	  (set! o.d 40)
+    	  (set! o.f 60)
+    	  (set! o.g 70)
+    	  (set! o.i 90)
+    	  (list o.a o.b o.c o.d o.e o.f o.g o.h o.i))
+      => '(10 2 30 40 5 60 70 8 90))
+
+    ;;Raise an "unknown field" error.
+    ;;
+    (check
+	(guard (E (else `((message   . ,(condition-message E))
+			  (irritants . ,(condition-irritants E)))))
+	  (eval '(let ((o (make <gamma> 1 2 3
+				4 5 6
+				7 8 9)))
+		   (with-fields* ((ciao <gamma-rtd> o))
+		     123))
+		(environment '(rnrs) '(records)
+			     '(for (records-lib) expand run))))
+      => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
+	   (irritants . (ciao))))
+
+    ;;Raise an "attempt to mutate immutable field" error.
+    ;;
+    (check
+	(guard (E (else `((message   . ,(condition-message E))
+			  (irritants . ,(condition-irritants E)))))
+	  (eval '(let ((o (make <gamma> 1 2 3
+				4 5 6
+				7 8 9)))
+		   (with-fields* ((b <gamma-rtd> o))
+		     (set! o.b 1)
+		     o.b))
+		(environment '(rnrs) '(records)
+			     '(for (records-lib) expand run))))
+      => '((message . "attempt to mutate immutable field of record \"<alpha>\" in record hierarchy of \"<gamma>\"")
+	   (irritants . (b))))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((p (make <alpha> 1 2 3))
+	(q (make <alpha> 4 5 6)))
+
+    (check
+	(with-fields* (((a b c) <alpha-rtd> p)
+		       ((a b c) <alpha-rtd> q))
+	  (set! p.a 10)
+	  (set! q.a 20)
+	  (list p.a p.b p.c q.a q.b q.c))
+      => '(10 2 3 20 5 6))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ((o (make <beta>
+	     1 2 3
+	     4 5 6)))
+
+    (check
+    	(with-fields ((def <beta*> o))
+    	  def)
+      => '(4 5 6))
+
+    (check
+    	(with-fields (((def) <beta*> o))
+    	  (set! def '(90 91))
+    	  def)
+      => '(90 5 91))
 
     #f)
 
@@ -851,27 +1118,6 @@
 
     #f)
 
-;;; --------------------------------------------------------------------
-;;; The following tests make use of the definitions in (records-lib-2).
-
-
-  (let ((o (make <beta>
-	     1 2 3
-	     4 5 6)))
-
-    (check
-    	(with-fields ((def <beta*> o))
-    	  def)
-      => '(4 5 6))
-
-    (check
-    	(with-fields (((def) <beta*> o))
-    	  (set! def '(90 91))
-    	  def)
-      => '(90 5 91))
-
-    #f)
-
   (let ((o (make <beta>
 	     1 2 3
 	     4 5 6)))
@@ -889,62 +1135,66 @@
 
     #f)
 
-;;; --------------------------------------------------------------------
+  #t)
 
-  (let ((S "Ciao"))
+
+(parametrise ((check-test-name 'virtual-fields-builtins))
 
+;;; The  following  tests  make  use  of  the  definitions  in  (records
+;;; builtins) and (records extensions).
 
-    (check
-	(with-fields ((length <the-string*> S))
-	  length)
-      => 4)
+  (define S "Ciao")
 
-    (check
-	(with-fields (((length) <the-string*> S))
-	  length)
-      => 4)
+  (check
+      (with-fields ((length <string*> S))
+	length)
+    => 4)
 
-    (check
-	(with-fields ((((len length)) <the-string*> S))
-	  len)
-      => 4)
+  (check
+      (with-fields (((length) <string*> S))
+	length)
+    => 4)
 
-    (check
-	(with-fields (((upcase dncase) <the-string*> S))
-	  (list upcase dncase))
-      => '("CIAO" "ciao"))
+  (check
+      (with-fields ((((len length)) <string*> S))
+	len)
+    => 4)
 
-    (check
-	(with-fields ((((up upcase) (dn dncase)) <the-string*> S))
-	  (list up dn))
-      => '("CIAO" "ciao"))
+  (check
+      (with-fields (((upcase downcase) <string*> S))
+	(list upcase downcase))
+    => '("CIAO" "ciao"))
 
-    (check
-    	(with-fields ((((up upcase) dncase) <the-string*> S))
-    	  (list up dncase))
-      => '("CIAO" "ciao"))
+  (check
+      (with-fields ((((up upcase) (dn downcase)) <string*> S))
+	(list up dn))
+    => '("CIAO" "ciao"))
 
-    (check
-    	(with-fields (((upcase (dn dncase)) <the-string*> S))
-    	  (list upcase dn))
-      => '("CIAO" "ciao"))
+  (check
+      (with-fields ((((up upcase) downcase) <string*> S))
+	(list up downcase))
+    => '("CIAO" "ciao"))
 
-    (check
-    	(with-fields (((length upcase dncase) <the-string*> S))
-          (list length upcase dncase))
-      => '(4 "CIAO" "ciao"))
+  (check
+      (with-fields (((upcase (dn downcase)) <string*> S))
+	(list upcase dn))
+    => '("CIAO" "ciao"))
 
-    (check
-    	(with-fields* ((length <the-string*> S))
-    	  S.length)
-      => 4)
+  (check
+      (with-fields (((length upcase downcase) <string*> S))
+	(list length upcase downcase))
+    => '(4 "CIAO" "ciao"))
 
-    (check
-    	(with-fields* (((upcase dncase) <the-string*> S))
-    	  (list S.upcase S.dncase))
-      => '("CIAO" "ciao"))
+  (check
+      (with-fields* ((length <string*> S))
+	S.length)
+    => 4)
 
-    #f)
+  (check
+      (with-fields* (((upcase downcase) <string*> S))
+	(list S.upcase S.downcase))
+    => '("CIAO" "ciao"))
+
   #t)
 
 

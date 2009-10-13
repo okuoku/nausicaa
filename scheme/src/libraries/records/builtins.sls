@@ -28,12 +28,20 @@
 (library (records builtins)
   (export
     <top> <builtin>
+
     <pair> <list>
     <char> <string> <vector> <bytevector> <hashtable>
     <record> <condition>
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
-    <real> <real-valued> <complex> <number>)
+    <real> <real-valued> <complex> <number>
+
+    <pair-rtd> <list-rtd>
+    <char-rtd> <string-rtd> <vector-rtd> <bytevector-rtd> <hashtable-rtd>
+    <record-rtd> <condition-rtd>
+    <port-rtd> <binary-port-rtd> <input-port-rtd> <output-port-rtd> <textual-port-rtd>
+    <fixnum-rtd> <flonum-rtd> <integer-rtd> <integer-valued-rtd> <rational-rtd> <rational-valued-rtd>
+    <real-rtd> <real-valued-rtd> <complex-rtd> <number-rtd>)
   (import (rnrs)
     (only (nausicaa) cond-expand))
 
@@ -70,12 +78,17 @@
   (parent <builtin>)
   (nongenerative nausicaa:<bytevector>))
 
-(cond-expand (larceny
-	      (define <hashtable> (record-rtd (make-eq-hashtable))))
-	     (else
-	      (define-record-type <hashtable>
-		(parent <builtin>)
-		(nongenerative nausicaa:<hashtable>))))
+(define-record-type <hashtable>
+  (parent <builtin>)
+  (nongenerative nausicaa:<hashtable>))
+
+(define <pair-rtd>		(record-type-descriptor <pair>))
+(define <list-rtd>		(record-type-descriptor <list>))
+(define <char-rtd>		(record-type-descriptor <char>))
+(define <string-rtd>		(record-type-descriptor <string>))
+(define <vector-rtd>		(record-type-descriptor <vector>))
+(define <bytevector-rtd>	(record-type-descriptor <bytevector>))
+(define <hashtable-rtd>		(record-type-descriptor <hashtable>))
 
 
 (define-record-type <record>
@@ -85,6 +98,9 @@
 (define-record-type <condition>
   (parent <record>)
   (nongenerative nausicaa:<condition>))
+
+(define <record-rtd>		(record-type-descriptor <record>))
+(define <condition-rtd>		(record-type-descriptor <condition>))
 
 
 (define-record-type <port>
@@ -106,6 +122,12 @@
 (define-record-type <textual-port>
   (parent <port>)
   (nongenerative nausicaa:<textual-port>))
+
+(define <port-rtd>		(record-type-descriptor <port>))
+(define <input-port-rtd>	(record-type-descriptor <input-port>))
+(define <output-port-rtd>	(record-type-descriptor <output-port>))
+(define <binary-port-rtd>	(record-type-descriptor <binary-port>))
+(define <textual-port-rtd>	(record-type-descriptor <textual-port>))
 
 
 (define-record-type <number>
@@ -147,6 +169,17 @@
 (define-record-type <fixnum>
   (parent <integer>)
   (nongenerative nausicaa:<fixnum>))
+
+(define <number-rtd>		(record-type-descriptor <number>))
+(define <complex-rtd>		(record-type-descriptor <complex>))
+(define <real-valued-rtd>	(record-type-descriptor <real-valued>))
+(define <real-rtd>		(record-type-descriptor <real>))
+(define <rational-valued-rtd>	(record-type-descriptor <rational-valued>))
+(define <flonum-rtd>		(record-type-descriptor <flonum>))
+(define <rational-rtd>		(record-type-descriptor <rational>))
+(define <integer-valued-rtd>	(record-type-descriptor <integer-valued>))
+(define <integer-rtd>		(record-type-descriptor <integer>))
+(define <fixnum-rtd>		(record-type-descriptor <fixnum>))
 
 
 ;;;; done

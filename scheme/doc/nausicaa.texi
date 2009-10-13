@@ -1148,7 +1148,7 @@ Record utilities
 Conventional type descriptors
 
 * records builtin chart::           A chart for predefined @acronym{RTD}s.
-* records builtin rtd::             Conventional @acronym{RTD}s.
+* records builtin bind::            Bindings for conventional @acronym{RTD}s.
 
 Binding accessors and mutators
 
@@ -1175,6 +1175,15 @@ Extending records
 * records extensions define::   Defining record extensions.
 * records extensions access::   Virtual accessors and mutators.
 * records extensions fields::   Using virtual fields.
+* records extensions builtin::  Builtin extensions.
+
+Builtin extensions.
+
+* records extensions list::  List types.
+* records extensions compound:: Non--list compound data types.
+* records extensions numeric::  Numeric data types.
+* records extensions port::     Port types.
+* records extensions misc::     Miscellaneous types.
 
 A simple object system
 
@@ -36290,7 +36299,7 @@ The difference between @func{define-syntax} and @func{define}, is that
 
 
 The @library{records} library implements a number of utility functions
-and macros to handle records.  It is built upon plain records, and tries
+and macros to handle records.  It is built upon plain records and tries
 to limit complexity.
 
 The functions will work if the record type definitions are made
@@ -36326,12 +36335,15 @@ when dispatching multimethods, it is convenient to use the record type
 descriptor to represent the ``class'' of a record.
 
 Builtin Scheme values have no @acronym{RTD}, so @library{records}
-assigns a conventional one to them.  The only purpose of a conventional
-@acronym{RTD} is to be used in multimethod dispatching.
+assigns a conventional one to them.  Conventional @acronym{RTD}s have
+two purposes: to be used in multimethod dispatching (@pxref{records
+methods}) and to provide an interface for identifier macros
+(@pxref{records extensions}).  The conventional @acronym{RTD}s
+@strong{cannot} be used to instantiate builtin objects.
 
 @menu
 * records builtin chart::           A chart for predefined @acronym{RTD}s.
-* records builtin rtd::             Conventional @acronym{RTD}s.
+* records builtin bind::            Bindings for conventional @acronym{RTD}s.
 @end menu
 
 @c page
@@ -36354,7 +36366,7 @@ assigns a conventional one to them.  The only purpose of a conventional
  <top>            |
    |              +--> <char>
    v              |
-<builtin>---------+-------+---------+-----------+
+<builtin> --------+-------+---------+-----------+
    |              |       |         |           |
    v              v       v         v           v
 <number>        <pair> <vector> <bytevector> <hashtable>
@@ -36382,14 +36394,19 @@ assigns a conventional one to them.  The only purpose of a conventional
 @end example
 
 @c page
-@node records builtin rtd
-@subsection Conventional @acronym{rtd}
+@node records builtin bind
+@subsection Bindings for conventional @acronym{RTD}s
 
 
 The @library{records} library exports the following record type names,
 which can be used to access the conventional record type descriptors
-through @func{record-type-descriptor}.  @ref{stdlib records syntactic
-layer, Syntactic Layer}
+through the @func{record-type-descriptor} syntax.  To use the record
+names, we have to import @library{records} for the @samp{expand} phase.
+@ref{stdlib records syntactic layer, Syntactic Layer}
+
+Additionally, the bindings ending with @samp{-rtd>} are exported to
+access directly the @acronym{RTD} of the builtin type, without the need
+to expand @func{record-type-descriptor}.
 
 
 @deftp {Record Type Name} <top>
@@ -36408,11 +36425,13 @@ The parent of all the conventional @acronym{RTD}s, with the exception of
 
 
 @deftp {Record Type Name} <pair>
+@deftpx {Record Type Descriptor} <pair-rtd>
 Type for values satisfying @func{pair?}.
 @end deftp
 
 
 @deftp {Record Type Name} <list>
+@deftpx {Record Type Descriptor} <list-rtd>
 Type for values satisfying @func{list?}.
 @end deftp
 
@@ -36422,21 +36441,25 @@ Type for values satisfying @func{list?}.
 
 
 @deftp {Record Type Name} <vector>
+@deftpx {Record Type Descriptor} <vector-rtd>
 Type for values satisfying @func{vector?}.
 @end deftp
 
 
 @deftp {Record Type Name} <bytevector>
+@deftpx {Record Type Descriptor} <bytevector-rtd>
 Type for values satisfying @func{bytevector?}.
 @end deftp
 
 
 @deftp {Record Type Name} <hashtable>
+@deftpx {Record Type Descriptor} <hashtable-rtd>
 Type for values satisfying @func{hashtable?}.
 @end deftp
 
 
 @deftp {Record Type Name} <record>
+@deftpx {Record Type Descriptor} <record-rtd>
 Type for values satisfying @func{record?}.
 @end deftp
 
@@ -36446,51 +36469,61 @@ Type for values satisfying @func{record?}.
 
 
 @deftp {Record Type Name} <number>
+@deftpx {Record Type Descriptor} <number-rtd>
 Type for values satisfying @func{number?}.
 @end deftp
 
 
 @deftp {Record Type Name} <complex>
+@deftpx {Record Type Descriptor} <complex-rtd>
 Type for values satisfying @func{complex?}.
 @end deftp
 
 
 @deftp {Record Type Name} <real-valued>
+@deftpx {Record Type Descriptor} <real-valued-rtd>
 Type for values satisfying @func{real-valued?}.
 @end deftp
 
 
 @deftp {Record Type Name} <real>
+@deftpx {Record Type Descriptor} <real-rtd>
 Type for values satisfying @func{real?}.
 @end deftp
 
 
 @deftp {Record Type Name} <rational>
+@deftpx {Record Type Descriptor} <rational-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <rational-valued>
+@deftpx {Record Type Descriptor} <rational-valued-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <integer-valued>
+@deftpx {Record Type Descriptor} <integer-valued-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <integer>
+@deftpx {Record Type Descriptor} <integer-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <fixnum>
+@deftpx {Record Type Descriptor} <fixnum-rtd>
 Type for values satisfying @func{fixnum?}.
 @end deftp
 
 
 @deftp {Record Type Name} <flonum>
+@deftpx {Record Type Descriptor} <flonum-rtd>
 Type for values satisfying @func{flonum?}.
 @end deftp
 
@@ -36503,26 +36536,31 @@ input/output attributes.
 
 
 @deftp {Record Type Name} <port>
+@deftpx {Record Type Descriptor} <port-rtd>
 Type for values satisfying @func{port?}.
 @end deftp
 
 
 @deftp {Record Type Name} <input-port>
+@deftpx {Record Type Descriptor} <input-port-rtd>
 Type for values satisfying @func{input-port?}.
 @end deftp
 
 
 @deftp {Record Type Name} <output-port>
+@deftpx {Record Type Descriptor} <output-port-rtd>
 Type for values satisfying @func{output-port?}.
 @end deftp
 
 
 @deftp {Record Type Name} <textual-port>
+@deftpx {Record Type Descriptor} <textual-port-rtd>
 Type for values satisfying @func{textual-port?}.
 @end deftp
 
 
 @deftp {Record Type Name} <binary-port>
+@deftpx {Record Type Descriptor} <binary-port-rtd>
 Type for values satisfying @func{binary-port?}.
 @end deftp
 
@@ -36532,16 +36570,19 @@ Type for values satisfying @func{binary-port?}.
 
 
 @deftp {Record Type Name} <condition>
+@deftpx {Record Type Descriptor} <condition-rtd>
 Type for values satisfying @func{condition?}.
 @end deftp
 
 
 @deftp {Record Type Name} <string>
+@deftpx {Record Type Descriptor} <string-rtd>
 Type for values satisfying @func{string?}.
 @end deftp
 
 
 @deftp {Record Type Name} <char>
+@deftpx {Record Type Descriptor} <char-rtd>
 Type for values satisfying @func{char?}.
 @end deftp
 

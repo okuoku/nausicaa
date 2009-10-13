@@ -25,7 +25,8 @@
 ;;;
 
 (library (records-lib)
-  (export <alpha> <beta> <gamma>)
+  (export <alpha> <beta> <gamma>
+	  <alpha-rtd> <beta-rtd> <gamma-rtd>)
   (import (rnrs)
     (records))
 
@@ -45,6 +46,11 @@
     (fields (mutable g)
 	    (immutable h)
 	    (mutable i)))
+
+  (define <alpha-rtd>	(record-type-descriptor <alpha>))
+  (define <beta-rtd>	(record-type-descriptor <beta>))
+  (define <gamma-rtd>	(record-type-descriptor <gamma>))
+
   )
 
 ;;; end of file
