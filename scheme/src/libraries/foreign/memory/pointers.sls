@@ -1,14 +1,12 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: record type definitions for (foreign memory)
-;;;Date: Tue Sep 29, 2009
+;;;Contents: raw memory pointer data type
+;;;Date: Tue Oct 13, 2009
 ;;;
 ;;;Abstract
 ;;;
-;;;	Export  the definitions  of  the record  types  required by  the
-;;;	(memory) library.   They are in  an independent library  so that
-;;;	they can be made available in both the run and expand phases.
+;;;
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -27,24 +25,24 @@
 ;;;
 
 
-(library (foreign memory record-typedefs)
-  (export <membuffer> <memblock> <mempool>)
+(library (foreign memory pointers)
+  (export
+    pointer?
+    pointer-null		pointer-null?
+    integer->pointer		pointer->integer
+    pointer-diff		pointer-add
+    pointer=?			pointer<>?
+    pointer<?			pointer>?
+    pointer<=?			pointer>=?)
   (import (rnrs)
-    (records))
+    (foreign memory pointers compat))
 
-  (define-record-type <memblock>
-    (fields (immutable pointer)	;pointer to the allocated block
-	    (immutable size)))	;number of allocated bytes
+
 
-  (define-record-type <membuffer>
-    (parent <memblock>)
-    (fields (mutable pointer-used)   ;pointer to the first used byte
-	    (mutable pointer-free))) ;pointer to the first tail free byte
 
-  (define-record-type <mempool>
-    (parent <memblock>)
-    (fields (mutable pointer-free))) ;pointer to the first free byte
+
+;;;; done
 
-  )
+)
 
 ;;; end of file

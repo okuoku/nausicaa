@@ -1450,20 +1450,20 @@ Low level memory handling
 * memory conditions::           Out of memory errors.
 * memory pointers::             Pointer objects.
 * memory alloc::                Allocation functions.
-* memory bytevectors::          Bytevectors conversion.
 * memory blocks::               Memory blocks.
-* memory buffers::              Memory buffers.
 * memory cache::                Caching memory blocks.
 * memory factory::              Caching object factories.
 * memory compensate::           Compensations.
-* memory buffer alloc::         Allocation in a buffer.
-* memory refcount::             Reference counting.
 * memory operations::           Operations.
+* memory bytevectors::          Bytevectors conversion.
 * memory access::               Direct access to memory blocks.
 
 Independent libraries
 
-* guarded malloc::              Guarded memory allocation.
+* memory mempool:.              Allocation from a memory pool.
+* memory refcount::             Reference counting.
+* memory membuffer::            Memory buffers.
+* memory guarded::              Guarded memory allocation.
 
 Allocation functions
 
@@ -50474,25 +50474,29 @@ subjected to garbage collection.
 * memory conditions::           Out of memory errors.
 * memory pointers::             Pointer objects.
 * memory alloc::                Allocation functions.
-* memory bytevectors::          Bytevectors conversion.
 * memory blocks::               Memory blocks.
-* memory buffers::              Memory buffers.
 * memory cache::                Caching memory blocks.
 * memory factory::              Caching object factories.
 * memory compensate::           Compensations.
-* memory buffer alloc::         Allocation in a buffer.
-* memory refcount::             Reference counting.
 * memory operations::           Operations.
+* memory bytevectors::          Bytevectors conversion.
 * memory access::               Direct access to memory blocks.
 
 Independent libraries
 
-* guarded malloc::              Guarded memory allocation.
+* memory mempool::              Allocation from a memory pool.
+* memory refcount::             Reference counting.
+* memory membuffer::            Memory buffers.
+* memory guarded::              Guarded memory allocation.
 @end menu
 
 @c page
 @node memory conditions
 @subsection Out of memory errors
+
+
+The following bindings are exported by @library{foreign memory
+conditions} and re--exported by @library{foreign memory}.
 
 
 @deftp Condition {&out-of-memory}
@@ -50583,6 +50587,9 @@ the specific type used to represent them depends upon the underlying
 Scheme implementation.  The only pointer constructor is
 @func{integer->pointer}.
 
+The following bindings are exported by @library{foreign memory pointers}
+and re--exported by @library{foreign memory}.
+
 
 @defun pointer? @var{x}
 Return @true{} if the value of @var{x} is a value that the Scheme
@@ -50659,8 +50666,9 @@ With the single exception of @func{pointer<>?}: All the functions return
 @subsection Allocation functions
 
 
-The @library{foreign memory} library exports bindings attempting to
-satisfy every low level memory allocation need.
+The memory alloction @api{} described in this section is exported by
+@library{foreign memory alloc} and re--exported by @library{foreign
+memory}.
 
 @menu
 * memory alloc system::         System functions.
@@ -50858,7 +50866,7 @@ another is to use a compensation (@pxref{compensations}):
 
 @noindent
 another method, if supported, is to use @func{malloc/guarded},
-@ref{guarded malloc,guarded-malloc}
+@ref{memory guarded, guarded-malloc}
 
 To test memory allocation failure we can do:
 
@@ -50888,95 +50896,6 @@ To log memory allocations we can do:
       ---
       (primitive-free p))))
 @end example
-
-@c page
-@node memory bytevectors
-@subsection Bytevectors conversion
-
-
-In the implementation of the following functions:
-
-@itemize
-@item
-When copying from a bytevector to a memory block, bytes are peeked with
-@func{bytevector-u8-ref} and poked with @func{pointer-set-c-uint8!}.
-
-@item
-When copying from a memory block to a bytevector bytes are peeked with
-@func{pointer-ref-c-uint8} and poked with @func{bytevector-u8-set!}.
-@end itemize
-
-Remember that we can compare two bytevectors with @func{bytevector=?},
-but to compare raw blocks of memory we can use the @func{memcpy}
-interface function.
-
-
-@defun bytevector->pointer @var{bvector} @var{malloc}
-@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes}
-@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
-Allocate a memory block using @var{malloc} and copy into it the bytes in
-@var{bvector}.  Return the pointer.
-
-If @var{number-of-bytes} is given: That number of bytes is taken as size
-of the memory block, and only that number of bytes is copied.
-
-If both @var{number-of-bytes} and @var{offset} are given: That number of
-bytes is taken as size of the memory block, and only that number of
-bytes is copied starting at @var{offset} from the beginning of the
-bytevector.
-
-@var{malloc} must accept as single argument the number of bytes to
-allocate, and must return a pointer to the allocated memory block.  If
-an error occurs allocating memory: @var{malloc} must raise an exception
-and not return to the caller.
-@end defun
-
-
-@defun bytevector->memblock @var{bvector} @var{malloc}
-@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes}
-@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
-Allocate a memory block using @var{malloc} and copy into it the bytes in
-@var{bvector}.  Return a @samp{memblock} record.  @ref{memory blocks,
-Memory blocks}
-
-
-If @var{number-of-bytes} is given: That number of bytes is taken as size
-of the memory block, and only that number of bytes is copied.
-
-If both @var{number-of-bytes} and @var{offset} are given: That number of
-bytes is taken as size of the memory block, and only that number of
-bytes is copied starting at @var{offset} from the beginning of the
-bytevector.
-
-@var{malloc} must accept as single argument the number of bytes to
-allocate, and must return a pointer to the allocated memory block.  If
-an error occurs allocating memory: @var{malloc} must raise an exception
-and not return to the caller.
-@end defun
-
-
-@defun pointer->bytevector @var{pointer} @var{number-of-bytes}
-@defunx pointer->bytevector @var{pointer} @var{number-of-bytes} @var{offset}
-Build a bytevector of length @var{number-of-bytes} and copy into it the
-bytes from the block of memory referenced by @var{pointer}.  If
-@var{offset} is given: Start to read bytes at @var{offset} from
-@var{pointer}.
-@end defun
-
-
-@defun memblock->bytevector @var{memblock}
-@defunx memblock->bytevector @var{memblock} @var{number-of-bytes}
-@defunx memblock->bytevector @var{memblock} @var{number-of-bytes} @var{offset}
-Duplicate a @samp{memblock} record into a bytevector.  @ref{memory
-blocks, Memory blocks}
-
-If @var{number-of-bytes} is given: That number of bytes is taken as size
-of the bytevector, and only that number of bytes is copied.
-
-If both @var{number-of-bytes} and @var{offset} are given: That number of
-bytes is taken as size of the bytevector, and only that number of bytes
-is copied starting at @var{offset} from the beginning of the block.
-@end defun
 
 @c page
 @node memory blocks
@@ -51013,152 +50932,6 @@ Return true if @var{obj} is a record of type @code{memblock}, return
 @defun memblock-pointer @var{mb}
 @defunx memblock-size @var{mb}
 Field accessors.
-@end defun
-
-@c page
-@node memory buffers
-@subsection Memory buffers
-
-
-@deftp {Record Type} <membuffer>
-A @class{membuffer} is a record type derived from a @class{memblock} that
-adds fields representing the number of ``used'' bytes in the block; it
-is used as a @acronym{FIFO} for bytes or multi--byte data
-types.@footnote{The reference usage of @class{membuffer} records is as
-input and output buffers for the Zlib compression and decompression
-streams.}
-@end deftp
-
-
-@subsubheading Making
-
-
-@defun make-<membuffer> @var{pointer} @var{number-of-bytes} @var{used-size}
-Build and return a new @class{membuffer} record.
-@end defun
-
-
-@subsubheading Predicates
-
-
-@defun <membuffer>? @var{obj}
-Return true if @var{obj} is a record of type @class{membuffer}, return
-@false{} otherwise.
-@end defun
-
-
-@defun membuffer-full? @var{membuf}
-Return @true{} if all the bytes in @var{membuf} are used, otherwise return
-@false{}.
-@end defun
-
-
-@defun membuffer-empty? @var{membuf}
-Return @true{} if all the bytes in @var{membuf} are free, otherwise
-return @false{}.
-@end defun
-
-
-@defun membuffer-used? @var{membuf}
-Return @true{} if some of the bytes in @var{membuf} are used, otherwise
-return @false{}.
-@end defun
-
-
-@subsubheading Inspection
-
-
-@defun membuffer-pointer @var{membuf}
-Return the value of the pointer field in @var{membuf}.
-@end defun
-
-
-@defun membuffer-size @var{membuf}
-Return the value of the size field in @var{membuf}.
-@end defun
-
-
-@defun membuffer-used-size-set! @var{membuf} @var{number-of-bytes}
-@defunx membuffer-used-size @var{membuf}
-Set or get the value of the used--size field in @var{membuf}.
-@end defun
-
-
-@defun membuffer-free-size @var{membuf}
-Return the number of free bytes in @var{membuf}.
-@end defun
-
-
-@defun membuffer-pointer-to-free-bytes @var{membuf}
-Return a pointer to the first free byte in @var{membuf}.  If the buffer if
-full: The pointer references the first byte past the allocated block.
-@end defun
-
-
-@defun membuffer-used-memblock @var{membuf}
-Return a @samp{memblock} record representing the used portion of
-@var{membuf}.
-@end defun
-
-
-@defun membuffer-free-memblock @var{membuf}
-Return a @samp{memblock} record representing the free portion of
-@var{membuf}.
-@end defun
-
-
-@subsubheading Operations
-
-
-@defun membuffer-incr-used-size! @var{membuf} @var{size-step}
-Update the number of used bytes in @var{membuf} by adding @var{size-step},
-which must be an exact integer (positive or negative).
-@end defun
-
-
-@defun membuffer-consume-bytes! @var{membuf} @var{number-of-bytes}
-Update the status of @var{membuf} considering consumed the first
-@var{number-of-bytes} bytes.  This means that used bytes starting at
-1+@var{number-of-bytes} are shifted to the beginning of the allocated
-area, and the number of used bytes is decremented by
-@var{number-of-bytes}.
-@end defun
-
-
-@defun membuffer-push-memblock! @var{membuf} @var{memblock}
-Copy the contents of @var{memblock} into the free area at the end of
-@var{membuf} and update the buffer's used area status.  It is an error
-if @var{membuf} has not enough free bytes to hold data from
-@var{memblock}.
-@end defun
-
-
-@defun membuffer-pop-memblock! @var{memblock} @var{membuf}
-Copy from the beginning of @var{membuf} to the beginning of
-@var{memblock} enough bytes to fill @var{memblock} and update the used
-area status of @var{membuf}.  It is an error if @var{membuf} has not
-enough used bytes to fill @var{memblock}.
-@end defun
-
-
-@defun membuffer-push-bytevector! @var{membuf} @var{bytevector}
-Copy all the bytes from the @var{bytevector} to the free area of
-@var{membuf}.  It is an error if @var{membuf} has not enough room to
-hold all the bytes from @var{bytevector}.
-@end defun
-
-
-@defun membuffer-pop-bytevector! @var{bytevector} @var{membuf}
-Copy enough used bytes from @var{membuf} to @var{bytevector} to fill
-@var{bytevector} and update the status of @var{membuf}.  It is an error
-if @var{membuf} has not enough used bytes to fill @var{bytevector}.
-@end defun
-
-
-@defun membuffer-push-membuffer! @var{dst-buffer} @var{src-buffer}
-@defunx membuffer-pop-membuffer! @var{dst-buffer} @var{src-buffer}
-Copy as much bytes as possible from @var{src-buffer} to @var{dst-buffer}
-and update the statuses of the buffers.
 @end defun
 
 @c page
@@ -51431,127 +51204,12 @@ environment of the current compensations stack.
 @end defun
 
 @c page
-@node memory buffer alloc
-@subsection Allocation in a buffer
-
-
-The @api{} described in this section allows us to allocate memory blocks
-contiguously from a preallocated memory block accessed through a
-@samp{buffer} record.  Requested memory blocks are just marked as used
-in the status of the buffer.  When using this allocator there is no need
-to release individual blocks: Releasing the buffer releases all of them.
-
-
-@deffn Parameter memory-buffer-pool
-Holds @false{} or the buffer from which memory blocks must be allocated;
-it is preset to @false{}.
-@end deffn
-
-
-@defun primitive-malloc/buffer @var{number-of-bytes}
-Allocates @var{number-of-bytes} in the current buffer pool and return a
-pointer to the first allocated byte, or @false{} if there is not enough
-room in the pool.
-
-Notice that this function has the correct interface to be used as value
-for the @func{primitive-malloc-function} parameter.  @ref{memory alloc,
-Allocation functions}
-@end defun
-
-
-@defun malloc/buffer @var{number-of-bytes}
-A wrapper for @func{primitive-malloc/buffer} that raises an
-@samp{&out-of-memory} exception if there is not enough room in the pool.
-@end defun
-
-
-Example:
-
-@example
-(with-compensations
-  (parametrise ((memory-buffer-pool
-                  (make-buffer (malloc/c 4096) 4096 0)))
-    (let ((p (malloc/buffer 10))
-          (q (malloc/buffer 20)))
-      ---)))
-@end example
-
-@c page
-@node memory refcount
-@subsection Reference counting
-
-
-Reference counting is implemented by allocating a block of memory with
-the requested size plus @code{strideof-long}.  The block will look like
-this:
-
-@example
- strideof-long            data area
-|-------------|--------------------------------------|
-              ^
-              |
-pointer returned by MALLOC/REFCOUNT
-@end example
-
-@noindent
-the reference counter is handled as an @code{unsigned long} and it is
-located at a negative offset from the address we use to access data.
-
-
-@defun malloc/refcount @var{number-of-bytes}
-@defunx malloc/refcount @var{number-of-bytes} @var{malloc-func}
-@defunx malloc/rc @var{number-of-bytes}
-@defunx malloc/rc @var{number-of-bytes} @var{malloc-func}
-Allocate a block of memory wide enough to hold @var{number-of-bytes}
-using reference counting, return a @samp{pointer} record; allocate
-memory with the procedure @var{malloc-func} which defaults to
-@func{malloc}.  Return a pointer to the first byte in the data area of
-the allocated block; the reference counter is initially set to zero.
-@end defun
-
-
-@defun pointer-acquire @var{pointer}
-Increment the reference counter of the memory block referenced by
-@var{pointer}.  The block must have been allocated with
-@func{malloc/rc}.
-@end defun
-
-
-@defun pointer-release @var{pointer}
-@defunx pointer-release @var{pointer} @var{free-func}
-Decrement the reference counter of the memory block referenced by
-@var{pointer}; the block must have been allocated with @func{malloc/rc}.
-If the counter reaches zero: The block is freed using the supplied
-@var{free-func}, which defaults to @var{primitive-free}.
-@end defun
-
-
-Usage example with @func{dynamic-wind}:
-
-@example
-(let ((p (malloc/rc 4096)))
-  (dynamic-wind
-    (lambda () (pointer-acquire p))
-    (lambda () (do-something-with p))
-    (lambda () (pointer-release p))))
-@end example
-
-@noindent
-usage example with compensations (@pxref{compensations}):
-
-@example
-(with-compensations
-  (letrec ((p (compensate
-                  (begin0-let ((p (malloc/rc 4096)))
-                    (pointer-acquire p))
-                (with
-                 (pointer-release p)))))
-    (do-something-with p)))))
-@end example
-
-@c page
 @node memory operations
 @subsection Operations
+
+
+The following bindings are exported by @library{foreign memory
+operations} and re--exported by @library{foreign memory}.
 
 
 @defun memcpy @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
@@ -51581,6 +51239,98 @@ An interface to the @cfunc{memcmp} system function.  Compare
 return an integer having the same sign as the difference between the
 first different bytes from the blocks.  If the blocks are equal, the
 return value is zero.
+@end defun
+
+@c page
+@node memory bytevectors
+@subsection Bytevectors conversion
+
+
+The following bindings are exported by @library{foreign memory
+bytevectors} and re--exported by @library{foreign memory}.
+
+In the implementation of the following functions:
+
+@itemize
+@item
+When copying from a bytevector to a memory block, bytes are peeked with
+@func{bytevector-u8-ref} and poked with @func{pointer-set-c-uint8!}.
+
+@item
+When copying from a memory block to a bytevector bytes are peeked with
+@func{pointer-ref-c-uint8} and poked with @func{bytevector-u8-set!}.
+@end itemize
+
+Remember that we can compare two bytevectors with @func{bytevector=?},
+but to compare raw blocks of memory we can use the @func{memcpy}
+interface function.
+
+
+@defun bytevector->pointer @var{bvector} @var{malloc}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->pointer @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return the pointer.
+
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the memory block, and only that number of bytes is copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: That number of
+bytes is taken as size of the memory block, and only that number of
+bytes is copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun bytevector->memblock @var{bvector} @var{malloc}
+@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes}
+@defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
+Allocate a memory block using @var{malloc} and copy into it the bytes in
+@var{bvector}.  Return a @samp{memblock} record.  @ref{memory blocks,
+Memory blocks}
+
+
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the memory block, and only that number of bytes is copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: That number of
+bytes is taken as size of the memory block, and only that number of
+bytes is copied starting at @var{offset} from the beginning of the
+bytevector.
+
+@var{malloc} must accept as single argument the number of bytes to
+allocate, and must return a pointer to the allocated memory block.  If
+an error occurs allocating memory: @var{malloc} must raise an exception
+and not return to the caller.
+@end defun
+
+
+@defun pointer->bytevector @var{pointer} @var{number-of-bytes}
+@defunx pointer->bytevector @var{pointer} @var{number-of-bytes} @var{offset}
+Build a bytevector of length @var{number-of-bytes} and copy into it the
+bytes from the block of memory referenced by @var{pointer}.  If
+@var{offset} is given: Start to read bytes at @var{offset} from
+@var{pointer}.
+@end defun
+
+
+@defun memblock->bytevector @var{memblock}
+@defunx memblock->bytevector @var{memblock} @var{number-of-bytes}
+@defunx memblock->bytevector @var{memblock} @var{number-of-bytes} @var{offset}
+Duplicate a @samp{memblock} record into a bytevector.  @ref{memory
+blocks, Memory blocks}
+
+If @var{number-of-bytes} is given: That number of bytes is taken as size
+of the bytevector, and only that number of bytes is copied.
+
+If both @var{number-of-bytes} and @var{offset} are given: That number of
+bytes is taken as size of the bytevector, and only that number of bytes
+is copied starting at @var{offset} from the beginning of the block.
 @end defun
 
 @c page
@@ -52406,7 +52156,280 @@ bytes on @math{64}-bit systems.  @var{pointer-value} must be a
 @end defun
 
 @c page
-@node guarded malloc
+@node memory mempool
+@subsection Allocation from a memory pool
+
+
+The @api{} described in this section allows us to allocate memory blocks
+contiguously from a preallocated memory block accessed through a
+@class{mempool} record.  Requested memory blocks are just marked as used
+in the status of the pool.  When using this allocator there is no need
+to release individual blocks: Releasing the pool releases all of them.
+
+The following bindings are exported by @library{foreign memory mempool}.
+
+
+@deffn Parameter memory-buffer-pool
+Holds @false{} or the buffer from which memory blocks must be allocated;
+it is preset to @false{}.
+@end deffn
+
+
+@defun primitive-malloc/buffer @var{number-of-bytes}
+Allocates @var{number-of-bytes} in the current buffer pool and return a
+pointer to the first allocated byte, or @false{} if there is not enough
+room in the pool.
+
+Notice that this function has the correct interface to be used as value
+for the @func{primitive-malloc-function} parameter.  @ref{memory alloc,
+Allocation functions}
+@end defun
+
+
+@defun malloc/buffer @var{number-of-bytes}
+A wrapper for @func{primitive-malloc/buffer} that raises an
+@samp{&out-of-memory} exception if there is not enough room in the pool.
+@end defun
+
+
+Example:
+
+@example
+(with-compensations
+  (parametrise ((memory-buffer-pool
+                  (make-buffer (malloc/c 4096) 4096 0)))
+    (let ((p (malloc/buffer 10))
+          (q (malloc/buffer 20)))
+      ---)))
+@end example
+
+@c page
+@node memory refcount
+@subsection Reference counting
+
+
+Reference counting is implemented by allocating a block of memory with
+the requested size plus @samp{strideof-long}.  The block will look like
+this:
+
+@example
+ strideof-long            data area
+|-------------|--------------------------------------|
+              ^
+              |
+pointer returned by MALLOC/REFCOUNT
+@end example
+
+@noindent
+the reference counter is handled as an @code{unsigned long} and it is
+located at a negative offset from the address we use to access data.
+
+The following bindings are exported by @library{foreign memory mempool}.
+
+
+@defun malloc/refcount @var{number-of-bytes}
+@defunx malloc/refcount @var{number-of-bytes} @var{malloc-func}
+@defunx malloc/rc @var{number-of-bytes}
+@defunx malloc/rc @var{number-of-bytes} @var{malloc-func}
+Allocate a block of memory wide enough to hold @var{number-of-bytes}
+using reference counting, return a @samp{pointer} record; allocate
+memory with the procedure @var{malloc-func} which defaults to
+@func{malloc}.  Return a pointer to the first byte in the data area of
+the allocated block; the reference counter is initially set to zero.
+@end defun
+
+
+@defun pointer-acquire @var{pointer}
+Increment the reference counter of the memory block referenced by
+@var{pointer}.  The block must have been allocated with
+@func{malloc/rc}.
+@end defun
+
+
+@defun pointer-release @var{pointer}
+@defunx pointer-release @var{pointer} @var{free-func}
+Decrement the reference counter of the memory block referenced by
+@var{pointer}; the block must have been allocated with @func{malloc/rc}.
+If the counter reaches zero: The block is freed using the supplied
+@var{free-func}, which defaults to @var{primitive-free}.
+@end defun
+
+
+Usage example with @func{dynamic-wind}:
+
+@example
+(let ((p (malloc/rc 4096)))
+  (dynamic-wind
+    (lambda () (pointer-acquire p))
+    (lambda () (do-something-with p))
+    (lambda () (pointer-release p))))
+@end example
+
+@noindent
+usage example with compensations (@pxref{compensations}):
+
+@example
+(with-compensations
+  (letrec ((p (compensate
+                  (begin0-let ((p (malloc/rc 4096)))
+                    (pointer-acquire p))
+                (with
+                 (pointer-release p)))))
+    (do-something-with p)))))
+@end example
+
+@c page
+@node memory membuffer
+@subsection Memory buffers
+
+
+The following bindings are exported by @library{foreign memory
+membuffers}.
+
+
+@deftp {Record Type} <membuffer>
+A @class{membuffer} is a record type derived from a @class{memblock} that
+adds fields representing the number of ``used'' bytes in the block; it
+is used as a @acronym{FIFO} for bytes or multi--byte data
+types.@footnote{The reference usage of @class{membuffer} records is as
+input and output buffers for the Zlib compression and decompression
+streams.}
+@end deftp
+
+
+@subsubheading Making
+
+
+@defun make-<membuffer> @var{pointer} @var{number-of-bytes} @var{used-size}
+Build and return a new @class{membuffer} record.
+@end defun
+
+
+@subsubheading Predicates
+
+
+@defun <membuffer>? @var{obj}
+Return true if @var{obj} is a record of type @class{membuffer}, return
+@false{} otherwise.
+@end defun
+
+
+@defun membuffer-full? @var{membuf}
+Return @true{} if all the bytes in @var{membuf} are used, otherwise return
+@false{}.
+@end defun
+
+
+@defun membuffer-empty? @var{membuf}
+Return @true{} if all the bytes in @var{membuf} are free, otherwise
+return @false{}.
+@end defun
+
+
+@defun membuffer-used? @var{membuf}
+Return @true{} if some of the bytes in @var{membuf} are used, otherwise
+return @false{}.
+@end defun
+
+
+@subsubheading Inspection
+
+
+@defun membuffer-pointer @var{membuf}
+Return the value of the pointer field in @var{membuf}.
+@end defun
+
+
+@defun membuffer-size @var{membuf}
+Return the value of the size field in @var{membuf}.
+@end defun
+
+
+@defun membuffer-used-size-set! @var{membuf} @var{number-of-bytes}
+@defunx membuffer-used-size @var{membuf}
+Set or get the value of the used--size field in @var{membuf}.
+@end defun
+
+
+@defun membuffer-free-size @var{membuf}
+Return the number of free bytes in @var{membuf}.
+@end defun
+
+
+@defun membuffer-pointer-to-free-bytes @var{membuf}
+Return a pointer to the first free byte in @var{membuf}.  If the buffer if
+full: The pointer references the first byte past the allocated block.
+@end defun
+
+
+@defun membuffer-used-memblock @var{membuf}
+Return a @samp{memblock} record representing the used portion of
+@var{membuf}.
+@end defun
+
+
+@defun membuffer-free-memblock @var{membuf}
+Return a @samp{memblock} record representing the free portion of
+@var{membuf}.
+@end defun
+
+
+@subsubheading Operations
+
+
+@defun membuffer-incr-used-size! @var{membuf} @var{size-step}
+Update the number of used bytes in @var{membuf} by adding @var{size-step},
+which must be an exact integer (positive or negative).
+@end defun
+
+
+@defun membuffer-consume-bytes! @var{membuf} @var{number-of-bytes}
+Update the status of @var{membuf} considering consumed the first
+@var{number-of-bytes} bytes.  This means that used bytes starting at
+1+@var{number-of-bytes} are shifted to the beginning of the allocated
+area, and the number of used bytes is decremented by
+@var{number-of-bytes}.
+@end defun
+
+
+@defun membuffer-push-memblock! @var{membuf} @var{memblock}
+Copy the contents of @var{memblock} into the free area at the end of
+@var{membuf} and update the buffer's used area status.  It is an error
+if @var{membuf} has not enough free bytes to hold data from
+@var{memblock}.
+@end defun
+
+
+@defun membuffer-pop-memblock! @var{memblock} @var{membuf}
+Copy from the beginning of @var{membuf} to the beginning of
+@var{memblock} enough bytes to fill @var{memblock} and update the used
+area status of @var{membuf}.  It is an error if @var{membuf} has not
+enough used bytes to fill @var{memblock}.
+@end defun
+
+
+@defun membuffer-push-bytevector! @var{membuf} @var{bytevector}
+Copy all the bytes from the @var{bytevector} to the free area of
+@var{membuf}.  It is an error if @var{membuf} has not enough room to
+hold all the bytes from @var{bytevector}.
+@end defun
+
+
+@defun membuffer-pop-bytevector! @var{bytevector} @var{membuf}
+Copy enough used bytes from @var{membuf} to @var{bytevector} to fill
+@var{bytevector} and update the status of @var{membuf}.  It is an error
+if @var{membuf} has not enough used bytes to fill @var{bytevector}.
+@end defun
+
+
+@defun membuffer-push-membuffer! @var{dst-buffer} @var{src-buffer}
+@defunx membuffer-pop-membuffer! @var{dst-buffer} @var{src-buffer}
+Copy as much bytes as possible from @var{src-buffer} to @var{dst-buffer}
+and update the statuses of the buffers.
+@end defun
+
+@c page
+@node memory guarded
 @subsection Guarded memory allocation
 
 

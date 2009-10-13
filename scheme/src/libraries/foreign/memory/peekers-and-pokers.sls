@@ -24,9 +24,60 @@
 ;;;
 
 
-#!r6rs
 (library (foreign memory peekers-and-pokers)
   (export
+    ;;peekers
+    pointer-ref-c-int8			pointer-ref-c-uint8
+    pointer-ref-c-int16			pointer-ref-c-uint16
+    pointer-ref-c-int32			pointer-ref-c-uint32
+    pointer-ref-c-int64			pointer-ref-c-uint64
+    pointer-ref-c-float			pointer-ref-c-double
+    pointer-ref-c-signed-char		pointer-ref-c-unsigned-char
+    pointer-ref-c-signed-short		pointer-ref-c-unsigned-short
+    pointer-ref-c-signed-int		pointer-ref-c-unsigned-int
+    pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
+    pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
+    pointer-ref-c-pointer		pointer-ref-c-void*
+
+    ;;pokers
+    pointer-set-c-int8!			pointer-set-c-uint8!
+    pointer-set-c-int16!		pointer-set-c-uint16!
+    pointer-set-c-int32!		pointer-set-c-uint32!
+    pointer-set-c-int64!		pointer-set-c-uint64!
+    pointer-set-c-float!		pointer-set-c-double!
+    pointer-set-c-signed-char!		pointer-set-c-unsigned-char!
+    pointer-set-c-signed-short!		pointer-set-c-unsigned-short!
+    pointer-set-c-signed-int!		pointer-set-c-unsigned-int!
+    pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
+    pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
+    pointer-set-c-pointer!		pointer-set-c-void*!
+
+    ;;array peekers
+    array-ref-c-int8			array-ref-c-uint8
+    array-ref-c-int16			array-ref-c-uint16
+    array-ref-c-int32			array-ref-c-uint32
+    array-ref-c-int64			array-ref-c-uint64
+    array-ref-c-float			array-ref-c-double
+    array-ref-c-signed-char		array-ref-c-unsigned-char
+    array-ref-c-signed-short		array-ref-c-unsigned-short
+    array-ref-c-signed-int		array-ref-c-unsigned-int
+    array-ref-c-signed-long		array-ref-c-unsigned-long
+    array-ref-c-signed-long-long	array-ref-c-unsigned-long-long
+    array-ref-c-void*			(rename (array-ref-c-void* array-ref-c-pointer))
+
+    ;;array pokers
+    array-set-c-int8!			array-set-c-uint8!
+    array-set-c-int16!			array-set-c-uint16!
+    array-set-c-int32!			array-set-c-uint32!
+    array-set-c-int64!			array-set-c-uint64!
+    array-set-c-float!			array-set-c-double!
+    array-set-c-signed-char!		array-set-c-unsigned-char!
+    array-set-c-signed-short!		array-set-c-unsigned-short!
+    array-set-c-signed-int!		array-set-c-unsigned-int!
+    array-set-c-signed-long!		array-set-c-unsigned-long!
+    array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
+    array-set-c-void*!			(rename (array-set-c-void*! array-set-c-pointer!))
+
     (rename (pointer-ref-c-signed-char		peek-signed-char)
 	    (pointer-ref-c-signed-short		peek-signed-short)
 	    (pointer-ref-c-signed-int		peek-signed-int)
@@ -120,6 +171,113 @@
 	    (array-set-c-uint16!		poke-array-uint16!)
 	    (array-set-c-uint32!		poke-array-uint32!)
 	    (array-set-c-uint64!		poke-array-uint64!)))
-  (import (foreign memory)))
+  (import (rnrs)
+    (foreign memory pointers)
+    (foreign memory peekers-and-pokers compat))
+
+
+;;;; array peekers
+
+(let-syntax ((define-array-peeker (syntax-rules ()
+				    ((_ ?name ?peeker ?strideof-data)
+				     (define (?name pointer index)
+				       (?peeker pointer (* index ?strideof-data))))
+				    ((_ ?name ?peeker ?strideof-data ?mapper)
+				     (define (?name pointer index)
+				       (?mapper (?peeker pointer (* index ?strideof-data))))))))
+  (define-array-peeker array-ref-c-int8		pointer-ref-c-int8	1)
+  (define-array-peeker array-ref-c-int16	pointer-ref-c-int16	2)
+  (define-array-peeker array-ref-c-int32	pointer-ref-c-int32	4)
+  (define-array-peeker array-ref-c-int64	pointer-ref-c-int64	8)
+
+  (define-array-peeker array-ref-c-uint8	pointer-ref-c-uint8	1)
+  (define-array-peeker array-ref-c-uint16	pointer-ref-c-uint16	2)
+  (define-array-peeker array-ref-c-uint32	pointer-ref-c-uint32	4)
+  (define-array-peeker array-ref-c-uint64	pointer-ref-c-uint64	8)
+
+  (define-array-peeker array-ref-c-float	pointer-ref-c-float	strideof-float)
+  (define-array-peeker array-ref-c-double	pointer-ref-c-double	strideof-float)
+  (define-array-peeker array-ref-c-void*	pointer-ref-c-void*	strideof-pointer))
+
+(let-syntax ((define-signed-array-peeker (syntax-rules ()
+					   ((_ ?name ?sizeof-data)
+					    (define ?name (case ?sizeof-data
+							    ((1) array-ref-c-int8)
+							    ((2) array-ref-c-int16)
+							    ((4) array-ref-c-int32)
+							    ((8) array-ref-c-int64)))))))
+  (define-signed-array-peeker array-ref-c-signed-char		sizeof-char)
+  (define-signed-array-peeker array-ref-c-signed-short		sizeof-short)
+  (define-signed-array-peeker array-ref-c-signed-int		sizeof-int)
+  (define-signed-array-peeker array-ref-c-signed-long		sizeof-long)
+  (define-signed-array-peeker array-ref-c-signed-long-long	sizeof-long-long))
+
+(let-syntax ((define-unsigned-array-peeker (syntax-rules ()
+					     ((_ ?name ?sizeof-data)
+					      (define ?name (case ?sizeof-data
+							      ((1) array-ref-c-uint8)
+							      ((2) array-ref-c-uint16)
+							      ((4) array-ref-c-uint32)
+							      ((8) array-ref-c-uint64)))))))
+  (define-unsigned-array-peeker array-ref-c-unsigned-char	sizeof-char)
+  (define-unsigned-array-peeker array-ref-c-unsigned-short	sizeof-short)
+  (define-unsigned-array-peeker array-ref-c-unsigned-int	sizeof-int)
+  (define-unsigned-array-peeker array-ref-c-unsigned-long	sizeof-long)
+  (define-unsigned-array-peeker array-ref-c-unsigned-long-long	sizeof-long-long))
+
+
+;;;; array pokers
+
+(let-syntax ((define-array-poker (syntax-rules ()
+				   ((_ ?name ?poker ?strideof-data)
+				    (define (?name pointer index value)
+				      (?poker pointer (* index ?strideof-data) value)))
+				   ((_ ?name ?poker ?strideof-data ?mapper)
+				    (define (?name pointer index value)
+				      (?poker pointer (* index ?strideof-data) (?mapper value)))))))
+  (define-array-poker array-set-c-int8!		pointer-set-c-int8!	1)
+  (define-array-poker array-set-c-int16!	pointer-set-c-int16!	2)
+  (define-array-poker array-set-c-int32!	pointer-set-c-int32!	4)
+  (define-array-poker array-set-c-int64!	pointer-set-c-int64!	8)
+
+  (define-array-poker array-set-c-uint8!	pointer-set-c-uint8!	1)
+  (define-array-poker array-set-c-uint16!	pointer-set-c-uint16!	2)
+  (define-array-poker array-set-c-uint32!	pointer-set-c-uint32!	4)
+  (define-array-poker array-set-c-uint64!	pointer-set-c-uint64!	8)
+
+  (define-array-poker array-set-c-float!	pointer-set-c-float!	strideof-float)
+  (define-array-poker array-set-c-double!	pointer-set-c-double!	strideof-float)
+  (define-array-poker array-set-c-void*!	pointer-set-c-void*!	strideof-pointer))
+
+(let-syntax ((define-signed-array-poker (syntax-rules ()
+					  ((_ ?name ?sizeof-data)
+					   (define ?name (case ?sizeof-data
+							   ((1) array-set-c-int8!)
+							   ((2) array-set-c-int16!)
+							   ((4) array-set-c-int32!)
+							   ((8) array-set-c-int64!)))))))
+  (define-signed-array-poker array-set-c-signed-char!		sizeof-char)
+  (define-signed-array-poker array-set-c-signed-short!		sizeof-short)
+  (define-signed-array-poker array-set-c-signed-int!		sizeof-int)
+  (define-signed-array-poker array-set-c-signed-long!		sizeof-long)
+  (define-signed-array-poker array-set-c-signed-long-long!	sizeof-long-long))
+
+(let-syntax ((define-unsigned-array-poker (syntax-rules ()
+					    ((_ ?name ?sizeof-data)
+					     (define ?name (case ?sizeof-data
+							     ((1) array-set-c-uint8!)
+							     ((2) array-set-c-uint16!)
+							     ((4) array-set-c-uint32!)
+							     ((8) array-set-c-uint64!)))))))
+  (define-unsigned-array-poker array-set-c-unsigned-char!	sizeof-char)
+  (define-unsigned-array-poker array-set-c-unsigned-short!	sizeof-short)
+  (define-unsigned-array-poker array-set-c-unsigned-int!	sizeof-int)
+  (define-unsigned-array-poker array-set-c-unsigned-long!	sizeof-long)
+  (define-unsigned-array-poker array-set-c-unsigned-long-long!	sizeof-long-long))
+
+
+;;;; done
+
+)
 
 ;;; end of file

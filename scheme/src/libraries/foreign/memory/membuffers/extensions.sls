@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: record extensions for (foreign memory)
+;;;Contents: record extensions for (foreign memory membuffers)
 ;;;Date: Mon Oct  5, 2009
 ;;;
 ;;;Abstract
@@ -25,12 +25,11 @@
 ;;;
 
 
-(library (foreign memory record-extensions)
-  (export)
+(library (foreign memory membuffers extensions)
+  (export <membuffer*>)
   (import (rnrs)
     (records)
-    (for (foreign memory record-typedefs) expand)
-    (foreign memory compat))
+    (for (foreign memory membuffers types) expand))
 
 
 (define (membuffer-empty? buf)
@@ -63,7 +62,7 @@
   (with-record-fields (((first-used used-size) <membuffer> buf))
     (pointer-add first-used used-size)))
 
-(define-record-extension <membuffer>
+(define-record-extension <membuffer*>
   (fields (empty?		membuffer-empty?		#f)
 		;true if the buffer is empty
 	  (full?		membuffer-full?			#f)
@@ -76,14 +75,6 @@
 		;number of free bytes at the tail of the buffer
 	  (free-pointer		membuffer-pointer-to-free-bytes	#f)))
 		;pointer to the first free byte
-
-
-(define (mempool-free-size pool)
-  (with-record-fields (((pointer next size) <mempool> pool))
-    (- size (pointer-diff next pointer))))
-
-(define-record-extension <mempool>
-  (fields (free-size mempool-free-size #f)))
 
 
 ;;;; done
