@@ -125,7 +125,59 @@
     array-set-c-signed-int!		array-set-c-unsigned-int!
     array-set-c-signed-long!		array-set-c-unsigned-long!
     array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
-    array-set-c-void*!			array-set-c-pointer!)
+    array-set-c-void*!			array-set-c-pointer!
+
+    peek-signed-char			peek-unsigned-char
+    peek-signed-short			peek-unsigned-short
+    peek-signed-int			peek-unsigned-int
+    peek-signed-long			peek-unsigned-long
+    peek-signed-long-long		peek-unsigned-long-long
+    peek-float				peek-double
+    peek-pointer
+
+    peek-int8				peek-uint8
+    peek-int16				peek-uint16
+    peek-int32				peek-uint32
+    peek-int64				peek-uint64
+
+    poke-signed-char!			poke-unsigned-char!
+    poke-signed-short!			poke-unsigned-short!
+    poke-signed-int!			poke-unsigned-int!
+    poke-signed-long!			poke-unsigned-long!
+    poke-signed-long-long!		poke-unsigned-long-long!
+    poke-float!				poke-double!
+    poke-pointer!
+
+    poke-int8!				poke-uint8!
+    poke-int16!				poke-uint16!
+    poke-int32!				poke-uint32!
+    poke-int64!				poke-uint64!
+
+    peek-array-signed-char		peek-array-unsigned-char
+    peek-array-signed-short		peek-array-unsigned-short
+    peek-array-signed-int		peek-array-unsigned-int
+    peek-array-signed-long		peek-array-unsigned-long
+    peek-array-signed-long-long		peek-array-unsigned-long-long
+    peek-array-float			peek-array-double
+    peek-array-pointer			peek-array-void*
+
+    peek-array-int8			peek-array-uint8
+    peek-array-int16			peek-array-uint16
+    peek-array-int32			peek-array-uint32
+    peek-array-int64			peek-array-uint64
+
+    poke-array-signed-char!		poke-array-unsigned-char!
+    poke-array-signed-short!		poke-array-unsigned-short!
+    poke-array-signed-int!		poke-array-unsigned-int!
+    poke-array-signed-long!		poke-array-unsigned-long!
+    poke-array-signed-long-long!	poke-array-unsigned-long-long!
+    poke-array-float!			poke-array-double!
+    poke-array-pointer!			poke-array-void*!
+
+    poke-array-int8!			poke-array-uint8!
+    poke-array-int16!			poke-array-uint16!
+    poke-array-int32!			poke-array-uint32!
+    poke-array-int64!			poke-array-uint64!)
   (import (nausicaa)
     (foreign memory memblocks)
     (foreign memory conditions)

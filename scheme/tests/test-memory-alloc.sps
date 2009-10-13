@@ -26,7 +26,7 @@
 
 (import (nausicaa)
   (checks)
-  (foreign)
+  (foreign memory)
   (format)
   (debugging))
 

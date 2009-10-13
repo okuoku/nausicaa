@@ -27,7 +27,7 @@
 (import (nausicaa)
   (checks)
   (foreign memory)
-  (peekers-and-pokers)
+  (foreign memory compensated)
   (foreign ffi sizeof)
   (format)
   (compensations))

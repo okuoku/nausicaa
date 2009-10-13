@@ -1452,7 +1452,6 @@ Low level memory handling
 * memory alloc::                Allocation functions.
 * memory blocks::               Memory blocks.
 * memory cache::                Caching memory blocks.
-* memory factory::              Caching object factories.
 * memory compensate::           Compensations.
 * memory operations::           Operations.
 * memory bytevectors::          Bytevectors conversion.
@@ -1460,7 +1459,7 @@ Low level memory handling
 
 Independent libraries
 
-* memory mempool:.              Allocation from a memory pool.
+* memory mempool::              Allocation from a memory pool.
 * memory refcount::             Reference counting.
 * memory membuffer::            Memory buffers.
 * memory guarded::              Guarded memory allocation.
@@ -50478,7 +50477,6 @@ related @api{}s.
 * memory alloc::                Allocation functions.
 * memory blocks::               Memory blocks.
 * memory cache::                Caching memory blocks.
-* memory factory::              Caching object factories.
 * memory compensate::           Compensations.
 * memory operations::           Operations.
 * memory bytevectors::          Bytevectors conversion.
@@ -50904,10 +50902,13 @@ To log memory allocations we can do:
 @subsection Memory blocks
 
 
-The following bindings are exported by @library{foreign memory memblock}
-and re--exported by @library{foreign memory}.  To use the
-@class{memblock} record type with the @library{records} library, we have
-to import @library{foreign memory memblock} for the @samp{expand} phase.
+The following bindings are exported by @library{foreign memory memblocks}
+and re--exported by @library{foreign memory}.  A number of libraries in
+the @library{foreign memory ---} hierarchy makes use of this library.
+
+To use the @class{memblock} record type with the @library{records}
+library, we have to import @library{foreign memory memblock} for the
+@samp{expand} phase.
 
 A @class{memblock} is a record that holds a pointer to a raw memory
 block and its size.  It is meant to reference, but not necessarily own,
@@ -50955,7 +50956,9 @@ Field accessors.
 
 
 The following bindings are exported by @library{foreign memory caches}
-and re--exported by @library{foreign memory}.
+and re--exported by @library{foreign memory}.  This library makes use of
+@class{memblock} records, whose interface is exported by
+@library{foreign memory memblocks}.
 
 
 @defun make-block-cache @var{number-of-bytes} @var{max-depth}
@@ -51008,18 +51011,17 @@ gcry_error_t gcry_cipher_open (gcry_cipher_hd_t * hd,
 @noindent
 where @code{gcry_cipher_hd_t} is a @code{typedef} for an opaque pointer
 (we can think of it as @code{void *}); the @var{hd} argument must
-reference a pointer sized location in which the function will store a
+reference a pointer--sized location in which the function will store a
 pointer to a newly allocated data structure; this location is required
 only for the construction of a new object, so a Scheme interface could
 do (unsafe code, not handling errors):
 
 @example
-(let ((hd  #f)
-      (hd* (small-blocks-cache)))
+(let ((hd* (small-blocks-cache)))
   (gcry_cipher_open hd* algo mode flag)
-  (set! hd (pointer-ref-c-pointer hd* 0))
-  (small-blocks-cache hd*)
-  hd)
+  (begin0
+      (pointer-ref-c-pointer hd* 0)
+    (small-blocks-cache hd*)))
 @end example
 @end defun
 
@@ -51032,15 +51034,21 @@ deep.
 @end defun
 
 
-@defun memblocks-cache @var{memblock-or-size}
+@defvr Constant small-blocks-size
+@defvrx Constant page-blocks-size
+The size of the small and page blocks.
+@end defvr
+
+
+@defun memblocks-cache @var{memblock/size}
 Interface function to memblocks allocation and release.  When
-@var{memblock-or-size} is:
+@var{memblock/size} is:
 
 @table @emph
-@item a record of type @code{memblock}
+@item A record of type @class{memblock}
 The function releases the allocated memory block.
 
-@item an unsigned exact integer
+@item An unsigned exact integer
 The number is meant to represent the number of bytes to be allocated: A
 new @class{memblock} record is allocated and returned.
 @end table
@@ -51061,14 +51069,6 @@ Relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @end enumerate
 @end defun
 
-@c page
-@node memory factory
-@subsection Caching object factories
-
-
-The following bindings are exported by @library{foreign memory caches}
-and re--exported by @library{foreign memory}.
-
 
 @defun make-caching-object-factory @var{init-func} @var{final-func} @var{number-of-bytes} @var{max-depth}
 Build and return a new caching object factory.  It is a wrapper for
@@ -51086,8 +51086,8 @@ If the argument is the symbol @samp{purge}: The same symbol is handed to
 the block cache, causing the cache to be purged of allocated blocks.
 
 Else the argument must be a pointer previously returned by this
-interface function: @func{final-func} is applied to it, then it is
-handed to the underlying block cache interface function.
+interface function: @var{final-func} is applied to it, then it is handed
+to the underlying block cache interface function.
 @end table
 
 For example, the @acronym{MPFR} library (Multiple Precision
@@ -51121,7 +51121,7 @@ could initialise itself like this:
   (make-caching-object-factory mpfr_init mpfr_clear
                                sizeof-mpfr 100))
 
-(define (compensate-mpfr)
+(define (mpfr/c)
   (letrec ((p (compensate (mpfr)
                 (with (mpfr p)))))
     p))
@@ -51132,8 +51132,8 @@ and then:
 
 @example
 (with-compensations
-  (let ((a (compensate-mpfr))
-        (b (compensate-mpfr)))
+  (let ((a (mpfr/c))
+        (b (mpfr/c)))
     (do-something-with a b)))
 @end example
 
@@ -51145,13 +51145,19 @@ at the end of the world, if we feel like it, we can do:
 @end example
 @end defun
 
-
 @c page
 @node memory compensate
 @subsection Compensations
 
 
-@ref{compensations} for details about compensations.
+The functions described here make use of compensation stacks to handle
+semi--automatice release of allocated memory.  @ref{compensations,
+Compensation stacks}
+
+The following bindings are exported by @library{foreign memory
+compensated}.  This library makes internal use of @library{foreign
+memory caches}.  The @api{} requires also the @library{compensations}
+and @library{foreign memory memblocks} libraries.
 
 
 @defun malloc/compensated @var{number-of-bytes}
@@ -51209,17 +51215,8 @@ Relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @defun malloc-memblock/compensated @var{number-of-bytes}
 @defunx malloc-memblock/c @var{number-of-bytes}
 Acquire a block of memory from @func{memblocks-cache} and return a
-record of type @samp{memblock}.  The appropriate invocation to
+record of type @class{memblock}.  The appropriate invocation to
 @func{memblocks-cache}, to release the block, is added to the dynamic
-environment of the current compensations stack.
-@end defun
-
-
-@defun malloc-buffer/compensated @var{number-of-bytes}
-@defunx malloc-buffer/c @var{number-of-bytes}
-Acquire a block of memory from @func{buffers-cache} and return a record
-of type @samp{buffer}.  The appropriate invocation to
-@func{buffers-cache}, to release the block, is added to the dynamic
 environment of the current compensations stack.
 @end defun
 
@@ -51235,7 +51232,7 @@ operations} and re--exported by @library{foreign memory}.
 @defun memcpy @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
 An interface to the @cfunc{memcpy} system function.  Copy
 @var{number-of-bytes} bytes from @var{source-pointer} to
-@var{dest-pointer}, which must be @samp{pointer} values.
+@var{dest-pointer}, which must be pointer values.
 @end defun
 
 
@@ -51267,7 +51264,9 @@ return value is zero.
 
 
 The following bindings are exported by @library{foreign memory
-bytevectors} and re--exported by @library{foreign memory}.
+bytevectors} and re--exported by @library{foreign memory}.  The @api{}
+requires the @library{foreign memory memblocks} library when
+@class{memblock} records are used.
 
 In the implementation of the following functions:
 
@@ -51311,9 +51310,7 @@ and not return to the caller.
 @defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes}
 @defunx bytevector->memblock @var{bvector} @var{malloc} @var{number-of-bytes} @var{offset}
 Allocate a memory block using @var{malloc} and copy into it the bytes in
-@var{bvector}.  Return a @samp{memblock} record.  @ref{memory blocks,
-Memory blocks}
-
+@var{bvector}.  Return a @class{memblock} record.
 
 If @var{number-of-bytes} is given: That number of bytes is taken as size
 of the memory block, and only that number of bytes is copied.
@@ -51342,8 +51339,7 @@ bytes from the block of memory referenced by @var{pointer}.  If
 @defun memblock->bytevector @var{memblock}
 @defunx memblock->bytevector @var{memblock} @var{number-of-bytes}
 @defunx memblock->bytevector @var{memblock} @var{number-of-bytes} @var{offset}
-Duplicate a @samp{memblock} record into a bytevector.  @ref{memory
-blocks, Memory blocks}
+Duplicate a @class{memblock} record into a bytevector.
 
 If @var{number-of-bytes} is given: That number of bytes is taken as size
 of the bytevector, and only that number of bytes is copied.
