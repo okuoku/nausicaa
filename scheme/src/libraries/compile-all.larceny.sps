@@ -154,6 +154,9 @@
 (compile-library "records/helpers.sls"
 		 "records/helpers.slfasl")
 
+(compile-library "records/extensions.sls"
+		 "records/extensions.slfasl")
+
 (compile-library "records.sls"
 		 "records.slfasl")
 
