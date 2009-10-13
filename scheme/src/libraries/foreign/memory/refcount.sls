@@ -32,7 +32,13 @@
     pointer-dismiss)
   (import (rnrs)
     (foreign memory pointers)
-    (foreign memory alloc))
+    (only (foreign memory alloc)
+	  malloc primitive-free)
+    (only (foreign memory peekers-and-pokers)
+	  pointer-set-c-unsigned-long!
+	  pointer-ref-c-unsigned-long)
+    (only (foreign ffi sizeof)
+	  strideof-long))
 
 
 (define malloc/refcount

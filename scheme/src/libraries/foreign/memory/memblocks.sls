@@ -28,11 +28,15 @@
 ;;;
 
 
-(library (foreign memory memblock)
-  (export <memblock>)
+(library (foreign memory memblocks)
+  (export
+    <memblock> <memblock-rtd>
+    <memblock>? <memblock>-pointer <memblock>-size)
   (import (rnrs))
   (define-record-type <memblock>
     (fields (immutable pointer)	;pointer to the allocated block
-	    (immutable size))))	;number of allocated bytes
+	    (immutable size)))	;number of allocated bytes
+  (define <memblock-rtd>
+    (record-type-descriptor <memblock>)))
 
 ;;; end of file

@@ -63,7 +63,17 @@
 		%poke8 %poke8u %poke16 %poke16u %poke32 %poke32u %poke-pointer
 		void*-double-set! void*-double-ref void*-float-set! void*-float-ref
 		void*? void*-rt record-constructor void*->address)
-    (foreign ffi sizeof))
+    (only (foreign memory pointers)
+	  pointer->integer integer->pointer)
+    (only (foreign ffi sizeof)
+	  sizeof-float
+	  sizeof-double
+	  sizeof-pointer
+	  sizeof-char
+	  sizeof-short
+	  sizeof-int
+	  sizeof-long
+	  sizeof-long-long))
 
 
 ;;;; low level peekers and pokers

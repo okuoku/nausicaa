@@ -29,14 +29,15 @@
   (export <mempool*>)
   (import (rnrs)
     (records)
+    (foreign memory pointers)
     (for (foreign memory mempool types) expand))
 
-  (define (mempool-free-size pool)
-    (with-record-fields (((pointer next size) <mempool> pool))
-      (- size (pointer-diff next pointer))))
+  (define (%mempool-free-size pool)
+    (with-record-fields (((pointer pointer-free size) <mempool> pool))
+      (- size (pointer-diff pointer-free pointer))))
 
   (define-record-extension <mempool*>
     (parent <mempool>)
-    (fields (free-size mempool-free-size #f))))
+    (fields (free-size %mempool-free-size #f))))
 
 ;;; end of file

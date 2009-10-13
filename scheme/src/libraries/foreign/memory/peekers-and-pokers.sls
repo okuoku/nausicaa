@@ -136,7 +136,7 @@
 	    (array-ref-c-unsigned-long-long	peek-array-unsigned-long-long)
 	    (array-ref-c-float			peek-array-float)
 	    (array-ref-c-double			peek-array-double)
-	    (array-ref-c-pointer		peek-array-pointer)
+	    (array-ref-c-void*			peek-array-pointer)
 	    (array-ref-c-void*			peek-array-void*)
 
 	    (array-ref-c-int8			peek-array-int8)
@@ -160,8 +160,8 @@
 	    (array-set-c-unsigned-long-long!	poke-array-unsigned-long-long!)
 	    (array-set-c-float!			poke-array-float!)
 	    (array-set-c-double!		poke-array-double!)
-	    (array-set-c-pointer!		poke-array-pointer!)
-	    (array-set-c-pointer!		poke-array-void*!)
+	    (array-set-c-void*!			poke-array-pointer!)
+	    (array-set-c-void*!			poke-array-void*!)
 
 	    (array-set-c-int8!			poke-array-int8!)
 	    (array-set-c-int16!			poke-array-int16!)
@@ -173,7 +173,8 @@
 	    (array-set-c-uint64!		poke-array-uint64!)))
   (import (rnrs)
     (foreign memory pointers)
-    (foreign memory peekers-and-pokers compat))
+    (foreign memory peekers-and-pokers compat)
+    (foreign ffi sizeof))
 
 
 ;;;; array peekers

@@ -30,9 +30,10 @@
     bytevector->pointer		pointer->bytevector
     bytevector->memblock	memblock->bytevector)
   (import (rnrs)
+    (records)
     (foreign memory pointers)
     (foreign memory alloc)
-    (records)
+    (foreign memory peekers-and-pokers)
     (for (foreign memory memblocks) expand))
 
 

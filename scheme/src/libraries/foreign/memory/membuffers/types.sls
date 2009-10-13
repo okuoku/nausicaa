@@ -31,7 +31,7 @@
 (library (foreign memory membuffers types)
   (export <membuffer>)
   (import (rnrs)
-    (foreign memory memblock))
+    (foreign memory memblocks))
   (define-record-type <membuffer>
     (parent <memblock>)
     (fields (mutable pointer-used)    ;pointer to the first used byte

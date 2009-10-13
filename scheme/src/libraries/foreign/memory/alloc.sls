@@ -37,7 +37,9 @@
     primitive-malloc-function	primitive-calloc-function
     primitive-realloc-function	primitive-free-function)
   (import (rnrs)
+    (parameters)
     (foreign memory conditions)
+    (foreign memory pointers)
     (foreign memory alloc compat))
 
 

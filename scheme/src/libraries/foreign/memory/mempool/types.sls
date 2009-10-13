@@ -29,10 +29,23 @@
 
 
 (library (foreign memory mempool types)
-  (export <mempool>)
-  (import (rnrs))
+  (export
+    <mempool>		<mempool-rtd>
+    make-mempool	<mempool>?
+    <mempool>-pointer-free
+    (rename (<memblock>-pointer	<mempool>-pointer)
+	    (<memblock>-size	<mempool>-size)))
+  (import (rnrs)
+    (foreign memory memblock))
+
   (define-record-type <mempool>
     (parent <memblock>)
-    (fields (mutable pointer-free)))) ;pointer to the first free byte
+    (fields (mutable pointer-free))) ;pointer to the first free byte
+
+  (define (make-mempool pointer size)
+    (make-<mempool> pointer size pointer))
+
+  (define <mempool-rtd>
+    (record-type-descriptor <mempool>)))
 
 ;;; end of file

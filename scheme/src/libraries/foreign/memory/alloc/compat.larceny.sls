@@ -31,7 +31,7 @@
     platform-free	platform-malloc
     platform-calloc	platform-realloc)
   (import (rnrs)
-    (primitives foreign-procedure)
+    (primitives foreign-procedure retval->pointer)
     (foreign memory pointers))
 
 

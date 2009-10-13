@@ -32,12 +32,12 @@
     malloc-small/compensated	(rename (malloc-small/compensated malloc-small/c))
     malloc-page/compensated	(rename (malloc-page/compensated malloc-page/c))
     malloc-block/compensated	(rename (malloc-block/compensated malloc-block/c))
-    malloc-memblock/compensated	(rename (malloc-memblock/compensated malloc-memblock/c))
-    malloc-buffer/compensated	(rename (malloc-buffer/compensated malloc-buffer/c)))
+    malloc-memblock/compensated	(rename (malloc-memblock/compensated malloc-memblock/c)))
   (import (rnrs)
     (compensations)
     (foreign memory pointers)
-    (foreign memory alloc))
+    (foreign memory alloc)
+    (foreign memory caches))
 
 
 (define (malloc/compensated number-of-bytes)
@@ -90,14 +90,6 @@
 	     (with
 	      (memblocks-cache mb)))))
     mb))
-
-(define (malloc-buffer/compensated number-of-bytes)
-  (letrec
-      ((buffer (compensate
-		   (buffers-cache number-of-bytes)
-		 (with
-		  (buffers-cache buffer)))))
-    buffer))
 
 
 ;;;; done

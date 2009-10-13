@@ -25,16 +25,18 @@
 ;;;
 
 
-(library (foreign memory cache)
+(library (foreign memory caches)
   (export
     make-block-cache		make-caching-object-factory
     small-blocks-cache		page-blocks-cache
+    small-blocks-size		page-blocks-size
     memblocks-cache)
   (import (rnrs)
     (records)
     (foreign memory pointers)
     (foreign memory alloc)
-    (for (foreign memory memblock) expand))
+    (foreign memory operations)
+    (for (foreign memory memblocks) expand))
 
 
 ;;;; caching allocated memory blocks

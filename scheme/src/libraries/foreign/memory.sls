@@ -26,6 +26,10 @@
 
 (library (foreign memory)
   (export
+
+    <memblock> <memblock-rtd>
+    <memblock>? <memblock>-pointer <memblock>-size
+
     ;; bindings from (foreign memory conditions)
     &out-of-memory			&memory-request
     make-out-of-memory-condition	make-memory-request-condition
@@ -61,6 +65,7 @@
     ;; bindings from (foreign memory caches)
     make-block-cache		make-caching-object-factory
     small-blocks-cache		page-blocks-cache
+    small-blocks-size		page-blocks-size
     memblocks-cache
 
     ;; bindings from (foreign memory bytevectors)
@@ -122,9 +127,11 @@
     array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
     array-set-c-void*!			array-set-c-pointer!)
   (import (nausicaa)
+    (foreign memory memblocks)
     (foreign memory conditions)
     (foreign memory pointers)
     (foreign memory alloc)
+    (foreign memory operations)
     (foreign memory caches)
     (foreign memory bytevectors)
     (foreign memory peekers-and-pokers)))

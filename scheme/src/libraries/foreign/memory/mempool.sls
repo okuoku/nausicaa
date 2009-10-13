@@ -27,32 +27,33 @@
 
 (library (foreign memory mempool)
   (export
+    <mempool> make-mempool <mempool>? <mempool>-pointer-free
+    <mempool>-pointer <mempool>-size
     memory-pool
     primitive-malloc/mempool	malloc/mempool)
   (import (rnrs)
     (parameters)
+    (records)
+    (begin0)
     (foreign memory conditions)
     (foreign memory pointers)
-    (foreign memory alloc)
-    (for (foreign memory mempool types) expand))
+    (for (foreign memory mempool types) expand run)
+    (for (foreign memory mempool extensions) expand))
 
   (define memory-pool
     (make-parameter #f
       (lambda (obj)
-	(unless (or (not obj) (is-a? obj <mempool>))
-	  (assertion-violation 'memory-buffer-pool
-	    "expected #f or memory pool as parameter value" obj))
+	(assert (or (not obj) (is-a? obj <mempool>)))
 	obj)))
 
   (define (primitive-malloc/mempool number-of-bytes)
     (let ((pool (memory-pool)))
       (assert pool)
-      (with-record-fields ((next <mempool> pool))
-	(with-virtual-fields ((free-size <mempool> pool))
-	  (and (< number-of-bytes free-size)
-	       (begin0
-		   next
-		 (set! next (pointer-add next number-of-bytes))))))))
+      (with-fields (((pointer-free free-size) <mempool*> pool))
+	(and (< number-of-bytes free-size)
+	     (begin0
+		 pointer-free
+	       (set! pointer-free (pointer-add pointer-free number-of-bytes)))))))
 
   (define (malloc/mempool number-of-bytes)
     (or (primitive-malloc/mempool number-of-bytes)

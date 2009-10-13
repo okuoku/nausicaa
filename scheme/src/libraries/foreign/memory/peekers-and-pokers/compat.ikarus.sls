@@ -60,12 +60,25 @@
 	  pointer-ref-c-signed-char
 	  pointer-ref-c-signed-short
 	  pointer-ref-c-signed-int
+	  pointer-ref-c-signed-long
 	  pointer-ref-c-signed-long-long
 	  pointer-ref-c-unsigned-char
 	  pointer-ref-c-unsigned-short
 	  pointer-ref-c-unsigned-int
-	  pointer-ref-c-unsigned-long-long)
-    (only (foreign ffi sizeof) on-32-bits-system))
+	  pointer-ref-c-unsigned-long
+	  pointer-ref-c-unsigned-long-long
+	  pointer-ref-c-float
+	  pointer-ref-c-double
+	  pointer-ref-c-pointer
+	  pointer-set-c-char!
+	  pointer-set-c-short!
+	  pointer-set-c-int!
+	  pointer-set-c-long-long!
+	  pointer-set-c-float!
+	  pointer-set-c-double!
+	  pointer-set-c-pointer!)
+    (only (foreign ffi sizeof)
+	  on-32-bits-system))
 
 
 ;;;; peekers

@@ -50467,8 +50467,10 @@ interface.
 
 
 The @library{foreign memory} library exports a low level @api{} for
-memory allocation and access.  Memory allocated with this @api{} is not
-subjected to garbage collection.
+memory allocation and access; memory allocated with this @api{} is not
+subjected to garbage collection.  It is a compound library re--exporting
+@api{}s from component libraries.  More libraries export other memory
+related @api{}s.
 
 @menu
 * memory conditions::           Out of memory errors.
@@ -50902,35 +50904,48 @@ To log memory allocations we can do:
 @subsection Memory blocks
 
 
-A @samp{memblock} is a record that holds a pointer to a raw memory block
-and its size.  It is meant to reference, but not necessarily own, a
-block of raw memory filled with data; a @samp{memblock} should not be
+The following bindings are exported by @library{foreign memory memblock}
+and re--exported by @library{foreign memory}.  To use the
+@class{memblock} record type with the @library{records} library, we have
+to import @library{foreign memory memblock} for the @samp{expand} phase.
+
+A @class{memblock} is a record that holds a pointer to a raw memory
+block and its size.  It is meant to reference, but not necessarily own,
+a block of raw memory filled with data; a @class{memblock} should not be
 used to reference half--filled memory.  For example, it can reference a
 C language data structure or an array of data structures.  It is fine if
-more @samp{memblock} records reference the same block or overlapping
+more @class{memblock} records reference the same block or overlapping
 blocks.
 
 
-@deftp {Record Type} memblock
-Type of record used to represent memory blocks.  It has two fields: a
-pointer value referencing an allocated memory block and the number of
-bytes in the allocated memory block.
+@deftp {Record Type Name} <memblock>
+@deftpx {Record Type Descriptor} <memblock-rtd>
+Type of record used to represent memory blocks.  It has the following
+fields:
+
+@table @samp
+@item pointer
+A pointer value referencing a memory block.
+
+@item size
+The number of bytes in the referenced memory block.
+@end table
 @end deftp
 
 
-@defun make-memblock @var{pointer} @var{number-of-bytes}
-Build and return a new @code{memblock} record.
+@defun make-<memblock> @var{pointer} @var{number-of-bytes}
+Build and return a new @class{memblock} record.
 @end defun
 
 
-@defun memblock? @var{obj}
-Return true if @var{obj} is a record of type @code{memblock}, return
+@defun <memblock>? @var{obj}
+Return true if @var{obj} is a record of type @class{memblock}, return
 @false{} otherwise.
 @end defun
 
 
-@defun memblock-pointer @var{mb}
-@defunx memblock-size @var{mb}
+@defun <memblock>-pointer @var{mb}
+@defunx <memblock>-size @var{mb}
 Field accessors.
 @end defun
 
@@ -50939,22 +50954,28 @@ Field accessors.
 @subsection Caching memory blocks
 
 
+The following bindings are exported by @library{foreign memory caches}
+and re--exported by @library{foreign memory}.
+
+
 @defun make-block-cache @var{number-of-bytes} @var{max-depth}
 Build and return a new memory blocks cache, for blocks of
-@var{number-of-bytes}, that at maximum will cache @var{max-depth}
+@var{number-of-bytes}, which, at maximum, will cache @var{max-depth}
 blocks.  The return value is an interface function with the following
 protocol:
 
 @table @emph
 @item When the function is invoked with zero arguments
 It retrieves a block from the set of cached blocks; if the set is empty:
-A new block is allocated with @func{calloc}.
+A new block is allocated with @func{calloc}.  Return a pointer to the
+block.
 
 @item When the function is invoked with 1 argument
-If the argument is the symbol @code{purge}: @func{primitive-free} is
-applied to all the blocks in the cache and the cache is reset to empty;
+If the argument is the Scheme symbol @samp{purge}: @func{primitive-free}
+is applied to all the blocks in the cache and the cache is reset to
+empty.
 
-else the argument must be a pointer previously returned by this
+Else the argument must be a pointer previously returned by this
 interface function: If the number of blocks in the cache is less than
 @var{max-depth}, the pointer is stored in the cache, else
 @func{primitive-free} is applied to it.
@@ -51021,7 +51042,7 @@ The function releases the allocated memory block.
 
 @item an unsigned exact integer
 The number is meant to represent the number of bytes to be allocated: A
-new @samp{memblock} record is allocated and returned.
+new @class{memblock} record is allocated and returned.
 @end table
 
 Allocation and release of memory blocks is done, in this order:
@@ -51040,14 +51061,13 @@ Relying on @func{calloc} and @func{primitive-free} in all the other cases.
 @end enumerate
 @end defun
 
-
-@defun buffers-cache @var{buffer-or-size}
-Like @func{memblocks-cache} but works with records of type @code{buffer}.
-@end defun
-
 @c page
 @node memory factory
 @subsection Caching object factories
+
+
+The following bindings are exported by @library{foreign memory caches}
+and re--exported by @library{foreign memory}.
 
 
 @defun make-caching-object-factory @var{init-func} @var{final-func} @var{number-of-bytes} @var{max-depth}

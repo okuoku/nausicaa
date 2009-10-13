@@ -26,7 +26,8 @@
 
 (import (nausicaa)
   (checks)
-  (foreign)
+  (foreign memory)
+  (foreign memory compensated)
   (compensations))
 
 (check-set-mode! 'report-failed)

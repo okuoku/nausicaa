@@ -31,7 +31,8 @@
     platform-free			platform-malloc
     platform-calloc			platform-realloc)
   (import (core)
-    (ypsilon ffi))
+    (ypsilon ffi)
+    (foreign memory pointers))
 
 
 ;;;; low level allocation functions

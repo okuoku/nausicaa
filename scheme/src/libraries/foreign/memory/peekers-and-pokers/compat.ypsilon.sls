@@ -56,9 +56,22 @@
     pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
     pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
     pointer-set-c-pointer!)
-  (import (core)
-    (ypsilon ffi)
-    (foreign ffi sizeof))
+  (import (rnrs)
+    (only (ypsilon ffi)
+	  make-bytevector-mapping
+	  bytevector-c-void*-ref
+	  bytevector-c-void*-set!)
+    (only (foreign memory pointers)
+	  integer->pointer pointer->integer)
+    (only (foreign ffi sizeof)
+	  sizeof-float
+	  sizeof-double
+	  sizeof-pointer
+	  sizeof-char
+	  sizeof-short
+	  sizeof-int
+	  sizeof-long
+	  sizeof-long-long))
 
 
 ;;;; peekers
@@ -75,14 +88,14 @@
 			      ((_ ?name ?getter ?sizeof-data)
 			       (define (?name pointer position)
 				 (?getter
-				  (make-bytevector-mapping (+ position (pointer-value pointer))
+				  (make-bytevector-mapping (+ position (pointer->integer pointer))
 							   ?sizeof-data)
 				  0)))
 			      ((_ ?name ?getter ?sizeof-data ?mapper)
 			       (define (?name pointer position)
 				 (?mapper
 				  (?getter
-				   (make-bytevector-mapping (+ position (pointer-value pointer))
+				   (make-bytevector-mapping (+ position (pointer->integer pointer))
 							    ?sizeof-data)
 				   0)))))))
 
@@ -98,7 +111,7 @@
 
   (define-peeker pointer-ref-c-float	bytevector-ieee-single-native-ref sizeof-float)
   (define-peeker pointer-ref-c-double	bytevector-ieee-double-native-ref sizeof-double)
-  (define-peeker pointer-ref-c-void*	bytevector-c-void*-ref sizeof-pointer make-pointer))
+  (define-peeker pointer-ref-c-void*	bytevector-c-void*-ref sizeof-pointer integer->pointer))
 
 (let-syntax ((define-signed-peeker (syntax-rules ()
 				     ((_ ?name ?sizeof-data)
@@ -143,13 +156,13 @@
 			     ((_ ?name ?setter ?sizeof-data)
 			      (define (?name pointer position value)
 				(?setter
-				 (make-bytevector-mapping (+ position (pointer-value pointer))
+				 (make-bytevector-mapping (+ position (pointer->integer pointer))
 							  ?sizeof-data)
 				 0 value)))
 			     ((_ ?name ?setter ?sizeof-data ?mapper)
 			      (define (?name pointer position value)
 				(?setter
-				 (make-bytevector-mapping (+ position (pointer-value pointer))
+				 (make-bytevector-mapping (+ position (pointer->integer pointer))
 							  ?sizeof-data)
 				 0 (?mapper value)))))))
 
@@ -165,7 +178,7 @@
 
   (define-poker pointer-set-c-float!	bytevector-ieee-single-native-set! sizeof-float)
   (define-poker pointer-set-c-double!	bytevector-ieee-double-native-set! sizeof-double)
-  (define-poker pointer-set-c-void*!	bytevector-c-void*-set! sizeof-pointer pointer-value))
+  (define-poker pointer-set-c-void*!	bytevector-c-void*-set! sizeof-pointer pointer->integer))
 
 (let-syntax ((define-signed-poker (syntax-rules ()
 				    ((_ ?name ?sizeof-data)
