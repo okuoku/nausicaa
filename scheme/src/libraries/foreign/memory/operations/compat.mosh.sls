@@ -41,6 +41,6 @@
     (make-c-function self 'void* 'memcpy '(void* void* int)))
 
   (define memcmp
-    (make-c-function self 'int 'memcpy '(void* void* int))))
+    (make-c-function self 'int 'memcmp '(void* void* int))))
 
 ;;; end of file

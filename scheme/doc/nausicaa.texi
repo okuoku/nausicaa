@@ -52660,6 +52660,9 @@ When @var{bv.past} is not given, it defaults to the length of the
 bytevector.  When @var{bv.start} is not given, it defaults to zero.
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Incomplete push condition object
 
 @deftp {Condition Type} &membuffer-incomplete-push
 Type of condition describing an incomplete push operation on a
