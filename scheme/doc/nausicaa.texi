@@ -508,7 +508,8 @@ More libraries
 * format::                      Formatting strings.
 * checks::                      Lightweight testing.
 * debugging::                   Debugging utilities.
-* queues::                      Simple queue.
+* queues::                      Simple queues.
+* stacks::                      Simple stacks.
 * object-properties::           Object properties.
 * cleanup-handlers::            Cleaning up.
 * combinators::                 Combinators.
