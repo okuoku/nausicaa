@@ -50683,8 +50683,20 @@ interface.
 The @library{foreign memory} library exports a low level @api{} for
 memory allocation and access; memory allocated with this @api{} is not
 subjected to garbage collection.  It is a compound library re--exporting
-@api{}s from component libraries.  More libraries export other memory
-related @api{}s.
+@api{}s from the following component libraries:
+
+@example
+(foreign memory alloc)
+(foreign memory bytevectors)
+(foreign memory caches)
+(foreign memory conditions)
+(foreign memory memblocks)
+(foreign memory operations)
+(foreign memory peekers-and-pokers)
+(foreign memory pointers)
+@end example
+
+More libraries export other memory related @api{}s.
 
 @menu
 * memory conditions::           Out of memory errors.
@@ -51378,9 +51390,10 @@ semi--automatice release of allocated memory.  @ref{compensations,
 Compensation stacks}
 
 The following bindings are exported by @library{foreign memory
-compensated}.  This library makes internal use of @library{foreign
-memory caches}.  The @api{} requires also the @library{compensations}
-and @library{foreign memory memblocks} libraries.
+compensated} and re--exported by @library{foreign memory}.  This library
+makes internal use of @library{foreign memory caches}; the @api{}
+requires also the @library{compensations} and @library{foreign memory
+memblocks} libraries.
 
 
 @defun malloc/compensated @var{number-of-bytes}

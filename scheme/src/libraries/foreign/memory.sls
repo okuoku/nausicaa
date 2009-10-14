@@ -72,6 +72,14 @@
     bytevector->pointer		pointer->bytevector
     bytevector->memblock	memblock->bytevector
 
+    ;; bindings from (foreign memory compensated)
+    malloc/compensated		malloc/c
+    calloc/compensated		calloc/c
+    malloc-small/compensated	malloc-small/c
+    malloc-page/compensated	malloc-page/c
+    malloc-block/compensated	malloc-block/c
+    malloc-memblock/compensated	malloc-memblock/c
+
 ;;; --------------------------------------------------------------------
 ;;; bindings from (foreign memory peekers-and-pokers)
 
@@ -179,13 +187,14 @@
     poke-array-int32!			poke-array-uint32!
     poke-array-int64!			poke-array-uint64!)
   (import (nausicaa)
-    (foreign memory memblocks)
-    (foreign memory conditions)
-    (foreign memory pointers)
     (foreign memory alloc)
-    (foreign memory operations)
-    (foreign memory caches)
     (foreign memory bytevectors)
-    (foreign memory peekers-and-pokers)))
+    (foreign memory caches)
+    (foreign memory compensated)
+    (foreign memory conditions)
+    (foreign memory memblocks)
+    (foreign memory operations)
+    (foreign memory peekers-and-pokers)
+    (foreign memory pointers)))
 
 ;;; end of file
