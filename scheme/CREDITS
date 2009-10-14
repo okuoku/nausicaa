@@ -188,12 +188,6 @@ the Public Domain.
 Written by Marco Maggi.  COND-EXPAND implementation by Derick Eddington.
 
 
-(nos)
------
-
-Written by Marco Maggi.
-
-
 (object-properties)
 -------------------
 
@@ -263,8 +257,8 @@ Simple import/export bridge from the Scheme implementation libraries.
 (queues)
 --------
 
-Derived from (ice-9 q)  in the Guile distribution.  Nausicaa integration
-by Marco Maggi.
+Written by Marco Maggi, with inspiration from (ice-9 q) in the Guile
+distribution.
 
 
 (random)
@@ -313,7 +307,8 @@ by Marco Maggi.
 (records)
 ---------
 
-Written by Marco Maggi.
+Written by Marco Maggi.  The generic functions infrastructure is derived
+from ScmObj, by Dorai Sitaram.
 
 
 scmobj.sls

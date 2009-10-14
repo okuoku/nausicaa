@@ -1,86 +1,207 @@
-;;; Queues library
 ;;;
-;;; Assimilated into Nausicaa/Scheme: Fri Nov  7, 2008.
+;;;Part of: Nausicaa/Scheme
+;;;Contents: queue record definition
+;;;Date: Wed Oct 14, 2009
 ;;;
-;;; Copyright (C) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
-;;; Copyright (C) 1995, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;Abstract
 ;;;
-;;; This library is free software; you can redistribute it and/or modify
-;;; it  under the  terms of  the GNU  Lesser General  Public  License as
-;;; published by the Free Software Foundation; either version 2.1 of the
-;;; License, or (at your option) any later version.
 ;;;
-;;; This library is distributed in the  hope that it will be useful, but
-;;; WITHOUT  ANY   WARRANTY;  without  even  the   implied  warranty  of
-;;; MERCHANTABILITY or  FITNESS FOR A  PARTICULAR PURPOSE.  See  the GNU
-;;; Lesser General Public License for more details.
 ;;;
-;;; You should  have received  a copy of  the GNU Lesser  General Public
-;;; License along with this library;  if not, write to the Free Software
-;;; Foundation,  Inc.,  51  Franklin  Street, Fifth  Floor,  Boston,  MA
-;;; 02110-1301 USA
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+
 (library (queues)
   (export
-    sync-q! make-q q? q-empty? q-empty-check q-front q-rear
-    q-remove! q-push! enq! q-pop! deq! q-length)
+    <queue>		<queue-rtd>
+    <queue*>		queue
+
+    queue-empty?	queue-length
+
+    queue-front		queue-rear
+    queue-push!		queue-pop!
+    queue-enqueue!	(rename (queue-pop! queue-dequeue!))
+
+    queue-find		queue-for-all
+    queue-exists
+
+    queue-remp!		queue-remove!
+    queue-remv!		queue-remq!
+    queue-filter!
+
+    queue-memp		queue-member
+    queue-memv		queue-memq
+
+    queue->list		list->queue
+    queue->vector	vector->queue)
   (import (rnrs)
-    (lists)
-    (rnrs mutable-pairs (6)))
+    (records)
+    (rnrs mutable-pairs)
+    (for (queues types) expand run)
+    (for (queues extensions) expand run))
 
-  (define (sync-q! q)
-    (set-cdr! q (if (pair? (car q)) (last-pair (car q))
-		  #f))
-    q)
+
+;;; helpers
 
-  (define (make-q) (cons '() #f))
+(define-syntax last-pair/stx
+  (syntax-rules ()
+    ((_ ?x)
+     (let ((x ?x))
+       (if (null? x)
+	   #f
+	 (let loop ((x ?x))
+	   (if (pair? (cdr x))
+	       (loop (cdr x))
+	     x)))))))
 
-  (define (q? obj)
-    (and (pair? obj)
-	 (if (pair? (car obj))
-	     (eq? (cdr obj) (last-pair (car obj)))
-	   (and (null? (car obj))
-		(not (cdr obj))))))
+(define-syntax list-copy/stx
+  (syntax-rules ()
+    ((_ ?ell)
+     (let loop ((ell ?ell))
+       (if (pair? ell)
+	   (cons (car ell) (loop (cdr ell)))
+	 ell)))))
 
-  (define (q-empty? obj) (null? (car obj)))
+
+(define queue
+  (case-lambda
+   (()
+    (make-<queue> '() #f))
+   (args
+    (make-<queue> args (last-pair/stx args)))))
 
-  (define (q-empty-check q) (if (q-empty? q) (raise 'queue-is-empty)))
+
+(define (queue-push! value que)
+  ;;Push VALUE at the beginning of QUE.
+  ;;
+  (assert (<queue>? que))
+  (with-fields (((first-pair last-pair) <queue-rtd> que))
+    (let ((first (cons value first-pair)))
+      (set! first-pair first)
+      (or last-pair (set! last-pair first)))))
 
-  (define (q-front q) (q-empty-check q) (caar q))
+(define (queue-pop! que)
+  ;;Pop a value from the beginning of QUE.
+  ;;
+  (assert (<queue>? que))
+  (with-fields (((first-pair last-pair) <queue-rtd> que))
+    (let ((first first-pair))
+      (if (null? first)
+	  (error 'queue-pop! "queue is empty" que)
+	(begin
+	  (set! first-pair (cdr first))
+	  (when (eq? last-pair first)
+	    (set! last-pair #f))))
+      (car first))))
 
-  (define (q-rear q) (q-empty-check q) (cadr q))
+(define (queue-enqueue! que obj)
+  ;;Push VALUE at the end of QUE.
+  ;;
+  (assert (<queue>? que))
+  (with-fields (((first-pair last-pair) <queue-rtd> que))
+    (let ((last (list obj)))
+      (if (null? first-pair)
+	  (set! first-pair last)
+	(set-cdr! last-pair last))
+      (set! last-pair last))))
 
-  (define (q-remove! q obj)
-    (set-car! q (remove*! (lambda (o)
-			    (eq? o obj)) (car q)))
-    (sync-q! q))
+
+(define (queue-find proc que)
+  (assert (<queue>? que))
+  (assert (procedure? proc))
+  (find proc (<queue>-first-pair que)))
 
-  (define (q-push! q obj)
-    (let ((h (cons obj (car q))))
-      (set-car! q h)
-      (or (cdr q) (set-cdr! q h)))
-    q)
+(define (queue-for-all proc que)
+  (assert (<queue>? que))
+  (assert (procedure? proc))
+  (for-all proc (<queue>-first-pair que)))
 
-  (define (enq! q obj)
-    (let ((h (cons obj '())))
-      (if (null? (car q))
-	  (set-car! q h)
-	(set-cdr! (cdr q) h))
-      (set-cdr! q h))
-    q)
+(define (queue-exists proc que)
+  (assert (<queue>? que))
+  (assert (procedure? proc))
+  (exists proc (<queue>-first-pair que)))
 
-  (define (q-pop! q)
-    (q-empty-check q)
-    (let ((it (caar q))
-	  (next (cdar q)))
-      (if (null? next)
-	  (set-cdr! q #f))
-      (set-car! q next)
-      it))
+
+(define (%remove remover thing que)
+  (with-fields (((first-pair last-pair) <queue-rtd> que))
+    (set! first-pair (remover thing first-pair))
+    (set! last-pair (last-pair/stx first-pair))))
 
-  (define deq! q-pop!)
+(define (queue-remp! proc que)
+  (assert (<queue>? que))
+  (assert (procedure? proc))
+  (%remove remp proc que))
 
-  (define (q-length q) (length (car q))))
+(define (queue-remove! obj que)
+  (assert (<queue>? que))
+  (%remove remove obj que))
+
+(define (queue-remv! obj que)
+  (assert (<queue>? que))
+  (%remove remv obj que))
+
+(define (queue-remq! obj que)
+  (assert (<queue>? que))
+  (%remove remq obj que))
+
+(define (queue-filter! proc que)
+  (assert (<queue>? que))
+  (assert (procedure? proc))
+  (%remove filter proc que))
+
+
+(define (queue-memp proc que)
+  (assert (<queue>? que))
+  (assert (procedure? proc))
+  (memp proc (<queue>-first-pair que)))
+
+(define (queue-member obj que)
+  (assert (<queue>? que))
+  (member obj (<queue>-first-pair que)))
+
+(define (queue-memv obj que)
+  (assert (<queue>? que))
+  (memv obj (<queue>-first-pair que)))
+
+(define (queue-memq obj que)
+  (assert (<queue>? que))
+  (memq obj (<queue>-first-pair que)))
+
+
+(define (queue->list que)
+  (assert (<queue>? que))
+  (list-copy/stx (<queue>-first-pair que)))
+
+(define (list->queue ell)
+  (assert (list? ell))
+  (let ((ell (list-copy/stx ell)))
+    (make-<queue> ell (last-pair/stx ell))))
+
+(define (queue->vector que)
+  (assert (<queue>? que))
+  (list->vector (<queue>-first-pair que)))
+
+(define (vector->queue vec)
+  (assert (vector? vec))
+  (let ((ell (vector->list vec)))
+    (make-<queue> ell (last-pair/stx ell))))
+
+
+;;;; done
+
+)
 
 ;;; end of file

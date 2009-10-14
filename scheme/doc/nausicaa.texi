@@ -1124,6 +1124,22 @@ Lightweight testing
 * checks eval::                 Evaluating code.
 * checks result::               Handling multiple results.
 
+Simple queue
+
+* queues types::                Type definitions and constructors.
+* queues pred::                 Predicates and inspection.
+* queues ops::                  Basic operations.
+* queues list::                 List operations.
+* queues conv::                 Conversion.
+
+Simple queue
+
+* stacks types::                Type definitions and constructors.
+* stacks pred::                 Predicates and inspection.
+* stacks ops::                  Basic operations.
+* stacks list::                 List operations.
+* stacks conv::                 Conversion.
+
 Compensation stacks
 
 * compensations usage::         Basic compensations usage.
@@ -35374,106 +35390,304 @@ to print @var{exc}, which must be a Scheme condition value.
 
 
 The functions in this section are exported by the @library{queues}
-library.  This module implements queues holding arbitrary scheme objects
+library; the library implements queues holding arbitrary scheme objects
 and designed for efficient first--in/first--out operations.
 
-@func{make-q} creates a queue, and objects are entered and removed with
-@func{enq!} and @func{deq!}.  @func{q-push!} and @func{q-pop!} can be
-used too, treating the front of the queue like a stack.
+The library is meant to be used with the features of the
+@library{records} library; for this purpose, @library{queues} must be
+imported both for the @samp{expand} and @samp{run} phases.
+
+@menu
+* queues types::                Type definitions and constructors.
+* queues pred::                 Predicates and inspection.
+* queues ops::                  Basic operations.
+* queues list::                 List operations.
+* queues conv::                 Conversion.
+@end menu
+
+@c page
+@node queues types
+@section Type definitions and constructors
 
 
-@defun make-q
-Return a new queue.
+@deftp {Record Type Name} <queue>
+@deftpx {Record Type Descriptor} <queue-rtd>
+@deftpx {Record Type Extension} <queue*>
+Record type descriptor for queue objects.  Records of this type hold the
+following fields:
+
+@table @samp
+@item first-pair
+The first pair of the internal list of elements.
+
+@item last-pair
+The last pair of the internal list of elements.
+@end table
+
+The record extension defines the following virtual fields:
+
+@table @samp
+@item front
+The first element in the queue; it is an access--only field.  It is the
+next element returned by a dequeue operation.
+
+@item rear
+The last element in the queue; it is an access--only field.
+
+@item empty?
+Access--only field, true if the queue is empty.
+
+@item length
+Access--only field, it holds the number of elements in the queue.
+@end table
+@end deftp
+
+
+@defun queue
+@defunx queue @var{arg} ...
+Build and return a new @class{queue} record.  When called with no
+arguments, return an empty queue.  When applied to arguments, return a
+queue holding those arguments in the given order.
 @end defun
 
-@defun q? @var{obj}
-Return @true{} if @var{obj} is a queue, or @false{} if not.
-
-Note that queues are not a distinct class of objects but are implemented
-with cons cells.  For that reason certain list structures can get
-@true{} from @func{q?}.
-@end defun
+@c page
+@node queues pred
+@section Predicates and inspection
 
 
-@defun {enq!} @var{q} @var{obj}
-Add @var{obj} to the rear of @var{q}, and return @var{q}.
-@end defun
-
-
-@defun {deq!} @var{q}
-@defunx {q-pop!} @var{q}
-Remove and return the front element from @var{q}.  If @var{q} is empty,
-a @code{q-empty} exception is thrown.
-
-@func{deq!} and @func{q-pop!} are the same operation, the two names just
-let an application match @func{enq!} with @func{deq!}, or @func{q-push!}
-with @func{q-pop!}.
-@end defun
-
-
-@defun {q-push!} @var{q} @var{obj}
-Add @var{obj} to the front of @var{q}, and return @var{q}.
-@end defun
-
-
-@defun q-length @var{q}
-Return the number of elements in @var{q}.
-@end defun
-
-
-@defun {q-empty?} @var{q}
-Return true if @var{q} is empty.
-@end defun
-
-
-@defun q-empty-check @var{q}
-Throw a @code{q-empty} exception if @var{q} is empty.
-@end defun
-
-
-@defun q-front @var{q}
-Return the first element of @var{q} (without removing it).  If @var{q}
-is empty, a @code{q-empty} exception is thrown.
-@end defun
-
-
-@defun q-rear @var{q}
-Return the last element of @var{q} (without removing it).  If @var{q} is
-empty, a @code{q-empty} exception is thrown.
-@end defun
-
-
-@defun q-remove! @var{q} @var{obj}
-Remove all occurences of @var{obj} from @var{q}, and return @var{q}.
-@var{obj} is compared to queue elements using @code{eq?}.
+@defun queue-empty? @var{que}
+Return @true{} if the queue is empty.
 @end defun
 
 
-The @code{q-empty} exceptions described above are thrown just as
-@code{(raise 'q-empty)}, there's no message etc like an error throw.
+@defun queue-length @var{que}
+Return the number of elements in the queue.
+@end defun
 
-A queue is implemented as a cons cell, the @code{car} containing a list
-of queued elements, and the @code{cdr} being the last cell in that list
-(for ease of enqueuing).
 
-@example
-(@var{list} . @var{last-cell})
-@end example
+@defun queue-front @var{que}
+Return the first element in the queue, that is the value returned by a
+dequeue operation.  The queue is left unchanged.  Raise an exception if
+the queue is empty.
+@end defun
 
-@noindent
-If the queue is empty, @var{list} is the empty list and @var{last-cell}
-is @false{}.
 
-An application can directly access the queue list if desired, for
-instance to search the elements or to insert at a specific point.
+@defun queue-rear @var{que}
+Return the last element in the queue, that is the last enqueued valued.
+The queue is left unchanged.  Raise an exception if the queue is empty.
+@end defun
 
-@defun {sync-q!} @var{q}
-Recompute the @var{last-cell} field in @var{q}.
+@c page
+@node queues ops
+@section Basic operations
 
-All the operations above maintain @var{last-cell} as described, so
-normally there's no need for @func{sync-q!}.  But if an application
-modifies the queue @var{list} then it must either maintain
-@var{last-cell} similarly, or call @func{sync-q!} to recompute it.
+
+@defun queue-enqueue! @var{que} @var{obj}
+Enqueue @var{obj} in the rear of the queue.
+@end defun
+
+
+@defun queue-push! @var{obj} @var{que}
+Push @var{obj} in the front of the queue.
+@end defun
+
+
+@defun queue-dequeue! @var{que}
+@defunx queue-pop! @var{que}
+Pop and return a value from the front of the queue.
+@end defun
+
+@c page
+@node queues list
+@section List operations
+
+
+@defun queue-find @var{proc} @var{que}
+@defunx queue-for-all @var{proc} @var{que}
+@defunx queue-exists @var{proc} @var{que}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of the queue, return the result.
+@end defun
+
+
+@defun queue-remp! @var{proc} @var{que}
+@defunx queue-remove! @var{obj} @var{que}
+@defunx queue-remv! @var{obj} @var{que}
+@defunx queue-remq! @var{obj} @var{que}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of the queue, removing objects from the queue.
+@end defun
+
+
+@defun queue-memp @var{proc} @var{que}
+@defunx queue-member @var{obj} @var{que}
+@defunx queue-memv @var{obj} @var{que}
+@defunx queue-memq @var{obj} @var{que}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of the queue, return the result.
+@end defun
+
+@c page
+@node queues conv
+@section Conversion
+
+
+@defun queue->list @var{que}
+@defunx queue->vector @var{que}
+Return a list or vector holding the elements in the queue.  In the list
+case, return a copy of the spine of the list in the queue.
+@end defun
+
+
+@defun list->queue @var{ell}
+@defunx vector->queue @var{vec}
+Build and return a new queue holding the elements from the list or
+vector.  In the list case, the queue holds a copy of the spine of the
+list argument.
+@end defun
+
+@c page
+@node stacks
+@chapter Simple queue
+
+
+The functions in this section are exported by the @library{stacks}
+library; the library implements stacks holding arbitrary scheme objects
+and designed for efficient last--in/first--out operations.
+
+The library is meant to be used with the features of the
+@library{records} library; for this purpose, @library{stacks} must be
+imported both for the @samp{expand} and @samp{run} phases.
+
+@menu
+* stacks types::                Type definitions and constructors.
+* stacks pred::                 Predicates and inspection.
+* stacks ops::                  Basic operations.
+* stacks list::                 List operations.
+* stacks conv::                 Conversion.
+@end menu
+
+@c page
+@node stacks types
+@section Type definitions and constructors
+
+
+@deftp {Record Type Name} <stack>
+@deftpx {Record Type Descriptor} <stack-rtd>
+@deftpx {Record Type Extension} <stack*>
+Record type descriptor for stack objects.  Records of this type hold the
+following fields:
+
+@table @samp
+@item first-pair
+The first pair of the internal list of elements.
+@end table
+
+The record extension defines the following virtual fields:
+
+@table @samp
+@item top
+The first element in the stack; it is an access--only field.  It is the
+next element returned by a destack operation.
+
+@item empty?
+Access--only field, true if the stack is empty.
+
+@item length
+Access--only field, it holds the number of elements in the stack.
+@end table
+@end deftp
+
+
+@defun stack
+@defunx stack @var{arg} ...
+Build and return a new @class{stack} record.  When called with no
+arguments, return an empty stack.  When applied to arguments, return a
+stack holding those arguments in the given order.
+@end defun
+
+@c page
+@node stacks pred
+@section Predicates and inspection
+
+
+@defun stack-empty? @var{que}
+Return @true{} if the stack is empty.
+@end defun
+
+
+@defun stack-length @var{que}
+Return the number of elements in the stack.
+@end defun
+
+
+@defun stack-top @var{que}
+Return the first element in the stack, that is the value returned by a
+destack operation.  The stack is left unchanged.  Raise an exception if
+the stack is empty.
+@end defun
+
+@c page
+@node stacks ops
+@section Basic operations
+
+
+@defun stack-push! @var{obj} @var{que}
+Push @var{obj} in the top of the stack.
+@end defun
+
+
+@defun stack-pop! @var{que}
+Pop and return a value from the top of the stack.
+@end defun
+
+@c page
+@node stacks list
+@section List operations
+
+
+@defun stack-find @var{proc} @var{que}
+@defunx stack-for-all @var{proc} @var{que}
+@defunx stack-exists @var{proc} @var{que}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of the stack, return the result.
+@end defun
+
+
+@defun stack-remp! @var{proc} @var{que}
+@defunx stack-remove! @var{obj} @var{que}
+@defunx stack-remv! @var{obj} @var{que}
+@defunx stack-remq! @var{obj} @var{que}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of the stack, removing objects from the stack.
+@end defun
+
+
+@defun stack-memp @var{proc} @var{que}
+@defunx stack-member @var{obj} @var{que}
+@defunx stack-memv @var{obj} @var{que}
+@defunx stack-memq @var{obj} @var{que}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of the stack, return the result.
+@end defun
+
+@c page
+@node stacks conv
+@section Conversion
+
+
+@defun stack->list @var{que}
+@defunx stack->vector @var{que}
+Return a list or vector holding the elements in the stack.  In the list
+case, return a copy of the spine of the list in the stack.
+@end defun
+
+
+@defun list->stack @var{ell}
+@defunx vector->stack @var{vec}
+Build and return a new stack holding the elements from the list or
+vector.  In the list case, the stack holds a copy of the spine of the
+list argument.
 @end defun
 
 @c page
