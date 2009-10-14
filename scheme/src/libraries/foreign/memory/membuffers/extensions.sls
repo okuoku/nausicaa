@@ -26,55 +26,37 @@
 
 
 (library (foreign memory membuffers extensions)
-  (export <membuffer*>)
+  (export <buffer*>)
   (import (rnrs)
     (records)
-    (for (foreign memory membuffers types) expand))
+    (only (foreign memory pointers)
+	  pointer=? pointer-diff)
+    (for (foreign memory membuffers types) expand)
+    (for (foreign memory memblocks) expand run))
 
 
-(define (membuffer-empty? buf)
-  (with-record-fields (((pointer pointer-free) <membuffer> buf))
-    (pointer=? pointer pointer-free)))
+(define (%buffer-empty? buf)
+  (with-record-fields (((pointer-used pointer-free) <buffer> buf))
+    (pointer=? pointer-used pointer-free)))
 
-(define (membuffer-full? buf)
-  (with-record-fields ((size <membuffer> buf))
-    (with-virtual-fields ((used-size <membuffer> buf))
-      (= size used-size))))
+(define (%buffer-full? buf)
+  (with-record-fields (((pointer size pointer-free) <buffer> buf))
+    (= size (pointer-diff pointer-free pointer))))
 
-(define (membuffer-free-size buf)
-  (with-record-fields ((size <membuffer> buf))
-    (with-virtual-fields ((used-size <membuffer> buf))
-      (- size used-size))))
+(define (%buffer-free-size buf)
+  (with-record-fields (((size pointer pointer-free) <buffer> buf))
+    (- size (pointer-diff pointer-free pointer))))
 
-(define (membuffer-used-size buf)
-  (with-record-fields (((pointer-used pointer-free) <membuffer> buf))
-    (zero? (pointer-diff pointer-free pointer-used))))
+(define (%buffer-used-size buf)
+  (with-record-fields (((pointer-used pointer-free) <buffer> buf))
+    (pointer-diff pointer-free pointer-used)))
 
-(define (membuffer-free-size/tail buf)
-  ;;Return the number of bytes free  at the tail of the buffer.  This is
-  ;;useful to determine if a pushed memory block will fit in it, without
-  ;;shifting the used bytes to the beginning of the allocated area.
-  ;;
-  (with-record-fields (((pointer first-used size used-size) <membuffer> buf))
-    (- size used-size (pointer-diff first-used pointer))))
-
-(define (membuffer-pointer-to-free-bytes buf)
-  (with-record-fields (((first-used used-size) <membuffer> buf))
-    (pointer-add first-used used-size)))
-
-(define-record-extension <membuffer*>
-  (fields (empty?		membuffer-empty?		#f)
-		;true if the buffer is empty
-	  (full?		membuffer-full?			#f)
-		;true if the buffer is full
-	  (used-size		membuffer-used-size		#f)
-		;number of free bytes
-	  (free-size		membuffer-free-size		#f)
-		;number of free bytes
-	  (free-size/tail	membuffer-free-size/tail	#f)
-		;number of free bytes at the tail of the buffer
-	  (free-pointer		membuffer-pointer-to-free-bytes	#f)))
-		;pointer to the first free byte
+(define-record-extension <buffer*>
+  (parent <buffer>)
+  (fields (empty?	%buffer-empty?		#f)
+	  (full?	%buffer-full?		#f)
+	  (used-size	%buffer-used-size	#f)
+	  (free-size	%buffer-free-size	#f)))
 
 
 ;;;; done

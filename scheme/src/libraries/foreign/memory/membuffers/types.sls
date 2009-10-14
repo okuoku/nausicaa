@@ -29,12 +29,22 @@
 
 
 (library (foreign memory membuffers types)
-  (export <membuffer>)
+  (export
+    <membuffer>			<membuffer-rtd>
+    <buffer>			<buffer-rtd>)
   (import (rnrs)
-    (foreign memory memblocks))
-  (define-record-type <membuffer>
+    (foreign memory memblocks)
+    (queues))
+  (define-record-type <buffer>
     (parent <memblock>)
-    (fields (mutable pointer-used)    ;pointer to the first used byte
-	    (mutable pointer-free)))) ;pointer to the first tail free byte
+    (fields (mutable pointer-used)	;pointer to first used byte
+	    (mutable pointer-free)))	;pointer to first free byte
+  (define-record-type <membuffer>
+    (parent <queue>)
+    (fields (immutable cache)))
+  (define <buffer-rtd>
+    (record-type-descriptor <buffer>))
+  (define <membuffer-rtd>
+    (record-type-descriptor <membuffer>)))
 
 ;;; end of file

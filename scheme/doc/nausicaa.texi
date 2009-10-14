@@ -51193,6 +51193,9 @@ If the argument is the Scheme symbol @samp{purge}: @func{primitive-free}
 is applied to all the blocks in the cache and the cache is reset to
 empty.
 
+If the argument is the Scheme symbol @samp{size}: The return value is
+@var{number-of-bytes}.
+
 Else the argument must be a pointer previously returned by this
 interface function: If the number of blocks in the cache is less than
 @var{max-depth}, the pointer is stored in the cache, else
@@ -51204,6 +51207,7 @@ interface function: If the number of blocks in the cache is less than
 @defun small-blocks-cache
 @defunx small-blocks-cache @var{pointer}
 @defunx small-blocks-cache purge
+@defunx small-blocks-cache size
 Interface function for a cache of memory blocks of size @math{32},
 @math{10} blocks deep.  This cache is meant to be used for temporary
 storage space of output values from foreign functions.  The size of
@@ -51244,6 +51248,7 @@ do (unsafe code, not handling errors):
 @defun page-blocks-cache
 @defunx page-blocks-cache @var{pointer}
 @defunx page-blocks-cache purge
+@defunx page-blocks-cache size
 Interface function for a cache of memory blocks of size 4096, 10 blocks
 deep.
 @end defun
@@ -51299,6 +51304,9 @@ pointer to the block is returned.
 @item When the function is invoked with 1 argument
 If the argument is the symbol @samp{purge}: The same symbol is handed to
 the block cache, causing the cache to be purged of allocated blocks.
+
+If the argument is the symbol @samp{size}: The same symbol is handed to
+the block cache, the return value is the cache memory block size.
 
 Else the argument must be a pointer previously returned by this
 interface function: @var{final-func} is applied to it, then it is handed
@@ -52570,148 +52578,128 @@ usage example with compensations (@pxref{compensations}):
 
 
 The following bindings are exported by @library{foreign memory
-membuffers}.
+membuffers}.  This library is meant to be used with the features of the
+@library{records} library and it may require the @library{foreign memory
+memblocks} library if @class{memblock} records are used.
 
 
-@deftp {Record Type} <membuffer>
-A @class{membuffer} is a record type derived from a @class{memblock} that
-adds fields representing the number of ``used'' bytes in the block; it
-is used as a @acronym{FIFO} for bytes or multi--byte data
-types.@footnote{The reference usage of @class{membuffer} records is as
-input and output buffers for the Zlib compression and decompression
-streams.}
+@deftp {Record Type Name} <membuffer>
+@deftpx {Record Type Descriptor} <membuffer-rtd>
+Record type of byte buffers; it is used as a @acronym{FIFO} for bytes or
+multi--byte data types.  It is derived from @class{queue}.
 @end deftp
 
 
-@subsubheading Making
+@defun membuffer
+@defunx membuffer @var{cache}
+Build and return a new @class{membuffer} record.  @var{cache} must be a
+memory block cache interface function returned by
+@func{make-block-cache}; when not given, it defaults to
+@func{page-blocks-cache}.
 
-
-@defun make-<membuffer> @var{pointer} @var{number-of-bytes} @var{used-size}
-Build and return a new @class{membuffer} record.
+The cache function must raise an @samp{&out-of-memory} condition if
+memory allocation fails.
 @end defun
 
 
-@subsubheading Predicates
+@defun membuffer-push-memblock! @var{mb} @var{blk}
+@defunx membuffer-push-memblock! @var{mb} @var{blk} @var{blk.start}
+@defunx membuffer-push-memblock! @var{mb} @var{blk} @var{blk.start} @var{blk.past}
+Enqueue in the @class{membuffer} record @var{mb} bytes from the
+@class{memblock} record @var{blk}; bytes are read from @var{blk}
+starting at offset @var{blk.start} and stopping before offset
+@var{blk.past}.
 
-
-@defun <membuffer>? @var{obj}
-Return true if @var{obj} is a record of type @class{membuffer}, return
-@false{} otherwise.
+If no error occurs allocating memory, all the bytes in the selected
+range of @var{blk} are enqueued in @var{mb}.  If an error occurs
+allocating memory, @var{mb} is left in a consistent state and an
+exception is raised with a condition object of type
+@samp{&membuffer-incomplete-push}.
 @end defun
 
 
-@defun membuffer-full? @var{membuf}
-Return @true{} if all the bytes in @var{membuf} are used, otherwise return
-@false{}.
+@defun membuffer-pop-memblock! @var{mb} @var{blk}
+@defunx membuffer-pop-memblock! @var{mb} @var{blk} @var{blk.start}
+@defunx membuffer-pop-memblock! @var{mb} @var{blk} @var{blk.start} @var{blk.past}
+Fill the @class{memblock} record @var{blk}, starting at offset
+@var{blk.start} and stopping before offset @var{blk.past}, with bytes
+dequeued from the @class{membuffer} record @var{mb}.  Return the offset
+in @var{blk} of the position past the last filled byte.  If @var{blk} is
+filled to @var{blk.past}, the return value is @var{blk.past}.
+
+When @var{blk.past} is not given, it defaults to the size of @var{blk}.
+When @var{blk.start} is not given, it defaults to zero.
 @end defun
 
 
-@defun membuffer-empty? @var{membuf}
-Return @true{} if all the bytes in @var{membuf} are free, otherwise
-return @false{}.
+@defun membuffer-push-bytevector! @var{mb} @var{bv}
+@defunx membuffer-push-bytevector! @var{mb} @var{bv} @var{bv.start}
+@defunx membuffer-push-bytevector! @var{mb} @var{bv} @var{bv.start} @var{bv.past}
+Enqueue in the @class{membuffer} record @var{mb} bytes from the
+bytevector @var{bv}; bytes are read from @var{bv} starting at offset
+@var{bv.start} and stopping before offset @var{bv.past}.
+
+If no error occurs allocating memory, all the bytes in the selected
+range of @var{bv} are enqueued in @var{mb}.  If an error occurs
+allocating memory, @var{mb} is left in a consistent state and an
+exception is raised with a condition object of type
+@samp{&membuffer-incomplete-push}.
 @end defun
 
 
-@defun membuffer-used? @var{membuf}
-Return @true{} if some of the bytes in @var{membuf} are used, otherwise
-return @false{}.
+@defun membuffer-pop-bytevector! @var{mb} @var{bv}
+@defunx membuffer-pop-bytevector! @var{mb} @var{bv} @var{bv.start}
+@defunx membuffer-pop-bytevector! @var{mb} @var{bv} @var{bv.start} @var{bv.past}
+Fill the bytevector @var{bv}, starting at offset @var{bv.start} and
+stopping before offset @var{bv.past}, with bytes from the
+@class{membuffer} record @var{mb}.  Return the offset in @var{bv} of
+the position past the last filled byte.  If @var{bv} is filled to
+@var{bv.past}, the return value is @var{bv.past}.
+
+When @var{bv.past} is not given, it defaults to the length of the
+bytevector.  When @var{bv.start} is not given, it defaults to zero.
 @end defun
 
 
-@subsubheading Inspection
+@deftp {Condition Type} &membuffer-incomplete-push
+Type of condition describing an incomplete push operation on a
+@class{membuffer} record.  It has the following fields:
+
+@table @samp
+@item membuffer
+The @class{membuffer} record for which the push was incomplete.
+
+@item source
+The source object from which data was read.  It is a bytevector or a
+@class{memblock} record.
+
+@item source-start-offset
+The offset in the source object from which data should have been read.
+
+@item source-past-offset
+The exclusive upper limit offset of data in the source object.
+@end table
+@end deftp
 
 
-@defun membuffer-pointer @var{membuf}
-Return the value of the pointer field in @var{membuf}.
+@defun make-membuffer-incomplete-push-condition @var{mb} @var{source} @var{source-offset}
+Build and return a condition object of type
+@samp{&membuffer-incomplete-push}.
 @end defun
 
 
-@defun membuffer-size @var{membuf}
-Return the value of the size field in @var{membuf}.
+@defun membuffer-incomplete-push-condition? @var{obj}
+Return true if @var{obj} is a condition object of type
+@samp{&membuffer-incomplete-push}.
 @end defun
 
 
-@defun membuffer-used-size-set! @var{membuf} @var{number-of-bytes}
-@defunx membuffer-used-size @var{membuf}
-Set or get the value of the used--size field in @var{membuf}.
-@end defun
-
-
-@defun membuffer-free-size @var{membuf}
-Return the number of free bytes in @var{membuf}.
-@end defun
-
-
-@defun membuffer-pointer-to-free-bytes @var{membuf}
-Return a pointer to the first free byte in @var{membuf}.  If the buffer if
-full: The pointer references the first byte past the allocated block.
-@end defun
-
-
-@defun membuffer-used-memblock @var{membuf}
-Return a @samp{memblock} record representing the used portion of
-@var{membuf}.
-@end defun
-
-
-@defun membuffer-free-memblock @var{membuf}
-Return a @samp{memblock} record representing the free portion of
-@var{membuf}.
-@end defun
-
-
-@subsubheading Operations
-
-
-@defun membuffer-incr-used-size! @var{membuf} @var{size-step}
-Update the number of used bytes in @var{membuf} by adding @var{size-step},
-which must be an exact integer (positive or negative).
-@end defun
-
-
-@defun membuffer-consume-bytes! @var{membuf} @var{number-of-bytes}
-Update the status of @var{membuf} considering consumed the first
-@var{number-of-bytes} bytes.  This means that used bytes starting at
-1+@var{number-of-bytes} are shifted to the beginning of the allocated
-area, and the number of used bytes is decremented by
-@var{number-of-bytes}.
-@end defun
-
-
-@defun membuffer-push-memblock! @var{membuf} @var{memblock}
-Copy the contents of @var{memblock} into the free area at the end of
-@var{membuf} and update the buffer's used area status.  It is an error
-if @var{membuf} has not enough free bytes to hold data from
-@var{memblock}.
-@end defun
-
-
-@defun membuffer-pop-memblock! @var{memblock} @var{membuf}
-Copy from the beginning of @var{membuf} to the beginning of
-@var{memblock} enough bytes to fill @var{memblock} and update the used
-area status of @var{membuf}.  It is an error if @var{membuf} has not
-enough used bytes to fill @var{memblock}.
-@end defun
-
-
-@defun membuffer-push-bytevector! @var{membuf} @var{bytevector}
-Copy all the bytes from the @var{bytevector} to the free area of
-@var{membuf}.  It is an error if @var{membuf} has not enough room to
-hold all the bytes from @var{bytevector}.
-@end defun
-
-
-@defun membuffer-pop-bytevector! @var{bytevector} @var{membuf}
-Copy enough used bytes from @var{membuf} to @var{bytevector} to fill
-@var{bytevector} and update the status of @var{membuf}.  It is an error
-if @var{membuf} has not enough used bytes to fill @var{bytevector}.
-@end defun
-
-
-@defun membuffer-push-membuffer! @var{dst-buffer} @var{src-buffer}
-@defunx membuffer-pop-membuffer! @var{dst-buffer} @var{src-buffer}
-Copy as much bytes as possible from @var{src-buffer} to @var{dst-buffer}
-and update the statuses of the buffers.
+@defun membuffer-incomplete-push/membuffer @var{obj}
+@defunx membuffer-incomplete-push/source @var{obj}
+@defunx membuffer-incomplete-push/source-start-offset @var{obj}
+@defunx membuffer-incomplete-push/source-past-offset @var{obj}
+Field accessors for condition objects of type
+@samp{&membuffer-incomplete-push}.
 @end defun
 
 @c page

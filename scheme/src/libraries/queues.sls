@@ -56,7 +56,7 @@
 
 ;;; helpers
 
-(define-syntax last-pair/stx
+(define-syntax last-pair
   (syntax-rules ()
     ((_ ?x)
      (let ((x ?x))
@@ -67,7 +67,7 @@
 	       (loop (cdr x))
 	     x)))))))
 
-(define-syntax list-copy/stx
+(define-syntax list-copy
   (syntax-rules ()
     ((_ ?ell)
      (let loop ((ell ?ell))
@@ -81,7 +81,7 @@
    (()
     (make-<queue> '() #f))
    (args
-    (make-<queue> args (last-pair/stx args)))))
+    (make-<queue> args (last-pair args)))))
 
 
 (define (queue-push! value que)
@@ -138,7 +138,7 @@
 (define (%remove remover thing que)
   (with-fields (((first-pair last-pair) <queue-rtd> que))
     (set! first-pair (remover thing first-pair))
-    (set! last-pair (last-pair/stx first-pair))))
+    (set! last-pair (last-pair first-pair))))
 
 (define (queue-remp! proc que)
   (assert (<queue>? que))
@@ -183,12 +183,12 @@
 
 (define (queue->list que)
   (assert (<queue>? que))
-  (list-copy/stx (<queue>-first-pair que)))
+  (list-copy (<queue>-first-pair que)))
 
 (define (list->queue ell)
   (assert (list? ell))
-  (let ((ell (list-copy/stx ell)))
-    (make-<queue> ell (last-pair/stx ell))))
+  (let ((ell (list-copy ell)))
+    (make-<queue> ell (last-pair ell))))
 
 (define (queue->vector que)
   (assert (<queue>? que))
@@ -197,7 +197,7 @@
 (define (vector->queue vec)
   (assert (vector? vec))
   (let ((ell (vector->list vec)))
-    (make-<queue> ell (last-pair/stx ell))))
+    (make-<queue> ell (last-pair ell))))
 
 
 ;;;; done

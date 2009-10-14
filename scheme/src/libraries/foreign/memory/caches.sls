@@ -64,6 +64,8 @@
 	  pointer)))
      ((pointer)
       (case pointer
+	((size)
+	 block-size)
 	((purge)
 	 (map primitive-free list-of-cached-blocks)
 	 (set! list-of-cached-blocks '())
@@ -90,6 +92,8 @@
 	pointer))
      ((pointer)
       (case pointer
+	((size)
+	 (block-cache 'size))
 	((purge)
 	 ;;Notice that  here we have ALREADY applied  the final function
 	 ;;to all the stuff in the cache.
