@@ -31,7 +31,7 @@
     (records)
     (only (foreign memory pointers)
 	  pointer=? pointer-diff)
-    (for (foreign memory membuffers types) expand)
+    (for (foreign memory membuffers types) expand run)
     (for (foreign memory memblocks) expand run))
 
 

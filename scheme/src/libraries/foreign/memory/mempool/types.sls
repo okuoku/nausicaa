@@ -36,7 +36,7 @@
     (rename (<memblock>-pointer	<mempool>-pointer)
 	    (<memblock>-size	<mempool>-size)))
   (import (rnrs)
-    (foreign memory memblock))
+    (foreign memory memblocks))
 
   (define-record-type <mempool>
     (parent <memblock>)

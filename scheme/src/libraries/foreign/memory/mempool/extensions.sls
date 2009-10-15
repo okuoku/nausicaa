@@ -30,7 +30,7 @@
   (import (rnrs)
     (records)
     (foreign memory pointers)
-    (for (foreign memory mempool types) expand))
+    (for (foreign memory mempool types) expand run))
 
   (define (%mempool-free-size pool)
     (with-record-fields (((pointer pointer-free size) <mempool> pool))

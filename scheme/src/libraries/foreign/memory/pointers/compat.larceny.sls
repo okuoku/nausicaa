@@ -32,7 +32,9 @@
     pointer-diff			pointer-add
     pointer=?				pointer<>?
     pointer<?				pointer>?
-    pointer<=?				pointer>=?)
+    pointer<=?				pointer>=?
+
+    retval->pointer)
   (import (rnrs)
     (primitives foreign-procedure
 		%peek8 %peek8u %peek16 %peek16u %peek32 %peek32u %peek-pointer

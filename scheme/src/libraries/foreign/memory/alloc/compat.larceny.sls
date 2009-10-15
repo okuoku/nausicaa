@@ -31,8 +31,9 @@
     platform-free	platform-malloc
     platform-calloc	platform-realloc)
   (import (rnrs)
-    (primitives foreign-procedure retval->pointer)
-    (foreign memory pointers))
+    (primitives foreign-procedure)
+    (foreign memory pointers)
+    (only (foreign memory pointers compat) retval->pointer))
 
 
 ;;;; low level allocation functions
