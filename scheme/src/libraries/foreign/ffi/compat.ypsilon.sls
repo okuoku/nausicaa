@@ -31,28 +31,27 @@
 ;;;OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-;;;; setup
-
 (library (foreign ffi compat)
   (export
-
-    ;;shared object loading
     shared-object primitive-open-shared-object self-shared-object
-
-    ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno
-
     errno)
-  (import (rename (core)
-		  (shared-object-errno errno))
-    (ypsilon ffi)
+  (import (rnrs)
+    (only (core)
+	  make-parameter)
+    (rename (only (ypsilon ffi)
+		  load-shared-object lookup-shared-object
+		  shared-object-errno make-cdecl-callout)
+	    (shared-object-errno errno))
     (foreign ffi sizeof)
-    (foreign memory))
+    (only (foreign memory pointers)
+	  pointer? integer->pointer pointer->integer))
 
 
 ;;;; dynamic loading
 
-(define self-shared-object (load-shared-object ""))
+(define self-shared-object
+  (load-shared-object ""))
 
 (define shared-object
   (make-parameter self-shared-object))
@@ -60,12 +59,11 @@
 ;;In case of error this raises an exception automatically.
 (define primitive-open-shared-object load-shared-object)
 
-
 
-;;;; value normalisation: scheme -> c language
-
-;;;The following mapping functions  are normalisators from Scheme values
-;;;to values usable by the C language interface functions.
+;;;; value normalisation: scheme -> C language
+;;
+;;The following  mapping functions are normalisators  from Scheme values
+;;to values usable by the C language interface functions.
 
 (define (assert-int value)
   (if (and (integer? value)
@@ -74,6 +72,8 @@
     (assertion-violation 'assert-int
       "expected exact integer as function argument" value)))
 
+;;Floating point values of type "float" are unsupported by Ypsilon.
+;;
 ;; (define (assert-float value)
 ;;   (if (flonum? value)
 ;;       (flonum->float value)
@@ -112,20 +112,20 @@
 
 
 ;;;; values normalisation: Foreign -> Ypsilon
-
-;;;This mapping function normalises  the C type identifiers supported by
-;;;Nausicaa  to  the  identifiers  supported by  Ypsilon.   Notice  that
-;;;currently there is no support for "char".
-;;;
-;;;Care  must  be  taken  in  selecting  types,  because:
-;;;
-;;;* Selecting "void*" as Ypsilon  type will cause Ypsilon to allocate a
-;;;  bytevector and use as value.
-;;;
-;;;* Selecting "char*" as Ypsilon  type will cause Ypsilon to allocate a
-;;;  string and use it as value.
-;;;
-(define (external->internal type)
+;;
+;;This mapping  function normalises the C type  identifiers supported by
+;;Nausicaa  to  the  identifiers  supported  by  Ypsilon.   Notice  that
+;;currently there is no support for "char".
+;;
+;;Care  must  be  taken  in  selecting  types,  because:
+;;
+;;* Selecting "void*"  as Ypsilon type will cause  Ypsilon to allocate a
+;;  bytevector and use it as value.
+;;
+;;* Selecting "char*"  as Ypsilon type will cause  Ypsilon to allocate a
+;;  string and use it as value.
+;;
+(define (nausicaa-type->ypsilon-type type)
   (case type
     ((void)
      'void)
@@ -150,7 +150,7 @@
     ((callback)
      'void*)
     (else
-     (assertion-violation 'external->internal
+     (assertion-violation 'nausicaa-type->ypsilon-type
        "unknown C language type identifier" type))))
 
 (define (select-retval-type-mapper ret-type)
@@ -159,11 +159,12 @@
     (lambda (x) x)))
 
 (define (select-argument-type-mapper arg-type)
-  (case (external->internal arg-type)
+  (case (nausicaa-type->ypsilon-type arg-type)
     ((void)
      (lambda (x) x))
     ((int unsigned-int size_t long unsigned-long)
      assert-int)
+;;Floating point values of type "float" are unsupported by Ypsilon.
 ;;     ((float)
 ;;      assert-float)
     ((double float)
@@ -180,10 +181,10 @@
 ;;;; interface functions, no errno
 
 (define (primitive-make-c-function ret-type funcname arg-types)
-  (let* ((ret-type		(external->internal ret-type))
+  (let* ((ret-type		(nausicaa-type->ypsilon-type ret-type))
 	 (arg-types		(if (equal? '(void) arg-types)
 				    '()
-				  (map external->internal arg-types)))
+				  (map nausicaa-type->ypsilon-type arg-types)))
 	 (address		(lookup-shared-object (shared-object) funcname))
 	 (closure		(make-cdecl-callout ret-type arg-types address))
 	 (retval-mapper		(select-retval-type-mapper ret-type))
@@ -228,10 +229,10 @@
 ;;;; interface functions, with errno
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
-  (let* ((ret-type		(external->internal ret-type))
+  (let* ((ret-type		(nausicaa-type->ypsilon-type ret-type))
 	 (arg-types		(if (equal? '(void) arg-types)
 				    '()
-				  (map external->internal arg-types)))
+				  (map nausicaa-type->ypsilon-type arg-types)))
 	 (address		(lookup-shared-object (shared-object) funcname))
 	 (closure		(make-cdecl-callout ret-type arg-types address))
 	 (retval-mapper		(select-retval-type-mapper ret-type))

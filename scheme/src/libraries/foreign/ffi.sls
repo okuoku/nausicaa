@@ -43,27 +43,21 @@
     define-c-struct-getter		define-c-struct-setter
     define-c-struct-field-pointer-getter)
 
-  (import (nausicaa)
-    (foreign memory)
-    (foreign ffi compat))
+  (import (rnrs)
+    (only (foreign ffi compat)
+	  shared-object primitive-open-shared-object self-shared-object
+	  primitive-make-c-function primitive-make-c-function/with-errno
+	  errno))
 
 
-;;;; dynamic loading
-
 (define (open-shared-object library-name)
   (primitive-open-shared-object (if (symbol? library-name)
 				    (symbol->string library-name)
 				  library-name)))
 
-
-
-;;;; function interface
-
 (define-syntax make-c-function
-  (lambda (use-stx)
-    ;;*WARNING* This function MUST be in  the body of the macro.  Do not
-    ;;factorise it out.
-    (define (quote-if-predefined-type arg-stx)
+  (lambda (stx)
+    (define (%quote-if-predefined-type arg-stx)
       (if (memq (syntax->datum arg-stx)
 		'(void
 		  char schar signed-char uchar unsigned-char
@@ -72,21 +66,15 @@
 		  pointer void* char* FILE* callback))
 	  (list (syntax quote) arg-stx)
 	arg-stx))
-    (syntax-case use-stx ()
+    (syntax-case stx ()
       ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-       (with-syntax
-	   ((ret	(quote-if-predefined-type (syntax ?ret-type)))
-	    (args	(cons (syntax list)
-			      (map quote-if-predefined-type
-				(syntax (?arg-type0 ?arg-type ...))))))
-	 (syntax
-	  (primitive-make-c-function ret '?funcname args)))))))
+       (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
+		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive-make-c-function ret '?funcname (list arg ...)))))))
 
 (define-syntax make-c-function/with-errno
-  (lambda (use-stx)
-    ;;*WARNING* This function MUST be in  the body of the macro.  Do not
-    ;;factorise it out.
-    (define (quote-if-predefined-type arg-stx)
+  (lambda (stx)
+    (define (%quote-if-predefined-type arg-stx)
       (if (memq (syntax->datum arg-stx)
 		'(void
 		  char schar signed-char uchar unsigned-char
@@ -95,30 +83,23 @@
 		  pointer void* char* FILE* callback))
 	  (list (syntax quote) arg-stx)
 	arg-stx))
-    (syntax-case use-stx ()
+    (syntax-case stx ()
       ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-       (with-syntax
-	   ((ret	(quote-if-predefined-type (syntax ?ret-type)))
-	    (args	(cons (syntax list)
-			      (map quote-if-predefined-type
-				(syntax (?arg-type0 ?arg-type ...))))))
-	 (syntax
-	  (primitive-make-c-function/with-errno ret '?funcname args)))))))
+       (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
+		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive-make-c-function/with-errno ret '?funcname (list arg ...)))))))
 
 (define-syntax define-c-function
   (syntax-rules ()
     ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
      (define ?name
-       (make-c-function
-	?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
+       (make-c-function ?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
 
 (define-syntax define-c-function/with-errno
   (syntax-rules ()
     ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
      (define ?name
-       (make-c-function/with-errno
-	?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
-
+       (make-c-function/with-errno ?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
 
 
 ;;;; foreign structures accessors
@@ -135,51 +116,44 @@
     (syntax-case use-stx ()
       ((_ ?getter-name ?field-offset ?foreign-type-getter)
        (if (syntax->datum (syntax ?field-offset))
-	   (syntax
-	    (define-syntax ?getter-name
-	      (syntax-rules ()
-		((_ struct-pointer)
-		 (?foreign-type-getter struct-pointer
-				       ?field-offset)))))
-	 (syntax
-	  (define-syntax ?getter-name
-	    (syntax-rules ()
-	      ((_ struct-pointer)
-	       (raise-unimplemented-error (quote ?getter-name)))))))))))
+	   #'(define-syntax ?getter-name
+	       (syntax-rules ()
+		 ((_ struct-pointer)
+		  (?foreign-type-getter struct-pointer ?field-offset))))
+	 #'(define-syntax ?getter-name
+	     (syntax-rules ()
+	       ((_ struct-pointer)
+		(raise-unimplemented-error (quote ?getter-name))))))))))
 
 (define-syntax define-c-struct-setter
   (lambda (use-stx)
     (syntax-case use-stx ()
       ((_ ?setter-name ?field-offset ?foreign-type-setter)
        (if (syntax->datum (syntax ?field-offset))
-	   (syntax
-	    (define-syntax ?setter-name
-	      (syntax-rules ()
-		((_ struct-pointer value)
-		 (?foreign-type-setter struct-pointer
-				       ?field-offset
-				       value)))))
-	 (syntax
-	  (define-syntax ?setter-name
-	    (syntax-rules ()
-	      ((_ struct-pointer value)
-	       (raise-unimplemented-error (quote ?setter-name)))))))))))
+	   #'(define-syntax ?setter-name
+	       (syntax-rules ()
+		 ((_ struct-pointer value)
+		  (?foreign-type-setter struct-pointer
+					?field-offset
+					value))))
+	 #'(define-syntax ?setter-name
+	     (syntax-rules ()
+	       ((_ struct-pointer value)
+		(raise-unimplemented-error (quote ?setter-name))))))))))
 
 (define-syntax define-c-struct-field-pointer-getter
   (lambda (use-stx)
     (syntax-case use-stx ()
       ((_ ?getter-name ?field-offset)
        (if (syntax->datum (syntax ?field-offset))
-	   (syntax
-	    (define-syntax ?getter-name
-	      (syntax-rules ()
-		((_ struct-pointer)
-		 (pointer-add struct-pointer ?field-offset)))))
-	 (syntax
-	  (define-syntax ?setter-name
-	    (syntax-rules ()
-	      ((_ struct-pointer)
-	       (raise-unimplemented-error (quote ?setter-name)))))))))))
+	   #'(define-syntax ?getter-name
+	       (syntax-rules ()
+		 ((_ struct-pointer)
+		  (pointer-add struct-pointer ?field-offset))))
+	 #'(define-syntax ?setter-name
+	     (syntax-rules ()
+	       ((_ struct-pointer)
+		(raise-unimplemented-error (quote ?setter-name))))))))))
 
 
 ;;;; done

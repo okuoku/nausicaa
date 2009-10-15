@@ -29,24 +29,15 @@
 ;;;OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-;;;; setup
-
 (library (foreign ffi compat)
   (export
-
-    ;;shared object loading
     shared-object primitive-open-shared-object self-shared-object
-
-    ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno
-
     errno)
-  (import (nausicaa)
-    (primitives
-     foreign-file foreign-procedure get-errno set-errno!
-     syscall)
-    (foreign ffi sizeof)
-    (foreign memory))
+  (import (rnrs)
+    (primitives make-parameter
+		foreign-file foreign-procedure
+		get-errno set-errno!))
 
 
 ;;;; dynamic loading
@@ -63,7 +54,7 @@
 
 ;;;; values normalisation: Foreign -> Larceny
 
-(define (external->internal type)
+(define (nausicaa-type->larceny-type type)
   (case type
     ((void)
      'void)
@@ -84,11 +75,11 @@
     ((callback)
      '(maybe void*))
     (else
-     (assertion-violation 'make-c-function
+     (assertion-violation 'primitive-make-c-function
        "unknown C language type identifier" type))))
 
 
-;;;; interface functions
+;;;; callout closures
 
 (define errno
   (case-lambda
@@ -98,11 +89,13 @@
     (get-errno))))
 
 (define (primitive-make-c-function ret-type funcname arg-types)
-  (foreign-procedure (symbol->string/maybe funcname)
+  (foreign-procedure (if (string? funcname)
+			 funcname
+		       (symbol->string funcname))
 		     (if (equal? '(void) arg-types)
 			 '()
-		       (map external->internal arg-types))
-		     (external->internal ret-type)))
+		       (map nausicaa-type->larceny-type arg-types))
+		     (nausicaa-type->larceny-type ret-type)))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
@@ -111,11 +104,10 @@
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
       ;;call.
       (let* ((retval	(begin
-			  (set-errno! 0)
+			  (errno 0)
 			  (apply f args)))
-	     (errval	(get-errno)))
+	     (errval	(errno)))
 	(values retval errval)))))
-
 
 
 ;;;; done

@@ -26,23 +26,22 @@
 
 (library (foreign ffi compat)
   (export
-
-    ;;shared object loading
     shared-object primitive-open-shared-object self-shared-object
-
-    ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno
-
-    (rename (shared-errno errno)))
+    errno)
   (import (rnrs)
-    (mosh ffi)
-    (foreign ffi sizeof)
-    (parameters))
+    (only (system)
+	  make-parameter)
+    (rename (only (mosh ffi)
+		  open-shared-library make-c-function
+		  shared-errno)
+	    (shared-errno errno)))
 
 
 ;;;; dynamic loading
 
-(define self-shared-object (open-shared-library ""))
+(define self-shared-object
+  (open-shared-library ""))
 
 (define shared-object
   (make-parameter self-shared-object))
@@ -52,15 +51,15 @@
 
 
 ;;;; values normalisation: Foreign -> Mosh
-;;;
-;;;According to "lib/mosh/ffi.ss" (Fri Jul 3, 2009):
-;;;
-;;;* The accepted return values are: void*, char*, int, double, void.
-;;;
-;;;* The accepted arguments are:     void*, char*, int, double.
-;;;
+;;
+;;According to "lib/mosh/ffi.ss" (Fri Jul 3, 2009):
+;;
+;;* The accepted return values are: void*, char*, int, double, void.
+;;
+;;* The accepted arguments are:     void*, char*, int, double.
+;;
 
-(define (external->internal type)
+(define (nausicaa-type->mosh-type type)
   (case type
     ((void)
      'void)
@@ -83,9 +82,9 @@
 
 (define (primitive-make-c-function ret-type funcname arg-types)
   (make-c-function (shared-object)
-		   (external->internal ret-type)
+		   (nausicaa-type->mosh-type ret-type)
 		   funcname
-		   (map external->internal arg-types)))
+		   (map nausicaa-type->mosh-type arg-types)))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
@@ -94,9 +93,9 @@
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
       ;;call.
       (let* ((retval	(begin
-			  (shared-errno 0)
+			  (errno 0)
 			  (apply f args)))
-	     (errval	(shared-errno)))
+	     (errval	(errno)))
 	(values retval errval)))))
 
 

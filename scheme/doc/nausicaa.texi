@@ -53033,26 +53033,25 @@ Pointer to a callback function.
 No value.
 @end table
 
-
 @c page
 @node ffi call out
 @subsubsection Calling foreign functions
 
 
-@defun primitive-c-function @var{ret-type} @var{export-name} @var{arg-types}
-@defunx primitive-c-function/with-errno @var{ret-type} @var{export-name} @var{arg-types}
+@defun primitive-make-c-function @var{ret-type} @var{export-name} @var{arg-types}
+@defunx primitive-make-c-function/with-errno @var{ret-type} @var{export-name} @var{arg-types}
 Build and return a new Scheme interface function for a C language
 foreign function in the current shared object.  The current shared
-object is referenced by the value of the @code{shared-object} parameter.
+object is referenced by the value of the @samp{shared-object} parameter.
 
-The @code{/with-errno} variant returns two values: the return value from
-the foreign function and the value of the @code{errno} variable just
+The @samp{/with-errno} variant returns two values: the return value from
+the foreign function and the value of the @samp{errno} variable just
 after the call to the foreign function.
 
 @quotation
-@emph{Note:} Some @posix{} function returns an integer representing
+@strong{NOTE} Some @posix{} function returns an integer representing
 success or failure, and only when the returned value represents failure
-the @code{errno} value is meaningful.
+the @samp{errno} value is meaningful.
 @end quotation
 
 @table @var
@@ -53060,7 +53059,7 @@ the @code{errno} value is meaningful.
 A symbol among the ones that select a C language type.  It is the type
 of value returned by the foreign function.
 
-@item pri-name
+@item export-name
 A Scheme symbol representing the name of the symbol exported by the
 shared object.  Beware that, sometimes, the exported symbols are
 different from the ones we write in C language code to call a function.
@@ -53068,11 +53067,11 @@ different from the ones we write in C language code to call a function.
 @item arg-types
 A list of symbols among the ones that select a C language type.  It is
 the list of types for the arguments required by the foreign function.
-If the foreign function accepts no arguments: this list must be @code{(void)}.
+If the foreign function accepts no arguments: this list must be @samp{(void)}.
 @end table
 
 @quotation
-@emph{Unix:} One way to discover the names of symbols exported by a
+@strong{For Unix} One way to discover the names of symbols exported by a
 shared object, is to apply the @command{strings} command to the shared
 object.  For example, to discover the names of deflate functions in
 Zlib:
@@ -53107,16 +53106,14 @@ As an example, the main deflate functions from Zlib can be defined with:
 @end defun
 
 
-@deffn Syntax make-c-function @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
-@deffnx Syntax make-c-function/with-errno @var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...)
-@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
-@deffnx Syntax define-c-function/with-errno @var{pub-name} (@var{ret-type} @var{pri-name} (@var{arg-type0} @var{arg-type} ...))
+@deffn Syntax make-c-function @var{ret-type} @var{export-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax make-c-function/with-errno @var{ret-type} @var{export-name} (@var{arg-type0} @var{arg-type} ...)
+@deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{export-name} (@var{arg-type0} @var{arg-type} ...))
+@deffnx Syntax define-c-function/with-errno @var{pub-name} (@var{ret-type} @var{export-name} (@var{arg-type0} @var{arg-type} ...))
 These are wrappers for @func{primitive-make-c-function} that allow us to
 avoid quoting of arguments.  @func{define-c-function} is itself a
-wrapper for @func{make-c-function}.
-
-The @code{/with-errno} variants are wrappers for
-@func{primitive-c-function/with-errno}.
+wrapper for @func{make-c-function}.  The @samp{/with-errno} variants are
+wrappers for @func{primitive-c-function/with-errno}.
 
 As an example, the main deflate functions from Zlib can be defined with:
 
@@ -53150,11 +53147,11 @@ or with:
 @end example
 
 @noindent
-and notice that: in the expansion of the macros, the predefined types
-(like @code{int}) will be quoted, while the custom types (like
-@code{zstream}) will be left unquoted and so they will correctly
-reference bindings (in the example @code{zstream} evaluates to
-@code{pointer}).
+and notice that, in the expansion of the macros, the predefined types
+(like @samp{int}) will be quoted, while the custom types (like
+@samp{zstream}) will be left unquoted and so they will correctly
+reference bindings (in the example @samp{zstream} evaluates to
+@samp{pointer}).
 @end deffn
 
 

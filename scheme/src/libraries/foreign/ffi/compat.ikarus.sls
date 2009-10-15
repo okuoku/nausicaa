@@ -23,29 +23,26 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
 (library (foreign ffi compat)
   (export
-
-    ;;loading shared objects
     shared-object primitive-open-shared-object self-shared-object
-
-    ;;interface functions
     primitive-make-c-function primitive-make-c-function/with-errno
     primitive-make-c-callback
-
     errno)
-  (import (ikarus)
-    (rename (ikarus foreign)
+  (import (rnrs)
+    (only (ikarus)
+	  make-parameter)
+    (rename (only (ikarus foreign)
+		  dlopen dlsym dlerror
+		  make-c-callout make-c-callback
+		  errno pointer-set-c-int!)
 	    (errno ikarus:errno)))
 
 
-;;;;  values normalisation: Foreign -> Ikarus
+;;;; values normalisation: Foreign -> Ikarus
 
-(define (external->internal type)
+(define (nausicaa-type->ikarus-type type)
   (case type
     ((char schar signed-char)
      'signed-char)
@@ -79,32 +76,40 @@
   (make-parameter self-shared-object))
 
 (define (primitive-open-shared-object library-name)
+  ;;Wrapper for DLOPEN that raises an exception if failure.
+  ;;
   (let ((l (dlopen library-name)))
-    (or l (error 'primitive-open-symbol-table
-	    (dlerror) library-name))))
-
-(define make-c-callout-maybe
-  (letrec ((signature-hash
-	    (lambda (obj)
-	      (let ((h (abs (apply + (map symbol-hash obj)))))
-		h)))
-	   (callout-table
-	    (make-hashtable signature-hash equal?)))
-    (lambda (spec)
-      (let* ((signature (map external->internal spec))
-	     (f (hashtable-ref callout-table signature #f)))
-	(or f (let* ((f (make-c-callout (car signature)
-					(if (equal? '(void) (cdr signature))
-					    '()
-					  (cdr signature)))))
-		(hashtable-set! callout-table signature f)
-		f))))))
+    (or l (error 'primitive-open-shared-object (dlerror) library-name))))
 
 (define (primitive-make-c-function ret-type funcname arg-types)
   (let ((f (dlsym (shared-object) (symbol->string funcname))))
-    (unless f
-      (error 'primitive-make-c-function (dlerror) funcname))
-    ((make-c-callout-maybe (cons ret-type arg-types)) f)))
+    (if f
+	((%make-c-callout-maker (cons ret-type arg-types)) f)
+      (error 'primitive-make-c-function (dlerror) funcname))))
+
+(define %make-c-callout-maker
+  ;;Given a  signature of types,  create a callout  closure constructor;
+  ;;cache the closure constructors to avoid duplication.
+  ;;
+  ;;The signature is a list of  Scheme symbols, so it requires an ad hoc
+  ;;hash function.  There are better hash functions than SIGNATURE-HASH,
+  ;;but speed is also important.
+  ;;
+  (letrec ((signature-hash	(lambda (obj)
+				  (abs (apply + (map symbol-hash obj)))))
+	   (callout-maker-table	(make-hashtable signature-hash equal?)))
+    (lambda (spec)
+      (let* ((signature		(map nausicaa-type->ikarus-type spec))
+	     (callout-maker	(hashtable-ref callout-maker-table signature #f)))
+	(or callout-maker
+	    (let* ((ret-type	(car signature))
+		   (arg-types	(cdr signature))
+		   (callout-maker (make-c-callout ret-type
+						  (if (equal? '(void) arg-types)
+						      '()
+						    arg-types))))
+	      (hashtable-set! callout-maker-table signature callout-maker)
+	      callout-maker))))))
 
 (define __errno_location
   (primitive-make-c-function 'pointer '__errno_location '(void)))
@@ -117,41 +122,46 @@
      (ikarus:errno))))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
-  (let ((f (primitive-make-c-function ret-type funcname arg-types)))
+  (let ((callout-closure (primitive-make-c-function ret-type funcname arg-types)))
     (lambda args
-      ;;We have to use LET* here  to enforce the order of evaluation: we
+      ;;We have to use LET* here  to enforce the order of evaluation: We
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
       ;;call.
       (let* ((retval	(begin
 			  (errno 0)
-			  (apply f args)))
+			  (apply callout-closure args)))
 	     (errval	(errno)))
 	(values retval errval)))))
-
 
 
 ;;;; callbacks
 
-(define make-c-callback-maybe
-  (letrec ((signature-hash
-	    (lambda (obj)
-	      (let ((h (abs (apply + (map symbol-hash obj)))))
-		h)))
-	   (callout-table
-	    (make-hashtable signature-hash equal?)))
-    (lambda (spec)
-      (let* ((signature (map external->internal spec))
-	     (f (hashtable-ref callout-table signature #f)))
-	(or f (let* ((f (make-c-callout (car signature)
-					(if (equal? '(void) (cdr signature))
-					    '()
-					  (cdr signature)))))
-		(hashtable-set! callout-table signature f)
-		f))))))
-
 (define (primitive-make-c-callback scheme-function ret-type arg-types)
-  ((make-c-callout-maybe (cons ret-type arg-types)) scheme-function))
+  ((%make-c-callback-maker (cons ret-type arg-types)) scheme-function))
 
+(define %make-c-callback-maker
+  ;;Given a  signature of types, create a  callback closure constructor;
+  ;;cache the closure constructors to avoid duplication.
+  ;;
+  ;;The signature is a list of  Scheme symbols, so it requires an ad hoc
+  ;;hash function.  There are better hash functions than SIGNATURE-HASH,
+  ;;but speed is also important.
+  ;;
+  (letrec ((signature-hash		(lambda (obj)
+					  (abs (apply + (map symbol-hash obj)))))
+	   (callback-maker-table	(make-hashtable signature-hash equal?)))
+    (lambda (spec)
+      (let* ((signature		(map nausicaa-type->ikarus-type spec))
+	     (callback-maker	(hashtable-ref callback-maker-table signature #f)))
+	(or callback-maker
+	    (let* ((ret-type	(car signature))
+		   (arg-types	(cdr signature))
+		   (callback-maker (make-c-callback ret-type
+						    (if (equal? '(void) arg-types)
+							'()
+						      arg-types))))
+	      (hashtable-set! callback-maker-table signature callback-maker)
+	      callback-maker))))))
 
 
 ;;;; done

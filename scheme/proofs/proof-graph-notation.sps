@@ -24,10 +24,7 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
 (import (nausicaa)
   (rnrs mutable-pairs (6))
   (checks)
@@ -36,8 +33,8 @@
 (check-set-mode! 'report-failed)
 (display "*** testing graph notation\n")
 
-
 
+
 (check
     '#0=(1 . #0#)
     => (let ((v '(1 . #f)))
