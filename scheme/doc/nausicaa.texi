@@ -553,6 +553,10 @@ Appendices
 * Documentation License::       @gnu{} Free Documentation License.
 * references::                  Bibliography and references.
 
+Extenal documents
+
+* ikarus: (ikarus-nausicaa).    Ikarus Scheme guide.
+
 Indexes
 
 * concept index::               An entry for each concept.
