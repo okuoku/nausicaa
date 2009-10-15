@@ -56,13 +56,16 @@
 
 ;;; helpers
 
-(define-syntax last-pair
+(define-syntax last-pair/stx
+  ;;*WARNING* Do  not rename LAST-PAIR/STX to LAST-PAIR,  it would clash
+  ;;with the LAST-PAIR field of <queue> records.
+  ;;
   (syntax-rules ()
     ((_ ?x)
      (let ((x ?x))
        (if (null? x)
 	   #f
-	 (let loop ((x ?x))
+	 (let loop ((x x))
 	   (if (pair? (cdr x))
 	       (loop (cdr x))
 	     x)))))))
@@ -81,7 +84,7 @@
    (()
     (make-<queue> '() #f))
    (args
-    (make-<queue> args (last-pair args)))))
+    (make-<queue> args (last-pair/stx args)))))
 
 
 (define (queue-push! value que)
@@ -136,9 +139,9 @@
 
 
 (define (%remove remover thing que)
-  (with-fields (((first-pair last-pair) <queue-rtd> que))
+  (with-record-fields (((first-pair last-pair) <queue> que))
     (set! first-pair (remover thing first-pair))
-    (set! last-pair (last-pair first-pair))))
+    (set! last-pair (last-pair/stx first-pair))))
 
 (define (queue-remp! proc que)
   (assert (<queue>? que))
@@ -188,7 +191,7 @@
 (define (list->queue ell)
   (assert (list? ell))
   (let ((ell (list-copy ell)))
-    (make-<queue> ell (last-pair ell))))
+    (make-<queue> ell (last-pair/stx ell))))
 
 (define (queue->vector que)
   (assert (<queue>? que))
@@ -197,7 +200,7 @@
 (define (vector->queue vec)
   (assert (vector? vec))
   (let ((ell (vector->list vec)))
-    (make-<queue> ell (last-pair ell))))
+    (make-<queue> ell (last-pair/stx ell))))
 
 
 ;;;; done
