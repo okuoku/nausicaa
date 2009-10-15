@@ -25,7 +25,10 @@
 
 
 (import (nausicaa)
-  (foreign)
+  (foreign ffi)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign errno)
   (checks)
   (compensations))
 
@@ -134,9 +137,8 @@
   ((primitive-opendir-function) pathname))
 
 
-
 (parameterize ((check-test-name	'conditions)
-	       (debugging	#t))
+	       (debugging	#f))
 
   (check
       (let ((dirname '/scrappy/dappy/doo))
@@ -177,10 +179,9 @@
 	  (opendir pathname)))
     => '(#t primitive-opendir ENOTDIR))
 
-  )
+  #t)
 
 
-
 ;;;WARNING:  these do not  work because  what is  returned by  ERRNO for
 ;;;Ypsilon and  Ikarus is  the value  of the last  "errno" saved  in the
 ;;;internal state variable.
