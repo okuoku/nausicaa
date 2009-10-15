@@ -61,11 +61,8 @@
   (only (compensations))
   (only (object-properties))
   (only (cleanup-handlers))
-
-  ;;Commented out because WITH-FIELDS cannot be serialised.
-  ;;(only (queues))
-  ;;(only (stacks))
-
+  (only (queues))
+  (only (stacks))
   (only (combinators))
   (only (sentinel))
   (only (variables))
@@ -105,17 +102,14 @@
   (only (email addresses parser))
   (only (email addresses))
 
-  ;;Commented out because WITH-FIELDS cannot be serialised.
-  ;; (only (foreign memory))
-  ;; (only (foreign memory mempool))
-  ;; (only (foreign memory refcount))
-  ;; (only (foreign memory membuffers))
-  ;; (only (foreign memory guarded-malloc))
+  (only (foreign memory))
+  (only (foreign memory mempool))
+  (only (foreign memory refcount))
+  (only (foreign memory membuffers))
 
-  ;;Commented out because WITH-FIELDS cannot be serialised.
-  ;; (only (foreign ffi))
-  ;; (only (foreign cstrings))
-  ;; (only (foreign errno))
+  (only (foreign ffi))
+  (only (foreign cstrings))
+  (only (foreign errno))
 
   )
 
