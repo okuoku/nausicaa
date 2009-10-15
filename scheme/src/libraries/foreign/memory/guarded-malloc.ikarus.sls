@@ -28,7 +28,7 @@
   (export malloc/guarded calloc/guarded)
   (import (rnrs)
     (only (foreign memory alloc)
-	  malloc calloc)
+	  malloc calloc primitive-free)
     (only (cleanup-handlers)
 	  register-cleanup-function)
     (only (ikarus)
