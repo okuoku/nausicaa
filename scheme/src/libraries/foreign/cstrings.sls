@@ -23,11 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(library (foreign cstring)
+(library (foreign cstrings)
   (export
 
     ;;inspection
@@ -39,8 +36,8 @@
     strdup			strndup
 
     ;;conversion
-    cstring->string		cstring->string/len
-    string->cstring/c		string->cstring
+    cstring->string		string->cstring
+    string->cstring/c
 
     ;; null-terminated arrays of cstrings
     strings->argv		argv->strings
@@ -109,15 +106,16 @@
 (define (string->cstring/c s)
   (string->cstring s malloc-block/c))
 
-(define (cstring->string/len pointer len)
-  (let* ((bv	(make-bytevector len)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 (utf8->string bv))
-      (bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))
-
-(define (cstring->string pointer)
-  (cstring->string/len pointer (strlen pointer)))
+(define cstring->string
+  (case-lambda
+   ((pointer)
+    (cstring->string pointer (strlen pointer)))
+   ((pointer len)
+    (let* ((bv	(make-bytevector len)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i len)
+	   (utf8->string bv))
+	(bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))))
 
 
 ;;;; null-terminated arrays of strings

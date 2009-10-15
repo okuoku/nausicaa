@@ -27,11 +27,11 @@
 (import (nausicaa)
   (checks)
   (foreign memory)
-  (foreign cstring)
+  (foreign cstrings)
   (compensations))
 
 (check-set-mode! 'report-failed)
-(display "*** testing cstring\n")
+(display "*** testing cstrings\n")
 
 
 (parameterize ((check-test-name 'inspection))
@@ -103,7 +103,8 @@
 	      (b (string->cstring "ciaao" malloc/c)))
 	  (strncmp a b 3)))
     => 0)
-  )
+
+  #t)
 
 
 (parameterize ((check-test-name 'conversion))
@@ -130,31 +131,30 @@
 
   (check
       (with-compensations
-	(cstring->string/len (string->cstring "ciao, hello" malloc/c) 4))
+	(cstring->string (string->cstring "ciao, hello" malloc/c) 4))
     => "ciao")
 
   (check
       (with-compensations
-	(cstring->string/len (string->cstring "ciao, hello" malloc/c) 1))
+	(cstring->string (string->cstring "ciao, hello" malloc/c) 1))
     => "c")
 
   (check
       (with-compensations
-	(cstring->string/len (string->cstring "ciao, hello" malloc/c) 0))
+	(cstring->string (string->cstring "ciao, hello" malloc/c) 0))
     => "")
 
   (check
       (with-compensations
-	(cstring->string/len (string->cstring "ciao, hello" malloc/c) 11))
+	(cstring->string (string->cstring "ciao, hello" malloc/c) 11))
     => "ciao, hello")
 
   (check
       (with-compensations
-	(cstring->string/len (string->cstring/c "ciao, hello") 4))
+	(cstring->string (string->cstring/c "ciao, hello") 4))
     => "ciao")
 
-  )
-
+  #t)
 
 
 (parameterize ((check-test-name 'operations))
@@ -187,7 +187,7 @@
 	(cstring->string (strndup (string->cstring "ciao hello" malloc/c) 4 malloc/c)))
     => "ciao")
 
-)
+  #t)
 
 
 (parameterize ((check-test-name 'argv))
@@ -202,8 +202,7 @@
 	(argv-length (strings->argv '("alpha" "beta" gamma))))
     => 3)
 
-  )
-
+  #t)
 
 
 ;;;; done
